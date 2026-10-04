@@ -199,9 +199,39 @@ public sealed class WolfmedCVars
     public static readonly CVarDef<float> BrainArrestSeconds =
         CVarDef.Create("wolfmed.brain_arrest_seconds", 180f, CVar.SERVERONLY);
 
-    /// <summary>Seconds of not breathing at all that drain brain oxygenation from full to nothing.</summary>
+    /// <summary>
+    /// Seconds of not breathing at all (no air, no lungs) that drain brain oxygenation from full to nothing. Was 180:
+    /// with wolfmed.airloss_full 100 a body with no air stood for three minutes (Downed at 185 s, in arrest at 256), and
+    /// "going out without oxygen takes a long time to die". With 90 and 30, measured: Downed at 76 s, Unconscious at 84,
+    /// in arrest at 111. Never counted while the heart is stopped, which is wolfmed.brain_arrest_seconds' alone.
+    /// </summary>
     public static readonly CVarDef<float> BrainAirlossSeconds =
-        CVarDef.Create("wolfmed.brain_airloss_seconds", 180f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.brain_airloss_seconds", 90f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// The same clock for breathing that goes on but falls short: damaged lungs and a sedative overdose, each at its own
+    /// level. Split from wolfmed.brain_airloss_seconds so that speeding up no air leaves these where they were.
+    /// </summary>
+    public static readonly CVarDef<float> BrainWeakBreathSeconds =
+        CVarDef.Create("wolfmed.brain_weak_breath_seconds", 180f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds of hard vacuum with no pressure suit and no air that drain brain oxygenation from full to nothing: the
+    /// air leaves the lungs at once, with no Asphyxiation ramp. 0 turns the vacuum drain off. Measured, a naked human in
+    /// space: Downed at 29 s, Unconscious at 36, in arrest at 85 (was 75, 126 and 172, all three the cold's). The
+    /// cooling core slows the end: the arrest lands just before the brain's cold protection reaches a tenth, about
+    /// 66 s in, and a slower clock than this puts it past two minutes.
+    /// </summary>
+    public static readonly CVarDef<float> BrainVacuumSeconds =
+        CVarDef.Create("wolfmed.brain_vacuum_seconds", 55f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// The share of the vacuum drain a body still breathing from internals takes: a mask keeps air in the lungs, not
+    /// pressure on the body. 1 makes internals worthless without a suit, 0 makes them a full answer. Measured at 0.75:
+    /// Downed at 39 s, Unconscious at 52, and the cold stops the heart at 172 as before.
+    /// </summary>
+    public static readonly CVarDef<float> BrainVacuumBreathingFactor =
+        CVarDef.Create("wolfmed.brain_vacuum_breathing_factor", 0.75f, CVar.SERVERONLY);
 
     /// <summary>
     /// Seconds at <see cref="BrainBloodFull"/> blood that drain oxygenation from full to nothing. 600 since playtest 5
@@ -368,10 +398,11 @@ public sealed class WolfmedCVars
 
     /// <summary>
     /// Asphyxiation at which a suffocating body counts as not breathing at all. Read only while the respirator
-    /// is actually suffocating; leftover damage on a breathing body is bookkeeping.
+    /// is actually suffocating; leftover damage on a breathing body is bookkeeping. The respirator deals 0.5 a
+    /// second, so 30 is a minute of held breath (was 100, over three).
     /// </summary>
     public static readonly CVarDef<float> AirlossFull =
-        CVarDef.Create("wolfmed.airloss_full", 100f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.airloss_full", 30f, CVar.SERVERONLY);
 
     /// <summary>Brain oxygenation a successful shock or a brain repair leaves at the least.</summary>
     public static readonly CVarDef<float> PostShockOxygenation =

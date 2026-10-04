@@ -70,16 +70,18 @@ public sealed class WolfmedReagentAuditTest : GameTest
 #pragma warning disable RA0002
             respirator.SuffocationCycles = System.Math.Max(1, respirator.SuffocationCycleThreshold);
 #pragma warning restore RA0002
+            // Half of the line where it counts as not breathing at all, whatever that line ships as.
+            var airloss = full * 0.5f;
             SEntMan.System<DamageableSystem>().TryChangeDamage(body,
-                new DamageSpecifier { DamageDict = { ["Asphyxiation"] = FixedPoint2.New(50) } }, ignoreResistances: true);
-            Assert.That(breathing.SuffocationLevel(body), Is.EqualTo(50f / full).Within(0.001f));
+                new DamageSpecifier { DamageDict = { ["Asphyxiation"] = FixedPoint2.New(airloss) } }, ignoreResistances: true);
+            Assert.That(breathing.SuffocationLevel(body), Is.EqualTo(0.5f).Within(0.001f));
 
             var dexalin = Effects("DexalinPlus").OfType<HealthChange>()
                 .First(effect => effect.Damage.DamageDict.GetValueOrDefault("Asphyxiation") < 0);
             for (var tick = 0; tick < 4; tick++)
                 dexalin.Effect(Args(body));
 
-            Assert.That(breathing.SuffocationLevel(body), Is.EqualTo((50f - 4 * 3.5f) / full).Within(0.001f),
+            Assert.That(breathing.SuffocationLevel(body), Is.EqualTo((airloss - 4 * 3.5f) / full).Within(0.001f),
                 "dexalin plus no longer eases a suffocating patient's hypoxia.");
         });
     }

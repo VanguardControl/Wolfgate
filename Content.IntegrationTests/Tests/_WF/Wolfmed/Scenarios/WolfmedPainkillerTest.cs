@@ -151,6 +151,8 @@ public sealed class WolfmedPainkillerTest : GameTest
 
         await Server.WaitPost(() =>
         {
+            // Two minutes of real time: on the bare test map, a vacuum, the bodies would be down to that instead.
+            new WolfmedScenario(SEntMan).SetAir(map.MapUid, true);
             pained = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             bled = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             penA = SEntMan.SpawnEntity(pen, map.GridCoords);

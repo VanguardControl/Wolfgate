@@ -409,6 +409,8 @@ public sealed class WolfmedRevivalTest : GameTest
         {
             SEntMan.GetComponent<Content.Server.Temperature.Components.TemperatureComponent>(warm).CurrentTemperature = 310f;
             SEntMan.GetComponent<Content.Server.Temperature.Components.TemperatureComponent>(cold).CurrentTemperature = 280f;
+            // The brain's cold protection reads the core, which lags a cold skin: cold through, not chilled.
+            SEntMan.System<WolfmedBodyTemperatureSystem>().SetCore(cold, 280f);
 
             var lost = new Dictionary<EntityUid, float>();
             foreach (var body in new[] { warm, cold })

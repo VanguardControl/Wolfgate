@@ -200,6 +200,9 @@ public sealed class WolfmedWoundOverlayTest : GameTest
 
         await Server.WaitAssertion(() =>
         {
+            // The bare test map is a vacuum: its pressure damage lands on a random part, and on the head it left a
+            // bruise the clamp below does not take on.
+            new Scenarios.WolfmedScenario(SEntMan).SetAir(map.MapUid, true);
             body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             head = Part(body, BodyPartType.Head);
             Assert.That(SEntMan.System<WoundSystem>().CreateOrMergeWound(head, "WFWolfmedArterialBleedWound", FixedPoint2.New(10)),

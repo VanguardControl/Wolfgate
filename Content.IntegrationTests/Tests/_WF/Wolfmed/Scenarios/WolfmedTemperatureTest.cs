@@ -492,6 +492,11 @@ public sealed class WolfmedTemperatureTest : GameTest
     public async Task SpaceColdSmokeTest()
     {
         await Pin();
+        // The cold alone: hard vacuum starves a naked brain well before the cold takes it (WolfmedSpaceExposureTest),
+        // and the faster no-air clock would colour the first minute.
+        await OverrideCVar(Side.Server, WolfmedCVars.BrainVacuumSeconds, 0f);
+        await OverrideCVar(Side.Server, WolfmedCVars.BrainAirlossSeconds, 180f);
+        await OverrideCVar(Side.Server, WolfmedCVars.AirlossFull, 100f);
         var map = await Pair.CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid body = default;

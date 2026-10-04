@@ -4903,3 +4903,69 @@ sweeps for the mechanical rules, no local build (CI is the build). What it chang
 Left for after the merge: the merge and trim list for the tests, the duplicated armour coverage and execution blocks,
 the Fluent pass over prototype names, the inert Onyx part-status and circulatory stream code, the paddles refusing a
 destroyed heart, and the gun suicide that spends a round the peek did not measure.
+
+## Space exposure (2026-10-04)
+
+"Let's make space a bit more dangerous, e.g. going out without oxygen, or going out without space suit. Currently takes
+a long time to die."
+
+**Measured before.** A naked human in space was untouched for 75 s: Downed at 75, Unconscious at 126 and in arrest at
+172, all three the cold's. Its brain never ran short out there (oxygenation 0.86 seven minutes in), so it did not die.
+With no oxygen at station pressure: Downed at 185 s, Unconscious at 202, in arrest at 256. Barotrauma filled the
+ambient ceiling (Blunt 168) and did nothing else. By its damage rates (barotrauma's 2.4 a second, the respirator's
+0.5) the same walk before Wolfmed was about 35 s to critical and a little over a minute to dead; derived, not measured.
+
+**Why.** The brain's cold protection read the surface temperature, which in space is under 20 C within two seconds:
+a tenth of every drain before the body was short of anything. And no air ran on the plan's first figures
+(`wolfmed.airloss_full` 100, `wolfmed.brain_airloss_seconds` 180), upstream's slow suffocation.
+
+**What changed.**
+- **The cold protection reads the core** (`WolfmedLifeSystem.ColdFactor`): the M5 core, or the surface if that is
+  warmer; inside a container that protects from cold (the cryo pod, which holds the core still) the surface as before.
+  A cold arrest keeps its tenth; a walk outside starts at full speed, is at half about 33 s in and at a tenth at 66.
+- **Hard vacuum with no pressure suit drains the brain on its own clock**, `wolfmed.brain_vacuum_seconds` 55: the air
+  is gone from the lungs at once, with no Asphyxiation ramp. `WolfmedVacuumSystem` reads exposure once a second with
+  barotrauma's own rule (the containing mixture through the suit's protection, at the low pressure hazard line), marks
+  the body (`WolfmedVacuumComponent`) and tells it once: "Vacuum! Without a pressure suit you will black out in
+  seconds." A body still breathing from internals takes `wolfmed.brain_vacuum_breathing_factor` 0.75 of it: a mask
+  keeps air in the lungs, not pressure on the body. Hypoxia names it (`WolfmedCauseSource.Vacuum`, "vacuum exposure"),
+  and it is a route (`WolfmedRoutes.Vacuum`, the enum widened to 32 bits): "Do first: get them into pressure or a
+  suit, now", ahead of every other aid on the line, and a waiting ghost is told.
+- **No air is faster**: `airloss_full` 30 (a minute of the respirator's 0.5 a second) and `brain_airloss_seconds` 90.
+  Damaged lungs and a sedative overdose keep the old clock under a new name, `wolfmed.brain_weak_breath_seconds` 180,
+  so neither became deadlier.
+- **A stopped heart keeps its own clock.** No air and the vacuum are not counted while in arrest: the respirator
+  suffocates through every arrest, and at the faster clock an arrested brain would drain at twice the arrest rate from
+  a minute in. With the old figures no air could never pass the arrest clock, so nothing moved.
+
+**Measured after** (`WolfmedSpaceExposureTest`, real time, real gear).
+
+| | Downed | Unconscious | Arrest |
+|---|---|---|---|
+| Space, nothing | 29 s | 36 s | 85 s, oxygen |
+| Space, mask and tank, no suit | 39 s | 52 s | 172 s, cold |
+| EVA suit and helmet, no air | 76 s | 84 s | 111 s, oxygen |
+| A room of nitrogen | 76 s | 84 s | 111 s, oxygen |
+| EVA suit, helmet, mask and tank | never | | |
+
+Twenty seconds of vacuum leaves 0.70; four seconds into air the exposure has ended, and half a minute later the brain
+is back to 0.79. After the arrest a body in space keeps for a long time: the core is under 20 C by then, and the
+arrested brain lost 0.11 in three and a half minutes.
+
+**Left alone.** The rescue window after an arrest (`brain_arrest_seconds` 180, `brain_damage_rate` 0.05), the cold
+route (`core_cooling_seconds` 900), barotrauma's damage and its ceiling. The space arrest sits just ahead of the
+brain's tenth at 66 s: a vacuum clock of 60 put it at 125 s, 55 at 85. Dexalin still eases a patient who is not
+breathing, a little later than it did: it has to bring the Asphyxiation under 30 first, not under 100.
+
+**Tests.** `WolfmedSpaceExposureTest` (seven cases). `SpaceColdSmokeTest` turns the vacuum drain off to keep measuring the
+cold alone; `ColdBrainTest` chills the core as well as the skin; `DexalinEasesSuffocationTest` reads the line instead
+of assuming 100. `PainkillerPenTest` and `ArteryOverlayTest` ran on the bare test map, which is a vacuum, and now have
+air.
+
+**Found on the way: the avali still gibbed at Blunt 400.** D22 moved the gib to 1500 on the base species, the IPC, the
+shadekin and the Proto subspecies; the avali's own `Destructible` kept 400 and its Heat 1500 body ash. A wound host's
+body damage is the sum of its parts, so an avali was gibbed by damage a human only bleeds from, and a medical bounty
+that rolled the top of a 400 Blunt range was deleted as it spawned (it failed `NoBountyComesUpFreeOnAnySpeciesTest`
+once in the verification run, on a 400 roll). Both now match the others: Blunt 1500, no Heat ash (OD12).
+`WorstRollKeepsItsBodyTest` gives every species every fitting bounty at the top of its ranges and finds every body
+still there; with the old threshold it names the avali.

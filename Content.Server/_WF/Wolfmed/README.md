@@ -93,6 +93,8 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedSpawnInjuryComponent.cs`](Life/WolfmedSpawnInjuryComponent.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedSpawnInjurySystem.cs`](Life/WolfmedSpawnInjurySystem.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedToxinSystem.cs`](Life/WolfmedToxinSystem.cs)
+- [`Content.Server/_WF/Wolfmed/Life/WolfmedVacuumComponent.cs`](Life/WolfmedVacuumComponent.cs)
+- [`Content.Server/_WF/Wolfmed/Life/WolfmedVacuumSystem.cs`](Life/WolfmedVacuumSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/HealingSystem.Wolfmed.cs`](Medical/HealingSystem.Wolfmed.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Autodoc.cs`](Medical/HealthAnalyzerSystem.Autodoc.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Vitals.cs`](Medical/HealthAnalyzerSystem.Vitals.cs)
@@ -353,6 +355,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedScenario.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedScenario.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSepsisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSepsisTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSpaceExposureTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSpaceExposureTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSpeciesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSpeciesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedStumpPainTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedStumpPainTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs)
@@ -1773,7 +1776,9 @@ Skipped ("dirty-disposed").
   - AUTODOC5: one close chain serves every part, so "ribcage" was on the head too
   - PROTO G, P4-D21: cauterise, close and roll surgery.scar_chance on the incision wound
   - PROTO G, P4-D21: the wound surgeries end here, so this closes the incision they opened
-- [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml): the Starlight teleport sound never shipped here, and the client logged an error every stasis.
+- [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml)
+  - D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed, as on every other wound host
+  - the Starlight teleport sound never shipped here, and the client logged an error every stasis.
 - [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml)
   - M4, OD16: shadekin is a wound host, so Wolfmed decides its state.
   - M4, D29: passive regen is neutralised on a wound host, as BaseMobSpeciesOrganic's is.
