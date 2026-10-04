@@ -99,6 +99,7 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WF/Wolfmed/Medical/HealthAnalyzerSystem.Wolfmed.cs`](Medical/HealthAnalyzerSystem.Wolfmed.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WeldingHealableSystem.Wolfmed.cs`](Medical/WeldingHealableSystem.Wolfmed.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedAntisepticSpraySystem.cs`](Medical/WolfmedAntisepticSpraySystem.cs)
+- [`Content.Server/_WF/Wolfmed/Medical/WolfmedBrainMendSystem.cs`](Medical/WolfmedBrainMendSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedFluidPackSystem.cs`](Medical/WolfmedFluidPackSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedIvDripSystem.cs`](Medical/WolfmedIvDripSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedOralAbsorptionSystem.cs`](Medical/WolfmedOralAbsorptionSystem.cs)
@@ -195,6 +196,7 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/_WF/Wolfmed/EntityEffects/WashChemicalBurns.cs`](../../../Content.Shared/_WF/Wolfmed/EntityEffects/WashChemicalBurns.cs)
 - [`Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedCleanWounds.cs`](../../../Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedCleanWounds.cs)
 - [`Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedCoolOverheating.cs`](../../../Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedCoolOverheating.cs)
+- [`Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedMendBrain.cs`](../../../Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedMendBrain.cs)
 - [`Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedTreatInfection.cs`](../../../Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedTreatInfection.cs)
 - [`Content.Shared/_WF/Wolfmed/Examine/WolfmedLookPrototypes.cs`](../../../Content.Shared/_WF/Wolfmed/Examine/WolfmedLookPrototypes.cs)
 - [`Content.Shared/_WF/Wolfmed/Examine/WolfmedLookReport.cs`](../../../Content.Shared/_WF/Wolfmed/Examine/WolfmedLookReport.cs)
@@ -396,6 +398,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLocaleCoverageTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLostHandVisualsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedLostHandVisualsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMakeshiftTourniquetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMakeshiftTourniquetTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMannitolTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMannitolTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMedicalPatchTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMedicalPatchTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs)
@@ -1942,6 +1945,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Reagents/medicine.yml`](../../../Resources/Prototypes/Reagents/medicine.yml)
   - PROTO I: Onyx's \<Onyx-PartPain> block on Bicaridine. Group is Medicine, not Onyx's
   - CONSC: painkiller tier. Stimulant: this is what an emergency medipen already carries,
+  - restores a damaged brain that still works, as its description says
 - [`Resources/Prototypes/Reagents/narcotics.yml`](../../../Resources/Prototypes/Reagents/narcotics.yml)
   - PROTO J: Onyx's \<Onyx-PartPain> block on Desoxyephedrine. Group is Narcotic, not Onyx's
   - CONSC: painkiller tier. Stimulant: keeps a body on its feet however bad the pain is,
