@@ -169,6 +169,54 @@ public sealed class CarcinomaInfestationTest
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();
     }
+    /// <summary>Off a planet a hive grows as upstream has it: past the per-hull cap, and across onto a docked grid.</summary>
+    [Test]
+    public async Task AHiveOffAPlanetIsNotCappedOrKeptToOneGrid()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var hull = await BuildDebris(pair, map.MapId, 7, new Vector2(20f, 20f));
+        var other = await BuildDebris(pair, map.MapId, 7, new Vector2(40f, 20f));
+        await MapInitHull(pair, hull);
+        await MapInitHull(pair, other);
+
+        await server.WaitAssertion(() =>
+        {
+            var flesh = em.SpawnEntity("ChimeraFleshKudzu", new EntityCoordinates(hull, new Vector2(3.5f)));
+            em.RunMapInit(flesh, em.GetComponent<MetaDataComponent>(flesh));
+            var maps = server.System<SharedMapSystem>();
+            var grid = em.GetComponent<MapGridComponent>(hull);
+            var otherGrid = em.GetComponent<MapGridComponent>(other);
+            var ev = new SpreadNeighborsEvent
+            {
+                Updates = 0,
+                Neighbors = new(),
+                NeighborFreeTiles = new()
+                {
+                    (grid, maps.GetTileRef(hull, grid, new Vector2i(4, 3))),
+                    (otherGrid, maps.GetTileRef(other, otherGrid, new Vector2i(3, 3)))
+                }
+            };
+            em.EventBus.RaiseLocalEvent(flesh, ref ev);
+            Assert.That(ev.NeighborFreeTiles.Count, Is.EqualTo(2), "Off a planet the hive was kept from spreading onto another grid.");
+
+            for (var i = 0; i < WFPlanetBiomassSystem.MaxHullBiomass + 8; i++)
+            {
+                var extra = em.SpawnEntity("ChimeraFleshKudzu", new EntityCoordinates(hull, new Vector2(2.5f)));
+                em.RunMapInit(extra, em.GetComponent<MetaDataComponent>(extra));
+            }
+        });
+        await pair.RunTicksSync(3);
+
+        await server.WaitAssertion(() =>
+            Assert.That(server.System<WFPlanetBiomassSystem>().HullCount(hull), Is.GreaterThan(WFPlanetBiomassSystem.MaxHullBiomass),
+                "Off a planet the hive was capped."));
+
+        await pair.CleanReturnAsync();
+    }
+
     private static async Task<MapId> MapIdOf(TestPair pair, EntityUid layer)
     {
         var mapId = MapId.Nullspace;

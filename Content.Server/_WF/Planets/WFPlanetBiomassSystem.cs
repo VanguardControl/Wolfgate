@@ -1,4 +1,5 @@
 using Content.Server.Spreader;
+using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.Planets;
 using Robust.Shared.Map.Components;
 
@@ -8,7 +9,10 @@ namespace Content.Server._WF.Planets;
 [RegisterComponent]
 public sealed partial class WFPlanetBiomassRestrictionComponent : Component;
 
-/// <summary>Keeps chimera biomass growth on hulls and caps it per hull.</summary>
+/// <summary>
+/// Keeps chimera biomass off planet terrain and, on a planet's maps, on one hull and under a cap. Off a planet a hive
+/// grows as upstream has it.
+/// </summary>
 public sealed partial class WFPlanetBiomassSystem : EntitySystem
 {
     public const int MaxHullBiomass = 256;
@@ -38,6 +42,21 @@ public sealed partial class WFPlanetBiomassSystem : EntitySystem
         return HasComp<WFPlanetLayerComponent>(uid) || HasComp<WFPlanetLayerComponent>(xform.MapUid);
     }
 
+    /// <summary>
+    /// True when the entity is on one of a planet's maps, on terrain or on a hull, or in the gap between two of them:
+    /// where growth is capped and kept to its hull.
+    /// </summary>
+    private bool OnPlanetMap(EntityUid uid)
+    {
+        var map = Transform(uid).MapUid;
+
+        // A hull climbing or hovering between two layers rides a transit map of its own.
+        if (TryComp<CEZTransitMapComponent>(map, out var transit))
+            map = transit.LowerMap ?? transit.UpperMap;
+
+        return HasComp<WFPlanetLayerComponent>(map);
+    }
+
     public int HullCount(EntityUid grid) => _aboard.TryGetValue(grid, out var entities) ? entities.Count : 0;
     private void OnMapInit(Entity<WFPlanetBiomassRestrictionComponent> ent, ref MapInitEvent args) => Track(ent);
     private void OnParentChanged(Entity<WFPlanetBiomassRestrictionComponent> ent, ref EntParentChangedMessage args) => Track(ent);
@@ -64,7 +83,7 @@ public sealed partial class WFPlanetBiomassSystem : EntitySystem
             return;
         if (!_aboard.TryGetValue(grid, out var entities))
             _aboard[grid] = entities = new();
-        if (entities.Count >= MaxHullBiomass)
+        if (entities.Count >= MaxHullBiomass && OnPlanetMap(uid))
         {
             QueueDel(uid);
             return;
@@ -75,7 +94,11 @@ public sealed partial class WFPlanetBiomassSystem : EntitySystem
 
     private void OnSpread(Entity<WFPlanetBiomassRestrictionComponent> ent, ref SpreadNeighborsEvent args)
     {
-        if (IsPlanet(ent) || Transform(ent).GridUid is not { } grid)
+        var terrain = IsPlanet(ent);
+        if (!terrain && !OnPlanetMap(ent))
+            return;
+
+        if (terrain || Transform(ent).GridUid is not { } grid)
         {
             args.NeighborFreeTiles.Clear();
             return;

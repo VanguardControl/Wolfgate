@@ -39,7 +39,9 @@ infection transformations have their separate existing behavior.
 
 Chimera blood's biomass tile reaction is suppressed on planet layers and detached
 terrain. Action-spawned hive biomass is also queued for deletion there before a
-spread tick. This does not alter chimera biomass on ordinary station/space maps.
+spread tick. On a planet's maps, and between them, a hull's biomass stops growing at
+256 and stays on that hull, so it cannot cross a dock onto terrain. None of this alters chimera
+biomass on ordinary station/space maps: there it is neither capped nor kept to one grid.
 
 Carcinoma includes static flesh trees (tinted existing shadow-tree art), flesh
 polyps, and dark-red rivers using the existing animated water sprite and ordinary
