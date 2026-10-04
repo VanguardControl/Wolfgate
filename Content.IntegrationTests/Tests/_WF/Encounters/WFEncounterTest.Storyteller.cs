@@ -10,6 +10,8 @@ using Content.Shared._WF.Encounters;
 using Content.Shared._WF.NpcCrew;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Encounters;
@@ -27,6 +29,18 @@ public sealed partial class WFEncounterTest
   ships:
   - key: lone
     vessel: WFDredger
+
+- type: wfEncounter
+  id: WFTestStoryIff
+  name: wf-encounter-name-convoy
+  start: Manual
+  ships:
+  - key: patrol
+    vessel: WFDredger
+    company: TSF
+    warnRange: 800
+    attackRange: 300
+    zoneTargets: AtWar
 
 - type: wfEncounter
   id: WFTestStoryDock
@@ -108,6 +122,56 @@ public sealed partial class WFEncounterTest
             Assert.That(row.Objectives.Any(item => item.Kind == WFCrewObjectiveKind.Dock), Is.False);
             Assert.That(row.Objectives.Any(item => item.Kind == WFCrewObjectiveKind.GoTo), Is.True, "The rest of its orders stand.");
             Server.System<WFEncounterSystem>().End(encounter);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>
+    /// A patrol cannot tell whose a ship is with its IFF off: a neutral ship is left alone while it shows, challenged
+    /// with warning shots in the warning zone once it hides, and fired on in the attack zone.
+    /// </summary>
+    [Test]
+    public async Task PatrolChallengesAShipWithItsIffOff()
+    {
+        EntityUid encounter = default, patrol = default, intruder = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestStoryIff");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(35000, 35000), MapData.MapId), out encounter), Is.True);
+            patrol = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"].Grid;
+
+            var grid = Server.ResolveDependency<IMapManager>().CreateGridEntity(MapData.MapId);
+            intruder = grid.Owner;
+            Server.System<SharedMapSystem>().SetTile(grid, Vector2i.Zero, new Tile(1));
+            var transform = Server.System<SharedTransformSystem>();
+            transform.SetCoordinates(intruder, new EntityCoordinates(MapData.MapUid, new Vector2(35600, 35000)));
+            transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(intruder, new Vector2(0.5f)));
+            SEntMan.EnsureComponent<Content.Shared._Mono.Company.CompanyComponent>(intruder).CompanyName = "USSP";
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var alerts = Server.System<WFCrewAlertSystem>();
+            Assert.That(alerts.IsWarningShot(patrol, intruder), Is.False, "A neutral ship showing its IFF is left alone.");
+            Server.System<Content.Server.Shuttles.Systems.ShuttleSystem>().AddIFFFlag(intruder, Content.Shared.Shuttles.Components.IFFFlags.HideLabel);
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"];
+            Assert.That(Server.System<WFCrewAlertSystem>().IsWarningShot(patrol, intruder), Is.True, "Masked, it gets warning shots.");
+            Assert.That(state.Engaged, Is.Empty, "But is not fired on in the warning zone.");
+            Server.System<SharedTransformSystem>().SetCoordinates(intruder, new EntityCoordinates(MapData.MapUid, new Vector2(35150, 35000)));
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"];
+            Assert.That(state.Engaged.Contains(intruder), Is.True, "In the attack zone it is engaged.");
+            Assert.That(Server.System<WFCrewAlertSystem>().IsWarningShot(patrol, intruder), Is.False, "And the shots are no longer warnings.");
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+            SEntMan.DeleteEntity(intruder);
         });
         await RunTicks(10);
     }

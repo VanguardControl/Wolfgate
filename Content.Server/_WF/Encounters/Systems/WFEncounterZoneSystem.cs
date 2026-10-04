@@ -214,38 +214,61 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             if (intruder == ship.Grid || _escorts.AreInFormation(ship.Grid, intruder))
                 continue;
 
-            // The ship's own company comes and goes as it likes, and so does anyone flying with one of its people.
-            if (company.Length > 0 && (crewed.Flags.Contains(company) || crewed.Aboard.Contains(company)))
-                continue;
+            // A ship is only known for what it is by its IFF. With that switched off it is nobody's friend: it is
+            // told to show itself and shot across the bows in the warning zone, and fired on in the attack zone.
+            var masked = IffMasked(intruder);
+            if (!masked)
+            {
+                // The ship's own company comes and goes as it likes, and so does anyone flying with one of its people.
+                if (company.Length > 0 && (crewed.Flags.Contains(company) || crewed.Aboard.Contains(company)))
+                    continue;
 
-            // A patrol only minds its faction's enemies.
-            if (ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !AtWar(company, crewed.Flags))
-                continue;
+                // A patrol only minds its faction's enemies.
+                if (ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !AtWar(company, crewed.Flags))
+                    continue;
+            }
 
             var there = CentreOfMass(intruder);
             if (there.MapId != here.MapId)
                 continue;
 
+            var challenged = masked && ship.ZoneTargets == WFEncounterZoneTargets.AtWar;
+            var name = masked ? Loc.GetString("wf-encounter-zone-unknown") : Name(intruder);
             var distance = (there.Position - here.Position).Length();
             if (ship.AttackRange > 0f && distance <= ship.AttackRange)
             {
+                _alerts.EndZoneWarning(ship.Grid, intruder);
                 _alerts.ReportZoneThreat(ship.Grid, ship.Group, intruder);
                 if (ship.Engaged.Add(intruder))
-                    _encounters.TrySay(ship, Channel, Loc.GetString($"{ship.ZoneLines}-attack", ("intruder", Name(intruder))));
+                    _encounters.TrySay(ship, Channel, Loc.GetString($"{ship.ZoneLines}-attack", ("intruder", name)));
             }
-            else if (ship.WarnRange > 0f && distance <= ship.WarnRange
-                     && (!ship.Warned.TryGetValue(intruder, out var until) || now >= until))
+            else if (ship.WarnRange > 0f && distance <= ship.WarnRange)
             {
+                if (challenged)
+                    _alerts.ReportZoneWarning(ship.Grid, ship.Group, intruder);
+                if (ship.Warned.TryGetValue(intruder, out var until) && now < until)
+                    continue;
+
                 ship.Warned[intruder] = now + WarnCooldown;
-                _encounters.TrySay(ship, Channel, Loc.GetString($"{ship.ZoneLines}-warn-{_random.Next(1, WarnLines + 1)}",
-                    ("intruder", Name(intruder)), ("distance", (int) distance)));
+                _encounters.TrySay(ship, Channel, challenged
+                    ? Loc.GetString("wf-encounter-zone-identify", ("distance", (int) distance))
+                    : Loc.GetString($"{ship.ZoneLines}-warn-{_random.Next(1, WarnLines + 1)}",
+                        ("intruder", name), ("distance", (int) distance)));
             }
             else if (distance > ship.WarnRange)
             {
                 // Out and back in is a fresh trespass.
                 ship.Engaged.Remove(intruder);
+                _alerts.EndZoneWarning(ship.Grid, intruder);
             }
         }
+    }
+
+    /// <summary>Whether a ship has its IFF switched off, so nobody can tell whose it is.</summary>
+    private bool IffMasked(EntityUid grid)
+    {
+        return TryComp<Content.Shared.Shuttles.Components.IFFComponent>(grid, out var iff)
+               && (iff.Flags & (Content.Shared.Shuttles.Components.IFFFlags.HideLabel | Content.Shared.Shuttles.Components.IFFFlags.Hide)) != 0;
     }
 
     /// <summary>Where a hull's centre of mass is: the point the radar draws it and its zones around.</summary>

@@ -183,6 +183,36 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         }
     }
 
+    /// <summary>How long a ship's guns keep firing wide of a vessel after its last warning.</summary>
+    private static readonly TimeSpan WarningShotTime = TimeSpan.FromSeconds(75);
+
+    private readonly Dictionary<(EntityUid Grid, EntityUid Target), TimeSpan> _warningShots = new();
+
+    /// <summary>Has a ship's gunners fire warning shots wide of an intruder in its zone, not at it.</summary>
+    public void ReportZoneWarning(EntityUid grid, string group, EntityUid intruder)
+    {
+        _warningShots[(grid, intruder)] = _timing.CurTime + WarningShotTime;
+        ReportZoneThreat(grid, group, intruder);
+    }
+
+    /// <summary>Ends the warning shots: the guns are either done with the vessel or now fire at it.</summary>
+    public void EndZoneWarning(EntityUid grid, EntityUid intruder)
+    {
+        _warningShots.Remove((grid, intruder));
+    }
+
+    /// <summary>Whether a ship's guns are only to fire wide of a vessel.</summary>
+    public bool IsWarningShot(EntityUid grid, EntityUid target)
+    {
+        if (!_warningShots.TryGetValue((grid, target), out var until))
+            return false;
+        if (_timing.CurTime < until && !TerminatingOrDeleted(grid) && !TerminatingOrDeleted(target))
+            return true;
+
+        _warningShots.Remove((grid, target));
+        return false;
+    }
+
     /// <summary>Raises a local docking alert without treating a changeable security policy as incoming fire.</summary>
     public void ReportDockingThreat(EntityUid grid, string group, EntityUid visitor) => AlertShip(grid, group, visitor, false);
 

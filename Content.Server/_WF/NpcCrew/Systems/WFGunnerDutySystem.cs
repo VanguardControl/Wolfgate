@@ -189,7 +189,9 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
                         : Vector2.Zero;
                 }
 
-                if (_targeting.Target(uid, new EntityCoordinates(hostile, duty.AimError)) is { } aim)
+                // A warning shot is laid well clear of the vessel.
+                var lay = _alerts.IsWarningShot(grid, hostile) ? duty.AimError + WarningShotOffset : duty.AimError;
+                if (_targeting.Target(uid, new EntityCoordinates(hostile, lay)) is { } aim)
                 {
                     aim.LeadingAccuracy = skill.Leading;
                     aim.OffgridLeadingAccuracy = skill.Leading;
@@ -230,6 +232,9 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
         }
         return best;
     }
+
+    /// <summary>How far off a vessel a warning shot is laid, in its own frame.</summary>
+    private static readonly Vector2 WarningShotOffset = new(0f, 90f);
 
     /// <summary>Squared distance to a ship this gunner may fire on, or null when it must hold fire.</summary>
     private float? Engageable(EntityUid uid, EntityUid grid, WFCrewComponent crew, WFGunnerDutyComponent duty,
