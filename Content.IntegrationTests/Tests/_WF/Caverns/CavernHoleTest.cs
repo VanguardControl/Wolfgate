@@ -936,6 +936,64 @@ public sealed class CavernHoleTest
     }
 
     /// <summary>A ground tile that is its natural tile, one of the given ids, with no natural entity; checked on the server thread.</summary>
+    /// <summary>A hole opened over floor someone laid in the cavern leaves that floor: under the hole and around it.</summary>
+    [Test]
+    public async Task AHoleLeavesFloorBuiltBelowIt()
+    {
+        const string Floor = "Plating";
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+
+        await EnableCaverns(pair);
+        await DisableClaims(pair);
+        var world = await BuildWorld(pair, "WFSurfaceMerak");
+
+        try
+        {
+            var spot = await FindSpot(pair, world, MerakSand, 2);
+            await LoadChunks(pair, world.Ground, spot - new Vector2i(8, 8), spot + new Vector2i(8, 8));
+            await LoadChunks(pair, world.Cavern, spot - new Vector2i(8, 8), spot + new Vector2i(8, 8));
+
+            // Laid on a loaded chunk, as a player lays it: nothing pins it.
+            var floor = new Tile(tileDefs[Floor].TileId);
+            foreach (var index in Square(spot, 1))
+            {
+                await SetTile(pair, world.Cavern, index, floor);
+            }
+
+            await SetTile(pair, world.Ground, spot, Tile.Empty);
+            await server.WaitRunTicks(3);
+
+            await server.WaitAssertion(() =>
+            {
+                var ground = entMan.GetComponent<WFCavernGroundComponent>(world.Ground);
+                var levelGrid = entMan.GetComponent<MapGridComponent>(world.Cavern);
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(ground.Shades.ContainsKey(spot), Is.True, "Precondition: the hole was not fitted out.");
+
+                    foreach (var index in Square(spot, 1))
+                    {
+                        var tile = maps.GetTileRef(world.Cavern, levelGrid, index).Tile;
+                        Assert.That(tile.IsEmpty ? string.Empty : tileDefs[tile.TypeId].ID, Is.EqualTo(Floor),
+                            $"The hole at {spot} relaid the floor built at {index} in the cavern.");
+                    }
+                }
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
     private static bool IsClearGround(BiomeSystem biomes, ITileDefinitionManager tileDefs, BiomeComponent biome, Vector2i index, string tileId)
     {
         return biomes.TryGetTile(index, biome.Layers, biome.Seed, NoGrid, out var tile)

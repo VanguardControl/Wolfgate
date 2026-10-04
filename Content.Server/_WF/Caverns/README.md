@@ -37,7 +37,8 @@ There are ways down everywhere, not only at the gate. The ground is split into c
 cell's mouth is claimed ahead of whoever loads terrain there (players, admin ghosts, and the eye on the ground of anyone
 flying above), never into loaded ground or ground about to load (`wf.cavern_claims`, on by default). Any ground tile
 that becomes a real hole, dug, blown, pried, cut or taken by an RCD, is fitted out within a tick by the hole queue:
-pinned, the world's landing tile under it in a cleared 3x3 of cavern floor, a shade, and a climb point beside it unless
+pinned, the world's landing tile under it in a cleared 3x3 of cavern floor (floor someone laid there is left as it
+is), a shade, and a climb point beside it unless
 one is a walk of 8 steps or less away; tiles a chunk unload empties are told apart by the pin and left alone. A shovel digs a 15 s
 shaft through natural ground it can't otherwise dig (Fervidus basalt, the Asclepiu plains, Thrascias ice, Aerumna
 chromite, Carcinoma flesh, the bedrock under dug snow). Acid no longer opens ground over a cavern that no tool can dig,

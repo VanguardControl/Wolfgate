@@ -274,8 +274,9 @@ public sealed partial class WFCavernMouthSystem
     /// Lays the world's landing tile under each hole and clears the natural floor a tile around it of rock and
     /// anything else the biome grew, then pins it all, so nobody lands boxed in rock.
     /// </summary>
-    // A pinned tile keeps what is on it (a mouth's pad, an earlier landing, a floor someone built), except that natural
-    // floor under the hole itself takes the landing tile. Only entities the biome still tracks are cleared.
+    // A tile keeps what is on it if it is pinned (a mouth's pad, an earlier landing) or is not the biome's own, which
+    // is a floor someone built: laid on a loaded chunk, nothing has pinned that yet. Natural floor under the hole itself
+    // takes the landing tile. Only entities the biome still tracks are cleared.
     private void PrepareLandings(MouthContext context, List<Vector2i> holes)
     {
         var level = context.Level;
@@ -287,7 +288,7 @@ public sealed partial class WFCavernMouthSystem
 
         foreach (var hole in holes)
         {
-            if (!_biome.WfIsPinned(levelBiome, hole) || IsEmpty(level, hole) || IsNatural(level, hole))
+            if (IsEmpty(level, hole) || IsNatural(level, hole))
                 targets[hole] = landing;
 
             for (var x = -LandingReach; x <= LandingReach; x++)
@@ -299,7 +300,7 @@ public sealed partial class WFCavernMouthSystem
 
         foreach (var index in area)
         {
-            if (holeSet.Contains(index) || _biome.WfIsPinned(levelBiome, index) && !IsEmpty(level, index))
+            if (holeSet.Contains(index) || !IsEmpty(level, index) && (_biome.WfIsPinned(levelBiome, index) || !IsNatural(level, index)))
                 continue;
 
             targets[index] = NaturalOr(level, index, landing);
