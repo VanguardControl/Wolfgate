@@ -43,7 +43,7 @@ public partial class ShuttleNavControl
 
             handle.DrawCircle(point, 3f * UIScale, color);
             if (setup.Tags.TryGetValue((crew.Grid, crew.Group), out var tag))
-                handle.DrawString(Font, point + new Vector2(8f, -22f) * UIScale, tag, UIScale * 0.8f, color);
+                handle.DrawString(Font, point + new Vector2(10f, -38f) * UIScale, tag, UIScale * 0.8f, color);
         }
     }
 

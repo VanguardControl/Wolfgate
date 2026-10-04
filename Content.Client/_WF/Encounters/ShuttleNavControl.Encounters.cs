@@ -39,7 +39,8 @@ public partial class ShuttleNavControl
                 handle.DrawLine(point + new Vector2(size, 0f), point + new Vector2(0f, size), color);
                 handle.DrawLine(point + new Vector2(0f, size), point + new Vector2(-size, 0f), color);
                 handle.DrawLine(point + new Vector2(-size, 0f), point + new Vector2(0f, -size), color);
-                handle.DrawString(Font, point + new Vector2(size + 4f * UIScale, -size), marker.Name, UIScale * 0.8f, color);
+                // Above the ship: its own IFF label hangs below and to the right, and the admin crew tag sits between.
+                handle.DrawString(Font, point + new Vector2(10f, -54f) * UIScale, marker.Name, UIScale * 0.8f, color);
                 continue;
             }
 

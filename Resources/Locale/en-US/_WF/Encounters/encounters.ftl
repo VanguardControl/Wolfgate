@@ -15,6 +15,7 @@ wf-encounter-cargo-parts = ship parts
 wf-encounter-cargo-munitions = munitions
 wf-encounter-announce-freight-run = This is {$name}, entering the sector with {$cargo}. We make {$stops} stops, first {$destination}. Any traffic on our lane, please keep clear.
 wf-encounter-announce-tsf-transport = All vessels, this is {$name}, a Trans-Solar Federation transport under escort, inbound to {$destination}. Stay outside one kilometre. You will not be warned twice.
+wf-encounter-distress-adrift = Mayday, mayday. This is {$name}. We have lost propulsion and are adrift at {$x}, {$y}. Requesting assistance from any vessel.
 wf-encounter-zone-warn-label = WARNING ZONE
 wf-encounter-zone-attack-label = ATTACK ZONE
 wf-encounter-zone-warn-1 = {$intruder}, you are {$distance} metres off a restricted vessel. Divert your course and open the range now.

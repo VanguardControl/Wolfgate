@@ -91,6 +91,15 @@ public sealed partial class WFEncounterShipState
     /// <summary>Since when no player has been near it, while resolved.</summary>
     public TimeSpan? Quiet;
 
+    /// <summary>Since when the ship has had no thrust while not in a fight.</summary>
+    public TimeSpan? AdriftSince;
+
+    /// <summary>When it may next call for help.</summary>
+    public TimeSpan NextDistress;
+
+    /// <summary>When its crew next top up its batteries.</summary>
+    public TimeSpan NextPower;
+
     /// <summary>Intruders already warned, and when each may be warned again.</summary>
     public Dictionary<EntityUid, TimeSpan> Warned = new();
 

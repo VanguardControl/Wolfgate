@@ -220,7 +220,8 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             var loadout = post.Loadout.Length > 0 ? new ProtoId<StartingGearPrototype>(post.Loadout) : (ProtoId<StartingGearPrototype>?) null;
             if (loadout == null && profile != null && profile.Loadouts.TryGetValue(post.Role, out var pool) && pool.Count > 0)
                 loadout = _random.Pick(pool);
-            var body = profile != null && profile.Bodies.Count > 0 ? _random.Pick(profile.Bodies) : (EntProtoId?) null;
+            // A role the profile has no loadout for keeps its own mob and gear, so nobody is spawned naked.
+            var body = loadout != null && profile != null && profile.Bodies.Count > 0 ? _random.Pick(profile.Bodies) : (EntProtoId?) null;
             var uid = _crew.SpawnCrewman(post.Role, new EntityCoordinates(grid, post.Position), mission.Group, loadout, body);
             if (uid is not { } mob)
                 continue;

@@ -162,6 +162,10 @@
     - WFCrewHaulerOfficerBomber
     - WFCrewHaulerOfficerCoat
     - WFCrewHaulerOfficerSidearm
+    WFCrewGunner:
+    - WFCrewHaulerOfficerPlain
+    - WFCrewHaulerOfficerBomber
+    - WFCrewHaulerHandEngineer
     WFCrewCaptain:
     - WFCrewHaulerOfficerBomber
     - WFCrewHaulerOfficerCoat
@@ -226,3 +230,72 @@
     WFCrewCaptain: [ WFCrewTsfOfficer ]
     WFCrewGunner: [ WFCrewTsfOfficer ]
     WFCrewMarine: [ WFCrewTsfGuard ]
+
+# Pirates: armed to a man, in whatever they took off the last crew.
+- type: startingGear
+  id: WFCrewPirateHand
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitMercenary
+    shoes: ClothingShoesBootsJack
+    head: ClothingHeadBandRed
+    gloves: ClothingHandsGlovesFingerless
+    belt: WeaponPistolMk58
+    pocket1: Magazine45_ACPPistolFMJ
+    pocket2: Magazine45_ACPPistolFMJ
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewPirateBruiser
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorBrown
+    outerClothing: ClothingOuterArmorBasic
+    shoes: ClothingShoesBootsCombat
+    belt: WeaponPistolMk58
+    pocket1: Magazine45_ACPPistolFMJ
+    pocket2: Crowbar
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewPirateRifle
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitMercenary
+    outerClothing: ClothingOuterArmorBulletproof
+    shoes: ClothingShoesBootsCombat
+    gloves: ClothingHandsGlovesColorBlack
+    back: WeaponRifleLecter
+    pocket1: Magazine68x52mmCaseless
+    pocket2: Magazine68x52mmCaseless
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewPirateOfficer
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitMercenary
+    outerClothing: ClothingOuterCoatJensen
+    shoes: ClothingShoesBootsCombat
+    belt: WeaponPistolMk58
+    pocket1: Magazine45_ACPPistolFMJ
+    pocket2: Magazine45_ACPPistolFMJ
+    ears: WFCrewHeadset
+
+- type: wfCrewProfile
+  id: WFCrewProfilePirate
+  bodies:
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyReptilian
+  - WFMobCrewBodyReptilian
+  - WFMobCrewBodyDwarf
+  - WFMobCrewBodyVulpkanin
+  - WFMobCrewBodyTajaran
+  - WFMobCrewBodyRodentia
+  - WFMobCrewBodyArachnid
+  - WFMobCrewBodyMoth
+  skills: [ Green, Regular, Regular, Veteran ]
+  loadouts:
+    WFCrewDeckhand: [ WFCrewPirateHand, WFCrewPirateHand, WFCrewPirateBruiser, WFCrewPirateRifle ]
+    WFCrewMarine: [ WFCrewPirateRifle, WFCrewPirateBruiser ]
+    WFCrewPilot: [ WFCrewPirateOfficer ]
+    WFCrewRadioOperator: [ WFCrewPirateOfficer ]
+    WFCrewCaptain: [ WFCrewPirateOfficer ]
+    WFCrewGunner: [ WFCrewPirateOfficer, WFCrewPirateHand ]

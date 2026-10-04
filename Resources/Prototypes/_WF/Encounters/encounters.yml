@@ -17,6 +17,7 @@
     side: patrol
     faction: TSFMC
     company: TSF
+    profile: WFCrewProfileTsf
     docking: Warn
     disengage: Deter
     disengageRange: 800
@@ -30,6 +31,7 @@
     side: patrol
     faction: TSFMC
     company: TSF
+    profile: WFCrewProfileTsf
     captain: false
     docking: Warn
     disengage: Deter
@@ -209,6 +211,7 @@
   - key: hauler
     vessel: Piva
     side: freight
+    profile: WFCrewProfileHauler
     company: TSFCivilian
     docking: Warn
     disengage: Deter
@@ -220,7 +223,7 @@
     side: pirates
     faction: PirateNF
     company: PDV
-    skill: Regular
+    profile: WFCrewProfilePirate
     objectives:
     - kind: Attack
       target: hauler

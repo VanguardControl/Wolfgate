@@ -37,6 +37,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
     [Dependency] private WFCrewObjectiveSystem _objectives = default!;
     [Dependency] private WFCrewPlannerSystem _planner = default!;
     [Dependency] private WFCrewShipStatusSystem _status = default!;
+    [Dependency] private WFCrewAlertSystem _alerts = default!;
+    [Dependency] private GridPowerSystem _power = default!;
     [Dependency] private LinkedLifecycleGridSystem _lifecycle = default!;
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private RadioSystem _radio = default!;
@@ -50,6 +52,13 @@ public sealed partial class WFEncounterSystem : EntitySystem
     private static readonly TimeSpan JumpDelay = TimeSpan.FromSeconds(20);
 
     private static readonly ProtoId<RadioChannelPrototype> AnnounceChannel = "Common";
+
+    /// <summary>How long a ship must be without thrust, and out of any fight, before it calls for help.</summary>
+    private static readonly TimeSpan AdriftDelay = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan DistressRepeat = TimeSpan.FromMinutes(5);
+
+    /// <summary>How often a living crew top up their ship's batteries. Encounter ships don't burn fuel.</summary>
+    private static readonly TimeSpan PowerInterval = TimeSpan.FromMinutes(2);
 
     private TimeSpan _nextPoll;
     private float _cleanupRange;
@@ -365,7 +374,13 @@ public sealed partial class WFEncounterSystem : EntitySystem
             guards--;
         }
 
-        return posts.Count > 0 && _setup.TrySpawn(grid, posts, mission, out _);
+        if (posts.Count == 0 || !_setup.TrySpawn(grid, posts, mission, out _))
+            return false;
+
+        // Shipyard hulls come with empty reactors and flat batteries; the crew arrive with theirs charged.
+        _power.SetPower(true, grid, false);
+        state.NextPower = _timing.CurTime + PowerInterval;
+        return true;
     }
 
     private string PlaceName(EntityUid? place)
@@ -438,6 +453,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             if (encounter.Resolution == null)
             {
                 SkipBlockedOrders(encounter);
+                Tend(encounter);
                 crews ??= _objectives.Snapshot();
                 if (Judge(encounter, crews) is { } resolution)
                     Resolve((uid, encounter), resolution);
@@ -467,6 +483,58 @@ public sealed partial class WFEncounterSystem : EntitySystem
             Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} skips an order it cannot carry out.");
             _objectives.Control(ship.Grid, ship.Group, WFCrewSetupAction.Skip);
         }
+    }
+
+    /// <summary>
+    /// What a living crew does for its ship between orders: keeps the batteries charged, and once the ship has been
+    /// without thrust for a while with no fight going on, calls for help and marks the encounter as a distress.
+    /// </summary>
+    private void Tend(WFEncounterComponent encounter)
+    {
+        var now = _timing.CurTime;
+        foreach (var ship in encounter.Ships.Values)
+        {
+            if (TerminatingOrDeleted(ship.Grid))
+                continue;
+
+            var fighting = _alerts.IsAlerted(ship.Grid, ship.Group);
+            if (!_status.IsAdrift(ship.Grid) || fighting)
+            {
+                ship.AdriftSince = null;
+                if (!fighting && now >= ship.NextPower && HasLivingCrew(ship))
+                {
+                    ship.NextPower = now + PowerInterval;
+                    _power.SetPower(true, ship.Grid, false);
+                }
+
+                continue;
+            }
+
+            ship.AdriftSince ??= now;
+            if (now - ship.AdriftSince < AdriftDelay || now < ship.NextDistress)
+                continue;
+
+            var position = _transform.GetMapCoordinates(ship.Grid).Position;
+            if (!TrySay(ship, AnnounceChannel, Loc.GetString("wf-encounter-distress-adrift",
+                    ("name", MetaData(ship.Grid).EntityName), ("x", (int) position.X), ("y", (int) position.Y))))
+                continue;
+
+            ship.NextDistress = now + DistressRepeat;
+            encounter.Category = WFEncounterCategory.Distress;
+            encounter.Hidden = false;
+        }
+    }
+
+    private bool HasLivingCrew(WFEncounterShipState ship)
+    {
+        var crew = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (crew.MoveNext(out var uid, out var member, out var xform))
+        {
+            if (member.Group == ship.Group && xform.GridUid == ship.Grid && _mobs.IsAlive(uid))
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>How the encounter has ended, if it has.</summary>

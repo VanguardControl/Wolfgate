@@ -80,6 +80,21 @@ public sealed partial class WFCrewShipStatusSystem : EntitySystem
         return reading.Abandoned || reading.Disarmed || reading.Crippled;
     }
 
+    /// <summary>Whether a ship has no working thruster at all right now.</summary>
+    public bool IsAdrift(EntityUid grid)
+    {
+        if (TerminatingOrDeleted(grid) || !TryComp<ShuttleComponent>(grid, out var shuttle))
+            return false;
+
+        foreach (var thrust in shuttle.LinearThrust)
+        {
+            if (thrust > 0f)
+                return false;
+        }
+
+        return true;
+    }
+
     private Reading Read(EntityUid grid)
     {
         var now = _timing.CurTime;
