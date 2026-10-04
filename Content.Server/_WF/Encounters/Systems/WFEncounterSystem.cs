@@ -263,6 +263,17 @@ public sealed partial class WFEncounterSystem : EntitySystem
     private List<WFCrewObjective> BuildQueue(WFEncounterComponent comp, WFEncounterShip ship)
     {
         var queue = new List<WFCrewObjective>();
+        // Meandering: one random point after another around where it arrived.
+        for (var leg = 0; leg < ship.Wander; leg++)
+        {
+            queue.Add(new WFCrewObjective
+            {
+                Kind = WFCrewObjectiveKind.GoTo,
+                Position = comp.Origin.Position + _random.NextAngle().ToVec() * _random.NextFloat(ship.WanderRadius * 0.3f, ship.WanderRadius),
+                Range = 200f,
+            });
+        }
+
         foreach (var objective in ship.Objectives)
         {
             queue.Add(new WFCrewObjective
@@ -332,6 +343,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             Side = ship.Side.Length > 0 ? ship.Side : ship.Key,
             WarnRange = ship.WarnRange,
             AttackRange = ship.AttackRange,
+            ZoneLines = ship.ZoneLines,
         };
         encounter.Comp.Ships.Add(ship.Key, state);
 

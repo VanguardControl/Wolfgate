@@ -129,6 +129,17 @@ public sealed partial class WFEncounterShip
     [DataField]
     public bool FlyRoute;
 
+    /// <summary>Legs of aimless flying: that many random points within <see cref="WanderRadius"/> of the origin, in turn.</summary>
+    [DataField]
+    public int Wander;
+
+    [DataField]
+    public float WanderRadius = 2500f;
+
+    /// <summary>Fluent prefix of what the ship says to intruders: "-warn-1" to "-warn-3" and "-attack" are appended.</summary>
+    [DataField]
+    public string ZoneLines = "wf-encounter-zone";
+
     /// <summary>Player ships of another company inside this range are told over the radio to turn away.</summary>
     [DataField]
     public float WarnRange;

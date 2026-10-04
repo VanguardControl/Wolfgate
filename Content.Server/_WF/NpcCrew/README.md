@@ -296,6 +296,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Resources/Prototypes/_WF/NpcCrew/htn.yml`](../../../Resources/Prototypes/_WF/NpcCrew/htn.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/markers.yml`](../../../Resources/Prototypes/_WF/NpcCrew/markers.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/mobs.yml`](../../../Resources/Prototypes/_WF/NpcCrew/mobs.yml)
+- [`Resources/Prototypes/_WF/NpcCrew/navigation.yml`](../../../Resources/Prototypes/_WF/NpcCrew/navigation.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/profiles.yml`](../../../Resources/Prototypes/_WF/NpcCrew/profiles.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/roles.yml`](../../../Resources/Prototypes/_WF/NpcCrew/roles.yml)
 

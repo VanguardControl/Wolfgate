@@ -1,0 +1,46 @@
+# Flight profiles. The crew setup default is deliberately cautious (10 m/s); a ship flown for a purpose picks one of
+# these. Thruster power and the engine's speed limit still cap what a hull can actually do.
+
+- type: wfCrewNavigation
+  id: WFCrewNavigationFreight
+  name: wf-crew-navigation-freight
+  settings:
+    cruiseSpeed: 24
+    followSpeed: 26
+    loiterSpeed: 10
+    circleSpeed: 8
+    attackSpeed: 10
+    nearTargetSpeed: 5
+    maximumTurnRate: 0.25
+    thrustMultiplier: 0.8
+    angularThrustMultiplier: 0.7
+
+- type: wfCrewNavigation
+  id: WFCrewNavigationWarship
+  name: wf-crew-navigation-warship
+  settings:
+    cruiseSpeed: 32
+    followSpeed: 36
+    loiterSpeed: 14
+    circleSpeed: 12
+    attackSpeed: 16
+    nearTargetSpeed: 6
+    maximumTurnRate: 0.4
+    thrustMultiplier: 1
+    angularThrustMultiplier: 1
+    attackRange: 300
+
+- type: wfCrewNavigation
+  id: WFCrewNavigationRaider
+  name: wf-crew-navigation-raider
+  settings:
+    cruiseSpeed: 38
+    followSpeed: 42
+    loiterSpeed: 18
+    circleSpeed: 14
+    attackSpeed: 20
+    nearTargetSpeed: 8
+    maximumTurnRate: 0.5
+    thrustMultiplier: 1
+    angularThrustMultiplier: 1
+    attackRange: 250

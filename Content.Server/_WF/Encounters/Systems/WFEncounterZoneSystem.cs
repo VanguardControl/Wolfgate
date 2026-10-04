@@ -99,13 +99,13 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             {
                 _alerts.ReportShipThreat(ship.Grid, ship.Group, intruder);
                 if (ship.Engaged.Add(intruder))
-                    _encounters.TrySay(ship, Channel, Loc.GetString("wf-encounter-zone-attack", ("intruder", Name(intruder))));
+                    _encounters.TrySay(ship, Channel, Loc.GetString($"{ship.ZoneLines}-attack", ("intruder", Name(intruder))));
             }
             else if (ship.WarnRange > 0f && distance <= ship.WarnRange
                      && (!ship.Warned.TryGetValue(intruder, out var until) || now >= until))
             {
                 ship.Warned[intruder] = now + WarnCooldown;
-                _encounters.TrySay(ship, Channel, Loc.GetString($"wf-encounter-zone-warn-{_random.Next(1, WarnLines + 1)}",
+                _encounters.TrySay(ship, Channel, Loc.GetString($"{ship.ZoneLines}-warn-{_random.Next(1, WarnLines + 1)}",
                     ("intruder", Name(intruder)), ("distance", (int) distance)));
             }
             else if (distance > ship.WarnRange)
