@@ -143,6 +143,9 @@ wf-encounter-reward-thanks-stranded = That's thrust under us again. Whoever you 
 # False mayday. It is made at once, on the common channel, by the ship that baits the trap. Unlike a real call it gives no
 # registered name and no position, says only that the drive is gone, and names a hull class that is not the one on the scanner.
 wf-encounter-announce-false-mayday = Mayday, mayday. This is a Brute-class hauler, adrift and losing power. We have no drive left. Come alongside and dock, any vessel. We can't hold out much longer.
+wf-encounter-ambush-sprung-1 = Kind of you to come. There never was a mayday. Cut your engines and open your holds, our friends are already on their way in.
+wf-encounter-ambush-sprung-2 = That's close enough. Drive's fine, by the way. Shut down and stand by to be boarded, or the ships behind you open fire.
+wf-encounter-ambush-sprung-3 = Thanks for answering. Nobody here needs rescuing but you. Kill your engines, we're taking the ship.
 wf-encounter-announce-false-mayday-large = Mayday, mayday. This is an Olympus-class freighter, adrift with the lights failing. We have no drive left. Come alongside and dock, please. We can't hold out much longer.
 
 # Skirmishes

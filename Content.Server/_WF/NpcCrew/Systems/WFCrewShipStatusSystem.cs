@@ -19,6 +19,9 @@ public sealed partial class WFCrewShipStatusSystem : EntitySystem
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private PowerReceiverSystem _power = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private Content.Server.Shuttles.Systems.DockingSystem _docking = default!;
+
+    private readonly List<EntityUid> _boarded = new();
 
     /// <summary>How long a condition must hold without a break before it counts.</summary>
     public static readonly TimeSpan DisabledDelay = TimeSpan.FromSeconds(10);
@@ -227,11 +230,23 @@ public sealed partial class WFCrewShipStatusSystem : EntitySystem
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out _, out var xform))
         {
-            if (xform.GridUid == grid && _mobs.IsAlive(uid))
+            if (!_mobs.IsAlive(uid) || xform.GridUid is not { } aboard)
+                continue;
+            if (aboard == grid || _docking.AreGridsDocked(aboard, grid))
                 return true;
         }
 
         return false;
+    }
+
+    /// <summary>A ship whose people have stepped across a port to the ship alongside is not abandoned.</summary>
+    private void AddDocked(EntityUid grid, HashSet<EntityUid> crewed)
+    {
+        foreach (var dock in _docking.GetDocks(grid))
+        {
+            if (dock.Comp.DockedWith is { } other && Transform(other).GridUid is { } alongside)
+                crewed.Add(alongside);
+        }
     }
 
     /// <summary>Once a second: reads every ship seen working, crewed or armed, and drops the entries of deleted grids.</summary>
@@ -312,9 +327,15 @@ public sealed partial class WFCrewShipStatusSystem : EntitySystem
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out _, out var xform))
         {
-            if (xform.GridUid is { } grid && _mobs.IsAlive(uid))
-                _crewedNow.Add(grid);
+            if (xform.GridUid is { } grid && _mobs.IsAlive(uid) && _crewedNow.Add(grid))
+                _boarded.Add(grid);
         }
+
+        foreach (var grid in _boarded)
+        {
+            AddDocked(grid, _crewedNow);
+        }
+        _boarded.Clear();
     }
 
     private void Forget(EntityUid grid)

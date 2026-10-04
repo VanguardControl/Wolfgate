@@ -392,6 +392,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
         return true;
     }
 
+    private const int SprungLines = 3;
+
     /// <summary>
     /// Starts an encounter that waited for a player: its ships lying in wait show themselves and every ship gets its
     /// orders. False if its orders are invalid.
@@ -399,10 +401,16 @@ public sealed partial class WFEncounterSystem : EntitySystem
     private bool Begin(WFEncounterComponent encounter)
     {
         encounter.Begun = true;
+        var sprung = false;
         foreach (var ship in encounter.Ships.Values)
         {
+            sprung |= ship.Lurking;
             Unmask(ship);
         }
+
+        // The bait drops the act as its friends show themselves.
+        if (sprung && encounter.Ships.TryGetValue(encounter.Announcer, out var bait) && !bait.Lurking)
+            TrySay(bait, AnnounceChannel, Loc.GetString($"wf-encounter-ambush-sprung-{_random.Next(1, SprungLines + 1)}"));
 
         if (!_prototypes.TryIndex(encounter.Prototype, out var prototype))
             return false;

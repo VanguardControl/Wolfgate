@@ -995,7 +995,7 @@
   cost: 2
   weight: 0.5
   minPlayers: 4
-  startRadius: 1000
+  startRadius: 300
   cooldown: 3000
   duration: 2400
   minDistance: 2500
@@ -1046,7 +1046,7 @@
   cost: 3
   weight: 0.35
   minPlayers: 7
-  startRadius: 1200
+  startRadius: 350
   cooldown: 3600
   duration: 2700
   minDistance: 2500
