@@ -1,10 +1,13 @@
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Shared._Mono.Company;
+using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WF.Encounters;
 using Content.Shared.Ghost;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Radio;
+using Content.Shared.Station.Components;
+using Robust.Shared.Map;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -34,8 +37,18 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     private const int WarnLines = 3;
 
     private TimeSpan _next;
-    // Each ship with a living player aboard, and the companies it flies for: its own, or failing that its players'.
-    private readonly Dictionary<EntityUid, List<string>> _crewed = new();
+    private readonly Dictionary<EntityUid, Crewed> _crewed = new();
+    private readonly List<EntityUid> _stale = new();
+
+    /// <summary>A ship with a living player aboard.</summary>
+    private sealed class Crewed
+    {
+        /// <summary>The companies it flies for: its own, or failing that its players'.</summary>
+        public readonly List<string> Flags = new();
+
+        /// <summary>The companies of the living players aboard.</summary>
+        public readonly HashSet<string> Aboard = new();
+    }
 
     public override void Update(float frameTime)
     {
@@ -67,7 +80,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
         }
     }
 
-    /// <summary>Every grid with a living player aboard. Zones answer to ships people are flying, not to debris.</summary>
+    /// <summary>Every ship with a living player aboard. Zones answer to ships people are flying, not to stations or debris.</summary>
     private void FindCrewedShips()
     {
         _crewed.Clear();
@@ -77,14 +90,83 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             if (xform.GridUid is not { } grid || HasComp<GhostComponent>(uid) || _mobs.IsDead(uid))
                 continue;
 
+            if (!_crewed.TryGetValue(grid, out var crewed))
+            {
+                if (!IsPlayerShip(grid))
+                    continue;
+
+                _crewed[grid] = crewed = new Crewed();
+            }
+
+            var own = Company(uid);
             var company = Company(grid);
             if (company.Length == 0)
-                company = Company(uid);
-            if (!_crewed.TryGetValue(grid, out var flags))
-                _crewed[grid] = flags = new List<string>();
-            if (company.Length > 0 && !flags.Contains(company))
-                flags.Add(company);
+                company = own;
+            if (company.Length > 0 && !crewed.Flags.Contains(company))
+                crewed.Flags.Add(company);
+            if (own.Length > 0)
+                crewed.Aboard.Add(own);
         }
+    }
+
+    /// <summary>Whether a grid is a ship people fly: not a station, outpost or asteroid, and not one of an encounter's own.</summary>
+    private bool IsPlayerShip(EntityUid grid)
+    {
+        if (HasComp<WFEncounterGridComponent>(grid))
+            return false;
+
+        // Stations, outposts and asteroids are station members; a deed makes one a ship somebody owns.
+        return HasComp<ShuttleDeedComponent>(grid) || !HasComp<StationMemberComponent>(grid);
+    }
+
+    /// <summary>Whether any port of a grid is docked to another.</summary>
+    private bool IsDocked(EntityUid grid)
+    {
+        var docks = EntityQueryEnumerator<Content.Server.Shuttles.Components.DockingComponent, TransformComponent>();
+        while (docks.MoveNext(out _, out var dock, out var xform))
+        {
+            if (xform.GridUid == grid && dock.DockedWith != null)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Forgets intruders that left the map or the crewed ships, so a ship that comes back is told again.</summary>
+    private void Forget(WFEncounterShipState ship)
+    {
+        if (ship.Engaged.Count == 0 && ship.Warned.Count == 0)
+            return;
+
+        var map = Transform(ship.Grid).MapID;
+        _stale.Clear();
+        foreach (var uid in ship.Engaged)
+        {
+            if (IsGone(uid, map))
+                _stale.Add(uid);
+        }
+
+        foreach (var uid in _stale)
+        {
+            ship.Engaged.Remove(uid);
+        }
+
+        _stale.Clear();
+        foreach (var uid in ship.Warned.Keys)
+        {
+            if (IsGone(uid, map))
+                _stale.Add(uid);
+        }
+
+        foreach (var uid in _stale)
+        {
+            ship.Warned.Remove(uid);
+        }
+    }
+
+    private bool IsGone(EntityUid intruder, MapId map)
+    {
+        return TerminatingOrDeleted(intruder) || !_crewed.ContainsKey(intruder) || Transform(intruder).MapID != map;
     }
 
     /// <summary>An entity's company id, or empty for none.</summary>
@@ -116,20 +198,27 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
 
     private void Watch(WFEncounterShipState ship)
     {
+        Forget(ship);
+
+        // A ship in port is not on guard: whatever is berthed beside it is none of its business.
+        if (IsDocked(ship.Grid))
+            return;
+
         var here = _transform.GetMapCoordinates(ship.Grid);
         var company = Company(ship.Grid);
         var now = _timing.CurTime;
-        foreach (var (intruder, flags) in _crewed)
+        foreach (var (intruder, crewed) in _crewed)
         {
-            if (intruder == ship.Grid || HasComp<WFEncounterGridComponent>(intruder) && _escorts.AreInFormation(ship.Grid, intruder))
+            // Formation partners and the ships a side has taken as allies are not intruders.
+            if (intruder == ship.Grid || _escorts.AreInFormation(ship.Grid, intruder))
                 continue;
 
-            // The ship's own company comes and goes as it likes.
-            if (company.Length > 0 && flags.Contains(company))
+            // The ship's own company comes and goes as it likes, and so does anyone flying with one of its people.
+            if (company.Length > 0 && (crewed.Flags.Contains(company) || crewed.Aboard.Contains(company)))
                 continue;
 
             // A patrol only minds its faction's enemies.
-            if (ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !AtWar(company, flags))
+            if (ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !AtWar(company, crewed.Flags))
                 continue;
 
             var there = _transform.GetMapCoordinates(intruder);
@@ -139,7 +228,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             var distance = (there.Position - here.Position).Length();
             if (ship.AttackRange > 0f && distance <= ship.AttackRange)
             {
-                _alerts.ReportShipThreat(ship.Grid, ship.Group, intruder);
+                _alerts.ReportZoneThreat(ship.Grid, ship.Group, intruder);
                 if (ship.Engaged.Add(intruder))
                     _encounters.TrySay(ship, Channel, Loc.GetString($"{ship.ZoneLines}-attack", ("intruder", Name(intruder))));
             }

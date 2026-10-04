@@ -74,7 +74,7 @@ public sealed partial class WFCrewNavigationSettings
     [DataField] public float DockSettleSpeed = 0.3f;
     /// <summary>Allowed rotation before final docking in radians per second.</summary>
     [DataField] public float DockSettleTurnRate = 0.05f;
-    /// <summary>Maximum time for a docking approach attempt in seconds.</summary>
+    /// <summary>Time for a docking approach attempt in seconds, on top of the flight to the standoff at cruise speed.</summary>
     [DataField] public float DockApproachTimeout = 120f;
     /// <summary>Maximum time spent settling before final docking in seconds.</summary>
     [DataField] public float DockSettleTimeout = 30f;

@@ -42,6 +42,16 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
     private const float Clearance = 600f;
     private const int PlacementTries = 8;
 
+    /// <summary>Room for a hull beyond its offset, kept free of other grids around a station-placed origin.</summary>
+    private const float HullClearance = 150f;
+
+    /// <summary>How soon the storyteller tries again after an attempt that started nothing.</summary>
+    private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(60);
+
+    /// <summary>Round start is tried this often for its first few tries, then every <see cref="RetryDelay"/>.</summary>
+    private static readonly TimeSpan RoundStartRetry = TimeSpan.FromSeconds(10);
+    private const int RoundStartQuickTries = 6;
+
     private bool _enabled;
     private float _intervalMin;
     private float _intervalMax;
@@ -50,6 +60,7 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
     private TimeSpan? _next;
     private bool _roundStartDue;
     private int _roundStartTries;
+    private int _roundStartPlaced;
     private TimeSpan _roundStartRetry;
     private readonly Dictionary<string, TimeSpan> _lastStarted = new();
     private readonly HashSet<string> _startedAtRoundStart = new();
@@ -82,6 +93,7 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         _startedAtRoundStart.Clear();
         _next = null;
         _roundStartDue = false;
+        _roundStartPlaced = 0;
     }
 
     /// <summary>
@@ -92,20 +104,28 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
     {
         _roundStartDue = true;
         _roundStartTries = 0;
+        _roundStartPlaced = 0;
         _roundStartRetry = TimeSpan.Zero;
     }
 
     /// <summary>Places the preset's share of round-start encounters. Returns how many started.</summary>
     public int StartRound()
     {
+        return PlaceRoundStart(Preset?.RoundStart ?? 1, out _);
+    }
+
+    /// <summary>Places up to <paramref name="limit"/> round-start encounters; <paramref name="blocked"/> if one found no place.</summary>
+    private int PlaceRoundStart(int limit, out bool blocked)
+    {
+        blocked = false;
         var started = 0;
-        var limit = Preset?.RoundStart ?? 1;
         var unplaceable = new HashSet<string>();
         while (started < limit && Pick(WFEncounterStart.RoundStart, unplaceable) is { } prototype)
         {
             if (!TryStart(prototype, out _))
             {
                 unplaceable.Add(prototype.ID);
+                blocked = true;
                 continue;
             }
 
@@ -126,10 +146,16 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
             return;
         }
 
+        // Round start keeps trying, more slowly after the first few tries, until the preset's share is placed or
+        // nothing is left to place.
         if (_roundStartDue && _timing.CurTime >= _roundStartRetry)
         {
-            _roundStartRetry = _timing.CurTime + TimeSpan.FromSeconds(10);
-            if (StartRound() > 0 || ++_roundStartTries >= 6)
+            _roundStartTries++;
+            _roundStartRetry = _timing.CurTime + (_roundStartTries < RoundStartQuickTries ? RoundStartRetry : RetryDelay);
+            var limit = Preset?.RoundStart ?? 1;
+            var started = PlaceRoundStart(limit - _roundStartPlaced, out var blocked);
+            _roundStartPlaced += started;
+            if (_roundStartPlaced >= limit || (started == 0 && !blocked && _roundStartPlaced > 0))
                 _roundStartDue = false;
         }
 
@@ -138,7 +164,9 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
             return;
 
         _next = _timing.CurTime + Interval();
-        TrySchedule(out _);
+        // An attempt that started nothing tries again soon, not a whole interval later.
+        if (!TrySchedule(out _))
+            _next = _timing.CurTime + RetryDelay;
     }
 
     private TimeSpan Interval()
@@ -161,7 +189,7 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         encounter = default;
         if (_encounters.ActiveCount() >= _maxActive)
         {
-            Log.Info("No encounter scheduled: the cap is reached.");
+            Log.Debug("No encounter scheduled: the cap is reached.");
             return false;
         }
 
@@ -179,7 +207,7 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
             return true;
         }
 
-        Log.Info("No encounter scheduled: nothing fits the budget, the player count, the cooldowns and the space.");
+        Log.Debug("No encounter scheduled: nothing fits the budget, the player count, the cooldowns and the space.");
         return false;
     }
 
@@ -219,13 +247,16 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         var total = 0f;
         foreach (var prototype in _prototypes.EnumeratePrototypes<WFEncounterPrototype>())
         {
-            // Mid-round the storyteller may also bring back a replaceable round-start encounter that is gone.
+            // Mid-round the storyteller may also bring a replaceable round-start encounter that is gone, or that
+            // round start never placed once it has stopped trying.
             var fits = prototype.Start == start
                 || start == WFEncounterStart.Scheduled && prototype.Start == WFEncounterStart.RoundStart
-                    && prototype.Replaceable && _startedAtRoundStart.Contains(prototype.ID);
+                    && prototype.Replaceable && (!_roundStartDue || _startedAtRoundStart.Contains(prototype.ID));
             var weight = prototype.Weight * (preset != null && preset.Weights.TryGetValue(prototype.Category, out var scale) ? scale : 1f);
+            // A round-long encounter takes nothing from the budget, so it needs no room in it.
+            var cost = prototype.Lifetime == WFEncounterLifetime.Persistent ? 0 : prototype.Cost;
             // One of a kind at a time: an encounter that is still running is not picked again.
-            if (!fits || weight <= 0f || players < prototype.MinPlayers || prototype.Cost > room || skip.Contains(prototype.ID)
+            if (!fits || weight <= 0f || players < prototype.MinPlayers || cost > Math.Max(0, room) || skip.Contains(prototype.ID)
                 || _encounters.IsRunning(prototype.ID)
                 || _lastStarted.TryGetValue(prototype.ID, out var last)
                     && _timing.CurTime - last < TimeSpan.FromSeconds(prototype.Cooldown))
@@ -290,17 +321,35 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
             from = _transform.GetWorldPosition(next);
         }
 
+        // The ships load where they are told, so their spot must be clear of anything but the first stop.
         var centre = _transform.GetMapCoordinates(first);
-        var reach = prototype.Placement == WFEncounterPlacement.Circuit && prototype.Route is { } route
-            ? _random.NextFloat(route.ApproachMin, MathF.Max(route.ApproachMin, route.ApproachMax))
-            : first.Comp.LocalAABB.Size.Length() / 2f + prototype.Standoff;
-        origin = new MapCoordinates(centre.Position + _random.NextAngle().ToVec() * reach, centre.MapId);
-        return true;
+        var room = HullClearance;
+        foreach (var ship in prototype.Ships)
+        {
+            room = MathF.Max(room, ship.Offset.Length() + HullClearance);
+        }
+
+        for (var i = 0; i < PlacementTries; i++)
+        {
+            var reach = prototype.Placement == WFEncounterPlacement.Circuit && prototype.Route is { } route
+                ? _random.NextFloat(route.ApproachMin, MathF.Max(route.ApproachMin, route.ApproachMax))
+                : first.Comp.LocalAABB.Size.Length() / 2f + prototype.Standoff;
+            var point = centre.Position + _random.NextAngle().ToVec() * reach;
+            _nearby.Clear();
+            _maps.FindGridsIntersecting(centre.MapId, Box2.CenteredAround(point, new Vector2(room * 2f)), ref _nearby, approx: true, includeMap: false);
+            if (_nearby.Any(grid => grid.Owner != first.Owner))
+                continue;
+
+            origin = new MapCoordinates(point, centre.MapId);
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
     /// The stations and outposts of a map: station grids with a docking port that nobody holds a deed to. A map with fewer than two, such as
-    /// the development map, is topped up with its other unowned grids so station encounters can still be tried.
+    /// the development map, is topped up with its other unowned grids that have a port, so station encounters can still be tried.
     /// </summary>
     private List<Entity<MapGridComponent>> Stations(MapId map)
     {
@@ -322,12 +371,12 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
                 || HasComp<Components.WFEncounterGridComponent>(uid))
                 continue;
 
-            // Asteroid clusters and the like are stations too, but have no port to dock at.
+            // Asteroid clusters and the like are stations too, but have no port to dock at; nor do debris and wrecks.
+            if (!ported.Contains(uid))
+                continue;
+
             if (HasComp<StationMemberComponent>(uid))
-            {
-                if (ported.Contains(uid))
-                    stations.Add((uid, grid));
-            }
+                stations.Add((uid, grid));
             else
                 others.Add((uid, grid));
         }

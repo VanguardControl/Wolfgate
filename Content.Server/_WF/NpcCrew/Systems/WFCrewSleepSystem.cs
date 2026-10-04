@@ -1,9 +1,11 @@
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.NPC.Components;
+using Content.Server.NPC.HTN;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.NpcCrew;
 using Robust.Shared.Configuration;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 
 namespace Content.Server._WF.NpcCrew.Systems;
@@ -21,6 +23,7 @@ public sealed partial class WFCrewSleepSystem : EntitySystem
     [Dependency] private WFCrewWorkSystem _work = default!;
     [Dependency] private AtmosphereSystem _atmos = default!;
     [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
 
     private bool _sleepIdle;
 
@@ -45,6 +48,12 @@ public sealed partial class WFCrewSleepSystem : EntitySystem
 
         var xform = Transform(uid);
         if (_crew.HomeGrid(uid, crew) is not { } home || xform.GridUid != home)
+            return true;
+
+        // Off the spot the HTN wants him at, he walks there before he rests. Pilots and gunners work from their console.
+        if (crew.Duty != WFCrewDuties.Pilot && crew.Duty != WFCrewDuties.Gunnery && TryComp<HTNComponent>(uid, out var htn)
+            && htn.Blackboard.TryGetValue<EntityCoordinates>(WFCrewSystem.PostKey, out var post, EntityManager)
+            && !TerminatingOrDeleted(post.EntityId) && !_transform.InRange(xform.Coordinates, post, crew.PostRange + 1f))
             return true;
 
         if (_alerts.IsAlerted(home, crew.Group) || _security.HasThreat(uid) || _work.HomeGrid(uid) != null)

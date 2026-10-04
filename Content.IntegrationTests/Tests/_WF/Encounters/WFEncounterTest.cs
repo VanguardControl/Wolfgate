@@ -28,7 +28,7 @@ namespace Content.IntegrationTests.Tests._WF.Encounters;
 /// when no ship is left and ending one removes its ships and crews.
 /// </summary>
 [TestOf(typeof(WFEncounterSystem))]
-public sealed class WFEncounterTest : InteractionTest
+public sealed partial class WFEncounterTest : InteractionTest
 {
     private const string Convoy = "WFTestEncounterConvoy";
 

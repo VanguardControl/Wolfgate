@@ -73,17 +73,35 @@ public sealed class WFCrewSystem : EntitySystem
             && a.Group == b.Group && HomeGrid(first, a) is { } home && HomeGrid(second, b) == home;
     }
 
+    /// <summary>
+    /// The mob behind a damage origin. Hitscan names the gun as the origin, so a carried gun resolves to whoever
+    /// holds it; mounted guns and everything else come back unchanged.
+    /// </summary>
+    public EntityUid Wielder(EntityUid origin)
+    {
+        if (TerminatingOrDeleted(origin) || HasComp<MobStateComponent>(origin)
+            || !HasComp<Content.Shared.Weapons.Ranged.Components.GunComponent>(origin))
+            return origin;
+
+        var holder = Transform(origin).ParentUid;
+        return HasComp<MobStateComponent>(holder) ? holder : origin;
+    }
+
     /// <summary>Records crew attacks before body-part routing loses the damage origin.</summary>
     private void OnBeforeCrewDamage(Entity<NPCRetaliationComponent> ent, ref BeforeDamageChangedEvent args)
     {
         if (args.Cancelled || !HasComp<WFCrewComponent>(ent)
             || !args.Damage.AnyPositive()
-            || args.Origin is not { } attacker
-            || attacker == ent.Owner
-            || TerminatingOrDeleted(attacker))
+            || args.Origin is not { } source
+            || source == ent.Owner
+            || TerminatingOrDeleted(source))
         {
             return;
         }
+
+        var attacker = Wielder(source);
+        if (attacker == ent.Owner)
+            return;
 
         if (_retaliation.TryRetaliate(ent, attacker) || !HasComp<MobStateComponent>(attacker) || SameCrew(ent, attacker))
             return;

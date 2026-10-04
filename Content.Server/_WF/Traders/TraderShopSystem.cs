@@ -33,6 +33,9 @@ public sealed class TraderShopSystem : EntitySystem
 
     [Dependency] private Robust.Shared.Random.IRobustRandom _random = default!;
 
+    /// <summary>Pack counts below this are real stock; a machine's "infinite" is far above it.</summary>
+    private const uint FiniteAmount = 1000;
+
     private float _refreshAccumulator;
 
     public override void Initialize()
@@ -262,6 +265,8 @@ public sealed class TraderShopSystem : EntitySystem
         var entries = new List<TraderStockEntry>();
         var seen = new HashSet<string>();
         var discount = MathF.Max(0f, ent.Comp.PriceMultiplier);
+        // A travelling trader never gives an item away because the machine it mirrors does.
+        var travelling = ent.Comp.RandomStock > 0;
 
         foreach (var vendor in ent.Comp.Vendors)
         {
@@ -281,9 +286,12 @@ public sealed class TraderShopSystem : EntitySystem
                 if (!_proto.TryIndex<EntityPrototype>(id, out var itemProto))
                     continue;
 
-                var price = GetPrice(itemProto, vend, modifier);
-                // A machine that gives something away still gives it away.
-                block.Add(new TraderStockEntry(id, discount == 1f || price <= 0 ? price : Math.Max(1, (int) (price * discount)), vendor));
+                var price = GetPrice(itemProto, vend, modifier, vend.RequiresCash || travelling);
+                if (travelling && price <= 0)
+                    continue;
+
+                // A station machine that gives something away still gives it away.
+                block.Add(new TraderStockEntry(id, discount == 1f || price <= 0 ? price : Math.Max(1, (int) (price * discount)), vendor, amount));
             }
 
             block.Sort((a, b) => string.Compare(GetItemName(a.Item), GetItemName(b.Item), StringComparison.CurrentCulture));
@@ -301,7 +309,12 @@ public sealed class TraderShopSystem : EntitySystem
             for (var i = 0; i < ent.Comp.RandomStock && pool.Count > 0; i++)
             {
                 var pick = _random.PickAndTake(pool);
-                ent.Comp.Limited[pick.Item] = _random.Next(ent.Comp.StockMin, Math.Max(ent.Comp.StockMin, ent.Comp.StockMax) + 1);
+                var most = Math.Max(ent.Comp.StockMin, ent.Comp.StockMax);
+                // A pack that lists only a few of an item caps the roll; an infinite machine count does not.
+                if (pick.Amount < FiniteAmount)
+                    most = Math.Max(ent.Comp.StockMin, Math.Min(most, (int) pick.Amount));
+
+                ent.Comp.Limited[pick.Item] = _random.Next(ent.Comp.StockMin, most + 1);
             }
         }
 
@@ -314,6 +327,14 @@ public sealed class TraderShopSystem : EntitySystem
     /// </summary>
     public int GetPrice(EntityPrototype proto, VendingMachineComponent vend, MarketModifierComponent? modifier)
     {
+        return GetPrice(proto, vend, modifier, vend.RequiresCash);
+    }
+
+    /// <summary>
+    /// The same price, with <paramref name="requiresCash"/> pricing a free machine's lines as if it took cash.
+    /// </summary>
+    public int GetPrice(EntityPrototype proto, VendingMachineComponent vend, MarketModifierComponent? modifier, bool requiresCash)
+    {
         var price = _pricing.GetEstimatedPrice(proto);
         if (price == 0)
             price = 20;
@@ -321,10 +342,10 @@ public sealed class TraderShopSystem : EntitySystem
         if (modifier != null)
             price *= modifier.Mod;
 
-        var total = vend.RequiresCash ? (int) price : 0;
+        var total = requiresCash ? (int) price : 0;
 
         var vendPrice = _pricing.GetEstimatedVendPrice(proto);
-        if (vendPrice > 0.0 && vend.RequiresCash)
+        if (vendPrice > 0.0 && requiresCash)
             total = (int) vendPrice;
 
         return total;
@@ -435,9 +456,9 @@ public sealed class TraderShopSystem : EntitySystem
 }
 
 /// <summary>
-/// One catalogue line: an item, its price, and which mirrored machine set it.
+/// One catalogue line: an item, its price, which mirrored machine set it, and how many the machine's pack lists.
 /// </summary>
-public record struct TraderStockEntry(string Item, int Price, EntProtoId Vendor);
+public record struct TraderStockEntry(string Item, int Price, EntProtoId Vendor, uint Amount = 0);
 
 /// <summary>
 /// One priced basket line: an item, how many of it, what one costs and whose shelf it came off.

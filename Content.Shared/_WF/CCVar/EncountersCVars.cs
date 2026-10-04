@@ -41,4 +41,11 @@ public sealed class EncountersCVars
     /// <summary>Seconds a resolved encounter's ship must be left alone before it is removed.</summary>
     public static readonly CVarDef<float> CleanupDelay =
         CVarDef.Create("wf.encounters.cleanup_delay", 120f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds after an encounter resolves before its ships are removed however near players are; only players
+    /// aboard or docked with a ship keep it longer. A trader that should jump out waits this long for its customers.
+    /// </summary>
+    public static readonly CVarDef<float> CleanupLinger =
+        CVarDef.Create("wf.encounters.cleanup_linger", 900f, CVar.SERVERONLY);
 }

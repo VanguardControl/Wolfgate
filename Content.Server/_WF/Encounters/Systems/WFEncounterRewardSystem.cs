@@ -2,6 +2,7 @@ using System.Linq;
 using Content.Server._NF.Bank;
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.NpcCrew;
+using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server._WF.ShipShields;
 using Content.Server.Administration.Logs;
@@ -41,6 +42,7 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
     [Dependency] private WFEncounterSystem _encounters = default!;
     [Dependency] private WFCrewEscortSystem _escorts = default!;
     [Dependency] private WFCrewShipStatusSystem _status = default!;
+    [Dependency] private WFCrewAlertSystem _alerts = default!;
     [Dependency] private BankSystem _bank = default!;
     [Dependency] private StackSystem _stack = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
@@ -68,6 +70,10 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
 
     private void OnShieldHit(ref WFShipShieldAttackedEvent args)
     {
+        // A handheld shot at a shield is no ship weapon hit.
+        if (!_alerts.IsShipWeapon(args.Weapon))
+            return;
+
         RecordHit(args.Grid, args.AttackerGrid);
     }
 
@@ -99,6 +105,9 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
 
         var hits = encounter.ShipHits.GetValueOrDefault((attacker, ship.Side)) + 1;
         encounter.ShipHits[(attacker, ship.Side)] = hits;
+        // Firing on a side that took the ship for an ally ends the alliance.
+        if (hits == 1)
+            RevokeAlliance(encounter, attacker, ship.Side);
         if (hits != MinimumHits)
             return;
 
@@ -112,6 +121,47 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
             _escorts.AddAlly(other.Grid, attacker);
             encounter.Allies.Add((other.Grid, attacker));
         }
+    }
+
+    /// <summary>Ends the alliances the ships of a side made with a player ship that has now fired on them.</summary>
+    private void RevokeAlliance(WFEncounterComponent encounter, EntityUid attacker, string side)
+    {
+        for (var i = encounter.Allies.Count - 1; i >= 0; i--)
+        {
+            var (held, ally) = encounter.Allies[i];
+            if (ally != attacker || !encounter.Ships.Values.Any(other => other.Grid == held && other.Side == side))
+                continue;
+
+            _escorts.RemoveAlly(held, ally);
+            encounter.Allies.RemoveAt(i);
+        }
+    }
+
+    /// <summary>
+    /// The one side with a ship still in the fight, or null when none or several are. Judged as the encounter was:
+    /// by who is fit to fight with living crew, so a side whose crews are dead has lost whatever state its hulls are in.
+    /// </summary>
+    public string? DecidedSide(WFEncounterComponent encounter)
+    {
+        string? side = null;
+        foreach (var ship in encounter.Ships.Values)
+        {
+            if (!InFight(ship))
+                continue;
+
+            if (side != null && side != ship.Side)
+                return null;
+
+            side = ship.Side;
+        }
+
+        return side;
+    }
+
+    /// <summary>A ship is in the fight while it is fit to fight and any of its crew live, aboard or not.</summary>
+    private bool InFight(WFEncounterShipState ship)
+    {
+        return _encounters.InFight(ship);
     }
 
     private void OnResolved(ref WFEncounterResolvedEvent args)
@@ -128,21 +178,21 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
         if (args.Resolution != WFEncounterResolution.Decided || !_prototypes.TryIndex(encounter.Prototype, out var prototype))
             return;
 
-        // The winner is the one side with a ship still in the fight.
-        WFEncounterShipState? winner = null;
-        foreach (var ship in encounter.Ships.Values)
-        {
-            if (!TerminatingOrDeleted(ship.Grid) && !_status.IsDisabled(ship.Grid))
-                winner = ship;
-        }
-
-        if (winner == null || prototype.Rewards.FirstOrDefault(reward => reward.Side == winner.Side) is not { } reward)
+        // The winner is the one side the encounter was decided for.
+        if (DecidedSide(encounter) is not { } side
+            || prototype.Rewards.FirstOrDefault(entry => entry.Side == side) is not { } reward)
             return;
 
+        // A destroyed hull is gone by now, so its company is read from the prototype as well.
         var losers = new HashSet<string>();
-        foreach (var ship in encounter.Ships.Values)
+        foreach (var (key, ship) in encounter.Ships)
         {
-            if (ship.Side != winner.Side && !TerminatingOrDeleted(ship.Grid)
+            if (ship.Side == side)
+                continue;
+
+            if (prototype.Ships.FirstOrDefault(entry => entry.Key == key)?.Company?.Id is { Length: > 0 } listed)
+                losers.Add(listed);
+            if (!TerminatingOrDeleted(ship.Grid)
                 && CompOrNull<CompanyComponent>(ship.Grid)?.CompanyName.Id is { Length: > 0 } company)
                 losers.Add(company);
         }
@@ -150,8 +200,8 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
         var helpers = new List<(ICommonSession Session, EntityUid Mob)>();
         foreach (var (user, bySide) in encounter.Hits)
         {
-            var against = bySide.Where(pair => pair.Key != winner.Side).Sum(pair => pair.Value);
-            if (against < MinimumHits || bySide.GetValueOrDefault(winner.Side) > 0
+            var against = bySide.Where(pair => pair.Key != side).Sum(pair => pair.Value);
+            if (against < MinimumHits || bySide.GetValueOrDefault(side) > 0
                 || !_playerManager.TryGetSessionById(user, out var session) || session.AttachedEntity is not { } mob
                 || HasComp<GhostComponent>(mob) || _mobs.IsDead(mob))
                 continue;
@@ -171,8 +221,12 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
         foreach (var (session, mob) in helpers)
         {
             var paid = Capped(session.UserId, share, cap);
-            if (paid > 0)
-                _bank.TryBankDeposit(mob, paid, false);
+            // A deposit that fails, with no bank account or deposits off, pays nothing and keeps the allowance.
+            if (paid > 0 && !_bank.TryBankDeposit(mob, paid, false))
+            {
+                Refund(session.UserId, paid);
+                paid = 0;
+            }
 
             var credits = 0;
             if (reward.Credits > 0 && reward.CreditEntity is { } creditEntity
@@ -185,21 +239,31 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
                 }
             }
 
+            if (paid == 0 && credits == 0)
+                continue;
+
             _chat.DispatchServerMessage(session, Loc.GetString(credits > 0 ? "wf-encounter-reward-paid-credits" : "wf-encounter-reward-paid",
                 ("name", encounter.Name), ("amount", paid), ("credits", credits)));
             _adminLog.Add(LogType.Action, LogImpact.Medium,
-                $"{session.Name} was paid {paid} spesos and {credits} faction credits for helping side {winner.Side} win encounter {encounter.Prototype} ({ToPrettyString(args.Encounter):entity})");
+                $"{session.Name} was paid {paid} spesos and {credits} faction credits for helping side {side} win encounter {encounter.Prototype} ({ToPrettyString(args.Encounter):entity})");
         }
 
+        // Whichever ship of the winning side can still speak says the thanks.
         if (reward.Thanks is { } thanks)
-            _encounters.TrySay(winner, ThanksChannel, Loc.GetString(thanks, ("count", helpers.Count)));
+        {
+            foreach (var ship in encounter.Ships.Values)
+            {
+                if (ship.Side == side && _encounters.TrySay(ship, ThanksChannel, Loc.GetString(thanks, ("count", helpers.Count))))
+                    break;
+            }
+        }
     }
 
-    /// <summary>What of an amount a player may still be paid within the hourly cap, and counts it.</summary>
+    /// <summary>What of an amount a player may still be paid within the hourly cap, and counts it. The window opens at the first payout.</summary>
     private int Capped(NetUserId user, int amount, int cap)
     {
         var now = _timing.CurTime;
-        var (since, paid) = _paid.GetValueOrDefault(user);
+        var (since, paid) = _paid.TryGetValue(user, out var entry) ? entry : (now, 0);
         if (now - since >= CapWindow)
         {
             since = now;
@@ -209,5 +273,12 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
         var allowed = Math.Clamp(cap - paid, 0, amount);
         _paid[user] = (since, paid + allowed);
         return allowed;
+    }
+
+    /// <summary>Gives back an allowance <see cref="Capped"/> counted for a payment that did not go through.</summary>
+    private void Refund(NetUserId user, int amount)
+    {
+        if (_paid.TryGetValue(user, out var entry))
+            _paid[user] = (entry.Since, Math.Max(0, entry.Paid - amount));
     }
 }

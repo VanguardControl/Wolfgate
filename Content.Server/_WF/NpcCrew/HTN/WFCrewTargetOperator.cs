@@ -22,13 +22,22 @@ public sealed partial class WFCrewTargetOperator : HTNOperator
 
     public override async Task<(bool Valid, Dictionary<string, object>? Effects)> Plan(NPCBlackboard blackboard, CancellationToken cancelToken)
     {
-        if (_weapons.PickTarget(blackboard.GetValue<EntityUid>(NPCBlackboard.Owner)) is not { } target)
+        var owner = blackboard.GetValue<EntityUid>(NPCBlackboard.Owner);
+        if (_weapons.PickTarget(owner) is not { } target)
             return (false, null);
         return (true, new Dictionary<string, object>
         {
             { "Target", target },
             { "TargetCoordinates", new EntityCoordinates(target, Vector2.Zero) },
         });
+    }
+
+    /// <summary>Setting out after an unseen hostile is what takes the hunt for it; a plan that is never run does not.</summary>
+    public override void Startup(NPCBlackboard blackboard)
+    {
+        base.Startup(blackboard);
+        if (blackboard.TryGetValue<EntityUid>("Target", out var target, IoCManager.Resolve<IEntityManager>()))
+            _weapons.ClaimAdvance(blackboard.GetValue<EntityUid>(NPCBlackboard.Owner), target);
     }
 
     /// <summary>Rejects targets lost while pathfinding before the following movement task starts.</summary>

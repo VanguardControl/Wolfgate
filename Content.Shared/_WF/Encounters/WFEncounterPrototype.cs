@@ -219,9 +219,9 @@ public sealed partial class WFEncounterShip
     [DataField]
     public float DisengageRange = 500f;
 
-    /// <summary>How well its crew shoot, lay the ship's guns and fly.</summary>
+    /// <summary>How well its crew shoot, lay the ship's guns and fly. Unset takes the crew profile's skill pool, else Veteran.</summary>
     [DataField]
-    public WFCrewSkill Skill = WFCrewSkill.Veteran;
+    public WFCrewSkill? Skill;
 
     /// <summary>Whether the ship calls for help on the radio: a mayday when attacked, a distress call when adrift.</summary>
     [DataField]

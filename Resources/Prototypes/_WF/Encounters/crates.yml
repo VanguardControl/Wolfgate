@@ -1,0 +1,206 @@
+# Crates for the freight manifests that no catalog crate covers. None is a cargo product, so none can be ordered and
+# resold. Guns are kept to a few per crate, and anything TSF-issue sits in a TSF-branded crate.
+
+- type: entity
+  id: WFCrateFoodRations
+  parent: CratePlasticBiodegradable
+  name: bulk ration crate
+  description: A flimsy crate stacked with boxes of military meal rations.
+  components:
+  - type: StorageFill
+    contents:
+    - id: BoxMRE
+      amount: 12
+
+- type: entity
+  id: WFCrateShipSystems
+  parent: CrateEngineering
+  name: ship systems crate
+  description: Flatpacked IFF console, generators, cell charger and docking airlocks for fitting out a ship.
+  components:
+  - type: StorageFill
+    contents:
+    - id: ComputerIFFFlatpack
+    - id: PortableGeneratorSuperPacmanFlatpack
+      amount: 2
+    - id: PowerCellRechargerFlatpack
+    - id: AirlockShuttleFlatpack
+      amount: 4
+
+- type: entity
+  id: WFCrateArmsTsfRifles
+  parent: CrateNfsdSecure1
+  name: TSFMC rifle crate
+  description: Two Lecter service rifles with spare magazines. Requires Security access to open.
+  components:
+  - type: StorageFill
+    contents:
+    - id: WeaponRifleLecter
+      amount: 2
+    - id: Magazine68x52mmCaseless
+      amount: 4
+
+- type: entity
+  id: WFCrateArmsVault
+  parent: CrateNfsdSecure2
+  name: TSFMC mixed arms crate
+  description: A rifle, an SMG, a laser rifle and a shotgun, with ammunition for each. Requires Security access to open.
+  components:
+  - type: StorageFill
+    contents:
+    - id: WeaponRifleLecter
+    - id: WeaponSubMachineGunWt550
+    - id: WeaponLaserCarbine
+    - id: WeaponShotgunEnforcer
+    - id: Magazine68x52mmCaseless
+      amount: 2
+    - id: Magazine46x30mmSubMachineGunTopMountedFMJ
+      amount: 2
+    - id: AmmoBox12_gaugeBuckshot
+
+- type: entity
+  id: WFCrateArmsSupplies
+  parent: CrateAmmoGeneric
+  name: ammunition and armor crate
+  description: Boxed ammunition for the TSF service weapons, and three bulletproof vests.
+  components:
+  - type: StorageFill
+    contents:
+    - id: AmmoBox46x30mmFMJ
+      amount: 2
+    - id: AmmoBox68x52mmCaseless
+      amount: 2
+    - id: AmmoBox12_gaugeBuckshot
+      amount: 2
+    - id: ClothingOuterArmorBulletproof
+      amount: 3
+
+- type: entity
+  id: WFCrateLuxuryBullion
+  parent: CratePrivateSecure
+  name: bullion crate
+  description: A private crate holding a stack of gold bars and a stack of silver bars.
+  components:
+  - type: StorageFill
+    contents:
+    - id: IngotGold
+    - id: IngotSilver
+
+- type: entity
+  id: WFCrateOreCommon
+  parent: CrateGenericSteel
+  name: bulk ore crate
+  description: Steel ore and salt ore, mined and crated.
+  components:
+  - type: StorageFill
+    contents:
+    - id: SteelOre
+      amount: 3
+    - id: SaltOre
+
+- type: entity
+  id: WFCrateOrePrecious
+  parent: CrateGenericSteel
+  name: precious ore crate
+  description: Silver ore and gold ore, mined and crated.
+  components:
+  - type: StorageFill
+    contents:
+    - id: SilverOre
+    - id: GoldOre
+
+# Three lots, each one item picked by weight, so it is never empty and holds no jackpot.
+- type: entity
+  id: WFCrateSalvageSorted
+  parent: CrateGenericSteel
+  name: sorted salvage crate
+  description: Scrap sheets, rods and cloth sorted into three lots, with the odd silver bar among them.
+  components:
+  - type: StorageFill
+    contents:
+    - id: SheetSteel
+      prob: 0.2
+      orGroup: Haul1
+    - id: SheetGlass
+      prob: 0.2
+      orGroup: Haul1
+    - id: SheetPlastic
+      prob: 0.1
+      orGroup: Haul1
+    - id: SheetPlasteel
+      prob: 0.05
+      orGroup: Haul1
+    - id: SheetBrass
+      prob: 0.1
+      orGroup: Haul1
+    - id: MaterialCloth
+      prob: 0.1
+      orGroup: Haul1
+    - id: PartRodMetal
+      prob: 0.1
+      orGroup: Haul1
+    - id: IngotSilver
+      prob: 0.04
+      orGroup: Haul1
+    - id: SheetSteel
+      prob: 0.2
+      orGroup: Haul2
+    - id: SheetGlass
+      prob: 0.2
+      orGroup: Haul2
+    - id: SheetPlastic
+      prob: 0.1
+      orGroup: Haul2
+    - id: SheetPlasteel
+      prob: 0.05
+      orGroup: Haul2
+    - id: SheetBrass
+      prob: 0.1
+      orGroup: Haul2
+    - id: MaterialCloth
+      prob: 0.1
+      orGroup: Haul2
+    - id: PartRodMetal
+      prob: 0.1
+      orGroup: Haul2
+    - id: IngotSilver
+      prob: 0.04
+      orGroup: Haul2
+    - id: SheetSteel
+      prob: 0.2
+      orGroup: Haul3
+    - id: SheetGlass
+      prob: 0.2
+      orGroup: Haul3
+    - id: SheetPlastic
+      prob: 0.1
+      orGroup: Haul3
+    - id: SheetPlasteel
+      prob: 0.05
+      orGroup: Haul3
+    - id: SheetBrass
+      prob: 0.1
+      orGroup: Haul3
+    - id: MaterialCloth
+      prob: 0.1
+      orGroup: Haul3
+    - id: PartRodMetal
+      prob: 0.1
+      orGroup: Haul3
+    - id: IngotSilver
+      prob: 0.04
+      orGroup: Haul3
+
+- type: entity
+  id: WFCrateContrabandHeavyArms
+  parent: CratePirateGrey
+  name: unmarked pirate chest
+  description: An unmarked, unlocked chest of unregistered arms.
+  components:
+  - type: StorageFill
+    contents:
+    - id: WeaponSubMachineGunWt550Expedition
+    - id: WeaponLaserCarbineExpedition
+    - id: WeaponEnergyGunExpedition
+    - id: Magazine46x30mmSubMachineGunTopMountedFMJ
+      amount: 2

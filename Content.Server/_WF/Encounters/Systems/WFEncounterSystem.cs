@@ -5,14 +5,20 @@ using Content.Server._WF.NpcCrew;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server.Chat.Systems;
+using Content.Server.NPC.Components;
+using Content.Server.NPC.Systems;
 using Content.Server.Radio.EntitySystems;
 using Content.Server.StationEvents.Events;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Encounters;
 using Content.Shared._WF.NpcCrew;
+using Content.Shared.Damage;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.NPC.Systems;
 using Content.Shared.Radio;
+using Content.Shared.Radio.Components;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -47,6 +53,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
     [Dependency] private MetaDataSystem _meta = default!;
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedMapSystem _mapSystem = default!;
+    [Dependency] private NPCRetaliationSystem _retaliation = default!;
+    [Dependency] private NpcFactionSystem _factions = default!;
 
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
 
@@ -65,21 +74,28 @@ public sealed partial class WFEncounterSystem : EntitySystem
     private TimeSpan _nextPoll;
     private float _cleanupRange;
     private TimeSpan _cleanupDelay;
+    private TimeSpan _cleanupLinger;
     private readonly List<MapCoordinates> _players = new();
+    private readonly HashSet<EntityUid> _playerGrids = new();
 
     public override void Initialize()
     {
         base.Initialize();
         Subs.CVar(_config, EncountersCVars.CleanupRange, value => _cleanupRange = value, true);
         Subs.CVar(_config, EncountersCVars.CleanupDelay, value => _cleanupDelay = TimeSpan.FromSeconds(value), true);
+        Subs.CVar(_config, EncountersCVars.CleanupLinger, value => _cleanupLinger = TimeSpan.FromSeconds(value), true);
         SubscribeLocalEvent<WFCrewAlertEvent>(OnCrewAlert);
-        SubscribeLocalEvent<WFEncounterPassengerComponent, Content.Shared.Damage.DamageChangedEvent>(OnPassengerDamaged);
+        // Before the damage lands: Wolfmed routes a body's damage through its parts, and the body's own
+        // DamageChangedEvent then has no origin.
+        SubscribeLocalEvent<WFEncounterPassengerComponent, BeforeDamageChangedEvent>(OnPassengerDamaged,
+            before: [typeof(Content.Shared._Onyx.Wounds.WoundDamageRoutingSystem)]);
     }
 
     /// <summary>A hidden encounter shows itself once one of its crews raises the alarm.</summary>
     private void OnCrewAlert(ref WFCrewAlertEvent args)
     {
-        if (!TryComp<WFEncounterGridComponent>(args.Grid, out var marker))
+        // A patrol zone's warning is not an attack: it reveals nothing and calls for no help.
+        if (_alerts.InZoneReport || !TryComp<WFEncounterGridComponent>(args.Grid, out var marker))
             return;
 
         Reveal(marker.Encounter);
@@ -87,15 +103,48 @@ public sealed partial class WFEncounterSystem : EntitySystem
             CallForHelp(encounter, ship);
     }
 
-    private void OnPassengerDamaged(Entity<WFEncounterPassengerComponent> ent, ref Content.Shared.Damage.DamageChangedEvent args)
+    /// <summary>A passenger attacked by someone outside the crew: the ship calls for help and its guards turn on the attacker.</summary>
+    private void OnPassengerDamaged(Entity<WFEncounterPassengerComponent> ent, ref BeforeDamageChangedEvent args)
     {
-        if (!args.DamageIncreased || args.Origin is not { } origin || origin == ent.Owner
+        if (args.Cancelled || !args.Damage.AnyPositive() || args.Origin is not { } source)
+            return;
+
+        // A beam names the gun as its origin; the attacker is whoever holds it.
+        var origin = _crew.Wielder(source);
+        if (origin == ent.Owner || TerminatingOrDeleted(origin)
             || !TryComp<WFEncounterComponent>(ent.Comp.Encounter, out var encounter)
-            || !encounter.Ships.TryGetValue(ent.Comp.Key, out var ship))
+            || !encounter.Ships.TryGetValue(ent.Comp.Key, out var ship)
+            || TryComp<WFCrewComponent>(origin, out var attacker) && attacker.Group == ship.Group)
             return;
 
         Reveal((ent.Comp.Encounter, encounter));
         CallForHelp(encounter, ship);
+        if (HasComp<MobStateComponent>(origin))
+            Defend(ship, origin);
+    }
+
+    /// <summary>The ship's guards treat whoever attacked its passenger as they would an attacker of their own.</summary>
+    private void Defend(WFEncounterShipState ship, EntityUid attacker)
+    {
+        var now = _timing.CurTime;
+        var crew = EntityQueryEnumerator<WFCrewComponent, NPCRetaliationComponent, TransformComponent>();
+        while (crew.MoveNext(out var uid, out var member, out var retaliation, out var xform))
+        {
+            if (member.Group != ship.Group || member.Engagement != WFCrewEngagement.OnSight
+                || (member.Post?.EntityId ?? xform.GridUid) != ship.Grid || !_mobs.IsAlive(uid))
+                continue;
+
+            if (_retaliation.TryRetaliate((uid, retaliation), attacker))
+                continue;
+
+            // Upstream never remembers a friendly-faction attacker; the guards still answer.
+            _factions.AggroEntity(uid, attacker);
+            if (retaliation.AttackMemoryLength is { } length)
+            {
+                var memories = retaliation.AttackMemories;
+                memories[attacker] = now + length;
+            }
+        }
     }
 
     /// <summary>A ship with passengers radios for help when it or they are attacked, at most every few minutes.</summary>
@@ -146,53 +195,68 @@ public sealed partial class WFEncounterSystem : EntitySystem
         _chat.DispatchGlobalAnnouncement(text, encounter.AnnouncementSender);
     }
 
-    /// <summary>Has a ship's radio officer, or failing that its captain, say something on a channel.</summary>
+    /// <summary>
+    /// Has someone aboard say something on a channel for the ship: its radio officer, else its captain, else its
+    /// pilot, else any living crewman. False if nobody is left to.
+    /// </summary>
     public bool TrySay(WFEncounterShipState ship, ProtoId<RadioChannelPrototype> channel, string text)
     {
         if (TerminatingOrDeleted(ship.Grid))
             return false;
 
         EntityUid? speaker = null;
-        var operators = EntityQueryEnumerator<WFRadioOperatorComponent, WFCrewComponent, TransformComponent>();
-        while (operators.MoveNext(out var uid, out _, out var crew, out var xform))
+        var rank = 0;
+        var crew = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (crew.MoveNext(out var uid, out var member, out var xform))
         {
-            if (crew.Group != ship.Group || xform.GridUid != ship.Grid || !_mobs.IsAlive(uid))
+            if (member.Group != ship.Group || xform.GridUid != ship.Grid || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid))
                 continue;
 
-            // The radio officer speaks for the ship while he lives.
-            if (speaker == null || crew.Role == WFCrewRoles.RadioOperator)
-                speaker = uid;
+            var standing = member.Role == WFCrewRoles.RadioOperator ? 4
+                : HasComp<WFRadioOperatorComponent>(uid) ? 3
+                : member.Role == WFCrewRoles.Pilot ? 2
+                : 1;
+            if (standing <= rank)
+                continue;
+
+            rank = standing;
+            speaker = uid;
         }
 
         if (speaker is not { } voice)
             return false;
 
+        // Whoever makes the call is heard without a telecom server on the map, as a radio officer is.
+        EnsureComp<TelecomExemptComponent>(voice);
         _radio.SendRadioMessage(voice, text, channel, voice);
         return true;
     }
 
-    /// <summary>Encounters that have not resolved yet.</summary>
+    /// <summary>
+    /// Encounters that have not resolved yet and count against the storyteller's cap. A persistent one, such as
+    /// the patrol that stays all round, does not.
+    /// </summary>
     public int ActiveCount()
     {
         var count = 0;
         var query = EntityQueryEnumerator<WFEncounterComponent>();
         while (query.MoveNext(out _, out var encounter))
         {
-            if (encounter.Resolution == null)
+            if (encounter.Resolution == null && encounter.Lifetime != WFEncounterLifetime.Persistent)
                 count++;
         }
 
         return count;
     }
 
-    /// <summary>The summed cost of the encounters that have not resolved yet.</summary>
+    /// <summary>The summed cost of the encounters <see cref="ActiveCount"/> counts.</summary>
     public int ActiveCost()
     {
         var cost = 0;
         var query = EntityQueryEnumerator<WFEncounterComponent>();
         while (query.MoveNext(out _, out var encounter))
         {
-            if (encounter.Resolution == null)
+            if (encounter.Resolution == null && encounter.Lifetime != WFEncounterLifetime.Persistent)
                 cost += encounter.Cost;
         }
 
@@ -221,10 +285,11 @@ public sealed partial class WFEncounterSystem : EntitySystem
         IReadOnlyList<EntityUid>? stops = null)
     {
         encounter = default;
-        if (origin.MapId == MapId.Nullspace || prototype.Ships.Count == 0)
+        if (origin.MapId == MapId.Nullspace || prototype.Ships.Count == 0 || !_mapSystem.TryGetMap(origin.MapId, out var map))
             return false;
 
-        var uid = Spawn(null, origin);
+        // On the map itself: parented to a grid under the origin, it would go with that grid and orphan its ships.
+        var uid = Spawn(null, new EntityCoordinates(map.Value, origin.Position));
         var comp = AddComp<WFEncounterComponent>(uid);
         var designation = $"{(char) ('A' + _random.Next(26))}{(char) ('A' + _random.Next(26))}-{_random.Next(100, 1000)}";
         comp.Prototype = prototype.ID;
@@ -447,7 +512,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             CallsForHelp = ship.Distress && ship.Passengers.Count == 0,
             Disengage = ship.Disengage,
             DisengageRange = ship.DisengageRange,
-            Skill = ship.Skill,
+            Skill = ship.Skill ?? WFCrewSkill.Veteran,
         };
         if (ship.Navigation is { } navigation && _prototypes.TryIndex(navigation, out var profile))
             mission.Navigation = profile.Settings.Clone();
@@ -455,8 +520,10 @@ public sealed partial class WFEncounterSystem : EntitySystem
         var posts = _setup.Plan(grid, ship.Deckhands + ship.Guards, ship.Captain);
         if (ship.Roles.Count > 0)
             posts.RemoveAll(post => !ship.Roles.Any(role => role.Id == post.Role));
-        // The last deckhands of the plan are the ship's guards.
-        var guards = ship.Guards;
+        // The last deckhands of the plan are the ship's guards; a ship meant to have hands keeps one to work.
+        var guards = ship.Deckhands > 0
+            ? Math.Min(ship.Guards, posts.Count(post => post.Role == WFCrewRoles.Deckhand.Id) - 1)
+            : ship.Guards;
         for (var i = posts.Count - 1; i >= 0 && guards > 0; i--)
         {
             if (posts[i].Role != WFCrewRoles.Deckhand.Id)
@@ -466,7 +533,12 @@ public sealed partial class WFEncounterSystem : EntitySystem
             guards--;
         }
 
-        if (posts.Count == 0 || !_setup.TrySpawn(grid, posts, mission, out _))
+        // No deckhands asked for: the planner's posts inside the airlocks go unmanned too.
+        if (ship.Deckhands <= 0)
+            posts.RemoveAll(post => post.Role == WFCrewRoles.Deckhand.Id);
+
+        // A skill set on the ship is the crew's; left unset, each takes one from the profile's pool.
+        if (posts.Count == 0 || !_setup.TrySpawn(grid, posts, mission, ship.Skill == null, out _))
             return false;
 
         // Shipyard hulls come with empty reactors and flat batteries; the crew arrive with theirs charged.
@@ -502,6 +574,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             return;
 
         encounter.Comp.Resolution = resolution;
+        encounter.Comp.ResolvedAt = _timing.CurTime;
         if (resolution is WFEncounterResolution.Completed or WFEncounterResolution.Expired
             && encounter.Comp.Lifetime == WFEncounterLifetime.Transient)
             encounter.Comp.JumpAt = _timing.CurTime + JumpDelay;
@@ -517,6 +590,12 @@ public sealed partial class WFEncounterSystem : EntitySystem
             return;
 
         Resolve(encounter, WFEncounterResolution.Ended);
+        // Ending is final: a boarding party or stranded raiders posted on another ship go too.
+        foreach (var ship in encounter.Comp.Ships.Values)
+        {
+            _setup.ClearGroup(ship.Group);
+        }
+
         Remove((encounter, encounter.Comp));
     }
 
@@ -552,16 +631,16 @@ public sealed partial class WFEncounterSystem : EntitySystem
         var query = EntityQueryEnumerator<WFEncounterComponent>();
         while (query.MoveNext(out var uid, out var encounter))
         {
+            if (!playersKnown)
+            {
+                FindPlayers();
+                playersKnown = true;
+            }
+
             if (encounter.Resolution == null)
             {
                 if (!encounter.Begun)
                 {
-                    if (!playersKnown)
-                    {
-                        FindPlayers();
-                        playersKnown = true;
-                    }
-
                     if (PlayerWithin(encounter, encounter.StartRadius))
                     {
                         encounter.Begun = true;
@@ -581,12 +660,6 @@ public sealed partial class WFEncounterSystem : EntitySystem
                 continue;
             }
 
-            if (!playersKnown)
-            {
-                FindPlayers();
-                playersKnown = true;
-            }
-
             if (!CleanUp(encounter))
                 QueueDel(uid);
         }
@@ -604,13 +677,17 @@ public sealed partial class WFEncounterSystem : EntitySystem
             if (status is not ("dock-failed" or "target-lost"))
                 continue;
 
+            var net = GetNetEntity(ship.Grid);
+            var head = _objectives.Snapshot().FirstOrDefault(crew => crew.Grid == net && crew.Group == ship.Group)
+                ?.Objectives.FirstOrDefault()?.Kind;
             Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} skips an order it cannot carry out.");
             _objectives.Control(ship.Grid, ship.Group, WFCrewSetupAction.Skip);
-            if (status != "dock-failed")
+            if (head is not (WFCrewObjectiveKind.Dock or WFCrewObjectiveKind.Loot or WFCrewObjectiveKind.Resupply
+                or WFCrewObjectiveKind.Salvage))
                 continue;
 
-            // A stop it could not dock at is passed over whole: the wait there and the casting off go with it.
-            var net = GetNetEntity(ship.Grid);
+            // A stop it could not dock at, or that is gone, is passed over whole: the wait there and the casting off
+            // go with it.
             for (var i = 0; i < 2; i++)
             {
                 var crew = _objectives.Snapshot().FirstOrDefault(crew => crew.Grid == net && crew.Group == ship.Group);
@@ -637,6 +714,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
             if (ship.Hunt && encounter.Begun)
                 Hunt(ship);
+
+            if (ship.Passengers && ship.HasOrders)
+                Serve(ship);
 
             var fighting = _alerts.IsAlerted(ship.Grid, ship.Group);
             if (!_status.IsAdrift(ship.Grid) || fighting)
@@ -666,7 +746,22 @@ public sealed partial class WFEncounterSystem : EntitySystem
         }
     }
 
-    private bool HasLivingCrew(WFEncounterShipState ship, bool anywhere = false)
+    /// <summary>
+    /// A ship with passengers stays put while players are aboard or docked with it: its next leg would cast off
+    /// with them. Its orders carry on once they have gone.
+    /// </summary>
+    private void Serve(WFEncounterShipState ship)
+    {
+        var customers = PlayersAboard(ship.Grid);
+        if (customers == ship.Serving)
+            return;
+
+        ship.Serving = customers;
+        _objectives.Control(ship.Grid, ship.Group, customers ? WFCrewSetupAction.Pause : WFCrewSetupAction.Resume);
+    }
+
+    /// <summary>Whether any of a ship's crew is alive: aboard it, or with <paramref name="anywhere"/> wherever they are.</summary>
+    public bool HasLivingCrew(WFEncounterShipState ship, bool anywhere = false)
     {
         var crew = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (crew.MoveNext(out var uid, out var member, out var xform))
@@ -678,7 +773,30 @@ public sealed partial class WFEncounterSystem : EntitySystem
         return false;
     }
 
-    /// <summary>How the encounter has ended, if it has.</summary>
+    /// <summary>
+    /// Whether a ship is still in the fight: its hull is there and not disabled, and any of its crew live, aboard or
+    /// not. A side is in the fight while any of its ships is.
+    /// </summary>
+    public bool InFight(WFEncounterShipState ship)
+    {
+        return !TerminatingOrDeleted(ship.Grid) && !_status.IsDisabled(ship.Grid) && HasLivingCrew(ship, anywhere: true)
+            && (ship.NoPilotSince is not { } since || _timing.CurTime - since < NoPilotGrace);
+    }
+
+    /// <summary>How long a ship with orders may have nobody left to fly it before it is out of the encounter.</summary>
+    private static readonly TimeSpan NoPilotGrace = TimeSpan.FromSeconds(60);
+
+    /// <summary>A task that never finishes by itself: a hold, loiter, circle, follow or escort with no duration.</summary>
+    private static bool Endless(WFCrewObjective objective)
+    {
+        return objective.Kind is (WFCrewObjectiveKind.Hold or WFCrewObjectiveKind.Loiter or WFCrewObjectiveKind.Circle
+            or WFCrewObjectiveKind.Follow or WFCrewObjectiveKind.Escort) && objective.Duration <= 0f;
+    }
+
+    /// <summary>
+    /// How the encounter has ended, if it has. Its orders are done once every ship with orders that can finish has
+    /// flown them or is gone; a ship left on an endless task, such as an escort, doesn't hold the rest up.
+    /// </summary>
     private WFEncounterResolution? Judge(WFEncounterComponent encounter, List<WFCrewSetupCrew> crews)
     {
         var sides = new HashSet<string>();
@@ -688,16 +806,32 @@ public sealed partial class WFEncounterSystem : EntitySystem
         foreach (var ship in encounter.Ships.Values)
         {
             sides.Add(ship.Side);
-            var alive = !TerminatingOrDeleted(ship.Grid);
-            // A ship is in it while it is fit to fight and any of its crew live, aboard or not.
-            if (alive && !_status.IsDisabled(ship.Grid) && HasLivingCrew(ship, anywhere: true))
+            // The crew hand the helm on when a pilot falls; "no-pilot" means nobody left can fly it.
+            if (ship.HasOrders && !TerminatingOrDeleted(ship.Grid)
+                && _objectives.QueueStatus(ship.Grid, ship.Group) == "no-pilot")
+                ship.NoPilotSince ??= _timing.CurTime;
+            else
+                ship.NoPilotSince = null;
+
+            if (InFight(ship))
                 fighting.Add(ship.Side);
             if (!ship.HasOrders)
                 continue;
 
+            if (TerminatingOrDeleted(ship.Grid))
+            {
+                ordered++;
+                done++;
+                continue;
+            }
+
+            var net = GetNetEntity(ship.Grid);
+            var row = crews.FirstOrDefault(crew => crew.Grid == net && crew.Group == ship.Group);
+            if (row != null && row.Objectives.Count > 0 && Endless(row.Objectives[0]))
+                continue;
+
             ordered++;
-            var net = alive ? GetNetEntity(ship.Grid) : NetEntity.Invalid;
-            if (crews.Any(crew => crew.Grid == net && crew.Group == ship.Group && crew.Objectives.Count == 0))
+            if (row != null && row.Objectives.Count == 0)
                 done++;
         }
 
@@ -718,30 +852,76 @@ public sealed partial class WFEncounterSystem : EntitySystem
     private void FindPlayers()
     {
         _players.Clear();
+        _playerGrids.Clear();
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out _, out var xform))
         {
             // A body without a mob state still counts; ghosts and the dead don't.
-            if (!HasComp<Content.Shared.Ghost.GhostComponent>(uid) && !_mobs.IsDead(uid))
-                _players.Add(_transform.GetMapCoordinates(uid, xform));
+            if (HasComp<Content.Shared.Ghost.GhostComponent>(uid) || _mobs.IsDead(uid))
+                continue;
+
+            _players.Add(_transform.GetMapCoordinates(uid, xform));
+            if (xform.GridUid is { } grid)
+                _playerGrids.Add(grid);
         }
     }
 
-    /// <summary>Removes the ships of a resolved encounter that players have left alone. False once none is left.</summary>
+    /// <summary>Whether a living player is aboard a ship or on a grid docked with it, as of the last poll.</summary>
+    private bool PlayersAboard(EntityUid grid)
+    {
+        if (_playerGrids.Contains(grid))
+            return true;
+
+        foreach (var dock in _docking.GetDocks(grid))
+        {
+            // A station it is docked at always has people on it; only a player's ship alongside holds it back.
+            if (dock.Comp.DockedWith is { } other && Transform(other).GridUid is { } docked && _playerGrids.Contains(docked)
+                && (!HasComp<Content.Shared.Station.Components.StationMemberComponent>(docked)
+                    || HasComp<Content.Shared._NF.Shipyard.Components.ShuttleDeedComponent>(docked)))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Removes the ships of a resolved encounter that players have left alone, or that have lingered long enough
+    /// with nobody aboard or docked, however near players are. False once none is left.
+    /// </summary>
     private bool CleanUp(WFEncounterComponent encounter)
     {
+        var now = _timing.CurTime;
+        var overdue = encounter.ResolvedAt is { } resolved && now - resolved >= _cleanupLinger;
         var remaining = false;
         foreach (var ship in encounter.Ships.Values)
         {
             if (TerminatingOrDeleted(ship.Grid))
+            {
+                // Raiders left aboard their prey fight on for a while after their ship is gone, then go too.
+                if (ship.Hunt && HasLivingCrew(ship, anywhere: true))
+                {
+                    if (overdue)
+                        _setup.ClearGroup(ship.Group);
+                    else
+                        remaining = true;
+                }
+
                 continue;
+            }
 
             if (encounter.JumpAt is { } jump)
             {
-                if (_timing.CurTime >= jump)
+                // A ship with passengers waits a while for the customers aboard or docked with it.
+                if (now >= jump && (overdue || !ship.Passengers || !PlayersAboard(ship.Grid)))
                     RemoveShip(ship);
                 else
                     remaining = true;
+                continue;
+            }
+
+            if (overdue && !PlayersAboard(ship.Grid))
+            {
+                RemoveShip(ship);
                 continue;
             }
 

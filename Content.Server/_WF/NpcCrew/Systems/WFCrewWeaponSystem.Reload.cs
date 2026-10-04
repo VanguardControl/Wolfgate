@@ -46,23 +46,28 @@ public sealed partial class WFCrewWeaponSystem
             if (_timing.CurTime >= cached.Until)
                 _threats.Remove(mob);
         }
+        PruneAdvance();
         var query = EntityQueryEnumerator<WFCrewWeaponComponent>();
         while (query.MoveNext(out var uid, out _))
         {
             if (HasComp<ActorComponent>(uid) || !_mobs.IsAlive(uid))
                 continue;
-            // The less skilled take longer to get the first shot off.
+            // Components made before the skill changed keep up; new ones start with it (OnRangedInit).
             if (TryComp<Content.Server.NPC.Components.NPCRangedCombatComponent>(uid, out var ranged) && TryComp<WFCrewComponent>(uid, out var shooter))
                 ranged.ShootDelay = WFCrewSkills.Of(shooter.Skill).ShootDelay;
             if (TryComp<HTNComponent>(uid, out var plan)
-                && plan.Blackboard.TryGetValue<EntityUid>("Target", out var target, EntityManager)
-                && !CanEngage(uid, target))
+                && plan.Blackboard.TryGetValue<EntityUid>("Target", out var target, EntityManager))
             {
-                EntityManager.System<HTNSystem>().Replan(plan);
-                EntityManager.System<Content.Server.NPC.Systems.NPCSteeringSystem>().Unregister(uid);
-                plan.Blackboard.Remove<EntityUid>("Target");
-                RemCompDeferred<NPCRangedCombatComponent>(uid);
-                RemCompDeferred<NPCMeleeCombatComponent>(uid);
+                if (!CanEngage(uid, target))
+                {
+                    EntityManager.System<HTNSystem>().Replan(plan);
+                    EntityManager.System<Content.Server.NPC.Systems.NPCSteeringSystem>().Unregister(uid);
+                    plan.Blackboard.Remove<EntityUid>("Target");
+                    RemCompDeferred<NPCRangedCombatComponent>(uid);
+                    RemCompDeferred<NPCMeleeCombatComponent>(uid);
+                }
+                else
+                    HoldAdvance(uid, target);
             }
             if (HasLiveThreat(uid))
                 TryReloadOrSwitch(uid);
@@ -128,14 +133,17 @@ public sealed partial class WFCrewWeaponSystem
             return false;
 
         TryComp<WFCrewComponent>(uid, out var crew);
-        if (crew?.Post is { } post && post.EntityId != grid)
-            return false;
-
         var attacked = WasAttackedBy(uid, target);
+        // Off his post's grid a crewman starts nothing, but he answers whoever attacked him, in sight.
+        var away = crew?.Post is { } post && post.EntityId != grid;
+        if (away && !attacked)
+            return false;
         if (IsStationCrew(uid) && !attacked)
             return false;
         if (CanSee(uid, target))
             return true;
+        if (away)
+            return false;
 
         // Out of sight. Whoever was shot at goes after the shooter; of the rest one at a time goes looking while
         // the others hold where they are. Nobody leaves good air to follow anyone into a spaced compartment.
@@ -144,24 +152,90 @@ public sealed partial class WFCrewWeaponSystem
         if (crew is { Pursues: false } || HasAir(uid) && !HasAir(target))
             return false;
 
-        return attacked || Advance(uid, target);
+        // Only a fresh attack sends him straight after someone he cannot see; an old grudge waits its turn in the hunt.
+        return RecentlyAttackedBy(uid, target) || AdvanceFree(uid, target);
     }
 
-    private static readonly TimeSpan AdvanceHold = TimeSpan.FromSeconds(8);
-    private readonly Dictionary<EntityUid, (EntityUid Crew, TimeSpan Until)> _advancing = new();
+    /// <summary>How long after an attack a crewman goes after an attacker he cannot see, outside the one-man hunt.</summary>
+    private static readonly TimeSpan PursuitWindow = TimeSpan.FromSeconds(10);
 
-    /// <summary>Takes or keeps the one place in the hunt for a hostile nobody can see.</summary>
-    private bool Advance(EntityUid uid, EntityUid target)
+    private bool RecentlyAttackedBy(EntityUid uid, EntityUid target)
     {
-        var now = _timing.CurTime;
-        if (_advancing.TryGetValue(target, out var slot) && slot.Crew != uid && now < slot.Until
-            && !TerminatingOrDeleted(slot.Crew) && _mobs.IsAlive(slot.Crew))
+        if (!TryComp<NPCRetaliationComponent>(uid, out var retaliation) || retaliation.AttackMemoryLength is not { } length)
             return false;
 
-        if (_advancing.Count > 128)
-            _advancing.Clear();
-        _advancing[target] = (uid, now + AdvanceHold);
-        return true;
+        var memories = retaliation.AttackMemories;
+        return memories.TryGetValue(target, out var until) && _timing.CurTime < until - length + PursuitWindow;
+    }
+
+    /// <summary>The longest one crewman keeps the hunt for an unseen hostile without getting sight of it.</summary>
+    private static readonly TimeSpan AdvanceLease = TimeSpan.FromSeconds(15);
+
+    /// <summary>How long the hunt stays with a crewman after he last fought its hostile in sight.</summary>
+    private static readonly TimeSpan AdvanceSight = TimeSpan.FromSeconds(8);
+
+    private readonly Dictionary<EntityUid, (EntityUid Crew, TimeSpan Until)> _advancing = new();
+
+    /// <summary>Whether the hunt for a hostile is open to this crewman: nobody holds it, the lease ran out, or it is his.</summary>
+    private bool AdvanceFree(EntityUid uid, EntityUid target)
+    {
+        return !_advancing.TryGetValue(target, out var slot) || slot.Crew == uid || _timing.CurTime >= slot.Until
+            || TerminatingOrDeleted(slot.Crew) || !_mobs.IsAlive(slot.Crew);
+    }
+
+    /// <summary>
+    /// Takes the one place in the hunt for a hostile nobody can see. Only a plan that commits to the target calls
+    /// this; an existing lease is never extended here, so a holder who gets nowhere lets go after the lease.
+    /// </summary>
+    public void ClaimAdvance(EntityUid uid, EntityUid target)
+    {
+        if (RecentlyAttackedBy(uid, target) || CanSee(uid, target) || !AdvanceFree(uid, target))
+            return;
+
+        var now = _timing.CurTime;
+        if (_advancing.TryGetValue(target, out var slot) && slot.Crew == uid && now < slot.Until)
+            return;
+
+        _advancing[target] = (uid, now + AdvanceLease);
+    }
+
+    /// <summary>
+    /// A crewman fighting a hostile in sight keeps the hunt for it, so nobody else sets out meanwhile. One who
+    /// cannot find a way to an unseen hostile gives the hunt up.
+    /// </summary>
+    private void HoldAdvance(EntityUid uid, EntityUid target)
+    {
+        if (!AdvanceFree(uid, target))
+            return;
+
+        var now = _timing.CurTime;
+        var held = _advancing.TryGetValue(target, out var slot) && slot.Crew == uid && now < slot.Until;
+        if (CanSee(uid, target))
+        {
+            var until = now + AdvanceSight;
+            _advancing[target] = (uid, held && slot.Until > until ? slot.Until : until);
+        }
+        else if (held && (Unreachable(uid)
+                     || TryComp<NPCSteeringComponent>(uid, out var steering) && steering.Status == SteeringStatus.NoPath))
+            _advancing[target] = (uid, now);
+    }
+
+    private bool Unreachable(EntityUid uid)
+    {
+        return TryComp<NPCRangedCombatComponent>(uid, out var ranged) && ranged.Status == CombatStatus.TargetUnreachable
+            || TryComp<NPCMeleeCombatComponent>(uid, out var melee) && melee.Status == CombatStatus.TargetUnreachable;
+    }
+
+    /// <summary>Drops leases that ran out and those whose crewman or hostile is gone.</summary>
+    private void PruneAdvance()
+    {
+        var now = _timing.CurTime;
+        foreach (var (target, slot) in _advancing)
+        {
+            if (now >= slot.Until || TerminatingOrDeleted(target) || !_mobs.IsAlive(target)
+                || TerminatingOrDeleted(slot.Crew) || !_mobs.IsAlive(slot.Crew))
+                _advancing.Remove(target);
+        }
     }
 
     /// <summary>Whether a mob stands where there is air to breathe.</summary>

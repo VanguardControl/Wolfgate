@@ -33,6 +33,10 @@ public sealed partial class WFEncounterComponent : Component
     [DataField]
     public WFEncounterResolution? Resolution;
 
+    /// <summary>When it resolved.</summary>
+    [DataField]
+    public TimeSpan? ResolvedAt;
+
     [DataField]
     public WFEncounterCategory Category;
 
@@ -139,6 +143,9 @@ public sealed partial class WFEncounterShipState
     /// <summary>Since when the ship has had no thrust while not in a fight.</summary>
     public TimeSpan? AdriftSince;
 
+    /// <summary>Since when its queue has had nobody left to fly it.</summary>
+    public TimeSpan? NoPilotSince;
+
     /// <summary>When it may next call for help.</summary>
     public TimeSpan NextDistress;
 
@@ -147,6 +154,9 @@ public sealed partial class WFEncounterShipState
 
     /// <summary>Whether it carries passengers, such as a trader, and so speaks for them on the radio.</summary>
     public bool Passengers;
+
+    /// <summary>Whether its orders are paused while players are aboard or docked with it.</summary>
+    public bool Serving;
 
     /// <summary>The ship a hunter's raid went aboard.</summary>
     public EntityUid? Boarded;

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Server._Mono.FireControl;
 using Content.Server._Mono.NPC.HTN;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.HTN;
@@ -10,8 +11,12 @@ using Content.Shared._WF.NpcCrew;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Systems;
+using Content.Shared.Weapons.Hitscan.Components;
+using Content.Shared.Weapons.Ranged.Components;
+using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
+using Robust.Shared.Spawners;
 using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NpcCrew.Systems;
@@ -33,12 +38,19 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
     [Dependency] private SharedUserInterfaceSystem _ui = default!;
+    [Dependency] private SharedGunSystem _guns = default!;
+    [Dependency] private IComponentFactory _factory = default!;
     [Dependency] private IGameTiming _timing = default!;
 
     public const string ConsoleKey = "WFCrewGunneryConsole";
     public const string CoordinatesKey = "WFCrewGunneryCoordinates";
 
     private static readonly TimeSpan SelectionInterval = TimeSpan.FromSeconds(0.25);
+    private static readonly TimeSpan ReachInterval = TimeSpan.FromSeconds(10);
+
+    /// <summary>A target a little past the measured reach still counts, so one on the edge isn't dropped and picked up again.</summary>
+    private const float ReachSlack = 1.1f;
+
     private readonly Dictionary<EntityUid, EntityUid> _occupants = new();
     private readonly Dictionary<EntityUid, (TimeSpan Next, EntityUid? Target)> _selections = new();
     private readonly HashSet<EntityUid> _driven = new();
@@ -47,6 +59,15 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     {
         base.Initialize();
         UpdatesBefore.Add(typeof(ShipTargetingSystem));
+        SubscribeLocalEvent<WFGunnerDutyComponent, ComponentShutdown>(OnDutyShutdown);
+    }
+
+    /// <summary>A gunner that is deleted mid-duty leaves no selection or console claim behind.</summary>
+    private void OnDutyShutdown(Entity<WFGunnerDutyComponent> ent, ref ComponentShutdown args)
+    {
+        _selections.Remove(ent.Owner);
+        if (ent.Comp.Console is { } console && _occupants.TryGetValue(console, out var holder) && holder == ent.Owner)
+            _occupants.Remove(console);
     }
 
     /// <summary>Chooses the nearest powered, unoccupied gunnery console on the crewman's grid.</summary>
@@ -142,6 +163,11 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
                 Release(uid);
                 continue;
             }
+            if (now >= duty.NextReach)
+            {
+                duty.NextReach = now + ReachInterval;
+                duty.Reach = GunReach(grid);
+            }
             // Target selection runs four times a second; the chosen ship is kept in between while still engageable.
             var here = _transform.GetMapCoordinates(grid);
             if (!_selections.TryGetValue(uid, out var selection) || now >= selection.Next
@@ -174,12 +200,16 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
         }
     }
 
-    /// <summary>The nearest live threat in range: an attacker, a hostile docker, an assigned target or a hostile faction.</summary>
+    /// <summary>
+    /// The nearest live threat in reach: an assigned target, or a ship that attacked, a hostile docker or a hostile
+    /// faction. Ships that fired on this one come before intruders a patrol zone merely reported.
+    /// </summary>
     private EntityUid? SelectTarget(EntityUid uid, EntityUid grid, WFCrewComponent crew, WFGunnerDutyComponent duty,
         MapCoordinates here)
     {
         EntityUid? best = null;
         var bestDistance = float.MaxValue;
+        var bestZone = false;
         if (_objectives.AttackTarget(grid, crew.Group) is { } assigned
             && Engageable(uid, grid, crew, duty, here, assigned, _alerts.IsHostileShip(grid, crew.Group, assigned)) is { } first)
         {
@@ -188,10 +218,15 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
         }
         foreach (var ship in _alerts.GetHostileShips(grid, crew.Group))
         {
-            if (Engageable(uid, grid, crew, duty, here, ship, true) is not { } distance || distance >= bestDistance)
+            if (Engageable(uid, grid, crew, duty, here, ship, true) is not { } distance)
+                continue;
+            var zone = _alerts.IsZoneThreat(grid, crew.Group, ship);
+            var better = best == null || (!zone && bestZone) || (zone == bestZone && distance < bestDistance);
+            if (!better)
                 continue;
             best = ship;
             bestDistance = distance;
+            bestZone = zone;
         }
         return best;
     }
@@ -200,17 +235,53 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     private float? Engageable(EntityUid uid, EntityUid grid, WFCrewComponent crew, WFGunnerDutyComponent duty,
         MapCoordinates here, EntityUid ship, bool hostile)
     {
-        if (ship == grid || TerminatingOrDeleted(ship) || _status.ShouldDisengage(grid, ship))
+        if (ship == grid || TerminatingOrDeleted(ship))
+            return null;
+        // An assigned target starts out of range, so only its state releases the gunner, as for the pilot.
+        var assigned = _objectives.IsAttackTarget(grid, crew.Group, ship);
+        if (_status.ShouldDisengage(grid, ship, range: !assigned))
             return null;
         // Reported attackers stay targets even inside the formation for their attack window.
         if (!hostile && (_escorts.AreInFormation(grid, ship)
-                || _factions.IsEntityFriendly(uid, ship) && !_objectives.IsAttackTarget(grid, crew.Group, ship)
+                || _factions.IsEntityFriendly(uid, ship) && !assigned
                     && !_security.IsHostileDockingTarget(grid, crew.Group, ship)))
             return null;
         var there = _transform.GetMapCoordinates(ship);
         if (there.MapId != here.MapId)
             return null;
         var distance = (there.Position - here.Position).LengthSquared();
-        return distance <= duty.Range * duty.Range ? distance : (float?) null;
+        // Rounds that cannot reach the aim point are skipped by the targeting system, so don't hold a target past them.
+        var limit = MathF.Min(duty.Range, duty.Reach * ReachSlack);
+        return distance <= limit * limit ? distance : (float?) null;
+    }
+
+    /// <summary>The farthest any armed gun of the grid can hit, from its ammunition; unlimited when none can be measured.</summary>
+    private float GunReach(EntityUid grid)
+    {
+        var reach = 0f;
+        var guns = EntityQueryEnumerator<FireControllableComponent, GunComponent, TransformComponent>();
+        while (guns.MoveNext(out var uid, out _, out var gun, out var xform))
+        {
+            if (xform.GridUid != grid || !xform.Anchored || !_guns.TryNextShootPrototype((uid, gun), out var proto))
+                continue;
+
+            float distance;
+            if (proto.TryGetComponent<HitscanAmmoComponent>(out _, _factory))
+            {
+                distance = proto.TryGetComponent<HitscanBasicRaycastComponent>(out var raycast, _factory)
+                    ? raycast.MaxDistance
+                    : float.MaxValue;
+            }
+            else
+            {
+                distance = _guns.GetBulletPrototype(proto).TryGetComponent<TimedDespawnComponent>(out var despawn, _factory)
+                    ? gun.ProjectileSpeedModified * despawn.Lifetime
+                    : float.MaxValue;
+            }
+
+            reach = MathF.Max(reach, distance);
+        }
+
+        return reach > 0f ? reach : float.MaxValue;
     }
 }

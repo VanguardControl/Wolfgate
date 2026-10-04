@@ -215,6 +215,7 @@ wf-crew-objective-status-evading = Captain responding to danger — objective su
 wf-crew-objective-status-paused = Paused
 wf-crew-objective-status-complete = Complete
 wf-crew-objective-status-no-pilot = Waiting for a living pilot
+wf-crew-objective-status-pilot-away = Waiting for crew to come aboard
 wf-crew-objective-status-awaiting-helm = Pilot approaching helm
 wf-crew-objective-status-dock-failed = Dock failed — edit, resume or skip
 wf-crew-objective-status-target-lost = Target unavailable — edit or skip

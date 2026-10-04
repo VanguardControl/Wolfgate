@@ -45,7 +45,7 @@ public sealed partial class TraderShopComponent : Component
     public int StockMin = 1;
 
     /// <summary>
-    /// Most of each randomly stocked item.
+    /// Most of each randomly stocked item, or the pack's own count of it when that is lower.
     /// </summary>
     [DataField]
     public int StockMax = 4;

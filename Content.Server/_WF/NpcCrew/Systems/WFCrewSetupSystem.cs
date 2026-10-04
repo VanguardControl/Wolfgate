@@ -204,6 +204,16 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     /// <summary>Encounter entry point: spawns the validated roster through the ordinary crew factory.</summary>
     public bool TrySpawn(EntityUid grid, List<WFCrewSetupPost> posts, WFCrewMission mission, out List<EntityUid> spawned)
     {
+        return TrySpawn(grid, posts, mission, true, out spawned);
+    }
+
+    /// <summary>
+    /// As the other overload. With <paramref name="profileSkills"/> off, the mission's skill stays as set and the
+    /// profile's skill pool is not drawn from, so a ship's own skill setting is not overridden.
+    /// </summary>
+    public bool TrySpawn(EntityUid grid, List<WFCrewSetupPost> posts, WFCrewMission mission, bool profileSkills,
+        out List<EntityUid> spawned)
+    {
         spawned = new List<EntityUid>();
         if (!Validate(grid, posts, mission))
             return false;
@@ -213,7 +223,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         _factions.AddFaction(grid, mission.Faction);
         // A profile rolls each crewman's body and loadout, and one skill for the crew.
         _prototypes.TryIndex<WFCrewProfilePrototype>(mission.Profile ?? string.Empty, out var profile);
-        if (profile != null && profile.Skills.Count > 0)
+        if (profileSkills && profile != null && profile.Skills.Count > 0)
             mission.Skill = _random.Pick(profile.Skills);
         foreach (var post in posts)
         {

@@ -1,21 +1,29 @@
 using System.Linq;
 using Content.Server._WF.NpcCrew.Components;
+using Content.Server.Atmos.EntitySystems;
+using Content.Server.Cargo.Systems;
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.NpcCrew;
+using Content.Shared.Clothing.Components;
 using Content.Shared.Damage;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
+using Content.Shared.Maps;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Mobs.Components;
 using Content.Shared._Mono.ShipRepair.Components;
+using Content.Shared.Physics;
 using Content.Shared.Repairable;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Stacks;
+using Content.Shared.Tag;
 using Content.Shared.Tools.Components;
 using Content.Shared.Tools.Systems;
 using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Server._WF.NpcCrew.Systems;
@@ -32,13 +40,23 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
     [Dependency] private WFCrewEvaSystem _eva = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private Robust.Shared.Containers.SharedContainerSystem _containers = default!;
+    [Dependency] private WFCrewPlannerSystem _planner = default!;
+    [Dependency] private PricingSystem _pricing = default!;
+    [Dependency] private AtmosphereSystem _atmos = default!;
+    [Dependency] private TagSystem _tags = default!;
+    [Dependency] private TurfSystem _turf = default!;
     private readonly Dictionary<EntityUid, Job> _jobs = new();
     private readonly Dictionary<(EntityUid Grid, string Group), Skipped> _skipped = new();
     private readonly HashSet<Entity<DockingComponent>> _docks = new();
+    private readonly List<EntityUid> _workers = new();
+    private readonly List<(EntityUid Item, EntityUid Place)> _lootCandidates = new();
     private float _timer;
 
     /// <summary>How long a worker may be away from a home grid it is not docked to before the job is dropped.</summary>
     private static readonly TimeSpan StrandedAfter = TimeSpan.FromSeconds(10);
+
+    /// <summary>How long each leg of a job, out to the target and back with the cargo, may take before it is given up.</summary>
+    private static readonly TimeSpan LegTime = TimeSpan.FromSeconds(120);
 
     /// <summary>Incapacitated or dead workers cannot continue their assigned interaction.</summary>
     public void CancelWorker(EntityUid worker)
@@ -72,6 +90,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                 EndJob(worker, job);
         }
         _skipped.Remove((grid, group));
+        _looted.Remove((grid, group));
     }
 
     public override void Update(float frameTime)
@@ -88,6 +107,12 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                 EndJob(worker, job);
             else if (job.Failed)
                 Release(worker, job);
+            else if (_timing.CurTime - job.Started > LegTime)
+            {
+                // Overdue while the worker was kept from it, say by a fight: the order moves on without it.
+                Fail(job, true);
+                Release(worker, job);
+            }
             else
                 CheckStranded(worker, job);
         }
@@ -97,6 +122,11 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                 _skipped.Remove(key);
             else
                 skipped.Entities.RemoveWhere(uid => TerminatingOrDeleted(uid));
+        }
+        foreach (var key in _looted.Keys.ToArray())
+        {
+            if (TerminatingOrDeleted(key.Grid))
+                _looted.Remove(key);
         }
     }
 
@@ -117,26 +147,53 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             Release(worker, job);
         }
 
-        EntityUid? chosen = null;
+        // A raid that has taken enough, run long enough or lost its prey takes what it has and goes.
+        LootState? raid = null;
+        if (kind == WFCrewObjectiveKind.Loot)
+        {
+            raid = RaidFor(grid, group);
+            if (TerminatingOrDeleted(source) || raid.Taken >= LootLimit || _timing.CurTime - raid.Started >= LootTime)
+                return Complete(grid, group);
+        }
+
+        _workers.Clear();
+        var handsLeft = false;
         var crewQuery = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (crewQuery.MoveNext(out var uid, out var crew, out var xform))
         {
-            if (xform.GridUid == grid && (crew.Post?.EntityId ?? xform.GridUid) == grid && crew.Group == group
-                && crew.Role == WFCrewRoles.Deckhand && crew.Duty == WFCrewDuties.Guard
-                && _mobs.IsAlive(uid) && !HasComp<ActorComponent>(uid) && !_weapons.HasLiveThreat(uid))
+            if (crew.Group != group || crew.Role != WFCrewRoles.Deckhand || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid))
+                continue;
+            handsLeft = true;
+            if (xform.GridUid == grid && (crew.Post?.EntityId ?? xform.GridUid) == grid
+                && crew.Duty == WFCrewDuties.Guard && !_weapons.HasLiveThreat(uid))
+                _workers.Add(uid);
+        }
+        if (_workers.Count == 0)
+        {
+            if (raid == null)
+                return "no-worker";
+            // Hands still on the prey are waited for a while; with none left alive the raid is over.
+            raid.IdleSince ??= _timing.CurTime;
+            return !handsLeft || _timing.CurTime - raid.IdleSince.Value >= LootIdleLimit ? Complete(grid, group) : "no-worker";
+        }
+        if (raid != null)
+            raid.IdleSince = null;
+
+        // Looters go through a docked port in whatever they are wearing; other work needs a hand ready for EVA.
+        EntityUid? ready = null;
+        if (kind == WFCrewObjectiveKind.Loot)
+            ready = _workers[0];
+        else
+        {
+            foreach (var worker in _workers)
             {
-                chosen = uid;
+                if (!_eva.Prepare(worker))
+                    continue;
+                ready = worker;
                 break;
             }
         }
-        if (chosen is not { } mob)
-            return "no-worker";
-        // Looters go through a docked port in whatever they are wearing.
-        if (kind != WFCrewObjectiveKind.Loot && !_eva.Prepare(mob))
-        {
-            _eva.SeekSpare(mob);
-            return "no-eva";
-        }
+        var mob = ready ?? _workers[0];
 
         var home = Comp<WFCrewComponent>(mob).Post ?? Transform(mob).Coordinates;
         var skipped = SkippedFor(grid, group, kind);
@@ -152,6 +209,8 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                     blocked = true;
                     continue;
                 }
+                if (ready == null)
+                    return NoEva(mob);
                 _jobs[mob] = new Job(grid, group, kind, grid, home, null, _timing.CurTime) { SrdCoordinates = at };
                 return "working";
             }
@@ -172,6 +231,8 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                     noTool = true;
                     continue;
                 }
+                if (ready == null)
+                    return NoEva(mob);
                 _jobs[mob] = new Job(grid, group, kind, target, home, tool, _timing.CurTime);
                 return "working";
             }
@@ -180,16 +241,17 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
 
         if (TerminatingOrDeleted(source))
             return Complete(grid, group);
-        // A raid takes a few things and goes.
-        if (kind == WFCrewObjectiveKind.Loot)
+        // A raid takes a few things worth having and goes; it does not wait on what it gave up on.
+        if (raid != null)
         {
-            if (_looted.GetValueOrDefault((grid, group)) >= LootLimit)
+            if (FindLoot(source, mob, skipped) is not { } loot)
                 return Complete(grid, group);
-            if (FindLoot(source, skipped, ref blocked) is not { } loot)
-                return blocked ? "work-blocked" : Complete(grid, group);
 
+            raid.Stash ??= Stash(grid);
+            if (raid.Stash.Count > 0)
+                home = raid.Stash[raid.Assigned % raid.Stash.Count];
+            raid.Assigned++;
             _jobs[mob] = new Job(grid, group, kind, loot, home, null, _timing.CurTime);
-            _looted[(grid, group)] = _looted.GetValueOrDefault((grid, group)) + 1;
             return "working";
         }
         var items = Transform(source).ChildEnumerator;
@@ -211,9 +273,9 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
                 blocked = true;
                 continue;
             }
+            if (ready == null)
+                return NoEva(mob);
             _jobs[mob] = new Job(grid, group, kind, item, home, null, _timing.CurTime);
-            if (kind == WFCrewObjectiveKind.Loot)
-                _looted[(grid, group)] = _looted.GetValueOrDefault((grid, group)) + 1;
             return "working";
         }
         return blocked ? "work-blocked" : Complete(grid, group);
@@ -221,13 +283,45 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
 
     /// <summary>How many things a looting crew carries off before it has enough.</summary>
     private const int LootLimit = 4;
-    private readonly Dictionary<(EntityUid Grid, string Group), int> _looted = new();
+
+    /// <summary>How long a raid keeps sending hands out, and how long it waits for one to be free.</summary>
+    private static readonly TimeSpan LootTime = TimeSpan.FromMinutes(3);
+    private static readonly TimeSpan LootIdleLimit = TimeSpan.FromSeconds(30);
+
+    /// <summary>Most things a looter weighs up per trip, since pricing a full locker is not free.</summary>
+    private const int LootCandidates = 128;
+
+    /// <summary>Below this nothing is worth a trip; clothing has to be worth a good deal more.</summary>
+    private const double LootFloor = 50;
+    private const double ClothingFloor = 250;
+
+    /// <summary>How many tiles clear of every docking port loot is put down.</summary>
+    private const int StashClearance = 3;
+
+    private static readonly ProtoId<TagPrototype> BedsheetTag = "Bedsheet";
+    private static readonly ProtoId<TagPrototype> TrashTag = "Trash";
+
+    private readonly Dictionary<(EntityUid Grid, string Group), LootState> _looted = new();
 
     private string Complete(EntityUid grid, string group)
     {
         _looted.Remove((grid, group));
         _skipped.Remove((grid, group));
         return "complete";
+    }
+
+    /// <summary>Work is waiting but no hand is ready for EVA: the first goes looking for a spare tank.</summary>
+    private string NoEva(EntityUid mob)
+    {
+        _eva.SeekSpare(mob);
+        return "no-eva";
+    }
+
+    private LootState RaidFor(EntityUid grid, string group)
+    {
+        if (!_looted.TryGetValue((grid, group), out var raid))
+            _looted[(grid, group)] = raid = new LootState(_timing.CurTime);
+        return raid;
     }
 
     private Skipped SkippedFor(EntityUid grid, string group, WFCrewObjectiveKind kind)
@@ -310,12 +404,13 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         coordinates = default;
         if (!_jobs.TryGetValue(mob, out var job) || job.Failed || HasComp<ActorComponent>(mob) || !_mobs.IsAlive(mob))
             return false;
-        if (job.Kind != WFCrewObjectiveKind.Loot && !_eva.Prepare(mob))
+        // Cargo carried home through breathable air needs no suit; anywhere else the worker must stay ready for EVA.
+        if (job.Kind != WFCrewObjectiveKind.Loot && !(job.Returning && InSafeAir(mob)) && !_eva.Prepare(mob))
         {
             Fail(job, false);
             return false;
         }
-        if (_timing.CurTime - job.Started > TimeSpan.FromSeconds(120))
+        if (_timing.CurTime - job.Started > LegTime)
         {
             Fail(job, true);
             return false;
@@ -425,6 +520,10 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             return true;
         }
         job.Returning = true;
+        // The way home has its own time limit.
+        job.Started = _timing.CurTime;
+        if (job.Kind == WFCrewObjectiveKind.Loot && _looted.TryGetValue((job.Grid, job.Group), out var raid))
+            raid.Taken++;
         return true;
     }
 
@@ -448,43 +547,128 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
     }
 
     /// <summary>
-    /// Something to steal aboard a ship: a loose item on the deck, or failing that one out of a locker or crate.
+    /// The most valuable thing aboard a ship worth stealing: loose on the deck or in a locker or crate, not given up
+    /// on, and not standing in bad air when the looter is in good air.
     /// </summary>
-    private EntityUid? FindLoot(EntityUid source, Skipped skipped, ref bool blocked)
+    private EntityUid? FindLoot(EntityUid source, EntityUid looter, Skipped skipped)
     {
-        EntityUid? stored = null;
+        _lootCandidates.Clear();
         var children = Transform(source).ChildEnumerator;
-        while (children.MoveNext(out var child))
+        while (children.MoveNext(out var child) && _lootCandidates.Count < LootCandidates)
         {
             if (HasComp<Content.Shared.Item.ItemComponent>(child))
             {
-                if (Claimed(child))
-                    continue;
-                if (!skipped.Entities.Contains(child))
-                    return child;
-                blocked = true;
+                if (!Transform(child).Anchored)
+                    _lootCandidates.Add((child, child));
                 continue;
             }
 
-            if (stored != null || !TryComp<Content.Server.Storage.Components.EntityStorageComponent>(child, out var storage))
+            if (!TryComp<Content.Server.Storage.Components.EntityStorageComponent>(child, out var storage))
+                continue;
+
+            // A locked crate keeps what is in it.
+            if (TryComp<Content.Shared.Lock.LockComponent>(child, out var crateLock) && crateLock.Locked)
                 continue;
 
             foreach (var inside in storage.Contents.ContainedEntities)
             {
-                if (!HasComp<Content.Shared.Item.ItemComponent>(inside) || Claimed(inside))
-                    continue;
-                if (skipped.Entities.Contains(inside))
-                {
-                    blocked = true;
-                    continue;
-                }
-
-                stored = inside;
-                break;
+                if (_lootCandidates.Count >= LootCandidates)
+                    break;
+                if (HasComp<Content.Shared.Item.ItemComponent>(inside))
+                    _lootCandidates.Add((inside, child));
             }
         }
 
-        return stored;
+        var inAir = InSafeAir(looter);
+        EntityUid? best = null;
+        var bestPrice = 0.0;
+        foreach (var (item, place) in _lootCandidates)
+        {
+            if (Claimed(item) || skipped.Entities.Contains(item) || inAir && !InSafeAir(place))
+                continue;
+            var price = _pricing.GetPrice(item);
+            if (price <= bestPrice || IsClutter(item, price))
+                continue;
+            best = item;
+            bestPrice = price;
+        }
+
+        return best;
+    }
+
+    /// <summary>Bedding, trash, cheap clothes and anything else not worth carrying off.</summary>
+    private bool IsClutter(EntityUid item, double price)
+    {
+        return price < LootFloor || _tags.HasAnyTag(item, BedsheetTag, TrashTag)
+            || price < ClothingFloor && HasComp<ClothingComponent>(item);
+    }
+
+    /// <summary>Whether the air where something stands can be breathed without a suit.</summary>
+    private bool InSafeAir(EntityUid uid)
+    {
+        var air = _atmos.GetTileMixture((uid, Transform(uid)));
+        return air != null && _atmos.IsMixtureProbablySafe(air) && WFCrewPlannerSystem.IsBreathable(air, air.Pressure);
+    }
+
+    /// <summary>
+    /// Where a raid puts its loot down aboard its own ship: the hold, clear of the airlocks, or failing that the open
+    /// deck tile farthest from every docking port. Empty on a ship with neither, which keeps the worker's post.
+    /// </summary>
+    private List<EntityCoordinates> Stash(EntityUid grid)
+    {
+        var stash = new List<EntityCoordinates>();
+        if (!TryComp<MapGridComponent>(grid, out var map))
+            return stash;
+
+        var ports = new List<Vector2i>();
+        _docks.Clear();
+        _lookup.GetChildEntities(grid, _docks);
+        foreach (var dock in _docks)
+        {
+            ports.Add(_maps.TileIndicesFor(grid, map, Transform(dock).Coordinates));
+        }
+
+        foreach (var tile in _planner.HoldTiles(grid, LootLimit))
+        {
+            var at = _maps.TileIndicesFor(grid, map, tile);
+            if (ports.TrueForAll(port => Chebyshev(port, at) >= StashClearance))
+                stash.Add(tile);
+        }
+
+        if (stash.Count > 0 || ports.Count == 0)
+            return stash;
+
+        // A small ship's hold is by its airlock: take the deck farthest from every port, breathable deck first.
+        Vector2i? best = null;
+        var bestDistance = -1;
+        var bestSafe = false;
+        var tiles = _maps.GetAllTilesEnumerator(grid, map);
+        while (tiles.MoveNext(out var tile))
+        {
+            var at = tile.Value.GridIndices;
+            if (_turf.IsTileBlocked(grid, at, CollisionGroup.MobMask, map))
+                continue;
+            var safe = _planner.IsSafePost(grid, at, map);
+            var distance = int.MaxValue;
+            foreach (var port in ports)
+            {
+                distance = Math.Min(distance, Chebyshev(port, at));
+            }
+            if (bestSafe && !safe || safe == bestSafe && distance <= bestDistance)
+                continue;
+            best = at;
+            bestDistance = distance;
+            bestSafe = safe;
+        }
+
+        if (best is { } far)
+            stash.Add(_maps.GridTileToLocal(grid, map, far));
+        return stash;
+    }
+
+    private static int Chebyshev(Vector2i a, Vector2i b)
+    {
+        return Math.Max(Math.Abs(a.X - b.X), Math.Abs(a.Y - b.Y));
     }
 
     /// <summary>Marks a job failed; a blamed failure also keeps the order from picking the same target again.</summary>
@@ -492,6 +676,16 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
     {
         job.Failed = true;
         job.Blame |= blame;
+    }
+
+    /// <summary>A raid under way: what it has taken, where it puts things down, and how long it has run.</summary>
+    private sealed class LootState(TimeSpan started)
+    {
+        public readonly TimeSpan Started = started;
+        public int Taken;
+        public int Assigned;
+        public TimeSpan? IdleSince;
+        public List<EntityCoordinates>? Stash;
     }
 
     /// <summary>Targets an order gave up on, so the next pick moves on instead of repeating them.</summary>
@@ -511,7 +705,8 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         public readonly EntityUid Target = target;
         public readonly EntityUid? Tool = tool;
         public readonly EntityCoordinates Home = home;
-        public readonly TimeSpan Started = started;
+        /// <summary>When the current leg began: out to the target, then home with the cargo.</summary>
+        public TimeSpan Started = started;
         public TimeSpan NextUse;
         public TimeSpan? StrandedSince;
         public EntityCoordinates? SrdCoordinates;

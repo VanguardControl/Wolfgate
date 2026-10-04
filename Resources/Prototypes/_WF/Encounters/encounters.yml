@@ -68,7 +68,7 @@
   route:
     minStops: 2
     maxStops: 4
-  manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts ]
+  manifests: [ WFManifestGeneral, WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts, WFManifestSalvage, WFManifestLuxury ]
   ships:
   - key: freighter
     navigation: WFCrewNavigationFreight
@@ -102,7 +102,7 @@
   route:
     minStops: 2
     maxStops: 4
-  manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts ]
+  manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestIndustrial, WFManifestParts, WFManifestSalvage, WFManifestLuxury ]
   ships:
   - key: freighter
     navigation: WFCrewNavigationFreight
@@ -136,7 +136,7 @@
   route:
     minStops: 2
     maxStops: 4
-  manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts ]
+  manifests: [ WFManifestGeneral, WFManifestMedical, WFManifestMedical, WFManifestIndustrial, WFManifestParts, WFManifestSalvage, WFManifestLuxury, WFManifestArms, WFManifestContraband ]
   ships:
   - key: freighter
     navigation: WFCrewNavigationFreight
@@ -175,7 +175,7 @@
     maxStops: 2
     dwellMin: 180
     dwellMax: 300
-  manifests: [ WFManifestMunitions ]
+  manifests: [ WFManifestMunitions, WFManifestMunitions, WFManifestMunitions, WFManifestMedical, WFManifestParts ]
   ships:
   - key: transport
     navigation: WFCrewNavigationWarship
@@ -186,7 +186,7 @@
     profile: WFCrewProfileTsf
     deckhands: 2
     guards: 2
-    cargo: 8
+    cargo: 10
     flyRoute: true
     evades: false
     disengage: Deter
@@ -226,6 +226,7 @@
   minPlayers: 4
   cooldown: 2700
   duration: 2400
+  manifests: [ WFManifestGeneral, WFManifestFood ]
   ships:
   - key: hauler
     navigation: WFCrewNavigationFreight
@@ -233,6 +234,7 @@
     side: freight
     profile: WFCrewProfileHauler
     company: TSFCivilian
+    cargo: 2
     docking: Warn
     disengage: Deter
     objectives:
@@ -329,8 +331,9 @@
     hunt: true
     evades: false
 
-# A wandering trader: a small hauler with a pilot and a trader aboard, drifting from point to point and stopping a
-# while at each. Dock with it and deal; the stock is small, cheap and gone when it is gone. Both can be killed.
+# The traders fly hulls whose doors ask for no access, so any customer can walk from the dock to the dealer.
+# A wandering trader: a small hauler with a pilot, a guard and a trader aboard, drifting from point to point and
+# stopping a while at each. Dock with it and deal; the stock is small, cheap and gone when it is gone. All can be killed.
 - type: wfEncounter
   id: WFEncounterWanderingTrader
   name: wf-encounter-name-trader
@@ -347,13 +350,15 @@
   ships:
   - key: trader
     navigation: WFCrewNavigationFreight
-    vessel: Piva
+    vessel: Twilight
     side: trader
     profile: WFCrewProfileHauler
     captain: false
     deckhands: 0
-    roles: [ WFCrewPilot ]
+    guards: 1
+    roles: [ WFCrewPilot, WFCrewDeckhand ]
     passengers: [ WFTraderWanderer ]
+    skill: Regular
     wander: 4
     wanderRadius: 2500
     wanderPause: 300
@@ -425,8 +430,8 @@
     - kind: Attack
       target: patrol
 
-# A military surplus dealer in an old gunboat: arms, kit and ammunition. The best stock of the traders and the
-# best defended, with a gunner at the guns and veteran guards aboard. Kill the dealer and a box of the stock is left.
+# A military surplus dealer in a mercenary gunboat: arms, kit and ammunition. Among the best defended of the traders,
+# with a gunner at the guns and veteran guards aboard. Kill the dealer and a box of the stock is left.
 - type: wfEncounter
   id: WFEncounterSurplusTrader
   name: wf-encounter-name-trader-surplus
@@ -443,7 +448,7 @@
   ships:
   - key: trader
     navigation: WFCrewNavigationFreight
-    vessel: Osa
+    vessel: Femur
     side: trader
     profile: WFCrewProfileHauler
     captain: false
@@ -460,7 +465,7 @@
     disengage: Deter
     distress: true
 
-# A dealer in antiques and curiosities: one of each, at what it is worth. Two guards.
+# A dealer in antiques and curiosities: one of each, priced to the piece. Two guards.
 - type: wfEncounter
   id: WFEncounterCuriosTrader
   name: wf-encounter-name-trader-curios
@@ -477,7 +482,7 @@
   ships:
   - key: trader
     navigation: WFCrewNavigationFreight
-    vessel: Piva
+    vessel: Kestrel
     side: trader
     profile: WFCrewProfileHauler
     captain: false
@@ -494,7 +499,7 @@
     disengage: Deter
     distress: true
 
-# A medical supplier selling clinic overstock below station prices. One guard.
+# A medical supplier selling clinic overstock below station prices, out of a medical hull. One guard and a gunner.
 - type: wfEncounter
   id: WFEncounterMedicTrader
   name: wf-encounter-name-trader-medic
@@ -511,15 +516,85 @@
   ships:
   - key: trader
     navigation: WFCrewNavigationFreight
-    vessel: Piva
+    vessel: Triage
     side: trader
     profile: WFCrewProfileHauler
     captain: false
     deckhands: 0
     guards: 1
-    roles: [ WFCrewPilot, WFCrewDeckhand ]
+    roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
     passengers: [ WFTraderMedic ]
     skill: Regular
+    wander: 4
+    wanderRadius: 2500
+    wanderPause: 300
+    boarding: Ignore
+    docking: Ignore
+    disengage: Deter
+    distress: true
+
+# A shipwright in a gunned scrap-built hull, selling thrusters, drives and hull fittings for refits. The drives and the
+# repair kit make it a target, so it carries a gunner and two veteran guards.
+- type: wfEncounter
+  id: WFEncounterShipwrightTrader
+  name: wf-encounter-name-trader-shipwright
+  announcement: wf-encounter-announce-trader-shipwright
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Traffic
+  cost: 1
+  weight: 0.75
+  cooldown: 3000
+  duration: 3600
+  minDistance: 1500
+  maxDistance: 3000
+  ships:
+  - key: trader
+    navigation: WFCrewNavigationFreight
+    vessel: Mudskipper
+    side: trader
+    profile: WFCrewProfileHauler
+    captain: false
+    deckhands: 0
+    guards: 2
+    roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
+    passengers: [ WFTraderShipwright ]
+    skill: Veteran
+    wander: 4
+    wanderRadius: 2500
+    wanderPause: 300
+    boarding: Ignore
+    docking: Ignore
+    disengage: Deter
+    distress: true
+
+# A fence moving contraband and hard goods cheap. It trades with anyone who comes alongside, like the others, but its
+# hold is full of guns, so it keeps a gunner and three veteran guards.
+- type: wfEncounter
+  id: WFEncounterFenceTrader
+  name: wf-encounter-name-trader-fence
+  announcement: wf-encounter-announce-trader-fence
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Traffic
+  cost: 1
+  weight: 0.5
+  cooldown: 3000
+  duration: 3600
+  minDistance: 1500
+  maxDistance: 3000
+  ships:
+  - key: trader
+    navigation: WFCrewNavigationFreight
+    vessel: Scallywag
+    side: trader
+    profile: WFCrewProfileHauler
+    captain: false
+    deckhands: 0
+    guards: 3
+    roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
+    passengers: [ WFTraderFence ]
+    skill: Veteran
     wander: 4
     wanderRadius: 2500
     wanderPause: 300

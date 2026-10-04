@@ -203,13 +203,19 @@ public sealed partial class WFPilotDutySystem
         switch (duty.DockPhase)
         {
             case WFDockPhase.Approach:
-                // Map coordinates, so the target's hull is avoided on the way; kept up with a moving target.
-                steerer.Coordinates = StandoffOnMap(plan, map);
+                var standoff = _transform.ToMapCoordinates(plan.Standoff).Position;
+                var shipPosition = _transform.GetWorldPosition(grid);
+                // Map coordinates, so the target's hull is avoided on the way; kept up with a moving target. Out in
+                // front of the port with a straight run in, the target's own coordinates leave its hull out of the
+                // avoidance, so a standoff inside its avoidance circle can still be reached; other grids still count.
+                steerer.Coordinates = InDockCorridor(grid, target, plan, xform.MapID, shipPosition, standoff, duty.DockStandoff)
+                    ? plan.Standoff
+                    : StandoffOnMap(plan, map);
                 // The cleared docking corridor intentionally enters the destination's avoidance buffer.
-                var toStandoff = _transform.ToMapCoordinates(plan.Standoff).Position - _transform.GetWorldPosition(grid);
+                var toStandoff = standoff - shipPosition;
                 if (toStandoff.Length() <= duty.DockStandoff)
                     steerer.AvoidCollisions = false;
-                if (duty.DockPhaseTime >= duty.Navigation.DockApproachTimeout)
+                if (duty.DockPhaseTime >= MathF.Max(duty.DockApproachBudget, duty.Navigation.DockApproachTimeout))
                 {
                     AbortDock(ent, WFDockPhase.None);
                     return;
@@ -288,7 +294,51 @@ public sealed partial class WFPilotDutySystem
     {
         ent.Comp.DockPhase = phase;
         ent.Comp.DockPhaseTime = 0f;
+        if (phase == WFDockPhase.Approach)
+            ent.Comp.DockApproachBudget = ApproachBudget(ent);
         Steer(ent);
+    }
+
+    /// <summary>
+    /// The approach timeout on top of the flight to the standoff at cruise speed, with a margin, so a long leg doesn't
+    /// spend attempts in transit.
+    /// </summary>
+    private float ApproachBudget(Entity<WFPilotDutyComponent> ent)
+    {
+        var duty = ent.Comp;
+        var budget = duty.Navigation.DockApproachTimeout;
+        if (duty.DockPlan is not { } plan || Transform(ent).GridUid is not { } grid || TerminatingOrDeleted(plan.Standoff.EntityId))
+            return budget;
+
+        var distance = (_transform.ToMapCoordinates(plan.Standoff).Position - _transform.GetWorldPosition(grid)).Length();
+        return budget + distance / MathF.Max(duty.CruiseSpeed, 1f) * 1.5f;
+    }
+
+    /// <summary>
+    /// Whether the ship is out in front of the target's port, near the standoff, with a straight run to the standoff
+    /// that clears the target's hull.
+    /// </summary>
+    private bool InDockCorridor(EntityUid grid,
+        EntityUid target,
+        WFDockPlan plan,
+        MapId map,
+        Vector2 shipPosition,
+        Vector2 standoff,
+        float standoffDistance)
+    {
+        var outward = standoff - _transform.ToMapCoordinates(plan.Final).Position;
+        var run = shipPosition - standoff;
+        var length = run.Length();
+        var clearance = GridRadius(grid);
+        if (Vector2.Dot(run, outward) <= 0f || length > standoffDistance + GridRadius(target) + clearance)
+            return false;
+
+        // Laid out along +Y from the standoff to the ship, then turned onto the run.
+        var box = new Box2(-clearance, -clearance, clearance, length + clearance).Translated(standoff);
+        var path = new Box2Rotated(box, new Angle(run) - new Angle(Vector2.UnitY), standoff);
+        _laneGrids.Clear();
+        _mapManager.FindGridsIntersecting(map, path, ref _laneGrids, includeMap: false);
+        return _laneGrids.All(other => other.Owner != target);
     }
 
     /// <summary>Out of attempts: jump onto a port if the server allows it, else hold where the ship is.</summary>
@@ -330,22 +380,30 @@ public sealed partial class WFPilotDutySystem
         duty.DockPlan = null;
         duty.DockCollision = null;
         duty.AbsentCrewWaited = 0f;
+        duty.NextAbsentCheck = TimeSpan.Zero;
     }
 
-    /// <summary>Re-reads whether any dock on the pilot's grid is docked, caching the answer.</summary>
+    /// <summary>
+    /// Re-reads whether any dock on the pilot's grid is docked, caching the answer. A wait that starts or ends with it
+    /// is steered afresh.
+    /// </summary>
     private bool RefreshDocked(Entity<WFPilotDutyComponent> ent)
     {
+        var wasDocked = ent.Comp.Docked;
         ent.Comp.NextDockCheck = _timing.CurTime + DockCheckInterval;
         ent.Comp.Docked = false;
-        if (Transform(ent).GridUid is not { } grid)
-            return false;
-        foreach (var dock in _docking.GetDocks(grid))
+        if (Transform(ent).GridUid is { } grid)
         {
-            if (!dock.Comp.Docked)
-                continue;
-            ent.Comp.Docked = true;
-            break;
+            foreach (var dock in _docking.GetDocks(grid))
+            {
+                if (!dock.Comp.Docked)
+                    continue;
+                ent.Comp.Docked = true;
+                break;
+            }
         }
+        if (ent.Comp.Docked != wasDocked && ent.Comp.AtHelm && WaitsWhileDocked(ent.Comp))
+            Steer(ent);
         return ent.Comp.Docked;
     }
 
@@ -421,9 +479,16 @@ public sealed partial class WFPilotDutySystem
         if (xform.GridUid is not { } grid || xform.MapUid is not { } map)
             return;
 
+        // Nothing to cast off from, so nobody to wait for.
+        if (!ent.Comp.Docked && !RefreshDocked(ent))
+        {
+            CompleteOrders(ent);
+            return;
+        }
+
         if (ent.Comp.AbsentCrewWaited < ent.Comp.AbsentCrewWait
             && !EntityManager.System<WFCaptainSystem>().IsCourseSuspended(ent)
-            && CrewAbsent(grid))
+            && CrewAbsent(ent, grid))
         {
             ent.Comp.AbsentCrewWaited += frameTime;
             return;
@@ -453,17 +518,26 @@ public sealed partial class WFPilotDutySystem
         Steer(ent);
     }
 
-    /// <summary>Whether a living NPC crewman posted to the grid is off it.</summary>
-    private bool CrewAbsent(EntityUid grid)
+    /// <summary>Whether a living NPC crewman posted to the grid is off it, re-read at most once a second.</summary>
+    private bool CrewAbsent(Entity<WFPilotDutyComponent> ent, EntityUid grid)
     {
+        var now = _timing.CurTime;
+        if (now < ent.Comp.NextAbsentCheck)
+            return ent.Comp.CrewAway;
+
+        ent.Comp.NextAbsentCheck = now + DockCheckInterval;
+        ent.Comp.CrewAway = false;
         var crewQuery = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (crewQuery.MoveNext(out var member, out var crew, out var location))
         {
             if (crew.Post is { } post && post.EntityId == grid && location.GridUid != grid
                 && _mobState.IsAlive(member) && !HasComp<Robust.Shared.Player.ActorComponent>(member))
-                return true;
+            {
+                ent.Comp.CrewAway = true;
+                break;
+            }
         }
-        return false;
+        return ent.Comp.CrewAway;
     }
 
     /// <summary>Remembers a grid hit during the creep; the next update decides whether it ends the attempt.</summary>

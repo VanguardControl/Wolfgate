@@ -9,11 +9,13 @@ using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Events;
 using Content.Server.Shuttles.Systems;
+using Content.Shared._NF.Shuttles.Events;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Interaction;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.Map;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Events;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
@@ -369,6 +371,8 @@ public sealed partial class WFPilotDutySystem : EntitySystem
             return false;
         }
 
+        // Before steering, so a ship that is docked waits where it is.
+        RefreshDocked((mob, duty));
         if (Steer((mob, duty)) == null)
         {
             _console.RemovePilot(mob);
@@ -378,7 +382,6 @@ public sealed partial class WFPilotDutySystem : EntitySystem
         // Just checked in range; the update loop checks again after the interval.
         duty.HelmInReach = true;
         duty.NextReachCheck = _timing.CurTime + ReachCheckInterval;
-        RefreshDocked((mob, duty));
         if (duty.AtHelm)
             return true;
 
@@ -396,6 +399,10 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     /// <summary>Stops steering and detaches the crewman from the helm. Safe to call at any time.</summary>
     public void ReleaseHelm(EntityUid mob)
     {
+        var ship = (TryComp<PilotComponent>(mob, out var helm) && helm.Console is { } held
+                       ? CompOrNull<TransformComponent>(held)?.GridUid
+                       : null)
+                   ?? CompOrNull<TransformComponent>(mob)?.GridUid;
         _steering.Stop(mob);
         _console.RemovePilot(mob);
 
@@ -403,6 +410,12 @@ public sealed partial class WFPilotDutySystem : EntitySystem
             return;
 
         duty.AtHelm = false;
+        // The steering leaves dampening off, and an unflown hull would coast on for minutes.
+        if (ship is { } grid && TryComp<ShuttleComponent>(grid, out var shuttle) && TryComp<PhysicsComponent>(grid, out var body))
+        {
+            _shuttle.SetInertiaDampening(grid, body, shuttle, Transform(grid),
+                duty.Docked ? InertiaDampeningMode.Anchor : InertiaDampeningMode.Dampen);
+        }
         var ev = new WFHelmReleasedEvent(mob);
         RaiseLocalEvent(mob, ref ev, true);
     }
@@ -484,6 +497,9 @@ public sealed partial class WFPilotDutySystem : EntitySystem
     {
         var duty = ent.Comp;
         duty.HeadingOverride = null;
+        // A visitor docked to us mid-flight: brake in place and carry on once it casts off.
+        if (duty.Docked && duty.Orders is WFPilotOrder.GoTo or WFPilotOrder.Follow or WFPilotOrder.Loiter)
+            return;
         if (duty.Orders == WFPilotOrder.Follow && duty.EscortOffset != null && duty.FollowTarget is { } leader
             && !TerminatingOrDeleted(leader) && !duty.AwaitingTarget && Transform(ent).GridUid is { } grid)
         {
@@ -616,6 +632,19 @@ public sealed partial class WFPilotDutySystem : EntitySystem
                 speed = duty.DockPhase == WFDockPhase.Settle ? duty.Navigation.DockSettleSpeed : duty.DockApproachSpeed;
                 maxTurnRate = duty.DockPhase == WFDockPhase.Settle ? duty.Navigation.DockSettleTurnRate : null;
                 break;
+        }
+
+        // Docked and waiting: aimed at our own grid the steering stays idle, and OnCrewGetInputs brakes the pair.
+        if (DockedWait(duty))
+        {
+            target = new EntityCoordinates(grid, Vector2.Zero);
+            mode = ShipSteeringMode.GoToRange;
+            range = MathF.Max(duty.Navigation.HoldRange, 1f);
+            speed = duty.Navigation.ArrivalSpeed;
+            avoid = false;
+            faceTarget = false;
+            heading = null;
+            maxTurnRate = null;
         }
 
         if (_steering.Steer(ent.Owner, target) is not { } steerer)

@@ -199,9 +199,12 @@ public sealed class WFCrewEvaSystem : EntitySystem
                 attempted = true;
                 if (!Prepare(uid))
                 {
-                    work.CancelWorker(uid);
+                    // Only a worker in bad air drops his job; in breathable air the work system ends one that needs the suit.
                     if (!safe)
+                    {
+                        work.CancelWorker(uid);
                         EntityManager.System<WFCrewSpeechSystem>().Say(uid, "air");
+                    }
                     FindSafety(uid, crew, safe);
                     if (!safe && _inventory.TryGetSlotEntity(uid, "suitstorage", out var wornTank)
                         && TryComp<GasTankComponent>(wornTank, out var connectable) && !connectable.IsConnected)

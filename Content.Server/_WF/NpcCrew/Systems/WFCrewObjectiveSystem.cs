@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using Content.Server._WF.NpcCrew.Components;
+using Content.Server.NPC.HTN;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs.Systems;
 using Content.Shared._Mono.Company;
@@ -18,6 +19,12 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private WFCrewWorkSystem _work = default!;
     [Dependency] private WFCaptainSystem _captains = default!;
+    [Dependency] private WFCrewSystem _crew = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+
+    /// <summary>Seconds a travel order may take beyond twice the straight flight at cruise speed.</summary>
+    private const float TravelSlack = 120f;
+
     private readonly Dictionary<(EntityUid Grid, string Group), QueueState> _queues = new();
     private float _timer;
 
@@ -168,9 +175,9 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             }
             if (state.Paused || state.Items.Count == 0)
                 continue;
-            if (Pilot(grid, group) is not { } pilot)
+            if ((Pilot(grid, group) ?? Promote(grid, group)) is not { } pilot)
             {
-                state.Status = "no-pilot";
+                state.Status = CrewAway(grid, group) ? "pilot-away" : "no-pilot";
                 state.Started = false;
                 continue;
             }
@@ -198,12 +205,18 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
                     state.Started = false;
             }
             var target = item.Target is { } net ? GetEntity(net) : EntityUid.Invalid;
+            var travels = item.Kind is WFCrewObjectiveKind.GoTo or WFCrewObjectiveKind.Undock or WFCrewObjectiveKind.Retreat;
             if (!state.Started || state.Pilot != pilot)
             {
                 Start(pilot, grid, target, item);
                 state.Started = true;
                 state.Pilot = pilot;
                 state.Status = "running";
+                if (travels)
+                {
+                    state.Elapsed = 0;
+                    state.Budget = TravelBudget(pilot, grid, target, item);
+                }
             }
             var duty = Comp<WFPilotDutyComponent>(pilot);
             if (!duty.AtHelm)
@@ -212,7 +225,9 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
                 continue;
             }
             state.Status = "running";
-            state.Elapsed += elapsed;
+            // Docked or without thrust, a travel order waits on crew, a visitor or repairs, not on the flight.
+            if (!travels || !duty.Docked && !EntityManager.System<WFCrewShipStatusSystem>().IsAdrift(grid))
+                state.Elapsed += elapsed;
             if (item.Kind is WFCrewObjectiveKind.Repair or WFCrewObjectiveKind.Resupply or WFCrewObjectiveKind.Salvage or WFCrewObjectiveKind.Loot)
             {
                 if (item.Kind != WFCrewObjectiveKind.Repair && !duty.OrdersCompleted)
@@ -237,7 +252,114 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
                 state.Elapsed = 0;
                 state.Status = state.Items.Count == 0 ? "complete" : "pending";
             }
+            else if (travels && state.Elapsed >= state.Budget)
+            {
+                // Long overdue: the point can't be reached, so whoever runs the queue decides what comes next.
+                Log.Info($"{ToPrettyString(grid)} gave up a {item.Kind} after {state.Elapsed:0} s.");
+                HoldCrew(grid, group);
+                state.Paused = true;
+                state.Status = "target-lost";
+            }
         }
+    }
+
+    /// <summary>
+    /// How long a travel order may run before its destination counts as unreachable: its duration when it has one,
+    /// else twice the straight flight at cruise speed plus <see cref="TravelSlack"/>.
+    /// </summary>
+    private float TravelBudget(EntityUid pilot, EntityUid grid, EntityUid target, WFCrewObjective item)
+    {
+        if (item.Duration > 0)
+            return item.Duration;
+
+        var duty = Comp<WFPilotDutyComponent>(pilot);
+        var from = _transform.GetWorldPosition(grid);
+        var distance = item.Kind switch
+        {
+            WFCrewObjectiveKind.GoTo => (item.Position - from).Length(),
+            WFCrewObjectiveKind.Retreat when TryComp<MapGridComponent>(target, out var targetGrid) =>
+                (_transform.ToMapCoordinates(new EntityCoordinates(target, targetGrid.LocalAABB.Center)).Position - from).Length(),
+            _ => duty.DockStandoff,
+        };
+        return TravelSlack + 2f * distance / MathF.Max(duty.CruiseSpeed, 1f);
+    }
+
+    /// <summary>
+    /// Once every pilot of the crew is down, another living crewman aboard takes over: officers who can fly first,
+    /// gunners last, and the fallen pilots stand down so two never share the helm. Null when nobody can, or while a
+    /// pilot is up but away or possessed.
+    /// </summary>
+    private EntityUid? Promote(EntityUid grid, string group)
+    {
+        EntityUid? successor = null;
+        var bestRank = int.MaxValue;
+        var fallen = new List<EntityUid>();
+        var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var crew, out var xform))
+        {
+            if (crew.Group != group)
+                continue;
+            if (crew.Duty == WFCrewDuties.Pilot)
+            {
+                if (_crew.HomeGrid(uid, crew) != grid)
+                    continue;
+                if (_mobs.IsAlive(uid))
+                    return null;
+                fallen.Add(uid);
+                continue;
+            }
+            if (xform.GridUid != grid || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid)
+                || !TryComp<HTNComponent>(uid, out var htn) || !htn.Enabled)
+                continue;
+
+            var rank = (crew.Duty == WFCrewDuties.Gunnery ? 4 : 0)
+                       + (HasComp<WFPilotDutyComponent>(uid) ? 0 : 2)
+                       + (_work.HasJob(uid) ? 1 : 0);
+            if (rank >= bestRank)
+                continue;
+            bestRank = rank;
+            successor = uid;
+        }
+        if (successor is not { } heir)
+            return null;
+
+        var duty = EnsureComp<WFPilotDutyComponent>(heir);
+        var navigation = Comp<WFCrewComponent>(heir).Navigation;
+        foreach (var old in fallen)
+        {
+            if (TryComp<WFPilotDutyComponent>(old, out var oldDuty))
+            {
+                navigation = oldDuty.Navigation;
+                duty.ReactToAttacks = oldDuty.ReactToAttacks;
+                duty.AbsentCrewWait = oldDuty.AbsentCrewWait;
+                duty.DockMaxAttempts = oldDuty.DockMaxAttempts;
+            }
+            if (Comp<WFCrewComponent>(old).Post is { } helm && helm.EntityId == grid)
+                _crew.SetPost(heir, helm);
+            _crew.SetDuty(old, WFCrewDuties.Guard);
+        }
+        // A post left on another ship, such as a recalled boarder's, must not pull the new pilot off this one.
+        if (Comp<WFCrewComponent>(heir).Post is not { } post || post.EntityId != grid)
+            _crew.SetPost(heir, Transform(heir).Coordinates);
+        _pilots.SetNavigation(heir, navigation);
+        _work.CancelWorker(heir);
+        _crew.SetDuty(heir, WFCrewDuties.Pilot);
+        Log.Info($"{ToPrettyString(heir)} takes over as pilot of {ToPrettyString(grid)}.");
+        return heir;
+    }
+
+    /// <summary>Whether a living crewman of this ship is off it, so the helm may yet be manned when he is back.</summary>
+    private bool CrewAway(EntityUid grid, string group)
+    {
+        var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var crew, out var xform))
+        {
+            if (crew.Group == group && xform.GridUid != grid && !HasComp<ActorComponent>(uid) && _mobs.IsAlive(uid)
+                && _crew.HomeGrid(uid, crew) == grid)
+                return true;
+        }
+
+        return false;
     }
 
     private void Start(EntityUid pilot, EntityUid grid, EntityUid target, WFCrewObjective item)
@@ -363,6 +485,8 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
         /// <summary>The captain suspended the pilot's course since the last tick that ran the task.</summary>
         public bool Evaded;
         public float Elapsed;
+        /// <summary>Seconds the current travel order may run before it counts as unreachable.</summary>
+        public float Budget;
         public EntityUid? Pilot;
         public string Status = "pending";
     }

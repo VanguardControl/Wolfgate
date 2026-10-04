@@ -119,6 +119,10 @@ public sealed partial class WFPilotDutyComponent : Component
     [ViewVariables]
     public float DockPhaseTime;
 
+    /// <summary>Dock: seconds the current approach may take, its timeout plus the flight to the standoff.</summary>
+    [ViewVariables]
+    public float DockApproachBudget;
+
     /// <summary>Dock: the chosen dock pair and the poses flown to.</summary>
     [ViewVariables]
     public WFDockPlan? DockPlan;
@@ -142,6 +146,10 @@ public sealed partial class WFPilotDutyComponent : Component
     /// <summary>Undock: seconds waited so far for absent crew.</summary>
     [ViewVariables]
     public float AbsentCrewWaited;
+
+    /// <summary>Undock: whether crew were off the ship at the last check, re-read once a second.</summary>
+    public bool CrewAway;
+    public TimeSpan NextAbsentCheck;
 
     /// <summary>Whether any of the ship's docks was docked at the last check.</summary>
     [ViewVariables]

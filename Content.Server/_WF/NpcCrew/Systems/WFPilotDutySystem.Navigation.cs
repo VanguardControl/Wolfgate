@@ -4,6 +4,7 @@ using Content.Server._Mono.NPC.HTN;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Physics.Controllers;
 using Content.Server.Shuttles.Components;
+using Content.Shared._NF.Shuttles.Events;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Shuttles.Systems;
@@ -127,6 +128,19 @@ public sealed partial class WFPilotDutySystem
         return target is { } uid && !TerminatingOrDeleted(uid) && Transform(uid).MapID != map;
     }
 
+    /// <summary>
+    /// Orders flown as a wait while the ship is docked: holding, waiting to cast off, or a flight held by a visitor
+    /// docked to us.
+    /// </summary>
+    private static bool WaitsWhileDocked(WFPilotDutyComponent duty)
+    {
+        return duty.Orders is WFPilotOrder.Hold or WFPilotOrder.GoTo or WFPilotOrder.Follow or WFPilotOrder.Loiter
+               || duty.Orders == WFPilotOrder.Undock && duty.Waypoints.Count == 0;
+    }
+
+    /// <summary>Whether the ship is docked and its orders wait in place, braked and anchored.</summary>
+    private static bool DockedWait(WFPilotDutyComponent duty) => duty.Docked && WaitsWhileDocked(duty);
+
     /// <summary>Whether a docking run is still far enough out to fly at cruise speed.</summary>
     private bool FarFromDock(WFPilotDutyComponent duty, ShipSteererComponent steerer, Vector2 position, WFCrewNavigationSettings limits)
     {
@@ -176,13 +190,20 @@ public sealed partial class WFPilotDutySystem
         var grid = args.ShuttleUid;
         var position = _transform.GetWorldPosition(grid);
         var input = args.Input ?? new ShuttleInput(Vector2.Zero, 0f, 0f);
+        if (DockedWait(duty))
+        {
+            // The dock's soft weld alone lets a pair wander; brake it and anchor our hull until the orders move on.
+            args.Input = new ShuttleInput(Vector2.Zero, 0f, 1f);
+            _shuttle.SetInertiaDampening(grid, body, shuttle, Transform(grid), InertiaDampeningMode.Anchor);
+            steerer.Status = ShipSteeringStatus.InRange;
+            return;
+        }
         if (duty.Orders == WFPilotOrder.Hold && duty.HoldPosition is { } anchor && anchor.IsValid(EntityManager))
         {
             var held = _transform.ToMapCoordinates(anchor);
             // An anchor left on another map is re-captured on the next update; brake until then.
-            if (duty.Docked || held.MapId != Transform(grid).MapID)
+            if (held.MapId != Transform(grid).MapID)
             {
-                // Docked ships don't return to an anchor, but they still brake or the pair drifts.
                 args.Input = new ShuttleInput(Vector2.Zero, 0f, 1f);
                 steerer.Status = ShipSteeringStatus.InRange;
                 return;

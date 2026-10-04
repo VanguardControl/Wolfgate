@@ -38,6 +38,7 @@ public sealed class WFCrewFriendlyFireSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<DamageableComponent, BeforeDamageChangedEvent>(OnDamage,
             before: [typeof(WoundDamageRoutingSystem), typeof(InventorySystem), typeof(WFCrewSystem), typeof(WFRadioOperatorSystem)]);
+        SubscribeLocalEvent<DamageableComponent, DamageModifyEvent>(OnDamageModify);
         SubscribeLocalEvent<DamageableComponent, PreventCollideEvent>(OnCollision);
         SubscribeLocalEvent<WFCrewShipFireComponent, ShotAttemptedEvent>(OnShotAttempt);
         SubscribeLocalEvent<WFCrewShipFireComponent, AmmoShotEvent>(OnShot);
@@ -98,39 +99,64 @@ public sealed class WFCrewFriendlyFireSystem : EntitySystem
     {
         if (args.Cancelled || !args.Damage.AnyPositive())
             return;
-        if (args.Origin is not { } shooter)
+        if (args.Origin is not { } origin)
         {
             ScaleBySkill(ent, ref args);
             return;
         }
-        if (args.Tool is { } tool && ProtectedShot(tool, ent.Owner) || Protected(shooter, ent.Owner))
+        // Hitscan names its gun as the origin; the wielder is the one who shot.
+        var shooter = _crew.Wielder(origin);
+        if (args.Tool is { } tool && ProtectedShot(tool, ent.Owner) || Protected(origin, ent.Owner)
+            || shooter != origin && Protected(shooter, ent.Owner))
         {
             args.Cancelled = true;
             return;
         }
         ScaleBySkill(ent, ref args);
         if (args.Tool is { } beam && HasComp<HitscanBasicDamageComponent>(beam))
-            ReportBeamHit(ent.Owner, shooter);
+            ReportBeamHit(ent.Owner, origin);
     }
 
     /// <summary>
     /// NPC crew are frailer than players and hit softer, by their skill. Applied once per hit, to the body: the
-    /// wound system then routes the scaled damage to the parts, and its inner passes are left alone.
+    /// wound system then routes the scaled damage to the parts, and its inner passes are left alone. Victims
+    /// without wounds are scaled in <see cref="OnDamageModify"/>, the only place their damage can be changed.
     /// </summary>
     private void ScaleBySkill(Entity<DamageableComponent> ent, ref BeforeDamageChangedEvent args)
     {
-        if (!HasComp<MobStateComponent>(ent) || _wounds.IsRouting(ent))
+        if (!HasComp<MobStateComponent>(ent) || !HasComp<WoundHostComponent>(ent) || _wounds.IsRouting(ent))
             return;
 
-        var scale = 1f;
-        var victimIsCrew = TryComp<WFCrewComponent>(ent, out var victim) && !HasComp<ActorComponent>(ent);
-        if (victimIsCrew)
-            scale *= WFCrewSkills.Of(victim!.Skill).DamageTaken;
-        else if (args.Origin is { } attacker && TryComp<WFCrewComponent>(attacker, out var dealer) && !HasComp<ActorComponent>(attacker))
-            scale *= WFCrewSkills.Of(dealer.Skill).DamageDealt;
-
+        var scale = SkillScale(ent, args.Origin);
         if (scale != 1f)
             args.Damage = args.Damage * scale;
+    }
+
+    /// <summary>Scales damage to a mob the wound system does not route, after armor, so crew skill reaches borgs and animals too.</summary>
+    private void OnDamageModify(EntityUid uid, DamageableComponent component, DamageModifyEvent args)
+    {
+        if (!HasComp<MobStateComponent>(uid) || HasComp<WoundHostComponent>(uid) || !args.Damage.AnyPositive())
+            return;
+
+        var scale = SkillScale(uid, args.Origin);
+        if (scale != 1f)
+            args.Damage = args.Damage * scale;
+    }
+
+    /// <summary>A crew victim's frailty, else a crew attacker's softness against anyone who is not crew.</summary>
+    private float SkillScale(EntityUid victim, EntityUid? origin)
+    {
+        if (TryComp<WFCrewComponent>(victim, out var crew) && !HasComp<ActorComponent>(victim))
+            return WFCrewSkills.Of(crew.Skill).DamageTaken;
+
+        if (origin is { } source && !TerminatingOrDeleted(source))
+        {
+            var attacker = _crew.Wielder(source);
+            if (TryComp<WFCrewComponent>(attacker, out var dealer) && !HasComp<ActorComponent>(attacker))
+                return WFCrewSkills.Of(dealer.Skill).DamageDealt;
+        }
+
+        return 1f;
     }
 
     /// <summary>Reports ship hitscan damage to a hull the way ship-weapon projectile impacts are reported.</summary>

@@ -6,6 +6,10 @@ public sealed partial class WFGunnerDutyComponent : Component
 {
     [DataField] public EntityUid? Console;
     [DataField] public float Range = 3000f;
+
+    /// <summary>The farthest the ship's guns can hit, from their ammunition; unlimited until measured.</summary>
+    [ViewVariables] public float Reach = float.MaxValue;
+    [ViewVariables] public TimeSpan NextReach;
     [ViewVariables] public bool AtConsole;
 
     /// <summary>How far off the target the guns are laid right now, by the gunner's skill.</summary>

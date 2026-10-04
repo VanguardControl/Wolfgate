@@ -32,8 +32,17 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     private readonly List<EntityUid> _expired = new();
     private TimeSpan _nextPoll;
 
+    private bool _zoneReport;
+
     /// <summary>Whether a crew aboard a particular grid has an active shared alert.</summary>
     public bool IsAlerted(EntityUid grid, string group) => _alerts.ContainsKey((grid, group));
+
+    /// <summary>True while the alert of a patrol zone report is being raised: a warning, not an attack on the ship.</summary>
+    public bool InZoneReport => _zoneReport;
+
+    /// <summary>Whether a vessel is hostile only because a patrol zone reported it, and has not fired on the ship.</summary>
+    public bool IsZoneThreat(EntityUid grid, string group, EntityUid ship) =>
+        _alerts.TryGetValue((grid, group), out var alert) && alert.Zone.Contains(ship);
 
     public override void Initialize()
     {
@@ -157,6 +166,23 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// <summary>Reports an explicit vessel threat to a crew and every ship in its escort formation.</summary>
     public void ReportShipThreat(EntityUid grid, string group, EntityUid attacker) => ReportAttack(grid, attacker, group);
 
+    /// <summary>
+    /// Reports an intruder in a patrol zone as a threat to answer. Unlike an attack it raises no mayday, and a real
+    /// attack by the same ship later still does.
+    /// </summary>
+    public void ReportZoneThreat(EntityUid grid, string group, EntityUid intruder)
+    {
+        _zoneReport = true;
+        try
+        {
+            ReportAttack(grid, intruder, group);
+        }
+        finally
+        {
+            _zoneReport = false;
+        }
+    }
+
     /// <summary>Raises a local docking alert without treating a changeable security policy as incoming fire.</summary>
     public void ReportDockingThreat(EntityUid grid, string group, EntityUid visitor) => AlertShip(grid, group, visitor, false);
 
@@ -173,8 +199,14 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         alert.ExternalUntil = now + Decay;
         if (retaliation)
         {
-            var known = alert.Vessels.TryGetValue(attacker, out var until) && now < until;
+            var live = alert.Vessels.TryGetValue(attacker, out var until) && now < until;
+            // A vessel known only from a zone report is news again once it really attacks.
+            var known = live && (_zoneReport || !alert.Zone.Contains(attacker));
             alert.Vessels[attacker] = now + Decay;
+            if (!_zoneReport)
+                alert.Zone.Remove(attacker);
+            else if (!live)
+                alert.Zone.Add(attacker);
             // A known attacker only extends its window.
             if (known)
                 return;
@@ -218,7 +250,10 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
                     _expired.Add(ship);
             }
             foreach (var ship in _expired)
+            {
                 alert.Vessels.Remove(ship);
+                alert.Zone.Remove(ship);
+            }
             alert.DockingVessels.RemoveWhere(ship => TerminatingOrDeleted(ship));
 
             if (!groups.TryGetValue(key, out var members))
@@ -397,6 +432,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         public TimeSpan ExternalUntil;
         /// <summary>Each attacking vessel and when its attack window closes.</summary>
         public readonly Dictionary<EntityUid, TimeSpan> Vessels = new();
+        /// <summary>The attacking vessels known only from a patrol zone report, not from a hit.</summary>
+        public readonly HashSet<EntityUid> Zone = new();
         public readonly HashSet<EntityUid> DockingVessels = new();
         public readonly HashSet<EntityUid> Hostiles = new();
         public readonly Dictionary<EntityUid, Awareness> Members = new();

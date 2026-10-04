@@ -54,6 +54,11 @@ public sealed class WFCrewPlannerSystem : EntitySystem
         new(0, -1), new(1, 0), new(0, 1), new(-1, 0),
     };
 
+    /// <summary>How far in tiles from a gunnery console its gunner may be posted when the tiles beside it are taken.</summary>
+    private const int StandRadius = 3;
+
+    private static readonly HashSet<Vector2i> NoTiles = new();
+
     /// <summary>Patrol posts on deck for a grid, replanned at most every five minutes since the tile scan is costly.</summary>
     public IReadOnlyList<WFCrewPost> DeckPosts(EntityUid grid)
     {
@@ -128,7 +133,9 @@ public sealed class WFCrewPlannerSystem : EntitySystem
             if (gunneryTransform.GridUid != grid || !gunneryTransform.Anchored)
                 continue;
             var tile = _map.TileIndicesFor(grid, gridComp, gunneryTransform.Coordinates);
-            if (TryNeighbour(tile, free, taken, out var post))
+            // The gunner walks to his console from wherever he is posted, so a ship never goes without one: a console
+            // boxed in by the helm's tile takes the nearest free tile, and failing that shares the helm's.
+            if (TryNear(tile, free, taken, out var post) || TryNear(tile, free, NoTiles, out post))
                 Add(post, WFCrewRoles.Gunner, WFCrewPostKind.Gunnery);
         }
 
@@ -234,6 +241,30 @@ public sealed class WFCrewPlannerSystem : EntitySystem
         var oxygen = air.GetMoles(Gas.Oxygen);
         var contaminants = MathF.Max(0, air.TotalMoles - oxygen - air.GetMoles(Gas.Nitrogen));
         return oxygen * pressurePerMole >= 16 && contaminants * pressurePerMole <= 0.1f;
+    }
+
+    /// <summary>The free untaken tile nearest to a console within <see cref="StandRadius"/>, the orthogonal ones first.</summary>
+    private static bool TryNear(Vector2i tile, HashSet<Vector2i> free, HashSet<Vector2i> taken, out Vector2i found)
+    {
+        if (TryNeighbour(tile, free, taken, out found))
+            return true;
+
+        var best = int.MaxValue;
+        for (var x = -StandRadius; x <= StandRadius; x++)
+        {
+            for (var y = -StandRadius; y <= StandRadius; y++)
+            {
+                var distance = x * x + y * y;
+                var candidate = new Vector2i(tile.X + x, tile.Y + y);
+                if (distance == 0 || distance >= best || !free.Contains(candidate) || taken.Contains(candidate))
+                    continue;
+
+                best = distance;
+                found = candidate;
+            }
+        }
+
+        return best < int.MaxValue;
     }
 
     private static bool TryNeighbour(Vector2i tile, HashSet<Vector2i> free, HashSet<Vector2i> taken, out Vector2i found)

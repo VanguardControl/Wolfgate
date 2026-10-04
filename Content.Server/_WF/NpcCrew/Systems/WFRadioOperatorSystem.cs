@@ -177,7 +177,12 @@ public sealed class WFRadioOperatorSystem : EntitySystem
     private void OnCrewDamaged(Entity<WFCrewComponent> ent, ref BeforeDamageChangedEvent args)
     {
         var (uid, component) = ent;
-        if (args.Cancelled || !args.Damage.AnyPositive() || args.Origin is not { } origin || origin == uid)
+        if (args.Cancelled || !args.Damage.AnyPositive() || args.Origin is not { } source || source == uid)
+            return;
+
+        // A beam names the gun as its origin; the contact is whoever holds it.
+        var origin = EntityManager.System<WFCrewSystem>().Wielder(source);
+        if (origin == uid)
             return;
 
         var home = HomeGridOf(uid);
@@ -230,7 +235,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
 
     private void OnCrewAlert(ref WFCrewAlertEvent args)
     {
-        if (args.Hostiles.Length == 0)
+        // A patrol zone's warning is not an attack, so no mayday and no later all-clear.
+        if (args.Hostiles.Length == 0 || EntityManager.System<WFCrewAlertSystem>().InZoneReport)
             return;
         foreach (var op in OperatorsOn(args.Grid))
         {
@@ -431,7 +437,9 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         if (!IsSpokesman(ent))
             return false;
 
-        if (line == WFRadioLine.Mayday && !radio.CallsForHelp)
+        // A crew that doesn't call for help keeps all of its troubles off the air.
+        if (!radio.CallsForHelp && line is WFRadioLine.Mayday or WFRadioLine.Boarded or WFRadioLine.CaptainDown
+                or WFRadioLine.HelmDown or WFRadioLine.AllClear)
             return false;
 
         var now = _timing.CurTime;

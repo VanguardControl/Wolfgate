@@ -37,10 +37,13 @@
 
 # What a role adds to a body. The role prototypes name these, so a profile's body gets the same parts. They are
 # looked up at runtime, so they can't be abstract. A mob lists its kit first: the first parent wins a shared component.
+# Deckhands remember an attack for a minute too, so one hit buys a response long enough to walk to the attacker.
 - type: entity
   id: WFCrewKitDeckhand
   categories: [ HideSpawnMenu ]
   components:
+  - type: NPCRetaliation
+    attackMemoryLength: 60
   - type: ShipRepairTool
   - type: WFCrewRepair
   - type: Tool

@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Content.Server._WF.NpcCrew.Components;
+using Content.Server.NPC.Components;
+using Content.Shared.GameTicking;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
 using Content.Shared.Weapons.Melee;
@@ -18,6 +20,24 @@ public sealed partial class WFCrewWeaponSystem : EntitySystem
 
     /// <summary>Slots searched for a weapon, in the order ties are broken.</summary>
     private static readonly string[] WeaponSlots = { "back", "suitstorage", "belt", "pocket1", "pocket2" };
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<NPCRangedCombatComponent, ComponentInit>(OnRangedInit);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
+        {
+            _advancing.Clear();
+            _threats.Clear();
+        });
+    }
+
+    /// <summary>A new ranged component starts with the crewman's skill delay, so the first shot waits for it too.</summary>
+    private void OnRangedInit(EntityUid uid, NPCRangedCombatComponent component, ComponentInit args)
+    {
+        if (TryComp<WFCrewComponent>(uid, out var crew))
+            component.ShootDelay = WFCrewSkills.Of(crew.Skill).ShootDelay;
+    }
 
     /// <summary>Whether the drawn weapon is still in hand.</summary>
     public bool IsDrawn(EntityUid uid)
