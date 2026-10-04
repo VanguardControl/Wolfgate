@@ -93,10 +93,9 @@ public sealed partial class WFCrewSetupClientSystem : EntitySystem
         Tags.Clear();
         foreach (var crew in Crews)
         {
-            var battlegroup = crew.Settings.Battlegroup;
-            Tags[(crew.Grid, crew.Group)] = battlegroup.Length > 0
-                ? Loc.GetString("wf-crew-radar-tag-battlegroup", ("battlegroup", battlegroup), ("group", crew.Group), ("activity", crew.Activity))
-                : Loc.GetString("wf-crew-radar-tag", ("group", crew.Group), ("activity", crew.Activity));
+            // Encounter crews have generated group names; the callsign is what a person would call the ship.
+            var name = crew.Settings.Callsign.Length > 0 ? crew.Settings.Callsign : crew.Group;
+            Tags[(crew.Grid, crew.Group)] = Loc.GetString("wf-crew-radar-tag", ("group", name), ("activity", crew.Activity));
         }
     }
 

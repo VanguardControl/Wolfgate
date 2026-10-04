@@ -473,8 +473,8 @@ public sealed class WFEncounterTest : InteractionTest
             var orders = crews.Single(crew => crew.Group == state.Group).Objectives;
             Assert.That(orders.Select(order => order.Kind), Is.EqualTo(new[]
             {
-                WFCrewObjectiveKind.Loot, WFCrewObjectiveKind.Undock, WFCrewObjectiveKind.GoTo,
-            }), "Dock and loot the prey, cast off, fly clear.");
+                WFCrewObjectiveKind.Loot, WFCrewObjectiveKind.Hold, WFCrewObjectiveKind.Undock, WFCrewObjectiveKind.GoTo,
+            }), "Dock and loot the prey, stay a while, cast off, fly clear.");
             Assert.That(orders[0].Target, Is.EqualTo(SEntMan.GetNetEntity(prey)));
             Assert.That(state.Raided, Is.False);
 

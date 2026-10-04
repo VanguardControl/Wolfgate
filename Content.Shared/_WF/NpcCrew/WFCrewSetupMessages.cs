@@ -96,6 +96,9 @@ public sealed class WFCrewMission
     public string LocalChannel = "Traffic";
     public string AlertChannel = "Common";
     public bool HeaveTo = true;
+
+    /// <summary>Whether the ship's radio officer calls a mayday when it is attacked.</summary>
+    public bool CallsForHelp = true;
     public WFCrewDisengage Disengage = WFCrewDisengage.Disable;
     public WFCrewSkill Skill = WFCrewSkill.Veteran;
     public float DisengageRange = 500;

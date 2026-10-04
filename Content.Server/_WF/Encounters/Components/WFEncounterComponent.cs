@@ -119,6 +119,16 @@ public sealed partial class WFEncounterShipState
     [DataField]
     public EntityUid? Prey;
 
+    /// <summary>Whether it calls for help when adrift.</summary>
+    [DataField]
+    public bool Distress = true;
+
+    /// <summary>While docked to its prey: when the boarding party is called back.</summary>
+    public TimeSpan? RaidEnds;
+
+    /// <summary>The boarding party and the posts they go back to.</summary>
+    public Dictionary<EntityUid, Robust.Shared.Map.EntityCoordinates?> BoardingParty = new();
+
     /// <summary>Whether its raid is over and it is leaving.</summary>
     [DataField]
     public bool Raided;

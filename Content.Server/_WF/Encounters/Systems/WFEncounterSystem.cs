@@ -39,6 +39,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
     [Dependency] private WFCrewShipStatusSystem _status = default!;
     [Dependency] private WFCrewAlertSystem _alerts = default!;
     [Dependency] private GridPowerSystem _power = default!;
+    [Dependency] private WFCrewSystem _crew = default!;
+    [Dependency] private Content.Server.Shuttles.Systems.DockingSystem _docking = default!;
     [Dependency] private LinkedLifecycleGridSystem _lifecycle = default!;
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private RadioSystem _radio = default!;
@@ -381,6 +383,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             AttackRange = ship.AttackRange,
             ZoneLines = ship.ZoneLines,
             Hunt = ship.Hunt,
+            Distress = ship.Distress,
         };
         encounter.Comp.Ships.Add(ship.Key, state);
 
@@ -404,6 +407,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             BoardingResponse = ship.Boarding,
             DockingResponse = ship.Docking,
             HeaveTo = ship.Evades,
+            CallsForHelp = ship.Distress,
             Disengage = ship.Disengage,
             DisengageRange = ship.DisengageRange,
             Skill = ship.Skill,
@@ -591,7 +595,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             }
 
             ship.AdriftSince ??= now;
-            if (now - ship.AdriftSince < AdriftDelay || now < ship.NextDistress)
+            if (!ship.Distress || now - ship.AdriftSince < AdriftDelay || now < ship.NextDistress)
                 continue;
 
             var position = _transform.GetMapCoordinates(ship.Grid).Position;

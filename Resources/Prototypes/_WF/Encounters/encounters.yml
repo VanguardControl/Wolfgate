@@ -236,6 +236,7 @@
     offset: 0, 450
     side: pirates
     faction: PirateNF
+    distress: false
     company: PDV
     profile: WFCrewProfilePirate
     objectives:
@@ -246,6 +247,7 @@
 # jump out. Any ship that strays near is told to heave to, and fired on if it comes closer.
 - type: wfEncounter
   id: WFEncounterPirateRaiders
+  stationClearance: 3000
   name: wf-encounter-name-pirates
   start: Scheduled
   category: Threat
@@ -262,6 +264,7 @@
     vessels: [ Osa, Scorpion ]
     side: pirates
     faction: PirateNF
+    distress: false
     company: PDV
     profile: WFCrewProfilePirate
     deckhands: 3
@@ -276,6 +279,7 @@
     offset: 160, 0
     side: pirates
     faction: PirateNF
+    distress: false
     company: PDV
     profile: WFCrewProfilePirate
     captain: false
@@ -291,6 +295,7 @@
 # whoever they see, carry off a few loose things, and the ship casts off and jumps out.
 - type: wfEncounter
   id: WFEncounterPirateBoarders
+  stationClearance: 3000
   name: wf-encounter-name-boarders
   start: Scheduled
   category: Threat
@@ -308,6 +313,7 @@
     vessel: Gadfly
     side: pirates
     faction: PirateNF
+    distress: false
     company: PDV
     profile: WFCrewProfilePirate
     captain: false
@@ -389,6 +395,7 @@
     offset: 0, 500
     side: pirates
     faction: PirateNF
+    distress: false
     company: PDV
     profile: WFCrewProfilePirate
     deckhands: 3
@@ -401,6 +408,7 @@
     offset: 180, 520
     side: pirates
     faction: PirateNF
+    distress: false
     company: PDV
     profile: WFCrewProfilePirate
     captain: false

@@ -262,11 +262,17 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         if (stations.Count < wanted || prototype.Placement == WFEncounterPlacement.Route && stations.Count < 2)
             return false;
 
+        // The first stop is picked at random; each next one is the nearest station not yet on the route, so a
+        // haul works its way across the sector and doesn't zigzag.
         var first = _random.PickAndTake(stations);
         stops.Add(first);
+        var from = _transform.GetWorldPosition(first);
         while (stops.Count < wanted)
         {
-            stops.Add(_random.PickAndTake(stations));
+            var next = stations.MinBy(station => (_transform.GetWorldPosition(station) - from).LengthSquared());
+            stations.Remove(next);
+            stops.Add(next);
+            from = _transform.GetWorldPosition(next);
         }
 
         var centre = _transform.GetMapCoordinates(first);
@@ -308,6 +314,22 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         return stations;
     }
 
+    private bool NearStation(float clearance, Vector2 point, MapId map)
+    {
+        if (clearance <= 0f)
+            return false;
+
+        var query = EntityQueryEnumerator<StationMemberComponent, MapGridComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out _, out var xform))
+        {
+            if (xform.MapID == map && !HasComp<ShuttleDeedComponent>(uid)
+                && (_transform.GetWorldPosition(xform) - point).LengthSquared() < clearance * clearance)
+                return true;
+        }
+
+        return false;
+    }
+
     /// <summary>A point in clear space at the prototype's distance from a random living player.</summary>
     private bool TryPlaceInOpenSpace(WFEncounterPrototype prototype, out MapCoordinates origin)
     {
@@ -331,7 +353,7 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
             var point = anchor.Position + _random.NextAngle().ToVec() * distance;
             _nearby.Clear();
             _maps.FindGridsIntersecting(anchor.MapId, Box2.CenteredAround(point, new Vector2(Clearance * 2f)), ref _nearby, approx: true, includeMap: false);
-            if (_nearby.Count > 0)
+            if (_nearby.Count > 0 || NearStation(prototype.StationClearance, point, anchor.MapId))
                 continue;
 
             origin = new MapCoordinates(point, anchor.MapId);

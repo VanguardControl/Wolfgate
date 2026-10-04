@@ -295,6 +295,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             _radio.SetCallsign((mob, radio), mission.Callsign);
             radio.LocalChannel = mission.LocalChannel;
             radio.AlertChannel = mission.AlertChannel;
+            radio.CallsForHelp = mission.CallsForHelp;
         }
     }
 

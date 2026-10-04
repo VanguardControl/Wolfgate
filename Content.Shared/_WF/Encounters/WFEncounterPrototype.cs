@@ -106,6 +106,10 @@ public sealed partial class WFEncounterPrototype : IPrototype
 
     [DataField]
     public float MaxDistance = 4000f;
+
+    /// <summary>Open space: no station may be within this distance of the origin. Keeps raiders away from ports.</summary>
+    [DataField]
+    public float StationClearance;
 }
 
 /// <summary>One ship of an encounter with its crew, its rules and its orders.</summary>
@@ -214,6 +218,10 @@ public sealed partial class WFEncounterShip
     /// <summary>How well its crew shoot, lay the ship's guns and fly.</summary>
     [DataField]
     public WFCrewSkill Skill = WFCrewSkill.Veteran;
+
+    /// <summary>Whether the ship calls for help on the radio: a mayday when attacked, a distress call when adrift.</summary>
+    [DataField]
+    public bool Distress = true;
 
     /// <summary>Whether the ship evades attackers.</summary>
     [DataField]

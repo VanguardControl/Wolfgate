@@ -127,6 +127,16 @@ public sealed partial class WFPilotDutySystem
         return target is { } uid && !TerminatingOrDeleted(uid) && Transform(uid).MapID != map;
     }
 
+    /// <summary>Whether a docking run is still far enough out to fly at cruise speed.</summary>
+    private bool FarFromDock(WFPilotDutyComponent duty, ShipSteererComponent steerer, Vector2 position, WFCrewNavigationSettings limits)
+    {
+        if (duty.DockPhase is not (WFDockPhase.None or WFDockPhase.Approach) || !steerer.Coordinates.IsValid(EntityManager))
+            return false;
+
+        var distance = (_transform.ToMapCoordinates(steerer.Coordinates).Position - position).Length();
+        return distance > MathF.Max(limits.DockAlignmentRange * 2f, 250f);
+    }
+
     private bool IsOnMap(EntityCoordinates point, MapId map)
     {
         return point.IsValid(EntityManager) && _transform.ToMapCoordinates(point).MapId == map;
@@ -198,7 +208,8 @@ public sealed partial class WFPilotDutySystem
         {
             WFPilotOrder.Hold => limits.HoldCorrectionSpeed,
             WFPilotOrder.Loiter => duty.LoiterSpeed,
-            WFPilotOrder.Dock => duty.DockPhase == WFDockPhase.Creep ? duty.DockCreepSpeed : duty.DockApproachSpeed,
+            WFPilotOrder.Dock => duty.DockPhase == WFDockPhase.Creep ? duty.DockCreepSpeed
+                : FarFromDock(duty, steerer, position, limits) ? duty.CruiseSpeed : duty.DockApproachSpeed,
             WFPilotOrder.Undock => limits.UndockSpeed,
             WFPilotOrder.Follow => limits.FollowSpeed,
             _ => duty.CruiseSpeed,

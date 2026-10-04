@@ -23,6 +23,10 @@ public sealed partial class WFRadioOperatorComponent : Component
     [DataField]
     public ProtoId<RadioChannelPrototype>? FactionChannel;
 
+    /// <summary>Whether the ship calls a mayday when attacked. Raiders don't.</summary>
+    [DataField]
+    public bool CallsForHelp = true;
+
     /// <summary>What the ship is called on the air. Null uses the grid's name.</summary>
     [DataField]
     public string? Callsign;

@@ -431,6 +431,9 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         if (!IsSpokesman(ent))
             return false;
 
+        if (line == WFRadioLine.Mayday && !radio.CallsForHelp)
+            return false;
+
         var now = _timing.CurTime;
         if (radio.LastSent.TryGetValue(line, out var last) && now < last + radio.Cooldown)
             return false;
