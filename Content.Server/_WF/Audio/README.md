@@ -44,6 +44,10 @@ burst of hundreds of clips (a large crash) can't exhaust audio sources. The admi
 - [`Content.Client/_WF/Audio/InternetSound/InternetSoundSystem.Replay.cs`](../../../Content.Client/_WF/Audio/InternetSound/InternetSoundSystem.Replay.cs)
 - [`Content.Client/_WF/Audio/WFAudioBudgetSystem.cs`](../../../Content.Client/_WF/Audio/WFAudioBudgetSystem.cs)
 
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/_WF/Audio/LandSoundBudgetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Audio/LandSoundBudgetTest.cs)
+
 ### Unit tests
 
 - [`Content.Tests/_WF/Audio/InternetSoundDownloadProxyTest.cs`](../../../Content.Tests/_WF/Audio/InternetSoundDownloadProxyTest.cs)
@@ -69,6 +73,6 @@ burst of hundreds of clips (a large crash) can't exhaust audio sources. The admi
   - thuds are capped so a skidding hull's loose items can't exhaust the client's audio sources.
 - [`Content.Shared/Sound/SharedEmitSoundSystem.cs`](../../../Content.Shared/Sound/SharedEmitSoundSystem.cs)
   - landing-sound budget, see WfLandSoundAllowed.
-  - landing sounds are capped per second.
+  - landing sounds are capped per second; a landing that makes none spends nothing.
 
 <!-- WOLFGATE-GENERATED END -->

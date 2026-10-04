@@ -103,9 +103,6 @@ public abstract partial class SharedEmitSoundSystem : EntitySystem
 
     private void OnEmitSoundOnLand(EntityUid uid, BaseEmitSoundComponent component, ref LandEvent args)
     {
-        if (!WfLandSoundAllowed()) // WOLFGATE(Audio): landing sounds are capped per second.
-            return;
-
         if (!args.PlaySound ||
             !TryComp(uid, out TransformComponent? xform) ||
             !TryComp<MapGridComponent>(xform.GridUid, out var grid))
@@ -117,6 +114,9 @@ public abstract partial class SharedEmitSoundSystem : EntitySystem
 
         // Handle maps being grids (we'll still emit the sound).
         if (xform.GridUid != xform.MapUid && _turf.IsSpace(tile))
+            return;
+
+        if (!WfLandSoundAllowed()) // WOLFGATE(Audio): landing sounds are capped per second; a landing that makes none spends nothing.
             return;
 
         // hand throwing not predicted sadly
