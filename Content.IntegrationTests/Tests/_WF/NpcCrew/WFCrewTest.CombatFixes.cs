@@ -149,6 +149,29 @@ public sealed partial class WFCrewTest
         });
     }
 
+    /// <summary>Someone who attacks a crew makes an enemy vessel of whatever ship he goes back to.</summary>
+    [Test]
+    public async Task CrewAttackersShipIsAnEnemyVessel()
+    {
+        var deck = await CreateDeck(new Vector2(500, 1100), 5, true);
+        var other = await CreateDeck(new Vector2(600, 1100), 5, true);
+        EntityUid attacker = default;
+        await Server.WaitAssertion(() =>
+        {
+            ConvoyCrew(deck, "WFCrewPilot", "boarded");
+            attacker = SEntMan.SpawnEntity("MobHuman", new EntityCoordinates(deck, new Vector2(2.5f)));
+            Server.System<WFCrewSystem>().AnswerAttack(deck, "boarded", attacker);
+            Assert.That(Server.System<WFCrewAlertSystem>().GetHostileShips(deck, "boarded"), Is.Empty, "Aboard the crew's own ship he has no vessel to blame.");
+            Server.System<SharedTransformSystem>().SetCoordinates(attacker, new EntityCoordinates(other, new Vector2(2.5f)));
+        });
+        await RunTicks(Ticks(2));
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(Server.System<WFCrewAlertSystem>().IsHostileShip(deck, "boarded", other), Is.True);
+            SEntMan.DeleteEntity(attacker);
+        });
+    }
+
     /// <summary>A ship rammed at speed takes the rammer for an attacker; a bump is let pass.</summary>
     [Test]
     public async Task RammingIsAnAttackAndBumpingIsNot()

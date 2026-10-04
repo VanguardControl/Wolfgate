@@ -178,6 +178,52 @@ public sealed class WFCrewSystem : EntitySystem
         }
 
         EntityManager.System<WFCrewShelterSystem>().Shelter(grid, group);
+        if (!_wanted.TryGetValue((grid, group), out var wanted))
+            _wanted[(grid, group)] = wanted = new Dictionary<EntityUid, TimeSpan>();
+        wanted[attacker] = _timing.CurTime + WantedTime;
+        ReportShip(grid, group, attacker);
+    }
+
+    /// <summary>How long after his last attack on a crew an attacker's ship is taken for an enemy vessel.</summary>
+    public static readonly TimeSpan WantedTime = TimeSpan.FromMinutes(3);
+
+    private readonly Dictionary<(EntityUid Grid, string Group), Dictionary<EntityUid, TimeSpan>> _wanted = new();
+    private readonly List<(EntityUid Grid, string Group)> _settled = new();
+
+    /// <summary>
+    /// The ship a crew's attacker is aboard has attacked the crew's ship as surely as if it had fired on it. For an
+    /// attacker with a crew of his own that is his own ship, wherever he stands.
+    /// </summary>
+    private void ReportShip(EntityUid grid, string group, EntityUid attacker)
+    {
+        var ship = TryComp<WFCrewComponent>(attacker, out var crew) && !HasComp<ActorComponent>(attacker)
+            ? HomeGrid(attacker, crew)
+            : Transform(attacker).GridUid;
+        if (ship is { } vessel && vessel != grid)
+            EntityManager.System<WFCrewAlertSystem>().ReportShipThreat(grid, group, vessel);
+    }
+
+    /// <summary>Keeps the ships of a crew's recent attackers reported, and forgets attackers whose time is up.</summary>
+    private void UpdateWanted(TimeSpan now)
+    {
+        _settled.Clear();
+        foreach (var (key, wanted) in _wanted)
+        {
+            _expired.Clear();
+            foreach (var (attacker, until) in wanted)
+            {
+                if (now >= until || TerminatingOrDeleted(attacker) || !_mobs.IsAlive(attacker) || TerminatingOrDeleted(key.Grid))
+                    _expired.Add(attacker);
+                else
+                    ReportShip(key.Grid, key.Group, attacker);
+            }
+            foreach (var attacker in _expired)
+                wanted.Remove(attacker);
+            if (wanted.Count == 0)
+                _settled.Add(key);
+        }
+        foreach (var key in _settled)
+            _wanted.Remove(key);
     }
 
     /// <summary>Whether an attacker is still aboard the crewman's ship and in his sight or his crew's knowledge.</summary>
@@ -198,7 +244,10 @@ public sealed class WFCrewSystem : EntitySystem
         // Once a second, memories of attackers still aboard and known are kept from lapsing.
         var keep = now >= _nextKeep;
         if (keep)
+        {
             _nextKeep = now + TimeSpan.FromSeconds(1);
+            UpdateWanted(now);
+        }
         var query = EntityQueryEnumerator<WFCrewComponent, NPCRetaliationComponent>();
         while (query.MoveNext(out var uid, out var crew, out var retaliation))
         {
