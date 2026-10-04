@@ -3,6 +3,7 @@ using Content.Server.GameTicking;
 using Content.Server.Voting;
 using Content.Server.Voting.Managers;
 using Content.Shared._WF.CCVar;
+using Content.Shared.CCVar;
 using Content.Shared._WF.Encounters;
 using Content.Shared.GameTicking;
 using Robust.Server.Player;
@@ -21,7 +22,6 @@ public sealed partial class WFEncounterVoteSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IRobustRandom _random = default!;
 
-    private static readonly TimeSpan Duration = TimeSpan.FromSeconds(60);
     private bool _voteOnNextJoin;
 
     public override void Initialize()
@@ -63,7 +63,8 @@ public sealed partial class WFEncounterVoteSystem : EntitySystem
         {
             Title = Loc.GetString("wf-encounter-vote-title"),
             InitiatorText = Loc.GetString("wf-encounter-vote-initiator"),
-            Duration = Duration,
+            // Runs as long as the game mode vote beside it.
+            Duration = TimeSpan.FromSeconds(_config.GetCVar(CCVars.VoteTimerPreset)),
         };
         foreach (var preset in presets)
         {
