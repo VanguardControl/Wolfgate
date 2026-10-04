@@ -3,8 +3,8 @@ using Content.Shared._WF.NpcCrew;
 namespace Content.Server._WF.NpcCrew;
 
 /// <summary>
-/// What a crew skill level means in numbers. NPC crew are meant to lose to a player of equal kit: below Elite they
-/// take more damage than they should and do less.
+/// What a crew skill level means in numbers. NPC crew are meant to lose to a player of equal kit: at every level
+/// they take more damage than they should, do less, and are slow on the trigger.
 /// </summary>
 public static class WFCrewSkills
 {
@@ -24,10 +24,10 @@ public static class WFCrewSkills
     {
         return skill switch
         {
-            WFCrewSkill.Green => new Profile(14f, 0.9f, 30f, 0.3f, 0.7f, 0.4f, false, 2f, 0.5f),
-            WFCrewSkill.Regular => new Profile(6f, 0.45f, 14f, 0.7f, 0.9f, 0.75f, true, 1.6f, 0.65f),
-            WFCrewSkill.Elite => new Profile(0f, 0.1f, 0f, 1f, 1.1f, 1.25f, true, 1f, 1f),
-            _ => new Profile(2.5f, 0.2f, 5f, 1f, 1f, 1f, true, 1.3f, 0.8f),
+            WFCrewSkill.Green => new Profile(18f, 1.4f, 30f, 0.3f, 0.7f, 0.4f, false, 3f, 0.3f),
+            WFCrewSkill.Regular => new Profile(9f, 0.9f, 14f, 0.7f, 0.9f, 0.75f, true, 2.4f, 0.4f),
+            WFCrewSkill.Elite => new Profile(0f, 0.25f, 0f, 1f, 1.1f, 1.25f, true, 1.3f, 0.75f),
+            _ => new Profile(4f, 0.5f, 5f, 1f, 1f, 1f, true, 1.8f, 0.55f),
         };
     }
 }

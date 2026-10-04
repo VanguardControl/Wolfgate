@@ -122,7 +122,7 @@
     pocket1: Magazine68x52mmCaseless
     ears: WFCrewHeadset
 
-# An independent freighter's crew: every kind of spacer in working clothes. Hands don't fight; the officers defend
+# An independent freighter's crew: every kind of spacer in working clothes. Hands fight only whoever attacks them; the officers defend
 # themselves, and one of them may have the ship's only gun.
 - type: wfCrewProfile
   id: WFCrewProfileHauler
@@ -142,7 +142,7 @@
   - WFMobCrewBodyArachnid
   skills: [ Green, Green, Regular ]
   engagement:
-    WFCrewDeckhand: Never
+    WFCrewDeckhand: WhenAttacked
   loadouts:
     WFCrewDeckhand:
     - WFCrewHaulerHandCargo

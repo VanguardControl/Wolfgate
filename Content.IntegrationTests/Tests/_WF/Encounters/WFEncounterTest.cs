@@ -648,6 +648,80 @@ public sealed class WFEncounterTest : InteractionTest
         await RunTicks(10);
     }
 
+/// <summary>Each specialist trader has its stock, and a killed one leaves a box with a few things out of it.</summary>
+    [Test]
+    public async Task KilledTraderLeavesABoxOfItsStock()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var grid = Server.ResolveDependency<IMapManager>().CreateGridEntity(MapData.MapId);
+            Server.System<SharedMapSystem>().SetTile(grid, Vector2i.Zero, new Tile(1));
+            var shops = Server.System<Content.Server._WF.Traders.TraderShopSystem>();
+            foreach (var kind in new[] { "WFTraderSurplus", "WFTraderCurios", "WFTraderMedic" })
+            {
+                var trader = SEntMan.SpawnAtPosition(kind, new EntityCoordinates(grid.Owner, new Vector2(0.5f)));
+                var shop = SEntMan.GetComponent<Content.Shared._WF.Traders.TraderShopComponent>(trader);
+                Assert.That(shops.GetStock((trader, shop)).Count, Is.EqualTo(shop.RandomStock), $"{kind} has a full stock.");
+
+                Server.System<Content.Shared.Mobs.Systems.MobStateSystem>().ChangeMobState(trader, Content.Shared.Mobs.MobState.Dead);
+                Assert.That(shop.LootDropped, Is.True, $"{kind} drops its box.");
+                Assert.That(shop.Limited, Is.Empty, "What is not in the box is lost.");
+
+                var crates = new List<EntityUid>();
+                var query = SEntMan.EntityQueryEnumerator<Content.Server.Storage.Components.EntityStorageComponent, TransformComponent>();
+                while (query.MoveNext(out var uid, out _, out var xform))
+                {
+                    if (xform.GridUid == grid.Owner)
+                        crates.Add(uid);
+                }
+
+                Assert.That(crates, Has.Count.EqualTo(1));
+                var held = SEntMan.GetComponent<Content.Server.Storage.Components.EntityStorageComponent>(crates[0]).Contents.ContainedEntities.Count;
+                Assert.That(held, Is.InRange(1, shop.LootItems));
+                SEntMan.DeleteEntity(crates[0]);
+                SEntMan.DeleteEntity(trader);
+            }
+
+            SEntMan.DeleteEntity(grid.Owner);
+        });
+        await RunTicks(5);
+    }
+
+    /// <summary>An encounter whose crews are all dead is over, whatever state the hulls are in.</summary>
+    [Test]
+    public async Task EncounterWhoseCrewAreAllDeadIsOver()
+    {
+        EntityUid encounter = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterWarZone");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(19000, 19000), MapData.MapId), out encounter), Is.True);
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"];
+            var crew = new List<EntityUid>();
+            var query = SEntMan.EntityQueryEnumerator<WFCrewComponent>();
+            while (query.MoveNext(out var uid, out var member))
+            {
+                if (member.Group == state.Group)
+                    crew.Add(uid);
+            }
+
+            Assert.That(crew, Is.Not.Empty);
+            foreach (var uid in crew)
+            {
+                SEntMan.DeleteEntity(uid);
+            }
+        });
+        await RunTicks(400);
+        await Server.WaitAssertion(() =>
+        {
+            // Resolved, or resolved and already cleared away.
+            Assert.That(!SEntMan.TryGetComponent(encounter, out WFEncounterComponent? comp)
+                || comp.Resolution == WFEncounterResolution.Destroyed, Is.True);
+            Server.System<WFEncounterSystem>().End(encounter);
+        });
+        await RunTicks(10);
+    }
+
     private async Task WaitUntilServer(Func<bool> condition, int maxTicks)
     {
         var met = false;

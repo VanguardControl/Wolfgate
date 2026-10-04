@@ -14,9 +14,16 @@ public sealed class WFCrewSpeechSystem : EntitySystem
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private IGameTiming _timing = default!;
 
+    /// <summary>Whether crew report their actions aloud.</summary>
+    public bool Enabled;
+
     /// <summary>Says an action at most once per minute, with fifteen seconds between any two lines.</summary>
     public bool Say(EntityUid uid, string action)
     {
+        // TODO: voicelines. Until then crew say nothing aloud about what they are doing.
+        if (!Enabled)
+            return false;
+
         if (!TryComp<WFCrewComponent>(uid, out var crew) || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid)
             || _timing.CurTime < crew.NextSpeech
             || crew.SpokenActions.TryGetValue(action, out var last) && _timing.CurTime < last + TimeSpan.FromSeconds(60))

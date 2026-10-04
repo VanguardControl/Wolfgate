@@ -48,6 +48,9 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
     private int _maxActive;
     private string _presetId = string.Empty;
     private TimeSpan? _next;
+    private bool _roundStartDue;
+    private int _roundStartTries;
+    private TimeSpan _roundStartRetry;
     private readonly Dictionary<string, TimeSpan> _lastStarted = new();
     private readonly HashSet<string> _startedAtRoundStart = new();
     private List<Entity<MapGridComponent>> _nearby = new();
@@ -78,13 +81,18 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         _lastStarted.Clear();
         _startedAtRoundStart.Clear();
         _next = null;
+        _roundStartDue = false;
     }
 
-    /// <summary>Round-start encounters go in once the sector's stations exist.</summary>
+    /// <summary>
+    /// Round-start encounters go in once the sector's stations exist and the round is running: while the map is
+    /// still being set up its grids are paused and cannot be found.
+    /// </summary>
     private void OnStationsGenerated(StationsGeneratedEvent args)
     {
-        if (_enabled && !Paused)
-            StartRound();
+        _roundStartDue = true;
+        _roundStartTries = 0;
+        _roundStartRetry = TimeSpan.Zero;
     }
 
     /// <summary>Places the preset's share of round-start encounters. Returns how many started.</summary>
@@ -116,6 +124,13 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         {
             _next = null;
             return;
+        }
+
+        if (_roundStartDue && _timing.CurTime >= _roundStartRetry)
+        {
+            _roundStartRetry = _timing.CurTime + TimeSpan.FromSeconds(10);
+            if (StartRound() > 0 || ++_roundStartTries >= 6)
+                _roundStartDue = false;
         }
 
         _next ??= _timing.CurTime + Interval();
@@ -284,13 +299,21 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
     }
 
     /// <summary>
-    /// The stations and outposts of a map: station grids nobody holds a deed to. A map with fewer than two, such as
+    /// The stations and outposts of a map: station grids with a docking port that nobody holds a deed to. A map with fewer than two, such as
     /// the development map, is topped up with its other unowned grids so station encounters can still be tried.
     /// </summary>
     private List<Entity<MapGridComponent>> Stations(MapId map)
     {
         var stations = new List<Entity<MapGridComponent>>();
         var others = new List<Entity<MapGridComponent>>();
+        var ported = new HashSet<EntityUid>();
+        var docks = EntityQueryEnumerator<Content.Server.Shuttles.Components.DockingComponent, TransformComponent>();
+        while (docks.MoveNext(out _, out _, out var dockXform))
+        {
+            if (dockXform.GridUid is { } dockGrid)
+                ported.Add(dockGrid);
+        }
+
         var query = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var grid, out var xform))
         {
@@ -299,8 +322,12 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
                 || HasComp<Components.WFEncounterGridComponent>(uid))
                 continue;
 
+            // Asteroid clusters and the like are stations too, but have no port to dock at.
             if (HasComp<StationMemberComponent>(uid))
-                stations.Add((uid, grid));
+            {
+                if (ported.Contains(uid))
+                    stations.Add((uid, grid));
+            }
             else
                 others.Add((uid, grid));
         }

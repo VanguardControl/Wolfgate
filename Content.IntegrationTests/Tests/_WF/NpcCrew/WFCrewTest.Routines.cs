@@ -150,9 +150,12 @@ public sealed partial class WFCrewTest
             var crew = Server.System<WFCrewSystem>().SpawnCrewman(WFCrewRoles.Deckhand, new EntityCoordinates(deck, new Vector2(2.5f)), "speech")!.Value;
             SEntMan.GetComponent<HTNComponent>(crew).Enabled = false;
             var speech = Server.System<WFCrewSpeechSystem>();
+            Assert.That(speech.Say(crew, "repair"), Is.False, "Action reports are off until there are voicelines.");
+            speech.Enabled = true;
             Assert.That(speech.Say(crew, "repair"), Is.True);
             Assert.That(speech.Say(crew, "repair"), Is.False);
             Assert.That(speech.Say(crew, "collect"), Is.False);
+            speech.Enabled = false;
         });
     }
 }

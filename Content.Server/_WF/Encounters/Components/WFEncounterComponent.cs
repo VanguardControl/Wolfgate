@@ -142,6 +142,15 @@ public sealed partial class WFEncounterShipState
     /// <summary>When it may next call for help.</summary>
     public TimeSpan NextDistress;
 
+    /// <summary>When the ship may next call for help because it or its passengers are attacked.</summary>
+    public TimeSpan NextAttackCall;
+
+    /// <summary>Whether it carries passengers, such as a trader, and so speaks for them on the radio.</summary>
+    public bool Passengers;
+
+    /// <summary>The ship a hunter's raid went aboard.</summary>
+    public EntityUid? Boarded;
+
     /// <summary>When its crew next top up its batteries.</summary>
     public TimeSpan NextPower;
 
@@ -150,4 +159,13 @@ public sealed partial class WFEncounterShipState
 
     /// <summary>Intruders inside the attack zone that have been told so.</summary>
     public HashSet<EntityUid> Engaged = new();
+}
+
+/// <summary>Marks a passenger an encounter put aboard one of its ships.</summary>
+[RegisterComponent]
+public sealed partial class WFEncounterPassengerComponent : Component
+{
+    public EntityUid Encounter;
+
+    public string Key = string.Empty;
 }

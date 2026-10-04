@@ -35,12 +35,179 @@
     killable: true
   - type: TraderShop
     vendors:
-    - VendingMachineYouToolPOI
-    - VendingMachineEngivendPOI
     - VendingMachineAstroVendPOI
     - VendingMachineSalvagePOI
-    - VendingMachineClothing
-    priceMultiplier: 0.4
-    randomStock: 8
+    - VendingMachineEngivendPOI
+    - VendingMachineFlatpackVend
+    - VendingMachineMedical
+    - VendingMachineAmmoPOI
+    priceMultiplier: 0.5
+    randomStock: 10
+    stockMin: 1
+    stockMax: 3
+
+# The specialist dealers. Each sells out of its own stock list, mirrored the way a vending machine is; the stock
+# entities below exist only to carry those lists and are never placed.
+- type: vendingMachineInventory
+  id: WFTraderSurplusInventory
+  startingInventory:
+    WeaponPistolViper: 3
+    WeaponRifleLecter: 2
+    WeaponRifleM90: 2
+    WeaponSubMachineGunWt550: 2
+    WeaponShotgunKammerer: 2
+    WeaponShotgunDoubleBarreled: 2
+    WeaponSniperMosin: 2
+    ClothingMaskGasSwat: 3
+    ClothingHandsGlovesCombat: 3
+    ClothingBeltMilitaryWebbing: 3
+    ClothingShoesBootsCombatFilled: 3
+    ClothingEyesNightVisionGoggles: 2
+    ClothingEyesHudSecurity: 2
+    CombatKnife: 4
+    KukriKnife: 2
+    ThrowingKnife: 6
+    GrenadeFlashBang: 4
+    SmokeGrenade: 4
+    MedkitCombatFilled: 2
+    RifleStock: 2
+
+- type: vendingMachineInventory
+  id: WFTraderCuriosInventory
+  startingInventory:
+    WeaponRevolverMateba: 1
+    Katana: 1
+    Cane: 2
+    CaneSheath: 1
+    ClothingHeadHatTophat: 2
+    ClothingHeadHatFedoraBrown: 2
+    ClothingHeadHatPirate: 1
+    ClothingOuterCoatPirate: 1
+    ClothingNeckCloakHerald: 1
+    ClothingNeckGoldmedal: 1
+    ClothingNeckBronzeheart: 1
+    ClothingEyesGlassesSunglasses: 2
+    ViolinInstrument: 1
+    TrumpetInstrument: 1
+    ElectricGuitarInstrument: 1
+    DrinkGoldenCup: 1
+    DrinkCognacBottleFull: 2
+    DrinkPatronBottleFull: 2
+    DrinkWineBottleFull: 2
+    CigarGoldCase: 2
+    FlippoLighter: 2
+    PaintingMonkey: 1
+    ToyAi: 1
+    ArtifactFragment1: 3
+
+- type: entity
+  id: WFTraderStockSurplus
+  parent: VendingMachineAmmo
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VendingMachine
+    pack: WFTraderSurplusInventory
+    requiresCash: true
+
+- type: entity
+  id: WFTraderStockCurios
+  parent: VendingMachineAmmo
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VendingMachine
+    pack: WFTraderCuriosInventory
+    requiresCash: true
+
+- type: traderDialogue
+  id: WFTraderSurplusDialogue
+  greeting: trader-surplus-greeting
+  farewell: trader-surplus-farewell
+  options:
+  - prompt: trader-wanderer-prompt-shop
+    response: trader-surplus-response-shop
+    action: OpenShop
+  - prompt: trader-wanderer-prompt-who
+    response: trader-surplus-response-who
+    action: None
+
+- type: traderDialogue
+  id: WFTraderCuriosDialogue
+  greeting: trader-curios-greeting
+  farewell: trader-curios-farewell
+  options:
+  - prompt: trader-wanderer-prompt-shop
+    response: trader-curios-response-shop
+    action: OpenShop
+  - prompt: trader-wanderer-prompt-who
+    response: trader-curios-response-who
+    action: None
+
+- type: traderDialogue
+  id: WFTraderMedicDialogue
+  greeting: trader-medic-greeting
+  farewell: trader-medic-farewell
+  options:
+  - prompt: trader-wanderer-prompt-shop
+    response: trader-medic-response-shop
+    action: OpenShop
+  - prompt: trader-wanderer-prompt-who
+    response: trader-medic-response-who
+    action: None
+
+- type: entity
+  id: WFTraderSurplus
+  parent: WFTraderWanderer
+  name: surplus dealer
+  description: Sells what armies no longer want, to anyone who does.
+  suffix: Trader, Military Surplus
+  components:
+  - type: Trader
+    dialogue: WFTraderSurplusDialogue
+    killable: true
+  - type: TraderShop
+    vendors:
+    - WFTraderStockSurplus
+    - VendingMachineAmmoPOI
+    priceMultiplier: 0.8
+    randomStock: 12
+    stockMin: 1
+    stockMax: 3
+    lootItems: 5
+
+- type: entity
+  id: WFTraderCurios
+  parent: WFTraderWanderer
+  name: curio dealer
+  description: Antiques, heirlooms and oddities, each with a story attached.
+  suffix: Trader, Curios
+  components:
+  - type: Trader
+    dialogue: WFTraderCuriosDialogue
+    killable: true
+  - type: TraderShop
+    vendors:
+    - WFTraderStockCurios
+    priceMultiplier: 1
+    randomStock: 10
+    stockMin: 1
+    stockMax: 1
+
+- type: entity
+  id: WFTraderMedic
+  parent: WFTraderWanderer
+  name: medical supplier
+  description: Clinic overstock, sold out of a hold.
+  suffix: Trader, Medical
+  components:
+  - type: Trader
+    dialogue: WFTraderMedicDialogue
+    killable: true
+  - type: TraderShop
+    vendors:
+    - VendingMachineMedical
+    - VendingMachineChemicals
+    - VendingMachineCiviMedPlus
+    priceMultiplier: 0.7
+    randomStock: 10
     stockMin: 1
     stockMax: 4

@@ -2,6 +2,7 @@ using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Ghost;
+using Robust.Shared.Map;
 using Robust.Shared.Player;
 using Robust.Shared.Random;
 
@@ -32,22 +33,41 @@ public sealed partial class WFEncounterSystem
             if (ship.RaidEnds == null)
             {
                 ship.RaidEnds = _timing.CurTime + RaidTime;
-                SendBoardingParty(ship, docked);
-                // Nobody is left behind lightly: the pilot waits a good while for people still aboard the prey.
-                var pilots = EntityQueryEnumerator<WFPilotDutyComponent, WFCrewComponent, TransformComponent>();
-                while (pilots.MoveNext(out _, out var pilot, out var member, out var xform))
+                ship.Boarded = docked;
+                // They are here to steal, not to clear the ship: nobody goes looking for a fight.
+                var raiders = EntityQueryEnumerator<WFCrewComponent>();
+                while (raiders.MoveNext(out var raider, out var member))
                 {
-                    if (member.Group == ship.Group && xform.GridUid == ship.Grid)
+                    if (member.Group != ship.Group)
+                        continue;
+
+                    member.Pursues = false;
+                    // Nobody is left behind lightly: the pilot waits a good while for people still aboard the prey.
+                    if (TryComp<WFPilotDutyComponent>(raider, out var pilot))
                         pilot.AbsentCrewWait = 180f;
                 }
+
+                SendBoardingParty(ship, docked);
             }
             else if (_timing.CurTime >= ship.RaidEnds - RecallLead)
                 RecallBoardingParty(ship);
         }
         else if (ship.RaidEnds != null)
         {
-            RecallBoardingParty(ship);
+            // The prey broke away with the raid under way. Whoever is still aboard it fights on there, and the
+            // ship gives them up and runs.
             ship.RaidEnds = null;
+            if (Strand(ship))
+            {
+                ship.Raided = true;
+                ship.HasOrders = true;
+                var clear = _transform.GetMapCoordinates(ship.Grid).Position + _random.NextAngle().ToVec() * RaidExit;
+                _objectives.SetQueue(ship.Grid, ship.Group, new List<WFCrewObjective>
+                {
+                    new() { Kind = WFCrewObjectiveKind.GoTo, Position = clear, Range = 200f },
+                });
+                return;
+            }
         }
 
         var status = _objectives.QueueStatus(ship.Grid, ship.Group);
@@ -85,8 +105,47 @@ public sealed partial class WFEncounterSystem
     }
 
     /// <summary>
-    /// Posts the ship's guards aboard the prey. A crewman's post decides which ship is his to hold, so aboard the
-    /// prey they treat its people as intruders and fight them on sight.
+    /// Leaves the raiders still aboard the prey to it: each holds where he stands, hunts whoever is aboard, and is
+    /// no longer waited for. The rest get their own posts back. True if anyone was left.
+    /// </summary>
+    private bool Strand(WFEncounterShipState ship)
+    {
+        var left = 0;
+        var crew = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (crew.MoveNext(out var uid, out var member, out var xform))
+        {
+            if (member.Group != ship.Group || !_mobs.IsAlive(uid))
+                continue;
+
+            if (xform.GridUid is { } grid && grid != ship.Grid && grid == ship.Boarded)
+            {
+                ship.BoardingParty.Remove(uid);
+                member.Pursues = true;
+                _crew.SetPost((uid, member), xform.Coordinates);
+                left++;
+            }
+        }
+
+        RecallBoardingParty(ship);
+        return left > 0;
+    }
+
+    /// <summary>The prey's side of the docking port the raider came in by.</summary>
+    private EntityCoordinates? Breach(EntityUid raider, EntityUid prey)
+    {
+        var docks = EntityQueryEnumerator<Content.Server.Shuttles.Components.DockingComponent, TransformComponent>();
+        while (docks.MoveNext(out _, out var dock, out var xform))
+        {
+            if (xform.GridUid == raider && dock.DockedWith is { } other && Transform(other).GridUid == prey)
+                return Transform(other).Coordinates;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Posts the ship's guards at the breach, on the prey's side. A crewman's post decides which ship is his to
+    /// hold, so there they treat its people as intruders and fight the ones they see, while the hands loot.
     /// </summary>
     private void SendBoardingParty(WFEncounterShipState ship, EntityUid prey)
     {
@@ -98,14 +157,13 @@ public sealed partial class WFEncounterSystem
                 guards.Add((uid, member));
         }
 
-        var posts = _planner.Plan(prey, guards.Count);
-        if (posts.Count == 0)
+        if (Breach(ship.Grid, prey) is not { } breach)
             return;
 
         for (var i = 0; i < guards.Count; i++)
         {
             ship.BoardingParty[guards[i]] = guards[i].Comp.Post;
-            _crew.SetPost((guards[i], guards[i].Comp), posts[i % posts.Count].Coordinates);
+            _crew.SetPost((guards[i], guards[i].Comp), breach);
         }
 
         Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} sends {guards.Count} aboard {ToPrettyString(prey)}.");

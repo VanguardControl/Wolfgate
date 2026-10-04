@@ -57,6 +57,19 @@ public sealed partial class TraderShopComponent : Component
     public Dictionary<string, int>? Limited;
 
     /// <summary>
+    /// What a trader with a random stock leaves behind when killed: a box holding this many of the things it
+    /// still had for sale. Zero for nothing.
+    /// </summary>
+    [DataField]
+    public int LootItems = 4;
+
+    [DataField]
+    public EntProtoId LootCrate = "CrateGenericSteel";
+
+    [ViewVariables]
+    public bool LootDropped;
+
+    /// <summary>
     /// Carton an order is packed into when it runs to more than one item.
     /// </summary>
     [DataField]

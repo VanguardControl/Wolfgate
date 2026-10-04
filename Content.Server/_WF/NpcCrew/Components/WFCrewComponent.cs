@@ -40,6 +40,10 @@ public sealed partial class WFCrewComponent : Component
     [DataField]
     public bool KeepActive = true;
 
+    /// <summary>Whether this crewman goes looking for hostiles it cannot see. Off, it fights only what is in sight.</summary>
+    [DataField]
+    public bool Pursues = true;
+
     /// <summary>Everyone aboard with the same group is one crew.</summary>
     [DataField]
     public string Group = string.Empty;

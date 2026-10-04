@@ -51,6 +51,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 
 ### Client
 
+- [`Content.Client/_WF/Encounters/MapScreen.Encounters.cs`](../../../Content.Client/_WF/Encounters/MapScreen.Encounters.cs)
 - [`Content.Client/_WF/Encounters/ShuttleNavControl.Encounters.cs`](../../../Content.Client/_WF/Encounters/ShuttleNavControl.Encounters.cs)
 - [`Content.Client/_WF/Encounters/WFEncounterClientSystem.cs`](../../../Content.Client/_WF/Encounters/WFEncounterClientSystem.cs)
 - [`Content.Client/_WF/Encounters/WFEncounterMarkerClientSystem.cs`](../../../Content.Client/_WF/Encounters/WFEncounterMarkerClientSystem.cs)
@@ -77,6 +78,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 
 ## Non-modular edits
 
+- [`Content.Client/Shuttles/UI/MapScreen.xaml.cs`](../../../Content.Client/Shuttles/UI/MapScreen.xaml.cs): list encounters among the sector objects
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs): Sector markers for visible encounters.
 
 <!-- WOLFGATE-GENERATED END -->

@@ -41,6 +41,37 @@ public sealed class TraderShopSystem : EntitySystem
 
         SubscribeLocalEvent<TraderShopComponent, TraderActionEvent>(OnAction);
         SubscribeLocalEvent<TraderShopComponent, TraderShopCheckoutMessage>(OnCheckout);
+        SubscribeLocalEvent<TraderShopComponent, Content.Shared.Mobs.MobStateChangedEvent>(OnMobState);
+    }
+
+    /// <summary>A killed trader leaves a box with a few of the things it still had for sale; the rest is lost.</summary>
+    private void OnMobState(Entity<TraderShopComponent> ent, ref Content.Shared.Mobs.MobStateChangedEvent args)
+    {
+        if (args.NewMobState != Content.Shared.Mobs.MobState.Dead || ent.Comp.LootDropped
+            || ent.Comp.RandomStock <= 0 || ent.Comp.LootItems <= 0)
+            return;
+
+        ent.Comp.LootDropped = true;
+        GetStock(ent);
+        if (ent.Comp.Limited is not { } stock)
+            return;
+
+        var left = new List<string>();
+        foreach (var (item, count) in stock)
+        {
+            if (count > 0)
+                left.Add(item);
+        }
+
+        stock.Clear();
+        if (left.Count == 0)
+            return;
+
+        var crate = Spawn(ent.Comp.LootCrate, Transform(ent).Coordinates);
+        for (var i = 0; i < ent.Comp.LootItems && left.Count > 0; i++)
+        {
+            SpawnInContainerOrDrop(_random.PickAndTake(left), crate, "entity_storage");
+        }
     }
 
     private void OnAction(Entity<TraderShopComponent> ent, ref TraderActionEvent args)

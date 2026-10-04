@@ -24,6 +24,8 @@ public sealed partial class WFCrewWeaponSystem
     [Dependency] private SharedGunSystem _guns = default!;
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private NpcFactionSystem _factions = default!;
+    [Dependency] private Content.Server.Atmos.EntitySystems.AtmosphereSystem _atmos = default!;
+    [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private Robust.Shared.Timing.IGameTiming _timing = default!;
 
     private const string MagazineSlot = "gun_magazine";
@@ -121,12 +123,56 @@ public sealed partial class WFCrewWeaponSystem
     /// <summary>Crew defend their assigned ship without pursuing targets across docking connections.</summary>
     public bool CanEngage(EntityUid uid, EntityUid target)
     {
-        return !TerminatingOrDeleted(target) && _mobs.IsAlive(target)
-            && Transform(uid).GridUid is { } grid && Transform(target).GridUid == grid
-            && (!TryComp<WFCrewComponent>(uid, out var crew) || crew.Post is not { } post || post.EntityId == grid)
-            && (!IsStationCrew(uid) || WasAttackedBy(uid, target))
-            && (CanSee(uid, target) || EntityManager.System<WFCrewCommsSystem>().Knows(uid, target)
-                || WasAttackedBy(uid, target));
+        if (TerminatingOrDeleted(target) || !_mobs.IsAlive(target)
+            || Transform(uid).GridUid is not { } grid || Transform(target).GridUid != grid)
+            return false;
+
+        TryComp<WFCrewComponent>(uid, out var crew);
+        if (crew?.Post is { } post && post.EntityId != grid)
+            return false;
+
+        var attacked = WasAttackedBy(uid, target);
+        if (IsStationCrew(uid) && !attacked)
+            return false;
+        if (CanSee(uid, target))
+            return true;
+
+        // Out of sight. Whoever was shot at goes after the shooter; of the rest one at a time goes looking while
+        // the others hold where they are. Nobody leaves good air to follow anyone into a spaced compartment.
+        if (!attacked && !EntityManager.System<WFCrewCommsSystem>().Knows(uid, target))
+            return false;
+        if (crew is { Pursues: false } || HasAir(uid) && !HasAir(target))
+            return false;
+
+        return attacked || Advance(uid, target);
+    }
+
+    private static readonly TimeSpan AdvanceHold = TimeSpan.FromSeconds(8);
+    private readonly Dictionary<EntityUid, (EntityUid Crew, TimeSpan Until)> _advancing = new();
+
+    /// <summary>Takes or keeps the one place in the hunt for a hostile nobody can see.</summary>
+    private bool Advance(EntityUid uid, EntityUid target)
+    {
+        var now = _timing.CurTime;
+        if (_advancing.TryGetValue(target, out var slot) && slot.Crew != uid && now < slot.Until
+            && !TerminatingOrDeleted(slot.Crew) && _mobs.IsAlive(slot.Crew))
+            return false;
+
+        if (_advancing.Count > 128)
+            _advancing.Clear();
+        _advancing[target] = (uid, now + AdvanceHold);
+        return true;
+    }
+
+    /// <summary>Whether a mob stands where there is air to breathe.</summary>
+    private bool HasAir(EntityUid mob)
+    {
+        var xform = Transform(mob);
+        if (xform.GridUid is not { } grid || !TryComp<Robust.Shared.Map.Components.MapGridComponent>(grid, out var map))
+            return false;
+
+        var air = _atmos.GetTileMixture(grid, xform.MapUid, _maps.LocalToTile(grid, map, xform.Coordinates));
+        return air != null && WFCrewPlannerSystem.IsBreathable(air, air.Pressure);
     }
 
     /// <summary>Station operators leave their job only to defend themselves against a personal attacker.</summary>

@@ -51,7 +51,7 @@
 
 # Independent freight runs. A hauler enters the sector well out from its first stop, its captain calls its cargo
 # and route on the common channel, and it docks at two to four stations in turn before flying clear and jumping out.
-# The crew are ordinary spacers in working clothes: the hands don't fight, and an officer may have the only gun.
+# The crew are ordinary spacers in working clothes: the hands only fight back when attacked, and an officer may have the only gun.
 - type: wfEncounter
   id: WFEncounterFreightSmall
   name: wf-encounter-name-freighter
@@ -360,6 +360,7 @@
     boarding: Ignore
     docking: Ignore
     disengage: Deter
+    distress: true
 
 # A TSF patrol ship has been jumped by pirates and calls for backup. Shoot the pirates and the TSF ship takes you
 # for an ally and pays when they are beaten; TSF players get military credits as well. Shoot the TSF ship and the
@@ -423,3 +424,106 @@
     objectives:
     - kind: Attack
       target: patrol
+
+# A military surplus dealer in an old gunboat: arms, kit and ammunition. The best stock of the traders and the
+# best defended, with a gunner at the guns and veteran guards aboard. Kill the dealer and a box of the stock is left.
+- type: wfEncounter
+  id: WFEncounterSurplusTrader
+  name: wf-encounter-name-trader-surplus
+  announcement: wf-encounter-announce-trader-surplus
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Traffic
+  cost: 1
+  weight: 1
+  cooldown: 3000
+  duration: 3600
+  minDistance: 1500
+  maxDistance: 3000
+  ships:
+  - key: trader
+    navigation: WFCrewNavigationFreight
+    vessel: Osa
+    side: trader
+    profile: WFCrewProfileHauler
+    captain: false
+    deckhands: 0
+    guards: 3
+    roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
+    passengers: [ WFTraderSurplus ]
+    skill: Veteran
+    wander: 4
+    wanderRadius: 2500
+    wanderPause: 300
+    boarding: Ignore
+    docking: Ignore
+    disengage: Deter
+    distress: true
+
+# A dealer in antiques and curiosities: one of each, at what it is worth. Two guards.
+- type: wfEncounter
+  id: WFEncounterCuriosTrader
+  name: wf-encounter-name-trader-curios
+  announcement: wf-encounter-announce-trader-curios
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Traffic
+  cost: 1
+  weight: 1
+  cooldown: 3000
+  duration: 3600
+  minDistance: 1500
+  maxDistance: 3000
+  ships:
+  - key: trader
+    navigation: WFCrewNavigationFreight
+    vessel: Piva
+    side: trader
+    profile: WFCrewProfileHauler
+    captain: false
+    deckhands: 0
+    guards: 2
+    roles: [ WFCrewPilot, WFCrewDeckhand ]
+    passengers: [ WFTraderCurios ]
+    skill: Regular
+    wander: 4
+    wanderRadius: 2500
+    wanderPause: 300
+    boarding: Ignore
+    docking: Ignore
+    disengage: Deter
+    distress: true
+
+# A medical supplier selling clinic overstock below station prices. One guard.
+- type: wfEncounter
+  id: WFEncounterMedicTrader
+  name: wf-encounter-name-trader-medic
+  announcement: wf-encounter-announce-trader-medic
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Traffic
+  cost: 1
+  weight: 1.5
+  cooldown: 3000
+  duration: 3600
+  minDistance: 1500
+  maxDistance: 3000
+  ships:
+  - key: trader
+    navigation: WFCrewNavigationFreight
+    vessel: Piva
+    side: trader
+    profile: WFCrewProfileHauler
+    captain: false
+    deckhands: 0
+    guards: 1
+    roles: [ WFCrewPilot, WFCrewDeckhand ]
+    passengers: [ WFTraderMedic ]
+    skill: Regular
+    wander: 4
+    wanderRadius: 2500
+    wanderPause: 300
+    boarding: Ignore
+    docking: Ignore
+    disengage: Deter
+    distress: true
