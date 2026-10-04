@@ -35,7 +35,7 @@ public sealed partial class WFCrewTest
             weapons.TryReloadOrSwitch(crew);
             var slots = Server.System<ItemSlotsSystem>();
             Assert.That(slots.TryGetSlot(gun, "gun_chamber", out var chamber), Is.True);
-            Assert.That(chamber.Item, Is.Not.Null);
+            Assert.That(chamber!.Item, Is.Not.Null);
             SEntMan.GetComponent<CartridgeAmmoComponent>(chamber.Item!.Value).Spent = true;
             if (slots.TryEject(gun, "gun_magazine", null, out var magazine))
                 SEntMan.DeleteEntity(magazine.Value);
