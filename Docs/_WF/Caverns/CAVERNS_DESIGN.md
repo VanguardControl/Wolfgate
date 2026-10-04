@@ -155,8 +155,11 @@ Checked in code on this branch. Line numbers are approximate.
     - There is no cancellable pre-move event for non-grid entities.
 16. **Guidebook.** The upstream `Salvage` guide entry is commented out (`Resources/Prototypes/Guidebook/cargo.yml:16`),
     so the cavern guide hangs under `Expeditions` (`Resources/Prototypes/_NF/Guidebook/expeditions.yml`).
-17. **Z-flight.** Only `moth` and `harpy` carry `CEZFlyer`. Jetpacks are off on every planet layer that isn't orbit
-    (`SharedJetpackSystem.WfInAtmosphere`).
+17. **Z-flight.** Only `moth` and `harpy` carry `CEZFlyer`. Gas jetpacks are off on every planet layer that isn't
+    orbit (`SharedJetpackSystem.WfInAtmosphere`); the atmospheric jetpack (`WFJetpackAtmospheric`) flies on all of
+    them, caverns included, up to 1.5 g. Nothing rises out of a cavern except through a hole: unloaded ground has no
+    tiles, so `HasTileAbove` alone would let a flyer through it, and `WfSealedAbove` closes that
+    (`CavernFlightTest`).
 
 ### 2.2 Planets hooks
 
@@ -868,7 +871,8 @@ in a 3×3 of cleared floor, with a climb point beside the hole unless one is a w
 
 **Other ways down:**
 - **Parachutes:** a deployed parachute cancels the landing damage.
-- **Moths and harpies** (`CEZFlyer`) can fly down a mouth and back up it.
+- **Moths and harpies** (`CEZFlyer`) can fly down a mouth and back up it, and so can anyone wearing an atmospheric
+  jetpack, where the world's gravity lets it lift.
 - **Orbital fallers** who pass through a mouth are maimed and left critical, exactly as on the ground, through the
   `IsSurfaceImpact` fix (2.2). Without it they would take an ordinary five-level fall scaled by the landing tile.
 

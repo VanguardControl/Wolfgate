@@ -590,8 +590,8 @@ public sealed class CavernRampTest
     }
 
     /// <summary>
-    /// Under ground that isn't loaded the stairs still open their hole and lay their exit; when the ground loads the
-    /// hole is still a hole and the exit is solid and grows nothing.
+    /// Under ground that isn't loaded the stairs still open their hole and lay their exit, and a mob walks up them
+    /// onto it; when the ground loads the hole is still a hole and the exit is solid and grows nothing.
     /// </summary>
     [Test]
     public async Task StairsOpenGroundThatIsNotLoaded()
@@ -621,6 +621,23 @@ public sealed class CavernRampTest
 
             var stairs = await SpawnStairs(pair, world, index, Direction.South);
             await AssertOpened(pair, world, stairs, index, exit, "unloaded ground");
+
+            // The hole is pinned, so it is no ceiling, though everything round it is.
+            var foot = index - new Vector2i(0, 1);
+            await server.WaitPost(() =>
+            {
+                var levelGrid = entMan.GetComponent<MapGridComponent>(world.Cavern);
+                foreach (var anchored in maps.GetAnchoredEntities(world.Cavern, levelGrid, foot).ToList())
+                {
+                    entMan.DeleteEntity(anchored);
+                }
+            });
+
+            var mob = await SpawnSettled(pair, world.Cavern, TileCentre(foot));
+            var changes = await Walk(pair, mob, TileCentre(foot), TileCentre(exit));
+            await server.WaitRunTicks(30);
+            await AssertStands(pair, mob, world.Ground, exit, changes, "Walking up under unloaded ground");
+            await server.WaitPost(() => entMan.DeleteEntity(mob));
 
             await LoadChunks(pair, world.Ground, index - new Vector2i(8, 8), index + new Vector2i(8, 8));
             await server.WaitRunTicks(3);

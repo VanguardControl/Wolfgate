@@ -10,4 +10,13 @@ public abstract partial class CESharedZLevelsSystem
     {
         return body.LocalPosition - body.CachedGroundHeight <= AirborneHeightThreshold;
     }
+
+    /// <summary>
+    /// Whether a body in a cavern has solid ground over it that has no tiles to find: terrain that isn't loaded is
+    /// empty, yet it is no hole. The server tells the two apart; a client can't, and answers for what it can predict.
+    /// </summary>
+    protected virtual bool WfSealedAbove(Entity<CEZPhysicsComponent> body)
+    {
+        return false;
+    }
 }

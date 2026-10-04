@@ -2,12 +2,32 @@ using System.Numerics;
 using Content.Server._WF.Caverns;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.Caverns;
+using Content.Shared.Parallax.Biomes;
+using Robust.Shared.Map.Components;
 
 namespace Content.Server._CE.ZLevels.Core;
 
 public sealed partial class CEZLevelsSystem
 {
     [Dependency] private WFCavernEyeSystem _wfCavernEyes = default!;
+
+    /// <inheritdoc/>
+    // Called once the tile above is known to be empty. Pinned, it is a hole wherever it is; on a loaded chunk it is one
+    // the hole queue has yet to pin. Anything else is ground nobody has loaded.
+    protected override bool WfSealedAbove(Entity<CEZPhysicsComponent> body)
+    {
+        var xform = Transform(body);
+
+        if (!TryComp<WFCavernLayerComponent>(xform.MapUid, out var layer)
+            || !TryComp<BiomeComponent>(layer.Ground, out var biome)
+            || !TryComp<MapGridComponent>(layer.Ground, out var grid))
+            return false;
+
+        var index = _map.WorldToTile(layer.Ground, grid, _transform.GetWorldPosition(xform));
+        Entity<BiomeComponent> ground = (layer.Ground, biome);
+
+        return !_wfLandingBiome.WfIsPinned(ground, index) && !_wfLandingBiome.WfIsChunkLoaded(ground, index);
+    }
 
     /// <summary>Whether the downward eye walk stops under a level: a ground with no hole in view or a cavern.</summary>
     // Only the one cavern under the ground opens, never what lies below it.

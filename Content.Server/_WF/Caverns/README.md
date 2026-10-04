@@ -81,8 +81,11 @@ which stops z-level eyes at a ground layer unless `WFCavernEyeSystem` finds one 
 standing on that ground (with a wider margin to lose it than to gain it, and never for a ghost that loads no terrain);
 on the client, `WfAddCavernPass` in CE's z-level renderer, which draws the cavern under the observer's own ground while
 a mouth is in view (`WFCavernViewSystem`); and a check in `ParallaxOverlay` that keeps the sky out of caverns and
-mouths; and a line in CE's z-physics (`WfSteppedDown`) that keeps a slow step down onto stairs from counting as a
-fall, which would open a worn parachute. The design, including what is still to come (the rest of F4 and the mining loop), is in
+mouths; and two lines in CE's z-physics: `WfSteppedDown` keeps a slow step down onto stairs from counting as a fall,
+which would open a worn parachute, and `WfSealedAbove` makes the ground a ceiling for anything rising in a cavern
+(a flyer, an atmospheric jetpack) even where its terrain isn't loaded and so has no tiles. The server tells a hole
+from unloaded ground by the pin; a client can't, so it predicts the way up only for a body stairs have carried there
+and leaves anything airborne to the server. The design, including what is still to come (the rest of F4 and the mining loop), is in
 `Docs/_WF/Caverns/CAVERNS_DESIGN.md`.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -132,6 +135,7 @@ fall, which would open a worn parachute. The design, including what is still to 
 
 ### Client
 
+- [`Content.Client/_WF/Caverns/CEClientZLevelsSystem.Caverns.cs`](../../../Content.Client/_WF/Caverns/CEClientZLevelsSystem.Caverns.cs)
 - [`Content.Client/_WF/Caverns/ScalingViewport.Caverns.cs`](../../../Content.Client/_WF/Caverns/ScalingViewport.Caverns.cs)
 - [`Content.Client/_WF/Caverns/WFCavernClimbSystem.cs`](../../../Content.Client/_WF/Caverns/WFCavernClimbSystem.cs)
 - [`Content.Client/_WF/Caverns/WFCavernShadeVisualsSystem.cs`](../../../Content.Client/_WF/Caverns/WFCavernShadeVisualsSystem.cs)
@@ -146,6 +150,7 @@ fall, which would open a worn parachute. The design, including what is still to 
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernCommandTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernCommandTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernFixture.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernFixture.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernFlightTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernFlightTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernGenerationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernGenerationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernGutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernGutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernHoleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernHoleTest.cs)
@@ -221,7 +226,9 @@ fall, which would open a worn parachute. The design, including what is still to 
   - under a ground layer, eyes only on its cavern and only while a hole is in view.
   - track the level above the next eye.
 - [`Content.Server/Chemistry/TileReactions/PryTileReaction.cs`](../../Chemistry/TileReactions/PryTileReaction.cs): acid never opens ground over a cavern that no tool can dig, such as Aerumna's chromite.
-- [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs): stepping down onto stairs is not a fall
+- [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs)
+  - stepping down onto stairs is not a fall
+  - ground over a cavern is a ceiling even where it isn't loaded
 - [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): caverns are on in development builds.
 - [`Resources/Prototypes/Recipes/Lathes/Packs/engineering.yml`](../../../Resources/Prototypes/Recipes/Lathes/Packs/engineering.yml): shovels dig cavern shafts on planets
 
