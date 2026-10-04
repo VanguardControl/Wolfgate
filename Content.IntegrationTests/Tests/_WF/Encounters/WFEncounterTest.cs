@@ -116,6 +116,22 @@ public sealed class WFEncounterTest : InteractionTest
       duration: 600
 
 - type: wfEncounter
+  id: WFTestEncounterSkirmish
+  name: wf-encounter-name-convoy
+  start: Manual
+  rewards:
+  - side: good
+    spesos: 9000
+  ships:
+  - key: friend
+    vessel: WFDredger
+    side: good
+  - key: foe
+    vessel: WFDredger
+    offset: 400, 0
+    side: bad
+
+- type: wfEncounter
   id: WFTestEncounterCostly
   name: wf-encounter-name-convoy
   cost: 50
@@ -533,6 +549,47 @@ public sealed class WFEncounterTest : InteractionTest
             SEntMan.DeleteEntity(trader);
             SEntMan.DeleteEntity(grid.Owner);
         });
+    }
+
+/// <summary>Hitting one side makes a player ship the other side's ally, and counts toward that side's reward.</summary>
+    [Test]
+    public async Task HittingOneSideAlliesAPlayerShipWithTheOther()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterSkirmish");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(15000, 15000), MapData.MapId), out var encounter), Is.True);
+            var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
+            var friend = comp.Ships["friend"].Grid;
+            var foe = comp.Ships["foe"].Grid;
+
+            var grid = Server.ResolveDependency<IMapManager>().CreateGridEntity(MapData.MapId);
+            Server.System<SharedMapSystem>().SetTile(grid, Vector2i.Zero, new Tile(1));
+            var transform = Server.System<SharedTransformSystem>();
+            transform.SetCoordinates(grid.Owner, new EntityCoordinates(MapData.MapUid, new Vector2(15200, 15300)));
+            transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(grid.Owner, new Vector2(0.5f)));
+
+            var rewards = Server.System<WFEncounterRewardSystem>();
+            var escorts = Server.System<WFCrewEscortSystem>();
+            for (var i = 0; i < WFEncounterRewardSystem.MinimumHits - 1; i++)
+            {
+                rewards.RecordHit(foe, grid.Owner);
+            }
+
+            Assert.That(escorts.AreInFormation(friend, grid.Owner), Is.False, "Not yet enough to count as fighting them.");
+            rewards.RecordHit(foe, grid.Owner);
+            Assert.That(escorts.AreInFormation(friend, grid.Owner), Is.True, "The side being helped takes the ship for an ally.");
+            Assert.That(escorts.AreInFormation(foe, grid.Owner), Is.False);
+            Assert.That(comp.Hits[ServerSession.UserId]["bad"], Is.EqualTo(WFEncounterRewardSystem.MinimumHits));
+
+            Server.System<WFEncounterSystem>().Resolve(encounter, WFEncounterResolution.Ended);
+            Assert.That(escorts.AreInFormation(friend, grid.Owner), Is.False, "The alliance ends with the encounter.");
+
+            transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+            SEntMan.DeleteEntity(grid.Owner);
+        });
+        await RunTicks(10);
     }
 
     private async Task WaitUntilServer(Func<bool> condition, int maxTicks)

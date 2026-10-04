@@ -68,6 +68,15 @@ public sealed partial class WFEncounterComponent : Component
     [DataField]
     public string? AnnouncementSender;
 
+    /// <summary>Ship weapon hits by each player's ship on the ships of each side.</summary>
+    public Dictionary<Robust.Shared.Network.NetUserId, Dictionary<string, int>> Hits = new();
+
+    /// <summary>The same count per attacking ship.</summary>
+    public Dictionary<(EntityUid Attacker, string Side), int> ShipHits = new();
+
+    /// <summary>Player ships a side has taken as allies for the encounter.</summary>
+    public List<(EntityUid Ship, EntityUid Ally)> Allies = new();
+
     /// <summary>When its ships jump out, whoever is near.</summary>
     [DataField]
     public TimeSpan? JumpAt;

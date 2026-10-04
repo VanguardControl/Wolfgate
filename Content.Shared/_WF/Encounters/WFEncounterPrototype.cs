@@ -39,6 +39,10 @@ public sealed partial class WFEncounterPrototype : IPrototype
     [DataField]
     public float StartRadius;
 
+    /// <summary>What a side pays the players who helped it, when it is the one side left.</summary>
+    [DataField]
+    public List<WFEncounterReward> Rewards = new();
+
     /// <summary>Has the ship's radio officer make the announcement on the common channel, not sector control.</summary>
     [DataField]
     public bool AnnounceOnRadio;
@@ -222,6 +226,33 @@ public sealed partial class WFEncounterShip
     /// <summary>Tasks flown in order.</summary>
     [DataField]
     public List<WFEncounterObjective> Objectives = new();
+}
+
+/// <summary>What a side pays its helpers when it wins.</summary>
+[DataDefinition]
+public sealed partial class WFEncounterReward
+{
+    [DataField(required: true)]
+    public string Side = string.Empty;
+
+    /// <summary>Spesos shared equally among everyone who helped, paid into their bank accounts.</summary>
+    [DataField]
+    public int Spesos;
+
+    /// <summary>Faction credits handed to each helper whose company is one of <see cref="CreditCompanies"/>.</summary>
+    [DataField]
+    public int Credits;
+
+    /// <summary>The credit to hand out, as a one-credit stack entity.</summary>
+    [DataField]
+    public EntProtoId? CreditEntity;
+
+    [DataField]
+    public List<string> CreditCompanies = new();
+
+    /// <summary>What the winning ship says on the common channel; takes $count, the number of helpers.</summary>
+    [DataField]
+    public LocId? Thanks;
 }
 
 /// <summary>How a haul flies its stops.</summary>

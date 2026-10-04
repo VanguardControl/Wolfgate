@@ -212,6 +212,10 @@
   category: Distress
   cost: 2
   startRadius: 1500
+  rewards:
+  - side: freight
+    spesos: 12000
+    thanks: wf-encounter-reward-thanks-hauler
   minPlayers: 4
   cooldown: 2700
   duration: 2400
@@ -342,3 +346,64 @@
     boarding: Ignore
     docking: Ignore
     disengage: Deter
+
+# A TSF patrol ship has been jumped by pirates and calls for backup. Shoot the pirates and the TSF ship takes you
+# for an ally and pays when they are beaten; TSF players get military credits as well. Shoot the TSF ship and the
+# pirates leave you be, but they pay nothing: what you can take off the wreck is the reward.
+- type: wfEncounter
+  id: WFEncounterBackupRequest
+  name: wf-encounter-name-backup
+  announcement: wf-encounter-announce-backup
+  announceOnRadio: true
+  start: Scheduled
+  category: Distress
+  cost: 3
+  weight: 2
+  minPlayers: 3
+  cooldown: 2700
+  duration: 2700
+  startRadius: 2000
+  minDistance: 2500
+  maxDistance: 4000
+  rewards:
+  - side: tsf
+    spesos: 24000
+    credits: 20
+    creditEntity: FederationMilitaryCredit1
+    creditCompanies: [ TSF, TSFCivilian ]
+    thanks: wf-encounter-reward-thanks-tsf
+  ships:
+  - key: patrol
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    objectives:
+    - kind: Attack
+      target: raider
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    vessels: [ Osa, Scorpion ]
+    offset: 0, 500
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    deckhands: 3
+    objectives:
+    - kind: Attack
+      target: patrol
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    offset: 180, 520
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    captain: false
+    objectives:
+    - kind: Attack
+      target: patrol

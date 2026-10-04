@@ -15,6 +15,7 @@ public sealed partial class WFCrewEscortSystem : EntitySystem
     [Dependency] private WFCaptainSystem _captains = default!;
     [Dependency] private IGameTiming _timing = default!;
     private readonly Dictionary<(EntityUid Grid, string Group), EntityUid> _escorts = new();
+    private readonly HashSet<(EntityUid Ship, EntityUid Ally)> _allies = new();
 
     // Rebuilt at most once per tick; a rebuild allocates new sets, so earlier results stay valid snapshots.
     private readonly Dictionary<EntityUid, HashSet<EntityUid>> _formations = new();
@@ -50,6 +51,19 @@ public sealed partial class WFCrewEscortSystem : EntitySystem
     public void Clear(EntityUid grid, string group)
     {
         if (_escorts.Remove((grid, group)))
+            Invalidate();
+    }
+
+    /// <summary>Makes any ship an ally of a crewed ship, as if in its formation, until removed.</summary>
+    public void AddAlly(EntityUid ship, EntityUid ally)
+    {
+        if (ship != ally && _allies.Add((ship, ally)))
+            Invalidate();
+    }
+
+    public void RemoveAlly(EntityUid ship, EntityUid ally)
+    {
+        if (_allies.Remove((ship, ally)))
             Invalidate();
     }
 
@@ -137,6 +151,13 @@ public sealed partial class WFCrewEscortSystem : EntitySystem
             if (Transform(key.Grid).MapID != Transform(target).MapID)
                 continue;
             Link(neighbors, key.Grid, target);
+        }
+
+        _allies.RemoveWhere(pair => TerminatingOrDeleted(pair.Ship) || TerminatingOrDeleted(pair.Ally));
+        foreach (var (ship, ally) in _allies)
+        {
+            if (Transform(ship).MapID == Transform(ally).MapID)
+                Link(neighbors, ship, ally);
         }
 
         var pending = new Queue<EntityUid>();

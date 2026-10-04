@@ -18,6 +18,10 @@ public sealed class EncountersCVars
     public static readonly CVarDef<bool> Vote =
         CVarDef.Create("wf.encounters.vote", true, CVar.SERVERONLY);
 
+    /// <summary>The most spesos encounter rewards pay one player in an hour.</summary>
+    public static readonly CVarDef<int> PayoutHourlyCap =
+        CVarDef.Create("wf.encounters.payout_hourly_cap", 60000, CVar.SERVERONLY);
+
     /// <summary>Shortest wait between scheduled encounters, in seconds.</summary>
     public static readonly CVarDef<float> IntervalMin =
         CVarDef.Create("wf.encounters.interval_min", 900f, CVar.SERVERONLY);

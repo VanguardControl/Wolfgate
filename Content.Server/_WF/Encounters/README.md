@@ -32,6 +32,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.Server/_WF/Encounters/Components/WFEncounterGridComponent.cs`](Components/WFEncounterGridComponent.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterAdminSystem.cs`](Systems/WFEncounterAdminSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterMarkerSystem.cs`](Systems/WFEncounterMarkerSystem.cs)
+- [`Content.Server/_WF/Encounters/Systems/WFEncounterRewardSystem.cs`](Systems/WFEncounterRewardSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterSchedulerSystem.cs`](Systems/WFEncounterSchedulerSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterSystem.cs`](Systems/WFEncounterSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterSystem.Hunt.cs`](Systems/WFEncounterSystem.Hunt.cs)
