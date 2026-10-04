@@ -32,6 +32,18 @@ public sealed partial class WFEncounterPrototype : IPrototype
     [DataField(required: true)]
     public List<WFEncounterShip> Ships = new();
 
+    /// <summary>Has the ship's radio officer make the announcement on the common channel, not sector control.</summary>
+    [DataField]
+    public bool AnnounceOnRadio;
+
+    /// <summary>Circuit placement: how many stations the haul calls at and how it flies between them.</summary>
+    [DataField]
+    public WFEncounterRoute? Route;
+
+    /// <summary>What the cargo ships may be carrying; one is picked per run. The announcement takes it as $cargo.</summary>
+    [DataField]
+    public List<ProtoId<WFEncounterManifestPrototype>> Manifests = new();
+
     /// <summary>Who starts it: the storyteller at round start, the storyteller during the round, or only admins and code.</summary>
     [DataField]
     public WFEncounterStart Start = WFEncounterStart.Scheduled;
@@ -93,8 +105,37 @@ public sealed partial class WFEncounterShip
     [DataField(required: true)]
     public string Key = string.Empty;
 
-    [DataField(required: true)]
-    public ProtoId<VesselPrototype> Vessel;
+    /// <summary>The hull, or leave it out and list several in <see cref="Vessels"/>.</summary>
+    [DataField]
+    public ProtoId<VesselPrototype>? Vessel;
+
+    /// <summary>Hulls to pick one from each run.</summary>
+    [DataField]
+    public List<ProtoId<VesselPrototype>> Vessels = new();
+
+    /// <summary>Who the crew are and what they wear and carry. None spawns each role's own mob.</summary>
+    [DataField]
+    public ProtoId<WFCrewProfilePrototype>? Profile;
+
+    /// <summary>Armed guards aboard, on top of the deckhands.</summary>
+    [DataField]
+    public int Guards;
+
+    /// <summary>Crates of the run's manifest put in the hold.</summary>
+    [DataField]
+    public int Cargo;
+
+    /// <summary>Whether this ship flies the encounter's route: docks at each stop in turn, then leaves.</summary>
+    [DataField]
+    public bool FlyRoute;
+
+    /// <summary>Player ships of another company inside this range are told over the radio to turn away.</summary>
+    [DataField]
+    public float WarnRange;
+
+    /// <summary>Player ships of another company inside this range are fired on.</summary>
+    [DataField]
+    public float AttackRange;
 
     /// <summary>Position relative to the encounter's origin.</summary>
     [DataField]
@@ -144,6 +185,35 @@ public sealed partial class WFEncounterShip
     /// <summary>Tasks flown in order.</summary>
     [DataField]
     public List<WFEncounterObjective> Objectives = new();
+}
+
+/// <summary>How a haul flies its stops.</summary>
+[DataDefinition]
+public sealed partial class WFEncounterRoute
+{
+    [DataField]
+    public int MinStops = 2;
+
+    [DataField]
+    public int MaxStops = 4;
+
+    /// <summary>Seconds docked at each stop.</summary>
+    [DataField]
+    public float DwellMin = 120f;
+
+    [DataField]
+    public float DwellMax = 240f;
+
+    /// <summary>How far from the first stop it enters the sector.</summary>
+    [DataField]
+    public float ApproachMin = 3000f;
+
+    [DataField]
+    public float ApproachMax = 5000f;
+
+    /// <summary>How far clear of the last stop it flies before jumping out.</summary>
+    [DataField]
+    public float ExitDistance = 1500f;
 }
 
 /// <summary>One task of an encounter ship's queue.</summary>
@@ -200,6 +270,9 @@ public enum WFEncounterPlacement : byte
 
     /// <summary>Beside one station, with another as the destination.</summary>
     Route,
+
+    /// <summary>Out in space at the route's approach distance from the first of several stations to call at.</summary>
+    Circuit,
 }
 
 /// <summary>How an encounter ended.</summary>

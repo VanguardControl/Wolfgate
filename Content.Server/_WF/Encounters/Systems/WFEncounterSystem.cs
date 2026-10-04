@@ -2,14 +2,17 @@ using System.Linq;
 using Content.Server._WF.Administration.Systems;
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.NpcCrew;
+using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server.Chat.Systems;
+using Content.Server.Radio.EntitySystems;
 using Content.Server.StationEvents.Events;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Encounters;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Radio;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
@@ -20,8 +23,8 @@ using Robust.Shared.Timing;
 namespace Content.Server._WF.Encounters.Systems;
 
 /// <summary>
-/// Runs encounters: spawns each prototype's ships, crews them and gives them their orders through the NpcCrew
-/// module, decides when the encounter is over and removes its ships once players have left them.
+/// Runs encounters: spawns each prototype's ships, loads their cargo, crews them and gives them their orders
+/// through the NpcCrew module, decides when the encounter is over and removes its ships once players have left them.
 /// </summary>
 public sealed partial class WFEncounterSystem : EntitySystem
 {
@@ -32,9 +35,11 @@ public sealed partial class WFEncounterSystem : EntitySystem
     [Dependency] private AdminVesselSpawnSystem _vessels = default!;
     [Dependency] private WFCrewSetupSystem _setup = default!;
     [Dependency] private WFCrewObjectiveSystem _objectives = default!;
+    [Dependency] private WFCrewPlannerSystem _planner = default!;
     [Dependency] private WFCrewShipStatusSystem _status = default!;
     [Dependency] private LinkedLifecycleGridSystem _lifecycle = default!;
     [Dependency] private ChatSystem _chat = default!;
+    [Dependency] private RadioSystem _radio = default!;
     [Dependency] private MetaDataSystem _meta = default!;
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
@@ -43,6 +48,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
     /// <summary>How long after its orders are flown a transient encounter jumps out.</summary>
     private static readonly TimeSpan JumpDelay = TimeSpan.FromSeconds(20);
+
+    private static readonly ProtoId<RadioChannelPrototype> AnnounceChannel = "Common";
+
     private TimeSpan _nextPoll;
     private float _cleanupRange;
     private TimeSpan _cleanupDelay;
@@ -63,7 +71,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             Reveal(marker.Encounter);
     }
 
-    /// <summary>Puts a hidden encounter on the sector markers.</summary>
+    /// <summary>Puts a hidden encounter on the sector markers and lets it make its announcement.</summary>
     public void Reveal(Entity<WFEncounterComponent?> encounter)
     {
         if (!Resolve(encounter, ref encounter.Comp, false) || !encounter.Comp.Hidden)
@@ -80,21 +88,41 @@ public sealed partial class WFEncounterSystem : EntitySystem
             return;
 
         encounter.Announcement = null;
+        if (encounter.AnnounceOnRadio)
+        {
+            foreach (var ship in encounter.Ships.Values)
+            {
+                if (TrySay(ship, AnnounceChannel, text))
+                    return;
+            }
+        }
+
         _chat.DispatchGlobalAnnouncement(text, encounter.AnnouncementSender);
     }
 
-    /// <summary>The summed cost of the encounters that have not resolved yet.</summary>
-    public int ActiveCost()
+    /// <summary>Has a ship's radio officer, or failing that its captain, say something on a channel.</summary>
+    public bool TrySay(WFEncounterShipState ship, ProtoId<RadioChannelPrototype> channel, string text)
     {
-        var cost = 0;
-        var query = EntityQueryEnumerator<WFEncounterComponent>();
-        while (query.MoveNext(out _, out var encounter))
+        if (TerminatingOrDeleted(ship.Grid))
+            return false;
+
+        EntityUid? speaker = null;
+        var operators = EntityQueryEnumerator<WFRadioOperatorComponent, WFCrewComponent, TransformComponent>();
+        while (operators.MoveNext(out var uid, out _, out var crew, out var xform))
         {
-            if (encounter.Resolution == null)
-                cost += encounter.Cost;
+            if (crew.Group != ship.Group || xform.GridUid != ship.Grid || !_mobs.IsAlive(uid))
+                continue;
+
+            // The radio officer speaks for the ship while he lives.
+            if (speaker == null || crew.Role == WFCrewRoles.RadioOperator)
+                speaker = uid;
         }
 
-        return cost;
+        if (speaker is not { } voice)
+            return false;
+
+        _radio.SendRadioMessage(voice, text, channel, voice);
+        return true;
     }
 
     /// <summary>Encounters that have not resolved yet.</summary>
@@ -111,6 +139,20 @@ public sealed partial class WFEncounterSystem : EntitySystem
         return count;
     }
 
+    /// <summary>The summed cost of the encounters that have not resolved yet.</summary>
+    public int ActiveCost()
+    {
+        var cost = 0;
+        var query = EntityQueryEnumerator<WFEncounterComponent>();
+        while (query.MoveNext(out _, out var encounter))
+        {
+            if (encounter.Resolution == null)
+                cost += encounter.Cost;
+        }
+
+        return cost;
+    }
+
     /// <summary>Whether an encounter of this prototype has not resolved yet.</summary>
     public bool IsRunning(string prototype)
     {
@@ -125,11 +167,12 @@ public sealed partial class WFEncounterSystem : EntitySystem
     }
 
     /// <summary>
-    /// Spawns an encounter with its origin at a point in space. Fails, leaving nothing behind, when a ship cannot
-    /// be loaded or crewed.
+    /// Spawns an encounter with its origin at a point in space. <paramref name="stops"/> are the stations its
+    /// placement chose: orders can aim at the first and last, and a route calls at each in turn. Fails, leaving
+    /// nothing behind, when a ship cannot be loaded or crewed or its orders are invalid.
     /// </summary>
     public bool TrySpawn(WFEncounterPrototype prototype, MapCoordinates origin, out EntityUid encounter, EntityUid? spawner = null,
-        EntityUid? originStation = null, EntityUid? destinationStation = null)
+        IReadOnlyList<EntityUid>? stops = null)
     {
         encounter = default;
         if (origin.MapId == MapId.Nullspace || prototype.Ships.Count == 0)
@@ -149,13 +192,17 @@ public sealed partial class WFEncounterSystem : EntitySystem
         comp.Cost = prototype.Cost;
         comp.Lifetime = prototype.Lifetime;
         comp.Hidden = prototype.Hidden;
-        comp.OriginStation = originStation;
-        comp.DestinationStation = destinationStation;
+        comp.AnnounceOnRadio = prototype.AnnounceOnRadio;
+        if (stops != null)
+            comp.Stops.AddRange(stops);
         _meta.SetEntityName(uid, comp.Name);
 
+        WFEncounterManifestPrototype? manifest = null;
+        if (prototype.Manifests.Count > 0)
+            _prototypes.TryIndex(_random.Pick(prototype.Manifests), out manifest);
         foreach (var ship in prototype.Ships)
         {
-            if (comp.Ships.ContainsKey(ship.Key) || !TrySpawnShip((uid, comp), ship, designation, spawner))
+            if (comp.Ships.ContainsKey(ship.Key) || !TrySpawnShip((uid, comp), ship, designation, manifest, spawner))
             {
                 Log.Error($"Encounter {prototype.ID} could not spawn ship '{ship.Key}'.");
                 Remove((uid, comp));
@@ -165,28 +212,12 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
         foreach (var ship in prototype.Ships)
         {
-            if (ship.Objectives.Count == 0)
-                continue;
-
             var state = comp.Ships[ship.Key];
-            var queue = new List<WFCrewObjective>();
-            foreach (var objective in ship.Objectives)
-            {
-                queue.Add(new WFCrewObjective
-                {
-                    Kind = objective.Kind,
-                    Target = objective.Target switch
-                    {
-                        "@origin" => GetNetEntity(originStation),
-                        "@destination" => GetNetEntity(destinationStation),
-                        { } key when comp.Ships.TryGetValue(key, out var target) => GetNetEntity(target.Grid),
-                        _ => null,
-                    },
-                    Position = origin.Position + objective.Offset,
-                    Range = objective.Range,
-                    Duration = objective.Duration,
-                });
-            }
+            var queue = ship.FlyRoute && prototype.Route is { } route && comp.Stops.Count > 0
+                ? BuildRoute(comp, route)
+                : BuildQueue(comp, ship);
+            if (queue.Count == 0)
+                continue;
 
             if (!_objectives.SetQueue(state.Grid, state.Group, queue))
             {
@@ -200,24 +231,80 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
         if (prototype.Announcement is { } announcement)
         {
-            comp.Announcement = Loc.GetString(announcement, ("name", comp.Name),
-                ("origin", PlaceName(originStation)), ("destination", PlaceName(destinationStation)));
+            comp.Announcement = Loc.GetString(announcement,
+                ("name", comp.Name),
+                ("origin", PlaceName(comp.Stops.Count > 0 ? comp.Stops[0] : null)),
+                ("destination", PlaceName(prototype.Route != null && comp.Stops.Count > 0 ? comp.Stops[0] : comp.Stops.Count > 0 ? comp.Stops[^1] : null)),
+                ("stops", comp.Stops.Count),
+                ("cargo", Loc.GetString(manifest?.Name ?? "wf-encounter-cargo-none")));
             comp.AnnouncementSender = prototype.AnnouncementSender is { } sender ? Loc.GetString(sender) : null;
             // A hidden encounter announces itself when it is revealed.
             if (!comp.Hidden)
                 Announce(comp);
         }
 
-        Log.Info($"Encounter {prototype.ID} started as {ToPrettyString(uid)} at {origin} with {comp.Ships.Count} ships.");
+        Log.Info($"Encounter {prototype.ID} started as {ToPrettyString(uid)} at {origin} with {comp.Ships.Count} ships and {comp.Stops.Count} stops.");
         encounter = uid;
         var ev = new WFEncounterStartedEvent(uid);
         RaiseLocalEvent(uid, ref ev, true);
         return true;
     }
 
-    private bool TrySpawnShip(Entity<WFEncounterComponent> encounter, WFEncounterShip ship, string designation, EntityUid? spawner)
+    /// <summary>The orders a ship's prototype gives it.</summary>
+    private List<WFCrewObjective> BuildQueue(WFEncounterComponent comp, WFEncounterShip ship)
     {
-        if (!_prototypes.TryIndex(ship.Vessel, out var vessel)
+        var queue = new List<WFCrewObjective>();
+        foreach (var objective in ship.Objectives)
+        {
+            queue.Add(new WFCrewObjective
+            {
+                Kind = objective.Kind,
+                Target = objective.Target switch
+                {
+                    "@origin" => comp.Stops.Count > 0 ? GetNetEntity(comp.Stops[0]) : null,
+                    "@destination" => comp.Stops.Count > 0 ? GetNetEntity(comp.Stops[^1]) : null,
+                    { } key when comp.Ships.TryGetValue(key, out var target) => GetNetEntity(target.Grid),
+                    _ => null,
+                },
+                Position = comp.Origin.Position + objective.Offset,
+                Range = objective.Range,
+                Duration = objective.Duration,
+            });
+        }
+
+        return queue;
+    }
+
+    /// <summary>A haul: dock at each stop, wait there, cast off, and after the last fly clear of it.</summary>
+    private List<WFCrewObjective> BuildRoute(WFEncounterComponent comp, WFEncounterRoute route)
+    {
+        var queue = new List<WFCrewObjective>();
+        foreach (var stop in comp.Stops)
+        {
+            queue.Add(new WFCrewObjective { Kind = WFCrewObjectiveKind.Dock, Target = GetNetEntity(stop) });
+            queue.Add(new WFCrewObjective
+            {
+                Kind = WFCrewObjectiveKind.Hold,
+                Duration = _random.NextFloat(route.DwellMin, MathF.Max(route.DwellMin, route.DwellMax)),
+            });
+            queue.Add(new WFCrewObjective { Kind = WFCrewObjectiveKind.Undock });
+        }
+
+        var last = _transform.GetMapCoordinates(comp.Stops[^1]).Position;
+        queue.Add(new WFCrewObjective
+        {
+            Kind = WFCrewObjectiveKind.GoTo,
+            Position = last + _random.NextAngle().ToVec() * route.ExitDistance,
+            Range = 150f,
+        });
+        return queue;
+    }
+
+    private bool TrySpawnShip(Entity<WFEncounterComponent> encounter, WFEncounterShip ship, string designation,
+        WFEncounterManifestPrototype? manifest, EntityUid? spawner)
+    {
+        ProtoId<VesselPrototype>? vesselId = ship.Vessels.Count > 0 ? _random.Pick(ship.Vessels) : ship.Vessel;
+        if (vesselId is not { } id || !_prototypes.TryIndex(id, out var vessel)
             || !_vessels.TrySpawnVessel(vessel, encounter.Comp.Origin.MapId, encounter.Comp.Origin.Position + ship.Offset, spawner, out var spawned))
             return false;
 
@@ -234,14 +321,26 @@ public sealed partial class WFEncounterSystem : EntitySystem
             Grid = grid,
             Group = Capped($"enc{encounter.Owner.Id}-{ship.Key}", WFCrewLimits.MaxGroup),
             Side = ship.Side.Length > 0 ? ship.Side : ship.Key,
+            WarnRange = ship.WarnRange,
+            AttackRange = ship.AttackRange,
         };
         encounter.Comp.Ships.Add(ship.Key, state);
+
+        // Cargo goes aboard first, so the crew are posted around it and not on it.
+        if (manifest != null && manifest.Crates.Count > 0)
+        {
+            foreach (var tile in _planner.HoldTiles(grid, ship.Cargo))
+            {
+                Spawn(_random.Pick(manifest.Crates), tile);
+            }
+        }
 
         var mission = new WFCrewMission
         {
             Group = state.Group,
             Callsign = Capped(name, WFCrewLimits.MaxCallsign),
             Battlegroup = ship.Side.Length > 0 ? Capped($"enc{encounter.Owner.Id}-{ship.Side}", WFCrewLimits.MaxBattlegroup) : string.Empty,
+            Profile = ship.Profile?.Id ?? string.Empty,
             Company = ship.Company?.Id ?? string.Empty,
             Faction = ship.Faction.Id,
             BoardingResponse = ship.Boarding,
@@ -254,7 +353,18 @@ public sealed partial class WFEncounterSystem : EntitySystem
         if (ship.Navigation is { } navigation && _prototypes.TryIndex(navigation, out var profile))
             mission.Navigation = profile.Settings.Clone();
 
-        var posts = _setup.Plan(grid, ship.Deckhands, ship.Captain);
+        var posts = _setup.Plan(grid, ship.Deckhands + ship.Guards, ship.Captain);
+        // The last deckhands of the plan are the ship's guards.
+        var guards = ship.Guards;
+        for (var i = posts.Count - 1; i >= 0 && guards > 0; i--)
+        {
+            if (posts[i].Role != WFCrewRoles.Deckhand.Id)
+                continue;
+
+            posts[i].Role = WFCrewRoles.Marine.Id;
+            guards--;
+        }
+
         return posts.Count > 0 && _setup.TrySpawn(grid, posts, mission, out _);
     }
 
@@ -268,14 +378,15 @@ public sealed partial class WFEncounterSystem : EntitySystem
         return text.Length <= length ? text : text[..length];
     }
 
-    /// <summary>Marks an encounter as over. Its ships stay until players have left them.</summary>
+    /// <summary>Marks an encounter as over. Its ships stay until players have left them, or jump out if it is transient.</summary>
     public void Resolve(Entity<WFEncounterComponent?> encounter, WFEncounterResolution resolution)
     {
         if (!Resolve(encounter, ref encounter.Comp, false) || encounter.Comp.Resolution != null)
             return;
 
         encounter.Comp.Resolution = resolution;
-        if (resolution == WFEncounterResolution.Completed && encounter.Comp.Lifetime == WFEncounterLifetime.Transient)
+        if (resolution is WFEncounterResolution.Completed or WFEncounterResolution.Expired
+            && encounter.Comp.Lifetime == WFEncounterLifetime.Transient)
             encounter.Comp.JumpAt = _timing.CurTime + JumpDelay;
         Log.Info($"Encounter {encounter.Comp.Prototype} {ToPrettyString(encounter)} resolved: {resolution}.");
         var ev = new WFEncounterResolvedEvent(encounter, resolution);
@@ -326,6 +437,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         {
             if (encounter.Resolution == null)
             {
+                SkipBlockedOrders(encounter);
                 crews ??= _objectives.Snapshot();
                 if (Judge(encounter, crews) is { } resolution)
                     Resolve((uid, encounter), resolution);
@@ -340,6 +452,20 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
             if (!CleanUp(encounter))
                 QueueDel(uid);
+        }
+    }
+
+    /// <summary>Nobody is there to unstick an encounter ship: a stop it cannot dock at, or a target that is gone, is passed over.</summary>
+    private void SkipBlockedOrders(WFEncounterComponent encounter)
+    {
+        foreach (var ship in encounter.Ships.Values)
+        {
+            if (!ship.HasOrders || TerminatingOrDeleted(ship.Grid)
+                || _objectives.QueueStatus(ship.Grid, ship.Group) is not ("dock-failed" or "target-lost"))
+                continue;
+
+            Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} skips an order it cannot carry out.");
+            _objectives.Control(ship.Grid, ship.Group, WFCrewSetupAction.Skip);
         }
     }
 
@@ -399,6 +525,15 @@ public sealed partial class WFEncounterSystem : EntitySystem
             if (TerminatingOrDeleted(ship.Grid))
                 continue;
 
+            if (encounter.JumpAt is { } jump)
+            {
+                if (_timing.CurTime >= jump)
+                    RemoveShip(ship);
+                else
+                    remaining = true;
+                continue;
+            }
+
             var here = _transform.GetMapCoordinates(ship.Grid);
             var near = false;
             foreach (var player in _players)
@@ -408,15 +543,6 @@ public sealed partial class WFEncounterSystem : EntitySystem
                     near = true;
                     break;
                 }
-            }
-
-            if (encounter.JumpAt is { } jump)
-            {
-                if (_timing.CurTime >= jump)
-                    RemoveShip(ship);
-                else
-                    remaining = true;
-                continue;
             }
 
             if (near)

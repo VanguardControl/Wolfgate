@@ -1,0 +1,57 @@
+# What a freight run may be carrying. One is picked per run; the captain names it and the hold is filled from it.
+
+- type: wfEncounterManifest
+  id: WFManifestGeneral
+  name: wf-encounter-cargo-general
+  crates:
+  - CrateServiceJanitorialSupplies
+  - CrateFunPlushie
+  - CrateMaterialPlastic
+  - CrateFoodSoftdrinks
+  - CrateEngineeringToolbox
+
+- type: wfEncounterManifest
+  id: WFManifestFood
+  name: wf-encounter-cargo-food
+  crates:
+  - CrateFoodMRE
+  - CrateFoodCooking
+  - CrateFoodPizza
+  - CrateFoodSoftdrinks
+
+- type: wfEncounterManifest
+  id: WFManifestMedical
+  name: wf-encounter-cargo-medical
+  crates:
+  - CrateMedicalSupplies
+  - CrateMedicalSupplies
+  - CrateMedicalSurgery
+  - CrateChemistrySupplies
+  - CrateEmergencyRadiation
+
+- type: wfEncounterManifest
+  id: WFManifestIndustrial
+  name: wf-encounter-cargo-industrial
+  crates:
+  - CrateMaterialSteel
+  - CrateMaterialSteel
+  - CrateMaterialGlass
+  - CrateMaterialPlasteel
+  - CrateMaterialPlastic
+
+- type: wfEncounterManifest
+  id: WFManifestParts
+  name: wf-encounter-cargo-parts
+  crates:
+  - CrateEngineeringCableBulk
+  - CrateEngineeringToolbox
+  - CrateEngineeringShuttle
+  - CrateEngineeringSolar
+
+- type: wfEncounterManifest
+  id: WFManifestMunitions
+  name: wf-encounter-cargo-munitions
+  crates:
+  - CrateArmoryShotgun
+  - CrateSecurityArmor
+  - CrateSecurityArmor

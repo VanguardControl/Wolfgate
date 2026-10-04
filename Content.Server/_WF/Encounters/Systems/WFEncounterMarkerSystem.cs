@@ -45,6 +45,8 @@ public sealed partial class WFEncounterMarkerSystem : EntitySystem
                     Map = position.MapId,
                     Position = position.Position,
                     Velocity = TryComp<PhysicsComponent>(ship.Grid, out var body) ? body.LinearVelocity : Vector2.Zero,
+                    WarnRange = ship.WarnRange,
+                    AttackRange = ship.AttackRange,
                 });
                 break;
             }

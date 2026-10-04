@@ -117,6 +117,12 @@ crew and ship shield integration cases passed; module `--check` and `--pr-check 
   hand weapon aim error and time to first shot, how far off and how well led the ship's guns are laid, thrust and
   turn rate at the helm, how far ahead the pilot looks, and whether he dodges incoming fire. Veteran is the crew
   as tuned.
+- A crew profile (`wfCrewProfile`, the mission's `Profile`) rolls each crewman's body from a species pool and his
+  loadout from his role's pool, one skill for the crew, and may make roles passive. A profile's body is bare: it
+  gets `WFCrewKit` by inheritance and its role's kit (`wfCrewRole.kit`) by `AddComponents`, so role kits can't be
+  abstract. A mob that inherits a kit lists it first, because the first parent wins a shared component.
+- `Never` engagement crew don't fight. On an alert or a boarding incident they run for the pilot's post
+  (`WFCrewShelterSystem`) and go back a minute after the last alarm.
 - With no captain aboard, or once the captain is down, the pilot evades attackers on their own
   (`WFPilotDutyComponent.ReactToAttacks`). Evasion re-targets every second and always ends in the saved course or,
   if its target is gone, a hold.

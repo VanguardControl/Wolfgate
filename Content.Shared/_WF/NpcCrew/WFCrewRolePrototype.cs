@@ -16,6 +16,10 @@ public sealed partial class WFCrewRolePrototype : IPrototype
     [DataField(required: true)]
     public EntProtoId Mob;
 
+    /// <summary>The role's own components as an abstract prototype, put on a crew profile's body in place of <see cref="Mob"/>.</summary>
+    [DataField]
+    public EntProtoId? Kit;
+
     /// <summary>Duty worked when nothing is being fought; a branch of the crew HTN root.</summary>
     [DataField]
     public string Duty = WFCrewDuties.Guard;

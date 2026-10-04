@@ -19,6 +19,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
@@ -39,6 +40,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private AdminVesselSpawnSystem _vessels = default!;
+    [Dependency] private Robust.Shared.Random.IRobustRandom _random = default!;
 
     public override void Initialize()
     {
@@ -176,6 +178,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             || !Enum.IsDefined(mission.Order)
             || !Enum.IsDefined(mission.BoardingResponse) || !Enum.IsDefined(mission.DockingResponse)
             || !Enum.IsDefined(mission.Disengage) || !Enum.IsDefined(mission.Skill)
+            || !string.IsNullOrEmpty(mission.Profile) && !Known<WFCrewProfilePrototype>(mission.Profile)
             || !float.IsFinite(mission.DisengageRange) || mission.DisengageRange is < 50 or > WFCrewLimits.MaxRange
             || mission.Navigation == null || !mission.Navigation.IsValid()
             || !float.IsFinite(mission.Range) || mission.Range is < 1 or > WFCrewLimits.MaxRange
@@ -208,14 +211,23 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         ApplyCompany(grid, mission.Company);
         _factions.ClearFactions(grid);
         _factions.AddFaction(grid, mission.Faction);
+        // A profile rolls each crewman's body and loadout, and one skill for the crew.
+        _prototypes.TryIndex<WFCrewProfilePrototype>(mission.Profile ?? string.Empty, out var profile);
+        if (profile != null && profile.Skills.Count > 0)
+            mission.Skill = _random.Pick(profile.Skills);
         foreach (var post in posts)
         {
-            var uid = _crew.SpawnCrewman(post.Role, new EntityCoordinates(grid, post.Position), mission.Group,
-                post.Loadout.Length > 0 ? new ProtoId<StartingGearPrototype>(post.Loadout) : (ProtoId<StartingGearPrototype>?) null);
+            var loadout = post.Loadout.Length > 0 ? new ProtoId<StartingGearPrototype>(post.Loadout) : (ProtoId<StartingGearPrototype>?) null;
+            if (loadout == null && profile != null && profile.Loadouts.TryGetValue(post.Role, out var pool) && pool.Count > 0)
+                loadout = _random.Pick(pool);
+            var body = profile != null && profile.Bodies.Count > 0 ? _random.Pick(profile.Bodies) : (EntProtoId?) null;
+            var uid = _crew.SpawnCrewman(post.Role, new EntityCoordinates(grid, post.Position), mission.Group, loadout, body);
             if (uid is not { } mob)
                 continue;
             if (post.Engagement is { } engagement)
                 _crew.SetEngagement(mob, engagement);
+            else if (profile != null && profile.Engagement.TryGetValue(post.Role, out var manner))
+                _crew.SetEngagement(mob, manner);
             ApplyMission(mob, grid, mission);
             spawned.Add(mob);
         }

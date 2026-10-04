@@ -108,10 +108,11 @@ public sealed partial class WFCrewTest
             Server.System<HeadsetSystem>().SetEnabled(headset!.Value, false);
             SEntMan.SpawnAtPosition(Hostile, new EntityCoordinates(deck, new Vector2(6.5f, 5.5f)));
         });
-        await RunTicks(70);
+        // The security poll runs once a second; wait for the report, not for a fixed number of ticks.
+        await WaitUntil(() => Sent(witness).Any(line => line.Line == WFRadioLine.BoardWarning), 300,
+            () => "the witness never reported the boarder");
         await Server.WaitAssertion(() =>
         {
-            Assert.That(Sent(witness).Any(line => line.Line == WFRadioLine.BoardWarning), Is.True);
             Assert.That(Sent(hidden), Is.Empty);
         });
     }

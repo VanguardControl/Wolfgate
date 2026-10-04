@@ -71,6 +71,12 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             && HasComp<MapGridComponent>(uid) && Transform(uid).MapUid == Transform(grid).MapUid;
     }
 
+    /// <summary>The raw status of a crew's queue, such as running, dock-failed or target-lost; null without a queue.</summary>
+    public string? QueueStatus(EntityUid grid, string group)
+    {
+        return _queues.TryGetValue((grid, group), out var state) ? state.Status : null;
+    }
+
     /// <summary>Pauses, resumes or skips the current task without changing later tasks.</summary>
     public void Control(EntityUid grid, string group, WFCrewSetupAction action)
     {

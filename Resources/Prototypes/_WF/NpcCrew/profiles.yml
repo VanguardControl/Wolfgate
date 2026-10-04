@@ -1,0 +1,228 @@
+# Working clothes for civilian crews: no pressure suits, and weapons only where noted. A crew profile picks one per
+# crewman from its pool for that role.
+
+- type: startingGear
+  id: WFCrewHaulerHandCargo
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitCargo
+    shoes: ClothingShoesBootsWork
+    head: ClothingHeadHatCargosoft
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewHaulerHandHazard
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorOrange
+    outerClothing: ClothingOuterVestHazard
+    shoes: ClothingShoesBootsWork
+    head: ClothingHeadHatHardhatYellow
+    gloves: ClothingHandsGlovesColorYellow
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewHaulerHandOveralls
+  equipment:
+    jumpsuit: ClothingUniformOveralls
+    shoes: ClothingShoesBootsWork
+    gloves: ClothingHandsGlovesFingerless
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewHaulerHandEngineer
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitEngineering
+    shoes: ClothingShoesBootsWork
+    head: ClothingHeadHatHardhatOrange
+    belt: ClothingBeltUtility
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewHaulerHandWinter
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorBrown
+    outerClothing: ClothingOuterWinterCargo
+    shoes: ClothingShoesColorBlack
+    ears: WFCrewHeadset
+
+# The odd hand keeps something heavy in a pocket.
+- type: startingGear
+  id: WFCrewHaulerHandWrench
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorGrey
+    shoes: ClothingShoesBootsWork
+    head: ClothingHeadBandRed
+    pocket1: Wrench
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewHaulerHandCrowbar
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitSalvageSpecialist
+    shoes: ClothingShoesBootsJack
+    pocket1: Crowbar
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewHaulerOfficerPlain
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitQM
+    shoes: ClothingShoesColorBlack
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewHaulerOfficerBomber
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorBlue
+    outerClothing: ClothingOuterCoatBomber
+    shoes: ClothingShoesBootsJack
+    head: ClothingHeadHatBeret
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewHaulerOfficerCoat
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitBartender
+    outerClothing: ClothingOuterCoatJensen
+    shoes: ClothingShoesColorBlack
+    ears: WFCrewHeadset
+
+# The one gun aboard, with one spare magazine.
+- type: startingGear
+  id: WFCrewHaulerOfficerSidearm
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorBlue
+    outerClothing: ClothingOuterCoatBomber
+    shoes: ClothingShoesBootsJack
+    head: ClothingHeadHatCapcap
+    belt: WeaponPistolMk58
+    pocket1: Magazine45_ACPPistolFMJ
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewHaulerGuardSidearm
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitMercenary
+    outerClothing: ClothingOuterArmorBasic
+    shoes: ClothingShoesBootsCombat
+    gloves: ClothingHandsGlovesColorBlack
+    belt: WeaponPistolMk58
+    pocket1: Magazine45_ACPPistolFMJ
+    pocket2: Magazine45_ACPPistolFMJ
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewHaulerGuardCarbine
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitMercenary
+    outerClothing: ClothingOuterArmorBulletproof
+    head: ClothingHeadHelmetBasic
+    shoes: ClothingShoesBootsCombat
+    gloves: ClothingHandsGlovesColorBlack
+    back: WeaponRifleLecter
+    pocket1: Magazine68x52mmCaseless
+    ears: WFCrewHeadset
+
+# An independent freighter's crew: every kind of spacer in working clothes. Hands don't fight; the officers defend
+# themselves, and one of them may have the ship's only gun.
+- type: wfCrewProfile
+  id: WFCrewProfileHauler
+  bodies:
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyReptilian
+  - WFMobCrewBodyReptilian
+  - WFMobCrewBodyDwarf
+  - WFMobCrewBodyMoth
+  - WFMobCrewBodyVulpkanin
+  - WFMobCrewBodyVulpkanin
+  - WFMobCrewBodyTajaran
+  - WFMobCrewBodyTajaran
+  - WFMobCrewBodyRodentia
+  - WFMobCrewBodyArachnid
+  skills: [ Green, Green, Regular ]
+  engagement:
+    WFCrewDeckhand: Never
+  loadouts:
+    WFCrewDeckhand:
+    - WFCrewHaulerHandCargo
+    - WFCrewHaulerHandCargo
+    - WFCrewHaulerHandHazard
+    - WFCrewHaulerHandOveralls
+    - WFCrewHaulerHandEngineer
+    - WFCrewHaulerHandWinter
+    - WFCrewHaulerHandWrench
+    - WFCrewHaulerHandCrowbar
+    WFCrewPilot:
+    - WFCrewHaulerOfficerPlain
+    - WFCrewHaulerOfficerBomber
+    - WFCrewHaulerOfficerCoat
+    WFCrewRadioOperator:
+    - WFCrewHaulerOfficerPlain
+    - WFCrewHaulerOfficerBomber
+    - WFCrewHaulerOfficerCoat
+    - WFCrewHaulerOfficerSidearm
+    WFCrewCaptain:
+    - WFCrewHaulerOfficerBomber
+    - WFCrewHaulerOfficerCoat
+    - WFCrewHaulerOfficerSidearm
+    - WFCrewHaulerOfficerSidearm
+    WFCrewMarine:
+    - WFCrewHaulerGuardSidearm
+    - WFCrewHaulerGuardSidearm
+    - WFCrewHaulerGuardCarbine
+
+# A TSF fleet auxiliary: uniformed, disciplined, every hand armed with at least a sidearm, guards with carbines.
+- type: startingGear
+  id: WFCrewTsfHand
+  equipment:
+    jumpsuit: ClothingUniformTSFMCEngi
+    shoes: ClothingShoesBootsCombat
+    head: ClothingHeadHatUtilityTsfmc
+    belt: WeaponPistolMk58
+    pocket1: Magazine45_ACPPistolFMJ
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewTsfOfficer
+  equipment:
+    jumpsuit: ClothingUniformTSFMCDress
+    shoes: ClothingShoesBootsCombat
+    belt: WeaponPistolMk58
+    pocket1: Magazine45_ACPPistolFMJ
+    pocket2: Magazine45_ACPPistolFMJ
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewTsfGuard
+  equipment:
+    jumpsuit: ClothingUniformTSFMC
+    outerClothing: ClothingOuterArmorBulletproof
+    head: ClothingHeadHelmetBasic
+    shoes: ClothingShoesBootsCombat
+    gloves: ClothingHandsGlovesColorBlack
+    back: WeaponRifleLecter
+    belt: WeaponPistolMk58
+    pocket1: Magazine68x52mmCaseless
+    pocket2: Magazine45_ACPPistolFMJ
+    ears: WFCrewHeadset
+
+- type: wfCrewProfile
+  id: WFCrewProfileTsf
+  bodies:
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyReptilian
+  - WFMobCrewBodyDwarf
+  - WFMobCrewBodyVulpkanin
+  - WFMobCrewBodyTajaran
+  skills: [ Regular, Regular, Veteran ]
+  loadouts:
+    WFCrewDeckhand: [ WFCrewTsfHand ]
+    WFCrewPilot: [ WFCrewTsfOfficer ]
+    WFCrewRadioOperator: [ WFCrewTsfOfficer ]
+    WFCrewCaptain: [ WFCrewTsfOfficer ]
+    WFCrewGunner: [ WFCrewTsfOfficer ]
+    WFCrewMarine: [ WFCrewTsfGuard ]

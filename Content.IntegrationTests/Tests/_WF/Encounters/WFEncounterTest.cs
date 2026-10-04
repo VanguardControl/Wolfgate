@@ -12,6 +12,8 @@ using Robust.Shared.Configuration;
 using Content.Shared._Mono.CCVar;
 using Content.Server.Gravity;
 using Robust.Shared.Map.Components;
+using System.Collections.Generic;
+using Robust.Shared.Maths;
 using Content.Shared._WF.Encounters;
 using Content.Shared._WF.NpcCrew;
 using Robust.Shared.GameObjects;
@@ -79,6 +81,16 @@ public sealed class WFEncounterTest : InteractionTest
     objectives:
     - kind: Hold
       duration: 5
+
+- type: wfEncounter
+  id: WFTestEncounterZoned
+  name: wf-encounter-name-convoy
+  start: Manual
+  ships:
+  - key: guarded
+    vessel: WFDredger
+    warnRange: 500
+    attackRange: 150
 
 - type: wfEncounter
   id: WFTestEncounterCostly
@@ -226,7 +238,7 @@ public sealed class WFEncounterTest : InteractionTest
             await Server.WaitAssertion(() =>
             {
                 var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(id);
-                Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, origin, out encounter, null, from, to), Is.True, id);
+                Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, origin, out encounter, null, new[] { from, to }), Is.True, id);
                 var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
                 Assert.That(comp.Ships, Has.Count.EqualTo(prototype.Ships.Count), id);
                 var crews = Server.System<WFCrewObjectiveSystem>().Snapshot();
@@ -281,5 +293,96 @@ public sealed class WFEncounterTest : InteractionTest
             config.SetCVar(EncountersCVars.Preset, EncountersCVars.Preset.DefaultValue);
         });
         await RunTicks(10);
+    }
+
+    /// <summary>A player ship is warned inside the warning zone and counts as an attacker inside the attack zone.</summary>
+    [Test]
+    public async Task ZonesWarnThenTreatIntrudersAsAttackers()
+    {
+        EntityUid encounter = default, ship = default, intruder = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterZoned");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(5000, 5000), MapData.MapId), out encounter), Is.True);
+            ship = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["guarded"].Grid;
+
+            // The player's ship: a bare grid with the test player standing on it, 300 m off.
+            var grid = Server.ResolveDependency<IMapManager>().CreateGridEntity(MapData.MapId);
+            intruder = grid.Owner;
+            Server.System<SharedMapSystem>().SetTile(grid, Vector2i.Zero, new Tile(1));
+            var transform = Server.System<SharedTransformSystem>();
+            transform.SetCoordinates(intruder, new EntityCoordinates(MapData.MapUid, new Vector2(5300, 5000)));
+            transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(intruder, new Vector2(0.5f)));
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["guarded"];
+            Assert.That(state.Warned.ContainsKey(intruder), Is.True, "Inside the warning zone the intruder is warned.");
+            Assert.That(state.Engaged, Is.Empty);
+            Assert.That(Server.System<WFCrewAlertSystem>().GetHostileShips(ship, state.Group), Is.Empty);
+            Server.System<SharedTransformSystem>().SetCoordinates(intruder, new EntityCoordinates(MapData.MapUid, new Vector2(5100, 5000)));
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["guarded"];
+            Assert.That(state.Engaged.Contains(intruder), Is.True);
+            Assert.That(Server.System<WFCrewAlertSystem>().GetHostileShips(ship, state.Group), Does.Contain(intruder),
+                "Inside the attack zone the intruder is an attacker.");
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+            SEntMan.DeleteEntity(intruder);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>Every body and loadout of every crew profile makes a living, dressed crewman with his role's kit.</summary>
+    [Test]
+    public async Task EveryCrewProfileBodyAndLoadoutSpawns()
+    {
+        var spawned = new List<EntityUid>();
+        await Server.WaitAssertion(() =>
+        {
+            var prototypes = Server.ResolveDependency<IPrototypeManager>();
+            var crew = Server.System<WFCrewSystem>();
+            var grid = Server.ResolveDependency<IMapManager>().CreateGridEntity(MapData.MapId);
+            Server.System<SharedMapSystem>().SetTile(grid, Vector2i.Zero, new Tile(1));
+            var post = new EntityCoordinates(grid.Owner, new Vector2(0.5f));
+            foreach (var profile in prototypes.EnumeratePrototypes<WFCrewProfilePrototype>())
+            {
+                Assert.That(profile.Bodies, Is.Not.Empty, profile.ID);
+                foreach (var body in profile.Bodies.Distinct())
+                {
+                    var hand = crew.SpawnCrewman(WFCrewRoles.Deckhand, post, "bodies", profile.Loadouts[WFCrewRoles.Deckhand][0], body);
+                    Assert.That(hand, Is.Not.Null, $"{profile.ID}: {body}");
+                    SEntMan.GetComponent<Content.Server.NPC.HTN.HTNComponent>(hand!.Value).Enabled = false;
+                    Assert.That(SEntMan.HasComponent<WFCrewRepairComponent>(hand.Value), Is.True, $"{body} got no deckhand kit");
+                    spawned.Add(hand.Value);
+                }
+
+                foreach (var (role, loadouts) in profile.Loadouts)
+                {
+                    foreach (var loadout in loadouts.Distinct())
+                    {
+                        var member = crew.SpawnCrewman(role, post, "bodies", loadout, profile.Bodies[0]);
+                        Assert.That(member, Is.Not.Null, $"{profile.ID}: {role} in {loadout}");
+                        SEntMan.GetComponent<Content.Server.NPC.HTN.HTNComponent>(member!.Value).Enabled = false;
+                        Assert.That(Server.System<Content.Shared.Inventory.InventorySystem>().TryGetSlotEntity(member.Value, "jumpsuit", out _),
+                            Is.True, $"{loadout} left {role} undressed");
+                        spawned.Add(member.Value);
+                    }
+                }
+            }
+        });
+        await RunTicks(30);
+        await Server.WaitAssertion(() =>
+        {
+            foreach (var uid in spawned)
+            {
+                Assert.That(Server.System<Content.Shared.Mobs.Systems.MobStateSystem>().IsAlive(uid), Is.True, SEntMan.ToPrettyString(uid).ToString());
+                SEntMan.DeleteEntity(uid);
+            }
+        });
     }
 }

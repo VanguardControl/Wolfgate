@@ -10,6 +10,9 @@ public enum WFCrewEngagement : byte
 
     /// <summary>Fights only whoever attacked it, for as long as it remembers the attack.</summary>
     WhenAttacked,
+
+    /// <summary>Never fights; runs for the bridge when the ship is alerted.</summary>
+    Never,
 }
 
 /// <summary>Duty names. Each is a branch of the crew HTN root, picked by the WFCrewDuty blackboard key.</summary>

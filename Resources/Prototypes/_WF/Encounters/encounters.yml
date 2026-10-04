@@ -38,33 +38,159 @@
     - kind: Escort
       target: lead
 
-# A hauler that enters beside one station, flies to another, docks for a while and leaves the sector.
+# Independent freight runs. A hauler enters the sector well out from its first stop, its captain calls its cargo
+# and route on the common channel, and it docks at two to four stations in turn before flying clear and jumping out.
+# The crew are ordinary spacers in working clothes: the hands don't fight, and an officer may have the only gun.
 - type: wfEncounter
-  id: WFEncounterFreighterTransit
+  id: WFEncounterFreightSmall
   name: wf-encounter-name-freighter
-  announcement: wf-encounter-announce-freighter
-  announcementSender: wf-encounter-sender-traffic
+  announcement: wf-encounter-announce-freight-run
+  announceOnRadio: true
   start: Scheduled
   category: Traffic
   cost: 1
-  placement: Route
-  standoff: 600
-  cooldown: 1800
+  weight: 3
+  minPlayers: 0
+  placement: Circuit
+  cooldown: 1500
+  duration: 5400
+  route:
+    minStops: 2
+    maxStops: 4
+  manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts ]
   ships:
   - key: freighter
-    vessel: Piva
+    vessels:
+    - Plutomkii
+    - Twilight
     side: freight
-    company: TSFCivilian
+    profile: WFCrewProfileHauler
+    deckhands: 1
+    guards: 0
+    captain: false
+    cargo: 4
+    flyRoute: true
+    boarding: Warn
     docking: Warn
     disengage: Deter
+
+- type: wfEncounter
+  id: WFEncounterFreightMedium
+  name: wf-encounter-name-freighter
+  announcement: wf-encounter-announce-freight-run
+  announceOnRadio: true
+  start: Scheduled
+  category: Traffic
+  cost: 2
+  weight: 2
+  minPlayers: 0
+  placement: Circuit
+  cooldown: 1500
+  duration: 5400
+  route:
+    minStops: 2
+    maxStops: 4
+  manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts ]
+  ships:
+  - key: freighter
+    vessels:
+    - Brute
+    - Zhuangzi
+    side: freight
+    profile: WFCrewProfileHauler
+    deckhands: 2
+    guards: 0
+    captain: true
+    cargo: 8
+    flyRoute: true
+    boarding: Warn
+    docking: Warn
+    disengage: Deter
+
+- type: wfEncounter
+  id: WFEncounterFreightLarge
+  name: wf-encounter-name-freighter
+  announcement: wf-encounter-announce-freight-run
+  announceOnRadio: true
+  start: Scheduled
+  category: Traffic
+  cost: 3
+  weight: 1
+  minPlayers: 6
+  placement: Circuit
+  cooldown: 1500
+  duration: 5400
+  route:
+    minStops: 2
+    maxStops: 4
+  manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts ]
+  ships:
+  - key: freighter
+    vessels:
+    - Olympus
+    - Autumn
+    - Windreign
+    side: freight
+    profile: WFCrewProfileHauler
+    deckhands: 4
+    guards: 2
+    captain: true
+    cargo: 14
+    flyRoute: true
+    boarding: Warn
+    docking: Warn
+    disengage: Deter
+
+# A TSF transport carrying munitions under fighter escort. It holds its course whatever happens, warns ships of
+# other companies off at a kilometre and fires on them inside four hundred metres.
+- type: wfEncounter
+  id: WFEncounterTsfTransport
+  name: wf-encounter-name-tsf-transport
+  announcement: wf-encounter-announce-tsf-transport
+  announceOnRadio: true
+  start: Scheduled
+  category: Patrol
+  cost: 3
+  weight: 1
+  minPlayers: 6
+  placement: Circuit
+  cooldown: 3600
+  duration: 5400
+  route:
+    minStops: 1
+    maxStops: 2
+    dwellMin: 180
+    dwellMax: 300
+  manifests: [ WFManifestMunitions ]
+  ships:
+  - key: transport
+    vessel: Argent
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    deckhands: 2
+    guards: 2
+    cargo: 8
+    flyRoute: true
+    evades: false
+    disengage: Deter
+    disengageRange: 1200
+    warnRange: 1000
+    attackRange: 400
+  - key: escort
+    vessel: QJ271
+    offset: 150, 0
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    captain: false
+    disengage: Deter
+    disengageRange: 1200
     objectives:
-    - kind: Dock
-      target: "@destination"
-    - kind: Hold
-      duration: 180
-    - kind: Undock
-    - kind: Hold
-      duration: 30
+    - kind: Escort
+      target: transport
 
 # A hauler in open space with a pirate ship on it. Hidden until someone raises the alarm; then it is a distress call.
 - type: wfEncounter

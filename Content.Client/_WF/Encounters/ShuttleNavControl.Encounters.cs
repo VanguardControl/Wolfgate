@@ -31,6 +31,8 @@ public partial class ShuttleNavControl
             var point = Vector2.Transform(world, worldToView);
             var offset = point - centre;
             var color = EncounterColor(marker.Category);
+            DrawEncounterZone(handle, point, marker.WarnRange, Color.FromHex("#ffd23f"), system.WarnLabel);
+            DrawEncounterZone(handle, point, marker.AttackRange, Color.FromHex("#ff4b4b"), system.AttackLabel);
             if (offset.Length() <= rim)
             {
                 handle.DrawLine(point + new Vector2(0f, -size), point + new Vector2(size, 0f), color);
@@ -54,6 +56,21 @@ public partial class ShuttleNavControl
             var dimensions = handle.GetDimensions(Font, label, UIScale * 0.8f);
             handle.DrawString(Font, back - direction * (dimensions.X / 2f + 6f * UIScale) - dimensions / 2f, label, UIScale * 0.8f, color);
         }
+    }
+
+    /// <summary>A ring at a zone's radius around the ship, named at its top, when any of it is on the scope.</summary>
+    private void DrawEncounterZone(DrawingHandleScreen handle, Vector2 centre, float range, Color color, string label)
+    {
+        if (range <= 0f)
+            return;
+
+        var radius = range * MinimapScale;
+        if (centre.X + radius < 0f || centre.Y + radius < 0f || centre.X - radius > PixelSize.X || centre.Y - radius > PixelSize.Y)
+            return;
+
+        handle.DrawCircle(centre, radius, color.WithAlpha(0.8f), false);
+        var dimensions = handle.GetDimensions(Font, label, UIScale * 0.7f);
+        handle.DrawString(Font, centre + new Vector2(-dimensions.X / 2f, -radius - dimensions.Y - 2f * UIScale), label, UIScale * 0.7f, color);
     }
 
     private static Color EncounterColor(WFEncounterCategory category)

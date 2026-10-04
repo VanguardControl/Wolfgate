@@ -208,6 +208,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewRoutineSystem.cs`](Systems/WFCrewRoutineSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSecuritySystem.cs`](Systems/WFCrewSecuritySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSetupSystem.cs`](Systems/WFCrewSetupSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewShelterSystem.cs`](Systems/WFCrewShelterSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewShieldProtectionSystem.cs`](Systems/WFCrewShieldProtectionSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewShipStatusSystem.cs`](Systems/WFCrewShipStatusSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSleepSystem.cs`](Systems/WFCrewSleepSystem.cs)
@@ -232,6 +233,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Shared/_WF/NpcCrew/WFCrewLimits.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewLimits.cs)
 - [`Content.Shared/_WF/NpcCrew/WFCrewNavigationProfilePrototype.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewNavigationProfilePrototype.cs)
 - [`Content.Shared/_WF/NpcCrew/WFCrewNavigationSettings.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewNavigationSettings.cs)
+- [`Content.Shared/_WF/NpcCrew/WFCrewProfilePrototype.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewProfilePrototype.cs)
 - [`Content.Shared/_WF/NpcCrew/WFCrewRolePrototype.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewRolePrototype.cs)
 - [`Content.Shared/_WF/NpcCrew/WFCrewSetupMessages.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewSetupMessages.cs)
 - [`Content.Shared/_WF/NpcCrew/WFPilotOrder.cs`](../../../Content.Shared/_WF/NpcCrew/WFPilotOrder.cs)
@@ -294,6 +296,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Resources/Prototypes/_WF/NpcCrew/htn.yml`](../../../Resources/Prototypes/_WF/NpcCrew/htn.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/markers.yml`](../../../Resources/Prototypes/_WF/NpcCrew/markers.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/mobs.yml`](../../../Resources/Prototypes/_WF/NpcCrew/mobs.yml)
+- [`Resources/Prototypes/_WF/NpcCrew/profiles.yml`](../../../Resources/Prototypes/_WF/NpcCrew/profiles.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/roles.yml`](../../../Resources/Prototypes/_WF/NpcCrew/roles.yml)
 
 ### Localization

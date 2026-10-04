@@ -178,20 +178,20 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         if (prototype.Placement == WFEncounterPlacement.OpenSpace)
             return _encounters.TrySpawn(prototype, near, out encounter, spawner);
 
-        return TryPlaceAtStations(prototype, near.MapId, out var origin, out var from, out var to)
-            && _encounters.TrySpawn(prototype, origin, out encounter, spawner, from, to);
+        return TryPlaceAtStations(prototype, near.MapId, out var origin, out var stops)
+            && _encounters.TrySpawn(prototype, origin, out encounter, spawner, stops);
     }
 
     private bool TryStart(WFEncounterPrototype prototype, out EntityUid encounter)
     {
         encounter = default;
-        if (!TryPlace(prototype, out var origin, out var from, out var to))
+        if (!TryPlace(prototype, out var origin, out var stops))
         {
             Log.Info($"Encounter {prototype.ID} not started: no place for it.");
             return false;
         }
 
-        return _encounters.TrySpawn(prototype, origin, out encounter, null, from, to);
+        return _encounters.TrySpawn(prototype, origin, out encounter, null, stops);
     }
 
     /// <summary>A weighted pick among the prototypes of a start kind that fit right now.</summary>
@@ -234,32 +234,45 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         return candidates[^1].Prototype;
     }
 
-    private bool TryPlace(WFEncounterPrototype prototype, out MapCoordinates origin, out EntityUid? from, out EntityUid? to)
+    private bool TryPlace(WFEncounterPrototype prototype, out MapCoordinates origin, out List<EntityUid> stops)
     {
-        from = null;
-        to = null;
+        stops = new List<EntityUid>();
         if (prototype.Placement == WFEncounterPlacement.OpenSpace)
             return TryPlaceInOpenSpace(prototype, out origin);
 
-        return TryPlaceAtStations(prototype, _ticker.DefaultMap, out origin, out from, out to);
+        return TryPlaceAtStations(prototype, _ticker.DefaultMap, out origin, out stops);
     }
 
-    private bool TryPlaceAtStations(WFEncounterPrototype prototype, MapId map, out MapCoordinates origin, out EntityUid? from, out EntityUid? to)
+    /// <summary>
+    /// Chooses the stations an encounter is placed by and flies to, and its origin: beside the first for a
+    /// station or a route, out at the approach distance from the first for a circuit.
+    /// </summary>
+    private bool TryPlaceAtStations(WFEncounterPrototype prototype, MapId map, out MapCoordinates origin, out List<EntityUid> stops)
     {
-        from = null;
-        to = null;
+        stops = new List<EntityUid>();
         origin = MapCoordinates.Nullspace;
         var stations = Stations(map);
-        if (stations.Count == 0 || prototype.Placement == WFEncounterPlacement.Route && stations.Count < 2)
+        var wanted = prototype.Placement switch
+        {
+            WFEncounterPlacement.Route => 2,
+            WFEncounterPlacement.Circuit when prototype.Route is { } circuit =>
+                Math.Clamp(_random.Next(circuit.MinStops, Math.Max(circuit.MinStops, circuit.MaxStops) + 1), 1, Math.Max(1, stations.Count)),
+            _ => 1,
+        };
+        if (stations.Count < wanted || prototype.Placement == WFEncounterPlacement.Route && stations.Count < 2)
             return false;
 
-        var station = _random.PickAndTake(stations);
-        from = station;
-        if (prototype.Placement == WFEncounterPlacement.Route)
-            to = _random.Pick(stations).Owner;
+        var first = _random.PickAndTake(stations);
+        stops.Add(first);
+        while (stops.Count < wanted)
+        {
+            stops.Add(_random.PickAndTake(stations));
+        }
 
-        var centre = _transform.GetMapCoordinates(station);
-        var reach = station.Comp.LocalAABB.Size.Length() / 2f + prototype.Standoff;
+        var centre = _transform.GetMapCoordinates(first);
+        var reach = prototype.Placement == WFEncounterPlacement.Circuit && prototype.Route is { } route
+            ? _random.NextFloat(route.ApproachMin, MathF.Max(route.ApproachMin, route.ApproachMax))
+            : first.Comp.LocalAABB.Size.Length() / 2f + prototype.Standoff;
         origin = new MapCoordinates(centre.Position + _random.NextAngle().ToVec() * reach, centre.MapId);
         return true;
     }

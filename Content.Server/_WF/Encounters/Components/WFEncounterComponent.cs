@@ -46,13 +46,12 @@ public sealed partial class WFEncounterComponent : Component
     [DataField]
     public bool Hidden;
 
-    /// <summary>The station it was placed beside, if any.</summary>
+    /// <summary>The stations its placement chose, in the order a route calls at them.</summary>
     [DataField]
-    public EntityUid? OriginStation;
+    public List<EntityUid> Stops = new();
 
-    /// <summary>The station a route leads to, if any.</summary>
     [DataField]
-    public EntityUid? DestinationStation;
+    public bool AnnounceOnRadio;
 
     /// <summary>The announcement still to be made, if any.</summary>
     [DataField]
@@ -83,6 +82,18 @@ public sealed partial class WFEncounterShipState
     [DataField]
     public bool HasOrders;
 
+    [DataField]
+    public float WarnRange;
+
+    [DataField]
+    public float AttackRange;
+
     /// <summary>Since when no player has been near it, while resolved.</summary>
     public TimeSpan? Quiet;
+
+    /// <summary>Intruders already warned, and when each may be warned again.</summary>
+    public Dictionary<EntityUid, TimeSpan> Warned = new();
+
+    /// <summary>Intruders inside the attack zone that have been told so.</summary>
+    public HashSet<EntityUid> Engaged = new();
 }

@@ -88,6 +88,9 @@ public sealed class WFCrewMission
     public string Group = "crew";
     public string Callsign = string.Empty;
     public string Battlegroup = string.Empty;
+
+    /// <summary>A crew profile id: who the crew are and what they wear and carry. Empty spawns each role's own mob.</summary>
+    public string Profile = string.Empty;
     public string Company = string.Empty;
     public string Faction = "WFCrew";
     public string LocalChannel = "Traffic";

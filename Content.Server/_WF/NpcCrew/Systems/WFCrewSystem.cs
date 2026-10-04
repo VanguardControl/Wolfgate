@@ -158,7 +158,7 @@ public sealed class WFCrewSystem : EntitySystem
 
     /// <summary>Spawns one crewman of a role with its post at the coordinates. Null when the role is unknown.</summary>
     public EntityUid? SpawnCrewman(ProtoId<WFCrewRolePrototype> roleId, EntityCoordinates post, string group,
-        ProtoId<StartingGearPrototype>? loadout = null)
+        ProtoId<StartingGearPrototype>? loadout = null, EntProtoId? body = null)
     {
         if (!_prototypes.TryIndex(roleId, out var role))
         {
@@ -169,10 +169,16 @@ public sealed class WFCrewSystem : EntitySystem
         if (loadout is { } gear && !_prototypes.HasIndex(gear))
             return null;
         EntityUid uid;
-        if (loadout is { } selected)
+        if (body != null && !_prototypes.HasIndex<EntityPrototype>(body.Value))
+            return null;
+        if (loadout != null || body != null)
         {
-            uid = EntityManager.CreateEntityUninitialized(role.Mob, post);
-            EnsureComp<LoadoutComponent>(uid).StartingGear = new List<ProtoId<StartingGearPrototype>> { selected };
+            uid = EntityManager.CreateEntityUninitialized(body ?? role.Mob, post);
+            // A profile's body is bare: the role's own parts come from its kit.
+            if (body != null && role.Kit is { } kit && _prototypes.TryIndex<EntityPrototype>(kit, out var parts))
+                EntityManager.AddComponents(uid, parts.Components);
+            if (loadout is { } selected)
+                EnsureComp<LoadoutComponent>(uid).StartingGear = new List<ProtoId<StartingGearPrototype>> { selected };
             EntityManager.InitializeAndStartEntity(uid);
         }
         else

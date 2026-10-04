@@ -3,6 +3,7 @@
 
 - type: wfCrewRole
   id: WFCrewGunner
+  kit: WFCrewKitGunner
   mob: WFMobCrewGunner
   duty: Gunnery
   engagement: WhenAttacked
@@ -11,6 +12,7 @@
 
 - type: wfCrewRole
   id: WFCrewCaptain
+  kit: WFCrewKitOfficer
   mob: WFMobCrewOfficer
   duty: Guard
   engagement: WhenAttacked
@@ -23,6 +25,7 @@
 
 - type: wfCrewRole
   id: WFCrewPilot
+  kit: WFCrewKitOfficer
   mob: WFMobCrewOfficer
   duty: Pilot
   engagement: WhenAttacked
@@ -31,6 +34,7 @@
 
 - type: wfCrewRole
   id: WFCrewRadioOperator
+  kit: WFCrewKitOfficer
   mob: WFMobCrewOfficer
   duty: Guard
   engagement: WhenAttacked
@@ -51,6 +55,7 @@
 
 - type: wfCrewRole
   id: WFCrewDeckhand
+  kit: WFCrewKitDeckhand
   mob: WFMobCrewDeckhand
   duty: Guard
   engagement: OnSight

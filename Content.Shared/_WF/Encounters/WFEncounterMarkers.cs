@@ -19,4 +19,10 @@ public sealed class WFEncounterMarker
     public MapId Map;
     public Vector2 Position;
     public Vector2 Velocity;
+
+    /// <summary>Radius inside which ships are warned off; zero for none.</summary>
+    public float WarnRange;
+
+    /// <summary>Radius inside which ships are fired on; zero for none.</summary>
+    public float AttackRange;
 }

@@ -176,6 +176,29 @@ public sealed class WFCrewPlannerSystem : EntitySystem
         }
     }
 
+    /// <summary>
+    /// A cluster of free tiles in the most open part of the deck, which on a hauler is its hold. Used to put cargo
+    /// aboard a hull that has no markers for it.
+    /// </summary>
+    public List<EntityCoordinates> HoldTiles(EntityUid grid, int count)
+    {
+        var tiles = new List<EntityCoordinates>();
+        if (count <= 0 || !TryComp<MapGridComponent>(grid, out var gridComp))
+            return tiles;
+
+        var free = FreeTiles(grid, gridComp);
+        if (free.Count == 0)
+            return tiles;
+
+        var centre = free.OrderByDescending(tile => Openness(tile, free)).ThenBy(tile => tile.X).ThenBy(tile => tile.Y).First();
+        foreach (var tile in free.OrderBy(tile => Chebyshev(tile, centre)).ThenBy(tile => tile.X).ThenBy(tile => tile.Y).Take(count))
+        {
+            tiles.Add(_map.GridTileToLocal(grid, gridComp, tile));
+        }
+
+        return tiles;
+    }
+
     /// <summary>Tiles a mob can stand on.</summary>
     private HashSet<Vector2i> FreeTiles(EntityUid grid, MapGridComponent gridComp)
     {
