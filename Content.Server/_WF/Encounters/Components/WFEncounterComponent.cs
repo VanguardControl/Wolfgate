@@ -46,6 +46,10 @@ public sealed partial class WFEncounterComponent : Component
     [DataField]
     public WFEncounterLifetime Lifetime;
 
+    /// <summary>A round-start or round-long encounter: it takes no slot under the cap and nothing from the budget.</summary>
+    [DataField]
+    public bool OffBudget;
+
     /// <summary>Whether it is kept off the sector markers.</summary>
     [DataField]
     public bool Hidden;

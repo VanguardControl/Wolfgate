@@ -226,7 +226,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         var query = EntityQueryEnumerator<WFEncounterComponent>();
         while (query.MoveNext(out _, out var encounter))
         {
-            if (encounter.Resolution == null && encounter.Lifetime != WFEncounterLifetime.Persistent)
+            if (encounter.Resolution == null && !encounter.OffBudget)
                 count++;
         }
 
@@ -240,7 +240,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         var query = EntityQueryEnumerator<WFEncounterComponent>();
         while (query.MoveNext(out _, out var encounter))
         {
-            if (encounter.Resolution == null && encounter.Lifetime != WFEncounterLifetime.Persistent)
+            if (encounter.Resolution == null && !encounter.OffBudget)
                 cost += encounter.Cost;
         }
 
@@ -286,6 +286,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         comp.Category = prototype.Category;
         comp.Cost = prototype.Cost;
         comp.Lifetime = prototype.Lifetime;
+        comp.OffBudget = prototype.Lifetime == WFEncounterLifetime.Persistent || prototype.Start == WFEncounterStart.RoundStart;
         comp.Hidden = prototype.Hidden;
         comp.AnnounceOnRadio = prototype.AnnounceOnRadio;
         comp.Announcer = prototype.Announcer ?? prototype.Ships[0].Key;
@@ -734,7 +735,34 @@ public sealed partial class WFEncounterSystem : EntitySystem
         _running.Clear();
     }
 
-    /// <summary>Nobody is there to unstick an encounter ship: a stop it cannot dock at, or a target that is gone, is passed over.</summary>
+    /// <summary>How long a ship waits off a stop it could not dock at before it flies on.</summary>
+    private const float DockFailedLoiter = 75f;
+
+    /// <summary>
+    /// A stop the ship could not dock at is not passed over at once: it loiters off it a while in place of the call,
+    /// then flies on with the rest of its orders.
+    /// </summary>
+    private void LoiterInstead(WFEncounterShipState ship, NetEntity net)
+    {
+        Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} could not dock; it loiters a while and moves on.");
+        _objectives.Control(ship.Grid, ship.Group, WFCrewSetupAction.Skip);
+        var rest = _objectives.Snapshot().FirstOrDefault(crew => crew.Grid == net && crew.Group == ship.Group)?.Objectives
+                   ?? new List<WFCrewObjective>();
+        var queue = new List<WFCrewObjective>(rest);
+        if (queue.Count == 0 || queue[0].Kind != WFCrewObjectiveKind.Hold)
+            queue.Insert(0, new WFCrewObjective { Kind = WFCrewObjectiveKind.Hold, Duration = DockFailedLoiter });
+        // The wait it would have spent alongside is cut short; a stay with no end set is left as it is.
+        else if (queue[0].Duration > DockFailedLoiter)
+            queue[0] = new WFCrewObjective { Kind = WFCrewObjectiveKind.Hold, Duration = DockFailedLoiter };
+
+        if (!_objectives.SetQueue(ship.Grid, ship.Group, queue) && rest.Count == 0)
+            ship.Flown = true;
+    }
+
+    /// <summary>
+    /// Nobody is there to unstick an encounter ship. A stop it cannot dock at is traded for a short wait off it; a
+    /// target that is gone is passed over.
+    /// </summary>
     private void SkipBlockedOrders(WFEncounterComponent encounter)
     {
         foreach (var ship in encounter.Ships.Values)
@@ -749,12 +777,17 @@ public sealed partial class WFEncounterSystem : EntitySystem
             var net = GetNetEntity(ship.Grid);
             var head = _objectives.Snapshot().FirstOrDefault(crew => crew.Grid == net && crew.Group == ship.Group)
                 ?.Objectives.FirstOrDefault()?.Kind;
-            Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} skips an order it cannot carry out.");
-            _objectives.Control(ship.Grid, ship.Group, WFCrewSetupAction.Skip);
-            // A stop it could not dock at, or that is gone, is passed over whole: the wait there and the casting off
-            // go with it.
             var stop = head is WFCrewObjectiveKind.Dock or WFCrewObjectiveKind.Loot or WFCrewObjectiveKind.Resupply
                 or WFCrewObjectiveKind.Salvage;
+            if (stop && status == "dock-failed")
+            {
+                LoiterInstead(ship, net);
+                continue;
+            }
+
+            Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} skips an order it cannot carry out.");
+            _objectives.Control(ship.Grid, ship.Group, WFCrewSetupAction.Skip);
+            // A stop that is gone is passed over whole: the wait there and the casting off go with it.
             for (var i = 0; stop && i < 2; i++)
             {
                 var crew = _objectives.Snapshot().FirstOrDefault(crew => crew.Grid == net && crew.Group == ship.Group);

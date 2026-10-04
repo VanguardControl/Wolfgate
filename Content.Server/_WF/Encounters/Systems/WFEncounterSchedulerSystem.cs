@@ -256,8 +256,10 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
                 || start == WFEncounterStart.Scheduled && prototype.Start == WFEncounterStart.RoundStart
                     && prototype.Replaceable && (!_roundStartDue || _startedAtRoundStart.Contains(prototype.ID));
             var weight = prototype.Weight * (preset != null && preset.Weights.TryGetValue(prototype.Category, out var scale) ? scale : 1f);
-            // A round-long encounter takes nothing from the budget, so it needs no room in it.
-            var cost = prototype.Lifetime == WFEncounterLifetime.Persistent ? 0 : prototype.Cost;
+            // A round-start or round-long encounter takes nothing from the budget, so it needs no room in it.
+            var cost = prototype.Lifetime == WFEncounterLifetime.Persistent || prototype.Start == WFEncounterStart.RoundStart
+                ? 0
+                : prototype.Cost;
             // One of a kind at a time: an encounter that is still running is not picked again.
             if (!fits || weight <= 0f || players < prototype.MinPlayers || cost > Math.Max(0, room) || skip.Contains(prototype.ID)
                 || _encounters.IsRunning(prototype.ID)
