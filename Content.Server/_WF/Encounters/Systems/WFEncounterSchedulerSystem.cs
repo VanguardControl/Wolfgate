@@ -428,15 +428,19 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         }).ToList();
     }
 
-    /// <summary>Whether a station's name or station id contains any of the given fragments.</summary>
+    /// <summary>Whether a station's grid name, station name or station id contains any of the given fragments.</summary>
     private bool Avoided(EntityUid station, List<string> fragments)
     {
         var name = Name(station);
         var id = CompOrNull<Content.Server.Station.Components.BecomesStationComponent>(station)?.Id ?? string.Empty;
+        var owner = TryComp<StationMemberComponent>(station, out var member) && !TerminatingOrDeleted(member.Station)
+            ? Name(member.Station)
+            : string.Empty;
         foreach (var fragment in fragments)
         {
             if (name.Contains(fragment, StringComparison.OrdinalIgnoreCase)
-                || id.Contains(fragment, StringComparison.OrdinalIgnoreCase))
+                || id.Contains(fragment, StringComparison.OrdinalIgnoreCase)
+                || owner.Contains(fragment, StringComparison.OrdinalIgnoreCase))
                 return true;
         }
 

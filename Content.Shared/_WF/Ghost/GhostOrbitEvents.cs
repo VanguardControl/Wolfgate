@@ -20,6 +20,7 @@ public enum GhostOrbitCategory : byte
     Ghost,
     Location,
     Ship,
+    Encounter,
     Npc,
 }
 
@@ -55,7 +56,7 @@ public record struct GhostOrbitTarget
 }
 
 /// <summary>
-/// One ship of a running encounter, for the Encounters tab. Orbiting it follows its grid.
+/// One ship of a running encounter, for the Encounters section. Orbiting it follows its grid.
 /// </summary>
 [Serializable, NetSerializable]
 public record struct GhostOrbitEncounterShip

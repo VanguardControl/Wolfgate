@@ -23,12 +23,6 @@ public sealed partial class WFEncounterMarkerClientSystem : EntitySystem
     public string WarnLabel { get; private set; } = string.Empty;
     public string AttackLabel { get; private set; } = string.Empty;
 
-    /// <summary>
-    /// What each marker is drawn as, by marker index: the encounter name, with the ship's name after it when the
-    /// encounter has several ships.
-    /// </summary>
-    public List<string> Labels { get; private set; } = new();
-
     /// <summary>Seconds since the markers arrived, to move them on by their velocity.</summary>
     public float Elapsed => (float) (_timing.RealTime - _received).TotalSeconds;
 
@@ -40,26 +34,8 @@ public sealed partial class WFEncounterMarkerClientSystem : EntitySystem
         SubscribeNetworkEvent<WFEncounterMarkersEvent>(ev =>
         {
             Markers = ev.Markers;
-            Labels = BuildLabels(ev.Markers);
             _received = _timing.RealTime;
         });
-    }
-
-    private static List<string> BuildLabels(List<WFEncounterMarker> markers)
-    {
-        var ships = new Dictionary<NetEntity, int>();
-        foreach (var marker in markers)
-        {
-            ships[marker.Encounter] = ships.GetValueOrDefault(marker.Encounter) + 1;
-        }
-
-        var labels = new List<string>(markers.Count);
-        foreach (var marker in markers)
-        {
-            labels.Add(ships[marker.Encounter] > 1 && marker.Ship.Length > 0 ? $"{marker.Name} · {marker.Ship}" : marker.Name);
-        }
-
-        return labels;
     }
 
     /// <summary>

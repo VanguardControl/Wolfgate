@@ -36,11 +36,7 @@ public sealed partial class GhostOrbitWindow : FancyWindow
     /// <summary>Collapsed sections, kept for the whole client session.</summary>
     private static readonly HashSet<GhostOrbitCategory> Collapsed = new() { GhostOrbitCategory.Npc };
 
-    private const int EncountersTab = 1;
-
     private readonly List<Section> _sections = new();
-    private readonly List<GhostOrbitTile> _encounterTiles = new();
-    private readonly WrapContainer _encounterGrid;
     private List<GhostOrbitTarget> _targets = new();
     private List<GhostOrbitEncounterShip> _encounters = new();
     private string _search = string.Empty;
@@ -53,27 +49,15 @@ public sealed partial class GhostOrbitWindow : FancyWindow
         IoCManager.InjectDependencies(this);
         RobustXamlLoader.Load(this);
 
-        _encounterGrid = new WrapContainer
-        {
-            SeparationOverride = 4,
-            CrossSeparationOverride = 4,
-            Margin = new Thickness(8, 0, 0, 6),
-        };
-        EncounterBody.AddChild(_encounterGrid);
-        Pages.SetTabTitle(0, Loc.GetString("wf-ghost-orbit-tab-targets"));
-        SetEncountersTitle();
-
         SearchBar.OnTextChanged += args =>
         {
             _search = args.Text.Trim().ToLowerInvariant();
             ApplyFilter();
             Scroll.SetScrollValue(Vector2.Zero);
-            EncounterScroll.SetScrollValue(Vector2.Zero);
         };
         SearchBar.OnTextEntered += _ => OrbitFirstMatch();
         MostFollowedButton.OnPressed += _ => OnGhostnadoClicked?.Invoke();
         RefreshButton.OnPressed += _ => RequestTargets();
-        Pages.OnTabChanged += _ => UpdateSummary();
     }
 
     /// <summary>
@@ -136,17 +120,39 @@ public sealed partial class GhostOrbitWindow : FancyWindow
         var skin = WolfgateSkins.Get(_cfg.GetCVar(WolfgateCVars.UiStyle));
         var sprite = _entMan.System<SpriteSystem>();
 
-        RebuildEncounters(skin, sprite);
+        // Encounter ships sit in a section of their own among the rest, each in its side's colour.
+        var colors = new Dictionary<NetEntity, Color>();
+        var all = new List<GhostOrbitTarget>(_targets);
+        foreach (var ship in _encounters
+                     .OrderBy(s => s.Encounter, StringComparer.CurrentCultureIgnoreCase)
+                     .ThenBy(s => s.Ship, StringComparer.CurrentCultureIgnoreCase))
+        {
+            colors[ship.Grid] = ship.Color ?? WFEncounterColors.Category(ship.Category);
+            all.Add(new GhostOrbitTarget
+            {
+                Entity = ship.Grid,
+                Name = ship.Ship,
+                Category = GhostOrbitCategory.Encounter,
+                Detail = Loc.GetString(ship.Hidden ? "wf-ghost-orbit-encounter-detail-hidden" : "wf-ghost-orbit-encounter-detail",
+                    ("encounter", ship.Encounter), ("side", ship.Side)),
+                Followers = ship.Followers,
+            });
+        }
 
-        foreach (var group in _targets.GroupBy(t => t.Category).OrderBy(g => g.Key))
+        foreach (var group in all.GroupBy(t => t.Category).OrderBy(g => g.Key))
         {
             var accent = CategoryColor(group.Key, skin);
             var section = new Section(group.Key, accent, skin);
             section.Header.OnPressed += _ => ToggleSection(section);
 
-            foreach (var target in group.OrderBy(t => t.Name, StringComparer.CurrentCultureIgnoreCase))
+            // Encounter ships keep the order they were given: by encounter, then by ship.
+            var ordered = group.Key == GhostOrbitCategory.Encounter
+                ? group.AsEnumerable()
+                : group.OrderBy(t => t.Name, StringComparer.CurrentCultureIgnoreCase);
+            foreach (var target in ordered)
             {
-                var tile = new GhostOrbitTile(target, GetIcon(target, sprite), accent, skin);
+                var color = group.Key == GhostOrbitCategory.Encounter && colors.TryGetValue(target.Entity, out var side) ? side : accent;
+                var tile = new GhostOrbitTile(target, GetIcon(target, sprite), color, skin);
                 tile.OnPressed += _ => Orbit(target.Entity);
                 section.Tiles.Add(tile);
                 section.Body.AddChild(tile);
@@ -179,50 +185,6 @@ public sealed partial class GhostOrbitWindow : FancyWindow
             section.Body.Visible = expanded;
             section.SetHeader(expanded, searching ? $"{matches}/{section.Tiles.Count}" : $"{section.Tiles.Count}");
         }
-
-        foreach (var tile in _encounterTiles)
-        {
-            tile.Visible = !searching || tile.SearchText.Contains(_search);
-        }
-    }
-
-    private void RebuildEncounters(WolfgateSkin skin, SpriteSystem sprite)
-    {
-        _encounterGrid.RemoveAllChildren();
-        _encounterTiles.Clear();
-        EncountersEmpty.Visible = _encounters.Count == 0;
-        SetEncountersTitle();
-
-        var icon = sprite.Frame0(ShipIcon);
-        var ordered = _encounters
-            .OrderBy(s => s.Encounter, StringComparer.CurrentCultureIgnoreCase)
-            .ThenBy(s => s.Ship, StringComparer.CurrentCultureIgnoreCase);
-        foreach (var ship in ordered)
-        {
-            var target = new GhostOrbitTarget
-            {
-                Entity = ship.Grid,
-                Name = ship.Ship,
-                Category = GhostOrbitCategory.Ship,
-                Detail = Loc.GetString(ship.Hidden ? "wf-ghost-orbit-encounter-detail-hidden" : "wf-ghost-orbit-encounter-detail",
-                    ("encounter", ship.Encounter), ("side", ship.Side)),
-                Followers = ship.Followers,
-            };
-            var tile = new GhostOrbitTile(target, icon, ship.Color ?? WFEncounterColors.Category(ship.Category), skin);
-            tile.OnPressed += _ => Orbit(target.Entity);
-            _encounterTiles.Add(tile);
-            _encounterGrid.AddChild(tile);
-        }
-    }
-
-    private void SetEncountersTitle()
-    {
-        Pages.SetTabTitle(EncountersTab, Loc.GetString("wf-ghost-orbit-tab-encounters", ("count", EncounterCount())));
-    }
-
-    private int EncounterCount()
-    {
-        return _encounters.Select(s => s.EncounterId).Distinct().Count();
     }
 
     private void ToggleSection(Section section)
@@ -238,14 +200,6 @@ public sealed partial class GhostOrbitWindow : FancyWindow
 
     private void OrbitFirstMatch()
     {
-        if (Pages.CurrentTab == EncountersTab)
-        {
-            if (_encounterTiles.FirstOrDefault(t => t.Visible) is { } first)
-                Orbit(first.Target.Entity);
-
-            return;
-        }
-
         foreach (var section in _sections)
         {
             if (!section.Root.Visible || !section.Body.Visible)
@@ -266,14 +220,6 @@ public sealed partial class GhostOrbitWindow : FancyWindow
 
     private void UpdateSummary()
     {
-        if (Pages.CurrentTab == EncountersTab)
-        {
-            SummaryLabel.Text = Loc.GetString("wf-ghost-orbit-summary-encounters",
-                ("encounters", EncounterCount()),
-                ("ships", _encounters.Count));
-            return;
-        }
-
         int Count(GhostOrbitCategory category) => _targets.Count(t => t.Category == category);
 
         SummaryLabel.Text = Loc.GetString("wf-ghost-orbit-summary",
@@ -297,7 +243,7 @@ public sealed partial class GhostOrbitWindow : FancyWindow
 
         return target.Category switch
         {
-            GhostOrbitCategory.Ship => sprite.Frame0(ShipIcon),
+            GhostOrbitCategory.Ship or GhostOrbitCategory.Encounter => sprite.Frame0(ShipIcon),
             GhostOrbitCategory.Location => sprite.Frame0(LocationIcon),
             _ => null,
         };
@@ -316,6 +262,7 @@ public sealed partial class GhostOrbitWindow : FancyWindow
             GhostOrbitCategory.Ghost => Color.FromHex("#BFD3FF"),
             GhostOrbitCategory.Location => skin.Caution,
             GhostOrbitCategory.Ship => Color.FromHex("#5FA8FF"),
+            GhostOrbitCategory.Encounter => Color.FromHex("#FFAE3D"),
             GhostOrbitCategory.Npc => Color.FromHex("#C8B27A"),
             _ => skin.Text,
         };

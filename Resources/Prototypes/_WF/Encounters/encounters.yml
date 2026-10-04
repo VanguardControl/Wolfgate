@@ -3,7 +3,7 @@
 # and fired on inside 450 m; everyone else may pass.
 - type: wfEncounter
   id: WFEncounterTsfPatrol
-  avoidStations: [ Helios, PDV ]
+  avoidStations: [ Helios, PDV, Caelestinus ]
   name: wf-encounter-name-patrol
   start: RoundStart
   lifetime: Persistent
@@ -55,7 +55,7 @@
 # warned off at 900 m and fired on inside 450 m; everyone else may pass. Both patrols come at round start, at different stations.
 - type: wfEncounter
   id: WFEncounterPdvPatrol
-  avoidStations: [ TSFMC ]
+  avoidStations: [ TSF, Caelestinus ]
   name: wf-encounter-name-pdv-patrol
   start: RoundStart
   lifetime: Persistent
@@ -268,7 +268,7 @@
 # happens, warns ships of the Dynasty's enemies off at a kilometre and fires on them inside four hundred metres.
 - type: wfEncounter
   id: WFEncounterPdvTransport
-  avoidStations: [ TSFMC ]
+  avoidStations: [ TSF ]
   name: wf-encounter-name-pdv-transport
   announcement: wf-encounter-announce-pdv-transport
   announceOnRadio: true

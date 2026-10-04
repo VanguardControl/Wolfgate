@@ -1,7 +1,6 @@
 wf-encounter-ship-name = {$vessel} {$designation}
 wf-encounter-name-convoy = Convoy {$designation}
 wf-encounter-open-space = open space
-wf-encounter-marker-distance = {$name}  {$distance} km
 
 wf-encounter-name-patrol = TSF patrol {$designation}
 wf-encounter-name-freighter = Independent freighter {$designation}
