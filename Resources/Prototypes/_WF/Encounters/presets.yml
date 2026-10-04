@@ -4,7 +4,7 @@
   budget: 2
   budgetPerPlayer: 0.02
   intervalScale: 1.5
-  roundStart: 1
+  roundStart: 2
   weights:
     Threat: 0.25
     Distress: 0.5
@@ -14,7 +14,7 @@
   name: wf-encounter-preset-standard
   budget: 3
   budgetPerPlayer: 0.04
-  roundStart: 1
+  roundStart: 2
 
 - type: wfEncounterPreset
   id: WFEncounterPresetDangerous

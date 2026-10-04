@@ -224,7 +224,7 @@
   - WFMobCrewBodyDwarf
   - WFMobCrewBodyVulpkanin
   - WFMobCrewBodyTajaran
-  skills: [ Regular, Regular, Veteran ]
+  skills: [ Green, Regular, Regular ]
   loadouts:
     WFCrewDeckhand: [ WFCrewTsfHand ]
     WFCrewPilot: [ WFCrewTsfOfficer ]
@@ -232,6 +232,63 @@
     WFCrewCaptain: [ WFCrewTsfOfficer ]
     WFCrewGunner: [ WFCrewTsfOfficer ]
     WFCrewMarine: [ WFCrewTsfGuard ]
+
+# A Phaethon Dynasty navy crew: the Vanguard's field suits and berets, every hand with a sidearm, guards in helmets and
+# vests with a Vympel. No hardsuits, and no faction-issue gear a Federation player could turn in for credits.
+- type: startingGear
+  id: WFCrewPdvHand
+  equipment:
+    jumpsuit: ClothingUniformPDVInfantry
+    shoes: ClothingShoesBootsCombat
+    head: ClothingHeadHatNfsdBeretBrown
+    belt: WeaponPistolViper
+    pocket1: Magazine9x19mmPistolFMJ
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewPdvOfficer
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitNfsdTacCream
+    shoes: ClothingShoesBootsCombat
+    head: ClothingHeadHatNfsdBeretCream
+    belt: WeaponPistolViper
+    pocket1: Magazine9x19mmPistolFMJ
+    pocket2: Magazine9x19mmPistolFMJ
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewPdvGuard
+  equipment:
+    jumpsuit: ClothingUniformPDVInfantry
+    outerClothing: ClothingOuterArmorBulletproof
+    head: ClothingHeadHelmetCombatPDV
+    shoes: ClothingShoesBootsCombat
+    gloves: ClothingHandsGlovesColorBlack
+    back: WeaponRifleVympel
+    belt: WeaponPistolViper
+    pocket1: Magazine556x45mmFMJ
+    pocket2: Magazine9x19mmPistolFMJ
+    ears: WFCrewHeadset
+
+- type: wfCrewProfile
+  id: WFCrewProfilePdv
+  bodies:
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyReptilian
+  - WFMobCrewBodyDwarf
+  - WFMobCrewBodyVulpkanin
+  - WFMobCrewBodyTajaran
+  skills: [ Green, Regular, Regular ]
+  loadouts:
+    WFCrewDeckhand: [ WFCrewPdvHand ]
+    WFCrewPilot: [ WFCrewPdvOfficer ]
+    WFCrewRadioOperator: [ WFCrewPdvOfficer ]
+    WFCrewCaptain: [ WFCrewPdvOfficer ]
+    WFCrewGunner: [ WFCrewPdvOfficer ]
+    WFCrewMarine: [ WFCrewPdvGuard ]
 
 # Pirates: armed to a man, in whatever they took off the last crew.
 - type: startingGear

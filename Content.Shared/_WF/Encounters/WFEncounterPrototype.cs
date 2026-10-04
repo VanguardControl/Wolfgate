@@ -117,6 +117,13 @@ public sealed partial class WFEncounterPrototype : IPrototype
     /// <summary>Open space: no station may be within this distance of the origin. Keeps raiders away from ports.</summary>
     [DataField]
     public float StationClearance;
+
+    /// <summary>
+    /// Stations it is never placed by or routed to, such as an enemy's home ports: any whose name or station id
+    /// contains one of these, whatever the case.
+    /// </summary>
+    [DataField]
+    public List<string> AvoidStations = new();
 }
 
 /// <summary>One ship of an encounter with its crew, its rules and its orders.</summary>

@@ -45,6 +45,9 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
     /// <summary>Room for a hull beyond its offset, kept free of other grids around a station-placed origin.</summary>
     private const float HullClearance = 150f;
 
+    /// <summary>A station placement prefers a station with no encounter ship within this distance, so two don't share one.</summary>
+    private const float StationSpacing = 2000f;
+
     /// <summary>How soon the storyteller tries again after an attempt that started nothing.</summary>
     private static readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(60);
 
@@ -298,6 +301,10 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         stops = new List<EntityUid>();
         origin = MapCoordinates.Nullspace;
         var stations = Stations(map);
+        // Never beside or bound for an enemy's home port.
+        if (prototype.AvoidStations.Count > 0)
+            stations.RemoveAll(station => Avoided(station, prototype.AvoidStations));
+
         var wanted = prototype.Placement switch
         {
             WFEncounterPlacement.Route => 2,
@@ -309,8 +316,19 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
             return false;
 
         // The first stop is picked at random; each next one is the nearest station not yet on the route, so a
-        // haul works its way across the sector and doesn't zigzag.
-        var first = _random.PickAndTake(stations);
+        // haul works its way across the sector and doesn't zigzag. A station placement keeps off a station that already has
+        // an encounter ship about, unless every station has one.
+        Entity<MapGridComponent> first;
+        if (prototype.Placement == WFEncounterPlacement.Station && StationsWithoutShips(stations) is { Count: > 0 } free)
+        {
+            first = _random.Pick(free);
+            stations.Remove(first);
+        }
+        else
+        {
+            first = _random.PickAndTake(stations);
+        }
+
         stops.Add(first);
         var from = _transform.GetWorldPosition(first);
         while (stops.Count < wanted)
@@ -388,6 +406,39 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         }
 
         return stations;
+    }
+
+    /// <summary>The stations with no encounter ship within <see cref="StationSpacing"/> of them.</summary>
+    private List<Entity<MapGridComponent>> StationsWithoutShips(List<Entity<MapGridComponent>> stations)
+    {
+        var ships = new List<MapCoordinates>();
+        var query = EntityQueryEnumerator<Components.WFEncounterGridComponent>();
+        while (query.MoveNext(out var grid, out _))
+        {
+            ships.Add(_transform.GetMapCoordinates(grid));
+        }
+
+        return stations.Where(station =>
+        {
+            var at = _transform.GetMapCoordinates(station);
+            return !ships.Any(other => other.MapId == at.MapId
+                && (other.Position - at.Position).LengthSquared() < StationSpacing * StationSpacing);
+        }).ToList();
+    }
+
+    /// <summary>Whether a station's name or station id contains any of the given fragments.</summary>
+    private bool Avoided(EntityUid station, List<string> fragments)
+    {
+        var name = Name(station);
+        var id = CompOrNull<Content.Server.Station.Components.BecomesStationComponent>(station)?.Id ?? string.Empty;
+        foreach (var fragment in fragments)
+        {
+            if (name.Contains(fragment, StringComparison.OrdinalIgnoreCase)
+                || id.Contains(fragment, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
     }
 
     private bool NearStation(float clearance, Vector2 point, MapId map)

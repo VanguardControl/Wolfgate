@@ -164,3 +164,20 @@ wf-encounter-blackmarket-zone-warn-1 = {$intruder}, you are {$distance} metres o
 wf-encounter-blackmarket-zone-warn-2 = {$intruder}, this is private cargo, and whatever you think you saw, you didn't. Open the range.
 wf-encounter-blackmarket-zone-warn-3 = You are drifting into something that is none of your business, {$intruder}. Fly on.
 wf-encounter-blackmarket-zone-attack = {$intruder}, that was your last chance. Open fire.
+
+# Phaethon Dynasty navy. Its zone lines name nobody, because the hostile skirmishes use them on every ship.
+wf-encounter-name-pdv-patrol = Dynasty patrol {$designation}
+wf-encounter-name-pdv-transport = Dynasty supply convoy {$designation}
+wf-encounter-announce-pdv-transport = All vessels, this is {$name}, a Phaethon Dynasty supply convoy under Vanguard escort, inbound to {$destination}. Federation vessels, stay outside one kilometre. You will not be warned twice.
+wf-encounter-pdv-zone-warn-1 = {$intruder}, you are {$distance} metres off a Vanguard vessel. Open the range now, in the Sultan's name.
+wf-encounter-pdv-zone-warn-2 = {$intruder}, you are inside the Vanguard's warning zone. Turn away at once or be fired upon.
+wf-encounter-pdv-zone-warn-3 = Vessel {$intruder}, this is the Vanguard. Alter course and stay clear of us. This is your last courtesy.
+wf-encounter-pdv-zone-attack = {$intruder}, you were warned. The Sultan's guns are loose.
+wf-encounter-name-pdv-backup = Dynasty patrol {$designation} under attack
+wf-encounter-announce-pdv-backup = Any vessel, any vessel, this is {$name}. Federation fighters have jumped us and we are outgunned. Requesting immediate backup. The Vanguard repays its debts, and with interest.
+wf-encounter-reward-thanks-pdv = All vessels that answered our call: the Vanguard thanks you, and the Sultan remembers. Payment has been made.
+wf-encounter-name-skirmish-navies = Rival patrols {$designation}
+wf-encounter-announce-skirmish-navies = Traffic control to all vessels: {$name}. A TSF patrol and a Dynasty patrol have met in open space and are about to trade fire. Neither is taking calls. Keep clear, unless you mean to take a side.
+wf-encounter-name-skirmish-pdv-corsairs = Dynasty patrol engaging corsairs {$designation}
+wf-encounter-announce-skirmish-pdv-corsairs = Traffic control to all vessels: {$name}. A Dynasty patrol has caught a RedSail corsair crew in open space and means to finish it. Expect heavy fire. Anything that gets between them is on its own.
+wf-encounter-reward-thanks-skirmish-pdv = Vanguard patrol to the vessels that stood with us: your help is noted, and the Sultan's purse has paid for it.
