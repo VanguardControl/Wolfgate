@@ -218,6 +218,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewFriendlyFireSystem.cs`](Systems/WFCrewFriendlyFireSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewObjectiveSystem.cs`](Systems/WFCrewObjectiveSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewPlannerSystem.cs`](Systems/WFCrewPlannerSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewRammingSystem.cs`](Systems/WFCrewRammingSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewRoutineSystem.cs`](Systems/WFCrewRoutineSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSecuritySystem.cs`](Systems/WFCrewSecuritySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSetupSystem.cs`](Systems/WFCrewSetupSystem.cs)
@@ -359,6 +360,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
   - stop blended input while access-aware crew settle at an obstacle.
 - [`Content.Server/NPC/Systems/NPCSteeringSystem.Obstacles.cs`](../../NPC/Systems/NPCSteeringSystem.Obstacles.cs): open authorized doors through normal interaction before considering prying.
 - [`Content.Server/NPC/Systems/NPCSystem.cs`](../../NPC/Systems/NPCSystem.cs): ship crews with something to do must work even without nearby player bodies.
+- [`Content.Server/Shuttles/Systems/ShuttleSystem.Impact.cs`](../../Shuttles/Systems/ShuttleSystem.Impact.cs): crews take a ramming for an attack
 - [`Content.Server/Verbs/VerbSystem.cs`](../../Verbs/VerbSystem.cs): opt-in tracing for missing menu replies after ghosting.
 - [`Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs`](../../../Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs): Lets crew damage scaling skip the routed inner passes.
 

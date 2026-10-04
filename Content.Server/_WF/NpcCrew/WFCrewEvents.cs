@@ -49,6 +49,10 @@ public readonly record struct WFCrewAlertEvent(EntityUid Grid, string Group, Ent
 [ByRefEvent]
 public readonly record struct WFCrewAlertClearedEvent(EntityUid Grid, string Group);
 
-/// <summary>Broadcast when a ship weapon from another grid damages an anchored hull entity.</summary>
+/// <summary>Broadcast when two undocked grids collide, with each one's speed at the point and their closing speed.</summary>
+[ByRefEvent]
+public readonly record struct WFShipCollisionEvent(EntityUid Grid, EntityUid Other, float Speed, float OtherSpeed, float ClosingSpeed);
+
+/// <summary>Broadcast when a ship weapon from another grid damages an anchored hull entity, or another grid rams it.</summary>
 [ByRefEvent]
 public readonly record struct WFCrewHullHitEvent(EntityUid Grid, EntityUid AttackerGrid);

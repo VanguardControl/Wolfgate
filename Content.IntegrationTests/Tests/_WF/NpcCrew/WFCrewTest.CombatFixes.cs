@@ -149,6 +149,25 @@ public sealed partial class WFCrewTest
         });
     }
 
+    /// <summary>A ship rammed at speed takes the rammer for an attacker; a bump is let pass.</summary>
+    [Test]
+    public async Task RammingIsAnAttackAndBumpingIsNot()
+    {
+        var deck = await CreateDeck(new Vector2(500, 900), 5, true);
+        var rammer = await CreateDeck(new Vector2(600, 900), 5, true);
+        await Server.WaitAssertion(() =>
+        {
+            ConvoyCrew(deck, "WFCrewPilot", "rammed");
+            var ramming = Server.System<WFCrewRammingSystem>();
+            var alerts = Server.System<WFCrewAlertSystem>();
+            Assert.That(ramming.Ram(deck, rammer, WFCrewRammingSystem.RamSpeed - 1f), Is.False);
+            Assert.That(alerts.IsHostileShip(deck, "rammed", rammer), Is.False, "A bump is no attack.");
+            Assert.That(ramming.Ram(deck, rammer, WFCrewRammingSystem.RamSpeed + 1f), Is.True);
+            Assert.That(alerts.IsHostileShip(deck, "rammed", rammer), Is.True, "A ramming is.");
+            Assert.That(ramming.Ram(rammer, deck, WFCrewRammingSystem.RamSpeed + 1f), Is.False, "A crew's own clumsy helm starts no fight.");
+        });
+    }
+
     /// <summary>A formation partner that fires on another member's hull becomes that ship's attacker.</summary>
     [Test]
     public async Task FormationPartnerFiringOnHullBecomesHostile()
