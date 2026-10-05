@@ -19,15 +19,18 @@ namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 public sealed partial class WFCrewTest
 {
     /// <summary>
-    /// A blow to one crewman turns the crew's fighters on the attacker; another when-attacked hand stays out of it, the
-    /// helm stays manned and a coward runs for the bridge.
+    /// A blow to one crewman turns the rest of the crew on the attacker, hands who only fight when attacked among them;
+    /// the helm stays manned and a coward takes shelter, and runs when the stranger comes near.
     /// </summary>
     [Test]
     public async Task AttackOnOneCrewmanIsAnsweredByTheCrewsFighters()
     {
         var deck = await CreateDeck(new Vector2(6, 0), 9, gravity: true);
+        EntityUid cowardUid = default, visitorUid = default;
         await Server.WaitAssertion(() =>
         {
+            // A coward only runs where there is air to run to.
+            FillCrewTestAir(deck);
             var crewSystem = Server.System<WFCrewSystem>();
             var struck = ConvoyCrew(deck, "WFCrewDeckhand", "batch-crew", new Vector2(1.5f));
             var bystander = ConvoyCrew(deck, "WFCrewDeckhand", "batch-crew", new Vector2(2.5f, 1.5f));
@@ -50,11 +53,21 @@ public sealed partial class WFCrewTest
             Assert.That(Server.System<NpcFactionSystem>().GetHostiles(officer), Does.Contain(visitor));
             Assert.That(SEntMan.GetComponent<WFCrewComponent>(officer).Struck.ContainsKey(visitor), Is.False,
                 "A crewmate's blow does not send him after someone unseen.");
-            Assert.That(Memories(bystander).ContainsKey(visitor), Is.False, "Another when-attacked hand answers only his own attacker.");
+            Assert.That(Memories(bystander).ContainsKey(visitor), Is.True, "Another hand stands by his crewmate.");
             Assert.That(Memories(pilot).ContainsKey(visitor), Is.False, "The helm stays manned.");
-            Assert.That(Server.System<WFCrewShelterSystem>().IsSheltering(coward), Is.True, "A coward runs for the bridge.");
-            Assert.That(SEntMan.GetComponent<WFCrewComponent>(coward).Post,
-                Is.EqualTo(SEntMan.GetComponent<WFCrewComponent>(pilot).Post));
+            Assert.That(Server.System<WFCrewShelterSystem>().IsSheltering(coward), Is.True, "A coward takes shelter.");
+            cowardUid = coward;
+            visitorUid = visitor;
+            SEntMan.RemoveComponent<Content.Server.NPC.HTN.HTNComponent>(visitor);
+            Server.System<SharedTransformSystem>().SetCoordinates(visitor, new EntityCoordinates(deck, new Vector2(4.5f, 1.5f)));
+        });
+        await RunTicks(Ticks(3));
+        await Server.WaitAssertion(() =>
+        {
+            var post = SEntMan.GetComponent<WFCrewComponent>(cowardUid).Post;
+            Assert.That(post, Is.Not.Null);
+            var from = SEntMan.GetComponent<TransformComponent>(visitorUid).LocalPosition;
+            Assert.That((post!.Value.Position - from).Length(), Is.GreaterThan(3f), "With a stranger beside him the coward runs for somewhere far from him.");
         });
 
         Dictionary<EntityUid, TimeSpan> Memories(EntityUid uid) => SEntMan.GetComponent<NPCRetaliationComponent>(uid).AttackMemories;

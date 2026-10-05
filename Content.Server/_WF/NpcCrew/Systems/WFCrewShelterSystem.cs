@@ -11,9 +11,9 @@ using Robust.Shared.Timing;
 namespace Content.Server._WF.NpcCrew.Systems;
 
 /// <summary>
-/// Crew who never fight, cowards among them, drop their work and run for the bridge when their ship is alerted,
-/// boarded or one of them is attacked; there they cower on the deck, and they go back to their posts a minute after
-/// the last alarm.
+/// Crew who never fight, cowards among them, drop their work when their ship is alerted, boarded or one of them is
+/// attacked. They run from any stranger who comes near, crying out, and cower on the deck wherever they are left
+/// alone; a minute after the last alarm they go back to their posts.
 /// </summary>
 public sealed partial class WFCrewShelterSystem : EntitySystem
 {
@@ -36,6 +36,13 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
     private readonly Dictionary<EntityUid, EntityCoordinates?> _posts = new();
     private TimeSpan _nextCheck;
 
+    /// <summary>How near, in tiles, a stranger sends a sheltering crewman running, and how far off is far enough.</summary>
+    private const float FleeRange = 7f;
+    private const float SafeRange = 9f;
+
+    private static readonly TimeSpan TilesKept = TimeSpan.FromSeconds(10);
+    private readonly Dictionary<EntityUid, (TimeSpan Until, List<EntityCoordinates> Tiles)> _tiles = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -46,6 +53,7 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
             _alarms.Clear();
             _posts.Clear();
             _nextCry.Clear();
+            _tiles.Clear();
         });
     }
 
@@ -65,7 +73,6 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
     /// <summary>Sends a ship's non-combatants to the bridge, or keeps the alarm they shelter from going.</summary>
     public void Shelter(EntityUid grid, string group)
     {
-        EntityCoordinates? bridge = null;
         var sheltered = false;
         var passive = new List<Entity<WFCrewComponent>>();
         var query = EntityQueryEnumerator<WFCrewComponent>();
@@ -74,9 +81,7 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
             if (crew.Group != group || _crew.HomeGrid(uid, crew) != grid || !_mobs.IsAlive(uid))
                 continue;
 
-            if (crew.Duty == WFCrewDuties.Pilot && crew.Post is { } helm)
-                bridge ??= helm;
-            else if (crew.Engagement == WFCrewEngagement.Never && !_posts.ContainsKey(uid))
+            if (crew.Engagement == WFCrewEngagement.Never && !_posts.ContainsKey(uid))
                 passive.Add((uid, crew));
             else if (crew.Engagement == WFCrewEngagement.Never)
                 sheltered = true;
@@ -92,8 +97,8 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
         {
             _posts[member] = member.Comp.Post;
             work.CancelWorker(member);
-            // With no helm to run to, he gets down where he stands.
-            _crew.SetPost((member, member.Comp), bridge ?? Transform(member).Coordinates);
+            // He gets down where he stands, until somebody comes near enough to run from.
+            _crew.SetPost((member, member.Comp), Transform(member).Coordinates);
             _nextCry[member] = _timing.CurTime + TimeSpan.FromSeconds(_random.NextFloat(0.5f, 2f));
         }
     }
@@ -129,7 +134,8 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
             var key = (grid, crew.Group);
             if (_alerts.IsAlerted(grid, crew.Group) || _alarms.TryGetValue(key, out var until) && _timing.CurTime < until)
             {
-                Cower(uid, crew);
+                if (Threat(uid, grid) is not { } threat || !Flee(uid, crew, grid, threat))
+                    Cower(uid, crew);
                 Cry(uid);
                 continue;
             }
@@ -143,6 +149,75 @@ public sealed partial class WFCrewShelterSystem : EntitySystem
             else if (!TerminatingOrDeleted(original.EntityId))
                 _crew.SetPost((uid, crew), original);
         }
+    }
+
+    /// <summary>Where the nearest stranger aboard is, in the ship's own frame, if one is near enough to run from.</summary>
+    private System.Numerics.Vector2? Threat(EntityUid uid, EntityUid grid)
+    {
+        var xform = Transform(uid);
+        if (xform.GridUid != grid)
+            return null;
+
+        var security = EntityManager.System<WFCrewSecuritySystem>();
+        var here = _transform.GetWorldPosition(xform);
+        System.Numerics.Vector2? nearest = null;
+        var best = FleeRange * FleeRange;
+        var mobs = EntityQueryEnumerator<Content.Shared.Mobs.Components.MobStateComponent, TransformComponent>();
+        while (mobs.MoveNext(out var other, out _, out var there))
+        {
+            if (other == uid || there.GridUid != grid || _crew.SameCrew(uid, other)
+                || !HasComp<ActorComponent>(other) && !HasComp<Content.Shared.Humanoid.HumanoidAppearanceComponent>(other)
+                || !security.IsBoardingCandidate(other))
+                continue;
+
+            var distance = (_transform.GetWorldPosition(there) - here).LengthSquared();
+            if (distance >= best)
+                continue;
+
+            best = distance;
+            nearest = _transform.ToCoordinates(grid, _transform.GetMapCoordinates(other, there)).Position;
+        }
+
+        return nearest;
+    }
+
+    /// <summary>
+    /// Sends a sheltering crewman running for the tile of his ship farthest from a stranger, by preference one that
+    /// doesn't take him past the stranger. False when he has nowhere better to go than where he is.
+    /// </summary>
+    private bool Flee(EntityUid uid, WFCrewComponent crew, EntityUid grid, System.Numerics.Vector2 threat)
+    {
+        var here = _transform.ToCoordinates(grid, _transform.GetMapCoordinates(uid)).Position;
+        // Already running for somewhere far enough off.
+        if (crew.Post is { } going && going.EntityId == grid && (going.Position - threat).Length() >= SafeRange
+            && (going.Position - here).Length() > crew.PostRange + 0.5f)
+            return true;
+
+        if (!_tiles.TryGetValue(grid, out var known) || _timing.CurTime >= known.Until)
+            _tiles[grid] = known = (_timing.CurTime + TilesKept, EntityManager.System<WFCrewPlannerSystem>().HoldTiles(grid, int.MaxValue));
+
+        EntityCoordinates? best = null;
+        var bestScore = (here - threat).Length() + 1f;
+        var away = here - threat;
+        foreach (var tile in known.Tiles)
+        {
+            var score = (tile.Position - threat).Length();
+            // Running towards him to get past is the last thing a frightened man does.
+            if (System.Numerics.Vector2.Dot(tile.Position - here, away) < 0f)
+                score *= 0.5f;
+            if (score <= bestScore)
+                continue;
+
+            bestScore = score;
+            best = tile;
+        }
+
+        if (best is not { } refuge)
+            return false;
+
+        _laying.TryStandUp(uid);
+        _crew.SetPost((uid, crew), refuge);
+        return true;
     }
 
     /// <summary>A frightened crewman screams and begs aloud every so often while the alarm lasts.</summary>

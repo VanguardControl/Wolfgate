@@ -92,10 +92,13 @@ public sealed class WFCrewSecuritySystem : EntitySystem
         if (rules.Boarding == WFCrewSecurityResponse.Warn
             && (HasComp<ActorComponent>(visitor) || HasComp<HumanoidAppearanceComponent>(visitor)))
         {
-            // The crew's cowards don't wait to see how it turns out.
-            if (_warned.TryAdd((grid, crew.Group, visitor), (_timing.CurTime + rules.WarnTime, false)))
-                EntityManager.System<WFCrewShelterSystem>().Shelter(grid, crew.Group);
+            _warned.TryAdd((grid, crew.Group, visitor), (_timing.CurTime + rules.WarnTime, false));
         }
+        // The crew's cowards don't wait to see how it turns out: a stranger seen aboard is alarm enough, for as long
+        // as he is seen.
+        if (rules.Boarding != WFCrewSecurityResponse.Ignore
+            && (HasComp<ActorComponent>(visitor) || HasComp<HumanoidAppearanceComponent>(visitor)))
+            EntityManager.System<WFCrewShelterSystem>().Shelter(grid, crew.Group);
         if (_boarders.Add((uid, visitor)) && HasComp<WFRadioOperatorComponent>(uid))
             Respond(grid, crew.Group, visitor, rules.Boarding, docking: false);
     }

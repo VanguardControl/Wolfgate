@@ -166,16 +166,13 @@ public sealed class WFCrewSystem : EntitySystem
     }
 
     /// <summary>
-    /// Whether a crewman takes on whoever attacks his crew: guards and other on-sight crew, and the captain and
-    /// radio officer. Hands who fight only when attacked answer for themselves, the helm and the guns stay manned,
-    /// and those who never fight take shelter instead.
+    /// Whether a crewman takes on whoever attacks his crew or will not leave his ship: everyone but the cowards, who
+    /// take shelter instead, and the hands at the helm and the guns, which stay manned.
     /// </summary>
     public static bool IsFighter(WFCrewComponent crew)
     {
         return crew.Engagement != WFCrewEngagement.Never
-               && crew.Duty != WFCrewDuties.Pilot && crew.Duty != WFCrewDuties.Gunnery
-               && (crew.Engagement == WFCrewEngagement.OnSight || crew.Role == WFCrewRoles.Marine
-                   || crew.Role == WFCrewRoles.Captain || crew.Role == WFCrewRoles.RadioOperator);
+               && crew.Duty != WFCrewDuties.Pilot && crew.Duty != WFCrewDuties.Gunnery;
     }
 
     /// <summary>
