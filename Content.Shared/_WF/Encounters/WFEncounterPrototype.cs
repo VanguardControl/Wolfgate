@@ -273,6 +273,39 @@ public sealed partial class WFEncounterShip
     /// <summary>Tasks flown in order.</summary>
     [DataField]
     public List<WFEncounterObjective> Objectives = new();
+
+    /// <summary>Set, the hull arrives a hulk: no crew and no fuel, squatters aboard, and it can be claimed.</summary>
+    [DataField]
+    public WFEncounterDerelict? Derelict;
+}
+
+/// <summary>What lives in a hulk and what it takes to own it.</summary>
+[DataDefinition]
+public sealed partial class WFEncounterDerelict
+{
+    [DataField]
+    public int Dwellers = 6;
+
+    [DataField]
+    public List<EntProtoId> DwellerPool = new();
+
+    /// <summary>The squatters' chief, who leaves the claim to the ship when he dies.</summary>
+    [DataField]
+    public EntProtoId? King;
+
+    [DataField]
+    public EntProtoId Claim = "WFSalvageClaim";
+
+    /// <summary>Pieces of litter scattered over the decks.</summary>
+    [DataField]
+    public int Debris = 30;
+
+    [DataField]
+    public List<EntProtoId> DebrisPool = new();
+
+    /// <summary>The share of its worth the ship sells for once claimed.</summary>
+    [DataField]
+    public float Resale = 0.25f;
 }
 
 /// <summary>What a side pays its helpers when it wins.</summary>

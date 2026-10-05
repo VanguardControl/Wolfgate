@@ -133,6 +133,10 @@ public sealed partial class WFEncounterShipState
     /// <summary>While stranded: since when it has had thrust without a break.</summary>
     public TimeSpan? UnderwaySince;
 
+    /// <summary>Whether it is a crewless hulk, in the encounter for as long as it is there.</summary>
+    [DataField]
+    public bool Derelict;
+
     /// <summary>Whether it lies in wait, its IFF label hidden, until the encounter begins.</summary>
     [DataField]
     public bool Lurking;

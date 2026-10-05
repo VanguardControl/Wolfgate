@@ -294,6 +294,10 @@ public sealed partial class WFEncounterTest : InteractionTest
                 var crews = Server.System<WFCrewObjectiveSystem>().Snapshot();
                 foreach (var ship in comp.Ships.Values)
                 {
+                    // A hulk has squatters, not a crew.
+                    if (ship.Derelict)
+                        continue;
+
                     Assert.That(crews.Any(crew => crew.Group == ship.Group && crew.Alive > 0), Is.True, $"{id}: {ship.Group} has no crew");
                 }
             });

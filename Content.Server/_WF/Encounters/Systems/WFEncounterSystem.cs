@@ -577,6 +577,12 @@ public sealed partial class WFEncounterSystem : EntitySystem
             }
         }
 
+        if (ship.Derelict is { } derelict)
+        {
+            Wreck(state, derelict, vessel.ID);
+            return true;
+        }
+
         var mission = new WFCrewMission
         {
             Group = state.Group,
@@ -930,6 +936,10 @@ public sealed partial class WFEncounterSystem : EntitySystem
     /// </summary>
     public bool InFight(WFEncounterShipState ship)
     {
+        // A hulk has no crew to lose: it is there until somebody claims it or its time runs out.
+        if (ship.Derelict)
+            return !TerminatingOrDeleted(ship.Grid);
+
         return !TerminatingOrDeleted(ship.Grid) && (IsStranded(ship) || !_status.IsDisabled(ship.Grid))
             && HasLivingCrew(ship, anywhere: true)
             && (ship.NoPilotSince is not { } since || _timing.CurTime - since < NoPilotGrace);

@@ -52,6 +52,21 @@ public sealed partial class WFEncounterTest
     company: PDV
 
 - type: wfEncounter
+  id: WFTestStoryHulk
+  name: wf-encounter-name-hulk
+  start: Manual
+  ships:
+  - key: hulk
+    vessel: WFDredger
+    distress: false
+    derelict:
+      dwellers: 3
+      dwellerPool: [ WFMobDweller, WFMobDwellerHooded ]
+      king: WFMobDwellerKing
+      debris: 5
+      debrisPool: [ ShardGlass ]
+
+- type: wfEncounter
   id: WFTestStoryDock
   name: wf-encounter-name-convoy
   start: Manual
@@ -207,6 +222,76 @@ public sealed partial class WFEncounterTest
             Assert.That(alerts.GetHostileShips(rival.Grid, rival.Group), Does.Contain(patrol.Grid), "And is one to it in turn.");
             Server.System<WFEncounterSystem>().End(first);
             Server.System<WFEncounterSystem>().End(second);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>
+    /// A hulk has no crew and stays in its encounter all the same. Its chief leaves the ship's papers when he dies, a
+    /// claimed ship is worth a fraction of its parts, and once released it outlives the encounter.
+    /// </summary>
+    [Test]
+    public async Task DwellerHulkIsClaimedAndKept()
+    {
+        EntityUid encounter = default, hulk = default, king = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestStoryHulk");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(39000, 39000), MapData.MapId), out encounter), Is.True);
+            hulk = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["hulk"].Grid;
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.GetComponent<WFEncounterComponent>(encounter).Resolution, Is.Null, "A hulk with no crew is not a destroyed ship.");
+            var crew = SEntMan.EntityQueryEnumerator<Content.Server._WF.NpcCrew.Components.WFCrewComponent, TransformComponent>();
+            while (crew.MoveNext(out _, out _, out var xform))
+                Assert.That(xform.GridUid, Is.Not.EqualTo(hulk), "Nobody crews a hulk.");
+
+            var dwellers = 0;
+            var mobs = SEntMan.EntityQueryEnumerator<Content.Shared.NPC.Components.NpcFactionMemberComponent, TransformComponent>();
+            while (mobs.MoveNext(out var uid, out _, out var xform))
+            {
+                if (xform.GridUid != hulk)
+                    continue;
+                dwellers++;
+                if (SEntMan.HasComponent<Content.Server._WF.Encounters.Components.WFSalvageClaimDropComponent>(uid))
+                    king = uid;
+            }
+            Assert.That(dwellers, Is.EqualTo(4), "Three dwellers and their king.");
+            Assert.That(king, Is.Not.EqualTo(default(EntityUid)));
+            Server.System<Content.Shared.Mobs.Systems.MobStateSystem>().ChangeMobState(king, Content.Shared.Mobs.MobState.Dead);
+        });
+        await RunTicks(5);
+        await Server.WaitAssertion(() =>
+        {
+            var found = false;
+            var claims = SEntMan.EntityQueryEnumerator<Content.Server._WF.Encounters.Components.WFSalvageClaimComponent>();
+            while (claims.MoveNext(out var uid, out var claim))
+            {
+                if (claim.Ship != hulk)
+                    continue;
+                found = true;
+                Assert.That(Server.System<WFSalvageClaimSystem>().TryClaim((uid, claim), SEntMan.GetEntity(Player), out var reason), Is.False);
+                Assert.That(reason, Is.EqualTo("wf-salvage-claim-not-aboard"));
+            }
+            Assert.That(found, Is.True, "The king leaves the ship's papers.");
+
+            var pricing = Server.System<Content.Server.Cargo.Systems.PricingSystem>();
+            var worth = pricing.AppraiseGrid(hulk);
+            Assert.That(worth, Is.GreaterThan(0));
+            SEntMan.EnsureComponent<Content.Server._WF.Encounters.Components.WFSalvagedShipComponent>(hulk);
+            Assert.That(pricing.AppraiseGrid(hulk), Is.EqualTo(worth * 0.25).Within(1.0), "A claimed hulk sells for a quarter.");
+
+            Server.System<WFEncounterSystem>().Release(hulk);
+            Assert.That(SEntMan.HasComponent<WFEncounterGridComponent>(hulk), Is.False);
+            Assert.That(SEntMan.GetComponent<WFEncounterComponent>(encounter).Resolution, Is.EqualTo(WFEncounterResolution.Completed));
+        });
+        await RunTicks(60);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.EntityExists(hulk), Is.True, "A claimed ship is not cleaned up with its encounter.");
+            SEntMan.DeleteEntity(hulk);
         });
         await RunTicks(10);
     }
