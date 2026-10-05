@@ -1040,3 +1040,45 @@ Entries:
   id: 100078
   time: '2026-10-02T04:09:21.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/146
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: Fixed the cryotubes in CC's medical wing not having a gas pump
+    - type: Fix
+      message: The catwalk tiles in the morgue at CC should no longer flicker
+    - type: Fix
+      message: Replaced a firelock that started closed in the back of CC medical
+  id: 100079
+  time: '2026-10-04T02:42:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/152
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Species will now actually come equipped with organs.
+    - type: Tweak
+      message: Mannitol actually fixes brain damage now.
+    - type: Tweak
+      message: >-
+        Space is a lot less forgiving. No suit in vacuum and you're on the floor
+        in about 30 seconds, and a mask on its own only buys a few more. Running
+        out of air takes you down in a bit over a minute instead of three.
+    - type: Fix
+      message: Avali no longer gib from damage every other species just bleeds from.
+    - type: Fix
+      message: >-
+        Alt-clicking the autodoc no longer puts you inside it. Climb in is in
+        the right click menu, or drag yourself onto it.
+    - type: Fix
+      message: >-
+        Slime brains can be fixed now. Their brain is the core in the chest:
+        Heal Slime Core and Repair Slime Core on the torso, and the autodoc's
+        neuro disk does both. Mannitol works on it too.
+    - type: Fix
+      message: >-
+        Shadekin and other races that don't breathe heal oxygen damage on their
+        own like everyone else.
+    - type: Fix
+      message: Thaven can breathe. They were suffocating in normal air.
+  id: 100080
+  time: '2026-10-05T05:37:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/150

@@ -61,7 +61,8 @@ public abstract partial class ESSharedGunAttachmentsSystem : EntitySystem
         var containerId = args.Container.ID;
         if (!ent.Comp.Slots.Any(s => s.ContainerId.Equals(containerId)))
             return;
-        _wield.RefreshModifiers(ent.Owner); // WOLFGATE(Weapons): moved above the gun refresh, which reads the wield values
+        if (HasComp<GunWieldBonusComponent>(ent)) // WOLFGATE(Weapons): moved above the gun refresh, which reads the wield values
+            _wield.RefreshModifiers(ent.Owner);
         _gun.RefreshModifiers(ent.Owner);
     }
 
@@ -70,7 +71,8 @@ public abstract partial class ESSharedGunAttachmentsSystem : EntitySystem
         var containerId = args.Container.ID;
         if (!ent.Comp.Slots.Any(s => s.ContainerId.Equals(containerId)))
             return;
-        _wield.RefreshModifiers(ent.Owner); // WOLFGATE(Weapons): moved above the gun refresh, which reads the wield values
+        if (HasComp<GunWieldBonusComponent>(ent)) // WOLFGATE(Weapons): moved above the gun refresh, which reads the wield values
+            _wield.RefreshModifiers(ent.Owner);
         _gun.RefreshModifiers(ent.Owner);
     }
 

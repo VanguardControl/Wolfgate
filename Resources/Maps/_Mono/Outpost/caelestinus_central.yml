@@ -1,11 +1,11 @@
 meta:
   format: 7
   category: Map
-  engineVersion: 277.0.0
+  engineVersion: 277.2.1
   forkId: ""
   forkVersion: ""
-  time: 10/01/2026 08:09:03
-  entityCount: 10200
+  time: 10/03/2026 19:28:25
+  entityCount: 10202
 maps:
 - 10196
 grids:
@@ -168,7 +168,7 @@ entities:
           version: 7
         -1,2:
           ind: -1,2
-          tiles: CwAAAAAAAAsAAAAAAAAAAAAAAAAAAAAAAAAAABsAAAAAAgBFAAAAAAMAGwAAAAAAABsAAAAAAwALAAAAAAAAFgAAAAAAABYAAAAAAgAWAAAAAAMAFgAAAAAAABYAAAAAAwAWAAAAAAIARQAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAAAABABYAAAAAAQAWAAAAAAMAAAAAAAAAAAAAAAAAAAAWAAAAAAIACwAAAAAAAEUAAAAAAwAAAAAAAAAAGwAAAAACAEUAAAAAAAAbAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAARQAAAAAAABsAAAAAAQBFAAAAAAIARQAAAAACABsAAAAAAQBFAAAAAAMARQAAAAACAAAAAAAAAABFAAAAAAEAGwAAAAADABYAAAAAAQBFAAAAAAMAFgAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAAAACABsAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAABaAAAAAAIAWwAAAAABAFwAAAAAAQAAAAAAAAAAAAAAAAAAAEoAAAAAAAAWAAAAAAIAGwAAAAADABYAAAAAAQAAAAAAAAAAAQAAAAAAAAAAAAAAAABFAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWwAAAAABAFoAAAAAAQBaAAAAAAMAAAAAAAAAAAAAAAAAAABFAAAAAAAAFgAAAAADAAAAAAAAAAAWAAAAAAEAAAAAAAAAAAEAAAAAAAAWAAAAAAMARQAAAAADAAEAAAAAAAABAAAAAAAAAQAAAAAAAFwAAAAAAgBaAAAAAAMAXAAAAAABAAAAAAAAAAAAAAAAAAAAGwAAAAACABYAAAAAAABFAAAAAAAAFgAAAAADAAAAAAAAAAAAAAAAAAAARQAAAAACABsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAAAAAMARQAAAAABABYAAAAAAQALAAAAAAAAAAAAAAAAABsAAAAAAQBFAAAAAAIAAAAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAAAAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAAAAAAAAAAAAFgAAAAABAAAAAAAAAAAWAAAAAAAAAAAAAAAAAAAAAAAAAAAbAAAAAAAARQAAAAABAAAAAAAAAABZAAAAAAAADQAAAAAAAFkAAAAAAAAAAAAAAAAAWQAAAAAAAA0AAAAAAABZAAAAAAAAAAAAAAAAABYAAAAAAwAAAAAAAAAAFgAAAAABAAAAAAAAAAAAAAAAAAAACwAAAAAAAAsAAAAAAAAAAAAAAAAAFQAAAAAAAFkAAAAAAAANAAAAAAAAAAAAAAAAAA0AAAAAAABZAAAAAAAAFQAAAAAAAAAAAAAAAAAWAAAAAAEARQAAAAABABYAAAAAAAAEAAAAAAMAAAAAAAAAAFkAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAAALAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAAAAAAAAAAAAAbAAAAAAMAFgAAAAACAAAAAAAAAAAWAAAAAAIABAAAAAADAAAAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAAANAAAAAAAAAAAAAAAAABYAAAAAAwAAAAAAAAAAFgAAAAAAAAQAAAAAAAAAAAAAAAAAWQAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAAANAAAAAAAADQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYAAAAAAwAAAAAAAAAAAAAAAAAAAFkAAAAAAABZAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAAAAAAAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAAAAAAAAAAAAAAAAAAAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAABZAAAAAAAAWQAAAAAAAA0AAAAAAABZAAAAAAAADQAAAAAAAA0AAAAAAABZAAAAAAAACwAAAAAAABYAAAAAAgAAAAAAAAAAFgAAAAACAAEAAAAAAAAAAAAAAAAAWQAAAAAAAAAAAAAAAAANAAAAAAAAWQAAAAAAAA0AAAAAAAANAAAAAAAAWQAAAAAAAA0AAAAAAAANAAAAAAAAWQAAAAAAAAsAAAAAAAAAAAAAAAAAAAAAAAAAABYAAAAAAwABAAAAAAAAAAAAAAAAAA==
+          tiles: CwAAAAAAAAsAAAAAAAAAAAAAAAAAAAAAAAAAABsAAAAAAgBFAAAAAAMAGwAAAAAAABsAAAAAAwALAAAAAAAAFgAAAAAAABYAAAAAAgAWAAAAAAMAFgAAAAAAABYAAAAAAwAWAAAAAAIARQAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAAAABABYAAAAAAQAWAAAAAAMAAAAAAAAAAAAAAAAAAAAWAAAAAAIACwAAAAAAAEUAAAAAAwAAAAAAAAAAGwAAAAACAEUAAAAAAAAbAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAARQAAAAAAABsAAAAAAQBFAAAAAAIARQAAAAACABsAAAAAAQBFAAAAAAMARQAAAAACAAAAAAAAAABFAAAAAAEAGwAAAAADABYAAAAAAQBFAAAAAAMAFgAAAAAAAAAAAAAAAAAAAAAAAAAAFgAAAAACABsAAAAAAAABAAAAAAAAAQAAAAAAAAEAAAAAAABaAAAAAAIAWwAAAAABAFwAAAAAAQAAAAAAAAAAAAAAAAAAAEoAAAAAAAAWAAAAAAIAGwAAAAADABYAAAAAAQAAAAAAAAAAAQAAAAAAAAAAAAAAAABFAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWwAAAAABAFoAAAAAAQBaAAAAAAMAAAAAAAAAAAAAAAAAAABFAAAAAAAAFgAAAAADAAAAAAAAAAAWAAAAAAEAAAAAAAAAAAEAAAAAAAAWAAAAAAMARQAAAAADAAEAAAAAAAABAAAAAAAAAQAAAAAAAFwAAAAAAgBaAAAAAAMAXAAAAAABAAAAAAAAAAAAAAAAAAAAGwAAAAACABYAAAAAAABFAAAAAAAAFgAAAAADAAAAAAAAAAAAAAAAAAAARQAAAAACABsAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAAAAAMARQAAAAABABYAAAAAAQALAAAAAAAAAAAAAAAAABsAAAAAAQBFAAAAAAIAAAAAAAAAAA0AAAAAAAANAAAAAAAADQAAAAAAAAAAAAAAAAANAAAAAAAADQAAAAAAAA0AAAAAAAAAAAAAAAAAFgAAAAABAAAAAAAAAAAWAAAAAAAAAAAAAAAAAAAAAAAAAAAbAAAAAAAARQAAAAABAAAAAAAAAAANAAAAAAAADQAAAAAAAA0AAAAAAAAAAAAAAAAADQAAAAAAAA0AAAAAAAANAAAAAAAAAAAAAAAAABYAAAAAAwAAAAAAAAAAFgAAAAABAAAAAAAAAAAAAAAAAAAACwAAAAAAAAsAAAAAAAAAAAAAAAAADQAAAAAAAA0AAAAAAAANAAAAAAAAAAAAAAAAAA0AAAAAAAANAAAAAAAADQAAAAAAAAAAAAAAAAAWAAAAAAEARQAAAAABABYAAAAAAAAEAAAAAAMAAAAAAAAAAFkAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAAALAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACwAAAAAAAAAAAAAAAAAbAAAAAAMAFgAAAAACAAAAAAAAAAAWAAAAAAIABAAAAAADAAAAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAAANAAAAAAAAAAAAAAAAABYAAAAAAwAAAAAAAAAAFgAAAAAAAAQAAAAAAAAAAAAAAAAAWQAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAAANAAAAAAAADQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYAAAAAAwAAAAAAAAAAAAAAAAAAAFkAAAAAAABZAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAAAAAAAAAAAAAFkAAAAAAABZAAAAAAAAWQAAAAAAAFkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWAAAAAAAAAAAAAAAAAAAAAAAAAABZAAAAAAAAAAAAAAAAAAAAAAAAAABZAAAAAAAAWQAAAAAAAA0AAAAAAABZAAAAAAAADQAAAAAAAA0AAAAAAABZAAAAAAAACwAAAAAAABYAAAAAAgAAAAAAAAAAFgAAAAACAAEAAAAAAAAAAAAAAAAAWQAAAAAAAAAAAAAAAAANAAAAAAAAWQAAAAAAAA0AAAAAAAANAAAAAAAAWQAAAAAAAA0AAAAAAAANAAAAAAAAWQAAAAAAAAsAAAAAAAAAAAAAAAAAAAAAAAAAABYAAAAAAwABAAAAAAAAAAAAAAAAAA==
           version: 7
         0,-1:
           ind: 0,-1
@@ -325,10 +325,10 @@ entities:
     - type: ThermalSignature
     - type: SpreaderGrid
       spreadQueues:
-        Puddle: []
         MetalFoam: []
-        Kudzu: []
+        Puddle: []
         Smoke: []
+        Kudzu: []
     - type: Shuttle
       dampingModifier: 0.25
     - type: ImplicitRoof
@@ -600,10 +600,6 @@ entities:
           decals:
             7417: -8,44
             7418: -7,44
-            7421: -12,40
-            7422: -11,41
-            7423: -9,41
-            7424: -8,40
             7425: -22,44
             7426: -20,46
             7427: -18,46
@@ -611,6 +607,10 @@ entities:
             7429: -20,47
             7430: -20,49
             7431: -18,49
+            7575: -11,41
+            7576: -12,40
+            7577: -8,40
+            7578: -9,41
         - node:
             color: '#A4610696'
             id: BotGreyscale
@@ -709,12 +709,8 @@ entities:
             7229: -15,45
             7256: -7,48
             7302: -16,49
-        - node:
-            zIndex: 3
-            color: '#FFFFFFFF'
-            id: BrickTileDarkCornerNe
-          decals:
-            7337: -7,41
+            7557: -7,41
+            7573: -11,41
         - node:
             color: '#FFFFFFFF'
             id: BrickTileDarkCornerNw
@@ -758,12 +754,13 @@ entities:
             7279: -26,47
             7282: -23,48
             7301: -17,49
+            7558: -13,41
+            7572: -9,41
         - node:
             zIndex: 3
             color: '#FFFFFFFF'
             id: BrickTileDarkCornerNw
           decals:
-            7349: -13,41
             7378: -10,48
         - node:
             color: '#FFFFFFFF'
@@ -811,13 +808,8 @@ entities:
             6667: 23,13
             7237: -15,42
             7259: -7,45
-        - node:
-            zIndex: 3
-            color: '#FFFFFFFF'
-            id: BrickTileDarkCornerSe
-          decals:
-            7339: -7,39
-            7353: -11,39
+            7562: -11,39
+            7563: -7,39
         - node:
             color: '#FFFFFFFF'
             id: BrickTileDarkCornerSw
@@ -866,13 +858,8 @@ entities:
             7278: -26,46
             7320: -22,45
             7524: -13,46
-        - node:
-            zIndex: 3
-            color: '#FFFFFFFF'
-            id: BrickTileDarkCornerSw
-          decals:
-            7340: -9,39
-            7351: -13,39
+            7566: -13,39
+            7567: -9,39
         - node:
             color: '#FFFFFFFF'
             id: BrickTileDarkEndE
@@ -898,12 +885,6 @@ entities:
             7246: -8,43
             7500: -12,46
         - node:
-            zIndex: 3
-            color: '#FFFFFFFF'
-            id: BrickTileDarkEndE
-          decals:
-            7348: -12,41
-        - node:
             color: '#FFFFFFFF'
             id: BrickTileDarkEndN
           decals:
@@ -917,13 +898,6 @@ entities:
             6810: -60,-7
             7222: -21,49
             7531: -13,49
-        - node:
-            zIndex: 3
-            color: '#FFFFFFFF'
-            id: BrickTileDarkEndN
-          decals:
-            7336: -9,40
-            7347: -11,40
         - node:
             color: '#FFFFFFFF'
             id: BrickTileDarkEndS
@@ -969,12 +943,6 @@ entities:
             6123: -31,-34
             6124: -31,-36
             7414: -18,48
-        - node:
-            zIndex: 3
-            color: '#FFFFFFFF'
-            id: BrickTileDarkEndW
-          decals:
-            7335: -8,41
         - node:
             color: '#FFFFFFFF'
             id: BrickTileDarkInnerNe
@@ -1037,8 +1005,6 @@ entities:
           decals:
             7329: -15,44
             7331: -16,45
-            7345: -9,39
-            7358: -13,39
             7387: -9,43
         - node:
             color: '#FFFFFFFF'
@@ -1102,8 +1068,6 @@ entities:
             id: BrickTileDarkInnerNw
           decals:
             7333: -17,45
-            7344: -7,39
-            7357: -11,39
             7381: -10,44
         - node:
             color: '#FFFFFFFF'
@@ -1167,7 +1131,6 @@ entities:
             color: '#FFFFFFFF'
             id: BrickTileDarkInnerSe
           decals:
-            7356: -13,41
             7386: -9,45
         - node:
             color: '#FFFFFFFF'
@@ -1234,7 +1197,6 @@ entities:
           decals:
             7332: -17,45
             7334: -16,44
-            7346: -7,41
         - node:
             color: '#FFFFFFFF'
             id: BrickTileDarkLineE
@@ -1637,14 +1599,14 @@ entities:
             7449: -10,46
             7502: -13,47
             7536: -13,48
+            7561: -11,40
+            7574: -7,40
         - node:
             zIndex: 3
             color: '#FFFFFFFF'
             id: BrickTileDarkLineE
           decals:
             7330: -16,46
-            7338: -7,40
-            7355: -13,40
             7376: -28,46
             7377: -28,47
             7385: -9,44
@@ -2041,13 +2003,13 @@ entities:
             7313: -18,45
             7454: -9,45
             7455: -8,45
+            7570: -12,41
+            7571: -8,41
         - node:
             zIndex: 3
             color: '#FFFFFFFF'
             id: BrickTileDarkLineN
           decals:
-            7343: -8,39
-            7354: -12,39
             7380: -11,44
         - node:
             color: '#FFFFFFFF'
@@ -2420,13 +2382,13 @@ entities:
             7323: -23,46
             7456: -8,48
             7457: -9,48
+            7564: -12,39
+            7565: -8,39
         - node:
             zIndex: 3
             color: '#FFFFFFFF'
             id: BrickTileDarkLineS
           decals:
-            7341: -8,39
-            7352: -12,39
             7382: -11,43
             7383: -10,43
             7384: -9,43
@@ -2837,13 +2799,13 @@ entities:
             7447: -7,46
             7504: -13,47
             7535: -13,48
+            7568: -13,40
+            7569: -9,40
         - node:
             zIndex: 3
             color: '#FFFFFFFF'
             id: BrickTileDarkLineW
           decals:
-            7342: -7,40
-            7350: -13,40
             7374: -28,46
             7375: -28,47
             7379: -10,45
@@ -7401,7 +7363,7 @@ entities:
       parent: 1
     - type: DeviceList
       devices:
-      - 4260
+      - 3859
       - 4269
       - 5605
       - 5564
@@ -7528,7 +7490,7 @@ entities:
       - 4269
       - 4205
       - 4206
-      - 4260
+      - 3859
   - uid: 10
     components:
     - type: Transform
@@ -10441,56 +10403,56 @@ entities:
   - uid: 471
     components:
     - type: Transform
-      pos: -1.503236,14.426798
+      pos: -1.5,14.5
       parent: 1
 - proto: BiomeSourceFarReachesI
   entities:
   - uid: 472
     components:
     - type: Transform
-      pos: -1.5188706,14.504923
+      pos: -1.5,14.5
       parent: 1
 - proto: BiomeSourceFarReachesII
   entities:
   - uid: 473
     components:
     - type: Transform
-      pos: -1.4563382,14.489298
+      pos: -1.5,14.5
       parent: 1
 - proto: BiomeSourceFarReachesIII
   entities:
   - uid: 474
     components:
     - type: Transform
-      pos: -1.4719708,14.536173
+      pos: -1.5,14.5
       parent: 1
 - proto: BiomeSourceFarReachesIV
   entities:
   - uid: 475
     components:
     - type: Transform
-      pos: -1.503236,14.504923
+      pos: -1.5,14.5
       parent: 1
 - proto: BiomeSourceInnerRing
   entities:
   - uid: 476
     components:
     - type: Transform
-      pos: -1.4719708,14.489298
+      pos: -1.5,14.5
       parent: 1
 - proto: BiomeSourceMiddleRing
   entities:
   - uid: 477
     components:
     - type: Transform
-      pos: -1.4876034,14.458048
+      pos: -1.5,14.5
       parent: 1
 - proto: BiomeSourceOuterRing
   entities:
   - uid: 478
     components:
     - type: Transform
-      pos: -1.4127516,14.462505
+      pos: -1.5,14.5
       parent: 1
 - proto: BitcoinContribcoin
   entities:
@@ -23349,14 +23311,6 @@ entities:
     - type: Transform
       pos: -31.5,-20.5
       parent: 1
-- proto: CatwalkMono
-  entities:
-  - uid: 3007
-    components:
-    - type: Transform
-      rot: 3.141592653589793 rad
-      pos: -23.5,52.5
-      parent: 1
 - proto: Chair
   entities:
   - uid: 3009
@@ -25686,6 +25640,11 @@ entities:
       rot: -1.5707963267948966 rad
       pos: -20.5,51.5
       parent: 1
+  - uid: 3007
+    components:
+    - type: Transform
+      pos: -23.5,52.5
+      parent: 1
   - uid: 3008
     components:
     - type: Transform
@@ -27196,12 +27155,6 @@ entities:
     components:
     - type: Transform
       pos: -40.5,-25.5
-      parent: 1
-  - uid: 10147
-    components:
-    - type: Transform
-      rot: -1.5707963267948966 rad
-      pos: -23.5,52.5
       parent: 1
 - proto: DecalSpawnerBushesAC
   entities:
@@ -31166,6 +31119,15 @@ entities:
       rot: -1.5707963267948966 rad
       pos: -10.5,48.5
       parent: 1
+  - uid: 3859
+    components:
+    - type: Transform
+      pos: -14.5,38.5
+      parent: 1
+    - type: DeviceNetwork
+      deviceLists:
+      - 9
+      - 2
   - uid: 4257
     components:
     - type: Transform
@@ -31189,18 +31151,6 @@ entities:
       deviceLists:
       - 8030
       - 21
-  - uid: 4260
-    components:
-    - type: Transform
-      pos: -14.5,38.5
-      parent: 1
-    - type: Door
-      secondsUntilStateChange: -34250.99
-      state: Closing
-    - type: DeviceNetwork
-      deviceLists:
-      - 9
-      - 2
   - uid: 4261
     components:
     - type: Transform
@@ -31862,7 +31812,7 @@ entities:
       pos: -32.5,43.5
       parent: 1
     - type: AtmosPipeColor
-      color: '#990000FF'
+      color: '#0055CCFF'
 - proto: GasFilterOxygenOn
   entities:
   - uid: 4346
@@ -31872,7 +31822,7 @@ entities:
       pos: -32.5,41.5
       parent: 1
     - type: AtmosPipeColor
-      color: '#990000FF'
+      color: '#0055CCFF'
 - proto: GasFilterOxygenOnFlipped
   entities:
   - uid: 10169
@@ -31881,7 +31831,7 @@ entities:
       pos: -23.5,43.5
       parent: 1
     - type: AtmosPipeColor
-      color: '#990000FF'
+      color: '#947507FF'
 - proto: GasMinerNitrogenStationLarge
   entities:
   - uid: 4347
@@ -32518,25 +32468,14 @@ entities:
       parent: 1
     - type: AtmosPipeColor
       color: '#0055CCFF'
-  - uid: 10046
-    components:
-    - type: Transform
-      rot: 3.141592653589793 rad
-      pos: -20.5,45.5
-      parent: 1
-    - type: AtmosPipeColor
-      color: '#0055CCFF'
-  - uid: 10168
-    components:
-    - type: Transform
-      pos: -24.5,45.5
-      parent: 1
   - uid: 10173
     components:
     - type: Transform
       rot: -1.5707963267948966 rad
       pos: -23.5,42.5
       parent: 1
+    - type: AtmosPipeColor
+      color: '#947507FF'
 - proto: GasPipeBendAlt1
   entities:
   - uid: 1078
@@ -33100,6 +33039,8 @@ entities:
     - type: Transform
       pos: -24.5,43.5
       parent: 1
+    - type: AtmosPipeColor
+      color: '#947507FF'
 - proto: GasPipeFourwayAlt1
   entities:
   - uid: 4496
@@ -33266,14 +33207,6 @@ entities:
     - type: Transform
       rot: 1.5707963267948966 rad
       pos: -10.5,43.5
-      parent: 1
-    - type: AtmosPipeColor
-      color: '#0055CCFF'
-  - uid: 3859
-    components:
-    - type: Transform
-      rot: 3.141592653589793 rad
-      pos: -20.5,47.5
       parent: 1
     - type: AtmosPipeColor
       color: '#0055CCFF'
@@ -36807,6 +36740,30 @@ entities:
     - type: Transform
       rot: 1.5707963267948966 rad
       pos: -19.5,45.5
+      parent: 1
+    - type: AtmosPipeColor
+      color: '#0055CCFF'
+  - uid: 10147
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: -22.5,45.5
+      parent: 1
+    - type: AtmosPipeColor
+      color: '#0055CCFF'
+  - uid: 10201
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -20.5,47.5
+      parent: 1
+    - type: AtmosPipeColor
+      color: '#0055CCFF'
+  - uid: 10202
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: -21.5,45.5
       parent: 1
     - type: AtmosPipeColor
       color: '#0055CCFF'
@@ -40651,6 +40608,14 @@ entities:
       parent: 1
     - type: AtmosPipeColor
       color: '#0055CCFF'
+  - uid: 4260
+    components:
+    - type: Transform
+      rot: 3.141592653589793 rad
+      pos: -20.5,45.5
+      parent: 1
+    - type: AtmosPipeColor
+      color: '#0055CCFF'
   - uid: 4456
     components:
     - type: Transform
@@ -41017,18 +40982,29 @@ entities:
       parent: 1
     - type: AtmosPipeColor
       color: '#0055CCFF'
+  - uid: 10046
+    components:
+    - type: Transform
+      pos: -24.5,45.5
+      parent: 1
+    - type: AtmosPipeColor
+      color: '#947507FF'
   - uid: 10170
     components:
     - type: Transform
       rot: -1.5707963267948966 rad
       pos: -24.5,44.5
       parent: 1
+    - type: AtmosPipeColor
+      color: '#947507FF'
   - uid: 10172
     components:
     - type: Transform
       rot: 3.141592653589793 rad
       pos: -24.5,42.5
       parent: 1
+    - type: AtmosPipeColor
+      color: '#947507FF'
 - proto: GasPipeTJunctionAlt1
   entities:
   - uid: 966
@@ -41525,6 +41501,16 @@ entities:
       pipeLayer: Secondary
     - type: AtmosPipeColor
       color: '#990000FF'
+- proto: GasPressurePumpOn
+  entities:
+  - uid: 10168
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -23.5,45.5
+      parent: 1
+    - type: AtmosPipeColor
+      color: '#947507FF'
 - proto: GasPressurePumpOnMax
   entities:
   - uid: 5550
@@ -41582,6 +41568,8 @@ entities:
       rot: 1.5707963267948966 rad
       pos: -25.5,45.5
       parent: 1
+    - type: AtmosPipeColor
+      color: '#947507FF'
 - proto: GasThermoMachineFreezerEnabled
   entities:
   - uid: 5556
@@ -69407,8 +69395,7 @@ entities:
   - uid: 10194
     components:
     - type: Transform
-      rot: -1.5707963267948966 rad
-      pos: -6.519154,44.326614
+      pos: -6.539009,44.446827
       parent: 1
 - proto: WFTraderAstro
   entities:
@@ -69474,13 +69461,13 @@ entities:
             required: False
             points: 1
         markings:
-          Hair:
-          - markingId: HumanHairBalding
+          FacialHair:
+          - markingId: HumanFacialHairFullbeard
             visible: True
             markingColor:
             - '#9C9990FF'
-          FacialHair:
-          - markingId: HumanFacialHairFullbeard
+          Hair:
+          - markingId: HumanHairBalding
             visible: True
             markingColor:
             - '#9C9990FF'
@@ -69639,13 +69626,13 @@ entities:
             required: False
             points: 1
         markings:
-          Hair:
-          - markingId: HumanHairCombover
+          FacialHair:
+          - markingId: HumanFacialHairMoustache
             visible: True
             markingColor:
             - '#2E2420FF'
-          FacialHair:
-          - markingId: HumanFacialHairMoustache
+          Hair:
+          - markingId: HumanHairCombover
             visible: True
             markingColor:
             - '#2E2420FF'
@@ -70605,13 +70592,13 @@ entities:
             required: False
             points: 1
         markings:
-          Hair:
-          - markingId: HumanHairPompadour
+          FacialHair:
+          - markingId: HumanFacialHairMoustache
             visible: True
             markingColor:
             - '#171310FF'
-          FacialHair:
-          - markingId: HumanFacialHairMoustache
+          Hair:
+          - markingId: HumanHairPompadour
             visible: True
             markingColor:
             - '#171310FF'
@@ -70770,13 +70757,13 @@ entities:
             required: False
             points: 1
         markings:
-          Hair:
-          - markingId: HumanHairCombover
+          FacialHair:
+          - markingId: HumanFacialHairFullbeard
             visible: True
             markingColor:
             - '#3B3128FF'
-          FacialHair:
-          - markingId: HumanFacialHairFullbeard
+          Hair:
+          - markingId: HumanHairCombover
             visible: True
             markingColor:
             - '#3B3128FF'
