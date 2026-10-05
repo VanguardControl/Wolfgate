@@ -68,6 +68,56 @@ public sealed class WolfmedPlaytestThreeSamTest : WolfmedGameTest
 ";
 
     /// <summary>
+    /// "Alt+clicking shouldn't put you into the autodoc." Climb in was the pod's first alternative verb, so alt-click
+    /// on an empty pod put the medic inside it. It is an ordinary verb now: alt-click takes the blood pack out of its
+    /// slot and leaves the medic where they stand, and the menu still offers the way in.
+    /// </summary>
+    [Test]
+    public async Task AltClickDoesNotClimbInTest()
+    {
+        var map = await CreateTestMap();
+        Entity<AutodocComponent> pod = default;
+        EntityUid medic = default, pack = default;
+
+        await Server.WaitAssertion(() =>
+        {
+            Floor(map);
+            pod = Pod(new EntityCoordinates(map.Grid, 0.5f, 0.5f));
+            medic = SEntMan.SpawnEntity("MobHuman", new EntityCoordinates(map.Grid, 0.5f, 1.5f));
+            pack = SEntMan.SpawnEntity("Bloodpack", new EntityCoordinates(map.Grid, 0.5f, 1.5f));
+            Assert.That(SEntMan.System<ItemSlotsSystem>().TryInsert(pod, "autodoc_blood", pack, medic), Is.True,
+                "the pod would not take the blood pack.");
+        });
+        await Pair.RunTicksSync(5);
+
+        await Server.WaitAssertion(() =>
+        {
+            var autodoc = SEntMan.System<AutodocSystem>();
+            var verbs = SEntMan.System<SharedVerbSystem>();
+            var enter = Loc.GetString("wolfmed-autodoc-verb-enter");
+            Assert.Multiple(() =>
+            {
+                Assert.That(verbs.GetLocalVerbs(pod, medic, typeof(AlternativeVerb)).Any(verb => verb.Text == enter),
+                    Is.False, "Climb in is still what alt-click does.");
+                Assert.That(verbs.GetLocalVerbs(pod, medic, typeof(Verb)).Any(verb => verb.Text == enter), Is.True,
+                    "the menu no longer offers the way in.");
+            });
+
+            SEntMan.System<Content.Shared.Interaction.SharedInteractionSystem>().AltInteract(medic, pod);
+            Assert.Multiple(() =>
+            {
+                Assert.That(autodoc.GetOccupant(pod), Is.Null, "alt-click put the medic in the pod.");
+                Assert.That(SEntMan.GetComponent<TransformComponent>(pack).ParentUid, Is.Not.EqualTo(pod.Owner),
+                    "alt-click did not take the blood pack out.");
+            });
+
+            // The menu's Climb in still works.
+            verbs.GetLocalVerbs(pod, medic, typeof(Verb)).First(verb => verb.Text == enter).Act!.Invoke();
+            Assert.That(autodoc.GetOccupant(pod), Is.EqualTo(medic), "Climb in from the menu did nothing.");
+        });
+    }
+
+    /// <summary>
     /// "You can put two people into the pod if one is left on top of it." A is ejected, B goes in, and A tries the
     /// verb and a drag-drop. The pod holds exactly one, its panel shows B, and A is off the pod on the floor beside
     /// it, not lying on its tile under the lid where it looks like a second occupant.
@@ -125,7 +175,7 @@ public sealed class WolfmedPlaytestThreeSamTest : WolfmedGameTest
         await Server.WaitAssertion(() =>
         {
             var autodoc = SEntMan.System<AutodocSystem>();
-            var verbs = SEntMan.System<SharedVerbSystem>().GetLocalVerbs(pod, a, typeof(AlternativeVerb));
+            var verbs = SEntMan.System<SharedVerbSystem>().GetLocalVerbs(pod, a, typeof(Verb));
             var enter = verbs.FirstOrDefault(verb => verb.Text == Loc.GetString("wolfmed-autodoc-verb-enter"));
             enter?.Act?.Invoke();
             DragDrop(pod, a, a);
