@@ -123,7 +123,7 @@
     ears: WFCrewHeadset
 
 # An independent freighter's crew: every kind of spacer in working clothes. Hands fight only whoever attacks them; the officers defend
-# themselves, and one of them may have the ship's only gun. Half the hands are cowards who run for the bridge instead.
+# themselves, and one of them may have the ship's only gun. One hand in five is a coward who runs for the bridge instead.
 - type: wfCrewProfile
   id: WFCrewProfileHauler
   bodies:
@@ -144,7 +144,7 @@
   engagement:
     WFCrewDeckhand: WhenAttacked
   cowards:
-    WFCrewDeckhand: 0.5
+    WFCrewDeckhand: 0.2
   loadouts:
     WFCrewDeckhand:
     - WFCrewHaulerHandCargo

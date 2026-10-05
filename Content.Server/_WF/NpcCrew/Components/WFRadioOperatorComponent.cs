@@ -66,6 +66,9 @@ public sealed partial class WFRadioOperatorComponent : Component
     [ViewVariables]
     public HashSet<EntityUid> DownReported = new();
 
+    /// <summary>Visitors already warned over the radio, and until when: each is told once, not at every turn.</summary>
+    public Dictionary<EntityUid, TimeSpan> Warned = new();
+
     /// <summary>When each line was last said.</summary>
     [ViewVariables]
     public Dictionary<WFRadioLine, TimeSpan> LastSent = new();

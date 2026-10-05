@@ -24,10 +24,10 @@ public static class WFCrewSkills
     {
         return skill switch
         {
-            WFCrewSkill.Green => new Profile(18f, 1.4f, 30f, 0.3f, 0.7f, 0.4f, false, 3f, 0.3f),
-            WFCrewSkill.Regular => new Profile(9f, 0.9f, 14f, 0.7f, 0.9f, 0.75f, true, 2.4f, 0.4f),
-            WFCrewSkill.Elite => new Profile(0f, 0.25f, 0f, 1f, 1.1f, 1.25f, true, 1.3f, 0.75f),
-            _ => new Profile(4f, 0.5f, 5f, 1f, 1f, 1f, true, 1.8f, 0.55f),
+            WFCrewSkill.Green => new Profile(18f, 1.4f, 30f, 0.3f, 0.7f, 0.4f, false, 2.6f, 0.35f),
+            WFCrewSkill.Regular => new Profile(9f, 0.9f, 14f, 0.7f, 0.9f, 0.75f, true, 2.1f, 0.46f),
+            WFCrewSkill.Elite => new Profile(0f, 0.25f, 0f, 1f, 1.1f, 1.25f, true, 1.13f, 0.86f),
+            _ => new Profile(4f, 0.5f, 5f, 1f, 1f, 1f, true, 1.55f, 0.63f),
         };
     }
 }

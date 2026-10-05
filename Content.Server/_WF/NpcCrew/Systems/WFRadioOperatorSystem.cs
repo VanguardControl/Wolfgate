@@ -355,12 +355,19 @@ public sealed class WFRadioOperatorSystem : EntitySystem
                 && !EntityManager.System<WFCrewWeaponSystem>().CanSee(op, args.Visitor)
                 && !EntityManager.System<WFCrewCommsSystem>().Knows(op, args.Visitor))
                 continue;
-            TrySend(op, args.Docking ? WFRadioLine.DockWarning : WFRadioLine.BoardWarning,
-                ("visitor", NameOrUnknown(args.Visitor)));
+            // One warning a visitor: the crew turning on him later is not said again on the air.
+            var warned = op.Comp.Warned;
+            if ((!warned.TryGetValue(args.Visitor, out var until) || _timing.CurTime >= until)
+                && TrySend(op, args.Docking ? WFRadioLine.DockWarning : WFRadioLine.BoardWarning,
+                    ("visitor", NameOrUnknown(args.Visitor))))
+                warned[args.Visitor] = _timing.CurTime + WarningRepeat;
             if (args.Response == WFCrewSecurityResponse.Hostile)
                 HostileAct(op, args.Visitor);
         }
     }
+
+    /// <summary>How long before the same visitor is warned over the radio again.</summary>
+    private static readonly TimeSpan WarningRepeat = TimeSpan.FromMinutes(5);
 
     /// <summary>Reports leaving a grid once its last port lets go.</summary>
     private void GridUndocked(EntityUid grid, EntityUid other)
