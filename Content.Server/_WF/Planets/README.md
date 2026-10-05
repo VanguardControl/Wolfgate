@@ -22,7 +22,10 @@ crashes), `WFOrbitDecaySystem`, `WFGravityWellSystem`, `WFPlanetWeatherSystem`, 
 atmosphere that `AtmosphereSystem.WFTerrain` keeps sparse: tiles the layer's biome lays (and what digging turns them
 into) are bare ground, treated like tiles off the grid and never tracked until something is built beside them, so
 loading terrain costs atmos nothing; `WFTerrainOpenTilesEvent` lets a module name more ground.
-Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`); ecology and
+`BiomeSystem.WFUnload` unloads planet terrain nobody is near, in place of upstream's unloader, which let go of
+almost none of it: untouched biome entities go with their chunk, and the ground under a hull, beside a build or
+loaded by hand stays. Ground that is only unloaded still holds up whatever was left on it.
+Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`); ecology and
 landing notes and the playtest checklist are in `Docs/_WF/Planets`. `WFBiomeNoiseCacheSystem` keeps one seeded copy
 of each biome layer's noise for `SharedBiomeSystem.GetNoise`, which copied it for every tile planets and caverns
 generate or sample.
@@ -56,7 +59,9 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/Atmosphere/WFTerrainAtmosphereComponent.cs`](Atmosphere/WFTerrainAtmosphereComponent.cs)
 - [`Content.Server/_WF/Planets/Atmosphere/WFTerrainAtmosphereSystem.cs`](Atmosphere/WFTerrainAtmosphereSystem.cs)
 - [`Content.Server/_WF/Planets/Atmosphere/WFTerrainOpenTilesEvent.cs`](Atmosphere/WFTerrainOpenTilesEvent.cs)
+- [`Content.Server/_WF/Planets/BiomeSystem.WFUnload.cs`](BiomeSystem.WFUnload.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.Wolfgate.cs`](BiomeSystem.Wolfgate.cs)
+- [`Content.Server/_WF/Planets/CEZLevelsSystem.WFTerrain.cs`](CEZLevelsSystem.WFTerrain.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.Wolfgate.cs`](CEZLevelsSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/Commands/WFPlanetCommand.cs`](Commands/WFPlanetCommand.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFFlight.cs`](Flight/CEZLevelsSystem.WFFlight.cs)
@@ -96,6 +101,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/Jetpack/WFAtmosphericJetpackFuelSystem.cs`](Jetpack/WFAtmosphericJetpackFuelSystem.cs)
 - [`Content.Server/_WF/Planets/ShuttleSystem.WFOrbit.cs`](ShuttleSystem.WFOrbit.cs)
 - [`Content.Server/_WF/Planets/StarSystemMapSystem.Wolfgate.cs`](StarSystemMapSystem.Wolfgate.cs)
+- [`Content.Server/_WF/Planets/WFBiomeGrownComponent.cs`](WFBiomeGrownComponent.cs)
 - [`Content.Server/_WF/Planets/WFGravityWellSystem.cs`](WFGravityWellSystem.cs)
 - [`Content.Server/_WF/Planets/WFGridAudienceSystem.cs`](WFGridAudienceSystem.cs)
 - [`Content.Server/_WF/Planets/WFOrbitDecayComponent.cs`](WFOrbitDecayComponent.cs)
@@ -124,6 +130,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 ### Shared
 
 - [`Content.Shared/_WF/Planets/Administration/PlanetControlEvents.cs`](../../../Content.Shared/_WF/Planets/Administration/PlanetControlEvents.cs)
+- [`Content.Shared/_WF/Planets/CESharedZLevelsSystem.Terrain.cs`](../../../Content.Shared/_WF/Planets/CESharedZLevelsSystem.Terrain.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFApcRepairDoAfterEvent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFApcRepairDoAfterEvent.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFEnterAtmosphereMessage.cs`](../../../Content.Shared/_WF/Planets/Flight/WFEnterAtmosphereMessage.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFLandingThrusterComponent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLandingThrusterComponent.cs)
@@ -135,6 +142,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Shared/_WF/Planets/Parachute/WFParachuteSystem.cs`](../../../Content.Shared/_WF/Planets/Parachute/WFParachuteSystem.cs)
 - [`Content.Shared/_WF/Planets/SharedBiomeSystem.Wolfgate.cs`](../../../Content.Shared/_WF/Planets/SharedBiomeSystem.Wolfgate.cs)
 - [`Content.Shared/_WF/Planets/SharedShuttleSystem.Wolfgate.cs`](../../../Content.Shared/_WF/Planets/SharedShuttleSystem.Wolfgate.cs)
+- [`Content.Shared/_WF/Planets/WFBiomeKeepComponent.cs`](../../../Content.Shared/_WF/Planets/WFBiomeKeepComponent.cs)
 - [`Content.Shared/_WF/Planets/WFBiomeNoiseCacheSystem.cs`](../../../Content.Shared/_WF/Planets/WFBiomeNoiseCacheSystem.cs)
 - [`Content.Shared/_WF/Planets/WFConsoleOrbitTargetComponent.cs`](../../../Content.Shared/_WF/Planets/WFConsoleOrbitTargetComponent.cs)
 - [`Content.Shared/_WF/Planets/WFDetachedTerrainComponent.cs`](../../../Content.Shared/_WF/Planets/WFDetachedTerrainComponent.cs)
@@ -211,6 +219,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/TerrainAtmosphereTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainAtmosphereTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/TerrainUnloadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainUnloadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/ThrustAmbienceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/ThrustAmbienceTest.cs)
 
 ### Prototypes
@@ -412,6 +421,10 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/Movement/Systems/JetpackSystem.cs`](../../Movement/Systems/JetpackSystem.cs)
   - an atmospheric pack burns welding fuel from a solution, not gas from a tank.
   - a wearer carried below orbit on a hull never changes parent, so the pack is cut here.
+- [`Content.Server/Parallax/BiomeSystem.cs`](../../Parallax/BiomeSystem.cs)
+  - a chunk's own entities need no bookkeeping as its unload deletes them
+  - planet layers unload on their own schedule, see BiomeSystem.WFUnload.cs
+  - a planet layer is left to its own unloader
 - [`Content.Server/Physics/Controllers/MoverController.cs`](../../Physics/Controllers/MoverController.cs): reserve thrust for planetary lift.
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs`](../../Shuttles/Systems/ShuttleSystem.FasterThanLight.cs)
   - the docking branch never calls TrySetupFTL, so it asks the same gate.
@@ -422,6 +435,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - atmospheric efficiency and continuous power demand.
   - severed engines retain their last firing command while powered.
   - preserve upgraded rating across atmosphere transitions.
+- [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs): planet terrain that isn't loaded is still ground
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs): z-motion carried off the z-network is cleared, not kept for the next planet.
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs): retain the contacted obstacle for crash ploughing.
 - [`Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs`](../../../Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs): a throw only has an arc where there are levels to arc through.

@@ -29,9 +29,14 @@ public sealed partial class BiomeSystem
         return biome.Comp.ModifiedTiles.TryGetValue(chunkOrigin, out var modified) && modified.Contains(index);
     }
 
-    /// <summary>Loads one biome chunk by hand; claims LoadedChunks first as LoadChunk throws on a repeat.</summary>
+    /// <summary>
+    /// Loads one biome chunk by hand and holds it: the planet unloader leaves it until <see cref="WfUnloadChunk"/>.
+    /// Claims LoadedChunks first, as LoadChunk throws on a repeat.
+    /// </summary>
     public bool WfLoadChunk(Entity<BiomeComponent, MapGridComponent> biome, Vector2i chunkOrigin)
     {
+        _wfLayers.GetOrNew(biome.Owner).Held.Add(chunkOrigin);
+
         if (!biome.Comp1.LoadedChunks.Add(chunkOrigin))
             return false;
 
@@ -39,11 +44,24 @@ public sealed partial class BiomeSystem
         return true;
     }
 
-    /// <summary>Unloads one biome chunk by hand, emptying every unpinned tile and its decals.</summary>
+    /// <summary>
+    /// Unloads one biome chunk by hand, emptying every unpinned tile and its decals, as the loader would: a planet
+    /// layer's chunk goes by the planet unloader's rules.
+    /// </summary>
     public bool WfUnloadChunk(Entity<BiomeComponent, MapGridComponent> biome, Vector2i chunkOrigin)
     {
+        if (_wfLayers.TryGetValue(biome.Owner, out var layer))
+            layer.Held.Remove(chunkOrigin);
+
         if (!biome.Comp1.LoadedChunks.Contains(chunkOrigin))
             return false;
+
+        if (HasComp<Content.Shared._WF.Planets.WFPlanetLayerComponent>(biome.Owner)
+            && _configManager.GetCVar(Content.Shared._WF.CCVar.PlanetCVars.TerrainUnload))
+        {
+            WfUnloadChunkPristine(biome.Comp1, biome.Owner, biome.Comp2, chunkOrigin);
+            return true;
+        }
 
         _wfUnloadBuffer.Clear();
         UnloadChunk(biome.Comp1, biome.Owner, biome.Comp2, chunkOrigin, biome.Comp1.Seed, _wfUnloadBuffer);

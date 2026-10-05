@@ -15,7 +15,7 @@ using static Content.IntegrationTests.Tests._WF.Caverns.CavernFixture;
 
 namespace Content.IntegrationTests.Tests._WF.Caverns;
 
-/// <summary>Surface wildlife dropped into a cavern by an unloaded chunk is removed; wildlife that fell through a hole stays.</summary>
+/// <summary>Ground that unloads under an animal still holds it up; wildlife that falls through a hole into the cavern stays.</summary>
 [TestFixture]
 [TestOf(typeof(WFCavernSystem))]
 public sealed class CavernWildlifeTest
@@ -30,9 +30,9 @@ public sealed class CavernWildlifeTest
     private static readonly Vector2i From = Spot - new Vector2i(ChunkSize, ChunkSize);
     private static readonly Vector2i To = Spot + new Vector2i(ChunkSize, ChunkSize);
 
-    /// <summary>An awake animal whose ground chunk unloads falls into the cavern and is deleted; a mob that isn't wildlife stays.</summary>
+    /// <summary>An awake mob whose ground chunk unloads stays standing on it, wildlife or not: unloaded ground is still ground.</summary>
     [Test]
-    public async Task WildlifeOverUnloadedGroundIsRemoved()
+    public async Task MobsOverUnloadedGroundStayOnIt()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
@@ -63,12 +63,22 @@ public sealed class CavernWildlifeTest
 
         await server.WaitAssertion(() =>
         {
+            var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
+
             using (Assert.EnterMultipleScope())
             {
-                Assert.That(entMan.GetComponent<TransformComponent>(control).MapUid, Is.EqualTo(world.Cavern),
-                    "Precondition: a mob over the unloaded chunk did not fall into the cavern.");
-                Assert.That(entMan.Deleted(animal) || entMan.IsQueuedForDeletion(animal), Is.True,
-                    $"Wildlife that fell into the cavern over unloaded ground lingers on {entMan.ToPrettyString(entMan.GetComponentOrNull<TransformComponent>(animal)?.MapUid)}.");
+                Assert.That(server.System<SharedMapSystem>().GetTileRef(world.Ground, grid, Spot).Tile.IsEmpty, Is.True,
+                    "Precondition: the ground under the animal did not unload.");
+
+                foreach (var mob in new[] { animal, control })
+                {
+                    Assert.That(entMan.Deleted(mob) || entMan.IsQueuedForDeletion(mob), Is.False,
+                        "A mob over unloaded ground was deleted.");
+                    Assert.That(entMan.GetComponent<TransformComponent>(mob).MapUid, Is.EqualTo(world.Ground),
+                        "A mob over unloaded ground fell through it.");
+                    Assert.That(entMan.GetComponent<CEZPhysicsComponent>(mob).LocalPosition, Is.EqualTo(0f).Within(0.01f),
+                        "A mob over unloaded ground is not standing on it.");
+                }
             }
         });
 
@@ -182,8 +192,13 @@ public sealed class CavernWildlifeTest
         {
             mob = entMan.SpawnEntity(MobProto, new EntityCoordinates(world.Ground, new Vector2(tile.X + 0.5f, tile.Y + 0.5f)));
 
-            if (wildlife)
-                entMan.EnsureComponent<WFPlanetWildlifeComponent>(mob).Ground = world.Ground;
+            if (!wildlife)
+                return;
+
+            // Seen just now, as the fauna spawner leaves it, so it isn't retired for want of anyone near.
+            var comp = entMan.EnsureComponent<WFPlanetWildlifeComponent>(mob);
+            comp.Ground = world.Ground;
+            comp.LastNearby = server.Timing.CurTime;
         });
 
         await server.WaitRunTicks(1);

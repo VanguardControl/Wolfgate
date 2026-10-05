@@ -28,6 +28,27 @@ public sealed partial class AtmosphereSystem
         }
     }
 
+    /// <summary>
+    /// Whether any tile in a tile box of a planet layer, corners included, is built on: one the layer's atmosphere
+    /// simulates rather than leaves to the planet's air.
+    /// </summary>
+    public bool WfHasBuiltTile(EntityUid grid, Vector2i from, Vector2i to)
+    {
+        if (!WfIsTerrain(grid) || !_atmosQuery.TryComp(grid, out var atmos))
+            return false;
+
+        var tiles = atmos.Tiles;
+
+        for (var x = from.X; x <= to.X; x++)
+        for (var y = from.Y; y <= to.Y; y++)
+        {
+            if (tiles.TryGetValue(new Vector2i(x, y), out var tile) && !tile.NoGridTile)
+                return true;
+        }
+
+        return false;
+    }
+
     /// <summary>Whether the grid is a planet layer's ground.</summary>
     private bool WfIsTerrain(EntityUid grid)
     {

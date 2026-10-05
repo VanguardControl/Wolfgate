@@ -59,7 +59,8 @@ Checked in code on this branch. Line numbers are approximate.
    - It is not a ~300 Blunt death, as two candidate designs claimed: the impact from about two levels is ~28 Blunt.
 4. **Only active bodies are simulated** (`CESharedZLevelsSystem.Activation.cs`). A body sleeps after 2 s at rest.
    `OnTileChanged` (`Movement.cs:106`) recaches ground height without waking the body. A sleeping item over a tile that
-   was emptied by an unload does not fall. An awake one, such as a wandering animal, does.
+   was emptied by an unload does not fall. An awake one, such as a wandering animal, once did; planet ground that
+   is only unloaded is now solid to z-physics (item 7, `WfUnloadedGround`), so it stands where it was.
 5. **Fall damage** (`Content.Shared/_CE/ZLevels/Damage/CEZLevelDamageSystem.cs:56-128`):
    - A one-level fall hits at about 4.3 m/s. Damage is `(int)(v² × 0.75 × landing tile FallDamageMultiplier)`, which
      is 13 Blunt on a ×1 tile.
@@ -76,12 +77,25 @@ Checked in code on this branch. Line numbers are approximate.
 7. **Chunk loading** (`Content.Server/Parallax/BiomeSystem*.cs`):
    - Chunks load around attached non-ghost players and every entity in their `ViewSubscriptions` (`PlayerTracker.cs`).
    - The load area is `ceil(net.pvs_range / 8) × 8` = ±32 tiles, chunk-aligned, so up to about 40 tiles out.
-   - One chunk per biome unloads every 10 s.
+   - One chunk per biome unloads every 10 s. That is upstream's unloader, which planet layers no longer use: they
+     have their own (`BiomeSystem.WFUnload.cs`, `wf.planet_terrain_unload`). A chunk outside every kept area for
+     three minutes is unloaded, a few milliseconds' worth a pass. Kept: two chunks round every loaded one, what is
+     loaded round a ghost (which loads nothing), the ground under and one chunk round every hull, a chunk loaded by
+     hand (`WfLoadChunk`), and a chunk with a built tile in it or against it. A biome entity goes with its chunk
+     when nothing has touched it since it spawned, not only when it still equals its prototype, which a rock wall
+     never does; one that was touched, shares its tile with something anchored or stands on a pinned tile stays,
+     pins its tile and is tagged `WFBiomeGrown` so it still reads as the biome's. A tile with a decal that is not
+     the biome's, such as a crayon mark, is pinned too. Entities the biome does not track never unload: ore and other
+     spawner results, and anything with children such as water.
+   - An empty tile that is neither pinned nor on a loaded chunk is solid ground to z-physics (`WfUnloadedGround`),
+     so nothing left on ground that unloads falls into the cavern, and no mouth is claimed under a mob.
    - `UnloadTiles` keeps only modified tiles and tiles holding an entity anchored to *that grid*. Ground under a
      parked hull therefore empties (`ChunkLoader.cs:~245`), except where a biome entity the hull touched still stands:
      it is no longer default, so `UnloadEntities` keeps it and pins its tile, and that one tile keeps the hull
      supported (`HasGroundUnderFootprint`).
-   - `LoadedChunks.Remove` runs after `UnloadTiles` has emptied the tiles (`ChunkLoader.cs:~176-190`).
+   - `LoadedChunks.Remove` runs after `UnloadTiles` has emptied the tiles (`ChunkLoader.cs:~176-190`). The planet
+     unloader removes the chunk first: z-physics recaches a body's ground as each tile empties, and a tile emptied
+     on a loaded chunk reads as a hole.
    - Modified (pinned) tiles skip tile, entity and decal generation on load.
    - `ReserveTiles` works on unloaded areas (`PlanetSetup.cs:76`).
    - Chunk loads raise `TileChangedEvent`.
@@ -118,7 +132,7 @@ Checked in code on this branch. Line numbers are approximate.
     - Grid z-physics can hop a hull a level through `TryMoveGrid` (`Transit.cs:102-113`); grids are active z-bodies.
     - Pilots descend at `PilotControl.cs:217`.
     - Today every one of these fails at the ground, because nothing exists below it. With a cavern, a parked hull
-      whose ground chunk unloads would sink into it.
+      whose ground chunk unloads would sink into it. (The planet unloader now keeps the ground under a hull.)
 12. **Orbital falls.** `WFOrbitalMobFallSystem.IsSurfaceImpact` only accepts `MapUid == Ground`, so an orbital faller who
     drops through a mouth skips the orbital rule (one arm and one leg severed, left critical) and lands as an ordinary
     fall. Orbit is depth 4 (three air layers), so the fall is five levels and hits at about 10 m/s, far below the
@@ -436,7 +450,8 @@ is not a mouth: F2c dropped the unused `Hole` kind.
     5. ask `WFCavernMouthSystem` to claim the gate (F2).
   - F1: `(WFPlanetWildlifeComponent, CEZLevelFallMapEvent)` is a free pair. Surface wildlife that falls into a cavern
     over an *unloaded* ground chunk is deleted, so it never leaks against the fauna caps as a `Protected` resident of
-    the void (2.1 item 4). The handler reads the ground tile above the landing position: it is deleted only when that
+    the void (2.1 item 4). Unloaded ground is solid now (2.1 item 7), so this only catches what was already
+    falling. The handler reads the ground tile above the landing position: it is deleted only when that
     tile is empty, not pinned (`WfIsPinned`) and its chunk is not loaded (`WfIsChunkLoaded`). Since F2c the hole queue
     pins a hole dug or blown in a loaded chunk within a tick; before that, the loaded check kept its fallers.
     A mob with a mind is never deleted. The event is raised inside the z-physics pass, so the delete is a `QueueDel`.
@@ -770,8 +785,8 @@ Both queues are processed in `Update`, every tick, `Closed` first.
 
 - **`Opened`**: every queued tile is checked each tick, as the checks are cheap. A tile is dropped when it has a shade
   already (a mouth's own hole: `Stamp` registers its shades as it cuts it), when it is no longer empty, or when it is
-  neither on a loaded chunk nor pinned. `UnloadTiles` empties only natural tiles, never pins them, and empties them
-  before `LoadedChunks.Remove`, so an unload's tiles are exactly the empty, unpinned ones off loaded chunks; a hole
+  neither on a loaded chunk nor pinned. `UnloadTiles` empties only natural tiles and never pins them, and the
+  queue runs after the chunk has left `LoadedChunks`, so an unload's tiles are exactly the empty, unpinned ones off loaded chunks; a hole
   whose chunk unloads before the queue runs was pinned by the unload itself, and is kept (F2c: the pin as well as the
   chunk, which closes that race). Every other tile is a real hole. The holes are sorted and up to 256 a ground a tick
   (`OpenedPerTick`) are fitted out; the rest wait. Review fix: the cap once counted every queued tile, so the
@@ -917,8 +932,9 @@ NPCs never use verbs, and no cavern mob has `CEZFlyer`, so fauna stays below.
     `HasGroundUnderFootprint`.
   - Crew aboard stand on the hull grid. Stepping off the deck into the shaft drops them.
   - From below, a hull over the exit refuses the climb, and the shade of a covered hole is untouched.
-- **A parked hull whose ground chunk unloads keeps today's behaviour.** Its tiles empty (2.1 item 7) and it loses
-  support. `WfClosedToHulls` refuses every downward route, so it churns up and back instead of sinking into the
+- **A parked hull keeps its ground.** The planet unloader leaves the chunks under a hull and one chunk round it
+  (2.1 item 7). With `wf.planet_terrain_unload` off, upstream's unloader empties the tiles and the hull loses
+  support; `WfClosedToHulls` refuses every downward route, so it churns up and back instead of sinking into the
   cavern.
 - **Debris and pods.** Holes reach 30 tiles on Asclepiu, about 6×6, so a pod or a piece of debris up to about 4×4 can
   sit wholly over one. With no ground under it, it churns the same way and never enters the cavern
@@ -1306,7 +1322,7 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernHullTest.UnsupportedHullNeverDescends` | A `BuildHull` without lift on the ground map over chunks that were never loaded, so no tile is under it (a hull on loaded terrain can keep a tile through `WfUnloadChunk`, 2.1 item 7): sampled every tick for 10 s, the hull's map is never the cavern and no transit touches the cavern | F1 |
 | `CavernHullTest.PilotCannotDescendFromGround` | A `BuildLander` hovering on its landing thrusters (lift ratio ≥ 1) over unloaded ground, with `HoldDescend`: sampled every tick for 10 s it never leaves depth ≥ 0 and stays on the ground map, and no transit gap is created at all (an unguarded descend enters one and lands again within a tick) | F1 |
 | `CavernHullTest.LiftoffAndLandingUnchanged` | With caverns on, a `BuildLander` lifts to air layer 1 and lands back on the ground | F1 |
-| `CavernWildlifeTest.WildlifeOverUnloadedGroundIsRemoved` | An awake wildlife mob whose ground chunk unloads falls into the cavern and is deleted, so it never lingers `Protected`; a non-wildlife mob beside it lands in the cavern and stays | F1 |
+| `CavernWildlifeTest.MobsOverUnloadedGroundStayOnIt` | An awake mob whose ground chunk unloads stays standing on the ground map at height 0, wildlife or not | F1 |
 | `CavernWildlifeTest.WildlifeThroughPinnedHoleIsKept` | A wildlife mob on a hand-pinned tile survives the chunk unload; emptying the tile drops it into the cavern, where it is kept | F1 |
 | `CavernWildlifeTest.WildlifeThroughLoadedHoleIsKept` | A wildlife mob over a tile emptied on a loaded chunk falls into the cavern and is kept, resting on the landing (`LocalPosition` above −0.1); the hole queue has pinned the hole and shaded it (F2c: before it, the hole stayed unpinned and the loaded check decided) | F1, F2c |
 | `CavernMouthTest.GateExists` [6] | The gate is claimed at build. Its hole tiles are pinned and empty with a shade each. Its ring is pinned and solid. The pad is pinned, with the landing tile under the hole and no rock after its chunks load; the test loads them with `WfLoadChunk`, as a cavern viewer's loader would, rather than attaching a viewer. The climb point is anchored under the climb tile, with the section 3.6 delay. The hole is inside the world's size range, the climb tile is on the lip beside the hole, each rim spot has its decor and nothing stands on the climb tile | F2 |

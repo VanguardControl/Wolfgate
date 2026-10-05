@@ -116,6 +116,8 @@
     table: WFCarcinomaNewbornFlesh
     keepEntity: true
     spawnDelay: 240
+  # Its spawn clock would start again on a fresh copy, so it stays when its chunk unloads.
+  - type: WFBiomeKeep
   - type: Fixtures
     fixtures:
       fix1:

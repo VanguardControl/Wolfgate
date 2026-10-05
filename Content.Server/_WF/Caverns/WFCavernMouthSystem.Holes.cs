@@ -448,7 +448,10 @@ public sealed partial class WFCavernMouthSystem
         yield return -side - across;
     }
 
-    /// <summary>Wakes the z-physics bodies over a ground tile, so sleeping items and mobs fall through the new hole.</summary>
+    /// <summary>
+    /// Wakes the z-physics bodies over a ground tile and has them read the ground again, so sleeping items and mobs
+    /// fall through the new hole.
+    /// </summary>
     // Never what is inside them: a woken limb would fall out of its body.
     private void WakeBodiesOn(Entity<BiomeComponent, MapGridComponent> ground, Vector2i index)
     {
@@ -457,7 +460,7 @@ public sealed partial class WFCavernMouthSystem
 
         foreach (var body in _bodies)
         {
-            _zLevels.WakeBody((body.Owner, body.Comp));
+            _zLevels.WfRecacheGround(body);
         }
     }
 

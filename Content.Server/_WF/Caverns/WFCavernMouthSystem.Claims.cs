@@ -514,8 +514,16 @@ public sealed partial class WFCavernMouthSystem
             return Block.Waiting;
 
         var footprint = new Box2(site.Origin + site.Shape.Min - Vector2i.One, site.Origin + site.Shape.Max + new Vector2i(2, 2));
+        var mapId = Comp<MapComponent>(context.Ground).MapId;
+
+        // Ground that unloaded can still hold whoever was left on it, asleep or dead, and it is solid under them.
+        _mobs.Clear();
+        _lookup.GetEntitiesIntersecting(mapId, footprint, _mobs);
+        if (_mobs.Count > 0)
+            return Block.Waiting;
+
         var grids = new List<Entity<MapGridComponent>>();
-        _mapManager.FindGridsIntersecting(Comp<MapComponent>(context.Ground).MapId, footprint.Enlarged(GridClearance), ref grids,
+        _mapManager.FindGridsIntersecting(mapId, footprint.Enlarged(GridClearance), ref grids,
             approx: true, includeMap: false);
 
         return grids.Count == 0 ? Block.None : Block.Waiting;
@@ -581,6 +589,9 @@ public sealed partial class WFCavernMouthSystem
         foreach (var index in mouth.Hole)
         {
             SpawnShade(ground, context, index, landingMultiplier);
+
+            // A hole cut where the ground wasn't loaded changes no tile, so nothing told what was left lying there.
+            WakeBodiesOn(context.Ground, index);
         }
 
         if (spec.Rim.Count > 0)

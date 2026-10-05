@@ -20,4 +20,25 @@ public sealed class PlanetCVars
     /// </summary>
     public static readonly CVarDef<bool> TerrainAtmosphere =
         CVarDef.Create("wf.planet_terrain_atmos", true, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether planet terrain nobody is near is unloaded. Off, upstream's unloader is all there is, and it lets go of
+    /// almost nothing.
+    /// </summary>
+    public static readonly CVarDef<bool> TerrainUnload =
+        CVarDef.Create("wf.planet_terrain_unload", true, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds a chunk must sit outside every loaded area, hull and build before it is unloaded. Long enough that the
+    /// way back from a short trip is still there: loading it again is the dear part, and is done all at once.
+    /// </summary>
+    public static readonly CVarDef<float> TerrainUnloadIdle =
+        CVarDef.Create("wf.planet_terrain_unload_idle", 180f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Milliseconds one unload pass may take, ten passes a second, one planet layer a pass. A pass always unloads one
+    /// chunk, so a dense cavern chunk can run past it.
+    /// </summary>
+    public static readonly CVarDef<float> TerrainUnloadBudget =
+        CVarDef.Create("wf.planet_terrain_unload_budget", 3f, CVar.SERVERONLY);
 }
