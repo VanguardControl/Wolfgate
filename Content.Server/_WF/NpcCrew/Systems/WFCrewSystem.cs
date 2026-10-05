@@ -113,7 +113,8 @@ public sealed class WFCrewSystem : EntitySystem
         }
 
         var attacker = Wielder(source);
-        if (attacker == ent.Owner)
+        // A mounted gun or a blast is not somebody to go after; the ship it came from is answered as a ship.
+        if (attacker == ent.Owner || !HasComp<MobStateComponent>(attacker))
             return;
 
         if (!_retaliation.TryRetaliate(ent, attacker))

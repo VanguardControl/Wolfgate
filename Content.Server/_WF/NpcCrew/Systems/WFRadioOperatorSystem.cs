@@ -189,6 +189,15 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         if (InCrew(origin, component.Group, home))
             return;
 
+        // A ship's gun, or its shot, is nobody aboard: the fire is from the vessel it stands on, and anything of
+        // the crew's own ship that hurts him is an accident and no attack.
+        if (!HasComp<Content.Shared.Mobs.Components.MobStateComponent>(origin))
+        {
+            if (Transform(origin).GridUid is not { } vessel || vessel == home)
+                return;
+            origin = vessel;
+        }
+
         _witnesses.Clear();
         var query = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
         while (query.MoveNext(out var member, out var crew, out var xform))
