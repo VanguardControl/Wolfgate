@@ -224,7 +224,7 @@
     mode: SnapgridCenter
   components:
     - type: Sprite
-      sprite: _Impstation/Structures/Piping/Atmospherics/thermomachine.rsi # WOLFGATE(Respritev1): Imp Sprite Ports
+      sprite: _Impstation/Structures/Piping/Atmospherics/thermomachine.rsi # WOLFGATE(Resprites): Imp Sprite Ports
       snapCardinals: true
     - type: Appearance
     - type: PipeColorVisuals
@@ -283,14 +283,14 @@
       granularLayersRendering: true
       layers:
         - state: freezerOff
-          #map: [ "enum.PowerDeviceVisualLayers.Powered" ] # WOLFGATE(Respritev1): Imp Sprite Ports
-        # WOLFGATE(Respritev1): Imp Sprite Ports START
+          #map: [ "enum.PowerDeviceVisualLayers.Powered" ] # WOLFGATE(Resprites): Imp Sprite Ports
+        # WOLFGATE(Resprites) START: Imp Sprite Ports
         - state: freezerOn
           map: ["enum.PowerDeviceVisualLayers.Powered"]
         - state: freezer-Unshaded
           shader: unshaded
           map: ["freezing"]
-        # WOLFGATE(Respritev1): Imp Sprite Ports END
+        # WOLFGATE END
         - state: freezerPanelOpen
           map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
         - state: pipe
@@ -300,15 +300,15 @@
       visuals:
         enum.PowerDeviceVisuals.Powered:
           enum.PowerDeviceVisualLayers.Powered:
-          #  True: { state: freezerOn } # WOLFGATE(Respritev1): Imp Sprite Ports
-          #  False: { state: freezerOff } # WOLFGATE(Respritev1): Imp Sprite Ports
-          # WOLFGATE(Respritev1): Imp Sprite Ports START
+          #  True: { state: freezerOn } # WOLFGATE(Resprites): Imp Sprite Ports
+          #  False: { state: freezerOff } # WOLFGATE(Resprites): Imp Sprite Ports
+          # WOLFGATE(Resprites) START: Imp Sprite Ports
             True: { visible: true }
             False: { visible: false }
           freezing:
             True: { visible: true }
             False: { visible: false }
-          # WOLFGATE(Respritev1): Imp Sprite Ports END
+          # WOLFGATE END
     - type: GasThermoMachine
       coefficientOfPerformance: -3.9
     - type: ApcPowerReceiver
@@ -318,14 +318,15 @@
     - type: DeviceNetwork
       prefix: device-address-prefix-freezer
     - type: StealTarget
-      stealGroup: FreezerHeater
-    # WOLFGATE(Respritev1): Imp Sprite Ports START
+      stealGroup:
+      - FreezerHeater
+    # WOLFGATE(Resprites) START: Imp Sprite Ports
     - type: LitOnPowered
     - type: PointLight
       radius: 1.5
       energy: 1.5
       color: "#47bfff"
-    # WOLFGATE(Respritev1): Imp Sprite Ports END
+    # WOLFGATE END
 
 - type: entity
   parent: GasThermoMachineFreezer
@@ -349,16 +350,16 @@
       granularLayersRendering : true
       layers:
         - state: heaterOff
-          #map: [ "enum.PowerDeviceVisualLayers.Powered" ] # WOLFGATE(Respritev1): Imp Sprite Ports
-        # WOLFGATE(Respritev1): Imp Sprite Ports START
+          #map: [ "enum.PowerDeviceVisualLayers.Powered" ] # WOLFGATE(Resprites): Imp Sprite Ports
+        # WOLFGATE(Resprites) START: Imp Sprite Ports
         - state: heaterOn
           map: ["enum.PowerDeviceVisualLayers.Powered"]
         - state: heater-Unshaded
           shader: unshaded
           map: ["heating"]
-        # WOLFGATE(Respritev1): Imp Sprite Ports END
+        # WOLFGATE END
         - state: heaterPanelOpen
-          map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
+          map: ["enum.WiresVisualLayers.MaintenancePanel"]
         - state: pipe
           map: [ "enum.PipeVisualLayers.Pipe" ]
           renderingStrategy: Default
@@ -366,15 +367,15 @@
       visuals:
         enum.PowerDeviceVisuals.Powered:
           enum.PowerDeviceVisualLayers.Powered:
-            #True: { state: heaterOn } # WOLFGATE(Respritev1): Imp Sprite Ports
-            #False: { state: heaterOff } # WOLFGATE(Respritev1): Imp Sprite Ports
-          # WOLFGATE(Respritev1): Imp Sprite Ports START
+            #True: { state: heaterOn } # WOLFGATE(Resprites): Imp Sprite Ports
+            #False: { state: heaterOff } # WOLFGATE(Resprites): Imp Sprite Ports
+          # WOLFGATE(Resprites) START: Imp Sprite Ports
             True: { visible: true }
             False: { visible: false }
           heating:
             True: { visible: true }
             False: { visible: false }
-          # WOLFGATE(Respritev1): Imp Sprite Ports END
+          # WOLFGATE END
     - type: GasThermoMachine
       coefficientOfPerformance: 0.95
     - type: ApcPowerReceiver
@@ -384,14 +385,15 @@
     - type: DeviceNetwork
       prefix: device-address-prefix-heater
     - type: StealTarget
-      stealGroup: FreezerHeater
-    # # WOLFGATE(Respritev1): Imp Sprite Ports START
+      stealGroup:
+      - FreezerHeater
+    # WOLFGATE(Resprites) START: Imp Sprite Ports
     - type: LitOnPowered
     - type: PointLight
       radius: 1.5
       energy: 1.5
       color: "#ffc747"
-    # # WOLFGATE(Respritev1): Imp Sprite Ports END
+    # WOLFGATE END
 
 - type: entity
   parent: GasThermoMachineHeater
@@ -409,8 +411,8 @@
   description: An advanced machine that cools gas in connected pipes. Has the side effect of chilling the surrounding area. Cold as Hell!
   components:
   - type: Sprite
-    sprite: _Impstation/Structures/Piping/Atmospherics/hellfirethermomachine.rsi # WOLFGATE(Respritev1): Imp Sprite Ports
-  # WOLFGATE(Respritev1): Imp Sprite Ports START
+    sprite: _Impstation/Structures/Piping/Atmospherics/hellfirethermomachine.rsi # WOLFGATE(Resprites): Imp Sprite Ports
+  # WOLFGATE(Resprites) START: Imp Sprite Ports
     granularLayersRendering : true
     layers:
       - state: freezerOff
@@ -433,7 +435,7 @@
         hellfreezing:
           True: { visible: true }
           False: { visible: false }
-  # WOLFGATE(Respritev1): Imp Sprite Ports END
+  # WOLFGATE END
   - type: GasThermoMachine
     minTemperature: 23.15
     heatCapacity: 40000
@@ -448,8 +450,8 @@
   description: An advanced machine that heats gas in connected pipes. Has the side effect of leaking heat into the surrounding area. Hot as Hell!
   components:
   - type: Sprite
-    sprite: _Impstation/Structures/Piping/Atmospherics/hellfirethermomachine.rsi # WOLFGATE(Respritev1): Imp Sprite Ports
-  # WOLFGATE(Respritev1): Imp Sprite Ports START
+    sprite: _Impstation/Structures/Piping/Atmospherics/hellfirethermomachine.rsi # WOLFGATE(Resprites): Imp Sprite Ports
+  # WOLFGATE(Resprites) START: Imp Sprite Ports
     granularLayersRendering : true
     layers:
       - state: heaterOff
@@ -472,7 +474,7 @@
         hellheating:
           True: { visible: true }
           False: { visible: false }
-  # WOLFGATE(Respritev1): Imp Sprite Ports END
+  # WOLFGATE END
   - type: GasThermoMachine
     maxTemperature: 1193.15
     heatCapacity: 40000
