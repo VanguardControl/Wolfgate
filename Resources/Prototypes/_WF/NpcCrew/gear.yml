@@ -55,3 +55,24 @@
       key_slots:
       - EncryptionKeyCommon
       - EncryptionKeyTraffic
+      - WFEncryptionKeyCrewIntercom
+
+# The crews' own channel, for what they tell each other. Short ranged, and no player kit carries its key.
+- type: radioChannel
+  id: WFCrewIntercom
+  name: wf-crew-radio-channel-intercom
+  keycode: '6'
+  frequency: 1027
+  color: "#8a8f7a"
+  maxRange: 400
+
+- type: entity
+  parent: EncryptionKeyTraffic
+  id: WFEncryptionKeyCrewIntercom
+  name: crew intercom encryption key
+  description: An encryption key for a ship's crew intercom. Good for a few hundred metres.
+  components:
+  - type: EncryptionKey
+    channels:
+    - WFCrewIntercom
+    defaultChannel: WFCrewIntercom

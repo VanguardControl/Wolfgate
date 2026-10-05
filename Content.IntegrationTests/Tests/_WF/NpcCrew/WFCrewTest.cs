@@ -425,7 +425,7 @@ public sealed partial class WFCrewTest : InteractionTest
         await Server.WaitAssertion(() =>
         {
             var sent = Sent(radio);
-            Assert.That(sent, Has.Count.EqualTo(outbound ? 2 : 4), $"Outgoing traffic or an incoming security incident: {Describe(sent)}");
+            Assert.That(sent, Has.Count.EqualTo(2), $"Outgoing traffic or an incoming security incident, each line once: {Describe(sent)}");
             if (!outbound)
             {
                 Assert.That(sent.Any(line => line.Line == WFRadioLine.Docking), Is.False);
@@ -510,8 +510,9 @@ public sealed partial class WFCrewTest : InteractionTest
             Assert.That(Count(radio, WFRadioLine.CaptainDown), Is.EqualTo(1), "One line for the captain.");
             Assert.That(Count(radio, WFRadioLine.Boarded), Is.EqualTo(1), "One boarding call per attack.");
             Assert.That(Count(radio, WFRadioLine.Mayday), Is.EqualTo(1), "Still one mayday.");
-            Assert.That(Sent(radio).Any(t => t.Line == WFRadioLine.Boarded && t.Channel.Id == "Traffic"),
-                "Boarding alerts also reach Shortband listeners.");
+            Assert.That(Sent(radio).Count(t => t.Line == WFRadioLine.Boarded), Is.EqualTo(1),
+                "A boarding alert goes out once, on the alert channel alone.");
+            Assert.That(Sent(radio).Single(t => t.Line == WFRadioLine.Boarded).Channel.Id, Is.EqualTo("Common"));
         });
 
         var before = 0;

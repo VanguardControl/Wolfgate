@@ -147,7 +147,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             return;
 
         var position = _transform.GetMapCoordinates(ship.Grid).Position;
-        if (!TrySay(ship, AnnounceChannel, Loc.GetString("wf-encounter-distress-attacked",
+        if (!TrySay(ship, HelpChannel(ship), Loc.GetString("wf-encounter-distress-attacked",
                 ("name", MetaData(ship.Grid).EntityName), ("x", (int) position.X), ("y", (int) position.Y))))
             return;
 
@@ -156,6 +156,13 @@ public sealed partial class WFEncounterSystem : EntitySystem
     }
 
     private static readonly TimeSpan AttackCallRepeat = TimeSpan.FromMinutes(3);
+
+    /// <summary>Where a ship calls for help: its faction's channel if its company has one, else the common one.</summary>
+    private ProtoId<RadioChannelPrototype> HelpChannel(WFEncounterShipState ship)
+    {
+        var company = CompOrNull<Content.Shared._Mono.Company.CompanyComponent>(ship.Grid)?.CompanyName;
+        return WFCrewCommsSystem.FactionChannel(company) ?? AnnounceChannel.Id;
+    }
 
     /// <summary>Whether the ship's own radio officer has already put its mayday on the air.</summary>
     private bool MaydaySent(WFEncounterShipState ship)

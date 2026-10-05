@@ -464,18 +464,14 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         var text = _loc.GetString($"{id}-{_random.Next(1, variants + 1)}", args.Append(("callsign", callsign)).ToArray());
         radio.LastSent[line] = now;
 
-        if (IsAlert(line))
-        {
-            Transmit(ent, line, radio.AlertChannel, text);
-            if (radio.LocalChannel != radio.AlertChannel)
-                Transmit(ent, line, radio.LocalChannel, text);
-            if (radio.FactionChannel is { } faction && faction != radio.AlertChannel && faction != radio.LocalChannel)
-                Transmit(ent, line, faction, text);
-        }
-        else
-        {
+        // Each line goes out once. A warning is for the ship alongside, so it is always local; the rest is the
+        // faction's own business when the ship has a faction channel, else alerts go wide and routine stays local.
+        if (line is WFRadioLine.DockWarning or WFRadioLine.BoardWarning or WFRadioLine.Approach)
             Transmit(ent, line, radio.LocalChannel, text);
-        }
+        else if (radio.FactionChannel is { } faction)
+            Transmit(ent, line, faction, text);
+        else
+            Transmit(ent, line, IsAlert(line) ? radio.AlertChannel : radio.LocalChannel, text);
 
         if (radio.SpeakAloud)
             _chat.TrySendInGameICMessage(uid, text, InGameICChatType.Speak, hideChat: false, checkRadioPrefix: false);

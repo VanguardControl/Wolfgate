@@ -310,6 +310,8 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             _radio.SetCallsign((mob, radio), mission.Callsign);
             radio.LocalChannel = mission.LocalChannel;
             radio.AlertChannel = mission.AlertChannel;
+            // Raiders under a borrowed flag don't get on that company's channel.
+            radio.FactionChannel = mission.Faction == "PirateNF" ? null : WFCrewCommsSystem.FactionChannel(mission.Company);
             radio.CallsForHelp = mission.CallsForHelp;
         }
     }

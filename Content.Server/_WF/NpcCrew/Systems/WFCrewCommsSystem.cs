@@ -22,6 +22,20 @@ public sealed class WFCrewCommsSystem : EntitySystem
     private readonly List<EntityUid> _stale = new();
     private TimeSpan _nextPrune;
 
+    /// <summary>The crews' own channel: what they tell each other stays off the channels players listen to.</summary>
+    public const string Intercom = "WFCrewIntercom";
+
+    /// <summary>The radio channel a company's ships keep their own traffic on, if it has one.</summary>
+    public static string? FactionChannel(string? company)
+    {
+        if (company == null)
+            return null;
+        // TSF Comms for the Federation; the Dynasty's people carry the Vanguard channel.
+        if (company.StartsWith("TSF", StringComparison.Ordinal))
+            return "Nfsd";
+        return company.StartsWith("PDV", StringComparison.Ordinal) ? "Freelance" : null;
+    }
+
     public override void Initialize()
     {
         base.Initialize();
@@ -33,7 +47,7 @@ public sealed class WFCrewCommsSystem : EntitySystem
         && crew.RadioSightings.TryGetValue(target, out var until) && _timing.CurTime < until;
 
     /// <summary>
-    /// Relays a witnessed contact or incident over Shortband. One line goes out per crew, kind and subject every ten
+    /// Relays a witnessed contact or incident over the crew intercom. One line goes out per crew, kind and subject every ten
     /// seconds; true when this call sent it or an earlier witness already had, false when this crewman could not.
     /// </summary>
     public bool Report(EntityUid sender, EntityUid target, WFRadioLine? incident = null)
@@ -44,7 +58,7 @@ public sealed class WFCrewCommsSystem : EntitySystem
             || !_inventory.TryGetSlotEntity(sender, "ears", out var headset)
             || !TryComp<HeadsetComponent>(headset, out var transmitter) || !transmitter.Enabled
             || !HasComp<WFCrewRadioComponent>(headset) || !TryComp<ActiveRadioComponent>(headset, out var active)
-            || !active.Channels.Contains("Traffic"))
+            || !active.Channels.Contains(Intercom))
             return false;
         // A crew that doesn't call for help keeps its losses off the air.
         if (!crew.CallsForHelp && incident is WFRadioLine.CaptainDown or WFRadioLine.HelmDown)
@@ -65,7 +79,7 @@ public sealed class WFCrewCommsSystem : EntitySystem
                 WFRadioLine.CaptainDown or WFRadioLine.HelmDown => "wf-crew-radio-contact-down",
                 _ => "wf-crew-radio-contact",
             };
-            _radio.SendRadioMessage(sender, Loc.GetString(line, ("target", Name(target))), "Traffic", headset.Value);
+            _radio.SendRadioMessage(sender, Loc.GetString(line, ("target", Name(target))), Intercom, headset.Value);
         }
         finally
         {
@@ -104,7 +118,7 @@ public sealed class WFCrewCommsSystem : EntitySystem
     private void OnReceive(Entity<WFCrewRadioComponent> ent, ref RadioReceiveEvent args)
     {
         if (_report is not { } report || args.MessageSource != report.Sender || args.RadioSource != report.Radio
-            || args.Channel.ID != "Traffic"
+            || args.Channel.ID != Intercom
             || !TryComp<HeadsetComponent>(ent, out var receiver) || !receiver.Enabled
             || !TryComp<WFCrewComponent>(report.Sender, out var sender))
             return;
