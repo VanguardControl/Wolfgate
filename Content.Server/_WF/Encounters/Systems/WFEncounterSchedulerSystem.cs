@@ -463,6 +463,46 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         return false;
     }
 
+    /// <summary>Whether a map is one of a planet's layers: its orbit, its air, its ground or the caverns under it.</summary>
+    private bool OnPlanet(EntityUid? map)
+    {
+        if (map is not { } uid)
+            return false;
+
+        var networks = EntityQueryEnumerator<Content.Server._WF.Planets.WFPlanetNetworkComponent>();
+        while (networks.MoveNext(out var network))
+        {
+            if (network.OrbitMap == uid || network.Layers.Contains(uid) || network.LowerLayers.Contains(uid))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>How far outside a planet's pull, as a share of its reach, an encounter is kept.</summary>
+    private const float WellMargin = 1.25f;
+
+    /// <summary>
+    /// Whether a point is inside a planet's gravity well, or near enough to drift in. A hull with no thrust there
+    /// is pulled down into orbit, and encounters leave hulks, stranded ships and beaten ones adrift.
+    /// </summary>
+    private bool InGravityWell(Vector2 point, MapId map)
+    {
+        var planets = EntityQueryEnumerator<Content.Shared._WF.Planets.WFSectorPlanetComponent, TransformComponent>();
+        while (planets.MoveNext(out _, out var planet, out var xform))
+        {
+            if (xform.MapID != map || !TryGetEntity(planet.OrbitMap, out var orbit)
+                || !TryComp<Content.Shared._WF.Planets.WFOrbitLayerComponent>(orbit, out var layer))
+                continue;
+
+            var reach = layer.Range * WellMargin;
+            if ((_transform.GetWorldPosition(xform) - point).LengthSquared() <= reach * reach)
+                return true;
+        }
+
+        return false;
+    }
+
     /// <summary>A point in clear space at the prototype's distance from a random living player.</summary>
     private bool TryPlaceInOpenSpace(WFEncounterPrototype prototype, out MapCoordinates origin)
     {
@@ -471,8 +511,9 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out _, out var xform))
         {
-            // A body without a mob state still counts; ghosts and the dead don't.
-            if (xform.MapID != MapId.Nullspace && !HasComp<GhostComponent>(uid) && !_mobs.IsDead(uid) && !_mobs.IsCritical(uid))
+            // A body without a mob state still counts; ghosts and the dead don't. Only the sector is open space:
+            // a player on a planet, in its orbit or in a cavern is no place to put ships beside.
+            if (xform.MapID != MapId.Nullspace && !OnPlanet(xform.MapUid) && !HasComp<GhostComponent>(uid) && !_mobs.IsDead(uid) && !_mobs.IsCritical(uid))
                 anchors.Add(_transform.GetMapCoordinates(uid, xform));
         }
 
@@ -486,7 +527,7 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
             var point = anchor.Position + _random.NextAngle().ToVec() * distance;
             _nearby.Clear();
             _maps.FindGridsIntersecting(anchor.MapId, Box2.CenteredAround(point, new Vector2(Clearance * 2f)), ref _nearby, approx: true, includeMap: false);
-            if (_nearby.Count > 0 || NearStation(prototype.StationClearance, point, anchor.MapId))
+            if (_nearby.Count > 0 || NearStation(prototype.StationClearance, point, anchor.MapId) || InGravityWell(point, anchor.MapId))
                 continue;
 
             origin = new MapCoordinates(point, anchor.MapId);
