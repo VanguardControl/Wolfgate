@@ -1082,3 +1082,58 @@ Entries:
   id: 100080
   time: '2026-10-05T05:37:14.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/150
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Planets! You can now orbit, fly down to, land on and crash into the
+        Kyphrus worlds.
+    - type: Add
+      message: >-
+        Every planet has a cavern under it with its own rock, ores and wildlife.
+        Find a hole or dig your own way down.
+    - type: Add
+      message: You can print shovels at the autolathe now.
+    - type: Add
+      message: >-
+        You can build stairs from a cavern up to the surface (construction menu,
+        10 steel). Whatever you're dragging comes with you, on the stairs or
+        climbing.
+    - type: Add
+      message: >-
+        You can build pressurised rooms on planets and in caverns. They need a
+        floor, bare ground counts as outside.
+    - type: Add
+      message: Planets have weather, day and night, storms and thunder.
+    - type: Add
+      message: >-
+        Atmospheric jetpacks. They burn welding fuel, fly in a planet's
+        atmosphere and climb between its air layers, but not above 1.5 g. Normal
+        jetpacks only work in orbit.
+    - type: Add
+      message: >-
+        Parachutes, planet timepieces, landing thruster kits and atmospheric
+        jetpacks are in the Wolfgate vendor.
+    - type: Add
+      message: Chimera can plant flesh pustules that burst into flesh ticks.
+    - type: Add
+      message: A fully charged SRD can snap a broken-off chunk of your ship back on.
+    - type: Add
+      message: Ships make an engine noise for their crew while the thrusters fire.
+    - type: Tweak
+      message: >-
+        Ships landing on a planet flatten the trees and rocks they come down on.
+        Anyone under one gets hurt and shoved aside instead of gibbed.
+    - type: Tweak
+      message: Moths and harpies can fly up and down between levels again.
+    - type: Tweak
+      message: >-
+        Planets were moved out of the drone belt, so you don't get jumped by
+        drones as soon as you arrive.
+    - type: Fix
+      message: Flying around planets no longer stutters while new terrain loads.
+    - type: Fix
+      message: Xeno turrets no longer fire two rounds per shot.
+  id: 100081
+  time: '2026-10-05T08:42:29.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/40
