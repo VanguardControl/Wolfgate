@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Content.Server._WF.Encounters.Components;
@@ -294,5 +295,63 @@ public sealed partial class WFEncounterTest
             SEntMan.DeleteEntity(hulk);
         });
         await RunTicks(10);
+    }
+
+    /// <summary>
+    /// Every hull an encounter may pick loads and takes a crew. One that can't would fail the spawn each time it is
+    /// drawn, and the encounter would only ever be seen in its other hulls.
+    /// </summary>
+    [Test]
+    public async Task EveryEncounterHullSpawnsAndTakesACrew()
+    {
+        var hulls = new SortedSet<string>();
+        var derelicts = new HashSet<string>();
+        await Server.WaitPost(() =>
+        {
+            foreach (var prototype in Server.ResolveDependency<IPrototypeManager>().EnumeratePrototypes<WFEncounterPrototype>())
+            {
+                if (prototype.ID.StartsWith("WFTest"))
+                    continue;
+
+                foreach (var ship in prototype.Ships)
+                {
+                    var named = ship.Vessels.Select(vessel => vessel.Id).ToList();
+                    if (ship.Vessel is { } single)
+                        named.Add(single.Id);
+                    hulls.UnionWith(named);
+                    if (ship.Derelict != null)
+                        derelicts.UnionWith(named);
+                }
+            }
+        });
+
+        var failures = new List<string>();
+        var x = 60000f;
+        foreach (var hull in hulls)
+        {
+            x += 600f;
+            var at = new Vector2(x, 60000f);
+            await Server.WaitPost(() =>
+            {
+                var prototypes = Server.ResolveDependency<IPrototypeManager>();
+                if (!prototypes.TryIndex<Content.Shared._NF.Shipyard.Prototypes.VesselPrototype>(hull, out var vessel)
+                    || !Server.System<Content.Server._WF.Administration.Systems.AdminVesselSpawnSystem>()
+                        .TrySpawnVessel(vessel, MapData.MapId, at, null, out var grid))
+                {
+                    failures.Add($"{hull}: does not load");
+                    return;
+                }
+
+                // A hulk needs free deck, not posts.
+                var crewable = Server.System<WFCrewSetupSystem>().Plan(grid.Value, 1, false).Count > 0;
+                var deck = Server.System<WFCrewPlannerSystem>().HoldTiles(grid.Value, 4).Count > 0;
+                if (!crewable && !derelicts.Contains(hull) || !deck)
+                    failures.Add($"{hull}: {(deck ? "no crew posts" : "no free deck")}");
+                SEntMan.DeleteEntity(grid.Value);
+            });
+            await RunTicks(2);
+        }
+
+        Assert.That(failures, Is.Empty, string.Join("; ", failures));
     }
 }

@@ -130,6 +130,9 @@
     vessels:
     - Plutomkii
     - Twilight
+    - Piva
+    - Hermes
+    - Framework
     side: freight
     profile: WFCrewProfileHauler
     deckhands: 1
@@ -164,6 +167,7 @@
     vessels:
     - Brute
     - Zhuangzi
+    - Argent
     side: freight
     profile: WFCrewProfileHauler
     deckhands: 2
