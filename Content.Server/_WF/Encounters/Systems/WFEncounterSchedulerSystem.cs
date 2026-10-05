@@ -463,6 +463,20 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         return false;
     }
 
+    /// <summary>
+    /// Whether a map is sector space that ships can be put in: not hyperspace, not the shipyard's holding map, not
+    /// an expedition and not one of a planet's layers.
+    /// </summary>
+    private bool IsSector(MapId map, EntityUid? mapUid)
+    {
+        if (mapUid is not { } uid || HasComp<Content.Shared.Shuttles.Components.FTLMapComponent>(uid)
+            || HasComp<Content.Server.Salvage.Expeditions.SalvageExpeditionComponent>(uid)
+            || EntityManager.System<Content.Server._NF.Shipyard.Systems.ShipyardSystem>().ShipyardMap == map)
+            return false;
+
+        return !OnPlanet(uid);
+    }
+
     /// <summary>Whether a map is one of a planet's layers: its orbit, its air, its ground or the caverns under it.</summary>
     private bool OnPlanet(EntityUid? map)
     {
@@ -513,7 +527,7 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         {
             // A body without a mob state still counts; ghosts and the dead don't. Only the sector is open space:
             // a player on a planet, in its orbit or in a cavern is no place to put ships beside.
-            if (xform.MapID != MapId.Nullspace && !OnPlanet(xform.MapUid) && !HasComp<GhostComponent>(uid) && !_mobs.IsDead(uid) && !_mobs.IsCritical(uid))
+            if (xform.MapID != MapId.Nullspace && IsSector(xform.MapID, xform.MapUid) && !HasComp<GhostComponent>(uid) && !_mobs.IsDead(uid) && !_mobs.IsCritical(uid))
                 anchors.Add(_transform.GetMapCoordinates(uid, xform));
         }
 
