@@ -2167,3 +2167,257 @@
       debris: 50
       debrisPool: [ RandomSpawner, RandomSpawner, SalvageSpawnerScrapCommon, ShardGlass, PartRodMetal1, Cobweb1 ]
       resale: 0.25
+
+# A Federation capital ship beset by a pirate pack: two raiders and four fighters, all on it at once from every side. Its
+# gunner shares the guns out among the attackers, each gun on the one nearest it. It calls for help on the common channel;
+# whoever helps beat the pirates off is paid by the Federation, well, and TSF players get military credits as well.
+- type: wfEncounter
+  id: WFEncounterCapitalUnderAttack
+  leash: 3000
+  name: wf-encounter-name-capital
+  announcement: wf-encounter-announce-capital
+  announceOnRadio: true
+  announcer: capital
+  start: Scheduled
+  category: Distress
+  cost: 4
+  weight: 0.8
+  minPlayers: 6
+  cooldown: 3600
+  duration: 3000
+  startRadius: 2500
+  minDistance: 3000
+  maxDistance: 4500
+  stationClearance: 2500
+  rewards:
+  - side: tsf
+    spesos: 45000
+    credits: 35
+    creditEntity: FederationMilitaryCredit1
+    creditCompanies: [ TSF, TSFCivilian ]
+    thanks: wf-encounter-reward-thanks-tsf
+  ships:
+  - key: capital
+    navigation: WFCrewNavigationWarship
+    vessel: Fujian
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    deckhands: 3
+    guards: 2
+    objectives:
+    - kind: Attack
+      target: raider
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    vessels: [ Osa, Scorpion ]
+    deckhands: 2
+    offset: 0, 750
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: second
+    navigation: WFCrewNavigationRaider
+    vessels: [ Osa, Scorpion ]
+    deckhands: 2
+    offset: 0, -750
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 700, 250
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingtwo
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -700, 250
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingthree
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 650, -350
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingfour
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -650, -350
+    side: pirates
+    faction: PirateNF
+    distress: false
+    company: PDV
+    profile: WFCrewProfilePirate
+    objectives:
+    - kind: Attack
+      target: capital
+
+# The Dynasty's capital ship caught by a Federation strike group: five fighters on it at once. As above, with the Vanguard paying.
+- type: wfEncounter
+  id: WFEncounterPdvCapitalUnderAttack
+  leash: 3000
+  name: wf-encounter-name-pdv-capital
+  announcement: wf-encounter-announce-pdv-capital
+  announceOnRadio: true
+  announcer: capital
+  start: Scheduled
+  category: Distress
+  cost: 4
+  weight: 0.8
+  minPlayers: 6
+  cooldown: 3600
+  duration: 3000
+  startRadius: 2500
+  minDistance: 3000
+  maxDistance: 4500
+  stationClearance: 2500
+  rewards:
+  - side: pdv
+    spesos: 45000
+    credits: 35
+    creditEntity: Doubloon1
+    creditCompanies: [ PDV, PDVCivilian ]
+    thanks: wf-encounter-reward-thanks-pdv
+  ships:
+  - key: capital
+    navigation: WFCrewNavigationWarship
+    vessel: Europa
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    iffColor: "#ffae3d"
+    deckhands: 3
+    guards: 2
+    objectives:
+    - kind: Attack
+      target: striker
+  - key: striker
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 0, 750
+    side: tsf
+    faction: TSFMC
+    distress: false
+    company: TSF
+    profile: WFCrewProfileTsf
+    skill: Regular
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wing
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 700, 250
+    side: tsf
+    faction: TSFMC
+    distress: false
+    company: TSF
+    profile: WFCrewProfileTsf
+    skill: Regular
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingtwo
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -700, 250
+    side: tsf
+    faction: TSFMC
+    distress: false
+    company: TSF
+    profile: WFCrewProfileTsf
+    skill: Regular
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingthree
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 650, -350
+    side: tsf
+    faction: TSFMC
+    distress: false
+    company: TSF
+    profile: WFCrewProfileTsf
+    skill: Regular
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingfour
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -650, -350
+    side: tsf
+    faction: TSFMC
+    distress: false
+    company: TSF
+    profile: WFCrewProfileTsf
+    skill: Regular
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: capital

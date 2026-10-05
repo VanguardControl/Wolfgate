@@ -350,7 +350,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
   - Identifies crew steering without changing other NPC navigation.
 - [`Content.Server/_Mono/NPC/HTN/ShipTargetingSystem.cs`](../../_Mono/NPC/HTN/ShipTargetingSystem.cs)
   - preserve the controller for autonomous cannon damage.
-  - carry the NPC controlling this burst.
+  - carry the NPC controlling this burst; public so a gunner can lay part of the guns on a second target.
   - attribute crew bursts without changing the muzzle.
 - [`Content.Server/_Mono/SpaceArtillery/SpaceArtillerySystem.cs`](../../_Mono/SpaceArtillery/SpaceArtillerySystem.cs): notify crew of damaging impacts from other ships.
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.Common.cs`](../../NPC/Pathfinding/PathfindingSystem.Common.cs): access-aware NPCs may plan through readers and check permission at the door.

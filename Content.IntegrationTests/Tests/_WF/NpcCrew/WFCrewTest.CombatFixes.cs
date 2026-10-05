@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Content.Server._WF.NpcCrew;
@@ -219,6 +220,53 @@ public sealed partial class WFCrewTest
             Assert.That(SEntMan.EntityExists(left), Is.False, "The body left aboard goes with the crew.");
             Assert.That(SEntMan.EntityExists(living), Is.False);
             SEntMan.DeleteEntity(taken);
+        });
+    }
+
+    /// <summary>
+    /// A gunner with guns to spare shares them out among his attackers, each gun on the one nearest it; with one
+    /// attacker, or few guns, they all stay on the one target.
+    /// </summary>
+    [Test]
+    public async Task GunnerSharesGunsAmongAttackers()
+    {
+        var deck = await CreateDeck(new Vector2(500, 1700), 9, true);
+        var east = await CreateDeck(new Vector2(525, 1702), 5, true);
+        var west = await CreateDeck(new Vector2(475, 1702), 5, true);
+        EntityUid gunner = default;
+        var eastGuns = new List<EntityUid>();
+        var westGuns = new List<EntityUid>();
+        await Server.WaitAssertion(() =>
+        {
+            for (var y = 1; y <= 2; y++)
+            {
+                eastGuns.Add(SEntMan.SpawnEntity("WFTestCrewCannon", new EntityCoordinates(deck, new Vector2(8.5f, y + 0.5f))));
+                westGuns.Add(SEntMan.SpawnEntity("WFTestCrewCannon", new EntityCoordinates(deck, new Vector2(0.5f, y + 0.5f))));
+            }
+
+            SEntMan.EnsureComponent<ShuttleComponent>(deck);
+            SEntMan.SpawnAtPosition("WFTestGunnery", new EntityCoordinates(deck, new Vector2(4.5f, 4.5f)));
+            gunner = Server.System<WFCrewSystem>().SpawnCrewman(WFCrewRoles.Gunner,
+                new EntityCoordinates(deck, new Vector2(4.5f, 3.5f)), "battery")!.Value;
+        });
+        await WaitUntil(() => SEntMan.GetComponent<WFGunnerDutyComponent>(gunner).AtConsole, 600, () => Describe(gunner));
+        await Server.WaitPost(() => Server.System<WFCrewAlertSystem>().ReportShipThreat(deck, "battery", east));
+        await WaitUntil(() => Server.System<WFGunnerDutySystem>().Batteries(gunner).Count == 1, Ticks(20),
+            () => "The gunner should lay the guns on the one attacker.");
+        await Server.WaitAssertion(() =>
+        {
+            var groups = Server.System<WFGunnerDutySystem>().Batteries(gunner);
+            Assert.That(groups[0].Target, Is.EqualTo(east));
+            Assert.That(groups[0].Guns, Has.Count.EqualTo(4), "One attacker has every gun.");
+            Server.System<WFCrewAlertSystem>().ReportShipThreat(deck, "battery", west);
+        });
+        await WaitUntil(() => Server.System<WFGunnerDutySystem>().Batteries(gunner).Count == 2, Ticks(10),
+            () => "A second attacker should take a share of the guns.");
+        await Server.WaitAssertion(() =>
+        {
+            var groups = Server.System<WFGunnerDutySystem>().Batteries(gunner);
+            Assert.That(groups.First(group => group.Target == east).Guns, Is.EquivalentTo(eastGuns), "The guns on the east side fire east.");
+            Assert.That(groups.First(group => group.Target == west).Guns, Is.EquivalentTo(westGuns), "And those on the west side fire west.");
         });
     }
 

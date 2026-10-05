@@ -91,7 +91,7 @@ public sealed partial class ShipTargetingSystem : EntitySystem
         }
     }
 
-    private void FireWeapons(EntityUid shipUid, List<EntityUid> cannons, MapCoordinates destMapPos, Vector2 ourVel, Vector2 otherVel, EntityUid? user = null) // WOLFGATE(NpcCrew): carry the NPC controlling this burst.
+    public void FireWeapons(EntityUid shipUid, List<EntityUid> cannons, MapCoordinates destMapPos, Vector2 ourVel, Vector2 otherVel, EntityUid? user = null) // WOLFGATE(NpcCrew): carry the NPC controlling this burst; public so a gunner can lay part of the guns on a second target.
     {
         var shipXform = Transform(shipUid);
         if (!_physQuery.TryComp(shipUid, out var shipBody))

@@ -15,6 +15,7 @@ using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Shared.Map;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Spawners;
 using Robust.Shared.Timing;
@@ -41,6 +42,7 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     [Dependency] private SharedGunSystem _guns = default!;
     [Dependency] private IComponentFactory _factory = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private Robust.Shared.Physics.Systems.SharedPhysicsSystem _physics = default!;
 
     public const string ConsoleKey = "WFCrewGunneryConsole";
     public const string CoordinatesKey = "WFCrewGunneryCoordinates";
@@ -55,6 +57,16 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     private readonly Dictionary<EntityUid, (TimeSpan Next, EntityUid? Target)> _selections = new();
     private readonly HashSet<EntityUid> _driven = new();
 
+    /// <summary>How often a gunner shares his guns out among his targets.</summary>
+    private static readonly TimeSpan BatteryInterval = TimeSpan.FromSeconds(1);
+
+    /// <summary>The most ships one gunner fires on at once, and the guns he wants on each before he takes on another.</summary>
+    private const int MaxTargets = 4;
+    private const int GunsPerTarget = 2;
+
+    /// <summary>Per gunner: his guns, shared out among the ships he fires on. The first is the one he chose.</summary>
+    private readonly Dictionary<EntityUid, (TimeSpan Next, List<(EntityUid Target, List<EntityUid> Guns)> Groups)> _batteries = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -65,6 +77,7 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     /// <summary>A gunner that is deleted mid-duty leaves no selection or console claim behind.</summary>
     private void OnDutyShutdown(Entity<WFGunnerDutyComponent> ent, ref ComponentShutdown args)
     {
+        _batteries.Remove(ent);
         _selections.Remove(ent.Owner);
         if (ent.Comp.Console is { } console && _occupants.TryGetValue(console, out var holder) && holder == ent.Owner)
             _occupants.Remove(console);
@@ -153,6 +166,7 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
             {
                 _targeting.Stop(uid);
                 _selections.Remove(uid);
+                _batteries.Remove(uid);
                 continue;
             }
             if (crew.Duty != WFCrewDuties.Gunnery || !htn.Enabled || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid)
@@ -189,17 +203,134 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
                         : Vector2.Zero;
                 }
 
-                // A warning shot is laid well clear of the vessel.
-                var lay = _alerts.IsWarningShot(grid, hostile) ? duty.AimError + WarningShotOffset : duty.AimError;
-                if (_targeting.Target(uid, new EntityCoordinates(hostile, lay)) is { } aim)
+                // A ship with guns to spare fires on several attackers at once, each gun on the one nearest it.
+                if (!_batteries.TryGetValue(uid, out var battery) || now >= battery.Next || battery.Groups.Count == 0
+                    || battery.Groups[0].Target != hostile)
+                {
+                    battery = (now + BatteryInterval, Allot(uid, grid, crew, duty, here, hostile));
+                    _batteries[uid] = battery;
+                }
+
+                if (_targeting.Target(uid, new EntityCoordinates(hostile, Lay(grid, hostile, duty))) is { } aim)
                 {
                     aim.LeadingAccuracy = skill.Leading;
                     aim.OffgridLeadingAccuracy = skill.Leading;
+                    // The guns are this gunner's to share out: the targeting system is kept from taking them all back.
+                    var cannons = aim.Cannons;
+                    cannons.Clear();
+                    if (battery.Groups.Count > 0)
+                        cannons.AddRange(battery.Groups[0].Guns);
+                    aim.WeaponCheckAccum = 3600f;
+                }
+
+                if (battery.Groups.Count > 1 && TryComp<PhysicsComponent>(grid, out var body))
+                {
+                    for (var i = 1; i < battery.Groups.Count; i++)
+                    {
+                        var (other, guns) = battery.Groups[i];
+                        if (Engageable(uid, grid, crew, duty, here, other, true) == null)
+                            continue;
+
+                        var at = _transform.ToMapCoordinates(new EntityCoordinates(other, Lay(grid, other, duty)));
+                        _targeting.FireWeapons(grid, guns, at, body.LinearVelocity, _physics.GetMapLinearVelocity(other) * skill.Leading, uid);
+                    }
                 }
             }
             else
+            {
                 _targeting.Stop(uid);
+                _batteries.Remove(uid);
+            }
         }
+    }
+
+    /// <summary>Where the guns are laid on a ship, in its own frame: off it by the gunner's error, and well clear for a warning shot.</summary>
+    private Vector2 Lay(EntityUid grid, EntityUid target, WFGunnerDutyComponent duty)
+    {
+        return _alerts.IsWarningShot(grid, target) ? duty.AimError + WarningShotOffset : duty.AimError;
+    }
+
+    /// <summary>
+    /// Shares a ship's guns out among the ships it may fire on: the gunner's chosen target first, then the nearest
+    /// others, one more for every <see cref="GunsPerTarget"/> guns up to <see cref="MaxTargets"/>. Each gun takes
+    /// the target nearest it, so a ship beset from both sides answers both. A ship with few guns keeps them together.
+    /// </summary>
+    private List<(EntityUid Target, List<EntityUid> Guns)> Allot(EntityUid uid, EntityUid grid, WFCrewComponent crew,
+        WFGunnerDutyComponent duty, MapCoordinates here, EntityUid primary)
+    {
+        var guns = new List<(EntityUid Gun, Vector2 At)>();
+        var mounted = EntityQueryEnumerator<FireControllableComponent, TransformComponent>();
+        while (mounted.MoveNext(out var gun, out _, out var xform))
+        {
+            if (xform.GridUid == grid && xform.Anchored)
+                guns.Add((gun, _transform.GetWorldPosition(xform)));
+        }
+
+        var targets = new List<(EntityUid Target, Vector2 At)> { (primary, _transform.GetWorldPosition(primary)) };
+        var wanted = Math.Clamp(guns.Count / GunsPerTarget, 1, MaxTargets);
+        if (wanted > 1)
+        {
+            var others = new List<(EntityUid Target, float Distance)>();
+            foreach (var ship in _alerts.GetHostileShips(grid, crew.Group))
+            {
+                if (ship != primary && Engageable(uid, grid, crew, duty, here, ship, true) is { } distance)
+                    others.Add((ship, distance));
+            }
+
+            others.Sort((a, b) => a.Distance.CompareTo(b.Distance));
+            foreach (var (ship, _) in others)
+            {
+                if (targets.Count >= wanted)
+                    break;
+                targets.Add((ship, _transform.GetWorldPosition(ship)));
+            }
+        }
+
+        var groups = new List<(EntityUid Target, List<EntityUid> Guns)>();
+        foreach (var (target, _) in targets)
+        {
+            groups.Add((target, new List<EntityUid>()));
+        }
+
+        foreach (var (gun, at) in guns)
+        {
+            var nearest = 0;
+            var best = float.MaxValue;
+            for (var i = 0; i < targets.Count; i++)
+            {
+                var distance = (targets[i].At - at).LengthSquared();
+                if (distance >= best)
+                    continue;
+                best = distance;
+                nearest = i;
+            }
+
+            groups[nearest].Guns.Add(gun);
+        }
+
+        // The chosen target is never left without a gun: it takes one from the best armed of the others.
+        if (groups[0].Guns.Count == 0 && guns.Count > 0)
+        {
+            var donor = 1;
+            for (var i = 2; i < groups.Count; i++)
+            {
+                if (groups[i].Guns.Count > groups[donor].Guns.Count)
+                    donor = i;
+            }
+
+            var spare = groups[donor].Guns;
+            groups[0].Guns.Add(spare[^1]);
+            spare.RemoveAt(spare.Count - 1);
+        }
+
+        groups.RemoveAll(group => group.Target != primary && group.Guns.Count == 0);
+        return groups;
+    }
+
+    /// <summary>The ships a gunner is firing on right now, his chosen target first, with the guns on each.</summary>
+    public IReadOnlyList<(EntityUid Target, List<EntityUid> Guns)> Batteries(EntityUid gunner)
+    {
+        return _batteries.TryGetValue(gunner, out var battery) ? battery.Groups : Array.Empty<(EntityUid, List<EntityUid>)>();
     }
 
     /// <summary>

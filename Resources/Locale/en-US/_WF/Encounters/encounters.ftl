@@ -194,3 +194,9 @@ wf-encounter-announce-skirmish-navies = Traffic control to all vessels: {$name}.
 wf-encounter-name-skirmish-pdv-corsairs = Dynasty patrol engaging corsairs {$designation}
 wf-encounter-announce-skirmish-pdv-corsairs = Traffic control to all vessels: {$name}. A Dynasty patrol has caught a RedSail corsair crew in open space and means to finish it. Expect heavy fire. Anything that gets between them is on its own.
 wf-encounter-reward-thanks-skirmish-pdv = Vanguard patrol to the vessels that stood with us: your help is noted, and the Sultan's purse has paid for it.
+
+# Capital ships under attack
+wf-encounter-name-capital = TSF capital ship {$designation} under attack
+wf-encounter-announce-capital = Mayday, mayday, all vessels, this is {$name}. A pirate pack has us surrounded, raiders and fighters on every quarter, and our guns can't hold them all. Any armed vessel, engage the pirates. The Federation will pay, and pay well.
+wf-encounter-name-pdv-capital = Dynasty capital ship {$designation} under attack
+wf-encounter-announce-pdv-capital = All vessels, all vessels, this is {$name}. A Federation strike group is on us from every side and we are taking hits faster than we can answer them. Any armed vessel, engage the Federation fighters. The Vanguard repays its debts, and with interest.
