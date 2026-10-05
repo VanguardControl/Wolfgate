@@ -193,6 +193,35 @@ public sealed partial class WFCrewTest
         });
     }
 
+    /// <summary>When a crew is cleared away, a dead crewman carried off to another ship is left there as an ordinary body.</summary>
+    [Test]
+    public async Task CarriedOffCorpsesOutliveTheirCrew()
+    {
+        var deck = await CreateDeck(new Vector2(500, 1500), 5, true);
+        var other = await CreateDeck(new Vector2(600, 1500), 5, true);
+        EntityUid taken = default, left = default, living = default;
+        await Server.WaitAssertion(() =>
+        {
+            taken = ConvoyCrew(deck, "WFCrewDeckhand", "corpses", new Vector2(1.5f));
+            left = ConvoyCrew(deck, "WFCrewDeckhand", "corpses", new Vector2(2.5f, 1.5f));
+            living = ConvoyCrew(deck, "WFCrewDeckhand", "corpses", new Vector2(3.5f, 1.5f));
+            var mobs = Server.System<MobStateSystem>();
+            mobs.ChangeMobState(taken, MobState.Dead);
+            mobs.ChangeMobState(left, MobState.Dead);
+            Server.System<SharedTransformSystem>().SetCoordinates(taken, new EntityCoordinates(other, new Vector2(2.5f)));
+            Server.System<WFCrewSetupSystem>().ClearCrew(deck, "corpses", keepCorpses: true);
+        });
+        await RunTicks(5);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.EntityExists(taken), Is.True, "The body somebody carried off stays.");
+            Assert.That(SEntMan.HasComponent<WFCrewComponent>(taken), Is.False, "And is crew no longer.");
+            Assert.That(SEntMan.EntityExists(left), Is.False, "The body left aboard goes with the crew.");
+            Assert.That(SEntMan.EntityExists(living), Is.False);
+            SEntMan.DeleteEntity(taken);
+        });
+    }
+
     /// <summary>A ship rammed at speed takes the rammer for an attacker; a bump is let pass.</summary>
     [Test]
     public async Task RammingIsAnAttackAndBumpingIsNot()

@@ -88,18 +88,39 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         return members;
     }
 
-    /// <summary>Cancels a crew's queue and work and deletes its crewmen. Returns how many were removed.</summary>
-    public int ClearCrew(EntityUid grid, string group)
+    /// <summary>
+    /// Cancels a crew's queue and work and deletes its crewmen. Returns how many were removed. With
+    /// <paramref name="keepCorpses"/>, the dead lying on some other grid are left there as ordinary bodies.
+    /// </summary>
+    public int ClearCrew(EntityUid grid, string group, bool keepCorpses = false)
     {
         var members = Members(grid, group);
         _objectives.Cancel(grid, group);
+        var removed = 0;
         foreach (var member in members)
+        {
+            if (keepCorpses && LeaveCorpse(member, grid))
+                continue;
             QueueDel(member);
-        return members.Count;
+            removed++;
+        }
+        return removed;
+    }
+
+    /// <summary>
+    /// A dead crewman somebody has carried off his ship is theirs to keep: he stops being crew and stays where he lies.
+    /// </summary>
+    private bool LeaveCorpse(EntityUid uid, EntityUid? ship)
+    {
+        if (!_mobs.IsDead(uid) || Transform(uid).GridUid is not { } lying || lying == ship)
+            return false;
+
+        RemComp<WFCrewComponent>(uid);
+        return true;
     }
 
     /// <summary>Deletes a group on every ship and cancels its queues and work. Returns how many crewmen were removed.</summary>
-    public int ClearGroup(string group)
+    public int ClearGroup(string group, bool keepCorpses = false)
     {
         var members = new List<EntityUid>();
         var ships = new HashSet<EntityUid>();
@@ -114,9 +135,15 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         }
         foreach (var ship in ships)
             _objectives.Cancel(ship, group);
+        var removed = 0;
         foreach (var member in members)
+        {
+            if (keepCorpses && LeaveCorpse(member, null))
+                continue;
             QueueDel(member);
-        return members.Count;
+            removed++;
+        }
+        return removed;
     }
 
     /// <summary>Whether a grid is too large to scan for posts without stalling the server.</summary>

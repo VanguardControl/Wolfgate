@@ -695,7 +695,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         // Ending is final: a boarding party or stranded raiders posted on another ship go too.
         foreach (var ship in encounter.Comp.Ships.Values)
         {
-            _setup.ClearGroup(ship.Group);
+            _setup.ClearGroup(ship.Group, keepCorpses: true);
         }
 
         Remove((encounter, encounter.Comp));
@@ -716,7 +716,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         if (TerminatingOrDeleted(ship.Grid))
             return;
 
-        _setup.ClearCrew(ship.Grid, ship.Group);
+        _setup.ClearCrew(ship.Grid, ship.Group, keepCorpses: true);
         // Anyone still aboard is left in space, not deleted with the hull.
         _lifecycle.UnparentPlayersFromGrid(ship.Grid, true);
     }
@@ -1085,7 +1085,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
                 if (ship.Hunt && HasLivingCrew(ship, anywhere: true))
                 {
                     if (overdue)
-                        _setup.ClearGroup(ship.Group);
+                        _setup.ClearGroup(ship.Group, keepCorpses: true);
                     else
                         remaining = true;
                 }
