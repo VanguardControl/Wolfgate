@@ -200,3 +200,19 @@ wf-encounter-name-capital = TSF capital ship {$designation} under attack
 wf-encounter-announce-capital = Mayday, mayday, all vessels, this is {$name}. A pirate pack has us surrounded, raiders and fighters on every quarter, and our guns can't hold them all. Any armed vessel, engage the pirates. The Federation will pay, and pay well.
 wf-encounter-name-pdv-capital = Dynasty capital ship {$designation} under attack
 wf-encounter-announce-pdv-capital = All vessels, all vessels, this is {$name}. A Federation strike group is on us from every side and we are taking hits faster than we can answer them. Any armed vessel, engage the Federation fighters. The Vanguard repays its debts, and with interest.
+
+# Heavier and stranger patrols
+wf-encounter-name-patrol-heavy = TSF heavy patrol {$designation}
+wf-encounter-announce-patrol-heavy = Traffic control to all vessels: {$name}. A Federation gunboat and escort are holding station off {$destination} for the next while. Dynasty traffic is advised to keep its distance.
+wf-encounter-name-pdv-patrol-heavy = Dynasty heavy patrol {$designation}
+wf-encounter-announce-pdv-patrol-heavy = Traffic control to all vessels: {$name}. A Vanguard gunboat and escort are holding station off {$destination} for the next while. Federation traffic is advised to keep its distance.
+wf-encounter-name-ussp-patrol = Union remnant {$designation}
+wf-encounter-announce-ussp-patrol = Traffic control to all vessels: {$name}. Union warships are holding a position in open space and answering nobody's hails. All traffic is advised to give them a wide berth.
+wf-encounter-ussp-zone-warn-1 = {$intruder}, you are {$distance} metres inside Union space. There is no Union space on your charts. There is on ours. Turn around.
+wf-encounter-ussp-zone-warn-2 = Vessel {$intruder}, this is a warship of the Union. Your company means nothing here. Alter course away from us.
+wf-encounter-ussp-zone-warn-3 = {$intruder}, we have not surrendered and we are not negotiating. Open the range.
+wf-encounter-ussp-zone-attack = {$intruder}, for the Union. Fire.
+
+# Fleet battle
+wf-encounter-name-fleet-battle = Fleet action {$designation}
+wf-encounter-announce-fleet-battle = Traffic control to all vessels: {$name}. A Federation carrier group and a Dynasty battle group have met in open space and are engaging. All civilian traffic is to stay well clear. Both navies are calling for any armed vessel that will fight for them.

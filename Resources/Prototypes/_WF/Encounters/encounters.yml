@@ -17,7 +17,7 @@
   ships:
   - key: lead
     navigation: WFCrewNavigationWarship
-    vessel: QJ271
+    vessels: [ QJ271, QJ271, Paladin, Ocelot, Seax, Xiphos ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -37,7 +37,7 @@
       range: 700
   - key: wing
     navigation: WFCrewNavigationWarship
-    vessel: QJ271
+    vessels: [ QJ271, QJ271, Paladin, Ocelot ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -74,7 +74,7 @@
   ships:
   - key: lead
     navigation: WFCrewNavigationWarship
-    vessels: [ Kynda, Gadfly ]
+    vessels: [ Kynda, Gadfly, Gadfly, Kresta, Ontos ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -95,7 +95,7 @@
       range: 700
   - key: wing
     navigation: WFCrewNavigationWarship
-    vessel: Gadfly
+    vessels: [ Gadfly, Gadfly, Kresta ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -2421,3 +2421,392 @@
     objectives:
     - kind: Attack
       target: capital
+
+# Heavier patrols that come and go: a gunboat with two fighters holds station off a station for a while and leaves. They
+# mind the same things as the round-start pairs, with a longer reach.
+- type: wfEncounter
+  id: WFEncounterTsfPatrolHeavy
+  avoidStations: [ Helios, PDV, Caelestinus ]
+  name: wf-encounter-name-patrol-heavy
+  announcement: wf-encounter-announce-patrol-heavy
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Patrol
+  cost: 2
+  weight: 0.9
+  minPlayers: 3
+  placement: Station
+  standoff: 600
+  cooldown: 3600
+  duration: 2400
+  ships:
+  - key: lead
+    navigation: WFCrewNavigationWarship
+    vessels: [ Banshee, Dagger, Fracture, Calypso ]
+    deckhands: 1
+    guards: 1
+    side: patrol
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    docking: Warn
+    disengage: Deter
+    disengageRange: 1400
+    warnRange: 1000
+    attackRange: 500
+    zoneTargets: AtWar
+    objectives:
+    - kind: Circle
+      target: "@origin"
+      range: 750
+  - key: wing
+    navigation: WFCrewNavigationWarship
+    vessels: [ QJ271, Paladin, Ocelot ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 130, 0
+    side: patrol
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    docking: Warn
+    disengage: Deter
+    disengageRange: 1400
+    warnRange: 1000
+    attackRange: 500
+    zoneTargets: AtWar
+    objectives:
+    - kind: Escort
+      target: lead
+  - key: wingtwo
+    navigation: WFCrewNavigationWarship
+    vessels: [ QJ271, Paladin, Ocelot ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -130, 0
+    side: patrol
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    docking: Warn
+    disengage: Deter
+    disengageRange: 1400
+    warnRange: 1000
+    attackRange: 500
+    zoneTargets: AtWar
+    objectives:
+    - kind: Escort
+      target: lead
+
+- type: wfEncounter
+  id: WFEncounterPdvPatrolHeavy
+  avoidStations: [ TSF, Caelestinus ]
+  name: wf-encounter-name-pdv-patrol-heavy
+  announcement: wf-encounter-announce-pdv-patrol-heavy
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Patrol
+  cost: 2
+  weight: 0.9
+  minPlayers: 3
+  placement: Station
+  standoff: 600
+  cooldown: 3600
+  duration: 2400
+  ships:
+  - key: lead
+    navigation: WFCrewNavigationWarship
+    vessels: [ Tethys, Neptune ]
+    deckhands: 1
+    guards: 1
+    side: patrol
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    docking: Warn
+    disengage: Deter
+    disengageRange: 1400
+    warnRange: 1000
+    attackRange: 500
+    zoneLines: wf-encounter-pdv-zone
+    zoneTargets: AtWar
+    iffColor: "#ffae3d"
+    objectives:
+    - kind: Circle
+      target: "@origin"
+      range: 750
+  - key: wing
+    navigation: WFCrewNavigationWarship
+    vessels: [ Gadfly, Kresta, Kynda ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 130, 0
+    side: patrol
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    docking: Warn
+    disengage: Deter
+    disengageRange: 1400
+    warnRange: 1000
+    attackRange: 500
+    zoneLines: wf-encounter-pdv-zone
+    zoneTargets: AtWar
+    objectives:
+    - kind: Escort
+      target: lead
+  - key: wingtwo
+    navigation: WFCrewNavigationWarship
+    vessels: [ Gadfly, Kresta, Kynda ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -130, 0
+    side: patrol
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    docking: Warn
+    disengage: Deter
+    disengageRange: 1400
+    warnRange: 1000
+    attackRange: 500
+    zoneLines: wf-encounter-pdv-zone
+    zoneTargets: AtWar
+    objectives:
+    - kind: Escort
+      target: lead
+
+# A remnant of the Union's fleet, still flying the flag in open space: a gunboat and a fighter that hold a patch of nothing
+# and warn everyone off it. They take no company's word for anything and fire on whoever presses in.
+- type: wfEncounter
+  id: WFEncounterUsspRemnantPatrol
+  name: wf-encounter-name-ussp-patrol
+  announcement: wf-encounter-announce-ussp-patrol
+  announcementSender: wf-encounter-sender-traffic
+  start: Scheduled
+  category: Patrol
+  cost: 2
+  weight: 0.6
+  minPlayers: 3
+  cooldown: 4200
+  duration: 2400
+  minDistance: 2500
+  maxDistance: 4500
+  stationClearance: 2500
+  ships:
+  - key: lead
+    navigation: WFCrewNavigationWarship
+    vessels: [ Natisk, Akula, Tayfun, Sekunda ]
+    deckhands: 1
+    guards: 1
+    side: remnant
+    faction: USSP
+    company: USSP
+    profile: WFCrewProfileUssp
+    docking: Hostile
+    boarding: Hostile
+    disengage: Deter
+    disengageRange: 1600
+    warnRange: 1100
+    attackRange: 550
+    zoneLines: wf-encounter-ussp-zone
+    zoneTargets: Everyone
+    iffColor: "#d94c4c"
+    objectives:
+    - kind: Hold
+  - key: wing
+    navigation: WFCrewNavigationWarship
+    vessels: [ Svinya, Strayk ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 140, 0
+    side: remnant
+    faction: USSP
+    company: USSP
+    profile: WFCrewProfileUssp
+    docking: Hostile
+    boarding: Hostile
+    disengage: Deter
+    disengageRange: 1600
+    warnRange: 1100
+    attackRange: 550
+    zoneLines: wf-encounter-ussp-zone
+    zoneTargets: Everyone
+    objectives:
+    - kind: Escort
+      target: lead
+
+# A fleet action, for admins to set off: a Federation carrier and a Dynasty capital ship with their escorts, each side on
+# the other. Players may join either; whichever side they help pays when it wins. Never scheduled.
+- type: wfEncounter
+  id: WFEncounterFleetBattle
+  leash: 4000
+  name: wf-encounter-name-fleet-battle
+  announcement: wf-encounter-announce-fleet-battle
+  announcementSender: wf-encounter-sender-traffic
+  start: Manual
+  category: Threat
+  cost: 6
+  weight: 0
+  minPlayers: 0
+  duration: 3600
+  minDistance: 3000
+  maxDistance: 5000
+  stationClearance: 3000
+  rewards:
+  - side: tsf
+    spesos: 90000
+    credits: 52
+    creditEntity: FederationMilitaryCredit1
+    creditCompanies: [ TSF, TSFCivilian ]
+    thanks: wf-encounter-reward-thanks-tsf
+  - side: pdv
+    spesos: 90000
+    credits: 52
+    creditEntity: Doubloon1
+    creditCompanies: [ PDV, PDVCivilian ]
+    thanks: wf-encounter-reward-thanks-pdv
+  ships:
+  - key: carrier
+    navigation: WFCrewNavigationWarship
+    vessel: Fujian
+    deckhands: 3
+    guards: 2
+    offset: -900, 0
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: flagship
+  - key: gunboat
+    navigation: WFCrewNavigationWarship
+    vessels: [ Banshee, Dagger, Calypso ]
+    deckhands: 1
+    guards: 1
+    offset: -750, 200
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    objectives:
+    - kind: Attack
+      target: escort
+  - key: fighter
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -700, -200
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    objectives:
+    - kind: Attack
+      target: flagship
+  - key: fightertwo
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -650, 350
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    objectives:
+    - kind: Attack
+      target: wing
+  - key: fighterthree
+    navigation: WFCrewNavigationWarship
+    vessel: Paladin
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -650, -350
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    objectives:
+    - kind: Attack
+      target: wingtwo
+  - key: flagship
+    navigation: WFCrewNavigationWarship
+    vessel: Europa
+    deckhands: 3
+    guards: 2
+    offset: 900, 0
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    iffColor: "#ffae3d"
+    objectives:
+    - kind: Attack
+      target: carrier
+  - key: escort
+    navigation: WFCrewNavigationWarship
+    vessels: [ Tethys, Neptune ]
+    deckhands: 1
+    guards: 1
+    offset: 750, -200
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    objectives:
+    - kind: Attack
+      target: gunboat
+  - key: wing
+    navigation: WFCrewNavigationWarship
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 700, 200
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    objectives:
+    - kind: Attack
+      target: carrier
+  - key: wingtwo
+    navigation: WFCrewNavigationWarship
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 650, -350
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    objectives:
+    - kind: Attack
+      target: fightertwo
+  - key: wingthree
+    navigation: WFCrewNavigationWarship
+    vessel: Kresta
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 650, 350
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    objectives:
+    - kind: Attack
+      target: fighterthree

@@ -33,7 +33,9 @@ public sealed class WFCrewCommsSystem : EntitySystem
         // TSF Comms for the Federation; the Dynasty's people carry the Vanguard channel.
         if (company.StartsWith("TSF", StringComparison.Ordinal))
             return "Nfsd";
-        return company.StartsWith("PDV", StringComparison.Ordinal) ? "Freelance" : null;
+        if (company.StartsWith("PDV", StringComparison.Ordinal))
+            return "Freelance";
+        return company == "USSP" ? "Ussp" : null;
     }
 
     public override void Initialize()

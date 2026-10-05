@@ -358,3 +358,57 @@
     WFCrewRadioOperator: [ WFCrewPirateOfficer ]
     WFCrewCaptain: [ WFCrewPirateOfficer ]
     WFCrewGunner: [ WFCrewPirateOfficer, WFCrewPirateHand ]
+
+# Remnants of the Union's fleet: still in uniform, still armed, nobody's friends.
+- type: startingGear
+  id: WFCrewUsspHand
+  equipment:
+    jumpsuit: ClothingUniformUSSP
+    shoes: ClothingShoesBootsCombat
+    head: ClothingHeadHelmetCombatUSSP
+    belt: WeaponPistolMk32
+    pocket1: Magazine9x19mmPistolFMJ
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewUsspOfficer
+  equipment:
+    jumpsuit: ClothingUniformServiceDressUSSP
+    outerClothing: ClothingOuterCoatUSSP
+    shoes: ClothingShoesBootsCombat
+    head: ClothingHeadHatUSSPOfficerCap
+    belt: WeaponPistolMk32
+    pocket1: Magazine9x19mmPistolFMJ
+    pocket2: Magazine9x19mmPistolFMJ
+    ears: WFCrewHeadset
+
+- type: startingGear
+  id: WFCrewUsspGuard
+  equipment:
+    jumpsuit: ClothingUniformUSSP
+    outerClothing: ClothingOuterArmorBulletproof
+    head: ClothingHeadHelmetHeavyUSSP
+    shoes: ClothingShoesBootsCombat
+    gloves: ClothingHandsGlovesColorBlack
+    back: WeaponRifleAk
+    belt: WeaponPistolMk32
+    pocket1: Magazine762x39mmFMJ
+    pocket2: Magazine9x19mmPistolFMJ
+    ears: WFCrewHeadset
+
+- type: wfCrewProfile
+  id: WFCrewProfileUssp
+  bodies:
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyHuman
+  - WFMobCrewBodyDwarf
+  - WFMobCrewBodyReptilian
+  skills: [ Regular, Regular, Veteran ]
+  loadouts:
+    WFCrewDeckhand: [ WFCrewUsspHand ]
+    WFCrewPilot: [ WFCrewUsspOfficer ]
+    WFCrewRadioOperator: [ WFCrewUsspOfficer ]
+    WFCrewCaptain: [ WFCrewUsspOfficer ]
+    WFCrewGunner: [ WFCrewUsspOfficer ]
+    WFCrewMarine: [ WFCrewUsspGuard ]
