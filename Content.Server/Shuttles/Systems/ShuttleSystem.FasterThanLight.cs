@@ -158,6 +158,7 @@ public sealed partial class ShuttleSystem
         DebugTools.Assert(!_mapSystem.IsPaused(mapId));
         var parallax = EnsureComp<ParallaxComponent>(mapUid);
         parallax.Parallax = ftlMap.Parallax;
+        _mapSystem.SetAmbientLight(mapId, ftlMap.AmbientLightColor); // Mono
 
         return mapUid;
     }
@@ -367,6 +368,9 @@ public sealed partial class ShuttleSystem
         float? hyperspaceTime = null,
         string? priorityTag = null)
     {
+        if (WfRefusesFtlDeparture(shuttleUid)) // WOLFGATE(Planets): the docking branch never calls TrySetupFTL, so it asks the same gate.
+            return;
+
         // TODO: Validation
         if (!TryComp<FTLDestinationComponent>(_mapManager.GetMapEntityId(_transform.GetMapId(target)), out var dest))
         {
@@ -553,6 +557,9 @@ public sealed partial class ShuttleSystem
     private bool TrySetupFTL(EntityUid uid, ShuttleComponent shuttle, [NotNullWhen(true)] out FTLComponent? component)
     {
         component = null;
+
+        if (WfRefusesFtlDeparture(uid)) // WOLFGATE(Planets): a planet is left from orbit, never from the surface, the air or mid-transit.
+            return false;
 
         if (HasComp<FTLComponent>(uid))
         {
@@ -1468,6 +1475,9 @@ public sealed partial class ShuttleSystem
                 {
                     continue;
                 }
+
+                if (WfSetDownOn(uid, ent, mapUid.Value)) // WOLFGATE(Planets): a hull coming down on a planet hurts a mob under it and shoves it clear, and gibs nobody
+                    continue;
 
                 if (_bodyQuery.TryGetComponent(ent, out var mob))
                 {

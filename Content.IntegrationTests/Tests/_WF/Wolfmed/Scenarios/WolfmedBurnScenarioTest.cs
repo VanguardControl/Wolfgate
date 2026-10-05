@@ -26,6 +26,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Fluids.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Stunnable;
 using Content.Shared.Traits.Assorted;
 using NUnit.Framework;
 using Robust.Shared.GameObjects;
@@ -42,7 +43,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
 /// <remarks>Times are asserted as order plus a ±20% band, with every CVar the arithmetic reads pinned.</remarks>
 [TestFixture]
 [TestOf(typeof(WolfmedFluidLossSystem))]
-public sealed class WolfmedBurnScenarioTest : GameTest
+public sealed class WolfmedBurnScenarioTest : WolfmedGameTest
 {
     private const float Band = 0.2f;
     private const float FaintSeconds = 20f;
@@ -123,7 +124,7 @@ public sealed class WolfmedBurnScenarioTest : GameTest
     public async Task FireMeasurementTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid a = default;
         var parts = new List<(string Name, EntityUid Id)>();
@@ -204,7 +205,7 @@ public sealed class WolfmedBurnScenarioTest : GameTest
     public async Task BurnScenarioTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid a = default;
         EntityUid b = default;
@@ -389,7 +390,7 @@ public sealed class WolfmedBurnScenarioTest : GameTest
     public async Task SaturatedTorsoTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid sat = default, fresh = default, attacker = default, satTorso = default, freshTorso = default;
 
@@ -498,7 +499,7 @@ public sealed class WolfmedBurnScenarioTest : GameTest
     public async Task AmbientCeilingTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid admin = default;
 
@@ -639,7 +640,7 @@ public sealed class WolfmedBurnScenarioTest : GameTest
         await Pin();
         await OverrideCVar(Side.Server, WolfmedCVars.InfectionEnabled, true);
         await OverrideCVar(Side.Server, WolfmedCVars.InfectionRate, 1f);
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
 
         await Server.WaitAssertion(() =>
@@ -688,7 +689,7 @@ public sealed class WolfmedBurnScenarioTest : GameTest
         await OverrideCVar(Side.Server, WolfmedCVars.CharCrumbleSeconds, crumble);
         await OverrideCVar(Side.Server, WolfmedCVars.CharCrumbleLimbMultiplier, 2f);
         await OverrideCVar(Side.Server, WolfmedCVars.CharCrumbleGapSeconds, 10f);
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid body = default, hand = default, arm = default, head = default, torso = default;
 
@@ -772,7 +773,7 @@ public sealed class WolfmedBurnScenarioTest : GameTest
     public async Task DownedCanPatOutFireTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid a = default;
 
@@ -794,9 +795,19 @@ public sealed class WolfmedBurnScenarioTest : GameTest
 
         Assert.That(downed, Is.True, "the fire never put the patient down, so the test proves nothing.");
         // Still burning, but slowly: at ten stacks the pain climbs from the Downed line to a faint within the
-        // wait below. Past the fall's own short stun, which cancels every action.
+        // wait below.
         await Server.WaitPost(() => SEntMan.System<FlammableSystem>().SetFireStacks(a, 1, ignite: true));
-        await RunSeconds(3);
+
+        // The pain shock (130) sits just past the Downed line (128.25), so its two-second stun, which cancels every
+        // action, starts with the fall or with the next burn up to a second later. Wait for the stun, not a time.
+        var stunned = true;
+        for (var i = 0; i < 25 && stunned; i++)
+        {
+            await RunSeconds(0.2f);
+            await Server.WaitPost(() => stunned = SEntMan.HasComponent<StunnedComponent>(a));
+        }
+
+        Assert.That(stunned, Is.False, "the pain shock's stun never passed.");
         await Server.WaitAssertion(() =>
         {
             Assert.That(s.State(a), Is.EqualTo(WolfmedConsciousness.Downed));

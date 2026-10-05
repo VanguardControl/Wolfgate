@@ -617,6 +617,7 @@ clone.
 - [`Resources/Prototypes/Reagents/elements.yml`](../../../Resources/Prototypes/Reagents/elements.yml)
   - iron poisons Avali (Starlight)
   - iron doesn't build Avali blood either; it poisons them
+- [`Resources/Prototypes/Reagents/gases.yml`](../../../Resources/Prototypes/Reagents/gases.yml): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
 - [`Resources/Prototypes/Reagents/medicine.yml`](../../../Resources/Prototypes/Reagents/medicine.yml)
   - dexalin doesn't heal Avali; their blood is ammonia-based (Starlight)
   - dexalin poisons Avali (Starlight), scaled to Mono's 0.2 rate so a unit still does 3/2/2
