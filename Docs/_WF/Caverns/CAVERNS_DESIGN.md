@@ -85,8 +85,17 @@ Checked in code on this branch. Line numbers are approximate.
      when nothing has touched it since it spawned, not only when it still equals its prototype, which a rock wall
      never does; one that was touched, shares its tile with something anchored or stands on a pinned tile stays,
      pins its tile and is tagged `WFBiomeGrown` so it still reads as the biome's. A tile with a decal that is not
-     the biome's, such as a crayon mark, is pinned too. Entities the biome does not track never unload: ore and other
-     spawner results, and anything with children such as water.
+     the biome's, such as a crayon mark, is pinned too.
+   - Surface rock comes from a spawner marker (`MonoPlanetmapOre*`). Left to itself the marker lays a rock the
+     biome does not track and pins the tile as it deletes itself, so the rock never unloads. On planet layers the
+     loader makes that roll itself (`BiomeSystem.WFRoll.cs`), seeded from the tile and a salt drawn once per layer:
+     the rock is tracked, goes with its chunk and comes back the same rock, and each round still lays its ore
+     differently. Only a roll that comes to one structure fixed to its tile is taken; a loot marker rolls for
+     itself as before.
+   - Water keeps its pool as an entity inside it. Both go when neither has been touched; water something has waded
+     through or drawn from stays as it was left.
+   - What still never unloads: one floor tile under each wildlife marker (it deletes itself, which pins the tile),
+     a spawner that stays where it is, loot, and anything else not fixed to a tile.
    - An empty tile that is neither pinned nor on a loaded chunk is solid ground to z-physics (`WfUnloadedGround`),
      so nothing left on ground that unloads falls into the cavern, and no mouth is claimed under a mob.
    - `UnloadTiles` keeps only modified tiles and tiles holding an entity anchored to *that grid*. Ground under a

@@ -1,6 +1,7 @@
 using Content.Server._WF.Planets;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
+using Content.Shared.Chemistry.Components.SolutionManager;
 using Content.Shared.Parallax.Biomes;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -68,12 +69,21 @@ public sealed partial class BiomeSystem
 
         /// <summary>Chunks whose unload threw; they are left alone.</summary>
         public readonly HashSet<Vector2i> Broken = new();
+
+        /// <summary>What this layer's spawner rolls are salted with, drawn the first time one is made.</summary>
+        public int? RollSalt;
     }
 
     /// <summary>How many of a layer's loaded chunks are waiting out their idle time or queued to unload.</summary>
     public int WfIdleChunks(EntityUid layer)
     {
         return _wfLayers.TryGetValue(layer, out var state) ? state.IdleSince.Count + state.Queued.Count : 0;
+    }
+
+    /// <summary>How many of a layer's chunks have run out their idle time and wait their turn to unload.</summary>
+    public int WfQueuedChunks(EntityUid layer)
+    {
+        return _wfLayers.TryGetValue(layer, out var state) ? state.Queued.Count : 0;
     }
 
     /// <summary>Reads the settings and picks the layer whose turn it is to unload this pass.</summary>
@@ -244,6 +254,11 @@ public sealed partial class BiomeSystem
         var active = _activeChunks[biome];
         _wfWatch.Restart();
 
+        // A hull or a watcher can have come since the scan that queued these, and the next scan is up to a second off.
+        _wfKeep.Clear();
+        WfKeepUnderWatchers(map);
+        WfKeepUnderHulls(map);
+
         while (layer.Due.TryDequeue(out var chunk))
         {
             // Kept since it was queued: the scan took it out of the queue, and it waits its idle time out again.
@@ -253,7 +268,10 @@ public sealed partial class BiomeSystem
             // Whatever happens next, its clock starts again if it is still loaded and idle.
             layer.IdleSince.Remove(chunk);
 
-            if (!biome.LoadedChunks.Contains(chunk) || layer.Held.Contains(chunk) || WfNearActive(active, chunk))
+            if (!biome.LoadedChunks.Contains(chunk)
+                || layer.Held.Contains(chunk)
+                || _wfKeep.Contains(chunk)
+                || WfNearActive(active, chunk))
                 continue;
 
             // A room keeps the natural walls round it: with them gone it would vent to the planet's air.
@@ -381,17 +399,30 @@ public sealed partial class BiomeSystem
 
     /// <summary>
     /// Whether nothing has happened to a biome entity since it spawned: nothing marked it changed, nothing is inside or
-    /// stuck in it, and nothing else is fixed to its tile.
+    /// stuck in it but its own untouched liquid, and nothing else is fixed to its tile.
     /// </summary>
     // Upstream asks whether it still matches its prototype, which a rock wall never does once it has started up.
     private bool WfIsPristine(EntityUid uid, TransformComponent xform, EntityUid map, MapGridComponent grid, Vector2i tile)
     {
-        if (xform.ChildCount != 0 || HasComp<WFBiomeKeepComponent>(uid))
+        // A spawner that stays has laid things beside itself, and would lay them again each time it came back.
+        if (HasComp<WFBiomeKeepComponent>(uid) || WfIsStandingSpawner(uid))
             return false;
 
-        var meta = MetaData(uid);
-        if (meta.EntityLastModifiedTick.Value > meta.CreationTick.Value + WfPristineSlack)
+        if (!WfIsUntouched(uid))
             return false;
+
+        // Water keeps its pool as an entity inside it; drawing from the pool marks the pool, not the water.
+        var children = xform.ChildEnumerator;
+
+        while (children.MoveNext(out var child))
+        {
+            if (!TryComp<ContainedSolutionComponent>(child, out var pool)
+                || pool.Container != uid
+                || !WfIsUntouched(child)
+                || !_xformQuery.TryGetComponent(child, out var childXform)
+                || childXform.ChildCount != 0)
+                return false;
+        }
 
         // A light on a rock wall or a cable run under it stays where it is, so the rock has to as well.
         var anchored = _mapSystem.GetAnchoredEntitiesEnumerator(map, grid, tile);
@@ -404,5 +435,12 @@ public sealed partial class BiomeSystem
         }
 
         return true;
+    }
+
+    /// <summary>Whether nothing has marked an entity changed since the tick it spawned in, or the one after.</summary>
+    private bool WfIsUntouched(EntityUid uid)
+    {
+        var meta = MetaData(uid);
+        return meta.EntityLastModifiedTick.Value <= meta.CreationTick.Value + WfPristineSlack;
     }
 }

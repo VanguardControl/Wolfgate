@@ -8,6 +8,8 @@ using Content.Server.Atmos.Components;
 using Content.Server.Decals;
 using Content.Server.Parallax;
 using Content.Shared._WF.CCVar;
+using Content.Shared.Chemistry.EntitySystems;
+using Content.Shared.FixedPoint;
 using Content.Shared.Damage;
 using Content.Shared.Maps;
 using Content.Shared.Parallax.Biomes;
@@ -30,6 +32,13 @@ namespace Content.IntegrationTests.Tests._WF.Planets;
 public sealed class TerrainUnloadTest
 {
     private const string Surface = "WFSurfaceMerak";
+
+    /// <summary>A world whose ground has rock outcrops and open water.</summary>
+    private const string RockSurface = "WFSurfaceAsclepiu";
+
+    /// <summary>A patch of ground the tests load by hand.</summary>
+    private static readonly Vector2i PatchFrom = new(160, 0);
+    private static readonly Vector2i PatchTo = new(160 + 95, 95);
 
     /// <summary>Seconds of idle the tests give a chunk, in place of the default three minutes.</summary>
     private const float Idle = 1f;
@@ -358,6 +367,305 @@ public sealed class TerrainUnloadTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// Surface rock, which a spawner lays, goes with its chunk, and the same rock is back on the same tiles when it
+    /// loads, ore and all. A tile someone mined stays mined.
+    /// </summary>
+    [Test]
+    public async Task SurfaceRockUnloadsAndComesBackTheSame()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+
+        await Setup(pair);
+        var world = await BuildWorld(pair, RockSurface);
+
+        try
+        {
+            await LoadChunks(pair, world.Ground, PatchFrom, PatchTo);
+            await server.WaitRunTicks(pair.SecondsToTicks(3f));
+
+            var first = new Dictionary<Vector2i, string>();
+            var mined = Vector2i.Zero;
+
+            await server.WaitPost(() =>
+            {
+                var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
+                var rocks = Rocks(entMan, maps, world.Ground, grid, PatchFrom, PatchTo);
+
+                foreach (var (uid, tile) in rocks)
+                {
+                    first[tile] = entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype!.ID;
+                }
+
+                if (rocks.Count == 0)
+                    return;
+
+                mined = rocks[rocks.Count / 2].Tile;
+                entMan.DeleteEntity(rocks[rocks.Count / 2].Uid);
+                first.Remove(mined);
+            });
+
+            Assert.That(first.Count, Is.GreaterThan(100), "Precondition: too little surface rock here to tell.");
+            Assert.That(first.Values.Distinct().Count(), Is.GreaterThan(2),
+                "Precondition: the rock here is all one kind, so a different roll would not show.");
+
+            await server.WaitRunTicks(5);
+            await UnloadChunks(pair, world.Ground, PatchFrom, PatchTo);
+
+            await server.WaitAssertion(() =>
+            {
+                var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
+                Assert.That(Rocks(entMan, maps, world.Ground, grid, PatchFrom, PatchTo), Is.Empty,
+                    "Surface rock stayed when its chunks unloaded.");
+            });
+
+            await LoadChunks(pair, world.Ground, PatchFrom, PatchTo);
+
+            await server.WaitAssertion(() =>
+            {
+                var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
+                var rocks = Rocks(entMan, maps, world.Ground, grid, PatchFrom, PatchTo);
+                var back = new Dictionary<Vector2i, string>();
+
+                foreach (var (uid, tile) in rocks)
+                {
+                    back[tile] = entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype!.ID;
+                }
+
+                var changed = first.Count(rock => !back.TryGetValue(rock.Key, out var now) || now != rock.Value);
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(back.Count, Is.EqualTo(rocks.Count), "Two rocks came back on one tile.");
+                    Assert.That(back.ContainsKey(mined), Is.False, "A mined tile grew its rock back.");
+                    Assert.That(back.Count, Is.EqualTo(first.Count), "A different amount of rock came back.");
+                    Assert.That(changed, Is.Zero, $"{changed} of {first.Count} rocks came back as another rock, or not at all.");
+                });
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// Water nothing has touched goes with its chunk and comes back. Water someone has drawn from stays as it was
+    /// left, and no second pool is laid on it.
+    /// </summary>
+    [Test]
+    public async Task StillWaterUnloadsAndDrawnWaterStays()
+    {
+        const string water = "MonoFloorWaterEntity";
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+        var solutions = server.System<SharedSolutionContainerSystem>();
+
+        await Setup(pair);
+        var world = await BuildWorld(pair, RockSurface);
+
+        try
+        {
+            await LoadChunks(pair, world.Ground, PatchFrom, PatchTo);
+            await server.WaitRunTicks(pair.SecondsToTicks(3f));
+
+            var before = 0;
+            var drawn = EntityUid.Invalid;
+            var drawnTile = Vector2i.Zero;
+            var left = FixedPoint2.Zero;
+
+            await server.WaitPost(() =>
+            {
+                var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
+                var pools = Anchored(entMan, maps, world.Ground, grid, PatchFrom, PatchTo, water);
+                before = pools.Count;
+
+                if (pools.Count == 0)
+                    return;
+
+                (drawn, drawnTile) = pools[pools.Count / 2];
+                Assert.That(solutions.TryGetSolution(drawn, "pool", out var pool), Is.True, "Precondition: the water has no pool.");
+                solutions.RemoveReagent(pool!.Value, "Water", FixedPoint2.New(50));
+                left = pool.Value.Comp.Solution.Volume;
+            });
+
+            Assert.That(before, Is.GreaterThan(20), "Precondition: too little water here to tell.");
+            await server.WaitRunTicks(5);
+            await UnloadChunks(pair, world.Ground, PatchFrom, PatchTo);
+
+            await server.WaitAssertion(() =>
+            {
+                var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
+                var pools = Anchored(entMan, maps, world.Ground, grid, PatchFrom, PatchTo, water);
+
+                Assert.That(pools.Select(pool => pool.Uid), Is.EquivalentTo(new[] { drawn }),
+                    $"Unloading left {pools.Count} of {before} water tiles, where only the one drawn from should stay.");
+            });
+
+            await LoadChunks(pair, world.Ground, PatchFrom, PatchTo);
+
+            await server.WaitAssertion(() =>
+            {
+                var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(Anchored(entMan, maps, world.Ground, grid, PatchFrom, PatchTo, water).Count, Is.EqualTo(before),
+                        "A different amount of water came back.");
+                    Assert.That(Anchored(entMan, maps, world.Ground, grid, drawnTile, drawnTile, water).Select(pool => pool.Uid),
+                        Is.EquivalentTo(new[] { drawn }), "The water drawn from was replaced, or has a second pool on it.");
+                    Assert.That(solutions.TryGetSolution(drawn, "pool", out var pool) ? pool.Value.Comp.Solution.Volume : FixedPoint2.Zero,
+                        Is.EqualTo(left), "The water drawn from was refilled.");
+                });
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// Loading and unloading the same ground over and over leaves no more lying about than the first time did, on any
+    /// world: a spawner that stays where it is must not lay its corpse or its loot again.
+    /// </summary>
+    [Test]
+    public async Task UnloadCyclesAddNothing()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+
+        await Setup(pair);
+
+        foreach (var surface in Surfaces)
+        {
+            var world = await BuildWorld(pair, surface);
+
+            try
+            {
+                foreach (var map in new[] { world.Ground, world.Cavern })
+                {
+                    var loose = new List<int>();
+
+                    for (var cycle = 0; cycle < 3; cycle++)
+                    {
+                        await LoadChunks(pair, map, PatchFrom, PatchTo);
+                        await server.WaitRunTicks(30);
+                        await UnloadChunks(pair, map, PatchFrom, PatchTo);
+                        await server.WaitRunTicks(5);
+
+                        await server.WaitPost(() =>
+                        {
+                            var count = 0;
+                            var query = entMan.AllEntityQueryEnumerator<TransformComponent>();
+
+                            while (query.MoveNext(out _, out var xform))
+                            {
+                                if (xform.ParentUid == map && !xform.Anchored)
+                                    count++;
+                            }
+
+                            loose.Add(count);
+                        });
+                    }
+
+                    Assert.That(loose[2], Is.LessThanOrEqualTo(loose[0]),
+                        $"{surface}, {entMan.ToPrettyString(map)}: each load and unload left more lying about ({string.Join(", ", loose)}).");
+                }
+            }
+            finally
+            {
+                await Teardown(pair, world);
+            }
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// Ground already queued to unload is left alone once a hull parks on it, though the queue was made before the
+    /// hull came.
+    /// </summary>
+    [Test]
+    public async Task AHullParkedOnQueuedGroundKeepsIt()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+        var plain = Home + new Vector2i(0, -24);
+
+        await Setup(pair);
+        var world = await BuildWorld(pair, Surface);
+
+        try
+        {
+            var viewer = await PlanetFixture.AttachViewer(pair, world.Ground, TileCentre(Home));
+            await pair.RunTicksSync(pair.SecondsToTicks(2f));
+            await Move(pair, viewer, world.Ground, Away);
+
+            // To the scan that queues the ground left behind; its unloading would start a pass later.
+            var queued = false;
+
+            for (var tick = 0; tick < 300 && !queued; tick++)
+            {
+                await pair.RunTicksSync(1);
+                await server.WaitPost(() => queued = biomes.WfQueuedChunks(world.Ground) > 0);
+            }
+
+            await server.WaitPost(() => server.CfgMan.SetCVar(PlanetCVars.TerrainUnload, false));
+
+            await server.WaitAssertion(() =>
+            {
+                var biome = (world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground));
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(queued, Is.True, "Precondition: the ground the viewer left was never queued to unload.");
+                    Assert.That(biomes.WfIsChunkLoaded(biome, Home), Is.True, "Precondition: the queued ground unloaded before the hull came.");
+                    Assert.That(biomes.WfIsChunkLoaded(biome, plain), Is.True, "Precondition: the queued ground unloaded before the hull came.");
+                });
+            });
+
+            var hull = await PlanetFixture.BuildDebris(pair, await MapIdOf(pair, world.Ground), 3, new Vector2(Home.X, Home.Y));
+            await server.WaitPost(() =>
+            {
+                server.System<SharedPhysicsSystem>().SetBodyType(hull, BodyType.Static);
+                server.System<SharedTransformSystem>().SetLocalPosition(hull, new Vector2(Home.X, Home.Y));
+                server.CfgMan.SetCVar(PlanetCVars.TerrainUnload, true);
+            });
+            await pair.RunTicksSync(pair.SecondsToTicks(Settle));
+
+            await server.WaitAssertion(() =>
+            {
+                var biome = (world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground));
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(biomes.WfIsChunkLoaded(biome, plain), Is.False, "Queued ground with nothing on it stayed loaded.");
+                    Assert.That(biomes.WfIsChunkLoaded(biome, Home), Is.True, "Queued ground unloaded from under a hull that parked on it.");
+                });
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Turns planets and caverns on, stops lazy mouth claims, and shortens the idle time.</summary>
     private static async Task Setup(TestPair pair)
     {
@@ -423,6 +731,13 @@ public sealed class TerrainUnloadTest
     /// <summary>Every anchored wall in a tile rectangle of a map, corners included, with its tile.</summary>
     private static List<(EntityUid Uid, Vector2i Tile)> Rocks(IEntityManager entMan, SharedMapSystem maps, EntityUid map, MapGridComponent grid, Vector2i from, Vector2i to)
     {
+        return Anchored(entMan, maps, map, grid, from, to, "WallRock");
+    }
+
+    /// <summary>Every anchored entity in a tile rectangle of a map, corners included, whose prototype starts with a name, with its tile.</summary>
+    private static List<(EntityUid Uid, Vector2i Tile)> Anchored(IEntityManager entMan, SharedMapSystem maps, EntityUid map, MapGridComponent grid,
+        Vector2i from, Vector2i to, string prototype)
+    {
         var found = new List<(EntityUid, Vector2i)>();
 
         for (var x = from.X; x <= to.X; x++)
@@ -432,7 +747,7 @@ public sealed class TerrainUnloadTest
 
             foreach (var uid in maps.GetAnchoredEntities(map, grid, index))
             {
-                if (entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID.StartsWith("WallRock") == true)
+                if (entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID.StartsWith(prototype) == true)
                     found.Add((uid, index));
             }
         }

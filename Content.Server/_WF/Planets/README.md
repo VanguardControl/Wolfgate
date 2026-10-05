@@ -24,7 +24,9 @@ into) are bare ground, treated like tiles off the grid and never tracked until s
 loading terrain costs atmos nothing; `WFTerrainOpenTilesEvent` lets a module name more ground.
 `BiomeSystem.WFUnload` unloads planet terrain nobody is near, in place of upstream's unloader, which let go of
 almost none of it: untouched biome entities go with their chunk, and the ground under a hull, beside a build or
-loaded by hand stays. Ground that is only unloaded still holds up whatever was left on it.
+loaded by hand stays. Ground that is only unloaded still holds up whatever was left on it. `BiomeSystem.WFRoll`
+makes a planet's rock spawner rolls in the loader, seeded from the tile, so surface rock unloads too and the same
+rock comes back.
 Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`); ecology and
 landing notes and the playtest checklist are in `Docs/_WF/Planets`. `WFBiomeNoiseCacheSystem` keeps one seeded copy
 of each biome layer's noise for `SharedBiomeSystem.GetNoise`, which copied it for every tile planets and caverns
@@ -59,6 +61,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/Atmosphere/WFTerrainAtmosphereComponent.cs`](Atmosphere/WFTerrainAtmosphereComponent.cs)
 - [`Content.Server/_WF/Planets/Atmosphere/WFTerrainAtmosphereSystem.cs`](Atmosphere/WFTerrainAtmosphereSystem.cs)
 - [`Content.Server/_WF/Planets/Atmosphere/WFTerrainOpenTilesEvent.cs`](Atmosphere/WFTerrainOpenTilesEvent.cs)
+- [`Content.Server/_WF/Planets/BiomeSystem.WFRoll.cs`](BiomeSystem.WFRoll.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.WFUnload.cs`](BiomeSystem.WFUnload.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.Wolfgate.cs`](BiomeSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.WFTerrain.cs`](CEZLevelsSystem.WFTerrain.cs)
@@ -421,6 +424,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/Movement/Systems/JetpackSystem.cs`](../../Movement/Systems/JetpackSystem.cs)
   - an atmospheric pack burns welding fuel from a solution, not gas from a tank.
   - a wearer carried below orbit on a hull never changes parent, so the pack is cut here.
+- [`Content.Server/Parallax/BiomeSystem.ChunkLoader.cs`](../../Parallax/BiomeSystem.ChunkLoader.cs): a planet's rock spawner is rolled here from its tile, so the rock unloads and comes back the same
 - [`Content.Server/Parallax/BiomeSystem.cs`](../../Parallax/BiomeSystem.cs)
   - a chunk's own entities need no bookkeeping as its unload deletes them
   - planet layers unload on their own schedule, see BiomeSystem.WFUnload.cs

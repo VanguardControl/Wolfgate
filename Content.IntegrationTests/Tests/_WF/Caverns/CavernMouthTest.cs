@@ -471,6 +471,113 @@ public sealed class CavernMouthTest
     }
 
     /// <summary>
+    /// A site on ground that has unloaded waits while a mob still stands on it. Once it is stamped, what was left
+    /// lying over the hole falls through, though no tile changed to say the ground had gone.
+    /// </summary>
+    [Test]
+    public async Task ClaimOnUnloadedGroundWaitsForMobsAndDropsWhatLiesThere()
+    {
+        const string surfaceId = "WFSurfaceMerak";
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+        var mouths = server.System<WFCavernMouthSystem>();
+
+        await EnableCaverns(pair);
+        var world = await BuildWorld(pair, surfaceId);
+
+        try
+        {
+            var spec = CavernOf(pair, surfaceId).Mouths;
+            var gate = await Gate(pair, world);
+            Vector2i? cell = null;
+            WFCavernSite? site = null;
+
+            await server.WaitPost(() =>
+            {
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+                var biome = entMan.GetComponent<BiomeComponent>(world.Ground);
+                var first = WFCavernMouthSystem.CellOf(spec, gate.Origin);
+
+                for (var dx = -3; dx <= 3 && site == null; dx++)
+                for (var dy = -3; dy <= 3 && site == null; dy++)
+                {
+                    if (Math.Abs(dx) < 2 && Math.Abs(dy) < 2)
+                        continue;
+
+                    var candidate = first + new Vector2i(dx, dy);
+                    if (mouths.EvaluateCell(ground, candidate) is not { } found
+                        || found.Shape.Hole.Concat(found.Shape.Ring).Any(offset => GrowsEntity(biomes, biome, found.Origin + offset)))
+                        continue;
+
+                    cell = candidate;
+                    site = found;
+                }
+            });
+
+            Assert.That(site, Is.Not.Null, "Precondition: no cell near the gate has a site whose footprint grows nothing.");
+            var origin = site!.Value.Origin;
+            var from = origin + site.Value.Shape.Min - new Vector2i(2, 2);
+            var to = origin + site.Value.Shape.Max + new Vector2i(2, 2);
+            var item = EntityUid.Invalid;
+            var mob = EntityUid.Invalid;
+
+            await LoadChunks(pair, world.Ground, from, to);
+            await server.WaitPost(() =>
+            {
+                item = entMan.SpawnEntity("Crowbar", new EntityCoordinates(world.Ground, TileCentre(origin)));
+                mob = entMan.SpawnEntity("MobHuman", new EntityCoordinates(world.Ground, TileCentre(origin + site.Value.Shape.Ring.First())));
+            });
+            await server.WaitRunTicks(pair.SecondsToTicks(3f));
+            await UnloadChunks(pair, world.Ground, from, to);
+            await server.WaitRunTicks(pair.SecondsToTicks(1f));
+
+            await server.WaitAssertion(() =>
+            {
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+
+                using (Assert.EnterMultipleScope())
+                {
+                    Assert.That(entMan.GetComponent<TransformComponent>(item).MapUid, Is.EqualTo(world.Ground),
+                        "Precondition: the item fell through ground that had only unloaded.");
+                    Assert.That(entMan.GetComponent<TransformComponent>(mob).MapUid, Is.EqualTo(world.Ground),
+                        "Precondition: the mob fell through ground that had only unloaded.");
+                    Assert.That(mouths.TryClaimCell(ground, cell!.Value), Is.EqualTo(WFCavernClaim.Deferred),
+                        "A site with a mob standing on it was not deferred.");
+                    Assert.That(ground.Item2.Mouths.Any(mouth => mouth.Origin == origin), Is.False, "A mouth was stamped under a mob.");
+                }
+            });
+
+            await server.WaitPost(() => entMan.DeleteEntity(mob));
+            await server.WaitRunTicks(2);
+
+            await server.WaitAssertion(() =>
+            {
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+
+                Assert.That(mouths.TryClaimCell(ground, cell!.Value), Is.EqualTo(WFCavernClaim.Claimed),
+                    "The site was not stamped once the mob had gone.");
+            });
+
+            await server.WaitRunTicks(pair.SecondsToTicks(3f));
+
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(entMan.GetComponent<TransformComponent>(item).MapUid, Is.EqualTo(world.Cavern),
+                    "An item left over a hole cut in unloaded ground did not fall through it.");
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
     /// A cell that is all sea (Asclepiu's riverbed, Carcinoma's blood-sea floor) gets no mouth, and every mouth claimed
     /// around each world's gate has its hole and lip on the world's ground tiles, clear of anything to avoid.
     /// </summary>
