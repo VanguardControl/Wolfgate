@@ -537,7 +537,8 @@ public sealed class TerrainUnloadTest
 
     /// <summary>
     /// Loading and unloading the same ground over and over leaves no more lying about than the first time did, on any
-    /// world: a spawner that stays where it is must not lay its corpse or its loot again.
+    /// world: a spawner that stays where it is must not lay its corpse or its loot again. And on the surface an
+    /// unload leaves no bare floor behind: every tile that stays has something standing on it.
     /// </summary>
     [Test]
     public async Task UnloadCyclesAddNothing()
@@ -545,6 +546,7 @@ public sealed class TerrainUnloadTest
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
         var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
 
         await Setup(pair);
 
@@ -582,6 +584,28 @@ public sealed class TerrainUnloadTest
 
                     Assert.That(loose[2], Is.LessThanOrEqualTo(loose[0]),
                         $"{surface}, {entMan.ToPrettyString(map)}: each load and unload left more lying about ({string.Join(", ", loose)}).");
+
+                    // A cavern keeps the floor under its loot, which lies loose. The surface has none.
+                    if (map != world.Ground)
+                        continue;
+
+                    await server.WaitAssertion(() =>
+                    {
+                        var grid = entMan.GetComponent<MapGridComponent>(map);
+                        var bare = 0;
+
+                        for (var x = PatchFrom.X; x <= PatchTo.X; x++)
+                        for (var y = PatchFrom.Y; y <= PatchTo.Y; y++)
+                        {
+                            var index = new Vector2i(x, y);
+
+                            if (maps.TryGetTileRef(map, grid, index, out var tile) && !tile.Tile.IsEmpty
+                                && !maps.GetAnchoredEntities(map, grid, index).Any())
+                                bare++;
+                        }
+
+                        Assert.That(bare, Is.Zero, $"{surface}: unloading the surface left {bare} bare floor tiles behind.");
+                    });
                 }
             }
             finally

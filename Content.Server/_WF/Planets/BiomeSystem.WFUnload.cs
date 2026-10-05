@@ -48,7 +48,10 @@ public sealed partial class BiomeSystem
     private EntityUid _wfTurnLayer;
     private uint _wfTurn;
 
-    /// <summary>True while this unloader deletes a chunk's own entities, which need no bookkeeping as they go.</summary>
+    /// <summary>
+    /// True while this unloader deletes a chunk's own entities, or the loader a marker it never tracked: neither needs
+    /// bookkeeping as it goes.
+    /// </summary>
     private bool _wfUnloading;
 
     /// <summary>One planet layer's idle chunks.</summary>

@@ -94,8 +94,11 @@ Checked in code on this branch. Line numbers are approximate.
      itself as before.
    - Water keeps its pool as an entity inside it. Both go when neither has been touched; water something has waded
      through or drawn from stays as it was left.
-   - What still never unloads: one floor tile under each wildlife marker (it deletes itself, which pins the tile),
-     a spawner that stays where it is, loot, and anything else not fixed to a tile.
+   - A wildlife marker tells the fauna system its place, which is kept by map cell, and deletes itself; tracked,
+     that pinned the floor under it for good. The loader takes it away itself, so nothing is pinned and it comes
+     again with its chunk.
+   - What still never unloads: a spawner that stays where it is, loot and the floor under it, and anything else not
+     fixed to a tile.
    - An empty tile that is neither pinned nor on a loaded chunk is solid ground to z-physics (`WfUnloadedGround`),
      so nothing left on ground that unloads falls into the cavern, and no mouth is claimed under a mob.
    - `UnloadTiles` keeps only modified tiles and tiles holding an entity anchored to *that grid*. Ground under a
@@ -111,8 +114,8 @@ Checked in code on this branch. Line numbers are approximate.
    - Upstream loads every chunk of a load area in the pass it comes into range: 81 for an arrival, and a strip of
      14 or more each second under anyone flying, since eyes move once a second. On planet layers the far part is
      put off (`BiomeSystem.WFLoad.cs`, `wf.planet_terrain_load_budget`, 4 ms a pass; 0 is upstream's way). The
-     16-tile blocks within two chunks of a loader, and on the ground and air layers those under or beside any hull
-     over the planet, still load at once; the rest loads nearest block first, a whole block at a time so the grid never sends one twice, and
+     16-tile blocks within two chunks of a player's body or one chunk of an eye (36 and 16 chunks), and on the
+     ground and air layers those under or beside any hull over the planet, still load at once; the rest loads nearest block first, a whole block at a time so the grid never sends one twice, and
      each layer loads at least one block a pass. A chunk enters `LoadedChunks` only as it is filled, so ground
      waiting its turn is still solid. Measured in a Release build on a dev machine: a chunk costs 0.5 to 4 ms to
      load on the ground and 4 to 8 ms in a cavern; arriving in a cavern, the worst server tick went from about

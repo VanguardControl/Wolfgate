@@ -33,6 +33,9 @@ public sealed class TerrainLoadTest
     /// <summary>Fresh ground, far from the first.</summary>
     private static readonly Vector2i Elsewhere = Home + new Vector2i(400, 0);
 
+    /// <summary>Fresh ground again, for a viewer in the cavern under it.</summary>
+    private static readonly Vector2i Below = Home + new Vector2i(800, 0);
+
     /// <summary>Three chunks out and under a hull.</summary>
     private static readonly Vector2i UnderHull = Home + new Vector2i(28, 20);
 
@@ -124,6 +127,36 @@ public sealed class TerrainLoadTest
             {
                 var biome = (world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground));
                 Assert.That(Loaded(biomes, biome, Elsewhere), Is.EqualTo(81), "A pass with time to spare put ground off.");
+            });
+
+            // A viewer in the cavern sees the ground above through an eye, which hurries less of it than a body does.
+            await server.WaitPost(() =>
+            {
+                server.CfgMan.SetCVar(PlanetCVars.TerrainLoadBudget, 0.0001f);
+                server.System<SharedTransformSystem>().SetCoordinates(viewer, new EntityCoordinates(world.Cavern, TileCentre(Below)));
+            });
+
+            arrived = false;
+
+            for (var tick = 0; tick < 90 && !arrived; tick++)
+            {
+                await pair.RunTicksSync(1);
+                await server.WaitPost(() =>
+                    arrived = biomes.WfIsChunkLoaded((world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground)), Below));
+            }
+
+            await server.WaitAssertion(() =>
+            {
+                var biome = (world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground));
+
+                Assert.Multiple(() =>
+                {
+                    Assert.That(arrived, Is.True, "Precondition: the ground over a cavern viewer never loaded.");
+
+                    // The four by four chunks round the eye and one block of four.
+                    Assert.That(Loaded(biomes, biome, Below), Is.EqualTo(20),
+                        "An eye's first pass did not load just the chunks round it and one whole block.");
+                });
             });
         }
         finally

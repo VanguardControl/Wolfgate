@@ -15,12 +15,19 @@ namespace Content.Server.Parallax;
 /// Spreads a planet layer's chunk loading over a few passes. Upstream loads every chunk of a load area in the pass it
 /// comes into range: eighty-one when someone arrives, and a strip of fourteen or more each second under anyone flying.
 /// </summary>
-// What still loads at once: the chunks round every loader, and the ground and air under any hull. The rest loads nearest
+// What still loads at once: the chunks round every player, fewer round every eye, and the ground and air under any hull. The rest loads nearest
 // first, a few milliseconds' worth a pass, in the 16-tile blocks the grid is sent in, so no block is sent twice.
 public sealed partial class BiomeSystem
 {
-    /// <summary>How many chunks round a loader's own load in the pass they come into range.</summary>
+    /// <summary>How many chunks round a player's own body load in the pass they come into range.</summary>
     public const int WfLoadNowRing = 2;
+
+    /// <summary>
+    /// How many chunks round an eye load in the pass they come into range. An eye looks down a hole, or at the ground
+    /// from the air, where the far part filling in a moment late is little to see, and an eye's first sight of a layer
+    /// is where most whole areas get loaded.
+    /// </summary>
+    public const int WfLoadNowEyeRing = 1;
 
     /// <summary>The side in tiles of the blocks put-off chunks load in: one grid chunk, which is always sent whole.</summary>
     public const int WfLoadBlock = 16;
@@ -30,21 +37,21 @@ public sealed partial class BiomeSystem
     private GameTick _wfLoaderTick;
     private GameTick _wfHullTick;
 
-    /// <summary>Per biome: the chunk each of this pass's loaders is in.</summary>
-    private readonly Dictionary<BiomeComponent, List<Vector2i>> _wfLoaders = new();
+    /// <summary>Per biome: the chunk each of this pass's loaders is in, and how many chunks round it load at once.</summary>
+    private readonly Dictionary<BiomeComponent, List<(Vector2i Chunk, int Ring)>> _wfLoaders = new();
 
     /// <summary>Per planet network: the bounds of every hull on its layers and in the gaps between them.</summary>
     private readonly Dictionary<NetEntity, List<Box2>> _wfHullBounds = new();
 
-    private readonly Stack<List<Vector2i>> _wfLoaderPool = new();
+    private readonly Stack<List<(Vector2i Chunk, int Ring)>> _wfLoaderPool = new();
     private readonly HashSet<Vector2i> _wfNearBlocks = new();
     private readonly List<(int Distance, Vector2i Block, Vector2i Chunk)> _wfPending = new();
     private readonly Stopwatch _wfLoadWatch = new();
     private BiomeComponent? _wfLoadFor;
-    private List<Vector2i>? _wfLoadLoaders;
+    private List<(Vector2i Chunk, int Ring)>? _wfLoadLoaders;
 
-    /// <summary>Notes where a loader is, as its load area is added.</summary>
-    private void WfNoteLoader(BiomeComponent biome, Vector2 worldPos)
+    /// <summary>Notes where a loader is, and how much round it must load at once, as its load area is added.</summary>
+    private void WfNoteLoader(BiomeComponent biome, Vector2 worldPos, int ring)
     {
         var tick = _wfTiming.CurTick;
 
@@ -62,9 +69,9 @@ public sealed partial class BiomeSystem
         }
 
         if (!_wfLoaders.TryGetValue(biome, out var loaders))
-            _wfLoaders[biome] = loaders = _wfLoaderPool.TryPop(out var pooled) ? pooled : new List<Vector2i>();
+            _wfLoaders[biome] = loaders = _wfLoaderPool.TryPop(out var pooled) ? pooled : new List<(Vector2i, int)>();
 
-        loaders.Add(SharedMapSystem.GetChunkIndices(worldPos, ChunkSize) * ChunkSize);
+        loaders.Add((SharedMapSystem.GetChunkIndices(worldPos, ChunkSize) * ChunkSize, ring));
     }
 
     /// <summary>Whether a chunk of a planet layer's load area is put off to <see cref="WfLoadDeferred"/>.</summary>
@@ -102,10 +109,10 @@ public sealed partial class BiomeSystem
 
         try
         {
-            foreach (var loader in loaders)
+            foreach (var (loader, ring) in loaders)
             {
-                for (var x = -WfLoadNowRing; x <= WfLoadNowRing; x++)
-                for (var y = -WfLoadNowRing; y <= WfLoadNowRing; y++)
+                for (var x = -ring; x <= ring; x++)
+                for (var y = -ring; y <= ring; y++)
                 {
                     _wfNearBlocks.Add(WfBlockOf(loader + new Vector2i(x, y) * ChunkSize));
                 }
@@ -199,12 +206,12 @@ public sealed partial class BiomeSystem
     }
 
     /// <summary>How many chunks lie between a block and the nearest loader's chunk.</summary>
-    private static int WfBlockDistance(Vector2i block, List<Vector2i> loaders)
+    private static int WfBlockDistance(Vector2i block, List<(Vector2i Chunk, int Ring)> loaders)
     {
         var nearest = int.MaxValue;
         var far = block + new Vector2i(WfLoadBlock - ChunkSize, WfLoadBlock - ChunkSize);
 
-        foreach (var loader in loaders)
+        foreach (var (loader, _) in loaders)
         {
             var x = Math.Max(Math.Max(block.X - loader.X, loader.X - far.X), 0);
             var y = Math.Max(Math.Max(block.Y - loader.Y, loader.Y - far.Y), 0);

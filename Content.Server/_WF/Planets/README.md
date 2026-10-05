@@ -441,7 +441,9 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - a planet layer is left to its own unloader
   - the far part of a planet layer's load area is put off
   - what was put off loads nearest first, within the pass's budget
-- [`Content.Server/Parallax/BiomeSystem.PlayerTracker.cs`](../../Parallax/BiomeSystem.PlayerTracker.cs): a planet layer loads nearest its loaders first
+- [`Content.Server/Parallax/BiomeSystem.PlayerTracker.cs`](../../Parallax/BiomeSystem.PlayerTracker.cs)
+  - a planet layer loads nearest its loaders first
+  - less loads at once round an eye than round a body
 - [`Content.Server/Physics/Controllers/MoverController.cs`](../../Physics/Controllers/MoverController.cs): reserve thrust for planetary lift.
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs`](../../Shuttles/Systems/ShuttleSystem.FasterThanLight.cs)
   - the docking branch never calls TrySetupFTL, so it asks the same gate.

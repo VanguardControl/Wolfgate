@@ -13,7 +13,8 @@ namespace Content.Server.Parallax;
 
 /// <summary>
 /// Rolls a planet layer's one-rock spawners in the chunk loader. Left to roll for itself, a spawner marker lays a rock
-/// the biome doesn't know and pins the tile as it deletes itself, so that rock never unloads.
+/// the biome doesn't know and pins the tile as it deletes itself, so that rock never unloads. A wildlife marker is
+/// taken away here too, before its deleting itself can pin the floor under it.
 /// </summary>
 // The roll is seeded from the tile, so a rock nobody touched comes back as the same rock, and salted per layer, so
 // every round still lays its ore differently.
@@ -27,6 +28,9 @@ public sealed partial class BiomeSystem
     /// <summary>Per entity prototype: whether a roll that comes to it alone can be laid and tracked as the tile's own.</summary>
     private readonly Dictionary<string, bool> _wfRollResults = new();
 
+    /// <summary>Per entity prototype: whether it is a wildlife marker that notes its place and deletes itself.</summary>
+    private readonly Dictionary<string, bool> _wfPassingMarkers = new();
+
     /// <summary>
     /// Lays what a spawner prototype rolls for a tile and tracks it, in place of the spawner. False when the prototype
     /// is not such a spawner or the roll is not a single fixed structure; the loader then spawns it as it always did.
@@ -34,6 +38,28 @@ public sealed partial class BiomeSystem
     private bool WfLayRoll(BiomeComponent biome, EntityUid map, MapGridComponent grid, Vector2i tile, string prototype,
         Dictionary<EntityUid, Vector2i> loaded)
     {
+        if (WfPassingMarker(prototype))
+        {
+            if (!HasComp<WFPlanetLayerComponent>(map))
+                return false;
+
+            // It has told the wildlife its place by the time it is spawned, and that is kept by map cell, so it can
+            // go at once and come again with its chunk. Tracked, its deleting itself would pin the tile for good.
+            var marker = Spawn(prototype, _mapSystem.GridTileToLocal(map, grid, tile));
+            _wfUnloading = true;
+
+            try
+            {
+                Del(marker);
+            }
+            finally
+            {
+                _wfUnloading = false;
+            }
+
+            return true;
+        }
+
         if (!WfRollTable(prototype, out var table) || !HasComp<WFPlanetLayerComponent>(map))
             return false;
 
@@ -93,6 +119,20 @@ public sealed partial class BiomeSystem
         return table != null;
     }
 
+    /// <summary>Whether a prototype is a wildlife marker that deletes itself once it has noted its place.</summary>
+    private bool WfPassingMarker(string prototype)
+    {
+        if (_wfPassingMarkers.TryGetValue(prototype, out var passing))
+            return passing;
+
+        passing = ProtoManager.TryIndex<EntityPrototype>(prototype, out var proto)
+                  && proto.TryGetComponent<WFPlanetFaunaSpawnerComponent>(out var marker, Factory)
+                  && !marker.KeepEntity;
+
+        _wfPassingMarkers[prototype] = passing;
+        return passing;
+    }
+
     /// <summary>Whether a rolled prototype is a structure fixed to its tile, and not another spawner.</summary>
     private bool WfRollResult(string prototype)
     {
@@ -119,6 +159,7 @@ public sealed partial class BiomeSystem
 
         _wfRollTables.Clear();
         _wfRollResults.Clear();
+        _wfPassingMarkers.Clear();
     }
 
     /// <summary>A seed for one tile's roll: the same for the same biome seed, layer salt and tile, and nothing else.</summary>
