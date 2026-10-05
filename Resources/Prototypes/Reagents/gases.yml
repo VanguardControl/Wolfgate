@@ -43,11 +43,20 @@
         conditions:
         - !type:OrganType
           type: Feroxi
+      # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+      - !type:Oxygenate
+        conditions:
+        - !type:OrganType
+          type: Thaven
       # Convert Oxygen into CO2.
       - !type:ModifyLungGas
         conditions:
         - !type:OrganType
           type: Vox
+          shouldHave: false
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        - !type:OrganType
+          type: Thaven
           shouldHave: false
         ratios:
           CarbonDioxide: 1.0
@@ -110,6 +119,11 @@
         conditions:
         - !type:OrganType
           type: IAS
+      # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+      - !type:Oxygenate
+        conditions:
+        - !type:OrganType
+          type: Thaven
       - !type:HealthChange
         conditions:
         - !type:OrganType # Goobstation - Yowie
@@ -120,6 +134,10 @@
           shouldHave: false
         - !type:OrganType
           type: IAS
+          shouldHave: false
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        - !type:OrganType
+          type: Thaven
           shouldHave: false
         scaleByQuantity: true
         ignoreResistances: true
@@ -133,6 +151,10 @@
         conditions:
           - !type:ReagentThreshold
             min: 1.5
+          # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+          - !type:OrganType
+            type: Thaven
+            shouldHave: false
         clear: True
         time: 5
       - !type:HealthChange # Mono
@@ -181,6 +203,11 @@
         conditions:
         - !type:OrganType
           type: Hydrakin
+      # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+      - !type:Oxygenate
+        conditions:
+        - !type:OrganType
+          type: Thaven
       - !type:HealthChange
         scaleByQuantity: true
         ignoreResistances: true
@@ -188,12 +215,21 @@
           types:
             Radiation:
               1
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        conditions:
+        - !type:OrganType
+          type: Thaven
+          shouldHave: false
       # We need a metabolism effect on reagent removal
       - !type:AdjustAlert
         alertType: Toxins
         conditions:
           - !type:ReagentThreshold
             min: 1.5
+          # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+          - !type:OrganType
+            type: Thaven
+            shouldHave: false
         clear: True
         time: 5
       - !type:HealthChange # Mono
@@ -230,8 +266,17 @@
         conditions:
         - !type:OrganType
           type: IAS
+      # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+      - !type:Oxygenate
+        conditions:
+        - !type:OrganType
+          type: Thaven
       - !type:HealthChange
         conditions:
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        - !type:OrganType
+          type: Thaven
+          shouldHave: false
         - !type:OrganType
           type: Plant
           shouldHave: false
@@ -261,6 +306,10 @@
         conditions:
         - !type:OrganType
           type: Plant
+          shouldHave: false
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        - !type:OrganType
+          type: Thaven
           shouldHave: false
         factor: -4
       # We need a metabolism effect on reagent removal
@@ -301,6 +350,11 @@
         conditions:
         - !type:OrganType
           type: Slime
+      # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+      - !type:Oxygenate
+        conditions:
+        - !type:OrganType
+          type: Thaven
       # Converts Nitrogen into CO2
       - !type:ModifyLungGas
         conditions:
@@ -337,6 +391,11 @@
         conditions:
         - !type:OrganType
           type: IAS
+      # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+      - !type:Oxygenate
+        conditions:
+        - !type:OrganType
+          type: Thaven
       - !type:MovespeedModifier # Mono - Hydrakin
         walkSpeedModifier: 1.15
         sprintSpeedModifier: 1.15
@@ -355,6 +414,10 @@
         - !type:OrganType
           type: Slime
           shouldHave: false
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        - !type:OrganType
+          type: Thaven
+          shouldHave: false
         emote: Laugh
         showInChat: true
         probability: 0.1
@@ -365,6 +428,10 @@
           min: 0.5
         - !type:OrganType
           type: Slime
+          shouldHave: false
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        - !type:OrganType
+          type: Thaven
           shouldHave: false
         type: Local
         visualType: Medium
@@ -377,6 +444,10 @@
           min: 1
         - !type:OrganType
           type: Slime
+          shouldHave: false
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        - !type:OrganType
+          type: Thaven
           shouldHave: false
         - !type:OrganType # Mono - Hydrakin
           type: Hydrakin
@@ -418,6 +489,10 @@
         - !type:OrganType
           type: Slime
           shouldHave: false
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        - !type:OrganType
+          type: Thaven
+          shouldHave: false
         - !type:OrganType # Mono - Hydrakin
           type: Hydrakin
           shouldHave: false
@@ -445,6 +520,11 @@
         conditions:
         - !type:OrganType
           type: Hydrakin
+      # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+      - !type:Oxygenate
+        conditions:
+        - !type:OrganType
+          type: Thaven
       - !type:HealthChange
         conditions:
         - !type:OrganType # Goobstation - Yowie
@@ -471,6 +551,10 @@
         - !type:ReagentThreshold
           reagent: Frezon
           min: 0.5
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        - !type:OrganType
+          type: Thaven
+          shouldHave: false
         scaleByQuantity: true
         ignoreResistances: true
         damage:
@@ -509,6 +593,10 @@
         - !type:ReagentThreshold
           reagent: Frezon
           min: 0.5
+        # WOLFGATE(Species): thaven breathe every gas safely, as in HardLight; the port left these out and they suffocated in station air
+        - !type:OrganType
+          type: Thaven
+          shouldHave: false
         - !type:OrganType # Mono
           type: Hydrakin
           shouldHave: false

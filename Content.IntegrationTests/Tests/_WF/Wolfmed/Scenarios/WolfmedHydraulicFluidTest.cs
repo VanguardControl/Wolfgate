@@ -50,7 +50,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedFluidPackSystem))]
-public sealed class WolfmedHydraulicFluidTest : GameTest
+public sealed class WolfmedHydraulicFluidTest : WolfmedGameTest
 {
     [TestPrototypes]
     private const string Prototypes = @"
@@ -293,7 +293,7 @@ public sealed class WolfmedHydraulicFluidTest : GameTest
         });
 
         // The pod refuses the oil pack with its reagent-ignored line and uses a hydraulic pack.
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid human = default;
         Entity<AutodocComponent> pod = default, humanPod = default;
         var level = 0f;

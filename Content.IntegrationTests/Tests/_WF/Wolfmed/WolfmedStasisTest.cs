@@ -33,12 +33,12 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedStasisSystem))]
-public sealed class WolfmedStasisTest : GameTest
+public sealed class WolfmedStasisTest : WolfmedGameTest
 {
     [Test]
     public async Task StasisHoldsBleedsClosesWoundsHalvesHitsAndLeavesBonesTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid body = default, leftArm = default, rightArm = default, fracture = default;
         FixedPoint2 controlCut = default, leftCut = default, fractureSeverity = default;
         FractureGrade grade = default;
