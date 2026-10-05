@@ -64,6 +64,7 @@ public sealed class WFCrewSystem : EntitySystem
         SubscribeLocalEvent<WFCrewComponent, MapInitEvent>(OnCrewMapInit, after: [typeof(RandomHumanoidAppearanceSystem)]);
         SubscribeLocalEvent<WFCrewSpawnPointComponent, MapInitEvent>(OnSpawnPointMapInit, after: [typeof(RandomHumanoidAppearanceSystem)]);
         SubscribeLocalEvent<WFCrewComponent, MobStateChangedEvent>(OnMobStateChanged);
+        SubscribeLocalEvent<WFCrewComponent, WFStripAttemptEvent>(OnGettingStripped);
         SubscribeLocalEvent<NPCRetaliationComponent, BeforeDamageChangedEvent>(OnBeforeCrewDamage,
             before: [typeof(Content.Shared._Onyx.Wounds.WoundDamageRoutingSystem)]);
         // Upstream de-aggroes expired memories every tick without removing them; prune right after it runs.
@@ -130,6 +131,25 @@ public sealed class WFCrewSystem : EntitySystem
         crew.Struck[attacker] = _timing.CurTime;
         if (HomeGrid(ent.Owner, crew) is { } home)
             AnswerAttack(home, crew.Group, attacker);
+    }
+
+    /// <summary>
+    /// Going through a living crewman's pockets is an attack on him and his crew. A thief nobody notices gets away
+    /// with it, and the dead and the downed can't object.
+    /// </summary>
+    private void OnGettingStripped(Entity<WFCrewComponent> ent, ref WFStripAttemptEvent args)
+    {
+        var thief = args.User;
+        if (args.Stealth || thief == ent.Owner || !_mobs.IsAlive(ent) || HasComp<ActorComponent>(ent)
+            || !HasComp<MobStateComponent>(thief) || SameCrew(ent, thief))
+            return;
+
+        if (TryComp<NPCRetaliationComponent>(ent, out var retaliation))
+            Remember(ent, retaliation, thief);
+
+        ent.Comp.Struck[thief] = _timing.CurTime;
+        if (HomeGrid(ent, ent.Comp) is { } home)
+            AnswerAttack(home, ent.Comp.Group, thief);
     }
 
     /// <summary>Makes a crewman hostile to an attacker and remembers the attack for his memory's length.</summary>

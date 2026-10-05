@@ -172,6 +172,27 @@ public sealed partial class WFCrewTest
         });
     }
 
+    /// <summary>Starting to strip a living crewman makes him and his crew's fighters the thief's enemies.</summary>
+    [Test]
+    public async Task StrippingACrewmanIsAnAttack()
+    {
+        var deck = await CreateDeck(new Vector2(500, 1300), 5, true);
+        await Server.WaitAssertion(() =>
+        {
+            var victim = ConvoyCrew(deck, "WFCrewDeckhand", "stripped", new Vector2(1.5f));
+            var guard = ConvoyCrew(deck, "WFCrewMarine", "stripped", new Vector2(3.5f, 1.5f));
+            var thief = SEntMan.SpawnEntity("MobHuman", new EntityCoordinates(deck, new Vector2(2.5f)));
+            var before = SEntMan.GetComponent<NPCRetaliationComponent>(guard).AttackMemories;
+            Assert.That(before.ContainsKey(thief), Is.False);
+            Server.System<Content.Shared.Strip.SharedStrippableSystem>().GetStripTimeModifiers(thief, victim, null, TimeSpan.FromSeconds(1));
+            var victimMemories = SEntMan.GetComponent<NPCRetaliationComponent>(victim).AttackMemories;
+            var guardMemories = SEntMan.GetComponent<NPCRetaliationComponent>(guard).AttackMemories;
+            Assert.That(victimMemories.ContainsKey(thief), Is.True, "The crewman takes the thief for an attacker.");
+            Assert.That(guardMemories.ContainsKey(thief), Is.True, "And so do his crew's fighters.");
+            SEntMan.DeleteEntity(thief);
+        });
+    }
+
     /// <summary>A ship rammed at speed takes the rammer for an attacker; a bump is let pass.</summary>
     [Test]
     public async Task RammingIsAnAttackAndBumpingIsNot()

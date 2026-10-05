@@ -251,6 +251,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Shared/_WF/NpcCrew/WFCrewRolePrototype.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewRolePrototype.cs)
 - [`Content.Shared/_WF/NpcCrew/WFCrewSetupMessages.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewSetupMessages.cs)
 - [`Content.Shared/_WF/NpcCrew/WFPilotOrder.cs`](../../../Content.Shared/_WF/NpcCrew/WFPilotOrder.cs)
+- [`Content.Shared/_WF/NpcCrew/WFStripAttemptEvent.cs`](../../../Content.Shared/_WF/NpcCrew/WFStripAttemptEvent.cs)
 
 ### Client
 
@@ -363,5 +364,6 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.Impact.cs`](../../Shuttles/Systems/ShuttleSystem.Impact.cs): crews take a ramming for an attack
 - [`Content.Server/Verbs/VerbSystem.cs`](../../Verbs/VerbSystem.cs): opt-in tracing for missing menu replies after ghosting.
 - [`Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs`](../../../Content.Shared/_Onyx/Wounds/WoundDamageRoutingSystem.cs): Lets crew damage scaling skip the routed inner passes.
+- [`Content.Shared/Strip/SharedStrippableSystem.cs`](../../../Content.Shared/Strip/SharedStrippableSystem.cs): the one being stripped learns who is doing it
 
 <!-- WOLFGATE-GENERATED END -->
