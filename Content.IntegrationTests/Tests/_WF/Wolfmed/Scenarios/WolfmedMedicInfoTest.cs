@@ -710,8 +710,11 @@ public sealed class WolfmedMedicInfoTest : WolfmedGameTest
             standing = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             far = SEntMan.SpawnEntity("MobHuman", map.GridCoords.Offset(new System.Numerics.Vector2(3f, 0f)));
             gauze = SEntMan.SpawnEntity("Gauze1", map.GridCoords);
-            foreach (var body in new[] { helper, patient, far })
+            foreach (var body in new[] { helper, far })
                 SetPain(body, BodyPartType.Torso, 129);
+            // On the head, because the cut gives the torso its own wound floor in place of a set one: pain set there
+            // recovers, and the patient was back up six or seven seconds in, about when the gauze goes on.
+            SetPain(patient, BodyPartType.Head, 129);
             SEntMan.System<DamageableSystem>().TryChangeDamage(patient, Spec("Slash", 20), ignoreResistances: true,
                 targetPart: TargetBodyPart.Torso);
         });
@@ -739,6 +742,8 @@ public sealed class WolfmedMedicInfoTest : WolfmedGameTest
 
         await Server.WaitAssertion(() =>
         {
+            Assert.That(Consc(patient).State, Is.EqualTo(WolfmedConsciousness.Downed),
+                "the neighbour did not stay Downed while the gauze went on.");
             var torso = new WolfmedScenario(SEntMan).Part(patient, BodyPartType.Torso);
             var treated = SEntMan.System<WoundSystem>().GetWounds((torso, SEntMan.GetComponent<WoundableComponent>(torso)))
                 .Any(wound => SEntMan.TryGetComponent(wound, out WoundBleedingComponent? bleeding) &&

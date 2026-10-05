@@ -26,6 +26,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Fluids.Components;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Stunnable;
 using Content.Shared.Traits.Assorted;
 using NUnit.Framework;
 using Robust.Shared.GameObjects;
@@ -794,9 +795,19 @@ public sealed class WolfmedBurnScenarioTest : WolfmedGameTest
 
         Assert.That(downed, Is.True, "the fire never put the patient down, so the test proves nothing.");
         // Still burning, but slowly: at ten stacks the pain climbs from the Downed line to a faint within the
-        // wait below. Past the fall's own short stun, which cancels every action.
+        // wait below.
         await Server.WaitPost(() => SEntMan.System<FlammableSystem>().SetFireStacks(a, 1, ignite: true));
-        await RunSeconds(3);
+
+        // The pain shock (130) sits just past the Downed line (128.25), so its two-second stun, which cancels every
+        // action, starts with the fall or with the next burn up to a second later. Wait for the stun, not a time.
+        var stunned = true;
+        for (var i = 0; i < 25 && stunned; i++)
+        {
+            await RunSeconds(0.2f);
+            await Server.WaitPost(() => stunned = SEntMan.HasComponent<StunnedComponent>(a));
+        }
+
+        Assert.That(stunned, Is.False, "the pain shock's stun never passed.");
         await Server.WaitAssertion(() =>
         {
             Assert.That(s.State(a), Is.EqualTo(WolfmedConsciousness.Downed));
