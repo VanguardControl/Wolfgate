@@ -20,20 +20,15 @@ public sealed partial class DamageOnHighSpeedImpactSystem : EntitySystem
     [Dependency] private SharedStunSystem _stun = default!;
 
     // WOLFGATE(Audio) START: impact-sound budget over time, see WfImpactSoundAllowed.
-    private const int WfImpactSoundsPerWindow = 6;
-    private TimeSpan _wfSoundWindowEnd;
-    private int _wfSoundsThisWindow;
+    private readonly Content.Shared._WF.Audio.WFSoundBudget _wfImpactSounds = new(6, TimeSpan.FromSeconds(1));
 
-    /// <summary>Allows at most six impact thuds per second; damage is never throttled, only the sound.</summary>
-    private bool WfImpactSoundAllowed()
+    /// <summary>
+    /// Allows at most six impact thuds per second on the grid the body is on, or on its map off every grid; damage is
+    /// never throttled, only the sound.
+    /// </summary>
+    private bool WfImpactSoundAllowed(EntityUid uid)
     {
-        if (_gameTiming.CurTime >= _wfSoundWindowEnd)
-        {
-            _wfSoundWindowEnd = _gameTiming.CurTime + TimeSpan.FromSeconds(1);
-            _wfSoundsThisWindow = 0;
-        }
-
-        return ++_wfSoundsThisWindow <= WfImpactSoundsPerWindow;
+        return _wfImpactSounds.Allow(Content.Shared._WF.Audio.WFSoundBudget.PlaceOf(Transform(uid)), _gameTiming.CurTime);
     }
     // WOLFGATE END
 
@@ -71,7 +66,7 @@ public sealed partial class DamageOnHighSpeedImpactSystem : EntitySystem
         _damageable.TryChangeDamage(uid, component.Damage * damageScale);
 
         if (_gameTiming.IsFirstTimePredicted)
-            if (WfImpactSoundAllowed()) // WOLFGATE(Audio): thuds are capped so a skidding hull's loose items can't exhaust the client's audio sources.
+            if (WfImpactSoundAllowed(uid)) // WOLFGATE(Audio): thuds are capped on each grid so a skidding hull's loose items can't exhaust the client's audio sources.
                 _audio.PlayPvs(component.SoundHit, uid, AudioParams.Default.WithVariation(0.125f).WithVolume(-0.125f));
         _color.RaiseEffect(Color.Red, new List<EntityUid>() { uid }, Filter.Pvs(uid, entityManager: EntityManager));
     }

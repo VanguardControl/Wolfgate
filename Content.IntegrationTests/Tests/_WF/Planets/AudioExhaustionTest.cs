@@ -88,20 +88,27 @@ public sealed class AudioExhaustionTest
         var system = server.System<DamageOnHighSpeedImpactSystem>();
         var allow = typeof(DamageOnHighSpeedImpactSystem).GetMethod("WfImpactSoundAllowed",
             BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var map = await pair.CreateTestMap();
+
+        // The budget is counted where the body is: the grid here, and the map itself for a body off every grid.
+        var onGrid = new object[] { map.Grid.Owner };
+        var offGrid = new object[] { map.MapUid };
         var admitted = 0;
         for (var tick = 0; tick < 10; tick++)
         {
             await server.WaitPost(() =>
             {
                 for (var hit = 0; hit < 30; hit++)
-                    if ((bool) allow.Invoke(system, null)!)
+                    if ((bool) allow.Invoke(system, onGrid)!)
                         admitted++;
             });
             await server.WaitRunTicks(1);
         }
         Assert.That(admitted, Is.LessThanOrEqualTo(6), "A sustained collision burst must not refill its sound budget each tick.");
+        await server.WaitAssertion(() => Assert.That((bool) allow.Invoke(system, offGrid)!, Is.True,
+            "A burst on one grid used up the impact sounds of everywhere else."));
         await server.WaitRunTicks(pair.SecondsToTicks(1.1f));
-        await server.WaitAssertion(() => Assert.That((bool) allow.Invoke(system, null)!, Is.True));
+        await server.WaitAssertion(() => Assert.That((bool) allow.Invoke(system, onGrid)!, Is.True));
         await pair.CleanReturnAsync();
     }
 }

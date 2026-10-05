@@ -11,7 +11,9 @@ Entry points: `InternetSoundSystem` (server fetch and playback; client mounting 
 `InternetSoundDownloader` (yt-dlp and ffmpeg, off the main thread), `InternetSoundDownloadProxy` (a per-download
 SOCKS5 tunnel that only connects to checked addresses), `InternetSoundReplaySystem` (keeps the audio in replays) and
 the `WolfgateMusicPause` partials. `WFAudioBudgetSystem` caps how many network sounds a client starts at once, so a
-burst of hundreds of clips (a large crash) can't exhaust audio sources. The admin panel and the play command are in Administration; settings are in
+burst of hundreds of clips (a large crash) can't exhaust audio sources. On the server, break, landing and impact
+sounds are each held to a handful a second (`WFSoundBudget`), counted per grid, or per map for things on no grid, so
+a crash on one ship never mutes another. The admin panel and the play command are in Administration; settings are in
 `InternetSoundCVars`.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -33,6 +35,7 @@ burst of hundreds of clips (a large crash) can't exhaust audio sources. The admi
 - [`Content.Shared/_WF/Audio/InternetSound/InternetSoundProtocol.cs`](../../../Content.Shared/_WF/Audio/InternetSound/InternetSoundProtocol.cs)
 - [`Content.Shared/_WF/Audio/InternetSound/InternetSoundReplaySystem.cs`](../../../Content.Shared/_WF/Audio/InternetSound/InternetSoundReplaySystem.cs)
 - [`Content.Shared/_WF/Audio/InternetSound/InternetSoundResources.cs`](../../../Content.Shared/_WF/Audio/InternetSound/InternetSoundResources.cs)
+- [`Content.Shared/_WF/Audio/WFSoundBudget.cs`](../../../Content.Shared/_WF/Audio/WFSoundBudget.cs)
 
 ### Client
 
@@ -55,6 +58,7 @@ burst of hundreds of clips (a large crash) can't exhaust audio sources. The admi
 - [`Content.Tests/_WF/Audio/InternetSoundResourcesTest.cs`](../../../Content.Tests/_WF/Audio/InternetSoundResourcesTest.cs)
 - [`Content.Tests/_WF/Audio/InternetSoundSandboxTest.cs`](../../../Content.Tests/_WF/Audio/InternetSoundSandboxTest.cs)
 - [`Content.Tests/_WF/Audio/InternetSoundTransferTest.cs`](../../../Content.Tests/_WF/Audio/InternetSoundTransferTest.cs)
+- [`Content.Tests/_WF/Audio/WFSoundBudgetTest.cs`](../../../Content.Tests/_WF/Audio/WFSoundBudgetTest.cs)
 
 ### Localization
 
@@ -70,9 +74,9 @@ burst of hundreds of clips (a large crash) can't exhaust audio sources. The admi
 - [`Content.Server/Destructible/Thresholds/Behaviors/PlaySoundBehavior.cs`](../../Destructible/Thresholds/Behaviors/PlaySoundBehavior.cs): destruction sounds share a budget, so a landing hull can't exhaust the client's sources.
 - [`Content.Shared/Damage/Systems/DamageOnHighSpeedImpactSystem.cs`](../../../Content.Shared/Damage/Systems/DamageOnHighSpeedImpactSystem.cs)
   - impact-sound budget over time, see WfImpactSoundAllowed.
-  - thuds are capped so a skidding hull's loose items can't exhaust the client's audio sources.
+  - thuds are capped on each grid so a skidding hull's loose items can't exhaust the client's audio sources.
 - [`Content.Shared/Sound/SharedEmitSoundSystem.cs`](../../../Content.Shared/Sound/SharedEmitSoundSystem.cs)
-  - landing-sound budget, see WfLandSoundAllowed.
-  - landing sounds are capped per second; a landing that makes none spends nothing.
+  - landing-sound budget, a handful a second on each grid.
+  - landing sounds are capped per second on each grid; a silent landing spends nothing.
 
 <!-- WOLFGATE-GENERATED END -->

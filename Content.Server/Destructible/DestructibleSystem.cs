@@ -50,24 +50,18 @@ namespace Content.Server.Destructible
 
         // WOLFGATE(Audio) START: destruction-sound budget, see WfDestructionSoundAllowed.
         [Dependency] private IGameTiming _wfTiming = default!;
-        private const int WfDestructionSoundsPerWindow = 8;
 
         // A break clip runs about a second, so a per-tick budget would still leave thirty of them overlapping; the
         // window has to be at least as long as the sound for the budget to bound what is actually playing at once.
-        private static readonly TimeSpan WfDestructionSoundWindow = TimeSpan.FromSeconds(1);
-        private TimeSpan _wfSoundWindowEnd;
-        private int _wfSoundsThisWindow;
+        private readonly Content.Shared._WF.Audio.WFSoundBudget _wfDestructionSounds = new(8, TimeSpan.FromSeconds(1));
 
-        /// <summary>Allows at most a handful of destruction sounds at a time; nothing about the destruction itself is throttled, only the sound.</summary>
-        public bool WfDestructionSoundAllowed()
+        /// <summary>
+        /// Allows at most a handful of destruction sounds at a time on the grid the thing stands on, or on its map off
+        /// every grid; nothing about the destruction itself is throttled, only the sound.
+        /// </summary>
+        public bool WfDestructionSoundAllowed(EntityUid owner)
         {
-            if (_wfTiming.CurTime >= _wfSoundWindowEnd)
-            {
-                _wfSoundWindowEnd = _wfTiming.CurTime + WfDestructionSoundWindow;
-                _wfSoundsThisWindow = 0;
-            }
-
-            return ++_wfSoundsThisWindow <= WfDestructionSoundsPerWindow;
+            return _wfDestructionSounds.Allow(Content.Shared._WF.Audio.WFSoundBudget.PlaceOf(Transform(owner)), _wfTiming.CurTime);
         }
         // WOLFGATE END
 
