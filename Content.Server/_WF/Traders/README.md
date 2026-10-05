@@ -54,6 +54,7 @@ while they stay near and calms down once they are far off or gone.
 ### Client
 
 - [`Content.Client/_WF/Traders/TraderBoundUserInterface.cs`](../../../Content.Client/_WF/Traders/TraderBoundUserInterface.cs)
+- [`Content.Client/_WF/Traders/TraderClickSystem.cs`](../../../Content.Client/_WF/Traders/TraderClickSystem.cs)
 - [`Content.Client/_WF/Traders/TraderDialogueWindow.xaml`](../../../Content.Client/_WF/Traders/TraderDialogueWindow.xaml)
 - [`Content.Client/_WF/Traders/TraderDialogueWindow.xaml.cs`](../../../Content.Client/_WF/Traders/TraderDialogueWindow.xaml.cs)
 - [`Content.Client/_WF/Traders/TraderIconSystem.cs`](../../../Content.Client/_WF/Traders/TraderIconSystem.cs)
