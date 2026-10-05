@@ -35,7 +35,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
 /// </summary>
 [TestFixture]
 [TestOf(typeof(AutodocSystem))]
-public sealed class WolfmedPlaytestThreeSamTest : GameTest
+public sealed class WolfmedPlaytestThreeSamTest : WolfmedGameTest
 {
     [TestPrototypes]
     private const string Prototypes = @"
@@ -76,7 +76,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
     public async Task PodHoldsOneTest()
     {
         Out = TestContext.Out;
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         Entity<AutodocComponent> pod = default;
         EntityUid a = default, b = default;
 
@@ -171,7 +171,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
     public async Task AutoIsOneRunTest()
     {
         Out = TestContext.Out;
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var scenario = new WolfmedScenario(SEntMan);
         Entity<AutodocComponent> pod = default;
         EntityUid patient = default, torso = default;
@@ -264,7 +264,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
     public async Task NoStallWhileWorkingTest()
     {
         Out = TestContext.Out;
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var scenario = new WolfmedScenario(SEntMan);
         Entity<AutodocComponent> pod = default;
         EntityUid patient = default;
@@ -344,7 +344,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
     public async Task PodUndressesWhatItCannotCutTest()
     {
         Out = TestContext.Out;
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var scenario = new WolfmedScenario(SEntMan);
         Entity<AutodocComponent> pod = default;
         EntityUid patient = default;
@@ -456,7 +456,7 @@ public sealed class WolfmedPlaytestThreeSamTest : GameTest
     public async Task PodUndressesWhatItCannotCutLockedTest()
     {
         Out = TestContext.Out;
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var scenario = new WolfmedScenario(SEntMan);
         Entity<AutodocComponent> pod = default;
         EntityUid patient = default, helmet = default;

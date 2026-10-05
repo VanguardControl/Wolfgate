@@ -24,7 +24,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedOrganComponent))]
-public sealed class WolfmedSpeciesOrganTest : GameTest
+public sealed class WolfmedSpeciesOrganTest : WolfmedGameTest
 {
     private static readonly HashSet<string> VitalSlots = new()
     {
@@ -34,7 +34,7 @@ public sealed class WolfmedSpeciesOrganTest : GameTest
     [Test]
     public async Task EverySpeciesOrganCarriesWolfmedDataTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         await Server.WaitAssertion(() =>
         {
             var body = SEntMan.System<SharedBodySystem>();

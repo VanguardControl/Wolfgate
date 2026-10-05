@@ -27,7 +27,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedVacuumSystem))]
-public sealed class WolfmedSpaceExposureTest : GameTest
+public sealed class WolfmedSpaceExposureTest : WolfmedGameTest
 {
     private const string Suit = "ClothingOuterHardsuitEVA";
     private const string Helmet = "ClothingHeadHelmetEVA";
@@ -73,7 +73,7 @@ public sealed class WolfmedSpaceExposureTest : GameTest
     /// <summary>A human on a map of space or of unbreathable air at station pressure, dressed as asked.</summary>
     private async Task<(WolfmedScenario S, EntityUid Body, TestMapData Map)> Spawn(bool space, bool suit, bool internals)
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid body = default;
 
@@ -324,7 +324,7 @@ public sealed class WolfmedSpaceExposureTest : GameTest
     public async Task ColdProtectionReadsTheCoreTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid body = default;
         await Server.WaitPost(() =>

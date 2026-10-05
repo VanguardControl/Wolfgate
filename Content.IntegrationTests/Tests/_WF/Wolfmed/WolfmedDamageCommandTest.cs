@@ -18,12 +18,12 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// parses args[2] as <c>ignoreResistances</c> and goes through Wolfmed's routing instead of the flat path.
 /// </remarks>
 [TestFixture]
-public sealed class WolfmedDamageCommandTest : GameTest
+public sealed class WolfmedDamageCommandTest : WolfmedGameTest
 {
     [Test]
     public async Task DamageCommandHitsTheNamedPartTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var entities = Server.EntMan;
 
         EntityUid body = default;
@@ -58,7 +58,7 @@ public sealed class WolfmedDamageCommandTest : GameTest
     [Test]
     public async Task DamageCommandPassesTheAmbientCeilingTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var entities = Server.EntMan;
 
         EntityUid admin = default, ambient = default;
@@ -99,7 +99,7 @@ public sealed class WolfmedDamageCommandTest : GameTest
     [Test]
     public async Task DamageCommandWithoutAPartStillWorksTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var entities = Server.EntMan;
 
         EntityUid body = default;

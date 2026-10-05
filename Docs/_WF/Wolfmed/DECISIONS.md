@@ -4969,3 +4969,27 @@ that rolled the top of a 400 Blunt range was deleted as it spawned (it failed `N
 once in the verification run, on a 400 roll). Both now match the others: Blunt 1500, no Heat ash (OD12).
 `WorstRollKeepsItsBodyTest` gives every species every fitting bounty at the top of its ranges and finds every body
 still there; with the old threshold it names the avali.
+
+## The Wolfmed test map has air (2026-10-04)
+
+The pair's test map is hard vacuum, and about a hundred Wolfmed fixtures spawned their bodies on it. `BarotraumaSystem`
+runs on one global one-second timer, so a body took Blunt 2 and Heat 0.4, two dry wounds on some part, whenever that
+timer rolled over while it existed. A test that waited a few ticks and then asserted a part's exact damage, or walked
+its wounds, failed only when the rollover landed inside its window. The phase depends on how many ticks the pooled pair
+has already run, so it moved with every test added anywhere, and the failure looked like that pull request's fault:
+`ArteryOverlayTest` ("the clamp did not take") and `DamageCommandHitsTheNamedPartTest` on the Planets branch,
+`PartDamageProjectsToVisualsComponentTest` here. Since the space exposure change a vacuum also takes a body down in
+half a minute.
+
+- **`WolfmedGameTest`**, the base of all 118 fixtures. `CreateTestMap()` is the pair's map with station air on it;
+  `CreateVacuumTestMap()` is the bare one, for the two tests that are about the vacuum (`BarotraumaPartTest`,
+  `VacuumMessageSpamTest`). The two fixtures that run their own pair call the static `CreateTestMap(pair)`.
+- **Nothing is taken off the bodies.** A test about pressure, cold or breathing sets its own atmosphere after it
+  creates the map, as it always did.
+- **It cannot quietly come back.** A passing test that made its map with `Pair.CreateTestMap()` and left it bare
+  fails at teardown and says why; `WolfmedFixtureBaseTest` keeps every Wolfmed fixture on the base.
+- **`WolfmedTestMapTest`**: the timer rolls over once a second, so three seconds cover every phase a test can start
+  at. The body on the test map is untouched after them; the control on the bare map has been hit.
+
+The fixtures that already gave their map air, or took the body's `BarotraumaComponent` off, were left as they are:
+redundant now, and harmless. The whole suite (590) passed on its first run with air, nothing adjusted.

@@ -28,7 +28,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedWoundOverlaySystem))]
-public sealed class WolfmedWoundOverlayTest : GameTest
+public sealed class WolfmedWoundOverlayTest : WolfmedGameTest
 {
     /// <summary>
     /// A bleeding slash drips; dressed it stops and shows the still wound; a heavy bleed trickles; an unhurt limb and a
@@ -37,7 +37,7 @@ public sealed class WolfmedWoundOverlayTest : GameTest
     [Test]
     public async Task BleedingWoundOverlayTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid body = default;
 
         await Server.WaitAssertion(() =>
@@ -117,7 +117,7 @@ public sealed class WolfmedWoundOverlayTest : GameTest
     [Test]
     public async Task RotOverlayTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid body = default;
         EntityUid wound = default;
 
@@ -194,15 +194,12 @@ public sealed class WolfmedWoundOverlayTest : GameTest
     [Test]
     public async Task ArteryOverlayTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid body = default;
         EntityUid head = default;
 
         await Server.WaitAssertion(() =>
         {
-            // The bare test map is a vacuum: its pressure damage lands on a random part, and on the head it left a
-            // bruise the clamp below does not take on.
-            new Scenarios.WolfmedScenario(SEntMan).SetAir(map.MapUid, true);
             body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             head = Part(body, BodyPartType.Head);
             Assert.That(SEntMan.System<WoundSystem>().CreateOrMergeWound(head, "WFWolfmedArterialBleedWound", FixedPoint2.New(10)),
@@ -370,7 +367,7 @@ public sealed class WolfmedWoundOverlayTest : GameTest
     [Test]
     public async Task StumpOverlayTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid body = default;
 
         await Server.WaitAssertion(() =>

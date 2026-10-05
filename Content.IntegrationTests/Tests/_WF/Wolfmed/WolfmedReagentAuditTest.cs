@@ -28,13 +28,13 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// on a real body from their own prototypes so a later change to either side shows up here.
 /// </summary>
 [TestFixture]
-public sealed class WolfmedReagentAuditTest : GameTest
+public sealed class WolfmedReagentAuditTest : WolfmedGameTest
 {
     /// <summary>Saline's blood restore lands in the bloodstream the life model reads its blood level from.</summary>
     [Test]
     public async Task SalineRefillsAWoundHostTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
 
         await Server.WaitAssertion(() =>
         {
@@ -59,7 +59,7 @@ public sealed class WolfmedReagentAuditTest : GameTest
     [Test]
     public async Task DexalinEasesSuffocationTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
 
         await Server.WaitAssertion(() =>
         {
@@ -90,7 +90,7 @@ public sealed class WolfmedReagentAuditTest : GameTest
     [Test]
     public async Task OsteogenMendsASimpleBreakTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
 
         await Server.WaitAssertion(() =>
         {
@@ -124,7 +124,7 @@ public sealed class WolfmedReagentAuditTest : GameTest
     [Test]
     public async Task LeporazineRewarmsTheCoreTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
 
         await Server.WaitAssertion(() =>
         {

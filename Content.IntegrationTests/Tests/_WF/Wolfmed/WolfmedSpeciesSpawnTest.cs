@@ -41,7 +41,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// </remarks>
 [TestFixture]
 [TestOf(typeof(WoundDamageProjectionSystem))]
-public sealed class WolfmedSpeciesSpawnTest : GameTest
+public sealed class WolfmedSpeciesSpawnTest : WolfmedGameTest
 {
     /// <summary>
     /// PLAN5 §6.2 T-P5-2. PROTO Q in one assertion block: an IPC is a wound host whose every limb carries the
@@ -54,7 +54,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var body = EntityUid.Invalid;
 
         await server.WaitAssertion(() =>
@@ -113,7 +113,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
 
         await server.WaitAssertion(() =>
         {
@@ -177,7 +177,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
 
         await server.WaitAssertion(() =>
         {
@@ -229,7 +229,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var slashed = EntityUid.Invalid;
         var blunted = EntityUid.Invalid;
 
@@ -282,7 +282,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var body = EntityUid.Invalid;
 
         await server.WaitAssertion(() =>
@@ -326,7 +326,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var hosts = new EntityUid[2];
 
         await server.WaitAssertion(() =>
@@ -388,7 +388,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var arm = EntityUid.Invalid;
 
         await server.WaitAssertion(() =>
@@ -453,7 +453,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
 
         await server.WaitAssertion(() =>
         {
@@ -483,7 +483,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
 
         await server.WaitAssertion(() =>
         {
@@ -527,7 +527,7 @@ public sealed class WolfmedSpeciesSpawnTest : GameTest
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
 
         await server.WaitAssertion(() =>
         {

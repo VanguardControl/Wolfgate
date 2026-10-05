@@ -29,7 +29,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedPainReliefSystem))]
-public sealed class WolfmedPainkillerTest : GameTest
+public sealed class WolfmedPainkillerTest : WolfmedGameTest
 {
     /// <summary>The plan's lines and the absorption delay, pinned.</summary>
     private async Task Pin()
@@ -91,7 +91,7 @@ public sealed class WolfmedPainkillerTest : GameTest
     public async Task OralPainkillerTakesHoldTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid pill = default, swig = default;
 
         await Server.WaitPost(() =>
@@ -146,13 +146,11 @@ public sealed class WolfmedPainkillerTest : GameTest
     public async Task PainkillerPenTest(string pen, WolfmedPainReliefTier tier)
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid pained = default, bled = default, penA = default, penB = default;
 
         await Server.WaitPost(() =>
         {
-            // Two minutes of real time: on the bare test map, a vacuum, the bodies would be down to that instead.
-            new WolfmedScenario(SEntMan).SetAir(map.MapUid, true);
             pained = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             bled = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
             penA = SEntMan.SpawnEntity(pen, map.GridCoords);

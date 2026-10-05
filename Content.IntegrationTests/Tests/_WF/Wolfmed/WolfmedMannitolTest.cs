@@ -21,12 +21,12 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedBrainMendSystem))]
-public sealed class WolfmedMannitolTest : GameTest
+public sealed class WolfmedMannitolTest : WolfmedGameTest
 {
     [Test]
     public async Task MannitolRestoresADamagedBrainTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var life = SEntMan.System<WolfmedLifeSystem>();
         var organs = SEntMan.System<OrganHealthSystem>();
         EntityUid patient = default;

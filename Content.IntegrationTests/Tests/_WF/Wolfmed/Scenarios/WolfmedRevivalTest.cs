@@ -49,7 +49,7 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedRevivalSystem))]
-public sealed class WolfmedRevivalTest : GameTest
+public sealed class WolfmedRevivalTest : WolfmedGameTest
 {
     private async Task Pin()
     {
@@ -104,7 +104,7 @@ public sealed class WolfmedRevivalTest : GameTest
     public async Task RestartHookTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var revival = SEntMan.System<WolfmedRevivalSystem>();
         var life = SEntMan.System<WolfmedLifeSystem>();
         var mobState = SEntMan.System<MobStateSystem>();
@@ -171,7 +171,7 @@ public sealed class WolfmedRevivalTest : GameTest
     public async Task CoreRepairTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var revival = SEntMan.System<WolfmedRevivalSystem>();
         var life = SEntMan.System<WolfmedLifeSystem>();
         var mobState = SEntMan.System<MobStateSystem>();
@@ -268,7 +268,7 @@ public sealed class WolfmedRevivalTest : GameTest
     public async Task ExecutionAndSuicideTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         var mobState = SEntMan.System<MobStateSystem>();
         EntityUid victim = default, attacker = default, knife = default;
@@ -354,7 +354,7 @@ public sealed class WolfmedRevivalTest : GameTest
     public async Task SepsisDeterministicTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid first = default, second = default;
 
@@ -393,7 +393,7 @@ public sealed class WolfmedRevivalTest : GameTest
     public async Task ColdBrainTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
         EntityUid warm = default, cold = default;
 
@@ -440,7 +440,7 @@ public sealed class WolfmedRevivalTest : GameTest
     public async Task InsulatedShockTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var life = SEntMan.System<WolfmedLifeSystem>();
         EntityUid gloved = default, bare = default;
 
@@ -477,7 +477,7 @@ public sealed class WolfmedRevivalTest : GameTest
     public async Task SutureInfectionTest()
     {
         await Pin();
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid sutured = default, open = default;
 
         await Server.WaitPost(() =>

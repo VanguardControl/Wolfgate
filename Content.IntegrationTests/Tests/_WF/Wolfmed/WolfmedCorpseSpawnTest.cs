@@ -34,14 +34,14 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedSpawnInjurySystem))]
-public sealed class WolfmedCorpseSpawnTest : GameTest
+public sealed class WolfmedCorpseSpawnTest : WolfmedGameTest
 {
     [TestCase("SalvageHumanCorpse")]
     [TestCase("MobRandomMedicCorpse")]
     [TestCase("DungeonHumanCorpseRandomMedic")]
     public async Task CorpsePrototypeSpawnsDeadWithItsInjuriesTest(string prototype)
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid body = default;
 
         var parts = 0;
@@ -83,7 +83,7 @@ public sealed class WolfmedCorpseSpawnTest : GameTest
     [Test]
     public async Task DeadMouseIsStillDeadTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid mouse = default;
         await Server.WaitAssertion(() => mouse = SEntMan.SpawnEntity("MobMouseDead", map.GridCoords));
         await RunSeconds(1);
@@ -96,7 +96,7 @@ public sealed class WolfmedCorpseSpawnTest : GameTest
     [TestCase("PlasmaFire", "Heat")]
     public async Task MedicalBountyCorpseSpawnsDeadWithItsInjuriesTest(string bounty, string type)
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         EntityUid body = default;
 
         await Server.WaitAssertion(() =>
@@ -128,7 +128,7 @@ public sealed class WolfmedCorpseSpawnTest : GameTest
     [Test]
     public async Task NoRandomBountyComesUpFreeTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var bodies = new List<EntityUid>();
         await Server.WaitAssertion(() =>
         {
@@ -158,7 +158,7 @@ public sealed class WolfmedCorpseSpawnTest : GameTest
     [Test]
     public async Task NoBountyComesUpFreeOnAnySpeciesTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var bounties = SEntMan.System<MedicalBountySystem>();
         var bodies = new List<(EntityUid Body, string Species, MedicalBountyPrototype Bounty)>();
         await Server.WaitAssertion(() =>
@@ -234,7 +234,7 @@ public sealed class WolfmedCorpseSpawnTest : GameTest
     [Test]
     public async Task WorstRollKeepsItsBodyTest()
     {
-        var map = await Pair.CreateTestMap();
+        var map = await CreateTestMap();
         var bounties = SEntMan.System<MedicalBountySystem>();
         var spawn = SEntMan.System<WolfmedSpawnInjurySystem>();
         var bodies = new List<(EntityUid Body, string Name)>();
