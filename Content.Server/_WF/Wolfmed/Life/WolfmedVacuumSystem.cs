@@ -52,6 +52,15 @@ public sealed class WolfmedVacuumSystem : EntitySystem
             if (!TerminatingOrDeleted(body))
                 Set(body, exposed);
         }
+
+        // A body that lost its BarotraumaComponent while exposed (a zombie's, a trader's) is not read above any more,
+        // and would stay marked, and drained, for good.
+        var marked = EntityQueryEnumerator<WolfmedVacuumComponent>();
+        while (marked.MoveNext(out var uid, out var comp))
+        {
+            if (comp.Exposed && (!HasComp<BarotraumaComponent>(uid) || !HasComp<WolfmedConsciousnessComponent>(uid)))
+                comp.Exposed = false;
+        }
     }
 
     private bool FeelsVacuum(EntityUid body, BarotraumaComponent barotrauma)

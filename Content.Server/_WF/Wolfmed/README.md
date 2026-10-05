@@ -1622,6 +1622,7 @@ Skipped ("dirty-disposed").
   - M4: OD16 Synth is mechanical, the ccu is its positronic core
   - Wolfmed eyes data, so the organ can be hurt, scanned and treated
   - Wolfmed lungs data, so the organ can be hurt, scanned and treated
+  - a destroyed synth organ leaves mechanical damage; a chassis part takes no internal bleeding, so the organic wound left nothing
   - M4: OD16 Synth is mechanical, the heart is its coolant pump
   - Wolfmed stomach data, so the organ can be hurt, scanned and treated
   - Wolfmed liver data, so the organ can be hurt, scanned and treated

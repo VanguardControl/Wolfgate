@@ -112,6 +112,9 @@
   suffix: Synth
   description: "Synth lungs simulating organic functions for internal cooling. Not very interesting on their own."
   components:
+  # WOLFGATE(Wolfmed): a destroyed synth organ leaves mechanical damage; a chassis part takes no internal bleeding, so the organic wound left nothing
+  - type: WolfmedOrgan
+    destructionWound: IpcMechanicalDamageWound
   - type: Sprite
     state: lungs
   - type: Organ
@@ -147,6 +150,9 @@
   suffix: Synth
   description: "A Synth stomach. It can convert minerals to nutriment and nutriment to nanites."
   components:
+  # WOLFGATE(Wolfmed): a destroyed synth organ leaves mechanical damage; a chassis part takes no internal bleeding, so the organic wound left nothing
+  - type: WolfmedOrgan
+    destructionWound: IpcMechanicalDamageWound
   - type: Sprite
     state: stomach
   - type: Organ
@@ -181,6 +187,9 @@
   suffix: Synth
   description: "A Synth liver. It prevents poisoning from alcohol."
   components:
+  # WOLFGATE(Wolfmed): a destroyed synth organ leaves mechanical damage; a chassis part takes no internal bleeding, so the organic wound left nothing
+  - type: WolfmedOrgan
+    destructionWound: IpcMechanicalDamageWound
   - type: Sprite
     state: liver
     scale: 0.8, 0.8
@@ -202,6 +211,9 @@
   suffix: Synth
   description: "A Synth energy coil. It doesn't seem to do anything interesting yet."
   components:
+  # WOLFGATE(Wolfmed): a destroyed synth organ leaves mechanical damage; a chassis part takes no internal bleeding, so the organic wound left nothing
+  - type: WolfmedOrgan
+    destructionWound: IpcMechanicalDamageWound
   - type: Sprite
     state: kidneys
     scale: 1.1, 1.1

@@ -317,6 +317,34 @@ public sealed class WolfmedSpaceExposureTest : WolfmedGameTest
     }
 
     /// <summary>
+    /// A body that loses its BarotraumaComponent while exposed (zombification takes it off, and so does a trader)
+    /// stops being read for exposure; the mark is cleared on the next reading instead of draining the brain for good.
+    /// </summary>
+    [Test]
+    public async Task LosingBarotraumaEndsTheExposureTest()
+    {
+        await Pin();
+        var (s, body, _) = await Spawn(space: true, suit: false, internals: false);
+        await RunSeconds(3);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(Vacuum.IsExposed(body), Is.True, "a naked human in space is not exposed.");
+            SEntMan.RemoveComponent<Content.Server.Atmos.Components.BarotraumaComponent>(body);
+        });
+        await RunSeconds(2);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(Vacuum.IsExposed(body), Is.False, "the body is still marked exposed.");
+                Assert.That(s.Life.GetActiveRoutes(body) & WolfmedRoutes.Vacuum, Is.EqualTo(WolfmedRoutes.None));
+            });
+        });
+    }
+
+    /// <summary>
     /// The brain's cold protection reads the core. A cold skin over a warm core protects nothing (in space the skin is
     /// under 20 C within seconds, which made the brain safe before it was short of anything); a cold core does.
     /// </summary>

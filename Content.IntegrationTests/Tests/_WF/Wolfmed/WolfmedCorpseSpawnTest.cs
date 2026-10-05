@@ -257,13 +257,13 @@ public sealed class WolfmedCorpseSpawnTest : WolfmedGameTest
                         worst.DamageDict[type] = FixedPoint2.New(roll.MaxDamage);
 
                     var body = SEntMan.CreateEntityUninitialized(species.Prototype, map.GridCoords);
-                    if (!spawn.Defer(body, worst))
-                    {
-                        SEntMan.DeleteEntity(body);
-                        continue;
-                    }
-
+                    var deferred = spawn.Defer(body, worst);
                     SEntMan.InitializeAndStartEntity(body);
+
+                    // Not a wound host: the bounty deals the damage itself, as MedicalBountySystem does.
+                    if (!deferred)
+                        SEntMan.System<DamageableSystem>().TryChangeDamage(body, worst, true);
+
                     bodies.Add((body, $"{species.ID}/{bounty.ID}"));
                 }
 
