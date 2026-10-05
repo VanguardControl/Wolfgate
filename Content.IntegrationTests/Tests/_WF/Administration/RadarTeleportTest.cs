@@ -1,5 +1,6 @@
 #nullable enable
 using System.Numerics;
+using System.Collections.Generic;
 using System.Reflection;
 using Content.Client._WF.Administration.UI.AdminRadar;
 using Content.Client.Shuttles.UI;
@@ -8,6 +9,7 @@ using Content.IntegrationTests.Tests.Interaction;
 using Content.Server._WF.Administration.Systems;
 using Content.Server.Administration.Managers;
 using Content.Server.Shuttles.Systems;
+using Content.Shared._WF.Administration.AdminRadar;
 using Content.Shared._WF.Administration.RadarTeleport;
 using Content.Shared.Administration;
 using Content.Shared.Mind;
@@ -24,8 +26,8 @@ using Robust.Shared.Map;
 namespace Content.IntegrationTests.Tests._WF.Administration;
 
 /// <summary>
-/// The admin mass scanner: an admin ghost gets the resizable, far-zooming window and, with its toggle on, is moved to
-/// the clicked spot. Nobody else gets either.
+/// The admin mass scanner: an admin ghost gets the resizable, far-zooming window, can see past IFF, is told where
+/// the players are and can jump to one, and with the toggle on is moved to the clicked spot. Nobody else gets any of it.
 /// </summary>
 [TestOf(typeof(RadarTeleportSystem))]
 public sealed class RadarTeleportTest : InteractionTest
@@ -157,6 +159,119 @@ public sealed class RadarTeleportTest : InteractionTest
         await ClickControl(maximize);
         await RunTicks(5);
         Assert.That(window.Size, Is.EqualTo(size), "Turning maximize off should give the old size back.");
+    }
+
+    /// <summary>
+    /// Only an admin is told where the players are, bodies are told from ghosts, and a row in the searchable jump
+    /// list warps the ghost to its player.
+    /// </summary>
+    [Test]
+    public async Task AdminScannerListsAndJumpsToPlayers()
+    {
+        var radar = CEntMan.System<Content.Client._WF.Administration.AdminRadar.AdminRadarSystem>();
+        var body = SEntMan.GetNetEntity(SPlayer);
+
+        await SetAdmin(false);
+        var before = radar.Players;
+        await RequestPlayers(radar);
+        Assert.That(radar.Players, Is.SameAs(before), "A player who isn't an admin shouldn't be sent the list.");
+
+        await SetAdmin(true);
+        await RequestPlayers(radar);
+        Assert.That(radar.Players, Has.Count.EqualTo(1), "The list should hold the one connected player.");
+        Assert.Multiple(() =>
+        {
+            Assert.That(radar.Players[0].Entity, Is.EqualTo(body));
+            Assert.That(radar.Players[0].Username, Is.EqualTo(ServerSession.Name));
+            Assert.That(radar.Players[0].Ghost, Is.False, "A body shouldn't be listed as a ghost.");
+        });
+
+        var ghost = await BecomeGhost(AdminGhost);
+        await RequestPlayers(radar);
+        Assert.That(radar.Players, Has.Count.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(radar.Players[0].Entity, Is.EqualTo(SEntMan.GetNetEntity(ghost)));
+            Assert.That(radar.Players[0].Ghost, Is.True, "A ghost should be listed as one.");
+        });
+
+        // The old body stands in for another player, with the ghost well away from it.
+        await Server.WaitPost(() => SEntMan.System<SharedTransformSystem>()
+            .SetCoordinates(ghost, SEntMan.GetCoordinates(PlayerCoords).Offset(new Vector2(8f, 0f))));
+        await RunTicks(5);
+        var target = await Position(SPlayer);
+        Assert.That(((await Position(ghost)).Position - target.Position).Length(), Is.GreaterThan(5f));
+
+        var window = await OpenScanner<AdminRadarWindow>(ghost);
+        var panel = GetControlFromField<Control>("JumpPanel", window);
+        var list = GetControlFromField<BoxContainer>("JumpList", window);
+        var search = GetControlFromField<LineEdit>("JumpSearch", window);
+        await ClickControl(GetControlFromField<Button>("JumpToggle", window));
+        await RunTicks(5);
+        Assert.Multiple(() =>
+        {
+            Assert.That(panel.Visible, "The toggle should open the jump list.");
+            Assert.That(list.ChildCount, Is.Zero, "The admin's own ghost shouldn't be in the jump list.");
+        });
+
+        // A forced request restarts the once-a-second refresh, so the hand-made list isn't replaced mid-test.
+        await RequestPlayers(radar);
+        await Server.WaitPost(() => SEntMan.EntityNetManager!.SendSystemNetworkMessage(
+            new AdminRadarPlayersEvent(new List<AdminRadarPlayer> { new(body, "Jump Target", "someone", PlayerCoords, false) }),
+            ServerSession.Channel));
+        await RunTicks(3);
+        Assert.That(list.ChildCount, Is.EqualTo(1), "A listed player should get a row.");
+
+        await Client.WaitPost(() => search.SetText("nobody", true));
+        Assert.That(list.ChildCount, Is.Zero, "A search that matches nobody should leave no rows.");
+        await Client.WaitPost(() => search.SetText("SOME", true));
+        Assert.That(list.ChildCount, Is.EqualTo(1), "The search should match usernames, whatever the case.");
+
+        await ClickControl(list.GetChild(0));
+        await RunTicks(5);
+        var end = await Position(ghost);
+        Assert.Multiple(() =>
+        {
+            Assert.That((end.Position - target.Position).Length(), Is.LessThan(0.5f), "The ghost should be at the picked player.");
+            Assert.That(panel.Visible, Is.False, "Picking a player should close the jump list.");
+        });
+    }
+
+    /// <summary>
+    /// Revealing lifts a hidden grid's IFF so it can be drawn and named, and restoring hides it again.
+    /// </summary>
+    [Test]
+    public async Task TrueIffRevealsHiddenGrid()
+    {
+        await Server.WaitPost(() =>
+            SEntMan.System<ShuttleSystem>().AddIFFFlag(MapData.Grid, IFFFlags.Hide | IFFFlags.HideLabel));
+        await RunTicks(5);
+
+        var grid = CEntMan.GetEntity(SEntMan.GetNetEntity(MapData.Grid.Owner));
+        var shuttle = CEntMan.System<Content.Client.Shuttles.Systems.ShuttleSystem>();
+        var hidden = new List<(IFFComponent, IFFFlags)>();
+        await Client.WaitAssertion(() =>
+        {
+            Assert.That(shuttle.CanDraw(grid), Is.False, "The grid should start hidden.");
+            Assert.That(shuttle.GetIFFLabel(grid), Is.Null, "A hidden grid should have no label.");
+
+            shuttle.WfRevealIff(hidden);
+            Assert.That(shuttle.CanDraw(grid), "A revealed grid should be drawn.");
+            Assert.That(shuttle.GetIFFLabel(grid), Is.Not.Null, "A revealed grid should have its label.");
+
+            shuttle.WfRestoreIff(hidden);
+            Assert.That(shuttle.CanDraw(grid), Is.False, "Restoring should hide the grid again.");
+            Assert.That(hidden, Is.Empty);
+        });
+    }
+
+    /// <summary>
+    /// Asks the server for the player list and waits for the answer.
+    /// </summary>
+    private async Task RequestPlayers(Content.Client._WF.Administration.AdminRadar.AdminRadarSystem radar)
+    {
+        await Client.WaitPost(() => radar.RequestPlayers(true));
+        await RunTicks(5);
     }
 
     /// <summary>
