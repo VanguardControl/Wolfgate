@@ -1,3 +1,4 @@
+# Fighters fly with a pilot and a gunner and nobody else.
 # A pair of TSF fighters holding station off a station for the whole round. They warn ships that dock with them,
 # fight boarders, and only drive attackers off. Ships of a company the TSF is at war with are warned off at 900 m
 # and fired on inside 450 m; everyone else may pass.
@@ -17,6 +18,9 @@
   - key: lead
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: patrol
     faction: TSFMC
     company: TSF
@@ -34,12 +38,14 @@
   - key: wing
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 120, 0
     side: patrol
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    captain: false
     docking: Warn
     disengage: Deter
     disengageRange: 1200
@@ -69,6 +75,9 @@
   - key: lead
     navigation: WFCrewNavigationWarship
     vessels: [ Kynda, Gadfly ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: patrol
     faction: WFPdvNavy
     company: PDV
@@ -87,12 +96,14 @@
   - key: wing
     navigation: WFCrewNavigationWarship
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 120, 0
     side: patrol
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
-    captain: false
     docking: Warn
     disengage: Deter
     disengageRange: 1200
@@ -255,12 +266,14 @@
   - key: escort
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 150, 0
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    captain: false
     disengage: Deter
     disengageRange: 1200
     objectives:
@@ -312,12 +325,14 @@
   - key: escort
     navigation: WFCrewNavigationWarship
     vessels: [ Kynda, Gadfly ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 150, 0
     side: pdv
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
-    captain: false
     disengage: Deter
     disengageRange: 1200
     objectives:
@@ -424,6 +439,9 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 200, 650
     side: pirates
     faction: PirateNF
@@ -431,7 +449,6 @@
     company: PDV
     profile: WFCrewProfilePirate
     skill: Regular
-    captain: false
     objectives:
     - kind: Attack
       target: hauler
@@ -469,13 +486,15 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 0
     side: pirates
     faction: PirateNF
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
-    captain: false
     warnRange: 900
     attackRange: 450
     zoneLines: wf-encounter-pirate-zone
@@ -581,6 +600,9 @@
   - key: patrol
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: tsf
     faction: TSFMC
     company: TSF
@@ -604,13 +626,15 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 180, 520
     side: pirates
     faction: PirateNF
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
-    captain: false
     objectives:
     - kind: Attack
       target: patrol
@@ -645,6 +669,9 @@
   - key: patrol
     navigation: WFCrewNavigationWarship
     vessels: [ Kynda, Gadfly ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: pdv
     faction: WFPdvNavy
     company: PDV
@@ -656,13 +683,15 @@
   - key: striker
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 0, 500
     side: tsf
     faction: TSFMC
     distress: false
     company: TSF
     profile: WFCrewProfileTsf
-    deckhands: 1
     skill: Regular
     iffColor: "#6fb6ff"
     objectives:
@@ -671,14 +700,15 @@
   - key: wing
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 180, 520
     side: tsf
     faction: TSFMC
     distress: false
     company: TSF
     profile: WFCrewProfileTsf
-    captain: false
-    deckhands: 1
     skill: Regular
     objectives:
     - kind: Attack
@@ -1019,13 +1049,14 @@
   - key: ambusher
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 0, 650
     side: pirates
     faction: PirateNF
     company: PDV
     profile: WFCrewProfilePirate
-    captain: false
-    deckhands: 1
     skill: Regular
     distress: false
     evades: false
@@ -1070,13 +1101,14 @@
   - key: ambusher
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -150, 700
     side: pirates
     faction: PirateNF
     company: PDV
     profile: WFCrewProfilePirate
-    captain: false
-    deckhands: 1
     skill: Regular
     distress: false
     evades: false
@@ -1089,13 +1121,14 @@
   - key: second
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 150, 750
     side: pirates
     faction: PirateNF
     company: PDV
     profile: WFCrewProfilePirate
-    captain: false
-    deckhands: 1
     skill: Regular
     distress: false
     evades: false
@@ -1139,11 +1172,13 @@
   - key: patrol
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    deckhands: 1
     skill: Regular
     evades: false
     iffColor: "#6fb6ff"
@@ -1155,13 +1190,14 @@
   - key: escort
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 0
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     objectives:
@@ -1172,13 +1208,15 @@
   - key: raider
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 0, 550
     side: pirates
     faction: PirateNF
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
-    deckhands: 1
     skill: Regular
     evades: false
     iffColor: "#ff5c5c"
@@ -1190,14 +1228,15 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 570
     side: pirates
     faction: PirateNF
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     objectives:
@@ -1234,12 +1273,14 @@
   - key: raider
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: dynasty
     faction: PirateNF
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
-    deckhands: 1
     skill: Regular
     evades: false
     iffColor: "#ff5c5c"
@@ -1249,14 +1290,15 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 0
     side: dynasty
     faction: PirateNF
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     objectives:
@@ -1312,11 +1354,13 @@
   - key: patrol
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    deckhands: 1
     skill: Regular
     evades: false
     iffColor: "#6fb6ff"
@@ -1326,13 +1370,14 @@
   - key: escort
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 0
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     objectives:
@@ -1393,11 +1438,13 @@
   - key: patrol
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    deckhands: 1
     skill: Regular
     evades: false
     iffColor: "#6fb6ff"
@@ -1409,13 +1456,14 @@
   - key: escort
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 0
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     objectives:
@@ -1426,12 +1474,14 @@
   - key: lead
     navigation: WFCrewNavigationWarship
     vessels: [ Kynda, Gadfly ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 0, 550
     side: pdv
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
-    deckhands: 1
     skill: Regular
     evades: false
     iffColor: "#ffae3d"
@@ -1443,13 +1493,14 @@
   - key: wing
     navigation: WFCrewNavigationWarship
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 570
     side: pdv
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     objectives:
@@ -1489,11 +1540,13 @@
   - key: patrol
     navigation: WFCrewNavigationWarship
     vessels: [ Kynda, Gadfly ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: pdv
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
-    deckhands: 1
     skill: Regular
     evades: false
     iffColor: "#ffae3d"
@@ -1503,13 +1556,14 @@
   - key: escort
     navigation: WFCrewNavigationWarship
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 0
     side: pdv
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     objectives:
@@ -1563,12 +1617,14 @@
   - key: raider
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: dynasty
     faction: PirateNF
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
-    deckhands: 1
     skill: Regular
     evades: false
     warnRange: 800
@@ -1582,14 +1638,15 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 0
     side: dynasty
     faction: PirateNF
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     warnRange: 800
@@ -1653,11 +1710,13 @@
   - key: patrol
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    deckhands: 1
     skill: Regular
     evades: false
     warnRange: 800
@@ -1672,13 +1731,14 @@
   - key: escort
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 0
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     warnRange: 800
@@ -1692,13 +1752,15 @@
   - key: raider
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 0, 550
     side: pirates
     faction: PirateNF
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
-    deckhands: 1
     skill: Regular
     evades: false
     warnRange: 800
@@ -1714,14 +1776,15 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 570
     side: pirates
     faction: PirateNF
     distress: false
     company: PDV
     profile: WFCrewProfilePirate
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     warnRange: 800
@@ -1769,11 +1832,13 @@
   - key: patrol
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    deckhands: 1
     skill: Regular
     evades: false
     warnRange: 800
@@ -1788,13 +1853,14 @@
   - key: escort
     navigation: WFCrewNavigationWarship
     vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 0
     side: tsf
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     warnRange: 800
@@ -1808,12 +1874,14 @@
   - key: lead
     navigation: WFCrewNavigationWarship
     vessels: [ Kynda, Gadfly ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 0, 550
     side: pdv
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
-    deckhands: 1
     skill: Regular
     evades: false
     warnRange: 800
@@ -1829,13 +1897,14 @@
   - key: wing
     navigation: WFCrewNavigationWarship
     vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 160, 570
     side: pdv
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
-    captain: false
-    deckhands: 1
     skill: Regular
     evades: false
     warnRange: 800
