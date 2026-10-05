@@ -294,10 +294,26 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             if (there.MapId != here.MapId)
                 continue;
 
+            // An unknown vessel berthed somewhere is in port, not trespassing: the patrol came to it, and lets it be.
+            if (masked && IsDocked(intruder))
+            {
+                ship.Engaged.Remove(intruder);
+                _alerts.EndZoneWarning(ship.Grid, intruder);
+                continue;
+            }
+
             var challenged = masked && ship.ZoneTargets == WFEncounterZoneTargets.AtWar;
             var name = masked ? Loc.GetString("wf-encounter-zone-unknown") : Name(intruder);
             var distance = (there.Position - here.Position).Length();
-            if (ship.AttackRange > 0f && distance <= ship.AttackRange)
+            // One lying still is hailed to show itself and no more, wherever the zone finds it. Under way, or once
+            // fired on, it is treated as any unknown.
+            var idle = masked && !ship.Engaged.Contains(intruder)
+                       && (!TryComp<Robust.Shared.Physics.Components.PhysicsComponent>(intruder, out var body)
+                           || body.LinearVelocity.LengthSquared() < IdleSpeed * IdleSpeed);
+            if (idle)
+                _alerts.EndZoneWarning(ship.Grid, intruder);
+
+            if (ship.AttackRange > 0f && distance <= ship.AttackRange && !idle)
             {
                 _alerts.EndZoneWarning(ship.Grid, intruder);
                 if (ship.Engaged.Add(intruder))
@@ -318,7 +334,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
                     continue;
                 }
 
-                if (challenged)
+                if (challenged && !idle)
                     _alerts.ReportZoneWarning(ship.Grid, ship.Group, intruder);
                 if (ship.Warned.TryGetValue(intruder, out var until) && now < until)
                     continue;
@@ -337,6 +353,9 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             }
         }
     }
+
+    /// <summary>Below this speed, in metres a second, a vessel is lying still.</summary>
+    private const float IdleSpeed = 2f;
 
     /// <summary>Whether a ship has its IFF switched off, so nobody can tell whose it is.</summary>
     private bool IffMasked(EntityUid grid)

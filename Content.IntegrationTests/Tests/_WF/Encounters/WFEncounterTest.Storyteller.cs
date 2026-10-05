@@ -172,8 +172,9 @@ public sealed partial class WFEncounterTest
     }
 
     /// <summary>
-    /// A patrol cannot tell whose a ship is with its IFF off: a neutral ship is left alone while it shows, challenged
-    /// with warning shots in the warning zone once it hides, and fired on in the attack zone.
+    /// A patrol cannot tell whose a ship is with its IFF off: a neutral ship is left alone while it shows, only hailed
+    /// while it hides lying still, challenged with warning shots in the warning zone once it is under way, and fired
+    /// on in the attack zone.
     /// </summary>
     [Test]
     public async Task PatrolChallengesAShipWithItsIffOff()
@@ -203,10 +204,22 @@ public sealed partial class WFEncounterTest
         await RunTicks(150);
         await Server.WaitAssertion(() =>
         {
+            Assert.That(Server.System<WFCrewAlertSystem>().IsWarningShot(patrol, intruder), Is.False, "Masked but lying still, it is only hailed.");
+            // Under way from here on.
+            var body = SEntMan.EnsureComponent<Robust.Shared.Physics.Components.PhysicsComponent>(intruder);
+            var physics = Server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>();
+            physics.SetBodyType(intruder, Robust.Shared.Physics.BodyType.Dynamic, body: body);
+            physics.SetLinearDamping(intruder, body, 0f);
+            physics.SetLinearVelocity(intruder, new Vector2(0f, 4f), body: body);
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
             var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"];
             Assert.That(Server.System<WFCrewAlertSystem>().IsWarningShot(patrol, intruder), Is.True, "Masked, it gets warning shots.");
             Assert.That(state.Engaged, Is.Empty, "But is not fired on in the warning zone.");
             Server.System<SharedTransformSystem>().SetCoordinates(intruder, new EntityCoordinates(MapData.MapUid, new Vector2(35150, 35000)));
+            Server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>().SetLinearVelocity(intruder, new Vector2(0f, 4f));
         });
         await RunTicks(150);
         await Server.WaitAssertion(() =>
