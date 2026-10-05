@@ -270,6 +270,52 @@ public sealed partial class WFCrewTest
         });
     }
 
+    /// <summary>
+    /// A few stray hits from a vessel of the ship's own faction are let pass; a sustained fire is an attack, and a
+    /// stranger's first hit always is.
+    /// </summary>
+    [Test]
+    public async Task StrayShotsFromTheSameFactionAreExcused()
+    {
+        var deck = await CreateDeck(new Vector2(500, 1900), 5, true);
+        var friend = await CreateDeck(new Vector2(600, 1900), 5, true);
+        var stranger = await CreateDeck(new Vector2(700, 1900), 5, true);
+        await Server.WaitAssertion(() =>
+        {
+            ConvoyCrew(deck, "WFCrewPilot", "strays");
+            SEntMan.EnsureComponent<Content.Shared._Mono.Company.CompanyComponent>(deck).CompanyName = "TSF";
+            SEntMan.EnsureComponent<Content.Shared._Mono.Company.CompanyComponent>(friend).CompanyName = "TSFCivilian";
+        });
+
+        var alerts = Server.System<WFCrewAlertSystem>();
+        for (var hit = 0; hit < WFCrewAlertSystem.StrayHits; hit++)
+        {
+            await Server.WaitPost(() =>
+            {
+                // A shell that breaks several plates is one hit.
+                for (var plate = 0; plate < 3; plate++)
+                {
+                    var ev = new WFCrewHullHitEvent(deck, friend);
+                    SEntMan.EventBus.RaiseLocalEvent(deck, ref ev, true);
+                }
+            });
+            await RunTicks(Ticks(0.6));
+        }
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(alerts.IsHostileShip(deck, "strays", friend), Is.False, "A few stray shots from a friend are let pass.");
+            Assert.That(alerts.IsExcused(deck, friend), Is.True);
+            var one = new WFCrewHullHitEvent(deck, stranger);
+            SEntMan.EventBus.RaiseLocalEvent(deck, ref one, true);
+            Assert.That(alerts.IsHostileShip(deck, "strays", stranger), Is.True, "A stranger's first hit is an attack.");
+            var more = new WFCrewHullHitEvent(deck, friend);
+            SEntMan.EventBus.RaiseLocalEvent(deck, ref more, true);
+            Assert.That(alerts.IsHostileShip(deck, "strays", friend), Is.True, "A friend who keeps firing is an attacker.");
+            Assert.That(alerts.IsExcused(deck, friend), Is.False);
+        });
+    }
+
     /// <summary>A ship rammed at speed takes the rammer for an attacker; a bump is let pass.</summary>
     [Test]
     public async Task RammingIsAnAttackAndBumpingIsNot()

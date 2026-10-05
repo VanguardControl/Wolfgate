@@ -63,8 +63,9 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<WFCrewHullHitEvent>(OnHullHit);
-        SubscribeLocalEvent<WFShipShieldAttackedEvent>(OnShieldHit);
+        // After the crews have judged the hit: a stray shot from a ship's own side is no help to its enemies.
+        SubscribeLocalEvent<WFCrewHullHitEvent>(OnHullHit, after: [typeof(WFCrewAlertSystem)]);
+        SubscribeLocalEvent<WFShipShieldAttackedEvent>(OnShieldHit, after: [typeof(WFCrewAlertSystem)]);
         SubscribeLocalEvent<WFEncounterResolvedEvent>(OnResolved);
     }
 
@@ -85,6 +86,9 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
     /// <summary>Counts a ship weapon hit by a player-crewed ship on an encounter ship as help for the other sides.</summary>
     public void RecordHit(EntityUid victim, EntityUid attacker)
     {
+        if (_alerts.IsExcused(victim, attacker))
+            return;
+
         if (!TryComp<WFEncounterGridComponent>(victim, out var marker) || HasComp<WFEncounterGridComponent>(attacker)
             || !TryComp<WFEncounterComponent>(marker.Encounter, out var encounter) || encounter.Resolution != null
             || !encounter.Ships.TryGetValue(marker.Key, out var ship))

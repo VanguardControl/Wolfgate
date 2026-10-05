@@ -123,7 +123,76 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
 
     private void OnHullHit(ref WFCrewHullHitEvent args)
     {
+        if (Excuse(args.Grid, args.AttackerGrid))
+            return;
         ReportAttack(args.Grid, args.AttackerGrid);
+    }
+
+    /// <summary>How many stray hits a ship lets a friendly vessel land inside the window before it is an attack.</summary>
+    public const int StrayHits = 6;
+    private static readonly TimeSpan StrayWindow = TimeSpan.FromSeconds(30);
+
+    /// <summary>Hits closer together than this are one burst or one shell, and count once.</summary>
+    private static readonly TimeSpan StraySpacing = TimeSpan.FromSeconds(0.5);
+
+    private readonly Dictionary<(EntityUid Grid, EntityUid Attacker), (TimeSpan First, TimeSpan Last, int Count)> _strays = new();
+
+    /// <summary>
+    /// Counts a ship weapon hit from a vessel of the struck ship's own faction and says whether it is let pass as an
+    /// accident. A few stray shots in a fight are; more than <see cref="StrayHits"/> inside the window are not, and
+    /// once a vessel is taken for an attacker nothing more of its fire is excused.
+    /// </summary>
+    private bool Excuse(EntityUid grid, EntityUid attacker)
+    {
+        if (!SameFaction(grid, attacker) || KnownAttacker(grid, attacker))
+            return false;
+
+        var now = _timing.CurTime;
+        var key = (grid, attacker);
+        if (!_strays.TryGetValue(key, out var strays) || now - strays.First > StrayWindow)
+            strays = (now, TimeSpan.MinValue, 0);
+        if (strays.Count == 0 || now - strays.Last >= StraySpacing)
+            strays = (strays.First, now, strays.Count + 1);
+
+        _strays[key] = strays;
+        return strays.Count <= StrayHits;
+    }
+
+    /// <summary>Whether a vessel's recent fire on a ship is still being let pass as stray shots from its own side.</summary>
+    public bool IsExcused(EntityUid grid, EntityUid attacker)
+    {
+        return SameFaction(grid, attacker) && !KnownAttacker(grid, attacker)
+               && (!_strays.TryGetValue((grid, attacker), out var strays) || _timing.CurTime - strays.First > StrayWindow
+                   || strays.Count <= StrayHits);
+    }
+
+    /// <summary>Whether two ships fly for the same faction: the same company, or two of one faction's companies.</summary>
+    private bool SameFaction(EntityUid first, EntityUid second)
+    {
+        var a = Family(CompOrNull<Content.Shared._Mono.Company.CompanyComponent>(first)?.CompanyName);
+        return a.Length > 0 && a == Family(CompOrNull<Content.Shared._Mono.Company.CompanyComponent>(second)?.CompanyName);
+    }
+
+    private static string Family(string? company)
+    {
+        if (string.IsNullOrEmpty(company) || company == "None")
+            return string.Empty;
+        if (company.StartsWith("TSF", StringComparison.Ordinal))
+            return "TSF";
+        return company.StartsWith("PDV", StringComparison.Ordinal) ? "PDV" : company;
+    }
+
+    /// <summary>Whether any crew of a ship already counts a vessel among its attackers.</summary>
+    private bool KnownAttacker(EntityUid grid, EntityUid attacker)
+    {
+        var now = _timing.CurTime;
+        foreach (var (key, alert) in _alerts)
+        {
+            if (key.Grid == grid && !alert.Zone.Contains(attacker) && alert.Vessels.TryGetValue(attacker, out var until) && now < until)
+                return true;
+        }
+
+        return false;
     }
 
     private void OnShieldHit(ref WFShipShieldAttackedEvent args)
@@ -133,6 +202,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
             return;
         if ((args.Weapon ?? args.Shooter) is { } source
             && EntityManager.System<WFCrewFriendlyFireSystem>().Protected(source, args.Grid))
+            return;
+        if (Excuse(args.Grid, args.AttackerGrid))
             return;
         ReportAttack(args.Grid, args.AttackerGrid);
     }

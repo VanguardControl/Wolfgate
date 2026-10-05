@@ -91,7 +91,7 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         SubscribeLocalEvent<WFPilotOrdersCompletedEvent>(OnOrdersCompleted);
         SubscribeLocalEvent<WFPilotDockFailedEvent>(OnDockFailed);
         SubscribeLocalEvent<WFCrewMemberDownEvent>(OnCrewDown);
-        SubscribeLocalEvent<WFCrewHullHitEvent>(OnHullHit);
+        SubscribeLocalEvent<WFCrewHullHitEvent>(OnHullHit, after: [typeof(WFCrewAlertSystem)]);
         SubscribeLocalEvent<WFCrewAlertEvent>(OnCrewAlert);
         SubscribeLocalEvent<WFCrewSecurityIncidentEvent>(OnSecurityIncident);
         SubscribeLocalEvent<WFPilotOrdersChangedEvent>(OnOrdersChanged);
@@ -193,7 +193,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
         // the crew's own ship that hurts him is an accident and no attack.
         if (!HasComp<Content.Shared.Mobs.Components.MobStateComponent>(origin))
         {
-            if (Transform(origin).GridUid is not { } vessel || vessel == home)
+            if (Transform(origin).GridUid is not { } vessel || vessel == home
+                || home is { } own && EntityManager.System<WFCrewAlertSystem>().IsExcused(own, vessel))
                 return;
             origin = vessel;
         }
@@ -236,7 +237,9 @@ public sealed class WFRadioOperatorSystem : EntitySystem
 
     private void OnHullHit(ref WFCrewHullHitEvent args)
     {
-        if (EntityManager.System<WFCrewEscortSystem>().AreInFormation(args.Grid, args.AttackerGrid))
+        // A stray shot from the ship's own side is no cause for a mayday.
+        if (EntityManager.System<WFCrewEscortSystem>().AreInFormation(args.Grid, args.AttackerGrid)
+            || EntityManager.System<WFCrewAlertSystem>().IsExcused(args.Grid, args.AttackerGrid))
             return;
         foreach (var op in OperatorsOn(args.Grid))
             HostileAct(op, args.AttackerGrid);
