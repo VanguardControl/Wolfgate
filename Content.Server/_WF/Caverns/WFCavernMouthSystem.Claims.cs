@@ -660,16 +660,16 @@ public sealed partial class WFCavernMouthSystem
         ground.Comp.ClimbPoints[index] = climb;
     }
 
-    /// <summary>Deletes the entities the biome spawned on these tiles of a loaded chunk; nothing a player built.</summary>
+    /// <summary>
+    /// Deletes the entities the biome spawned on these tiles: those a loaded chunk tracks, and those an unload kept
+    /// where they grew. Nothing a player built.
+    /// </summary>
     private void ClearBiomeEntities(Entity<BiomeComponent, MapGridComponent> map, IEnumerable<Vector2i> indices)
     {
         var doomed = new List<EntityUid>();
 
         foreach (var index in indices)
         {
-            if (!_biome.WfIsChunkLoaded((map.Owner, map.Comp1), index))
-                continue;
-
             foreach (var anchored in _map.GetAnchoredEntities(map.Owner, map.Comp2, index))
             {
                 if (_biome.WfIsBiomeSpawned((map.Owner, map.Comp1), anchored, index))

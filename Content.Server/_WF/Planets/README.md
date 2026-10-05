@@ -26,8 +26,10 @@ loading terrain costs atmos nothing; `WFTerrainOpenTilesEvent` lets a module nam
 almost none of it: untouched biome entities go with their chunk, and the ground under a hull, beside a build or
 loaded by hand stays. Ground that is only unloaded still holds up whatever was left on it. `BiomeSystem.WFRoll`
 makes a planet's rock spawner rolls in the loader, seeded from the tile, so surface rock unloads too and the same
-rock comes back.
-Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`); ecology and
+rock comes back. `BiomeSystem.WFLoad` puts off the far part of a planet load area and loads it nearest first over
+the next passes, so an arrival or a flight does not load it all in one tick.
+Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`,
+`wf.planet_terrain_load_budget`); ecology and
 landing notes and the playtest checklist are in `Docs/_WF/Planets`. `WFBiomeNoiseCacheSystem` keeps one seeded copy
 of each biome layer's noise for `SharedBiomeSystem.GetNoise`, which copied it for every tile planets and caverns
 generate or sample.
@@ -61,6 +63,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/Atmosphere/WFTerrainAtmosphereComponent.cs`](Atmosphere/WFTerrainAtmosphereComponent.cs)
 - [`Content.Server/_WF/Planets/Atmosphere/WFTerrainAtmosphereSystem.cs`](Atmosphere/WFTerrainAtmosphereSystem.cs)
 - [`Content.Server/_WF/Planets/Atmosphere/WFTerrainOpenTilesEvent.cs`](Atmosphere/WFTerrainOpenTilesEvent.cs)
+- [`Content.Server/_WF/Planets/BiomeSystem.WFLoad.cs`](BiomeSystem.WFLoad.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.WFRoll.cs`](BiomeSystem.WFRoll.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.WFUnload.cs`](BiomeSystem.WFUnload.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.Wolfgate.cs`](BiomeSystem.Wolfgate.cs)
@@ -222,6 +225,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/TerrainAtmosphereTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainAtmosphereTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/TerrainLoadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainLoadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/TerrainUnloadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainUnloadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/ThrustAmbienceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/ThrustAmbienceTest.cs)
 
@@ -425,10 +429,14 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - an atmospheric pack burns welding fuel from a solution, not gas from a tank.
   - a wearer carried below orbit on a hull never changes parent, so the pack is cut here.
 - [`Content.Server/Parallax/BiomeSystem.ChunkLoader.cs`](../../Parallax/BiomeSystem.ChunkLoader.cs): a planet's rock spawner is rolled here from its tile, so the rock unloads and comes back the same
+- [`Content.Server/Parallax/BiomeSystem.ConfigManager.cs`](../../Parallax/BiomeSystem.ConfigManager.cs): the loader's spawner rolls follow reloaded entity prototypes
 - [`Content.Server/Parallax/BiomeSystem.cs`](../../Parallax/BiomeSystem.cs)
   - a chunk's own entities need no bookkeeping as its unload deletes them
   - planet layers unload on their own schedule, see BiomeSystem.WFUnload.cs
   - a planet layer is left to its own unloader
+  - the far part of a planet layer's load area is put off
+  - what was put off loads nearest first, within the pass's budget
+- [`Content.Server/Parallax/BiomeSystem.PlayerTracker.cs`](../../Parallax/BiomeSystem.PlayerTracker.cs): a planet layer loads nearest its loaders first
 - [`Content.Server/Physics/Controllers/MoverController.cs`](../../Physics/Controllers/MoverController.cs): reserve thrust for planetary lift.
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs`](../../Shuttles/Systems/ShuttleSystem.FasterThanLight.cs)
   - the docking branch never calls TrySetupFTL, so it asks the same gate.

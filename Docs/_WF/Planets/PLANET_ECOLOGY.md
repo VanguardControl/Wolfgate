@@ -64,7 +64,8 @@ spawns. Planet/radar tests cover the existing network and terrain display paths.
 
 Planet networks create five maps each, but terrain/entities stream around players
 and subscribed viewers (including views from orbit). Unvisited networks have no
-loaded terrain chunks. Planet layers unload terrain nobody has been near for three
+loaded terrain chunks. Planet layers load the far part of a load area over a few passes
+(wf.planet_terrain_load_budget) and unload terrain nobody has been near for three
 minutes (wf.planet_terrain_unload), a few milliseconds a pass; modified
 tiles and mobile animals can persist. NPC AI defaults to sleeping beyond 32 tiles
 from players when npc.pause_when_no_players_in_range is enabled. Sleeping AI still

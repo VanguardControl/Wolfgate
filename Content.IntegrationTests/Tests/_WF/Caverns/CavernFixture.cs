@@ -73,6 +73,7 @@ public static class CavernFixture
         await pair.Server.WaitPost(() =>
         {
             pair.Server.CfgMan.SetCVar(PlanetCVars.PlanetNetworks, true);
+            pair.Server.CfgMan.SetCVar(PlanetCVars.TerrainLoadBudget, 0f);
             pair.Server.CfgMan.SetCVar(CavernCVars.Caverns, true);
         });
     }

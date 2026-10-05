@@ -594,8 +594,8 @@ public sealed class TerrainUnloadTest
     }
 
     /// <summary>
-    /// Ground already queued to unload is left alone once a hull parks on it, though the queue was made before the
-    /// hull came.
+    /// Ground already queued to unload is left alone once a hull parks on it, though it was queued before the hull
+    /// came and no scan has run since to take it out of the queue.
     /// </summary>
     [Test]
     public async Task AHullParkedOnQueuedGroundKeepsIt()
@@ -611,11 +611,15 @@ public sealed class TerrainUnloadTest
 
         try
         {
+            // Built ahead and out of the way, so that parking it later takes no time at all.
+            var hull = await PlanetFixture.BuildDebris(pair, await MapIdOf(pair, world.Ground), 3, new Vector2(Away.X + 12, Away.Y));
+            await server.WaitPost(() => server.System<SharedPhysicsSystem>().SetBodyType(hull, BodyType.Static));
+
             var viewer = await PlanetFixture.AttachViewer(pair, world.Ground, TileCentre(Home));
             await pair.RunTicksSync(pair.SecondsToTicks(2f));
             await Move(pair, viewer, world.Ground, Away);
 
-            // To the scan that queues the ground left behind; its unloading would start a pass later.
+            // To the scan that queues the ground left behind. Unloading starts a pass later, the next scan a second later.
             var queued = false;
 
             for (var tick = 0; tick < 300 && !queued; tick++)
@@ -623,8 +627,6 @@ public sealed class TerrainUnloadTest
                 await pair.RunTicksSync(1);
                 await server.WaitPost(() => queued = biomes.WfQueuedChunks(world.Ground) > 0);
             }
-
-            await server.WaitPost(() => server.CfgMan.SetCVar(PlanetCVars.TerrainUnload, false));
 
             await server.WaitAssertion(() =>
             {
@@ -636,16 +638,13 @@ public sealed class TerrainUnloadTest
                     Assert.That(biomes.WfIsChunkLoaded(biome, Home), Is.True, "Precondition: the queued ground unloaded before the hull came.");
                     Assert.That(biomes.WfIsChunkLoaded(biome, plain), Is.True, "Precondition: the queued ground unloaded before the hull came.");
                 });
+
+                // The whole queue in one turn, so it is emptied before any scan can look at the hull.
+                server.CfgMan.SetCVar(PlanetCVars.TerrainUnloadBudget, 10000f);
+                server.System<SharedTransformSystem>().SetLocalPosition(hull, new Vector2(Home.X, Home.Y));
             });
 
-            var hull = await PlanetFixture.BuildDebris(pair, await MapIdOf(pair, world.Ground), 3, new Vector2(Home.X, Home.Y));
-            await server.WaitPost(() =>
-            {
-                server.System<SharedPhysicsSystem>().SetBodyType(hull, BodyType.Static);
-                server.System<SharedTransformSystem>().SetLocalPosition(hull, new Vector2(Home.X, Home.Y));
-                server.CfgMan.SetCVar(PlanetCVars.TerrainUnload, true);
-            });
-            await pair.RunTicksSync(pair.SecondsToTicks(Settle));
+            await pair.RunTicksSync(20);
 
             await server.WaitAssertion(() =>
             {
@@ -653,6 +652,7 @@ public sealed class TerrainUnloadTest
 
                 Assert.Multiple(() =>
                 {
+                    Assert.That(biomes.WfQueuedChunks(world.Ground), Is.Zero, "Precondition: the queue was not worked off before the next scan.");
                     Assert.That(biomes.WfIsChunkLoaded(biome, plain), Is.False, "Queued ground with nothing on it stayed loaded.");
                     Assert.That(biomes.WfIsChunkLoaded(biome, Home), Is.True, "Queued ground unloaded from under a hull that parked on it.");
                 });

@@ -22,6 +22,14 @@ public sealed class PlanetCVars
         CVarDef.Create("wf.planet_terrain_atmos", true, CVar.SERVERONLY);
 
     /// <summary>
+    /// Milliseconds a pass, ten a second, may spend loading the far part of planet load areas. The two chunks round
+    /// each loader and the ground under hulls load at once regardless, and each layer loads one 16-tile block a pass
+    /// whatever it costs. Zero loads everything the pass it comes into range, as upstream does.
+    /// </summary>
+    public static readonly CVarDef<float> TerrainLoadBudget =
+        CVarDef.Create("wf.planet_terrain_load_budget", 4f, CVar.SERVERONLY);
+
+    /// <summary>
     /// Whether planet terrain nobody is near is unloaded. Off, upstream's unloader is all there is, and it lets go of
     /// almost nothing.
     /// </summary>

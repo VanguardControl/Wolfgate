@@ -111,6 +111,16 @@ public sealed partial class BiomeSystem
         return fixedStructure;
     }
 
+    /// <summary>Forgets what the loader learned of entity prototypes when they reload.</summary>
+    private void WfRollReload(PrototypesReloadedEventArgs args)
+    {
+        if (!args.WasModified<EntityPrototype>())
+            return;
+
+        _wfRollTables.Clear();
+        _wfRollResults.Clear();
+    }
+
     /// <summary>A seed for one tile's roll: the same for the same biome seed, layer salt and tile, and nothing else.</summary>
     public static int WfTileSeed(int seed, int salt, Vector2i tile)
     {

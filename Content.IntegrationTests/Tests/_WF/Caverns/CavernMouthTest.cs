@@ -10,6 +10,7 @@ using Content.Server._WF.Caverns;
 using Content.Server.Parallax;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.Caverns;
+using Content.Shared.Damage;
 using Content.Shared.Maps;
 using Content.Shared.Parallax.Biomes;
 using Robust.Client.GameObjects;
@@ -575,6 +576,121 @@ public sealed class CavernMouthTest
         }
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A mouth cut through a rock outcrop takes the rock with it: rock the loader rolled on loaded ground, and rock a
+    /// chunk's unload kept because someone had chipped it. Neither counts as built.
+    /// </summary>
+    [Test]
+    public async Task OpenCutsThroughOutcropRockLoadedOrKept()
+    {
+        const string surfaceId = "WFSurfaceAsclepiu";
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var biomes = server.System<BiomeSystem>();
+        var mouths = server.System<WFCavernMouthSystem>();
+        var maps = server.System<SharedMapSystem>();
+        var from = new Vector2i(160, 0);
+        var to = new Vector2i(160 + 95, 95);
+
+        await EnableCaverns(pair);
+        await DisableClaims(pair);
+        var world = await BuildWorld(pair, surfaceId);
+
+        try
+        {
+            await LoadChunks(pair, world.Ground, from, to);
+            await server.WaitRunTicks(10);
+
+            var rocks = new List<(EntityUid Uid, Vector2i Tile)>();
+
+            await server.WaitAssertion(() =>
+            {
+                var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
+                var biome = (world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground));
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+
+                // Well inside the patch, so that a whole mouth fits on it.
+                for (var x = from.X + 16; x <= to.X - 16; x++)
+                for (var y = from.Y + 16; y <= to.Y - 16; y++)
+                {
+                    var index = new Vector2i(x, y);
+
+                    foreach (var uid in maps.GetAnchoredEntities(world.Ground, grid, index))
+                    {
+                        if (entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID.StartsWith("WallRock") == true
+                            && biomes.WfIsBiomeSpawned(biome, uid, index))
+                            rocks.Add((uid, index));
+                    }
+                }
+
+                Assert.That(rocks.Count, Is.GreaterThan(40), "Precondition: too little outcrop rock here that the biome knows as its own.");
+                Assert.That(OpenThroughRock(mouths, maps, entMan, ground, grid, rocks.Take(12).Select(rock => rock.Tile)), Is.True,
+                    "No mouth could be cut through loaded outcrop rock.");
+
+                // Chipped, so the unload keeps them.
+                var chip = new DamageSpecifier();
+                chip.DamageDict.Add("Blunt", 1);
+
+                foreach (var (uid, _) in rocks.TakeLast(12))
+                {
+                    server.System<DamageableSystem>().TryChangeDamage(uid, chip, true);
+                }
+            });
+
+            await server.WaitRunTicks(5);
+            await UnloadChunks(pair, world.Ground, from, to);
+
+            await server.WaitAssertion(() =>
+            {
+                var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
+                var ground = (world.Ground, entMan.GetComponent<WFCavernGroundComponent>(world.Ground));
+                var kept = rocks.TakeLast(12).Where(rock => !entMan.Deleted(rock.Uid)).Select(rock => rock.Tile).ToList();
+
+                Assert.That(kept, Is.Not.Empty, "Precondition: the unload kept none of the chipped rock.");
+                Assert.That(OpenThroughRock(mouths, maps, entMan, ground, grid, kept), Is.True,
+                    "No mouth could be cut through rock an unload had kept.");
+            });
+        }
+        finally
+        {
+            await Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// Cuts an admin mouth at the first of some rock tiles that takes one, and checks its hole is left empty. Fails if
+    /// any is refused as built.
+    /// </summary>
+    private static bool OpenThroughRock(WFCavernMouthSystem mouths, SharedMapSystem maps, IEntityManager entMan,
+        (EntityUid, WFCavernGroundComponent) ground, MapGridComponent grid, IEnumerable<Vector2i> tiles)
+    {
+        foreach (var origin in tiles)
+        {
+            var shape = mouths.AdminShape(ground, origin);
+            Assert.That(shape, Is.Not.Null, "Precondition: the cavern is gone.");
+
+            if (!mouths.TryOpenMouth(ground, origin, out var refusal))
+            {
+                Assert.That(refusal, Is.Not.EqualTo("built"), $"A mouth at {origin} was refused over rock the biome grew.");
+                continue;
+            }
+
+            foreach (var offset in shape!.Hole)
+            {
+                Assert.That(maps.GetAnchoredEntities(ground.Item1, grid, origin + offset).Select(uid => entMan.ToPrettyString(uid).ToString()),
+                    Is.Empty, $"The mouth at {origin} was cut with something still standing in its hole.");
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>

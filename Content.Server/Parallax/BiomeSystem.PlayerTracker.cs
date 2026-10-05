@@ -69,6 +69,8 @@ public sealed partial class BiomeSystem
 
     private void AddChunksInRange(BiomeComponent biome, Vector2 worldPos)
     {
+        WfNoteLoader(biome, worldPos); // WOLFGATE(Planets): a planet layer loads nearest its loaders first
+
         var enumerator = new ChunkIndicesEnumerator(_loadArea.Translated(worldPos), ChunkSize);
 
         while (enumerator.MoveNext(out var chunkOrigin))

@@ -127,8 +127,8 @@ public sealed class CavernCommandTest
                 Assert.That(entMan.GetComponent<TransformComponent>(viewer).MapUid, Is.EqualTo(world.Ground),
                     "tp ... mouth did not put the caller on the ground beside the gate."));
 
-            // The ground around the gate is loaded by now, so the carve takes the loaded-chunk path. Outcrop walls come
-            // from self-deleting spawners the biome no longer tracks, so open treats them as built: pick a clear patch.
+            // The ground around the gate is loaded by now, so the carve takes the loaded-chunk path. A patch with
+            // nothing on it but what the biome grew, which open clears: outcrop rock included, since the loader rolls it.
             await pair.RunTicksSync(10);
             var spot = gate.Origin + OpenOffset;
             await server.WaitPost(() => spot = FindClearPatch(pair, world, gate.Origin + OpenOffset));

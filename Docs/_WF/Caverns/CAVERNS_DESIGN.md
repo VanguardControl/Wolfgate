@@ -108,6 +108,16 @@ Checked in code on this branch. Line numbers are approximate.
    - Modified (pinned) tiles skip tile, entity and decal generation on load.
    - `ReserveTiles` works on unloaded areas (`PlanetSetup.cs:76`).
    - Chunk loads raise `TileChangedEvent`.
+   - Upstream loads every chunk of a load area in the pass it comes into range: 81 for an arrival, and a strip of
+     14 or more each second under anyone flying, since eyes move once a second. On planet layers the far part is
+     put off (`BiomeSystem.WFLoad.cs`, `wf.planet_terrain_load_budget`, 4 ms a pass; 0 is upstream's way). The
+     16-tile blocks within two chunks of a loader, and on the ground and air layers those under or beside any hull
+     over the planet, still load at once; the rest loads nearest block first, a whole block at a time so the grid never sends one twice, and
+     each layer loads at least one block a pass. A chunk enters `LoadedChunks` only as it is filled, so ground
+     waiting its turn is still solid. Measured in a Release build on a dev machine: a chunk costs 0.5 to 4 ms to
+     load on the ground and 4 to 8 ms in a cavern; arriving in a cavern, the worst server tick went from about
+     240 ms to about 120 ms; a viewer moving 12 tiles a second through a cavern had 6 to 11 ticks over 33 ms in
+     ten seconds without the budget and 0 to 2 with it, for the same total work.
 8. **Biome evaluation** (`Content.Shared/Parallax/Biomes/SharedBiomeSystem.cs:114-300`):
    - Layers are evaluated last to first, and the first match wins.
    - A `BiomeMetaLayer` recurses into its template and supports `invert`.
@@ -964,7 +974,7 @@ without `CEZLevelHighGround`.
 They are built in the cavern, from the construction menu (10 steel, 8 s; a wrench takes them apart). The recipe's
 `WFCavernStairsSite` condition refuses them outside a cavern, and the server refuses them, with a popup, where the
 ground above is laid floor or built on, where a hull is parked on it, and where the tile at their top is a hole or
-built on. What the biome grew on the hole and exit tiles goes when they open, and both tiles are pinned; under ground
+built on. What the biome grew on the hole and exit tiles goes when they open, surface rock and its ore included and with no drop, and both tiles are pinned; under ground
 that isn't loaded the exit's natural tile is laid at once. Stairs that could not open keep trying every 5 s. A hole
 over stairs gets a shade but no landing and no climb point, and is refitted with both when the stairs go.
 
@@ -1279,7 +1289,7 @@ unnamed.
 | `list` | One row per built network: planet, cavern map, claimed mouths, players below | F2 |
 | `tp <planet> [pad\|mouth]` | Moves the caller to the gate's climb tile: on the cavern pad beside the climb point (default) or on the lip on the ground | F2 |
 | `mouths <planet>` | Lists claimed mouths: kind, anchor, hole size in tiles, climb tile | F2 |
-| `open` | Carves a mouth (`Kind = Admin`) anchored at the caller's ground tile, its shape seeded by that tile. On a loaded chunk it deletes only biome-spawned entities in the footprint and pad, and refuses if a grid, a player-built anchored entity or a mob other than the caller is in the hole, or (`mouth`) the footprint overlaps another mouth's hole or climb point, or its pad a pinned pad tile, which the stamp would overwrite with natural floor; it also refuses (`cavern`) when either map is gone. Walls from self-deleting outcrop spawners are no longer tracked by the biome, so they count as built | F2 |
+| `open` | Carves a mouth (`Kind = Admin`) anchored at the caller's ground tile, its shape seeded by that tile. On a loaded chunk it deletes only biome-spawned entities in the footprint and pad, and refuses if a grid, a player-built anchored entity or a mob other than the caller is in the hole, or (`mouth`) the footprint overlaps another mouth's hole or climb point, or its pad a pinned pad tile, which the stamp would overwrite with natural floor; it also refuses (`cavern`) when either map is gone. Surface outcrop rock is rolled by the loader and tracked (2.1 item 7), so `open` clears it like anything else the biome grew, and rock an unload kept as well | F2 |
 | `stats <planet>` | Open fraction, largest walkable region share and ore share of a 192² pure-noise sample (the same sampler as the tests): around the caller when they stand on that planet's ground or cavern, otherwise around the gate's centre tile. It says it has started, reads a few rows a tick as a job (2 ms a tick) and prints when done; while the game is paused, as an empty server is, it reads the square at once | F3 |
 | `awaken <planet>` | Forces the deep-table spawn near the caller | F5 |
 
@@ -1548,7 +1558,7 @@ This feature adds mouths, the gate, lazy claims, the hole queue, falling, climbi
   shaft examine lives in `SharedWFCavernShaftSystem` (2.7); the ground component keeps `Centre` (2.5); the gate search
   starts at the cell holding the gate candidate (3.2); the placeholder biome gained chambers (3.2, F1); each world's
   `avoid` adds its outcrop spawner, and Thrascias' rim uses the two north corners (4); `open` ignores the caller and
-  treats spawner-made outcrop walls as built, and `-row-none` was added (5); `HullOverMouthStaysOnGround` uses a 3×3
+  treated spawner-made outcrop walls as built (until `BiomeSystem.WFRoll` made them the biome's own), and `-row-none` was added (5); `HullOverMouthStaysOnGround` uses a 3×3
   `BuildDebris` grid (6). No section 4 id needed substituting.
 - **F2b deviations** (each recorded where it applies): the climb DoAfter sets `MultiplyDelay = false`, and the verbs
   need the climber on the target's own grid (2.7); the client registers the shared system through an empty

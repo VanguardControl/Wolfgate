@@ -106,7 +106,7 @@ A **hard landing** is what you get below 80 % of that - a partial-lift sink, or 
 
 **Report.** A slow lift-lost touchdown exploding anyway, or a full free fall walking away without an explosion (that is the bug this was). A hard landing that costs the hull nothing at all, or one that guts it. A hull that stops dead on the tile it touched instead of sliding. A skid that never stops. Tiles coming off a hull that is barely moving (the leading edge should only grind above about 4 m/s).
 
-**Note.** Planet terrain unloads about three minutes after the last viewer leaves (`wf.planet_terrain_unload_idle`), except round a ghost, under and one chunk round a hull, beside anything built, and for two chunks round whatever is still loaded. A hull parked with its crew back in orbit should keep its ground; record it if one loses it. Walk away from a mined-out patch and come back: the mined tiles stay mined and untouched rock is back as it was, ore and all. Water you drew from stays; still water comes back.
+**Note.** Planet terrain unloads about three minutes after the last viewer leaves (`wf.planet_terrain_unload_idle`), except round a ghost, under and one chunk round a hull, beside anything built, and for two chunks round whatever is still loaded. A hull parked with its crew back in orbit should keep its ground; record it if one loses it. Walk away from a mined-out patch and come back: the mined tiles stay mined and untouched rock is back as it was, ore and all. Water you drew from stays; still water comes back. Arriving somewhere new, the ground more than about 20 tiles out fills in over the next second or two (`wf.planet_terrain_load_budget`, 0 to turn it off); record a ship that touches down on ground that is not there yet.
 
 ---
 

@@ -268,11 +268,16 @@ public sealed partial class BiomeSystem : SharedBiomeSystem
         {
             LoadChunkMarkers(component, gridUid, grid, chunk, seed);
 
+            if (WfDeferLoad(component, gridUid, chunk)) // WOLFGATE(Planets): the far part of a planet layer's load area is put off
+                continue;
+
             if (!component.LoadedChunks.Add(chunk))
                 continue;
 
             // Load NOW!
             LoadChunk(component, gridUid, grid, chunk, seed);
         }
+
+        WfLoadDeferred(component, gridUid, grid, seed); // WOLFGATE(Planets): what was put off loads nearest first, within the pass's budget
     }
 }

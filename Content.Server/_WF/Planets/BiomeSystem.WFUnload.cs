@@ -86,21 +86,21 @@ public sealed partial class BiomeSystem
         return _wfLayers.TryGetValue(layer, out var state) ? state.Queued.Count : 0;
     }
 
-    /// <summary>Reads the settings and picks the layer whose turn it is to unload this pass.</summary>
+    /// <summary>Reads the pass's settings and picks the layer whose turn it is to unload.</summary>
     // One layer a pass, in turn, so a busy cavern can't spend the whole budget every time.
     private void WfBeginUnload()
     {
+        _wfLoadFor = null;
+        _wfLoadSpentMs = 0;
+        _wfLoadBudgetMs = _configManager.GetCVar(PlanetCVars.TerrainLoadBudget);
         _wfTurnLayer = EntityUid.Invalid;
         _wfUnloadEnabled = _configManager.GetCVar(PlanetCVars.TerrainUnload);
-
-        if (!_wfUnloadEnabled)
-            return;
-
         _wfUnloadIdle = _configManager.GetCVar(PlanetCVars.TerrainUnloadIdle);
         _wfUnloadBudgetMs = _configManager.GetCVar(PlanetCVars.TerrainUnloadBudget);
         _wfDue.Clear();
         _wfGone.Clear();
 
+        // Whether or not anything unloads: a layer's state also holds the salt its rock is rolled with.
         foreach (var (uid, layer) in _wfLayers)
         {
             if (!_biomeQuery.HasComp(uid))
@@ -114,7 +114,7 @@ public sealed partial class BiomeSystem
             _wfLayers.Remove(uid);
         }
 
-        if (_wfDue.Count == 0)
+        if (!_wfUnloadEnabled || _wfDue.Count == 0)
             return;
 
         _wfDue.Sort((a, b) => a.Id.CompareTo(b.Id));

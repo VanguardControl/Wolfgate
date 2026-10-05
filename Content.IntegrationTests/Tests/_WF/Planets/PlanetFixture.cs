@@ -60,7 +60,13 @@ public static class PlanetFixture
     /// <summary>Turns the feature on for this pair; TestPair reverts the change when the pair is returned.</summary>
     public static async Task EnableFeature(TestPair pair)
     {
-        await pair.Server.WaitPost(() => pair.Server.CfgMan.SetCVar(PlanetCVars.PlanetNetworks, true));
+        await pair.Server.WaitPost(() =>
+        {
+            pair.Server.CfgMan.SetCVar(PlanetCVars.PlanetNetworks, true);
+
+            // Tests wait a fixed time for terrain; the ones about the loading budget turn it back on.
+            pair.Server.CfgMan.SetCVar(PlanetCVars.TerrainLoadBudget, 0f);
+        });
     }
 
     /// <summary>Builds an unowned Asclepiu stack at the origin and returns its layers, ground first.</summary>
