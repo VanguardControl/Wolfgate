@@ -27,7 +27,9 @@ almost none of it: untouched biome entities go with their chunk, and the ground 
 loaded by hand stays. Ground that is only unloaded still holds up whatever was left on it. `BiomeSystem.WFRoll`
 makes a planet's rock spawner rolls in the loader, seeded from the tile, so surface rock unloads too and the same
 rock comes back. `BiomeSystem.WFLoad` puts off the far part of a planet load area and loads it nearest first over
-the next passes, so an arrival or a flight does not load it all in one tick.
+the next passes, so an arrival or a flight does not load it all in one tick. A hull that sets down flattens what is
+under it as an FTL arrival does, breaks the trees and rock it would rest against (`WfClearLandingObstacles`), and
+hurts a mob under it and shoves it clear instead of gibbing it (`ShuttleSystem.WFSetDown`).
 Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`,
 `wf.planet_terrain_load_budget`); ecology and
 landing notes and the playtest checklist are in `Docs/_WF/Planets`. `WFBiomeNoiseCacheSystem` keeps one seeded copy
@@ -76,6 +78,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFLiftoff.cs`](Flight/CEZLevelsSystem.WFLiftoff.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFVirtualMass.cs`](Flight/CEZLevelsSystem.WFVirtualMass.cs)
 - [`Content.Server/_WF/Planets/Flight/MoverController.WFAtmosphere.cs`](Flight/MoverController.WFAtmosphere.cs)
+- [`Content.Server/_WF/Planets/Flight/ShuttleSystem.WFSetDown.cs`](Flight/ShuttleSystem.WFSetDown.cs)
 - [`Content.Server/_WF/Planets/Flight/ThrusterSystem.WFAtmosphere.cs`](Flight/ThrusterSystem.WFAtmosphere.cs)
 - [`Content.Server/_WF/Planets/Flight/ThrusterSystem.WFCrashThrust.cs`](Flight/ThrusterSystem.WFCrashThrust.cs)
 - [`Content.Server/_WF/Planets/Flight/ThrusterSystem.WFPowerPulses.cs`](Flight/ThrusterSystem.WFPowerPulses.cs)
@@ -223,6 +226,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/SetDownTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/SetDownTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/TerrainAtmosphereTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainAtmosphereTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/TerrainLoadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainLoadTest.cs)
@@ -408,6 +412,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - hulls never descend below a planet's ground.
   - a held climb pops out into a planet's orbit layer instead of pinning under it.
   - a descending convoy lands on the ground instead of hopping below it.
+  - a hull that sets down breaks the trees and rocks it would rest against
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.View.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.View.cs): a planet's lower layers are drawn smaller, so their eyes see wider
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.WallCollision.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.WallCollision.cs): a skidding hull flattens obstacles instead of bouncing.
 - [`Content.Server/_FarHorizons/StarSystem/StarSystemMapSystem.cs`](../../_FarHorizons/StarSystem/StarSystemMapSystem.cs): register sector bodies that have a Wolfgate surface.
@@ -441,6 +446,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs`](../../Shuttles/Systems/ShuttleSystem.FasterThanLight.cs)
   - the docking branch never calls TrySetupFTL, so it asks the same gate.
   - a planet is left from orbit, never from the surface, the air or mid-transit.
+  - a hull coming down on a planet hurts a mob under it and shoves it clear, and gibs nobody
 - [`Content.Server/Shuttles/Systems/ThrusterSystem.cs`](../../Shuttles/Systems/ThrusterSystem.cs)
   - show atmospheric rating and conversion status.
   - atmospheric overload recovery must survive power-change callbacks.

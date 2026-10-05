@@ -821,6 +821,7 @@ public sealed partial class CEZLevelsSystem
 
                 // Landing on a grid causes an explosion. Don't do that.
                 _shuttle.Smimsh(gridUid, explodeGrids: true, ignoredGrids: movedGrids);
+                WfClearLandingObstacles(gridUid, clearance: WFSetDownClearance, grownOnly: true); // WOLFGATE(Planets): a hull that sets down breaks the trees and rocks it would rest against
             }
 
             // The set has left; a transit map only ever hosts one set.

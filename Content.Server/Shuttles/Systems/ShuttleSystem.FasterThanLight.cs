@@ -1475,6 +1475,9 @@ public sealed partial class ShuttleSystem
                     continue;
                 }
 
+                if (WfSetDownOn(uid, ent, mapUid.Value)) // WOLFGATE(Planets): a hull coming down on a planet hurts a mob under it and shoves it clear, and gibs nobody
+                    continue;
+
                 if (_bodyQuery.TryGetComponent(ent, out var mob))
                 {
                     _logger.Add(LogType.Gib, LogImpact.Extreme, $"{ToPrettyString(ent):player} got gibbed by the shuttle" +

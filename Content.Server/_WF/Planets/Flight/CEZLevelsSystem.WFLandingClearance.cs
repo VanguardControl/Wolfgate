@@ -14,8 +14,16 @@ public sealed partial class CEZLevelsSystem
     /// <summary>Clearance, in metres, broken around an impacting hull's tiles.</summary>
     public const float WFLandingClearance = 1f;
 
-    /// <summary>Clear a tile of breathing room around an impacting hull, without touching other grids or occupants.</summary>
-    public void WfClearLandingObstacles(EntityUid hull, bool reportImpacts = false)
+    /// <summary>
+    /// Clearance, in metres, broken around a hull that set down gently: what it would rest against, such as a tree
+    /// beside it, and no more. Left standing, those shove the hull about as it settles.
+    /// </summary>
+    public const float WFSetDownClearance = 0.25f;
+
+    /// <summary>Clear breathing room around a hull that came down, without touching other grids or occupants.</summary>
+    /// <param name="grownOnly">Break only what the planet grew, such as trees and rock, and leave what someone built.</param>
+    public void WfClearLandingObstacles(EntityUid hull, bool reportImpacts = false, float clearance = WFLandingClearance,
+        bool grownOnly = false)
     {
         if (HasComp<WFDetachedTerrainComponent>(hull) || !WfHasSkidGround(hull)
             || !TryComp<MapGridComponent>(hull, out var hullGrid)
@@ -23,7 +31,7 @@ public sealed partial class CEZLevelsSystem
             || !TryComp<MapGridComponent>(ground, out var groundGrid))
             return;
 
-        var bounds = _transform.GetWorldMatrix(hull).TransformBox(hullGrid.LocalAABB).Enlarged(WFLandingClearance + 1f);
+        var bounds = _transform.GetWorldMatrix(hull).TransformBox(hullGrid.LocalAABB).Enlarged(clearance + 1f);
         var obstacles = new HashSet<EntityUid>();
         foreach (var obstacle in _map.GetAnchoredEntities(ground, groundGrid, new Box2Rotated(bounds, Angle.Zero)))
         {
@@ -37,7 +45,12 @@ public sealed partial class CEZLevelsSystem
                 continue;
 
             var pos = _transform.GetWorldPosition(obstacle);
-            var half = new Vector2(groundGrid.TileSize * 0.5f + WFLandingClearance);
+
+            if (grownOnly
+                && !(TryComp<Content.Shared.Parallax.Biomes.BiomeComponent>(ground, out var biome)
+                     && _wfLandingBiome.WfIsBiomeSpawned((ground, biome), obstacle, _map.WorldToTile(ground, groundGrid, pos))))
+                continue;
+            var half = new Vector2(groundGrid.TileSize * 0.5f + clearance);
             // Query real hull tiles so empty corners and large gaps between wings are preserved, even at an angle.
             foreach (var tile in _map.GetTilesIntersecting(hull, hullGrid, new Box2(pos - half, pos + half)))
             {
