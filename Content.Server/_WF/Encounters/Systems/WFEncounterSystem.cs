@@ -560,6 +560,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
         var name = Loc.GetString("wf-encounter-ship-name", ("vessel", vessel.Name), ("designation", designation));
         _meta.SetEntityName(grid, name);
+        // Warship designs come off the line with their IFF switched off. A crew flies with it on, so a scope shows
+        // who is who; one lying in wait hides it again below.
+        _shuttles.RemoveIFFFlag(grid, Content.Shared.Shuttles.Components.IFFFlags.HideLabel | Content.Shared.Shuttles.Components.IFFFlags.Hide);
 
         var state = new WFEncounterShipState
         {
