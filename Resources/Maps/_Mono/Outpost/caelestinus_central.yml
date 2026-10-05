@@ -116,6 +116,21 @@ entities:
   - uid: 1
     components:
     - type: MetaData
+<<<<<<< HEAD
+=======
+      name: Colossus Sector
+    - type: Transform
+    - type: Map
+      mapPaused: True
+    - type: GridTree
+    - type: Broadphase
+    - type: OccluderTree
+    - type: Parallax
+      parallax: SnowballStation
+  - uid: 2
+    components:
+    - type: MetaData
+>>>>>>> 1b70979338 (Add Cool Parallax (#4828))
       name: Caelestinus Central
     - type: Transform
       parent: 10196
