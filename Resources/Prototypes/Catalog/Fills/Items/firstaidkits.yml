@@ -9,19 +9,17 @@
       - id: Brutepack
       - id: Ointment
       - id: Gauze
-<<<<<<< HEAD
       # WOLFGATE(Wolfmed) START: ITEMS: the standard kit's tourniquet, splint and painkillers in a bottle; playtest 5, a suture.
       # Fourteen of Medkit's fourteen cells with the tricordrazine; WolfmedAvailabilityTest spawns the kit.
       - id: Tourniquet
       - id: WFWolfmedSplint
       - id: WFWolfmedSuture
       - id: WFWolfmedAnalgesicPillCanister
-      # WOLFGATE END
+      # The kit is full, so the tricordrazine stays where Monolith#4822 put iron and copper (two cells for its one).
       - id: PillCanisterTricordrazine
-=======
-      - id: PillCanisterIron # Mono
-      - id: PillCanisterCopper # Mono
->>>>>>> 4ceadba886 (Crocus 3 (#4822))
+      # - id: PillCanisterIron # Mono
+      # - id: PillCanisterCopper # Mono
+      # WOLFGATE END
       # see https://github.com/tgstation/blob/master/code/game/objects/items/storage/firstaid.dm for example contents
 
 - type: entity
