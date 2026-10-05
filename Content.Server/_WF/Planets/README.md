@@ -479,12 +479,14 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - the ground under lattice is kept so cutting it gives the ground back.
   - only a planet's untouched biome ground takes lattice directly.
 - [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): planet networks are on in development builds.
+- [`Resources/Prototypes/_DV/Entities/Mobs/Species/harpy.yml`](../../../Resources/Prototypes/_DV/Entities/Mobs/Species/harpy.yml): z-level flight is back on, which Monolith#4812 turned off
 - [`Resources/Prototypes/_FarHorizons/Space/systems.yml`](../../../Resources/Prototypes/_FarHorizons/Space/systems.yml)
   - orbit well kept out of lock-on range of Monolith's drone belt.
   - orbit well moved out of Monolith's drone belt, a hazard world at its edge.
   - quarantined biothreat world, unsanctioned.
 - [`Resources/Prototypes/_Mono/Entities/Mobs/Chimera/biomass.yml`](../../../Resources/Prototypes/_Mono/Entities/Mobs/Chimera/biomass.yml): prevent action-spawned biomass from colonizing planets, too.
 - [`Resources/Prototypes/_NF/Loadouts/contractor_loadout_groups.yml`](../../../Resources/Prototypes/_NF/Loadouts/contractor_loadout_groups.yml): planetary clock and weather HUD.
+- [`Resources/Prototypes/Entities/Mobs/Species/moth.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/moth.yml): z-level flight is back on, which Monolith#4812 turned off
 - [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): landing thruster kits and parachutes.
 
 <!-- WOLFGATE-GENERATED END -->
