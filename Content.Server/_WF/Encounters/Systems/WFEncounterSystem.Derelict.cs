@@ -1,5 +1,7 @@
 using Content.Server._WF.Encounters.Components;
 using Content.Shared._WF.Encounters;
+using System.Linq;
+using Content.Shared._WF.NpcCrew;
 using Robust.Shared.Map;
 using Robust.Shared.Random;
 
@@ -41,6 +43,46 @@ public sealed partial class WFEncounterSystem
             var at = _random.Pick(tiles);
             Spawn(_random.Pick(derelict.DebrisPool), new EntityCoordinates(at.EntityId, at.Position + _random.NextVector2(0.35f)));
         }
+    }
+
+    /// <summary>
+    /// A ship that has strayed past the encounter's leash breaks off and flies back towards where the encounter was
+    /// placed, then takes up the rest of its orders again. Ships chasing each other would otherwise carry their fight
+    /// off into empty space.
+    /// </summary>
+    private void Recall(WFEncounterComponent encounter, WFEncounterShipState ship)
+    {
+        var here = _transform.GetMapCoordinates(ship.Grid);
+        if (here.MapId != encounter.Origin.MapId)
+            return;
+
+        var distance = (here.Position - encounter.Origin.Position).Length();
+        if (ship.Recalled)
+        {
+            // Back inside, or the leg is flown: it is on its own orders again.
+            if (distance <= encounter.Leash * 0.5f || CurrentOrder(ship) != WFCrewObjectiveKind.GoTo)
+                ship.Recalled = false;
+            return;
+        }
+
+        if (distance <= encounter.Leash)
+            return;
+
+        var net = GetNetEntity(ship.Grid);
+        var rest = _objectives.Snapshot().FirstOrDefault(crew => crew.Grid == net && crew.Group == ship.Group)?.Objectives;
+        // With nothing left to fly it is going nowhere further.
+        if (rest == null || rest.Count == 0)
+            return;
+
+        var queue = new List<WFCrewObjective>(rest);
+        queue.Insert(0, new WFCrewObjective
+        {
+            Kind = WFCrewObjectiveKind.GoTo,
+            Position = encounter.Origin.Position,
+            Range = encounter.Leash * 0.4f,
+        });
+        if (_objectives.SetQueue(ship.Grid, ship.Group, queue))
+            ship.Recalled = true;
     }
 
     /// <summary>

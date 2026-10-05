@@ -314,6 +314,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         comp.AnnounceOnRadio = prototype.AnnounceOnRadio;
         comp.Announcer = prototype.Announcer ?? prototype.Ships[0].Key;
         comp.StartRadius = prototype.StartRadius;
+        comp.Leash = prototype.Leash;
         if (stops != null)
             comp.Stops.AddRange(stops);
         _meta.SetEntityName(uid, comp.Name);
@@ -857,6 +858,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
             if (ship.Hunt && encounter.Comp.Begun)
                 Hunt(ship);
+            else if (encounter.Comp.Leash > 0f && ship.HasOrders)
+                Recall(encounter.Comp, ship);
 
             if (HoldsForVisitors(ship) && ship.HasOrders)
                 Serve(ship);

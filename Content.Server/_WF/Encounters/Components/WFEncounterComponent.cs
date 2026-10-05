@@ -69,6 +69,10 @@ public sealed partial class WFEncounterComponent : Component
     [DataField]
     public float StartRadius;
 
+    /// <summary>How far from the origin a ship may stray before it is called back; zero for no limit.</summary>
+    [DataField]
+    public float Leash;
+
     /// <summary>Whether the ships have their orders.</summary>
     [DataField]
     public bool Begun;
@@ -132,6 +136,9 @@ public sealed partial class WFEncounterShipState
 
     /// <summary>While stranded: since when it has had thrust without a break.</summary>
     public TimeSpan? UnderwaySince;
+
+    /// <summary>Whether it strayed past the encounter's leash and is flying back.</summary>
+    public bool Recalled;
 
     /// <summary>Whether it is a crewless hulk, in the encounter for as long as it is there.</summary>
     [DataField]

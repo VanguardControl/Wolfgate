@@ -68,6 +68,26 @@ public sealed partial class WFEncounterTest
       debrisPool: [ ShardGlass ]
 
 - type: wfEncounter
+  id: WFTestStoryLeash
+  name: wf-encounter-name-convoy
+  start: Manual
+  leash: 1000
+  ships:
+  - key: one
+    vessel: WFDredger
+    side: one
+    objectives:
+    - kind: Attack
+      target: two
+  - key: two
+    vessel: WFDredger
+    side: two
+    offset: 400, 0
+    objectives:
+    - kind: Attack
+      target: one
+
+- type: wfEncounter
   id: WFTestStoryDock
   name: wf-encounter-name-convoy
   start: Manual
@@ -353,5 +373,40 @@ public sealed partial class WFEncounterTest
         }
 
         Assert.That(failures, Is.Empty, string.Join("; ", failures));
+    }
+
+    /// <summary>A ship that strays past its encounter's leash breaks off and flies back before it takes up its fight again.</summary>
+    [Test]
+    public async Task StrayingShipIsCalledBack()
+    {
+        EntityUid encounter = default, stray = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestStoryLeash");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(45000, 45000), MapData.MapId), out encounter), Is.True);
+            stray = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["one"].Grid;
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(First(), Is.EqualTo(WFCrewObjectiveKind.Attack), "Inside the leash it fights.");
+            Server.System<SharedTransformSystem>().SetCoordinates(stray, new EntityCoordinates(MapData.MapUid, new Vector2(48000, 45000)));
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(First(), Is.EqualTo(WFCrewObjectiveKind.GoTo), "Past it, it is sent back first.");
+            Assert.That(Orders(), Has.Count.EqualTo(2), "And its fight is still waiting for it.");
+            Server.System<WFEncounterSystem>().End(encounter);
+        });
+        await RunTicks(10);
+
+        List<WFCrewObjective> Orders()
+        {
+            var net = SEntMan.GetNetEntity(stray);
+            return Server.System<WFCrewObjectiveSystem>().Snapshot().First(crew => crew.Grid == net).Objectives;
+        }
+
+        WFCrewObjectiveKind First() => Orders()[0].Kind;
     }
 }

@@ -343,6 +343,7 @@
 # once; the attack only begins when a player comes within a kilometre and a half, so somebody is there to see it.
 - type: wfEncounter
   id: WFEncounterPirateAmbush
+  leash: 2500
   name: wf-encounter-name-ambush
   announcement: wf-encounter-announce-ambush
   announcementSender: wf-encounter-sender-traffic
@@ -390,6 +391,7 @@
 # wingman on it. The freighter makes its own call, as before.
 - type: wfEncounter
   id: WFEncounterPirateAmbushLarge
+  leash: 2500
   name: wf-encounter-name-ambush-large
   announcement: wf-encounter-announce-ambush-large
   announcementSender: wf-encounter-sender-traffic
@@ -575,6 +577,7 @@
 # pirates leave you be, but they pay nothing: what you can take off the wreck is the reward.
 - type: wfEncounter
   id: WFEncounterBackupRequest
+  leash: 2500
   name: wf-encounter-name-backup
   announcement: wf-encounter-announce-backup
   announceOnRadio: true
@@ -644,6 +647,7 @@
 # the strike pair leaves you be, but they pay nothing: what you can take off the wreck is the reward.
 - type: wfEncounter
   id: WFEncounterPdvBackupRequest
+  leash: 2500
   name: wf-encounter-name-pdv-backup
   announcement: wf-encounter-announce-pdv-backup
   announceOnRadio: true
@@ -1144,6 +1148,7 @@
 # after the players. Whoever helps one side beat the other is paid by it, and the one they helped counts them an ally.
 - type: wfEncounter
   id: WFEncounterSkirmishPatrol
+  leash: 2500
   name: wf-encounter-name-skirmish-patrol
   announcement: wf-encounter-announce-skirmish-patrol
   announcementSender: wf-encounter-sender-traffic
@@ -1248,6 +1253,7 @@
 # Two raider bands settling a score: a Dynasty pair against a RedSail corsair in a heavier hull. Either pays for help against the other.
 - type: wfEncounter
   id: WFEncounterSkirmishBands
+  leash: 2500
   name: wf-encounter-name-skirmish-bands
   announcement: wf-encounter-announce-skirmish-bands
   announcementSender: wf-encounter-sender-traffic
@@ -1326,6 +1332,7 @@
 # A TSF patrol against a RedSail crew in a shielded gunboat. TSF is at war with the corsairs, but that is their own business.
 - type: wfEncounter
   id: WFEncounterSkirmishCorsairs
+  leash: 2500
   name: wf-encounter-name-skirmish-corsairs
   announcement: wf-encounter-announce-skirmish-corsairs
   announcementSender: wf-encounter-sender-traffic
@@ -1407,6 +1414,7 @@
 # helps one side beat the other is paid by it, and the one they helped counts them an ally.
 - type: wfEncounter
   id: WFEncounterSkirmishNavies
+  leash: 2500
   name: wf-encounter-name-skirmish-navies
   announcement: wf-encounter-announce-skirmish-navies
   announcementSender: wf-encounter-sender-traffic
@@ -1512,6 +1520,7 @@
 # A Dynasty patrol against a RedSail crew in a shielded gunboat, the counterpart of the TSF's fight with the corsairs.
 - type: wfEncounter
   id: WFEncounterSkirmishPdvCorsairs
+  leash: 2500
   name: wf-encounter-name-skirmish-pdv-corsairs
   announcement: wf-encounter-announce-skirmish-pdv-corsairs
   announcementSender: wf-encounter-sender-traffic
@@ -1592,6 +1601,7 @@
 # side they are on until they have fought for one. Two raider bands, in the smaller version of it.
 - type: wfEncounter
   id: WFEncounterHostileSkirmishBands
+  leash: 2500
   name: wf-encounter-name-skirmish-hostile
   announcement: wf-encounter-announce-skirmish-hostile
   announcementSender: wf-encounter-sender-traffic
@@ -1682,6 +1692,7 @@
 # The guarded fight between a TSF pair and a pair of raiders. The patrol warns in its own words, the raiders in theirs.
 - type: wfEncounter
   id: WFEncounterHostileSkirmishPatrol
+  leash: 2500
   name: wf-encounter-name-skirmish-hostile
   announcement: wf-encounter-announce-skirmish-hostile
   announcementSender: wf-encounter-sender-traffic
@@ -1801,6 +1812,7 @@
 # fired on if they come near.
 - type: wfEncounter
   id: WFEncounterHostileSkirmishNavies
+  leash: 2500
   name: wf-encounter-name-skirmish-hostile
   announcement: wf-encounter-announce-skirmish-hostile
   announcementSender: wf-encounter-sender-traffic

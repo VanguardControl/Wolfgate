@@ -39,6 +39,13 @@ public sealed partial class WFEncounterPrototype : IPrototype
     [DataField]
     public float StartRadius;
 
+    /// <summary>
+    /// How far from where the encounter was placed its ships may stray before they break off and fly back. Zero for
+    /// no limit. Keeps a fight where players were told it is.
+    /// </summary>
+    [DataField]
+    public float Leash;
+
     /// <summary>What a side pays the players who helped it, when it is the one side left.</summary>
     [DataField]
     public List<WFEncounterReward> Rewards = new();
