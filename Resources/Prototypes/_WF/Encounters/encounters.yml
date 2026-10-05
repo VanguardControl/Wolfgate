@@ -355,7 +355,7 @@
   startRadius: 1500
   rewards:
   - side: freight
-    spesos: 12000
+    spesos: 24000
     thanks: wf-encounter-reward-thanks-hauler
   minPlayers: 4
   cooldown: 2700
@@ -404,7 +404,7 @@
   startRadius: 1800
   rewards:
   - side: freight
-    spesos: 22000
+    spesos: 44000
     thanks: wf-encounter-reward-thanks-hauler
   minPlayers: 7
   cooldown: 3300
@@ -594,8 +594,8 @@
   maxDistance: 4000
   rewards:
   - side: tsf
-    spesos: 24000
-    credits: 20
+    spesos: 48000
+    credits: 30
     creditEntity: FederationMilitaryCredit1
     creditCompanies: [ TSF, TSFCivilian ]
     thanks: wf-encounter-reward-thanks-tsf
@@ -664,8 +664,8 @@
   maxDistance: 4000
   rewards:
   - side: pdv
-    spesos: 24000
-    credits: 20
+    spesos: 48000
+    credits: 30
     creditEntity: Doubloon1
     creditCompanies: [ PDV, PDVCivilian ]
     thanks: wf-encounter-reward-thanks-pdv
@@ -910,7 +910,7 @@
   stationClearance: 1500
   rewards:
   - side: freight
-    spesos: 7000
+    spesos: 10500
     thanks: wf-encounter-reward-thanks-stranded
   manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts, WFManifestSalvage ]
   ships:
@@ -950,7 +950,7 @@
   stationClearance: 1500
   rewards:
   - side: freight
-    spesos: 11000
+    spesos: 16500
     thanks: wf-encounter-reward-thanks-stranded
   manifests: [ WFManifestGeneral, WFManifestFood, WFManifestMedical, WFManifestIndustrial, WFManifestParts, WFManifestSalvage, WFManifestLuxury ]
   ships:
@@ -990,7 +990,7 @@
   stationClearance: 1500
   rewards:
   - side: freight
-    spesos: 16000
+    spesos: 24000
     thanks: wf-encounter-reward-thanks-stranded
   manifests: [ WFManifestGeneral, WFManifestMedical, WFManifestIndustrial, WFManifestParts, WFManifestSalvage, WFManifestLuxury ]
   ships:
@@ -1165,13 +1165,13 @@
   stationClearance: 3000
   rewards:
   - side: tsf
-    spesos: 14000
-    credits: 15
+    spesos: 28000
+    credits: 22
     creditEntity: FederationMilitaryCredit1
     creditCompanies: [ TSF, TSFCivilian ]
     thanks: wf-encounter-reward-thanks-skirmish-tsf
   - side: pirates
-    spesos: 9000
+    spesos: 18000
     thanks: wf-encounter-reward-thanks-skirmish-pirates
   ships:
   - key: patrol
@@ -1270,10 +1270,10 @@
   stationClearance: 3000
   rewards:
   - side: dynasty
-    spesos: 9000
+    spesos: 18000
     thanks: wf-encounter-reward-thanks-skirmish-pirates
   - side: corsairs
-    spesos: 11000
+    spesos: 22000
     thanks: wf-encounter-reward-thanks-skirmish-corsairs
   ships:
   - key: raider
@@ -1349,13 +1349,13 @@
   stationClearance: 3000
   rewards:
   - side: tsf
-    spesos: 14000
-    credits: 15
+    spesos: 28000
+    credits: 22
     creditEntity: FederationMilitaryCredit1
     creditCompanies: [ TSF, TSFCivilian ]
     thanks: wf-encounter-reward-thanks-skirmish-tsf
   - side: corsairs
-    spesos: 11000
+    spesos: 22000
     thanks: wf-encounter-reward-thanks-skirmish-corsairs
   ships:
   - key: patrol
@@ -1431,14 +1431,14 @@
   stationClearance: 3000
   rewards:
   - side: tsf
-    spesos: 14000
-    credits: 15
+    spesos: 28000
+    credits: 22
     creditEntity: FederationMilitaryCredit1
     creditCompanies: [ TSF, TSFCivilian ]
     thanks: wf-encounter-reward-thanks-skirmish-tsf
   - side: pdv
-    spesos: 14000
-    credits: 15
+    spesos: 28000
+    credits: 22
     creditEntity: Doubloon1
     creditCompanies: [ PDV, PDVCivilian ]
     thanks: wf-encounter-reward-thanks-skirmish-pdv
@@ -1537,13 +1537,13 @@
   stationClearance: 3000
   rewards:
   - side: pdv
-    spesos: 14000
-    credits: 15
+    spesos: 28000
+    credits: 22
     creditEntity: Doubloon1
     creditCompanies: [ PDV, PDVCivilian ]
     thanks: wf-encounter-reward-thanks-skirmish-pdv
   - side: corsairs
-    spesos: 11000
+    spesos: 22000
     thanks: wf-encounter-reward-thanks-skirmish-corsairs
   ships:
   - key: patrol
@@ -1618,10 +1618,10 @@
   stationClearance: 3000
   rewards:
   - side: dynasty
-    spesos: 10000
+    spesos: 20000
     thanks: wf-encounter-reward-thanks-skirmish-pirates
   - side: corsairs
-    spesos: 12000
+    spesos: 24000
     thanks: wf-encounter-reward-thanks-skirmish-corsairs
   ships:
   - key: raider
@@ -1709,13 +1709,13 @@
   stationClearance: 3000
   rewards:
   - side: tsf
-    spesos: 15000
-    credits: 15
+    spesos: 30000
+    credits: 22
     creditEntity: FederationMilitaryCredit1
     creditCompanies: [ TSF, TSFCivilian ]
     thanks: wf-encounter-reward-thanks-skirmish-tsf
   - side: pirates
-    spesos: 10000
+    spesos: 20000
     thanks: wf-encounter-reward-thanks-skirmish-pirates
   ships:
   - key: patrol
@@ -1829,14 +1829,14 @@
   stationClearance: 3000
   rewards:
   - side: tsf
-    spesos: 15000
-    credits: 15
+    spesos: 30000
+    credits: 22
     creditEntity: FederationMilitaryCredit1
     creditCompanies: [ TSF, TSFCivilian ]
     thanks: wf-encounter-reward-thanks-skirmish-tsf
   - side: pdv
-    spesos: 15000
-    credits: 15
+    spesos: 30000
+    credits: 22
     creditEntity: Doubloon1
     creditCompanies: [ PDV, PDVCivilian ]
     thanks: wf-encounter-reward-thanks-skirmish-pdv
@@ -2191,8 +2191,8 @@
   stationClearance: 2500
   rewards:
   - side: tsf
-    spesos: 45000
-    credits: 35
+    spesos: 90000
+    credits: 52
     creditEntity: FederationMilitaryCredit1
     creditCompanies: [ TSF, TSFCivilian ]
     thanks: wf-encounter-reward-thanks-tsf
@@ -2317,8 +2317,8 @@
   stationClearance: 2500
   rewards:
   - side: pdv
-    spesos: 45000
-    credits: 35
+    spesos: 90000
+    credits: 52
     creditEntity: Doubloon1
     creditCompanies: [ PDV, PDVCivilian ]
     thanks: wf-encounter-reward-thanks-pdv
