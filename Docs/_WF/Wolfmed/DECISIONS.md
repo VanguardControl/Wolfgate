@@ -4993,3 +4993,47 @@ half a minute.
 
 The fixtures that already gave their map air, or took the body's `BarotraumaComponent` off, were left as they are:
 redundant now, and harmless. The whole suite (590) passed on its first run with air, nothing adjusted.
+
+## The pod's alt-click, slime cores, species that do not breathe (2026-10-04)
+
+**"Alt+clicking shouldn't put you into the autodoc."** Climb in was the pod's first alternative verb, above the item
+slots' own eject verbs, so alt-click on an empty pod, which is how a blood pack or a disk comes out of any other
+machine, put the medic inside. It is an ordinary verb now: in the menu, and by dragging yourself onto the pod. Eject
+occupant stays the alternative verb, as on a cryo pod; the pod is locked while it works, so that cannot interrupt a
+procedure. `AltClickDoesNotClimbInTest`.
+
+**"People can't figure out how to heal slime brains."** There was no way. A slime's brain is its core, in the torso's
+`core` slot, and `WFSurgeryHealBrain` and `WFSurgeryRepairBrain` list on a head with an organ in its `brain` slot.
+`Surgery/slime_core.yml` adds the same two on the torso, `WFSurgeryHealSlimeCore` and `WFSurgeryRepairSlimeCore`, behind
+the open ribcage like every other chest organ; the conditions and effects were already keyed on a slot, so it is
+prototypes only. The neuro disk, its category and the triage plan carry both. The brain injury help lines name
+mannitol beside surgery, and the guidebook says where a slime's brain is. `WolfmedSlimeCoreTest`.
+
+**"Races that don't breathe can't heal oxygen damage on their own like normal."** Measured, 40 of each on a body in
+station air with full blood, a minute later:
+
+| | Asphyxiation | Bloodloss |
+|---|---|---|
+| The breathing species | 11 | 21 |
+| Shadekin | holds none | 35.25 |
+| Proto shadekin | 40 | 37.72 |
+
+Only the respirator ever took suffocation damage back, one a cycle, so a body with no respirator kept what it was
+given; and the shadekin and its Proto subspecies healed blood loss at a quarter of everybody else's rate
+(`bloodlossHealDamage` 0.25 against 1).
+- `WolfmedBreathingSystem` sheds Asphyxiation from a living wound host with no respirator (or with breathing immunity)
+  while its heart beats, `wolfmed.breathless_recovery` 0.5 a second: the respirator's one a cycle.
+- Both species heal blood loss at 1, like the rest.
+- After: the shadekin is at 21. The Proto shadekin is at 25 and 30.5: its `UniversalHealModifier` halves all of its
+  healing, which is its trait and was left alone. The shadekin still holds no Asphyxiation, by its own damage hook.
+
+**Found on the way: the thaven could not breathe.** A healthy thaven standing in station air took 54 Asphyxiation in a
+minute. Its lungs metabolise as their own type, and no gas had an entry for it: the species port left out the entries
+HardLight carries in `Reagents/gases.yml`. With the faster no-air clock above, that is on the floor in about a minute.
+Ported: an `Oxygenate` for the thaven on every gas and its exclusion from each gas's harm, 20 marked conditions over
+seven gases ("thaven can breathe all gases safely"; HardLight's 21st sits on a Frezon effect Wolfgate does not have).
+As there, nitrous oxide still puts a thaven to sleep.
+
+`WolfmedAirlossRecoveryTest` stands every species a player can pick in station air for a minute: none takes
+suffocation damage, and each sheds what it was given. Before these changes it names the thaven, the shadekin and the
+Proto shadekin.

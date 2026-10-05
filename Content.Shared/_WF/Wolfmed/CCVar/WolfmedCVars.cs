@@ -404,6 +404,13 @@ public sealed class WolfmedCVars
     public static readonly CVarDef<float> AirlossFull =
         CVarDef.Create("wolfmed.airloss_full", 30f, CVar.SERVERONLY);
 
+    /// <summary>
+    /// Asphyxiation a second that a living wound host with no respirator sheds while its heart beats: the 1 a breath
+    /// cycle a breathing body recovers. A species that does not breathe had no way to lose it at all. 0 turns it off.
+    /// </summary>
+    public static readonly CVarDef<float> BreathlessRecovery =
+        CVarDef.Create("wolfmed.breathless_recovery", 0.5f, CVar.SERVERONLY);
+
     /// <summary>Brain oxygenation a successful shock or a brain repair leaves at the least.</summary>
     public static readonly CVarDef<float> PostShockOxygenation =
         CVarDef.Create("wolfmed.post_shock_oxygenation", 0.5f, CVar.SERVERONLY);

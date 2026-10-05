@@ -361,6 +361,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTourniquetHoldsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTourniquetHoldsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAimScatterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAimScatterTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAirlossRecoveryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAirlossRecoveryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAmputationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAmputationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerDollLayoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerDollLayoutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAnalyzerTest.cs)
@@ -1631,6 +1632,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_HL/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_HL/Damage/modifier_sets.yml): Wolfmed: OD16, a Synth is mechanical and takes no poison, like the IPC set
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml)
   - M4, OD16: a wound host, so Wolfmed decides its state (plan 9.2 group D). Not reparented to
+  - blood loss damage heals at every other species' rate; at a quarter of it the reading outlasted the bleed by half an hour
   - M4, D29: passive regen is neutralised on a wound host, as BaseMobSpeciesOrganic's is.
   - M4, D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed.
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml): M4, OD16: Synth is mechanical. A wound host on the machine ladder (plan 3.11, 9.3): the ccu is its
@@ -1786,6 +1788,7 @@ Skipped ("dirty-disposed").
   - the Starlight teleport sound never shipped here, and the client logged an error every stasis.
 - [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/shadekin.yml)
   - M4, OD16: shadekin is a wound host, so Wolfmed decides its state.
+  - blood loss damage heals at every other species' rate; at a quarter of it the reading outlasted the bleed by half an hour
   - M4, D29: passive regen is neutralised on a wound host, as BaseMobSpeciesOrganic's is.
   - M4, D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed.
 - [`Resources/Prototypes/Alerts/alerts.yml`](../../../Resources/Prototypes/Alerts/alerts.yml): VISUALS: the pain HUD sits under the health doll
