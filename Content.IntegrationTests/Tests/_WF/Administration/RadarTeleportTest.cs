@@ -1,24 +1,31 @@
 #nullable enable
 using System.Numerics;
+using System.Reflection;
+using Content.Client._WF.Administration.UI.AdminRadar;
 using Content.Client.Shuttles.UI;
+using Content.Client.UserInterface.Controls;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Server._WF.Administration.Systems;
 using Content.Server.Administration.Managers;
+using Content.Server.Shuttles.Systems;
 using Content.Shared._WF.Administration.RadarTeleport;
 using Content.Shared.Administration;
 using Content.Shared.Mind;
 using Content.Shared.Players;
 using Content.Shared.Shuttles.BUIStates;
+using Content.Shared.Shuttles.Components;
 using Content.Shared.UserInterface;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 
 namespace Content.IntegrationTests.Tests._WF.Administration;
 
 /// <summary>
-/// Mass scanner teleport: an admin ghost with the toggle on is moved to the clicked spot, and nobody else is.
+/// The admin mass scanner: an admin ghost gets the resizable, far-zooming window and, with its toggle on, is moved to
+/// the clicked spot. Nobody else gets either.
 /// </summary>
 [TestOf(typeof(RadarTeleportSystem))]
 public sealed class RadarTeleportTest : InteractionTest
@@ -37,7 +44,7 @@ public sealed class RadarTeleportTest : InteractionTest
         await Client.WaitPost(() => CEntMan.System<Content.Client._WF.Administration.RadarTeleport.RadarTeleportSystem>().Enabled = false);
         await SetAdmin(true);
         var ghost = await BecomeGhost(AdminGhost);
-        var window = await OpenScanner(ghost);
+        var window = await OpenScanner<AdminRadarWindow>(ghost);
         var radar = GetControlFromField<ShuttleNavControl>("RadarScreen", window);
         var toggle = FindControl(window, Toggle) as Button;
         Assert.That(toggle, Is.Not.Null, "An admin ghost should get the teleport toggle.");
@@ -67,7 +74,8 @@ public sealed class RadarTeleportTest : InteractionTest
     }
 
     /// <summary>
-    /// A ghost who isn't an admin gets no toggle, and hand-sent requests from it or from an admin in a body are ignored.
+    /// A ghost who isn't an admin gets the plain scanner with no toggle, and hand-sent requests from it or from an
+    /// admin in a body are ignored.
     /// </summary>
     [Test]
     public async Task OnlyAdminGhostsTeleport()
@@ -75,7 +83,7 @@ public sealed class RadarTeleportTest : InteractionTest
         await SetAdmin(false);
         var body = SPlayer;
         var ghost = await BecomeGhost(Ghost);
-        var window = await OpenScanner(ghost);
+        var window = await OpenScanner<RadarConsoleWindow>(ghost);
         Assert.That(FindControl(window, Toggle), Is.Null, "A ghost who isn't an admin shouldn't get the toggle.");
 
         var start = await Position(ghost);
@@ -91,6 +99,64 @@ public sealed class RadarTeleportTest : InteractionTest
         start = await Position(body);
         await SendRequest(start);
         Assert.That(await Position(body), Is.EqualTo(start), "A request from an admin in a body should be ignored.");
+    }
+
+    /// <summary>
+    /// The admin scanner's display follows its window and maps clicks at that size, the zoom keeps its own limit when
+    /// the console's range changes, and the maximize toggle fills the game window and gives the size back.
+    /// </summary>
+    [Test]
+    public async Task AdminScannerFillsWindowAndZoomsOut()
+    {
+        var size = new Vector2(1000f, 600f);
+        await SetAdmin(true);
+        var ghost = await BecomeGhost(AdminGhost);
+        var window = await OpenScanner<AdminRadarWindow>(ghost);
+        var radar = GetControlFromField<AdminRadarControl>("RadarScreen", window);
+
+        await Client.WaitPost(() => window.SetSize = size);
+        await RunTicks(5);
+        Assert.Multiple(() =>
+        {
+            Assert.That(radar.Width, Is.GreaterThan(900f), "The display should fill the window's width.");
+            Assert.That(radar.Height, Is.InRange(450f, 600f), "The display should fill the window's height.");
+        });
+
+        // A click maps from the display's own centre, with the range spanning its longer side.
+        var start = await Position(ghost);
+        MapCoordinates clicked = default;
+        Vector2 expected = default;
+        await Client.WaitPost(() =>
+        {
+            clicked = CEntMan.System<SharedTransformSystem>().ToMapCoordinates(radar.GetMouseCoordinatesFromCenter());
+            var mouse = Client.ResolveDependency<IUserInterfaceManager>().MousePositionScaled.Position;
+            var pixel = (mouse - radar.GlobalPosition) * radar.UIScale - (Vector2) radar.PixelSize / 2f;
+            var scale = MathF.Floor(MathF.Max(radar.PixelWidth, radar.PixelHeight) / 2f) / radar.WorldRange;
+            expected = start.Position + new Vector2(pixel.X, -pixel.Y) / scale;
+        });
+        Assert.That((clicked.Position - expected).Length(), Is.LessThan(0.01f), "A click should map through the resized display.");
+
+        var range = typeof(MapGridControl).GetField("ActualRadarRange", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        await Client.WaitPost(() => radar.AddRadarRange(float.MaxValue));
+        Assert.That(range.GetValue(radar), Is.EqualTo(AdminRadarControl.AdminMaxRange), "The admin scanner should zoom out to its own limit.");
+
+        await Server.WaitPost(() =>
+            SEntMan.System<RadarConsoleSystem>().SetRange(ghost, 1000f, SEntMan.GetComponent<RadarConsoleComponent>(ghost)));
+        await RunTicks(10);
+        Assert.That(range.GetValue(radar), Is.EqualTo(AdminRadarControl.AdminMaxRange), "A console state update shouldn't pull the zoom back in.");
+
+        var maximize = GetControlFromField<Button>("MaximizeToggle", window);
+        await ClickControl(maximize);
+        await RunTicks(5);
+        Assert.Multiple(() =>
+        {
+            Assert.That(window.Position, Is.EqualTo(Vector2.Zero), "A maximized scanner should sit at the corner.");
+            Assert.That(window.Size, Is.EqualTo(window.Parent!.Size), "A maximized scanner should fill the game window.");
+        });
+
+        await ClickControl(maximize);
+        await RunTicks(5);
+        Assert.That(window.Size, Is.EqualTo(size), "Turning maximize off should give the old size back.");
     }
 
     /// <summary>
@@ -110,12 +176,15 @@ public sealed class RadarTeleportTest : InteractionTest
         return position;
     }
 
-    private async Task<RadarConsoleWindow> OpenScanner(EntityUid ghost)
+    /// <summary>
+    /// Opens the ghost's mass scanner and returns its window, which has to be of the given type.
+    /// </summary>
+    private async Task<T> OpenScanner<T>(EntityUid ghost) where T : BaseWindow
     {
         await Server.WaitAssertion(() =>
             Assert.That(SEntMan.System<IntrinsicUISystem>().InteractUI(ghost, RadarConsoleUiKey.Key), "The ghost's mass scanner should open."));
         await RunTicks(10);
-        return GetWindow<RadarConsoleWindow>();
+        return GetWindow<T>();
     }
 
     private static Control? FindControl(Control parent, string name)

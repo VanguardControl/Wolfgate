@@ -1,0 +1,41 @@
+<controls:FancyWindow xmlns="https://spacestation14.io"
+                      xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
+                      xmlns:radar="clr-namespace:Content.Client._WF.Administration.UI.AdminRadar"
+                      Title="{Loc 'wf-admin-radar-title'}"
+                      SetSize="648 672"
+                      MinSize="256 256">
+    <!-- The nav control adds its mode buttons to a LayoutContainer parent -->
+    <LayoutContainer Margin="4">
+        <radar:AdminRadarControl Name="RadarScreen" />
+    </LayoutContainer>
+    <BoxContainer Orientation="Vertical" Margin="2">
+        <Button Name="IffDetailedToggle"
+                Text="{Loc 'shuttle-console-iff-detailed-short'}"
+                TextAlign="Center"
+                StyleClasses="ButtonSquare"
+                ToggleMode="True"
+                HorizontalAlignment="Left"
+                Pressed="True" />
+        <Button Name="IffToggle"
+                Text="{Loc 'shuttle-console-iff-toggle-short'}"
+                TextAlign="Center"
+                StyleClasses="ButtonSquare"
+                ToggleMode="True"
+                HorizontalAlignment="Left"
+                Pressed="True" />
+        <Button Name="AdminTeleportToggle"
+                Text="{Loc 'wf-radar-teleport-toggle'}"
+                ToolTip="{Loc 'wf-radar-teleport-tooltip'}"
+                TextAlign="Center"
+                StyleClasses="ButtonSquare"
+                ToggleMode="True"
+                HorizontalAlignment="Left" />
+        <Button Name="MaximizeToggle"
+                Text="{Loc 'wf-admin-radar-maximize'}"
+                ToolTip="{Loc 'wf-admin-radar-maximize-tooltip'}"
+                TextAlign="Center"
+                StyleClasses="ButtonSquare"
+                ToggleMode="True"
+                HorizontalAlignment="Left" />
+    </BoxContainer>
+</controls:FancyWindow>
