@@ -65,14 +65,30 @@ public sealed partial class RespawnSystem : EntitySystem
     // Frontier: CVar setters
     private void OnRespawnCryoFirstTimeChanged(float value)
     {
-        _baseRespawnTimeOnFirstCryo = value; // WOLFGATE(Respawn): the base was never set, so every round start zeroed the timer
-        _respawnTimeOnFirstCryo = value;
+        _baseRespawnTimeOnFirstCryo = value;
+        if (_ticker.CurrentPreset != null)
+        {
+            _respawnTimeOnFirstCryo = _baseRespawnTimeOnFirstCryo * _ticker.CurrentPreset.RespawnMultiplier;
+            _respawnTime = _baseRespawnTime * _ticker.CurrentPreset.RespawnMultiplier;
+        }
+        // WOLFGATE(Respawn) START: with no preset the timer stayed at zero until a restart
+        else
+            _respawnTimeOnFirstCryo = value;
+        // WOLFGATE END
     }
 
     private void OnRespawnCryoTimeChanged(float value)
     {
-        _baseRespawnTime = value; // WOLFGATE(Respawn)
-        _respawnTime = value;
+        _baseRespawnTime = value;
+        if (_ticker.CurrentPreset != null)
+        {
+            _respawnTimeOnFirstCryo = _baseRespawnTimeOnFirstCryo * _ticker.CurrentPreset.RespawnMultiplier;
+            _respawnTime = _baseRespawnTime * _ticker.CurrentPreset.RespawnMultiplier;
+        }
+        // WOLFGATE(Respawn) START: as above
+        else
+            _respawnTime = value;
+        // WOLFGATE END
     }
     // End Frontier
 

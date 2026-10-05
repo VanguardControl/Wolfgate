@@ -1040,3 +1040,14 @@ Entries:
   id: 100078
   time: '2026-10-02T04:09:21.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/146
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: Fixed the cryotubes in CC's medical wing not having a gas pump
+    - type: Fix
+      message: The catwalk tiles in the morgue at CC should no longer flicker
+    - type: Fix
+      message: Replaced a firelock that started closed in the back of CC medical
+  id: 100079
+  time: '2026-10-04T02:42:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/152
