@@ -6,6 +6,14 @@
   id: WFManifestGeneral
   name: wf-encounter-cargo-general
   crates:
+  - WFCrateLotTools
+  - WFCrateLotTools
+  - WFCrateLotSurvival
+  - WFCrateLotSurvival
+  - WFCrateLotMedical
+  - WFCrateLotParts
+  - WFCrateLotLuxury
+  - WFCrateLotSalvage
   - CrateMaterialPlastic
   - CrateMaterialGlass
   - CrateAirlockKit
@@ -36,6 +44,12 @@
   id: WFManifestMedical
   name: wf-encounter-cargo-medical
   crates:
+  - WFCrateLotMedical
+  - WFCrateLotMedical
+  - WFCrateLotMedical
+  - WFCrateLotMedical
+  - WFCrateLotMedical
+  - WFCrateLotMedical
   - CrateMedicalSupplies
   - CrateMedicalSecureMedicine
   - CrateMedicalSecureMedicinePierce
@@ -54,6 +68,11 @@
   id: WFManifestIndustrial
   name: wf-encounter-cargo-industrial
   crates:
+  - WFCrateLotTools
+  - WFCrateLotTools
+  - WFCrateLotTools
+  - WFCrateLotParts
+  - WFCrateLotParts
   - CrateMaterialSteel
   - CrateMaterialSteel
   - CrateMaterialGlass
@@ -69,6 +88,13 @@
   id: WFManifestParts
   name: wf-encounter-cargo-parts
   crates:
+  - WFCrateLotParts
+  - WFCrateLotParts
+  - WFCrateLotParts
+  - WFCrateLotParts
+  - WFCrateLotParts
+  - WFCrateLotTools
+  - WFCrateLotTools
   - CrateEngineeringThruster
   - CrateEngineeringThruster
   - CrateEngineeringSmallThruster
@@ -85,6 +111,11 @@
   id: WFManifestLuxury
   name: wf-encounter-cargo-luxury
   crates:
+  - WFCrateLotLuxury
+  - WFCrateLotLuxury
+  - WFCrateLotLuxury
+  - WFCrateLotLuxury
+  - WFCrateLotLuxury
   - WFCrateLuxuryBullion
   - CrateFunInstrumentsString
   - CrateFunInstrumentsBrass
@@ -99,6 +130,12 @@
   id: WFManifestSalvage
   name: wf-encounter-cargo-salvage
   crates:
+  - WFCrateLotSalvage
+  - WFCrateLotSalvage
+  - WFCrateLotSalvage
+  - WFCrateLotSalvage
+  - WFCrateLotSalvage
+  - WFCrateLotSurvival
   - CrateSalvageEquipment
   - WFCrateOreCommon
   - WFCrateOreCommon
@@ -115,6 +152,10 @@
   id: WFManifestArms
   name: wf-encounter-cargo-arms
   crates:
+  - WFCrateLotArms
+  - WFCrateLotArms
+  - WFCrateLotArms
+  - WFCrateLotArms
   - CrateArmorySMG
   - CrateArmoryLaser
   - CrateArmoryShotgun
@@ -129,6 +170,11 @@
   id: WFManifestContraband
   name: wf-encounter-cargo-general
   crates:
+  - WFCrateLotContraband
+  - WFCrateLotContraband
+  - WFCrateLotContraband
+  - WFCrateLotContraband
+  - WFCrateLotContraband
   - WFCrateContrabandHeavyArms
   - WFCrateLuxuryBullion
   - WFCrateLuxuryBullion

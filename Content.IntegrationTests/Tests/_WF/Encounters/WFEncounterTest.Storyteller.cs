@@ -409,4 +409,52 @@ public sealed partial class WFEncounterTest
 
         WFCrewObjectiveKind First() => Orders()[0].Kind;
     }
+
+    /// <summary>
+    /// A mixed lot crate packs one thing from each of its lists, whatever it rolls: nothing is left out for want of
+    /// room, and two crates of a kind are seldom alike.
+    /// </summary>
+    [Test]
+    public async Task MixedLotCratesPackEveryRoll()
+    {
+        var lots = new List<string>();
+        await Server.WaitPost(() =>
+        {
+            foreach (var prototype in Server.ResolveDependency<IPrototypeManager>().EnumeratePrototypes<EntityPrototype>())
+            {
+                if (prototype.ID.StartsWith("WFCrateLot"))
+                    lots.Add(prototype.ID);
+            }
+        });
+        Assert.That(lots, Has.Count.GreaterThanOrEqualTo(8));
+
+        foreach (var lot in lots)
+        {
+            var crates = new List<EntityUid>();
+            await Server.WaitPost(() =>
+            {
+                for (var i = 0; i < 12; i++)
+                    crates.Add(SEntMan.SpawnEntity(lot, new EntityCoordinates(MapData.MapUid, new Vector2(70000 + i * 3, 70000))));
+            });
+            await RunTicks(3);
+            await Server.WaitAssertion(() =>
+            {
+                var slots = Server.ResolveDependency<IPrototypeManager>().Index<EntityPrototype>(lot).Components.TryGetComponent("StorageFill", out var fill)
+                    ? ((Content.Shared.Storage.Components.StorageFillComponent) fill).Contents.Select(entry => entry.GroupId).Distinct().Count()
+                    : 0;
+                var packings = new HashSet<string>();
+                foreach (var crate in crates)
+                {
+                    var held = Server.System<Robust.Shared.Containers.SharedContainerSystem>()
+                        .GetContainer(crate, "entity_storage").ContainedEntities
+                        .Select(item => SEntMan.GetComponent<MetaDataComponent>(item).EntityPrototype!.ID).OrderBy(id => id).ToList();
+                    Assert.That(held, Has.Count.EqualTo(slots), $"{lot} left something out.");
+                    packings.Add(string.Join(",", held));
+                    SEntMan.DeleteEntity(crate);
+                }
+
+                Assert.That(packings, Has.Count.GreaterThan(6), $"{lot} packs the same things too often.");
+            });
+        }
+    }
 }
