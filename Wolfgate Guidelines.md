@@ -59,9 +59,24 @@ Don't reformat, reorder or delete upstream code. Comment it out or branch around
 Each module has a `README.md` in `Content.Server/_WF/<Module>/` (or Shared, Client, or `Docs/_WF/<Module>/` if
 there's no server code). Write a few lines by hand: what it does and how players or admins use it.
 
+This is all you need before running the script:
+
+```md
+# TractorBeam
+
+Ship-mounted tractor beams. A gunner aims the emitter from the gunnery console and holds fire to pull loose
+objects or small grids towards the ship. Needs power and overheats if held too long.
+
+Entry points: `TractorBeamSystem` handles the pull, `WFTractorBeamEmitter` is the emitter you map onto ships.
+```
+
+The title is the module name, then a short overview and the main entry points. Longer design notes can go
+under that if you want. If you skip the README completely the script makes one with a `TODO` overview, and CI
+fails until you replace it.
+
 ### The autogenerator
 
-You don't write the rest. The autogenerator reads the module folders and your markers and fills in:
+You don't write the rest. The script adds its part to the bottom of your README. The autogenerator reads the module folders and your markers and fills in:
 
 - The file lists in each module README (between the `WOLFGATE-GENERATED` comments): every file in the module
   and every upstream file it edits, with the reasons from your markers.
