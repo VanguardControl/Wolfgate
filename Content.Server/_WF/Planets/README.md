@@ -30,8 +30,19 @@ rock comes back. `BiomeSystem.WFLoad` puts off the far part of a planet load are
 the next passes, so an arrival or a flight does not load it all in one tick. A hull that sets down flattens what is
 under it as an FTL arrival does, breaks the trees and rock it would rest against (`WfClearLandingObstacles`), and
 hurts a mob under it and shoves it clear instead of gibbing it (`ShuttleSystem.WFSetDown`).
+Every world is a circle (`radius` on its `wfPlanetSurface`, 256 tiles unless the prototype or `wf.planet_radius` says
+otherwise): `WFPlanetBoundsSystem` marks each layer with `WFPlanetBoundsComponent` when the network is built, the loader
+never generates a chunk outside it (`BiomeSystem.WFBounds`), an impassable boundary rings the ground and the layers
+below it, the radar draws nothing past it, a hull can't enter the atmosphere unless it is wholly inside, one adrift out
+there is pulled back to the edge before it falls, and one flying out in the air is turned back (`WFPlanetDragSystem`).
+`WFPlanetPreloadSystem` then generates the whole circle, nearest the centre first and `wf.planet_preload_budget` ms a
+tick, one world at a time, and walls the outermost ring of tiles with the surface's `boundaryWall`; a preloaded ground
+(`WFPlanetPreloadedComponent`) never streams or unloads again. `WFPlanetPreloadStartingEvent` goes out the tick before,
+for whatever must be placed while the ground is still unloaded, such as cavern mouths, and `WFPlanetPreloadedEvent`
+once the ring is laid. Caverns stay streamed, inside the same circle.
 Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`,
-`wf.planet_terrain_load_budget`); ecology and
+`wf.planet_terrain_load_budget`, `wf.planet_bounds`, `wf.planet_radius`, `wf.planet_preload`,
+`wf.planet_preload_budget`); ecology and
 landing notes and the playtest checklist are in `Docs/_WF/Planets`. `WFBiomeNoiseCacheSystem` keeps one seeded copy
 of each biome layer's noise for `SharedBiomeSystem.GetNoise`, which copied it for every tile planets and caverns
 generate or sample.
@@ -69,6 +80,10 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/BiomeSystem.WFRoll.cs`](BiomeSystem.WFRoll.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.WFUnload.cs`](BiomeSystem.WFUnload.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.Wolfgate.cs`](BiomeSystem.Wolfgate.cs)
+- [`Content.Server/_WF/Planets/Bounds/BiomeSystem.WFBounds.cs`](Bounds/BiomeSystem.WFBounds.cs)
+- [`Content.Server/_WF/Planets/Bounds/WFPlanetBoundsSystem.cs`](Bounds/WFPlanetBoundsSystem.cs)
+- [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadEvents.cs`](Bounds/WFPlanetPreloadEvents.cs)
+- [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadSystem.cs`](Bounds/WFPlanetPreloadSystem.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.WFTerrain.cs`](CEZLevelsSystem.WFTerrain.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.Wolfgate.cs`](CEZLevelsSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/Commands/WFPlanetCommand.cs`](Commands/WFPlanetCommand.cs)
@@ -158,6 +173,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Shared/_WF/Planets/WFOrbitLayerComponent.cs`](../../../Content.Shared/_WF/Planets/WFOrbitLayerComponent.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetAmbiencePrototype.cs`](../../../Content.Shared/_WF/Planets/WFPlanetAmbiencePrototype.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetApproachComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetApproachComponent.cs)
+- [`Content.Shared/_WF/Planets/WFPlanetBoundsComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetBoundsComponent.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetBuiltTilesComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetBuiltTilesComponent.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetEnvironmentComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetEnvironmentComponent.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetLayerComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetLayerComponent.cs)
@@ -213,6 +229,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/ParachuteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/ParachuteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePlaybackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePlaybackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePrototypeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetBoundsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetBoundsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetDragTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetDragTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetDroneBeltTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetDroneBeltTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyLifecycleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyLifecycleTest.cs)
@@ -236,6 +253,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/Planets/biomes.yml`](../../../Resources/Prototypes/_WF/Planets/biomes.yml)
+- [`Resources/Prototypes/_WF/Planets/bounds.yml`](../../../Resources/Prototypes/_WF/Planets/bounds.yml)
 - [`Resources/Prototypes/_WF/Planets/carcinoma.yml`](../../../Resources/Prototypes/_WF/Planets/carcinoma.yml)
 - [`Resources/Prototypes/_WF/Planets/carcinoma_regions.yml`](../../../Resources/Prototypes/_WF/Planets/carcinoma_regions.yml)
 - [`Resources/Prototypes/_WF/Planets/crash_effects.yml`](../../../Resources/Prototypes/_WF/Planets/crash_effects.yml)

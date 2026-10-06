@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Content.Server._CE.ZLevels.Core;
 using Content.Server._CE.ZLevels.Core.Components;
+using Content.Server._WF.Planets.Bounds;
 using Content.Server._WF.Planets.Flight;
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.Planets.Flight;
@@ -15,6 +16,7 @@ public sealed partial class WFOrbitEntrySystem
 {
     [Dependency] private CEZLevelsSystem _zLevels = default!;
     [Dependency] private WFFlightSystem _flight = default!;
+    [Dependency] private WFPlanetBoundsSystem _bounds = default!;
 
     // The readout shows two decimals.
     private const float LiftRatioEpsilon = 0.01f;
@@ -75,6 +77,13 @@ public sealed partial class WFOrbitEntrySystem
         if (!TryComp<MapGridComponent>(grid, out var gridComp))
         {
             reason = Loc.GetString("wf-orbit-no-hull");
+            return false;
+        }
+
+        // The hull keeps its xy all the way down, and there is no ground outside the circle.
+        if (!_bounds.IsHullInside(grid))
+        {
+            reason = Loc.GetString("wf-orbit-outside-bounds");
             return false;
         }
 

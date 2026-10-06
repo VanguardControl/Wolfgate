@@ -28,6 +28,21 @@ public sealed partial class WFPlanetSurfacePrototype : IPrototype
     [DataField]
     public ResPath? GroundGrid;
 
+    /// <summary>
+    /// Radius in tiles of the world's circle round its centre; terrain outside it never exists. Zero leaves the world
+    /// unbounded. The cvar wf.planet_radius overrides it when set.
+    /// </summary>
+    [DataField]
+    public int Radius = 256;
+
+    /// <summary>Whether the whole ground inside the circle is generated when the network is built, over the ticks after.</summary>
+    [DataField]
+    public bool Preload = true;
+
+    /// <summary>The wall laid on the outermost ring of ground tiles once the world is preloaded; null lays none.</summary>
+    [DataField]
+    public EntProtoId? BoundaryWall = "WFPlanetBoundaryWall";
+
     /// <summary>How many bare fall-through air layers sit between the ground and the cloud layer.</summary>
     [DataField]
     public int AirLayers = 2;

@@ -16,6 +16,7 @@ wf-orbit-no-network = { $planet } has no orbit layer to drop into.
 wf-orbit-no-sector = This orbit layer has no sector body to return to.
 wf-orbit-not-in-sector = { $planet } is not in this system.
 wf-orbit-not-in-orbit = This hull is not in planet orbit.
+wf-orbit-outside-bounds = Outside the world's edge; no ground to descend to here.
 wf-orbit-out-of-range = Too far from { $planet } for orbital insertion.
 wf-orbit-refused = Orbital insertion refused.
 

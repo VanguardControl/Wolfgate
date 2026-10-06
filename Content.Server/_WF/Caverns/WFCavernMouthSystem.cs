@@ -47,6 +47,7 @@ public sealed partial class WFCavernMouthSystem : EntitySystem
         base.Initialize();
 
         InitializeHoles();
+        InitializePreclaim();
         Subs.CVar(_cfg, CavernCVars.CavernClaims, enabled => _claimsEnabled = enabled, true);
     }
 

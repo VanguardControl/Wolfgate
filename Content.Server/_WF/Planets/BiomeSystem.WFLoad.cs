@@ -74,9 +74,13 @@ public sealed partial class BiomeSystem
         loaders.Add((SharedMapSystem.GetChunkIndices(worldPos, ChunkSize) * ChunkSize, ring));
     }
 
-    /// <summary>Whether a chunk of a planet layer's load area is put off to <see cref="WfLoadDeferred"/>.</summary>
+    /// <summary>Whether a chunk of a planet layer's load area is put off to <see cref="WfLoadDeferred"/>, or never loads at all.</summary>
     private bool WfDeferLoad(BiomeComponent biome, EntityUid map, Vector2i chunk)
     {
+        // Outside a bounded world's circle there is no ground.
+        if (WfOutOfBounds(map, chunk))
+            return true;
+
         if (!ReferenceEquals(_wfLoadFor, biome))
             WfBeginLoad(biome, map);
 

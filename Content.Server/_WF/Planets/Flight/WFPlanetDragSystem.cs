@@ -1,4 +1,6 @@
+using System.Numerics;
 using Content.Server._NF.Shuttles.Components;
+using Content.Server._WF.Planets.Bounds;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.Planets.Flight;
 using Content.Shared._WF.Planets;
@@ -13,9 +15,14 @@ namespace Content.Server._WF.Planets.Flight;
 public sealed partial class WFPlanetDragSystem : EntitySystem
 {
     [Dependency] private SharedPhysicsSystem _physics = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private WFPlanetBoundsSystem _bounds = default!;
 
     /// <summary>Speed cap multiplier for a hull that has lost lift and is gliding.</summary>
     public const float LiftLostAllowance = 1.5f;
+
+    /// <summary>Metres a second a hull past the world's edge is pushed back towards its centre.</summary>
+    public const float PushBackSpeed = 2f;
 
     /// <inheritdoc/>
     public override void Update(float frameTime)
@@ -38,7 +45,34 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
 
             Hold(uid, body, damping);
             Clamp(uid, body, maxSpeed);
+            TurnBack(uid, body, xform);
         }
+    }
+
+    /// <summary>
+    /// A hull flying out past a bounded world's circle loses its outward speed and is pushed back in: a soft wall,
+    /// where the ground below has its hard one.
+    /// </summary>
+    private void TurnBack(EntityUid grid, PhysicsComponent body, TransformComponent xform)
+    {
+        if (xform.MapUid is not { } map || !TryComp<WFPlanetBoundsComponent>(map, out var bounds) || bounds.Radius <= 0f)
+            return;
+
+        var reach = _bounds.HullReach(grid) + WFPlanetBoundsSystem.HullMargin;
+        var offset = _transform.GetWorldPosition(xform) - bounds.Centre;
+        var distance = offset.Length();
+
+        if (distance <= 0f || distance + reach <= bounds.Radius)
+            return;
+
+        var outward = offset / distance;
+        var velocity = body.LinearVelocity;
+        var along = Vector2.Dot(velocity, outward);
+
+        if (along > 0f)
+            velocity -= outward * along;
+
+        _physics.SetLinearVelocity(grid, velocity - outward * PushBackSpeed, body: body);
     }
 
     /// <summary>The speed cap and damping for this grid, or false when it should not be dragged.</summary>

@@ -30,6 +30,28 @@ public sealed class PlanetCVars
         CVarDef.Create("wf.planet_terrain_load_budget", 4f, CVar.SERVERONLY);
 
     /// <summary>
+    /// Whether worlds are bounded to the circle their surface prototype gives: terrain outside it never loads, a
+    /// boundary keeps mobs in, hulls can't descend outside it and the radar shows nothing there.
+    /// </summary>
+    public static readonly CVarDef<bool> Bounds =
+        CVarDef.Create("wf.planet_bounds", true, CVar.SERVERONLY);
+
+    /// <summary>Radius in tiles that overrides every surface prototype's; zero keeps each prototype's own.</summary>
+    public static readonly CVarDef<int> Radius =
+        CVarDef.Create("wf.planet_radius", 0, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether a bounded world's whole ground is generated when its network is built, over the ticks after, so
+    /// nothing streams in or unloads on the surface later. Needs wf.planet_bounds.
+    /// </summary>
+    public static readonly CVarDef<bool> Preload =
+        CVarDef.Create("wf.planet_preload", true, CVar.SERVERONLY);
+
+    /// <summary>Milliseconds a tick the preload may spend generating ground; one chunk always goes.</summary>
+    public static readonly CVarDef<float> PreloadBudget =
+        CVarDef.Create("wf.planet_preload_budget", 20f, CVar.SERVERONLY);
+
+    /// <summary>
     /// Whether planet terrain nobody is near is unloaded. Off, upstream's unloader is all there is, and it lets go of
     /// almost nothing.
     /// </summary>
