@@ -288,6 +288,9 @@
                                     <!-- WOLFGATE(Species): lets any species wear every species' markings (HumanoidProfileEditor.MismatchedParts.cs) -->
                                     <CheckBox Name="MismatchedPartsCheckBox" Text="{Loc 'wf-mismatched-parts-toggle'}"
                                               ToolTip="{Loc 'wf-mismatched-parts-tooltip'}" Margin="0 6 0 0" />
+                                    <!-- WOLFGATE(LegStyle): digitigrade or plantigrade legs, for species with both (HumanoidProfileEditor.LegStyle.cs) -->
+                                    <CheckBox Name="DigitigradeLegsCheckBox" Text="{Loc 'wf-leg-style-digitigrade-toggle'}"
+                                              ToolTip="{Loc 'wf-leg-style-digitigrade-tooltip'}" Visible="False" />
                                 </BoxContainer>
                             </PanelContainer>
                         </BoxContainer>

@@ -982,6 +982,10 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("TEXT")
                         .HasColumnName("laugh_voice");
 
+                    b.Property<int>("LegStance")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("leg_stance");
+
                     b.Property<byte[]>("Markings")
                         .HasColumnType("jsonb")
                         .HasColumnName("markings");
