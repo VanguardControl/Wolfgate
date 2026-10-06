@@ -10,6 +10,8 @@ An SS13 leg is one sprite; here it is a leg and a foot layer, so each is cut at 
 species cut theirs. Every set is tinted to the species that wears it: its channels are scaled by how that
 species' torso compares with the torso the legs were drawn for. Where the species' torso would leave a gap
 above the new legs, the hip of the torso they were drawn for fills it, and the species' own leg after that.
+Starlight's legs bring that whole hip with them: legs draw over the torso, and the torsos here are shaded
+dark along the bottom for the legs they came with.
 
 Clothing is drawn for plantigrade legs and moved by displacement maps:
 - Shoes get a map per paw shape. Row by row, every stretch of digitigrade leg samples the stretch of human
@@ -23,6 +25,7 @@ Clothing is drawn for plantigrade legs and moved by displacement maps:
 import argparse
 import json
 import os
+import statistics
 import subprocess
 import sys
 
@@ -129,6 +132,13 @@ def _means(cells):
     return [sum(p[c] for p in pixels) / len(pixels) for c in range(4)]
 
 
+def _medians(cells):
+    """The median of each channel over the opaque pixels."""
+    pixels = [cell.getpixel((x, y)) for cell in cells for y in range(cell.height) for x in range(cell.width)]
+    pixels = [p for p in pixels if p[3] > 0]
+    return [statistics.median(p[c] for p in pixels) for c in range(4)]
+
+
 def _scale(image, gains):
     channels = [c.point(lambda v, g=g: min(255, round(v * g))) for c, g in zip(image.split(), gains)]
     return ss13.Image.merge("RGBA", channels)
@@ -152,14 +162,14 @@ def _fill_hip(cell, own, other, torsos):
                 cell.putpixel((x, y), pixel)
 
 
-def _fill_source_hip(sides, i, chest, torsos):
-    """Copies the hip of the torso the legs were drawn for where one of our torsos and the legs leave it bare."""
+def _fill_source_hip(sides, i, chest, torsos, whole):
+    """Copies the hip of the torso the legs were drawn for: all of it, or only where our torsos leave it bare."""
     for y in range(HIP_ROW, SHOE_ROW):
         for x in range(chest.width):
             pixel = chest.getpixel((x, y))
             if pixel[3] == 0 or any(cells[i].getpixel((x, y))[3] > 0 for cells in sides.values()):
                 continue
-            if all(torso.getpixel((x, y))[3] > 0 for torso in torsos):
+            if not whole and all(torso.getpixel((x, y))[3] > 0 for torso in torsos):
                 continue
             # The pixel joins whichever leg is nearer on its row.
             reach = {side: min((abs(x - column) for column in range(chest.width)
@@ -282,10 +292,12 @@ def port(source, starlight):
             credit = ("Taken from Meridian Rift at %s/tree/%s (%s/%s), which carries the art of NovaSector, "
                       "Skyrat-tg and tgstation. Each leg is cut into a leg and a foot." % (
                           REPOSITORY, commit, ICONS, sheet))
-        gains = [ours / theirs for ours, theirs in zip(_means(torsos[0]), _means(chest))]
+        # Starlight's fur is shaded like the fur here but for darker outlines, which would drag a mean down.
+        tone = _medians if sheet == STARLIGHT else _means
+        gains = [ours / theirs for ours, theirs in zip(tone(torsos[0]), tone(chest))]
         sides = {side: [_scale(cell, gains) for cell in cells] for side, cells in sides.items()}
         for i, cell in enumerate(chest):
-            _fill_source_hip(sides, i, _scale(cell, gains), [torso[i] for torso in torsos])
+            _fill_source_hip(sides, i, _scale(cell, gains), [torso[i] for torso in torsos], sheet == STARLIGHT)
 
         folder = os.path.join(TEXTURES, OUTPUT, name)
         os.makedirs(folder, exist_ok=True)
