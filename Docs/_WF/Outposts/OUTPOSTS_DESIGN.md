@@ -44,7 +44,7 @@ Bands are shop prices, not value. What saves, loads and sales use is the apprais
 
 Tiers: **T1** recipes are built into the Outpost Fabricator and on the trade panel from the first order. **T2** and **T3** recipes come on recipe disks (band C for T2, band D for T3), bought on the trade panel or looted from Workshop POIs; the finished T2/T3 gizmos can also be bought outright at their band price. The gate is money and exploration, not research.
 
-Note for devs: the planet stack (layers, flight, weather, parachutes) lives on the `planet-cracking` branch, not on `main` yet, as the `Planets` module (`_WF/Planets`); the separate `PlanetCracker` module there is the capital-ship cracker, which this doc does not depend on. Pieces that live only in cracker folders (the orbit surveyor, chunk pinning) are called out where this doc needs them. Everything here assumes that branch has landed.
+Note for devs: the planet stack (layers, flight, weather, parachutes, jetpacks) and the caverns under every world are on `main` since PR #40 (2026-10-05), as the `Planets` and `Caverns` modules, behind `wf.planet_networks` and `wf.caverns` (off by default, on in dev builds). Planet cracking was split off to its own branch; this doc does not depend on it. Planets still have no bounds (see Set-size planets).
 
 ### Core rules
 
@@ -81,7 +81,7 @@ The console is the outpost's brain. It is only usable by the outpost owner (see 
 
 - **Outpost foundation plates** (a tile stack, from the kit and the fabricator): laid on natural ground inside your claim zone and touching your outpost grid, they extend the outpost grid instead of the ground map, and carve the ground tile under them. They are their own `_WF` item with their own AfterInteract handler, not a stock floor tile: stock `FloorTileSystem` refuses any placement within a tile of another grid, and the outpost grid is always that close. No `FloorTileSystem` edit. [NEW]
 - Anything anchored on an outpost tile belongs to the outpost grid. Stuff built on raw ground stays "ground": it is not saved and planet systems treat it as terrain. Outpost prefab parts and outpost flatpacks only deploy on your own foundation (except the Outpost Console flatpack, which deploys on natural ground and founds the outpost). Stock construction on raw ground inside your claim zone shows a "not part of the outpost" popup, and the Overview tab counts unsaved structures in the claim zone. [NEW]
-- **Roofs and "outdoors"**: roofs on the CE stack only come from tiles on the layer above or mapper markers, and every shuttle grid gets `ImplicitRoofComponent`, which draws the whole grid as roofed. Outpost grids get `RoofComponent` instead. A tile is roofed when `SharedRoofSystem.IsRooved` says so: walls already carry `IsRoof`, and a buildable **roof panel** (an overhead entity with `IsRoof`) roofs a floor tile. "Outdoors" anywhere in this doc means "on the outpost grid and not rooved". It is the one rule for the UTH, wind turbines, solar panels, the ore thumper and drill holes. Weather's `CanWeatherAffect` is not used for it, because floor tiles never take weather. [NEW] on [EXISTS] `RoofComponent` / `IsRoof`
+- **Roofs and "outdoors"**: roofs on the CE stack only come from tiles on the layer above or mapper markers, and every shuttle grid gets `ImplicitRoofComponent`, which draws the whole grid as roofed. Outpost grids get `RoofComponent` instead. A tile is roofed when `SharedRoofSystem.IsRooved` says so: walls already carry `IsRoof`, and a buildable **roof panel** (an overhead entity with `IsRoof`) roofs a floor tile. "Outdoors" anywhere in this doc means "on the outpost grid and not rooved". It is the one rule for the UTH, wind turbines, solar panels, the ore thumper and drill holes. Weather's `CanWeatherAffect` is not used for it, because floor tiles never take weather. Since PR #40 a floored, walled room built straight on the ground holds its own air and bare ground counts as outside (`WFTerrainAtmosphereSystem`, `WFTerrainOpenTilesEvent`); that is the planet's notion of outdoors for air, the roof rule here is the one for sky exposure, and the two agree for anything built on an outpost grid. [NEW] on [EXISTS] `RoofComponent` / `IsRoof`
 - **Claim zone**: the outpost's bounding box plus 8 tiles. Nobody else can found an outpost, load a save or land a non-pad hull inside it. Inside it, only the owner, crew and allow-listed players can anchor or build on raw ground, so nobody can wall in your doors. It is not an anti-trespass zone: people can walk, parachute or jump in, and trespass is part of the PvP question (Q1). [NEW]
 - **Size cap**: 64 x 64 tiles bounding box, 1,600 tiles, 4,000 saved entities, as starting caps; the final numbers come from the save/load benchmark (see Performance budget). The console shows usage. [NEW]
 - Carcinoma's hull infestation (`WFCarcinomaInfestationSystem`) would pin and meat-ify an outpost; outposts are exempt (they get more raids there instead), pending Q3. [NEW] on [EXISTS]
@@ -688,7 +688,7 @@ You will be able to claim these POIs as your outpost if you don't have one alrea
 
 What the planet stack does today, and what "set size" needs:
 
-- **Today the ground is infinite.** Terrain streams in 8x8 chunks around every player and viewer, wherever they go, with no bounds anywhere. Radar samples the biome recipe, so it draws infinite terrain too. Orbit entry works anywhere within 2 km of the body, and a hull keeps that XY all the way down. [EXISTS]
+- **Today the ground is infinite.** Terrain streams in 8x8 chunks around every player and viewer, wherever they go, with no bounds anywhere. Radar samples the biome recipe, so it draws infinite terrain too. Orbit entry works anywhere within 2 km of the body, and a hull keeps that XY all the way down. Since PR #40 terrain nobody has been near unloads again (`BiomeSystem.WFUnload`): chunks under a hull and two chunks around it, anything built, dug, drawn on or pinned stays, the biome's own rock comes back with the same ore (`BiomeSystem.WFRoll`), `WfPinTiles` / `WfIsPinned` pin tiles against regeneration and `WfLoadChunk` loads a chunk by hand, which then stays until unloaded by hand. Bounds are still absent. [EXISTS]
 - **Terrain is seeded per world** (fixed seeds), so a world's landscape is the same every round. POIs are rerolled per round, which is what makes each round a new story. [EXISTS] + [NEW]
 - **Nothing on a planet persists between rounds**: every WF planet component is unsaved and networks rebuild each round. That's why outposts save their own grid. [EXISTS]
 
@@ -702,19 +702,17 @@ Bounding a world [NEW]:
 | Orbit | Orbit entry stays as is; Enter Atmosphere and pad descents are refused unless the hull's XY is inside the bounds |
 | Radar | `WFPlanetRadarSystem.Sample` returns empty outside the bounds |
 
-### Undergrounds (coming)
+### Caverns (shipped in PR #40)
 
-Planets are getting underground layers: the Mine POI becomes a surface entrance and ops area with linked pre-mined tunnels below, and the occasional underground safehouse. What that means for outposts, given how the stack is built:
+Every world now has a cavern under it (the `Caverns` module, merged with the planets in PR #40): one biome-backed map at depth -1 in the same z-network, added through `WFPlanetLowerLayersEvent` and kept in `WFPlanetNetworkComponent.LowerLayers`. Each world has its own geology, ores, glowing flora and wildlife. A gate mouth sits near the world's centre, further mouths are claimed per 96-tile cell ahead of whoever loads terrain there, and any hole dug, blasted, pried or RCD'd through natural ground is fitted out within a tick as a way down (landing tile, shade, climb point). Cavern stairs (10 steel) built on the cavern floor punch up through the ground above. `CEZLevelsSystem.WfClosedToHulls` keeps every hull out of the lower layers, and a hull parked over a mouth stays put. The cavern mining loop and guidebook are still to come, in the Caverns plan. [EXISTS]
 
-- CE keys a z-network's maps by depth in a dictionary with a sorted min/max cache, so depths below 0 work at the CE level; the "contiguous from 0" rule is only in `WFPlanetNetworkSystem`, which adds ground, air layers and orbit as 0..N. Adding depth -1, -2 under the ground is a change in that builder, not in CE. [EXISTS]
-- Moving between depths already exists: CE ladders (with a ladder cache), falling through open tiles, and grid connectors, which bind grids on adjacent depths into one grid network (that is how multi-deck ships work). Roofs come from the tiles on the layer above, so an outpost grid is the ceiling of whatever is under it. [EXISTS]
-- **An outpost claims its column** [NEW]:
-  - Underground chunks under a claim zone generate as unmineable foundation rock: no tunnels, no safehouses, no fauna spawns. This is a generator rule on the underground biome, the same reservation the surface carve already makes, one layer down.
-  - Tunnels that already exist under a spot when an outpost is founded or loaded there stay as they are. Nothing can dig up through the outpost's tiles (CE has no dig-up), so a tunnel below is only reachable if the owner opens a hatch in their own floor.
-  - Load clearance and the placement rule look at depth 0 only; what is below never blocks a load.
-  - Claiming a Mine POI claims its surface grid. The tunnels stay world terrain, shared with everyone, rerolled each round, and never saved. Ore underneath is not reserved for the owner (see Q26).
-  - Nothing below depth 0 is saved in the first version. Basements (an outpost as a set of grids, one per depth, bound by grid connectors and saved together) are a later phase, once the save format carries a depth per grid.
-  - Raids get a "tunneller" arrival later: they surface at the claim edge, never inside the outpost, since the foundation rock rule means there is no tunnel to surface from under the base.
+What that means for outposts:
+
+- The Mine POI in this doc's taxonomy is a surface grid: an ops area and entrance over the world's cavern. The cavern itself is shared terrain, generated from noise, rerolled each round and never saved; its mouths and its ores are Caverns work, not outpost work. [NEW] surface grid on [EXISTS] cavern
+- Nothing opens the ground under an outpost from below: the stairs recipe is refused where the ground above is laid floor, built on or under a parked hull, and shovels only dig natural ground. The ground under an outpost is carved to the foundation bed tile, which is not natural ground and never a mouth candidate. Whether the stairs and hole checks see an overlapping outpost grid as "built on" is Q26. [NEW] on [EXISTS]
+- Mouth claims skip the cells under a claim zone, and the placement rule keeps a new outpost's footprint off an existing mouth; load clearance looks at depth 0 only. [NEW]
+- Nothing below depth 0 is saved. Basements (an outpost grid in the cavern, bound to the surface grid by CE grid connectors and saved as a set) stay a late phase (F10.4). [NEW]
+- The atmospheric jetpack already flies in a cavern and up or down through a hole, with the ground as a ceiling (`WfSealedAbove`). A raid "tunneller" arrival that climbs out of a hole near the claim edge is a later addition (see Outpost Attacks). [EXISTS] + [NEW]
 
 ### Story-gen
 
@@ -768,7 +766,7 @@ Depending on the attack type, these nasties come from burrows, shuttles or vehic
 - Hostile humanoid NPCs with HTN combat, and pathing flags for prying airlocks and smashing walls. [EXISTS]
 - Those flags only work on the NPC's own grid. A raider on the planet ground whose target is on another grid is sent straight at it (the Monolith port of wizden#38846 in `MoveToOperator` sets a direct move across grids and skips A*), and direct moves skip obstacle handling. The ground navmesh also ignores outpost walls, since it only counts entities parented to the ground grid. So today a raider walks into the outpost's outer wall and stays there. [EXISTS] gap
 - NPC factions for raiders: PirateNF, StreetGangNF, MercenariesExpeditionNF and friends. [EXISTS]
-- Mono AI shuttles for the shuttle arrival mode. [EXISTS]
+- NPC-crewed ships: PR #155 (open) adds `NpcCrew` (AI crews that fly, dock, board, defend and raid, with security rules) and the `Encounters` storyteller, whose prototypes already include pirate raiders and boarders. The raider shuttle arrival uses an NpcCrew crew instead of a Mono AI shuttle once it merges. [EXISTS once PR #155 merges]
 - `TimedSpawner` for burrows (the xeno burrower marker is exactly this). [EXISTS]
 - HTN NPCs sleep when no living player is within 32 tiles (`npc.player_pause_distance`), unless the HTN sets `SleepPlayerCheckRangeOverride` (a Mono field). Terrain only loads within about 16 tiles of players and viewers. Mono mob cleanup never runs on planet ground (it only takes mobs that are off every grid, and planet ground is a map grid). [EXISTS]
 - Not there: a raid director, waves, the Active state, early warning, breaching across grids. [NEW]
@@ -796,7 +794,7 @@ One per world, ticking every 30 s during Active windows:
   - someone is home: at least one owner or crew within 64 tiles of the outpost;
   - the outpost is at least 20 minutes old this round (grace);
   - at most one raid per outpost per Active window, 2 concurrent raids per world, 24 raid mobs per world, 64 server-wide.
-- **Keeping raiders awake**: every raid mob gets `SleepPlayerCheckRangeOverride` of 128 tiles (spawn distance plus the widest outpost), and the director keeps the terrain chunks along the approach loaded while the raid runs. Nothing keeps a biome chunk loaded today: only players and viewers load chunks (`BiomeSystem.PlayerTracker.cs`), and loaded chunks outside that set are unloaded, one per unload pass (every 10 s or more). `BiomeSystem.WFChunkPin.cs` (in the cracker's Chunk folder, moving into Planets) only pins tiles against regeneration, and its by-hand chunk load is unloaded again by those passes. Keeping the approach loaded is new work in Planets (a raid chunk loader).
+- **Keeping raiders awake**: every raid mob gets `SleepPlayerCheckRangeOverride` of 128 tiles (spawn distance plus the widest outpost), and the director keeps the terrain chunks along the approach loaded while the raid runs. Since PR #40 the Planets unloader (`BiomeSystem.WFUnload`) keeps a chunk loaded for a reason: near a loader, under or beside a hull, or loaded by hand with `WfLoadChunk`, which stays until unloaded by hand. So the director loads the approach with `WfLoadChunk` when the raid starts and unloads it at dawn; no new loader is needed. [EXISTS]
 - **Despawning**: mob cleanup doesn't run on planets, so the director removes its own raiders: at dawn, and any raider more than 100 tiles from its target outpost (so nobody can lead a raid into a neighbour's base).
 - **Early warning**: with an EWS the raid is announced 120 s before arrival (240 s with the long-range mast): PA code Red, console alert, a direction arrow. Without one, you get a 15 s "you hear something out there" popup.
 - **Dawn**: when the Active window ends, surviving raiders retreat and despawn once out of sight. A landed raider shuttle and anything on it despawn with them.
@@ -850,7 +848,7 @@ Per AGENTS.md, one feature per module. `Spawning` is taken (admin spawn menu) an
 | `ShipAccess` | Access overhaul for ships and outposts, door rules, codes, readers, access tab |
 | `PlanetPois` | Bounds hooks it needs, POI tables, placer, beacons, survey tool, claiming |
 | `Husbandry` | Capture, taming, herding, pens, feeders, livestock records |
-| `Planets` (existing; `_WF/Planets` on `planet-cracking`, next to the separate `PlanetCracker` module) | World bounds, ground carving, covered-tile checks in weather strikes and fauna sites, raid chunk loader, forecast API, atmospheric jetpack, landing guard hooks in flight code |
+| `Planets` (existing, on `main` with `Caverns` beside it) | World bounds, ground carving, covered-tile checks in weather strikes and fauna sites, forecast API, landing guard hooks in flight code |
 
 Paths: `Content.{Client,Server,Shared}/_WF/<Module>`, `Resources/Prototypes/_WF/<Module>`, `Resources/Locale/en-US/_WF/<Module>`, `Resources/Textures/_WF/<Module>`, `Resources/Audio/_WF/<Module>`, presets in `Resources/SharedMaps/_WF/Outposts`, POI grids in `Resources/Maps/_WF/Outposts/POI`, tests in `Content.IntegrationTests/Tests/_WF/<Module>`.
 
@@ -880,7 +878,7 @@ Prototypes: `wfOutpostPreset`, `wfOutpostTradeListing` (or cargo products in an 
 |---|---|---|
 | Ship access (shipped in PR #94) | `ShuttleConsoleLockSystem` verbs, `AccessReaderSystem` dirtying, `ShuttleDeedComponent` networked, deed dirtying in NF `ShipyardSystem` and `ShuttleRecordsSystem`, the Access tab in `ShuttleConsoleWindow` (xaml and code-behind) and `ShuttleConsoleBoundUserInterface`, `MapGridControl` virtuals for the door map, the admin ghost's access, all-access lists in `AdminVerbSystem` and `SandboxSystem` | ShipAccess (done) |
 | NF `ShipyardSystem` | The sale and used-ship listing paths honour `WFSaleBaselineComponent` | SpawnOptions |
-| `BiomeSystem` | Chunk filter for world bounds (a partial can't stop `AddChunksInRange` without a call site); raid chunk loader, extra chunks kept in the active set next to the player and viewer requests | Planets |
+| `BiomeSystem` | Chunk filter for world bounds (a partial can't stop `AddChunksInRange` without a call site); the raid approach uses the shipped `WfLoadChunk` and pins | Planets |
 | `SharedJetpackSystem` and server `JetpackSystem` (shipped in PR #90) | `WfInAtmosphere(user, pack)` overload at the three shared call sites and the server `Update` cut; the solution-fuel branch in the server `CanEnable` | Planets (done) |
 | CE `CEZLevelsSystem.Transit.cs` (already marked by Planets) | Landing guard on transit exit; pad touchdown skips the `Smimsh` crush against the host outpost | Planets / Outposts |
 | CE `CEZLevelsSystem.Gravity.cs` (already marked by Planets) | A falling hull is shifted off a claim zone before touchdown | Planets |
@@ -1079,7 +1077,7 @@ The coarse phases. The step-by-step order, one pull request per step, with sizes
 - D81: Admins get outpost and save commands, restore, refund and raid controls, and admin log types from F1.
 - D82: Price bands A to E as defined at the top; all numbers are tuning defaults.
 - D83: Only Nova art/sound under CC-BY-SA gets ported, with Nova Sector credited in each RSI; Pixabay and unattributed sounds get replaced.
-- D84: An outpost claims its column: underground chunks under its claim zone generate as unmineable foundation rock, nothing below depth 0 is saved, a Mine POI claim covers the surface grid only; basements are a later phase.
+- D84: Caverns are shipped terrain under every world: a Mine POI claim covers the surface grid only, mouth claims skip claim zones, foundation bed tiles can't be dug or opened from below, nothing below depth 0 is saved; basements are a later phase.
 
 ## Open questions
 
@@ -1098,7 +1096,7 @@ The coarse phases. The step-by-step order, one pull request per step, with sizes
 - Q13: Can `DisallowLateJoin` be true when a queued outpost player is joined with `MakeJoinGame`, turning it into an observer spawn?
 - Q14: What access checks does the station records console apply to adjusting job slots, and do outposts need a different gate?
 - Q15: How does `ShuttleSystem.Impact` behave for a grid falling from the orbit layer, and does it interact with the crash clamp?
-- Q16: How do Mono AI shuttle events move from their own map into play? The raider shuttle arrival wants the same path onto a planet.
+- Q16: Once PR #155 (NpcCrew, Encounters) merges, does an NpcCrew raider crew need anything beyond `TryDropFromOrbit` on a crewed hull to come down onto a planet, and can its orders target an outpost grid?
 - Q17: Which existing POI grids already contain consoles, cryopods or turrets suitable for claimable planet POIs?
 - Q18: Nova assets: the license of `AW_reactor.ogg` (freesound, dobroide); the fabricator and arc furnace recordings (given "for free open source use" by an unnamed contributor, with no stated license, so replaced unless cleared); the Kahraman `ore_thumper_fan` loop the Stirling uses; and how the DMI art and its deploy and print animations convert to RSI states.
 - Q19: Real power draw of the regulator, recycler, synthesizers and dispenser in use, and a full comparison against SS14 power values, before numbers are locked.
@@ -1108,4 +1106,4 @@ The coarse phases. The step-by-step order, one pull request per step, with sizes
 - Q23: After playtests, is the split of players between planets and space healthy, and how should the population-scaled outpost cap be tuned?
 - Q24: Do Crescent shield bubbles and Mono artillery behave on planet maps and CE layers?
 - Q25: Should the livestock record approach be extended to pets and tamed wildlife that are not in pens?
-- Q26: Undergrounds: are they negative depths in the same network or does the ground shift up; are tunnels that already exist under a newly loaded outpost left or backfilled; and should the ore under a claimed Mine POI be reserved for its owner?
+- Q26: Caverns: do the shipped stairs and hole checks treat the ground under an overlapping outpost grid as built on, and should the ore in the cavern under a claimed Mine POI be reserved for its owner?
