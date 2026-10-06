@@ -6,6 +6,7 @@ using Content.Shared._WF.EmoteVoices; // WOLFGATE(EmoteVoices)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Migration; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
+using Content.Shared._WF.LegStyle; // WOLFGATE(LegStyle)
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Humanoid;
@@ -248,6 +249,7 @@ namespace Content.Shared.Preferences
         {
             HeadshotUrl = other.HeadshotUrl; // WOLFGATE(Headshot)
             MismatchedParts = other.MismatchedParts; // WOLFGATE(Species)
+            LegStance = other.LegStance; // WOLFGATE(LegStyle)
         }
 
         /// <summary>Copy constructor</summary>
@@ -280,6 +282,7 @@ namespace Content.Shared.Preferences
         {
             HeadshotUrl = other.HeadshotUrl; // WOLFGATE(Headshot)
             MismatchedParts = other.MismatchedParts; // WOLFGATE(Species)
+            LegStance = other.LegStance; // WOLFGATE(LegStyle)
         }
 
         /// <summary>
@@ -619,6 +622,7 @@ namespace Content.Shared.Preferences
             if (!Genitals.MemberwiseEquals(other.Genitals)) return false; // WOLFGATE(Genitals)
             if (HeadshotUrl != other.HeadshotUrl) return false; // WOLFGATE(Headshot)
             if (MismatchedParts != other.MismatchedParts) return false; // WOLFGATE(Species)
+            if (LegStance != other.LegStance) return false; // WOLFGATE(LegStyle)
             if (ScreamVoice != other.ScreamVoice || LaughVoice != other.LaughVoice) return false; // WOLFGATE(EmoteVoices)
             if (!Flags.SequenceEqual(other.Flags)) return false; // Mono
             if (!Components.SequenceEqual(other.Components)) return false; // Mono
@@ -825,6 +829,7 @@ namespace Content.Shared.Preferences
 
             EnsureHeadshotValid(); // WOLFGATE(Headshot)
             EnsureValidEmoteVoices(prototypeManager); // WOLFGATE(EmoteVoices)
+            LegStance = LegStyleRules.Validate(Species, LegStance, prototypeManager); // WOLFGATE(LegStyle): legs the species doesn't have fall back to its own
 
             // Check if the company exists, if not set to "None"
             if (!string.IsNullOrEmpty(Company) &&
@@ -963,6 +968,7 @@ namespace Content.Shared.Preferences
             hashCode.Add(CustomSpeciesName); // WOLFGATE(Humanoid)
             hashCode.Add(HeadshotUrl); // WOLFGATE(Headshot)
             hashCode.Add(MismatchedParts); // WOLFGATE(Species)
+            hashCode.Add((int) LegStance); // WOLFGATE(LegStyle)
             hashCode.Add(ScreamVoice); // WOLFGATE(EmoteVoices)
             hashCode.Add(LaughVoice); // WOLFGATE(EmoteVoices)
             return hashCode.ToHashCode();

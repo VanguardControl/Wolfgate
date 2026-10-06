@@ -1,0 +1,95 @@
+using System.Linq;
+using Content.Client._WF.LegStyle;
+using Content.IntegrationTests.Tests.Interaction;
+using Content.Shared._Shitmed.Body.Part;
+using Content.Shared._WF.LegStyle;
+using Content.Shared.Body.Part;
+using Content.Shared.Body.Systems;
+using Content.Shared.DisplacementMap;
+using Content.Shared.Humanoid;
+using Content.Shared.Preferences;
+using Robust.Shared.GameObjects;
+
+namespace Content.IntegrationTests.Tests._WF.LegStyle;
+
+/// <summary>
+/// A networked Vulpkanin loaded with digitigrade legs: the leg layers, the severable leg and the clothing fit follow
+/// the style on both sides, a clone keeps it, and loading the species' own legs again takes it all back off.
+/// </summary>
+[TestOf(typeof(LegStyleRules))]
+public sealed class LegStyleBodyTest : InteractionTest
+{
+    private const string Species = "Vulpkanin";
+    private const string Style = "WFLegsMammalDigitigrade";
+    private const string LeftLeg = "WFMobMammalLLegDigi";
+
+    protected override string PlayerPrototype => "MobVulpkanin";
+
+    [Test]
+    public async Task DigitigradeBodyTest()
+    {
+        var humanoids = SEntMan.System<SharedHumanoidAppearanceSystem>();
+        var bodies = SEntMan.System<SharedBodySystem>();
+        var profile = HumanoidCharacterProfile.DefaultWithSpecies(Species).WithLegStance(LegStance.Digitigrade);
+
+        await Server.WaitAssertion(() =>
+        {
+            humanoids.LoadProfile(SPlayer, profile);
+            var humanoid = SEntMan.GetComponent<HumanoidAppearanceComponent>(SPlayer);
+
+            Assert.That(humanoid.LegStyle?.Id, Is.EqualTo(Style));
+            Assert.That(humanoid.CustomBaseLayers.TryGetValue(HumanoidVisualLayers.LLeg, out var leg), Is.True,
+                "The left leg kept the species' sprite.");
+            Assert.That(leg.Id, Is.EqualTo(LeftLeg));
+            Assert.That(leg.Color, Is.EqualTo(humanoid.SkinColor), "The leg does not match the skin.");
+
+            var part = bodies.GetBodyChildren(SPlayer)
+                .First(p => p.Component.PartType == BodyPartType.Leg && p.Component.Symmetry == BodyPartSymmetry.Left);
+            Assert.That(SEntMan.GetComponent<BodyPartAppearanceComponent>(part.Id).ID?.Id, Is.EqualTo(LeftLeg),
+                "A severed leg would turn plantigrade.");
+        });
+
+        await RunTicks(5);
+
+        await Client.WaitAssertion(() =>
+        {
+            var humanoid = CEntMan.GetComponent<HumanoidAppearanceComponent>(CPlayer);
+            Assert.That(humanoid.LegStyle?.Id, Is.EqualTo(Style), "The style did not reach the client.");
+            Assert.That(humanoid.BaseLayers[HumanoidVisualLayers.LLeg].ID, Is.EqualTo(LeftLeg),
+                "The client draws the species' leg.");
+
+            var legs = CEntMan.System<LegStyleSystem>();
+            var hat = new DisplacementData();
+            Assert.That(legs.GetDisplacement(CPlayer, "jumpsuit", null)?.SizeMaps[32].State, Is.EqualTo("jumpsuit"),
+                "Jumpsuits are not fitted to the legs.");
+            Assert.That(legs.GetDisplacement(CPlayer, "shoes", null), Is.Not.Null, "Shoes are not fitted to the legs.");
+            Assert.That(legs.GetDisplacement(CPlayer, "head", hat), Is.SameAs(hat), "The legs changed a slot they don't reshape.");
+        });
+
+        await Server.WaitAssertion(() =>
+        {
+            var clone = SEntMan.SpawnEntity(PlayerPrototype, SEntMan.GetComponent<TransformComponent>(SPlayer).Coordinates);
+            humanoids.CloneAppearance(SPlayer, clone);
+            var cloned = SEntMan.GetComponent<HumanoidAppearanceComponent>(clone);
+            Assert.That(cloned.LegStyle?.Id, Is.EqualTo(Style), "The clone dropped the style.");
+            Assert.That(cloned.CustomBaseLayers[HumanoidVisualLayers.LLeg].Id, Is.EqualTo(LeftLeg), "The clone dropped the legs.");
+            SEntMan.DeleteEntity(clone);
+
+            humanoids.LoadProfile(SPlayer, profile.WithLegStance(LegStance.Default));
+            var humanoid = SEntMan.GetComponent<HumanoidAppearanceComponent>(SPlayer);
+            Assert.That(humanoid.LegStyle, Is.Null);
+            Assert.That(humanoid.CustomBaseLayers.ContainsKey(HumanoidVisualLayers.LLeg), Is.False,
+                "The species' own legs did not come back.");
+        });
+
+        await RunTicks(5);
+
+        await Client.WaitAssertion(() =>
+        {
+            var hat = new DisplacementData();
+            Assert.That(CEntMan.GetComponent<HumanoidAppearanceComponent>(CPlayer).LegStyle, Is.Null);
+            Assert.That(CEntMan.System<LegStyleSystem>().GetDisplacement(CPlayer, "jumpsuit", hat), Is.SameAs(hat),
+                "Plantigrade legs kept the digitigrade fit.");
+        });
+    }
+}

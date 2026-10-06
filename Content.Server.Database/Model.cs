@@ -528,6 +528,9 @@ namespace Content.Server.Database
         // WOLFGATE(Species): saves the Mismatched parts option (every species' markings, hair and facial hair)
         [Column("mismatched_parts")] public bool MismatchedParts { get; set; }
 
+        // WOLFGATE(LegStyle): the legs picked in the creator, 0 for the species' own.
+        [Column("leg_stance")] public int LegStance { get; set; }
+
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 

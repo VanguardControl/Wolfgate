@@ -1,0 +1,49 @@
+# Base sprites for the digitigrade leg styles. Art from Meridian Rift, written by Tools/_WF/LegStyle/port.py.
+
+- type: humanoidBaseSprite
+  id: WFMobHumanLLegDigi
+  baseSprite:
+    sprite: _WF/LegStyle/digitigrade_human.rsi
+    state: l_leg
+
+- type: humanoidBaseSprite
+  id: WFMobHumanRLegDigi
+  baseSprite:
+    sprite: _WF/LegStyle/digitigrade_human.rsi
+    state: r_leg
+
+- type: humanoidBaseSprite
+  id: WFMobHumanLFootDigi
+  baseSprite:
+    sprite: _WF/LegStyle/digitigrade_human.rsi
+    state: l_foot
+
+- type: humanoidBaseSprite
+  id: WFMobHumanRFootDigi
+  baseSprite:
+    sprite: _WF/LegStyle/digitigrade_human.rsi
+    state: r_foot
+
+- type: humanoidBaseSprite
+  id: WFMobMammalLLegDigi
+  baseSprite:
+    sprite: _WF/LegStyle/digitigrade_mammal.rsi
+    state: l_leg
+
+- type: humanoidBaseSprite
+  id: WFMobMammalRLegDigi
+  baseSprite:
+    sprite: _WF/LegStyle/digitigrade_mammal.rsi
+    state: r_leg
+
+- type: humanoidBaseSprite
+  id: WFMobMammalLFootDigi
+  baseSprite:
+    sprite: _WF/LegStyle/digitigrade_mammal.rsi
+    state: l_foot
+
+- type: humanoidBaseSprite
+  id: WFMobMammalRFootDigi
+  baseSprite:
+    sprite: _WF/LegStyle/digitigrade_mammal.rsi
+    state: r_foot

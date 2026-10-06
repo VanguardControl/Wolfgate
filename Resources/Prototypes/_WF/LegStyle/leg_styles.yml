@@ -1,0 +1,61 @@
+# Legs a species can pick instead of its own, from the Digitigrade legs toggle in the character editor.
+# A species listed under a style stands the other way by default. displacementSlots are the clothing slots
+# the legs reshape: they use the style's maps (or none) instead of the species' own.
+
+- type: wfLegStyle
+  id: WFLegsHumanDigitigrade
+  species: [ Human, Dwarf, Felinid, Oni ]
+  stance: Digitigrade
+  sprites:
+    LLeg: WFMobHumanLLegDigi
+    RLeg: WFMobHumanRLegDigi
+    LFoot: WFMobHumanLFootDigi
+    RFoot: WFMobHumanRFootDigi
+  displacementSlots: [ jumpsuit, shoes ]
+  displacements: &digitigradeDisplacements
+    jumpsuit:
+      sizeMaps:
+        32:
+          sprite: _White/Mobs/Species/displacement.rsi
+          state: jumpsuit
+    shoes:
+      sizeMaps:
+        32:
+          sprite: _White/Mobs/Species/displacement.rsi
+          state: shoes
+  femaleDisplacements: &digitigradeFemaleDisplacements
+    jumpsuit:
+      sizeMaps:
+        32:
+          sprite: _White/Mobs/Species/displacement.rsi
+          state: jumpsuit-female
+    shoes:
+      sizeMaps:
+        32:
+          sprite: _White/Mobs/Species/displacement.rsi
+          state: shoes
+
+- type: wfLegStyle
+  id: WFLegsMammalDigitigrade
+  species: [ Vulpkanin, WFCanine ]
+  stance: Digitigrade
+  sprites:
+    LLeg: WFMobMammalLLegDigi
+    RLeg: WFMobMammalRLegDigi
+    LFoot: WFMobMammalLFootDigi
+    RFoot: WFMobMammalRFootDigi
+  displacementSlots: [ jumpsuit, shoes ]
+  displacements: *digitigradeDisplacements
+  femaleDisplacements: *digitigradeFemaleDisplacements
+
+# Reptilians are digitigrade already; this gives them the legs they had before that.
+- type: wfLegStyle
+  id: WFLegsReptilianPlantigrade
+  species: [ Reptilian ]
+  stance: Plantigrade
+  sprites:
+    LLeg: MobReptilianLLeg
+    RLeg: MobReptilianRLeg
+    LFoot: MobReptilianLFoot
+    RFoot: MobReptilianRFoot
+  displacementSlots: [ jumpsuit, shoes ]
