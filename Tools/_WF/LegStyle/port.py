@@ -1,14 +1,20 @@
-"""Ports Meridian Rift's digitigrade leg art into the RSIs the leg style prototypes point at.
+"""Ports Meridian Rift's leg art into the RSIs and base sprites the leg style prototypes point at.
 
 Run from the repository root against a Meridian Rift checkout:
 
     python Tools/_WF/LegStyle/port.py --source <Meridian-Rift checkout>
 
 An SS13 leg is one sprite; here it is a leg and a foot layer, so each is cut at the row the upstream
-species cut theirs. `shade` scales a set's brightness to the plantigrade legs of the species that wears it.
+species cut theirs. Every set is tinted to the species that wears it: its channels are scaled by how that
+species' torso compares with the torso the legs were drawn for. Where a narrower torso would leave a gap
+above the new legs, the species' own hip pixels fill it.
 
-Shoes are drawn for plantigrade feet, so each set also gets a displacement map that moves them onto its
-paws: row by row, every stretch of digitigrade leg samples the stretch of human leg on that row.
+Clothing is drawn for plantigrade legs and moved by displacement maps:
+- Shoes get a map per paw shape. Row by row, every stretch of digitigrade leg samples the stretch of human
+  leg on that row.
+- Jumpsuits keep the leg rows of the map Reptilians use. A species whose own map also reshapes the upper
+  body gets a map with its rows above the hip and those leg rows below, or untouched leg rows for a
+  plantigrade option.
 """
 import argparse
 import json
@@ -21,48 +27,101 @@ import ss13  # noqa: E402
 
 REPOSITORY = "https://github.com/Aphelion-Moon/Meridian-Rift"
 ICONS = "modular_nova/modules/bodyparts/icons"
-OUTPUT = "Resources/Textures/_WF/LegStyle"
+TEXTURES = "Resources/Textures"
+OUTPUT = "_WF/LegStyle"
+PROTOTYPES = "Resources/Prototypes/_WF/LegStyle/base_sprites.yml"
 # Rows from here down are the foot.
 FOOT_ROW = 29
-# Rows from here down wear the shoe.
+# Rows from here down wear the shoe; the ones above it, from the hip, may borrow the species' own leg.
 SHOE_ROW = 25
+# Rows from here down are where the legs change a jumpsuit.
+HIP_ROW = 22
 # The legs shoes are drawn for.
-PLANTIGRADE = "Resources/Textures/Mobs/Species/Human/parts.rsi"
+PLANTIGRADE = "Mobs/Species/Human/parts.rsi"
+# The jumpsuit map made for digitigrade legs.
+DIGITIGRADE_MAP = ("_White/Mobs/Species/displacement.rsi", "jumpsuit")
+LEG_STATES = ("l_leg", "r_leg", "l_foot", "r_foot")
+LAYERS = (("LLeg", "l_leg"), ("RLeg", "r_leg"), ("LFoot", "l_foot"), ("RFoot", "r_foot"))
 
+# RSI -> the Meridian sheet and limb it is cut from, the leg state suffix ("_digi" for digitigrade legs),
+# the body it is tinted to, the id its base sprites take and the shoe map its paws use.
 SETS = {
-    "digitigrade_mammal.rsi": {
-        "sheet": "mammal_parts_greyscale.dmi",
-        "left": "mammal_l_leg_digi",
-        "right": "mammal_r_leg_digi",
-        "shade": 0.89,
-        "shoes": "shoes_mammal",
-    },
-    "digitigrade_human.rsi": {
-        "sheet": "human_parts_greyscale.dmi",
-        "left": "human_l_leg_digi",
-        "right": "human_r_leg_digi",
-        "shade": 1.0,
-        "shoes": "shoes_human",
-    },
+    "digitigrade_human.rsi": ("human_parts_greyscale.dmi", "human", "_digi", "Mobs/Species/Human/parts.rsi", "HumanLegDigi", "human"),
+    "digitigrade_mammal.rsi": ("mammal_parts_greyscale.dmi", "mammal", "_digi", "_DV/Mobs/Species/Vulpkanin/parts.rsi", "MammalLegDigi", "mammal"),
+    "digitigrade_feroxi.rsi": ("aquatic_parts_greyscale.dmi", "aquatic", "_digi", "_DV/Mobs/Species/Feroxi/parts.rsi", "FeroxiLegDigi", "mammal"),
+    "digitigrade_goblin.rsi": ("humanoid_parts_greyscale.dmi", "humanoid", "_digi", "_NF/Mobs/Species/Goblin/parts.rsi", "GoblinLegDigi", "human"),
+    "digitigrade_rodentia.rsi": ("mammal_parts_greyscale.dmi", "mammal", "_digi", "_DV/Mobs/Species/Rodentia/parts.rsi", "RodentiaLegDigi", "mammal"),
+    "digitigrade_shadekin.rsi": ("shadekin_parts_greyscale.dmi", "shadekin", "_digi", "_Starlight/Mobs/Species/Shadekin/parts.rsi", "ShadekinLegDigi", "shadekin"),
+    "digitigrade_skrell.rsi": ("humanoid_parts_greyscale.dmi", "humanoid", "_digi", "_RMC14/Mobs/Skrells/parts.rsi", "SkrellLegDigi", "human"),
+    "digitigrade_slime.rsi": ("slime_parts_greyscale.dmi", "slime", "_digi", "Mobs/Species/Slime/parts.rsi", "SlimeLegDigi", "mammal"),
+    "digitigrade_tajaran.rsi": ("mammal_parts_greyscale.dmi", "mammal", "_digi", "_Goobstation/Mobs/Species/Tajaran/parts.rsi", "TajaranLegDigi", "mammal"),
+    "digitigrade_thaven.rsi": ("humanoid_parts_greyscale.dmi", "humanoid", "_digi", "_Impstation/Mobs/Species/Thaven/parts.rsi", "ThavenLegDigi", "human"),
+    "plantigrade_synth.rsi": ("synthliz_parts_greyscale.dmi", "synthliz", "", "_HL/Mobs/Species/Synth/parts.rsi", "SynthLegPlanti", None),
+}
+
+# Jumpsuit-like maps: state -> (map kept above the hip, whether the leg rows below are digitigrade).
+SUIT_MAPS = {
+    "jumpsuit_female": (("Mobs/Species/Human/displacement.rsi", "jumpsuit-female"), True),
+    "jumpsuit_thaven": (("_Impstation/Mobs/Species/Thaven/displacement.rsi", "jumpsuit"), True),
+    "jumpsuit_reptilian_plantigrade_female": (("_White/Mobs/Species/displacement.rsi", "jumpsuit-female"), False),
+    "jumpsuit_synth_plantigrade": (("_HL/Mobs/Species/Synth/displacement.rsi", "jumpsuit"), False),
+    "outerclothing_synth_plantigrade": (("_HL/Mobs/Species/Synth/displacement.rsi", "outerclothing"), False),
 }
 
 
-def _shade(image, factor):
-    if factor == 1.0:
-        return image
-    r, g, b, a = image.split()
-    r, g, b = (c.point(lambda v: min(255, round(v * factor))) for c in (r, g, b))
-    return ss13.Image.merge("RGBA", (r, g, b, a))
+def _cells(folder, states):
+    """The given states of an RSI laid over each other, one image per facing."""
+    cells = [ss13.Image.new("RGBA", (32, 32)) for _ in range(4)]
+    for state in states:
+        sheet = ss13.Image.open(os.path.join(TEXTURES, folder, state + ".png")).convert("RGBA")
+        for i, cell in enumerate(cells):
+            x, y = (i % 2) * 32, (i // 2) * 32
+            cell.alpha_composite(sheet.crop((x, y, x + 32, y + 32)))
+    return cells
+
+
+def _sheet(cells):
+    sheet = ss13.Image.new("RGBA", (64, 64))
+    for i, cell in enumerate(cells):
+        sheet.paste(cell, ((i % 2) * 32, (i // 2) * 32))
+    return sheet
 
 
 def _strip(cells, top, bottom):
-    """The four facings side by side, keeping only rows top..bottom."""
-    sheet = ss13.Image.new("RGBA", (64, 64))
-    for i, cell in enumerate(cells):
+    """The four facings as a sheet, keeping only rows top..bottom."""
+    parts = []
+    for cell in cells:
         part = ss13.Image.new("RGBA", cell.size)
         part.paste(cell.crop((0, top, cell.width, bottom)), (0, top))
-        sheet.paste(part, ((i % 2) * 32, (i // 2) * 32))
-    return sheet
+        parts.append(part)
+    return _sheet(parts)
+
+
+def _means(cells):
+    """The mean of each channel over the opaque pixels."""
+    pixels = [cell.getpixel((x, y)) for cell in cells for y in range(cell.height) for x in range(cell.width)]
+    pixels = [p for p in pixels if p[3] > 0]
+    return [sum(p[c] for p in pixels) / len(pixels) for c in range(4)]
+
+
+def _scale(image, gains):
+    channels = [c.point(lambda v, g=g: min(255, round(v * g))) for c, g in zip(image.split(), gains)]
+    return ss13.Image.merge("RGBA", channels)
+
+
+def _torso(folder):
+    with open(os.path.join(TEXTURES, folder, "meta.json"), encoding="utf-8-sig") as f:
+        states = {state["name"] for state in json.load(f)["states"]}
+    return _cells(folder, ["torso_m" if "torso_m" in states else "torso"])
+
+
+def _fill_hip(cell, own, others):
+    """Copies the species' own leg pixels at the hip that neither the new legs nor the torso cover."""
+    for y in range(HIP_ROW, SHOE_ROW):
+        for x in range(cell.width):
+            pixel = own.getpixel((x, y))
+            if pixel[3] > 0 and cell.getpixel((x, y))[3] == 0 and all(o.getpixel((x, y))[3] == 0 for o in others):
+                cell.putpixel((x, y), pixel)
 
 
 def _runs(image, y):
@@ -76,17 +135,6 @@ def _runs(image, y):
             runs.append((start, x - 1))
             start = None
     return runs
-
-
-def _plantigrade():
-    """The human legs and feet, one image per facing."""
-    cells = [ss13.Image.new("RGBA", (32, 32)) for _ in range(4)]
-    for state in ("l_leg", "r_leg", "l_foot", "r_foot"):
-        sheet = ss13.Image.open(os.path.join(PLANTIGRADE, state + ".png")).convert("RGBA")
-        for i, cell in enumerate(cells):
-            x, y = (i % 2) * 32, (i // 2) * 32
-            cell.alpha_composite(sheet.crop((x, y, x + 32, y + 32)))
-    return cells
 
 
 def _shoe_map(legs, plantigrade):
@@ -115,11 +163,13 @@ def _shoe_map(legs, plantigrade):
     return out
 
 
-def _sheet(cells):
-    sheet = ss13.Image.new("RGBA", (64, 64))
-    for i, cell in enumerate(cells):
-        sheet.paste(cell, ((i % 2) * 32, (i // 2) * 32))
-    return sheet
+def _suit_map(above, below):
+    """One map's rows above the hip over another's leg rows; no `below` leaves the legs as drawn."""
+    out = ss13.Image.new("RGBA", above.size, (128, 128, 0, 255))
+    out.paste(above.crop((0, 0, above.width, HIP_ROW)), (0, 0))
+    if below is not None:
+        out.paste(below.crop((0, HIP_ROW, below.width, below.height)), (0, HIP_ROW))
+    return out
 
 
 def _write_meta(folder, copyright, states, srgb=True):
@@ -134,35 +184,69 @@ def _write_meta(folder, copyright, states, srgb=True):
 def port(source):
     commit = subprocess.run(["git", "-C", source, "rev-parse", "HEAD"], capture_output=True, text=True,
                             check=True).stdout.strip()
-    plantigrade = _plantigrade()
-    maps = os.path.join(OUTPUT, "displacement.rsi")
+    plantigrade = _cells(PLANTIGRADE, LEG_STATES)
+    maps = os.path.join(TEXTURES, OUTPUT, "displacement.rsi")
     os.makedirs(maps, exist_ok=True)
-    for name, entry in SETS.items():
-        dmi = ss13.Dmi.load(os.path.join(source, ICONS, entry["sheet"]))
-        folder = os.path.join(OUTPUT, name)
+    map_states, paws = [], {}
+    prototypes = ["# Base sprites for the leg styles. Art from Meridian Rift; written by Tools/_WF/LegStyle/port.py.\n"]
+
+    for name, (sheet, limb, legs, body, sprite, shoes) in SETS.items():
+        dmi = ss13.Dmi.load(os.path.join(source, ICONS, sheet))
+        chest = dmi.states.get(limb + "_chest_m") or dmi.states[limb + "_chest"]
+        gains = [ours / theirs for ours, theirs in zip(_means(_torso(body)), _means(chest.images[0]))]
+
+        folder = os.path.join(TEXTURES, OUTPUT, name)
         os.makedirs(folder, exist_ok=True)
-        states = []
-        legs = [ss13.Image.new("RGBA", (32, 32)) for _ in range(4)]
-        for side, state in (("l", entry["left"]), ("r", entry["right"])):
-            cells = [_shade(cell, entry["shade"]) for cell in dmi.states[state].images[0]]
+        whole = [ss13.Image.new("RGBA", (32, 32)) for _ in range(4)]
+        sides = {side: [_scale(cell, gains) for cell in dmi.states["%s_%s_leg%s" % (limb, side, legs)].images[0]]
+                 for side in "lr"}
+        torso = _torso(body)
+        for side, other in ("lr", "rl"):
+            cells = sides[side]
+            for i, own in enumerate(_cells(body, ["%s_leg" % side])):
+                _fill_hip(cells[i], own, (sides[other][i], torso[i]))
             _strip(cells, 0, FOOT_ROW).save(os.path.join(folder, "%s_leg.png" % side))
             _strip(cells, FOOT_ROW, 32).save(os.path.join(folder, "%s_foot.png" % side))
-            states += ["%s_leg" % side, "%s_foot" % side]
-            for whole, cell in zip(legs, cells):
-                whole.alpha_composite(cell)
+            for image, cell in zip(whole, cells):
+                image.alpha_composite(cell)
         _write_meta(folder,
                     "Taken from Meridian Rift at %s/tree/%s (%s/%s), which carries the art of NovaSector, "
-                    "Skyrat-tg and tgstation. Each leg is cut into a leg and a foot." % (
-                        REPOSITORY, commit, ICONS, entry["sheet"]),
-                    states)
-        _sheet([_shoe_map(leg, flat) for leg, flat in zip(legs, plantigrade)]).save(
-            os.path.join(maps, entry["shoes"] + ".png"))
-        print("wrote", folder)
+                    "Skyrat-tg and tgstation. Each leg is cut into a leg and a foot and tinted to %s." % (
+                        REPOSITORY, commit, ICONS, sheet, body),
+                    LEG_STATES)
+        for layer, state in LAYERS:
+            prototypes.append("\n- type: humanoidBaseSprite\n  id: WFMob%s\n  baseSprite:\n    sprite: %s/%s\n    state: %s\n" % (
+                sprite.replace("Leg", layer), OUTPUT, name, state))
+        print("wrote %s, gains %s" % (folder, " ".join("%.2f" % gain for gain in gains)))
+
+        if shoes is None:
+            continue
+        shape = [frozenset((x, y) for y in range(SHOE_ROW, 32) for x in range(32) if image.getpixel((x, y))[3] > 0)
+                 for image in whole]
+        if shoes not in paws:
+            paws[shoes] = shape
+            state = "shoes_" + shoes
+            _sheet([_shoe_map(leg, flat) for leg, flat in zip(whole, plantigrade)]).save(
+                os.path.join(maps, state + ".png"))
+            map_states.append(state)
+        elif paws[shoes] != shape:
+            raise ValueError("%s is not shaped like the other legs that wear the %s shoe map" % (name, shoes))
+
+    digitigrade = _cells(DIGITIGRADE_MAP[0], [DIGITIGRADE_MAP[1]])
+    for state, ((folder, top), bent) in SUIT_MAPS.items():
+        _sheet([_suit_map(above, below if bent else None)
+                for above, below in zip(_cells(folder, [top]), digitigrade)]).save(os.path.join(maps, state + ".png"))
+        map_states.append(state)
     _write_meta(maps,
-                "Made for Wolfgate by Tools/_WF/LegStyle/port.py from the digitigrade legs beside it and the "
-                "human legs.",
-                [entry["shoes"] for entry in SETS.values()], srgb=False)
+                "Made for Wolfgate by Tools/_WF/LegStyle/port.py. Shoe maps come from the shape of the legs beside "
+                "them. The others join a species' own map above the hip (%s) to the leg rows of Litogin's %s/%s." % (
+                    ", ".join(sorted({top[0] for top, _ in SUIT_MAPS.values()})), *DIGITIGRADE_MAP),
+                map_states, srgb=False)
     print("wrote", maps)
+
+    with open(PROTOTYPES, "w", encoding="utf-8", newline="\n") as f:
+        f.write("".join(prototypes))
+    print("wrote", PROTOTYPES)
 
 
 if __name__ == "__main__":

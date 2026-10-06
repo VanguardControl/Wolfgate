@@ -1,7 +1,7 @@
 {
   "version": 1,
   "license": "CC-BY-SA-3.0",
-  "copyright": "Made for Wolfgate by Tools/_WF/LegStyle/port.py from the digitigrade legs beside it and the human legs.",
+  "copyright": "Made for Wolfgate by Tools/_WF/LegStyle/port.py. Shoe maps come from the shape of the legs beside them. The others join a species' own map above the hip (Mobs/Species/Human/displacement.rsi, _HL/Mobs/Species/Synth/displacement.rsi, _Impstation/Mobs/Species/Thaven/displacement.rsi, _White/Mobs/Species/displacement.rsi) to the leg rows of Litogin's _White/Mobs/Species/displacement.rsi/jumpsuit.",
   "size": {
     "x": 32,
     "y": 32
@@ -11,11 +11,35 @@
   },
   "states": [
     {
+      "name": "jumpsuit_female",
+      "directions": 4
+    },
+    {
+      "name": "jumpsuit_reptilian_plantigrade_female",
+      "directions": 4
+    },
+    {
+      "name": "jumpsuit_synth_plantigrade",
+      "directions": 4
+    },
+    {
+      "name": "jumpsuit_thaven",
+      "directions": 4
+    },
+    {
+      "name": "outerclothing_synth_plantigrade",
+      "directions": 4
+    },
+    {
       "name": "shoes_human",
       "directions": 4
     },
     {
       "name": "shoes_mammal",
+      "directions": 4
+    },
+    {
+      "name": "shoes_shadekin",
       "directions": 4
     }
   ]

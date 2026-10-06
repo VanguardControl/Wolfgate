@@ -93,6 +93,11 @@ public sealed class LegStyleRulesTest
                 Assert.That(LegStyleRules.Validate("Reptilian", LegStance.Digitigrade, proto), Is.EqualTo(LegStance.Default));
                 Assert.That(LegStyleRules.Validate("Reptilian", LegStance.Plantigrade, proto), Is.EqualTo(LegStance.Plantigrade));
 
+                // A species with art and clothing maps of its own, each way round.
+                Assert.That(LegStyleRules.IsDigitigrade("Thaven", LegStance.Digitigrade, proto), Is.True);
+                Assert.That(LegStyleRules.IsDigitigrade("Synth", LegStance.Default, proto), Is.True);
+                Assert.That(LegStyleRules.IsDigitigrade("Synth", LegStance.Plantigrade, proto), Is.False);
+
                 // A species with no choice.
                 Assert.That(LegStyleRules.TryGetAlternate("Moth", proto, out _), Is.False);
                 Assert.That(LegStyleRules.IsDigitigrade("Moth", LegStance.Digitigrade, proto), Is.False);
