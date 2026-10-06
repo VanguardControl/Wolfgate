@@ -237,7 +237,10 @@ class Port:
                 candidates = self.src.hair_candidates(kind.key)
             else:
                 candidates = self.src.accessory_candidates(kind.key)
-            self._keep(kind, [c for c in candidates if c.wag_of is None])
+            candidates = [c for c in candidates if c.wag_of is None]
+            # Of look-alikes the first one met is kept, so the one with the most colours to set goes first.
+            candidates.sort(key=lambda c: -sum(1 for s in c.sprites if s.parent is None and s.tinted))
+            self._keep(kind, candidates)
         self._keep(None, self._body_candidates())
 
     def _hair_here(self):
@@ -323,28 +326,35 @@ class Port:
                 self.outcomes.append(Outcome(candidate, "skipped", reason))
                 continue
 
+            patch = kind is None
+
             def same_part(other):
-                return other.candidate.zone == candidate.zone and other.candidate.feminine == candidate.feminine
+                # The torso art drawn for the female body is compared with the plain one too: where the
+                # two barely differ, one marking serves both.
+                return other.candidate.zone == candidate.zone
+
+            def here(found):
+                """The marking a candidate is, by art or by look, out of what it was compared with."""
+                return next((match for match in found if match.same or match.looks), None)
 
             if candidate.key in self.same:
                 existing_id = self.same[candidate.key]
-                dropped.append((dedupe.Accepted(candidate, dedupe.Subject(candidate)), existing_id))
+                dropped.append((dedupe.Accepted(candidate, dedupe.Subject(candidate, patch)), existing_id))
                 self.outcomes.append(Outcome(candidate, "existing", "%s (decisions.yml)" % existing_id))
                 continue
             whole = candidate.whole
             if whole is not None and candidate.key not in self.new:
                 if id(whole) not in wholes:
-                    found = dedupe.Subject(whole).matches(self.existing)
-                    wholes[id(whole)] = found[0] if found and found[0].same else None
+                    wholes[id(whole)] = here(dedupe.Subject(whole, patch).matches(self.existing))
                 if wholes[id(whole)] is not None:
                     self.outcomes.append(Outcome(candidate, "existing", wholes[id(whole)].describe()))
                     continue
-            print_ = (candidate.zone, candidate.feminine, dedupe.fingerprint(candidate))
+            print_ = (candidate.zone, dedupe.fingerprint(candidate))
             if print_ in prints:
                 prints[print_].also.append(candidate.name)
                 self.outcomes.append(Outcome(candidate, "alias", prints[print_].id))
                 continue
-            subject = dedupe.Subject(candidate)
+            subject = dedupe.Subject(candidate, patch)
             near = []
             if candidate.key not in self.new:
                 style = self._same_style(kind, candidate, subject) if kind is not None and kind.hair else None
@@ -353,17 +363,18 @@ class Port:
                     self.outcomes.append(Outcome(candidate, "existing", "%s (the same style by name)" % style.id))
                     continue
                 found = subject.matches(self.existing)
-                if found and found[0].same:
-                    dropped.append((dedupe.Accepted(candidate, subject), found[0].existing.id))
-                    self.outcomes.append(Outcome(candidate, "existing", found[0].describe()))
+                match = here(found)
+                if match is not None:
+                    dropped.append((dedupe.Accepted(candidate, subject), match.existing.id))
+                    self.outcomes.append(Outcome(candidate, "existing", match.describe()))
                     continue
                 near = [match.describe() for match in found[:2]]
-                # The same art under a second SS13 name, such as a snout and its "(Top)" twin, goes
-                # the way the first one went. Between two SS13 markings the colour boxes have to agree
-                # as well: the same drawing split into colours another way is a variant, not a copy.
+                # A second SS13 marking that looks like one already dealt with goes the way that one
+                # went: a snout and its "(Top)" twin, the same ears with the inside as a second colour.
+                # Art below the body and the same art above it are told apart, as the wings here are.
                 def twin_of(others):
                     return next((match for match in subject.matches(others)
-                                 if match.same_shading and match.score >= dedupe.SAME
+                                 if (match.same or match.looks)
                                  and abs(match.existing.behind_share - subject.behind_share) <= SAME_LAYERS), None)
 
                 gone = twin_of([a for a, _ in dropped if same_part(a)])

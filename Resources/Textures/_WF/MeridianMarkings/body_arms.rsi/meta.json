@@ -16,15 +16,7 @@
       "directions": 4
     },
     {
-      "name": "akula_l_arm",
-      "directions": 4
-    },
-    {
       "name": "akula_l_hand",
-      "directions": 4
-    },
-    {
-      "name": "akula_r_arm",
       "directions": 4
     },
     {
@@ -68,15 +60,7 @@
       "directions": 4
     },
     {
-      "name": "bovine_l_hand",
-      "directions": 4
-    },
-    {
       "name": "bovine_r_arm",
-      "directions": 4
-    },
-    {
-      "name": "bovine_r_hand",
       "directions": 4
     },
     {
@@ -128,14 +112,6 @@
       "directions": 4
     },
     {
-      "name": "corgi_l_arm",
-      "directions": 4
-    },
-    {
-      "name": "corgi_r_arm",
-      "directions": 4
-    },
-    {
       "name": "dalmatian_l_arm",
       "directions": 4
     },
@@ -157,10 +133,6 @@
     },
     {
       "name": "datashark_r_arm",
-      "directions": 4
-    },
-    {
-      "name": "deathhead_grayscale_l_arm",
       "directions": 4
     },
     {
@@ -256,15 +228,7 @@
       "directions": 4
     },
     {
-      "name": "hyena_l_hand",
-      "directions": 4
-    },
-    {
       "name": "hyena_r_arm",
-      "directions": 4
-    },
-    {
-      "name": "hyena_r_hand",
       "directions": 4
     },
     {
@@ -289,14 +253,6 @@
     },
     {
       "name": "jackal_back_fur_r_arm",
-      "directions": 4
-    },
-    {
-      "name": "jungle_grayscale_l_arm",
-      "directions": 4
-    },
-    {
-      "name": "jungle_grayscale_r_arm",
       "directions": 4
     },
     {
@@ -332,10 +288,6 @@
       "directions": 4
     },
     {
-      "name": "moonfly_grayscale_l_arm",
-      "directions": 4
-    },
-    {
       "name": "oakworm_grayscale_l_arm",
       "directions": 4
     },
@@ -349,14 +301,6 @@
     },
     {
       "name": "otie_r_hand",
-      "directions": 4
-    },
-    {
-      "name": "otie_spot_l_arm",
-      "directions": 4
-    },
-    {
-      "name": "otie_spot_r_arm",
       "directions": 4
     },
     {
@@ -380,15 +324,7 @@
       "directions": 4
     },
     {
-      "name": "pilot_l_hand",
-      "directions": 4
-    },
-    {
       "name": "pilot_r_arm",
-      "directions": 4
-    },
-    {
-      "name": "pilot_r_hand",
       "directions": 4
     },
     {

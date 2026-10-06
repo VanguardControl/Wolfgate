@@ -529,9 +529,6 @@ marking-WFMeridianHairTeshariMohawkAlt-teshari_mohawk_alt = Teshari Mohawk Alt
 marking-WFMeridianHairThickPonytail = Thick Ponytail
 marking-WFMeridianHairThickPonytail-thick_ponytail = Thick Ponytail
 
-marking-WFMeridianHairToriyama = Toriyama
-marking-WFMeridianHairToriyama-toriyama = Toriyama
-
 marking-WFMeridianHairTriBun = Tri Bun
 marking-WFMeridianHairTriBun-tri_bun = Tri Bun
 

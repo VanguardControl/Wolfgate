@@ -20,50 +20,6 @@
       "directions": 4
     },
     {
-      "name": "acrador_long_alt_2_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_long_alt_2_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_long_alt_2_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_long_alt_3_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_long_alt_3_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_long_alt_3_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_long_alt_4_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_long_alt_4_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_long_alt_4_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_long_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_long_secondary",
-      "directions": 4
-    },
-    {
       "name": "acrador_short_alt_1_primary",
       "directions": 4
     },
@@ -73,50 +29,6 @@
     },
     {
       "name": "acrador_short_alt_1_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_alt_2_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_alt_2_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_alt_2_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_alt_3_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_alt_3_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_alt_3_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_alt_4_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_alt_4_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_alt_4_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_short_secondary",
       "directions": 4
     },
     {

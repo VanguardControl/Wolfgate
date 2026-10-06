@@ -1,20 +1,4 @@
 - type: marking
-  id: WFMeridianMarkingAkulaLArm
-  bodyPart: LArm
-  markingCategory: Arms
-  speciesRestriction: [Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoThaven, ProtoVulp, Protogen, Reptilian, Rodentia, SlimePerson, Synth, Tajaran, Thaven, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:CategoryColoring
-          category: Hair
-      fallbackTypes:
-        - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: akula_l_arm
-
-- type: marking
   id: WFMeridianMarkingAkulaLHand
   bodyPart: LHand
   markingCategory: Arms
@@ -29,22 +13,6 @@
   sprites:
   - sprite: _WF/MeridianMarkings/body_arms.rsi
     state: akula_l_hand
-
-- type: marking
-  id: WFMeridianMarkingAkulaRArm
-  bodyPart: RArm
-  markingCategory: Arms
-  speciesRestriction: [Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoThaven, ProtoVulp, Protogen, Reptilian, Rodentia, SlimePerson, Synth, Tajaran, Thaven, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:CategoryColoring
-          category: Hair
-      fallbackTypes:
-        - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: akula_r_arm
 
 - type: marking
   id: WFMeridianMarkingAkulaRHand
@@ -211,22 +179,6 @@
     state: bovine_l_arm
 
 - type: marking
-  id: WFMeridianMarkingBovineLHand
-  bodyPart: LHand
-  markingCategory: Arms
-  speciesRestriction: [Arachnid, Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoArachnid, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoVulp, Protogen, Reptilian, Rodentia, Skeleton, Skrell, SlimePerson, Synth, Tajaran, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:CategoryColoring
-          category: Hair
-      fallbackTypes:
-        - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: bovine_l_hand
-
-- type: marking
   id: WFMeridianMarkingBovineRArm
   bodyPart: RArm
   markingCategory: Arms
@@ -241,22 +193,6 @@
   sprites:
   - sprite: _WF/MeridianMarkings/body_arms.rsi
     state: bovine_r_arm
-
-- type: marking
-  id: WFMeridianMarkingBovineRHand
-  bodyPart: RHand
-  markingCategory: Arms
-  speciesRestriction: [Arachnid, Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoArachnid, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoVulp, Protogen, Reptilian, Rodentia, Skeleton, Skrell, SlimePerson, Synth, Tajaran, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:CategoryColoring
-          category: Hair
-      fallbackTypes:
-        - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: bovine_r_hand
 
 - type: marking
   id: WFMeridianMarkingBurntOffGrayscaleLArm
@@ -377,38 +313,6 @@
     state: color_bands_r_hand
 
 - type: marking
-  id: WFMeridianMarkingCorgiLArm
-  bodyPart: LArm
-  markingCategory: Arms
-  speciesRestriction: [Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoThaven, ProtoVulp, Protogen, Reptilian, Rodentia, SlimePerson, Synth, Tajaran, Thaven, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:CategoryColoring
-          category: Hair
-      fallbackTypes:
-        - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: corgi_l_arm
-
-- type: marking
-  id: WFMeridianMarkingCorgiRArm
-  bodyPart: RArm
-  markingCategory: Arms
-  speciesRestriction: [Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoThaven, ProtoVulp, Protogen, Reptilian, Rodentia, SlimePerson, Synth, Tajaran, Thaven, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:CategoryColoring
-          category: Hair
-      fallbackTypes:
-        - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: corgi_r_arm
-
-- type: marking
   id: WFMeridianMarkingDalmatianLArm
   bodyPart: LArm
   markingCategory: Arms
@@ -503,20 +407,6 @@
   sprites:
   - sprite: _WF/MeridianMarkings/body_arms.rsi
     state: datashark_r_arm
-
-- type: marking
-  id: WFMeridianMarkingDeathheadGrayscaleLArm
-  bodyPart: LArm
-  markingCategory: Arms
-  speciesRestriction: [Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoThaven, ProtoVulp, Protogen, Reptilian, Rodentia, SlimePerson, Synth, Tajaran, Thaven, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: deathhead_grayscale_l_arm
 
 - type: marking
   id: WFMeridianMarkingDogLHand
@@ -879,22 +769,6 @@
     state: hyena_l_arm
 
 - type: marking
-  id: WFMeridianMarkingHyenaLHand
-  bodyPart: LHand
-  markingCategory: Arms
-  speciesRestriction: [Arachnid, Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoArachnid, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoVulp, Protogen, Reptilian, Rodentia, Skeleton, Skrell, SlimePerson, Synth, Tajaran, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:CategoryColoring
-          category: Hair
-      fallbackTypes:
-        - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: hyena_l_hand
-
-- type: marking
   id: WFMeridianMarkingHyenaRArm
   bodyPart: RArm
   markingCategory: Arms
@@ -909,22 +783,6 @@
   sprites:
   - sprite: _WF/MeridianMarkings/body_arms.rsi
     state: hyena_r_arm
-
-- type: marking
-  id: WFMeridianMarkingHyenaRHand
-  bodyPart: RHand
-  markingCategory: Arms
-  speciesRestriction: [Arachnid, Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoArachnid, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoVulp, Protogen, Reptilian, Rodentia, Skeleton, Skrell, SlimePerson, Synth, Tajaran, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:CategoryColoring
-          category: Hair
-      fallbackTypes:
-        - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: hyena_r_hand
 
 - type: marking
   id: WFMeridianMarkingInsectoidTrimLArm
@@ -993,34 +851,6 @@
   sprites:
   - sprite: _WF/MeridianMarkings/body_arms.rsi
     state: jackal_back_fur_accents_r_arm
-
-- type: marking
-  id: WFMeridianMarkingJungleGrayscaleLArm
-  bodyPart: LArm
-  markingCategory: Arms
-  speciesRestriction: [Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoThaven, ProtoVulp, Protogen, Reptilian, Rodentia, SlimePerson, Synth, Tajaran, Thaven, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: jungle_grayscale_l_arm
-
-- type: marking
-  id: WFMeridianMarkingJungleGrayscaleRArm
-  bodyPart: RArm
-  markingCategory: Arms
-  speciesRestriction: [Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoThaven, ProtoVulp, Protogen, Reptilian, Rodentia, SlimePerson, Synth, Tajaran, Thaven, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: jungle_grayscale_r_arm
 
 - type: marking
   id: WFMeridianMarkingLeopardLArm
@@ -1147,20 +977,6 @@
     state: lower_limb_r_arm
 
 - type: marking
-  id: WFMeridianMarkingMoonflyGrayscaleLArm
-  bodyPart: LArm
-  markingCategory: Arms
-  speciesRestriction: [Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoThaven, ProtoVulp, Protogen, Reptilian, Rodentia, SlimePerson, Synth, Tajaran, Thaven, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: moonfly_grayscale_l_arm
-
-- type: marking
   id: WFMeridianMarkingOakwormGrayscaleLArm
   bodyPart: LArm
   markingCategory: Arms
@@ -1219,38 +1035,6 @@
   sprites:
   - sprite: _WF/MeridianMarkings/body_arms.rsi
     state: otie_r_hand
-
-- type: marking
-  id: WFMeridianMarkingOtieSpotLArm
-  bodyPart: LArm
-  markingCategory: Arms
-  speciesRestriction: [Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoThaven, ProtoVulp, Protogen, Reptilian, Rodentia, SlimePerson, Synth, Tajaran, Thaven, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:CategoryColoring
-          category: Hair
-      fallbackTypes:
-        - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: otie_spot_l_arm
-
-- type: marking
-  id: WFMeridianMarkingOtieSpotRArm
-  bodyPart: RArm
-  markingCategory: Arms
-  speciesRestriction: [Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoThaven, ProtoVulp, Protogen, Reptilian, Rodentia, SlimePerson, Synth, Tajaran, Thaven, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:CategoryColoring
-          category: Hair
-      fallbackTypes:
-        - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: otie_spot_r_arm
 
 - type: marking
   id: WFMeridianMarkingPantherLArm
@@ -1331,20 +1115,6 @@
     state: pilot_l_arm
 
 - type: marking
-  id: WFMeridianMarkingPilotLHand
-  bodyPart: LHand
-  markingCategory: Arms
-  speciesRestriction: [Arachnid, Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoArachnid, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoVulp, Protogen, Reptilian, Rodentia, Skeleton, Skrell, SlimePerson, Synth, Tajaran, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#CCCCCC"
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: pilot_l_hand
-
-- type: marking
   id: WFMeridianMarkingPilotRArm
   bodyPart: RArm
   markingCategory: Arms
@@ -1357,20 +1127,6 @@
   sprites:
   - sprite: _WF/MeridianMarkings/body_arms.rsi
     state: pilot_r_arm
-
-- type: marking
-  id: WFMeridianMarkingPilotRHand
-  bodyPart: RHand
-  markingCategory: Arms
-  speciesRestriction: [Arachnid, Dwarf, Felinid, Feroxi, Gingerbread, Goblin, Human, Oni, ProtoArachnid, ProtoDawi, ProtoHumie, ProtoReptile, ProtoSlimePerson, ProtoVulp, Protogen, Reptilian, Rodentia, Skeleton, Skrell, SlimePerson, Synth, Tajaran, Vulpkanin, WFCanine, Yowie]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#CCCCCC"
-  sprites:
-  - sprite: _WF/MeridianMarkings/body_arms.rsi
-    state: pilot_r_hand
 
 - type: marking
   id: WFMeridianMarkingPossumSockLHand

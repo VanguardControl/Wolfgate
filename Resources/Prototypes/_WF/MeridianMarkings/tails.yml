@@ -323,47 +323,6 @@
     state: axolotl_wag_primary_BEHIND
 
 - type: marking
-  id: WFMeridianTailBlackBackedJackal
-  bodyPart: Tail
-  markingCategory: Tail
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    layers:
-      black_backed_jackal_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-      black_backed_jackal_tertiary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  layering:
-    black_backed_jackal_primary_BEHIND: TailBehind
-    black_backed_jackal_secondary_BEHIND: TailBehind
-    black_backed_jackal_tertiary_BEHIND: TailBehind
-  colorLinks:
-    black_backed_jackal_primary_BEHIND: black_backed_jackal_primary
-    black_backed_jackal_secondary_BEHIND: black_backed_jackal_secondary
-    black_backed_jackal_tertiary_BEHIND: black_backed_jackal_tertiary
-  sprites:
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: black_backed_jackal_primary
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: black_backed_jackal_secondary
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: black_backed_jackal_tertiary
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: black_backed_jackal_primary_BEHIND
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: black_backed_jackal_secondary_BEHIND
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: black_backed_jackal_tertiary_BEHIND
-
-- type: marking
   id: WFMeridianTailChonkyFishInfusion
   bodyPart: Tail
   markingCategory: Tail
@@ -704,21 +663,6 @@
     state: insect_underbelly_secondary_BEHIND
 
 - type: marking
-  id: WFMeridianTailInsectoid
-  bodyPart: Tail
-  markingCategory: Tail
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  layering:
-    insectoid_BEHIND: TailBehind
-  colorLinks:
-    insectoid_BEHIND: insectoid
-  sprites:
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: insectoid
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: insectoid_BEHIND
-
-- type: marking
   id: WFMeridianTailKitsuneAnn
   bodyPart: Tail
   markingCategory: Tail
@@ -790,6 +734,36 @@
     state: long_fish_infusion
   - sprite: _WF/MeridianMarkings/tails_48x32.rsi
     state: long_fish_infusion_BEHIND
+
+- type: marking
+  id: WFMeridianTailMonkeyColorable
+  bodyPart: Tail
+  markingCategory: Tail
+  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
+  layering:
+    monkey_colorable_BEHIND: TailBehind
+  colorLinks:
+    monkey_colorable_BEHIND: monkey_colorable
+  sprites:
+  - sprite: _WF/MeridianMarkings/tails.rsi
+    state: monkey_colorable
+  - sprite: _WF/MeridianMarkings/tails.rsi
+    state: monkey_colorable_BEHIND
+
+- type: marking
+  id: WFMeridianTailMonkeyColorableAnimated
+  bodyPart: Tail
+  markingCategory: Tail
+  speciesRestriction: []
+  layering:
+    monkey_colorable_wag_BEHIND: TailBehind
+  colorLinks:
+    monkey_colorable_wag_BEHIND: monkey_colorable_wag
+  sprites:
+  - sprite: _WF/MeridianMarkings/tails.rsi
+    state: monkey_colorable_wag
+  - sprite: _WF/MeridianMarkings/tails.rsi
+    state: monkey_colorable_wag_BEHIND
 
 - type: marking
   id: WFMeridianTailMonkey
@@ -1171,36 +1145,6 @@
     state: shark_fish_infusion_BEHIND
 
 - type: marking
-  id: WFMeridianTailShort
-  bodyPart: Tail
-  markingCategory: Tail
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  layering:
-    short_BEHIND: TailBehind
-  colorLinks:
-    short_BEHIND: short
-  sprites:
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: short
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: short_BEHIND
-
-- type: marking
-  id: WFMeridianTailShortAnimated
-  bodyPart: Tail
-  markingCategory: Tail
-  speciesRestriction: []
-  layering:
-    short_wag_BEHIND: TailBehind
-  colorLinks:
-    short_wag_BEHIND: short_wag
-  sprites:
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: short_wag
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: short_wag_BEHIND
-
-- type: marking
   id: WFMeridianTailShortTwoTone
   bodyPart: Tail
   markingCategory: Tail
@@ -1272,88 +1216,6 @@
     state: simple_fish_infusion
   - sprite: _WF/MeridianMarkings/tails.rsi
     state: simple_fish_infusion_BEHIND
-
-- type: marking
-  id: WFMeridianTailStripedTailAlt
-  bodyPart: Tail
-  markingCategory: Tail
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    layers:
-      striped_tail_alt_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-      striped_tail_alt_tertiary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  layering:
-    striped_tail_alt_primary_BEHIND: TailBehind
-    striped_tail_alt_secondary_BEHIND: TailBehind
-    striped_tail_alt_tertiary_BEHIND: TailBehind
-  colorLinks:
-    striped_tail_alt_primary_BEHIND: striped_tail_alt_primary
-    striped_tail_alt_secondary_BEHIND: striped_tail_alt_secondary
-    striped_tail_alt_tertiary_BEHIND: striped_tail_alt_tertiary
-  sprites:
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_primary
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_secondary
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_tertiary
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_primary_BEHIND
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_secondary_BEHIND
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_tertiary_BEHIND
-
-- type: marking
-  id: WFMeridianTailStripedTailAltAnimated
-  bodyPart: Tail
-  markingCategory: Tail
-  speciesRestriction: []
-  coloring:
-    layers:
-      striped_tail_alt_wag_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-      striped_tail_alt_wag_tertiary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  layering:
-    striped_tail_alt_wag_primary_BEHIND: TailBehind
-    striped_tail_alt_wag_secondary_BEHIND: TailBehind
-    striped_tail_alt_wag_tertiary_BEHIND: TailBehind
-  colorLinks:
-    striped_tail_alt_wag_primary_BEHIND: striped_tail_alt_wag_primary
-    striped_tail_alt_wag_secondary_BEHIND: striped_tail_alt_wag_secondary
-    striped_tail_alt_wag_tertiary_BEHIND: striped_tail_alt_wag_tertiary
-  sprites:
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_wag_primary
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_wag_secondary
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_wag_tertiary
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_wag_primary_BEHIND
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_wag_secondary_BEHIND
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: striped_tail_alt_wag_tertiary_BEHIND
 
 - type: marking
   id: WFMeridianTailStripedTail
@@ -1533,36 +1395,6 @@
     state: tailmaw_striped_coloured_head_wag_secondary_BEHIND
   - sprite: _WF/MeridianMarkings/tails.rsi
     state: tailmaw_striped_coloured_head_wag_tertiary_BEHIND
-
-- type: marking
-  id: WFMeridianTailTailmawWag
-  bodyPart: Tail
-  markingCategory: Tail
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  layering:
-    tailmaw_wag_BEHIND: TailBehind
-  colorLinks:
-    tailmaw_wag_BEHIND: tailmaw_wag
-  sprites:
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: tailmaw_wag
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: tailmaw_wag_BEHIND
-
-- type: marking
-  id: WFMeridianTailTailmawWagAnimated
-  bodyPart: Tail
-  markingCategory: Tail
-  speciesRestriction: []
-  layering:
-    tailmaw_wag_wag_BEHIND: TailBehind
-  colorLinks:
-    tailmaw_wag_wag_BEHIND: tailmaw_wag_wag
-  sprites:
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: tailmaw_wag_wag
-  - sprite: _WF/MeridianMarkings/tails.rsi
-    state: tailmaw_wag_wag_BEHIND
 
 - type: marking
   id: WFMeridianTailTentacle

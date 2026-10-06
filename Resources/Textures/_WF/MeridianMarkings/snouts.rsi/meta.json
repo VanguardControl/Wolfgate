@@ -20,74 +20,6 @@
       "directions": 4
     },
     {
-      "name": "acrador_1_normal_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_1_normal_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_2_normal_alt_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_2_normal_alt_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_2_normal_alt_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_2_normal_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_2_normal_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_3_normal_alt_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_3_normal_alt_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_3_normal_alt_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_3_normal_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_3_normal_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_4_normal_alt_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_4_normal_alt_secondary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_4_normal_alt_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_4_normal_primary",
-      "directions": 4
-    },
-    {
-      "name": "acrador_4_normal_secondary",
-      "directions": 4
-    },
-    {
       "name": "bug_no_antennae_below_hair_primary",
       "directions": 4
     },
@@ -120,14 +52,6 @@
       "directions": 4
     },
     {
-      "name": "dragonfly_top_primary",
-      "directions": 4
-    },
-    {
-      "name": "dragonfly_top_secondary",
-      "directions": 4
-    },
-    {
       "name": "husky_primary",
       "directions": 4
     },
@@ -149,14 +73,6 @@
     },
     {
       "name": "mandibles_top_primary",
-      "directions": 4
-    },
-    {
-      "name": "otter_primary",
-      "directions": 4
-    },
-    {
-      "name": "otter_secondary",
       "directions": 4
     },
     {
@@ -204,10 +120,6 @@
       "directions": 4
     },
     {
-      "name": "ramatan_primary",
-      "directions": 4
-    },
-    {
       "name": "ramatan_round_primary",
       "directions": 4
     },
@@ -220,26 +132,6 @@
       "directions": 4
     },
     {
-      "name": "ramatan_secondary",
-      "directions": 4
-    },
-    {
-      "name": "ramatan_sharp_primary",
-      "directions": 4
-    },
-    {
-      "name": "ramatan_sharp_secondary",
-      "directions": 4
-    },
-    {
-      "name": "ramatan_sharp_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "ramatan_tertiary",
-      "directions": 4
-    },
-    {
       "name": "round_dual_tone_primary",
       "directions": 4
     },
@@ -248,27 +140,11 @@
       "directions": 4
     },
     {
-      "name": "round_light_dual_tone_primary",
-      "directions": 4
-    },
-    {
-      "name": "round_light_dual_tone_secondary",
-      "directions": 4
-    },
-    {
       "name": "sharp_dual_tone_primary",
       "directions": 4
     },
     {
       "name": "sharp_dual_tone_secondary",
-      "directions": 4
-    },
-    {
-      "name": "sharp_light_dual_tone_primary",
-      "directions": 4
-    },
-    {
-      "name": "sharp_light_dual_tone_secondary",
       "directions": 4
     },
     {

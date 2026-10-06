@@ -66,14 +66,6 @@ marking-WFMeridianTailAxolotlAnimated = Axolotl Tail (Animated)
 marking-WFMeridianTailAxolotlAnimated-axolotl_wag_primary = Axolotl Tail (Animated)
 marking-WFMeridianTailAxolotlAnimated-axolotl_wag_primary_BEHIND = Axolotl Tail (Animated)
 
-marking-WFMeridianTailBlackBackedJackal = Black-backed Jackal Tail
-marking-WFMeridianTailBlackBackedJackal-black_backed_jackal_primary = Black-backed Jackal Tail (Primary)
-marking-WFMeridianTailBlackBackedJackal-black_backed_jackal_secondary = Black-backed Jackal Tail (Secondary)
-marking-WFMeridianTailBlackBackedJackal-black_backed_jackal_tertiary = Black-backed Jackal Tail (Tertiary)
-marking-WFMeridianTailBlackBackedJackal-black_backed_jackal_primary_BEHIND = Black-backed Jackal Tail (Primary)
-marking-WFMeridianTailBlackBackedJackal-black_backed_jackal_secondary_BEHIND = Black-backed Jackal Tail (Secondary)
-marking-WFMeridianTailBlackBackedJackal-black_backed_jackal_tertiary_BEHIND = Black-backed Jackal Tail (Tertiary)
-
 marking-WFMeridianTailChonkyFishInfusion = Chonky Tail (Fish Infusion)
 marking-WFMeridianTailChonkyFishInfusion-chonky_fish_infusion = Chonky Tail (Fish Infusion)
 marking-WFMeridianTailChonkyFishInfusion-chonky_fish_infusion_BEHIND = Chonky Tail (Fish Infusion)
@@ -146,10 +138,6 @@ marking-WFMeridianTailInsectUnderbelly-insect_underbelly_secondary = Insect Tail
 marking-WFMeridianTailInsectUnderbelly-insect_underbelly_primary_BEHIND = Insect Tail (Underbelly) (Primary)
 marking-WFMeridianTailInsectUnderbelly-insect_underbelly_secondary_BEHIND = Insect Tail (Underbelly) (Secondary)
 
-marking-WFMeridianTailInsectoid = Insectoid Tail
-marking-WFMeridianTailInsectoid-insectoid = Insectoid Tail
-marking-WFMeridianTailInsectoid-insectoid_BEHIND = Insectoid Tail
-
 marking-WFMeridianTailKitsuneAnn = Kitsune Tail (Ann)
 marking-WFMeridianTailKitsuneAnn-kitsune_ann_primary = Kitsune Tail (Ann) (Primary)
 marking-WFMeridianTailKitsuneAnn-kitsune_ann_secondary = Kitsune Tail (Ann) (Secondary)
@@ -165,6 +153,14 @@ marking-WFMeridianTailKitsuneAnnAnimated-kitsune_ann_wag_secondary_BEHIND = Kits
 marking-WFMeridianTailLongFishInfusion = Long Tail (Fish Infusion)
 marking-WFMeridianTailLongFishInfusion-long_fish_infusion = Long Tail (Fish Infusion)
 marking-WFMeridianTailLongFishInfusion-long_fish_infusion_BEHIND = Long Tail (Fish Infusion)
+
+marking-WFMeridianTailMonkeyColorable = Monkey Colorable Tail
+marking-WFMeridianTailMonkeyColorable-monkey_colorable = Monkey Colorable Tail
+marking-WFMeridianTailMonkeyColorable-monkey_colorable_BEHIND = Monkey Colorable Tail
+
+marking-WFMeridianTailMonkeyColorableAnimated = Monkey Colorable Tail (Animated)
+marking-WFMeridianTailMonkeyColorableAnimated-monkey_colorable_wag = Monkey Colorable Tail (Animated)
+marking-WFMeridianTailMonkeyColorableAnimated-monkey_colorable_wag_BEHIND = Monkey Colorable Tail (Animated)
 
 marking-WFMeridianTailMonkey = Monkey Tail
 marking-WFMeridianTailMonkey-monkey = Monkey Tail
@@ -248,14 +244,6 @@ marking-WFMeridianTailSharkFishInfusion = Shark Tail (Fish Infusion)
 marking-WFMeridianTailSharkFishInfusion-shark_fish_infusion = Shark Tail (Fish Infusion)
 marking-WFMeridianTailSharkFishInfusion-shark_fish_infusion_BEHIND = Shark Tail (Fish Infusion)
 
-marking-WFMeridianTailShort = Short Tail
-marking-WFMeridianTailShort-short = Short Tail
-marking-WFMeridianTailShort-short_BEHIND = Short Tail
-
-marking-WFMeridianTailShortAnimated = Short Tail (Animated)
-marking-WFMeridianTailShortAnimated-short_wag = Short Tail (Animated)
-marking-WFMeridianTailShortAnimated-short_wag_BEHIND = Short Tail (Animated)
-
 marking-WFMeridianTailShortTwoTone = Short Tail (Two-Tone)
 marking-WFMeridianTailShortTwoTone-short_two_tone_primary = Short Tail (Two-Tone) (Primary)
 marking-WFMeridianTailShortTwoTone-short_two_tone_secondary = Short Tail (Two-Tone) (Secondary)
@@ -271,22 +259,6 @@ marking-WFMeridianTailShortTwoToneAnimated-short_two_tone_wag_secondary_BEHIND =
 marking-WFMeridianTailSimpleFishInfusion = Simple Tail (Fish Infusion)
 marking-WFMeridianTailSimpleFishInfusion-simple_fish_infusion = Simple Tail (Fish Infusion)
 marking-WFMeridianTailSimpleFishInfusion-simple_fish_infusion_BEHIND = Simple Tail (Fish Infusion)
-
-marking-WFMeridianTailStripedTailAlt = Striped Tail (Alt)
-marking-WFMeridianTailStripedTailAlt-striped_tail_alt_primary = Striped Tail (Alt) (Primary)
-marking-WFMeridianTailStripedTailAlt-striped_tail_alt_secondary = Striped Tail (Alt) (Secondary)
-marking-WFMeridianTailStripedTailAlt-striped_tail_alt_tertiary = Striped Tail (Alt) (Tertiary)
-marking-WFMeridianTailStripedTailAlt-striped_tail_alt_primary_BEHIND = Striped Tail (Alt) (Primary)
-marking-WFMeridianTailStripedTailAlt-striped_tail_alt_secondary_BEHIND = Striped Tail (Alt) (Secondary)
-marking-WFMeridianTailStripedTailAlt-striped_tail_alt_tertiary_BEHIND = Striped Tail (Alt) (Tertiary)
-
-marking-WFMeridianTailStripedTailAltAnimated = Striped Tail (Alt) (Animated)
-marking-WFMeridianTailStripedTailAltAnimated-striped_tail_alt_wag_primary = Striped Tail (Alt) (Animated) (Primary)
-marking-WFMeridianTailStripedTailAltAnimated-striped_tail_alt_wag_secondary = Striped Tail (Alt) (Animated) (Secondary)
-marking-WFMeridianTailStripedTailAltAnimated-striped_tail_alt_wag_tertiary = Striped Tail (Alt) (Animated) (Tertiary)
-marking-WFMeridianTailStripedTailAltAnimated-striped_tail_alt_wag_primary_BEHIND = Striped Tail (Alt) (Animated) (Primary)
-marking-WFMeridianTailStripedTailAltAnimated-striped_tail_alt_wag_secondary_BEHIND = Striped Tail (Alt) (Animated) (Secondary)
-marking-WFMeridianTailStripedTailAltAnimated-striped_tail_alt_wag_tertiary_BEHIND = Striped Tail (Alt) (Animated) (Tertiary)
 
 marking-WFMeridianTailStripedTail = Striped Tail 2
 marking-WFMeridianTailStripedTail-striped_tail_primary = Striped Tail 2 (Primary)
@@ -323,14 +295,6 @@ marking-WFMeridianTailTailmawStripedColouredHeadAnimated-tailmaw_striped_coloure
 marking-WFMeridianTailTailmawStripedColouredHeadAnimated-tailmaw_striped_coloured_head_wag_primary_BEHIND = Tailmaw (Striped, Coloured Head) (Animated) (Primary)
 marking-WFMeridianTailTailmawStripedColouredHeadAnimated-tailmaw_striped_coloured_head_wag_secondary_BEHIND = Tailmaw (Striped, Coloured Head) (Animated) (Secondary)
 marking-WFMeridianTailTailmawStripedColouredHeadAnimated-tailmaw_striped_coloured_head_wag_tertiary_BEHIND = Tailmaw (Striped, Coloured Head) (Animated) (Tertiary)
-
-marking-WFMeridianTailTailmawWag = Tailmaw (Wag)
-marking-WFMeridianTailTailmawWag-tailmaw_wag = Tailmaw (Wag)
-marking-WFMeridianTailTailmawWag-tailmaw_wag_BEHIND = Tailmaw (Wag)
-
-marking-WFMeridianTailTailmawWagAnimated = Tailmaw (Wag) (Animated)
-marking-WFMeridianTailTailmawWagAnimated-tailmaw_wag_wag = Tailmaw (Wag) (Animated)
-marking-WFMeridianTailTailmawWagAnimated-tailmaw_wag_wag_BEHIND = Tailmaw (Wag) (Animated)
 
 marking-WFMeridianTailTentacle = Tentacle Tail
 marking-WFMeridianTailTentacle-tentacle_primary = Tentacle Tail

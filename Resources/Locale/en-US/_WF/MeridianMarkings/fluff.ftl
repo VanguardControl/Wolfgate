@@ -4,9 +4,6 @@ marking-WFMeridianFluffDeathshead-deathshead = Deathshead Fluff
 marking-WFMeridianFluffFirewatch = Firewatch Fluff
 marking-WFMeridianFluffFirewatch-firewatch = Firewatch Fluff
 
-marking-WFMeridianFluffGothic = Gothic Fluff
-marking-WFMeridianFluffGothic-gothic = Gothic Fluff
-
 marking-WFMeridianFluffHarpyFluff = Harpy Fluff
 marking-WFMeridianFluffHarpyFluff-harpy_fluff = Harpy Fluff
 
@@ -33,9 +30,6 @@ marking-WFMeridianFluffPlain-plain = Plain Fluff
 
 marking-WFMeridianFluffPoison = Poison Fluff
 marking-WFMeridianFluffPoison-poison = Poison Fluff
-
-marking-WFMeridianFluffRoyal = Royal Fluff
-marking-WFMeridianFluffRoyal-royal = Royal Fluff
 
 marking-WFMeridianFluffSnowDualColor = Snow Fluff (Dual-Color)
 marking-WFMeridianFluffSnowDualColor-snow_dual_color_primary = Snow Fluff (Dual-Color) (Primary)

@@ -848,30 +848,6 @@
       "directions": 4
     },
     {
-      "name": "black_backed_jackal_primary",
-      "directions": 4
-    },
-    {
-      "name": "black_backed_jackal_primary_BEHIND",
-      "directions": 4
-    },
-    {
-      "name": "black_backed_jackal_secondary",
-      "directions": 4
-    },
-    {
-      "name": "black_backed_jackal_secondary_BEHIND",
-      "directions": 4
-    },
-    {
-      "name": "black_backed_jackal_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "black_backed_jackal_tertiary_BEHIND",
-      "directions": 4
-    },
-    {
       "name": "crescent_fish_infusion",
       "directions": 4
     },
@@ -1534,14 +1510,6 @@
       "directions": 4
     },
     {
-      "name": "insectoid",
-      "directions": 4
-    },
-    {
-      "name": "insectoid_BEHIND",
-      "directions": 4
-    },
-    {
       "name": "kitsune_ann_primary",
       "directions": 4
     },
@@ -1716,6 +1684,122 @@
     {
       "name": "monkey_BEHIND",
       "directions": 4
+    },
+    {
+      "name": "monkey_colorable",
+      "directions": 4
+    },
+    {
+      "name": "monkey_colorable_BEHIND",
+      "directions": 4
+    },
+    {
+      "name": "monkey_colorable_wag",
+      "directions": 4,
+      "delays": [
+        [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ]
+      ]
+    },
+    {
+      "name": "monkey_colorable_wag_BEHIND",
+      "directions": 4,
+      "delays": [
+        [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        [
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ]
+      ]
     },
     {
       "name": "monkey_wag",
@@ -2386,14 +2470,6 @@
       "directions": 4
     },
     {
-      "name": "short",
-      "directions": 4
-    },
-    {
-      "name": "short_BEHIND",
-      "directions": 4
-    },
-    {
       "name": "short_two_tone_primary",
       "directions": 4
     },
@@ -2610,318 +2686,12 @@
       ]
     },
     {
-      "name": "short_wag",
-      "directions": 4,
-      "delays": [
-        [
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1
-        ],
-        [
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1
-        ],
-        [
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1
-        ],
-        [
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1
-        ]
-      ]
-    },
-    {
-      "name": "short_wag_BEHIND",
-      "directions": 4,
-      "delays": [
-        [
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1
-        ],
-        [
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1
-        ],
-        [
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1
-        ],
-        [
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1,
-          0.1
-        ]
-      ]
-    },
-    {
       "name": "simple_fish_infusion",
       "directions": 4
     },
     {
       "name": "simple_fish_infusion_BEHIND",
       "directions": 4
-    },
-    {
-      "name": "striped_tail_alt_primary",
-      "directions": 4
-    },
-    {
-      "name": "striped_tail_alt_primary_BEHIND",
-      "directions": 4
-    },
-    {
-      "name": "striped_tail_alt_secondary",
-      "directions": 4
-    },
-    {
-      "name": "striped_tail_alt_secondary_BEHIND",
-      "directions": 4
-    },
-    {
-      "name": "striped_tail_alt_tertiary",
-      "directions": 4
-    },
-    {
-      "name": "striped_tail_alt_tertiary_BEHIND",
-      "directions": 4
-    },
-    {
-      "name": "striped_tail_alt_wag_primary",
-      "directions": 4,
-      "delays": [
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ]
-      ]
-    },
-    {
-      "name": "striped_tail_alt_wag_primary_BEHIND",
-      "directions": 4,
-      "delays": [
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ]
-      ]
-    },
-    {
-      "name": "striped_tail_alt_wag_secondary",
-      "directions": 4
-    },
-    {
-      "name": "striped_tail_alt_wag_secondary_BEHIND",
-      "directions": 4,
-      "delays": [
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ]
-      ]
-    },
-    {
-      "name": "striped_tail_alt_wag_tertiary",
-      "directions": 4,
-      "delays": [
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ]
-      ]
-    },
-    {
-      "name": "striped_tail_alt_wag_tertiary_BEHIND",
-      "directions": 4,
-      "delays": [
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ],
-        [
-          0.2,
-          0.2,
-          0.2,
-          0.2,
-          0.2
-        ]
-      ]
     },
     {
       "name": "striped_tail_primary",
@@ -3325,82 +3095,6 @@
     },
     {
       "name": "tailmaw_striped_coloured_head_wag_tertiary_BEHIND",
-      "directions": 4,
-      "delays": [
-        [
-          1.0,
-          0.3,
-          1.0,
-          0.2,
-          0.4
-        ],
-        [
-          1.0,
-          0.3,
-          1.0,
-          0.2,
-          0.4
-        ],
-        [
-          1.0,
-          0.3,
-          1.0,
-          0.2,
-          0.4
-        ],
-        [
-          1.0,
-          0.3,
-          1.0,
-          0.2,
-          0.4
-        ]
-      ]
-    },
-    {
-      "name": "tailmaw_wag",
-      "directions": 4
-    },
-    {
-      "name": "tailmaw_wag_BEHIND",
-      "directions": 4
-    },
-    {
-      "name": "tailmaw_wag_wag",
-      "directions": 4,
-      "delays": [
-        [
-          1.0,
-          0.3,
-          1.0,
-          0.2,
-          0.4
-        ],
-        [
-          1.0,
-          0.3,
-          1.0,
-          0.2,
-          0.4
-        ],
-        [
-          1.0,
-          0.3,
-          1.0,
-          0.2,
-          0.4
-        ],
-        [
-          1.0,
-          0.3,
-          1.0,
-          0.2,
-          0.4
-        ]
-      ]
-    },
-    {
-      "name": "tailmaw_wag_wag_BEHIND",
       "directions": 4,
       "delays": [
         [

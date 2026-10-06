@@ -24,14 +24,6 @@
       "directions": 4
     },
     {
-      "name": "ramatan_draconic_primary",
-      "directions": 4
-    },
-    {
-      "name": "ramatan_draconic_secondary",
-      "directions": 4
-    },
-    {
       "name": "ramatan_fluffy_secondary",
       "directions": 4
     },
@@ -41,22 +33,6 @@
     },
     {
       "name": "ramatan_sharp_primary",
-      "directions": 4
-    },
-    {
-      "name": "short_dual_tone_primary",
-      "directions": 4
-    },
-    {
-      "name": "short_dual_tone_secondary",
-      "directions": 4
-    },
-    {
-      "name": "simple_dual_tone_primary",
-      "directions": 4
-    },
-    {
-      "name": "simple_dual_tone_secondary",
       "directions": 4
     },
     {

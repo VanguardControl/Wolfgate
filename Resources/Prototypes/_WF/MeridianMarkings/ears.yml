@@ -1,42 +1,4 @@
 - type: marking
-  id: WFMeridianEarsAcradorLong
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    layers:
-      acrador_long_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_primary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_secondary
-
-- type: marking
-  id: WFMeridianEarsAcradorShort
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    layers:
-      acrador_short_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_primary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_secondary
-
-- type: marking
   id: WFMeridianEarsAcradorShortAlt1
   bodyPart: HeadTop
   markingCategory: HeadTop
@@ -62,87 +24,6 @@
     state: acrador_short_alt_1_secondary
   - sprite: _WF/MeridianMarkings/ears_32x48.rsi
     state: acrador_short_alt_1_tertiary
-
-- type: marking
-  id: WFMeridianEarsAcradorShortAlt2
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    layers:
-      acrador_short_alt_2_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-      acrador_short_alt_2_tertiary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_alt_2_primary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_alt_2_secondary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_alt_2_tertiary
-
-- type: marking
-  id: WFMeridianEarsAcradorShortAlt3
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    layers:
-      acrador_short_alt_3_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-      acrador_short_alt_3_tertiary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_alt_3_primary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_alt_3_secondary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_alt_3_tertiary
-
-- type: marking
-  id: WFMeridianEarsAcradorShortAlt4
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    layers:
-      acrador_short_alt_4_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-      acrador_short_alt_4_tertiary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_alt_4_primary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_alt_4_secondary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_short_alt_4_tertiary
 
 - type: marking
   id: WFMeridianEarsAcradorLongAlt1
@@ -172,87 +53,6 @@
     state: acrador_long_alt_1_tertiary
 
 - type: marking
-  id: WFMeridianEarsAcradorLongAlt2
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    layers:
-      acrador_long_alt_2_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-      acrador_long_alt_2_tertiary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_alt_2_primary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_alt_2_secondary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_alt_2_tertiary
-
-- type: marking
-  id: WFMeridianEarsAcradorLongAlt3
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    layers:
-      acrador_long_alt_3_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-      acrador_long_alt_3_tertiary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_alt_3_primary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_alt_3_secondary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_alt_3_tertiary
-
-- type: marking
-  id: WFMeridianEarsAcradorLongAlt4
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    layers:
-      acrador_long_alt_4_secondary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-      acrador_long_alt_4_tertiary:
-        type:
-          !type:CategoryColoring
-            category: Hair
-        fallbackTypes:
-          - !type:SkinColoring
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_alt_4_primary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_alt_4_secondary
-  - sprite: _WF/MeridianMarkings/ears_32x48.rsi
-    state: acrador_long_alt_4_tertiary
-
-- type: marking
   id: WFMeridianEarsBasicAntenna
   bodyPart: HeadTop
   markingCategory: HeadTop
@@ -260,28 +60,6 @@
   sprites:
   - sprite: _WF/MeridianMarkings/ears.rsi
     state: basic_antenna
-
-- type: marking
-  id: WFMeridianEarsBig
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  layering:
-    big_BEHIND: TailBehind
-  colorLinks:
-    big_BEHIND: big
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: big
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: big_inner
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: big_BEHIND
 
 - type: marking
   id: WFMeridianEarsBigWolf
@@ -349,6 +127,31 @@
     state: cat_big_colorable_inner_secondary
   - sprite: _WF/MeridianMarkings/ears.rsi
     state: cat_big_colorable_inner_primary_BEHIND
+
+- type: marking
+  id: WFMeridianEarsCatFoldColorableInner
+  bodyPart: HeadTop
+  markingCategory: HeadTop
+  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
+  coloring:
+    layers:
+      cat_fold_colorable_inner_secondary:
+        type:
+          !type:CategoryColoring
+            category: Hair
+        fallbackTypes:
+          - !type:SkinColoring
+  layering:
+    cat_fold_colorable_inner_primary_BEHIND: TailBehind
+  colorLinks:
+    cat_fold_colorable_inner_primary_BEHIND: cat_fold_colorable_inner_primary
+  sprites:
+  - sprite: _WF/MeridianMarkings/ears.rsi
+    state: cat_fold_colorable_inner_primary
+  - sprite: _WF/MeridianMarkings/ears.rsi
+    state: cat_fold_colorable_inner_secondary
+  - sprite: _WF/MeridianMarkings/ears.rsi
+    state: cat_fold_colorable_inner_primary_BEHIND
 
 - type: marking
   id: WFMeridianEarsCatLynxColorableInner
@@ -424,28 +227,6 @@
     state: cat_round_colorable_inner_secondary
   - sprite: _WF/MeridianMarkings/ears.rsi
     state: cat_round_colorable_inner_primary_BEHIND
-
-- type: marking
-  id: WFMeridianEarsCoeurl
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  layering:
-    coeurl_BEHIND: TailBehind
-  colorLinks:
-    coeurl_BEHIND: coeurl
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: coeurl
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: coeurl_inner
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: coeurl_BEHIND
 
 - type: marking
   id: WFMeridianEarsCurvedRabbitEarsLarge
@@ -583,28 +364,6 @@
     state: floppy_tertiary
 
 - type: marking
-  id: WFMeridianEarsFold
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  layering:
-    fold_BEHIND: TailBehind
-  colorLinks:
-    fold_BEHIND: fold
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: fold
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: fold_inner
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: fold_BEHIND
-
-- type: marking
   id: WFMeridianEarsFourEars1
   bodyPart: HeadTop
   markingCategory: HeadTop
@@ -669,28 +428,6 @@
     state: jackal_primary
   - sprite: _WF/MeridianMarkings/ears.rsi
     state: jackal_secondary
-
-- type: marking
-  id: WFMeridianEarsLynx
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  layering:
-    lynx_BEHIND: TailBehind
-  colorLinks:
-    lynx_BEHIND: lynx
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: lynx
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: lynx_inner
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: lynx_BEHIND
 
 - type: marking
   id: WFMeridianEarsMediumSetaceousAntenna
@@ -869,28 +606,6 @@
     state: ramatan_tall_primary
   - sprite: _WF/MeridianMarkings/ears.rsi
     state: ramatan_tall_secondary
-
-- type: marking
-  id: WFMeridianEarsRound
-  bodyPart: HeadTop
-  markingCategory: HeadTop
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  layering:
-    round_BEHIND: TailBehind
-  colorLinks:
-    round_BEHIND: round
-  sprites:
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: round
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: round_inner
-  - sprite: _WF/MeridianMarkings/ears.rsi
-    state: round_BEHIND
 
 - type: marking
   id: WFMeridianEarsRoyalAntenna

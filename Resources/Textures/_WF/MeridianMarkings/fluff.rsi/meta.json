@@ -16,10 +16,6 @@
       "directions": 4
     },
     {
-      "name": "gothic",
-      "directions": 4
-    },
-    {
       "name": "harpy_fluff",
       "directions": 4
     },
@@ -53,10 +49,6 @@
     },
     {
       "name": "poison",
-      "directions": 4
-    },
-    {
-      "name": "royal",
       "directions": 4
     },
     {

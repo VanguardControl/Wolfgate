@@ -7,9 +7,6 @@ marking-WFMeridianMarkingAkulaHighlightHead-akula_highlight_head = Akula Highlig
 marking-WFMeridianMarkingAnimeEyesInnerHead = Anime Eyes (Inner) (Head)
 marking-WFMeridianMarkingAnimeEyesInnerHead-anime_eyes_inner_head = Anime Eyes (Inner) (Head)
 
-marking-WFMeridianMarkingAnimeEyesOuterHead = Anime Eyes (Outer) (Head)
-marking-WFMeridianMarkingAnimeEyesOuterHead-anime_eyes_outer_head = Anime Eyes (Outer) (Head)
-
 marking-WFMeridianMarkingBackStripeHead = Back Stripe (Head)
 marking-WFMeridianMarkingBackStripeHead-back_stripe_head = Back Stripe (Head)
 
@@ -67,9 +64,6 @@ marking-WFMeridianMarkingEyelinerHead-eyeliner_head = Eyeliner (Head)
 marking-WFMeridianMarkingFennecHead = Fennec (Head)
 marking-WFMeridianMarkingFennecHead-fennec_head = Fennec (Head)
 
-marking-WFMeridianMarkingFloofHead = Floof (Head)
-marking-WFMeridianMarkingFloofHead-floof_head = Floof (Head)
-
 marking-WFMeridianMarkingFlushedCheeksHead = Flushed Cheeks (Head)
 marking-WFMeridianMarkingFlushedCheeksHead-flushed_cheeks_head = Flushed Cheeks (Head)
 
@@ -108,9 +102,6 @@ marking-WFMeridianMarkingLargeEyesHead-large_eyes_head = Large Eyes (Head)
 
 marking-WFMeridianMarkingLightbearerHead = Lightbearer (Head)
 marking-WFMeridianMarkingLightbearerHead-lightbearer_head = Lightbearer (Head)
-
-marking-WFMeridianMarkingLoversGrayscaleHead = Lovers Grayscale (Head)
-marking-WFMeridianMarkingLoversGrayscaleHead-lovers_grayscale_head = Lovers Grayscale (Head)
 
 marking-WFMeridianMarkingMonsterMouthHead = Monster Mouth (Head)
 marking-WFMeridianMarkingMonsterMouthHead-monster_mouth_head = Monster Mouth (Head)
@@ -153,9 +144,6 @@ marking-WFMeridianMarkingPilotHead-pilot_head = Pilot (Head)
 
 marking-WFMeridianMarkingPilotJawHead = Pilot Jaw (Head)
 marking-WFMeridianMarkingPilotJawHead-pilot_jaw_head = Pilot Jaw (Head)
-
-marking-WFMeridianMarkingPoisonGrayscaleHead = Poison Grayscale (Head)
-marking-WFMeridianMarkingPoisonGrayscaleHead-poison_grayscale_head = Poison Grayscale (Head)
 
 marking-WFMeridianMarkingPossumHead = Possum (Head)
 marking-WFMeridianMarkingPossumHead-possum_head = Possum (Head)

@@ -24,14 +24,6 @@ marking-WFMeridianWingsHarpyFluffyDualToneTop-harpy_fluffy_dual_tone_top_seconda
 marking-WFMeridianWingsHarpyFluffyDualToneTop-harpy_fluffy_dual_tone_top_primary_BEHIND = Harpy Wings (Fluffy Dual-Tone, Top) (Primary)
 marking-WFMeridianWingsHarpyFluffyDualToneTop-harpy_fluffy_dual_tone_top_secondary_BEHIND = Harpy Wings (Fluffy Dual-Tone, Top) (Secondary)
 
-marking-WFMeridianWingsHarpyFluffy = Harpy Wings (Fluffy)
-marking-WFMeridianWingsHarpyFluffy-harpy_fluffy = Harpy Wings (Fluffy)
-marking-WFMeridianWingsHarpyFluffy-harpy_fluffy_BEHIND = Harpy Wings (Fluffy)
-
-marking-WFMeridianWingsHarpyFluffyTop = Harpy Wings (Fluffy, Top)
-marking-WFMeridianWingsHarpyFluffyTop-harpy_fluffy_top = Harpy Wings (Fluffy, Top)
-marking-WFMeridianWingsHarpyFluffyTop-harpy_fluffy_top_BEHIND = Harpy Wings (Fluffy, Top)
-
 marking-WFMeridianWingsInsectoidII = Insectoid II Wings
 marking-WFMeridianWingsInsectoidII-insectoid_ii = Insectoid II Wings
 marking-WFMeridianWingsInsectoidII-insectoid_ii_BEHIND = Insectoid II Wings
@@ -57,12 +49,6 @@ marking-WFMeridianWingsMantisTop-mantis_top_secondary_BEHIND = Mantis Wings (Top
 marking-WFMeridianWingsMothBluespace = Moth Wings (Bluespace)
 marking-WFMeridianWingsMothBluespace-moth_bluespace = Moth Wings (Bluespace)
 marking-WFMeridianWingsMothBluespace-moth_bluespace_BEHIND = Moth Wings (Bluespace)
-
-marking-WFMeridianWingsMothBrownGreyscale = Moth Wings (Brown Greyscale)
-marking-WFMeridianWingsMothBrownGreyscale-moth_brown_greyscale_primary = Moth Wings (Brown Greyscale) (Primary)
-marking-WFMeridianWingsMothBrownGreyscale-moth_brown_greyscale_secondary = Moth Wings (Brown Greyscale) (Secondary)
-marking-WFMeridianWingsMothBrownGreyscale-moth_brown_greyscale_primary_BEHIND = Moth Wings (Brown Greyscale) (Primary)
-marking-WFMeridianWingsMothBrownGreyscale-moth_brown_greyscale_secondary_BEHIND = Moth Wings (Brown Greyscale) (Secondary)
 
 marking-WFMeridianWingsMothCitheronia = Moth Wings (Citheronia)
 marking-WFMeridianWingsMothCitheronia-moth_citheronia_primary = Moth Wings (Citheronia) (Primary)
@@ -109,10 +95,6 @@ marking-WFMeridianWingsSpiderlegsStriped-spiderlegs_striped_primary = Spiderlegs
 marking-WFMeridianWingsSpiderlegsStriped-spiderlegs_striped_secondary = Spiderlegs (Striped) (Secondary)
 marking-WFMeridianWingsSpiderlegsStriped-spiderlegs_striped_primary_BEHIND = Spiderlegs (Striped) (Primary)
 marking-WFMeridianWingsSpiderlegsStriped-spiderlegs_striped_secondary_BEHIND = Spiderlegs (Striped) (Secondary)
-
-marking-WFMeridianWingsSpiderlegsThin = Spiderlegs (Thin)
-marking-WFMeridianWingsSpiderlegsThin-spiderlegs_thin = Spiderlegs (Thin)
-marking-WFMeridianWingsSpiderlegsThin-spiderlegs_thin_BEHIND = Spiderlegs (Thin)
 
 marking-WFMeridianWingsTarantula = Tarantula Wings
 marking-WFMeridianWingsTarantula-tarantula_primary = Tarantula Wings (Primary)

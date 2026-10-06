@@ -1415,14 +1415,6 @@
     state: thick_ponytail
 
 - type: marking
-  id: WFMeridianHairToriyama
-  bodyPart: Hair
-  markingCategory: Hair
-  sprites:
-  - sprite: _WF/MeridianMarkings/hair.rsi
-    state: toriyama
-
-- type: marking
   id: WFMeridianHairTriBun
   bodyPart: Hair
   markingCategory: Hair

@@ -96,22 +96,6 @@
       "directions": 4
     },
     {
-      "name": "moth_brown_greyscale_primary",
-      "directions": 4
-    },
-    {
-      "name": "moth_brown_greyscale_primary_BEHIND",
-      "directions": 4
-    },
-    {
-      "name": "moth_brown_greyscale_secondary",
-      "directions": 4
-    },
-    {
-      "name": "moth_brown_greyscale_secondary_BEHIND",
-      "directions": 4
-    },
-    {
       "name": "moth_citheronia_primary",
       "directions": 4
     },
@@ -221,14 +205,6 @@
     },
     {
       "name": "spiderlegs_striped_secondary_BEHIND",
-      "directions": 4
-    },
-    {
-      "name": "spiderlegs_thin",
-      "directions": 4
-    },
-    {
-      "name": "spiderlegs_thin_BEHIND",
       "directions": 4
     },
     {

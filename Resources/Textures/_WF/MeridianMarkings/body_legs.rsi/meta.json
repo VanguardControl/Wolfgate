@@ -160,14 +160,6 @@
       "directions": 4
     },
     {
-      "name": "corvid_talon_l_leg",
-      "directions": 4
-    },
-    {
-      "name": "corvid_talon_r_leg",
-      "directions": 4
-    },
-    {
       "name": "dalmatian_l_foot",
       "directions": 4
     },
@@ -200,22 +192,6 @@
       "directions": 4
     },
     {
-      "name": "deer_hoof_l_foot",
-      "directions": 4
-    },
-    {
-      "name": "deer_hoof_r_foot",
-      "directions": 4
-    },
-    {
-      "name": "deer_l_foot",
-      "directions": 4
-    },
-    {
-      "name": "deer_r_foot",
-      "directions": 4
-    },
-    {
       "name": "dog_spot_l_foot",
       "directions": 4
     },
@@ -237,10 +213,6 @@
     },
     {
       "name": "fox_r_leg",
-      "directions": 4
-    },
-    {
-      "name": "fox_sock_r_leg",
       "directions": 4
     },
     {
@@ -320,15 +292,7 @@
       "directions": 4
     },
     {
-      "name": "hawk_talon_r_leg",
-      "directions": 4
-    },
-    {
       "name": "husky_l_leg",
-      "directions": 4
-    },
-    {
-      "name": "husky_r_leg",
       "directions": 4
     },
     {
@@ -364,27 +328,7 @@
       "directions": 4
     },
     {
-      "name": "lovers_grayscale_r_foot",
-      "directions": 4
-    },
-    {
       "name": "lower_limb_r_leg",
-      "directions": 4
-    },
-    {
-      "name": "moonfly_grayscale_l_foot",
-      "directions": 4
-    },
-    {
-      "name": "moonfly_grayscale_r_foot",
-      "directions": 4
-    },
-    {
-      "name": "oakworm_grayscale_l_leg",
-      "directions": 4
-    },
-    {
-      "name": "oakworm_grayscale_r_leg",
       "directions": 4
     },
     {
@@ -436,14 +380,6 @@
       "directions": 4
     },
     {
-      "name": "raccoon_spot_l_leg",
-      "directions": 4
-    },
-    {
-      "name": "raccoon_spot_r_leg",
-      "directions": 4
-    },
-    {
       "name": "ragged_grayscale_l_foot",
       "directions": 4
     },
@@ -457,14 +393,6 @@
     },
     {
       "name": "ragged_grayscale_r_leg",
-      "directions": 4
-    },
-    {
-      "name": "rat_paw_l_leg",
-      "directions": 4
-    },
-    {
-      "name": "rat_paw_r_leg",
       "directions": 4
     },
     {

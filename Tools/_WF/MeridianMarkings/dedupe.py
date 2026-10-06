@@ -1,8 +1,14 @@
 """Decides which port candidates the repository already has.
 
-Two markings are the same marking when their colour boxes cover the same pixels and the shading
-inside them agrees. Silhouettes alone are not enough: a plain tail and a striped one share an outline,
-and every moth wing shares one with its neighbours, so the pixels under the outline are compared too.
+Two questions are asked of a candidate and a marking, and either one settles it.
+
+Is it the same art? The colour boxes cover the same pixels and the shading inside them agrees. This is
+what finds art another fork took from the same SS13 sheet, trimmed or cut into layers its own way.
+
+Does it look the same? The whole outlines agree, whatever the colour boxes and the shading under them
+do. A snout drawn again with its tip as a second colour, a reshaded horn, a tail with a band baked in:
+in the picker these sit beside the marking they were made from and read as the same thing twice. Only
+art that carries its own colours is held apart by them, since a blue wing and a red one are two wings.
 """
 import hashlib
 
@@ -23,6 +29,10 @@ SHADING_SAME = 0.16
 COLOUR_SAME = 40.0
 # Below this many pixels a facing there is no shading to speak of: a hand patch is a hand patch.
 TINY = 30
+# Whole outlines that overlap this closely look the same. Patches on a body part are a dozen pixels,
+# where one pixel either way is the whole difference, so those are held to less.
+LOOKS_SAME = 0.90
+LOOKS_SAME_PATCH = 0.80
 
 
 def candidate_groups(candidate):
@@ -77,6 +87,14 @@ class Accepted:
 
 
 _pictures = {}
+_coloured = {}
+
+
+def coloured(marking):
+    """Whether a marking's art carries its own colours; measured once."""
+    if marking.id not in _coloured:
+        _coloured[marking.id] = carries_colour(picture_of(marking))
+    return _coloured[marking.id]
 
 
 def picture_of(marking):
@@ -129,7 +147,7 @@ def shading(a_pictures, b_pictures):
 
 
 class Match:
-    def __init__(self, existing, score, union, relative, distance, same_shading, boxes):
+    def __init__(self, existing, score, union, relative, distance, same_shading, boxes, looks):
         self.existing = existing
         self.boxes = boxes            # colour boxes of the candidate; the other marking's are existing.groups
         self.score = score            # worst colour box overlap, both ways
@@ -137,6 +155,7 @@ class Match:
         self.relative = relative      # relative brightness difference
         self.distance = distance      # colour distance
         self.same_shading = same_shading
+        self.looks = looks            # looks the same, whatever the colour boxes and shading do
 
     @property
     def same(self):
@@ -147,22 +166,26 @@ class Match:
 
     @property
     def rank(self):
-        return (self.same, self.same_shading, max(self.score, self.union if self.same_shading else 0.0), self.union)
+        return (self.same, self.looks, self.same_shading,
+                max(self.score, self.union if self.same_shading else 0.0), self.union)
 
     def describe(self):
-        return "%s (boxes %.2f, outline %.2f, shading %.2f, colour %.0f)" % (
-            self.existing.id, self.score, self.union, self.relative, self.distance)
+        return "%s (%s: boxes %.2f, outline %.2f, shading %.2f, colour %.0f)" % (
+            self.existing.id, "the same art" if self.same else "the same look" if self.looks else "near",
+            self.score, self.union, self.relative, self.distance)
 
 
 class Subject:
     """A candidate measured once, for comparing against many markings."""
 
-    def __init__(self, candidate):
+    def __init__(self, candidate, patch=False):
         self.groups = candidate_groups(candidate)
         self.union = wg.union_of(self.groups)
         self.size = wg.area(self.union)
         self.picture = candidate_picture(candidate)
         self.own_colours = carries_colour(self.picture)
+        # A patch on a body part: held to the looser outline when it is small.
+        self.looks_at = LOOKS_SAME_PATCH if patch and self.size < TINY * 4 else LOOKS_SAME
         # How much of the art is drawn below the body: wings behind the mob and the same wings in
         # front of it are two markings, though the pixels are the same.
         behind = sum(wg.area(wg.silhouette(s.frames[0])) for s in candidate.sprites if s.behind)
@@ -193,7 +216,11 @@ class Subject:
                 same = distance <= COLOUR_SAME
             else:
                 same = relative <= SHADING_SAME
-            found.append(Match(marking, score, whole, relative, distance, same, len(self.groups)))
+            # Art with colours of its own on either side only looks the same in the same colours: a
+            # sock is not the painted foot of a prosthetic leg, whatever their outlines.
+            looks = whole >= self.looks_at and (
+                distance <= COLOUR_SAME or not (self.own_colours or coloured(marking)))
+            found.append(Match(marking, score, whole, relative, distance, same, len(self.groups), looks))
         found.sort(key=lambda m: m.rank, reverse=True)
         return found
 

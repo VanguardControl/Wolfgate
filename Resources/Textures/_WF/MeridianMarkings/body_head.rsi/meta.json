@@ -20,10 +20,6 @@
       "directions": 4
     },
     {
-      "name": "anime_eyes_outer_head",
-      "directions": 4
-    },
-    {
       "name": "back_stripe_head",
       "directions": 4
     },
@@ -100,10 +96,6 @@
       "directions": 4
     },
     {
-      "name": "floof_head",
-      "directions": 4
-    },
-    {
       "name": "flushed_cheeks_head",
       "directions": 4
     },
@@ -153,10 +145,6 @@
     },
     {
       "name": "lightbearer_head",
-      "directions": 4
-    },
-    {
-      "name": "lovers_grayscale_head",
       "directions": 4
     },
     {
@@ -213,10 +201,6 @@
     },
     {
       "name": "pilot_jaw_head",
-      "directions": 4
-    },
-    {
-      "name": "poison_grayscale_head",
       "directions": 4
     },
     {

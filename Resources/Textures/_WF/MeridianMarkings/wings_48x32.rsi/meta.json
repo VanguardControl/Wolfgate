@@ -16,14 +16,6 @@
       "directions": 4
     },
     {
-      "name": "harpy_fluffy",
-      "directions": 4
-    },
-    {
-      "name": "harpy_fluffy_BEHIND",
-      "directions": 4
-    },
-    {
       "name": "harpy_fluffy_dual_tone_primary",
       "directions": 4
     },
@@ -53,14 +45,6 @@
     },
     {
       "name": "harpy_fluffy_dual_tone_top_secondary_BEHIND",
-      "directions": 4
-    },
-    {
-      "name": "harpy_fluffy_top",
-      "directions": 4
-    },
-    {
-      "name": "harpy_fluffy_top_BEHIND",
       "directions": 4
     },
     {

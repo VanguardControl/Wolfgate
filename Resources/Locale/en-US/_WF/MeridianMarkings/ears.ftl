@@ -1,58 +1,15 @@
-marking-WFMeridianEarsAcradorLong = Acrador Ears (Long)
-marking-WFMeridianEarsAcradorLong-acrador_long_primary = Acrador Ears (Long) (Primary)
-marking-WFMeridianEarsAcradorLong-acrador_long_secondary = Acrador Ears (Long) (Secondary)
-
-marking-WFMeridianEarsAcradorShort = Acrador Ears (Short)
-marking-WFMeridianEarsAcradorShort-acrador_short_primary = Acrador Ears (Short) (Primary)
-marking-WFMeridianEarsAcradorShort-acrador_short_secondary = Acrador Ears (Short) (Secondary)
-
 marking-WFMeridianEarsAcradorShortAlt1 = Acrador Ears (Short) (Alt 1)
 marking-WFMeridianEarsAcradorShortAlt1-acrador_short_alt_1_primary = Acrador Ears (Short) (Alt 1) (Primary)
 marking-WFMeridianEarsAcradorShortAlt1-acrador_short_alt_1_secondary = Acrador Ears (Short) (Alt 1) (Secondary)
 marking-WFMeridianEarsAcradorShortAlt1-acrador_short_alt_1_tertiary = Acrador Ears (Short) (Alt 1) (Tertiary)
-
-marking-WFMeridianEarsAcradorShortAlt2 = Acrador Ears (Short) (Alt 2)
-marking-WFMeridianEarsAcradorShortAlt2-acrador_short_alt_2_primary = Acrador Ears (Short) (Alt 2) (Primary)
-marking-WFMeridianEarsAcradorShortAlt2-acrador_short_alt_2_secondary = Acrador Ears (Short) (Alt 2) (Secondary)
-marking-WFMeridianEarsAcradorShortAlt2-acrador_short_alt_2_tertiary = Acrador Ears (Short) (Alt 2) (Tertiary)
-
-marking-WFMeridianEarsAcradorShortAlt3 = Acrador Ears (Short) (Alt 3)
-marking-WFMeridianEarsAcradorShortAlt3-acrador_short_alt_3_primary = Acrador Ears (Short) (Alt 3) (Primary)
-marking-WFMeridianEarsAcradorShortAlt3-acrador_short_alt_3_secondary = Acrador Ears (Short) (Alt 3) (Secondary)
-marking-WFMeridianEarsAcradorShortAlt3-acrador_short_alt_3_tertiary = Acrador Ears (Short) (Alt 3) (Tertiary)
-
-marking-WFMeridianEarsAcradorShortAlt4 = Acrador Ears (Short) (Alt 4)
-marking-WFMeridianEarsAcradorShortAlt4-acrador_short_alt_4_primary = Acrador Ears (Short) (Alt 4) (Primary)
-marking-WFMeridianEarsAcradorShortAlt4-acrador_short_alt_4_secondary = Acrador Ears (Short) (Alt 4) (Secondary)
-marking-WFMeridianEarsAcradorShortAlt4-acrador_short_alt_4_tertiary = Acrador Ears (Short) (Alt 4) (Tertiary)
 
 marking-WFMeridianEarsAcradorLongAlt1 = Acrador Long Ears (Alt 1)
 marking-WFMeridianEarsAcradorLongAlt1-acrador_long_alt_1_primary = Acrador Long Ears (Alt 1) (Primary)
 marking-WFMeridianEarsAcradorLongAlt1-acrador_long_alt_1_secondary = Acrador Long Ears (Alt 1) (Secondary)
 marking-WFMeridianEarsAcradorLongAlt1-acrador_long_alt_1_tertiary = Acrador Long Ears (Alt 1) (Tertiary)
 
-marking-WFMeridianEarsAcradorLongAlt2 = Acrador Long Ears (Alt 2)
-marking-WFMeridianEarsAcradorLongAlt2-acrador_long_alt_2_primary = Acrador Long Ears (Alt 2) (Primary)
-marking-WFMeridianEarsAcradorLongAlt2-acrador_long_alt_2_secondary = Acrador Long Ears (Alt 2) (Secondary)
-marking-WFMeridianEarsAcradorLongAlt2-acrador_long_alt_2_tertiary = Acrador Long Ears (Alt 2) (Tertiary)
-
-marking-WFMeridianEarsAcradorLongAlt3 = Acrador Long Ears (Alt 3)
-marking-WFMeridianEarsAcradorLongAlt3-acrador_long_alt_3_primary = Acrador Long Ears (Alt 3) (Primary)
-marking-WFMeridianEarsAcradorLongAlt3-acrador_long_alt_3_secondary = Acrador Long Ears (Alt 3) (Secondary)
-marking-WFMeridianEarsAcradorLongAlt3-acrador_long_alt_3_tertiary = Acrador Long Ears (Alt 3) (Tertiary)
-
-marking-WFMeridianEarsAcradorLongAlt4 = Acrador Long Ears (Alt 4)
-marking-WFMeridianEarsAcradorLongAlt4-acrador_long_alt_4_primary = Acrador Long Ears (Alt 4) (Primary)
-marking-WFMeridianEarsAcradorLongAlt4-acrador_long_alt_4_secondary = Acrador Long Ears (Alt 4) (Secondary)
-marking-WFMeridianEarsAcradorLongAlt4-acrador_long_alt_4_tertiary = Acrador Long Ears (Alt 4) (Tertiary)
-
 marking-WFMeridianEarsBasicAntenna = Basic Antenna
 marking-WFMeridianEarsBasicAntenna-basic_antenna = Basic Antenna
-
-marking-WFMeridianEarsBig = Big Ears
-marking-WFMeridianEarsBig-big = Big Ears (Primary)
-marking-WFMeridianEarsBig-big_inner = Big Ears (Inner)
-marking-WFMeridianEarsBig-big_BEHIND = Big Ears (Primary)
 
 marking-WFMeridianEarsBigWolf = Big Wolf Ears
 marking-WFMeridianEarsBigWolf-big_wolf_primary = Big Wolf Ears (Primary)
@@ -69,6 +26,11 @@ marking-WFMeridianEarsCatBigColorableInner-cat_big_colorable_inner_primary = Cat
 marking-WFMeridianEarsCatBigColorableInner-cat_big_colorable_inner_secondary = Cat, Big Ears (Colorable Inner) (Secondary)
 marking-WFMeridianEarsCatBigColorableInner-cat_big_colorable_inner_primary_BEHIND = Cat, Big Ears (Colorable Inner) (Primary)
 
+marking-WFMeridianEarsCatFoldColorableInner = Cat, Fold Ears (Colorable Inner)
+marking-WFMeridianEarsCatFoldColorableInner-cat_fold_colorable_inner_primary = Cat, Fold Ears (Colorable Inner) (Primary)
+marking-WFMeridianEarsCatFoldColorableInner-cat_fold_colorable_inner_secondary = Cat, Fold Ears (Colorable Inner) (Secondary)
+marking-WFMeridianEarsCatFoldColorableInner-cat_fold_colorable_inner_primary_BEHIND = Cat, Fold Ears (Colorable Inner) (Primary)
+
 marking-WFMeridianEarsCatLynxColorableInner = Cat, Lynx Ears (Colorable Inner)
 marking-WFMeridianEarsCatLynxColorableInner-cat_lynx_colorable_inner_primary = Cat, Lynx Ears (Colorable Inner) (Primary)
 marking-WFMeridianEarsCatLynxColorableInner-cat_lynx_colorable_inner_secondary = Cat, Lynx Ears (Colorable Inner) (Secondary)
@@ -83,11 +45,6 @@ marking-WFMeridianEarsCatRoundColorableInner = Cat, Round Ears (Colorable Inner)
 marking-WFMeridianEarsCatRoundColorableInner-cat_round_colorable_inner_primary = Cat, Round Ears (Colorable Inner) (Primary)
 marking-WFMeridianEarsCatRoundColorableInner-cat_round_colorable_inner_secondary = Cat, Round Ears (Colorable Inner) (Secondary)
 marking-WFMeridianEarsCatRoundColorableInner-cat_round_colorable_inner_primary_BEHIND = Cat, Round Ears (Colorable Inner) (Primary)
-
-marking-WFMeridianEarsCoeurl = Coeurl Ears
-marking-WFMeridianEarsCoeurl-coeurl = Coeurl Ears (Primary)
-marking-WFMeridianEarsCoeurl-coeurl_inner = Coeurl Ears (Inner)
-marking-WFMeridianEarsCoeurl-coeurl_BEHIND = Coeurl Ears (Primary)
 
 marking-WFMeridianEarsCurvedRabbitEarsLarge = Curved Rabbit Ears (Large)
 marking-WFMeridianEarsCurvedRabbitEarsLarge-curved_rabbit_ears_large_primary = Curved Rabbit Ears (Large) (Primary)
@@ -119,11 +76,6 @@ marking-WFMeridianEarsFloppy-floppy_primary = Floppy Ears (Primary)
 marking-WFMeridianEarsFloppy-floppy_secondary = Floppy Ears (Secondary)
 marking-WFMeridianEarsFloppy-floppy_tertiary = Floppy Ears (Tertiary)
 
-marking-WFMeridianEarsFold = Fold Ears
-marking-WFMeridianEarsFold-fold = Fold Ears (Primary)
-marking-WFMeridianEarsFold-fold_inner = Fold Ears (Inner)
-marking-WFMeridianEarsFold-fold_BEHIND = Fold Ears (Primary)
-
 marking-WFMeridianEarsFourEars1 = Four Ears 1
 marking-WFMeridianEarsFourEars1-four_ears_1_primary = Four Ears 1 (Primary)
 marking-WFMeridianEarsFourEars1-four_ears_1_tertiary = Four Ears 1 (Tertiary)
@@ -138,11 +90,6 @@ marking-WFMeridianEarsGeniculateAntenna-geniculate_antenna = Geniculate Antenna
 marking-WFMeridianEarsJackal = Jackal Ears
 marking-WFMeridianEarsJackal-jackal_primary = Jackal Ears (Primary)
 marking-WFMeridianEarsJackal-jackal_secondary = Jackal Ears (Secondary)
-
-marking-WFMeridianEarsLynx = Lynx Ears
-marking-WFMeridianEarsLynx-lynx = Lynx Ears (Primary)
-marking-WFMeridianEarsLynx-lynx_inner = Lynx Ears (Inner)
-marking-WFMeridianEarsLynx-lynx_BEHIND = Lynx Ears (Primary)
 
 marking-WFMeridianEarsMediumSetaceousAntenna = Medium Setaceous Antenna
 marking-WFMeridianEarsMediumSetaceousAntenna-medium_setaceous_antenna = Medium Setaceous Antenna
@@ -182,11 +129,6 @@ marking-WFMeridianEarsRamatanShort-ramatan_short_primary = Ramatan Ears (Short)
 marking-WFMeridianEarsRamatanTall = Ramatan Ears (Tall)
 marking-WFMeridianEarsRamatanTall-ramatan_tall_primary = Ramatan Ears (Tall) (Primary)
 marking-WFMeridianEarsRamatanTall-ramatan_tall_secondary = Ramatan Ears (Tall) (Secondary)
-
-marking-WFMeridianEarsRound = Round Ears
-marking-WFMeridianEarsRound-round = Round Ears (Primary)
-marking-WFMeridianEarsRound-round_inner = Round Ears (Inner)
-marking-WFMeridianEarsRound-round_BEHIND = Round Ears (Primary)
 
 marking-WFMeridianEarsRoyalAntenna = Royal Antenna
 marking-WFMeridianEarsRoyalAntenna-royal_antenna = Royal Antenna

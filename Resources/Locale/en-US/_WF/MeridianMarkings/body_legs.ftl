@@ -112,12 +112,6 @@ marking-WFMeridianMarkingCorvidLLeg-corvid_l_leg = Corvid (Left Leg)
 marking-WFMeridianMarkingCorvidRLeg = Corvid (Right Leg)
 marking-WFMeridianMarkingCorvidRLeg-corvid_r_leg = Corvid (Right Leg)
 
-marking-WFMeridianMarkingCorvidTalonLLeg = Corvid Talon (Left Leg)
-marking-WFMeridianMarkingCorvidTalonLLeg-corvid_talon_l_leg = Corvid Talon (Left Leg)
-
-marking-WFMeridianMarkingCorvidTalonRLeg = Corvid Talon (Right Leg)
-marking-WFMeridianMarkingCorvidTalonRLeg-corvid_talon_r_leg = Corvid Talon (Right Leg)
-
 marking-WFMeridianMarkingDalmatianLFoot = Dalmatian (Left Foot)
 marking-WFMeridianMarkingDalmatianLFoot-dalmatian_l_foot = Dalmatian (Left Foot)
 
@@ -142,18 +136,6 @@ marking-WFMeridianMarkingDatasharkRFoot-datashark_r_foot = Datashark (Right Foot
 marking-WFMeridianMarkingDatasharkRLeg = Datashark (Right Leg)
 marking-WFMeridianMarkingDatasharkRLeg-datashark_r_leg = Datashark (Right Leg)
 
-marking-WFMeridianMarkingDeerLFoot = Deer (Left Foot)
-marking-WFMeridianMarkingDeerLFoot-deer_l_foot = Deer (Left Foot)
-
-marking-WFMeridianMarkingDeerRFoot = Deer (Right Foot)
-marking-WFMeridianMarkingDeerRFoot-deer_r_foot = Deer (Right Foot)
-
-marking-WFMeridianMarkingDeerHoofLFoot = Deer Hoof (Left Foot)
-marking-WFMeridianMarkingDeerHoofLFoot-deer_hoof_l_foot = Deer Hoof (Left Foot)
-
-marking-WFMeridianMarkingDeerHoofRFoot = Deer Hoof (Right Foot)
-marking-WFMeridianMarkingDeerHoofRFoot-deer_hoof_r_foot = Deer Hoof (Right Foot)
-
 marking-WFMeridianMarkingDogSpotLFoot = Dog Spot (Left Foot)
 marking-WFMeridianMarkingDogSpotLFoot-dog_spot_l_foot = Dog Spot (Left Foot)
 
@@ -171,9 +153,6 @@ marking-WFMeridianMarkingFoxLLeg-fox_l_leg = Fox (Left Leg)
 
 marking-WFMeridianMarkingFoxRLeg = Fox (Right Leg)
 marking-WFMeridianMarkingFoxRLeg-fox_r_leg = Fox (Right Leg)
-
-marking-WFMeridianMarkingFoxSockRLeg = Fox Sock (Right Leg)
-marking-WFMeridianMarkingFoxSockRLeg-fox_sock_r_leg = Fox Sock (Right Leg)
 
 marking-WFMeridianMarkingGothicGrayscaleLLeg = Gothic Grayscale (Left Leg)
 marking-WFMeridianMarkingGothicGrayscaleLLeg-gothic_grayscale_l_leg = Gothic Grayscale (Left Leg)
@@ -232,14 +211,8 @@ marking-WFMeridianMarkingHawkRLeg-hawk_r_leg = Hawk (Right Leg)
 marking-WFMeridianMarkingHawkTalonLLeg = Hawk Talon (Left Leg)
 marking-WFMeridianMarkingHawkTalonLLeg-hawk_talon_l_leg = Hawk Talon (Left Leg)
 
-marking-WFMeridianMarkingHawkTalonRLeg = Hawk Talon (Right Leg)
-marking-WFMeridianMarkingHawkTalonRLeg-hawk_talon_r_leg = Hawk Talon (Right Leg)
-
 marking-WFMeridianMarkingHuskyLLeg = Husky (Left Leg)
 marking-WFMeridianMarkingHuskyLLeg-husky_l_leg = Husky (Left Leg)
-
-marking-WFMeridianMarkingHuskyRLeg = Husky (Right Leg)
-marking-WFMeridianMarkingHuskyRLeg-husky_r_leg = Husky (Right Leg)
 
 marking-WFMeridianMarkingHyenaLFoot = Hyena (Left Foot)
 marking-WFMeridianMarkingHyenaLFoot-hyena_l_foot = Hyena (Left Foot)
@@ -265,23 +238,8 @@ marking-WFMeridianMarkingLoversGrayscaleLFoot-lovers_grayscale_l_foot = Lovers G
 marking-WFMeridianMarkingLoversGrayscaleLLeg = Lovers Grayscale (Left Leg)
 marking-WFMeridianMarkingLoversGrayscaleLLeg-lovers_grayscale_l_leg = Lovers Grayscale (Left Leg)
 
-marking-WFMeridianMarkingLoversGrayscaleRFoot = Lovers Grayscale (Right Foot)
-marking-WFMeridianMarkingLoversGrayscaleRFoot-lovers_grayscale_r_foot = Lovers Grayscale (Right Foot)
-
 marking-WFMeridianMarkingLowerLimbRLeg = Lower Limb (Right Leg)
 marking-WFMeridianMarkingLowerLimbRLeg-lower_limb_r_leg = Lower Limb (Right Leg)
-
-marking-WFMeridianMarkingMoonflyGrayscaleLFoot = Moonfly Grayscale (Left Foot)
-marking-WFMeridianMarkingMoonflyGrayscaleLFoot-moonfly_grayscale_l_foot = Moonfly Grayscale (Left Foot)
-
-marking-WFMeridianMarkingMoonflyGrayscaleRFoot = Moonfly Grayscale (Right Foot)
-marking-WFMeridianMarkingMoonflyGrayscaleRFoot-moonfly_grayscale_r_foot = Moonfly Grayscale (Right Foot)
-
-marking-WFMeridianMarkingOakwormGrayscaleLLeg = Oakworm Grayscale (Left Leg)
-marking-WFMeridianMarkingOakwormGrayscaleLLeg-oakworm_grayscale_l_leg = Oakworm Grayscale (Left Leg)
-
-marking-WFMeridianMarkingOakwormGrayscaleRLeg = Oakworm Grayscale (Right Leg)
-marking-WFMeridianMarkingOakwormGrayscaleRLeg-oakworm_grayscale_r_leg = Oakworm Grayscale (Right Leg)
 
 marking-WFMeridianMarkingOtieLFoot = Otie (Left Foot)
 marking-WFMeridianMarkingOtieLFoot-otie_l_foot = Otie (Left Foot)
@@ -319,12 +277,6 @@ marking-WFMeridianMarkingRaccoonLLeg-raccoon_l_leg = Raccoon (Left Leg)
 marking-WFMeridianMarkingRaccoonRLeg = Raccoon (Right Leg)
 marking-WFMeridianMarkingRaccoonRLeg-raccoon_r_leg = Raccoon (Right Leg)
 
-marking-WFMeridianMarkingRaccoonSpotLLeg = Raccoon Spot (Left Leg)
-marking-WFMeridianMarkingRaccoonSpotLLeg-raccoon_spot_l_leg = Raccoon Spot (Left Leg)
-
-marking-WFMeridianMarkingRaccoonSpotRLeg = Raccoon Spot (Right Leg)
-marking-WFMeridianMarkingRaccoonSpotRLeg-raccoon_spot_r_leg = Raccoon Spot (Right Leg)
-
 marking-WFMeridianMarkingRaggedGrayscaleLFoot = Ragged Grayscale (Left Foot)
 marking-WFMeridianMarkingRaggedGrayscaleLFoot-ragged_grayscale_l_foot = Ragged Grayscale (Left Foot)
 
@@ -336,12 +288,6 @@ marking-WFMeridianMarkingRaggedGrayscaleRFoot-ragged_grayscale_r_foot = Ragged G
 
 marking-WFMeridianMarkingRaggedGrayscaleRLeg = Ragged Grayscale (Right Leg)
 marking-WFMeridianMarkingRaggedGrayscaleRLeg-ragged_grayscale_r_leg = Ragged Grayscale (Right Leg)
-
-marking-WFMeridianMarkingRatPawLLeg = Rat Paw (Left Leg)
-marking-WFMeridianMarkingRatPawLLeg-rat_paw_l_leg = Rat Paw (Left Leg)
-
-marking-WFMeridianMarkingRatPawRLeg = Rat Paw (Right Leg)
-marking-WFMeridianMarkingRatPawRLeg-rat_paw_r_leg = Rat Paw (Right Leg)
 
 marking-WFMeridianMarkingRatSpotLLeg = Rat Spot (Left Leg)
 marking-WFMeridianMarkingRatSpotLLeg-rat_spot_l_leg = Rat Spot (Left Leg)

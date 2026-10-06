@@ -27,20 +27,6 @@
     state: firewatch
 
 - type: marking
-  id: WFMeridianFluffGothic
-  bodyPart: HeadSide
-  markingCategory: HeadSide
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  sprites:
-  - sprite: _WF/MeridianMarkings/fluff.rsi
-    state: gothic
-
-- type: marking
   id: WFMeridianFluffHarpyFluff
   bodyPart: HeadSide
   markingCategory: HeadSide
@@ -150,20 +136,6 @@
   sprites:
   - sprite: _WF/MeridianMarkings/fluff.rsi
     state: poison
-
-- type: marking
-  id: WFMeridianFluffRoyal
-  bodyPart: HeadSide
-  markingCategory: HeadSide
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  sprites:
-  - sprite: _WF/MeridianMarkings/fluff.rsi
-    state: royal
 
 - type: marking
   id: WFMeridianFluffSnowDualColor

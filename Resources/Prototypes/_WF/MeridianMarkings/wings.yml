@@ -122,41 +122,6 @@
     state: harpy_fluffy_dual_tone_top_secondary_BEHIND
 
 - type: marking
-  id: WFMeridianWingsHarpyFluffy
-  bodyPart: Tail
-  markingCategory: Chest
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  layering:
-    harpy_fluffy_BEHIND: TailBehind
-  colorLinks:
-    harpy_fluffy_BEHIND: harpy_fluffy
-  sprites:
-  - sprite: _WF/MeridianMarkings/wings_48x32.rsi
-    state: harpy_fluffy
-  - sprite: _WF/MeridianMarkings/wings_48x32.rsi
-    state: harpy_fluffy_BEHIND
-
-- type: marking
-  id: WFMeridianWingsHarpyFluffyTop
-  bodyPart: Tail
-  markingCategory: Chest
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  layering:
-    harpy_fluffy_top_BEHIND: TailBehind
-  colorLinks:
-    harpy_fluffy_top_BEHIND: harpy_fluffy_top
-  sprites:
-  - sprite: _WF/MeridianMarkings/wings_48x32.rsi
-    state: harpy_fluffy_top
-  - sprite: _WF/MeridianMarkings/wings_48x32.rsi
-    state: harpy_fluffy_top_BEHIND
-
-- type: marking
   id: WFMeridianWingsInsectoidII
   bodyPart: Tail
   markingCategory: Chest
@@ -274,32 +239,6 @@
     state: moth_bluespace
   - sprite: _WF/MeridianMarkings/wings.rsi
     state: moth_bluespace_BEHIND
-
-- type: marking
-  id: WFMeridianWingsMothBrownGreyscale
-  bodyPart: Tail
-  markingCategory: Chest
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  layering:
-    moth_brown_greyscale_primary_BEHIND: TailBehind
-    moth_brown_greyscale_secondary_BEHIND: TailBehind
-  colorLinks:
-    moth_brown_greyscale_primary_BEHIND: moth_brown_greyscale_primary
-    moth_brown_greyscale_secondary_BEHIND: moth_brown_greyscale_secondary
-  sprites:
-  - sprite: _WF/MeridianMarkings/wings.rsi
-    state: moth_brown_greyscale_primary
-  - sprite: _WF/MeridianMarkings/wings.rsi
-    state: moth_brown_greyscale_secondary
-  - sprite: _WF/MeridianMarkings/wings.rsi
-    state: moth_brown_greyscale_primary_BEHIND
-  - sprite: _WF/MeridianMarkings/wings.rsi
-    state: moth_brown_greyscale_secondary_BEHIND
 
 - type: marking
   id: WFMeridianWingsMothCitheronia
@@ -502,26 +441,6 @@
     state: spiderlegs_striped_primary_BEHIND
   - sprite: _WF/MeridianMarkings/wings.rsi
     state: spiderlegs_striped_secondary_BEHIND
-
-- type: marking
-  id: WFMeridianWingsSpiderlegsThin
-  bodyPart: Tail
-  markingCategory: Chest
-  speciesRestriction: [Skrell, Thaven, Dwarf, Diona, Human, SlimePerson, Felinid, Oni, Harpy, Reptilian, Vulpkanin, Rodentia, Goblin, Sheleg, IPC, Feroxi, Moth, Arachnid, Kitsune, Chitinid, Tajaran, WFCanine]
-  coloring:
-    default:
-      type:
-        !type:SimpleColoring
-          color: "#FFFFFF"
-  layering:
-    spiderlegs_thin_BEHIND: TailBehind
-  colorLinks:
-    spiderlegs_thin_BEHIND: spiderlegs_thin
-  sprites:
-  - sprite: _WF/MeridianMarkings/wings.rsi
-    state: spiderlegs_thin
-  - sprite: _WF/MeridianMarkings/wings.rsi
-    state: spiderlegs_thin_BEHIND
 
 - type: marking
   id: WFMeridianWingsTarantula
