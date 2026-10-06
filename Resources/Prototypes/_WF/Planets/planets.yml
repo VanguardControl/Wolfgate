@@ -4,6 +4,7 @@
   id: WFSurfaceAsclepiu
   planetType: PlanetAsclepiu
   ground: WFAsclepiuSurface
+  radius: 384
   # No cloud layer: its opaque deck hides the ground from orbit. A third air layer keeps orbit at depth 4.
   airLayers: 3
   cloudLayer: false

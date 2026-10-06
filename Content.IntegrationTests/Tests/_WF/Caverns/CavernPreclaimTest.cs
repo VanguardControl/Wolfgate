@@ -6,6 +6,8 @@ using Content.Server._WF.Caverns;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Maths;
 using static Content.IntegrationTests.Tests._WF.Caverns.CavernFixture;
 
 namespace Content.IntegrationTests.Tests._WF.Caverns;
@@ -23,6 +25,7 @@ public sealed class CavernPreclaimTest
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var server = pair.Server;
         var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
 
         await EnableCaverns(pair);
         await server.WaitPost(() =>
@@ -55,6 +58,13 @@ public sealed class CavernPreclaimTest
                     }
 
                     Assert.That(entMan.HasComponent<WFPlanetBoundsComponent>(world.Cavern), Is.True, "The cavern is not bounded.");
+
+                    var grid = entMan.GetComponent<MapGridComponent>(world.Cavern);
+                    var edge = new Vector2i(Radius - 1, 0);
+                    var walled = maps.GetAnchoredEntities(world.Cavern, grid, edge).Any(uid =>
+                        entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == "WFPlanetBoundaryWall");
+                    Assert.That(walled, Is.True, "The cavern's edge tile has no boundary wall.");
+                    Assert.That(maps.GetTileRef(world.Cavern, grid, edge + Vector2i.Right).Tile.IsEmpty, Is.True, "The cavern has a tile outside the circle.");
                 });
             });
         }

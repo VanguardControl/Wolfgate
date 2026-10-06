@@ -39,7 +39,7 @@ there is pulled back to the edge before it falls, and one flying out in the air 
 tick, one world at a time, and walls the outermost ring of tiles with the surface's `boundaryWall`; a preloaded ground
 (`WFPlanetPreloadedComponent`) never streams or unloads again. `WFPlanetPreloadStartingEvent` goes out the tick before,
 for whatever must be placed while the ground is still unloaded, such as cavern mouths, and `WFPlanetPreloadedEvent`
-once the ring is laid. Caverns stay streamed, inside the same circle.
+once the ring is laid. Caverns stay streamed, inside the same circle, with their own ring laid onto bare pinned ground.
 Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`,
 `wf.planet_terrain_load_budget`, `wf.planet_bounds`, `wf.planet_radius`, `wf.planet_preload`,
 `wf.planet_preload_budget`); ecology and

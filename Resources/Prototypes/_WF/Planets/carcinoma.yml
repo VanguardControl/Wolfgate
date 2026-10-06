@@ -36,6 +36,7 @@
   buildAtRoundStart: true
   sanctioned: false
   gravity: 1
+  radius: 192
   seed: 20260918
   networkComponents:
   - type: MapAtmosphere

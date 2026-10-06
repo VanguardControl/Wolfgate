@@ -105,11 +105,25 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
         }
     }
 
-    /// <summary>Lays the boundary ring, marks the ground preloaded and tells the other modules.</summary>
+    /// <summary>Lays the boundary ring on the ground and the layers below it, marks the ground preloaded and tells the other modules.</summary>
     private void Finish(Preload preload, Entity<BiomeComponent, MapGridComponent> ground, WFPlanetBoundsComponent bounds)
     {
         var walls = LayRing(ground, bounds, preload.Wall);
         EnsureComp<WFPlanetPreloadedComponent>(ground);
+
+        // A cavern stays streamed, so its ring is laid onto bare ground and pinned: the loader fills in round it.
+        if (TryComp<WFPlanetLayerComponent>(ground, out var layer)
+            && TryGetEntity(layer.Network, out var network)
+            && TryComp<WFPlanetNetworkComponent>(network, out var comp))
+        {
+            foreach (var lower in comp.LowerLayers)
+            {
+                if (TryComp<BiomeComponent>(lower, out var lowerBiome)
+                    && TryComp<MapGridComponent>(lower, out var lowerGrid)
+                    && TryComp<WFPlanetBoundsComponent>(lower, out var lowerBounds))
+                    walls += LayRing((lower, lowerBiome, lowerGrid), lowerBounds, preload.Wall);
+            }
+        }
 
         var took = Stopwatch.GetElapsedTime(preload.Started).TotalSeconds;
         Log.Info($"Preloaded {preload.Chunks!.Count} chunks of {ToPrettyString(ground)} in {took:F1} s, with {walls} boundary walls.");
@@ -119,8 +133,8 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
     }
 
     /// <summary>
-    /// Walls every tile inside the circle with a neighbour outside it: whatever the biome grew there goes, and the
-    /// tile is pinned so nothing grows back.
+    /// Walls every tile inside the circle with a neighbour outside it: whatever the biome grew there goes, a tile not
+    /// loaded yet is laid from the recipe, and the tile is pinned so nothing grows back or is ever unloaded.
     /// </summary>
     private int LayRing(Entity<BiomeComponent, MapGridComponent> ground, WFPlanetBoundsComponent bounds, EntProtoId? wall)
     {
