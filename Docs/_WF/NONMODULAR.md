@@ -6,20 +6,6 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 `unmarked` entries without a module in `Tools/_WF/Ci/modules.yml`. Edits that serve a module are listed in its README.
 
 - [`.config/dotnet-tools.json`](../../.config/dotnet-tools.json): dotnet-ef local tool manifest (pinned 10.0.12) for generating EF migrations.
-- [`.github/workflows/changelog.yml`](../../.github/workflows/changelog.yml): built-in token instead of bot PAT
-- [`.github/workflows/labeler-conflict.yml`](../../.github/workflows/labeler-conflict.yml): default token permissions are read-only
-- [`.github/workflows/labeler-needsreview.yml`](../../.github/workflows/labeler-needsreview.yml): default token permissions are read-only
-- [`.github/workflows/labeler-review.yml`](../../.github/workflows/labeler-review.yml)
-  - our repo
-  - Aphelion-Moon org team
-- [`.github/workflows/labeler-size.yml`](../../.github/workflows/labeler-size.yml): default token permissions are read-only
-- [`.github/workflows/labeler-stable.yml`](../../.github/workflows/labeler-stable.yml): default token permissions are read-only
-- [`.github/workflows/labeler-staging.yml`](../../.github/workflows/labeler-staging.yml): default token permissions are read-only
-- [`.github/workflows/labeler-untriaged.yml`](../../.github/workflows/labeler-untriaged.yml): default token permissions are read-only
-- [`.github/workflows/prtitlecase.yml`](../../.github/workflows/prtitlecase.yml)
-  - built-in token instead of bot PAT
-  - needed since the built-in token replaces the bot PAT
-  - GITHUB_TOKEN is used instead, no PAT needed
 - [`Content.Client/CharacterInfo/CharacterInfoSystem.cs`](../../Content.Client/CharacterInfo/CharacterInfoSystem.cs)
   - replays skip the character info request
   - Replay spectators have a local entity but no server to answer this request.
@@ -32,16 +18,49 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - logs characters that can't be previewed
   - a character this build cannot preview is skipped instead of aborting the loop
 - [`Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs`](../../Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs): Replay seeks and filter changes rebuild the output from scratch.
+- [`Content.IntegrationTests/Fixtures/GameTest.cs`](../../Content.IntegrationTests/Fixtures/GameTest.cs)
+  - keeps the failure readable once the dirty dispose's warning replaces it.
+  - a fixture object outlives its test, so it must not keep its pair.
+  - resets every instance field of the fixture, from its own class up to this one.
+- [`Content.IntegrationTests/Pair/TestPair.cs`](../../Content.IntegrationTests/Pair/TestPair.cs)
+  - AsyncLocal for the returned-pair guard
+  - dispose skips a pair the test already returned
+  - a returned pair can be borrowed by another test before this test's `await using` disposes it
+- [`Content.IntegrationTests/Tests/_NF/ShipyardTests.cs`](../../Content.IntegrationTests/Tests/_NF/ShipyardTests.cs)
+  - expected-value appraisal
+  - seeded so the appraisal is reproducible
+  - scratch map where fill items are spawned to be priced
+  - same rolls on every run
+  - mapped fill contents are recorded before map init
+  - random container fills count at their expected value, not this load's roll
+  - drop the scratch map and unseed the pooled server
+  - appraisal that counts random container fills at their expected value
 - [`Content.IntegrationTests/Tests/Hands/HandTests.cs`](../../Content.IntegrationTests/Tests/Hands/HandTests.cs)
   - unused, the actor is spawned instead of read from the session
   - spawn the actor instead of using the session's entity
 - [`Content.IntegrationTests/Utility/GameDataScrounger.Files.cs`](../../Content.IntegrationTests/Utility/GameDataScrounger.Files.cs): Resource paths require forward slashes, including on Windows.
-- [`Content.Server.Database/ModelPostgres.cs`](../../Content.Server.Database/ModelPostgres.cs): EF compares list defaults by reference, so upstream's empty-list default was a permanent pending change
+- [`Content.Server/_NF/PublicTransit/PublicTransitSystem.cs`](../../Content.Server/_NF/PublicTransit/PublicTransitSystem.cs): announce the departure, as FTLToDock now flies and OnShuttleArrival announces the stop
 - [`Content.Server/Body/Systems/RespiratorSystem.cs`](../../Content.Server/Body/Systems/RespiratorSystem.cs): entities without a respirator cannot metabolize inhaled gases; absence is valid.
+- [`Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs`](../../Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs)
+  - sums the bounty hand-in value
+  - items handed in to a bounty are paid by its reward, not sold
+- [`Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs`](../../Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs)
+  - a freed tile is never scheduled earlier than the current iteration.
+  - a blocker never clears earlier than the current iteration.
 - [`Content.Server/Preferences/Managers/ServerPreferencesManager.cs`](../../Content.Server/Preferences/Managers/ServerPreferencesManager.cs)
   - a failed save is logged with its slot
   - sanitized here like FinishLoad does on login
-- [`Content.Shared/_RMC14/Random/Xoroshiro64S.cs`](../../Content.Shared/_RMC14/Random/Xoroshiro64S.cs): Math.Abs(int.MinValue) throws, and folding negatives biased the low half of the range
+- [`Content.Server/Shuttles/Systems/FTLAntiCollisionSystem.cs`](../../Content.Server/Shuttles/Systems/FTLAntiCollisionSystem.cs): a docking jump ends on a free dock at its target, so don't push the shuttle off it
+- [`Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs`](../../Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs)
+  - start a real jump, as an ensured FTLComponent stayed Available and was removed
+  - pick the dock without teleporting the shuttle there before the jump
+- [`Content.Server/VendingMachines/VendingMachineSystem.cs`](../../Content.Server/VendingMachines/VendingMachineSystem.cs): a free vend skips the cash payment, which logs a zero amount as invalid
+- [`Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs`](../../Content.Shared/_Mono/Economy/SharedCreditReceiverSystem.cs): _log was never assigned, so every log line in TryCashPayment threw a NullReferenceException
+- [`Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs`](../../Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs): a client that first saw the wearer already dressed never got the equip for this item (the
+- [`Content.Shared/Gibbing/Systems/GibbingSystem.cs`](../../Content.Shared/Gibbing/Systems/GibbingSystem.cs)
+  - bodiless giblets are skipped when flung.
+  - bodiless dropped contents are skipped instead of flung.
+- [`Content.Shared/Maps/ContentTileDefinition.cs`](../../Content.Shared/Maps/ContentTileDefinition.cs): Monolith#4804 made this true, which draws weather inside ships and buildings
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../Content.Shared/Preferences/HumanoidCharacterProfile.cs)
   - the company is passed through the constructor
   - copies keep the company
@@ -49,15 +68,35 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - hash only what MemberwiseEquals compares by value
   - removed - Appearance hashed by reference, broke equal profiles hashing alike
   - the company is part of the hash
+- [`Content.Shared/Projectiles/SharedProjectileSystem.cs`](../../Content.Shared/Projectiles/SharedProjectileSystem.cs): the client replays a thrown embed's collision in prediction, and the projectile is already in
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs`](../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs): C# % keeps the sign, index 0 gave -1 and crashed the server
-- [`README.md`](../../README.md)
-  - dropped Discord link
-  - reworded for Wolfgate build differences
+- [`README.md`](../../README.md): reworded for Wolfgate build differences
 - [`Resources/Locale/en-US/_Mono/guidebook/guides.ftl`](../../Resources/Locale/en-US/_Mono/guidebook/guides.ftl): was Monolith Rules
+- [`Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/production_bounties.yml`](../../Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/production_bounties.yml): the camera bounty asked for optical sensors (OpticsEconomy1)
+- [`Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/value_bounties.yml`](../../Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/value_bounties.yml): MMC cash bounties pay 0.9x their value so cash-to-MIC-to-cash can't loop for profit
+- [`Resources/Prototypes/_Mono/Entities/Markers/Spawners/Random/scrap_processor.yml`](../../Resources/Prototypes/_Mono/Entities/Markers/Spawners/Random/scrap_processor.yml): plastitanium moved into the rare materials group so scrap doesn't undercut the crystallizer
+- [`Resources/Prototypes/_Mono/Entities/Objects/Economy/components.yml`](../../Resources/Prototypes/_Mono/Entities/Objects/Economy/components.yml): Monolith#4805 commented the price out with the flash, leaving 300 for a good made from 1800
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../Resources/Prototypes/_Mono/Guidebook/rules.yml)
   - erotic roleplay rule removed, PR #27
   - erotic roleplay rule entry removed, PR #27
-- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml): fixed broken link, was MonolithRuleRoleplayEightSafeZones
+- [`Resources/Prototypes/_Mono/Loadouts/MedicalDispatch/universal_groups.yml`](../../Resources/Prototypes/_Mono/Loadouts/MedicalDispatch/universal_groups.yml): the ER PDAs, was MedicalDoctorPDA and ContractorSeniorPhysicianPDA, whose ID resets to medical doctor access
+- [`Resources/Prototypes/_NF/Events/events.yml`](../../Resources/Prototypes/_NF/Events/events.yml)
+  - gas leak event disabled
+  - vent clog event disabled
+- [`Resources/Prototypes/_Obelisk/Species/hydrakin.yml`](../../Resources/Prototypes/_Obelisk/Species/hydrakin.yml): hydrakin is not selectable in character creation
+- [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml`](../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml)
+  - parented to BaseWeaponTurret instead of BaseWeaponBallisticTurret so it has one ammo provider.
+  - ammo container copied from BaseWeaponBallisticTurret.
+  - gun tuning copied from BaseWeaponBallisticTurret (the angles are Mono's).
+  - fire modes copied from BaseWeaponBallisticTurret.
+- [`Resources/Prototypes/GameRules/pests.yml`](../../Resources/Prototypes/GameRules/pests.yml)
+  - pest events were crowding out the rest of the table (was 6)
+  - each pest event at most once per 90 minutes
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml)
+  - fixed broken link, was MonolithRuleRoleplayEightSafeZones
+  - was color=blue, unreadable on the dark background
+  - was color=maroon, unreadable on the dark background
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml): was color=blue, unreadable on the dark background
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml)
   - was "# Monolith Rules"
   - Wolfgate branding foreword
@@ -83,4 +122,4 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/ServerInfo/Guidebook/ServerRules/WizDenCoreOnlyRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenCoreOnlyRules.xml): was 16
 - [`Resources/ServerInfo/Guidebook/ServerRules/WizDenLRPRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenLRPRules.xml): was 16
 - [`Resources/ServerInfo/Guidebook/ServerRules/WizDenMRPRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenMRPRules.xml): was 16
-- [`Resources/ServerInfo/Rules.txt`](../../Resources/ServerInfo/Rules.txt): Rules rebranded from Monolith to Wolfgate (intro and section headings), with the rule and age update (#19).
+- [`Resources/ServerInfo/Rules.txt`](../../Resources/ServerInfo/Rules.txt): Monolith renamed to Wolfgate in the intro and section headings (#19); the file is unused (server.rules_file is MonolithRuleset).

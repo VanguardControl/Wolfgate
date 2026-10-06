@@ -402,3 +402,773 @@ Entries:
   id: 100036
   time: '2026-09-25T05:18:44.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/81
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Classic ships are back! Most of the ships the Monolith shipyard refactor
+        removed return to their old shipyards, and faction warships return on
+        the tier vouchers.
+    - type: Add
+      message: >-
+        The TSF Altair, Andromeda and Flyssa, and the USSP Sulak, Remontnik and
+        Ledokol have their own LPCs again, made at their faction lathe.
+    - type: Add
+      message: Janitors, mail carriers and the HoP have their department ships again.
+    - type: Add
+      message: >-
+        The Balor, Ledokol, M-Class, Ravager, Tumour and Windreign have their
+        carrier consoles back.
+    - type: Tweak
+      message: >-
+        The Siebel and Hammerhead carry lighter guns than before, and the
+        Ravager has lighter guns and a smaller shield.
+    - type: Fix
+      message: The ship preview no longer fails to load some ships, such as the Mite.
+  id: 100037
+  time: '2026-09-25T19:21:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/82
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Derelict Drillsite now spawns with broken centrifuges and laser drills.
+  id: 100038
+  time: '2026-09-25T19:31:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/83
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Harpoons no longer hurt you when dropped.
+    - type: Fix
+      message: Harpoon turrets can be built now.
+    - type: Fix
+      message: Harpoon turrets now face the correct direction whe nbuilt.
+  id: 100039
+  time: '2026-09-25T19:58:53.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/84
+- author: Gandalf2k15
+  changes:
+    - type: Remove
+      message: Classic windreign has been removed as upstream have reimplemented it.
+  id: 100040
+  time: '2026-09-25T20:59:19.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/89
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: Fixes plastitanium drop rate from scrap, lower yield now.
+  id: 100041
+  time: '2026-09-25T21:28:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/87
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added amoxla, an ammonia-based medicine that treats airloss and
+        bloodloss in Avali, and the avali auto-injector. Avali and Proto-Avali
+        spawn with one in their survival kit.
+    - type: Add
+      message: >-
+        Ammonia now heals Avali airloss, while saline, dexalin, dexalin plus and
+        iron poison them. Avali, remind your doctors.
+    - type: Tweak
+      message: Saline metabolises twice as fast, restoring the same blood per unit.
+    - type: Fix
+      message: >-
+        Avali and Proto-Avali now wear the Avali versions of hardsuits and other
+        layered clothing instead of warped human ones.
+  id: 100042
+  time: '2026-09-25T23:51:35.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/93
+- author: Gandalf2k15
+  changes:
+    - type: Remove
+      message: Ventclog and gas leak random events no longer trigger
+  id: 100043
+  time: '2026-09-26T22:53:41.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/99
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Species should no longer be forced into an accent.
+    - type: Fix
+      message: Female displacement maps should now actually work.
+  id: 100044
+  time: '2026-09-27T01:49:08.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/100
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: The admin outfit UI is now modernised.
+  id: 100045
+  time: '2026-09-27T02:44:37.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/103
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: Fixed the docking doors on the Dredger being backwards.
+  id: 100046
+  time: '2026-09-27T17:33:56.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/107
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Ported the fire sprites from TauCetiClassic
+  id: 100047
+  time: '2026-09-27T17:50:56.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/105
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can now select your characters scream and laugh, ported from ye ole
+        skyrat! Check it under appearance!
+  id: 100048
+  time: '2026-09-27T17:52:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/106
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Cargo turn-in chutes no longer buy trade crates bought on the same
+        station, so the Caelestinus trade goods vendors can't be flipped at the
+        chute across the room. Haul them somewhere else.
+    - type: Fix
+      message: >-
+        Trade goods vendors no longer give out free crates when their eject wire
+        is pulsed or they are wrecked.
+  id: 100049
+  time: '2026-09-27T22:54:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/109
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Gyroscopes now throw shrapnel instead of an actual explosion.
+  id: 100050
+  time: '2026-09-27T22:54:41.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/108
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: You can now set who can access your ship.
+    - type: Add
+      message: Ships now come restricted to the owner by default.
+    - type: Add
+      message: You can codelock certain doors on your ship.
+    - type: Tweak
+      message: >-
+        Ship doors use the normal airlock access system, so they deny, get
+        hacked and get emagged like any airlock.
+  id: 100051
+  time: '2026-09-28T05:02:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/94
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: MMC cash bounties give far less MIC's
+  id: 100052
+  time: '2026-09-28T19:31:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/111
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: Character headshots!
+  id: 100053
+  time: '2026-09-28T20:22:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/85
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Admins can now offer mobs to ghosts!
+  id: 100054
+  time: '2026-09-29T05:29:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/114
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Chimera's now drop your body once killed.
+    - type: Fix
+      message: >-
+        You can now tab to the chimera radio chat, and it's told to you (+
+        message)
+  id: 100055
+  time: '2026-09-29T05:29:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/113
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Ported RMC's roadmap and added our roadmap to it.
+  id: 100056
+  time: '2026-09-29T06:02:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/115
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Bluespace event grids no longer cause as much stutter when they spawn
+        and despawn.
+    - type: Fix
+      message: Stinger and other projectile grenades no longer cause lag spikes.
+    - type: Fix
+      message: >-
+        Atmos monitoring consoles no longer slow the server down over long
+        rounds as pipes are built and removed.
+    - type: Tweak
+      message: Radiators and other atmos devices check for walls more cheaply.
+    - type: Tweak
+      message: NPC pathfinding updates faster when grids change.
+  id: 100057
+  time: '2026-09-29T06:02:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/117
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Avali can preen collectible, wearable feathers that preserve their color
+        and DNA and work as quills.
+    - type: Add
+      message: >-
+        Injuries can tear out bloody Avali feathers, briefly suppressing injury
+        slowdown.
+  id: 100058
+  time: '2026-09-29T17:53:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/119
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can now mis-match your appearance to unlock further(possibly
+        incompatible) appearance options(Starting with hair/beard being allowed
+        on ALL species with this toggled)
+  id: 100059
+  time: '2026-09-29T18:51:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/118
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: The bus, arrivals and evac shuttles actually jump when they dock.
+    - type: Fix
+      message: The bus announces its departures and arrivals again.
+  id: 100060
+  time: '2026-09-29T20:06:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/126
+- author: Erol509
+  changes:
+    - type: Add
+      message: >-
+        Added 13 Synthetic Lizard snout marking options, including long, thick,
+        layered, tertiary, and barless variants.
+  id: 100061
+  time: '2026-09-29T21:58:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/120
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can now select mismatched species parts to make anything you want
+        with species. It's under appearance.
+    - type: Add
+      message: >-
+        Eye markings have their own category, so you can wear a left and a right
+        eye (Shadekin, Moth and more) alongside your face markings.
+    - type: Add
+      message: Colour pickers have hue, saturation and value fields.
+  id: 100062
+  time: '2026-09-30T01:02:59.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/127
+- author: Aphast
+  changes:
+    - type: Add
+      message: >-
+        Shadekin short hair, shadekin dual color ears, shadekin dual color big
+        tail, generic neckfur, and fae fox ears alt variant
+    - type: Fix
+      message: Minor sprite error with fae fox ears
+  id: 100063
+  time: '2026-09-30T16:18:06.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/129
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Only insurgency will be available below 20 pop.
+  id: 100064
+  time: '2026-10-01T01:44:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/134
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Shields have different animations and effects.
+    - type: Add
+      message: >-
+        Shield shunting, you can now direct your shield towards a certain
+        direction for better protection. See shield tab.
+  id: 100065
+  time: '2026-10-01T01:50:34.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/131
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Borers no longer take control of their host when removed.
+  id: 100066
+  time: '2026-10-01T01:50:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/133
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Engine version bumped to 277.2.1
+  id: 100067
+  time: '2026-10-01T02:10:31.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/116
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Buttons with access requirements now actually respect the access
+        requirements.
+    - type: Tweak
+      message: >-
+        A card with access now presses a locked button directly, and the button
+        stays locked.
+    - type: Tweak
+      message: >-
+        Lockable buttons on a ship follow ship access, so your crew can use
+        them.
+    - type: Tweak
+      message: >-
+        Crew on a ship's access list keep their access while the ship is
+        unlocked.
+    - type: Add
+      message: The Access tab can set every door on the ship to one rule at once.
+    - type: Fix
+      message: ERT teams can open the doors of their own faction ship.
+    - type: Tweak
+      message: >-
+        An ERT's ship locks itself once the first responder is aboard, and
+        responders always get an ID card.
+  id: 100068
+  time: '2026-10-01T06:18:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/136
+- author: Aphast
+  changes:
+    - type: Add
+      message: A new thicker accent 'neofrench'
+    - type: Tweak
+      message: Slimepeople can now select any color skin
+  id: 100069
+  time: '2026-10-01T07:02:48.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/138
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Harpoons fired square on at a hull no longer skip off when they land
+        beside the seam between two wall tiles.
+    - type: Fix
+      message: >-
+        Loaded harpoons no longer get pulled out of their turret while the ship
+        is moving, which left the turret unable to fire.
+    - type: Fix
+      message: >-
+        Loose harpoons are solid items again. They stay inside the hull and slow
+        down on the deck instead of sliding through walls and into space.
+    - type: Fix
+      message: >-
+        The harpoon turret's winch stops when the two hulls touch instead of
+        hauling them into each other.
+    - type: Fix
+      message: >-
+        Arrows and other reusable projectiles are no longer yanked out of hands
+        and containers or flung around on fast ships.
+    - type: Fix
+      message: >-
+        A recovered harpoon fired again from a fast ship no longer flies off
+        along its previous shot's path.
+  id: 100070
+  time: '2026-10-01T07:38:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/139
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Shield generator stats are now shown on examine and in the Shields
+        panel.
+    - type: Fix
+      message: >-
+        Shields absorb hull collision damage using shield health, with impact
+        effects.
+    - type: Fix
+      message: Explosive rounds no longer detonate after being absorbed by shields.
+    - type: Fix
+      message: Shields now intercept flak fragments, minelayer rounds and naval mines.
+    - type: Fix
+      message: >-
+        Absorbed payloads no longer trigger afterward, and outgoing payloads
+        pass through their own ship's shields.
+  id: 100071
+  time: '2026-10-01T07:39:05.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/140
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Admins can now teleport using the mass scanner.
+  id: 100072
+  time: '2026-10-01T08:14:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/141
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: Fix optical cam bounty
+  id: 100073
+  time: '2026-10-01T18:46:57.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/143
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: Improved mapping tools
+  id: 100074
+  time: '2026-10-01T18:47:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/110
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Wolfmed! Damage now actually wounds your body parts instead of just
+        being a number. Cuts, bruises, burns, fractures and bleeds are all
+        different and need the right treatment.
+    - type: Add
+      message: >-
+        Pain. Bad wounds hurt and enough of it will drop you. There's a pain
+        HUD, painkillers in tiers (analgesic, ibuprofen, ketorolac, tramadol,
+        oxycodone) and analgesic, stimulant, opiate and naloxone pens.
+    - type: Add
+      message: >-
+        Bleeding is per wound. Tourniquets, gauze, patches and sutures stop it.
+        A cut artery or a fresh stump sprays blood everywhere, everything else
+        just drips.
+    - type: Add
+      message: Organs can be damaged and destroyed. Internal bleeding is a thing now.
+    - type: Add
+      message: >-
+        Limbs come off. Guns, lasers, blades and explosions can all sever them.
+        You get a stump that bleeds until it's dressed, gibs and blood on the
+        deck, and the limb can be put back on.
+    - type: Add
+      message: Bullets don't always land on the part you aimed at anymore.
+    - type: Add
+      message: >-
+        Infections. An open wound gets infected if it's out in the air outside a
+        sealed suit, something dirty went in it or it's a bite. It travels limb
+        to chest, then it's sepsis, then septic shock puts you out and your
+        organs start failing. Antibiotics and antiseptic spray sort it.
+    - type: Add
+      message: >-
+        Dying is different now. Death is your brain stopping, not a damage
+        number. Cardiac arrest gives you a few minutes before your brain goes,
+        CPR holds it there and a defib brings you back. A wrecked brain still
+        comes back, just dumb, slurring and clumsy until it's repaired.
+    - type: Add
+      message: >-
+        When you're down you can crawl, grab things in reach, call for help, say
+        your last words or succumb. If you're stable and nobody's coming you can
+        ghost and wait. Going down drops what you're holding, but sidearms fire
+        from the floor.
+    - type: Add
+      message: >-
+        Poison, radiation, cold, heat, electrocution and vacuum all go through
+        the new system, and the analyzer tells you what's actually killing
+        someone.
+    - type: Add
+      message: >-
+        The autodoc pod. Queue procedures or let it triage on AUTO. It talks,
+        cuts your clothes off, welds chassis breaches, runs antibiotic courses
+        and has a blood reservoir. Flatpack at the Wolfgate vendor, modules from
+        cargo.
+    - type: Add
+      message: >-
+        IV drips. Blood packs or a beaker in, or blood drawn out. Flatpacks at
+        NanoMed Plus, CiviMed and the Wolfgate vendor.
+    - type: Add
+      message: >-
+        IPCs bleed hydraulic fluid and get patched with cable coil, a welder,
+        the nanite applicator or the pod. They've got their own HUD and health
+        bars, overheat, shut down without power, get hurt by EMPs, and come back
+        with core repair and a restart.
+    - type: Add
+      message: >-
+        Slimes, diona and cybernetic limbs have their own wound profiles. Slimes
+        survive losing their head.
+    - type: Add
+      message: >-
+        New med gear: splints, makeshift and silk patches, antiseptic spray,
+        skin grafts, osteogen for fractures, hydraulic fluid, a synthetic repair
+        kit, and pill canisters and bottles of the painkillers. Medical vendors
+        now stock tourniquets, sutures, mesh and the surgical basics. The first
+        aid kit comes with a tourniquet, a splint and painkillers, and medkits
+        are bigger inside.
+    - type: Add
+      message: >-
+        Body sounds. Heartbeat in crit, flatline on arrest, coughs, retches,
+        sneezes, gasps and shivers, plus proper melee, chop and bullet impact
+        sounds.
+    - type: Add
+      message: Wounds, Wound Treatment and Autodoc guidebook pages.
+    - type: Tweak
+      message: >-
+        Chems that hurt you from the inside (arithrazine, overdoses) make you
+        sick instead of covering you in wounds.
+    - type: Tweak
+      message: >-
+        Avali stasis works with wounds now. It holds every bleed, closes wounds
+        slowly, halves hits, and never fixes a broken bone.
+    - type: Add
+      message: >-
+        You can tear a makeshift tourniquet out of any jumpsuit in the crafting
+        menu. Hold the one you want torn or it takes the one you're wearing.
+        Works like the real thing, but a hard hit on that limb knocks it loose.
+    - type: Add
+      message: >-
+        Plain sutures. No research, printed at the medical techfab, stocked in
+        the med vendors and kits. Slower than the medicated ones.
+    - type: Add
+      message: >-
+        Makeshift sutures from a metal rod and a cloth. They close the cut but
+        leave it dirty, so clean it or expect an infection.
+    - type: Tweak
+      message: >-
+        Medkits and the medical and EMT belts carry more to keep someone alive:
+        tourniquets, splints, sutures and pens. The standard and combat kits are
+        bigger inside.
+    - type: Tweak
+      message: >-
+        Clotting chems (tranexamic acid, bicaridine, inaprovaline and co) work
+        on wounds. They never take a dressing or tourniquet off and at most
+        halve a severed artery.
+    - type: Tweak
+      message: >-
+        Overdoses and poisons that used to deal suffocation or blood loss damage
+        (dexalin, dexalin plus, tranexamic acid, lexorin and the like) build up
+        toxins instead.
+    - type: Fix
+      message: >-
+        Chem descriptions say what they actually do now (dexalin, dexalin plus,
+        cryoxadone, tranexamic acid, ultravasculine, rhymatine, stasizium).
+    - type: Fix
+      message: >-
+        Salvage, dungeon and medical bounty corpses spawn dead again, with their
+        injuries on them as wounds. Some bounties used to come up alive with
+        nothing to fix.
+    - type: Fix
+      message: >-
+        Surgeries like grafting burns, repairing tendons and arteries, pulling
+        out shrapnel and healing organs can be finished by hand again. The
+        closing step used to refuse once the treatment step had worked, leaving
+        the patient open.
+    - type: Tweak
+      message: >-
+        Minor wounds don't get infected from being out in the open anymore, so a
+        small burn or scratch won't turn into sepsis. Minor bites, shrapnel and
+        anything dirty still can.
+    - type: Fix
+      message: >-
+        Falling asleep while your heart's stopped and then dying no longer
+        leaves you stuck on the floor after you're revived.
+    - type: Add
+      message: >-
+        Executions. Right click a downed, unconscious, cuffed or sleeping player
+        with a gun, blade or blunt weapon in hand and pick Execute. It asks if
+        you're sure, then runs a timer, then kills them. What's left depends on
+        the weapon: a weak one leaves a head wound and an artery, a medium one
+        puts a hole in the head and the brain comes out, a heavy one takes the
+        head off. Big lasers burn it to ash, heavy hammers crush it, big blades
+        take it clean off.
+    - type: Add
+      message: >-
+        Shooting yourself in the head actually kills you now, with the same
+        gore. Typing suicide with a loaded gun, blade or blunt weapon in hand
+        uses it.
+    - type: Tweak
+      message: Rubber rounds, beanbags, disablers and tasers can't execute anyone.
+    - type: Tweak
+      message: >-
+        The health analyzer has been redone. Overview and vitals on the left,
+        wounds, organs and chemicals in tabs on the right, with treatment advice
+        and a targeting doll. It doesn't need a power cell anymore. Examining
+        someone shows their visible wounds.
+    - type: Tweak
+      message: The medical HUD shows a flatline on someone in arrest instead of crit.
+    - type: Tweak
+      message: >-
+        Armour vests and the ballistic helmet only cover the parts they actually
+        cover.
+    - type: Tweak
+      message: >-
+        Getting hit hard interrupts whatever you were doing, surgery and
+        treatment included.
+    - type: Tweak
+      message: Wounds draw over fur, scales and feathers instead of under them.
+    - type: Add
+      message: >-
+        Admins get `wolfmedrange` for a test range and a body part form of the
+        damage command.
+  id: 100075
+  time: '2026-10-01T19:28:54.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/32
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Shields now respect FTL cooldown again
+  id: 100076
+  time: '2026-10-02T00:39:43.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/144
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Caelestinus Central has received a substantial investment in their
+        medical department and has refurnished accordingly. The engineering
+        company is not liable for the damaged cryotube.
+  id: 100077
+  time: '2026-10-02T03:19:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/145
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Subtle emote. You can now use the subtle emote which only sends to those
+        within 1.5 tiles of your character and isn't visible to ghosts. Access
+        it via rightclick or /subtle in chat.
+  id: 100078
+  time: '2026-10-02T04:09:21.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/146
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: Fixed the cryotubes in CC's medical wing not having a gas pump
+    - type: Fix
+      message: The catwalk tiles in the morgue at CC should no longer flicker
+    - type: Fix
+      message: Replaced a firelock that started closed in the back of CC medical
+  id: 100079
+  time: '2026-10-04T02:42:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/152
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Species will now actually come equipped with organs.
+    - type: Tweak
+      message: Mannitol actually fixes brain damage now.
+    - type: Tweak
+      message: >-
+        Space is a lot less forgiving. No suit in vacuum and you're on the floor
+        in about 30 seconds, and a mask on its own only buys a few more. Running
+        out of air takes you down in a bit over a minute instead of three.
+    - type: Fix
+      message: Avali no longer gib from damage every other species just bleeds from.
+    - type: Fix
+      message: >-
+        Alt-clicking the autodoc no longer puts you inside it. Climb in is in
+        the right click menu, or drag yourself onto it.
+    - type: Fix
+      message: >-
+        Slime brains can be fixed now. Their brain is the core in the chest:
+        Heal Slime Core and Repair Slime Core on the torso, and the autodoc's
+        neuro disk does both. Mannitol works on it too.
+    - type: Fix
+      message: >-
+        Shadekin and other races that don't breathe heal oxygen damage on their
+        own like everyone else.
+    - type: Fix
+      message: Thaven can breathe. They were suffocating in normal air.
+  id: 100080
+  time: '2026-10-05T05:37:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/150
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Planets! You can now orbit, fly down to, land on and crash into the
+        Kyphrus worlds.
+    - type: Add
+      message: >-
+        Every planet has a cavern under it with its own rock, ores and wildlife.
+        Find a hole or dig your own way down.
+    - type: Add
+      message: You can print shovels at the autolathe now.
+    - type: Add
+      message: >-
+        You can build stairs from a cavern up to the surface (construction menu,
+        10 steel). Whatever you're dragging comes with you, on the stairs or
+        climbing.
+    - type: Add
+      message: >-
+        You can build pressurised rooms on planets and in caverns. They need a
+        floor, bare ground counts as outside.
+    - type: Add
+      message: Planets have weather, day and night, storms and thunder.
+    - type: Add
+      message: >-
+        Atmospheric jetpacks. They burn welding fuel, fly in a planet's
+        atmosphere and climb between its air layers, but not above 1.5 g. Normal
+        jetpacks only work in orbit.
+    - type: Add
+      message: >-
+        Parachutes, planet timepieces, landing thruster kits and atmospheric
+        jetpacks are in the Wolfgate vendor.
+    - type: Add
+      message: Chimera can plant flesh pustules that burst into flesh ticks.
+    - type: Add
+      message: A fully charged SRD can snap a broken-off chunk of your ship back on.
+    - type: Add
+      message: Ships make an engine noise for their crew while the thrusters fire.
+    - type: Tweak
+      message: >-
+        Ships landing on a planet flatten the trees and rocks they come down on.
+        Anyone under one gets hurt and shoved aside instead of gibbed.
+    - type: Tweak
+      message: Moths and harpies can fly up and down between levels again.
+    - type: Tweak
+      message: >-
+        Planets were moved out of the drone belt, so you don't get jumped by
+        drones as soon as you arrive.
+    - type: Fix
+      message: Flying around planets no longer stutters while new terrain loads.
+    - type: Fix
+      message: Xeno turrets no longer fire two rounds per shot.
+  id: 100081
+  time: '2026-10-05T08:42:29.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/40
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Pest events trigger less now.
+  id: 100082
+  time: '2026-10-05T09:04:59.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/163
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Flaky wolfmed tests
+  id: 100083
+  time: '2026-10-05T09:05:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/161
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Admins now get access to a bigger radar for monitoring.
+  id: 100084
+  time: '2026-10-05T21:36:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/165
+- author: Gandalf2k15
+  changes:
+    - type: Remove
+      message: Hydrakin have been disabled at the request of the creator.
+  id: 100085
+  time: '2026-10-05T21:43:36.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/157
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: All of NovaSector's markings have been ported over.
+  id: 100086
+  time: '2026-10-06T03:06:57.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/169

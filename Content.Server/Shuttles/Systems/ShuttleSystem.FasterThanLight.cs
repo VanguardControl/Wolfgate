@@ -158,6 +158,7 @@ public sealed partial class ShuttleSystem
         DebugTools.Assert(!_mapSystem.IsPaused(mapId));
         var parallax = EnsureComp<ParallaxComponent>(mapUid);
         parallax.Parallax = ftlMap.Parallax;
+        _mapSystem.SetAmbientLight(mapId, ftlMap.AmbientLightColor); // Mono
 
         return mapUid;
     }
@@ -367,6 +368,9 @@ public sealed partial class ShuttleSystem
         float? hyperspaceTime = null,
         string? priorityTag = null)
     {
+        if (WfRefusesFtlDeparture(shuttleUid)) // WOLFGATE(Planets): the docking branch never calls TrySetupFTL, so it asks the same gate.
+            return;
+
         // TODO: Validation
         if (!TryComp<FTLDestinationComponent>(_mapManager.GetMapEntityId(_transform.GetMapId(target)), out var dest))
         {
@@ -409,7 +413,12 @@ public sealed partial class ShuttleSystem
             }
         }
 
-        var hyperspace = EnsureComp<FTLComponent>(shuttleUid);
+        // WOLFGATE START: start a real jump, as an ensured FTLComponent stayed Available and was removed
+        // Expedition targets are already fully undocked above, so TrySetupFTL's docked-shuttle checks can't refuse them.
+        // var hyperspace = EnsureComp<FTLComponent>(shuttleUid);
+        if (!TrySetupFTL(shuttleUid, component, out var hyperspace))
+            return;
+        // WOLFGATE END
         SetupFTL(hyperspace, startupTime, hyperspaceTime, priorityTag);
 
         if (TryComp<DockingComponent>(target, out var dock) && dock.Docked && dock.DockedWith != null)
@@ -417,7 +426,10 @@ public sealed partial class ShuttleSystem
             hyperspace.TargetCoordinates = new EntityCoordinates(dock.DockedWith.Value, Vector2.Zero);
             hyperspace.TargetAngle = _transform.GetWorldRotation(dock.DockedWith.Value) + Math.PI;
         }
-        else if (TryFTLDock(shuttleUid, component, target, out var config))
+        // WOLFGATE START: pick the dock without teleporting the shuttle there before the jump
+        // else if (TryFTLDock(shuttleUid, component, target, out var config))
+        else if (_dockSystem.GetDockingConfig(shuttleUid, target, priorityTag) is { } config)
+        // WOLFGATE END
         {
             hyperspace.TargetCoordinates = config.Coordinates;
             hyperspace.TargetAngle = config.Angle;
@@ -546,6 +558,9 @@ public sealed partial class ShuttleSystem
     {
         component = null;
 
+        if (WfRefusesFtlDeparture(uid)) // WOLFGATE(Planets): a planet is left from orbit, never from the surface, the air or mid-transit.
+            return false;
+
         if (HasComp<FTLComponent>(uid))
         {
             Log.Warning($"Tried queuing {ToPrettyString(uid)} which already has {nameof(FTLComponent)}?");
@@ -631,6 +646,7 @@ public sealed partial class ShuttleSystem
 
         component = AddComp<FTLComponent>(uid);
         component.State = FTLState.Starting;
+        SuppressWolfgateFtlShields(uid); // WOLFGATE(ShipShields): drop departing shield fields immediately after successful spoolup.
         var audio = _audio.PlayPvs(_startupSound, uid);
         _audio.SetGridAudio(audio);
         component.StartupStream = audio?.Entity;
@@ -1459,6 +1475,9 @@ public sealed partial class ShuttleSystem
                 {
                     continue;
                 }
+
+                if (WfSetDownOn(uid, ent, mapUid.Value)) // WOLFGATE(Planets): a hull coming down on a planet hurts a mob under it and shoves it clear, and gibs nobody
+                    continue;
 
                 if (_bodyQuery.TryGetComponent(ent, out var mob))
                 {

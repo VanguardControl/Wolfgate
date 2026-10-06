@@ -106,6 +106,7 @@
         Piercing: 14
     soundHit:
       # WOLFGATE(Weapons) START: untagged targets sound like metal
+      # upstream original, kept for merges:
       # path: /Audio/Weapons/Guns/Hits/bullet_hit.ogg
       collection: MetalBulletImpact
       # WOLFGATE END

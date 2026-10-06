@@ -3,12 +3,17 @@
 Internet sounds. An admin gives a YouTube, SoundCloud or other yt-dlp supported link; the server fetches it, converts
 it to Ogg and sends it to the clients, and both ends mount it as an ordinary resource, so it plays like any shipped
 sound. Played to everyone, it shows a small radio at the top of each screen with volume and stop. Ship PA speakers
-play the same tracks (see ShipPa). Station, ambient and lobby music pause while one plays and resume after.
+play the same tracks (see ShipPa). Station, ambient and lobby music pause while one plays and resume after. A stealth
+play (the admin window's Stealth Play button, or the commands' `stealth` flag) names nobody on the radio or in other
+admins' windows; only the admin logs record who played it.
 
 Entry points: `InternetSoundSystem` (server fetch and playback; client mounting and the radio),
 `InternetSoundDownloader` (yt-dlp and ffmpeg, off the main thread), `InternetSoundDownloadProxy` (a per-download
 SOCKS5 tunnel that only connects to checked addresses), `InternetSoundReplaySystem` (keeps the audio in replays) and
-the `WolfgateMusicPause` partials. The admin panel and the play command are in Administration; settings are in
+the `WolfgateMusicPause` partials. `WFAudioBudgetSystem` caps how many network sounds a client starts at once, so a
+burst of hundreds of clips (a large crash) can't exhaust audio sources. On the server, break, landing and impact
+sounds are each held to a handful a second (`WFSoundBudget`), counted per grid, or per map for things on no grid, so
+a crash on one ship never mutes another. The admin panel and the play command are in Administration; settings are in
 `InternetSoundCVars`.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -30,6 +35,7 @@ the `WolfgateMusicPause` partials. The admin panel and the play command are in A
 - [`Content.Shared/_WF/Audio/InternetSound/InternetSoundProtocol.cs`](../../../Content.Shared/_WF/Audio/InternetSound/InternetSoundProtocol.cs)
 - [`Content.Shared/_WF/Audio/InternetSound/InternetSoundReplaySystem.cs`](../../../Content.Shared/_WF/Audio/InternetSound/InternetSoundReplaySystem.cs)
 - [`Content.Shared/_WF/Audio/InternetSound/InternetSoundResources.cs`](../../../Content.Shared/_WF/Audio/InternetSound/InternetSoundResources.cs)
+- [`Content.Shared/_WF/Audio/WFSoundBudget.cs`](../../../Content.Shared/_WF/Audio/WFSoundBudget.cs)
 
 ### Client
 
@@ -39,6 +45,11 @@ the `WolfgateMusicPause` partials. The admin panel and the play command are in A
 - [`Content.Client/_WF/Audio/InternetSound/InternetSoundPopup.xaml.cs`](../../../Content.Client/_WF/Audio/InternetSound/InternetSoundPopup.xaml.cs)
 - [`Content.Client/_WF/Audio/InternetSound/InternetSoundSystem.cs`](../../../Content.Client/_WF/Audio/InternetSound/InternetSoundSystem.cs)
 - [`Content.Client/_WF/Audio/InternetSound/InternetSoundSystem.Replay.cs`](../../../Content.Client/_WF/Audio/InternetSound/InternetSoundSystem.Replay.cs)
+- [`Content.Client/_WF/Audio/WFAudioBudgetSystem.cs`](../../../Content.Client/_WF/Audio/WFAudioBudgetSystem.cs)
+
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/_WF/Audio/LandSoundBudgetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Audio/LandSoundBudgetTest.cs)
 
 ### Unit tests
 
@@ -47,6 +58,7 @@ the `WolfgateMusicPause` partials. The admin panel and the play command are in A
 - [`Content.Tests/_WF/Audio/InternetSoundResourcesTest.cs`](../../../Content.Tests/_WF/Audio/InternetSoundResourcesTest.cs)
 - [`Content.Tests/_WF/Audio/InternetSoundSandboxTest.cs`](../../../Content.Tests/_WF/Audio/InternetSoundSandboxTest.cs)
 - [`Content.Tests/_WF/Audio/InternetSoundTransferTest.cs`](../../../Content.Tests/_WF/Audio/InternetSoundTransferTest.cs)
+- [`Content.Tests/_WF/Audio/WFSoundBudgetTest.cs`](../../../Content.Tests/_WF/Audio/WFSoundBudgetTest.cs)
 
 ### Localization
 
@@ -56,5 +68,15 @@ the `WolfgateMusicPause` partials. The admin panel and the play command are in A
 
 - [`Content.Client/Audio/ContentAudioSystem.AmbientMusic.cs`](../../../Content.Client/Audio/ContentAudioSystem.AmbientMusic.cs): replay shutdown flushes audio entities before the UI leaves gameplay
 - [`Content.Client/Replay/ContentReplayPlaybackManager.cs`](../../../Content.Client/Replay/ContentReplayPlaybackManager.cs): indexed by the internet sound system when playback starts
+- [`Content.Server/Destructible/DestructibleSystem.cs`](../../Destructible/DestructibleSystem.cs)
+  - the destruction-sound budget needs the tick
+  - destruction-sound budget, see WfDestructionSoundAllowed.
+- [`Content.Server/Destructible/Thresholds/Behaviors/PlaySoundBehavior.cs`](../../Destructible/Thresholds/Behaviors/PlaySoundBehavior.cs): destruction sounds share a budget, so a landing hull can't exhaust the client's sources.
+- [`Content.Shared/Damage/Systems/DamageOnHighSpeedImpactSystem.cs`](../../../Content.Shared/Damage/Systems/DamageOnHighSpeedImpactSystem.cs)
+  - impact-sound budget over time, see WfImpactSoundAllowed.
+  - thuds are capped on each grid so a skidding hull's loose items can't exhaust the client's audio sources.
+- [`Content.Shared/Sound/SharedEmitSoundSystem.cs`](../../../Content.Shared/Sound/SharedEmitSoundSystem.cs)
+  - landing-sound budget, a handful a second on each grid.
+  - landing sounds are capped per second on each grid; a silent landing spends nothing.
 
 <!-- WOLFGATE-GENERATED END -->

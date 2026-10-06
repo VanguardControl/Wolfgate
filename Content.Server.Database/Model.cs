@@ -97,10 +97,6 @@ namespace Content.Server.Database
             // WOLFGATE END
 
             // Mono start
-            modelBuilder.Entity<Profile>()
-                .Property(p => p.Flags)
-                .HasDefaultValue(new List<string>());
-
             modelBuilder.Entity<ProfileComponent>()
                 .HasOne(e => e.Profile)
                 .WithMany(e => e.Components)
@@ -515,11 +511,22 @@ namespace Content.Server.Database
         // WOLFGATE(Genitals): creator anatomy as versioned JSON; empty until the profile is migrated or saved.
         [Column("genitals")] public string Genitals { get; set; } = "";
 
+        // WOLFGATE(EmoteVoices) START: scream and laugh chosen in the creator; empty keeps the species' own.
+        [Column("scream_voice")] public string ScreamVoice { get; set; } = "";
+        [Column("laugh_voice")] public string LaughVoice { get; set; } = "";
+        // WOLFGATE END
+
         // Mono start
-        public List<string> Flags { get; set; } = [];
+        public string[] Flags { get; set; } = [];
         public List<ProfileComponent> Components { get; } = [];
         public List<ProfileItem> Items { get; } = [];
         // Mono end
+
+        // WOLFGATE(Headshot): image URL shown on examine, empty when unused.
+        [Column("headshot_url")] public string HeadshotUrl { get; set; } = "";
+
+        // WOLFGATE(Species): saves the Mismatched parts option (every species' markings, hair and facial hair)
+        [Column("mismatched_parts")] public bool MismatchedParts { get; set; }
 
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;

@@ -104,8 +104,11 @@ public abstract partial class SharedProjectileSystem : EntitySystem
     /// <returns></returns>
     public bool ShouldRaycastProjectile(float speed)
     {
-        if (_adaptiveRaycasting && speed > _minRaycastVelocity * (_physicsTickrate / BasePhysicsTickrate))
+        // WOLFGATE(Weapons) START: scale by the real ratio, as whole-number division made any tickrate under 60 a threshold of zero
+        // if (_adaptiveRaycasting && speed > _minRaycastVelocity * (_physicsTickrate / BasePhysicsTickrate))
+        if (_adaptiveRaycasting && speed > _minRaycastVelocity * ((float) _physicsTickrate / BasePhysicsTickrate))
             return true;
+        // WOLFGATE END
         else if (speed > _minRaycastVelocity)
             return true;
 
@@ -524,9 +527,11 @@ public abstract partial class SharedProjectileSystem : EntitySystem
 
         EnsureComp<EmbeddedContainerComponent>(target, out var embeddedContainer);
 
+        // WOLFGATE START: the client replays a thrown embed's collision in prediction, and the projectile is already in
+        // the target's set from the first pass; the debug assert took a debug client down for it. The set add is idempotent.
         //Assert that this entity not embed
-        DebugTools.AssertEqual(embeddedContainer.EmbeddedObjects.Contains(uid), false);
-
+        // DebugTools.AssertEqual(embeddedContainer.EmbeddedObjects.Contains(uid), false);
+        // WOLFGATE END
         embeddedContainer.EmbeddedObjects.Add(uid);
     }
 

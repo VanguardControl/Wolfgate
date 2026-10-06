@@ -785,65 +785,132 @@
     dynamicPacks:
     - MonoTradeCratesPrecisionAssemblerMMC
 
+# WOLFGATE(BrokenMachines) START: replaced by a broken prop in _WF/BrokenMachines
+# - type: entity
+#   id: CentrifugeLathe
+#   parent: [BaseStructureDisableToolUse, BaseLatheLube]
+#   name: industrial uranium processing centrifuge
+#   description: A large sized industrial gas centrifuge for bulk processing isotopes, materials and generally making things go spinny. Much more efficient at producing fissile uranium than the miniature ones. Not equipped to reprocess nuclear fuel.
+#   components:
+#   - type: Sprite
+#     snapCardinals: false
+#     offset: 0.5, 0.5
+#     noRot: false
+#     sprite: _Mono/Structures/Machines/2x2centrifuge.rsi
+#     layers:
+#     - state: icon
+#       map: [ "enum.LatheVisualLayers.IsRunning" ]
+#     - state: unlit
+#       shader: unshaded
+#       map: [ "enum.PowerDeviceVisualLayers.Powered"]
+#     - state: panel
+#       map: ["enum.WiresVisualLayers.MaintenancePanel"]
+#   - type: Lathe
+#     producingSound: /Audio/Ambience/Objects/crushing.ogg
+#     idleState: icon
+#     runningState: building
+#     staticPacks:
+#     - MonoCentrifugeProcessingFullSizeStatic
+#   - type: Fixtures
+#     fixtures:
+#       fix1:
+#         shape:
+#           !type:PhysShapeAabb
+#           bounds: "-0.5,1.5,1.2,-0.5"
+#         density: 1500
+#         mask:
+#         - MachineMask
+#         layer:
+#         - MachineLayer
+#   - type: Destructible
+#     thresholds:
+#     - trigger:
+#         !type:DamageTrigger
+#         damage: 500000
+#       behaviors:
+#       - !type:DoActsBehavior
+#         acts: ["Destruction"]
+#       - !type:PlaySoundBehavior
+#         sound:
+#           collection: MetalBreak
+#   - type: MaterialStorage
+#     whitelist:
+#       tags:
+#       - Sheet
+#       - RawMaterial
+#       - Ingot
+#       - Ore
+#   - type: RequireProjectileTarget
+#   - type: GuideHelp
+#     guides:
+#     - Economy
+#   - type: Transform
+#     anchored: true
+#     noRot: false
+#   - type: OreSiloClient
+# WOLFGATE END
+
 - type: entity
-  id: CentrifugeLathe
-  parent: [BaseStructureDisableToolUse, BaseLatheLube]
-  name: industrial uranium processing centrifuge
-  description: A large sized industrial gas centrifuge for bulk processing isotopes, materials and generally making things go spinny. Much more efficient at producing fissile uranium than the miniature ones. Not equipped to reprocess nuclear fuel.
+  parent: BaseLatheAssembler # caelestinus ASMGTs require small monocrystals now.
+  id: SecurityTechFabCaelestinus # Exists because anything given to the regular secfab is also given to the TSFMCfab.
+  name: caelestinus security techfab
+  description: A techfab used by members of the Caelestinus Security Detachment.
   components:
-  - type: Sprite
-    snapCardinals: false
-    offset: 0.5, 0.5
-    noRot: false
-    sprite: _Mono/Structures/Machines/2x2centrifuge.rsi
-    layers:
-    - state: icon
-      map: [ "enum.LatheVisualLayers.IsRunning" ]
-    - state: unlit
-      shader: unshaded
-      map: [ "enum.PowerDeviceVisualLayers.Powered"]
-    - state: panel
-      map: ["enum.WiresVisualLayers.MaintenancePanel"]
   - type: Lathe
-    producingSound: /Audio/Ambience/Objects/crushing.ogg
     idleState: icon
-    runningState: building
+    runningState: icon
     staticPacks:
-    - MonoCentrifugeProcessingFullSizeStatic
-  - type: Fixtures
-    fixtures:
-      fix1:
-        shape:
-          !type:PhysShapeAabb
-          bounds: "-0.5,1.5,1.2,-0.5"
-        density: 1500
-        mask:
-        - MachineMask
-        layer:
-        - MachineLayer
-  - type: Destructible
-    thresholds:
-    - trigger:
-        !type:DamageTrigger
-        damage: 500000
-      behaviors:
-      - !type:DoActsBehavior
-        acts: ["Destruction"]
-      - !type:PlaySoundBehavior
-        sound:
-          collection: MetalBreak
+    - SecurityEquipmentStatic
+    - SecurityPracticeStatic
+    - StaticAmmoRecipePack
+    - StaticGrenades
+    - SecurityWeaponsStatic
+    - MonoCaelestinusVouchersStatic
+    dynamicPacks:
+    - SecurityEquipment
+    - SecurityExplosives
+    - DynamicAmmoRecipePack
+    - SecurityWeapons
+    - SecurityDisablers
+    - SMCybernetics
+    # Mono - Mechs
+    - WeaponMechCombatArsenal
+    - SmartGun # Goobstation
+    # Mono start
+    - MonoTSFWeaponsDynamicMelee
+    - MonoTSFWeaponsDynamicRanged
+    - MonoTSFMiscDynamic
+    - MonoRogueWeaponsDynamicMelee
+    - MonoRogueWeaponsDynamicRanged
+    - MonoRogueMiscDynamic
+    - UniversalShellAmmo
+    - ResearchedExplosives
+    - UniversalRailgunAmmo
+    - UniversalMissileAmmo
+    - UniversalOrdinance
+    - SmartGun #Smart SMG
+    - NFMercenaryTechfabDeprecated
+    # Mono end
   - type: MaterialStorage
     whitelist:
       tags:
       - Sheet
       - RawMaterial
       - Ingot
-      - Ore
   - type: RequireProjectileTarget
-  - type: GuideHelp
-    guides:
-    - Economy
-  - type: Transform
-    anchored: true
-    noRot: false
   - type: OreSiloClient
+  - type: Sprite
+    sprite: Structures/Machines/techfab.rsi
+    layers:
+    - state: icon
+      map: [ "enum.LatheVisualLayers.IsRunning" ]
+    - state: sec
+    - state: unlit
+      shader: unshaded
+      map: [ "enum.PowerDeviceVisualLayers.Powered"]
+    - state: inserting
+      map: ["enum.MaterialStorageVisualLayers.Inserting"]
+    - state: panel
+      map: ["enum.WiresVisualLayers.MaintenancePanel"]
+  - type: Machine
+    board: SecurityTechFabCaelestinusMachineCircuitboard

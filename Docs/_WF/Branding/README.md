@@ -38,6 +38,8 @@ the engine hard-codes it. Its marked edits also rebrand the repository README an
 - [`Content.Client/MainMenu/UI/MainMenuControl.xaml.cs`](../../../Content.Client/MainMenu/UI/MainMenuControl.xaml.cs): Wolfgate logo
 - [`README.md`](../../../README.md)
   - rebrand from Monolith to Wolfgate
+  - dropped Monolith's Discord link
+  - link to the contributor guidelines
   - rebrand contributing section
   - reworded license section for Wolfgate branding
 - [`Resources/ConfigPresets/_Mono/monolithCore.toml`](../../../Resources/ConfigPresets/_Mono/monolithCore.toml): was Monolith motd

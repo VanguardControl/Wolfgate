@@ -13,6 +13,7 @@ using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Shared._Common.Consent; // WOLFGATE(Genitals)
 using Content.Shared._Mono.Company;
+using Content.Shared._WF.EmoteVoices; // WOLFGATE(EmoteVoices)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
 using Content.Shared._WF.Prototypes; // WOLFGATE(Prototypes)
@@ -315,7 +316,16 @@ namespace Content.Server.Database
                     component.Sticky)),
                 profile.Items.Select(item => new PersistentProfileItem(
                     item.Data,
-                    item.Sticky))); // Mono end
+                    // WOLFGATE(EmoteVoices) START: the chosen voices follow the Mono data
+                    // item.Sticky))); // Mono end
+                    item.Sticky)), // Mono end
+                EmoteVoiceRules.FromStored(profile.ScreamVoice),
+                EmoteVoiceRules.FromStored(profile.LaughVoice))
+                // WOLFGATE END
+            {
+                HeadshotUrl = profile.HeadshotUrl ?? string.Empty, // WOLFGATE(Headshot)
+                MismatchedParts = profile.MismatchedParts, // WOLFGATE(Species)
+            };
         }
 
         private static Profile ConvertProfiles(HumanoidCharacterProfile humanoid, int slot, Profile? profile = null)
@@ -351,6 +361,10 @@ namespace Content.Server.Database
             profile.PreferenceUnavailable = (DbPreferenceUnavailableMode) humanoid.PreferenceUnavailable;
             profile.Company = humanoid.Company;
             profile.CustomSpeciesName = humanoid.CustomSpeciesName; // WOLFGATE(Humanoid)
+            profile.HeadshotUrl = humanoid.HeadshotUrl; // WOLFGATE(Headshot)
+            profile.MismatchedParts = humanoid.MismatchedParts; // WOLFGATE(Species)
+            profile.ScreamVoice = EmoteVoiceRules.ToStored(humanoid.ScreamVoice); // WOLFGATE(EmoteVoices)
+            profile.LaughVoice = EmoteVoiceRules.ToStored(humanoid.LaughVoice); // WOLFGATE(EmoteVoices)
 
             // WOLFGATE(Genitals) START: anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
             if (!(existingRow && humanoid.Genitals.LoadFailed))
@@ -2075,7 +2089,7 @@ INSERT INTO player_round (players_id, rounds_id) VALUES ({players[player]}, {id}
                 .AsSplitQuery()
                 .SingleOrDefaultAsync(c => c.UserId == userId);
 
-            // Rows holding renamed toggle ids are saved under the current ids on load.
+            // WOLFGATE(Prototypes): consent rows holding renamed toggle ids are saved under the current ids on load
             if (consentSettings != null && WFLegacyDbRows.Update(consentSettings))
                 await WFLegacyDbRows.Save(db.DbContext, _opsLog);
 

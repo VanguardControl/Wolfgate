@@ -19,6 +19,8 @@
     muzzleFlash: null
   - type: Projectile
     deleteOnCollide: false
+    # Loose on the deck or in a hand it is just an item: dropping or dispensing one must not hit anyone.
+    onlyCollideWhenShot: true
     damage:
       types:
         Piercing: 20
@@ -33,6 +35,17 @@
     angularDamping: 0.5
   - type: Fixtures
     fixtures:
+      # The item's own body, so a loose harpoon stays inside the hull like anything else lying on the deck.
+      # Smaller than the point below, so in flight the point always strikes first.
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.1
+        density: 160
+        mask:
+        - ItemMask
+        restitution: 0.3
+        friction: 0.2
       projectile:
         shape:
           !type:PhysShapeAabb
@@ -115,6 +128,9 @@
   - type: AmmoCounter
   - type: Appearance
   - type: Climbable
+  # Turning it turns the mount its firing arc is measured from.
+  - type: Rotatable
+    rotateWhileAnchored: true
 
 - type: entity
   id: WFShipHarpoonTurret
@@ -135,6 +151,8 @@
   components:
   - type: Flatpack
     entity: WFShipHarpoonTurret
+  # The turret unpacks facing the way the flatpack points.
+  - type: Rotatable
   - type: Sprite
     layers:
     - state: base
@@ -187,6 +205,7 @@
     - to: turret
       completed:
       - !type:SnapToGrid { }
+      # Only material steps: the construction menu can't start a structure on a tool step.
       steps:
       - material: Steel
         amount: 10
@@ -196,11 +215,9 @@
         doAfter: 4
       - material: MetalRod
         amount: 4
-        doAfter: 2
+        doAfter: 4
       - material: Cable
         amount: 5
-        doAfter: 2
-      - tool: Welding
         doAfter: 4
   - node: turret
     entity: WFShipHarpoonTurret

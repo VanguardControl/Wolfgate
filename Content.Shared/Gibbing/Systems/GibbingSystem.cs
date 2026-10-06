@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq; // WOLFGATE(Wolfmed)
 using System.Numerics;
 using Content.Shared.Gibbing.Components;
 using Content.Shared.Gibbing.Events;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
+using Robust.Shared.Physics.Components; // WOLFGATE: bodiless giblets are skipped when flung.
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -118,9 +120,15 @@ public sealed partial class GibbingSystem : EntitySystem
         var gibContentsAttempt =
             new AttemptEntityContentsGibEvent(gibbable, gibContentsOption, allowedContainers, excludedContainers);
         RaiseLocalEvent(gibbable, ref gibContentsAttempt);
+        excludedContainers = gibContentsAttempt.ExcludedContainers; // WOLFGATE(Wolfmed): let subscribers veto containers (Wolfmed keeps wounds with the part)
 
         foreach (var container in _containerSystem.GetAllContainers(gibbable))
         {
+            // WOLFGATE(Wolfmed) START: a solution entity is not a thing to drop: it has no physics to fling and goes with its owner.
+            var id = container.ID;
+            if (id.StartsWith("solution@"))
+                continue;
+            // WOLFGATE END
             var valid = true;
             if (allowedContainers != null)
                 valid = allowedContainers.Contains(container.ID);
@@ -138,7 +146,7 @@ public sealed partial class GibbingSystem : EntitySystem
             {
                 foreach (var container in validContainers)
                 {
-                    foreach (var ent in container.ContainedEntities)
+                    foreach (var ent in container.ContainedEntities.ToArray()) // WOLFGATE(Wolfmed): snapshot, DropEntity/GibEntity mutate the container
                     {
                         DropEntity(new Entity<GibbableComponent?>(ent, null), parentXform, randomSpreadMod,
                             ref droppedEntities, launchGibs,
@@ -152,7 +160,7 @@ public sealed partial class GibbingSystem : EntitySystem
             {
                 foreach (var container in validContainers)
                 {
-                    foreach (var ent in container.ContainedEntities)
+                    foreach (var ent in container.ContainedEntities.ToArray()) // WOLFGATE(Wolfmed): snapshot, DropEntity/GibEntity mutate the container
                     {
                         GibEntity(new Entity<GibbableComponent?>(ent, null), parentXform, randomSpreadMod,
                             ref droppedEntities, launchGibs,
@@ -319,6 +327,12 @@ public sealed partial class GibbingSystem : EntitySystem
         var scatterAngle = direction?.ToAngle() ?? _random.NextAngle();
         var scatterVector = _random.NextAngle(scatterAngle - scatterConeAngle / 2, scatterAngle + scatterConeAngle / 2)
             .ToVec() * (impulse + _random.NextFloat(impulseVariance));
+        // WOLFGATE START: bodiless dropped contents are skipped instead of flung.
+        // Dropped container contents can be bodiless (an organ's solution entity); flinging one only logs a
+        // resolve error per giblet, which floods the log every time a landing grid crushes a mob.
+        if (!HasComp<PhysicsComponent>(target))
+            return;
+        // WOLFGATE END
         _physicsSystem.ApplyLinearImpulse(target, scatterVector);
     }
 

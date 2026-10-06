@@ -123,29 +123,39 @@
     - type: Damageable
       damageContainer: Biological
       damageModifierSet: Avali
+    # WOLFGATE(Avali) START: enable feather preening and regrowth for Avali
+    - type: Preenable
+      featherPrototype: AvaliFeather
+    # WOLFGATE END
+    # WOLFGATE(Wolfmed) START: D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed, as on every other wound host
+    # A wound host's body damage is the sum of its parts, so Blunt 400 came from routine limb damage and gibbed the
+    # avali where a human only bled: a medical bounty that rolled 400 was deleted as it spawned. The living per-part
+    # ceilings also sum past Heat 1500, so a long fire would have ashed the body, which OD12 rules out.
     - type: Destructible # HardLight: Avali now turn into fried chicken when ashed.
       thresholds:
       - trigger:
           !type:DamageTypeTrigger
           damageType: Blunt
-          damage: 400
-        behaviors:
-        - !type:GibBehavior { }
-      - trigger: # Frontier - Removed round remover
-          !type:DamageTypeTrigger
-          damageType: Heat
+          # damage: 400
           damage: 1500
         behaviors:
-        - !type:SpawnEntitiesBehavior
-          spawnInContainer: true
-          spawn:
-            FoodMeatChickenFriedMystery:
-              min: 2
-              max: 5
-        - !type:BurnBodyBehavior # HardLight: Parity with upstream changes to Vox.
-        - !type:PlaySoundBehavior
-          sound:
-            collection: MeatLaserImpact
+        - !type:GibBehavior { }
+      # - trigger: # Frontier - Removed round remover
+      #     !type:DamageTypeTrigger
+      #     damageType: Heat
+      #     damage: 1500
+      #   behaviors:
+      #   - !type:SpawnEntitiesBehavior
+      #     spawnInContainer: true
+      #     spawn:
+      #       FoodMeatChickenFriedMystery:
+      #         min: 2
+      #         max: 5
+      #   - !type:BurnBodyBehavior # HardLight: Parity with upstream changes to Vox.
+      #   - !type:PlaySoundBehavior
+      #     sound:
+      #       collection: MeatLaserImpact
+    # WOLFGATE END
     - type: DamageVisuals
       damageOverlayGroups:
         Brute:
@@ -177,6 +187,10 @@
     - type: Stasis
       enterStasisAction: ActionStasisEnter
       exitStasisAction: ActionStasisExit
+      # WOLFGATE(Wolfmed) START: the Starlight teleport sound never shipped here, and the client logged an error every stasis.
+      stasisEnterSound: /Audio/Effects/teleport_departure.ogg
+      stasisExitSound: /Audio/Effects/teleport_arrival.ogg
+      # WOLFGATE END
     - type: Carriable  # Hardlight change they can be carry now
 # Chirp!
 
