@@ -229,6 +229,17 @@ public sealed partial class WFEncounterShip
     [DataField]
     public bool Captain = true;
 
+    /// <summary>
+    /// Whether the ship is a prize: her captain, or failing one her pilot, carries her papers and leaves them where
+    /// he dies, so a crew wiped out leaves the ship to whoever holds them.
+    /// </summary>
+    [DataField]
+    public bool Prize = true;
+
+    /// <summary>The share of her worth a taken ship sells for.</summary>
+    [DataField]
+    public float PrizeResale = 0.25f;
+
     [DataField]
     public ProtoId<NpcFactionPrototype> Faction = "WFCrew";
 

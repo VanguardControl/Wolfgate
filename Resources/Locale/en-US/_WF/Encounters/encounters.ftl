@@ -149,6 +149,7 @@ wf-encounter-announce-hulk = Traffic control to all vessels: {$name}, adrift and
 wf-salvage-claim-gone = The ship these papers name is gone.
 wf-salvage-claim-taken = That ship already has an owner.
 wf-salvage-claim-not-aboard = You have to be aboard the ship to claim it.
+wf-salvage-claim-crew = Her crew still hold the ship.
 wf-salvage-claim-no-card = You need an ID card that holds no ship deed to register the ship to.
 wf-salvage-claim-failed = The registry won't take the claim.
 wf-salvage-claim-done = {$ship} is registered to you.

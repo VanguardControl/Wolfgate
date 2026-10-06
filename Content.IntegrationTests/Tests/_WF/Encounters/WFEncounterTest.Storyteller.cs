@@ -261,6 +261,74 @@ public sealed partial class WFEncounterTest
     }
 
     /// <summary>
+    /// A crewed ship is a prize: her captain carries her papers and leaves them when he dies, and they take the ship
+    /// only once none of her crew are left alive aboard.
+    /// </summary>
+    [Test]
+    public async Task WipedCrewLeaveTheirShipAsAPrize()
+    {
+        EntityUid encounter = default, ship = default, captain = default;
+        var crew = new List<EntityUid>();
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestStoryRival");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(-39000, 39000), MapData.MapId), out encounter), Is.True);
+            ship = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["rival"].Grid;
+        });
+        await RunTicks(30);
+        await Server.WaitAssertion(() =>
+        {
+            var holders = 0;
+            var members = SEntMan.EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+            while (members.MoveNext(out var uid, out var member, out var xform))
+            {
+                if (xform.GridUid != ship)
+                    continue;
+                crew.Add(uid);
+                if (!SEntMan.HasComponent<WFSalvageClaimDropComponent>(uid))
+                    continue;
+                holders++;
+                captain = uid;
+                Assert.That(member.Role, Is.EqualTo(WFCrewRoles.Captain), "The captain carries the papers.");
+            }
+            Assert.That(crew, Has.Count.GreaterThan(1));
+            Assert.That(holders, Is.EqualTo(1), "One crewman carries the papers.");
+            Server.System<Content.Shared.Mobs.Systems.MobStateSystem>().ChangeMobState(captain, Content.Shared.Mobs.MobState.Dead);
+        });
+        await RunTicks(5);
+        EntityUid papers = default;
+        await Server.WaitAssertion(() =>
+        {
+            var claims = SEntMan.EntityQueryEnumerator<WFSalvageClaimComponent>();
+            while (claims.MoveNext(out var uid, out var claim))
+            {
+                if (claim.Ship == ship)
+                    papers = uid;
+            }
+            Assert.That(papers, Is.Not.EqualTo(default(EntityUid)), "The captain leaves the ship's papers.");
+            var claimant = SEntMan.GetEntity(Player);
+            Server.System<SharedTransformSystem>().SetCoordinates(claimant, SEntMan.GetComponent<TransformComponent>(papers).Coordinates);
+            var claims2 = Server.System<WFSalvageClaimSystem>();
+            Assert.That(claims2.TryClaim((papers, SEntMan.GetComponent<WFSalvageClaimComponent>(papers)), claimant, out var reason), Is.False);
+            Assert.That(reason, Is.EqualTo("wf-salvage-claim-crew"), "The rest of the crew still hold her.");
+            foreach (var uid in crew)
+            {
+                Server.System<Content.Shared.Mobs.Systems.MobStateSystem>().ChangeMobState(uid, Content.Shared.Mobs.MobState.Dead);
+            }
+        });
+        await RunTicks(5);
+        await Server.WaitAssertion(() =>
+        {
+            var claimant = SEntMan.GetEntity(Player);
+            Assert.That(Server.System<WFSalvageClaimSystem>().TryClaim((papers, SEntMan.GetComponent<WFSalvageClaimComponent>(papers)), claimant, out var reason), Is.False);
+            Assert.That(reason, Is.EqualTo("wf-salvage-claim-no-card"), "With the crew dead only the registry card is wanting.");
+            Server.System<SharedTransformSystem>().SetCoordinates(claimant, new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>
     /// A hulk has no crew and stays in its encounter all the same. Its chief leaves the ship's papers when he dies, a
     /// claimed ship is worth a fraction of its parts, and once released it outlives the encounter.
     /// </summary>
