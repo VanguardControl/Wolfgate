@@ -1,12 +1,10 @@
 using Content.Server._WF.Administration.Systems;
 using Content.Server._WF.Encounters.Components;
-using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Popups;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared.Interaction.Events;
 using Content.Shared.Mobs;
-using Content.Shared.Mobs.Systems;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
@@ -17,9 +15,8 @@ namespace Content.Server._WF.Encounters.Systems;
 public record struct WFGridAppraisedEvent(EntityUid Grid, double Price);
 
 /// <summary>
-/// Ship claims: the papers a hulk's chief or a crew's captain leaves when he dies, which register the ship to whoever
-/// uses them aboard it once none of her crew are left alive on her. A claimed ship is the player's like a bought one,
-/// but sells for a fraction of its worth.
+/// Ship claims: the papers a hulk's chief leaves when he dies, which register the ship to whoever uses them aboard
+/// it. A claimed ship is the player's like a bought one, but sells for a fraction of its worth.
 /// </summary>
 public sealed partial class WFSalvageClaimSystem : EntitySystem
 {
@@ -27,7 +24,6 @@ public sealed partial class WFSalvageClaimSystem : EntitySystem
     [Dependency] private WFEncounterSystem _encounters = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private PopupSystem _popup = default!;
-    [Dependency] private MobStateSystem _mobs = default!;
 
     public override void Initialize()
     {
@@ -78,10 +74,6 @@ public sealed partial class WFSalvageClaimSystem : EntitySystem
         if (Transform(user).GridUid != ship)
             return false;
 
-        reason = "wf-salvage-claim-crew";
-        if (CrewAboard(ship))
-            return false;
-
         reason = "wf-salvage-claim-no-card";
         if (!TryComp<ActorComponent>(user, out var actor) || !_vessels.TryGetDeedCard(actor.PlayerSession, out var card, out _)
             || !_prototypes.TryIndex<VesselPrototype>(claim.Comp.Vessel, out var vessel))
@@ -96,19 +88,6 @@ public sealed partial class WFSalvageClaimSystem : EntitySystem
         _popup.PopupEntity(Loc.GetString("wf-salvage-claim-done", ("ship", Name(ship))), user, user);
         QueueDel(claim);
         return true;
-    }
-
-    /// <summary>Whether any of the ship's own crew are alive aboard her. Squatters on a hulk are not her crew.</summary>
-    private bool CrewAboard(EntityUid ship)
-    {
-        var crew = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
-        while (crew.MoveNext(out var uid, out _, out var xform))
-        {
-            if (xform.GridUid == ship && _mobs.IsAlive(uid))
-                return true;
-        }
-
-        return false;
     }
 
     private void OnAppraised(Entity<WFSalvagedShipComponent> ent, ref WFGridAppraisedEvent args)

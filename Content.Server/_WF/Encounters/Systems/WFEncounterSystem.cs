@@ -637,11 +637,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
             posts.RemoveAll(post => post.Role == WFCrewRoles.Deckhand.Id);
 
         // A skill set on the ship is the crew's; left unset, each takes one from the profile's pool.
-        if (posts.Count == 0 || !_setup.TrySpawn(grid, posts, mission, ship.Skill == null, out var crew))
+        if (posts.Count == 0 || !_setup.TrySpawn(grid, posts, mission, ship.Skill == null, out _))
             return false;
-
-        if (ship.Prize)
-            Entrust(state, crew, vessel.ID, ship.PrizeResale);
 
         // Shipyard hulls come with empty reactors and flat batteries; the crew arrive with theirs charged, unless the
         // ship is out of fuel. Stranding comes after the crew, whose arrival records the hull for repair devices.

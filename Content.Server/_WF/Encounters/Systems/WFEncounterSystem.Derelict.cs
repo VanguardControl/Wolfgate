@@ -1,10 +1,8 @@
 using Content.Server._WF.Encounters.Components;
-using Content.Server._WF.NpcCrew.Components;
 using Content.Shared._WF.Encounters;
 using System.Linq;
 using Content.Shared._WF.NpcCrew;
 using Robust.Shared.Map;
-using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
 namespace Content.Server._WF.Encounters.Systems;
@@ -45,33 +43,6 @@ public sealed partial class WFEncounterSystem
             var at = _random.Pick(tiles);
             Spawn(_random.Pick(derelict.DebrisPool), new EntityCoordinates(at.EntityId, at.Position + _random.NextVector2(0.35f)));
         }
-    }
-
-    /// <summary>
-    /// Gives a ship's papers to her captain, or failing one her pilot or whoever is first aboard. They are left where
-    /// he dies, so a crew wiped out leaves the ship to be taken by whoever holds them.
-    /// </summary>
-    private void Entrust(WFEncounterShipState state, List<EntityUid> crew, string vessel, float resale)
-    {
-        var holder = Holder(crew, WFCrewRoles.Captain) ?? Holder(crew, WFCrewRoles.Pilot) ?? (crew.Count > 0 ? crew[0] : null);
-        if (holder is not { } carrier)
-            return;
-
-        var drop = EnsureComp<WFSalvageClaimDropComponent>(carrier);
-        drop.Ship = state.Grid;
-        drop.Vessel = vessel;
-        drop.Resale = resale;
-    }
-
-    private EntityUid? Holder(List<EntityUid> crew, ProtoId<WFCrewRolePrototype> role)
-    {
-        foreach (var uid in crew)
-        {
-            if (TryComp<WFCrewComponent>(uid, out var member) && member.Role == role)
-                return uid;
-        }
-
-        return null;
     }
 
     /// <summary>
