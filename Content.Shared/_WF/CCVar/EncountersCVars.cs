@@ -48,4 +48,15 @@ public sealed class EncountersCVars
     /// </summary>
     public static readonly CVarDef<float> CleanupLinger =
         CVarDef.Create("wf.encounters.cleanup_linger", 900f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Stations no encounter is placed at or routed to, and that open-space encounters keep clear of: a comma-separated
+    /// list of name fragments, matched against the grid, station and station id names. For places meant to stay secret.
+    /// </summary>
+    public static readonly CVarDef<string> HiddenStations =
+        CVarDef.Create("wf.encounters.hidden_stations", "Helios", CVar.SERVERONLY);
+
+    /// <summary>How far, in metres, open-space encounters keep from a hidden station.</summary>
+    public static readonly CVarDef<float> HiddenClearance =
+        CVarDef.Create("wf.encounters.hidden_clearance", 6000f, CVar.SERVERONLY);
 }

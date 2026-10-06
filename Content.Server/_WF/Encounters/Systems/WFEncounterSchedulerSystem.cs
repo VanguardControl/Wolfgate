@@ -86,6 +86,16 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         Subs.CVar(_config, EncountersCVars.IntervalMax, value => _intervalMax = value, true);
         Subs.CVar(_config, EncountersCVars.MaxActive, value => _maxActive = value, true);
         Subs.CVar(_config, EncountersCVars.Preset, value => _presetId = value, true);
+        Subs.CVar(_config, EncountersCVars.HiddenStations, value =>
+        {
+            _hidden.Clear();
+            foreach (var fragment in value.Split(','))
+            {
+                if (fragment.Trim() is { Length: > 0 } name)
+                    _hidden.Add(name);
+            }
+        }, true);
+        Subs.CVar(_config, EncountersCVars.HiddenClearance, value => _hiddenClearance = value, true);
         SubscribeLocalEvent<StationsGeneratedEvent>(OnStationsGenerated);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundCleanup);
     }
@@ -371,6 +381,10 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
     /// The stations and outposts of a map: station grids with a docking port that nobody holds a deed to. A map with fewer than two, such as
     /// the development map, is topped up with its other unowned grids that have a port, so station encounters can still be tried.
     /// </summary>
+    /// <summary>Stations kept secret: never a stop or a berth, and open space near them is never used.</summary>
+    private readonly List<string> _hidden = new();
+    private float _hiddenClearance;
+
     private List<Entity<MapGridComponent>> Stations(MapId map)
     {
         var stations = new List<Entity<MapGridComponent>>();
@@ -393,6 +407,9 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
 
             // Asteroid clusters and the like are stations too, but have no port to dock at; nor do debris and wrecks.
             if (!ported.Contains(uid))
+                continue;
+
+            if (_hidden.Count > 0 && Avoided(uid, _hidden))
                 continue;
 
             if (HasComp<StationMemberComponent>(uid))
@@ -441,6 +458,25 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
             if (name.Contains(fragment, StringComparison.OrdinalIgnoreCase)
                 || id.Contains(fragment, StringComparison.OrdinalIgnoreCase)
                 || owner.Contains(fragment, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>Whether a point is within the hidden clearance of a station kept secret.</summary>
+    private bool NearHiddenStation(Vector2 point, MapId map)
+    {
+        if (_hidden.Count == 0 || _hiddenClearance <= 0f)
+            return false;
+
+        var query = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out var xform))
+        {
+            if (xform.MapID == map && uid != xform.MapUid && !HasComp<ShuttleDeedComponent>(uid)
+                && (HasComp<StationMemberComponent>(uid) || HasComp<Content.Server.Station.Components.BecomesStationComponent>(uid))
+                && Avoided(uid, _hidden)
+                && (_transform.GetWorldPosition(xform) - point).LengthSquared() < _hiddenClearance * _hiddenClearance)
                 return true;
         }
 
@@ -541,7 +577,8 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
             var point = anchor.Position + _random.NextAngle().ToVec() * distance;
             _nearby.Clear();
             _maps.FindGridsIntersecting(anchor.MapId, Box2.CenteredAround(point, new Vector2(Clearance * 2f)), ref _nearby, approx: true, includeMap: false);
-            if (_nearby.Count > 0 || NearStation(prototype.StationClearance, point, anchor.MapId) || InGravityWell(point, anchor.MapId))
+            if (_nearby.Count > 0 || NearStation(prototype.StationClearance, point, anchor.MapId) || InGravityWell(point, anchor.MapId)
+                || NearHiddenStation(point, anchor.MapId))
                 continue;
 
             origin = new MapCoordinates(point, anchor.MapId);
