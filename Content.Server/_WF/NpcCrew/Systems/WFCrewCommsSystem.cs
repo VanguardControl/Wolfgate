@@ -1,3 +1,4 @@
+using Content.Shared._WF.NpcCrew;
 using System.Linq;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Radio;
@@ -28,14 +29,14 @@ public sealed class WFCrewCommsSystem : EntitySystem
     /// <summary>The radio channel a company's ships keep their own traffic on, if it has one.</summary>
     public static string? FactionChannel(string? company)
     {
-        if (company == null)
-            return null;
         // TSF Comms for the Federation; the Dynasty's people carry the Vanguard channel.
-        if (company.StartsWith("TSF", StringComparison.Ordinal))
-            return "Nfsd";
-        if (company.StartsWith("PDV", StringComparison.Ordinal))
-            return "Freelance";
-        return company == "USSP" ? "Ussp" : null;
+        return WFCompanyFamily.Of(company) switch
+        {
+            "TSF" => "Nfsd",
+            "PDV" => "Freelance",
+            "USSP" => "Ussp",
+            _ => null,
+        };
     }
 
     public override void Initialize()

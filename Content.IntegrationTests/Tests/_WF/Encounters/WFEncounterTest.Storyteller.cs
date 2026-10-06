@@ -44,6 +44,18 @@ public sealed partial class WFEncounterTest
     zoneTargets: AtWar
 
 - type: wfEncounter
+  id: WFTestStoryEveryone
+  name: wf-encounter-name-convoy
+  start: Manual
+  ships:
+  - key: warship
+    vessel: WFDredger
+    company: TSF
+    warnRange: 800
+    attackRange: 300
+    zoneTargets: Everyone
+
+- type: wfEncounter
   id: WFTestStoryRival
   name: wf-encounter-name-convoy
   start: Manual
@@ -282,6 +294,56 @@ public sealed partial class WFEncounterTest
             Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
             Server.System<WFEncounterSystem>().End(encounter);
             SEntMan.DeleteEntity(intruder);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>
+    /// A warship that minds everyone but its own company still lets its own faction's other companies be: a
+    /// Federation civilian in a Federation attack zone is no intruder, where a Union ship is.
+    /// </summary>
+    [Test]
+    public async Task OwnFactionIsNoIntruderToAnEveryoneZone()
+    {
+        EntityUid encounter = default, warship = default, visitor = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestStoryEveryone");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(31000, 31000), MapData.MapId), out encounter), Is.True);
+            warship = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["warship"].Grid;
+
+            var grid = Server.ResolveDependency<IMapManager>().CreateGridEntity(MapData.MapId);
+            visitor = grid.Owner;
+            Server.System<SharedMapSystem>().SetTile(grid, Vector2i.Zero, new Tile(1));
+            var transform = Server.System<SharedTransformSystem>();
+            // Inside the attack zone, under way.
+            transform.SetCoordinates(visitor, new EntityCoordinates(MapData.MapUid, new Vector2(31150, 31000)));
+            transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(visitor, new Vector2(0.5f)));
+            SEntMan.EnsureComponent<Content.Shared._Mono.Company.CompanyComponent>(visitor).CompanyName = "TSFCivilian";
+            var body = SEntMan.EnsureComponent<Robust.Shared.Physics.Components.PhysicsComponent>(visitor);
+            var physics = Server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>();
+            physics.SetBodyType(visitor, Robust.Shared.Physics.BodyType.Dynamic, body: body);
+            physics.SetLinearDamping(visitor, body, 0f);
+            physics.SetLinearVelocity(visitor, new Vector2(0f, 4f), body: body);
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["warship"];
+            Assert.That(state.Engaged, Is.Empty, "A Federation civilian is no intruder to a Federation warship.");
+            Assert.That(state.Warned, Is.Empty, "Nor is it warned off.");
+            SEntMan.GetComponent<Content.Shared._Mono.Company.CompanyComponent>(visitor).CompanyName = "USSP";
+            Server.System<SharedTransformSystem>().SetCoordinates(visitor, new EntityCoordinates(MapData.MapUid, new Vector2(31150, 31000)));
+            Server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>().SetLinearVelocity(visitor, new Vector2(0f, 4f));
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["warship"];
+            Assert.That(state.Engaged.Contains(visitor), Is.True, "A Union ship in the same place is fired on.");
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+            SEntMan.DeleteEntity(visitor);
         });
         await RunTicks(10);
     }

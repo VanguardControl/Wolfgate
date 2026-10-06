@@ -169,17 +169,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// <summary>Whether two ships fly for the same faction: the same company, or two of one faction's companies.</summary>
     private bool SameFaction(EntityUid first, EntityUid second)
     {
-        var a = Family(CompOrNull<Content.Shared._Mono.Company.CompanyComponent>(first)?.CompanyName);
-        return a.Length > 0 && a == Family(CompOrNull<Content.Shared._Mono.Company.CompanyComponent>(second)?.CompanyName);
-    }
-
-    private static string Family(string? company)
-    {
-        if (string.IsNullOrEmpty(company) || company == "None")
-            return string.Empty;
-        if (company.StartsWith("TSF", StringComparison.Ordinal))
-            return "TSF";
-        return company.StartsWith("PDV", StringComparison.Ordinal) ? "PDV" : company;
+        return WFCompanyFamily.Same(CompOrNull<Content.Shared._Mono.Company.CompanyComponent>(first)?.CompanyName,
+            CompOrNull<Content.Shared._Mono.Company.CompanyComponent>(second)?.CompanyName);
     }
 
     /// <summary>Whether any crew of a ship already counts a vessel among its attackers.</summary>

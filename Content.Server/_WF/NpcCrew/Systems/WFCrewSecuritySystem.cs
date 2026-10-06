@@ -140,12 +140,12 @@ public sealed class WFCrewSecuritySystem : EntitySystem
         return false;
     }
 
-    /// <summary>Authorization requires the same company or an overlapping NPC faction.</summary>
+    /// <summary>Authorization requires a company of the same faction or an overlapping NPC faction.</summary>
     public bool IsAuthorized(EntityUid crew, EntityUid other)
     {
         if (TryComp<CompanyComponent>(crew, out var company) && company.CompanyName.Id is not ("" or "None")
             && TryComp<CompanyComponent>(other, out var visitorCompany))
-            return company.CompanyName == visitorCompany.CompanyName;
+            return WFCompanyFamily.Same(company.CompanyName, visitorCompany.CompanyName);
         return TryComp<NpcFactionMemberComponent>(crew, out var faction)
             && TryComp<NpcFactionMemberComponent>(other, out var visitorFaction)
             && faction.Factions.Intersect(visitorFaction.Factions).Any();

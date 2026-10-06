@@ -4,6 +4,7 @@ using Content.Server._WF.NpcCrew.Systems;
 using Content.Shared._Mono.Company;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WF.Encounters;
+using Content.Shared._WF.NpcCrew;
 using Content.Shared.Ghost;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Projectiles;
@@ -127,7 +128,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
                     continue;
 
                 var theirs = Company(rival.Grid);
-                if (company.Length > 0 && theirs == company)
+                if (WFCompanyFamily.Same(company, theirs))
                     continue;
                 if (ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !AtWar(company, theirs))
                     continue;
@@ -167,8 +168,9 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
                 _crewed[grid] = crewed = new Crewed();
             }
 
-            var own = Company(uid);
-            var company = Company(grid);
+            // Companies are kept by faction: a Federation civilian aboard flies a Federation flag.
+            var own = WFCompanyFamily.Of(Company(uid));
+            var company = WFCompanyFamily.Of(Company(grid));
             if (company.Length == 0)
                 company = own;
             if (company.Length > 0 && !crewed.Flags.Contains(company))
@@ -275,7 +277,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
         if (IsDocked(ship.Grid))
             return;
 
-        var company = Company(ship.Grid);
+        var company = WFCompanyFamily.Of(Company(ship.Grid));
         var now = _timing.CurTime;
         foreach (var (intruder, crewed) in _crewed)
         {

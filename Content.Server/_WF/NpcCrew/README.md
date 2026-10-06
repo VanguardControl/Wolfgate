@@ -243,6 +243,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 
 ### Shared
 
+- [`Content.Shared/_WF/NpcCrew/WFCompanyFamily.cs`](../../../Content.Shared/_WF/NpcCrew/WFCompanyFamily.cs)
 - [`Content.Shared/_WF/NpcCrew/WFCrewEngagement.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewEngagement.cs)
 - [`Content.Shared/_WF/NpcCrew/WFCrewLimits.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewLimits.cs)
 - [`Content.Shared/_WF/NpcCrew/WFCrewNavigationProfilePrototype.cs`](../../../Content.Shared/_WF/NpcCrew/WFCrewNavigationProfilePrototype.cs)
