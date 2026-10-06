@@ -32,7 +32,7 @@ OUTPUT = "_WF/LegStyle"
 PROTOTYPES = "Resources/Prototypes/_WF/LegStyle/base_sprites.yml"
 # Rows from here down are the foot.
 FOOT_ROW = 29
-# Rows from here down wear the shoe; the ones above it, from the hip, may borrow the species' own leg.
+# Rows from here down wear the shoe; the ones above it may borrow the species' own leg.
 SHOE_ROW = 25
 # Rows from here down are where the legs change a jumpsuit.
 HIP_ROW = 22
@@ -109,18 +109,21 @@ def _scale(image, gains):
     return ss13.Image.merge("RGBA", channels)
 
 
-def _torso(folder):
+def _torsos(folder):
+    """The species' torsos, the male one first."""
     with open(os.path.join(TEXTURES, folder, "meta.json"), encoding="utf-8-sig") as f:
         states = {state["name"] for state in json.load(f)["states"]}
-    return _cells(folder, ["torso_m" if "torso_m" in states else "torso"])
+    return [_cells(folder, [state]) for state in ("torso_m", "torso_f", "torso") if state in states]
 
 
-def _fill_hip(cell, own, others):
-    """Copies the species' own leg pixels at the hip that neither the new legs nor the torso cover."""
-    for y in range(HIP_ROW, SHOE_ROW):
+def _fill_hip(cell, own, other, torsos):
+    """Copies the species' own leg pixels above the shoe that the new legs or one of its torsos leave bare."""
+    for y in range(SHOE_ROW):
         for x in range(cell.width):
             pixel = own.getpixel((x, y))
-            if pixel[3] > 0 and cell.getpixel((x, y))[3] == 0 and all(o.getpixel((x, y))[3] == 0 for o in others):
+            if pixel[3] == 0 or cell.getpixel((x, y))[3] > 0 or other.getpixel((x, y))[3] > 0:
+                continue
+            if any(torso.getpixel((x, y))[3] == 0 for torso in torsos):
                 cell.putpixel((x, y), pixel)
 
 
@@ -193,18 +196,18 @@ def port(source):
     for name, (sheet, limb, legs, body, sprite, shoes) in SETS.items():
         dmi = ss13.Dmi.load(os.path.join(source, ICONS, sheet))
         chest = dmi.states.get(limb + "_chest_m") or dmi.states[limb + "_chest"]
-        gains = [ours / theirs for ours, theirs in zip(_means(_torso(body)), _means(chest.images[0]))]
+        torsos = _torsos(body)
+        gains = [ours / theirs for ours, theirs in zip(_means(torsos[0]), _means(chest.images[0]))]
 
         folder = os.path.join(TEXTURES, OUTPUT, name)
         os.makedirs(folder, exist_ok=True)
         whole = [ss13.Image.new("RGBA", (32, 32)) for _ in range(4)]
         sides = {side: [_scale(cell, gains) for cell in dmi.states["%s_%s_leg%s" % (limb, side, legs)].images[0]]
                  for side in "lr"}
-        torso = _torso(body)
         for side, other in ("lr", "rl"):
             cells = sides[side]
             for i, own in enumerate(_cells(body, ["%s_leg" % side])):
-                _fill_hip(cells[i], own, (sides[other][i], torso[i]))
+                _fill_hip(cells[i], own, sides[other][i], [torso[i] for torso in torsos])
             _strip(cells, 0, FOOT_ROW).save(os.path.join(folder, "%s_leg.png" % side))
             _strip(cells, FOOT_ROW, 32).save(os.path.join(folder, "%s_foot.png" % side))
             for image, cell in zip(whole, cells):
