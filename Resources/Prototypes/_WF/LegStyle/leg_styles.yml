@@ -4,7 +4,8 @@
 # femaleDisplacements where it has the slot. The art and the maps under _WF/LegStyle are made by
 # Tools/_WF/LegStyle/port.py: a shoe map and a suit map (jumpsuits and outer clothing) per paw shape.
 
-# Digitigrade legs for species that stand flat.
+# Digitigrade legs for species that stand flat. The furred ones wear Starlight's Vulpkanin legs, which fit
+# the shoe map Reptilians use and Starlight's outer clothing map; the rest wear Meridian Rift's.
 
 - type: wfLegStyle
   id: WFLegsHumanDigitigrade
@@ -37,14 +38,41 @@
           state: jumpsuit_female_human
 
 - type: wfLegStyle
-  id: WFLegsMammalDigitigrade
+  id: WFLegsVulpkaninDigitigrade
   species: [ Vulpkanin, WFCanine ]
   stance: Digitigrade
   sprites:
-    LLeg: WFMobMammalLLegDigi
-    RLeg: WFMobMammalRLegDigi
-    LFoot: WFMobMammalLFootDigi
-    RFoot: WFMobMammalRFootDigi
+    LLeg: WFMobVulpkaninLLegDigi
+    RLeg: WFMobVulpkaninRLegDigi
+    LFoot: WFMobVulpkaninLFootDigi
+    RFoot: WFMobVulpkaninRFootDigi
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
+  displacements:
+    jumpsuit: &starlightSuit
+      sizeMaps:
+        32:
+          sprite: _WF/LegStyle/displacement.rsi
+          state: suit_starlight
+    outerClothing: &starlightOuter
+      sizeMaps:
+        32:
+          sprite: _WF/LegStyle/displacement.rsi
+          state: outerclothing_starlight
+    shoes: &starlightShoes
+      sizeMaps:
+        32:
+          sprite: _White/Mobs/Species/displacement.rsi
+          state: shoes
+
+- type: wfLegStyle
+  id: WFLegsFeroxiDigitigrade
+  species: [ Feroxi ]
+  stance: Digitigrade
+  sprites:
+    LLeg: WFMobFeroxiLLegDigi
+    RLeg: WFMobFeroxiRLegDigi
+    LFoot: WFMobFeroxiLFootDigi
+    RFoot: WFMobFeroxiRFootDigi
   displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
     jumpsuit: &mammalSuit
@@ -58,21 +86,6 @@
         32:
           sprite: _WF/LegStyle/displacement.rsi
           state: shoes_mammal
-
-- type: wfLegStyle
-  id: WFLegsFeroxiDigitigrade
-  species: [ Feroxi ]
-  stance: Digitigrade
-  sprites:
-    LLeg: WFMobFeroxiLLegDigi
-    RLeg: WFMobFeroxiRLegDigi
-    LFoot: WFMobFeroxiLFootDigi
-    RFoot: WFMobFeroxiRFootDigi
-  displacementSlots: [ jumpsuit, outerClothing, shoes ]
-  displacements:
-    jumpsuit: *mammalSuit
-    outerClothing: *mammalSuit
-    shoes: *mammalShoes
 
 - type: wfLegStyle
   id: WFLegsGoblinDigitigrade
@@ -103,9 +116,9 @@
     RFoot: WFMobRodentiaRFootDigi
   displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: *mammalSuit
-    outerClothing: *mammalSuit
-    shoes: *mammalShoes
+    jumpsuit: *starlightSuit
+    outerClothing: *starlightOuter
+    shoes: *starlightShoes
 
 - type: wfLegStyle
   id: WFLegsShadekinDigitigrade
@@ -178,9 +191,9 @@
     RFoot: WFMobTajaranRFootDigi
   displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: *mammalSuit
-    outerClothing: *mammalSuit
-    shoes: *mammalShoes
+    jumpsuit: *starlightSuit
+    outerClothing: *starlightOuter
+    shoes: *starlightShoes
 
 - type: wfLegStyle
   id: WFLegsThavenDigitigrade

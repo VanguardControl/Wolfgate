@@ -21,16 +21,19 @@ gets none.
 ## Art and clothing maps
 
 `Tools/_WF/LegStyle/port.py` makes everything under `Resources/Textures/_WF/LegStyle` and the base sprite
-prototypes. To give a species the toggle, add a set to its `SETS` (and a map to `SUIT_MAPS` if the species has a
+prototypes, from a Meridian Rift checkout and a Starlight one. To give a species the toggle, add a set to its `SETS` (and a map to `SUIT_MAPS` if the species has a
 jumpsuit map of its own), run it, and add a style.
 
-- Legs are Meridian Rift's, cut into leg and foot layers and tinted to the species' torso: the furred set for
-  Vulpkanin, Canine, Rodentia and Tajaran, the aquatic one for Feroxi, the smooth one for Goblin, Skrell and Thaven,
-  and the human, Shadekin and slime sets for those species. Synths get the plantigrade synthetic lizard legs. Where a
-  narrower torso would leave a gap above the new legs, the species' own hip pixels fill it.
-- Shoes get a displacement map per paw shape, made from the outline of the legs.
-- Jumpsuits and outer clothing (hardsuits, coats) use the leg rows of the White Dream map Reptilians already had,
-  mended per paw shape so no leg pixel is left bare under cloth that covers a human's legs. A species whose own map
+- Vulpkanin, Canine, Rodentia and Tajaran wear Starlight's Vulpkanin legs, which have no toes. The rest wear
+  Meridian Rift's, cut into leg and foot layers: the aquatic set for Feroxi, the smooth one for Goblin, Skrell and
+  Thaven, and the human, Shadekin and slime sets for those species; Synths get the plantigrade synthetic lizard
+  legs. Every set is tinted to the species' torso, and where a narrower torso would leave a gap above the new legs,
+  the species' own hip pixels fill it.
+- Shoes get a displacement map per paw shape, made from the outline of the legs. Starlight's legs fit the White
+  Dream shoe map Reptilians already had, which is the one Starlight ships.
+- Jumpsuits and outer clothing (hardsuits, coats) use the leg rows of the White Dream jumpsuit map, mended per paw
+  shape so no leg pixel is left bare under cloth that covers a human's legs. Starlight's legs take Starlight's own
+  outer clothing map, mended the same way. A species whose own map
   fits the upper body (the human female chest, Thaven, Synth, female Reptilians) gets a map with its own rows above
   the hip and those leg rows, or untouched leg rows for a plantigrade option, below.
 
@@ -76,13 +79,13 @@ still drawn for plantigrade legs.
 - [`Resources/Textures/_WF/LegStyle/digitigrade_feroxi.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_feroxi.rsi/)
 - [`Resources/Textures/_WF/LegStyle/digitigrade_goblin.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_goblin.rsi/)
 - [`Resources/Textures/_WF/LegStyle/digitigrade_human.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_human.rsi/)
-- [`Resources/Textures/_WF/LegStyle/digitigrade_mammal.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_mammal.rsi/)
 - [`Resources/Textures/_WF/LegStyle/digitigrade_rodentia.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_rodentia.rsi/)
 - [`Resources/Textures/_WF/LegStyle/digitigrade_shadekin.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_shadekin.rsi/)
 - [`Resources/Textures/_WF/LegStyle/digitigrade_skrell.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_skrell.rsi/)
 - [`Resources/Textures/_WF/LegStyle/digitigrade_slime.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_slime.rsi/)
 - [`Resources/Textures/_WF/LegStyle/digitigrade_tajaran.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_tajaran.rsi/)
 - [`Resources/Textures/_WF/LegStyle/digitigrade_thaven.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_thaven.rsi/)
+- [`Resources/Textures/_WF/LegStyle/digitigrade_vulpkanin.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_vulpkanin.rsi/)
 - [`Resources/Textures/_WF/LegStyle/displacement.rsi/`](../../../Resources/Textures/_WF/LegStyle/displacement.rsi/)
 - [`Resources/Textures/_WF/LegStyle/plantigrade_synth.rsi/`](../../../Resources/Textures/_WF/LegStyle/plantigrade_synth.rsi/)
 

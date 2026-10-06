@@ -20,8 +20,8 @@ namespace Content.IntegrationTests.Tests._WF.LegStyle;
 public sealed class LegStyleBodyTest : InteractionTest
 {
     private const string Species = "Vulpkanin";
-    private const string Style = "WFLegsMammalDigitigrade";
-    private const string LeftLeg = "WFMobMammalLLegDigi";
+    private const string Style = "WFLegsVulpkaninDigitigrade";
+    private const string LeftLeg = "WFMobVulpkaninLLegDigi";
 
     protected override string PlayerPrototype => "MobVulpkanin";
 
@@ -60,7 +60,7 @@ public sealed class LegStyleBodyTest : InteractionTest
 
             var legs = CEntMan.System<LegStyleSystem>();
             var hat = new DisplacementData();
-            Assert.That(legs.GetDisplacement(CPlayer, "jumpsuit", null)?.SizeMaps[32].State, Is.EqualTo("suit_mammal"),
+            Assert.That(legs.GetDisplacement(CPlayer, "jumpsuit", null)?.SizeMaps[32].State, Is.EqualTo("suit_starlight"),
                 "Jumpsuits are not fitted to the legs.");
             Assert.That(legs.GetDisplacement(CPlayer, "outerClothing", null), Is.Not.Null, "Hardsuits are not fitted to the legs.");
             Assert.That(legs.GetDisplacement(CPlayer, "shoes", null), Is.Not.Null, "Shoes are not fitted to the legs.");

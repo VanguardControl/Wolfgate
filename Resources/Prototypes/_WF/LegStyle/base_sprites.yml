@@ -1,4 +1,4 @@
-# Base sprites for the leg styles. Art from Meridian Rift; written by Tools/_WF/LegStyle/port.py.
+# Base sprites for the leg styles. Art from Meridian Rift and Starlight; written by Tools/_WF/LegStyle/port.py.
 
 - type: humanoidBaseSprite
   id: WFMobHumanLLegDigi
@@ -25,27 +25,27 @@
     state: r_foot
 
 - type: humanoidBaseSprite
-  id: WFMobMammalLLegDigi
+  id: WFMobVulpkaninLLegDigi
   baseSprite:
-    sprite: _WF/LegStyle/digitigrade_mammal.rsi
+    sprite: _WF/LegStyle/digitigrade_vulpkanin.rsi
     state: l_leg
 
 - type: humanoidBaseSprite
-  id: WFMobMammalRLegDigi
+  id: WFMobVulpkaninRLegDigi
   baseSprite:
-    sprite: _WF/LegStyle/digitigrade_mammal.rsi
+    sprite: _WF/LegStyle/digitigrade_vulpkanin.rsi
     state: r_leg
 
 - type: humanoidBaseSprite
-  id: WFMobMammalLFootDigi
+  id: WFMobVulpkaninLFootDigi
   baseSprite:
-    sprite: _WF/LegStyle/digitigrade_mammal.rsi
+    sprite: _WF/LegStyle/digitigrade_vulpkanin.rsi
     state: l_foot
 
 - type: humanoidBaseSprite
-  id: WFMobMammalRFootDigi
+  id: WFMobVulpkaninRFootDigi
   baseSprite:
-    sprite: _WF/LegStyle/digitigrade_mammal.rsi
+    sprite: _WF/LegStyle/digitigrade_vulpkanin.rsi
     state: r_foot
 
 - type: humanoidBaseSprite
