@@ -32,7 +32,7 @@ public sealed class LegStyleRulesTest
 
         await server.WaitAssertion(() =>
         {
-            var seen = new HashSet<string>();
+            var seen = new HashSet<(string, bool)>();
             Assert.Multiple(() =>
             {
                 foreach (var style in proto.EnumeratePrototypes<LegStylePrototype>())
@@ -44,15 +44,20 @@ public sealed class LegStyleRulesTest
 
                     foreach (var species in style.Species)
                     {
-                        Assert.That(seen.Add(species), Is.True, $"{species} is in two leg styles; the toggle offers one.");
+                        Assert.That(seen.Add((species, style.Default)), Is.True,
+                            $"{species} is in two leg styles of a kind; it has one pair of legs and the toggle offers one more.");
                         Assert.That(proto.TryIndex(species, out var speciesProto), Is.True, $"{style.ID} names unknown species {species}.");
                         if (speciesProto == null)
                             continue;
 
-                        // The style has to differ from what the species draws, or the toggle does nothing.
+                        // The style has to differ from what the species draws, or the toggle does nothing. The style of
+                        // a species' own legs swaps nothing.
                         var own = proto.Index<HumanoidSpeciesBaseSpritesPrototype>(speciesProto.SpriteSet).Sprites;
-                        Assert.That(style.Sprites.Any(s => own.GetValueOrDefault(s.Key) != s.Value.Id), Is.True,
-                            $"{style.ID} gives {species} the legs it already has.");
+                        if (style.Default)
+                            Assert.That(style.Sprites, Is.Empty, $"{style.ID} replaces legs {species} already draws.");
+                        else
+                            Assert.That(style.Sprites.Any(s => own.GetValueOrDefault(s.Key) != s.Value.Id), Is.True,
+                                $"{style.ID} gives {species} the legs it already has.");
 
                         // Reshaped slots have to exist on the species' inventory.
                         var template = proto.Index(speciesProto.Prototype).TryGetComponent<InventoryComponent>(out var inventory, server.EntMan.ComponentFactory)
@@ -81,11 +86,21 @@ public sealed class LegStyleRulesTest
             Assert.Multiple(() =>
             {
                 // A species with plantigrade legs of its own.
-                Assert.That(LegStyleRules.TryGetAlternate("Vulpkanin", proto, out var alternate), Is.True);
+                Assert.That(LegStyleRules.TryGetAlternate("Tajaran", proto, out var alternate), Is.True);
                 Assert.That(alternate, Is.EqualTo(LegStance.Digitigrade));
-                Assert.That(LegStyleRules.IsDigitigrade("Vulpkanin", LegStance.Default, proto), Is.False);
-                Assert.That(LegStyleRules.IsDigitigrade("Vulpkanin", LegStance.Digitigrade, proto), Is.True);
-                Assert.That(LegStyleRules.Validate("Vulpkanin", LegStance.Plantigrade, proto), Is.EqualTo(LegStance.Default));
+                Assert.That(LegStyleRules.IsDigitigrade("Tajaran", LegStance.Default, proto), Is.False);
+                Assert.That(LegStyleRules.IsDigitigrade("Tajaran", LegStance.Digitigrade, proto), Is.True);
+                Assert.That(LegStyleRules.Validate("Tajaran", LegStance.Plantigrade, proto), Is.EqualTo(LegStance.Default));
+                Assert.That(LegStyleRules.Find("Tajaran", LegStance.Default, proto), Is.Null);
+
+                // A species whose own digitigrade legs have a style for their clothing fit.
+                Assert.That(LegStyleRules.TryGetAlternate("Vulpkanin", proto, out alternate), Is.True);
+                Assert.That(alternate, Is.EqualTo(LegStance.Plantigrade));
+                Assert.That(LegStyleRules.IsDigitigrade("Vulpkanin", LegStance.Default, proto), Is.True);
+                Assert.That(LegStyleRules.IsDigitigrade("WFCanine", LegStance.Plantigrade, proto), Is.False);
+                Assert.That(LegStyleRules.Validate("Vulpkanin", LegStance.Digitigrade, proto), Is.EqualTo(LegStance.Default));
+                Assert.That(LegStyleRules.Find("Vulpkanin", LegStance.Default, proto)?.Default, Is.True);
+                Assert.That(LegStyleRules.Find("Vulpkanin", LegStance.Plantigrade, proto)?.Default, Is.False);
 
                 // A species that is digitigrade already.
                 Assert.That(LegStyleRules.IsDigitigrade("Reptilian", LegStance.Default, proto), Is.True);

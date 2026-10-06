@@ -8,20 +8,24 @@ namespace Content.Shared._WF.LegStyle;
 public static class LegStyleRules
 {
     /// <summary>
-    /// The legs a species draws for a stance, or null when those are its own.
+    /// The style a species wears for a stance: the legs it can switch to if that is their stance, otherwise the
+    /// style of its own legs, which is null unless those need clothing fitted.
     /// </summary>
     public static LegStylePrototype? Find(string species, LegStance stance, IPrototypeManager proto)
     {
-        if (stance == LegStance.Default)
-            return null;
-
+        LegStylePrototype? own = null;
         foreach (var style in proto.EnumeratePrototypes<LegStylePrototype>())
         {
-            if (style.Stance == stance && style.Species.Contains(species))
+            if (!style.Species.Contains(species))
+                continue;
+
+            if (style.Default)
+                own = style;
+            else if (style.Stance == stance)
                 return style;
         }
 
-        return null;
+        return own;
     }
 
     /// <summary>
@@ -31,7 +35,7 @@ public static class LegStyleRules
     {
         foreach (var style in proto.EnumeratePrototypes<LegStylePrototype>())
         {
-            if (!style.Species.Contains(species))
+            if (style.Default || !style.Species.Contains(species))
                 continue;
 
             alternate = style.Stance;
@@ -47,7 +51,7 @@ public static class LegStyleRules
     /// </summary>
     public static LegStance Validate(string species, LegStance stance, IPrototypeManager proto)
     {
-        return Find(species, stance, proto) == null ? LegStance.Default : stance;
+        return TryGetAlternate(species, proto, out var alternate) && alternate == stance ? stance : LegStance.Default;
     }
 
     /// <summary>
@@ -59,8 +63,8 @@ public static class LegStyleRules
             return false;
 
         // The species' own legs are the opposite of the ones it can switch to.
-        return Find(species, stance, proto) != null
-            ? stance == LegStance.Digitigrade
+        return stance == alternate
+            ? alternate == LegStance.Digitigrade
             : alternate != LegStance.Digitigrade;
     }
 }

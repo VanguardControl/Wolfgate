@@ -2,13 +2,15 @@
 
 Digitigrade or plantigrade legs per character, after the Legs preference on Meridian Rift (Nova Sector). Species
 with both kinds get a "Digitigrade legs" checkbox in the character editor's Body card, saved with the profile.
-Human, Dwarf, Felinid, Oni, Vulpkanin, Canine, Feroxi, Goblin, Rodentia, Shadekin, Skrell, Slime Person, Tajaran and
-Thaven can switch to digitigrade; Reptilians and Synths, who are digitigrade already, can switch to plantigrade.
+Human, Dwarf, Felinid, Oni, Feroxi, Goblin, Rodentia, Shadekin, Skrell, Slime Person, Tajaran and Thaven can switch
+to digitigrade; Vulpkanin, Canine, Reptilians and Synths, who are digitigrade by default, can switch to plantigrade.
 Other species have no toggle.
 
 A `wfLegStyle` prototype (`Resources/Prototypes/_WF/LegStyle/leg_styles.yml`) lists the species that may pick it,
 the stance it gives, the base sprites that replace the species' leg and foot layers, and the clothing slots it
-reshapes with their displacement maps. A species listed under a style stands the other way by default.
+reshapes with their displacement maps. A species listed under a style stands the other way by default. A style
+marked `default` is instead the legs the species draws itself: it swaps no sprites and only fits clothing to them,
+so the species' entity needs no displacement maps of its own.
 
 The profile saves a `LegStance` (`Default` is the species' own legs, so characters made before this keep theirs),
 and `LegStyleRules` turns it into a style. `ApplyLegStyle` runs inside `LoadProfile` on the body and on the editor
@@ -24,7 +26,10 @@ gets none.
 prototypes, from a Meridian Rift checkout and a Starlight one. To give a species the toggle, add a set to its `SETS` (and a map to `SUIT_MAPS` if the species has a
 jumpsuit map of its own), run it, and add a style.
 
-- Vulpkanin, Canine, Rodentia and Tajaran wear Starlight's Vulpkanin legs, which have no toes. The rest wear
+- Vulpkanin and Canine wear Starlight's whole Vulpkanin body (the Species module holds it, legs left out) and
+  stand on its legs by default; their plantigrade option is the DeltaV legs they had, with the hip those were drawn
+  for. The body's torsos are cut below the hip to the DeltaV outline so each stance's legs draw their own hip.
+- Rodentia and Tajaran wear Starlight's Vulpkanin legs too, as their digitigrade option. The rest wear
   Meridian Rift's, cut into leg and foot layers: the aquatic set for Feroxi, the smooth one for Goblin, Skrell and
   Thaven, and the human, Shadekin and slime sets for those species; Synths get the plantigrade synthetic lizard
   legs. Every set is tinted to the species' torso, and where a narrower torso would leave a gap above the new legs,
@@ -88,6 +93,7 @@ still drawn for plantigrade legs.
 - [`Resources/Textures/_WF/LegStyle/digitigrade_vulpkanin.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_vulpkanin.rsi/)
 - [`Resources/Textures/_WF/LegStyle/displacement.rsi/`](../../../Resources/Textures/_WF/LegStyle/displacement.rsi/)
 - [`Resources/Textures/_WF/LegStyle/plantigrade_synth.rsi/`](../../../Resources/Textures/_WF/LegStyle/plantigrade_synth.rsi/)
+- [`Resources/Textures/_WF/LegStyle/plantigrade_vulpkanin.rsi/`](../../../Resources/Textures/_WF/LegStyle/plantigrade_vulpkanin.rsi/)
 
 ### Tools
 

@@ -6,7 +6,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._WF.LegStyle;
 
 /// <summary>
-/// Legs a species can pick instead of its own. A species listed here stands the other way by default.
+/// Legs a species can pick instead of its own, or (with <see cref="Default"/>) the clothing fit of the legs it has.
 /// </summary>
 [Prototype("wfLegStyle")]
 public sealed partial class LegStylePrototype : IPrototype
@@ -15,7 +15,7 @@ public sealed partial class LegStylePrototype : IPrototype
     public string ID { get; private set; } = default!;
 
     /// <summary>
-    /// Species that may pick these legs.
+    /// Species that wear these legs.
     /// </summary>
     [DataField(required: true)]
     public List<ProtoId<SpeciesPrototype>> Species = new();
@@ -27,9 +27,15 @@ public sealed partial class LegStylePrototype : IPrototype
     public LegStance Stance;
 
     /// <summary>
+    /// The legs the listed species draw by themselves. Such a style swaps no sprites and only fits clothing to them.
+    /// </summary>
+    [DataField]
+    public bool Default;
+
+    /// <summary>
     /// Base sprites drawn in place of the species' own, by layer.
     /// </summary>
-    [DataField(required: true)]
+    [DataField]
     public Dictionary<HumanoidVisualLayers, ProtoId<HumanoidSpeciesSpriteLayer>> Sprites = new();
 
     /// <summary>

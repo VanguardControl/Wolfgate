@@ -4,14 +4,17 @@ Run from the repository root against a Meridian Rift checkout and a Starlight on
 
     python Tools/_WF/LegStyle/port.py --source <Meridian-Rift checkout> --starlight <Starlight checkout>
 
-The furred species wear Starlight's Vulpkanin legs, the others Meridian Rift's.
+The furred species wear Starlight's Vulpkanin legs, the others Meridian Rift's. Vulpkanin and Canine also
+take the rest of Starlight's Vulpkanin body, written to the Species module's textures, and stand on those
+legs by default; their plantigrade option is the DeltaV legs they had.
 
 An SS13 leg is one sprite; here it is a leg and a foot layer, so each is cut at the row the upstream
 species cut theirs. Every set is tinted to the species that wears it: its channels are scaled by how that
 species' torso compares with the torso the legs were drawn for. Where the species' torso would leave a gap
 above the new legs, the hip of the torso they were drawn for fills it, and the species' own leg after that.
 Starlight's legs bring that whole hip with them: legs draw over the torso, and the torsos here are shaded
-dark along the bottom for the legs they came with.
+dark along the bottom for the legs they came with. The Vulpkanin body's torsos are cut below the hip to the
+outline of the DeltaV ones for the same reason, so each stance's legs draw the hip they belong to.
 
 Clothing is drawn for plantigrade legs and moved by displacement maps:
 - Shoes get a map per paw shape. Row by row, every stretch of digitigrade leg samples the stretch of human
@@ -25,6 +28,7 @@ Clothing is drawn for plantigrade legs and moved by displacement maps:
 import argparse
 import json
 import os
+import shutil
 import statistics
 import subprocess
 import sys
@@ -38,6 +42,11 @@ ICONS = "modular_nova/modules/bodyparts/icons"
 STARLIGHT = "starlight"
 STARLIGHT_REPOSITORY = "https://github.com/ss14Starlight/space-station-14"
 STARLIGHT_VULPKANIN = "Resources/Textures/_Starlight/Mobs/Species/Vulpkanin"
+# A set cut from the DeltaV Vulpkanin already in this repository names this as its sheet.
+DELTAV = "deltav"
+DELTAV_VULPKANIN = "_DV/Mobs/Species/Vulpkanin/parts.rsi"
+# Starlight's Vulpkanin body without its legs, which Vulpkanin and Canine wear.
+VULPKANIN_BODY = "_WF/Species/Mobs/Species/Vulpkanin/parts.rsi"
 TEXTURES = "Resources/Textures"
 OUTPUT = "_WF/LegStyle"
 PROTOTYPES = "Resources/Prototypes/_WF/LegStyle/base_sprites.yml"
@@ -58,7 +67,8 @@ LAYERS = (("LLeg", "l_leg"), ("RLeg", "r_leg"), ("LFoot", "l_foot"), ("RFoot", "
 # the body it is tinted to, the id its base sprites take and the paw shape its clothing maps are made for.
 SETS = {
     "digitigrade_human.rsi": ("human_parts_greyscale.dmi", "human", "_digi", "Mobs/Species/Human/parts.rsi", "HumanLegDigi", "human"),
-    "digitigrade_vulpkanin.rsi": (STARLIGHT, None, None, "_DV/Mobs/Species/Vulpkanin/parts.rsi", "VulpkaninLegDigi", STARLIGHT),
+    "digitigrade_vulpkanin.rsi": (STARLIGHT, None, None, VULPKANIN_BODY, "VulpkaninLegDigi", STARLIGHT),
+    "plantigrade_vulpkanin.rsi": (DELTAV, None, None, VULPKANIN_BODY, "VulpkaninLegPlanti", None),
     "digitigrade_feroxi.rsi": ("aquatic_parts_greyscale.dmi", "aquatic", "_digi", "_DV/Mobs/Species/Feroxi/parts.rsi", "FeroxiLegDigi", "mammal"),
     "digitigrade_goblin.rsi": ("humanoid_parts_greyscale.dmi", "humanoid", "_digi", "_NF/Mobs/Species/Goblin/parts.rsi", "GoblinLegDigi", "human"),
     "digitigrade_rodentia.rsi": (STARLIGHT, None, None, "_DV/Mobs/Species/Rodentia/parts.rsi", "RodentiaLegDigi", STARLIGHT),
@@ -255,6 +265,32 @@ def _write_meta(folder, copyright, states, srgb=True):
         f.write(json.dumps(meta, indent=2) + "\n")
 
 
+def _credit(folder):
+    with open(os.path.join(TEXTURES, folder, "meta.json"), encoding="utf-8-sig") as f:
+        return json.load(f)["copyright"].rstrip(".")
+
+
+def _vulpkanin_body(vulpkanin, credit):
+    """Writes Starlight's Vulpkanin body without legs, its torsos cut below the hip to the DeltaV outline."""
+    folder = os.path.join(TEXTURES, VULPKANIN_BODY)
+    os.makedirs(folder, exist_ok=True)
+    states = ["head_m", "head_f", "l_arm", "r_arm", "l_hand", "r_hand"]
+    for state in states:
+        shutil.copyfile(os.path.join(vulpkanin, "parts.rsi", state + ".png"), os.path.join(folder, state + ".png"))
+    for state in ("torso_m", "torso_f"):
+        cells = _cells("parts.rsi", [state], vulpkanin)
+        for cell, outline in zip(cells, _cells(DELTAV_VULPKANIN, [state])):
+            for y in range(HIP_ROW, cell.height):
+                for x in range(cell.width):
+                    if outline.getpixel((x, y))[3] == 0:
+                        cell.putpixel((x, y), (0, 0, 0, 0))
+        _sheet(cells).save(os.path.join(folder, state + ".png"))
+        states.append(state)
+    _write_meta(folder, "%s The legs are left out and the torsos cut below the hip to the outline of %s; "
+                        "_WF/LegStyle holds the legs." % (credit, DELTAV_VULPKANIN), states)
+    print("wrote", folder)
+
+
 def _commit(checkout):
     return subprocess.run(["git", "-C", checkout, "rev-parse", "HEAD"], capture_output=True, text=True,
                           check=True).stdout.strip()
@@ -274,17 +310,23 @@ def port(source, starlight):
         OUTER: _cells("displacement.rsi", ["outerClothing"], vulpkanin),
     }
     leg_rows = {}
-    prototypes = ["# Base sprites for the leg styles. Art from Meridian Rift and Starlight; written by "
+    prototypes = ["# Base sprites for the leg styles. Art from Meridian Rift, Starlight and DeltaV; written by "
                   "Tools/_WF/LegStyle/port.py.\n"]
+    starlight_credit = ("Taken from Starlight at %s/tree/%s (%s/parts.rsi), where it is credited: taken from "
+                        "Occulus-Eris (https://github.com/Occulus-Server/Occulus-Eris) and modified by "
+                        "discord:kuro_0001." % (STARLIGHT_REPOSITORY, starlight_commit, STARLIGHT_VULPKANIN))
+    _vulpkanin_body(vulpkanin, starlight_credit)
 
     for name, (sheet, limb, legs, body, sprite, paw) in SETS.items():
         torsos = _torsos(body)
         if sheet == STARLIGHT:
             chest = _cells("parts.rsi", ["torso_m"], vulpkanin)
             sides = {side: _cells("parts.rsi", ["%s_leg" % side, "%s_foot" % side], vulpkanin) for side in "lr"}
-            credit = ("Taken from Starlight at %s/tree/%s (%s/parts.rsi), where it is credited: taken from "
-                      "Occulus-Eris (https://github.com/Occulus-Server/Occulus-Eris) and modified by "
-                      "discord:kuro_0001." % (STARLIGHT_REPOSITORY, starlight_commit, STARLIGHT_VULPKANIN))
+            credit = starlight_credit
+        elif sheet == DELTAV:
+            chest = _cells(DELTAV_VULPKANIN, ["torso_m"])
+            sides = {side: _cells(DELTAV_VULPKANIN, ["%s_leg" % side, "%s_foot" % side]) for side in "lr"}
+            credit = "Taken from %s, where it is credited: %s." % (DELTAV_VULPKANIN, _credit(DELTAV_VULPKANIN))
         else:
             dmi = ss13.Dmi.load(os.path.join(source, ICONS, sheet))
             chest = (dmi.states.get(limb + "_chest_m") or dmi.states[limb + "_chest"]).images[0]
@@ -292,20 +334,24 @@ def port(source, starlight):
             credit = ("Taken from Meridian Rift at %s/tree/%s (%s/%s), which carries the art of NovaSector, "
                       "Skyrat-tg and tgstation. Each leg is cut into a leg and a foot." % (
                           REPOSITORY, commit, ICONS, sheet))
-        # Starlight's fur is shaded like the fur here but for darker outlines, which would drag a mean down.
-        tone = _medians if sheet == STARLIGHT else _means
+        # Legs cut from a Vulpkanin body bring its hip and are shaded like the fur here but for darker
+        # outlines, which would drag a mean down.
+        vulpine = sheet in (STARLIGHT, DELTAV)
+        tone = _medians if vulpine else _means
         gains = [ours / theirs for ours, theirs in zip(tone(torsos[0]), tone(chest))]
         sides = {side: [_scale(cell, gains) for cell in cells] for side, cells in sides.items()}
         for i, cell in enumerate(chest):
-            _fill_source_hip(sides, i, _scale(cell, gains), [torso[i] for torso in torsos], sheet == STARLIGHT)
+            _fill_source_hip(sides, i, _scale(cell, gains), [torso[i] for torso in torsos], vulpine)
 
         folder = os.path.join(TEXTURES, OUTPUT, name)
         os.makedirs(folder, exist_ok=True)
         whole = [ss13.Image.new("RGBA", (32, 32)) for _ in range(4)]
         for side, other in ("lr", "rl"):
             cells = sides[side]
-            for i, own in enumerate(_cells(body, ["%s_leg" % side])):
-                _fill_hip(cells[i], own, sides[other][i], [torso[i] for torso in torsos])
+            # The Vulpkanin body has no legs of its own to borrow from.
+            if os.path.exists(os.path.join(TEXTURES, body, "%s_leg.png" % side)):
+                for i, own in enumerate(_cells(body, ["%s_leg" % side])):
+                    _fill_hip(cells[i], own, sides[other][i], [torso[i] for torso in torsos])
             _strip(cells, 0, FOOT_ROW).save(os.path.join(folder, "%s_leg.png" % side))
             _strip(cells, FOOT_ROW, 32).save(os.path.join(folder, "%s_foot.png" % side))
             for image, cell in zip(whole, cells):

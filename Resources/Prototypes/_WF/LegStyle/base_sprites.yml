@@ -1,4 +1,4 @@
-# Base sprites for the leg styles. Art from Meridian Rift and Starlight; written by Tools/_WF/LegStyle/port.py.
+# Base sprites for the leg styles. Art from Meridian Rift, Starlight and DeltaV; written by Tools/_WF/LegStyle/port.py.
 
 - type: humanoidBaseSprite
   id: WFMobHumanLLegDigi
@@ -46,6 +46,30 @@
   id: WFMobVulpkaninRFootDigi
   baseSprite:
     sprite: _WF/LegStyle/digitigrade_vulpkanin.rsi
+    state: r_foot
+
+- type: humanoidBaseSprite
+  id: WFMobVulpkaninLLegPlanti
+  baseSprite:
+    sprite: _WF/LegStyle/plantigrade_vulpkanin.rsi
+    state: l_leg
+
+- type: humanoidBaseSprite
+  id: WFMobVulpkaninRLegPlanti
+  baseSprite:
+    sprite: _WF/LegStyle/plantigrade_vulpkanin.rsi
+    state: r_leg
+
+- type: humanoidBaseSprite
+  id: WFMobVulpkaninLFootPlanti
+  baseSprite:
+    sprite: _WF/LegStyle/plantigrade_vulpkanin.rsi
+    state: l_foot
+
+- type: humanoidBaseSprite
+  id: WFMobVulpkaninRFootPlanti
+  baseSprite:
+    sprite: _WF/LegStyle/plantigrade_vulpkanin.rsi
     state: r_foot
 
 - type: humanoidBaseSprite

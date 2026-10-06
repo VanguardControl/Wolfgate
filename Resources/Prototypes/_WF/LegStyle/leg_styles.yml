@@ -1,10 +1,12 @@
 # Legs a species can pick instead of its own, from the Digitigrade legs toggle in the character editor.
-# A species listed under a style stands the other way by default. displacementSlots are the clothing slots
+# A species listed under a style stands the other way by default, unless the style is marked default: then it
+# only fits clothing to legs the species draws itself. displacementSlots are the clothing slots
 # the legs reshape: they use the style's maps (or none) instead of the species' own, and a female body uses
 # femaleDisplacements where it has the slot. The art and the maps under _WF/LegStyle are made by
 # Tools/_WF/LegStyle/port.py: a shoe map and a suit map (jumpsuits and outer clothing) per paw shape.
 
-# Digitigrade legs for species that stand flat. The furred ones wear Starlight's Vulpkanin legs, which fit
+# Digitigrade legs. Vulpkanin and Canine stand on them by default; for the others they are the option. The
+# furred ones wear Starlight's Vulpkanin legs, which fit
 # the shoe map Reptilians use and Starlight's outer clothing map; the rest wear Meridian Rift's.
 
 - type: wfLegStyle
@@ -41,11 +43,7 @@
   id: WFLegsVulpkaninDigitigrade
   species: [ Vulpkanin, WFCanine ]
   stance: Digitigrade
-  sprites:
-    LLeg: WFMobVulpkaninLLegDigi
-    RLeg: WFMobVulpkaninRLegDigi
-    LFoot: WFMobVulpkaninLFootDigi
-    RFoot: WFMobVulpkaninRFootDigi
+  default: true # the species draws these legs itself (Resources/Prototypes/_WF/Species/vulpkanin.yml)
   displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
     jumpsuit: &starlightSuit
@@ -219,7 +217,18 @@
           state: outerclothing_thaven
     shoes: *humanShoes
 
-# Plantigrade legs for species that are digitigrade already. Their own maps keep fitting the upper body.
+# Plantigrade legs for species that are digitigrade by default. Their own maps keep fitting the upper body.
+
+# The DeltaV legs Vulpkanin and Canine had, with the hip they were drawn for.
+- type: wfLegStyle
+  id: WFLegsVulpkaninPlantigrade
+  species: [ Vulpkanin, WFCanine ]
+  stance: Plantigrade
+  sprites:
+    LLeg: WFMobVulpkaninLLegPlanti
+    RLeg: WFMobVulpkaninRLegPlanti
+    LFoot: WFMobVulpkaninLFootPlanti
+    RFoot: WFMobVulpkaninRFootPlanti
 
 # The legs Reptilians had before they were made digitigrade.
 - type: wfLegStyle
