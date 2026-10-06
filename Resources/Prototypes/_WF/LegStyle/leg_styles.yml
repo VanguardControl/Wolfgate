@@ -2,7 +2,7 @@
 # A species listed under a style stands the other way by default. displacementSlots are the clothing slots
 # the legs reshape: they use the style's maps (or none) instead of the species' own, and a female body uses
 # femaleDisplacements where it has the slot. The art and the maps under _WF/LegStyle are made by
-# Tools/_WF/LegStyle/port.py; the plain jumpsuit map is the one Reptilians use.
+# Tools/_WF/LegStyle/port.py: a shoe map and a suit map (jumpsuits and outer clothing) per paw shape.
 
 # Digitigrade legs for species that stand flat.
 
@@ -15,25 +15,26 @@
     RLeg: WFMobHumanRLegDigi
     LFoot: WFMobHumanLFootDigi
     RFoot: WFMobHumanRFootDigi
-  displacementSlots: [ jumpsuit, shoes ]
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: &digitigradeJumpsuit
+    jumpsuit: &humanSuit
       sizeMaps:
         32:
-          sprite: _White/Mobs/Species/displacement.rsi
-          state: jumpsuit
-    shoes: &humanPawShoes
+          sprite: _WF/LegStyle/displacement.rsi
+          state: suit_human
+    outerClothing: *humanSuit
+    shoes: &humanShoes
       sizeMaps:
         32:
           sprite: _WF/LegStyle/displacement.rsi
           state: shoes_human
   femaleDisplacements:
     # The human chest fit above the hip.
-    jumpsuit: &digitigradeJumpsuitFemale
+    jumpsuit: &humanSuitFemale
       sizeMaps:
         32:
           sprite: _WF/LegStyle/displacement.rsi
-          state: jumpsuit_female
+          state: jumpsuit_female_human
 
 - type: wfLegStyle
   id: WFLegsMammalDigitigrade
@@ -44,10 +45,15 @@
     RLeg: WFMobMammalRLegDigi
     LFoot: WFMobMammalLFootDigi
     RFoot: WFMobMammalRFootDigi
-  displacementSlots: [ jumpsuit, shoes ]
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: *digitigradeJumpsuit
-    shoes: &mammalPawShoes
+    jumpsuit: &mammalSuit
+      sizeMaps:
+        32:
+          sprite: _WF/LegStyle/displacement.rsi
+          state: suit_mammal
+    outerClothing: *mammalSuit
+    shoes: &mammalShoes
       sizeMaps:
         32:
           sprite: _WF/LegStyle/displacement.rsi
@@ -62,10 +68,11 @@
     RLeg: WFMobFeroxiRLegDigi
     LFoot: WFMobFeroxiLFootDigi
     RFoot: WFMobFeroxiRFootDigi
-  displacementSlots: [ jumpsuit, shoes ]
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: *digitigradeJumpsuit
-    shoes: *mammalPawShoes
+    jumpsuit: *mammalSuit
+    outerClothing: *mammalSuit
+    shoes: *mammalShoes
 
 - type: wfLegStyle
   id: WFLegsGoblinDigitigrade
@@ -76,12 +83,14 @@
     RLeg: WFMobGoblinRLegDigi
     LFoot: WFMobGoblinLFootDigi
     RFoot: WFMobGoblinRFootDigi
-  displacementSlots: [ jumpsuit, shoes ]
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: *digitigradeJumpsuit
-    shoes: *humanPawShoes
+    jumpsuit: *humanSuit
+    outerClothing: *humanSuit
+    shoes: *humanShoes
   femaleDisplacements:
-    jumpsuit: *digitigradeJumpsuitFemale
+    # The human chest fit above the hip.
+    jumpsuit: *humanSuitFemale
 
 - type: wfLegStyle
   id: WFLegsRodentiaDigitigrade
@@ -92,10 +101,11 @@
     RLeg: WFMobRodentiaRLegDigi
     LFoot: WFMobRodentiaLFootDigi
     RFoot: WFMobRodentiaRFootDigi
-  displacementSlots: [ jumpsuit, shoes ]
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: *digitigradeJumpsuit
-    shoes: *mammalPawShoes
+    jumpsuit: *mammalSuit
+    outerClothing: *mammalSuit
+    shoes: *mammalShoes
 
 - type: wfLegStyle
   id: WFLegsShadekinDigitigrade
@@ -106,10 +116,15 @@
     RLeg: WFMobShadekinRLegDigi
     LFoot: WFMobShadekinLFootDigi
     RFoot: WFMobShadekinRFootDigi
-  displacementSlots: [ jumpsuit, shoes ]
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: *digitigradeJumpsuit
-    shoes:
+    jumpsuit: &shadekinSuit
+      sizeMaps:
+        32:
+          sprite: _WF/LegStyle/displacement.rsi
+          state: suit_shadekin
+    outerClothing: *shadekinSuit
+    shoes: &shadekinShoes
       sizeMaps:
         32:
           sprite: _WF/LegStyle/displacement.rsi
@@ -124,10 +139,11 @@
     RLeg: WFMobSkrellRLegDigi
     LFoot: WFMobSkrellLFootDigi
     RFoot: WFMobSkrellRFootDigi
-  displacementSlots: [ jumpsuit, shoes ]
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: *digitigradeJumpsuit
-    shoes: *humanPawShoes
+    jumpsuit: *humanSuit
+    outerClothing: *humanSuit
+    shoes: *humanShoes
 
 - type: wfLegStyle
   id: WFLegsSlimeDigitigrade
@@ -138,12 +154,18 @@
     RLeg: WFMobSlimeRLegDigi
     LFoot: WFMobSlimeLFootDigi
     RFoot: WFMobSlimeRFootDigi
-  displacementSlots: [ jumpsuit, shoes ]
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: *digitigradeJumpsuit
-    shoes: *mammalPawShoes
+    jumpsuit: *mammalSuit
+    outerClothing: *mammalSuit
+    shoes: *mammalShoes
   femaleDisplacements:
-    jumpsuit: *digitigradeJumpsuitFemale
+    # The human chest fit above the hip.
+    jumpsuit: &mammalSuitFemale
+      sizeMaps:
+        32:
+          sprite: _WF/LegStyle/displacement.rsi
+          state: jumpsuit_female_mammal
 
 - type: wfLegStyle
   id: WFLegsTajaranDigitigrade
@@ -154,10 +176,11 @@
     RLeg: WFMobTajaranRLegDigi
     LFoot: WFMobTajaranLFootDigi
     RFoot: WFMobTajaranRFootDigi
-  displacementSlots: [ jumpsuit, shoes ]
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    jumpsuit: *digitigradeJumpsuit
-    shoes: *mammalPawShoes
+    jumpsuit: *mammalSuit
+    outerClothing: *mammalSuit
+    shoes: *mammalShoes
 
 - type: wfLegStyle
   id: WFLegsThavenDigitigrade
@@ -168,15 +191,20 @@
     RLeg: WFMobThavenRLegDigi
     LFoot: WFMobThavenLFootDigi
     RFoot: WFMobThavenRFootDigi
-  displacementSlots: [ jumpsuit, shoes ]
+  displacementSlots: [ jumpsuit, outerClothing, shoes ]
   displacements:
-    # The Thaven torso fit above the hip.
+    # The Thaven fit above the hip.
     jumpsuit:
       sizeMaps:
         32:
           sprite: _WF/LegStyle/displacement.rsi
           state: jumpsuit_thaven
-    shoes: *humanPawShoes
+    outerClothing:
+      sizeMaps:
+        32:
+          sprite: _WF/LegStyle/displacement.rsi
+          state: outerclothing_thaven
+    shoes: *humanShoes
 
 # Plantigrade legs for species that are digitigrade already. Their own maps keep fitting the upper body.
 

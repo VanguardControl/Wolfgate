@@ -60,8 +60,9 @@ public sealed class LegStyleBodyTest : InteractionTest
 
             var legs = CEntMan.System<LegStyleSystem>();
             var hat = new DisplacementData();
-            Assert.That(legs.GetDisplacement(CPlayer, "jumpsuit", null)?.SizeMaps[32].State, Is.EqualTo("jumpsuit"),
+            Assert.That(legs.GetDisplacement(CPlayer, "jumpsuit", null)?.SizeMaps[32].State, Is.EqualTo("suit_mammal"),
                 "Jumpsuits are not fitted to the legs.");
+            Assert.That(legs.GetDisplacement(CPlayer, "outerClothing", null), Is.Not.Null, "Hardsuits are not fitted to the legs.");
             Assert.That(legs.GetDisplacement(CPlayer, "shoes", null), Is.Not.Null, "Shoes are not fitted to the legs.");
             Assert.That(legs.GetDisplacement(CPlayer, "head", hat), Is.SameAs(hat), "The legs changed a slot they don't reshape.");
         });

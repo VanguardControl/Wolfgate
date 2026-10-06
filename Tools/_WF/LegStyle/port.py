@@ -12,9 +12,10 @@ above the new legs, the species' own hip pixels fill it.
 Clothing is drawn for plantigrade legs and moved by displacement maps:
 - Shoes get a map per paw shape. Row by row, every stretch of digitigrade leg samples the stretch of human
   leg on that row.
-- Jumpsuits keep the leg rows of the map Reptilians use. A species whose own map also reshapes the upper
-  body gets a map with its rows above the hip and those leg rows below, or untouched leg rows for a
-  plantigrade option.
+- Jumpsuits and outer clothing use the leg rows of the map Reptilians use, mended per paw shape: a leg
+  pixel that map would leave bare samples the human body as a shoe does. A species whose own map also
+  reshapes the upper body gets a map with its rows above the hip and those leg rows below, or untouched leg
+  rows for a plantigrade option.
 """
 import argparse
 import json
@@ -59,13 +60,19 @@ SETS = {
     "plantigrade_synth.rsi": ("synthliz_parts_greyscale.dmi", "synthliz", "", "_HL/Mobs/Species/Synth/parts.rsi", "SynthLegPlanti", None),
 }
 
-# Jumpsuit-like maps: state -> (map kept above the hip, whether the leg rows below are digitigrade).
+# Jumpsuit and outer clothing maps: state -> (map kept above the hip or None, paw shape of the leg rows or
+# None for legs as drawn).
 SUIT_MAPS = {
-    "jumpsuit_female": (("Mobs/Species/Human/displacement.rsi", "jumpsuit-female"), True),
-    "jumpsuit_thaven": (("_Impstation/Mobs/Species/Thaven/displacement.rsi", "jumpsuit"), True),
-    "jumpsuit_reptilian_plantigrade_female": (("_White/Mobs/Species/displacement.rsi", "jumpsuit-female"), False),
-    "jumpsuit_synth_plantigrade": (("_HL/Mobs/Species/Synth/displacement.rsi", "jumpsuit"), False),
-    "outerclothing_synth_plantigrade": (("_HL/Mobs/Species/Synth/displacement.rsi", "outerclothing"), False),
+    "suit_human": (None, "human"),
+    "suit_mammal": (None, "mammal"),
+    "suit_shadekin": (None, "shadekin"),
+    "jumpsuit_female_human": (("Mobs/Species/Human/displacement.rsi", "jumpsuit-female"), "human"),
+    "jumpsuit_female_mammal": (("Mobs/Species/Human/displacement.rsi", "jumpsuit-female"), "mammal"),
+    "jumpsuit_thaven": (("_Impstation/Mobs/Species/Thaven/displacement.rsi", "jumpsuit"), "human"),
+    "outerclothing_thaven": (("_Impstation/Mobs/Species/Thaven/displacement.rsi", "outerclothing_hardsuit"), "human"),
+    "jumpsuit_reptilian_plantigrade_female": (("_White/Mobs/Species/displacement.rsi", "jumpsuit-female"), None),
+    "jumpsuit_synth_plantigrade": (("_HL/Mobs/Species/Synth/displacement.rsi", "jumpsuit"), None),
+    "outerclothing_synth_plantigrade": (("_HL/Mobs/Species/Synth/displacement.rsi", "outerclothing"), None),
 }
 
 
@@ -78,6 +85,13 @@ def _cells(folder, states):
             x, y = (i % 2) * 32, (i // 2) * 32
             cell.alpha_composite(sheet.crop((x, y, x + 32, y + 32)))
     return cells
+
+
+def _over(*layers):
+    out = ss13.Image.new("RGBA", layers[0].size)
+    for layer in layers:
+        out.alpha_composite(layer)
+    return out
 
 
 def _sheet(cells):
@@ -140,15 +154,18 @@ def _runs(image, y):
     return runs
 
 
-def _shoe_map(legs, plantigrade):
-    """The displacement map for one facing: red is how far right of a pixel the shoe is sampled."""
-    out = ss13.Image.new("RGBA", legs.size)
-    for y in range(SHOE_ROW, legs.height):
-        targets, sources = _runs(legs, y), _runs(plantigrade, y)
+def _fit(target, source, top):
+    """The displacement map that draws clothing made for `source` on `target`, for one facing.
+
+    Red is how far right of a pixel the clothing is sampled. Only `target` is drawn.
+    """
+    out = ss13.Image.new("RGBA", target.size)
+    for y in range(top, target.height):
+        targets, sources = _runs(target, y), _runs(source, y)
         if not sources:
             continue
         for index, (first, last) in enumerate(targets):
-            # Two legs side by side pair up; seen from the side both wear the one shoe that is drawn.
+            # Two legs side by side pair up; seen from the side both wear the one leg that is drawn.
             if len(sources) == len(targets):
                 left, right = sources[index]
             else:
@@ -158,7 +175,7 @@ def _shoe_map(legs, plantigrade):
                 if length > width:
                     column = left + k * width // length
                 elif k < (length + 1) // 2:
-                    # A narrower paw keeps the shoe's heel and toe and drops its middle.
+                    # A narrower leg keeps the clothing's two edges and drops its middle.
                     column = left + k
                 else:
                     column = right - (length - 1 - k)
@@ -166,10 +183,27 @@ def _shoe_map(legs, plantigrade):
     return out
 
 
+def _leg_rows(base, legs, body, plantigrade):
+    """The digitigrade map's leg rows, mended so no pixel of these legs samples off the plantigrade body."""
+    out = base.copy()
+    fit = _fit(body, plantigrade, HIP_ROW)
+    for y in range(HIP_ROW, out.height):
+        for x in range(out.width):
+            if legs.getpixel((x, y))[3] == 0:
+                continue
+            red, green, _, alpha = base.getpixel((x, y))
+            column = x + red - 128
+            covered = alpha > 0 and green == 128 and 0 <= column < out.width and plantigrade.getpixel((column, y))[3] > 0
+            if not covered and fit.getpixel((x, y))[3] > 0:
+                out.putpixel((x, y), fit.getpixel((x, y)))
+    return out
+
+
 def _suit_map(above, below):
-    """One map's rows above the hip over another's leg rows; no `below` leaves the legs as drawn."""
-    out = ss13.Image.new("RGBA", above.size, (128, 128, 0, 255))
-    out.paste(above.crop((0, 0, above.width, HIP_ROW)), (0, 0))
+    """One map's rows above the hip over another's leg rows; either may be left as drawn."""
+    out = ss13.Image.new("RGBA", (32, 32), (128, 128, 0, 255))
+    if above is not None:
+        out.paste(above.crop((0, 0, above.width, HIP_ROW)), (0, 0))
     if below is not None:
         out.paste(below.crop((0, HIP_ROW, below.width, below.height)), (0, HIP_ROW))
     return out
@@ -191,6 +225,10 @@ def port(source):
     maps = os.path.join(TEXTURES, OUTPUT, "displacement.rsi")
     os.makedirs(maps, exist_ok=True)
     map_states, paws = [], {}
+    human = _torsos(PLANTIGRADE)[0]
+    flat_body = [_over(legs, torso) for legs, torso in zip(plantigrade, human)]
+    digitigrade = _cells(DIGITIGRADE_MAP[0], [DIGITIGRADE_MAP[1]])
+    leg_rows = {}
     prototypes = ["# Base sprites for the leg styles. Art from Meridian Rift; written by Tools/_WF/LegStyle/port.py.\n"]
 
     for name, (sheet, limb, legs, body, sprite, shoes) in SETS.items():
@@ -229,21 +267,24 @@ def port(source):
         if shoes not in paws:
             paws[shoes] = shape
             state = "shoes_" + shoes
-            _sheet([_shoe_map(leg, flat) for leg, flat in zip(whole, plantigrade)]).save(
+            _sheet([_fit(leg, flat, SHOE_ROW) for leg, flat in zip(whole, plantigrade)]).save(
                 os.path.join(maps, state + ".png"))
             map_states.append(state)
+            leg_rows[shoes] = [_leg_rows(base, leg, _over(leg, torso), flat)
+                               for base, leg, torso, flat in zip(digitigrade, whole, human, flat_body)]
         elif paws[shoes] != shape:
             raise ValueError("%s is not shaped like the other legs that wear the %s shoe map" % (name, shoes))
 
-    digitigrade = _cells(DIGITIGRADE_MAP[0], [DIGITIGRADE_MAP[1]])
-    for state, ((folder, top), bent) in SUIT_MAPS.items():
-        _sheet([_suit_map(above, below if bent else None)
-                for above, below in zip(_cells(folder, [top]), digitigrade)]).save(os.path.join(maps, state + ".png"))
+    for state, (top, paw) in SUIT_MAPS.items():
+        above = _cells(top[0], [top[1]]) if top else [None] * 4
+        below = leg_rows[paw] if paw else [None] * 4
+        _sheet([_suit_map(a, b) for a, b in zip(above, below)]).save(os.path.join(maps, state + ".png"))
         map_states.append(state)
     _write_meta(maps,
                 "Made for Wolfgate by Tools/_WF/LegStyle/port.py. Shoe maps come from the shape of the legs beside "
-                "them. The others join a species' own map above the hip (%s) to the leg rows of Litogin's %s/%s." % (
-                    ", ".join(sorted({top[0] for top, _ in SUIT_MAPS.values()})), *DIGITIGRADE_MAP),
+                "them. The others join a species' own map above the hip (%s) to the leg rows of Litogin's %s/%s, "
+                "mended for each paw shape." % (
+                    ", ".join(sorted({top[0] for top, _ in SUIT_MAPS.values() if top})), *DIGITIGRADE_MAP),
                 map_states, srgb=False)
     print("wrote", maps)
 

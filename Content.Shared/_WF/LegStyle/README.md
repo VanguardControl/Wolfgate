@@ -29,11 +29,12 @@ jumpsuit map of its own), run it, and add a style.
   and the human, Shadekin and slime sets for those species. Synths get the plantigrade synthetic lizard legs. Where a
   narrower torso would leave a gap above the new legs, the species' own hip pixels fill it.
 - Shoes get a displacement map per paw shape, made from the outline of the legs.
-- Jumpsuits use the leg rows of the White Dream map Reptilians already had. A species whose own jumpsuit map fits
-  the upper body (the human female chest, Thaven, Synth, female Reptilians) gets a map with its own rows above the
-  hip and those leg rows, or untouched leg rows for a plantigrade option, below.
+- Jumpsuits and outer clothing (hardsuits, coats) use the leg rows of the White Dream map Reptilians already had,
+  mended per paw shape so no leg pixel is left bare under cloth that covers a human's legs. A species whose own map
+  fits the upper body (the human female chest, Thaven, Synth, female Reptilians) gets a map with its own rows above
+  the hip and those leg rows, or untouched leg rows for a plantigrade option, below.
 
-Only jumpsuits and shoes are fitted to digitigrade legs; outer clothing is not, as on Reptilians. A skin colour
+Reptilians on their own digitigrade legs keep the upstream maps, which don't fit outer clothing. A skin colour
 changed after spawning doesn't reach the legs, as with any reattached limb. Leg markings and Wolfmed bandages are
 still drawn for plantigrade legs.
 
