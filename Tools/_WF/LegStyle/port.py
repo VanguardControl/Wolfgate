@@ -8,8 +8,8 @@ The furred species wear Starlight's Vulpkanin legs, the others Meridian Rift's.
 
 An SS13 leg is one sprite; here it is a leg and a foot layer, so each is cut at the row the upstream
 species cut theirs. Every set is tinted to the species that wears it: its channels are scaled by how that
-species' torso compares with the torso the legs were drawn for. Where a narrower torso would leave a gap
-above the new legs, the species' own hip pixels fill it.
+species' torso compares with the torso the legs were drawn for. Where the species' torso would leave a gap
+above the new legs, the hip of the torso they were drawn for fills it, and the species' own leg after that.
 
 Clothing is drawn for plantigrade legs and moved by displacement maps:
 - Shoes get a map per paw shape. Row by row, every stretch of digitigrade leg samples the stretch of human
@@ -152,6 +152,22 @@ def _fill_hip(cell, own, other, torsos):
                 cell.putpixel((x, y), pixel)
 
 
+def _fill_source_hip(sides, i, chest, torsos):
+    """Copies the hip of the torso the legs were drawn for where one of our torsos and the legs leave it bare."""
+    for y in range(HIP_ROW, SHOE_ROW):
+        for x in range(chest.width):
+            pixel = chest.getpixel((x, y))
+            if pixel[3] == 0 or any(cells[i].getpixel((x, y))[3] > 0 for cells in sides.values()):
+                continue
+            if all(torso.getpixel((x, y))[3] > 0 for torso in torsos):
+                continue
+            # The pixel joins whichever leg is nearer on its row.
+            reach = {side: min((abs(x - column) for column in range(chest.width)
+                                if cells[i].getpixel((column, y))[3] > 0), default=chest.width)
+                     for side, cells in sides.items()}
+            sides[min(reach, key=reach.get)][i].putpixel((x, y), pixel)
+
+
 def _runs(image, y):
     """The stretches of opaque pixels on a row, as (first, last) columns."""
     runs, start = [], None
@@ -268,6 +284,8 @@ def port(source, starlight):
                           REPOSITORY, commit, ICONS, sheet))
         gains = [ours / theirs for ours, theirs in zip(_means(torsos[0]), _means(chest))]
         sides = {side: [_scale(cell, gains) for cell in cells] for side, cells in sides.items()}
+        for i, cell in enumerate(chest):
+            _fill_source_hip(sides, i, _scale(cell, gains), [torso[i] for torso in torsos])
 
         folder = os.path.join(TEXTURES, OUTPUT, name)
         os.makedirs(folder, exist_ok=True)
