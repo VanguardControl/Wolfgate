@@ -15,12 +15,17 @@ RELEASE_DIR = "release"
 # CONFIGURATION PARAMETERS
 # Forks should change these to publish to their own infrastructure.
 #
+<<<<<<< HEAD
 # WOLFGATE(Ci) START: Wolfgate CDN and fork ID
 # ROBUST_CDN_URL = "http://cdn-ss14.erisws.com:8992/"
 # FORK_ID = "monolith"
 ROBUST_CDN_URL = "https://TODO-your-robust-cdn.example/"  # TODO(Wolfgate): set to your Robust.Cdn base URL (keep the trailing slash)
 FORK_ID = "wolfgate"
 # WOLFGATE END
+=======
+ROBUST_CDN_URL = "https://robust.atmosia.org/"
+FORK_ID = "monolith"
+>>>>>>> 0b5b42c96a (Webedit Ops (#4830))
 
 def main():
     parser = argparse.ArgumentParser()
