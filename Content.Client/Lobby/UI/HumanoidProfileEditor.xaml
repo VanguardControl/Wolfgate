@@ -353,6 +353,8 @@
             </BoxContainer>
             <!-- Markings -->
             <BoxContainer Name="MarkingsTab" Orientation="Vertical" Margin="8">
+                <!-- WOLFGATE(CustomMarkings): opens the player's library of markings they drew -->
+                <Button Name="CustomMarkingsButton" HorizontalAlignment="Left" Margin="0 0 0 6" />
                 <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
                     <!-- WOLFGATE(Genitals): Genital ignored, so leftover genital markings never show here; anatomy has its own tab. -->
                     <wfh:WolfgateMarkingPicker Name="Markings" IgnoreCategories="Hair,FacialHair,Genital" />

@@ -613,6 +613,7 @@ namespace Content.Client.Lobby.UI
 
             RefreshFlavorText();
             InitializeHeadshot(); // WOLFGATE(Headshot)
+            InitializeCustomMarkings(); // WOLFGATE(CustomMarkings)
             InitializeMismatchedParts(); // WOLFGATE(Species)
 
             #region Dummy
@@ -1298,6 +1299,7 @@ namespace Content.Client.Lobby.UI
             UpdateNameEdit();
             UpdateFlavorTextEdit();
             UpdateHeadshot(); // WOLFGATE(Headshot)
+            UpdateCustomMarkings(); // WOLFGATE(CustomMarkings)
             UpdateMismatchedParts(); // WOLFGATE(Species)
             UpdateSexControls();
             UpdateGenderControls();
@@ -1910,6 +1912,7 @@ namespace Content.Client.Lobby.UI
             _anatomySaveConfirm = null;
             // WOLFGATE END
             CloseHeadshotWindow(); // WOLFGATE(Headshot)
+            CloseCustomMarkings(); // WOLFGATE(CustomMarkings)
 
             // Mono start
             foreach (var entity in _savedItemEntities)

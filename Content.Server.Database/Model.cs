@@ -53,6 +53,10 @@ namespace Content.Server.Database
         public DbSet<CompanyMember> CompanyMembers { get; set; } = null!;
         public DbSet<WayfarerSafetyDepositBox> WayfarerSafetyDepositBox { get; set; } = null!;
         public DbSet<WayfarerSafetyDepositBoxItem> WayfarerSafetyDepositBoxItem { get; set; } = null!;
+        // WOLFGATE(CustomMarkings) START: player-drawn marking art and each player's library of it
+        public DbSet<WolfgateCustomMarkingArt> WolfgateCustomMarkingArt { get; set; } = null!;
+        public DbSet<WolfgateCustomMarking> WolfgateCustomMarking { get; set; } = null!;
+        // WOLFGATE END
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -449,6 +453,18 @@ namespace Content.Server.Database
 
             modelBuilder.Entity<WayfarerSafetyDepositBoxItem>()
                 .HasIndex(i => i.BoxId);
+
+            // WOLFGATE(CustomMarkings) START: a library entry points at its art, which outlives it
+            modelBuilder.Entity<WolfgateCustomMarking>()
+                .HasIndex(m => m.PlayerUserId);
+
+            modelBuilder.Entity<WolfgateCustomMarking>()
+                .HasOne(m => m.Art)
+                .WithMany()
+                .HasForeignKey(m => m.ArtHash)
+                .HasConstraintName("FK_wolfgate_custom_marking_art")
+                .OnDelete(DeleteBehavior.Restrict);
+            // WOLFGATE END
         }
 
         public virtual IQueryable<AdminLog> SearchLogs(IQueryable<AdminLog> query, string searchText)
@@ -527,6 +543,9 @@ namespace Content.Server.Database
 
         // WOLFGATE(Species): saves the Mismatched parts option (every species' markings, hair and facial hair)
         [Column("mismatched_parts")] public bool MismatchedParts { get; set; }
+
+        // WOLFGATE(CustomMarkings): the custom markings worn, as hash:placement pairs; empty for none.
+        [Column("custom_markings")] public string CustomMarkings { get; set; } = "";
 
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
@@ -1629,4 +1648,51 @@ namespace Content.Server.Database
         /// </summary>
         public DateTime DepositDate { get; set; }
     }
+
+    // WOLFGATE(CustomMarkings) START: player-drawn marking art and each player's library of it
+    /// <summary>
+    /// The art of a custom marking, stored once however many players and characters use it. Rows are never deleted,
+    /// as saved characters refer to them by hash.
+    /// </summary>
+    public class WolfgateCustomMarkingArt
+    {
+        /// <summary>Hash of the art's pixels.</summary>
+        [Key, MaxLength(64)]
+        public string Hash { get; set; } = null!;
+
+        /// <summary>The four facings as one PNG sheet.</summary>
+        [Required]
+        public byte[] Png { get; set; } = null!;
+
+        /// <summary>The player who first saved this art.</summary>
+        public Guid UploaderUserId { get; set; }
+
+        public DateTime UploadedAt { get; set; }
+
+        /// <summary>Set by an admin: the art is no longer sent to anyone, and can't be saved again.</summary>
+        public bool Blocked { get; set; }
+    }
+
+    /// <summary>One marking in a player's library.</summary>
+    public class WolfgateCustomMarking
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public Guid PlayerUserId { get; set; }
+
+        [Required, MaxLength(32)]
+        public string Name { get; set; } = null!;
+
+        [Required, MaxLength(64)]
+        public string ArtHash { get; set; } = null!;
+
+        public WolfgateCustomMarkingArt Art { get; set; } = null!;
+
+        /// <summary>Where the marking is drawn on a body (CustomMarkingPlacement).</summary>
+        public int Placement { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
+    }
+    // WOLFGATE END
 }
