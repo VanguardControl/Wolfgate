@@ -17,8 +17,9 @@ the style on `HumanoidAppearanceComponent.LegStyle`. It runs before body parts c
 transplanted leg keeps its shape. On the client `LegStyleSystem` hands `ClientClothingSystem` the style's
 displacement map for each slot it reshapes; a plantigrade Reptilian gets none there.
 
-The digitigrade art is Meridian Rift's, cut into leg and foot layers by `Tools/_WF/LegStyle/port.py`. The clothing
-maps are the White Dream ones Reptilians already used, so only jumpsuits and shoes are fitted. A skin colour changed
+The digitigrade art is Meridian Rift's, cut into leg and foot layers by `Tools/_WF/LegStyle/port.py`, which also
+makes each set's shoe displacement map from the shape of its paws. The jumpsuit maps are the White Dream ones
+Reptilians already used, so only jumpsuits and shoes are fitted. A skin colour changed
 after spawning doesn't reach the legs, as with any reattached limb. Leg markings and Wolfmed bandages are still drawn
 for plantigrade legs.
 
@@ -59,6 +60,7 @@ for plantigrade legs.
 
 - [`Resources/Textures/_WF/LegStyle/digitigrade_human.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_human.rsi/)
 - [`Resources/Textures/_WF/LegStyle/digitigrade_mammal.rsi/`](../../../Resources/Textures/_WF/LegStyle/digitigrade_mammal.rsi/)
+- [`Resources/Textures/_WF/LegStyle/displacement.rsi/`](../../../Resources/Textures/_WF/LegStyle/displacement.rsi/)
 
 ### Tools
 

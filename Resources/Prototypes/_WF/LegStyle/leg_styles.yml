@@ -1,6 +1,7 @@
 # Legs a species can pick instead of its own, from the Digitigrade legs toggle in the character editor.
 # A species listed under a style stands the other way by default. displacementSlots are the clothing slots
-# the legs reshape: they use the style's maps (or none) instead of the species' own.
+# the legs reshape: they use the style's maps (or none) instead of the species' own. The shoe maps are made for
+# each set of legs by Tools/_WF/LegStyle/port.py; the jumpsuit maps are the ones Reptilians use.
 
 - type: wfLegStyle
   id: WFLegsHumanDigitigrade
@@ -12,7 +13,7 @@
     LFoot: WFMobHumanLFootDigi
     RFoot: WFMobHumanRFootDigi
   displacementSlots: [ jumpsuit, shoes ]
-  displacements: &digitigradeDisplacements
+  displacements:
     jumpsuit:
       sizeMaps:
         32:
@@ -21,9 +22,9 @@
     shoes:
       sizeMaps:
         32:
-          sprite: _White/Mobs/Species/displacement.rsi
-          state: shoes
-  femaleDisplacements: &digitigradeFemaleDisplacements
+          sprite: _WF/LegStyle/displacement.rsi
+          state: shoes_human
+  femaleDisplacements:
     jumpsuit:
       sizeMaps:
         32:
@@ -32,8 +33,8 @@
     shoes:
       sizeMaps:
         32:
-          sprite: _White/Mobs/Species/displacement.rsi
-          state: shoes
+          sprite: _WF/LegStyle/displacement.rsi
+          state: shoes_human
 
 - type: wfLegStyle
   id: WFLegsMammalDigitigrade
@@ -45,8 +46,28 @@
     LFoot: WFMobMammalLFootDigi
     RFoot: WFMobMammalRFootDigi
   displacementSlots: [ jumpsuit, shoes ]
-  displacements: *digitigradeDisplacements
-  femaleDisplacements: *digitigradeFemaleDisplacements
+  displacements:
+    jumpsuit:
+      sizeMaps:
+        32:
+          sprite: _White/Mobs/Species/displacement.rsi
+          state: jumpsuit
+    shoes:
+      sizeMaps:
+        32:
+          sprite: _WF/LegStyle/displacement.rsi
+          state: shoes_mammal
+  femaleDisplacements:
+    jumpsuit:
+      sizeMaps:
+        32:
+          sprite: _White/Mobs/Species/displacement.rsi
+          state: jumpsuit-female
+    shoes:
+      sizeMaps:
+        32:
+          sprite: _WF/LegStyle/displacement.rsi
+          state: shoes_mammal
 
 # Reptilians are digitigrade already; this gives them the legs they had before that.
 - type: wfLegStyle
