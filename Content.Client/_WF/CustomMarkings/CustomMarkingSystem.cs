@@ -185,7 +185,12 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             if (!TryGetArt(marking.Hash, out var rsi))
                 continue;
 
-            var layer = _sprite.AddRsiLayer(sprite, CustomMarkingResources.State, rsi, GetLayerIndex(sprite, marking.Placement));
+            // Art on the body goes without the pixels that lay on a hidden body part.
+            var depth = GetLayerIndex(sprite, marking.Placement);
+            if (ArtFor(sprite, marking, rsi, depth) is not { } shown)
+                continue;
+
+            var layer = _sprite.AddRsiLayer(sprite, CustomMarkingResources.State, shown, depth);
             _sprite.LayerMapSet(sprite, LayerKey(i), layer);
             _sprite.LayerSetVisible(sprite, layer, IsShown(ent.Comp, marking.Placement));
         }

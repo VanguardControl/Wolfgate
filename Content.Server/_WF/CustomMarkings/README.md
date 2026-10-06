@@ -1,9 +1,16 @@
 # CustomMarkings
 
-Markings players draw themselves. The Custom markings button on the creator's Markings tab opens the player's
+Markings players draw themselves. The Custom markings card on the creator's Markings tab opens the player's
 library: draw a new marking in the pixel editor or import a PNG, then wear up to four on a character. A marking is
 four 32x32 facings and a placement, which sets its depth: behind the body, on the skin, on the hands and feet, over
 the hair or over clothing.
+
+The library shows each marking on the character from all four sides, with its name, placement and icon actions. The
+editor keeps the drawing tools beside the canvas, the operations on the shown facing above it, the facing tiles and
+view options to its right and the colours below; its colour picker reads a drawn pixel or, where there is none, the
+body under it, which `CustomMarkingBodySampler` renders to a small target and copies back. Both windows sit on a
+solid backdrop, as the skin's glass panel is unreadable over the creator. The icons are drawn by
+`Tools/_WF/CustomMarkings/gen_editor_icons.py`.
 
 Art is stored once per drawing, under a hash of its pixels, and sent to a client the first time it sees that hash.
 A character's profile lists what it wears as hash and placement pairs, so a saved character keeps its markings when
@@ -30,6 +37,10 @@ art is blocked only asks for it again after reconnecting, so a lifted block show
   and a PNG, and loads through the resource cache like a shipped sprite. The layers are rebuilt after every
   humanoid marking rebuild (`HumanoidMarkingsAppliedEvent`), each just under the first layer that draws over its
   placement.
+- Art drawn on the skin or on the hands and feet goes with the body parts under it. When one is hidden, such as
+  a lost limb, the client draws a copy without the pixels that lay on that part, cut along the part's own
+  outline (`CustomMarkingSystem.Limbs.cs`). The copy is only made for bodies with a part missing. A severed limb
+  doesn't carry the art, and neither does a transplant.
 - Round replays don't record the art: a replay shows the bodies without their custom markings.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -63,14 +74,21 @@ art is blocked only asks for it again after reconnecting, so a lifted block show
 - [`Content.Client/_WF/CustomMarkings/CustomMarkingSketch.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingSketch.cs)
 - [`Content.Client/_WF/CustomMarkings/CustomMarkingSystem.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingSystem.cs)
 - [`Content.Client/_WF/CustomMarkings/CustomMarkingSystem.Library.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingSystem.Library.cs)
+- [`Content.Client/_WF/CustomMarkings/CustomMarkingSystem.Limbs.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingSystem.Limbs.cs)
 - [`Content.Client/_WF/CustomMarkings/HumanoidProfileEditor.CustomMarkings.cs`](../../../Content.Client/_WF/CustomMarkings/HumanoidProfileEditor.CustomMarkings.cs)
+- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingBodySampler.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingBodySampler.cs)
 - [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingCanvas.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingCanvas.cs)
 - [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingEditorWindow.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingEditorWindow.cs)
+- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingIconButton.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingIconButton.cs)
 - [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingLibraryWindow.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingLibraryWindow.cs)
+- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingQuickList.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingQuickList.cs)
+- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingSampling.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingSampling.cs)
+- [`Content.Client/_WF/CustomMarkings/UI/CustomMarkingWindow.cs`](../../../Content.Client/_WF/CustomMarkings/UI/CustomMarkingWindow.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLibraryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLibraryTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLimbsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLimbsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingVisualsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingVisualsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingWindowsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingWindowsTest.cs)
 
@@ -78,17 +96,29 @@ art is blocked only asks for it again after reconnecting, so a lifted block show
 
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingArtTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingArtTest.cs)
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingRulesTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingRulesTest.cs)
+- [`Content.Tests/_WF/CustomMarkings/CustomMarkingSamplingTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingSamplingTest.cs)
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingSketchTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingSketchTest.cs)
 
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/CustomMarkings/custom-markings.ftl`](../../../Resources/Locale/en-US/_WF/CustomMarkings/custom-markings.ftl)
 
+### Textures
+
+- [`Resources/Textures/_WF/CustomMarkings/editor.rsi/`](../../../Resources/Textures/_WF/CustomMarkings/editor.rsi/)
+
+### Tools
+
+- [`Tools/_WF/CustomMarkings/gen_editor_icons.py`](../../../Tools/_WF/CustomMarkings/gen_editor_icons.py)
+
 ## Non-modular edits
 
+- [`Content.Client/Clickable/ClickMapManager.cs`](../../../Content.Client/Clickable/ClickMapManager.cs)
+  - exact opacity of one pixel, to split a marking along limb outlines
+  - see ClickMapManager.IsOpaque.
 - [`Content.Client/Humanoid/HumanoidAppearanceSystem.cs`](../../../Content.Client/Humanoid/HumanoidAppearanceSystem.cs): the doll wears the profile's custom markings
-- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): opens the player's library of markings they drew
-- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
+- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): integrates the drawing library with the creator's marking cards
+- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs): its tiles face that way too
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs)
   - player-drawn marking art and each player's library of it
   - a library entry points at its art, which outlives it

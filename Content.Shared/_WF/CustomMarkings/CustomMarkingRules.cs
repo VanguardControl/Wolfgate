@@ -90,6 +90,21 @@ public static class CustomMarkingRules
     }
 
     /// <summary>
+    /// Takes a marking off a worn list, or puts it on if there is room. Returns whether the list changed.
+    /// </summary>
+    public static bool Toggle(List<CustomMarking> worn, CustomMarking marking, int max)
+    {
+        if (worn.Remove(marking))
+            return true;
+
+        if (worn.Count >= max)
+            return false;
+
+        worn.Add(marking);
+        return true;
+    }
+
+    /// <summary>
     /// Brings a worn list up to date with a library entry that was just saved: a changed entry the character
     /// wears is swapped for its new form in place, and a new entry is put on if there is room. Returns whether
     /// the list changed.

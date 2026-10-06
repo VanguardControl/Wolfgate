@@ -1,10 +1,13 @@
 wf-custom-marking-creator-button = { $worn ->
-    [0] Custom markings
-    *[other] Custom markings ({ $worn } worn)
+    [0] Open library
+    *[other] Open library ({ $worn } worn)
 }
+wf-custom-marking-creator-hint = Draw or import your own markings in the library. Press one below to put it on this character or take it off.
+wf-custom-marking-tile-tooltip = { $name } ({ $placement })
 wf-custom-marking-default-name = Custom marking
 
 wf-custom-marking-library-title = Custom markings
+wf-custom-marking-library-heading = Your marking library
 wf-custom-marking-library-hint = Draw your own markings and keep them here for any of your characters. Everything you save is stored on the server, shown to other players and covered by the server rules.
 wf-custom-marking-library-new = Draw new
 wf-custom-marking-library-import = Import PNG
@@ -14,9 +17,9 @@ wf-custom-marking-library-loading = Loading your library...
 wf-custom-marking-library-empty = Nothing here yet. Press Draw new to make your first marking.
 wf-custom-marking-library-wear = Wear
 wf-custom-marking-library-take-off = Take off
-wf-custom-marking-library-edit = Edit
-wf-custom-marking-library-export = Export
-wf-custom-marking-library-delete = Delete
+wf-custom-marking-library-edit = Edit this marking
+wf-custom-marking-library-export = Export this marking as a PNG file
+wf-custom-marking-library-delete = Delete this marking
 wf-custom-marking-library-delete-confirm = Really delete?
 wf-custom-marking-library-keep = Add to library
 wf-custom-marking-library-keep-tooltip = This character wears a marking that isn't in your library. Add it to keep it for other characters and to edit it.
@@ -24,38 +27,35 @@ wf-custom-marking-library-stray = Not in your library
 
 wf-custom-marking-editor-title-new = New custom marking
 wf-custom-marking-editor-title-edit = Edit custom marking
-wf-custom-marking-editor-tools = Tools
 wf-custom-marking-editor-undo = Undo
 wf-custom-marking-editor-redo = Redo
-wf-custom-marking-editor-facing-tools = This facing
-wf-custom-marking-editor-flip = Flip
-wf-custom-marking-editor-mirror = Mirror to other side
-wf-custom-marking-editor-nudge = Move this facing by one pixel
-wf-custom-marking-editor-clear = Clear
+wf-custom-marking-editor-symmetry = Mirror drawing: what you draw on one side of the body's middle is drawn on the other side too.
+wf-custom-marking-editor-flip = Flip this facing left to right, about the body's middle
+wf-custom-marking-editor-mirror = Copy this facing, flipped, onto the other side view
+wf-custom-marking-editor-nudge-left = Move this facing one pixel left
+wf-custom-marking-editor-nudge-right = Move this facing one pixel right
+wf-custom-marking-editor-nudge-up = Move this facing one pixel up
+wf-custom-marking-editor-nudge-down = Move this facing one pixel down
+wf-custom-marking-editor-clear = Clear this facing
 wf-custom-marking-editor-facings = Facing
 wf-custom-marking-editor-show-body = Show body
 wf-custom-marking-editor-show-clothes = Show clothes
 wf-custom-marking-editor-show-grid = Show grid
 wf-custom-marking-editor-opacity = Opacity
-wf-custom-marking-editor-colour-body = Your character:
-wf-custom-marking-editor-colour-skin = Skin color
-wf-custom-marking-editor-colour-hair = Hair color
-wf-custom-marking-editor-colour-facial-hair = Facial hair color
-wf-custom-marking-editor-colour-eyes = Eye color
+wf-custom-marking-editor-colour-skin = Your character's skin color
+wf-custom-marking-editor-colour-hair = Your character's hair color
+wf-custom-marking-editor-colour-facial-hair = Your character's facial hair color
+wf-custom-marking-editor-colour-eyes = Your character's eye color
 wf-custom-marking-editor-name = Name
-wf-custom-marking-editor-placement = Drawn
+wf-custom-marking-editor-placement = Placement
 wf-custom-marking-editor-save = Save to library
 wf-custom-marking-editor-cancel = Cancel
 wf-custom-marking-editor-saving = Saving...
 
-wf-custom-marking-tool-pencil = Pencil
-wf-custom-marking-tool-pencil-tooltip = Left click draws. Right click erases with any tool.
-wf-custom-marking-tool-eraser = Eraser
-wf-custom-marking-tool-eraser-tooltip = Clears pixels.
-wf-custom-marking-tool-fill = Fill
-wf-custom-marking-tool-fill-tooltip = Recolors the pixel you click and every same-colored pixel touching it.
-wf-custom-marking-tool-picker = Pick color
-wf-custom-marking-tool-picker-tooltip = Takes the color of a pixel you have drawn.
+wf-custom-marking-tool-pencil = Pencil: left click draws. Right click erases with any tool.
+wf-custom-marking-tool-eraser = Eraser: clears the pixels you drag over.
+wf-custom-marking-tool-fill = Fill: recolors the pixel you click and every same-colored pixel touching it.
+wf-custom-marking-tool-picker = Pick color: takes the color of a pixel you drew, or of the body showing under it.
 
 wf-custom-marking-facing-south = Front
 wf-custom-marking-facing-north = Back

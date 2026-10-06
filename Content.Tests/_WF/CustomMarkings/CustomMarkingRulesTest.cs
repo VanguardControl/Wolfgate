@@ -96,6 +96,27 @@ public sealed class CustomMarkingRulesTest
     }
 
     [Test]
+    public void ToggleTest()
+    {
+        var a = new CustomMarking(HashA, CustomMarkingPlacement.Skin);
+        var b = new CustomMarking(HashB, CustomMarkingPlacement.Skin);
+        var c = new CustomMarking(HashA, CustomMarkingPlacement.Hair);
+        var worn = new List<CustomMarking>();
+
+        Assert.That(CustomMarkingRules.Toggle(worn, a, 2), Is.True);
+        Assert.That(CustomMarkingRules.Toggle(worn, b, 2), Is.True);
+        Assert.That(worn, Is.EqualTo(new[] { a, b }));
+
+        Assert.That(CustomMarkingRules.Toggle(worn, c, 2), Is.False, "no room for a third");
+        Assert.That(worn, Is.EqualTo(new[] { a, b }));
+
+        Assert.That(CustomMarkingRules.Toggle(worn, a, 2), Is.True, "a worn one comes off, even when full");
+        Assert.That(worn, Is.EqualTo(new[] { b }));
+        Assert.That(CustomMarkingRules.Toggle(worn, c, 2), Is.True);
+        Assert.That(worn, Is.EqualTo(new[] { b, c }));
+    }
+
+    [Test]
     public void ApplySavedTest()
     {
         var a = new CustomMarkingEntry(1, "A", HashA, CustomMarkingPlacement.Skin);

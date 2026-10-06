@@ -108,6 +108,100 @@ public sealed class CustomMarkingSketchTest
     }
 
     [Test]
+    public void MirrorTest()
+    {
+        // The mirror stands between the two middle columns here, so column x mirrors to last - x.
+        const int last = CustomMarkingRules.FrameSize - 1;
+        var sketch = new CustomMarkingSketch(new CustomMarkingArt()) { Mirror = true, MirrorAxis = last };
+
+        sketch.Begin();
+        sketch.Line(South, new Vector2i(2, 5), new Vector2i(6, 9), Red);
+        sketch.End();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sketch.Art.GetPixel(South, 2, 5), Is.EqualTo(Red));
+            Assert.That(sketch.Art.GetPixel(South, 4, 7), Is.EqualTo(Red));
+            Assert.That(sketch.Art.GetPixel(South, last - 2, 5), Is.EqualTo(Red), "the stroke is repeated across the middle");
+            Assert.That(sketch.Art.GetPixel(South, last - 4, 7), Is.EqualTo(Red));
+            Assert.That(sketch.Art.GetPixel(South, last - 6, 9), Is.EqualTo(Red));
+            Assert.That(sketch.Art.GetPixel(CustomMarkingArt.North, last - 2, 5).A, Is.Zero, "only on the facing drawn on");
+            Assert.That(sketch.MirrorX(0), Is.EqualTo(last));
+            Assert.That(sketch.MirrorX(15), Is.EqualTo(16));
+        });
+
+        // Both halves are one step.
+        sketch.Undo();
+        Assert.That(sketch.Art.IsBlank(), Is.True);
+        sketch.Redo();
+        Assert.That(sketch.Art.GetPixel(South, last - 2, 5), Is.EqualTo(Red));
+
+        // Erasing mirrors as drawing does.
+        sketch.Begin();
+        sketch.Line(South, new Vector2i(2, 5), new Vector2i(2, 5), default);
+        sketch.End();
+        Assert.That(sketch.Art.GetPixel(South, 2, 5).A, Is.Zero);
+        Assert.That(sketch.Art.GetPixel(South, last - 2, 5).A, Is.Zero);
+
+        // A box drawn on one side is drawn on both, and filling one fills the other.
+        var boxes = new CustomMarkingSketch(new CustomMarkingArt()) { Mirror = true, MirrorAxis = last };
+        boxes.Begin();
+        boxes.Line(South, new Vector2i(3, 3), new Vector2i(7, 3), Red);
+        boxes.Line(South, new Vector2i(7, 3), new Vector2i(7, 7), Red);
+        boxes.Line(South, new Vector2i(7, 7), new Vector2i(3, 7), Red);
+        boxes.Line(South, new Vector2i(3, 7), new Vector2i(3, 3), Red);
+        boxes.Fill(South, 5, 5, Blue);
+        boxes.End();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(boxes.Art.GetPixel(South, 5, 5), Is.EqualTo(Blue));
+            Assert.That(boxes.Art.GetPixel(South, last - 5, 5), Is.EqualTo(Blue));
+            Assert.That(boxes.Art.GetPixel(South, last - 3, 3), Is.EqualTo(Red), "the outline across the middle stays");
+            Assert.That(boxes.Art.GetPixel(South, 16, 5).A, Is.Zero, "nothing between the boxes is filled");
+        });
+
+        // Switched off, a stroke stays where it is drawn.
+        var plain = new CustomMarkingSketch(new CustomMarkingArt());
+        plain.Begin();
+        plain.Line(South, new Vector2i(2, 5), new Vector2i(2, 5), Red);
+        plain.Fill(South, 20, 20, Blue);
+        plain.End();
+        Assert.That(plain.Art.GetPixel(South, last - 2, 5), Is.EqualTo(Blue), "the fill reached it, the stroke did not");
+        Assert.That(plain.Art.GetPixel(South, 2, 5), Is.EqualTo(Red));
+    }
+
+    /// <summary>A body's front is an odd number of pixels wide, so by default the mirror stands on its middle column.</summary>
+    [Test]
+    public void MirrorOnMiddleColumnTest()
+    {
+        var sketch = new CustomMarkingSketch(new CustomMarkingArt()) { Mirror = true };
+        Assert.That(sketch.MirrorAxis, Is.EqualTo(CustomMarkingSketch.DefaultMirrorAxis));
+
+        sketch.Begin();
+        sketch.Line(South, new Vector2i(10, 4), new Vector2i(10, 4), Red);
+        sketch.Line(South, new Vector2i(15, 6), new Vector2i(15, 6), Red);
+        sketch.Line(South, new Vector2i(31, 8), new Vector2i(31, 8), Red);
+        sketch.End();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(sketch.Art.GetPixel(South, 10, 4), Is.EqualTo(Red));
+            Assert.That(sketch.Art.GetPixel(South, 20, 4), Is.EqualTo(Red), "the torso's left edge mirrors to its right edge");
+            Assert.That(sketch.Art.GetPixel(South, 21, 4).A, Is.Zero);
+            Assert.That(sketch.Art.GetPixel(South, 15, 6), Is.EqualTo(Red), "the middle column mirrors to itself");
+            Assert.That(sketch.Art.GetPixel(South, 14, 6).A, Is.Zero);
+            Assert.That(sketch.Art.GetPixel(South, 16, 6).A, Is.Zero);
+            Assert.That(sketch.Art.GetPixel(South, 31, 8), Is.EqualTo(Red), "a pixel whose mirror image is off the facing is still drawn");
+            Assert.That(sketch.MirrorX(31), Is.EqualTo(-1));
+        });
+
+        // A fill whose mirror image is off the facing fills only where it was asked to.
+        Assert.DoesNotThrow(() => sketch.Change(_ => sketch.Fill(South, 31, 31, Blue)));
+        Assert.That(sketch.Art.GetPixel(South, 0, 31), Is.EqualTo(Blue));
+    }
+
+    [Test]
     public void StepLimitTest()
     {
         var sketch = new CustomMarkingSketch(new CustomMarkingArt());

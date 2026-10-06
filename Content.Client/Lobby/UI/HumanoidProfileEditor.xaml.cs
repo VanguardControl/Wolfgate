@@ -2527,6 +2527,7 @@ namespace Content.Client.Lobby.UI
             Markings.PreviewDirection = SpriteView.OverrideDirection.Value;
             GenitalEditor.PreviewDirection = SpriteView.OverrideDirection.Value;
             // WOLFGATE END
+            SetCustomMarkingsDirection(SpriteView.OverrideDirection.Value); // WOLFGATE(CustomMarkings): its tiles face that way too
         }
 
         private void RandomizeEverything()

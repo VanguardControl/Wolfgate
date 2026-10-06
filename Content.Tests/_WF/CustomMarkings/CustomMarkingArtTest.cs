@@ -154,6 +154,83 @@ public sealed class CustomMarkingArtTest
     }
 
     [Test]
+    public void FlipTest()
+    {
+        var art = new CustomMarkingArt();
+        art.SetPixel(CustomMarkingArt.South, 10, 3, Red);
+        art.SetPixel(CustomMarkingArt.South, 15, 4, Blue);
+        art.SetPixel(CustomMarkingArt.South, 31, 5, Red);
+        art.SetPixel(CustomMarkingArt.North, 10, 3, Red);
+
+        // About column 15, a body's middle: its edges swap, and the middle stays.
+        art.Flip(CustomMarkingArt.South, 30);
+        Assert.Multiple(() =>
+        {
+            Assert.That(art.GetPixel(CustomMarkingArt.South, 20, 3), Is.EqualTo(Red));
+            Assert.That(art.GetPixel(CustomMarkingArt.South, 10, 3).A, Is.Zero);
+            Assert.That(art.GetPixel(CustomMarkingArt.South, 15, 4), Is.EqualTo(Blue));
+            Assert.That(art.GetPixel(CustomMarkingArt.South, 31, 5).A, Is.Zero, "a pixel flipped off the facing is lost");
+            Assert.That(art.GetPixel(CustomMarkingArt.North, 10, 3), Is.EqualTo(Red), "other facings stay");
+        });
+
+        // Twice is back where it started, less what fell off.
+        art.Flip(CustomMarkingArt.South, 30);
+        Assert.That(art.GetPixel(CustomMarkingArt.South, 10, 3), Is.EqualTo(Red));
+        Assert.That(art.GetPixel(CustomMarkingArt.South, 31, 5).A, Is.Zero);
+
+        // About the middle of the frame, the first and last columns swap.
+        art.Flip(CustomMarkingArt.South, CustomMarkingRules.FrameSize - 1);
+        Assert.That(art.GetPixel(CustomMarkingArt.South, 21, 3), Is.EqualTo(Red));
+        Assert.That(art.GetPixel(CustomMarkingArt.South, 16, 4), Is.EqualTo(Blue));
+    }
+
+    [Test]
+    public void WithoutTest()
+    {
+        var art = new CustomMarkingArt();
+        art.SetPixel(CustomMarkingArt.South, 1, 1, Red);
+        art.SetPixel(CustomMarkingArt.South, 2, 2, Blue);
+        art.SetPixel(CustomMarkingArt.West, 1, 1, Red);
+
+        var asked = 0;
+        var cut = art.Without((facing, x, y) =>
+        {
+            asked++;
+            return facing == CustomMarkingArt.South && x == 1;
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(asked, Is.EqualTo(3), "only drawn pixels are asked about");
+            Assert.That(cut.GetPixel(CustomMarkingArt.South, 1, 1).A, Is.Zero);
+            Assert.That(cut.GetPixel(CustomMarkingArt.South, 2, 2), Is.EqualTo(Blue));
+            Assert.That(cut.GetPixel(CustomMarkingArt.West, 1, 1), Is.EqualTo(Red));
+            Assert.That(art.GetPixel(CustomMarkingArt.South, 1, 1), Is.EqualTo(Red), "the original is left alone");
+            Assert.That(art.Without((_, _, _) => false).SamePixels(art), Is.True);
+            Assert.That(art.Without((_, _, _) => true).IsBlank(), Is.True);
+        });
+    }
+
+    [Test]
+    public void FingerprintTest()
+    {
+        var art = new CustomMarkingArt();
+        art.SetPixel(CustomMarkingArt.North, 5, 6, Red);
+        var same = art.Clone();
+        var other = art.Clone();
+        other.SetPixel(CustomMarkingArt.North, 5, 7, Red);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(art.Fingerprint(), Has.Length.EqualTo(16));
+            Assert.That(art.Fingerprint(), Does.Match("^[0-9a-f]{16}$"));
+            Assert.That(same.Fingerprint(), Is.EqualTo(art.Fingerprint()));
+            Assert.That(other.Fingerprint(), Is.Not.EqualTo(art.Fingerprint()));
+            Assert.That(new CustomMarkingArt().Fingerprint(), Is.Not.EqualTo(art.Fingerprint()));
+        });
+    }
+
+    [Test]
     public void PngRoundTripTest()
     {
         var art = new CustomMarkingArt();

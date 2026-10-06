@@ -150,6 +150,24 @@ public sealed class CustomMarkingArt
         }
     }
 
+    /// <summary>
+    /// Flips a facing left to right about a vertical line, given as the sum of any two columns that swap places:
+    /// 31 for the middle of the frame, 30 for column 15, where a body's middle is. Pixels flipped past an edge are
+    /// lost.
+    /// </summary>
+    public void Flip(int facing, int axis)
+    {
+        var source = Clone();
+        for (var y = 0; y < FrameSize; y++)
+        {
+            for (var x = 0; x < FrameSize; x++)
+            {
+                var from = axis - x;
+                SetPixel(facing, x, y, InFrame(from, y) ? source.GetPixel(facing, from, y) : default);
+            }
+        }
+    }
+
     /// <summary>Moves a facing's pixels; those pushed past an edge are lost.</summary>
     public void Shift(int facing, int dx, int dy)
     {
@@ -189,6 +207,41 @@ public sealed class CustomMarkingArt
             if (InFrame(nextX, nextY) && GetPixel(facing, nextX, nextY) == target && SetPixel(facing, nextX, nextY, pixel))
                 open.Push((nextX, nextY));
         }
+    }
+
+    /// <summary>A copy without the pixels a test picks out by facing and position, such as those over a lost limb.</summary>
+    public CustomMarkingArt Without(Func<int, int, int, bool> gone)
+    {
+        var copy = Clone();
+        for (var facing = 0; facing < Facings; facing++)
+        {
+            for (var y = 0; y < FrameSize; y++)
+            {
+                for (var x = 0; x < FrameSize; x++)
+                {
+                    if (copy.Pixels[Offset(facing, x, y) + 3] != 0 && gone(facing, x, y))
+                        copy.SetPixel(facing, x, y, default);
+                }
+            }
+        }
+
+        return copy;
+    }
+
+    /// <summary>
+    /// A short name for exactly these pixels, for art the client derives from other art. Not a secure hash: the
+    /// server's hash is what identifies art.
+    /// </summary>
+    public string Fingerprint()
+    {
+        // FNV-1a.
+        var hash = 14695981039346656037UL;
+        foreach (var value in Pixels)
+        {
+            hash = unchecked((hash ^ value) * 1099511628211UL);
+        }
+
+        return hash.ToString("x16");
     }
 
     public byte[] ToPng()

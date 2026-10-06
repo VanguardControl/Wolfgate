@@ -3,14 +3,21 @@ using Content.Shared._WF.CustomMarkings;
 
 namespace Content.Client.Lobby.UI;
 
-/// <summary>The Custom markings button on the Markings tab, which opens the player's library.</summary>
+/// <summary>
+/// The Custom markings card on the Markings tab: the player's markings as tiles to put on and take off, and the
+/// button that opens their library.
+/// </summary>
 public sealed partial class HumanoidProfileEditor
 {
     private CustomMarkingLibraryWindow? _customMarkingWindow;
+    private CustomMarkingQuickList? _customMarkingList;
 
     private void InitializeCustomMarkings()
     {
         CustomMarkingsButton.OnPressed += _ => OpenCustomMarkings();
+        _customMarkingList = new CustomMarkingQuickList();
+        _customMarkingList.OnWornChanged += SetCustomMarkings;
+        CustomMarkingsBody.AddChild(_customMarkingList);
         UpdateCustomMarkings();
     }
 
@@ -18,8 +25,15 @@ public sealed partial class HumanoidProfileEditor
     private void UpdateCustomMarkings()
     {
         CloseCustomMarkings();
-        CustomMarkingsButton.Visible = _cfgManager.GetCVar(CustomMarkingCVars.Enabled);
+        CustomMarkingsCard.Visible = _cfgManager.GetCVar(CustomMarkingCVars.Enabled);
         UpdateCustomMarkingsButton();
+        _customMarkingList?.SetWorn(Profile?.CustomMarkings ?? new List<CustomMarking>());
+    }
+
+    /// <summary>Turns the tiles to face the way the preview does.</summary>
+    private void SetCustomMarkingsDirection(Direction direction)
+    {
+        _customMarkingList?.SetDirection(direction);
     }
 
     private void UpdateCustomMarkingsButton()
@@ -47,6 +61,9 @@ public sealed partial class HumanoidProfileEditor
 
         Profile = Profile.WithCustomMarkings(worn);
         UpdateCustomMarkingsButton();
+        // Whichever of the two the change came from, the other shows it.
+        _customMarkingList?.SetWorn(worn);
+        _customMarkingWindow?.SetWorn(worn);
         ReloadProfilePreview();
     }
 

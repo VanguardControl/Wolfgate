@@ -22,6 +22,24 @@ public sealed class CustomMarkingSketch
         Art = art.Clone();
     }
 
+    /// <summary>
+    /// Where the mirror stands on the standard body, whose front and back are an odd number of pixels wide: on
+    /// column 15, their middle one.
+    /// </summary>
+    public const int DefaultMirrorAxis = 30;
+
+    /// <summary>
+    /// Whether drawing is mirrored across a vertical line through the body's middle, so what goes on one side goes
+    /// on the other too.
+    /// </summary>
+    public bool Mirror;
+
+    /// <summary>
+    /// Where the mirror stands, as the sum of any two columns that mirror each other. Even when it stands on a
+    /// column, which then mirrors to itself; odd when it stands between two.
+    /// </summary>
+    public int MirrorAxis = DefaultMirrorAxis;
+
     public bool CanUndo => _undo.Count > 0;
 
     public bool CanRedo => _redo.Count > 0;
@@ -59,11 +77,32 @@ public sealed class CustomMarkingSketch
         End();
     }
 
+    /// <summary>The column a column mirrors to. It may lie off the facing, where nothing is drawn.</summary>
+    public int MirrorX(int x)
+    {
+        return MirrorAxis - x;
+    }
+
     /// <summary>
     /// Draws a straight run of pixels, as a fast drag skips some between two mouse positions. Ends may lie outside
-    /// the facing; only the part inside is drawn.
+    /// the facing; only the part inside is drawn. While mirroring, the run is drawn on the other half as well.
     /// </summary>
     public void Line(int facing, Vector2i from, Vector2i to, Rgba32 ink)
+    {
+        Run(facing, from, to, ink);
+        if (Mirror)
+            Run(facing, new Vector2i(MirrorX(from.X), from.Y), new Vector2i(MirrorX(to.X), to.Y), ink);
+    }
+
+    /// <summary>Fills from a pixel, and while mirroring from the pixel across the middle too.</summary>
+    public void Fill(int facing, int x, int y, Rgba32 ink)
+    {
+        Art.Fill(facing, x, y, ink);
+        if (Mirror)
+            Art.Fill(facing, MirrorX(x), y, ink);
+    }
+
+    private void Run(int facing, Vector2i from, Vector2i to, Rgba32 ink)
     {
         from = Bound(from);
         to = Bound(to);

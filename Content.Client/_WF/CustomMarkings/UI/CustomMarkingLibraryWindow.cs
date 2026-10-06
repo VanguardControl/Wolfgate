@@ -2,13 +2,13 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 using Content.Client._WF.Stylesheets;
+using Content.Client.Lobby;
 using Content.Client.Stylesheets;
 using Content.Shared._WF.CustomMarkings;
 using Content.Shared.Preferences;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
-using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Configuration;
 using Robust.Shared.Graphics.RSI;
 using Robust.Shared.Utility;
@@ -19,11 +19,9 @@ namespace Content.Client._WF.CustomMarkings.UI;
 /// A player's library of custom markings, opened from the character creator: draw or import new ones, change or
 /// remove old ones, and pick which the character being edited wears.
 /// </summary>
-public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
+public sealed partial class CustomMarkingLibraryWindow : CustomMarkingWindow
 {
     private const int ThumbnailScale = 2;
-
-    private static readonly Color ThumbnailBackdrop = Color.FromHex("#2A2D33");
 
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IEntityManager _entMan = default!;
@@ -37,6 +35,9 @@ public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
     private readonly Label _status;
     private readonly Button _newButton;
     private readonly Button _importButton;
+
+    /// <summary>The character, undressed and without custom markings, that each marking is shown on.</summary>
+    private EntityUid? _doll;
 
     private List<CustomMarking> _worn = new();
     private CustomMarkingEditorWindow? _editor;
@@ -57,7 +58,13 @@ public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
         _profile = profile;
 
         Title = Loc.GetString("wf-custom-marking-library-title");
-        MinSize = new Vector2(760, 520);
+        MinSize = new Vector2(760, 560);
+
+        if (profile() is { } character)
+        {
+            var bare = character.WithCustomMarkings(new List<CustomMarking>());
+            _doll = UserInterfaceManager.GetUIController<LobbyUIController>().LoadProfileEntity(bare, null, false);
+        }
 
         var hint = new RichTextLabel { HorizontalExpand = true };
         hint.SetMessage(FormattedMessage.FromUnformatted(Loc.GetString("wf-custom-marking-library-hint")));
@@ -66,13 +73,19 @@ public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
         _newButton.OnPressed += _ => OpenEditor(null, new CustomMarkingArt(), string.Empty);
         _importButton = new Button { Text = Loc.GetString("wf-custom-marking-library-import"), ToolTip = Loc.GetString("wf-custom-marking-library-import-tooltip") };
         _importButton.OnPressed += _ => Import();
-        _counts = new Label { HorizontalExpand = true, Align = Label.AlignMode.Right, VerticalAlignment = VAlignment.Center };
+        _counts = new Label
+        {
+            HorizontalExpand = true,
+            Align = Label.AlignMode.Right,
+            VerticalAlignment = VAlignment.Center,
+            StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel },
+        };
 
         _rows = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
             HorizontalExpand = true,
-            SeparationOverride = 4,
+            SeparationOverride = 6,
         };
 
         _status = new Label { ClipText = true };
@@ -80,16 +93,31 @@ public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
         Contents.AddChild(new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
-            Margin = new Thickness(8),
-            SeparationOverride = 6,
+            SeparationOverride = 8,
             Children =
             {
-                hint,
-                new BoxContainer
+                new PanelContainer
                 {
-                    Orientation = BoxContainer.LayoutOrientation.Horizontal,
-                    SeparationOverride = 6,
-                    Children = { _newButton, _importButton, _counts },
+                    StyleClasses = { StyleWolfgate.StyleClassCreatorCard },
+                    Children =
+                    {
+                        new BoxContainer
+                        {
+                            Orientation = BoxContainer.LayoutOrientation.Vertical,
+                            SeparationOverride = 6,
+                            Children =
+                            {
+                                new Label { Text = Loc.GetString("wf-custom-marking-library-heading"), StyleClasses = { StyleWolfgate.StyleClassCreatorHeading } },
+                                hint,
+                                new BoxContainer
+                                {
+                                    Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                                    SeparationOverride = 6,
+                                    Children = { _newButton, _importButton, _counts },
+                                },
+                            },
+                        },
+                    },
                 },
                 new ScrollContainer
                 {
@@ -109,6 +137,10 @@ public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
             _system.LibraryUpdated -= Rebuild;
             _system.ArtLoaded -= OnArtLoaded;
             _editor?.Close();
+            if (_doll is { } doll)
+                _entMan.DeleteEntity(doll);
+
+            _doll = null;
         };
 
         _system.RequestLibrary();
@@ -166,7 +198,7 @@ public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
     {
         var marking = new CustomMarking(entry.Hash, entry.Placement);
         var worn = _worn.Contains(marking);
-        var loaded = _system.TryGetArt(entry.Hash, out _);
+        var loaded = _system.TryGetArt(entry.Hash, out var rsi);
 
         var wear = new Button
         {
@@ -175,39 +207,49 @@ public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
             Pressed = worn,
             Disabled = !worn && _worn.Count >= MaxWorn,
             MinWidth = 90,
+            StyleClasses = { StyleWolfgate.StyleClassCreatorToggle },
         };
         wear.OnPressed += _ => SetWorn(marking, !worn);
 
-        var edit = new Button { Text = Loc.GetString("wf-custom-marking-library-edit"), Disabled = !loaded };
+        var edit = new CustomMarkingIconButton("pencil", Loc.GetString("wf-custom-marking-library-edit")) { Disabled = !loaded };
         edit.OnPressed += _ =>
         {
             if (ReadArt(entry.Hash) is { } art)
                 OpenEditor(entry, art, entry.Name);
         };
 
-        var export = new Button { Text = Loc.GetString("wf-custom-marking-library-export"), Disabled = !loaded };
+        var export = new CustomMarkingIconButton("export", Loc.GetString("wf-custom-marking-library-export")) { Disabled = !loaded };
         export.OnPressed += _ => Export(entry.Hash);
 
-        var confirming = _confirmingDelete == entry.Id;
-        var delete = new Button
+        // Deleting takes two presses: the icon turns into a question, which deletes.
+        BaseButton delete;
+        if (_confirmingDelete == entry.Id)
         {
-            Text = Loc.GetString(confirming ? "wf-custom-marking-library-delete-confirm" : "wf-custom-marking-library-delete"),
-            StyleClasses = { StyleBase.ButtonCaution },
-        };
-        delete.OnPressed += _ =>
-        {
-            if (confirming)
+            delete = new Button { Text = Loc.GetString("wf-custom-marking-library-delete-confirm"), StyleClasses = { StyleBase.ButtonCaution } };
+            delete.OnPressed += _ =>
+            {
                 _system.Delete(entry.Id);
+                _confirmingDelete = 0;
+                Rebuild();
+            };
+        }
+        else
+        {
+            delete = new CustomMarkingIconButton("trash", Loc.GetString("wf-custom-marking-library-delete"));
+            delete.OnPressed += _ =>
+            {
+                _confirmingDelete = entry.Id;
+                Rebuild();
+            };
+        }
 
-            _confirmingDelete = confirming ? 0 : entry.Id;
-            Rebuild();
-        };
-
-        return Row(entry.Hash, entry.Name, entry.Placement, wear, edit, export, delete);
+        return Row(rsi, entry.Name, entry.Placement, wear, edit, export, delete);
     }
 
     private Control StrayRow(CustomMarking marking, bool room)
     {
+        _system.TryGetArt(marking.Hash, out var rsi);
+
         var takeOff = new Button { Text = Loc.GetString("wf-custom-marking-library-take-off"), MinWidth = 90 };
         takeOff.OnPressed += _ => SetWorn(marking, false);
 
@@ -215,7 +257,7 @@ public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
         {
             Text = Loc.GetString("wf-custom-marking-library-keep"),
             ToolTip = Loc.GetString("wf-custom-marking-library-keep-tooltip"),
-            Disabled = !room || !_system.TryGetArt(marking.Hash, out _),
+            Disabled = !room || rsi == null,
         };
         keep.OnPressed += _ =>
         {
@@ -223,39 +265,43 @@ public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
                 _system.Save(0, string.Empty, marking.Placement, art);
         };
 
-        return Row(marking.Hash, Loc.GetString("wf-custom-marking-library-stray"), marking.Placement, takeOff, keep);
+        return Row(rsi, Loc.GetString("wf-custom-marking-library-stray"), marking.Placement, takeOff, keep);
     }
 
-    private Control Row(string hash, string name, CustomMarkingPlacement placement, params Control[] buttons)
+    /// <summary>A row: the marking on the character from each side, its name and placement, and its actions.</summary>
+    private Control Row(RSI? rsi, string name, CustomMarkingPlacement placement, params BaseButton[] actions)
     {
-        var thumbnails = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 2 };
         RSI.State? state = null;
-        if (_system.TryGetArt(hash, out var rsi))
-            rsi.TryGetState(CustomMarkingResources.State, out state);
+        rsi?.TryGetState(CustomMarkingResources.State, out state);
 
+        var thumbnails = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 2 };
         for (var facing = 0; facing < CustomMarkingRules.Facings; facing++)
         {
-            var size = CustomMarkingRules.FrameSize * ThumbnailScale;
-            thumbnails.AddChild(new PanelContainer
+            thumbnails.AddChild(new CustomMarkingCanvas(ThumbnailScale, false)
             {
-                PanelOverride = new StyleBoxFlat(ThumbnailBackdrop),
-                MinSize = new Vector2(size, size),
-                Children =
-                {
-                    new TextureRect
-                    {
-                        Texture = state?.GetFrame((RsiDirection) facing, 0),
-                        TextureScale = new Vector2(ThumbnailScale, ThumbnailScale),
-                    },
-                },
+                ArtTexture = state?.GetFrame((RsiDirection) facing, 0),
+                Facing = facing,
+                Body = _doll,
+                Placement = placement,
             });
+        }
+
+        var buttons = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Horizontal,
+            SeparationOverride = 4,
+            VerticalAlignment = VAlignment.Center,
+        };
+        foreach (var action in actions)
+        {
+            buttons.AddChild(action);
         }
 
         var row = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Horizontal,
             HorizontalExpand = true,
-            SeparationOverride = 6,
+            SeparationOverride = 12,
             Children =
             {
                 thumbnails,
@@ -264,24 +310,20 @@ public sealed partial class CustomMarkingLibraryWindow : DefaultWindow
                     Orientation = BoxContainer.LayoutOrientation.Vertical,
                     HorizontalExpand = true,
                     VerticalAlignment = VAlignment.Center,
+                    SeparationOverride = 2,
                     Children =
                     {
-                        new Label { Text = name, ClipText = true },
+                        new Label { Text = name, ClipText = true, ToolTip = name, StyleClasses = { StyleWolfgate.StyleClassCreatorCardTitle } },
                         new Label
                         {
                             Text = Loc.GetString(CustomMarkingEditorWindow.PlacementName(placement)),
-                            StyleClasses = { "LabelSubText" },
+                            StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel },
                         },
                     },
                 },
+                buttons,
             },
         };
-
-        foreach (var button in buttons)
-        {
-            button.VerticalAlignment = VAlignment.Center;
-            row.AddChild(button);
-        }
 
         return new PanelContainer
         {

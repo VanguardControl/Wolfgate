@@ -4,10 +4,10 @@ using Content.Client._WF.UserInterface.Controls;
 using Content.Client.Lobby;
 using Content.Shared._WF.CustomMarkings;
 using Content.Shared.Preferences;
+using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
-using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Utility;
 using SixLabors.ImageSharp.PixelFormats;
 using Color = Robust.Shared.Maths.Color;
@@ -18,7 +18,7 @@ namespace Content.Client._WF.CustomMarkings.UI;
 /// The pixel editor for one custom marking: four facings drawn over the character's body, then saved to the
 /// player's library under a name and a placement.
 /// </summary>
-public sealed partial class CustomMarkingEditorWindow : DefaultWindow
+public sealed partial class CustomMarkingEditorWindow : CustomMarkingWindow
 {
     private enum Tool
     {
@@ -30,6 +30,12 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
 
     private const int CanvasScale = 12;
     private const int FacingScale = 2;
+
+    /// <summary>
+    /// Width of the window's content, which the placement hint wraps to. It has to hold the tools, the canvas and
+    /// the facing panel side by side: about 760 with the longest facing names.
+    /// </summary>
+    private const float ContentWidth = 790;
 
     private static readonly string[] FacingNames =
     {
@@ -52,6 +58,8 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
     private readonly byte[] _opened;
 
     private readonly CustomMarkingCanvas _canvas;
+    private readonly CustomMarkingBodySampler _sampler;
+    private readonly Label _canvasHeading;
     private readonly CustomMarkingCanvas[] _facings = new CustomMarkingCanvas[CustomMarkingRules.Facings];
     private readonly WolfgateColorPicker _colour;
     private readonly Slider _opacity;
@@ -60,13 +68,13 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
     private readonly RichTextLabel _placementHint;
     private readonly CheckBox _showBody;
     private readonly CheckBox _showClothes;
-    private readonly Button _undoButton;
-    private readonly Button _redoButton;
-    private readonly Button _mirrorButton;
+    private readonly CustomMarkingIconButton _undoButton;
+    private readonly CustomMarkingIconButton _redoButton;
+    private readonly CustomMarkingIconButton _mirrorButton;
     private readonly Button _saveButton;
     private readonly Label _status;
 
-    private readonly Dictionary<Tool, Button> _toolButtons = new();
+    private readonly Dictionary<Tool, CustomMarkingIconButton> _toolButtons = new();
 
     private Tool _tool = Tool.Pencil;
     private Vector2i? _last;
@@ -88,66 +96,75 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
         _profile = profile;
 
         Title = Loc.GetString(entry == null ? "wf-custom-marking-editor-title-new" : "wf-custom-marking-editor-title-edit");
+        Resizable = false;
 
+        // The canvas, and the body sampler the colour picker reads from
         _canvas = new CustomMarkingCanvas(CanvasScale, true) { Art = _sketch.Art, ShowGrid = true };
         _canvas.Stroke += OnStroke;
         _canvas.StrokeEnded += EndStroke;
+        _canvasHeading = Heading(FacingNames[0]);
+        _canvasHeading.HorizontalExpand = true;
+        _canvasHeading.VAlign = Label.VAlignMode.Center;
+        _sampler = new CustomMarkingBodySampler();
+        UserInterfaceManager.RootControl.AddChild(_sampler);
 
-        // Tools
+        // Drawing tools, in a block two wide down the left of the canvas
         var toolGroup = new ButtonGroup();
-        var tools = Column(120);
-        tools.AddChild(Heading("wf-custom-marking-editor-tools"));
+        var drawing = ToolGrid();
         foreach (var tool in Enum.GetValues<Tool>())
         {
-            var button = new Button
+            var icon = tool.ToString().ToLowerInvariant();
+            var button = new CustomMarkingIconButton(icon, Loc.GetString($"wf-custom-marking-tool-{icon}"))
             {
-                Text = Loc.GetString($"wf-custom-marking-tool-{tool.ToString().ToLowerInvariant()}"),
-                ToolTip = Loc.GetString($"wf-custom-marking-tool-{tool.ToString().ToLowerInvariant()}-tooltip"),
                 ToggleMode = true,
                 Group = toolGroup,
                 Pressed = tool == _tool,
             };
-            button.OnPressed += _ => _tool = tool;
+            button.AddStyleClass(StyleWolfgate.StyleClassCreatorToggle);
+            button.OnPressed += _ => SetTool(tool);
             _toolButtons[tool] = button;
-            tools.AddChild(button);
+            drawing.AddChild(button);
         }
 
-        _undoButton = Command("wf-custom-marking-editor-undo", Undo);
-        _redoButton = Command("wf-custom-marking-editor-redo", Redo);
-        _mirrorButton = Command("wf-custom-marking-editor-mirror", () => Change(art => art.CopyFacing(Facing, Opposite(Facing), true)));
-        tools.AddChild(new Control { MinHeight = 6 });
-        tools.AddChild(_undoButton);
-        tools.AddChild(_redoButton);
-        tools.AddChild(new Control { MinHeight = 6 });
-        tools.AddChild(Heading("wf-custom-marking-editor-facing-tools"));
-        tools.AddChild(Command("wf-custom-marking-editor-flip", () => Change(art => art.CopyFacing(Facing, Facing, true))));
-        tools.AddChild(_mirrorButton);
-        tools.AddChild(new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Horizontal,
-            HorizontalAlignment = HAlignment.Center,
-            Children =
-            {
-                Nudge("◀", -1, 0),
-                Nudge("▲", 0, -1),
-                Nudge("▼", 0, 1),
-                Nudge("▶", 1, 0),
-            },
-        });
-        tools.AddChild(Command("wf-custom-marking-editor-clear", () => Change(art => art.Clear(Facing))));
+        var symmetry = new CustomMarkingIconButton("symmetry", Loc.GetString("wf-custom-marking-editor-symmetry")) { ToggleMode = true };
+        symmetry.AddStyleClass(StyleWolfgate.StyleClassCreatorToggle);
+        symmetry.OnToggled += args => SetMirror(args.Pressed);
+        drawing.AddChild(symmetry);
 
-        // Facings and view
-        var view = Column(150);
-        view.AddChild(Heading("wf-custom-marking-editor-facings"));
+        _undoButton = Command("undo", "wf-custom-marking-editor-undo", Undo);
+        _redoButton = Command("redo", "wf-custom-marking-editor-redo", Redo);
+        var history = ToolGrid();
+        history.AddChild(_undoButton);
+        history.AddChild(_redoButton);
+
+        // What can be done to the facing shown
+        _mirrorButton = Command("mirror", "wf-custom-marking-editor-mirror", () => Change(art => art.CopyFacing(Facing, Opposite(Facing), true)));
+        var facingTools = ToolGrid();
+        facingTools.AddChild(Nudge("left", -1, 0));
+        facingTools.AddChild(Nudge("right", 1, 0));
+        facingTools.AddChild(Nudge("up", 0, -1));
+        facingTools.AddChild(Nudge("down", 0, 1));
+        facingTools.AddChild(Command("flip", "wf-custom-marking-editor-flip", () => Change(art => art.Flip(Facing, _sketch.MirrorAxis))));
+        facingTools.AddChild(_mirrorButton);
+        facingTools.AddChild(Command("trash", "wf-custom-marking-editor-clear", () => Change(art => art.Clear(Facing))));
+
+        var tools = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            SeparationOverride = 10,
+            Children = { drawing, history, facingTools },
+        };
+
+        // The four facings, each on the body, and what the canvas shows
         var facingGroup = new ButtonGroup();
         var facingGrid = new GridContainer { Columns = 2, HSeparationOverride = 4, VSeparationOverride = 4 };
         for (var i = 0; i < _facings.Length; i++)
         {
             var facing = i;
             _facings[i] = new CustomMarkingCanvas(FacingScale, false) { Art = _sketch.Art, Facing = i };
-            var button = new ContainerButton
+            var tile = new ContainerButton
             {
-                StyleClasses = { ContainerButton.StyleClassButton },
+                StyleClasses = { ContainerButton.StyleClassButton, StyleWolfgate.StyleClassCreatorToggle },
                 ToggleMode = true,
                 Group = facingGroup,
                 Pressed = i == 0,
@@ -157,66 +174,88 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
                     new BoxContainer
                     {
                         Orientation = BoxContainer.LayoutOrientation.Vertical,
+                        SeparationOverride = 2,
                         Children =
                         {
                             _facings[i],
-                            new Label { Text = Loc.GetString(FacingNames[i]), HorizontalAlignment = HAlignment.Center },
+                            new Label
+                            {
+                                Text = Loc.GetString(FacingNames[i]),
+                                Align = Label.AlignMode.Center,
+                                StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel },
+                            },
                         },
                     },
                 },
             };
-            button.OnPressed += _ => SetFacing(facing);
-            facingGrid.AddChild(button);
+            tile.OnPressed += _ => SetFacing(facing);
+            facingGrid.AddChild(tile);
         }
 
-        view.AddChild(facingGrid);
-        view.AddChild(new Control { MinHeight = 6 });
         _showBody = new CheckBox { Text = Loc.GetString("wf-custom-marking-editor-show-body"), Pressed = true };
         _showBody.OnPressed += _ => UpdateBody();
         _showClothes = new CheckBox { Text = Loc.GetString("wf-custom-marking-editor-show-clothes") };
         _showClothes.OnPressed += _ => ReloadBody();
-        var grid = new CheckBox { Text = Loc.GetString("wf-custom-marking-editor-show-grid"), Pressed = true };
-        grid.OnPressed += _ => _canvas.ShowGrid = grid.Pressed;
-        view.AddChild(_showBody);
-        view.AddChild(_showClothes);
-        view.AddChild(grid);
+        var showGrid = new CheckBox { Text = Loc.GetString("wf-custom-marking-editor-show-grid"), Pressed = true };
+        showGrid.OnPressed += _ => _canvas.ShowGrid = showGrid.Pressed;
 
-        // Colour
-        _colour = new WolfgateColorPicker { Color = Color.Black };
-        _colour.OnColorChanged += _ => DrawAgain();
-        _opacity = new Slider { MinValue = 5, MaxValue = 100, Value = 100, MinWidth = 90, VerticalAlignment = VAlignment.Center };
-        var colourRow = new BoxContainer
+        var view = new BoxContainer
         {
-            Orientation = BoxContainer.LayoutOrientation.Horizontal,
-            SeparationOverride = 6,
+            Orientation = BoxContainer.LayoutOrientation.Vertical,
+            SeparationOverride = 4,
             Children =
             {
-                _colour,
-                new Label { Text = Loc.GetString("wf-custom-marking-editor-opacity"), VerticalAlignment = VAlignment.Center },
-                _opacity,
+                Heading("wf-custom-marking-editor-facings"),
+                facingGrid,
+                new Control { MinHeight = 8 },
+                _showBody,
+                _showClothes,
+                showGrid,
             },
         };
 
+        // Colour: the palette, the character's own colours beside it, and the opacity
+        _colour = new WolfgateColorPicker { Color = Color.Black, VerticalAlignment = VAlignment.Center };
+        _colour.OnColorChanged += _ => DrawAgain();
+        _opacity = new Slider { MinValue = 5, MaxValue = 100, Value = 100, MinWidth = 120, VerticalAlignment = VAlignment.Center };
+        var colours = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Horizontal,
+            SeparationOverride = 10,
+            Children = { _colour },
+        };
         if (profile != null)
         {
-            var body = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 2 };
-            body.AddChild(Swatch(profile.Appearance.SkinColor, "wf-custom-marking-editor-colour-skin"));
-            body.AddChild(Swatch(profile.Appearance.HairColor, "wf-custom-marking-editor-colour-hair"));
-            body.AddChild(Swatch(profile.Appearance.FacialHairColor, "wf-custom-marking-editor-colour-facial-hair"));
-            body.AddChild(Swatch(profile.Appearance.EyeColor, "wf-custom-marking-editor-colour-eyes"));
-            colourRow.AddChild(new Label { Text = Loc.GetString("wf-custom-marking-editor-colour-body"), VerticalAlignment = VAlignment.Center });
-            colourRow.AddChild(body);
+            colours.AddChild(new GridContainer
+            {
+                Columns = 2,
+                HSeparationOverride = 2,
+                VSeparationOverride = 2,
+                VerticalAlignment = VAlignment.Center,
+                Children =
+                {
+                    Swatch(profile.Appearance.SkinColor, "wf-custom-marking-editor-colour-skin"),
+                    Swatch(profile.Appearance.HairColor, "wf-custom-marking-editor-colour-hair"),
+                    Swatch(profile.Appearance.FacialHairColor, "wf-custom-marking-editor-colour-facial-hair"),
+                    Swatch(profile.Appearance.EyeColor, "wf-custom-marking-editor-colour-eyes"),
+                },
+            });
         }
 
-        // Name, placement and saving
+        colours.AddChild(new Control { HorizontalExpand = true });
+        colours.AddChild(FieldLabel("wf-custom-marking-editor-opacity"));
+        colours.AddChild(_opacity);
+
+        // Name and placement, with what the placement means under them
         _name = new LineEdit
         {
             Text = name,
             MinWidth = 180,
+            HorizontalExpand = true,
             PlaceHolder = Loc.GetString("wf-custom-marking-default-name"),
             IsValid = text => text.Length <= CustomMarkingRules.MaxNameLength,
         };
-        _placement = new OptionButton { MinWidth = 150 };
+        _placement = new OptionButton { MinWidth = 170 };
         foreach (var placement in Enum.GetValues<CustomMarkingPlacement>())
         {
             _placement.AddItem(Loc.GetString(PlacementName(placement)), (int) placement);
@@ -239,30 +278,57 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
         Contents.AddChild(new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
-            Margin = new Thickness(8),
             SeparationOverride = 8,
+            SetWidth = ContentWidth,
             Children =
             {
-                new BoxContainer
+                Card(new BoxContainer
                 {
-                    Orientation = BoxContainer.LayoutOrientation.Horizontal,
-                    SeparationOverride = 10,
-                    Children = { tools, _canvas, view },
-                },
-                colourRow,
-                new BoxContainer
-                {
-                    Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                    Orientation = BoxContainer.LayoutOrientation.Vertical,
                     SeparationOverride = 6,
                     Children =
                     {
-                        new Label { Text = Loc.GetString("wf-custom-marking-editor-name"), VerticalAlignment = VAlignment.Center },
-                        _name,
-                        new Label { Text = Loc.GetString("wf-custom-marking-editor-placement"), VerticalAlignment = VAlignment.Center },
-                        _placement,
+                        new BoxContainer
+                        {
+                            Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                            SeparationOverride = 6,
+                            Children =
+                            {
+                                FieldLabel("wf-custom-marking-editor-name"),
+                                _name,
+                                new Control { MinWidth = 6 },
+                                FieldLabel("wf-custom-marking-editor-placement"),
+                                _placement,
+                            },
+                        },
+                        _placementHint,
+                    },
+                }, true),
+                new BoxContainer
+                {
+                    Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                    SeparationOverride = 8,
+                    Children =
+                    {
+                        Card(new BoxContainer
+                        {
+                            Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                            SeparationOverride = 8,
+                            Children =
+                            {
+                                tools,
+                                new BoxContainer
+                                {
+                                    Orientation = BoxContainer.LayoutOrientation.Vertical,
+                                    SeparationOverride = 6,
+                                    Children = { _canvasHeading, _canvas },
+                                },
+                            },
+                        }, false),
+                        Card(view, true),
                     },
                 },
-                _placementHint,
+                Card(colours, true),
                 new BoxContainer
                 {
                     Orientation = BoxContainer.LayoutOrientation.Horizontal,
@@ -277,6 +343,7 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
         {
             _system.SaveAnswered -= OnSaveAnswered;
             DeleteBody();
+            _sampler.Orphan();
         };
 
         ReloadBody();
@@ -295,33 +362,48 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
         return $"wf-custom-marking-placement-{placement.ToString().ToLowerInvariant()}";
     }
 
-    private static BoxContainer Column(float width)
+    private static Label Heading(string loc)
     {
-        return new BoxContainer
+        return new Label { Text = Loc.GetString(loc), StyleClasses = { StyleWolfgate.StyleClassCreatorHeading } };
+    }
+
+    private static Label FieldLabel(string loc)
+    {
+        return new Label
         {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
-            MinWidth = width,
-            SeparationOverride = 3,
+            Text = Loc.GetString(loc),
+            VerticalAlignment = VAlignment.Center,
+            StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel },
         };
     }
 
-    private static Label Heading(string loc)
+    /// <summary>Groups editor controls using the character creator's inset panels.</summary>
+    private static PanelContainer Card(Control content, bool expand)
     {
-        return new Label { Text = Loc.GetString(loc), StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel } };
+        return new PanelContainer
+        {
+            StyleClasses = { StyleWolfgate.StyleClassCreatorGroup },
+            HorizontalExpand = expand,
+            Children = { content },
+        };
     }
 
-    private static Button Command(string loc, Action act)
+    /// <summary>A block of icon buttons, two to a row.</summary>
+    private static GridContainer ToolGrid()
     {
-        var button = new Button { Text = Loc.GetString(loc) };
+        return new GridContainer { Columns = 2, HSeparationOverride = 4, VSeparationOverride = 4 };
+    }
+
+    private static CustomMarkingIconButton Command(string icon, string loc, Action act)
+    {
+        var button = new CustomMarkingIconButton(icon, Loc.GetString(loc));
         button.OnPressed += _ => act();
         return button;
     }
 
-    private Button Nudge(string text, int dx, int dy)
+    private CustomMarkingIconButton Nudge(string direction, int dx, int dy)
     {
-        var button = new Button { Text = text, ToolTip = Loc.GetString("wf-custom-marking-editor-nudge") };
-        button.OnPressed += _ => Change(art => art.Shift(Facing, dx, dy));
-        return button;
+        return Command(direction, $"wf-custom-marking-editor-nudge-{direction}", () => Change(art => art.Shift(Facing, dx, dy)));
     }
 
     private Control Swatch(Color color, string tooltip)
@@ -344,13 +426,39 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
         return swatch;
     }
 
-    /// <summary>Goes back to the pencil once a colour is chosen, from the palette or off the art.</summary>
+    /// <summary>Turns mirror drawing on or off, with a line on the canvas where the mirror stands.</summary>
+    private void SetMirror(bool on)
+    {
+        _sketch.Mirror = on;
+        UpdateMirror();
+    }
+
+    /// <summary>Stands the mirror on the middle of the body in the facing shown, read off its torso.</summary>
+    private void UpdateMirror()
+    {
+        var axis = CustomMarkingSketch.DefaultMirrorAxis;
+        if (_body is { } body
+            && _entMan.TryGetComponent(body, out SpriteComponent? sprite)
+            && _system.MirrorAxis((body, sprite), Facing) is { } middle)
+            axis = middle;
+
+        _sketch.MirrorAxis = axis;
+        _canvas.MirrorAxis = _sketch.Mirror ? axis : null;
+    }
+
+    private void SetTool(Tool tool)
+    {
+        _tool = tool;
+        _sampler.Active = tool == Tool.Picker;
+    }
+
+    /// <summary>Goes back to the pencil once a colour is chosen, from the palette or off the canvas.</summary>
     private void DrawAgain()
     {
         if (_tool is not (Tool.Picker or Tool.Eraser))
             return;
 
-        _tool = Tool.Pencil;
+        SetTool(Tool.Pencil);
         _toolButtons[Tool.Pencil].Pressed = true;
     }
 
@@ -362,6 +470,9 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
     private void SetFacing(int facing)
     {
         _canvas.Facing = facing;
+        _sampler.Facing = facing;
+        _canvasHeading.Text = Loc.GetString(FacingNames[facing]);
+        UpdateMirror();
         UpdateButtons();
     }
 
@@ -378,12 +489,8 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
 
         if (tool == Tool.Picker)
         {
-            if (start && inFrame && Art.GetPixel(Facing, pixel.X, pixel.Y) is { A: > 0 } picked)
-            {
-                _colour.Color = CustomMarkingArt.ToColor(picked).WithAlpha(1f);
-                _opacity.Value = MathF.Max(_opacity.MinValue, picked.A * 100f / byte.MaxValue);
-                DrawAgain();
-            }
+            if (start && inFrame)
+                Pick(pixel);
 
             return;
         }
@@ -397,7 +504,7 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
         if (tool == Tool.Fill)
         {
             if (start)
-                Art.Fill(Facing, pixel.X, pixel.Y, Ink());
+                _sketch.Fill(Facing, pixel.X, pixel.Y, Ink());
 
             return;
         }
@@ -405,6 +512,27 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
         // A fast drag skips pixels, so each move draws the line from the last one.
         _sketch.Line(Facing, _last ?? pixel, pixel, tool == Tool.Eraser ? default : Ink());
         _last = pixel;
+    }
+
+    /// <summary>Takes the colour at a pixel: what is drawn there, or else the body showing through.</summary>
+    private void Pick(Vector2i pixel)
+    {
+        if (Art.GetPixel(Facing, pixel.X, pixel.Y) is { A: > 0 } drawn)
+        {
+            _colour.Color = CustomMarkingArt.ToColor(drawn).WithAlpha(1f);
+            _opacity.Value = MathF.Max(_opacity.MinValue, drawn.A * 100f / byte.MaxValue);
+        }
+        else if (_sampler.TryGetColor(pixel.X, pixel.Y, out var body))
+        {
+            _colour.Color = body;
+            _opacity.Value = _opacity.MaxValue;
+        }
+        else
+        {
+            return;
+        }
+
+        DrawAgain();
     }
 
     private void EndStroke()
@@ -443,6 +571,11 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
     private void UpdatePlacement()
     {
         _canvas.Placement = Placement;
+        foreach (var tile in _facings)
+        {
+            tile.Placement = Placement;
+        }
+
         _placementHint.SetMessage(FormattedMessage.FromUnformatted(Loc.GetString(PlacementName(Placement) + "-hint")));
     }
 
@@ -454,20 +587,27 @@ public sealed partial class CustomMarkingEditorWindow : DefaultWindow
             _body = _lobby.LoadProfileEntity(_profile, null, _showClothes.Pressed);
 
         UpdateBody();
+        UpdateMirror();
     }
 
     private void UpdateBody()
     {
-        _canvas.Body = _showBody.Pressed ? _body : null;
+        var shown = _showBody.Pressed ? _body : null;
+        _canvas.Body = shown;
+        _sampler.Body = shown;
+        foreach (var tile in _facings)
+        {
+            tile.Body = shown;
+        }
     }
 
     private void DeleteBody()
     {
-        _canvas.Body = null;
-        if (_body is { } body)
-            _entMan.DeleteEntity(body);
-
+        var body = _body;
         _body = null;
+        UpdateBody();
+        if (body is { } doll)
+            _entMan.DeleteEntity(doll);
     }
 
     private void Save()

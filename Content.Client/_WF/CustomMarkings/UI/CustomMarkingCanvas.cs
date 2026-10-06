@@ -20,6 +20,9 @@ public sealed partial class CustomMarkingCanvas : Control
     private static readonly Color BackdropAlt = Color.FromHex("#33373F");
     private static readonly Color GridLine = Color.White.WithAlpha(0.07f);
     private static readonly Color HoverLine = Color.White.WithAlpha(0.9f);
+    private static readonly Color MirrorHoverLine = Color.White.WithAlpha(0.45f);
+    private static readonly Color MirrorGuide = Color.FromHex("#4FD3FF").WithAlpha(0.8f);
+    private static readonly Color MirrorColumn = Color.FromHex("#4FD3FF").WithAlpha(0.14f);
 
     [Dependency] private IEntityManager _entMan = default!;
 
@@ -28,6 +31,9 @@ public sealed partial class CustomMarkingCanvas : Control
     private bool _erasing;
 
     public CustomMarkingArt? Art;
+
+    /// <summary>A finished facing, drawn as one texture in place of <see cref="Art"/>.</summary>
+    public Texture? ArtTexture;
 
     /// <summary>Which facing is shown and drawn on: an index into the RSI's direction order.</summary>
     public int Facing;
@@ -38,6 +44,12 @@ public sealed partial class CustomMarkingCanvas : Control
     public CustomMarkingPlacement Placement;
 
     public bool ShowGrid;
+
+    /// <summary>
+    /// Where the mirror stands while drawing is mirrored, as <see cref="CustomMarkingSketch.MirrorAxis"/> gives it.
+    /// Shows its line and the pixel across from the cursor.
+    /// </summary>
+    public int? MirrorAxis;
 
     /// <summary>The pixel under the cursor, outlined when the canvas takes input.</summary>
     public Vector2i? Hover { get; private set; }
@@ -59,7 +71,8 @@ public sealed partial class CustomMarkingCanvas : Control
         MinSize = new Vector2(Frame * scale, Frame * scale);
         HorizontalAlignment = HAlignment.Center;
         VerticalAlignment = VAlignment.Center;
-        MouseFilter = interactive ? MouseFilterMode.Stop : MouseFilterMode.Pass;
+        // One that only shows takes no clicks, so a button it sits in gets them.
+        MouseFilter = interactive ? MouseFilterMode.Stop : MouseFilterMode.Ignore;
         RectClipContent = true;
     }
 
@@ -80,9 +93,9 @@ public sealed partial class CustomMarkingCanvas : Control
         if (Body is { } body && _entMan.TryGetComponent(body, out SpriteComponent? sprite))
         {
             var depth = _system.GetLayerIndex((body, sprite), Placement) ?? int.MaxValue;
-            DrawBody(handle, sprite, 0, depth, cell);
+            DrawBody(handle, sprite, Facing, 0, depth, PixelSize);
             DrawArt(handle, cell);
-            DrawBody(handle, sprite, depth, int.MaxValue, cell);
+            DrawBody(handle, sprite, Facing, depth, int.MaxValue, PixelSize);
         }
         else
         {
@@ -99,12 +112,35 @@ public sealed partial class CustomMarkingCanvas : Control
             }
         }
 
-        if (Hover is { } hover)
-            handle.DrawRect(Cells(hover.X, hover.Y, 1, cell), HoverLine, false);
+        if (MirrorAxis is { } axis)
+        {
+            // On a column when the axis is even: that column is tinted, with the line down its middle.
+            if (axis % 2 == 0)
+            {
+                var column = Cells(axis / 2, 0, 1, cell);
+                handle.DrawRect(new UIBox2(column.Left, 0, column.Right, PixelSize.Y), MirrorColumn);
+            }
+
+            var middle = MathF.Round((axis + 1) / 2f * cell);
+            handle.DrawRect(new UIBox2(middle - 1, 0, middle + 1, PixelSize.Y), MirrorGuide);
+        }
+
+        if (Hover is not { } hover)
+            return;
+
+        handle.DrawRect(Cells(hover.X, hover.Y, 1, cell), HoverLine, false);
+        if (MirrorAxis is { } mirror && CustomMarkingArt.InFrame(mirror - hover.X, hover.Y))
+            handle.DrawRect(Cells(mirror - hover.X, hover.Y, 1, cell), MirrorHoverLine, false);
     }
 
     private void DrawArt(DrawingHandleScreen handle, float cell)
     {
+        if (ArtTexture is { } texture)
+        {
+            handle.DrawTextureRect(texture, Cells(0, 0, Frame, cell));
+            return;
+        }
+
         if (Art == null)
             return;
 
@@ -119,9 +155,14 @@ public sealed partial class CustomMarkingCanvas : Control
         }
     }
 
-    /// <summary>Draws the doll's layers from one index up to another, each as its frame for this facing.</summary>
-    private void DrawBody(DrawingHandleScreen handle, SpriteComponent sprite, int from, int to, float cell)
+    /// <summary>
+    /// Draws a doll's layers from one index up to another, each as its frame for a facing, with the frame scaled to
+    /// <paramref name="size"/>. <see cref="CustomMarkingBodySampler"/> draws through this too, so what the colour
+    /// picker reads is what the canvas shows.
+    /// </summary>
+    internal static void DrawBody(DrawingHandleScreen handle, SpriteComponent sprite, int facing, int from, int to, Vector2 size)
     {
+        var cell = size.X / Frame;
         var index = -1;
         foreach (var spriteLayer in sprite.AllLayers)
         {
@@ -132,14 +173,14 @@ public sealed partial class CustomMarkingCanvas : Control
 
             var texture = layer.Texture;
             if (layer.ActualRsi is { } rsi && rsi.TryGetState(layer.State, out var state))
-                texture = state.GetFrame(state.RsiDirections == RsiDirectionType.Dir1 ? RsiDirection.South : (RsiDirection) Facing, 0);
+                texture = state.GetFrame(state.RsiDirections == RsiDirectionType.Dir1 ? RsiDirection.South : (RsiDirection) facing, 0);
 
             if (texture == null)
                 continue;
 
-            var size = (Vector2) texture.Size * cell;
-            var centre = PixelSize / 2f + new Vector2(layer.Offset.X, -layer.Offset.Y) * Frame * cell;
-            handle.DrawTextureRect(texture, UIBox2.FromDimensions(centre - size / 2f, size), layer.Color * sprite.Color);
+            var drawn = (Vector2) texture.Size * cell;
+            var centre = size / 2f + new Vector2(layer.Offset.X, -layer.Offset.Y) * Frame * cell;
+            handle.DrawTextureRect(texture, UIBox2.FromDimensions(centre - drawn / 2f, drawn), layer.Color * sprite.Color);
         }
     }
 
@@ -160,7 +201,7 @@ public sealed partial class CustomMarkingCanvas : Control
         base.KeyBindDown(args);
 
         var erase = args.Function == EngineKeyFunctions.UIRightClick;
-        if (args.Function != EngineKeyFunctions.UIClick && !erase)
+        if (MouseFilter != MouseFilterMode.Stop || args.Function != EngineKeyFunctions.UIClick && !erase)
             return;
 
         _drawing = true;
