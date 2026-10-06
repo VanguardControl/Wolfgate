@@ -215,4 +215,14 @@ wf-encounter-ussp-zone-attack = {$intruder}, for the Union. Fire.
 
 # Fleet battle
 wf-encounter-name-fleet-battle = Fleet action {$designation}
-wf-encounter-announce-fleet-battle = Traffic control to all vessels: {$name}. A Federation carrier group and a Dynasty battle group have met in open space and are engaging. All civilian traffic is to stay well clear. Both navies are calling for any armed vessel that will fight for them.
+wf-encounter-announce-fleet-battle = GAMMA ALERT. Traffic control to all vessels: {$name}. A Federation carrier group and a Dynasty battle group have met in open space and are engaging. All civilian traffic is to stay well clear. Both navies are calling for any armed vessel that will fight for them.
+
+# Supercapitals under attack
+wf-encounter-name-supercapital = TSF supercapital {$designation} under attack
+wf-encounter-announce-supercapital = Mayday, mayday, all vessels, this is {$name}. A pirate flotilla has us surrounded, raiders and fighters from every quarter, and they are boarding our wounded sections. Any armed vessel in the sector, engage the pirates. The Federation will remember who came.
+wf-encounter-name-pdv-supercapital = Dynasty supercapital {$designation} under attack
+wf-encounter-announce-pdv-supercapital = All vessels, all vessels, this is {$name}. A Federation strike wing has thrown itself at us and our screens are failing. Any armed vessel, engage the Federation. The Sultan does not forget a debt.
+
+# Fleet battle, large
+wf-encounter-name-fleet-battle-large = Grand fleet action {$designation}
+wf-encounter-announce-fleet-battle-large = GAMMA ALERT. Traffic control to all vessels: {$name}. The Federation and the Dynasty have committed their flagships. A full fleet action is under way in open space. All civilian traffic is to clear the sector lanes. Both navies are calling for every armed vessel that will fight for them.

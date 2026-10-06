@@ -54,6 +54,14 @@ public sealed partial class WFEncounterPrototype : IPrototype
     [DataField]
     public bool AnnounceOnRadio;
 
+    /// <summary>Played with the announcement in place of the ordinary chime; for an alarm such as a fleet action.</summary>
+    [DataField]
+    public Robust.Shared.Audio.SoundSpecifier? AnnouncementSound;
+
+    /// <summary>The announcement's colour in chat, when it is not the ordinary one.</summary>
+    [DataField]
+    public Color? AnnouncementColor;
+
     /// <summary>
     /// Key of the ship whose crew make a radio announcement; left out, the first ship listed. Sector control makes it
     /// when nobody aboard that ship can.

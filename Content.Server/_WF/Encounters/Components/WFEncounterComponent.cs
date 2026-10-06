@@ -84,6 +84,12 @@ public sealed partial class WFEncounterComponent : Component
     [DataField]
     public string? AnnouncementSender;
 
+    [DataField]
+    public Robust.Shared.Audio.SoundSpecifier? AnnouncementSound;
+
+    [DataField]
+    public Color? AnnouncementColor;
+
     /// <summary>Ship weapon hits by each player's ship on the ships of each side.</summary>
     public Dictionary<Robust.Shared.Network.NetUserId, Dictionary<string, int>> Hits = new();
 

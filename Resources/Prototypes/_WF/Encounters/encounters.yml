@@ -2199,7 +2199,7 @@
   ships:
   - key: capital
     navigation: WFCrewNavigationWarship
-    vessel: Fujian
+    vessels: [ Fujian, Altair, Andromeda ]
     side: tsf
     faction: TSFMC
     company: TSF
@@ -2325,7 +2325,7 @@
   ships:
   - key: capital
     navigation: WFCrewNavigationWarship
-    vessel: Europa
+    vessels: [ Kortik, Europa, Saintie ]
     side: pdv
     faction: WFPdvNavy
     company: PDV
@@ -2649,6 +2649,11 @@
   name: wf-encounter-name-fleet-battle
   announcement: wf-encounter-announce-fleet-battle
   announcementSender: wf-encounter-sender-traffic
+  announcementSound:
+    path: /Audio/Misc/gamma.ogg
+    params:
+      volume: -2
+  announcementColor: "#db7093"
   start: Manual
   category: Threat
   cost: 6
@@ -2674,7 +2679,7 @@
   ships:
   - key: carrier
     navigation: WFCrewNavigationWarship
-    vessel: Fujian
+    vessels: [ Fujian, Altair, Andromeda ]
     deckhands: 3
     guards: 2
     offset: -900, 0
@@ -2743,7 +2748,7 @@
       target: wingtwo
   - key: flagship
     navigation: WFCrewNavigationWarship
-    vessel: Europa
+    vessels: [ Kortik, Europa, Saintie ]
     deckhands: 3
     guards: 2
     offset: 900, 0
@@ -2807,6 +2812,542 @@
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
+    objectives:
+    - kind: Attack
+      target: fighterthree
+
+# A supercapital under attack: the Federation's Flyssa beset by a whole pirate flotilla, or the Dynasty's Saturn by a
+# Federation strike wing. The biggest fights the storyteller sets, for a full server.
+
+- type: wfEncounter
+  id: WFEncounterSupercapitalUnderAttack
+  leash: 3500
+  name: wf-encounter-name-supercapital
+  announcement: wf-encounter-announce-supercapital
+  announcementSender: wf-encounter-sender-traffic
+  announceOnRadio: true
+  announcer: capital
+  start: Scheduled
+  category: Distress
+  cost: 6
+  weight: 0.4
+  minPlayers: 9
+  cooldown: 5400
+  duration: 3600
+  startRadius: 2500
+  minDistance: 3000
+  maxDistance: 5000
+  stationClearance: 3000
+  rewards:
+  - side: tsf
+    spesos: 150000
+    credits: 80
+    creditEntity: FederationMilitaryCredit1
+    creditCompanies: [ TSF, TSFCivilian ]
+    thanks: wf-encounter-reward-thanks-tsf
+  ships:
+  - key: capital
+    navigation: WFCrewNavigationWarship
+    vessel: Flyssa
+    deckhands: 4
+    guards: 3
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    objectives:
+    - kind: Attack
+      target: raider
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    vessels: [ Osa, Scorpion ]
+    deckhands: 2
+    offset: 0, 900
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    distress: false
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: second
+    navigation: WFCrewNavigationRaider
+    vessels: [ Osa, Scorpion ]
+    deckhands: 2
+    offset: 0, -900
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    distress: false
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: third
+    navigation: WFCrewNavigationRaider
+    vessels: [ Layak, Osa ]
+    deckhands: 2
+    offset: 900, 0
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    distress: false
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 800, 400
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    distress: false
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingtwo
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -800, 400
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    distress: false
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingthree
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 800, -400
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    distress: false
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingfour
+    navigation: WFCrewNavigationRaider
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -800, -400
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    distress: false
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingfive
+    navigation: WFCrewNavigationRaider
+    vessel: Kynda
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -900, 0
+    side: pirates
+    faction: PirateNF
+    company: PDV
+    profile: WFCrewProfilePirate
+    distress: false
+    objectives:
+    - kind: Attack
+      target: capital
+
+- type: wfEncounter
+  id: WFEncounterPdvSupercapitalUnderAttack
+  leash: 3500
+  name: wf-encounter-name-pdv-supercapital
+  announcement: wf-encounter-announce-pdv-supercapital
+  announcementSender: wf-encounter-sender-traffic
+  announceOnRadio: true
+  announcer: capital
+  start: Scheduled
+  category: Distress
+  cost: 6
+  weight: 0.4
+  minPlayers: 9
+  cooldown: 5400
+  duration: 3600
+  startRadius: 2500
+  minDistance: 3000
+  maxDistance: 5000
+  stationClearance: 3000
+  rewards:
+  - side: pdv
+    spesos: 150000
+    credits: 80
+    creditEntity: Doubloon1
+    creditCompanies: [ PDV, PDVCivilian ]
+    thanks: wf-encounter-reward-thanks-pdv
+  ships:
+  - key: capital
+    navigation: WFCrewNavigationWarship
+    vessel: Saturn
+    deckhands: 4
+    guards: 3
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    iffColor: "#ffae3d"
+    objectives:
+    - kind: Attack
+      target: striker
+  - key: striker
+    navigation: WFCrewNavigationWarship
+    vessels: [ Banshee, Dagger, Calypso ]
+    deckhands: 1
+    guards: 1
+    offset: 0, 900
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: strikertwo
+    navigation: WFCrewNavigationWarship
+    vessels: [ Banshee, Dagger, Calypso ]
+    deckhands: 1
+    guards: 1
+    offset: 0, -900
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wing
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 800, 400
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingtwo
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -800, 400
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingthree
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 800, -400
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingfour
+    navigation: WFCrewNavigationWarship
+    vessel: Paladin
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -800, -400
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: capital
+  - key: wingfive
+    navigation: WFCrewNavigationWarship
+    vessel: Ocelot
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 900, 0
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: capital
+
+# The fleet action at full scale, for admins: each side brings its supercapital, a capital ship, a gunboat and three fighters.
+
+- type: wfEncounter
+  id: WFEncounterFleetBattleLarge
+  leash: 5000
+  name: wf-encounter-name-fleet-battle-large
+  announcement: wf-encounter-announce-fleet-battle-large
+  announcementSender: wf-encounter-sender-traffic
+  announcementSound:
+    path: /Audio/Misc/gamma.ogg
+    params:
+      volume: -2
+  announcementColor: "#db7093"
+  start: Manual
+  category: Threat
+  cost: 10
+  weight: 0
+  minPlayers: 0
+  cooldown: 5400
+  duration: 4200
+  startRadius: 2500
+  minDistance: 3000
+  maxDistance: 5000
+  stationClearance: 3000
+  rewards:
+  - side: tsf
+    spesos: 150000
+    credits: 80
+    creditEntity: FederationMilitaryCredit1
+    creditCompanies: [ TSF, TSFCivilian ]
+    thanks: wf-encounter-reward-thanks-tsf
+  - side: pdv
+    spesos: 150000
+    credits: 80
+    creditEntity: Doubloon1
+    creditCompanies: [ PDV, PDVCivilian ]
+    thanks: wf-encounter-reward-thanks-pdv
+  ships:
+  - key: dreadnought
+    navigation: WFCrewNavigationWarship
+    vessel: Flyssa
+    deckhands: 4
+    guards: 3
+    offset: -1100, 0
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    iffColor: "#6fb6ff"
+    objectives:
+    - kind: Attack
+      target: battleship
+  - key: carrier
+    navigation: WFCrewNavigationWarship
+    vessels: [ Fujian, Altair, Andromeda ]
+    deckhands: 3
+    guards: 2
+    offset: -950, 350
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: flagship
+  - key: gunboat
+    navigation: WFCrewNavigationWarship
+    vessels: [ Banshee, Dagger, Calypso ]
+    deckhands: 1
+    guards: 1
+    offset: -850, -300
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: escort
+  - key: fighter
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -750, 150
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: battleship
+  - key: fightertwo
+    navigation: WFCrewNavigationWarship
+    vessel: QJ271
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -750, -500
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: wing
+  - key: fighterthree
+    navigation: WFCrewNavigationWarship
+    vessel: Paladin
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -700, 500
+    side: tsf
+    faction: TSFMC
+    company: TSF
+    profile: WFCrewProfileTsf
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: wingtwo
+  - key: battleship
+    navigation: WFCrewNavigationWarship
+    vessel: Saturn
+    deckhands: 4
+    guards: 3
+    offset: 1100, 0
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    distress: false
+    skill: Regular
+    iffColor: "#ffae3d"
+    objectives:
+    - kind: Attack
+      target: dreadnought
+  - key: flagship
+    navigation: WFCrewNavigationWarship
+    vessels: [ Kortik, Europa, Saintie ]
+    deckhands: 3
+    guards: 2
+    offset: 950, -350
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: carrier
+  - key: escort
+    navigation: WFCrewNavigationWarship
+    vessels: [ Tethys, Neptune ]
+    deckhands: 1
+    guards: 1
+    offset: 850, 300
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: gunboat
+  - key: wing
+    navigation: WFCrewNavigationWarship
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 750, -150
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: dreadnought
+  - key: wingtwo
+    navigation: WFCrewNavigationWarship
+    vessel: Gadfly
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 750, 500
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    distress: false
+    skill: Regular
+    objectives:
+    - kind: Attack
+      target: fightertwo
+  - key: wingthree
+    navigation: WFCrewNavigationWarship
+    vessel: Kresta
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 700, -500
+    side: pdv
+    faction: WFPdvNavy
+    company: PDV
+    profile: WFCrewProfilePdv
+    distress: false
+    skill: Regular
     objectives:
     - kind: Attack
       target: fighterthree

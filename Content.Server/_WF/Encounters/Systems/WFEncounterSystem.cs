@@ -199,7 +199,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
             && TrySay(announcer, AnnounceChannel, text))
             return;
 
-        _chat.DispatchGlobalAnnouncement(text, encounter.AnnouncementSender);
+        _chat.DispatchGlobalAnnouncement(text, encounter.AnnouncementSender, announcementSound: encounter.AnnouncementSound,
+            colorOverride: encounter.AnnouncementColor);
     }
 
     /// <summary>
@@ -312,6 +313,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
         comp.OffBudget = prototype.Lifetime == WFEncounterLifetime.Persistent || prototype.Start == WFEncounterStart.RoundStart;
         comp.Hidden = prototype.Hidden;
         comp.AnnounceOnRadio = prototype.AnnounceOnRadio;
+        comp.AnnouncementSound = prototype.AnnouncementSound;
+        comp.AnnouncementColor = prototype.AnnouncementColor;
         comp.Announcer = prototype.Announcer ?? prototype.Ships[0].Key;
         comp.StartRadius = prototype.StartRadius;
         comp.Leash = prototype.Leash;
