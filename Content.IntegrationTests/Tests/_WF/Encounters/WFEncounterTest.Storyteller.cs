@@ -234,6 +234,58 @@ public sealed partial class WFEncounterTest
         await RunTicks(10);
     }
 
+    /// <summary>
+    /// A round from a ship's guns that comes inside a patrol's attack zone is an attack, hit or miss, and the patrol
+    /// takes the ship that fired it for an enemy wherever it is, beyond its zones included.
+    /// </summary>
+    [Test]
+    public async Task FireIntoTheAttackZoneIsAnAttack()
+    {
+        EntityUid encounter = default, patrol = default, intruder = default;
+        var group = string.Empty;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestStoryIff");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(33000, 33000), MapData.MapId), out encounter), Is.True);
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"];
+            patrol = state.Grid;
+            group = state.Group;
+
+            var grid = Server.ResolveDependency<IMapManager>().CreateGridEntity(MapData.MapId);
+            intruder = grid.Owner;
+            Server.System<SharedMapSystem>().SetTile(grid, Vector2i.Zero, new Tile(1));
+            var transform = Server.System<SharedTransformSystem>();
+            // Well outside both zones.
+            transform.SetCoordinates(intruder, new EntityCoordinates(MapData.MapUid, new Vector2(34000, 33000)));
+            transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(intruder, new Vector2(0.5f)));
+            SEntMan.EnsureComponent<Content.Shared._Mono.Company.CompanyComponent>(intruder).CompanyName = "USSP";
+        });
+        await RunTicks(90);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(Server.System<WFCrewAlertSystem>().IsHostileShip(patrol, group, intruder), Is.False, "A neutral ship beyond the zones is nobody's enemy.");
+            // A round from one of its guns lands short, inside the attack zone.
+            var gun = SEntMan.SpawnEntity("SheetSteel1", new EntityCoordinates(intruder, new Vector2(0.5f)));
+            var centre = Server.System<SharedTransformSystem>().GetWorldPosition(patrol);
+            var round = SEntMan.SpawnEntity("BulletKinetic", new MapCoordinates(centre + new Vector2(150f, 0f), MapData.MapId));
+            var projectile = SEntMan.GetComponent<Content.Shared.Projectiles.ProjectileComponent>(round);
+            projectile.Weapon = gun;
+            projectile.Shooter = gun;
+            // Left hanging in space so the poll finds it.
+            SEntMan.RemoveComponent<Robust.Shared.Spawners.TimedDespawnComponent>(round);
+        });
+        await RunTicks(90);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(Server.System<WFCrewAlertSystem>().IsHostileShip(patrol, group, intruder), Is.True, "Fire into the attack zone makes the ship that fired it an enemy.");
+            Assert.That(Server.System<WFCrewAlertSystem>().IsWarningShot(patrol, intruder), Is.False, "And it gets no warning shots.");
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+            SEntMan.DeleteEntity(intruder);
+        });
+        await RunTicks(10);
+    }
+
     /// <summary>An encounter ship inside another's zone, of a company that zone minds, makes enemies of the two.</summary>
     [Test]
     public async Task EncounterShipsInEachOthersZonesTurnHostile()

@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Shared._Mono.Company;
@@ -5,6 +6,7 @@ using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WF.Encounters;
 using Content.Shared.Ghost;
 using Content.Shared.Mobs.Systems;
+using Content.Shared.Projectiles;
 using Content.Shared.Radio;
 using Content.Shared.Station.Components;
 using Robust.Shared.Map;
@@ -41,6 +43,9 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     private readonly List<EntityUid> _stale = new();
     private readonly List<(EntityUid Encounter, WFEncounterShipState Ship)> _fleet = new();
     private readonly HashSet<(EntityUid Ship, EntityUid Other)> _rivals = new();
+    private readonly List<(EntityUid Shot, Vector2 Position, MapId Map, EntityUid Shooter)> _shots = new();
+    private readonly HashSet<EntityUid> _liveShots = new();
+    private readonly HashSet<(EntityUid Ship, EntityUid Shot)> _answeredShots = new();
 
     /// <summary>A ship with a living player aboard.</summary>
     private sealed class Crewed
@@ -76,10 +81,11 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
                 if (!crewedKnown)
                 {
                     FindCrewedShips();
+                    GatherShots();
                     crewedKnown = true;
                 }
 
-                Watch(ship);
+                Watch(encounter, ship);
             }
         }
     }
@@ -259,15 +265,16 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
         return false;
     }
 
-    private void Watch(WFEncounterShipState ship)
+    private void Watch(WFEncounterComponent encounter, WFEncounterShipState ship)
     {
         Forget(ship);
+        var here = CentreOfMass(ship.Grid);
+        AnswerFire(encounter, ship, here);
 
         // A ship in port is not on guard: whatever is berthed beside it is none of its business.
         if (IsDocked(ship.Grid))
             return;
 
-        var here = CentreOfMass(ship.Grid);
         var company = Company(ship.Grid);
         var now = _timing.CurTime;
         foreach (var (intruder, crewed) in _crewed)
@@ -356,6 +363,63 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
 
     /// <summary>Below this speed, in metres a second, a vessel is lying still.</summary>
     private const float IdleSpeed = 2f;
+
+    /// <summary>Every ship-weapon round in flight, with the grid it was fired from.</summary>
+    private void GatherShots()
+    {
+        _shots.Clear();
+        _liveShots.Clear();
+        var query = EntityQueryEnumerator<ProjectileComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var projectile, out var xform))
+        {
+            _liveShots.Add(uid);
+            if (!_alerts.IsShipWeapon(projectile.Weapon) || Transform(projectile.Weapon!.Value).GridUid is not { } shooter)
+                continue;
+
+            _shots.Add((uid, _transform.GetWorldPosition(xform), xform.MapID, shooter));
+        }
+
+        _answeredShots.RemoveWhere(key => !_liveShots.Contains(key.Shot));
+    }
+
+    /// <summary>
+    /// Ship-weapon rounds from another vessel that come inside the attack zone are an attack, hit or miss: the ship
+    /// answers them as it would a hit, wherever the vessel that fired them is, and says so when it is new to it.
+    /// Rounds from its own side, its formation and its own guns are not; a few strays from its own faction are let pass.
+    /// </summary>
+    private void AnswerFire(WFEncounterComponent encounter, WFEncounterShipState ship, MapCoordinates here)
+    {
+        if (ship.AttackRange <= 0f)
+            return;
+
+        var reach = ship.AttackRange * ship.AttackRange;
+        foreach (var shot in _shots)
+        {
+            if (shot.Map != here.MapId || shot.Shooter == ship.Grid || (shot.Position - here.Position).LengthSquared() > reach
+                || !_answeredShots.Add((ship.Grid, shot.Shot)))
+                continue;
+
+            if (_escorts.AreInFormation(ship.Grid, shot.Shooter) || SameSide(encounter, ship, shot.Shooter))
+                continue;
+
+            var fresh = !_alerts.IsAttacker(ship.Grid, shot.Shooter);
+            if (!_alerts.ReportIncomingFire(ship.Grid, ship.Group, shot.Shooter))
+                continue;
+
+            if (fresh)
+            {
+                var name = IffMasked(shot.Shooter) ? Loc.GetString("wf-encounter-zone-unknown") : Name(shot.Shooter);
+                _encounters.TrySay(ship, Channel, Loc.GetString($"{ship.ZoneLines}-attack", ("intruder", name)));
+            }
+        }
+    }
+
+    /// <summary>Whether a grid is another ship of the same encounter on the same side.</summary>
+    private bool SameSide(WFEncounterComponent encounter, WFEncounterShipState ship, EntityUid grid)
+    {
+        return TryComp<WFEncounterGridComponent>(grid, out var marker) && marker.Encounter == encounter.Owner
+            && encounter.Ships.TryGetValue(marker.Key, out var other) && other.Side == ship.Side;
+    }
 
     /// <summary>Whether a ship has its IFF switched off, so nobody can tell whose it is.</summary>
     private bool IffMasked(EntityUid grid)

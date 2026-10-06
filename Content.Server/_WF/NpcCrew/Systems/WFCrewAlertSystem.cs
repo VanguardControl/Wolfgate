@@ -238,6 +238,22 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     public void ReportShipThreat(EntityUid grid, string group, EntityUid attacker) => ReportAttack(grid, attacker, group);
 
     /// <summary>
+    /// Reports a vessel's ship-weapon fire that came at a ship, hit or miss, as an attack. False while it is let pass
+    /// as stray shots from the ship's own side.
+    /// </summary>
+    public bool ReportIncomingFire(EntityUid grid, string group, EntityUid attacker)
+    {
+        if (Excuse(grid, attacker))
+            return false;
+
+        ReportAttack(grid, attacker, group);
+        return true;
+    }
+
+    /// <summary>Whether any crew of a ship counts a vessel among its attackers, from its fire and not a zone report alone.</summary>
+    public bool IsAttacker(EntityUid grid, EntityUid attacker) => KnownAttacker(grid, attacker);
+
+    /// <summary>
     /// Reports an intruder in a patrol zone as a threat to answer. Unlike an attack it raises no mayday, and a real
     /// attack by the same ship later still does.
     /// </summary>
