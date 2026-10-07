@@ -9,6 +9,7 @@ using Content.Server.NPC.Components;
 using Content.Server.NPC.Systems;
 using Content.Server.Radio.EntitySystems;
 using Content.Server.StationEvents.Events;
+using Content.Server.Worldgen.Components;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Encounters;
@@ -560,6 +561,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         var marker = AddComp<WFEncounterGridComponent>(grid);
         marker.Encounter = encounter;
         marker.Key = ship.Key;
+        Unload(grid);
 
         var name = Loc.GetString("wf-encounter-ship-name", ("vessel", vessel.Name), ("designation", designation));
         _meta.SetEntityName(grid, name);
@@ -664,6 +666,27 @@ public sealed partial class WFEncounterSystem : EntitySystem
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Strips the world loaders from a ship's consoles. A helm or gunnery console generates the world for 700 m around
+    /// it, meant for a crew of players; a crew of NPCs would seed asteroid fields and drones wherever it wandered, for
+    /// the cleanup to sweep away again. Players bring the world with them when they come to look.
+    /// </summary>
+    private void Unload(EntityUid grid)
+    {
+        var loaders = new List<EntityUid>();
+        var query = EntityQueryEnumerator<WorldLoaderComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out var xform))
+        {
+            if (xform.GridUid == grid)
+                loaders.Add(uid);
+        }
+
+        foreach (var uid in loaders)
+        {
+            RemComp<WorldLoaderComponent>(uid);
+        }
     }
 
     private string PlaceName(EntityUid? place)
@@ -1104,8 +1127,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
             if (encounter.JumpAt is { } jump)
             {
-                // A ship with passengers waits a while for the customers aboard or docked with it.
-                if (now >= jump && (overdue || !HoldsForVisitors(ship) || !PlayersAboard(ship.Grid)))
+                // A ship jumps out only once nobody is aboard or docked with it: a trader waits for its customers, and
+                // no hull vanishes from under a player who is working on it.
+                if (now >= jump && !PlayersAboard(ship.Grid))
                     RemoveShip(ship);
                 else
                     remaining = true;

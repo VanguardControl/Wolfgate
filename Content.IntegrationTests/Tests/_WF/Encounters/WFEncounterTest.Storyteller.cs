@@ -348,6 +348,43 @@ public sealed partial class WFEncounterTest
         await RunTicks(10);
     }
 
+    /// <summary>
+    /// A finished ship jumps out only once nobody is aboard it, so a player working on a hull never has it vanish from
+    /// under them. And an encounter ship loads no world around itself: its consoles come without world loaders.
+    /// </summary>
+    [Test]
+    public async Task FinishedShipWaitsForPlayersToLeaveAndLoadsNoWorld()
+    {
+        EntityUid encounter = default, ship = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestStoryRival");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(-31000, -31000), MapData.MapId), out encounter), Is.True);
+            ship = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["rival"].Grid;
+
+            var loaders = SEntMan.EntityQueryEnumerator<Content.Server.Worldgen.Components.WorldLoaderComponent, TransformComponent>();
+            while (loaders.MoveNext(out _, out _, out var xform))
+                Assert.That(xform.GridUid, Is.Not.EqualTo(ship), "An encounter ship's consoles load no world.");
+
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(ship, new Vector2(0.5f)));
+            Server.System<WFEncounterSystem>().Resolve(encounter, WFEncounterResolution.Completed);
+            Assert.That(SEntMan.GetComponent<WFEncounterComponent>(encounter).JumpAt, Is.Not.Null, "A completed transient encounter jumps out.");
+        });
+        // Well past the jump delay of 20 s.
+        await RunTicks(900);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.EntityExists(ship), Is.True, "A ship with a player aboard waits to jump.");
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+        });
+        await RunTicks(300);
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(SEntMan.EntityExists(ship), Is.False, "Once the player has left, it jumps.");
+        });
+        await RunTicks(10);
+    }
+
     /// <summary>An encounter ship inside another's zone, of a company that zone minds, makes enemies of the two.</summary>
     [Test]
     public async Task EncounterShipsInEachOthersZonesTurnHostile()
