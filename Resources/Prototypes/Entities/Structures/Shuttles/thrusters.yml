@@ -274,7 +274,6 @@
   - type: ShipRepairable
     repairTime: 6
     repairCost: 6
-<<<<<<< HEAD
   # WOLFGATE(Shrapnel) START: no blast, the destructible's ShrapnelBehavior replaces it
   # - type: Explosive
   #   explosionType: Default
@@ -282,17 +281,10 @@
   #   intensitySlope: 2
   #   totalIntensity: 200
   # WOLFGATE END
-=======
-  - type: Explosive
-    explosionType: Default
-    maxIntensity: 100
-    intensitySlope: 2
-    totalIntensity: 200
   - type: ESSparkOnHit
     prob: 0.4
     tileFireChance: 0.25
     count: 3
->>>>>>> 3c1eca70f8 (Tilefire Refactor? (#4831))
 
 - type: entity
   id: GyroscopeUnanchored
