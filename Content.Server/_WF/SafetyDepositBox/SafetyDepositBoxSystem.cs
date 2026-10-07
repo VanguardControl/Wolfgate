@@ -527,65 +527,18 @@ public sealed partial class SafetyDepositBoxSystem : EntitySystem
             return; // already being processed
         try
         {
-<<<<<<< HEAD
-            ConsolePopup(player, Loc.GetString("safety-deposit-console-error-box-not-found"));
-            PlayDenySound(consoleUid, component);
-            return;
-        }
-
-        if (box.LastWithdrawn != null) // Check to make sure it isn't already deposited.
-        {
-            ConsolePopup(player, Loc.GetString("safety-deposit-console-error-already-withdrawn"));
-            PlayDenySound(consoleUid, component);
-            return;
-        }
-
-        Log.Info($"WithdrawBoxAsync: Retrieved box {boxId} with {box.Items.Count} items from database");
-
-        // Verify ownership
-        if (box.OwnerUserId != userId || box.CharacterIndex != characterIndex)
-        {
-            ConsolePopup(player, Loc.GetString("safety-deposit-console-error-not-owner"));
-            PlayDenySound(consoleUid, component);
-            return;
-        }
-
-        // Spawn the physical box (use stored box size to determine prototype);
-
-        var boxEntity = Spawn(box.ProtoId, Transform(player).Coordinates);
-        var boxComp = EnsureComp<SafetyDepositBoxComponent>(boxEntity);
-        boxComp.BoxId = box.BoxId;
-        boxComp.OwnerId = userId;
-        boxComp.CharacterIndex = characterIndex;
-        // Use current character name instead of stored name in case they changed it
-        boxComp.OwnerName = MetaData(player).EntityName;
-        Dirty(boxEntity, boxComp);
-
-        // Restore nickname if one was saved
-        if (!string.IsNullOrEmpty(box.Nickname))
-        {
-            _label.Label(boxEntity, box.Nickname);
-            Log.Info($"Restored box nickname: {box.Nickname}");
-        }
-
-        // Deserialize and spawn items into the box
-        if (TryComp<StorageComponent>(boxEntity, out var storageComp))
-        {
-            foreach (var itemData in box.Items)
-=======
             var box = await _dbManager.GetSafetyDepositBox(boxId);
 
             if (box == null)
->>>>>>> 4543e55e6e (Fix Safety Deposit Box Duplication. (#4832))
             {
-                ConsolePopup(player, "Box not found.");
+                ConsolePopup(player, Loc.GetString("safety-deposit-console-error-box-not-found"));
                 PlayDenySound(consoleUid, component);
                 return;
             }
 
             if (box.LastWithdrawn != null) // Check to make sure it isn't already deposited.
             {
-                ConsolePopup(player, "Box already withdrawn in world.");
+                ConsolePopup(player, Loc.GetString("safety-deposit-console-error-already-withdrawn"));
                 PlayDenySound(consoleUid, component);
                 return;
             }
@@ -595,7 +548,7 @@ public sealed partial class SafetyDepositBoxSystem : EntitySystem
             // Verify ownership
             if (box.OwnerUserId != userId || box.CharacterIndex != characterIndex)
             {
-                ConsolePopup(player, "This box does not belong to you.");
+                ConsolePopup(player, Loc.GetString("safety-deposit-console-error-not-owner"));
                 PlayDenySound(consoleUid, component);
                 return;
             }
@@ -658,7 +611,7 @@ public sealed partial class SafetyDepositBoxSystem : EntitySystem
                 _transform.SetLocalRotation(boxEntity, Angle.Zero);
             }
 
-            ConsolePopup(player, "Safety deposit box retrieved.");
+            ConsolePopup(player, Loc.GetString("safety-deposit-console-withdraw-success"));
             PlayConfirmSound(consoleUid, component);
 
             _adminLogger.Add(LogType.Action, LogImpact.Medium,
@@ -670,26 +623,6 @@ public sealed partial class SafetyDepositBoxSystem : EntitySystem
         {
             _pendingBoxes.Remove(boxId); // Cleanup processing box
         }
-<<<<<<< HEAD
-
-        // Clear items from database
-        await _dbManager.ClearSafetyDepositBoxItems(boxId, _gameTicker.RoundId);
-
-        // Try to put it in player's hands or place it near them
-        if (!_hands.TryPickupAnyHand(player, boxEntity))
-        {
-            _transform.SetLocalRotation(boxEntity, Angle.Zero);
-        }
-
-        ConsolePopup(player, Loc.GetString("safety-deposit-console-withdraw-success"));
-        PlayConfirmSound(consoleUid, component);
-
-        _adminLogger.Add(LogType.Action, LogImpact.Medium,
-            $"{ToPrettyString(player):actor} withdrew safety deposit box {boxId} with {box.Items.Count} items");
-
-        UpdateUI(consoleUid, component, player);
-=======
->>>>>>> 4543e55e6e (Fix Safety Deposit Box Duplication. (#4832))
     }
 
     private void OnSlotChanged(EntityUid uid, SafetyDepositConsoleComponent component, ContainerModifiedMessage args)
