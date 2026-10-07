@@ -746,7 +746,7 @@
     lootItems: 5
 
 # The exotic dealers travel together on one military hull under a mercenary escort. The armourer sells ship guns that
-# are otherwise only found fitted, and their ammunition; the systems broker sells shields, drives and the fittings a
+# are otherwise only found fitted, the hardpoints they mount on and their ammunition; the systems broker sells shields, drives and the fittings a
 # shipyard won't. Both pick a few lines from a big pool each run, one of each gun or system.
 - type: vendingMachineInventory
   id: WFTraderArmourerInventory
@@ -781,6 +781,21 @@
     Type35Flatpack: 1
     AK570Flatpack: 1
     L58Flatpack: 1
+    WFFlatpackHardpointBallisticSuperlight: 2
+    WFFlatpackHardpointBallisticLight: 2
+    WFFlatpackHardpointBallisticMedium: 2
+    WFFlatpackHardpointBallisticHeavy: 2
+    WFFlatpackHardpointBallisticSuperheavy: 2
+    WFFlatpackHardpointEnergySuperlight: 2
+    WFFlatpackHardpointEnergyLight: 2
+    WFFlatpackHardpointEnergyMedium: 2
+    WFFlatpackHardpointEnergyHeavy: 2
+    WFFlatpackHardpointEnergySuperheavy: 2
+    WFFlatpackHardpointMissileSuperlight: 2
+    WFFlatpackHardpointMissileLight: 2
+    WFFlatpackHardpointMissileMedium: 2
+    WFFlatpackHardpointMissileHeavy: 2
+    WFFlatpackHardpointMissileSuperheavy: 2
     Magazine20mm: 2
     Magazine20mmAS: 2
     Magazine30mm: 2
@@ -900,7 +915,7 @@
   id: WFTraderArmourer
   parent: WFTraderWanderer
   name: armourer
-  description: Ship guns that never reach a shipyard catalogue, and the rounds to feed them.
+  description: Ship guns that never reach a shipyard catalogue, the hardpoints to mount them on and the rounds to feed them.
   suffix: Trader, Armourer
   components:
   - type: Trader
@@ -910,9 +925,9 @@
     vendors:
     - WFTraderStockArmourer
     priceMultiplier: 1.0
-    randomStock: 12
+    randomStock: 14
     stockMin: 1
-    stockMax: 1
+    stockMax: 2
     lootItems: 3
 
 - type: entity

@@ -227,4 +227,4 @@ wf-encounter-announce-pdv-supercapital = All vessels, all vessels, this is {$nam
 wf-encounter-name-fleet-battle-large = Grand fleet action {$designation}
 wf-encounter-announce-fleet-battle-large = GAMMA ALERT. Traffic control to all vessels: {$name}. The Federation and the Dynasty have committed their flagships. A full fleet action is under way in open space. All civilian traffic is to clear the sector lanes. Both navies are calling for every armed vessel that will fight for them.
 wf-encounter-name-trader-exotic = Exotic dealers {$designation}
-wf-encounter-announce-trader-exotic = {$name} is in the sector under Blackhawk escort with ship guns and systems that don't reach any catalogue. Serious buyers may come alongside. Anyone else is advised that the escort is not for show.
+wf-encounter-announce-trader-exotic = {$name} is in the sector under Blackhawk escort with ship guns, hardpoints and systems that don't reach any catalogue. Serious buyers may come alongside. Anyone else is advised that the escort is not for show.
