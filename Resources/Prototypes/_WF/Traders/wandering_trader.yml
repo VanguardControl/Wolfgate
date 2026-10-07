@@ -744,3 +744,192 @@
     stockMin: 1
     stockMax: 3
     lootItems: 5
+
+# The exotic dealers travel together on one military hull under a mercenary escort. The armourer sells ship guns that
+# are otherwise only found fitted, and their ammunition; the systems broker sells shields, drives and the fittings a
+# shipyard won't. Both pick a few lines from a big pool each run, one of each gun or system.
+- type: vendingMachineInventory
+  id: WFTraderArmourerInventory
+  startingInventory:
+    WFFlatpackTurretDravon: 1
+    WFFlatpackTurretFang: 1
+    WFFlatpackTurretRAC30: 1
+    WFFlatpackTurretLongbow: 1
+    WFFlatpackTurretAk820: 1
+    WFFlatpackTurretBofors: 1
+    WFFlatpackTurretHydra: 1
+    WFFlatpackTurretEquinox: 1
+    WFFlatpackTurretTarnyx: 1
+    WFFlatpackTurretRubicon: 1
+    WFFlatpackTurretAdder: 1
+    WFFlatpackTurretType54: 1
+    WFFlatpackTurretCerberus: 1
+    WFFlatpackTurretScylla: 1
+    WFFlatpackTurretDymere: 1
+    WFFlatpackTurretPhalanx: 1
+    WFFlatpackTurretApollo: 1
+    WFFlatpackTurretPrometheus: 1
+    WFFlatpackTurretFlare: 1
+    WFFlatpackTurretVespera: 1
+    WFFlatpackTurretVanyk: 1
+    WFFlatpackTurretTovek: 1
+    WFFlatpackTurretPaladin: 1
+    WFShipHarpoonTurretFlatpack: 1
+    WeaponTurretPinholeFlatpack: 1
+    WeaponTurretShardFlatpack: 1
+    M381Flatpack: 1
+    Type35Flatpack: 1
+    AK570Flatpack: 1
+    L58Flatpack: 1
+    Magazine20mm: 2
+    Magazine20mmAS: 2
+    Magazine30mm: 2
+    Magazine30mmHE: 2
+    Magazine35mm: 2
+    Magazine35mmHE: 2
+    Magazine57mmHE: 2
+    Magazine57mmSmart: 2
+    Magazine57mmSACLOS: 2
+    90mmMagazineHE: 2
+    90mmMagazineAP: 2
+    90mmMagazineFlak: 2
+    90mmMagazineMinelayer: 2
+    Magazine140mm: 2
+    Magazine140mmSACLOS: 2
+    Box220mmAPHE: 2
+    Box220mmHECluster: 2
+    Box220mmSmartCluster: 2
+    Box255mmAPHE: 2
+    Box255mmEMP: 2
+    Box255mmMine: 2
+    VanykMagazine: 2
+    MissileMagazine50mmHE: 2
+    TovekCartridge: 2
+    PaladinMagazine: 2
+    PaladinMagazineEMPHE: 2
+    PaladinMagazineHV: 2
+    Asm220TorpedoHE: 2
+    Asm220TorpedoHESACLOS: 2
+    CharonSlugAmmo: 2
+    CharonApheSlugAmmo: 2
+    CharonEmpSlugAmmo: 2
+    R300ShellHE: 2
+
+- type: vendingMachineInventory
+  id: WFTraderSystemsBrokerInventory
+  startingInventory:
+    WFFlatpackShieldSentinel: 1
+    WFFlatpackShieldAegis: 1
+    WFFlatpackShieldTitan: 1
+    WFFlatpackGravityGeneratorMini: 1
+    WFFlatpackThrusterLarge: 1
+    WFFlatpackThrusterLargeT2: 1
+    WFFlatpackThrusterT2: 1
+    WFFlatpackThrusterStealth: 1
+    WFFlatpackThrusterNavy: 1
+    WFFlatpackGyroscopeNavy: 1
+    WFFlatpackSalvageMagnet: 1
+    WFFlatpackTractorBeam: 1
+    WFFlatpackTractorBeamSmall: 1
+    FTLDrive50Flatpack: 1
+    FTLDrive25SFlatpack: 1
+    AmeControllerUnanchoredFlatpack: 1
+    GeneratorRTGFlatpack: 1
+    TegCenterFlatpack: 1
+    TegCirculatorFlatpack: 2
+    SalvageRadarFlatpack: 1
+    MachineShieldMS100Circuitboard: 1
+    MachineShieldMS250Circuitboard: 1
+    MachineShieldMS500Circuitboard: 1
+    MiniGravityGeneratorCircuitboard: 1
+    SalvageMagnetMachineCircuitboard: 1
+    ThrusterSecurityMachineCircuitboard: 2
+    GyroscopeSecurityMachineCircuitboard: 2
+    WFTractorBeamComputerCircuitboard: 1
+    ComputerIFFFlatpack: 1
+    ShipRepairDevice: 1
+    ShipRepairDeviceAmmo: 3
+
+- type: entity
+  id: WFTraderStockArmourer
+  parent: VendingMachineAmmo
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VendingMachine
+    pack: WFTraderArmourerInventory
+    requiresCash: true
+  - type: MarketModifier
+    mod: 1.5
+
+- type: entity
+  id: WFTraderStockSystemsBroker
+  parent: VendingMachineAmmo
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: VendingMachine
+    pack: WFTraderSystemsBrokerInventory
+    requiresCash: true
+  - type: MarketModifier
+    mod: 1.5
+
+- type: traderDialogue
+  id: WFTraderArmourerDialogue
+  greeting: trader-armourer-greeting
+  farewell: trader-armourer-farewell
+  options:
+  - prompt: trader-wanderer-prompt-shop
+    response: trader-armourer-response-shop
+    action: OpenShop
+  - prompt: trader-wanderer-prompt-who
+    response: trader-armourer-response-who
+    action: None
+
+- type: traderDialogue
+  id: WFTraderSystemsBrokerDialogue
+  greeting: trader-systems-greeting
+  farewell: trader-systems-farewell
+  options:
+  - prompt: trader-wanderer-prompt-shop
+    response: trader-systems-response-shop
+    action: OpenShop
+  - prompt: trader-wanderer-prompt-who
+    response: trader-systems-response-who
+    action: None
+
+- type: entity
+  id: WFTraderArmourer
+  parent: WFTraderWanderer
+  name: armourer
+  description: Ship guns that never reach a shipyard catalogue, and the rounds to feed them.
+  suffix: Trader, Armourer
+  components:
+  - type: Trader
+    dialogue: WFTraderArmourerDialogue
+    killable: true
+  - type: TraderShop
+    vendors:
+    - WFTraderStockArmourer
+    priceMultiplier: 1.0
+    randomStock: 12
+    stockMin: 1
+    stockMax: 1
+    lootItems: 3
+
+- type: entity
+  id: WFTraderSystemsBroker
+  parent: WFTraderWanderer
+  name: systems broker
+  description: Shield generators, drives and fittings from yards that don't sell to the public.
+  suffix: Trader, Systems broker
+  components:
+  - type: Trader
+    dialogue: WFTraderSystemsBrokerDialogue
+    killable: true
+  - type: TraderShop
+    vendors:
+    - WFTraderStockSystemsBroker
+    priceMultiplier: 1.0
+    randomStock: 10
+    stockMin: 1
+    stockMax: 1
+    lootItems: 3

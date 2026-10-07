@@ -79,6 +79,7 @@ while they stay near and calms down once they are far off or gone.
 - [`Resources/Prototypes/_WF/Traders/Catalog/VendingMachines/Inventories/wolfgate.yml`](../../../Resources/Prototypes/_WF/Traders/Catalog/VendingMachines/Inventories/wolfgate.yml)
 - [`Resources/Prototypes/_WF/Traders/clothes_trader.yml`](../../../Resources/Prototypes/_WF/Traders/clothes_trader.yml)
 - [`Resources/Prototypes/_WF/Traders/Entities/Structures/Machines/vending_machines.yml`](../../../Resources/Prototypes/_WF/Traders/Entities/Structures/Machines/vending_machines.yml)
+- [`Resources/Prototypes/_WF/Traders/exotic_flatpacks.yml`](../../../Resources/Prototypes/_WF/Traders/exotic_flatpacks.yml)
 - [`Resources/Prototypes/_WF/Traders/flatpack_trader.yml`](../../../Resources/Prototypes/_WF/Traders/flatpack_trader.yml)
 - [`Resources/Prototypes/_WF/Traders/fuel_technician.yml`](../../../Resources/Prototypes/_WF/Traders/fuel_technician.yml)
 - [`Resources/Prototypes/_WF/Traders/htn.yml`](../../../Resources/Prototypes/_WF/Traders/htn.yml)
