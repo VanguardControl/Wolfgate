@@ -140,6 +140,10 @@ public sealed partial class WFEncounterShipState
     [DataField]
     public bool Rescued;
 
+    /// <summary>A ship too small for an engineer: its generators are topped up by themselves while the crew live.</summary>
+    [ViewVariables]
+    public bool AutoRefuel;
+
     /// <summary>While stranded: since when it has had thrust without a break.</summary>
     public TimeSpan? UnderwaySince;
 

@@ -231,7 +231,7 @@ public sealed partial class WFEncounterShip
 
     /// <summary>
     /// Whether an engineer is posted by the plant to keep it fuelled from the ship's stores. Only where the roles allow
-    /// one; a fighter crewed by a pilot and gunner runs on what it was launched with.
+    /// one; a fighter crewed by a pilot and gunner alone tops its own generator up while its crew live.
     /// </summary>
     [DataField]
     public bool Engineer = true;

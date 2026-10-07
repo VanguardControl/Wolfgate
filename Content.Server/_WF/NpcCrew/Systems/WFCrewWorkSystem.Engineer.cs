@@ -276,6 +276,55 @@ public sealed partial class WFCrewWorkSystem
         }
     }
 
+    /// <summary>
+    /// Tops up a plant that has run low with no engineer to do it: a fighter's crew see to their own generator between
+    /// sorties. Generators are filled and lit, a spent reactor jar is swapped for a fresh one.
+    /// </summary>
+    public void Refuel(EntityUid grid)
+    {
+        foreach (var machine in Plant(grid))
+        {
+            if (TryComp<FuelGeneratorComponent>(machine, out _))
+            {
+                if (_generators.GetFuel(machine) < LowFuel)
+                    Fill(machine);
+            }
+            else if (TryComp<AmeControllerComponent>(machine, out var controller) && Antimatter(controller) < LowAntimatter)
+            {
+                if (controller.Injecting)
+                    _ame.SetInjecting(machine, false, null, controller);
+                if (controller.FuelSlot.Item is { } spent && _slots.TryEject(machine, controller.FuelSlot, null, out _))
+                    QueueDel(spent);
+                var jar = Spawn(Jar, Transform(machine).Coordinates);
+                if (!_slots.TryInsert(machine, controller.FuelSlot, jar, null))
+                    QueueDel(jar);
+            }
+
+            Start(machine, null);
+        }
+    }
+
+    /// <summary>Fills a generator with what it burns.</summary>
+    private void Fill(EntityUid generator)
+    {
+        if (TryComp<SolidFuelGeneratorAdapterComponent>(generator, out var solid) && TryComp<MaterialStorageComponent>(generator, out var storage)
+            && storage.StorageLimit is { } limit)
+        {
+            var room = limit - _materials.GetMaterialAmount(generator, solid.FuelMaterial, storage);
+            if (room > 0)
+                _materials.TryChangeMaterialAmount(generator, solid.FuelMaterial, room, storage);
+        }
+        else if (TryComp<ChemicalFuelGeneratorAdapterComponent>(generator, out var chemical)
+            && _solutions.ResolveSolution(generator, chemical.SolutionName, ref chemical.Solution, out var solution))
+        {
+            foreach (var reagent in chemical.Reagents.Keys)
+            {
+                _solutions.TryAddReagent(chemical.Solution.Value, reagent.Id, solution.AvailableVolume);
+                break;
+            }
+        }
+    }
+
     /// <summary>Whether a grid has a plant an engineer could tend: a fuel generator or a reactor.</summary>
     public bool HasPlant(EntityUid grid) => Plant(grid).Count > 0;
 
@@ -344,23 +393,7 @@ public sealed partial class WFCrewWorkSystem
             if (xform.GridUid != grid || !xform.Anchored)
                 continue;
 
-            if (TryComp<SolidFuelGeneratorAdapterComponent>(uid, out var solid) && TryComp<MaterialStorageComponent>(uid, out var storage)
-                && storage.StorageLimit is { } limit)
-            {
-                var room = limit - _materials.GetMaterialAmount(uid, solid.FuelMaterial, storage);
-                if (room > 0)
-                    _materials.TryChangeMaterialAmount(uid, solid.FuelMaterial, room, storage);
-            }
-            else if (TryComp<ChemicalFuelGeneratorAdapterComponent>(uid, out var chemical)
-                && _solutions.ResolveSolution(uid, chemical.SolutionName, ref chemical.Solution, out var solution))
-            {
-                foreach (var reagent in chemical.Reagents.Keys)
-                {
-                    _solutions.TryAddReagent(chemical.Solution.Value, reagent.Id, solution.AvailableVolume);
-                    break;
-                }
-            }
-
+            Fill(uid);
             Start(uid, null);
         }
 

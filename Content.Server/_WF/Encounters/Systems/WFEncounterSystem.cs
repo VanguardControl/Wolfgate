@@ -671,6 +671,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
             if (engineer)
                 _work.StockFuel(grid);
         }
+        // A fighter with nobody to post by the plant keeps itself fuelled instead.
+        state.AutoRefuel = !engineer;
         if (state.Stranding != WFEncounterStranding.None)
             LeaveStranded(grid, state.Stranding);
         state.NextPower = _timing.CurTime + PowerInterval;
@@ -914,6 +916,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
             if (HoldsForVisitors(ship) && ship.HasOrders)
                 Serve(ship);
+
+            if (ship.AutoRefuel && !IsStranded(ship) && HasLivingCrew(ship))
+                _work.Refuel(ship.Grid);
 
             var adrift = _status.IsAdrift(ship.Grid);
             if (IsStranded(ship))

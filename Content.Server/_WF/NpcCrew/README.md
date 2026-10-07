@@ -16,7 +16,8 @@ arrives commissioned (generators full and lit, reactor jarred and injecting, bat
 stowed in a `WFCrewFuelStores` crate in the hold. From then on nothing tops the plant up but him: a generator under
 ten units of fuel or a reactor jar under 200 sends him to the crate for a stack or a jar, which he feeds in by hand,
 and a plant with fuel in it that is off he switches on. No stores, or no living engineer, and the ship goes dark; a
-ship stranded for fuel gets neither. Fighters crewed by a pilot and gunner alone run on what they were launched with.
+ship stranded for fuel gets neither. A fighter whose roles leave no room for an engineer tops its own generators up
+whenever they run low, as long as any of its crew live.
 
 A Warn crew gives a stranger it notices aboard `WarnTime` (30 s) to leave; if he stays, or strikes any crewman, the
 crew's fighters (on-sight crew, marines, the captain and radio officer; not the helm or the guns) take him on as

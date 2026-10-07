@@ -32,6 +32,18 @@ public sealed partial class WFEncounterTest
     vessel: WFDredger
 
 - type: wfEncounter
+  id: WFTestStoryFighter
+  name: wf-encounter-name-convoy
+  start: Manual
+  ships:
+  - key: fighter
+    vessel: WFDredger
+    company: TSF
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+
+- type: wfEncounter
   id: WFTestStoryIff
   name: wf-encounter-name-convoy
   start: Manual
@@ -451,6 +463,44 @@ public sealed partial class WFEncounterTest
         await Server.WaitAssertion(() =>
         {
             Assert.That(fuelled, Is.True, "The engineer refuels a generator that ran dry.");
+            Server.System<WFEncounterSystem>().End(encounter);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>A fighter with no engineer aboard tops its own generator up when it runs dry, while its crew live.</summary>
+    [Test]
+    public async Task FighterWithoutAnEngineerRefuelsItself()
+    {
+        EntityUid encounter = default, ship = default, generator = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestStoryFighter");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(-35000, -35000), MapData.MapId), out encounter), Is.True);
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["fighter"];
+            ship = state.Grid;
+            Assert.That(state.AutoRefuel, Is.True, "A pilot and gunner alone see to their own fuel.");
+
+            var crew = SEntMan.EntityQueryEnumerator<WFCrewEngineerComponent, TransformComponent>();
+            while (crew.MoveNext(out _, out _, out var xform))
+                Assert.That(xform.GridUid, Is.Not.EqualTo(ship), "No engineer is posted where the roles leave no room.");
+
+            var generators = SEntMan.EntityQueryEnumerator<Content.Shared.Power.Generator.FuelGeneratorComponent, TransformComponent>();
+            while (generators.MoveNext(out var uid, out _, out var xform))
+            {
+                if (xform.GridUid == ship)
+                    generator = uid;
+            }
+            Assert.That(generator, Is.Not.EqualTo(default(EntityUid)));
+            Server.System<Content.Server.Power.Generator.GeneratorSystem>().EmptyGenerator(generator);
+        });
+        // The encounter polls every five seconds.
+        await RunTicks(300);
+        await Server.WaitAssertion(() =>
+        {
+            var generators = Server.System<Content.Server.Power.Generator.GeneratorSystem>();
+            Assert.That(generators.GetFuel(generator), Is.GreaterThan(0f), "The generator is topped up by itself.");
+            Assert.That(SEntMan.GetComponent<Content.Shared.Power.Generator.FuelGeneratorComponent>(generator).On, Is.True);
             Server.System<WFEncounterSystem>().End(encounter);
         });
         await RunTicks(10);
