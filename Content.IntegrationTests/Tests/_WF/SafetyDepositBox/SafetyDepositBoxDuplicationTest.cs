@@ -29,29 +29,11 @@ namespace Content.IntegrationTests.Tests._WF.SafetyDepositBox;
 public sealed class SafetyDepositBoxDuplicationTest
 {
     private const string ConsoleProto = "SafetyDepositConsole";
-    private const string BoxProto = "WFSafetyDepositTestBox";
+    private const string BoxProto = "SafetyDepositBoxMedium";
     private const string PlayerProto = "MobHuman";
     private const string MissingProto = "WFSafetyDepositTestRemovedItem";
 
     private static readonly string[] ItemProtos = { "Crowbar", "Wrench" };
-
-    // The real boxes log an error on first use: their blacklist names components that don't exist.
-    [TestPrototypes]
-    private const string Prototypes = @"
-- type: entity
-  id: WFSafetyDepositTestBox
-  parent: BaseStorageItem
-  components:
-  - type: Storage
-    maxItemSize: Normal
-    grid:
-    - 0,0,3,3
-  - type: SafetyDepositBox
-    cost: 1
-  - type: Tag
-    tags:
-    - SafetyDepositBox
-";
 
     [Test]
     public async Task WithdrawSkipsUnloadableItem()

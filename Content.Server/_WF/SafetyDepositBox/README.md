@@ -23,6 +23,8 @@ carry no markers; check them on an upstream merge:
 - `SafetyDepositBoxSystem.cs`: in `WithdrawBoxAsync`, a stored item that fails to load is logged and skipped
   (`continue`) where upstream returned, which left the box in the world with its items still in the database.
 - `SafetyDepositBoxSystem.Guards.cs` is Wolfgate's own: `RunBoxRequest` and `RevertChangedDeposit`.
+- `safety_deposit_box.yml`: the storage blacklist named two components that don't exist, `Implant` and `PDA`, which
+  logged an error on each box's first use; they are now `SubdermalImplant` and `Pda`.
 - `SafetyDepositConsoleWindow.xaml.cs`: the unnamed box label uses `safety-deposit-console-box-unnamed`.
 - The locale moved from `Resources/Locale/en-US/_WF/` into `Resources/Locale/en-US/_WF/SafetyDepositBox/`, and the
   prototype, the `SafetyDepositBox` tag and the textures moved from the `_WF` roots into `SafetyDepositBox` module
@@ -56,6 +58,7 @@ carry no markers; check them on an upstream merge:
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/SafetyDepositBox/SafetyDepositBoxBlacklistTest.cs`](../../../Content.IntegrationTests/Tests/_WF/SafetyDepositBox/SafetyDepositBoxBlacklistTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/SafetyDepositBox/SafetyDepositBoxDuplicationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/SafetyDepositBox/SafetyDepositBoxDuplicationTest.cs)
 
 ### Prototypes
