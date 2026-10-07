@@ -1,7 +1,18 @@
-# Site interiors: Frontier's planet-base dungeons, each with a few mobs and some loot, since the bare configs have none.
+# Site interiors: Frontier's planet-base dungeons dressed for the world they stand on (its rock for the corridor
+# walls, its ground for the corridor floor, a decal tint to match), with a few of the world's mobs and some loot,
+# since the bare configs have neither. The mobs are the plain argocytes: the Expeditions ones despawn off a salvage map.
 
+# Asclepiu: temperate, overgrown
 - type: dungeonConfig
-  id: WFPoiExperiment
+  id: WFPoiAsclepiuResearch
+  data:
+    colors:
+      Decals: "#4f7a3aff"
+    entities:
+      Walls: WallSolidRust
+      CornerWalls: WallSolidRust
+    tiles:
+      FallbackTile: FloorDirt
   layers:
   - !type:PrototypeDunGen
     proto: NFExperiment
@@ -14,155 +25,19 @@
     minCount: 3
     maxCount: 6
     groups:
-    - id: MobArgocyteSlurvaExpeditions
+    - id: MobArgocyteSlurva
       amount: 1
 
 - type: dungeonConfig
-  id: WFPoiHaunted
-  layers:
-  - !type:PrototypeDunGen
-    proto: NFHaunted
-  - !type:EntityTableDunGen
-    minCount: 3
-    maxCount: 6
-    table: !type:NestedSelector
-      tableId: SalvageTreasureSpawnerValuable
-  - !type:MobsDunGen
-    minCount: 3
-    maxCount: 6
-    groups:
-    - id: MobArgocyteCrawlerExpeditions
-      amount: 1
-
-- type: dungeonConfig
-  id: WFPoiMineshaft
-  # A key the Frontier config leaves out, which its corridor layer logs an error about.
+  id: WFPoiAsclepiuClinic
   data:
     colors:
-      Decals: "#6b5a3eff"
-  layers:
-  - !type:PrototypeDunGen
-    proto: NFMineshaft
-  - !type:EntityTableDunGen
-    minCount: 4
-    maxCount: 8
-    table: !type:NestedSelector
-      tableId: SalvageEquipmentSpawnerCommon
-  - !type:MobsDunGen
-    minCount: 3
-    maxCount: 6
-    groups:
-    - id: MobArgocyteSkitterExpeditions
-      amount: 1
-
-- type: dungeonConfig
-  id: WFPoiSalvageOutpost
-  # A key the Frontier config leaves out, which its corridor layer logs an error about.
-  data:
-    spawnGroups:
-      Junction: NFMiningAirlock
-  layers:
-  - !type:PrototypeDunGen
-    proto: NFSalvageOutpost
-  - !type:EntityTableDunGen
-    minCount: 4
-    maxCount: 8
-    table: !type:NestedSelector
-      tableId: SalvageEquipmentSpawnerCommon
-  - !type:MobsDunGen
-    minCount: 2
-    maxCount: 5
-    groups:
-    - id: MobArgocyteGliderExpeditions
-      amount: 1
-
-- type: dungeonConfig
-  id: WFPoiLavaBrig
-  layers:
-  - !type:PrototypeDunGen
-    proto: NFLavaBrig
-  - !type:EntityTableDunGen
-    minCount: 4
-    maxCount: 8
-    table: !type:NestedSelector
-      tableId: SalvageEquipmentSpawnerCommon
-  - !type:MobsDunGen
-    minCount: 3
-    maxCount: 6
-    groups:
-    - id: MobArgocyteEnforcerExpeditions
-      amount: 1
-
-- type: dungeonConfig
-  id: WFPoiLavaMercenary
-  layers:
-  - !type:PrototypeDunGen
-    proto: NFLavaMercenary
-  - !type:EntityTableDunGen
-    minCount: 4
-    maxCount: 8
-    table: !type:NestedSelector
-      tableId: SalvageEquipmentSpawnerValuable
-  - !type:MobsDunGen
-    minCount: 3
-    maxCount: 6
-    groups:
-    - id: MobArgocytePouncerExpeditions
-      amount: 1
-
-- type: dungeonConfig
-  id: WFPoiSnowyLabs
-  layers:
-  - !type:PrototypeDunGen
-    proto: NFSnowyLabs
-  - !type:EntityTableDunGen
-    minCount: 4
-    maxCount: 8
-    table: !type:NestedSelector
-      tableId: SalvageEquipmentSpawnerCommon
-  - !type:MobsDunGen
-    minCount: 3
-    maxCount: 6
-    groups:
-    - id: MobArgocyteSlurvaExpeditions
-      amount: 1
-
-- type: dungeonConfig
-  id: WFPoiVirologyLab
-  layers:
-  - !type:PrototypeDunGen
-    proto: NFVirologyLab
-  - !type:EntityTableDunGen
-    minCount: 4
-    maxCount: 8
-    table: !type:NestedSelector
-      tableId: SalvageEquipmentSpawnerValuable
-  - !type:MobsDunGen
-    minCount: 3
-    maxCount: 6
-    groups:
-    - id: MobArgocyteMolderExpeditions
-      amount: 1
-
-- type: dungeonConfig
-  id: WFPoiCaveFactory
-  layers:
-  - !type:PrototypeDunGen
-    proto: NFCaveFactory
-  - !type:EntityTableDunGen
-    minCount: 4
-    maxCount: 8
-    table: !type:NestedSelector
-      tableId: SalvageEquipmentSpawnerCommon
-  - !type:MobsDunGen
-    minCount: 3
-    maxCount: 6
-    groups:
-    - id: MobArgocyteHarvesterExpeditions
-      amount: 1
-
-- type: dungeonConfig
-  id: WFPoiMedSci
+      Decals: "#4f7a3aff"
+    entities:
+      Walls: WallSolidRust
+      CornerWalls: WallSolidRust
+    tiles:
+      FallbackTile: FloorDirt
   layers:
   - !type:PrototypeDunGen
     proto: NFMedSci
@@ -175,11 +50,19 @@
     minCount: 3
     maxCount: 6
     groups:
-    - id: MobArgocyteSwiperExpeditions
+    - id: MobArgocyteCrawler
       amount: 1
 
 - type: dungeonConfig
-  id: WFPoiFactoryDorms
+  id: WFPoiAsclepiuDorms
+  data:
+    colors:
+      Decals: "#4f7a3aff"
+    entities:
+      Walls: WallSolidRust
+      CornerWalls: WallSolidRust
+    tiles:
+      FallbackTile: FloorDirt
   layers:
   - !type:PrototypeDunGen
     proto: NFFactoryDorms
@@ -192,5 +75,236 @@
     minCount: 3
     maxCount: 6
     groups:
-    - id: MobArgocyteBarrierExpeditions
+    - id: MobArgocyteSlurva
+      amount: 1
+    - id: MobArgocyteCrawler
+      amount: 1
+
+# Merak: desert
+- type: dungeonConfig
+  id: WFPoiMerakMineshaft
+  data:
+    colors:
+      Decals: "#a8894cff"
+    entities:
+      Walls: WallRockSand
+      CornerWalls: WallRockSand
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFMineshaft
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteSkitter
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiMerakOutpost
+  data:
+    colors:
+      Decals: "#a8894cff"
+    entities:
+      Walls: WallSandstone
+      CornerWalls: WallSandstone
+    spawnGroups:
+      Junction: NFMiningAirlock
+    tiles:
+      FallbackTile: FloorDesert
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFSalvageOutpost
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 2
+    maxCount: 5
+    groups:
+    - id: MobArgocyteGlider
+      amount: 1
+
+# Fervidus: volcanic
+- type: dungeonConfig
+  id: WFPoiFervidusBrig
+  data:
+    colors:
+      Decals: "#7a2e1aff"
+    entities:
+      Walls: WallRockBasalt
+      CornerWalls: WallRockBasalt
+    tiles:
+      FallbackTile: FloorBasalt
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFLavaBrig
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteEnforcer
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiFervidusCamp
+  data:
+    colors:
+      Decals: "#7a2e1aff"
+    entities:
+      Walls: WallRockBasalt
+      CornerWalls: WallRockBasalt
+    tiles:
+      FallbackTile: FloorBasalt
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFLavaMercenary
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerValuable
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocytePouncer
+      amount: 1
+
+# Thrascias: ice
+- type: dungeonConfig
+  id: WFPoiThrasciasLabs
+  data:
+    colors:
+      Decals: "#7fa8c9ff"
+    entities:
+      Walls: WallRockSnow
+      CornerWalls: WallRockSnow
+    tiles:
+      FallbackTile: FloorSnow
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFSnowyLabs
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteMolder
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiThrasciasVirology
+  data:
+    colors:
+      Decals: "#7fa8c9ff"
+    entities:
+      Walls: WallIce
+      CornerWalls: WallIce
+    tiles:
+      FallbackTile: FloorSnow
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFVirologyLab
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerValuable
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteMolder
+      amount: 1
+
+# Aerumna: chromite
+- type: dungeonConfig
+  id: WFPoiAerumnaFactory
+  data:
+    colors:
+      Decals: "#5c6b7aff"
+    entities:
+      Walls: WallRockChromite
+      CornerWalls: WallRockChromite
+    tiles:
+      FallbackTile: FloorChromite
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFCaveFactory
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteHarvester
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiAerumnaMine
+  data:
+    colors:
+      Decals: "#5c6b7aff"
+    entities:
+      Walls: WallRockChromite
+      CornerWalls: WallRockChromite
+    tiles:
+      FallbackTile: FloorChromite
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFMineshaft
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteSkitter
+      amount: 1
+
+# Carcinoma: flesh
+- type: dungeonConfig
+  id: WFPoiCarcinomaRuin
+  data:
+    colors:
+      Decals: "#6b1a2aff"
+    tiles:
+      FallbackTile: FloorFlesh
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFHaunted
+  - !type:EntityTableDunGen
+    minCount: 3
+    maxCount: 6
+    table: !type:NestedSelector
+      tableId: SalvageTreasureSpawnerValuable
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteSwiper
+      amount: 1
+    - id: MobArgocyteBarrier
       amount: 1

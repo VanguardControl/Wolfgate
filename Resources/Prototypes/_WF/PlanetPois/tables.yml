@@ -1,77 +1,69 @@
-# What each world rolls its sites from. Counts suit the world's radius: spacing 128 and a 96-tile margin at the edge.
+# What each world rolls its dungeon sites from. These are one kind of site among the ones to come, so a world gets
+# only a few; spacing 128 and a 96-tile margin at the edge, tighter on the small worlds.
 
 - type: wfPlanetPoiTable
   id: WFPoisAsclepiu
-  minCount: 8
-  maxCount: 12
+  minCount: 2
+  maxCount: 4
   entries:
-  - dungeon: WFPoiExperiment
-    name: wf-poi-experiment
+  - dungeon: WFPoiAsclepiuResearch
+    name: wf-poi-asclepiu-research
     weight: 2
-  - dungeon: WFPoiMedSci
-    name: wf-poi-medsci
-  - dungeon: WFPoiFactoryDorms
-    name: wf-poi-factory-dorms
-  - dungeon: WFPoiHaunted
-    name: wf-poi-haunted
+  - dungeon: WFPoiAsclepiuClinic
+    name: wf-poi-asclepiu-clinic
+  - dungeon: WFPoiAsclepiuDorms
+    name: wf-poi-asclepiu-dorms
 
 - type: wfPlanetPoiTable
   id: WFPoisMerak
-  minCount: 6
-  maxCount: 10
+  minCount: 2
+  maxCount: 4
   entries:
-  - dungeon: WFPoiMineshaft
-    name: wf-poi-mineshaft
-    weight: 2
-  - dungeon: WFPoiSalvageOutpost
-    name: wf-poi-salvage-outpost
-    weight: 2
-  - dungeon: WFPoiFactoryDorms
-    name: wf-poi-factory-dorms
+  - dungeon: WFPoiMerakMineshaft
+    name: wf-poi-merak-mineshaft
+  - dungeon: WFPoiMerakOutpost
+    name: wf-poi-merak-outpost
 
 - type: wfPlanetPoiTable
   id: WFPoisFervidus
-  minCount: 4
-  maxCount: 8
+  minCount: 1
+  maxCount: 3
   entries:
-  - dungeon: WFPoiLavaBrig
-    name: wf-poi-lava-brig
-  - dungeon: WFPoiLavaMercenary
-    name: wf-poi-lava-mercenary
+  - dungeon: WFPoiFervidusBrig
+    name: wf-poi-fervidus-brig
+  - dungeon: WFPoiFervidusCamp
+    name: wf-poi-fervidus-camp
 
 - type: wfPlanetPoiTable
   id: WFPoisThrascias
-  minCount: 4
-  maxCount: 8
+  minCount: 1
+  maxCount: 3
   entries:
-  - dungeon: WFPoiSnowyLabs
-    name: wf-poi-snowy-labs
-    weight: 2
-  - dungeon: WFPoiVirologyLab
-    name: wf-poi-virology-lab
+  - dungeon: WFPoiThrasciasLabs
+    name: wf-poi-thrascias-labs
+  - dungeon: WFPoiThrasciasVirology
+    name: wf-poi-thrascias-virology
 
 - type: wfPlanetPoiTable
   id: WFPoisAerumna
-  minCount: 2
-  maxCount: 5
-  # A small world: tighter margins, or nothing fits between the centre and the edge.
+  minCount: 1
+  maxCount: 2
   spacing: 96
   edgeMargin: 72
   centreClear: 64
   entries:
-  - dungeon: WFPoiCaveFactory
-    name: wf-poi-cave-factory
-  - dungeon: WFPoiMineshaft
-    name: wf-poi-mineshaft
+  - dungeon: WFPoiAerumnaFactory
+    name: wf-poi-aerumna-factory
+  - dungeon: WFPoiAerumnaMine
+    name: wf-poi-aerumna-mine
 
 - type: wfPlanetPoiTable
   id: WFPoisCarcinoma
-  minCount: 2
-  maxCount: 5
-  # A small world: tighter margins, or nothing fits between the centre and the edge.
+  minCount: 1
+  maxCount: 2
   spacing: 96
   edgeMargin: 72
   centreClear: 64
   entries:
-  - dungeon: WFPoiHaunted
-    name: wf-poi-haunted
+  - dungeon: WFPoiCarcinomaRuin
+    name: wf-poi-carcinoma-ruin

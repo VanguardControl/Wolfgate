@@ -9,7 +9,10 @@ using Content.Server._WF.Planets.Bounds;
 using Content.Server.Parallax;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
+using Content.Shared.Light.Components;
+using Content.Shared.Light.EntitySystems;
 using Content.Shared.Parallax.Biomes;
+using Content.Server.NPC.HTN;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
 using Robust.Shared.Map;
@@ -41,8 +44,8 @@ public sealed class PlanetPoiTest
   footprint: 24
   revealRange: 48
   entries:
-  - dungeon: WFPoiExperiment
-    name: wf-poi-experiment
+  - dungeon: WFPoiAsclepiuResearch
+    name: wf-poi-asclepiu-research
 
 ";
 
@@ -57,6 +60,7 @@ public sealed class PlanetPoiTest
         var networks = server.System<WFPlanetNetworkSystem>();
         var biomes = server.System<BiomeSystem>();
         var maps = server.System<SharedMapSystem>();
+        var roofs = server.System<SharedRoofSystem>();
 
         await PlanetFixture.EnableFeature(pair);
         await server.WaitPost(() =>
@@ -108,6 +112,11 @@ public sealed class PlanetPoiTest
                     Assert.That(Vector2.Distance(site.Origin, Vector2.Zero), Is.LessThanOrEqualTo(Radius - 56 + 1), "The site is too near the edge.");
                     var pinned = 0;
                     var floored = 0;
+                    var roofed = 0;
+                    var roof = entMan.GetComponent<RoofComponent>(ground);
+                    var mobs = entMan.AllEntities<HTNComponent>().Count(mob =>
+                        entMan.GetComponent<TransformComponent>(mob).MapUid == ground
+                        && entMan.GetComponent<MetaDataComponent>(mob).EntityPrototype?.ID.StartsWith("MobArgocyte") == true);
                     for (var x = site.Bounds.Left; x <= site.Bounds.Right; x++)
                     for (var y = site.Bounds.Bottom; y <= site.Bounds.Top; y++)
                     {
@@ -118,10 +127,14 @@ public sealed class PlanetPoiTest
                         pinned++;
                         if (!maps.GetTileRef(ground, grid, tile).Tile.IsEmpty)
                             floored++;
+                        if (roofs.IsRooved((ground, grid, roof), tile))
+                            roofed++;
                     }
 
                     Assert.That(pinned, Is.GreaterThanOrEqualTo(site.TileCount), "The site's tiles are not all pinned.");
                     Assert.That(floored, Is.GreaterThan(site.TileCount / 2), "Most of the site has no tile.");
+                    Assert.That(roofed, Is.GreaterThan(site.TileCount / 2), "Most of the site has no roof.");
+                    Assert.That(mobs, Is.GreaterThanOrEqualTo(3), "The site has fewer than its three mobs.");
                     Assert.That(entMan.GetComponent<TransformComponent>(site.Signal).MapUid, Is.EqualTo(orbit), "The signal is not on the orbit layer.");
                     Assert.That(entMan.GetComponent<MetaDataComponent>(site.Signal).EntityName, Is.EqualTo(loc.GetString("wf-poi-unknown-signal")), "The signal was identified before anyone came.");
                     Assert.That(signal.Revealed, Is.False);
@@ -137,7 +150,7 @@ public sealed class PlanetPoiTest
                 Assert.Multiple(() =>
                 {
                     Assert.That(entMan.GetComponent<WFPoiSignalComponent>(site.Signal).Revealed, Is.True, "Standing on the site did not identify its signal.");
-                    Assert.That(entMan.GetComponent<MetaDataComponent>(site.Signal).EntityName, Is.EqualTo(loc.GetString("wf-poi-experiment")));
+                    Assert.That(entMan.GetComponent<MetaDataComponent>(site.Signal).EntityName, Is.EqualTo(loc.GetString("wf-poi-asclepiu-research")));
                 });
             });
         }

@@ -9,6 +9,7 @@ using Content.Server.Procedural;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared._WF.Planets;
+using Content.Shared.Light.EntitySystems;
 using Content.Shared.Parallax.Biomes;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
@@ -36,6 +37,7 @@ public sealed partial class WFPlanetPoiSystem : EntitySystem
     [Dependency] private DungeonSystem _dungeon = default!;
     [Dependency] private MetaDataSystem _meta = default!;
     [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private SharedRoofSystem _roof = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
     /// <summary>The orbit-layer marker over a site.</summary>
@@ -109,6 +111,12 @@ public sealed partial class WFPlanetPoiSystem : EntitySystem
 
             // The biome never lays its tiles or grows anything on the site, and the unloader never takes it.
             _biome.WfPinTiles((ground, biome), tiles);
+
+            // Under cover: no rain or lightning inside, and the rooms read as rooms from above.
+            foreach (var tile in tiles)
+            {
+                _roof.SetRoof((ground, grid, null), tile, true);
+            }
 
             var bounds = BoundsOf(tiles);
             var middle = new Vector2i((bounds.Left + bounds.Right) / 2, (bounds.Bottom + bounds.Top) / 2);

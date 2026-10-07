@@ -1,14 +1,15 @@
 wf-poi-unknown-signal = Unknown signal
 wf-poi-signal-identified = Signal identified: { $name }.
 
-wf-poi-experiment = Abandoned research site
-wf-poi-medsci = Derelict medical annex
-wf-poi-factory-dorms = Abandoned factory dorms
-wf-poi-haunted = Haunted ruin
-wf-poi-mineshaft = Abandoned mineshaft
-wf-poi-salvage-outpost = Abandoned salvage outpost
-wf-poi-lava-brig = Derelict brig
-wf-poi-lava-mercenary = Mercenary camp
-wf-poi-snowy-labs = Derelict laboratory
-wf-poi-virology-lab = Derelict virology lab
-wf-poi-cave-factory = Abandoned cave factory
+wf-poi-asclepiu-research = Overgrown research station
+wf-poi-asclepiu-clinic = Derelict clinic
+wf-poi-asclepiu-dorms = Abandoned dormitory
+wf-poi-merak-mineshaft = Sand-choked mineshaft
+wf-poi-merak-outpost = Abandoned salvage outpost
+wf-poi-fervidus-brig = Scorched brig
+wf-poi-fervidus-camp = Mercenary camp
+wf-poi-thrascias-labs = Frozen laboratory
+wf-poi-thrascias-virology = Iced-over virology lab
+wf-poi-aerumna-factory = Collapsed cave factory
+wf-poi-aerumna-mine = Chromite mine
+wf-poi-carcinoma-ruin = Flesh-choked ruin
