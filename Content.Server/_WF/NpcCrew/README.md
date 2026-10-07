@@ -11,6 +11,13 @@ membership where available, otherwise a shared NPC faction. A crew's ordered doc
 for that approach. Incoming ships do not cause the stationary crew to announce that it is docking. Radio officers
 announce their own approach and completed docking, and warn unauthorized arrivals.
 
+An engineer (`WFCrewEngineer`) is posted beside the plant on every encounter ship whose roles allow one. The ship
+arrives commissioned (generators full and lit, reactor jarred and injecting, batteries charged) with fuel for the trip
+stowed in a `WFCrewFuelStores` crate in the hold. From then on nothing tops the plant up but him: a generator under
+ten units of fuel or a reactor jar under 200 sends him to the crate for a stack or a jar, which he feeds in by hand,
+and a plant with fuel in it that is off he switches on. No stores, or no living engineer, and the ship goes dark; a
+ship stranded for fuel gets neither. Fighters crewed by a pilot and gunner alone run on what they were launched with.
+
 A Warn crew gives a stranger it notices aboard `WarnTime` (30 s) to leave; if he stays, or strikes any crewman, the
 crew's fighters (on-sight crew, marines, the captain and radio officer; not the helm or the guns) take him on as
 their own attacker, by the usual rules: in sight, and one man hunting him unseen. A when-attacked hand answers only
@@ -183,6 +190,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Commands/WFCrewCommand.cs`](Commands/WFCrewCommand.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCaptainComponent.cs`](Components/WFCaptainComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewComponent.cs`](Components/WFCrewComponent.cs)
+- [`Content.Server/_WF/NpcCrew/Components/WFCrewEngineerComponent.cs`](Components/WFCrewEngineerComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewRadioComponent.cs`](Components/WFCrewRadioComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewRepairComponent.cs`](Components/WFCrewRepairComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewSecurityComponent.cs`](Components/WFCrewSecurityComponent.cs)
@@ -232,6 +240,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.cs`](Systems/WFCrewWeaponSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.Reload.cs`](Systems/WFCrewWeaponSystem.Reload.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWorkSystem.cs`](Systems/WFCrewWorkSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewWorkSystem.Engineer.cs`](Systems/WFCrewWorkSystem.Engineer.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWorkSystem.Repair.cs`](Systems/WFCrewWorkSystem.Repair.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFGunnerDutySystem.cs`](Systems/WFGunnerDutySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.cs`](Systems/WFPilotDutySystem.cs)
@@ -319,6 +328,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Resources/Prototypes/_WF/NpcCrew/navigation.yml`](../../../Resources/Prototypes/_WF/NpcCrew/navigation.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/profiles.yml`](../../../Resources/Prototypes/_WF/NpcCrew/profiles.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/roles.yml`](../../../Resources/Prototypes/_WF/NpcCrew/roles.yml)
+- [`Resources/Prototypes/_WF/NpcCrew/stores.yml`](../../../Resources/Prototypes/_WF/NpcCrew/stores.yml)
 
 ### Localization
 

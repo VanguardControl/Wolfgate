@@ -155,6 +155,7 @@
     - WFCrewHaulerHandWinter
     - WFCrewHaulerHandWrench
     - WFCrewHaulerHandCrowbar
+    WFCrewEngineer: [ WFCrewHaulerHandEngineer, WFCrewHaulerHandWrench ]
     WFCrewPilot:
     - WFCrewHaulerOfficerPlain
     - WFCrewHaulerOfficerBomber
@@ -227,6 +228,7 @@
   skills: [ Green, Regular, Regular ]
   loadouts:
     WFCrewDeckhand: [ WFCrewTsfHand ]
+    WFCrewEngineer: [ WFCrewTsfHand ]
     WFCrewPilot: [ WFCrewTsfOfficer ]
     WFCrewRadioOperator: [ WFCrewTsfOfficer ]
     WFCrewCaptain: [ WFCrewTsfOfficer ]
@@ -284,6 +286,7 @@
   skills: [ Green, Regular, Regular ]
   loadouts:
     WFCrewDeckhand: [ WFCrewPdvHand ]
+    WFCrewEngineer: [ WFCrewPdvHand ]
     WFCrewPilot: [ WFCrewPdvOfficer ]
     WFCrewRadioOperator: [ WFCrewPdvOfficer ]
     WFCrewCaptain: [ WFCrewPdvOfficer ]
@@ -353,6 +356,7 @@
   skills: [ Green, Regular, Regular, Veteran ]
   loadouts:
     WFCrewDeckhand: [ WFCrewPirateHand, WFCrewPirateHand, WFCrewPirateBruiser, WFCrewPirateRifle ]
+    WFCrewEngineer: [ WFCrewPirateHand ]
     WFCrewMarine: [ WFCrewPirateRifle, WFCrewPirateBruiser ]
     WFCrewPilot: [ WFCrewPirateOfficer ]
     WFCrewRadioOperator: [ WFCrewPirateOfficer ]
@@ -407,6 +411,7 @@
   skills: [ Regular, Regular, Veteran ]
   loadouts:
     WFCrewDeckhand: [ WFCrewUsspHand ]
+    WFCrewEngineer: [ WFCrewUsspHand ]
     WFCrewPilot: [ WFCrewUsspOfficer ]
     WFCrewRadioOperator: [ WFCrewUsspOfficer ]
     WFCrewCaptain: [ WFCrewUsspOfficer ]
@@ -464,6 +469,7 @@
   skills: [ Regular, Veteran, Veteran ]
   loadouts:
     WFCrewDeckhand: [ WFCrewMercHand ]
+    WFCrewEngineer: [ WFCrewMercHand ]
     WFCrewPilot: [ WFCrewMercOfficer ]
     WFCrewRadioOperator: [ WFCrewMercOfficer ]
     WFCrewCaptain: [ WFCrewMercOfficer ]

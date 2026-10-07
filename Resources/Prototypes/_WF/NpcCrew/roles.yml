@@ -53,6 +53,18 @@
   title: wf-crew-role-marine
   order: 30
 
+# Keeps the plant fuelled from the ship's stores and switched on; a deckhand otherwise, and no fighter unless struck.
+- type: wfCrewRole
+  id: WFCrewEngineer
+  kit: WFCrewKitDeckhand
+  mob: WFMobCrewDeckhand
+  duty: Guard
+  engagement: WhenAttacked
+  title: wf-crew-role-engineer
+  order: 35
+  components:
+  - type: WFCrewEngineer
+
 - type: wfCrewRole
   id: WFCrewDeckhand
   kit: WFCrewKitDeckhand

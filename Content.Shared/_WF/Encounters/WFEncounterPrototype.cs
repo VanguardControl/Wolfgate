@@ -229,6 +229,13 @@ public sealed partial class WFEncounterShip
     [DataField]
     public bool Captain = true;
 
+    /// <summary>
+    /// Whether an engineer is posted by the plant to keep it fuelled from the ship's stores. Only where the roles allow
+    /// one; a fighter crewed by a pilot and gunner runs on what it was launched with.
+    /// </summary>
+    [DataField]
+    public bool Engineer = true;
+
     [DataField]
     public ProtoId<NpcFactionPrototype> Faction = "WFCrew";
 

@@ -116,6 +116,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         if (_timer < 1f)
             return;
         _timer = 0;
+        TendPower();
         foreach (var (worker, job) in _jobs.ToArray())
         {
             if (TerminatingOrDeleted(worker) || TerminatingOrDeleted(job.Grid) || !_mobs.IsAlive(worker)
@@ -568,7 +569,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         if (!_jobs.TryGetValue(mob, out var job) || job.Failed || HasComp<ActorComponent>(mob) || !_mobs.IsAlive(mob))
             return false;
         // Cargo carried home through breathable air needs no suit; anywhere else the worker must stay ready for EVA.
-        if (job.Kind != WFCrewObjectiveKind.Loot && !(job.Returning && InSafeAir(mob)) && !_eva.Prepare(mob))
+        if (job.Kind != WFCrewObjectiveKind.Loot && job.Deliver == null && !(job.Returning && InSafeAir(mob)) && !_eva.Prepare(mob))
         {
             Fail(job, false);
             return false;
@@ -580,6 +581,18 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         }
         if (job.Returning)
         {
+            if (job.Deliver is { } machine)
+            {
+                if (TerminatingOrDeleted(machine))
+                {
+                    _jobs.Remove(mob);
+                    return false;
+                }
+
+                coordinates = Transform(machine).Coordinates;
+                return true;
+            }
+
             coordinates = job.Home;
             return true;
         }
@@ -625,6 +638,8 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             if (!_interaction.InRangeUnobstructed(mob, Holder(target, mob) ?? target, range: 1.5f))
                 return true;
         }
+        if (job.Deliver is { } machine && job.Returning)
+            return Tend(mob, job, machine);
         if (job.SrdCoordinates is { } repairCoordinates)
         {
             if (_timing.CurTime >= job.NextUse)
@@ -675,7 +690,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             return false;
         }
         // A looter rifles lockers and crates: the thing is pulled out before it is picked up.
-        if (job.Kind == WFCrewObjectiveKind.Loot && Holder(job.Target, mob) != null
+        if ((job.Kind == WFCrewObjectiveKind.Loot || job.Deliver != null) && Holder(job.Target, mob) != null
             && _containers.TryGetContainingContainer(job.Target, out var holding))
             _containers.Remove(job.Target, holding);
         if (!_hands.TryPickupAnyHand(mob, job.Target))
@@ -884,6 +899,9 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
         public bool Returning;
         public bool Failed;
         public bool Blame;
+
+        /// <summary>A machine the cargo is fed to instead of being carried home: the engineer's fuel runs.</summary>
+        public EntityUid? Deliver;
 
         /// <summary>Progress toward the place being walked to: it, the nearest the worker got, his path's length and when he last gained.</summary>
         public EntityCoordinates? Waypoint;

@@ -41,6 +41,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private AdminVesselSpawnSystem _vessels = default!;
     [Dependency] private WFCrewSetupSystem _setup = default!;
+    [Dependency] private WFCrewWorkSystem _work = default!;
     [Dependency] private WFCrewObjectiveSystem _objectives = default!;
     [Dependency] private WFCrewPlannerSystem _planner = default!;
     [Dependency] private WFCrewShipStatusSystem _status = default!;
@@ -638,6 +639,20 @@ public sealed partial class WFEncounterSystem : EntitySystem
         if (ship.Deckhands <= 0)
             posts.RemoveAll(post => post.Role == WFCrewRoles.Deckhand.Id);
 
+        // An engineer keeps the plant fuelled from the stores, where the ship's roles allow one: posted beside the plant,
+        // or failing a safe tile there, in a deckhand's place or alongside the last of the crew.
+        var engineer = false;
+        if (ship.Engineer && (ship.Roles.Count == 0 || ship.Roles.Any(role => role == WFCrewRoles.Engineer)) && _work.HasPlant(grid))
+        {
+            if (_work.TryFindPost(grid, out var plant))
+                posts.Add(new WFCrewSetupPost { Role = WFCrewRoles.Engineer.Id, Position = plant.Position });
+            else if (posts.FindLastIndex(post => post.Role == WFCrewRoles.Deckhand.Id) is var hand && hand >= 0)
+                posts[hand].Role = WFCrewRoles.Engineer.Id;
+            else if (posts.Count > 0)
+                posts.Add(new WFCrewSetupPost { Role = WFCrewRoles.Engineer.Id, Position = posts[^1].Position });
+            engineer = posts.Any(post => post.Role == WFCrewRoles.Engineer.Id);
+        }
+
         // A skill set on the ship is the crew's; left unset, each takes one from the profile's pool.
         if (posts.Count == 0 || !_setup.TrySpawn(grid, posts, mission, ship.Skill == null, out _))
             return false;
@@ -648,7 +663,14 @@ public sealed partial class WFEncounterSystem : EntitySystem
             ? (_random.Prob(0.5f) ? WFEncounterStranding.Fuel : WFEncounterStranding.Thrusters)
             : ship.Stranded;
         if (state.Stranding != WFEncounterStranding.Fuel)
+        {
+            // The crew arrive on a running ship: plant fuelled and lit, batteries charged, and fuel for the trip stowed
+            // for the engineer. From here the plant burns what it has; nobody tops it up but him, from those stores.
             _power.SetPower(true, grid, false);
+            _work.Commission(grid);
+            if (engineer)
+                _work.StockFuel(grid);
+        }
         if (state.Stranding != WFEncounterStranding.None)
             LeaveStranded(grid, state.Stranding);
         state.NextPower = _timing.CurTime + PowerInterval;
@@ -901,23 +923,10 @@ public sealed partial class WFEncounterSystem : EntitySystem
                     Rescue(encounter, key, ship);
             }
 
-            if (IsStranded(ship) && ship.Stranding == WFEncounterStranding.Thrusters && now >= ship.NextPower
-                && HasLivingCrew(ship))
-            {
-                ship.NextPower = now + PowerInterval;
-                _power.SetPower(true, ship.Grid, false);
-            }
-
             var fighting = _alerts.IsAlerted(ship.Grid, ship.Group);
             if (!adrift || fighting)
             {
                 ship.AdriftSince = null;
-                if (!fighting && !IsStranded(ship) && now >= ship.NextPower && HasLivingCrew(ship))
-                {
-                    ship.NextPower = now + PowerInterval;
-                    _power.SetPower(true, ship.Grid, false);
-                }
-
                 continue;
             }
 

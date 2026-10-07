@@ -285,19 +285,17 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             if (intruder == ship.Grid || _escorts.AreInFormation(ship.Grid, intruder))
                 continue;
 
-            // A ship is only known for what it is by its IFF. With that switched off it is nobody's friend: it is
-            // told to show itself and shot across the bows in the warning zone, and fired on in the attack zone.
-            var masked = IffMasked(intruder);
-            if (!masked)
-            {
-                // The ship's own company comes and goes as it likes, and so does anyone flying with one of its people.
-                if (company.Length > 0 && (crewed.Flags.Contains(company) || crewed.Aboard.Contains(company)))
-                    continue;
+            // The ship's own faction comes and goes as it likes, IFF or no: its ships keep each other posted over the
+            // radio. So does anyone flying with one of its people.
+            if (company.Length > 0 && (crewed.Flags.Contains(company) || crewed.Aboard.Contains(company)))
+                continue;
 
-                // A patrol only minds its faction's enemies.
-                if (ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !AtWar(company, crewed.Flags))
-                    continue;
-            }
+            // Anyone else is only known for what he is by his IFF. With that switched off he is nobody's friend: he is
+            // told to show himself and shot across the bows in the warning zone, and fired on in the attack zone. With
+            // it on, a patrol only minds its faction's enemies.
+            var masked = IffMasked(intruder);
+            if (!masked && ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !AtWar(company, crewed.Flags))
+                continue;
 
             var there = CentreOfMass(intruder);
             if (there.MapId != here.MapId)

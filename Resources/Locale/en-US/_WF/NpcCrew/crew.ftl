@@ -1,6 +1,7 @@
 # Names
 wf-crew-name-format = {$title} {$name}
 wf-crew-role-deckhand = Deckhand
+wf-crew-role-engineer = Engineer
 wf-crew-role-marine = Marine
 wf-crew-role-pilot = First Officer
 wf-crew-role-radio-operator = Radio Officer

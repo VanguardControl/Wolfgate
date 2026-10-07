@@ -32,4 +32,5 @@ public static class WFCrewRoles
     public static readonly ProtoId<WFCrewRolePrototype> RadioOperator = "WFCrewRadioOperator";
     public static readonly ProtoId<WFCrewRolePrototype> Captain = "WFCrewCaptain";
     public static readonly ProtoId<WFCrewRolePrototype> Gunner = "WFCrewGunner";
+    public static readonly ProtoId<WFCrewRolePrototype> Engineer = "WFCrewEngineer";
 }
