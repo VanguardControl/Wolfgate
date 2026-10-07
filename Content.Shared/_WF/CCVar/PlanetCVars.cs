@@ -51,6 +51,17 @@ public sealed class PlanetCVars
     public static readonly CVarDef<float> PreloadBudget =
         CVarDef.Create("wf.planet_preload_budget", 20f, CVar.SERVERONLY);
 
+    /// <summary>Milliseconds a tick the preload may spend while the round is still in the lobby, where nobody feels it.</summary>
+    public static readonly CVarDef<float> PreloadBudgetLobby =
+        CVarDef.Create("wf.planet_preload_budget_lobby", 250f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether the round-start worlds of the lobby's preset are built, and preloaded, while the lobby is open; the
+    /// sector bodies that spawn where they were built take them over at round start.
+    /// </summary>
+    public static readonly CVarDef<bool> Prebuild =
+        CVarDef.Create("wf.planet_prebuild", true, CVar.SERVERONLY);
+
     /// <summary>
     /// Whether planet terrain nobody is near is unloaded. Off, upstream's unloader is all there is, and it lets go of
     /// almost nothing.

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using Content.Server.GameTicking;
 using Content.Server.Parallax;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
@@ -19,6 +20,7 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private BiomeSystem _biome = default!;
+    [Dependency] private GameTicker _ticker = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private WFPlanetBoundsSystem _bounds = default!;
 
@@ -90,10 +92,10 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
         }
     }
 
-    /// <summary>Loads chunks until the tick's budget is spent; one always goes.</summary>
+    /// <summary>Loads chunks until the tick's budget is spent, the lobby's while the round hasn't started; one always goes.</summary>
     private void Load(Preload preload, Entity<BiomeComponent, MapGridComponent> ground)
     {
-        var budget = _cfg.GetCVar(PlanetCVars.PreloadBudget);
+        var budget = _cfg.GetCVar(_ticker.RunLevel == GameRunLevel.PreRoundLobby ? PlanetCVars.PreloadBudgetLobby : PlanetCVars.PreloadBudget);
         _watch.Restart();
 
         while (preload.Next < preload.Chunks!.Count)

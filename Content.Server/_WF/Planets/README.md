@@ -40,6 +40,10 @@ tick, one world at a time, and walls the outermost ring of tiles with the surfac
 (`WFPlanetPreloadedComponent`) never streams or unloads again. `WFPlanetPreloadStartingEvent` goes out the tick before,
 for whatever must be placed while the ground is still unloaded, such as cavern mouths, and `WFPlanetPreloadedEvent`
 once the ring is laid. Caverns stay streamed, inside the same circle, with their own ring laid onto bare pinned ground.
+While the lobby is open, `WFPlanetRegistrySystem` builds the lobby preset's round-start worlds where its star system
+will put them (`wf.planet_prebuild`), so the preload runs at `wf.planet_preload_budget_lobby` before anyone is in the
+round; the body that spawns at a prebuilt centre under the same name takes that network over in `TryBuildNetwork`,
+and any network no body takes is deleted a few seconds into the round.
 Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`,
 `wf.planet_terrain_load_budget`, `wf.planet_bounds`, `wf.planet_radius`, `wf.planet_preload`,
 `wf.planet_preload_budget`); ecology and
@@ -142,7 +146,9 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/WFPlanetNetworkBuiltEvent.cs`](WFPlanetNetworkBuiltEvent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetNetworkComponent.cs`](WFPlanetNetworkComponent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetNetworkSystem.cs`](WFPlanetNetworkSystem.cs)
+- [`Content.Server/_WF/Planets/WFPlanetNetworkSystem.Prebuild.cs`](WFPlanetNetworkSystem.Prebuild.cs)
 - [`Content.Server/_WF/Planets/WFPlanetRegistrySystem.cs`](WFPlanetRegistrySystem.cs)
+- [`Content.Server/_WF/Planets/WFPlanetRegistrySystem.Lobby.cs`](WFPlanetRegistrySystem.Lobby.cs)
 - [`Content.Server/_WF/Planets/WFPlanetTimepieceSystem.cs`](WFPlanetTimepieceSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWeatherComponent.cs`](WFPlanetWeatherComponent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWeatherSystem.Admin.cs`](WFPlanetWeatherSystem.Admin.cs)
@@ -238,6 +244,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPopulationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPopulationTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPrebuildTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPrebuildTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPrototypeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarDrawingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarDrawingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs)
