@@ -15,6 +15,14 @@ The C# under `Content.Server/_WF/SafetyDepositBox`, `Content.Client/_WF/SafetyDe
 carry no markers; check them on an upstream merge:
 
 - `SafetyDepositBoxSystem.cs`: hard-coded popups converted to Fluent.
+- `SafetyDepositBoxSystem.cs`: `OnDeposit` and `OnReclaim` call `DepositBoxAsync` and `ReclaimBoxAsync` through
+  `RunBoxRequest`, and the two methods return `Task` instead of `void` (plus the `System.Threading.Tasks` using), so
+  a box with a request still running takes no second one.
+- `SafetyDepositBoxSystem.cs`: `DepositBoxAsync` keeps a `savedItems` list and calls `RevertChangedDeposit` after the
+  save, so a box that left the slot or changed while the save ran stays in the world as withdrawn.
+- `SafetyDepositBoxSystem.cs`: in `WithdrawBoxAsync`, a stored item that fails to load is logged and skipped
+  (`continue`) where upstream returned, which left the box in the world with its items still in the database.
+- `SafetyDepositBoxSystem.Guards.cs` is Wolfgate's own: `RunBoxRequest` and `RevertChangedDeposit`.
 - `SafetyDepositConsoleWindow.xaml.cs`: the unnamed box label uses `safety-deposit-console-box-unnamed`.
 - The locale moved from `Resources/Locale/en-US/_WF/` into `Resources/Locale/en-US/_WF/SafetyDepositBox/`, and the
   prototype, the `SafetyDepositBox` tag and the textures moved from the `_WF` roots into `SafetyDepositBox` module
@@ -28,6 +36,7 @@ carry no markers; check them on an upstream merge:
 ### Server
 
 - [`Content.Server/_WF/SafetyDepositBox/SafetyDepositBoxSystem.cs`](SafetyDepositBoxSystem.cs)
+- [`Content.Server/_WF/SafetyDepositBox/SafetyDepositBoxSystem.Guards.cs`](SafetyDepositBoxSystem.Guards.cs)
 
 ### Shared
 
@@ -44,6 +53,10 @@ carry no markers; check them on an upstream merge:
 - [`Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleBoundUserInterface.cs`](../../../Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleBoundUserInterface.cs)
 - [`Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleWindow.xaml`](../../../Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleWindow.xaml)
 - [`Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleWindow.xaml.cs`](../../../Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleWindow.xaml.cs)
+
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/_WF/SafetyDepositBox/SafetyDepositBoxDuplicationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/SafetyDepositBox/SafetyDepositBoxDuplicationTest.cs)
 
 ### Prototypes
 

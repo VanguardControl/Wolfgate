@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using Content.Server._Mono.MonoCoins;
 using Content.Server.Administration.Logs;
 using Content.Server.Database;
@@ -330,10 +331,11 @@ public sealed partial class SafetyDepositBoxSystem : EntitySystem
             return;
         }
 
-        DepositBoxAsync(uid, component, player, boxEntity.Value, boxComp, storageComp);
+        RunBoxRequest(boxComp.BoxId.Value,
+            () => DepositBoxAsync(uid, component, player, boxEntity.Value, boxComp, storageComp));
     }
 
-    private async void DepositBoxAsync(
+    private async Task DepositBoxAsync(
         EntityUid consoleUid,
         SafetyDepositConsoleComponent component,
         EntityUid player,
@@ -371,6 +373,8 @@ public sealed partial class SafetyDepositBoxSystem : EntitySystem
             Log.Info($"Saving box nickname: {nickname}");
         }
 
+        var savedItems = new List<EntityUid>(storageComp.Container.ContainedEntities);
+
         // Save to database
         await _dbManager.DepositSafetyDepositBoxItems(boxComp.BoxId!.Value, entityDataList);
 
@@ -379,6 +383,10 @@ public sealed partial class SafetyDepositBoxSystem : EntitySystem
         {
             await _dbManager.UpdateSafetyDepositBoxNickname(boxComp.BoxId!.Value, nickname);
         }
+
+        // A box that left the slot or changed while the save ran stays in the world as withdrawn.
+        if (await RevertChangedDeposit(consoleUid, component, player, boxEntity, boxComp, storageComp, savedItems))
+            return;
 
         // Remove from slot before deleting to properly update UI
         _itemSlots.TryEject(consoleUid, component.BoxSlot, null, out _);
@@ -426,10 +434,11 @@ public sealed partial class SafetyDepositBoxSystem : EntitySystem
 
         var characterIndex = prefs.SelectedCharacterIndex;
 
-        ReclaimBoxAsync(uid, component, player, userId.UserId, characterIndex, args.BoxId);
+        RunBoxRequest(args.BoxId,
+            () => ReclaimBoxAsync(uid, component, player, userId.UserId, characterIndex, args.BoxId));
     }
 
-    private async void ReclaimBoxAsync(
+    private async Task ReclaimBoxAsync(
         EntityUid consoleUid,
         SafetyDepositConsoleComponent component,
         EntityUid player,
@@ -580,7 +589,11 @@ public sealed partial class SafetyDepositBoxSystem : EntitySystem
                     {
                         using var reader = new StringReader(itemData.EntityData);
                         if (!_loader.TryLoadEntity(reader, "safety deposit box", out var entity))
-                            return;
+                        {
+                            // Carry on, or the box comes out while the database still holds everything.
+                            Log.Error($"Failed to load item from safety deposit box {boxId}: {itemData.EntityData}");
+                            continue;
+                        }
 
                         var itemEntity = entity.Value.Owner;
                         // Mark item as having been stored in a deposit box
