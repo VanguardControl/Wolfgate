@@ -2580,8 +2580,9 @@
     - kind: Escort
       target: lead
 
-# A remnant of the Union's fleet, still flying the flag in open space: a gunboat and a fighter that hold a patch of nothing
-# and warn everyone off it. They take no company's word for anything and fire on whoever presses in.
+# A remnant of the Union's fleet, still flying the flag in open space: a gunboat and a fighter that patrol a patch of
+# nothing, leg by leg around where they were found, and warn everyone off it. They take no company's word for anything
+# and fire on whoever presses in.
 - type: wfEncounter
   id: WFEncounterUsspRemnantPatrol
   name: wf-encounter-name-ussp-patrol
@@ -2616,6 +2617,9 @@
     zoneLines: wf-encounter-ussp-zone
     zoneTargets: Everyone
     iffColor: "#d94c4c"
+    wander: 12
+    wanderRadius: 1500
+    wanderPause: 60
     objectives:
     - kind: Hold
   - key: wing
