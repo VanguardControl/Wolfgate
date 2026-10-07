@@ -1,0 +1,188 @@
+# Site interiors: Frontier's planet-base dungeons, each with a few mobs and some loot, since the bare configs have none.
+
+- type: dungeonConfig
+  id: WFPoiExperiment
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFExperiment
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteSlurvaExpeditions
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiHaunted
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFHaunted
+  - !type:EntityTableDunGen
+    minCount: 3
+    maxCount: 6
+    table: !type:NestedSelector
+      tableId: SalvageTreasureSpawnerValuable
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteCrawlerExpeditions
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiMineshaft
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFMineshaft
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteSkitterExpeditions
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiSalvageOutpost
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFSalvageOutpost
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 2
+    maxCount: 5
+    groups:
+    - id: MobArgocyteGliderExpeditions
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiLavaBrig
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFLavaBrig
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteEnforcerExpeditions
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiLavaMercenary
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFLavaMercenary
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerValuable
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocytePouncerExpeditions
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiSnowyLabs
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFSnowyLabs
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteSlurvaExpeditions
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiVirologyLab
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFVirologyLab
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerValuable
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteMolderExpeditions
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiCaveFactory
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFCaveFactory
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteHarvesterExpeditions
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiMedSci
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFMedSci
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerValuable
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteSwiperExpeditions
+      amount: 1
+
+- type: dungeonConfig
+  id: WFPoiFactoryDorms
+  layers:
+  - !type:PrototypeDunGen
+    proto: NFFactoryDorms
+  - !type:EntityTableDunGen
+    minCount: 4
+    maxCount: 8
+    table: !type:NestedSelector
+      tableId: SalvageEquipmentSpawnerCommon
+  - !type:MobsDunGen
+    minCount: 3
+    maxCount: 6
+    groups:
+    - id: MobArgocyteBarrierExpeditions
+      amount: 1

@@ -1,5 +1,6 @@
 using Content.Shared._DV.Planet;
 using Content.Shared._FarHorizons.StarSystem.Prototypes;
+using Content.Shared._WF.PlanetPois;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -42,6 +43,10 @@ public sealed partial class WFPlanetSurfacePrototype : IPrototype
     /// <summary>The wall laid on the outermost ring of ground tiles once the world is preloaded; null lays none.</summary>
     [DataField]
     public EntProtoId? BoundaryWall = "WFPlanetBoundaryWall";
+
+    /// <summary>The points of interest rolled onto the world each round before its preload; null places none.</summary>
+    [DataField]
+    public ProtoId<WFPlanetPoiTablePrototype>? Pois;
 
     /// <summary>How many bare fall-through air layers sit between the ground and the cloud layer.</summary>
     [DataField]

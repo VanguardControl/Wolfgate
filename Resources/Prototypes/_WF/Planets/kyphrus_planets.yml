@@ -13,6 +13,7 @@
   sanctioned: true
   gravity: 0.9
   radius: 256
+  pois: WFPoisFervidus
   seed: 20260914
   networkComponents:
   - type: MapAtmosphere
@@ -68,6 +69,7 @@
   sanctioned: true
   gravity: 1.15
   radius: 320
+  pois: WFPoisMerak
   seed: 20260915
   networkComponents:
   - type: MapAtmosphere
@@ -123,6 +125,7 @@
   sanctioned: true
   gravity: 3
   radius: 192
+  pois: WFPoisAerumna
   seed: 20260916
   networkComponents:
   - type: MapAtmosphere
@@ -178,6 +181,7 @@
   sanctioned: true
   gravity: 1.25
   radius: 256
+  pois: WFPoisThrascias
   seed: 20260917
   networkComponents:
   - type: MapAtmosphere

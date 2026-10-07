@@ -1,0 +1,69 @@
+# What each world rolls its sites from. Counts suit the world's radius: spacing 128 and a 96-tile margin at the edge.
+
+- type: wfPlanetPoiTable
+  id: WFPoisAsclepiu
+  minCount: 8
+  maxCount: 12
+  entries:
+  - dungeon: WFPoiExperiment
+    name: wf-poi-experiment
+    weight: 2
+  - dungeon: WFPoiMedSci
+    name: wf-poi-medsci
+  - dungeon: WFPoiFactoryDorms
+    name: wf-poi-factory-dorms
+  - dungeon: WFPoiHaunted
+    name: wf-poi-haunted
+
+- type: wfPlanetPoiTable
+  id: WFPoisMerak
+  minCount: 6
+  maxCount: 10
+  entries:
+  - dungeon: WFPoiMineshaft
+    name: wf-poi-mineshaft
+    weight: 2
+  - dungeon: WFPoiSalvageOutpost
+    name: wf-poi-salvage-outpost
+    weight: 2
+  - dungeon: WFPoiFactoryDorms
+    name: wf-poi-factory-dorms
+
+- type: wfPlanetPoiTable
+  id: WFPoisFervidus
+  minCount: 4
+  maxCount: 8
+  entries:
+  - dungeon: WFPoiLavaBrig
+    name: wf-poi-lava-brig
+  - dungeon: WFPoiLavaMercenary
+    name: wf-poi-lava-mercenary
+
+- type: wfPlanetPoiTable
+  id: WFPoisThrascias
+  minCount: 4
+  maxCount: 8
+  entries:
+  - dungeon: WFPoiSnowyLabs
+    name: wf-poi-snowy-labs
+    weight: 2
+  - dungeon: WFPoiVirologyLab
+    name: wf-poi-virology-lab
+
+- type: wfPlanetPoiTable
+  id: WFPoisAerumna
+  minCount: 2
+  maxCount: 5
+  entries:
+  - dungeon: WFPoiCaveFactory
+    name: wf-poi-cave-factory
+  - dungeon: WFPoiMineshaft
+    name: wf-poi-mineshaft
+
+- type: wfPlanetPoiTable
+  id: WFPoisCarcinoma
+  minCount: 2
+  maxCount: 5
+  entries:
+  - dungeon: WFPoiHaunted
+    name: wf-poi-haunted

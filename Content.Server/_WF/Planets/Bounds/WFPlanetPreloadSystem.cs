@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using System.Threading.Tasks;
 using Content.Server.GameTicking;
 using Content.Server.Parallax;
 using Content.Shared._WF.CCVar;
@@ -74,13 +75,19 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
                 continue;
             }
 
-            if (preload.Chunks == null)
+            if (preload.Holds == null)
             {
-                var starting = new WFPlanetPreloadStartingEvent(preload.Ground, bounds.Centre, bounds.Radius);
+                preload.Holds = new List<Task>();
+                var starting = new WFPlanetPreloadStartingEvent(preload.Ground, bounds.Centre, bounds.Radius, preload.Holds);
                 RaiseLocalEvent(ref starting);
-                preload.Chunks = _biome.WfChunksInBounds(bounds);
                 preload.Started = Stopwatch.GetTimestamp();
             }
+
+            // Whatever must be in place before the terrain, such as a dungeon, finishes first.
+            if (!HoldsDone(preload))
+                return;
+
+            preload.Chunks ??= _biome.WfChunksInBounds(bounds);
 
             Load(preload, (preload.Ground, biome, grid));
 
@@ -90,6 +97,21 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
             Finish(preload, (preload.Ground, biome, grid), bounds);
             _queue.RemoveAt(0);
         }
+    }
+
+    /// <summary>Whether every hold on a preload has finished; a failed one is logged and let go.</summary>
+    private bool HoldsDone(Preload preload)
+    {
+        foreach (var hold in preload.Holds!)
+        {
+            if (!hold.IsCompleted)
+                return false;
+
+            if (hold.IsFaulted && preload.Faulted.Add(hold))
+                Log.Error($"A hold on the preload of {ToPrettyString(preload.Ground)} failed. {hold.Exception}");
+        }
+
+        return true;
     }
 
     /// <summary>Loads chunks until the tick's budget is spent, the lobby's while the round hasn't started; one always goes.</summary>
@@ -202,6 +224,8 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
     {
         public readonly EntityUid Ground;
         public readonly EntProtoId? Wall;
+        public List<Task>? Holds;
+        public readonly HashSet<Task> Faulted = new();
         public List<Vector2i>? Chunks;
         public int Next;
         public long Started;

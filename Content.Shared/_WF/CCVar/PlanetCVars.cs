@@ -62,6 +62,10 @@ public sealed class PlanetCVars
     public static readonly CVarDef<bool> Prebuild =
         CVarDef.Create("wf.planet_prebuild", true, CVar.SERVERONLY);
 
+    /// <summary>A wfPlanetPoiTable every world rolls its sites from instead of its surface's own; empty keeps each surface's.</summary>
+    public static readonly CVarDef<string> PoiTable =
+        CVarDef.Create("wf.planet_poi_table", "", CVar.SERVERONLY);
+
     /// <summary>
     /// Whether planet terrain nobody is near is unloaded. Off, upstream's unloader is all there is, and it lets go of
     /// almost nothing.
