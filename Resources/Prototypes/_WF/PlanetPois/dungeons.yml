@@ -36,6 +36,10 @@
 
 - type: dungeonConfig
   id: WFPoiMineshaft
+  # A key the Frontier config leaves out, which its corridor layer logs an error about.
+  data:
+    colors:
+      Decals: "#6b5a3eff"
   layers:
   - !type:PrototypeDunGen
     proto: NFMineshaft
@@ -53,6 +57,10 @@
 
 - type: dungeonConfig
   id: WFPoiSalvageOutpost
+  # A key the Frontier config leaves out, which its corridor layer logs an error about.
+  data:
+    spawnGroups:
+      Junction: NFMiningAirlock
   layers:
   - !type:PrototypeDunGen
     proto: NFSalvageOutpost

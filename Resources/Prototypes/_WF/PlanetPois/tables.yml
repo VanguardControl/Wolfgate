@@ -54,6 +54,10 @@
   id: WFPoisAerumna
   minCount: 2
   maxCount: 5
+  # A small world: tighter margins, or nothing fits between the centre and the edge.
+  spacing: 96
+  edgeMargin: 72
+  centreClear: 64
   entries:
   - dungeon: WFPoiCaveFactory
     name: wf-poi-cave-factory
@@ -64,6 +68,10 @@
   id: WFPoisCarcinoma
   minCount: 2
   maxCount: 5
+  # A small world: tighter margins, or nothing fits between the centre and the edge.
+  spacing: 96
+  edgeMargin: 72
+  centreClear: 64
   entries:
   - dungeon: WFPoiHaunted
     name: wf-poi-haunted
