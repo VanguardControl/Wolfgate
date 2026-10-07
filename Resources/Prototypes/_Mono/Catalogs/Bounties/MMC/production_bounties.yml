@@ -128,11 +128,7 @@
     amount: 40
     whitelist:
       tags:
-<<<<<<< HEAD
       - CameraEconomy1 # WOLFGATE: the camera bounty asked for optical sensors (OpticsEconomy1)
-=======
-      - CameraEconomy1
->>>>>>> 84657efe63 (CC Cooking Bounties Things (#4829))
 
 - type: cargoBounty
   id: MMCBountyT3ArmorPlatesBulk

@@ -54,10 +54,6 @@
           - HeadOfPersonnel
           - HeadOfSecurity
         - type: Announcer
-<<<<<<< HEAD
-        # WOLFGATE(Shipyard): ships sold anywhere on this station end up on the used ship lot
-        - type: UsedShipMarket
-=======
         - type: StationCargoBountyDatabase
           maxBounties: 20
           # There's totally a better way to do this LOL
@@ -314,7 +310,8 @@
           - CCBountyBreadDog
           - CCBountyCrazyHamburger
           - CCBountyDragonOmelette
->>>>>>> 84657efe63 (CC Cooking Bounties Things (#4829))
+        # WOLFGATE(Shipyard): ships sold anywhere on this station end up on the used ship lot
+        - type: UsedShipMarket
 
 - type: gameMap
   id: EmptyFrontier
