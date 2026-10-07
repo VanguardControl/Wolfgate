@@ -75,6 +75,7 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedBodyTemperatureSystem.cs`](Life/WolfmedBodyTemperatureSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedBreathingAlertSystem.cs`](Life/WolfmedBreathingAlertSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedBreathingSystem.cs`](Life/WolfmedBreathingSystem.cs)
+- [`Content.Server/_WF/Wolfmed/Life/WolfmedBurningChassisSystem.cs`](Life/WolfmedBurningChassisSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedCardSystem.cs`](Life/WolfmedCardSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedChoiceEui.cs`](Life/WolfmedChoiceEui.cs)
 - [`Content.Server/_WF/Wolfmed/Life/WolfmedConditionEmoteComponent.cs`](Life/WolfmedConditionEmoteComponent.cs)
