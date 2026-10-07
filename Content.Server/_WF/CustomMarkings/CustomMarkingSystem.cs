@@ -45,7 +45,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
     private static readonly TimeSpan LibraryRefill = TimeSpan.FromMilliseconds(500);
 
     /// <summary>Art by hash as read from the database; null where it has none to show.</summary>
-    private readonly Dictionary<string, Task<byte[]?>> _art = new();
+    private readonly Dictionary<string, Task<CustomMarkingStoredArt?>> _art = new();
 
     private readonly Dictionary<ICommonSession, TimeSpan> _nextSave = new();
 
@@ -66,6 +66,30 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
 
         _player.PlayerStatusChanged += OnPlayerStatusChanged;
+
+        PurgeUnusedArt();
+    }
+
+    /// <summary>
+    /// Clears out art nothing uses any more, once as the server starts: with no round on yet, no body can be
+    /// wearing art that neither a library nor a saved character still points at.
+    /// </summary>
+    private async void PurgeUnusedArt()
+    {
+        var days = _cfg.GetCVar(CustomMarkingCVars.UnusedArtDays);
+        if (days <= 0)
+            return;
+
+        try
+        {
+            var (found, deleted) = await _db.PurgeUnusedCustomMarkingArtAsync(TimeSpan.FromDays(days));
+            if (found > 0 || deleted > 0)
+                Log.Info($"Custom marking art: deleted {deleted} drawings unused for {days} days, found {found} more that nothing uses.");
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Cleaning up unused custom marking art threw: {e}");
+        }
     }
 
     public override void Shutdown()
@@ -75,10 +99,22 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         _player.PlayerStatusChanged -= OnPlayerStatusChanged;
     }
 
-    /// <summary>The id art is stored under: a hash of its pixels, so the same drawing is only ever stored once.</summary>
+    /// <summary>
+    /// The id art is stored under: a hash of its pixels, so the same drawing is only ever stored once. Frame times
+    /// and an erase mask go into it only when the art has them, which leaves a plain still marking's hash that of
+    /// its pixels alone. The three parts differ in length, so no two kinds of art hash the same bytes.
+    /// </summary>
     public static string Hash(CustomMarkingArt art)
     {
-        return Convert.ToHexString(SHA256.HashData(art.Pixels)).ToLowerInvariant();
+        using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        hash.AppendData(art.Pixels);
+        if (CustomMarkingRules.PackFrameTimes(art.GetFrameTimes()) is { } times)
+            hash.AppendData(times);
+
+        if (art.HasErase())
+            hash.AppendData(art.Erase);
+
+        return Convert.ToHexString(hash.GetHashAndReset()).ToLowerInvariant();
     }
 
     private bool Enabled => _cfg.GetCVar(CustomMarkingCVars.Enabled);
@@ -139,17 +175,23 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             return CustomMarkingSaveResult.Fail("wf-custom-marking-error-invalid");
 
         string? hash = null;
-        byte[]? png = null;
+        CustomMarkingStoredArt? stored = null;
         if (msg.Pixels != null)
         {
-            if (CustomMarkingArt.FromPixels(msg.Pixels) is not { } art)
+            // With erasing turned off, a mask is dropped rather than refused: the drawing is still good.
+            var erase = _cfg.GetCVar(CustomMarkingCVars.EraseBody) ? msg.Erase : null;
+            var maxFrames = Math.Max(1, _cfg.GetCVar(CustomMarkingCVars.MaxFrames));
+            if (CustomMarkingArt.FromPixels(msg.Pixels, msg.FrameTimes, erase, maxFrames) is not { } art)
                 return CustomMarkingSaveResult.Fail("wf-custom-marking-error-invalid");
 
-            if (art.IsBlank())
+            if (art.IsBlank() && !art.HasErase())
                 return CustomMarkingSaveResult.Fail("wf-custom-marking-error-blank");
 
             hash = Hash(art);
-            png = art.ToPng();
+            stored = new CustomMarkingStoredArt(
+                art.ToPng(),
+                CustomMarkingRules.PackFrameTimes(art.GetFrameTimes()),
+                art.HasErase() ? art.Erase : null);
         }
 
         var name = CustomMarkingRules.CleanName(msg.Name);
@@ -162,8 +204,8 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         CustomMarkingSaveResult result;
         try
         {
-            result = await _db.SaveCustomMarkingAsync(session.UserId, msg.Id, name, (int) msg.Placement, hash, png,
-                _cfg.GetCVar(CustomMarkingCVars.LibraryLimit));
+            result = await _db.SaveCustomMarkingAsync(session.UserId, msg.Id, name, (int) msg.Placement, hash, stored,
+                _cfg.GetCVar(CustomMarkingCVars.LibraryLimit), _cfg.GetCVar(CustomMarkingCVars.DailyArtLimit));
         }
         catch (Exception e)
         {
@@ -174,7 +216,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         // Awaits resume on the game thread, so the cache is only touched there.
         if (result.Entry != null && hash != null)
         {
-            _art[hash] = Task.FromResult(png);
+            _art[hash] = Task.FromResult(stored);
             _adminLog.Add(LogType.Identity, LogImpact.Low,
                 $"{session:player} saved custom marking \"{name}\" with art {hash}");
         }
@@ -211,11 +253,13 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             if (!CustomMarkingRules.IsValidHash(hash) || !Spend(_artBudgetFull, session, ArtRequestRefill, ArtRequestBudget))
                 continue;
 
-            var png = Enabled ? await GetArt(hash) : null;
+            var art = Enabled ? await GetArt(hash) : null;
             if (session.Status == SessionStatus.Disconnected)
                 return;
 
-            RaiseNetworkEvent(new CustomMarkingArtEvent(hash, png), session);
+            RaiseNetworkEvent(
+                new CustomMarkingArtEvent(hash, art?.Png, CustomMarkingRules.UnpackFrameTimes(art?.FrameTimes), art?.Erase),
+                session);
         }
     }
 
@@ -239,7 +283,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         return true;
     }
 
-    private Task<byte[]?> GetArt(string hash)
+    private Task<CustomMarkingStoredArt?> GetArt(string hash)
     {
         if (_art.TryGetValue(hash, out var known))
             return known;
@@ -250,7 +294,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         return _art[hash] = ReadArt(hash);
     }
 
-    private async Task<byte[]?> ReadArt(string hash)
+    private async Task<CustomMarkingStoredArt?> ReadArt(string hash)
     {
         try
         {

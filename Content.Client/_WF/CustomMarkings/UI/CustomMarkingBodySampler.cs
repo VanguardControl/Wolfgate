@@ -22,6 +22,8 @@ public sealed partial class CustomMarkingBodySampler : Control
     [Dependency] private IEntityManager _entMan = default!;
 
     private readonly Rgba32[] _pixels = new Rgba32[Frame * Frame];
+    private readonly HashSet<int> _erasable = new();
+    private CustomMarkingEraseBrush? _brush;
     private IRenderTexture? _target;
     private EntityUid? _sampledBody;
     private int _sampledFacing = -1;
@@ -30,6 +32,9 @@ public sealed partial class CustomMarkingBodySampler : Control
     public EntityUid? Body;
 
     public int Facing;
+
+    /// <summary>The pixels of the body that are erased, which it is read without, as the canvas shows it.</summary>
+    public byte[]? Erase;
 
     /// <summary>Whether to keep the sample fresh. Off, nothing is drawn or read.</summary>
     public bool Active;
@@ -60,10 +65,21 @@ public sealed partial class CustomMarkingBodySampler : Control
             new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba8Srgb), name: "wf-custom-marking-sample");
 
         var facing = Facing;
+        CustomMarkingEraseBrush? brush = null;
+        if (Erase != null && CustomMarkingErase.Any(Erase, facing))
+        {
+            _brush ??= new CustomMarkingEraseBrush();
+            if (_brush.Set(Erase, facing))
+            {
+                brush = _brush;
+                _entMan.System<CustomMarkingSystem>().GetErasable((body, sprite), _erasable);
+            }
+        }
+
         handle.RenderInRenderTarget(_target, () =>
         {
             handle.SetTransform(Matrix3x2.Identity);
-            CustomMarkingCanvas.DrawBody(handle, sprite, facing, 0, int.MaxValue, new Vector2(Frame, Frame));
+            CustomMarkingCanvas.DrawBody(handle, sprite, facing, 0, int.MaxValue, new Vector2(Frame, Frame), brush, _erasable);
         }, Color.Transparent);
 
         _target.CopyPixelsToMemory<Rgba32>(image =>
@@ -89,6 +105,8 @@ public sealed partial class CustomMarkingBodySampler : Control
         base.ExitedTree();
         _target?.Dispose();
         _target = null;
+        _brush?.Dispose();
+        _brush = null;
         _sampledBody = null;
     }
 }

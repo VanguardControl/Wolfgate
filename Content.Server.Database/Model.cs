@@ -464,6 +464,10 @@ namespace Content.Server.Database
                 .HasForeignKey(m => m.ArtHash)
                 .HasConstraintName("FK_wolfgate_custom_marking_art")
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Counted by who saved it and when, to cap how much new art one player stores in a day.
+            modelBuilder.Entity<WolfgateCustomMarkingArt>()
+                .HasIndex(a => new { a.UploaderUserId, a.UploadedAt });
             // WOLFGATE END
         }
 
@@ -1651,18 +1655,28 @@ namespace Content.Server.Database
 
     // WOLFGATE(CustomMarkings) START: player-drawn marking art and each player's library of it
     /// <summary>
-    /// The art of a custom marking, stored once however many players and characters use it. Rows are never deleted,
-    /// as saved characters refer to them by hash.
+    /// The art of a custom marking, stored once however many players and characters use it. A row outlives the
+    /// library entries that point at it, as saved characters refer to art by hash; the server's cleanup deletes
+    /// rows that nothing has used for long enough.
     /// </summary>
     public class WolfgateCustomMarkingArt
     {
-        /// <summary>Hash of the art's pixels.</summary>
+        /// <summary>Hash of the art: its pixels, and its frame times and erase mask when it has them.</summary>
         [Key, MaxLength(64)]
         public string Hash { get; set; } = null!;
 
-        /// <summary>The four facings as one PNG sheet.</summary>
+        /// <summary>The four facings of every frame as one PNG sheet.</summary>
         [Required]
         public byte[] Png { get; set; } = null!;
+
+        /// <summary>
+        /// How long each frame of an animated marking shows: two bytes of milliseconds for each frame, low byte
+        /// first. Null for a still marking.
+        /// </summary>
+        public byte[]? FrameTimes { get; set; }
+
+        /// <summary>The pixels of the body the marking erases, a bit for each pixel of each facing. Null for none.</summary>
+        public byte[]? Erase { get; set; }
 
         /// <summary>The player who first saved this art.</summary>
         public Guid UploaderUserId { get; set; }
@@ -1671,6 +1685,12 @@ namespace Content.Server.Database
 
         /// <summary>Set by an admin: the art is no longer sent to anyone, and can't be saved again.</summary>
         public bool Blocked { get; set; }
+
+        /// <summary>
+        /// When the server's cleanup first found nothing using this art: no library holds it and no saved character
+        /// wears it. Null while it is in use, or not looked at yet.
+        /// </summary>
+        public DateTime? UnusedSince { get; set; }
     }
 
     /// <summary>One marking in a player's library.</summary>

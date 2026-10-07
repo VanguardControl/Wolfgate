@@ -58,7 +58,8 @@ public sealed partial class CustomMarkingLibraryWindow : CustomMarkingWindow
         _profile = profile;
 
         Title = Loc.GetString("wf-custom-marking-library-title");
-        MinSize = new Vector2(760, 560);
+        // A set size to open at: sizing itself, the window grows as wide as the screen to fit the hint on one line.
+        MinSize = SetSize = new Vector2(760, 560);
 
         if (profile() is { } character)
         {
@@ -243,7 +244,7 @@ public sealed partial class CustomMarkingLibraryWindow : CustomMarkingWindow
             };
         }
 
-        return Row(rsi, entry.Name, entry.Placement, wear, edit, export, delete);
+        return Row(rsi, entry.Hash, entry.Name, entry.Placement, wear, edit, export, delete);
     }
 
     private Control StrayRow(CustomMarking marking, bool room)
@@ -265,24 +266,32 @@ public sealed partial class CustomMarkingLibraryWindow : CustomMarkingWindow
                 _system.Save(0, string.Empty, marking.Placement, art);
         };
 
-        return Row(rsi, Loc.GetString("wf-custom-marking-library-stray"), marking.Placement, takeOff, keep);
+        return Row(rsi, marking.Hash, Loc.GetString("wf-custom-marking-library-stray"), marking.Placement, takeOff, keep);
     }
 
-    /// <summary>A row: the marking on the character from each side, its name and placement, and its actions.</summary>
-    private Control Row(RSI? rsi, string name, CustomMarkingPlacement placement, params BaseButton[] actions)
+    /// <summary>
+    /// A row: the marking on the character from each side, as it will look, its name and placement, and its
+    /// actions.
+    /// </summary>
+    private Control Row(RSI? rsi, string hash, string name, CustomMarkingPlacement placement, params BaseButton[] actions)
     {
         RSI.State? state = null;
         rsi?.TryGetState(CustomMarkingResources.State, out state);
+
+        byte[]? erase = null;
+        if (rsi != null && _system.EraseEnabled)
+            _system.TryGetErase(hash, out erase);
 
         var thumbnails = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 2 };
         for (var facing = 0; facing < CustomMarkingRules.Facings; facing++)
         {
             thumbnails.AddChild(new CustomMarkingCanvas(ThumbnailScale, false)
             {
-                ArtTexture = state?.GetFrame((RsiDirection) facing, 0),
+                ArtState = state,
                 Facing = facing,
                 Body = _doll,
                 Placement = placement,
+                Erase = erase,
             });
         }
 
@@ -317,6 +326,7 @@ public sealed partial class CustomMarkingLibraryWindow : CustomMarkingWindow
                         new Label
                         {
                             Text = Loc.GetString(CustomMarkingEditorWindow.PlacementName(placement)),
+                            ClipText = true,
                             StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel },
                         },
                     },
@@ -355,7 +365,7 @@ public sealed partial class CustomMarkingLibraryWindow : CustomMarkingWindow
 
     private CustomMarkingArt? ReadArt(string hash)
     {
-        return _system.TryGetPng(hash, out var png) ? CustomMarkingPng.Read(png) : null;
+        return _system.TryReadArt(hash, out var art) ? art : null;
     }
 
     private void OpenEditor(CustomMarkingEntry? entry, CustomMarkingArt art, string name)

@@ -150,4 +150,23 @@ public sealed class CustomMarkingRulesTest
         Assert.That(CustomMarkingRules.ApplySaved(worn, wornEntry, twin, 2), Is.True);
         Assert.That(worn, Is.EqualTo(new[] { other }));
     }
+
+    /// <summary>Frame times as they are stored beside art: two bytes a frame, and none for a still marking.</summary>
+    [Test]
+    public void FrameTimesTest()
+    {
+        Assert.That(CustomMarkingRules.PackFrameTimes(new[] { 200 }), Is.Null, "a still marking has no times worth keeping");
+
+        var packed = CustomMarkingRules.PackFrameTimes(new[] { 100, 300, 10000 });
+        Assert.That(packed, Is.EqualTo(new byte[] { 100, 0, 44, 1, 16, 39 }));
+        Assert.That(CustomMarkingRules.UnpackFrameTimes(packed), Is.EqualTo(new[] { 100, 300, 10000 }));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(CustomMarkingRules.UnpackFrameTimes(null), Is.Null);
+            Assert.That(CustomMarkingRules.UnpackFrameTimes(new byte[] { 1, 2 }), Is.Null, "one frame is no animation");
+            Assert.That(CustomMarkingRules.UnpackFrameTimes(new byte[] { 1, 2, 3, 4, 5 }), Is.Null, "half a time");
+            Assert.That(CustomMarkingRules.MaxFrameTime, Is.LessThanOrEqualTo(ushort.MaxValue), "a time fits its two bytes");
+        });
+    }
 }

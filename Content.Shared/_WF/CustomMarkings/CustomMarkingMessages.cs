@@ -15,10 +15,17 @@ public sealed class CustomMarkingLibraryEvent(List<CustomMarkingEntry> entries) 
 
 /// <summary>
 /// Client to server: add a marking to my library, or change the one with this id. <see cref="Pixels"/> is a raw
-/// RGBA sheet; null keeps the entry's art.
+/// RGBA sheet for each frame, one after another; null keeps the entry's art.
 /// </summary>
 [Serializable, NetSerializable]
-public sealed class CustomMarkingSaveEvent(int request, int id, string name, CustomMarkingPlacement placement, byte[]? pixels)
+public sealed class CustomMarkingSaveEvent(
+    int request,
+    int id,
+    string name,
+    CustomMarkingPlacement placement,
+    byte[]? pixels,
+    int[]? frameTimes = null,
+    byte[]? erase = null)
     : EntityEventArgs
 {
     /// <summary>Echoed in the result, so the editor can tell which save it answers.</summary>
@@ -30,6 +37,12 @@ public sealed class CustomMarkingSaveEvent(int request, int id, string name, Cus
     public readonly string Name = name;
     public readonly CustomMarkingPlacement Placement = placement;
     public readonly byte[]? Pixels = pixels;
+
+    /// <summary>How long each frame shows, in milliseconds. Null for a still marking.</summary>
+    public readonly int[]? FrameTimes = frameTimes;
+
+    /// <summary>The body pixels the marking erases, as a <see cref="CustomMarkingErase"/> mask. Null for none.</summary>
+    public readonly byte[]? Erase = erase;
 }
 
 /// <summary>Server to client: the saved entry, or a loc id saying why it wasn't saved.</summary>
@@ -60,10 +73,19 @@ public sealed class CustomMarkingArtRequestEvent(List<string> hashes) : EntityEv
     public readonly List<string> Hashes = hashes;
 }
 
-/// <summary>Server to client: art as a PNG sheet, or null when the server has none it will show for that hash.</summary>
+/// <summary>
+/// Server to client: art as a PNG sheet with what goes with it, or a null sheet when the server has none it will
+/// show for that hash.
+/// </summary>
 [Serializable, NetSerializable]
-public sealed class CustomMarkingArtEvent(string hash, byte[]? png) : EntityEventArgs
+public sealed class CustomMarkingArtEvent(string hash, byte[]? png, int[]? frameTimes = null, byte[]? erase = null) : EntityEventArgs
 {
     public readonly string Hash = hash;
     public readonly byte[]? Png = png;
+
+    /// <summary>How long each frame shows, in milliseconds. Null for a still marking.</summary>
+    public readonly int[]? FrameTimes = frameTimes;
+
+    /// <summary>The body pixels the marking erases, as a <see cref="CustomMarkingErase"/> mask. Null for none.</summary>
+    public readonly byte[]? Erase = erase;
 }

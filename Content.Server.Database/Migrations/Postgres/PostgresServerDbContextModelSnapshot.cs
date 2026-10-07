@@ -1813,10 +1813,22 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("boolean")
                         .HasColumnName("blocked");
 
+                    b.Property<byte[]>("Erase")
+                        .HasColumnType("bytea")
+                        .HasColumnName("erase");
+
+                    b.Property<byte[]>("FrameTimes")
+                        .HasColumnType("bytea")
+                        .HasColumnName("frame_times");
+
                     b.Property<byte[]>("Png")
                         .IsRequired()
                         .HasColumnType("bytea")
                         .HasColumnName("png");
+
+                    b.Property<DateTime?>("UnusedSince")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("unused_since");
 
                     b.Property<DateTime>("UploadedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1828,6 +1840,8 @@ namespace Content.Server.Database.Migrations.Postgres
 
                     b.HasKey("Hash")
                         .HasName("PK_wolfgate_custom_marking_art");
+
+                    b.HasIndex("UploaderUserId", "UploadedAt");
 
                     b.ToTable("wolfgate_custom_marking_art", (string)null);
                 });

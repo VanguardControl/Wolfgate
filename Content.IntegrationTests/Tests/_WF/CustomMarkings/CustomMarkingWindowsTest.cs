@@ -28,7 +28,7 @@ public sealed class CustomMarkingWindowsTest
         var profile = HumanoidCharacterProfile.DefaultWithSpecies("Human");
 
         var art = new CustomMarkingArt();
-        art.SetPixel(CustomMarkingArt.South, 16, 12, new Rgba32(10, 200, 10, 255));
+        art.SetPixel(0, CustomMarkingArt.South, 16, 12, new Rgba32(10, 200, 10, 255));
 
         CustomMarkingLibraryWindow library = null;
         CustomMarkingEditorWindow editor = null;
@@ -55,17 +55,23 @@ public sealed class CustomMarkingWindowsTest
             Assert.That(Descendants(editor).OfType<CustomMarkingCanvas>().Count(), Is.EqualTo(1 + CustomMarkingRules.Facings),
                 "the editor shows the drawing and each facing");
 
-            var viewport = new Vector2(1024, 768);
+            // A window opens at its own size, whatever the screen's: the text above the library's list wraps
+            // instead of stretching the window, and every button fits in what the window asks for.
+            var viewport = new Vector2(1920, 1080);
             foreach (var window in new Control[] { library, editor })
             {
                 window.Measure(viewport);
-                window.Arrange(UIBox2.FromDimensions(Vector2.Zero, viewport));
+                var size = window.DesiredSize;
+                Assert.That(size.X, Is.LessThan(900), $"{window.GetType().Name} is no wider than what it shows needs");
+                Assert.That(size.Y, Is.LessThan(768), $"{window.GetType().Name} fits a small screen");
+
+                window.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
                 foreach (var button in Descendants(window).OfType<BaseButton>())
                 {
                     var what = button is Button text ? text.Text : button.ToolTip;
                     var bottomRight = button.GlobalPosition - window.GlobalPosition + button.Size;
-                    Assert.That(bottomRight.X, Is.LessThanOrEqualTo(viewport.X), $"{what} fits horizontally");
-                    Assert.That(bottomRight.Y, Is.LessThanOrEqualTo(viewport.Y), $"{what} fits vertically");
+                    Assert.That(bottomRight.X, Is.LessThanOrEqualTo(size.X), $"{what} fits horizontally");
+                    Assert.That(bottomRight.Y, Is.LessThanOrEqualTo(size.Y), $"{what} fits vertically");
                 }
             }
 
@@ -75,6 +81,25 @@ public sealed class CustomMarkingWindowsTest
             Assert.That(icons.All(icon => !string.IsNullOrEmpty(icon.ToolTip)), Is.True, "every icon button has a tooltip");
             Assert.That(icons.Single(icon => icon.ToolTip == Loc.GetString("wf-custom-marking-editor-symmetry")).ToggleMode,
                 Is.True, "mirror drawing is switched on and off");
+
+            // The body eraser is a tool of its own, and an animated marking's frames have their controls.
+            foreach (var loc in FrameControls.Append("wf-custom-marking-tool-bodyeraser"))
+            {
+                Assert.That(icons.Count(icon => icon.ToolTip == Loc.GetString(loc)), Is.EqualTo(1), loc);
+            }
+
+            // A still marking has one frame: nothing to step through, play or take out, and no time to set.
+            Assert.Multiple(() =>
+            {
+                Assert.That(Icon(editor, "wf-custom-marking-editor-frame-add").Disabled, Is.False);
+                Assert.That(Icon(editor, "wf-custom-marking-editor-frame-remove").Disabled, Is.True);
+                Assert.That(Icon(editor, "wf-custom-marking-editor-frame-previous").Disabled, Is.True);
+                Assert.That(Icon(editor, "wf-custom-marking-editor-frame-play").Disabled, Is.True);
+                Assert.That(Descendants(editor).OfType<FloatSpinBox>().Single().Parent!.Visible, Is.False);
+            });
+
+            // The library shows each marking from its finished sprite, so an animated one plays there.
+            Assert.That(Descendants(library).OfType<CustomMarkingCanvas>().Select(canvas => canvas.ArtState), Has.All.Not.Null);
 
             // A facing tile is picked by clicking anywhere on it, so its preview must not take the click itself.
             var canvases = Descendants(editor).OfType<CustomMarkingCanvas>().ToList();
@@ -93,7 +118,71 @@ public sealed class CustomMarkingWindowsTest
         });
 
         await pair.RunTicksSync(5);
+
+        // An animated marking that erases a little of the body, and one that erases all of it and draws nothing.
+        var blinking = art.Clone();
+        blinking.AddFrame(0);
+        blinking.SetFrameTime(1, 750);
+        blinking.SetErased(CustomMarkingArt.South, 16, 16, true);
+        var vanishing = new CustomMarkingArt();
+        for (var y = 0; y < CustomMarkingRules.FrameSize; y++)
+        {
+            for (var x = 0; x < CustomMarkingRules.FrameSize; x++)
+            {
+                vanishing.SetErased(CustomMarkingArt.South, x, y, true);
+            }
+        }
+
+        await client.WaitAssertion(() =>
+        {
+            var animated = new CustomMarkingEditorWindow(null, blinking, "Blink", profile);
+            animated.OpenCentered();
+            var tooMuch = Loc.GetString("wf-custom-marking-editor-erase-too-much", ("percent", CustomMarkingErase.MinKeptPercent));
+            Assert.Multiple(() =>
+            {
+                foreach (var loc in FrameControls)
+                {
+                    Assert.That(Icon(animated, loc).Disabled, Is.False, loc);
+                }
+
+                var time = Descendants(animated).OfType<FloatSpinBox>().Single();
+                Assert.That(time.Parent!.Visible, Is.True, "each frame of an animated marking has its time");
+                Assert.That(time.Value, Is.EqualTo(CustomMarkingRules.DefaultFrameTime / 1000f).Within(0.001f), "the first frame's");
+                Assert.That(Descendants(animated).OfType<Label>().Select(label => label.Text),
+                    Does.Contain(Loc.GetString("wf-custom-marking-editor-frame-count", ("frame", 1), ("frames", 2))));
+                Assert.That(Descendants(animated).OfType<Label>().Select(label => label.Text), Does.Not.Contain(tooMuch));
+                Assert.That(Descendants(animated).OfType<CustomMarkingCanvas>().Select(canvas => canvas.Erase), Has.All.Not.Null,
+                    "the body is shown without what the marking erases");
+            });
+
+            var size = new Vector2(1920, 1080);
+            animated.Measure(size);
+            Assert.That(animated.DesiredSize.Y, Is.LessThan(768), "the editor still fits a small screen with the frame time showing");
+            animated.Close();
+
+            // Erasing more than a body may lose is said as it happens, not only found out in a round.
+            var vanished = new CustomMarkingEditorWindow(null, vanishing, "Gone", profile);
+            vanished.OpenCentered();
+            Assert.That(Descendants(vanished).OfType<Label>().Select(label => label.Text), Does.Contain(tooMuch));
+            vanished.Close();
+        });
+
+        await pair.RunTicksSync(5);
         await pair.CleanReturnAsync();
+    }
+
+    private static readonly string[] FrameControls =
+    {
+        "wf-custom-marking-editor-frame-previous",
+        "wf-custom-marking-editor-frame-next",
+        "wf-custom-marking-editor-frame-add",
+        "wf-custom-marking-editor-frame-remove",
+        "wf-custom-marking-editor-frame-play",
+    };
+
+    private static CustomMarkingIconButton Icon(Control window, string loc)
+    {
+        return Descendants(window).OfType<CustomMarkingIconButton>().Single(icon => icon.ToolTip == Loc.GetString(loc));
     }
 
     /// <summary>The creator's tiles list the library, show what is worn and keep a tile for a worn marking it doesn't hold.</summary>
@@ -105,7 +194,7 @@ public sealed class CustomMarkingWindowsTest
         var system = client.System<CustomMarkingSystem>();
 
         var art = new CustomMarkingArt();
-        art.SetPixel(CustomMarkingArt.South, 16, 12, new Rgba32(10, 200, 10, 255));
+        art.SetPixel(0, CustomMarkingArt.South, 16, 12, new Rgba32(10, 200, 10, 255));
 
         CustomMarkingQuickList list = null;
         await client.WaitPost(() =>

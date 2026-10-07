@@ -20,6 +20,9 @@
       "name": "picker"
     },
     {
+      "name": "bodyeraser"
+    },
+    {
       "name": "symmetry"
     },
     {
@@ -51,6 +54,21 @@
     },
     {
       "name": "export"
+    },
+    {
+      "name": "previous"
+    },
+    {
+      "name": "next"
+    },
+    {
+      "name": "add"
+    },
+    {
+      "name": "remove"
+    },
+    {
+      "name": "play"
     }
   ]
 }

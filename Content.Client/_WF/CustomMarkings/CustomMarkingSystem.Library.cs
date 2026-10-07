@@ -34,7 +34,14 @@ public sealed partial class CustomMarkingSystem
     public int Save(int id, string name, CustomMarkingPlacement placement, CustomMarkingArt? art)
     {
         var request = ++_lastRequest;
-        RaiseNetworkEvent(new CustomMarkingSaveEvent(request, id, name, placement, art?.Pixels));
+        RaiseNetworkEvent(new CustomMarkingSaveEvent(
+            request,
+            id,
+            name,
+            placement,
+            art?.Pixels,
+            art?.GetFrameTimes(),
+            art != null && art.HasErase() ? art.Erase : null));
         return request;
     }
 

@@ -5,6 +5,7 @@ using Content.Shared.Humanoid;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
+using Robust.Shared.Configuration;
 
 namespace Content.Client._WF.CustomMarkings;
 
@@ -14,11 +15,31 @@ namespace Content.Client._WF.CustomMarkings;
 /// </summary>
 public sealed partial class CustomMarkingSystem : EntitySystem
 {
+    [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IResourceCache _resCache = default!;
     [Dependency] private SpriteSystem _sprite = default!;
 
     /// <summary>Layer keys are numbered, so this is also the most markings one body can show.</summary>
     private const int MaxLayers = CustomMarkingRules.MaxWornCap;
+
+    /// <summary>The layers hair, frills and ears are drawn on.</summary>
+    private static readonly HumanoidVisualLayers[] HeadLayers =
+    {
+        HumanoidVisualLayers.FacialHair,
+        HumanoidVisualLayers.Hair,
+        HumanoidVisualLayers.HeadSide,
+        HumanoidVisualLayers.HeadTop,
+    };
+
+    /// <summary>What one species or another draws next, over those.</summary>
+    private static readonly HumanoidVisualLayers[] OverHeadLayers =
+    {
+        HumanoidVisualLayers.Wings,
+        HumanoidVisualLayers.TailOversuit,
+        HumanoidVisualLayers.Tail,
+    };
+
+    private static readonly string[] OverHeadSlots = { "suitstorage", "balaclava", "maskalt", "mask", "head", "helmetcover" };
 
     private CustomMarkingResources _resources = default!;
 
@@ -44,6 +65,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         SubscribeNetworkEvent<CustomMarkingArtEvent>(OnArt);
         // GenitalsVisualizerSystem owns (GenitalsComponent, HumanoidMarkingsAppliedEvent); this pair is ours alone.
         SubscribeLocalEvent<HumanoidAppearanceComponent, HumanoidMarkingsAppliedEvent>(OnMarkingsApplied);
+        Subs.CVar(_cfg, CustomMarkingCVars.EraseBody, _ => RefreshAll());
 
         InitializeLibrary();
     }
@@ -76,7 +98,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             return;
 
         _unavailable.Remove(hash);
-        _resources.Store(hash, art.ToPng());
+        Store(hash, art.ToPng(), art.GetFrameTimes(), art.Erase);
         if (Load(hash, out _))
             ArtLoaded?.Invoke(hash);
     }
@@ -85,6 +107,31 @@ public sealed partial class CustomMarkingSystem : EntitySystem
     public bool TryGetPng(string hash, [NotNullWhen(true)] out byte[]? png)
     {
         return _resources.TryGetPng(hash, out png);
+    }
+
+    /// <summary>
+    /// The art for a hash that <see cref="TryGetArt"/> has returned, read back whole for the editor: its frames,
+    /// how long each shows and its erase mask.
+    /// </summary>
+    public bool TryReadArt(string hash, [NotNullWhen(true)] out CustomMarkingArt? art)
+    {
+        art = null;
+        if (!_resources.TryGetPng(hash, out var png) || CustomMarkingPng.Read(png) is not { } read)
+            return false;
+
+        if (_resources.GetFrameTimes(hash) is { } times && times.Length == read.Frames)
+        {
+            for (var frame = 0; frame < times.Length; frame++)
+            {
+                read.SetFrameTime(frame, times[frame]);
+            }
+        }
+
+        if (_resources.TryGetErase(hash, out var erase))
+            erase.CopyTo(read.Erase, 0);
+
+        art = read;
+        return true;
     }
 
     public override void FrameUpdate(float frameTime)
@@ -110,6 +157,8 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             // Also sent unasked when an admin blocks art, so anything already fetched is dropped.
             _unavailable.Add(ev.Hash);
             _resources.Remove(ev.Hash);
+            _eraseMasks.Remove(ev.Hash);
+            _decoded.Remove(ev.Hash);
             if (_art.Remove(ev.Hash))
                 RefreshWearers(ev.Hash);
 
@@ -119,12 +168,18 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         if (!asked)
             return;
 
-        _resources.Store(ev.Hash, ev.Png);
+        Store(ev.Hash, ev.Png, ev.FrameTimes, ev.Erase);
         if (!Load(ev.Hash, out _))
             return;
 
         RefreshWearers(ev.Hash);
         ArtLoaded?.Invoke(ev.Hash);
+    }
+
+    private void Store(string hash, byte[] png, int[]? frameTimes, byte[]? erase)
+    {
+        _eraseMasks.Remove(hash);
+        _resources.Store(hash, png, frameTimes, erase);
     }
 
     private void RefreshWearers(string hash)
@@ -140,6 +195,16 @@ public sealed partial class CustomMarkingSystem : EntitySystem
                 Refresh((uid, humanoid));
                 break;
             }
+        }
+    }
+
+    private void RefreshAll()
+    {
+        var query = EntityQueryEnumerator<HumanoidAppearanceComponent>();
+        while (query.MoveNext(out var uid, out var humanoid))
+        {
+            if (humanoid.CustomMarkings.Count > 0)
+                Refresh((uid, humanoid));
         }
     }
 
@@ -173,11 +238,14 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             return;
 
         var sprite = new Entity<SpriteComponent?>(ent, spriteComp);
+        RemoveErase(sprite);
         for (var i = 0; i < MaxLayers; i++)
         {
             _sprite.RemoveLayer(sprite, LayerKey(i), false);
         }
 
+        var erase = new byte[CustomMarkingRules.EraseBytes];
+        var covered = new byte[CustomMarkingRules.EraseBytes];
         var worn = ent.Comp.CustomMarkings;
         for (var i = 0; i < worn.Count && i < MaxLayers; i++)
         {
@@ -190,10 +258,22 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             if (ArtFor(sprite, marking, rsi, depth) is not { } shown)
                 continue;
 
-            var layer = _sprite.AddRsiLayer(sprite, CustomMarkingResources.State, shown, depth);
+            if (TryGetErase(marking.Hash, out var mask))
+                CustomMarkingErase.Add(erase, mask);
+
+            if (shown.Rsi == null)
+                continue;
+
+            var layer = _sprite.AddRsiLayer(sprite, CustomMarkingResources.State, shown.Rsi, depth);
             _sprite.LayerMapSet(sprite, LayerKey(i), layer);
-            _sprite.LayerSetVisible(sprite, layer, IsShown(ent.Comp, marking.Placement));
+
+            var visible = IsShown(ent.Comp, marking.Placement);
+            _sprite.LayerSetVisible(sprite, layer, visible);
+            if (visible)
+                CustomMarkingErase.Add(covered, shown.Solid);
         }
+
+        ApplyErase(sprite, erase, covered);
     }
 
     /// <summary>The key of the layer drawing a body's custom marking at this position in its list.</summary>
@@ -226,11 +306,7 @@ public sealed partial class CustomMarkingSystem : EntitySystem
 
                 break;
             case CustomMarkingPlacement.Hair:
-                if (_sprite.LayerMapTryGet(sprite, HumanoidVisualLayers.HeadSide, out index, false)
-                    || _sprite.LayerMapTryGet(sprite, HumanoidVisualLayers.HeadTop, out index, false))
-                    return index;
-
-                break;
+                return GetIndexOverHead(sprite);
             case CustomMarkingPlacement.Front:
                 if (_sprite.LayerMapTryGet(sprite, "helmetcover", out index, false))
                     return index;
@@ -239,6 +315,39 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Where art on the hair goes: over the hair, the frills and the ears with their markings, so those can be
+    /// drawn on, and under masks and hats. Species order what follows differently, so that is under the lowest
+    /// layer above them. Null, for the top, when the sprite has no such layers.
+    /// </summary>
+    private int? GetIndexOverHead(Entity<SpriteComponent?> sprite)
+    {
+        var top = -1;
+        foreach (var layer in HeadLayers)
+        {
+            if (_sprite.LayerMapTryGet(sprite, layer, out var index, false))
+                top = Math.Max(top, index);
+        }
+
+        if (top < 0)
+            return null;
+
+        int? over = null;
+        foreach (var layer in OverHeadLayers)
+        {
+            if (_sprite.LayerMapTryGet(sprite, layer, out var index, false) && index > top && (over == null || index < over))
+                over = index;
+        }
+
+        foreach (var slot in OverHeadSlots)
+        {
+            if (_sprite.LayerMapTryGet(sprite, slot, out var index, false) && index > top && (over == null || index < over))
+                over = index;
+        }
+
+        return over;
     }
 
     /// <summary>A custom marking is hidden along with the body layer clothing hides at its depth.</summary>

@@ -42,7 +42,7 @@ public sealed class CustomMarkingVisualsTest
             Assert.That(rsi.TryGetState(CustomMarkingResources.State, out var state), Is.True);
             Assert.That(state!.RsiDirections, Is.EqualTo(RsiDirectionType.Dir4), "one frame for each facing");
             Assert.That(system.TryGetPng(Hash, out var png), Is.True);
-            Assert.That(CustomMarkingPng.Read(png!)!.GetPixel(CustomMarkingArt.West, 3, 4), Is.EqualTo(new Rgba32(1, 2, 3, 255)));
+            Assert.That(CustomMarkingPng.Read(png!)!.GetPixel(0, CustomMarkingArt.West, 3, 4), Is.EqualTo(new Rgba32(1, 2, 3, 255)));
         });
 
         await pair.CleanReturnAsync();
@@ -133,8 +133,10 @@ public sealed class CustomMarkingVisualsTest
 
     private static void Store(IResourceCache resCache, string hash)
     {
+        // One pixel on the body, which is what shows, and one far off it.
         var art = new CustomMarkingArt();
-        art.SetPixel(CustomMarkingArt.West, 3, 4, new Rgba32(1, 2, 3, 255));
+        art.SetPixel(0, CustomMarkingArt.South, 15, 15, new Rgba32(200, 30, 30, 255));
+        art.SetPixel(0, CustomMarkingArt.West, 3, 4, new Rgba32(1, 2, 3, 255));
         CustomMarkingResources.For(resCache).Store(hash, art.ToPng());
     }
 }

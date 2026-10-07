@@ -14,8 +14,25 @@ public static class CustomMarkingRules
     /// <summary>Width and height of the sheet holding the four facings, two to a row.</summary>
     public const int SheetSize = FrameSize * 2;
 
-    /// <summary>Size of a sheet as raw RGBA bytes, the form art is uploaded in.</summary>
+    /// <summary>Size of one frame's sheet as raw RGBA bytes, the form art is uploaded in.</summary>
     public const int PixelBytes = SheetSize * SheetSize * 4;
+
+    /// <summary>Most frames a marking has, whatever the server setting says. One is a still marking.</summary>
+    public const int MaxFrames = 8;
+
+    /// <summary>
+    /// The shortest a frame of an animated marking shows, in milliseconds, which keeps a marking from flashing
+    /// faster than ten times a second.
+    /// </summary>
+    public const int MinFrameTime = 100;
+
+    /// <summary>The longest a frame shows, in milliseconds.</summary>
+    public const int MaxFrameTime = 10000;
+
+    public const int DefaultFrameTime = 200;
+
+    /// <summary>Size of an erase mask: a bit for each pixel of each facing.</summary>
+    public const int EraseBytes = Facings * FrameSize * FrameSize / 8;
 
     public const int HashLength = 64;
 
@@ -131,6 +148,40 @@ public static class CustomMarkingRules
             worn.Insert(at, marking);
 
         return true;
+    }
+
+    /// <summary>
+    /// Frame times as stored beside art: two bytes for each frame, low byte first. Null for a still marking, which
+    /// has none worth keeping.
+    /// </summary>
+    public static byte[]? PackFrameTimes(int[] times)
+    {
+        if (times.Length <= 1)
+            return null;
+
+        var packed = new byte[times.Length * 2];
+        for (var i = 0; i < times.Length; i++)
+        {
+            packed[i * 2] = (byte) times[i];
+            packed[i * 2 + 1] = (byte) (times[i] >> 8);
+        }
+
+        return packed;
+    }
+
+    /// <summary>Reads <see cref="PackFrameTimes"/> bytes. Null when there are none, as for a still marking.</summary>
+    public static int[]? UnpackFrameTimes(byte[]? packed)
+    {
+        if (packed == null || packed.Length < 4 || packed.Length % 2 != 0)
+            return null;
+
+        var times = new int[packed.Length / 2];
+        for (var i = 0; i < times.Length; i++)
+        {
+            times[i] = packed[i * 2] | packed[i * 2 + 1] << 8;
+        }
+
+        return times;
     }
 
     /// <summary>A worn list as the text saved with a character: <c>hash:placement</c> pairs, comma separated.</summary>
