@@ -23,6 +23,7 @@ public sealed partial class CustomMarkingBodySampler : Control
 
     private readonly Rgba32[] _pixels = new Rgba32[Frame * Frame];
     private readonly HashSet<int> _erasable = new();
+    private readonly HashSet<int> _hair = new();
     private CustomMarkingEraseBrush? _brush;
     private IRenderTexture? _target;
     private EntityUid? _sampledBody;
@@ -35,6 +36,9 @@ public sealed partial class CustomMarkingBodySampler : Control
 
     /// <summary>The pixels of the body that are erased, which it is read without, as the canvas shows it.</summary>
     public byte[]? Erase;
+
+    /// <summary>Whether the body is read without its hair and facial hair, as the canvas shows it then.</summary>
+    public bool HideHair;
 
     /// <summary>Whether to keep the sample fresh. Off, nothing is drawn or read.</summary>
     public bool Active;
@@ -76,10 +80,17 @@ public sealed partial class CustomMarkingBodySampler : Control
             }
         }
 
+        HashSet<int>? leftOut = null;
+        if (HideHair)
+        {
+            _entMan.System<CustomMarkingSystem>().GetHairLayers((body, sprite), _hair);
+            leftOut = _hair;
+        }
+
         handle.RenderInRenderTarget(_target, () =>
         {
             handle.SetTransform(Matrix3x2.Identity);
-            CustomMarkingCanvas.DrawBody(handle, sprite, facing, 0, int.MaxValue, new Vector2(Frame, Frame), brush, _erasable);
+            CustomMarkingCanvas.DrawBody(handle, sprite, facing, 0, int.MaxValue, new Vector2(Frame, Frame), brush, _erasable, leftOut);
         }, Color.Transparent);
 
         _target.CopyPixelsToMemory<Rgba32>(image =>

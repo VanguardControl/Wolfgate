@@ -136,6 +136,7 @@ nothing uses is kept, 0 to keep it forever).
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingBodyEraseTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingBodyEraseTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingHairTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingHairTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLibraryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLibraryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLimbsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLimbsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingVisualsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingVisualsTest.cs)

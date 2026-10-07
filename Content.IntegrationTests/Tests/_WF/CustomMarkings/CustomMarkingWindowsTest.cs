@@ -98,6 +98,11 @@ public sealed class CustomMarkingWindowsTest
                 Assert.That(Descendants(editor).OfType<FloatSpinBox>().Single().Parent!.Visible, Is.False);
             });
 
+            // The body's hair can be left out of the picture, to see what is under it; it is there to start with.
+            Assert.That(Descendants(editor).OfType<CheckBox>().Count(box => box.Text == Loc.GetString("wf-custom-marking-editor-show-hair")),
+                Is.EqualTo(1));
+            Assert.That(Descendants(editor).OfType<CustomMarkingCanvas>().Select(canvas => canvas.HideHair), Has.All.False);
+
             // The library shows each marking from its finished sprite, so an animated one plays there.
             Assert.That(Descendants(library).OfType<CustomMarkingCanvas>().Select(canvas => canvas.ArtState), Has.All.Not.Null);
 

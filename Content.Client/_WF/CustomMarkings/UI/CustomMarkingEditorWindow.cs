@@ -81,6 +81,7 @@ public sealed partial class CustomMarkingEditorWindow : CustomMarkingWindow
     private readonly OptionButton _placement;
     private readonly RichTextLabel _placementHint;
     private readonly CheckBox _showBody;
+    private readonly CheckBox _showHair;
     private readonly CheckBox _showClothes;
     private readonly CustomMarkingIconButton _undoButton;
     private readonly CustomMarkingIconButton _redoButton;
@@ -322,6 +323,13 @@ public sealed partial class CustomMarkingEditorWindow : CustomMarkingWindow
         _showClothes.OnPressed += _ => ReloadBody();
         var showGrid = new CheckBox { Text = Loc.GetString("wf-custom-marking-editor-show-grid"), Pressed = true };
         showGrid.OnPressed += _ => _canvas.ShowGrid = showGrid.Pressed;
+        _showHair = new CheckBox
+        {
+            Text = Loc.GetString("wf-custom-marking-editor-show-hair"),
+            ToolTip = Loc.GetString("wf-custom-marking-editor-show-hair-tooltip"),
+            Pressed = true,
+        };
+        _showHair.OnPressed += _ => UpdateBody();
 
         var view = new BoxContainer
         {
@@ -340,7 +348,12 @@ public sealed partial class CustomMarkingEditorWindow : CustomMarkingWindow
                     SeparationOverride = 8,
                     Children = { _showBody, _showClothes },
                 },
-                showGrid,
+                new BoxContainer
+                {
+                    Orientation = BoxContainer.LayoutOrientation.Horizontal,
+                    SeparationOverride = 8,
+                    Children = { _showHair, showGrid },
+                },
             },
         };
 
@@ -922,14 +935,18 @@ public sealed partial class CustomMarkingEditorWindow : CustomMarkingWindow
     {
         var shown = _showBody.Pressed ? _body : null;
         var erase = _system.EraseEnabled ? _erase : null;
+        var hideHair = !_showHair.Pressed;
         _canvas.Body = shown;
         _canvas.Erase = erase;
+        _canvas.HideHair = hideHair;
         _sampler.Body = shown;
         _sampler.Erase = erase;
+        _sampler.HideHair = hideHair;
         foreach (var tile in _facings)
         {
             tile.Body = shown;
             tile.Erase = erase;
+            tile.HideHair = hideHair;
         }
     }
 

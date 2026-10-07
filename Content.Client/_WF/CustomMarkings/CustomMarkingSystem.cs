@@ -264,10 +264,15 @@ public sealed partial class CustomMarkingSystem : EntitySystem
             if (shown.Rsi == null)
                 continue;
 
+            // Clothing that hides part of the body hides the art on that part, which ArtFor has cut out already;
+            // the rest of the marking stays, under or over the clothing as its placement has it. Art on the hair
+            // is the exception: it is there to change the hair, so all of it goes whenever the hair is hidden.
             var layer = _sprite.AddRsiLayer(sprite, CustomMarkingResources.State, shown.Rsi, depth);
             _sprite.LayerMapSet(sprite, LayerKey(i), layer);
 
-            var visible = IsShown(ent.Comp, marking.Placement);
+            var visible = marking.Placement != CustomMarkingPlacement.Hair
+                          || !ent.Comp.HiddenLayers.ContainsKey(HumanoidVisualLayers.Hair)
+                          && !ent.Comp.PermanentlyHidden.Contains(HumanoidVisualLayers.Hair);
             _sprite.LayerSetVisible(sprite, layer, visible);
             if (visible)
                 CustomMarkingErase.Add(covered, shown.Solid);
@@ -348,20 +353,5 @@ public sealed partial class CustomMarkingSystem : EntitySystem
         }
 
         return over;
-    }
-
-    /// <summary>A custom marking is hidden along with the body layer clothing hides at its depth.</summary>
-    private static bool IsShown(HumanoidAppearanceComponent humanoid, CustomMarkingPlacement placement)
-    {
-        HumanoidVisualLayers? follows = placement switch
-        {
-            CustomMarkingPlacement.Behind or CustomMarkingPlacement.Front => HumanoidVisualLayers.Tail,
-            CustomMarkingPlacement.Skin => HumanoidVisualLayers.Chest,
-            CustomMarkingPlacement.Hair => HumanoidVisualLayers.Hair,
-            _ => null,
-        };
-
-        return follows is not { } layer
-               || !humanoid.HiddenLayers.ContainsKey(layer) && !humanoid.PermanentlyHidden.Contains(layer);
     }
 }

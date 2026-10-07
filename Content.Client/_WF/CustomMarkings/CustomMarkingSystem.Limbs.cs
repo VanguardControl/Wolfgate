@@ -31,6 +31,8 @@ public sealed partial class CustomMarkingSystem
 
     private static readonly byte[] NothingSolid = new byte[CustomMarkingRules.EraseBytes];
 
+    private static readonly MarkingCategories[] HairCategories = { MarkingCategories.Hair, MarkingCategories.FacialHair };
+
     /// <summary>The body part layers that art can lie on.</summary>
     private static readonly HumanoidVisualLayers[] Limbs =
     {
@@ -151,6 +153,36 @@ public sealed partial class CustomMarkingSystem
 
         extras.Sort((a, b) => a.Index.CompareTo(b.Index));
         return extras;
+    }
+
+    /// <summary>
+    /// Lists the layers of a sprite that draw its hair and facial hair, by index, for a view that leaves them out
+    /// to show what is under them.
+    /// </summary>
+    public void GetHairLayers(Entity<SpriteComponent?> sprite, HashSet<int> indices)
+    {
+        indices.Clear();
+        if (!TryComp<HumanoidAppearanceComponent>(sprite, out var humanoid))
+            return;
+
+        foreach (var category in HairCategories)
+        {
+            if (!humanoid.MarkingSet.Markings.TryGetValue(category, out var worn))
+                continue;
+
+            foreach (var marking in worn)
+            {
+                if (!_markings.TryGetMarking(marking, out var prototype))
+                    continue;
+
+                foreach (var specifier in prototype.Sprites)
+                {
+                    if (specifier is SpriteSpecifier.Rsi drawn
+                        && _sprite.LayerMapTryGet(sprite, $"{prototype.ID}-{drawn.RsiState}", out var index, false))
+                        indices.Add(index);
+                }
+            }
+        }
     }
 
     private static bool TryGetPart(SpriteComponent sprite, int index, object key, string name, out Part part)

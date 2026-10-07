@@ -35,9 +35,12 @@ public sealed partial class CustomMarkingCanvas : Control
 
     private readonly CustomMarkingSystem _system;
     private readonly HashSet<int> _erasable = new();
+    private readonly HashSet<int> _hair = new();
     private CustomMarkingEraseBrush? _brush;
     private EntityUid? _erasableBody;
     private int _erasableLayers;
+    private EntityUid? _hairBody;
+    private int _hairLayers;
     private bool _drawing;
     private bool _erasing;
 
@@ -67,6 +70,12 @@ public sealed partial class CustomMarkingCanvas : Control
 
     /// <summary>Whether to mark the pixels <see cref="Art"/> erases, for the tool that changes them.</summary>
     public bool ShowErase;
+
+    /// <summary>
+    /// Whether to leave the body's hair and facial hair undrawn, to show what is under them. Only the picture
+    /// changes: the body still has its hair, and what can be drawn on is the same.
+    /// </summary>
+    public bool HideHair;
 
     /// <summary>
     /// Which body part owns each pixel on the body shown, as <see cref="CustomMarkingSections"/> maps it. Pixels
@@ -123,9 +132,10 @@ public sealed partial class CustomMarkingCanvas : Control
         {
             var depth = _system.GetLayerIndex((body, sprite), Placement) ?? int.MaxValue;
             var brush = EraseBrush(body, sprite);
-            DrawBody(handle, sprite, Facing, 0, depth, PixelSize, brush, _erasable);
+            var left = LeftOut(body, sprite);
+            DrawBody(handle, sprite, Facing, 0, depth, PixelSize, brush, _erasable, left);
             DrawArt(handle, cell);
-            DrawBody(handle, sprite, Facing, depth, int.MaxValue, PixelSize, brush, _erasable);
+            DrawBody(handle, sprite, Facing, depth, int.MaxValue, PixelSize, brush, _erasable, left);
         }
         else
         {
@@ -205,6 +215,23 @@ public sealed partial class CustomMarkingCanvas : Control
         }
 
         return _brush;
+    }
+
+    /// <summary>The layers of the body that are not drawn: its hair, while that is hidden. Null when all are.</summary>
+    private HashSet<int>? LeftOut(EntityUid body, SpriteComponent sprite)
+    {
+        if (!HideHair)
+            return null;
+
+        var layers = sprite.AllLayers.Count();
+        if (_hairBody != body || _hairLayers != layers)
+        {
+            _system.GetHairLayers((body, sprite), _hair);
+            _hairBody = body;
+            _hairLayers = layers;
+        }
+
+        return _hair;
     }
 
     private bool InReach(byte[] sections, int x, int y)
@@ -304,6 +331,7 @@ public sealed partial class CustomMarkingCanvas : Control
     /// </summary>
     /// <param name="erase">What to draw erased layers with, or null to draw every layer whole.</param>
     /// <param name="erasable">The indices of the layers erasing applies to.</param>
+    /// <param name="leftOut">The indices of layers not to draw at all.</param>
     internal static void DrawBody(
         DrawingHandleScreen handle,
         SpriteComponent sprite,
@@ -312,7 +340,8 @@ public sealed partial class CustomMarkingCanvas : Control
         int to,
         Vector2 size,
         CustomMarkingEraseBrush? erase = null,
-        HashSet<int>? erasable = null)
+        HashSet<int>? erasable = null,
+        HashSet<int>? leftOut = null)
     {
         var cell = size.X / Frame;
         var index = -1;
@@ -320,6 +349,7 @@ public sealed partial class CustomMarkingCanvas : Control
         {
             index++;
             if (index < from || index >= to
+                || leftOut != null && leftOut.Contains(index)
                 || spriteLayer is not SpriteComponent.Layer { Visible: true, Blank: false, CopyToShaderParameters: null } layer)
                 continue;
 

@@ -41,6 +41,8 @@ wf-custom-marking-editor-facings = Facing
 wf-custom-marking-editor-show-body = Show body
 wf-custom-marking-editor-show-clothes = Show clothes
 wf-custom-marking-editor-show-grid = Show grid
+wf-custom-marking-editor-show-hair = Show hair
+wf-custom-marking-editor-show-hair-tooltip = Shows or hides the character's hair and beard here, to see and draw on what is under them. The character keeps them.
 wf-custom-marking-editor-opacity = Opacity
 wf-custom-marking-editor-colour-skin = Your character's skin color
 wf-custom-marking-editor-colour-hair = Your character's hair color
@@ -75,15 +77,15 @@ wf-custom-marking-facing-east = Facing right
 wf-custom-marking-facing-west = Facing left
 
 wf-custom-marking-placement-behind = Behind the body
-wf-custom-marking-placement-behind-hint = Drawn behind the whole body, over a tail or wings there: use it to draw on those as seen from the front. Hidden by clothing that hides tails.
+wf-custom-marking-placement-behind-hint = Drawn behind the whole body, over a tail or wings there: use it to draw on those as seen from the front. What lies on a tail goes when clothing hides the tail.
 wf-custom-marking-placement-skin = On the skin
 wf-custom-marking-placement-skin-hint = Drawn on the body, under underwear and clothing. The hands and feet draw over it; use On the hands and feet for those.
 wf-custom-marking-placement-hands = On the hands and feet
 wf-custom-marking-placement-hands-hint = Drawn over the hands and feet, under gloves and shoes. Anything drawn elsewhere shows over the uniform.
 wf-custom-marking-placement-hair = Over the hair
-wf-custom-marking-placement-hair-hint = Drawn over the head, hair and ears, under hats and masks. Hidden by headgear that hides hair.
+wf-custom-marking-placement-hair-hint = Drawn over the head, hair and ears, under hats and masks: use it for changes to the hair. Like hair, all of it is hidden whenever headgear hides the hair.
 wf-custom-marking-placement-front = Over clothing
-wf-custom-marking-placement-front-hint = Drawn over everything, clothing and cloaks included: use it to draw on a tail seen from behind. Hidden by clothing that hides tails.
+wf-custom-marking-placement-front-hint = Drawn over everything, clothing and cloaks included: use it to draw on a tail seen from behind. What lies on a tail goes when clothing hides the tail.
 
 wf-custom-marking-error-disabled = Custom markings are turned off on this server.
 wf-custom-marking-error-cooldown = Wait a moment before saving again.
