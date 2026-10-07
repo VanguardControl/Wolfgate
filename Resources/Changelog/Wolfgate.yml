@@ -1201,3 +1201,14 @@ Entries:
   id: 100089
   time: '2026-10-06T19:28:48.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/171
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: >-
+        turned the chemistry locker in CC medbay around, it should open into
+        chemistry now.
+    - type: Fix
+      message: 're-powered the memorial in CC by adding 1 LV cable '
+  id: 100090
+  time: '2026-10-07T06:05:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/175
