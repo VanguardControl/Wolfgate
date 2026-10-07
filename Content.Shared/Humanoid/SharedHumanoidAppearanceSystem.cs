@@ -170,6 +170,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
         targetHumanoid.MarkingSet = new(sourceHumanoid.MarkingSet);
         targetHumanoid.MismatchedParts = sourceHumanoid.MismatchedParts; // WOLFGATE(Species): copies keep drawing mismatched hair
         targetHumanoid.CustomMarkings = new(sourceHumanoid.CustomMarkings); // WOLFGATE(CustomMarkings): copies wear the same custom markings
+        targetHumanoid.LegStyle = sourceHumanoid.LegStyle; // WOLFGATE(LegStyle): copies keep the clothing fit of the copied legs
 
         targetHumanoid.Gender = sourceHumanoid.Gender;
         if (TryComp<GrammarComponent>(target, out var grammar))
@@ -491,6 +492,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
             _appearance.SetData(uid, ScaleVisuals.Scale, new Vector2(profile.Appearance.Width, profile.Appearance.Height), appearance);
         }
 
+        ApplyLegStyle(profile, humanoid); // WOLFGATE(LegStyle): the picked legs replace the species' leg layers
         RaiseLocalEvent(uid, new ProfileLoadFinishedEvent { Profile = profile }); // Shitmed Change, WOLFGATE(Genitals): pass profile
         Dirty(uid, humanoid);
     }

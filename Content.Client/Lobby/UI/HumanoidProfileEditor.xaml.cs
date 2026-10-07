@@ -615,6 +615,7 @@ namespace Content.Client.Lobby.UI
             InitializeHeadshot(); // WOLFGATE(Headshot)
             InitializeCustomMarkings(); // WOLFGATE(CustomMarkings)
             InitializeMismatchedParts(); // WOLFGATE(Species)
+            InitializeLegStyle(); // WOLFGATE(LegStyle)
 
             #region Dummy
 
@@ -1301,6 +1302,7 @@ namespace Content.Client.Lobby.UI
             UpdateHeadshot(); // WOLFGATE(Headshot)
             UpdateCustomMarkings(); // WOLFGATE(CustomMarkings)
             UpdateMismatchedParts(); // WOLFGATE(Species)
+            UpdateLegStyle(); // WOLFGATE(LegStyle)
             UpdateSexControls();
             UpdateGenderControls();
             UpdateSkinColor();
@@ -1976,6 +1978,7 @@ namespace Content.Client.Lobby.UI
         private void SetSpecies(string newSpecies)
         {
             Profile = Profile?.WithSpecies(newSpecies);
+            UpdateLegStyle(); // WOLFGATE(LegStyle): legs the new species lacks fall back to its own
             // WOLFGATE(Humanoid) START: keep the species picker and dropdown in step, drop hair the new species lacks
             EnforceSpeciesHair();
             SpeciesPicker.SetSelected(newSpecies);

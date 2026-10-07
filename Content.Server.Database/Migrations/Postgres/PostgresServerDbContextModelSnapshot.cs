@@ -1041,6 +1041,10 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("text")
                         .HasColumnName("laugh_voice");
 
+                    b.Property<int>("LegStance")
+                        .HasColumnType("integer")
+                        .HasColumnName("leg_stance");
+
                     b.Property<JsonDocument>("Markings")
                         .HasColumnType("jsonb")
                         .HasColumnName("markings");

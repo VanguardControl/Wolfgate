@@ -281,6 +281,10 @@
   #   intensitySlope: 2
   #   totalIntensity: 200
   # WOLFGATE END
+  - type: ESSparkOnHit
+    prob: 0.4
+    tileFireChance: 0.25
+    count: 3
 
 - type: entity
   id: GyroscopeUnanchored

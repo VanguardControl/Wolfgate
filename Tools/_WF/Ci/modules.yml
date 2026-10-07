@@ -283,3 +283,6 @@ unmarked:
   - path: Resources/Textures/Mobs/Effects/onfire.rsi/
     module: BetterFire
     reason: Generic_mob_burning and Standing replaced with TauCeti fire sprites; Standing_underlay added.
+  - path: Resources/Textures/_Impstation/Structures/
+    module: Resprites
+    reason: Impstation structure resprites (thermomachines, cryo pod, cryosleep, hydro tray, conveyor, fax, stasis bed, suit storage).

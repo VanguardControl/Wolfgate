@@ -52,6 +52,7 @@ tests for one ship: each vessel must load as a shuttle with every hardpoint-only
 ## Non-modular edits
 
 - [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.cs): last look at the grid, with its deed, before it goes. See _WF/Shipyard.
+- [`Content.Server/Spreader/SpreaderGridComponent.cs`](../../Spreader/SpreaderGridComponent.cs): the queue is rebuilt on grid init and cannot be written, so a grid with a live spreader failed to save
 - [`Content.Shared/Damage/Components/DamageableComponent.cs`](../../../Content.Shared/Damage/Components/DamageableComponent.cs): written on save so a resold ship keeps its dents
 - [`Content.Shared/Damage/DamageSpecifier.cs`](../../../Content.Shared/Damage/DamageSpecifier.cs)
   - DamageDict writes the types

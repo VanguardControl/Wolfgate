@@ -149,7 +149,7 @@ public sealed class WolfmedFireHelplessnessTest : WolfmedGameTest
         {
             s.SetAir(map.MapUid, true);
             s.KeepGrid(map.Grid);
-            body = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            body = SEntMan.SpawnEntity(WolfmedScenario.BurnPatient, map.GridCoords);
         });
         await RunSeconds(2);
 

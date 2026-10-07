@@ -17,6 +17,7 @@ using Content.Shared._WF.EmoteVoices; // WOLFGATE(EmoteVoices)
 using Content.Shared._WF.CustomMarkings; // WOLFGATE(CustomMarkings)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
+using Content.Shared._WF.LegStyle; // WOLFGATE(LegStyle)
 using Content.Shared._WF.Prototypes; // WOLFGATE(Prototypes)
 using Content.Shared.Administration.Logs;
 using Content.Shared.Database;
@@ -328,6 +329,7 @@ namespace Content.Server.Database
                 HeadshotUrl = profile.HeadshotUrl ?? string.Empty, // WOLFGATE(Headshot)
                 MismatchedParts = profile.MismatchedParts, // WOLFGATE(Species)
                 CustomMarkings = CustomMarkingRules.FromStored(profile.CustomMarkings), // WOLFGATE(CustomMarkings)
+                LegStance = (LegStance) profile.LegStance, // WOLFGATE(LegStyle)
             };
         }
 
@@ -367,6 +369,7 @@ namespace Content.Server.Database
             profile.HeadshotUrl = humanoid.HeadshotUrl; // WOLFGATE(Headshot)
             profile.MismatchedParts = humanoid.MismatchedParts; // WOLFGATE(Species)
             profile.CustomMarkings = CustomMarkingRules.ToStored(humanoid.CustomMarkings); // WOLFGATE(CustomMarkings)
+            profile.LegStance = (int) humanoid.LegStance; // WOLFGATE(LegStyle)
             profile.ScreamVoice = EmoteVoiceRules.ToStored(humanoid.ScreamVoice); // WOLFGATE(EmoteVoices)
             profile.LaughVoice = EmoteVoiceRules.ToStored(humanoid.LaughVoice); // WOLFGATE(EmoteVoices)
 

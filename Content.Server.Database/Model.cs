@@ -551,6 +551,9 @@ namespace Content.Server.Database
         // WOLFGATE(CustomMarkings): the custom markings worn, as hash:placement pairs; empty for none.
         [Column("custom_markings")] public string CustomMarkings { get; set; } = "";
 
+        // WOLFGATE(LegStyle): the legs picked in the creator, 0 for the species' own.
+        [Column("leg_stance")] public int LegStance { get; set; }
+
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 

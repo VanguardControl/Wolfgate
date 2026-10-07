@@ -1172,3 +1172,69 @@ Entries:
   id: 100086
   time: '2026-10-06T03:06:57.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/169
+- author: Erol509
+  changes:
+    - type: Add
+      message: >-
+        Change various sprites for tiles, cryo tubes, hellfire freezers,
+        hydroponics and gas overlays.
+  id: 100087
+  time: '2026-10-06T06:53:50.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/162
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Faxing leopard, cecropia, lunar or rosy mothroaches no longer shows a
+        missing sprite.
+    - type: Tweak
+      message: Conveyor and fax machine menu icons use the new sprites.
+  id: 100088
+  time: '2026-10-06T06:59:48.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/170
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can now set your character to use digitigrade or plantigrade legs if
+        it supports it and doesn't already have a snowflake leg set.
+  id: 100089
+  time: '2026-10-06T19:28:48.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/171
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: >-
+        turned the chemistry locker in CC medbay around, it should open into
+        chemistry now.
+    - type: Fix
+      message: 're-powered the memorial in CC by adding 1 LV cable '
+  id: 100090
+  time: '2026-10-07T06:05:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/175
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        NPC-crewed ships: patrols, freighters, pirates, traders and fleet
+        battles now roam the sector as random encounters.
+    - type: Add
+      message: >-
+        Faction patrols warn ships of enemy companies off their zones and fire
+        on those that come too close or shoot at them.
+    - type: Add
+      message: >-
+        Derelict hulks held by space dwellers can be cleared and claimed as your
+        own ship.
+    - type: Add
+      message: Wandering traders with randomised stock.
+  id: 100091
+  time: '2026-10-07T19:49:45.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/155
+- author: Erol509
+  changes:
+    - type: Add
+      message: 'Mapping only circuit floors with a much more modern look. '
+  id: 100092
+  time: '2026-10-07T19:53:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/172
