@@ -60,6 +60,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.Client/_WF/Shuttles/UI/ShuttleConsoleWindow.Wolfgate.cs`](../../../Content.Client/_WF/Shuttles/UI/ShuttleConsoleWindow.Wolfgate.cs)
 - [`Content.Client/_WF/Shuttles/UI/ShuttleHullRoofOverlay.cs`](../../../Content.Client/_WF/Shuttles/UI/ShuttleHullRoofOverlay.cs)
 - [`Content.Client/_WF/Shuttles/UI/ShuttleLowLightOverlay.cs`](../../../Content.Client/_WF/Shuttles/UI/ShuttleLowLightOverlay.cs)
+- [`Content.Client/_WF/Shuttles/UI/ShuttlePoiPointerOverlay.cs`](../../../Content.Client/_WF/Shuttles/UI/ShuttlePoiPointerOverlay.cs)
 
 ### Integration tests
 
