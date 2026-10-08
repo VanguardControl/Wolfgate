@@ -239,6 +239,7 @@ public sealed partial class WFPilotDutySystem
         {
             WFPilotOrder.Follow => duty.FollowTarget,
             WFPilotOrder.Loiter => duty.LoiterCenter?.EntityId,
+            WFPilotOrder.Dock => duty.DockTarget,
             _ => null,
         };
         var targetVelocity = Vector2.Zero;
@@ -246,20 +247,25 @@ public sealed partial class WFPilotDutySystem
         {
             if (TryComp<PhysicsComponent>(leader, out var targetBody))
                 targetVelocity = targetBody.LinearVelocity;
-            var center = Vector2.Transform(targetGrid.LocalAABB.Center, _transform.GetWorldMatrix(leader));
-            var toTarget = center - position;
-            var gap = toTarget.Length() - GridRadius(grid) - targetGrid.LocalAABB.Size.Length() / 2f;
-            var relativeVelocity = body.LinearVelocity - targetVelocity;
-            var closing = Vector2.Dot(relativeVelocity, ShipSteeringSystem.NormalizedOrZero(toTarget));
-            var brakeAcceleration = _navigationMover.GetWorldDirectionAccel(-toTarget, shuttle, body, Transform(grid)).Length();
-            if (shuttle.AccelerationMultiplier > 0f)
-                brakeAcceleration /= shuttle.AccelerationMultiplier;
-            brakeAcceleration *= ShuttleComponent.BrakeCoefficient;
-            var stoppingDistance = brakeAcceleration > 0f ? closing * closing / (2f * brakeAcceleration) : float.PositiveInfinity;
-            if (gap < limits.NavigationClearance + stoppingDistance + MathF.Max(closing, 0f) * limits.BrakingLookahead && closing > limits.SpeedTolerance)
-                input = new ShuttleInput(Vector2.Zero, 0f, 1f);
-            if (gap < limits.NavigationClearance * 2f)
-                speed = MathF.Min(speed, limits.NearTargetSpeed);
+            // Speeds are relative to the target, so one under way is caught and closed on. A docking run's standoff and
+            // final pose already keep clear of the target's hull, so it is not braked for on the way in.
+            if (duty.Orders != WFPilotOrder.Dock)
+            {
+                var center = Vector2.Transform(targetGrid.LocalAABB.Center, _transform.GetWorldMatrix(leader));
+                var toTarget = center - position;
+                var gap = toTarget.Length() - GridRadius(grid) - targetGrid.LocalAABB.Size.Length() / 2f;
+                var relativeVelocity = body.LinearVelocity - targetVelocity;
+                var closing = Vector2.Dot(relativeVelocity, ShipSteeringSystem.NormalizedOrZero(toTarget));
+                var brakeAcceleration = _navigationMover.GetWorldDirectionAccel(-toTarget, shuttle, body, Transform(grid)).Length();
+                if (shuttle.AccelerationMultiplier > 0f)
+                    brakeAcceleration /= shuttle.AccelerationMultiplier;
+                brakeAcceleration *= ShuttleComponent.BrakeCoefficient;
+                var stoppingDistance = brakeAcceleration > 0f ? closing * closing / (2f * brakeAcceleration) : float.PositiveInfinity;
+                if (gap < limits.NavigationClearance + stoppingDistance + MathF.Max(closing, 0f) * limits.BrakingLookahead && closing > limits.SpeedTolerance)
+                    input = new ShuttleInput(Vector2.Zero, 0f, 1f);
+                if (gap < limits.NavigationClearance * 2f)
+                    speed = MathF.Min(speed, limits.NearTargetSpeed);
+            }
         }
 
         // Native arrival thresholds do not limit transit speed. Feed the mover its actual cruise ceiling.
