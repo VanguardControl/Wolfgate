@@ -13,7 +13,9 @@ announce their own approach and completed docking, and warn unauthorized arrival
 
 A profile can name datasets its crews' first and last names come from (`firstNames`, `lastNames`) and components every
 crewman gets (`components`), so a faction's people sound like one: Union crews carry Russian names and a Russian accent,
-Federation and Dynasty crews their own names, pirates nicknames and a pirate's drawl.
+Federation and Dynasty crews their own names, pirates nicknames and a pirate's drawl. Each navy's loadouts wear its own
+headset, with the faction channel's key, and its own service ID cards (TSFMC, PDV and USSP ranks; pirate and mercenary
+cards for those crews); every crew card carries the crewman's name and role title.
 
 An engineer (`WFCrewEngineer`) is posted beside the plant on every encounter ship whose roles allow one. The ship
 arrives commissioned (generators full and lit, reactor jarred and injecting, batteries charged) with fuel for the trip
