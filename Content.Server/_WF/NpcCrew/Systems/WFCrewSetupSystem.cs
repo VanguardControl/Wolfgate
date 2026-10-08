@@ -9,6 +9,7 @@ using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Administration;
 using Content.Shared.Database;
+using Content.Shared.Dataset;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Prototypes;
 using Content.Shared.NPC.Systems;
@@ -29,6 +30,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     [Dependency] private IAdminManager _admins = default!;
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private MetaDataSystem _meta = default!;
     [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private WFCrewPlannerSystem _planner = default!;
     [Dependency] private WFCrewObjectiveSystem _objectives = default!;
@@ -262,6 +264,8 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             var uid = _crew.SpawnCrewman(post.Role, new EntityCoordinates(grid, post.Position), mission.Group, loadout, body);
             if (uid is not { } mob)
                 continue;
+            if (profile != null)
+                Flavour(mob, post.Role, profile);
             if (post.Engagement is { } engagement)
                 _crew.SetEngagement(mob, engagement);
             else if (profile != null && profile.Engagement.TryGetValue(post.Role, out var manner))
@@ -274,6 +278,26 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             spawned.Add(mob);
         }
         return spawned.Count == posts.Count;
+    }
+
+    /// <summary>
+    /// Gives a crewman his profile's name and manner of speech: the components it lists, and a name rolled from its
+    /// datasets with his role's title in front, in place of the one his body came with.
+    /// </summary>
+    private void Flavour(EntityUid mob, string roleId, WFCrewProfilePrototype profile)
+    {
+        if (profile.Components.Count > 0)
+            EntityManager.AddComponents(mob, profile.Components);
+
+        if (profile.FirstNames is not { } firstId || profile.LastNames is not { } lastId
+            || !_prototypes.TryIndex(firstId, out var first) || !_prototypes.TryIndex(lastId, out var last)
+            || first.Values.Count == 0 || last.Values.Count == 0)
+            return;
+
+        var name = $"{_random.Pick(first.Values)} {_random.Pick(last.Values)}";
+        if (_prototypes.TryIndex<WFCrewRolePrototype>(roleId, out var role))
+            name = Loc.GetString("wf-crew-name-format", ("title", Loc.GetString(role.Title)), ("name", name));
+        _meta.SetEntityName(mob, name);
     }
 
     /// <summary>Sets the company, or removes it when the company is empty.</summary>

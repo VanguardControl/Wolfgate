@@ -216,6 +216,8 @@
 
 - type: wfCrewProfile
   id: WFCrewProfileTsf
+  firstNames: WFNamesTsfFirst
+  lastNames: WFNamesTsfLast
   bodies:
   - WFMobCrewBodyHuman
   - WFMobCrewBodyHuman
@@ -274,6 +276,8 @@
 
 - type: wfCrewProfile
   id: WFCrewProfilePdv
+  firstNames: WFNamesPdvFirst
+  lastNames: WFNamesPdvLast
   bodies:
   - WFMobCrewBodyHuman
   - WFMobCrewBodyHuman
@@ -342,6 +346,10 @@
 
 - type: wfCrewProfile
   id: WFCrewProfilePirate
+  firstNames: WFNamesPirateFirst
+  lastNames: WFNamesPirateLast
+  components:
+  - type: PirateAccent
   bodies:
   - WFMobCrewBodyHuman
   - WFMobCrewBodyHuman
@@ -402,6 +410,10 @@
 
 - type: wfCrewProfile
   id: WFCrewProfileUssp
+  firstNames: WFNamesUsspFirst
+  lastNames: WFNamesUsspLast
+  components:
+  - type: RussianAccent
   bodies:
   - WFMobCrewBodyHuman
   - WFMobCrewBodyHuman
