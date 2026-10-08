@@ -16,6 +16,7 @@ using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Network;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -29,6 +30,7 @@ namespace Content.Client._WF.Shuttles.Systems;
 /// </summary>
 public sealed partial class ShuttleExternalCameraSystem : EntitySystem
 {
+    [Dependency] private IClientNetManager _net = default!;
     [Dependency] private IClyde _clyde = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IInputManager _input = default!;
@@ -89,6 +91,11 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
 
     private Vector2 _sentLook;
     private TimeSpan _sentAt;
+
+    /// <summary>
+    /// Wheel travel that hasn't added up to a notch yet. A touchpad sends a notch in pieces.
+    /// </summary>
+    private float _wheel;
 
     private float? _pendingZoom;
     private float? _sentZoom;
@@ -168,7 +175,8 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
             camera.View != ShuttleCameraView.External ||
             camera.Grid is not { } gridUid ||
             !TryComp<MapGridComponent>(gridUid, out var grid) ||
-            !TryComp<EyeComponent>(player, out var eye))
+            !TryComp<EyeComponent>(player, out var eye) ||
+            OnPlanetGround(gridUid))
         {
             Deactivate();
             return;
@@ -186,6 +194,7 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
             _sentAt = _timing.CurTime;
             _pendingZoom = null;
             _sentZoom = null;
+            _wheel = 0f;
             EndDrag();
 
             // A button already held as the view comes up isn't a press on it.
@@ -196,28 +205,46 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
         if (TryComp(camera.Camera, out TransformComponent? anchor) && anchor.GridTraversal)
             anchor.GridTraversal = false;
 
-        UpdateDrag(gridUid);
+        // A replay has a pilot and a console but no server to pan for. Where its anchor went is the look point.
+        var live = _net.IsConnected;
+
+        if (live)
+            UpdateDrag(gridUid);
+        else if (anchor != null && anchor.ParentUid == gridUid)
+            _look = anchor.LocalPosition;
+
         _look = Clamp(grid, _look);
 
         var gridXform = Transform(gridUid);
         var view = eye.Eye;
+        var onMap = view.Position.MapId == gridXform.MapID;
 
         // Taken from where the eye really is, so the view lands on the look point however far the
         // anchor trails behind it.
-        _offset = view.Position.MapId == gridXform.MapID
+        _offset = onMap
             ? Vector2.Transform(_look, _transform.GetWorldMatrix(gridXform)) - view.Position.Position
             : Vector2.Zero;
 
         // Only the drawn eye loses FOV. The component keeps it, so the server, examine and speech bubbles
         // carry on as before. A server state puts it back and this takes it off again before the frame.
-        view.DrawFov = false;
+        // An eye that isn't over the flown grid's map keeps it, whatever map that is.
+        view.DrawFov = !onMap && eye.DrawFov;
         _contentEye.UpdateEyeOffset((player, eye));
 
-        if (!TryComp<PilotComponent>(player, out var pilot) || pilot.Console is not { } console)
+        if (!live || !TryComp<PilotComponent>(player, out var pilot) || pilot.Console is not { } console)
             return;
 
         SendPan(console, gridUid, anchor);
         SendZoom(console, camera);
+    }
+
+    /// <summary>
+    /// The server's rule against the view on a planet's ground, where buildings stand on terrain that
+    /// nothing roofs. It only takes the view away on its next look at it, so the client keeps to it too.
+    /// </summary>
+    private bool OnPlanetGround(EntityUid gridUid)
+    {
+        return HasComp<MapComponent>(gridUid) || HasComp<MapGridComponent>(Transform(gridUid).MapUid);
     }
 
     /// <summary>
@@ -318,7 +345,10 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
 
         var now = _timing.CurTime;
 
-        if (MathHelper.CloseTo(camera.Zoom, pending) || now >= _zoomAt + ZoomHold)
+        // A zoom that matches doesn't settle it while a different one is still on its way to the server.
+        var settled = MathHelper.CloseTo(camera.Zoom, pending) && (_sentZoom is null || _sentZoom == pending);
+
+        if (settled || now >= _zoomAt + ZoomHold)
         {
             _pendingZoom = null;
             _sentZoom = null;
@@ -346,6 +376,7 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
         _offset = Vector2.Zero;
         _pendingZoom = null;
         _sentZoom = null;
+        _wheel = 0f;
         EndDrag();
 
         if (TerminatingOrDeleted(pilot) || !TryComp<EyeComponent>(pilot, out var eye))
@@ -368,15 +399,34 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
     }
 
     /// <summary>
-    /// Takes a notch of the mouse wheel as a zoom step. False if the view isn't up to take it.
+    /// Takes mouse wheel travel as zoom, a step for each whole notch. False if the view isn't up to take it.
     /// </summary>
     public bool TryWheelZoom(float deltaY)
     {
-        if (deltaY == 0f || !TryComp<ShuttleCameraComponent>(_pilot, out var camera))
+        // A replay has nobody to send a zoom to.
+        if (deltaY == 0f ||
+            !float.IsFinite(deltaY) ||
+            !_net.IsConnected ||
+            !TryComp<ShuttleCameraComponent>(_pilot, out var camera))
+        {
             return false;
+        }
+
+        // What's left of a scroll one way doesn't count against a scroll back.
+        if (MathF.Sign(deltaY) != MathF.Sign(_wheel))
+            _wheel = 0f;
+
+        _wheel += deltaY;
+        var notches = MathF.Truncate(_wheel);
+
+        // Taken all the same, it just hasn't added up to anything yet.
+        if (notches == 0f)
+            return true;
+
+        _wheel -= notches;
 
         // Notches stack on the last one asked for, since the server's answer to it is still on its way.
-        var zoom = (_pendingZoom ?? camera.Zoom) - MathF.Sign(deltaY) * ShuttleCameraComponent.ZoomStep;
+        var zoom = (_pendingZoom ?? camera.Zoom) - notches * ShuttleCameraComponent.ZoomStep;
         zoom = MathF.Round(zoom / ShuttleCameraComponent.ZoomStep) * ShuttleCameraComponent.ZoomStep;
 
         _pendingZoom = Math.Clamp(zoom, ShuttleCameraComponent.MinZoom, ShuttleCameraComponent.MaxZoom);

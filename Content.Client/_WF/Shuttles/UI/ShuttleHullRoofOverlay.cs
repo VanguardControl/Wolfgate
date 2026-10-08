@@ -9,6 +9,7 @@ using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
+using Robust.Shared.Graphics;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
@@ -111,7 +112,23 @@ public sealed partial class ShuttleHullRoofOverlay : Overlay
             return false;
 
         // The levels below and above are drawn without FOV as well, so they're roofed too.
-        return args.Viewport.Eye == eye.Eye || args.Viewport.Eye is ScalingViewport.ZEye;
+        return IsPilotPass(args.Viewport.Eye, eye.Eye, primaryOnly: false);
+    }
+
+    /// <summary>
+    /// Whether a pass is drawn through the pilot's eye or a z-level stand-in made from it. Every other
+    /// viewport, such as a camera monitor, is drawn through stand-ins of its own eye while the pilot has
+    /// altitude, and those keep that eye's position.
+    /// </summary>
+    public static bool IsPilotPass(IEye? pass, IEye pilot, bool primaryOnly)
+    {
+        if (pass == pilot)
+            return true;
+
+        return pass is ScalingViewport.ZEye stand &&
+               (stand.Primary || !primaryOnly) &&
+               stand.Position.Position == pilot.Position.Position &&
+               stand.Rotation == pilot.Rotation;
     }
 
     protected override void Draw(in OverlayDrawArgs args)

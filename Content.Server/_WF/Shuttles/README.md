@@ -4,7 +4,8 @@ Shuttle console additions for ships: a whole-ship view with hull telemetry (stru
 power), a collision warning (TCAS) that sweeps a piloted ship's path and warns before a hard impact, hull cameras the
 pilot can look through with a low-light feed, and nav map data for ships that were never registered as a station. The
 cameras' EXTERNAL view shows the ship from outside with every hull plated over: a middle-mouse drag pans it, the scroll
-wheel zooms it, and the client `ShuttleExternalCameraSystem` and `ShuttleHullRoofOverlay` run it.
+wheel zooms it, and the client `ShuttleExternalCameraSystem` and `ShuttleHullRoofOverlay` run it. It is refused on a
+planet's surface, and sound and speech bubbles are taken from the point it looks at rather than from the helm.
 
 Entry points: the server `ShipStatusSystem`, `CollisionWarningSystem`, `ShuttleCameraSystem` and
 `ShuttleNavMapSystem`; the client `ShipScreen`, `ShipViewControl`, `CollisionWarningBanner` and `ShuttleCameraBar`,

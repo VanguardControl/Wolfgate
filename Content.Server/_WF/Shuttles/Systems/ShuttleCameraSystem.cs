@@ -3,6 +3,7 @@ using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Events;
 using Content.Shared._WF.Shuttles;
 using Content.Shared.Movement.Systems;
+using Content.Shared.Popups;
 using Content.Shared.Shuttles.BUIStates;
 using Content.Shared.Shuttles.Components;
 using Robust.Server.GameObjects;
@@ -25,6 +26,7 @@ public sealed partial class ShuttleCameraSystem : EntitySystem
     [Dependency] private SharedContentEyeSystem _contentEye = default!;
     [Dependency] private SharedEyeSystem _eye = default!;
     [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private ViewSubscriberSystem _viewSubscriber = default!;
 
@@ -177,6 +179,7 @@ public sealed partial class ShuttleCameraSystem : EntitySystem
         if (!TryGetShuttle(console, out var shuttle) || !CanViewExternal(pilot, shuttle))
         {
             Apply(pilot, console, ShuttleCameraView.Helm, comp.Zoom, comp.LowLight);
+            PopupRefused(pilot);
             return;
         }
 
@@ -242,6 +245,20 @@ public sealed partial class ShuttleCameraSystem : EntitySystem
         settings.LowLight = args.LowLight;
 
         Apply(args.Actor, ent, settings.View, settings.Zoom.Value, settings.LowLight);
+
+        if (args.View == ShuttleCameraView.External &&
+            CompOrNull<ShuttleCameraComponent>(args.Actor)?.View != ShuttleCameraView.External)
+        {
+            PopupRefused(args.Actor);
+        }
+    }
+
+    /// <summary>
+    /// Tells a pilot the external view can't be had where the ship is. Its button otherwise just springs back.
+    /// </summary>
+    private void PopupRefused(EntityUid pilot)
+    {
+        _popup.PopupEntity(Loc.GetString("shuttle-console-camera-external-unavailable"), pilot, pilot);
     }
 
     /// <summary>

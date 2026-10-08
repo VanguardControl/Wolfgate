@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Numerics;
 using Content.Client._WF.Shuttles.Systems;
 using Content.Client._WF.Shuttles.UI;
+using Content.Client.Popups;
+using Content.Client.Viewport;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
@@ -12,6 +14,7 @@ using Content.Shared.Shuttles.Components;
 using Content.Shared.Verbs;
 using Robust.Client.Graphics;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Localization;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
@@ -448,8 +451,24 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
             _consoleSystem.RemovePilot(crew);
         });
 
+        await Client.WaitAssertion(() => AssertClientView(true, "The client should be showing the view."));
+
+        // The server only looks at the view now and then. Starting from one look leaves room before the next.
+        await PassHullCheck(anchor);
+
         // Turning the map into terrain puts the ship on a planet's ground layer.
         await Server.WaitPost(() => SEntMan.EnsureComponent<MapGridComponent>(MapData.MapUid));
+        await RunTicks(5);
+
+        await Client.WaitAssertion(() =>
+        {
+            Assert.That(CEntMan.HasComponent<MapGridComponent>(ToClient(MapData.MapUid)),
+                "The client should have heard of the ground.");
+            Assert.That(CEntMan.GetComponent<ShuttleCameraComponent>(CPlayer).View, Is.EqualTo(ShuttleCameraView.External),
+                "The server shouldn't have looked at the view again yet.");
+            AssertClientView(false, "The client shouldn't wait for the server before drawing FOV over a planet's ground.");
+        });
+
         await RunSeconds(1.5f);
 
         await Server.WaitAssertion(() =>
@@ -462,6 +481,9 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
             Assert.That(SEntMan.GetComponent<EyeComponent>(SPlayer).Target, Is.Null);
         });
 
+        await Client.WaitAssertion(() =>
+            Assert.That(RefusalsShown(), Is.EqualTo(1), "A pilot who loses the view should be told why."));
+
         await SetCamera(ShuttleCameraView.External, 2f);
         await RunTicks(5);
 
@@ -471,6 +493,9 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
             Assert.That(camera.View, Is.EqualTo(ShuttleCameraView.Helm), "A grounded ship can't ask for the external view.");
             Assert.That(camera.Camera, Is.Null);
         });
+
+        await Client.WaitAssertion(() =>
+            Assert.That(RefusalsShown(), Is.EqualTo(2), "A pilot who asks for a view they can't have should be told why."));
 
         await LeaveHelm();
     }
@@ -594,6 +619,38 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
                 "A corner standing by itself is outlined on all three sides.");
         });
 
+        // With any altitude every viewport is drawn through stand-ins for its own eye, a camera monitor's included.
+        await Client.WaitAssertion(() =>
+        {
+            var pilot = CEntMan.GetComponent<EyeComponent>(CPlayer).Eye;
+            var here = pilot.Position;
+            var turn = pilot.Rotation;
+
+            var level = new ScalingViewport.ZEye(-1f, -0.5f, 0f) { Position = here, Rotation = turn, Primary = true };
+            var below = new ScalingViewport.ZEye(-1f, -1f, 0f) { Position = here, Rotation = turn };
+            var monitor = new ScalingViewport.ZEye(-1f, -0.5f, 0f)
+            {
+                Position = here.Offset(new Vector2(6f, 0f)),
+                Rotation = turn,
+                Primary = true,
+            };
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(ShuttleHullRoofOverlay.IsPilotPass(pilot, pilot, true), "The pilot's own eye is theirs.");
+                Assert.That(ShuttleHullRoofOverlay.IsPilotPass(level, pilot, true),
+                    "So is the stand-in for it on their own level.");
+                Assert.That(ShuttleHullRoofOverlay.IsPilotPass(below, pilot, false), "The level below is roofed as well.");
+                Assert.That(ShuttleHullRoofOverlay.IsPilotPass(below, pilot, true), Is.False,
+                    "Low-light is for the pilot's own level alone.");
+                Assert.That(ShuttleHullRoofOverlay.IsPilotPass(monitor, pilot, false), Is.False,
+                    "Another window's view isn't the pilot's to roof.");
+                Assert.That(ShuttleHullRoofOverlay.IsPilotPass(monitor, pilot, true), Is.False,
+                    "Nor to feed through low-light.");
+                Assert.That(ShuttleHullRoofOverlay.IsPilotPass(null, pilot, false), Is.False);
+            });
+        });
+
         await LeaveHelm();
     }
 
@@ -607,6 +664,9 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
         await BuildHull();
         await SpawnTarget("ComputerShuttle");
         _console = ToServer(Target!.Value);
+
+        // The console runs off its own battery, which the power pass only finds every half second.
+        await RunSeconds(1f);
 
         await Activate();
         Assert.That(IsUiOpen(ShuttleConsoleUiKey.Key), Is.True, "Using the console should open it and seat the player.");
@@ -654,6 +714,28 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
             Assert.That(CEntMan.GetComponent<ShuttleCameraComponent>(CPlayer).Zoom, Is.EqualTo(1.25f));
             AssertClientView(true, "The view should still be up.");
         });
+
+        // A hard flick sends two notches as one event, and a touchpad sends one notch in pieces.
+        await Client.WaitAssertion(() =>
+        {
+            var system = CEntMan.System<ShuttleExternalCameraSystem>();
+            Assert.That(system.TryWheelZoom(-2f), Is.True);
+
+            for (var i = 0; i < 4; i++)
+            {
+                Assert.That(system.TryWheelZoom(-0.25f), Is.True, "A piece of a notch is taken all the same.");
+            }
+        });
+
+        await RunSeconds(1f);
+        await ZoomShouldBe(2f, "Wheel travel should count by the notch, however many events it comes in.");
+
+        // In and straight back out, before the server has answered the first notch.
+        await Client.WaitPost(() => CEntMan.System<ShuttleExternalCameraSystem>().TryWheelZoom(1f));
+        await RunTicks(1);
+        await Client.WaitPost(() => CEntMan.System<ShuttleExternalCameraSystem>().TryWheelZoom(-1f));
+        await RunSeconds(1f);
+        await ZoomShouldBe(2f, "Two notches that cancel should leave the zoom where it was.");
 
         await LeaveHelm();
     }
@@ -801,6 +883,57 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
     private async Task PassPanThrottle()
     {
         await RunSeconds(0.25f);
+    }
+
+    private async Task ZoomShouldBe(float expected, string message)
+    {
+        await Server.WaitAssertion(() =>
+            Assert.That(SEntMan.GetComponent<ShuttleCameraComponent>(SPlayer).Zoom, Is.EqualTo(expected), message));
+    }
+
+    /// <summary>
+    /// Runs up to the server's next look at the view, which leaves a whole interval before the one after.
+    /// The look shows as an anchor that was put out of reach being pulled back in.
+    /// </summary>
+    private async Task PassHullCheck(EntityUid anchor)
+    {
+        var far = new Vector2(100f, 100f);
+
+        await Server.WaitPost(() => Transform.SetCoordinates(anchor, new EntityCoordinates(_grid.Owner, far)));
+
+        for (var i = 0; i < 30; i++)
+        {
+            await RunTicks(1);
+
+            var pulledIn = false;
+            await Server.WaitPost(() => pulledIn = SEntMan.GetComponent<TransformComponent>(anchor).LocalPosition != far);
+
+            if (pulledIn)
+                return;
+        }
+
+        Assert.Fail("The server never looked at the view.");
+    }
+
+    /// <summary>
+    /// How many times the player has been told the view can't be had, going by the popups still up.
+    /// Client thread only.
+    /// </summary>
+    private int RefusalsShown()
+    {
+        var loc = Client.ResolveDependency<ILocalizationManager>();
+        Assert.That(loc.TryGetString("shuttle-console-camera-external-unavailable", out var text),
+            "The reason should have text of its own.");
+
+        var shown = 0;
+
+        foreach (var label in CEntMan.System<PopupSystem>().WorldLabels)
+        {
+            if (label.Text.Contains(text!))
+                shown += label.Repeats;
+        }
+
+        return shown;
     }
 
     /// <summary>
