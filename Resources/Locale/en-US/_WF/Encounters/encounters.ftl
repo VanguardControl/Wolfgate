@@ -228,3 +228,13 @@ wf-encounter-name-fleet-battle-large = Grand fleet action {$designation}
 wf-encounter-announce-fleet-battle-large = GAMMA ALERT. Traffic control to all vessels: {$name}. The Federation and the Dynasty have committed their flagships. A full fleet action is under way in open space. All civilian traffic is to clear the sector lanes. Both navies are calling for every armed vessel that will fight for them.
 wf-encounter-name-trader-exotic = Exotic dealers {$designation}
 wf-encounter-announce-trader-exotic = {$name} is in the sector under Blackhawk escort with ship guns, hardpoints and systems that don't reach any catalogue. Serious buyers may come alongside. Anyone else is advised that the escort is not for show.
+
+# Capital and supercapital patrols
+wf-encounter-name-capital-patrol = TSF capital patrol {$designation}
+wf-encounter-announce-capital-patrol = Traffic control to all vessels: {$name}. A Federation capital ship and fighter wing are holding station off {$destination} for the next while. Dynasty traffic is advised to keep well clear.
+wf-encounter-name-pdv-capital-patrol = Dynasty capital patrol {$designation}
+wf-encounter-announce-pdv-capital-patrol = Traffic control to all vessels: {$name}. A Vanguard capital ship and fighter wing are holding station off {$destination} for the next while. Federation traffic is advised to keep well clear.
+wf-encounter-name-supercapital-patrol = TSF supercapital patrol {$designation}
+wf-encounter-announce-supercapital-patrol = Traffic control to all vessels: {$name}. The Federation supercapital Flyssa and her fighter wing are holding station off {$destination}. Dynasty traffic is advised to keep well clear.
+wf-encounter-name-pdv-supercapital-patrol = Dynasty supercapital patrol {$designation}
+wf-encounter-announce-pdv-supercapital-patrol = Traffic control to all vessels: {$name}. The Vanguard supercapital Saturn and her fighter wing are holding station off {$destination}. Federation traffic is advised to keep well clear.
