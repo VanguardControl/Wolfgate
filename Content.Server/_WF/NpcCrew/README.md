@@ -11,6 +11,10 @@ membership where available, otherwise a shared NPC faction. A crew's ordered doc
 for that approach. Incoming ships do not cause the stationary crew to announce that it is docking. Radio officers
 announce their own approach and completed docking, and warn unauthorized arrivals.
 
+A profile can name datasets its crews' first and last names come from (`firstNames`, `lastNames`) and components every
+crewman gets (`components`), so a faction's people sound like one: Union crews carry Russian names and a Russian accent,
+Federation and Dynasty crews their own names, pirates nicknames and a pirate's drawl.
+
 An engineer (`WFCrewEngineer`) is posted beside the plant on every encounter ship whose roles allow one. The ship
 arrives commissioned (generators full and lit, reactor jarred and injecting, batteries charged) with fuel for the trip
 stowed in a `WFCrewFuelStores` crate in the hold. From then on nothing tops the plant up but him: a generator under
@@ -326,6 +330,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Resources/Prototypes/_WF/NpcCrew/htn.yml`](../../../Resources/Prototypes/_WF/NpcCrew/htn.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/markers.yml`](../../../Resources/Prototypes/_WF/NpcCrew/markers.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/mobs.yml`](../../../Resources/Prototypes/_WF/NpcCrew/mobs.yml)
+- [`Resources/Prototypes/_WF/NpcCrew/names.yml`](../../../Resources/Prototypes/_WF/NpcCrew/names.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/navigation.yml`](../../../Resources/Prototypes/_WF/NpcCrew/navigation.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/profiles.yml`](../../../Resources/Prototypes/_WF/NpcCrew/profiles.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/roles.yml`](../../../Resources/Prototypes/_WF/NpcCrew/roles.yml)
