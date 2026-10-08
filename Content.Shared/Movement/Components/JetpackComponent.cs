@@ -34,6 +34,7 @@ public sealed partial class JetpackComponent : Component
     /// Mono - Determines the range that a jetpack shows up on blip radar.
     /// </summary>
     [ViewVariables(VVAccess.ReadWrite), DataField]
+<<<<<<< HEAD
     public float DetectionRange = 256f;
 
     /// <summary>
@@ -55,4 +56,7 @@ public sealed partial class JetpackComponent : Component
     public float FlightSettleGain = 2f;
 
     public bool IsZMoving = true;
+=======
+    public float DetectionRange = 0f;
+>>>>>>> 7ad9ea5226 (Space Combat Tweaks (#4748))
 }
