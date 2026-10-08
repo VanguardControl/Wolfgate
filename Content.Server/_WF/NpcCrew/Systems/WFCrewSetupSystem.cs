@@ -31,6 +31,7 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private MetaDataSystem _meta = default!;
+    [Dependency] private WFCrewAccessSystem _crewAccess = default!;
     [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private WFCrewPlannerSystem _planner = default!;
     [Dependency] private WFCrewObjectiveSystem _objectives = default!;
@@ -295,9 +296,9 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             return;
 
         var name = $"{_random.Pick(first.Values)} {_random.Pick(last.Values)}";
-        if (_prototypes.TryIndex<WFCrewRolePrototype>(roleId, out var role))
-            name = Loc.GetString("wf-crew-name-format", ("title", Loc.GetString(role.Title)), ("name", name));
-        _meta.SetEntityName(mob, name);
+        var title = _prototypes.TryIndex<WFCrewRolePrototype>(roleId, out var role) ? Loc.GetString(role.Title) : null;
+        _meta.SetEntityName(mob, title != null ? Loc.GetString("wf-crew-name-format", ("title", title), ("name", name)) : name);
+        _crewAccess.Label(mob, name, title);
     }
 
     /// <summary>Sets the company, or removes it when the company is empty.</summary>
