@@ -4,8 +4,8 @@ meta:
   engineVersion: 277.2.1
   forkId: ""
   forkVersion: ""
-  time: 10/03/2026 19:28:25
-  entityCount: 10202
+  time: 10/07/2026 00:26:24
+  entityCount: 10204
 maps:
 - 10196
 grids:
@@ -325,9 +325,9 @@ entities:
     - type: ThermalSignature
     - type: SpreaderGrid
       spreadQueues:
-        MetalFoam: []
         Puddle: []
         Smoke: []
+        MetalFoam: []
         Kudzu: []
     - type: Shuttle
       dampingModifier: 0.25
@@ -7353,7 +7353,6 @@ entities:
     - type: Broadphase
     - type: OccluderTree
     - type: Parallax
-      parallax: SnowballStation
 - proto: AirAlarm
   entities:
   - uid: 2
@@ -8981,6 +8980,7 @@ entities:
   - uid: 216
     components:
     - type: Transform
+      rot: -1.5707963267948966 rad
       pos: -58.5,-15.5
       parent: 1
   - uid: 217
@@ -17083,6 +17083,11 @@ entities:
     - type: Transform
       pos: -9.5,49.5
       parent: 1
+  - uid: 10203
+    components:
+    - type: Transform
+      pos: -24.5,39.5
+      parent: 1
 - proto: CableApcExtensionUncuttable
   entities:
   - uid: 1759
@@ -21810,7 +21815,7 @@ entities:
       rot: -1.5707963267948966 rad
       pos: -7.7755003,24.683205
       parent: 1
-- proto: CargoChuteExped
+- proto: CargoChuteTradeMall
   entities:
   - uid: 2705
     components:
@@ -21822,8 +21827,6 @@ entities:
     - type: Transform
       pos: -56.5,27.5
       parent: 1
-- proto: CargoChuteTradeMall
-  entities:
   - uid: 2707
     components:
     - type: Transform
@@ -24304,6 +24307,47 @@ entities:
       rot: -1.5707963267948966 rad
       pos: -32.5,3.5
       parent: 1
+- proto: ComputerCargoBounty
+  entities:
+  - uid: 7980
+    components:
+    - type: Transform
+      pos: -67.5,-10.5
+      parent: 1
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
+  - uid: 10204
+    components:
+    - type: Transform
+      rot: 1.5707963267948966 rad
+      pos: -67.5,21.5
+      parent: 1
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
+  - uid: 10205
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -58.5,28.5
+      parent: 1
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
+  - uid: 10206
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -58.5,-7.5
+      parent: 1
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
 - proto: ComputerCargoOrders
   entities:
   - uid: 3163
@@ -24535,7 +24579,7 @@ entities:
   - uid: 3180
     components:
     - type: Transform
-      rot: 3.141592653589793 rad
+      rot: 1.5707963267948966 rad
       pos: -67.5,20.5
       parent: 1
     - type: ApcPowerReceiver
@@ -24735,6 +24779,18 @@ entities:
       rot: 1.5707963267948966 rad
       pos: -46.5,41.5
       parent: 1
+- proto: ComputerTabletopCargoBounty
+  entities:
+  - uid: 6360
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      pos: -59.5,-19.5
+      parent: 1
+    - type: ApcPowerReceiver
+      powerLoad: 5
+    - type: Battery
+      startingCharge: 0
 - proto: ComputerTabletopCrewMonitoring
   entities:
   - uid: 3199
@@ -45502,7 +45558,6 @@ entities:
   - uid: 10195
     components:
     - type: Transform
-      rot: 3.141592653589793 rad
       pos: -12.5,51.5
       parent: 1
 - proto: LootSpawnerMaterials
@@ -46411,14 +46466,6 @@ entities:
       rot: 3.141592653589793 rad
       pos: -22.5,21.5
       parent: 1
-- proto: PaperBin5
-  entities:
-  - uid: 6247
-    components:
-    - type: Transform
-      rot: -1.5707963267948966 rad
-      pos: -67.5,-10.5
-      parent: 1
 - proto: PaperCup
   entities:
   - uid: 6248
@@ -46503,12 +46550,6 @@ entities:
       parent: 1
 - proto: Pen
   entities:
-  - uid: 6260
-    components:
-    - type: Transform
-      rot: -1.5707963267948966 rad
-      pos: -67.557655,-10.39576
-      parent: 1
   - uid: 6261
     components:
     - type: Transform
@@ -47052,12 +47093,6 @@ entities:
       parent: 1
 - proto: PowerCellRecharger
   entities:
-  - uid: 6360
-    components:
-    - type: Transform
-      rot: -1.5707963267948966 rad
-      pos: -59.5,-19.5
-      parent: 1
   - uid: 8033
     components:
     - type: Transform
@@ -57538,11 +57573,6 @@ entities:
     - type: Transform
       pos: 9.5,8.5
       parent: 1
-  - uid: 7980
-    components:
-    - type: Transform
-      pos: -67.5,-10.5
-      parent: 1
   - uid: 7981
     components:
     - type: Transform
@@ -59445,7 +59475,7 @@ entities:
     - type: Transform
       pos: 5.5,25.5
       parent: 1
-- proto: VendingMachineTraderDepot
+- proto: VendingMachineTraderTradeMall
   entities:
   - uid: 8222
     components:
@@ -59457,8 +59487,6 @@ entities:
     - type: Transform
       pos: -64.5,-19.5
       parent: 1
-- proto: VendingMachineTraderTradeMall
-  entities:
   - uid: 8224
     components:
     - type: Transform
@@ -69410,10 +69438,10 @@ entities:
     - type: MobStateActions
       actions: {}
     - type: HumanoidAppearance
-      skinColor: '#B98862FF'
+      eyeColor: '#7C93A0FF'
       gender: Male
       age: 58
-      eyeColor: '#7C93A0FF'
+      skinColor: '#B98862FF'
       markingSet:
         points:
           Special:
@@ -69461,13 +69489,13 @@ entities:
             required: False
             points: 1
         markings:
-          FacialHair:
-          - markingId: HumanFacialHairFullbeard
+          Hair:
+          - markingId: HumanHairBalding
             visible: True
             markingColor:
             - '#9C9990FF'
-          Hair:
-          - markingId: HumanHairBalding
+          FacialHair:
+          - markingId: HumanFacialHairFullbeard
             visible: True
             markingColor:
             - '#9C9990FF'
@@ -69575,10 +69603,10 @@ entities:
     - type: MobStateActions
       actions: {}
     - type: HumanoidAppearance
-      skinColor: '#C79A73FF'
+      eyeColor: '#3D2B1FFF'
       gender: Male
       age: 50
-      eyeColor: '#3D2B1FFF'
+      skinColor: '#C79A73FF'
       markingSet:
         points:
           Special:
@@ -69626,13 +69654,13 @@ entities:
             required: False
             points: 1
         markings:
-          FacialHair:
-          - markingId: HumanFacialHairMoustache
+          Hair:
+          - markingId: HumanHairCombover
             visible: True
             markingColor:
             - '#2E2420FF'
-          Hair:
-          - markingId: HumanHairCombover
+          FacialHair:
+          - markingId: HumanFacialHairMoustache
             visible: True
             markingColor:
             - '#2E2420FF'
@@ -69740,11 +69768,11 @@ entities:
     - type: MobStateActions
       actions: {}
     - type: HumanoidAppearance
-      skinColor: '#A6714BFF'
+      eyeColor: '#7C8B96FF'
       gender: Female
       age: 45
       sex: Female
-      eyeColor: '#7C8B96FF'
+      skinColor: '#A6714BFF'
       markingSet:
         points:
           Special:
@@ -69901,11 +69929,11 @@ entities:
     - type: MobStateActions
       actions: {}
     - type: HumanoidAppearance
-      skinColor: '#FFE1CCFF'
+      eyeColor: '#4B3B2CFF'
       gender: Female
       age: 34
       sex: Female
-      eyeColor: '#4B3B2CFF'
+      skinColor: '#FFE1CCFF'
       markingSet:
         points:
           Special:
@@ -70062,10 +70090,10 @@ entities:
     - type: MobStateActions
       actions: {}
     - type: HumanoidAppearance
-      skinColor: '#C79C6EFF'
+      eyeColor: '#4A6B7CFF'
       gender: Male
       age: 41
-      eyeColor: '#4A6B7CFF'
+      skinColor: '#C79C6EFF'
       markingSet:
         points:
           Special:
@@ -70220,10 +70248,10 @@ entities:
     - type: MobStateActions
       actions: {}
     - type: HumanoidAppearance
-      skinColor: '#C79C6EFF'
+      eyeColor: '#4A6B7CFF'
       gender: Male
       age: 41
-      eyeColor: '#4A6B7CFF'
+      skinColor: '#C79C6EFF'
       markingSet:
         points:
           Special:
@@ -70380,11 +70408,11 @@ entities:
     - type: MobStateActions
       actions: {}
     - type: HumanoidAppearance
-      skinColor: '#E8B98EFF'
+      eyeColor: '#3A2A20FF'
       gender: Female
       age: 23
       sex: Female
-      eyeColor: '#3A2A20FF'
+      skinColor: '#E8B98EFF'
       markingSet:
         points:
           Special:
@@ -70541,10 +70569,10 @@ entities:
     - type: MobStateActions
       actions: {}
     - type: HumanoidAppearance
-      skinColor: '#E0B38CFF'
+      eyeColor: '#6B5340FF'
       gender: Male
       age: 37
-      eyeColor: '#6B5340FF'
+      skinColor: '#E0B38CFF'
       markingSet:
         points:
           Special:
@@ -70592,13 +70620,13 @@ entities:
             required: False
             points: 1
         markings:
-          FacialHair:
-          - markingId: HumanFacialHairMoustache
+          Hair:
+          - markingId: HumanHairPompadour
             visible: True
             markingColor:
             - '#171310FF'
-          Hair:
-          - markingId: HumanHairPompadour
+          FacialHair:
+          - markingId: HumanFacialHairMoustache
             visible: True
             markingColor:
             - '#171310FF'
@@ -70706,10 +70734,10 @@ entities:
     - type: MobStateActions
       actions: {}
     - type: HumanoidAppearance
-      skinColor: '#C99A73FF'
+      eyeColor: '#6B7F8CFF'
       gender: Male
       age: 47
-      eyeColor: '#6B7F8CFF'
+      skinColor: '#C99A73FF'
       markingSet:
         points:
           Special:
@@ -70757,13 +70785,13 @@ entities:
             required: False
             points: 1
         markings:
-          FacialHair:
-          - markingId: HumanFacialHairFullbeard
+          Hair:
+          - markingId: HumanHairCombover
             visible: True
             markingColor:
             - '#3B3128FF'
-          Hair:
-          - markingId: HumanHairCombover
+          FacialHair:
+          - markingId: HumanFacialHairFullbeard
             visible: True
             markingColor:
             - '#3B3128FF'
