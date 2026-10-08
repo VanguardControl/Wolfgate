@@ -1,4 +1,5 @@
 using Content.Client.Light;
+using Content.Client.Viewport;
 using Content.Shared._WF.Shuttles;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
@@ -34,11 +35,12 @@ public sealed partial class ShuttleLowLightOverlay : Overlay
     protected override bool BeforeDraw(in OverlayDrawArgs args)
     {
         // Only the pilot's own view, not a previewer or any other viewport that happens to be open.
+        // With any altitude that view is drawn through a stand-in for the pilot's eye.
         return _entManager.TryGetComponent<ShuttleCameraComponent>(_player.LocalEntity, out var camera) &&
                camera.LowLight &&
                camera.View != ShuttleCameraView.Helm &&
                _entManager.TryGetComponent<EyeComponent>(_player.LocalEntity, out var eye) &&
-               args.Viewport.Eye == eye.Eye;
+               (args.Viewport.Eye == eye.Eye || args.Viewport.Eye is ScalingViewport.ZEye { Primary: true });
     }
 
     protected override void Draw(in OverlayDrawArgs args)

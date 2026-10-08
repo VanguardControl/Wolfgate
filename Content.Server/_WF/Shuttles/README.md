@@ -2,7 +2,9 @@
 
 Shuttle console additions for ships: a whole-ship view with hull telemetry (structure condition, fires, pressure, dead
 power), a collision warning (TCAS) that sweeps a piloted ship's path and warns before a hard impact, hull cameras the
-pilot can look through with a low-light feed, and nav map data for ships that were never registered as a station.
+pilot can look through with a low-light feed, and nav map data for ships that were never registered as a station. The
+cameras' EXTERNAL view shows the ship from outside with every hull plated over: a middle-mouse drag pans it, the scroll
+wheel zooms it, and the client `ShuttleExternalCameraSystem` and `ShuttleHullRoofOverlay` run it.
 
 Entry points: the server `ShipStatusSystem`, `CollisionWarningSystem`, `ShuttleCameraSystem` and
 `ShuttleNavMapSystem`; the client `ShipScreen`, `ShipViewControl`, `CollisionWarningBanner` and `ShuttleCameraBar`,
@@ -43,7 +45,9 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 ### Client
 
 - [`Content.Client/_WF/Shuttles/BUI/ShuttleConsoleBoundUserInterface.Wolfgate.cs`](../../../Content.Client/_WF/Shuttles/BUI/ShuttleConsoleBoundUserInterface.Wolfgate.cs)
+- [`Content.Client/_WF/Shuttles/ScalingViewport.ShuttleCamera.cs`](../../../Content.Client/_WF/Shuttles/ScalingViewport.ShuttleCamera.cs)
 - [`Content.Client/_WF/Shuttles/Systems/ShuttleCameraSystem.cs`](../../../Content.Client/_WF/Shuttles/Systems/ShuttleCameraSystem.cs)
+- [`Content.Client/_WF/Shuttles/Systems/ShuttleExternalCameraSystem.cs`](../../../Content.Client/_WF/Shuttles/Systems/ShuttleExternalCameraSystem.cs)
 - [`Content.Client/_WF/Shuttles/UI/CollisionWarningBanner.xaml`](../../../Content.Client/_WF/Shuttles/UI/CollisionWarningBanner.xaml)
 - [`Content.Client/_WF/Shuttles/UI/CollisionWarningBanner.xaml.cs`](../../../Content.Client/_WF/Shuttles/UI/CollisionWarningBanner.xaml.cs)
 - [`Content.Client/_WF/Shuttles/UI/ShipScreen.xaml`](../../../Content.Client/_WF/Shuttles/UI/ShipScreen.xaml)
@@ -52,6 +56,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.Client/_WF/Shuttles/UI/ShuttleCameraBar.xaml`](../../../Content.Client/_WF/Shuttles/UI/ShuttleCameraBar.xaml)
 - [`Content.Client/_WF/Shuttles/UI/ShuttleCameraBar.xaml.cs`](../../../Content.Client/_WF/Shuttles/UI/ShuttleCameraBar.xaml.cs)
 - [`Content.Client/_WF/Shuttles/UI/ShuttleConsoleWindow.Wolfgate.cs`](../../../Content.Client/_WF/Shuttles/UI/ShuttleConsoleWindow.Wolfgate.cs)
+- [`Content.Client/_WF/Shuttles/UI/ShuttleHullRoofOverlay.cs`](../../../Content.Client/_WF/Shuttles/UI/ShuttleHullRoofOverlay.cs)
 - [`Content.Client/_WF/Shuttles/UI/ShuttleLowLightOverlay.cs`](../../../Content.Client/_WF/Shuttles/UI/ShuttleLowLightOverlay.cs)
 
 ### Integration tests
@@ -61,6 +66,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/FTLToDockTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/FTLToDockTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShipStatusTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShipStatusTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleCameraTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleCameraTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleExternalCameraTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleExternalCameraTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleNavMapTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleNavMapTest.cs)
 
 ### Prototypes
