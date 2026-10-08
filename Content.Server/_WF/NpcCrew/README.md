@@ -328,6 +328,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/NpcCrew/ai_factions.yml`](../../../Resources/Prototypes/_WF/NpcCrew/ai_factions.yml)
+- [`Resources/Prototypes/_WF/NpcCrew/companies.yml`](../../../Resources/Prototypes/_WF/NpcCrew/companies.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/gear.yml`](../../../Resources/Prototypes/_WF/NpcCrew/gear.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/htn.yml`](../../../Resources/Prototypes/_WF/NpcCrew/htn.yml)
 - [`Resources/Prototypes/_WF/NpcCrew/markers.yml`](../../../Resources/Prototypes/_WF/NpcCrew/markers.yml)
@@ -340,6 +341,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 
 ### Localization
 
+- [`Resources/Locale/en-US/_WF/NpcCrew/companies.ftl`](../../../Resources/Locale/en-US/_WF/NpcCrew/companies.ftl)
 - [`Resources/Locale/en-US/_WF/NpcCrew/crew.ftl`](../../../Resources/Locale/en-US/_WF/NpcCrew/crew.ftl)
 - [`Resources/Locale/en-US/_WF/NpcCrew/navigation.ftl`](../../../Resources/Locale/en-US/_WF/NpcCrew/navigation.ftl)
 - [`Resources/Locale/en-US/_WF/NpcCrew/radio-reports.ftl`](../../../Resources/Locale/en-US/_WF/NpcCrew/radio-reports.ftl)

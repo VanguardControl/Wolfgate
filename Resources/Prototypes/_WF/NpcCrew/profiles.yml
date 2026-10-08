@@ -303,12 +303,12 @@
     WFCrewGunner: [ WFCrewPdvOfficer ]
     WFCrewMarine: [ WFCrewPdvGuard ]
 
-# Pirates: armed to a man, in whatever they took off the last crew.
+# Reavers: pirate slops and bandanas, a tricorn on the officers, and whatever armour they took off the last crew.
 - type: startingGear
   id: WFCrewPirateHand
   equipment:
-    jumpsuit: ClothingUniformJumpsuitMercenary
-    shoes: ClothingShoesBootsJack
+    jumpsuit: ClothingUniformJumpsuitPirateSlops
+    shoes: ClothingShoesBootsPirate
     head: ClothingHeadBandRed
     gloves: ClothingHandsGlovesFingerless
     belt: WeaponPistolMk58
@@ -320,9 +320,11 @@
 - type: startingGear
   id: WFCrewPirateBruiser
   equipment:
-    jumpsuit: ClothingUniformJumpsuitColorBrown
+    jumpsuit: ClothingUniformJumpsuitPirate
     outerClothing: ClothingOuterArmorBasic
-    shoes: ClothingShoesBootsCombat
+    head: ClothingHeadHatPirates
+    eyes: ClothingEyesEyepatch
+    shoes: ClothingShoesBootsPirate
     belt: WeaponPistolMk58
     pocket1: Magazine45_ACPPistolFMJ
     pocket2: Crowbar
@@ -332,9 +334,10 @@
 - type: startingGear
   id: WFCrewPirateRifle
   equipment:
-    jumpsuit: ClothingUniformJumpsuitMercenary
+    jumpsuit: ClothingUniformJumpsuitPirate
     outerClothing: ClothingOuterArmorBulletproof
-    shoes: ClothingShoesBootsCombat
+    head: ClothingHeadBandBlack
+    shoes: ClothingShoesBootsPirate
     gloves: ClothingHandsGlovesColorBlack
     back: WeaponRifleLecter
     pocket1: Magazine68x52mmCaseless
@@ -345,9 +348,10 @@
 - type: startingGear
   id: WFCrewPirateOfficer
   equipment:
-    jumpsuit: ClothingUniformJumpsuitMercenary
-    outerClothing: ClothingOuterCoatJensen
-    shoes: ClothingShoesBootsCombat
+    jumpsuit: ClothingUniformJumpsuitPirate
+    outerClothing: ClothingOuterCoatPirateCaptain
+    head: ClothingHeadHatPirateTricord
+    shoes: ClothingShoesBootsPirate
     belt: WeaponPistolMk58
     pocket1: Magazine45_ACPPistolFMJ
     pocket2: Magazine45_ACPPistolFMJ

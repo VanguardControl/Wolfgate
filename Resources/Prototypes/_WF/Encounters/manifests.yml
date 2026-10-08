@@ -1,44 +1,68 @@
 # What a freight run may be carrying. One is picked per run; the captain names it and the hold is filled from it.
-# A crate listed twice is twice as likely. Most crates sell for about a thousand to fifteen hundred spesos at a
-# pallet, with a rare dearer one; the crates that no catalog has are in crates.yml.
+# A crate listed twice is twice as likely. Most are the cargo catalogue's own crates, so they sell at any pallet for
+# what is in them, about a thousand to fifteen hundred spesos, with a rare dearer one; the crates no catalogue has
+# are in crates.yml.
 
 - type: wfEncounterManifest
   id: WFManifestGeneral
   name: wf-encounter-cargo-general
   crates:
   - WFCrateLotTools
-  - WFCrateLotTools
-  - WFCrateLotSurvival
   - WFCrateLotSurvival
   - WFCrateLotMedical
   - WFCrateLotParts
   - WFCrateLotLuxury
-  - WFCrateLotSalvage
+  - CrateMaterialSteel
   - CrateMaterialPlastic
   - CrateMaterialGlass
+  - CrateMaterialTextiles
+  - CrateMaterialPaper
+  - CrateMaterialCardboard
+  - CrateEngineeringCableBulk
   - CrateAirlockKit
   - CrateEngineeringGear
   - CrateEmergencyInternalsLarge
+  - CrateEmergencyFire
   - CrateServiceSmokeables
+  - CrateServiceBooks
+  - CrateServiceBureaucracy
+  - CrateServiceReplacementLights
   - CrateFunInstrumentsVariety
-  - CrateMaterialTextiles
+  - CrateFunBoardGames
   - CrateVendingMachineRestockClothesFilled
+  - CrateVendingMachineRestockVendomatFilled
   - CrateEngineeringSolar
+  - CrateFoodMRE
+  - CrateFoodSoftdrinks
+  - WaterTankFull
 
 - type: wfEncounterManifest
   id: WFManifestFood
   name: wf-encounter-cargo-food
   crates:
   - CrateFoodMRE
+  - CrateFoodMRE
   - WFCrateFoodRations
-  - WFCrateFoodRations
+  - CrateFoodBarSupply
+  - CrateFoodCooking
+  - CrateFoodDinnerware
+  - CrateFoodPizzaLarge
+  - CrateFoodSoftdrinksLarge
+  - CrateFoodSoftdrinks
+  - CrateFreezer
   - CrateVendingMachineRestockChefvendFilled
   - CrateVendingMachineRestockCondimentStationFilled
   - CrateVendingMachineRestockBoozeFilled
   - CrateVendingMachineRestockDinnerwareFilled
+  - CrateVendingMachineRestockHotDrinksFilled
+  - CrateVendingMachineRestockRobustSoftdrinksFilled
+  - CrateVendingMachineRestockNutriMaxFilled
   - CrateVendingMachineRestockSeedsFilled
-  - CrateHydroponicsSeeds
   - CrateVendingMachineRestockDonutFilled
+  - CrateVendingMachineRestockGetmoreChocolateCorpFilled
+  - CrateHydroponicsSeeds
+  - CrateHydroponicsSeedsExotic
+  - CrateNPCPoultryCube
 
 - type: wfEncounterManifest
   id: WFManifestMedical
@@ -46,15 +70,13 @@
   crates:
   - WFCrateLotMedical
   - WFCrateLotMedical
-  - WFCrateLotMedical
-  - WFCrateLotMedical
-  - WFCrateLotMedical
-  - WFCrateLotMedical
+  - CrateMedicalSupplies
   - CrateMedicalSupplies
   - CrateMedicalSecureMedicine
   - CrateMedicalSecureMedicinePierce
   - CrateMedicalSecureDoctor
   - CrateServiceKitMedbay
+  - CrateEmergencyAdvancedKit
   - CrateEmergencyBruteKit
   - CrateEmergencyBurnKit
   - CrateEmergencyO2Kit
@@ -62,17 +84,25 @@
   - CrateEmergencyRadiationKit
   - CrateMedicalSurgery
   - CrateMedicalRollerBeds
+  - CrateBodyBags
+  - CrateChemistrySupplies
+  - CrateChemistryVials
+  - CrateChemistryP
+  - CrateChemistryD
+  - CrateChemistryS
   - CrateVendingMachineRestockMedicalFilled
+  - CrateVendingMachineRestockChemVendFilled
+  - ChemicalBarrelCarbon
+  - ChemicalBarrelIron
+  - ChemicalBarrelSugar
 
 - type: wfEncounterManifest
   id: WFManifestIndustrial
   name: wf-encounter-cargo-industrial
   crates:
   - WFCrateLotTools
-  - WFCrateLotTools
-  - WFCrateLotTools
   - WFCrateLotParts
-  - WFCrateLotParts
+  - CrateMaterialSteel
   - CrateMaterialSteel
   - CrateMaterialSteel
   - CrateMaterialGlass
@@ -81,8 +111,20 @@
   - CrateMaterialMetalRods
   - CrateMaterialPlasma
   - CrateMaterialPlasteel
+  - CrateMaterialPlasteel
   - CrateMaterialWood
   - CrateMaterialUranium
+  - CrateEngineeringCableBulk
+  - CrateEngineeringCableHV
+  - CrateEngineeringCableMV
+  - CrateEngineeringElectricalSupplies
+  - CrateEngineeringSolar
+  - CrateEngineeringThruster
+  - WeldingFuelTankFull
+  - WeldingFuelTankHighCapacity
+  - WaterTankHighCapacity
+  - NFMagnetBoxOre
+  - WFCrateOreCommon
 
 - type: wfEncounterManifest
   id: WFManifestParts
@@ -90,22 +132,27 @@
   crates:
   - WFCrateLotParts
   - WFCrateLotParts
-  - WFCrateLotParts
-  - WFCrateLotParts
-  - WFCrateLotParts
   - WFCrateLotTools
-  - WFCrateLotTools
+  - WFCrateShipSystems
   - CrateEngineeringThruster
   - CrateEngineeringThruster
   - CrateEngineeringSmallThruster
-  - WFCrateShipSystems
+  - CrateEngineeringGyroscope
+  - CrateEngineeringSmallGyroscope
+  - PortableGeneratorPacmanFlatpack
+  - PortableGeneratorSuperPacmanFlatpack
+  - PortableGeneratorJrPacmanFlatpack
+  - CrateEngineeringAMEControl
+  - CrateEngineeringAMEJar
   - CrateEngineeringKitFabrication
   - CrateEngineeringSolar
   - CrateEngineeringElectricalSupplies
+  - CrateEngineeringTeslaCoil
   - CrateAirlockKit
   - CrateEngineeringFoamGrenade
-  - CrateEngineeringAMEJar
-  - CrateEngineeringGyroscope
+  - CrateRCD
+  - CrateRCDAmmo
+  - CrateEvaKit
 
 - type: wfEncounterManifest
   id: WFManifestLuxury
@@ -113,17 +160,24 @@
   crates:
   - WFCrateLotLuxury
   - WFCrateLotLuxury
-  - WFCrateLotLuxury
-  - WFCrateLotLuxury
-  - WFCrateLotLuxury
   - WFCrateLuxuryBullion
   - CrateFunInstrumentsString
   - CrateFunInstrumentsBrass
   - CrateFunInstrumentsWoodwind
   - CrateFunInstrumentsKeyedPercussion
+  - CrateFunInstrumentsSpecial
+  - CrateFunBoardGames
+  - CrateFunParty
+  - CrateFunMysteryFigurines
+  - CrateFunPlushie
+  - CrateServiceTheatre
+  - CrateServiceCustomSmokable
+  - CrateServiceSmokeables
+  - CrateCargoLuxuryHardsuit
+  - CrateVendingMachineRestockHappyHonkFilled
+  - CrateVendingMachineRestockGamesFilled
   - CrateMaterialBrass
   - CrateMaterialTextiles
-  - CrateServiceSmokeables
   - CrateMaterialPlasma
 
 - type: wfEncounterManifest
@@ -132,19 +186,23 @@
   crates:
   - WFCrateLotSalvage
   - WFCrateLotSalvage
-  - WFCrateLotSalvage
-  - WFCrateLotSalvage
-  - WFCrateLotSalvage
   - WFCrateLotSurvival
-  - CrateSalvageEquipment
+  - WFCrateSalvageSorted
   - WFCrateOreCommon
   - WFCrateOreCommon
   - WFCrateOrePrecious
-  - WFCrateSalvageSorted
-  - WFCrateSalvageSorted
-  - CrateMaterialMetalRods
+  - NFMagnetBoxOre
+  - NFMagnetBoxOre
+  - NFMagnetBoxConstruction
+  - NFMagnetBoxRubbish
+  - CrateSalvageEquipment
   - CrateVendingMachineRestockSalvageEquipmentFilled
+  - CrateMaterialMetalRods
   - CrateMaterialSteel
+  - CrateMaterialPlasteel
+  - CrateMaterialUranium
+  - CrateMaterialPlasma
+  - CrateArtifactContainer
   - CrateEngineerHardsuit
 
 # Arms and armor for independent haulers: armory-locked, unbranded, and no TSF-issue rifles. Mostly small lots.
@@ -154,16 +212,20 @@
   crates:
   - WFCrateLotArms
   - WFCrateLotArms
-  - WFCrateLotArms
-  - WFCrateLotArms
+  - WFCrateArmsSupplies
   - CrateArmorySMG
   - CrateArmoryLaser
   - CrateArmoryShotgun
-  - CrateSecurityRiot
   - CrateArmoryRifleNovaliteC1Expedition
+  - CrateSecurityRiot
   - CrateSecurityArmor
   - CrateSecurityArmor
-  - CrateSecurityArmor
+  - CrateSecurityHelmet
+  - CrateSecurityNonlethal
+  - CrateSecuritySupplies
+  - CrateRestraints
+  - CrateEmergencyExplosive
+  - DeployableBarrier
 
 # A smuggler's hold, announced as general cargo so nobody knows until they board.
 - type: wfEncounterManifest
@@ -173,15 +235,20 @@
   - WFCrateLotContraband
   - WFCrateLotContraband
   - WFCrateLotContraband
-  - WFCrateLotContraband
-  - WFCrateLotContraband
   - WFCrateContrabandHeavyArms
   - WFCrateLuxuryBullion
   - WFCrateLuxuryBullion
   - WFCrateOrePrecious
-  - WFCrateOrePrecious
   - CrateArmorySMGExpedition
   - CrateArmoryRifleNovaliteC1Expedition
+  - CrateTradeSecureHigh
+  - CrateTradeSecureNormal
+  - CrateFunPirate
+  - CrateServiceCustomSmokable
+  - CrateVendingMachineRestockBoozeFilled
+  - CrateMaterialUranium
+  - CrateMaterialPlasma
+  - CrateEngineeringAMEJar
 
 # TSF stock only: it has the TSF-issue rifles and their ammunition.
 - type: wfEncounterManifest
@@ -190,10 +257,14 @@
   crates:
   - CrateArmorySMGNfsd
   - WFCrateArmsTsfRifles
+  - WFCrateArmsTsfRifles
   - WFCrateArmsVault
   - CrateArmoryShotgunNfsd
   - CrateSecurityRiot
   - CrateSecurityArmor
   - CrateSecurityArmor
+  - CrateSecurityHelmet
   - WFCrateArmsSupplies
   - WFCrateArmsSupplies
+  - CrateVendingMachineRestockAmmoFilled
+  - CrateEmergencyExplosive

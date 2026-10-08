@@ -148,7 +148,7 @@
     deckhands: 1
     guards: 0
     captain: false
-    cargo: 4
+    cargo: 8
     flyRoute: true
     boarding: Warn
     docking: Warn
@@ -183,7 +183,7 @@
     deckhands: 2
     guards: 0
     captain: true
-    cargo: 8
+    cargo: 16
     flyRoute: true
     boarding: Warn
     docking: Warn
@@ -218,7 +218,7 @@
     deckhands: 4
     guards: 2
     captain: true
-    cargo: 14
+    cargo: 28
     flyRoute: true
     boarding: Warn
     docking: Warn
@@ -256,7 +256,7 @@
     profile: WFCrewProfileTsf
     deckhands: 2
     guards: 2
-    cargo: 10
+    cargo: 20
     flyRoute: true
     evades: false
     disengage: Deter
@@ -313,7 +313,7 @@
     profile: WFCrewProfilePdv
     deckhands: 2
     guards: 2
-    cargo: 8
+    cargo: 16
     flyRoute: true
     evades: false
     disengage: Deter
@@ -368,19 +368,19 @@
     side: freight
     profile: WFCrewProfileHauler
     company: TSFCivilian
-    cargo: 2
+    cargo: 4
     docking: Warn
     disengage: Deter
     objectives:
     - kind: Hold
   - key: raider
     navigation: WFCrewNavigationRaider
-    vessel: Osa
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
     offset: 0, 450
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     objectives:
@@ -419,19 +419,19 @@
     company: TSFCivilian
     deckhands: 3
     guards: 1
-    cargo: 6
+    cargo: 12
     docking: Warn
     disengage: Deter
     objectives:
     - kind: Hold
   - key: raider
     navigation: WFCrewNavigationRaider
-    vessels: [ Osa, Scorpion ]
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
     offset: 0, 600
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     deckhands: 2
@@ -440,7 +440,7 @@
       target: hauler
   - key: wing
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -448,7 +448,7 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     objectives:
@@ -473,11 +473,11 @@
   ships:
   - key: raider
     navigation: WFCrewNavigationRaider
-    vessels: [ Osa, Scorpion ]
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     deckhands: 3
     wander: 6
@@ -487,7 +487,7 @@
     zoneLines: wf-encounter-pirate-zone
   - key: wing
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -495,7 +495,7 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     warnRange: 900
     attackRange: 450
@@ -524,11 +524,11 @@
   ships:
   - key: boarder
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Hazel, Metis, Mudskipper ]
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     captain: false
     deckhands: 2
@@ -615,12 +615,12 @@
       target: raider
   - key: raider
     navigation: WFCrewNavigationRaider
-    vessels: [ Osa, Scorpion ]
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
     offset: 0, 500
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     deckhands: 3
     objectives:
@@ -628,7 +628,7 @@
       target: patrol
   - key: wing
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -636,7 +636,7 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     objectives:
     - kind: Attack
@@ -922,7 +922,7 @@
     deckhands: 1
     guards: 0
     captain: false
-    cargo: 3
+    cargo: 6
     stranded: Random
     boarding: Ignore
     docking: Ignore
@@ -962,7 +962,7 @@
     deckhands: 2
     guards: 0
     captain: true
-    cargo: 6
+    cargo: 12
     stranded: Random
     boarding: Ignore
     docking: Ignore
@@ -1002,7 +1002,7 @@
     deckhands: 3
     guards: 1
     captain: true
-    cargo: 10
+    cargo: 20
     stranded: Random
     boarding: Ignore
     docking: Ignore
@@ -1052,14 +1052,14 @@
     stranded: Thrusters
   - key: ambusher
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 0, 650
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     distress: false
@@ -1104,14 +1104,14 @@
     stranded: Thrusters
   - key: ambusher
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -150, 700
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     distress: false
@@ -1124,14 +1124,14 @@
     - kind: Hold
   - key: second
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 150, 750
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     distress: false
@@ -1212,7 +1212,7 @@
       target: raider
   - key: raider
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -1220,7 +1220,7 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     evades: false
@@ -1232,7 +1232,7 @@
       target: escort
   - key: wing
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -1240,7 +1240,7 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     evades: false
@@ -1278,14 +1278,14 @@
   ships:
   - key: raider
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
     side: dynasty
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     evades: false
@@ -1295,7 +1295,7 @@
       target: corsair
   - key: wing
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -1303,7 +1303,7 @@
     side: dynasty
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     evades: false
@@ -1626,14 +1626,14 @@
   ships:
   - key: raider
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
     side: dynasty
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     evades: false
@@ -1647,7 +1647,7 @@
       target: corsair
   - key: wing
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -1655,7 +1655,7 @@
     side: dynasty
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     evades: false
@@ -1762,7 +1762,7 @@
       target: raider
   - key: raider
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -1770,7 +1770,7 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     evades: false
@@ -1786,7 +1786,7 @@
       target: escort
   - key: wing
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -1794,7 +1794,7 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     skill: Regular
     evades: false
@@ -1961,7 +1961,7 @@
     deckhands: 0
     guards: 2
     roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
-    cargo: 3
+    cargo: 6
     skill: Regular
     wander: 5
     wanderRadius: 3000
@@ -2004,7 +2004,7 @@
     deckhands: 0
     guards: 3
     roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
-    cargo: 5
+    cargo: 10
     skill: Regular
     wander: 5
     wanderRadius: 3000
@@ -2048,7 +2048,7 @@
     deckhands: 0
     guards: 3
     roles: [ WFCrewPilot, WFCrewGunner, WFCrewDeckhand ]
-    cargo: 8
+    cargo: 16
     skill: Regular
     wander: 5
     wanderRadius: 3000
@@ -2211,33 +2211,33 @@
       target: raider
   - key: raider
     navigation: WFCrewNavigationRaider
-    vessels: [ Osa, Scorpion ]
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
     deckhands: 2
     offset: 0, 750
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     objectives:
     - kind: Attack
       target: capital
   - key: second
     navigation: WFCrewNavigationRaider
-    vessels: [ Osa, Scorpion ]
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
     deckhands: 2
     offset: 0, -750
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     objectives:
     - kind: Attack
       target: capital
   - key: wing
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -2245,14 +2245,14 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     objectives:
     - kind: Attack
       target: capital
   - key: wingtwo
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -2260,14 +2260,14 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     objectives:
     - kind: Attack
       target: capital
   - key: wingthree
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -2275,14 +2275,14 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     objectives:
     - kind: Attack
       target: capital
   - key: wingfour
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
@@ -2290,7 +2290,7 @@
     side: pirates
     faction: PirateNF
     distress: false
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     objectives:
     - kind: Attack
@@ -2864,12 +2864,12 @@
       target: raider
   - key: raider
     navigation: WFCrewNavigationRaider
-    vessels: [ Osa, Scorpion ]
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
     deckhands: 2
     offset: 0, 900
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     distress: false
     objectives:
@@ -2877,12 +2877,12 @@
       target: capital
   - key: second
     navigation: WFCrewNavigationRaider
-    vessels: [ Osa, Scorpion ]
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
     deckhands: 2
     offset: 0, -900
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     distress: false
     objectives:
@@ -2890,12 +2890,12 @@
       target: capital
   - key: third
     navigation: WFCrewNavigationRaider
-    vessels: [ Layak, Osa ]
+    vessels: [ Fenrir, Garm, Ganymede ]
     deckhands: 2
     offset: 900, 0
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     distress: false
     objectives:
@@ -2903,14 +2903,14 @@
       target: capital
   - key: wing
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 800, 400
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     distress: false
     objectives:
@@ -2918,14 +2918,14 @@
       target: capital
   - key: wingtwo
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -800, 400
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     distress: false
     objectives:
@@ -2933,14 +2933,14 @@
       target: capital
   - key: wingthree
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 800, -400
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     distress: false
     objectives:
@@ -2948,14 +2948,14 @@
       target: capital
   - key: wingfour
     navigation: WFCrewNavigationRaider
-    vessel: Gadfly
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -800, -400
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     distress: false
     objectives:
@@ -2963,14 +2963,14 @@
       target: capital
   - key: wingfive
     navigation: WFCrewNavigationRaider
-    vessel: Kynda
+    vessels: [ Fenrir, Ganymede, Vulture ]
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -900, 0
     side: pirates
     faction: PirateNF
-    company: PDV
+    company: WFAshfallReavers
     profile: WFCrewProfilePirate
     distress: false
     objectives:

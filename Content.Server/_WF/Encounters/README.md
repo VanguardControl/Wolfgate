@@ -19,7 +19,8 @@ under way. Ships can lie in wait (`lurks`) until a player is within the start ra
 `@player`. `announcer` names the ship that voices a radio announcement. With two or more sides each gets a radar
 colour (`iffColor`, or `WFEncounterSystem.SideColors`).
 
-The prototypes cover freight runs, TSF and Phaethon Dynasty patrols (one of each at round start, kept to different
+The encounter pirates fly as the Ashfall Reavers (`WFAshfallReavers`, a company nobody can pick, at war with both
+navies in `standing.yml`) on scrapyard and black-market hulls, in pirate slops. The prototypes cover freight runs, TSF and Phaethon Dynasty patrols (one of each at round start, kept to different
 stations and away from the other's home ports with `avoidStations`) and transports, wandering traders (with exotic dealers under mercenary escort), pirate raiders
 and boarders, a hauler under attack, TSF and Dynasty backup requests, capital patrols (and admin-only supercapital ones), stranded freighters, a false mayday with pirates
 lying in wait, skirmishes (TSF or Dynasty against raiders, corsairs or each other; plain, and hostile ones that also
