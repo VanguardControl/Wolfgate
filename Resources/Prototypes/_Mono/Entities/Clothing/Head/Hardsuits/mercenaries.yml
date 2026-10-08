@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 - type: entity
   parent: [ClothingHeadHardsuitBase, ClothingHeadSuitWithLightBase]
   id: ClothingHelmetHardsuitMercenaryWarlord
@@ -46,6 +47,8 @@
     - HeadTop
     - HeadSide
 
+=======
+>>>>>>> 5044364960 (The Underground Black Market [Repurposing the ContraVend and Syndicate Items] (#4816))
 #SCAF Helmet
 - type: entity
   parent: NFClothingHeadHardsuitWithLightBase
