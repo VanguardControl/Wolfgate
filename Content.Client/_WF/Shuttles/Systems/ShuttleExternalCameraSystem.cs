@@ -14,6 +14,7 @@ using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
+using Robust.Shared.Graphics;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Network;
@@ -111,6 +112,22 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
     /// The point being looked at, in the flown grid's coordinates.
     /// </summary>
     public Vector2 LookPoint => _look;
+
+    /// <summary>
+    /// The zoom the wheel has asked for and the server hasn't answered yet.
+    /// </summary>
+    public float? PendingZoom => _pendingZoom;
+
+    /// <summary>
+    /// How far the pilot's view sits from their eye's own position, for whatever draws by that position.
+    /// </summary>
+    public Vector2 GetViewOffset(IEye? pass)
+    {
+        if (_pilot == null || !TryComp<EyeComponent>(_pilot, out var eye))
+            return Vector2.Zero;
+
+        return ShuttleHullRoofOverlay.IsPilotPass(pass, eye.Eye, primaryOnly: false) ? _offset : Vector2.Zero;
+    }
 
     public override void Initialize()
     {

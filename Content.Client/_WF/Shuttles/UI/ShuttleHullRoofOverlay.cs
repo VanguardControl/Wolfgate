@@ -1,36 +1,49 @@
 using System.Numerics;
+using Content.Client.Explosion;
 using Content.Client.Shuttles;
 using Content.Client.Viewport;
 using Content.Shared._Mono.ShipGuns;
 using Content.Shared._WF.Shuttles;
+using Content.Shared.Atmos;
+using Content.Shared.Atmos.Components;
+using Content.Shared.Explosion.Components;
 using Content.Shared.Maps;
+using Content.Shared.Projectiles;
+using Robust.Client.ComponentTrees;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Enums;
 using Robust.Shared.Graphics;
+using Robust.Shared.Graphics.RSI;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
 namespace Content.Client._WF.Shuttles.UI;
 
 /// <summary>
 /// Plates over every hull while the pilot's external view is up. That view draws no FOV, so without
-/// this the inside of each ship in sight would be on show. Guns and thrusters are drawn back on top.
+/// this the inside of each ship in sight would be on show. Guns, thrusters, fire, blasts and hits are
+/// drawn back on top.
 /// </summary>
 public sealed partial class ShuttleHullRoofOverlay : Overlay
 {
     [Dependency] private IEntityManager _entManager = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IResourceCache _resCache = default!;
     [Dependency] private ITileDefinitionManager _tileDefs = default!;
 
+    private readonly SharedAppearanceSystem _appearance;
     private readonly SharedMapSystem _map;
+    private readonly SpriteTreeSystem _spriteTree;
     private readonly SpriteSystem _sprite;
     private readonly SharedTransformSystem _transform;
     private readonly TurfSystem _turf;
@@ -70,10 +83,20 @@ public sealed partial class ShuttleHullRoofOverlay : Overlay
 
     private const int MaxParentDepth = 8;
 
+    private const string FireRsiPath = "/Textures/Effects/fire.rsi";
+    private const int FireStates = 3;
+
+    /// <summary>
+    /// Seconds a frame of tile fire is held.
+    /// </summary>
+    private const float FireFrameTime = 0.1f;
+
     private readonly Dictionary<EntityUid, HullRoof> _roofs = new();
     private readonly Dictionary<Vector2i, int> _roofed = new();
     private readonly HashSet<EntityUid> _drawn = new();
     private List<Entity<MapGridComponent>> _grids = new();
+    private readonly List<Entity<SpriteComponent, TransformComponent>> _sprites = new();
+    private Texture[]?[]? _fireFrames;
 
     /// <summary>
     /// How each kind of tile is roofed, by tile id.
@@ -88,7 +111,9 @@ public sealed partial class ShuttleHullRoofOverlay : Overlay
     {
         IoCManager.InjectDependencies(this);
 
+        _appearance = _entManager.System<SharedAppearanceSystem>();
         _map = _entManager.System<SharedMapSystem>();
+        _spriteTree = _entManager.System<SpriteTreeSystem>();
         _sprite = _entManager.System<SpriteSystem>();
         _transform = _entManager.System<SharedTransformSystem>();
         _turf = _entManager.System<TurfSystem>();
@@ -159,6 +184,9 @@ public sealed partial class ShuttleHullRoofOverlay : Overlay
             return;
 
         DrawHardware(args);
+        DrawFire(args);
+        DrawExplosions(args);
+        DrawEffects(args);
         handle.SetTransform(Matrix3x2.Identity);
     }
 
@@ -205,6 +233,141 @@ public sealed partial class ShuttleHullRoofOverlay : Overlay
             // Gyroscopes are thrusters too, and sit inside. A real one has its nozzle over open space.
             if (IsOnDrawnHull(xform, sprite) && NozzleExposed(xform))
                 DrawSprite(handle, (uid, sprite), xform, eyeRotation, bounds);
+        }
+    }
+
+    /// <summary>
+    /// Burning tiles on the roofed hulls, so a fire aboard shows from outside.
+    /// </summary>
+    private void DrawFire(in OverlayDrawArgs args)
+    {
+        var handle = args.WorldHandle;
+        var frames = GetFireFrames();
+        var frame = (int) (_timing.RealTime.TotalSeconds / FireFrameTime);
+
+        foreach (var gridUid in _drawn)
+        {
+            if (!_entManager.TryGetComponent<GasTileOverlayComponent>(gridUid, out var gas))
+                continue;
+
+            var (_, _, matrix, invMatrix) = _transform.GetWorldPositionRotationMatrixWithInv(gridUid);
+            var bounds = invMatrix.TransformBox(args.WorldBounds).Enlarged(1f);
+            handle.SetTransform(matrix);
+
+            foreach (var chunk in gas.Chunks.Values)
+            {
+                var tiles = new GasChunkEnumerator(chunk);
+
+                while (tiles.MoveNext(out var tile))
+                {
+                    if (tile.FireState == 0)
+                        continue;
+
+                    var indices = chunk.Origin + (tiles.X, tiles.Y);
+
+                    if (!bounds.Contains(indices + Vector2Helpers.Half))
+                        continue;
+
+                    if (frames[Math.Min((int) tile.FireState, FireStates) - 1] is { Length: > 0 } state)
+                        handle.DrawTexture(state[frame % state.Length], indices);
+                }
+            }
+        }
+    }
+
+    private Texture[]?[] GetFireFrames()
+    {
+        if (_fireFrames != null)
+            return _fireFrames;
+
+        _fireFrames = new Texture[]?[FireStates];
+
+        if (!_resCache.TryGetResource<RSIResource>(FireRsiPath, out var fire))
+            return _fireFrames;
+
+        for (var i = 0; i < FireStates; i++)
+        {
+            if (fire.RSI.TryGetState((i + 1).ToString(), out var state))
+                _fireFrames[i] = state.GetFrames(RsiDirection.South);
+        }
+
+        return _fireFrames;
+    }
+
+    /// <summary>
+    /// Blasts, drawn as the explosion overlay draws them underneath.
+    /// </summary>
+    private void DrawExplosions(in OverlayDrawArgs args)
+    {
+        var handle = args.WorldHandle;
+        var query = _entManager.EntityQueryEnumerator<ExplosionVisualsComponent, ExplosionVisualsTexturesComponent>();
+
+        while (query.MoveNext(out var uid, out var visuals, out var textures))
+        {
+            if (visuals.Epicenter.MapId != args.MapId ||
+                visuals.Intensity.Count == 0 ||
+                textures.FireFrames.Count == 0 ||
+                !_appearance.TryGetData(uid, ExplosionAppearanceData.Progress, out int progress))
+            {
+                continue;
+            }
+
+            progress = Math.Min(progress, visuals.Intensity.Count - 1);
+
+            foreach (var (gridUid, tileSets) in visuals.Tiles)
+            {
+                if (!_drawn.Contains(gridUid) || !_entManager.TryGetComponent<MapGridComponent>(gridUid, out var grid))
+                    continue;
+
+                var (_, _, matrix, invMatrix) = _transform.GetWorldPositionRotationMatrixWithInv(gridUid);
+                var bounds = invMatrix.TransformBox(args.WorldBounds).Enlarged(grid.TileSize * 2);
+                var size = new Vector2(grid.TileSize, grid.TileSize);
+                handle.SetTransform(matrix);
+
+                for (var ring = 0; ring <= progress; ring++)
+                {
+                    if (!tileSets.TryGetValue(ring, out var tiles))
+                        continue;
+
+                    var strength = (int) Math.Min(visuals.Intensity[ring] / textures.IntensityPerState, textures.FireFrames.Count - 1);
+                    var frames = textures.FireFrames[Math.Max(strength, 0)];
+
+                    foreach (var tile in tiles)
+                    {
+                        var centre = (tile + Vector2Helpers.Half) * grid.TileSize;
+
+                        if (bounds.Contains(centre))
+                            handle.DrawTextureRect(_random.Pick(frames), Box2.CenteredAround(centre, size), textures.FireColor);
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Shots and the sparks they leave where they land on a roofed hull.
+    /// </summary>
+    private void DrawEffects(in OverlayDrawArgs args)
+    {
+        var handle = args.WorldHandle;
+        var eyeRotation = args.Viewport.Eye?.Rotation ?? Angle.Zero;
+        var bounds = args.WorldAABB.Enlarged(HardwareMargin);
+
+        _sprites.Clear();
+        _spriteTree.QueryAabb(_sprites, args.MapId, bounds);
+
+        foreach (var (uid, sprite, xform) in _sprites)
+        {
+            if (!sprite.Visible || xform.GridUid is not { } gridUid || !_drawn.Contains(gridUid))
+                continue;
+
+            if (sprite.DrawDepth != (int) Content.Shared.DrawDepth.DrawDepth.Effects &&
+                !_entManager.HasComponent<ProjectileComponent>(uid))
+            {
+                continue;
+            }
+
+            DrawSprite(handle, (uid, sprite), xform, eyeRotation, bounds);
         }
     }
 

@@ -48,6 +48,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.Client/_WF/Shuttles/BUI/ShuttleConsoleBoundUserInterface.Wolfgate.cs`](../../../Content.Client/_WF/Shuttles/BUI/ShuttleConsoleBoundUserInterface.Wolfgate.cs)
 - [`Content.Client/_WF/Shuttles/ScalingViewport.ShuttleCamera.cs`](../../../Content.Client/_WF/Shuttles/ScalingViewport.ShuttleCamera.cs)
 - [`Content.Client/_WF/Shuttles/Systems/ShuttleCameraSystem.cs`](../../../Content.Client/_WF/Shuttles/Systems/ShuttleCameraSystem.cs)
+- [`Content.Client/_WF/Shuttles/Systems/ShuttleCameraZoomPredictionSystem.cs`](../../../Content.Client/_WF/Shuttles/Systems/ShuttleCameraZoomPredictionSystem.cs)
 - [`Content.Client/_WF/Shuttles/Systems/ShuttleExternalCameraSystem.cs`](../../../Content.Client/_WF/Shuttles/Systems/ShuttleExternalCameraSystem.cs)
 - [`Content.Client/_WF/Shuttles/UI/CollisionWarningBanner.xaml`](../../../Content.Client/_WF/Shuttles/UI/CollisionWarningBanner.xaml)
 - [`Content.Client/_WF/Shuttles/UI/CollisionWarningBanner.xaml.cs`](../../../Content.Client/_WF/Shuttles/UI/CollisionWarningBanner.xaml.cs)
@@ -90,6 +91,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 
 ## Non-modular edits
 
+- [`Content.Client/Parallax/ParallaxOverlay.cs`](../../../Content.Client/Parallax/ParallaxOverlay.cs): the external view pans away from where its eye sits
 - [`Content.Client/Shuttles/BUI/ShuttleConsoleBoundUserInterface.cs`](../../../Content.Client/Shuttles/BUI/ShuttleConsoleBoundUserInterface.cs)
 - [`Content.Client/Shuttles/UI/ShuttleConsoleWindow.xaml`](../../../Content.Client/Shuttles/UI/ShuttleConsoleWindow.xaml)
   - xmlns:wf for _WF shuttle controls
