@@ -61,24 +61,15 @@ public sealed partial class WFEncounterSystem
             // Off the prey with the raid under way: it cast off, or the prey broke away.
             var looting = CurrentOrder(ship) == WFCrewObjectiveKind.Loot;
             ship.RaidEnds = null;
-            // Whoever is still aboard the prey fights on there, and the ship gives them up and runs.
-            if (Strand(ship))
+            // Shaken off with the boarding party still aboard the prey: the ship goes straight back for them and takes
+            // the raid up again where it docks. They are only given up once it can't get a port on the prey again.
+            if (PartyAboard(ship))
             {
-                ship.Raided = true;
-                ship.HasOrders = true;
-                ship.Flown = false;
-                _huntRecords.Remove(ship.Grid);
-                var clear = _transform.GetMapCoordinates(ship.Grid).Position + _random.NextAngle().ToVec() * RaidExit;
-                _objectives.SetQueue(ship.Grid, ship.Group, new List<WFCrewObjective>
-                {
-                    new() { Kind = WFCrewObjectiveKind.GoTo, Position = clear, Range = 200f },
-                });
-                return;
+                status = null;
             }
-
             // Broken off before the loot was in and with nobody left aboard: the raid starts over and the ship goes
             // after its prey again. The new orders cancel the old raid's work.
-            if (looting)
+            else if (looting)
             {
                 ship.Boarded = null;
                 status = null;
@@ -110,6 +101,22 @@ public sealed partial class WFEncounterSystem
         // A ship it cannot get a port on is left alone; the hunt moves on to the next nearest.
         if (status == "dock-failed" && ship.Prey is { } missed && ++hunt.Misses >= HuntDockMisses)
         {
+            // Whoever is still aboard the prey fights on there, and the ship gives them up and runs.
+            if (missed == ship.Boarded && Strand(ship))
+            {
+                Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} cannot get back aboard {ToPrettyString(missed)} and leaves its party.");
+                ship.Raided = true;
+                ship.HasOrders = true;
+                ship.Flown = false;
+                _huntRecords.Remove(ship.Grid);
+                var clear = _transform.GetMapCoordinates(ship.Grid).Position + _random.NextAngle().ToVec() * RaidExit;
+                _objectives.SetQueue(ship.Grid, ship.Group, new List<WFCrewObjective>
+                {
+                    new() { Kind = WFCrewObjectiveKind.GoTo, Position = clear, Range = 200f },
+                });
+                return;
+            }
+
             Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} gives up on docking with {ToPrettyString(missed)}.");
             hunt.Shunned.Add(missed);
             ship.Prey = null;
@@ -198,6 +205,22 @@ public sealed partial class WFEncounterSystem
     /// no longer waited for. The fallen stay where they fell, no longer the ship's crew. The rest get their own posts
     /// back. True if anyone living was left.
     /// </summary>
+    /// <summary>Whether any of the ship's crew are alive aboard the ship it boarded.</summary>
+    private bool PartyAboard(WFEncounterShipState ship)
+    {
+        if (ship.Boarded is not { } prey || TerminatingOrDeleted(prey))
+            return false;
+
+        var crew = EntityQueryEnumerator<WFCrewComponent, TransformComponent>();
+        while (crew.MoveNext(out var uid, out var member, out var xform))
+        {
+            if (member.Group == ship.Group && xform.GridUid == prey && _mobs.IsAlive(uid))
+                return true;
+        }
+
+        return false;
+    }
+
     private bool Strand(WFEncounterShipState ship)
     {
         var left = 0;
