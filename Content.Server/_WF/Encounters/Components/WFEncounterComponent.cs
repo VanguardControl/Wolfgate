@@ -41,6 +41,9 @@ public sealed partial class WFEncounterComponent : Component
     public WFEncounterCategory Category;
 
     [DataField]
+    public WFEncounterIcon Icon;
+
+    [DataField]
     public int Cost;
 
     [DataField]
@@ -131,6 +134,10 @@ public sealed partial class WFEncounterShipState
     /// <summary>Its radar colour, when the encounter gave it one.</summary>
     [DataField]
     public Color? Color;
+
+    /// <summary>Its own radar glyph; Category for the encounter's.</summary>
+    [DataField]
+    public WFEncounterIcon Icon;
 
     /// <summary>How it arrived stranded, if it did.</summary>
     [DataField]

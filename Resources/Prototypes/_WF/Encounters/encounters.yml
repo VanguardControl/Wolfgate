@@ -351,6 +351,7 @@
   announcer: hauler
   start: Scheduled
   category: Distress
+  icon: Skull
   cost: 2
   startRadius: 1500
   rewards:
@@ -399,6 +400,7 @@
   announcer: hauler
   start: Scheduled
   category: Distress
+  icon: Skull
   cost: 3
   weight: 0.5
   startRadius: 1800
@@ -463,6 +465,7 @@
   name: wf-encounter-name-pirates
   start: Scheduled
   category: Threat
+  icon: Skull
   cost: 2
   weight: 2
   minPlayers: 3
@@ -513,6 +516,7 @@
   name: wf-encounter-name-boarders
   start: Scheduled
   category: Threat
+  icon: Skull
   cost: 2
   weight: 2
   minPlayers: 2
@@ -546,6 +550,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Traffic
+  icon: Coins
   cost: 1
   weight: 2
   cooldown: 2400
@@ -727,6 +732,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Traffic
+  icon: Coins
   cost: 1
   weight: 1
   cooldown: 3000
@@ -761,6 +767,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Traffic
+  icon: Coins
   cost: 1
   weight: 1
   cooldown: 3000
@@ -795,6 +802,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Traffic
+  icon: Coins
   cost: 1
   weight: 1.5
   cooldown: 3000
@@ -830,6 +838,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Traffic
+  icon: Coins
   cost: 1
   weight: 0.75
   cooldown: 3000
@@ -865,6 +874,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Traffic
+  icon: Coins
   cost: 1
   weight: 0.5
   cooldown: 3000
@@ -1154,6 +1164,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Threat
+  icon: Swords
   cost: 2
   weight: 0.75
   minPlayers: 3
@@ -1259,6 +1270,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Threat
+  icon: Swords
   cost: 2
   weight: 0.5
   minPlayers: 3
@@ -1338,6 +1350,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Threat
+  icon: Swords
   cost: 2
   weight: 0.5
   minPlayers: 3
@@ -1420,6 +1433,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Threat
+  icon: Swords
   cost: 2
   weight: 0.75
   minPlayers: 3
@@ -1526,6 +1540,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Threat
+  icon: Swords
   cost: 2
   weight: 0.5
   minPlayers: 3
@@ -1607,6 +1622,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Threat
+  icon: Swords
   cost: 2
   weight: 0.5
   minPlayers: 5
@@ -1698,6 +1714,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Threat
+  icon: Swords
   cost: 3
   weight: 0.35
   minPlayers: 6
@@ -1818,6 +1835,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Threat
+  icon: Swords
   cost: 3
   weight: 0.35
   minPlayers: 6
@@ -2118,6 +2136,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Distress
+  icon: Ghost
   cost: 1
   weight: 0.6
   minPlayers: 2
@@ -2147,6 +2166,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Distress
+  icon: Ghost
   cost: 1
   weight: 0.35
   minPlayers: 5
@@ -2180,6 +2200,7 @@
   announcer: capital
   start: Scheduled
   category: Distress
+  icon: Swords
   cost: 4
   weight: 0.8
   minPlayers: 6
@@ -2306,6 +2327,7 @@
   announcer: capital
   start: Scheduled
   category: Distress
+  icon: Swords
   cost: 4
   weight: 0.8
   minPlayers: 6
@@ -2660,6 +2682,7 @@
   announcementColor: "#db7093"
   start: Manual
   category: Threat
+  icon: Flag
   cost: 6
   weight: 0
   minPlayers: 0
@@ -2833,6 +2856,7 @@
   announcer: capital
   start: Scheduled
   category: Distress
+  icon: Swords
   cost: 6
   weight: 0.4
   minPlayers: 9
@@ -2987,6 +3011,7 @@
   announcer: capital
   start: Scheduled
   category: Distress
+  icon: Swords
   cost: 6
   weight: 0.4
   minPlayers: 9
@@ -3144,6 +3169,7 @@
   announcementColor: "#db7093"
   start: Manual
   category: Threat
+  icon: Flag
   cost: 10
   weight: 0
   minPlayers: 0
@@ -3367,6 +3393,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Traffic
+  icon: Coins
   cost: 2
   weight: 0.35
   cooldown: 4800
@@ -3441,6 +3468,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Patrol
+  icon: Flag
   cost: 4
   weight: 0.4
   minPlayers: 6
@@ -3519,6 +3547,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Scheduled
   category: Patrol
+  icon: Flag
   cost: 4
   weight: 0.4
   minPlayers: 6
@@ -3601,6 +3630,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Manual
   category: Patrol
+  icon: Flag
   cost: 6
   weight: 0
   minPlayers: 0
@@ -3698,6 +3728,7 @@
   announcementSender: wf-encounter-sender-traffic
   start: Manual
   category: Patrol
+  icon: Flag
   cost: 6
   weight: 0
   minPlayers: 0

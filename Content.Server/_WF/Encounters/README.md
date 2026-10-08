@@ -97,6 +97,10 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 
 - [`Resources/Locale/en-US/_WF/Encounters/encounters.ftl`](../../../Resources/Locale/en-US/_WF/Encounters/encounters.ftl)
 
+### Textures
+
+- [`Resources/Textures/_WF/Encounters/markers.rsi/`](../../../Resources/Textures/_WF/Encounters/markers.rsi/)
+
 ### Docs
 
 - [`Docs/_WF/Encounters/design.md`](../../../Docs/_WF/Encounters/design.md)

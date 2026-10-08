@@ -310,6 +310,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             ? _timing.CurTime + TimeSpan.FromSeconds(prototype.Duration)
             : null;
         comp.Category = prototype.Category;
+        comp.Icon = prototype.Icon;
         comp.Cost = prototype.Cost;
         comp.Lifetime = prototype.Lifetime;
         comp.OffBudget = prototype.Lifetime == WFEncounterLifetime.Persistent || prototype.Start == WFEncounterStart.RoundStart;
@@ -579,6 +580,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
             AttackRange = ship.AttackRange,
             ZoneLines = ship.ZoneLines,
             ZoneTargets = ship.ZoneTargets,
+            Icon = ship.Icon,
             Hunt = ship.Hunt,
             Distress = ship.Distress,
             Passengers = ship.Passengers.Count > 0,
