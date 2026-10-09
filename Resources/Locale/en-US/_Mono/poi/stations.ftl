@@ -20,7 +20,7 @@ frontier-lobby-crocus-subtext = Ground warfare.
 frontier-lobby-crocus-description = This is a map for the Crocus mode. You may have objectives upon spawning in. View them in the character menu, they are shared with your full faction.
 
    - [color=red][bold]Special species' may have difficulty playing here![/bold][/color] - The air may be too cold for reptillians, there is little infrastructure for IPCs, and Voxes may struggle with the atmospherics problems.
-   - Civilians in this mode (for now) are considered [color=bold]free agents[/bold], and do not have a specific objective. Treat it as a neutral "do-whatever" role.
+   - Civilians in this mode (for now) are considered [bold]free agents[/bold], and do not have a specific objective. Treat it as a neutral "do-whatever" role.
 
 frontier-lobby-underground-subtext = A hideout harboring enemies of the Trans-Solarian Federation.
 frontier-lobby-underground-description = A hideout with its IFF disabled in the Outer Cloud, containing a medbay, manufactory and four UndergroundVends that serve as a direct link to a distant Persean black market.
