@@ -13,7 +13,7 @@ public partial class ShuttleNavControl
     private readonly List<Box2> _encounterLabels = new();
 
     /// <summary>The ships of one side of one encounter, gathered for a frame.</summary>
-    private readonly Dictionary<(NetEntity Encounter, string Side), (Vector2 Sum, int Count, bool Named, bool OnScope, Color Color, WFEncounterIcon Icon)> _encounterGroups = new();
+    private readonly Dictionary<(NetEntity Encounter, string Side), (Vector2 Sum, int Count, bool Named, bool OnScope, Color Color, WFEncounterIcon Icon, WFEncounterCategory Category)> _encounterGroups = new();
 
     private static readonly ResPath MarkerGlyphs = new("/Textures/_WF/Encounters/markers.rsi");
     private readonly Dictionary<WFEncounterIcon, Texture> _encounterGlyphs = new();
@@ -54,7 +54,7 @@ public partial class ShuttleNavControl
             var key = (marker.Encounter, marker.Side);
             var color = marker.Color ?? WFEncounterColors.Category(marker.Category);
             if (!_encounterGroups.TryGetValue(key, out var group))
-                group = (Vector2.Zero, 0, false, false, color, WFEncounterIcon.Category);
+                group = (Vector2.Zero, 0, false, false, color, WFEncounterIcon.Category, marker.Category);
 
             var point = Vector2.Transform(system.GetPosition(marker), worldToView);
             var onScope = (point - centre).Length() <= rim;
@@ -75,10 +75,9 @@ public partial class ShuttleNavControl
                 }
             }
 
+            // Any ship of the side with a glyph of its own names the side's; the category's glyph is only a fallback at drawing.
             var icon = group.Icon != WFEncounterIcon.Category ? group.Icon : marker.Icon;
-            if (icon == WFEncounterIcon.Category)
-                icon = EncounterGlyphFor(marker.Category);
-            _encounterGroups[key] = (group.Sum + point, group.Count + 1, group.Named || onScope, group.OnScope || onScope, color, icon);
+            _encounterGroups[key] = (group.Sum + point, group.Count + 1, group.Named || onScope, group.OnScope || onScope, color, icon, group.Category);
         }
 
         foreach (var group in _encounterGroups.Values)
@@ -100,7 +99,8 @@ public partial class ShuttleNavControl
             // The side's glyph just inside the arrow, so a skull at the rim is a raider and a crate a freighter.
             var glyph = 16f * UIScale;
             var glyphCentre = back - direction * (glyph * 0.5f + 2f * UIScale);
-            handle.DrawTextureRect(EncounterGlyph(group.Icon), UIBox2.FromDimensions(glyphCentre - new Vector2(glyph / 2f), new Vector2(glyph)), group.Color);
+            var icon = group.Icon != WFEncounterIcon.Category ? group.Icon : EncounterGlyphFor(group.Category);
+            handle.DrawTextureRect(EncounterGlyph(icon), UIBox2.FromDimensions(glyphCentre - new Vector2(glyph / 2f), new Vector2(glyph)), group.Color);
         }
     }
 
