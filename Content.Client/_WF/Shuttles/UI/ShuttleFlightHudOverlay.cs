@@ -26,15 +26,15 @@ public sealed partial class ShuttleFlightHudOverlay : Overlay
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
     /// <summary>
-    /// How far in from the view's left edge the dial's centre sits, in UI pixels. It rides half way
-    /// down that edge, clear of the menu and action bars above and the inventory below.
+    /// Clear space left above the dial, which sits in the middle of the view's top edge. In UI pixels,
+    /// about an inch, so the bars along the top stay uncovered.
     /// </summary>
-    private const float DialInset = 84f;
+    private const float TopPadding = 96f;
 
     private const float DialRadius = 48f;
     private const float TickLength = 6f;
     private const float ArrowHead = 7f;
-    private const float LineHeight = 15f;
+    private const float ReadoutGap = 14f;
     private const int FontSize = 10;
 
     /// <summary>
@@ -84,7 +84,7 @@ public sealed partial class ShuttleFlightHudOverlay : Overlay
         var handle = args.ScreenHandle;
         var scale = _uiManager.RootControl.UIScale;
         var view = VisibleBounds(args);
-        var centre = new Vector2(view.Left + DialInset * scale, (view.Top + view.Bottom) / 2f);
+        var centre = new Vector2((view.Left + view.Right) / 2f, view.Top + (TopPadding + DialRadius) * scale);
         var radius = DialRadius * scale;
 
         var velocity = body.LinearVelocity;
@@ -126,13 +126,27 @@ public sealed partial class ShuttleFlightHudOverlay : Overlay
         var drift = speed > MinSpeed ? MathHelper.RadiansToDegrees(MathF.Atan2(local.X, local.Y)) : 0f;
         var turn = -MathHelper.RadiansToDegrees(body.AngularVelocity);
 
-        var text = centre + new Vector2(-radius, radius + 8f * scale);
-        var line = new Vector2(0f, LineHeight * scale);
+        // In a row with the dial: two readouts run out to its left and two to its right.
+        var gap = ReadoutGap * scale;
+        var left = centre.X - radius - gap;
+        left = DrawReadout(handle, Loc.GetString("shuttle-camera-hud-heading", ("heading", $"{heading:000}")), left, centre.Y, scale, true) - gap;
+        DrawReadout(handle, Loc.GetString("shuttle-camera-hud-speed", ("speed", $"{speed:0.0}")), left, centre.Y, scale, true);
 
-        handle.DrawString(_font, text, Loc.GetString("shuttle-camera-hud-speed", ("speed", $"{speed:0.0}")), scale, TextColor);
-        handle.DrawString(_font, text + line, Loc.GetString("shuttle-camera-hud-heading", ("heading", $"{heading:000}")), scale, TextColor);
-        handle.DrawString(_font, text + line * 2f, Loc.GetString("shuttle-camera-hud-drift", ("angle", $"{drift:+0;-0;0}")), scale, TextColor);
-        handle.DrawString(_font, text + line * 3f, Loc.GetString("shuttle-camera-hud-turn", ("rate", $"{turn:+0.0;-0.0;0.0}")), scale, TextColor);
+        var right = centre.X + radius + gap;
+        right = DrawReadout(handle, Loc.GetString("shuttle-camera-hud-drift", ("angle", $"{drift:+0;-0;0}")), right, centre.Y, scale, false) + gap;
+        DrawReadout(handle, Loc.GetString("shuttle-camera-hud-turn", ("rate", $"{turn:+0.0;-0.0;0.0}")), right, centre.Y, scale, false);
+    }
+
+    /// <summary>
+    /// Writes a readout level with the dial's centre, ending or starting at an edge. Returns its far edge.
+    /// </summary>
+    private float DrawReadout(DrawingHandleScreen handle, string text, float edge, float middle, float scale, bool endsAtEdge)
+    {
+        var size = handle.GetDimensions(_font, text, scale);
+        var x = endsAtEdge ? edge - size.X : edge;
+
+        handle.DrawString(_font, new Vector2(x, middle - size.Y / 2f).Rounded(), text, scale, TextColor);
+        return endsAtEdge ? x : x + size.X;
     }
 
     /// <summary>
