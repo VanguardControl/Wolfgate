@@ -62,9 +62,12 @@ public sealed partial class WFEncounterSystem
             var looting = CurrentOrder(ship) == WFCrewObjectiveKind.Loot;
             ship.RaidEnds = null;
             // Shaken off with the boarding party still aboard the prey: the ship goes straight back for them and takes
-            // the raid up again where it docks. They are only given up once it can't get a port on the prey again.
+            // the raid up again where it docks. They are only given up once it can't get a port on the prey again, or
+            // the prey has jumped out of reach with them.
             if (PartyAboard(ship))
             {
+                if (!PreyReachable(ship) && AbandonParty(ship))
+                    return;
                 status = null;
             }
             // Broken off before the loot was in and with nobody left aboard: the raid starts over and the ship goes
@@ -102,20 +105,8 @@ public sealed partial class WFEncounterSystem
         if (status == "dock-failed" && ship.Prey is { } missed && ++hunt.Misses >= HuntDockMisses)
         {
             // Whoever is still aboard the prey fights on there, and the ship gives them up and runs.
-            if (missed == ship.Boarded && Strand(ship))
-            {
-                Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} cannot get back aboard {ToPrettyString(missed)} and leaves its party.");
-                ship.Raided = true;
-                ship.HasOrders = true;
-                ship.Flown = false;
-                _huntRecords.Remove(ship.Grid);
-                var clear = _transform.GetMapCoordinates(ship.Grid).Position + _random.NextAngle().ToVec() * RaidExit;
-                _objectives.SetQueue(ship.Grid, ship.Group, new List<WFCrewObjective>
-                {
-                    new() { Kind = WFCrewObjectiveKind.GoTo, Position = clear, Range = 200f },
-                });
+            if (missed == ship.Boarded && AbandonParty(ship))
                 return;
-            }
 
             Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} gives up on docking with {ToPrettyString(missed)}.");
             hunt.Shunned.Add(missed);
@@ -124,6 +115,10 @@ public sealed partial class WFEncounterSystem
 
         if (ship.Prey is not { } prey || TerminatingOrDeleted(prey) || Transform(prey).MapID != Transform(ship.Grid).MapID)
         {
+            // A party left aboard a prey that is gone is given up before the hunt turns to another ship.
+            if (!PreyReachable(ship) && PartyAboard(ship) && AbandonParty(ship))
+                return;
+
             hunt.Misses = 0;
             ship.Prey = NearestCrewedShip(ship.Grid);
             if (ship.Prey is not { } found)
@@ -205,6 +200,34 @@ public sealed partial class WFEncounterSystem
     /// no longer waited for. The fallen stay where they fell, no longer the ship's crew. The rest get their own posts
     /// back. True if anyone living was left.
     /// </summary>
+    /// <summary>Whether the ship it boarded is still there, on the same map.</summary>
+    private bool PreyReachable(WFEncounterShipState ship)
+    {
+        return ship.Boarded is { } prey && !TerminatingOrDeleted(prey) && Transform(prey).MapID == Transform(ship.Grid).MapID;
+    }
+
+    /// <summary>
+    /// Leaves the boarding party to the prey and runs: the raid is over, the encounter completes and the ship jumps out.
+    /// False, and nothing changed, when nobody living was aboard to leave.
+    /// </summary>
+    private bool AbandonParty(WFEncounterShipState ship)
+    {
+        if (!Strand(ship))
+            return false;
+
+        Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} cannot get back aboard {ToPrettyString(ship.Boarded)} and leaves its party.");
+        ship.Raided = true;
+        ship.HasOrders = true;
+        ship.Flown = false;
+        _huntRecords.Remove(ship.Grid);
+        var clear = _transform.GetMapCoordinates(ship.Grid).Position + _random.NextAngle().ToVec() * RaidExit;
+        _objectives.SetQueue(ship.Grid, ship.Group, new List<WFCrewObjective>
+        {
+            new() { Kind = WFCrewObjectiveKind.GoTo, Position = clear, Range = 200f },
+        });
+        return true;
+    }
+
     /// <summary>Whether any of the ship's crew are alive aboard the ship it boarded.</summary>
     private bool PartyAboard(WFEncounterShipState ship)
     {

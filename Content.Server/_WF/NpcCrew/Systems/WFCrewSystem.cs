@@ -346,7 +346,7 @@ public sealed class WFCrewSystem : EntitySystem
 
     /// <summary>Spawns one crewman of a role with its post at the coordinates. Null when the role is unknown.</summary>
     public EntityUid? SpawnCrewman(ProtoId<WFCrewRolePrototype> roleId, EntityCoordinates post, string group,
-        ProtoId<StartingGearPrototype>? loadout = null, EntProtoId? body = null)
+        ProtoId<StartingGearPrototype>? loadout = null, EntProtoId? body = null, string? name = null)
     {
         if (!_prototypes.TryIndex(roleId, out var role))
         {
@@ -378,6 +378,9 @@ public sealed class WFCrewSystem : EntitySystem
         crew.Engagement = role.Engagement;
         crew.Group = group;
         crew.Post = post;
+        // A name given here replaces the body's before the title goes on and the card and records are written.
+        if (name != null)
+            _meta.SetEntityName(uid, name);
         Apply((uid, crew));
         _crewAccess.RegisterSpawnShip(uid);
         if (Transform(uid).GridUid is { } ship && !HasComp<Content.Shared._Mono.ShipRepair.Components.ShipRepairDataComponent>(ship))

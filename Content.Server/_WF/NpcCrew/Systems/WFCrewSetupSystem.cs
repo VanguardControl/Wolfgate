@@ -262,11 +262,12 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
                 loadout = _random.Pick(pool);
             // A role the profile has no loadout for keeps its own mob and gear, so nobody is spawned naked.
             var body = loadout != null && profile != null && profile.Bodies.Count > 0 ? _random.Pick(profile.Bodies) : (EntProtoId?) null;
-            var uid = _crew.SpawnCrewman(post.Role, new EntityCoordinates(grid, post.Position), mission.Group, loadout, body);
+            var uid = _crew.SpawnCrewman(post.Role, new EntityCoordinates(grid, post.Position), mission.Group, loadout, body,
+                profile != null ? FlavourName(profile) : null);
             if (uid is not { } mob)
                 continue;
-            if (profile != null)
-                Flavour(mob, post.Role, profile);
+            if (profile != null && profile.Components.Count > 0)
+                EntityManager.AddComponents(mob, profile.Components);
             if (post.Engagement is { } engagement)
                 _crew.SetEngagement(mob, engagement);
             else if (profile != null && profile.Engagement.TryGetValue(post.Role, out var manner))
@@ -281,24 +282,15 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
         return spawned.Count == posts.Count;
     }
 
-    /// <summary>
-    /// Gives a crewman his profile's name and manner of speech: the components it lists, and a name rolled from its
-    /// datasets with his role's title in front, in place of the one his body came with.
-    /// </summary>
-    private void Flavour(EntityUid mob, string roleId, WFCrewProfilePrototype profile)
+    /// <summary>A name rolled from a profile's datasets, or null for a profile that leaves crews the names their bodies roll.</summary>
+    private string? FlavourName(WFCrewProfilePrototype profile)
     {
-        if (profile.Components.Count > 0)
-            EntityManager.AddComponents(mob, profile.Components);
-
         if (profile.FirstNames is not { } firstId || profile.LastNames is not { } lastId
             || !_prototypes.TryIndex(firstId, out var first) || !_prototypes.TryIndex(lastId, out var last)
             || first.Values.Count == 0 || last.Values.Count == 0)
-            return;
+            return null;
 
-        var name = $"{_random.Pick(first.Values)} {_random.Pick(last.Values)}";
-        var title = _prototypes.TryIndex<WFCrewRolePrototype>(roleId, out var role) ? Loc.GetString(role.Title) : null;
-        _meta.SetEntityName(mob, title != null ? Loc.GetString("wf-crew-name-format", ("title", title), ("name", name)) : name);
-        _crewAccess.Label(mob, name, title);
+        return $"{_random.Pick(first.Values)} {_random.Pick(last.Values)}";
     }
 
     /// <summary>Sets the company, or removes it when the company is empty.</summary>
