@@ -47,6 +47,9 @@
   name: Kyphrus
   shader: MainSequenceStar
   solarMass: 0.62
-  color: '#FFD2A1'
+  # WOLFGATE(Planets) START: give Kyphrus behind Caelestinus Central a deep blue hue.
+  # color: '#FFD2A1'
+  color: '#2447CC'
+  # WOLFGATE END
   rotation: 0.6
   rings: StandardRings
