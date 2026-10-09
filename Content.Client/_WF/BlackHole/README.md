@@ -7,6 +7,7 @@ space background. The accretion disk supplies warm light through the existing st
 `StarKyphrus` selects the `WFBlackHole` shader. Its prototype exposes disk inclination, rotation speed
 and lens strength. `BlackHoleVisuals` shares apparent size and parallax between the shader and offscreen
 culling. The existing Render Star System graphics option controls the effect.
+Caelestinus Central starts facing world north, keeping its default station view aligned with the backdrop.
 The star keeps its name, mass, navigation beacon and planetary layout; this is a visual replacement,
 with no gravity, damage or orbital simulation changes. The inherited stellar mass is a compatibility
 scale for the existing radius and lighting calculations, not a physical black-hole mass model.
@@ -57,5 +58,6 @@ It still renders the disk and shadow if a background texture is unavailable.
 - [`Resources/Prototypes/_FarHorizons/Space/stars.yml`](../../../Resources/Prototypes/_FarHorizons/Space/stars.yml)
   - replace Kyphrus's stellar surface with an accreting black hole.
   - cast warm accretion light with a slightly inclined disk.
+- [`Resources/Prototypes/_Mono/Outpost/caelestinus.yml`](../../../Resources/Prototypes/_Mono/Outpost/caelestinus.yml): align Caelestinus Central with world north for the sector backdrop.
 
 <!-- WOLFGATE-GENERATED END -->
