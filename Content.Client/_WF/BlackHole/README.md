@@ -2,7 +2,8 @@
 
 Kyphrus appears as an accreting black hole behind the sector: a black shadow, a hot photon ring,
 rotating plasma streams, a disk bent into upper and lower images, and gravitational lensing of the
-space background. The accretion disk supplies warm light through the existing stellar lighting system.
+space background. The dark center and photon ring occlude both disk halves, so plasma wraps around
+the silhouette. The accretion disk supplies warm light through the existing stellar lighting system.
 
 `StarKyphrus` selects the `WFBlackHole` shader. Its prototype exposes disk inclination, rotation speed
 and lens strength. `BlackHoleVisuals` shares apparent size and parallax between the shader and offscreen
