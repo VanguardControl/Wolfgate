@@ -31,11 +31,14 @@ public sealed partial class WFEncounterSystem
             if (orders == null || NearestEnemy(comp, ship) is not { } enemy)
                 continue;
 
+            // Orders the crew won't take leave the ship as it was, to be looked at again next poll.
+            if (!_objectives.SetQueue(ship.Grid, ship.Group, new List<WFCrewObjective>
+                {
+                    new() { Kind = WFCrewObjectiveKind.Attack, Target = GetNetEntity(enemy.Grid), Range = orders.Range },
+                }))
+                continue;
+
             Log.Info($"Encounter ship {ToPrettyString(ship.Grid)} has flown its attack and turns on {ToPrettyString(enemy.Grid)}.");
-            _objectives.SetQueue(ship.Grid, ship.Group, new List<WFCrewObjective>
-            {
-                new() { Kind = WFCrewObjectiveKind.Attack, Target = GetNetEntity(enemy.Grid), Range = orders.Range },
-            });
             ship.Flown = false;
         }
     }
