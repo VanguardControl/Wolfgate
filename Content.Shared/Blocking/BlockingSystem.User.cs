@@ -56,7 +56,10 @@ public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
     /// </summary>
     private void OnBeforeGunShot(Entity<HandsComponent> ent, ref ShotAttemptedEvent args)
     {
-        if (HasComp<CanShootWithShieldComponent>(args.Used)) // don't bother if this gun will always be allowed to be used
+        // WOLFGATE(Weapons) START: a gun can inherit the exemption and have it switched off
+        // if (HasComp<CanShootWithShieldComponent>(args.Used)) // don't bother if this gun will always be allowed to be used
+        if (TryComp<CanShootWithShieldComponent>(args.Used.Owner, out var exempt) && exempt.Enabled)
+        // WOLFGATE END
             return;
 
         // WOLFGATE: only a gun the user carries is refused, not an innate ability or a mounted weapon
