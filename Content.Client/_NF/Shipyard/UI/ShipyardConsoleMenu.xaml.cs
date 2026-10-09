@@ -56,7 +56,10 @@ public sealed partial class ShipyardConsoleMenu : FancyWindow
     {
         SellShipButton.Visible = false;
         UnassignDeedButton.Visible = false;
-        CashSlotControls.Visible = false;
+
+        // A dealer has no slot: the cash readout is what lies on its counter.
+        if (CashSlotControls.ChildCount > 0 && CashSlotControls.GetChild(0) is Label cashTitle)
+            cashTitle.Text = Loc.GetString("trader-shipyard-counter-cash-label");
     }
     // WOLFGATE END
 

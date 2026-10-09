@@ -280,6 +280,7 @@ public sealed partial class TraderUsedShipsSystem : EntitySystem
             return;
         }
 
+        // Counter cash first, the bank for the rest; an Ironman's frozen account refuses and the cash stays put.
         if (!_trader.TryTakePayment(traderEnt, args.Actor, listing.Price))
         {
             QueueDel(shuttle.Value);
@@ -288,10 +289,20 @@ public sealed partial class TraderUsedShipsSystem : EntitySystem
 
         if (!AssignDeed(shuttle.Value, idCard, session, listing))
         {
-            // Paid but not deeded: scrap the hull, keep the listing and put the money back in the bank.
+            // Paid but not deeded: scrap the hull, keep the listing and give the money back. An Ironman
+            // could never draw it out of the bank again, so theirs goes back on the counter.
             QueueDel(shuttle.Value);
-            _bank.TryBankDeposit(args.Actor, listing.Price, tax: false);
-            _trader.SayAndShow(traderEnt, Loc.GetString("trader-used-deed-failed"));
+            if (HasComp<IronmanComponent>(args.Actor))
+            {
+                _trader.GiveChange(traderEnt, listing.Price);
+                _trader.SayAndShow(traderEnt, Loc.GetString("trader-used-deed-failed-cash"));
+            }
+            else
+            {
+                _bank.TryBankDeposit(args.Actor, listing.Price, tax: false);
+                _trader.SayAndShow(traderEnt, Loc.GetString("trader-used-deed-failed"));
+            }
+
             UpdateState(ent, traderEnt, args.Actor);
             return;
         }

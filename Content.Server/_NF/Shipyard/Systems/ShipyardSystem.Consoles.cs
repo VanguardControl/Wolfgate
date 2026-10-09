@@ -205,6 +205,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
 
         // Mono - whether we use a voucher or not, we need the current balance here.
         _cash.TryGetCash(shipyardConsoleUid, out var cash, out var cashBalance);
+        cashBalance = GetConsoleCash(shipyardConsoleUid, player, cashBalance); // WOLFGATE(Traders): a hosting trader's counter is the cash slot
 
         // Keep track of whether or not a voucher was used.
         // TODO: voucher purchase should be done in a separate function.
@@ -276,7 +277,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
                 return;
             }
 
-            if (fromCash > 0 && _cash.TryCashPayment(shipyardConsoleUid, fromCash, out _))
+            if (fromCash > 0 && TryTakeConsoleCash(shipyardConsoleUid, player, fromCash)) // WOLFGATE(Traders): the cash share comes off a hosting trader's counter
                 cashBalance -= fromCash;
             // WOLFGATE END
         }
@@ -1028,6 +1029,7 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
 
     private void RefreshState(EntityUid uid, int balance, int cashBalance, bool access, string? shipDeed, int shipSellValue, EntityUid? targetId, ShipyardConsoleUiKey uiKey, bool freeListings) // Mono
     {
+        cashBalance = GetConsoleCash(uid, null, cashBalance); // WOLFGATE(Traders): a hosting trader's counter is the cash slot
         var newState = new ShipyardConsoleInterfaceState(
             balance,
             cashBalance, // Mono
