@@ -1664,6 +1664,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/trauma.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/trauma.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/tsfmc.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/tsfmc.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/ui.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/ui.yml): P6, P3-D6: locational armour coverage
+- [`Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/underground.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/underground.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/unsa.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/unsa.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/ussp.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/ussp.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/viper_group.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/viper_group.yml): P6, P3-D6: locational armour coverage
