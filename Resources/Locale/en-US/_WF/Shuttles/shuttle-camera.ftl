@@ -11,3 +11,7 @@ shuttle-console-camera-zoom = ZOOM
 shuttle-console-camera-zoom-value = {$value}x
 shuttle-console-camera-low-light = LOW-LIGHT
 shuttle-console-camera-low-light-tooltip = Feed the hull cameras through a low-light sensor. Has no effect at the helm.
+shuttle-camera-hud-speed = SPD {$speed} m/s
+shuttle-camera-hud-heading = HDG {$heading}°
+shuttle-camera-hud-drift = DRIFT {$angle}°
+shuttle-camera-hud-turn = TURN {$rate}°/s

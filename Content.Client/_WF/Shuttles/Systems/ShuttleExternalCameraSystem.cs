@@ -148,6 +148,7 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
         _roof = new ShuttleHullRoofOverlay();
         _overlay.AddOverlay(_roof);
         _overlay.AddOverlay(new ShuttlePoiPointerOverlay());
+        _overlay.AddOverlay(new ShuttleFlightHudOverlay());
     }
 
     public override void Shutdown()
@@ -157,6 +158,7 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
         Deactivate();
         _overlay.RemoveOverlay<ShuttleHullRoofOverlay>();
         _overlay.RemoveOverlay<ShuttlePoiPointerOverlay>();
+        _overlay.RemoveOverlay<ShuttleFlightHudOverlay>();
     }
 
     private void OnGetEyeOffset(Entity<ShuttleCameraComponent> ent, ref GetEyeOffsetEvent args)
