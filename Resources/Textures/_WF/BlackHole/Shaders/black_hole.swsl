@@ -84,12 +84,16 @@ void fragment() {
     highp vec2 safeMax = vec2(1.0) - safeMin;
     highp vec4 composite = vec4(0.0);
     if (hasBackground) {
-        // Fade refraction near screen edges instead of stretching the last visible texel.
+        // Protect rays aimed beyond the capture without fading safe inward refraction at screen edges.
         highp vec2 screenUv = FRAGCOORD.xy * SCREEN_PIXEL_SIZE;
-        highp vec2 edgeRoom = min(screenUv, vec2(1.0) - screenUv);
-        highp vec2 shift = abs(displacementPixels * SCREEN_PIXEL_SIZE);
-        highp float edgeFade = min(clamp(edgeRoom.x / max(shift.x * 1.5, 0.001), 0.0, 1.0),
-            clamp(edgeRoom.y / max(shift.y * 1.5, 0.001), 0.0, 1.0));
+        highp vec2 sampleShift = -displacementPixels * SCREEN_PIXEL_SIZE;
+        highp vec2 edgeRoom = vec2(
+            sampleShift.x < 0.0 ? screenUv.x - safeMin.x : safeMax.x - screenUv.x,
+            sampleShift.y < 0.0 ? screenUv.y - safeMin.y : safeMax.y - screenUv.y);
+        highp vec2 shift = abs(sampleShift);
+        highp float edgeFade = smoothstep(0.0, 1.0, min(
+            edgeRoom.x / max(shift.x * 1.5, 0.001),
+            edgeRoom.y / max(shift.y * 1.5, 0.001)));
         sampleUv = mix(screenUv, sampleUv, edgeFade);
         composite = vec4(zTextureSpec(SCREEN_TEXTURE, clamp(sampleUv, safeMin, safeMax)).rgb, 1.0);
     }
