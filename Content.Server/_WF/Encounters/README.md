@@ -36,9 +36,11 @@ combatant whose attack is flown, or whose target is lost with all hands, while a
 the nearest enemy left (`WFEncounterSystem.Battle.cs`); once a battle is decided the victors stay on the field with
 their zones standing until cleanup, where every other resolved encounter's zones stand down.
 
-An encounter an admin starts, from the window or the command, is pinned: it has no clock, takes no slot under the
-scheduler's cap, never jumps out, and its ships are never swept up however far away players are, until an admin ends
-it. The window's search box filters both the start list and the running list by name, prototype, ship or state.
+An encounter an admin starts, from the window or the command, is pinned unless told otherwise (the "Keep until ended"
+box, or `jump` on the command): it has no clock, takes no slot under the scheduler's cap, never jumps out, and its
+ships are never swept up however far away players are, until an admin ends it. Unpinned, it jumps out and is cleaned
+up like a scheduled one. The window's search box filters both the start list and the running list by name,
+prototype, ship or state.
 
 Admins use the Encounters window in the Wolfgate admin tab, or `wf_encounter list | spawn <prototype> [distance] |
 end <encounter> | schedule | pause | resume`. Other code calls `WFEncounterSystem.TrySpawn`, `Resolve`, `End` and

@@ -292,7 +292,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
     /// nothing behind, when a ship cannot be loaded or crewed or its orders are invalid.
     /// </summary>
     public bool TrySpawn(WFEncounterPrototype prototype, MapCoordinates origin, out EntityUid encounter, EntityUid? spawner = null,
-        IReadOnlyList<EntityUid>? stops = null)
+        IReadOnlyList<EntityUid>? stops = null, bool pinned = false)
     {
         encounter = default;
         if (origin.MapId == MapId.Nullspace || prototype.Ships.Count == 0 || !_mapSystem.TryGetMap(origin.MapId, out var map))
@@ -314,8 +314,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
         comp.Cost = prototype.Cost;
         comp.Lifetime = prototype.Lifetime;
         comp.OffBudget = prototype.Lifetime == WFEncounterLifetime.Persistent || prototype.Start == WFEncounterStart.RoundStart;
-        // An admin's encounter is his to end: no clock, no slot under the cap, and its ships stay however it goes.
-        comp.Pinned = spawner != null;
+        // A pinned encounter is the admin's to end: no clock, no slot under the cap, and its ships stay however it goes.
+        comp.Pinned = pinned;
         if (comp.Pinned)
         {
             comp.Expires = null;

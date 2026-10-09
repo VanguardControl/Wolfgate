@@ -80,6 +80,7 @@ wf-encounter-admin-distance = Metres north of you
 wf-encounter-admin-spawn = Start
 wf-encounter-admin-prototype-manual = {$id} (manual only)
 wf-encounter-admin-search = Search
+wf-encounter-admin-keep = Keep until ended
 wf-encounter-admin-search-hint = name, prototype, ship or state
 wf-encounter-admin-running = Encounters
 wf-encounter-admin-none = No encounters.
@@ -104,10 +105,11 @@ wf-encounter-admin-reveal = Reveal
 
 # wf_encounter command
 cmd-wf_encounter-desc = Lists, spawns and ends encounters, and runs or pauses the encounter scheduler.
-cmd-wf_encounter-help = Usage: {$command} list | spawn <prototype> [distance] | end <encounter> | schedule | pause | resume
+cmd-wf_encounter-help = Usage: {$command} list | spawn <prototype> [distance] [keep|jump] | end <encounter> | schedule | pause | resume
 cmd-wf_encounter-hint-sub = <subcommand>
 cmd-wf_encounter-hint-prototype = <encounter prototype>
-cmd-wf_encounter-hint-distance = [metres north of you]
+cmd-wf_encounter-hint-distance = [metres north of you] [keep|jump]
+cmd-wf_encounter-hint-keep = [keep until ended | jump out as usual]
 cmd-wf_encounter-hint-uid = <encounter entity>
 cmd-wf_encounter-list-line = {$uid} {$prototype} "{$name}" {$state}, {$ships} ships, origin {$x}, {$y}
 cmd-wf_encounter-list-footer = {$count} encounters.

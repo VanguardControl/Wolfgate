@@ -46,6 +46,8 @@ public sealed class WFEncounterAdminRequest : EntityEventArgs
     /// <summary>The encounter, or for a teleport the encounter or ship.</summary>
     public NetEntity? Target;
     public float Distance = 300f;
+    /// <summary>Spawn: whether the encounter is kept until an admin ends it, or jumps out and is cleaned up as usual.</summary>
+    public bool Pinned = true;
     public bool Enabled;
     public bool Paused;
     public float IntervalMin;

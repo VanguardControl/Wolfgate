@@ -32,6 +32,7 @@ public sealed partial class WFEncounterWindow : DefaultWindow
     private readonly OptionButton _prototype = new() { HorizontalExpand = true };
     private readonly LineEdit _distance = new() { Text = "300", MinWidth = 70 };
     private readonly LineEdit _search = new() { HorizontalExpand = true };
+    private readonly CheckBox _keep = new() { Pressed = true };
     private readonly Label _status = new();
     private readonly BoxContainer _list = new() { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 8 };
     private readonly List<string> _prototypeIds = new();
@@ -71,7 +72,8 @@ public sealed partial class WFEncounterWindow : DefaultWindow
         _search.OnTextChanged += _ => Filter();
         body.AddChild(Row(new Label { Text = Text("search") }, _search));
         _prototype.OnItemSelected += args => _prototype.SelectId(args.Id);
-        body.AddChild(Row(_prototype, new Label { Text = Text("distance") }, _distance, Button("spawn", Spawn)));
+        _keep.Text = Text("keep");
+        body.AddChild(Row(_prototype, new Label { Text = Text("distance") }, _distance, _keep, Button("spawn", Spawn)));
 
         body.AddChild(Heading("running"));
         body.AddChild(_status);
@@ -138,6 +140,7 @@ public sealed partial class WFEncounterWindow : DefaultWindow
             Action = WFEncounterAdminAction.Spawn,
             Prototype = _prototypeIds[_prototype.SelectedId],
             Distance = distance,
+            Pinned = _keep.Pressed,
         });
     }
 

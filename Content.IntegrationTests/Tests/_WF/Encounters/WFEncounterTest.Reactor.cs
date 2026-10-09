@@ -81,23 +81,21 @@ public sealed partial class WFEncounterTest
             // Cold so far, so the engineer has been drawing the rods out; now too hot, and he pushes them in.
             Assert.That(fission.ControlRodInsertion, Is.LessThan(1f), "A cold casing has had the rods drawn out.");
             rods = fission.ControlRodInsertion;
-            fission.Temperature = 1190f;
         });
-        await RunTicks(160);
+        // The parts around it draw a set casing temperature down within seconds, so it is held through a tend tick.
+        await HoldCasing(reactor, 1190f);
         await Server.WaitAssertion(() =>
         {
             var fission = SEntMan.GetComponent<NuclearReactorComponent>(reactor);
             Assert.That(fission.ControlRodInsertion, Is.GreaterThan(rods), "A hot casing has the rods pushed in.");
-            fission.Temperature = 1900f;
         });
-        await RunTicks(160);
+        await HoldCasing(reactor, 1900f);
         await Server.WaitAssertion(() =>
         {
             var fission = SEntMan.GetComponent<NuclearReactorComponent>(reactor);
             Assert.That(fission.ControlRodInsertion, Is.EqualTo(2f), "An overheating casing has them all the way in.");
-            fission.Temperature = 500f;
         });
-        await RunTicks(160);
+        await HoldCasing(reactor, 500f);
         await Server.WaitAssertion(() =>
         {
             var fission = SEntMan.GetComponent<NuclearReactorComponent>(reactor);
@@ -123,6 +121,16 @@ public sealed partial class WFEncounterTest
             Server.System<WFEncounterSystem>().End(encounter);
         });
         await RunTicks(10);
+    }
+
+    /// <summary>Keeps the casing at a temperature for six seconds, long enough for one tend tick to read it there.</summary>
+    private async Task HoldCasing(EntityUid reactor, float temperature)
+    {
+        for (var i = 0; i < 6; i++)
+        {
+            await Server.WaitAssertion(() => SEntMan.GetComponent<NuclearReactorComponent>(reactor).Temperature = temperature);
+            await RunTicks(30);
+        }
     }
 
     private static int CountFuelRods(NuclearReactorComponent reactor) => FuelSlots(reactor).Count;
