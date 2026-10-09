@@ -82,8 +82,8 @@ public sealed partial class ShuttleFlightHudOverlay : Overlay
 
         var handle = args.ScreenHandle;
         var scale = _uiManager.RootControl.UIScale;
-        var view = args.ViewportBounds;
-        var centre = new Vector2(view.Left, view.Top) + DialOffset * scale;
+        var view = VisibleBounds(args);
+        var centre = view.TopLeft + DialOffset * scale;
         var radius = DialRadius * scale;
 
         var velocity = body.LinearVelocity;
@@ -132,6 +132,26 @@ public sealed partial class ShuttleFlightHudOverlay : Overlay
         handle.DrawString(_font, text + line, Loc.GetString("shuttle-camera-hud-heading", ("heading", $"{heading:000}")), scale, TextColor);
         handle.DrawString(_font, text + line * 2f, Loc.GetString("shuttle-camera-hud-drift", ("angle", $"{drift:+0;-0;0}")), scale, TextColor);
         handle.DrawString(_font, text + line * 3f, Loc.GetString("shuttle-camera-hud-turn", ("rate", $"{turn:+0.0;-0.0;0.0}")), scale, TextColor);
+    }
+
+    /// <summary>
+    /// The part of the viewport's picture that is on the screen. The picture itself can run past the
+    /// edges of the control it's shown in.
+    /// </summary>
+    public static UIBox2 VisibleBounds(in OverlayDrawArgs args)
+    {
+        UIBox2 bounds = args.ViewportBounds;
+
+        if (args.ViewportControl is not Control control)
+            return bounds;
+
+        UIBox2 shown = control.GlobalPixelRect;
+
+        return new UIBox2(
+            Math.Max(bounds.Left, shown.Left),
+            Math.Max(bounds.Top, shown.Top),
+            Math.Min(bounds.Right, shown.Right),
+            Math.Min(bounds.Bottom, shown.Bottom));
     }
 
     private static double Wrap(double degrees)

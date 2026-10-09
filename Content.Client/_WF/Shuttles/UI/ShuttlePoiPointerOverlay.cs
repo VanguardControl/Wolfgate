@@ -90,7 +90,7 @@ public sealed partial class ShuttlePoiPointerOverlay : Overlay
         // What a console can make out is asked of the console, as the radar does.
         EntityUid? console = _entManager.TryGetComponent<PilotComponent>(player, out var pilot) ? pilot.Console : null;
 
-        var view = args.ViewportBounds;
+        var view = ShuttleFlightHudOverlay.VisibleBounds(args);
         var inset = EdgeInset * scale;
         var inner = new Box2(view.Left + inset, view.Top + inset, view.Right - inset, view.Bottom - inset);
 
