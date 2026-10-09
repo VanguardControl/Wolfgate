@@ -22,9 +22,14 @@ colour (`iffColor`, or `WFEncounterSystem.SideColors`).
 The encounter pirates fly as the Ashfall Reavers (`WFAshfallReavers`, a company nobody can pick, at war with both
 navies in `standing.yml`) on scrapyard and black-market hulls, in pirate slops. The prototypes cover freight runs, TSF and Phaethon Dynasty patrols (one of each at round start, kept to different
 stations and away from the other's home ports with `avoidStations`) and transports, wandering traders (with exotic dealers under mercenary escort), pirate raiders
-and boarders, a hauler under attack, TSF and Dynasty backup requests, capital patrols (and admin-only supercapital ones), stranded freighters, a false mayday with pirates
+and boarders, a hauler under attack, TSF and Dynasty backup requests, frigate and capital patrols (and admin-only supercapital ones), stranded freighters, a false mayday with pirates
 lying in wait, skirmishes (TSF or Dynasty against raiders, corsairs or each other; plain, and hostile ones that also
 fire on players who come close) and black market transports.
+
+Warships come in three tiers. Frigates (TSF Fujian, Altair, Andromeda; PDV Kortik, Europa, Saintie) are the common big
+ships, under attack or on patrol. Capitals (TSF Flyssa, PDV Saturn) are rare scheduled encounters. Supercapitals (the
+`WFChengdu` and `WFJupiter` vessels, grids in `Resources/SharedMaps/_WF/Encounters`) are admin-spawn only, as is the
+capital fleet battle (gamma alert) and the supercapital one (epsilon alert).
 
 Admins use the Encounters window in the Wolfgate admin tab, or `wf_encounter list | spawn <prototype> [distance] |
 end <encounter> | schedule | pause | resume`. Other code calls `WFEncounterSystem.TrySpawn`, `Resolve`, `End` and
@@ -92,6 +97,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Resources/Prototypes/_WF/Encounters/manifests.yml`](../../../Resources/Prototypes/_WF/Encounters/manifests.yml)
 - [`Resources/Prototypes/_WF/Encounters/presets.yml`](../../../Resources/Prototypes/_WF/Encounters/presets.yml)
 - [`Resources/Prototypes/_WF/Encounters/standing.yml`](../../../Resources/Prototypes/_WF/Encounters/standing.yml)
+- [`Resources/Prototypes/_WF/Encounters/vessels.yml`](../../../Resources/Prototypes/_WF/Encounters/vessels.yml)
 
 ### Localization
 
@@ -100,6 +106,11 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 ### Textures
 
 - [`Resources/Textures/_WF/Encounters/markers.rsi/`](../../../Resources/Textures/_WF/Encounters/markers.rsi/)
+
+### Shared maps
+
+- [`Resources/SharedMaps/_WF/Encounters/chengdu.yml`](../../../Resources/SharedMaps/_WF/Encounters/chengdu.yml)
+- [`Resources/SharedMaps/_WF/Encounters/jupiter.yml`](../../../Resources/SharedMaps/_WF/Encounters/jupiter.yml)
 
 ### Docs
 

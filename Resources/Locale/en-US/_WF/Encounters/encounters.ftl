@@ -195,11 +195,11 @@ wf-encounter-name-skirmish-pdv-corsairs = Dynasty patrol engaging corsairs {$des
 wf-encounter-announce-skirmish-pdv-corsairs = Traffic control to all vessels: {$name}. A Dynasty patrol has caught a RedSail corsair crew in open space and means to finish it. Expect heavy fire. Anything that gets between them is on its own.
 wf-encounter-reward-thanks-skirmish-pdv = Vanguard patrol to the vessels that stood with us: your help is noted, and the Sultan's purse has paid for it.
 
-# Capital ships under attack
-wf-encounter-name-capital = TSF capital ship {$designation} under attack
-wf-encounter-announce-capital = Mayday, mayday, all vessels, this is {$name}. A pirate pack has us surrounded, raiders and fighters on every quarter, and our guns can't hold them all. Any armed vessel, engage the pirates. The Federation will pay, and pay well.
-wf-encounter-name-pdv-capital = Dynasty capital ship {$designation} under attack
-wf-encounter-announce-pdv-capital = All vessels, all vessels, this is {$name}. A Federation strike group is on us from every side and we are taking hits faster than we can answer them. Any armed vessel, engage the Federation fighters. The Vanguard repays its debts, and with interest.
+# Frigates under attack
+wf-encounter-name-frigate = TSF frigate {$designation} under attack
+wf-encounter-announce-frigate = Mayday, mayday, all vessels, this is {$name}. A pirate pack has us surrounded, raiders and fighters on every quarter, and our guns can't hold them all. Any armed vessel, engage the pirates. The Federation will pay, and pay well.
+wf-encounter-name-pdv-frigate = Dynasty frigate {$designation} under attack
+wf-encounter-announce-pdv-frigate = All vessels, all vessels, this is {$name}. A Federation strike group is on us from every side and we are taking hits faster than we can answer them. Any armed vessel, engage the Federation fighters. The Vanguard repays its debts, and with interest.
 
 # Heavier and stranger patrols
 wf-encounter-name-patrol-heavy = TSF heavy patrol {$designation}
@@ -213,28 +213,38 @@ wf-encounter-ussp-zone-warn-2 = Vessel {$intruder}, this is a warship of the Uni
 wf-encounter-ussp-zone-warn-3 = {$intruder}, we have not surrendered and we are not negotiating. Open the range.
 wf-encounter-ussp-zone-attack = {$intruder}, for the Union. Fire.
 
-# Fleet battle
-wf-encounter-name-fleet-battle = Fleet action {$designation}
-wf-encounter-announce-fleet-battle = GAMMA ALERT. Traffic control to all vessels: {$name}. A Federation carrier group and a Dynasty battle group have met in open space and are engaging. All civilian traffic is to stay well clear. Both navies are calling for any armed vessel that will fight for them.
+# Capital fleet battle
+wf-encounter-name-fleet-battle = Capital fleet action {$designation}
+wf-encounter-announce-fleet-battle = GAMMA ALERT. Traffic control to all vessels: {$name}. A Federation capital ship and its frigate screen have met a Dynasty battle group in open space and are engaging. All civilian traffic is to stay well clear. Both navies are calling for any armed vessel that will fight for them.
+
+# Capitals under attack
+wf-encounter-name-capital = TSF capital ship {$designation} under attack
+wf-encounter-announce-capital = Mayday, mayday, all vessels, this is {$name}. A pirate flotilla has us surrounded, raiders and fighters from every quarter, and they are boarding our wounded sections. Any armed vessel in the sector, engage the pirates. The Federation will remember who came.
+wf-encounter-name-pdv-capital = Dynasty capital ship {$designation} under attack
+wf-encounter-announce-pdv-capital = All vessels, all vessels, this is {$name}. A Federation strike wing has thrown itself at us and our screens are failing. Any armed vessel, engage the Federation. The Sultan does not forget a debt.
 
 # Supercapitals under attack
 wf-encounter-name-supercapital = TSF supercapital {$designation} under attack
-wf-encounter-announce-supercapital = Mayday, mayday, all vessels, this is {$name}. A pirate flotilla has us surrounded, raiders and fighters from every quarter, and they are boarding our wounded sections. Any armed vessel in the sector, engage the pirates. The Federation will remember who came.
+wf-encounter-announce-supercapital = Mayday, mayday, all vessels, this is {$name}. The whole pirate flotilla has fallen on the Chengdu: heavies, raiders and fighters from every quarter, and our screens are going. This is the Federation's flagship. Every armed vessel in the sector, engage the pirates. The Federation will not forget who came.
 wf-encounter-name-pdv-supercapital = Dynasty supercapital {$designation} under attack
-wf-encounter-announce-pdv-supercapital = All vessels, all vessels, this is {$name}. A Federation strike wing has thrown itself at us and our screens are failing. Any armed vessel, engage the Federation. The Sultan does not forget a debt.
+wf-encounter-announce-pdv-supercapital = All vessels, all vessels, this is {$name}. A Federation strike force has fallen on the Jupiter with everything it has and our screens are failing. This is the Vanguard's flagship. Every armed vessel in the sector, engage the Federation. The Sultan does not forget a debt, and he will not forget this.
 
-# Fleet battle, large
+# Supercapital fleet battle
 wf-encounter-name-fleet-battle-large = Grand fleet action {$designation}
-wf-encounter-announce-fleet-battle-large = GAMMA ALERT. Traffic control to all vessels: {$name}. The Federation and the Dynasty have committed their flagships. A full fleet action is under way in open space. All civilian traffic is to clear the sector lanes. Both navies are calling for every armed vessel that will fight for them.
+wf-encounter-announce-fleet-battle-large = EPSILON ALERT. Traffic control to all vessels: {$name}. The Federation and the Dynasty have committed their supercapitals, with their capital ships and fighter wings. A full fleet action is under way in open space. All civilian traffic is to clear the sector lanes at once. Both navies are calling for every armed vessel that will fight for them.
 wf-encounter-name-trader-exotic = Exotic dealers {$designation}
 wf-encounter-announce-trader-exotic = {$name} is in the sector under Blackhawk escort with ship guns, hardpoints and systems that don't reach any catalogue. Serious buyers may come alongside. Anyone else is advised that the escort is not for show.
 
-# Capital and supercapital patrols
+# Frigate, capital and supercapital patrols
+wf-encounter-name-frigate-patrol = TSF frigate patrol {$designation}
+wf-encounter-announce-frigate-patrol = Traffic control to all vessels: {$name}. A Federation frigate and fighter wing are holding station off {$destination} for the next while. Dynasty traffic is advised to keep well clear.
+wf-encounter-name-pdv-frigate-patrol = Dynasty frigate patrol {$designation}
+wf-encounter-announce-pdv-frigate-patrol = Traffic control to all vessels: {$name}. A Vanguard frigate and fighter wing are holding station off {$destination} for the next while. Federation traffic is advised to keep well clear.
 wf-encounter-name-capital-patrol = TSF capital patrol {$designation}
-wf-encounter-announce-capital-patrol = Traffic control to all vessels: {$name}. A Federation capital ship and fighter wing are holding station off {$destination} for the next while. Dynasty traffic is advised to keep well clear.
+wf-encounter-announce-capital-patrol = Traffic control to all vessels: {$name}. The Federation capital ship Flyssa and her fighter wing are holding station off {$destination}. Dynasty traffic is advised to keep well clear.
 wf-encounter-name-pdv-capital-patrol = Dynasty capital patrol {$designation}
-wf-encounter-announce-pdv-capital-patrol = Traffic control to all vessels: {$name}. A Vanguard capital ship and fighter wing are holding station off {$destination} for the next while. Federation traffic is advised to keep well clear.
+wf-encounter-announce-pdv-capital-patrol = Traffic control to all vessels: {$name}. The Vanguard capital ship Saturn and her fighter wing are holding station off {$destination}. Federation traffic is advised to keep well clear.
 wf-encounter-name-supercapital-patrol = TSF supercapital patrol {$designation}
-wf-encounter-announce-supercapital-patrol = Traffic control to all vessels: {$name}. The Federation supercapital Flyssa and her fighter wing are holding station off {$destination}. Dynasty traffic is advised to keep well clear.
+wf-encounter-announce-supercapital-patrol = Traffic control to all vessels: {$name}. The Federation supercapital Chengdu and her fighter wing are holding station off {$destination}. Dynasty traffic is advised to keep well clear.
 wf-encounter-name-pdv-supercapital-patrol = Dynasty supercapital patrol {$designation}
-wf-encounter-announce-pdv-supercapital-patrol = Traffic control to all vessels: {$name}. The Vanguard supercapital Saturn and her fighter wing are holding station off {$destination}. Federation traffic is advised to keep well clear.
+wf-encounter-announce-pdv-supercapital-patrol = Traffic control to all vessels: {$name}. The Vanguard supercapital Jupiter and her fighter wing are holding station off {$destination}. Federation traffic is advised to keep well clear.
