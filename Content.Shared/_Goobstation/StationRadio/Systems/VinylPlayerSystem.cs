@@ -127,4 +127,18 @@ public sealed class VinylPlayerSystem : EntitySystem
         }
         return false;
     }
+
+    // WOLFGATE START: forget a finished track's audio entity, whose uid would otherwise still be networked
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var query = EntityQueryEnumerator<VinylPlayerComponent>();
+        while (query.MoveNext(out _, out var comp))
+        {
+            if (comp.SoundEntity is { } sound && TerminatingOrDeleted(sound))
+                comp.SoundEntity = null;
+        }
+    }
+    // WOLFGATE END
 }

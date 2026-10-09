@@ -80,4 +80,18 @@ public sealed class StationRadioReceiverSystem : EntitySystem
 
         comp.SoundEntity = _audio.Stop(comp.SoundEntity);
     }
+
+    // WOLFGATE START: forget a finished track's audio entity, whose uid would otherwise still be networked
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        var query = EntityQueryEnumerator<StationRadioReceiverComponent>();
+        while (query.MoveNext(out _, out var comp))
+        {
+            if (comp.SoundEntity is { } sound && TerminatingOrDeleted(sound))
+                comp.SoundEntity = null;
+        }
+    }
+    // WOLFGATE END
 }
