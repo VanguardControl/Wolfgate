@@ -806,6 +806,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
                 SkipBlockedOrders(encounter);
                 Tend((uid, encounter));
+                Retarget((uid, encounter));
                 _running.Add((uid, encounter));
                 continue;
             }

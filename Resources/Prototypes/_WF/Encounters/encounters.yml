@@ -2222,6 +2222,11 @@
     navigation: WFCrewNavigationWarship
     vessels: [ Fujian, Altair, Andromeda ]
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -2236,6 +2241,11 @@
     deckhands: 2
     offset: 0, 750
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     distress: false
     company: WFAshfallReavers
@@ -2249,6 +2259,11 @@
     deckhands: 2
     offset: 0, -750
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     distress: false
     company: WFAshfallReavers
@@ -2264,6 +2279,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 700, 250
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     distress: false
     company: WFAshfallReavers
@@ -2279,6 +2299,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -700, 250
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     distress: false
     company: WFAshfallReavers
@@ -2294,6 +2319,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 650, -350
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     distress: false
     company: WFAshfallReavers
@@ -2309,6 +2339,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -650, -350
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     distress: false
     company: WFAshfallReavers
@@ -2349,6 +2384,11 @@
     navigation: WFCrewNavigationWarship
     vessels: [ Kortik, Europa, Saintie ]
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -2366,6 +2406,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 0, 750
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     distress: false
     company: TSF
@@ -2383,6 +2428,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 700, 250
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     distress: false
     company: TSF
@@ -2400,6 +2450,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -700, 250
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     distress: false
     company: TSF
@@ -2417,6 +2472,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 650, -350
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     distress: false
     company: TSF
@@ -2434,6 +2494,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -650, -350
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     distress: false
     company: TSF
@@ -2712,6 +2777,11 @@
     guards: 3
     offset: -1000, 0
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -2727,6 +2797,11 @@
     guards: 2
     offset: -900, 400
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -2741,6 +2816,11 @@
     guards: 2
     offset: -900, -400
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -2756,6 +2836,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -700, -150
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -2771,6 +2856,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -650, 600
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -2786,6 +2876,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -650, -600
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -2800,6 +2895,11 @@
     guards: 3
     offset: 1000, 0
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -2815,6 +2915,11 @@
     guards: 2
     offset: 900, -400
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -2829,6 +2934,11 @@
     guards: 2
     offset: 900, 400
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -2844,6 +2954,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 700, 150
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -2859,6 +2974,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 650, -600
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -2874,6 +2994,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 650, 600
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -2918,6 +3043,11 @@
     deckhands: 4
     guards: 3
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -2930,6 +3060,11 @@
     deckhands: 2
     offset: 0, 900
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -2943,6 +3078,11 @@
     deckhands: 2
     offset: 0, -900
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -2956,6 +3096,11 @@
     deckhands: 2
     offset: 900, 0
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -2971,6 +3116,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 800, 400
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -2986,6 +3136,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -800, 400
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3001,6 +3156,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 800, -400
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3016,6 +3176,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -800, -400
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3031,6 +3196,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -900, 0
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3073,6 +3243,11 @@
     deckhands: 4
     guards: 3
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -3087,6 +3262,11 @@
     guards: 1
     offset: 0, 900
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3103,6 +3283,11 @@
     guards: 1
     offset: 0, -900
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3119,6 +3304,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 800, 400
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3135,6 +3325,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -800, 400
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3151,6 +3346,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 800, -400
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3167,6 +3367,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -800, -400
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3183,6 +3388,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 900, 0
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3228,6 +3438,11 @@
     deckhands: 5
     guards: 4
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3241,6 +3456,11 @@
     deckhands: 2
     offset: 0, 1200
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3254,6 +3474,11 @@
     deckhands: 2
     offset: 0, -1200
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3267,6 +3492,11 @@
     deckhands: 2
     offset: 1200, 0
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3280,6 +3510,11 @@
     deckhands: 2
     offset: -1200, 0
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3293,6 +3528,11 @@
     deckhands: 2
     offset: 900, 900
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3308,6 +3548,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 1000, 450
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3323,6 +3568,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -1000, 450
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3338,6 +3588,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 1000, -450
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3353,6 +3608,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -1000, -450
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3368,6 +3628,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 450, 1000
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3383,6 +3648,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -450, -1000
     side: pirates
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: PirateNF
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -3425,6 +3695,11 @@
     deckhands: 5
     guards: 4
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -3439,6 +3714,11 @@
     guards: 1
     offset: 0, 1200
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3455,6 +3735,11 @@
     guards: 1
     offset: 0, -1200
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3470,6 +3755,11 @@
     guards: 1
     offset: 1200, 0
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3485,6 +3775,11 @@
     guards: 2
     offset: -1200, 0
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3501,6 +3796,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 1000, 450
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3517,6 +3817,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -1000, 450
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3533,6 +3838,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 1000, -450
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3549,6 +3859,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -1000, -450
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3565,6 +3880,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 450, 1000
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3581,6 +3901,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -450, -1000
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3636,6 +3961,11 @@
     guards: 4
     offset: -1500, 0
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3652,6 +3982,11 @@
     guards: 3
     offset: -1300, 700
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3668,6 +4003,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -1000, 250
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3684,6 +4024,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -1000, -450
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3700,6 +4045,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -950, 900
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3716,6 +4066,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: -950, -900
     side: tsf
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: TSFMC
     company: TSF
     profile: WFCrewProfileTsf
@@ -3731,6 +4086,11 @@
     guards: 4
     offset: 1500, 0
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -3747,6 +4107,11 @@
     guards: 3
     offset: 1300, -700
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -3763,6 +4128,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 1000, -250
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -3779,6 +4149,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 1000, 450
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -3795,6 +4170,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 950, -900
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv
@@ -3811,6 +4191,11 @@
     roles: [ WFCrewPilot, WFCrewGunner ]
     offset: 950, 900
     side: pdv
+    disengage: Deter
+    disengageRange: 2000
+    warnRange: 1500
+    attackRange: 1500
+    zoneTargets: AtWar
     faction: WFPdvNavy
     company: PDV
     profile: WFCrewProfilePdv

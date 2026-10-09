@@ -21,7 +21,8 @@ An engineer (`WFCrewEngineer`) is posted beside the plant on every encounter shi
 arrives commissioned (generators full and lit, antimatter engine jarred and injecting, fission reactor fuelled with
 cerenkite rods in the slots its prefab leaves for them, its coolant loop charged with nitrogen once its pipes appear
 and its control rods half out, batteries charged) with fuel for the trip stowed in a `WFCrewFuelStores` crate in the
-hold: stacks, jars, and a full change of fuel rods. From then on nothing tops the plant up but him: a generator under
+hold: stacks, jars, and a full change of fuel rods. On a ship with an engineer, from then on nothing tops the plant
+up but him: a generator under
 ten units of fuel, a reactor jar under 200 or a spent fuel rod sends him to the crate for a stack, a jar or a rod,
 which he feeds in by hand (the spent rod comes out onto the deck), and a plant with fuel in it that is off he switches
 on. From his post he also trims the fission reactor's control rods to its casing temperature, in when it runs hot
