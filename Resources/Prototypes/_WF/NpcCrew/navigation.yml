@@ -37,7 +37,8 @@
     attackRange: 300
 
 # Raiders fly flat out: the chase and travel limits are set past anything a hull can reach, so thrust alone caps them,
-# and the docking run is quick and forgiving, to board a ship that is trying to shake them off.
+# and the docking run is quick and forgiving, to board a ship that is trying to shake them off. The run in is braked
+# along a curve from cruise to the approach speed, so the speed here is what the last stretch and the creep are flown at.
 - type: wfCrewNavigation
   id: WFCrewNavigationRaider
   name: wf-crew-navigation-raider
@@ -51,8 +52,8 @@
     maximumTurnRate: 0.7
     thrustMultiplier: 1
     angularThrustMultiplier: 1
-    dockApproachSpeed: 24
-    dockCreepSpeed: 5
+    dockApproachSpeed: 16
+    dockCreepSpeed: 3
     undockSpeed: 14
     dockStandoff: 30
     dockAlignmentRange: 100
