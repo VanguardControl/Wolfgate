@@ -15,7 +15,8 @@ encounter to all players, each with its side and colour; the radar draws them, w
 ghosts find them on the Encounters tab of the orbit menu.
 
 Ships can arrive stranded (`stranded: Fuel | Thrusters | Random`) and pay their side's reward to whoever gets them
-under way. Ships can lie in wait (`lurks`) until a player is within the start radius, and an order can target
+under way: thrust held for 20 s, and for a ship wrecked for thrusters, thrust that drives it ahead, not a side
+thruster's nudge. Ships can lie in wait (`lurks`) until a player is within the start radius, and an order can target
 `@player`. `announcer` names the ship that voices a radio announcement. With two or more sides each gets a radar
 colour (`iffColor`, or `WFEncounterSystem.SideColors`).
 
@@ -103,6 +104,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Pinned.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Pinned.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Reactor.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Reactor.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Storyteller.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Storyteller.cs)
+- [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Stranded.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Stranded.cs)
 
 ### Prototypes
 

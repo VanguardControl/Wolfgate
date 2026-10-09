@@ -937,7 +937,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
             var adrift = _status.IsAdrift(ship.Grid);
             if (IsStranded(ship))
             {
-                ship.UnderwaySince = adrift ? null : (ship.UnderwaySince ?? now);
+                // Under way means able to drive ahead: a side thruster alone nudges a wrecked ship, it doesn't rescue it.
+                var driving = !adrift && (ship.Stranding != WFEncounterStranding.Thrusters || HasForwardThrust(ship.Grid));
+                ship.UnderwaySince = driving ? ship.UnderwaySince ?? now : null;
                 if (ship.UnderwaySince is { } underway && now - underway >= RescueDelay)
                     Rescue(encounter, key, ship);
             }
