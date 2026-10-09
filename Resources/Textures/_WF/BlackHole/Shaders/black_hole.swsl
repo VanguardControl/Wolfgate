@@ -118,11 +118,6 @@ void fragment() {
         composite = compositeOver(composite, arc);
     }
 
-    if (disk.y < 0.0) {
-        composite = compositeOver(composite, directDisk);
-    }
-
-    // The shadow and photon ring occlude both disk halves, keeping the dark center unbroken.
     highp float shadow = 1.0 - smoothstep(1.0 - pixelWidth, 1.0 + pixelWidth, r);
     composite = compositeOver(composite, vec4(0.0, 0.0, 0.0, shadow));
 
@@ -133,6 +128,10 @@ void fragment() {
     highp float brightness = 0.76 + 0.24 * (-disk.x / max(r, 0.001));
     highp vec3 ringColor = mix(starColor, vec3(1.0, 0.96, 0.85), photon);
     composite = compositeOver(composite, vec4(ringColor * brightness, clamp(photon * 0.95 + ringGlow * 0.35, 0.0, 1.0)));
+
+    if (disk.y < 0.0) {
+        composite = compositeOver(composite, directDisk);
+    }
 
     COLOR = composite;
 }
