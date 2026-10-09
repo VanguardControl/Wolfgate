@@ -288,21 +288,13 @@
   - type: ShipRepairable
     repairTime: 6
     repairCost: 6
-<<<<<<< HEAD
   # WOLFGATE(Shrapnel) START: no blast, the destructible's ShrapnelBehavior replaces it
   # - type: Explosive
-  #   explosionType: Default
-  #   maxIntensity: 100
-  #   intensitySlope: 2
-  #   totalIntensity: 200
+  #   explosionType: ESWelderBomb
+  #   maxIntensity: 10
+  #   intensitySlope: 1
+  #   totalIntensity: 40
   # WOLFGATE END
-=======
-  - type: Explosive
-    explosionType: ESWelderBomb
-    maxIntensity: 10
-    intensitySlope: 1
-    totalIntensity: 40
->>>>>>> dba420e922 (Fire Stuff (#4838))
   - type: ESSparkOnHit
     prob: 0.4
     tileFireChance: 0.4
