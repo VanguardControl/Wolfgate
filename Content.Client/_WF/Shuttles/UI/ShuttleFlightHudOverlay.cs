@@ -26,9 +26,10 @@ public sealed partial class ShuttleFlightHudOverlay : Overlay
     public override OverlaySpace Space => OverlaySpace.ScreenSpace;
 
     /// <summary>
-    /// Where the dial's centre sits from the view's top left, in UI pixels.
+    /// How far in from the view's left edge the dial's centre sits, in UI pixels. It rides half way
+    /// down that edge, clear of the menu and action bars above and the inventory below.
     /// </summary>
-    private static readonly Vector2 DialOffset = new(84f, 150f);
+    private const float DialInset = 84f;
 
     private const float DialRadius = 48f;
     private const float TickLength = 6f;
@@ -83,7 +84,7 @@ public sealed partial class ShuttleFlightHudOverlay : Overlay
         var handle = args.ScreenHandle;
         var scale = _uiManager.RootControl.UIScale;
         var view = VisibleBounds(args);
-        var centre = view.TopLeft + DialOffset * scale;
+        var centre = new Vector2(view.Left + DialInset * scale, (view.Top + view.Bottom) / 2f);
         var radius = DialRadius * scale;
 
         var velocity = body.LinearVelocity;
