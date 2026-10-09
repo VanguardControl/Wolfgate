@@ -391,6 +391,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDebugCrateTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDebugCrateTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDownedTransitionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDownedTransitionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDyingLevelTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedDyingLevelTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedEdibleLimbTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedEdibleLimbTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedEmpTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedEmpTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedEviscerationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedEviscerationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedExecutionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedExecutionTest.cs)
@@ -1199,6 +1200,10 @@ Skipped ("dirty-disposed").
   - W0, on a wound host the refusal is about the selected part, not the whole patient.
   - HOOK 8, the do-after carries the part the heal resolved.
 - [`Content.Server/Medical/HealthAnalyzerSystem.cs`](../../Medical/HealthAnalyzerSystem.cs): HOOK 23
+- [`Content.Server/NPC/Systems/NPCUtilitySystem.cs`](../../NPC/Systems/NPCUtilitySystem.cs): animals leave severed limbs alone so they can be reattached
+- [`Content.Server/Nutrition/EntitySystems/FoodSystem.cs`](../../Nutrition/EntitySystems/FoodSystem.cs)
+  - using a severed limb in hand does not eat it
+  - clicking a severed limb on someone does not force-feed it to them
 - [`Content.Shared/_EinsteinEngines/Silicon/Components/SiliconComponent.cs`](../../../Content.Shared/_EinsteinEngines/Silicon/Components/SiliconComponent.cs)
   - playtest 1: ChargeState networked
   - playtest 1: the client predicts the low-power crawl from it; it sat at 10 there
@@ -1594,6 +1599,7 @@ Skipped ("dirty-disposed").
   - P5-D8: 110 -> 190, MajorLimb parity
   - P5-D8: 150 -> 210, MajorLimb parity
   - EVISC: torso damage cap, see _WF/Wolfmed/Body/species_parts.yml
+  - metallic edible profile
 - [`Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml)
   - P5-1/P5-2, PROTO Q: IPCs become wound hosts.
   - P5-D10/U1: IPCs get pain shock, as Onyx's do.
@@ -1631,6 +1637,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_HL/Body/Parts/synth.yml`](../../../Resources/Prototypes/_HL/Body/Parts/synth.yml)
   - M4: OD16 Synth is mechanical, chassis wound profile; WFWolfmedPartIpc must stay FIRST (RT first-parent-wins)
   - playtest 5, the IPC part container (as PartIPCBase), so the welder and the applicator repair a synth
+  - metallic edible profile
 - [`Resources/Prototypes/_HL/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_HL/Damage/modifier_sets.yml): Wolfmed: OD16, a Synth is mechanical and takes no poison, like the IPC set
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml)
   - M4, OD16: a wound host, so Wolfmed decides its state (plan 9.2 group D). Not reparented to
