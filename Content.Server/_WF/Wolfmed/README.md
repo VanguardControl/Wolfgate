@@ -1915,6 +1915,7 @@ Skipped ("dirty-disposed").
   - W5: antiseptics clean open wounds on touch.
   - D20-D22, P2-D7, P2-D9: organic species get wound hosting, pain and a Blunt gib threshold.
   - D29: passive regen is neutralised on wound hosts.
+- [`Resources/Prototypes/Entities/Mobs/Species/reptilian.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/reptilian.yml): was 285; room air chills a lizard, only cold that harms a human harms it
 - [`Resources/Prototypes/Entities/Objects/Misc/fire_extinguisher.yml`](../../../Resources/Prototypes/Entities/Objects/Misc/fire_extinguisher.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/Entities/Objects/Specific/chemistry.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/chemistry.yml): Bobstation's pill swallow (owner's pick, playtest 4), inherited by every Pill variant
 - [`Resources/Prototypes/Entities/Objects/Specific/Janitorial/janitor.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Janitorial/janitor.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
