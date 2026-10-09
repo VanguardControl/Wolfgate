@@ -84,6 +84,8 @@ public sealed class WFEncounterAdminEntry
     public string State = string.Empty;
     public bool Resolved;
     public bool Hidden;
+    /// <summary>Started by an admin, so it stays until ended.</summary>
+    public bool Pinned;
     public float Age;
 
     /// <summary>Seconds until it expires, or negative if it never does.</summary>

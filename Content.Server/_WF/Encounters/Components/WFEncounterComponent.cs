@@ -57,6 +57,10 @@ public sealed partial class WFEncounterComponent : Component
     [DataField]
     public bool Hidden;
 
+    /// <summary>Started by an admin: it stays, ships and all, with no clock on it, until an admin ends it.</summary>
+    [DataField]
+    public bool Pinned;
+
     /// <summary>The stations its placement chose, in the order a route calls at them.</summary>
     [DataField]
     public List<EntityUid> Stops = new();

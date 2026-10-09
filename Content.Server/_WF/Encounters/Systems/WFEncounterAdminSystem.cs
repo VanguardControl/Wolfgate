@@ -177,6 +177,7 @@ public sealed partial class WFEncounterAdminSystem : EntitySystem
                 Name = encounter.Name,
                 Resolved = encounter.Resolution != null,
                 Hidden = encounter.Hidden,
+                Pinned = encounter.Pinned,
                 State = Loc.GetString(encounter.Resolution is { } resolution
                     ? $"wf-encounter-resolution-{resolution.ToString().ToLowerInvariant()}"
                     : "cmd-wf_encounter-state-active"),

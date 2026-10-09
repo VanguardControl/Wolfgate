@@ -314,6 +314,13 @@ public sealed partial class WFEncounterSystem : EntitySystem
         comp.Cost = prototype.Cost;
         comp.Lifetime = prototype.Lifetime;
         comp.OffBudget = prototype.Lifetime == WFEncounterLifetime.Persistent || prototype.Start == WFEncounterStart.RoundStart;
+        // An admin's encounter is his to end: no clock, no slot under the cap, and its ships stay however it goes.
+        comp.Pinned = spawner != null;
+        if (comp.Pinned)
+        {
+            comp.Expires = null;
+            comp.OffBudget = true;
+        }
         comp.Hidden = prototype.Hidden;
         comp.AnnounceOnRadio = prototype.AnnounceOnRadio;
         comp.AnnouncementSound = prototype.AnnouncementSound;
@@ -734,7 +741,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         encounter.Comp.Resolution = resolution;
         encounter.Comp.ResolvedAt = _timing.CurTime;
         if (resolution is WFEncounterResolution.Completed or WFEncounterResolution.Expired
-            && encounter.Comp.Lifetime == WFEncounterLifetime.Transient)
+            && encounter.Comp.Lifetime == WFEncounterLifetime.Transient && !encounter.Comp.Pinned)
             encounter.Comp.JumpAt = _timing.CurTime + JumpDelay;
         Log.Info($"Encounter {encounter.Comp.Prototype} {ToPrettyString(encounter)} resolved: {resolution}.");
         var ev = new WFEncounterResolvedEvent(encounter, resolution);
@@ -810,6 +817,10 @@ public sealed partial class WFEncounterSystem : EntitySystem
                 _running.Add((uid, encounter));
                 continue;
             }
+
+            // An admin's ships are never swept up, whoever is near; he removes them with the encounter.
+            if (encounter.Pinned)
+                continue;
 
             if (!CleanUp(encounter))
                 QueueDel(uid);
@@ -1072,8 +1083,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
             return WFEncounterResolution.Destroyed;
         if (sides.Count > 1 && fighting.Count == 1)
             return WFEncounterResolution.Decided;
-        // A persistent encounter stays for the round: finished orders and the clock don't end it.
-        if (encounter.Lifetime == WFEncounterLifetime.Persistent)
+        // A persistent encounter stays for the round, an admin's until he ends it: finished orders and the clock don't
+        // end either.
+        if (encounter.Lifetime == WFEncounterLifetime.Persistent || encounter.Pinned)
             return null;
         if (ordered > 0 && done == ordered)
             return WFEncounterResolution.Completed;

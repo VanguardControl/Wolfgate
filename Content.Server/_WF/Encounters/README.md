@@ -36,6 +36,10 @@ combatant whose attack is flown, or whose target is lost with all hands, while a
 the nearest enemy left (`WFEncounterSystem.Battle.cs`); once a battle is decided the victors stay on the field with
 their zones standing until cleanup, where every other resolved encounter's zones stand down.
 
+An encounter an admin starts, from the window or the command, is pinned: it has no clock, takes no slot under the
+scheduler's cap, never jumps out, and its ships are never swept up however far away players are, until an admin ends
+it. The window's search box filters both the start list and the running list by name, prototype, ship or state.
+
 Admins use the Encounters window in the Wolfgate admin tab, or `wf_encounter list | spawn <prototype> [distance] |
 end <encounter> | schedule | pause | resume`. Other code calls `WFEncounterSystem.TrySpawn`, `Resolve`, `End` and
 `Reveal` and listens for `WFEncounterStartedEvent` and `WFEncounterResolvedEvent`.
@@ -94,6 +98,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.BatchCore.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.BatchCore.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Battle.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Battle.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Pinned.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Pinned.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Reactor.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Reactor.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Storyteller.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Storyteller.cs)
 
