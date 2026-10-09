@@ -25,6 +25,19 @@ public record struct ShipyardConsoleActionAttemptEvent(EntityUid Actor, Shipyard
 }
 
 /// <summary>
+/// Raised on a shipyard console before it pays a sale out in cash, so a trader hosting the
+/// console can hand the money over itself.
+/// </summary>
+[ByRefEvent]
+public record struct ShipyardCashPayoutEvent(EntityUid Seller, int Amount)
+{
+    /// <summary>
+    /// Set when the host has paid, so the console spawns nothing.
+    /// </summary>
+    public bool Handled = false;
+}
+
+/// <summary>
 /// Console buttons a host can refuse.
 /// </summary>
 public enum ShipyardConsoleAction : byte

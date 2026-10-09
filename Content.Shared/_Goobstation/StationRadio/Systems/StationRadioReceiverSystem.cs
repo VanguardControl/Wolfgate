@@ -22,17 +22,43 @@ public sealed class StationRadioReceiverSystem : EntitySystem
 
     private void OnPowerChanged(EntityUid uid, StationRadioReceiverComponent comp, PowerChangedEvent args)
     {
-        if(comp.SoundEntity != null && args.Powered)
-            _audio.SetGain(comp.SoundEntity, comp.Active ? comp.DefaultParams.Volume : 0f);
-        else if(comp.SoundEntity != null)
-            _audio.SetGain(comp.SoundEntity, 0);
+        // WOLFGATE START: the track's audio entity despawns when it ends, and a volume is not a gain
+        // if(comp.SoundEntity != null && args.Powered)
+        //     _audio.SetGain(comp.SoundEntity, comp.Active ? comp.DefaultParams.Volume : 0f);
+        // else if(comp.SoundEntity != null)
+        //     _audio.SetGain(comp.SoundEntity, 0);
+        WfSetAudible(comp, args.Powered && comp.Active);
+        // WOLFGATE END
     }
+
+    // WOLFGATE START: one place that mutes or restores the playing track
+    private void WfSetAudible(StationRadioReceiverComponent comp, bool audible)
+    {
+        if (comp.SoundEntity is not { } sound)
+            return;
+
+        if (!Exists(sound))
+        {
+            comp.SoundEntity = null;
+            return;
+        }
+
+        if (audible)
+            _audio.SetVolume(sound, comp.DefaultParams.Volume);
+        else
+            _audio.SetGain(sound, 0f);
+    }
+    // WOLFGATE END
 
     private void OnRadioToggle(EntityUid uid, StationRadioReceiverComponent comp, ActivateInWorldEvent args)
     {
         comp.Active = !comp.Active;
-        if (comp.SoundEntity != null && _power.IsPowered(uid))
-            _audio.SetGain(comp.SoundEntity, comp.Active ? comp.DefaultParams.Volume : 0f);
+        // WOLFGATE START: see WfSetAudible
+        // if (comp.SoundEntity != null && _power.IsPowered(uid))
+        //     _audio.SetGain(comp.SoundEntity, comp.Active ? comp.DefaultParams.Volume : 0f);
+        if (_power.IsPowered(uid))
+            WfSetAudible(comp, comp.Active);
+        // WOLFGATE END
     }
 
     private void OnMediaPlayed(EntityUid uid, StationRadioReceiverComponent comp, StationRadioMediaPlayedEvent args)

@@ -18,6 +18,8 @@ public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
 
+    private TimeSpan _nextShieldShootPopup; // WOLFGATE: throttles the shield refusal popup
+
     private void InitializeUser()
     {
         SubscribeLocalEvent<BlockingUserComponent, DamageModifyEvent>(OnUserDamageModified);
@@ -57,12 +59,23 @@ public sealed partial class BlockingSystem : SharedBlockingSystem // Mono
         if (HasComp<CanShootWithShieldComponent>(args.Used)) // don't bother if this gun will always be allowed to be used
             return;
 
+        // WOLFGATE: only a gun the user carries is refused, not an innate ability or a mounted weapon
+        if (Transform(args.Used).ParentUid != ent.Owner)
+            return;
+
         var heldItems = _handsSystem.EnumerateHeld(ent, ent.Comp).ToArray();
         foreach (var item in heldItems)
         {
-            if (HasComp<BlockingComponent>(item))
+            if (HasComp<BlockingComponent>(item) && _toggle.IsActivated(item)) // WOLFGATE: a switched-off or folded shield blocks nothing
             {
-                _popupSystem.PopupClient(Loc.GetString("shield-user-attempt-shoot"), ent);
+                // WOLFGATE START: the attempt repeats every tick while the trigger is held
+                // _popupSystem.PopupClient(Loc.GetString("shield-user-attempt-shoot"), ent);
+                if (_gameTiming.IsFirstTimePredicted && _gameTiming.CurTime >= _nextShieldShootPopup)
+                {
+                    _nextShieldShootPopup = _gameTiming.CurTime + TimeSpan.FromSeconds(1);
+                    _popupSystem.PopupClient(Loc.GetString("shield-user-attempt-shoot"), ent);
+                }
+                // WOLFGATE END
                 args.Cancel();
                 break;
             }

@@ -56,6 +56,7 @@ public sealed partial class ShipyardConsoleMenu : FancyWindow
     {
         SellShipButton.Visible = false;
         UnassignDeedButton.Visible = false;
+        CashSlotControls.Visible = false;
     }
     // WOLFGATE END
 

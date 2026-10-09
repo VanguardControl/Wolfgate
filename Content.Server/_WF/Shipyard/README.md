@@ -51,6 +51,7 @@ tests for one ship: each vessel must load as a shuttle with every hardpoint-only
 
 ## Non-modular edits
 
+- [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs): refuse the sale when the bank share can't be taken; an Ironman's frozen balance bought ships for free
 - [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.cs): last look at the grid, with its deed, before it goes. See _WF/Shipyard.
 - [`Content.Server/Spreader/SpreaderGridComponent.cs`](../../Spreader/SpreaderGridComponent.cs): the queue is rebuilt on grid init and cannot be written, so a grid with a live spreader failed to save
 - [`Content.Shared/Damage/Components/DamageableComponent.cs`](../../../Content.Shared/Damage/Components/DamageableComponent.cs): written on save so a resold ship keeps its dents
@@ -65,5 +66,6 @@ tests for one ship: each vessel must load as a shuttle with every hardpoint-only
 - [`Resources/Prototypes/_Mono/Roles/Jobs/Medical/medic.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Medical/medic.yml): free Triage or Stubby
 - [`Resources/Prototypes/_Mono/Roles/Jobs/ViperGroup/commander.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/ViperGroup/commander.yml): VG commanders start with a voucher for their Wolf
 - [`Resources/Prototypes/_NF/Entities/Objects/Devices/Misc/ship_vouchers.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Devices/Misc/ship_vouchers.yml): Judges can redeem Roswell with the standard station guard voucher
+- [`Resources/Prototypes/_NF/Entities/Structures/Machines/Computers/computers_shipyard.yml`](../../../Resources/Prototypes/_NF/Entities/Structures/Machines/Computers/computers_shipyard.yml): cash in a destroyed console drops instead of being deleted
 
 <!-- WOLFGATE-GENERATED END -->

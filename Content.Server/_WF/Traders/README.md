@@ -109,6 +109,7 @@ while they stay near and calms down once they are far off or gone.
 - [`Content.IntegrationTests/Tests/PrototypeSaveTest.cs`](../../../Content.IntegrationTests/Tests/PrototypeSaveTest.cs): traders are skipped; they are humanoids kept savable so mappers can place them
 - [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs)
   - a trader hosting this console may refuse to buy ships back.
+  - a trader hosting this console pays the cash out on its counter
   - a trader hosting this console has no ActivatableUI, so check the key that was opened.
   - hosting traders read back why a sale was refused
   - a trader hosting this console has no ActivatableUI, so fall back to whichever shipyard key is open on it.

@@ -18941,7 +18941,7 @@ entities:
     - type: Transform
       pos: 15.658639,27.340311
       parent: 1
-- proto: LockableButtonPirate
+- proto: WFLockableButtonUnderground
   entities:
   - uid: 2791
     components:

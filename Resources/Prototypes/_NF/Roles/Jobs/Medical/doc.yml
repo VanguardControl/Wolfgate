@@ -6,9 +6,14 @@
   requirements:
     - !type:OverallPlaytimeRequirement
       time: 162000 # mono - 45 hours
-    - !type:DepartmentTimeRequirement
-      department: Medical
-      time: 72000 # mono - 20 hours
+    # WOLFGATE START: the Medical department has no roles since Monolith#4807, so count medic time instead
+    # - !type:DepartmentTimeRequirement
+    #   department: Medical
+    #   time: 72000 # mono - 20 hours
+    - !type:RoleTimeRequirement
+      role: MdMedic
+      time: 72000
+    # WOLFGATE END
   alternateRequirementSets: # mono
     longerPlaytimeLessSec: # mono
     - !type:OverallPlaytimeRequirement # mono

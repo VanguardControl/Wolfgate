@@ -250,7 +250,25 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
         }
         else
         {
-            if (bank.Balance + cashBalance < vessel.Price) // Mono - Only proceed if we have enough combined funds to buy shit.
+            // WOLFGATE(Shipyard) START: refuse the sale when the bank share can't be taken; an Ironman's frozen balance bought ships for free
+            // if (bank.Balance + cashBalance < vessel.Price) // Mono - Only proceed if we have enough combined funds to buy shit.
+            // {
+            //     Del(shuttleUid);
+            //     ConsolePopup(player, Loc.GetString("cargo-console-insufficient-funds", ("cost", vessel.Price)));
+            //     PlayDenySound(player, shipyardConsoleUid, component);
+            //     return;
+            // }
+            //
+            // if (_cash.TryCashPayment(shipyardConsoleUid, vessel.Price, out var remainingDebt, true)) // Mono
+            //     cashBalance = Math.Max(cashBalance - vessel.Price,0);
+            // if (remainingDebt > 0) // Mono
+            //     _bank.TryBankWithdraw(player, remainingDebt); // Mono
+            var fromCash = Math.Min(cashBalance, vessel.Price);
+            var fromBank = vessel.Price - fromCash;
+            _bank.TryGetBalance(player, out var bankFunds);
+
+            // The bank goes first, so a refused withdrawal leaves the cash in the slot.
+            if (bankFunds < fromBank || fromBank > 0 && !_bank.TryBankWithdraw(player, fromBank))
             {
                 Del(shuttleUid);
                 ConsolePopup(player, Loc.GetString("cargo-console-insufficient-funds", ("cost", vessel.Price)));
@@ -258,10 +276,9 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
                 return;
             }
 
-            if (_cash.TryCashPayment(shipyardConsoleUid, vessel.Price, out var remainingDebt, true)) // Mono
-                cashBalance = Math.Max(cashBalance - vessel.Price,0);
-            if (remainingDebt > 0) // Mono
-                _bank.TryBankWithdraw(player, remainingDebt); // Mono
+            if (fromCash > 0 && _cash.TryCashPayment(shipyardConsoleUid, fromCash, out _))
+                cashBalance -= fromCash;
+            // WOLFGATE END
         }
 
         // Add company information to the shuttle from the ID card or voucher
@@ -594,7 +611,13 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
                 //spawn the cash stack for Ironman players
                 _adminLogger.Add(LogType.ShipYardUsage, LogImpact.Low, $"{ToPrettyString(player):actor} withdrew {bill} from {ToPrettyString(uid)}");
                 var stackPrototype = _prototypeManager.Index<StackPrototype>(CreditPrototype);
-                _stackSystem.Spawn(bill, stackPrototype, uid.ToCoordinates());
+                // WOLFGATE(Traders) START: a trader hosting this console pays the cash out on its counter
+                var payoutEv = new Content.Server._WF.Shipyard.ShipyardCashPayoutEvent(player, bill);
+                RaiseLocalEvent(uid, ref payoutEv);
+                // _stackSystem.Spawn(bill, stackPrototype, uid.ToCoordinates());
+                if (!payoutEv.Handled)
+                    _stackSystem.Spawn(bill, stackPrototype, uid.ToCoordinates());
+                // WOLFGATE END
             }
             else
             {

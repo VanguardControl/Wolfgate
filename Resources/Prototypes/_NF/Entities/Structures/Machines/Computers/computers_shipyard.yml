@@ -44,6 +44,7 @@
     board: Null
   - type: CreditReceiver # Mono - Ironman players and whoever else can use cash money for their ships.
     cashSlot:
+      ejectOnBreak: true # WOLFGATE(Shipyard): cash in a destroyed console drops instead of being deleted
       whitelist:
         components:
         - Cash

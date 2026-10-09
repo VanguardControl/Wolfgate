@@ -243,13 +243,22 @@ public sealed partial class RadioDeviceSystem : SharedRadioDeviceSystem
             ("originalName", nameEv.VoiceName));
 
         var message = args.OriginalChatMsg.Message;
+        // WOLFGATE START: keep the speaker's own output type and the admin-safe ghost range the radio host port dropped
+        // _chat.TrySendInGameICMessage(uid,
+        //     message,
+        //     component.SpeakNormally ? InGameICChatType.Speak : InGameICChatType.Whisper, // Goobstation - radio host
+        //     ChatTransmitRange.GhostRangeLimit,
+        //     nameOverride: name,
+        //     checkRadioPrefix: component.SpeakNormally,
+        //     languageOverride: args.Language); // Einstein Engines - Languages
         _chat.TrySendInGameICMessage(uid,
             message,
-            component.SpeakNormally ? InGameICChatType.Speak : InGameICChatType.Whisper, // Goobstation - radio host
-            ChatTransmitRange.GhostRangeLimit,
+            component.SpeakNormally ? InGameICChatType.Speak : component.OutputChatType,
+            ChatTransmitRange.GhostRangeLimitNoAdminCheck,
             nameOverride: name,
-            checkRadioPrefix: component.SpeakNormally,
-            languageOverride: args.Language); // Einstein Engines - Languages
+            checkRadioPrefix: false,
+            languageOverride: args.Language);
+        // WOLFGATE END
     }
 
     private void OnIntercomEncryptionChannelsChanged(Entity<IntercomComponent> ent, ref EncryptionChannelsChangedEvent args)

@@ -109,6 +109,7 @@ trader-used-quote = I can give you { $amount } for the { $ship }.
 trader-used-sale-refused = Can't take her like that, I'm afraid.
 trader-used-sale-refused-reason = Can't take her like that, I'm afraid. { $reason }
 trader-used-sale-done = { $amount }, straight into your account. Pleasure.
+trader-used-sale-done-cash = { $amount }, cash on the counter. Pleasure.
 trader-used-gone = Somebody beat you to that one.
 trader-used-load-failed = She won't come out of the yard. Your money's back on the table.
 trader-used-sold = The { $ship }, sold! No refunds, no take-backs.
