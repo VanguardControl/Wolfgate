@@ -724,3 +724,9 @@ WolfmedStimPen: WFWolfmedStimPen
 WFWindreignCarrierComputer: null
 # WOLFGATE END
 
+# WOLFGATE START: Monolith#4816 renamed the WL-01 suit and helmet without a migration
+# 2026-10-08
+ClothingOuterHardsuitMercenaryWarlord: ClothingOuterHardsuitWarlord
+ClothingHelmetHardsuitMercenaryWarlord: ClothingHelmetHardsuitWarlord
+# WOLFGATE END
+

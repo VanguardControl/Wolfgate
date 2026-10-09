@@ -7,6 +7,11 @@ feathers and briefly suppress injury slowdown. Feathers regenerate over time, up
 Entry points: `PreenableComponent`, `PreenableSystem`, the `AvaliFeather` prototype, and the component attached
 to `BaseMobAvali`. The existing HardLight biology, stasis and chemistry remain in the Species module.
 
+Avali fly between z-levels on the moth's settings (`CEZFlyer`, `CEControllableFlight` on `BaseMobAvali`); they are
+about half a moth's mass, so the flyer's mass scaling makes them faster and cheaper to keep up. Their stasis is cut
+down there too: slower mending and a longer cooldown on the prototype, with the time limit and the whole hit in
+`WolfmedStasisSystem` (Wolfmed).
+
 ## Port attribution
 
 Adapted from [Delta-V #5609, Avali Feather Preening](https://github.com/DeltaV-Station/Delta-v/pull/5609)
@@ -43,6 +48,7 @@ or gun accuracy changes removed before the upstream PR was merged.
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Avali/AvaliFeatherClothingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Avali/AvaliFeatherClothingTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Avali/AvaliFlightTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Avali/AvaliFlightTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Avali/AvaliPreeningTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Avali/AvaliPreeningTest.cs)
 
 ### Prototypes
@@ -59,7 +65,14 @@ or gun accuracy changes removed before the upstream PR was merged.
 
 ## Non-modular edits
 
-- [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml): enable feather preening and regrowth for Avali
-- [`Resources/ServerInfo/Guidebook/Mobs/Avali.xml`](../../../Resources/ServerInfo/Guidebook/Mobs/Avali.xml): describe feather preening, shedding and regrowth
+- [`Resources/Locale/en-US/_Starlight/Avali/stasis.ftl`](../../../Resources/Locale/en-US/_Starlight/Avali/stasis.ftl): stasis is a short hold now, not an open-ended heal
+- [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml)
+  - enable feather preening and regrowth for Avali
+  - stasis mends at a quarter of the stock rate and rests twice as long
+  - flight between z-levels, on the moth's numbers
+- [`Resources/ServerInfo/Guidebook/Mobs/Avali.xml`](../../../Resources/ServerInfo/Guidebook/Mobs/Avali.xml)
+  - the shell is a short hold, not a heal
+  - describe feather preening, shedding and regrowth
+  - flight, as on the moth page
 
 <!-- WOLFGATE-GENERATED END -->
