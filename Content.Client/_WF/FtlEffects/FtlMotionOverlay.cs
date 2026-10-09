@@ -1,6 +1,5 @@
 using System.Numerics;
 using Content.Shared._WF.FtlEffects;
-using Content.Shared.Maps;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;
 using Robust.Shared.Graphics;
@@ -18,7 +17,6 @@ public sealed partial class FtlMotionOverlay : Overlay
     private static readonly ProtoId<ShaderPrototype> BackgroundShader = "WFFtlBackground";
     [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
-    [Dependency] private ITileDefinitionManager _tiles = default!;
     private readonly FtlDepartureSystem _system;
     private readonly FtlMotionBackgroundOverlay _background;
     private readonly SharedTransformSystem _transforms;
@@ -83,7 +81,7 @@ public sealed partial class FtlMotionOverlay : Overlay
             if (!hull.Built || hull.Tick != grid.LastTileModifiedTick)
                 BuildHull(uid, grid, hull);
 
-            // Erase only the ship's tile footprint; holes between wings keep the existing scene.
+            // Cover hull sprites beyond the tile edges while preserving gaps between wings.
             handle.UseShader(_erase);
             handle.SetTransform(matrix);
             DrawHull(handle, hull.Vertices);
@@ -95,6 +93,7 @@ public sealed partial class FtlMotionOverlay : Overlay
             right.Y = -right.Y;
             forward.Y = -forward.Y;
             hull.Shader.SetParameter("SCREEN_TEXTURE", ScreenTexture);
+            hull.Shader.SetParameter("background", _background.Background);
             hull.Shader.SetParameter("originPixels", origin);
             hull.Shader.SetParameter("rightPixels", right);
             hull.Shader.SetParameter("forwardPixels", forward);
@@ -119,20 +118,17 @@ public sealed partial class FtlMotionOverlay : Overlay
         var tiles = _maps.GetAllTilesEnumerator(uid, grid);
         while (tiles.MoveNext(out var tile))
         {
-            if (_tiles[tile.Value.Tile.TypeId] is not ContentTileDefinition definition)
-                continue;
             var origin = (Vector2) tile.Value.GridIndices * grid.TileSize;
-            var shape = definition.Vertices;
-            for (var i = 2; i < shape.Count; i++)
-            {
-                Add(shape[0]);
-                Add(shape[i - 1]);
-                Add(shape[i]);
-            }
+            Add(Vector2.Zero);
+            Add(Vector2.UnitX);
+            Add(Vector2.One);
+            Add(Vector2.Zero);
+            Add(Vector2.One);
+            Add(Vector2.UnitY);
             void Add(Vector2 corner)
             {
-                // Include the small sprite overhang of walls and hull fittings.
-                var point = origin + corner * grid.TileSize + (corner - new Vector2(0.5f)) * 0.4f;
+                // Diagonal tiles can carry full-square wall and fitting sprites.
+                var point = origin + corner * grid.TileSize + (corner - new Vector2(0.5f)) * 0.8f;
                 vertices.Add(new DrawVertexUV2D(point, point));
             }
         }

@@ -21,7 +21,7 @@ public sealed partial class FtlDepartureOverlay : Overlay
     private readonly SharedTransformSystem _transforms;
     private readonly Dictionary<EntityUid, ShaderInstance> _shaders = new();
     private readonly List<EntityUid> _expired = new();
-    private readonly List<(EntityUid Uid, Box2 Bounds, float Intensity, float Phase, Matrix3x2 Matrix)> _visible = new();
+    private readonly List<(EntityUid Uid, Box2 Bounds, float Intensity, float Phase, float Burst, Matrix3x2 Matrix)> _visible = new();
     private readonly DrawVertexUV2D[] _quad = new DrawVertexUV2D[6];
 
     public override OverlaySpace Space => OverlaySpace.WorldSpace;
@@ -70,7 +70,9 @@ public sealed partial class FtlDepartureOverlay : Overlay
             if (!_shaders.ContainsKey(uid))
                 _shaders.Add(uid, _prototypes.Index(Shader).Instance().Duplicate());
             var phase = (float) (_timing.CurTime - effect.Started).TotalSeconds;
-            _visible.Add((uid, bounds, intensity, phase, matrix));
+            var distance = MathF.Abs((float) (_timing.CurTime - effect.Departure).TotalSeconds);
+            var burst = Math.Clamp(1f - distance / 0.18f, 0f, 1f);
+            _visible.Add((uid, bounds, intensity, phase, burst * burst, matrix));
         }
         return _visible.Count > 0;
     }
@@ -81,7 +83,7 @@ public sealed partial class FtlDepartureOverlay : Overlay
             return;
 
         var handle = args.WorldHandle;
-        foreach (var (uid, bounds, intensity, phase, matrix) in _visible)
+        foreach (var (uid, bounds, intensity, phase, burst, matrix) in _visible)
         {
             var shader = _shaders[uid];
             var origin = args.Viewport.WorldToLocal(Vector2.Transform(Vector2.Zero, matrix));
@@ -94,6 +96,7 @@ public sealed partial class FtlDepartureOverlay : Overlay
             shader.SetParameter("rightPixels", right);
             shader.SetParameter("intensity", intensity);
             shader.SetParameter("phase", phase);
+            shader.SetParameter("burst", burst);
             handle.SetTransform(matrix);
             handle.UseShader(shader);
             _quad[0] = new DrawVertexUV2D(bounds.BottomLeft, new Vector2(-1f, 0f));

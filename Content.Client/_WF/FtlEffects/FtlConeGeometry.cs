@@ -2,14 +2,14 @@ using System.Numerics;
 
 namespace Content.Client._WF.FtlEffects;
 
-/// <summary>Fits a smooth conical field from midship to a point ahead of the bow.</summary>
+/// <summary>Fits a rounded conical field from midship to just ahead of the bow.</summary>
 public static class FtlConeGeometry
 {
     /// <summary>Returns the cone's extent in grid coordinates, including off-center hulls.</summary>
     public static Box2 Bounds(Box2 hull)
     {
         var width = hull.Width * 0.8f + 1f;
-        var nose = hull.Top + Math.Clamp(hull.Width * 0.7f, 1.5f, 24f);
+        var nose = hull.Top + Math.Clamp(hull.Width * 0.2f, 0.75f, 6f);
         return new Box2(hull.Center.X - width, hull.Center.Y, hull.Center.X + width, nose);
     }
 

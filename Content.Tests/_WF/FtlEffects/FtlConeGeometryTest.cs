@@ -1,3 +1,4 @@
+using System;
 using System.Numerics;
 using Content.Client._WF.FtlEffects;
 using NUnit.Framework;
@@ -18,6 +19,8 @@ public sealed class FtlConeGeometryTest
         var cone = FtlConeGeometry.Bounds(hull);
         Assert.That(cone.Bottom, Is.EqualTo(hull.Center.Y));
         Assert.That(cone.Top, Is.GreaterThan(hull.Top));
+        Assert.That(cone.Top - hull.Top, Is.LessThanOrEqualTo(MathF.Max(0.75f, hull.Width * 0.25f)));
+        Assert.That(cone.Top - hull.Top, Is.LessThanOrEqualTo(6f));
         Assert.That(cone.Center.X, Is.EqualTo(hull.Center.X));
         Assert.That(cone.Width, Is.GreaterThan(hull.Width * 1.6f));
         Assert.That(hull.Left - cone.Left, Is.EqualTo(cone.Right - hull.Right).Within(0.001f));
