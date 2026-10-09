@@ -1,0 +1,14 @@
+light_mode unshaded;
+
+uniform sampler2D SCREEN_TEXTURE;
+uniform highp vec2 originPixels;
+uniform highp vec2 rightPixels;
+uniform highp vec2 forwardPixels;
+
+void fragment() {
+    highp vec2 source = (originPixels + rightPixels * UV.x + forwardPixels * UV.y) * SCREEN_PIXEL_SIZE;
+    if (source.x < 0.0 || source.y < 0.0 || source.x > 1.0 || source.y > 1.0) {
+        discard;
+    }
+    COLOR = zTextureSpec(SCREEN_TEXTURE, source);
+}

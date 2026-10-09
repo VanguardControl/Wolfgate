@@ -1,0 +1,40 @@
+light_mode unshaded;
+
+uniform sampler2D SCREEN_TEXTURE;
+uniform highp vec2 forwardPixels;
+uniform highp vec2 rightPixels;
+uniform highp float intensity;
+uniform highp float phase;
+
+void fragment() {
+    // The curved cone is continuous: x spans the shoulders, y runs from midship to the nose.
+    highp float radius = pow(max(1.0 - UV.y, 0.001), 0.72);
+    highp float across = UV.x / max(radius, 0.035);
+    highp float edgeDistance = abs(UV.x) - radius;
+    highp float inside = 1.0 - smoothstep(-0.025, 0.035, edgeDistance);
+    highp float ends = smoothstep(0.0, 0.15, UV.y) * (1.0 - smoothstep(0.97, 1.0, UV.y));
+    highp float envelope = inside * ends * intensity;
+    if (envelope <= 0.001) {
+        discard;
+    }
+
+    highp float rim = 1.0 - smoothstep(0.008, 0.06, abs(edgeDistance));
+    highp float waves = sin(UV.y * 43.0 + phase * 14.0 + across * 3.0)
+        + sin(UV.y * 71.0 + phase * 21.0 - across * 7.0) * 0.35;
+    highp vec2 displacement = (forwardPixels * waves * 0.24
+        + rightPixels * sin(across * 19.0 - phase * 11.0) * 0.16) * envelope * (0.65 + rim);
+    highp vec2 safeMin = SCREEN_PIXEL_SIZE * 0.5;
+    highp vec2 safeMax = vec2(1.0) - safeMin;
+    highp vec2 uv = clamp((FRAGCOORD.xy - displacement) * SCREEN_PIXEL_SIZE, safeMin, safeMax);
+    highp vec4 scene = zTextureSpec(SCREEN_TEXTURE, uv);
+
+    // Curved lanes fill the cone's depth; each particle shoots back from the nose toward midship.
+    highp float lane = (across + 1.0) * 15.0;
+    highp float seed = fract(sin(floor(lane) * 127.1) * 43758.5453);
+    highp float head = 1.0 - fract(phase * (1.25 + seed * 1.3) + seed);
+    highp float trail = UV.y - head;
+    highp float streak = (1.0 - smoothstep(0.025, 0.10, abs(fract(lane) - 0.5)))
+        * smoothstep(-0.012, 0.0, trail) * (1.0 - smoothstep(0.015, 0.16, trail));
+    highp float fleck = streak * (0.65 + seed * 0.55);
+    COLOR = vec4(scene.rgb + vec3(fleck * intensity), envelope * 0.95);
+}
