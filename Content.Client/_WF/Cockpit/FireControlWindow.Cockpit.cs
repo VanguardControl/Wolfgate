@@ -10,6 +10,7 @@ namespace Content.Client._Mono.FireControl.UI;
 public sealed partial class FireControlWindow
 {
     private Button? _wfCockpitStore;
+    private Control? _wfCockpitCountermeasures;
 
     /// <summary>Borrows the live battery and switches into a compact cockpit instrument bank.</summary>
     internal Control WfBuildCockpitGunnery(WFCockpitLease lease)
@@ -87,6 +88,8 @@ public sealed partial class FireControlWindow
         RefreshButton.SetWidth = 48;
         flares.SeparationOverride = 2;
         var readings = Row(supply, threats, cooldown);
+        _wfCockpitCountermeasures = readings;
+        readings.Visible = _wfCombat?.FlareLaunchers.Count > 0;
         readings.SeparationOverride = 2;
         var body = Column(select, memory, weapons, readings, flares);
         body.SeparationOverride = 3;
@@ -100,6 +103,8 @@ public sealed partial class FireControlWindow
         if (_wfCockpitStore == null)
             return;
         _wfCockpitStore.Disabled = !_wfConnected;
+        if (_wfCockpitCountermeasures != null)
+            _wfCockpitCountermeasures.Visible = _wfCombat?.FlareLaunchers.Count > 0;
         for (var i = 0; i < WFWeaponGroups.Count; i++)
         {
             _wfRecall[i].ToolTip = _wfRecall[i].Text;

@@ -202,7 +202,10 @@ public sealed class WFCombatConsoleTest
             armed.Combat.FlareLaunchers.Add(new NetEntity(711));
             armed.Combat.Ammunition = 18;
             armed.Combat.Threats = 2;
+            var countermeasures = Descendants(gunnery).Single(control => control.Name == "WfCountermeasurePanel");
+            Assert.That(countermeasures.Visible, Is.False);
             gunnery.UpdateStatus(armed);
+            Assert.That(countermeasures.Visible, Is.True);
             var meter = gunnery.WeaponsList[gun].Children.OfType<WFGlassGauge>().Single();
             Assert.That(meter.Reading.Value, Is.EqualTo(240));
             Assert.That(meter.Reading.Maximum, Is.GreaterThanOrEqualTo(240));
@@ -226,6 +229,7 @@ public sealed class WFCombatConsoleTest
                 }
             }
             gunnery.UpdateStatus(GunState(true, 0));
+            Assert.That(countermeasures.Visible, Is.False, "Removing the last launcher must hide the entire flare panel.");
             Assert.That(meter.Reading.Value, Is.Zero, "Empty ammunition is a real zero.");
             gunnery.UpdateStatus(GunState(false, 240));
             Assert.That(meter.Reading.Value, Is.Null, "A disconnected console must not retain a live needle.");

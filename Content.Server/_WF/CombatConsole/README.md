@@ -9,7 +9,8 @@ FTL/autopilot, docking, hull cameras, ship systems, access and shields. Gunnery 
 weapon groups: select weapons, save a slot, then recall that slot with one click. Groups belong to
 the console and survive closing its window; saving an empty selection clears a slot.
 
-The countermeasure panel controls connected GS-002 Sunny launchers. AUTO responds to exposed,
+The countermeasure panel controls connected GS-002 Sunny launchers and is hidden when none are installed,
+including in the cockpit. Empty installed launchers remain visible. AUTO responds to exposed,
 launched missiles tracking this ship within 250 metres of the console; DISPENSE requests a manual
 burst. Automation continues while armed with the window closed. Each launcher shares a 15-second
 burst lockout across consoles after each shot and uses its existing ammunition supply, including

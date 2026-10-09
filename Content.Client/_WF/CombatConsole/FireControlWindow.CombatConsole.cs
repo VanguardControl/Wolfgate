@@ -17,6 +17,7 @@ public sealed partial class FireControlWindow
     private WFCombatConsoleState? _wfCombat;
     private readonly Dictionary<NetEntity, WFGlassGauge> _wfAmmoGauges = new();
     private bool _wfConnected;
+    private Control _wfCountermeasures = default!;
     private Button _wfAutomatic = default!;
     private Button _wfDispense = default!;
     private Label _wfFlareStatus = default!;
@@ -59,11 +60,13 @@ public sealed partial class FireControlWindow
         _wfSelection = Label("wf-console-selection");
         _wfThreats = Label("wf-console-no-threats", Green);
         _wfAutomatic = Button("wf-console-auto-safe", true);
+        _wfAutomatic.Visible = false;
         _wfAutomatic.Disabled = true;
         _wfAutomatic.ToolTip = Loc.GetString("wf-console-auto-help");
         _wfAutomatic.OnToggled += args => CombatMessage?.Invoke(new WFAutomaticFlaresMessage(args.Pressed));
         _wfDispense = Button("wf-console-dispense");
         _wfDispense.AddStyleClass("WfDispense");
+        _wfDispense.Visible = false;
         _wfDispense.Disabled = true;
         _wfDispense.OnPressed += _ => CombatMessage?.Invoke(new WFDispenseFlaresMessage());
         _wfFlareStatus = Label("wf-console-no-launchers");
@@ -101,8 +104,9 @@ public sealed partial class FireControlWindow
         flareControls.MinWidth = 108;
         flareControls.MaxWidth = 108;
         flareControls.SeparationOverride = 4;
-        var countermeasures = Panel("wf-console-countermeasures", Column(Row(_wfDispenser, supply, threats, cooldown, flareControls), _wfThreats, _wfFlareStatus));
+        var countermeasures = _wfCountermeasures = Panel("wf-console-countermeasures", Column(Row(_wfDispenser, supply, threats, cooldown, flareControls), _wfThreats, _wfFlareStatus));
         countermeasures.Name = "WfCountermeasurePanel";
+        countermeasures.Visible = false;
         var scope = Column(Scope("wf-console-fire-scope", NavRadar, new Vector2(240, 120)), countermeasures);
         scope.HorizontalExpand = scope.VerticalExpand = true;
         scope.SizeFlagsStretchRatio = 0.56f;
@@ -193,6 +197,7 @@ public sealed partial class FireControlWindow
             _wfRecall[i].Disabled = !state.Connected || combat.Groups[i].Count == 0;
             _wfSave[i].Disabled = !state.Connected;
         }
+        _wfCountermeasures.Visible = _wfAutomatic.Visible = _wfDispense.Visible = combat.FlareLaunchers.Count > 0;
         _wfDispenser.Connected = state.Connected && combat.FlareLaunchers.Count > 0;
         _wfDispenser.Ammunition = combat.Ammunition;
         _wfDispenser.Unlimited = combat.UnlimitedSupply;
