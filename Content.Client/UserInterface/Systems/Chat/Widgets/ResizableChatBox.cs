@@ -95,6 +95,7 @@ public sealed partial class ResizableChatBox : ChatBox
 
         private DragMode GetDragModeFor(Vector2 relativeMousePos)
         {
+            if (WfCockpitDocked) return DragMode.None; // WOLFGATE(Cockpit): the cockpit controls chat sizing.
             var mode = DragMode.None;
 
             if (relativeMousePos.Y > Size.Y - DragMarginSize)
@@ -194,6 +195,7 @@ public sealed partial class ResizableChatBox : ChatBox
 
         private void ClampSize(float? desiredLeft = null, float? desiredBottom = null)
         {
+            if (WfCockpitDocked) return; // WOLFGATE(Cockpit): preserve the normal chat margins while docked.
             if (Parent == null)
                 return;
 

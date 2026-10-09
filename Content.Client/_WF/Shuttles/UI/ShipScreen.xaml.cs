@@ -94,6 +94,11 @@ public sealed partial class ShipScreen : BoxContainer
 
     public void SetShuttle(EntityUid? shuttle)
     {
+        if (_shuttle != shuttle)
+        {
+            _wfTileCount = null;
+            _wfHull = null;
+        }
         _shuttle = shuttle;
         ShipView.SetGrid(shuttle);
         AlarmPanel.SetGrid(shuttle);
@@ -113,6 +118,7 @@ public sealed partial class ShipScreen : BoxContainer
         ShipView.SetStatus(message.Tiles);
 
         var summary = message.Summary;
+        _wfHull = summary;
 
         IntegrityLabel.Text = Loc.GetString("shuttle-console-ship-percent",
             ("value", $"{summary.WorstIntegrity * 100f:0}"));
@@ -129,6 +135,7 @@ public sealed partial class ShipScreen : BoxContainer
     public void ClearStatus()
     {
         ShipView.ClearStatus();
+        _wfHull = null;
 
         IntegrityLabel.Text = "-";
         DamagedLabel.Text = "-";
@@ -157,6 +164,7 @@ public sealed partial class ShipScreen : BoxContainer
         {
             ShipNameLabel.Text = Loc.GetString("shuttle-console-ship-name-unknown");
             ShipTilesLabel.Text = "-";
+            _wfTileCount = null;
             NoDataLabel.Visible = true;
             return;
         }
@@ -166,6 +174,7 @@ public sealed partial class ShipScreen : BoxContainer
         NoDataLabel.Visible = !_entManager.HasComponent<NavMapComponent>(_shuttle);
 
         ShipNameLabel.Text = _entManager.GetComponent<MetaDataComponent>(_shuttle!.Value).EntityName;
-        ShipTilesLabel.Text = _maps.GetAllTiles(_shuttle.Value, grid).Count().ToString();
+        _wfTileCount = _maps.GetAllTiles(_shuttle.Value, grid).Count();
+        ShipTilesLabel.Text = _wfTileCount.Value.ToString();
     }
 }

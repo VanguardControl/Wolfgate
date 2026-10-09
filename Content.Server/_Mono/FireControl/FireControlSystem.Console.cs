@@ -285,6 +285,7 @@ public sealed partial class FireControlSystem : EntitySystem
         var array = controllables.ToArray();
 
         var state = new FireControlConsoleBoundInterfaceState(component.ConnectedServer != null, array, navState);
+        WfUpdateCombatState(uid, component, state); // WOLFGATE(CombatConsole): include group memory and countermeasure telemetry.
         _ui.SetUiState(uid, FireControlConsoleUiKey.Key, state);
     }
 

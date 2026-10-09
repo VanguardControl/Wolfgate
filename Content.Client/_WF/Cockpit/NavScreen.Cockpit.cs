@@ -1,0 +1,110 @@
+using System.Numerics;
+using Content.Client._WF.Cockpit;
+using Content.Client._WF.CombatConsole;
+using Content.Shared._CE.ZLevels.Core.Components;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Physics.Components;
+using static Content.Client._WF.CombatConsole.WFInstrumentTheme;
+
+namespace Content.Client.Shuttles.UI;
+
+public sealed partial class NavScreen
+{
+    /// <summary>Builds compact passive instruments while retaining the helm's existing data sources.</summary>
+    public (Control Instruments, Control Translation) WfCockpitInstruments(WFCockpitLease lease)
+    {
+        var heading = new WFHeadingInstrument(() =>
+            _entManager.TryGetComponent(_shuttleEntity, out TransformComponent? transform)
+                ? (-_xformSystem.GetWorldRotation(transform)).Reduced().FlipPositive().Degrees : null)
+            { Name = "CockpitHeading", MinHeight = 106, SetHeight = 106 };
+        var speed = new WFVelocityVectorInstrument(() =>
+            _entManager.TryGetComponent(_shuttleEntity, out PhysicsComponent? physics) &&
+            _entManager.TryGetComponent(_shuttleEntity, out TransformComponent? transform)
+                ? WFCockpitVelocityReading.FromWorld(physics.LinearVelocity, _xformSystem.GetWorldRotation(transform)) : null)
+            { Name = "CockpitVelocity" };
+        var yaw = new WFGlassGauge("wf-gauge-yaw", () => WfMotionReading(2)) { MinWidth = 88, SetHeight = 100 };
+        WFCockpitInstrumentSizing.Bind(heading, lease, 106, 176);
+        WFCockpitInstrumentSizing.Bind(speed, lease, 100, 160);
+        WFCockpitInstrumentSizing.Bind(yaw, lease, 100, 160);
+        var forward = new WFGlassGauge("wf-gauge-forward", () => WfMotionReading(1), true) { SetHeight = 56 };
+        var lateral = new WFGlassGauge("wf-gauge-lateral", () => WfMotionReading(0), true) { SetHeight = 56 };
+        var altitude = new WFGlassGauge("wf-gauge-altitude", () =>
+        {
+            double? value = GridAltitude.Visible && _shuttleEntity is { } shuttle ? _zLevels.GetAbsoluteAltitude(shuttle) : null;
+            var limit = WFGaugeScale.Ceiling(Math.Abs(value ?? 0), 10);
+            return WFGaugeReading.Number(value, -limit, limit, "wf-gauge-unit-altitude", 2);
+        }, true) { Name = "CockpitAltitude", SetHeight = 56, Visible = GridAltitude.Visible };
+        var climb = new WFGlassGauge("wf-gauge-climb", () => WFGaugeReading.Number(
+            GridVerticalVelocity.Visible && _entManager.TryGetComponent(_shuttleEntity, out CEZPhysicsComponent? physics)
+                ? physics.Velocity : null, -10, 10, "wf-gauge-unit-climb", 2), true)
+            { Name = "CockpitClimb", SetHeight = 56, Visible = GridVerticalVelocity.Visible };
+        var vertical = Row(altitude, climb);
+        vertical.Visible = GridAltitude.Visible;
+        Action<Control> updateAltitude = control => altitude.Visible = vertical.Visible = control.Visible;
+        Action<Control> updateClimb = control => climb.Visible = control.Visible;
+        GridAltitude.OnVisibilityChanged += updateAltitude;
+        GridVerticalVelocity.OnVisibilityChanged += updateClimb;
+        lease.Remember(() =>
+        {
+            GridAltitude.OnVisibilityChanged -= updateAltitude;
+            GridVerticalVelocity.OnVisibilityChanged -= updateClimb;
+        });
+        return (Column(heading, Row(speed, yaw)), Column(Row(forward, lateral), vertical));
+    }
+
+    /// <summary>Refreshes contextual flight data when the original navigation panel is hidden.</summary>
+    public void WfCockpitRefresh()
+    {
+        if (_entManager.TryGetComponent(_shuttleEntity, out TransformComponent? transform))
+        {
+            UpdateAltitude(transform);
+            var position = _xformSystem.GetWorldPosition(transform);
+            GridPosition.Text = Loc.GetString("shuttle-console-position-value", ("X", $"{position.X:0.0}"), ("Y", $"{position.Y:0.0}"));
+        }
+        else
+            GridAltitude.Visible = GridVerticalVelocity.Visible = GridTravelState.Visible = false;
+    }
+
+    /// <summary>Moves propulsion controls into the cockpit's permanent lower bank.</summary>
+    public Control WfCockpitFlight(WFCockpitLease lease)
+    {
+        var speedLabel = (Label) MaximumShuttleSpeedBox.GetChild(0);
+        var caption = speedLabel.Text;
+        lease.Remember(() => speedLabel.Text = caption);
+        speedLabel.Text = Loc.GetString("wf-cockpit-speed-limit");
+        return Column(lease.Take(DampenerModeButtons), lease.Take(MaximumShuttleSpeedBox), lease.Take(WfOrbitButton));
+    }
+
+    /// <summary>Moves the live radar into the navigation MFD.</summary>
+    public Control WfCockpitRadar(WFCockpitLease lease)
+    {
+        var radar = lease.Take(NavRadar);
+        radar.WfCockpitInteraction(lease);
+        radar.VerticalExpand = true;
+        var plot = new Control { HorizontalExpand = true, VerticalExpand = true };
+        plot.AddChild(new PanelContainer { PanelOverride = Face(Ink, Muted, 0), MouseFilter = MouseFilterMode.Ignore });
+        plot.AddChild(radar);
+        plot.AddChild(new WFCrtGlass());
+        return plot;
+    }
+
+    /// <summary>Keeps sensor configuration and wired auxiliary controls available without another window.</summary>
+    public Control WfCockpitSystems(WFCockpitLease lease)
+    {
+        var dimension = NetworkPortsBox.LimitedDimension;
+        var rows = NetworkPortsBox.Rows;
+        var columns = NetworkPortsBox.Columns;
+        lease.Remember(() =>
+        {
+            if (dimension == Dimension.Row)
+                NetworkPortsBox.Rows = rows;
+            else
+                NetworkPortsBox.Columns = columns;
+        });
+        NetworkPortsBox.Columns = 4;
+        return Column(new WFGlassReadout(Column(lease.Take(ShuttleDesignation), lease.Take(GridPosition))),
+            lease.Take(IFFToggle), lease.Take(IFFDetailedToggle), lease.Take(DockToggle), lease.Take(IffSearchBox),
+            lease.Take(MaximumIFFDistanceBox), lease.Take(NetworkPortsBox));
+    }
+}

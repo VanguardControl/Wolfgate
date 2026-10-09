@@ -20,7 +20,7 @@ namespace Content.Server._WF.Shuttles.Systems;
 /// fires, pressure and dead power. Only consoles that ask get a sweep, and only tiles with something
 /// to report are sent.
 /// </summary>
-public sealed class ShipStatusSystem : EntitySystem
+public sealed partial class ShipStatusSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedMapSystem _maps = default!;
@@ -66,6 +66,7 @@ public sealed class ShipStatusSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+        SubscribeLocalEvent<GridSplitEvent>(OnHullSplit);
 
         Subs.BuiEvents<ShuttleConsoleComponent>(ShuttleConsoleUiKey.Key, subs =>
         {
@@ -96,6 +97,7 @@ public sealed class ShipStatusSystem : EntitySystem
             return;
 
         _nextUpdate = _timing.CurTime + UpdateInterval;
+        ForgetDeletedHulls();
 
         // ShuttleConsoleSystem already owns the BoundUIClosedEvent subscription for these consoles, and
         // Robust only allows one per component, so drop stale listeners by checking the UI instead.
@@ -172,13 +174,17 @@ public sealed class ShipStatusSystem : EntitySystem
     private void GatherTiles(HashSet<EntityUid> grids)
     {
         _gridTiles.Clear();
+        _hullStructures.Clear();
+        _hullIntegrity.Clear();
 
         foreach (var grid in grids)
         {
             _gridTiles[grid] = new Dictionary<Vector2i, ShipTileStatus>();
+            _hullStructures[grid] = new Dictionary<Vector2i, (float Capacity, float Remaining)>();
         }
 
         GatherDamage(grids);
+        GatherHullIntegrity(grids);
         GatherPower(grids);
         GatherAtmos(grids);
     }
@@ -192,7 +198,7 @@ public sealed class ShipStatusSystem : EntitySystem
             if (!xform.Anchored || xform.GridUid is not { } grid || !grids.Contains(grid))
                 continue;
 
-            if (damageable.TotalDamage <= 0)
+            if (TerminatingOrDeleted(uid) || EntityManager.IsQueuedForDeletion(uid))
                 continue;
 
             var destroyedAt = _destructible.DestroyedAt(uid, destructible);
@@ -201,16 +207,19 @@ public sealed class ShipStatusSystem : EntitySystem
             if (destroyedAt <= 0 || destroyedAt == FixedPoint2.MaxValue)
                 continue;
 
-            var integrity = 1f - (damageable.TotalDamage.Float() / destroyedAt.Float());
-            integrity = Math.Clamp(integrity, 0f, 1f);
-
-            if (integrity > DamageReportThreshold)
-                continue;
-
             if (!TryComp(grid, out MapGridComponent? gridComp))
                 continue;
 
             var index = _maps.TileIndicesFor(grid, gridComp, xform.Coordinates);
+            var capacity = destroyedAt.Float();
+            var remaining = Math.Clamp(capacity - damageable.TotalDamage.Float(), 0f, capacity);
+            var structure = _hullStructures[grid].GetValueOrDefault(index);
+            _hullStructures[grid][index] = (structure.Capacity + capacity, structure.Remaining + remaining);
+            var integrity = remaining / capacity;
+
+            if (integrity > DamageReportThreshold)
+                continue;
+
             var tiles = _gridTiles[grid];
             var status = tiles.GetValueOrDefault(index);
 
@@ -293,7 +302,7 @@ public sealed class ShipStatusSystem : EntitySystem
     /// </summary>
     private ShipStatusMessage BuildMessage(EntityUid grid, ShipOverlays overlays)
     {
-        var summary = new ShipStatusSummary { WorstIntegrity = 1f };
+        var summary = new ShipStatusSummary { WorstIntegrity = 1f, HullIntegrity = _hullIntegrity.GetValueOrDefault(grid, 1f) };
         var list = new List<ShipTileStatus>();
         var wanted = (ShipTileFlags)overlays;
 

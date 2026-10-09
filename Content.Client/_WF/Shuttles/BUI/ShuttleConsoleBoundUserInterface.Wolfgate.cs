@@ -10,6 +10,8 @@ public sealed partial class ShuttleConsoleBoundUserInterface
         if (_window == null)
             return;
 
+        _window.WfSetCockpitConsole(Owner); // WOLFGATE(Cockpit): bind fullscreen entry to this helm session.
+        WfCockpitGunneryOpen(); // WOLFGATE(Cockpit): route the optional weapon bank through the helm.
         _window.ShipStatusActiveChanged += (active, overlays) =>
             SendMessage(new ShipStatusRequestMessage(active, overlays));
 
@@ -25,7 +27,12 @@ public sealed partial class ShuttleConsoleBoundUserInterface
     protected override void ReceiveMessage(BoundUserInterfaceMessage message)
     {
         base.ReceiveMessage(message);
+        WfCockpitGunneryReceive(message); // WOLFGATE(Cockpit): refresh the linked weapon bank independently.
         WfShieldReceiveMessage(message); // WOLFGATE(ShipShields): update shield controls without refreshing navigation.
+
+        // WOLFGATE(Cockpit): refresh the status lamp without changing the active MFD.
+        if (message is Content.Shared._WF.Cockpit.WFCockpitAutopilotUpdateMessage autopilot)
+            _window?.WfUpdateCockpitAutopilot(autopilot.Active);
 
         if (message is ShipStatusMessage status)
             _window?.UpdateShipStatus(status);

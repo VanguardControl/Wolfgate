@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._WF.CombatConsole;
 using Content.Shared._WF.ShipShields;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
@@ -9,7 +10,7 @@ using Robust.Shared.Timing;
 namespace Content.Client._WF.ShipShields;
 
 /// <summary>Controls live shield allocation bearings at the ship's helm.</summary>
-public sealed class WFShipShieldShuntScreen : BoxContainer
+public sealed partial class WFShipShieldShuntScreen : BoxContainer
 {
     private readonly FloatSpinBox _direction;
     private readonly FloatSpinBox _arc;
@@ -63,6 +64,11 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         {
             if (_state?.Stats is not { } stats)
                 return;
+            if (_wfCockpitShowStats != null)
+            {
+                _wfCockpitShowStats(stats);
+                return;
+            }
             _statsWindow ??= new WFShipShieldStatsWindow();
             _statsWindow.UpdateStats(stats);
             _statsWindow.OpenCentered();
@@ -317,16 +323,24 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
     private void UpdateHealthAppearance()
     {
         var tint = WFShipShieldEffects.HealthColor(_health.Value);
+        if (_dial.GlassFace)
+        {
+            var skin = WFInstrumentTheme.Skin;
+            tint = _health.Value < 0.5f ? Color.InterpolateBetween(skin.Danger, skin.Caution, _health.Value * 2) :
+                Color.InterpolateBetween(skin.Caution, skin.Good, (_health.Value - 0.5f) * 2);
+        }
         if (_state is { Available: true } && _health.Value < 0.1f)
         {
             var pulse = 0.5f + 0.5f * MathF.Cos(_warningTime * MathF.Tau);
-            tint = Color.InterpolateBetween(new Color(0.4f, 0.02f, 0.03f), new Color(1f, 0.05f, 0.08f), pulse);
+            tint = _dial.GlassFace
+                ? Color.InterpolateBetween(WFInstrumentTheme.Skin.Ink, WFInstrumentTheme.Red, 0.3f + 0.7f * pulse)
+                : Color.InterpolateBetween(new Color(0.4f, 0.02f, 0.03f), new Color(1f, 0.05f, 0.08f), pulse);
         }
         if (_health.ForegroundStyleBoxOverride is StyleBoxFlat fill)
             fill.BackgroundColor = tint;
         if (_health.BackgroundStyleBoxOverride is StyleBoxFlat background)
             background.BackgroundColor = _state is { Available: true } && _health.Value < 0.1f
-                ? tint.WithAlpha(0.35f) : Color.FromHex("#1B303C");
+                ? tint.WithAlpha(0.35f) : _dial.GlassFace ? WFInstrumentTheme.Skin.GlassLight : Color.FromHex("#1B303C");
         _dial.HealthTint = tint;
     }
 
@@ -372,7 +386,7 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         var arc = _arc.Value * MathF.PI / 180f;
         _dial.TargetDirection = WFShipShieldHelmAngles.GridDirection(_direction.Value, 0f);
         _dial.TargetArc = arc;
-        _amount.Text = Loc.GetString("wf-shield-helm-concentration", ("amount", _concentration.Value));
+        _amount.Text = Loc.GetString(_wfCockpitCompact ? "wf-cockpit-shield-power" : "wf-shield-helm-concentration", ("amount", _concentration.Value));
         var boost = WFShipShieldShuntMath.StrengthMultiplier(new Vector2(MathF.Cos(_dial.Direction), MathF.Sin(_dial.Direction)),
             Vector2.Zero, _dial.Direction, _dial.Concentration, _dial.Arc);
         _strength.SetMessage(Loc.GetString("wf-shield-helm-strength", ("strength", MathF.Round(boost * 100f))), Color.FromHex("#83DCEB"));
@@ -437,8 +451,11 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         public float Concentration;
         public float Arc = MathF.PI / 2f;
         public bool Available;
+        /// <summary>Gives helm instruments a lens while retaining the generator panel layout.</summary>
+        public bool GlassFace;
         public Color HealthTint;
         private bool _dragging;
+        private DrawVertexUV2DColor[] _digitalVertices = Array.Empty<DrawVertexUV2DColor>();
         private readonly Vector2[] _band = new Vector2[6];
 
         public ShieldDial()
@@ -453,8 +470,24 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
         {
             base.Draw(handle);
             var center = (Vector2) PixelSize / 2f;
-            var radius = MathF.Min(PixelSize.X, PixelSize.Y) * 0.40f;
-            var grid = Color.FromHex("#29404F");
+            var diameter = MathF.Min(PixelSize.X, PixelSize.Y);
+            var radius = MathF.Max(1f, MathF.Min(diameter * 0.40f, diameter / 2f - 28f * UIScale));
+            if (GlassFace && WFInstrumentTheme.Digital)
+            {
+                var skin = WFInstrumentTheme.Skin;
+                handle.DrawCircle(center, radius + 27f * UIScale, skin.Glass);
+                WFConsoleDigital.Arc(handle, center, radius + 27f * UIScale, UIScale, 0, MathF.Tau, skin.AccentDim, ref _digitalVertices);
+                WFConsoleDigital.Arc(handle, center, radius * 0.72f, UIScale, 0, MathF.Tau, skin.Edge, ref _digitalVertices);
+            }
+            else if (GlassFace)
+            {
+                var rim = radius + 27f * UIScale;
+                handle.DrawCircle(center, rim, WFInstrumentTheme.Skin.EdgeLight);
+                handle.DrawCircle(center, rim - 2f * UIScale, WFInstrumentTheme.Skin.EdgeSoft);
+                handle.DrawCircle(center, rim - 4f * UIScale, WFInstrumentTheme.Skin.Edge);
+                handle.DrawCircle(center, rim - 5f * UIScale, WFInstrumentTheme.Skin.Glass);
+            }
+            var grid = GlassFace ? WFInstrumentTheme.Skin.EdgeLight : Color.FromHex("#29404F");
             var tint = Available ? HealthTint : Color.FromHex("#52616B");
             handle.DrawCircle(center, radius * 0.55f, grid, false);
             handle.DrawCircle(center, radius + 14f * UIScale, grid, false);
@@ -518,6 +551,8 @@ public sealed class WFShipShieldShuntScreen : BoxContainer
             handle.DrawLine(port, aft, Color.White);
             handle.DrawLine(aft, starboard, Color.White);
             handle.DrawLine(starboard, bow, Color.White);
+            if (GlassFace && !WFInstrumentTheme.Digital)
+                WFInstrumentGlass.Round(handle, center, radius + 22f * UIScale, UIScale);
             return;
             Vector2 Point(float angle, float distance) => center + new Vector2(MathF.Cos(angle), -MathF.Sin(angle)) * distance;
         }

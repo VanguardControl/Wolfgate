@@ -7,6 +7,12 @@ cameras' EXTERNAL view shows the ship from outside with every hull plated over: 
 wheel zooms it, and the client `ShuttleExternalCameraSystem` and `ShuttleHullRoofOverlay` run it. It is refused on a
 planet's surface, and sound and speech bubbles are taken from the point it looks at rather than from the helm.
 
+The cockpit HULL gauge averages the condition of surveyed hull locations, including missing floors and destroyed
+structures. Piloting or opening the ship view starts the survey; later splits inherit that ship's original footprint,
+and rebuilding a lost location restores its condition. The separate minimum-integrity readout still describes the
+weakest surviving structure. The survey is kept for the current server lifetime and cannot infer sections already
+missing before the first survey.
+
 Entry points: the server `ShipStatusSystem`, `CollisionWarningSystem`, `ShuttleCameraSystem` and
 `ShuttleNavMapSystem`; the client `ShipScreen`, `ShipViewControl`, `CollisionWarningBanner` and `ShuttleCameraBar`,
 hooked into the upstream console by the `ShuttleConsoleWindow.Wolfgate` and
@@ -33,6 +39,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.Server/_WF/Shuttles/NavMapSystem.Wolfgate.cs`](NavMapSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Shuttles/Systems/CollisionWarningSystem.cs`](Systems/CollisionWarningSystem.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShipStatusSystem.cs`](Systems/ShipStatusSystem.cs)
+- [`Content.Server/_WF/Shuttles/Systems/ShipStatusSystem.Hull.cs`](Systems/ShipStatusSystem.Hull.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShuttleCameraSystem.cs`](Systems/ShuttleCameraSystem.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShuttleNavMapSystem.cs`](Systems/ShuttleNavMapSystem.cs)
 
@@ -107,6 +114,8 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
   - the host can be grid B, since docking orders the pair by entity id.
   - the host can be grid B, since grid A is the side that undocked, usually the ship.
   - a ship loses only flags hosts added, once no host it is still docked to provides them.
-- [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs): restore the console's camera view
+- [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
+  - capture hull condition before piloting can damage it.
+  - restore the console's camera view
 
 <!-- WOLFGATE-GENERATED END -->

@@ -1,0 +1,13 @@
+wf-cockpit-guns-all = ALL
+wf-cockpit-guns-none = NONE
+wf-cockpit-guns-ballistic = BALL
+wf-cockpit-guns-energy = EN
+wf-cockpit-guns-missile = MSL
+wf-cockpit-guns-store = STORE
+wf-cockpit-guns-store-help = Choose STORE, then a numbered group to save the current weapon selection. Store an empty selection to clear a group.
+wf-cockpit-guns-slot = { $slot }
+wf-cockpit-guns-group = { $slot } / { $count }
+wf-cockpit-guns-flares = FLARES
+wf-cockpit-guns-threats = LOCKS
+wf-cockpit-guns-cooldown = DELAY
+wf-cockpit-guns-link = LINK

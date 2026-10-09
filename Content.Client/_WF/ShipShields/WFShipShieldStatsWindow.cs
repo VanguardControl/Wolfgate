@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._WF.CombatConsole;
 using Content.Shared._WF.ShipShields;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
@@ -35,11 +36,12 @@ public sealed class WFShipShieldStatsWindow : DefaultWindow
         foreach (var label in new[] { _name, _capacity, _limit, _repair, _recharge, _idle, _maximum, _lockout })
         {
             label.HorizontalExpand = true;
-            values.AddChild(label);
+            values.AddChild(new WFGlassReadout(label));
         }
         values.AddChild(new RichTextLabel { Text = Loc.GetString("wf-shield-stats-recovery-note") });
         scroll.AddChild(values);
         Contents.AddChild(scroll);
+        WFInstrumentTheme.Install(this);
     }
 
     /// <summary>Displays authoritative runtime values for the selected installed emitter.</summary>

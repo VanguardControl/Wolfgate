@@ -115,7 +115,10 @@ public struct ShipStatusSummary
     /// <summary>Tiles holding meaningfully less than a breathable atmosphere.</summary>
     public int VentedTiles;
 
-    /// <summary>Condition of the worst structure on the ship, 0-1.</summary>
+    /// <summary>Average condition of surveyed hull locations, including destroyed or detached sections, 0-1.</summary>
+    public float HullIntegrity;
+
+    /// <summary>Condition of the worst surviving structure on the ship, 0-1.</summary>
     public float WorstIntegrity;
 
     /// <summary>Set when the sweep hit its tile cap and the readings are partial.</summary>

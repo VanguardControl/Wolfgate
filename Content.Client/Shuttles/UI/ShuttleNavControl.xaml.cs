@@ -466,6 +466,10 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
     {
         base.KeyBindDown(args);
 
+        // WOLFGATE(Cockpit): a cockpit aim handler owns its consumed click through release.
+        if (args.Handled)
+            return;
+
         if (args.Function != EngineKeyFunctions.UIClick)
             return;
 
@@ -477,6 +481,10 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
     protected override void KeyBindUp(GUIBoundKeyEventArgs args)
     {
         base.KeyBindUp(args);
+
+        // WOLFGATE(Cockpit): a cockpit aim handler owns its consumed click through release.
+        if (args.Handled)
+            return;
 
         if (args.Function != EngineKeyFunctions.UIClick)
             return;

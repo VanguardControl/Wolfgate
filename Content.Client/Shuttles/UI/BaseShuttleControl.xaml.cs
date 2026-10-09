@@ -429,7 +429,7 @@ public partial class BaseShuttleControl : MapGridControl
     {
         var rator = Maps.GetAllTilesEnumerator(grid.Owner, grid.Comp);
         var minimapScale = MinimapScale;
-        var midpoint = new Vector2(MidPoint, MidPoint);
+        var midpoint = WfFitInstrument ? MidPointVector : new Vector2(MidPoint, MidPoint); // WOLFGATE(CombatConsole): align hull meshes with the responsive instrument plot.
         var tileSize = grid.Comp.TileSize;
 
         // Check if we even have data
