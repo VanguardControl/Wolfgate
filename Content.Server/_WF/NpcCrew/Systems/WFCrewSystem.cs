@@ -7,6 +7,7 @@ using Content.Shared.Access.Components;
 using Content.Shared.Clothing.Components;
 using Content.Shared.Roles;
 using Content.Server.NPC.Systems;
+using Content.Server.Radiation.Components;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -452,6 +453,8 @@ public sealed class WFCrewSystem : EntitySystem
         EnsureComp<AccessComponent>(uid);
         // Nobody plays an NPC, so its body never shows the disconnected-player sleep icon, alive or dead.
         RemComp<SSDIndicatorComponent>(uid);
+        // Crews work and fight beside reactors with nothing but their jumpsuits; radiation passes them by.
+        RemComp<RadiationReceiverComponent>(uid);
         EntityManager.System<WFCrewEscortSystem>().Invalidate();
 
         if (TryComp<HTNComponent>(uid, out var htn))

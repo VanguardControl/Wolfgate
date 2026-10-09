@@ -18,12 +18,17 @@ headset, with the faction channel's key, and its own service ID cards (TSFMC, PD
 cards for those crews); every crew card carries the crewman's name and role title.
 
 An engineer (`WFCrewEngineer`) is posted beside the plant on every encounter ship whose roles allow one. The ship
-arrives commissioned (generators full and lit, reactor jarred and injecting, batteries charged) with fuel for the trip
-stowed in a `WFCrewFuelStores` crate in the hold. From then on nothing tops the plant up but him: a generator under
-ten units of fuel or a reactor jar under 200 sends him to the crate for a stack or a jar, which he feeds in by hand,
-and a plant with fuel in it that is off he switches on. No stores, or no living engineer, and the ship goes dark; a
-ship stranded for fuel gets neither. A fighter whose roles leave no room for an engineer tops its own generators up
-whenever they run low, as long as any of its crew live.
+arrives commissioned (generators full and lit, antimatter engine jarred and injecting, fission reactor fuelled with
+cerenkite rods in the slots its prefab leaves for them, its coolant loop charged with nitrogen once its pipes appear
+and its control rods half out, batteries charged) with fuel for the trip stowed in a `WFCrewFuelStores` crate in the
+hold: stacks, jars, and a full change of fuel rods. From then on nothing tops the plant up but him: a generator under
+ten units of fuel, a reactor jar under 200 or a spent fuel rod sends him to the crate for a stack, a jar or a rod,
+which he feeds in by hand (the spent rod comes out onto the deck), and a plant with fuel in it that is off he switches
+on. From his post he also trims the fission reactor's control rods to its casing temperature, in when it runs hot
+and out when it runs cold, and all the way in when the fuel is spent, the loop dry or the casing overheating. No
+stores, or no living engineer, and the ship goes dark; a ship stranded for fuel gets neither. A fighter whose roles
+leave no room for an engineer tops its own generators up whenever they run low, as long as any of its crew live.
+Crewmen carry no radiation receiver, so standing by a reactor costs them nothing.
 
 A Warn crew gives a stranger it notices aboard `WarnTime` (30 s) to leave; if he stays, or strikes any crewman, the
 crew's fighters (on-sight crew, marines, the captain and radio officer; not the helm or the guns) take him on as
@@ -222,6 +227,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/FireControlSystem.Crew.cs`](Systems/FireControlSystem.Crew.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/NPCCombatSystem.Crew.cs`](Systems/NPCCombatSystem.Crew.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/NPCSteeringSystem.Access.cs`](Systems/NPCSteeringSystem.Access.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/NuclearReactorSystem.NpcCrew.cs`](Systems/NuclearReactorSystem.NpcCrew.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/ShipSteeringSystem.Crew.cs`](Systems/ShipSteeringSystem.Crew.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/SpaceArtillerySystem.Crew.cs`](Systems/SpaceArtillerySystem.Crew.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCaptainSystem.cs`](Systems/WFCaptainSystem.cs)

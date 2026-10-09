@@ -1,12 +1,17 @@
+using Content.Server._FarHorizons.Power.Generation.FissionGenerator;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server.Ame.Components;
 using Content.Server.Ame.EntitySystems;
 using Content.Server.Materials;
+using Content.Server.NodeContainer.EntitySystems;
+using Content.Server.NodeContainer.Nodes;
 using Content.Server.Power.Generator;
 using Content.Server.Stack;
 using Content.Server.Storage.EntitySystems;
+using Content.Shared._FarHorizons.Power.Generation.FissionGenerator;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Ame.Components;
+using Content.Shared.Atmos;
 using Content.Shared.Chemistry.Components;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Containers.ItemSlots;
@@ -23,12 +28,16 @@ namespace Content.Server._WF.NpcCrew.Systems;
 
 /// <summary>
 /// The engineer's work: keeping the ship's plant running from its own stores. A generator low on fuel is fed from the
-/// fuel stowed aboard, the reactor gets a fresh jar and is set injecting, and a plant with fuel in it is switched on.
-/// Nothing is conjured: when the stores are gone, or the engineer is dead, the ship goes dark.
+/// fuel stowed aboard, the antimatter engine gets a fresh jar and is set injecting, a fission reactor has its spent
+/// rods swapped for fresh ones and its control rods trimmed to the casing temperature, and a plant with fuel in it is
+/// switched on. Nothing is conjured: when the stores are gone, or the engineer is dead, the ship goes dark.
 /// </summary>
 public sealed partial class WFCrewWorkSystem
 {
     [Dependency] private GeneratorSystem _generators = default!;
+    [Dependency] private NuclearReactorSystem _reactors = default!;
+    [Dependency] private ReactorPartSystem _parts = default!;
+    [Dependency] private NodeContainerSystem _nodes = default!;
     [Dependency] private MaterialStorageSystem _materials = default!;
     [Dependency] private AmeControllerSystem _ame = default!;
     [Dependency] private ItemSlotsSystem _slots = default!;
@@ -51,9 +60,26 @@ public sealed partial class WFCrewWorkSystem
     /// <summary>Sheets in each stowed stack: small enough to go into a generator in one, whatever is left in it.</summary>
     private const int StackSize = 10;
 
+    /// <summary>Radioactivity left in a fuel rod, neutron and plain together, below which it is spent and swapped out.</summary>
+    private const float SpentRod = 1f;
+
+    /// <summary>Pressure a commissioned reactor's coolant loop is charged to, in kPa.</summary>
+    private const float CoolantPressure = 3000f;
+
+    /// <summary>Casing temperatures between which the engineer leaves the control rods be, in kelvin.</summary>
+    private const float ReactorCold = 700f;
+    private const float ReactorHot = 1000f;
+
+    /// <summary>Moles in the inlet below which the loop counts as dry: the reactor's own gauge lights at this.</summary>
+    private const float DryLoop = 20f;
+
     private static readonly EntProtoId StoresCrate = "WFCrewFuelStores";
     private static readonly EntProtoId Jar = "AmeJar";
     private static readonly EntProtoId WeldingFuelCan = "JerryCanWeldingFuel";
+    private static readonly EntProtoId FuelRod = "CerenkiteReactorFuelRod";
+
+    /// <summary>Commissioned reactors whose coolant loop is still to be charged: a reactor's pipes only appear on its first tick.</summary>
+    private readonly HashSet<EntityUid> _uncharged = new();
 
     /// <summary>Gives every idle engineer with a plant in need the job of seeing to it.</summary>
     private void TendPower()
@@ -62,13 +88,21 @@ public sealed partial class WFCrewWorkSystem
             return;
 
         _nextTend = _timing.CurTime + TendInterval;
+        ChargeLoops();
         var shelter = EntityManager.System<WFCrewShelterSystem>();
+        var watched = new HashSet<EntityUid>();
         var query = EntityQueryEnumerator<WFCrewEngineerComponent, WFCrewComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out _, out var crew, out var xform))
         {
-            if (_jobs.ContainsKey(uid) || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid) || crew.Duty != WFCrewDuties.Guard
-                || xform.GridUid is not { } grid || (crew.Post?.EntityId ?? grid) != grid
-                || _weapons.HasLiveThreat(uid) || shelter.IsSheltering(uid))
+            if (!_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid) || crew.Duty != WFCrewDuties.Guard
+                || xform.GridUid is not { } grid || (crew.Post?.EntityId ?? grid) != grid)
+                continue;
+
+            // From his post the engineer keeps an eye on the reactor gauges whatever else he is at.
+            if (watched.Add(grid))
+                WatchReactors(grid);
+
+            if (_jobs.ContainsKey(uid) || _weapons.HasLiveThreat(uid) || shelter.IsSheltering(uid))
                 continue;
 
             if (!FindPlantWork(grid, uid, out var machine, out var fuel))
@@ -127,6 +161,20 @@ public sealed partial class WFCrewWorkSystem
             if (charge > 0 && !controller.Injecting)
             {
                 machine = uid;
+                return true;
+            }
+        }
+
+        var fission = EntityQueryEnumerator<NuclearReactorComponent, TransformComponent>();
+        while (fission.MoveNext(out var uid, out var reactor, out var xform))
+        {
+            if (xform.GridUid != grid || !xform.Anchored || reactor.Melted || Tended(uid))
+                continue;
+
+            if (WantsFuel(reactor, out _) && FindRod(grid, engineer) is { } rod)
+            {
+                machine = uid;
+                fuel = rod;
                 return true;
             }
         }
@@ -207,7 +255,8 @@ public sealed partial class WFCrewWorkSystem
 
         var owner = container.Owner;
         return owner == engineer
-            || !HasComp<MobStateComponent>(owner) && !HasComp<MaterialStorageComponent>(owner) && !HasComp<AmeControllerComponent>(owner);
+            || !HasComp<MobStateComponent>(owner) && !HasComp<MaterialStorageComponent>(owner) && !HasComp<AmeControllerComponent>(owner)
+            && !HasComp<NuclearReactorComponent>(owner);
     }
 
     /// <summary>
@@ -226,6 +275,15 @@ public sealed partial class WFCrewWorkSystem
             if (!_hands.IsHolding(mob, job.Target, out _))
             {
                 Fail(job, false);
+                return true;
+            }
+
+            // A fuel rod goes straight into the grid, the spent one coming out onto the deck beside the reactor.
+            if (TryComp<NuclearReactorComponent>(machine, out var reactor))
+            {
+                if (!Load((machine, reactor), job.Target))
+                    _hands.TryDrop(mob, job.Target);
+                _jobs.Remove(mob);
                 return true;
             }
 
@@ -278,7 +336,8 @@ public sealed partial class WFCrewWorkSystem
 
     /// <summary>
     /// Tops up a plant that has run low with no engineer to do it: a fighter's crew see to their own generator between
-    /// sorties. Generators are filled and lit, a spent reactor jar is swapped for a fresh one.
+    /// sorties. Generators are filled and lit, a spent antimatter jar is swapped for a fresh one, spent fuel rods for
+    /// fresh ones, and the control rods are trimmed.
     /// </summary>
     public void Refuel(EntityUid grid)
     {
@@ -288,6 +347,10 @@ public sealed partial class WFCrewWorkSystem
             {
                 if (_generators.GetFuel(machine) < LowFuel)
                     Fill(machine);
+            }
+            else if (TryComp<NuclearReactorComponent>(machine, out var reactor))
+            {
+                Prime((machine, reactor));
             }
             else if (TryComp<AmeControllerComponent>(machine, out var controller) && Antimatter(controller) < LowAntimatter)
             {
@@ -302,6 +365,8 @@ public sealed partial class WFCrewWorkSystem
 
             Start(machine, null);
         }
+
+        WatchReactors(grid);
     }
 
     /// <summary>Fills a generator with what it burns.</summary>
@@ -325,7 +390,7 @@ public sealed partial class WFCrewWorkSystem
         }
     }
 
-    /// <summary>Whether a grid has a plant an engineer could tend: a fuel generator or a reactor.</summary>
+    /// <summary>Whether a grid has a plant an engineer could tend: a fuel generator, an antimatter engine or a fission reactor.</summary>
     public bool HasPlant(EntityUid grid) => Plant(grid).Count > 0;
 
     private List<EntityUid> Plant(EntityUid grid)
@@ -342,6 +407,13 @@ public sealed partial class WFCrewWorkSystem
         while (reactors.MoveNext(out var uid, out _, out var xform))
         {
             if (xform.GridUid == grid && xform.Anchored)
+                plant.Add(uid);
+        }
+
+        var fission = EntityQueryEnumerator<NuclearReactorComponent, TransformComponent>();
+        while (fission.MoveNext(out var uid, out var reactor, out var xform))
+        {
+            if (xform.GridUid == grid && xform.Anchored && !reactor.Melted)
                 plant.Add(uid);
         }
 
@@ -383,10 +455,22 @@ public sealed partial class WFCrewWorkSystem
 
     /// <summary>
     /// Puts a ship's plant in running order, as a crew that has been flying her would have: generators full and lit,
-    /// the reactor jarred and injecting. For hulls that come off the slip empty.
+    /// the antimatter engine jarred and injecting, the fission reactor fuelled with its loop charged and its control
+    /// rods half out. For hulls that come off the slip empty.
     /// </summary>
     public void Commission(EntityUid grid)
     {
+        var fission = EntityQueryEnumerator<NuclearReactorComponent, TransformComponent>();
+        while (fission.MoveNext(out var uid, out var reactor, out var xform))
+        {
+            if (xform.GridUid != grid || !xform.Anchored || reactor.Melted)
+                continue;
+
+            Prime((uid, reactor));
+            SharedNuclearReactorSystem.AdjustControlRods(reactor, 1f - reactor.ControlRodInsertion);
+            _uncharged.Add(uid);
+        }
+
         var generators = EntityQueryEnumerator<FuelGeneratorComponent, TransformComponent>();
         while (generators.MoveNext(out var uid, out _, out var xform))
         {
@@ -454,6 +538,15 @@ public sealed partial class WFCrewWorkSystem
                     stocked++;
                 }
             }
+            else if (TryComp<NuclearReactorComponent>(machine, out var reactor))
+            {
+                // One fresh rod for every fuel slot: a full change of core.
+                for (var i = 0; i < FuelSlots(reactor).Count; i++)
+                {
+                    Stow(Spawn(FuelRod, tiles[0]), crate);
+                    stocked++;
+                }
+            }
         }
 
         if (stocked > 0)
@@ -467,5 +560,213 @@ public sealed partial class WFCrewWorkSystem
     private void Stow(EntityUid item, EntityUid crate)
     {
         _storage.Insert(item, crate);
+    }
+
+    /// <summary>
+    /// The slots of a reactor grid meant for fuel: those holding a fuel rod, and the empty ones the prefab left in the
+    /// thick of the grid, hemmed in by control rods and exchangers on three sides or more.
+    /// </summary>
+    private static List<Vector2i> FuelSlots(NuclearReactorComponent reactor)
+    {
+        var slots = new List<Vector2i>();
+        if (reactor.ComponentGrid == null)
+            return slots;
+
+        for (var x = 0; x < reactor.ReactorGridWidth; x++)
+        {
+            for (var y = 0; y < reactor.ReactorGridHeight; y++)
+            {
+                var part = reactor.ComponentGrid[x, y];
+                if (part != null ? part.HasRodType(ReactorPartComponent.RodTypes.FuelRod) : Neighbours(reactor, x, y) >= 3)
+                    slots.Add(new Vector2i(x, y));
+            }
+        }
+
+        return slots;
+    }
+
+    /// <summary>How many of the four slots around one hold a part.</summary>
+    private static int Neighbours(NuclearReactorComponent reactor, int x, int y)
+    {
+        var count = 0;
+        if (x > 0 && reactor.ComponentGrid[x - 1, y] != null)
+            count++;
+        if (x < reactor.ReactorGridWidth - 1 && reactor.ComponentGrid[x + 1, y] != null)
+            count++;
+        if (y > 0 && reactor.ComponentGrid[x, y - 1] != null)
+            count++;
+        if (y < reactor.ReactorGridHeight - 1 && reactor.ComponentGrid[x, y + 1] != null)
+            count++;
+        return count;
+    }
+
+    /// <summary>The first fuel slot that is empty or holds a spent rod, if there is one.</summary>
+    private bool WantsFuel(NuclearReactorComponent reactor, out Vector2i slot)
+    {
+        foreach (var candidate in FuelSlots(reactor))
+        {
+            var part = _reactors.GetPart(reactor, candidate);
+            if (part == null || Spent(part))
+            {
+                slot = candidate;
+                return true;
+            }
+        }
+
+        slot = default;
+        return false;
+    }
+
+    /// <summary>Whether a fuel rod has given up its radioactivity. A melted rod is past replacing and never spent.</summary>
+    private bool Spent(ReactorPartComponent part)
+    {
+        if (part.Melted || !part.HasRodType(ReactorPartComponent.RodTypes.FuelRod))
+            return false;
+
+        if (part.Properties == null)
+            _parts.SetProperties(part, out part.Properties);
+
+        return part.Properties.NeutronRadioactivity + part.Properties.Radioactivity < SpentRod;
+    }
+
+    /// <summary>Whether a reactor has live fuel in it.</summary>
+    private bool Fuelled(NuclearReactorComponent reactor)
+    {
+        foreach (var slot in FuelSlots(reactor))
+        {
+            if (_reactors.GetPart(reactor, slot) is { Melted: false } part && !Spent(part))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Whether the reactor's coolant loop has gas in it, on either side of the core. One waiting on its commissioning
+    /// charge counts as cooled.
+    /// </summary>
+    private bool Cooled(EntityUid uid, NuclearReactorComponent reactor)
+    {
+        if (_uncharged.Contains(uid))
+            return true;
+
+        return Holds(reactor.InletEnt, reactor.PipeName) || Holds(reactor.OutletEnt, reactor.PipeName);
+    }
+
+    private bool Holds(EntityUid? pipe, string name)
+    {
+        return pipe is { } uid && _nodes.TryGetNode(uid, name, out PipeNode? node) && node.Air.TotalMoles >= DryLoop;
+    }
+
+    /// <summary>A fresh fuel rod aboard, for the taking.</summary>
+    private EntityUid? FindRod(EntityUid grid, EntityUid engineer)
+    {
+        var rods = EntityQueryEnumerator<ReactorPartComponent, TransformComponent>();
+        while (rods.MoveNext(out var uid, out var part, out var xform))
+        {
+            if (xform.GridUid == grid && part.HasRodType(ReactorPartComponent.RodTypes.FuelRod) && !Spent(part) && Loose(uid, engineer))
+                return uid;
+        }
+
+        return null;
+    }
+
+    /// <summary>Puts a fresh rod into the first fuel slot that wants one, the spent rod coming out onto the deck first.</summary>
+    private bool Load(Entity<NuclearReactorComponent> reactor, EntityUid rod)
+    {
+        if (!WantsFuel(reactor.Comp, out var slot))
+            return false;
+        if (_reactors.GetPart(reactor.Comp, slot) != null && _reactors.TryUnloadPart(reactor, slot) == null)
+            return false;
+
+        return _reactors.TryLoadPart(reactor, slot, rod);
+    }
+
+    /// <summary>Fuels every slot of a reactor that wants it with a fresh rod from nowhere; spent rods are scrapped.</summary>
+    private void Prime(Entity<NuclearReactorComponent> reactor)
+    {
+        while (WantsFuel(reactor.Comp, out var slot))
+        {
+            if (_reactors.GetPart(reactor.Comp, slot) != null)
+            {
+                if (_reactors.TryUnloadPart(reactor, slot) is not { } spent)
+                    return;
+                QueueDel(spent);
+            }
+
+            var fresh = Spawn(FuelRod, Transform(reactor).Coordinates);
+            if (_reactors.TryLoadPart(reactor, slot, fresh))
+                continue;
+
+            QueueDel(fresh);
+            return;
+        }
+    }
+
+    /// <summary>Charges the coolant loops of the reactors commissioned since, once their pipes have appeared.</summary>
+    private void ChargeLoops()
+    {
+        if (_uncharged.Count == 0)
+            return;
+
+        var charged = new List<EntityUid>();
+        foreach (var uid in _uncharged)
+        {
+            if (!TryComp<NuclearReactorComponent>(uid, out var reactor) || TerminatingOrDeleted(uid))
+            {
+                charged.Add(uid);
+                continue;
+            }
+
+            if (reactor.InletEnt is not { } inlet || reactor.OutletEnt is not { } outlet
+                || !_nodes.TryGetNode(inlet, reactor.PipeName, out PipeNode? inletNode) || inletNode.Air.Immutable
+                || !_nodes.TryGetNode(outlet, reactor.PipeName, out PipeNode? outletNode) || outletNode.Air.Immutable)
+                continue;
+
+            Charge(inletNode.Air);
+            if (!ReferenceEquals(outletNode.Air, inletNode.Air))
+                Charge(outletNode.Air);
+            charged.Add(uid);
+        }
+
+        foreach (var uid in charged)
+            _uncharged.Remove(uid);
+    }
+
+    /// <summary>Brings a pipe net up to the commissioning pressure with nitrogen at room temperature.</summary>
+    private void Charge(GasMixture air)
+    {
+        if (air.Volume <= 0f)
+            return;
+
+        var moles = CoolantPressure * air.Volume / (Atmospherics.R * Atmospherics.T20C) - air.TotalMoles;
+        if (moles <= 0f)
+            return;
+
+        var nitrogen = new GasMixture(air.Volume) { Temperature = Atmospherics.T20C };
+        nitrogen.AdjustMoles(Gas.Nitrogen, moles);
+        _atmos.Merge(air, nitrogen);
+    }
+
+    /// <summary>
+    /// Minds the reactors on a grid as an engineer at the gauges would: rods in when the casing runs hot, out when it
+    /// runs cold, and all the way in when the fuel is spent, the loop dry or the casing overheating, since a reactor
+    /// run dry melts.
+    /// </summary>
+    private void WatchReactors(EntityUid grid)
+    {
+        var reactors = EntityQueryEnumerator<NuclearReactorComponent, TransformComponent>();
+        while (reactors.MoveNext(out var uid, out var reactor, out var xform))
+        {
+            if (xform.GridUid != grid || !xform.Anchored || reactor.Melted)
+                continue;
+
+            if (!Fuelled(reactor) || !Cooled(uid, reactor) || reactor.Temperature >= reactor.ReactorOverheatTemp)
+                SharedNuclearReactorSystem.AdjustControlRods(reactor, 2f);
+            else if (reactor.Temperature > ReactorHot)
+                SharedNuclearReactorSystem.AdjustControlRods(reactor, 0.2f);
+            else if (reactor.Temperature < ReactorCold)
+                SharedNuclearReactorSystem.AdjustControlRods(reactor, -0.1f);
+        }
     }
 }
