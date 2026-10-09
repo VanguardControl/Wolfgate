@@ -134,11 +134,7 @@
 
 - type: entity
   abstract: true
-<<<<<<< HEAD
-  parent: [MajorLimb, WFWolfmedBaseLeftArm] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
-=======
-  parent: [MajorLimb, BaseEdibleLimb] # Mono
->>>>>>> 3b05a746e5 (Edible Limbs (#4656))
+  parent: [MajorLimb, WFWolfmedBaseLeftArm, BaseEdibleLimb] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
   id: BaseLeftArm
   name: "left arm"
   components:
@@ -157,11 +153,7 @@
 
 - type: entity
   abstract: true
-<<<<<<< HEAD
-  parent: [MajorLimb, WFWolfmedBaseRightArm] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
-=======
-  parent: [MajorLimb, BaseEdibleLimb] # Mono
->>>>>>> 3b05a746e5 (Edible Limbs (#4656))
+  parent: [MajorLimb, WFWolfmedBaseRightArm, BaseEdibleLimb] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
   id: BaseRightArm
   name: "right arm"
   components:
@@ -181,11 +173,7 @@
 
 - type: entity
   abstract: true
-<<<<<<< HEAD
-  parent: [MinorLimb, WFWolfmedBaseLeftHand] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
-=======
-  parent: [MinorLimb, BaseEdibleLimb] # Mono
->>>>>>> 3b05a746e5 (Edible Limbs (#4656))
+  parent: [MinorLimb, WFWolfmedBaseLeftHand, BaseEdibleLimb] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
   id: BaseLeftHand
   name: "left hand"
   components:
@@ -200,11 +188,7 @@
 
 - type: entity
   abstract: true
-<<<<<<< HEAD
-  parent: [MinorLimb, WFWolfmedBaseRightHand] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
-=======
-  parent: [MinorLimb, BaseEdibleLimb] # Mono
->>>>>>> 3b05a746e5 (Edible Limbs (#4656))
+  parent: [MinorLimb, WFWolfmedBaseRightHand, BaseEdibleLimb] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
   id: BaseRightHand
   name: "right hand"
   components:
@@ -219,11 +203,7 @@
 
 - type: entity
   abstract: true
-<<<<<<< HEAD
-  parent: [MajorLimb, WFWolfmedBaseLeftLeg] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
-=======
-  parent: [MajorLimb, BaseEdibleLimb] # Mono
->>>>>>> 3b05a746e5 (Edible Limbs (#4656))
+  parent: [MajorLimb, WFWolfmedBaseLeftLeg, BaseEdibleLimb] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
   id: BaseLeftLeg
   name: "left leg"
   components:
@@ -243,11 +223,7 @@
 
 - type: entity
   abstract: true
-<<<<<<< HEAD
-  parent: [MajorLimb, WFWolfmedBaseRightLeg] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
-=======
-  parent: [MajorLimb, BaseEdibleLimb] # Mono
->>>>>>> 3b05a746e5 (Edible Limbs (#4656))
+  parent: [MajorLimb, WFWolfmedBaseRightLeg, BaseEdibleLimb] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
   id: BaseRightLeg
   name: "right leg"
   components:
@@ -267,11 +243,7 @@
 
 - type: entity
   abstract: true
-<<<<<<< HEAD
-  parent: [MinorLimb, WFWolfmedBaseLeftFoot] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
-=======
-  parent: [MinorLimb, BaseEdibleLimb] # Mono
->>>>>>> 3b05a746e5 (Edible Limbs (#4656))
+  parent: [MinorLimb, WFWolfmedBaseLeftFoot, BaseEdibleLimb] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
   id: BaseLeftFoot
   name: "left foot"
   components:
@@ -286,11 +258,7 @@
 
 - type: entity
   abstract: true
-<<<<<<< HEAD
-  parent: [MinorLimb, WFWolfmedBaseRightFoot] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
-=======
-  parent: [MinorLimb, BaseEdibleLimb] # Mono
->>>>>>> 3b05a746e5 (Edible Limbs (#4656))
+  parent: [MinorLimb, WFWolfmedBaseRightFoot, BaseEdibleLimb] # Mono, WOLFGATE(Wolfmed): WP7, D8: adds Wolfmed fracture/amputation data
   id: BaseRightFoot
   name: "right foot"
   components:
