@@ -21,6 +21,7 @@
   - sprite: _HL/Mobs/Customization/Reptilian/chest_female_alternate.rsi
     state: nipples
 
+# WOLFGATE(Species): ported from HardLight
 - type: marking
   id: ReptilianTailNaga
   bodyPart: Tail
@@ -32,6 +33,7 @@
     - sprite: _HL/Mobs/Customization/Reptilian/naga.rsi
       state: naga_secondary
 
+# WOLFGATE(Species): ported from HardLight
 - type: marking
   id: ReptilianTailNagaStriped
   bodyPart: Tail
@@ -45,6 +47,7 @@
     - sprite: _HL/Mobs/Customization/Reptilian/naga.rsi
       state: naga_striped_tertiary
 
+# WOLFGATE(Species): ported from HardLight
 - type: marking
   id: ReptilianTailNagaRattlesnake
   bodyPart: Tail
