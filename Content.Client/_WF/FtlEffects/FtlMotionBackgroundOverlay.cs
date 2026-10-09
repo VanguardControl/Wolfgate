@@ -6,7 +6,7 @@ using Robust.Shared.Graphics;
 namespace Content.Client._WF.FtlEffects;
 
 /// <summary>Preserves the space behind a rushing hull before the world is drawn.</summary>
-public sealed class FtlMotionBackgroundOverlay : Overlay
+public sealed partial class FtlMotionBackgroundOverlay : Overlay
 {
     [Dependency] private IClyde _clyde = default!;
     private readonly FtlDepartureSystem _system;

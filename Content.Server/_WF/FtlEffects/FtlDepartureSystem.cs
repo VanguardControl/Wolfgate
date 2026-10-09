@@ -9,7 +9,7 @@ using Robust.Shared.Timing;
 namespace Content.Server._WF.FtlEffects;
 
 /// <summary>Publishes departure visuals for normal, docking and administrative FTL jumps.</summary>
-public sealed class FtlDepartureSystem : EntitySystem
+public sealed partial class FtlDepartureSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
 

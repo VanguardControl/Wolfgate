@@ -12,8 +12,10 @@ using Robust.Shared.Timing;
 namespace Content.Client._WF.FtlEffects;
 
 /// <summary>Reprojects the rendered hull for a quarter-second launch or arrival without moving entities.</summary>
-public sealed class FtlMotionOverlay : Overlay
+public sealed partial class FtlMotionOverlay : Overlay
 {
+    private static readonly ProtoId<ShaderPrototype> MotionShader = "WFFtlMotion";
+    private static readonly ProtoId<ShaderPrototype> BackgroundShader = "WFFtlBackground";
     [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private ITileDefinitionManager _tiles = default!;
@@ -35,7 +37,7 @@ public sealed class FtlMotionOverlay : Overlay
         _background = background;
         _transforms = _entities.System<SharedTransformSystem>();
         _maps = _entities.System<SharedMapSystem>();
-        _erase = _prototypes.Index<ShaderPrototype>("WFFtlBackground").Instance().Duplicate();
+        _erase = _prototypes.Index(BackgroundShader).Instance().Duplicate();
         ZIndex = 103;
     }
 
@@ -75,7 +77,7 @@ public sealed class FtlMotionOverlay : Overlay
                 continue;
             if (!_hulls.TryGetValue(uid, out var hull))
             {
-                hull = new Hull(_prototypes.Index<ShaderPrototype>("WFFtlMotion").Instance().Duplicate());
+                hull = new Hull(_prototypes.Index(MotionShader).Instance().Duplicate());
                 _hulls.Add(uid, hull);
             }
             if (!hull.Built || hull.Tick != grid.LastTileModifiedTick)

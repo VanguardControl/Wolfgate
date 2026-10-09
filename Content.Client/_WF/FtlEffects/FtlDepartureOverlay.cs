@@ -10,8 +10,9 @@ using Robust.Shared.Timing;
 namespace Content.Client._WF.FtlEffects;
 
 /// <summary>Draws a deep refractive cone with white particles flowing from its nose toward midship.</summary>
-public sealed class FtlDepartureOverlay : Overlay
+public sealed partial class FtlDepartureOverlay : Overlay
 {
+    private static readonly ProtoId<ShaderPrototype> Shader = "WFFtlDeparture";
     [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -67,7 +68,7 @@ public sealed class FtlDepartureOverlay : Overlay
                 continue;
 
             if (!_shaders.ContainsKey(uid))
-                _shaders.Add(uid, _prototypes.Index<ShaderPrototype>("WFFtlDeparture").Instance().Duplicate());
+                _shaders.Add(uid, _prototypes.Index(Shader).Instance().Duplicate());
             var phase = (float) (_timing.CurTime - effect.Started).TotalSeconds;
             _visible.Add((uid, bounds, intensity, phase, matrix));
         }

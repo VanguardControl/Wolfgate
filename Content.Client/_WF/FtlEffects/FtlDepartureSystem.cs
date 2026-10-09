@@ -8,7 +8,7 @@ using Robust.Shared.Timing;
 namespace Content.Client._WF.FtlEffects;
 
 /// <summary>Installs the hull-fitted hyperspace departure overlay.</summary>
-public sealed class FtlDepartureSystem : EntitySystem
+public sealed partial class FtlDepartureSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IPlayerManager _player = default!;
@@ -35,7 +35,7 @@ public sealed class FtlDepartureSystem : EntitySystem
     /// <summary>The crew's camera stays aboard; outside observers see the ship streak past.</summary>
     public float Motion(EntityUid grid, FtlDepartureComponent effect)
     {
-        if (_player.LocalEntity is { } player && TryComp<TransformComponent>(player, out var xform) && xform.GridUid == grid)
+        if (_player.LocalEntity is { } player && TryComp(player, out TransformComponent? xform) && xform.GridUid == grid)
             return 0f;
         return FtlDepartureTiming.Motion(_timing.CurTime, effect.Departure, effect.Entered, effect.Arriving);
     }
