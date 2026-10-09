@@ -26,7 +26,10 @@ up but him: a generator under
 ten units of fuel, a reactor jar under 200 or a spent fuel rod sends him to the crate for a stack, a jar or a rod,
 which he feeds in by hand (the spent rod comes out onto the deck), and a plant with fuel in it that is off he switches
 on. From his post he also trims the fission reactor's control rods to its casing temperature, in when it runs hot
-and out when it runs cold, and all the way in when the fuel is spent, the loop dry or the casing overheating. No
+and out when it runs cold, and all the way in when the fuel is spent, the loop dry or the casing overheating; and
+every second he trims the turbine's stator load onto its best speed (up while it runs fast, in big steps while it
+overspeeds, down while it runs slow, halved when it stalls), its flow rate set at commissioning to the textbook
+100 L/s per gas channel plus 200. No
 stores, or no living engineer, and the ship goes dark; a ship stranded for fuel gets neither. A fighter whose roles
 leave no room for an engineer tops its own generators up whenever they run low, as long as any of its crew live.
 Crewmen carry no radiation receiver, so standing by a reactor costs them nothing.
@@ -331,6 +334,10 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs)
+
+### Unit tests
+
+- [`Content.Tests/_WF/NpcCrew/WFTurbineTrimTest.cs`](../../../Content.Tests/_WF/NpcCrew/WFTurbineTrimTest.cs)
 
 ### Prototypes
 

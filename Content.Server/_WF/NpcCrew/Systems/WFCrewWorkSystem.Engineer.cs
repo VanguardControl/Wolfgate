@@ -23,14 +23,16 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using System.Numerics;
 
 namespace Content.Server._WF.NpcCrew.Systems;
 
 /// <summary>
 /// The engineer's work: keeping the ship's plant running from its own stores. A generator low on fuel is fed from the
 /// fuel stowed aboard, the antimatter engine gets a fresh jar and is set injecting, a fission reactor has its spent
-/// rods swapped for fresh ones and its control rods trimmed to the casing temperature, and a plant with fuel in it is
-/// switched on. Nothing is conjured: when the stores are gone, or the engineer is dead, the ship goes dark.
+/// rods swapped for fresh ones and its control rods trimmed to the casing temperature, its turbine's stator load is
+/// kept on the turbine's best speed, and a plant with fuel in it is switched on. Nothing is conjured: when the stores
+/// are gone, or the engineer is dead, the ship goes dark.
 /// </summary>
 public sealed partial class WFCrewWorkSystem
 {
@@ -47,6 +49,10 @@ public sealed partial class WFCrewWorkSystem
 
     private static readonly TimeSpan TendInterval = TimeSpan.FromSeconds(5);
     private TimeSpan _nextTend;
+
+    /// <summary>A turbine runs away in seconds, so its load is trimmed far more often than the rods.</summary>
+    private static readonly TimeSpan TrimInterval = TimeSpan.FromSeconds(1);
+    private TimeSpan _nextTrim;
 
     /// <summary>Fuel left in a generator, in its own units, below which the engineer brings more.</summary>
     private const float LowFuel = 10f;
@@ -73,6 +79,26 @@ public sealed partial class WFCrewWorkSystem
     /// <summary>Moles in the inlet below which the loop counts as dry: the reactor's own gauge lights at this.</summary>
     private const float DryLoop = 20f;
 
+    /// <summary>The band about a turbine's best speed, as a share of it, inside which its load is left alone.</summary>
+    private const float TurbineLowBand = 0.95f;
+    private const float TurbineHighBand = 1.05f;
+
+    /// <summary>The least the load is raised by while the blades are overspeeding and taking damage.</summary>
+    private const float OverspeedStep = 1.5f;
+
+    /// <summary>The share of the load left when the turbine has stalled under it.</summary>
+    private const float StallCut = 0.5f;
+
+    /// <summary>The least stator load the engineer sets; below it the turbine makes nothing worth having.</summary>
+    private const float MinStatorLoad = 1000f;
+
+    /// <summary>A turbine turning slower than this is standing, and nothing is read from its speed.</summary>
+    private const float IdleRpm = 10f;
+
+    /// <summary>Litres a second the turbine passes for each gas channel in the core, and on top of them.</summary>
+    private const float FlowPerChannel = 100f;
+    private const float FlowBase = 200f;
+
     private static readonly EntProtoId StoresCrate = "WFCrewFuelStores";
     private static readonly EntProtoId Jar = "AmeJar";
     private static readonly EntProtoId WeldingFuelCan = "JerryCanWeldingFuel";
@@ -84,6 +110,12 @@ public sealed partial class WFCrewWorkSystem
     /// <summary>Gives every idle engineer with a plant in need the job of seeing to it.</summary>
     private void TendPower()
     {
+        if (_timing.CurTime >= _nextTrim)
+        {
+            _nextTrim = _timing.CurTime + TrimInterval;
+            TrimTurbines();
+        }
+
         if (_timing.CurTime < _nextTend)
             return;
 
@@ -367,6 +399,7 @@ public sealed partial class WFCrewWorkSystem
         }
 
         WatchReactors(grid);
+        TrimTurbines(grid);
     }
 
     /// <summary>Fills a generator with what it burns.</summary>
@@ -470,6 +503,8 @@ public sealed partial class WFCrewWorkSystem
             SharedNuclearReactorSystem.AdjustControlRods(reactor, 1f - reactor.ControlRodInsertion);
             _uncharged.Add(uid);
         }
+
+        PrimeTurbines(grid);
 
         var generators = EntityQueryEnumerator<FuelGeneratorComponent, TransformComponent>();
         while (generators.MoveNext(out var uid, out _, out var xform))
@@ -746,6 +781,123 @@ public sealed partial class WFCrewWorkSystem
         var nitrogen = new GasMixture(air.Volume) { Temperature = Atmospherics.T20C };
         nitrogen.AdjustMoles(Gas.Nitrogen, moles);
         _atmos.Merge(air, nitrogen);
+    }
+
+    /// <summary>Has every living posted engineer trim the turbines of his ship.</summary>
+    private void TrimTurbines()
+    {
+        var trimmed = new HashSet<EntityUid>();
+        var query = EntityQueryEnumerator<WFCrewEngineerComponent, WFCrewComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out var crew, out var xform))
+        {
+            if (!_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid) || crew.Duty != WFCrewDuties.Guard
+                || xform.GridUid is not { } grid || (crew.Post?.EntityId ?? grid) != grid || !trimmed.Add(grid))
+                continue;
+
+            TrimTurbines(grid);
+        }
+    }
+
+    /// <summary>Trims the stator load of every working turbine on a grid.</summary>
+    private void TrimTurbines(EntityUid grid)
+    {
+        var turbines = EntityQueryEnumerator<TurbineComponent, TransformComponent>();
+        while (turbines.MoveNext(out var uid, out var turbine, out var xform))
+        {
+            if (xform.GridUid == grid && xform.Anchored && Trim(turbine))
+                Dirty(uid, turbine);
+        }
+    }
+
+    /// <summary>
+    /// Sets a turbine's stator load to hold it at its best speed, as an engineer at the panel would. The speed settles
+    /// at the heat coming through over the load, so the load is scaled by how far off the speed is: up while it runs
+    /// fast, in big steps while the blades overspeed and take damage, down while it runs slow, and cut hard when the
+    /// load has stalled it. Nothing is read from a turbine standing still or fed cold gas. True when the load changed.
+    /// </summary>
+    public static bool Trim(TurbineComponent turbine)
+    {
+        if (turbine.Ruined || turbine.Undertemp)
+            return false;
+
+        var best = turbine.BestRPM;
+        var load = turbine.StatorLoad;
+        float next;
+        if (turbine.Stalling)
+            next = load * StallCut;
+        else if (turbine.RPM > best * TurbineHighBand)
+            next = load * MathF.Max(turbine.RPM / best, turbine.Overspeed ? OverspeedStep : 1f);
+        else if (turbine.RPM < best * TurbineLowBand && turbine.RPM > IdleRpm)
+            next = load * MathF.Max(turbine.RPM / best, StallCut);
+        else
+            return false;
+
+        next = Math.Clamp(next, MinStatorLoad, turbine.StatorLoadMax);
+        if (MathF.Abs(next - load) < 1f)
+            return false;
+
+        turbine.StatorLoad = next;
+        return true;
+    }
+
+    /// <summary>
+    /// Sets each turbine's flow rate to what its core can pass, the textbook figure: a hundred litres a second for
+    /// every gas channel in the nearest reactor and two hundred over.
+    /// </summary>
+    private void PrimeTurbines(EntityUid grid)
+    {
+        var reactors = new List<(Vector2 Position, int Channels)>();
+        var fission = EntityQueryEnumerator<NuclearReactorComponent, TransformComponent>();
+        while (fission.MoveNext(out var uid, out var reactor, out var xform))
+        {
+            if (xform.GridUid == grid && xform.Anchored && !reactor.Melted)
+                reactors.Add((_transform.GetWorldPosition(uid), GasChannels(reactor)));
+        }
+
+        if (reactors.Count == 0)
+            return;
+
+        var turbines = EntityQueryEnumerator<TurbineComponent, TransformComponent>();
+        while (turbines.MoveNext(out var uid, out var turbine, out var xform))
+        {
+            if (xform.GridUid != grid || !xform.Anchored || turbine.Ruined)
+                continue;
+
+            var here = _transform.GetWorldPosition(uid);
+            var channels = 0;
+            var nearest = float.MaxValue;
+            foreach (var (position, count) in reactors)
+            {
+                var distance = (position - here).LengthSquared();
+                if (distance >= nearest)
+                    continue;
+
+                nearest = distance;
+                channels = count;
+            }
+
+            turbine.FlowRate = Math.Clamp(FlowBase + FlowPerChannel * channels, 0f, turbine.FlowRateMax);
+            Dirty(uid, turbine);
+        }
+    }
+
+    /// <summary>How many gas channels a reactor's grid holds.</summary>
+    private static int GasChannels(NuclearReactorComponent reactor)
+    {
+        var channels = 0;
+        if (reactor.ComponentGrid == null)
+            return channels;
+
+        for (var x = 0; x < reactor.ReactorGridWidth; x++)
+        {
+            for (var y = 0; y < reactor.ReactorGridHeight; y++)
+            {
+                if (reactor.ComponentGrid[x, y] is { } part && part.HasRodType(ReactorPartComponent.RodTypes.GasChannel))
+                    channels++;
+            }
+        }
+
+        return channels;
     }
 
     /// <summary>
