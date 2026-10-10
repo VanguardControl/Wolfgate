@@ -33,9 +33,13 @@ housings, display bezels, buttons, toggles and a compass dial. These are drawn a
 scale without imported HighFleet textures. Live heading and supply readings reflect authoritative
 telemetry. Control presses play mechanical cues and a new incoming
 lock plays one short warning, throttled across windows. Replicated state changes make no click sounds.
-The ship tab has its own bounded hull plot, map toolbar and scrollable status/announcement panels;
-the inherited department toolbar no longer floats over the camera bar. Shield shunting uses a CRT
-coverage plot, sector and power instrument banks, and a persistent deployment/status strip. Its
+The ship tab uses a narrower hull plot beside a six-gauge status bank and compact announcement panel.
+Overlay controls run across the top, keeping the entire page accessible without a scrolling sidebar.
+The access tab shares its width between a framed door map, ship settings and crew lists, and selected-door
+controls. It adapts to smaller displays with a separate map and one details scroller; lists scroll
+individually only in the wide layout. Its bezel and controls match the selected Wolfgate theme.
+Shield shunting uses a CRT coverage plot, sector and power instrument banks, and a persistent
+deployment/status strip. Its
 original live allocation, warning colors, recovery and draft acknowledgement behavior are retained.
 Dragging the bearing dial, adjusting its numeric field or selecting a direction plays a short metal
 detent. Clicks are spaced at least 150 ms apart; received shield snapshots remain silent.
@@ -85,6 +89,8 @@ redistribution rights. Source: https://store.steampowered.com/app/1434950/HighFl
 - [`Content.Client/_WF/CombatConsole/NavMapControl.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/NavMapControl.CombatConsole.cs)
 - [`Content.Client/_WF/CombatConsole/NavScreen.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/NavScreen.CombatConsole.cs)
 - [`Content.Client/_WF/CombatConsole/ShieldShuntScreen.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShieldShuntScreen.CombatConsole.cs)
+- [`Content.Client/_WF/CombatConsole/ShipAccessScreen.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShipAccessScreen.CombatConsole.cs)
+- [`Content.Client/_WF/CombatConsole/ShipAlarmPanel.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShipAlarmPanel.CombatConsole.cs)
 - [`Content.Client/_WF/CombatConsole/ShipScreen.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShipScreen.CombatConsole.cs)
 - [`Content.Client/_WF/CombatConsole/ShuttleConsoleWindow.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShuttleConsoleWindow.CombatConsole.cs)
 - [`Content.Client/_WF/CombatConsole/WFConsoleAudio.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleAudio.cs)
@@ -99,6 +105,7 @@ redistribution rights. Source: https://store.steampowered.com/app/1434950/HighFl
 - [`Content.Client/_WF/CombatConsole/WFHeadingInstrument.cs`](../../../Content.Client/_WF/CombatConsole/WFHeadingInstrument.cs)
 - [`Content.Client/_WF/CombatConsole/WFInstrumentGlass.cs`](../../../Content.Client/_WF/CombatConsole/WFInstrumentGlass.cs)
 - [`Content.Client/_WF/CombatConsole/WFInstrumentTheme.cs`](../../../Content.Client/_WF/CombatConsole/WFInstrumentTheme.cs)
+- [`Content.Client/_WF/CombatConsole/WFShipAccessLayout.cs`](../../../Content.Client/_WF/CombatConsole/WFShipAccessLayout.cs)
 - [`Content.Client/_WF/CombatConsole/WFWeaponGrid.cs`](../../../Content.Client/_WF/CombatConsole/WFWeaponGrid.cs)
 - [`Content.Client/_WF/CombatConsole/WFWeaponRow.cs`](../../../Content.Client/_WF/CombatConsole/WFWeaponRow.cs)
 
@@ -116,6 +123,7 @@ redistribution rights. Source: https://store.steampowered.com/app/1434950/HighFl
 
 ### Localization
 
+- [`Resources/Locale/en-US/_WF/CombatConsole/access-layout.ftl`](../../../Resources/Locale/en-US/_WF/CombatConsole/access-layout.ftl)
 - [`Resources/Locale/en-US/_WF/CombatConsole/console.ftl`](../../../Resources/Locale/en-US/_WF/CombatConsole/console.ftl)
 - [`Resources/Locale/en-US/_WF/CombatConsole/gunnery-layout.ftl`](../../../Resources/Locale/en-US/_WF/CombatConsole/gunnery-layout.ftl)
 - [`Resources/Locale/en-US/_WF/CombatConsole/weapon-battery.ftl`](../../../Resources/Locale/en-US/_WF/CombatConsole/weapon-battery.ftl)

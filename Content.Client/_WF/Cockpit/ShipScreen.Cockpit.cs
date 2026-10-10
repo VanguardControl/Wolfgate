@@ -15,14 +15,14 @@ public sealed partial class ShipScreen
         _wfHull?.HullIntegrity * 100, 0, 100, "wf-gauge-unit-percent", decimals: 1,
         tint: _wfHull?.HullIntegrity < 0.5f ? Red : Green), true) { SetHeight = 56 };
 
-    /// <summary>Reflows the live hull display and overlays into a single MFD column.</summary>
+    /// <summary>Uses extra MFD width for telemetry and overlays beside the live hull display.</summary>
     public Control WfCockpitShip(WFCockpitLease lease)
     {
         var departments = WFCockpitLease.Descendants(this).OfType<CheckBox>().Single(toggle => toggle.Name == "DepartmentToggle");
         var gauges = WFCockpitLease.Descendants(this).OfType<WFGlassGauge>().ToArray();
         lease.Take(this);
         lease.Clear(this);
-        var telemetry = new GridContainer { Columns = 2, HorizontalExpand = true };
+        var telemetry = new GridContainer { Name = "CockpitShipTelemetry", Columns = 2, HorizontalExpand = true };
         foreach (var gauge in gauges)
         {
             lease.Take(gauge);
@@ -33,10 +33,11 @@ public sealed partial class ShipScreen
         Orientation = LayoutOrientation.Vertical;
         ShipView.WfCockpitInteraction(lease);
         var plot = Scope("wf-console-hull-scope", lease.Take(ShipView), Vector2.Zero);
-        var details = Column(new WFGlassReadout(lease.Take(ShipNameLabel)), telemetry,
-            Column(lease.Take(DamageToggle), lease.Take(FireToggle), lease.Take(PressureToggle),
-                lease.Take(PowerToggle), lease.Take(departments), lease.Take(FitButton), lease.Take(TruncatedLabel)));
-        AddChild(WFCockpitMfdLayout.Split(plot, WFCockpitMfdLayout.Details(details)));
+        var overlays = new GridContainer { Name = "CockpitShipOverlays", Columns = 1, HorizontalExpand = true };
+        foreach (var control in new Control[] { DamageToggle, FireToggle, PressureToggle, PowerToggle, departments, FitButton })
+            overlays.AddChild(lease.Take(control));
+        var details = Column(new WFGlassReadout(lease.Take(ShipNameLabel)), telemetry, overlays, lease.Take(TruncatedLabel));
+        AddChild(new WFCockpitShipLayout(plot, WFCockpitMfdLayout.Details(details), telemetry, overlays));
         return this;
     }
 

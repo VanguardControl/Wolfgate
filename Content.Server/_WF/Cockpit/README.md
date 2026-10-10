@@ -15,7 +15,11 @@ Shield arc width stays in the permanent shield control panel. Retro uses larger 
 lower flight bank aligns with communications and shields. Its six status lamps show live autopilot, FTL,
 dampener, parking, docking and shield state; autopilot activity is replicated independently of MFD selection.
 The MFD holds navigation, hull overlays, strategic travel, docking, access, shield details and auxiliary
-systems. Both Wolfgate themes apply. Exit restores the same controls and chat draft without reopening
+systems. A wide SHP display puts telemetry and overlay controls beside a narrower hull plot; compact
+MFDs retain the vertical layout with independently scrolling details. ACCESS also adapts to the MFD
+width, placing its framed door map beside the controls when there is room and above them in compact
+layouts. Its details use one scroller without nested scrolling lists, and the bezel matches the selected
+Wolfgate theme. Exit restores the same controls and chat draft without reopening
 interfaces or changing the player's display settings.
 
 A seated pilot can also link to an accessible, powered gunnery console within normal interaction reach
@@ -85,6 +89,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 - [`Content.Client/_WF/Cockpit/WFCockpitInstrumentSizing.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitInstrumentSizing.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitLease.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitLease.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitMfdLayout.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitMfdLayout.cs)
+- [`Content.Client/_WF/Cockpit/WFCockpitShipLayout.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitShipLayout.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitStatusLights.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitStatusLights.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitStatusReading.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitStatusReading.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitUIController.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitUIController.cs)

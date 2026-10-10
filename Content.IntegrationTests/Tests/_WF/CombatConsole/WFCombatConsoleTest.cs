@@ -6,6 +6,10 @@ using Content.Shared._CE.ZLevels.Core.Components;
 using Robust.Shared.Localization;
 using Content.Client._WF.CombatConsole;
 using Content.Client._WF.Stylesheets;
+using Content.Client._WF.ShipPa.UI;
+using Content.Client._WF.ShipAccess;
+using Content.Client.UserInterface.Controls;
+using Content.Shared._WF.ShipAccess;
 using Content.Shared._WF.CCVar;
 using Robust.Shared.Configuration;
 using Content.Shared._WF.Shuttles;
@@ -174,27 +178,176 @@ public sealed class WFCombatConsoleTest
             CheckFlightInstruments(false);
             navigation.SetShuttle(null);
             clientMaps.DeleteMap(flightMap);
-            foreach (var size in new[] { new Vector2(960, 640), new Vector2(1128, 776) })
+            var shipScreen = helm.FindControl<ShipScreen>("ShipContainer");
+            var shipCommands = 0;
+            shipScreen.CodeRequested += _ => shipCommands++;
+            shipScreen.GeneralQuartersRequested += _ => shipCommands++;
+            shipScreen.AnnounceRequested += _ => shipCommands++;
+            shipScreen.SoundRequested += _ => shipCommands++;
+            shipScreen.SoundStopRequested += () => shipCommands++;
+            shipScreen.CollisionAlertRequested += _ => shipCommands++;
+            var shipSettings = pair.Client.ResolveDependency<IConfigurationManager>();
+            var shipOriginalSkin = shipSettings.GetCVar(WolfgateCVars.UiStyle);
+            var accessDoor = clientEntities.SpawnEntity(null, MapCoordinates.Nullspace);
+            helm.OpenCentered();
+            try
             {
-                helm.SwitchMode(ShuttleConsoleWindow.ShuttleConsoleMode.Ship);
-                helm.SetSize = size;
-                helm.Measure(size);
-                helm.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
-                var ship = helm.FindControl<ShipScreen>("ShipContainer");
-                var mapView = ship.FindControl<ShipViewControl>("ShipView");
-                Assert.That(camera.Visible, Is.False);
-                var departments = Descendants(ship).OfType<CheckBox>().Single(toggle => toggle.Name == "DepartmentToggle");
-                Assert.That(departments.GlobalPosition.X, Is.GreaterThanOrEqualTo(mapView.GlobalPosition.X + mapView.Width),
-                    "The department toggle must sit beside the hull plot, not over it.");
-                Assert.That(departments.Label.Width, Is.GreaterThan(30));
-                Assert.That(Descendants(ship).OfType<Label>().Any(label => label.Text == Loc.GetString("wf-console-hull-controls")),
-                    Is.False, "The ship plot must not retain a separate display-control header.");
-                Assert.That(ship.FindControl<CheckBox>("DamageToggle").Label.Width, Is.GreaterThan(30),
-                    "Mechanical checkbox styling must leave room for its caption.");
-                Assert.That(mapView.Width, Is.GreaterThan(200));
-                Assert.That(mapView.Height, Is.GreaterThan(150));
-                Assert.That(mapView.GlobalPosition.Y + mapView.Height, Is.LessThanOrEqualTo(helm.GlobalPosition.Y + helm.Height),
-                    "The inherited map size must not escape the console's content area.");
+                foreach (var skin in new[] { WolfgateSkins.Retro.Id, WolfgateSkins.Futurist.Id })
+                foreach (var size in new[] { new Vector2(960, 600), new Vector2(1180, 780) })
+                {
+                    shipSettings.SetCVar(WolfgateCVars.UiStyle, skin);
+                    helm.SwitchMode(ShuttleConsoleWindow.ShuttleConsoleMode.Ship);
+                    helm.SetSize = size;
+                    foreach (var control in Descendants(helm))
+                        control.InvalidateMeasure();
+                    helm.Measure(size);
+                    helm.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
+                    var mapView = shipScreen.FindControl<ShipViewControl>("ShipView");
+                    var plot = Descendants(shipScreen).Single(control => control.Name == "WfHullPlot");
+                    var status = Descendants(shipScreen).Single(control => control.Name == "WfHullStatus");
+                    var controls = Descendants(shipScreen).Single(control => control.Name == "WfHullControls");
+                    var announcements = Descendants(shipScreen).Single(control => control.Name == "WfHullAnnouncements");
+                    var alarmPanel = Descendants(shipScreen).OfType<ShipAlarmPanel>().Single();
+                    var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
+                    Assert.That(camera.Visible, Is.False);
+                    Assert.That(Descendants(shipScreen).OfType<ScrollContainer>(), Is.Empty,
+                        "Ship status, overlays and PA controls must use the available width instead of a scrolling sidebar.");
+                    Assert.That(plot.Width, Is.LessThan(shipScreen.Width * 0.5f), "The hull plot must leave most of the width for ship instruments and controls.");
+                    Assert.That(status.GlobalPosition.X, Is.GreaterThanOrEqualTo(plot.GlobalPosition.X + plot.Width),
+                        "Hull telemetry must sit beside the plot.");
+                    Assert.That(announcements.GlobalPosition.X, Is.GreaterThanOrEqualTo(status.GlobalPosition.X + status.Width),
+                        "Announcements must use a separate column beside telemetry.");
+                    foreach (var panel in new[] { plot, status, controls, announcements })
+                        AssertWithin(panel, shipScreen);
+                    var departments = Descendants(shipScreen).OfType<CheckBox>().Single(toggle => toggle.Name == "DepartmentToggle");
+                    Assert.That(departments.GlobalPosition.X, Is.GreaterThanOrEqualTo(mapView.GlobalPosition.X + mapView.Width),
+                        "The department toggle must sit beside the hull plot, not over it.");
+                    Assert.That(Descendants(shipScreen).OfType<Label>().Any(label => label.Text == Loc.GetString("wf-console-hull-controls")),
+                        Is.False, "The ship plot must not retain a separate display-control header.");
+                    foreach (var name in new[] { "DamageToggle", "FireToggle", "PressureToggle", "PowerToggle", "FitButton" })
+                        AssertWithin(Descendants(shipScreen).Single(control => control.Name == name), shipScreen);
+                    AssertWithin(departments, shipScreen);
+                    var gauges = Descendants(shipScreen).OfType<WFGlassGauge>().ToArray();
+                    Assert.That(gauges, Has.Length.EqualTo(6));
+                    foreach (var gauge in gauges)
+                    {
+                        AssertWithin(gauge, status);
+                        Assert.That(gauge.Width, Is.GreaterThanOrEqualTo(85), "Hull gauges must retain a readable scale.");
+                        Assert.That(gauge.Height, Is.GreaterThanOrEqualTo(100));
+                    }
+                    foreach (var name in new[] { "GeneralQuartersButton", "CollisionAlertButton", "AnnounceButton", "SoundButton", "SoundStopButton" })
+                        AssertWithin(alarmPanel.FindControl<Button>(name), announcements);
+                    foreach (var button in Descendants(alarmPanel.FindControl<BoxContainer>("CodeContainer")).OfType<Button>())
+                        AssertWithin(button, announcements);
+                    foreach (var name in new[] { "AnnounceEdit", "SoundEdit" })
+                    {
+                        var input = alarmPanel.FindControl<LineEdit>(name);
+                        AssertWithin(input, announcements);
+                        Assert.That(input.Width, Is.GreaterThanOrEqualTo(100), "The PA needs a usable input field at the minimum console size.");
+                    }
+                    foreach (var button in Descendants(shipScreen).OfType<Button>().Where(button => button.VisibleInTree))
+                    {
+                        AssertWithin(button, shipScreen);
+                        AssertCaptionFits(button.Label, ui);
+                    }
+                    Assert.That(mapView.Width, Is.GreaterThan(200));
+                    Assert.That(mapView.Height, Is.GreaterThan(150));
+                    AssertWithin(mapView, shipScreen);
+                    helm.SwitchMode(ShuttleConsoleWindow.ShuttleConsoleMode.Access);
+                    var access = helm.FindControl<ShipAccessScreen>("AccessContainer");
+                    access.SetShuttle(null);
+                    access.Refresh();
+                    foreach (var control in Descendants(helm))
+                        control.InvalidateMeasure();
+                    helm.Measure(size);
+                    helm.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
+                    var accessPlot = Descendants(access).Single(control => control.Name == "WfAccessPlot");
+                    var accessSettings = Descendants(access).Single(control => control.Name == "WfAccessSettings");
+                    var accessPeople = Descendants(access).Single(control => control.Name == "WfAccessPeople");
+                    var accessDoors = Descendants(access).Single(control => control.Name == "WfAccessDoors");
+                    var accessMap = Descendants(access).Single(control => control.Name == "DoorMap");
+                    Assert.That(Descendants(accessPlot).OfType<WFScreenBezel>()
+                        .Any(bezel => Descendants(bezel).Contains(accessMap)), Is.True,
+                        "The access map must use the instrument bezel in both console themes.");
+                    Assert.That(accessPlot.Width, Is.LessThan(access.Width * 0.5f),
+                        "The access diagram must leave most of the width for access settings and door rules.");
+                    Assert.That(accessSettings.GlobalPosition.X, Is.GreaterThanOrEqualTo(accessPlot.GlobalPosition.X + accessPlot.Width));
+                    Assert.That(accessPeople.GlobalPosition.X, Is.GreaterThanOrEqualTo(accessPlot.GlobalPosition.X + accessPlot.Width));
+                    Assert.That(accessDoors.GlobalPosition.X, Is.GreaterThanOrEqualTo(accessSettings.GlobalPosition.X + accessSettings.Width),
+                        "Door rules must use the third column at normal console sizes.");
+                    foreach (var panel in new[] { accessPlot, accessSettings, accessPeople, accessDoors })
+                        AssertWithin(panel, access);
+                    Assert.That(accessMap.Height, Is.GreaterThan(150));
+                    AssertWithin(accessMap, accessPlot);
+                    foreach (var caption in Descendants(access.FindControl<GridContainer>("LegendContainer")).OfType<Label>())
+                    {
+                        AssertWithin(caption, accessPlot);
+                        AssertCaptionFits(caption, ui);
+                    }
+                    AssertWithin(access.FindControl<Label>("ReadOnlyLabel"), accessSettings);
+                    PopulateAccessEditor(access, accessDoor);
+                    foreach (var control in Descendants(helm))
+                        control.InvalidateMeasure();
+                    helm.Measure(size);
+                    helm.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
+                    Assert.That(access.FindControl<Label>("ReadOnlyLabel").Visible, Is.False);
+                    foreach (var panel in new[] { accessSettings, accessPeople, accessDoors })
+                        AssertWithin(panel, access);
+                    var locked = access.FindControl<CheckBox>("LockedCheck");
+                    AssertWithin(locked, accessSettings);
+                    AssertCaptionFits(locked.Label, ui);
+                    foreach (var prefix in new[] { "ShipCode", "DoorCode" })
+                    {
+                        var panel = prefix == "ShipCode" ? accessSettings : accessDoors;
+                        var edit = access.FindControl<LineEdit>(prefix + "Edit");
+                        AssertWithin(edit, panel);
+                        Assert.That(edit.Width, Is.GreaterThanOrEqualTo(64), "A code input must fit all four digits.");
+                        foreach (var action in new[] { "RevealButton", "SetButton", "ClearButton" })
+                        {
+                            var button = access.FindControl<Button>(prefix + action);
+                            AssertWithin(button, panel);
+                            AssertCaptionFits(button.Label, ui);
+                        }
+                    }
+                    AssertWithin(access.FindControl<OptionButton>("DoorRuleButton"), accessDoors);
+                    AssertWithin(access.FindControl<OptionButton>("AllDoorsRuleButton"), accessDoors);
+                    var applyRules = access.FindControl<ConfirmButton>("AllDoorsApplyButton");
+                    AssertWithin(applyRules, accessDoors);
+                    AssertCaptionFits(applyRules.Label, ui);
+                    AssertCaptionFits(applyRules.Label, ui, applyRules.ConfirmationText);
+                    var allowedList = Descendants(access).OfType<WFAccessListRegion>().Single(control => control.Name == "WfAccessAllowedList");
+                    var nearbyList = Descendants(access).OfType<WFAccessListRegion>().Single(control => control.Name == "WfAccessNearbyList");
+                    var doorList = Descendants(access).OfType<WFAccessListRegion>().Single(control => control.Name == "WfAccessDoorList");
+                    foreach (var (list, contentName) in new[]
+                    {
+                        (allowedList, "AllowListContainer"),
+                        (nearbyList, "NearbyContainer"),
+                        (doorList, "DoorPlayersContainer"),
+                    })
+                    {
+                        AssertWithin(list, list == doorList ? accessDoors : accessPeople);
+                        var firstRow = access.FindControl<BoxContainer>(contentName).Children.First();
+                        var context = $"{skin}, {size}, {list.Name}: access={access.Height}, settings={accessSettings.Height}, " +
+                            $"people={accessPeople.Height}, allowed={allowedList.Height}, nearby={nearbyList.Height}, " +
+                            $"row desired={firstRow.DesiredSize.Y}, actual={firstRow.Height}";
+                        Assert.That(firstRow.Height, Is.GreaterThan(0), context);
+                        Assert.That(list.Height + 1, Is.GreaterThanOrEqualTo(Math.Max(firstRow.DesiredSize.Y, firstRow.Height)),
+                            $"A populated access list must show at least one complete row. {context}");
+                    }
+                    foreach (var button in Descendants(allowedList).OfType<Button>().Where(button => button.VisibleInTree))
+                        AssertCaptionFits(button.Label, ui);
+                    foreach (var check in Descendants(allowedList).OfType<CheckBox>().Where(check => check.VisibleInTree))
+                        AssertCaptionFits(check.Label, ui);
+                    Assert.That(allowedList.Height + nearbyList.Height, Is.GreaterThan(accessPeople.Height * 0.55f),
+                        $"Crew lists should occupy most of their dedicated column: {skin}, {size}, people={accessPeople.Height}, allowed={allowedList.Height}, nearby={nearbyList.Height}.");
+                }
+                Assert.That(shipCommands, Is.Zero, "Changing theme or layout must not transmit PA or alarm commands.");
+            }
+            finally
+            {
+                helm.Close();
+                clientEntities.DeleteEntity(accessDoor);
+                shipSettings.SetCVar(WolfgateCVars.UiStyle, shipOriginalSkin);
             }
             var gun = new NetEntity(710);
             FireControlConsoleBoundInterfaceState GunState(bool connected, int? ammo) => new(connected,
@@ -300,14 +453,55 @@ public sealed class WFCombatConsoleTest
         });
         await pair.CleanReturnAsync();
     }
-    private static void AssertCaptionFits(Label label, IUserInterfaceManager ui)
+
+    /// <summary>Populates existing refresh paths with owner and selected-door data for layout checks.</summary>
+    private static void PopulateAccessEditor(ShipAccessScreen screen, EntityUid door)
     {
+        var state = new WFShipAccessComponent { OwnerName = "Layout test captain", Locked = true };
+        for (uint index = 0; index < 12; index++)
+            state.AllowList.Add(new WFShipAccessEntry
+            {
+                Key = new WFShipAccessKey(new NetEntity(900), index),
+                Name = $"Crew member {index + 1}",
+                Label = "Engineering",
+                Builder = index % 2 == 0,
+            });
+        var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+        typeof(ShipAccessScreen).GetMethod("RebuildList", flags)!.Invoke(screen, new object[] { state, true });
+        var rebuildNearby = typeof(ShipAccessScreen).GetMethod("RebuildNearby", flags)!;
+        var nearbyType = rebuildNearby.GetParameters()[1].ParameterType;
+        var nearby = (System.Collections.IList) Activator.CreateInstance(nearbyType)!;
+        var personType = nearbyType.GenericTypeArguments[0];
+        for (var index = 0; index < 12; index++)
+            nearby.Add(Activator.CreateInstance(personType, new object[] { door, $"Nearby crew {index + 1}", true, true }));
+        rebuildNearby.Invoke(screen, new object[] { true, nearby });
+        var node = new ShipAccessDoorNode(door, "Forward compartment airlock", new Vector2(3, -2), WFDoorAccessRule.PlayersOrCode, true);
+        typeof(ShipAccessScreen).GetMethod("RebuildDoor", flags)!
+            .Invoke(screen, new object[] { state, node, new WFDoorAccessRuleComponent { Rule = WFDoorAccessRule.PlayersOrCode }, true });
+        foreach (var name in new[] { "ShipCodeEdit", "DoorCodeEdit" })
+            screen.FindControl<LineEdit>(name).Text = "1234";
+    }
+
+    private static void AssertWithin(Control control, Control parent)
+    {
+        Assert.That(control.VisibleInTree, Is.True, $"{control.Name} must remain accessible without scrolling.");
+        Assert.That(control.Width, Is.GreaterThan(0), control.Name);
+        Assert.That(control.Height, Is.GreaterThan(0), control.Name);
+        Assert.That(control.GlobalPosition.X, Is.GreaterThanOrEqualTo(parent.GlobalPosition.X - 1), control.Name);
+        Assert.That(control.GlobalPosition.Y, Is.GreaterThanOrEqualTo(parent.GlobalPosition.Y - 1), control.Name);
+        Assert.That(control.GlobalPosition.X + control.Width, Is.LessThanOrEqualTo(parent.GlobalPosition.X + parent.Width + 1), control.Name);
+        Assert.That(control.GlobalPosition.Y + control.Height, Is.LessThanOrEqualTo(parent.GlobalPosition.Y + parent.Height + 1), control.Name);
+    }
+
+    private static void AssertCaptionFits(Label label, IUserInterfaceManager ui, string? caption = null)
+    {
+        caption ??= label.Text!;
         var font = label.FontOverride ?? (label.TryGetStyleProperty<Font>(Label.StylePropertyFont, out var styled)
             ? styled : ui.ThemeDefaults.LabelFont);
         var width = 0f;
-        foreach (var rune in label.Text!.EnumerateRunes())
+        foreach (var rune in caption.EnumerateRunes())
             width += font.GetCharMetrics(rune, label.UIScale)?.Advance ?? 0;
-        Assert.That(label.PixelWidth + 1, Is.GreaterThanOrEqualTo(width), $"Console status and overlay labels must fit: {label.Text}");
+        Assert.That(label.PixelWidth + 1, Is.GreaterThanOrEqualTo(width), $"Console captions must fit: {caption}");
         Assert.That(label.PixelHeight + 1, Is.GreaterThanOrEqualTo(font.GetHeight(label.UIScale)));
     }
 

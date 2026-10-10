@@ -2,7 +2,6 @@ using System.Linq;
 using Content.Client._WF.Cockpit;
 using Content.Client.UserInterface.Controls;
 using Robust.Client.UserInterface;
-using Robust.Client.UserInterface.Controls;
 using static Content.Client._WF.CombatConsole.WFInstrumentTheme;
 
 namespace Content.Client.Shuttles.UI;
@@ -21,10 +20,6 @@ public sealed partial class ShuttleConsoleWindow
         foreach (var plot in WFCockpitLease.Descendants(AccessContainer).OfType<MapGridControl>())
             plot.WfCockpitInteraction(lease);
         lease.Take(AccessContainer);
-        var accessChildren = AccessContainer.Children.ToArray();
-        lease.Clear(AccessContainer);
-        AccessContainer.Orientation = BoxContainer.LayoutOrientation.Vertical;
-        AccessContainer.AddChild(WFCockpitMfdLayout.Split(lease.Take(accessChildren[0]), lease.Take(accessChildren[1])));
         var systems = WFCockpitMfdLayout.Details(NavContainer.WfCockpitSystems(lease));
         var pages = new (string Key, Control Content)[]
         {

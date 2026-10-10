@@ -168,6 +168,44 @@ public sealed class WFCockpitTest : InteractionTest
                             Layout(hud, size);
                             AssertCockpitLayout(hud, viewport, chat, ui, size, theme, page);
                             AssertLabelFits(expand, ui, $"{theme}, {size}, expanded={expanded}");
+                            if (page == "wf-cockpit-access")
+                            {
+                                var accessLayout = Named<Control>(hud, "WfAccessLayout");
+                                var accessPlot = Named<Control>(hud, "WfAccessPlot");
+                                var accessDetails = Named<Control>(hud, "WfAccessDetails");
+                                var doorMap = Named<MapGridControl>(hud, "DoorMap");
+                                Assert.That(Ancestors(doorMap, accessPlot).OfType<WFScreenBezel>(), Is.Not.Empty,
+                                    "The access diagram must retain the same instrument bezel as the other plots in both themes.");
+                                Assert.That(Right(accessPlot), Is.LessThanOrEqualTo(Right(accessLayout) + 1));
+                                Assert.That(Bottom(accessPlot), Is.LessThanOrEqualTo(Bottom(accessLayout) + 1));
+                                if (expanded && size.X == 1600)
+                                {
+                                    Assert.That(accessDetails.GlobalPosition.X, Is.GreaterThanOrEqualTo(Right(accessPlot)),
+                                        "An expanded access MFD must use its width for controls beside the diagram.");
+                                }
+                                else
+                                {
+                                    Assert.That(accessDetails.GlobalPosition.Y, Is.GreaterThanOrEqualTo(Bottom(accessPlot)),
+                                        "Compact access MFDs must keep their controls below the fixed diagram.");
+                                }
+                            }
+                            if (page == "wf-cockpit-ship")
+                            {
+                                var hullLayout = Named<WFCockpitShipLayout>(hud, "CockpitShipLayout");
+                                var hullPlot = hullLayout.Children.First();
+                                var hullDetails = hullLayout.Children.Last();
+                                if (expanded && size.X == 1600)
+                                {
+                                    Assert.That(hullDetails.Position.X, Is.GreaterThanOrEqualTo(hullPlot.Position.X + hullPlot.Width),
+                                        "An expanded ship MFD must use its width for details beside the plot.");
+                                    Assert.That(hullDetails.Width, Is.GreaterThan(hullPlot.Width), "Expanded hull details need most of the MFD width.");
+                                }
+                                else
+                                {
+                                    Assert.That(hullDetails.Position.Y, Is.GreaterThanOrEqualTo(hullPlot.Position.Y + hullPlot.Height),
+                                        "Compact ship MFDs must stack details below the readable hull plot.");
+                                }
+                            }
                         }
                         if (expanded)
                             Assert.That(mfd.Width, Is.GreaterThan(collapsedWidth), "Expand must give every MFD page more plotting space.");
