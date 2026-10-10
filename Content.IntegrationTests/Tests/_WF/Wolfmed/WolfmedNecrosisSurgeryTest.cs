@@ -149,7 +149,7 @@ public sealed class WolfmedNecrosisSurgeryTest : WolfmedGameTest
         await Server.WaitAssertion(() =>
         {
             SEntMan.System<AutodocSystem>().TryPlan(pod);
-            Assert.That(pod.Comp.Queue.Any(queued => queued.Surgery.Id == Surgery), Is.EqualTo(planned));
+            Assert.That(pod.Comp!.Queue.Any(queued => queued.Surgery.Id == Surgery), Is.EqualTo(planned));
         });
     }
 
