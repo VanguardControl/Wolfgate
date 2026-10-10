@@ -1,9 +1,13 @@
 #nullable enable
+using System.Collections.Generic;
+using System.Linq;
 using Content.Server._Mono.AlertLevel;
 using Content.Server._Mono.WarDeclarator;
 using Content.Server._NF.SectorServices;
 using Content.Server._WF.ColdWar;
 using Content.Shared._Mono.Company;
+using Content.Shared._WF.Encounters;
+using Content.Shared._WF.NpcCrew;
 using Content.Shared.Interaction.Events;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -109,5 +113,40 @@ public sealed class ColdWarDeclaratorTest
         });
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A scheduled encounter that sets the Federation's ships on the Dynasty's waits for a declared war.</summary>
+    [Test]
+    public async Task NavyClashesWaitForWar()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                foreach (var encounter in server.ProtoMan.EnumeratePrototypes<WFEncounterPrototype>())
+                {
+                    if (encounter.Start == WFEncounterStart.Manual)
+                        continue;
+
+                    var federation = Sides(encounter, "TSF");
+                    var dynasty = Sides(encounter, "PDV");
+                    if (federation.Any(side => dynasty.Any(other => other != side)))
+                        Assert.That(encounter.RequiresWar, Is.True, $"{encounter.ID} sets TSF and PDV ships on each other without requiresWar.");
+                }
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    private static HashSet<string> Sides(WFEncounterPrototype encounter, string family)
+    {
+        return encounter.Ships
+            .Where(ship => WFCompanyFamily.Of(ship.Company?.Id) == family)
+            .Select(ship => ship.Side)
+            .ToHashSet();
     }
 }
