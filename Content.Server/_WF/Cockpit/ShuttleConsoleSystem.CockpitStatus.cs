@@ -10,21 +10,24 @@ using Content.Shared.Construction.Components;
 using Content.Shared.NPC;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.Map;
+using Robust.Shared.Timing;
 
 namespace Content.Server.Shuttles.Systems;
 
 public sealed partial class ShuttleConsoleSystem
 {
+    [Dependency] private IGameTiming _wfCockpitTiming = default!;
+
     private float _wfCockpitStatusAccumulator;
     private readonly Dictionary<EntityUid, bool?> _wfCockpitAutopilotStates = new();
-    private readonly Dictionary<EntityUid, HashSet<EntityUid>> _wfCockpitStatusViewers = new();
+    private readonly Dictionary<EntityUid, Dictionary<EntityUid, GameTick>> _wfCockpitStatusViewers = new();
 
     /// <summary>Queues fresh lamps for each real helm open, including a reopen between status ticks.</summary>
     public void WfCockpitConsoleOpened(EntityUid console, EntityUid actor)
     {
         if (!_wfCockpitStatusViewers.TryGetValue(console, out var viewers))
-            _wfCockpitStatusViewers[console] = viewers = new HashSet<EntityUid>();
-        viewers.Add(actor);
+            _wfCockpitStatusViewers[console] = viewers = new Dictionary<EntityUid, GameTick>();
+        viewers[actor] = _wfCockpitTiming.CurTick;
         _wfShieldHelmStates.Remove(console);
     }
 
@@ -51,6 +54,7 @@ public sealed partial class ShuttleConsoleSystem
         if (_wfCockpitStatusAccumulator < 0.25f)
             return;
         _wfCockpitStatusAccumulator = 0;
+        var tick = _wfCockpitTiming.CurTick;
         var open = new HashSet<EntityUid>();
         var query = EntityQueryEnumerator<ShuttleConsoleComponent>();
         while (query.MoveNext(out var uid, out _))
@@ -58,23 +62,28 @@ public sealed partial class ShuttleConsoleSystem
             if (!_ui.IsUiOpen(uid, ShuttleConsoleUiKey.Key))
                 continue;
             open.Add(uid);
-            _wfCockpitStatusViewers.Remove(uid, out var newViewers);
             var selected = new ConsoleShuttleEvent { Console = uid };
             RaiseLocalEvent(uid, ref selected);
             var active = GetWfCockpitAutopilotStatus(selected.Console);
-            if (!_wfCockpitAutopilotStates.TryGetValue(uid, out var previous) || previous != active)
+            var changed = !_wfCockpitAutopilotStates.TryGetValue(uid, out var previous) || previous != active;
+            if (changed)
             {
                 _wfCockpitAutopilotStates[uid] = active;
                 _ui.ServerSendUiMessage(uid, ShuttleConsoleUiKey.Key, new WFCockpitAutopilotUpdateMessage(active));
             }
-            else if (newViewers != null)
+            if (!_wfCockpitStatusViewers.TryGetValue(uid, out var viewers))
+                continue;
+            // A client can drop a message sent in the tick its window is created, so wait one tick.
+            foreach (var (actor, opened) in viewers.ToArray())
             {
-                foreach (var actor in newViewers)
-                {
-                    if (_ui.IsUiOpen(uid, ShuttleConsoleUiKey.Key, actor))
-                        _ui.ServerSendUiMessage(uid, ShuttleConsoleUiKey.Key, new WFCockpitAutopilotUpdateMessage(active), actor);
-                }
+                if (opened >= tick)
+                    continue;
+                viewers.Remove(actor);
+                if (!changed && _ui.IsUiOpen(uid, ShuttleConsoleUiKey.Key, actor))
+                    _ui.ServerSendUiMessage(uid, ShuttleConsoleUiKey.Key, new WFCockpitAutopilotUpdateMessage(active), actor);
             }
+            if (viewers.Count == 0)
+                _wfCockpitStatusViewers.Remove(uid);
         }
         foreach (var uid in _wfCockpitAutopilotStates.Keys.Where(uid => !open.Contains(uid)).ToArray())
         {

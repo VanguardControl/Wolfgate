@@ -1,9 +1,11 @@
-using System.Linq;
+using Content.Server.Atmos.Components;
 using Content.Server.Construction;
 using Content.Server.Construction.Completions;
 using Content.Server.Destructible;
 using Content.Shared._WF.Shuttles;
 using Content.Shared.Damage;
+using Content.Shared.Destructible;
+using Content.Shared.Doors.Components;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map.Components;
 
@@ -24,12 +26,19 @@ public sealed partial class ShipStatusSystem
     {
         SubscribeLocalEvent<DestructibleComponent, ConstructionBeforeDeleteEvent>(OnHullConstructionDelete);
         SubscribeLocalEvent<DestructibleComponent, ConstructionChangeEntityEvent>(OnHullConstructionChange);
+        SubscribeLocalEvent<DestructibleComponent, DestructionEventArgs>(OnHullDestroyed);
         SubscribeLocalEvent<DestructibleComponent, WFHullDeconstructedEvent>(OnHullRcdDelete);
         SubscribeLocalEvent<DestructibleComponent, EntityTerminatingEvent>(OnHullTerminating);
+        SubscribeLocalEvent<MapGridComponent, WFHullTileDeconstructedEvent>(OnHullTileDeconstructed);
     }
 
     private void ObserveHullStructure(EntityUid uid, EntityUid grid, Vector2i index, float capacity) =>
         _surveyedHull[uid] = new HullSurvey(grid, index, capacity);
+
+    /// <summary>Walls, windows and airtight doors are hull; diagonal variants replace the Wall and Window tags.</summary>
+    private bool IsHullStructure(EntityUid uid) =>
+        _tags.HasTag(uid, "Wall") || _tags.HasTag(uid, "Window")
+        || (HasComp<AirtightComponent>(uid) && (HasComp<DoorComponent>(uid) || _tags.HasTag(uid, "Diagonal")));
 
     private void OnHullConstructionDelete(EntityUid uid, DestructibleComponent component, ConstructionBeforeDeleteEvent args)
     {
@@ -47,10 +56,27 @@ public sealed partial class ShipStatusSystem
     private bool HullDestroyedByDamage(EntityUid uid, DestructibleComponent component) =>
         TryComp<DamageableComponent>(uid, out var damage) && damage.TotalDamage >= _destructible.DestroyedAt(uid, component);
 
+    /// <summary>Graph actions such as DestroyEntity delete without a construction event, but never past their damage threshold.</summary>
+    private void OnHullDestroyed(EntityUid uid, DestructibleComponent component, DestructionEventArgs args)
+    {
+        if (_surveyedHull.ContainsKey(uid) && !HullDestroyedByDamage(uid, component))
+            _hullConstructionRemovals[uid] = null;
+    }
+
     private void OnHullRcdDelete(EntityUid uid, DestructibleComponent component, ref WFHullDeconstructedEvent args)
     {
         if (_surveyedHull.ContainsKey(uid))
             _hullConstructionRemovals[uid] = null;
+    }
+
+    /// <summary>A deliberately removed floor stops counting as a missing location; damage and explosions never raise this.</summary>
+    private void OnHullTileDeconstructed(EntityUid uid, MapGridComponent component, ref WFHullTileDeconstructedEvent args)
+    {
+        if (!_hullBaselines.TryGetValue(uid, out var baseline))
+            return;
+        if (_sharedHullBaselines.Remove(uid))
+            _hullBaselines[uid] = baseline = new Dictionary<Vector2i, float>(baseline);
+        baseline.Remove(args.Index);
     }
 
     /// <summary>Only completed deconstruction changes the design; combat and cancelled actions retain their losses.</summary>
@@ -69,7 +95,7 @@ public sealed partial class ShipStatusSystem
     public void ObserveHull(EntityUid console)
     {
         if (GetConsoleGrid(console) is { } grid && !_hullBaselines.ContainsKey(grid))
-            GatherTiles(new HashSet<EntityUid> { grid }, new HashSet<EntityUid>());
+            GatherTiles(new HashSet<EntityUid> { grid }, new HashSet<EntityUid>(), fuel: false);
     }
 
     /// <summary>Retains lost locations and measures each surveyed tile against its own structural capacity.</summary>
@@ -83,17 +109,17 @@ public sealed partial class ShipStatusSystem
                 _hullBaselines[grid] = baseline = new Dictionary<Vector2i, float>();
             else if (_sharedHullBaselines.Remove(grid))
                 _hullBaselines[grid] = baseline = new Dictionary<Vector2i, float>(baseline);
-            foreach (var tile in _maps.GetAllTiles(grid, gridComp))
-                baseline.TryAdd(tile.GridIndices, 0f);
             var structures = _hullStructures[grid];
             foreach (var (index, structure) in structures)
                 baseline[index] = Math.Max(baseline.GetValueOrDefault(index), structure.Capacity);
 
+            // Every floor joins the survey; a surveyed location that has lost its floor scores nothing.
             var intact = 0f;
-            foreach (var (index, capacity) in baseline)
+            foreach (var tile in _maps.GetAllTiles(grid, gridComp))
             {
-                if (_maps.GetTileRef(grid, gridComp, index).Tile.IsEmpty)
-                    continue;
+                var index = tile.GridIndices;
+                if (!baseline.TryGetValue(index, out var capacity))
+                    baseline[index] = capacity = 0f;
                 intact += capacity > 0f
                     ? Math.Clamp(structures.GetValueOrDefault(index).Remaining / capacity, 0f, 1f)
                     : 1f;
@@ -113,30 +139,48 @@ public sealed partial class ShipStatusSystem
         {
             _hullBaselines[grid] = baseline;
             _sharedHullBaselines.Add(grid);
-        }
-        foreach (var (uid, structure) in _surveyedHull.ToArray())
-        {
-            if (structure.Grid == args.Grid && TryComp<TransformComponent>(uid, out var transform) &&
-                transform.GridUid is { } grid && grid != args.Grid)
-                _surveyedHull[uid] = structure with { Grid = grid };
+
+            // Only the fragment's own children can have moved, so the whole survey is never walked.
+            var children = Transform(grid).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                if (_surveyedHull.TryGetValue(child, out var structure) && structure.Grid == args.Grid)
+                    _surveyedHull[child] = structure with { Grid = grid };
+            }
         }
     }
 
     private void ForgetDeletedHulls()
     {
-        foreach (var grid in _hullBaselines.Keys.ToArray())
+        HashSet<EntityUid>? deleted = null;
+        foreach (var grid in _hullBaselines.Keys)
         {
-            if (!TerminatingOrDeleted(grid))
-                continue;
+            if (TerminatingOrDeleted(grid))
+                (deleted ??= new HashSet<EntityUid>()).Add(grid);
+        }
+        if (deleted == null)
+            return;
+
+        foreach (var grid in deleted)
+        {
             _hullBaselines.Remove(grid);
             _sharedHullBaselines.Remove(grid);
-            foreach (var (uid, structure) in _surveyedHull.ToArray())
-            {
-                if (structure.Grid != grid)
-                    continue;
-                _surveyedHull.Remove(uid);
-                _hullConstructionRemovals.Remove(uid);
-            }
+        }
+
+        // Structures delete themselves with their grid; this only catches ones that had already left it.
+        List<EntityUid>? stale = null;
+        foreach (var (uid, structure) in _surveyedHull)
+        {
+            if (deleted.Contains(structure.Grid))
+                (stale ??= new List<EntityUid>()).Add(uid);
+        }
+        if (stale == null)
+            return;
+
+        foreach (var uid in stale)
+        {
+            _surveyedHull.Remove(uid);
+            _hullConstructionRemovals.Remove(uid);
         }
     }
 }

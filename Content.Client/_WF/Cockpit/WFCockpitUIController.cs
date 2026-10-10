@@ -4,6 +4,7 @@ using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Gameplay;
 using Content.Shared._WF.Cockpit;
 using Robust.Client.Player;
+using Robust.Client.Replays.Playback;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Shared.Timing;
 
@@ -14,6 +15,7 @@ public sealed partial class WFCockpitUIController : UIController
 {
     [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IPlayerManager _player = default!;
+    [Dependency] private IReplayPlaybackManager _replay = default!;
     private WFCockpitView? _view;
     private ShuttleConsoleWindow? _console;
     private InGameScreen? _screen;
@@ -28,8 +30,8 @@ public sealed partial class WFCockpitUIController : UIController
         UIManager.GetUIController<GameplayStateLoadController>().OnScreenUnload += () => Exit();
     }
 
-    /// <summary>Checks seat and helm ownership without changing gameplay state.</summary>
-    public bool CanEnter(EntityUid? console) => UIManager.ActiveScreen is InGameScreen &&
+    /// <summary>Checks seat and helm ownership without changing gameplay state; a replay viewer never enters.</summary>
+    public bool CanEnter(EntityUid? console) => UIManager.ActiveScreen is InGameScreen && _replay.Replay == null &&
         _entities.System<SharedWFCockpitSystem>().CanEnter(_player.LocalEntity, console);
 
     /// <summary>Rehouses the existing console and world viewport in a cockpit.</summary>
@@ -41,7 +43,21 @@ public sealed partial class WFCockpitUIController : UIController
         _console = console;
         _screen = screen;
         _pilot = _player.LocalEntity;
-        _view = new WFCockpitView(console, screen, viewport, () => Exit());
+        var lease = new WFCockpitLease();
+        try
+        {
+            _view = new WFCockpitView(console, screen, viewport, () => Exit(), lease);
+        }
+        catch
+        {
+            lease.Restore();
+            if (console.WfCockpitActive)
+                console.WfSetCockpitActive(false);
+            _console = null;
+            _screen = null;
+            _pilot = null;
+            throw;
+        }
         return true;
     }
 

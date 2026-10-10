@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Reflection;
 using Content.Client._WF.Shuttles.Systems;
 using Content.Client._WF.Shuttles.UI;
+using Content.Client.Gameplay;
 using Content.Client.Shuttles.UI;
 using Content.Server._WF.Cockpit;
 using Content.Server._WF.Shuttles.Systems;
@@ -18,6 +19,7 @@ using Content.Shared.Access.Components;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Shuttles.Components;
+using Robust.Client.State;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.GameObjects;
@@ -171,12 +173,26 @@ public sealed class WFCockpitCameraTest
                 "The native seat and live piloting prerequisites must hold before sending entry.");
             Assert.That(em.System<SharedUserInterfaceSystem>().IsUiOpen(helm, ShuttleConsoleUiKey.Key, actor), Is.True);
         });
+        // A pooled client starts outside gameplay, where there is no in-game screen for the cockpit to use.
+        await pair.Client.WaitPost(() => pair.Client.ResolveDependency<IStateManager>().RequestStateChange<GameplayState>());
+        await pair.RunTicksSync(10);
         await pair.Client.WaitAssertion(() =>
         {
-            window = Descendants(pair.Client.ResolveDependency<IUserInterfaceManager>().WindowRoot)
-                .OfType<ShuttleConsoleWindow>().Single();
-            window.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(true));
-            window.WfSetCockpitActive(true);
+            var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
+            window = Descendants(ui.WindowRoot).OfType<ShuttleConsoleWindow>().Single();
+            var controller = ui.GetUIController<Content.Client._WF.Cockpit.WFCockpitUIController>();
+            Assert.That(controller.CanEnter(window.WfCockpitConsole), Is.True,
+                "The client must see the native seat and live piloting prerequisites before entry.");
+            var sent = new List<string>();
+            window.WfCockpitGunneryCommand += message =>
+                sent.Add(message is WFCockpitGunnerySessionMessage { Active: true } ? "session" : message.GetType().Name);
+            window.ShipCameraRequested += (view, _, _) => sent.Add(view.ToString());
+            // The real entry path: its order of messages is what keeps the helm's saved camera untouched.
+            Assert.That(controller.Enter(window), Is.True, "Entry must go through the cockpit controller and its view.");
+            Assert.That(sent, Does.Contain("session"));
+            Assert.That(sent, Does.Contain(nameof(ShuttleCameraView.External)));
+            Assert.That(sent.IndexOf("session"), Is.LessThan(sent.IndexOf(nameof(ShuttleCameraView.External))),
+                "The cockpit session must be sent before the default EXT camera request.");
         });
         await pair.RunTicksSync(10);
         await pair.Server.WaitAssertion(() =>
@@ -194,8 +210,10 @@ public sealed class WFCockpitCameraTest
             external.WfEndCockpitInput();
             Assert.That(external.PendingZoom, Is.Null, "Exiting cannot retry a queued temporary zoom after camera restoration.");
             window!.FindControl<ShuttleCameraBar>("CameraBar").FindControl<Slider>("ZoomSlider").Value = 3f;
-            window.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(false));
-            window.WfSetCockpitActive(false);
+            var controller = pair.Client.ResolveDependency<IUserInterfaceManager>()
+                .GetUIController<Content.Client._WF.Cockpit.WFCockpitUIController>();
+            controller.Exit(window);
+            Assert.That(controller.Active, Is.False);
         });
         await pair.RunTicksSync(10);
         await pair.Server.WaitAssertion(() =>

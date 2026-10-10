@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Content.Client._WF.CombatConsole;
 using Content.Client.Shuttles.UI;
@@ -18,7 +19,7 @@ public sealed record WFCockpitParts(Control Camera, Control Alerts, Control Inst
 /// <summary>A fullscreen instrument surround using the player's real world viewport and chat.</summary>
 public sealed partial class WFCockpitView : Control
 {
-    private readonly WFCockpitLease _lease = new();
+    private readonly WFCockpitLease _lease;
     private readonly ShuttleConsoleWindow _console;
     private readonly Control _top;
     private readonly Control _left;
@@ -34,12 +35,18 @@ public sealed partial class WFCockpitView : Control
     private readonly Control _shields;
     private readonly Button _expand;
     private readonly (string Key, Control Content)[] _pages;
+    private readonly (Control Dial, float Full)[] _dials;
     private bool _expanded;
     private bool _restored;
+    private bool _compactDials;
 
-    /// <summary>Creates the cockpit while borrowing all controls through a reversible lease.</summary>
-    public WFCockpitView(ShuttleConsoleWindow console, InGameScreen screen, MainViewport viewport, Action exit)
+    /// <summary>Whether the dial column is too short for full-size dials and shows the smaller faces.</summary>
+    public bool CompactDials => _compactDials;
+
+    /// <summary>Creates the cockpit, borrowing every control through the caller's lease so a failed build can be undone.</summary>
+    public WFCockpitView(ShuttleConsoleWindow console, InGameScreen screen, MainViewport viewport, Action exit, WFCockpitLease lease)
     {
+        _lease = lease;
         _console = console;
         Name = "WFCockpitView";
         HorizontalExpand = VerticalExpand = true;
@@ -73,6 +80,9 @@ public sealed partial class WFCockpitView : Control
         console.Visible = false;
         var parts = console.WfBuildCockpit(_lease);
         _pages = parts.Pages;
+        _dials = WFCockpitLease.Descendants(parts.Instruments)
+            .Where(control => control.Name is "CockpitHeading" or "CockpitVelocity" or "CockpitYaw")
+            .Select(control => (control, control.SetHeight)).ToArray();
         _top = Column(BuildHeader(exit), parts.Alerts);
         _tcas = parts.Tcas;
         var dials = Column(Label("wf-cockpit-instruments", Accent), parts.Instruments);
@@ -165,11 +175,8 @@ public sealed partial class WFCockpitView : Control
     /// <summary>Switches only the MFD; cameras, flight controls, shield controls and chat stay in place.</summary>
     public void SelectPage(string key)
     {
-        foreach (var (page, content) in _pages)
-        {
-            content.Visible = true;
+        foreach (var (page, _) in _pages)
             _pageHosts[page].Visible = page == key;
-        }
         foreach (var (page, button) in _selectors)
             button.Pressed = page == key;
         _console.WfCockpitShipVisible(key == "wf-cockpit-ship");
@@ -183,10 +190,16 @@ public sealed partial class WFCockpitView : Control
             return;
         _restored = true;
         Parent?.RemoveChild(this);
-        IoCManager.Resolve<IEntityManager>().System<Content.Client._WF.Shuttles.Systems.ShuttleExternalCameraSystem>().WfEndCockpitInput();
-        _lease.Restore();
-        _console.WfSetCockpitActive(false);
-        Dispose();
+        try
+        {
+            IoCManager.Resolve<IEntityManager>().System<Content.Client._WF.Shuttles.Systems.ShuttleExternalCameraSystem>().WfEndCockpitInput();
+        }
+        finally
+        {
+            _lease.Restore();
+            _console.WfSetCockpitActive(false);
+            Dispose();
+        }
     }
 
     protected override Vector2 MeasureOverride(Vector2 availableSize)
@@ -198,7 +211,11 @@ public sealed partial class WFCockpitView : Control
         var modesHeight = MeasureGunnery(left, height - _tcas.DesiredSize.Y - 6);
         var flightHeight = bottom;
         _camera.Measure(new Vector2(left, height - flightHeight));
-        _left.Measure(new Vector2(left, Math.Max(80, height - flightHeight - _camera.DesiredSize.Y - modesHeight - _tcas.DesiredSize.Y - 18)));
+        var leftHeight = Math.Max(80, height - flightHeight - _camera.DesiredSize.Y - modesHeight - _tcas.DesiredSize.Y - 18);
+        if (!_showGunnery)
+            FitDials(leftHeight);
+        _expand.Disabled = !_expanded && MfdWidth(availableSize, left, true) - MfdWidth(availableSize, left, false) < 1;
+        _left.Measure(new Vector2(left, leftHeight));
         _flight.Measure(new Vector2(left, flightHeight));
         _right.Measure(new Vector2(right, height));
         var worldSize = new Vector2(center, Math.Max(80, height - bottom - _translation.DesiredSize.Y - 12));
@@ -232,7 +249,7 @@ public sealed partial class WFCockpitView : Control
         var worldBounds = UIBox2.FromDimensions(new Vector2(centerX, top + motionHeight + 6),
             new Vector2(center, Math.Max(80, height - bottom - motionHeight - 12)));
         _world.Arrange(worldBounds);
-        ArrangeHud(worldBounds, size);
+        ArrangeHud(worldBounds);
         _right.Arrange(UIBox2.FromDimensions(new Vector2(size.X - right - 8, top), new Vector2(right, height)));
         var communications = (center - 6) * 0.43f;
         _comms.Arrange(UIBox2.FromDimensions(new Vector2(centerX, bottomY), new Vector2(communications, bottom)));
@@ -244,12 +261,33 @@ public sealed partial class WFCockpitView : Control
     private (float Left, float Right, float Center, float Height, float Bottom) Dimensions(Vector2 size)
     {
         var left = _showGunnery ? Math.Clamp(size.X * 0.27f, 320, 420) : Math.Clamp(size.X * 0.21f, 220, 320);
-        var right = Math.Clamp(size.X * (_expanded ? 0.48f : 0.29f), 340, _expanded ? 840 : 520);
-        right = Math.Min(right, Math.Max(300, size.X - left - 532));
+        var right = MfdWidth(size, left, _expanded);
         var center = Math.Max(160, size.X - left - right - 32);
         var height = Math.Max(320, size.Y - _top.DesiredSize.Y - 20);
         var bottom = Math.Clamp(size.Y * 0.27f, 218, 250);
         return (left, right, center, height, bottom);
+    }
+
+    /// <summary>The MFD width, capped so the world view and lower panels keep their room.</summary>
+    private static float MfdWidth(Vector2 size, float left, bool expanded)
+    {
+        var width = Math.Clamp(size.X * (expanded ? 0.48f : 0.29f), 340, expanded ? 840 : 520);
+        return Math.Min(width, Math.Max(300, size.X - left - 532));
+    }
+
+    /// <summary>Swaps the large dials for compact ones while the instrument column is too short to show them whole.</summary>
+    private void FitDials(float columnHeight)
+    {
+        var compact = WFCockpitInstrumentSizing.UseCompact(columnHeight);
+        if (compact == _compactDials)
+            return;
+        _compactDials = compact;
+        foreach (var (dial, full) in _dials)
+        {
+            dial.SetHeight = compact ? WFCockpitInstrumentSizing.CompactHeight(full) : full;
+            for (var parent = dial.Parent; parent != null && parent != this; parent = parent.Parent)
+                parent.InvalidateMeasure();
+        }
     }
 
     protected override void FrameUpdate(FrameEventArgs args)

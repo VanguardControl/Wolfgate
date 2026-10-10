@@ -83,11 +83,21 @@ public sealed class WFCockpitLease
         return control;
     }
 
-    /// <summary>Restores in reverse order so nested controls return before their containers.</summary>
+    /// <summary>Restores in reverse order so nested controls return before their containers; a failing step is logged and skipped.</summary>
     public void Restore()
     {
-        for (var i = _restore.Count - 1; i >= 0; i--)
-            _restore[i]();
+        var restore = _restore.ToArray();
         _restore.Clear();
+        for (var i = restore.Length - 1; i >= 0; i--)
+        {
+            try
+            {
+                restore[i]();
+            }
+            catch (Exception e)
+            {
+                Logger.GetSawmill("wf.cockpit").Error($"Cockpit restore step failed: {e}");
+            }
+        }
     }
 }

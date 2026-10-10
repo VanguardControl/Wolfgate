@@ -49,7 +49,7 @@ public sealed partial class WFCockpitView
         AddChild(_gunneryDeck);
         var navigation = _console.FindControl<NavScreen>("NavContainer").FindControl<ShuttleNavControl>("NavRadar");
         _gunneryInput = new WFCockpitFireInput(viewport, navigation, () => _showGunnery && _gunneryConsole != null && !_restored,
-            () => _gunneryPanel?.SelectedWeapons.Count > 0, AimGunnery, _lease);
+            () => _gunneryPanel?.HasSelectedWeapons == true, AimGunnery, _lease);
         AddChild(_gunneryInput);
         _console.WfCockpitGunneryUpdated += UpdateGunnery;
         _lease.Remember(() =>
@@ -116,10 +116,10 @@ public sealed partial class WFCockpitView
 
     private void AimGunnery(EntityCoordinates coordinates, bool fire)
     {
-        if (!_showGunnery || _gunneryConsole == null || _gunneryPanel == null || _gunneryPanel.SelectedWeapons.Count == 0)
+        if (!_showGunnery || _gunneryConsole == null || _gunneryPanel == null || !_gunneryPanel.HasSelectedWeapons)
             return;
         var entities = IoCManager.Resolve<IEntityManager>();
-        var selected = fire ? _gunneryPanel.SelectedWeapons.ToList() : new List<NetEntity>();
+        var selected = fire ? _gunneryPanel.SelectedWeapons : new List<NetEntity>();
         SendGunnery(new FireControlConsoleFireMessage(selected, entities.GetNetCoordinates(coordinates)));
     }
 

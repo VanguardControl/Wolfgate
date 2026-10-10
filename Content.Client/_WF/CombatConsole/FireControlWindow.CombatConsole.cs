@@ -15,7 +15,6 @@ public sealed partial class FireControlWindow
     private readonly Button[] _wfRecall = new Button[WFWeaponGroups.Count];
     private readonly Button[] _wfSave = new Button[WFWeaponGroups.Count];
     private WFCombatConsoleState? _wfCombat;
-    private bool _wfConnected;
     private Control _wfBatteryControls = default!;
     private Control _wfCountermeasures = default!;
     private Button _wfStore = default!;
@@ -132,6 +131,7 @@ public sealed partial class FireControlWindow
         _wfFlareStatus.Name = "CockpitFlareSupply";
         _wfFlareStatus.ClipText = true;
         _wfFlareStatus.HorizontalExpand = true;
+        _wfFlareStatus.MouseFilter = MouseFilterMode.Pass;
         var countermeasures = Column(_wfFlareStatus, Row(_wfAutomatic, _wfDispense));
         countermeasures.SeparationOverride = 2;
         countermeasures.HorizontalExpand = true;
@@ -219,7 +219,6 @@ public sealed partial class FireControlWindow
         if (_wfAnnunciator.Update(state.Combat.Threats, IsOpen && state.Connected))
             IoCManager.Resolve<IEntityManager>().System<WFConsoleAudio>().Warn();
         _wfCombat = state.Combat;
-        _wfConnected = state.Connected;
         var combat = state.Combat;
         _weaponTypes.Clear();
         foreach (var (uid, type) in combat.WeaponTypes)
@@ -269,6 +268,5 @@ public sealed partial class FireControlWindow
         _wfThreats.FontColorOverride = !state.Connected ? Muted : combat.Threats == 0 ? Muted : Red;
         ServerStatus.FontColorOverride = state.Connected ? Green : Red;
         WfUpdateSelection();
-        UpdateAllWeaponButtonTexts();
     }
 }

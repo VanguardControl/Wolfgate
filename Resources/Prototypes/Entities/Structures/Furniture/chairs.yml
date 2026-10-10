@@ -210,7 +210,6 @@
   parent: ChairBase
   description: The pilot seat of a prestigious ship.
   components:
-  - type: WFCockpitSeat # WOLFGATE(Cockpit): permit the optional seated piloting HUD.
   - type: Sprite
     state: shuttle
   - type: Construction

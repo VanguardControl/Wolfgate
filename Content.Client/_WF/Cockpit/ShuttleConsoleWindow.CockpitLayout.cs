@@ -33,7 +33,7 @@ public sealed partial class ShuttleConsoleWindow
             ("wf-cockpit-systems", systems),
             ("wf-cockpit-alarms", announcements),
         };
-        return new WFCockpitParts(CameraBar.WfCockpitControls(lease), lease.Take(CaptureBanner),
+        return new WFCockpitParts(CameraBar.WfCockpitControls(lease), lease.Take(CaptureBanner, restoreVisibility: false),
             instruments, ShipContainer.WfCockpitFuel(), translation, NavContainer.WfCockpitFlight(lease), shield,
             new WFCockpitTcasPanel(CollisionBanner.WfCockpitTcasReading), pages);
     }

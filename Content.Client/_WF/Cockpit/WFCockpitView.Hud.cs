@@ -11,6 +11,7 @@ namespace Content.Client._WF.Cockpit;
 public sealed partial class WFCockpitView
 {
     private LayoutContainer _speech = default!;
+    private WFCockpitSpeechClip _speechClip = default!;
     private Control _crewAlerts = default!;
     private Control _votes = default!;
 
@@ -23,6 +24,8 @@ public sealed partial class WFCockpitView
         var votes = controls.OfType<BoxContainer>().First(control => control.Name == "VoteMenu");
         _speech = new LayoutContainer { Name = "CockpitSpeechBubbles", MouseFilter = MouseFilterMode.Ignore };
         _speech.AddStyleClass("WfNativeStyle");
+        _speechClip = new WFCockpitSpeechClip { Name = "CockpitSpeechClip" };
+        _speechClip.AddChild(_speech);
         var chat = UserInterfaceManager.GetUIController<ChatUIController>();
         chat.SetSpeechBubbleRoot(_speech);
         _lease.Remember(() => chat.SetSpeechBubbleRoot(viewportContainer));
@@ -46,11 +49,12 @@ public sealed partial class WFCockpitView
             Name = "CockpitCrewAlerts",
             HScrollEnabled = false,
             VScrollEnabled = true,
+            ReturnMeasure = true,
             MouseFilter = MouseFilterMode.Pass,
         };
         _crewAlerts.AddStyleClass("WfNativeStyle");
         _crewAlerts.AddChild(liveAlerts);
-        AddChild(_speech);
+        AddChild(_speechClip);
         AddChild(_votes);
         AddChild(_crewAlerts);
 
@@ -65,15 +69,15 @@ public sealed partial class WFCockpitView
 
     private void MeasureHud(Vector2 world, Vector2 full)
     {
-        _speech.Measure(full);
+        _speechClip.Measure(full);
         _crewAlerts.Measure(new Vector2(144, Math.Max(1, world.Y - 12)));
         _votes.Measure(new Vector2(Math.Max(140, Math.Min(340, world.X - 164)), world.Y));
     }
 
-    private void ArrangeHud(UIBox2 world, Vector2 full)
+    private void ArrangeHud(UIBox2 world)
     {
-        // Speech bubbles already use screen coordinates; their root must retain the screen origin.
-        _speech.Arrange(UIBox2.FromDimensions(Vector2.Zero, full));
+        // Speech bubbles use screen coordinates; the clip keeps them inside the world view without moving the origin.
+        _speechClip.Arrange(world);
         var alertHeight = Math.Min(_crewAlerts.DesiredSize.Y, Math.Max(1, world.Height - 12));
         _crewAlerts.Arrange(UIBox2.FromDimensions(new Vector2(world.Right - 150, world.Top + 6), new Vector2(144, alertHeight)));
         var voteWidth = Math.Max(140, Math.Min(340, world.Width - 164));

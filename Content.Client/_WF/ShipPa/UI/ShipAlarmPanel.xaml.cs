@@ -29,6 +29,9 @@ public sealed partial class ShipAlarmPanel : BoxContainer
 
     private readonly Dictionary<string, Button> _codeButtons = new();
 
+    /// <summary>One code button, which shows whether the theme has cleared the code colours.</summary>
+    private Button? _codeProbe;
+
     private EntityUid? _grid;
     private bool _generalQuarters;
     private bool _collisionAlertOff;
@@ -100,6 +103,10 @@ public sealed partial class ShipAlarmPanel : BoxContainer
     {
         base.FrameUpdate(args);
 
+        // A theme change while the page was hidden cleared them; put them back before the page is first drawn.
+        if (_codeProbe is { Label.FontColorOverride: null })
+            ApplyCodeColours();
+
         _pollAccumulator += args.DeltaSeconds;
 
         if (_pollAccumulator < PollInterval)
@@ -138,6 +145,17 @@ public sealed partial class ShipAlarmPanel : BoxContainer
 
             CodeContainer.AddChild(button);
             _codeButtons[id] = button;
+            _codeProbe ??= button;
+        }
+    }
+
+    /// <summary>Gives each code button its code's colour, which the console theme clears whenever it restyles them.</summary>
+    private void ApplyCodeColours()
+    {
+        foreach (var (id, button) in _codeButtons)
+        {
+            if (_protoManager.TryIndex<ShipAlertCodePrototype>(id, out var codeProto))
+                button.Label.FontColorOverride = codeProto.Color;
         }
     }
 
@@ -169,6 +187,8 @@ public sealed partial class ShipAlarmPanel : BoxContainer
         {
             button.Disabled = code != null && code.Value.Id == id;
         }
+
+        ApplyCodeColours();
 
         // The collision warning is a grid component rather than console state, so it rides the same poll.
         _collisionAlertOff = _entManager.HasComponent<CollisionWarningDisabledComponent>(_grid);

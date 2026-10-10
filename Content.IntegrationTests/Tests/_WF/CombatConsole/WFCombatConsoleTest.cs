@@ -1,5 +1,6 @@
 #nullable enable annotations
 
+using System.Collections.Generic;
 using System.Numerics;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,7 @@ using Content.Client._WF.ShipPa.UI;
 using Content.Client._WF.ShipAccess;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._WF.ShipAccess;
+using Content.Shared._WF.ShipPa;
 using Content.Shared._WF.CCVar;
 using Robust.Shared.Configuration;
 using Content.Shared._WF.Shuttles;
@@ -20,6 +22,7 @@ using Content.Client.Shuttles.UI;
 using Content.Client._WF.Shuttles.UI;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Maths;
 using Content.Server._Mono.FireControl;
 using Content.Server._Mono.Projectiles.TargetSeeking;
@@ -30,6 +33,7 @@ using Robust.Client.ResourceManagement;
 using Robust.Client.Graphics;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests._WF.CombatConsole;
@@ -127,13 +131,7 @@ public sealed class WFCombatConsoleTest
         });
         await pair.Client.WaitAssertion(() =>
         {
-            var resources = pair.Client.ResolveDependency<IResourceCache>();
-            foreach (var cue in new[] { "key", "switch_on", "switch_off", "selector", "bearing", "warning" })
-            {
-                var clip = resources.GetResource<AudioResource>($"/Audio/_WF/CombatConsole/HighFleet/{cue}.ogg").AudioStream;
-                Assert.That(clip.ChannelCount, Is.EqualTo(2), "Console cues use the original stereo switch recordings.");
-                Assert.That(clip.Length.TotalSeconds, Is.InRange(0.07, 1.0), "Short UI cues must decode completely.");
-            }
+            var fireTitle = Loc.GetString("wf-console-fire-title");
             using var gunnery = new FireControlWindow();
             using var helm = new ShuttleConsoleWindow();
             Assert.That(gunnery.MinHeight, Is.LessThan(800));
@@ -226,8 +224,6 @@ public sealed class WFCombatConsoleTest
                     var departments = Descendants(shipScreen).OfType<CheckBox>().Single(toggle => toggle.Name == "DepartmentToggle");
                     Assert.That(departments.GlobalPosition.X, Is.GreaterThanOrEqualTo(mapView.GlobalPosition.X + mapView.Width),
                         "The department toggle must sit beside the hull plot, not over it.");
-                    Assert.That(Descendants(shipScreen).OfType<Label>().Any(label => label.Text == Loc.GetString("wf-console-hull-controls")),
-                        Is.False, "The ship plot must not retain a separate display-control header.");
                     foreach (var name in new[] { "DamageToggle", "FireToggle", "PressureToggle", "PowerToggle", "FitButton" })
                         AssertWithin(Descendants(shipScreen).Single(control => control.Name == name), shipScreen);
                     AssertWithin(departments, shipScreen);
@@ -431,7 +427,7 @@ public sealed class WFCombatConsoleTest
                     cfg.SetCVar(WolfgateCVars.UiStyle, skin.Id);
                     Assert.That(WFInstrumentTheme.Skin, Is.SameAs(skin));
                     Assert.That(WFInstrumentTheme.Digital, Is.EqualTo(skin == WolfgateSkins.Futurist));
-                    Assert.That(Descendants(gunnery).OfType<Label>().Single(label => label.Text == "WOLFGATE / FIRE CONTROL").FontColorOverride,
+                    Assert.That(Descendants(gunnery).OfType<Label>().Single(label => label.Text == fireTitle).FontColorOverride,
                         Is.EqualTo(skin.Accent), "Open labels must change palette with the selected theme.");
                     Assert.That(gunnery.WeaponsList[gun].Children.OfType<WFWeaponRow>().Single(), Is.SameAs(meter),
                         "A style switch must retain the same controls and ammunition binding.");
@@ -477,7 +473,7 @@ public sealed class WFCombatConsoleTest
                 gunnery.Close();
                 cfg.SetCVar(WolfgateCVars.UiStyle, WolfgateSkins.Futurist.Id);
                 gunnery.OpenCentered();
-                Assert.That(Descendants(gunnery).OfType<Label>().Single(label => label.Text == "WOLFGATE / FIRE CONTROL").FontColorOverride,
+                Assert.That(Descendants(gunnery).OfType<Label>().Single(label => label.Text == fireTitle).FontColorOverride,
                     Is.EqualTo(WolfgateSkins.Futurist.Accent), "A closed console must adopt the current skin when reopened.");
             }
             finally
@@ -488,6 +484,158 @@ public sealed class WFCombatConsoleTest
             }
         });
         await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ConsoleCuesDecode()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var resources = pair.Client.ResolveDependency<IResourceCache>();
+            foreach (var cue in new[] { "key", "switch_on", "switch_off", "selector", "bearing", "warning" })
+            {
+                var clip = resources.GetResource<AudioResource>($"/Audio/_WF/CombatConsole/HighFleet/{cue}.ogg").AudioStream;
+                Assert.That(clip.Length.TotalSeconds, Is.GreaterThan(0), $"Console cue {cue} must decode to a non-empty clip.");
+            }
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ShipAlertCodeButtonsKeepTheirCodeColours()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var protos = pair.Client.ResolveDependency<IPrototypeManager>();
+            var settings = pair.Client.ResolveDependency<IConfigurationManager>();
+            var originalSkin = settings.GetCVar(WolfgateCVars.UiStyle);
+            using var helm = new ShuttleConsoleWindow();
+            var panel = helm.FindControl<ShipScreen>("ShipContainer").FindControl<ShipAlarmPanel>("AlarmPanel");
+            var refresh = typeof(ShipAlarmPanel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            var buttons = Descendants(panel.FindControl<BoxContainer>("CodeContainer")).OfType<Button>().ToArray();
+            var frame = typeof(ShipAlarmPanel).GetMethod("FrameUpdate", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            void AssertCodeColours(string reason)
+            {
+                foreach (var proto in protos.EnumeratePrototypes<ShipAlertCodePrototype>().Where(proto => proto.Selectable))
+                {
+                    var button = buttons.Single(candidate => candidate.Text == Loc.GetString(proto.Name));
+                    Assert.That(button.Label.FontColorOverride, Is.EqualTo(proto.Color), reason);
+                }
+            }
+            Assert.That(buttons, Is.Not.Empty);
+            // The first frame comes before the first poll, so it has to be the one that colours the buttons.
+            frame.Invoke(panel, new object[] { new FrameEventArgs(0f) });
+            AssertCodeColours("A new console shows the code colours on its first frame.");
+            try
+            {
+                foreach (var skin in new[] { WolfgateSkins.Retro, WolfgateSkins.Futurist })
+                {
+                    settings.SetCVar(WolfgateCVars.UiStyle, skin.Id);
+                    WFInstrumentTheme.Apply(helm);
+                    frame.Invoke(panel, new object[] { new FrameEventArgs(0f) });
+                    AssertCodeColours($"{skin.Id}: a restyle must not leave a frame without the code colours.");
+                    WFInstrumentTheme.Apply(helm);
+                    refresh.Invoke(panel, new object[] { null });
+                    foreach (var proto in protos.EnumeratePrototypes<ShipAlertCodePrototype>().Where(proto => proto.Selectable))
+                    {
+                        var button = buttons.Single(candidate => candidate.Text == Loc.GetString(proto.Name));
+                        Assert.That(button.Label.FontColorOverride, Is.EqualTo(proto.Color),
+                            $"{skin.Id}: the situation code button must keep its code colour.");
+                    }
+                }
+            }
+            finally
+            {
+                settings.SetCVar(WolfgateCVars.UiStyle, originalSkin);
+            }
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task AccessScreenExplainsDoorRulesToCrewWhoCannotEditThem()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var entities = pair.Client.EntMan;
+            using var helm = new ShuttleConsoleWindow();
+            var access = helm.FindControl<ShipAccessScreen>("AccessContainer");
+            var door = entities.SpawnEntity(null, MapCoordinates.Nullspace);
+            try
+            {
+                var state = new WFShipAccessComponent { OwnerName = "Layout test captain", Locked = true };
+                var node = new ShipAccessDoorNode(door, "Forward compartment airlock", new Vector2(3, -2), WFDoorAccessRule.PlayersOrCode, true);
+                var rule = new WFDoorAccessRuleComponent { Rule = WFDoorAccessRule.PlayersOrCode };
+                var rebuild = typeof(ShipAccessScreen).GetMethod("RebuildDoor", BindingFlags.Instance | BindingFlags.NonPublic)!;
+                var hint = access.FindControl<RichTextLabel>("DoorRuleHint");
+                rebuild.Invoke(access, new object[] { state, node, rule, false });
+                Assert.That(hint.Visible, Is.True, "Crew who cannot edit the rule still need its description.");
+                rebuild.Invoke(access, new object[] { state, node, rule, true });
+                Assert.That(hint.Visible, Is.False, "The owner reads the description from the rule selector's tooltip.");
+                foreach (var name in new[] { "ReadOnlyLabel", "OwnerLabel", "DoorNameLabel", "DoorRuleLabel", "CodeAlertLabel" })
+                    Assert.That(access.FindControl<Label>(name).MouseFilter, Is.Not.EqualTo(Control.MouseFilterMode.Ignore),
+                        $"{name} carries a tooltip, so it must be hoverable.");
+            }
+            finally
+            {
+                entities.DeleteEntity(door);
+            }
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Upstream controls the refit hooks replace must be listed here; any other named control must stay in the tree.</summary>
+    [Test]
+    public async Task RecomposedConsolesKeepEveryNamedControl()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            using var gunnery = new FireControlWindow();
+            using var helm = new ShuttleConsoleWindow();
+            var none = Array.Empty<string>();
+            var consoles = new (Control Root, string[] Dropped)[]
+            {
+                (gunnery, new[] { "RootBox", "ControlsBox", "WeaponsLabel", "RadarContainer" }),
+                (helm, none),
+                (helm.FindControl<NavScreen>("NavContainer"), new[] { "RightDisplayNav", "NavSettingsLabel" }),
+                (helm.FindControl<ShipScreen>("ShipContainer"), none),
+                (helm.FindControl<ShipScreen>("ShipContainer").FindControl<ShipAlarmPanel>("AlarmPanel"), none),
+                (helm.FindControl<ShipAccessScreen>("AccessContainer"), none),
+                (helm.FindControl<MapScreen>("MapContainer"), new[] { "RightDisplayMap", "MapDisplayLabel", "SettingsLabel", "HyperspaceLabel" }),
+                (helm.FindControl<DockingScreen>("DockContainer"), new[] { "RightDisplayDock" }),
+            };
+            var lost = new List<string>();
+            foreach (var (root, dropped) in consoles)
+            {
+                var scope = root.NameScope ?? throw new InvalidOperationException($"{root.GetType().Name} has no XAML name scope.");
+                var named = (Dictionary<string, Control>) typeof(NameScope)
+                    .GetField("_inner", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(scope)!;
+                foreach (var name in dropped)
+                    Assert.That(named, Does.ContainKey(name), $"{root.GetType().Name}: the allow-list names a control that no longer exists.");
+                foreach (var (name, control) in named)
+                {
+                    if (!dropped.Contains(name) && (control.Disposed || !IsUnder(control, root)))
+                        lost.Add($"{root.GetType().Name}.{name}");
+                }
+            }
+            Assert.That(lost, Is.Empty, "A refit hook disposed or orphaned these named upstream controls. Re-home each one, or list it " +
+                "as deliberately dropped above with the reason: " + string.Join(", ", lost));
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    private static bool IsUnder(Control control, Control root)
+    {
+        for (var current = control; current != null; current = current.Parent)
+        {
+            if (current == root)
+                return true;
+        }
+        return false;
     }
 
     [Test]

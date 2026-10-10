@@ -7,6 +7,8 @@ using Content.Server.Power.EntitySystems;
 using Content.Shared._Mono.FireControl;
 using Content.Shared._Mono.ShipGuns;
 using Content.Shared._WF.CombatConsole;
+using Content.Shared.ActionBlocker;
+using Content.Shared.Interaction;
 using Content.Shared.Projectiles;
 using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
@@ -23,12 +25,17 @@ public sealed partial class WFCombatConsoleSystem : EntitySystem
 {
     [Dependency] private FireControlSystem _fireControl = default!;
     [Dependency] private PowerReceiverSystem _power = default!;
+    [Dependency] private SharedInteractionSystem _interaction = default!;
+    [Dependency] private ActionBlockerSystem _blocker = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedContainerSystem _containers = default!;
 
+    /// <summary>Minimum distance from the console at which a hostile lock counts as a threat.</summary>
     public const float ThreatRange = 250f;
+    /// <summary>Seconds of flight at a seeker's top speed that also count as a threat, so fast missiles are met early.</summary>
+    public const float ThreatLeadTime = 3f;
     public static readonly TimeSpan BurstInterval = TimeSpan.FromSeconds(15);
     private TimeSpan _nextUpdate;
 
@@ -61,11 +68,17 @@ public sealed partial class WFCombatConsoleSystem : EntitySystem
         out EntityUid serverUid, out FireControlServerComponent server)
     {
         if (TryGetServer(uid, console, out serverUid, out server) &&
-            (_ui.IsUiOpen(uid, FireControlConsoleUiKey.Key, actor) ||
+            (_ui.IsUiOpen(uid, FireControlConsoleUiKey.Key, actor) && CanReach(actor, uid) ||
              EntityManager.System<WFCockpitGunnerySystem>().CanOperate(actor, uid)))
             return true;
         return false;
     }
+
+    /// <summary>The gunnery UI skips engine input validation, so native commands recheck interaction and range as the engine would.</summary>
+    private bool CanReach(EntityUid actor, EntityUid uid) =>
+        _blocker.CanInteract(actor, uid) &&
+        (HasComp<IgnoreUIRangeComponent>(actor) ||
+         _interaction.InRangeAndAccessible(actor, uid, _ui.GetUiRange(uid, FireControlConsoleUiKey.Key)));
 
     private void OnSaveGroup(EntityUid uid, FireControlConsoleComponent console, WFSaveWeaponGroupMessage args)
     {
@@ -137,7 +150,8 @@ public sealed partial class WFCombatConsoleSystem : EntitySystem
                     state.Groups[i].Add(net);
             }
         }
-        state.Cooldown = shortestCooldown == float.MaxValue ? 0 : shortestCooldown;
+        // Whole seconds keep unchanged snapshots equal during the lockout.
+        state.Cooldown = shortestCooldown == float.MaxValue ? 0 : MathF.Ceiling(shortestCooldown);
         return state;
     }
 
@@ -199,7 +213,8 @@ public sealed partial class WFCombatConsoleSystem : EntitySystem
                 projectile.Shooter is { } shooter && TryComp(shooter, out TransformComponent? shooterXform) &&
                 shooterXform.GridUid == grid)
                 continue;
-            if (Vector2.DistanceSquared(origin.Position, _transform.GetWorldPosition(xform)) <= ThreatRange * ThreatRange)
+            var range = Math.Max(ThreatRange, seeker.MaxSpeed * ThreatLeadTime);
+            if (Vector2.DistanceSquared(origin.Position, _transform.GetWorldPosition(xform)) <= range * range)
                 count++;
         }
         return count;

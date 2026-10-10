@@ -10,8 +10,10 @@ weapon groups: select weapons, enable STORE and choose a slot, then recall it wi
 the console and survive closing its window; saving an empty selection clears a slot.
 
 The countermeasure panel controls connected GS-002 Sunny launchers and is hidden when none are installed,
-including in the cockpit. Empty installed launchers remain visible. AUTO responds to exposed,
-launched missiles tracking this ship within 250 metres of the console; DISPENSE requests a manual
+including in the cockpit. Empty installed launchers remain visible. Launchers are not in the weapon list and
+cannot be aimed; they fire only through DISPENSE and AUTO, and DISPENSE fires every ready launcher. AUTO responds to
+exposed, launched missiles tracking this ship within 250 metres of the console, or within three seconds of flight at
+their top speed when that is farther; DISPENSE requests a manual
 burst. Automation continues while armed with the window closed. Each launcher shares a 15-second
 burst lockout across consoles after each shot and uses its existing ammunition supply, including
 the Sunny autoloader. Power, server membership, anchoring, firing lanes, FTL and pacifist
@@ -19,7 +21,8 @@ restrictions still apply. DISPENSE and AUTO choose a clear lane away from the hu
 fixed bearing that may point into the ship. Actual emitted Sunny flares can distract an existing hostile
 missile lock once outside the hull, if nearer than its target and inside its detection range and scan arc.
 Unrelated seeker acquisition and ordinary aim-directed weapon commands are unchanged. Automation defaults to safe.
-Threat alerts are freshly scanned when a console reopens. Combat telemetry refreshes four times per second; periodic radar/weapon metadata refreshes once per
+Group and flare commands sent from the console window also require the operator to be able to interact with the console and
+be within its reach. Threat alerts are freshly scanned when a console reopens. Combat telemetry refreshes four times per second; periodic radar/weapon metadata refreshes once per
 second, with native open/action updates remaining immediate. Unchanged snapshots and cockpit deliveries
 are suppressed. Linked viewers share each snapshot and docking discovery is shared within each server
 tick; cursor guidance does not rebuild radar or ammunition state.
@@ -35,7 +38,10 @@ so an unlimited magazine is never marked empty.
 
 Entry points: `WFCombatConsoleSystem`, `FireControlWindow.CombatConsole`, the helm screen partials,
 and `WFInstrumentTheme`. Upstream XAML and control bindings are retained; small constructor hooks
-recompose their controls into module-owned layouts. Retro console faces use original Wolfgate drawings for worn metal
+recompose their controls into module-owned layouts. Each hook re-homes a fixed list of named upstream controls
+and disposes the rest of the original layout, so a control added to an upstream XAML file later is lost unless the
+hook is updated; `WFCombatConsoleTest.RecomposedConsolesKeepEveryNamedControl` lists the controls dropped on purpose
+and fails on any other. Retro console faces use original Wolfgate drawings for worn metal
 housings, display bezels, buttons, toggles and a compass dial. These are drawn at the current UI
 scale without imported HighFleet textures. Live heading and supply readings reflect authoritative
 telemetry. Control presses play mechanical cues and a new incoming
@@ -46,6 +52,7 @@ The access tab gives its framed door map nearly half the page, making it the lar
 ship settings, crew lists and selected-door controls. Its wide legend uses two columns to preserve map
 height. Smaller displays keep the map dominant beside or above one details scroller; lists scroll
 individually only in the wide layout. Its bezel and controls match the selected Wolfgate theme.
+Crew who do not hold the deed can read the selected door's rule description.
 Shield shunting uses a CRT coverage plot, sector and power instrument banks, and a persistent
 deployment/status strip. Its
 original live allocation, warning colors, recovery and draft acknowledgement behavior are retained.

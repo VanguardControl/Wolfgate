@@ -6,6 +6,8 @@ namespace Content.Client._WF.CombatConsole;
 /// <summary>Draws thin luminous geometry for Futurist instruments without physical chrome.</summary>
 public static class WFConsoleDigital
 {
+    private static readonly DrawVertexUV2DColor[] PanelVertices = new DrawVertexUV2DColor[8];
+
     /// <summary>Draws a clipped-corner glass panel with accent brackets and a restrained top highlight.</summary>
     public static void Panel(DrawingHandleScreen handle, UIBox2 box, float scale, Color fill, Color edge)
     {
@@ -19,14 +21,23 @@ public static class WFConsoleDigital
         var g = new Vector2(box.Left, box.Bottom - cut);
         var h = new Vector2(box.Left, box.Top + cut);
         var face = fill * handle.Modulate;
-        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, Texture.White,
-            new[] { new DrawVertexUV2DColor(a, face), new DrawVertexUV2DColor(b, face),
-                new DrawVertexUV2DColor(c, face), new DrawVertexUV2DColor(d, face),
-                new DrawVertexUV2DColor(e, face), new DrawVertexUV2DColor(f, face),
-                new DrawVertexUV2DColor(g, face), new DrawVertexUV2DColor(h, face) });
-        var points = new[] { a, b, c, d, e, f, g, h, a };
-        for (var i = 0; i < points.Length - 1; i++)
-            handle.DrawLine(points[i], points[i + 1], edge);
+        PanelVertices[0] = new DrawVertexUV2DColor(a, face);
+        PanelVertices[1] = new DrawVertexUV2DColor(b, face);
+        PanelVertices[2] = new DrawVertexUV2DColor(c, face);
+        PanelVertices[3] = new DrawVertexUV2DColor(d, face);
+        PanelVertices[4] = new DrawVertexUV2DColor(e, face);
+        PanelVertices[5] = new DrawVertexUV2DColor(f, face);
+        PanelVertices[6] = new DrawVertexUV2DColor(g, face);
+        PanelVertices[7] = new DrawVertexUV2DColor(h, face);
+        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, Texture.White, PanelVertices);
+        handle.DrawLine(a, b, edge);
+        handle.DrawLine(b, c, edge);
+        handle.DrawLine(c, d, edge);
+        handle.DrawLine(d, e, edge);
+        handle.DrawLine(e, f, edge);
+        handle.DrawLine(f, g, edge);
+        handle.DrawLine(g, h, edge);
+        handle.DrawLine(h, a, edge);
         var accent = WFInstrumentTheme.Skin.Accent;
         handle.DrawLine(a, a + new Vector2(MathF.Min(28 * scale, box.Width / 4), 0), accent);
         handle.DrawLine(e, e - new Vector2(MathF.Min(28 * scale, box.Width / 4), 0), accent.WithAlpha(0.5f));
@@ -42,7 +53,10 @@ public static class WFConsoleDigital
         var cap = fullCircle ? 0 : fringe / radius;
         var count = Math.Max(2, (int) MathF.Ceiling((end - start + cap * 2) * radius / 2));
         var half = MathF.Min(0.5f, width / 2);
-        var radii = new[] { radius + fringe - half, radius - half, radius - width + half, radius - width - fringe + half };
+        var r0 = radius + fringe - half;
+        var r1 = radius - half;
+        var r2 = radius - width + half;
+        var r3 = radius - width - fringe + half;
         if (vertices.Length < count * 18)
             vertices = new DrawVertexUV2DColor[count * 18];
         // Match the modulation space used by UI text and DrawRect so the arc retains its palette colour.
@@ -58,10 +72,12 @@ public static class WFConsoleDigital
             var secondAlpha = fullCircle || i < count - 1 ? tint.A : 0;
             for (var band = 0; band < 3; band++)
             {
-                var outerA = new DrawVertexUV2DColor(center + a * radii[band], tint.WithAlpha(band == 0 ? 0 : firstAlpha));
-                var outerB = new DrawVertexUV2DColor(center + b * radii[band], tint.WithAlpha(band == 0 ? 0 : secondAlpha));
-                var innerA = new DrawVertexUV2DColor(center + a * radii[band + 1], tint.WithAlpha(band == 2 ? 0 : firstAlpha));
-                var innerB = new DrawVertexUV2DColor(center + b * radii[band + 1], tint.WithAlpha(band == 2 ? 0 : secondAlpha));
+                var outerRadius = band == 0 ? r0 : band == 1 ? r1 : r2;
+                var innerRadius = band == 0 ? r1 : band == 1 ? r2 : r3;
+                var outerA = new DrawVertexUV2DColor(center + a * outerRadius, tint.WithAlpha(band == 0 ? 0 : firstAlpha));
+                var outerB = new DrawVertexUV2DColor(center + b * outerRadius, tint.WithAlpha(band == 0 ? 0 : secondAlpha));
+                var innerA = new DrawVertexUV2DColor(center + a * innerRadius, tint.WithAlpha(band == 2 ? 0 : firstAlpha));
+                var innerB = new DrawVertexUV2DColor(center + b * innerRadius, tint.WithAlpha(band == 2 ? 0 : secondAlpha));
                 vertices[index++] = outerA;
                 vertices[index++] = outerB;
                 vertices[index++] = innerB;

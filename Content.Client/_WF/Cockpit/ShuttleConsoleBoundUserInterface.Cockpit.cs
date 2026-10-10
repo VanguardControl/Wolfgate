@@ -8,7 +8,12 @@ public sealed partial class ShuttleConsoleBoundUserInterface
     {
         if (_window != null)
             // Mode changes and their first command must retain order within the same input tick.
-            _window.WfCockpitGunneryCommand += SendPredictedMessage;
+            // A detached player has no input tick, so the session end sent by teardown is dropped like SendMessage would.
+            _window.WfCockpitGunneryCommand += message =>
+            {
+                if (PlayerManager.LocalEntity != null)
+                    SendPredictedMessage(message);
+            };
     }
 
     private void WfCockpitGunneryReceive(BoundUserInterfaceMessage message)

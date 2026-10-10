@@ -3,6 +3,8 @@ using System.Numerics;
 using Content.Client.Shuttles.UI;
 using Content.Client._WF.Stylesheets;
 using Content.Client.Resources;
+using Content.Shared._WF.CCVar;
+using Robust.Shared.Configuration;
 using Content.Client.UserInterface.Controls;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -16,8 +18,10 @@ namespace Content.Client._WF.CombatConsole;
 /// <summary>Builds metal instrument housings, amber displays and tactile console switches.</summary>
 public static class WFInstrumentTheme
 {
-    /// <summary>Uses the same authoritative palette as the player's Wolfgate UI style.</summary>
-    public static WolfgateSkin Skin => IoCManager.Resolve<IEntityManager>().System<WFConsoleThemeSystem>().Skin;
+    /// <summary>Uses the same authoritative palette as the player's Wolfgate UI style, read from the CVar outside a session.</summary>
+    public static WolfgateSkin Skin => IoCManager.Resolve<IEntityManager>().TrySystem(out WFConsoleThemeSystem? theme)
+        ? theme.Skin
+        : WolfgateSkins.Get(IoCManager.Resolve<IConfigurationManager>().GetCVar(WolfgateCVars.UiStyle));
     /// <summary>Futurist instruments replace physical chrome with luminous digital geometry.</summary>
     public static bool Digital => Skin == WolfgateSkins.Futurist;
     public static Color Accent => Skin.Accent;
@@ -286,9 +290,12 @@ public sealed class WFInstrumentPanel : PanelContainer
             return;
         var size = PixelSize;
         var inset = 5 * UIScale;
-        foreach (var point in new[] { new Vector2(inset, inset), new Vector2(size.X - inset, inset),
-                     new Vector2(inset, size.Y - inset), new Vector2(size.X - inset, size.Y - inset) })
-            WFConsoleMetal.Screw(handle, point, 2.5f * UIScale, WFInstrumentTheme.Skin.EdgeLight);
+        var metal = WFInstrumentTheme.Skin.EdgeLight;
+        var radius = 2.5f * UIScale;
+        WFConsoleMetal.Screw(handle, new Vector2(inset, inset), radius, metal);
+        WFConsoleMetal.Screw(handle, new Vector2(size.X - inset, inset), radius, metal);
+        WFConsoleMetal.Screw(handle, new Vector2(inset, size.Y - inset), radius, metal);
+        WFConsoleMetal.Screw(handle, new Vector2(size.X - inset, size.Y - inset), radius, metal);
     }
 }
 

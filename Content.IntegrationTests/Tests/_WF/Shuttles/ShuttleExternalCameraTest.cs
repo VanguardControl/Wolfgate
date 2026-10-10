@@ -5,6 +5,7 @@ using System.Numerics;
 using System.Reflection;
 using Content.Client._WF.Shuttles.Systems;
 using Content.Client._WF.Shuttles.UI;
+using Content.Client.ContextMenu.UI;
 using Content.Client.Popups;
 using Content.Client.UserInterface.Controls;
 using Content.Client.Viewport;
@@ -620,9 +621,26 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
             Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Repeat, pointer).Handled, Is.False);
             Assert.That(Dragging(), Is.False);
 
+            // A press released where it landed is a click: it leaves the view alone and goes to the entity menu.
+            var menuAsks = new List<ScreenCoordinates>();
+            system.WfEntityMenuRequested += menuAsks.Add;
+            var resting = system.LookPoint;
+            var near = new ScreenCoordinates(pointer.Position + new Vector2(2, 0), pointer.Window);
+            Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Down, pointer).Handled, Is.True);
+            Tick(near);
+            Assert.That(system.LookPoint, Is.EqualTo(resting), "A press that hasn't strayed far must not nudge the view.");
+            Assert.That(PanStart(), Is.EqualTo(pointer.Position), "A press within the click distance is still undecided.");
+            Assert.That(menuAsks, Is.Empty, "The menu waits for the release.");
+            Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Up, near).Handled, Is.True);
+            Assert.That(Dragging(), Is.False, "Releasing in place ends the press like any other release.");
+            Assert.That(menuAsks, Is.EqualTo(new[] { near }), "A click asks for the entity menu once, where it was released.");
+            CloseEntityMenu();
+
             Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Down, pointer).Handled, Is.True,
                 "The fresh world press must be consumed before either native right-click context binding runs.");
             Tick(outside);
+            // The headless viewport cannot map screen points to the world, so the pan itself is not measurable here.
+            Assert.That(PanStart(), Is.Null, "A press dragged past the click distance commits to a pan.");
             Assert.That(Dragging(), Is.True, "A captured pan continues across the viewport edge.");
             Assert.That(LastMouse(), Is.EqualTo(outside.Position));
             Tick(default);
@@ -632,6 +650,8 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
             Assert.That(LastMouse(), Is.EqualTo(pointer.Position));
             Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Up, outside).Handled, Is.True);
             Assert.That(Dragging(), Is.False);
+            Assert.That(menuAsks, Has.Count.EqualTo(1), "A press that became a pan must not open the menu when it ends.");
+            system.WfEntityMenuRequested -= menuAsks.Add;
             Tick(pointer);
             Assert.That(Dragging(), Is.False, "A released drag cannot resume on pointer return.");
 
@@ -678,6 +698,14 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
                 .GetField("_dragging", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(system)!;
             Vector2? LastMouse() => (Vector2?) typeof(ShuttleExternalCameraSystem)
                 .GetField("_lastMouse", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(system);
+            Vector2? PanStart() => (Vector2?) typeof(ShuttleExternalCameraSystem)
+                .GetField("_panStart", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(system);
+            void CloseEntityMenu()
+            {
+                var menus = ui.GetUIController<ContextMenuUIController>();
+                if (menus.RootMenu?.Visible == true)
+                    menus.Close();
+            }
         });
         await LeaveHelm();
     }

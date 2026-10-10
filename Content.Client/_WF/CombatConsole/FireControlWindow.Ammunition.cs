@@ -11,11 +11,11 @@ public sealed partial class FireControlWindow
 {
     private WFGaugeReading WfSupplyReading(NetEntity uid)
     {
-        if (!_wfConnected)
+        if (_currentState is not { Connected: true } state)
             return WFGaugeReading.Number(null, 0, 1, "wf-gauge-unit-rounds");
-        if (_currentState is not { } state || !state.Combat.WeaponSupplies.TryGetValue(uid, out var supply))
+        if (!state.Combat.WeaponSupplies.TryGetValue(uid, out var supply))
         {
-            var entry = _currentState?.FireControllables?.FirstOrDefault(weapon => weapon.NetEntity == uid);
+            var entry = state.FireControllables?.FirstOrDefault(weapon => weapon.NetEntity == uid);
             var count = entry?.AmmoCount;
             return WFGaugeReading.Number(count, 0, WFGaugeScale.Ceiling(count ?? 0, 30),
                 "wf-gauge-unit-rounds", tint: count == 0 ? Red : Accent);
@@ -64,10 +64,13 @@ public sealed partial class FireControlWindow
     private bool WfUpdateWeaponSupplyText(Button button, FireControllableEntry controllable)
     {
         var reading = WfSupplyReading(controllable.NetEntity);
-        button.Text = controllable.Name;
-        button.ToolTip = Loc.GetString("wf-console-weapon-supply", ("name", controllable.Name), ("supply", reading.Text));
+        if (button.Text != controllable.Name)
+            button.Text = controllable.Name;
+        var tip = Loc.GetString("wf-console-weapon-supply", ("name", controllable.Name), ("supply", reading.Text));
+        if (button.ToolTip != tip)
+            button.ToolTip = tip;
         button.ModulateSelfOverride = null;
-        button.Children.OfType<WFWeaponRow>().FirstOrDefault()?.Refresh();
+        button.Children.OfType<WFWeaponRow>().FirstOrDefault()?.Refresh(reading);
         return true;
     }
 }

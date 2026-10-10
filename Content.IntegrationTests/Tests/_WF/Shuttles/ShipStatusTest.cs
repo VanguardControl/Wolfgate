@@ -257,6 +257,47 @@ public sealed class ShipStatusTest
     }
 
     [Test]
+    public async Task DestroyedDiagonalWallsAndWindowsLowerTheHullGauge()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var status = em.System<ShipStatusSystem>();
+        var structures = new List<EntityUid>();
+        var console = EntityUid.Invalid;
+
+        await server.WaitAssertion(() =>
+        {
+            var maps = em.System<SharedMapSystem>();
+            for (var x = 1; x < 4; x++)
+                maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(x, 0), map.Tile.Tile);
+            console = em.SpawnEntity("ComputerShuttle", At(0));
+            // These prototypes replace the Wall and Window tags with Diagonal alone.
+            structures.Add(em.SpawnEntity("WallReinforcedDiagonal", At(1)));
+            structures.Add(em.SpawnEntity("ReinforcedWindowDiagonal", At(2)));
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f));
+
+            var blunt = server.ProtoMan.Index<DamageTypePrototype>("Blunt");
+            foreach (var structure in structures)
+                em.System<DamageableSystem>().TryChangeDamage(structure,
+                    new DamageSpecifier(blunt, FixedPoint2.New(5000)), ignoreResistances: true);
+        });
+        await server.WaitRunTicks(2);
+        await server.WaitAssertion(() =>
+        {
+            foreach (var structure in structures)
+                Assert.That(em.Deleted(structure), Is.True);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(0.5f).Within(0.001f),
+                "Destroyed diagonal reinforced walls and windows are hull and must stay lost.");
+        });
+        await pair.CleanReturnAsync();
+        return;
+
+        EntityCoordinates At(int x) => new(map.Grid.Owner, new Vector2(x + 0.5f, 0.5f));
+    }
+
+    [Test]
     public async Task PilotEntrySurveysHullBeforeAConsoleBearingFragmentSplitsAway()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });

@@ -32,7 +32,7 @@ public sealed class WFVelocityVectorInstrument : Control
         MinWidth = 88;
         SetHeight = 100;
         HorizontalExpand = true;
-        MouseFilter = MouseFilterMode.Ignore;
+        MouseFilter = MouseFilterMode.Pass;
         ToolTip = Loc.GetString("wf-cockpit-velocity-help");
         var font = IoCManager.Resolve<IResourceCache>()
             .GetResource<FontResource>("/Fonts/RobotoMono/RobotoMono-Regular.ttf");

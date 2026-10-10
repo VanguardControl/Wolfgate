@@ -4,6 +4,10 @@ using System.Reflection;
 using Content.Server._WF.Shuttles.Systems;
 using Content.Server.Construction;
 using Content.Server.Construction.Completions;
+using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
+using Content.Shared.FixedPoint;
+using Content.Shared.Maps;
 using Content.Shared.RCD;
 using Content.Shared.RCD.Components;
 using Content.Shared.RCD.Systems;
@@ -11,6 +15,7 @@ using Robust.Shared;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
+using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Shuttles;
 
@@ -137,5 +142,201 @@ public sealed class ShipHullConstructionTest
                 "Restoring only the original grid's floor cannot restore the wall removed on its sibling fragment.");
         });
         await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task WallShotIntoAGirderStaysALoss()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var em = pair.Server.EntMan;
+        var status = em.System<ShipStatusSystem>();
+        EntityUid console = default;
+        EntityUid wall = default;
+        await pair.Server.WaitAssertion(() =>
+        {
+            console = em.SpawnEntity("ComputerShuttle", map.GridCoords);
+            wall = em.SpawnEntity("WallSolidDiagonal", map.GridCoords);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f));
+            // Past the 500 girder threshold but short of the 600 plain destruction one.
+            Hit(em, pair.Server.ProtoMan, wall, 550);
+        });
+        await pair.Server.WaitRunTicks(2);
+        await pair.Server.WaitAssertion(() =>
+        {
+            Assert.That(em.Deleted(wall), Is.True);
+            var girders = 0;
+            var query = em.EntityQueryEnumerator<MetaDataComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out var meta, out var xform))
+            {
+                if (meta.EntityPrototype?.ID == "Girder" && xform.GridUid == map.Grid.Owner && !em.Deleted(uid))
+                    girders++;
+            }
+            Assert.That(girders, Is.EqualTo(1), "Damage must leave a girder through the construction graph.");
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.LessThan(1f),
+                "A wall shot into a girder is combat loss, not a design change.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task CurtainsAreNotHull()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var em = pair.Server.EntMan;
+        var status = em.System<ShipStatusSystem>();
+        EntityUid console = default;
+        EntityUid curtains = default;
+        EntityUid shotCurtains = default;
+        await pair.Server.WaitAssertion(() =>
+        {
+            em.System<SharedMapSystem>().SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(1, 0), map.Tile.Tile);
+            console = em.SpawnEntity("ComputerShuttle", At(0));
+            curtains = em.SpawnEntity("CurtainsBlack", At(0));
+            shotCurtains = em.SpawnEntity("CurtainsBlack", At(1));
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f));
+            new DestroyEntity().PerformAction(curtains, null, em);
+        });
+        await pair.Server.WaitRunTicks(2);
+        await pair.Server.WaitAssertion(() =>
+        {
+            Assert.That(em.Deleted(curtains), Is.True);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f),
+                "Cutting down a curtain must not read as a lost hull location.");
+            // Past the 5 damage that destroys a curtain: hull would score this as combat loss.
+            Hit(em, pair.Server.ProtoMan, shotCurtains, 10);
+        });
+        await pair.Server.WaitRunTicks(2);
+        await pair.Server.WaitAssertion(() =>
+        {
+            Assert.That(em.Deleted(shotCurtains), Is.True);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f),
+                "A curtain shot down is not hull, so it is no lost location either.");
+        });
+        await pair.CleanReturnAsync();
+        return;
+
+        EntityCoordinates At(int x) => new(map.Grid.Owner, new Vector2(x + 0.5f, 0.5f));
+    }
+
+    [Test]
+    public async Task MaterialDoorDeconstructionIsADesignChangeButDamageIsALoss()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var em = pair.Server.EntMan;
+        var status = em.System<ShipStatusSystem>();
+        EntityUid console = default;
+        EntityUid deconstructed = default;
+        EntityUid shot = default;
+        await pair.Server.WaitAssertion(() =>
+        {
+            em.System<SharedMapSystem>().SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(1, 0), map.Tile.Tile);
+            console = em.SpawnEntity("ComputerShuttle", At(0));
+            deconstructed = em.SpawnEntity("MetalDoor", At(0));
+            shot = em.SpawnEntity("MetalDoor", At(1));
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f));
+            // The door construction graph removes its entity with DestroyEntity, which raises no construction event.
+            new DestroyEntity().PerformAction(deconstructed, null, em);
+        });
+        await pair.Server.WaitRunTicks(2);
+        await pair.Server.WaitAssertion(() =>
+        {
+            Assert.That(em.Deleted(deconstructed), Is.True);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f),
+                "Taking a material door apart through its graph must leave healthy floor, not damage.");
+            Hit(em, pair.Server.ProtoMan, shot, 5000);
+        });
+        await pair.Server.WaitRunTicks(2);
+        await pair.Server.WaitAssertion(() =>
+        {
+            Assert.That(em.Deleted(shot), Is.True);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(0.5f).Within(0.001f),
+                "A door destroyed by damage stays a lost location.");
+        });
+        await pair.CleanReturnAsync();
+        return;
+
+        EntityCoordinates At(int x) => new(map.Grid.Owner, new Vector2(x + 0.5f, 0.5f));
+    }
+
+    [Test]
+    public async Task RcdLatticeRemovalLeavesTheSurveyButOtherFloorLossStays()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var em = pair.Server.EntMan;
+        var maps = em.System<SharedMapSystem>();
+        var status = em.System<ShipStatusSystem>();
+        var lattice = new Tile(pair.Server.ResolveDependency<ITileDefinitionManager>()["Lattice"].TileId);
+        await pair.Server.WaitAssertion(() =>
+        {
+            maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(1, 0), lattice);
+            maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(2, 0), lattice);
+            var console = em.SpawnEntity("ComputerShuttle", map.GridCoords);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f));
+
+            RcdRemoveTile(new Vector2i(2, 0));
+            Assert.That(maps.GetTileRef(map.Grid.Owner, map.Grid.Comp, new Vector2i(2, 0)).Tile.IsEmpty, Is.True);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f),
+                "Trimming lattice with the RCD changes the ship's design, so it is not a hole to repair.");
+
+            maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(1, 0), Tile.Empty);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(0.5f).Within(0.001f),
+                "Floor lost any other way is still a missing location.");
+        });
+        await pair.CleanReturnAsync();
+        return;
+
+        void RcdRemoveTile(Vector2i index)
+        {
+            var rcd = em.SpawnEntity("RCD", map.GridCoords);
+            var component = em.GetComponent<RCDComponent>(rcd);
+            var prototype = pair.Server.ProtoMan.Index<RCDPrototype>("Deconstruct");
+            typeof(RCDComponent).GetProperty(nameof(RCDComponent.CachedPrototype))!.SetValue(component, prototype);
+            var tile = maps.GetTileRef(map.Grid.Owner, map.Grid.Comp, index);
+            var data = new MapGridData(map.Grid.Owner, map.Grid.Comp, map.GridCoords, tile, index);
+            // Exercise the native successful-operation branch; tool range and do-after checks are independent.
+            typeof(RCDSystem).GetMethod("FinalizeRCDOperation", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(em.System<RCDSystem>(), new object[] { rcd, component, data, Direction.South, null, rcd });
+        }
+    }
+
+    [Test]
+    public async Task ToolLatticeRemovalLeavesTheSurveyButOtherFloorLossStays()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        var em = pair.Server.EntMan;
+        var maps = em.System<SharedMapSystem>();
+        var status = em.System<ShipStatusSystem>();
+        var tiles = em.System<TileSystem>();
+        var lattice = new Tile(pair.Server.ResolveDependency<ITileDefinitionManager>()["Lattice"].TileId);
+        await pair.Server.WaitAssertion(() =>
+        {
+            maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(1, 0), lattice);
+            maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(2, 0), lattice);
+            var console = em.SpawnEntity("ComputerShuttle", map.GridCoords);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f));
+
+            var cut = maps.GetTileRef(map.Grid.Owner, map.Grid.Comp, new Vector2i(2, 0));
+            Assert.That(tiles.DeconstructTile(cut), Is.True, "Lattice comes up with the tool.");
+            Assert.That(maps.GetTileRef(map.Grid.Owner, map.Grid.Comp, new Vector2i(2, 0)).Tile.IsEmpty, Is.True);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f),
+                "Cutting lattice away with a tool changes the ship's design, so it is not a hole to repair.");
+
+            maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(1, 0), Tile.Empty);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(0.5f).Within(0.001f),
+                "Floor lost any other way is still a missing location.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    private static void Hit(IEntityManager em, IPrototypeManager prototypes, EntityUid target, int amount)
+    {
+        var blunt = prototypes.Index<DamageTypePrototype>("Blunt");
+        em.System<DamageableSystem>().TryChangeDamage(target, new DamageSpecifier(blunt, FixedPoint2.New(amount)),
+            ignoreResistances: true);
     }
 }

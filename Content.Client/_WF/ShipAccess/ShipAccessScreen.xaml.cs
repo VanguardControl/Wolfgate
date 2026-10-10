@@ -446,6 +446,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         DoorRuleButton.Visible = isOwner;
         DoorRuleButton.SelectId((int) selected.Rule);
         SetHint(DoorRuleHint, Loc.GetString(RuleKey(selected.Rule, "desc")));
+        DoorRuleHint.Visible = !isOwner;
         DoorRuleButton.ToolTip = DoorRuleHint.ToolTip;
         DoorRuleLabel.ToolTip = DoorRuleHint.ToolTip;
         DoorNameLabel.ToolTip = DoorNameLabel.Text;

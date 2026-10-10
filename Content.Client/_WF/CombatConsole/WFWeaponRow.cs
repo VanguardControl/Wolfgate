@@ -47,8 +47,12 @@ public sealed class WFWeaponRow : Control
     }
 
     /// <summary>Refreshes labels without replacing the selected button or its input handlers.</summary>
-    public void Refresh()
+    public void Refresh() => Refresh(Reading);
+
+    /// <summary>Refreshes the labels from a supply reading the caller has already taken.</summary>
+    public void Refresh(WFGaugeReading reading)
     {
+        _reading = reading;
         var skin = WFInstrumentTheme.Skin;
         if (_skin != skin)
         {
@@ -59,7 +63,6 @@ public sealed class WFWeaponRow : Control
         }
         if (NameLabel.Text != _button.Text)
             NameLabel.Text = _button.Text;
-        var reading = _reading = Reading;
         if (SupplyLabel.Text != reading.Text)
             SupplyLabel.Text = reading.Text;
         NameLabel.FontColorOverride = _button.Disabled ? skin.TextMuted : skin.Text;

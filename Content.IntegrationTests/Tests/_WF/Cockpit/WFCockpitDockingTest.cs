@@ -93,9 +93,24 @@ public sealed class WFCockpitDockingTest
                     Assert.That(button.Label.PixelWidth + 1, Is.GreaterThanOrEqualTo(textWidth), $"{theme}: {button.Text} must be readable in full.");
                     Assert.That(button.GlobalPosition.X + button.Width, Is.LessThanOrEqualTo(280));
                 }
-                foreach (var label in Tree(actions).OfType<Label>().Where(label => label.ToolTip != null))
-                    Assert.That(label.ToolTip, Does.Contain("external airlock"), "The complete port name remains available when its row is narrow.");
+                foreach (var row in actions.Children)
+                    Assert.That(row.ToolTip, Does.Contain("external airlock"), "The complete port name remains available when its row is narrow.");
             }
+            var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
+            var firstRow = actions.Children.First();
+            var caption = firstRow.Children.OfType<Label>().Single();
+            var overCaption = new ScreenCoordinates(
+                caption.GlobalPixelPosition + new Vector2(caption.PixelWidth, caption.PixelHeight) / 2f, caption.Window!.Id);
+            Assert.That(ui.MouseGetControl(overCaption), Is.SameAs(firstRow),
+                "A caption ignores the mouse, so its row must take the hover and the tooltip.");
+            ui.SetHovered(firstRow);
+            Assert.That(plot.HighlightedDock, Is.EqualTo(own.Entity), "Hovering a port row highlights its marker on the plot.");
+            ui.SetHovered(null);
+            Assert.That(plot.HighlightedDock, Is.Null);
+            ui.SetHovered(firstRow.Children.OfType<Button>().Single());
+            Assert.That(plot.HighlightedDock, Is.EqualTo(own.Entity), "Hovering a port's button highlights it too.");
+            ui.SetHovered(null);
+            Assert.That(plot.HighlightedDock, Is.Null);
             var requests = new List<(NetEntity From, NetEntity To)>();
             var undocks = new List<NetEntity>();
             plot.DockRequest += (from, to) => requests.Add((from, to));
@@ -118,11 +133,62 @@ public sealed class WFCockpitDockingTest
             Assert.That(plot.Offset, Is.EqualTo(new Vector2(3, 4)), "State refresh must preserve an ongoing approach pan.");
             Assert.That(Tree(actions).OfType<Button>().Count(), Is.EqualTo(3));
             lease.Restore();
+            Assert.That(plot.Offset, Is.EqualTo(Vector2.Zero), "Leaving the cockpit drops the approach pan.");
             Assert.That(plot.WfCockpitControls, Is.False);
             Assert.That(actions.ChildCount, Is.Zero);
             Assert.That(Tree(plot).OfType<Button>().Count(), Is.EqualTo(3), "Exiting cockpit restores the normal docking UI.");
             settings.SetCVar(WolfgateCVars.UiStyle, originalTheme);
             entities.DeleteEntity(owner);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task RecenterButtonReturnsAPannedApproachPlotToItsDock()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
+            using var screen = new DockingScreen();
+            var lease = new WFCockpitLease();
+            screen.WfCockpitDock(lease);
+            screen.Visible = true; // the helm shows this page by selecting it; its XAML starts hidden
+            ui.WindowRoot.AddChild(screen);
+            var size = new Vector2(420, 520);
+            screen.Measure(size);
+            screen.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
+            var recenter = Tree(screen).OfType<Button>().Single(button => button.Name == "CockpitDockRecenter");
+            var plot = screen.FindControl<ShuttleDockControl>("DockingControl");
+            plot.Offset = new Vector2(30, -20);
+            Press(recenter);
+            Assert.That(plot.Offset, Is.EqualTo(Vector2.Zero),
+                "A ship with one port has no other way to bring a panned plot back.");
+            plot.Offset = new Vector2(5, 5);
+            lease.Restore();
+            Assert.That(plot.Offset, Is.EqualTo(Vector2.Zero), "The pan is not kept for the next cockpit.");
+            screen.Orphan();
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task VelocityDialHelpReachesTheMouse()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
+            using var dial = new WFVelocityVectorInstrument(() => null);
+            ui.WindowRoot.AddChild(dial);
+            var size = new Vector2(160, 120);
+            dial.Measure(size);
+            dial.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
+            var centre = new ScreenCoordinates(
+                dial.GlobalPixelPosition + new Vector2(dial.PixelWidth, dial.PixelHeight) / 2f, dial.Window!.Id);
+            Assert.That(dial.ToolTip, Is.Not.Empty);
+            Assert.That(ui.MouseGetControl(centre), Is.SameAs(dial), "The dial must take the mouse for its tooltip to show.");
+            dial.Orphan();
         });
         await pair.CleanReturnAsync();
     }

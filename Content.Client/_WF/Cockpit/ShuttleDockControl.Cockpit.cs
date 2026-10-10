@@ -34,6 +34,7 @@ public sealed partial class ShuttleDockControl
         lease.Remember(() =>
         {
             _wfCockpitDockActions = null;
+            Offset = Vector2.Zero;
             BuildDocks(GridEntity);
         });
         return actions;
@@ -57,7 +58,6 @@ public sealed partial class ShuttleDockControl
         var caption = new Label
         {
             Text = Loc.GetString("wf-cockpit-dock-port", ("number", number), ("name", name)),
-            ToolTip = name,
             ClipText = true,
             HorizontalExpand = true,
             VerticalAlignment = VAlignment.Center,
@@ -68,9 +68,16 @@ public sealed partial class ShuttleDockControl
         action.HorizontalAlignment = HAlignment.Stretch;
         action.AddStyleClass("WfCompact");
         var row = WFInstrumentTheme.Row(caption, action);
+        // Labels and containers ignore the mouse by default, so the row takes it for the tooltip and hover.
+        row.MouseFilter = MouseFilterMode.Pass;
+        row.ToolTip = name;
         row.Visible = false;
-        row.OnMouseEntered += _ => HighlightedDock = dock.Entity;
-        row.OnMouseExited += _ => HighlightedDock = null;
+        Action<GUIMouseHoverEventArgs> highlight = _ => HighlightedDock = dock.Entity;
+        Action<GUIMouseHoverEventArgs> clear = _ => HighlightedDock = null;
+        row.OnMouseEntered += highlight;
+        row.OnMouseExited += clear;
+        action.OnMouseEntered += highlight;
+        action.OnMouseExited += clear;
         _wfCockpitDockActions.AddChild(row);
         _dockContainers[dock] = row;
         WFInstrumentTheme.Apply(row);

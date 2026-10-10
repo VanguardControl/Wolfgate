@@ -119,7 +119,7 @@ public sealed class WFShipShieldControlsTest
             Assert.That(tab.Visible, Is.True);
             helm.SwitchMode(ShuttleConsoleWindow.ShuttleConsoleMode.Shields);
             Assert.That(screen.Visible, Is.True);
-            foreach (var size in new[] { new Vector2(960, 640), new Vector2(1128, 776) })
+            foreach (var size in new[] { helm.MinSize, new Vector2(1128, 776) })
             {
                 helm.SetSize = size;
                 helm.Measure(size);
@@ -219,7 +219,7 @@ public sealed class WFShipShieldControlsTest
                     Assert.That(rounds.Select(gauge => gauge.GlobalPosition.X).Distinct().Count(), Is.EqualTo(2));
                     Assert.That(rounds.Select(gauge => gauge.GlobalPosition.Y).Distinct().Count(), Is.EqualTo(2));
                     foreach (var gauge in rounds)
-                        Assert.That(gauge.Height, Is.EqualTo(theme == WolfgateSkins.Retro.Id ? 160 : 100).Within(1));
+                        Assert.That(gauge.Height, Is.EqualTo(160).Within(1), "Round dials keep one height in both themes.");
                 }
             }
             finally

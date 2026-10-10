@@ -578,6 +578,7 @@ public partial class RCDSystem : EntitySystem
                 {
                     // Deconstruct tile (either converts the tile to lattice, or removes lattice)
                     var tile = (_turf.GetContentTileDefinition(mapGridData.Tile).ID != "Lattice") ? new Tile(_tileDefMan["Lattice"].TileId) : Tile.Empty;
+                    if (tile.IsEmpty) WfRecordHullTileDeconstruction(mapGridData.GridUid, mapGridData.Position); // WOLFGATE(Shuttles): removing the last lattice leaves the hull survey before any split copies it.
                     _mapSystem.SetTile(mapGridData.GridUid, mapGridData.Component, mapGridData.Position, tile);
                     _adminLogger.Add(LogType.RCD, LogImpact.High, $"{ToPrettyString(user):user} used RCD to set grid: {mapGridData.GridUid} tile: {mapGridData.Position} open to space");
                 }

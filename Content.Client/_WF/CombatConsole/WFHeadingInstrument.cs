@@ -9,6 +9,7 @@ namespace Content.Client._WF.CombatConsole;
 /// <summary>Displays the ship's real heading on an engraved compass instrument.</summary>
 public sealed class WFHeadingInstrument : Control
 {
+    private static readonly Vector2[] ScrewPoints = { new(10, 10), new(166, 10), new(10, 166), new(166, 166) };
     private readonly Func<double?> _heading;
     private DrawVertexUV2DColor[] _digitalVertices = Array.Empty<DrawVertexUV2DColor>();
     private readonly Font _font;
@@ -67,7 +68,7 @@ public sealed class WFHeadingInstrument : Control
         var origin = new Vector2((PixelWidth - side) / 2, 0);
         var bounds = UIBox2.FromDimensions(origin, new Vector2(side));
         WFConsoleMetal.MetalPanel(handle, bounds, UIScale, skin.EdgeSoft);
-        foreach (var point in new[] { new Vector2(10, 10), new Vector2(166, 10), new Vector2(10, 166), new Vector2(166, 166) })
+        foreach (var point in ScrewPoints)
             WFConsoleMetal.Screw(handle, origin + point * scale, 3.4f * scale, skin.TextMuted);
 
         var center = origin + new Vector2(side / 2);

@@ -10,7 +10,10 @@ public sealed partial class ShuttleCameraBar
 {
     private (ShuttleCameraView View, float Zoom, bool LowLight)? _wfCockpitCamera;
 
-    /// <summary>Starts outside the ship while remembering the camera presented before entry.</summary>
+    /// <summary>
+    /// Starts outside the ship while remembering the camera presented before entry. The cockpit session
+    /// message must go first, or the server saves this request as the helm's own camera.
+    /// </summary>
     public void WfCockpitDefaultView()
     {
         if (_wfCockpitCamera != null)

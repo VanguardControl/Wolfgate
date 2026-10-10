@@ -48,7 +48,12 @@ public sealed partial class ShuttleConsoleWindow
         if (active && !WfCockpitActive)
             CameraBar.WfCockpitDefaultView();
         if (!active && WfCockpitActive)
+        {
             CameraBar.WfCockpitRestoreView();
+            // The windowed SHIP page and the next cockpit must not flash the departed session's last sweep.
+            if (_mode != ShuttleConsoleMode.Ship)
+                ShipContainer.ClearStatus();
+        }
         WfCockpitActive = active;
         CameraBar.Visible = active || NavContainer.Visible;
         ShipStatusActiveChanged?.Invoke(active || _mode == ShuttleConsoleMode.Ship, ShipContainer.Overlays);

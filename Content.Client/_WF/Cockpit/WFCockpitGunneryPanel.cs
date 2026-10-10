@@ -22,6 +22,20 @@ public sealed class WFCockpitGunneryPanel : Control
     public List<NetEntity> SelectedWeapons => _window.WeaponsList
         .Where(pair => pair.Value.Pressed && _window.WfAvailableWeapon(pair.Key)).Select(pair => pair.Key).ToList();
 
+    /// <summary>Whether any offensive weapon is selected, without building the list.</summary>
+    public bool HasSelectedWeapons
+    {
+        get
+        {
+            foreach (var (uid, button) in _window.WeaponsList)
+            {
+                if (button.Pressed && _window.WfAvailableWeapon(uid))
+                    return true;
+            }
+            return false;
+        }
+    }
+
     public WFCockpitGunneryPanel()
     {
         HorizontalExpand = VerticalExpand = true;

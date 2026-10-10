@@ -6,7 +6,8 @@ changing character or leaving gameplay restores the normal HUD. The existing ser
 still govern every flight, camera, access and shield request; cockpit mode only changes presentation.
 Entry selects EXT while preserving zoom and low-light settings; leaving restores that pilot's prior camera.
 Cockpit camera changes never overwrite the console's shared saved settings, so overlapping pilots and
-ordinary console users retain their own choices. The other camera views remain available.
+ordinary console users retain their own choices. The other camera views remain available. In the External
+view, a right click that does not move opens the entity menu on release, and dragging with the right button pans.
 Live pressure, internals and buckle alerts, votes, and speech bubbles remain available around the world
 view. Character hotkeys, inventory controls and the menu bar remain hidden; Escape closes other windows
 or opens the game menu without closing the cockpit helm.
@@ -37,7 +38,10 @@ Compact MFDs retain the vertical layout with independently scrolling details. AC
 as the largest panel, beside the controls when there is room and above them in compact layouts. Its
 details use one scroller without nested scrolling lists, and the bezel matches the selected
 Wolfgate theme. Exit restores the same controls and chat draft without reopening
-interfaces or changing the player's display settings.
+interfaces or changing the player's display settings. Expand is unavailable when the window is too narrow to
+widen the MFD, and the dials switch to compact faces on short windows (under about 1000 px of height). The
+docking page has a Recenter plot button. The planet timepiece panel is hidden while the cockpit is open, and
+replay viewers cannot enter it.
 
 A seated pilot can also link to an accessible, powered gunnery console within normal interaction reach
 on the same ship. The nearest eligible console is chosen and retained while usable. FLIGHT/GUNS
@@ -57,7 +61,9 @@ Loss of helm power ends piloting and exits the cockpit.
 Commands travel through the existing helm BUI, with seat, reach, power, access and weapon ownership
 checked by the server for each request. They reuse native firing, group and flare handlers; no second
 gunnery window is opened. Discovery in FLIGHT only supplies telemetry; NPC gunners recognize the pilot as
-a human console operator only after the pilot selects GUNS.
+a human console operator only after the pilot selects GUNS. The cockpit link does not apply the crewed-shuttle
+rule that blocks a player from holding the helm and gunnery windows together, so one seated pilot can fly and
+fire a crewed ship from the cockpit.
 
 Entry points: `WFCockpitUIController`, `WFCockpitView`, `WFCockpitLease` and the console partials.
 `WFCockpitGunnerySystem` owns authorized gun links; `WFCockpitGunneryPanel` and `WFCockpitFireInput`
@@ -117,6 +123,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` is inherited 
 - [`Content.Client/_WF/Cockpit/WFCockpitLease.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitLease.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitMfdLayout.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitMfdLayout.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitShipLayout.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitShipLayout.cs)
+- [`Content.Client/_WF/Cockpit/WFCockpitSpeechClip.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitSpeechClip.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitStatusLights.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitStatusLights.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitStatusReading.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitStatusReading.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitTcasPanel.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitTcasPanel.cs)
@@ -145,6 +152,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` is inherited 
 
 ### Unit tests
 
+- [`Content.Tests/_WF/Cockpit/WFCockpitInstrumentSizingTest.cs`](../../../Content.Tests/_WF/Cockpit/WFCockpitInstrumentSizingTest.cs)
 - [`Content.Tests/_WF/Cockpit/WFCockpitTcasReadingTest.cs`](../../../Content.Tests/_WF/Cockpit/WFCockpitTcasReadingTest.cs)
 - [`Content.Tests/_WF/Cockpit/WFCockpitVelocityTest.cs`](../../../Content.Tests/_WF/Cockpit/WFCockpitVelocityTest.cs)
 
@@ -153,6 +161,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` is inherited 
 - [`Resources/Locale/en-US/_WF/Cockpit/cockpit-gunnery-mode.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/cockpit-gunnery-mode.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/cockpit-status.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/cockpit-status.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/cockpit.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/cockpit.ftl)
+- [`Resources/Locale/en-US/_WF/Cockpit/dock-plot.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/dock-plot.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/fuel.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/fuel.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/tcas.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/tcas.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/velocity.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/velocity.ftl)
@@ -163,7 +172,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` is inherited 
 - [`Content.Client/CombatMode/CombatModeIndicatorsOverlay.cs`](../../../Content.Client/CombatMode/CombatModeIndicatorsOverlay.cs): character combat indicators must not cover the ship's aiming reticle.
 - [`Content.Client/Pinpointer/UI/NavMapControl.cs`](../../../Content.Client/Pinpointer/UI/NavMapControl.cs)
   - department labels stay compact instead of growing with map zoom.
-  - update shared middle-mouse map panning.
+  - update shared right-mouse map panning.
 - [`Content.Client/Shuttles/UI/ShuttleConsoleWindow.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleConsoleWindow.xaml.cs): consume authoritative autopilot status on every page.
 - [`Content.Client/Shuttles/UI/ShuttleDockControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleDockControl.xaml.cs)
   - selecting an approach target recentres its panned plot.
@@ -193,8 +202,6 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` is inherited 
   - report confirmed steering in the initial helm snapshot.
   - keep autopilot lamps current while any helm page is open.
 - [`Content.Shared/Shuttles/BUIStates/ShuttleBoundUserInterfaceState.cs`](../../../Content.Shared/Shuttles/BUIStates/ShuttleBoundUserInterfaceState.cs): include confirmed autopilot activity in the initial helm state.
-- [`Resources/Prototypes/Entities/Structures/Furniture/chairs.yml`](../../../Resources/Prototypes/Entities/Structures/Furniture/chairs.yml)
-  - allow every seat family to host the buckled piloting HUD.
-  - permit the optional seated piloting HUD.
+- [`Resources/Prototypes/Entities/Structures/Furniture/chairs.yml`](../../../Resources/Prototypes/Entities/Structures/Furniture/chairs.yml): allow every seat family to host the buckled piloting HUD.
 
 <!-- WOLFGATE-GENERATED END -->

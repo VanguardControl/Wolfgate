@@ -92,6 +92,7 @@ public sealed class WFCockpitGunneryPanelTest
             Assert.That(Row(buttons[3]).Reading.Value, Is.EqualTo(6), "Finite supply must remain an exact count.");
             Press(Named("CockpitGroupRecall0"));
             Assert.That(panel.SelectedWeapons, Is.EquivalentTo(combat.Groups[0]), "A group includes weapons on other pages.");
+            Assert.That(panel.HasSelectedWeapons, Is.True, "The armed check must see a recalled group.");
             var firstPage = buttons.Where(button => button.Visible).ToArray();
             Press(Named("WfWeaponNext"));
             Layout(new Vector2(296, 450));
@@ -239,6 +240,7 @@ public sealed class WFCockpitGunneryPanelTest
                     "The newly added final offensive weapon must be reachable after an in-place refresh.");
                 panel.ClearSelection();
                 Assert.That(panel.SelectedWeapons, Is.Empty);
+                Assert.That(panel.HasSelectedWeapons, Is.False);
                 panel.UpdateState(null);
                 Layout(new Vector2(296, 450));
                 Assert.That(grid.PageIndex, Is.Zero);

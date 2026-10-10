@@ -18,6 +18,8 @@ public sealed partial class ShipAccessScreen
         var settings = ConsoleTheme.Panel("ship-access-title", ConsoleTheme.Column(status, ReadOnlyLabel, CodeBox));
         settings.Name = "WfAccessSettings";
         ReadOnlyLabel.ToolTip = ReadOnlyLabel.Text;
+        foreach (var label in new[] { ReadOnlyLabel, OwnerLabel, DoorNameLabel, DoorRuleLabel, CodeAlertLabel })
+            label.MouseFilter = MouseFilterMode.Pass;
         LockedCheck.HorizontalAlignment = HAlignment.Stretch;
         foreach (var label in new[] { ReadOnlyLabel, AllowListEmptyLabel, NearbyEmptyLabel, DoorNoneLabel, DoorPlayersEmptyLabel, CodeAlertLabel })
         {
@@ -144,6 +146,7 @@ public sealed partial class ShipAccessScreen
         var actions = row.Children.Where(child => child is not Label).ToArray();
         foreach (var label in labels)
         {
+            label.MouseFilter = MouseFilterMode.Pass;
             label.HorizontalExpand = true;
             label.SizeFlagsStretchRatio = label == labels[0] ? 3 : 2;
         }

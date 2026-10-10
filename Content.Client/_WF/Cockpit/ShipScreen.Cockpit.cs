@@ -41,7 +41,7 @@ public sealed partial class ShipScreen
             overlays.AddChild(lease.Take(control));
         var mapControls = Row(lease.Take(departments), lease.Take(FitButton));
         mapControls.Name = "CockpitShipMapControls";
-        var details = Column(new WFGlassReadout(lease.Take(ShipNameLabel)), telemetry, overlays, mapControls, lease.Take(TruncatedLabel));
+        var details = Column(new WFGlassReadout(lease.Take(ShipNameLabel)), telemetry, overlays, mapControls, lease.Take(TruncatedLabel, restoreVisibility: false));
         AddChild(new WFCockpitShipLayout(plot, WFCockpitMfdLayout.Details(details)));
         return this;
     }

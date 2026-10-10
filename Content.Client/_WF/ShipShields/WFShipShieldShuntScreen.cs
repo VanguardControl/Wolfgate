@@ -69,7 +69,7 @@ public sealed partial class WFShipShieldShuntScreen : BoxContainer
                 _wfCockpitShowStats(stats);
                 return;
             }
-            _statsWindow ??= new WFShipShieldStatsWindow();
+            _statsWindow ??= new WFShipShieldStatsWindow(_dial!.GlassFace);
             _statsWindow.UpdateStats(stats);
             _statsWindow.OpenCentered();
         };

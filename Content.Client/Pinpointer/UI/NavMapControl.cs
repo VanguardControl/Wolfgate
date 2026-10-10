@@ -455,7 +455,7 @@ public partial class NavMapControl : MapGridControl
 
     protected override void FrameUpdate(FrameEventArgs args)
     {
-        base.FrameUpdate(args); // WOLFGATE(Cockpit): update shared middle-mouse map panning.
+        base.FrameUpdate(args); // WOLFGATE(Cockpit): update shared right-mouse map panning.
         // Update the timer
         _updateTimer += args.DeltaSeconds;
 

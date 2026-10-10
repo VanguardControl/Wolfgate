@@ -67,7 +67,9 @@ public sealed partial class NavScreen
         if (_entManager.TryGetComponent(_shuttleEntity, out TransformComponent? transform))
         {
             UpdateAltitude(transform);
-            var position = _xformSystem.GetWorldPosition(transform);
+            var position = _entManager.TryGetComponent(_shuttleEntity, out PhysicsComponent? body)
+                ? Vector2.Transform(body.LocalCenter, _xformSystem.GetWorldMatrix(transform))
+                : _xformSystem.GetWorldPosition(transform);
             GridPosition.Text = Loc.GetString("shuttle-console-position-value", ("X", $"{position.X:0.0}"), ("Y", $"{position.Y:0.0}"));
         }
         else
@@ -77,7 +79,7 @@ public sealed partial class NavScreen
     /// <summary>Moves propulsion controls into the cockpit's permanent lower bank.</summary>
     public Control WfCockpitFlight(WFCockpitLease lease)
     {
-        return Column(lease.Take(DampenerModeButtons), lease.Take(WfOrbitButton));
+        return Column(lease.Take(DampenerModeButtons, restoreVisibility: false), lease.Take(WfOrbitButton));
     }
 
     /// <summary>Moves the live radar into the navigation MFD.</summary>

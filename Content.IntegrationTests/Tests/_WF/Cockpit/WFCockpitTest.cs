@@ -23,6 +23,7 @@ using Content.Client._WF.Shuttles.UI;
 using Content.Client.UserInterface.Systems.Inventory;
 using Content.Client.UserInterface.Systems.Inventory.Widgets;
 using Content.Client.UserInterface.Systems.Actions.Widgets;
+using Content.Client.UserInterface.Systems.Alerts.Controls;
 using Content.Client.UserInterface.Systems.Alerts.Widgets;
 using Content.Client.UserInterface.Systems.Ghost.Widgets;
 using Content.IntegrationTests.Tests.Interaction;
@@ -68,6 +69,7 @@ public sealed class WFCockpitTest : InteractionTest
     - state: torso_m
     - map: [""jumpsuit""]
   - type: Buckle
+  - type: Alerts
   - type: Inventory
   - type: InventorySlots
   - type: ContainerContainer
@@ -176,6 +178,19 @@ public sealed class WFCockpitTest : InteractionTest
                 Assert.That(recentWindows.HasClosableWindow(), Is.False, "The hidden helm alone is not an Escape-closeable window.");
             }
             Layout(hud, new Vector2(1130, 636));
+            var crewAlerts = Named<ScrollContainer>(hud, "CockpitCrewAlerts");
+            var alertControls = alerts.AlertContainer.Children.OfType<AlertControl>().ToArray();
+            Assert.That(alertControls, Is.Not.Empty, "The buckled pilot must have a live alert for the bank to show.");
+            Assert.That(crewAlerts.Width, Is.GreaterThan(0), "The docked alert bank must not collapse to nothing.");
+            Assert.That(crewAlerts.Height, Is.GreaterThan(0), "The docked alert bank must not collapse to nothing.");
+            Assert.That(crewAlerts.GlobalPosition.X, Is.GreaterThanOrEqualTo(viewport.GlobalPosition.X - 1));
+            Assert.That(crewAlerts.GlobalPosition.Y, Is.GreaterThanOrEqualTo(viewport.GlobalPosition.Y - 1));
+            Assert.That(Right(crewAlerts), Is.LessThanOrEqualTo(Right(viewport) + 1));
+            Assert.That(Bottom(crewAlerts), Is.LessThanOrEqualTo(Bottom(viewport) + 1));
+            Assert.That(alertControls[0].Height, Is.GreaterThan(0), "A docked alert must be drawn and clickable.");
+            Assert.That(alertControls[0].GlobalPosition.Y, Is.GreaterThanOrEqualTo(crewAlerts.GlobalPosition.Y - 1));
+            Assert.That(Bottom(alertControls[0]), Is.LessThanOrEqualTo(Bottom(crewAlerts) + 1),
+                "The first alert must lie inside the bank's clip rectangle.");
             Assert.That(inventory.InventoryHotbar.Visible, Is.True, "Cockpit entry must retain the open clothing panel's state.");
             Assert.That(inventory.InventoryHotbar.VisibleInTree, Is.False);
             var actions = screen.GetWidget<ActionsBar>()!;
@@ -194,6 +209,7 @@ public sealed class WFCockpitTest : InteractionTest
             var body = CEntMan.GetComponent<PhysicsComponent>(ship);
             var originalBodyType = body.BodyType;
             var originalVelocity = body.LinearVelocity;
+            var originalCenter = body.LocalCenter;
             var originalRotation = transform.GetWorldRotation(ship);
             try
             {
@@ -210,9 +226,16 @@ public sealed class WFCockpitTest : InteractionTest
                     "The live NavScreen source must report aft/starboard drift in the ship bow frame.");
                 physics.SetLinearVelocity(ship, Vector2.Zero);
                 Assert.That(velocity.Reading!.Value.ScreenDirection, Is.Null, "The same live instrument must clear its pointer when stopped.");
+                physics.SetLocalCenter(ship, body, new Vector2(3, 2));
+                navigation.WfCockpitRefresh();
+                var center = Vector2.Transform(body.LocalCenter, transform.GetWorldMatrix(ship));
+                Assert.That(navigation.FindControl<Label>("GridPosition").Text,
+                    Does.Contain($"{center.X:0.0}").And.Contain($"{center.Y:0.0}"),
+                    "The position readout must report the centre of mass, as the windowed helm does.");
             }
             finally
             {
+                physics.SetLocalCenter(ship, body, originalCenter);
                 physics.SetLinearVelocity(ship, originalVelocity);
                 physics.SetBodyType(ship, originalBodyType);
                 transform.SetWorldRotation(ship, originalRotation);
@@ -333,6 +356,15 @@ public sealed class WFCockpitTest : InteractionTest
                     Assert.That(mfd.Width, Is.EqualTo(collapsedWidth).Within(1), "Collapse must restore the previous HUD balance.");
                 }
             }
+            hud.SelectPage("wf-cockpit-nav");
+            foreach (var narrow in new[] { new Vector2(1090, 636), new Vector2(1097, 617) })
+            {
+                Layout(hud, narrow);
+                Assert.That(Named<Button>(hud, "CockpitMfdExpand").Disabled, Is.True,
+                    $"{narrow}: Expand cannot widen the MFD in a window this narrow, so it must not be offered.");
+            }
+            Layout(hud, new Vector2(1130, 636));
+            Assert.That(Named<Button>(hud, "CockpitMfdExpand").Disabled, Is.False, "Expand returns once it can widen the MFD.");
             var initialSession = gunMessages.OfType<WFCockpitGunnerySessionMessage>().Single();
             Assert.That(initialSession.Active, Is.True);
             Assert.That(initialSession.Controlling, Is.False, "Entering FLIGHT must discover guns without claiming them.");
@@ -384,6 +416,21 @@ public sealed class WFCockpitTest : InteractionTest
                 Assert.That(Named<Control>(hud, "CockpitFlight").Visible, Is.False);
                 Assert.That(Named<Control>(hud, "CockpitMfd").VisibleInTree, Is.True);
                 Assert.That(chat.VisibleInTree, Is.True);
+                var gunsExpand = Named<Button>(hud, "CockpitMfdExpand");
+                var gunsMfd = Named<Control>(hud, "CockpitMfd");
+                if (size.X <= 1130)
+                    Assert.That(gunsExpand.Disabled, Is.True, $"{theme}, {size}: GUNS leaves no room to widen the MFD here.");
+                else
+                {
+                    var collapsedGuns = gunsMfd.Width;
+                    Assert.That(gunsExpand.Disabled, Is.False, $"{theme}, {size}");
+                    Toggle(gunsExpand, true);
+                    Layout(hud, size);
+                    Assert.That(gunsMfd.Width, Is.GreaterThan(collapsedGuns + 1), $"{theme}, {size}: Expand must widen the MFD in GUNS.");
+                    Toggle(gunsExpand, false);
+                    Layout(hud, size);
+                    Assert.That(gunsMfd.Width, Is.EqualTo(collapsedGuns).Within(1));
+                }
             }
             Press(Named<Button>(hud, "CockpitGunneryRefresh"));
             var refresh = gunMessages.OfType<WFCockpitGunneryCommandMessage>().Single();
@@ -432,7 +479,18 @@ public sealed class WFCockpitTest : InteractionTest
             window.UpdateShieldShuntSnapshot(new WFShipShieldShuntState(false, false, 0, 0, 0, 0));
             Assert.That(Descendants(hud).OfType<WFShipShieldShuntScreen>().Single().VisibleInTree, Is.True,
                 "Losing the generator must leave cockpit controls available.");
+            var cockpitShip = Named<ShipScreen>(hud, "ShipContainer");
+            cockpitShip.UpdateStatus(new ShipStatusMessage(null, new List<ShipTileStatus>(),
+                new ShipStatusSummary { DamagedTiles = 3, WorstIntegrity = 0.5f }));
+            Assert.That(cockpitShip.FindControl<Label>("DamagedLabel").Text, Is.EqualTo("3"));
+            Assert.That(chat, Is.InstanceOf<ResizableChatBox>());
+            var chatClamp = typeof(ResizableChatBox).GetField("_clampIn", BindingFlags.Instance | BindingFlags.NonPublic)!;
+            chatClamp.SetValue(chat, (byte) 0);
             controller.Exit();
+            Assert.That((byte) chatClamp.GetValue(chat)!, Is.GreaterThan((byte) 0),
+                "A chat box resized or rescaled while docked must be re-clamped when it leaves the cockpit.");
+            Assert.That(cockpitShip.FindControl<Label>("DamagedLabel").Text, Is.EqualTo("-"),
+                "Leaving the cockpit must drop its last hull sweep so the windowed SHIP page and the next entry start empty.");
             Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Select(message => (message.Active, message.Controlling)),
                 Is.EqualTo(new[] { (true, false), (true, true), (true, false), (true, true), (true, false), (false, false) }),
                 "Only explicit GUNS sessions claim guns; returning to FLIGHT or exiting must release them.");
@@ -663,7 +721,16 @@ public sealed class WFCockpitTest : InteractionTest
         Assert.That(Ancestors(status, flight).OfType<ScrollContainer>(), Is.Empty,
             "Flight-status lamps must remain visible when flight controls need to scroll.");
         var heading = Named<WFHeadingInstrument>(hud, "CockpitHeading");
-        Assert.That(heading.Height, Is.EqualTo(176).Within(1));
+        var dialScroll = Named<ScrollContainer>(hud, "CockpitInstrumentScroll");
+        var headingHeight = hud.CompactDials ? WFCockpitInstrumentSizing.CompactHeight(176) : 176;
+        var dialHeight = hud.CompactDials ? WFCockpitInstrumentSizing.CompactHeight(160) : 160;
+        if (hud.CompactDials)
+            Assert.That(dialScroll.Height, Is.LessThan(WFCockpitInstrumentSizing.FullColumnHeight + 8),
+                $"{theme}, {size}: compact dials are only for columns too short to show the full-size ones.");
+        else
+            Assert.That(dialScroll.Height, Is.GreaterThanOrEqualTo(WFCockpitInstrumentSizing.FullColumnHeight - 8),
+                $"{theme}, {size}: full-size dials need a column tall enough to show them whole.");
+        Assert.That(heading.Height, Is.EqualTo(headingHeight).Within(1));
         Assert.That(Descendants(hud).Any(control => control.Name == "CockpitSpeedometer"), Is.False,
             "The velocity instrument already supplies speed; its duplicate strip must not displace fuel telemetry.");
         var hull = Named<WFGlassGauge>(hud, "CockpitHull");
@@ -695,7 +762,7 @@ public sealed class WFCockpitTest : InteractionTest
         Assert.That(yaw.GlobalPosition.X - Right(velocity), Is.GreaterThanOrEqualTo(11),
             "The velocity and turn-rate captions need a clear gap between their dial faces.");
         Assert.That(yaw.CaptionInset, Is.GreaterThanOrEqualTo(8));
-        Assert.That(velocity.Height, Is.EqualTo(160).Within(1),
+        Assert.That(velocity.Height, Is.EqualTo(dialHeight).Within(1),
             "Digital and mechanical vector instruments must retain the same readable footprint.");
         Assert.That(velocity.Width, Is.GreaterThanOrEqualTo(88));
         Assert.That(velocity.GlobalPosition.X, Is.GreaterThanOrEqualTo(instruments.GlobalPosition.X));
@@ -704,7 +771,7 @@ public sealed class WFCockpitTest : InteractionTest
         Assert.That(Bottom(velocity), Is.LessThanOrEqualTo(Bottom(velocity.Parent!)),
             "The vector dial must fit the original speed/yaw row even when the instrument bank needs to scroll.");
         foreach (var gauge in Descendants(instruments).OfType<WFGlassGauge>().Where(gauge => !gauge.Strip))
-            Assert.That(gauge.Height, Is.EqualTo(160).Within(1),
+            Assert.That(gauge.Height, Is.EqualTo(dialHeight).Within(1),
                 "Both instrument themes need the same readable full-size face.");
         Assert.That(comms.GlobalPosition.Y, Is.GreaterThanOrEqualTo(Bottom(viewport)));
         Assert.That(shields.GlobalPosition.Y, Is.GreaterThanOrEqualTo(Bottom(viewport)));
@@ -713,6 +780,17 @@ public sealed class WFCockpitTest : InteractionTest
         Assert.That(viewport.Width, Is.GreaterThan(300));
         Assert.That(viewport.Height, Is.GreaterThan(200));
         Assert.That(viewport.VisibleInTree, Is.True, "Switching MFD context must keep the world visible.");
+        var speechClip = Named<WFCockpitSpeechClip>(hud, "CockpitSpeechClip");
+        var speechRoot = Named<Control>(hud, "CockpitSpeechBubbles");
+        Assert.That(speechClip.RectClipContent, Is.True, "Speech bubbles must be cut off at the world view's edge.");
+        Assert.That(speechClip.GlobalPosition.X, Is.EqualTo(viewport.GlobalPosition.X).Within(1));
+        Assert.That(speechClip.GlobalPosition.Y, Is.EqualTo(viewport.GlobalPosition.Y).Within(1));
+        Assert.That(speechClip.Width, Is.EqualTo(viewport.Width).Within(1));
+        Assert.That(speechClip.Height, Is.EqualTo(viewport.Height).Within(1));
+        Assert.That(speechRoot.GlobalPosition.X, Is.EqualTo(0).Within(1), "Bubble coordinates are in screen space.");
+        Assert.That(speechRoot.GlobalPosition.Y, Is.EqualTo(0).Within(1), "Bubble coordinates are in screen space.");
+        Assert.That(speechRoot.Width, Is.EqualTo(size.X).Within(1));
+        Assert.That(speechRoot.Height, Is.EqualTo(size.Y).Within(1));
         Assert.That(chat.GlobalPosition.Y, Is.GreaterThanOrEqualTo(Bottom(viewport)));
         Assert.That(Right(chat), Is.LessThanOrEqualTo(size.X));
         Assert.That(arc.VisibleInTree, Is.True, "Shield arc width must remain available on every MFD page.");
@@ -724,10 +802,8 @@ public sealed class WFCockpitTest : InteractionTest
         Assert.That(buttons, Has.Length.EqualTo(8));
         foreach (var button in buttons)
         {
-            Assert.That(button.GlobalPosition.Y, Is.EqualTo(buttons[0].GlobalPosition.Y).Within(1),
-                "All MFD contexts must fit in one selector row.");
             Assert.That(button.GlobalPosition.X, Is.GreaterThanOrEqualTo(mfd.GlobalPosition.X));
-            Assert.That(Right(button), Is.LessThanOrEqualTo(Right(mfd)));
+            Assert.That(Right(button), Is.LessThanOrEqualTo(Right(mfd)), "All MFD contexts must fit in one selector row.");
             Assert.That(button.ToolTip, Is.Not.Null.And.Not.Empty, "Abbreviated selectors need their complete names on hover.");
             AssertLabelFits(button, ui, $"{theme}, {size}, {page}");
         }

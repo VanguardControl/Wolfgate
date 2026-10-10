@@ -80,7 +80,7 @@ public sealed partial class WFShipShieldShuntScreen
         });
         return WFCockpitMfdLayout.Details(InstrumentTheme.Column(telemetry, InstrumentTheme.Label("wf-console-shield-vector"),
             InstrumentTheme.Label("wf-shield-helm-bearing"), lease.Take(_direction),
-            lease.Take(_stats), lease.Take(_status), lease.Take(_recovery),
-            lease.Take(_draft), lease.Take(_reset), lease.Take(_unprotected), specifications));
+            lease.Take(_stats), lease.Take(_status), lease.Take(_recovery, restoreVisibility: false),
+            lease.Take(_draft), lease.Take(_reset), lease.Take(_unprotected, restoreVisibility: false), specifications));
     }
 }

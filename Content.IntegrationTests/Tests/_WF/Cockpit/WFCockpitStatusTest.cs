@@ -18,6 +18,7 @@ using Content.Shared.NPC;
 using Content.Shared.Shuttles.BUIStates;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Shuttles.Systems;
+using Robust.Client.UserInterface;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 
@@ -55,7 +56,7 @@ public sealed class WFCockpitStatusTest
     }
 
     [Test]
-    public async Task AutopilotReportsRealSteeringAndRefreshesWithoutReplacingNavigation()
+    public async Task AutopilotReportsOnlyRealSteeringAndClosedHelmsReleaseTracking()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var map = await pair.CreateTestMap();
@@ -64,7 +65,6 @@ public sealed class WFCockpitStatusTest
         {
             var console = entities.SpawnEntity("ComputerShuttle", map.GridCoords);
             var actor = entities.SpawnEntity("MobHuman", map.GridCoords);
-            var lateActor = entities.SpawnEntity("MobHuman", map.GridCoords);
             var helms = entities.System<ShuttleConsoleSystem>();
             var htn = entities.GetComponent<HTNComponent>(console);
             var helm = entities.GetComponent<ShuttleConsoleComponent>(console);
@@ -85,50 +85,20 @@ public sealed class WFCockpitStatusTest
             inputs.Add(console);
             Assert.That(helms.GetWfCockpitAutopilotStatus(console), Is.True);
             var ui = entities.System<SharedUserInterfaceSystem>();
-            Assert.That(ui.TryGetUiState<ShuttleBoundUserInterfaceState>(console, ShuttleConsoleUiKey.Key, out var initial), Is.True);
-            Assert.That(initial!.CockpitAutopilotActive, Is.False, "The cached startup snapshot predates active steering.");
-            var snapshots = (Dictionary<EntityUid, bool?>) typeof(ShuttleConsoleSystem)
-                .GetField("_wfCockpitAutopilotStates", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(helms)!;
-            var viewers = (Dictionary<EntityUid, HashSet<EntityUid>>) typeof(ShuttleConsoleSystem)
-                .GetField("_wfCockpitStatusViewers", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(helms)!;
-            var shields = (Dictionary<EntityUid, WFShipShieldShuntState>) typeof(ShuttleConsoleSystem)
-                .GetField("_wfShieldHelmStates", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(helms)!;
+            var tracking = new[] { "_wfCockpitAutopilotStates", "_wfCockpitStatusViewers", "_wfShieldHelmStates" }
+                .Select(name => (System.Collections.IDictionary) typeof(ShuttleConsoleSystem)
+                    .GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(helms)!).ToArray();
             ui.OpenUi(console, ShuttleConsoleUiKey.Key, actor);
             Assert.That(helms.GetWfCockpitAutopilotStatus(console), Is.True, "Opening the helm must not reset autopilot steering.");
-            Assert.That(viewers[console], Does.Contain(actor));
             helms.Update(0.3f);
-            Assert.That(snapshots[console], Is.True);
-            Assert.That(viewers, Is.Empty);
-            Assert.That(shields.ContainsKey(console), Is.True, "The existing viewer already received the shield snapshot.");
-            ui.OpenUi(console, ShuttleConsoleUiKey.Key, lateActor);
-            Assert.That(shields.ContainsKey(console), Is.False, "Every new or reopened viewer must trigger a shield-only refresh.");
-            Assert.That(viewers[console], Is.EquivalentTo(new[] { lateActor }), "A later viewer needs a fresh targeted lamp update despite unchanged activity.");
-            Assert.That(snapshots[console], Is.True);
+            Assert.That(tracking[0].Contains(console), Is.True, "An open helm is tracked for status updates.");
+            ui.CloseUi(console, ShuttleConsoleUiKey.Key, actor);
             helms.Update(0.3f);
-            Assert.That(viewers, Is.Empty, "The targeted refresh is serviced on the next status tick.");
-            Assert.That(shields.ContainsKey(console), Is.True, "The shield updater must service the new viewer on its next tick.");
-            Assert.That(ui.TryGetUiState<ShuttleBoundUserInterfaceState>(console, ShuttleConsoleUiKey.Key, out var afterJoin), Is.True);
-            Assert.That(afterJoin, Is.SameAs(initial), "Joining must not replace another viewer's navigation payload.");
-            Assert.That(afterJoin!.CockpitAutopilotActive, Is.False, "The late viewer must be refreshed independently of the stale cached snapshot.");
-            ui.CloseUi(console, ShuttleConsoleUiKey.Key, lateActor);
-            Assert.That(shields.ContainsKey(console), Is.True, "The existing viewer already received the shield snapshot.");
-            ui.OpenUi(console, ShuttleConsoleUiKey.Key, lateActor);
-            Assert.That(shields.ContainsKey(console), Is.False, "Every new or reopened viewer must trigger a shield-only refresh.");
-            Assert.That(viewers[console], Does.Contain(lateActor), "Closing and reopening between ticks still requires a refresh.");
-            helms.Update(0.3f);
-            Assert.That(viewers, Is.Empty);
-            ui.CloseUi(console, ShuttleConsoleUiKey.Key, lateActor);
-            Assert.That(shields.ContainsKey(console), Is.True, "The existing viewer already received the shield snapshot.");
-            ui.OpenUi(console, ShuttleConsoleUiKey.Key, lateActor);
-            Assert.That(shields.ContainsKey(console), Is.False, "Every new or reopened viewer must trigger a shield-only refresh.");
-            ui.CloseUi(console, ShuttleConsoleUiKey.Key, lateActor);
-            helms.Update(0.3f);
-            Assert.That(viewers, Is.Empty, "Closing before the scheduled update must not retain the viewer.");
+            Assert.That(tracking[0].Contains(console), Is.False, "Closed helms must release status tracking.");
+            Assert.That(tracking[1].Contains(console), Is.False, "Closed helms must release their queued viewers.");
+            Assert.That(tracking[2].Contains(console), Is.False, "Closed helms must also release shield status tracking.");
             steering.Status = ShipSteeringStatus.InRange;
-            helms.Update(0.3f);
-            Assert.That(snapshots[console], Is.False, "Arrival must turn the lamp off while navigation stays open.");
-            Assert.That(ui.TryGetUiState<ShuttleBoundUserInterfaceState>(console, ShuttleConsoleUiKey.Key, out var afterArrival), Is.True);
-            Assert.That(afterArrival, Is.SameAs(initial), "Status-only updates must preserve the live navigation payload.");
+            Assert.That(helms.GetWfCockpitAutopilotStatus(console), Is.False, "Arrival must turn the lamp off.");
             steering.Status = ShipSteeringStatus.Moving;
             htn.Enabled = false;
             Assert.That(helms.GetWfCockpitAutopilotStatus(console), Is.False, "Disabled planning must not advertise a stale steering component.");
@@ -141,27 +111,89 @@ public sealed class WFCockpitStatusTest
             entities.RemoveComponent<ShipSteererComponent>(console);
             Assert.That(helms.GetWfCockpitAutopilotStatus(console), Is.False);
             Assert.That(helms.GetWfCockpitAutopilotStatus(actor), Is.Null, "A console without autopilot support must remain unavailable.");
-            ui.CloseUi(console, ShuttleConsoleUiKey.Key, actor);
-            helms.Update(0.3f);
-            Assert.That(snapshots.ContainsKey(console), Is.False, "Closed helms must release status tracking.");
-            Assert.That(shields.ContainsKey(console), Is.False, "Closed helms must also release shield status tracking.");
             entities.DeleteEntity(console);
             entities.DeleteEntity(actor);
-            entities.DeleteEntity(lateActor);
         });
-        await pair.Client.WaitAssertion(() =>
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task AutopilotLampReachesAClientWindowOpenedInTheStatusTick()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var map = await pair.CreateTestMap();
+        var entities = pair.Server.EntMan;
+        EntityUid console = default, actor = default, observer = default;
+
+        void OpenInStatusTick()
         {
-            using var console = new ShuttleConsoleWindow();
-            using var bank = console.WfCockpitStatus();
-            var lamp = bank.Children.OfType<WFCockpitStatusLamp>().Single(control => control.Name == "wf-cockpit-status-autopilot");
-            var navigation = console.FindControl<NavScreen>("NavContainer");
-            Assert.That(lamp.Reading.State, Is.EqualTo(WFCockpitLampState.Unavailable));
-            console.WfUpdateCockpitAutopilot(true);
-            Assert.That(lamp.Reading.State, Is.EqualTo(WFCockpitLampState.Active));
-            Assert.That(navigation.Visible, Is.True, "Autopilot telemetry must not open the strategic MFD.");
-            console.WfUpdateCockpitAutopilot(false);
-            Assert.That(lamp.Reading.State, Is.EqualTo(WFCockpitLampState.Off));
-            Assert.That(navigation.Visible, Is.True);
+            entities.System<SharedUserInterfaceSystem>().OpenUi(console, ShuttleConsoleUiKey.Key, actor);
+            entities.System<ShuttleConsoleSystem>().Update(0.3f);
+        }
+
+        async Task AssertAutopilotLamp(WFCockpitLampState expected, string reason)
+        {
+            await pair.Client.WaitAssertion(() =>
+            {
+                static IEnumerable<Control> Descendants(Control root)
+                {
+                    yield return root;
+                    foreach (var child in root.Children)
+                    foreach (var nested in Descendants(child))
+                        yield return nested;
+                }
+
+                var window = Descendants(pair.Client.ResolveDependency<IUserInterfaceManager>().WindowRoot)
+                    .OfType<ShuttleConsoleWindow>().Last();
+                var bank = window.WfCockpitStatus();
+                var lamp = bank.Children.OfType<WFCockpitStatusLamp>().Single(control => control.Name == "wf-cockpit-status-autopilot");
+                Assert.That(lamp.Reading.State, Is.EqualTo(expected), reason);
+                Assert.That(window.FindControl<NavScreen>("NavContainer").Visible, Is.True,
+                    "Autopilot telemetry must not open the strategic MFD.");
+                bank.Dispose();
+            });
+        }
+
+        await pair.Server.WaitAssertion(() =>
+        {
+            console = entities.SpawnEntity("ComputerShuttle", map.GridCoords);
+            actor = entities.SpawnEntity("MobHuman", map.GridCoords);
+            observer = entities.SpawnEntity("MobHuman", map.GridCoords);
+            pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, actor);
+            var ui = entities.System<SharedUserInterfaceSystem>();
+            // The power network must not rebuild the cached helm snapshot while real ticks run.
+            entities.RemoveComponent<ApcPowerReceiverComponent>(console);
+            Assert.That(ui.TryGetUiState<ShuttleBoundUserInterfaceState>(console, ShuttleConsoleUiKey.Key, out var cached), Is.True);
+            Assert.That(cached!.CockpitAutopilotActive, Is.False, "The cached snapshot predates the live status.");
+            // Without planning the live status is unavailable, a value only the status messages can deliver.
+            entities.RemoveComponent<HTNComponent>(console);
+            Assert.That(entities.System<ShuttleConsoleSystem>().GetWfCockpitAutopilotStatus(console), Is.Null);
+            // An earlier viewer makes the status known, so the player's open is an unchanged-status refresh.
+            ui.OpenUi(console, ShuttleConsoleUiKey.Key, observer);
+            entities.System<ShuttleConsoleSystem>().Update(0.3f);
+        });
+        await pair.RunTicksSync(2);
+        await pair.Server.WaitAssertion(OpenInStatusTick);
+        await pair.RunTicksSync(40);
+        await AssertAutopilotLamp(WFCockpitLampState.Unavailable,
+            "A window created in the status tick must still receive the live status on a later tick.");
+
+        await pair.Server.WaitAssertion(() =>
+            entities.System<SharedUserInterfaceSystem>().CloseUi(console, ShuttleConsoleUiKey.Key, actor));
+        await pair.RunTicksSync(5);
+        await pair.Server.WaitAssertion(OpenInStatusTick);
+        await pair.RunTicksSync(40);
+        await AssertAutopilotLamp(WFCockpitLampState.Unavailable,
+            "A reopened window must receive the live status instead of the stale cached snapshot.");
+
+        await pair.Server.WaitAssertion(() =>
+        {
+            var ui = entities.System<SharedUserInterfaceSystem>();
+            ui.CloseUi(console, ShuttleConsoleUiKey.Key, actor);
+            ui.CloseUi(console, ShuttleConsoleUiKey.Key, observer);
+            pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, null);
+            foreach (var entity in new[] { console, actor, observer })
+                entities.DeleteEntity(entity);
         });
         await pair.CleanReturnAsync();
     }

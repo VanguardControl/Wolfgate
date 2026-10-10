@@ -7,7 +7,6 @@ using Content.Server.Shuttles.Events;
 using Content.Shared._WF.Shuttles;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
-using Content.Shared.Doors.Components;
 using Content.Shared.Tag;
 using Content.Shared.Shuttles.Components;
 using Robust.Server.GameObjects;
@@ -18,9 +17,10 @@ using Robust.Shared.Utility;
 namespace Content.Server._WF.Shuttles.Systems;
 
 /// <summary>
-/// Feeds hull telemetry to shuttle consoles whose whole-ship view is on screen: structure condition,
-/// fires, pressure and dead power. Only consoles that ask get a sweep, and only tiles with something
-/// to report are sent.
+/// Feeds hull telemetry to shuttle consoles that ask for it: structure condition, fuel, and, when the
+/// whole-ship view is on screen, fires, pressure and dead power. Only listening consoles get a sweep,
+/// whose structure survey reads the flown grids' own anchored structures, and only tiles with something
+/// to report are sent. A grid's first pilot also triggers one hull-only survey.
 /// </summary>
 public sealed partial class ShipStatusSystem : EntitySystem
 {
@@ -207,7 +207,7 @@ public sealed partial class ShipStatusSystem : EntitySystem
         return xform.GridUid;
     }
 
-    private void GatherTiles(HashSet<EntityUid> grids, HashSet<EntityUid> detailed)
+    private void GatherTiles(HashSet<EntityUid> grids, HashSet<EntityUid> detailed, bool fuel = true)
     {
         _gridTiles.Clear();
         _hullStructures.Clear();
@@ -221,7 +221,8 @@ public sealed partial class ShipStatusSystem : EntitySystem
 
         GatherDamage(grids, detailed);
         GatherHullIntegrity(grids);
-        GatherFuel(grids);
+        if (fuel)
+            GatherFuel(grids);
         if (detailed.Count > 0)
         {
             GatherPower(detailed);
@@ -229,55 +230,82 @@ public sealed partial class ShipStatusSystem : EntitySystem
         }
     }
 
+    /// <summary>Reads each listened grid's own anchored structures, which are direct children of the grid.</summary>
     private void GatherDamage(HashSet<EntityUid> grids, HashSet<EntityUid> detailed)
     {
-        var query = EntityQueryEnumerator<DestructibleComponent, DamageableComponent, TransformComponent>();
+        var destructibles = GetEntityQuery<DestructibleComponent>();
+        var damageables = GetEntityQuery<DamageableComponent>();
+        var xforms = GetEntityQuery<TransformComponent>();
 
-        while (query.MoveNext(out var uid, out var destructible, out var damageable, out var xform))
+        foreach (var grid in grids)
         {
-            if (!xform.Anchored || xform.GridUid is not { } grid || !grids.Contains(grid))
+            if (!TryComp(grid, out MapGridComponent? gridComp) || !xforms.TryGetComponent(grid, out var gridXform))
                 continue;
 
-            if (TerminatingOrDeleted(uid) || EntityManager.IsQueuedForDeletion(uid))
-                continue;
-
-            var hull = _tags.HasTag(uid, "Wall") || _tags.HasTag(uid, "Window") || HasComp<DoorComponent>(uid);
-            // Healthy furniture and machinery do not need destruction-threshold or tile lookups.
-            if (!hull && (!detailed.Contains(grid) || damageable.TotalDamage <= 0))
-                continue;
-            var destroyedAt = _destructible.DestroyedAt(uid, destructible);
-
-            // Entities with no destruction threshold have no meaningful condition to report.
-            if (destroyedAt <= 0 || destroyedAt == FixedPoint2.MaxValue)
-                continue;
-
-            if (!TryComp(grid, out MapGridComponent? gridComp))
-                continue;
-
-            var index = _maps.TileIndicesFor(grid, gridComp, xform.Coordinates);
-            var capacity = destroyedAt.Float();
-            var remaining = Math.Clamp(capacity - damageable.TotalDamage.Float(), 0f, capacity);
-            if (hull)
-            {
-                ObserveHullStructure(uid, grid, index, capacity);
-                var structure = _hullStructures[grid].GetValueOrDefault(index);
-                _hullStructures[grid][index] = (structure.Capacity + capacity, structure.Remaining + remaining);
-            }
-            var integrity = remaining / capacity;
-
-            if (!detailed.Contains(grid) || integrity > DamageReportThreshold)
-                continue;
-
+            var showDamage = detailed.Contains(grid);
             var tiles = _gridTiles[grid];
-            var status = tiles.GetValueOrDefault(index);
+            var structures = _hullStructures[grid];
+            var children = gridXform.ChildEnumerator;
 
-            // The worst structure on a tile is the one worth showing.
-            if ((status.Flags & ShipTileFlags.Damaged) == 0 || integrity < status.Integrity / 255f)
-                status.Integrity = (byte)(integrity * 255f);
+            while (children.MoveNext(out var uid))
+            {
+                if (!destructibles.TryGetComponent(uid, out var destructible)
+                    || !damageables.TryGetComponent(uid, out var damageable)
+                    || !xforms.TryGetComponent(uid, out var xform)
+                    || !xform.Anchored)
+                    continue;
 
-            status.Index = index;
-            status.Flags |= ShipTileFlags.Damaged;
-            tiles[index] = status;
+                if (TerminatingOrDeleted(uid) || EntityManager.IsQueuedForDeletion(uid))
+                    continue;
+
+                var hull = IsHullStructure(uid);
+                // Healthy furniture and machinery do not need destruction-threshold or tile lookups.
+                if (!hull && (!showDamage || damageable.TotalDamage <= 0))
+                    continue;
+
+                // A surveyed structure keeps the threshold it was measured against.
+                HullSurvey known = default;
+                var surveyed = hull && _surveyedHull.TryGetValue(uid, out known) && known.Grid == grid;
+                float capacity;
+                if (surveyed)
+                {
+                    capacity = known.Capacity;
+                }
+                else
+                {
+                    var destroyedAt = _destructible.DestroyedAt(uid, destructible);
+
+                    // Entities with no destruction threshold have no meaningful condition to report.
+                    if (destroyedAt <= 0 || destroyedAt == FixedPoint2.MaxValue)
+                        continue;
+
+                    capacity = destroyedAt.Float();
+                }
+
+                var index = _maps.TileIndicesFor(grid, gridComp, xform.Coordinates);
+                var remaining = Math.Clamp(capacity - damageable.TotalDamage.Float(), 0f, capacity);
+                if (hull)
+                {
+                    if (!surveyed || known.Index != index)
+                        ObserveHullStructure(uid, grid, index, capacity);
+                    var structure = structures.GetValueOrDefault(index);
+                    structures[index] = (structure.Capacity + capacity, structure.Remaining + remaining);
+                }
+                var integrity = remaining / capacity;
+
+                if (!showDamage || integrity > DamageReportThreshold)
+                    continue;
+
+                var status = tiles.GetValueOrDefault(index);
+
+                // The worst structure on a tile is the one worth showing.
+                if ((status.Flags & ShipTileFlags.Damaged) == 0 || integrity < status.Integrity / 255f)
+                    status.Integrity = (byte)(integrity * 255f);
+
+                status.Index = index;
+                status.Flags |= ShipTileFlags.Damaged;
+                tiles[index] = status;
+            }
         }
     }
 

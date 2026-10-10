@@ -72,6 +72,7 @@ public sealed partial class ShipAlarmPanel
         HorizontalExpand = true;
         VerticalExpand = false;
         AddChild(body);
+        ApplyCodeColours();
     }
 
     private static void WfCompactAlarmButton(Button button)

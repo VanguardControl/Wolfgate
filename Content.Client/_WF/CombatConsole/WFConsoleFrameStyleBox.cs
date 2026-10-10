@@ -41,14 +41,11 @@ public sealed class WFConsoleFrameStyleBox : StyleBox
         WFConsoleMetal.Bevel(handle, recess, uiScale, skin.Ink, skin.Edge, true);
         var lip = new UIBox2(box.TopLeft + new Vector2(19 * uiScale), box.BottomRight - new Vector2(19 * uiScale));
         handle.DrawRect(lip, skin.EdgeSoft, false);
-        foreach (var point in new[]
-                 {
-                     outer.TopLeft + new Vector2(2 * uiScale),
-                     new Vector2(outer.Right - 2 * uiScale, outer.Top + 2 * uiScale),
-                     outer.BottomRight - new Vector2(2 * uiScale),
-                     new Vector2(outer.Left + 2 * uiScale, outer.Bottom - 2 * uiScale),
-                 })
-            WFConsoleMetal.Screw(handle, point, 2.5f * uiScale, skin.EdgeLight);
+        var screw = 2.5f * uiScale;
+        WFConsoleMetal.Screw(handle, outer.TopLeft + new Vector2(2 * uiScale), screw, skin.EdgeLight);
+        WFConsoleMetal.Screw(handle, new Vector2(outer.Right - 2 * uiScale, outer.Top + 2 * uiScale), screw, skin.EdgeLight);
+        WFConsoleMetal.Screw(handle, outer.BottomRight - new Vector2(2 * uiScale), screw, skin.EdgeLight);
+        WFConsoleMetal.Screw(handle, new Vector2(outer.Left + 2 * uiScale, outer.Bottom - 2 * uiScale), screw, skin.EdgeLight);
         var center = (box.Left + box.Right) / 2;
         for (var i = -3; i <= 3; i++)
         {

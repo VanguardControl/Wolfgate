@@ -3,6 +3,7 @@ using Robust.Shared.Configuration;
 using Robust.Client.Audio;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
@@ -51,7 +52,7 @@ public sealed class WFConsoleAudio : EntitySystem
         if (gain <= 0)
             return;
         _audio.PlayGlobal($"/Audio/_WF/CombatConsole/HighFleet/{cue}.ogg", Filter.Local(), false,
-            AudioParams.Default.WithVolume(-12f + 20f * MathF.Log10(gain)));
+            AudioParams.Default.WithVolume(-12f + SharedAudioSystem.GainToVolume(gain)));
     }
 }
 
