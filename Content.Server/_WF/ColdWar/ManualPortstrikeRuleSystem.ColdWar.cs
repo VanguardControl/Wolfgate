@@ -43,7 +43,11 @@ public sealed partial class ManualPortstrikeRuleSystem
     {
         var faction = ent.Comp.Faction;
         var now = _wfTiming.CurTime;
+        // Read once: with two rules for the same factions, the second must not see the level the first has just set.
+        var level = _warLevelSystem.GetWarLevel(ent);
         var linked = false;
+        var announced = false;
+        var moved = false;
         var query = EntityQueryEnumerator<ManualPortstrikeRuleComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
@@ -59,7 +63,7 @@ public sealed partial class ManualPortstrikeRuleSystem
                 continue;
             }
 
-            var atWar = _warLevelSystem.GetWarLevel(uid) == comp.WarLevel;
+            var atWar = level == comp.WarLevel;
             // A level set from outside (an admin, a timed rule) leaves every stance behind it: bring them along.
             if (WfAllWant(comp, !atWar))
                 WfSetAll(comp, atWar);
@@ -68,18 +72,25 @@ public sealed partial class ManualPortstrikeRuleSystem
             comp.SectorStatus[faction] = wantsWar;
             state.NextUse[faction] = now + state.Cooldown;
 
-            var name = _prototypeManager.Index(faction).Name;
-            var message = (atWar, wantsWar) switch
+            if (!announced)
             {
-                (false, true) => Loc.GetString(ent.Comp.WarDeclarationMessage),
-                (false, false) => Loc.GetString("wf-cold-war-declaration-withdrawn", ("faction", name)),
-                (true, false) => Loc.GetString("wf-cold-war-ceasefire-offered", ("faction", name)),
-                (true, true) => Loc.GetString("wf-cold-war-ceasefire-withdrawn", ("faction", name)),
-            };
-            _radio.SendRadioMessage(ent, message, _prototypeManager.Index(ent.Comp.Channel), ent);
+                announced = true;
+                var name = _prototypeManager.Index(faction).Name;
+                var message = (atWar, wantsWar) switch
+                {
+                    (false, true) => Loc.GetString(ent.Comp.WarDeclarationMessage),
+                    (false, false) => Loc.GetString("wf-cold-war-declaration-withdrawn", ("faction", name)),
+                    (true, false) => Loc.GetString("wf-cold-war-ceasefire-offered", ("faction", name)),
+                    (true, true) => Loc.GetString("wf-cold-war-ceasefire-withdrawn", ("faction", name)),
+                };
+                _radio.SendRadioMessage(ent, message, _prototypeManager.Index(ent.Comp.Channel), ent);
+            }
 
-            if (WfAllWant(comp, !atWar))
+            if (!moved && WfAllWant(comp, !atWar))
+            {
+                moved = true;
                 _warLevelSystem.SetLevel(atWar ? !comp.WarLevel : comp.WarLevel);
+            }
         }
 
         if (!linked)

@@ -87,6 +87,20 @@ public sealed class ColdWarDeclaratorTest
             Use(pdv, vanguard);
             Assert.That(Hot(), Is.False);
 
+            // A second rule for the same factions follows the first: one use is one change of stance in each.
+            var second = entMan.SpawnEntity(Rule, MapCoordinates.Nullspace);
+            var other = entMan.GetComponent<ManualPortstrikeRuleComponent>(second).SectorStatus;
+            entMan.EnsureComponent<WFColdWarComponent>(second).Cooldown = TimeSpan.Zero;
+            Use(tsf, marine);
+            Use(pdv, vanguard);
+            Assert.That(Hot(), Is.True);
+            Assert.That(other["TSF"] && other["PDV"], Is.True, "The second rule's stances follow the first's.");
+            Use(tsf, marine);
+            Use(pdv, vanguard);
+            Assert.That(Hot(), Is.False);
+            Assert.That(other["TSF"] || other["PDV"], Is.False);
+            entMan.DeleteEntity(second);
+
             state.Cooldown = cooldown;
             Use(tsf, marine);
             Use(tsf, marine);
