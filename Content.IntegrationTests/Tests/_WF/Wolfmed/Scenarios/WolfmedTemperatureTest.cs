@@ -14,6 +14,7 @@ using Content.Shared._WF.Wolfmed.Consciousness;
 using Content.Shared._WF.Wolfmed.Life;
 using Content.Shared.Atmos;
 using Content.Shared.Atmos.Components;
+using Content.Shared.Inventory;
 using NUnit.Framework;
 using Robust.Shared.GameObjects;
 
@@ -486,7 +487,7 @@ public sealed class WolfmedTemperatureTest : WolfmedGameTest
     /// <summary>
     /// A reptilian barely warms itself, so its surface settles a few kelvin over the air. Naked in 293 K station air
     /// and in a 283 K unheated hull it is chilled, but takes no cold damage, stays on its feet and keeps its heart
-    /// however long it stays.
+    /// however long it stays. A scarf is enough to keep it from being chilled in station air.
     /// </summary>
     [Test]
     public async Task ReptilianAmbientAirTest()
@@ -496,6 +497,7 @@ public sealed class WolfmedTemperatureTest : WolfmedGameTest
         var atmos = SEntMan.System<AtmosphereSystem>();
         var airs = new[] { 293.15f, 283.15f };
         var bodies = new List<EntityUid>();
+        EntityUid scarfed = default;
 
         foreach (var kelvin in airs)
         {
@@ -505,6 +507,12 @@ public sealed class WolfmedTemperatureTest : WolfmedGameTest
                 atmos.SetMapAtmosphere(map.MapUid, false, AirAt(kelvin));
                 s.KeepGrid(map.Grid);
                 bodies.Add(SEntMan.SpawnEntity("MobReptilian", map.GridCoords));
+                if (scarfed.IsValid())
+                    return;
+
+                scarfed = SEntMan.SpawnEntity("MobReptilian", map.GridCoords);
+                var scarf = SEntMan.SpawnEntity("ClothingNeckScarfStripedRed", map.GridCoords);
+                Assert.That(SEntMan.System<InventorySystem>().TryEquip(scarfed, scarf, "neck", force: true), Is.True);
             });
         }
 
@@ -529,6 +537,9 @@ public sealed class WolfmedTemperatureTest : WolfmedGameTest
                     Assert.That(s.Life.InArrest(body), Is.False, $"{airs[i]:0} K air stopped a reptilian's heart.");
                 });
             }
+
+            Note($"ReptilianAmbientAirTest: with a scarf, {airs[0]:0} K air holds a {Surface(scarfed):0.0} K surface.");
+            Assert.That(Surface(scarfed), Is.GreaterThan(298f), "a scarf does not keep a reptilian warm in station air.");
         });
     }
 

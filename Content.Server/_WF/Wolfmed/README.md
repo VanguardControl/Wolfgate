@@ -1705,6 +1705,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_NF/Entities/Clothing/Eyes/glasses_punks.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Eyes/glasses_punks.yml): the IPC's container, so its bar shows
 - [`Resources/Prototypes/_NF/Entities/Clothing/Head/hardsuit-helmets.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Head/hardsuit-helmets.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_NF/Entities/Clothing/Head/headwear_punks.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Head/headwear_punks.yml): P6, P3-D6: locational armour coverage
+- [`Resources/Prototypes/_NF/Entities/Clothing/Neck/scarfs.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Neck/scarfs.yml): warm like the other scarves
 - [`Resources/Prototypes/_NF/Entities/Clothing/OuterClothing/armor.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/OuterClothing/armor.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_NF/Entities/Markers/Spawners/Random/dungeon_items_medical.yml`](../../../Resources/Prototypes/_NF/Entities/Markers/Spawners/Random/dungeon_items_medical.yml): playtest 5: sutures found in more places.
 - [`Resources/Prototypes/_NF/Entities/Objects/Tools/flashlights.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Tools/flashlights.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
@@ -1902,6 +1903,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Entities/Clothing/Head/helmets.yml`](../../../Resources/Prototypes/Entities/Clothing/Head/helmets.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Clothing/Head/hoods.yml`](../../../Resources/Prototypes/Entities/Clothing/Head/hoods.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Clothing/Masks/masks.yml`](../../../Resources/Prototypes/Entities/Clothing/Masks/masks.yml): P6, P3-D6: locational armour coverage
+- [`Resources/Prototypes/Entities/Clothing/Neck/base_clothingneck.yml`](../../../Resources/Prototypes/Entities/Clothing/Neck/base_clothingneck.yml): a scarf keeps its wearer warm, enough for a reptilian in station air
 - [`Resources/Prototypes/Entities/Clothing/OuterClothing/armor.yml`](../../../Resources/Prototypes/Entities/Clothing/OuterClothing/armor.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Clothing/OuterClothing/vests.yml`](../../../Resources/Prototypes/Entities/Clothing/OuterClothing/vests.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Markers/Spawners/Random/Department/medical.yml`](../../../Resources/Prototypes/Entities/Markers/Spawners/Random/Department/medical.yml): playtest 5: sutures found in more places.
