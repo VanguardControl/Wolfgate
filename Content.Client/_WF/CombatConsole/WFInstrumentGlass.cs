@@ -43,17 +43,18 @@ public static class WFInstrumentGlass
             return;
         }
         var top = box.TopLeft;
-        var size = box.Size;
-        for (var i = 0; i < 18; i++)
-        {
-            var left = 0.02f + i * 0.026f;
-            var right = left + 0.027f;
-            var alpha = 0.014f * MathF.Sin(MathF.PI * (i + 0.5f) / 18);
-            Quad(handle, top + new Vector2(size.X * left, 0), top + new Vector2(size.X * right, 0),
-                top + new Vector2(size.X * Math.Max(0, right - 0.22f), size.Y),
-                top + new Vector2(size.X * Math.Max(0, left - 0.22f), size.Y),
-                WFInstrumentTheme.Cream.WithAlpha(alpha));
-        }
+        var bottom = box.Top + box.Height * 0.45f;
+        var light = Color.FromSrgb(WFInstrumentTheme.Cream.WithAlpha(0.025f) * handle.Modulate);
+        var clear = light.WithAlpha(0);
+        // Interpolate one continuous surface so reflection strips cannot overlap into bright seams.
+        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleStrip, Texture.White,
+            new[]
+            {
+                new DrawVertexUV2DColor(top, light),
+                new DrawVertexUV2DColor(new Vector2(box.Right, box.Top), light),
+                new DrawVertexUV2DColor(new Vector2(box.Left, bottom), clear),
+                new DrawVertexUV2DColor(new Vector2(box.Right, bottom), clear),
+            });
         handle.DrawLine(top + new Vector2(scale, scale), new Vector2(box.Right - scale, box.Top + scale),
             WFInstrumentTheme.Cream.WithAlpha(0.38f));
         handle.DrawLine(new Vector2(box.Left, box.Bottom - scale), new Vector2(box.Right, box.Bottom - scale),

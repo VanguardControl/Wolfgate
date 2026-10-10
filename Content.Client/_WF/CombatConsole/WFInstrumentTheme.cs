@@ -287,7 +287,7 @@ public sealed class WFScreenBezel : PanelContainer
     }
 }
 
-/// <summary>Adds subtle scanlines and edge ticks without intercepting radar input.</summary>
+/// <summary>Adds a smooth glass sheen and edge ticks without intercepting radar input.</summary>
 public sealed class WFCrtGlass : Control
 {
     public WFCrtGlass()
@@ -307,9 +307,6 @@ public sealed class WFCrtGlass : Control
             return;
         }
         handle.DrawRect(new UIBox2(Vector2.Zero, size), WFInstrumentTheme.Accent.WithAlpha(0.004f));
-        var tint = WFInstrumentTheme.Accent.WithAlpha(0.008f);
-        for (var y = 0; y < size.Y; y += 4)
-            handle.DrawLine(new Vector2(0, y), new Vector2(size.X, y), tint);
         for (var x = 12; x < size.X - 12; x += 20)
             handle.DrawLine(new Vector2(x, 0), new Vector2(x, 4), WFInstrumentTheme.Accent.WithAlpha(0.4f));
         handle.DrawRect(new UIBox2(Vector2.Zero, size), WFInstrumentTheme.Accent.WithAlpha(0.3f), false);
