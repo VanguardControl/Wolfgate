@@ -1,0 +1,21 @@
+<Document>
+# Conflict Rule 5
+## Declaring war and calling it off
+
+[italic][color=yellow]The TSF and the PDV start every round under a ceasefire. Your PDA shows the war level.[/color][/italic]
+
+- Only the [color=cyan]Colonel[/color] and the [color=tan]Grand Vizier[/color] can change the war level, each with their own [bold]war declarator[/bold].
+-- War begins when [bold]both[/bold] have declared and the sector announcement plays. From then the war level is [color=red][bold]HOT[/bold][/color].
+-- One declaration alone is a public ultimatum. Nothing changes until the other side answers, and using the declarator again withdraws it.
+
+- A declaration needs an [color=green]in-character cause[/color] the other side could know about, and a demand or an attempt at talks first.
+-- Declaring war with no cause falls under the [textlink="commander rule" link="MonolithRuleRoleplayNineCommandingRoles"].
+
+- A war is called off the way it is started. Using a declarator during a war offers a ceasefire, and once both sides have offered one the war level returns to [color=cyan][bold]COLD[/bold][/color].
+-- When the level returns to COLD, break off: fights in progress end and [textlink="strikes on outposts" link="MonolithRuleConflictFourPortStriking"] stop.
+
+- While the war level is COLD, a faction may hire contractors for escort, transport and information, but [color=red][bold]not[/bold][/color] to attack the other faction in its place.
+
+- If there is no Colonel or no Grand Vizier this round, the war level cannot be changed by declarator. Use admin help if the round calls for it.
+
+</Document>

@@ -3,3 +3,6 @@ wf-cold-war-ceasefire-offered = Attention! The {$faction} is offering a ceasefir
 wf-cold-war-ceasefire-withdrawn = Attention! The {$faction} has withdrawn its ceasefire offer.
 wf-cold-war-declarator-cooldown = The declarator is still cycling. It will be ready in {$seconds} seconds.
 wf-cold-war-declarator-unlinked = The declarator finds no diplomatic uplink.
+
+guide-entry-wf-rule-conflict-five-declaring-war = Conflict Rule 5 - Declaring War
+guide-entry-wf-pdv-standing-orders = Standing Orders

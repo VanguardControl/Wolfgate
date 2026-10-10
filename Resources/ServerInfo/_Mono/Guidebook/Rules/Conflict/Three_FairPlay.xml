@@ -2,7 +2,7 @@
 # Conflict Rule 3
 ## Demands And Piracy
 
-- Players must be given a reasonable time ([color=yellow][bold]at least 10 seconds[/bold][/color]) to react to demands before capture, serious injury, or death is inflicted in [bold]less-intense[/bold] conflict such as between Civilians and Factions/other Civilians.
+<!-- WOLFGATE(ColdWar): the factions give each other the same time while the war level is COLD -->- Players must be given a reasonable time ([color=yellow][bold]at least 10 seconds[/bold][/color]) to react to demands before capture, serious injury, or death is inflicted in [bold]less-intense[/bold] conflict such as between Civilians and Factions/other Civilians, and between the factions while the war level is COLD.
 
 - Use [color=green]roleplay[/color] and [color=green]escalation[/color]; avoid making impossible or unclear demands.
 -- For example, saying "Give me your shuttle and ID!" [color=green]is a clear demand[/color]. Saying "GIVE ME EVERYTHING" is [color=red]not a clear demand[/color]. You must [bold]specify[/bold] what you want, like [color=yellow]Shuttles, money, ID's, armor, etc.[/color]

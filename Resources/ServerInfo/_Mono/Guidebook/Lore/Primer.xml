@@ -29,8 +29,11 @@
 
   - The [color=orange]Phaethon Dynasty Vanguard (PDV)[/color], an old imperial house native to the Colossus sector that got boosted into galactic relevance with the discovery of the Monolith radius. They are aggressive and use effective tactics, but struggle for technological advancement.
 
-  The TSF and the PDV are currently in armed conflict. The TSF demand the Syndicate technology now integrated into most PDV equipment *and* the property the Dynasty now inhabit, while the Dynasty is defending their self-proclaimed holy land with questionable tactics.
-  Due to the anomalous interference at the fringes of the Colossus sector, the local Federation military is seperated from their main battalions, and the Dynasty is still a developing power. This has lead to a localized stalemate.
-  No side is morally correct - Syndicate-originating technology is often unethical, and the TSF may be overstepping their bounds, but what is certain is that this conflict brings yet another danger to the already deadly sector.
+  <!-- WOLFGATE(ColdWar) START: the factions are under a ceasefire; was "currently in armed conflict" and "a localized stalemate" -->The TSF and the PDV have fought, and neither could finish it. The TSF demand the Syndicate technology now integrated into most PDV equipment *and* the property the Dynasty now inhabit, while the Dynasty is defending their self-proclaimed holy land with questionable tactics.
+  Due to the anomalous interference at the fringes of the Colossus sector, the local Federation military is seperated from their main battalions and cannot replace what it loses, and the Dynasty is still a developing power. Neither can afford the war, so a ceasefire holds, watched over by the sector's diplomatic monitors. The two sides shadow, spy on and smuggle past each other, and keep out of each other's guns.
+
+  Both commanders carry a war declarator. The war resumes only when both of them use it, and it can be called off the same way. Your PDA shows which it is: [color=cyan]WAR LEVEL: COLD[/color] or [color=red]WAR LEVEL: HOT[/color].
+
+  <!-- WOLFGATE END -->No side is morally correct - Syndicate-originating technology is often unethical, and the TSF may be overstepping their bounds, but what is certain is that this conflict brings yet another danger to the already deadly sector.
 
 </Document>
