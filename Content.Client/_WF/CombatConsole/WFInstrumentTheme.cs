@@ -38,19 +38,6 @@ public static class WFInstrumentTheme
         root.AddChild(new WFConsoleThemeBinding(root));
     }
 
-    /// <summary>Loads a console sprite extracted from the supplied HighFleet installation.</summary>
-    public static Texture Texture(string name) => IoCManager.Resolve<IResourceCache>()
-        .GetResource<TextureResource>($"/Textures/_WF/CombatConsole/HighFleet/{name}.png").Texture;
-
-    /// <summary>Scales a metal face while retaining the original bevels and corner details.</summary>
-    public static StyleBoxTexture TextureFace(string name, int patch, int padding, float scale = 1f)
-    {
-        var box = new StyleBoxTexture { Texture = Texture(name), TextureScale = new Vector2(scale) };
-        box.SetPatchMargin(StyleBox.Margin.All, patch);
-        box.SetContentMarginOverride(StyleBox.Margin.All, padding);
-        return box;
-    }
-
     /// <summary>Fits the initial deck to the available screen at the player's UI scale.</summary>
     public static void FitWindow(BaseWindow window, Vector2 preferred)
     {
@@ -275,7 +262,7 @@ public sealed class WFInstrumentPanel : PanelContainer
 {
     public WFInstrumentPanel()
     {
-        PanelOverride = new WFConsoleFrameStyleBox(12, "panel");
+        PanelOverride = new WFConsoleFrameStyleBox(12, housing: true);
     }
 
     protected override void Draw(DrawingHandleScreen handle)
@@ -284,23 +271,19 @@ public sealed class WFInstrumentPanel : PanelContainer
         if (WFInstrumentTheme.Digital)
             return;
         var size = PixelSize;
-        var edge = WFInstrumentTheme.Skin.EdgeLight;
-        handle.DrawLine(new Vector2(1, 1), new Vector2(size.X - 1, 1), edge);
-        foreach (var point in new[] { new Vector2(5, 5), new Vector2(size.X - 5, 5),
-                     new Vector2(5, size.Y - 5), new Vector2(size.X - 5, size.Y - 5) })
-        {
-            handle.DrawCircle(point, 2.5f, WFInstrumentTheme.Ink);
-            handle.DrawLine(point - Vector2.UnitX * 1.5f, point + Vector2.UnitX * 1.5f, edge);
-        }
+        var inset = 5 * UIScale;
+        foreach (var point in new[] { new Vector2(inset, inset), new Vector2(size.X - inset, inset),
+                     new Vector2(inset, size.Y - inset), new Vector2(size.X - inset, size.Y - inset) })
+            WFConsoleMetal.Screw(handle, point, 2.5f * UIScale, WFInstrumentTheme.Skin.EdgeLight);
     }
 }
 
-/// <summary>Frames a live radar with the original cockpit CRT's transparent bezel.</summary>
+/// <summary>Frames a live radar with a recessed metal display bezel.</summary>
 public sealed class WFScreenBezel : PanelContainer
 {
     public WFScreenBezel()
     {
-        PanelOverride = new WFConsoleFrameStyleBox(22, "crt_bezel");
+        PanelOverride = new WFConsoleFrameStyleBox(22, housing: true, bezel: true);
     }
 }
 
@@ -323,8 +306,8 @@ public sealed class WFCrtGlass : Control
             handle.DrawRect(new UIBox2(Vector2.Zero, size), skin.EdgeLight, false);
             return;
         }
-        handle.DrawRect(new UIBox2(Vector2.Zero, size), WFInstrumentTheme.Accent.WithAlpha(0.02f));
-        var tint = WFInstrumentTheme.Accent.WithAlpha(0.045f);
+        handle.DrawRect(new UIBox2(Vector2.Zero, size), WFInstrumentTheme.Accent.WithAlpha(0.004f));
+        var tint = WFInstrumentTheme.Accent.WithAlpha(0.008f);
         for (var y = 0; y < size.Y; y += 4)
             handle.DrawLine(new Vector2(0, y), new Vector2(size.X, y), tint);
         for (var x = 12; x < size.X - 12; x += 20)

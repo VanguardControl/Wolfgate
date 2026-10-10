@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Robust.Shared.Localization;
 using Content.Client._WF.CombatConsole;
@@ -20,6 +21,7 @@ using Content.Server._WF.CombatConsole;
 using Content.Shared._Mono.FireControl;
 using Content.Shared.Projectiles;
 using Robust.Client.ResourceManagement;
+using Robust.Client.Graphics;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 
@@ -206,7 +208,7 @@ public sealed class WFCombatConsoleTest
             Assert.That(countermeasures.Visible, Is.False);
             gunnery.UpdateStatus(armed);
             Assert.That(countermeasures.Visible, Is.True);
-            var meter = gunnery.WeaponsList[gun].Children.OfType<WFGlassGauge>().Single();
+            var meter = gunnery.WeaponsList[gun].Children.OfType<WFWeaponRow>().Single();
             Assert.That(meter.Reading.Value, Is.EqualTo(240));
             Assert.That(meter.Reading.Maximum, Is.GreaterThanOrEqualTo(240));
             foreach (var size in new[] { new Vector2(960, 600), new Vector2(960, 640), new Vector2(1180, 780) })
@@ -214,19 +216,18 @@ public sealed class WFCombatConsoleTest
                 gunnery.SetSize = size;
                 gunnery.Measure(size);
                 gunnery.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
-                Assert.That(meter.Width, Is.GreaterThan(100), "An ammunition instrument must remain readable within its selection button.");
+                Assert.That(meter.Width, Is.GreaterThan(100), "Weapon names and supply must retain a readable full-width row.");
                 Assert.That(meter.GlobalPosition.X + meter.Width, Is.LessThanOrEqualTo(gunnery.GlobalPosition.X + size.X));
-                var rack = Descendants(gunnery).OfType<WFCountermeasureInstrument>().Single();
+                var battery = Descendants(gunnery).Single(control => control.Name == "WfWeaponBattery");
+                Assert.That(Descendants(battery).OfType<ScrollContainer>(), Is.Empty);
+                Assert.That(gunnery.WeaponsList[gun].Height, Is.InRange(48, 56), "Sparse batteries retain the same readable row height.");
                 var dispense = Descendants(gunnery).OfType<Button>().Single(button => button.HasStyleClass("WfDispense"));
-                foreach (var gauge in rack.Parent!.Children.OfType<WFGlassGauge>())
-                {
-                    Assert.That(gauge.Width, Is.GreaterThanOrEqualTo(100));
-                    var panel = Descendants(gunnery).Single(control => control.Name == "WfCountermeasurePanel");
-                    Assert.That(gauge.GlobalPosition.Y + gauge.Height, Is.LessThanOrEqualTo(panel.GlobalPosition.Y + panel.Height),
-                        "Linear flare gauges must remain inside the compact countermeasure bank.");
-                    Assert.That(gauge.GlobalPosition.X + gauge.Width, Is.LessThanOrEqualTo(gunnery.GlobalPosition.X + size.X),
-                        "Countermeasure gauges must fit at minimum console width.");
-                }
+                Assert.That(dispense.Visible, Is.True);
+                Assert.That(countermeasures.Height, Is.LessThan(130), "The flare bank must leave room for the tactical plot.");
+                Assert.That(countermeasures.GlobalPosition.Y + countermeasures.Height,
+                    Is.LessThanOrEqualTo(gunnery.GlobalPosition.Y + gunnery.Height));
+                Assert.That(countermeasures.GlobalPosition.X + countermeasures.Width,
+                    Is.LessThanOrEqualTo(gunnery.GlobalPosition.X + gunnery.Width));
             }
             gunnery.UpdateStatus(GunState(true, 0));
             Assert.That(countermeasures.Visible, Is.False, "Removing the last launcher must hide the entire flare panel.");
@@ -262,12 +263,12 @@ public sealed class WFCombatConsoleTest
                     Assert.That(WFInstrumentTheme.Digital, Is.EqualTo(skin == WolfgateSkins.Futurist));
                     Assert.That(Descendants(gunnery).OfType<Label>().Single(label => label.Text == "WOLFGATE / FIRE CONTROL").FontColorOverride,
                         Is.EqualTo(skin.Accent), "Open labels must change palette with the selected theme.");
-                    Assert.That(gunnery.WeaponsList[gun].Children.OfType<WFGlassGauge>().Single(), Is.SameAs(meter),
+                    Assert.That(gunnery.WeaponsList[gun].Children.OfType<WFWeaponRow>().Single(), Is.SameAs(meter),
                         "A style switch must retain the same controls and ammunition binding.");
                     Assert.That(meter.Reading.Value, Is.EqualTo(240));
                     Assert.That(gunnery.WeaponsList[gun].Pressed, Is.True);
-                    Assert.That(gunnery.WeaponsList[gun].Height, Is.GreaterThanOrEqualTo(86),
-                        "A sparse battery must keep its embedded ammunition instruments visible.");
+                    Assert.That(gunnery.WeaponsList[gun].Height, Is.InRange(48, 56),
+                        "The row must remain readable without expanding into a large ammunition gauge.");
                     foreach (var console in new Control[] { gunnery, helm })
                     {
                         var size = new Vector2(960, 600);
@@ -275,6 +276,12 @@ public sealed class WFCombatConsoleTest
                         console.Measure(size);
                         console.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
                         Assert.That(console.DesiredSize.X, Is.LessThanOrEqualTo(size.X));
+                        if (console != gunnery)
+                            continue;
+                        var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
+                        AssertCaptionFits(gunnery.FindControl<Label>("ServerStatus"), ui);
+                        foreach (var name in new[] { "IFFToggle", "IFFDetailedToggle", "DockToggle" })
+                            AssertCaptionFits(gunnery.FindControl<Button>(name).Label, ui);
                     }
                 }
                 Assert.That(requests, Is.Zero, "Changing a theme must not fire weapons, save groups or toggle automatic flares.");
@@ -293,6 +300,17 @@ public sealed class WFCombatConsoleTest
         });
         await pair.CleanReturnAsync();
     }
+    private static void AssertCaptionFits(Label label, IUserInterfaceManager ui)
+    {
+        var font = label.FontOverride ?? (label.TryGetStyleProperty<Font>(Label.StylePropertyFont, out var styled)
+            ? styled : ui.ThemeDefaults.LabelFont);
+        var width = 0f;
+        foreach (var rune in label.Text!.EnumerateRunes())
+            width += font.GetCharMetrics(rune, label.UIScale)?.Advance ?? 0;
+        Assert.That(label.PixelWidth + 1, Is.GreaterThanOrEqualTo(width), $"Console status and overlay labels must fit: {label.Text}");
+        Assert.That(label.PixelHeight + 1, Is.GreaterThanOrEqualTo(font.GetHeight(label.UIScale)));
+    }
+
     private static System.Collections.Generic.IEnumerable<Control> Descendants(Control root)
     {
         yield return root;

@@ -20,8 +20,9 @@ interfaces or changing the player's display settings.
 
 A seated pilot can also link to an accessible, powered gunnery console within normal interaction reach
 on the same ship. The nearest eligible console is chosen and retained while usable. FLIGHT/GUNS
-switches the left column between flight instruments and the full weapon bank, including selection,
-saved groups and countermeasures. Left-click or hold over the world viewport or NAV plot fires the
+switches the left column between flight instruments and the shared paginated weapon bank, including
+selection, saved groups and compact countermeasures. Weapon rows retain readable text and slim supply
+bars; page changes preserve the full selection for firing and group saves. Left-click or hold over the world viewport or NAV plot fires the
 selected weapons; hovering updates guided-missile aim, and middle mouse still pans. A native aiming reticle
 replaces the pointer over valid world and NAV targets while offensive weapons are selected, independently
 of character combat mode. HUD controls, chat, modifiers, lost focus and an unarmed bank retain ordinary

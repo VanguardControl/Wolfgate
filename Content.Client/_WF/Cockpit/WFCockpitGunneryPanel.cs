@@ -18,9 +18,9 @@ public sealed class WFCockpitGunneryPanel : Control
     /// <summary>Forwards the existing fire-control commands through the active helm session.</summary>
     public event Action<BoundUserInterfaceMessage>? Command;
 
-    /// <summary>Returns the current offensive selection, excluding hidden countermeasure launchers.</summary>
+    /// <summary>Returns the offensive selection across every page, excluding countermeasure launchers.</summary>
     public List<NetEntity> SelectedWeapons => _window.WeaponsList
-        .Where(pair => pair.Value.Visible && pair.Value.Pressed).Select(pair => pair.Key).ToList();
+        .Where(pair => pair.Value.Pressed && _window.WfAvailableWeapon(pair.Key)).Select(pair => pair.Key).ToList();
 
     public WFCockpitGunneryPanel()
     {

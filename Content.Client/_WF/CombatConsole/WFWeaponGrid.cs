@@ -5,79 +5,166 @@ using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._WF.CombatConsole;
 
-/// <summary>Fits every connected weapon into the available battery panel without a scrolling parent.</summary>
+/// <summary>Pages a battery into readable fixed-height rows while retaining every weapon button.</summary>
 public sealed class WFWeaponGrid : BoxContainer
 {
-    /// <summary>Smallest preferred row height before another weapon column is added.</summary>
-    public float MinimumRowHeight { get; set; } = 34;
+    private const float Gap = 4;
+    private const float FooterHeight = 32;
+    private readonly HashSet<Button> _unavailable = new();
+    private BoxContainer? _footer;
+    private Button? _previous;
+    private Button? _next;
+    private Label? _pageLabel;
+
+    /// <summary>Preferred row height, bounded below so weapon names and supply remain readable.</summary>
+    public float MinimumRowHeight { get; set; } = 52;
+    /// <summary>Zero-based active page, retained across telemetry updates.</summary>
+    public int PageIndex { get; private set; }
+    /// <summary>Number of pages in the current available height.</summary>
+    public int PageCount { get; private set; } = 1;
+    /// <summary>Number of whole weapon rows that fit on the active page.</summary>
+    public int ItemsPerPage { get; private set; } = 1;
 
     public WFWeaponGrid()
     {
         HorizontalExpand = VerticalExpand = true;
+        MinHeight = 88;
         RectClipContent = true;
+        EnsureFooter();
+    }
+
+    /// <summary>Excludes non-offensive launchers independently of page visibility.</summary>
+    public void SetAvailable(Button button, bool available)
+    {
+        var changed = available ? _unavailable.Remove(button) : _unavailable.Add(button);
+        if (!changed)
+            return;
+        if (!available)
+            button.Visible = false;
+        InvalidateMeasure();
+        InvalidateArrange();
+    }
+
+    /// <summary>Changes pages without modifying any weapon selection or event handler.</summary>
+    public void SetPage(int page)
+    {
+        var next = Math.Clamp(page, 0, PageCount - 1);
+        if (PageIndex == next)
+            return;
+        PageIndex = next;
+        InvalidateMeasure();
+        InvalidateArrange();
+    }
+
+    protected override void ChildAdded(Control child)
+    {
+        base.ChildAdded(child);
+        // Page visibility can leave measurement pending without invalidating the completed arrangement.
+        InvalidateArrange();
+    }
+
+    protected override void ChildRemoved(Control child)
+    {
+        base.ChildRemoved(child);
+        InvalidateArrange();
+        if (child is Button button)
+            _unavailable.Remove(button);
+        if (child == _footer)
+            _footer = null;
     }
 
     protected override Vector2 MeasureOverride(Vector2 availableSize)
     {
-        Layout(availableSize, false);
+        EnsureFooter();
+        // A vertical parent may measure with space reserved for later siblings still included.
+        // Publish paging only from the final arranged rectangle.
+        var cell = new Vector2(Math.Max(0, availableSize.X), RowHeight);
+        foreach (var button in Children.OfType<Button>())
+        {
+            if (button.Visible && !_unavailable.Contains(button))
+                button.Measure(cell);
+        }
+        if (_footer!.Visible)
+            _footer.Measure(new Vector2(cell.X, FooterHeight));
         return Vector2.Zero;
     }
 
     protected override Vector2 ArrangeOverride(Vector2 finalSize)
     {
-        Layout(finalSize, true);
+        Layout(finalSize);
         return finalSize;
     }
 
-    private void Layout(Vector2 available, bool arrange)
+    private float RowHeight => float.IsFinite(MinimumRowHeight) ? Math.Max(52, MinimumRowHeight) : 52;
+
+    /// <summary>Restores the pager after upstream refreshes clear all children.</summary>
+    private void EnsureFooter()
     {
-        var buttons = Children.OfType<Button>().Where(button => button.Visible).ToArray();
-        if (buttons.Length == 0 || !float.IsFinite(available.X) || !float.IsFinite(available.Y))
+        if (_footer != null)
             return;
-        const float gap = 4;
-        var preferredColumns = Math.Max(1, (int) ((available.X + gap) / (128 + gap)));
-        var maximumRows = Math.Max(1, (int) ((available.Y + gap) / (Math.Max(1, MinimumRowHeight) + gap)));
-        var columns = Math.Clamp(Math.Max(preferredColumns, (buttons.Length + maximumRows - 1) / maximumRows), 1, buttons.Length);
-        var rows = (buttons.Length + columns - 1) / columns;
-        var cell = new Vector2(Math.Max(0, (available.X - gap * (columns - 1)) / columns),
-            Math.Max(0, (available.Y - gap * (rows - 1)) / rows));
+        _previous = WFInstrumentTheme.Button("wf-weapon-page-previous");
+        _next = WFInstrumentTheme.Button("wf-weapon-page-next");
+        _previous.Name = "WfWeaponPrevious";
+        _next.Name = "WfWeaponNext";
+        _previous.ToolTip = Loc.GetString("wf-weapon-page-previous-help");
+        _next.ToolTip = Loc.GetString("wf-weapon-page-next-help");
+        foreach (var button in new[] { _previous, _next })
+        {
+            button.AddStyleClass("WfCompact");
+            button.HorizontalExpand = false;
+            button.SetWidth = 36;
+            WFInstrumentTheme.Switch(button);
+        }
+        _previous.OnPressed += _ => SetPage(PageIndex - 1);
+        _next.OnPressed += _ => SetPage(PageIndex + 1);
+        _pageLabel = new Label { Text = Loc.GetString("wf-weapon-page", ("page", 1), ("pages", 1)) };
+        WFInstrumentTheme.Apply(_pageLabel);
+        _pageLabel.Name = "WfWeaponPage";
+        _pageLabel.Align = Label.AlignMode.Center;
+        _pageLabel.HorizontalExpand = true;
+        _pageLabel.ClipText = true;
+        _pageLabel.Margin = new Thickness(0);
+        _footer = WFInstrumentTheme.Row(_previous, _pageLabel, _next);
+        _footer.Name = "WfWeaponPager";
+        _footer.SetHeight = FooterHeight;
+        _footer.Visible = false;
+        AddChild(_footer);
+    }
+
+    private void Layout(Vector2 available)
+    {
+        EnsureFooter();
+        if (!float.IsFinite(available.X) || !float.IsFinite(available.Y))
+            return;
+        var buttons = Children.OfType<Button>().Where(button => !_unavailable.Contains(button)).ToArray();
+        var height = RowHeight;
+        var withoutFooter = Math.Max(1, (int) ((available.Y + Gap) / (height + Gap)));
+        var paged = buttons.Length > withoutFooter;
+        var contentHeight = Math.Max(0, available.Y - (paged ? FooterHeight + Gap : 0));
+        ItemsPerPage = Math.Max(1, (int) ((contentHeight + Gap) / (height + Gap)));
+        PageCount = Math.Max(1, (buttons.Length + ItemsPerPage - 1) / ItemsPerPage);
+        PageIndex = Math.Clamp(PageIndex, 0, PageCount - 1);
+        _footer!.Visible = paged;
+        _previous!.Disabled = PageIndex == 0;
+        _next!.Disabled = PageIndex == PageCount - 1;
+        var caption = Loc.GetString("wf-weapon-page", ("page", PageIndex + 1), ("pages", PageCount));
+        if (_pageLabel!.Text != caption)
+            _pageLabel.Text = caption;
+        var first = PageIndex * ItemsPerPage;
         for (var i = 0; i < buttons.Length; i++)
         {
             var button = buttons[i];
-            var dense = cell.Y < 48 || cell.X < 108;
-            var tight = dense && MinimumRowHeight < 34;
-            var restyle = button.HasStyleClass("WfWeaponDense") != dense || button.HasStyleClass("WfWeaponTight") != tight;
-            if (button.HasStyleClass("WfWeaponDense") != dense)
-            {
-                if (dense)
-                    button.AddStyleClass("WfWeaponDense");
-                else
-                    button.RemoveStyleClass("WfWeaponDense");
-            }
-            if (button.HasStyleClass("WfWeaponTight") != tight)
-            {
-                if (tight)
-                    button.AddStyleClass("WfWeaponTight");
-                else
-                    button.RemoveStyleClass("WfWeaponTight");
-            }
-            if (restyle)
-                WFInstrumentTheme.Switch(button);
-            var gauge = button.Children.OfType<WFGlassGauge>().FirstOrDefault();
-            var instruments = cell.Y >= 104;
-            if (gauge != null)
-                gauge.Visible = instruments;
-            var margin = new Thickness(2, 0, 2, instruments ? 58 : 0);
-            if (button.Label.Margin != margin)
-                button.Label.Margin = margin;
-            button.Label.VerticalAlignment = instruments ? VAlignment.Top : VAlignment.Center;
-            if (button.MinHeight != 0)
-                button.MinHeight = 0;
-            if (button.MinWidth != 0)
-                button.MinWidth = 0;
+            button.Visible = i >= first && i < first + ItemsPerPage;
+            if (!button.Visible)
+                continue;
+            var cell = new Vector2(Math.Max(0, available.X), height);
             button.Measure(cell);
-            if (arrange)
-                button.Arrange(UIBox2.FromDimensions(new Vector2(i % columns, i / columns) * (cell + new Vector2(gap)), cell));
+            button.Arrange(UIBox2.FromDimensions(new Vector2(0, (i - first) * (height + Gap)), cell));
         }
+        if (!paged)
+            return;
+        var footerSize = new Vector2(Math.Max(0, available.X), FooterHeight);
+        _footer.Measure(footerSize);
+        _footer.Arrange(UIBox2.FromDimensions(new Vector2(0, Math.Max(0, available.Y - FooterHeight)), footerSize));
     }
 }

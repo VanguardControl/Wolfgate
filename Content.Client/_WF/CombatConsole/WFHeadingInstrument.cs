@@ -8,11 +8,10 @@ namespace Content.Client._WF.CombatConsole;
 /// <summary>Displays the ship's real heading on an engraved compass instrument.</summary>
 public sealed class WFHeadingInstrument : Control
 {
-    private static readonly UIBox2 DialRegion = new(0, 12, 374, 350);
     private readonly Func<double?> _heading;
     private DrawVertexUV2DColor[] _digitalVertices = Array.Empty<DrawVertexUV2DColor>();
     private readonly Font _font;
-    private readonly Texture _dial = WFInstrumentTheme.Texture("heading_dial");
+    private readonly Font _scaleFont;
 
     public WFHeadingInstrument(Func<double?> heading)
     {
@@ -20,8 +19,10 @@ public sealed class WFHeadingInstrument : Control
         MinHeight = 170;
         HorizontalExpand = true;
         MouseFilter = MouseFilterMode.Ignore;
-        _font = new VectorFont(IoCManager.Resolve<IResourceCache>()
-            .GetResource<FontResource>("/Fonts/RobotoMono/RobotoMono-Regular.ttf"), 12);
+        var font = IoCManager.Resolve<IResourceCache>()
+            .GetResource<FontResource>("/Fonts/RobotoMono/RobotoMono-Regular.ttf");
+        _font = new VectorFont(font, 12);
+        _scaleFont = new VectorFont(font, 9);
     }
 
     protected override void Draw(DrawingHandleScreen handle)
@@ -31,21 +32,64 @@ public sealed class WFHeadingInstrument : Control
             DrawDigital(handle);
             return;
         }
-        // The source sprite includes a black header strip above the metal housing.
-        var scale = Math.Min(PixelWidth / DialRegion.Width, (PixelHeight - 24 * UIScale) / DialRegion.Height);
-        var origin = new Vector2((PixelWidth - DialRegion.Width * scale) / 2, 0);
-        handle.DrawTextureRectRegion(_dial, UIBox2.FromDimensions(origin, DialRegion.Size * scale), DialRegion, WFInstrumentTheme.Skin.Text);
-        var center = origin + (new Vector2(190, 190) - DialRegion.TopLeft) * scale;
-        var radius = 118 * scale;
+        var skin = WFInstrumentTheme.Skin;
+        var side = MathF.Max(1, MathF.Min(PixelWidth, PixelHeight - 24 * UIScale));
+        var scale = side / 176;
+        var origin = new Vector2((PixelWidth - side) / 2, 0);
+        var bounds = UIBox2.FromDimensions(origin, new Vector2(side));
+        WFConsoleMetal.MetalPanel(handle, bounds, UIScale, skin.EdgeSoft);
+        foreach (var point in new[] { new Vector2(10, 10), new Vector2(166, 10), new Vector2(10, 166), new Vector2(166, 166) })
+            WFConsoleMetal.Screw(handle, origin + point * scale, 3.4f * scale, skin.TextMuted);
+
+        var center = origin + new Vector2(side / 2);
+        var radius = side * 0.435f;
+        WFConsoleDigital.Dot(handle, center + new Vector2(0, 2 * scale), radius + 3 * scale,
+            Color.Black.WithAlpha(0.75f), ref _digitalVertices);
+        WFConsoleDigital.Dot(handle, center, radius, skin.EdgeLight, ref _digitalVertices);
+        WFConsoleDigital.Dot(handle, center, radius - 2 * scale, skin.Edge, ref _digitalVertices);
+        WFConsoleDigital.Arc(handle, center, radius - scale, scale, MathF.PI, MathF.Tau,
+            skin.TextMuted.WithAlpha(0.65f), ref _digitalVertices);
+        WFConsoleDigital.Dot(handle, center, radius - 5 * scale, skin.Ink, ref _digitalVertices);
+        var face = radius - 7 * scale;
+        WFConsoleDigital.Dot(handle, center, face, skin.Glass, ref _digitalVertices);
+        WFConsoleDigital.Arc(handle, center, face * 0.52f, scale, 0, MathF.Tau,
+            skin.EdgeSoft.WithAlpha(0.5f), ref _digitalVertices);
+        for (var i = 0; i < 72; i++)
+        {
+            var angle = i * MathF.Tau / 72 - MathF.PI / 2;
+            var direction = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+            var major = i % 6 == 0;
+            var length = (major ? 8 : i % 3 == 0 ? 5 : 3) * scale;
+            handle.DrawLine(center + direction * (face - length), center + direction * (face - scale),
+                major ? skin.Text : skin.TextMuted.WithAlpha(0.65f));
+        }
+        var fontScale = scale * 0.92f;
+        for (var i = 0; i < 12; i++)
+        {
+            var angle = i * MathF.Tau / 12 - MathF.PI / 2;
+            var position = center + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * face * 0.73f;
+            var label = (i * 30).ToString();
+            var dimensions = handle.GetDimensions(_scaleFont, label, fontScale);
+            handle.DrawString(_scaleFont, position - dimensions / 2, label, fontScale,
+                i % 3 == 0 ? skin.Text : skin.TextMuted);
+        }
         var heading = _heading();
         if (heading is { } degrees)
         {
             var angle = (float) MathHelper.DegreesToRadians(degrees - 90);
-            var tip = center + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * radius;
-            handle.DrawLine(center, tip, WFInstrumentTheme.Accent);
-            handle.DrawCircle(center, 4 * UIScale, WFInstrumentTheme.Accent);
+            var direction = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+            var across = new Vector2(-direction.Y, direction.X);
+            var tip = center + direction * face * 0.89f;
+            var tail = center - direction * face * 0.19f;
+            var shadow = new Vector2(1.5f * scale);
+            handle.DrawLine(tail + shadow, tip + shadow, Color.Black.WithAlpha(0.8f));
+            handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList,
+                new[] { tail + across * 2 * scale, tip, tail - across * 2 * scale }, skin.Accent);
+            handle.DrawLine(center, tip, skin.Caution.WithAlpha(0.6f));
         }
-        WFInstrumentGlass.Round(handle, center, 142 * scale, UIScale);
+        WFConsoleDigital.Dot(handle, center, 5 * scale, skin.EdgeLight, ref _digitalVertices);
+        WFConsoleDigital.Dot(handle, center, 3 * scale, heading == null ? skin.TextMuted : skin.Accent, ref _digitalVertices);
+        WFInstrumentGlass.Round(handle, center, face, scale);
         var text = heading is { } value ? Loc.GetString("wf-console-bearing-value", ("heading", $"{(Math.Round((value % 360 + 360) % 360, 1) % 360):000.0}")) :
             Loc.GetString("wf-console-bearing-offline");
         var width = handle.GetDimensions(_font, text, UIScale).X;

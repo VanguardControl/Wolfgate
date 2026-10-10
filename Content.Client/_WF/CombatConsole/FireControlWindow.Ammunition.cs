@@ -29,16 +29,45 @@ public sealed partial class FireControlWindow
         }
         var reading = WFGaugeReading.Number(supply.Count, 0, Math.Max(1, (double?) supply.Capacity ?? WFGaugeScale.Ceiling(supply.Count ?? 0, 30)),
             "wf-gauge-unit-rounds", tint: supply.Count == 0 && supply.Kind != WFWeaponSupplyKind.Recharging ? Red : Accent);
-        return supply is { Kind: WFWeaponSupplyKind.Recharging, Count: 0 }
-            ? reading with { Text = Loc.GetString("wf-gauge-recharging") } : reading;
+        if (supply is { Kind: WFWeaponSupplyKind.Recharging, Count: 0 })
+            return reading with { Text = Loc.GetString("wf-gauge-recharging") };
+        return supply is { Count: { } rounds, Capacity: > 0 }
+            ? reading with { Text = Loc.GetString("wf-weapon-supply-count", ("count", rounds),
+                ("capacity", supply.Capacity.Value), ("unit", Loc.GetString("wf-gauge-unit-rounds"))) }
+            : reading;
+    }
+
+    /// <summary>Excludes flare launchers without treating off-page weapons as unavailable.</summary>
+    internal bool WfAvailableWeapon(NetEntity uid) => _wfCombat?.FlareLaunchers.Contains(uid) != true;
+
+    /// <summary>Styles the existing selection button once, preserving every upstream handler.</summary>
+    private void WfStyleWeapon(Button button, NetEntity uid)
+    {
+        if (button.Children.OfType<WFWeaponRow>().Any())
+            return;
+        button.AddStyleClass("WfNativeStyle");
+        button.AddStyleClass("WfWeapon");
+        button.Margin = new Thickness(0);
+        button.MinWidth = 0;
+        button.MinHeight = 52;
+        button.RectClipContent = true;
+        button.ClipText = true;
+        button.Label.Visible = false;
+        button.Stylesheet = null;
+        button.StyleBoxOverride = new WFWeaponRowStyleBox(button);
+        button.MuteSounds = true;
+        button.OnPressed -= WFConsoleAudio.Press;
+        button.OnPressed += WFConsoleAudio.Press;
+        button.AddChild(new WFWeaponRow(button, () => WfSupplyReading(uid)));
     }
 
     private bool WfUpdateWeaponSupplyText(Button button, FireControllableEntry controllable)
     {
         var reading = WfSupplyReading(controllable.NetEntity);
-        button.Text = Loc.GetString("wf-console-weapon-label", ("name", controllable.Name), ("supply", reading.Text));
+        button.Text = controllable.Name;
         button.ToolTip = Loc.GetString("wf-console-weapon-supply", ("name", controllable.Name), ("supply", reading.Text));
-        button.ModulateSelfOverride = reading.Tint == Red ? Red : null;
+        button.ModulateSelfOverride = null;
+        button.Children.OfType<WFWeaponRow>().FirstOrDefault()?.Refresh();
         return true;
     }
 }
