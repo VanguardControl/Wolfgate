@@ -255,7 +255,8 @@
     woundPrototype: WFWolfmedCharringWound
 
 # Necrosis (W5) ---------------------------------------------------------------
-# A torso or a head cannot be amputated, so dead tissue there is cut out. A dead limb still has to come off.
+# A torso or a head cannot be amputated, so dead tissue there is cut out and grafted over. A dead limb still has to
+# come off.
 
 - type: entity
   parent: SurgeryBase
@@ -267,6 +268,7 @@
     requirement: SurgeryOpenIncision
     steps:
     - WFSurgeryStepRemoveNecroticFlesh
+    - WFSurgeryStepGraftNecroticFlesh
     - SurgeryStepSealTendWound
   - type: WolfmedSurgeryNecrosisCondition
     parts: [ Torso, Head ]

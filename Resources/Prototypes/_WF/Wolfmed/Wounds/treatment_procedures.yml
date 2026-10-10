@@ -632,7 +632,7 @@
     surgery: true
     done: [ SubjectGone ]
   - text: wolfmed-treatment-step-wolfmed-necrosis-wound-3
-    tool: Scalpel
+    tool: WFWolfmedSkinGraft
     surgery: true
     done: [ SubjectGone ]
   - text: wolfmed-treatment-step-wolfmed-necrosis-wound-4
@@ -884,7 +884,7 @@
     surgery: true
     done: [ SubjectGone ]
   - text: wolfmed-treatment-step-cond-necrosis-2
-    tool: Scalpel
+    tool: WFWolfmedSkinGraft
     surgery: true
     done: [ SubjectGone ]
   - text: wolfmed-treatment-step-cond-necrosis-3

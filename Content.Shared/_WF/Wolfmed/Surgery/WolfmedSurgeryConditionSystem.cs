@@ -87,8 +87,12 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
     /// <summary>An incision closed any other way (Close Incision) ends every procedure begun under it.</summary>
     private void OnIncisionClosed(Entity<IncisionOpenComponent> part, ref ComponentRemove args)
     {
-        if (!_net.IsServer || TerminatingOrDeleted(part) ||
-            !TryComp(part, out WolfmedSurgeryProgressComponent? progress) || progress.Surgeries.Count == 0)
+        if (!_net.IsServer || TerminatingOrDeleted(part))
+            return;
+
+        RemComp<WolfmedNecrosisExcisedComponent>(part);
+
+        if (!TryComp(part, out WolfmedSurgeryProgressComponent? progress) || progress.Surgeries.Count == 0)
             return;
 
         progress.Surgeries.Clear();

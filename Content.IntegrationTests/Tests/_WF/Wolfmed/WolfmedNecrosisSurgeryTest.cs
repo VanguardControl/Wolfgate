@@ -24,8 +24,8 @@ using Robust.Shared.Map;
 namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 
 /// <summary>
-/// A necrotic torso or head cannot be amputated, so Remove Necrotic Flesh cuts the dead tissue out. Driven the way a
-/// surgeon drives it. A dead limb is still an amputation and does not list the surgery.
+/// A necrotic torso or head cannot be amputated, so Remove Necrotic Flesh cuts the dead tissue out and grafts over it.
+/// Driven the way a surgeon drives it. A dead limb is still an amputation and does not list the surgery.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedNecrosisSystem))]
@@ -63,6 +63,11 @@ public sealed class WolfmedNecrosisSurgeryTest : WolfmedGameTest
         await Perform(body, part, surgeon, Surgery, "WFSurgeryStepRemoveNecroticFlesh", "Scalpel");
 
         await Server.WaitAssertion(() =>
+            Assert.That(SEntMan.System<WolfmedNecrosisSystem>().IsNecrotic(part), Is.True, "the cut alone cured the part, with no graft."));
+
+        await Perform(body, part, surgeon, Surgery, "WFSurgeryStepGraftNecroticFlesh", "WFWolfmedSkinGraft");
+
+        await Server.WaitAssertion(() =>
         {
             Assert.Multiple(() =>
             {
@@ -80,6 +85,7 @@ public sealed class WolfmedNecrosisSurgeryTest : WolfmedGameTest
             Assert.Multiple(() =>
             {
                 Assert.That(SEntMan.HasComponent<IncisionOpenComponent>(part), Is.False, "the part is still open.");
+                Assert.That(SEntMan.HasComponent<WolfmedNecrosisExcisedComponent>(part), Is.False, "the closed part still reads as cut and waiting for a graft.");
                 Assert.That(Valid(body, part), Is.False, "the surgery is still offered after it was sealed.");
             });
         });

@@ -50,9 +50,16 @@ public sealed partial class WolfmedSurgeryNecrosisConditionComponent : Component
     [DataField] public List<BodyPartType>? Parts;
 }
 
-/// <summary>Cuts the dead tissue out of the part, through <c>WolfmedNecrosisSystem.RemoveNecrosis</c>.</summary>
+/// <summary>Grafts over the excised tissue: the part stops being dead, through <c>WolfmedNecrosisSystem.RemoveNecrosis</c>.</summary>
 [RegisterComponent, NetworkedComponent]
 public sealed partial class WolfmedSurgeryRemoveNecrosisEffectComponent : Component;
+
+/// <summary>
+/// The dead flesh has been cut away and the part is waiting for its graft. Added by the scalpel step, taken off when
+/// the incision closes, so each step knows where the surgery has got to.
+/// </summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedNecrosisExcisedComponent : Component;
 
 /// <summary>Gates a surgery on the selected part carrying a fracture in a grade/treatment window.</summary>
 [RegisterComponent, NetworkedComponent]
