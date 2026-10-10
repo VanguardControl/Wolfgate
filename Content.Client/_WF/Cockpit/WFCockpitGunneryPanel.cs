@@ -36,6 +36,10 @@ public sealed class WFCockpitGunneryPanel : Control
         }
     }
 
+    /// <summary>Whether this offensive weapon is selected, on any page.</summary>
+    public bool IsSelected(NetEntity weapon) =>
+        _window.WeaponsList.TryGetValue(weapon, out var button) && button.Pressed && _window.WfAvailableWeapon(weapon);
+
     public WFCockpitGunneryPanel()
     {
         HorizontalExpand = VerticalExpand = true;

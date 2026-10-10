@@ -21,6 +21,7 @@ public sealed partial class WFCockpitView
     private Button _gunsMode = default!;
     private WFCockpitGunneryPanel? _gunneryPanel;
     private WFCockpitFireInput _gunneryInput = default!;
+    private WFCockpitAimLines _aimLines = default!;
     private NetEntity? _gunneryConsole;
     private bool _showGunnery;
     private bool _gunneryControlling;
@@ -52,6 +53,15 @@ public sealed partial class WFCockpitView
         _gunneryInput = new WFCockpitFireInput(viewport, navigation, () => _gunneryControlling && !_restored,
             () => _gunneryPanel?.HasSelectedWeapons == true, AimGunnery, _lease);
         AddChild(_gunneryInput);
+        _aimLines = new WFCockpitAimLines(navigation, () => _gunneryControlling ? _gunneryInput.AimTarget : null,
+            weapon => _gunneryPanel?.IsSelected(weapon) == true) { Name = "CockpitAimLines" };
+        navigation.AddChild(_aimLines);
+        LayoutContainer.SetAnchorPreset(_aimLines, LayoutContainer.LayoutPreset.Wide);
+        _lease.Remember(() =>
+        {
+            _aimLines.Orphan();
+            _aimLines.Dispose();
+        });
         _console.WfCockpitGunneryUpdated += UpdateGunnery;
         _lease.Remember(() =>
         {
@@ -84,6 +94,7 @@ public sealed partial class WFCockpitView
             }
             _gunneryPanel.UpdateState(message.State);
         }
+        _aimLines.UpdateWeapons(available ? message.State!.FireControllables : null);
         var visibilityChanged = _gunneryModes.Visible != available;
         _gunneryModes.Visible = available;
         if (!available && _showGunnery)

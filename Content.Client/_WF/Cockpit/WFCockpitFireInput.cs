@@ -43,6 +43,9 @@ public sealed class WFCockpitFireInput : Control
     private EntityCoordinates? _lastAim;
     private Control? _lastAimSurface;
 
+    /// <summary>Where armed weapons point this frame, or null while the pointer is not aiming.</summary>
+    public EntityCoordinates? AimTarget { get; private set; }
+
     /// <summary>Consumes primary clicks while linked and removes every input hook when its lease ends.</summary>
     public WFCockpitFireInput(MainViewport world, ShuttleNavControl navigation, Func<bool> enabled, Func<bool> armed,
         Action<EntityCoordinates, bool> aim, WFCockpitLease lease)
@@ -145,7 +148,9 @@ public sealed class WFCockpitFireInput : Control
         var available = _enabled();
         var surface = IsHovered(_world, pointer) ? (Control) _world : IsHovered(_navigation, pointer) ? _navigation : null;
         var canAim = available && _armed() && focused && !Modified() && UserInterfaceManager.KeyboardFocused == null;
-        var showReticle = canAim && surface != null && TryGetTarget(surface, pointer, out _);
+        EntityCoordinates target = default;
+        var showReticle = canAim && surface != null && TryGetTarget(surface, pointer, out target);
+        AimTarget = showReticle ? target : null;
         SetCursor(_world, showReticle && surface == _world, _worldCursor);
         SetCursor(_navigation, showReticle && surface == _navigation, _navigationCursor);
         if (!leftDown)
@@ -230,6 +235,7 @@ public sealed class WFCockpitFireInput : Control
         {
             _disposed = true;
             _heldSurface = _capturedSurface = null;
+            AimTarget = null;
             _world.OnKeyBindDown -= WorldDown;
             _world.OnKeyBindUp -= WorldUp;
             _world.OnMouseExited -= MouseLeft;

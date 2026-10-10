@@ -10,7 +10,7 @@ ordinary console users retain their own choices. The other camera views remain a
 view, a right click that does not move opens the entity menu on release, and dragging with the right button pans.
 Live pressure, internals and buckle alerts, votes, and speech bubbles remain available around the world
 view. Character hotkeys, inventory controls and the menu bar remain hidden; Escape closes other windows
-or opens the game menu without closing the cockpit helm.
+first and then leaves the cockpit, as the EXIT button does; the helm stays open.
 
 The header centers the existing Wolfgate wordmark between the title and exit control.
 Flight instruments, compact camera controls and propulsion occupy the left column, with motion gauges
@@ -48,7 +48,8 @@ on the same ship. The nearest eligible console is chosen and retained while usab
 switches the left column between flight instruments and the shared paginated weapon bank, including
 selection, saved groups and compact countermeasures. Weapon rows retain readable text and slim supply
 bars; page changes preserve the full selection for firing and group saves. Left-click or hold over the world viewport or NAV plot fires the
-selected weapons on either tab; moving the pointer updates guided-missile aim, and right mouse still pans. A native aiming reticle
+selected weapons on either tab; moving the pointer updates guided-missile aim, and right mouse still pans. While aiming, the NAV plot draws the
+gunnery console's preview line from each selected weapon with a clear line of fire to the aim point. A native aiming reticle
 replaces the pointer over valid world and NAV targets while offensive weapons are selected, independently
 of character combat mode. HUD controls, chat, modifiers, lost focus and an unarmed bank retain ordinary
 cursors and mouse interactions. The cockpit holds gun control while GUNS is open or any weapon is selected,
@@ -117,6 +118,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` is inherited 
 - [`Content.Client/_WF/Cockpit/ShuttleDockControl.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/ShuttleDockControl.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/ShuttleExternalCameraSystem.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/ShuttleExternalCameraSystem.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/ShuttleNavControl.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/ShuttleNavControl.Cockpit.cs)
+- [`Content.Client/_WF/Cockpit/WFCockpitAimLines.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitAimLines.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitFireInput.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitFireInput.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitFuelBank.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitFuelBank.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitFuelLamp.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitFuelLamp.cs)
@@ -205,6 +207,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` is inherited 
   - the cockpit controls chat sizing.
   - preserve the normal chat margins while docked.
 - [`Content.Client/UserInterface/Systems/CloseWindow/CloseRecentWindowUIController.cs`](../../../Content.Client/UserInterface/Systems/CloseWindow/CloseRecentWindowUIController.cs): Escape must not close the hidden helm that supplies the cockpit.
+- [`Content.Client/UserInterface/Systems/EscapeMenu/EscapeContextUIController.cs`](../../../Content.Client/UserInterface/Systems/EscapeMenu/EscapeContextUIController.cs): Escape leaves the cockpit before it opens the game menu.
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
   - report confirmed steering in the initial helm snapshot.
   - keep autopilot lamps current while any helm page is open.

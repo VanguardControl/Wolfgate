@@ -74,6 +74,15 @@ public sealed partial class WFCockpitUIController : UIController
         view.Restore();
     }
 
+    /// <summary>Leaves the cockpit for an Escape press that found no other window to close.</summary>
+    public bool ExitOnEscape()
+    {
+        if (!Active)
+            return false;
+        Exit();
+        return true;
+    }
+
     public override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);

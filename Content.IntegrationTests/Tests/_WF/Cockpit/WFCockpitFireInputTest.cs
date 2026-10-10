@@ -7,6 +7,7 @@ using System.Reflection;
 using Content.Client._WF.Cockpit;
 using Content.Client.Shuttles.UI;
 using Content.Client.UserInterface.Controls;
+using Content.Shared._Mono.FireControl;
 using Content.Shared.Input;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
@@ -242,14 +243,42 @@ public sealed class WFCockpitFireInputTest
             Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Up, pointer);
             Tick(fire, 0.5f, pointer, false);
             Assert.That(aims, Is.Empty, "A linked gun bank without selected weapons must not send hover aim.");
+            Assert.That(fire.AimTarget, Is.Null, "An unarmed bank has no aim point to preview.");
             armed = true;
             Tick(fire, 0, pointer, false);
+            Assert.That(fire.AimTarget, Is.Not.Null, "An armed hover publishes the aim point the preview lines end at.");
+            var transforms = pair.Client.EntMan.System<SharedTransformSystem>();
+            Assert.That(nav.WfCockpitTryGetWorldToView(out var worldToView, out var plotMap, out _), Is.True);
+            Assert.That(plotMap, Is.EqualTo(map));
+            var aimPixel = Vector2.Transform(transforms.ToMapCoordinates(fire.AimTarget!.Value).Position, worldToView);
+            Assert.That((aimPixel - nav.PixelSize / 2f).Length(), Is.LessThan(2f),
+                "The preview transform must agree with the plot's own aim mapping at the pointer.");
+            var east = Vector2.Transform(new Vector2(10, 0), worldToView);
+            var north = Vector2.Transform(new Vector2(0, 10), worldToView);
+            Assert.That(east.X, Is.GreaterThan(aimPixel.X + 1), "World east is plot right.");
+            Assert.That(north.Y, Is.LessThan(aimPixel.Y - 1), "World north is plot up.");
+            var selectedWeapon = new NetEntity(901);
+            var lines = new WFCockpitAimLines(nav, () => fire.AimTarget, weapon => weapon == selectedWeapon);
+            Assert.That(lines.Lines(), Is.Empty, "No weapons, no preview.");
+            var mount = pair.Client.EntMan.SpawnEntity(null, new MapCoordinates(new Vector2(6, 3), map));
+            var idle = pair.Client.EntMan.SpawnEntity(null, new MapCoordinates(new Vector2(-4, 2), map));
+            lines.UpdateWeapons(new[]
+            {
+                new FireControllableEntry { NetEntity = selectedWeapon, Coordinates = pair.Client.EntMan.GetNetCoordinates(new EntityCoordinates(mount, Vector2.Zero)), IgnoresLos = true },
+                new FireControllableEntry { NetEntity = new NetEntity(902), Coordinates = pair.Client.EntMan.GetNetCoordinates(new EntityCoordinates(idle, Vector2.Zero)), IgnoresLos = true },
+            });
+            var drawn = lines.Lines().ToArray();
+            Assert.That(drawn, Has.Length.EqualTo(1), "Only selected weapons draw a preview line.");
+            Assert.That((drawn[0].From - Vector2.Transform(new Vector2(6, 3), worldToView)).Length(), Is.LessThan(0.5f), "The line starts at the weapon.");
+            Assert.That((drawn[0].To - aimPixel).Length(), Is.LessThan(0.5f), "The line ends at the aim point.");
+            lines.Dispose();
             var reticle = nav.CustomCursorShape;
             Assert.That(reticle, Is.Not.Null, "Armed plots use the visible gun-sight asset rather than a platform crosshair.");
             Assert.That(world.Viewport.CustomCursorShape, Is.SameAs(originalWorld), "Only the hovered aiming surface changes cursor.");
             linked = false;
             Tick(fire, 0, pointer, false);
             Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer));
+            Assert.That(fire.AimTarget, Is.Null, "Losing the link removes the aim point and its preview.");
             linked = true;
             Tick(fire, 0, pointer, false);
             Assert.That(nav.CustomCursorShape, Is.SameAs(reticle));

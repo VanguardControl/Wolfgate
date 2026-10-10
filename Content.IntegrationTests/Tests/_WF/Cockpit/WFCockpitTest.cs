@@ -18,6 +18,7 @@ using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Chat.Widgets;
 using Content.Client.UserInterface.Systems.Chat;
+using Content.Client.UserInterface.Systems.EscapeMenu;
 using Content.Client.UserInterface.Systems.Info;
 using Content.Client._WF.Shuttles.UI;
 using Content.Client.UserInterface.Systems.Inventory;
@@ -491,7 +492,11 @@ public sealed class WFCockpitTest : InteractionTest
             Assert.That(chat, Is.InstanceOf<ResizableChatBox>());
             var chatClamp = typeof(ResizableChatBox).GetField("_clampIn", BindingFlags.Instance | BindingFlags.NonPublic)!;
             chatClamp.SetValue(chat, (byte) 0);
-            controller.Exit();
+            Assert.That(recentWindows.HasClosableWindow(), Is.False);
+            typeof(EscapeContextUIController).GetMethod("CloseWindowOrOpenGameMenu", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .Invoke(ui.GetUIController<EscapeContextUIController>(), null);
+            Assert.That(controller.Active, Is.False, "Escape with no other window open must leave the cockpit.");
+            Assert.That(window.IsOpen, Is.True, "Leaving the cockpit with Escape keeps the helm open.");
             Assert.That((byte) chatClamp.GetValue(chat)!, Is.GreaterThan((byte) 0),
                 "A chat box resized or rescaled while docked must be re-clamped when it leaves the cockpit.");
             Assert.That(cockpitShip.FindControl<Label>("DamagedLabel").Text, Is.EqualTo("-"),
