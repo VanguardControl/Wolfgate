@@ -9,7 +9,9 @@
 -- You don't need escalation if they shoot first, or board or hack your ship.
 -- Or if they stay within [color=yellow][bold]512 meters[/bold][/color] of your base for [color=yellow][bold]30 seconds[/bold][/color] after being warned.
 -- Or if you catch them spying or sabotaging on your ship or base (that person only).
--- Or if you are both after the same dead drop, vault server or weapons cache (only there).
+
+- Event POIs (vaults, weapons caches, wrecks and other bluespace events) and Monolithic Fragments are [color=red][bold]conflict zones[/bold][/color], even while COLD. TSF and PDV can fight each other within [color=yellow][bold]512 meters[/bold][/color] of one without escalation.
+-- The fight stays there. Do not hunt them down once they leave.
 
 - [bold]An incident is not a war.[/bold] Force stays with the people and ships involved and ends when one side breaks off.
 
