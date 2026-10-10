@@ -48,7 +48,7 @@ public sealed partial class WFCockpitView
         AddChild(_gunneryModes);
         AddChild(_gunneryDeck);
         var navigation = _console.FindControl<NavScreen>("NavContainer").FindControl<ShuttleNavControl>("NavRadar");
-        _gunneryInput = new WFCockpitFireInput(viewport, navigation, () => _gunneryConsole != null && !_restored,
+        _gunneryInput = new WFCockpitFireInput(viewport, navigation, () => _showGunnery && _gunneryConsole != null && !_restored,
             () => _gunneryPanel?.SelectedWeapons.Count > 0, AimGunnery, _lease);
         AddChild(_gunneryInput);
         _console.WfCockpitGunneryUpdated += UpdateGunnery;
@@ -94,7 +94,13 @@ public sealed partial class WFCockpitView
     /// <summary>Gives gunnery the full left column while retaining selections on the flight page.</summary>
     public void SelectGunnery(bool selected)
     {
-        _showGunnery = selected && _gunneryConsole != null;
+        var controlling = selected && _gunneryConsole != null;
+        if (_showGunnery != controlling)
+        {
+            _gunneryInput.Cancel();
+            _console.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(true, controlling));
+        }
+        _showGunnery = controlling;
         _flightMode.Pressed = !_showGunnery;
         _gunsMode.Pressed = _showGunnery;
         _left.Visible = _camera.Visible = _flight.Visible = !_showGunnery;
@@ -104,13 +110,13 @@ public sealed partial class WFCockpitView
 
     private void SendGunnery(BoundUserInterfaceMessage command)
     {
-        if (!_restored && _gunneryConsole is { } console)
+        if (!_restored && _showGunnery && _gunneryConsole is { } console)
             _console.WfSendCockpitGunnery(new WFCockpitGunneryCommandMessage(console, command));
     }
 
     private void AimGunnery(EntityCoordinates coordinates, bool fire)
     {
-        if (_gunneryConsole == null || _gunneryPanel == null)
+        if (!_showGunnery || _gunneryConsole == null || _gunneryPanel == null || _gunneryPanel.SelectedWeapons.Count == 0)
             return;
         var entities = IoCManager.Resolve<IEntityManager>();
         var selected = fire ? _gunneryPanel.SelectedWeapons.ToList() : new List<NetEntity>();

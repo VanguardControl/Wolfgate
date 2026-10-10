@@ -15,7 +15,14 @@ launched missiles tracking this ship within 250 metres of the console; DISPENSE 
 burst. Automation continues while armed with the window closed. Each launcher shares a 15-second
 burst lockout across consoles after each shot and uses its existing ammunition supply, including
 the Sunny autoloader. Power, server membership, anchoring, firing lanes, FTL and pacifist
-restrictions still apply. Automation defaults to safe.
+restrictions still apply. DISPENSE and AUTO choose a clear lane away from the hull rather than a
+fixed bearing that may point into the ship. Actual emitted Sunny flares can distract an existing hostile
+missile lock once outside the hull, if nearer than its target and inside its detection range and scan arc.
+Unrelated seeker acquisition and ordinary aim-directed weapon commands are unchanged. Automation defaults to safe.
+Threat alerts are freshly scanned when a console reopens. Combat telemetry refreshes four times per second; periodic radar/weapon metadata refreshes once per
+second, with native open/action updates remaining immediate. Unchanged snapshots and cockpit deliveries
+are suppressed. Linked viewers share each snapshot and docking discovery is shared within each server
+tick; cursor guidance does not rebuild radar or ammunition state.
 
 The console and cockpit share a paginated weapon bank with readable names, exact supply values and
 thin ammunition bars. Rows keep a stable height; page arrows appear for larger batteries without
@@ -32,7 +39,7 @@ recompose their controls into module-owned layouts. Retro console faces use orig
 housings, display bezels, buttons, toggles and a compass dial. These are drawn at the current UI
 scale without imported HighFleet textures. Live heading and supply readings reflect authoritative
 telemetry. Control presses play mechanical cues and a new incoming
-lock plays one short warning, throttled across windows. Replicated state changes make no click sounds.
+lock plays one short warning, throttled across windows. Replicated state changes make no click sounds. The OGG cues respect Interface volume.
 The ship tab uses a narrower hull plot beside a six-gauge status bank and compact announcement panel.
 Overlay controls run across the top, keeping the entire page accessible without a scrolling sidebar.
 The access tab gives its framed door map nearly half the page, making it the largest panel beside smaller
@@ -71,6 +78,8 @@ the Wolfgate maintainer. No specific video/channel URL or license text was suppl
 - [`Content.Server/_WF/CombatConsole/WFCombatConsoleComponent.cs`](WFCombatConsoleComponent.cs)
 - [`Content.Server/_WF/CombatConsole/WFCombatConsoleSystem.Ammunition.cs`](WFCombatConsoleSystem.Ammunition.cs)
 - [`Content.Server/_WF/CombatConsole/WFCombatConsoleSystem.cs`](WFCombatConsoleSystem.cs)
+- [`Content.Server/_WF/CombatConsole/WFCombatConsoleSystem.Flares.cs`](WFCombatConsoleSystem.Flares.cs)
+- [`Content.Server/_WF/CombatConsole/WFCombatSnapshotEquality.cs`](WFCombatSnapshotEquality.cs)
 
 ### Shared
 
@@ -98,11 +107,13 @@ the Wolfgate maintainer. No specific video/channel URL or license text was suppl
 - [`Content.Client/_WF/CombatConsole/WFConsoleMetal.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleMetal.cs)
 - [`Content.Client/_WF/CombatConsole/WFConsoleStyleBox.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleStyleBox.cs)
 - [`Content.Client/_WF/CombatConsole/WFConsoleThemeBinding.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleThemeBinding.cs)
+- [`Content.Client/_WF/CombatConsole/WFConsoleThemeSystem.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleThemeSystem.cs)
 - [`Content.Client/_WF/CombatConsole/WFDetentThrottle.cs`](../../../Content.Client/_WF/CombatConsole/WFDetentThrottle.cs)
 - [`Content.Client/_WF/CombatConsole/WFGaugeScale.cs`](../../../Content.Client/_WF/CombatConsole/WFGaugeScale.cs)
 - [`Content.Client/_WF/CombatConsole/WFGlassGauge.cs`](../../../Content.Client/_WF/CombatConsole/WFGlassGauge.cs)
 - [`Content.Client/_WF/CombatConsole/WFHeadingInstrument.cs`](../../../Content.Client/_WF/CombatConsole/WFHeadingInstrument.cs)
 - [`Content.Client/_WF/CombatConsole/WFInstrumentGlass.cs`](../../../Content.Client/_WF/CombatConsole/WFInstrumentGlass.cs)
+- [`Content.Client/_WF/CombatConsole/WFInstrumentText.cs`](../../../Content.Client/_WF/CombatConsole/WFInstrumentText.cs)
 - [`Content.Client/_WF/CombatConsole/WFInstrumentTheme.cs`](../../../Content.Client/_WF/CombatConsole/WFInstrumentTheme.cs)
 - [`Content.Client/_WF/CombatConsole/WFShipAccessLayout.cs`](../../../Content.Client/_WF/CombatConsole/WFShipAccessLayout.cs)
 - [`Content.Client/_WF/CombatConsole/WFWeaponGrid.cs`](../../../Content.Client/_WF/CombatConsole/WFWeaponGrid.cs)
@@ -110,8 +121,10 @@ the Wolfgate maintainer. No specific video/channel URL or license text was suppl
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/CombatConsole/WFButtonTestInput.cs`](../../../Content.IntegrationTests/Tests/_WF/CombatConsole/WFButtonTestInput.cs)
 - [`Content.IntegrationTests/Tests/_WF/CombatConsole/WFCombatConsoleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CombatConsole/WFCombatConsoleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CombatConsole/WFGunnerySupplyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CombatConsole/WFGunnerySupplyTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/CombatConsole/WFMapViewportTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CombatConsole/WFMapViewportTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CombatConsole/WFRadarOverlayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CombatConsole/WFRadarOverlayTest.cs)
 
 ### Unit tests
@@ -131,12 +144,12 @@ the Wolfgate maintainer. No specific video/channel URL or license text was suppl
 ### Audio
 
 - [`Resources/Audio/_WF/CombatConsole/HighFleet/attributions.yml`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/attributions.yml)
-- [`Resources/Audio/_WF/CombatConsole/HighFleet/bearing.wav`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/bearing.wav)
-- [`Resources/Audio/_WF/CombatConsole/HighFleet/key.wav`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/key.wav)
-- [`Resources/Audio/_WF/CombatConsole/HighFleet/selector.wav`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/selector.wav)
-- [`Resources/Audio/_WF/CombatConsole/HighFleet/switch_off.wav`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/switch_off.wav)
-- [`Resources/Audio/_WF/CombatConsole/HighFleet/switch_on.wav`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/switch_on.wav)
-- [`Resources/Audio/_WF/CombatConsole/HighFleet/warning.wav`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/warning.wav)
+- [`Resources/Audio/_WF/CombatConsole/HighFleet/bearing.ogg`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/bearing.ogg)
+- [`Resources/Audio/_WF/CombatConsole/HighFleet/key.ogg`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/key.ogg)
+- [`Resources/Audio/_WF/CombatConsole/HighFleet/selector.ogg`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/selector.ogg)
+- [`Resources/Audio/_WF/CombatConsole/HighFleet/switch_off.ogg`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/switch_off.ogg)
+- [`Resources/Audio/_WF/CombatConsole/HighFleet/switch_on.ogg`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/switch_on.ogg)
+- [`Resources/Audio/_WF/CombatConsole/HighFleet/warning.ogg`](../../../Resources/Audio/_WF/CombatConsole/HighFleet/warning.ogg)
 
 ## Non-modular edits
 
@@ -148,16 +161,24 @@ the Wolfgate maintainer. No specific video/channel URL or license text was suppl
   - compose the instrument deck and fire-group controls.
   - show the actual provider supply instead of treating autoloaders as empty.
   - update groups and countermeasure telemetry.
-- [`Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs`](../../../Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs): align hull meshes with the responsive instrument plot.
+- [`Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs`](../../../Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs)
+  - fill rectangular plots with range rings.
+  - extend plot axes to the viewport corners.
+  - extend the north line across the rectangular viewport.
 - [`Content.Client/Shuttles/UI/ShuttleConsoleWindow.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleConsoleWindow.xaml.cs): compose the flight deck instrument panels.
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs)
   - theme the original radar mode controls.
   - instrument scopes retain these buttons with the selected console palette.
+  - retain hulls visible beyond the shorter edge of a rectangular plot.
 - [`Content.Client/UserInterface/Controls/MapGridControl.xaml.cs`](../../../Content.Client/UserInterface/Controls/MapGridControl.xaml.cs)
+  - cull responsive plots against both viewport dimensions.
   - centre instrument plots in their available viewport.
   - fit scoped radar geometry to the shorter viewport edge.
   - keep plotting and mouse coordinates on the same responsive scale.
-- [`Content.Server/_Mono/FireControl/FireControlSystem.Console.cs`](../../_Mono/FireControl/FireControlSystem.Console.cs): include group memory and countermeasure telemetry.
+- [`Content.Server/_Mono/FireControl/FireControlSystem.Console.cs`](../../_Mono/FireControl/FireControlSystem.Console.cs)
+  - share docking discovery across same-tick gunnery snapshots.
+  - include group memory and countermeasure telemetry.
+  - publish only changed gunnery snapshots.
 - [`Content.Shared/_Mono/FireControl/FireControlMessages.cs`](../../../Content.Shared/_Mono/FireControl/FireControlMessages.cs): carry authoritative groups and countermeasure state.
 - [`Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/flarelauncher.yml`](../../../Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/flarelauncher.yml): identify launchers for shared automatic countermeasure control.
 

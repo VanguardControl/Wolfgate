@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Content.Client._WF.CombatConsole;
 using NUnit.Framework;
@@ -29,6 +30,22 @@ public sealed class WFGaugeScaleTest
         Assert.That(WFGaugeScale.Fraction(3, 5, -5), Is.Null);
         Assert.That(WFGaugeScale.Fraction(3, 0, double.NaN), Is.Null);
         Assert.That(WFGaugeScale.Fraction(0, -double.MaxValue, double.MaxValue), Is.Null);
+    }
+
+    [Test]
+    public void FittedFontScalesStayBoundedAndNeverGrowPastTheirAllowance()
+    {
+        var scales = new HashSet<float>();
+        for (var index = 1; index <= 20000; index++)
+        {
+            var allowance = index / 1000f;
+            var scale = WFGaugeScale.FontScale(allowance);
+            Assert.That(scale, Is.InRange(0f, MathF.Min(4, allowance)));
+            scales.Add(scale);
+        }
+        Assert.That(scales.Count, Is.LessThanOrEqualTo(33), "Resizing must not grow an unbounded set of font atlases.");
+        foreach (var invalid in new[] { -1f, 0f, float.NaN, float.NegativeInfinity, float.PositiveInfinity })
+            Assert.That(WFGaugeScale.FontScale(invalid), Is.Zero);
     }
 
     [TestCase(28)]

@@ -11,11 +11,11 @@ public sealed partial class FireControlWindow
 {
     private WFGaugeReading WfSupplyReading(NetEntity uid)
     {
-        var entry = _currentState?.FireControllables?.FirstOrDefault(weapon => weapon.NetEntity == uid);
         if (!_wfConnected)
             return WFGaugeReading.Number(null, 0, 1, "wf-gauge-unit-rounds");
         if (_currentState is not { } state || !state.Combat.WeaponSupplies.TryGetValue(uid, out var supply))
         {
+            var entry = _currentState?.FireControllables?.FirstOrDefault(weapon => weapon.NetEntity == uid);
             var count = entry?.AmmoCount;
             return WFGaugeReading.Number(count, 0, WFGaugeScale.Ceiling(count ?? 0, 30),
                 "wf-gauge-unit-rounds", tint: count == 0 ? Red : Accent);

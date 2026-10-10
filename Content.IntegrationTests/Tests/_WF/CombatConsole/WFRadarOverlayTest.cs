@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -187,20 +189,9 @@ public sealed class WFRadarOverlayTest
     private static (object, object, object, bool, Vector2) State(ShuttleNavControl radar) =>
         (Field(radar, "_azimuthMode"), Field(radar, "_angleFollow"), Field(radar, "_relativePanning"), radar.ShowPlanetTerrain, radar.Offset);
 
-    private static void Press(BaseButton button)
-    {
-        var handler = (Action<BaseButton.ButtonEventArgs>?) typeof(BaseButton)
-            .GetField("OnPressed", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(button);
-        handler?.Invoke(new BaseButton.ButtonEventArgs(button, null!));
-    }
+    private static void Press(BaseButton button) => WFButtonTestInput.Click(button);
 
-    private static void Toggle(BaseButton button, bool pressed)
-    {
-        button.Pressed = pressed;
-        var handler = (Action<BaseButton.ButtonToggledEventArgs>?) typeof(BaseButton)
-            .GetField("OnToggled", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(button);
-        handler?.Invoke(new BaseButton.ButtonToggledEventArgs(pressed, button, null!));
-    }
+    private static void Toggle(BaseButton button, bool pressed) => WFButtonTestInput.Toggle(button, pressed);
 
     private static void Layout(Control root, Vector2 size)
     {

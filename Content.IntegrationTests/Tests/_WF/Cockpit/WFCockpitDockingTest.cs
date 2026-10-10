@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -5,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using Content.Client._WF.Cockpit;
 using Content.Client._WF.CombatConsole;
+using Content.IntegrationTests.Tests._WF.CombatConsole;
 using Content.Client._WF.Stylesheets;
 using Content.Client.Shuttles.UI;
 using Content.Shared._WF.CCVar;
@@ -69,6 +72,7 @@ public sealed class WFCockpitDockingTest
             var lease = new WFCockpitLease();
             plot.WfCockpitInteraction(lease);
             using var actions = plot.WfCockpitDockActions(lease);
+            pair.Client.ResolveDependency<IUserInterfaceManager>().WindowRoot.AddChild(actions);
             Assert.That(Tree(plot).OfType<Button>(), Is.Empty, "Text panels and action buttons must not cover the approach plot.");
             var buttons = Tree(actions).OfType<Button>().ToArray();
             Assert.That(buttons, Has.Length.EqualTo(3));
@@ -98,7 +102,13 @@ public sealed class WFCockpitDockingTest
             plot.UndockRequest += undocks.Add;
             Press(buttons.Single(button => button.Text == Loc.GetString("shuttle-console-view")));
             Assert.That(plot.ViewedDock, Is.EqualTo(own.Entity));
-            Press(buttons.Single(button => button.Text == Loc.GetString("shuttle-console-dock")));
+            var dock = buttons.Single(button => button.Text == Loc.GetString("shuttle-console-dock"));
+            Assert.That(dock.Disabled, Is.True);
+            Press(dock);
+            Assert.That(requests, Is.Empty, "A dock that has not passed the plot's alignment check cannot send a request.");
+            // This fixture checks leased bindings; a rendered plot supplies spatial docking eligibility.
+            dock.Disabled = false;
+            Press(dock);
             Press(buttons.Single(button => button.Text == Loc.GetString("shuttle-console-undock")));
             Assert.That(requests, Is.EqualTo(new[] { (own.Entity, other.Entity) }));
             Assert.That(undocks, Is.EqualTo(new[] { connected.Entity }));
@@ -124,12 +134,7 @@ public sealed class WFCockpitDockingTest
         Name = "external airlock with a deliberately long operational name",
     };
 
-    private static void Press(BaseButton button)
-    {
-        var handler = (Action<BaseButton.ButtonEventArgs>?) typeof(BaseButton)
-            .GetField("OnPressed", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(button);
-        handler?.Invoke(new BaseButton.ButtonEventArgs(button, null!));
-    }
+    private static void Press(BaseButton button) => WFButtonTestInput.Click(button);
 
     private static IEnumerable<Control> Tree(Control root)
     {

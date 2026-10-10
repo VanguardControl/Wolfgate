@@ -59,7 +59,7 @@ public sealed partial class WFShipShieldShuntScreen
             }
             else
             {
-                WFCockpitInstrumentSizing.Bind(gauge, lease, 100, 160);
+                WFCockpitInstrumentSizing.Bind(gauge, lease, 160);
                 dials.AddChild(gauge);
             }
         }

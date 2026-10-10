@@ -41,8 +41,7 @@ public sealed partial class ShipAlertSystem : EntitySystem
 
         SubscribeLocalEvent<ShipAlertComponent, ComponentStartup>(OnAlertStartup);
 
-        // ShuttleConsoleSystem owns the open/close subscriptions for these consoles; only new message
-        // types may be added here.
+        // This is the sole helm-open subscription; other modules share its notification below.
         Subs.BuiEvents<ShuttleConsoleComponent>(ShuttleConsoleUiKey.Key, subs =>
         {
             subs.Event<BoundUIOpenedEvent>(OnConsoleOpened);
@@ -68,6 +67,7 @@ public sealed partial class ShipAlertSystem : EntitySystem
     /// </summary>
     private void OnConsoleOpened(Entity<ShuttleConsoleComponent> ent, ref BoundUIOpenedEvent args)
     {
+        EntityManager.System<Content.Server.Shuttles.Systems.ShuttleConsoleSystem>().WfCockpitConsoleOpened(ent, args.Actor);
         if (GetConsoleGrid(ent) is not { } grid)
             return;
 

@@ -585,6 +585,7 @@ public partial class RCDSystem : EntitySystem
                 {
                     // Deconstruct object
                     _adminLogger.Add(LogType.RCD, LogImpact.High, $"{ToPrettyString(user):user} used RCD to delete {ToPrettyString(target):target}");
+                    WfRecordHullDeconstruction(target.Value); // WOLFGATE(Shuttles): Successful RCD removal updates the hull design without erasing combat losses.
                     QueueDel(target);
                 }
 

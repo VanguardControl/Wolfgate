@@ -14,6 +14,11 @@ public static class WFGaugeScale
         return (float) Math.Clamp((number - minimum) / (maximum - minimum), 0, 1);
     }
 
+    /// <summary>Bounds font atlas sizes and rounds downward so fitted text never grows past its allowance.</summary>
+    public static float FontScale(float scale) => float.IsFinite(scale) && scale >= 0.125f
+        ? MathF.Floor(MathF.Min(scale, 4) * 8) / 8
+        : 0;
+
     /// <summary>Reserves separate endpoint labels entirely inside the lower dial face.</summary>
     public static UIBox2 RoundLabelBounds(float radius, bool maximum) => UIBox2.FromDimensions(
         new Vector2((maximum ? 0.06f : -0.62f) * radius, 0.50f * radius), new Vector2(0.56f * radius, 0.24f * radius));

@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System.Numerics;
 using System.Linq;
 using System.Reflection;
@@ -28,6 +30,7 @@ using Robust.Client.ResourceManagement;
 using Robust.Client.Graphics;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests._WF.CombatConsole;
 
@@ -77,6 +80,7 @@ public sealed class WFCombatConsoleTest
             em.AddComponent<ProjectileComponent>(missileUid);
             var seeker = em.AddComponent<TargetSeekingComponent>(missileUid);
             seeker.CurrentTarget = map.Grid.Owner;
+            seeker.DetectionRange = 0; // Isolate alert filtering from countermeasure reacquisition.
             seeker.Launched = true;
         });
 
@@ -126,7 +130,7 @@ public sealed class WFCombatConsoleTest
             var resources = pair.Client.ResolveDependency<IResourceCache>();
             foreach (var cue in new[] { "key", "switch_on", "switch_off", "selector", "bearing", "warning" })
             {
-                var clip = resources.GetResource<AudioResource>($"/Audio/_WF/CombatConsole/HighFleet/{cue}.wav").AudioStream;
+                var clip = resources.GetResource<AudioResource>($"/Audio/_WF/CombatConsole/HighFleet/{cue}.ogg").AudioStream;
                 Assert.That(clip.ChannelCount, Is.EqualTo(2), "Console cues use the original stereo switch recordings.");
                 Assert.That(clip.Length.TotalSeconds, Is.InRange(0.07, 1.0), "Short UI cues must decode completely.");
             }
@@ -373,6 +377,7 @@ public sealed class WFCombatConsoleTest
             var meter = gunnery.WeaponsList[gun].Children.OfType<WFWeaponRow>().Single();
             Assert.That(meter.Reading.Value, Is.EqualTo(240));
             Assert.That(meter.Reading.Maximum, Is.GreaterThanOrEqualTo(240));
+            gunnery.OpenCentered();
             foreach (var size in new[] { new Vector2(960, 600), new Vector2(960, 640), new Vector2(1180, 780) })
             {
                 gunnery.SetSize = size;
@@ -384,7 +389,9 @@ public sealed class WFCombatConsoleTest
                 Assert.That(Descendants(battery).OfType<ScrollContainer>(), Is.Empty);
                 Assert.That(gunnery.WeaponsList[gun].Height, Is.InRange(48, 56), "Sparse batteries retain the same readable row height.");
                 var dispense = Descendants(gunnery).OfType<Button>().Single(button => button.HasStyleClass("WfDispense"));
-                Assert.That(dispense.Visible, Is.True);
+                AssertWithin(dispense, countermeasures);
+                AssertWithin(countermeasures, gunnery);
+                AssertWithin(meter, gunnery);
                 Assert.That(countermeasures.Height, Is.LessThan(130), "The flare bank must leave room for the tactical plot.");
                 Assert.That(countermeasures.GlobalPosition.Y + countermeasures.Height,
                     Is.LessThanOrEqualTo(gunnery.GlobalPosition.Y + gunnery.Height));
@@ -415,6 +422,7 @@ public sealed class WFCombatConsoleTest
             gunnery.UpdateStatus(armed);
             gunnery.WeaponsList[gun].Pressed = true;
             gunnery.OpenCentered();
+            helm.SwitchMode(ShuttleConsoleWindow.ShuttleConsoleMode.Nav);
             helm.OpenCentered();
             try
             {
@@ -437,7 +445,26 @@ public sealed class WFCombatConsoleTest
                         console.SetSize = size;
                         console.Measure(size);
                         console.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
-                        Assert.That(console.DesiredSize.X, Is.LessThanOrEqualTo(size.X));
+                        Assert.That(console.VisibleInTree, Is.True);
+                        var visiblePlots = Descendants(console).OfType<ShuttleNavControl>()
+                            .Where(plot => plot.VisibleInTree).ToArray();
+                        Assert.That(visiblePlots, Is.Not.Empty, "The layout check must exercise an actual visible console plot.");
+                        foreach (var plot in visiblePlots)
+                        {
+                            AssertWithin(plot, console);
+                            Assert.That(plot.Width, Is.GreaterThan(150));
+                            Assert.That(plot.Height, Is.GreaterThan(150));
+                        }
+                        var visibleButtons = Descendants(console).OfType<Button>()
+                            .Where(button => button.VisibleInTree).ToArray();
+                        Assert.That(visibleButtons, Is.Not.Empty);
+                        foreach (var button in visibleButtons)
+                        {
+                            Assert.That(button.Width, Is.GreaterThan(0), button.Name);
+                            Assert.That(button.GlobalPosition.X, Is.GreaterThanOrEqualTo(console.GlobalPosition.X - 1), button.Name);
+                            Assert.That(button.GlobalPosition.X + button.Width,
+                                Is.LessThanOrEqualTo(console.GlobalPosition.X + console.Width + 1), button.Name);
+                        }
                         if (console != gunnery)
                             continue;
                         var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
@@ -458,6 +485,84 @@ public sealed class WFCombatConsoleTest
                 gunnery.Close();
                 helm.Close();
                 cfg.SetCVar(WolfgateCVars.UiStyle, originalSkin);
+            }
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ThemeChangesPreserveStatusColorsAndWeaponLayoutsSettle()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
+            var settings = pair.Client.ResolveDependency<IConfigurationManager>();
+            var originalSkin = settings.GetCVar(WolfgateCVars.UiStyle);
+            using var status = new BoxContainer { SetSize = new Vector2(320, 80) };
+            var danger = new StyleBoxFlat { BackgroundColor = Color.FromHex("#9d2828") };
+            var authorized = new StyleBoxFlat { BackgroundColor = Color.FromHex("#23743d") };
+            var panel = new PanelContainer { PanelOverride = danger, MinSize = new Vector2(100, 40) };
+            var button = new Button { Text = "Access granted", ToggleMode = true, Pressed = true, StyleBoxOverride = authorized };
+            status.AddChild(panel);
+            status.AddChild(button);
+            ui.WindowRoot.AddChild(status);
+            var commands = 0;
+            button.OnPressed += _ => commands++;
+            WFInstrumentTheme.Install(status);
+            using var window = new FireControlWindow();
+            window.CombatMessage += _ => commands++;
+            window.OpenCentered();
+            window.SetSize = new Vector2(960, 600);
+            var grid = Descendants(window).OfType<WFWeaponGrid>().Single();
+            var frame = ui.GetType().GetMethod("FrameUpdate")!;
+            void PumpLayout() => frame.Invoke(ui, new object[] { new FrameEventArgs(0) });
+            try
+            {
+                foreach (var skin in new[] { WolfgateSkins.Retro.Id, WolfgateSkins.Futurist.Id })
+                {
+                    settings.SetCVar(WolfgateCVars.UiStyle, skin);
+                    Assert.That(panel.PanelOverride, Is.SameAs(danger), "Theme changes must preserve the source panel's warning status.");
+                    Assert.That(button.StyleBoxOverride, Is.SameAs(authorized), "Theme changes must preserve explicit access/department button colors.");
+                    Assert.That(button.Pressed, Is.True);
+                    for (var count = 13; count <= 32; count++)
+                    {
+                        var entries = Enumerable.Range(1, count).Select(index => new FireControllableEntry(new NetEntity(1200 + index),
+                            default, $"Layout weapon {index}", 6, true)).ToArray();
+                        window.UpdateStatus(new FireControlConsoleBoundInterfaceState(true, entries,
+                            new Content.Shared.Shuttles.BUIStates.NavInterfaceState(250, null, null, new(), default)));
+                        var selected = window.WeaponsList[entries[^1].NetEntity];
+                        selected.Pressed = true;
+                        for (var pass = 0; pass < 3; pass++)
+                            PumpLayout();
+                        Assert.That(grid.PageCount, Is.GreaterThan(1));
+                        grid.SetPage(grid.PageCount - 1);
+                        for (var pass = 0; pass < 3; pass++)
+                            PumpLayout();
+                        var lastPage = grid.PageIndex;
+                        var visible = grid.Children.OfType<Button>().Where(item => item.VisibleInTree).ToArray();
+                        Assert.That(visible, Does.Contain(selected), $"{skin}, {count} weapons: the final row must be reachable.");
+                        var geometry = visible.Select(item => (item.Position, item.Size)).ToArray();
+                        for (var frameIndex = 0; frameIndex < 3; frameIndex++)
+                        {
+                            PumpLayout();
+                            var context = $"{skin}, {count} weapons, settled frame {frameIndex}";
+                            Assert.That(grid.IsMeasureValid && grid.IsArrangeValid, Is.True,
+                                $"{context}: an unchanged battery must not continually invalidate its layout.");
+                            Assert.That(grid.PageIndex, Is.EqualTo(lastPage), context);
+                            Assert.That(grid.Children.OfType<Button>().Where(item => item.VisibleInTree), Is.EqualTo(visible), context);
+                            Assert.That(visible.Select(item => (item.Position, item.Size)), Is.EqualTo(geometry), context);
+                            Assert.That(selected.Pressed, Is.True, context);
+                        }
+                    }
+                }
+                Assert.That(commands, Is.Zero, "Applying skins and settling layout must not transmit controls.");
+            }
+            finally
+            {
+                window.Close();
+                status.Parent?.RemoveChild(status);
+                settings.SetCVar(WolfgateCVars.UiStyle, originalSkin);
             }
         });
         await pair.CleanReturnAsync();

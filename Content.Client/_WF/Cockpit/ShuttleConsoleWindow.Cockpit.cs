@@ -8,6 +8,20 @@ namespace Content.Client.Shuttles.UI;
 public sealed partial class ShuttleConsoleWindow
 {
     private Button? _wfCockpitButton;
+    private bool _wfCockpitShipVisible;
+
+    /// <summary>Requests only hull integrity when the detailed ship page is hidden.</summary>
+    public bool WfHullOnly => WfCockpitActive && !_wfCockpitShipVisible;
+
+    /// <summary>Requests detailed ship telemetry only while its cockpit page is visible.</summary>
+    public void WfCockpitShipVisible(bool visible)
+    {
+        if (_wfCockpitShipVisible == visible)
+            return;
+        _wfCockpitShipVisible = visible;
+        if (WfCockpitActive)
+            ShipStatusActiveChanged?.Invoke(true, ShipContainer.Overlays);
+    }
     /// <summary>The BUI owner whose piloting session supplies the cockpit.</summary>
     public EntityUid? WfCockpitConsole { get; private set; }
     /// <summary>The console is currently presented around the world view.</summary>
@@ -33,6 +47,8 @@ public sealed partial class ShuttleConsoleWindow
     {
         if (active && !WfCockpitActive)
             CameraBar.WfCockpitDefaultView();
+        if (!active && WfCockpitActive)
+            CameraBar.WfCockpitRestoreView();
         WfCockpitActive = active;
         CameraBar.Visible = active || NavContainer.Visible;
         ShipStatusActiveChanged?.Invoke(active || _mode == ShuttleConsoleMode.Ship, ShipContainer.Overlays);

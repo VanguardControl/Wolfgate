@@ -1,19 +1,15 @@
-using Content.Client._WF.CombatConsole;
-using Content.Shared._WF.CCVar;
 using Robust.Client.UserInterface;
-using Robust.Shared.Configuration;
 
 namespace Content.Client._WF.Cockpit;
 
-/// <summary>Gives mechanical cockpit dials more space while preserving the digital instrument layout.</summary>
+/// <summary>Keeps digital and mechanical cockpit instruments equally readable.</summary>
 public static class WFCockpitInstrumentSizing
 {
-    /// <summary>Resizes an instrument with the theme and releases the subscription when the cockpit closes.</summary>
-    public static void Bind(Control instrument, WFCockpitLease lease, float digitalHeight, float retroHeight)
+    /// <summary>Applies the shared dial height and restores borrowed controls when the cockpit closes.</summary>
+    public static void Bind(Control instrument, WFCockpitLease lease, float height)
     {
-        var configuration = IoCManager.Resolve<IConfigurationManager>();
-        void Changed(string _) => instrument.SetHeight = WFInstrumentTheme.Digital ? digitalHeight : retroHeight;
-        configuration.OnValueChanged(WolfgateCVars.UiStyle, Changed, true);
-        lease.Remember(() => configuration.UnsubValueChanged(WolfgateCVars.UiStyle, Changed));
+        var previous = instrument.SetHeight;
+        instrument.SetHeight = height;
+        lease.Remember(() => instrument.SetHeight = previous);
     }
 }

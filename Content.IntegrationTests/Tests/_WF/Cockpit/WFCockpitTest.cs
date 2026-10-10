@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using Content.Shared._Mono.FireControl;
 using Content.Shared.Shuttles.BUIStates;
 using System.Linq;
@@ -7,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using Content.Client._WF.Cockpit;
 using Content.Client._WF.CombatConsole;
+using Content.IntegrationTests.Tests._WF.CombatConsole;
 using Content.Client._WF.ShipShields;
 using Content.Shared.CCVar;
 using Content.Client._WF.Stylesheets;
@@ -14,6 +17,14 @@ using Content.Client.Shuttles.UI;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Screens;
 using Content.Client.UserInterface.Systems.Chat.Widgets;
+using Content.Client.UserInterface.Systems.Chat;
+using Content.Client.UserInterface.Systems.Info;
+using Content.Client._WF.Shuttles.UI;
+using Content.Client.UserInterface.Systems.Inventory;
+using Content.Client.UserInterface.Systems.Inventory.Widgets;
+using Content.Client.UserInterface.Systems.Actions.Widgets;
+using Content.Client.UserInterface.Systems.Alerts.Widgets;
+using Content.Client.UserInterface.Systems.Ghost.Widgets;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
@@ -22,11 +33,13 @@ using Content.Shared._WF.Cockpit;
 using Content.Shared._WF.Shuttles;
 using Content.Shared._WF.ShipShields;
 using Content.Shared.Buckle;
+using Content.Shared.Inventory;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Shuttles.Components;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
@@ -47,7 +60,15 @@ public sealed class WFCockpitTest : InteractionTest
   id: WFCockpitTestMob
   components:
   - type: ContentEye
+  - type: Sprite
+    sprite: Mobs/Species/Human/parts.rsi
+    layers:
+    - state: torso_m
+    - map: [""jumpsuit""]
   - type: Buckle
+  - type: Inventory
+  - type: InventorySlots
+  - type: ContainerContainer
 ";
     protected override string PlayerPrototype => "WFCockpitTestMob";
 
@@ -56,10 +77,13 @@ public sealed class WFCockpitTest : InteractionTest
     {
         EntityUid console = default;
         EntityUid chair = default;
+        EntityUid uniform = default;
         await Server.WaitAssertion(() =>
         {
             console = SEntMan.SpawnEntity("ComputerShuttle", MapData.GridCoords);
             chair = SEntMan.SpawnEntity("ChairPilotSeat", MapData.GridCoords);
+            uniform = SEntMan.SpawnEntity("ClothingUniformJumpsuitColorGrey", MapData.GridCoords);
+            Assert.That(SEntMan.System<InventorySystem>().TryEquip(SPlayer, uniform, "jumpsuit"), Is.True);
             SEntMan.EnsureComponent<PilotComponent>(SPlayer);
             SEntMan.System<ShuttleConsoleSystem>().AddPilot(console, SPlayer, SEntMan.GetComponent<ShuttleConsoleComponent>(console));
             var cockpit = SEntMan.System<SharedWFCockpitSystem>();
@@ -79,18 +103,36 @@ public sealed class WFCockpitTest : InteractionTest
         MainViewport viewport = default!;
         Control viewportParent = default!;
         Control chatParent = default!;
+        InventoryGui inventory = default!;
         var settings = Client.ResolveDependency<IConfigurationManager>();
         var originalTheme = settings.GetCVar(WolfgateCVars.UiStyle);
         var originalLayout = settings.GetCVar(CCVars.UILayout);
+        await Client.WaitAssertion(() => settings.SetCVar(CCVars.UILayout, "Default"));
+        await RunTicks(3);
         await Client.WaitAssertion(() =>
         {
             var ui = Client.ResolveDependency<IUserInterfaceManager>();
             screen = (InGameScreen) ui.ActiveScreen!;
+            inventory = screen.GetWidget<InventoryGui>()!;
+            Assert.That(inventory.InventoryButton.Visible, Is.True, "The fixture must exercise a populated character inventory.");
+            if (!inventory.InventoryHotbar.Visible)
+                ui.GetUIController<InventoryUIController>().ToggleInventoryBar();
+            Assert.That(inventory.InventoryHotbar.TryGetButton("jumpsuit", out var clothing), Is.True);
+            Assert.That(clothing!.Entity, Is.EqualTo(ToClient(SEntMan.GetNetEntity(uniform))));
+            Layout(screen, new Vector2(1130, 636));
+            Assert.That(inventory.InventoryHotbar.Height, Is.GreaterThan(150), "The open clothing grid must contribute to the resize case.");
             normalHud = screen.Children.ToArray();
             chat = screen.ChatBox;
             viewport = screen.GetWidget<MainViewport>()!;
             viewportParent = viewport.Parent!;
             chatParent = chat.Parent!;
+            var alerts = screen.GetWidget<AlertsUI>()!;
+            var alertsParent = alerts.Parent;
+            var votes = Named<BoxContainer>(screen, "VoteMenu");
+            var votesParent = votes.Parent;
+            var speech = (LayoutContainer) typeof(ChatUIController).GetField("_speechBubbleRoot", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .GetValue(ui.GetUIController<ChatUIController>())!;
+            var speechParent = speech.Parent;
             chat.ChatInput.Input.Text = "unfinished cockpit transmission";
             window = new ShuttleConsoleWindow();
             var gunMessages = new List<BoundUserInterfaceMessage>();
@@ -112,9 +154,35 @@ public sealed class WFCockpitTest : InteractionTest
             Assert.That(screen.GetWidget<MainViewport>(), Is.SameAs(viewport));
             Assert.That(screen.GetWidget<ChatBox>() ?? screen.GetWidget<ResizableChatBox>(), Is.SameAs(chat));
             Assert.That(chat.ChatInput.Input.Text, Is.EqualTo("unfinished cockpit transmission"));
-            Assert.That(normalHud.Where(control => control != chat && control != viewport)
+            Assert.That(normalHud.Where(control => control != chat && control != viewport && control is not AlertsUI)
                 .All(control => !control.VisibleInTree), Is.True, "Character HUD controls must stay hidden.");
             var hud = screen.Children.OfType<WFCockpitView>().Single();
+            Assert.That(alerts.VisibleInTree, Is.True, "Crew status alerts must remain available in cockpit.");
+            Assert.That(votes.VisibleInTree, Is.True, "Live votes must not be hidden with character hotkeys.");
+            Assert.That(speech.VisibleInTree, Is.True, "Speech bubbles must continue updating in cockpit.");
+            Assert.That(speech.Parent!.Name, Is.EqualTo("CockpitSpeechBubbles"));
+            var recentWindows = ui.GetUIController<CloseRecentWindowUIController>();
+            using (var popup = new DefaultWindow())
+            {
+                popup.OpenCentered();
+                recentWindows.SetMostRecentlyInteractedWindow(window);
+                Assert.That(recentWindows.HasClosableWindow(), Is.True);
+                recentWindows.CloseMostRecentWindow();
+                Assert.That(popup.IsOpen, Is.False, "Escape must close a real popup behind the hidden helm entry.");
+                Assert.That(window.IsOpen, Is.True);
+                Assert.That(controller.Active, Is.True, "Escape must not close the hidden helm that supplies cockpit controls.");
+                Assert.That(recentWindows.HasClosableWindow(), Is.False, "The hidden helm alone is not an Escape-closeable window.");
+            }
+            Layout(hud, new Vector2(1130, 636));
+            Assert.That(inventory.InventoryHotbar.Visible, Is.True, "Cockpit entry must retain the open clothing panel's state.");
+            Assert.That(inventory.InventoryHotbar.VisibleInTree, Is.False);
+            var actions = screen.GetWidget<ActionsBar>()!;
+            Assert.That(actions.ActionsContainer.Rows, Is.GreaterThanOrEqualTo(1),
+                "A world viewport shorter than the retained inventory must retain a usable action-grid row limit.");
+            Assert.That(float.IsFinite(viewport.Height) && viewport.Height > 0, Is.True,
+                "Resizing with open clothing must complete with a valid world viewport.");
+            Assert.That(viewport.Height, Is.LessThan(inventory.Height + 40),
+                "The fixture must actually exercise the small-viewport/open-inventory resize case.");
             var navigation = Named<NavScreen>(window, "NavContainer");
             var velocity = Named<WFVelocityVectorInstrument>(hud, "CockpitVelocity");
             Assert.That(velocity.Reading, Is.Null, "An unbound helm must not invent a stopped velocity sample.");
@@ -262,7 +330,9 @@ public sealed class WFCockpitTest : InteractionTest
                     Assert.That(mfd.Width, Is.EqualTo(collapsedWidth).Within(1), "Collapse must restore the previous HUD balance.");
                 }
             }
-            Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Single().Active, Is.True);
+            var initialSession = gunMessages.OfType<WFCockpitGunnerySessionMessage>().Single();
+            Assert.That(initialSession.Active, Is.True);
+            Assert.That(initialSession.Controlling, Is.False, "Entering FLIGHT must discover guns without claiming them.");
             Assert.That(Named<Control>(hud, "CockpitGunneryModes").Visible, Is.False,
                 "Cockpits without an authorized nearby gun console keep the original flight layout.");
             var weapon = new FireControllableEntry(new NetEntity(910), default, "Battery", 10, true);
@@ -272,6 +342,8 @@ public sealed class WFCockpitTest : InteractionTest
             window.WfReceiveCockpitGunnery(new WFCockpitGunneryStateMessage(linked, gunState));
             Assert.That(Named<Control>(hud, "CockpitGunneryModes").Visible, Is.True);
             hud.SelectGunnery(true);
+            Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Last().Controlling, Is.True,
+                "GUNS must explicitly request firing control.");
             foreach (var theme in new[] { WolfgateSkins.Retro.Id, WolfgateSkins.Futurist.Id })
             foreach (var size in new[] { new Vector2(1130, 636), new Vector2(1600, 900) })
             {
@@ -296,7 +368,9 @@ public sealed class WFCockpitTest : InteractionTest
             Assert.That(battery.SelectedWeapons, Is.EquivalentTo(new[] { weapon.NetEntity }));
             hud.SelectGunnery(false);
             Assert.That(battery.SelectedWeapons, Is.EquivalentTo(new[] { weapon.NetEntity }),
-                "Returning to flight instruments must retain the weapons aimed through the world or NAV view.");
+                "Returning to FLIGHT must retain the selection for the next GUNS session.");
+            Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Last().Controlling, Is.False,
+                "FLIGHT must release firing control even with weapons selected.");
             window.WfReceiveCockpitGunnery(new WFCockpitGunneryStateMessage(new NetEntity(912), gunState));
             Assert.That(Descendants(hud).OfType<WFCockpitGunneryPanel>().Single().SelectedWeapons, Is.Empty,
                 "A newly linked console cannot inherit the previous console's firing selection.");
@@ -332,8 +406,9 @@ public sealed class WFCockpitTest : InteractionTest
             Assert.That(Descendants(hud).OfType<WFShipShieldShuntScreen>().Single().VisibleInTree, Is.True,
                 "Losing the generator must leave cockpit controls available.");
             controller.Exit();
-            Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Select(message => message.Active),
-                Is.EqualTo(new[] { true, false }), "Exit must release the server-side gun link.");
+            Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Select(message => (message.Active, message.Controlling)),
+                Is.EqualTo(new[] { (true, false), (true, true), (true, false), (true, true), (true, false), (false, false) }),
+                "Only explicit GUNS sessions claim guns; returning to FLIGHT or exiting must release them.");
             Assert.That(screen.Children.ToArray(), Is.EqualTo(normalHud));
             Assert.That((networkPorts.LimitedDimension, networkPorts.Rows, networkPorts.Columns), Is.EqualTo(originalNetworkLayout),
                 "Exiting must restore the helm's original network button rows and columns.");
@@ -341,14 +416,26 @@ public sealed class WFCockpitTest : InteractionTest
                 "Exiting must restore the console's normal plot interactions and annotation sizing.");
             Assert.That(viewport.Parent, Is.SameAs(viewportParent));
             Assert.That(chat.Parent, Is.SameAs(chatParent));
+            Assert.That(alerts.Parent, Is.SameAs(alertsParent));
+            Assert.That(votes.Parent, Is.SameAs(votesParent));
+            Assert.That(speech.Parent, Is.SameAs(speechParent));
+            var restoredCamera = window.FindControl<ShuttleCameraBar>("CameraBar");
+            Assert.That(restoredCamera.FindControl<Button>("HelmButton").Pressed, Is.True,
+                "Leaving cockpit must restore the camera controls shown before temporary EXT mode.");
+            Assert.That(restoredCamera.FindControl<Button>("ExternalButton").Pressed, Is.False);
             Assert.That(window.Visible, Is.True);
+            Layout(screen, new Vector2(1130, 636));
+            Assert.That(inventory.InventoryHotbar.VisibleInTree, Is.True, "Exiting must restore the still-open clothing grid.");
+            Assert.That(inventory.InventoryHotbar.TryGetButton("jumpsuit", out var restoredClothing), Is.True);
+            Assert.That(restoredClothing, Is.SameAs(clothing), "Inventory restoration must retain the live equipment binding.");
+            Assert.That(restoredClothing!.Entity, Is.EqualTo(ToClient(SEntMan.GetNetEntity(uniform))));
             Assert.That(chat.ChatInput.Input.Text, Is.EqualTo("unfinished cockpit transmission"));
             Assert.That(controller.Enter(window), Is.True, "Repeated entry must not leak or duplicate UI widgets.");
             window.Close();
             Assert.That(controller.Active, Is.False, "Closing the helm must return the character HUD.");
             window.OpenCentered();
             Assert.That(controller.Enter(window), Is.True);
-            settings.SetCVar(CCVars.UILayout, originalLayout == "Separated" ? "Default" : "Separated");
+            settings.SetCVar(CCVars.UILayout, "Separated");
             Assert.That(controller.Active, Is.False, "Changing HUD layout must first restore the old screen.");
         });
         await RunTicks(3);
@@ -380,6 +467,45 @@ public sealed class WFCockpitTest : InteractionTest
             Assert.That(screen.Children.ToArray(), Is.EqualTo(normalHud));
             Assert.That(controller.Enter(window), Is.False);
             Assert.That(chat.ChatInput.Input.Text, Is.EqualTo("unfinished cockpit transmission"));
+        });
+        await RunSeconds(0.5f);
+        await Server.WaitAssertion(() =>
+            Assert.That(SEntMan.System<SharedBuckleSystem>().TryBuckle(SPlayer, SPlayer, chair), Is.True));
+        await RunTicks(5);
+        GhostGui ghostHud = default!;
+        await Client.WaitAssertion(() =>
+        {
+            var ui = Client.ResolveDependency<IUserInterfaceManager>();
+            ghostHud = screen.GetWidget<GhostGui>()!;
+            Assert.That(ghostHud.Visible, Is.False);
+            Assert.That(ui.GetUIController<WFCockpitUIController>().Enter(window), Is.True);
+        });
+        EntityUid ghost = default;
+        await Server.WaitAssertion(() =>
+        {
+            ghost = SEntMan.SpawnEntity("MobObserver", MapData.GridCoords);
+            Server.PlayerMan.SetAttachedEntity(ServerSession, ghost);
+        });
+        await RunTicks(5);
+        await Client.WaitAssertion(() =>
+        {
+            var controller = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<WFCockpitUIController>();
+            controller.FrameUpdate(new FrameEventArgs(0.1f));
+            Assert.That(controller.Active, Is.False, "Changing bodies must end the old cockpit session.");
+            Assert.That(screen.GetWidget<GhostGui>(), Is.SameAs(ghostHud));
+            Assert.That(ghostHud.VisibleInTree, Is.True,
+                "Restoring the HUD must preserve the new ghost body's visibility update.");
+            Assert.That(screen.GetWidget<InventoryGui>()!.InventoryButton.Visible, Is.False,
+                "The departed pilot's clothing controls must not be restored over the ghost HUD.");
+        });
+        await Server.WaitAssertion(() =>
+        {
+            Server.PlayerMan.SetAttachedEntity(ServerSession, SPlayer);
+            SEntMan.DeleteEntity(ghost);
+        });
+        await RunTicks(5);
+        await Client.WaitAssertion(() =>
+        {
             window.Dispose();
             settings.SetCVar(WolfgateCVars.UiStyle, originalTheme);
             settings.SetCVar(CCVars.UILayout, originalLayout);
@@ -425,11 +551,15 @@ public sealed class WFCockpitTest : InteractionTest
         Assert.That(Ancestors(status, flight).OfType<ScrollContainer>(), Is.Empty,
             "Flight-status lamps must remain visible when flight controls need to scroll.");
         var heading = Named<WFHeadingInstrument>(hud, "CockpitHeading");
-        Assert.That(heading.Height, Is.EqualTo(theme == WolfgateSkins.Retro.Id ? 176 : 106).Within(1));
+        Assert.That(heading.Height, Is.EqualTo(176).Within(1));
+        var speedometer = Named<WFGlassGauge>(hud, "CockpitSpeedometer");
+        Assert.That(speedometer.Strip, Is.True);
+        Assert.That(speedometer.Width, Is.EqualTo(heading.Width).Within(1));
+        Assert.That(speedometer.GlobalPosition.Y, Is.GreaterThanOrEqualTo(Bottom(heading)));
         var velocity = Named<WFVelocityVectorInstrument>(hud, "CockpitVelocity");
         Assert.That(velocity.VisibleInTree, Is.True);
-        Assert.That(velocity.Height, Is.EqualTo(theme == WolfgateSkins.Retro.Id ? 160 : 100).Within(1),
-            "The vector instrument must retain the existing speed dial's theme-specific footprint.");
+        Assert.That(velocity.Height, Is.EqualTo(160).Within(1),
+            "Digital and mechanical vector instruments must retain the same readable footprint.");
         Assert.That(velocity.Width, Is.GreaterThanOrEqualTo(88));
         Assert.That(velocity.GlobalPosition.X, Is.GreaterThanOrEqualTo(instruments.GlobalPosition.X));
         Assert.That(Right(velocity), Is.LessThanOrEqualTo(Right(instruments)));
@@ -437,8 +567,8 @@ public sealed class WFCockpitTest : InteractionTest
         Assert.That(Bottom(velocity), Is.LessThanOrEqualTo(Bottom(velocity.Parent!)),
             "The vector dial must fit the original speed/yaw row even when the instrument bank needs to scroll.");
         foreach (var gauge in Descendants(instruments).OfType<WFGlassGauge>().Where(gauge => !gauge.Strip))
-            Assert.That(gauge.Height, Is.EqualTo(theme == WolfgateSkins.Retro.Id ? 160 : 100).Within(1),
-                "Retro mechanical dials need a readable full-size face.");
+            Assert.That(gauge.Height, Is.EqualTo(160).Within(1),
+                "Both instrument themes need the same readable full-size face.");
         Assert.That(comms.GlobalPosition.Y, Is.GreaterThanOrEqualTo(Bottom(viewport)));
         Assert.That(shields.GlobalPosition.Y, Is.GreaterThanOrEqualTo(Bottom(viewport)));
         Assert.That(shields.GlobalPosition.X, Is.GreaterThanOrEqualTo(Right(comms)));
@@ -504,13 +634,7 @@ public sealed class WFCockpitTest : InteractionTest
             $"{context}: the {label.Text} button must display its complete label.");
     }
 
-    private static void Toggle(BaseButton button, bool pressed)
-    {
-        button.Pressed = pressed;
-        var handler = (Action<BaseButton.ButtonToggledEventArgs>?) typeof(BaseButton)
-            .GetField("OnToggled", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(button);
-        handler?.Invoke(new BaseButton.ButtonToggledEventArgs(pressed, button, null!));
-    }
+    private static void Toggle(BaseButton button, bool pressed) => WFButtonTestInput.Toggle(button, pressed);
 
     private static T Named<T>(Control root, string name) where T : Control =>
         Descendants(root).OfType<T>().Single(control => control.Name == name);
@@ -525,12 +649,7 @@ public sealed class WFCockpitTest : InteractionTest
             yield return parent;
     }
 
-    private static void Press(BaseButton button)
-    {
-        var handler = (Action<BaseButton.ButtonEventArgs>?) typeof(BaseButton)
-            .GetField("OnPressed", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(button);
-        handler?.Invoke(new BaseButton.ButtonEventArgs(button, null!));
-    }
+    private static void Press(BaseButton button) => WFButtonTestInput.Click(button);
 
     private static IEnumerable<Control> Descendants(Control root)
     {

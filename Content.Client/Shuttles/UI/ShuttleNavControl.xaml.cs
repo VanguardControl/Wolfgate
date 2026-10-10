@@ -809,7 +809,10 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         var shuttleToView = Matrix3x2.CreateScale(new Vector2(MinimapScale, -MinimapScale)) * Matrix3x2.CreateTranslation(MidPointVector);
         var worldToView = worldToShuttle * shuttleToView;
 
-        var viewBounds = new Box2Rotated(new Box2(-WorldRange, -WorldRange, WorldRange, WorldRange).Translated(mapPos.Position), worldRot, mapPos.Position);
+        // WOLFGATE(CombatConsole) START: retain hulls visible beyond the shorter edge of a rectangular plot.
+        // var viewBounds = new Box2Rotated(new Box2(-WorldRange, -WorldRange, WorldRange, WorldRange).Translated(mapPos.Position), worldRot, mapPos.Position);
+        var viewBounds = new Box2Rotated(new Box2(-WorldRangeVector, WorldRangeVector).Translated(mapPos.Position), worldRot, mapPos.Position);
+        // WOLFGATE END
         var viewAABB = viewBounds.CalcBoundingBox();
 
         foreach (var grid in _grids)

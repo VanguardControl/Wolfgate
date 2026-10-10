@@ -44,7 +44,7 @@ public sealed partial class NavScreen
         var travel = new WFGlassReadout(GridTravelState) { Visible = GridTravelState.Visible };
         GridTravelState.OnVisibilityChanged += control => travel.Visible = control.Visible;
         ShuttleDesignation.ClipText = GridPosition.ClipText = GridTravelState.ClipText = true;
-        var telemetry = Panel("wf-console-telemetry", Column(Row(speed, yaw), forward, lateral,
+        var telemetry = Panel("wf-console-telemetry", Column(new WFGlassReadout(NavDisplayLabel), Row(speed, yaw), forward, lateral,
             new WFGlassReadout(Column(ShuttleDesignation, GridPosition)), altitude, climb,
             travel, ReadonlyDisplay));
         var motion = Panel("wf-console-motion", Column(DampenerModeButtons, MaximumShuttleSpeedBox));

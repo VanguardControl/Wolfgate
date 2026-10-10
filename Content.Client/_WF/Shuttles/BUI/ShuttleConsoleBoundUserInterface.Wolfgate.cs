@@ -13,7 +13,7 @@ public sealed partial class ShuttleConsoleBoundUserInterface
         _window.WfSetCockpitConsole(Owner); // WOLFGATE(Cockpit): bind fullscreen entry to this helm session.
         WfCockpitGunneryOpen(); // WOLFGATE(Cockpit): route the optional weapon bank through the helm.
         _window.ShipStatusActiveChanged += (active, overlays) =>
-            SendMessage(new ShipStatusRequestMessage(active, overlays));
+            SendMessage(new ShipStatusRequestMessage(active, overlays, _window.WfHullOnly));
 
         _window.ShipCodeRequested += code => SendMessage(new ShipAlertCodeRequestMessage(code));
         _window.ShipGeneralQuartersRequested += active => SendMessage(new ShipGeneralQuartersRequestMessage(active));
@@ -21,7 +21,8 @@ public sealed partial class ShuttleConsoleBoundUserInterface
         _window.ShipSoundRequested += url => SendMessage(new ShipPaInternetSoundRequestMessage(url));
         _window.ShipSoundStopRequested += () => SendMessage(new ShipPaInternetSoundStopMessage());
         _window.ShipCollisionAlertRequested += enabled => SendMessage(new CollisionWarningToggleMessage(enabled));
-        _window.ShipCameraRequested += (view, zoom, lowLight) => SendMessage(new ShuttleCameraSetMessage(view, zoom, lowLight));
+        // WOLFGATE(Cockpit): preserve camera requests in the same input order as cockpit entry and exit.
+        _window.ShipCameraRequested += (view, zoom, lowLight) => SendPredictedMessage(new ShuttleCameraSetMessage(view, zoom, lowLight));
     }
 
     protected override void ReceiveMessage(BoundUserInterfaceMessage message)

@@ -18,10 +18,14 @@ public sealed class ShipStatusRequestMessage : BoundUserInterfaceMessage
     /// </summary>
     public ShipOverlays Overlays;
 
-    public ShipStatusRequestMessage(bool active, ShipOverlays overlays)
+    /// <summary>Requests only the permanent cockpit hull gauge while the detailed SHP page is hidden.</summary>
+    public bool HullOnly;
+
+    public ShipStatusRequestMessage(bool active, ShipOverlays overlays, bool hullOnly = false)
     {
         Active = active;
         Overlays = overlays;
+        HullOnly = hullOnly;
     }
 }
 

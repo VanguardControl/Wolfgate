@@ -46,6 +46,18 @@ public sealed class WFCockpitVelocityTest
         Assert.That(reading.BearingDegrees, Is.EqualTo(143.130102).Within(0.0001));
     }
 
+    [TestCase(0, 0)]
+    [TestCase(1, 0.01f)]
+    [TestCase(25, 0.25f)]
+    [TestCase(50, 0.5f)]
+    [TestCase(100, 1)]
+    [TestCase(200, 1)]
+    public void ArrowLengthGrowsProportionallyFromRest(float speed, float expected)
+    {
+        var reading = WFCockpitVelocityReading.FromWorld(new Vector2(speed, 0), Angle.Zero)!.Value;
+        Assert.That(reading.SpeedFraction, Is.EqualTo(expected).Within(0.0001f));
+    }
+
     [Test]
     public void StoppedAndUnavailableSamplesAreDifferent()
     {

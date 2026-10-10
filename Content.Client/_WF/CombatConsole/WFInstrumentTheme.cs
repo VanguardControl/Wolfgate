@@ -3,8 +3,6 @@ using System.Numerics;
 using Content.Client.Shuttles.UI;
 using Content.Client._WF.Stylesheets;
 using Content.Client.Resources;
-using Content.Shared._WF.CCVar;
-using Robust.Shared.Configuration;
 using Content.Client.UserInterface.Controls;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -19,7 +17,7 @@ namespace Content.Client._WF.CombatConsole;
 public static class WFInstrumentTheme
 {
     /// <summary>Uses the same authoritative palette as the player's Wolfgate UI style.</summary>
-    public static WolfgateSkin Skin => WolfgateSkins.Get(IoCManager.Resolve<IConfigurationManager>().GetCVar(WolfgateCVars.UiStyle));
+    public static WolfgateSkin Skin => IoCManager.Resolve<IEntityManager>().System<WFConsoleThemeSystem>().Skin;
     /// <summary>Futurist instruments replace physical chrome with luminous digital geometry.</summary>
     public static bool Digital => Skin == WolfgateSkins.Futurist;
     public static Color Accent => Skin.Accent;
@@ -72,7 +70,9 @@ public static class WFInstrumentTheme
         }
         else
             return;
-        button.StyleBoxOverride = null;
+        // Explicit overrides encode status and access colors owned by the source panel.
+        if (button.StyleBoxOverride is WFConsoleStyleBox)
+            button.StyleBoxOverride = null;
         button.MuteSounds = true;
         button.OnPressed -= WFConsoleAudio.Press;
         if (!button.HasStyleClass("WfBearingDetent"))
@@ -253,7 +253,8 @@ public static class WFInstrumentTheme
                 color = Remap(old, previous);
             label.FontColorOverride = color == Color.FromHex("#00ff2a") ? Accent : color ?? Cream;
         }
-        else if (root is PanelContainer panel && root is not WFInstrumentPanel && root is not WFScreenBezel && root is not WFGlassReadout)
+        else if (root is PanelContainer panel && root is not WFInstrumentPanel && root is not WFScreenBezel && root is not WFGlassReadout &&
+            panel.PanelOverride is null or WFConsoleFrameStyleBox)
             panel.PanelOverride = new WFConsoleFrameStyleBox(4);
         foreach (var child in root.Children.ToArray())
             Apply(child, previous);

@@ -2,6 +2,7 @@ using System.Numerics;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
+using Robust.Shared.Timing;
 
 namespace Content.Client._WF.CombatConsole;
 
@@ -12,6 +13,10 @@ public sealed class WFHeadingInstrument : Control
     private DrawVertexUV2DColor[] _digitalVertices = Array.Empty<DrawVertexUV2DColor>();
     private readonly Font _font;
     private readonly Font _scaleFont;
+    private readonly string[] _scaleLabels = new string[12];
+    private double? _headingValue;
+    private string _headingText = string.Empty;
+    private float _sampleElapsed;
 
     public WFHeadingInstrument(Func<double?> heading)
     {
@@ -23,6 +28,30 @@ public sealed class WFHeadingInstrument : Control
             .GetResource<FontResource>("/Fonts/RobotoMono/RobotoMono-Regular.ttf");
         _font = new VectorFont(font, 12);
         _scaleFont = new VectorFont(font, 9);
+        for (var i = 0; i < _scaleLabels.Length; i++)
+            _scaleLabels[i] = (i * 30).ToString();
+        _headingValue = ReadHeading();
+        Sample();
+    }
+
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+        _headingValue = ReadHeading();
+        _sampleElapsed += args.DeltaSeconds;
+        if (_sampleElapsed < 0.1f)
+            return;
+        _sampleElapsed %= 0.1f;
+        Sample();
+    }
+
+    private double? ReadHeading() => _heading() is { } value && double.IsFinite(value) ? value : null;
+
+    private void Sample()
+    {
+        _headingText = _headingValue is { } value
+            ? Loc.GetString("wf-console-bearing-value", ("heading", $"{(Math.Round((value % 360 + 360) % 360, 1) % 360):000.0}"))
+            : Loc.GetString("wf-console-bearing-offline");
     }
 
     protected override void Draw(DrawingHandleScreen handle)
@@ -63,17 +92,17 @@ public sealed class WFHeadingInstrument : Control
             handle.DrawLine(center + direction * (face - length), center + direction * (face - scale),
                 major ? skin.Text : skin.TextMuted.WithAlpha(0.65f));
         }
-        var fontScale = scale * 0.92f;
-        for (var i = 0; i < 12; i++)
+        var fontScale = WFGaugeScale.FontScale(scale * 0.92f);
+        for (var i = 0; fontScale > 0 && i < _scaleLabels.Length; i++)
         {
             var angle = i * MathF.Tau / 12 - MathF.PI / 2;
             var position = center + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * face * 0.73f;
-            var label = (i * 30).ToString();
+            var label = _scaleLabels[i];
             var dimensions = handle.GetDimensions(_scaleFont, label, fontScale);
             handle.DrawString(_scaleFont, position - dimensions / 2, label, fontScale,
                 i % 3 == 0 ? skin.Text : skin.TextMuted);
         }
-        var heading = _heading();
+        var heading = _headingValue;
         if (heading is { } degrees)
         {
             var angle = (float) MathHelper.DegreesToRadians(degrees - 90);
@@ -90,17 +119,19 @@ public sealed class WFHeadingInstrument : Control
         WFConsoleDigital.Dot(handle, center, 5 * scale, skin.EdgeLight, ref _digitalVertices);
         WFConsoleDigital.Dot(handle, center, 3 * scale, heading == null ? skin.TextMuted : skin.Accent, ref _digitalVertices);
         WFInstrumentGlass.Round(handle, center, face, scale);
-        var text = heading is { } value ? Loc.GetString("wf-console-bearing-value", ("heading", $"{(Math.Round((value % 360 + 360) % 360, 1) % 360):000.0}")) :
-            Loc.GetString("wf-console-bearing-offline");
-        var width = handle.GetDimensions(_font, text, UIScale).X;
-        handle.DrawString(_font, new Vector2((PixelWidth - width) / 2, PixelHeight - 4 * UIScale - _font.GetAscent(UIScale)),
-            text, UIScale, WFInstrumentTheme.Accent);
+        var textScale = WFInstrumentText.FitScale(handle, _font, _headingText, UIScale, PixelWidth - 8 * UIScale, 20 * UIScale);
+        if (textScale > 0)
+        {
+            var width = handle.GetDimensions(_font, _headingText, textScale).X;
+            handle.DrawString(_font, new Vector2((PixelWidth - width) / 2, PixelHeight - 4 * UIScale - _font.GetAscent(textScale)),
+                _headingText, textScale, WFInstrumentTheme.Accent);
+        }
     }
     private void DrawDigital(DrawingHandleScreen handle)
     {
         var skin = WFInstrumentTheme.Skin;
         WFConsoleDigital.Panel(handle, new UIBox2(Vector2.Zero, PixelSize), UIScale, skin.Glass, skin.EdgeSoft);
-        var radius = MathF.Min(PixelWidth / 2 - 14 * UIScale, PixelHeight / 2 - 12 * UIScale);
+        var radius = MathF.Max(1, MathF.Min(PixelWidth, PixelHeight) / 2f - 3 * UIScale);
         var center = new Vector2(PixelWidth / 2, PixelHeight / 2);
         WFConsoleDigital.Arc(handle, center, radius, UIScale, 0, MathF.Tau, skin.EdgeLight, ref _digitalVertices);
         for (var i = 0; i < 36; i++)
@@ -110,7 +141,7 @@ public sealed class WFHeadingInstrument : Control
             handle.DrawLine(center + direction * (radius - (i % 9 == 0 ? 8 : 4) * UIScale),
                 center + direction * radius, i % 9 == 0 ? skin.Accent : skin.EdgeLight);
         }
-        var heading = _heading();
+        var heading = _headingValue;
         if (heading is { } degrees)
         {
             var angle = (float) MathHelper.DegreesToRadians(degrees - 90);
@@ -118,11 +149,13 @@ public sealed class WFHeadingInstrument : Control
             var tip = center + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * (radius - 5 * UIScale);
             WFConsoleDigital.Dot(handle, tip, 3 * UIScale, skin.Accent, ref _digitalVertices);
         }
-        var text = heading is { } value
-            ? Loc.GetString("wf-console-bearing-value", ("heading", $"{(Math.Round((value % 360 + 360) % 360, 1) % 360):000.0}"))
-            : Loc.GetString("wf-console-bearing-offline");
-        var size = handle.GetDimensions(_font, text, UIScale);
-        handle.DrawString(_font, center - size / 2, text, UIScale, heading == null ? skin.TextMuted : skin.Accent);
+        var textScale = WFInstrumentText.FitScale(handle, _font, _headingText, UIScale,
+            MathF.Max(1, (radius - 12 * UIScale) * 2), 24 * UIScale);
+        if (textScale > 0)
+        {
+            var size = handle.GetDimensions(_font, _headingText, textScale);
+            handle.DrawString(_font, center - size / 2, _headingText, textScale, heading == null ? skin.TextMuted : skin.Accent);
+        }
         handle.DrawLine(center + new Vector2(-18, 17) * UIScale, center + new Vector2(18, 17) * UIScale, skin.AccentDim);
     }
 

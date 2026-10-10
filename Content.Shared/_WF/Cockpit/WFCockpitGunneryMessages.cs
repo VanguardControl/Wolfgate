@@ -5,9 +5,10 @@ namespace Content.Shared._WF.Cockpit;
 
 /// <summary>Starts or ends the seated pilot's optional gunnery link through the helm.</summary>
 [Serializable, NetSerializable]
-public sealed class WFCockpitGunnerySessionMessage(bool active) : BoundUserInterfaceMessage
+public sealed class WFCockpitGunnerySessionMessage(bool active, bool controlling = false) : BoundUserInterfaceMessage
 {
     public bool Active = active;
+    public bool Controlling = controlling;
 }
 
 /// <summary>Targets one previously advertised gunnery console with an existing, whitelisted command.</summary>

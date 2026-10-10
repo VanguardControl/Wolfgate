@@ -74,7 +74,6 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
         _sawmill = _log.GetSawmill("shuttle-console");
 
         InitializeDeviceLinking();
-        InitializeWfCockpitStatus(); // WOLFGATE(Cockpit): refresh the autopilot lamp for each new helm viewer.
 
         SubscribeLocalEvent<ShuttleConsoleComponent, ComponentStartup>(OnConsoleStartup);
         SubscribeLocalEvent<ShuttleConsoleComponent, ComponentShutdown>(OnConsoleShutdown);

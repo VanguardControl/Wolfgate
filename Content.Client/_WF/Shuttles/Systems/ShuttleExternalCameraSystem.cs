@@ -351,7 +351,7 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
         if (!behind)
             return;
 
-        _ui.ClientSendUiMessage(console, ShuttleConsoleUiKey.Key, new ShuttleCameraPanMessage(_look));
+        WfSendOrderedCameraInput(console, new ShuttleCameraPanMessage(_look)); // WOLFGATE(Cockpit): order pans with camera session changes.
         _sentLook = _look;
         _sentAt = now;
     }
@@ -379,7 +379,7 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
         if (now < _nextZoom || _sentZoom == pending)
             return;
 
-        _ui.ClientSendUiMessage(console, ShuttleConsoleUiKey.Key, new ShuttleCameraZoomMessage(pending));
+        WfSendOrderedCameraInput(console, new ShuttleCameraZoomMessage(pending)); // WOLFGATE(Cockpit): order wheel zoom with camera session changes.
         _sentZoom = pending;
         _nextZoom = now + ZoomInterval;
     }

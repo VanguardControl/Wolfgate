@@ -27,7 +27,7 @@ public sealed partial class ShipScreen
         {
             lease.Take(gauge);
             gauge.MinWidth = 88;
-            WFCockpitInstrumentSizing.Bind(gauge, lease, 100, 160);
+            WFCockpitInstrumentSizing.Bind(gauge, lease, 160);
             telemetry.AddChild(gauge);
         }
         Orientation = LayoutOrientation.Vertical;

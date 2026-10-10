@@ -38,6 +38,7 @@ public sealed partial class WFCombatConsoleSystem : EntitySystem
         SubscribeLocalEvent<FireControlConsoleComponent, WFAutomaticFlaresMessage>(OnAutomatic);
         SubscribeLocalEvent<FireControlConsoleComponent, WFDispenseFlaresMessage>(OnDispense);
         SubscribeLocalEvent<WFFlareLauncherComponent, GunShotEvent>(OnFlareShot);
+        SubscribeLocalEvent<WFFlareLauncherComponent, AmmoShotEvent>(OnFlareProjectiles);
     }
 
     /// <summary>Checks the powered console and server still belong to the same connected grid.</summary>
@@ -92,8 +93,9 @@ public sealed partial class WFCombatConsoleSystem : EntitySystem
 
     private void OnDispense(EntityUid uid, FireControlConsoleComponent console, WFDispenseFlaresMessage args)
     {
-        if (CanOperate(uid, console, args.Actor, out var serverUid, out var server))
-            Dispense(serverUid, server);
+        if (!CanOperate(uid, console, args.Actor, out var serverUid, out var server))
+            return;
+        Dispense(serverUid, server);
         _fireControl.WfRefreshConsole(uid);
     }
 
@@ -107,7 +109,7 @@ public sealed partial class WFCombatConsoleSystem : EntitySystem
         if (!TryGetServer(uid, console, out _, out var server))
             return state;
 
-        state.Threats = settings.Threats;
+        state.Threats = settings.Threats = CountThreats(uid, server);
         var shortestCooldown = float.MaxValue;
         foreach (var weapon in server.Controlled)
         {
@@ -174,12 +176,33 @@ public sealed partial class WFCombatConsoleSystem : EntitySystem
                 NextBurst(weapon, flare) > _timing.CurTime || !_power.IsPowered(weapon) ||
                 GetAmmunition(weapon) <= 0 && !HasUnlimitedSupply(weapon) ||
                 Transform(weapon).GridUid != grid || !Transform(weapon).Anchored ||
-                !TryComp<FireControllableComponent>(weapon, out var control) || control.ControllingServer != serverUid)
+                !TryComp<FireControllableComponent>(weapon, out var control) || control.ControllingServer != serverUid ||
+                !_fireControl.WfFlareTarget(weapon, out var target))
                 continue;
 
-            _fireControl.FireWeapons(serverUid, new List<NetEntity> { GetNetEntity(weapon) },
-                GetNetCoordinates(new EntityCoordinates(weapon, new Vector2(0, -30))), server);
+            _fireControl.FireWeapons(serverUid, new List<NetEntity> { GetNetEntity(weapon) }, target, server);
         }
+    }
+
+    /// <summary>Counts current hostile locks when publishing state, including the first reopen after inactivity.</summary>
+    private int CountThreats(EntityUid uid, FireControlServerComponent server)
+    {
+        var count = 0;
+        var grid = server.ConnectedGrid!.Value;
+        var origin = _transform.GetMapCoordinates(uid);
+        var seekers = EntityQueryEnumerator<TargetSeekingComponent, ProjectileComponent, TransformComponent>();
+        while (seekers.MoveNext(out _, out var seeker, out var projectile, out var xform))
+        {
+            if (projectile.ProjectileSpent || !seeker.Launched || !seeker.ExposesTracking || seeker.SeekingDisabled ||
+                seeker.CurrentTarget is not { } target || TerminatingOrDeleted(target) ||
+                target != grid && Transform(target).GridUid != grid || xform.MapID != origin.MapId ||
+                projectile.Shooter is { } shooter && TryComp(shooter, out TransformComponent? shooterXform) &&
+                shooterXform.GridUid == grid)
+                continue;
+            if (Vector2.DistanceSquared(origin.Position, _transform.GetWorldPosition(xform)) <= ThreatRange * ThreatRange)
+                count++;
+        }
+        return count;
     }
 
     public override void Update(float frameTime)
@@ -187,36 +210,24 @@ public sealed partial class WFCombatConsoleSystem : EntitySystem
         if (_nextUpdate > _timing.CurTime)
             return;
         _nextUpdate = _timing.CurTime + TimeSpan.FromSeconds(0.25);
+        UpdateFlareDecoys();
 
+        var cockpit = EntityManager.System<WFCockpitGunnerySystem>();
         var consoles = EntityQueryEnumerator<WFCombatConsoleComponent, FireControlConsoleComponent>();
         while (consoles.MoveNext(out var uid, out var settings, out var console))
         {
-            var open = _ui.IsUiOpen(uid, FireControlConsoleUiKey.Key) ||
-                       EntityManager.System<WFCockpitGunnerySystem>().GetActors(uid).Any();
+            var open = _ui.IsUiOpen(uid, FireControlConsoleUiKey.Key) || cockpit.HasViewers(uid);
             if (!open && !settings.Automatic)
                 continue;
-            settings.Threats = 0;
-            if (TryGetServer(uid, console, out var serverUid, out var server))
-            {
-                var grid = server.ConnectedGrid!.Value;
-                var origin = _transform.GetMapCoordinates(uid);
-                var seekers = EntityQueryEnumerator<TargetSeekingComponent, ProjectileComponent, TransformComponent>();
-                while (seekers.MoveNext(out _, out var seeker, out var projectile, out var xform))
-                {
-                    if (projectile.ProjectileSpent || !seeker.Launched || !seeker.ExposesTracking || seeker.SeekingDisabled ||
-                        seeker.CurrentTarget is not { } target || TerminatingOrDeleted(target) ||
-                        target != grid && Transform(target).GridUid != grid || xform.MapID != origin.MapId ||
-                        projectile.Shooter is { } shooter && TryComp(shooter, out TransformComponent? shooterXform) &&
-                        shooterXform.GridUid == grid)
-                        continue;
-                    if (Vector2.DistanceSquared(origin.Position, _transform.GetWorldPosition(xform)) <= ThreatRange * ThreatRange)
-                        settings.Threats++;
-                }
-                if (settings.Automatic && settings.Threats > 0)
-                    Dispense(serverUid, server);
-            }
+            // One periodic snapshot serves every window and cockpit linked to this console.
             if (open)
-                _fireControl.WfRefreshConsole(uid);
+                _fireControl.WfRefreshConsole(uid, periodic: true);
+            if (!settings.Automatic || !TryGetServer(uid, console, out var serverUid, out var server))
+                continue;
+            if (!open)
+                settings.Threats = CountThreats(uid, server);
+            if (settings.Threats > 0)
+                Dispense(serverUid, server);
         }
     }
 }

@@ -18,15 +18,21 @@ public sealed partial class NavScreen
             _entManager.TryGetComponent(_shuttleEntity, out TransformComponent? transform)
                 ? (-_xformSystem.GetWorldRotation(transform)).Reduced().FlipPositive().Degrees : null)
             { Name = "CockpitHeading", MinHeight = 106, SetHeight = 106 };
-        var speed = new WFVelocityVectorInstrument(() =>
+        var velocity = new WFVelocityVectorInstrument(() =>
             _entManager.TryGetComponent(_shuttleEntity, out PhysicsComponent? physics) &&
             _entManager.TryGetComponent(_shuttleEntity, out TransformComponent? transform)
                 ? WFCockpitVelocityReading.FromWorld(physics.LinearVelocity, _xformSystem.GetWorldRotation(transform)) : null)
             { Name = "CockpitVelocity" };
         var yaw = new WFGlassGauge("wf-gauge-yaw", () => WfMotionReading(2)) { MinWidth = 88, SetHeight = 100 };
-        WFCockpitInstrumentSizing.Bind(heading, lease, 106, 176);
-        WFCockpitInstrumentSizing.Bind(speed, lease, 100, 160);
-        WFCockpitInstrumentSizing.Bind(yaw, lease, 100, 160);
+        WFCockpitInstrumentSizing.Bind(heading, lease, 176);
+        WFCockpitInstrumentSizing.Bind(velocity, lease, 160);
+        WFCockpitInstrumentSizing.Bind(yaw, lease, 160);
+        var speedometer = new WFGlassGauge("wf-cockpit-speedometer", () => WfMotionReading(-1), true)
+        {
+            Name = "CockpitSpeedometer",
+            SetHeight = 56,
+            ToolTip = Loc.GetString("wf-cockpit-speedometer-help"),
+        };
         var forward = new WFGlassGauge("wf-gauge-forward", () => WfMotionReading(1), true) { SetHeight = 56 };
         var lateral = new WFGlassGauge("wf-gauge-lateral", () => WfMotionReading(0), true) { SetHeight = 56 };
         var altitude = new WFGlassGauge("wf-gauge-altitude", () =>
@@ -50,7 +56,7 @@ public sealed partial class NavScreen
             GridAltitude.OnVisibilityChanged -= updateAltitude;
             GridVerticalVelocity.OnVisibilityChanged -= updateClimb;
         });
-        return (Column(heading, Row(speed, yaw)), Column(Row(forward, lateral), vertical));
+        return (Column(heading, speedometer, Row(velocity, yaw)), Column(Row(forward, lateral), vertical));
     }
 
     /// <summary>Refreshes contextual flight data when the original navigation panel is hidden.</summary>

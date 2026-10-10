@@ -1,3 +1,5 @@
+#nullable enable annotations
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -57,6 +59,17 @@ public sealed class WFCockpitFireInputTest
             Assert.That(ui.MouseGetControl(worldCursor), Is.SameAs(world.Viewport));
             var ordinaryRadarClicks = 0;
             nav.OnRadarClick += _ => ordinaryRadarClicks++;
+            enabled = false;
+            Assert.That(Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Down, worldCursor).Handled, Is.False,
+                "FLIGHT must preserve ordinary world interaction even when weapons are selected.");
+            Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Up, worldCursor);
+            Assert.That(Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Down, cursor).Handled, Is.False,
+                "FLIGHT must preserve ordinary navigation input.");
+            Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Up, cursor);
+            Tick(fire, 0.5f, cursor, false);
+            Assert.That(aims, Is.Empty, "FLIGHT must not send passive targeting updates.");
+            ordinaryRadarClicks = 0;
+            enabled = true;
             void PressNav()
             {
                 var before = aims.Count;
@@ -71,8 +84,8 @@ public sealed class WFCockpitFireInputTest
             }
 
             var worldDown = Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Down, worldCursor);
-            Assert.That(worldDown.Handled, Is.True, "Cockpit world clicks must not reach held-item use.");
-            Assert.That(Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Up, worldCursor).Handled, Is.True);
+            Assert.That(worldDown.Handled, Is.False, "A world viewport without a valid map target must not capture a trigger.");
+            Assert.That(Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Up, worldCursor).Handled, Is.False);
             Assert.That(aims, Is.Empty, "A headless viewport has no rendered map target and must not send invalid coordinates.");
             Assert.That(Key(nav, ContentKeyFunctions.MouseMiddle, BoundKeyState.Down, cursor).Handled, Is.False,
                 "Fire input must leave the shared middle-mouse pan gesture alone.");
@@ -89,8 +102,13 @@ public sealed class WFCockpitFireInputTest
             Assert.That(aims, Has.Count.EqualTo(2));
             Assert.That(aims[^1].Fire, Is.True);
             ReleaseNav();
+            var afterRelease = aims.Count;
             Tick(fire, 0.11f, cursor, false);
-            Assert.That(aims[^1].Fire, Is.False, "Hovering after release continues missile guidance without firing.");
+            Tick(fire, 0.11f, cursor, false);
+            Assert.That(aims, Has.Count.EqualTo(afterRelease), "A stationary released pointer must not repeatedly send the same target.");
+            Tick(fire, 0.11f, Pointer(nav, nav.Size / 2 + new Vector2(2, 0)), false);
+            Assert.That(aims, Has.Count.EqualTo(afterRelease + 1));
+            Assert.That(aims[^1].Fire, Is.False, "Moving after release continues missile guidance without firing.");
 
             PressNav();
             enabled = false;
@@ -201,7 +219,8 @@ public sealed class WFCockpitFireInputTest
             nav.WfCockpitInteraction(lease);
             var linked = true;
             var armed = false;
-            using var fire = new WFCockpitFireInput(world, nav, () => linked, () => armed, (_, _) => { }, lease);
+            var aims = new List<(EntityCoordinates Target, bool Fire)>();
+            using var fire = new WFCockpitFireInput(world, nav, () => linked, () => armed, (target, firing) => aims.Add((target, firing)), lease);
             host.AddChild(world);
             host.AddChild(nav);
             host.AddChild(fire);
@@ -214,9 +233,11 @@ public sealed class WFCockpitFireInputTest
             var pointer = Pointer(nav, nav.Size / 2);
             Tick(fire, 0, pointer, false);
             Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer), "A live link without selected weapons is not armed.");
-            Assert.That(Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Down, pointer).Handled, Is.True,
-                "A disarmed linked cockpit must still consume character-use clicks.");
+            Assert.That(Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Down, pointer).Handled, Is.False,
+                "An unarmed cockpit must leave navigation input available.");
             Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Up, pointer);
+            Tick(fire, 0.5f, pointer, false);
+            Assert.That(aims, Is.Empty, "A linked gun bank without selected weapons must not send hover aim.");
             armed = true;
             Tick(fire, 0, pointer, false);
             var reticle = nav.CustomCursorShape;

@@ -10,6 +10,12 @@ public sealed partial class WFCombatConsoleComponent : Component
     [DataField] public bool Automatic;
     /// <summary>Eligible locks counted during the most recent scan.</summary>
     public int Threats;
+    /// <summary>Earliest periodic snapshot after the last authoritative update.</summary>
+    public TimeSpan NextTelemetry;
+    /// <summary>Earliest periodic rebuild of radar and weapon metadata.</summary>
+    public TimeSpan NextRadarTelemetry;
+    /// <summary>Throttle failed cockpit discovery while retaining automatic recovery.</summary>
+    public TimeSpan NextDiscovery;
 }
 
 /// <summary>Identifies a flare launcher and shares its burst lockout between consoles.</summary>

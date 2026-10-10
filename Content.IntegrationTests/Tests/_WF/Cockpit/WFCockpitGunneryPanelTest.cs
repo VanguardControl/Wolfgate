@@ -1,10 +1,12 @@
+#nullable enable annotations
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Reflection;
 using System.Text;
 using Content.Client._WF.Cockpit;
 using Content.Client._WF.CombatConsole;
+using Content.IntegrationTests.Tests._WF.CombatConsole;
 using Content.Client._WF.Stylesheets;
 using Content.Shared._Mono.FireControl;
 using Content.Shared._Mono.ShipGuns;
@@ -107,6 +109,7 @@ public sealed class WFCockpitGunneryPanelTest
             Assert.That(commands, Is.Empty, "Page navigation and received state must not send control commands.");
             var store = Named("CockpitGroupStore");
             Toggle(store, true);
+            Layout(new Vector2(296, 450));
             Assert.That(Named("CockpitGroupSave2").Visible, Is.True);
             Press(Named("CockpitGroupSave2"));
             var saved = commands.OfType<WFSaveWeaponGroupMessage>().Single();
@@ -138,6 +141,10 @@ public sealed class WFCockpitGunneryPanelTest
             Assert.That(Named("CockpitAutomaticFlares").Visible, Is.True);
             Assert.That(Named("CockpitDispenseFlares").Visible, Is.True);
             Assert.That(Named("CockpitDispenseFlares").Disabled, Is.True);
+            Layout(new Vector2(296, 450));
+            var beforeEmptyPress = commands.Count;
+            Press(Named("CockpitDispenseFlares"));
+            Assert.That(commands, Has.Count.EqualTo(beforeEmptyPress), "An empty dispenser must reject the real button input.");
             combat.UnlimitedSupply = true;
             panel.UpdateStatus(state);
             Assert.That(Named("CockpitDispenseFlares").Disabled, Is.False, "An automatic feed remains usable at zero stored rounds.");
@@ -147,6 +154,9 @@ public sealed class WFCockpitGunneryPanelTest
             combat.Cooldown = 3;
             panel.UpdateStatus(state);
             Assert.That(Named("CockpitDispenseFlares").Disabled, Is.True, "The embedded button retains the existing lockout.");
+            var beforeCooldownPress = commands.Count;
+            Press(Named("CockpitDispenseFlares"));
+            Assert.That(commands, Has.Count.EqualTo(beforeCooldownPress), "A rearming dispenser must reject the real button input.");
             var commandsBeforeTheme = commands.Count;
             try
             {
@@ -247,20 +257,9 @@ public sealed class WFCockpitGunneryPanelTest
         await pair.CleanReturnAsync();
     }
 
-    private static void Press(BaseButton button)
-    {
-        var handler = (Action<BaseButton.ButtonEventArgs>?) typeof(BaseButton)
-            .GetField("OnPressed", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(button);
-        handler?.Invoke(new BaseButton.ButtonEventArgs(button, null!));
-    }
+    private static void Press(BaseButton button) => WFButtonTestInput.Click(button);
 
-    private static void Toggle(BaseButton button, bool pressed)
-    {
-        button.Pressed = pressed;
-        var handler = (Action<BaseButton.ButtonToggledEventArgs>?) typeof(BaseButton)
-            .GetField("OnToggled", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(button);
-        handler?.Invoke(new BaseButton.ButtonToggledEventArgs(pressed, button, null!));
-    }
+    private static void Toggle(BaseButton button, bool pressed) => WFButtonTestInput.Toggle(button, pressed);
 
     private static IEnumerable<Control> Tree(Control root) => WFCockpitLease.Descendants(root);
 }

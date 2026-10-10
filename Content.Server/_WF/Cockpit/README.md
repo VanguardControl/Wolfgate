@@ -4,16 +4,23 @@ Optional fullscreen flight deck for the shuttle console. Enter Cockpit requires 
 while buckled into a marked pilot seat on the same grid. Unbuckling, losing piloting, closing the BUI,
 changing character or leaving gameplay restores the normal HUD. The existing server-side permissions
 still govern every flight, camera, access and shield request; cockpit mode only changes presentation.
-Entry selects EXT while preserving zoom and low-light settings; the other camera views remain available.
+Entry selects EXT while preserving zoom and low-light settings; leaving restores that pilot's prior camera.
+Cockpit camera changes never overwrite the console's shared saved settings, so overlapping pilots and
+ordinary console users retain their own choices. The other camera views remain available.
+Live pressure, internals and buckle alerts, votes, and speech bubbles remain available around the world
+view. Character hotkeys, inventory controls and the menu bar remain hidden; Escape closes other windows
+or opens the game menu without closing the cockpit helm.
 
 Flight instruments, compact camera controls and propulsion occupy the left column, with motion gauges
 above the central world viewport and communications and shield controls below it. The velocity dial shows
 actual drift relative to the bow, with forward at the top and starboard on the right, alongside total speed.
-Its direction pointer disappears when nearly stationary. The MFD fills the right column. Its maps use
+Its direction pointer grows with speed against a fixed 100 m/s full scale and disappears when nearly stationary.
+A separate full-width linear speedometer below the gyro shows actual speed, expanding its labelled range above 100 m/s. The MFD fills the right column. Its maps use
 middle-mouse panning and compact department labels, with scrolling details kept separate from the larger plots. Numbered approach markers link to readable port actions below the plot.
-Shield arc width stays in the permanent shield control panel. Retro uses larger mechanical dials, and the
+Shield arc width stays in the permanent shield control panel. Digital and mechanical instruments share the same large dial footprint, and the
 lower flight bank aligns with communications and shields. Its six status lamps show live autopilot, FTL,
 dampener, parking, docking and shield state; autopilot activity is replicated independently of MFD selection.
+Retro lamps use recessed glass lenses and metal sockets; Futurist lamps use illuminated traces and light strips.
 The MFD holds navigation, hull overlays, strategic travel, docking, access, shield details and auxiliary
 systems. A wide SHP display gives half its width to the hull plot, with two columns of gauges beside it.
 Damage, fire, pressure and power overlays share one row, with department labels and hull fitting below.
@@ -28,17 +35,20 @@ on the same ship. The nearest eligible console is chosen and retained while usab
 switches the left column between flight instruments and the shared paginated weapon bank, including
 selection, saved groups and compact countermeasures. Weapon rows retain readable text and slim supply
 bars; page changes preserve the full selection for firing and group saves. Left-click or hold over the world viewport or NAV plot fires the
-selected weapons; hovering updates guided-missile aim, and middle mouse still pans. A native aiming reticle
+selected weapons in GUNS mode; moving the pointer updates guided-missile aim, and middle mouse still pans. A native aiming reticle
 replaces the pointer over valid world and NAV targets while offensive weapons are selected, independently
 of character combat mode. HUD controls, chat, modifiers, lost focus and an unarmed bank retain ordinary
-cursors. Returning to FLIGHT preserves the selection and aiming reticle. A lost or changed link clears it.
+cursors and mouse interactions. Returning to FLIGHT preserves the selection, releases gun control and
+restores the normal pointer. A lost or changed link clears the selection.
 Exiting or losing pilot eligibility releases the link and all input hooks. Reach follows normal body-fixture distance and obstruction checks,
 independent of the camera. Nearby unopened consoles discover their gun server when acquired. Temporary
-helm power or access loss clears the weapon link; restoring it reconnects without leaving cockpit mode.
+gunnery power or access loss clears the weapon link; restoring it reconnects without leaving cockpit mode.
+Loss of helm power ends piloting and exits the cockpit.
 
 Commands travel through the existing helm BUI, with seat, reach, power, access and weapon ownership
 checked by the server for each request. They reuse native firing, group and flare handlers; no second
-gunnery window is opened. NPC gunners recognize the linked pilot as a human console operator.
+gunnery window is opened. Discovery in FLIGHT only supplies telemetry; NPC gunners recognize the pilot as
+a human console operator only after the pilot selects GUNS.
 
 Entry points: `WFCockpitUIController`, `WFCockpitView`, `WFCockpitLease` and the console partials.
 `WFCockpitGunnerySystem` owns authorized gun links; `WFCockpitGunneryPanel` and `WFCockpitFireInput`
@@ -52,7 +62,9 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 ### Server
 
 - [`Content.Server/_WF/Cockpit/FireControlSystem.Cockpit.cs`](FireControlSystem.Cockpit.cs)
+- [`Content.Server/_WF/Cockpit/ShuttleCameraSystem.Cockpit.cs`](ShuttleCameraSystem.Cockpit.cs)
 - [`Content.Server/_WF/Cockpit/ShuttleConsoleSystem.CockpitStatus.cs`](ShuttleConsoleSystem.CockpitStatus.cs)
+- [`Content.Server/_WF/Cockpit/WFCockpitGunnerySystem.Camera.cs`](WFCockpitGunnerySystem.Camera.cs)
 - [`Content.Server/_WF/Cockpit/WFCockpitGunnerySystem.cs`](WFCockpitGunnerySystem.cs)
 - [`Content.Server/_WF/Cockpit/WFCombatConsoleSystem.Cockpit.cs`](WFCombatConsoleSystem.Cockpit.cs)
 
@@ -65,6 +77,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 
 ### Client
 
+- [`Content.Client/_WF/Cockpit/DefaultGameScreen.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/DefaultGameScreen.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/DockingScreen.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/DockingScreen.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/DockingScreen.CockpitStatus.cs`](../../../Content.Client/_WF/Cockpit/DockingScreen.CockpitStatus.cs)
 - [`Content.Client/_WF/Cockpit/FireControlWindow.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/FireControlWindow.Cockpit.cs)
@@ -84,6 +97,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 - [`Content.Client/_WF/Cockpit/ShuttleConsoleWindow.CockpitLayout.cs`](../../../Content.Client/_WF/Cockpit/ShuttleConsoleWindow.CockpitLayout.cs)
 - [`Content.Client/_WF/Cockpit/ShuttleConsoleWindow.CockpitStatus.cs`](../../../Content.Client/_WF/Cockpit/ShuttleConsoleWindow.CockpitStatus.cs)
 - [`Content.Client/_WF/Cockpit/ShuttleDockControl.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/ShuttleDockControl.Cockpit.cs)
+- [`Content.Client/_WF/Cockpit/ShuttleExternalCameraSystem.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/ShuttleExternalCameraSystem.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/ShuttleNavControl.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/ShuttleNavControl.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitFireInput.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitFireInput.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitGunneryPanel.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitGunneryPanel.cs)
@@ -97,11 +111,13 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 - [`Content.Client/_WF/Cockpit/WFCockpitVelocityReading.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitVelocityReading.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitView.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitView.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitView.Gunnery.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitView.Gunnery.cs)
+- [`Content.Client/_WF/Cockpit/WFCockpitView.Hud.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitView.Hud.cs)
 - [`Content.Client/_WF/Cockpit/WFDockMarkerLayout.cs`](../../../Content.Client/_WF/Cockpit/WFDockMarkerLayout.cs)
 - [`Content.Client/_WF/Cockpit/WFVelocityVectorInstrument.cs`](../../../Content.Client/_WF/Cockpit/WFVelocityVectorInstrument.cs)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitCameraTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitCameraTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitDockingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitDockingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitFireInputTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitFireInputTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitGunneryPanelTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitGunneryPanelTest.cs)
@@ -116,7 +132,6 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/Cockpit/cockpit-gunnery-mode.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/cockpit-gunnery-mode.ftl)
-- [`Resources/Locale/en-US/_WF/Cockpit/cockpit-gunnery.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/cockpit-gunnery.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/cockpit-status.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/cockpit-status.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/cockpit.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/cockpit.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/velocity.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/velocity.ftl)
@@ -145,11 +160,15 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
   - use the same middle-mouse gesture on every cockpit plot.
   - deliver releases to the borrowed plot's cockpit input handler.
   - map zoom must not also scroll its containing panel.
+- [`Content.Client/UserInterface/Screens/DefaultGameScreen.xaml.cs`](../../../Content.Client/UserInterface/Screens/DefaultGameScreen.xaml.cs)
+  - Small cockpit viewports must retain a positive action grid limit.
+  - Keep critical alerts in a compact bank beside the cockpit world view.
+- [`Content.Client/UserInterface/Screens/SeparatedChatGameScreen.xaml.cs`](../../../Content.Client/UserInterface/Screens/SeparatedChatGameScreen.xaml.cs): Hidden HUD containers can briefly have zero width while borrowed.
 - [`Content.Client/UserInterface/Systems/Chat/Widgets/ResizableChatBox.cs`](../../../Content.Client/UserInterface/Systems/Chat/Widgets/ResizableChatBox.cs)
   - the cockpit controls chat sizing.
   - preserve the normal chat margins while docked.
+- [`Content.Client/UserInterface/Systems/CloseWindow/CloseRecentWindowUIController.cs`](../../../Content.Client/UserInterface/Systems/CloseWindow/CloseRecentWindowUIController.cs): Escape must not close the hidden helm that supplies the cockpit.
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
-  - refresh the autopilot lamp for each new helm viewer.
   - report confirmed steering in the initial helm snapshot.
   - keep autopilot lamps current while any helm page is open.
 - [`Content.Shared/Shuttles/BUIStates/ShuttleBoundUserInterfaceState.cs`](../../../Content.Shared/Shuttles/BUIStates/ShuttleBoundUserInterfaceState.cs): include confirmed autopilot activity in the initial helm state.

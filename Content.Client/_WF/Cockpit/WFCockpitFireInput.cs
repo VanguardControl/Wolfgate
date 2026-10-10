@@ -36,6 +36,8 @@ public sealed class WFCockpitFireInput : Control
     private float _elapsed;
     private bool _disposed;
     private bool _leftPressEvent;
+    private EntityCoordinates? _lastAim;
+    private Control? _lastAimSurface;
 
     /// <summary>Consumes primary clicks while linked and removes every input hook when its lease ends.</summary>
     public WFCockpitFireInput(MainViewport world, ShuttleNavControl navigation, Func<bool> enabled, Func<bool> armed,
@@ -69,7 +71,12 @@ public sealed class WFCockpitFireInput : Control
     }
 
     /// <summary>Requires a fresh press after the active gun link changes without releasing click capture.</summary>
-    public void Cancel() => _heldSurface = null;
+    public void Cancel()
+    {
+        _heldSurface = null;
+        _lastAim = null;
+        _lastAimSurface = null;
+    }
 
     private void PhysicalKey(KeyEventArgs args, KeyEventType type) =>
         _leftPressEvent = args.Key == Keyboard.Key.MouseLeft && type == KeyEventType.Down;
@@ -78,15 +85,16 @@ public sealed class WFCockpitFireInput : Control
     private void WorldUp(GUIBoundKeyEventArgs args) => Release(_world, args);
     private void NavigationDown(GUIBoundKeyEventArgs args) => Press(_navigation, args);
     private void NavigationUp(GUIBoundKeyEventArgs args) => Release(_navigation, args);
-    private void ContextChanged(object? sender, ContextChangedEventArgs args) => _heldSurface = null;
-    private void MouseLeft(GUIMouseHoverEventArgs args) => _heldSurface = null;
-    private void SurfaceVisibilityChanged(Control control) => _heldSurface = null;
+    private void ContextChanged(object? sender, ContextChangedEventArgs args) => Cancel();
+    private void MouseLeft(GUIMouseHoverEventArgs args) => Cancel();
+    private void SurfaceVisibilityChanged(Control control) => Cancel();
 
     private void Press(Control surface, GUIBoundKeyEventArgs args)
     {
-        if (_disposed || args.Handled || !Primary(args.Function) || !_enabled() ||
+        if (_disposed || args.Handled || !Primary(args.Function) || !_enabled() || !_armed() ||
             !_clyde.IsFocused || Modified() || UserInterfaceManager.KeyboardFocused != null ||
-            !_leftPressEvent || !_input.IsKeyDown(Keyboard.Key.MouseLeft) || !IsHovered(surface, args.PointerLocation))
+            !_leftPressEvent || !_input.IsKeyDown(Keyboard.Key.MouseLeft) || !IsHovered(surface, args.PointerLocation) ||
+            !TryGetTarget(surface, args.PointerLocation, out _))
             return;
 
         args.Handle();
@@ -119,22 +127,25 @@ public sealed class WFCockpitFireInput : Control
             return;
         var available = _enabled();
         var surface = IsHovered(_world, pointer) ? (Control) _world : IsHovered(_navigation, pointer) ? _navigation : null;
-        var canAim = available && focused && !Modified() && UserInterfaceManager.KeyboardFocused == null;
-        var showReticle = canAim && _armed() && surface != null && TryGetTarget(surface, pointer, out _);
+        var canAim = available && _armed() && focused && !Modified() && UserInterfaceManager.KeyboardFocused == null;
+        var showReticle = canAim && surface != null && TryGetTarget(surface, pointer, out _);
         SetCursor(_world, showReticle && surface == _world, _worldCursor);
         SetCursor(_navigation, showReticle && surface == _navigation, _navigationCursor);
         if (!leftDown)
             _capturedSurface = null;
         if (!canAim)
         {
-            _heldSurface = null;
+            Cancel();
             return;
         }
 
         if (!leftDown || surface != _heldSurface)
             _heldSurface = null;
         if (surface == null)
+        {
+            Cancel();
             return;
+        }
 
         _elapsed += delta;
         if (_elapsed < UpdateInterval)
@@ -166,8 +177,12 @@ public sealed class WFCockpitFireInput : Control
 
     private void SendAim(Control surface, ScreenCoordinates pointer, bool fire)
     {
-        if (TryGetTarget(surface, pointer, out var target))
-            _aim(target, fire);
+        if (!TryGetTarget(surface, pointer, out var target) ||
+            !fire && _lastAimSurface == surface && _lastAim == target)
+            return;
+        _lastAim = target;
+        _lastAimSurface = surface;
+        _aim(target, fire);
     }
 
     private bool TryGetTarget(Control surface, ScreenCoordinates pointer, out EntityCoordinates target)

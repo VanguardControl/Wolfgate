@@ -7,6 +7,8 @@ using Content.Server.Shuttles.Events;
 using Content.Shared._WF.Shuttles;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
+using Content.Shared.Doors.Components;
+using Content.Shared.Tag;
 using Content.Shared.Shuttles.Components;
 using Robust.Server.GameObjects;
 using Robust.Shared.Map.Components;
@@ -26,6 +28,7 @@ public sealed partial class ShipStatusSystem : EntitySystem
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private DestructibleSystem _destructible = default!;
+    [Dependency] private TagSystem _tags = default!;
 
     /// <summary>
     /// How often a listening console is refreshed. Fast enough to watch a fire spread, slow enough
@@ -54,7 +57,7 @@ public sealed partial class ShipStatusSystem : EntitySystem
     /// <summary>
     /// Consoles currently showing the view, and which overlays each is drawing.
     /// </summary>
-    private readonly Dictionary<EntityUid, ShipOverlays> _listeners = new();
+    private readonly Dictionary<EntityUid, Dictionary<EntityUid, (ShipOverlays Overlays, bool HullOnly)>> _listeners = new();
 
     /// <summary>
     /// Rebuilt each sweep: the tiles being reported, keyed by grid then tile.
@@ -67,6 +70,7 @@ public sealed partial class ShipStatusSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<GridSplitEvent>(OnHullSplit);
+        InitializeHullConstruction();
 
         Subs.BuiEvents<ShuttleConsoleComponent>(ShuttleConsoleUiKey.Key, subs =>
         {
@@ -78,11 +82,16 @@ public sealed partial class ShipStatusSystem : EntitySystem
     {
         if (!args.Active)
         {
-            _listeners.Remove(ent);
+            if (_listeners.TryGetValue(ent, out var listeners))
+            {
+                listeners.Remove(args.Actor);
+                if (listeners.Count == 0)
+                    _listeners.Remove(ent);
+            }
             return;
         }
 
-        _listeners[ent] = args.Overlays;
+        _listeners.GetOrNew(ent)[args.Actor] = (args.Overlays, args.HullOnly);
 
         // The client only sends this on a change, so answering every time keeps switching to the tab
         // or flipping an overlay from leaving a second of blank screen.
@@ -104,6 +113,15 @@ public sealed partial class ShipStatusSystem : EntitySystem
         foreach (var console in _listeners.Keys.ToArray())
         {
             if (!Exists(console) || !_ui.IsUiOpen(console, ShuttleConsoleUiKey.Key))
+            {
+                _listeners.Remove(console);
+                continue;
+            }
+            var actors = _ui.GetActors(console, ShuttleConsoleUiKey.Key).ToHashSet();
+            var listeners = _listeners[console];
+            foreach (var actor in listeners.Keys.Where(actor => !actors.Contains(actor)).ToArray())
+                listeners.Remove(actor);
+            if (listeners.Count == 0)
                 _listeners.Remove(console);
         }
 
@@ -124,15 +142,18 @@ public sealed partial class ShipStatusSystem : EntitySystem
         if (grids.Count == 0)
             return;
 
-        GatherTiles(grids.Keys.ToHashSet());
+        var detailed = grids.Where(pair => pair.Value.Any(console => _listeners[console].Values.Any(request => !request.HullOnly)))
+            .Select(pair => pair.Key).ToHashSet();
+        GatherTiles(grids.Keys.ToHashSet(), detailed);
 
         foreach (var (grid, consoles) in grids)
         {
             foreach (var console in consoles)
             {
+                var request = GetRequest(console);
                 _ui.ServerSendUiMessage(console,
                     ShuttleConsoleUiKey.Key,
-                    BuildMessage(grid, _listeners.GetValueOrDefault(console, ShipOverlays.All)));
+                    BuildMessage(grid, request.Overlays, request.HullOnly));
             }
         }
     }
@@ -140,18 +161,33 @@ public sealed partial class ShipStatusSystem : EntitySystem
     /// <summary>
     /// Sweeps the hull this console flies and returns what it found. Null if the console isn't on a grid.
     /// </summary>
-    public ShipStatusMessage? GetStatus(EntityUid console, ShipOverlays overlays = ShipOverlays.All)
+    public ShipStatusMessage? GetStatus(EntityUid console, ShipOverlays overlays = ShipOverlays.All, bool hullOnly = false)
     {
         if (GetConsoleGrid(console) is not { } grid)
             return null;
 
-        GatherTiles(new HashSet<EntityUid> { grid });
-        return BuildMessage(grid, overlays);
+        var grids = new HashSet<EntityUid> { grid };
+        GatherTiles(grids, hullOnly ? new HashSet<EntityUid>() : grids);
+        return BuildMessage(grid, overlays, hullOnly);
+    }
+
+    /// <summary>Shared helm messages retain every viewer's requested overlays and detail level.</summary>
+    private (ShipOverlays Overlays, bool HullOnly) GetRequest(EntityUid console)
+    {
+        var overlays = ShipOverlays.None;
+        var hullOnly = true;
+        foreach (var request in _listeners[console].Values)
+        {
+            overlays |= request.Overlays;
+            hullOnly &= request.HullOnly;
+        }
+        return (overlays, hullOnly);
     }
 
     private void SweepAndSend(EntityUid console)
     {
-        if (GetStatus(console, _listeners.GetValueOrDefault(console, ShipOverlays.All)) is not { } message)
+        var request = GetRequest(console);
+        if (GetStatus(console, request.Overlays, request.HullOnly) is not { } message)
             return;
 
         _ui.ServerSendUiMessage(console, ShuttleConsoleUiKey.Key, message);
@@ -171,7 +207,7 @@ public sealed partial class ShipStatusSystem : EntitySystem
         return xform.GridUid;
     }
 
-    private void GatherTiles(HashSet<EntityUid> grids)
+    private void GatherTiles(HashSet<EntityUid> grids, HashSet<EntityUid> detailed)
     {
         _gridTiles.Clear();
         _hullStructures.Clear();
@@ -183,13 +219,16 @@ public sealed partial class ShipStatusSystem : EntitySystem
             _hullStructures[grid] = new Dictionary<Vector2i, (float Capacity, float Remaining)>();
         }
 
-        GatherDamage(grids);
+        GatherDamage(grids, detailed);
         GatherHullIntegrity(grids);
-        GatherPower(grids);
-        GatherAtmos(grids);
+        if (detailed.Count > 0)
+        {
+            GatherPower(detailed);
+            GatherAtmos(detailed);
+        }
     }
 
-    private void GatherDamage(HashSet<EntityUid> grids)
+    private void GatherDamage(HashSet<EntityUid> grids, HashSet<EntityUid> detailed)
     {
         var query = EntityQueryEnumerator<DestructibleComponent, DamageableComponent, TransformComponent>();
 
@@ -201,6 +240,10 @@ public sealed partial class ShipStatusSystem : EntitySystem
             if (TerminatingOrDeleted(uid) || EntityManager.IsQueuedForDeletion(uid))
                 continue;
 
+            var hull = _tags.HasTag(uid, "Wall") || _tags.HasTag(uid, "Window") || HasComp<DoorComponent>(uid);
+            // Healthy furniture and machinery do not need destruction-threshold or tile lookups.
+            if (!hull && (!detailed.Contains(grid) || damageable.TotalDamage <= 0))
+                continue;
             var destroyedAt = _destructible.DestroyedAt(uid, destructible);
 
             // Entities with no destruction threshold have no meaningful condition to report.
@@ -213,11 +256,15 @@ public sealed partial class ShipStatusSystem : EntitySystem
             var index = _maps.TileIndicesFor(grid, gridComp, xform.Coordinates);
             var capacity = destroyedAt.Float();
             var remaining = Math.Clamp(capacity - damageable.TotalDamage.Float(), 0f, capacity);
-            var structure = _hullStructures[grid].GetValueOrDefault(index);
-            _hullStructures[grid][index] = (structure.Capacity + capacity, structure.Remaining + remaining);
+            if (hull)
+            {
+                ObserveHullStructure(uid, grid, index, capacity);
+                var structure = _hullStructures[grid].GetValueOrDefault(index);
+                _hullStructures[grid][index] = (structure.Capacity + capacity, structure.Remaining + remaining);
+            }
             var integrity = remaining / capacity;
 
-            if (integrity > DamageReportThreshold)
+            if (!detailed.Contains(grid) || integrity > DamageReportThreshold)
                 continue;
 
             var tiles = _gridTiles[grid];
@@ -300,13 +347,13 @@ public sealed partial class ShipStatusSystem : EntitySystem
     /// <summary>
     /// Counts everything for the summary, but only sends tiles for overlays the console is drawing.
     /// </summary>
-    private ShipStatusMessage BuildMessage(EntityUid grid, ShipOverlays overlays)
+    private ShipStatusMessage BuildMessage(EntityUid grid, ShipOverlays overlays, bool hullOnly = false)
     {
         var summary = new ShipStatusSummary { WorstIntegrity = 1f, HullIntegrity = _hullIntegrity.GetValueOrDefault(grid, 1f) };
         var list = new List<ShipTileStatus>();
         var wanted = (ShipTileFlags)overlays;
 
-        if (!_gridTiles.TryGetValue(grid, out var tiles))
+        if (hullOnly || !_gridTiles.TryGetValue(grid, out var tiles))
             return new ShipStatusMessage(GetNetEntity(grid), list, summary);
 
         foreach (var status in tiles.Values)

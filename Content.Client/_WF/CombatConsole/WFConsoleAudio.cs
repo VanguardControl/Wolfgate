@@ -1,3 +1,5 @@
+using Content.Shared.CCVar;
+using Robust.Shared.Configuration;
 using Robust.Client.Audio;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Audio;
@@ -11,6 +13,7 @@ public sealed class WFConsoleAudio : EntitySystem
 {
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IConfigurationManager _configuration = default!;
     private TimeSpan _nextWarning;
     private readonly WFDetentThrottle _bearing = new();
 
@@ -42,8 +45,14 @@ public sealed class WFConsoleAudio : EntitySystem
         Play("warning");
     }
 
-    private void Play(string cue) => _audio.PlayGlobal($"/Audio/_WF/CombatConsole/HighFleet/{cue}.wav",
-        Filter.Local(), false, AudioParams.Default.WithVolume(-12f));
+    private void Play(string cue)
+    {
+        var gain = _configuration.GetCVar(CCVars.InterfaceVolume);
+        if (gain <= 0)
+            return;
+        _audio.PlayGlobal($"/Audio/_WF/CombatConsole/HighFleet/{cue}.ogg", Filter.Local(), false,
+            AudioParams.Default.WithVolume(-12f + 20f * MathF.Log10(gain)));
+    }
 }
 
 /// <summary>Announces new visible threats once, without repeating on telemetry refreshes.</summary>

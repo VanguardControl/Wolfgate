@@ -63,7 +63,7 @@ public partial class MapGridControl : LayoutContainer
     protected float WorldMinRange;
     protected float WorldMaxRange;
     public float WorldRange;
-    public Vector2 WorldRangeVector => new Vector2(WorldRange, WorldRange);
+    public Vector2 WorldRangeVector => WfFitInstrument ? WfViewportHalfExtents : new Vector2(WorldRange, WorldRange); // WOLFGATE(CombatConsole): cull responsive plots against both viewport dimensions.
 
     /// <summary>
     /// We'll lerp between the radarrange and actual range

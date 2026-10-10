@@ -7,7 +7,8 @@ public sealed partial class ShuttleConsoleBoundUserInterface
     private void WfCockpitGunneryOpen()
     {
         if (_window != null)
-            _window.WfCockpitGunneryCommand += SendMessage;
+            // Mode changes and their first command must retain order within the same input tick.
+            _window.WfCockpitGunneryCommand += SendPredictedMessage;
     }
 
     private void WfCockpitGunneryReceive(BoundUserInterfaceMessage message)

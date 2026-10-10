@@ -8,10 +8,13 @@ wheel zooms it, and the client `ShuttleExternalCameraSystem` and `ShuttleHullRoo
 planet's surface, and sound and speech bubbles are taken from the point it looks at rather than from the helm.
 
 The cockpit HULL gauge averages the condition of surveyed hull locations, including missing floors and destroyed
-structures. Piloting or opening the ship view starts the survey; later splits inherit that ship's original footprint,
-and rebuilding a lost location restores its condition. The separate minimum-integrity readout still describes the
+walls, windows and doors; machinery and furniture do not contribute to the hull baseline. Piloting or opening the ship view starts the survey; later splits inherit that ship's original footprint,
+and rebuilding a lost location restores its condition. Successful construction-graph or RCD removal subtracts
+only the removed structure from its surveyed design; cancelled operations and combat destruction remain losses.
+The separate minimum-integrity readout still describes the
 weakest surviving structure. The survey is kept for the current server lifetime and cannot infer sections already
-missing before the first survey.
+missing before the first survey. Outside the SHP page, cockpit requests collect hull condition only;
+pressure, power and damage overlays are gathered when a detailed ship view is open.
 
 Entry points: the server `ShipStatusSystem`, `CollisionWarningSystem`, `ShuttleCameraSystem` and
 `ShuttleNavMapSystem`; the client `ShipScreen`, `ShipViewControl`, `CollisionWarningBanner` and `ShuttleCameraBar`,
@@ -47,8 +50,10 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 
 - [`Content.Shared/_WF/Shuttles/CollisionWarningComponent.cs`](../../../Content.Shared/_WF/Shuttles/CollisionWarningComponent.cs)
 - [`Content.Shared/_WF/Shuttles/CollisionWarningDisabledComponent.cs`](../../../Content.Shared/_WF/Shuttles/CollisionWarningDisabledComponent.cs)
+- [`Content.Shared/_WF/Shuttles/RCDSystem.Hull.cs`](../../../Content.Shared/_WF/Shuttles/RCDSystem.Hull.cs)
 - [`Content.Shared/_WF/Shuttles/ShipStatus.cs`](../../../Content.Shared/_WF/Shuttles/ShipStatus.cs)
 - [`Content.Shared/_WF/Shuttles/ShuttleCameraComponent.cs`](../../../Content.Shared/_WF/Shuttles/ShuttleCameraComponent.cs)
+- [`Content.Shared/_WF/Shuttles/WFHullDeconstructedEvent.cs`](../../../Content.Shared/_WF/Shuttles/WFHullDeconstructedEvent.cs)
 
 ### Client
 
@@ -75,6 +80,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/CollisionWarningTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/CollisionWarningTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/DockedShipIffTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/DockedShipIffTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/FTLToDockTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/FTLToDockTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Shuttles/ShipHullConstructionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShipHullConstructionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShipStatusTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShipStatusTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleCameraTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleCameraTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleExternalCameraTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleExternalCameraTest.cs)
@@ -117,5 +123,6 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
   - capture hull condition before piloting can damage it.
   - restore the console's camera view
+- [`Content.Shared/RCD/Systems/RCDSystem.cs`](../../../Content.Shared/RCD/Systems/RCDSystem.cs): Successful RCD removal updates the hull design without erasing combat losses.
 
 <!-- WOLFGATE-GENERATED END -->

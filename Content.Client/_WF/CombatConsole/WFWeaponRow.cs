@@ -15,6 +15,8 @@ public sealed class WFWeaponRow : Control
     private readonly Button _button;
     private readonly Func<WFGaugeReading> _read;
     private WolfgateSkin? _skin;
+    private WFGaugeReading _reading;
+    private float _sampleElapsed;
 
     /// <summary>Returns the authoritative supply without visual smoothing.</summary>
     public WFGaugeReading Reading => _read();
@@ -57,7 +59,7 @@ public sealed class WFWeaponRow : Control
         }
         if (NameLabel.Text != _button.Text)
             NameLabel.Text = _button.Text;
-        var reading = Reading;
+        var reading = _reading = Reading;
         if (SupplyLabel.Text != reading.Text)
             SupplyLabel.Text = reading.Text;
         NameLabel.FontColorOverride = _button.Disabled ? skin.TextMuted : skin.Text;
@@ -67,6 +69,10 @@ public sealed class WFWeaponRow : Control
     protected override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
+        _sampleElapsed += args.DeltaSeconds;
+        if (_sampleElapsed < 0.1f && _skin == WFInstrumentTheme.Skin)
+            return;
+        _sampleElapsed = 0;
         Refresh();
     }
 
@@ -76,7 +82,7 @@ public sealed class WFWeaponRow : Control
         var skin = WFInstrumentTheme.Skin;
         var bar = new UIBox2(0, Math.Max(0, PixelHeight - 3 * UIScale), PixelWidth, PixelHeight);
         handle.DrawRect(bar, skin.Ink);
-        var reading = Reading;
+        var reading = _reading;
         if (WFGaugeScale.Fraction(reading.Value, reading.Minimum, reading.Maximum) is not { } fraction)
             return;
         var color = reading.Tint ?? skin.Accent;

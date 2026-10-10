@@ -257,7 +257,9 @@ public sealed partial class FireControlSystem : EntitySystem
         if (!Resolve(uid, ref component))
             return;
 
-        NavInterfaceState navState = _shuttleConsoleSystem.GetNavState(uid, _shuttleConsoleSystem.GetAllDocks());
+        // WOLFGATE(CombatConsole): share docking discovery across same-tick gunnery snapshots.
+        // NavInterfaceState navState = _shuttleConsoleSystem.GetNavState(uid, _shuttleConsoleSystem.GetAllDocks());
+        NavInterfaceState navState = _shuttleConsoleSystem.GetNavState(uid, WfGetDocks());
 
         List<FireControllableEntry> controllables = new();
         if (component.ConnectedServer != null && TryComp<FireControlServerComponent>(component.ConnectedServer, out var server))
@@ -286,7 +288,7 @@ public sealed partial class FireControlSystem : EntitySystem
 
         var state = new FireControlConsoleBoundInterfaceState(component.ConnectedServer != null, array, navState);
         WfUpdateCombatState(uid, component, state); // WOLFGATE(CombatConsole): include group memory and countermeasure telemetry.
-        _ui.SetUiState(uid, FireControlConsoleUiKey.Key, state);
+        WfPublishState(uid, state); // WOLFGATE(CombatConsole): publish only changed gunnery snapshots.
     }
 
     /// <summary>

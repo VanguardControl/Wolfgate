@@ -37,7 +37,7 @@ public sealed class WFCockpitLease
     }
 
     /// <summary>Moves a control without replacing any of its live bindings.</summary>
-    public T Take<T>(T control) where T : Control
+    public T Take<T>(T control, bool restoreVisibility = true) where T : Control
     {
         var parent = control.Parent;
         var index = parent == null ? 0 : control.GetPositionInParent();
@@ -63,7 +63,8 @@ public sealed class WFCockpitLease
             control.VerticalExpand = vertical;
             control.HorizontalAlignment = hAlign;
             control.VerticalAlignment = vAlign;
-            control.Visible = visible;
+            if (restoreVisibility)
+                control.Visible = visible;
             if (control is BoxContainer box && orientation is { } direction)
                 box.Orientation = direction;
             if (parent == null)

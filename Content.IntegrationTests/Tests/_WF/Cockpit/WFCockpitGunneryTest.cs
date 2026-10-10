@@ -1,4 +1,9 @@
+#nullable enable annotations
+
 using System.Collections.Generic;
+using System.Linq;
+using Content.Client.Shuttles.UI;
+using Robust.Client.UserInterface;
 using System.Numerics;
 using Content.Server._Mono.FireControl;
 using Content.Server._WF.Cockpit;
@@ -38,6 +43,9 @@ public sealed class WFCockpitGunneryTest
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var map = await pair.CreateTestMap();
         var em = pair.Server.EntMan;
+        EntityUid actor = default, seat = default, helm = default, gun = default, server = default, groupedWeapon = default;
+        NetEntity gunNet = default, weaponNet = default;
+        ShuttleConsoleWindow? clientWindow = null;
         await pair.Server.WaitAssertion(() =>
         {
             var maps = em.System<SharedMapSystem>();
@@ -45,11 +53,12 @@ public sealed class WFCockpitGunneryTest
             for (var y = 0; y < 3; y++)
                 maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(x, y), map.Tile.Tile);
             var seatPosition = new EntityCoordinates(map.Grid.Owner, new Vector2(1.5f, 0.5f));
-            var actor = em.SpawnEntity("MobHuman", seatPosition);
-            var seat = em.SpawnEntity("ChairPilotSeat", seatPosition);
-            var helm = em.SpawnEntity("ComputerShuttle", new EntityCoordinates(map.Grid.Owner, new Vector2(1.5f, 1.5f)));
-            var gun = em.SpawnEntity("ComputerGunneryConsole", new EntityCoordinates(map.Grid.Owner, new Vector2(2.5f, 1.5f)));
-            var server = em.SpawnEntity("GunneryServerLow", new EntityCoordinates(map.Grid.Owner, new Vector2(0.5f, 2.5f)));
+            actor = em.SpawnEntity("MobHuman", seatPosition);
+            pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, actor);
+            seat = em.SpawnEntity("ChairPilotSeat", seatPosition);
+            helm = em.SpawnEntity("ComputerShuttle", new EntityCoordinates(map.Grid.Owner, new Vector2(1.5f, 1.5f)));
+            gun = em.SpawnEntity("ComputerGunneryConsole", new EntityCoordinates(map.Grid.Owner, new Vector2(2.5f, 1.5f)));
+            server = em.SpawnEntity("GunneryServerLow", new EntityCoordinates(map.Grid.Owner, new Vector2(0.5f, 2.5f)));
             foreach (var powered in new[] { helm, gun, server })
                 em.GetComponent<ApcPowerReceiverComponent>(powered).Powered = true;
             em.RemoveComponent<AccessReaderComponent>(helm);
@@ -72,7 +81,7 @@ public sealed class WFCockpitGunneryTest
                 "The diagonal console is physically reachable using the normal fixture-distance and line-of-sight rules.");
             var control = em.GetComponent<FireControlConsoleComponent>(gun);
             Assert.That(control.ConnectedServer, Is.Null, "The gunnery console has not been opened or manually linked.");
-            ui.RaiseUiMessage(helm, ShuttleConsoleUiKey.Key, new WFCockpitGunnerySessionMessage(true) { Actor = actor });
+            ui.RaiseUiMessage(helm, ShuttleConsoleUiKey.Key, new WFCockpitGunnerySessionMessage(true, true) { Actor = actor });
             Assert.That(cockpit.GetConsole(actor), Is.Null, "Physical proximity must not bypass the console access reader.");
             Assert.That(control.ConnectedServer, Is.Null, "An unauthorized candidate must not trigger server discovery.");
             reader.Enabled = false;
@@ -92,7 +101,84 @@ public sealed class WFCockpitGunneryTest
             ui.CloseUi(helm, ShuttleConsoleUiKey.Key, actor);
             cockpit.Update(0.3f);
             Assert.That(cockpit.GetConsole(actor), Is.Null, "Closing the helm still ends the cockpit session.");
-            foreach (var entity in new[] { actor, seat, helm, gun, server })
+            // Keep the network fixture powered without an APC changing it during subsequent ticks.
+            foreach (var entity in new[] { helm, gun, server })
+                em.RemoveComponent<ApcPowerReceiverComponent>(entity);
+            groupedWeapon = em.SpawnEntity(null, map.GridCoords);
+            em.AddComponent<FireControllableComponent>(groupedWeapon).ControllingServer = server;
+            em.GetComponent<FireControlServerComponent>(server).Controlled.Add(groupedWeapon);
+            em.System<FireControlSystem>().WfRefreshConsole(gun);
+            gunNet = em.GetNetEntity(gun);
+            weaponNet = em.GetNetEntity(groupedWeapon);
+            em.EnsureComponent<PilotComponent>(actor);
+            em.System<ShuttleConsoleSystem>().AddPilot(helm, actor, em.GetComponent<ShuttleConsoleComponent>(helm));
+            ui.OpenUi(helm, ShuttleConsoleUiKey.Key, actor);
+        });
+        await pair.RunTicksSync(10);
+        await pair.Client.WaitAssertion(() =>
+        {
+            static IEnumerable<Control> Descendants(Control root)
+            {
+                yield return root;
+                foreach (var child in root.Children)
+                foreach (var nested in Descendants(child))
+                    yield return nested;
+            }
+            clientWindow = Descendants(pair.Client.ResolveDependency<IUserInterfaceManager>().WindowRoot)
+                .OfType<ShuttleConsoleWindow>().Single();
+            clientWindow.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(true));
+            clientWindow.WfSendCockpitGunnery(new WFCockpitGunneryCommandMessage(gunNet,
+                new WFSaveWeaponGroupMessage(3, new List<NetEntity> { weaponNet })));
+        });
+        await pair.RunTicksSync(10);
+        await pair.Server.WaitAssertion(() =>
+        {
+            Assert.That(em.System<WFCockpitGunnerySystem>().GetConsole(actor), Is.EqualTo(gun),
+                "The real client BUI must establish a discovered link with the network sender as actor.");
+            Assert.That(em.GetComponent<WFCombatConsoleComponent>(gun).Groups.ContainsKey(3), Is.False,
+                "A client command sent over the network while in FLIGHT must be rejected.");
+        });
+        await pair.Client.WaitAssertion(() =>
+            clientWindow!.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(true, true)));
+        await pair.RunTicksSync(10);
+        await pair.Server.WaitAssertion(() =>
+        {
+            Assert.That(em.System<WFCockpitGunnerySystem>().CanOperate(actor, gun), Is.True,
+                "The delivered GUNS mode message must authorize the attached, seated operator before its first command.");
+            Assert.That(em.GetComponent<FireControlServerComponent>(server).Controlled, Does.Contain(groupedWeapon),
+                "The network fixture's weapon must remain connected while its command travels to the server.");
+        });
+        await pair.Client.WaitAssertion(() =>
+            clientWindow!.WfSendCockpitGunnery(new WFCockpitGunneryCommandMessage(gunNet,
+                new WFSaveWeaponGroupMessage(3, new List<NetEntity> { weaponNet }))));
+        await pair.RunTicksSync(10);
+        await pair.Server.WaitAssertion(() =>
+        {
+            Assert.That(em.GetComponent<WFCombatConsoleComponent>(gun).Groups.TryGetValue(3, out var saved), Is.True,
+                "The authorized group command must reach the server through the live client BUI.");
+            Assert.That(saved, Is.EquivalentTo(new[] { groupedWeapon }),
+                "A real window command must cross client networking, inherit its sender identity, and reach the authorized server handler.");
+        });
+        await pair.Client.WaitAssertion(() =>
+            clientWindow!.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(true)));
+        await pair.RunTicksSync(10);
+        await pair.Server.WaitAssertion(() =>
+            Assert.That(em.System<WFCockpitGunnerySystem>().CanOperate(actor, gun), Is.False));
+        await pair.Client.WaitAssertion(() =>
+        {
+            clientWindow!.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(true, true));
+            clientWindow.WfSendCockpitGunnery(new WFCockpitGunneryCommandMessage(gunNet,
+                new WFSaveWeaponGroupMessage(2, new List<NetEntity> { weaponNet })));
+        });
+        await pair.RunTicksSync(10);
+        await pair.Server.WaitAssertion(() =>
+        {
+            Assert.That(em.GetComponent<WFCombatConsoleComponent>(gun).Groups.TryGetValue(2, out var saved), Is.True,
+                "Switching to GUNS and saving a group within one client tick must retain message order.");
+            Assert.That(saved, Is.EquivalentTo(new[] { groupedWeapon }));
+            em.System<SharedUserInterfaceSystem>().CloseUi(helm, ShuttleConsoleUiKey.Key, actor);
+            pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, null);
+            foreach (var entity in new[] { actor, seat, helm, gun, server, groupedWeapon })
                 em.DeleteEntity(entity);
         });
         await pair.CleanReturnAsync();
@@ -111,6 +197,7 @@ public sealed class WFCockpitGunneryTest
             maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(2, 0), map.Tile.Tile);
             maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(3, 0), map.Tile.Tile);
             var actor = em.SpawnEntity("MobHuman", map.GridCoords);
+            pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, actor);
             var helm = em.SpawnEntity("ComputerShuttle", map.GridCoords);
             var seat = em.SpawnEntity("ChairPilotSeat", map.GridCoords);
             var gun = em.SpawnEntity("ComputerGunneryConsole", map.GridCoords);
@@ -136,19 +223,37 @@ public sealed class WFCockpitGunneryTest
             var buckles = em.System<SharedBuckleSystem>();
             em.EnsureComponent<PilotComponent>(actor);
             helms.AddPilot(helm, actor, em.GetComponent<ShuttleConsoleComponent>(helm));
-            Assert.That(cockpit.SetSession(actor, helm, true), Is.False, "A live helm UI and pilot seat are both required.");
+            Assert.That(cockpit.SetSession(actor, helm, true, true), Is.False, "A live helm UI and pilot seat are both required.");
             ui.OpenUi(helm, ShuttleConsoleUiKey.Key, actor);
-            Assert.That(cockpit.SetSession(actor, helm, true), Is.False, "Standing pilots cannot acquire gunnery.");
+            Assert.That(cockpit.SetSession(actor, helm, true, true), Is.False, "Standing pilots cannot acquire gunnery.");
             Assert.That(buckles.TryBuckle(actor, actor, seat), Is.True);
             var normalOpen = new ActivatableUIOpenAttemptEvent(actor);
             em.EventBus.RaiseLocalEvent(gun, normalOpen);
             Assert.That(normalOpen.Cancelled, Is.True, "The ordinary crewed-ship two-window restriction remains intact.");
             var gunAccess = em.AddComponent<AccessReaderComponent>(gun);
             var helmAccess = em.AddComponent<AccessReaderComponent>(helm);
-            ui.RaiseUiMessage(helm, ShuttleConsoleUiKey.Key, new WFCockpitGunnerySessionMessage(true) { Actor = actor });
+            ui.RaiseUiMessage(helm, ShuttleConsoleUiKey.Key, new WFCockpitGunnerySessionMessage(true, true) { Actor = actor });
             Assert.That(cockpit.GetConsole(actor), Is.EqualTo(gun));
             Assert.That(ui.IsUiOpen(gun, FireControlConsoleUiKey.Key, actor), Is.False, "The cockpit must not open a second gunnery BUI.");
             Assert.That(cockpit.GetActors(gun), Does.Contain(actor), "Existing crew handoff must see the cockpit operator.");
+            ui.RaiseUiMessage(helm, ShuttleConsoleUiKey.Key, new WFCockpitGunnerySessionMessage(true) { Actor = actor });
+            Assert.That(cockpit.GetConsole(actor), Is.EqualTo(gun), "FLIGHT retains discovery and telemetry.");
+            Assert.That(cockpit.GetActors(gun), Is.Empty, "FLIGHT must leave the gunner's console unclaimed.");
+            Assert.That(cockpit.TryCommand(actor, helm, em.GetNetEntity(gun), new WFDispenseFlaresMessage()), Is.False,
+                "A forged weapon action in FLIGHT cannot operate guns or countermeasures.");
+            ui.RaiseUiMessage(helm, ShuttleConsoleUiKey.Key, new WFCockpitGunnerySessionMessage(true, true) { Actor = actor });
+            Assert.That(cockpit.GetActors(gun), Does.Contain(actor));
+            var sharedState = em.System<FireControlSystem>().WfCockpitState(gun);
+            for (var repeat = 0; repeat < 10; repeat++)
+                Assert.That(em.System<FireControlSystem>().WfCockpitState(gun), Is.SameAs(sharedState),
+                    "Linked cockpit viewers share the current periodic snapshot.");
+            var snapshotSettings = em.GetComponent<WFCombatConsoleComponent>(gun);
+            snapshotSettings.NextTelemetry = TimeSpan.Zero;
+            Assert.That(em.System<FireControlSystem>().WfCockpitState(gun), Is.SameAs(sharedState),
+                "An unchanged lightweight refresh must preserve the published snapshot.");
+            snapshotSettings.NextTelemetry = snapshotSettings.NextRadarTelemetry = TimeSpan.Zero;
+            Assert.That(em.System<FireControlSystem>().WfCockpitState(gun), Is.SameAs(sharedState),
+                "Even a full radar refresh must not republish identical state.");
 
             Assert.That(gunAccess.AccessLog.Count, Is.EqualTo(1), "Acquiring the gunnery link records one successful access.");
             Assert.That(helmAccess.AccessLog.Count, Is.EqualTo(1));
@@ -191,7 +296,8 @@ public sealed class WFCockpitGunneryTest
             });
             var netGun = em.GetNetEntity(gun);
             var selection = new List<NetEntity> { em.GetNetEntity(weapon), em.GetNetEntity(foreign), em.GetNetEntity(flare), em.GetNetEntity(weapon) };
-            Assert.That(cockpit.TryCommand(actor, helm, netGun, new WFSaveWeaponGroupMessage(0, selection)), Is.True);
+            ui.RaiseUiMessage(helm, ShuttleConsoleUiKey.Key,
+                new WFCockpitGunneryCommandMessage(netGun, new WFSaveWeaponGroupMessage(0, selection)) { Actor = actor });
             Assert.That(em.GetComponent<WFCombatConsoleComponent>(gun).Groups[0], Is.EquivalentTo(new[] { weapon }),
                 "Cockpit group saves use the native filter for disconnected weapons, flares and duplicates.");
             Assert.That(cockpit.TryCommand(actor, helm, netGun, new WFAutomaticFlaresMessage(true)), Is.True);
@@ -207,7 +313,12 @@ public sealed class WFCockpitGunneryTest
             var mountedGun = em.GetComponent<GunComponent>(weapon);
             Assert.That(em.System<GunSystem>().CanShoot(mountedGun), Is.True, "The autocannon must be ready before its first command.");
             Assert.That(mountedGun.FireRateModified, Is.GreaterThan(0));
-            Assert.That(cockpit.TryCommand(actor, helm, netGun, new FireControlConsoleFireMessage(selection, target)), Is.True);
+            var beforeHover = em.System<FireControlSystem>().WfCockpitState(gun, false);
+            Assert.That(cockpit.TryCommand(actor, helm, netGun, new FireControlConsoleFireMessage(new(), target)), Is.True);
+            Assert.That(em.System<FireControlSystem>().WfCockpitState(gun, false), Is.SameAs(beforeHover),
+                "Cursor guidance must not rebuild radar/ammunition state.");
+            ui.RaiseUiMessage(helm, ShuttleConsoleUiKey.Key,
+                new WFCockpitGunneryCommandMessage(netGun, new FireControlConsoleFireMessage(selection, target)) { Actor = actor });
             Assert.That(fireControl.NextFire, Is.GreaterThan(TimeSpan.Zero), "Firing reaches the original weapon cooldown path.");
             Assert.That(em.GetComponent<AutoShootGunComponent>(weapon).RemainingTime, Is.GreaterThan(TimeSpan.Zero),
                 "The native firing handler schedules the autocannon burst.");
@@ -261,14 +372,21 @@ public sealed class WFCockpitGunneryTest
             ui.OpenUi(helm, ShuttleConsoleUiKey.Key, otherActor);
             Assert.That(buckles.TryBuckle(otherActor, otherActor, otherSeat), Is.True);
             em.GetComponent<ActivatableUIComponent>(gun).SingleUser = true;
-            Assert.That(cockpit.SetSession(otherActor, helm, true), Is.True);
-            Assert.That(cockpit.GetConsole(otherActor), Is.Null, "A single-user console cannot be shared through two cockpit sessions.");
-            cockpit.SetSession(actor, helm, false);
-            cockpit.Update(0.3f);
-            Assert.That(cockpit.GetConsole(otherActor), Is.EqualTo(gun), "Releasing the first session makes the console available.");
-            cockpit.SetSession(otherActor, helm, false);
+            Assert.That(cockpit.SetSession(otherActor, helm, true, true), Is.False,
+                "A seated body without an attached connected player cannot retain gunnery control.");
+            var activation = em.GetComponent<ActivatableUIComponent>(gun);
+            activation.CurrentSingleUser = otherActor;
+            AssertDenied("The native single-user console occupant must block cockpit commands.");
+            activation.CurrentSingleUser = null;
+            Assert.That(cockpit.CanOperate(actor, gun), Is.True);
+            pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, otherActor);
+            Assert.That(cockpit.GetConsole(actor), Is.Null, "Leaving the body immediately releases the cockpit link.");
+            Assert.That(cockpit.GetActors(gun), Is.Empty, "Ghosting or changing bodies must release the NPC gunner claim.");
+            pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, actor);
+            Assert.That(cockpit.GetConsole(actor), Is.Null, "Returning to the body must not reactivate a stale session.");
             ui.CloseUi(helm, ShuttleConsoleUiKey.Key, otherActor);
-            Assert.That(cockpit.SetSession(actor, helm, true), Is.True);
+            ui.OpenUi(helm, ShuttleConsoleUiKey.Key, actor);
+            Assert.That(cockpit.SetSession(actor, helm, true, true), Is.True);
 
             var replacement = em.SpawnEntity("ComputerGunneryConsole", map.GridCoords);
             em.GetComponent<ApcPowerReceiverComponent>(replacement).Powered = true;
@@ -289,6 +407,7 @@ public sealed class WFCockpitGunneryTest
             Assert.That(cockpit.GetConsole(actor), Is.Null);
             Assert.That(cockpit.GetActors(replacement), Is.Empty, "Losing the pilot seat releases crew and telemetry occupancy.");
             ui.CloseUi(helm, ShuttleConsoleUiKey.Key, actor);
+            pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, null);
             foreach (var entity in new[] { actor, otherActor, helm, seat, otherSeat, gun, replacement, flare, weapon, foreign, serverUid })
                 em.DeleteEntity(entity);
         });

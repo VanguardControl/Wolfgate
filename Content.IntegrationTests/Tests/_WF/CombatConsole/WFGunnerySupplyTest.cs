@@ -1,12 +1,20 @@
+#nullable enable annotations
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Reflection;
 using System.Text;
 using Content.Client._Mono.FireControl.UI;
 using Content.Client._WF.CombatConsole;
 using Content.Client._WF.Stylesheets;
 using Content.Server._WF.CombatConsole;
+using Content.Server._Mono.FireControl;
+using Content.Server._Mono.Projectiles.TargetSeeking;
+using Content.Server.Power.Components;
+using Content.Server.Weapons.Ranged.Systems;
+using Content.Shared.Projectiles;
+using Content.Shared.Weapons.Ranged.Events;
+using Robust.Shared.Map;
 using Content.Shared._Mono.FireControl;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.CombatConsole;
@@ -174,7 +182,7 @@ public sealed class WFGunnerySupplyTest
                         Layout(size);
                         Assert.That(battery.PageIndex, Is.EqualTo(page), "Supply updates must leave the current weapon page in place.");
                         if (page < battery.PageCount - 1)
-                            Press(Named("WfWeaponNext"));
+                            WFButtonTestInput.Click(Named("WfWeaponNext"));
                     }
                     Assert.That(seen, Is.EquivalentTo(window.WeaponsList.Values));
                     Assert.That(commands, Is.Empty, "Paging, snapshots and restyling must not send gunnery commands.");
@@ -186,8 +194,9 @@ public sealed class WFGunnerySupplyTest
                     var flares = Descendants(window).Single(control => control.Name == "WfCountermeasurePanel");
                     Assert.That(flares.Visible, Is.False, "A ship without launchers must not reserve space for flare controls.");
                 }
-                Toggle(Named("CockpitGroupStore"), true);
-                Press(Named("CockpitGroupSave2"));
+                WFButtonTestInput.Toggle(Named("CockpitGroupStore"), true);
+                Layout(new Vector2(1180, 780));
+                WFButtonTestInput.Click(Named("CockpitGroupSave2"));
                 var saved = commands.OfType<WFSaveWeaponGroupMessage>().Single();
                 Assert.That(saved.Weapons, Is.EquivalentTo(selection), "A standalone group save includes off-page selections.");
                 state.Connected = false;
@@ -203,19 +212,120 @@ public sealed class WFGunnerySupplyTest
         await pair.CleanReturnAsync();
     }
 
-    private static void Press(BaseButton button)
+    [Test]
+    public async Task FlaresUseClearLanesDistractEligibleLocksAndRefreshClosedAlerts()
     {
-        var handler = (Action<BaseButton.ButtonEventArgs>?) typeof(BaseButton)
-            .GetField("OnPressed", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(button);
-        handler?.Invoke(new BaseButton.ButtonEventArgs(button, null!));
-    }
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var map = await pair.CreateTestMap();
+        var em = pair.Server.EntMan;
+        var entities = new List<EntityUid>();
+        var seekers = new List<EntityUid>();
+        EntityUid consoleUid = default;
+        EntityUid launcher = default;
+        EntityUid decoy = default;
+        await pair.Server.WaitAssertion(() =>
+        {
+            var maps = em.System<SharedMapSystem>();
+            for (var x = 0; x < 6; x++)
+            for (var y = 0; y < 3; y++)
+                maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(x, y), map.Tile.Tile);
+            EntityUid Spawn(string? prototype, EntityCoordinates coordinates)
+            {
+                var entity = em.SpawnEntity(prototype, coordinates);
+                entities.Add(entity);
+                return entity;
+            }
+            consoleUid = Spawn("ComputerGunneryConsole", map.GridCoords);
+            em.GetComponent<ApcPowerReceiverComponent>(consoleUid).Powered = true;
+            var actor = Spawn("MobHuman", map.GridCoords);
+            var serverUid = Spawn(null, map.GridCoords);
+            var server = em.AddComponent<FireControlServerComponent>(serverUid);
+            server.ConnectedGrid = map.Grid.Owner;
+            server.ProcessingPower = 100;
+            server.Consoles.Add(consoleUid);
+            em.EnsureComponent<FireControlGridComponent>(map.Grid.Owner).ControllingServer = serverUid;
+            var console = em.GetComponent<FireControlConsoleComponent>(consoleUid);
+            console.ConnectedServer = serverUid;
+            launcher = Spawn("WeaponTurretFlare", new EntityCoordinates(map.Grid.Owner, new Vector2(4.5f, 1.5f)));
+            em.GetComponent<FireControllableComponent>(launcher).ControllingServer = serverUid;
+            server.Controlled.Add(launcher);
+            Spawn("WallSolid", new EntityCoordinates(map.Grid.Owner, new Vector2(4.5f, 0.5f)));
+            var fire = em.System<FireControlSystem>();
+            Assert.That(fire.WfFlareTarget(launcher, out var lane), Is.True,
+                "An inward obstruction must not stop a launcher with a clear outward lane.");
+            var transforms = em.System<SharedTransformSystem>();
+            var lanePoint = transforms.ToMapCoordinates(em.GetCoordinates(lane)).Position;
+            Assert.That(lanePoint.X, Is.GreaterThan(transforms.GetWorldPosition(launcher).X));
+            var ui = em.System<SharedUserInterfaceSystem>();
+            ui.OpenUi(consoleUid, FireControlConsoleUiKey.Key, actor);
+            ui.RaiseUiMessage(consoleUid, FireControlConsoleUiKey.Key, new WFDispenseFlaresMessage { Actor = actor });
+            em.System<GunSystem>().Update(1f / 30f);
+            Assert.That(em.GetComponent<WFFlareLauncherComponent>(launcher).NextBurst, Is.GreaterThan(TimeSpan.Zero),
+                "Manual DISPENSE must really fire through the unobstructed lane.");
+            var launched = em.EntityQuery<WFFlareDecoyComponent>(true).ToArray();
+            Assert.That(launched, Is.Not.Empty, "The real Sunny ammunition path must mark its emitted countermeasures.");
+            foreach (var flare in launched)
+                em.DeleteEntity(flare.Owner);
+            em.RemoveComponent<GunComponent>(launcher);
 
-    private static void Toggle(BaseButton button, bool pressed)
-    {
-        button.Pressed = pressed;
-        var handler = (Action<BaseButton.ButtonToggledEventArgs>?) typeof(BaseButton)
-            .GetField("OnToggled", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(button);
-        handler?.Invoke(new BaseButton.ButtonToggledEventArgs(pressed, button, null!));
+            // Only the fixture's emitted flare participates in these range/arc comparisons.
+            decoy = Spawn("ShipSunnyFlare", new EntityCoordinates(map.MapUid, new Vector2(10, 0)));
+            em.EventBus.RaiseLocalEvent(launcher, new AmmoShotEvent { FiredProjectiles = new List<EntityUid> { decoy } });
+            Assert.That(em.GetComponent<WFFlareDecoyComponent>(decoy).ProtectedGrid, Is.EqualTo(map.Grid.Owner));
+            for (var i = 0; i < 5; i++)
+            {
+                var missile = Spawn(null, new EntityCoordinates(map.MapUid, new Vector2(20, 0)));
+                seekers.Add(missile);
+                var projectile = em.AddComponent<ProjectileComponent>(missile);
+                var seeker = em.AddComponent<TargetSeekingComponent>(missile);
+                seeker.Launched = true;
+                seeker.ScanArc = 90;
+                em.System<TargetSeekingSystem>().SetSeekerTarget((missile, seeker), map.Grid.Owner);
+                transforms.SetWorldRotation(missile, Angle.FromWorldVec(-Vector2.UnitX));
+                if (i == 1) seeker.DetectionRange = 5;
+                if (i == 2) transforms.SetWorldRotation(missile, Angle.FromWorldVec(Vector2.UnitY));
+                if (i == 3) projectile.Shooter = consoleUid;
+                if (i == 4) seeker.SeekingDisabled = true;
+            }
+            var settings = em.EnsureComponent<WFCombatConsoleComponent>(consoleUid);
+            settings.Automatic = false;
+            ui.CloseUi(consoleUid, FireControlConsoleUiKey.Key, actor);
+            settings.Threats = 99;
+            ui.OpenUi(consoleUid, FireControlConsoleUiKey.Key, actor);
+            Assert.That(ui.TryGetUiState<FireControlConsoleBoundInterfaceState>(consoleUid, FireControlConsoleUiKey.Key, out var snapshot), Is.True);
+            Assert.That(snapshot!.Combat.Threats, Is.EqualTo(3),
+                "Reopening must rescan real threats immediately instead of replaying stale cached alerts.");
+            ui.CloseUi(consoleUid, FireControlConsoleUiKey.Key, actor);
+        });
+        await pair.RunTicksSync(20);
+        await pair.Server.WaitAssertion(() =>
+        {
+            Assert.That(em.GetComponent<TargetSeekingComponent>(seekers[0]).CurrentTarget, Is.EqualTo(decoy),
+                "A closer emitted flare inside the seeker's arc must distract an already locked missile.");
+            foreach (var missile in seekers.Skip(1))
+                Assert.That(em.GetComponent<TargetSeekingComponent>(missile).CurrentTarget, Is.EqualTo(map.Grid.Owner),
+                    "Out-of-range, rearward, friendly and disabled seekers must keep their existing target.");
+            Assert.That(em.System<WFCombatConsoleSystem>().GetState(consoleUid,
+                em.GetComponent<FireControlConsoleComponent>(consoleUid)).Threats, Is.EqualTo(2),
+                "The distracted missile must disappear from the ship's live lock count.");
+            for (var x = 3; x <= 5; x++)
+            for (var y = 0; y <= 2; y++)
+            {
+                if (x == 4 && (y == 0 || y == 1))
+                    continue;
+                entities.Add(em.SpawnEntity("WallSolid", new EntityCoordinates(map.Grid.Owner, new Vector2(x + 0.5f, y + 0.5f))));
+            }
+            Assert.That(em.System<FireControlSystem>().WfFlareTarget(launcher, out _), Is.False,
+                "Countermeasures must not bypass a hull that blocks every firing lane.");
+            foreach (var missile in seekers)
+                em.DeleteEntity(missile);
+            foreach (var entity in entities)
+            {
+                if (em.EntityExists(entity))
+                    em.DeleteEntity(entity);
+            }
+        });
+        await pair.CleanReturnAsync();
     }
 
     private static IEnumerable<Control> Descendants(Control root)

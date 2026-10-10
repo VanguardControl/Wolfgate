@@ -28,6 +28,12 @@ public sealed class WFGlassGauge : Control
     private readonly Font _digitalDigits;
     private WFGaugeReading _reading;
     private float? _needle;
+    private float? _target;
+    private float _sampleElapsed;
+    private string _minimumText = string.Empty;
+    private string _maximumText = string.Empty;
+    private string _middleText = string.Empty;
+    private readonly string _offline = Loc.GetString("wf-gauge-offline");
 
     /// <summary>Uses a horizontal scale with a marked midpoint for linear telemetry.</summary>
     public bool Strip { get; }
@@ -49,23 +55,41 @@ public sealed class WFGlassGauge : Control
         _small = new VectorFont(font, 9);
         _digits = new VectorFont(font, 12);
         _digitalDigits = new VectorFont(font, 18);
-        _reading = _read();
+        Sample();
     }
 
     protected override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
-        _reading = _read();
-        var target = WFGaugeScale.Fraction(_reading.Value, _reading.Minimum, _reading.Maximum);
-        _needle = target == null ? null : _needle == null ? target :
-            _needle + (target - _needle) * MathF.Min(1, args.DeltaSeconds * 12);
+        _sampleElapsed += args.DeltaSeconds;
+        if (_sampleElapsed >= 0.1f)
+        {
+            _sampleElapsed %= 0.1f;
+            Sample();
+        }
+        _needle = _target == null ? null : _needle == null ? _target :
+            _needle + (_target - _needle) * MathF.Min(1, args.DeltaSeconds * 12);
+    }
+
+    /// <summary>Samples formatted telemetry at ten hertz while the needle continues animating every frame.</summary>
+    private void Sample()
+    {
+        var next = _read();
+        if (_minimumText.Length == 0 || next.Minimum != _reading.Minimum || next.Maximum != _reading.Maximum)
+        {
+            _minimumText = next.Minimum.ToString("0.#");
+            _maximumText = next.Maximum.ToString("0.#");
+            _middleText = ((next.Minimum + next.Maximum) / 2).ToString("0.#");
+        }
+        _reading = next;
+        _target = WFGaugeScale.Fraction(next.Value, next.Minimum, next.Maximum);
     }
 
     protected override void Draw(DrawingHandleScreen handle)
     {
         base.Draw(handle);
         var color = _reading.Tint ?? WFInstrumentTheme.Accent;
-        if (WFGaugeScale.Fraction(_reading.Value, _reading.Minimum, _reading.Maximum) == null)
+        if (_target == null)
             color = WFInstrumentTheme.Muted;
         if (WFInstrumentTheme.Digital)
         {
@@ -93,7 +117,7 @@ public sealed class WFGlassGauge : Control
             handle.DrawLine(center + direction * (face - (i % 5 == 0 ? 8 : 4) * UIScale),
                 center + direction * face, i % 5 == 0 ? WFInstrumentTheme.Cream : WFInstrumentTheme.Muted);
         }
-        Text(handle, _small, ((_reading.Minimum + _reading.Maximum) / 2).ToString("0.#"),
+        Text(handle, _small, _middleText,
             center + new Vector2(0, -face * 0.65f + 3 * UIScale), face * 0.65f, WFInstrumentTheme.Muted);
         if (_needle is { } needle)
         {
@@ -115,8 +139,8 @@ public sealed class WFGlassGauge : Control
         var readout = UIBox2.FromDimensions(new Vector2(center.X - face * 0.73f, readoutTop), new Vector2(face * 1.46f, readoutHeight));
         handle.DrawRect(readout, WFInstrumentTheme.Skin.Ink);
         TextInBox(handle, _digits, _reading.Text, new UIBox2(readout.TopLeft + new Vector2(UIScale), readout.BottomRight - new Vector2(UIScale)), color);
-        TextInBox(handle, _small, _reading.Minimum.ToString("0.#"), minimum, WFInstrumentTheme.Muted);
-        TextInBox(handle, _small, _reading.Maximum.ToString("0.#"), maximum, WFInstrumentTheme.Muted);
+        TextInBox(handle, _small, _minimumText, minimum, WFInstrumentTheme.Muted);
+        TextInBox(handle, _small, _maximumText, maximum, WFInstrumentTheme.Muted);
         WFInstrumentGlass.Round(handle, center, face + 2 * UIScale, UIScale);
         Text(handle, _small, _caption, new Vector2(center.X, PixelHeight - 4 * UIScale), PixelWidth - 4 * UIScale, WFInstrumentTheme.Cream);
     }
@@ -143,9 +167,9 @@ public sealed class WFGlassGauge : Control
                 new[] { new Vector2(x, top + 2 * UIScale), new Vector2(x - 4 * UIScale, top + 14 * UIScale),
                     new Vector2(x + 4 * UIScale, top + 14 * UIScale) }, color);
         }
-        Text(handle, _small, _reading.Minimum.ToString("0.#"), new Vector2(left + 12 * UIScale, PixelHeight - 4 * UIScale), 45 * UIScale, WFInstrumentTheme.Muted);
-        Text(handle, _small, _reading.Maximum.ToString("0.#"), new Vector2(right - 15 * UIScale, PixelHeight - 4 * UIScale), 55 * UIScale, WFInstrumentTheme.Muted);
-        Text(handle, _small, ((_reading.Minimum + _reading.Maximum) / 2).ToString("0.#"),
+        Text(handle, _small, _minimumText, new Vector2(left + 12 * UIScale, PixelHeight - 4 * UIScale), 45 * UIScale, WFInstrumentTheme.Muted);
+        Text(handle, _small, _maximumText, new Vector2(right - 15 * UIScale, PixelHeight - 4 * UIScale), 55 * UIScale, WFInstrumentTheme.Muted);
+        Text(handle, _small, _middleText,
             new Vector2(PixelWidth / 2, PixelHeight - 4 * UIScale), 55 * UIScale, WFInstrumentTheme.Cream);
         WFInstrumentGlass.Window(handle, box, UIScale);
     }
@@ -180,14 +204,14 @@ public sealed class WFGlassGauge : Control
                 var x = left + width * zero;
                 handle.DrawLine(new Vector2(x, 26 * UIScale), new Vector2(x, 39 * UIScale), skin.Text);
             }
-            Text(handle, _small, _reading.Minimum.ToString("0.#"), new Vector2(left + 12 * UIScale, PixelHeight - 4 * UIScale), 45 * UIScale, skin.TextMuted);
-            Text(handle, _small, _reading.Maximum.ToString("0.#"), new Vector2(PixelWidth - left - 15 * UIScale, PixelHeight - 4 * UIScale), 55 * UIScale, skin.TextMuted);
-            Text(handle, _small, ((_reading.Minimum + _reading.Maximum) / 2).ToString("0.#"),
+            Text(handle, _small, _minimumText, new Vector2(left + 12 * UIScale, PixelHeight - 4 * UIScale), 45 * UIScale, skin.TextMuted);
+            Text(handle, _small, _maximumText, new Vector2(PixelWidth - left - 15 * UIScale, PixelHeight - 4 * UIScale), 55 * UIScale, skin.TextMuted);
+            Text(handle, _small, _middleText,
                 new Vector2(PixelWidth / 2, PixelHeight - 4 * UIScale), 55 * UIScale, skin.TextMuted);
             return;
         }
-        var radius = MathF.Max(1, MathF.Min(PixelWidth / 2 - 9 * UIScale, (PixelHeight - 30 * UIScale) / 2));
-        var center = new Vector2(PixelWidth / 2, radius + 6 * UIScale);
+        var radius = MathF.Max(1, MathF.Min(PixelWidth / 2f - 3 * UIScale, (PixelHeight - 25 * UIScale) / 2f));
+        var center = new Vector2(PixelWidth / 2f, radius + 2 * UIScale);
         var start = MathF.PI * 0.75f;
         var sweep = MathF.PI * 1.5f;
         WFConsoleDigital.Arc(handle, center, radius, UIScale, start, start + sweep, skin.EdgeLight, ref _digitalVertices);
@@ -201,8 +225,8 @@ public sealed class WFGlassGauge : Control
             WFConsoleDigital.Dot(handle, center + direction * (radius - 7 * UIScale), 3 * UIScale, color, ref _digitalVertices);
         }
         Text(handle, _digitalDigits, _reading.Text, center + new Vector2(0, 7 * UIScale), (radius - 10 * UIScale) * 2, color);
-        Text(handle, _small, _reading.Minimum.ToString("0.#"), center + new Vector2(-radius * 0.57f, radius * 0.86f), radius * 0.8f, skin.TextMuted);
-        Text(handle, _small, _reading.Maximum.ToString("0.#"), center + new Vector2(radius * 0.57f, radius * 0.86f), radius * 0.8f, skin.TextMuted);
+        Text(handle, _small, _minimumText, center + new Vector2(-radius * 0.57f, radius * 0.86f), radius * 0.8f, skin.TextMuted);
+        Text(handle, _small, _maximumText, center + new Vector2(radius * 0.57f, radius * 0.86f), radius * 0.8f, skin.TextMuted);
         Text(handle, _small, _caption, new Vector2(center.X, PixelHeight - 5 * UIScale), PixelWidth - 10 * UIScale, skin.Text);
     }
 
@@ -211,9 +235,9 @@ public sealed class WFGlassGauge : Control
     {
         if (bounds.Width <= 0 || bounds.Height <= 0)
             return;
-        var measured = handle.GetDimensions(font, text, UIScale).X;
-        var scale = UIScale * MathF.Min(1, MathF.Min(bounds.Width / MathF.Max(1, measured),
-            bounds.Height / Math.Max(1, font.GetHeight(UIScale))));
+        var scale = WFInstrumentText.FitScale(handle, font, text, UIScale, bounds.Width, bounds.Height);
+        if (scale == 0)
+            return;
         var drawn = handle.GetDimensions(font, text, scale).X;
         var position = bounds.Center - new Vector2(drawn / 2, font.GetHeight(scale) / 2f);
         handle.DrawString(font, position, text, scale, color);
@@ -221,9 +245,10 @@ public sealed class WFGlassGauge : Control
 
     private void Text(DrawingHandleScreen handle, Font font, string? text, Vector2 position, float width, Color color)
     {
-        text ??= Loc.GetString("wf-gauge-offline");
-        var measured = handle.GetDimensions(font, text, UIScale).X;
-        var scale = UIScale * MathF.Min(1, width / MathF.Max(1, measured));
+        text ??= _offline;
+        var scale = WFInstrumentText.FitScale(handle, font, text, UIScale, width);
+        if (scale == 0)
+            return;
         var drawn = handle.GetDimensions(font, text, scale).X;
         handle.DrawString(font, position - new Vector2(drawn / 2, font.GetAscent(scale)), text, scale, color);
     }

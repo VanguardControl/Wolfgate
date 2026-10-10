@@ -49,11 +49,11 @@ public sealed partial class WFCockpitView : Control
         var normalHud = new List<Control>(screen.Children);
         _lease.Clear(screen);
         foreach (var control in normalHud)
-            hiddenHud.AddChild(_lease.Take(control));
+            hiddenHud.AddChild(_lease.Take(control, restoreVisibility: false));
         AddChild(hiddenHud);
-        var world = _lease.Take(viewport);
+        var world = _lease.Take(viewport, restoreVisibility: false);
         world.VerticalExpand = true;
-        var communications = _lease.Take(chat);
+        var communications = _lease.Take(chat, restoreVisibility: false);
         communications.VerticalExpand = true;
         if (chat is ResizableChatBox resizable)
         {
@@ -136,6 +136,7 @@ public sealed partial class WFCockpitView : Control
         AddChild(_top);
         AddChild(_left);
         AddChild(_world);
+        InitializeHud(screen, hiddenHud);
         AddChild(_translation);
         AddChild(_right);
         AddChild(_comms);
@@ -146,9 +147,9 @@ public sealed partial class WFCockpitView : Control
         LayoutContainer.SetAnchorPreset(this, LayoutContainer.LayoutPreset.Wide);
         screen.AddChild(this);
         SelectPage("wf-cockpit-nav");
+        console.WfSendCockpitGunnery(new Content.Shared._WF.Cockpit.WFCockpitGunnerySessionMessage(true));
         console.WfSetCockpitActive(true);
         Install(this);
-        console.WfSendCockpitGunnery(new Content.Shared._WF.Cockpit.WFCockpitGunnerySessionMessage(true));
     }
 
     /// <summary>Switches only the MFD; cameras, flight controls, shield controls and chat stay in place.</summary>
@@ -161,6 +162,7 @@ public sealed partial class WFCockpitView : Control
         }
         foreach (var (page, button) in _selectors)
             button.Pressed = page == key;
+        _console.WfCockpitShipVisible(key == "wf-cockpit-ship");
         _console.WfCockpitPageSelected(key);
     }
 
@@ -171,6 +173,7 @@ public sealed partial class WFCockpitView : Control
             return;
         _restored = true;
         Parent?.RemoveChild(this);
+        IoCManager.Resolve<IEntityManager>().System<Content.Client._WF.Shuttles.Systems.ShuttleExternalCameraSystem>().WfEndCockpitInput();
         _lease.Restore();
         _console.WfSetCockpitActive(false);
         Dispose();
@@ -187,7 +190,9 @@ public sealed partial class WFCockpitView : Control
         _left.Measure(new Vector2(left, Math.Max(80, height - flightHeight - _camera.DesiredSize.Y - modesHeight - 12)));
         _flight.Measure(new Vector2(left, flightHeight));
         _right.Measure(new Vector2(right, height));
-        _world.Measure(new Vector2(center, Math.Max(80, height - bottom - _translation.DesiredSize.Y - 12)));
+        var worldSize = new Vector2(center, Math.Max(80, height - bottom - _translation.DesiredSize.Y - 12));
+        _world.Measure(worldSize);
+        MeasureHud(worldSize, availableSize);
         _comms.Measure(new Vector2((center - 6) * 0.43f, bottom));
         _shields.Measure(new Vector2((center - 6) * 0.57f, bottom));
         return availableSize;
@@ -210,8 +215,10 @@ public sealed partial class WFCockpitView : Control
         _camera.Arrange(UIBox2.FromDimensions(new Vector2(8, cameraY), new Vector2(left, cameraHeight)));
         _flight.Arrange(UIBox2.FromDimensions(new Vector2(8, flightY), new Vector2(left, flightHeight)));
         _translation.Arrange(UIBox2.FromDimensions(new Vector2(centerX, top), new Vector2(center, motionHeight)));
-        _world.Arrange(UIBox2.FromDimensions(new Vector2(centerX, top + motionHeight + 6),
-            new Vector2(center, Math.Max(80, height - bottom - motionHeight - 12))));
+        var worldBounds = UIBox2.FromDimensions(new Vector2(centerX, top + motionHeight + 6),
+            new Vector2(center, Math.Max(80, height - bottom - motionHeight - 12)));
+        _world.Arrange(worldBounds);
+        ArrangeHud(worldBounds, size);
         _right.Arrange(UIBox2.FromDimensions(new Vector2(size.X - right - 8, top), new Vector2(right, height)));
         var communications = (center - 6) * 0.43f;
         _comms.Arrange(UIBox2.FromDimensions(new Vector2(centerX, bottomY), new Vector2(communications, bottom)));

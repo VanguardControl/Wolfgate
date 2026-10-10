@@ -2,6 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Content.Server._WF.Shuttles.Systems;
+using Content.Client._WF.Shuttles.UI;
+using Content.Client.Shuttles.UI;
+using Content.Server.Power.Components;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
 using Content.Shared._WF.Shuttles;
@@ -87,8 +92,112 @@ public sealed class ShipStatusTest
             Assert.That(damaged.Summary.HullIntegrity, Is.LessThan(1f));
             Assert.That(damaged.Summary.HullIntegrity, Is.GreaterThan(damaged.Summary.WorstIntegrity),
                 "The whole-hull condition averages healthy locations as well as damaged ones.");
+            var hullOnly = statusSystem.GetStatus(console, hullOnly: true)!;
+            Assert.That(hullOnly.Summary.HullIntegrity, Is.EqualTo(damaged.Summary.HullIntegrity));
+            Assert.That(hullOnly.Tiles, Is.Empty, "A hidden SHP page must not stream per-tile overlays.");
+            Assert.That(hullOnly.Summary.DamagedTiles, Is.Zero,
+                "The permanent gauge requests hull condition without collecting hidden detailed readings.");
         });
 
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task HullOnlyViewerCannotReplaceOrCancelAnotherViewersDetailedSubscription()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var map = await pair.CreateTestMap();
+        var em = pair.Server.EntMan;
+        EntityUid console = default;
+        EntityUid detailedViewer = default;
+        EntityUid hullViewer = default;
+        await pair.Server.WaitAssertion(() =>
+        {
+            var maps = em.System<SharedMapSystem>();
+            maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(1, 0), map.Tile.Tile);
+            maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(2, 0), map.Tile.Tile);
+            detailedViewer = em.SpawnEntity("MobHuman", map.GridCoords);
+            hullViewer = em.SpawnEntity("MobHuman", map.GridCoords);
+            pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, detailedViewer);
+            console = em.SpawnEntity("ComputerShuttle", map.GridCoords);
+            em.GetComponent<ApcPowerReceiverComponent>(console).Powered = true;
+            var ui = em.System<SharedUserInterfaceSystem>();
+            ui.OpenUi(console, ShuttleConsoleUiKey.Key, detailedViewer);
+            ui.OpenUi(console, ShuttleConsoleUiKey.Key, hullViewer);
+            DamageWall(1);
+        });
+        await pair.RunTicksSync(5);
+        await pair.Server.WaitAssertion(() =>
+        {
+            var ui = em.System<SharedUserInterfaceSystem>();
+            Assert.That(ui.IsUiOpen(console, ShuttleConsoleUiKey.Key, detailedViewer), Is.True);
+            Assert.That(ui.IsUiOpen(console, ShuttleConsoleUiKey.Key, hullViewer), Is.True);
+            ui.RaiseUiMessage(console, ShuttleConsoleUiKey.Key,
+                new ShipStatusRequestMessage(true, ShipOverlays.Damage) { Actor = detailedViewer });
+            ui.RaiseUiMessage(console, ShuttleConsoleUiKey.Key,
+                new ShipStatusRequestMessage(true, ShipOverlays.None, hullOnly: true) { Actor = hullViewer });
+        });
+        await pair.RunTicksSync(5);
+        await pair.Client.WaitAssertion(() => AssertDamagedTiles("1",
+            "A cockpit hull-only request must retain another viewer's detailed damage stream."));
+        await pair.Server.WaitAssertion(() =>
+        {
+            em.System<SharedUserInterfaceSystem>().RaiseUiMessage(console, ShuttleConsoleUiKey.Key,
+                new ShipStatusRequestMessage(false, ShipOverlays.None, hullOnly: true) { Actor = hullViewer });
+            DamageWall(2);
+        });
+        await pair.RunTicksSync(70);
+        await pair.Client.WaitAssertion(() => AssertDamagedTiles("2",
+            "Stopping one viewer's request must leave the other viewer subscribed to later damage."));
+        await pair.Server.WaitAssertion(() =>
+        {
+            var ui = em.System<SharedUserInterfaceSystem>();
+            ui.CloseUi(console, ShuttleConsoleUiKey.Key, hullViewer);
+            ui.CloseUi(console, ShuttleConsoleUiKey.Key, detailedViewer);
+            pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, null);
+            em.DeleteEntity(hullViewer);
+            em.DeleteEntity(detailedViewer);
+        });
+        await pair.RunTicksSync(2);
+        await pair.CleanReturnAsync();
+        return;
+
+        void DamageWall(int x)
+        {
+            var wall = em.SpawnEntity("WallSolid", new EntityCoordinates(map.Grid.Owner, new Vector2(x + 0.5f, 0.5f)));
+            var prototype = pair.Server.ResolveDependency<IPrototypeManager>().Index<DamageTypePrototype>("Blunt");
+            em.System<DamageableSystem>().TryChangeDamage(wall, new DamageSpecifier(prototype, FixedPoint2.New(100)), ignoreResistances: true);
+        }
+
+        void AssertDamagedTiles(string expected, string message)
+        {
+            var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
+            var window = ui.WindowRoot.Children.OfType<ShuttleConsoleWindow>().Single();
+            var ship = window.FindControl<ShipScreen>("ShipContainer");
+            Assert.That(ship.FindControl<Label>("DamagedLabel").Text, Is.EqualTo(expected), message);
+        }
+    }
+
+    [Test]
+    public async Task RemovingEquipmentDoesNotBecomePermanentHullDamage()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var map = await pair.CreateTestMap();
+        await pair.Server.WaitAssertion(() =>
+        {
+            var em = pair.Server.EntMan;
+            var status = em.System<ShipStatusSystem>();
+            var console = em.SpawnEntity("ComputerShuttle", new EntityCoordinates(map.Grid.Owner, new Vector2(0.5f, 0.5f)));
+            var chair = em.SpawnEntity("ChairPilotSeat", new EntityCoordinates(map.Grid.Owner, new Vector2(0.5f, 0.5f)));
+            var machine = em.SpawnEntity("ComputerGunneryConsole", new EntityCoordinates(map.Grid.Owner, new Vector2(0.5f, 0.5f)));
+            Assert.That(em.GetComponent<TransformComponent>(chair).Anchored, Is.True);
+            Assert.That(em.GetComponent<TransformComponent>(machine).Anchored, Is.True);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f));
+            em.DeleteEntity(chair);
+            em.DeleteEntity(machine);
+            Assert.That(status.GetStatus(console)!.Summary.HullIntegrity, Is.EqualTo(1f),
+                "Removing furniture or machines must not permanently scar the structural hull survey.");
+        });
         await pair.CleanReturnAsync();
     }
 

@@ -3,6 +3,7 @@ using Content.Client._WF.CombatConsole;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
+using Robust.Shared.Timing;
 
 namespace Content.Client._WF.Cockpit;
 
@@ -18,6 +19,9 @@ public sealed class WFVelocityVectorInstrument : Control
     private readonly string _port = Loc.GetString("wf-cockpit-velocity-port");
     private readonly string _starboard = Loc.GetString("wf-cockpit-velocity-starboard");
     private DrawVertexUV2DColor[] _vertices = Array.Empty<DrawVertexUV2DColor>();
+    private WFCockpitVelocityReading? _reading;
+    private string _speedText = string.Empty;
+    private float _sampleElapsed;
 
     /// <summary>Exposes the live physical sample independently of drawing.</summary>
     public WFCockpitVelocityReading? Reading => _read();
@@ -34,12 +38,30 @@ public sealed class WFVelocityVectorInstrument : Control
             .GetResource<FontResource>("/Fonts/RobotoMono/RobotoMono-Regular.ttf");
         _labels = new VectorFont(font, 8);
         _digits = new VectorFont(font, 12);
+        _reading = _read();
+        Sample();
+    }
+
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+        _reading = _read();
+        _sampleElapsed += args.DeltaSeconds;
+        if (_sampleElapsed < 0.1f)
+            return;
+        _sampleElapsed %= 0.1f;
+        Sample();
+    }
+
+    private void Sample()
+    {
+        _speedText = WFGaugeReading.Number(_reading?.Speed, 0, 1, "wf-gauge-unit-speed", 1).Text;
     }
 
     protected override void Draw(DrawingHandleScreen handle)
     {
         base.Draw(handle);
-        var reading = Reading;
+        var reading = _reading;
         var skin = WFInstrumentTheme.Skin;
         var tint = reading == null ? skin.TextMuted : skin.Accent;
         var radius = MathF.Max(1, MathF.Min(PixelWidth / 2 - 3 * UIScale, (PixelHeight - 20 * UIScale) / 2));
@@ -78,9 +100,10 @@ public sealed class WFVelocityVectorInstrument : Control
         handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, bow, skin.TextMuted.WithAlpha(0.65f));
         if (reading?.ScreenDirection is { } motion)
         {
-            var tip = origin + motion * face * 0.36f;
+            var length = face * 0.36f * reading.Value.SpeedFraction;
+            var tip = origin + motion * length;
             var side = new Vector2(-motion.Y, motion.X);
-            var head = MathF.Min(5 * UIScale, face * 0.18f);
+            var head = MathF.Min(5 * UIScale, length * 0.45f);
             handle.DrawLine(origin, tip, tint);
             handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList,
                 new[] { tip, tip - motion * head + side * head * 0.55f, tip - motion * head - side * head * 0.55f }, tint);
@@ -93,11 +116,10 @@ public sealed class WFVelocityVectorInstrument : Control
         }
         else if (reading != null)
             WFConsoleDigital.Dot(handle, origin, 2 * UIScale, tint, ref _vertices);
-        var speed = WFGaugeReading.Number(reading?.Speed, 0, 1, "wf-gauge-unit-speed", 1).Text;
         var readout = UIBox2.FromDimensions(center + new Vector2(-face * 0.725f, face * 0.21f),
             new Vector2(face * 1.45f, MathF.Min(18 * UIScale, face * 0.32f)));
         handle.DrawRect(readout, skin.Ink);
-        TextInBox(handle, _digits, speed, readout, tint);
+        TextInBox(handle, _digits, _speedText, readout, tint);
         if (!WFInstrumentTheme.Digital)
             WFInstrumentGlass.Round(handle, center, face + 2 * UIScale, UIScale);
         Text(handle, _labels, _caption, new Vector2(PixelWidth / 2, PixelHeight - 7 * UIScale), PixelWidth - 6 * UIScale, skin.Text);
@@ -106,17 +128,18 @@ public sealed class WFVelocityVectorInstrument : Control
     /// <summary>Fits the speed's full text inside the lower glass inset.</summary>
     private void TextInBox(DrawingHandleScreen handle, Font font, string text, UIBox2 bounds, Color color)
     {
-        var measured = handle.GetDimensions(font, text, UIScale).X;
-        var scale = UIScale * MathF.Min(1, MathF.Min(bounds.Width / MathF.Max(1, measured),
-            bounds.Height / Math.Max(1, font.GetHeight(UIScale))));
+        var scale = WFInstrumentText.FitScale(handle, font, text, UIScale, bounds.Width, bounds.Height);
+        if (scale == 0)
+            return;
         var drawn = handle.GetDimensions(font, text, scale).X;
         handle.DrawString(font, bounds.Center - new Vector2(drawn / 2, font.GetHeight(scale) / 2f), text, scale, color);
     }
 
     private void Text(DrawingHandleScreen handle, Font font, string text, Vector2 center, float width, Color color)
     {
-        var measured = handle.GetDimensions(font, text, UIScale).X;
-        var scale = UIScale * MathF.Min(1, width / MathF.Max(1, measured));
+        var scale = WFInstrumentText.FitScale(handle, font, text, UIScale, width);
+        if (scale == 0)
+            return;
         var dimensions = handle.GetDimensions(font, text, scale);
         handle.DrawString(font, center - new Vector2(dimensions.X / 2, font.GetAscent(scale) / 2), text, scale, color);
     }

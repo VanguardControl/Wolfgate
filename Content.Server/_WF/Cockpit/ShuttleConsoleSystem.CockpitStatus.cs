@@ -19,20 +19,13 @@ public sealed partial class ShuttleConsoleSystem
     private readonly Dictionary<EntityUid, bool?> _wfCockpitAutopilotStates = new();
     private readonly Dictionary<EntityUid, HashSet<EntityUid>> _wfCockpitStatusViewers = new();
 
-    private void InitializeWfCockpitStatus()
+    /// <summary>Queues fresh lamps for each real helm open, including a reopen between status ticks.</summary>
+    public void WfCockpitConsoleOpened(EntityUid console, EntityUid actor)
     {
-        SubscribeLocalEvent<UserInterfaceComponent, BoundUIOpenedEvent>(OnWfCockpitUiOpened);
-    }
-
-    private void OnWfCockpitUiOpened(Entity<UserInterfaceComponent> ent, ref BoundUIOpenedEvent args)
-    {
-        if (!args.UiKey.Equals(ShuttleConsoleUiKey.Key) || !HasComp<ShuttleConsoleComponent>(ent))
-            return;
-        if (!_wfCockpitStatusViewers.TryGetValue(ent.Owner, out var viewers))
-            _wfCockpitStatusViewers[ent.Owner] = viewers = new HashSet<EntityUid>();
-        viewers.Add(args.Actor);
-        // The shield-only updater must also refresh a newly opened viewer's cached snapshot.
-        _wfShieldHelmStates.Remove(ent.Owner);
+        if (!_wfCockpitStatusViewers.TryGetValue(console, out var viewers))
+            _wfCockpitStatusViewers[console] = viewers = new HashSet<EntityUid>();
+        viewers.Add(actor);
+        _wfShieldHelmStates.Remove(console);
     }
 
     /// <summary>Checks active steering rather than an old destination or the destination selection button.</summary>
@@ -65,6 +58,7 @@ public sealed partial class ShuttleConsoleSystem
             if (!_ui.IsUiOpen(uid, ShuttleConsoleUiKey.Key))
                 continue;
             open.Add(uid);
+            _wfCockpitStatusViewers.Remove(uid, out var newViewers);
             var selected = new ConsoleShuttleEvent { Console = uid };
             RaiseLocalEvent(uid, ref selected);
             var active = GetWfCockpitAutopilotStatus(selected.Console);
@@ -73,15 +67,20 @@ public sealed partial class ShuttleConsoleSystem
                 _wfCockpitAutopilotStates[uid] = active;
                 _ui.ServerSendUiMessage(uid, ShuttleConsoleUiKey.Key, new WFCockpitAutopilotUpdateMessage(active));
             }
-            else if (_wfCockpitStatusViewers.TryGetValue(uid, out var viewers))
+            else if (newViewers != null)
             {
-                // A new viewer can have an older cached BUI snapshot while the lamp itself has not changed.
-                foreach (var actor in viewers)
-                    _ui.ServerSendUiMessage(uid, ShuttleConsoleUiKey.Key, new WFCockpitAutopilotUpdateMessage(active), actor);
+                foreach (var actor in newViewers)
+                {
+                    if (_ui.IsUiOpen(uid, ShuttleConsoleUiKey.Key, actor))
+                        _ui.ServerSendUiMessage(uid, ShuttleConsoleUiKey.Key, new WFCockpitAutopilotUpdateMessage(active), actor);
+                }
             }
         }
-        _wfCockpitStatusViewers.Clear();
         foreach (var uid in _wfCockpitAutopilotStates.Keys.Where(uid => !open.Contains(uid)).ToArray())
+        {
             _wfCockpitAutopilotStates.Remove(uid);
+        }
+        foreach (var uid in _wfCockpitStatusViewers.Keys.Where(uid => !open.Contains(uid)).ToArray())
+            _wfCockpitStatusViewers.Remove(uid);
     }
 }

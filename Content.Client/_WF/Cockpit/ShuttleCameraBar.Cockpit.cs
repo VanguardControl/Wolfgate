@@ -8,8 +8,27 @@ namespace Content.Client._WF.Shuttles.UI;
 
 public sealed partial class ShuttleCameraBar
 {
-    /// <summary>Starts the cockpit outside the ship while keeping its zoom and low-light settings.</summary>
-    public void WfCockpitDefaultView() => Request(ShuttleCameraView.External, _zoom, _lowLight);
+    private (ShuttleCameraView View, float Zoom, bool LowLight)? _wfCockpitCamera;
+
+    /// <summary>Starts outside the ship while remembering the camera presented before entry.</summary>
+    public void WfCockpitDefaultView()
+    {
+        if (_wfCockpitCamera != null)
+            return;
+        if (_entManager.TryGetComponent<ShuttleCameraComponent>(_player.LocalEntity, out var camera))
+            Show(camera.View, camera.Zoom, camera.LowLight);
+        _wfCockpitCamera = (_view, _zoom, _lowLight);
+        Request(ShuttleCameraView.External, _zoom, _lowLight);
+    }
+
+    /// <summary>Restores the camera controls while the server ends the cockpit's temporary camera session.</summary>
+    public void WfCockpitRestoreView()
+    {
+        if (_wfCockpitCamera is not { } previous)
+            return;
+        _wfCockpitCamera = null;
+        Show(previous.View, previous.Zoom, previous.LowLight);
+    }
 
     /// <summary>Fits permanent camera selection and zoom above the cockpit flight controls.</summary>
     public Control WfCockpitControls(WFCockpitLease lease)

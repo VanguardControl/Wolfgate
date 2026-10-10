@@ -13,11 +13,13 @@ using Content.Shared.Interaction;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.UserInterface;
 using Robust.Server.GameObjects;
+using Robust.Shared.Enums;
+using Robust.Shared.Player;
 
 namespace Content.Server._WF.Cockpit;
 
 /// <summary>Links a seated cockpit pilot to a reachable, authorized gunnery console without opening another window.</summary>
-public sealed class WFCockpitGunnerySystem : EntitySystem
+public sealed partial class WFCockpitGunnerySystem : EntitySystem
 {
     [Dependency] private SharedWFCockpitSystem _cockpit = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
@@ -35,11 +37,20 @@ public sealed class WFCockpitGunnerySystem : EntitySystem
     {
         public readonly EntityUid Helm = helm;
         public EntityUid? Console;
+        public bool Controlling;
+        public bool SentState;
+        public EntityUid? SentConsole;
+        public FireControlConsoleBoundInterfaceState? State;
     }
 
     public override void Initialize()
     {
         base.Initialize();
+        SubscribeLocalEvent<PlayerDetachedEvent>(args =>
+        {
+            if (_sessions.TryGetValue(args.Entity, out var session))
+                EndSession(args.Entity, session);
+        });
         Subs.BuiEvents<ShuttleConsoleComponent>(ShuttleConsoleUiKey.Key, subs =>
         {
             subs.Event<WFCockpitGunnerySessionMessage>(OnSession);
@@ -48,13 +59,13 @@ public sealed class WFCockpitGunnerySystem : EntitySystem
     }
 
     private void OnSession(Entity<ShuttleConsoleComponent> ent, ref WFCockpitGunnerySessionMessage args) =>
-        SetSession(args.Actor, ent, args.Active);
+        SetSession(args.Actor, ent, args.Active, args.Controlling);
 
     private void OnCommand(Entity<ShuttleConsoleComponent> ent, ref WFCockpitGunneryCommandMessage args) =>
         TryCommand(args.Actor, ent, args.Console, args.Command);
 
     /// <summary>Starts a validated helm session or releases only the requesting helm's existing link.</summary>
-    public bool SetSession(EntityUid actor, EntityUid helm, bool active)
+    public bool SetSession(EntityUid actor, EntityUid helm, bool active, bool controlling = false)
     {
         if (!active)
         {
@@ -65,19 +76,26 @@ public sealed class WFCockpitGunnerySystem : EntitySystem
         if (!CanMaintainSession(actor, helm))
             return false;
         if (!_sessions.TryGetValue(actor, out var session) || session.Helm != helm)
+        {
+            if (session != null)
+                EndSession(actor, session);
             _sessions[actor] = session = new Session(helm);
+            CaptureCamera(actor, helm);
+        }
+        session.Controlling = controlling;
         Refresh(actor, session);
         return true;
     }
 
     /// <summary>Returns a linked console only while the complete authorization still holds.</summary>
     public EntityUid? GetConsole(EntityUid actor) =>
-        _sessions.TryGetValue(actor, out var session) && session.Console is { } console && CanOperate(actor, console)
+        _sessions.TryGetValue(actor, out var session) && session.Console is { } console &&
+        CanUseHelm(actor, session.Helm) && CanUseConsole(actor, session.Helm, console)
             ? console : null;
 
     /// <summary>Rechecks the seat, live helm subscription, reach, access and server ownership for every command.</summary>
     public bool CanOperate(EntityUid actor, EntityUid console) =>
-        _sessions.TryGetValue(actor, out var session) && session.Console == console &&
+        _sessions.TryGetValue(actor, out var session) && session.Console == console && session.Controlling &&
         CanUseHelm(actor, session.Helm) && CanUseConsole(actor, session.Helm, console);
 
     /// <summary>Lets existing gunnery telemetry and NPC handoff recognize authorized cockpit operators.</summary>
@@ -90,11 +108,14 @@ public sealed class WFCockpitGunnerySystem : EntitySystem
         }
     }
 
+    /// <summary>Identifies telemetry subscribers without repeating physical authorization for a shared snapshot.</summary>
+    public bool HasViewers(EntityUid console) => _sessions.Values.Any(session => session.Console == console);
+
     /// <summary>Dispatches a whitelisted native gunnery command only to the console advertised to this pilot.</summary>
     public bool TryCommand(EntityUid actor, EntityUid helm, NetEntity expectedConsole, BoundUserInterfaceMessage command)
     {
         if (!_sessions.TryGetValue(actor, out var session) || session.Helm != helm ||
-            session.Console is not { } console || GetNetEntity(console) != expectedConsole || !CanOperate(actor, console))
+            session.Console is not { } console || GetNetEntity(console) != expectedConsole || !session.Controlling)
             return false;
         if (!_fireControl.WfCockpitCommand(console, actor, command))
             return false;
@@ -104,6 +125,8 @@ public sealed class WFCockpitGunnerySystem : EntitySystem
     }
 
     private bool CanMaintainSession(EntityUid actor, EntityUid helm) =>
+        TryComp<ActorComponent>(actor, out var player) && player.PlayerSession.AttachedEntity == actor &&
+        player.PlayerSession.Status == SessionStatus.InGame &&
         _cockpit.CanEnter(actor, helm) && _ui.IsUiOpen(helm, ShuttleConsoleUiKey.Key, actor);
 
     private bool CanUseHelm(EntityUid actor, EntityUid helm) =>
@@ -127,7 +150,7 @@ public sealed class WFCockpitGunnerySystem : EntitySystem
         if (TryComp<ActivatableUIComponent>(console, out var activation) &&
             (activation.AdminOnly || activation.InHandsOnly || activation.RequiredItems != null ||
              activation.SingleUser && (activation.CurrentSingleUser is { } user && user != actor ||
-                _sessions.Any(other => other.Key != actor && other.Value.Console == console && CanUseHelm(other.Key, other.Value.Helm)))))
+                _sessions.Any(other => other.Key != actor && other.Value.Controlling && other.Value.Console == console && CanUseHelm(other.Key, other.Value.Helm)))))
             return false;
         return true;
     }
@@ -197,6 +220,11 @@ public sealed class WFCockpitGunnerySystem : EntitySystem
     {
         var console = session.Console;
         var state = console is { } uid ? _fireControl.WfCockpitState(uid, refresh) : null;
+        if (session.SentState && session.SentConsole == console && ReferenceEquals(session.State, state))
+            return;
+        session.SentState = true;
+        session.SentConsole = console;
+        session.State = state;
         _ui.ServerSendUiMessage(session.Helm, ShuttleConsoleUiKey.Key,
             new WFCockpitGunneryStateMessage(GetNetEntity(console), state), actor);
     }
@@ -204,6 +232,7 @@ public sealed class WFCockpitGunnerySystem : EntitySystem
     private void EndSession(EntityUid actor, Session session)
     {
         _sessions.Remove(actor);
+        RestoreCamera(actor);
         if (!TerminatingOrDeleted(session.Helm))
             _ui.ServerSendUiMessage(session.Helm, ShuttleConsoleUiKey.Key, new WFCockpitGunneryStateMessage(null, null), actor);
     }
