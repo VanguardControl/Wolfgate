@@ -42,7 +42,8 @@ blow to a crewman himself sends him straight after someone he cannot see. Crew w
 cowards a profile's `cowards` chance makes (half the hauler deckhands), drop their work, run for the bridge and lie
 on the deck there until the alarm is over. Off their post's grid crew answer an attacker in sight only when sent
 there, on a job or a raid, or when he is their faction's enemy anyway (a raider carried off); a crewman who only
-defends his ship goes home. Crew never show the SSD sleep icon.
+defends his ship goes home. Crew never show the SSD sleep icon, and spawn with their suit sensors off, so the crew
+monitoring console lists players rather than every NPC in the sector; a player who takes the suit can turn them on.
 
 Foot boarders must be seen within normal sight range through an unobstructed view before security reacts.
 Personal AI devices, loose silicon brains and station AI cores/remote eyes are equipment, not boarders; physical
@@ -322,6 +323,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Reload.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Reload.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Routines.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Routines.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Security.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Security.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Sensors.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Sensors.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ServerNavigationSettings.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.ServerNavigationSettings.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Setup.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupFixes.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.SetupFixes.cs)
