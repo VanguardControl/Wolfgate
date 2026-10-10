@@ -3,7 +3,7 @@
 Shuttle console additions for ships: a whole-ship view with hull telemetry (structure condition, fires, pressure, dead
 power), a collision warning (TCAS) that sweeps a piloted ship's path and warns before a hard impact, hull cameras the
 pilot can look through with a low-light feed, and nav map data for ships that were never registered as a station. The
-cameras' EXTERNAL view shows the ship from outside with every hull plated over: a middle-mouse drag pans it, the scroll
+cameras' EXTERNAL view shows the ship from outside with every hull plated over: a right-mouse drag pans it, the scroll
 wheel zooms it, and the client `ShuttleExternalCameraSystem` and `ShuttleHullRoofOverlay` run it. It is refused on a
 planet's surface, and sound and speech bubbles are taken from the point it looks at rather than from the helm.
 
@@ -13,8 +13,20 @@ and rebuilding a lost location restores its condition. Successful construction-g
 only the removed structure from its surveyed design; cancelled operations and combat destruction remain losses.
 The separate minimum-integrity readout still describes the
 weakest surviving structure. The survey is kept for the current server lifetime and cannot infer sections already
-missing before the first survey. Outside the SHP page, cockpit requests collect hull condition only;
+missing before the first survey. Outside the SHP page, cockpit requests collect hull condition and fuel reserves only;
 pressure, power and damage overlays are gathered when a detailed ship view is open.
+
+The cockpit fuel gauge reports the mean reserve fraction per anchored generator, antimatter injector or fission
+reactor on the flown grid, including stopped machinery. Solid and chemical sources use accepted local fuel fill;
+antimatter uses its installed jar. Fission uses the sum of remaining fuel-rod activity divided by fresh activity,
+weighted by each rod's fresh capacity. Neutron-active fuel has a factor of 1.5 because it converts into half as
+much ordinary active fuel before becoming spent. Empty sources contribute zero; loose fuel and unanchored machines
+are excluded. This is average reserves, not a runtime estimate or a sum of incompatible fuel units. The LOW lamp
+lights at 20% or less only when every installed source is measurable; absent or unsupported sources show no signal.
+Fuel shares the existing per-grid, one-second ship-status sweep, including the lightweight cockpit snapshot.
+
+Autopilot arrival, cancellation and manual takeover use the supplied disengagement cue credited to gandalf.
+The mono import supports positional audio and plays at -4 dB; other console and navigation cues retain their sounds.
 
 Entry points: the server `ShipStatusSystem`, `CollisionWarningSystem`, `ShuttleCameraSystem` and
 `ShuttleNavMapSystem`; the client `ShipScreen`, `ShipViewControl`, `CollisionWarningBanner` and `ShuttleCameraBar`,
@@ -42,6 +54,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.Server/_WF/Shuttles/NavMapSystem.Wolfgate.cs`](NavMapSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Shuttles/Systems/CollisionWarningSystem.cs`](Systems/CollisionWarningSystem.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShipStatusSystem.cs`](Systems/ShipStatusSystem.cs)
+- [`Content.Server/_WF/Shuttles/Systems/ShipStatusSystem.Fuel.cs`](Systems/ShipStatusSystem.Fuel.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShipStatusSystem.Hull.cs`](Systems/ShipStatusSystem.Hull.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShuttleCameraSystem.cs`](Systems/ShuttleCameraSystem.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShuttleNavMapSystem.cs`](Systems/ShuttleNavMapSystem.cs)
@@ -51,6 +64,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.Shared/_WF/Shuttles/CollisionWarningComponent.cs`](../../../Content.Shared/_WF/Shuttles/CollisionWarningComponent.cs)
 - [`Content.Shared/_WF/Shuttles/CollisionWarningDisabledComponent.cs`](../../../Content.Shared/_WF/Shuttles/CollisionWarningDisabledComponent.cs)
 - [`Content.Shared/_WF/Shuttles/RCDSystem.Hull.cs`](../../../Content.Shared/_WF/Shuttles/RCDSystem.Hull.cs)
+- [`Content.Shared/_WF/Shuttles/ShipFuelSummary.cs`](../../../Content.Shared/_WF/Shuttles/ShipFuelSummary.cs)
 - [`Content.Shared/_WF/Shuttles/ShipStatus.cs`](../../../Content.Shared/_WF/Shuttles/ShipStatus.cs)
 - [`Content.Shared/_WF/Shuttles/ShuttleCameraComponent.cs`](../../../Content.Shared/_WF/Shuttles/ShuttleCameraComponent.cs)
 - [`Content.Shared/_WF/Shuttles/WFHullDeconstructedEvent.cs`](../../../Content.Shared/_WF/Shuttles/WFHullDeconstructedEvent.cs)
@@ -80,6 +94,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/CollisionWarningTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/CollisionWarningTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/DockedShipIffTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/DockedShipIffTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/FTLToDockTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/FTLToDockTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Shuttles/ShipFuelTelemetryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShipFuelTelemetryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShipHullConstructionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShipHullConstructionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShipStatusTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShipStatusTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleCameraTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleCameraTest.cs)
@@ -98,6 +113,8 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 
 ### Audio
 
+- [`Resources/Audio/_WF/Shuttles/Autopilot/attributions.yml`](../../../Resources/Audio/_WF/Shuttles/Autopilot/attributions.yml)
+- [`Resources/Audio/_WF/Shuttles/Autopilot/autopilot_disengaged.ogg`](../../../Resources/Audio/_WF/Shuttles/Autopilot/autopilot_disengaged.ogg)
 - [`Resources/Audio/_WF/Shuttles/Tcas/attributions.yml`](../../../Resources/Audio/_WF/Shuttles/Tcas/attributions.yml)
 - [`Resources/Audio/_WF/Shuttles/Tcas/collision_alarm.ogg`](../../../Resources/Audio/_WF/Shuttles/Tcas/collision_alarm.ogg)
 - [`Resources/Audio/_WF/Shuttles/Tcas/collision_warning.ogg`](../../../Resources/Audio/_WF/Shuttles/Tcas/collision_warning.ogg)
@@ -120,6 +137,7 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
   - the host can be grid B, since docking orders the pair by entity id.
   - the host can be grid B, since grid A is the side that undocked, usually the ship.
   - a ship loses only flags hosts added, once no host it is still docked to provides them.
+- [`Content.Server/Shuttles/Components/ShuttleConsoleComponent.cs`](../../Shuttles/Components/ShuttleConsoleComponent.cs): use the supplied quiet autopilot disengagement cue.
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
   - capture hull condition before piloting can damage it.
   - restore the console's camera view

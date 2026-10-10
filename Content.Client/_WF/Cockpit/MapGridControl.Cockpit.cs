@@ -3,6 +3,7 @@ using Content.Client._WF.Cockpit;
 using Robust.Client.Input;
 using Robust.Client.UserInterface;
 using Robust.Shared.Timing;
+using Robust.Shared.Map;
 
 namespace Content.Client.UserInterface.Controls;
 
@@ -17,7 +18,7 @@ public partial class MapGridControl
     /// <summary>Uses shared cockpit panning and compact map annotations.</summary>
     public bool WfCockpitControls { get; private set; }
 
-    /// <summary>Enables middle-mouse panning until the borrowed map returns to its console.</summary>
+    /// <summary>Enables right-mouse panning until the borrowed map returns to its console.</summary>
     public void WfCockpitInteraction(WFCockpitLease lease)
     {
         var enabled = WfCockpitControls;
@@ -32,10 +33,16 @@ public partial class MapGridControl
         });
     }
 
+    protected override void EnteredTree()
+    {
+        base.EnteredTree();
+        _wfCockpitInput.FirstChanceOnKeyEvent += WfCockpitPanKey;
+    }
+
     protected override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
-        WfUpdateCockpitPan();
+        WfUpdateCockpitPan(_wfCockpitInput.MouseScreenPosition, DisplayManager.IsFocused);
     }
 
     protected override void VisibilityChanged(bool newVisible)
@@ -47,40 +54,44 @@ public partial class MapGridControl
 
     protected override void ExitedTree()
     {
+        _wfCockpitInput.FirstChanceOnKeyEvent -= WfCockpitPanKey;
         base.ExitedTree();
         if (WfCockpitControls)
             WfEndCockpitPan();
     }
 
-    private void WfUpdateCockpitPan()
+    private void WfCockpitPanKey(KeyEventArgs args, KeyEventType type) =>
+        WfCockpitPanKey(args, type, _wfCockpitInput.MouseScreenPosition);
+
+    /// <summary>Captures only a fresh right-button press on this plot before context menus can open.</summary>
+    private void WfCockpitPanKey(KeyEventArgs args, KeyEventType type, ScreenCoordinates mouse)
+    {
+        if (args.Key != Keyboard.Key.MouseRight)
+            return;
+        if (_wfCockpitPanDown)
+        {
+            args.Handle();
+            if (type == KeyEventType.Up)
+                WfEndCockpitPan();
+            return;
+        }
+        if (args.Handled || type != KeyEventType.Down || args.IsRepeat || !WfCockpitControls ||
+            !VisibleInTree || !DisplayManager.IsFocused || !mouse.IsValid || args.Shift || args.Control || args.Alt ||
+            UserInterfaceManager.MouseGetControl(mouse) != this)
+            return;
+        args.Handle();
+        _wfCockpitPanDown = _wfCockpitPanning = true;
+        _wfCockpitMouse = mouse.Position;
+    }
+
+    private void WfUpdateCockpitPan(ScreenCoordinates mouse, bool focused)
     {
         if (!WfCockpitControls)
             return;
-
-        var mouse = _wfCockpitInput.MouseScreenPosition;
-        var down = _wfCockpitInput.IsKeyDown(Keyboard.Key.MouseMiddle);
-        var pressed = down && !_wfCockpitPanDown;
-        _wfCockpitPanDown = down;
-        if (!VisibleInTree || !DisplayManager.IsFocused || !down)
+        if (!VisibleInTree || !focused || !_wfCockpitPanDown)
         {
-            _wfCockpitPanning = false;
-            _wfCockpitMouse = null;
+            WfEndCockpitPan();
             return;
-        }
-
-        if (pressed && mouse.IsValid &&
-            !_wfCockpitInput.IsKeyDown(Keyboard.Key.Shift) &&
-            !_wfCockpitInput.IsKeyDown(Keyboard.Key.Control) &&
-            !_wfCockpitInput.IsKeyDown(Keyboard.Key.Alt))
-        {
-            for (var hovered = UserInterfaceManager.MouseGetControl(mouse); hovered != null; hovered = hovered.Parent)
-            {
-                if (hovered != this)
-                    continue;
-                _wfCockpitPanning = true;
-                _wfCockpitMouse = mouse.Position;
-                break;
-            }
         }
 
         if (!_wfCockpitPanning)
@@ -104,14 +115,14 @@ public partial class MapGridControl
         _wfCockpitMouse = mouse.Position;
     }
 
-    /// <summary>Updates map-specific tracking after a middle-mouse pan.</summary>
+    /// <summary>Updates map-specific tracking after a right-mouse pan.</summary>
     protected virtual void WfCockpitPanMoved()
     {
     }
 
     private void WfEndCockpitPan()
     {
-        _wfCockpitPanDown = _wfCockpitInput.IsKeyDown(Keyboard.Key.MouseMiddle);
+        _wfCockpitPanDown = false;
         _wfCockpitPanning = false;
         _wfCockpitMouse = null;
     }

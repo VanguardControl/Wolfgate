@@ -25,7 +25,7 @@ namespace Content.Client._WF.Shuttles.Systems;
 
 /// <summary>
 /// Runs the local pilot's external view. The eye rides an anchor the server keeps near the look point
-/// for PVS, and this offsets it onto the exact point each frame, pans that point with a middle-mouse
+/// for PVS, and this offsets it onto the exact point each frame, pans that point with a right-mouse
 /// drag, zooms with the wheel and stops the eye drawing FOV. Hulls are roofed over by
 /// <see cref="ShuttleHullRoofOverlay"/> instead.
 /// </summary>
@@ -86,7 +86,7 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
     private Vector2 _offset;
 
     private bool _dragging;
-    private bool _wasDown;
+    private bool _panButtonDown;
     private ScalingViewport? _dragViewport;
     private Vector2? _lastMouse;
 
@@ -132,6 +132,7 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+        _input.FirstChanceOnKeyEvent += OnPanKey;
 
         SubscribeLocalEvent<ShuttleCameraComponent, GetEyeOffsetEvent>(OnGetEyeOffset);
         SubscribeLocalEvent<ShuttleCameraComponent, MenuVisibilityEvent>(OnMenuVisibility);
@@ -153,6 +154,7 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
 
     public override void Shutdown()
     {
+        _input.FirstChanceOnKeyEvent -= OnPanKey;
         base.Shutdown();
 
         Deactivate();
@@ -218,8 +220,6 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
             _wheel = 0f;
             EndDrag();
 
-            // A button already held as the view comes up isn't a press on it.
-            _wasDown = true;
         }
 
         // Traversal isn't networked. Left on, the anchor's own lerp hands it to the map over open space.
@@ -268,36 +268,40 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
         return HasComp<MapComponent>(gridUid) || HasComp<MapGridComponent>(Transform(gridUid).MapUid);
     }
 
-    /// <summary>
-    /// Pans with the middle mouse button, keeping hold of the spot of space that was grabbed. The button
-    /// is read raw: a pilot's input context has no function for it, and its binding is shared anyway.
-    /// </summary>
-    private void UpdateDrag(EntityUid gridUid)
-    {
-        var mouse = _input.MouseScreenPosition;
-        var down = _input.IsKeyDown(Keyboard.Key.MouseMiddle);
-        var pressed = down && !_wasDown;
-        _wasDown = down;
+    private void OnPanKey(KeyEventArgs args, KeyEventType type) =>
+        OnPanKey(args, type, _input.MouseScreenPosition);
 
-        // Shift, control and alt make it something else, such as pointing.
-        if (pressed &&
-            _clyde.IsFocused &&
-            mouse.IsValid &&
-            !_input.IsKeyDown(Keyboard.Key.Shift) &&
-            !_input.IsKeyDown(Keyboard.Key.Control) &&
-            !_input.IsKeyDown(Keyboard.Key.Alt) &&
-            _uiManager.MouseGetControl(mouse) is ScalingViewport { Parent: MainViewport } viewport)
+    /// <summary>Owns unmodified right-button drags only over the active external world view.</summary>
+    private void OnPanKey(KeyEventArgs args, KeyEventType type, ScreenCoordinates mouse)
+    {
+        if (args.Key != Keyboard.Key.MouseRight)
+            return;
+        if (_panButtonDown)
         {
-            _dragging = true;
-            _dragViewport = viewport;
-            _lastMouse = mouse.Position;
+            args.Handle();
+            if (type == KeyEventType.Up)
+                EndDrag();
             return;
         }
+        if (args.Handled || type != KeyEventType.Down || args.IsRepeat || !Active || !_net.IsConnected ||
+            !_clyde.IsFocused || !mouse.IsValid || args.Shift || args.Control || args.Alt ||
+            _uiManager.MouseGetControl(mouse) is not ScalingViewport { Parent: MainViewport } viewport)
+            return;
+        args.Handle();
+        _panButtonDown = _dragging = true;
+        _dragViewport = viewport;
+        _lastMouse = mouse.Position;
+    }
 
+    /// <summary>Keeps hold of the grabbed world point through viewport rotation, zoom and pointer movement.</summary>
+    private void UpdateDrag(EntityUid gridUid) => UpdateDrag(gridUid, _input.MouseScreenPosition, _clyde.IsFocused);
+
+    private void UpdateDrag(EntityUid gridUid, ScreenCoordinates mouse, bool focused)
+    {
         if (!_dragging)
             return;
 
-        if (!down || !_clyde.IsFocused || _dragViewport is not { IsInsideTree: true } dragged)
+        if (!_panButtonDown || !focused || _dragViewport is not { IsInsideTree: true, VisibleInTree: true } dragged)
         {
             EndDrag();
             return;
@@ -325,6 +329,7 @@ public sealed partial class ShuttleExternalCameraSystem : EntitySystem
 
     private void EndDrag()
     {
+        _panButtonDown = false;
         _dragging = false;
         _dragViewport = null;
         _lastMouse = null;

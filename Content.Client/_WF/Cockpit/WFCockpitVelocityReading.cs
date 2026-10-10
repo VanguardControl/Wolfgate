@@ -11,8 +11,8 @@ public readonly record struct WFCockpitVelocityReading(Vector2 BowVelocity)
     /// <summary>One hundred metres per second fills the vector scale without rescaling at low speed.</summary>
     public const float FullScaleSpeed = 100f;
 
-    /// <summary>Scales arrow length with speed while keeping faster motion inside the instrument.</summary>
-    public float SpeedFraction => float.IsFinite(Speed) ? Math.Clamp(Speed / FullScaleSpeed, 0f, 1f) : 0f;
+    /// <summary>Emphasizes slow drift with a fixed square-root response, without changing direction or exact speed.</summary>
+    public float SpeedFraction => float.IsFinite(Speed) ? MathF.Sqrt(Math.Clamp(Speed / FullScaleSpeed, 0f, 1f)) : 0f;
 
     /// <summary>Retains the velocity magnitude independently of ship heading.</summary>
     public float Speed => BowVelocity.Length();

@@ -13,6 +13,7 @@ public sealed partial class ShuttleConsoleWindow
     {
         var (navigation, translation) = NavContainer.WfCockpitInstruments(lease);
         var instruments = Column(navigation, ShipContainer.WfCockpitHull());
+        instruments.SeparationOverride = 3;
         var announcements = ShipContainer.WfCockpitAnnouncements(lease);
         var ship = ShipContainer.WfCockpitShip(lease);
         var shield = _shieldScreen.WfCockpitShield(lease);
@@ -32,8 +33,9 @@ public sealed partial class ShuttleConsoleWindow
             ("wf-cockpit-systems", systems),
             ("wf-cockpit-alarms", announcements),
         };
-        return new WFCockpitParts(CameraBar.WfCockpitControls(lease), Column(lease.Take(CollisionBanner), lease.Take(CaptureBanner)),
-            instruments, translation, NavContainer.WfCockpitFlight(lease), shield, pages);
+        return new WFCockpitParts(CameraBar.WfCockpitControls(lease), lease.Take(CaptureBanner),
+            instruments, ShipContainer.WfCockpitFuel(), translation, NavContainer.WfCockpitFlight(lease), shield,
+            new WFCockpitTcasPanel(CollisionBanner.WfCockpitTcasReading), pages);
     }
 
     /// <summary>Starts strategic data when its MFD page is selected.</summary>

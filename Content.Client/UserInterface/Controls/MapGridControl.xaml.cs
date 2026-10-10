@@ -122,7 +122,7 @@ public partial class MapGridControl : LayoutContainer
     {
         base.KeyBindDown(args);
 
-        // WOLFGATE(Cockpit): use the same middle-mouse gesture on every cockpit plot.
+        // WOLFGATE(Cockpit): use the same right-mouse gesture on every cockpit plot.
         if (WfCockpitControls)
             return;
 

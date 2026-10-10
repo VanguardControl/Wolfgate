@@ -221,6 +221,7 @@ public sealed partial class ShipStatusSystem : EntitySystem
 
         GatherDamage(grids, detailed);
         GatherHullIntegrity(grids);
+        GatherFuel(grids);
         if (detailed.Count > 0)
         {
             GatherPower(detailed);
@@ -349,7 +350,12 @@ public sealed partial class ShipStatusSystem : EntitySystem
     /// </summary>
     private ShipStatusMessage BuildMessage(EntityUid grid, ShipOverlays overlays, bool hullOnly = false)
     {
-        var summary = new ShipStatusSummary { WorstIntegrity = 1f, HullIntegrity = _hullIntegrity.GetValueOrDefault(grid, 1f) };
+        var summary = new ShipStatusSummary
+        {
+            WorstIntegrity = 1f,
+            HullIntegrity = _hullIntegrity.GetValueOrDefault(grid, 1f),
+            Fuel = _fuelReserves.GetValueOrDefault(grid),
+        };
         var list = new List<ShipTileStatus>();
         var wanted = (ShipTileFlags)overlays;
 

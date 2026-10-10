@@ -1,7 +1,7 @@
 # Cockpit
 
 Optional fullscreen flight deck for the shuttle console. Enter Cockpit requires piloting that console
-while buckled into a marked pilot seat on the same grid. Unbuckling, losing piloting, closing the BUI,
+while buckled into any seat on the same grid. Unbuckling, losing piloting, closing the BUI,
 changing character or leaving gameplay restores the normal HUD. The existing server-side permissions
 still govern every flight, camera, access and shield request; cockpit mode only changes presentation.
 Entry selects EXT while preserving zoom and low-light settings; leaving restores that pilot's prior camera.
@@ -11,16 +11,25 @@ Live pressure, internals and buckle alerts, votes, and speech bubbles remain ava
 view. Character hotkeys, inventory controls and the menu bar remain hidden; Escape closes other windows
 or opens the game menu without closing the cockpit helm.
 
+The header centers the existing Wolfgate wordmark between the title and exit control.
 Flight instruments, compact camera controls and propulsion occupy the left column, with motion gauges
 above the central world viewport and communications and shield controls below it. The velocity dial shows
 actual drift relative to the bow, with forward at the top and starboard on the right, alongside total speed.
-Its direction pointer grows with speed against a fixed 100 m/s full scale and disappears when nearly stationary.
-A separate full-width linear speedometer below the gyro shows actual speed, expanding its labelled range above 100 m/s. The MFD fills the right column. Its maps use
-middle-mouse panning and compact department labels, with scrolling details kept separate from the larger plots. Numbered approach markers link to readable port actions below the plot.
+Its direction pointer uses a fixed square-root response against a 100 m/s full scale, making low-speed drift
+more visible without scale jumps, and disappears when nearly stationary.
+A horizontal fuel gauge below HULL shares its row with a FUEL LOW lamp and stays fixed outside the dial scroller.
+The instrument housing uses compact padding and gaps while preserving dial sizes. HULL remains the final
+scrolling strip above fuel on short screens. The velocity dial retains the speed readout. The MFD fills the right column. Its maps use
+right-mouse panning and compact department labels, with scrolling details kept separate from the larger plots. Numbered approach markers link to readable port actions below the plot.
 Shield arc width stays in the permanent shield control panel. Digital and mechanical instruments share the same large dial footprint, and the
 lower flight bank aligns with communications and shields. Its six status lamps show live autopilot, FTL,
 dampener, parking, docking and shield state; autopilot activity is replicated independently of MFD selection.
 Retro lamps use recessed glass lenses and metal sockets; Futurist lamps use illuminated traces and light strips.
+A permanent TCAS bank below the instruments has CAUTION and WARNING lamps above OK and FAULT lamps.
+Caution flashes slowly; warning flashes quickly while caution keeps its slow rhythm. OK lights steadily
+when clear, and FAULT lights when TCAS is off or telemetry is unavailable. The bank remains visible while
+using guns, with impact countdown, bearing, closing speed and full threat details on hover.
+The speed limiter lives on SYS; flight controls retain dampeners and orbit controls.
 The MFD holds navigation, hull overlays, strategic travel, docking, access, shield details and auxiliary
 systems. A wide SHP display gives half its width to the hull plot, with two columns of gauges beside it.
 Damage, fire, pressure and power overlays share one row, with department labels and hull fitting below.
@@ -35,7 +44,7 @@ on the same ship. The nearest eligible console is chosen and retained while usab
 switches the left column between flight instruments and the shared paginated weapon bank, including
 selection, saved groups and compact countermeasures. Weapon rows retain readable text and slim supply
 bars; page changes preserve the full selection for firing and group saves. Left-click or hold over the world viewport or NAV plot fires the
-selected weapons in GUNS mode; moving the pointer updates guided-missile aim, and middle mouse still pans. A native aiming reticle
+selected weapons in GUNS mode; moving the pointer updates guided-missile aim, and right mouse still pans. A native aiming reticle
 replaces the pointer over valid world and NAV targets while offensive weapons are selected, independently
 of character combat mode. HUD controls, chat, modifiers, lost focus and an unarmed bank retain ordinary
 cursors and mouse interactions. Returning to FLIGHT preserves the selection, releases gun control and
@@ -52,7 +61,7 @@ a human console operator only after the pilot selects GUNS.
 
 Entry points: `WFCockpitUIController`, `WFCockpitView`, `WFCockpitLease` and the console partials.
 `WFCockpitGunnerySystem` owns authorized gun links; `WFCockpitGunneryPanel` and `WFCockpitFireInput`
-provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compatible seats; `SharedWFCockpitSystem` checks replicated eligibility.
+provide the embedded controls and aiming. `WFCockpitSeatComponent` is inherited by seats; `SharedWFCockpitSystem` checks replicated eligibility.
 
 <!-- WOLFGATE-GENERATED START -->
 <!-- Generated by python Tools/_WF/Ci/modules.py --write. Don't edit by hand. -->
@@ -77,6 +86,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 
 ### Client
 
+- [`Content.Client/_WF/Cockpit/CollisionWarningBanner.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/CollisionWarningBanner.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/DefaultGameScreen.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/DefaultGameScreen.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/DockingScreen.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/DockingScreen.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/DockingScreen.CockpitStatus.cs`](../../../Content.Client/_WF/Cockpit/DockingScreen.CockpitStatus.cs)
@@ -100,6 +110,8 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 - [`Content.Client/_WF/Cockpit/ShuttleExternalCameraSystem.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/ShuttleExternalCameraSystem.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/ShuttleNavControl.Cockpit.cs`](../../../Content.Client/_WF/Cockpit/ShuttleNavControl.Cockpit.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitFireInput.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitFireInput.cs)
+- [`Content.Client/_WF/Cockpit/WFCockpitFuelBank.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitFuelBank.cs)
+- [`Content.Client/_WF/Cockpit/WFCockpitFuelLamp.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitFuelLamp.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitGunneryPanel.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitGunneryPanel.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitInstrumentSizing.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitInstrumentSizing.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitLease.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitLease.cs)
@@ -107,10 +119,13 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 - [`Content.Client/_WF/Cockpit/WFCockpitShipLayout.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitShipLayout.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitStatusLights.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitStatusLights.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitStatusReading.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitStatusReading.cs)
+- [`Content.Client/_WF/Cockpit/WFCockpitTcasPanel.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitTcasPanel.cs)
+- [`Content.Client/_WF/Cockpit/WFCockpitTcasReading.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitTcasReading.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitUIController.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitUIController.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitVelocityReading.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitVelocityReading.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitView.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitView.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitView.Gunnery.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitView.Gunnery.cs)
+- [`Content.Client/_WF/Cockpit/WFCockpitView.Header.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitView.Header.cs)
 - [`Content.Client/_WF/Cockpit/WFCockpitView.Hud.cs`](../../../Content.Client/_WF/Cockpit/WFCockpitView.Hud.cs)
 - [`Content.Client/_WF/Cockpit/WFDockMarkerLayout.cs`](../../../Content.Client/_WF/Cockpit/WFDockMarkerLayout.cs)
 - [`Content.Client/_WF/Cockpit/WFVelocityVectorInstrument.cs`](../../../Content.Client/_WF/Cockpit/WFVelocityVectorInstrument.cs)
@@ -122,11 +137,15 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 - [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitFireInputTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitFireInputTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitGunneryPanelTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitGunneryPanelTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitGunneryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitGunneryTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitPanInputTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitPanInputTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitSeatTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitSeatTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitStatusTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitStatusTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitTcasTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitTcasTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Cockpit/WFCockpitTest.cs)
 
 ### Unit tests
 
+- [`Content.Tests/_WF/Cockpit/WFCockpitTcasReadingTest.cs`](../../../Content.Tests/_WF/Cockpit/WFCockpitTcasReadingTest.cs)
 - [`Content.Tests/_WF/Cockpit/WFCockpitVelocityTest.cs`](../../../Content.Tests/_WF/Cockpit/WFCockpitVelocityTest.cs)
 
 ### Localization
@@ -134,6 +153,8 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 - [`Resources/Locale/en-US/_WF/Cockpit/cockpit-gunnery-mode.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/cockpit-gunnery-mode.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/cockpit-status.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/cockpit-status.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/cockpit.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/cockpit.ftl)
+- [`Resources/Locale/en-US/_WF/Cockpit/fuel.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/fuel.ftl)
+- [`Resources/Locale/en-US/_WF/Cockpit/tcas.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/tcas.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/velocity.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/velocity.ftl)
 
 ## Non-modular edits
@@ -157,7 +178,7 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
 - [`Content.Client/Shuttles/UI/ShuttleMapControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleMapControl.xaml.cs): rotating an FTL destination must not also scroll its MFD page.
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs): a cockpit aim handler owns its consumed click through release.
 - [`Content.Client/UserInterface/Controls/MapGridControl.xaml.cs`](../../../Content.Client/UserInterface/Controls/MapGridControl.xaml.cs)
-  - use the same middle-mouse gesture on every cockpit plot.
+  - use the same right-mouse gesture on every cockpit plot.
   - deliver releases to the borrowed plot's cockpit input handler.
   - map zoom must not also scroll its containing panel.
 - [`Content.Client/UserInterface/Screens/DefaultGameScreen.xaml.cs`](../../../Content.Client/UserInterface/Screens/DefaultGameScreen.xaml.cs)
@@ -172,6 +193,8 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` marks compati
   - report confirmed steering in the initial helm snapshot.
   - keep autopilot lamps current while any helm page is open.
 - [`Content.Shared/Shuttles/BUIStates/ShuttleBoundUserInterfaceState.cs`](../../../Content.Shared/Shuttles/BUIStates/ShuttleBoundUserInterfaceState.cs): include confirmed autopilot activity in the initial helm state.
-- [`Resources/Prototypes/Entities/Structures/Furniture/chairs.yml`](../../../Resources/Prototypes/Entities/Structures/Furniture/chairs.yml): permit the optional seated piloting HUD.
+- [`Resources/Prototypes/Entities/Structures/Furniture/chairs.yml`](../../../Resources/Prototypes/Entities/Structures/Furniture/chairs.yml)
+  - allow every seat family to host the buckled piloting HUD.
+  - permit the optional seated piloting HUD.
 
 <!-- WOLFGATE-GENERATED END -->

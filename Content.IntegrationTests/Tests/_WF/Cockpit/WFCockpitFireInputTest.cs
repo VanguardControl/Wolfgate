@@ -87,8 +87,8 @@ public sealed class WFCockpitFireInputTest
             Assert.That(worldDown.Handled, Is.False, "A world viewport without a valid map target must not capture a trigger.");
             Assert.That(Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Up, worldCursor).Handled, Is.False);
             Assert.That(aims, Is.Empty, "A headless viewport has no rendered map target and must not send invalid coordinates.");
-            Assert.That(Key(nav, ContentKeyFunctions.MouseMiddle, BoundKeyState.Down, cursor).Handled, Is.False,
-                "Fire input must leave the shared middle-mouse pan gesture alone.");
+            Assert.That(Key(nav, EngineKeyFunctions.UseSecondary, BoundKeyState.Down, cursor).Handled, Is.False,
+                "Fire input must leave the shared right-mouse pan gesture alone.");
 
             PressNav();
             Assert.That(aims, Has.Count.EqualTo(1), "The first shot is immediate.");
@@ -327,7 +327,8 @@ public sealed class WFCockpitFireInputTest
         ScreenCoordinates pointer, bool physicalMouse = true, bool heldMouse = false, bool newPhysicalEvent = true)
     {
         var input = IoCManager.Resolve<IInputManager>();
-        var key = physicalMouse ? function == ContentKeyFunctions.MouseMiddle ? Keyboard.Key.MouseMiddle : Keyboard.Key.MouseLeft : Keyboard.Key.E;
+        var key = !physicalMouse ? Keyboard.Key.E : function == EngineKeyFunctions.UseSecondary ? Keyboard.Key.MouseRight :
+            function == ContentKeyFunctions.MouseMiddle ? Keyboard.Key.MouseMiddle : Keyboard.Key.MouseLeft;
         if (newPhysicalEvent)
             PhysicalHandlers(input)?.Invoke(new KeyEventArgs(key, false, false, false, false, false, 0),
                 state == BoundKeyState.Down ? KeyEventType.Down : KeyEventType.Up);

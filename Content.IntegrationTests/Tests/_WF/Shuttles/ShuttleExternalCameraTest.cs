@@ -1,8 +1,12 @@
+#nullable enable annotations
+
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection;
 using Content.Client._WF.Shuttles.Systems;
 using Content.Client._WF.Shuttles.UI;
 using Content.Client.Popups;
+using Content.Client.UserInterface.Controls;
 using Content.Client.Viewport;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Server.Shuttles.Components;
@@ -13,6 +17,9 @@ using Content.Shared.Shuttles.BUIStates;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Verbs;
 using Robust.Client.Graphics;
+using Robust.Client.Input;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
 using Robust.Shared.Map;
@@ -568,6 +575,111 @@ public sealed class ShuttleExternalCameraTest : InteractionTest
 
         await LeaveHelm();
         await Client.WaitAssertion(() => AssertClientView(false, "Getting up should hand the eye back."));
+    }
+
+    [Test]
+    public async Task RightDragOwnsOnlyExternalWorldInputAndCancelsWithoutResuming()
+    {
+        await TakeHelm();
+        await SetCamera(ShuttleCameraView.External, 2f);
+        await RunTicks(5);
+        await Client.WaitAssertion(() =>
+        {
+            var system = CEntMan.System<ShuttleExternalCameraSystem>();
+            Assert.That(system.Active, Is.True);
+            var ui = Client.ResolveDependency<IUserInterfaceManager>();
+            var input = Client.ResolveDependency<IInputManager>();
+            using var host = new Control { MouseFilter = Control.MouseFilterMode.Ignore };
+            using var world = new MainViewport();
+            using var other = new Button();
+            world.Viewport.ViewportSize = new Vector2i(400, 300);
+            world.Viewport.HorizontalExpand = world.Viewport.VerticalExpand = true;
+            world.Viewport.Eye = CEntMan.GetComponent<EyeComponent>(CPlayer).Eye;
+            host.AddChild(world);
+            host.AddChild(other);
+            ui.RootControl.AddChild(host);
+            host.Measure(new Vector2(850, 340));
+            host.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(850, 340)));
+            world.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(400, 300)));
+            other.Arrange(UIBox2.FromDimensions(new Vector2(420, 0), new Vector2(400, 300)));
+            Assert.That(world.Viewport.Width, Is.GreaterThan(300f), "The test viewport must fill its MainViewport box for hit testing.");
+            var pointer = new ScreenCoordinates(world.Viewport.GlobalPixelPosition + new Vector2(200, 150) * world.UIScale, world.Window!.Id);
+            var outside = new ScreenCoordinates(other.GlobalPixelPosition + new Vector2(40, 40) * other.UIScale, other.Window!.Id);
+            Assert.That(ui.MouseGetControl(pointer), Is.SameAs(world.Viewport));
+            Assert.That(ui.MouseGetControl(outside), Is.SameAs(other));
+            var handlers = (KeyEventAction?) input.GetType().GetField("FirstChanceOnKeyEvent", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(input);
+            Assert.That(handlers?.GetInvocationList(), Has.Some.Matches<Delegate>(handler => ReferenceEquals(handler.Target, system)),
+                "The physical pan hook must run before engine context-menu bindings.");
+
+            Assert.That(Key(Keyboard.Key.MouseMiddle, KeyEventType.Down, pointer).Handled, Is.False);
+            Assert.That(Key(Keyboard.Key.MouseLeft, KeyEventType.Down, pointer).Handled, Is.False);
+            Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Down, outside).Handled, Is.False,
+                "A right click on another HUD control must retain its normal action.");
+            foreach (var modifier in new[] { 1, 2, 3 })
+                Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Down, pointer, modifier: modifier).Handled, Is.False);
+            Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Repeat, pointer).Handled, Is.False);
+            Assert.That(Dragging(), Is.False);
+
+            Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Down, pointer).Handled, Is.True,
+                "The fresh world press must be consumed before either native right-click context binding runs.");
+            Tick(outside);
+            Assert.That(Dragging(), Is.True, "A captured pan continues across the viewport edge.");
+            Assert.That(LastMouse(), Is.EqualTo(outside.Position));
+            Tick(default);
+            Assert.That(LastMouse(), Is.Null, "Leaving the window drops only the old position, preventing a return jump.");
+            Tick(pointer);
+            Assert.That(Dragging(), Is.True);
+            Assert.That(LastMouse(), Is.EqualTo(pointer.Position));
+            Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Up, outside).Handled, Is.True);
+            Assert.That(Dragging(), Is.False);
+            Tick(pointer);
+            Assert.That(Dragging(), Is.False, "A released drag cannot resume on pointer return.");
+
+            Key(Keyboard.Key.MouseRight, KeyEventType.Down, pointer);
+            Tick(pointer, false);
+            Assert.That(Dragging(), Is.False, "Focus loss cancels capture.");
+            Tick(pointer);
+            Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Repeat, pointer).Handled, Is.False);
+            Assert.That(Dragging(), Is.False, "Refocusing while the button is held requires a fresh press.");
+            Key(Keyboard.Key.MouseRight, KeyEventType.Down, pointer);
+            world.Visible = false;
+            Tick(pointer);
+            Assert.That(Dragging(), Is.False, "A hidden viewport cannot keep panning.");
+            world.Visible = true;
+            Key(Keyboard.Key.MouseRight, KeyEventType.Down, pointer);
+            host.RemoveChild(world);
+            Tick(pointer);
+            Assert.That(Dragging(), Is.False, "Removing a borrowed viewport cancels its capture.");
+            host.AddChild(world);
+            world.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(400, 300)));
+            Key(Keyboard.Key.MouseRight, KeyEventType.Down, pointer);
+            system.WfEndCockpitInput();
+            Assert.That(Dragging(), Is.False, "Leaving cockpit cancels a world pan even if external view remains selected.");
+            Tick(pointer);
+            Assert.That(Dragging(), Is.False);
+            typeof(ShuttleExternalCameraSystem).GetMethod("Deactivate", BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(system, null);
+            Assert.That(Key(Keyboard.Key.MouseRight, KeyEventType.Down, pointer).Handled, Is.False,
+                "The normal world view keeps its right-click menu when external view ends.");
+            return;
+
+            KeyEventArgs Key(Keyboard.Key key, KeyEventType type, ScreenCoordinates mouse, int modifier = 0)
+            {
+                var args = new KeyEventArgs(key, type == KeyEventType.Repeat, modifier == 1, modifier == 2, modifier == 3, false, 0);
+                typeof(ShuttleExternalCameraSystem).GetMethod("OnPanKey", BindingFlags.Instance | BindingFlags.NonPublic,
+                    null, new[] { typeof(KeyEventArgs), typeof(KeyEventType), typeof(ScreenCoordinates) }, null)!
+                    .Invoke(system, new object[] { args, type, mouse });
+                return args;
+            }
+            void Tick(ScreenCoordinates mouse, bool focused = true) =>
+                typeof(ShuttleExternalCameraSystem).GetMethod("UpdateDrag", BindingFlags.Instance | BindingFlags.NonPublic,
+                    null, new[] { typeof(EntityUid), typeof(ScreenCoordinates), typeof(bool) }, null)!
+                    .Invoke(system, new object[] { ToClient(_grid.Owner), mouse, focused });
+            bool Dragging() => (bool) typeof(ShuttleExternalCameraSystem)
+                .GetField("_dragging", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(system)!;
+            Vector2? LastMouse() => (Vector2?) typeof(ShuttleExternalCameraSystem)
+                .GetField("_lastMouse", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(system);
+        });
+        await LeaveHelm();
     }
 
     /// <summary>

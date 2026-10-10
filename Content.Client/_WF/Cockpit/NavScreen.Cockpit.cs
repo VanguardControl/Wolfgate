@@ -27,12 +27,6 @@ public sealed partial class NavScreen
         WFCockpitInstrumentSizing.Bind(heading, lease, 176);
         WFCockpitInstrumentSizing.Bind(velocity, lease, 160);
         WFCockpitInstrumentSizing.Bind(yaw, lease, 160);
-        var speedometer = new WFGlassGauge("wf-cockpit-speedometer", () => WfMotionReading(-1), true)
-        {
-            Name = "CockpitSpeedometer",
-            SetHeight = 56,
-            ToolTip = Loc.GetString("wf-cockpit-speedometer-help"),
-        };
         var forward = new WFGlassGauge("wf-gauge-forward", () => WfMotionReading(1), true) { SetHeight = 56 };
         var lateral = new WFGlassGauge("wf-gauge-lateral", () => WfMotionReading(0), true) { SetHeight = 56 };
         var altitude = new WFGlassGauge("wf-gauge-altitude", () =>
@@ -56,7 +50,9 @@ public sealed partial class NavScreen
             GridAltitude.OnVisibilityChanged -= updateAltitude;
             GridVerticalVelocity.OnVisibilityChanged -= updateClimb;
         });
-        return (Column(heading, speedometer, Row(velocity, yaw)), Column(Row(forward, lateral), vertical));
+        var instruments = Column(heading, Row(velocity, yaw));
+        instruments.SeparationOverride = 3;
+        return (instruments, Column(Row(forward, lateral), vertical));
     }
 
     /// <summary>Refreshes contextual flight data when the original navigation panel is hidden.</summary>
@@ -75,11 +71,7 @@ public sealed partial class NavScreen
     /// <summary>Moves propulsion controls into the cockpit's permanent lower bank.</summary>
     public Control WfCockpitFlight(WFCockpitLease lease)
     {
-        var speedLabel = (Label) MaximumShuttleSpeedBox.GetChild(0);
-        var caption = speedLabel.Text;
-        lease.Remember(() => speedLabel.Text = caption);
-        speedLabel.Text = Loc.GetString("wf-cockpit-speed-limit");
-        return Column(lease.Take(DampenerModeButtons), lease.Take(MaximumShuttleSpeedBox), lease.Take(WfOrbitButton));
+        return Column(lease.Take(DampenerModeButtons), lease.Take(WfOrbitButton));
     }
 
     /// <summary>Moves the live radar into the navigation MFD.</summary>
@@ -94,6 +86,10 @@ public sealed partial class NavScreen
     /// <summary>Keeps sensor configuration and wired auxiliary controls available without another window.</summary>
     public Control WfCockpitSystems(WFCockpitLease lease)
     {
+        var speedLabel = (Label) MaximumShuttleSpeedBox.GetChild(0);
+        var caption = speedLabel.Text;
+        lease.Remember(() => speedLabel.Text = caption);
+        speedLabel.Text = Loc.GetString("wf-cockpit-speed-limit");
         var dimension = NetworkPortsBox.LimitedDimension;
         var rows = NetworkPortsBox.Rows;
         var columns = NetworkPortsBox.Columns;
@@ -104,9 +100,9 @@ public sealed partial class NavScreen
             else
                 NetworkPortsBox.Columns = columns;
         });
-        NetworkPortsBox.Columns = 4;
+        NetworkPortsBox.Columns = 2;
         return Column(new WFGlassReadout(Column(lease.Take(ShuttleDesignation), lease.Take(GridPosition))),
-            lease.Take(IFFToggle), lease.Take(IFFDetailedToggle), lease.Take(DockToggle), lease.Take(IffSearchBox),
+            lease.Take(MaximumShuttleSpeedBox), lease.Take(IFFToggle), lease.Take(IFFDetailedToggle), lease.Take(DockToggle), lease.Take(IffSearchBox),
             lease.Take(MaximumIFFDistanceBox), lease.Take(NetworkPortsBox));
     }
 }

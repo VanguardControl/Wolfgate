@@ -90,17 +90,18 @@ public sealed class WFVelocityVectorInstrument : Control
                 center + direction * face, tick % 6 == 0 ? skin.Text : skin.EdgeLight);
         }
         var extent = face * 0.72f;
-        Text(handle, _labels, _forward, center + new Vector2(0, -extent), face * 0.9f, skin.TextMuted);
+        Text(handle, _labels, _forward, center + new Vector2(0, -face * 0.86f), face * 0.9f, skin.TextMuted);
         Text(handle, _labels, _aft, center + new Vector2(0, extent), face * 0.9f, skin.TextMuted);
         Text(handle, _labels, _port, center + new Vector2(-extent, 0), face * 0.35f, skin.TextMuted);
         Text(handle, _labels, _starboard, center + new Vector2(extent, 0), face * 0.35f, skin.TextMuted);
-        var origin = center - new Vector2(0, face * 0.2f);
+        // Keep full aft travel above the speed inset while giving slow drift more visible space.
+        var origin = center - new Vector2(0, face * 0.26f);
         var bow = new[] { origin + new Vector2(0, -6 * UIScale), origin + new Vector2(-3, 4) * UIScale,
             origin + new Vector2(3, 4) * UIScale };
         handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, bow, skin.TextMuted.WithAlpha(0.65f));
         if (reading?.ScreenDirection is { } motion)
         {
-            var length = face * 0.36f * reading.Value.SpeedFraction;
+            var length = face * 0.44f * reading.Value.SpeedFraction;
             var tip = origin + motion * length;
             var side = new Vector2(-motion.Y, motion.X);
             var head = MathF.Min(5 * UIScale, length * 0.45f);

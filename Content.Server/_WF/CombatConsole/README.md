@@ -101,6 +101,7 @@ the Wolfgate maintainer. No specific video/channel URL or license text was suppl
 - [`Content.Client/_WF/CombatConsole/ShipScreen.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShipScreen.CombatConsole.cs)
 - [`Content.Client/_WF/CombatConsole/ShuttleConsoleWindow.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShuttleConsoleWindow.CombatConsole.cs)
 - [`Content.Client/_WF/CombatConsole/ShuttleNavControl.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShuttleNavControl.CombatConsole.cs)
+- [`Content.Client/_WF/CombatConsole/WFConsoleAnnunciator.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleAnnunciator.cs)
 - [`Content.Client/_WF/CombatConsole/WFConsoleAudio.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleAudio.cs)
 - [`Content.Client/_WF/CombatConsole/WFConsoleDigital.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleDigital.cs)
 - [`Content.Client/_WF/CombatConsole/WFConsoleFrameStyleBox.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleFrameStyleBox.cs)

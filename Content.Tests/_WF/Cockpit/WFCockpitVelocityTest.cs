@@ -47,15 +47,35 @@ public sealed class WFCockpitVelocityTest
     }
 
     [TestCase(0, 0)]
-    [TestCase(1, 0.01f)]
-    [TestCase(25, 0.25f)]
-    [TestCase(50, 0.5f)]
+    [TestCase(1, 0.1f)]
+    [TestCase(4, 0.2f)]
+    [TestCase(25, 0.5f)]
+    [TestCase(50, 0.7071068f)]
     [TestCase(100, 1)]
     [TestCase(200, 1)]
-    public void ArrowLengthGrowsProportionallyFromRest(float speed, float expected)
+    public void ArrowLengthMakesSlowDriftVisibleOnAFixedScale(float speed, float expected)
     {
         var reading = WFCockpitVelocityReading.FromWorld(new Vector2(speed, 0), Angle.Zero)!.Value;
         Assert.That(reading.SpeedFraction, Is.EqualTo(expected).Within(0.0001f));
+        Assert.That(reading.Speed, Is.EqualTo(speed), "Visual sensitivity must not change the exact speed readout.");
+    }
+
+    [Test]
+    public void ArrowGrowthIsMonotonicAndDoesNotJumpBetweenSpeedRanges()
+    {
+        var previous = 0f;
+        for (var step = 1; step <= 2000; step++)
+        {
+            var speed = step / 10f;
+            var reading = WFCockpitVelocityReading.FromWorld(new Vector2(speed, 0), Angle.Zero)!.Value;
+            Assert.That(reading.SpeedFraction, Is.InRange(previous, 1f));
+            if (speed <= WFCockpitVelocityReading.FullScaleSpeed)
+                Assert.That(reading.SpeedFraction, Is.GreaterThan(previous));
+            if (speed >= 1f)
+                Assert.That(reading.SpeedFraction - previous, Is.LessThan(0.01f),
+                    "Crossing an instrument range boundary must not suddenly resize the direction arrow.");
+            previous = reading.SpeedFraction;
+        }
     }
 
     [Test]

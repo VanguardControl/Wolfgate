@@ -8,7 +8,7 @@ namespace Content.Shared._WF.Cockpit;
 /// <summary>Uses replicated piloting and buckle state to gate the cockpit presentation.</summary>
 public sealed class SharedWFCockpitSystem : EntitySystem
 {
-    /// <summary>Requires the current helm and a pilot seat on the same live grid.</summary>
+    /// <summary>Requires the current helm and an enabled seat on the same live grid.</summary>
     public bool CanEnter(EntityUid? actor, EntityUid? console)
     {
         return actor is { } pilot && console is { } helm &&

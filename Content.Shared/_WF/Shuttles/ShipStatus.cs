@@ -18,7 +18,7 @@ public sealed class ShipStatusRequestMessage : BoundUserInterfaceMessage
     /// </summary>
     public ShipOverlays Overlays;
 
-    /// <summary>Requests only the permanent cockpit hull gauge while the detailed SHP page is hidden.</summary>
+    /// <summary>Requests the permanent cockpit hull and fuel gauges while the detailed SHP page is hidden.</summary>
     public bool HullOnly;
 
     public ShipStatusRequestMessage(bool active, ShipOverlays overlays, bool hullOnly = false)
@@ -121,6 +121,9 @@ public struct ShipStatusSummary
 
     /// <summary>Average condition of surveyed hull locations, including destroyed or detached sections, 0-1.</summary>
     public float HullIntegrity;
+
+    /// <summary>Installed fuel reserves, also present in lightweight cockpit snapshots.</summary>
+    public ShipFuelSummary Fuel;
 
     /// <summary>Condition of the worst surviving structure on the ship, 0-1.</summary>
     public float WorstIntegrity;

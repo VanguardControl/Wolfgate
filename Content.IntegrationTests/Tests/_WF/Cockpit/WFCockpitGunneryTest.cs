@@ -199,7 +199,7 @@ public sealed class WFCockpitGunneryTest
             var actor = em.SpawnEntity("MobHuman", map.GridCoords);
             pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, actor);
             var helm = em.SpawnEntity("ComputerShuttle", map.GridCoords);
-            var seat = em.SpawnEntity("ChairPilotSeat", map.GridCoords);
+            var seat = em.SpawnEntity("Chair", map.GridCoords);
             var gun = em.SpawnEntity("ComputerGunneryConsole", map.GridCoords);
             var serverUid = em.SpawnEntity(null, map.GridCoords);
             var server = em.AddComponent<FireControlServerComponent>(serverUid);
@@ -223,7 +223,7 @@ public sealed class WFCockpitGunneryTest
             var buckles = em.System<SharedBuckleSystem>();
             em.EnsureComponent<PilotComponent>(actor);
             helms.AddPilot(helm, actor, em.GetComponent<ShuttleConsoleComponent>(helm));
-            Assert.That(cockpit.SetSession(actor, helm, true, true), Is.False, "A live helm UI and pilot seat are both required.");
+            Assert.That(cockpit.SetSession(actor, helm, true, true), Is.False, "A live helm UI and seat are both required.");
             ui.OpenUi(helm, ShuttleConsoleUiKey.Key, actor);
             Assert.That(cockpit.SetSession(actor, helm, true, true), Is.False, "Standing pilots cannot acquire gunnery.");
             Assert.That(buckles.TryBuckle(actor, actor, seat), Is.True);
@@ -405,7 +405,7 @@ public sealed class WFCockpitGunneryTest
             Assert.That(cockpit.TryCommand(actor, helm, em.GetNetEntity(replacement), new WFDispenseFlaresMessage()), Is.False);
             cockpit.Update(0.3f);
             Assert.That(cockpit.GetConsole(actor), Is.Null);
-            Assert.That(cockpit.GetActors(replacement), Is.Empty, "Losing the pilot seat releases crew and telemetry occupancy.");
+            Assert.That(cockpit.GetActors(replacement), Is.Empty, "Losing the seat releases crew and telemetry occupancy.");
             ui.CloseUi(helm, ShuttleConsoleUiKey.Key, actor);
             pair.Server.PlayerMan.SetAttachedEntity(pair.Player!, null);
             foreach (var entity in new[] { actor, otherActor, helm, seat, otherSeat, gun, replacement, flare, weapon, foreign, serverUid })

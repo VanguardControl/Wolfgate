@@ -12,8 +12,8 @@ using static Content.Client._WF.CombatConsole.WFInstrumentTheme;
 namespace Content.Client._WF.Cockpit;
 
 /// <summary>The console controls assigned to the permanent HUD and selectable MFD pages.</summary>
-public sealed record WFCockpitParts(Control Camera, Control Alerts, Control Instruments, Control Translation, Control Flight,
-    Control Shields, (string Key, Control Content)[] Pages);
+public sealed record WFCockpitParts(Control Camera, Control Alerts, Control Instruments, Control Fuel, Control Translation, Control Flight,
+    Control Shields, Control Tcas, (string Key, Control Content)[] Pages);
 
 /// <summary>A fullscreen instrument surround using the player's real world viewport and chat.</summary>
 public sealed partial class WFCockpitView : Control
@@ -30,6 +30,7 @@ public sealed partial class WFCockpitView : Control
     private readonly Control _comms;
     private readonly Control _flight;
     private readonly Control _camera;
+    private readonly Control _tcas;
     private readonly Control _shields;
     private readonly Button _expand;
     private readonly (string Key, Control Content)[] _pages;
@@ -72,14 +73,22 @@ public sealed partial class WFCockpitView : Control
         console.Visible = false;
         var parts = console.WfBuildCockpit(_lease);
         _pages = parts.Pages;
-        var exitButton = Button("wf-cockpit-exit");
-        exitButton.HorizontalExpand = false;
-        exitButton.SetWidth = 150;
-        exitButton.OnPressed += _ => exit();
-        var title = Label("wf-cockpit-title", Accent);
-        title.HorizontalExpand = true;
-        _top = Column(Row(title, exitButton), parts.Alerts);
-        _left = Panel("wf-cockpit-instruments", Scroll(parts.Instruments), true);
+        _top = Column(BuildHeader(exit), parts.Alerts);
+        _tcas = parts.Tcas;
+        var dials = Column(Label("wf-cockpit-instruments", Accent), parts.Instruments);
+        dials.SeparationOverride = 3;
+        var instrumentScroll = Scroll(dials);
+        instrumentScroll.Name = "CockpitInstrumentScroll";
+        var instruments = Column(instrumentScroll, parts.Fuel);
+        instruments.SeparationOverride = 3;
+        instruments.VerticalExpand = true;
+        _left = new WFInstrumentPanel
+        {
+            HorizontalExpand = true,
+            VerticalExpand = true,
+            PanelOverride = new WFConsoleFrameStyleBox(6, housing: true),
+        };
+        _left.AddChild(instruments);
         _world = world;
         _translation = parts.Translation;
         _comms = Panel("wf-cockpit-comms", communications, true);
@@ -135,6 +144,7 @@ public sealed partial class WFCockpitView : Control
         _translation.Name = "CockpitTranslation";
         AddChild(_top);
         AddChild(_left);
+        AddChild(_tcas);
         AddChild(_world);
         InitializeHud(screen, hiddenHud);
         AddChild(_translation);
@@ -184,10 +194,11 @@ public sealed partial class WFCockpitView : Control
         _top.Measure(new Vector2(availableSize.X - 16, availableSize.Y));
         var (left, right, center, height, bottom) = Dimensions(availableSize);
         _translation.Measure(new Vector2(center, height));
-        var modesHeight = MeasureGunnery(left, height);
+        _tcas.Measure(new Vector2(left, height));
+        var modesHeight = MeasureGunnery(left, height - _tcas.DesiredSize.Y - 6);
         var flightHeight = bottom;
         _camera.Measure(new Vector2(left, height - flightHeight));
-        _left.Measure(new Vector2(left, Math.Max(80, height - flightHeight - _camera.DesiredSize.Y - modesHeight - 12)));
+        _left.Measure(new Vector2(left, Math.Max(80, height - flightHeight - _camera.DesiredSize.Y - modesHeight - _tcas.DesiredSize.Y - 18)));
         _flight.Measure(new Vector2(left, flightHeight));
         _right.Measure(new Vector2(right, height));
         var worldSize = new Vector2(center, Math.Max(80, height - bottom - _translation.DesiredSize.Y - 12));
@@ -210,8 +221,11 @@ public sealed partial class WFCockpitView : Control
         var cameraHeight = _camera.DesiredSize.Y;
         var flightY = size.Y - flightHeight - 8;
         var cameraY = flightY - cameraHeight - 6;
-        var instrumentsTop = top + ArrangeGunnery(left, top, height);
-        _left.Arrange(UIBox2.FromDimensions(new Vector2(8, instrumentsTop), new Vector2(left, Math.Max(80, cameraY - instrumentsTop - 6))));
+        var tcasHeight = _tcas.DesiredSize.Y;
+        var tcasY = (_showGunnery ? size.Y - 8 : cameraY - 6) - tcasHeight;
+        var instrumentsTop = top + ArrangeGunnery(left, top, height - tcasHeight - 6);
+        _left.Arrange(UIBox2.FromDimensions(new Vector2(8, instrumentsTop), new Vector2(left, Math.Max(1, tcasY - instrumentsTop - 6))));
+        _tcas.Arrange(UIBox2.FromDimensions(new Vector2(8, tcasY), new Vector2(left, tcasHeight)));
         _camera.Arrange(UIBox2.FromDimensions(new Vector2(8, cameraY), new Vector2(left, cameraHeight)));
         _flight.Arrange(UIBox2.FromDimensions(new Vector2(8, flightY), new Vector2(left, flightHeight)));
         _translation.Arrange(UIBox2.FromDimensions(new Vector2(centerX, top), new Vector2(center, motionHeight)));

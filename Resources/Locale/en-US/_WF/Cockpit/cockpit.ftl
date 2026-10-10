@@ -1,6 +1,6 @@
 wf-cockpit-enter = Enter Cockpit
 wf-cockpit-exit = Exit Cockpit
-wf-cockpit-seat-required = Buckle into a pilot seat on this ship while operating its helm.
+wf-cockpit-seat-required = Buckle into a seat on this ship while operating its helm.
 wf-cockpit-title = WOLFGATE / COCKPIT
 wf-cockpit-mfd = MULTIFUNCTION DISPLAY
 wf-cockpit-comms = COMMUNICATIONS
