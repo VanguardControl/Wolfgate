@@ -1,3 +1,4 @@
+# WOLFGATE(Resprites) START: Port floor sprite updates from upstream respritening batches.
 - type: tile
   id: Plating
   name: tiles-plating
@@ -109,6 +110,11 @@
   deconstructTools: [ Cutting ]
   deconstructTimeMultiplier: 1 # Goobstation
   weather: true
+  variants: 3
+  placementVariants:
+  - 1.0
+  - 1.0
+  - 1.0
   footstepSounds:
     collection: FootstepCatwalk
   friction: 1.5
@@ -143,3 +149,4 @@
   # already shouldnt be spreading here bc airtight, but yknow
   flammability: -99999
   # ES END
+# WOLFGATE END

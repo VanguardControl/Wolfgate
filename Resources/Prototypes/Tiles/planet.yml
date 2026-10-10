@@ -1,3 +1,4 @@
+# WOLFGATE(Resprites) START: Port floor sprite updates from upstream respritening batches.
 - type: tile
   id: FloorPlanetDirt
   name: tiles-dirt-floor
@@ -236,7 +237,7 @@
   id: FloorAsteroidSandPlanet
   name: tiles-asteroid-sand
   sprite: /Textures/Tiles/Asteroid/asteroid.png
-  variants: 13
+  variants: 7
   placementVariants:
   - 0.8
   - 0.0166 #Should be roughly 20%.... I think??? I don't know dude, I'm just a YAML monkey.
@@ -245,24 +246,18 @@
   - 0.0166
   - 0.0166
   - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0116
-  - 0.0116
   isSubfloor: true
   baseTurf: Space
   edgeSpritePriority: 1
   edgeSprites:
-    SouthEast: /Textures/_Mono/Tiles/planet/Asteroid/sand_single_edge.png
-    NorthEast: /Textures/_Mono/Tiles/planet/Asteroid/sand_single_edge.png
-    NorthWest: /Textures/_Mono/Tiles/planet/Asteroid/sand_single_edge.png
-    SouthWest: /Textures/_Mono/Tiles/planet/Asteroid/sand_single_edge.png
-    South: /Textures/_Mono/Tiles/planet/Asteroid/sand_double_edge.png
-    East: /Textures/_Mono/Tiles/planet/Asteroid/sand_double_edge.png
-    North: /Textures/_Mono/Tiles/planet/Asteroid/sand_double_edge.png
-    West: /Textures/_Mono/Tiles/planet/Asteroid/sand_double_edge.png
+    SouthEast: /Textures/Tiles/Asteroid/single_edge_SE.png
+    NorthEast: /Textures/Tiles/Asteroid/single_edge_NE.png
+    NorthWest: /Textures/Tiles/Asteroid/single_edge_NW.png
+    SouthWest: /Textures/Tiles/Asteroid/single_edge_SW.png
+    South: /Textures/Tiles/Asteroid/double_edge_S.png
+    East: /Textures/Tiles/Asteroid/double_edge_E.png
+    North: /Textures/Tiles/Asteroid/double_edge_N.png
+    West: /Textures/Tiles/Asteroid/double_edge_W.png
   deconstructTools: [ Digging ]
   deconstructTimeMultiplier: 1
   itemDrop: DesertSand1
@@ -336,28 +331,25 @@
 - type: tile
   id: FloorSnow
   name: tiles-snow
-  sprite: /Textures/Tiles/Planet/Snow/snow.png
-  variants: 13
+  sprite: /Textures/Tiles/Snow/snow.png
+  variants: 6
   placementVariants:
-  - 0.8
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0116
-  - 0.0116
-  edgeSpritePriority: 2
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  - 1.0
+  edgeSpritePriority: 1
   edgeSprites:
-    South: /Textures/Tiles/Planet/Snow/snow_double_edge_south.png
-    East: /Textures/Tiles/Planet/Snow/snow_double_edge_east.png
-    North: /Textures/Tiles/Planet/Snow/snow_double_edge_north.png
-    West: /Textures/Tiles/Planet/Snow/snow_double_edge_west.png
+    SouthEast: /Textures/Tiles/Snow/single_edge_SE.png
+    NorthEast: /Textures/Tiles/Snow/single_edge_NE.png
+    NorthWest: /Textures/Tiles/Snow/single_edge_NW.png
+    SouthWest: /Textures/Tiles/Snow/single_edge_SW.png
+    South: /Textures/Tiles/Snow/double_edge_S.png
+    East: /Textures/Tiles/Snow/double_edge_E.png
+    North: /Textures/Tiles/Snow/double_edge_N.png
+    West: /Textures/Tiles/Snow/double_edge_W.png
   baseTurf: FloorDirt
   itemDrop: FloorTileItemSnow # Delta V
   deconstructTools: [ Digging ] # Frontier
@@ -413,3 +405,4 @@
   # ES END
 
 # Wasteland
+# WOLFGATE END

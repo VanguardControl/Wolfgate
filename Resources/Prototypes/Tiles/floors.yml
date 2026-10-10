@@ -1,21 +1,4 @@
-- type: tile
-  id: FloorSteel
-  name: tiles-steel-floor
-  sprite: /Textures/Tiles/steel.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepFloor
-  itemDrop: FloorTileItemSteel
-  heatCapacity: 10000
-
+# WOLFGATE(Resprites): Use redesigned floor prototypes from Tiles/basic.yml.
 - type: tile
   id: FloorSteelCheckerLight
   name: tiles-steel-floor-checker-light
@@ -53,42 +36,6 @@
   heatCapacity: 10000
 
 - type: tile
-  id: FloorSteelMini
-  name: tiles-steel-floor-mini
-  sprite: /Textures/Tiles/steel_mini.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepFloor
-  itemDrop: FloorTileItemSteelMini
-  heatCapacity: 10000
-
-- type: tile
-  id: FloorSteelPavement
-  name: tiles-steel-floor-pavement
-  sprite: /Textures/Tiles/steel_pavement.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepFloor
-  itemDrop: FloorTileItemSteelPavement
-  heatCapacity: 10000
-
-- type: tile
   id: FloorSteelDiagonal
   name: tiles-steel-floor-diagonal
   sprite: /Textures/Tiles/steel_diagonal.png
@@ -116,60 +63,6 @@
   footstepSounds:
     collection: FootstepFloor
   itemDrop: FloorTileItemSteelOffset
-  heatCapacity: 10000
-
-- type: tile
-  id: FloorSteelMono
-  name: tiles-steel-floor-mono
-  sprite: /Textures/Tiles/steel_mono.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemSteelMono
-  heatCapacity: 10000
-
-- type: tile
-  id: FloorSteelPavementVertical
-  name: tiles-steel-floor-pavement-vertical
-  sprite: /Textures/Tiles/steel_pavement_vertical.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemSteelPavementVertical
-  heatCapacity: 10000
-
-- type: tile
-  id: FloorSteelHerringbone
-  name: tiles-steel-floor-herringbone
-  sprite: /Textures/Tiles/steel_herringbone.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemSteelHerringbone
   heatCapacity: 10000
 
 - type: tile
@@ -215,27 +108,6 @@
   heatCapacity: 10000
 
 - type: tile
-  id: FloorPlastic
-  name: tiles-plastic-floor
-  sprite: /Textures/Tiles/plastic.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepFloor
-  itemDrop: FloorTileItemSteel
-  heatCapacity: 10000
-  # ES START
-  flammability: 3
-  # ES END
-
-- type: tile
   id: FloorWood
   name: tiles-wood
   sprite: /Textures/Tiles/wood.png
@@ -256,69 +128,6 @@
   heatCapacity: 10000
   # ES START
   flammability: 8
-  # ES END
-
-- type: tile
-  id: FloorWhite
-  name: tiles-white-floor
-  sprite: /Textures/Tiles/white.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemWhite
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
-  id: FloorWhiteMini
-  name: tiles-white-floor-mini
-  sprite: /Textures/Tiles/white_mini.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemWhiteMini
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
-  id: FloorWhitePavement
-  name: tiles-white-floor-pavement
-  sprite: /Textures/Tiles/white_pavement.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemWhitePavement
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
   # ES END
 
 - type: tile
@@ -358,69 +167,6 @@
   # ES END
 
 - type: tile
-  id: FloorWhiteMono
-  name: tiles-white-floor-mono
-  sprite: /Textures/Tiles/white_mono.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemWhiteMono
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
-  id: FloorWhitePavementVertical
-  name: tiles-white-floor-pavement-vertical
-  sprite: /Textures/Tiles/white_pavement_vertical.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemWhitePavementVertical
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
-  id: FloorWhiteHerringbone
-  name: tiles-white-floor-herringbone
-  sprite: /Textures/Tiles/white_herringbone.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemWhiteHerringbone
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
   id: FloorWhiteDiagonalMini
   name: tiles-white-floor-diagonal-mini
   sprite: /Textures/Tiles/white_diagonal_mini.png
@@ -436,90 +182,6 @@
   footstepSounds:
     collection: FootstepTile
   itemDrop: FloorTileItemWhiteDiagonalMini
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
-  id: FloorWhitePlastic
-  name: tiles-plastic-white-floor
-  sprite: /Textures/Tiles/white_plastic.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemWhite
-  heatCapacity: 10000
-  # ES START
-  flammability: 3
-  # ES END
-
-- type: tile
-  id: FloorDark
-  name: tiles-dark-floor
-  sprite: /Textures/Tiles/dark.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemDark
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
-  id: FloorDarkMini
-  name: tiles-dark-floor-mini
-  sprite: /Textures/Tiles/dark_mini.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemDarkMini
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
-  id: FloorDarkPavement
-  name: tiles-dark-floor-pavement
-  sprite: /Textures/Tiles/dark_pavement.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemDarkPavement
   heatCapacity: 10000
   # ES START
   flammability: 2
@@ -562,69 +224,6 @@
   # ES END
 
 - type: tile
-  id: FloorDarkMono
-  name: tiles-dark-floor-mono
-  sprite: /Textures/Tiles/dark_mono.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemDarkMono
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
-  id: FloorDarkPavementVertical
-  name: tiles-dark-floor-pavement-vertical
-  sprite: /Textures/Tiles/dark_pavement_vertical.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemDarkPavementVertical
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
-  id: FloorDarkHerringbone
-  name: tiles-dark-floor-herringbone
-  sprite: /Textures/Tiles/dark_herringbone.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemDarkHerringbone
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
   id: FloorDarkDiagonalMini
   name: tiles-dark-floor-diagonal-mini
   sprite: /Textures/Tiles/dark_diagonal_mini.png
@@ -646,27 +245,6 @@
   # ES END
 
 - type: tile
-  id: FloorDarkPlastic
-  name: tiles-plastic-dark-floor
-  sprite: /Textures/Tiles/dark_plastic.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepTile
-  itemDrop: FloorTileItemDark
-  heatCapacity: 10000
-  # ES START
-  flammability: 3
-  # ES END
-
-- type: tile
   id: FloorTechMaint
   name: tiles-techmaint-floor
   sprite: /Textures/Tiles/tech_maint.png
@@ -681,20 +259,20 @@
   flammability: 2
   # ES END
 
-- type: tile
-  id: FloorTechMaintDark
-  name: tiles-techmaint-floor-dark
-  sprite: /Textures/Tiles/tech_maint_dark.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepHull
-  itemDrop: FloorTileItemTechmaintDark
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
+#- type: tile #WOLFGATE(Resprites): Moved to basic.yml
+#  id: FloorTechMaintDark
+#  name: tiles-techmaint-floor-dark
+#  sprite: /Textures/Tiles/tech_maint_dark.png
+#  baseTurf: Plating
+#  isSubfloor: false
+#  deconstructTools: [ Prying ]
+#  footstepSounds:
+#    collection: FootstepHull
+#  itemDrop: FloorTileItemTechmaintDark
+#  heatCapacity: 10000
+#  # ES START
+#  flammability: 2
+#  # ES END
 
 - type: tile
   id: FloorReinforced
@@ -816,12 +394,6 @@
   id: FloorSteelLime
   name: tiles-lime-floor
   sprite: /Textures/Tiles/lime.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
   baseTurf: Plating
   isSubfloor: false
   deconstructTools: [ Prying ]
@@ -1000,28 +572,6 @@
   footstepSounds:
     collection: FootstepTile
   itemDrop: FloorTileItemLaundry
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
-
-- type: tile
-  id: FloorSteelDamaged
-  name: tiles-steel-floor
-  sprite: /Textures/Tiles/steel_damaged.png
-  variants: 5
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepFloor
-  itemDrop: FloorTileItemSteel #This should probably be made null when it becomes possible to make it such, in SS13 prying destroyed tiles wouldn't give you anything.
   heatCapacity: 10000
   # ES START
   flammability: 2
@@ -1549,16 +1099,12 @@
   flammability: 0.2
   # ES END
 
+# WOLFGATE(Resprites) START: Repath the glass floor sprites.
 - type: tile
   id: FloorGlass
   name: tiles-glass-floor
-  sprite: /Textures/Tiles/glass.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
+  sprite: /Textures/Tiles/Glass/glass.png # WOLFGATE(Resprites): Repathed
+  variants: 1
   baseTurf: Plating
   isSubfloor: false
   deconstructTools: [ Prying ]
@@ -1574,13 +1120,8 @@
 - type: tile
   id: FloorRGlass
   name: tiles-reinforced-glass-floor
-  sprite: /Textures/Tiles/rglass.png
-  variants: 4
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
+  sprite: /Textures/Tiles/Glass/glass-reinf.png # WOLFGATE(Resprites): Repathed
+  variants: 1
   baseTurf: Plating
   isSubfloor: false
   deconstructTools: [ Prying ]
@@ -1592,6 +1133,7 @@
   flammability: 0.2
   # ES END
   transparent: true
+# WOLFGATE END
 
 - type: tile
   id: FloorMetalFoam
@@ -1612,10 +1154,15 @@
   # ES END
 
 # Circuits
+# WOLFGATE(Resprites) START: Repath circuit floors and use their new sprite variants.
 - type: tile
   id: FloorGreenCircuit
   name: tiles-green-circuit-floor
-  sprite: /Textures/Tiles/green_circuit.png
+  sprite: /Textures/Tiles/Circuit/circuit-green.png # WOLFGATE(Resprites): Repathed
+  variants: 2
+  placementVariants:
+    - 1.0
+    - 1.0
   baseTurf: Plating
   isSubfloor: false
   deconstructTools: [ Prying ]
@@ -1630,7 +1177,11 @@
 - type: tile
   id: FloorBlueCircuit
   name: tiles-blue-circuit-floor
-  sprite: /Textures/Tiles/blue_circuit.png
+  sprite: /Textures/Tiles/Circuit/circuit-blue.png # WOLFGATE(Resprites): Repathed
+  variants: 2
+  placementVariants:
+    - 1.0
+    - 1.0
   baseTurf: Plating
   isSubfloor: false
   deconstructTools: [ Prying ]
@@ -1645,7 +1196,11 @@
 - type: tile
   id: FloorRedCircuit
   name: tiles-red-circuit-floor
-  sprite: /Textures/Tiles/red_circuit.png
+  sprite: /Textures/Tiles/Circuit/circuit-red.png # WOLFGATE(Resprites): Repathed
+  variants: 2
+  placementVariants:
+      - 1.0
+      - 1.0
   baseTurf: Plating
   isSubfloor: false
   deconstructTools: [ Prying ]
@@ -1656,6 +1211,7 @@
   # ES START
   flammability: 2
   # ES END
+# WOLFGATE END
 
 # Terrain
 - type: tile
@@ -1721,11 +1277,30 @@
   flammability: 2
   # ES END
 
+# WOLFGATE(Resprites) START: Repath grass, dirt, and asteroid floor sprites and variants.
 - type: tile
   id: FloorGrassJungle
   name: tiles-jungle-grass-floor
-  sprite: /Textures/Tiles/grassjungle.png
+  sprite: /Textures/Tiles/GrassJungle/grass.png
   baseTurf: FloorDirt
+  variants: 6
+  placementVariants:
+    - 1.0
+    - 1.0
+    - 1.0
+    - 1.0
+    - 1.0
+    - 1.0
+  edgeSpritePriority: 1
+  edgeSprites:
+    SouthEast: /Textures/Tiles/GrassJungle/single_edge_SE.png
+    NorthEast: /Textures/Tiles/GrassJungle/single_edge_NE.png
+    NorthWest: /Textures/Tiles/GrassJungle/single_edge_NW.png
+    SouthWest: /Textures/Tiles/GrassJungle/single_edge_SW.png
+    South: /Textures/Tiles/GrassJungle/double_edge_S.png
+    East: /Textures/Tiles/GrassJungle/double_edge_E.png
+    North: /Textures/Tiles/GrassJungle/double_edge_N.png
+    West: /Textures/Tiles/GrassJungle/double_edge_W.png
   #canCrowbar: false # Come back
   # canShovel: true # Delta V # Frontier
   deconstructTools: [ Digging ] # Frontier
@@ -1742,23 +1317,25 @@
 - type: tile
   id: FloorGrassDark
   name: tiles-dark-grass-floor
-  sprite: /Textures/_RMC14/Tiles/planet/grass1/grass.png
-  variants: 4
+  sprite: /Textures/Tiles/GrassDark/grass.png
+  variants: 6
   placementVariants:
+  - 1.0
+  - 1.0
   - 1.0
   - 1.0
   - 1.0
   - 1.0
   edgeSpritePriority: 1
   edgeSprites:
-    SouthEast: /Textures/_RMC14/Tiles/planet/grass1/single_edge.png
-    NorthEast: /Textures/_RMC14/Tiles/planet/grass1/single_edge.png
-    NorthWest: /Textures/_RMC14/Tiles/planet/grass1/single_edge.png
-    SouthWest: /Textures/_RMC14/Tiles/planet/grass1/single_edge.png
-    South: /Textures/_RMC14/Tiles/planet/grass1/double_edge.png
-    East: /Textures/_RMC14/Tiles/planet/grass1/double_edge.png
-    North: /Textures/_RMC14/Tiles/planet/grass1/double_edge.png
-    West: /Textures/_RMC14/Tiles/planet/grass1/double_edge.png
+    SouthEast: /Textures/Tiles/GrassDark/single_edge_SE.png
+    NorthEast: /Textures/Tiles/GrassDark/single_edge_NE.png
+    NorthWest: /Textures/Tiles/GrassDark/single_edge_NW.png
+    SouthWest: /Textures/Tiles/GrassDark/single_edge_SW.png
+    South: /Textures/Tiles/GrassDark/double_edge_S.png
+    East: /Textures/Tiles/GrassDark/double_edge_E.png
+    North: /Textures/Tiles/GrassDark/double_edge_N.png
+    West: /Textures/Tiles/GrassDark/double_edge_W.png
   baseTurf: FloorDirt
   #canCrowbar: false # Come back
   # canShovel: true # Delta V # Frontier
@@ -1776,7 +1353,7 @@
 - type: tile
   id: FloorGrassLight
   name: tiles-light-grass-floor
-  sprite: /Textures/_CE/Tiles/GrassLight/grass.png
+  sprite: /Textures/Tiles/GrassLight/grass.png
   variants: 6
   placementVariants:
   - 1.0
@@ -1787,14 +1364,14 @@
   - 1.0
   edgeSpritePriority: 2
   edgeSprites:
-    SouthEast: /Textures/_CE/Tiles/GrassLight/single_edge_SE.png
-    NorthEast: /Textures/_CE/Tiles/GrassLight/single_edge_NE.png
-    NorthWest: /Textures/_CE/Tiles/GrassLight/single_edge_NW.png
-    SouthWest: /Textures/_CE/Tiles/GrassLight/single_edge_SW.png
-    South: /Textures/_CE/Tiles/GrassLight/double_edge_S.png
-    East: /Textures/_CE/Tiles/GrassLight/double_edge_E.png
-    North: /Textures/_CE/Tiles/GrassLight/double_edge_N.png
-    West: /Textures/_CE/Tiles/GrassLight/double_edge_W.png
+    SouthEast: /Textures//Tiles/GrassLight/single_edge_SE.png
+    NorthEast: /Textures//Tiles/GrassLight/single_edge_NE.png
+    NorthWest: /Textures//Tiles/GrassLight/single_edge_NW.png
+    SouthWest: /Textures//Tiles/GrassLight/single_edge_SW.png
+    South: /Textures//Tiles/GrassLight/double_edge_S.png
+    East: /Textures/Tiles/GrassLight/double_edge_E.png
+    North: /Textures/Tiles/GrassLight/double_edge_N.png
+    West: /Textures/Tiles/GrassLight/double_edge_W.png
   baseTurf: FloorDirt
   #canCrowbar: false # Come back
   # canShovel: true # Delta V # Frontier
@@ -1813,13 +1390,24 @@
 - type: tile
   id: FloorDirt
   name: tiles-dirt-floor
-  sprite: /Textures/Tiles/dirt.png
-  variants: 4
+  sprite: /Textures/Tiles/Dirt/dirt.png
+  variants: 5
   placementVariants:
   - 1.0
   - 1.0
   - 1.0
   - 1.0
+  - 1.0
+  edgeSpritePriority: 1
+  edgeSprites:
+    SouthEast: /Textures/Tiles/Dirt/single_edge_SE.png
+    NorthEast: /Textures/Tiles/Dirt/single_edge_NE.png
+    NorthWest: /Textures/Tiles/Dirt/single_edge_NW.png
+    SouthWest: /Textures/Tiles/Dirt/single_edge_SW.png
+    South: /Textures/Tiles/Dirt/double_edge_S.png
+    East: /Textures/Tiles/Dirt/double_edge_E.png
+    North: /Textures/Tiles/Dirt/double_edge_N.png
+    West: /Textures/Tiles/Dirt/double_edge_W.png
   baseTurf: FloorBedrock # Delta V
   #canCrowbar: false # Come back
   # canShovel: true # Delta V # Frontier
@@ -1829,7 +1417,6 @@
   itemDrop: FloorTileItemDirt # Delta V
   heatCapacity: 10000
   weather: true
-  iconSmoothSprite: /Textures/_CE/Tiles/Edges/dirt.rsi
   # ES START
   flammability: 0.2
   # ES END
@@ -1840,7 +1427,7 @@
   id: FloorAsteroidSand
   name: tiles-asteroid-sand
   sprite: /Textures/Tiles/Asteroid/asteroid.png
-  variants: 13
+  variants: 7
   placementVariants:
   - 0.8
   - 0.0166 #Should be roughly 20%.... I think??? I don't know dude, I'm just a YAML monkey.
@@ -1849,12 +1436,16 @@
   - 0.0166
   - 0.0166
   - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0166
-  - 0.0116
-  - 0.0116
+  edgeSpritePriority: 1
+  edgeSprites:
+    SouthEast: /Textures/Tiles/Asteroid/single_edge_SE.png
+    NorthEast: /Textures/Tiles/Asteroid/single_edge_NE.png
+    NorthWest: /Textures/Tiles/Asteroid/single_edge_NW.png
+    SouthWest: /Textures/Tiles/Asteroid/single_edge_SW.png
+    South: /Textures/Tiles/Asteroid/double_edge_S.png
+    East: /Textures/Tiles/Asteroid/double_edge_E.png
+    North: /Textures/Tiles/Asteroid/double_edge_N.png
+    West: /Textures/Tiles/Asteroid/double_edge_W.png
   baseTurf: Space
   isSubfloor: true
   footstepSounds:
@@ -1864,6 +1455,7 @@
   # ES START
   flammability: 0.2
   # ES END
+# WOLFGATE END
 
 - type: tile
   id: FloorAsteroidSandDug
@@ -1983,19 +1575,22 @@
   # ES END
 
 # Caves
+# WOLFGATE(Resprites) START: Repath the cave floor sprite and edge textures.
 - type: tile
   id: FloorCave
   name: tiles-cave
-  sprite: /Textures/Tiles/cave.png
-  variants: 7
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
+  sprite: /Textures/Tiles/Cave/cave.png
+  variants: 1
+  edgeSpritePriority: 1
+  edgeSprites:
+      SouthEast: /Textures/Tiles/Cave/single_edge_SE.png
+      NorthEast: /Textures/Tiles/Cave/single_edge_NE.png
+      NorthWest: /Textures/Tiles/Cave/single_edge_NW.png
+      SouthWest: /Textures/Tiles/Cave/single_edge_SW.png
+      South: /Textures/Tiles/Cave/double_edge_S.png
+      East: /Textures/Tiles/Cave/double_edge_E.png
+      North: /Textures/Tiles/Cave/double_edge_N.png
+      West: /Textures/Tiles/Cave/double_edge_W.png
   baseTurf: Space
   isSubfloor: true
   footstepSounds:
@@ -2004,6 +1599,7 @@
   # ES START
   flammability: 0.2
   # ES END
+# WOLFGATE END
 
 - type: tile
   id: FloorCaveDrought
@@ -2028,14 +1624,13 @@
   flammability: 0.2
   # ES END
 
+# WOLFGATE(Resprites) START: Update flesh floor variant count and placement weights.
 - type: tile
   id: FloorFlesh
   name: tiles-flesh-floor
   sprite: /Textures/Tiles/meat.png
-  variants: 4
+  variants: 2
   placementVariants:
-  - 1.0
-  - 1.0
   - 1.0
   - 1.0
   baseTurf: Plating
@@ -2049,21 +1644,22 @@
   # ES START
   flammability: 4
   # ES END
+# WOLFGATE END
 
-- type: tile
-  id: FloorTechMaint2
-  name: tiles-techmaint2-floor
-  sprite: /Textures/Tiles/steel_maint.png
-  baseTurf: Plating
-  isSubfloor: false
-  deconstructTools: [ Prying ]
-  footstepSounds:
-    collection: FootstepHull
-  itemDrop: FloorTileItemSteelMaint
-  heatCapacity: 10000
-  # ES START
-  flammability: 2
-  # ES END
+#- type: tile #WOLFGATE(Resprites) Moved to basic.yml
+#  id: FloorTechMaint2
+#  name: tiles-techmaint2-floor
+#  sprite: /Textures/Tiles/steel_maint.png
+#  baseTurf: Plating
+#  isSubfloor: false
+#  deconstructTools: [ Prying ]
+#  footstepSounds:
+#    collection: FootstepHull
+#  itemDrop: FloorTileItemSteelMaint
+#  heatCapacity: 10000
+#  # ES START
+#  flammability: 2
+#  # ES END
 
 - type: tile
   id: FloorTechMaint3
@@ -2152,19 +1748,22 @@
   flammability: 2
   # ES END
 
+# WOLFGATE(Resprites) START: Repath the chromite floor sprite and edge textures.
 - type: tile
   id: FloorChromite
   name: tiles-chromite
-  sprite: /Textures/Tiles/chromite.png
-  variants: 7
-  placementVariants:
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
-  - 1.0
+  sprite: /Textures/Tiles/Chromite/chromite.png
+  variants: 1
+  edgeSpritePriority: 1
+  edgeSprites:
+    SouthEast: /Textures/Tiles/Chromite/single_edge_SE.png
+    NorthEast: /Textures/Tiles/Chromite/single_edge_NE.png
+    NorthWest: /Textures/Tiles/Chromite/single_edge_NW.png
+    SouthWest: /Textures/Tiles/Chromite/single_edge_SW.png
+    South: /Textures/Tiles/Chromite/double_edge_S.png
+    East: /Textures/Tiles/Chromite/double_edge_E.png
+    North: /Textures/Tiles/Chromite/double_edge_N.png
+    West: /Textures/Tiles/Chromite/double_edge_W.png
   baseTurf: Space
   isSubfloor: true
   weather: true # Mono
@@ -2174,6 +1773,7 @@
   # ES START
   flammability: 2
   # ES END
+# WOLFGATE END
 
 #Hull tiles
 - type: tile
@@ -2270,10 +1870,12 @@
   # ES END
 
 # Ice
+# WOLFGATE(Resprites) START: Repath the astro ice floor sprite.
 - type: tile
   id: FloorAstroIce
   name: tiles-astro-ice
-  sprite: /Textures/Tiles/Planet/Snow/ice.png
+  sprite: /Textures/Tiles/Ice/ice.png
+  variants: 4
   baseTurf: Plating
   isSubfloor: false
   deconstructTools: [ Prying ]
@@ -2285,6 +1887,7 @@
   # ES START
   flammability: 0.2
   # ES END
+# WOLFGATE END
 
 - type: tile
   id: FloorAstroSnow

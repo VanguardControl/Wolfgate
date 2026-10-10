@@ -1,6 +1,6 @@
 # Resprites
 
-Ports various sprites from Impstation, that change and fit our sci fi esque setting abit more. Changed sprites are freezers and heaters (hellfire included), cryo pods, cryosleep units, hydroponics trays, conveyors, fax machines, stasis beds and suit storage units. Freezers and heaters also glow when powered.
+Ports visual updates and matching prototypes for closets, lockers, wardrobes, wall-mounted storage, suit storage, and Gray/White/Dark floors, alongside Impstation structure sprites. Closet and floor prototype mappings live under `Resources/Prototypes/Entities/Structures/Storage/Closets/` and `Resources/Prototypes/Tiles/`.
 
 
 <!-- WOLFGATE-GENERATED START -->
@@ -12,7 +12,12 @@ None.
 
 ## Non-modular edits
 
+- [`Resources/Prototypes/_Mono/Turf/generated.yml`](../../../Resources/Prototypes/_Mono/Turf/generated.yml): Port floor sprite updates from upstream respritening batches.
+- [`Resources/Prototypes/_Mono/Turf/plating.yml`](../../../Resources/Prototypes/_Mono/Turf/plating.yml): Port floor sprite updates from upstream respritening batches.
+- [`Resources/Prototypes/_NF/Entities/Structures/Storage/Closets/closets.yml`](../../../Resources/Prototypes/_NF/Entities/Structures/Storage/Closets/closets.yml): Repath Frontier closet prototypes for the new closet sprites.
+- [`Resources/Prototypes/Catalog/Cargo/cargo_security.yml`](../../../Resources/Prototypes/Catalog/Cargo/cargo_security.yml): Port closet sprite mappings from upstream respritening batches.
 - [`Resources/Prototypes/Catalog/Cargo/cargo_service.yml`](../../../Resources/Prototypes/Catalog/Cargo/cargo_service.yml): Imp Sprite Ports
+- [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Projectiles/magic.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Projectiles/magic.yml): Port closet sprite mappings from upstream respritening batches.
 - [`Resources/Prototypes/Entities/Structures/conveyor.yml`](../../../Resources/Prototypes/Entities/Structures/conveyor.yml): Imp Sprite Ports
 - [`Resources/Prototypes/Entities/Structures/cryogenic_sleep_unit.yml`](../../../Resources/Prototypes/Entities/Structures/cryogenic_sleep_unit.yml): Imp Sprite Ports
 - [`Resources/Prototypes/Entities/Structures/hydro_tray.yml`](../../../Resources/Prototypes/Entities/Structures/hydro_tray.yml): Imp Sprite Ports
@@ -20,7 +25,15 @@ None.
 - [`Resources/Prototypes/Entities/Structures/Machines/Medical/cryo_pod.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/Medical/cryo_pod.yml): Imp Sprite Ports
 - [`Resources/Prototypes/Entities/Structures/Machines/stasisbed.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/stasisbed.yml): Imp Sprite Ports
 - [`Resources/Prototypes/Entities/Structures/Piping/Atmospherics/unary.yml`](../../../Resources/Prototypes/Entities/Structures/Piping/Atmospherics/unary.yml): Imp Sprite Ports
-- [`Resources/Prototypes/Entities/Structures/Storage/Closets/base_structureclosets.yml`](../../../Resources/Prototypes/Entities/Structures/Storage/Closets/base_structureclosets.yml): Imp Sprite Ports
+- [`Resources/Prototypes/Entities/Structures/Storage/Closets/base_structureclosets.yml`](../../../Resources/Prototypes/Entities/Structures/Storage/Closets/base_structureclosets.yml)
+  - Port closet and wall-locker sprite layers from upstream respritening batches.
+  - Imp Sprite Ports
+- [`Resources/Prototypes/Entities/Structures/Storage/Closets/big_boxes.yml`](../../../Resources/Prototypes/Entities/Structures/Storage/Closets/big_boxes.yml): Port closet sprite mappings from upstream respritening batches.
+- [`Resources/Prototypes/Entities/Structures/Storage/Closets/closets.yml`](../../../Resources/Prototypes/Entities/Structures/Storage/Closets/closets.yml): Port closet sprite mappings from upstream respritening batches.
+- [`Resources/Prototypes/Entities/Structures/Storage/Closets/Lockers/base_structurelockers.yml`](../../../Resources/Prototypes/Entities/Structures/Storage/Closets/Lockers/base_structurelockers.yml): Port closet sprite mappings from upstream respritening batches.
+- [`Resources/Prototypes/Entities/Structures/Storage/Closets/Lockers/lockers.yml`](../../../Resources/Prototypes/Entities/Structures/Storage/Closets/Lockers/lockers.yml): Port closet sprite mappings from upstream respritening batches.
+- [`Resources/Prototypes/Entities/Structures/Storage/Closets/wall_lockers.yml`](../../../Resources/Prototypes/Entities/Structures/Storage/Closets/wall_lockers.yml): Port closet sprite mappings from upstream respritening batches.
+- [`Resources/Prototypes/Entities/Structures/Storage/Closets/wardrobe.yml`](../../../Resources/Prototypes/Entities/Structures/Storage/Closets/wardrobe.yml): Port closet sprite mappings from upstream respritening batches.
 - [`Resources/Prototypes/Entities/Structures/Wallmounts/switch.yml`](../../../Resources/Prototypes/Entities/Structures/Wallmounts/switch.yml): Imp Sprite Ports
 - [`Resources/Prototypes/Objectives/stealTargetGroups.yml`](../../../Resources/Prototypes/Objectives/stealTargetGroups.yml): Imp Sprite Ports
 - [`Resources/Prototypes/Recipes/Construction/Graphs/structures/conveyor.yml`](../../../Resources/Prototypes/Recipes/Construction/Graphs/structures/conveyor.yml): Imp Sprite Ports
@@ -28,6 +41,51 @@ None.
 - [`Resources/Prototypes/Recipes/Construction/structures.yml`](../../../Resources/Prototypes/Recipes/Construction/structures.yml): Imp Sprite Ports
 - [`Resources/Prototypes/Research/civilianservices.yml`](../../../Resources/Prototypes/Research/civilianservices.yml): Imp Sprite Ports
 - [`Resources/Prototypes/Research/industrial.yml`](../../../Resources/Prototypes/Research/industrial.yml): Imp Sprite Ports
+- [`Resources/Prototypes/Tiles/basic.yml`](../../../Resources/Prototypes/Tiles/basic.yml): Port redesigned Gray, White, and Dark floor sprites.
+- [`Resources/Prototypes/Tiles/floors.yml`](../../../Resources/Prototypes/Tiles/floors.yml)
+  - Use redesigned floor prototypes from Tiles/basic.yml.
+  - Repath the glass floor sprites.
+  - Repathed
+  - Repath circuit floors and use their new sprite variants.
+  - Repath grass, dirt, and asteroid floor sprites and variants.
+  - Repath the cave floor sprite and edge textures.
+  - Update flesh floor variant count and placement weights.
+  - Repath the chromite floor sprite and edge textures.
+  - Repath the astro ice floor sprite.
+- [`Resources/Prototypes/Tiles/planet.yml`](../../../Resources/Prototypes/Tiles/planet.yml): Port floor sprite updates from upstream respritening batches.
+- [`Resources/Prototypes/Tiles/plating.yml`](../../../Resources/Prototypes/Tiles/plating.yml): Port floor sprite updates from upstream respritening batches.
 - [`Resources/Textures/_Impstation/Structures/`](../../../Resources/Textures/_Impstation/Structures/): Impstation structure resprites (thermomachines, cryo pod, cryosleep, hydro tray, conveyor, fax, stasis bed, suit storage).
+- [`Resources/Textures/_NF/Structures/Storage/closet.rsi/`](../../../Resources/Textures/_NF/Structures/Storage/closet.rsi/): Frontier closet sprites updated for the resprited prototype states.
+- [`Resources/Textures/_NF/Structures/Storage/wall_locker.rsi/`](../../../Resources/Textures/_NF/Structures/Storage/wall_locker.rsi/): Frontier wall-locker sprites updated for the resprited prototype states.
+- [`Resources/Textures/Tiles/Asteroid/attribution.yml`](../../../Resources/Textures/Tiles/Asteroid/attribution.yml): Record attributions for resprited asteroid floor assets.
+- [`Resources/Textures/Tiles/attributions.yml`](../../../Resources/Textures/Tiles/attributions.yml): Record attributions for resprited root-level tile textures.
+- [`Resources/Textures/Tiles/Basic/Dark/attributions.yml`](../../../Resources/Textures/Tiles/Basic/Dark/attributions.yml): Record attributions for resprited dark floor assets.
+- [`Resources/Textures/Tiles/Basic/Gray/attributions.yml`](../../../Resources/Textures/Tiles/Basic/Gray/attributions.yml): Record attributions for resprited gray floor assets.
+- [`Resources/Textures/Tiles/Basic/White/attributions.yml`](../../../Resources/Textures/Tiles/Basic/White/attributions.yml): Record attributions for resprited white floor assets.
+- [`Resources/Textures/Tiles/Cave/attributions.yml`](../../../Resources/Textures/Tiles/Cave/attributions.yml): Record attributions for resprited cave floor assets.
+- [`Resources/Textures/Tiles/Checker/attributions.yml`](../../../Resources/Textures/Tiles/Checker/attributions.yml): Record attributions for resprited checker floor assets.
+- [`Resources/Textures/Tiles/Chromite/attributions.yml`](../../../Resources/Textures/Tiles/Chromite/attributions.yml): Record attributions for resprited chromite floor assets.
+- [`Resources/Textures/Tiles/Circuit/attributions.yml`](../../../Resources/Textures/Tiles/Circuit/attributions.yml): Record attributions for resprited circuit floor assets.
+- [`Resources/Textures/Tiles/Concrete/attribution.yml`](../../../Resources/Textures/Tiles/Concrete/attribution.yml): Record attributions for resprited concrete floor assets.
+- [`Resources/Textures/Tiles/Desert/attribution.yml`](../../../Resources/Textures/Tiles/Desert/attribution.yml): Record attributions for resprited desert floor assets.
+- [`Resources/Textures/Tiles/Dirt/attributions.yml`](../../../Resources/Textures/Tiles/Dirt/attributions.yml): Record attributions for resprited dirt floor assets.
+- [`Resources/Textures/Tiles/Exo/attribution.yml`](../../../Resources/Textures/Tiles/Exo/attribution.yml): Record attributions for resprited exoborg floor assets.
+- [`Resources/Textures/Tiles/Glass/attribution.yml`](../../../Resources/Textures/Tiles/Glass/attribution.yml): Record attributions for resprited glass floor assets.
+- [`Resources/Textures/Tiles/Grass/attribution.yml`](../../../Resources/Textures/Tiles/Grass/attribution.yml): Record attributions for resprited grass floor assets.
+- [`Resources/Textures/Tiles/GrassDark/attribution.yml`](../../../Resources/Textures/Tiles/GrassDark/attribution.yml): Record attributions for resprited dark grass floor assets.
+- [`Resources/Textures/Tiles/GrassJungle/attribution.yml`](../../../Resources/Textures/Tiles/GrassJungle/attribution.yml): Record attributions for resprited jungle grass floor assets.
+- [`Resources/Textures/Tiles/GrassLight/attribution.yml`](../../../Resources/Textures/Tiles/GrassLight/attribution.yml): Record attributions for resprited light grass floor assets.
+- [`Resources/Textures/Tiles/Ice/attributions.yml`](../../../Resources/Textures/Tiles/Ice/attributions.yml): Record attributions for resprited ice floor assets.
+- [`Resources/Textures/Tiles/Ironsand/attribution.yml`](../../../Resources/Textures/Tiles/Ironsand/attribution.yml): Record attributions for resprited ironsand floor assets.
+- [`Resources/Textures/Tiles/Marble/attributions.yml`](../../../Resources/Textures/Tiles/Marble/attributions.yml): Record attributions for resprited marble floor assets.
+- [`Resources/Textures/Tiles/Planet/attributions.yml`](../../../Resources/Textures/Tiles/Planet/attributions.yml): Record attributions for resprited planetary floor assets.
+- [`Resources/Textures/Tiles/Shuttle/attributions.yml`](../../../Resources/Textures/Tiles/Shuttle/attributions.yml): Record attributions for resprited shuttle floor assets.
+- [`Resources/Textures/Tiles/Snow/attribution.yml`](../../../Resources/Textures/Tiles/Snow/attribution.yml): Record attributions for resprited snow floor assets.
+- [`Resources/Textures/Tiles/TileEntities/chasm.rsi/`](../../../Resources/Textures/Tiles/TileEntities/chasm.rsi/): Chasm tile-entity sprites ported with the floor resprites.
+- [`Resources/Textures/Tiles/TileEntities/liquid-lava.rsi/`](../../../Resources/Textures/Tiles/TileEntities/liquid-lava.rsi/): Lava tile-entity sprites ported with the floor resprites.
+- [`Resources/Textures/Tiles/TileEntities/liquid-phoron.rsi/`](../../../Resources/Textures/Tiles/TileEntities/liquid-phoron.rsi/): Phoron tile-entity sprites ported with the floor resprites.
+- [`Resources/Textures/Tiles/TileEntities/liquid-water.rsi/`](../../../Resources/Textures/Tiles/TileEntities/liquid-water.rsi/): Water tile-entity sprites ported with the floor resprites.
+- [`Resources/Textures/Tiles/TileEntities/swimming-pool.rsi/`](../../../Resources/Textures/Tiles/TileEntities/swimming-pool.rsi/): Pool tile-entity sprites ported with the floor resprites.
+- [`Resources/Textures/Tiles/Wood/attributions.yml`](../../../Resources/Textures/Tiles/Wood/attributions.yml): Record attributions for resprited wood floor assets.
 
 <!-- WOLFGATE-GENERATED END -->
