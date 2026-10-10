@@ -38,6 +38,12 @@ public sealed class WFGlassGauge : Control
     /// <summary>Uses a horizontal scale with a marked midpoint for linear telemetry.</summary>
     public bool Strip { get; }
 
+    /// <summary>Fits the caption, exact reading and linear scale into a 44-unit cockpit strip.</summary>
+    public bool CompactStrip { get; set; }
+
+    /// <summary>Reserves space beside a round dial caption for adjacent instruments.</summary>
+    public float CaptionInset { get; set; } = 2;
+
     /// <summary>Exposes the actual reading independently of visual needle damping.</summary>
     public WFGaugeReading Reading => _read();
 
@@ -91,6 +97,11 @@ public sealed class WFGlassGauge : Control
         var color = _reading.Tint ?? WFInstrumentTheme.Accent;
         if (_target == null)
             color = WFInstrumentTheme.Muted;
+        if (Strip && CompactStrip)
+        {
+            DrawCompactStrip(handle, color);
+            return;
+        }
         if (WFInstrumentTheme.Digital)
         {
             DrawDigital(handle, color);
@@ -142,7 +153,7 @@ public sealed class WFGlassGauge : Control
         TextInBox(handle, _small, _minimumText, minimum, WFInstrumentTheme.Muted);
         TextInBox(handle, _small, _maximumText, maximum, WFInstrumentTheme.Muted);
         WFInstrumentGlass.Round(handle, center, face + 2 * UIScale, UIScale);
-        Text(handle, _small, _caption, new Vector2(center.X, PixelHeight - 4 * UIScale), PixelWidth - 4 * UIScale, WFInstrumentTheme.Cream);
+        Text(handle, _small, _caption, new Vector2(center.X, PixelHeight - 6 * UIScale), PixelWidth - 2 * CaptionInset * UIScale, WFInstrumentTheme.Cream);
     }
 
     /// <summary>Fits a linear needle scale beneath an exact readout in narrow instrument banks.</summary>
@@ -172,6 +183,73 @@ public sealed class WFGlassGauge : Control
         Text(handle, _small, _middleText,
             new Vector2(PixelWidth / 2, PixelHeight - 4 * UIScale), 55 * UIScale, WFInstrumentTheme.Cream);
         WFInstrumentGlass.Window(handle, box, UIScale);
+    }
+
+    /// <summary>Keeps exact telemetry and scale labels separated in the cockpit's shallow linear gauges.</summary>
+    private void DrawCompactStrip(DrawingHandleScreen handle, Color color)
+    {
+        var skin = WFInstrumentTheme.Skin;
+        var digital = WFInstrumentTheme.Digital;
+        var bounds = PixelSizeBox;
+        if (digital)
+            WFConsoleDigital.Panel(handle, bounds, UIScale, skin.Glass, skin.EdgeSoft);
+        else
+            handle.DrawRect(bounds, skin.Glass);
+
+        var inset = 4 * UIScale;
+        TextInBox(handle, _small, _caption, new UIBox2(inset, 2 * UIScale, PixelWidth * 0.52f, 17 * UIScale),
+            digital ? skin.TextMuted : skin.Text);
+        TextInBox(handle, _digits, _reading.Text,
+            new UIBox2(PixelWidth * 0.54f, 2 * UIScale, PixelWidth - inset, 17 * UIScale), color);
+
+        var left = 10 * UIScale;
+        var width = MathF.Max(0, PixelWidth - 2 * left);
+        var top = 21 * UIScale;
+        if (digital)
+        {
+            var zero = WFGaugeScale.Fraction(0, _reading.Minimum, _reading.Maximum) ?? 0;
+            for (var i = 0; i < 40; i++)
+            {
+                var fraction = (i + 0.5f) / 40;
+                var active = _needle is { } needle && fraction >= MathF.Min(zero, needle) && fraction <= MathF.Max(zero, needle);
+                handle.DrawRect(UIBox2.FromDimensions(new Vector2(left + width * i / 40, top + UIScale),
+                    new Vector2(MathF.Max(1, width / 40 - 2 * UIScale), 6 * UIScale)), active ? color : skin.GlassLight);
+            }
+            if (_reading.Minimum < 0 && _reading.Maximum > 0)
+            {
+                var x = left + width * zero;
+                handle.DrawLine(new Vector2(x, top - UIScale), new Vector2(x, top + 8 * UIScale), skin.Text);
+            }
+            if (_needle is { } position)
+            {
+                var x = left + width * position;
+                handle.DrawLine(new Vector2(x, top - 2 * UIScale), new Vector2(x, top + 8 * UIScale), color);
+            }
+        }
+        else
+        {
+            for (var i = 0; i <= 20; i++)
+            {
+                var x = left + width * i / 20;
+                handle.DrawLine(new Vector2(x, top),
+                    new Vector2(x, top + (i == 10 ? 8 : i % 5 == 0 ? 6 : 3) * UIScale), skin.TextMuted);
+            }
+            if (_needle is { } position)
+            {
+                var x = left + width * position;
+                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList,
+                    new[] { new Vector2(x, top - UIScale), new Vector2(x - 3 * UIScale, top + 8 * UIScale),
+                        new Vector2(x + 3 * UIScale, top + 8 * UIScale) }, color);
+            }
+        }
+
+        var labelsTop = 31 * UIScale;
+        var labelsBottom = PixelHeight - 2 * UIScale;
+        TextInBox(handle, _small, _minimumText, new UIBox2(inset, labelsTop, PixelWidth * 0.32f, labelsBottom), skin.TextMuted);
+        TextInBox(handle, _small, _middleText, new UIBox2(PixelWidth * 0.34f, labelsTop, PixelWidth * 0.66f, labelsBottom), skin.TextMuted);
+        TextInBox(handle, _small, _maximumText, new UIBox2(PixelWidth * 0.68f, labelsTop, PixelWidth - inset, labelsBottom), skin.TextMuted);
+        if (!digital)
+            WFInstrumentGlass.Window(handle, bounds, UIScale);
     }
 
     private void DrawDigital(DrawingHandleScreen handle, Color color)
@@ -227,7 +305,7 @@ public sealed class WFGlassGauge : Control
         Text(handle, _digitalDigits, _reading.Text, center + new Vector2(0, 7 * UIScale), (radius - 10 * UIScale) * 2, color);
         Text(handle, _small, _minimumText, center + new Vector2(-radius * 0.57f, radius * 0.86f), radius * 0.8f, skin.TextMuted);
         Text(handle, _small, _maximumText, center + new Vector2(radius * 0.57f, radius * 0.86f), radius * 0.8f, skin.TextMuted);
-        Text(handle, _small, _caption, new Vector2(center.X, PixelHeight - 5 * UIScale), PixelWidth - 10 * UIScale, skin.Text);
+        Text(handle, _small, _caption, new Vector2(center.X, PixelHeight - 6 * UIScale), PixelWidth - 2 * CaptionInset * UIScale, skin.Text);
     }
 
     /// <summary>Fits the complete text height and width inside its reserved dial area.</summary>

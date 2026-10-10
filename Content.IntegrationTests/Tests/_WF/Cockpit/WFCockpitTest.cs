@@ -42,6 +42,8 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Input;
+using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
@@ -344,7 +346,7 @@ public sealed class WFCockpitTest : InteractionTest
             Assert.That(Named<Control>(hud, "CockpitGunneryModes").Visible, Is.True);
             hud.SelectPage("wf-cockpit-nav");
             foreach (var theme in new[] { WolfgateSkins.Retro.Id, WolfgateSkins.Futurist.Id })
-            foreach (var size in new[] { new Vector2(1130, 636), new Vector2(1600, 900) })
+            foreach (var size in new[] { new Vector2(1130, 636), new Vector2(1600, 900), new Vector2(1920, 1080) })
             {
                 settings.SetCVar(WolfgateCVars.UiStyle, theme);
                 Layout(hud, size);
@@ -352,6 +354,7 @@ public sealed class WFCockpitTest : InteractionTest
                 var fuel = Named<WFCockpitFuelBank>(hud, "CockpitFuelBank");
                 var fixedPosition = fuel.GlobalPosition;
                 var scroll = Named<ScrollContainer>(hud, "CockpitInstrumentScroll");
+                AssertInstrumentScrollInput(hud, ui, size, theme);
                 scroll.SetScrollValue(new Vector2(0, 10000));
                 Layout(hud, size);
                 AssertFuelVisible(hud);
@@ -674,13 +677,24 @@ public sealed class WFCockpitTest : InteractionTest
         Assert.That(Ancestors(hull, instruments), Does.Contain(instrumentScroll));
         Assert.That(fuelBank.Width, Is.GreaterThanOrEqualTo(hull.Width - 1));
         Assert.That(fuel.Width, Is.GreaterThanOrEqualTo(104), "The fuel scale must remain readable at compact side-panel widths.");
-        Assert.That(fuel.Height, Is.EqualTo(56).Within(1));
+        Assert.That(fuel.CompactStrip, Is.True);
+        Assert.That(fuel.Height, Is.EqualTo(44).Within(1));
+        foreach (var name in new[] { "CockpitForward", "CockpitLateral" })
+        {
+            var strip = Named<WFGlassGauge>(hud, name);
+            Assert.That(strip.Strip && strip.CompactStrip, Is.True, name);
+            Assert.That(strip.Height, Is.EqualTo(44).Within(1), name);
+        }
         Assert.That(fuelLow.Height, Is.EqualTo(fuel.Height).Within(1));
         Assert.That(fuelLow.GlobalPosition.Y, Is.EqualTo(fuel.GlobalPosition.Y).Within(1));
         Assert.That(fuelLow.GlobalPosition.X, Is.GreaterThanOrEqualTo(Right(fuel)));
         Assert.That(Right(fuelLow), Is.LessThanOrEqualTo(Right(fuelBank) + 1));
         var velocity = Named<WFVelocityVectorInstrument>(hud, "CockpitVelocity");
         Assert.That(velocity.VisibleInTree, Is.True);
+        var yaw = Named<WFGlassGauge>(hud, "CockpitYaw");
+        Assert.That(yaw.GlobalPosition.X - Right(velocity), Is.GreaterThanOrEqualTo(11),
+            "The velocity and turn-rate captions need a clear gap between their dial faces.");
+        Assert.That(yaw.CaptionInset, Is.GreaterThanOrEqualTo(8));
         Assert.That(velocity.Height, Is.EqualTo(160).Within(1),
             "Digital and mechanical vector instruments must retain the same readable footprint.");
         Assert.That(velocity.Width, Is.GreaterThanOrEqualTo(88));
@@ -732,6 +746,55 @@ public sealed class WFCockpitTest : InteractionTest
                 Assert.That(plot.Height, Is.GreaterThanOrEqualTo((Bottom(mfd) - Bottom(selectors)) * 0.5f),
                     $"{context}: the approach plot must occupy most of the MFD's usable height. Containers: {containers}");
         }
+    }
+
+    /// <summary>Exercises the visible native thumb rather than only setting a scroll offset programmatically.</summary>
+    private static void AssertInstrumentScrollInput(WFCockpitView hud, IUserInterfaceManager ui, Vector2 size, string theme)
+    {
+        var scroll = Named<ScrollContainer>(hud, "CockpitInstrumentScroll");
+        scroll.SetScrollValue(Vector2.Zero);
+        Layout(hud, size);
+        var bar = scroll.Children.OfType<VScrollBar>().Single();
+        var content = scroll.Children.Single(child => child is not ScrollBar);
+        var overflow = content.DesiredSize.Y - scroll.Height;
+        var context = $"{theme}, {size}: content {content.DesiredSize.Y}, viewport {scroll.Height}, range {bar.MaxValue - bar.Page}";
+        Assert.That(bar.Visible, Is.EqualTo(overflow > 0.001f), context);
+        Assert.That(scroll.Children.OfType<HScrollBar>().Single().Visible, Is.False, context);
+        if (size.Y >= 1080)
+            Assert.That(bar.Visible, Is.False, $"{context}: fitting instruments must not retain an immovable scrollbar.");
+        if (!bar.Visible)
+        {
+            Assert.That(scroll.GetScrollValue(), Is.EqualTo(Vector2.Zero), context);
+            return;
+        }
+        Assert.That(bar.MaxValue - bar.Page, Is.GreaterThan(1), context);
+        var grabber = (UIBox2) typeof(ScrollBar).GetMethod("_getGrabberBox", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(bar, null)!;
+        var start = grabber.TopLeft + new Vector2(grabber.Width / 2, Math.Min(2, grabber.Height / 2));
+        var pointer = new ScreenCoordinates(bar.GlobalPixelPosition + start, bar.Window!.Id);
+        Assert.That(ui.MouseGetControl(pointer), Is.SameAs(bar), $"{context}: the visible thumb must receive pointer input.");
+        var down = new GUIBoundKeyEventArgs(EngineKeyFunctions.UIClick, BoundKeyState.Down, pointer, true,
+            start / bar.UIScale, start);
+        typeof(ScrollBar).GetMethod("KeyBindDown", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(bar, new object[] { down });
+        Assert.That(down.Handled, Is.True, $"{context}: the thumb must accept a drag.");
+        var before = content.GlobalPosition.Y;
+        var delta = new Vector2(0, Math.Max(8, bar.PixelHeight / 4f));
+        var end = start + delta;
+        var endPointer = new ScreenCoordinates(bar.GlobalPixelPosition + end, bar.Window.Id);
+        var move = new GUIMouseMoveEventArgs(delta / bar.UIScale, bar,
+            bar.GlobalPosition + end / bar.UIScale, endPointer, end / bar.UIScale, end);
+        typeof(ScrollBar).GetMethod("MouseMove", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(bar, new object[] { move });
+        var up = new GUIBoundKeyEventArgs(EngineKeyFunctions.UIClick, BoundKeyState.Up, endPointer, true,
+            end / bar.UIScale, end);
+        typeof(ScrollBar).GetMethod("KeyBindUp", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(bar, new object[] { up });
+        Layout(hud, size);
+        Assert.That(scroll.VScroll, Is.GreaterThan(0), $"{context}: dragging must advance the native range.");
+        Assert.That(content.GlobalPosition.Y, Is.LessThan(before), $"{context}: dragging must move the dial column.");
+        scroll.SetScrollValue(Vector2.Zero);
+        Layout(hud, size);
     }
 
     private static void Layout(Control root, Vector2 size)

@@ -23,22 +23,25 @@ public sealed partial class NavScreen
             _entManager.TryGetComponent(_shuttleEntity, out TransformComponent? transform)
                 ? WFCockpitVelocityReading.FromWorld(physics.LinearVelocity, _xformSystem.GetWorldRotation(transform)) : null)
             { Name = "CockpitVelocity" };
-        var yaw = new WFGlassGauge("wf-gauge-yaw", () => WfMotionReading(2)) { MinWidth = 88, SetHeight = 100 };
+        var yaw = new WFGlassGauge("wf-gauge-yaw", () => WfMotionReading(2))
+            { Name = "CockpitYaw", MinWidth = 88, SetHeight = 100, CaptionInset = 8 };
         WFCockpitInstrumentSizing.Bind(heading, lease, 176);
         WFCockpitInstrumentSizing.Bind(velocity, lease, 160);
         WFCockpitInstrumentSizing.Bind(yaw, lease, 160);
-        var forward = new WFGlassGauge("wf-gauge-forward", () => WfMotionReading(1), true) { SetHeight = 56 };
-        var lateral = new WFGlassGauge("wf-gauge-lateral", () => WfMotionReading(0), true) { SetHeight = 56 };
+        var forward = new WFGlassGauge("wf-gauge-forward", () => WfMotionReading(1), true)
+            { Name = "CockpitForward", SetHeight = 44, CompactStrip = true };
+        var lateral = new WFGlassGauge("wf-gauge-lateral", () => WfMotionReading(0), true)
+            { Name = "CockpitLateral", SetHeight = 44, CompactStrip = true };
         var altitude = new WFGlassGauge("wf-gauge-altitude", () =>
         {
             double? value = GridAltitude.Visible && _shuttleEntity is { } shuttle ? _zLevels.GetAbsoluteAltitude(shuttle) : null;
             var limit = WFGaugeScale.Ceiling(Math.Abs(value ?? 0), 10);
             return WFGaugeReading.Number(value, -limit, limit, "wf-gauge-unit-altitude", 2);
-        }, true) { Name = "CockpitAltitude", SetHeight = 56, Visible = GridAltitude.Visible };
+        }, true) { Name = "CockpitAltitude", SetHeight = 44, CompactStrip = true, Visible = GridAltitude.Visible };
         var climb = new WFGlassGauge("wf-gauge-climb", () => WFGaugeReading.Number(
             GridVerticalVelocity.Visible && _entManager.TryGetComponent(_shuttleEntity, out CEZPhysicsComponent? physics)
                 ? physics.Velocity : null, -10, 10, "wf-gauge-unit-climb", 2), true)
-            { Name = "CockpitClimb", SetHeight = 56, Visible = GridVerticalVelocity.Visible };
+            { Name = "CockpitClimb", SetHeight = 44, CompactStrip = true, Visible = GridVerticalVelocity.Visible };
         var vertical = Row(altitude, climb);
         vertical.Visible = GridAltitude.Visible;
         Action<Control> updateAltitude = control => altitude.Visible = vertical.Visible = control.Visible;
@@ -50,7 +53,10 @@ public sealed partial class NavScreen
             GridAltitude.OnVisibilityChanged -= updateAltitude;
             GridVerticalVelocity.OnVisibilityChanged -= updateClimb;
         });
-        var instruments = Column(heading, Row(velocity, yaw));
+        var motion = Row(velocity, yaw);
+        motion.Name = "CockpitMotionDials";
+        motion.SeparationOverride = 12;
+        var instruments = Column(heading, motion);
         instruments.SeparationOverride = 3;
         return (instruments, Column(Row(forward, lateral), vertical));
     }

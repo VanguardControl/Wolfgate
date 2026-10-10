@@ -13,7 +13,7 @@ public sealed partial class ShipScreen
     /// <summary>Keeps hull integrity below the flight dials.</summary>
     public Control WfCockpitHull() => new WFGlassGauge("wf-cockpit-hull", () => WFGaugeReading.Number(
         _wfHull?.HullIntegrity * 100, 0, 100, "wf-gauge-unit-percent", decimals: 1,
-        tint: _wfHull?.HullIntegrity < 0.5f ? Red : Green), true) { Name = "CockpitHull", SetHeight = 56 };
+        tint: _wfHull?.HullIntegrity < 0.5f ? Red : Green), true) { Name = "CockpitHull", SetHeight = 44, CompactStrip = true };
 
     /// <summary>Provides an independent reserve strip that stays fixed below the scrolling dials.</summary>
     public Control WfCockpitFuel() => new WFCockpitFuelBank(() => _wfHull?.Fuel);

@@ -123,7 +123,13 @@ public sealed class WFVelocityVectorInstrument : Control
         TextInBox(handle, _digits, _speedText, readout, tint);
         if (!WFInstrumentTheme.Digital)
             WFInstrumentGlass.Round(handle, center, face + 2 * UIScale, UIScale);
-        Text(handle, _labels, _caption, new Vector2(PixelWidth / 2, PixelHeight - 7 * UIScale), PixelWidth - 6 * UIScale, skin.Text);
+        var captionScale = WFInstrumentText.FitScale(handle, _labels, _caption, UIScale, PixelWidth - 16 * UIScale, 18 * UIScale);
+        if (captionScale > 0)
+        {
+            var width = handle.GetDimensions(_labels, _caption, captionScale).X;
+            handle.DrawString(_labels, new Vector2((PixelWidth - width) / 2,
+                PixelHeight - 6 * UIScale - _labels.GetAscent(captionScale)), _caption, captionScale, skin.Text);
+        }
     }
 
     /// <summary>Fits the speed's full text inside the lower glass inset.</summary>

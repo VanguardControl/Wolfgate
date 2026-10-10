@@ -28,7 +28,7 @@ public sealed class WFCockpitFuelLamp : Control
         _read = read;
         Name = "CockpitFuelLow";
         SetWidth = MinWidth = 64;
-        SetHeight = 56;
+        SetHeight = 44;
         RectClipContent = true;
         MouseFilter = MouseFilterMode.Pass;
     }
@@ -47,10 +47,11 @@ public sealed class WFCockpitFuelLamp : Control
         var lit = LowFuel == true;
         var inner = WFConsoleAnnunciator.Face(handle, PixelSizeBox, UIScale, skin.Caution, lit);
         var color = lit ? WFInstrumentTheme.Digital ? skin.Caution : skin.Ink : skin.TextMuted;
-        Text(handle, _small, _fuel, new UIBox2(inner.Left + 3 * UIScale, 8 * UIScale,
-            inner.Right - 3 * UIScale, 26 * UIScale), color);
-        Text(handle, _large, _low, new UIBox2(inner.Left + 3 * UIScale, 25 * UIScale,
-            inner.Right - 3 * UIScale, 49 * UIScale), color);
+        var legend = new UIBox2(inner.TopLeft + new Vector2(3 * UIScale),
+            inner.BottomRight - new Vector2(3 * UIScale));
+        var split = legend.Top + legend.Height * 0.44f;
+        Text(handle, _small, _fuel, new UIBox2(legend.Left, legend.Top, legend.Right, split), color);
+        Text(handle, _large, _low, new UIBox2(legend.Left, split, legend.Right, legend.Bottom), color);
     }
 
     private void Text(DrawingHandleScreen handle, Font font, string text, UIBox2 box, Color color)

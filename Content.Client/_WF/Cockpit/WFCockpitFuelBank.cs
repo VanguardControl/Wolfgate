@@ -29,11 +29,12 @@ public sealed class WFCockpitFuelBank : BoxContainer
         Name = "CockpitFuelBank";
         HorizontalExpand = true;
         SeparationOverride = 6;
-        SetHeight = 56;
+        SetHeight = 44;
         _gauge = new WFGlassGauge("wf-cockpit-fuel", GaugeReading, true)
         {
             Name = "CockpitFuel",
-            SetHeight = 56,
+            CompactStrip = true,
+            SetHeight = 44,
             MouseFilter = MouseFilterMode.Pass,
         };
         _lamp = new WFCockpitFuelLamp(() => Reading is { Available: true } fuel ? fuel.Low : null);
