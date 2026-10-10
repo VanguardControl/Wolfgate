@@ -12,6 +12,7 @@ using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.ContentPack;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Input;
 using Robust.Shared.IoC;
@@ -201,6 +202,9 @@ public sealed class WFCockpitFireInputTest
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         await pair.Client.WaitAssertion(() =>
         {
+            Assert.That(WFCockpitFireInput.ReticlePath.ToString(), Does.Not.Contain(".rsi/"),
+                "A packaged client packs every RSI into one file, so a state's PNG cannot be read by path.");
+            Assert.That(pair.Client.ResolveDependency<IResourceManager>().ContentFileExists(WFCockpitFireInput.ReticlePath), Is.True);
             var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
             var input = pair.Client.ResolveDependency<IInputManager>();
             var maps = pair.Client.ResolveDependency<IMapManager>();

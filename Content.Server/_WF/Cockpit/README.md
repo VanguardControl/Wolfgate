@@ -168,6 +168,11 @@ provide the embedded controls and aiming. `WFCockpitSeatComponent` is inherited 
 - [`Resources/Locale/en-US/_WF/Cockpit/tcas.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/tcas.ftl)
 - [`Resources/Locale/en-US/_WF/Cockpit/velocity.ftl`](../../../Resources/Locale/en-US/_WF/Cockpit/velocity.ftl)
 
+### Textures
+
+- [`Resources/Textures/_WF/Cockpit/attributions.yml`](../../../Resources/Textures/_WF/Cockpit/attributions.yml)
+- [`Resources/Textures/_WF/Cockpit/gun_sight.png`](../../../Resources/Textures/_WF/Cockpit/gun_sight.png)
+
 ## Non-modular edits
 
 - [`Content.Client/_RMC14/CombatMode/RMCCombatModeUISystem.cs`](../../../Content.Client/_RMC14/CombatMode/RMCCombatModeUISystem.cs): let the cockpit controls own their reticle and ordinary HUD cursors.

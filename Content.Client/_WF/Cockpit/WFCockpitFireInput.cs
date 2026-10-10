@@ -23,11 +23,15 @@ public sealed class WFCockpitFireInput : Control
     [Dependency] private IEntityManager _entities = default!;
 
     private const float UpdateInterval = 0.1f;
+
+    /// <summary>A loose image: packaged clients pack every RSI into one file, so a state's PNG cannot be read by path.</summary>
+    public static readonly ResPath ReticlePath = new("/Textures/_WF/Cockpit/gun_sight.png");
+
     private readonly ScalingViewport _world;
     private readonly ShuttleNavControl _navigation;
     private readonly Func<bool> _enabled;
     private readonly Func<bool> _armed;
-    private readonly ICursor _reticle;
+    private readonly ICursor? _reticle;
     private readonly Action<EntityCoordinates, bool> _aim;
     private readonly (CursorShape Shape, ICursor? Custom) _worldCursor;
     private readonly (CursorShape Shape, ICursor? Custom) _navigationCursor;
@@ -49,11 +53,7 @@ public sealed class WFCockpitFireInput : Control
         _navigation = navigation;
         _enabled = enabled;
         _armed = armed;
-        using var stream = IoCManager.Resolve<IResourceCache>().ContentFileRead(
-            new ResPath("/Textures/Interface/Misc/crosshair_pointers.rsi/gun_sight.png"));
-        using var image = Image.Load<Rgba32>(stream);
-        using var sized = image.Clone(context => context.Resize(48, 48));
-        _reticle = _clyde.CreateCursor(sized, new Vector2i(24, 24));
+        _reticle = LoadReticle();
         _aim = aim;
         _worldCursor = (_world.DefaultCursorShape, _world.CustomCursorShape);
         _navigationCursor = (_navigation.DefaultCursorShape, _navigation.CustomCursorShape);
@@ -68,6 +68,23 @@ public sealed class WFCockpitFireInput : Control
         _input.Contexts.ContextChanged += ContextChanged;
         _input.FirstChanceOnKeyEvent += PhysicalKey;
         lease.Remember(Dispose);
+    }
+
+    /// <summary>Builds the aiming cursor; a missing image falls back to the system crosshair instead of blocking the cockpit.</summary>
+    private ICursor? LoadReticle()
+    {
+        try
+        {
+            using var stream = IoCManager.Resolve<IResourceCache>().ContentFileRead(ReticlePath);
+            using var image = Image.Load<Rgba32>(stream);
+            using var sized = image.Clone(context => context.Resize(48, 48));
+            return _clyde.CreateCursor(sized, new Vector2i(24, 24));
+        }
+        catch (Exception e)
+        {
+            Logger.GetSawmill("wf.cockpit").Error($"Cockpit reticle failed to load, using the system crosshair: {e}");
+            return null;
+        }
     }
 
     /// <summary>Requires a fresh press after the active gun link changes without releasing click capture.</summary>
@@ -163,8 +180,9 @@ public sealed class WFCockpitFireInput : Control
                 surface.CustomCursorShape = custom;
             return;
         }
-        if (surface.DefaultCursorShape != original.Shape)
-            surface.DefaultCursorShape = original.Shape;
+        var shape = aiming ? CursorShape.Crosshair : original.Shape;
+        if (surface.DefaultCursorShape != shape)
+            surface.DefaultCursorShape = shape;
     }
 
     private bool IsHovered(Control surface, ScreenCoordinates pointer) => pointer.IsValid && surface.VisibleInTree &&
@@ -224,7 +242,7 @@ public sealed class WFCockpitFireInput : Control
             _input.FirstChanceOnKeyEvent -= PhysicalKey;
             SetCursor(_world, false, _worldCursor);
             SetCursor(_navigation, false, _navigationCursor);
-            _reticle.Dispose();
+            _reticle?.Dispose();
         }
         base.Dispose(disposing);
     }
