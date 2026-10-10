@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using Content.Client._WF.CombatConsole;
 using NUnit.Framework;
 
@@ -28,6 +29,27 @@ public sealed class WFGaugeScaleTest
         Assert.That(WFGaugeScale.Fraction(3, 5, -5), Is.Null);
         Assert.That(WFGaugeScale.Fraction(3, 0, double.NaN), Is.Null);
         Assert.That(WFGaugeScale.Fraction(0, -double.MaxValue, double.MaxValue), Is.Null);
+    }
+
+    [TestCase(28)]
+    [TestCase(40)]
+    [TestCase(60)]
+    [TestCase(100)]
+    [TestCase(160)]
+    public void EndpointLabelsRemainInsideTheLensAndSeparate(float radius)
+    {
+        var minimum = WFGaugeScale.RoundLabelBounds(radius, false);
+        var maximum = WFGaugeScale.RoundLabelBounds(radius, true);
+        Assert.That(minimum.Right, Is.LessThan(maximum.Left));
+        Assert.That(minimum.Top, Is.EqualTo(maximum.Top));
+        foreach (var bounds in new[] { minimum, maximum })
+        {
+            Assert.That(bounds.Width, Is.GreaterThan(0));
+            Assert.That(bounds.Height, Is.GreaterThan(0));
+            foreach (var corner in new[] { bounds.TopLeft, bounds.TopRight, bounds.BottomLeft, bounds.BottomRight })
+                Assert.That(Vector2.Distance(Vector2.Zero, corner), Is.LessThan(radius * 0.98f),
+                    "The whole endpoint number must leave a clear gap before the curved rim.");
+        }
     }
 
     [TestCase(0, 30, 30)]

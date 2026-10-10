@@ -339,7 +339,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         Reset
     }
 
-    public sealed class RadarModeButton : BaseButton
+    public sealed partial class RadarModeButton : BaseButton // WOLFGATE(CombatConsole): theme the original radar mode controls.
     {
         private readonly RadarModeButtonIcon _icon;
 
@@ -355,6 +355,10 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
 
         protected override void Draw(DrawingHandleScreen handle)
         {
+            // WOLFGATE(CombatConsole) START: instrument scopes retain these buttons with the selected console palette.
+            if (WfDrawInstrument(handle))
+                return;
+            // WOLFGATE END
             var alpha = DrawMode switch
             {
                 DrawModeEnum.Pressed => 0.62f,

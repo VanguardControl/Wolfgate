@@ -182,11 +182,15 @@ public sealed class WFCockpitTest : InteractionTest
                                 {
                                     Assert.That(accessDetails.GlobalPosition.X, Is.GreaterThanOrEqualTo(Right(accessPlot)),
                                         "An expanded access MFD must use its width for controls beside the diagram.");
+                                    Assert.That(accessPlot.Width, Is.GreaterThan(accessDetails.Width),
+                                        "The door diagram must be the largest panel in an expanded access MFD.");
                                 }
                                 else
                                 {
                                     Assert.That(accessDetails.GlobalPosition.Y, Is.GreaterThanOrEqualTo(Bottom(accessPlot)),
                                         "Compact access MFDs must keep their controls below the fixed diagram.");
+                                    Assert.That(accessPlot.Height, Is.GreaterThan(accessDetails.Height * 1.4f),
+                                        "Compact access MFDs must give the door diagram most of their height.");
                                 }
                             }
                             if (page == "wf-cockpit-ship")

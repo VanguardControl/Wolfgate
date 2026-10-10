@@ -82,11 +82,7 @@ public sealed partial class NavScreen
         var radar = lease.Take(NavRadar);
         radar.WfCockpitInteraction(lease);
         radar.VerticalExpand = true;
-        var plot = new Control { HorizontalExpand = true, VerticalExpand = true };
-        plot.AddChild(new PanelContainer { PanelOverride = Face(Ink, Muted, 0), MouseFilter = MouseFilterMode.Ignore });
-        plot.AddChild(radar);
-        plot.AddChild(new WFCrtGlass());
-        return plot;
+        return ScopeLayers(radar, Vector2.Zero);
     }
 
     /// <summary>Keeps sensor configuration and wired auxiliary controls available without another window.</summary>

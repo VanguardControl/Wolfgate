@@ -93,15 +93,8 @@ public sealed class WFGlassGauge : Control
             handle.DrawLine(center + direction * (face - (i % 5 == 0 ? 8 : 4) * UIScale),
                 center + direction * face, i % 5 == 0 ? WFInstrumentTheme.Cream : WFInstrumentTheme.Muted);
         }
-        for (var i = 0; i <= 2; i++)
-        {
-            var fraction = i / 2f;
-            var value = _reading.Minimum + fraction * (_reading.Maximum - _reading.Minimum);
-            var point = i == 1
-                ? center + new Vector2(0, -face * 0.65f)
-                : center + new Vector2((i == 0 ? -1 : 1) * face * 0.55f, face * 0.90f);
-            Text(handle, _small, value.ToString("0.#"), point + new Vector2(0, 3 * UIScale), face * 0.65f, WFInstrumentTheme.Muted);
-        }
+        Text(handle, _small, ((_reading.Minimum + _reading.Maximum) / 2).ToString("0.#"),
+            center + new Vector2(0, -face * 0.65f + 3 * UIScale), face * 0.65f, WFInstrumentTheme.Muted);
         if (_needle is { } needle)
         {
             var angle = (135 + needle * 270) * MathF.PI / 180;
@@ -115,9 +108,15 @@ public sealed class WFGlassGauge : Control
         }
         handle.DrawCircle(center, 4 * UIScale, WFInstrumentTheme.Skin.TextMuted);
         handle.DrawCircle(center, 2 * UIScale, WFInstrumentTheme.Skin.Edge);
-        var readout = UIBox2.FromDimensions(center + new Vector2(-face * 0.73f, face * 0.17f), new Vector2(face * 1.46f, 18 * UIScale));
+        var minimum = WFGaugeScale.RoundLabelBounds(face, false).Translated(center);
+        var maximum = WFGaugeScale.RoundLabelBounds(face, true).Translated(center);
+        var readoutHeight = MathF.Min(18 * UIScale, face * 0.34f);
+        var readoutTop = MathF.Min(center.Y + face * 0.17f, minimum.Top - 3 * UIScale - readoutHeight);
+        var readout = UIBox2.FromDimensions(new Vector2(center.X - face * 0.73f, readoutTop), new Vector2(face * 1.46f, readoutHeight));
         handle.DrawRect(readout, WFInstrumentTheme.Skin.Ink);
-        Text(handle, _digits, _reading.Text, new Vector2(center.X, readout.Bottom - 3 * UIScale), readout.Width - 4 * UIScale, color);
+        TextInBox(handle, _digits, _reading.Text, new UIBox2(readout.TopLeft + new Vector2(UIScale), readout.BottomRight - new Vector2(UIScale)), color);
+        TextInBox(handle, _small, _reading.Minimum.ToString("0.#"), minimum, WFInstrumentTheme.Muted);
+        TextInBox(handle, _small, _reading.Maximum.ToString("0.#"), maximum, WFInstrumentTheme.Muted);
         WFInstrumentGlass.Round(handle, center, face + 2 * UIScale, UIScale);
         Text(handle, _small, _caption, new Vector2(center.X, PixelHeight - 4 * UIScale), PixelWidth - 4 * UIScale, WFInstrumentTheme.Cream);
     }
@@ -205,6 +204,19 @@ public sealed class WFGlassGauge : Control
         Text(handle, _small, _reading.Minimum.ToString("0.#"), center + new Vector2(-radius * 0.57f, radius * 0.86f), radius * 0.8f, skin.TextMuted);
         Text(handle, _small, _reading.Maximum.ToString("0.#"), center + new Vector2(radius * 0.57f, radius * 0.86f), radius * 0.8f, skin.TextMuted);
         Text(handle, _small, _caption, new Vector2(center.X, PixelHeight - 5 * UIScale), PixelWidth - 10 * UIScale, skin.Text);
+    }
+
+    /// <summary>Fits the complete text height and width inside its reserved dial area.</summary>
+    private void TextInBox(DrawingHandleScreen handle, Font font, string text, UIBox2 bounds, Color color)
+    {
+        if (bounds.Width <= 0 || bounds.Height <= 0)
+            return;
+        var measured = handle.GetDimensions(font, text, UIScale).X;
+        var scale = UIScale * MathF.Min(1, MathF.Min(bounds.Width / MathF.Max(1, measured),
+            bounds.Height / Math.Max(1, font.GetHeight(UIScale))));
+        var drawn = handle.GetDimensions(font, text, scale).X;
+        var position = bounds.Center - new Vector2(drawn / 2, font.GetHeight(scale) / 2f);
+        handle.DrawString(font, position, text, scale, color);
     }
 
     private void Text(DrawingHandleScreen handle, Font font, string? text, Vector2 position, float width, Color color)

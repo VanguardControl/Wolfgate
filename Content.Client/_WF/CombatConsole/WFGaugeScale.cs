@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace Content.Client._WF.CombatConsole;
 
 /// <summary>Maps finite telemetry onto an instrument scale without turning missing readings into zero.</summary>
@@ -11,6 +13,10 @@ public static class WFGaugeScale
             return null;
         return (float) Math.Clamp((number - minimum) / (maximum - minimum), 0, 1);
     }
+
+    /// <summary>Reserves separate endpoint labels entirely inside the lower dial face.</summary>
+    public static UIBox2 RoundLabelBounds(float radius, bool maximum) => UIBox2.FromDimensions(
+        new Vector2((maximum ? 0.06f : -0.62f) * radius, 0.50f * radius), new Vector2(0.56f * radius, 0.24f * radius));
 
     /// <summary>Chooses a labelled 1/2/5 scale for quantities whose capacity is not supplied by telemetry.</summary>
     public static double Ceiling(double value, double floor = 10)

@@ -41,7 +41,7 @@ public sealed partial class ShipAccessScreen
         var people = ConsoleTheme.Panel("ship-access-allow-list", peopleContents, true);
         people.Name = "WfAccessPeople";
 
-        var allDoorControls = ConsoleTheme.Row(AllDoorsRuleButton, AllDoorsApplyButton);
+        var allDoorControls = ConsoleTheme.Column(AllDoorsRuleButton, AllDoorsApplyButton);
         ConsoleTheme.Detach(AllDoorsHint);
         AllDoorsBox.DisposeAllChildren();
         AllDoorsBox.AddChild(ConsoleTheme.Label("ship-access-all-doors"));

@@ -5,10 +5,11 @@ using ConsoleTheme = Content.Client._WF.CombatConsole.WFInstrumentTheme;
 
 namespace Content.Client._WF.CombatConsole;
 
-/// <summary>Shares access controls across wide columns with a single compact detail scroller.</summary>
+/// <summary>Keeps the door diagram dominant beside access controls or above compact details.</summary>
 public sealed class WFShipAccessLayout : Control
 {
     private const float Gap = 8;
+    private const float ControlColumnWidth = 248;
     private readonly BoxContainer _plot;
     private readonly Control _settings;
     private readonly Control _people;
@@ -57,6 +58,8 @@ public sealed class WFShipAccessLayout : Control
         if (_wide == wide)
             return;
         _wide = wide;
+        if (_legend is GridContainer legend)
+            legend.Columns = wide ? 2 : 1;
         foreach (var list in _lists)
             list.SetScrolling(wide);
         _details.Visible = !wide;
@@ -85,7 +88,7 @@ public sealed class WFShipAccessLayout : Control
         if (_wide)
         {
             var width = Math.Max(0, size.X - 2 * Gap);
-            var plotWidth = width * 0.28f;
+            var plotWidth = Math.Min(width * 0.48f, Math.Max(0, width - 2 * ControlColumnWidth));
             var column = (width - plotWidth) / 2;
             var middle = plotWidth + Gap;
             _settings.Measure(new Vector2(column, size.Y));
@@ -99,12 +102,12 @@ public sealed class WFShipAccessLayout : Control
         }
         if (size.X >= 680)
         {
-            var plotWidth = Math.Max(0, size.X - Gap) * 0.36f;
+            var plotWidth = Math.Max(0, size.X - Gap) * 0.52f;
             Place(_plot, UIBox2.FromDimensions(Vector2.Zero, new Vector2(plotWidth, size.Y)));
             Place(_details, UIBox2.FromDimensions(new Vector2(plotWidth + Gap, 0), new Vector2(Math.Max(0, size.X - plotWidth - Gap), size.Y)));
             return;
         }
-        var plotHeight = Math.Max(0, size.Y - Gap) * 0.55f;
+        var plotHeight = Math.Max(0, size.Y - Gap) * 0.60f;
         Place(_plot, UIBox2.FromDimensions(Vector2.Zero, new Vector2(size.X, plotHeight)));
         Place(_details, UIBox2.FromDimensions(new Vector2(0, plotHeight + Gap), new Vector2(size.X, Math.Max(0, size.Y - plotHeight - Gap))));
     }

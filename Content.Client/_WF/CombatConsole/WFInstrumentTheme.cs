@@ -187,13 +187,26 @@ public static class WFInstrumentTheme
         radar.HorizontalExpand = radar.VerticalExpand = true;
         radar.HorizontalAlignment = Control.HAlignment.Stretch;
         radar.VerticalAlignment = Control.VAlignment.Stretch;
-        var layers = new Control { HorizontalExpand = true, VerticalExpand = true, MinSize = minimum ?? new Vector2(240, 220) };
-        layers.AddChild(new PanelContainer { PanelOverride = Face(Ink, Ink, 0), MouseFilter = Control.MouseFilterMode.Ignore });
-        layers.AddChild(radar);
-        layers.AddChild(new WFCrtGlass());
+        var layers = ScopeLayers(radar, minimum ?? new Vector2(240, 220));
         var bezel = new WFScreenBezel { HorizontalExpand = true, VerticalExpand = true };
         bezel.AddChild(layers);
         return Panel(key, bezel, true);
+    }
+
+    /// <summary>Fills a plotting surface while keeping radar controls above its glass.</summary>
+    public static LayoutContainer ScopeLayers(Control radar, Vector2 minimum)
+    {
+        var layers = new LayoutContainer { HorizontalExpand = true, VerticalExpand = true, MinSize = minimum };
+        var background = new PanelContainer { PanelOverride = Face(Ink, Ink, 0), MouseFilter = Control.MouseFilterMode.Ignore };
+        var glass = new WFCrtGlass();
+        foreach (var layer in new[] { background, radar, glass })
+        {
+            layers.AddChild(Detach(layer));
+            LayoutContainer.SetAnchorAndMarginPreset(layer, LayoutContainer.LayoutPreset.Wide);
+        }
+        if (radar is ShuttleNavControl navigation)
+            navigation.WfAttachRadarControls(layers);
+        return layers;
     }
 
     /// <summary>Applies the instrument palette to existing bound controls.</summary>

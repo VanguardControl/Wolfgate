@@ -269,8 +269,11 @@ public sealed class WFCombatConsoleTest
                     Assert.That(Descendants(accessPlot).OfType<WFScreenBezel>()
                         .Any(bezel => Descendants(bezel).Contains(accessMap)), Is.True,
                         "The access map must use the instrument bezel in both console themes.");
-                    Assert.That(accessPlot.Width, Is.LessThan(access.Width * 0.5f),
-                        "The access diagram must leave most of the width for access settings and door rules.");
+                    Assert.That(accessPlot.Width, Is.GreaterThan(access.Width * 0.43f),
+                        "The access diagram must remain the dominant panel at normal console sizes.");
+                    foreach (var panel in new[] { accessSettings, accessPeople, accessDoors })
+                        Assert.That(accessPlot.Width, Is.GreaterThan(panel.Width * 1.5f),
+                            "Access controls must not take the diagram's dominant share of the page.");
                     Assert.That(accessSettings.GlobalPosition.X, Is.GreaterThanOrEqualTo(accessPlot.GlobalPosition.X + accessPlot.Width));
                     Assert.That(accessPeople.GlobalPosition.X, Is.GreaterThanOrEqualTo(accessPlot.GlobalPosition.X + accessPlot.Width));
                     Assert.That(accessDoors.GlobalPosition.X, Is.GreaterThanOrEqualTo(accessSettings.GlobalPosition.X + accessSettings.Width),
@@ -302,6 +305,7 @@ public sealed class WFCombatConsoleTest
                         var edit = access.FindControl<LineEdit>(prefix + "Edit");
                         AssertWithin(edit, panel);
                         Assert.That(edit.Width, Is.GreaterThanOrEqualTo(64), "A code input must fit all four digits.");
+                        AssertCaptionFits(access.FindControl<Label>(prefix + "Label"), ui);
                         foreach (var action in new[] { "RevealButton", "SetButton", "ClearButton" })
                         {
                             var button = access.FindControl<Button>(prefix + action);
@@ -309,8 +313,13 @@ public sealed class WFCombatConsoleTest
                             AssertCaptionFits(button.Label, ui);
                         }
                     }
-                    AssertWithin(access.FindControl<OptionButton>("DoorRuleButton"), accessDoors);
-                    AssertWithin(access.FindControl<OptionButton>("AllDoorsRuleButton"), accessDoors);
+                    foreach (var name in new[] { "DoorRuleButton", "AllDoorsRuleButton" })
+                    {
+                        var rule = access.FindControl<OptionButton>(name);
+                        AssertWithin(rule, accessDoors);
+                        foreach (var caption in Descendants(rule).OfType<Label>().Where(label => label.VisibleInTree))
+                            AssertCaptionFits(caption, ui);
+                    }
                     var applyRules = access.FindControl<ConfirmButton>("AllDoorsApplyButton");
                     AssertWithin(applyRules, accessDoors);
                     AssertCaptionFits(applyRules.Label, ui);
@@ -478,8 +487,12 @@ public sealed class WFCombatConsoleTest
         var node = new ShipAccessDoorNode(door, "Forward compartment airlock", new Vector2(3, -2), WFDoorAccessRule.PlayersOrCode, true);
         typeof(ShipAccessScreen).GetMethod("RebuildDoor", flags)!
             .Invoke(screen, new object[] { state, node, new WFDoorAccessRuleComponent { Rule = WFDoorAccessRule.PlayersOrCode }, true });
-        foreach (var name in new[] { "ShipCodeEdit", "DoorCodeEdit" })
-            screen.FindControl<LineEdit>(name).Text = "1234";
+        screen.FindControl<OptionButton>("AllDoorsRuleButton").SelectId((int) WFDoorAccessRule.PlayersOrCode);
+        foreach (var prefix in new[] { "ShipCode", "DoorCode" })
+        {
+            screen.FindControl<LineEdit>(prefix + "Edit").Text = "1234";
+            screen.FindControl<Label>(prefix + "Label").Text = Loc.GetString("ship-access-code-none");
+        }
     }
 
     private static void AssertWithin(Control control, Control parent)

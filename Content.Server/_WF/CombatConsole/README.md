@@ -35,8 +35,9 @@ telemetry. Control presses play mechanical cues and a new incoming
 lock plays one short warning, throttled across windows. Replicated state changes make no click sounds.
 The ship tab uses a narrower hull plot beside a six-gauge status bank and compact announcement panel.
 Overlay controls run across the top, keeping the entire page accessible without a scrolling sidebar.
-The access tab shares its width between a framed door map, ship settings and crew lists, and selected-door
-controls. It adapts to smaller displays with a separate map and one details scroller; lists scroll
+The access tab gives its framed door map nearly half the page, making it the largest panel beside smaller
+ship settings, crew lists and selected-door controls. Its wide legend uses two columns to preserve map
+height. Smaller displays keep the map dominant beside or above one details scroller; lists scroll
 individually only in the wide layout. Its bezel and controls match the selected Wolfgate theme.
 Shield shunting uses a CRT coverage plot, sector and power instrument banks, and a persistent
 deployment/status strip. Its
@@ -93,6 +94,7 @@ redistribution rights. Source: https://store.steampowered.com/app/1434950/HighFl
 - [`Content.Client/_WF/CombatConsole/ShipAlarmPanel.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShipAlarmPanel.CombatConsole.cs)
 - [`Content.Client/_WF/CombatConsole/ShipScreen.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShipScreen.CombatConsole.cs)
 - [`Content.Client/_WF/CombatConsole/ShuttleConsoleWindow.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShuttleConsoleWindow.CombatConsole.cs)
+- [`Content.Client/_WF/CombatConsole/ShuttleNavControl.CombatConsole.cs`](../../../Content.Client/_WF/CombatConsole/ShuttleNavControl.CombatConsole.cs)
 - [`Content.Client/_WF/CombatConsole/WFConsoleAudio.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleAudio.cs)
 - [`Content.Client/_WF/CombatConsole/WFConsoleDigital.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleDigital.cs)
 - [`Content.Client/_WF/CombatConsole/WFConsoleFrameStyleBox.cs`](../../../Content.Client/_WF/CombatConsole/WFConsoleFrameStyleBox.cs)
@@ -113,6 +115,7 @@ redistribution rights. Source: https://store.steampowered.com/app/1434950/HighFl
 
 - [`Content.IntegrationTests/Tests/_WF/CombatConsole/WFCombatConsoleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CombatConsole/WFCombatConsoleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CombatConsole/WFGunnerySupplyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CombatConsole/WFGunnerySupplyTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/CombatConsole/WFRadarOverlayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CombatConsole/WFRadarOverlayTest.cs)
 
 ### Unit tests
 
@@ -155,6 +158,9 @@ redistribution rights. Source: https://store.steampowered.com/app/1434950/HighFl
   - update groups and countermeasure telemetry.
 - [`Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs`](../../../Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs): align hull meshes with the responsive instrument plot.
 - [`Content.Client/Shuttles/UI/ShuttleConsoleWindow.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleConsoleWindow.xaml.cs): compose the flight deck instrument panels.
+- [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs)
+  - theme the original radar mode controls.
+  - instrument scopes retain these buttons with the selected console palette.
 - [`Content.Client/UserInterface/Controls/MapGridControl.xaml.cs`](../../../Content.Client/UserInterface/Controls/MapGridControl.xaml.cs)
   - centre instrument plots in their available viewport.
   - fit scoped radar geometry to the shorter viewport edge.
