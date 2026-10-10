@@ -1,0 +1,64 @@
+using Content.Shared._WF.ReaverCampaign;
+using Robust.Shared.Prototypes;
+
+namespace Content.Server._WF.ReaverCampaign.Components;
+
+/// <summary>The Reaver campaign's state for the round, on the sector map entity: tier, clocks and the round's tallies.</summary>
+[RegisterComponent]
+public sealed partial class WFReaverCampaignComponent : Component
+{
+    [ViewVariables]
+    public ProtoId<WFReaverCampaignPrototype> Campaign;
+
+    [ViewVariables]
+    public int Tier;
+
+    [ViewVariables]
+    public float Score;
+
+    /// <summary>Since when the score has been below the current tier's threshold.</summary>
+    [ViewVariables]
+    public TimeSpan? BelowSince;
+
+    /// <summary>When a tier change was last announced.</summary>
+    [ViewVariables]
+    public TimeSpan? TierAnnounced;
+
+    /// <summary>When the last stronghold was founded.</summary>
+    [ViewVariables]
+    public TimeSpan? LastFounded;
+
+    /// <summary>Since when no stronghold has stood, once one has been founded.</summary>
+    [ViewVariables]
+    public TimeSpan? NoStrongholdSince;
+
+    [ViewVariables]
+    public TimeSpan? NextSpread;
+
+    [ViewVariables]
+    public TimeSpan? NextRaid;
+
+    /// <summary>Raids launched this round; every third goes for a station.</summary>
+    [ViewVariables]
+    public int Raids;
+
+    /// <summary>When each player ship was last raided.</summary>
+    [ViewVariables]
+    public Dictionary<EntityUid, TimeSpan> Raided = new();
+
+    /// <summary>The entity the sector watch speaks on the radio from.</summary>
+    [ViewVariables]
+    public EntityUid? Watch;
+
+    [ViewVariables]
+    public int PeakCells;
+
+    [ViewVariables]
+    public int Founded;
+
+    [ViewVariables]
+    public int Broken;
+
+    [ViewVariables]
+    public int PatrolsDestroyed;
+}

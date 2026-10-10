@@ -1,0 +1,342 @@
+# The Ashfall Reaver campaign's encounters. Everything here is started by the campaign or an admin, never the
+# storyteller. The first ship listed is the lead: a stronghold breaks when its lead is out of the fight, and a patrol
+# or raid flies the lead's orders.
+
+# A light stronghold: a raider holding a cell centre with one guard circling it. Founded first and at low tiers.
+- type: wfEncounter
+  id: WFReaverStrongholdLight
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  category: Threat
+  icon: Flag
+  leash: 2000
+  manifests: [ WFManifestContraband ]
+  ships:
+  - key: lead
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Kalisto, Metis ]
+    deckhands: 3
+    guards: 2
+    cargo: 4
+    skill: Regular
+    warnRange: 1500
+    attackRange: 900
+    zoneLines: wf-encounter-pirate-zone
+    disengage: Deter
+    disengageRange: 1200
+    objectives:
+    - kind: Hold
+  - key: guard1
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Kalisto, Metis ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 350, 0
+    skill: Regular
+    objectives:
+    - kind: Circle
+      target: lead
+      range: 700
+
+# A stronghold with a frigate on the hold and two raiders circling it. Founded from the Entrenched tier.
+- type: wfEncounter
+  id: WFReaverStrongholdMid
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  category: Threat
+  icon: Flag
+  leash: 2000
+  manifests: [ WFManifestContraband ]
+  ships:
+  - key: lead
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Fenrir, Garm ]
+    deckhands: 4
+    guards: 3
+    cargo: 4
+    skill: Regular
+    warnRange: 1500
+    attackRange: 900
+    zoneLines: wf-encounter-pirate-zone
+    disengage: Deter
+    disengageRange: 1200
+    objectives:
+    - kind: Hold
+  - key: guard1
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Kalisto, Metis, Bastion ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 350, 0
+    skill: Regular
+    objectives:
+    - kind: Circle
+      target: lead
+      range: 900
+  - key: guard2
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Kalisto, Metis, Bastion ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -350, 0
+    skill: Regular
+    objectives:
+    - kind: Circle
+      target: lead
+      range: 900
+
+# A heavy stronghold: a capital-scale hull on the hold, two frigates circling it. Founded from the Dominant tier with a full crew online.
+- type: wfEncounter
+  id: WFReaverStrongholdHeavy
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  category: Threat
+  icon: Flag
+  leash: 2000
+  manifests: [ WFManifestContraband ]
+  ships:
+  - key: lead
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Saintie, Vulture, Ganymede ]
+    deckhands: 4
+    guards: 4
+    cargo: 4
+    skill: Regular
+    warnRange: 1500
+    attackRange: 900
+    zoneLines: wf-encounter-pirate-zone
+    disengage: Deter
+    disengageRange: 1200
+    objectives:
+    - kind: Hold
+  - key: guard1
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Fenrir, Garm ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 350, 0
+    skill: Regular
+    objectives:
+    - kind: Circle
+      target: lead
+      range: 1200
+  - key: guard2
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Fenrir, Garm ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: -350, 0
+    skill: Regular
+    objectives:
+    - kind: Circle
+      target: lead
+      range: 1200
+
+# A patrol: a raider and a wing flying a route through held space and home. The route is set by the campaign.
+- type: wfEncounter
+  id: WFReaverPatrol
+  name: wf-reaver-name-patrol
+  start: Manual
+  lifetime: Transient
+  category: Threat
+  icon: Skull
+  duration: 3600
+  ships:
+  - key: lead
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Kalisto, Metis, Bastion, Garm ]
+    deckhands: 2
+    engineer: false
+    skill: Regular
+    warnRange: 900
+    attackRange: 450
+    zoneLines: wf-encounter-pirate-zone
+    disengage: Deter
+    disengageRange: 1200
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Carrion, Hazel, Horsefly, Tick ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 160, 0
+    skill: Regular
+    warnRange: 900
+    attackRange: 450
+    zoneLines: wf-encounter-pirate-zone
+    disengage: Deter
+    disengageRange: 1200
+    objectives:
+    - kind: Escort
+      target: lead
+
+# A raid on a player ship: the campaign sends the lead to the target and has it attack.
+- type: wfEncounter
+  id: WFReaverRaidPack
+  name: wf-reaver-name-raid
+  start: Manual
+  lifetime: Transient
+  category: Threat
+  icon: Skull
+  cost: 2
+  minPlayers: 3
+  duration: 3600
+  ships:
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
+    deckhands: 3
+    warnRange: 900
+    attackRange: 450
+    zoneLines: wf-encounter-pirate-zone
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 160, 0
+    warnRange: 900
+    attackRange: 450
+    zoneLines: wf-encounter-pirate-zone
+    objectives:
+    - kind: Escort
+      target: raider
+
+# Boarders sent after a player ship; they hunt as the storyteller's boarders do.
+- type: wfEncounter
+  id: WFReaverRaidBoarders
+  name: wf-reaver-name-boarders
+  start: Manual
+  lifetime: Transient
+  category: Threat
+  icon: Skull
+  cost: 2
+  minPlayers: 2
+  hidden: true
+  duration: 1800
+  ships:
+  - key: boarder
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Hazel, Metis, Mudskipper ]
+    captain: false
+    deckhands: 2
+    guards: 2
+    hunt: true
+    evades: false
+
+# A raid on a station: the campaign sends the lead to a standoff point and has it prowl round the station.
+- type: wfEncounter
+  id: WFReaverRaidStation
+  name: wf-reaver-name-raid
+  start: Manual
+  lifetime: Transient
+  category: Threat
+  icon: Skull
+  cost: 2
+  minPlayers: 3
+  duration: 3600
+  ships:
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
+    deckhands: 3
+    warnRange: 900
+    attackRange: 450
+    zoneLines: wf-encounter-pirate-zone
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 160, 0
+    warnRange: 900
+    attackRange: 450
+    zoneLines: wf-encounter-pirate-zone
+    objectives:
+    - kind: Escort
+      target: raider

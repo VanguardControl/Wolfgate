@@ -1,0 +1,126 @@
+# Faction name
+wf-sector-faction-reavers = Ashfall Reavers
+
+# Sender of the announcements and name of the radio entity
+wf-reaver-watch = Sector Watch
+
+# Used as the station when the map has none
+wf-reaver-place-origin = the sector core
+
+# Threat tiers
+wf-reaver-tier-0 = None
+wf-reaver-tier-1 = Scattered
+wf-reaver-tier-2 = Organised
+wf-reaver-tier-3 = Entrenched
+wf-reaver-tier-4 = Dominant
+wf-reaver-tier-5 = Overrun
+
+wf-reaver-tier-rising = Reaver threat is rising: {$tier}. { $strongholds ->
+        [one] {$strongholds} stronghold
+       *[other] {$strongholds} strongholds
+    }, { $cells ->
+        [one] {$cells} cell
+       *[other] {$cells} cells
+    } held. Stronghold bounty is {$bounty} spesos.
+wf-reaver-tier-falling = Reaver threat is falling: {$tier}. { $strongholds ->
+        [one] {$strongholds} stronghold
+       *[other] {$strongholds} strongholds
+    }, { $cells ->
+        [one] {$cells} cell
+       *[other] {$cells} cells
+    } held. Stronghold bounty is {$bounty} spesos.
+
+# $station is the nearest station, $bearing and $range are from it
+wf-reaver-founded = Reavers have built a stronghold at {$callsign}, {$range} km bearing {$bearing} from {$station}. Bounty {$bounty} spesos.
+wf-reaver-regrouped = Reavers have regrouped and built a new stronghold at {$callsign}, {$range} km bearing {$bearing} from {$station}. Bounty {$bounty} spesos.
+wf-reaver-broken = The Reaver stronghold at {$callsign}, {$range} km bearing {$bearing} from {$station}, is broken. { $cells ->
+        [one] {$cells} cell is free.
+       *[other] {$cells} cells are free.
+    } { $paid ->
+        [0] No bounty was claimed.
+       *[other] Bounty {$bounty} spesos paid.
+    }
+wf-reaver-patrol-destroyed = Reaver patrol destroyed at {$callsign}. The cell is clear. { $paid ->
+        [0] No bounty was claimed.
+       *[other] Bounty {$bounty} spesos paid.
+    }
+wf-reaver-patrol-destroyed-held = Reaver patrol destroyed at {$callsign}. { $paid ->
+        [0] No bounty was claimed.
+       *[other] Bounty {$bounty} spesos paid.
+    }
+wf-reaver-blockade = Reavers are moving to blockade {$station} at {$callsign}. They take the cell in {$minutes} minutes unless traffic keeps the lane.
+
+wf-reaver-raid-warning-pa = Reaver raiders are heading for {$ship}, bearing {$bearing}, {$range} km.
+wf-reaver-raid-warning-radio = Reaver raiders are heading for {$ship}, bearing {$bearing}, {$range} km.
+wf-reaver-raid-station-warning = Reaver raiders are heading for {$station}, bearing {$bearing}, {$range} km.
+
+# Map legend line
+wf-reaver-legend = {$faction}: {$tier}, { $strongholds ->
+        [one] {$strongholds} stronghold
+       *[other] {$strongholds} strongholds
+    }, { $cells ->
+        [one] {$cells} cell
+       *[other] {$cells} cells
+    }, bounty {$bounty}
+
+wf-reaver-round-end = Reavers held up to { $peak ->
+        [one] {$peak} cell
+       *[other] {$peak} cells
+    }. They founded { $founded ->
+        [one] {$founded} stronghold
+       *[other] {$founded} strongholds
+    }, { $broken ->
+        [one] {$broken} was
+       *[other] {$broken} were
+    } broken, { $patrols ->
+        [one] {$patrols} patrol was
+       *[other] {$patrols} patrols were
+    } destroyed and { $raids ->
+        [one] {$raids} raid was
+       *[other] {$raids} raids were
+    } sent.
+
+# wf_reavers command
+cmd-wf_reavers-desc = Shows and drives the Ashfall Reaver campaign.
+cmd-wf_reavers-help = Usage: {$command} status | found [x y] | tier <n> | spread | patrol | raid | pause | resume | clear
+cmd-wf_reavers-hint-sub = Subcommand
+cmd-wf_reavers-hint-x = Map x in metres
+cmd-wf_reavers-hint-y = Map y in metres
+cmd-wf_reavers-hint-tier = Threat tier
+cmd-wf_reavers-no-campaign = No Reaver campaign runs under the current preset.
+cmd-wf_reavers-status-header = Campaign {$campaign}: running {$running}, paused {$paused}, tier {$tier}, score {$score}.
+cmd-wf_reavers-status-counts = { $strongholds ->
+        [one] {$strongholds} stronghold
+       *[other] {$strongholds} strongholds
+    }, { $cells ->
+        [one] {$cells} cell
+       *[other] {$cells} cells
+    }, { $patrols ->
+        [one] {$patrols} patrol
+       *[other] {$patrols} patrols
+    }, { $raids ->
+        [one] {$raids} raid
+       *[other] {$raids} raids
+    }.
+cmd-wf_reavers-status-clocks = Seconds to next spread: {$spread}. Seconds to next raid: {$raid}.
+cmd-wf_reavers-status-stronghold = Stronghold {$uid} at {$callsign}: {$prototype}, {$hits} hits, {$patrols} patrols.
+cmd-wf_reavers-founded = Founded stronghold {$uid} at {$callsign}.
+cmd-wf_reavers-found-failed = No stronghold could be founded there.
+cmd-wf_reavers-bad-position = Not a position: {$x} {$y}
+cmd-wf_reavers-bad-tier = Not a tier from 0 to {$max}: {$arg}
+cmd-wf_reavers-tier-set = Tier set to {$tier}.
+cmd-wf_reavers-spread = Claimed or contested one cell.
+cmd-wf_reavers-spread-failed = No cell could be claimed.
+cmd-wf_reavers-patrol = Patrol sent from the stronghold at {$callsign}.
+cmd-wf_reavers-patrol-failed = No patrol could be launched.
+cmd-wf_reavers-raid = Raid launched.
+cmd-wf_reavers-raid-failed = No raid could be launched.
+cmd-wf_reavers-paused = Campaign paused.
+cmd-wf_reavers-resumed = Campaign resumed.
+cmd-wf_reavers-cleared = Cleared the campaign: {$count} encounters ended.
+
+# Encounter names
+wf-reaver-name-stronghold = Reaver stronghold {$designation}
+wf-reaver-name-patrol = Reaver patrol {$designation}
+wf-reaver-name-raid = Reaver raiders {$designation}
+wf-reaver-name-boarders = Reaver boarders {$designation}
