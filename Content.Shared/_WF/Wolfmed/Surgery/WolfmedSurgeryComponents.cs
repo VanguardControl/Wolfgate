@@ -1,4 +1,5 @@
 using Content.Shared._Onyx.Wounds;
+using Content.Shared.Body.Part;
 using Content.Shared.FixedPoint;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -40,6 +41,18 @@ public sealed partial class WolfmedSurgeryTreatWoundEffectComponent : Component
     [DataField] public bool InternalBleeding;
     [DataField] public FixedPoint2 Amount = FixedPoint2.MaxValue;
 }
+
+/// <summary>Gates a surgery on the selected part being dead tissue.</summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedSurgeryNecrosisConditionComponent : Component
+{
+    /// <summary>The part types the surgery lists on. Null lists it on any part.</summary>
+    [DataField] public List<BodyPartType>? Parts;
+}
+
+/// <summary>Cuts the dead tissue out of the part, through <c>WolfmedNecrosisSystem.RemoveNecrosis</c>.</summary>
+[RegisterComponent, NetworkedComponent]
+public sealed partial class WolfmedSurgeryRemoveNecrosisEffectComponent : Component;
 
 /// <summary>Gates a surgery on the selected part carrying a fracture in a grade/treatment window.</summary>
 [RegisterComponent, NetworkedComponent]

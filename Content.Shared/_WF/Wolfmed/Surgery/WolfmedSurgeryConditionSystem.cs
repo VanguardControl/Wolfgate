@@ -7,6 +7,7 @@ using Content.Shared._Shitmed.Medical.Surgery.Steps;
 using Content.Shared._Shitmed.Medical.Surgery.Steps.Parts;
 using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared.Body.Organ;
+using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
@@ -51,6 +52,8 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
         SubscribeLocalEvent<WolfmedSurgeryRelocateJointEffectComponent, SurgeryStepCompleteCheckEvent>(OnRelocateCheck);
         SubscribeLocalEvent<WolfmedSurgeryWeldChassisEffectComponent, SurgeryStepCompleteCheckEvent>(OnWeldChassisCheck);
         SubscribeLocalEvent<WolfmedSurgeryRewireChassisEffectComponent, SurgeryStepCompleteCheckEvent>(OnRewireChassisCheck);
+        SubscribeLocalEvent<WolfmedSurgeryNecrosisConditionComponent, SurgeryValidEvent>(OnNecrosisValid);
+        SubscribeLocalEvent<WolfmedSurgeryRemoveNecrosisEffectComponent, SurgeryStepCompleteCheckEvent>(OnRemoveNecrosisCheck);
         SubscribeLocalEvent<IncisionOpenComponent, ComponentRemove>(OnIncisionClosed);
     }
 
@@ -103,7 +106,29 @@ public sealed class WolfmedSurgeryConditionSystem : EntitySystem
         HasComp<WolfmedSurgeryWoundConditionComponent>(surgery) ||
         HasComp<WolfmedSurgeryFractureConditionComponent>(surgery) ||
         HasComp<WolfmedSurgeryOrganDamagedConditionComponent>(surgery) ||
-        HasComp<WolfmedSurgeryEmbeddedConditionComponent>(surgery);
+        HasComp<WolfmedSurgeryEmbeddedConditionComponent>(surgery) ||
+        HasComp<WolfmedSurgeryNecrosisConditionComponent>(surgery);
+
+    /// <summary>Whether the part is dead tissue.</summary>
+    public bool IsNecrotic(EntityUid part) => CompOrNull<WolfmedNecrosisComponent>(part)?.Necrotic == true;
+
+    private void OnNecrosisValid(Entity<WolfmedSurgeryNecrosisConditionComponent> ent, ref SurgeryValidEvent args)
+    {
+        if (InProgress(args.Part, ent.Owner))
+            return;
+
+        if (!IsNecrotic(args.Part) ||
+            ent.Comp.Parts is { } parts &&
+            (!TryComp(args.Part, out BodyPartComponent? part) || !parts.Contains(part.PartType)))
+            args.Cancelled = true;
+    }
+
+    private void OnRemoveNecrosisCheck(Entity<WolfmedSurgeryRemoveNecrosisEffectComponent> ent,
+        ref SurgeryStepCompleteCheckEvent args)
+    {
+        if (IsNecrotic(args.Part))
+            args.Cancelled = true;
+    }
 
     /// <summary>Playtest 3 IPC 2: the weld repeats until the part carries none of its wounds.</summary>
     private void OnWeldChassisCheck(Entity<WolfmedSurgeryWeldChassisEffectComponent> ent,

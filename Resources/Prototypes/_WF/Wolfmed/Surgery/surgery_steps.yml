@@ -276,6 +276,27 @@
     amount: 10
   - type: SurgeryStepEmoteEffect
 
+# Necrosis (W5) ---------------------------------------------------------------
+# One pass takes all of it: like charring, dead tissue has no damage to whittle down.
+
+- type: entity
+  parent: SurgeryStepBase
+  id: WFSurgeryStepRemoveNecroticFlesh
+  name: Cut away the necrotic flesh
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: SurgeryStep
+    tool:
+    - type: Scalpel
+    duration: 6
+  - type: Sprite
+    sprite: _Shitmed/Objects/Specific/Medical/Surgery/scalpel.rsi
+    state: scalpel
+  - type: WolfmedSurgeryRemoveNecrosisEffect
+  - type: WolfmedSurgeryPainEffect
+    amount: 14
+  - type: SurgeryStepEmoteEffect
+
 # Mechanical (W6) -------------------------------------------------------------
 
 - type: entity
