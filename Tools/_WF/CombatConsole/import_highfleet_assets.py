@@ -85,7 +85,7 @@ def extract(source, repo):
     (repo / "Tools/_WF/CombatConsole/highfleet-assets.json").write_text(json.dumps(manifest, indent=2) + "\n")
     for folder, names, suffix in [(textures, SPRITES, ".png"), (sounds, SOUNDS, ".wav")]:
         attribution = "- files: [" + ", ".join('"' + name + suffix + '"' for name in names) + "]\n"
-        attribution += '  license: "Proprietary"\n  copyright: "HighFleet assets from the user-provided installation. Original rights are retained by the HighFleet rights holders; no redistribution grant was supplied."\n  source: "https://store.steampowered.com/app/1434950/HighFleet/"\n'
+        attribution += '  license: "Proprietary"\n  copyright: "Custom adaptations for Wolfgate, with edits and modifications by Wolfgate contributors, derived from HighFleet assets. Original HighFleet asset rights remain with their respective rights holders; no redistribution grant was supplied."\n  source: "https://store.steampowered.com/app/1434950/HighFleet/"\n'
         (folder / "attributions.yml").write_text(attribution)
     print(f"Imported {len(SPRITES)} sprites and {len(SOUNDS)} sounds.")
 
