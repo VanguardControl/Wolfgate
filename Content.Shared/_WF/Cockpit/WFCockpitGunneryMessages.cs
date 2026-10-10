@@ -3,7 +3,7 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.Cockpit;
 
-/// <summary>Starts or ends the seated pilot's optional gunnery link through the helm.</summary>
+/// <summary>Starts or ends the seated pilot's optional gunnery link; Controlling is set while the pilot operates the guns.</summary>
 [Serializable, NetSerializable]
 public sealed class WFCockpitGunnerySessionMessage(bool active, bool controlling = false) : BoundUserInterfaceMessage
 {

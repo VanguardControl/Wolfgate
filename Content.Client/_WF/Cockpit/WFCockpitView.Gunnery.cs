@@ -23,6 +23,7 @@ public sealed partial class WFCockpitView
     private WFCockpitFireInput _gunneryInput = default!;
     private NetEntity? _gunneryConsole;
     private bool _showGunnery;
+    private bool _gunneryControlling;
 
     private void InitializeGunnery(MainViewport viewport)
     {
@@ -48,7 +49,7 @@ public sealed partial class WFCockpitView
         AddChild(_gunneryModes);
         AddChild(_gunneryDeck);
         var navigation = _console.FindControl<NavScreen>("NavContainer").FindControl<ShuttleNavControl>("NavRadar");
-        _gunneryInput = new WFCockpitFireInput(viewport, navigation, () => _showGunnery && _gunneryConsole != null && !_restored,
+        _gunneryInput = new WFCockpitFireInput(viewport, navigation, () => _gunneryControlling && !_restored,
             () => _gunneryPanel?.HasSelectedWeapons == true, AimGunnery, _lease);
         AddChild(_gunneryInput);
         _console.WfCockpitGunneryUpdated += UpdateGunnery;
@@ -59,7 +60,7 @@ public sealed partial class WFCockpitView
         });
     }
 
-    /// <summary>Updates the reachable gun bank and clears selection when its console changes.</summary>
+    /// <summary>Updates the reachable gun bank, clears selection when its console changes and re-evaluates gun control.</summary>
     public void UpdateGunnery(WFCockpitGunneryStateMessage message)
     {
         if (_restored)
@@ -87,36 +88,51 @@ public sealed partial class WFCockpitView
         _gunneryModes.Visible = available;
         if (!available && _showGunnery)
             SelectGunnery(false);
-        else if (visibilityChanged)
-            InvalidateMeasure();
+        else
+        {
+            SyncGunneryControl();
+            if (visibilityChanged)
+                InvalidateMeasure();
+        }
     }
 
-    /// <summary>Gives gunnery the full left column while retaining selections on the flight page.</summary>
+    /// <summary>Shows the weapon bank or the flight instruments; selected weapons stay armed on FLIGHT.</summary>
     public void SelectGunnery(bool selected)
     {
-        var controlling = selected && _gunneryConsole != null;
-        if (_showGunnery != controlling)
-        {
+        var showing = selected && _gunneryConsole != null;
+        if (_showGunnery != showing)
             _gunneryInput.Cancel();
-            _console.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(true, controlling));
-        }
-        _showGunnery = controlling;
+        _showGunnery = showing;
         _flightMode.Pressed = !_showGunnery;
         _gunsMode.Pressed = _showGunnery;
         _left.Visible = _camera.Visible = _flight.Visible = !_showGunnery;
         _gunneryDeck.Visible = _showGunnery;
+        SyncGunneryControl();
         InvalidateMeasure();
+    }
+
+    /// <summary>Holds gun control while GUNS is open or any weapon is selected, and tells the server when that changes.</summary>
+    private void SyncGunneryControl()
+    {
+        if (_restored)
+            return;
+        var controlling = _gunneryConsole != null && (_showGunnery || _gunneryPanel?.HasSelectedWeapons == true);
+        if (_gunneryControlling == controlling)
+            return;
+        _gunneryControlling = controlling;
+        _gunneryInput.Cancel();
+        _console.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(true, controlling));
     }
 
     private void SendGunnery(BoundUserInterfaceMessage command)
     {
-        if (!_restored && _showGunnery && _gunneryConsole is { } console)
+        if (!_restored && _gunneryControlling && _gunneryConsole is { } console)
             _console.WfSendCockpitGunnery(new WFCockpitGunneryCommandMessage(console, command));
     }
 
     private void AimGunnery(EntityCoordinates coordinates, bool fire)
     {
-        if (!_showGunnery || _gunneryConsole == null || _gunneryPanel == null || !_gunneryPanel.HasSelectedWeapons)
+        if (!_gunneryControlling || _gunneryConsole == null || _gunneryPanel == null || !_gunneryPanel.HasSelectedWeapons)
             return;
         var entities = IoCManager.Resolve<IEntityManager>();
         var selected = fire ? _gunneryPanel.SelectedWeapons : new List<NetEntity>();

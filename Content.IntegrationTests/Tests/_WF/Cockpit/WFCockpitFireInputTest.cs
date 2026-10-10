@@ -61,13 +61,13 @@ public sealed class WFCockpitFireInputTest
             nav.OnRadarClick += _ => ordinaryRadarClicks++;
             enabled = false;
             Assert.That(Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Down, worldCursor).Handled, Is.False,
-                "FLIGHT must preserve ordinary world interaction even when weapons are selected.");
+                "Without gun control, ordinary world interaction must pass through even if weapons are selected.");
             Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Up, worldCursor);
             Assert.That(Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Down, cursor).Handled, Is.False,
-                "FLIGHT must preserve ordinary navigation input.");
+                "Without gun control, ordinary navigation input must pass through.");
             Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Up, cursor);
             Tick(fire, 0.5f, cursor, false);
-            Assert.That(aims, Is.Empty, "FLIGHT must not send passive targeting updates.");
+            Assert.That(aims, Is.Empty, "Without gun control, no passive targeting updates may be sent.");
             ordinaryRadarClicks = 0;
             enabled = true;
             void PressNav()
@@ -320,10 +320,10 @@ public sealed class WFCockpitFireInputTest
         await pair.CleanReturnAsync();
     }
 
-    private static ScreenCoordinates Pointer(Control control, Vector2 local) =>
+    internal static ScreenCoordinates Pointer(Control control, Vector2 local) =>
         new(control.GlobalPixelPosition + local * control.UIScale, control.Window!.Id);
 
-    private static GUIBoundKeyEventArgs Key(Control control, BoundKeyFunction function, BoundKeyState state,
+    internal static GUIBoundKeyEventArgs Key(Control control, BoundKeyFunction function, BoundKeyState state,
         ScreenCoordinates pointer, bool physicalMouse = true, bool heldMouse = false, bool newPhysicalEvent = true)
     {
         var input = IoCManager.Resolve<IInputManager>();
@@ -343,7 +343,7 @@ public sealed class WFCockpitFireInputTest
     private static KeyEventAction? PhysicalHandlers(IInputManager input) => (KeyEventAction?) input.GetType()
         .GetField("FirstChanceOnKeyEvent", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(input);
 
-    private static void Tick(WFCockpitFireInput input, float delta, ScreenCoordinates pointer, bool leftDown, bool focused = true) =>
+    internal static void Tick(WFCockpitFireInput input, float delta, ScreenCoordinates pointer, bool leftDown, bool focused = true) =>
         Invoke(input, "UpdateInput", delta, pointer, leftDown, focused);
 
     private static void Invoke(object target, string method, params object[] args) => target.GetType()

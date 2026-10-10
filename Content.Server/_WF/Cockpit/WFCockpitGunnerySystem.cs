@@ -33,6 +33,7 @@ public sealed partial class WFCockpitGunnerySystem : EntitySystem
     private readonly Dictionary<EntityUid, Session> _sessions = new();
     private float _accumulator;
 
+    /// <summary>One pilot's gun link; Controlling means the pilot has GUNS open or weapons selected and may command them.</summary>
     private sealed class Session(EntityUid helm)
     {
         public readonly EntityUid Helm = helm;

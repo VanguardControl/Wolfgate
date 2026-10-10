@@ -48,11 +48,13 @@ on the same ship. The nearest eligible console is chosen and retained while usab
 switches the left column between flight instruments and the shared paginated weapon bank, including
 selection, saved groups and compact countermeasures. Weapon rows retain readable text and slim supply
 bars; page changes preserve the full selection for firing and group saves. Left-click or hold over the world viewport or NAV plot fires the
-selected weapons in GUNS mode; moving the pointer updates guided-missile aim, and right mouse still pans. A native aiming reticle
+selected weapons on either tab; moving the pointer updates guided-missile aim, and right mouse still pans. A native aiming reticle
 replaces the pointer over valid world and NAV targets while offensive weapons are selected, independently
 of character combat mode. HUD controls, chat, modifiers, lost focus and an unarmed bank retain ordinary
-cursors and mouse interactions. Returning to FLIGHT preserves the selection, releases gun control and
-restores the normal pointer. A lost or changed link clears the selection.
+cursors and mouse interactions. The cockpit holds gun control while GUNS is open or any weapon is selected,
+so weapons selected on GUNS stay armed when the pilot returns to FLIGHT to fly and shoot; the click is
+consumed by firing there. With nothing selected, FLIGHT releases gun control and keeps the normal pointer
+and clicks. A lost link clears the selection and releases control at once; a changed link does the same unless GUNS is open.
 Exiting or losing pilot eligibility releases the link and all input hooks. Reach follows normal body-fixture distance and obstruction checks,
 independent of the camera. Nearby unopened consoles discover their gun server when acquired. Temporary
 gunnery power or access loss clears the weapon link; restoring it reconnects without leaving cockpit mode.
@@ -60,8 +62,8 @@ Loss of helm power ends piloting and exits the cockpit.
 
 Commands travel through the existing helm BUI, with seat, reach, power, access and weapon ownership
 checked by the server for each request. They reuse native firing, group and flare handlers; no second
-gunnery window is opened. Discovery in FLIGHT only supplies telemetry; NPC gunners recognize the pilot as
-a human console operator only after the pilot selects GUNS. The cockpit link does not apply the crewed-shuttle
+gunnery window is opened. Discovery without gun control only supplies telemetry; NPC gunners recognize the pilot as
+a human console operator only while the pilot holds gun control (GUNS open or weapons selected). The cockpit link does not apply the crewed-shuttle
 rule that blocks a player from holding the helm and gunnery windows together, so one seated pilot can fly and
 fire a crewed ship from the cockpit.
 

@@ -156,7 +156,7 @@ public sealed class WFCockpitGunneryTest
             Assert.That(em.System<WFCockpitGunnerySystem>().GetConsole(actor), Is.EqualTo(gun),
                 "The real client BUI must establish a discovered link with the network sender as actor.");
             Assert.That(em.GetComponent<WFCombatConsoleComponent>(gun).Groups.ContainsKey(3), Is.False,
-                "A client command sent over the network while in FLIGHT must be rejected.");
+                "A client command sent over the network without gun control must be rejected.");
         });
         await pair.Client.WaitAssertion(() =>
             clientWindow!.WfSendCockpitGunnery(new WFCockpitGunnerySessionMessage(true, true)));
@@ -274,10 +274,10 @@ public sealed class WFCockpitGunneryTest
             Assert.That(ui.IsUiOpen(gun, FireControlConsoleUiKey.Key, actor), Is.False, "The cockpit must not open a second gunnery BUI.");
             Assert.That(cockpit.GetActors(gun), Does.Contain(actor), "Existing crew handoff must see the cockpit operator.");
             ui.RaiseUiMessage(helm, ShuttleConsoleUiKey.Key, new WFCockpitGunnerySessionMessage(true) { Actor = actor });
-            Assert.That(cockpit.GetConsole(actor), Is.EqualTo(gun), "FLIGHT retains discovery and telemetry.");
-            Assert.That(cockpit.GetActors(gun), Is.Empty, "FLIGHT must leave the gunner's console unclaimed.");
+            Assert.That(cockpit.GetConsole(actor), Is.EqualTo(gun), "A non-controlling session retains discovery and telemetry.");
+            Assert.That(cockpit.GetActors(gun), Is.Empty, "A non-controlling session must leave the gunner's console unclaimed.");
             Assert.That(cockpit.TryCommand(actor, helm, em.GetNetEntity(gun), new WFDispenseFlaresMessage()), Is.False,
-                "A forged weapon action in FLIGHT cannot operate guns or countermeasures.");
+                "A forged weapon action without gun control cannot operate guns or countermeasures.");
             ui.RaiseUiMessage(helm, ShuttleConsoleUiKey.Key, new WFCockpitGunnerySessionMessage(true, true) { Actor = actor });
             Assert.That(cockpit.GetActors(gun), Does.Contain(actor));
             var sharedState = em.System<FireControlSystem>().WfCockpitState(gun);
@@ -462,7 +462,7 @@ public sealed class WFCockpitGunneryTest
             pair.Server.PlayerMan.SetAttachedEntity(dummy, otherActor);
             Assert.That(cockpit.SetSession(actor, helm, true), Is.True);
             Assert.That(cockpit.SetSession(otherActor, helm, true, true), Is.True);
-            Assert.That(cockpit.GetConsole(otherActor), Is.EqualTo(gun), "A FLIGHT-mode session must not block a second operator.");
+            Assert.That(cockpit.GetConsole(otherActor), Is.EqualTo(gun), "A non-controlling session must not block a second operator.");
             Assert.That(cockpit.SetSession(actor, helm, true, true), Is.True);
             Assert.That(cockpit.GetConsole(actor), Is.Null, "A single-user console cannot be shared through two controlling cockpit sessions.");
             Assert.That(cockpit.GetActors(gun), Is.EquivalentTo(new[] { otherActor }));

@@ -440,14 +440,19 @@ public sealed class WFCockpitTest : InteractionTest
             var weaponButton = Descendants(battery).OfType<WFWeaponGrid>().Single().Children.OfType<Button>().Single();
             Toggle(weaponButton, true);
             Assert.That(battery.SelectedWeapons, Is.EquivalentTo(new[] { weapon.NetEntity }));
+            var sessionsOnGuns = gunMessages.OfType<WFCockpitGunnerySessionMessage>().Count();
             hud.SelectGunnery(false);
             Assert.That(battery.SelectedWeapons, Is.EquivalentTo(new[] { weapon.NetEntity }),
                 "Returning to FLIGHT must retain the selection for the next GUNS session.");
-            Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Last().Controlling, Is.False,
-                "FLIGHT must release firing control even with weapons selected.");
+            Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Count(), Is.EqualTo(sessionsOnGuns),
+                "FLIGHT with weapons selected keeps gun control without a redundant session message.");
+            Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Last().Controlling, Is.True,
+                "FLIGHT with weapons selected must keep firing control.");
             window.WfReceiveCockpitGunnery(new WFCockpitGunneryStateMessage(new NetEntity(912), gunState));
             Assert.That(Descendants(hud).OfType<WFCockpitGunneryPanel>().Single().SelectedWeapons, Is.Empty,
                 "A newly linked console cannot inherit the previous console's firing selection.");
+            Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Last().Controlling, Is.False,
+                "Changing the link on FLIGHT empties the selection and must release firing control at once.");
             hud.SelectGunnery(true);
             window.WfReceiveCockpitGunnery(new WFCockpitGunneryStateMessage(null, null));
             Assert.That(Named<Control>(hud, "CockpitGunneryModes").Visible, Is.False);
@@ -493,7 +498,7 @@ public sealed class WFCockpitTest : InteractionTest
                 "Leaving the cockpit must drop its last hull sweep so the windowed SHIP page and the next entry start empty.");
             Assert.That(gunMessages.OfType<WFCockpitGunnerySessionMessage>().Select(message => (message.Active, message.Controlling)),
                 Is.EqualTo(new[] { (true, false), (true, true), (true, false), (true, true), (true, false), (false, false) }),
-                "Only explicit GUNS sessions claim guns; returning to FLIGHT or exiting must release them.");
+                "GUNS claims guns; FLIGHT with a selection sends nothing; an emptied selection, a lost link or exiting release them.");
             Assert.That(screen.Children.ToArray(), Is.EqualTo(normalHud));
             Assert.That((networkPorts.LimitedDimension, networkPorts.Rows, networkPorts.Columns), Is.EqualTo(originalNetworkLayout),
                 "Exiting must restore the helm's original network button rows and columns.");
@@ -593,6 +598,158 @@ public sealed class WFCockpitTest : InteractionTest
         {
             window.Dispose();
             settings.SetCVar(WolfgateCVars.UiStyle, originalTheme);
+            settings.SetCVar(CCVars.UILayout, originalLayout);
+        });
+    }
+
+    [Test]
+    public async Task GunneryControlFollowsGunsTabAndSelection()
+    {
+        EntityUid console = default;
+        await Server.WaitAssertion(() =>
+        {
+            console = SEntMan.SpawnEntity("ComputerShuttle", MapData.GridCoords);
+            var chair = SEntMan.SpawnEntity("Chair", MapData.GridCoords);
+            SEntMan.EnsureComponent<PilotComponent>(SPlayer);
+            SEntMan.System<ShuttleConsoleSystem>().AddPilot(console, SPlayer, SEntMan.GetComponent<ShuttleConsoleComponent>(console));
+            Assert.That(SEntMan.System<SharedBuckleSystem>().TryBuckle(SPlayer, SPlayer, chair), Is.True);
+        });
+        await RunTicks(10);
+        var settings = Client.ResolveDependency<IConfigurationManager>();
+        var originalLayout = settings.GetCVar(CCVars.UILayout);
+        await Client.WaitAssertion(() => settings.SetCVar(CCVars.UILayout, "Default"));
+        await RunTicks(3);
+        await Client.WaitAssertion(() =>
+        {
+            var ui = Client.ResolveDependency<IUserInterfaceManager>();
+            var screen = (InGameScreen) ui.ActiveScreen!;
+            var controller = ui.GetUIController<WFCockpitUIController>();
+            var messages = new List<BoundUserInterfaceMessage>();
+            var window = new ShuttleConsoleWindow();
+            window.WfCockpitGunneryCommand += messages.Add;
+            window.WfSetCockpitConsole(ToClient(SEntMan.GetNetEntity(console)));
+            window.OpenCentered();
+            Assert.That(controller.Enter(window), Is.True);
+            ui.ReleaseKeyboardFocus();
+            var hud = screen.Children.OfType<WFCockpitView>().Single();
+            var size = new Vector2(1130, 636);
+            var nav = window.FindControl<NavScreen>("NavContainer").FindControl<ShuttleNavControl>("NavRadar");
+            nav.SetMatrix(new EntityCoordinates(ToClient(MapData.MapUid), Vector2.Zero), Angle.Zero);
+            var input = Descendants(hud).OfType<WFCockpitFireInput>().Single();
+            var weapon = new FireControllableEntry(new NetEntity(910), default, "Battery", 10, true);
+            var linked = new NetEntity(911);
+
+            FireControlConsoleBoundInterfaceState Bank(params FireControllableEntry[] weapons) =>
+                new(true, weapons, new NavInterfaceState(250, null, null, new(), default));
+            ScreenCoordinates At(Vector2 offset = default) => WFCockpitFireInputTest.Pointer(nav, nav.Size / 2 + offset);
+            IEnumerable<WFCockpitGunnerySessionMessage> Sessions() => messages.OfType<WFCockpitGunnerySessionMessage>();
+            List<FireControlConsoleFireMessage> Fired() => messages.OfType<WFCockpitGunneryCommandMessage>()
+                .Select(message => message.Command).OfType<FireControlConsoleFireMessage>().ToList();
+            GUIBoundKeyEventArgs Click() => WFCockpitFireInputTest.Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Down, At());
+            void Release() => WFCockpitFireInputTest.Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Up, At());
+            void Tick(float delta, bool leftDown, Vector2 offset = default) =>
+                WFCockpitFireInputTest.Tick(input, delta, At(offset), leftDown);
+            void Select(bool guns)
+            {
+                hud.SelectGunnery(guns);
+                Layout(hud, size);
+            }
+            void SelectWeapon()
+            {
+                var panel = Descendants(hud).OfType<WFCockpitGunneryPanel>().Single();
+                Toggle(Descendants(panel).OfType<WFWeaponGrid>().Single().Children.OfType<Button>().Single(), true);
+                Assert.That(panel.SelectedWeapons, Is.EquivalentTo(new[] { weapon.NetEntity }));
+            }
+
+            Layout(hud, size);
+            Assert.That(ui.MouseGetControl(At()), Is.SameAs(nav), "The NAV plot must be the hovered control for the pointer checks.");
+            window.WfReceiveCockpitGunnery(new WFCockpitGunneryStateMessage(linked, Bank(weapon)));
+            Layout(hud, size);
+            Assert.That(Sessions().Select(message => (message.Active, message.Controlling)), Is.EqualTo(new[] { (true, false) }),
+                "Discovering a gun bank on FLIGHT must not claim it.");
+
+            Assert.That(Click().Handled, Is.False, "FLIGHT without a selection leaves ordinary NAV clicks alone.");
+            Release();
+            Tick(0.5f, false);
+            Tick(0.5f, false, new Vector2(3, 0));
+            Assert.That(messages.OfType<WFCockpitGunneryCommandMessage>(), Is.Empty, "FLIGHT without a selection sends no fire or aim.");
+            Assert.That(nav.CustomCursorShape, Is.Null, "FLIGHT without a selection keeps the normal pointer.");
+
+            Select(true);
+            Assert.That(Sessions().Last().Controlling, Is.True, "GUNS claims control.");
+            window.WfReceiveCockpitGunnery(new WFCockpitGunneryStateMessage(linked, Bank(weapon)));
+            Assert.That(Sessions().Count(), Is.EqualTo(2), "A state update on GUNS must not repeat the claim.");
+            Select(false);
+            Assert.That(Sessions().Last().Controlling, Is.False, "Leaving GUNS with nothing selected releases control.");
+            Assert.That(Sessions().Count(), Is.EqualTo(3));
+            Assert.That(Click().Handled, Is.False, "Released control returns NAV clicks to normal.");
+            Release();
+            Assert.That(Fired(), Is.Empty);
+
+            Select(true);
+            SelectWeapon();
+            Select(false);
+            Assert.That(Sessions().Count(), Is.EqualTo(4), "Leaving GUNS with a selection must not send a release.");
+            Assert.That(Sessions().Last().Controlling, Is.True, "FLIGHT with a selection keeps control.");
+            Tick(0, false);
+            Assert.That(nav.CustomCursorShape, Is.Not.Null, "The aiming reticle shows on FLIGHT while weapons are selected.");
+            Assert.That(Click().Handled, Is.True, "A FLIGHT click with a selection is consumed by firing.");
+            Assert.That(Fired(), Has.Count.EqualTo(1));
+            Assert.That(Fired()[0].Selected, Is.EquivalentTo(new[] { weapon.NetEntity }), "A press fires the selected weapons.");
+            Tick(0.11f, true);
+            Assert.That(Fired(), Has.Count.EqualTo(2), "Holding the button repeats fire on FLIGHT.");
+            Assert.That(Fired()[1].Selected, Is.EquivalentTo(new[] { weapon.NetEntity }));
+            Release();
+            Tick(0.11f, false, new Vector2(3, 0));
+            Assert.That(Fired(), Has.Count.EqualTo(3), "Pointer movement keeps updating missile aim on FLIGHT.");
+            Assert.That(Fired()[2].Selected, Is.Empty, "Aim updates carry no weapons to fire.");
+
+            Assert.That(Click().Handled, Is.True);
+            Assert.That(Fired(), Has.Count.EqualTo(4));
+            Select(true);
+            Tick(0.11f, true);
+            Assert.That(Fired(), Has.Count.EqualTo(5));
+            Assert.That(Fired()[4].Selected, Is.Empty, "Switching tabs cancels a held trigger.");
+            Release();
+            Select(false);
+            Assert.That(Click().Handled, Is.True, "A fresh press fires again after the tab change.");
+            Assert.That(Fired()[^1].Selected, Is.EquivalentTo(new[] { weapon.NetEntity }));
+            Release();
+
+            window.WfReceiveCockpitGunnery(new WFCockpitGunneryStateMessage(linked, Bank()));
+            Assert.That(Descendants(hud).OfType<WFCockpitGunneryPanel>().Single().HasSelectedWeapons, Is.False);
+            Assert.That(Sessions().Last().Controlling, Is.False, "A pruned selection on FLIGHT releases control at once.");
+            var firedBefore = Fired().Count;
+            Assert.That(Click().Handled, Is.False, "Input returns to normal once the selection is gone.");
+            Release();
+            Tick(0.5f, false, new Vector2(5, 0));
+            Assert.That(Fired(), Has.Count.EqualTo(firedBefore));
+            Assert.That(nav.CustomCursorShape, Is.Null, "The reticle goes away with the selection.");
+
+            Select(true);
+            window.WfReceiveCockpitGunnery(new WFCockpitGunneryStateMessage(linked, Bank(weapon)));
+            Layout(hud, size);
+            SelectWeapon();
+            Select(false);
+            Assert.That(Sessions().Last().Controlling, Is.True);
+            window.WfReceiveCockpitGunnery(new WFCockpitGunneryStateMessage(null, null));
+            Assert.That(Sessions().Last().Controlling, Is.False, "A lost link on FLIGHT releases control at once.");
+            Assert.That(Click().Handled, Is.False);
+            Release();
+            Assert.That(Fired(), Has.Count.EqualTo(firedBefore), "Nothing fires once control is released.");
+
+            window.WfReceiveCockpitGunnery(new WFCockpitGunneryStateMessage(linked, Bank(weapon)));
+            Layout(hud, size);
+            Select(true);
+            SelectWeapon();
+            Select(false);
+            Assert.That(Sessions().Last().Controlling, Is.True, "Re-linked and armed on FLIGHT holds control.");
+
+            controller.Exit();
+            Assert.That(Sessions().Select(message => (message.Active, message.Controlling)).TakeLast(2),
+                Is.EqualTo(new[] { (true, true), (false, false) }),
+                "Exiting while armed on FLIGHT ends the session without a trailing release.");
+            window.Dispose();
             settings.SetCVar(CCVars.UILayout, originalLayout);
         });
     }
