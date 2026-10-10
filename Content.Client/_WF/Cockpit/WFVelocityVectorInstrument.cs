@@ -42,7 +42,7 @@ public sealed class WFVelocityVectorInstrument : Control
         var reading = Reading;
         var skin = WFInstrumentTheme.Skin;
         var tint = reading == null ? skin.TextMuted : skin.Accent;
-        var radius = MathF.Max(1, MathF.Min(PixelWidth / 2 - 3 * UIScale, (PixelHeight - 34 * UIScale) / 2));
+        var radius = MathF.Max(1, MathF.Min(PixelWidth / 2 - 3 * UIScale, (PixelHeight - 20 * UIScale) / 2));
         var center = new Vector2(PixelWidth / 2, radius + 2 * UIScale);
         var face = MathF.Max(1, radius - 7 * UIScale);
         if (WFInstrumentTheme.Digital)
@@ -72,15 +72,16 @@ public sealed class WFVelocityVectorInstrument : Control
         Text(handle, _labels, _aft, center + new Vector2(0, extent), face * 0.9f, skin.TextMuted);
         Text(handle, _labels, _port, center + new Vector2(-extent, 0), face * 0.35f, skin.TextMuted);
         Text(handle, _labels, _starboard, center + new Vector2(extent, 0), face * 0.35f, skin.TextMuted);
-        var bow = new[] { center + new Vector2(0, -6 * UIScale), center + new Vector2(-3, 4) * UIScale,
-            center + new Vector2(3, 4) * UIScale };
+        var origin = center - new Vector2(0, face * 0.2f);
+        var bow = new[] { origin + new Vector2(0, -6 * UIScale), origin + new Vector2(-3, 4) * UIScale,
+            origin + new Vector2(3, 4) * UIScale };
         handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, bow, skin.TextMuted.WithAlpha(0.65f));
         if (reading?.ScreenDirection is { } motion)
         {
-            var tip = center + motion * face * 0.57f;
+            var tip = origin + motion * face * 0.36f;
             var side = new Vector2(-motion.Y, motion.X);
             var head = MathF.Min(5 * UIScale, face * 0.18f);
-            handle.DrawLine(center, tip, tint);
+            handle.DrawLine(origin, tip, tint);
             handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList,
                 new[] { tip, tip - motion * head + side * head * 0.55f, tip - motion * head - side * head * 0.55f }, tint);
             if (WFInstrumentTheme.Digital)
@@ -91,12 +92,25 @@ public sealed class WFVelocityVectorInstrument : Control
             }
         }
         else if (reading != null)
-            WFConsoleDigital.Dot(handle, center, 2 * UIScale, tint, ref _vertices);
+            WFConsoleDigital.Dot(handle, origin, 2 * UIScale, tint, ref _vertices);
+        var speed = WFGaugeReading.Number(reading?.Speed, 0, 1, "wf-gauge-unit-speed", 1).Text;
+        var readout = UIBox2.FromDimensions(center + new Vector2(-face * 0.725f, face * 0.21f),
+            new Vector2(face * 1.45f, MathF.Min(18 * UIScale, face * 0.32f)));
+        handle.DrawRect(readout, skin.Ink);
+        TextInBox(handle, _digits, speed, readout, tint);
         if (!WFInstrumentTheme.Digital)
             WFInstrumentGlass.Round(handle, center, face + 2 * UIScale, UIScale);
-        var speed = WFGaugeReading.Number(reading?.Speed, 0, 1, "wf-gauge-unit-speed", 1).Text;
-        Text(handle, _digits, speed, new Vector2(PixelWidth / 2, PixelHeight - 21 * UIScale), PixelWidth - 6 * UIScale, tint);
         Text(handle, _labels, _caption, new Vector2(PixelWidth / 2, PixelHeight - 7 * UIScale), PixelWidth - 6 * UIScale, skin.Text);
+    }
+
+    /// <summary>Fits the speed's full text inside the lower glass inset.</summary>
+    private void TextInBox(DrawingHandleScreen handle, Font font, string text, UIBox2 bounds, Color color)
+    {
+        var measured = handle.GetDimensions(font, text, UIScale).X;
+        var scale = UIScale * MathF.Min(1, MathF.Min(bounds.Width / MathF.Max(1, measured),
+            bounds.Height / Math.Max(1, font.GetHeight(UIScale))));
+        var drawn = handle.GetDimensions(font, text, scale).X;
+        handle.DrawString(font, bounds.Center - new Vector2(drawn / 2, font.GetHeight(scale) / 2f), text, scale, color);
     }
 
     private void Text(DrawingHandleScreen handle, Font font, string text, Vector2 center, float width, Color color)

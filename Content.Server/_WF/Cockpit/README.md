@@ -15,8 +15,9 @@ Shield arc width stays in the permanent shield control panel. Retro uses larger 
 lower flight bank aligns with communications and shields. Its six status lamps show live autopilot, FTL,
 dampener, parking, docking and shield state; autopilot activity is replicated independently of MFD selection.
 The MFD holds navigation, hull overlays, strategic travel, docking, access, shield details and auxiliary
-systems. A wide SHP display puts telemetry and overlay controls beside a narrower hull plot; compact
-MFDs retain the vertical layout with independently scrolling details. ACCESS keeps its framed door map
+systems. A wide SHP display gives half its width to the hull plot, with two columns of gauges beside it.
+Damage, fire, pressure and power overlays share one row, with department labels and hull fitting below.
+Compact MFDs retain the vertical layout with independently scrolling details. ACCESS keeps its framed door map
 as the largest panel, beside the controls when there is room and above them in compact layouts. Its
 details use one scroller without nested scrolling lists, and the bezel matches the selected
 Wolfgate theme. Exit restores the same controls and chat draft without reopening

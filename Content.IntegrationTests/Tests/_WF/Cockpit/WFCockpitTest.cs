@@ -202,12 +202,53 @@ public sealed class WFCockpitTest : InteractionTest
                                 {
                                     Assert.That(hullDetails.Position.X, Is.GreaterThanOrEqualTo(hullPlot.Position.X + hullPlot.Width),
                                         "An expanded ship MFD must use its width for details beside the plot.");
-                                    Assert.That(hullDetails.Width, Is.GreaterThan(hullPlot.Width), "Expanded hull details need most of the MFD width.");
+                                    Assert.That(hullPlot.Width / (hullPlot.Width + hullDetails.Width), Is.InRange(0.45f, 0.55f),
+                                        "Expanded ship MFDs must give the hull plot about half of their width.");
                                 }
                                 else
                                 {
                                     Assert.That(hullDetails.Position.Y, Is.GreaterThanOrEqualTo(hullPlot.Position.Y + hullPlot.Height),
                                         "Compact ship MFDs must stack details below the readable hull plot.");
+                                }
+                                var context = $"{theme}, {size}, expanded={expanded}, ship details={hullDetails.Size}";
+                                var telemetry = Named<GridContainer>(hud, "CockpitShipTelemetry");
+                                Assert.That(telemetry.Columns, Is.EqualTo(2), context);
+                                var gauges = telemetry.Children.OfType<WFGlassGauge>().ToArray();
+                                Assert.That(gauges, Has.Length.EqualTo(6), context);
+                                foreach (var gauge in gauges)
+                                {
+                                    Assert.That(gauge.GlobalPosition.X, Is.GreaterThanOrEqualTo(hullDetails.GlobalPosition.X - 1), context);
+                                    Assert.That(Right(gauge), Is.LessThanOrEqualTo(Right(hullDetails) + 1), context);
+                                }
+                                for (var index = 0; index < gauges.Length; index += 2)
+                                {
+                                    Assert.That(gauges[index + 1].GlobalPosition.Y, Is.EqualTo(gauges[index].GlobalPosition.Y).Within(1), context);
+                                    Assert.That(gauges[index + 1].GlobalPosition.X, Is.GreaterThanOrEqualTo(Right(gauges[index]) - 1), context);
+                                    if (index > 0)
+                                        Assert.That(gauges[index].GlobalPosition.Y, Is.GreaterThanOrEqualTo(Bottom(gauges[index - 2]) - 1), context);
+                                }
+                                var overlays = Named<GridContainer>(hud, "CockpitShipOverlays");
+                                Assert.That(overlays.Columns, Is.EqualTo(4), context);
+                                Assert.That(overlays.Children.Select(control => control.Name),
+                                    Is.EquivalentTo(new[] { "DamageToggle", "FireToggle", "PressureToggle", "PowerToggle" }), context);
+                                var mapControls = Named<Control>(hud, "CockpitShipMapControls");
+                                Assert.That(mapControls.Children.Select(control => control.Name),
+                                    Is.EquivalentTo(new[] { "DepartmentToggle", "FitButton" }), context);
+                                foreach (var row in new Control[] { overlays, mapControls })
+                                {
+                                    var controls = row.Children.ToArray();
+                                    foreach (var control in controls)
+                                    {
+                                        Assert.That(control.VisibleInTree, Is.True, context);
+                                        Assert.That(control.GlobalPosition.Y, Is.EqualTo(controls[0].GlobalPosition.Y).Within(1), context);
+                                        Assert.That(control.GlobalPosition.X, Is.GreaterThanOrEqualTo(hullDetails.GlobalPosition.X - 1), context);
+                                        Assert.That(Right(control), Is.LessThanOrEqualTo(Right(hullDetails) + 1), context);
+                                        Assert.That(Bottom(control), Is.LessThanOrEqualTo(Bottom(row) + 1), context);
+                                        if (control is CheckBox check)
+                                            AssertLabelFits(check.Label, ui, context);
+                                        else
+                                            AssertLabelFits((Button) control, ui, context);
+                                    }
                                 }
                             }
                         }
@@ -449,16 +490,18 @@ public sealed class WFCockpitTest : InteractionTest
         root.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
     }
 
-    private static void AssertLabelFits(Button button, IUserInterfaceManager ui, string context)
+    private static void AssertLabelFits(Button button, IUserInterfaceManager ui, string context) =>
+        AssertLabelFits(button.Label, ui, context);
+
+    private static void AssertLabelFits(Label label, IUserInterfaceManager ui, string context)
     {
-        var label = button.Label;
         var font = label.FontOverride ?? (label.TryGetStyleProperty<Font>(Label.StylePropertyFont, out var styled)
             ? styled : ui.ThemeDefaults.LabelFont);
         var width = 0f;
-        foreach (var rune in button.Text!.EnumerateRunes())
+        foreach (var rune in label.Text!.EnumerateRunes())
             width += font.GetCharMetrics(rune, label.UIScale)?.Advance ?? 0;
         Assert.That(label.PixelSize.X + 1, Is.GreaterThanOrEqualTo(width),
-            $"{context}: the {button.Text} button must display its complete label.");
+            $"{context}: the {label.Text} button must display its complete label.");
     }
 
     private static void Toggle(BaseButton button, bool pressed)

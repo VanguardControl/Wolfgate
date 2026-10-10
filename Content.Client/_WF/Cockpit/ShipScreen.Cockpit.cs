@@ -33,11 +33,13 @@ public sealed partial class ShipScreen
         Orientation = LayoutOrientation.Vertical;
         ShipView.WfCockpitInteraction(lease);
         var plot = Scope("wf-console-hull-scope", lease.Take(ShipView), Vector2.Zero);
-        var overlays = new GridContainer { Name = "CockpitShipOverlays", Columns = 1, HorizontalExpand = true };
-        foreach (var control in new Control[] { DamageToggle, FireToggle, PressureToggle, PowerToggle, departments, FitButton })
+        var overlays = new GridContainer { Name = "CockpitShipOverlays", Columns = 4, HorizontalExpand = true };
+        foreach (var control in new Control[] { DamageToggle, FireToggle, PressureToggle, PowerToggle })
             overlays.AddChild(lease.Take(control));
-        var details = Column(new WFGlassReadout(lease.Take(ShipNameLabel)), telemetry, overlays, lease.Take(TruncatedLabel));
-        AddChild(new WFCockpitShipLayout(plot, WFCockpitMfdLayout.Details(details), telemetry, overlays));
+        var mapControls = Row(lease.Take(departments), lease.Take(FitButton));
+        mapControls.Name = "CockpitShipMapControls";
+        var details = Column(new WFGlassReadout(lease.Take(ShipNameLabel)), telemetry, overlays, mapControls, lease.Take(TruncatedLabel));
+        AddChild(new WFCockpitShipLayout(plot, WFCockpitMfdLayout.Details(details)));
         return this;
     }
 
