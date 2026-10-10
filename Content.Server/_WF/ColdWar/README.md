@@ -75,7 +75,9 @@ the same level through `declaredWar` in `wfStanding` and `requiresWar` on its en
   - the announcement is the war level going HOT
   - mobile bases are still covered by the ceasefire
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml): faction conflict follows the war level; was "allowed at all times, due to the RP reason of active war"
-- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml): the factions give each other the same time while the war level is COLD
+- [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml)
+  - the factions give each other the same time while the war level is COLD
+  - stopping a ship for contraband is a demand
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Two_NewLife.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Two_NewLife.xml): the faction exemption only applies while the war level is HOT
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml): the war declaration rule
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Eight_FactionRoles.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Roleplay/Eight_FactionRoles.xml): talking to the other faction is not abandonment; was "As PDV, willingly working with TSF despite no circumstances that would require it"
