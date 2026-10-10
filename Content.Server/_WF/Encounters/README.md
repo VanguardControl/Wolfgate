@@ -47,6 +47,16 @@ Admins use the Encounters window in the Wolfgate admin tab, or `wf_encounter lis
 end <encounter> | schedule | pause | resume`. Other code calls `WFEncounterSystem.TrySpawn`, `Resolve`, `End` and
 `Reveal` and listens for `WFEncounterStartedEvent` and `WFEncounterResolvedEvent`.
 
+Systems that run encounters of their own (the Reaver campaign, sector control) have more entry points. `TrySpawn(..., offBudget)`
+keeps a transient encounter out of the cap and budget. `SetOrders(encounter, key, queue)` gives one ship a fresh queue
+as its own orders. `WFEncounterRewardSystem.PayBounty` pays a beaten encounter's bounty to every player who hit its ships
+(split per attacking ship, then per head), with a fifth for the players aboard any supporter grids, and returns how many
+were paid, and its optional `extraCredits` are further rewards of which only the faction credits are handed out, so one
+bounty can pay several navies; `GetHelpers` is
+the helper rule it shares with the Decided payout. The scheduler's `IsClearSpace` and `Stations` give placement checks, and
+the broadcast by-ref `WFEncounterWeightEvent` (change a candidate's weight) and `WFEncounterStationsEvent` (drop stations
+from a map's list) let other modules shape what it picks and where.
+
 `Docs/_WF/Encounters/design.md` is the original design. Not built: mass scanner contacts and lazy loading (ships
 are always real), freight value and payouts, follow-up encounters, and a real FTL jump on exit.
 

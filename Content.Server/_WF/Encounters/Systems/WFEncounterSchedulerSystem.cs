@@ -267,6 +267,9 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
                 || start == WFEncounterStart.Scheduled && prototype.Start == WFEncounterStart.RoundStart
                     && prototype.Replaceable && (!_roundStartDue || _startedAtRoundStart.Contains(prototype.ID));
             var weight = prototype.Weight * (preset != null && preset.Weights.TryGetValue(prototype.Category, out var scale) ? scale : 1f);
+            var weighed = new WFEncounterWeightEvent(prototype, weight);
+            RaiseLocalEvent(ref weighed);
+            weight = weighed.Weight;
             // A round-start or round-long encounter takes nothing from the budget, so it needs no room in it.
             var cost = prototype.Lifetime == WFEncounterLifetime.Persistent || prototype.Start == WFEncounterStart.RoundStart
                 ? 0
@@ -378,15 +381,12 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         return false;
     }
 
-    /// <summary>
-    /// The stations and outposts of a map: station grids with a docking port that nobody holds a deed to. A map with fewer than two, such as
-    /// the development map, is topped up with its other unowned grids that have a port, so station encounters can still be tried.
-    /// </summary>
     /// <summary>Stations kept secret: never a stop or a berth, and open space near them is never used.</summary>
     private readonly List<string> _hidden = new();
     private float _hiddenClearance;
 
-    private List<Entity<MapGridComponent>> Stations(MapId map)
+    /// <summary>The stations and outposts of a map; a map with fewer than two is topped up with other unowned grids that have a port.</summary>
+    public List<Entity<MapGridComponent>> Stations(MapId map)
     {
         var stations = new List<Entity<MapGridComponent>>();
         var others = new List<Entity<MapGridComponent>>();
@@ -425,6 +425,8 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
             stations.AddRange(others.Take(2 - stations.Count));
         }
 
+        var found = new WFEncounterStationsEvent(map, stations);
+        RaiseLocalEvent(ref found);
         return stations;
     }
 
@@ -552,6 +554,18 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         }
 
         return false;
+    }
+
+    /// <summary>Whether a point on a map is open sector space, clear of grids, stations, planet wells and hidden stations.</summary>
+    public bool IsClearSpace(MapId map, Vector2 point, float gridClearance, float stationClearance)
+    {
+        if (!_maps.MapExists(map) || !IsSector(map, _maps.GetMapEntityId(map)))
+            return false;
+
+        _nearby.Clear();
+        _maps.FindGridsIntersecting(map, Box2.CenteredAround(point, new Vector2(gridClearance * 2f)), ref _nearby, approx: true, includeMap: false);
+        return _nearby.Count == 0 && !NearStation(stationClearance, point, map) && !InGravityWell(point, map)
+            && !NearHiddenStation(point, map);
     }
 
     /// <summary>A point in clear space at the prototype's distance from a random living player.</summary>

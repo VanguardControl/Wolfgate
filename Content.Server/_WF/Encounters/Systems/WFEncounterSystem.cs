@@ -292,7 +292,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
     /// nothing behind, when a ship cannot be loaded or crewed or its orders are invalid.
     /// </summary>
     public bool TrySpawn(WFEncounterPrototype prototype, MapCoordinates origin, out EntityUid encounter, EntityUid? spawner = null,
-        IReadOnlyList<EntityUid>? stops = null, bool pinned = false)
+        IReadOnlyList<EntityUid>? stops = null, bool pinned = false, bool offBudget = false)
     {
         encounter = default;
         if (origin.MapId == MapId.Nullspace || prototype.Ships.Count == 0 || !_mapSystem.TryGetMap(origin.MapId, out var map))
@@ -314,6 +314,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         comp.Cost = prototype.Cost;
         comp.Lifetime = prototype.Lifetime;
         comp.OffBudget = prototype.Lifetime == WFEncounterLifetime.Persistent || prototype.Start == WFEncounterStart.RoundStart;
+        comp.OffBudget |= offBudget;
         // A pinned encounter is the admin's to end: no clock, no slot under the cap, and its ships stay however it goes.
         comp.Pinned = pinned;
         if (comp.Pinned)
@@ -406,6 +407,18 @@ public sealed partial class WFEncounterSystem : EntitySystem
             return true;
 
         if (!_objectives.SetQueue(state.Grid, state.Group, queue))
+            return false;
+
+        state.HasOrders = true;
+        state.Flown = false;
+        return true;
+    }
+
+    /// <summary>Gives one ship of a running encounter a new queue as its own orders; false if the encounter, ship or queue is invalid.</summary>
+    public bool SetOrders(Entity<WFEncounterComponent?> encounter, string key, List<WFCrewObjective> queue)
+    {
+        if (!Resolve(encounter, ref encounter.Comp, false) || !encounter.Comp.Ships.TryGetValue(key, out var state)
+            || TerminatingOrDeleted(state.Grid) || queue.Count == 0 || !_objectives.SetQueue(state.Grid, state.Group, queue))
             return false;
 
         state.HasOrders = true;
