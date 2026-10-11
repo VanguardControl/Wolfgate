@@ -40,11 +40,9 @@ public sealed class WFConsoleStyleBox : StyleBox
         {
             var fill = _disabled ? skin.ButtonDisabled : pressed ? skin.ButtonPressed :
                 _hover ? skin.ButtonHovered : skin.ButtonDefault;
-            var edge = _disabled ? skin.EdgeSoft : pressed || _danger ? accent : skin.EdgeLight;
-            WFConsoleDigital.Panel(handle, box, uiScale, fill, edge);
-            if (pressed && !_compact)
-                handle.DrawRect(new UIBox2(box.Left + 4 * uiScale, box.Top + 7 * uiScale,
-                    box.Left + 6 * uiScale, box.Bottom - 7 * uiScale), accent);
+            // A key shows its state with fill and one outline: quiet at rest, lit on hover, accent when on.
+            var edge = _disabled ? skin.EdgeSoft : pressed || _danger ? accent : _hover ? skin.EdgeLight : skin.EdgeSoft;
+            WFConsoleDigital.Panel(handle, box, uiScale, fill, edge, brackets: false, corner: 4);
             if (_toggle)
             {
                 var center = new Vector2(box.Left + 17 * uiScale, box.Top + box.Height / 2);

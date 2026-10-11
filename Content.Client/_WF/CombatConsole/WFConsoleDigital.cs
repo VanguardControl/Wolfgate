@@ -8,10 +8,11 @@ public static class WFConsoleDigital
 {
     private static readonly DrawVertexUV2DColor[] PanelVertices = new DrawVertexUV2DColor[8];
 
-    /// <summary>Draws a clipped-corner glass panel with accent brackets and a restrained top highlight.</summary>
-    public static void Panel(DrawingHandleScreen handle, UIBox2 box, float scale, Color fill, Color edge)
+    /// <summary>Draws a clipped-corner glass panel; frames add accent brackets, plain keys leave them off.</summary>
+    public static void Panel(DrawingHandleScreen handle, UIBox2 box, float scale, Color fill, Color edge,
+        bool brackets = true, float corner = 8)
     {
-        var cut = MathF.Min(8 * scale, MathF.Min(box.Width, box.Height) / 4);
+        var cut = MathF.Min(corner * scale, MathF.Min(box.Width, box.Height) / 4);
         var a = box.TopLeft + new Vector2(cut, 0);
         var b = new Vector2(box.Right - cut, box.Top);
         var c = new Vector2(box.Right, box.Top + cut);
@@ -38,6 +39,8 @@ public static class WFConsoleDigital
         handle.DrawLine(f, g, edge);
         handle.DrawLine(g, h, edge);
         handle.DrawLine(h, a, edge);
+        if (!brackets)
+            return;
         var accent = WFInstrumentTheme.Skin.Accent;
         handle.DrawLine(a, a + new Vector2(MathF.Min(28 * scale, box.Width / 4), 0), accent);
         handle.DrawLine(e, e - new Vector2(MathF.Min(28 * scale, box.Width / 4), 0), accent.WithAlpha(0.5f));
