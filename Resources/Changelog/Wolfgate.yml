@@ -1429,3 +1429,12 @@ Entries:
   id: 100108
   time: '2026-10-10T23:06:11.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/205
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Radsuits are now in engivends.
+    - type: Tweak
+      message: Radsuits now protect 97.5% of rads.
+  id: 100109
+  time: '2026-10-11T00:25:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/210
