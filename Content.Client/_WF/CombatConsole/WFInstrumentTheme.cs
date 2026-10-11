@@ -83,9 +83,13 @@ public static class WFInstrumentTheme
             button.OnPressed += WFConsoleAudio.Press;
         var compact = button.HasStyleClass("WfCompact");
         var toggle = button.ToggleMode && button.Group == null && !compact;
-        if (compact)
+        // The per-button stylesheet below replaces the stock rule that centres button text.
+        if (button is Button)
+        {
             label.Align = button.HasStyleClass("WfWeapon") ? Robust.Client.UserInterface.Controls.Label.AlignMode.Left :
                 Robust.Client.UserInterface.Controls.Label.AlignMode.Center;
+            label.VAlign = Robust.Client.UserInterface.Controls.Label.VAlignMode.Center;
+        }
         var compactSize = button.HasStyleClass("WfWeaponDense") ? 8 : 10;
         var font = compact ? IoCManager.Resolve<IResourceCache>().GetFont(Skin.MenuFonts, compactSize) : Mono;
         var danger = button.HasStyleClass("WfDispense");
