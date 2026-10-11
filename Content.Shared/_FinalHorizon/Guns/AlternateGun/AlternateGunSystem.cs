@@ -39,6 +39,7 @@ public sealed partial class AlternateGunSystem : EntitySystem
                 {
                     _sound.PlayPredicted(comp.SwitchSound, uid, user);
                     comp.Enabled = false;
+                    Dirty(uid, comp); // WOLFGATE: the client picks the gun to fire from this
                 },
             });
         else
@@ -49,6 +50,7 @@ public sealed partial class AlternateGunSystem : EntitySystem
                 {
                     _sound.PlayPredicted(comp.SwitchSound, uid, user);
                     comp.Enabled = true;
+                    Dirty(uid, comp); // WOLFGATE: the client picks the gun to fire from this
                 },
             });
     }
