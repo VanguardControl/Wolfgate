@@ -26145,3 +26145,10 @@ Entries:
   id: 2822
   time: '2026-10-10T22:22:59.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4848
+- author: SuperGDPWYL
+  changes:
+    - type: Fix
+      message: Fixed a specific gun having an unintended FMC value.
+  id: 2824
+  time: '2026-10-11T19:39:51.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4856
