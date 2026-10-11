@@ -1,0 +1,384 @@
+#nullable enable annotations
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Reflection;
+using Content.Client._WF.Cockpit;
+using Content.Client.Shuttles.UI;
+using Content.Client.UserInterface.Controls;
+using Content.Shared._Mono.FireControl;
+using Content.Shared.Input;
+using Robust.Client.Graphics;
+using Robust.Client.Input;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
+using Robust.Shared.ContentPack;
+using Robust.Shared.GameObjects;
+using Robust.Shared.Input;
+using Robust.Shared.IoC;
+using Robust.Shared.Map;
+using Robust.Shared.Maths;
+
+namespace Content.IntegrationTests.Tests._WF.Cockpit;
+
+/// <summary>Checks native click interception, held-fire cadence and cancellation of stale presses.</summary>
+public sealed class WFCockpitFireInputTest
+{
+    [Test]
+    public async Task CockpitAimingConsumesClicksAndRequiresFreshPressAfterInterruption()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
+            var maps = pair.Client.ResolveDependency<IMapManager>();
+            var input = pair.Client.ResolveDependency<IInputManager>();
+            var map = maps.CreateMap();
+            var mapEntity = maps.GetMapEntityId(map);
+            using var host = new Control { MouseFilter = Control.MouseFilterMode.Ignore };
+            using var world = new MainViewport();
+            using var nav = new ShuttleNavControl { WfFitInstrument = true, SetSize = new Vector2(float.NaN) };
+            world.Viewport.ViewportSize = new Vector2i(400, 300);
+            nav.SetMatrix(new EntityCoordinates(mapEntity, new Vector2(10, 20)), Angle.Zero);
+            var lease = new WFCockpitLease();
+            nav.WfCockpitInteraction(lease);
+            var enabled = true;
+            var aims = new List<(EntityCoordinates Target, bool Fire)>();
+            using var fire = new WFCockpitFireInput(world, nav, () => enabled, () => true, (target, firing) => aims.Add((target, firing)), lease);
+            host.AddChild(world);
+            host.AddChild(nav);
+            host.AddChild(fire);
+            ui.RootControl.AddChild(host);
+            ui.ReleaseKeyboardFocus();
+            host.Measure(new Vector2(850, 340));
+            host.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(850, 340)));
+            world.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(400, 300)));
+            nav.Arrange(UIBox2.FromDimensions(new Vector2(420, 0), new Vector2(400, 300)));
+            var cursor = Pointer(nav, nav.Size / 2);
+            var worldCursor = Pointer(world.Viewport, world.Viewport.Size / 2);
+            Assert.That(ui.MouseGetControl(cursor), Is.SameAs(nav));
+            Assert.That(ui.MouseGetControl(worldCursor), Is.SameAs(world.Viewport));
+            var ordinaryRadarClicks = 0;
+            nav.OnRadarClick += _ => ordinaryRadarClicks++;
+            enabled = false;
+            Assert.That(Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Down, worldCursor).Handled, Is.False,
+                "Without gun control, ordinary world interaction must pass through even if weapons are selected.");
+            Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Up, worldCursor);
+            Assert.That(Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Down, cursor).Handled, Is.False,
+                "Without gun control, ordinary navigation input must pass through.");
+            Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Up, cursor);
+            Tick(fire, 0.5f, cursor, false);
+            Assert.That(aims, Is.Empty, "Without gun control, no passive targeting updates may be sent.");
+            ordinaryRadarClicks = 0;
+            enabled = true;
+            void PressNav()
+            {
+                var before = aims.Count;
+                Assert.That(Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Down, cursor).Handled, Is.True);
+                Assert.That(aims, Has.Count.EqualTo(before + 1), "Every fresh press must fire immediately.");
+                Assert.That(aims[^1].Fire, Is.True);
+            }
+            void ReleaseNav()
+            {
+                Assert.That(Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Up, cursor).Handled, Is.True,
+                    "The inherited map control must forward a captured trigger release.");
+            }
+
+            var worldDown = Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Down, worldCursor);
+            Assert.That(worldDown.Handled, Is.False, "A world viewport without a valid map target must not capture a trigger.");
+            Assert.That(Key(world.Viewport, EngineKeyFunctions.UIClick, BoundKeyState.Up, worldCursor).Handled, Is.False);
+            Assert.That(aims, Is.Empty, "A headless viewport has no rendered map target and must not send invalid coordinates.");
+            Assert.That(Key(nav, EngineKeyFunctions.UseSecondary, BoundKeyState.Down, cursor).Handled, Is.False,
+                "Fire input must leave the shared right-mouse pan gesture alone.");
+
+            PressNav();
+            Assert.That(aims, Has.Count.EqualTo(1), "The first shot is immediate.");
+            Assert.That(aims[0].Fire, Is.True);
+            Assert.That(Key(nav, EngineKeyFunctions.Use, BoundKeyState.Down, cursor, newPhysicalEvent: false).Handled, Is.True);
+            Assert.That(aims, Has.Count.EqualTo(1), "Duplicate functions for one physical button must not double-fire.");
+            Assert.That(ordinaryRadarClicks, Is.Zero, "Consumed cockpit input must bypass the inherited radar firing loop.");
+            Tick(fire, 0.05f, cursor, true);
+            Assert.That(aims, Has.Count.EqualTo(1));
+            Tick(fire, 0.06f, cursor, true);
+            Assert.That(aims, Has.Count.EqualTo(2));
+            Assert.That(aims[^1].Fire, Is.True);
+            ReleaseNav();
+            var afterRelease = aims.Count;
+            Tick(fire, 0.11f, cursor, false);
+            Tick(fire, 0.11f, cursor, false);
+            Assert.That(aims, Has.Count.EqualTo(afterRelease), "A stationary released pointer must not repeatedly send the same target.");
+            Tick(fire, 0.11f, Pointer(nav, nav.Size / 2 + new Vector2(2, 0)), false);
+            Assert.That(aims, Has.Count.EqualTo(afterRelease + 1));
+            Assert.That(aims[^1].Fire, Is.False, "Moving after release continues missile guidance without firing.");
+
+            PressNav();
+            enabled = false;
+            var beforeLoss = aims.Count;
+            Tick(fire, 0.11f, cursor, true);
+            Assert.That(aims, Has.Count.EqualTo(beforeLoss));
+            enabled = true;
+            Tick(fire, 0.11f, cursor, true);
+            Assert.That(aims[^1].Fire, Is.False, "Restoring the server link must not resume a held trigger.");
+            ReleaseNav();
+
+            PressNav();
+            beforeLoss = aims.Count;
+            fire.Cancel();
+            Assert.That(Key(nav, EngineKeyFunctions.Use, BoundKeyState.Down, cursor, newPhysicalEvent: false).Handled, Is.True);
+            Assert.That(aims, Has.Count.EqualTo(beforeLoss), "A replacement link must not rearm from a duplicate bound function.");
+            Tick(fire, 0.11f, cursor, true);
+            Assert.That(aims[^1].Fire, Is.False, "Changing the console cancels the held trigger even while link availability stays true.");
+            ReleaseNav();
+
+            PressNav();
+            Invoke(nav, "MouseExited");
+            Tick(fire, 0.11f, cursor, true);
+            Assert.That(aims[^1].Fire, Is.False, "Re-entering the map while still held must require a new press.");
+            ReleaseNav();
+
+            PressNav();
+            Tick(fire, 0.11f, cursor, true, false);
+            Tick(fire, 0.11f, cursor, true);
+            Assert.That(aims[^1].Fire, Is.False, "Restoring window focus must not resume firing.");
+            ReleaseNav();
+
+            PressNav();
+            nav.Visible = false;
+            nav.Visible = true;
+            Tick(fire, 0.11f, cursor, true);
+            Assert.That(aims[^1].Fire, Is.False, "Changing MFD pages releases the trigger.");
+            ReleaseNav();
+
+            using var chat = new LineEdit();
+            host.AddChild(chat);
+            chat.GrabKeyboardFocus();
+            beforeLoss = aims.Count;
+            Assert.That(Key(nav, EngineKeyFunctions.Use, BoundKeyState.Down, cursor).Handled, Is.False);
+            Assert.That(aims, Has.Count.EqualTo(beforeLoss), "A focused chat or command field must prevent the first shot too.");
+            Key(nav, EngineKeyFunctions.Use, BoundKeyState.Up, cursor);
+            ui.ReleaseKeyboardFocus();
+            Assert.That(Key(nav, EngineKeyFunctions.Use, BoundKeyState.Down, cursor, false).Handled, Is.False);
+            Assert.That(aims, Has.Count.EqualTo(beforeLoss), "A keyboard Use binding must not become a cockpit trigger.");
+            Key(nav, EngineKeyFunctions.Use, BoundKeyState.Up, cursor);
+            Assert.That(Key(nav, EngineKeyFunctions.Use, BoundKeyState.Down, cursor, false, true).Handled, Is.False);
+            Assert.That(aims, Has.Count.EqualTo(beforeLoss), "A keyboard Use binding cannot arm fire while an unrelated left press is held.");
+            Key(nav, EngineKeyFunctions.Use, BoundKeyState.Up, cursor);
+
+            var oldContext = input.Contexts.ActiveContext.Name;
+            const string testContext = "wf-cockpit-fire-test";
+            input.Contexts.New(testContext, input.Contexts.ActiveContext);
+            PressNav();
+            input.Contexts.SetActiveContext(testContext);
+            Tick(fire, 0.11f, cursor, true);
+            Assert.That(aims[^1].Fire, Is.False, "A different input context invalidates the held trigger.");
+            input.Contexts.SetActiveContext(oldContext);
+            input.Contexts.Remove(testContext);
+            ReleaseNav();
+
+            enabled = false;
+            Assert.That(Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Down, cursor).Handled, Is.False,
+                "Without a gunnery link, normal navigation input remains available.");
+            Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Up, cursor);
+            Assert.That(ordinaryRadarClicks, Is.EqualTo(2));
+            enabled = true;
+            PressNav();
+            Assert.That(PhysicalHandlers(input)!.GetInvocationList().Any(handler => ReferenceEquals(handler.Target, fire)), Is.True);
+            lease.Restore();
+            Assert.That(PhysicalHandlers(input)?.GetInvocationList().Any(handler => ReferenceEquals(handler.Target, fire)) ?? false, Is.False,
+                "Exiting cockpit must unsubscribe the physical input hook.");
+            var beforeExit = aims.Count;
+            Tick(fire, 1, cursor, true);
+            Assert.That(aims, Has.Count.EqualTo(beforeExit), "Exiting cockpit removes the firing hooks and timer.");
+            Assert.That(Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Down, cursor).Handled, Is.False);
+            Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Up, cursor);
+            maps.DeleteMap(map);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ReticleTracksArmedHoverAndRestoresBorrowedCursors()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            Assert.That(WFCockpitFireInput.ReticlePath.ToString(), Does.Not.Contain(".rsi/"),
+                "A packaged client packs every RSI into one file, so a state's PNG cannot be read by path.");
+            Assert.That(pair.Client.ResolveDependency<IResourceManager>().ContentFileExists(WFCockpitFireInput.ReticlePath), Is.True);
+            var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
+            var input = pair.Client.ResolveDependency<IInputManager>();
+            var maps = pair.Client.ResolveDependency<IMapManager>();
+            var clyde = pair.Client.ResolveDependency<IClyde>();
+            var map = maps.CreateMap();
+            var origin = new EntityCoordinates(maps.GetMapEntityId(map), Vector2.Zero);
+            using var host = new Control { MouseFilter = Control.MouseFilterMode.Ignore };
+            using var world = new MainViewport();
+            using var nav = new ShuttleNavControl { WfFitInstrument = true, SetSize = new Vector2(float.NaN) };
+            var originalWorld = clyde.GetStandardCursor(StandardCursorShape.Hand);
+            world.Viewport.CustomCursorShape = originalWorld;
+            nav.DefaultCursorShape = Control.CursorShape.Pointer;
+            world.Viewport.ViewportSize = new Vector2i(400, 300);
+            nav.SetMatrix(origin, Angle.Zero);
+            var lease = new WFCockpitLease();
+            nav.WfCockpitInteraction(lease);
+            var linked = true;
+            var armed = false;
+            var aims = new List<(EntityCoordinates Target, bool Fire)>();
+            using var fire = new WFCockpitFireInput(world, nav, () => linked, () => armed, (target, firing) => aims.Add((target, firing)), lease);
+            host.AddChild(world);
+            host.AddChild(nav);
+            host.AddChild(fire);
+            ui.RootControl.AddChild(host);
+            ui.ReleaseKeyboardFocus();
+            host.Measure(new Vector2(850, 340));
+            host.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(850, 340)));
+            world.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(400, 300)));
+            nav.Arrange(UIBox2.FromDimensions(new Vector2(420, 0), new Vector2(400, 300)));
+            var pointer = Pointer(nav, nav.Size / 2);
+            Tick(fire, 0, pointer, false);
+            Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer), "A live link without selected weapons is not armed.");
+            Assert.That(Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Down, pointer).Handled, Is.False,
+                "An unarmed cockpit must leave navigation input available.");
+            Key(nav, EngineKeyFunctions.UIClick, BoundKeyState.Up, pointer);
+            Tick(fire, 0.5f, pointer, false);
+            Assert.That(aims, Is.Empty, "A linked gun bank without selected weapons must not send hover aim.");
+            Assert.That(fire.AimTarget, Is.Null, "An unarmed bank has no aim point to preview.");
+            armed = true;
+            Tick(fire, 0, pointer, false);
+            Assert.That(fire.AimTarget, Is.Not.Null, "An armed hover publishes the aim point the preview lines end at.");
+            var transforms = pair.Client.EntMan.System<SharedTransformSystem>();
+            Assert.That(nav.WfCockpitTryGetWorldToView(out var worldToView, out var plotMap, out _), Is.True);
+            Assert.That(plotMap, Is.EqualTo(map));
+            var aimPixel = Vector2.Transform(transforms.ToMapCoordinates(fire.AimTarget!.Value).Position, worldToView);
+            Assert.That((aimPixel - nav.PixelSize / 2f).Length(), Is.LessThan(2f),
+                "The preview transform must agree with the plot's own aim mapping at the pointer.");
+            var east = Vector2.Transform(new Vector2(10, 0), worldToView);
+            var north = Vector2.Transform(new Vector2(0, 10), worldToView);
+            Assert.That(east.X, Is.GreaterThan(aimPixel.X + 1), "World east is plot right.");
+            Assert.That(north.Y, Is.LessThan(aimPixel.Y - 1), "World north is plot up.");
+            var selectedWeapon = new NetEntity(901);
+            var lines = new WFCockpitAimLines(nav, () => fire.AimTarget, weapon => weapon == selectedWeapon);
+            Assert.That(lines.Lines(), Is.Empty, "No weapons, no preview.");
+            var mount = pair.Client.EntMan.SpawnEntity(null, new MapCoordinates(new Vector2(6, 3), map));
+            var idle = pair.Client.EntMan.SpawnEntity(null, new MapCoordinates(new Vector2(-4, 2), map));
+            lines.UpdateWeapons(new[]
+            {
+                new FireControllableEntry { NetEntity = selectedWeapon, Coordinates = pair.Client.EntMan.GetNetCoordinates(new EntityCoordinates(mount, Vector2.Zero)), IgnoresLos = true },
+                new FireControllableEntry { NetEntity = new NetEntity(902), Coordinates = pair.Client.EntMan.GetNetCoordinates(new EntityCoordinates(idle, Vector2.Zero)), IgnoresLos = true },
+            });
+            var drawn = lines.Lines().ToArray();
+            Assert.That(drawn, Has.Length.EqualTo(1), "Only selected weapons draw a preview line.");
+            Assert.That((drawn[0].From - Vector2.Transform(new Vector2(6, 3), worldToView)).Length(), Is.LessThan(0.5f), "The line starts at the weapon.");
+            Assert.That((drawn[0].To - aimPixel).Length(), Is.LessThan(0.5f), "The line ends at the aim point.");
+            lines.Dispose();
+            var reticle = nav.CustomCursorShape;
+            Assert.That(reticle, Is.Not.Null, "Armed plots use the visible gun-sight asset rather than a platform crosshair.");
+            Assert.That(world.Viewport.CustomCursorShape, Is.SameAs(originalWorld), "Only the hovered aiming surface changes cursor.");
+            linked = false;
+            Tick(fire, 0, pointer, false);
+            Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer));
+            Assert.That(fire.AimTarget, Is.Null, "Losing the link removes the aim point and its preview.");
+            linked = true;
+            Tick(fire, 0, pointer, false);
+            Assert.That(nav.CustomCursorShape, Is.SameAs(reticle));
+            Tick(fire, 0, pointer, false, false);
+            Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer), "Unfocused windows must not advertise firing.");
+            var pressed = (bool[]) input.GetType().GetField("_keysPressed", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(input)!;
+            pressed[(int) Keyboard.Key.Shift] = true;
+            Tick(fire, 0, pointer, false);
+            Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer), "Alternate modifier gestures retain their normal pointer.");
+            pressed[(int) Keyboard.Key.Shift] = false;
+            Tick(fire, 0, default, false);
+            Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer), "An invalid pointer has no armed cursor.");
+            using var chat = new LineEdit();
+            host.AddChild(chat);
+            chat.GrabKeyboardFocus();
+            Tick(fire, 0, pointer, false);
+            Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer));
+            ui.ReleaseKeyboardFocus();
+            using var button = new Button();
+            host.AddChild(button);
+            button.Arrange(UIBox2.FromDimensions(nav.Position + nav.Size / 2 - new Vector2(16), new Vector2(32)));
+            Assert.That(ui.MouseGetControl(pointer), Is.SameAs(button));
+            Tick(fire, 0, pointer, false);
+            Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer), "HUD buttons must not acquire the reticle beneath them.");
+            button.Visible = false;
+            nav.SetMatrix(null, null);
+            Tick(fire, 0, pointer, false);
+            Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer), "A plot without a valid target frame is not an aim surface.");
+            nav.SetMatrix(origin, Angle.Zero);
+            Tick(fire, 0, pointer, false);
+            Assert.That(nav.CustomCursorShape, Is.SameAs(reticle));
+            armed = false;
+            Tick(fire, 0, pointer, false);
+            Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer));
+            armed = true;
+            Tick(fire, 0, pointer, false);
+            lease.Restore();
+            Assert.That(nav.DefaultCursorShape, Is.EqualTo(Control.CursorShape.Pointer));
+            Assert.That(world.Viewport.CustomCursorShape, Is.SameAs(originalWorld), "Leaving cockpit restores pre-existing custom cursors exactly.");
+            maps.DeleteMap(map);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task NavigationAimFollowsPanZoomAndRotation()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var maps = pair.Client.ResolveDependency<IMapManager>();
+            var map = maps.CreateMap();
+            var mapEntity = maps.GetMapEntityId(map);
+            using var nav = new ShuttleNavControl { WfFitInstrument = true, SetSize = new Vector2(float.NaN), WorldRange = 40 };
+            nav.SetMatrix(new EntityCoordinates(mapEntity, new Vector2(10, 20)), Angle.Zero);
+            typeof(ShuttleNavControl).GetField("_rotation", BindingFlags.Instance | BindingFlags.NonPublic)!
+                .SetValue(nav, Angle.FromDegrees(90));
+            nav.Offset = new Vector2(5, -3);
+            nav.Measure(new Vector2(400));
+            nav.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(400)));
+            var center = nav.Size / 2;
+            var target = nav.WfCockpitAimCoordinates(center);
+            Assert.That(Vector2.Distance(target.Position, new Vector2(13, 25)), Is.LessThan(0.01));
+            var radius = (Math.Min(nav.PixelWidth, nav.PixelHeight) / 2 - (int) (4 * nav.UIScale)) / nav.UIScale;
+            target = nav.WfCockpitAimCoordinates(center + new Vector2(radius, 0));
+            Assert.That(Vector2.Distance(target.Position, new Vector2(13, 65)), Is.LessThan(0.01));
+            nav.WorldRange = 20;
+            target = nav.WfCockpitAimCoordinates(center + new Vector2(radius, 0));
+            Assert.That(Vector2.Distance(target.Position, new Vector2(13, 45)), Is.LessThan(0.01));
+            maps.DeleteMap(map);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    internal static ScreenCoordinates Pointer(Control control, Vector2 local) =>
+        new(control.GlobalPixelPosition + local * control.UIScale, control.Window!.Id);
+
+    internal static GUIBoundKeyEventArgs Key(Control control, BoundKeyFunction function, BoundKeyState state,
+        ScreenCoordinates pointer, bool physicalMouse = true, bool heldMouse = false, bool newPhysicalEvent = true)
+    {
+        var input = IoCManager.Resolve<IInputManager>();
+        var key = !physicalMouse ? Keyboard.Key.E : function == EngineKeyFunctions.UseSecondary ? Keyboard.Key.MouseRight :
+            function == ContentKeyFunctions.MouseMiddle ? Keyboard.Key.MouseMiddle : Keyboard.Key.MouseLeft;
+        if (newPhysicalEvent)
+            PhysicalHandlers(input)?.Invoke(new KeyEventArgs(key, false, false, false, false, false, 0),
+                state == BoundKeyState.Down ? KeyEventType.Down : KeyEventType.Up);
+        var pressed = (bool[]) input.GetType().GetField("_keysPressed", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(input)!;
+        pressed[(int) Keyboard.Key.MouseLeft] = heldMouse || key == Keyboard.Key.MouseLeft && state == BoundKeyState.Down;
+        var args = new GUIBoundKeyEventArgs(function, state, pointer, true,
+            pointer.Position / control.UIScale - control.GlobalPosition, pointer.Position - control.GlobalPixelPosition);
+        Invoke(control, state == BoundKeyState.Down ? "KeyBindDown" : "KeyBindUp", args);
+        return args;
+    }
+
+    private static KeyEventAction? PhysicalHandlers(IInputManager input) => (KeyEventAction?) input.GetType()
+        .GetField("FirstChanceOnKeyEvent", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(input);
+
+    internal static void Tick(WFCockpitFireInput input, float delta, ScreenCoordinates pointer, bool leftDown, bool focused = true) =>
+        Invoke(input, "UpdateInput", delta, pointer, leftDown, focused);
+
+    private static void Invoke(object target, string method, params object[] args) => target.GetType()
+        .GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(target, args);
+}

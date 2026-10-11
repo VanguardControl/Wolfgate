@@ -430,6 +430,7 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
                 GetTractorCaptureSources(shuttleGridUid))
             {
                 ShieldShunt = GetWolfgateShieldShuntState(shuttleGridUid),
+                CockpitAutopilotActive = GetWfCockpitAutopilotStatus(entity), // WOLFGATE(Cockpit): report confirmed steering in the initial helm snapshot.
             });
             // WOLFGATE END
         }
@@ -440,6 +441,7 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
         base.Update(frameTime);
         UpdateTractorCaptureWarnings(frameTime); // WOLFGATE(TractorBeam)
         UpdateWolfgateShieldHelms(frameTime); // WOLFGATE(ShipShields): refresh open helm shield status on visible changes
+        UpdateWfCockpitStatuses(frameTime); // WOLFGATE(Cockpit): keep autopilot lamps current while any helm page is open.
 
         var toRemove = new ValueList<(EntityUid, PilotComponent)>();
         var query = EntityQueryEnumerator<PilotComponent>();
@@ -491,6 +493,7 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
         pilotComponent.Position = EntityManager.GetComponent<TransformComponent>(entity).Coordinates;
         Dirty(entity, pilotComponent);
 
+        EntityManager.System<ShipStatusSystem>().ObserveHull(uid); // WOLFGATE(Shuttles): capture hull condition before piloting can damage it.
         _camera.OnPilotAdded(entity, (uid, component)); // WOLFGATE(Shuttles): restore the console's camera view
     }
 

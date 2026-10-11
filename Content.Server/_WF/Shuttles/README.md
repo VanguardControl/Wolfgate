@@ -3,10 +3,37 @@
 Shuttle console additions for ships: a whole-ship view with hull telemetry (structure condition, fires, pressure, dead
 power), a collision warning (TCAS) that sweeps a piloted ship's path and warns before a hard impact, hull cameras the
 pilot can look through with a low-light feed, and nav map data for ships that were never registered as a station. The
-cameras' EXTERNAL view shows the ship from outside with every hull plated over: a middle-mouse drag pans it, the scroll
-wheel zooms it, and the client `ShuttleExternalCameraSystem` and `ShuttleHullRoofOverlay` run it. It is refused on a
-planet's surface, and sound and speech bubbles are taken from the point it looks at rather than from the helm. It draws
-no mobs, jetpack trails or do-after bars, so it can't be used to spot people outside a hull.
+cameras' EXTERNAL view shows the ship from outside with every hull plated over: a right-mouse drag pans it, the scroll
+wheel zooms it, and a right click without dragging opens the entity menu on release. The client
+`ShuttleExternalCameraSystem` and `ShuttleHullRoofOverlay` run it. It is refused on a planet's surface, and sound and
+speech bubbles are taken from the point it looks at rather than from the helm. It draws no mobs, jetpack trails or
+do-after bars, so it can't be used to spot people outside a hull.
+
+The cockpit HULL gauge averages the condition of surveyed hull locations, including missing floors and destroyed
+walls, windows (diagonal ones included) and airtight doors; curtains, gates, machinery and furniture do not
+contribute to the hull baseline. Piloting or opening the ship view starts the survey; later splits inherit that ship's original footprint,
+and rebuilding a lost location restores its condition. Successful construction-graph or RCD removal subtracts
+only the removed structure from its surveyed design; cancelled operations and combat destruction remain losses.
+Removing the last floor or lattice at a location with the RCD, or by cutting the lattice, drops that location from the survey too; floor lost
+to damage or explosions stays a loss until it is laid again.
+The separate minimum-integrity readout still describes the
+weakest surviving structure. The survey is kept for the current server lifetime and cannot infer sections already
+missing before the first survey. Outside the SHP page, cockpit requests collect hull condition and fuel reserves only;
+pressure, power and damage overlays are gathered when a detailed ship view is open. The structure survey reads only
+the flown grid's own anchored structures; fuel and power are still read with component queries filtered to the grid.
+
+The cockpit fuel gauge reports the mean reserve fraction per anchored generator, antimatter injector or fission
+reactor on the flown grid, including stopped machinery. Solid and chemical sources use accepted local fuel fill;
+antimatter uses its installed jar. Fission uses the sum of remaining fuel-rod activity divided by fresh activity,
+weighted by each rod's fresh capacity. Neutron-active fuel has a factor of 1.5 because it converts into half as
+much ordinary active fuel before becoming spent. Empty sources contribute zero; loose fuel and unanchored machines
+are excluded. This is average reserves, not a runtime estimate or a sum of incompatible fuel units. The LOW lamp
+lights at 20% or less only when every installed source is measurable; absent or unsupported sources show no signal.
+Fuel shares the existing one-second ship-status sweep, including the lightweight cockpit snapshot; the one-off
+hull survey taken when a grid gets its first pilot leaves it out.
+
+Autopilot arrival, cancellation and manual takeover use the supplied disengagement cue credited to gandalf.
+The mono import supports positional audio and plays at -4 dB; other console and navigation cues retain their sounds.
 
 Entry points: the server `ShipStatusSystem`, `CollisionWarningSystem`, `ShuttleCameraSystem` and
 `ShuttleNavMapSystem`; the client `ShipScreen`, `ShipViewControl`, `CollisionWarningBanner` and `ShuttleCameraBar`,
@@ -34,6 +61,8 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.Server/_WF/Shuttles/NavMapSystem.Wolfgate.cs`](NavMapSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Shuttles/Systems/CollisionWarningSystem.cs`](Systems/CollisionWarningSystem.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShipStatusSystem.cs`](Systems/ShipStatusSystem.cs)
+- [`Content.Server/_WF/Shuttles/Systems/ShipStatusSystem.Fuel.cs`](Systems/ShipStatusSystem.Fuel.cs)
+- [`Content.Server/_WF/Shuttles/Systems/ShipStatusSystem.Hull.cs`](Systems/ShipStatusSystem.Hull.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShuttleCameraSystem.cs`](Systems/ShuttleCameraSystem.cs)
 - [`Content.Server/_WF/Shuttles/Systems/ShuttleNavMapSystem.cs`](Systems/ShuttleNavMapSystem.cs)
 
@@ -41,8 +70,13 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 
 - [`Content.Shared/_WF/Shuttles/CollisionWarningComponent.cs`](../../../Content.Shared/_WF/Shuttles/CollisionWarningComponent.cs)
 - [`Content.Shared/_WF/Shuttles/CollisionWarningDisabledComponent.cs`](../../../Content.Shared/_WF/Shuttles/CollisionWarningDisabledComponent.cs)
+- [`Content.Shared/_WF/Shuttles/RCDSystem.Hull.cs`](../../../Content.Shared/_WF/Shuttles/RCDSystem.Hull.cs)
+- [`Content.Shared/_WF/Shuttles/ShipFuelSummary.cs`](../../../Content.Shared/_WF/Shuttles/ShipFuelSummary.cs)
 - [`Content.Shared/_WF/Shuttles/ShipStatus.cs`](../../../Content.Shared/_WF/Shuttles/ShipStatus.cs)
 - [`Content.Shared/_WF/Shuttles/ShuttleCameraComponent.cs`](../../../Content.Shared/_WF/Shuttles/ShuttleCameraComponent.cs)
+- [`Content.Shared/_WF/Shuttles/TileSystem.Hull.cs`](../../../Content.Shared/_WF/Shuttles/TileSystem.Hull.cs)
+- [`Content.Shared/_WF/Shuttles/WFHullDeconstructedEvent.cs`](../../../Content.Shared/_WF/Shuttles/WFHullDeconstructedEvent.cs)
+- [`Content.Shared/_WF/Shuttles/WFHullTileDeconstructedEvent.cs`](../../../Content.Shared/_WF/Shuttles/WFHullTileDeconstructedEvent.cs)
 
 ### Client
 
@@ -70,6 +104,8 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/CollisionWarningTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/CollisionWarningTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/DockedShipIffTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/DockedShipIffTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/FTLToDockTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/FTLToDockTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Shuttles/ShipFuelTelemetryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShipFuelTelemetryTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Shuttles/ShipHullConstructionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShipHullConstructionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShipStatusTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShipStatusTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleCameraTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleCameraTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleExternalCameraTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleExternalCameraTest.cs)
@@ -87,6 +123,8 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
 
 ### Audio
 
+- [`Resources/Audio/_WF/Shuttles/Autopilot/attributions.yml`](../../../Resources/Audio/_WF/Shuttles/Autopilot/attributions.yml)
+- [`Resources/Audio/_WF/Shuttles/Autopilot/autopilot_disengaged.ogg`](../../../Resources/Audio/_WF/Shuttles/Autopilot/autopilot_disengaged.ogg)
 - [`Resources/Audio/_WF/Shuttles/Tcas/attributions.yml`](../../../Resources/Audio/_WF/Shuttles/Tcas/attributions.yml)
 - [`Resources/Audio/_WF/Shuttles/Tcas/collision_alarm.ogg`](../../../Resources/Audio/_WF/Shuttles/Tcas/collision_alarm.ogg)
 - [`Resources/Audio/_WF/Shuttles/Tcas/collision_warning.ogg`](../../../Resources/Audio/_WF/Shuttles/Tcas/collision_warning.ogg)
@@ -110,6 +148,13 @@ even with a grid parked nearby. The fix it guards is a standalone edit listed in
   - the host can be grid B, since docking orders the pair by entity id.
   - the host can be grid B, since grid A is the side that undocked, usually the ship.
   - a ship loses only flags hosts added, once no host it is still docked to provides them.
-- [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs): restore the console's camera view
+- [`Content.Server/Shuttles/Components/ShuttleConsoleComponent.cs`](../../Shuttles/Components/ShuttleConsoleComponent.cs): use the supplied quiet autopilot disengagement cue.
+- [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
+  - capture hull condition before piloting can damage it.
+  - restore the console's camera view
+- [`Content.Shared/Maps/TileSystem.cs`](../../../Content.Shared/Maps/TileSystem.cs): cutting the last lattice leaves the hull survey before any split copies it.
+- [`Content.Shared/RCD/Systems/RCDSystem.cs`](../../../Content.Shared/RCD/Systems/RCDSystem.cs)
+  - removing the last lattice leaves the hull survey before any split copies it.
+  - Successful RCD removal updates the hull design without erasing combat losses.
 
 <!-- WOLFGATE-GENERATED END -->

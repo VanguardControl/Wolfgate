@@ -58,7 +58,7 @@ public sealed partial class ShuttleConsoleWindow
         // Flipping an overlay changes what the server needs to send, so re-request with the new mask.
         ShipContainer.OverlaysChanged += () =>
         {
-            if (ShipContainer.Visible)
+            if (ShipContainer.Visible || WfCockpitActive)
                 ShipStatusActiveChanged?.Invoke(true, ShipContainer.Overlays);
         };
     }
@@ -70,10 +70,10 @@ public sealed partial class ShuttleConsoleWindow
 
         ShipContainer.Visible = active;
 
-        if (!active)
+        if (!active && !WfCockpitActive)
             ShipContainer.ClearStatus();
 
-        ShipStatusActiveChanged?.Invoke(active, ShipContainer.Overlays);
+        ShipStatusActiveChanged?.Invoke(active || WfCockpitActive, ShipContainer.Overlays);
     }
 
     /// <summary>Feeds fresh hull telemetry to the ship screen.</summary>
