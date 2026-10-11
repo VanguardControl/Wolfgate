@@ -28,12 +28,9 @@ using Content.Shared.Weapons.Ranged.Components;
 using Content.Shared.Weapons.Ranged.Events;
 using Content.Shared.Whitelist;
 using Content.Shared._RMC14.Weapons.Ranged.Prediction;
-<<<<<<< HEAD
 using Content.Shared._WF.Tether.Harpoon; // WOLFGATE(Tether): manned turret gun relay
-=======
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Inventory;
->>>>>>> 7a34cb56ae (Crocus 6 (#4853))
 using Content.Shared.Weapons.Hitscan.Events;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -172,20 +169,20 @@ public abstract partial class SharedGunSystem : EntitySystem
         // if (TryComp<MechPilotComponent>(user.Value, out var mechPilot))
         //     user = mechPilot.Mech;
         //
-        // if (!TryGetGun(user.Value, out var ent, out var gun) ||
+        // if (!TryGetGun(user.Value, out var ent) ||
         //     HasComp<ItemComponent>(user))
         //     return;
         //
-        // if (ent != GetEntity(msg.Gun))
+        // if (ent.Owner != GetEntity(msg.Gun))
         //     return;
         //
-        // gun.ShootCoordinates = GetCoordinates(msg.Coordinates);
+        // ent.Comp.ShootCoordinates = GetCoordinates(msg.Coordinates);
         // // Goob edit start
         // var potentialTarget = GetEntity(msg.Target);
-        // if (gun.Target == null || !gun.BurstActivated || !gun.LockOnTargetBurst)
-        //     gun.Target = potentialTarget;
+        // if (ent.Comp.Target == null || !ent.Comp.BurstActivated || !ent.Comp.LockOnTargetBurst)
+        //     ent.Comp.Target = potentialTarget;
         // // Goob edit end
-        // AttemptShoot(user.Value, ent, gun);
+        // AttemptShoot(user.Value, ent, ent.Comp);
         // }
         //
         // public List<(EntityUid Entity, ProjectileComponent Component)>? ShootRequested(
@@ -200,22 +197,22 @@ public abstract partial class SharedGunSystem : EntitySystem
         //
         //     if (user == null ||
         //         !_combatMode.IsInCombatMode(user) ||
-        //         !TryGetGun(user.Value, out var ent, out var gunComp))
+        //         !TryGetGun(user.Value, out var ent))
         //     {
         //         return null;
         //     }
         //
-        //     if (ent != gunUid)
+        //     if (ent.Owner != gunUid)
         //         return null;
         //
-        //     gunComp.ShootCoordinates = GetCoordinates(coordinates);
-        //     gunComp.Target = GetEntity(target);
+        //     ent.Comp.ShootCoordinates = GetCoordinates(coordinates);
+        //     ent.Comp.Target = GetEntity(target);
         //
-        //     AttemptShoot(user.Value, ent, gunComp);
+        //     AttemptShoot(user.Value, ent, ent.Comp);
         //
         //     // Check if shooting was successful by checking if ammo was consumed
         //     // This is a workaround since AttemptShoot returns void
-        //     if (gunComp.ShotCounter == 0)
+        //     if (ent.Comp.ShotCounter == 0)
         //         return null;
         //
         //     var projectiles = new List<(EntityUid Entity, ProjectileComponent Component)>();
@@ -234,72 +231,8 @@ public abstract partial class SharedGunSystem : EntitySystem
         if (_netManager.IsClient && Timing.IsFirstTimePredicted)
             return;
 
-<<<<<<< HEAD
         ShootRequested(msg.Gun, msg.Coordinates, msg.Target, msg.Shot, args.SenderSession, msg.Predicted);
         // WOLFGATE END
-=======
-        if (TryComp<MechPilotComponent>(user.Value, out var mechPilot))
-            user = mechPilot.Mech;
-
-        if (!TryGetGun(user.Value, out var ent) ||
-            HasComp<ItemComponent>(user))
-            return;
-
-        if (ent.Owner != GetEntity(msg.Gun))
-            return;
-
-        ent.Comp.ShootCoordinates = GetCoordinates(msg.Coordinates);
-        // Goob edit start
-        var potentialTarget = GetEntity(msg.Target);
-        if (ent.Comp.Target == null || !ent.Comp.BurstActivated || !ent.Comp.LockOnTargetBurst)
-            ent.Comp.Target = potentialTarget;
-        // Goob edit end
-        AttemptShoot(user.Value, ent, ent.Comp);
-    }
-
-    public List<(EntityUid Entity, ProjectileComponent Component)>? ShootRequested(
-        NetEntity gun,
-        NetCoordinates coordinates,
-        NetEntity? target,
-        List<int>? shot,
-        ICommonSession session)
-    {
-        var gunUid = GetEntity(gun);
-        var user = session.AttachedEntity;
-
-        if (user == null ||
-            !_combatMode.IsInCombatMode(user) ||
-            !TryGetGun(user.Value, out var ent))
-        {
-            return null;
-        }
-
-        if (ent.Owner != gunUid)
-            return null;
-
-        ent.Comp.ShootCoordinates = GetCoordinates(coordinates);
-        ent.Comp.Target = GetEntity(target);
-
-        AttemptShoot(user.Value, ent, ent.Comp);
-
-        // Check if shooting was successful by checking if ammo was consumed
-        // This is a workaround since AttemptShoot returns void
-        if (ent.Comp.ShotCounter == 0)
-            return null;
-
-        var projectiles = new List<(EntityUid Entity, ProjectileComponent Component)>();
-        if (shot != null)
-        {
-            foreach (var id in shot)
-            {
-                var entity = new EntityUid(id);
-                if (_projQuery.TryComp(entity, out var projectile))
-                    projectiles.Add((entity, projectile));
-            }
-        }
-
-        return projectiles;
->>>>>>> 7a34cb56ae (Crocus 6 (#4853))
     }
 
     private void OnStopShootRequest(RequestStopShootEvent ev, EntitySessionEventArgs args)
@@ -346,8 +279,7 @@ public abstract partial class SharedGunSystem : EntitySystem
         RaiseLocalEvent(entity, ref relayEv);
         if (relayEv.Gun is { } relayed && TryComp(relayed, out GunComponent? relayedGun))
         {
-            gunEntity = relayed;
-            gunComp = relayedGun;
+            gun = (relayed, relayedGun);
             return true;
         }
         // WOLFGATE END
@@ -356,7 +288,8 @@ public abstract partial class SharedGunSystem : EntitySystem
             mech.CurrentSelectedEquipment.HasValue &&
             TryComp<GunComponent>(mech.CurrentSelectedEquipment.Value, out var mechGun))
         {
-            gun = _altGun.CheckForAltGun((entity, mechGun)); // FH
+            // WOLFGATE: the gun is the mech's equipment, upstream passes the mech itself
+            gun = _altGun.CheckForAltGun((mech.CurrentSelectedEquipment.Value, mechGun)); // FH
             return true;
         }
 
