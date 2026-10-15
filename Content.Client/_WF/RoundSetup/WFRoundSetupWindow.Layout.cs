@@ -334,7 +334,7 @@ public sealed partial class WFRoundSetupWindow
                 if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
                 {
                     _body.AddChild(VesselSummary(state, lobby));
-                    _body.AddChild(Description(lobby.ShipStart == WFShipStartLocation.CentralDock ? "ship-start-central" : "ship-start-random"));
+                    _body.AddChild(Description(ShipStartKey(lobby.ShipStart)));
                     _body.AddChild(Button("ship", () => NavigateLobby(LobbyPage.Ship)));
                 }
                 _body.AddChild(Description(state.InRound ? "ready-round-help" : "ready-pregame-help"));

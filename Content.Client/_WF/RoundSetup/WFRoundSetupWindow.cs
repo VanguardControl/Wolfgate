@@ -156,7 +156,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
         {
             content.AddChild(VesselSummary(state, lobby));
-            content.AddChild(Description(lobby.ShipStart == WFShipStartLocation.CentralDock ? "ship-start-central" : "ship-start-random"));
+            content.AddChild(Description(ShipStartKey(lobby.ShipStart)));
         }
         var available = state.CanJoin && state.OwnLobby == null && lobby.MemberCount < WFRoundSetupPolicy.MaximumMembers &&
                         (!lobby.Started || lobby.AllowLateJoin);
@@ -309,7 +309,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         else if (lobby.Host != member.UserId)
             BuildMemberRoles(lobby, member);
         if (lobby.Host == member.UserId)
-            BuildPersonalTitle(member);
+            BuildPersonalTitle(lobby, member);
     }
 
     /// <summary>Keeps unchanged periodic snapshots from interrupting text entry and open selectors.</summary>

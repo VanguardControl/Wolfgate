@@ -109,7 +109,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     {
         station = EntityUid.Invalid;
         reason = "wf-round-setup-ship-invalid";
-        if (!IsVesselAvailable(vesselId, faction) || !Enum.IsDefined(location))
+        if (!IsVesselAvailable(vesselId, faction) || !WFRoundSetupPolicy.IsShipStartAllowed(location, faction))
             return false;
         if (_scenarios.TryGetValue(lobbyId, out var existing))
         {
@@ -142,11 +142,12 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
             Del(hull);
             return false;
         }
-        var positioned = location == WFShipStartLocation.CentralDock
-            ? TryDockAtCentral(hull) : FindClearPosition(hull, loaded.Value.Comp, mapEntity.Value, mapId);
+        var positioned = location == WFShipStartLocation.RandomSpace
+            ? FindClearPosition(hull, loaded.Value.Comp, mapEntity.Value, mapId)
+            : TryStartAtStation(hull, loaded.Value.Comp, mapEntity.Value, mapId, faction);
         if (!positioned)
         {
-            reason = location == WFShipStartLocation.CentralDock ? "wf-round-setup-ship-no-dock" : reason;
+            reason = location == WFShipStartLocation.RandomSpace ? reason : "wf-round-setup-ship-no-station-space";
             Del(hull);
             return false;
         }
@@ -293,12 +294,13 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     }
 
     /// <summary>Moves a newly loaded hull away from existing grids before admitting its crew.</summary>
-    private bool FindClearPosition(EntityUid hull, MapGridComponent grid, EntityUid map, MapId mapId)
+    private bool FindClearPosition(EntityUid hull, MapGridComponent grid, EntityUid map, MapId mapId,
+        Vector2 center = default, float minimumRadius = 1500f, float maximumRadius = 6000f)
     {
         var nearby = new List<Entity<MapGridComponent>>();
         for (var attempt = 0; attempt < 32; attempt++)
         {
-            var position = _random.NextVector2(1500f, 6000f);
+            var position = center + _random.NextVector2(minimumRadius, maximumRadius);
             _transform.SetCoordinates(hull, new EntityCoordinates(map, position));
             var bounds = _transform.GetWorldMatrix(hull).TransformBox(grid.LocalAABB).Enlarged(100f);
             nearby.Clear();

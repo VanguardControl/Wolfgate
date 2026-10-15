@@ -8,6 +8,13 @@ namespace Content.Client._WF.RoundSetup;
 
 public sealed partial class WFRoundSetupWindow
 {
+    private static string ShipStartKey(WFShipStartLocation location) => location switch
+    {
+        WFShipStartLocation.CentralDock => "ship-start-central",
+        WFShipStartLocation.FactionBase => "ship-start-faction",
+        _ => "ship-start-random",
+    };
+
     private static string Price(int amount) => BankSystemExtensions.ToSpesoString(amount);
 
     private RichTextLabel VesselSummary(WFRoundSetupState state, WFRoundSetupLobby lobby)
@@ -36,7 +43,7 @@ public sealed partial class WFRoundSetupWindow
             summary.ToolTip = vessel?.Description;
             section.AddChild(summary);
             section.AddChild(Heading("ship-start"));
-            section.AddChild(Description(lobby.ShipStart == WFShipStartLocation.CentralDock ? "ship-start-central" : "ship-start-random"));
+            section.AddChild(Description(ShipStartKey(lobby.ShipStart)));
             preview.SetVessel(vessel);
             preview.ToolTip = vessel?.Description;
             AddShipPreviewLayout(section, preview);
@@ -80,9 +87,10 @@ public sealed partial class WFRoundSetupWindow
         section.AddChild(Heading("ship-start"));
         var location = new WFRoundSetupOptionButton { Name = "RoundSetupShipStart", HorizontalExpand = true };
         location.AddItem(Text("ship-start-random"), (int) WFShipStartLocation.RandomSpace);
-        location.AddItem(Text("ship-start-central"), (int) WFShipStartLocation.CentralDock);
+        var stationStart = lobby.Scenario == WFRoundScenario.FactionShip ? WFShipStartLocation.FactionBase : WFShipStartLocation.CentralDock;
+        location.AddItem(Text(ShipStartKey(stationStart)), (int) stationStart);
         location.SelectId((int) lobby.ShipStart);
-        location.ToolTip = Text(lobby.ShipStart == WFShipStartLocation.CentralDock ? "ship-start-central-help" : "ship-start-random-help");
+        location.ToolTip = Text(ShipStartKey(lobby.ShipStart) + "-help");
         location.OnItemSelected += args => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.SelectShipStart)
         {
             LobbyId = lobby.Id,

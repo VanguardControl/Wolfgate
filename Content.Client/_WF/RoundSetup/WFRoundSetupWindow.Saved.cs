@@ -14,8 +14,15 @@ public sealed partial class WFRoundSetupWindow
     private int? _selectedSavedId;
 
     /// <summary>Edits the host's displayed title without changing the underlying job.</summary>
-    private void BuildPersonalTitle(WFRoundSetupMember member)
+    private void BuildPersonalTitle(WFRoundSetupLobby lobby, WFRoundSetupMember member)
     {
+        if (lobby.Scenario == WFRoundScenario.FactionShip)
+        {
+            _personalTitle = string.Empty;
+            _personalTitleDirty = false;
+            _body.AddChild(Description("faction-titles-fixed"));
+            return;
+        }
         if (!_personalTitleDirty)
             _personalTitle = member.Title;
         var title = new LineEdit
@@ -70,7 +77,7 @@ public sealed partial class WFRoundSetupWindow
         if (WFRoundSetupPolicy.IsShip(selected.Scenario))
         {
             _body.AddChild(VesselSummary(state, new WFRoundSetupLobby { Vessel = selected.Vessel, ShipName = selected.ShipName }));
-            _body.AddChild(Description(selected.ShipStart == WFShipStartLocation.CentralDock ? "ship-start-central" : "ship-start-random"));
+            _body.AddChild(Description(ShipStartKey(selected.ShipStart)));
         }
         _body.AddChild(PlainDescription(Text("saved-personal-job", ("job", JobName(selected.Job)), ("title", selected.JobTitle))));
         foreach (var role in selected.Roles)

@@ -160,7 +160,7 @@ public sealed partial class WFRoundSetupSystem
             !WFRoundSetupPolicy.TryNormalizeRoleName(msg.RoleName, out var name))
             return false;
         if (lobby.Scenario == WFRoundScenario.FactionShip &&
-            !WFFactionCrewPolicy.CanRecruit(lobby.Faction, lobby.Members[lobby.Host].Job, msg.Job))
+            (name.Length != 0 || !WFFactionCrewPolicy.CanRecruit(lobby.Faction, lobby.Members[lobby.Host].Job, msg.Job)))
             return false;
         if (msg.RoleId is not { } roleId)
         {

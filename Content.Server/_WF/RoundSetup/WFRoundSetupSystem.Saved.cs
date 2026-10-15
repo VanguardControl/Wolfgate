@@ -48,6 +48,13 @@ public sealed partial class WFRoundSetupSystem
                     document.Setups.Select(setup => setup.Id).Distinct().Count() != document.Setups.Length)
                     throw new IOException("Invalid saved setup document.");
                 result = document.Setups;
+                foreach (var setup in result.Where(setup => setup.Scenario == WFRoundScenario.FactionShip))
+                {
+                    setup.JobTitle = string.Empty;
+                    setup.Roles = setup.Roles.Select(role => role with { Name = string.Empty }).ToArray();
+                    if (setup.ShipStart == WFShipStartLocation.CentralDock)
+                        setup.ShipStart = WFShipStartLocation.FactionBase;
+                }
             }
         }
         catch (Exception e) when (e is IOException or JsonException or UnauthorizedAccessException)
@@ -107,7 +114,7 @@ public sealed partial class WFRoundSetupSystem
         {
             Id = existing?.Id ?? Enumerable.Range(1, WFRoundSetupPolicy.MaximumSavedSetups).First(id => saved.All(entry => entry.Id != id)),
             Name = name, Title = lobby.Title, Description = lobby.Description, Scenario = lobby.Scenario, Faction = lobby.Faction, ShipName = lobby.ShipName, ShipStart = lobby.ShipStart, Vessel = lobby.Vessel,
-            Job = member.Job, JobTitle = title, Access = lobby.Access, AllowLateJoin = lobby.AllowLateJoin,
+            Job = member.Job, JobTitle = lobby.Scenario == WFRoundScenario.FactionShip ? string.Empty : title, Access = lobby.Access, AllowLateJoin = lobby.AllowLateJoin,
             Roles = lobby.Roles.Values.Select(entry => new WFSavedRole(entry.Name, entry.Job, entry.Capacity)).ToArray(),
         };
         return ValidSavedSetup(snapshot) && ValidSavedJobs(snapshot) && StoreSetups(host.UserId, saved.Where(entry => entry.Id != snapshot.Id).Append(snapshot).ToArray());
@@ -128,7 +135,7 @@ public sealed partial class WFRoundSetupSystem
             WFRoundSetupPolicy.IsShip(saved.Scenario) && saved.Vessel != null && !_ships.IsVesselAvailable(saved.Vessel, saved.Faction) ||
             saved.Scenario == WFRoundScenario.FactionShip && (!CanCreateFaction(host, saved.Faction) || saved.Job != null && !IsJobAllowed(host, saved.Job)))
             return false;
-        if (!ValidSavedJobs(saved))
+        if (!ValidSavedJobs(saved) || !WFRoundSetupPolicy.IsShipStartAllowed(saved.ShipStart, saved.Faction))
             return false;
         var lobby = new Lobby
         {

@@ -374,6 +374,13 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
                 lobby.Faction = faction;
                 lobby.Vessel = null;
                 lobby.ShipStart = WFShipStartLocation.RandomSpace;
+                if (lobby.Scenario == WFRoundScenario.FactionShip)
+                {
+                    foreach (var entry in lobby.Members.Values)
+                        entry.Title = string.Empty;
+                    foreach (var entry in lobby.Roles.Values)
+                        entry.Name = string.Empty;
+                }
                 var allowed = ScenarioJobs(lobby.Scenario, lobby.Faction);
                 foreach (var affected in lobby.Members.Values.Where(entry => !entry.Spawned && entry.Job != null && !allowed.Contains(entry.Job)))
                 {
@@ -393,7 +400,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
                 lobby.ShipName = shipName;
                 return true;
             case WFRoundSetupAction.SelectShipStart:
-                if (lobby.Started || !WFRoundSetupPolicy.IsShip(lobby.Scenario) || !Enum.IsDefined(msg.ShipStart))
+                if (lobby.Started || !WFRoundSetupPolicy.IsShip(lobby.Scenario) || !WFRoundSetupPolicy.IsShipStartAllowed(msg.ShipStart, lobby.Faction))
                     return false;
                 if (lobby.ShipStart == msg.ShipStart)
                     return true;
@@ -516,7 +523,8 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     /// <summary>Validates a crew-local personal title independently of the underlying job.</summary>
     private bool SetPersonalTitle(Lobby lobby, NetUserId user, string? input)
     {
-        if (!WFRoundSetupPolicy.TryNormalizeRoleName(input, out var title))
+        if (!WFRoundSetupPolicy.TryNormalizeRoleName(input, out var title) ||
+            lobby.Scenario == WFRoundScenario.FactionShip && title.Length != 0)
             return false;
         var member = lobby.Members[user];
         if (member.Title == title)

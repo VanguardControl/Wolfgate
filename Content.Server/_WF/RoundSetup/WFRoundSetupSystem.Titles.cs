@@ -1,6 +1,5 @@
 using Content.Shared._WF.Roles;
 using Content.Shared._WF.RoundSetup;
-using Content.Shared.Roles;
 using Content.Shared.Access.Systems;
 using Content.Shared.Mind;
 using Content.Shared.StationRecords;
@@ -14,13 +13,13 @@ public sealed partial class WFRoundSetupSystem
     /// <summary>Applies the chosen crew title to the spawned identity while retaining its real job and access.</summary>
     private void ApplyCrewTitle(Lobby lobby, Member member, ICommonSession session)
     {
+        if (lobby.Scenario == WFRoundScenario.FactionShip)
+            return;
         var title = member.Title;
         if (title.Length == 0 && member.RoleId is { } role && lobby.Roles.TryGetValue(role, out var selected))
             title = selected.Name;
         if (title.Length == 0 || member.Job == null || session.AttachedEntity is not { } body)
             return;
-        if (lobby.Scenario == WFRoundScenario.FactionShip && _prototypes.TryIndex<JobPrototype>(member.Job, out var job))
-            title = Loc.GetString("wf-round-setup-faction-duty-title", ("rank", job.LocalizedName), ("title", title));
         if (EntityManager.System<SharedMindSystem>().TryGetMind(body, out var mind, out _))
         {
             var custom = EnsureComp<CustomJobTitleComponent>(mind);

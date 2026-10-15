@@ -218,7 +218,7 @@ public sealed partial class WFRoundSetupWindow
             content.AddChild(PlainDescription(RoleChoice(role)));
         var name = new LineEdit
         {
-            Text = draft.Name,
+            Text = lobby.Scenario == WFRoundScenario.FactionShip ? string.Empty : draft.Name,
             PlaceHolder = Text("role-name-placeholder"),
             HorizontalExpand = true,
             Editable = !spawned,
@@ -226,8 +226,13 @@ public sealed partial class WFRoundSetupWindow
             IsValid = value => value.Length <= WFRoundSetupPolicy.MaximumRoleNameLength,
         };
         name.OnTextChanged += _ => { draft.Name = name.Text; draft.Dirty = true; };
-        content.AddChild(Heading("role-name"));
-        content.AddChild(name);
+        if (lobby.Scenario != WFRoundScenario.FactionShip)
+        {
+            content.AddChild(Heading("role-name"));
+            content.AddChild(name);
+        }
+        else
+            content.AddChild(Description("faction-titles-fixed"));
         var jobs = new List<WFRoundSetupJob>(state.RoleJobs);
         if (draft.Job is { } current && !jobs.Contains(current))
             jobs.Add(current);

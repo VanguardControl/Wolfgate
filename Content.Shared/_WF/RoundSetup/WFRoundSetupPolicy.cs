@@ -14,6 +14,14 @@ public static class WFRoundSetupPolicy
     /// <summary>Both independent and faction crews use the ship preparation flow.</summary>
     public static bool IsShip(WFRoundScenario scenario) => scenario is WFRoundScenario.Ship or WFRoundScenario.FactionShip;
 
+    /// <summary>Faction ships use their own base; civilian ships use the central station.</summary>
+    public static bool IsShipStartAllowed(WFShipStartLocation location, WFCrewFaction faction) => faction switch
+    {
+        WFCrewFaction.None => location is WFShipStartLocation.RandomSpace or WFShipStartLocation.CentralDock,
+        WFCrewFaction.TSF or WFCrewFaction.PDV => location is WFShipStartLocation.RandomSpace or WFShipStartLocation.FactionBase,
+        _ => false,
+    };
+
     /// <summary>The longest public crew description.</summary>
     public const int MaximumDescriptionLength = 512;
 

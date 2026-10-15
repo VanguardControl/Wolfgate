@@ -382,9 +382,9 @@ public sealed class ShipScenarioTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A docked start attaches to the central station, rejects missing berths and never charges for preparation.</summary>
+    /// <summary>Station starts dock when possible and otherwise use clear nearby space without charging for preparation.</summary>
     [Test]
-    public async Task CentralStartDocksAndRejectsMissingBerthsBeforePayment()
+    public async Task CentralStartDocksOrSpawnsNearbyBeforePayment()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
         await StartEmptyRound(pair, initializeServices: false);
@@ -397,7 +397,7 @@ public sealed class ShipScenarioTest
             var ticker = server.System<GameTicker>();
             var balance = ships.GetBalance(pair.Player!);
             Assert.That(ships.TryPrepare(19120, Vessel, out _, out var reason, WFShipStartLocation.CentralDock), Is.False);
-            Assert.That(reason, Is.EqualTo("wf-round-setup-ship-no-dock"));
+            Assert.That(reason, Is.EqualTo("wf-round-setup-ship-no-station-space"));
             Assert.That(ships.TryGetSpawn(19120, out _), Is.False);
             Assert.That(ships.GetBalance(pair.Player!), Is.EqualTo(balance));
 
@@ -418,11 +418,12 @@ public sealed class ShipScenarioTest
             ships.Rollback(19120);
             foreach (var dock in docks.GetDocks(central).ToArray())
                 em.DeleteEntity(dock.Owner);
-            Assert.That(ships.TryPrepare(19121, Vessel, out _, out reason, WFShipStartLocation.CentralDock), Is.False);
-            Assert.That(reason, Is.EqualTo("wf-round-setup-ship-no-dock"));
-            Assert.That(ships.TryGetSpawn(19121, out _), Is.False);
-            Assert.That(ships.TryPrepare(19121, Vessel, out _, out reason, WFShipStartLocation.RandomSpace), Is.True, reason);
+            Assert.That(ships.TryPrepare(19121, Vessel, out _, out reason, WFShipStartLocation.CentralDock), Is.True, reason);
             Assert.That(ships.TryGetSpawn(19121, out spawn), Is.True);
+            var transform = server.System<SharedTransformSystem>();
+            var center = transform.GetWorldPosition(central);
+            Assert.That(Vector2.Distance(transform.GetWorldPosition(spawn.EntityId), center), Is.LessThan(1200f));
+            Assert.That(ships.GetBalance(pair.Player!), Is.EqualTo(balance));
             Assert.That(docks.GetDocks(spawn.EntityId).All(dock => !dock.Comp.Docked), Is.True);
             ships.Rollback(19121);
             em.DeleteEntity(central);

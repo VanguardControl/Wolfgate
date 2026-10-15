@@ -19,6 +19,7 @@ using Content.Shared._WF.RoundSetup;
 using Content.Shared.Access.Systems;
 using Content.Shared.CCVar;
 using Content.Shared.Preferences;
+using Content.Shared.Roles;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 
@@ -140,6 +141,7 @@ public sealed partial class WFRoundSetupLobbyTest
                 var controls = Descendants(window).ToArray();
                 var page = controls.Single(control => control.Name == "RoundSetupPage");
                 var scroll = (ScrollContainer) controls.Single(control => control.Name == "RoundSetupPageScroll");
+                Assert.That(controls.Any(control => control.Name == "RoundSetupPersonalTitle"), Is.False);
                 Assert.That(scroll.VScrollEnabled, Is.False);
                 Assert.That(page.DesiredSize.Y, Is.LessThanOrEqualTo(scroll.Height + 1), "Faction preparation must fit without clipping.");
                 Assert.That(((Button) controls.Single(control => control.Name == "RoundSetupNext")).Disabled, Is.False);
@@ -149,13 +151,27 @@ public sealed partial class WFRoundSetupLobbyTest
             { LobbyId = id, Job = higherJob, RoleName = "Unauthorized command", Capacity = 1 });
             Assert.That(OwnLobby(state).Roles, Is.Empty);
             state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.UpsertRole)
-            { LobbyId = id, Job = recruitJob, RoleName = "Boarding team", Capacity = 3 });
+            { LobbyId = id, Job = recruitJob, RoleName = string.Empty, Capacity = 3 });
             Assert.That(OwnLobby(state).Roles.Single().Job, Is.EqualTo(recruitJob));
+            var opening = OwnLobby(state).Roles.Single();
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.UpsertRole)
+            { LobbyId = id, RoleId = opening.Id, Job = recruitJob, RoleName = "Forged rank", Capacity = 3 });
+            Assert.That(OwnLobby(state).Roles.Single().Name, Is.Empty);
+            var tierTwo = faction == WFCrewFaction.TSF ? "Fujian" : "Neptune";
+            Assert.That(state.Vessels.Select(ship => ship.Id), Does.Not.Contain(tierTwo));
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectVessel) { LobbyId = id, Vessel = tierTwo });
+            Assert.That(OwnLobby(state).Vessel, Is.Null, "T2 requests must be rejected by the server.");
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectShipStart) { LobbyId = id, ShipStart = WFShipStartLocation.CentralDock });
+            Assert.That(OwnLobby(state).ShipStart, Is.EqualTo(WFShipStartLocation.RandomSpace));
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectShipStart) { LobbyId = id, ShipStart = WFShipStartLocation.FactionBase });
+            Assert.That(OwnLobby(state).ShipStart, Is.EqualTo(WFShipStartLocation.FactionBase));
+            await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectShipStart) { LobbyId = id, ShipStart = WFShipStartLocation.RandomSpace });
             state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectVessel) { LobbyId = id, Vessel = enemyVessel });
             Assert.That(OwnLobby(state).Vessel, Is.Null, "A forged opposing-faction ship request must fail.");
             await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectVessel) { LobbyId = id, Vessel = vessel });
             await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SetShipName) { LobbyId = id, ShipName = "Resolute" });
-            await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SetTitle) { LobbyId = id, RoleName = "Patrol leader" });
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SetTitle) { LobbyId = id, RoleName = "Patrol leader" });
+            Assert.That(OwnLobby(state).Members.Single().Title, Is.Empty, "Faction ranks cannot be renamed.");
             state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SaveSetup) { LobbyId = id, SaveName = "Faction patrol" });
             var setup = state.SavedSetups.Single();
             Assert.That(setup.Faction, Is.EqualTo(faction));
@@ -201,8 +217,8 @@ public sealed partial class WFRoundSetupLobbyTest
                 Assert.That(em.GetComponent<WFShipScenarioComponent>(hull).LobbyId, Is.EqualTo(id));
                 Assert.That(server.System<SharedIdCardSystem>().TryFindIdCard(player.AttachedEntity.Value, out var card), Is.True);
                 Assert.That(card.Comp.CompanyName.Id, Is.EqualTo(faction.ToString()));
-                Assert.That(card.Comp.LocalizedJobTitle, Does.Contain("Patrol leader"));
-                Assert.That(card.Comp.LocalizedJobTitle, Is.Not.EqualTo("Patrol leader"), "Custom titles retain the actual faction rank.");
+                Assert.That(card.Comp.LocalizedJobTitle, Is.EqualTo(server.ProtoMan.Index<JobPrototype>(hostJob).LocalizedName),
+                    "Faction IDs must retain the official job title.");
                 Assert.That(em.GetComponent<ShuttleDeedComponent>(card.Owner).ShuttleName, Does.Contain("Resolute"));
                 Assert.That(server.System<StationJobsSystem>().TryGetJobSlot(station, hostJob, out var remaining), Is.True);
                 Assert.That(remaining, Is.EqualTo(0), "The real faction station owns the consumed job slot.");

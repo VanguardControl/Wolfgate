@@ -7,6 +7,22 @@ namespace Content.Tests._WF.RoundSetup;
 [TestFixture]
 public sealed class WFFactionCrewPolicyTest
 {
+    [TestCase(WFCrewFaction.None, WFShipStartLocation.RandomSpace, true)]
+    [TestCase(WFCrewFaction.None, WFShipStartLocation.CentralDock, true)]
+    [TestCase(WFCrewFaction.None, WFShipStartLocation.FactionBase, false)]
+    [TestCase(WFCrewFaction.TSF, WFShipStartLocation.RandomSpace, true)]
+    [TestCase(WFCrewFaction.TSF, WFShipStartLocation.FactionBase, true)]
+    [TestCase(WFCrewFaction.TSF, WFShipStartLocation.CentralDock, false)]
+    [TestCase(WFCrewFaction.PDV, WFShipStartLocation.RandomSpace, true)]
+    [TestCase(WFCrewFaction.PDV, WFShipStartLocation.FactionBase, true)]
+    [TestCase(WFCrewFaction.PDV, WFShipStartLocation.CentralDock, false)]
+    [TestCase((WFCrewFaction) 255, WFShipStartLocation.RandomSpace, false)]
+    [TestCase(WFCrewFaction.TSF, (WFShipStartLocation) 255, false)]
+    public void DeparturesStayWithinTheirFaction(WFCrewFaction faction, WFShipStartLocation location, bool allowed)
+    {
+        Assert.That(WFRoundSetupPolicy.IsShipStartAllowed(location, faction), Is.EqualTo(allowed));
+    }
+
     [TestCase(WFCrewFaction.TSF, "Bailiff", "SeniorOfficer", true)]
     [TestCase(WFCrewFaction.TSF, "Bailiff", "Bailiff", true)]
     [TestCase(WFCrewFaction.TSF, "Bailiff", "Sheriff", false)]

@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using Content.Server.GameTicking;
+using Content.Server._WF.RoundSetup;
 using Content.Server.GameTicking.Events;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Network;
@@ -11,11 +14,13 @@ public sealed class WFRoundSetupEligibilityTestSystem : EntitySystem
     public NetUserId? User;
     public readonly Dictionary<string, int> Calls = new();
     public bool DenyContractor;
+    public Action BeforeRoundSpawn;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<IsJobAllowedEvent>(OnAllowed);
+        SubscribeLocalEvent<RulePlayerSpawningEvent>(_ => BeforeRoundSpawn?.Invoke(), before: new[] { typeof(WFRoundSetupSystem) });
     }
 
     private void OnAllowed(ref IsJobAllowedEvent args)

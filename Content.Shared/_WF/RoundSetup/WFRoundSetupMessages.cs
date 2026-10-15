@@ -11,7 +11,7 @@ public enum WFRoundScenario : byte { Normal, Crashlanded, Ship, FactionShip }
 
 /// <summary>Where a purchased crew ship begins its journey.</summary>
 [Serializable, NetSerializable]
-public enum WFShipStartLocation : byte { RandomSpace, CentralDock }
+public enum WFShipStartLocation : byte { RandomSpace, CentralDock, FactionBase }
 
 /// <summary>How a player can enter a scenario lobby.</summary>
 [Serializable, NetSerializable]
