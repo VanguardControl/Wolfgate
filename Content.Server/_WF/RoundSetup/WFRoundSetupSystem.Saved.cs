@@ -117,7 +117,8 @@ public sealed partial class WFRoundSetupSystem
             Job = member.Job, JobTitle = lobby.Scenario == WFRoundScenario.FactionShip ? string.Empty : title, Access = lobby.Access, AllowLateJoin = lobby.AllowLateJoin,
             Roles = lobby.Roles.Values.Select(entry => new WFSavedRole(entry.Name, entry.Job, entry.Capacity)).ToArray(),
         };
-        return ValidSavedSetup(snapshot) && ValidSavedJobs(snapshot) && StoreSetups(host.UserId, saved.Where(entry => entry.Id != snapshot.Id).Append(snapshot).ToArray());
+        return ValidSavedSetup(snapshot) && ValidSavedJobs(snapshot) &&
+               (lobby.Vessel == null || CanBuyVessel(lobby, host, lobby.Vessel)) && StoreSetups(host.UserId, saved.Where(entry => entry.Id != snapshot.Id).Append(snapshot).ToArray());
     }
 
     private bool DeleteSetup(NetUserId user, int id)
@@ -132,7 +133,7 @@ public sealed partial class WFRoundSetupSystem
         var saved = GetSavedSetups(host.UserId).FirstOrDefault(entry => entry.Id == id);
         if (saved == null || !ValidSavedSetup(saved) || _lobbies.Count >= 64 ||
             saved.Scenario == WFRoundScenario.Crashlanded && !_crash.IsAvailable ||
-            WFRoundSetupPolicy.IsShip(saved.Scenario) && saved.Vessel != null && !_ships.IsVesselAvailable(saved.Vessel, saved.Faction) ||
+            WFRoundSetupPolicy.IsShip(saved.Scenario) && saved.Vessel != null && !_ships.IsVesselAvailable(saved.Vessel, saved.Faction, saved.Job != null && IsJobAllowed(host, saved.Job) ? saved.Job : null) ||
             saved.Scenario == WFRoundScenario.FactionShip && (!CanCreateFaction(host, saved.Faction) || saved.Job != null && !IsJobAllowed(host, saved.Job)))
             return false;
         if (!ValidSavedJobs(saved) || !WFRoundSetupPolicy.IsShipStartAllowed(saved.ShipStart, saved.Faction))
@@ -149,6 +150,7 @@ public sealed partial class WFRoundSetupSystem
         }
         _lobbies.Add(lobby.Id, lobby);
         RegisterMember(lobby, host, new Member { Job = saved.Job != null && IsJobAllowed(host, saved.Job) ? saved.Job : null, Title = saved.JobTitle });
+        ResetContributions(lobby);
         return true;
     }
 

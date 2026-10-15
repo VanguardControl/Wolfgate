@@ -725,7 +725,11 @@ public sealed partial class WFRoundSetupLobbyTest
     {
         var system = pair.Client.System<WFRoundSetupClientSystem>();
         await pair.RunTicksSync(pair.SecondsToTicks(0.25f));
-        await pair.Client.WaitPost(() => system.Send(request));
+        await pair.Client.WaitPost(() =>
+        {
+            request.PaymentRevision ??= system.State?.Payment?.Revision;
+            system.Send(request);
+        });
         await pair.RunTicksSync(pair.SecondsToTicks(0.5f));
         WFRoundSetupState state = null;
         await pair.Client.WaitAssertion(() =>

@@ -66,7 +66,8 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         public WFCrewFaction Faction;
         public readonly HashSet<EntityUid> Grids = new() { hull };
         public ICommonSession? Buyer;
-        public int CharacterSlot;
+        public string? PurchaseJob;
+        public readonly List<PendingRefund> Receipts = new();
         public int Paid;
         public bool Used;
     }
@@ -81,24 +82,21 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     }
 
     /// <summary>Lists civilian designs or the selected faction tier catalog at the authoritative shipyard price.</summary>
-    public WFRoundSetupVessel[] GetVessels(WFCrewFaction faction = WFCrewFaction.None)
+    public WFRoundSetupVessel[] GetVessels(WFCrewFaction faction = WFCrewFaction.None, string? job = null)
     {
         var catalog = FactionVessels(faction);
         return _prototypes.EnumeratePrototypes<VesselPrototype>()
-            .Where(v => faction == WFCrewFaction.None ? IsEligible(v) : IsFactionVessel(v, faction, catalog))
+            .Where(v => faction == WFCrewFaction.None ? IsEligible(v, job) : IsFactionVessel(v, faction, catalog))
             .OrderBy(v => v.Price).ThenBy(v => v.Name)
             .Select(v => new WFRoundSetupVessel(v.ID, v.Name, v.Description, v.Price)).ToArray();
     }
 
     /// <summary>Requires a paid design in the civilian or selected faction catalog, including forged requests.</summary>
-    public bool IsVesselAvailable(string? id, WFCrewFaction faction = WFCrewFaction.None) => id != null && Enum.IsDefined(faction) &&
+    public bool IsVesselAvailable(string? id, WFCrewFaction faction = WFCrewFaction.None, string? job = null) => id != null && Enum.IsDefined(faction) &&
         _prototypes.TryIndex<VesselPrototype>(id, out var vessel) &&
-        (faction == WFCrewFaction.None ? IsEligible(vessel) : IsFactionVessel(vessel, faction));
+        (faction == WFCrewFaction.None ? IsEligible(vessel, job) : IsFactionVessel(vessel, faction));
 
-    private static bool IsEligible(VesselPrototype vessel) => !vessel.Abstract && vessel.Purchasable &&
-        vessel.Price > 0 && vessel.Group == ShipyardConsoleUiKey.Shipyard && string.IsNullOrEmpty(vessel.Access);
-
-    /// <summary>Shows only the host's selected character's spendable bank account.</summary>
+    /// <summary>Returns only the recipient’s selected character’s spendable balance.</summary>
     public int? GetBalance(ICommonSession host) =>
         _preferences.GetPreferencesOrNull(host.UserId)?.SelectedCharacter is HumanoidCharacterProfile profile &&
         !profile.TraitPreferences.Contains("Ironman") ? profile.BankBalance : null;
@@ -118,7 +116,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
 
     /// <summary>Loads a selected ship on a clear part of the sector before any money is withdrawn.</summary>
     public bool TryPrepare(int lobbyId, string? vesselId, out EntityUid station, out string reason,
-        WFShipStartLocation location = WFShipStartLocation.RandomSpace, WFCrewFaction faction = WFCrewFaction.None)
+        WFShipStartLocation location = WFShipStartLocation.RandomSpace, WFCrewFaction faction = WFCrewFaction.None, string? job = null)
     {
         station = EntityUid.Invalid;
         if (HasAssignedShip(lobbyId))
@@ -127,12 +125,16 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
             return TryGetAssignedSpawn(lobbyId, out station, out _);
         }
         reason = "wf-round-setup-ship-invalid";
-        if (!IsVesselAvailable(vesselId, faction) || !WFRoundSetupPolicy.IsShipStartAllowed(location, faction))
+        if (!WFRoundSetupPolicy.IsShipStartAllowed(location, faction))
             return false;
         if (_scenarios.TryGetValue(lobbyId, out var existing))
         {
             if (existing.Vessel == vesselId && existing.Location == location && existing.Faction == faction && !TerminatingOrDeleted(existing.Station) && TryGetSpawn(lobbyId, out _))
             {
+                if (!existing.Used && !IsVesselAvailable(vesselId, faction, job))
+                    return false;
+                if (!existing.Used)
+                    existing.PurchaseJob = job;
                 station = existing.Station;
                 return true;
             }
@@ -143,6 +145,8 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
             }
             Rollback(lobbyId);
         }
+        if (!IsVesselAvailable(vesselId, faction, job))
+            return false;
         var mapId = _ticker.DefaultMap;
         if (!_map.TryGetMap(mapId, out var mapEntity))
         {
@@ -176,42 +180,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         }, new[] { hull }, vessel.Name);
         EnsureComp<WFShipScenarioStationComponent>(station).LobbyId = lobbyId;
         EnsureComp<WFShipScenarioComponent>(hull).LobbyId = lobbyId;
-        _scenarios.Add(lobbyId, new Scenario(hull, station, vessel.ID, location) { Faction = faction });
-        return true;
-    }
-
-    /// <summary>Reserves the selected character's payment once, after validating the prepared ship.</summary>
-    public bool TryCharge(int lobbyId, ICommonSession host, out string reason)
-    {
-        reason = "wf-round-setup-ship-gone";
-        if (!_scenarios.TryGetValue(lobbyId, out var scenario) || TerminatingOrDeleted(scenario.Station) ||
-            TerminatingOrDeleted(scenario.Hull) || !TryGetSpawn(lobbyId, out _) || !IsVesselAvailable(scenario.Vessel, scenario.Faction))
-            return false;
-        if (!HasSectorServices())
-        {
-            reason = "wf-round-setup-ship-no-sector";
-            return false;
-        }
-        var preferences = _preferences.GetPreferencesOrNull(host.UserId);
-        reason = "wf-round-setup-ship-bank-unavailable";
-        if (preferences?.SelectedCharacter is not HumanoidCharacterProfile profile || profile.TraitPreferences.Contains("Ironman"))
-            return false;
-        if (scenario.Paid > 0)
-            return scenario.Buyer?.UserId == host.UserId && scenario.CharacterSlot == preferences.SelectedCharacterIndex;
-        var vessel = _prototypes.Index<VesselPrototype>(scenario.Vessel);
-        var attempt = new AttemptShipyardShuttlePurchaseEvent(scenario.Hull, host.AttachedEntity ?? EntityUid.Invalid, vessel);
-        RaiseLocalEvent(ref attempt);
-        if (attempt.Cancelled)
-        {
-            reason = attempt.CancelReason;
-            return false;
-        }
-        reason = "wf-round-setup-ship-insufficient";
-        if (!_bank.TryBankWithdraw(host, preferences, profile, vessel.Price, out _))
-            return false;
-        scenario.Buyer = host;
-        scenario.CharacterSlot = preferences.SelectedCharacterIndex;
-        scenario.Paid = vessel.Price;
+        _scenarios.Add(lobbyId, new Scenario(hull, station, vessel.ID, location) { Faction = faction, PurchaseJob = job });
         return true;
     }
 
@@ -277,16 +246,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     {
         if (!_scenarios.TryGetValue(lobbyId, out var scenario) || scenario.Used)
             return;
-        if (scenario.Paid > 0 && scenario.Buyer is { } buyer)
-        {
-            var refund = new PendingRefund(buyer.UserId, scenario.CharacterSlot, scenario.Paid);
-            if (!TryRefund(refund))
-            {
-                _pendingRefunds.Add(refund);
-                Log.Warning($"Queued scenario {lobbyId} refund of {refund.Amount} for {refund.User} slot {refund.Slot} until preferences load.");
-            }
-            scenario.Paid = 0;
-        }
+        RefundPayments(scenario);
         _scenarios.Remove(lobbyId);
         foreach (var grid in scenario.Grids)
         {

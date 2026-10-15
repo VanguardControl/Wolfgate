@@ -278,15 +278,20 @@ public sealed partial class WFRoundSetupSystem
         }
         else if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
         {
-            if (!lobby.Started && !HasShipPurchaseConsent(lobby, session))
+            if (!lobby.Started && (lobby.Host != session.UserId || !AllPaymentsApproved(lobby)))
             {
                 error = "wf-round-setup-error-ship-consent";
                 return false;
             }
-            // Check the price before loading a hull, so a host who can't pay can't make the server load grids.
-            if (!lobby.Started && !_ships.CanAfford(lobby.Vessel, session, out error))
+            if (!lobby.Started && !CanBuyVessel(lobby, session, lobby.Vessel))
+            {
+                error = "wf-round-setup-ship-invalid";
                 return false;
-            if (!_ships.TryPrepare(lobby.Id, lobby.Vessel, out station, out error, lobby.ShipStart, lobby.Faction))
+            }
+            // Recheck every share before loading a hull, then check again immediately before payment.
+            if (!lobby.Started && !CanAffordCrew(lobby, out error))
+                return false;
+            if (!_ships.TryPrepare(lobby.Id, lobby.Vessel, out station, out error, lobby.ShipStart, lobby.Faction, lobby.Members[lobby.Host].Job))
                 return false;
             if (!_ships.TryGetSpawn(lobby.Id, out var spawn))
             {
@@ -301,7 +306,7 @@ public sealed partial class WFRoundSetupSystem
                     _ships.Rollback(lobby.Id);
                 return false;
             }
-            if (!lobby.Started && !_ships.TryCharge(lobby.Id, session, out error))
+            if (!lobby.Started && !ChargeCrew(lobby, session, out error))
             {
                 _ships.Rollback(lobby.Id);
                 return false;

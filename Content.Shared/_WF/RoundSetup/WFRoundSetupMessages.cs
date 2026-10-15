@@ -23,7 +23,7 @@ public enum WFRoundSetupAction : byte
 {
     Refresh, Create, Configure, Join, Leave, AcceptRequest, RejectRequest,
     Invite, AcceptInvite, DeclineInvite, SelectJob, SetReady, Launch, RegenerateCode, Kick, TransferHost,
-    SelectVessel, UpsertRole, RemoveRole, SelectRole, ConfirmJoin, ChangeScenario, SelectShipStart, ApplyRoster, SetTitle, SaveSetup, LoadSetup, DeleteSetup, SetShipName, AssignShip, ApproveShip, CancelShip,
+    SelectVessel, UpsertRole, RemoveRole, SelectRole, ConfirmJoin, ChangeScenario, SelectShipStart, ApplyRoster, SetTitle, SaveSetup, LoadSetup, DeleteSetup, SetShipName, AssignShip, ApproveShip, CancelShip, SetContribution,
 }
 
 /// <summary>A request whose actor is always taken from its network session.</summary>
@@ -36,6 +36,8 @@ public sealed class WFRoundSetupRequest : EntityEventArgs
     public WFCrewFaction Faction;
     public NetEntity? Ship;
     public int ShipChangeId;
+    public int Contribution;
+    public int? PaymentRevision;
     public string ShipName = string.Empty;
     public WFShipStartLocation ShipStart;
     public WFLobbyAccess Access = WFLobbyAccess.Requests;
@@ -64,7 +66,15 @@ public sealed record WFRoundSetupPlayer(NetUserId UserId, string Name, int? Role
 
 /// <summary>A member's own job and readiness, with no character profile data.</summary>
 [Serializable, NetSerializable]
-public sealed record WFRoundSetupMember(NetUserId UserId, string Name, string? Job, NetEntity? Station, bool Ready, bool Spawned, bool Connected, int? RoleId = null, string Title = "");
+public sealed record WFRoundSetupMember(NetUserId UserId, string Name, string? Job, NetEntity? Station, bool Ready, bool Spawned, bool Connected, int? RoleId = null, string Title = "", int Contribution = 0);
+
+/// <summary>A public crew roster entry containing only character identity and readiness.</summary>
+[Serializable, NetSerializable]
+public sealed record WFRoundSetupCrewmate(string Name, string? Job, string Title, bool Ready, bool Spawned);
+
+/// <summary>The recipient's exact purchase quote; bank balances remain private.</summary>
+[Serializable, NetSerializable]
+public sealed record WFRoundSetupPayment(int Revision, int Price, int Contribution, long Allocated, bool AllApproved);
 
 /// <summary>A job choice offered by the server for this player's scenario.</summary>
 [Serializable, NetSerializable]
@@ -110,6 +120,7 @@ public sealed class WFRoundSetupLobby
     public bool Started;
     public WFRoundSetupShip? CurrentShip;
     public int MemberCount;
+    public WFRoundSetupCrewmate[] Roster = Array.Empty<WFRoundSetupCrewmate>();
     public WFRoundSetupMember[] Members = Array.Empty<WFRoundSetupMember>();
     public WFRoundSetupPlayer[] Requests = Array.Empty<WFRoundSetupPlayer>();
     public string? Code;
@@ -135,6 +146,7 @@ public sealed class WFRoundSetupState : EntityEventArgs
     public WFSavedSetup[] SavedSetups = Array.Empty<WFSavedSetup>();
     public WFRoundSetupVessel[] Vessels = Array.Empty<WFRoundSetupVessel>();
     public int? HostBalance;
+    public WFRoundSetupPayment? Payment;
     public WFRoundSetupShipChoice[] CrewShips = Array.Empty<WFRoundSetupShipChoice>();
     public WFRoundSetupShipChoice? PendingShip;
     public string? Message;

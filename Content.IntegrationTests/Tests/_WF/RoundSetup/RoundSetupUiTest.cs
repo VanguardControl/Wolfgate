@@ -33,7 +33,7 @@ namespace Content.IntegrationTests.Tests._WF.RoundSetup;
 [TestFixture]
 [TestOf(typeof(WFRoundSetupWindow))]
 [TestOf(typeof(WFRoundSetupLobbyPanel))]
-public sealed class RoundSetupUiTest
+public sealed partial class RoundSetupUiTest
 {
     [TestCase(0, "players", "slots", "openings")]
     [TestCase(1, "player", "slot", "opening")]
@@ -792,7 +792,7 @@ public sealed class RoundSetupUiTest
         await pair.Client.WaitAssertion(() =>
         {
             var finish = Named<Button>(window, "RoundSetupReady");
-            Assert.That(finish.Text, Is.EqualTo(Loc.GetString("wf-round-setup-finish-ready")));
+            Assert.That(finish.Text, Is.EqualTo(Loc.GetString("wf-round-setup-payment-approve")));
             Assert.That(Named<Button>(window, "RoundSetupSave").Disabled, Is.True);
             Assert.That(Named<Button>(window, "RoundSetupSave").ToolTip, Is.Not.Empty);
             AssertFits(window, new Vector2(width, height));
@@ -1047,7 +1047,12 @@ public sealed class RoundSetupUiTest
     private static async Task<WFRoundSetupState> Request(TestPair pair, WFRoundSetupRequest request)
     {
         await pair.RunTicksSync(pair.SecondsToTicks(0.25f));
-        await pair.Client.WaitPost(() => pair.Client.System<WFRoundSetupClientSystem>().Send(request));
+        await pair.Client.WaitPost(() =>
+        {
+            var system = pair.Client.System<WFRoundSetupClientSystem>();
+            request.PaymentRevision ??= system.State?.Payment?.Revision;
+            system.Send(request);
+        });
         await pair.RunTicksSync(pair.SecondsToTicks(0.5f));
         WFRoundSetupState state = null!;
         await pair.Client.WaitAssertion(() =>

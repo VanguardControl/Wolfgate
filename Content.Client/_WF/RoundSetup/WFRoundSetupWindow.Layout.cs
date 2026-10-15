@@ -131,6 +131,7 @@ public sealed partial class WFRoundSetupWindow
     {
         if (_rendering)
             return;
+        _deferredRefresh = false;
         _rendering = true;
         try
         {
@@ -312,6 +313,7 @@ public sealed partial class WFRoundSetupWindow
             case LobbyPage.Roles:
                 if (!string.IsNullOrEmpty(lobby.Description))
                     _body.AddChild(PlainDescription(lobby.Description));
+                BuildContributions(state, lobby, host);
                 BuildCrewRoster(lobby, host);
                 if (host)
                     BuildRoleEditor(state, lobby);
@@ -406,7 +408,11 @@ public sealed partial class WFRoundSetupWindow
         var eligible = member.RoleId == null
             ? state.Jobs.Any(job => job.Id == member.Job && (member.Station == null || job.Station == member.Station))
             : lobby.Roles.Any(role => role.Id == member.RoleId && role.CanSelect);
-        var canPurchase = !purchase || vessel != null && state.HostBalance is { } balance && balance >= vessel.Price;
+        var payment = state.Payment;
+        var canPurchase = payment == null || payment.Price > 0 && payment.Allocated == payment.Price &&
+            (payment.Contribution == 0 || state.HostBalance is { } balance && balance >= payment.Contribution);
+        var paymentReason = payment is { Price: > 0 } && payment.Allocated != payment.Price ? "payment-total-error" :
+            lobby.Vessel == null ? "ship-unselected" : state.HostBalance == null ? "ship-bank-help" : "ship-insufficient-help";
         if (purchase && !member.Ready && _lobbyPage != LobbyPage.Admission)
         {
             var nextPage = _lobbyPage == LobbyPage.Overview ? LobbyPage.Ship :
@@ -422,12 +428,27 @@ public sealed partial class WFRoundSetupWindow
         }
         var content = Column(8);
         content.AddChild(Description(!eligible ? "ready-needs-job" : !canPurchase
-            ? vessel == null ? "ship-unselected" : "ship-insufficient-help"
+            ? paymentReason
             : member.Ready ? state.InRound ? "join-waiting" : "ready-confirmed" : "ready-prompt"));
-        if (purchase && vessel != null)
-            content.AddChild(PlainDescription(Text("purchase-summary", ("price", Price(vessel.Price)), ("ship", vessel.Name))));
+        if (payment is { Price: > 0 })
+        {
+            content.AddChild(PlainDescription(Text("payment-share", ("amount", Price(payment.Contribution)), ("total", Price(payment.Price)))));
+            content.AddChild(Description("payment-consent-help"));
+            if (member.Ready && !payment.AllApproved)
+                content.AddChild(Description("payment-waiting"));
+        }
+        if (purchase && member.Ready && state.InRound && payment is { AllApproved: true })
+        {
+            var launch = Button("payment-launch", () =>
+            {
+                _confirmingJoin = true;
+                Send(WFRoundSetupAction.Launch, lobby.Id);
+            });
+            launch.AddStyleClass("ButtonAccept");
+            content.AddChild(launch);
+        }
         var caption = member.Ready ? state.InRound ? "cancel-join" : "change-setup"
-            : purchase ? state.InRound ? "finish-launch" : "finish-ready" : state.InRound ? "join-round" : "ready";
+            : payment is { Contribution: > 0 } ? "payment-approve" : purchase ? "finish-ready" : state.InRound ? "join-round" : "ready";
         var ready = Button(caption, () =>
         {
             if (member.Ready)
@@ -438,6 +459,7 @@ public sealed partial class WFRoundSetupWindow
                 SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.ConfirmJoin)
                 {
                     LobbyId = lobby.Id,
+                    PaymentRevision = payment?.Revision,
                     Title = lobby.Host == member.UserId && _settingsDirty ? _draftTitle : null,
                     Description = lobby.Host == member.UserId && _settingsDirty ? _draftDescription : null,
                     Access = _draftAccess,
@@ -446,7 +468,7 @@ public sealed partial class WFRoundSetupWindow
                 });
             }
         }, !member.Ready && (!eligible || !canPurchase), !eligible ? "ready-needs-job" :
-            vessel == null ? "ship-unselected" : state.HostBalance == null ? "ship-bank-help" : "ship-insufficient-help");
+            paymentReason);
         if (!member.Ready && lobby.Host == member.UserId && _lobbyPage == LobbyPage.Admission)
             CheckDescription(ready, () => _draftDescription);
         ready.Name = "RoundSetupReady";

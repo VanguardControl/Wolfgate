@@ -221,6 +221,7 @@ public sealed partial class WFRoundSetupSystem
         member.Ready = false;
         member.PurchaseVessel = null;
         member.PurchaseCharacterSlot = null;
+        member.PurchaseRevision = null;
         if (_ticker.RunLevel == GameRunLevel.PreRoundLobby && _players.TryGetSessionById(user, out var session))
             _ticker.ToggleReady(session, false);
     }
@@ -228,6 +229,7 @@ public sealed partial class WFRoundSetupSystem
     /// <summary>Changes to the selected ship invalidate each unspawned crew member's confirmation.</summary>
     private void UnreadyMembers(Lobby lobby)
     {
+        lobby.PaymentRevision++;
         foreach (var (user, member) in lobby.Members)
         {
             if (!member.Spawned)
@@ -238,15 +240,15 @@ public sealed partial class WFRoundSetupSystem
     /// <summary>Only explicit setup readiness grants consent to buy this vessel for this selected character.</summary>
     private bool HasShipPurchaseConsent(Lobby lobby, ICommonSession session)
     {
-        return WFRoundSetupPolicy.IsShip(lobby.Scenario) && lobby.Host == session.UserId && lobby.Vessel != null &&
+        return WFRoundSetupPolicy.IsShip(lobby.Scenario) && lobby.Vessel != null &&
                lobby.Members.TryGetValue(session.UserId, out var member) && IsReady(session.UserId, member) &&
-               member.PurchaseVessel == lobby.Vessel &&
+               member.PurchaseVessel == lobby.Vessel && member.PurchaseRevision == lobby.PaymentRevision &&
                member.PurchaseCharacterSlot == _preferences.GetPreferences(session.UserId).SelectedCharacterIndex;
     }
     /// <summary>Ship hosts appear ready only after confirming the pending purchase in Round Setup.</summary>
     private bool IsReadyForLobby(Lobby lobby, NetUserId user, Member member)
     {
-        if (!lobby.Started && WFRoundSetupPolicy.IsShip(lobby.Scenario) && lobby.Host == user)
+        if (!lobby.Started && WFRoundSetupPolicy.IsShip(lobby.Scenario) && (lobby.Host == user || member.Contribution > 0))
             return _players.TryGetSessionById(user, out var session) && HasShipPurchaseConsent(lobby, session);
         return IsReady(user, member);
     }
@@ -254,6 +256,6 @@ public sealed partial class WFRoundSetupSystem
     private void RequireHostConsent(Lobby lobby)
     {
         if (!lobby.Started && WFRoundSetupPolicy.IsShip(lobby.Scenario))
-            UnreadyMember(lobby.Host, lobby.Members[lobby.Host]);
+            ResetContributions(lobby);
     }
 }

@@ -31,7 +31,7 @@ namespace Content.IntegrationTests.Tests._WF.RoundSetup;
 /// <summary>Purchased starts validate the catalog, share one hull and charge or refund the host exactly once.</summary>
 [TestFixture]
 [TestOf(typeof(WFShipScenarioSystem))]
-public sealed class ShipScenarioTest
+public sealed partial class ShipScenarioTest
 {
     private const string Vessel = "WFRoundSetupPurchaseTestVessel";
     private const int Price = 1000;
@@ -94,11 +94,15 @@ public sealed class ShipScenarioTest
                     Assert.That(vessel.Abstract, Is.False, entry.Id);
                     Assert.That(vessel.Purchasable, Is.True, entry.Id);
                     Assert.That(vessel.Price, Is.Positive, entry.Id);
-                    Assert.That(vessel.Group, Is.EqualTo(ShipyardConsoleUiKey.Shipyard), entry.Id);
+                    Assert.That(vessel.Group, Is.AnyOf(ShipyardConsoleUiKey.Shipyard, ShipyardConsoleUiKey.Expedition, ShipyardConsoleUiKey.Medical, ShipyardConsoleUiKey.Scrap, ShipyardConsoleUiKey.Sr), entry.Id);
                     Assert.That(vessel.Access, Is.Null.Or.Empty, entry.Id);
                 });
             }
 
+            Assert.That(system.GetVessels(job: "Mercenary").Select(entry => entry.Id), Does.Contain("WFRoundSetupPurchaseTestRestricted"));
+            Assert.That(system.IsVesselAvailable("WFRoundSetupPurchaseTestRestricted", job: "NonexistentJob"), Is.False);
+            Assert.That(catalog.Select(entry => prototypes.Index<VesselPrototype>(entry.Id).Group),
+                Is.SupersetOf(new[] { ShipyardConsoleUiKey.Shipyard, ShipyardConsoleUiKey.Medical, ShipyardConsoleUiKey.Expedition, ShipyardConsoleUiKey.Scrap }));
             string[] rejected =
             {
                 null, string.Empty, "WFUnknownPurchaseVessel", "BaseVessel",
@@ -311,8 +315,9 @@ public sealed class ShipScenarioTest
     }
 
     /// <summary>Committed starts share one owned hull and never replace a destroyed paid ship for free.</summary>
-    [Test]
-    public async Task SharedPaidShipSurvivesLobbyRemovalAndCannotBeReplaced()
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task SharedPaidShipSurvivesLobbyRemovalAndCannotBeReplaced(bool restricted)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, DummyTicker = false });
         var server = pair.Server;
@@ -324,13 +329,14 @@ public sealed class ShipScenarioTest
         var original = (HumanoidCharacterProfile) saved.Characters[slot];
         await SetProfile(pair, slot, original.WithoutAllTraitPreferences().WithBankBalance(10000));
         var system = server.System<WFShipScenarioSystem>();
+        var vesselId = restricted ? "WFRoundSetupPurchaseTestRestricted" : Vessel;
         await server.WaitAssertion(() =>
         {
             Assert.That(player.AttachedEntity, Is.Not.Null);
             var serviceHost = EnsureSectorService(pair);
             foreach (var lobby in new[] { 19104, 19105 })
             {
-                Assert.That(system.TryPrepare(lobby, Vessel, out var station, out var reason), Is.True, reason);
+                Assert.That(system.TryPrepare(lobby, vesselId, out var station, out var reason, job: "Mercenary"), Is.True, reason);
                 Assert.That(system.TryGetSpawn(lobby, out var first), Is.True);
                 Assert.That(system.TryGetSpawn(lobby, out var second), Is.True);
                 Assert.That(second.EntityId, Is.EqualTo(first.EntityId));
@@ -347,6 +353,9 @@ public sealed class ShipScenarioTest
                 var transform = server.System<SharedTransformSystem>();
                 transform.SetCoordinates(body, first);
                 Assert.That(system.CompletePurchase(lobby, player), Is.True);
+                Assert.That(system.TryPrepare(lobby, vesselId, out var sameStation, out reason), Is.True,
+                    "Late arrivals use the purchased hull without rechecking the successor leader’s purchase access.");
+                Assert.That(sameStation, Is.EqualTo(station));
                 Assert.That(server.System<SharedIdCardSystem>().TryFindIdCard(body, out var ownerCard), Is.True);
                 Assert.That(em.HasComponent<ShuttleDeedComponent>(ownerCard.Owner), Is.True);
                 transform.SetCoordinates(body, before);
@@ -367,7 +376,7 @@ public sealed class ShipScenarioTest
                     em.DeleteEntity(station);
                 if (lobby == 19105)
                 {
-                    Assert.That(system.TryPrepare(lobby, Vessel, out _, out reason), Is.False,
+                    Assert.That(system.TryPrepare(lobby, vesselId, out _, out reason), Is.False,
                         "A destroyed purchased ship must not yield a replacement hull or loot.");
                     Assert.That(system.TryGetSpawn(lobby, out _), Is.False);
                     system.RemoveScenario(lobby);

@@ -252,8 +252,12 @@ public sealed partial class WFRoundSetupLobbyTest
         await pair.RunTicksSync(2);
         await pair.CleanReturnAsync();
 
-        void RequestFor(ICommonSession player, WFRoundSetupRequest request) =>
+        void RequestFor(ICommonSession player, WFRoundSetupRequest request)
+        {
+            if (findLobby.Invoke(setup, new object[] { player.UserId }) is { } lobby)
+                request.PaymentRevision = (int) lobby.GetType().GetField("PaymentRevision")!.GetValue(lobby)!;
             onRequest.Invoke(setup, new object[] { request, new EntitySessionEventArgs(player) });
+        }
 
         async System.Threading.Tasks.Task BatchHosts(Func<int, WFRoundSetupRequest> request)
         {

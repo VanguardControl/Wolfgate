@@ -37,6 +37,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
     private string _draftDescription = string.Empty;
     private bool _confirmingJoin;
     private bool _refreshAfterRequest;
+    private bool _deferredRefresh;
 
     /// <summary>Builds the browser and subscribes while its window is open.</summary>
     public WFRoundSetupWindow()
@@ -139,6 +140,11 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         _refreshAfterRequest = false;
         if (!refresh && previous != null && SameState(previous, state))
             return;
+        if (previous?.OwnLobby == state.OwnLobby && IsEditingControls())
+        {
+            _deferredRefresh = true;
+            return;
+        }
         RenderState(state);
     }
 
@@ -152,6 +158,14 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         content.AddChild(PlainDescription(Text("lobby-info", ("count", lobby.MemberCount), ("access", AccessName(lobby.Access)),
             ("status", Text(lobby.Started ? "status-started" : "status-waiting")))));
 
+        content.AddChild(Heading("members"));
+        foreach (var crewmate in lobby.Roster)
+        {
+            var status = crewmate.Spawned ? "member-playing" : crewmate.Ready ? "member-ready" : "member-not-ready";
+            var role = string.IsNullOrEmpty(crewmate.Title) ? JobName(crewmate.Job) : crewmate.Title;
+            content.AddChild(Row(WFRoundSetupCrewRow.JobIcon(crewmate.Job),
+                PlainDescription(Text("public-member", ("name", crewmate.Name), ("role", role), ("status", Text(status))))));
+        }
         content.AddChild(Description(ScenarioDescription(lobby.Scenario)));
         if (WFRoundSetupPolicy.IsShip(lobby.Scenario) || lobby.Started)
         {
@@ -309,6 +323,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
             BuildPersonalJobSetup(state, lobby, member);
         else if (lobby.Host != member.UserId)
             BuildMemberRoles(lobby, member);
+        BuildJobLoadout(lobby, member);
         if (lobby.Host == member.UserId)
             BuildPersonalTitle(lobby, member);
     }
@@ -316,7 +331,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
     /// <summary>Keeps unchanged periodic snapshots from interrupting text entry and open selectors.</summary>
     private static bool SameState(WFRoundSetupState first, WFRoundSetupState second)
     {
-        return first.CrewShips.SequenceEqual(second.CrewShips) && first.PendingShip == second.PendingShip &&
+        return first.Payment == second.Payment && first.CrewShips.SequenceEqual(second.CrewShips) && first.PendingShip == second.PendingShip &&
                first.InRound == second.InRound && first.CanJoin == second.CanJoin && first.OwnLobby == second.OwnLobby &&
                first.CrashlandedAvailable == second.CrashlandedAvailable && first.Factions.SequenceEqual(second.Factions) && first.HostBalance == second.HostBalance &&
                SameSavedSetups(first.SavedSetups, second.SavedSetups) && first.Vessels.SequenceEqual(second.Vessels) &&
@@ -332,7 +347,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
                first.Scenario == second.Scenario && first.Faction == second.Faction && first.ShipName == second.ShipName && first.ShipStart == second.ShipStart && first.Access == second.Access && first.AllowLateJoin == second.AllowLateJoin &&
                first.Started == second.Started && first.MemberCount == second.MemberCount && first.Code == second.Code &&
                first.CurrentShip == second.CurrentShip && first.Vessel == second.Vessel && first.Roles.SequenceEqual(second.Roles) &&
-               first.Members.SequenceEqual(second.Members) && first.Requests.SequenceEqual(second.Requests);
+               first.Roster.SequenceEqual(second.Roster) && first.Members.SequenceEqual(second.Members) && first.Requests.SequenceEqual(second.Requests);
     }
 
     private void SendRequest(WFRoundSetupRequest request)

@@ -37,6 +37,8 @@ public sealed partial class WFRoundSetupWindow
             _layoutRefreshPending = false;
             Redraw();
         }
+        if (_deferredRefresh && !IsEditingControls())
+            Redraw();
         base.FrameUpdate(args);
         // A same-page redraw reparents the preview synchronously; a page change leaves it detached.
         if (_shipPreviewPanel is { IsInsideTree: false } preview)

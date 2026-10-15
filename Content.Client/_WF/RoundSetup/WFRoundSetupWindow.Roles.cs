@@ -114,12 +114,15 @@ public sealed partial class WFRoundSetupWindow
             selected = choices[0].Id;
         _browsedRoles[lobby.Id] = selected;
         selector.SelectId(selected);
+        var loadout = JobLoadoutLabel(choices.Single(role => role.Id == selected).Job);
         selector.OnItemSelected += args =>
         {
             selector.SelectId(args.Id);
+            loadout.SetMessage(Robust.Shared.Utility.FormattedMessage.FromUnformatted(JobLoadoutSummary(choices.Single(role => role.Id == args.Id).Job)));
             _browsedRoles[lobby.Id] = args.Id;
         };
         content.AddChild(selector);
+        content.AddChild(loadout);
         return true;
     }
 
