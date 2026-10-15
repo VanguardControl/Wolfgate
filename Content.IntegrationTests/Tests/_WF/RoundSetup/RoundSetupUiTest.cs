@@ -331,37 +331,83 @@ public sealed class RoundSetupUiTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>The normal join action readies and unreadies directly without creating a crew or an extra dialog.</summary>
-    [Test]
-    public async Task JoinNormallyReadiesWithoutCreatingLobby()
+    /// <summary>Pregame READY offers crew setup by default; legacy leaves a crew before readying with saved preferences.</summary>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task PregameReadyOffersCrewOrLegacy(bool alreadyInCrew)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
         var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
-        await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Refresh));
-        Button join = null!;
+        var state = await Request(pair, new WFRoundSetupRequest(alreadyInCrew ? WFRoundSetupAction.Create : WFRoundSetupAction.Refresh)
+        { Scenario = WFRoundScenario.Ship });
+        var own = state.OwnLobby;
+        Assert.That(own.HasValue, Is.EqualTo(alreadyInCrew));
+        Button ready = null!;
+        Button choice = null!;
+        WFRoundJoinChoiceWindow chooser = null!;
         await pair.Client.WaitAssertion(() =>
         {
             var lobby = (LobbyGui) ui.ActiveScreen!;
             Assert.That(lobby.ReadyButton.ToggleMode, Is.False);
             Assert.That(lobby.RoundSetupButton.VisibleInTree, Is.True);
-            join = lobby.ReadyButton;
+            ready = lobby.ReadyButton;
         });
-        await Click(pair, join);
+        await Click(pair, ready);
+        await pair.Client.WaitAssertion(() =>
+        {
+            chooser = Descendants(ui.WindowRoot).OfType<WFRoundJoinChoiceWindow>().Single();
+            Assert.That(chooser.Title, Is.EqualTo(Loc.GetString("wf-round-setup-ready-choice-title")));
+            Assert.That(pair.Client.System<ClientGameTicker>().AreWeReady, Is.False);
+            Assert.That(pair.Client.System<WFRoundSetupClientSystem>().State!.OwnLobby, Is.EqualTo(own));
+            Assert.That(Descendants(ui.WindowRoot).OfType<WFRoundSetupWindow>(), Is.Empty);
+            Assert.That(Descendants(ui.WindowRoot).OfType<PickerWindow>(), Is.Empty);
+            chooser.Close();
+        });
+        await Click(pair, ready);
+        await pair.Client.WaitAssertion(() =>
+        {
+            Assert.That(pair.Client.System<ClientGameTicker>().AreWeReady, Is.False, "Dismissing the choice must not ready the player.");
+            chooser = Descendants(ui.WindowRoot).OfType<WFRoundJoinChoiceWindow>().Single();
+            choice = Named<Button>(chooser, "RoundJoinCrew");
+            var legacy = Named<Button>(chooser, "RoundJoinStandard");
+            Assert.That(choice.Text, Is.EqualTo(Loc.GetString("wf-round-setup-ready-crew-default")));
+            Assert.That(choice.HasStyleClass("ButtonAccept"), Is.True);
+            Assert.That(choice.GlobalPosition.Y, Is.LessThan(legacy.GlobalPosition.Y));
+            Assert.That(legacy.Text, Is.EqualTo(Loc.GetString("wf-round-setup-ready-standard-legacy")));
+            Assert.That(legacy.Label.ClipText, Is.False);
+        });
+        await Click(pair, choice);
+        await pair.Client.WaitAssertion(() =>
+        {
+            var crews = Descendants(ui.WindowRoot).OfType<WFRoundSetupWindow>().Single();
+            Assert.That(Descendants(ui.WindowRoot).OfType<WFRoundJoinChoiceWindow>(), Is.Empty);
+            Assert.That(pair.Client.System<ClientGameTicker>().AreWeReady, Is.False);
+            Assert.That(pair.Client.System<WFRoundSetupClientSystem>().State!.OwnLobby, Is.EqualTo(own));
+            crews.Close();
+        });
+        // Allow the crew browser refresh to clear the server request throttle.
+        await pair.RunTicksSync(pair.SecondsToTicks(0.25f));
+        await Click(pair, ready);
+        await pair.Client.WaitPost(() => choice = Named<Button>(ui.WindowRoot, "RoundJoinStandard"));
+        await Click(pair, choice);
         await pair.RunTicksSync(pair.SecondsToTicks(0.5f));
         await pair.Client.WaitAssertion(() =>
         {
             Assert.That(pair.Client.System<ClientGameTicker>().AreWeReady, Is.True);
             Assert.That(pair.Client.System<WFRoundSetupClientSystem>().State!.OwnLobby, Is.Null);
             Assert.That(Descendants(ui.WindowRoot).OfType<WFRoundSetupWindow>(), Is.Empty);
-            Assert.That(join.Text, Is.EqualTo(Loc.GetString("wf-round-setup-home-unready")));
-            Assert.That(join.HasStyleClass("ButtonColorGreen"), Is.True);
+            Assert.That(Descendants(ui.WindowRoot).OfType<WFRoundJoinChoiceWindow>(), Is.Empty);
+            Assert.That(Descendants(ui.WindowRoot).OfType<PickerWindow>(), Is.Empty);
+            Assert.That(ready.Text, Is.EqualTo(Loc.GetString("wf-round-setup-home-unready")));
+            Assert.That(ready.HasStyleClass("ButtonColorGreen"), Is.True);
         });
-        await Click(pair, join);
+        await Click(pair, ready);
         await pair.RunTicksSync(pair.SecondsToTicks(0.5f));
         await pair.Client.WaitAssertion(() =>
         {
             Assert.That(pair.Client.System<ClientGameTicker>().AreWeReady, Is.False);
-            Assert.That(join.HasStyleClass("ButtonColorRed"), Is.True);
+            Assert.That(ready.HasStyleClass("ButtonColorRed"), Is.True);
+            Assert.That(Descendants(ui.WindowRoot).OfType<WFRoundJoinChoiceWindow>(), Is.Empty);
         });
         await pair.CleanReturnAsync();
     }

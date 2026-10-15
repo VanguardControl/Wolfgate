@@ -6,6 +6,7 @@ wf-round-setup-home-unready = READY — Cancel
 wf-round-setup-home-jobs = Join Round
 wf-round-setup-home-manage = Open my crew
 wf-round-setup-home-normal-help = Join Round with your saved character and job preferences.
+wf-round-setup-home-ready-choice-help = Choose crew setup or ready up normally with your saved character and job preferences.
 wf-round-setup-home-ready-help = You are ready. Your character will join when the round starts.
 wf-round-setup-home-jobs-help = Choose a crew scenario or join a station through the standard menu.
 wf-round-setup-home-member-help = You belong to a crew. Choose your role and ready up in its preparation screen.

@@ -23,7 +23,7 @@ public sealed partial class LobbyState
         if (_roundSetup != null)
             _roundSetup.Received -= RoundSetupChanged;
         _roundSetup = null;
-        _openNormalJobsAfterLeaving = false;
+        _joinStandardAfterLeaving = false;
         _joinChoice?.Close();
         _joinChoice = null;
         _normalJobs?.Close();
@@ -34,11 +34,11 @@ public sealed partial class LobbyState
     {
         UpdateRoundSetupHome();
         if (state.Message != null)
-            _openNormalJobsAfterLeaving = false;
-        if (!_openNormalJobsAfterLeaving || state.OwnLobby != null)
+            _joinStandardAfterLeaving = false;
+        if (!_joinStandardAfterLeaving || state.OwnLobby != null)
             return;
-        _openNormalJobsAfterLeaving = false;
-        OpenNormalJobs();
+        _joinStandardAfterLeaving = false;
+        CompleteStandardJoin();
     }
 
     /// <summary>Shows the standard join action or a return to the player's current crew.</summary>
@@ -53,7 +53,7 @@ public sealed partial class LobbyState
         var waiting = _gameTicker.IsGameStarted && ownLobby?.Members.Any(member => member.UserId == user && member.Ready) == true;
         var ready = !_gameTicker.IsGameStarted && _gameTicker.AreWeReady;
         var action = _gameTicker.IsGameStarted ? "jobs" : ready ? "unready" : "ready";
-        var help = ready ? "ready-help" : waiting ? "waiting-help" : own ? "member-help" : _gameTicker.IsGameStarted ? "jobs-help" : "normal-help";
+        var help = ready ? "ready-help" : !_gameTicker.IsGameStarted ? "ready-choice-help" : waiting ? "waiting-help" : own ? "member-help" : "jobs-help";
         Lobby.ReadyButton.ToggleMode = false;
         Lobby.ReadyButton.Pressed = false;
         Lobby.ReadyButton.Disabled = _gameTicker.IsGameStarted && _gameTicker.DisallowedLateJoin;
@@ -72,20 +72,15 @@ public sealed partial class LobbyState
             : "wf-round-setup-home-setup");
     }
 
-    /// <summary>Readies normal players directly and routes crew members to their existing preparation.</summary>
+    /// <summary>Offers crew setup first; cancelling existing readiness remains a single action.</summary>
     private void JoinFromRoundSetupHome()
     {
-        if (!_gameTicker.IsGameStarted)
+        if (!_gameTicker.IsGameStarted && _gameTicker.AreWeReady)
         {
             if (_roundSetup?.State?.OwnLobby is { } own)
-            {
-                if (_gameTicker.AreWeReady)
-                    _roundSetup.Send(new WFRoundSetupRequest(WFRoundSetupAction.SetReady) { LobbyId = own, Ready = false });
-                else
-                    _userInterfaceManager.GetUIController<WFRoundSetupUIController>().OpenLobby(own);
-            }
+                _roundSetup.Send(new WFRoundSetupRequest(WFRoundSetupAction.SetReady) { LobbyId = own, Ready = false });
             else
-                SetReady(!_gameTicker.AreWeReady);
+                SetReady(false);
             return;
         }
         if (_joinChoice is { IsOpen: true })
@@ -94,25 +89,33 @@ public sealed partial class LobbyState
             return;
         }
         _joinChoice = new WFRoundJoinChoiceWindow(
-            () => _userInterfaceManager.GetUIController<WFRoundSetupUIController>().OpenCrews(), JoinStandard);
+            () => _userInterfaceManager.GetUIController<WFRoundSetupUIController>().OpenCrews(), JoinStandard, pregame: !_gameTicker.IsGameStarted);
         _joinChoice.OpenCentered();
     }
 
     private void JoinStandard()
     {
-        if (_gameTicker.DisallowedLateJoin)
+        if (_gameTicker.IsGameStarted && _gameTicker.DisallowedLateJoin)
             return;
-        // The normal picker must not inherit a crew's spawn restrictions.
+        // Wait for the server to release crew membership before choosing the normal flow.
         if (_roundSetup?.State?.OwnLobby is { } crew)
         {
-            _openNormalJobsAfterLeaving = true;
+            _joinStandardAfterLeaving = true;
             _roundSetup.Send(new WFRoundSetupRequest(WFRoundSetupAction.Leave) { LobbyId = crew });
             return;
         }
-        OpenNormalJobs();
+        CompleteStandardJoin();
     }
 
-    private bool _openNormalJobsAfterLeaving;
+    private bool _joinStandardAfterLeaving;
+
+    private void CompleteStandardJoin()
+    {
+        if (_gameTicker.IsGameStarted)
+            OpenNormalJobs();
+        else
+            SetReady(true);
+    }
 
     private void OpenNormalJobs()
     {

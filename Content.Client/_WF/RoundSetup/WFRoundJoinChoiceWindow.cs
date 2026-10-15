@@ -9,19 +9,20 @@ namespace Content.Client._WF.RoundSetup;
 public sealed class WFRoundJoinChoiceWindow : DefaultWindow
 {
     /// <summary>Closes the chooser before opening the selected joining flow.</summary>
-    public WFRoundJoinChoiceWindow(Action crew, Action standard)
+    public WFRoundJoinChoiceWindow(Action crew, Action standard, bool pregame = false)
     {
-        Title = Loc.GetString("wf-round-setup-home-jobs");
+        Title = Loc.GetString(pregame ? "wf-round-setup-ready-choice-title" : "wf-round-setup-home-jobs");
         MinSize = new Vector2(320, 250);
         SetSize = new Vector2(540, 300);
         var body = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 12, Margin = new Thickness(12) };
         Contents.AddChild(body);
-        AddChoice("join-crew-default", "join-crew-help", "RoundJoinCrew", crew, true);
-        AddChoice("join-standard-legacy", "join-standard-help", "RoundJoinStandard", standard, false);
+        AddChoice(pregame ? "ready-crew-default" : "join-crew-default", pregame ? "ready-crew-help" : "join-crew-help", "RoundJoinCrew", crew, true);
+        AddChoice(pregame ? "ready-standard-legacy" : "join-standard-legacy", pregame ? "ready-standard-help" : "join-standard-help", "RoundJoinStandard", standard, false);
 
         void AddChoice(string title, string help, string name, Action action, bool primary)
         {
             var button = new Button { Name = name, Text = Loc.GetString("wf-round-setup-" + title), MinHeight = 48, HorizontalExpand = true };
+            button.Label.ClipText = false;
             if (primary)
                 button.AddStyleClass("ButtonAccept");
             button.OnPressed += _ => { Close(); action(); };
