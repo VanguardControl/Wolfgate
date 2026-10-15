@@ -512,7 +512,7 @@ public sealed partial class StationJobsSystem : EntitySystem
 
         while (query.MoveNext(out var station, out var comp))
         {
-            // WOLFGATE(RoundSetup) START: crew admission uses scenario setup instead of legacy ship recruitment
+            // WOLFGATE(RoundSetup) START: private scenario stations stay out of the late-join job list
             // if (HasComp<Content.Server._WF.RoundSetup.WFCrashScenarioStationComponent>(station) ||
             //     HasComp<Content.Server._WF.RoundSetup.WFShipScenarioStationComponent>(station))
             if (!EntityManager.System<Content.Server._WF.RoundSetup.WFRoundSetupSystem>().IsStandardStation(station))

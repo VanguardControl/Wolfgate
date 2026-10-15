@@ -1173,39 +1173,92 @@ public sealed partial class WFRoundSetupLobbyTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Legacy player ships disappear from job advertisements and reject direct ordinary joins.</summary>
+    /// <summary>Player ships keep ordinary late-join recruitment; only private scenario stations are hidden.</summary>
     [Test]
-    public async Task LegacyShipRecruitmentIsDisabled()
+    public async Task PlayerShipRecruitmentStaysOpen()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
         var server = pair.Server;
-        var legacy = EntityUid.Invalid;
-        var station = EntityUid.Invalid;
+        var ship = EntityUid.Invalid;
+        var scenario = EntityUid.Invalid;
         await server.WaitAssertion(() =>
         {
             server.System<GameTicker>().StartRound(force: true);
-            station = server.EntMan.SpawnEntity("WFRoundSetupQuotaTestStation", MapCoordinates.Nullspace);
-            legacy = server.EntMan.SpawnEntity("WFRoundSetupQuotaTestStation", MapCoordinates.Nullspace);
-            server.EntMan.AddComponent<ExtraShuttleInformationComponent>(legacy);
+            ship = server.EntMan.SpawnEntity("WFRoundSetupQuotaTestStation", MapCoordinates.Nullspace);
+            server.EntMan.AddComponent<ExtraShuttleInformationComponent>(ship);
+            scenario = server.EntMan.SpawnEntity("WFRoundSetupQuotaTestStation", MapCoordinates.Nullspace);
+            server.EntMan.AddComponent<WFShipScenarioStationComponent>(scenario);
             var setup = server.System<WFRoundSetupSystem>();
-            Assert.That(setup.CanSpawnOnStation(pair.Player!, station), Is.True);
-            Assert.That(setup.CanSpawnOnStation(pair.Player!, legacy), Is.False);
+            Assert.That(setup.CanSpawnOnStation(pair.Player!, ship), Is.True);
+            Assert.That(setup.CanSpawnOnStation(pair.Player!, scenario), Is.False);
             server.System<StationJobsSystem>().UpdateJobsAvailable();
-            server.System<GameTicker>().MakeJoinGame(pair.Player!, legacy, "Contractor");
-            Assert.That(pair.Player!.AttachedEntity, Is.Null);
         });
         await pair.RunTicksSync(pair.SecondsToTicks(3));
-        NetEntity stationNet = default;
-        NetEntity legacyNet = default;
-        await server.WaitPost(() => { stationNet = server.EntMan.GetNetEntity(station); legacyNet = server.EntMan.GetNetEntity(legacy); });
+        NetEntity shipNet = default;
+        NetEntity scenarioNet = default;
+        await server.WaitPost(() => { shipNet = server.EntMan.GetNetEntity(ship); scenarioNet = server.EntMan.GetNetEntity(scenario); });
         await pair.Client.WaitAssertion(() =>
         {
             var jobs = pair.Client.System<ClientGameTicker>().StationJobInformationList;
-            Assert.That(jobs.ContainsKey(stationNet), Is.True);
-            Assert.That(jobs.ContainsKey(legacyNet), Is.False);
+            Assert.That(jobs.ContainsKey(shipNet), Is.True, "Player ships must still advertise crew jobs.");
+            Assert.That(jobs.ContainsKey(scenarioNet), Is.False);
         });
         await server.WaitPost(() => server.System<GameTicker>().RestartRound());
         await pair.RunTicksSync(2);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A host who can't pay is refused before any hull loads, so retries can't make the server load grids.</summary>
+    [Test]
+    public async Task UnaffordableShipLaunchLoadsNoGrid()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
+        var server = pair.Server;
+        var player = pair.Player!;
+        var preferences = server.ResolveDependency<IServerPreferencesManager>();
+        var saved = preferences.GetPreferences(player.UserId);
+        var slot = saved.SelectedCharacterIndex;
+        var timers = server.CfgMan.GetCVar(CCVars.GameRoleTimers);
+        var original = (HumanoidCharacterProfile) saved.Characters[slot];
+        WFRoundSetupVessel vessel = null!;
+        await server.WaitAssertion(() =>
+        {
+            server.CfgMan.SetCVar(CCVars.GameRoleTimers, false);
+            server.System<GameTicker>().StartRound(force: true);
+            if (!server.System<SectorServiceSystem>().GetServiceEntity().Valid)
+            {
+                var host = server.EntMan.SpawnEntity(null, MapCoordinates.Nullspace);
+                server.EntMan.AddComponent<StationSectorServiceHostComponent>(host);
+            }
+            vessel = server.System<WFShipScenarioSystem>().GetVessels().Single(entry => entry.Id == "Guppy");
+        });
+        await pair.RunTicksSync(2);
+        await server.WaitPost(() => preferences.SetProfile(player.UserId, slot,
+            original.WithoutAllTraitPreferences().WithBankBalance(vessel.Price - 1)).Wait());
+        try
+        {
+            var state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Create) { Scenario = WFRoundScenario.Ship });
+            var lobbyId = OwnLobby(state).Id;
+            await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectVessel) { LobbyId = lobbyId, Vessel = vessel.Id });
+            await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectJob) { LobbyId = lobbyId, Job = "Contractor" });
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.ConfirmJoin) { LobbyId = lobbyId });
+            Assert.That(state.Message, Is.EqualTo(server.ResolveDependency<ILocalizationManager>().GetString("wf-round-setup-ship-insufficient")));
+            Assert.That(OwnLobby(state).Started, Is.False);
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(player.AttachedEntity, Is.Null);
+                Assert.That(server.EntMan.Count<WFShipScenarioComponent>(), Is.Zero, "No hull may load for a host who can't pay.");
+                Assert.That(((HumanoidCharacterProfile) preferences.GetPreferences(player.UserId).Characters[slot]).BankBalance,
+                    Is.EqualTo(vessel.Price - 1));
+            });
+        }
+        finally
+        {
+            await server.WaitPost(() => server.CfgMan.SetCVar(CCVars.GameRoleTimers, timers));
+            await server.WaitPost(() => preferences.SetProfile(player.UserId, slot, original).Wait());
+            await server.WaitPost(() => server.System<GameTicker>().RestartRound());
+            await pair.RunTicksSync(2);
+        }
         await pair.CleanReturnAsync();
     }
 

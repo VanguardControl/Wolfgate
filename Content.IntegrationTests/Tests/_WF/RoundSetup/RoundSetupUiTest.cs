@@ -458,10 +458,9 @@ public sealed class RoundSetupUiTest
         await pair.Client.WaitAssertion(() =>
         {
             var picker = Descendants(ui.WindowRoot).OfType<PickerWindow>().Single();
-            Assert.That(Descendants(picker).OfType<StationPickerControl>().Count(), Is.EqualTo(1));
-            Assert.That(Descendants(picker).OfType<CrewPickerControl>(), Is.Empty);
-            Assert.That(Descendants(picker).OfType<StationOrCrewLargeControl>(), Is.Empty);
-            Assert.That(Named<Button>(picker, "CrewTabButton").Visible, Is.False);
+            // The original picker stays intact, including its route onto player ship crews.
+            Assert.That(Descendants(picker).OfType<StationOrCrewLargeControl>().Count(), Is.EqualTo(1));
+            Assert.That(Named<Button>(picker, "CrewTabButton").Visible, Is.True);
             Assert.That(Descendants(ui.WindowRoot).OfType<WFRoundSetupWindow>(), Is.Empty);
             picker.Close();
         });

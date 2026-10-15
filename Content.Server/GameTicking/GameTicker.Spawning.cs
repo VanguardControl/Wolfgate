@@ -56,7 +56,7 @@ namespace Content.Server.GameTicking
             var query = EntityQueryEnumerator<StationJobsComponent, StationSpawningComponent>();
             while (query.MoveNext(out var uid, out _, out _))
             {
-                // WOLFGATE(RoundSetup) START: ordinary joining excludes scenario stations and legacy ship recruitment
+                // WOLFGATE(RoundSetup) START: ordinary joining excludes private scenario stations
                 // if (HasComp<Content.Server._WF.RoundSetup.WFCrashScenarioStationComponent>(uid) ||
                 //     HasComp<Content.Server._WF.RoundSetup.WFShipScenarioStationComponent>(uid))
                 if (!EntityManager.System<Content.Server._WF.RoundSetup.WFRoundSetupSystem>().IsStandardStation(uid))

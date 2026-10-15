@@ -53,7 +53,7 @@ public sealed partial class WFRoundSetupSystem
         var query = EntityQueryEnumerator<StationJobsComponent, StationSpawningComponent>();
         while (query.MoveNext(out var candidate, out _, out _))
         {
-            if (IsStandardStation(candidate) && _jobs.TryGetJobSlot(candidate, job, out var slots) && slots != 0)
+            if (IsStandardStation(candidate) && !IsPlayerShip(candidate) && _jobs.TryGetJobSlot(candidate, job, out var slots) && slots != 0)
             {
                 station = candidate;
                 return true;

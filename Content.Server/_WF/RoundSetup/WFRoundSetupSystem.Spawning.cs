@@ -47,8 +47,11 @@ public sealed partial class WFRoundSetupSystem
         return IsStandardStation(station) && FindLobby(session.UserId) == null;
     }
 
-    /// <summary>Ordinary joining excludes both scenario stations and the retired ship recruitment route.</summary>
-    public bool IsStandardStation(EntityUid station) => !IsScenarioStation(station) && !HasComp<ExtraShuttleInformationComponent>(station);
+    /// <summary>Ordinary joining covers every station and player ship except private scenario stations.</summary>
+    public bool IsStandardStation(EntityUid station) => !IsScenarioStation(station);
+
+    /// <summary>Player-owned ships recruit through ordinary late join, never through scenario allocation.</summary>
+    private bool IsPlayerShip(EntityUid station) => HasComp<ExtraShuttleInformationComponent>(station);
 
     /// <summary>Private scenario stations never enter the ordinary station picker.</summary>
     private bool IsScenarioStation(EntityUid station) =>
@@ -280,6 +283,9 @@ public sealed partial class WFRoundSetupSystem
                 error = "wf-round-setup-error-ship-consent";
                 return false;
             }
+            // Check the price before loading a hull, so a host who can't pay can't make the server load grids.
+            if (!lobby.Started && !_ships.CanAfford(lobby.Vessel, session, out error))
+                return false;
             if (!_ships.TryPrepare(lobby.Id, lobby.Vessel, out station, out error, lobby.ShipStart, lobby.Faction))
                 return false;
             if (!_ships.TryGetSpawn(lobby.Id, out var spawn))
@@ -361,7 +367,7 @@ public sealed partial class WFRoundSetupSystem
         var query = EntityQueryEnumerator<StationJobsComponent, StationSpawningComponent>();
         while (query.MoveNext(out var candidate, out _, out _))
         {
-            if (IsStandardStation(candidate) &&
+            if (IsStandardStation(candidate) && !IsPlayerShip(candidate) &&
                 _jobs.TryGetJobSlot(candidate, member.Job, out var slots) && slots != 0)
             {
                 station = candidate;

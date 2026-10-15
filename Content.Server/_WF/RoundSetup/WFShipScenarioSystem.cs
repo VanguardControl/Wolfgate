@@ -103,6 +103,19 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         _preferences.GetPreferencesOrNull(host.UserId)?.SelectedCharacter is HumanoidCharacterProfile profile &&
         !profile.TraitPreferences.Contains("Ironman") ? profile.BankBalance : null;
 
+    /// <summary>Whether the host's selected character can pay for the design, checked before any grid loads.</summary>
+    public bool CanAfford(string? vesselId, ICommonSession host, out string reason)
+    {
+        reason = "wf-round-setup-ship-invalid";
+        if (vesselId == null || !_prototypes.TryIndex<VesselPrototype>(vesselId, out var vessel))
+            return false;
+        reason = "wf-round-setup-ship-bank-unavailable";
+        if (GetBalance(host) is not { } balance)
+            return false;
+        reason = "wf-round-setup-ship-insufficient";
+        return balance >= vessel.Price;
+    }
+
     /// <summary>Loads a selected ship on a clear part of the sector before any money is withdrawn.</summary>
     public bool TryPrepare(int lobbyId, string? vesselId, out EntityUid station, out string reason,
         WFShipStartLocation location = WFShipStartLocation.RandomSpace, WFCrewFaction faction = WFCrewFaction.None)

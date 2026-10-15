@@ -8,7 +8,7 @@ Compact crew rows appear below Leave Server and open full details when clicked; 
 
 Open Crew Setup from the lobby, the group icon beside Character in the top-left gameplay toolbar, or the in-round game menu. The toolbar button stays pressed while setup is open and toggles it closed. The Invite players panel stays visible at the top of Who can join, with a Send invitation action and an explanation when nobody is eligible. Hosts invite connected players from this panel; only players awaiting a spawn and outside other crews appear in the picker. Recipients choose an available role in the invited crew and accept. Ready up before round start; a pregame group launches only when its host is ready. Mid-round hosts launch their waiting group explicitly. A disconnected host keeps ownership; a host can transfer ownership to another member or leave to pass it to the next member. Respawning leaves the previous crew and releases its reserved slot; remaining members retain their crew and an existing ship stays in the world. Round restart clears all lobbies and invitation codes.
 
-The server owns membership and validates every request. Scenario job slots remain available when a helm is disabled or unpowered; ordinary shuttle power rules do not override crew admission. Normal pregame readiness and Standard joining do not create a scenario crew; only Ship, Crashlanded and Faction Crew can create one. Standard opens the existing picker directly to station jobs. Its old Crew tab is hidden, and legacy ship recruitment is excluded from job advertisements and rejected by server spawn validation. Crashlanded uses a random civilian vessel and planet, a fixed three-minute preparation period with disabled flight controls, and the existing planetary descent and crash systems. Living occupants hear a looping alarm and see a shared on-screen countdown until atmospheric entry, highlighted for the final thirty seconds. Leaving the ship, dying or entering atmosphere clears the warning and alarm. The countdown never increases during client clock corrections. Survivors receive an emergency EVA suit, breath mask and a survival kit with species-appropriate gas, a filled medkit, health analyser, compact repair tools and extinguisher, lantern, water, food and a harmonica alongside the existing medicine, rations and signalling tools; existing clothing is preserved. Later survivors spawn on a surviving floor in that group's wreck.
+The server owns membership and validates every request. Scenario job slots remain available when a helm is disabled or unpowered; ordinary shuttle power rules do not override crew admission. Normal pregame readiness and Standard joining do not create a scenario crew; only Ship, Crashlanded and Faction Crew can create one. Standard opens the existing picker unchanged, so players can still take station jobs or join a player-owned ship's crew. Only private scenario stations are hidden from it and rejected by server spawn validation. A ship host's balance is checked before the hull loads, so a host who can't pay never triggers a grid load. Crashlanded uses a random civilian vessel and planet, a fixed three-minute preparation period with disabled flight controls, and the existing planetary descent and crash systems. Living occupants hear a looping alarm and see a shared on-screen countdown until atmospheric entry, highlighted for the final thirty seconds. Leaving the ship, dying or entering atmosphere clears the warning and alarm. The countdown never increases during client clock corrections. Survivors receive an emergency EVA suit, breath mask and a survival kit with species-appropriate gas, a filled medkit, health analyser, compact repair tools and extinguisher, lantern, water, food and a harmonica alongside the existing medicine, rations and signalling tools; existing clothing is preserved. Later survivors spawn on a surviving floor in that group's wreck.
 
 Crashlanded requires the existing `wf.planet_networks` server setting and a sector containing registered planets. Its card is disabled when planet networks are off. Closing late admission prevents new members; players already accepted retain their place until the host removes them.
 
@@ -149,10 +149,6 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 
 ## Non-modular edits
 
-- [`Content.Client/_NF/LateJoin/Windows/PickerWindow.xaml.cs`](../../../Content.Client/_NF/LateJoin/Windows/PickerWindow.xaml.cs)
-  - the old picker only serves standard station joining
-  - open standard jobs directly without the retired crew chooser
-  - prevent legacy crew controls from reopening
 - [`Content.Client/Lobby/LobbyState.cs`](../../../Content.Client/Lobby/LobbyState.cs)
   - the normal jobs picker is managed by the Round Setup lobby partial
   - the preparation header supplies its own lobby context
@@ -177,14 +173,14 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Client/UserInterface/Systems/MenuBar/Widgets/GameTopMenuBar.xaml`](../../../Content.Client/UserInterface/Systems/MenuBar/Widgets/GameTopMenuBar.xaml): open crew setup from the gameplay toolbar
 - [`Content.Server/_Battlefield14/FactionTracking/FactionTrackingSystem.cs`](../../_Battlefield14/FactionTracking/FactionTrackingSystem.cs): count faction crews by their validated setup job without changing saved preferences
 - [`Content.Server/GameTicking/GameTicker.Spawning.cs`](../../GameTicking/GameTicker.Spawning.cs)
-  - ordinary joining excludes scenario stations and legacy ship recruitment
+  - ordinary joining excludes private scenario stations
   - explicit Normal choices share the regular job allocation
   - authorize the assigned group member while preserving the saved profile
   - require authenticated scenario membership on every spawn path
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
   - failed scenario helms reject pilots until the crash is complete.
   - scenario crew admission is independent of helm power
-- [`Content.Server/Station/Systems/StationJobsSystem.cs`](../../Station/Systems/StationJobsSystem.cs): crew admission uses scenario setup instead of legacy ship recruitment
+- [`Content.Server/Station/Systems/StationJobsSystem.cs`](../../Station/Systems/StationJobsSystem.cs): private scenario stations stay out of the late-join job list
 - [`Content.Shared/CCVar/CCVars.Game.cs`](../../../Content.Shared/CCVar/CCVars.Game.cs): give players six minutes to configure and join scenario lobbies.
 - [`Resources/ConfigPresets/_Mono/monolithCore.toml`](../../../Resources/ConfigPresets/_Mono/monolithCore.toml): keep the Monolith preset's pregame setup window at six minutes.
 
