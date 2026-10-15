@@ -197,10 +197,8 @@ public sealed partial class WFRoundSetupSystem
     }
 
     /// <summary>Publishes openings without exposing character choices or bypassing recipient restrictions.</summary>
-    private WFRoundSetupRole[] SnapshotRoles(Lobby lobby, NetUserId user)
+    private static WFRoundSetupRole[] SnapshotRoles(Lobby lobby, NetUserId user, bool canEnter, IReadOnlyCollection<WFRoundSetupJob> jobs)
     {
-        var canEnter = _players.TryGetSessionById(user, out var session) && CanEnter(session);
-        IReadOnlyCollection<WFRoundSetupJob> jobs = canEnter ? GetJobs(session!, lobby) : Array.Empty<WFRoundSetupJob>();
         return lobby.Roles.Values.Select(role => new WFRoundSetupRole(role.Id, role.Name, role.Job, role.Station,
             role.Capacity, RoleOccupancy(lobby, role.Id), canEnter && IsRoleSelectable(lobby, user, role, jobs))).ToArray();
     }

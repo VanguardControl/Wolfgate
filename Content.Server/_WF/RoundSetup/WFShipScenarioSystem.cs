@@ -251,12 +251,11 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
             return;
         if (scenario.Paid > 0 && scenario.Buyer is { } buyer)
         {
-            var preferences = _preferences.GetPreferencesOrNull(buyer.UserId);
-            if (preferences == null || !preferences.Characters.TryGetValue(scenario.CharacterSlot, out var current) ||
-                current is not HumanoidCharacterProfile profile || !_bank.TryBankDeposit(buyer, preferences, profile, scenario.Paid, out _))
+            var refund = new PendingRefund(buyer.UserId, scenario.CharacterSlot, scenario.Paid);
+            if (!TryRefund(refund))
             {
-                Log.Error($"Could not refund scenario {lobbyId} purchase for {buyer.UserId} slot {scenario.CharacterSlot}.");
-                return;
+                _pendingRefunds.Add(refund);
+                Log.Warning($"Queued scenario {lobbyId} refund of {refund.Amount} for {refund.User} slot {refund.Slot} until preferences load.");
             }
             scenario.Paid = 0;
         }

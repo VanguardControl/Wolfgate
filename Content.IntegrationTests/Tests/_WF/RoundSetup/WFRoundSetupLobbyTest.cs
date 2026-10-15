@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using Content.Client._WF.RoundSetup;
@@ -832,6 +834,14 @@ public sealed class WFRoundSetupLobbyTest
                     });
                     await pair.RunTicksSync(pair.SecondsToTicks(2f));
                 }
+                if (attempt == 0)
+                {
+                    var body = pair.Player!.AttachedEntity;
+                    state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Leave) { LobbyId = id });
+                    Assert.That(state.OwnLobby, Is.Null, "Spawned players may deliberately leave their crew.");
+                    Assert.That(state.Lobbies.Single(lobby => lobby.Id == id).Roles.Single().Occupied, Is.Zero);
+                    await server.WaitAssertion(() => Assert.That(pair.Player!.AttachedEntity, Is.EqualTo(body), "Leaving a crew does not respawn its member."));
+                }
                 await server.WaitPost(() => ticker.Respawn(pair.Player!));
                 state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Refresh));
                 Assert.That(state.OwnLobby, Is.Null);
@@ -899,6 +909,121 @@ public sealed class WFRoundSetupLobbyTest
         Assert.That(OwnLobby(state).Members.Single().RoleId, Is.Null);
         Assert.That(OwnLobby(state).Roles.Single(role => role.Id == captain.Id).Occupied, Is.Zero);
         await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Leave) { LobbyId = id });
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Each recipient checks a job once across catalogs, with fresh eligibility and read-only snapshots.</summary>
+    [Test]
+    public async Task SnapshotsReuseEligibilityWithoutMutatingPortraits()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
+        var server = pair.Server;
+        var net = pair.Client.ResolveDependency<IClientNetManager>();
+        var originalName = pair.Player!.Name;
+        var enabled = server.CfgMan.GetCVar(PlanetCVars.PlanetNetworks);
+        var recorder = server.System<WFRoundSetupEligibilityTestSystem>();
+        await server.WaitPost(() => server.CfgMan.SetCVar(PlanetCVars.PlanetNetworks, true));
+        try
+        {
+            var state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Create) { Scenario = WFRoundScenario.Ship });
+            await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.UpsertRole) { LobbyId = OwnLobby(state).Id, Job = "Contractor", Capacity = 2 });
+            await pair.Client.WaitPost(() => net.ClientDisconnect("Snapshot recipient test"));
+            await pair.RunTicksSync(10);
+            pair.Client.SetConnectTarget(server);
+            await pair.Client.WaitPost(() => net.ClientConnect(null!, 0, "WFSnapshotRecipient"));
+            await pair.RunTicksSync(180);
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Create) { Scenario = WFRoundScenario.Crashlanded });
+            await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.UpsertRole) { LobbyId = OwnLobby(state).Id, Job = "Contractor", Capacity = 2 });
+            var system = server.System<WFRoundSetupSystem>();
+            await server.WaitAssertion(() =>
+            {
+                recorder.User = pair.Player!.UserId;
+                var send = typeof(WFRoundSetupSystem).GetMethod("SendState", BindingFlags.Instance | BindingFlags.NonPublic)!;
+                recorder.Calls.Clear();
+                send.Invoke(system, new object[] { pair.Player!, null!, false, true });
+                Assert.That(recorder.Calls.Keys, Is.EquivalentTo(WFShipCrewJobs.Jobs));
+                Assert.That(recorder.Calls.Values, Is.All.EqualTo(1), "Overlapping scenario catalogs must reuse each job check.");
+                var lobbies = (IDictionary) typeof(WFRoundSetupSystem).GetField("_lobbies", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(system)!;
+                var lobby = lobbies[state.OwnLobby!.Value]!;
+                var members = (IDictionary) lobby.GetType().GetField("Members")!.GetValue(lobby)!;
+                var member = members[pair.Player!.UserId]!;
+                var portrait = member.GetType().GetField("Portrait")!;
+                var before = portrait.GetValue(member);
+                typeof(WFRoundSetupSystem).GetMethod("Snapshot", BindingFlags.Instance | BindingFlags.NonPublic)!
+                    .Invoke(system, new object[] { lobby, pair.Player!.UserId, true, System.Array.Empty<WFRoundSetupJob>() });
+                Assert.That(portrait.GetValue(member), Is.SameAs(before), "Serialization must not refresh or clone a portrait.");
+                recorder.Calls.Clear();
+                recorder.DenyContractor = true;
+            });
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Refresh));
+            Assert.That(state.Lobbies.SelectMany(lobby => lobby.Roles).All(role => !role.CanSelect), Is.True, "A new snapshot must recheck changed eligibility.");
+            Assert.That(state.Jobs.Any(job => job.Id == "Contractor"), Is.False);
+        }
+        finally
+        {
+            await server.WaitPost(() =>
+            {
+                recorder.User = null;
+                recorder.DenyContractor = false;
+                recorder.Calls.Clear();
+                server.CfgMan.SetCVar(PlanetCVars.PlanetNetworks, enabled);
+                server.System<GameTicker>().RestartRound();
+            });
+            await pair.RunTicksSync(2);
+            await pair.Client.WaitPost(() => net.ClientDisconnect("Restore test player"));
+            await pair.RunTicksSync(10);
+            pair.Client.SetConnectTarget(server);
+            await pair.Client.WaitPost(() => net.ClientConnect(null!, 0, originalName));
+            await pair.RunTicksSync(180);
+        }
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Changing catalogs drops incompatible selections and produces a loadable save.</summary>
+    [Test]
+    public async Task ChangingToCrashlandedClearsMedicalRolesBeforeSaving()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
+        var server = pair.Server;
+        var enabled = server.CfgMan.GetCVar(PlanetCVars.PlanetNetworks);
+        var timers = server.CfgMan.GetCVar(CCVars.GameRoleTimers);
+        await server.WaitPost(() =>
+        {
+            server.CfgMan.SetCVar(PlanetCVars.PlanetNetworks, true);
+            server.CfgMan.SetCVar(CCVars.GameRoleTimers, false);
+        });
+        try
+        {
+            var state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Create) { Scenario = WFRoundScenario.Ship });
+            var id = OwnLobby(state).Id;
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.ApplyRoster) { LobbyId = id, Roster = WFCrewRoster.Medical });
+            var medic = OwnLobby(state).Roles.Single(role => role.Job == "MdMedic");
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectRole) { LobbyId = id, RoleId = medic.Id });
+            Assert.That(OwnLobby(state).Members.Single().RoleId, Is.EqualTo(medic.Id));
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.ChangeScenario) { LobbyId = id, Scenario = WFRoundScenario.Crashlanded });
+            var crew = OwnLobby(state);
+            Assert.That(crew.Roles.Select(role => role.Job), Is.EquivalentTo(new[] { "Contractor", "StationEngineer" }));
+            Assert.That(crew.Members.Single().Job, Is.Null);
+            Assert.That(crew.Members.Single().RoleId, Is.Null);
+            Assert.That(crew.Members.Single().Station, Is.Null);
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SaveSetup) { LobbyId = id, SaveName = "Converted medical crew" });
+            var saved = state.SavedSetups.Single(setup => setup.Name == "Converted medical crew");
+            await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Leave) { LobbyId = id });
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.LoadSetup) { SavedId = saved.Id });
+            Assert.That(OwnLobby(state).Scenario, Is.EqualTo(WFRoundScenario.Crashlanded));
+            Assert.That(OwnLobby(state).Roles.Select(role => role.Job), Is.EquivalentTo(crew.Roles.Select(role => role.Job)));
+            Assert.That(OwnLobby(state).Members.Single().Job, Is.Null);
+            await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.DeleteSetup) { SavedId = saved.Id });
+            await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Leave) { LobbyId = OwnLobby(state).Id });
+        }
+        finally
+        {
+            await server.WaitPost(() =>
+            {
+                server.CfgMan.SetCVar(PlanetCVars.PlanetNetworks, enabled);
+                server.CfgMan.SetCVar(CCVars.GameRoleTimers, timers);
+            });
+        }
         await pair.CleanReturnAsync();
     }
 

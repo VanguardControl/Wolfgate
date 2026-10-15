@@ -68,8 +68,16 @@ public sealed partial class WFRoundSetupSystem
     }
 
     /// <summary>Offers only eligible jobs from the selected scenario or available stations.</summary>
-    private List<WFRoundSetupJob> GetJobs(ICommonSession session, Lobby lobby)
+    private List<WFRoundSetupJob> GetJobs(ICommonSession session, Lobby lobby, Dictionary<string, bool>? eligibility = null)
     {
+        bool Allowed(string job)
+        {
+            if (eligibility == null)
+                return IsJobAllowed(session, job);
+            if (!eligibility.TryGetValue(job, out var allowed))
+                eligibility[job] = allowed = IsJobAllowed(session, job);
+            return allowed;
+        }
         var choices = new List<WFRoundSetupJob>();
         if (!_userDb.IsLoadComplete(session) || !_preferences.HavePreferencesLoaded(session))
             return choices;
@@ -77,7 +85,7 @@ public sealed partial class WFRoundSetupSystem
         {
             foreach (var job in lobby.Scenario == WFRoundScenario.Ship ? WFShipCrewJobs.Jobs : WFCrashScenarioSystem.AllowedJobs)
             {
-                if (IsJobAllowed(session, job))
+                if (Allowed(job))
                     choices.Add(new WFRoundSetupJob(job, null, string.Empty));
             }
             return choices;
@@ -92,7 +100,7 @@ public sealed partial class WFRoundSetupSystem
                     continue;
                 foreach (var (job, slots) in jobs.SetupAvailableJobs)
                 {
-                    if (slots.Length > 0 && slots[0] != 0 && ids.Add(job.Id) && IsJobAllowed(session, job.Id))
+                    if (slots.Length > 0 && slots[0] != 0 && ids.Add(job.Id) && Allowed(job.Id))
                         choices.Add(new WFRoundSetupJob(job.Id, null, map.MapName));
                 }
             }
@@ -105,7 +113,7 @@ public sealed partial class WFRoundSetupSystem
                 continue;
             foreach (var job in _jobs.GetAvailableJobs(station))
             {
-                if (IsJobAllowed(session, job.Id))
+                if (Allowed(job.Id))
                     choices.Add(new WFRoundSetupJob(job.Id, GetNetEntity(station), Name(station)));
             }
         }

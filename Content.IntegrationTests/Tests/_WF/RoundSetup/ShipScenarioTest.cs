@@ -24,6 +24,7 @@ using Content.Shared.Preferences;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Network;
 
 namespace Content.IntegrationTests.Tests._WF.RoundSetup;
 
@@ -253,6 +254,59 @@ public sealed class ShipScenarioTest
         await pair.Client.WaitPost(() => clientPreferences.DeleteCharacter(alternate));
         await PoolManager.WaitUntil(server, () => !preferences.GetPreferences(player.UserId).Characters.ContainsKey(alternate), maxTicks: 120);
         await ReturnToLobby(pair);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A disconnected buyer is refunded once after reconnecting, even across round cleanup.</summary>
+    [Test]
+    public async Task DeferredRefundSurvivesRoundRestartAndReconnect()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
+        var server = pair.Server;
+        var preferences = server.ResolveDependency<IServerPreferencesManager>();
+        var player = pair.Player!;
+        var user = player.UserId;
+        var userName = player.Name;
+        var slot = preferences.GetPreferences(user).SelectedCharacterIndex;
+        var original = (HumanoidCharacterProfile) preferences.GetPreferences(user).Characters[slot];
+        var ships = server.System<WFShipScenarioSystem>();
+        var net = pair.Client.ResolveDependency<IClientNetManager>();
+        await StartEmptyRound(pair);
+        await SetProfile(pair, slot, original.WithoutAllTraitPreferences().WithBankBalance(10000));
+        var hull = EntityUid.Invalid;
+        var station = EntityUid.Invalid;
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(ships.TryPrepare(19130, Vessel, out station, out var reason), Is.True, reason);
+            Assert.That(ships.TryGetSpawn(19130, out var spawn), Is.True);
+            hull = spawn.EntityId;
+            Assert.That(ships.TryCharge(19130, player, out reason), Is.True, reason);
+        });
+        await SetProfile(pair, slot, (HumanoidCharacterProfile) preferences.GetPreferences(user).Characters[slot]);
+        await pair.Client.WaitPost(() => net.ClientDisconnect("Pending refund test"));
+        await pair.RunTicksSync(10);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(preferences.GetPreferencesOrNull(user), Is.Null);
+            ships.Rollback(19130);
+            ships.Rollback(19130);
+            Assert.That(ships.TryGetSpawn(19130, out _), Is.False, "A deferred refund must not retain a dead scenario.");
+            Assert.That(server.EntMan.EntityExists(hull), Is.False);
+            Assert.That(server.EntMan.EntityExists(station), Is.False);
+            server.System<GameTicker>().RestartRound();
+        });
+        await pair.RunTicksSync(10);
+        pair.Client.SetConnectTarget(server);
+        await pair.Client.WaitPost(() => net.ClientConnect(null!, 0, userName));
+        await pair.RunTicksSync(180);
+        await server.WaitAssertion(() => Assert.That(Balance(pair, slot), Is.EqualTo(10000)));
+        await pair.RunTicksSync(pair.SecondsToTicks(3));
+        await server.WaitAssertion(() =>
+        {
+            ships.RemoveScenario(19130);
+            Assert.That(Balance(pair, slot), Is.EqualTo(10000), "Retries and repeated cancellation must not duplicate a refund.");
+        });
+        await SetProfile(pair, slot, original);
         await pair.CleanReturnAsync();
     }
 

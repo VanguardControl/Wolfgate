@@ -35,6 +35,26 @@ namespace Content.IntegrationTests.Tests._WF.RoundSetup;
 [TestOf(typeof(WFRoundSetupLobbyPanel))]
 public sealed class RoundSetupUiTest
 {
+    [TestCase(0, "players", "slots", "openings")]
+    [TestCase(1, "player", "slot", "opening")]
+    [TestCase(2, "players", "slots", "openings")]
+    public async Task CrewCountsUseSingularAndPlural(int count, string players, string slots, string openings)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            Assert.That(Loc.GetString("wf-round-setup-panel-count", ("count", count)), Is.EqualTo($"{count} {players}"));
+            Assert.That(Loc.GetString("wf-round-setup-panel-openings", ("count", count)), Is.EqualTo($"{count} open crew {slots}"));
+            Assert.That(Loc.GetString("wf-round-setup-panel-members", ("count", count), ("max", WFRoundSetupPolicy.MaximumMembers), ("access", "Public")),
+                Is.EqualTo($"{count} / {WFRoundSetupPolicy.MaximumMembers} {players} · Public"));
+            Assert.That(Loc.GetString("wf-round-setup-lobby-info", ("count", count), ("access", "Public"), ("status", "Preparing")),
+                Is.EqualTo($"{count} {players} · Public · Preparing"));
+            Assert.That(Loc.GetString("wf-round-setup-row-tooltip", ("count", count), ("open", count), ("title", "Rescue"), ("host", "Ada"), ("status", "Preparing")),
+                Is.EqualTo($"Rescue · Led by Ada · {count} aboard · {count} {openings} · Preparing"));
+        });
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Crew setup stays out of the main lobby until its button is pressed.</summary>
     [Test]
     public async Task CrewBrowserOpensOnlyWhenRequested()

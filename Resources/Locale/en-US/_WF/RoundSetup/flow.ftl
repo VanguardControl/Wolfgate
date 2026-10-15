@@ -16,7 +16,10 @@ wf-round-setup-normal-unready = Unready
 wf-round-setup-next-section = Next: { $section }
 wf-round-setup-personal-job = Your job
 wf-round-setup-roles-empty-host = Just you for now. Add a role to open places for other players.
-wf-round-setup-panel-count = { $count } players
+wf-round-setup-panel-count = { $count ->
+    [one] { $count } player
+    *[other] { $count } players
+    }
 wf-round-setup-selected-character = Playing as { $name }
 wf-round-setup-crew-section = Crew
 wf-round-setup-back-lobbies = Back to all crews

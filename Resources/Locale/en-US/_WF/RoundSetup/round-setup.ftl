@@ -15,7 +15,10 @@ wf-round-setup-browse = Player crews
 wf-round-setup-empty = No other player lobbies are open yet.
 wf-round-setup-already-playing = You have already joined the round. You can still manage your existing lobby here.
 wf-round-setup-lobby-title = { $host } — { $scenario }
-wf-round-setup-lobby-info = { $count } players · { $access } · { $status }
+wf-round-setup-lobby-info = { $count } { $count ->
+    [one] player
+    *[other] players
+    } · { $access } · { $status }
 wf-round-setup-status-started = In progress
 wf-round-setup-status-waiting = Preparing
 wf-round-setup-access-public = Public
@@ -112,7 +115,10 @@ wf-round-setup-request-role = { $name } — { $role }
 wf-round-setup-row-untitled = { $host }'s crew
 wf-round-setup-row-count = { $count } aboard
 wf-round-setup-row-invited = Invitation
-wf-round-setup-row-tooltip = { $title } · Led by { $host } · { $count } aboard · { $open } openings · { $status }
+wf-round-setup-row-tooltip = { $title } · Led by { $host } · { $count } aboard · { $open } { $open ->
+    [one] opening
+    *[other] openings
+    } · { $status }
 wf-round-setup-crew-leader = Led by { $name }
 wf-round-setup-host-position = Your position aboard
 wf-round-setup-host-independent-job = Independent job (outside advertised slots)

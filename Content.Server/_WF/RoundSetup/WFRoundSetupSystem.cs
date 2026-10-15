@@ -353,6 +353,15 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
                 lobby.Scenario = msg.Scenario;
                 lobby.Vessel = null;
                 lobby.ShipStart = WFShipStartLocation.RandomSpace;
+                var allowed = msg.Scenario == WFRoundScenario.Ship ? WFShipCrewJobs.Jobs : WFCrashScenarioSystem.AllowedJobs;
+                foreach (var affected in lobby.Members.Values.Where(entry => !entry.Spawned && entry.Job != null && !allowed.Contains(entry.Job)))
+                {
+                    affected.RoleId = null;
+                    affected.Job = null;
+                    affected.Station = null;
+                }
+                foreach (var role in lobby.Roles.Values.Where(role => !allowed.Contains(role.Job)).Select(role => role.Id).ToArray())
+                    RemoveRole(lobby, role);
                 UnreadyMembers(lobby);
                 return true;
             case WFRoundSetupAction.SelectShipStart:
@@ -499,11 +508,17 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             member.Name = Loc.GetString("wf-round-setup-unknown-character");
     }
 
-    /// <summary>Includes private member and admission details only for authorized recipients.</summary>
-    private WFRoundSetupLobby Snapshot(Lobby lobby, NetUserId user)
+    /// <summary>Refreshes character snapshots once before delivery to any number of recipients.</summary>
+    private void RefreshPortraits()
     {
-        foreach (var (id, entry) in lobby.Members)
-            UpdatePortrait(id, entry);
+        foreach (var lobby in _lobbies.Values)
+        foreach (var (id, member) in lobby.Members)
+            UpdatePortrait(id, member);
+    }
+
+    /// <summary>Includes private member and admission details only for authorized recipients.</summary>
+    private WFRoundSetupLobby Snapshot(Lobby lobby, NetUserId user, bool canEnter, IReadOnlyCollection<WFRoundSetupJob> jobs)
+    {
         var member = lobby.Members.ContainsKey(user);
         var host = lobby.Host == user;
         return new WFRoundSetupLobby
@@ -512,7 +527,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             HostJob = lobby.Members[lobby.Host].Job, Portrait = lobby.Members[lobby.Host].Portrait,
             Scenario = lobby.Scenario, Access = lobby.Access, AllowLateJoin = lobby.AllowLateJoin,
             Started = lobby.Started, MemberCount = lobby.Members.Count, Vessel = lobby.Vessel, ShipStart = lobby.ShipStart,
-            Roles = SnapshotRoles(lobby, user),
+            Roles = SnapshotRoles(lobby, user, canEnter, jobs),
             Code = host && lobby.Access == WFLobbyAccess.Code ? lobby.Code : null,
             Members = member ? lobby.Members.Select(pair => new WFRoundSetupMember(pair.Key, pair.Value.Name,
                 pair.Value.Job, pair.Value.Station, IsReadyForLobby(lobby, pair.Key, pair.Value), pair.Value.Spawned,
@@ -523,25 +538,40 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     }
 
     /// <summary>Combines public listings with the recipient's permitted choices and invitations.</summary>
-    private void SendState(ICommonSession session, string? message = null, bool joinConfirmed = false)
+    private void SendState(ICommonSession session, string? message = null, bool joinConfirmed = false, bool refreshPortraits = true)
     {
         if (session.Status != SessionStatus.InGame)
             return;
         var own = FindLobby(session.UserId);
         var shipHost = own?.Scenario == WFRoundScenario.Ship && own.Host == session.UserId;
+        if (refreshPortraits)
+            RefreshPortraits();
+        var canEnter = CanEnter(session);
+        var eligibility = new Dictionary<string, bool>();
+        var scenarioJobs = new Dictionary<WFRoundScenario, List<WFRoundSetupJob>>();
+        List<WFRoundSetupJob> JobsFor(Lobby lobby)
+        {
+            if (lobby.Scenario == WFRoundScenario.Normal)
+                return GetJobs(session, lobby, eligibility);
+            if (!scenarioJobs.TryGetValue(lobby.Scenario, out var jobs))
+                scenarioJobs[lobby.Scenario] = jobs = GetJobs(session, lobby, eligibility);
+            return jobs;
+        }
+        WFRoundSetupLobby ForRecipient(Lobby lobby) => Snapshot(lobby, session.UserId, canEnter,
+            canEnter ? JobsFor(lobby) : Array.Empty<WFRoundSetupJob>());
         var state = new WFRoundSetupState
         {
             InRound = _ticker.RunLevel != GameRunLevel.PreRoundLobby,
             JoinConfirmed = joinConfirmed,
-            CanJoin = CanEnter(session), CrashlandedAvailable = _crash.IsAvailable, OwnLobby = own?.Id,
-            Lobbies = _lobbies.Values.Select(lobby => Snapshot(lobby, session.UserId)).ToArray(),
+            CanJoin = canEnter, CrashlandedAvailable = _crash.IsAvailable, OwnLobby = own?.Id,
+            Lobbies = _lobbies.Values.Select(ForRecipient).ToArray(),
             Invitations = _lobbies.Values.Where(l => l.Invitations.Contains(session.UserId))
-                .Select(l => Snapshot(l, session.UserId)).ToArray(),
+                .Select(ForRecipient).ToArray(),
             InviteTargets = own?.Host == session.UserId ? _players.Sessions.Where(s => CanEnter(s) && FindLobby(s.UserId) == null)
                 .Select(s => new WFRoundSetupPlayer(s.UserId, CharacterName(s.UserId))).ToArray() : Array.Empty<WFRoundSetupPlayer>(),
-            Jobs = own != null && (CanEnter(session) || own.Host == session.UserId) ? GetJobs(session, own).ToArray() : Array.Empty<WFRoundSetupJob>(),
+            Jobs = own != null && (canEnter || own.Host == session.UserId) ? JobsFor(own).ToArray() : Array.Empty<WFRoundSetupJob>(),
             SavedSetups = GetSavedSetups(session.UserId).ToArray(),
-            RoleJobs = own?.Host == session.UserId ? GetRoleJobs(session, own).ToArray() : Array.Empty<WFRoundSetupJob>(),
+            RoleJobs = own?.Host == session.UserId ? (own.Scenario == WFRoundScenario.Ship ? GetRoleJobs(session, own) : JobsFor(own)).ToArray() : Array.Empty<WFRoundSetupJob>(),
             Vessels = shipHost ? _ships.GetVessels().ToArray() : Array.Empty<WFRoundSetupVessel>(),
             HostBalance = shipHost ? _ships.GetBalance(session) : null,
             Message = message == null ? null : Loc.GetString(message),
@@ -569,10 +599,11 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     /// <summary>Delivers queued snapshots and removes disconnected viewers.</summary>
     private void FlushBroadcast()
     {
+        RefreshPortraits();
         foreach (var user in _watchers.ToArray())
         {
             if (_players.TryGetSessionById(user, out var session))
-                SendState(session);
+                SendState(session, refreshPortraits: false);
             else
             {
                 _watchers.Remove(user);

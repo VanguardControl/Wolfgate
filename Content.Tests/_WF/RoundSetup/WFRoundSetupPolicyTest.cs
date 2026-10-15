@@ -103,6 +103,26 @@ public sealed class WFRoundSetupPolicyTest
         Assert.That(normalized, Is.Empty);
     }
 
+    [TestCase("Rescue\u202Ecrew")]
+    [TestCase("Rescue\u2066crew")]
+    [TestCase("Rescue\u200Bcrew")]
+    [TestCase("Rescue\u200Dcrew")]
+    [TestCase("Rescue\uFEFFcrew")]
+    [TestCase("Rescue\U000E0001crew")]
+    [TestCase("Rescue\tcrew")]
+    public void DescriptionsRejectInvisibleControls(string input)
+    {
+        Assert.That(WFRoundSetupPolicy.TryNormalizeDescription(input, out var description), Is.False);
+        Assert.That(description, Is.Empty);
+    }
+
+    [Test]
+    public void DescriptionsPreservePlainUnicodeAndParagraphs()
+    {
+        Assert.That(WFRoundSetupPolicy.TryNormalizeDescription("  Café rescue\r\nMedical crew welcome.  ", out var description), Is.True);
+        Assert.That(description, Is.EqualTo("Café rescue\nMedical crew welcome."));
+    }
+
     /// <summary>Every configured generation character is accepted by validation.</summary>
     [Test]
     public void CodeAlphabetCanGenerateAcceptedCodes()

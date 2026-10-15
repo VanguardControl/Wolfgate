@@ -25,9 +25,10 @@ public static class WFRoundSetupPolicy
         var normalized = input.Replace("\r\n", "\n").Replace('\r', '\n').Trim();
         if (normalized.Length > MaximumDescriptionLength)
             return false;
-        foreach (var character in normalized)
+        for (var index = 0; index < normalized.Length; index++)
         {
-            if (char.IsControl(character) && character != '\n')
+            if ((char.IsControl(normalized[index]) && normalized[index] != '\n') ||
+                char.GetUnicodeCategory(normalized, index) == System.Globalization.UnicodeCategory.Format)
                 return false;
         }
         description = normalized;

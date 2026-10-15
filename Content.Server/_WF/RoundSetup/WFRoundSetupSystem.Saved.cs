@@ -110,7 +110,7 @@ public sealed partial class WFRoundSetupSystem
             Job = member.Job, JobTitle = title, Access = lobby.Access, AllowLateJoin = lobby.AllowLateJoin,
             Roles = lobby.Roles.Values.Select(entry => new WFSavedRole(entry.Name, entry.Job, entry.Capacity)).ToArray(),
         };
-        return ValidSavedSetup(snapshot) && StoreSetups(host.UserId, saved.Where(entry => entry.Id != snapshot.Id).Append(snapshot).ToArray());
+        return ValidSavedSetup(snapshot) && ValidSavedJobs(snapshot) && StoreSetups(host.UserId, saved.Where(entry => entry.Id != snapshot.Id).Append(snapshot).ToArray());
     }
 
     private bool DeleteSetup(NetUserId user, int id)
@@ -127,9 +127,7 @@ public sealed partial class WFRoundSetupSystem
             saved.Scenario == WFRoundScenario.Crashlanded && !_crash.IsAvailable ||
             saved.Scenario == WFRoundScenario.Ship && saved.Vessel != null && !_ships.IsVesselAvailable(saved.Vessel))
             return false;
-        var jobs = saved.Scenario == WFRoundScenario.Ship ? WFShipCrewJobs.Jobs : WFCrashScenarioSystem.AllowedJobs;
-        if (saved.Roles.Any(role => !jobs.Contains(role.Job) || !_prototypes.HasIndex<JobPrototype>(role.Job)) ||
-            saved.Job != null && (!jobs.Contains(saved.Job) || !_prototypes.HasIndex<JobPrototype>(saved.Job)))
+        if (!ValidSavedJobs(saved))
             return false;
         var lobby = new Lobby
         {
@@ -144,6 +142,14 @@ public sealed partial class WFRoundSetupSystem
         _lobbies.Add(lobby.Id, lobby);
         RegisterMember(lobby, host, new Member { Job = saved.Job != null && IsJobAllowed(host, saved.Job) ? saved.Job : null, Title = saved.JobTitle });
         return true;
+    }
+
+    /// <summary>Saving and loading use the same scenario catalog and current job prototypes.</summary>
+    private bool ValidSavedJobs(WFSavedSetup saved)
+    {
+        var jobs = saved.Scenario == WFRoundScenario.Ship ? WFShipCrewJobs.Jobs : WFCrashScenarioSystem.AllowedJobs;
+        return saved.Roles.All(role => jobs.Contains(role.Job) && _prototypes.HasIndex<JobPrototype>(role.Job)) &&
+               (saved.Job == null || jobs.Contains(saved.Job) && _prototypes.HasIndex<JobPrototype>(saved.Job));
     }
 
     private static bool ValidSavedSetup(WFSavedSetup saved) =>
