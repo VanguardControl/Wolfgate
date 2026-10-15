@@ -4,6 +4,7 @@ using Content.Server.Database;
 using Content.Server.GameTicking;
 using Content.Server.Preferences.Managers;
 using Content.Shared._WF.RoundSetup;
+using Content.Shared._WF.ShipAccess;
 using Content.Shared.GameTicking;
 using Robust.Server.Player;
 using Robust.Shared.Enums;
@@ -46,6 +47,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
         public int? PurchaseCharacterSlot;
         public bool Ready;
         public bool Spawned;
+        public WFShipAccessKey? AccessKey;
     }
 
     /// <summary>Round-scoped lobby state; private admission data never enters public snapshots.</summary>
@@ -76,6 +78,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
         SubscribeNetworkEvent<WFRoundSetupRequest>(OnRequest);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRestart);
         SubscribeLocalEvent<PlayerJoinedLobbyEvent>(OnReturnedToLobby);
+        InitializeShipAccess();
         InitializeSpawning();
         InitializeDemo();
     }
@@ -90,6 +93,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             _nextUpdate = now + TimeSpan.FromSeconds(2);
             PrunePendingAdmissions();
             UpdateDemo();
+            SyncCrewShips();
             Broadcast();
         }
         if (!_broadcastPending || now < _nextBroadcast)
@@ -103,6 +107,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     private void OnRestart(RoundRestartCleanupEvent args)
     {
         _lobbies.Clear();
+        SyncCrewShips();
         _savedSetups.Clear();
         _savedReadFailures.Clear();
         _nextRequest.Clear();
@@ -449,6 +454,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             lobby.Code = NewCode();
             RequireHostConsent(lobby);
         }
+        SyncCrewShips();
     }
 
     /// <summary>Generates unpredictable admission codes without ambiguous characters.</summary>

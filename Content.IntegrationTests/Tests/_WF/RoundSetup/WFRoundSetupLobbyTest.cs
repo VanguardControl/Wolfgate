@@ -16,6 +16,7 @@ using Content.Shared._Mono.Ships.Components;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.RoundSetup;
+using Content.Shared._WF.ShipAccess;
 using Content.Shared.Access.Systems;
 using Content.Shared.Access.Components;
 using Content.Shared.CCVar;
@@ -510,6 +511,11 @@ public sealed class WFRoundSetupLobbyTest
                 hull = grid!.Value;
                 Assert.That(em.GetComponent<WFShipScenarioComponent>(hull).LobbyId, Is.EqualTo(lobbyId));
                 Assert.That(em.GetComponent<ShipOwnershipComponent>(hull).OwnerUserId, Is.EqualTo(player.UserId));
+                var access = em.GetComponent<WFShipAccessComponent>(hull);
+                Assert.That(access.Mode, Is.EqualTo(WFShipAccessMode.Crew));
+                Assert.That(access.CrewId, Is.EqualTo(lobbyId));
+                Assert.That(access.CrewKeys.Count, Is.EqualTo(1), "The newly spawned member has a crew credential.");
+                Assert.That(access.AllowList, Is.Empty, "Crew membership never creates a permanent guest entry.");
                 var cards = server.System<SharedIdCardSystem>();
                 Assert.That(cards.TryFindIdCard(body, out var card), Is.True);
                 Assert.That(em.GetComponent<ShuttleDeedComponent>(card.Owner).ShuttleUid, Is.EqualTo(hull));
@@ -553,6 +559,12 @@ public sealed class WFRoundSetupLobbyTest
             await server.WaitPost(() => server.System<GameTicker>().Respawn(player));
             state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Refresh));
             Assert.That(state.OwnLobby, Is.Null, "Respawning must leave the previous crew.");
+            await server.WaitAssertion(() =>
+            {
+                var access = server.EntMan.GetComponent<WFShipAccessComponent>(hull);
+                Assert.That(access.CrewId, Is.Null, "An empty crew releases its ship link.");
+                Assert.That(access.CrewKeys, Is.Empty, "Respawning revokes the old crew credentials.");
+            });
             Assert.That(state.CanJoin, Is.True);
             Assert.That(state.Lobbies.Any(lobby => lobby.Id == lobbyId), Is.False, "An empty crew is removed.");
             state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Create) { Scenario = WFRoundScenario.Ship });

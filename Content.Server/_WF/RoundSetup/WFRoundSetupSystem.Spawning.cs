@@ -289,6 +289,7 @@ public sealed partial class WFRoundSetupSystem
             member.Spawned = true;
             member.Ready = false;
             lobby.Started = true;
+            CaptureCrewCard(member, session);
             if (lobby.Scenario == WFRoundScenario.Crashlanded)
             {
                 if (session.AttachedEntity is { } survivor)
@@ -297,6 +298,7 @@ public sealed partial class WFRoundSetupSystem
             }
             else if (lobby.Scenario == WFRoundScenario.Ship)
                 _ships.NotifyArrival(lobby.Id, session);
+            SyncCrewShips();
             return true;
         }
         finally

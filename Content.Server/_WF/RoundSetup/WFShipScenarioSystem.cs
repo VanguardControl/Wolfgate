@@ -217,15 +217,16 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         return true;
     }
 
-    /// <summary>Admits a spawned crew member's card to the purchased ship's existing access list.</summary>
+    /// <summary>Links the purchased ship to live crew membership without creating permanent guest entries.</summary>
     public void NotifyArrival(int lobbyId, ICommonSession session)
     {
         if (!_scenarios.TryGetValue(lobbyId, out var scenario) || !scenario.Used || session.AttachedEntity is not { } body)
             return;
         foreach (var grid in scenario.Grids)
         {
-            if (TryComp<WFShipAccessComponent>(grid, out var access))
-                _access.TryAddPerson((grid, access), body);
+            if (TryComp<WFShipAccessComponent>(grid, out var access) && access.CrewId == null &&
+                _access.TryLinkCrew((grid, access), body))
+                _access.SetMode((grid, access), WFShipAccessMode.Crew);
         }
     }
 
