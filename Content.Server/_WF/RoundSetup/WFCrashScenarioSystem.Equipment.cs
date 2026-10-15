@@ -25,6 +25,9 @@ public sealed partial class WFCrashScenarioSystem
         var survival = MatchesBreather(body, "NitrogenBreatherNF") ? "BoxSurvivalMonoNitrogenExtended"
             : MatchesBreather(body, "WaterBreather") ? "BoxSurvivalMonoVaporExtended" : "BoxSurvivalMonoOxygenExtended";
         Stow(Spawn(survival, coordinates));
+        foreach (var supply in new[] { "MedkitFilled", "HandheldHealthAnalyzer", "WelderMini", "Screwdriver", "Wrench", "Wirecutter", "FireExtinguisherMini",
+                     "FlashlightLantern", "DrinkWaterBottleFull", "FoodSnackEnergyBar", "HarmonicaInstrument" })
+            Stow(Spawn(supply, coordinates));
         var hasSuit = _inventory.TryGetSlotEntity(body, "outerClothing", out var outer);
         if (!hasSuit || !HasComp<PressureProtectionComponent>(outer))
         {

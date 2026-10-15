@@ -32,6 +32,10 @@ public sealed class CrashEquipmentTest
             Assert.That(inventory.TryGetSlotEntity(body, "back", out var bag), Is.True);
             var contents = em.GetComponent<StorageComponent>(bag!.Value).Container.ContainedEntities;
             Assert.That(contents, Does.Contain(coat), "Starting clothing must be preserved in the survival kit.");
+            var kit = contents.Select(item => em.GetComponent<MetaDataComponent>(item).EntityPrototype?.ID).ToArray();
+            foreach (var supply in new[] { "MedkitFilled", "HandheldHealthAnalyzer", "WelderMini", "Screwdriver", "Wrench", "Wirecutter", "FireExtinguisherMini",
+                         "FlashlightLantern", "DrinkWaterBottleFull", "FoodSnackEnergyBar", "HarmonicaInstrument" })
+                Assert.That(kit, Does.Contain(supply), "Emergency supplies should fit in the survivor's backpack.");
             var box = contents.Single(item => em.GetComponent<MetaDataComponent>(item).EntityPrototype?.ID == boxId);
             var supplies = em.GetComponent<StorageComponent>(box).Container.ContainedEntities
                 .Select(item => em.GetComponent<MetaDataComponent>(item).EntityPrototype?.ID).ToArray();

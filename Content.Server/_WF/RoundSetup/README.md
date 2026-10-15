@@ -1,14 +1,14 @@
 # RoundSetup
 
-Crew Setup lets players organize a Crashlanded or Ship crew start together before the round, or launch a new start mid-round. Hosts control public access, private requests, codes, direct invitations and whether survivors may join after launch. Each member chooses their own character through the existing character selector and selects their own permitted job.
+Crew Setup lets players organize a Crashlanded, Ship or Faction Crew start together before the round, or launch a new start mid-round. Hosts control public access, private requests, codes, direct invitations and whether survivors may join after launch. Each member chooses their own character through the existing character selector and selects their own permitted job.
 
 The lobby retains the repository's menu column, character hero, docked chat and bottom information strip. Crew Setup sits directly above an equally sized red/green READY button before the round. Mid-round there is one Join Round button, offering Crew (Default) for scenario setup or Standard (Legacy) for station jobs. Crew setup uses a distinct accent colour. The hero yields space to the menu at narrow widths, and secondary options remain accessible by scrolling. The footer measures its link text, including Changelog (new), instead of clipping it to a fixed height. Lobby and crew preparation panels are translucent, while text stays opaque and the full-screen background remains clear.
 
-Compact crew rows appear below Leave Server and open full details when clicked; the welcome information is pinned below the scrolling menu. The setup browser uses the same rows, with Crews and Create tabs. Leader portraits show only public appearance, with existing job icons used throughout. Hosts can name their crew, write a plain-text description of up to 512 characters and switch between Ship and Crashlanded before launch without recreating it. Descriptions appear in crew details and can be edited in Who can join, including after launch. Changing type clears the vessel choice and readiness while retaining members, roles and admission settings. Editing a character clears both normal and crew readiness. Once a player belongs to a crew, its preparation, ship, crew and access sections replace the browsing navigation across the top. The ship page places selection and departure controls beside a flexible preview without a page scrollbar; ship descriptions and preview controls have tooltips. Selectors and buttons wrap long text, pages scroll at smaller sizes, and confirmation and red Leave Crew buttons stay visible. Confirmation closes setup after the server accepts readiness or a mid-round join, including explicit ship purchase consent.
+Compact crew rows appear below Leave Server and open full details when clicked; the welcome information is pinned below the scrolling menu. The setup browser uses the same rows, with Crews and Create tabs. Leader portraits show only public appearance, with existing job icons used throughout. Hosts can name their crew, write a plain-text description of up to 512 characters and switch between eligible crew types before launch without recreating it. Descriptions appear in crew details and can be edited in Who can join, including after launch. Changing type clears the vessel choice and readiness while retaining members, compatible roles and admission settings. Editing a character clears both normal and crew readiness. Once a player belongs to a crew, its preparation, ship, crew and access sections replace the browsing navigation across the top. The ship page places selection and departure controls beside a flexible preview without a page scrollbar; ship descriptions and preview controls have tooltips. Selectors and buttons wrap long text, pages scroll at smaller sizes, and confirmation and red Leave Crew buttons stay visible. Confirmation closes setup after the server accepts readiness or a mid-round join, including explicit ship purchase consent.
 
 Open Crew Setup from the lobby, the group icon beside Character in the top-left gameplay toolbar, or the in-round game menu. The toolbar button stays pressed while setup is open and toggles it closed. The Invite players panel stays visible at the top of Who can join, with a Send invitation action and an explanation when nobody is eligible. Hosts invite connected players from this panel; only players awaiting a spawn and outside other crews appear in the picker. Recipients choose an available role in the invited crew and accept. Ready up before round start; a pregame group launches only when its host is ready. Mid-round hosts launch their waiting group explicitly. A disconnected host keeps ownership; a host can transfer ownership to another member or leave to pass it to the next member. Respawning leaves the previous crew and releases its reserved slot; remaining members retain their crew and an existing ship stays in the world. Round restart clears all lobbies and invitation codes.
 
-The server owns membership and validates every request. Scenario job slots remain available when a helm is disabled or unpowered; ordinary shuttle power rules do not override crew admission. Normal pregame readiness and Standard joining do not create a scenario crew; only Ship and Crashlanded can create one. Standard opens the existing picker directly to station jobs. Its old Crew tab is hidden, and legacy ship recruitment is excluded from job advertisements and rejected by server spawn validation. Crashlanded uses a random civilian vessel and planet, a fixed three-minute preparation period with disabled flight controls, and the existing planetary descent and crash systems. Living occupants see a shared on-screen countdown until atmospheric entry, highlighted for the final thirty seconds. Leaving the ship, dying or entering atmosphere clears the warning. The countdown never increases during client clock corrections. Survivors receive an emergency EVA suit, breath mask and a survival kit with species-appropriate gas, medicine, rations and signalling tools; existing clothing is preserved. Later survivors spawn on a surviving floor in that group's wreck.
+The server owns membership and validates every request. Scenario job slots remain available when a helm is disabled or unpowered; ordinary shuttle power rules do not override crew admission. Normal pregame readiness and Standard joining do not create a scenario crew; only Ship, Crashlanded and Faction Crew can create one. Standard opens the existing picker directly to station jobs. Its old Crew tab is hidden, and legacy ship recruitment is excluded from job advertisements and rejected by server spawn validation. Crashlanded uses a random civilian vessel and planet, a fixed three-minute preparation period with disabled flight controls, and the existing planetary descent and crash systems. Living occupants hear a looping alarm and see a shared on-screen countdown until atmospheric entry, highlighted for the final thirty seconds. Leaving the ship, dying or entering atmosphere clears the warning and alarm. The countdown never increases during client clock corrections. Survivors receive an emergency EVA suit, breath mask and a survival kit with species-appropriate gas, a filled medkit, health analyser, compact repair tools and extinguisher, lantern, water, food and a harmonica alongside the existing medicine, rations and signalling tools; existing clothing is preserved. Later survivors spawn on a surviving floor in that group's wreck.
 
 Crashlanded requires the existing `wf.planet_networks` server setting and a sector containing registered planets. Its card is disabled when planet networks are off. Closing late admission prevents new members; players already accepted retain their place until the host removes them.
 
@@ -21,6 +21,10 @@ Ship preparation follows Prepare, Your ship, Crew and Who can join, with a fixed
 Hosts can save up to 20 named scenarios from Who can join. Create has a Load Saved Scenario button; its compact rows open full details with load and delete actions. Saves belong to the server account and persist in versioned files under the server user-data `round-setups` directory. They contain the crew name and description, scenario, vessel, departure, personal job/title, recruitment roles and admission settings, without members, invite codes or purchase authorization. Loading validates the current catalog and creates a new unready crew; a personal job the character no longer qualifies for is left unselected. Saving under an existing name replaces it. Writes retain a backup, and unreadable saves are protected from automatic overwrite.
 
 Pregame lasts six minutes by default, including the Monolith server preset. For local playtests, the default-off `wf.round_setup.demo_enabled` setting seeds a public Crashlanded lobby when the real player named by `wf.round_setup.demo_host` connects. It has a ready host and three explicit Drifter openings. See `Tools/_WF/RoundSetup/README.md` for the headless host launcher. Normal servers never create demo lobbies.
+
+Faction Crew starts support the regular TSF and PDV command ladders and specialists. Hosts must qualify for an available faction job; that selected job caps advertised roles, and each recruit must independently qualify. Special deployments such as MARSOC, Tarkhan and admin command remain in their existing systems. T1/T2 ship catalogs come from the existing faction voucher prototypes, including downstream additions. Hosts explicitly authorize payment of the listed price from their selected character, with the same refund path as civilian ships. Spawning consumes the normal faction station job slot and creates its ordinary records, equipment, access, company and mind role; only spawn coordinates change. Existing faction population balancing remains active. Custom titles retain the actual faction rank on IDs and records. A host can manage openings mid-round, but cannot promote a spawned character by editing a title or role.
+
+Hosts can set a ship name on Your ship before launch; Next or Enter saves it. Purchase applies it to the hull, deed and shuttle records. Saved scenarios retain the name and faction. Accepted joins send every connected crew member a direct character-name notification; launched ships also announce the arrival over functioning PA speakers. Failed requests and reconnects do not announce a new membership.
 
 Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSystem`, `WFShipScenarioSystem`, and the client Crew Setup window.
 
@@ -41,6 +45,8 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.Flight.cs`](WFCrashScenarioSystem.Flight.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.cs`](WFRoundSetupSystem.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Demo.cs`](WFRoundSetupSystem.Demo.cs)
+- [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Factions.cs`](WFRoundSetupSystem.Factions.cs)
+- [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Notifications.cs`](WFRoundSetupSystem.Notifications.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Roles.cs`](WFRoundSetupSystem.Roles.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Saved.cs`](WFRoundSetupSystem.Saved.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.ShipAccess.cs`](WFRoundSetupSystem.ShipAccess.cs)
@@ -49,12 +55,14 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioComponent.cs`](WFShipScenarioComponent.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioSystem.cs`](WFShipScenarioSystem.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioSystem.Docking.cs`](WFShipScenarioSystem.Docking.cs)
+- [`Content.Server/_WF/RoundSetup/WFShipScenarioSystem.Factions.cs`](WFShipScenarioSystem.Factions.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioSystem.Refunds.cs`](WFShipScenarioSystem.Refunds.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/RoundSetup/WFCrashCountdownClock.cs`](../../../Content.Shared/_WF/RoundSetup/WFCrashCountdownClock.cs)
 - [`Content.Shared/_WF/RoundSetup/WFCrashCountdownEvent.cs`](../../../Content.Shared/_WF/RoundSetup/WFCrashCountdownEvent.cs)
+- [`Content.Shared/_WF/RoundSetup/WFFactionCrewPolicy.cs`](../../../Content.Shared/_WF/RoundSetup/WFFactionCrewPolicy.cs)
 - [`Content.Shared/_WF/RoundSetup/WFRoundSetupCVars.cs`](../../../Content.Shared/_WF/RoundSetup/WFRoundSetupCVars.cs)
 - [`Content.Shared/_WF/RoundSetup/WFRoundSetupMessages.cs`](../../../Content.Shared/_WF/RoundSetup/WFRoundSetupMessages.cs)
 - [`Content.Shared/_WF/RoundSetup/WFRoundSetupPolicy.cs`](../../../Content.Shared/_WF/RoundSetup/WFRoundSetupPolicy.cs)
@@ -85,6 +93,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Roles.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Roles.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Saved.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Saved.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.ScenarioColumns.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.ScenarioColumns.cs)
+- [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.ShipName.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.ShipName.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Ships.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupWindow.Ships.cs)
 
 ### Integration tests
@@ -97,10 +106,12 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupEligibilityTestSystem.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupEligibilityTestSystem.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Factions.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Factions.cs)
 
 ### Unit tests
 
 - [`Content.Tests/_WF/RoundSetup/WFCrashCountdownClockTest.cs`](../../../Content.Tests/_WF/RoundSetup/WFCrashCountdownClockTest.cs)
+- [`Content.Tests/_WF/RoundSetup/WFFactionCrewPolicyTest.cs`](../../../Content.Tests/_WF/RoundSetup/WFFactionCrewPolicyTest.cs)
 - [`Content.Tests/_WF/RoundSetup/WFRoundSetupPolicyTest.cs`](../../../Content.Tests/_WF/RoundSetup/WFRoundSetupPolicyTest.cs)
 - [`Content.Tests/_WF/RoundSetup/WFRoundSetupRolePolicyTest.cs`](../../../Content.Tests/_WF/RoundSetup/WFRoundSetupRolePolicyTest.cs)
 
@@ -113,6 +124,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 
 - [`Resources/Locale/en-US/_WF/RoundSetup/countdown-hud.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/countdown-hud.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/crash.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/crash.ftl)
+- [`Resources/Locale/en-US/_WF/RoundSetup/faction-crew.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/faction-crew.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/flow.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/flow.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/home.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/home.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/join-flow.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/join-flow.ftl)
@@ -156,6 +168,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Client/Options/UI/EscapeMenu.xaml`](../../../Content.Client/Options/UI/EscapeMenu.xaml): hosts can manage admission and survivors after spawning
 - [`Content.Client/UserInterface/Systems/EscapeMenu/EscapeUIController.cs`](../../../Content.Client/UserInterface/Systems/EscapeMenu/EscapeUIController.cs): manage the player lobby during the round
 - [`Content.Client/UserInterface/Systems/MenuBar/Widgets/GameTopMenuBar.xaml`](../../../Content.Client/UserInterface/Systems/MenuBar/Widgets/GameTopMenuBar.xaml): open crew setup from the gameplay toolbar
+- [`Content.Server/_Battlefield14/FactionTracking/FactionTrackingSystem.cs`](../../_Battlefield14/FactionTracking/FactionTrackingSystem.cs): count faction crews by their validated setup job without changing saved preferences
 - [`Content.Server/GameTicking/GameTicker.Spawning.cs`](../../GameTicking/GameTicker.Spawning.cs)
   - ordinary joining excludes scenario stations and legacy ship recruitment
   - explicit Normal choices share the regular job allocation

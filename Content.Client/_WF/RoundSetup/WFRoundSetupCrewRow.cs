@@ -26,7 +26,7 @@ public sealed class WFRoundSetupCrewRow : Button
             ("count", lobby.MemberCount), ("open", Openings(lobby)), ("status", status));
         Label.Visible = false;
         var row = new BoxContainer { SeparationOverride = 8, HorizontalExpand = true, MouseFilter = MouseFilterMode.Ignore };
-        row.AddChild(JobIcon(lobby.HostJob ?? (lobby.Scenario == WFRoundScenario.Ship ? "Pilot" : "Contractor")));
+        row.AddChild(JobIcon(lobby.HostJob ?? (WFRoundSetupPolicy.IsShip(lobby.Scenario) ? "Pilot" : "Contractor")));
         row.AddChild(new Label { Text = title, ClipText = true, HorizontalExpand = true, MouseFilter = MouseFilterMode.Ignore });
         row.AddChild(new Label
         {

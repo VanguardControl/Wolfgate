@@ -116,6 +116,11 @@ public sealed partial class WFRoundSetupWindow
             SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.SetTitle) { LobbyId = id, RoleName = _personalTitle });
             return;
         }
+        if (_lobbyPage == LobbyPage.Ship && _shipNameDirty && _state?.OwnLobby is { } shipLobby)
+        {
+            SaveShipName(shipLobby, page);
+            return;
+        }
         _lobbyPage = page;
         _pageScroll.VScroll = 0;
         Redraw();
@@ -233,23 +238,35 @@ public sealed partial class WFRoundSetupWindow
         _body.AddChild(crewName);
         crewName.ToolTip = Text("crew-title-help");
         _body.AddChild(DescriptionEditor(_newDescription, value => _newDescription = value));
-        foreach (var scenario in new[] { WFRoundScenario.Ship, WFRoundScenario.Crashlanded })
+        foreach (var scenario in new[] { WFRoundScenario.Ship, WFRoundScenario.Crashlanded, WFRoundScenario.FactionShip })
         {
             var card = Column(8);
             var title = PlainDescription(ScenarioName(scenario));
             title.StyleClasses.Add("WFRoundSetupHeading");
             card.AddChild(title);
             card.AddChild(Description(ScenarioDescription(scenario)));
-            var unavailable = scenario == WFRoundScenario.Crashlanded && !state.CrashlandedAvailable;
+            if (scenario == WFRoundScenario.FactionShip)
+            {
+                var faction = new WFRoundSetupOptionButton { Name = "RoundSetupFaction", HorizontalExpand = true };
+                foreach (var option in new[] { WFCrewFaction.TSF, WFCrewFaction.PDV })
+                    faction.AddItem(Text("faction-" + option.ToString().ToLowerInvariant()), (int) option);
+                faction.SelectId((int) _newFaction);
+                faction.OnItemSelected += args => { _newFaction = (WFCrewFaction) args.Id; Redraw(); };
+                card.AddChild(faction);
+            }
+            var unavailable = scenario == WFRoundScenario.Crashlanded && !state.CrashlandedAvailable ||
+                scenario == WFRoundScenario.FactionShip && !state.Factions.Contains(_newFaction);
+            var unavailableReason = scenario == WFRoundScenario.FactionShip ? "faction-unavailable" : "crash-unavailable";
             if (unavailable)
-                card.AddChild(Description("crash-unavailable"));
+                card.AddChild(Description(unavailableReason));
             var create = Button("create", () => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.Create)
             {
                 Scenario = scenario,
+                Faction = scenario == WFRoundScenario.FactionShip ? _newFaction : WFCrewFaction.None,
                 Title = _newTitle,
                 Description = _newDescription,
             }), unavailable || !state.CanJoin);
-            create.ToolTip = create.Disabled ? Text(unavailable ? "crash-unavailable" : "disabled-join") : null;
+            create.ToolTip = create.Disabled ? Text(unavailable ? unavailableReason : "disabled-join") : null;
             CheckDescription(create, () => _newDescription);
             create.Name = "RoundSetupCreate" + scenario;
             card.AddChild(create);
@@ -264,7 +281,7 @@ public sealed partial class WFRoundSetupWindow
         var host = lobby.Host == user;
         var member = lobby.Members.FirstOrDefault(player => player.UserId == user);
         var pages = new List<(LobbyPage Page, string Label)> { (LobbyPage.Overview, "flow-overview") };
-        if (lobby.Scenario == WFRoundScenario.Ship)
+        if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
             pages.Add((LobbyPage.Ship, "ship"));
         pages.Add((LobbyPage.Roles, "crew-section"));
         if (host)
@@ -297,7 +314,7 @@ public sealed partial class WFRoundSetupWindow
                 break;
             case LobbyPage.Admission: BuildHostSettings(lobby, state); break;
             default:
-                if (host && lobby.Scenario == WFRoundScenario.Ship && member is { Spawned: false })
+                if (host && WFRoundSetupPolicy.IsShip(lobby.Scenario) && member is { Spawned: false })
                 {
                     _body.SeparationOverride = 6;
                     _pageScroll.VScrollEnabled = false;
@@ -314,7 +331,7 @@ public sealed partial class WFRoundSetupWindow
                     BuildMemberSetup(state, lobby, member);
                 else
                     _body.AddChild(Description("already-playing"));
-                if (lobby.Scenario == WFRoundScenario.Ship)
+                if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
                 {
                     _body.AddChild(VesselSummary(state, lobby));
                     _body.AddChild(Description(lobby.ShipStart == WFShipStartLocation.CentralDock ? "ship-start-central" : "ship-start-random"));
@@ -334,11 +351,18 @@ public sealed partial class WFRoundSetupWindow
         selector.AddItem(ScenarioName(WFRoundScenario.Crashlanded), (int) WFRoundScenario.Crashlanded);
         if (!state.CrashlandedAvailable)
             selector.DisableItem(1, Text("crash-unavailable"));
-        selector.SelectId((int) lobby.Scenario);
+        foreach (var faction in new[] { WFCrewFaction.TSF, WFCrewFaction.PDV })
+        {
+            selector.AddItem(Text("faction-start", ("faction", Text("faction-" + faction.ToString().ToLowerInvariant()))), 10 + (int) faction);
+            if (!state.Factions.Contains(faction))
+                selector.DisableItem(selector.ItemCount - 1, Text("faction-unavailable"));
+        }
+        selector.SelectId(lobby.Scenario == WFRoundScenario.FactionShip ? 10 + (int) lobby.Faction : (int) lobby.Scenario);
         selector.OnItemSelected += args => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.ChangeScenario)
         {
             LobbyId = lobby.Id,
-            Scenario = (WFRoundScenario) args.Id,
+            Scenario = args.Id > 10 ? WFRoundScenario.FactionShip : (WFRoundScenario) args.Id,
+            Faction = args.Id > 10 ? (WFCrewFaction) (args.Id - 10) : WFCrewFaction.None,
         });
         _body.AddChild(selector);
         selector.ToolTip = Text("crew-type-help");
@@ -372,7 +396,7 @@ public sealed partial class WFRoundSetupWindow
             _footer.AddChild(Button("leave", () => Send(WFRoundSetupAction.Leave, lobby.Id)));
             return;
         }
-        var purchase = lobby.Scenario == WFRoundScenario.Ship && lobby.Host == member.UserId && !lobby.Started;
+        var purchase = WFRoundSetupPolicy.IsShip(lobby.Scenario) && lobby.Host == member.UserId && !lobby.Started;
         var vessel = state.Vessels.FirstOrDefault(choice => choice.Id == lobby.Vessel);
         var eligible = member.RoleId == null
             ? state.Jobs.Any(job => job.Id == member.Job && (member.Station == null || job.Station == member.Station))

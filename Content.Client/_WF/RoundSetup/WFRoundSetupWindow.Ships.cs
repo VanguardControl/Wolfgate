@@ -16,9 +16,9 @@ public sealed partial class WFRoundSetupWindow
             return Description("ship-unselected");
         var vessel = state.Vessels.FirstOrDefault(choice => choice.Id == lobby.Vessel);
         if (vessel != null)
-            return PlainDescription(Text("ship-selected", ("ship", vessel.Name), ("price", Price(vessel.Price))));
+            return PlainDescription(Text("ship-selected", ("ship", string.IsNullOrEmpty(lobby.ShipName) ? vessel.Name : lobby.ShipName), ("price", Price(vessel.Price))));
         return _prototypes.TryIndex<VesselPrototype>(lobby.Vessel, out var prototype)
-            ? PlainDescription(Text("ship-selected", ("ship", prototype.Name), ("price", Price(prototype.Price))))
+            ? PlainDescription(Text("ship-selected", ("ship", string.IsNullOrEmpty(lobby.ShipName) ? prototype.Name : lobby.ShipName), ("price", Price(prototype.Price))))
             : Description("ship-selection-unavailable");
     }
 
@@ -28,6 +28,7 @@ public sealed partial class WFRoundSetupWindow
         var section = Column(8);
         var preview = GetShipPreview();
         section.AddChild(Heading("ship"));
+        BuildShipName(section, lobby, host);
         if (!host || lobby.Started)
         {
             var vessel = PreviewVessel(lobby.Vessel);

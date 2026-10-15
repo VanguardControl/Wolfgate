@@ -108,6 +108,7 @@ public sealed class CrashCountdownTest
             Assert.That(hud.DescendAt, Is.EqualTo(expected));
             Assert.That(hud.Body, Is.EqualTo(expectedBody));
             Assert.That(hud.HudVisible, Is.True);
+            Assert.That(hud.AlarmPlaying, Is.True);
             Assert.That(hud.RemainingSeconds, Is.InRange(1, WFCrashCountdownEvent.DurationSeconds));
         });
 
@@ -122,6 +123,7 @@ public sealed class CrashCountdownTest
             Assert.That(hud.DescendAt, Is.EqualTo(expected), "A different occupant shares the original ship deadline.");
             Assert.That(hud.Body, Is.EqualTo(expectedBody));
             Assert.That(hud.HudVisible, Is.True);
+            Assert.That(hud.AlarmPlaying, Is.True);
         });
 
         await server.WaitPost(() => server.System<SharedTransformSystem>()
@@ -131,6 +133,7 @@ public sealed class CrashCountdownTest
         {
             Assert.That(hud.DescendAt, Is.Null);
             Assert.That(hud.HudVisible, Is.False);
+            Assert.That(hud.AlarmPlaying, Is.False);
         });
         await server.WaitPost(() => server.System<SharedTransformSystem>().SetCoordinates(guest, map.GridCoords));
         await pair.RunTicksSync(pair.SecondsToTicks(1.5f));
@@ -138,6 +141,7 @@ public sealed class CrashCountdownTest
         {
             Assert.That(hud.DescendAt, Is.EqualTo(expected));
             Assert.That(hud.HudVisible, Is.True);
+            Assert.That(hud.AlarmPlaying, Is.True);
         });
 
         await server.WaitPost(() => server.System<MobStateSystem>().ChangeMobState(guest, MobState.Dead));
@@ -146,6 +150,7 @@ public sealed class CrashCountdownTest
         {
             Assert.That(hud.DescendAt, Is.Null);
             Assert.That(hud.HudVisible, Is.False);
+            Assert.That(hud.AlarmPlaying, Is.False);
         });
         await server.WaitPost(() => server.PlayerMan.SetAttachedEntity(pair.Player, body));
         await pair.RunTicksSync(pair.SecondsToTicks(1.5f));
@@ -153,6 +158,15 @@ public sealed class CrashCountdownTest
         {
             Assert.That(hud.DescendAt, Is.EqualTo(expected), "Reattaching receives the remaining time without resetting it.");
             Assert.That(hud.HudVisible, Is.True);
+            Assert.That(hud.AlarmPlaying, Is.True);
+        });
+        await server.WaitPost(() =>
+            em.GetComponent<WFCrashScenarioComponent>(map.Grid.Owner).DescendAt = server.ResolveDependency<IGameTiming>().CurTime);
+        await pair.RunTicksSync(pair.SecondsToTicks(1.5f));
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(hud.HudVisible, Is.False, "The warning ends at the authoritative deadline.");
+            Assert.That(hud.AlarmPlaying, Is.False, "The alarm must not survive the countdown.");
         });
         await server.WaitPost(() => server.PlayerMan.SetAttachedEntity(pair.Player, null));
         await pair.RunTicksSync(pair.SecondsToTicks(1.5f));
@@ -160,6 +174,7 @@ public sealed class CrashCountdownTest
         {
             Assert.That(hud.DescendAt, Is.Null);
             Assert.That(hud.HudVisible, Is.False);
+            Assert.That(hud.AlarmPlaying, Is.False);
         });
         await server.WaitPost(() =>
         {

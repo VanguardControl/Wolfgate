@@ -67,9 +67,9 @@ public sealed partial class WFRoundSetupWindow
             _body.AddChild(PlainDescription(selected.Description));
         _body.AddChild(PlainDescription(Text("saved-summary", ("scenario", ScenarioName(selected.Scenario)),
             ("count", selected.Roles.Sum(role => role.Capacity)))));
-        if (selected.Scenario == WFRoundScenario.Ship)
+        if (WFRoundSetupPolicy.IsShip(selected.Scenario))
         {
-            _body.AddChild(VesselSummary(state, new WFRoundSetupLobby { Vessel = selected.Vessel }));
+            _body.AddChild(VesselSummary(state, new WFRoundSetupLobby { Vessel = selected.Vessel, ShipName = selected.ShipName }));
             _body.AddChild(Description(selected.ShipStart == WFShipStartLocation.CentralDock ? "ship-start-central" : "ship-start-random"));
         }
         _body.AddChild(PlainDescription(Text("saved-personal-job", ("job", JobName(selected.Job)), ("title", selected.JobTitle))));
@@ -131,7 +131,7 @@ public sealed partial class WFRoundSetupWindow
     private static bool SameSavedSetups(WFSavedSetup[] first, WFSavedSetup[] second) =>
         first.Length == second.Length && first.Zip(second).All(pair =>
             pair.First.Id == pair.Second.Id && pair.First.Name == pair.Second.Name && pair.First.Title == pair.Second.Title && pair.First.Description == pair.Second.Description &&
-            pair.First.Scenario == pair.Second.Scenario && pair.First.ShipStart == pair.Second.ShipStart &&
+            pair.First.Scenario == pair.Second.Scenario && pair.First.Faction == pair.Second.Faction && pair.First.ShipName == pair.Second.ShipName && pair.First.ShipStart == pair.Second.ShipStart &&
             pair.First.Vessel == pair.Second.Vessel && pair.First.Access == pair.Second.Access &&
             pair.First.AllowLateJoin == pair.Second.AllowLateJoin && pair.First.Job == pair.Second.Job &&
             pair.First.JobTitle == pair.Second.JobTitle && pair.First.Roles.SequenceEqual(pair.Second.Roles));

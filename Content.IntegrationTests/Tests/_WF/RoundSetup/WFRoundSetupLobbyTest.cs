@@ -3,6 +3,10 @@ using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using Content.Client._WF.RoundSetup;
+using Content.Client.UserInterface.Systems.Chat;
+using Content.Shared._WF.ShipPa;
+using Robust.Client.UserInterface;
+using Robust.Shared.Localization;
 using Content.IntegrationTests.Pair;
 using Content.Server._NF.SectorServices;
 using Content.Server._NF.Station.Components;
@@ -38,7 +42,7 @@ namespace Content.IntegrationTests.Tests._WF.RoundSetup;
 /// <summary>Exercises authenticated lobby operations through the real client/server protocol.</summary>
 [TestFixture]
 [TestOf(typeof(WFRoundSetupSystem))]
-public sealed class WFRoundSetupLobbyTest
+public sealed partial class WFRoundSetupLobbyTest
 {
     [TestPrototypes]
     private const string Prototypes = @"
@@ -480,6 +484,8 @@ public sealed class WFRoundSetupLobbyTest
                 LobbyId = lobbyId, Job = selectedJob,
             });
             Assert.That(OwnLobby(state).Roles, Is.Empty);
+            state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SetShipName) { LobbyId = lobbyId, ShipName = "Wayfarer" });
+            Assert.That(OwnLobby(state).ShipName, Is.EqualTo("Wayfarer"));
             state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SetTitle) { LobbyId = lobbyId, RoleName = "Captain" });
             if (pregame)
             {
@@ -521,6 +527,8 @@ public sealed class WFRoundSetupLobbyTest
                 var cards = server.System<SharedIdCardSystem>();
                 Assert.That(cards.TryFindIdCard(body, out var card), Is.True);
                 Assert.That(em.GetComponent<ShuttleDeedComponent>(card.Owner).ShuttleUid, Is.EqualTo(hull));
+                Assert.That(em.GetComponent<ShuttleDeedComponent>(card.Owner).ShuttleName, Does.Contain("Wayfarer"));
+                Assert.That(em.GetComponent<MetaDataComponent>(hull).EntityName, Does.Contain("Wayfarer"));
                 Assert.That(card.Comp.LocalizedJobTitle, Is.EqualTo("Captain"), "Crew titles reach the ID without replacing the real job.");
                 if (selectedJob == "MdMedic")
                     Assert.That(em.GetComponent<AccessComponent>(card.Owner).Tags, Does.Contain("Medical"),
@@ -779,7 +787,7 @@ public sealed class WFRoundSetupLobbyTest
             var id = OwnLobby(state).Id;
             state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.UpsertRole)
             {
-                LobbyId = id, Job = "Contractor", Capacity = 3,
+                LobbyId = id, Job = "Contractor", RoleName = "Rescue survivor", Capacity = 3,
             });
             var role = OwnLobby(state).Roles.Single().Id;
             await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Configure)
@@ -812,12 +820,37 @@ public sealed class WFRoundSetupLobbyTest
                 Assert.That(server.System<StationJobsSystem>().TryGetJobSlot(station, "Contractor", out var slots), Is.True);
                 Assert.That(slots, Is.Null, "Losing every helm must not close the crew's advertised jobs.");
             });
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(server.System<WFCrashScenarioSystem>().TryGetSpawn(id, out var spawn), Is.True);
+                var speaker = server.EntMan.SpawnEntity("WFWallmountShipPaSpeaker", spawn);
+                server.EntMan.GetComponent<ApcPowerReceiverComponent>(speaker).NeedsPower = false;
+            });
             await ConnectAs("WFCrashRejoinGuest");
             for (var attempt = 0; attempt < 2; attempt++)
             {
                 state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Join) { LobbyId = id, RoleId = role });
                 var member = OwnLobby(state).Members.Single(entry => entry.UserId == pair.Client.User);
                 Assert.That(member.Job, Is.EqualTo("Contractor"));
+                var joinedMessage = string.Empty;
+                await pair.Client.WaitAssertion(() =>
+                {
+                    joinedMessage = Loc.GetString("wf-round-setup-member-joined", ("name", member.Name),
+                        ("role", OwnLobby(state).Roles.Single().Name));
+                    var history = pair.Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ChatUIController>().History;
+                    Assert.That(history.Count(entry => entry.Msg.Message == joinedMessage), Is.EqualTo(attempt + 1),
+                        "The joining player receives one direct confirmation per accepted membership.");
+                });
+                if (attempt == 0)
+                {
+                    await server.WaitAssertion(() =>
+                    {
+                        Assert.That(server.System<WFCrashScenarioSystem>().TryGetSpawn(id, out var spawn), Is.True);
+                        var broadcasts = server.EntMan.GetComponent<ShipPaBroadcastComponent>(spawn.EntityId).Broadcasts;
+                        Assert.That(broadcasts.Any(broadcast => broadcast.Caption == joinedMessage), Is.True,
+                            "The ship PA announces the new crew member by character name.");
+                    });
+                }
                 Assert.That(OwnLobby(state).Roles.Single().CanSelect, Is.True);
                 state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.ConfirmJoin) { LobbyId = id });
                 Assert.That(state.Message, Is.Null, $"Guest spawn {attempt + 1}: {state.Message}");
@@ -1047,6 +1080,7 @@ public sealed class WFRoundSetupLobbyTest
         await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectVessel) { LobbyId = id, Vessel = vessel });
         await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectJob) { LobbyId = id, Job = "Contractor" });
         await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SetTitle) { LobbyId = id, RoleName = "Captain" });
+        await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SetShipName) { LobbyId = id, ShipName = "Mercy Flight" });
         await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectShipStart) { LobbyId = id, ShipStart = WFShipStartLocation.CentralDock });
         await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.ApplyRoster) { LobbyId = id, Roster = WFCrewRoster.Medical });
         state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SaveSetup)
@@ -1056,6 +1090,7 @@ public sealed class WFRoundSetupLobbyTest
         var saved = state.SavedSetups.Single();
         var code = OwnLobby(state).Code;
         Assert.That(saved.JobTitle, Is.EqualTo("Captain"));
+        Assert.That(saved.ShipName, Is.EqualTo("Mercy Flight"));
         Assert.That(saved.Description, Is.EqualTo("Rescue and recovery.\nMedical crew welcome."));
         Assert.That(saved.Roles.Length, Is.EqualTo(4));
         Assert.That(state.HostBalance, Is.EqualTo(balance));
@@ -1079,6 +1114,7 @@ public sealed class WFRoundSetupLobbyTest
         state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.LoadSetup) { SavedId = saved.Id });
         var loaded = OwnLobby(state);
         Assert.That(loaded.Title, Is.EqualTo("Mercy"));
+        Assert.That(loaded.ShipName, Is.EqualTo("Mercy Flight"));
         Assert.That(loaded.Description, Is.EqualTo(saved.Description));
         Assert.That(loaded.Code, Is.Not.EqualTo(code));
         Assert.That(loaded.Vessel, Is.EqualTo(vessel));

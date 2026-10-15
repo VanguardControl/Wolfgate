@@ -255,7 +255,10 @@ public sealed class RoundSetupUiTest
         {
             AssertFits(window, viewport);
             Assert.That(Labels(window), Does.Contain(Loc.GetString("wf-round-setup-choose-scenario")));
-            Assert.That(Descendants(window).OfType<Button>().Count(control => control.Name?.StartsWith("RoundSetupCreate") == true), Is.EqualTo(2));
+            Assert.That(Descendants(window).OfType<Button>().Count(control => control.Name?.StartsWith("RoundSetupCreate") == true), Is.EqualTo(3));
+            var faction = Named<Button>(window, "RoundSetupCreateFactionShip");
+            Assert.That(faction.Disabled, Is.True, "The empty test map offers no faction jobs.");
+            Assert.That(faction.ToolTip, Is.EqualTo(Loc.GetString("wf-round-setup-faction-unavailable")));
             Assert.That(Descendants(window).Any(control => control.Name == "RoundSetupCreateNormal"), Is.False);
             Assert.That(pair.Client.System<WFRoundSetupClientSystem>().State!.OwnLobby, Is.Null);
             button = Named<Button>(window, "RoundSetupCreateCrashlanded");
@@ -727,8 +730,14 @@ public sealed class RoundSetupUiTest
         await pair.Client.WaitAssertion(() => Assert.That(Named<Control>(window, "RoundSetupShipPage").Visible, Is.True));
         var vessel = state.Vessels.OrderBy(entry => entry.Price).First();
         state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.SelectVessel) { LobbyId = id, Vessel = vessel.Id });
-        await pair.Client.WaitPost(() => next = Named<Button>(window, "RoundSetupNext"));
+        await pair.Client.WaitPost(() =>
+        {
+            Named<LineEdit>(window, "RoundSetupShipName").SetText("Wayfarer", invokeEvent: true);
+            next = Named<Button>(window, "RoundSetupNext");
+        });
         await Click(pair, next);
+        state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Refresh));
+        Assert.That(state.Lobbies.Single(lobby => lobby.Id == id).ShipName, Is.EqualTo("Wayfarer"));
         await pair.Client.WaitAssertion(() =>
         {
             Assert.That(Labels(window), Does.Contain(Loc.GetString("wf-round-setup-roles-empty-host")));

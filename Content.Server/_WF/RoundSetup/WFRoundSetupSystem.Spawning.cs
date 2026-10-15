@@ -55,8 +55,14 @@ public sealed partial class WFRoundSetupSystem
         HasComp<WFCrashScenarioStationComponent>(station) || HasComp<WFShipScenarioStationComponent>(station);
 
     /// <summary>Rechecks role bans and character requirements before offering or spawning a job.</summary>
-    private bool IsJobAllowed(ICommonSession session, string job)
+    private bool IsJobAllowed(ICommonSession session, string job, Dictionary<string, bool>? eligibility = null)
     {
+        if (eligibility != null)
+        {
+            if (!eligibility.TryGetValue(job, out var cached))
+                eligibility[job] = cached = IsJobAllowed(session, job);
+            return cached;
+        }
         if (!_prototypes.HasIndex<JobPrototype>(job) || !_userDb.IsLoadComplete(session))
             return false;
         var bans = _bans.GetJobBans(session.UserId);
@@ -70,22 +76,18 @@ public sealed partial class WFRoundSetupSystem
     /// <summary>Offers only eligible jobs from the selected scenario or available stations.</summary>
     private List<WFRoundSetupJob> GetJobs(ICommonSession session, Lobby lobby, Dictionary<string, bool>? eligibility = null)
     {
-        bool Allowed(string job)
-        {
-            if (eligibility == null)
-                return IsJobAllowed(session, job);
-            if (!eligibility.TryGetValue(job, out var allowed))
-                eligibility[job] = allowed = IsJobAllowed(session, job);
-            return allowed;
-        }
         var choices = new List<WFRoundSetupJob>();
         if (!_userDb.IsLoadComplete(session) || !_preferences.HavePreferencesLoaded(session))
             return choices;
         if (lobby.Scenario != WFRoundScenario.Normal)
         {
-            foreach (var job in lobby.Scenario == WFRoundScenario.Ship ? WFShipCrewJobs.Jobs : WFCrashScenarioSystem.AllowedJobs)
+            foreach (var job in ScenarioJobs(lobby.Scenario, lobby.Faction))
             {
-                if (Allowed(job))
+                if (lobby.Scenario == WFRoundScenario.FactionShip &&
+                    (!IsFactionJob(lobby.Faction, job) || !FactionJobAvailable(job) ||
+                     lobby.Host != session.UserId && !WFFactionCrewPolicy.CanRecruit(lobby.Faction, lobby.Members[lobby.Host].Job, job)))
+                    continue;
+                if (IsJobAllowed(session, job, eligibility))
                     choices.Add(new WFRoundSetupJob(job, null, string.Empty));
             }
             return choices;
@@ -100,7 +102,7 @@ public sealed partial class WFRoundSetupSystem
                     continue;
                 foreach (var (job, slots) in jobs.SetupAvailableJobs)
                 {
-                    if (slots.Length > 0 && slots[0] != 0 && ids.Add(job.Id) && Allowed(job.Id))
+                    if (slots.Length > 0 && slots[0] != 0 && ids.Add(job.Id) && IsJobAllowed(session, job.Id, eligibility))
                         choices.Add(new WFRoundSetupJob(job.Id, null, map.MapName));
                 }
             }
@@ -113,7 +115,7 @@ public sealed partial class WFRoundSetupSystem
                 continue;
             foreach (var job in _jobs.GetAvailableJobs(station))
             {
-                if (Allowed(job.Id))
+                if (IsJobAllowed(session, job.Id, eligibility))
                     choices.Add(new WFRoundSetupJob(job.Id, GetNetEntity(station), Name(station)));
             }
         }
@@ -228,6 +230,11 @@ public sealed partial class WFRoundSetupSystem
         var member = lobby.Members[session.UserId];
         if (!CanEnter(session) || member.Spawned || member.Job == null || !CanSpawnRole(lobby, session))
             return false;
+        if (!CanDeployFaction(lobby))
+        {
+            error = "wf-round-setup-faction-balance";
+            return false;
+        }
         EntityUid station;
         EntityCoordinates? coordinates = null;
         if (lobby.Scenario != WFRoundScenario.Normal)
@@ -240,7 +247,7 @@ public sealed partial class WFRoundSetupSystem
                 error = "wf-round-setup-error-round-mode";
                 return false;
             }
-            if (!(lobby.Scenario == WFRoundScenario.Ship ? WFShipCrewJobs.Jobs : WFCrashScenarioSystem.AllowedJobs).Contains(member.Job))
+            if (!ScenarioJobs(lobby.Scenario, lobby.Faction).Contains(member.Job))
                 return false;
         }
         if (lobby.Scenario == WFRoundScenario.Crashlanded)
@@ -254,14 +261,14 @@ public sealed partial class WFRoundSetupSystem
             }
             coordinates = spawn;
         }
-        else if (lobby.Scenario == WFRoundScenario.Ship)
+        else if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
         {
             if (!lobby.Started && !HasShipPurchaseConsent(lobby, session))
             {
                 error = "wf-round-setup-error-ship-consent";
                 return false;
             }
-            if (!_ships.TryPrepare(lobby.Id, lobby.Vessel, out station, out error, lobby.ShipStart))
+            if (!_ships.TryPrepare(lobby.Id, lobby.Vessel, out station, out error, lobby.ShipStart, lobby.Faction))
                 return false;
             if (!_ships.TryGetSpawn(lobby.Id, out var spawn))
             {
@@ -269,6 +276,13 @@ public sealed partial class WFRoundSetupSystem
                 return false;
             }
             coordinates = spawn;
+            if (lobby.Scenario == WFRoundScenario.FactionShip && !TryFactionStation(member.Job, out station))
+            {
+                error = "wf-round-setup-faction-slot-unavailable";
+                if (!lobby.Started)
+                    _ships.Rollback(lobby.Id);
+                return false;
+            }
             if (!lobby.Started && !_ships.TryCharge(lobby.Id, session, out error))
             {
                 _ships.Rollback(lobby.Id);
@@ -278,7 +292,7 @@ public sealed partial class WFRoundSetupSystem
         else if (!TryNormalStation(member, out station))
             return false;
 
-        var buyingShip = lobby.Scenario == WFRoundScenario.Ship && !lobby.Started;
+        var buyingShip = WFRoundSetupPolicy.IsShip(lobby.Scenario) && !lobby.Started;
         var completed = false;
         error = buyingShip ? "wf-round-setup-ship-failed" : "wf-round-setup-error-job";
         _pendingSpawns[session.UserId] = (station, coordinates);
@@ -286,7 +300,7 @@ public sealed partial class WFRoundSetupSystem
         {
             if (!_ticker.WFTryRoundSetupSpawn(session, station, member.Job, lateJoin))
                 return false;
-            if (buyingShip && !_ships.CompletePurchase(lobby.Id, session))
+            if (buyingShip && !_ships.CompletePurchase(lobby.Id, session, lobby.ShipName))
             {
                 _ticker.Respawn(session);
                 return false;
@@ -304,7 +318,7 @@ public sealed partial class WFRoundSetupSystem
                     _crash.GiveEmergencyEquipment(survivor);
                 _crash.NotifyArrival(lobby.Id, session);
             }
-            else if (lobby.Scenario == WFRoundScenario.Ship)
+            else if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
                 _ships.NotifyArrival(lobby.Id, session);
             SyncCrewShips();
             return true;

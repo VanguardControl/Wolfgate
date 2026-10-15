@@ -10,6 +10,8 @@ using Robust.Client.ResourceManagement;
 using Robust.Client.State;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
@@ -25,6 +27,12 @@ public sealed partial class WFCrashCountdownHudSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IStateManager _states = default!;
     [Dependency] private IClientNetManager _net = default!;
+
+    [Dependency] private SharedAudioSystem _audio = default!;
+    private EntityUid? _alarm;
+
+    /// <summary>Whether this player's crash warning owns an active alarm loop.</summary>
+    public bool AlarmPlaying => _alarm != null && !Deleted(_alarm.Value);
 
     private WFCrashCountdownHud _hud = default!;
     private float _untilRefresh;
@@ -60,6 +68,7 @@ public sealed partial class WFCrashCountdownHudSystem : EntitySystem
     /// <inheritdoc/>
     public override void Shutdown()
     {
+        StopAlarm();
         _net.Disconnect -= OnDisconnect;
         _hud.Orphan();
         base.Shutdown();
@@ -87,7 +96,11 @@ public sealed partial class WFCrashCountdownHudSystem : EntitySystem
 
     private void OnAttached(LocalPlayerAttachedEvent args) => RefreshHud();
 
-    private void OnDetached(LocalPlayerDetachedEvent args) => _hud.Visible = false;
+    private void OnDetached(LocalPlayerDetachedEvent args)
+    {
+        _hud.Visible = false;
+        StopAlarm();
+    }
 
     private void OnRestart(RoundRestartCleanupEvent args) => Clear();
 
@@ -95,6 +108,7 @@ public sealed partial class WFCrashCountdownHudSystem : EntitySystem
 
     private void Clear()
     {
+        StopAlarm();
         _clock.Reset(null);
         DescendAt = null;
         Body = null;
@@ -110,6 +124,7 @@ public sealed partial class WFCrashCountdownHudSystem : EntitySystem
             TryComp<MobStateComponent>(body, out var state) && state.CurrentState == MobState.Dead)
         {
             _hud.Visible = false;
+            StopAlarm();
             return;
         }
         var seconds = _clock.Remaining(_timing.CurTime);
@@ -118,5 +133,18 @@ public sealed partial class WFCrashCountdownHudSystem : EntitySystem
         _hud.SetWidth = width;
         LayoutContainer.SetPosition(_hud, new Vector2(MathF.Max(0, (_ui.PopupRoot.Width - width) / 2), 120));
         _hud.Visible = true;
+        if (!AlarmPlaying)
+            _alarm = _audio.PlayGlobal("/Audio/Machines/alarm.ogg", Filter.Local(), false,
+                AudioParams.Default.WithLoop(true).WithVolume(-8f))?.Entity;
+    }
+
+    /// <summary>Deletes the local loop even when cleanup runs outside a predicted tick.</summary>
+    private void StopAlarm()
+    {
+        if (_alarm is not { } alarm)
+            return;
+        _alarm = null;
+        if (!Deleted(alarm))
+            QueueDel(alarm);
     }
 }

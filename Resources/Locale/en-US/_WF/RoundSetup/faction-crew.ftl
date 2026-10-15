@@ -1,0 +1,15 @@
+wf-round-setup-scenario-faction = Faction crew
+wf-round-setup-faction-description = Deploy together aboard a TSF or PDV ship. Choose a faction job you qualify for, a T1 or T2 vessel, and openings at or below your own command rank. Normal faction job limits, equipment and population balancing still apply.
+wf-round-setup-faction-tsf = TSF Marine Corps
+wf-round-setup-faction-pdv = Phaethon Dynasty Vanguard
+wf-round-setup-faction-start = Faction crew — { $faction }
+wf-round-setup-faction-unavailable = Select a character eligible for an available job in this faction. This map must offer faction jobs; job bans, qualifications and open station slots still apply.
+wf-round-setup-faction-rank-help = Your selected job sets the recruitment ceiling. Each recruit must qualify for their own job. Existing faction slots are used when you deploy; a custom title never grants rank.
+wf-round-setup-faction-slot-unavailable = That faction job has no open station slot. Choose another available role before deploying.
+wf-round-setup-faction-balance = This faction currently has more players. Wait for the factions to balance before deploying.
+wf-round-setup-faction-duty-title = { $rank } — { $title }
+wf-round-setup-ship-name = Ship name
+wf-round-setup-ship-name-placeholder = Leave blank to use the ship's original name
+wf-round-setup-ship-name-help = Choose the name shown on the ship, its deed and shuttle records. Press Enter or Next to save. The name is fixed when this crew launches.
+wf-round-setup-ship-named = Ship: { $name }
+wf-round-setup-member-joined = { $name } has joined your crew as { $role }.

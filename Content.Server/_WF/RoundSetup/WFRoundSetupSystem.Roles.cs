@@ -89,10 +89,13 @@ public sealed partial class WFRoundSetupSystem
         if (roleId == null || !lobby.Members.TryGetValue(session.UserId, out var member) || member.Spawned ||
             !TryGetRole(lobby, session, roleId, out var role))
             return false;
+        if (lobby.Host == session.UserId && !CanLeadFaction(lobby, session.UserId, role.Job))
+            return false;
         member.RoleId = role.Id;
         member.Job = role.Job;
         member.Station = role.Station;
         UnreadyMember(session.UserId, member);
+        ReconcileFactionRoles(lobby);
         return true;
     }
 
@@ -103,12 +106,14 @@ public sealed partial class WFRoundSetupSystem
             return false;
         if (lobby.Host == session.UserId || member.RoleId == null)
         {
-            if (!GetJobs(session, lobby).Any(choice => choice.Id == job && choice.Station == station))
+            if (!GetJobs(session, lobby).Any(choice => choice.Id == job && choice.Station == station) ||
+                lobby.Host == session.UserId && !CanLeadFaction(lobby, session.UserId, job))
                 return false;
             member.RoleId = null;
             member.Job = job;
             member.Station = station;
             UnreadyMember(session.UserId, member);
+            ReconcileFactionRoles(lobby);
             return true;
         }
         foreach (var role in lobby.Roles.Values)
@@ -120,7 +125,11 @@ public sealed partial class WFRoundSetupSystem
     }
 
     /// <summary>Recruiters may advertise ship professions they cannot personally play.</summary>
-    private List<WFRoundSetupJob> GetRoleJobs(ICommonSession host, Lobby lobby) => lobby.Scenario == WFRoundScenario.Ship
+    private List<WFRoundSetupJob> GetRoleJobs(ICommonSession host, Lobby lobby) => lobby.Scenario == WFRoundScenario.FactionShip
+        ? WFFactionCrewPolicy.Jobs(lobby.Faction).Where(job => IsFactionJob(lobby.Faction, job) && FactionJobAvailable(job) &&
+                WFFactionCrewPolicy.CanRecruit(lobby.Faction, lobby.Members[lobby.Host].Job, job))
+            .Select(job => new WFRoundSetupJob(job, null, string.Empty)).ToList()
+        : lobby.Scenario == WFRoundScenario.Ship
         ? WFShipCrewJobs.Jobs.Where(job => _prototypes.HasIndex<Content.Shared.Roles.JobPrototype>(job))
             .Select(job => new WFRoundSetupJob(job, null, string.Empty)).ToList()
         : GetJobs(host, lobby);
@@ -149,6 +158,9 @@ public sealed partial class WFRoundSetupSystem
     {
         if (msg.Job == null || msg.Capacity is < 1 or > WFRoundSetupPolicy.MaximumMembers ||
             !WFRoundSetupPolicy.TryNormalizeRoleName(msg.RoleName, out var name))
+            return false;
+        if (lobby.Scenario == WFRoundScenario.FactionShip &&
+            !WFFactionCrewPolicy.CanRecruit(lobby.Faction, lobby.Members[lobby.Host].Job, msg.Job))
             return false;
         if (msg.RoleId is not { } roleId)
         {
@@ -226,7 +238,7 @@ public sealed partial class WFRoundSetupSystem
     /// <summary>Only explicit setup readiness grants consent to buy this vessel for this selected character.</summary>
     private bool HasShipPurchaseConsent(Lobby lobby, ICommonSession session)
     {
-        return lobby.Scenario == WFRoundScenario.Ship && lobby.Host == session.UserId && lobby.Vessel != null &&
+        return WFRoundSetupPolicy.IsShip(lobby.Scenario) && lobby.Host == session.UserId && lobby.Vessel != null &&
                lobby.Members.TryGetValue(session.UserId, out var member) && IsReady(session.UserId, member) &&
                member.PurchaseVessel == lobby.Vessel &&
                member.PurchaseCharacterSlot == _preferences.GetPreferences(session.UserId).SelectedCharacterIndex;
@@ -234,14 +246,14 @@ public sealed partial class WFRoundSetupSystem
     /// <summary>Ship hosts appear ready only after confirming the pending purchase in Round Setup.</summary>
     private bool IsReadyForLobby(Lobby lobby, NetUserId user, Member member)
     {
-        if (!lobby.Started && lobby.Scenario == WFRoundScenario.Ship && lobby.Host == user)
+        if (!lobby.Started && WFRoundSetupPolicy.IsShip(lobby.Scenario) && lobby.Host == user)
             return _players.TryGetSessionById(user, out var session) && HasShipPurchaseConsent(lobby, session);
         return IsReady(user, member);
     }
     /// <summary>A successor must consent before becoming responsible for an unpurchased ship.</summary>
     private void RequireHostConsent(Lobby lobby)
     {
-        if (!lobby.Started && lobby.Scenario == WFRoundScenario.Ship)
+        if (!lobby.Started && WFRoundSetupPolicy.IsShip(lobby.Scenario))
             UnreadyMember(lobby.Host, lobby.Members[lobby.Host]);
     }
 }

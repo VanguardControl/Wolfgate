@@ -106,7 +106,7 @@ public sealed partial class WFRoundSetupSystem
         var snapshot = new WFSavedSetup
         {
             Id = existing?.Id ?? Enumerable.Range(1, WFRoundSetupPolicy.MaximumSavedSetups).First(id => saved.All(entry => entry.Id != id)),
-            Name = name, Title = lobby.Title, Description = lobby.Description, Scenario = lobby.Scenario, ShipStart = lobby.ShipStart, Vessel = lobby.Vessel,
+            Name = name, Title = lobby.Title, Description = lobby.Description, Scenario = lobby.Scenario, Faction = lobby.Faction, ShipName = lobby.ShipName, ShipStart = lobby.ShipStart, Vessel = lobby.Vessel,
             Job = member.Job, JobTitle = title, Access = lobby.Access, AllowLateJoin = lobby.AllowLateJoin,
             Roles = lobby.Roles.Values.Select(entry => new WFSavedRole(entry.Name, entry.Job, entry.Capacity)).ToArray(),
         };
@@ -125,13 +125,14 @@ public sealed partial class WFRoundSetupSystem
         var saved = GetSavedSetups(host.UserId).FirstOrDefault(entry => entry.Id == id);
         if (saved == null || !ValidSavedSetup(saved) || _lobbies.Count >= 64 ||
             saved.Scenario == WFRoundScenario.Crashlanded && !_crash.IsAvailable ||
-            saved.Scenario == WFRoundScenario.Ship && saved.Vessel != null && !_ships.IsVesselAvailable(saved.Vessel))
+            WFRoundSetupPolicy.IsShip(saved.Scenario) && saved.Vessel != null && !_ships.IsVesselAvailable(saved.Vessel, saved.Faction) ||
+            saved.Scenario == WFRoundScenario.FactionShip && (!CanCreateFaction(host, saved.Faction) || saved.Job != null && !IsJobAllowed(host, saved.Job)))
             return false;
         if (!ValidSavedJobs(saved))
             return false;
         var lobby = new Lobby
         {
-            Id = ++_nextId, Host = host.UserId, Title = saved.Title, Description = saved.Description, Scenario = saved.Scenario, ShipStart = saved.ShipStart,
+            Id = ++_nextId, Host = host.UserId, Title = saved.Title, Description = saved.Description, Scenario = saved.Scenario, Faction = saved.Faction, ShipName = saved.ShipName, ShipStart = saved.ShipStart,
             Vessel = saved.Vessel, Access = saved.Access, AllowLateJoin = saved.AllowLateJoin, Code = NewCode(),
         };
         foreach (var entry in saved.Roles)
@@ -147,14 +148,18 @@ public sealed partial class WFRoundSetupSystem
     /// <summary>Saving and loading use the same scenario catalog and current job prototypes.</summary>
     private bool ValidSavedJobs(WFSavedSetup saved)
     {
-        var jobs = saved.Scenario == WFRoundScenario.Ship ? WFShipCrewJobs.Jobs : WFCrashScenarioSystem.AllowedJobs;
-        return saved.Roles.All(role => jobs.Contains(role.Job) && _prototypes.HasIndex<JobPrototype>(role.Job)) &&
+        var jobs = ScenarioJobs(saved.Scenario, saved.Faction);
+        return saved.Roles.All(role => jobs.Contains(role.Job) && _prototypes.HasIndex<JobPrototype>(role.Job) &&
+                   (saved.Scenario != WFRoundScenario.FactionShip || IsFactionJob(saved.Faction, role.Job) &&
+                       WFFactionCrewPolicy.CanRecruit(saved.Faction, saved.Job, role.Job))) &&
                (saved.Job == null || jobs.Contains(saved.Job) && _prototypes.HasIndex<JobPrototype>(saved.Job));
     }
 
     private static bool ValidSavedSetup(WFSavedSetup saved) =>
         saved.Id is >= 1 and <= WFRoundSetupPolicy.MaximumSavedSetups &&
-        saved.Scenario is WFRoundScenario.Ship or WFRoundScenario.Crashlanded && Enum.IsDefined(saved.ShipStart) && Enum.IsDefined(saved.Access) &&
+        saved.Scenario is WFRoundScenario.Ship or WFRoundScenario.Crashlanded or WFRoundScenario.FactionShip &&
+        (saved.Scenario == WFRoundScenario.FactionShip ? saved.Faction is WFCrewFaction.TSF or WFCrewFaction.PDV : saved.Faction == WFCrewFaction.None) &&
+        saved.ShipName != null && WFRoundSetupPolicy.TryNormalizeTitle(saved.ShipName, out _) && Enum.IsDefined(saved.ShipStart) && Enum.IsDefined(saved.Access) &&
         saved.Name != null && saved.Title != null && saved.JobTitle != null && saved.Description != null &&
         WFRoundSetupPolicy.TryNormalizeDescription(saved.Description, out _) &&
         WFRoundSetupPolicy.TryNormalizeTitle(saved.Name, out var name) && !string.IsNullOrWhiteSpace(name) &&

@@ -11,6 +11,9 @@ public enum WFLobbyJoinDecision : byte
 /// <summary>Membership limits and access rules shared by scenario lobby operations.</summary>
 public static class WFRoundSetupPolicy
 {
+    /// <summary>Both independent and faction crews use the ship preparation flow.</summary>
+    public static bool IsShip(WFRoundScenario scenario) => scenario is WFRoundScenario.Ship or WFRoundScenario.FactionShip;
+
     /// <summary>The longest public crew description.</summary>
     public const int MaximumDescriptionLength = 512;
 

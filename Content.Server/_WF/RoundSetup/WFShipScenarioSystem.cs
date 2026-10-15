@@ -33,7 +33,7 @@ using Robust.Shared.Random;
 
 namespace Content.Server._WF.RoundSetup;
 
-/// <summary>Prepares civilian ship starts and charges their host once through the existing bank.</summary>
+/// <summary>Prepares civilian and faction ship starts and charges their host once through the existing bank.</summary>
 public sealed partial class WFShipScenarioSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
@@ -63,6 +63,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         public readonly EntityUid Station = station;
         public readonly string Vessel = vessel;
         public readonly WFShipStartLocation Location = location;
+        public WFCrewFaction Faction;
         public readonly HashSet<EntityUid> Grids = new() { hull };
         public ICommonSession? Buyer;
         public int CharacterSlot;
@@ -79,14 +80,20 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRestart);
     }
 
-    /// <summary>Lists unrestricted civilian designs at the authoritative shipyard price.</summary>
-    public WFRoundSetupVessel[] GetVessels() => _prototypes.EnumeratePrototypes<VesselPrototype>()
-        .Where(IsEligible).OrderBy(v => v.Price).ThenBy(v => v.Name)
-        .Select(v => new WFRoundSetupVessel(v.ID, v.Name, v.Description, v.Price)).ToArray();
+    /// <summary>Lists civilian designs or the selected faction tier catalog at the authoritative shipyard price.</summary>
+    public WFRoundSetupVessel[] GetVessels(WFCrewFaction faction = WFCrewFaction.None)
+    {
+        var catalog = FactionVessels(faction);
+        return _prototypes.EnumeratePrototypes<VesselPrototype>()
+            .Where(v => faction == WFCrewFaction.None ? IsEligible(v) : IsFactionVessel(v, faction, catalog))
+            .OrderBy(v => v.Price).ThenBy(v => v.Name)
+            .Select(v => new WFRoundSetupVessel(v.ID, v.Name, v.Description, v.Price)).ToArray();
+    }
 
-    /// <summary>Rejects restricted, voucher-only, abstract and free designs even in forged requests.</summary>
-    public bool IsVesselAvailable(string? id) => id != null &&
-        _prototypes.TryIndex<VesselPrototype>(id, out var vessel) && IsEligible(vessel);
+    /// <summary>Requires a paid design in the civilian or selected faction catalog, including forged requests.</summary>
+    public bool IsVesselAvailable(string? id, WFCrewFaction faction = WFCrewFaction.None) => id != null && Enum.IsDefined(faction) &&
+        _prototypes.TryIndex<VesselPrototype>(id, out var vessel) &&
+        (faction == WFCrewFaction.None ? IsEligible(vessel) : IsFactionVessel(vessel, faction));
 
     private static bool IsEligible(VesselPrototype vessel) => !vessel.Abstract && vessel.Purchasable &&
         vessel.Price > 0 && vessel.Group == ShipyardConsoleUiKey.Shipyard && string.IsNullOrEmpty(vessel.Access);
@@ -98,15 +105,15 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
 
     /// <summary>Loads a selected ship on a clear part of the sector before any money is withdrawn.</summary>
     public bool TryPrepare(int lobbyId, string? vesselId, out EntityUid station, out string reason,
-        WFShipStartLocation location = WFShipStartLocation.RandomSpace)
+        WFShipStartLocation location = WFShipStartLocation.RandomSpace, WFCrewFaction faction = WFCrewFaction.None)
     {
         station = EntityUid.Invalid;
         reason = "wf-round-setup-ship-invalid";
-        if (!IsVesselAvailable(vesselId) || !Enum.IsDefined(location))
+        if (!IsVesselAvailable(vesselId, faction) || !Enum.IsDefined(location))
             return false;
         if (_scenarios.TryGetValue(lobbyId, out var existing))
         {
-            if (existing.Vessel == vesselId && existing.Location == location && !TerminatingOrDeleted(existing.Station) && TryGetSpawn(lobbyId, out _))
+            if (existing.Vessel == vesselId && existing.Location == location && existing.Faction == faction && !TerminatingOrDeleted(existing.Station) && TryGetSpawn(lobbyId, out _))
             {
                 station = existing.Station;
                 return true;
@@ -150,7 +157,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         }, new[] { hull }, vessel.Name);
         EnsureComp<WFShipScenarioStationComponent>(station).LobbyId = lobbyId;
         EnsureComp<WFShipScenarioComponent>(hull).LobbyId = lobbyId;
-        _scenarios.Add(lobbyId, new Scenario(hull, station, vessel.ID, location));
+        _scenarios.Add(lobbyId, new Scenario(hull, station, vessel.ID, location) { Faction = faction });
         return true;
     }
 
@@ -159,7 +166,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     {
         reason = "wf-round-setup-ship-gone";
         if (!_scenarios.TryGetValue(lobbyId, out var scenario) || TerminatingOrDeleted(scenario.Station) ||
-            TerminatingOrDeleted(scenario.Hull) || !TryGetSpawn(lobbyId, out _) || !IsVesselAvailable(scenario.Vessel))
+            TerminatingOrDeleted(scenario.Hull) || !TryGetSpawn(lobbyId, out _) || !IsVesselAvailable(scenario.Vessel, scenario.Faction))
             return false;
         if (!HasSectorServices())
         {
@@ -190,7 +197,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     }
 
     /// <summary>Gives the successfully spawned buyer a deed and registers normal ship ownership.</summary>
-    public bool CompletePurchase(int lobbyId, ICommonSession host)
+    public bool CompletePurchase(int lobbyId, ICommonSession host, string shipName = "")
     {
         if (!_scenarios.TryGetValue(lobbyId, out var scenario) || scenario.Paid <= 0 || scenario.Buyer?.UserId != host.UserId)
             return false;
@@ -209,7 +216,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
             _hands.TryPickupAnyHand(body, card);
         }
         var vessel = _prototypes.Index<VesselPrototype>(scenario.Vessel);
-        if (!_shipyard.TryAssignDeed(scenario.Hull, card, host, vessel, existingStation: scenario.Station))
+        if (!_shipyard.TryAssignDeed(scenario.Hull, card, host, vessel, string.IsNullOrWhiteSpace(shipName) ? null : shipName, existingStation: scenario.Station))
             return false;
         scenario.Used = true;
         EnsureComp<ShipActivityComponent>(scenario.Hull);

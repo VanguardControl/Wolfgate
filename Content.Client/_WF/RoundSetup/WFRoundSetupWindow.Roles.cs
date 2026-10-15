@@ -43,7 +43,7 @@ public sealed partial class WFRoundSetupWindow
             _body.AddChild(Description("no-jobs"));
             return;
         }
-        var jobs = lobby.Host == member.UserId ? state.RoleJobs : state.Jobs;
+        var jobs = lobby.Host == member.UserId && lobby.Scenario != WFRoundScenario.FactionShip ? state.RoleJobs : state.Jobs;
         var selected = Array.FindIndex(jobs, job => job.Id == member.Job && job.Station == member.Station);
         var picker = new WFRoundSetupOptionButton
         {
@@ -82,6 +82,8 @@ public sealed partial class WFRoundSetupWindow
                 Station = job.Station,
             });
         };
+        if (lobby.Scenario == WFRoundScenario.FactionShip)
+            _body.AddChild(Description("faction-rank-help"));
         _body.AddChild(Heading("personal-job"));
         _body.AddChild(picker);
     }

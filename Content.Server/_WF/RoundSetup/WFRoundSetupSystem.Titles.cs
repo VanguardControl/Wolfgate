@@ -1,4 +1,6 @@
 using Content.Shared._WF.Roles;
+using Content.Shared._WF.RoundSetup;
+using Content.Shared.Roles;
 using Content.Shared.Access.Systems;
 using Content.Shared.Mind;
 using Content.Shared.StationRecords;
@@ -17,6 +19,8 @@ public sealed partial class WFRoundSetupSystem
             title = selected.Name;
         if (title.Length == 0 || member.Job == null || session.AttachedEntity is not { } body)
             return;
+        if (lobby.Scenario == WFRoundScenario.FactionShip && _prototypes.TryIndex<JobPrototype>(member.Job, out var job))
+            title = Loc.GetString("wf-round-setup-faction-duty-title", ("rank", job.LocalizedName), ("title", title));
         if (EntityManager.System<SharedMindSystem>().TryGetMind(body, out var mind, out _))
         {
             var custom = EnsureComp<CustomJobTitleComponent>(mind);

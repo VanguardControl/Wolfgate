@@ -14,6 +14,8 @@ public sealed partial class WFRoundSetupWindow
     {
         var identity = Column(4);
         identity.AddChild(PlainDescription(LobbyTitle(lobby)));
+        if (lobby.Scenario == WFRoundScenario.FactionShip)
+            identity.AddChild(Description("faction-" + lobby.Faction.ToString().ToLowerInvariant()));
         identity.AddChild(PlainDescription(Text("crew-leader", ("name", lobby.Portrait?.Name ?? lobby.HostName))));
         identity.AddChild(Row(WFRoundSetupCrewRow.JobIcon(lobby.HostJob), PlainDescription(JobName(lobby.HostJob))));
         return Row(new LeaderPortrait(lobby.Portrait, lobby.HostJob), identity);

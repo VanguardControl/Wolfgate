@@ -7,7 +7,7 @@ namespace Content.Shared._WF.RoundSetup;
 
 /// <summary>The crew starting conditions; Normal is reserved and cannot create a scenario lobby.</summary>
 [Serializable, NetSerializable]
-public enum WFRoundScenario : byte { Normal, Crashlanded, Ship }
+public enum WFRoundScenario : byte { Normal, Crashlanded, Ship, FactionShip }
 
 /// <summary>Where a purchased crew ship begins its journey.</summary>
 [Serializable, NetSerializable]
@@ -23,7 +23,7 @@ public enum WFRoundSetupAction : byte
 {
     Refresh, Create, Configure, Join, Leave, AcceptRequest, RejectRequest,
     Invite, AcceptInvite, DeclineInvite, SelectJob, SetReady, Launch, RegenerateCode, Kick, TransferHost,
-    SelectVessel, UpsertRole, RemoveRole, SelectRole, ConfirmJoin, ChangeScenario, SelectShipStart, ApplyRoster, SetTitle, SaveSetup, LoadSetup, DeleteSetup,
+    SelectVessel, UpsertRole, RemoveRole, SelectRole, ConfirmJoin, ChangeScenario, SelectShipStart, ApplyRoster, SetTitle, SaveSetup, LoadSetup, DeleteSetup, SetShipName,
 }
 
 /// <summary>A request whose actor is always taken from its network session.</summary>
@@ -33,6 +33,8 @@ public sealed class WFRoundSetupRequest : EntityEventArgs
     public WFRoundSetupAction Action;
     public int LobbyId;
     public WFRoundScenario Scenario;
+    public WFCrewFaction Faction;
+    public string ShipName = string.Empty;
     public WFShipStartLocation ShipStart;
     public WFLobbyAccess Access = WFLobbyAccess.Requests;
     public bool AllowLateJoin;
@@ -90,6 +92,8 @@ public sealed class WFRoundSetupLobby
     public string Title = string.Empty;
     public string Description = string.Empty;
     public WFRoundScenario Scenario;
+    public WFCrewFaction Faction;
+    public string ShipName = string.Empty;
     public WFShipStartLocation ShipStart;
     public WFLobbyAccess Access;
     public bool AllowLateJoin;
@@ -110,6 +114,7 @@ public sealed class WFRoundSetupState : EntityEventArgs
     public bool JoinConfirmed;
     public bool CanJoin;
     public bool CrashlandedAvailable;
+    public WFCrewFaction[] Factions = Array.Empty<WFCrewFaction>();
     public int? OwnLobby;
     public WFRoundSetupLobby[] Lobbies = Array.Empty<WFRoundSetupLobby>();
     public WFRoundSetupLobby[] Invitations = Array.Empty<WFRoundSetupLobby>();

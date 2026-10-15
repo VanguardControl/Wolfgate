@@ -31,6 +31,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
     private WFLobbyAccess _draftAccess;
     private bool _draftLateJoin;
     private string _draftTitle = string.Empty;
+    private WFCrewFaction _newFaction = WFCrewFaction.TSF;
     private string _newTitle = string.Empty;
     private string _newDescription = string.Empty;
     private string _draftDescription = string.Empty;
@@ -94,6 +95,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         }
         if (state.Message != null)
             _confirmingJoin = false;
+        ReceiveShipName(state);
         if (_pendingPage is { } page)
         {
             var own = state.Lobbies.FirstOrDefault(lobby => lobby.Id == state.OwnLobby);
@@ -112,6 +114,8 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         if (previous?.OwnLobby != state.OwnLobby)
         {
             _roleDrafts.Clear();
+            _shipNameDirty = false;
+            _pendingShipPage = null;
             _personalTitleDirty = false;
             _pendingPage = null;
             _saveName = string.Empty;
@@ -149,7 +153,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
             ("status", Text(lobby.Started ? "status-started" : "status-waiting")))));
 
         content.AddChild(Description(ScenarioDescription(lobby.Scenario)));
-        if (lobby.Scenario == WFRoundScenario.Ship)
+        if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
         {
             content.AddChild(VesselSummary(state, lobby));
             content.AddChild(Description(lobby.ShipStart == WFShipStartLocation.CentralDock ? "ship-start-central" : "ship-start-random"));
@@ -237,7 +241,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         settings.AddChild(access);
         settings.AddChild(lateJoin);
 
-        if (lobby.Started || lobby.Scenario != WFRoundScenario.Ship)
+        if (lobby.Started || !WFRoundSetupPolicy.IsShip(lobby.Scenario))
         {
             var saveSettings = Button("save-settings", () =>
             {
@@ -312,7 +316,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
     private static bool SameState(WFRoundSetupState first, WFRoundSetupState second)
     {
         return first.InRound == second.InRound && first.CanJoin == second.CanJoin && first.OwnLobby == second.OwnLobby &&
-               first.CrashlandedAvailable == second.CrashlandedAvailable && first.HostBalance == second.HostBalance &&
+               first.CrashlandedAvailable == second.CrashlandedAvailable && first.Factions.SequenceEqual(second.Factions) && first.HostBalance == second.HostBalance &&
                SameSavedSetups(first.SavedSetups, second.SavedSetups) && first.Vessels.SequenceEqual(second.Vessels) &&
                first.Jobs.SequenceEqual(second.Jobs) && first.RoleJobs.SequenceEqual(second.RoleJobs) && first.InviteTargets.SequenceEqual(second.InviteTargets) &&
                first.Lobbies.Length == second.Lobbies.Length && first.Invitations.Length == second.Invitations.Length &&
@@ -323,7 +327,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
     private static bool SameLobby(WFRoundSetupLobby first, WFRoundSetupLobby second)
     {
         return first.Id == second.Id && first.Host == second.Host && first.HostJob == second.HostJob && Equals(first.Portrait, second.Portrait) && first.HostName == second.HostName && first.Title == second.Title && first.Description == second.Description &&
-               first.Scenario == second.Scenario && first.ShipStart == second.ShipStart && first.Access == second.Access && first.AllowLateJoin == second.AllowLateJoin &&
+               first.Scenario == second.Scenario && first.Faction == second.Faction && first.ShipName == second.ShipName && first.ShipStart == second.ShipStart && first.Access == second.Access && first.AllowLateJoin == second.AllowLateJoin &&
                first.Started == second.Started && first.MemberCount == second.MemberCount && first.Code == second.Code &&
                first.Vessel == second.Vessel && first.Roles.SequenceEqual(second.Roles) &&
                first.Members.SequenceEqual(second.Members) && first.Requests.SequenceEqual(second.Requests);
@@ -366,6 +370,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
     {
         WFRoundScenario.Crashlanded => "scenario-crash",
         WFRoundScenario.Ship => "scenario-ship",
+        WFRoundScenario.FactionShip => "scenario-faction",
         _ => "scenario-normal",
     });
 
@@ -373,6 +378,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
     {
         WFRoundScenario.Crashlanded => "crash-description",
         WFRoundScenario.Ship => "ship-description",
+        WFRoundScenario.FactionShip => "faction-description",
         _ => "normal-description",
     };
 

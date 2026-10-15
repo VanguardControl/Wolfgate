@@ -11,6 +11,8 @@ public sealed class WFSavedSetup
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public WFRoundScenario Scenario { get; set; }
+    public WFCrewFaction Faction { get; set; }
+    public string ShipName { get; set; } = string.Empty;
     public WFShipStartLocation ShipStart { get; set; }
     public string? Vessel { get; set; }
     public WFLobbyAccess Access { get; set; }
