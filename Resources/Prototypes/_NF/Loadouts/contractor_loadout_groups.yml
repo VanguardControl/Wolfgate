@@ -207,6 +207,29 @@
   - ContractorClothingUniformJumpskirtYellowTurtleneckDress
   - ContractorClothingUniformJumpskirtYellowOldDress
   - ContractorClothingUniformJabroni
+  # WOLFGATE(ClownCosmetics) START
+  - WFContractorClothingUniformCircusClown
+  - WFContractorClothingUniformJokester
+  - WFContractorClothingUniformJesterEvil
+  - WFContractorCandyClownUniformSuit
+  - WFContractorStripedClownUniformSuit
+  - WFContractorSpottedClownUniformSuit
+  - WFContractorClothingUniformJumpsuitPerformerClown
+  - WFContractorClothingUniformJumpskirtPerformerClown
+  - WFContractorClothingUniformJumpsuitClownFormal
+  - WFContractorClothingUniformJumpskirtClownFormal
+  - WFContractorCoolCoyoteClothesSexyclown
+  - WFContractorClothingUniformJumpsuitMimeCropped
+  - WFContractorClothingUniformJumpskirtMimeCropped
+  - WFContractorClothingUniformJumpsuitMimeNouveau
+  - WFContractorClothingUniformJumpskirtMimeNouveau
+  - WFContractorClothingUniformJumpsuitPerformerMime
+  - WFContractorClothingUniformJumpskirtPerformerMime
+  - WFContractorClothingUniformJumpsuitMimeSuaveWhite
+  - WFContractorClothingUniformJumpsuitMimeSuaveBlack
+  - WFContractorMimeFrillsUniformSuit
+  - WFContractorCoolCoyoteClothesSexymime
+  # WOLFGATE END
 
   fallbacks:
   - ContractorClothingUniformJumpsuitColorGrey
@@ -388,6 +411,10 @@
   - ContractorWetFloorSign
   - ContractorClothingOuterCoatExpensive
   - ContractorClothingOuterCoatSpaceAsshole
+  # WOLFGATE(ClownCosmetics) START
+  - WFContractorClothingOuterCoatJokester
+  - WFContractorClothingOuterCoatPufferMime
+  # WOLFGATE END
 
 - type: loadoutGroup
   id: ContractorBelt
@@ -486,6 +513,13 @@
   - ContractorClothingShoesSkates
   - ContractorClothingShoesClownLarge
   - ContractorClothingShoesBling
+  # WOLFGATE(ClownCosmetics) START
+  - WFContractorClothingShoesCircus
+  - WFContractorClothingShoesJokester
+  - WFContractorClothingShoesJesterEvilJanglers
+  - WFContractorClothingShoesMimeBoots
+  - WFContractorClothingUnderSocksMime
+  # WOLFGATE END
   fallbacks:
   - ContractorClothingShoesColorBlack
 
@@ -575,6 +609,11 @@
   - ContractorClothingHeadHatTophat
   - ContractorClothingHeadHatUNSABeer
   - ContractorClothingHeadSanabi # Mono
+  # WOLFGATE(ClownCosmetics) START
+  - WFContractorClothingHeadHatCircusClown
+  - WFContractorClothingHeadJesterEvilHat
+  - WFContractorClothingHeadHatMimeBowler
+  # WOLFGATE END
 
 - type: loadoutGroup
   id: ContractorEars
@@ -696,6 +735,9 @@
   - ContractorClothingNeckMantleBH # Mono
   - ContractorClothingNeckCloakSanabi # Mono
   - ContractorClothingNeckUIOvercoat # Mono
+  # WOLFGATE(ClownCosmetics) START
+  - WFContractorClothingNeckRuffle
+  # WOLFGATE END
 
 - type: loadoutGroup
   id: ContractorPDA
@@ -838,6 +880,11 @@
   - ClothingMaskBat
   - ClothingMaskBee
   - ClothingMaskFox
+  # WOLFGATE(ClownCosmetics) START
+  - WFContractorClothingMaskClownNose
+  - WFContractorClothingMaskSusMime
+  - WFContractorClothingMaskMimeSecurity
+  # WOLFGATE END
   fallbacks:
   - ContractorClothingMaskBreath
 

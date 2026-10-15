@@ -19,7 +19,8 @@ last half minute, so a stray round in a melee is not an attack. `WFEncounterMark
 encounter to all players, each with its side and colour; the radar draws them, with their zones, sector-wide, and
 ghosts find them on the Encounters tab of the orbit menu.
 A ship's stores are stowed at spawn (`fuelStores` jars and stacks a generator, two by default). A persistent ship's crate
-is checked every five minutes and topped up while its engineer lives, it is refuelled like a fighter once he is dead, and
+is checked every five minutes and topped up while its engineer lives, it is refuelled like a fighter once he is dead or a
+machine of its plant has burned dry, and
 `Judge` does not destroy a persistent encounter whose ships are out of the fight only for want of power with no hit on them.
 
 Ships can arrive stranded (`stranded: Fuel | Thrusters | Random`) and pay their side's reward to whoever gets them
@@ -126,7 +127,7 @@ as its own orders. `WFEncounterRewardSystem.PayBounty` pays a beaten encounter's
 were paid, and its optional `extraCredits` are further rewards of which only the faction credits are handed out, so one
 bounty can pay several navies; `GetHelpers` is
 the helper rule it shares with the Decided payout. The scheduler's `IsClearSpace` and `Stations` give placement checks, and
-the broadcast by-ref `WFEncounterWeightEvent` (change a candidate's weight) and `WFEncounterStationsEvent` (drop stations
+the broadcast by-ref `WFEncounterCollectMarkersEvent` (add markers of your own, as the ShipPa SOS does), `WFEncounterWeightEvent` (change a candidate's weight) and `WFEncounterStationsEvent` (drop stations
 from a map's list) let other modules shape what it picks and where.
 
 `Docs/_WF/Encounters/design.md` is the original design. Not built: mass scanner contacts and lazy loading (ships
@@ -192,6 +193,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.BatchCore.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.BatchCore.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Battle.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Battle.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Bounty.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Bounty.cs)
+- [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Cargo.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Cargo.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Clamps.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Clamps.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Extort.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Extort.cs)

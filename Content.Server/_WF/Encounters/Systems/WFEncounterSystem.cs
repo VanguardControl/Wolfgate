@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._WF.Administration.Systems;
+using Content.Server._WF.Drydock;
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.NpcCrew;
 using Content.Server._WF.NpcCrew.Components;
@@ -74,6 +75,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
 
     /// <summary>How often a living crew top up their ship's batteries. Encounter ships don't burn fuel.</summary>
     private static readonly TimeSpan PowerInterval = TimeSpan.FromMinutes(2);
+
+    /// <summary>How long a hull stays after a drydock last broke part of it.</summary>
+    private static readonly TimeSpan HulkLinger = TimeSpan.FromSeconds(300);
 
     /// <summary>How often a persistent ship's fuel stores are checked.</summary>
     private static readonly TimeSpan StockInterval = TimeSpan.FromMinutes(5);
@@ -638,10 +642,10 @@ public sealed partial class WFEncounterSystem : EntitySystem
         if (state.Stealth)
             _shuttles.AddIFFFlag(grid, Content.Shared.Shuttles.Components.IFFFlags.HideLabel);
 
-        // Cargo goes aboard first, so the crew are posted around it and not on it.
+        // Cargo goes aboard first, so the crew are posted around it and not on it, and where it walls off no route.
         if (manifest != null && manifest.Crates.Count > 0)
         {
-            foreach (var tile in _planner.HoldTiles(grid, ship.Cargo))
+            foreach (var tile in _planner.CargoTiles(grid, ship.Cargo))
             {
                 Spawn(_random.Pick(manifest.Crates), tile);
             }
@@ -1012,10 +1016,11 @@ public sealed partial class WFEncounterSystem : EntitySystem
             if (HoldsForVisitors(ship) && ship.HasOrders)
                 Serve(ship);
 
-            // A persistent ship outlives its first stores: its engineer's crate is topped up, and with no engineer left
-            // the plant is kept running as a fighter's is.
+            // A persistent ship outlives its first stores: its engineer's crate is topped up, and with no engineer left,
+            // or a plant he let burn dry, the plant is kept running as a fighter's is.
             var persistent = encounter.Comp.Lifetime == WFEncounterLifetime.Persistent;
-            if ((ship.AutoRefuel || persistent && !HasLivingEngineer(ship)) && !IsStranded(ship) && HasLivingCrew(ship))
+            if ((ship.AutoRefuel || persistent && (!HasLivingEngineer(ship) || _work.PlantDry(ship.Grid)))
+                && !IsStranded(ship) && HasLivingCrew(ship))
                 _work.Refuel(ship.Grid);
             else if (persistent && now >= ship.NextStock && !IsStranded(ship) && HasLivingCrew(ship))
             {
@@ -1313,6 +1318,13 @@ public sealed partial class WFEncounterSystem : EntitySystem
                         remaining = true;
                 }
 
+                continue;
+            }
+
+            // A hull a drydock is breaking stays until its cranes have left it alone a while.
+            if (TryComp<WFHulkComponent>(ship.Grid, out var hulk) && now - hulk.LastWork < HulkLinger)
+            {
+                remaining = true;
                 continue;
             }
 

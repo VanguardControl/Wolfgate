@@ -1697,3 +1697,57 @@ Entries:
   id: 100136
   time: '2026-10-14T21:46:45.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/244
+- author: TheSlapper
+  changes:
+    - type: Add
+      message: Various clown & mime related clothing and facepaints.
+  id: 100137
+  time: '2026-10-15T01:19:42.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/246
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: An SOS button in the PA tab of your ship, press this to get help.
+  id: 100138
+  time: '2026-10-15T02:23:33.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/247
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Reaver strongholds should no longer run out of power and despawn.
+  id: 100139
+  time: '2026-10-15T08:20:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/249
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Atmospherics decompression no longer dematerialises your entire being.
+  id: 100140
+  time: '2026-10-15T08:52:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/250
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: Crane can now do shipwreck.
+    - type: Tweak
+      message: disables radio announcement for shipyards
+    - type: Tweak
+      message: Shipyard speed was increased
+    - type: Tweak
+      message: capital ship vouchers sit behind research now.
+    - type: Tweak
+      message: Several economy adjustments to mining and ore processing.
+    - type: Add
+      message: A civilian ship called carabela that includes a mobile crane by default
+  id: 100141
+  time: '2026-10-15T10:14:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/240
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Shells and missiles no longer explode inside a fast-approaching ship
+        behind walls they didn't break.
+  id: 100142
+  time: '2026-10-15T19:20:32.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/252
