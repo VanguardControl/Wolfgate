@@ -1009,7 +1009,7 @@ public sealed class RoundSetupUiTest
         .Where(button => button.VisibleInTree && button.Text == Loc.GetString($"wf-round-setup-{key}"));
 
     /// <summary>Clicks a live button at its current position, including when the root layout changes between ticks.</summary>
-    private static async Task Click(TestPair pair, BaseButton button)
+    internal static async Task Click(TestPair pair, BaseButton button)
     {
         var pressed = false;
         void OnPressed(BaseButton.ButtonEventArgs _) => pressed = true;

@@ -281,7 +281,7 @@ public sealed partial class WFRoundSetupWindow
         var host = lobby.Host == user;
         var member = lobby.Members.FirstOrDefault(player => player.UserId == user);
         var pages = new List<(LobbyPage Page, string Label)> { (LobbyPage.Overview, "flow-overview") };
-        if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
+        if (WFRoundSetupPolicy.IsShip(lobby.Scenario) || lobby.Started)
             pages.Add((LobbyPage.Ship, "ship"));
         pages.Add((LobbyPage.Roles, "crew-section"));
         if (host)
@@ -291,7 +291,11 @@ public sealed partial class WFRoundSetupWindow
         var sections = new ScenarioColumns { Name = "RoundSetupSections", HorizontalExpand = true };
         foreach (var (page, label) in pages)
             sections.AddChild(NavigationButton(label, () => NavigateLobby(page), _lobbyPage == page));
-        _navigation.AddChild(sections);
+        var navigation = Column(8);
+        navigation.AddChild(sections);
+        if (state.PendingShip is { } pending && pending.Owner == user && !host)
+            navigation.AddChild(ShipApproval(lobby, pending));
+        _navigation.AddChild(navigation);
         if (_lobbyPage == LobbyPage.Ship)
         {
             _pageScroll.Visible = false;
@@ -331,10 +335,11 @@ public sealed partial class WFRoundSetupWindow
                     BuildMemberSetup(state, lobby, member);
                 else
                     _body.AddChild(Description("already-playing"));
-                if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
+                if (WFRoundSetupPolicy.IsShip(lobby.Scenario) || lobby.Started)
                 {
                     _body.AddChild(VesselSummary(state, lobby));
-                    _body.AddChild(Description(ShipStartKey(lobby.ShipStart)));
+                    if (!lobby.Started)
+                        _body.AddChild(Description(ShipStartKey(lobby.ShipStart)));
                     _body.AddChild(Button("ship", () => NavigateLobby(LobbyPage.Ship)));
                 }
                 _body.AddChild(Description(state.InRound ? "ready-round-help" : "ready-pregame-help"));

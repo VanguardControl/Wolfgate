@@ -23,7 +23,7 @@ public enum WFRoundSetupAction : byte
 {
     Refresh, Create, Configure, Join, Leave, AcceptRequest, RejectRequest,
     Invite, AcceptInvite, DeclineInvite, SelectJob, SetReady, Launch, RegenerateCode, Kick, TransferHost,
-    SelectVessel, UpsertRole, RemoveRole, SelectRole, ConfirmJoin, ChangeScenario, SelectShipStart, ApplyRoster, SetTitle, SaveSetup, LoadSetup, DeleteSetup, SetShipName,
+    SelectVessel, UpsertRole, RemoveRole, SelectRole, ConfirmJoin, ChangeScenario, SelectShipStart, ApplyRoster, SetTitle, SaveSetup, LoadSetup, DeleteSetup, SetShipName, AssignShip, ApproveShip, CancelShip,
 }
 
 /// <summary>A request whose actor is always taken from its network session.</summary>
@@ -34,6 +34,8 @@ public sealed class WFRoundSetupRequest : EntityEventArgs
     public int LobbyId;
     public WFRoundScenario Scenario;
     public WFCrewFaction Faction;
+    public NetEntity? Ship;
+    public int ShipChangeId;
     public string ShipName = string.Empty;
     public WFShipStartLocation ShipStart;
     public WFLobbyAccess Access = WFLobbyAccess.Requests;
@@ -76,6 +78,14 @@ public sealed record WFRoundSetupRole(int Id, string Name, string Job, NetEntity
 [Serializable, NetSerializable]
 public sealed record WFRoundSetupVessel(string Id, string Name, string Description, int Price);
 
+/// <summary>A live ship's identity, without ownership account details.</summary>
+[Serializable, NetSerializable]
+public sealed record WFRoundSetupShip(NetEntity Entity, string Name, string? Vessel);
+
+/// <summary>A crew member's deed candidate or a pending request for that owner's approval.</summary>
+[Serializable, NetSerializable]
+public sealed record WFRoundSetupShipChoice(NetUserId Owner, string OwnerName, WFRoundSetupShip Ship, string? Error = null, int RequestId = 0);
+
 /// <summary>Only the visible character appearance used by a crew leader portrait.</summary>
 [Serializable, NetSerializable]
 public sealed record WFCrewPortrait(string Name, string Species, Sex Sex, HumanoidCharacterAppearance Appearance);
@@ -98,6 +108,7 @@ public sealed class WFRoundSetupLobby
     public WFLobbyAccess Access;
     public bool AllowLateJoin;
     public bool Started;
+    public WFRoundSetupShip? CurrentShip;
     public int MemberCount;
     public WFRoundSetupMember[] Members = Array.Empty<WFRoundSetupMember>();
     public WFRoundSetupPlayer[] Requests = Array.Empty<WFRoundSetupPlayer>();
@@ -124,5 +135,7 @@ public sealed class WFRoundSetupState : EntityEventArgs
     public WFSavedSetup[] SavedSetups = Array.Empty<WFSavedSetup>();
     public WFRoundSetupVessel[] Vessels = Array.Empty<WFRoundSetupVessel>();
     public int? HostBalance;
+    public WFRoundSetupShipChoice[] CrewShips = Array.Empty<WFRoundSetupShipChoice>();
+    public WFRoundSetupShipChoice? PendingShip;
     public string? Message;
 }

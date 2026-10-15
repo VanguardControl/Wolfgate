@@ -250,7 +250,19 @@ public sealed partial class WFRoundSetupSystem
             if (!ScenarioJobs(lobby.Scenario, lobby.Faction).Contains(member.Job))
                 return false;
         }
-        if (lobby.Scenario == WFRoundScenario.Crashlanded)
+        if (_ships.HasAssignedShip(lobby.Id))
+        {
+            error = "wf-round-setup-ship-gone";
+            if (!_ships.TryGetAssignedSpawn(lobby.Id, out station, out var spawn))
+                return false;
+            coordinates = spawn;
+            if (lobby.Scenario == WFRoundScenario.FactionShip && !TryFactionStation(member.Job, out station))
+            {
+                error = "wf-round-setup-faction-slot-unavailable";
+                return false;
+            }
+        }
+        else if (lobby.Scenario == WFRoundScenario.Crashlanded)
         {
             if (!_crash.TryPrepare(lobby.Id, out station, out error))
                 return false;
@@ -312,13 +324,13 @@ public sealed partial class WFRoundSetupSystem
             member.Ready = false;
             lobby.Started = true;
             CaptureCrewCard(member, session);
-            if (lobby.Scenario == WFRoundScenario.Crashlanded)
+            if (lobby.Scenario == WFRoundScenario.Crashlanded && !_ships.HasAssignedShip(lobby.Id))
             {
                 if (session.AttachedEntity is { } survivor)
                     _crash.GiveEmergencyEquipment(survivor);
                 _crash.NotifyArrival(lobby.Id, session);
             }
-            else if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
+            else if (WFRoundSetupPolicy.IsShip(lobby.Scenario) || _ships.HasAssignedShip(lobby.Id))
                 _ships.NotifyArrival(lobby.Id, session);
             SyncCrewShips();
             return true;

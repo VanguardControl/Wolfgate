@@ -62,6 +62,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
         public WFLobbyAccess Access = WFLobbyAccess.Requests;
         public bool AllowLateJoin;
         public bool Started;
+        public ShipChange? PendingShip;
         public string Code = string.Empty;
         public string Title = string.Empty;
         public string Description = string.Empty;
@@ -252,6 +253,18 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
                 break;
             case WFRoundSetupAction.Leave when own != null && msg.LobbyId == own.Id:
                 RemoveMember(own, user);
+                success = true;
+                break;
+            case WFRoundSetupAction.AssignShip when own != null && msg.LobbyId == own.Id:
+                success = RequestCrewShip(own, session, msg.Target, msg.Ship, out error);
+                break;
+            case WFRoundSetupAction.ApproveShip when own != null && msg.LobbyId == own.Id:
+                success = ApproveCrewShip(own, session, msg.Ship, msg.ShipChangeId, out error);
+                break;
+            case WFRoundSetupAction.CancelShip when own != null && msg.LobbyId == own.Id &&
+                own.PendingShip is { } pending && msg.ShipChangeId == pending.Id && !TerminatingOrDeleted(pending.Ship) && msg.Ship == GetNetEntity(pending.Ship) &&
+                (own.Host == user || pending.Owner == user):
+                own.PendingShip = null;
                 success = true;
                 break;
             case WFRoundSetupAction.SelectJob when own != null && msg.LobbyId == own.Id && !own.Members[user].Spawned && CanEnter(session):
@@ -445,6 +458,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             case WFRoundSetupAction.TransferHost when msg.Target is { } host:
                 if (!lobby.Members.ContainsKey(host) || !_players.TryGetSessionById(host, out _) || !CanLeadFaction(lobby, host))
                     return false;
+                lobby.PendingShip = null;
                 lobby.Host = host;
                 ReconcileFactionRoles(lobby);
                 lobby.Code = NewCode();
@@ -483,6 +497,8 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     /// <summary>Releases membership and preserves host ownership for remaining members.</summary>
     private void RemoveMember(Lobby lobby, NetUserId user)
     {
+        if (lobby.PendingShip is { } pending && (pending.Host == user || pending.Owner == user))
+            lobby.PendingShip = null;
         lobby.Members.Remove(user);
         if (_players.TryGetSessionById(user, out var session) && _ticker.RunLevel == GameRunLevel.PreRoundLobby)
             _ticker.ToggleReady(session, false);
@@ -564,6 +580,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             Id = lobby.Id, Host = lobby.Host, HostName = lobby.Members[lobby.Host].Name, Title = lobby.Title, Description = lobby.Description,
             HostJob = lobby.Members[lobby.Host].Job, Portrait = lobby.Members[lobby.Host].Portrait,
             Scenario = lobby.Scenario, Faction = lobby.Faction, ShipName = lobby.ShipName, Access = lobby.Access, AllowLateJoin = lobby.AllowLateJoin,
+            CurrentShip = lobby.Started ? CurrentShip(lobby) : null,
             Started = lobby.Started, MemberCount = lobby.Members.Count, Vessel = lobby.Vessel, ShipStart = lobby.ShipStart,
             Roles = SnapshotRoles(lobby, user, canEnter, jobs),
             Code = host && lobby.Access == WFLobbyAccess.Code ? lobby.Code : null,
@@ -612,6 +629,8 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             RoleJobs = own?.Host == session.UserId ? (WFRoundSetupPolicy.IsShip(own.Scenario) ? GetRoleJobs(session, own) : JobsFor(own)).ToArray() : Array.Empty<WFRoundSetupJob>(),
             Factions = new[] { WFCrewFaction.TSF, WFCrewFaction.PDV }.Where(faction => CanCreateFaction(session, faction, eligibility)).ToArray(),
             Vessels = shipHost ? _ships.GetVessels(own!.Faction).ToArray() : Array.Empty<WFRoundSetupVessel>(),
+            CrewShips = own is { Started: true } && own.Host == session.UserId ? CrewShipChoices(own) : Array.Empty<WFRoundSetupShipChoice>(),
+            PendingShip = own != null ? PendingShipFor(own, session.UserId) : null,
             HostBalance = shipHost ? _ships.GetBalance(session) : null,
             Message = message == null ? null : Loc.GetString(message),
         };
@@ -623,6 +642,8 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     {
         foreach (var lobby in _lobbies.Values)
         {
+            if (lobby.PendingShip is { } pending && !ValidShipChange(lobby, pending))
+                lobby.PendingShip = null;
             foreach (var user in lobby.Requests.Keys.Where(IsUnavailable).ToArray())
                 lobby.Requests.Remove(user);
             lobby.Invitations.RemoveWhere(IsUnavailable);

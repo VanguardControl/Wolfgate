@@ -207,6 +207,10 @@ public sealed partial class WFCrashScenarioSystem : EntitySystem
             ("planet", scenario.Planet), ("seconds", Math.Max(0, (int) Math.Ceiling((first.DescendAt - _timing.CurTime).TotalSeconds)))));
     }
 
+    /// <summary>Returns the surviving scenario sections for crew identity and announcements.</summary>
+    public IReadOnlyCollection<EntityUid> GetGrids(int lobbyId) => _scenarios.TryGetValue(lobbyId, out var scenario)
+        ? scenario.Grids : Array.Empty<EntityUid>();
+
     /// <summary>Forgets a lobby; only never-used preparations are deleted.</summary>
     public void RemoveScenario(int lobbyId)
     {

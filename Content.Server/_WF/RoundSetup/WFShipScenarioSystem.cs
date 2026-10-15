@@ -108,6 +108,11 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         WFShipStartLocation location = WFShipStartLocation.RandomSpace, WFCrewFaction faction = WFCrewFaction.None)
     {
         station = EntityUid.Invalid;
+        if (HasAssignedShip(lobbyId))
+        {
+            reason = "wf-round-setup-ship-gone";
+            return TryGetAssignedSpawn(lobbyId, out station, out _);
+        }
         reason = "wf-round-setup-ship-invalid";
         if (!IsVesselAvailable(vesselId, faction) || !WFRoundSetupPolicy.IsShipStartAllowed(location, faction))
             return false;
@@ -228,9 +233,9 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     /// <summary>Links the purchased ship to live crew membership without creating permanent guest entries.</summary>
     public void NotifyArrival(int lobbyId, ICommonSession session)
     {
-        if (!_scenarios.TryGetValue(lobbyId, out var scenario) || !scenario.Used || session.AttachedEntity is not { } body)
+        if (session.AttachedEntity is not { } body)
             return;
-        foreach (var grid in scenario.Grids)
+        foreach (var grid in GetActiveGrids(lobbyId))
         {
             if (TryComp<WFShipAccessComponent>(grid, out var access) && access.CrewId == null &&
                 _access.TryLinkCrew((grid, access), body))
@@ -242,6 +247,8 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     public bool TryGetSpawn(int lobbyId, out EntityCoordinates coordinates)
     {
         coordinates = default;
+        if (HasAssignedShip(lobbyId))
+            return TryGetAssignedSpawn(lobbyId, out _, out coordinates);
         if (!_scenarios.TryGetValue(lobbyId, out var scenario) || TerminatingOrDeleted(scenario.Station))
             return false;
         foreach (var grid in scenario.Grids)
@@ -280,6 +287,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     /// <summary>Closing a used crew leaves its purchased ship and passengers intact.</summary>
     public void RemoveScenario(int lobbyId)
     {
+        _assignedShips.Remove(lobbyId);
         if (_scenarios.TryGetValue(lobbyId, out var scenario) && scenario.Used)
             _scenarios.Remove(lobbyId);
         else
@@ -332,12 +340,19 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     /// <summary>Keeps late arrivals confined to fragments of the purchased hull.</summary>
     private void OnSplit(ref GridSplitEvent args)
     {
-        if (!TryComp<WFShipScenarioComponent>(args.Grid, out var original) || !_scenarios.TryGetValue(original.LobbyId, out var scenario))
+        if (!TryComp<WFShipScenarioComponent>(args.Grid, out var original))
+            return;
+        HashSet<EntityUid>? grids = null;
+        if (_assignedShips.TryGetValue(original.LobbyId, out var assigned) && assigned.Grids.Contains(args.Grid))
+            grids = assigned.Grids;
+        else if (_scenarios.TryGetValue(original.LobbyId, out var scenario) && scenario.Grids.Contains(args.Grid))
+            grids = scenario.Grids;
+        if (grids == null)
             return;
         foreach (var grid in args.NewGrids)
         {
             EnsureComp<WFShipScenarioComponent>(grid).LobbyId = original.LobbyId;
-            scenario.Grids.Add(grid);
+            grids.Add(grid);
         }
     }
 
@@ -356,7 +371,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     }
     private void OnRestart(RoundRestartCleanupEvent args)
     {
-        foreach (var id in _scenarios.Keys.ToArray())
+        foreach (var id in _scenarios.Keys.Concat(_assignedShips.Keys).Distinct().ToArray())
             RemoveScenario(id);
     }
 }

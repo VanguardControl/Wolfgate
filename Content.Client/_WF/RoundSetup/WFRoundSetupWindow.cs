@@ -153,10 +153,11 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
             ("status", Text(lobby.Started ? "status-started" : "status-waiting")))));
 
         content.AddChild(Description(ScenarioDescription(lobby.Scenario)));
-        if (WFRoundSetupPolicy.IsShip(lobby.Scenario))
+        if (WFRoundSetupPolicy.IsShip(lobby.Scenario) || lobby.Started)
         {
             content.AddChild(VesselSummary(state, lobby));
-            content.AddChild(Description(ShipStartKey(lobby.ShipStart)));
+            if (!lobby.Started)
+                content.AddChild(Description(ShipStartKey(lobby.ShipStart)));
         }
         var available = state.CanJoin && state.OwnLobby == null && lobby.MemberCount < WFRoundSetupPolicy.MaximumMembers &&
                         (!lobby.Started || lobby.AllowLateJoin);
@@ -315,7 +316,8 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
     /// <summary>Keeps unchanged periodic snapshots from interrupting text entry and open selectors.</summary>
     private static bool SameState(WFRoundSetupState first, WFRoundSetupState second)
     {
-        return first.InRound == second.InRound && first.CanJoin == second.CanJoin && first.OwnLobby == second.OwnLobby &&
+        return first.CrewShips.SequenceEqual(second.CrewShips) && first.PendingShip == second.PendingShip &&
+               first.InRound == second.InRound && first.CanJoin == second.CanJoin && first.OwnLobby == second.OwnLobby &&
                first.CrashlandedAvailable == second.CrashlandedAvailable && first.Factions.SequenceEqual(second.Factions) && first.HostBalance == second.HostBalance &&
                SameSavedSetups(first.SavedSetups, second.SavedSetups) && first.Vessels.SequenceEqual(second.Vessels) &&
                first.Jobs.SequenceEqual(second.Jobs) && first.RoleJobs.SequenceEqual(second.RoleJobs) && first.InviteTargets.SequenceEqual(second.InviteTargets) &&
@@ -329,7 +331,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         return first.Id == second.Id && first.Host == second.Host && first.HostJob == second.HostJob && Equals(first.Portrait, second.Portrait) && first.HostName == second.HostName && first.Title == second.Title && first.Description == second.Description &&
                first.Scenario == second.Scenario && first.Faction == second.Faction && first.ShipName == second.ShipName && first.ShipStart == second.ShipStart && first.Access == second.Access && first.AllowLateJoin == second.AllowLateJoin &&
                first.Started == second.Started && first.MemberCount == second.MemberCount && first.Code == second.Code &&
-               first.Vessel == second.Vessel && first.Roles.SequenceEqual(second.Roles) &&
+               first.CurrentShip == second.CurrentShip && first.Vessel == second.Vessel && first.Roles.SequenceEqual(second.Roles) &&
                first.Members.SequenceEqual(second.Members) && first.Requests.SequenceEqual(second.Requests);
     }
 

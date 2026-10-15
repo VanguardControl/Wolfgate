@@ -1,13 +1,18 @@
 using System.Linq;
+using Content.Client.UserInterface.Controls;
 using Content.Shared._NF.Bank;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.RoundSetup;
+using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Network;
 
 namespace Content.Client._WF.RoundSetup;
 
 public sealed partial class WFRoundSetupWindow
 {
+    private NetUserId? _shipCandidateOwner;
+
     private static string ShipStartKey(WFShipStartLocation location) => location switch
     {
         WFShipStartLocation.CentralDock => "ship-start-central",
@@ -19,6 +24,9 @@ public sealed partial class WFRoundSetupWindow
 
     private RichTextLabel VesselSummary(WFRoundSetupState state, WFRoundSetupLobby lobby)
     {
+        if (lobby.Started)
+            return lobby.CurrentShip is { } current
+                ? PlainDescription(Text("crew-ship-current", ("ship", current.Name))) : Description("crew-ship-missing");
         if (lobby.Vessel == null)
             return Description("ship-unselected");
         var vessel = state.Vessels.FirstOrDefault(choice => choice.Id == lobby.Vessel);
@@ -35,6 +43,20 @@ public sealed partial class WFRoundSetupWindow
         var section = Column(8);
         var preview = GetShipPreview();
         section.AddChild(Heading("ship"));
+        if (lobby.Started)
+        {
+            section.AddChild(VesselSummary(state, lobby));
+            section.AddChild(Description("assign-ship-help"));
+            if (host)
+                BuildShipAssignment(section, state, lobby);
+            else
+                section.AddChild(Description("assign-ship-leader"));
+            var current = PreviewVessel(lobby.CurrentShip?.Vessel);
+            preview.SetVessel(current);
+            preview.ToolTip = current?.Description;
+            AddShipPreviewLayout(section, preview);
+            return;
+        }
         BuildShipName(section, lobby, host);
         if (!host || lobby.Started)
         {
@@ -99,6 +121,74 @@ public sealed partial class WFRoundSetupWindow
         section.AddChild(location);
 
         AddShipPreviewLayout(section, preview);
+    }
+
+    /// <summary>The leader chooses a crew member's current deed and explicitly requests its use.</summary>
+    private void BuildShipAssignment(BoxContainer section, WFRoundSetupState state, WFRoundSetupLobby lobby)
+    {
+        section.AddChild(Heading("assign-ship-heading"));
+        var choices = state.CrewShips;
+        var selected = Array.FindIndex(choices, choice => choice.Owner == _shipCandidateOwner && choice.Error == null);
+        if (selected < 0)
+            selected = Array.FindIndex(choices, choice => choice.Error == null);
+        if (selected < 0 && choices.Length > 0)
+            selected = 0;
+        var candidate = selected >= 0 ? choices[selected] : null;
+        if (choices.Length > 0)
+        {
+            var selector = new WFRoundSetupOptionButton { Name = "RoundSetupAssignedShipSelector", HorizontalExpand = true };
+            for (var i = 0; i < choices.Length; i++)
+            {
+                var choice = choices[i];
+                selector.AddItem(Text("assign-ship-option", ("owner", choice.OwnerName), ("ship", choice.Ship.Name)), i);
+                if (choice.Error != null)
+                    selector.DisableItem(i, choice.Error);
+            }
+            selector.SelectId(selected);
+            selector.OnItemSelected += args => { _shipCandidateOwner = choices[args.Id].Owner; Redraw(); };
+            section.AddChild(selector);
+        }
+        var reason = candidate?.Error ?? (candidate == null ? Text("assign-ship-deed") : null);
+        var self = candidate?.Owner == _players.LocalSession?.UserId;
+        var assign = new ConfirmButton
+        {
+            Name = "RoundSetupAssignShip", Text = Text(self ? "assign-ship" : "assign-ship-request"),
+            ConfirmationText = Text(self ? "assign-ship-confirm" : "assign-ship-request-confirm"), MinHeight = 44, HorizontalExpand = true,
+            Disabled = reason != null, ToolTip = reason ?? Text("assign-ship-help"), ResetTime = TimeSpan.FromSeconds(5),
+        };
+        assign.Label.ClipText = false;
+        assign.AddStyleClass("ButtonAccept");
+        assign.OnPressed += _ => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.AssignShip)
+        {
+            LobbyId = lobby.Id, Target = candidate?.Owner, Ship = candidate?.Ship.Entity,
+        });
+        section.AddChild(assign);
+        if (reason != null)
+            section.AddChild(PlainDescription(reason));
+        if (state.PendingShip is { } pending)
+        {
+            section.AddChild(PlainDescription(Text("assign-ship-waiting", ("owner", pending.OwnerName), ("ship", pending.Ship.Name))));
+            section.AddChild(Button("assign-ship-cancel", () => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.CancelShip)
+            { LobbyId = lobby.Id, Ship = pending.Ship.Entity, ShipChangeId = pending.RequestId })));
+        }
+    }
+
+    /// <summary>Owners can approve or decline a leader's request from any page of crew setup.</summary>
+    private Control ShipApproval(WFRoundSetupLobby lobby, WFRoundSetupShipChoice pending)
+    {
+        var content = Column(6);
+        content.AddChild(PlainDescription(Text("assign-ship-approval", ("leader", lobby.HostName), ("ship", pending.Ship.Name))));
+        var approve = Button("assign-ship-approve", () => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.ApproveShip)
+        { LobbyId = lobby.Id, Ship = pending.Ship.Entity, ShipChangeId = pending.RequestId }));
+        approve.Name = "RoundSetupApproveShip";
+        approve.AddStyleClass("ButtonAccept");
+        approve.ToolTip = Text("assign-ship-help");
+        var decline = Button("assign-ship-decline", () => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.CancelShip)
+        { LobbyId = lobby.Id, Ship = pending.Ship.Entity, ShipChangeId = pending.RequestId }));
+        decline.Name = "RoundSetupDeclineShip";
+        decline.AddStyleClass("ButtonColorRed");
+        content.AddChild(FlowRow(approve, decline));
+        return Panel(content);
     }
 
     private VesselPrototype? PreviewVessel(string? id) =>

@@ -16,6 +16,8 @@ Ship crew lets the host select an unrestricted civilian shipyard design and insp
 
 New lobbies contain only the host, with an independent personal job choice and no advertised crew roles. New openings default to one slot. Ship hosts can advertise civilian and medical jobs independently of their own eligibility, including the existing Emergency Responder job (MdMedic). Medical, salvage and service rosters add editable openings without overwriting occupied roles. Hosts choose from the same job catalog on Prepare and can give themselves a custom title such as Captain; the title does not grant station command privileges. Job bans and qualifications still apply to each recruit. Hosts can edit vacancies and capacities after launch; existing spawned identities remain unchanged. Hosts can name crew roles, choose an underlying job and set 1 to 16 slots per role (up to 16 roles). Joining or accepting a request reserves a role; disconnected and spawned members retain their slots while they remain in the crew. Choosing Leave Crew or respawning releases membership and its reserved slot. Occupied roles cannot change jobs or be removed. Contractor/Vagrant is called Drifter in Crew Setup. Personal and advertised crew titles appear on the spawned ID, mind and station record while the underlying job still determines equipment and access. Public names always come from the selected character, never the account identifier.
 
+After launch, the crew leader can use Your ship to choose a ship assigned to any connected crew member's worn ID, including after a crash start. The leader confirms their own ship directly; another owner receives a direct request and must approve it in Crew Setup. Owners can decline and leaders can cancel; changed deeds or leadership invalidate pending requests. The server rechecks the deed, membership, faction and surviving deck at approval; faction crews keep their original faction, rank rules and station job quotas. Replacement ships are already owned, so the starting T1 purchase catalog does not limit later upgrades. Reassignment charges nothing and moves no players or ships. Automatic crew access leaves the old hull and applies to the new one, while deeds and manually granted permissions remain intact. Direct crew notices and ship PA announce the change; later joins and announcements use the replacement and its surviving fragments, and never fall back to an abandoned hull. Crew admission records use a separate private station so an existing ship's station and normal jobs are not rewritten. Saved setups retain their original starting design, not a round-specific ship entity.
+
 Ship preparation follows Prepare, Your ship, Crew and Who can join, with a fixed Next action on the first three pages and Finish on the last. Prepare fits without a scrollbar; ship selection commits directly from its dropdown. Finish saves admission settings and confirms readiness or purchase and launch, while a ready member can reopen setup to revoke consent. Disabled actions and locked job choices explain their requirements on hover. Job sprites scale to a readable 24-pixel size.
 
 Hosts can save up to 20 named scenarios from Who can join. Create has a Load Saved Scenario button; its compact rows open full details with load and delete actions. Saves belong to the server account and persist in versioned files under the server user-data `round-setups` directory. They contain the crew name and description, scenario, vessel, departure, personal job/title, recruitment roles and admission settings, without members, invite codes or purchase authorization. Loading validates the current catalog and creates a new unready crew; a personal job the character no longer qualifies for is left unselected. Saving under an existing name replaces it. Writes retain a backup, and unreadable saves are protected from automatic overwrite.
@@ -50,9 +52,11 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Roles.cs`](WFRoundSetupSystem.Roles.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Saved.cs`](WFRoundSetupSystem.Saved.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.ShipAccess.cs`](WFRoundSetupSystem.ShipAccess.cs)
+- [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Ships.cs`](WFRoundSetupSystem.Ships.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Spawning.cs`](WFRoundSetupSystem.Spawning.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Titles.cs`](WFRoundSetupSystem.Titles.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioComponent.cs`](WFShipScenarioComponent.cs)
+- [`Content.Server/_WF/RoundSetup/WFShipScenarioSystem.Assignment.cs`](WFShipScenarioSystem.Assignment.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioSystem.cs`](WFShipScenarioSystem.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioSystem.Docking.cs`](WFShipScenarioSystem.Docking.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioSystem.Factions.cs`](WFShipScenarioSystem.Factions.cs)
@@ -108,6 +112,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Burst.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Burst.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Factions.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Factions.cs)
+- [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.ShipAssignment.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.ShipAssignment.cs)
 
 ### Unit tests
 
@@ -133,6 +138,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Resources/Locale/en-US/_WF/RoundSetup/preview.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/preview.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/round-setup.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/round-setup.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/server.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/server.ftl)
+- [`Resources/Locale/en-US/_WF/RoundSetup/ship-assignment.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/ship-assignment.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/ship.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/ship.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/wizard.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/wizard.ftl)
 

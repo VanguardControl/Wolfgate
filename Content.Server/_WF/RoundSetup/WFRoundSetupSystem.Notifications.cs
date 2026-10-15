@@ -20,6 +20,12 @@ public sealed partial class WFRoundSetupSystem
             role = member.Job != null && _prototypes.TryIndex<JobPrototype>(member.Job, out var job)
                 ? job.LocalizedName : Loc.GetString("wf-round-setup-job-unselected");
         var message = Loc.GetString("wf-round-setup-member-joined", ("name", member.Name), ("role", role));
+        NotifyCrew(lobby, message);
+    }
+
+    /// <summary>Sends direct crew notices and one announcement on each current ship section.</summary>
+    private void NotifyCrew(Lobby lobby, string message)
+    {
         foreach (var user in lobby.Members.Keys)
         {
             if (_players.TryGetSessionById(user, out var session) && session.Status == SessionStatus.InGame)
@@ -27,16 +33,9 @@ public sealed partial class WFRoundSetupSystem
         }
         if (!lobby.Started)
             return;
-        var ships = EntityQueryEnumerator<WFShipScenarioComponent>();
-        while (ships.MoveNext(out var grid, out var ship))
+        foreach (var grid in CrewGrids(lobby))
         {
-            if (ship.LobbyId == lobby.Id)
-                _crewPa.Announce(grid, message);
-        }
-        var wrecks = EntityQueryEnumerator<WFCrashScenarioComponent>();
-        while (wrecks.MoveNext(out var grid, out var crash))
-        {
-            if (crash.LobbyId == lobby.Id)
+            if (!TerminatingOrDeleted(grid))
                 _crewPa.Announce(grid, message);
         }
     }
