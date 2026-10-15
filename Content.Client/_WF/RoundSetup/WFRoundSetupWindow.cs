@@ -208,6 +208,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
             _draftTitle = lobby.Title;
             _draftDescription = lobby.Description;
         }
+        BuildInvitations(lobby, state);
         var settings = Column(6);
         settings.AddChild(Heading("crew-title"));
         var title = new LineEdit { Text = _draftTitle, PlaceHolder = Text("crew-title-placeholder"), HorizontalExpand = true };
@@ -277,21 +278,6 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
                     Button("reject", () => SendTarget(WFRoundSetupAction.RejectRequest, lobby.Id, request.UserId))));
             }
         }
-        if (state.InviteTargets.Length == 0)
-            return;
-
-        var target = new WFRoundSetupOptionButton { HorizontalExpand = true };
-        for (var i = 0; i < state.InviteTargets.Length; i++)
-            target.AddItem(state.InviteTargets[i].Name, i);
-        target.SelectId(Math.Max(0, Array.FindIndex(state.InviteTargets, player => player.UserId == _inviteTarget)));
-        target.OnItemSelected += args =>
-        {
-            target.SelectId(args.Id);
-            _inviteTarget = state.InviteTargets[args.Id].UserId;
-        };
-        _body.AddChild(Heading("invite"));
-        _body.AddChild(FlowRow(target, Button("invite", () => SendTarget(WFRoundSetupAction.Invite,
-            lobby.Id, state.InviteTargets[target.SelectedId].UserId))));
     }
 
     /// <summary>Lets an unspawned member choose their own character, job and readiness.</summary>

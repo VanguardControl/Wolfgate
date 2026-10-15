@@ -62,6 +62,44 @@ public sealed class RoundSetupUiTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>Hosts can find invitations even when nobody is eligible, with an explicit disabled-state explanation.</summary>
+    [Test]
+    public async Task EmptyInvitationsRemainVisibleAndExplainEligibility()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
+        var state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Create) { Scenario = WFRoundScenario.Ship });
+        var id = state.OwnLobby!.Value;
+        Assert.That(state.InviteTargets, Is.Empty);
+        WFRoundSetupWindow window = null!;
+        Button admission = null!;
+        await pair.Client.WaitPost(() =>
+        {
+            window = new WFRoundSetupWindow();
+            window.FitTo(new Vector2(800, 600));
+            window.OpenCentered();
+        });
+        await pair.RunTicksSync(2);
+        await pair.Client.WaitPost(() => admission = Buttons(Named<Control>(window, "RoundSetupSections"), "admission").Single());
+        await Click(pair, admission);
+        await pair.Client.WaitAssertion(() =>
+        {
+            var invite = Named<Button>(window, "CrewSendInvitation");
+            var target = Named<WFRoundSetupOptionButton>(window, "CrewInviteTarget");
+            Assert.That(invite.VisibleInTree, Is.True);
+            Assert.That(invite.Disabled, Is.True);
+            Assert.That(target.Disabled, Is.True);
+            Assert.That(invite.Text, Is.EqualTo(Loc.GetString("wf-round-setup-send-invitation")));
+            Assert.That(invite.ToolTip, Is.EqualTo(Loc.GetString("wf-round-setup-invite-none-help")));
+            Assert.That(Labels(window), Does.Contain(invite.ToolTip));
+            var scroll = Named<ScrollContainer>(window, "RoundSetupPageScroll");
+            Assert.That(invite.GlobalPosition.Y + invite.Height, Is.LessThanOrEqualTo(scroll.GlobalPosition.Y + scroll.Height));
+            AssertFits(window, new Vector2(800, 600));
+            window.Close();
+        });
+        await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Leave) { LobbyId = id });
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>The toolbar toggles crew setup, follows window closure and survives HUD layout changes.</summary>
     [Test]
     public async Task GameplayToolbarTogglesCrewSetup()
