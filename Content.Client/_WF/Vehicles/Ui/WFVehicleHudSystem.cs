@@ -39,6 +39,7 @@ public sealed class WFVehicleHudSystem : EntitySystem
     {
         _panel = new PanelContainer
         {
+            Name = "WFVehicleHud",
             Visible = false,
             MinSize = new Vector2(250, 150),
             Margin = new Thickness(16, 160, 0, 0),
@@ -73,7 +74,9 @@ public sealed class WFVehicleHudSystem : EntitySystem
         foreach (var control in new Control[] { _role, _dial, _speed, _engineState, _fuel, _fuelBar, _battery, _weapon, _ammo, _ignition, _accessories, _headlights, _brake })
             column.AddChild(control);
         _panel.AddChild(column);
-        _ui.StateRoot.AddChild(_panel);
+        // Keep instruments above the gameplay viewport, like the other Wolfgate HUDs.
+        _ui.PopupRoot.AddChild(_panel);
+        LayoutContainer.SetAnchorPreset(_panel, LayoutContainer.LayoutPreset.TopLeft);
         _ignition.OnPressed += _ => SendControl(false);
         _brake.OnPressed += _ => SendControl(true);
         _accessories.OnPressed += _ =>

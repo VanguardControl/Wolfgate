@@ -1,5 +1,9 @@
 #nullable enable
 using System.Collections.Generic;
+using System.Linq;
+using Content.Client._WF.Vehicles.Ui;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Content.IntegrationTests.Pair;
 using Content.Shared._WF.Vehicles.Base;
 using Content.Shared._WF.Vehicles.Core;
@@ -16,6 +20,43 @@ namespace Content.IntegrationTests.Tests._WF.Vehicles;
 [TestFixture]
 public sealed class VehicleClientTest
 {
+    [Test]
+    public async Task DriverHudAppearsAboveGameplayAndHidesAfterLeaving()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var rig = await VehicleRigs.Build(pair);
+        var server = pair.Server;
+        var client = pair.Client;
+        await server.WaitPost(() =>
+        {
+            server.EntMan.AddComponent<WFVehicleEngineComponent>(rig.Vehicle);
+            server.PlayerMan.SetAttachedEntity(pair.Player!, rig.Driver);
+        });
+        await VehicleRigs.Seat(rig);
+        await pair.RunTicksSync(30);
+        await client.WaitAssertion(() =>
+        {
+            client.System<WFVehicleHudSystem>().FrameUpdate(0f);
+            var ui = client.ResolveDependency<IUserInterfaceManager>();
+            var panel = ui.PopupRoot.Children.SingleOrDefault(control => control.Name == "WFVehicleHud");
+            Assert.That(panel, Is.Not.Null, "The instruments must be above the gameplay viewport, not under it in StateRoot.");
+            Assert.That(panel!.Visible, Is.True, "The driver's replicated operator state must reveal the HUD.");
+            Assert.That(panel.Children.Single().Children.OfType<Button>()
+                .Any(button => button.Visible && button.Text == "Start engine"), Is.True);
+        });
+        await server.WaitAssertion(() =>
+            Assert.That(server.System<RMCVehicleSystem>().TryRemoveOperator(new Entity<RMCVehicleOperatorComponent?>(rig.Driver, null)), Is.True));
+        await pair.RunTicksSync(30);
+        await client.WaitAssertion(() =>
+        {
+            client.System<WFVehicleHudSystem>().FrameUpdate(0f);
+            var panel = client.ResolveDependency<IUserInterfaceManager>().PopupRoot.Children
+                .Single(control => control.Name == "WFVehicleHud");
+            Assert.That(panel.Visible, Is.False, "Leaving the seat must hide its controls.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>
     /// A vehicle nobody sits inside is driven by a session attached to the vehicle itself (the Bison). The client picks the
     /// input context from the attached entity, and with none it falls back to "common", which has no use-item key: the
