@@ -119,17 +119,18 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
         var accelerating = frameTime > 0f ? (speed - engine.LastSpeed) / frameTime : 0f;
         engine.BrakeCooldown -= frameTime;
         engine.SkidCooldown -= frameTime;
-        if (accelerating < -2f && speed > 1f && engine.BrakeCooldown <= 0f)
+        if (accelerating < -5f && speed > 4f && engine.BrakeCooldown <= 0f)
         {
-            PlayOnce(engine.BrakeSound, uid, engine.LoopParams);
-            engine.BrakeCooldown = 2f;
+            PlayOnce(engine.BrakeSound, uid, engine.LoopParams.WithVolume(-10f));
+            engine.BrakeCooldown = 10f;
         }
         var heading = mover?.Heading ?? default;
-        if (mover != null && !mover.TurnInPlace && speed > 3f && engine.SkidCooldown <= 0f &&
-            (accelerating < -5f || Vector2.Distance(mover.TravelVelocity, heading.ToWorldVec() * mover.CurrentSpeed) > 2f))
+        if (mover != null && !mover.TurnInPlace && speed > 6f && engine.SkidCooldown <= 0f &&
+            (accelerating < -8f || mover.FreeSteering &&
+                Vector2.Distance(mover.TravelVelocity, heading.ToWorldVec() * mover.CurrentSpeed) > 3f))
         {
-            PlayOnce(engine.SkidSound, uid, engine.LoopParams);
-            engine.SkidCooldown = 2f;
+            PlayOnce(engine.SkidSound, uid, engine.LoopParams.WithVolume(-8f));
+            engine.SkidCooldown = 10f;
         }
         engine.LastSpeed = speed;
         if (!engine.EngineOn)

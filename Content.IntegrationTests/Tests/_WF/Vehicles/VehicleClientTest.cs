@@ -1,6 +1,9 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
+using Content.Client._WF.Vehicles.Audio;
+using Content.Shared._WF.Vehicles.Audio;
+using Content.Shared._WF.Vehicles.Grid.Components;
 using Content.Client._WF.CombatConsole;
 using Content.Client._WF.Vehicles.Ui;
 using Robust.Client.UserInterface;
@@ -40,6 +43,38 @@ public sealed class VehicleClientTest
                 checkedVehicles++;
             }
             Assert.That(checkedVehicles, Is.GreaterThan(10));
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task BrakeAudioIgnoresGentleSlowingAndCardinalTravel()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var em = pair.Client.EntMan;
+            var vehicle = em.SpawnEntity("WFVehicleTestChassis", Robust.Shared.Map.MapCoordinates.Nullspace);
+            var audio = em.AddComponent<WFVehicleEngineAudioComponent>(vehicle);
+            var mover = em.GetComponent<GridVehicleMoverComponent>(vehicle);
+            var system = pair.Client.System<WFVehicleAudioSystem>();
+            mover.TurnInPlace = false;
+            mover.FreeSteering = false;
+            mover.CurrentSpeed = 7f;
+            audio.LastSpeed = 7f;
+            system.FrameUpdate(0.1f);
+            Assert.That(audio.SkidCooldown, Is.LessThanOrEqualTo(0f), "Four-way travel is not lateral slip.");
+            mover.CurrentSpeed = 5f;
+            audio.LastSpeed = 5.2f;
+            system.FrameUpdate(0.1f);
+            Assert.That(audio.BrakeCooldown, Is.LessThanOrEqualTo(0f), "Gentle slowing should not squeal.");
+            audio.LastSpeed = 6f;
+            system.FrameUpdate(0.1f);
+            Assert.That(audio.BrakeCooldown, Is.EqualTo(10f), "Hard braking should still sound.");
+            audio.LastSpeed = 6f;
+            system.FrameUpdate(0.1f);
+            Assert.That(audio.BrakeCooldown, Is.LessThan(10f), "Continued braking must not retrigger the sound.");
+            em.DeleteEntity(vehicle);
         });
         await pair.CleanReturnAsync();
     }
