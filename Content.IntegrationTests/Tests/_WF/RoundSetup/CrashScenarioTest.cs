@@ -6,13 +6,17 @@ using Content.Server._WF.RoundSetup;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Events;
 using Content.Server.Station.Components;
+using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.Planets.Flight;
+using Content.Shared._WF.RoundSetup;
 using Content.Shared.Maps;
 using Content.Shared.Physics;
 using Content.Shared.UserInterface;
+using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 using static Content.IntegrationTests.Tests._WF.Planets.PlanetFixture;
 
@@ -23,6 +27,38 @@ namespace Content.IntegrationTests.Tests._WF.RoundSetup;
 [TestOf(typeof(WFCrashScenarioSystem))]
 public sealed class CrashScenarioTest
 {
+    /// <summary>Every random candidate loads as a shuttle with enough unobstructed deck for a full crew.</summary>
+    [TestCaseSource(typeof(WFCrashScenarioSystem), nameof(WFCrashScenarioSystem.VesselIds))]
+    public async Task CrashVesselHasUsableCrewSpace(string vesselId)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        await server.WaitAssertion(() =>
+        {
+            var vessel = server.ResolveDependency<IPrototypeManager>().Index<VesselPrototype>(vesselId);
+            Assert.That(server.System<MapLoaderSystem>().TryLoadGrid(map.MapId, vessel.ShuttlePath, out var loaded),
+                Is.True, $"Crash candidate {vesselId} must load.");
+            var hull = loaded!.Value.Owner;
+            em.AddComponents(hull, vessel.AddComponents);
+            Assert.That(em.HasComponent<ShuttleComponent>(hull), Is.True);
+            var turf = server.System<TurfSystem>();
+            var tiles = server.System<SharedMapSystem>().GetAllTilesEnumerator(hull, loaded.Value.Comp);
+            var usable = 0;
+            while (tiles.MoveNext(out var tile))
+            {
+                if (!tile.Value.Tile.IsEmpty && !turf.IsSpace(tile.Value)
+                    && !turf.IsTileBlocked(tile.Value, CollisionGroup.MobMask))
+                    usable++;
+            }
+            Assert.That(usable, Is.GreaterThanOrEqualTo(WFRoundSetupPolicy.MaximumMembers),
+                $"Crash candidate {vesselId} needs room for the full crew.");
+            em.DeleteEntity(hull);
+        });
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Preparation is unarmed, boarding starts three minutes, and expiry uses normal descent.</summary>
     [Test]
     public async Task BoardingArmsSharedShipAndExpiryDropsFromOrbit()

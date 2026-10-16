@@ -59,7 +59,12 @@ public sealed partial class WFCrashScenarioSystem : EntitySystem
     public static readonly string[] AllowedJobs = { "Contractor", "Pilot", "Mercenary", "StationEngineer", "MedicalDoctor" };
 
     /// <summary>Existing civilian hulls with enclosed crew spaces and room for wreck survivors.</summary>
-    public static readonly string[] VesselIds = { "Guppy", "Peregrine", "Rosetta", "Pillbox" };
+    public static readonly string[] VesselIds =
+    {
+        "Guppy", "Peregrine", "Rosetta", "Pillbox",
+        "Arribane", "Noble", "Sakuratsu", "Shuilian",
+        "Spessbite", "Takeaway", "Tiger", "Zhuangzi",
+    };
 
     private readonly Dictionary<int, Scenario> _scenarios = new();
     private TimeSpan _nextUpdate;
