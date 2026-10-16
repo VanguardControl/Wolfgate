@@ -7,6 +7,9 @@ using System.Numerics;
 using Content.Client._WF.RoundSetup;
 using Content.Shared._WF.RoundSetup;
 using Robust.Shared.Localization;
+using Robust.Client.Graphics;
+using Content.Client.Lobby.UI;
+using Robust.Shared;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 
@@ -14,6 +17,64 @@ namespace Content.IntegrationTests.Tests._WF.RoundSetup;
 
 public sealed partial class RoundSetupUiTest
 {
+    /// <summary>Live crew rows reserve enough space for the button, icon and full font height.</summary>
+    [TestCase(1f)]
+    [TestCase(1.25f)]
+    [TestCase(1.5f)]
+    public async Task ActiveCrewRowsFitAtUiScale(float scale)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
+        var client = pair.Client;
+        var ui = client.ResolveDependency<IUserInterfaceManager>();
+        var previousScale = client.CfgMan.GetCVar(CVars.DisplayUIScale);
+        var previousAutoScale = client.CfgMan.GetCVar(CVars.ResAutoScaleEnabled);
+        var id = 0;
+        try
+        {
+            await client.WaitPost(() =>
+            {
+                client.CfgMan.SetCVar(CVars.ResAutoScaleEnabled, false);
+                client.CfgMan.SetCVar(CVars.DisplayUIScale, scale);
+            });
+            await pair.RunTicksSync(5);
+            var state = await Request(pair, new(WFRoundSetupAction.Create) { Scenario = WFRoundScenario.Ship, Title = "AES Colossus" });
+            id = state.OwnLobby!.Value;
+            await client.WaitAssertion(() =>
+            {
+                var screen = (LobbyGui) ui.ActiveScreen!;
+                var panel = Named<WFRoundSetupLobbyPanel>(screen, "ActiveCrews");
+                var row = Descendants(panel).OfType<WFRoundSetupCrewRow>().Single();
+                Assert.That(row.UIScale, Is.EqualTo(scale).Within(0.01f));
+                for (var parent = row.Parent; parent != null && parent != panel.Parent; parent = parent.Parent)
+                {
+                    Assert.That(row.GlobalPosition.Y, Is.GreaterThanOrEqualTo(parent.GlobalPosition.Y - 1), "The full row must be visible inside the crew list.");
+                    Assert.That(row.GlobalPosition.Y + row.Height, Is.LessThanOrEqualTo(parent.GlobalPosition.Y + parent.Height + 1), "The full row must be visible inside the crew list.");
+                }
+                foreach (var control in Descendants(row).Where(c => c.VisibleInTree && c is Label or TextureRect))
+                {
+                    var bottom = control.GlobalPosition.Y + control.Height;
+                    Assert.That(bottom, Is.LessThanOrEqualTo(row.GlobalPosition.Y + row.Height + 1), "The row must contain its text and icon.");
+                    if (control is Label label)
+                    {
+                        var font = label.FontOverride ?? (label.TryGetStyleProperty<Font>(Label.StylePropertyFont, out var styled) ? styled : ui.ThemeDefaults.DefaultFont);
+                        Assert.That(label.PixelHeight + 1, Is.GreaterThanOrEqualTo(font.GetHeight(label.UIScale)), label.Text);
+                    }
+                }
+            });
+        }
+        finally
+        {
+            if (id != 0) await Request(pair, new(WFRoundSetupAction.Leave) { LobbyId = id });
+            await client.WaitPost(() =>
+            {
+                client.CfgMan.SetCVar(CVars.DisplayUIScale, previousScale);
+                client.CfgMan.SetCVar(CVars.ResAutoScaleEnabled, previousAutoScale);
+            });
+            await pair.RunTicksSync(3);
+        }
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Live crew changes cannot destroy an active text field or an open dropdown.</summary>
     [Test]
     public async Task BackgroundUpdatesPreserveTypingAndDropdowns()

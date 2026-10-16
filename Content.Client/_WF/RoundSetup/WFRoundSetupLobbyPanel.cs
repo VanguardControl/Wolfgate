@@ -6,14 +6,13 @@ using Robust.Shared.Utility;
 
 namespace Content.Client._WF.RoundSetup;
 
-/// <summary>Shows live crews in a dedicated, scrollable lobby panel.</summary>
+/// <summary>Shows compact live crew rows within the lobby menu’s existing scroll area.</summary>
 public sealed partial class WFRoundSetupLobbyPanel : PanelContainer
 {
     [Dependency] private IEntityManager _entities = default!;
 
     private WFRoundSetupClientSystem? _system;
     private readonly BoxContainer _cards;
-    private readonly ScrollContainer _scroll;
     private readonly RichTextLabel _empty;
     private WFRoundSetupLobby[] _shown = Array.Empty<WFRoundSetupLobby>();
     private int[] _invitations = Array.Empty<int>();
@@ -30,13 +29,12 @@ public sealed partial class WFRoundSetupLobbyPanel : PanelContainer
         _empty = Wrapped(Text("loading"));
         _empty.ToolTip = Text("empty-help");
         content.AddChild(_empty);
-        _cards = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 2, HorizontalExpand = true };
-        _scroll = new ScrollContainer
+        _cards = new BoxContainer
         {
-            HorizontalExpand = true, HScrollEnabled = false, ReturnMeasure = true,
-            MaxHeight = 148, Visible = false, Children = { _cards },
+            Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 2,
+            HorizontalExpand = true, Visible = false,
         };
-        content.AddChild(_scroll);
+        content.AddChild(_cards);
     }
 
     protected override void EnteredTree()
@@ -89,7 +87,7 @@ public sealed partial class WFRoundSetupLobbyPanel : PanelContainer
         var invitations = state.Invitations.Select(lobby => lobby.Id).ToArray();
         _empty.SetMessage(FormattedMessage.FromUnformatted(Text("empty")));
         _empty.Visible = listings.Length == 0;
-        _scroll.Visible = listings.Length != 0;
+        _cards.Visible = listings.Length != 0;
         if (_shown.Length == listings.Length && _shown.Zip(listings).All(pair => WFRoundSetupCrewRow.SameListing(pair.First, pair.Second)) &&
             _invitations.SequenceEqual(invitations))
             return;

@@ -18,7 +18,6 @@ public sealed class WFRoundSetupCrewRow : Button
         Name = "RoundSetupCrewRow" + lobby.Id;
         HorizontalExpand = true;
         MinHeight = 34;
-        MaxHeight = 34;
         var title = string.IsNullOrEmpty(lobby.Title)
             ? Loc.GetString("wf-round-setup-row-untitled", ("host", lobby.Portrait?.Name ?? lobby.HostName)) : lobby.Title;
         var status = Loc.GetString("wf-round-setup-" + (invited ? "row-invited" : lobby.Started ? "status-started" : "status-waiting"));
