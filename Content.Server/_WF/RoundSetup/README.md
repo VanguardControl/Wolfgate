@@ -8,7 +8,7 @@ Compact crew rows appear below Leave Server and open full details when clicked; 
 
 Open Crew Setup from the lobby, the group icon beside Character in the top-left gameplay toolbar, or the in-round game menu. The toolbar button stays pressed while setup is open and toggles it closed. The Invite players panel stays visible at the top of Who can join, with a Send invitation action and an explanation when nobody is eligible. Hosts invite connected players from this panel; only players awaiting a spawn and outside other crews appear in the picker. Recipients choose an available role in the invited crew and accept. Ready up before round start; a pregame group launches only when its host is ready. Mid-round hosts launch their waiting group explicitly. A disconnected host keeps ownership; a host can transfer ownership to another member or leave to pass it to the next member. Respawning leaves the previous crew and releases its reserved slot; remaining members retain their crew and an existing ship stays in the world. Round restart clears all lobbies and invitation codes.
 
-The server owns membership and validates every request. Scenario job slots remain available when a helm is disabled or unpowered; ordinary shuttle power rules do not override crew admission. Normal pregame readiness and Standard joining do not create a scenario crew; only Ship, Crashlanded and Faction Crew can create one. Standard opens the existing picker unchanged, so players can still take station jobs or join a player-owned ship's crew. Only private scenario stations are hidden from it and rejected by server spawn validation. Every contributor’s balance is checked before the hull loads, so an unfunded crew never triggers a grid load. Crashlanded uses a random civilian vessel and planet, a fixed three-minute preparation period with disabled flight controls, and the existing planetary descent and crash systems. Living occupants hear a looping alarm and see a shared on-screen countdown until atmospheric entry, highlighted for the final thirty seconds. Leaving the ship, dying or entering atmosphere clears the warning and alarm. The countdown never increases during client clock corrections. Survivors receive an emergency EVA suit, breath mask and a survival kit with species-appropriate gas, a filled medkit, health analyser, compact repair tools and extinguisher, lantern, water, food and a harmonica alongside the existing medicine, rations and signalling tools; existing clothing is preserved. Later survivors spawn on a surviving floor in that group's wreck.
+The server owns membership and validates every request. Scenario job slots remain available when a helm is disabled or unpowered; ordinary shuttle power rules do not override crew admission. Normal pregame readiness and Standard joining do not create a scenario crew; only Ship, Crashlanded and Faction Crew can create one. Standard opens the existing picker unchanged, so players can still take station jobs or join a player-owned ship's crew. Only private scenario stations are hidden from it and rejected by server spawn validation. Every contributor’s balance is checked before the hull loads, so an unfunded crew never triggers a grid load. Crashlanded uses a random civilian vessel and planet, a fixed three-minute preparation period with disabled flight controls, and the existing planetary descent and crash systems. Living occupants hear a looping alarm and see a shared on-screen countdown until atmospheric entry, highlighted for the final thirty seconds. Leaving the ship, dying or entering atmosphere clears the warning and alarm. The countdown never increases during client clock corrections. Up to three small, randomly spaced bursts flash and boom on the deck during preparation, leaving five-second cosmetic flames; these do not damage entities, ignite anything, alter the atmosphere or break tiles. Survivors receive an emergency EVA suit, breath mask and a survival kit with species-appropriate gas, a filled medkit, health analyser, compact repair tools and extinguisher, lantern, water, food and a harmonica alongside the existing medicine, rations and signalling tools; existing clothing is preserved. Later survivors spawn on a surviving floor in that group's wreck.
 
 Crashlanded requires the existing `wf.planet_networks` server setting and a sector containing registered planets. Its card is disabled when planet networks are off. Closing late admission prevents new members; players already accepted retain their place until the host removes them.
 
@@ -46,6 +46,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioMachinerySystem.cs`](WFCrashScenarioMachinerySystem.cs)
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.Countdown.cs`](WFCrashScenarioSystem.Countdown.cs)
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.cs`](WFCrashScenarioSystem.cs)
+- [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.Effects.cs`](WFCrashScenarioSystem.Effects.cs)
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.Equipment.cs`](WFCrashScenarioSystem.Equipment.cs)
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.Flight.cs`](WFCrashScenarioSystem.Flight.cs)
 - [`Content.Server/_WF/RoundSetup/WFPlayerCrewRadioComponent.cs`](WFPlayerCrewRadioComponent.cs)
@@ -117,6 +118,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/CrashCountdownTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/CrashCountdownTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/RoundSetup/CrashEffectsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/CrashEffectsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/CrashEquipmentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/CrashEquipmentTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/CrashScenarioTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/CrashScenarioTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/CrewLoadoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/CrewLoadoutTest.cs)
@@ -145,12 +147,14 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/RoundSetup/crash.yml`](../../../Resources/Prototypes/_WF/RoundSetup/crash.yml)
+- [`Resources/Prototypes/_WF/RoundSetup/crash_effects.yml`](../../../Resources/Prototypes/_WF/RoundSetup/crash_effects.yml)
 - [`Resources/Prototypes/_WF/RoundSetup/radio.yml`](../../../Resources/Prototypes/_WF/RoundSetup/radio.yml)
 - [`Resources/Prototypes/_WF/RoundSetup/ship.yml`](../../../Resources/Prototypes/_WF/RoundSetup/ship.yml)
 
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/RoundSetup/countdown-hud.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/countdown-hud.ftl)
+- [`Resources/Locale/en-US/_WF/RoundSetup/crash-effects.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/crash-effects.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/crash.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/crash.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/crew-comms.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/crew-comms.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/faction-crew.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/faction-crew.ftl)

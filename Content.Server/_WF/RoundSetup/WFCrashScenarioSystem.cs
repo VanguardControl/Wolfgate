@@ -70,6 +70,8 @@ public sealed partial class WFCrashScenarioSystem : EntitySystem
         public readonly string Planet = planet;
         public readonly HashSet<EntityUid> Grids = new();
         public bool Used;
+        public int CosmeticBursts;
+        public TimeSpan NextBurstRemaining;
     }
 
     /// <inheritdoc/>
@@ -144,7 +146,10 @@ public sealed partial class WFCrashScenarioSystem : EntitySystem
                 StationComponentOverrides = new ComponentRegistry(),
             }, new[] { hull }, Loc.GetString("wf-round-setup-crash-station", ("ship", vessel.Name)));
             EnsureComp<WFCrashScenarioStationComponent>(station).LobbyId = lobbyId;
-            var scenario = new Scenario(station, planetName);
+            var scenario = new Scenario(station, planetName)
+            {
+                NextBurstRemaining = PreparationTime - TimeSpan.FromSeconds(_random.Next(40, 56)),
+            };
             scenario.Grids.Add(hull);
             _scenarios[lobbyId] = scenario;
             var crash = EnsureComp<WFCrashScenarioComponent>(hull);

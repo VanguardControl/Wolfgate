@@ -20,6 +20,7 @@ public sealed partial class WFCrashScenarioSystem
             return;
         _nextUpdate = _timing.CurTime + TimeSpan.FromSeconds(0.5);
 
+        UpdateCosmeticBursts();
         var query = EntityQueryEnumerator<WFCrashScenarioComponent>();
         while (query.MoveNext(out var hull, out var crash))
         {
