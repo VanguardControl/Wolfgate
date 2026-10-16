@@ -450,8 +450,12 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             case WFRoundSetupAction.SelectVessel:
                 if (lobby.Started || !WFRoundSetupPolicy.IsShip(lobby.Scenario) || msg.Vessel == null || !CanBuyVessel(lobby, session, msg.Vessel))
                     return false;
+                // Re-confirming the same ship keeps the payment split but still revokes purchase consent.
                 if (lobby.Vessel == msg.Vessel)
+                {
+                    UnreadyMembers(lobby);
                     return true;
+                }
                 lobby.Vessel = msg.Vessel;
                 ResetContributions(lobby);
                 return true;

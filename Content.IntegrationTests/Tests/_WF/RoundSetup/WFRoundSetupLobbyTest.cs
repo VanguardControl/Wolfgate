@@ -831,6 +831,8 @@ public sealed partial class WFRoundSetupLobbyTest
                 server.EntMan.GetComponent<ApcPowerReceiverComponent>(speaker).NeedsPower = false;
             });
             await ConnectAs("WFCrashRejoinGuest");
+            // The pooled client keeps chat history, and both test cases join as the same guest, so count only this run.
+            await pair.Client.WaitPost(() => pair.Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ChatUIController>().History.Clear());
             for (var attempt = 0; attempt < 2; attempt++)
             {
                 state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Join) { LobbyId = id, RoleId = role });

@@ -305,9 +305,11 @@ public sealed partial class WFEncounterTest : InteractionTest
                     Assert.That(crews.Any(crew => crew.Group == ship.Group && crew.Alive > 0), Is.True, $"{id}: {ship.Group} has no crew");
                 }
             });
-            await RunTicks(5);
+            // Two updates catch a system that breaks on a fresh fleet; one more flushes the queued deletion. Big fleets make
+            // each tick expensive, so the loop keeps this to the minimum.
+            await RunTicks(2);
             await Server.WaitPost(() => Server.System<WFEncounterSystem>().End(encounter));
-            await RunTicks(5);
+            await RunTicks(1);
         }
 
         await Server.WaitPost(() =>

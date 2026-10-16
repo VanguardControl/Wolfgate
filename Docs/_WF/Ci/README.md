@@ -32,6 +32,7 @@ entry ids from 100000).
 - [`.github/mapchecker/mapchecker.py`](../../../.github/mapchecker/mapchecker.py)
   - Wolfgate entities sit in module folders
   - Wolfgate vessels and map prototypes sit in module folders
+- [`.github/workflows/build-test-debug.yml`](../../../.github/workflows/build-test-debug.yml): exclude Shipyard tests in NUnit itself; the --filter form still ran them and only hid the results
 - [`.github/workflows/changelog.yml`](../../../.github/workflows/changelog.yml)
   - built-in token instead of bot PAT
   - our changes. Monolith.yml fills itself from upstream merges.
@@ -53,6 +54,7 @@ entry ids from 100000).
   - Wolfgate ship grids
   - Wolfgate vessels and entity prices, which sit in module folders
   - run when this workflow changes
+  - main CI skips these tests, so shipyard code and test changes run them here
 - [`.github/workflows/prtitlecase.yml`](../../../.github/workflows/prtitlecase.yml)
   - built-in token instead of bot PAT
   - needed since the built-in token replaces the bot PAT

@@ -5,6 +5,8 @@
   - BaseStationJobsSpawning
   - BaseStationRecords
   categories: [ HideSpawnMenu ]
+  # Round-scoped private stations are rebuilt each round and never saved with a map.
+  save: false
   components:
   - type: WFShipScenarioStation
   - type: StationJobs
