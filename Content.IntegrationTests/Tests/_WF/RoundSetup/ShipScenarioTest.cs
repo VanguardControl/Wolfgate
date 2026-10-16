@@ -121,6 +121,32 @@ public sealed partial class ShipScenarioTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>VG, USSP and the Underground offer every paid ship of their own shipyard, and nothing from another.</summary>
+    [TestCase(WFCrewFaction.VG, ShipyardConsoleUiKey.Viper, "Leviathan")]
+    [TestCase(WFCrewFaction.USSP, ShipyardConsoleUiKey.Ussp, "Buran")]
+    [TestCase(WFCrewFaction.Underground, ShipyardConsoleUiKey.Syndicate, "Mudskipper")]
+    public async Task FactionShipyardCatalog(WFCrewFaction faction, ShipyardConsoleUiKey group, string flagship)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
+        await pair.Server.WaitAssertion(() =>
+        {
+            var system = pair.Server.System<WFShipScenarioSystem>();
+            var prototypes = pair.Server.ResolveDependency<IPrototypeManager>();
+            var catalog = system.GetVessels(faction).Select(entry => entry.Id).ToList();
+            var expected = prototypes.EnumeratePrototypes<VesselPrototype>()
+                .Where(vessel => vessel.Group == group && vessel.Price > 0).Select(vessel => vessel.ID);
+            Assert.Multiple(() =>
+            {
+                Assert.That(catalog, Is.EquivalentTo(expected));
+                Assert.That(catalog, Does.Contain(flagship));
+                Assert.That(system.IsVesselAvailable(flagship, faction), Is.True);
+                Assert.That(system.IsVesselAvailable("Calypso", faction), Is.False, "a TSF ship in another faction's catalog.");
+                Assert.That(system.IsVesselAvailable(flagship, WFCrewFaction.TSF), Is.False);
+            });
+        });
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Preparation and refused purchases cannot spend funds, including frozen Ironman accounts.</summary>
     [Test]
     public async Task FundsTraitsAndActiveVesselLimitsRejectWithoutCharging()

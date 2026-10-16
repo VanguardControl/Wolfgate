@@ -94,7 +94,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
     /// <summary>Requires a paid design in the civilian or selected faction catalog, including forged requests.</summary>
     public bool IsVesselAvailable(string? id, WFCrewFaction faction = WFCrewFaction.None, string? job = null) => id != null && Enum.IsDefined(faction) &&
         _prototypes.TryIndex<VesselPrototype>(id, out var vessel) &&
-        (faction == WFCrewFaction.None ? IsEligible(vessel, job) : IsFactionVessel(vessel, faction));
+        (faction == WFCrewFaction.None ? IsEligible(vessel, job) : IsFactionVessel(vessel, faction, FactionVessels(faction)));
 
     /// <summary>Returns only the recipient’s selected character’s spendable balance.</summary>
     public int? GetBalance(ICommonSession host) =>
