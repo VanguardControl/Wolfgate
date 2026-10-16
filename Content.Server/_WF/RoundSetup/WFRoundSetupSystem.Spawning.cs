@@ -163,6 +163,7 @@ public sealed partial class WFRoundSetupSystem
         if (lobby?.Scenario != WFRoundScenario.Normal || !_ticker.UserHasJoinedGame(session))
             return;
         lobby.Members[session.UserId].Spawned = true;
+        CaptureCrewCard(lobby.Members[session.UserId], session);
         lobby.Members[session.UserId].Ready = false;
         lobby.Started = true;
         Broadcast();

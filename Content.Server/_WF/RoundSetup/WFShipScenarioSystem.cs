@@ -204,6 +204,8 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
             _hands.TryPickupAnyHand(body, card);
         }
         var vessel = _prototypes.Index<VesselPrototype>(scenario.Vessel);
+        // Crew purchases bypass the normal loader that initializes the sale service.
+        _shipyard.SetupShipyardIfNeeded();
         if (!_shipyard.TryAssignDeed(scenario.Hull, card, host, vessel, string.IsNullOrWhiteSpace(shipName) ? null : shipName, existingStation: scenario.Station))
             return false;
         scenario.Used = true;

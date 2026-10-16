@@ -1,5 +1,5 @@
 wf-round-setup-scenario-faction = Faction crew
-wf-round-setup-faction-description = Deploy together aboard a TSF or PDV ship. Choose a faction job you qualify for, a T1 vessel, and openings at or below your own command rank. Normal faction job limits, equipment and population balancing still apply.
+wf-round-setup-faction-description = Deploy together aboard a TSF or PDV ship. Choose a faction job you qualify for, a T0 or T1 vessel, and openings at or below your own command rank. Normal faction job limits, equipment and population balancing still apply.
 wf-round-setup-faction-tsf = TSF Marine Corps
 wf-round-setup-faction-pdv = Phaethon Dynasty Vanguard
 wf-round-setup-faction-start = Faction crew — { $faction }

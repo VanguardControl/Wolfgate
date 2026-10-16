@@ -49,6 +49,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
         public int? PurchaseRevision;
         public bool Ready;
         public bool Spawned;
+        public EntityUid? Body;
         public WFShipAccessKey? AccessKey;
     }
 
@@ -85,6 +86,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRestart);
         SubscribeLocalEvent<PlayerJoinedLobbyEvent>(OnReturnedToLobby);
         InitializeShipAccess();
+        InitializeCrewSignals();
         InitializeSpawning();
         InitializeDemo();
     }
@@ -93,6 +95,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        UpdateCrewSignals();
         var now = _timing.CurTime;
         if (now >= _nextUpdate)
         {
@@ -113,6 +116,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     private void OnRestart(RoundRestartCleanupEvent args)
     {
         _lobbies.Clear();
+        SyncCrewSignals();
         SyncCrewShips();
         _savedSetups.Clear();
         _savedReadFailures.Clear();
@@ -450,9 +454,11 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             case WFRoundSetupAction.RemoveRole:
                 return RemoveRole(lobby, msg.RoleId);
             case WFRoundSetupAction.RejectRequest when msg.Target is { } rejected:
-                return lobby.Requests.Remove(rejected);
+                return lobby.Requests.TryGetValue(rejected, out var rejectedRole) &&
+                    (msg.RoleId == null || msg.RoleId == rejectedRole) && lobby.Requests.Remove(rejected);
             case WFRoundSetupAction.AcceptRequest when msg.Target is { } accepted:
-                if (!lobby.Requests.TryGetValue(accepted, out var requestedRole) || lobby.Access != WFLobbyAccess.Requests ||
+                if (!lobby.Requests.TryGetValue(accepted, out var requestedRole) ||
+                    msg.RoleId != null && msg.RoleId != requestedRole || lobby.Access != WFLobbyAccess.Requests ||
                     Admission(lobby, true, false) != WFLobbyJoinDecision.Join ||
                     FindLobby(accepted) != null || !_players.TryGetSessionById(accepted, out var requester) || !CanEnter(requester))
                     return false;

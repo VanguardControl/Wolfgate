@@ -16,7 +16,7 @@ Ship crew lets the host select from CC’s ordinary, expedition, medical, scrap 
 
 New lobbies contain only the host, with an independent personal job choice and no advertised crew roles. New openings default to one slot. Ship hosts can advertise civilian and medical jobs independently of their own eligibility, including the existing Emergency Responder job (MdMedic). Medical, salvage and service rosters add editable openings without overwriting occupied roles. Hosts choose from the same job catalog on Prepare and can give themselves a custom title such as Captain; the title does not grant station command privileges. Job bans and qualifications still apply to each recruit. Hosts can edit vacancies and capacities after launch; existing spawned identities remain unchanged. Hosts can name crew roles, choose an underlying job and set 1 to 16 slots per role (up to 16 roles). Joining or accepting a request reserves a role; disconnected and spawned members retain their slots while they remain in the crew. Choosing Leave Crew or respawning releases membership and its reserved slot. Occupied roles cannot change jobs or be removed. Contractor/Vagrant is called Drifter in Crew Setup. Personal and advertised crew titles appear on the spawned ID, mind and station record while the underlying job still determines equipment and access. Public names always come from the selected character, never the account identifier. Crew details include a public roster of character names, advertised roles and readiness; private membership IDs, invitations, payment shares and balances are omitted from visitor snapshots.
 
-After launch, the crew leader can use Your ship to choose a ship assigned to any connected crew member's worn ID, including after a crash start. The leader confirms their own ship directly; another owner receives a direct request and must approve it in Crew Setup. Owners can decline and leaders can cancel; changed deeds or leadership invalidate pending requests. The server rechecks the deed, membership, faction and surviving deck at approval; faction crews keep their original faction, rank rules and station job quotas. Replacement ships are already owned, so the starting T1 purchase catalog does not limit later upgrades. Reassignment charges nothing and moves no players or ships. Automatic crew access leaves the old hull and applies to the new one, while deeds and manually granted permissions remain intact. Direct crew notices and ship PA announce the change; later joins and announcements use the replacement and its surviving fragments, and never fall back to an abandoned hull. Crew admission records use a separate private station so an existing ship's station and normal jobs are not rewritten. Saved setups retain their original starting design, not a round-specific ship entity.
+After launch, the crew leader can use Your ship to choose a ship assigned to any connected crew member's worn ID, including after a crash start. The leader confirms their own ship directly; another owner receives a direct request and must approve it in Crew Setup. Owners can decline and leaders can cancel; changed deeds or leadership invalidate pending requests. The server rechecks the deed, membership, faction and surviving deck at approval; faction crews keep their original faction, rank rules and station job quotas. Replacement ships are already owned, so the starting T0/T1 purchase catalog does not limit later upgrades. Reassignment charges nothing and moves no players or ships. Automatic crew access leaves the old hull and applies to the new one, while deeds and manually granted permissions remain intact. Direct crew notices and ship PA announce the change; later joins and announcements use the replacement and its surviving fragments, and never fall back to an abandoned hull. Crew admission records use a separate private station so an existing ship's station and normal jobs are not rewritten. Saved setups retain their original starting design, not a round-specific ship entity.
 
 Ship preparation follows Prepare, Your ship, Crew and Who can join, with a fixed Next action on the first three pages and Finish on the last. Prepare fits without a scrollbar; ship selection commits directly from its dropdown. Finish saves admission settings and confirms readiness or purchase and launch, while a ready member can reopen setup to revoke consent. Role selection shows the underlying job loadout and selected character before joining. Prepare opens the existing Wolfgate loadout picker even for jobs hidden in legacy preferences; choices save to that character and retain normal costs, restrictions and fallback equipment. Background snapshots wait until typing and open selectors finish before rebuilding controls. Disabled actions and locked job choices explain their requirements on hover. Job sprites scale to a readable 24-pixel size.
 
@@ -24,9 +24,11 @@ Hosts can save up to 20 named scenarios from Who can join. Create has a Load Sav
 
 Pregame lasts six minutes by default, including the Monolith server preset. For local playtests, the default-off `wf.round_setup.demo_enabled` setting seeds a public Crashlanded lobby when the real player named by `wf.round_setup.demo_host` connects. It has a ready host and three explicit Drifter openings. See `Tools/_WF/RoundSetup/README.md` for the headless host launcher. Normal servers never create demo lobbies.
 
-Faction Crew starts support the regular TSF and PDV command ladders and specialists. Hosts must qualify for an available faction job; that selected job caps advertised roles, and each recruit must independently qualify. Special deployments such as MARSOC, Tarkhan and admin command remain in their existing systems. Only T1 ships from the existing faction voucher prototypes are available, including downstream additions. Faction crews choose random space or their own faction base, identified by its existing command-job ledger even when that job is occupied. Base starts dock when possible and otherwise use clear space nearby. Faction ships use the same individually approved contributions and refund path as civilian ships. Spawning consumes the normal faction station job slot and creates its ordinary records, equipment, access, company and mind role; only spawn coordinates change. Existing faction population balancing remains active. Faction personal and advertised roles cannot be renamed; IDs, minds and records retain their official job titles. Older saved faction titles are cleared on load, and their former CC departure becomes faction base departure. A host can manage openings mid-round, but cannot promote a spawned character by editing a title or role.
+Faction Crew starts support the regular TSF and PDV command ladders and specialists. Hosts must qualify for an available faction job; that selected job caps advertised roles, and each recruit must independently qualify. Special deployments such as MARSOC, Tarkhan and admin command remain in their existing systems. Only T0 and T1 ships from the existing faction voucher prototypes are available, including downstream additions. Faction crews choose random space or their own faction base, identified by its existing command-job ledger even when that job is occupied. Base starts dock when possible and otherwise use clear space nearby. Faction ships use the same individually approved contributions and refund path as civilian ships. Spawning consumes the normal faction station job slot and creates its ordinary records, equipment, access, company and mind role; only spawn coordinates change. Existing faction population balancing remains active. Faction personal and advertised roles cannot be renamed; IDs, minds and records retain their official job titles. Older saved faction titles are cleared on load, and their former CC departure becomes faction base departure. A host can manage openings mid-round, but cannot promote a spawned character by editing a title or role.
 
 Hosts can set a ship name on Your ship before launch; Next or Enter saves it. Purchase applies it to the hull, deed and shuttle records. Saved scenarios retain the name and faction. Accepted joins send every connected crew member a direct character-name notification; launched ships also announce the arrival over functioning PA speakers. Failed requests and reconnects do not announce a new membership.
+
+Spawned crew members receive a private radio channel (`:k`) named after their crew, using the existing radio speech, languages and jamming pipeline. Membership is checked on every transmission and delivery; other crews and all-channel listeners cannot hear it. Leaving or respawning removes it without changing existing job radio channels. A compact leader compass tracks the current leader beyond view range, follows leadership changes, and reports a downed, missing or off-map leader. It clears on respawn and disconnect. Captains receive a non-modal bottom-right join-request card with Accept, Deny and Later; Later keeps the request in Who can join. Cards never take keyboard focus and stale role approvals are rejected. Crew purchases also initialize the normal shipyard sale service, so their owner can sell at a compatible dock without first buying another ship; occupancy and docking checks still apply.
 
 Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSystem`, `WFShipScenarioSystem`, and the client Crew Setup window.
 
@@ -38,6 +40,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 ### Server
 
 - [`Content.Server/_WF/RoundSetup/GameTicker.RoundSetup.cs`](GameTicker.RoundSetup.cs)
+- [`Content.Server/_WF/RoundSetup/RadioSystem.Crew.cs`](RadioSystem.Crew.cs)
 - [`Content.Server/_WF/RoundSetup/ShuttleConsoleSystem.RoundSetup.cs`](ShuttleConsoleSystem.RoundSetup.cs)
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioComponent.cs`](WFCrashScenarioComponent.cs)
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioMachinerySystem.cs`](WFCrashScenarioMachinerySystem.cs)
@@ -45,6 +48,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.cs`](WFCrashScenarioSystem.cs)
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.Equipment.cs`](WFCrashScenarioSystem.Equipment.cs)
 - [`Content.Server/_WF/RoundSetup/WFCrashScenarioSystem.Flight.cs`](WFCrashScenarioSystem.Flight.cs)
+- [`Content.Server/_WF/RoundSetup/WFPlayerCrewRadioComponent.cs`](WFPlayerCrewRadioComponent.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.cs`](WFRoundSetupSystem.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Demo.cs`](WFRoundSetupSystem.Demo.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Factions.cs`](WFRoundSetupSystem.Factions.cs)
@@ -54,6 +58,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Saved.cs`](WFRoundSetupSystem.Saved.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.ShipAccess.cs`](WFRoundSetupSystem.ShipAccess.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Ships.cs`](WFRoundSetupSystem.Ships.cs)
+- [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Signals.cs`](WFRoundSetupSystem.Signals.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Spawning.cs`](WFRoundSetupSystem.Spawning.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Titles.cs`](WFRoundSetupSystem.Titles.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioComponent.cs`](WFShipScenarioComponent.cs)
@@ -69,6 +74,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 
 - [`Content.Shared/_WF/RoundSetup/WFCrashCountdownClock.cs`](../../../Content.Shared/_WF/RoundSetup/WFCrashCountdownClock.cs)
 - [`Content.Shared/_WF/RoundSetup/WFCrashCountdownEvent.cs`](../../../Content.Shared/_WF/RoundSetup/WFCrashCountdownEvent.cs)
+- [`Content.Shared/_WF/RoundSetup/WFCrewSignalEvent.cs`](../../../Content.Shared/_WF/RoundSetup/WFCrewSignalEvent.cs)
 - [`Content.Shared/_WF/RoundSetup/WFFactionCrewPolicy.cs`](../../../Content.Shared/_WF/RoundSetup/WFFactionCrewPolicy.cs)
 - [`Content.Shared/_WF/RoundSetup/WFRoundSetupCVars.cs`](../../../Content.Shared/_WF/RoundSetup/WFRoundSetupCVars.cs)
 - [`Content.Shared/_WF/RoundSetup/WFRoundSetupMessages.cs`](../../../Content.Shared/_WF/RoundSetup/WFRoundSetupMessages.cs)
@@ -84,6 +90,8 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Client/_WF/RoundSetup/PickerWindow.RoundSetup.cs`](../../../Content.Client/_WF/RoundSetup/PickerWindow.RoundSetup.cs)
 - [`Content.Client/_WF/RoundSetup/WFCrashCountdownHud.cs`](../../../Content.Client/_WF/RoundSetup/WFCrashCountdownHud.cs)
 - [`Content.Client/_WF/RoundSetup/WFCrashCountdownHudSystem.cs`](../../../Content.Client/_WF/RoundSetup/WFCrashCountdownHudSystem.cs)
+- [`Content.Client/_WF/RoundSetup/WFCrewHudSystem.cs`](../../../Content.Client/_WF/RoundSetup/WFCrewHudSystem.cs)
+- [`Content.Client/_WF/RoundSetup/WFCrewLocatorHud.cs`](../../../Content.Client/_WF/RoundSetup/WFCrewLocatorHud.cs)
 - [`Content.Client/_WF/RoundSetup/WFLobbyLayout.cs`](../../../Content.Client/_WF/RoundSetup/WFLobbyLayout.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundJoinChoiceWindow.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundJoinChoiceWindow.cs)
 - [`Content.Client/_WF/RoundSetup/WFRoundSetupClientSystem.cs`](../../../Content.Client/_WF/RoundSetup/WFRoundSetupClientSystem.cs)
@@ -117,8 +125,11 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/RoundSetupUiTest.Refresh.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/RoundSetupUiTest.Refresh.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.Payments.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.Payments.cs)
+- [`Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.Sales.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.Sales.cs)
+- [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFCrewRadioTestSystem.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFCrewRadioTestSystem.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupEligibilityTestSystem.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupEligibilityTestSystem.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Burst.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Burst.cs)
+- [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Comms.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Comms.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Factions.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Factions.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Payments.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFRoundSetupLobbyTest.Payments.cs)
@@ -134,12 +145,14 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/RoundSetup/crash.yml`](../../../Resources/Prototypes/_WF/RoundSetup/crash.yml)
+- [`Resources/Prototypes/_WF/RoundSetup/radio.yml`](../../../Resources/Prototypes/_WF/RoundSetup/radio.yml)
 - [`Resources/Prototypes/_WF/RoundSetup/ship.yml`](../../../Resources/Prototypes/_WF/RoundSetup/ship.yml)
 
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/RoundSetup/countdown-hud.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/countdown-hud.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/crash.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/crash.ftl)
+- [`Resources/Locale/en-US/_WF/RoundSetup/crew-comms.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/crew-comms.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/faction-crew.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/faction-crew.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/flow.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/flow.ftl)
 - [`Resources/Locale/en-US/_WF/RoundSetup/home.ftl`](../../../Resources/Locale/en-US/_WF/RoundSetup/home.ftl)
@@ -188,6 +201,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
   - explicit Normal choices share the regular job allocation
   - authorize the assigned group member while preserving the saved profile
   - require authenticated scenario membership on every spawn path
+- [`Content.Server/Radio/EntitySystems/RadioSystem.cs`](../../Radio/EntitySystems/RadioSystem.cs): show the private crew channel name
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
   - failed scenario helms reject pilots until the crash is complete.
   - scenario crew admission is independent of helm power

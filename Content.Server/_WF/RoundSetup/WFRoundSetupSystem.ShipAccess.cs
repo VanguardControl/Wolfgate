@@ -27,6 +27,7 @@ public sealed partial class WFRoundSetupSystem
     /// <summary>Retains the issued card through disconnects, without trusting cards picked up later.</summary>
     private void CaptureCrewCard(Member member, ICommonSession session)
     {
+        member.Body = session.AttachedEntity;
         if (session.AttachedEntity is { } body && _shipCredentials.TryGetWornCard(body, out var card) &&
             _shipCredentials.TryGetKey(card, out var key))
             member.AccessKey = key;
