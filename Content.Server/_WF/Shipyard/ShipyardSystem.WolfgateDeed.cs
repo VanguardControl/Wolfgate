@@ -33,9 +33,10 @@ public sealed partial class ShipyardSystem
     /// vessel tags and crew requirement. Skipped on purpose: payment, vouchers, purchase-attempt checks,
     /// ID access levels and job title, and the shipyard console messages.
     /// </summary>
+    /// <param name="existingStation">A caller-owned station that already contains the owner record.</param>
     /// <param name="vessel">Design the ship was built from, if it is still known.</param>
     /// <param name="shipName">Name to keep, for a ship that already had one. Null takes the design's.</param>
-    public bool TryAssignDeed(EntityUid shuttleUid, EntityUid idCard, ICommonSession owner, VesselPrototype? vessel, string? shipName = null)
+    public bool TryAssignDeed(EntityUid shuttleUid, EntityUid idCard, ICommonSession owner, VesselPrototype? vessel, string? shipName = null, EntityUid? existingStation = null)
     {
         if (!HasComp<ShuttleComponent>(shuttleUid) || !TryComp<IdCardComponent>(idCard, out var card))
             return false;
@@ -52,10 +53,13 @@ public sealed partial class ShipyardSystem
         }
 
         // Ships with a matching game map get a station so players can late-join onto them, unless the ship has one.
-        EntityUid? shuttleStation = _station.GetOwningStation(shuttleUid);
-        if (shuttleStation != null)
-            name = Name(shuttleStation.Value);
-        else if (vessel != null
+        EntityUid? shuttleStation = existingStation;
+        if (shuttleStation == null && _station.GetOwningStation(shuttleUid) is { } owning)
+        {
+            shuttleStation = owning;
+            name = Name(owning);
+        }
+        else if (shuttleStation == null && vessel != null
             && _prototypeManager.TryIndex<GameMapPrototype>(vessel.ID, out var stationProto)
             && stationProto.Stations.TryGetValue(vessel.ID, out var stationConfig))
         {
@@ -92,7 +96,7 @@ public sealed partial class ShipyardSystem
 
         _shipOwnership.RegisterShipOwnership(shuttleUid, owner);
 
-        if (shuttleStation != null)
+        if (shuttleStation != null && existingStation == null)
             MoveOwnerRecord(shuttleStation.Value, idCard, ownerEntity, owner);
 
         AddShipAccessToEntities(shuttleUid);

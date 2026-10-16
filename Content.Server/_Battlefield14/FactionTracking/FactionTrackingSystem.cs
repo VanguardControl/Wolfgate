@@ -163,6 +163,11 @@ public sealed class FactionTrackingSystem : EntitySystem
 
     private string? GetPreferredDepartment(ICommonSession session)
     {
+        // WOLFGATE(RoundSetup) START: count faction crews by their validated setup job without changing saved preferences
+        if (EntityManager.System<Content.Server._WF.RoundSetup.WFRoundSetupSystem>().TryGetSelectedFactionJob(session.UserId, out var crewJob) &&
+            _jobs.TryGetDepartment(crewJob, out var crewDepartment))
+            return crewDepartment.ID;
+        // WOLFGATE END
         var profile = (HumanoidCharacterProfile)_prefsManager.GetPreferences(session.UserId).SelectedCharacter;
         var jobPriorities = profile.JobPriorities;
 

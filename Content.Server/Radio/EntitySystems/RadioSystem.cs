@@ -291,7 +291,7 @@ public sealed partial class RadioSystem : EntitySystem
             ("fontType", language.SpeechOverride.FontId ?? speech.FontId),
             ("fontSize", language.SpeechOverride.FontSize ?? speech.FontSize),
             ("verb", Loc.GetString(_random.Pick(speech.SpeechVerbStrings))),
-            ("channel", $"\\[{channel.LocalizedName}\\]"),
+            ("channel", $"\\[{WFCrewChannelName(source, channel)}\\]"), // WOLFGATE(RoundSetup): show the private crew channel name
             ("name", name),
             ("message", message),
             ("language", languageDisplay));

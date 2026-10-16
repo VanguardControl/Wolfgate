@@ -289,7 +289,6 @@ public abstract partial class SharedGunSystem : EntitySystem
             mech.CurrentSelectedEquipment.HasValue &&
             TryComp<GunComponent>(mech.CurrentSelectedEquipment.Value, out var mechGun))
         {
-            // WOLFGATE: the gun is the mech's equipment, upstream passes the mech itself
             gun = _altGun.CheckForAltGun((mech.CurrentSelectedEquipment.Value, mechGun)); // FH
             return true;
         }

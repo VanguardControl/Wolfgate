@@ -1751,3 +1751,43 @@ Entries:
   id: 100142
   time: '2026-10-15T19:20:32.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/252
+- author: TheSlapper
+  changes:
+    - type: Add
+      message: Option to mute background music when listening to midi/jukebox songs.
+  id: 100143
+  time: '2026-10-15T20:56:57.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/253
+- author: DriftingSkies
+  changes:
+    - type: Tweak
+      message: Rename Spesos to Thalers.
+  id: 100144
+  time: '2026-10-15T21:33:31.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/251
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added configurable Ship and Crashlanded crew starts with crew names,
+        roles, invitations and host-managed access.
+    - type: Add
+      message: >-
+        Ship crews can start in random space or docked at CC, and hosts can
+        change the crew type before launch.
+    - type: Add
+      message: >-
+        Crashlanded survivors receive emergency EVA equipment and
+        species-appropriate survival supplies.
+    - type: Tweak
+      message: >-
+        Redesigned lobby preparation with a compact character card,
+        state-colored readiness, on-demand crew browsing and simultaneous chat
+        and briefing panes.
+    - type: Tweak
+      message: >-
+        Clearer lobby backgrounds, equal-height join buttons and focused crew
+        navigation with a compact ship preview.
+  id: 100145
+  time: '2026-10-16T02:56:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/248

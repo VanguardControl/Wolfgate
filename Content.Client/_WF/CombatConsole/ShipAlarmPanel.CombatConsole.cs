@@ -66,8 +66,11 @@ public sealed partial class ShipAlarmPanel
         var announce = Row(AnnounceEdit, AnnounceButton);
         var sound = Row(SoundEdit, SoundButton, SoundStopButton);
         announce.SeparationOverride = sound.SeparationOverride = 4;
+        // SOS and the collision alert share a row so the overlay panel below still fits at the console's minimum size.
+        var alerts = Row(DistressButton, CollisionAlertButton);
+        alerts.SeparationOverride = 4;
         WfRefitPlaylist();
-        var body = Column(readouts, CodeContainer, GeneralQuartersButton, DistressButton, CollisionAlertButton, announce, sound, PlaylistBox);
+        var body = Column(readouts, CodeContainer, GeneralQuartersButton, alerts, announce, sound, PlaylistBox);
         body.SeparationOverride = 6;
         DisposeAllChildren();
         Margin = new Thickness(0);

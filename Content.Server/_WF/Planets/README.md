@@ -6,6 +6,9 @@ shuttle console's orbit button (an unsanctioned world asks first), descend throu
 thrusters, lift off again, and land hard, skid, break up or crash when lift is lost. Hulls that stop keeping station
 fall out of orbit, and a world's gravity well pulls adrift hulls in from the sector.
 
+Rideable vehicles use the same z-level physics as loose objects, so a hoverbike and its buckled rider leaving a
+descending ship move onto the planet layers before the temporary flight map is deleted.
+
 Worlds have day and night, phased weather with thunder, fauna, ambience, terrain on the orbit radar and an approach
 cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down. Lower layers of a planet are drawn smaller
 (`WFPlanetView`, the perspective Monolith turned off for other z-levels). Over a world's layers the shuttle console's
@@ -228,6 +231,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashAudioTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashAudioTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashBreakupFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashBreakupFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashThrustTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashThrustTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/CrashVehicleFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashVehicleFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/FlightAudioLoadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/FlightAudioLoadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/FlightSafetyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/FlightSafetyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/FlightTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/FlightTest.cs)
@@ -520,6 +524,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Resources/Prototypes/_Mono/Entities/Mobs/Chimera/biomass.yml`](../../../Resources/Prototypes/_Mono/Entities/Mobs/Chimera/biomass.yml): prevent action-spawned biomass from colonizing planets, too.
 - [`Resources/Prototypes/_NF/Loadouts/contractor_loadout_groups.yml`](../../../Resources/Prototypes/_NF/Loadouts/contractor_loadout_groups.yml): planetary clock and weather HUD.
 - [`Resources/Prototypes/Entities/Mobs/Species/moth.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/moth.yml): z-level flight is back on, which Monolith#4812 turned off
+- [`Resources/Prototypes/Entities/Objects/Vehicles/buckleable.yml`](../../../Resources/Prototypes/Entities/Objects/Vehicles/buckleable.yml): vehicles and their riders leave temporary flight maps through normal z-level physics.
 - [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): landing thruster kits and parachutes.
 
 <!-- WOLFGATE-GENERATED END -->

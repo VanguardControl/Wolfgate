@@ -25,6 +25,7 @@
                 <ui:OptionSlider Name="SyntheticHudScaleSlider" Title="{Loc 'ui-options-wf-synthetic-hud-scale'}" />
                 <Label Text="{Loc 'ui-options-wf-audio'}" StyleClasses="LabelKeyText"/>
                 <ui:OptionSlider Name="InternetSoundVolumeSlider" Title="{Loc 'ui-options-wf-internet-sound-volume'}" />
+                <CheckBox Name="SoundtrackMuteCheckBox" Text="{Loc 'ui-options-wf-soundtrack-mute'}" />
                 <Label Text="{Loc 'ui-options-general-accessibility'}" StyleClasses="LabelKeyText"/>
                 <CheckBox Name="DisableFiltersCheckBox" Text="{Loc 'ui-options-no-filters'}" />
             </BoxContainer>

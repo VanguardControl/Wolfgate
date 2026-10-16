@@ -1,0 +1,16 @@
+wf-round-setup-radio = Crew
+wf-round-setup-radio-channel = Crew · { $crew }
+wf-round-setup-locator-leader = Leader: { $name }
+wf-round-setup-locator-self = You lead this crew · Radio :k
+wf-round-setup-locator-distance = { $distance } m · Crew radio :k
+wf-round-setup-locator-down = Leader down · { $distance } m
+wf-round-setup-locator-elsewhere = Leader is in another map · Radio :k
+wf-round-setup-locator-unavailable = Leader signal unavailable · Radio :k
+wf-round-setup-locator-channel = { $crew } — use :k to talk on your crew’s private radio channel.
+wf-round-setup-request-popup-title = Crew join request
+wf-round-setup-request-popup-body = { $name } wants to join as { $role }.
+wf-round-setup-request-popup-accept = Accept
+wf-round-setup-request-popup-reject = Deny
+wf-round-setup-request-popup-later = Later
+wf-round-setup-request-popup-later-help = Dismiss this card. The request remains in Crew Setup → Who can join.
+wf-round-setup-request-popup-unavailable = Reopen recruitment and free a slot for this role in Crew Setup before accepting.

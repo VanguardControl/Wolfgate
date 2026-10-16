@@ -8,8 +8,9 @@ Entry point: `WolfgateConsentTab`, added to `OptionsMenu` at `OptionsMenu.Consen
 
 The Extra tab is `WolfgateExtraTab`, which takes the place of Delta-V's `DeltaTab` by a marked edit in `OptionsMenu`.
 It lists every Wolfgate client setting a player can change (UI skin, window pop-out, cockpit auto-enter, heat haze,
-shockwave, Wolfmed effects, admin radio volume) on the shared Apply row, plus the one Delta-V setting the old tab had.
-A new player-facing client cvar gets a control here; a setting Delta-V adds to `DeltaTab` has to be copied over.
+shockwave, Wolfmed effects, admin radio volume, soundtrack mute) on the shared Apply row, plus the one Delta-V setting
+the old tab had. A new player-facing client cvar gets a control here; a setting Delta-V adds to `DeltaTab` has to be
+copied over.
 
 The Controls tab also gets a "Set to SS13 default" button. It resets every keybind and then applies
 `Ss13KeybindPreset`, the SS13 hotkey layout for each action that has a counterpart here, and saves it.

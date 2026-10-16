@@ -24,8 +24,8 @@ shuttle-console-ship-playlist-clear-tooltip = Empties the queue and leaves this 
 shuttle-console-ship-playlist-row = {$position}. {$title}
 shuttle-console-ship-playlist-remove = X
 shuttle-console-ship-playlist-remove-tooltip = Take this out of the queue.
-shuttle-console-ship-collision-alert-on = Collision alert: on
-shuttle-console-ship-collision-alert-off = Collision alert: OFF
+shuttle-console-ship-collision-alert-on = Collision: on
+shuttle-console-ship-collision-alert-off = Collision: OFF
 
 shuttle-console-ship-distress-send = SEND SOS
 shuttle-console-ship-distress-cancel = CANCEL SOS
