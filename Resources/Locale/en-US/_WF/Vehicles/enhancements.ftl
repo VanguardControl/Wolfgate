@@ -1,5 +1,5 @@
 wf-vehicle-no-fuel = The fuel tank is empty.
-wf-vehicle-key-required = Hold this vehicle's matching key to turn the ignition on.
+wf-vehicle-key-required = Hold this vehicle's matching key in your active hand to insert it.
 wf-vehicle-refuel-stop = Switch off the engine before refueling.
 wf-vehicle-refueled = Added {$amount} units of fuel.
 wf-vehicle-hud-driver = DRIVER
@@ -27,3 +27,18 @@ wf-vehicle-gauge-battery = BATTERY
 wf-vehicle-unit-speed = km/h
 wf-vehicle-unit-rpm = RPM
 wf-vehicle-unit-percent = %
+wf-vehicle-key-on = ON
+wf-vehicle-key-off = OFF
+wf-vehicle-key-remove = Remove key
+wf-vehicle-key-insert = Click with the matching key in your active hand to insert it.
+wf-vehicle-key-turn-on = Turn the key clockwise to power the instruments and enable the starter.
+wf-vehicle-key-turn-off = Turn the key off to stop the engine and disconnect the electrics.
+wf-vehicle-fuel-low = FUEL LOW
+
+wf-vehicle-hud-horn = HORN
+wf-vehicle-hud-frame = HULL { $percent }%
+wf-vehicle-hud-empty-part = Empty mount
+wf-vehicle-tab-weapons = WEAPONS
+wf-vehicle-tab-parts = COMPONENTS
+wf-vehicle-tab-ammunition = AMMUNITION
+wf-vehicle-tab-radar = RADAR

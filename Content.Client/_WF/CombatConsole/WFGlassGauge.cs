@@ -46,6 +46,9 @@ public sealed class WFGlassGauge : Control
     /// <summary>Uses a horizontal scale with a marked midpoint for linear telemetry.</summary>
     public bool Strip { get; }
 
+    /// <summary>Unpowered instruments retain their dark housing without needles or illuminated readouts.</summary>
+    public bool Powered { get; set; } = true;
+
     /// <summary>Fits the caption, exact reading and linear scale into a 44-unit cockpit strip.</summary>
     public bool CompactStrip { get; set; }
 
@@ -105,6 +108,20 @@ public sealed class WFGlassGauge : Control
     protected override void Draw(DrawingHandleScreen handle)
     {
         base.Draw(handle);
+        if (!Powered)
+        {
+            _needle = null;
+            var skin = WFInstrumentTheme.Skin;
+            if (Strip)
+                handle.DrawRect(PixelSizeBox, skin.Ink.WithAlpha(0.65f));
+            else
+            {
+                var dark = WFGaugeScale.RoundDial(PixelWidth, PixelHeight, UIScale);
+                handle.DrawCircle(dark.Center, dark.Radius, skin.EdgeSoft);
+                handle.DrawCircle(dark.Center, dark.Radius - 3 * UIScale, skin.Ink);
+            }
+            return;
+        }
         var color = _reading.Tint ?? WFInstrumentTheme.Accent;
         if (_target == null)
             color = WFInstrumentTheme.Muted;

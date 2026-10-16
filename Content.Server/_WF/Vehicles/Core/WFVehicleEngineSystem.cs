@@ -1,3 +1,4 @@
+using Robust.Shared.Containers;
 using Content.Shared._WF.Vehicles.Base;
 using Content.Shared._WF.Vehicles.Core;
 using Content.Shared._WF.Vehicles.Grid.Components;
@@ -19,11 +20,15 @@ public sealed class WFVehicleEngineSystem : EntitySystem
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
     [Dependency] private ActionBlockerSystem _blocker = default!;
 
+    [Dependency] private SharedContainerSystem _containers = default!;
+
     private float _elapsed;
 
     public override void Initialize()
     {
         SubscribeNetworkEvent<WFVehicleControlRequest>(OnControl);
+        SubscribeLocalEvent<WFVehicleEngineComponent, ComponentInit>(OnInit);
+        SubscribeLocalEvent<WFVehicleEngineComponent, EntRemovedFromContainerMessage>(OnKeyRemoved);
         SubscribeLocalEvent<WFVehicleEngineComponent, InteractUsingEvent>(OnRefuel);
     }
 
@@ -45,41 +50,50 @@ public sealed class WFVehicleEngineSystem : EntitySystem
             return;
         }
 
-        if (ev.Accessories && engine.Electrics)
+        var slot = _containers.EnsureContainer<ContainerSlot>(uid, WFVehicleEngineComponent.IgnitionContainer);
+        if (ev.EjectKey)
         {
-            engine.Running = false;
-            engine.Electrics = false;
+            if (engine.Electrics || slot.ContainedEntity is not { } inserted)
+                return;
+            _hands.TryPickupAnyHand(user, inserted);
+            return;
+        }
+
+        if (ev.Accessories)
+        {
+            if (slot.ContainedEntity == null)
+            {
+                if (!_hands.TryGetActiveItem(user, out var held) ||
+                    !TryComp(held, out VehicleKeyComponent? key) ||
+                    !TryComp(uid, out VehicleLockComponent? vehicleLock) ||
+                    key.KeyId == null || key.KeyId != vehicleLock.KeyId)
+                {
+                    _popup.PopupEntity(Loc.GetString("wf-vehicle-key-required"), user, user);
+                    return;
+                }
+                if (_hands.TryDropIntoContainer(user, held.Value, slot))
+                {
+                    engine.IgnitionKey = held;
+                    Dirty(uid, engine);
+                }
+                return;
+            }
+            engine.Electrics = !engine.Electrics;
+            if (!engine.Electrics)
+                engine.Running = false;
             Dirty(uid, engine);
             return;
         }
 
+        if (!engine.Electrics || slot.ContainedEntity == null)
+            return;
         if (!engine.Running)
         {
-            if (!ev.Accessories && engine.Fuel <= 0f)
+            if (engine.Fuel <= 0f)
             {
                 _popup.PopupEntity(Loc.GetString("wf-vehicle-no-fuel"), user, user);
                 return;
             }
-
-            var matched = false;
-            if (TryComp(uid, out VehicleLockComponent? vehicleLock))
-            {
-                foreach (var held in _hands.EnumerateHeld(user))
-                {
-                    if (TryComp(held, out VehicleKeyComponent? key) && key.KeyId != null && key.KeyId == vehicleLock.KeyId)
-                        matched = true;
-                }
-            }
-
-            if (!matched)
-            {
-                _popup.PopupEntity(Loc.GetString("wf-vehicle-key-required"), user, user);
-                return;
-            }
-        }
-
-        if (!engine.Running && !ev.Accessories)
-        {
             if (engine.BatteryCharge < engine.StarterEnergy)
             {
                 _popup.PopupEntity(Loc.GetString("wf-vehicle-battery-flat"), user, user);
@@ -87,10 +101,23 @@ public sealed class WFVehicleEngineSystem : EntitySystem
             }
             engine.BatteryCharge -= engine.StarterEnergy;
         }
-        engine.Electrics = true;
-        if (!ev.Accessories)
-            engine.Running = !engine.Running;
+        engine.Running = !engine.Running;
         Dirty(uid, engine);
+    }
+
+    private void OnInit(Entity<WFVehicleEngineComponent> ent, ref ComponentInit args)
+    {
+        _containers.EnsureContainer<ContainerSlot>(ent, WFVehicleEngineComponent.IgnitionContainer);
+    }
+
+    private void OnKeyRemoved(Entity<WFVehicleEngineComponent> ent, ref EntRemovedFromContainerMessage args)
+    {
+        if (args.Container.ID != WFVehicleEngineComponent.IgnitionContainer)
+            return;
+        ent.Comp.IgnitionKey = null;
+        ent.Comp.Electrics = false;
+        ent.Comp.Running = false;
+        Dirty(ent);
     }
 
     private void OnRefuel(Entity<WFVehicleEngineComponent> ent, ref InteractUsingEvent args)

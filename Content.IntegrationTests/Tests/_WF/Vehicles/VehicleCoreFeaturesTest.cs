@@ -9,6 +9,8 @@ using Content.Shared._WF.Vehicles.Grid.Components;
 using Content.Shared._WF.Vehicles.Hardpoint;
 using Content.Shared.Actions;
 using Content.Shared.Input;
+using Content.Shared.Hands.EntitySystems;
+using Robust.Shared.Containers;
 using Content.Shared.Movement.Components;
 using Content.Shared.Movement.Systems;
 using Robust.Shared.GameObjects;
@@ -23,6 +25,47 @@ namespace Content.IntegrationTests.Tests._WF.Vehicles;
 /// <summary>Horn, spotlight, overcharge and the hardpoint window, driven through the client the way a player would.</summary>
 public sealed class VehicleCoreFeaturesTest : InteractionTest
 {
+    #pragma warning disable RA0002 // Set deliberately mismatched test keys before exercising authenticated UI requests.
+    [Test]
+    public async Task IgnitionStoresKeyAndRequiresTurnBeforeStarting()
+    {
+        var vehicle = await SpawnAndSeat(Vehicle);
+        var key = EntityUid.Invalid;
+        await Server.WaitPost(() =>
+        {
+            SEntMan.AddComponent<WFVehicleEngineComponent>(vehicle);
+            SEntMan.EnsureComponent<VehicleLockComponent>(vehicle).KeyId = "ignition-test";
+            key = SEntMan.SpawnAtPosition("RMCVehicleKey", SEntMan.GetComponent<TransformComponent>(SPlayer).Coordinates);
+            SEntMan.GetComponent<VehicleKeyComponent>(key).KeyId = "wrong-key";
+            Assert.That(SEntMan.System<SharedHandsSystem>().TryPickupAnyHand(SPlayer, key), Is.True);
+        });
+        var request = SEntMan.GetNetEntity(vehicle);
+        await SendRaw(new WFVehicleControlRequest(request, false, accessories: true));
+        Assert.That(SEntMan.GetComponent<WFVehicleEngineComponent>(vehicle).IgnitionKey, Is.Null);
+        await Server.WaitPost(() => SEntMan.GetComponent<VehicleKeyComponent>(key).KeyId = "ignition-test");
+        await SendRaw(new WFVehicleControlRequest(request, false, accessories: true));
+        var engine = SEntMan.GetComponent<WFVehicleEngineComponent>(vehicle);
+        Assert.That(engine.IgnitionKey, Is.EqualTo(key));
+        Assert.That(engine.Electrics, Is.False, "Insertion must not turn the ignition.");
+        Assert.That(SEntMan.System<SharedContainerSystem>().IsEntityInContainer(key), Is.True);
+        await SendRaw(new WFVehicleControlRequest(request, false));
+        Assert.That(engine.Running, Is.False, "The starter must be disabled until the key turns.");
+        await SendRaw(new WFVehicleControlRequest(request, false, accessories: true));
+        Assert.That(engine.Electrics, Is.True);
+        await SendRaw(new WFVehicleControlRequest(request, false));
+        Assert.That(engine.Running, Is.True);
+        await SendRaw(new WFVehicleControlRequest(request, false, ejectKey: true));
+        Assert.That(engine.IgnitionKey, Is.EqualTo(key), "A live ignition must retain its key.");
+        await SendRaw(new WFVehicleControlRequest(request, false, accessories: true));
+        Assert.That(engine.Running, Is.False);
+        Assert.That(engine.Electrics, Is.False);
+        await SendRaw(new WFVehicleControlRequest(request, false, ejectKey: true));
+        Assert.That(engine.IgnitionKey, Is.Null);
+        Assert.That(SEntMan.System<SharedHandsSystem>().IsHolding(SPlayer, key), Is.True);
+    }
+
+    #pragma warning restore RA0002
+
     private const string Vehicle = "WFCoreTestVehicle";
     private const string Hardpointed = "WFCoreTestVehicleHardpointed";
     private const string Lit = "WFCoreTestVehicleLit";

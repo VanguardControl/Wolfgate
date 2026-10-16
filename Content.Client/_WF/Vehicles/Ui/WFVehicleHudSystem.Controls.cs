@@ -1,0 +1,162 @@
+using System.Linq;
+using System.Numerics;
+using Content.Client.Actions;
+using Content.Client._WF.CombatConsole;
+using Content.Client.UserInterface.Controls;
+using Content.Shared.Actions;
+using Content.Shared._WF.Vehicles.Base;
+using Content.Shared._WF.Vehicles.Core;
+using Content.Shared._WF.Vehicles.Hardpoint;
+using Content.Shared._WF.Vehicles.Weapons;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
+using Robust.Client.UserInterface.CustomControls;
+
+namespace Content.Client._WF.Vehicles.Ui;
+
+public sealed partial class WFVehicleHudSystem
+{
+    [Dependency] private ActionsSystem _actions = default!;
+
+    private static readonly HashSet<string> VehicleActions = new()
+    {
+        "WFActionVehicleOvercharge", "ActionVehicleToggleView", "ActionVehicleLock", "WFActionVehicleScanner",
+        "WFActionVehicleSteeringMode", "CMUActionVehicleEmergencyLights", "CMUActionCargoVehicleReturn",
+        "CMUActionCargoVehicleToggleBay", "CMUActionCargoVehicleSelfDestruct",
+    };
+    private readonly Dictionary<EntityUid, Button> _vehicleButtons = new();
+    private GridContainer _controls = default!;
+    private BoxContainer _parts = default!;
+    private BoxContainer _detailTabs = default!;
+    private BoxContainer _detailHost = default!;
+    private Label _frameHealth = default!;
+    private float _statusElapsed;
+
+    private void InitializeVehicleControls(BoxContainer body)
+    {
+        _controls = new GridContainer { Columns = 4, HorizontalExpand = true };
+        _frameHealth = new Label();
+        _parts = WFInstrumentTheme.Column();
+        _detailTabs = WFInstrumentTheme.Row();
+        _detailHost = WFInstrumentTheme.Column();
+        var scroll = new ScrollContainer { MaxHeight = 100, HorizontalExpand = true, HScrollEnabled = false };
+        scroll.AddChild(_parts);
+        body.AddChild(_controls);
+        body.AddChild(_frameHealth);
+        body.AddChild(scroll);
+        body.AddChild(_detailTabs);
+        body.AddChild(_detailHost);
+        var horn = WFInstrumentTheme.Button("wf-vehicle-hud-horn");
+        horn.OnPressed += _ =>
+        {
+            if (_vehicle is { } uid)
+                RaiseNetworkEvent(new VehicleHornRequestEvent(GetNetEntity(uid)));
+        };
+        _controls.AddChild(horn);
+    }
+
+    /// <summary>Hosts the existing authorized equipment UI without opening a second floating window.</summary>
+    public bool TryEmbedMenu(FancyWindow menu, string title)
+    {
+        if (_player.LocalEntity is not { } user ||
+            !(HasComp<RMCVehicleOperatorComponent>(user) || HasComp<VehicleWeaponsOperatorComponent>(user) ||
+              HasComp<VehicleLockActionComponent>(user) || HasComp<RMCVehicleComponent>(user)))
+            return false;
+        var content = menu.ContentsContainer;
+        content.Orphan();
+        menu.DisposeAllChildren();
+        menu.AddChild(content);
+        menu.MinSize = Vector2.Zero;
+        menu.SetSize = new Vector2(float.NaN, float.NaN);
+        menu.MaxHeight = 240;
+        menu.SetHeight = menu is VehicleWeaponsMenu ? 150 : 240;
+        menu.HorizontalExpand = true;
+        menu.Resizable = false;
+        FlattenPanels(content);
+        foreach (var child in _detailHost.Children)
+            child.Visible = false;
+        _detailHost.AddChild(menu);
+        var tab = new Button { Text = title, HorizontalExpand = true };
+        WFInstrumentTheme.Switch(tab);
+        tab.OnPressed += _ =>
+        {
+            var show = !menu.Visible;
+            foreach (var child in _detailHost.Children)
+                child.Visible = child == menu && show;
+        };
+        _detailTabs.AddChild(tab);
+        menu.OnClose += () => { tab.Orphan(); tab.Dispose(); };
+        WFInstrumentTheme.Install(content);
+        return true;
+    }
+
+    private static void FlattenPanels(Control control)
+    {
+        if (control is PanelContainer panel)
+            panel.PanelOverride = WFInstrumentTheme.Face(Color.Transparent, Color.Transparent, 0);
+        foreach (var child in control.Children)
+            FlattenPanels(child);
+    }
+
+    private void RefreshVehicleControls(EntityUid vehicle, float frameTime)
+    {
+        var live = new HashSet<EntityUid>();
+        if (_player.LocalEntity is { } user && TryComp(user, out ActionsComponent? actions))
+        {
+            foreach (var action in actions.Actions)
+            {
+                if (!TryComp(action, out MetaDataComponent? meta) || meta.EntityPrototype is not { } proto ||
+                    !VehicleActions.Contains(proto.ID) || !_actions.TryGetActionData(action, out var data))
+                    continue;
+                live.Add(action);
+                if (!_vehicleButtons.TryGetValue(action, out var button))
+                {
+                    button = new Button { HorizontalExpand = true, MinWidth = 72 };
+                    WFInstrumentTheme.Switch(button);
+                    var selectedAction = action;
+                    button.OnPressed += _ =>
+                    {
+                        if (_actions.TryGetActionData(selectedAction, out var current))
+                            _actions.TriggerAction(selectedAction, current);
+                    };
+                    _vehicleButtons.Add(action, button);
+                    _controls.AddChild(button);
+                }
+                button.Text = Name(action);
+                button.ToolTip = meta.EntityDescription;
+                button.Pressed = data.Toggled;
+                button.Disabled = !data.Enabled || data.Cooldown is { } cooldown && cooldown.End > _timing.CurTime;
+            }
+        }
+        foreach (var (action, button) in _vehicleButtons.ToArray())
+        {
+            if (live.Contains(action))
+                continue;
+            button.Orphan();
+            button.Dispose();
+            _vehicleButtons.Remove(action);
+        }
+        _statusElapsed -= frameTime;
+        if (_statusElapsed > 0f)
+            return;
+        _statusElapsed = 0.25f;
+        _parts.DisposeAllChildren();
+        _frameHealth.Text = string.Empty;
+        if (!TryComp(vehicle, out HardpointSlotsComponent? slots))
+            return;
+        var state = slots.Ui;
+        if (state.HasFrameIntegrity)
+            _frameHealth.Text = Loc.GetString("wf-vehicle-hud-frame", ("percent",
+                MathF.Round(100 * state.FrameIntegrity / MathF.Max(1, state.FrameMaxIntegrity))));
+        foreach (var part in state.Hardpoints)
+        {
+            var label = new Label { Text = part.InstalledName ?? Loc.GetString("wf-vehicle-hud-empty-part"),
+                ClipText = true, SetWidth = 260, ToolTip = part.InstalledName };
+            var bar = new ProgressBar { MinValue = 0, MaxValue = 1, HorizontalExpand = true, SetHeight = 8,
+                Value = part.HasIntegrity ? Math.Clamp(part.Integrity / MathF.Max(1, part.MaxIntegrity), 0, 1) : 0 };
+            var row = WFInstrumentTheme.Row(label, bar);
+            WFInstrumentTheme.Apply(row);
+            _parts.AddChild(row);
+        }
+    }
+}

@@ -24,6 +24,26 @@ namespace Content.IntegrationTests.Tests._WF.Vehicles;
 [TestFixture]
 public sealed class VehicleClientTest
 {
+    [TestCase(20f, true, 0.0, false)]
+    [TestCase(19f, true, 0.0, true)]
+    [TestCase(5f, true, 0.75, true)]
+    [TestCase(4f, true, 0.25, true)]
+    [TestCase(4f, true, 0.75, false)]
+    [TestCase(4f, false, 0.25, false)]
+    public void FuelWarningRespectsPowerAndFlashingThreshold(float fuel, bool powered, double seconds, bool lit)
+    {
+        Assert.That(WFVehicleLamp.FuelWarningLit(fuel, powered, seconds), Is.EqualTo(lit));
+    }
+
+    [Test]
+    public void InstrumentSelfTestSweepsBeforeShowingTelemetry()
+    {
+        Assert.That(WFVehicleInstrumentStartup.Reading(40, 100, 0), Is.Zero);
+        Assert.That(WFVehicleInstrumentStartup.Reading(40, 100, 0.8f), Is.EqualTo(100).Within(0.001));
+        Assert.That(WFVehicleInstrumentStartup.Reading(40, 100, 1.6f), Is.Zero.Within(0.001));
+        Assert.That(WFVehicleInstrumentStartup.Reading(40, 100, 2.2f), Is.EqualTo(40).Within(0.001));
+    }
+
     [Test]
     public async Task EveryProductionHeadlightHasAForwardCone()
     {
@@ -31,6 +51,14 @@ public sealed class VehicleClientTest
         await pair.Client.WaitAssertion(() =>
         {
             var factory = pair.Client.EntMan.ComponentFactory;
+            foreach (var id in new[] { "WFActionVehicleOvercharge", "ActionVehicleToggleView", "ActionVehicleLock",
+                         "WFActionVehicleScanner", "WFActionVehicleSteeringMode", "CMUActionVehicleEmergencyLights",
+                         "CMUActionCargoVehicleReturn", "CMUActionCargoVehicleToggleBay", "CMUActionCargoVehicleSelfDestruct" })
+            {
+                var action = pair.Client.ProtoMan.Index<EntityPrototype>(id);
+                Assert.That(action.TryGetComponent<Content.Shared.Actions.InstantActionComponent>(out var data, factory), Is.True, id);
+                Assert.That(data!.AutoPopulate, Is.False, $"{id} belongs in the vehicle panel, not the hotbar.");
+            }
             var checkedVehicles = 0;
             foreach (var proto in pair.Client.ProtoMan.EnumeratePrototypes<EntityPrototype>())
             {
@@ -108,13 +136,33 @@ public sealed class VehicleClientTest
         {
             client.System<WFVehicleHudSystem>().FrameUpdate(0f);
             var ui = client.ResolveDependency<IUserInterfaceManager>();
-            var panel = ui.PopupRoot.Children.SingleOrDefault(control => control.Name == "WFVehicleHud");
+            var panel = ui.WindowRoot.Children.SingleOrDefault(control => control.Name == "WFVehicleHud");
             Assert.That(panel, Is.Not.Null, "The instruments must be above the gameplay viewport, not under it in StateRoot.");
             Assert.That(panel!.Visible, Is.True, "The driver's replicated operator state must reveal the HUD.");
             var controls = Descendants(panel).ToArray();
-            Assert.That(controls.OfType<Button>().Any(button => button.Visible && button.Text == "Start engine"), Is.True);
+            Assert.That(controls.OfType<WFVehicleLamp>().Any(button => button.Visible && button.Legend == "Start engine"), Is.True);
             Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => !gauge.Strip), Is.EqualTo(3));
             Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => gauge.Strip), Is.EqualTo(1));
+            Assert.That(controls.OfType<WFGlassGauge>().All(gauge => !gauge.Powered), Is.True,
+                "Ignition OFF must leave all instruments dark.");
+            var hud = client.System<WFVehicleHudSystem>();
+            using var weapons = new VehicleWeaponsMenu();
+            Assert.That(hud.TryEmbedMenu(weapons, "WEAPONS"), Is.True);
+            Assert.That(weapons.IsOpen, Is.True);
+            Assert.That(Descendants(panel).Contains(weapons), Is.True);
+            Assert.That(weapons.Children.Contains(weapons.ContentsContainer), Is.True,
+                "The embedded weapon selector must retain its contents without window chrome.");
+            weapons.Close();
+            using var radar = new Content.Client.Shuttles.UI.RadarConsoleWindow();
+            Assert.That(hud.TryEmbedMenu(radar, "RADAR"), Is.True);
+            Assert.That(Descendants(panel).Contains(radar), Is.True);
+            radar.Close();
+            Assert.That(Descendants(panel).Contains(weapons), Is.False);
+            panel.Measure(new System.Numerics.Vector2(760, 240));
+            panel.Arrange(Robust.Shared.Maths.UIBox2.FromDimensions(System.Numerics.Vector2.Zero,
+                new System.Numerics.Vector2(760, 200)));
+            Assert.That(controls.OfType<WFVehicleIgnitionSlot>().Single().Width, Is.GreaterThanOrEqualTo(110));
+            Assert.That(controls.OfType<WFVehicleLamp>().All(lamp => lamp.Width >= 94), Is.True);
         });
         await server.WaitAssertion(() =>
             Assert.That(server.System<RMCVehicleSystem>().TryRemoveOperator(new Entity<RMCVehicleOperatorComponent?>(rig.Driver, null)), Is.True));
@@ -122,9 +170,8 @@ public sealed class VehicleClientTest
         await client.WaitAssertion(() =>
         {
             client.System<WFVehicleHudSystem>().FrameUpdate(0f);
-            var panel = client.ResolveDependency<IUserInterfaceManager>().PopupRoot.Children
-                .Single(control => control.Name == "WFVehicleHud");
-            Assert.That(panel.Visible, Is.False, "Leaving the seat must hide its controls.");
+            Assert.That(client.ResolveDependency<IUserInterfaceManager>().WindowRoot.Children
+                .Any(control => control.Name == "WFVehicleHud"), Is.False, "Leaving the seat must close its instrument window.");
         });
         await pair.CleanReturnAsync();
     }

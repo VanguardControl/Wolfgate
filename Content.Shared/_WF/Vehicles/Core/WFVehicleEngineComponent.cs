@@ -7,6 +7,12 @@ namespace Content.Shared._WF.Vehicles.Core;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class WFVehicleEngineComponent : Component
 {
+    public const string IgnitionContainer = "wf-vehicle-ignition";
+
+    /// <summary>The physical key held in the ignition slot.</summary>
+    [DataField, AutoNetworkedField]
+    public EntityUid? IgnitionKey;
+
     /// <summary>Whether the combustion engine is supplying propulsion and alternator power.</summary>
     [DataField, AutoNetworkedField]
     public bool Running;
@@ -66,11 +72,13 @@ public sealed class WFVehicleControlRequest : EntityEventArgs
     public NetEntity Vehicle;
     public bool Brake;
     public bool Accessories;
+    public bool EjectKey;
 
-    public WFVehicleControlRequest(NetEntity vehicle, bool brake, bool accessories = false)
+    public WFVehicleControlRequest(NetEntity vehicle, bool brake, bool accessories = false, bool ejectKey = false)
     {
         Vehicle = vehicle;
         Brake = brake;
         Accessories = accessories;
+        EjectKey = ejectKey;
     }
 }
