@@ -44,6 +44,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 using Direction = Robust.Shared.Maths.Direction;
 using Content.Client._Mono.Company;
+using LoadoutWindow = Content.Client._WF.Loadouts.WolfgateLoadoutWindow; // WOLFGATE(Loadouts): the editor opens the Wolfgate loadout window in place of the stock one
 
 namespace Content.Client.Lobby.UI
 {
@@ -192,7 +193,7 @@ namespace Content.Client.Lobby.UI
 
             ResetButton.OnPressed += args =>
             {
-                SetProfile((HumanoidCharacterProfile?) _preferencesManager.Preferences?.SelectedCharacter, _preferencesManager.Preferences?.SelectedCharacterIndex);
+                ResetToDefault(); // WOLFGATE(InRoundCreator): was SetProfile(SelectedCharacter, SelectedCharacterIndex)
             };
 
             SaveButton.OnPressed += args =>
@@ -613,7 +614,9 @@ namespace Content.Client.Lobby.UI
 
             RefreshFlavorText();
             InitializeHeadshot(); // WOLFGATE(Headshot)
+            InitializeCustomMarkings(); // WOLFGATE(CustomMarkings)
             InitializeMismatchedParts(); // WOLFGATE(Species)
+            InitializeLegStyle(); // WOLFGATE(LegStyle)
 
             #region Dummy
 
@@ -1176,7 +1179,7 @@ namespace Content.Client.Lobby.UI
                 selector.Select(Profile?.AntagPreferences.Contains(antag.ID) == true ? 0 : 1);
 
                 var requirements = _entManager.System<SharedRoleSystem>().GetAntagRequirement(antag);
-                if (!_requirements.CheckRoleRequirements(requirements, (HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter, out var reason))
+                if (!_requirements.CheckRoleRequirements(requirements, SavedProfile(), out var reason)) // WOLFGATE(InRoundCreator): was SelectedCharacter
                 {
                     selector.LockRequirements(reason);
                     Profile = Profile?.WithAntagPreference(antag.ID, false);
@@ -1219,14 +1222,14 @@ namespace Content.Client.Lobby.UI
             }
 
             // If we have no selected character to compare against, we're dirty
-            if (_preferencesManager.Preferences?.SelectedCharacter == null)
+            // WOLFGATE(InRoundCreator) START: compares against the edited slot, was Preferences.SelectedCharacter
+            var selectedCharacter = SavedProfile();
+            if (selectedCharacter == null)
             {
                 IsDirty = true;
                 return;
             }
-
-            // Get the selected character for comparison
-            var selectedCharacter = (HumanoidCharacterProfile)_preferencesManager.Preferences.SelectedCharacter;
+            // WOLFGATE END
 
             // Check explicitly if company changed
             if (selectedCharacter.Company != Profile.Company)
@@ -1278,10 +1281,24 @@ namespace Content.Client.Lobby.UI
         /// </summary>
         public void ResetToDefault()
         {
-            SetProfile(
-                (HumanoidCharacterProfile?) _preferencesManager.Preferences?.SelectedCharacter,
-                _preferencesManager.Preferences?.SelectedCharacterIndex);
+            // WOLFGATE(InRoundCreator): was SetProfile(SelectedCharacter, SelectedCharacterIndex)
+            SetProfile(SavedProfile(), CharacterSlot ?? _preferencesManager.Preferences?.SelectedCharacterIndex);
         }
+
+        // WOLFGATE(InRoundCreator) START: the saved copy of the slot being edited
+        /// <summary>
+        /// In the lobby this is the selected character. In a round another slot can be open without being selected.
+        /// </summary>
+        private HumanoidCharacterProfile? SavedProfile()
+        {
+            var prefs = _preferencesManager.Preferences;
+
+            if (prefs != null && CharacterSlot is { } slot && prefs.Characters.TryGetValue(slot, out var saved))
+                return saved as HumanoidCharacterProfile;
+
+            return prefs?.SelectedCharacter as HumanoidCharacterProfile;
+        }
+        // WOLFGATE END
 
         /// <summary>
         /// Sets the editor to the specified profile with the specified slot.
@@ -1298,7 +1315,9 @@ namespace Content.Client.Lobby.UI
             UpdateNameEdit();
             UpdateFlavorTextEdit();
             UpdateHeadshot(); // WOLFGATE(Headshot)
+            UpdateCustomMarkings(); // WOLFGATE(CustomMarkings)
             UpdateMismatchedParts(); // WOLFGATE(Species)
+            UpdateLegStyle(); // WOLFGATE(LegStyle)
             UpdateSexControls();
             UpdateGenderControls();
             UpdateSkinColor();
@@ -1570,7 +1589,7 @@ namespace Content.Client.Lobby.UI
                     icon.Texture = jobIcon.Icon.Frame0();
                     selector.Setup(items, job.LocalizedName, 200, job.LocalizedDescription, icon, job.Guides);
 
-                    if (!_requirements.IsAllowed(job, (HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter, out var reason))
+                    if (!_requirements.IsAllowed(job, SavedProfile(), out var reason)) // WOLFGATE(InRoundCreator): was SelectedCharacter
                     {
                         selector.LockRequirements(reason);
                     }
@@ -1910,6 +1929,7 @@ namespace Content.Client.Lobby.UI
             _anatomySaveConfirm = null;
             // WOLFGATE END
             CloseHeadshotWindow(); // WOLFGATE(Headshot)
+            CloseCustomMarkings(); // WOLFGATE(CustomMarkings)
 
             // Mono start
             foreach (var entity in _savedItemEntities)
@@ -1973,6 +1993,7 @@ namespace Content.Client.Lobby.UI
         private void SetSpecies(string newSpecies)
         {
             Profile = Profile?.WithSpecies(newSpecies);
+            UpdateLegStyle(); // WOLFGATE(LegStyle): legs the new species lacks fall back to its own
             // WOLFGATE(Humanoid) START: keep the species picker and dropdown in step, drop hair the new species lacks
             EnforceSpeciesHair();
             SpeciesPicker.SetSelected(newSpecies);
@@ -2524,6 +2545,7 @@ namespace Content.Client.Lobby.UI
             Markings.PreviewDirection = SpriteView.OverrideDirection.Value;
             GenitalEditor.PreviewDirection = SpriteView.OverrideDirection.Value;
             // WOLFGATE END
+            SetCustomMarkingsDirection(SpriteView.OverrideDirection.Value); // WOLFGATE(CustomMarkings): its tiles face that way too
         }
 
         private void RandomizeEverything()

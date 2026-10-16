@@ -121,6 +121,7 @@
   - type: CartridgeLoader
     uiKey: enum.PdaUiKey.Key
     preinstalled:
+    - BountyContractsCartridge # WOLFGATE(Encounters): warrants reach every PDA
     - CrewManifestCartridge
     - NotekeeperCartridge
     - NewsReaderCartridge
@@ -535,3 +536,18 @@
   - type: Pda
     id: MedMedicIDCard
 
+# UNDERGROUND
+
+- type: entity
+  parent: ContractorPDA
+  id: ContractorPDAFugitive
+  components:
+  - type: Pda
+    id: FugitiveIDCard
+
+- type: entity
+  parent: ContractorPDA
+  id: ContractorPDAGodfather
+  components:
+  - type: Pda
+    id: GodfatherIDCard

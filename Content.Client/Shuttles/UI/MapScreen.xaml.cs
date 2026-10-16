@@ -132,6 +132,7 @@ public sealed partial class MapScreen : BoxContainer
         _ftlTime = state.FTLTime;
         MapRadar.InFtl = true;
         MapFTLState.Text = Loc.GetString($"shuttle-console-ftl-state-{_state.ToString()}");
+        WfUpdateFtlDrive(state.FtlDrive); // WOLFGATE(Shuttles): the drive status decides whether the FTL button can be used
 
         //frontier - we only allow pre-approved vessels to FTL
         if (!_entManager.HasComponent<ShuttleFTLComponent>(_shuttleEntity))
@@ -191,6 +192,14 @@ public sealed partial class MapScreen : BoxContainer
 
     private void SetFTLAllowed(bool value)
     {
+        // WOLFGATE(Shuttles) START: without a powered drive the FTL button stays off and its preview is released
+        if (value && WfFtlDriveBlocked)
+        {
+            WfBlockFtl();
+            return;
+        }
+        // WOLFGATE END
+
         if (value)
         {
             MapFTLButton.Disabled = false;
@@ -430,6 +439,8 @@ public sealed partial class MapScreen : BoxContainer
 
                 _pendingMapObjects.Add((mapComp.MapId, beacon));
             }
+
+            WfAddEncounters(mapComp.MapId, mapUid); // WOLFGATE(Encounters): list encounters among the sector objects
 
             HyperspaceDestinations.AddChild(mapButton);
 

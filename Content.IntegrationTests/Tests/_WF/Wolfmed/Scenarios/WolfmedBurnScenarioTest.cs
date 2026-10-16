@@ -118,7 +118,8 @@ public sealed class WolfmedBurnScenarioTest : WolfmedGameTest
     /// <summary>
     /// The uncapped-fire measurement (plan §3.7, §14): a human in a 10-stack fire in station air, never patting
     /// it out. Records every hit's Total as the dispatcher hands it on (what the fire really did, stored or
-    /// not), what was stored, burn severity, fluid loss and blood over time. The burn rate is set against it.
+    /// not), what was stored, burn severity, fluid loss and blood over time. Since Monolith#4831 this fire lands
+    /// about 250 Heat and puts the patient down for a while; before it, 1615 and an arrest.
     /// </summary>
     [Test]
     public async Task FireMeasurementTest()
@@ -154,6 +155,7 @@ public sealed class WolfmedBurnScenarioTest : WolfmedGameTest
         var lines = new List<string>();
         var fireOut = -1;
         var arrest = -1;
+        var downed = false;
         try
         {
             for (var second = 0; second <= 300; second += 10)
@@ -165,6 +167,7 @@ public sealed class WolfmedBurnScenarioTest : WolfmedGameTest
                         fireOut = second;
                     if (s.Life.InArrest(a) && arrest < 0)
                         arrest = second;
+                    downed |= s.State(a) != WolfmedConsciousness.Up;
 
                     var alive = parts.Where(p => !SEntMan.Deleted(p.Id)).ToList();
                     storedHeat = alive.Sum(p => PartHeat(p.Id));
@@ -188,9 +191,9 @@ public sealed class WolfmedBurnScenarioTest : WolfmedGameTest
 
         Assert.Multiple(() =>
         {
-            Assert.That(totalHeat, Is.GreaterThan(1000f), "the fire landed far less Heat than measured (1615).");
+            Assert.That(totalHeat, Is.InRange(150f, 500f), "the fire landed far from the Heat measured (252).");
             Assert.That(fireOut, Is.GreaterThan(0), "the fire never went out.");
-            Assert.That(arrest, Is.GreaterThan(fireOut), "the untreated burns never arrested the patient.");
+            Assert.That(downed, Is.True, "the fire never put the patient down.");
         });
     }
 
@@ -215,9 +218,9 @@ public sealed class WolfmedBurnScenarioTest : WolfmedGameTest
         {
             s.SetAir(map.MapUid, true);
             s.KeepGrid(map.Grid);
-            a = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            a = SEntMan.SpawnEntity(WolfmedScenario.BurnPatient, map.GridCoords);
             // Far enough apart that neither body can set the other alight again.
-            b = SEntMan.SpawnEntity("MobHuman", new MapCoordinates(new Vector2(40f, 40f), map.MapId));
+            b = SEntMan.SpawnEntity(WolfmedScenario.BurnPatient, new MapCoordinates(new Vector2(40f, 40f), map.MapId));
         });
         await RunSeconds(2);
 
@@ -781,7 +784,7 @@ public sealed class WolfmedBurnScenarioTest : WolfmedGameTest
         {
             s.SetAir(map.MapUid, true);
             s.KeepGrid(map.Grid);
-            a = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            a = SEntMan.SpawnEntity(WolfmedScenario.BurnPatient, map.GridCoords);
         });
         await RunSeconds(1);
         await Server.WaitPost(() => SEntMan.System<FlammableSystem>().SetFireStacks(a, 10, ignite: true));
