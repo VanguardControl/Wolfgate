@@ -135,8 +135,13 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
                 _vehicle = user;
         }
 
-        if (_vehicle is not { } uid)
+        // Operator components can still name a vehicle or gun that was just deleted.
+        if (TerminatingOrDeleted(selected))
+            selected = null;
+
+        if (_vehicle is not { } uid || TerminatingOrDeleted(uid))
         {
+            _vehicle = null;
             _panel.Close();
             _powered = false;
             _lastVehicle = null;
