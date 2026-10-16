@@ -30,6 +30,7 @@ public sealed class MappingToolsSystem : EntitySystem
     [Dependency] private IPlacementManager _placement = default!;
     [Dependency] private IconSmoothSystem _smooth = default!;
     [Dependency] private MappingMapsSystem _maps = default!;
+    [Dependency] private MappingZLevelsSystem _zLevels = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SpriteSystem _sprite = default!;
@@ -56,7 +57,14 @@ public sealed class MappingToolsSystem : EntitySystem
         ContentKeyFunctions.WFMappingMirrorVertical,
         ContentKeyFunctions.WFMappingUndo,
         ContentKeyFunctions.WFMappingRedo,
+        ContentKeyFunctions.WFMappingLevelUp,
+        ContentKeyFunctions.WFMappingLevelDown,
     };
+
+    /// <summary>
+    /// How often the z-level list is read again while the window is open.
+    /// </summary>
+    private static readonly TimeSpan LevelRefreshInterval = TimeSpan.FromSeconds(0.25);
 
     private MappingSelectionTool _tool = default!;
     private MappingToolsWindow? _window;
@@ -65,6 +73,8 @@ public sealed class MappingToolsSystem : EntitySystem
     private bool _wallsHidden;
     private readonly HashSet<EntityUid> _hiddenWalls = new();
     private TimeSpan _nextWallSweep;
+    private TimeSpan _nextLevelRefresh;
+    private readonly List<int> _depths = new();
 
     /// <summary>
     /// What the last copy or cut put on the clipboard.
@@ -110,6 +120,8 @@ public sealed class MappingToolsSystem : EntitySystem
             .Bind(ContentKeyFunctions.WFMappingMirrorVertical, Handler(() => _tool.Mirror(true)))
             .Bind(ContentKeyFunctions.WFMappingUndo, Handler(() => Enabled && History(false)))
             .Bind(ContentKeyFunctions.WFMappingRedo, Handler(() => Enabled && History(true)))
+            .Bind(ContentKeyFunctions.WFMappingLevelUp, Handler(() => Enabled && MoveLevel(1)))
+            .Bind(ContentKeyFunctions.WFMappingLevelDown, Handler(() => Enabled && MoveLevel(-1)))
             .Register<MappingToolsSystem>();
     }
 
@@ -165,9 +177,16 @@ public sealed class MappingToolsSystem : EntitySystem
             _window.HideWallsButton.OnToggled += args => SetWallsHidden(args.Pressed);
             _window.MapsButton.OnPressed += _ => _maps.Open();
             _window.EyedropperButton.OnToggled += args => SetPicking(args.Pressed);
+            _window.LevelUpButton.OnPressed += _ => MoveLevel(1);
+            _window.LevelDownButton.OnPressed += _ => MoveLevel(-1);
+            _window.LevelPicked += offset => MoveLevel(offset);
+            _window.AddAboveButton.OnPressed += _ => _zLevels.Add(true);
+            _window.AddBelowButton.OnPressed += _ => _zLevels.Add(false);
+            _window.RemoveConfirmed += () => _zLevels.Remove();
             _window.OnClose += () => SetEnabled(false);
             _window.OpenCenteredLeft();
             SetSelecting(false);
+            RefreshLevels();
         }
         else
         {
@@ -298,6 +317,9 @@ public sealed class MappingToolsSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
 
+        if (_window != null && _timing.RealTime >= _nextLevelRefresh)
+            RefreshLevels();
+
         if (!_wallsHidden || _timing.RealTime < _nextWallSweep)
             return;
 
@@ -341,6 +363,23 @@ public sealed class MappingToolsSystem : EntitySystem
             _sprite.SetVisible((uid, sprite), false);
             _hiddenWalls.Add(uid);
         }
+    }
+
+    private void RefreshLevels()
+    {
+        _nextLevelRefresh = _timing.RealTime + LevelRefreshInterval;
+        _zLevels.GetStack(_depths, out var current);
+        _window?.SetLevels(_depths, current);
+    }
+
+    /// <summary>
+    /// Moves up or down the z-stack, dropping the selection, which belongs to the level being left.
+    /// </summary>
+    private bool MoveLevel(int offset)
+    {
+        _tool.Clear();
+        _zLevels.Move(offset);
+        return true;
     }
 
     private bool ToggleSelect()

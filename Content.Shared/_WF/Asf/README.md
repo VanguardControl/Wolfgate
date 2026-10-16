@@ -77,8 +77,8 @@ the outline is uneven and nothing is mirrored. From bow to stern:
 - Field modsuits (`Entities/modsuit.yml`), recolours of Goob's Minerva (RD) modsuit with a visor
   added (the Minerva's face is a plain plate). The Pathfinder
   (`WFAsfClothingModsuitField`, research `WFAsfFieldModsuit`, tier 1) is pearl over plum with a dark visor and has the
-  TSF M82c's armour (0.65 blunt and slash, 0.6 piercing, 0.95 speed) with better radiation cover; its chestplate takes
-  armour plates like any modsuit, and it covers harpy and IPC wings (`HarpyHideWings`) as hardsuits do. The Aegis (`WFAsfClothingModsuitAegis`, `WFAsfAegisModsuit`, tier 2) is dark violet
+  TSF M82c's armour (0.65 blunt and slash, 0.6 piercing, 0.95 speed) with better radiation cover; its chestplate takes no
+  armour plates (Monolith#4845 removed them from every modsuit), and it covers harpy and IPC wings (`HarpyHideWings`) as hardsuits do. The Aegis (`WFAsfClothingModsuitAegis`, `WFAsfAegisModsuit`, tier 2) is dark violet
   with glowing hardlight seams and a lit visor, keeps that armour and adds an M86 Mk.4-class personal shield (250
   charge, violet). The shield sits on the control unit (back slot), not the chestplate: a chestplate's item toggle also
   drives its seal, so toggling a shield there would drop the suit's pressure protection. `ShieldRequiresSeal`

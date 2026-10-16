@@ -1765,3 +1765,53 @@ Entries:
   id: 100144
   time: '2026-10-15T21:33:31.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/251
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added configurable Ship and Crashlanded crew starts with crew names,
+        roles, invitations and host-managed access.
+    - type: Add
+      message: >-
+        Ship crews can start in random space or docked at CC, and hosts can
+        change the crew type before launch.
+    - type: Add
+      message: >-
+        Crashlanded survivors receive emergency EVA equipment and
+        species-appropriate survival supplies.
+    - type: Tweak
+      message: >-
+        Redesigned lobby preparation with a compact character card,
+        state-colored readiness, on-demand crew browsing and simultaneous chat
+        and briefing panes.
+    - type: Tweak
+      message: >-
+        Clearer lobby backgrounds, equal-height join buttons and focused crew
+        navigation with a compact ship preview.
+  id: 100145
+  time: '2026-10-16T02:56:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/248
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Multi-Z map tooling
+  id: 100146
+  time: '2026-10-16T05:01:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/259
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: drydock can do partial repairs if it's short of a material type.
+    - type: Tweak
+      message: drydock no longer can break grids with indestructible walls
+    - type: Tweak
+      message: repair costs with materials using a drydock is more affordable now
+    - type: Tweak
+      message: Changed material calculations when disassembling stuff
+    - type: Tweak
+      message: >-
+        AME and zpinch now have a material cost that includes fissile uranium to
+        recover some when breaking them.
+  id: 100147
+  time: '2026-10-16T20:48:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/261

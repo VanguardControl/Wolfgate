@@ -16,14 +16,16 @@ public sealed partial class MappingMapsWindow : FancyWindow
     private string? _selected;
 
     /// <summary>
-    /// The save waiting for a second click because it would overwrite a file.
+    /// The save button waiting for a second click because it would overwrite a file.
     /// </summary>
-    private bool? _confirmWholeMap;
+    private Button? _confirming;
 
     public event Action? RefreshRequested;
     public event Action<string>? PreviewRequested;
     public event Action<string, bool>? LoadRequested;
     public event Action<string, bool>? SaveRequested;
+    public event Action<string>? OpenStackRequested;
+    public event Action<string>? SaveStackRequested;
 
     public MappingMapsWindow()
     {
@@ -36,6 +38,8 @@ public sealed partial class MappingMapsWindow : FancyWindow
         LoadHereButton.OnPressed += _ => Load(true);
         SaveGridButton.OnPressed += _ => Save(false);
         SaveMapButton.OnPressed += _ => Save(true);
+        OpenStackButton.OnPressed += _ => OpenStack();
+        SaveStackButton.OnPressed += _ => SaveStack();
         NameEdit.OnTextChanged += _ => ResetConfirm();
         Preview.PreviewUpdated += UpdateInfo;
 
@@ -107,6 +111,7 @@ public sealed partial class MappingMapsWindow : FancyWindow
 
         _selected = path;
         OpenButton.Disabled = false;
+        OpenStackButton.Disabled = !MappingZLevels.TryParseLevelFile(path[(path.LastIndexOf('/') + 1)..], out _, out _);
         LoadHereButton.Disabled = true;
         PreviewInfo.Text = path;
         Preview.ShowMessage("wf-ship-preview-loading");
@@ -130,31 +135,53 @@ public sealed partial class MappingMapsWindow : FancyWindow
             LoadRequested?.Invoke(_selected, here);
     }
 
+    private void OpenStack()
+    {
+        if (_selected != null)
+            OpenStackRequested?.Invoke(_selected);
+    }
+
     private void Save(bool wholeMap)
     {
         var name = NameEdit.Text.Trim();
-        if (name.Length == 0)
+        if (name.Length == 0 || !Confirm(wholeMap ? SaveMapButton : SaveGridButton, $"{MappingMaps.SaveFolder}/{name}.yml"))
             return;
 
-        // Saving over an existing file takes a second click.
-        var path = $"{MappingMaps.SaveFolder}/{name}.yml";
-        if (_confirmWholeMap != wholeMap && _files.Exists(f => f.Path == path))
+        SaveRequested?.Invoke(name, wholeMap);
+    }
+
+    private void SaveStack()
+    {
+        var name = NameEdit.Text.Trim();
+        if (name.Length == 0 || !Confirm(SaveStackButton, MappingZLevels.StackPath(name, 0)))
+            return;
+
+        SaveStackRequested?.Invoke(name);
+    }
+
+    /// <summary>
+    /// Saving over an existing file takes a second click; false while that click is awaited.
+    /// </summary>
+    private bool Confirm(Button button, string path)
+    {
+        if (_confirming != button && _files.Exists(f => f.Path == path))
         {
             ResetConfirm();
-            _confirmWholeMap = wholeMap;
-            (wholeMap ? SaveMapButton : SaveGridButton).Text = Loc.GetString("wf-mapping-maps-overwrite");
-            return;
+            _confirming = button;
+            button.Text = Loc.GetString("wf-mapping-maps-overwrite");
+            return false;
         }
 
         ResetConfirm();
-        SaveRequested?.Invoke(name, wholeMap);
+        return true;
     }
 
     private void ResetConfirm()
     {
-        _confirmWholeMap = null;
+        _confirming = null;
         SaveGridButton.Text = Loc.GetString("wf-mapping-maps-save-grid");
         SaveMapButton.Text = Loc.GetString("wf-mapping-maps-save-map");
+        SaveStackButton.Text = Loc.GetString("wf-mapping-maps-save-stack");
     }
 
     public override void Close()
