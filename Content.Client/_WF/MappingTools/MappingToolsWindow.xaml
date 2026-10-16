@@ -41,6 +41,27 @@
         <Button Name="HideWallsButton" Access="Public" ToggleMode="True" Text="{Loc 'wf-mapping-tools-hide-walls'}"
                 ToolTip="{Loc 'wf-mapping-tools-hide-walls-tooltip'}" TooltipDelay="0" />
 
+        <Label Text="{Loc 'wf-mapping-tools-section-zlevels'}" StyleClasses="LabelHeading" Margin="0 8 0 0" />
+        <BoxContainer Name="LevelList" Access="Public" Orientation="Vertical" SeparationOverride="2" />
+        <GridContainer Columns="2" HSeparationOverride="4" VSeparationOverride="4">
+            <Button Name="LevelUpButton" Access="Public" HorizontalExpand="True" Text="{Loc 'wf-mapping-tools-level-up'}"
+                    ToolTip="{Loc 'wf-mapping-tools-level-up-tooltip'}" TooltipDelay="0" />
+            <Button Name="LevelDownButton" Access="Public" HorizontalExpand="True"
+                    Text="{Loc 'wf-mapping-tools-level-down'}"
+                    ToolTip="{Loc 'wf-mapping-tools-level-down-tooltip'}" TooltipDelay="0" />
+        </GridContainer>
+        <GridContainer Columns="3" HSeparationOverride="4" VSeparationOverride="4">
+            <Button Name="AddAboveButton" Access="Public" HorizontalExpand="True"
+                    Text="{Loc 'wf-mapping-tools-level-add-above'}"
+                    ToolTip="{Loc 'wf-mapping-tools-level-add-above-tooltip'}" TooltipDelay="0" />
+            <Button Name="AddBelowButton" Access="Public" HorizontalExpand="True"
+                    Text="{Loc 'wf-mapping-tools-level-add-below'}"
+                    ToolTip="{Loc 'wf-mapping-tools-level-add-below-tooltip'}" TooltipDelay="0" />
+            <Button Name="RemoveLevelButton" Access="Public" HorizontalExpand="True"
+                    Text="{Loc 'wf-mapping-tools-level-remove'}"
+                    ToolTip="{Loc 'wf-mapping-tools-level-remove-tooltip'}" TooltipDelay="0" />
+        </GridContainer>
+
         <Label Text="{Loc 'wf-mapping-tools-section-files'}" StyleClasses="LabelHeading" Margin="0 8 0 0" />
         <Button Name="MapsButton" Access="Public" Text="{Loc 'wf-mapping-tools-maps'}"
                 ToolTip="{Loc 'wf-mapping-tools-maps-tooltip'}" TooltipDelay="0" />
