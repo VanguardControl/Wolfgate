@@ -136,7 +136,7 @@ public sealed class VehicleClientTest
         {
             client.System<WFVehicleHudSystem>().FrameUpdate(0f);
             var ui = client.ResolveDependency<IUserInterfaceManager>();
-            var panel = ui.WindowRoot.Children.SingleOrDefault(control => control.Name == "WFVehicleHud");
+            var panel = ui.PopupRoot.Children.SingleOrDefault(control => control.Name == "WFVehicleHud");
             Assert.That(panel, Is.Not.Null, "The instruments must be above the gameplay viewport, not under it in StateRoot.");
             Assert.That(panel!.Visible, Is.True, "The driver's replicated operator state must reveal the HUD.");
             var controls = Descendants(panel).ToArray();
@@ -144,11 +144,12 @@ public sealed class VehicleClientTest
             Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => !gauge.Strip), Is.EqualTo(3));
             Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => gauge.Strip), Is.EqualTo(1));
             Assert.That(controls.OfType<WFGlassGauge>().All(gauge => !gauge.Powered), Is.True,
-                "Ignition OFF must leave all instruments dark.");
+                "Ignition OFF must suppress illuminated readouts.");
             var hud = client.System<WFVehicleHudSystem>();
             using var weapons = new VehicleWeaponsMenu();
             Assert.That(hud.TryEmbedMenu(weapons, "WEAPONS"), Is.True);
             Assert.That(weapons.IsOpen, Is.True);
+            Assert.That(weapons.Visible, Is.False, "Equipment stays folded until its dashboard tab is pressed.");
             Assert.That(Descendants(panel).Contains(weapons), Is.True);
             Assert.That(weapons.Children.Contains(weapons.ContentsContainer), Is.True,
                 "The embedded weapon selector must retain its contents without window chrome.");
@@ -158,9 +159,25 @@ public sealed class VehicleClientTest
             Assert.That(Descendants(panel).Contains(radar), Is.True);
             radar.Close();
             Assert.That(Descendants(panel).Contains(weapons), Is.False);
-            panel.Measure(new System.Numerics.Vector2(760, 240));
-            panel.Arrange(Robust.Shared.Maths.UIBox2.FromDimensions(System.Numerics.Vector2.Zero,
-                new System.Numerics.Vector2(760, 200)));
+            var dashboard = (WFVehicleDashboard) panel;
+            foreach (var viewport in new[] { new System.Numerics.Vector2(1280, 720), new System.Numerics.Vector2(2048, 1080),
+                         new System.Numerics.Vector2(2560, 1440) })
+            {
+                var hotbar = Robust.Shared.Maths.UIBox2.FromDimensions(new System.Numerics.Vector2((viewport.X - 760) / 2, viewport.Y - 80),
+                    new System.Numerics.Vector2(760, 80));
+                dashboard.Fit(viewport, hotbar);
+                dashboard.Measure(viewport);
+                dashboard.Arrange(Robust.Shared.Maths.UIBox2.FromDimensions(System.Numerics.Vector2.Zero, viewport));
+                Assert.That(dashboard.LeftBounds.Right <= hotbar.Left || dashboard.LeftBounds.Bottom <= hotbar.Top, Is.True);
+                Assert.That(dashboard.RightBounds.Left >= hotbar.Right || dashboard.RightBounds.Bottom <= hotbar.Top, Is.True);
+                Assert.That(dashboard.LeftBounds.Right, Is.LessThan(dashboard.RightBounds.Left));
+                Assert.That(dashboard.LeftBank.Position.Y + dashboard.LeftBank.Size.Y, Is.LessThanOrEqualTo(dashboard.LeftBounds.Bottom));
+                if (dashboard.RightBounds.Bottom > hotbar.Top)
+                    Assert.That(viewport.X - dashboard.RightBounds.Right, Is.GreaterThanOrEqualTo(100), "Keep the body doll clear.");
+                Assert.That(dashboard.LeftBank.Width, Is.GreaterThanOrEqualTo(334), "The ignition must fit beside both driving gauges.");
+                Assert.That(controls.OfType<WFGlassGauge>().All(gauge => gauge.Reading.Value == 0), Is.True,
+                    "Unpowered needles park at zero instead of losing their dial.");
+            }
             Assert.That(controls.OfType<WFVehicleIgnitionSlot>().Single().Width, Is.GreaterThanOrEqualTo(110));
             Assert.That(controls.OfType<WFVehicleLamp>().All(lamp => lamp.Width >= 94), Is.True);
         });
@@ -170,7 +187,7 @@ public sealed class VehicleClientTest
         await client.WaitAssertion(() =>
         {
             client.System<WFVehicleHudSystem>().FrameUpdate(0f);
-            Assert.That(client.ResolveDependency<IUserInterfaceManager>().WindowRoot.Children
+            Assert.That(client.ResolveDependency<IUserInterfaceManager>().PopupRoot.Children
                 .Any(control => control.Name == "WFVehicleHud"), Is.False, "Leaving the seat must close its instrument window.");
         });
         await pair.CleanReturnAsync();

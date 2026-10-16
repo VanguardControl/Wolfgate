@@ -32,20 +32,26 @@ public sealed partial class WFVehicleHudSystem
     private Label _frameHealth = default!;
     private float _statusElapsed;
 
-    private void InitializeVehicleControls(BoxContainer body)
+    private void InitializeVehicleControls()
     {
-        _controls = new GridContainer { Columns = 4, HorizontalExpand = true };
+        _controls = new GridContainer { Columns = 3, HorizontalExpand = true };
         _frameHealth = new Label();
         _parts = WFInstrumentTheme.Column();
         _detailTabs = WFInstrumentTheme.Row();
-        _detailHost = WFInstrumentTheme.Column();
-        var scroll = new ScrollContainer { MaxHeight = 100, HorizontalExpand = true, HScrollEnabled = false };
+        _detailHost = _panel.Details;
+        var scroll = new ScrollContainer { SetHeight = 220, HorizontalExpand = true, HScrollEnabled = false, Visible = false };
         scroll.AddChild(_parts);
-        body.AddChild(_controls);
-        body.AddChild(_frameHealth);
-        body.AddChild(scroll);
-        body.AddChild(_detailTabs);
-        body.AddChild(_detailHost);
+        _detailHost.AddChild(scroll);
+        var condition = WFInstrumentTheme.Button("wf-vehicle-tab-parts");
+        condition.OnPressed += _ =>
+        {
+            var show = !scroll.Visible;
+            foreach (var child in _detailHost.Children)
+                child.Visible = child == scroll && show;
+        };
+        _panel.LeftBank.AddChild(_controls);
+        _panel.RightBank.AddChild(WFInstrumentTheme.Row(_frameHealth, condition));
+        _panel.RightBank.AddChild(_detailTabs);
         var horn = WFInstrumentTheme.Button("wf-vehicle-hud-horn");
         horn.OnPressed += _ =>
         {
@@ -76,6 +82,7 @@ public sealed partial class WFVehicleHudSystem
         foreach (var child in _detailHost.Children)
             child.Visible = false;
         _detailHost.AddChild(menu);
+        menu.Visible = menu is not VehicleWeaponsMenu;
         var tab = new Button { Text = title, HorizontalExpand = true };
         WFInstrumentTheme.Switch(tab);
         tab.OnPressed += _ =>
@@ -122,8 +129,8 @@ public sealed partial class WFVehicleHudSystem
                     _vehicleButtons.Add(action, button);
                     _controls.AddChild(button);
                 }
-                button.Text = Name(action);
-                button.ToolTip = meta.EntityDescription;
+                button.Text = Loc.GetString("wf-vehicle-switch-" + proto.ID);
+                button.ToolTip = Name(action) + "\n" + meta.EntityDescription;
                 button.Pressed = data.Toggled;
                 button.Disabled = !data.Enabled || data.Cooldown is { } cooldown && cooldown.End > _timing.CurTime;
             }
@@ -151,7 +158,7 @@ public sealed partial class WFVehicleHudSystem
         foreach (var part in state.Hardpoints)
         {
             var label = new Label { Text = part.InstalledName ?? Loc.GetString("wf-vehicle-hud-empty-part"),
-                ClipText = true, SetWidth = 260, ToolTip = part.InstalledName };
+                ClipText = true, SetWidth = 180, ToolTip = part.InstalledName };
             var bar = new ProgressBar { MinValue = 0, MaxValue = 1, HorizontalExpand = true, SetHeight = 8,
                 Value = part.HasIntegrity ? Math.Clamp(part.Integrity / MathF.Max(1, part.MaxIntegrity), 0, 1) : 0 };
             var row = WFInstrumentTheme.Row(label, bar);

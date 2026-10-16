@@ -74,10 +74,10 @@ map conversion and YAML translation scripts are in `Tools/_WF/Vehicles`; namespa
 
 ## Driving, fuel and electrical power
 
-The transparent, draggable crew instrument window starts directly above the hotbar and shares the cockpit's retro/futurist
-skins, round speed/RPM/fuel instruments, linear battery gauge and switch buttons. Its small header button pops
-it into a native window. Ignition ON sweeps all gauges to maximum, back to zero and into live readings; OFF
-darkens them. FUEL LOW is amber below 20%, red below 10%, and flashes red below 5%. RPM follows the same rev
+The fixed crew dashboard surrounds the hotbar with translucent corner wings and shares the cockpit's retro/futurist
+skins, round speed/RPM/fuel instruments, linear battery gauge and switch buttons. It has no floating window or popout.
+Ignition ON sweeps all gauges to maximum, back to zero and into live readings; OFF parks the needles and hides
+readout text while preserving the dial faces and tick marks. FUEL LOW is amber below 20%, red below 10%, and flashes red below 5%. RPM follows the same rev
 model as the engine audio, including gear-change drops. Headlights project a forward cone from the front bumper.
 Swept driving commits pushes at each clearance step; a vehicle already overlapping another can back out along
 a separating path without moving deeper into it.
@@ -104,6 +104,8 @@ repeated starts without enough recharge can flatten it. Battery charge is shown 
 Use an existing Wolfgate parachute pack on a vehicle to strap it on. It deploys on falling through a z-level,
 limits descent speed and protects the hull during landing. The pack returns at touchdown, and the normal
 vehicle falling rules resume. A packed chute can also be unstrapped using its existing removal verb.
+
+The fixed dashboard uses translucent beveled wings in the lower corners, reserving a cutout for the existing hand slots. Detailed condition, weapons, ammunition and radar panels expand above the right wing. Ignition OFF keeps dial faces and parked needles visible while hiding their readouts.
 
 The seat HUD also hosts hull and component health, vehicle switches, weapon selection, stabilization and ammunition controls. Vehicle actions remain server-authorized but no longer populate the hotbar. Equipment windows used outside a vehicle remain available for maintenance.
 
@@ -296,9 +298,9 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Client/_WF/Vehicles/Ui/VehicleWeaponsBoundUserInterface.cs`](../../../Content.Client/_WF/Vehicles/Ui/VehicleWeaponsBoundUserInterface.cs)
 - [`Content.Client/_WF/Vehicles/Ui/VehicleWeaponsMenu.cs`](../../../Content.Client/_WF/Vehicles/Ui/VehicleWeaponsMenu.cs)
 - [`Content.Client/_WF/Vehicles/Ui/VehicleWeaponsMenu.xaml`](../../../Content.Client/_WF/Vehicles/Ui/VehicleWeaponsMenu.xaml)
+- [`Content.Client/_WF/Vehicles/Ui/WFVehicleDashboard.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleDashboard.cs)
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleHudSystem.Controls.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleHudSystem.Controls.cs)
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleHudSystem.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleHudSystem.cs)
-- [`Content.Client/_WF/Vehicles/Ui/WFVehicleHudWindow.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleHudWindow.cs)
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleIgnitionControls.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleIgnitionControls.cs)
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleInstrumentStartup.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleInstrumentStartup.cs)
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleRadarBoundUserInterface.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleRadarBoundUserInterface.cs)
