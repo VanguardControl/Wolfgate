@@ -906,6 +906,7 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         bool allowVehiclePush = true)
     {
         blocked = false;
+        allowVehiclePush &= applyBlockEffects;
         var start = mover.Position;
         var delta = target - start;
         var distance = delta.Length();
@@ -929,15 +930,15 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
                 return lastGood != start;
             }
 
+            if (applyBlockEffects &&
+                !CanOccupyTransform(uid, mover, grid, candidate, rotation, Clearance, applyEffects: true, debug: false, allowVehiclePush: allowVehiclePush))
+            {
+                mover.Position = lastGood;
+                blocked = true;
+                return lastGood != start;
+            }
             lastGood = candidate;
-        }
-
-        if (applyBlockEffects &&
-            !CanOccupyTransform(uid, mover, grid, lastGood, rotation, Clearance, applyEffects: true, debug: false, allowVehiclePush: allowVehiclePush))
-        {
-            mover.Position = start;
-            blocked = true;
-            return false;
+            mover.Position = candidate;
         }
 
         mover.Position = lastGood;
@@ -953,31 +954,8 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         out bool blocked,
         bool applyBlockEffects = true)
     {
-        blocked = false;
-        var start = mover.Position;
-        var delta = target - start;
-        var distance = delta.Length();
-
-        if (applyBlockEffects && distance > MinMoveDistance)
-        {
-            var probeStep = Math.Clamp(mover.MovementProbeStep, 0.02f, 0.5f);
-            var steps = Math.Max(1, (int)MathF.Ceiling(distance / probeStep));
-            for (var i = 1; i < steps; i++)
-            {
-                var candidate = start + delta * (i / (float)steps);
-                CanOccupyTransform(uid, mover, grid, candidate, rotation, Clearance, applyEffects: true, debug: false);
-            }
-        }
-
-        if (applyBlockEffects &&
-            !CanOccupyTransform(uid, mover, grid, target, rotation, Clearance, applyEffects: true, debug: false))
-        {
-            blocked = true;
-            return false;
-        }
-
-        mover.Position = target;
-        return true;
+        // A previous clearance probe may have offered a hypothetical vehicle push.
+        return TryMoveContinuous(uid, mover, grid, target, rotation, out blocked, applyBlockEffects);
     }
 
     private bool TryFindTurnPosition(

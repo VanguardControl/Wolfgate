@@ -16,6 +16,7 @@ using Robust.Shared.Input;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics;
 
 namespace Content.IntegrationTests.Tests._WF.Vehicles;
 
@@ -41,6 +42,8 @@ public sealed class VehicleCoreFeaturesTest : InteractionTest
     energy: 2.5
     softness: 2
   - type: PointLight
+    mask: /Textures/Effects/LightMasks/cone.png
+    autoRot: true
     enabled: false
     radius: 6
     energy: 2.5
@@ -265,6 +268,20 @@ public sealed class VehicleCoreFeaturesTest : InteractionTest
         Assert.That(SEntMan.GetComponent<VehicleSpotlightComponent>(vehicle).Enabled, Is.True);
         Assert.That(SEntMan.GetComponent<Robust.Server.GameObjects.PointLightComponent>(vehicle).Enabled, Is.True);
         Assert.That(CEntMan.GetComponent<VehicleSpotlightComponent>(ToClient(vehicle)).Enabled, Is.True, "The client never saw the spotlight come on.");
+        var beam = CEntMan.GetComponent<Robust.Client.GameObjects.PointLightComponent>(ToClient(vehicle));
+        Assert.That(beam.MaskPath, Is.EqualTo("/Textures/Effects/LightMasks/cone.png"));
+        Assert.That(beam.MaskAutoRotate, Is.True, "The beam must follow the chassis heading.");
+        var fixtures = CEntMan.GetComponent<FixturesComponent>(ToClient(vehicle));
+        var front = float.MinValue;
+        foreach (var fixture in fixtures.Fixtures.Values)
+        {
+            if (!fixture.Hard)
+                continue;
+            for (var child = 0; child < fixture.Shape.ChildCount; child++)
+                front = MathF.Max(front, fixture.Shape.ComputeAABB(Robust.Shared.Physics.Transform.Empty, child).Top);
+        }
+        Assert.That(beam.Offset.Y, Is.EqualTo(front + 0.05f).Within(0.001f),
+            "The light must originate at the front bumper, not the hull centre.");
 
         await PressAndCheckSwallowed(ContentKeyFunctions.FlipObject);
 

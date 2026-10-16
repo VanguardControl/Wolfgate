@@ -196,6 +196,20 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
                     continue;
                 }
 
+                if (candidate.IsVehicle && gridPos != mover.Position &&
+                    rotation.Equals(GetCollisionLocalRotation(uid, grid, null)) &&
+                    TryGetFixtureAabb(fixtures, new PhysicsTransform(mover.Position, rotation), out var currentBounds))
+                {
+                    var currentHull = new HullPose(mover.Position, rotation, hullBounds, GetMovementAabb(hullBounds, mover));
+                    var previous = GetMovementAabb(currentBounds, mover);
+                    var next = candidate.CollisionAabb;
+                    if (currentHull.Overlaps(candidate.Aabb, true) &&
+                        Penetration(next, candidate.Aabb) < Penetration(previous, candidate.Aabb) - 0.00001f &&
+                        Vector2.DistanceSquared(next.Center, candidate.Aabb.Center) >
+                        Vector2.DistanceSquared(previous.Center, candidate.Aabb.Center))
+                        continue;
+                }
+
                 if (candidate.CollisionClass == VehicleCollisionClass.SoftMob &&
                     candidate.MobState != null &&
                     _standing.IsDown(candidate.Entity))
@@ -744,6 +758,13 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         return collisionClass == VehicleCollisionClass.SoftMob
             ? fullAabb
             : movementAabb;
+    }
+
+    /// <summary>Translation needed to separate two overlapping boxes, including a contained hull.</summary>
+    private static float Penetration(Box2 hull, Box2 other)
+    {
+        return MathF.Min(MathF.Min(hull.Right - other.Left, other.Right - hull.Left),
+            MathF.Min(hull.Top - other.Bottom, other.Top - hull.Bottom));
     }
 
     private static bool HasCollisionOverlap(Box2 vehicleAabb, Box2 otherAabb)

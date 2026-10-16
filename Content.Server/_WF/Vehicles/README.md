@@ -74,6 +74,12 @@ map conversion and YAML translation scripts are in `Tools/_WF/Vehicles`; namespa
 
 ## Driving, fuel and electrical power
 
+The horizontal crew instrument panel sits directly above the hotbar and shares the cockpit's retro/futurist
+skins, round speed/RPM/fuel instruments, linear battery gauge and switch buttons. RPM follows the same rev
+model as the engine audio, including gear-change drops. Headlights project a forward cone from the front bumper.
+Swept driving commits pushes at each clearance step; a vehicle already overlapping another can back out along
+a separating path without moving deeper into it.
+
 Ground vehicles start with a full tank and the engine off. Use an unbound normal or blank vehicle key on an
 unlocked hull to pair it, then hold the matching key and use **Start engine** in the driver HUD. The same key
 locks and unlocks the doors; duplicated keys work for ignition too. Stopping the engine needs no key.
@@ -286,7 +292,6 @@ vehicle falling rules resume. A packed chute can also be unstrapped using its ex
 - [`Content.Client/_WF/Vehicles/Ui/VehicleWeaponsMenu.cs`](../../../Content.Client/_WF/Vehicles/Ui/VehicleWeaponsMenu.cs)
 - [`Content.Client/_WF/Vehicles/Ui/VehicleWeaponsMenu.xaml`](../../../Content.Client/_WF/Vehicles/Ui/VehicleWeaponsMenu.xaml)
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleHudSystem.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleHudSystem.cs)
-- [`Content.Client/_WF/Vehicles/Ui/WFVehicleSpeedometer.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleSpeedometer.cs)
 - [`Content.Client/_WF/Vehicles/Visuals/VehicleEyeRotationSystem.cs`](../../../Content.Client/_WF/Vehicles/Visuals/VehicleEyeRotationSystem.cs)
 - [`Content.Client/_WF/Vehicles/Visuals/VehicleFrameDamageVisualizerSystem.cs`](../../../Content.Client/_WF/Vehicles/Visuals/VehicleFrameDamageVisualizerSystem.cs)
 - [`Content.Client/_WF/Vehicles/Visuals/VehicleHardpointVisualizerSystem.cs`](../../../Content.Client/_WF/Vehicles/Visuals/VehicleHardpointVisualizerSystem.cs)

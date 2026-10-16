@@ -1,6 +1,7 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
+using Content.Client._WF.CombatConsole;
 using Content.Client._WF.Vehicles.Ui;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -20,6 +21,40 @@ namespace Content.IntegrationTests.Tests._WF.Vehicles;
 [TestFixture]
 public sealed class VehicleClientTest
 {
+    [Test]
+    public async Task EveryProductionHeadlightHasAForwardCone()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        await pair.Client.WaitAssertion(() =>
+        {
+            var factory = pair.Client.EntMan.ComponentFactory;
+            var checkedVehicles = 0;
+            foreach (var proto in pair.Client.ProtoMan.EnumeratePrototypes<EntityPrototype>())
+            {
+                if (proto.Abstract || VehicleSpawnDefaultsTest.IsTestVehicle(proto.ID) ||
+                    !proto.TryGetComponent<VehicleSpotlightComponent>(out _, factory))
+                    continue;
+                Assert.That(proto.TryGetComponent<PointLightComponent>(out var light, factory), Is.True, proto.ID);
+                Assert.That(light!.MaskPath, Is.EqualTo("/Textures/Effects/LightMasks/cone.png"), proto.ID);
+                Assert.That(light.MaskAutoRotate, Is.True, proto.ID);
+                checkedVehicles++;
+            }
+            Assert.That(checkedVehicles, Is.GreaterThan(10));
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    private static IEnumerable<Control> Descendants(Control root)
+    {
+        foreach (var child in root.Children)
+        {
+            yield return child;
+            foreach (var descendant in Descendants(child))
+                yield return descendant;
+        }
+    }
+
+
     [Test]
     public async Task DriverHudAppearsAboveGameplayAndHidesAfterLeaving()
     {
@@ -41,8 +76,10 @@ public sealed class VehicleClientTest
             var panel = ui.PopupRoot.Children.SingleOrDefault(control => control.Name == "WFVehicleHud");
             Assert.That(panel, Is.Not.Null, "The instruments must be above the gameplay viewport, not under it in StateRoot.");
             Assert.That(panel!.Visible, Is.True, "The driver's replicated operator state must reveal the HUD.");
-            Assert.That(panel.Children.Single().Children.OfType<Button>()
-                .Any(button => button.Visible && button.Text == "Start engine"), Is.True);
+            var controls = Descendants(panel).ToArray();
+            Assert.That(controls.OfType<Button>().Any(button => button.Visible && button.Text == "Start engine"), Is.True);
+            Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => !gauge.Strip), Is.EqualTo(3));
+            Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => gauge.Strip), Is.EqualTo(1));
         });
         await server.WaitAssertion(() =>
             Assert.That(server.System<RMCVehicleSystem>().TryRemoveOperator(new Entity<RMCVehicleOperatorComponent?>(rig.Driver, null)), Is.True));

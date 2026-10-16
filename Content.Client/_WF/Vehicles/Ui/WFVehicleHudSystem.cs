@@ -1,11 +1,13 @@
 using System.Numerics;
+using Content.Client._WF.CombatConsole;
+using Content.Client.UserInterface.Systems.Hotbar.Widgets;
+using Content.Shared._WF.Vehicles.Audio;
 using Content.Shared._WF.Vehicles.Base;
 using Content.Shared._WF.Vehicles.Core;
 using Content.Shared._WF.Vehicles.Grid.Components;
 using Content.Shared._WF.Vehicles.Hardpoint;
 using Content.Shared._WF.Vehicles.Weapons;
 using Content.Shared.Weapons.Ranged.Events;
-using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
@@ -21,60 +23,56 @@ public sealed class WFVehicleHudSystem : EntitySystem
 
     private PanelContainer _panel = default!;
     private Label _role = default!;
-    private Label _speed = default!;
-    private WFVehicleSpeedometer _dial = default!;
-    private ProgressBar _fuelBar = default!;
+    private float _speedValue;
+    private float _speedLimit = 60f;
+    private float _rpmValue;
+    private float _fuelValue;
+    private float _batteryValue;
     private Label _engineState = default!;
-    private Label _fuel = default!;
     private Label _weapon = default!;
     private Label _ammo = default!;
     private Button _ignition = default!;
     private Button _brake = default!;
     private Button _accessories = default!;
     private Button _headlights = default!;
-    private Label _battery = default!;
     private EntityUid? _vehicle;
 
     public override void Initialize()
     {
-        _panel = new PanelContainer
+        _panel = new WFInstrumentPanel(8)
         {
             Name = "WFVehicleHud",
             Visible = false,
-            MinSize = new Vector2(250, 150),
-            Margin = new Thickness(16, 160, 0, 0),
+            SetWidth = 680,
             HorizontalAlignment = Control.HAlignment.Left,
             VerticalAlignment = Control.VAlignment.Top,
-            PanelOverride = new StyleBoxFlat
-            {
-                BackgroundColor = Color.FromHex("#081013EE"),
-                BorderColor = Color.FromHex("#74BFA6"),
-                BorderThickness = new Thickness(1),
-            },
         };
-        var column = new BoxContainer
-        {
-            Orientation = BoxContainer.LayoutOrientation.Vertical,
-            Margin = new Thickness(12),
-            SeparationOverride = 6,
-        };
-        _role = new Label { FontColorOverride = Color.FromHex("#74BFA6") };
-        _speed = new Label();
-        _dial = new WFVehicleSpeedometer();
-        _fuelBar = new ProgressBar { MinValue = 0f, MaxValue = 1f, MinSize = new Vector2(0f, 8f) };
+        _role = WFInstrumentTheme.Label("wf-vehicle-hud-driver");
         _engineState = new Label();
-        _fuel = new Label();
-        _weapon = new Label { MaxWidth = 300, ClipText = true };
+        _weapon = new Label { MaxWidth = 250, ClipText = true };
         _ammo = new Label();
-        _ignition = new Button();
-        _battery = new Label();
-        _accessories = new Button();
-        _headlights = new Button { Text = Loc.GetString("wf-vehicle-hud-headlights") };
-        _brake = new Button { Text = Loc.GetString("wf-vehicle-hud-brake") };
-        foreach (var control in new Control[] { _role, _dial, _speed, _engineState, _fuel, _fuelBar, _battery, _weapon, _ammo, _ignition, _accessories, _headlights, _brake })
-            column.AddChild(control);
-        _panel.AddChild(column);
-        // Keep instruments above the gameplay viewport, like the other Wolfgate HUDs.
+        _ignition = WFInstrumentTheme.Button("wf-vehicle-hud-start");
+        _accessories = WFInstrumentTheme.Button("wf-vehicle-hud-accessories");
+        _headlights = WFInstrumentTheme.Button("wf-vehicle-hud-headlights");
+        _brake = WFInstrumentTheme.Button("wf-vehicle-hud-brake");
+        var speed = new WFGlassGauge("wf-vehicle-gauge-speed", () =>
+            WFGaugeReading.Number(_speedValue, 0, _speedLimit, "wf-vehicle-unit-speed"));
+        var rpm = new WFGlassGauge("wf-vehicle-gauge-rpm", () =>
+            WFGaugeReading.Number(_rpmValue, 0, 3000, "wf-vehicle-unit-rpm"));
+        var fuel = new WFGlassGauge("wf-vehicle-gauge-fuel", () =>
+            WFGaugeReading.Number(_fuelValue, 0, 100, "wf-vehicle-unit-percent", tint:
+                _fuelValue < 15 ? WFInstrumentTheme.Red : null));
+        var battery = new WFGlassGauge("wf-vehicle-gauge-battery", () =>
+            WFGaugeReading.Number(_batteryValue, 0, 100, "wf-vehicle-unit-percent", tint:
+                _batteryValue < 15 ? WFInstrumentTheme.Red : null), strip: true)
+            { CompactStrip = true, SetHeight = 44 };
+        var switches = WFInstrumentTheme.Column(
+            WFInstrumentTheme.Row(_role, _engineState), battery,
+            WFInstrumentTheme.Row(_ignition, _accessories),
+            WFInstrumentTheme.Row(_headlights, _brake), _weapon, _ammo);
+        switches.SetWidth = 280;
+        _panel.AddChild(WFInstrumentTheme.Row(rpm, speed, fuel, switches));
+        WFInstrumentTheme.Install(_panel);
         _ui.PopupRoot.AddChild(_panel);
         LayoutContainer.SetAnchorPreset(_panel, LayoutContainer.LayoutPreset.TopLeft);
         _ignition.OnPressed += _ => SendControl(false);
@@ -134,20 +132,20 @@ public sealed class WFVehicleHudSystem : EntitySystem
             var velocity = mover.FreeSteering ? mover.TravelVelocity : heading.ToWorldVec() * mover.CurrentSpeed;
             speed = (velocity + mover.ImpactVelocity).Length() * 3.6f;
         }
-        _dial.Fraction = mover == null ? 0f : Math.Clamp(speed / MathF.Max(1f, mover.MaxSpeed * 3.6f), 0f, 1f);
+        _speedValue = speed;
+        _speedLimit = mover == null ? 60f : MathF.Max(1f, mover.MaxSpeed * 3.6f);
+        _rpmValue = !engine.Running ? 0f : 700f + 2300f *
+            (TryComp(uid, out WFVehicleEngineAudioComponent? audio) ? audio.Throttle : Math.Clamp(speed / _speedLimit, 0f, 1f));
+        _fuelValue = Math.Clamp(100f * engine.Fuel / MathF.Max(1f, engine.Capacity), 0f, 100f);
+        _batteryValue = Math.Clamp(100f * engine.BatteryCharge / MathF.Max(1f, engine.BatteryCapacity), 0f, 100f);
+        PositionHud();
         _engineState.Text = Loc.GetString(engine.Running ? "wf-vehicle-hud-running" :
             engine.Powered ? "wf-vehicle-hud-accessory-state" : "wf-vehicle-hud-stopped");
-        _fuelBar.Value = Math.Clamp(engine.Fuel / MathF.Max(1f, engine.Capacity), 0f, 1f);
-        _speed.Text = Loc.GetString("wf-vehicle-hud-speed", ("speed", MathF.Round(speed)));
-        _fuel.Text = Loc.GetString("wf-vehicle-hud-fuel", ("fuel", MathF.Round(100f * engine.Fuel / MathF.Max(1f, engine.Capacity))));
-        _fuel.FontColorOverride = engine.Fuel < engine.Capacity * 0.15f ? Color.OrangeRed : Color.White;
         _ignition.Visible = driver;
         _brake.Visible = driver;
         _accessories.Visible = driver;
         _headlights.Visible = driver;
         _accessories.Text = Loc.GetString(engine.Electrics ? "wf-vehicle-hud-off" : "wf-vehicle-hud-accessories");
-        _battery.Text = Loc.GetString("wf-vehicle-hud-battery", ("charge", MathF.Round(100f * engine.BatteryCharge / MathF.Max(1f, engine.BatteryCapacity))));
-        _battery.FontColorOverride = engine.BatteryCharge < engine.BatteryCapacity * 0.15f ? Color.OrangeRed : Color.White;
         _headlights.Disabled = !engine.Powered;
         _headlights.Pressed = TryComp(uid, out VehicleSpotlightComponent? headlights) && headlights.Enabled;
         _ignition.Text = Loc.GetString(engine.Running ? "wf-vehicle-hud-stop" : "wf-vehicle-hud-start");
@@ -165,4 +163,17 @@ public sealed class WFVehicleHudSystem : EntitySystem
                 ("rounds", _ammunition.GetStoredRounds(ammo, ammo.MagazineSize)));
         }
     }
+    /// <summary>Anchors the instrument bank above the live hotbar at the player's UI scale.</summary>
+    private void PositionHud()
+    {
+        var hotbar = _ui.GetActiveUIWidgetOrNull<HotbarGui>();
+        var bottom = _ui.PopupRoot.Height - 110;
+        if (hotbar is { Visible: true, Height: > 0 })
+            bottom = hotbar.GlobalPosition.Y - _ui.PopupRoot.GlobalPosition.Y - 8;
+        _panel.SetWidth = MathF.Min(680, MathF.Max(320, _ui.PopupRoot.Width - 16));
+        LayoutContainer.SetPosition(_panel, new Vector2(
+            MathF.Max(8, (_ui.PopupRoot.Width - _panel.Width) / 2),
+            MathF.Max(0, bottom - MathF.Max(158, _panel.Height))));
+    }
+
 }

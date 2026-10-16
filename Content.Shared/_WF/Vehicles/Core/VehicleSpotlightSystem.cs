@@ -1,3 +1,6 @@
+using System.Numerics;
+using Content.Shared._WF.Vehicles.Grid;
+using Robust.Shared.Physics;
 using Content.Shared._WF.Vehicles.Base;
 using Content.Shared._WF.Vehicles.Hardpoint;
 using Content.Shared.Containers.ItemSlots;
@@ -134,6 +137,17 @@ public sealed partial class VehicleSpotlightSystem : EntitySystem
         if (!_lights.ResolveLight(uid, ref light))
             return;
 
+        // Mount the lamp just beyond the front bumper, rotating its offset with the chassis.
+        if (TryComp(uid, out FixturesComponent? fixtures) &&
+            GridVehicleMoverSystem.TryGetFixtureAabb(fixtures, Robust.Shared.Physics.Transform.Empty, out var hull))
+        {
+            var offset = new Vector2(0f, hull.Top + 0.05f);
+            if (light.Offset != offset)
+            {
+                light.Offset = offset;
+                Dirty(uid, light);
+            }
+        }
         _lights.SetRadius(uid, spotlight.Radius, light);
         _lights.SetEnergy(uid, spotlight.Energy, light);
         _lights.SetSoftness(uid, spotlight.Softness, light);

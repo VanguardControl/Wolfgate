@@ -17,6 +17,24 @@ namespace Content.IntegrationTests.Tests._WF.Vehicles;
 [TestFixture]
 public sealed class VehicleEnhancementsTest
 {
+    [TestCase(true)]
+    [TestCase(false)]
+    public async Task OverlappingVehiclesCanReverseApart(bool freeSteering)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var rig = await VehicleRigs.Build(pair, minX: -20,
+            proto: freeSteering ? "WFVehicleTestSteeredChassis" : "WFVehicleTestChassis", facingRight: true);
+        await pair.Server.WaitPost(() =>
+            pair.Server.EntMan.SpawnEntity("WFVehicleTestChassis", new EntityCoordinates(rig.Grid, 4f, 2.5f)));
+        await VehicleRigs.Seat(rig);
+        await pair.Server.WaitPost(() => VehicleRigs.Hold(rig, freeSteering ? MoveButtons.Down : MoveButtons.Left));
+        await pair.Server.WaitRunTicks(120);
+        await pair.Server.WaitAssertion(() =>
+            Assert.That(VehicleRigs.LocalPosition(rig).X, Is.LessThan(1f),
+                "An existing overlap must allow a separating reverse move instead of trapping the driver."));
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task CabinConsumerUsesBatteryAndRestoresSupplyWhenRemoved()
     {
