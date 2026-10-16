@@ -44,7 +44,7 @@ Bands are shop prices, not value. What saves, loads and sales use is the apprais
 
 Tiers: **T1** recipes are built into the Outpost Fabricator and on the trade panel from the first order. **T2** and **T3** recipes come on recipe disks (band C for T2, band D for T3), bought on the trade panel or looted from Workshop POIs; the finished T2/T3 gizmos can also be bought outright at their band price. The gate is money and exploration, not research.
 
-Note for devs: the planet stack (layers, flight, weather, parachutes, jetpacks) and the caverns under every world are on `main` since PR #40 (2026-10-05), as the `Planets` and `Caverns` modules, behind `wf.planet_networks` and `wf.caverns` (off by default, on in dev builds). Planet cracking was split off to its own branch; this doc does not depend on it. Planets still have no bounds (see Set-size planets).
+Note for devs: the planet stack (layers, flight, weather, parachutes, jetpacks) and the caverns under every world are on `main` since PR #40 (2026-10-05), as the `Planets` and `Caverns` modules, behind `wf.planet_networks` and `wf.caverns` (off by default, on in dev builds). Planet cracking was split off to its own branch; this doc does not depend on it. Two open PRs change this doc further: #231 (`planetspoi`: circular world bounds with full preload, `PlanetPois`, `PlanetSignals`, `PlanetExpeditions`) and #248 (`pregame-scenarios`: `RoundSetup` crews, Ship and Crashlanded starts, ShipAccess Crew mode); the affected sections carry "as built" notes.
 
 ### Core rules
 
@@ -234,6 +234,15 @@ Players can now pick how they start the round, which overrides how they spawn in
 There is a spawn menu (new **Spawn Options** button in the lobby, next to Ready) that lets you configure each spawn type (see the options per spawn option below). Pre-round you can select and set up your Outpost / Shuttle Crash scenarios.
 
 "Spawn at Outpost" shows your outposts that can be played, plus the base maps (presets) to start with, costing the amount from your bank account. It appears once your character has saved their first outpost; before that, presets load from a placed console's Save tab.
+
+### As built in PR #248: Round Setup
+
+PR #248 (open, branch `pregame-scenarios`) builds the lobby side of this section as the `RoundSetup` module, ahead of any outpost code, so the subsections below describe the earlier plan where they differ and the Outpost scenario is what remains:
+
+- **Crew Setup** replaces the "Spawn Options" button: READY opens a chooser between starting or joining a crew (default) and readying up normally (legacy); mid-round there is one Join Round button with the same split. Crews are this doc's play groups: a host names the crew, writes a description, sets admission (public, request, code, direct invitation), advertises roles with slots (up to 16 roles of 1 to 16), transfers or passes ownership, and can save up to 20 setups per account. Members pick their own character and job; a private crew radio and a leader compass come with it. Pregame lasts six minutes. [in PR #248]
+- **Starts**: Ship (a shipyard catalogue hull paid by split contributions, in clear space or docked at CC, with the embedded ship previewer), Crashlanded (a random civilian vessel in a random planet's orbit, a fixed three-minute preparation with flight controls disabled and a shared countdown and alarm, the existing descent and crash, emergency EVA suits and a survival kit, later survivors spawning on the wreck) and Faction Crew. The Outpost start is not there: it needs the console, saves and cryopods (F1, F4.1). [in PR #248] + [NEW]
+- **Access**: a scenario ship starts in the new ShipAccess **Crew** mode, where the linked crew's issued ID cards open the default readers and a per-door Crew rule exists; membership changes update access at once. An outpost can link to its crew the same way instead of keeping a hand-built allow list (F3.4). [in PR #248]
+- **What the Outpost scenario adds on top**: a crew type whose "ship" is a saved outpost or preset, the load price split like a ship purchase, placement by the save's position with the footprint reserved before POIs roll, members spawning in cryopods as their Outpost Job, and mid-round joins into free pods. Joinable positions (F4.3) become the crew's advertised roles. [NEW]
 
 ### Lobby flow
 
@@ -692,15 +701,11 @@ What the planet stack does today, and what "set size" needs:
 - **Terrain is seeded per world** (fixed seeds), so a world's landscape is the same every round. POIs are rerolled per round, which is what makes each round a new story. [EXISTS] + [NEW]
 - **Nothing on a planet persists between rounds**: every WF planet component is unsaved and networks rebuild each round. That's why outposts save their own grid. [EXISTS]
 
-Bounding a world [NEW]:
+Bounding a world, as built in PR #231 (open, branch `planetspoi`), which went further than this doc planned:
 
-| Piece | How |
-|---|---|
-| Size | New `Bounds` on the surface prototype. Default: a 1536 m square (small worlds 1024 m, big worlds 2048 m), centred on the world's ground centre |
-| Chunk filter | Chunks outside the bounds never load. The chunk list is private upstream, and a partial can read it but can't stop `AddChunksInRange` without a call site, so this is a marked hook in `BiomeSystem`. Pre-generating the whole world was ruled out: 2 million+ tiles per world |
-| Edge | A ring of impassable terrain just inside the bound (cliffs, deep water or storm wall, per world). Mobs and items that get past it are pushed back in; hulls on air layers are clamped by a soft wall |
-| Orbit | Orbit entry stays as is; Enter Atmosphere and pad descents are refused unless the hull's XY is inside the bounds |
-| Radar | `WFPlanetRadarSystem.Sample` returns empty outside the bounds |
+- Every world is a **circle** (`radius` on its `wfPlanetSurface`, 256 tiles unless the prototype or `wf.planet_radius` says otherwise), not the 1536 m square planned here. `WFPlanetBoundsSystem` marks each layer with `WFPlanetBoundsComponent`, the loader never generates a chunk outside it (`BiomeSystem.WFBounds`), an impassable boundary ring (the surface's `boundaryWall`) rings the ground and the layers below, the radar draws nothing past it, a hull can't enter the atmosphere unless it is wholly inside, one adrift out there is pulled back to the edge before it falls, and one flying out in the air is turned back (`WFPlanetDragSystem`). [in PR #231]
+- The whole circle is **preloaded**: `WFPlanetPreloadSystem` generates it nearest the centre first at `wf.planet_preload_budget` ms a tick, one world at a time, and a preloaded ground never streams or unloads again. While the lobby is open `WFPlanetRegistrySystem` prebuilds the round-start worlds (`wf.planet_prebuild`), so the preload runs before anyone is in the round. This doc had ruled pre-generation out; the budgeted preload and the smaller circle made it workable. Caverns stay streamed inside the same circle. [in PR #231]
+- `WFPlanetPreloadStartingEvent` fires the tick before a preload, for whatever must be placed while the ground is still unloaded (cavern mouths, POI footprints), and `WFPlanetPreloadedEvent` once the ring is laid. The outpost footprint reservation for Outpost Spawn (D35) hooks the first of these and must run before `WFPlanetPoiSystem` does. [in PR #231] + [NEW]
 
 ### Caverns (shipped in PR #40)
 
@@ -714,19 +719,19 @@ What that means for outposts:
 - Nothing below depth 0 is saved. Basements (an outpost grid in the cavern, bound to the surface grid by CE grid connectors and saved as a set) stay a late phase (F10.4). [NEW]
 - The atmospheric jetpack already flies in a cavern and up or down through a hole, with the ground as a ceiling (`WfSealedAbove`). A raid "tunneller" arrival that climbs out of a hole near the claim edge is a later addition (see Outpost Attacks). [EXISTS] + [NEW]
 
-### Story-gen
+### Story-gen, as built in PR #231
 
-- At network build, after pending outpost footprints are reserved, each world rolls its POIs from a per-planet table (`wfPlanetPoiTable`, weighted by planet type). Default 8 to 14 POIs per world. [NEW]
-- POI grids load as separate grids on the ground map (like `GroundGrid` does, with `ReserveTiles`), not as biome markers, so they can be claimed and saved. [EXISTS] precedent + [NEW] placer
-- The NF POI system is sector-map only and hard-wired to the default map; we reuse its prototype fields and grid spawn, not its placer. [EXISTS] + [NEW]
-- POI protos get their own base (not `BaseMobilePOI`, whose preset list misses Wolfgate's MonoXeno). Claimable POIs don't get `ProtectedGrid { KillHostileMobs }`, or raids could never reach them. [NEW]
-- Grids live in `Resources/Maps/_WF/Outposts/POI`. Existing NF/Mono POI grids and NF dungeon configs (planet base, mineshaft, salvage outpost...) are the first source of rooms. [EXISTS] + [NEW]
+- `WFPlanetPoiSystem` (module `PlanetPois`) rolls each world's POIs from `wfPlanetPoiTable` at `WFPlanetPreloadStartingEvent`: procedural dungeons and single-grid authored maps, each with a footprint, min and max count, an `expeditions` flag and a road `connection` (Through, Roadside or isolated) with sockets. Footprints are reserved before the biome lays terrain. A site that finds no room is skipped with a warning, so counts are ceilings (Asclepiu's table is 6 to 7). [in PR #231]
+- Sites are connected by roads: paved on Asclepiu and Merak, terrain routes elsewhere, dressed with kerbs, lines, lights, signals and scattered vehicles and litter (`wfRoadDressing`). A route that can't be laid costs the world its roads, never its sites. [in PR #231]
+- Fourteen authored maps ship: two Crocus-scale cities, inhabited and abandoned villages and camps, roadside traders (WF `Traders`), fuel services and unoccupied hazard-world shelters, beside the expedition dungeons. The map contract is `Docs/_WF/PlanetPois/MapperGuide.md`. [in PR #231]
+- `PlanetExpeditions` turns the salvage expedition console into offers on these real sites: claiming arms the site with objectives and hostiles, the crew flies there, and clearing it pays at the console. [in PR #231]
+- Still this doc's work: claimable sites with an outpost console (F7.3), the Mine surface camp, derelict capital ships, ruins with clue items, shrines and artifact sites (F7.4), and the `Resources/Maps/_WF/Outposts/POI` grids become entries in those tables rather than a placer of their own. [NEW]
 
-### Beacons [NEW]
+### Beacons, as built in PR #231
 
-- Every POI has a beacon on the orbit layer at its XY (the `WFOrbitBeacon` pattern: warp point + IFF, with the same global PVS override as outpost beacons), shown on orbit radar.
-- Beacons start as **"Unknown signal"**. The name and type reveal when any player gets within 50 m on the ground, or when someone scans it with a survey tool from orbit. The orbit surveyor went with the planet-cracker, so the survey tool is new work in `PlanetPois`.
-- Shrines and artifact sites have a **faint signal**: their beacon only shows on radar to a hull within 300 m on the orbit layer, or once a clue item found in ruins has revealed it. The mystery stays, and they still have beacons.
+- `PlanetSignals` lists, on each sector body, the vessels on the world's layers, the sites on its ground and the people on it (`WFPlanetSignalsComponent`, networked to everyone); out in space the world's radar name carries the counts, and clicking the world opens the list with coordinates. On the world's layers the radar marks every site, unknown until identified, and the orbit marker (`WFPoiSignal`) no longer carries an IFF of its own. [in PR #231]
+- A site is revealed when a player comes within the table's `revealRange` (48 m by default) on the ground. [in PR #231]
+- Not built there: the faint signal for shrines and artifact sites, the survey tool from orbit, and clue items in ruins. They stay [NEW] and go with F7.4.
 
 ### POI taxonomy
 
@@ -744,7 +749,7 @@ What that means for outposts:
 | Heavenly shrine | A one-time blessing (full heal, a mood boost, or a relic worth money), lore | No | Faint signal | Remote, 300 m from outposts |
 | Alien artifact site | Xenoarchaeology artifacts, strange fauna, anomalies | No | Faint signal | Remote, max 2 per world |
 
-Artifacts, dungeons and traders are all existing systems (xenoarchaeology, `DungeonSystem` with NF configs, WF `Traders`). [EXISTS]
+Artifacts, dungeons and traders are all existing systems (xenoarchaeology, `DungeonSystem` with NF configs, WF `Traders`). [EXISTS] PR #231's maps already cover the Tradepost (roadside traders and fuel services), the Abandoned outpost (derelict village, abandoned work camp, shelters), settlements this table never had (cities, inhabited villages and camps), and the expedition dungeons; none of them is claimable yet.
 
 ### Claiming a POI [NEW]
 
@@ -766,7 +771,7 @@ Depending on the attack type, these nasties come from burrows, shuttles or vehic
 - Hostile humanoid NPCs with HTN combat, and pathing flags for prying airlocks and smashing walls. [EXISTS]
 - Those flags only work on the NPC's own grid. A raider on the planet ground whose target is on another grid is sent straight at it (the Monolith port of wizden#38846 in `MoveToOperator` sets a direct move across grids and skips A*), and direct moves skip obstacle handling. The ground navmesh also ignores outpost walls, since it only counts entities parented to the ground grid. So today a raider walks into the outpost's outer wall and stays there. [EXISTS] gap
 - NPC factions for raiders: PirateNF, StreetGangNF, MercenariesExpeditionNF and friends. [EXISTS]
-- NPC-crewed ships: PR #155 (open) adds `NpcCrew` (AI crews that fly, dock, board, defend and raid, with security rules) and the `Encounters` storyteller, whose prototypes already include pirate raiders and boarders. The raider shuttle arrival uses an NpcCrew crew instead of a Mono AI shuttle once it merges. [EXISTS once PR #155 merges]
+- NPC-crewed ships: `NpcCrew` (AI crews that fly, dock, board, defend and raid, with security rules) and the `Encounters` storyteller are on `main` (PR #155), with pirate raiders and boarders among the prototypes and the Reaver campaign built on them. The raider shuttle arrival uses an NpcCrew crew instead of a Mono AI shuttle. [EXISTS]
 - `TimedSpawner` for burrows (the xeno burrower marker is exactly this). [EXISTS]
 - HTN NPCs sleep when no living player is within 32 tiles (`npc.player_pause_distance`), unless the HTN sets `SleepPlayerCheckRangeOverride` (a Mono field). Terrain only loads within about 16 tiles of players and viewers. Mono mob cleanup never runs on planet ground (it only takes mobs that are off every grid, and planet ground is a map grid). [EXISTS]
 - Not there: a raid director, waves, the Active state, early warning, breaching across grids. [NEW]
@@ -1018,19 +1023,19 @@ The coarse phases. The step-by-step order, one pull request per step, with sizes
 - D22: Preset outposts exist, priced at a fixed price >= appraisal x 1.5, loaded through the same pipeline with MapInit instead of re-init.
 - D23: The Planet Outpost Kit costs 25,000 and includes a generator; a bare console costs 6,000 and can't be printed.
 - D24: Kits, packs and trade listings are priced at or above the appraisal of their contents; bands are shop prices, and appraisal uses `StaticPrice` = print cost.
-- D25: Spawn options are Standard, Shuttle Crash and Outpost Spawn; the choice is round state, not a profile field.
-- D26: Non-standard spawns are handled in `RulePlayerSpawningEvent`; outpost players wait in the lobby until their grid lands; failures fall back to Standard with a refund.
+- D25: Spawn options are Standard, Shuttle Crash and Outpost Spawn; the choice is round state, not a profile field. (As built in PR #248: Crew Setup with Ship, Crashlanded and Faction Crew starts; Outpost is the missing start.)
+- D26: Non-standard spawns are handled in `RulePlayerSpawningEvent`; outpost players wait in the lobby until their grid lands; failures fall back to Standard with a refund. (PR #248 owns the spawn path; the Outpost start plugs into `WFRoundSetupSystem`.)
 - D27: Outpost Spawn appears after a character's first save; before that, presets load from a placed console.
-- D28: Play groups are Open, Join Code (hidden) or Private (listed, request-only, plus invites), in memory, cleared each round; leaders can kick.
+- D28: Play groups are Open, Join Code (hidden) or Private (listed, request-only, plus invites), in memory, cleared each round; leaders can kick. (As built in PR #248: RoundSetup crews with public, request, code and invitation admission, host transfer and saved setups.)
 - D29: Group members and joiners get door access (allow list), never console access or Builder.
-- D30: Crash groups can only be joined in the lobby before round start; outpost positions can be joined mid-round.
+- D30: Crash groups can only be joined in the lobby before round start; outpost positions can be joined mid-round. (PR #248: hosts choose whether survivors may join a crash after launch; later survivors spawn on the wreck.)
 - D31: Joinable positions are set in the Outpost Configurator (Spawn Options panel, then console Crew tab) and saved with the outpost.
 - D32: An outpost with positions is a station (`WFOutpostStation`) with public slots always 0, hidden from stock late-join tabs, joined only through the WF handler.
 - D33: Outpost Job = `WFOutpostSettler` job (`setPreference: false`) + role loadout + custom title, no DB migration.
 - D34: Spawning at an outpost needs at least one Outpost Cryopod; pods cap group size and positions, max 6 per outpost.
 - D35: Outpost Spawn uses the save's own position, with footprints reserved before POIs roll; blocked late loads search 300 m.
-- D36: Crash: random sanctioned world (Carcinoma only if every member opted in, 3 g worlds excluded), random small shuttle, random crash job with no billed loadout, orbit layer spawn.
-- D37: Crash countdown is 3 minutes to impact on the PA with a locked console; impact severity is clamped to hard landing or a 2-piece break.
+- D36: Crash: random sanctioned world (Carcinoma only if every member opted in, 3 g worlds excluded), random small shuttle, random crash job with no billed loadout, orbit layer spawn. (As built in PR #248: random civilian vessel and random registered planet, civilian jobs, emergency EVA and survival kit; the world filters are not applied there.)
+- D37: Crash countdown is 3 minutes to impact on the PA with a locked console; impact severity is clamped to hard landing or a 2-piece break. (PR #248: three minutes with disabled flight controls, a shared on-screen countdown and alarm, then the existing descent and crash with no severity clamp.)
 - D38: The crash hull is deeded to the leader but only sells for value added above its spawn appraisal.
 - D39: Spawn-distance rules as in the table are the one placement rule for console deploys, loads and Outpost Spawn.
 - D40: Claim zone = bounding box + 8 tiles; it blocks others founding, loading, non-pad landings and building on raw ground, but not trespass.
@@ -1061,9 +1066,9 @@ The coarse phases. The step-by-step order, one pull request per step, with sizes
 - D65: Turrets are capped at 2 plus 1 per 300 foundation tiles, max 6, and each adds raid threat.
 - D66: Automated producers (drill, thumper, mining bots, power exporter) only run while someone is home; 1 drill and 1 exporter per outpost.
 - D67: Farming reuses breeding/eggs/milk/wool; capture, taming, herding, pens and feeders are new.
-- D68: Worlds become bounded (default 1536 m square) with a chunk filter and an edge ring, not pre-generation.
-- D69: POIs are rerolled each round on fixed-seed terrain, 8 to 14 per world, as separate grids.
-- D70: Every POI has a beacon; beacons start as "Unknown signal", and shrines and artifact sites give a faint signal.
+- D68: Worlds become bounded (default 1536 m square) with a chunk filter and an edge ring, not pre-generation. (Superseded by PR #231: a 256-tile-radius circle, fully preloaded, with a boundary wall.)
+- D69: POIs are rerolled each round on fixed-seed terrain, 8 to 14 per world, as separate grids. (As built in PR #231: `wfPlanetPoiTable` per world with authored grids and procedural dungeons, 6 to 7 on Asclepiu, connected by roads.)
+- D70: Every POI has a beacon; beacons start as "Unknown signal", and shrines and artifact sites give a faint signal. (As built in PR #231: `PlanetSignals`, unknown until a player comes within 48 m; faint signals still to do.)
 - D71: Tradeposts, derelict capital ships, small derelicts, ruins, shrines and artifact sites are not claimable; at most half of a world's claimable POIs can be claimed at once.
 - D72: Raids only happen during the Active window (default night), only when someone is home, after a 20 minute grace.
 - D73: Raids escalate from a rabid rabbit to a siege, arriving on foot, from burrows, on vehicles or by shuttle.
@@ -1096,7 +1101,7 @@ The coarse phases. The step-by-step order, one pull request per step, with sizes
 - Q13: Can `DisallowLateJoin` be true when a queued outpost player is joined with `MakeJoinGame`, turning it into an observer spawn?
 - Q14: What access checks does the station records console apply to adjusting job slots, and do outposts need a different gate?
 - Q15: How does `ShuttleSystem.Impact` behave for a grid falling from the orbit layer, and does it interact with the crash clamp?
-- Q16: Once PR #155 (NpcCrew, Encounters) merges, does an NpcCrew raider crew need anything beyond `TryDropFromOrbit` on a crewed hull to come down onto a planet, and can its orders target an outpost grid?
+- Q16: Does an NpcCrew raider crew need anything beyond `TryDropFromOrbit` on a crewed hull to come down onto a planet, and can its orders target an outpost grid?
 - Q17: Which existing POI grids already contain consoles, cryopods or turrets suitable for claimable planet POIs?
 - Q18: Nova assets: the license of `AW_reactor.ogg` (freesound, dobroide); the fabricator and arc furnace recordings (given "for free open source use" by an unnamed contributor, with no stated license, so replaced unless cleared); the Kahraman `ore_thumper_fan` loop the Stirling uses; and how the DMI art and its deploy and print animations convert to RSI states.
 - Q19: Real power draw of the regulator, recycler, synthesizers and dispenser in use, and a full comparison against SS14 power values, before numbers are locked.

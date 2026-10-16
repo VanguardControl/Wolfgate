@@ -24,7 +24,7 @@ The plan has four places where you can stop and the feature is coherent:
 |---|---|---|
 | **M1 Persistent base** | F1.3 | Found an outpost with a console, build on it with stock construction, it comes back next round for parts + 50% |
 | **M2 Outpost economy** | F2.4 | Kit, fabricator, prefab building, own power, trade panel with parachute drops. No ship needed once you are down |
-| **M3 Live there** | F4.2 | Spawn at your outpost with your Outpost Job, friends join through positions. Ship access overhaul shipped on the way |
+| **M3 Live there** | F4.1 + the Outpost start in RoundSetup | Spawn at your outpost with your Outpost Job, friends join through positions. Ship access overhaul shipped on the way |
 | **M4 Something happens** | F8.3 | Bounded worlds with POIs to walk to, night raids that breach, early warning, turrets that only shoot raiders |
 
 Everything after M4 (crash start, play groups, pads, farming, orbital defence, jetpacks, basements) is additive.
@@ -36,7 +36,8 @@ Live status per step is on the build board (link above). Landed:
 - **F3.1, F3.2, F3.3** (ship access: owner and allow list, per-door rules, codes): PR #94, merged to `main` on 2026-09-28. Hand testing changed the model: access is keyed on ID cards' crew-record keys written into the doors' normal airlock readers behind the `WFShipLocked` level; Mono's deed reader is off; allow lists are round state and not saved; admin-spawned ships register owners by account (`OwnerUsers`). The design doc's Ship Access section describes what shipped.
 - **F10.1** (atmospheric jetpack): PR #90, merged to `planet-cracking` on 2026-09-25, on `main` since PR #40.
 - **Planets and caverns** (prerequisite rows PLANETS and UNDERGROUND): PR #40, merged to `main` on 2026-10-05, behind `wf.planet_networks` and `wf.caverns` (off by default, on in dev). No world bounds yet. F1.1 is unblocked.
-- **Open**: PR #155 (NpcCrew and the Encounters storyteller). F8.4's raider shuttle and the tradepost's NPC ships should build on it rather than on Mono AI shuttles.
+- **NpcCrew and Encounters**: PR #155, merged to `main`. F8.4's raider shuttle and the tradepost's NPC ships build on it.
+- **In open PRs (2026-10-16)**: PR #231 `planetspoi` ships F7.1 as a circular, fully preloaded world (radius 256 tiles), F7.2 as `PlanetPois` + `PlanetSignals` (tables, roads, 14 authored maps, reveal by approach) and part of F7.4 (settlements, traders, fuel stops, shelters), plus `PlanetExpeditions`. PR #248 `pregame-scenarios` ships F4.2's lobby, F5.1 (crews), F5.2 and F5.3 (the Crashlanded start) as `RoundSetup`, and a ShipAccess Crew mode. Neither contains outpost code: the Outpost start, claiming and the outpost console remain this plan's.
 - The public roadmap (`Resources/Prototypes/_WF/Roadmap/roadmap.yml`) lists the Outposts milestones as Planned, and a separate Planned item, "Random planet structures", that overlaps F7.2; coordinate before starting either.
 
 ## Order
@@ -44,17 +45,19 @@ Live status per step is on the build board (link above). Landed:
 For one or two developers, in this order. Steps on the same line can run in parallel because they do not touch the
 same files.
 
+Revised 2026-10-16: F3, F7.1, F7.2 and the lobby half of F4 and F5 arrived first (PRs #94, #231, #248), so the spine is what is left.
+
 1. F0.1, F0.2, F0.3 (spikes, in parallel)
 2. F1.1, then F1.2
 3. F1.3
-4. F1.4, F1.5 (F3.1 to F3.3 already shipped in PR #94)
+4. F1.4, F1.5
 5. F2.1, F2.2, F2.3, F2.4 in order
-6. F1.6 (sale), F3.4 (outposts adopt ship access)
-7. F4.1, F4.2, F4.3 in order, in parallel with F2.5, F2.6
-8. F7.1 (bounds), F6.1 (landing guard) in parallel
-9. F8.1, F8.2, F8.3 in order, in parallel with F7.2, F7.3
-10. F4.4 (presets), F5.1, F5.2, F5.3
-11. F6.2 (pads), F7.4, F7.5, F9.1, F9.2, F9.3
+6. F1.6 (sale), F3.4 (outposts adopt ship access, now via the Crew link from PR #248)
+7. F4.1 (cryopod and Outpost Job), then the Outpost start as a RoundSetup crew type (replaces F4.2's own lobby work and F4.3's positions), in parallel with F2.5, F2.6
+8. F6.1 (landing guard), F7.3 (claiming on the PR #231 sites)
+9. F8.1, F8.2, F8.3 in order
+10. F4.4 (presets), F7.4 (the remaining POI types), F7.5
+11. F6.2 (pads), F9.1, F9.2, F9.3
 12. F10.x as wanted
 
 ## F0: Spikes
@@ -119,8 +122,8 @@ Module `SpawnOptions` (lobby, round-start handler, picker tab) plus `Outposts` (
 | Step | Ships | Done when | Size | Needs |
 |---|---|---|---|---|
 | F4.1 Cryopod and Outpost Job | `WFOutpostCryopodComponent` on a Frontier `CryoSleepComponent` pod (unpowered spawn, anchored, max 6 per outpost), the `WFOutpostSettler` job with `setPreference: false`, `JobWFOutpostSettler` role loadout, custom title entry, loadout editing in the editor's Outposts tab, and the smallest way to use them: a "Spawn at my outpost" button on the late-join screen for a player who owns a live outpost with a free pod | Test: a late joiner who owns a live outpost appears in its pod as the settler job with their loadout | M | F1.3, F3.4 |
-| F4.2 Spawn Options and round start | Lobby Spawn Options button and panel (Standard, Outpost Spawn; Crash greyed out), round-state pick, `RulePlayerSpawningEvent` handler, footprint reservation before POIs (a no-op until F7), queued round-start loads (one grid per two ticks), players wait in the lobby until their grid lands then `MakeJoinGame`, fallback to Standard with a refund and a message, the checks table, the live-outpost cap cvar | Test: two readied outpost players both land in their pods; a third with no money falls back to Standard | L, split F4.2a (panel and pick) and F4.2b (round-start handler) | F4.1 |
-| F4.3 Joinable positions | `WFOutpostStation` config, the outpost becomes a station at load, public slots always 0, `HiddenWithoutOpenJobs`, the WF join handler that opens and closes a slot in one tick, the Outposts tab on the late-join picker, the Outpost Configurator (Spawn Options panel pre-round, Crew tab in-round), positions saved with the outpost, visibility Open / Code / Group only / Private | Test: `joingame` cannot take a position; the WF handler can | M | F4.2 |
+| F4.2 Spawn Options and round start (lobby shipped in PR #248 as RoundSetup; left: the Outpost crew type and its round-start load) | Lobby Spawn Options button and panel (Standard, Outpost Spawn; Crash greyed out), round-state pick, `RulePlayerSpawningEvent` handler, footprint reservation before POIs (a no-op until F7), queued round-start loads (one grid per two ticks), players wait in the lobby until their grid lands then `MakeJoinGame`, fallback to Standard with a refund and a message, the checks table, the live-outpost cap cvar | Test: two readied outpost players both land in their pods; a third with no money falls back to Standard | L, split F4.2a (panel and pick) and F4.2b (round-start handler) | F4.1 |
+| F4.3 Joinable positions (crews, roles, slots, invitations and mid-round joins shipped in PR #248; left: pod spawn and crew records on the outpost) | `WFOutpostStation` config, the outpost becomes a station at load, public slots always 0, `HiddenWithoutOpenJobs`, the WF join handler that opens and closes a slot in one tick, the Outposts tab on the late-join picker, the Outpost Configurator (Spawn Options panel pre-round, Crew tab in-round), positions saved with the outpost, visibility Open / Code / Group only / Private | Test: `joingame` cannot take a position; the WF handler can | M | F4.2 |
 | F4.4 Presets | `wfOutpostPreset` prototype, the four preset grids in `Resources/SharedMaps/_WF/Outposts`, MapInit path in the loader, presets in the Save tab and in Spawn at Outpost, the universal preset test | Test: every preset has a console, a pod, a UTH, fits the cap and is priced at or above appraisal x 1.5 | M | F4.2, F2.4 |
 
 **M3 lands at F4.2.**
@@ -131,9 +134,9 @@ Module `SpawnOptions`.
 
 | Step | Ships | Done when | Size | Needs |
 |---|---|---|---|---|
-| F5.1 Play groups | `WFPlayGroupManager` (in memory, cleared each round), lobby group browser, Open / Join Code / Private with requests and invites (ERT prompt message pattern), one group per player, leader kick, outpost scenario only, members' spawn option locked to the group | Test: a private group's request and accept flow; a member lands in the leader's pod | M | F4.3 |
-| F5.2 Shuttle Crash, solo | `wfCrashPool`, world pick (sanctioned, 3 g excluded, Carcinoma opt-in), crash job pool, orbit-layer spawn, `WFCrashSequenceComponent` (console refused, pilots cleared, thrusters off, orbit decay suppressed), the PA sequence with `WFAlertCrash`, `TryDropFromOrbit` at T+2:30 with `EnterLiftLost`, impact clamp, post-impact unlock and the Crashed code, deed to the leader after the crew spawns, sale baseline on the hull, spawn-distance rules against outposts and crash sites | Test: a solo crash player wakes buckled in orbit and is on the ground at about T+3:00 with a hull that has a console | L, split F5.2a (spawn and sequence) and F5.2b (drop, clamp, aftermath) | F4.2 |
-| F5.3 Crash multiplay | Groups may pick Crash, seats cap the group, all members spawn buckled, everyone on the allow list of the hull | Test: a group of three lands together with door access | S | F5.1, F5.2 |
+| F5.1 Play groups (shipped in PR #248 as RoundSetup crews) | `WFPlayGroupManager` (in memory, cleared each round), lobby group browser, Open / Join Code / Private with requests and invites (ERT prompt message pattern), one group per player, leader kick, outpost scenario only, members' spawn option locked to the group | Test: a private group's request and accept flow; a member lands in the leader's pod | M | F4.3 |
+| F5.2 Shuttle Crash, solo (shipped in PR #248 as the Crashlanded start; differences: no world filters, no impact clamp, survival kit) | `wfCrashPool`, world pick (sanctioned, 3 g excluded, Carcinoma opt-in), crash job pool, orbit-layer spawn, `WFCrashSequenceComponent` (console refused, pilots cleared, thrusters off, orbit decay suppressed), the PA sequence with `WFAlertCrash`, `TryDropFromOrbit` at T+2:30 with `EnterLiftLost`, impact clamp, post-impact unlock and the Crashed code, deed to the leader after the crew spawns, sale baseline on the hull, spawn-distance rules against outposts and crash sites | Test: a solo crash player wakes buckled in orbit and is on the ground at about T+3:00 with a hull that has a console | L, split F5.2a (spawn and sequence) and F5.2b (drop, clamp, aftermath) | F4.2 |
+| F5.3 Crash multiplay (shipped in PR #248: crews share the crash and the ship's Crew access) | Groups may pick Crash, seats cap the group, all members spawn buckled, everyone on the allow list of the hull | Test: a group of three lands together with door access | S | F5.1, F5.2 |
 
 ## F6: Landing guard and pads
 
@@ -150,10 +153,10 @@ Module `PlanetPois`, bounds in Planets.
 
 | Step | Ships | Done when | Size | Needs |
 |---|---|---|---|---|
-| F7.1 World bounds | `Bounds` on the surface prototype, the `BiomeSystem` chunk filter hook, the edge ring per world, mobs and items pushed back, air-layer soft wall, Enter Atmosphere and pad descent refused outside, `WFPlanetRadarSystem.Sample` empty outside | Test: a chunk outside the bound never loads; a mob at the edge is pushed in | M | Planets |
-| F7.2 POI placer and beacons | `wfPlanetPoiTable`, `wfPoiType`, the placer (after outpost reservations, spacing from the placement rule, gives up instead of returning a bad roll), POI grids as separate grids with `ReserveTiles`, orbit beacons with the PVS override starting as "Unknown signal", reveal at 50 m, the first three types from existing grids: Mine (surface part), Abandoned outpost, Small derelict | Test: a world rolls 8 to 14 POIs, none inside a reserved footprint, each with a beacon | M | F7.1, F4.2 |
+| F7.1 World bounds (shipped in PR #231 as a 256-tile-radius circle, fully preloaded, with a boundary wall) | `Bounds` on the surface prototype, the `BiomeSystem` chunk filter hook, the edge ring per world, mobs and items pushed back, air-layer soft wall, Enter Atmosphere and pad descent refused outside, `WFPlanetRadarSystem.Sample` empty outside | Test: a chunk outside the bound never loads; a mob at the edge is pushed in | M | Planets |
+| F7.2 POI placer and beacons (shipped in PR #231 as PlanetPois and PlanetSignals; left: the Mine surface camp as a table entry) | `wfPlanetPoiTable`, `wfPoiType`, the placer (after outpost reservations, spacing from the placement rule, gives up instead of returning a bad roll), POI grids as separate grids with `ReserveTiles`, orbit beacons with the PVS override starting as "Unknown signal", reveal at 50 m, the first three types from existing grids: Mine (surface part), Abandoned outpost, Small derelict | Test: a world rolls 8 to 14 POIs, none inside a reserved footprint, each with a beacon | M | F7.1, F4.2 |
 | F7.3 Claiming | Claim on a POI console (no hostiles, repaired or hacked as the type says), free, claim baseline stored, half-of-world cap, claimed POIs save and sell like any outpost | Test: claim an abandoned outpost, save it, sale pays only what was added | S | F7.2, F1.6 |
-| F7.4 The rest of the taxonomy | Automated outpost (turrets, hackable core), Tradepost (WF Traders, public pad, public UTH, safe zone), Derelict capital ship, Farm, Workshop (recipe disks drop here), Ruins with clue items, Heavenly shrine, Alien artifact site, faint signals, the survey tool | Each type has a grid, a test that it loads, and a beacon behaviour | L across several PRs, one or two types each | F7.3 |
+| F7.4 The rest of the taxonomy (PR #231 covers tradeposts, abandoned settlements, cities and shelters; left: Automated outpost, Derelict capital ship, Farm, Workshop, Ruins, Shrine, Artifact site, faint signals, survey tool) | Automated outpost (turrets, hackable core), Tradepost (WF Traders, public pad, public UTH, safe zone), Derelict capital ship, Farm, Workshop (recipe disks drop here), Ruins with clue items, Heavenly shrine, Alien artifact site, faint signals, the survey tool | Each type has a grid, a test that it loads, and a beacon behaviour | L across several PRs, one or two types each | F7.3 |
 | F7.5 Caverns interplay | Caverns are shipped (PR #40). Mouth claims skip cells under a claim zone and the placement rule keeps footprints off existing mouths; the foundation bed tile is excluded from digging, hole fitting and stairs exits (confirm how the stairs and hole checks see an overlapping grid, Q26); the Mine POI is a surface grid over the shared cavern; the tunneller raid arrival comes with F8 | Test: no mouth cell is claimed under a claim zone; a shovel does nothing on a foundation bed tile; stairs are refused under an outpost | S | F7.2 |
 
 ## F8: Outpost attacks
