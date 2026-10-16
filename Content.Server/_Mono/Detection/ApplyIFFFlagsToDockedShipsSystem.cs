@@ -1,5 +1,4 @@
 using Content.Server.Shuttles.Events;
-using Content.Shared.Shuttles.Components;
 using Content.Shared.Shuttles.Systems;
 
 namespace Content.Server._Mono.Detection;
@@ -18,6 +17,7 @@ public sealed partial class ApplyIFFFlagsToDockedShipsSystem : EntitySystem
 
     private void OnDock(DockEvent args)
     {
+<<<<<<< HEAD
         // WOLFGATE(Shuttles) START: the host can be grid B, since docking orders the pair by entity id.
         if (TryComp<ApplyIFFFlagsToDockedShipsComponent>(args.GridBUid, out var hostB))
             ApplyFlags(args.GridAUid, hostB, true);
@@ -27,10 +27,17 @@ public sealed partial class ApplyIFFFlagsToDockedShipsSystem : EntitySystem
             return;
 
         ApplyFlags(args.GridBUid, iffComp, true);
+=======
+        if (TryComp<ApplyIFFFlagsToDockedShipsComponent>(args.GridAUid, out var iffCompA))
+            ApplyFlags(args.GridBUid, iffCompA);
+        if (TryComp<ApplyIFFFlagsToDockedShipsComponent>(args.GridBUid, out var iffCompB))
+            ApplyFlags(args.GridAUid, iffCompB);
+>>>>>>> 633322bfeb (Fix ApplyIFFFlagsToDockedShipsSystem (#4878))
     }
 
     private void OnUndock(UndockEvent args)
     {
+<<<<<<< HEAD
         // WOLFGATE(Shuttles) START: the host can be grid B, since grid A is the side that undocked, usually the ship.
         if (TryComp<ApplyIFFFlagsToDockedShipsComponent>(args.GridBUid, out var hostB))
             ApplyFlags(args.GridAUid, hostB, false);
@@ -40,6 +47,12 @@ public sealed partial class ApplyIFFFlagsToDockedShipsSystem : EntitySystem
             return;
 
         ApplyFlags(args.GridBUid, iffComp, false);
+=======
+        if (TryComp<ApplyIFFFlagsToDockedShipsComponent>(args.GridAUid, out var iffCompA))
+            ApplyFlags(args.GridBUid, iffCompA, false);
+        if (TryComp<ApplyIFFFlagsToDockedShipsComponent>(args.GridBUid, out var iffCompB))
+            ApplyFlags(args.GridAUid, iffCompB, false);
+>>>>>>> 633322bfeb (Fix ApplyIFFFlagsToDockedShipsSystem (#4878))
     }
 
     public void ApplyFlags(EntityUid gridUid, ApplyIFFFlagsToDockedShipsComponent iffComp, bool applying = true)
