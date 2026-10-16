@@ -89,6 +89,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
         InitializeCrewSignals();
         InitializeSpawning();
         InitializeDemo();
+        InitializeBroadcast();
     }
 
     /// <inheritdoc/>
@@ -100,10 +101,10 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
         if (now >= _nextUpdate)
         {
             _nextUpdate = now + TimeSpan.FromSeconds(2);
-            PrunePendingAdmissions();
+            var pruned = PrunePendingAdmissions();
             UpdateDemo();
             SyncCrewShips();
-            Broadcast();
+            BroadcastIfChanged(pruned);
         }
         if (!_broadcastPending || now < _nextBroadcast)
             return;
@@ -154,10 +155,17 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     {
         var session = args.SenderSession;
         var user = session.UserId;
+        // A keep-alive only extends the viewer's lease, so it skips the rate limit and sends nothing back.
+        if (msg.Action == WFRoundSetupAction.Watch)
+        {
+            if (_watchers.Contains(user))
+                Watch(user);
+            return;
+        }
         if (_nextRequest.TryGetValue(user, out var next) && next > _timing.CurTime)
             return;
         _nextRequest[user] = _timing.CurTime + TimeSpan.FromMilliseconds(150);
-        _watchers.Add(user);
+        Watch(user);
         if (!Enum.IsDefined(msg.Action) || session.Status != SessionStatus.InGame || !_userDb.IsLoadComplete(session))
             return;
         if (msg.Action == WFRoundSetupAction.Refresh)
@@ -667,16 +675,21 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     }
 
     /// <summary>Expired requests and invitations must not consume the bounded admission queues.</summary>
-    private void PrunePendingAdmissions()
+    private bool PrunePendingAdmissions()
     {
+        var changed = false;
         foreach (var lobby in _lobbies.Values)
         {
             if (lobby.PendingShip is { } pending && !ValidShipChange(lobby, pending))
+            {
                 lobby.PendingShip = null;
+                changed = true;
+            }
             foreach (var user in lobby.Requests.Keys.Where(IsUnavailable).ToArray())
-                lobby.Requests.Remove(user);
-            lobby.Invitations.RemoveWhere(IsUnavailable);
+                changed |= lobby.Requests.Remove(user);
+            changed |= lobby.Invitations.RemoveWhere(IsUnavailable) > 0;
         }
+        return changed;
 
         bool IsUnavailable(NetUserId user) =>
             !_players.TryGetSessionById(user, out var session) || !CanEnter(session) || FindLobby(user) != null;
@@ -684,21 +697,4 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
 
     /// <summary>Coalesces mutations into a bounded stream of snapshots for other viewers.</summary>
     private void Broadcast() => _broadcastPending = true;
-
-    /// <summary>Delivers queued snapshots and removes disconnected viewers.</summary>
-    private void FlushBroadcast()
-    {
-        RefreshPortraits();
-        foreach (var user in _watchers.ToArray())
-        {
-            if (_players.TryGetSessionById(user, out var session))
-                SendState(session, refreshPortraits: false);
-            else
-            {
-                _watchers.Remove(user);
-                _nextRequest.Remove(user);
-                _nextCodeAttempt.Remove(user);
-            }
-        }
-    }
 }

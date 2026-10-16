@@ -23,7 +23,7 @@ public enum WFRoundSetupAction : byte
 {
     Refresh, Create, Configure, Join, Leave, AcceptRequest, RejectRequest,
     Invite, AcceptInvite, DeclineInvite, SelectJob, SetReady, Launch, RegenerateCode, Kick, TransferHost,
-    SelectVessel, UpsertRole, RemoveRole, SelectRole, ConfirmJoin, ChangeScenario, SelectShipStart, ApplyRoster, SetTitle, SaveSetup, LoadSetup, DeleteSetup, SetShipName, AssignShip, ApproveShip, CancelShip, SetContribution,
+    SelectVessel, UpsertRole, RemoveRole, SelectRole, ConfirmJoin, ChangeScenario, SelectShipStart, ApplyRoster, SetTitle, SaveSetup, LoadSetup, DeleteSetup, SetShipName, AssignShip, ApproveShip, CancelShip, SetContribution, Watch,
 }
 
 /// <summary>A request whose actor is always taken from its network session.</summary>
