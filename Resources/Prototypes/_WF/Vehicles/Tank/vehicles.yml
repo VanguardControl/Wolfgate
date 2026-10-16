@@ -20,6 +20,9 @@
     hornSound: /Audio/_WF/Vehicles/RCSM/horn/horn.ogg
     hornCooldown: 2
   - type: WFVehicleEngineAudio
+    gears: 6
+    shiftSound:
+      collection: WFRcsmEngineShift
     startSound: /Audio/_WF/Vehicles/RCSM/engines/leopard/start.ogg
     stopSound: /Audio/_WF/Vehicles/RCSM/engines/leopard/stop.ogg
     idleLoop: /Audio/_WF/Vehicles/RCSM/engines/leopard/idle.ogg

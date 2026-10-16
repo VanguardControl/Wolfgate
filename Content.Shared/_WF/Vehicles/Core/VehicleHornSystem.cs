@@ -77,6 +77,9 @@ public sealed partial class VehicleHornSystem : EntitySystem
         if (!TryComp(vehicle, out RMCVehicleComponent? vehicleComp) || vehicleComp.Operator != user)
             return;
 
+        if (TryComp(vehicle, out WFVehicleEngineComponent? engine) && !engine.Powered)
+            return;
+
         if (!TryComp(vehicle, out VehicleSoundComponent? sound) || sound.HornSound == null)
             return;
 

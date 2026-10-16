@@ -7,11 +7,11 @@ namespace Content.Shared._WF.Vehicles.Audio;
 [RegisterComponent]
 public sealed partial class WFVehicleEngineAudioComponent : Component
 {
-    /// <summary>Played once when a driver takes the wheel.</summary>
+    /// <summary>Played once when the ignition starts the engine.</summary>
     [DataField]
     public SoundSpecifier? StartSound;
 
-    /// <summary>Played once when the driver lets go.</summary>
+    /// <summary>Played once when the engine stops.</summary>
     [DataField]
     public SoundSpecifier? StopSound;
 
@@ -42,6 +42,15 @@ public sealed partial class WFVehicleEngineAudioComponent : Component
     /// <summary>Played on each upshift; see <see cref="Gears"/>.</summary>
     [DataField]
     public SoundSpecifier? ShiftSound;
+
+    [DataField]
+    public SoundSpecifier BrakeSound = new SoundPathSpecifier("/Audio/_WF/Vehicles/RCSM/wheels/brake.ogg");
+
+    [DataField]
+    public SoundSpecifier SkidSound = new SoundPathSpecifier("/Audio/_WF/Vehicles/RCSM/wheels/skid.ogg");
+
+    public float BrakeCooldown;
+    public float SkidCooldown;
 
     /// <summary>Gears across the speed range; revs climb through each and drop on a shift. Zero holds revs to speed.</summary>
     [DataField]
