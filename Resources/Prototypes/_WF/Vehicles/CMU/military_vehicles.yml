@@ -61,6 +61,7 @@
     hornSound: /Audio/_WF/Vehicles/RCSM/horn/horn.ogg
     hornCooldown: 2
   - type: WFVehicleEngineAudio
+    gears: 0
     startSound: /Audio/_WF/Vehicles/RCSM/engine/start.ogg
     stopSound: /Audio/_WF/Vehicles/RCSM/engine/stop.ogg
     idleLoop: /Audio/_WF/Vehicles/RCSM/engine/idle_loop.ogg

@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._WF.Vehicles.Audio;
 using Content.Shared._WF.Vehicles.Base;
+using Content.Shared._WF.Vehicles.Core;
 using Content.Shared._WF.Vehicles.Grid.Components;
 using Content.Shared._WF.Vehicles.Turret;
 using Robust.Shared.Audio;
@@ -38,7 +39,7 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
     private void OnEngineStartup(Entity<WFVehicleEngineAudioComponent> ent, ref ComponentStartup args)
     {
         // A vehicle that comes into view already driven skips the start-up sound.
-        if (TryComp(ent, out RMCVehicleComponent? vehicle) && vehicle.Operator != null)
+        if (TryComp(ent, out WFVehicleEngineComponent? ignition) && ignition.Running)
         {
             ent.Comp.EngineOn = true;
             ent.Comp.Warmup = 1f;
@@ -74,7 +75,7 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
 
     private void UpdateEngine(EntityUid uid, WFVehicleEngineAudioComponent engine, RMCVehicleComponent vehicle, float frameTime)
     {
-        var running = vehicle.Operator != null;
+        var running = TryComp(uid, out WFVehicleEngineComponent? ignition) ? ignition.Running : vehicle.Operator != null;
         if (running != engine.EngineOn)
         {
             engine.EngineOn = running;
@@ -93,9 +94,6 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
                 engine.Gear = 0;
             }
         }
-
-        if (!engine.EngineOn)
-            return;
 
         var speed = 0f;
         var pivot = 0f;
@@ -119,7 +117,27 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
 
         // Load: how hard the engine is pulling, from the change in speed.
         var accelerating = frameTime > 0f ? (speed - engine.LastSpeed) / frameTime : 0f;
+        engine.BrakeCooldown -= frameTime;
+        engine.SkidCooldown -= frameTime;
+        if (accelerating < -2f && speed > 1f && engine.BrakeCooldown <= 0f)
+        {
+            PlayOnce(engine.BrakeSound, uid, engine.LoopParams);
+            engine.BrakeCooldown = 2f;
+        }
+        var heading = mover?.Heading ?? default;
+        if (mover != null && !mover.TurnInPlace && speed > 3f && engine.SkidCooldown <= 0f &&
+            (accelerating < -5f || Vector2.Distance(mover.TravelVelocity, heading.ToWorldVec() * mover.CurrentSpeed) > 2f))
+        {
+            PlayOnce(engine.SkidSound, uid, engine.LoopParams);
+            engine.SkidCooldown = 2f;
+        }
         engine.LastSpeed = speed;
+        if (!engine.EngineOn)
+        {
+            engine.TracksStream = UpdateLoop(engine.TracksStream, engine.TracksLoop, uid, engine.LoopParams,
+                MathF.Min(1f, speedFraction * 2.5f), Lerp(engine.TracksPitch, speedFraction));
+            return;
+        }
         var load = Math.Clamp(accelerating / acceleration, 0f, 1f);
         engine.Load += (load - engine.Load) * Math.Clamp(6f * frameTime, 0f, 1f);
 
@@ -166,7 +184,7 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
         var target = Math.Clamp(MathF.Max(revs, pivot * engine.PivotThrottle) + engine.Load * engine.LoadRevs, 0f, 1f);
         // An upshift drops the revs at once rather than easing down, so the change is heard.
         engine.Throttle = shifted
-            ? MathF.Min(engine.Throttle, target)
+            ? MathF.Min(engine.Throttle, MathF.Min(target, 0.35f))
             : engine.Throttle + (target - engine.Throttle) * Math.Clamp(engine.ThrottleResponse * frameTime, 0f, 1f);
         engine.Warmup = engine.StartDelay <= 0f ? 1f : MathF.Min(1f, engine.Warmup + frameTime / engine.StartDelay);
 

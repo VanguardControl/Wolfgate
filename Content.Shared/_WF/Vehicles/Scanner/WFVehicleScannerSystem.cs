@@ -46,8 +46,25 @@ public sealed class WFVehicleScannerSystem : EntitySystem
         if (args.Handled || ent.Comp.BuckledTo is not { } seat || !HasComp<WFVehicleScannerComponent>(seat))
             return;
 
+        if (_interiors.TryGetVehicleFromInterior(seat, out var vehicle) &&
+            TryComp(vehicle, out WFVehicleEngineComponent? engine) && !engine.Powered)
+            return;
+
         _ui.TryToggleUi(seat, RadarConsoleUiKey.Key, ent.Owner);
         args.Handled = true;
+    }
+
+    public override void Update(float frameTime)
+    {
+        if (_net.IsClient)
+            return;
+        var query = EntityQueryEnumerator<WFVehicleScannerComponent>();
+        while (query.MoveNext(out var uid, out _))
+        {
+            if (_interiors.TryGetVehicleFromInterior(uid, out var vehicle) &&
+                TryComp(vehicle, out WFVehicleEngineComponent? engine) && !engine.Powered)
+                _ui.CloseUi(uid, RadarConsoleUiKey.Key);
+        }
     }
 
     /// <summary>The scanner looks out from the vehicle the seat is in.</summary>
