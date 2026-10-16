@@ -42,3 +42,14 @@ wf-vehicle-tab-weapons = WEAPONS
 wf-vehicle-tab-parts = COMPONENTS
 wf-vehicle-tab-ammunition = AMMUNITION
 wf-vehicle-tab-radar = RADAR
+
+wf-vehicle-dashboard-systems = VEHICLE SYSTEMS
+wf-vehicle-switch-WFActionVehicleOvercharge = OVERDRIVE
+wf-vehicle-switch-ActionVehicleToggleView = VIEW
+wf-vehicle-switch-ActionVehicleLock = LOCK
+wf-vehicle-switch-WFActionVehicleScanner = RADAR
+wf-vehicle-switch-WFActionVehicleSteeringMode = STEERING
+wf-vehicle-switch-CMUActionVehicleEmergencyLights = BEACONS
+wf-vehicle-switch-CMUActionCargoVehicleReturn = RETURN
+wf-vehicle-switch-CMUActionCargoVehicleToggleBay = CARGO BAY
+wf-vehicle-switch-CMUActionCargoVehicleSelfDestruct = SELF DESTRUCT
