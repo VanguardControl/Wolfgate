@@ -32,7 +32,12 @@ entry ids from 100000).
 - [`.github/mapchecker/mapchecker.py`](../../../.github/mapchecker/mapchecker.py)
   - Wolfgate entities sit in module folders
   - Wolfgate vessels and map prototypes sit in module folders
-- [`.github/workflows/build-test-debug.yml`](../../../.github/workflows/build-test-debug.yml): exclude Shipyard tests in NUnit itself; the --filter form still ran them and only hid the results
+- [`.github/workflows/build-test-debug.yml`](../../../.github/workflows/build-test-debug.yml)
+  - split the integration tests over three runners; each builds and runs one shard
+  - unit tests run once, on the core shard
+  - exclude Shipyard tests in NUnit itself; the --filter form still ran them and only hid the results
+  - one artifact per shard
+  - report failure instead of skipping when a shard fails; a skipped required check counts as passed
 - [`.github/workflows/changelog.yml`](../../../.github/workflows/changelog.yml)
   - built-in token instead of bot PAT
   - our changes. Monolith.yml fills itself from upstream merges.
