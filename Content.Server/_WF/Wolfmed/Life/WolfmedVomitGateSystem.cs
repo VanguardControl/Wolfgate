@@ -8,7 +8,7 @@ namespace Content.Server._WF.Wolfmed.Life;
 [ByRefEvent]
 public record struct WolfmedVomitAttemptEvent(bool Cancelled = false);
 
-/// <summary>A wound host that is dead, unconscious or in cardiac arrest does not vomit.</summary>
+/// <summary>A wound host that is dead or in cardiac arrest does not vomit.</summary>
 public sealed class WolfmedVomitGateSystem : EntitySystem
 {
     [Dependency] private MobStateSystem _mobState = default!;
@@ -21,7 +21,7 @@ public sealed class WolfmedVomitGateSystem : EntitySystem
 
     private void OnVomitAttempt(Entity<WoundHostComponent> ent, ref WolfmedVomitAttemptEvent args)
     {
-        if (_mobState.IsIncapacitated(ent) || HasComp<WolfmedCardiacArrestComponent>(ent))
+        if (_mobState.IsDead(ent) || HasComp<WolfmedCardiacArrestComponent>(ent))
             args.Cancelled = true;
     }
 }

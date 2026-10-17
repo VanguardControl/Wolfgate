@@ -46,7 +46,7 @@ namespace Content.Server.Medical
             if (stomachList.Count == 0)
                 return;
 
-            // WOLFGATE(Wolfmed) START: no vomiting while dead, unconscious or in cardiac arrest.
+            // WOLFGATE(Wolfmed) START: no vomiting while dead or in cardiac arrest.
             var wolfmedAttempt = new Content.Server._WF.Wolfmed.Life.WolfmedVomitAttemptEvent();
             RaiseLocalEvent(uid, ref wolfmedAttempt);
             if (wolfmedAttempt.Cancelled)

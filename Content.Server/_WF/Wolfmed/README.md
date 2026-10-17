@@ -1213,7 +1213,7 @@ Skipped ("dirty-disposed").
   - W0, on a wound host the refusal is about the selected part, not the whole patient.
   - HOOK 8, the do-after carries the part the heal resolved.
 - [`Content.Server/Medical/HealthAnalyzerSystem.cs`](../../Medical/HealthAnalyzerSystem.cs): HOOK 23
-- [`Content.Server/Medical/VomitSystem.cs`](../../Medical/VomitSystem.cs): no vomiting while dead, unconscious or in cardiac arrest.
+- [`Content.Server/Medical/VomitSystem.cs`](../../Medical/VomitSystem.cs): no vomiting while dead or in cardiac arrest.
 - [`Content.Server/NPC/Systems/NPCUtilitySystem.cs`](../../NPC/Systems/NPCUtilitySystem.cs): animals leave severed limbs alone so they can be reattached
 - [`Content.Server/Nutrition/EntitySystems/FoodSystem.cs`](../../Nutrition/EntitySystems/FoodSystem.cs)
   - using a severed limb in hand does not eat it

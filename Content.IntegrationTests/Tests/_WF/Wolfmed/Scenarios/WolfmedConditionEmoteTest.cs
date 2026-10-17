@@ -36,8 +36,6 @@ public sealed class WolfmedConditionEmoteTest : WolfmedGameTest
         await OverrideCVar(Side.Server, WolfmedCVars.ConditionRetchSepsis, 60f);
         await OverrideCVar(Side.Server, WolfmedCVars.ConditionVomitSepsis, 90f);
         await OverrideCVar(Side.Server, WolfmedCVars.SedationWarnHeavy, 0.8f);
-        // Septic shock knocks the body out, and an unconscious body shows nothing.
-        await OverrideCVar(Side.Server, WolfmedCVars.SepticShockAt, 101f);
     }
 
     /// <summary>
@@ -223,11 +221,11 @@ public sealed class WolfmedConditionEmoteTest : WolfmedGameTest
     }
 
     /// <summary>
-    /// <c>UnconsciousOrArrestedStaysQuietTest</c>: an unconscious body and one in cardiac arrest neither show a
-    /// condition nor vomit.
+    /// <c>ArrestedStaysQuietTest</c>: a body in cardiac arrest neither shows a condition nor vomits; an unconscious
+    /// one still does both.
     /// </summary>
     [Test]
-    public async Task UnconsciousOrArrestedStaysQuietTest()
+    public async Task ArrestedStaysQuietTest()
     {
         var map = await CreateTestMap();
         await Server.WaitAssertion(() =>
@@ -252,8 +250,8 @@ public sealed class WolfmedConditionEmoteTest : WolfmedGameTest
                 Assert.That(Vomits(awake), Is.True);
                 Assert.That(emotes.CanShow(arrested), Is.False, "a stopped heart emoted.");
                 Assert.That(Vomits(arrested), Is.False, "a stopped heart vomited.");
-                Assert.That(emotes.CanShow(unconscious), Is.False, "an unconscious body emoted.");
-                Assert.That(Vomits(unconscious), Is.False, "an unconscious body vomited.");
+                Assert.That(emotes.CanShow(unconscious), Is.True, "an unconscious body cannot cough or retch.");
+                Assert.That(Vomits(unconscious), Is.True, "an unconscious body cannot vomit.");
             });
         });
     }
