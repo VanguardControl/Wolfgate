@@ -73,6 +73,10 @@ public sealed partial class ShipAlertSystem
             _pa.Announce(grid, Loc.GetString("ship-distress-announcement-cancel"), alert.AnnouncementChime);
         }
 
+        var changed = new WFShipAlertChangedEvent(grid,
+            active ? WFShipAlertChange.DistressSent : WFShipAlertChange.DistressCancelled, null);
+        RaiseLocalEvent(grid, ref changed, broadcast: true);
+
         _adminLogger.Add(LogType.Action, LogImpact.High,
             $"{(user is { } actor ? ToPrettyString(actor).ToString() : "Server")} {(active ? "sent" : "cancelled")} a distress call from {ToPrettyString(grid)}");
     }
@@ -91,6 +95,8 @@ public sealed partial class ShipAlertSystem
             alert.Distress = false;
             Dirty(uid, alert);
             _pa.Announce(uid, Loc.GetString("ship-distress-announcement-lapsed"), alert.AnnouncementChime);
+            var changed = new WFShipAlertChangedEvent(uid, WFShipAlertChange.DistressCancelled, null);
+            RaiseLocalEvent(uid, ref changed, broadcast: true);
             _adminLogger.Add(LogType.Action, LogImpact.Low, $"The distress call of {ToPrettyString(uid)} lapsed");
         }
     }

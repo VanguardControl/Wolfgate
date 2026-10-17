@@ -126,6 +126,9 @@ public sealed partial class ShipAlertSystem : EntitySystem
 
         alert.NextAnnouncement = _timing.CurTime + alert.AnnouncementCooldown;
 
+        var changed = new WFShipAlertChangedEvent(grid, WFShipAlertChange.Announcement, text);
+        RaiseLocalEvent(grid, ref changed, broadcast: true);
+
         _adminLogger.Add(LogType.Action, LogImpact.Medium,
             $"{ToPrettyString(args.Actor):player} announced on the PA of {ToPrettyString(grid):grid}: {text}");
     }
@@ -271,6 +274,8 @@ public sealed partial class ShipAlertSystem : EntitySystem
 
         var ev = new ShipAlertCodeChangedEvent(grid, old, code, user);
         RaiseLocalEvent(grid, ref ev, broadcast: true);
+        var changed = new WFShipAlertChangedEvent(grid, WFShipAlertChange.Code, code.Id);
+        RaiseLocalEvent(grid, ref changed, broadcast: true);
 
         _adminLogger.Add(LogType.Action, LogImpact.High,
             $"{(user is { } actor ? ToPrettyString(actor).ToString() : "Server")} set {ToPrettyString(grid)} to {code.Id}");
@@ -311,6 +316,9 @@ public sealed partial class ShipAlertSystem : EntitySystem
 
         var ev = new ShipGeneralQuartersChangedEvent(grid, active, user);
         RaiseLocalEvent(grid, ref ev, broadcast: true);
+        var changed = new WFShipAlertChangedEvent(grid,
+            active ? WFShipAlertChange.GeneralQuartersSounded : WFShipAlertChange.GeneralQuartersSecured, null);
+        RaiseLocalEvent(grid, ref changed, broadcast: true);
 
         _adminLogger.Add(LogType.Action, LogImpact.High,
             $"{(user is { } actor ? ToPrettyString(actor).ToString() : "Server")} {(active ? "sounded" : "secured from")} general quarters on {ToPrettyString(grid)}");

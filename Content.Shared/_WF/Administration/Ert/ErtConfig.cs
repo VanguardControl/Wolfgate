@@ -162,3 +162,7 @@ public sealed class ErtSpawnResultEvent : EntityEventArgs
         IsError = isError;
     }
 }
+
+/// <summary>Raised, by ref and broadcast, after an ERT team's slots are placed; <c>Ship</c> is its vessel, if it has one.</summary>
+[ByRefEvent]
+public readonly record struct WFErtSpawnedEvent(string Team, EntityUid? Ship, int Members);

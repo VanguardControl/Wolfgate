@@ -34,6 +34,9 @@ public sealed class AdminRadarControl : ShuttleNavControl
     /// <summary>Players closer together than this on screen share one label.</summary>
     private const float PlayerMergeDistance = 10f;
 
+    /// <summary>How close a click has to be to a player's dot to pick it.</summary>
+    private const float PlayerPickDistance = 12f;
+
     private static readonly Color PlayerColor = Color.FromHex("#5CE1E6");
 
     private readonly AdminRadarSystem _adminRadar;
@@ -42,6 +45,7 @@ public sealed class AdminRadarControl : ShuttleNavControl
 
     private readonly List<(IFFComponent Iff, IFFFlags Flags)> _hiddenIff = new();
     private readonly List<(Vector2 Position, string Name, int Others)> _playerLabels = new();
+    private readonly List<(Vector2 Position, NetEntity Entity)> _playerHits = new();
 
     public AdminRadarControl() : base(AdminMinRange, AdminMaxRange, StartRange)
     {
@@ -51,6 +55,18 @@ public sealed class AdminRadarControl : ShuttleNavControl
 
         // The nav control fixes itself to a square; here the window sets the size and the drawing follows it.
         SetSize = new Vector2(float.NaN, float.NaN);
+    }
+
+    /// <summary>Whether a drag pans the view even when the viewed entity is no pannable console.</summary>
+    public bool ForcePan;
+
+    /// <summary>Drawn on top of everything else, in this control's pixel space.</summary>
+    public event Action<DrawingHandleScreen>? OverlayDraw;
+
+    protected override bool Draggable
+    {
+        get => ForcePan || base.Draggable;
+        set => base.Draggable = value;
     }
 
     /// <summary>Drawing centres on the control rather than on the nav control's fixed square.</summary>
@@ -82,6 +98,63 @@ public sealed class AdminRadarControl : ShuttleNavControl
 
         Offset = TargetOffset = Vector2.Zero;
         _coordinates = new EntityCoordinates(console, Vector2.Zero);
+    }
+
+    /// <summary>
+    /// Moves the view to a point and drops any panning.
+    /// </summary>
+    public void CentreOn(EntityCoordinates coordinates)
+    {
+        if (!coordinates.IsValid(EntManager))
+            return;
+
+        // Anchored to the map, so a turning grid doesn't turn the view with it.
+        _coordinates = _xform.ToCoordinates(_xform.ToMapCoordinates(coordinates));
+        Offset = TargetOffset = Vector2.Zero;
+    }
+
+    /// <summary>
+    /// Where a world point is in this control's pixels. False before the view has a position or on another map.
+    /// </summary>
+    public bool TryGetViewPosition(MapCoordinates world, out Vector2 position)
+    {
+        position = default;
+        if (_coordinates == null || _rotation == null)
+            return false;
+
+        var centre = _xform.ToMapCoordinates(_coordinates.Value).Offset(_rotation.Value.RotateVec(Offset));
+        if (world.MapId != centre.MapId)
+            return false;
+
+        var worldToView = Matrix3Helpers.CreateTranslation(-centre.Position)
+                          * Matrix3Helpers.CreateRotation(-_rotation.Value)
+                          * Matrix3x2.CreateScale(new Vector2(MinimapScale, -MinimapScale))
+                          * Matrix3x2.CreateTranslation(MidPointVector);
+        position = Vector2.Transform(world.Position, worldToView);
+        return true;
+    }
+
+    /// <summary>
+    /// The player whose dot was last drawn within a few pixels of a point, in this control's pixels.
+    /// </summary>
+    public bool TryPickPlayer(Vector2 pixelPosition, out NetEntity player)
+    {
+        var best = PlayerPickDistance * UIScale;
+        player = default;
+        var found = false;
+
+        foreach (var (position, entity) in _playerHits)
+        {
+            var distance = Vector2.Distance(position, pixelPosition);
+            if (distance > best)
+                continue;
+
+            best = distance;
+            player = entity;
+            found = true;
+        }
+
+        return found;
     }
 
     protected override void MouseMove(GUIMouseMoveEventArgs args)
@@ -132,6 +205,10 @@ public sealed class AdminRadarControl : ShuttleNavControl
 
         if (_adminRadar.ShowPlayers)
             DrawPlayers(handle, _coordinates.Value, _rotation.Value);
+        else
+            _playerHits.Clear();
+
+        OverlayDraw?.Invoke(handle);
     }
 
     /// <summary>
@@ -147,6 +224,7 @@ public sealed class AdminRadarControl : ShuttleNavControl
         var mergeDistance = PlayerMergeDistance * UIScale;
 
         _playerLabels.Clear();
+        _playerHits.Clear();
         foreach (var player in _adminRadar.Players)
         {
             if (player.Ghost)
@@ -165,6 +243,7 @@ public sealed class AdminRadarControl : ShuttleNavControl
                 continue;
 
             handle.DrawCircle(position, 3f * UIScale, PlayerColor);
+            _playerHits.Add((position, player.Entity));
 
             var merged = false;
             for (var i = 0; i < _playerLabels.Count; i++)

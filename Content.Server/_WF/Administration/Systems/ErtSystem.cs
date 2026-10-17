@@ -223,6 +223,8 @@ public sealed partial class ErtSystem : EntitySystem
 
         _adminLogger.Add(LogType.AdminCommands, LogImpact.High,
             $"{admin.Name} spawned ERT \"{team}\" with {config.Members} slots{shipNote}");
+        var spawned = new WFErtSpawnedEvent(team, ship, config.Members);
+        RaiseLocalEvent(ref spawned);
 
         message = Loc.GetString("wf-ert-spawned", ("team", team), ("count", config.Members), ("ghosts", prompted));
         return true;

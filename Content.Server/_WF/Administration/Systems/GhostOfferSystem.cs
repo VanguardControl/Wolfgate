@@ -69,9 +69,23 @@ public sealed partial class GhostOfferSystem : EntitySystem
         _checkAccumulator = 0;
         foreach (var (id, uid) in _offers.ToList())
         {
-            if (GetOpenRole(uid) == null)
-                Close(id);
+            if (GetOpenRole(uid) != null)
+                continue;
+
+            if (TryComp<GhostRoleComponent>(uid, out var role) && role.Taken && TryComp<ActorComponent>(uid, out var actor))
+            {
+                var taken = new WFGhostOfferTakenEvent(uid, actor.PlayerSession.Name);
+                RaiseLocalEvent(ref taken);
+            }
+
+            Close(id);
         }
+    }
+
+    /// <summary>Whether <paramref name="uid"/> is currently offered to ghosts.</summary>
+    public bool IsOffered(EntityUid uid)
+    {
+        return _offers.ContainsValue(uid);
     }
 
     /// <summary>

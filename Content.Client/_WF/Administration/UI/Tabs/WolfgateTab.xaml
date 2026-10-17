@@ -9,6 +9,7 @@
     xmlns:crew="clr-namespace:Content.Client._WF.NpcCrew"
     xmlns:encounters="clr-namespace:Content.Client._WF.Encounters"
     xmlns:planets="clr-namespace:Content.Client._WF.Planets.Administration"
+    xmlns:godpanel="clr-namespace:Content.Client._WF.GodPanel.UI"
     Margin="4"
     MinSize="50 50">
     <BoxContainer Orientation="Vertical">
@@ -20,6 +21,7 @@
             <cc:UICommandButton Command="gridpower" Text="{Loc wf-admin-tab-grid-power}" WindowType="{x:Type power:GridPowerWindow}" />
             <cc:UICommandButton Command="ertbuilder" Text="{Loc wf-admin-tab-ert}" WindowType="{x:Type ert:ErtBuilderWindow}" />
             <cc:UICommandButton Command="planetcontrol" Text="{Loc wf-admin-tab-planet-control}" WindowType="{x:Type planets:PlanetControlWindow}" />
+            <cc:UICommandButton Command="godpanel" Text="{Loc wf-admin-tab-god-panel}" WindowType="{x:Type godpanel:WFGodPanelWindow}" />
         </GridContainer>
     </BoxContainer>
 </Control>

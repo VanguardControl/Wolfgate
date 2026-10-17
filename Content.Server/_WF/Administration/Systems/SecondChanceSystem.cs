@@ -58,6 +58,18 @@ public sealed partial class SecondChanceSystem : EntitySystem
         return HasComp<GhostComponent>(uid) ? HasComp<ActorComponent>(uid) : HasComp<MobStateComponent>(uid);
     }
 
+    /// <summary>Whether a second chance offer for <paramref name="body"/> is waiting for its player's answer.</summary>
+    public bool IsOffered(EntityUid body)
+    {
+        foreach (var offer in _offers.Values)
+        {
+            if (offer.Body == body)
+                return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Offers a second chance through <paramref name="uid"/>: a body, for the player who last had it, or a player's
     /// ghost, for the body they last had.
@@ -113,12 +125,16 @@ public sealed partial class SecondChanceSystem : EntitySystem
         var body = offer.Body;
         if (!ev.Accepted)
         {
+            var declined = new WFSecondChanceAnsweredEvent(body, player.Name, false);
+            RaiseLocalEvent(ref declined);
             _chat.SendAdminAnnouncement(Loc.GetString("wf-second-chance-declined", ("player", player.Name)));
             return;
         }
 
         if (TerminatingOrDeleted(body) || HasOtherPlayer(body, player.UserId))
         {
+            var failed = new WFSecondChanceAnsweredEvent(body, player.Name, false);
+            RaiseLocalEvent(ref failed);
             _chat.SendAdminAnnouncement(Loc.GetString("wf-second-chance-failed", ("player", player.Name)));
             return;
         }
@@ -139,6 +155,8 @@ public sealed partial class SecondChanceSystem : EntitySystem
         _adminLogger.Add(LogType.AdminCommands, LogImpact.Medium,
             $"{player.Name} accepted a second chance and returned to {ToPrettyString(body):entity}");
         _chat.SendAdminAnnouncement(Loc.GetString("wf-second-chance-accepted", ("player", player.Name)));
+        var accepted = new WFSecondChanceAnsweredEvent(body, player.Name, true);
+        RaiseLocalEvent(ref accepted);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)

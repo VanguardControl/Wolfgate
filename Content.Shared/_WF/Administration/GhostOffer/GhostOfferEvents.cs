@@ -87,3 +87,7 @@ public sealed class GhostOfferClosedEvent : EntityEventArgs
         OfferId = offerId;
     }
 }
+
+/// <summary>Raised, by ref and broadcast, when a ghost takes an entity that an admin offered to ghosts.</summary>
+[ByRefEvent]
+public readonly record struct WFGhostOfferTakenEvent(EntityUid Entity, string Player);

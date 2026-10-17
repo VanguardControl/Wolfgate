@@ -47,3 +47,7 @@ public sealed class SecondChanceClosedEvent : EntityEventArgs
         OfferId = offerId;
     }
 }
+
+/// <summary>Raised, by ref and broadcast, when a player answers a second chance offer.</summary>
+[ByRefEvent]
+public readonly record struct WFSecondChanceAnsweredEvent(EntityUid Body, string Player, bool Accepted);

@@ -397,6 +397,14 @@ public sealed partial class InternetSoundSystem : EntitySystem
     }
 
     /// <summary>
+    /// The title and shown requester of the sound going out to everyone at once, or null if there is none.
+    /// </summary>
+    public (string Title, string Requester)? GetGlobalTrack()
+    {
+        return _global != 0 && _tracks.TryGetValue(_global, out var track) ? (track.Title, track.ShownRequester) : null;
+    }
+
+    /// <summary>
     /// True when this ship has an internet sound fetching, sending or playing.
     /// </summary>
     public bool IsPlayingOn(EntityUid grid)
