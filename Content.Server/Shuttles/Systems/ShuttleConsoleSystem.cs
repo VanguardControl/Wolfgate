@@ -215,6 +215,10 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
 
     private bool TryPilot(EntityUid user, EntityUid uid)
     {
+        // WOLFGATE(RoundSetup): failed scenario helms reject pilots until the crash is complete.
+        if (!WfCrashAllowsPilot(uid))
+            return false;
+
         if (!_tags.HasTag(user, CanPilotTag) ||
             !TryComp<ShuttleConsoleComponent>(uid, out var component) ||
             !this.IsPowered(uid, EntityManager) ||
@@ -639,6 +643,11 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
         var owningStation = _station.GetOwningStation(gridUid);
         if (owningStation == null)
             return;
+
+        // WOLFGATE(RoundSetup) START: scenario crew admission is independent of helm power
+        if (WFHasCrewAdmission(owningStation.Value))
+            return;
+        // WOLFGATE END
 
         // Check if the grid has any powered shuttle consoles
         var hasPoweredConsole = HasPoweredShuttleConsole(gridUid);

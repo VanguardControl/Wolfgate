@@ -11,7 +11,11 @@ placing it; unlike the sandbox P key it works in any round. Mirror L/R (F) and M
 lists your saves and the game's ships and maps with a preview of the selected one, saves the grid or map you stand on
 into `Mapping/` in the server data folder, opens a file on a new map as `mapping` does, or drops a grid where you
 stand. A Hide walls toggle hides every wall on your client only, so what's behind them can be seen and
-clicked. It needs the Mapping admin flag.
+clicked. The Z-levels section lists the levels of the map you are on and moves you between them (click a level, Up /
+Down or Page Up / Page Down); the level below shows through empty space, as in a round. Add above / Add below put an
+empty level next to yours, turning a plain map into a stack, and Remove deletes yours. The Maps window's Save z-stack
+writes every level to `Mapping/<name>/<name>_z<depth>.yml` (depth 0 is the ground), and Open z-stack opens every level
+of the stack the selected file belongs to. It needs the Mapping admin flag.
 
 Upstream's mapping screen (`MappingState`) is unreachable since upstream stopped switching to it, so these tools sit on
 the normal game screen instead.
@@ -38,6 +42,9 @@ rotation maths).
   rendering. Other lopsided sprites (a chair's armrest, a sign's text) can't be mirrored and keep their look.
 - Pasting off every grid lands on the grid the clipboard came from, or on a new grid if that one is gone.
 - Grid splitting is paused while an edit applies, so moving tiles away from the hull leaves one grid.
+- Z-stacks are CE z-networks. Each change rebuilds the stack's network (`CEZLevelsSystem.WfRestack`) around the
+  ground level, which keeps depth 0; levels shift away from it. Only stacks whose maps are all uninitialized can change,
+  so live stations and planets are left alone. Undo history doesn't cover adding or removing levels.
 - History holds the last 100 edits per mapper and is dropped on disconnect and round restart. Placement-menu edits in
   one tick (a line or grid placement, or a replace) are one undo step.
 
@@ -48,17 +55,20 @@ rotation maths).
 
 ### Server
 
+- [`Content.Server/_WF/MappingTools/CEZLevelsSystem.MappingTools.cs`](CEZLevelsSystem.MappingTools.cs)
 - [`Content.Server/_WF/MappingTools/MappingEdit.cs`](MappingEdit.cs)
 - [`Content.Server/_WF/MappingTools/MappingMapsSystem.cs`](MappingMapsSystem.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.Apply.cs`](MappingToolsSystem.Apply.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.cs`](MappingToolsSystem.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.History.cs`](MappingToolsSystem.History.cs)
+- [`Content.Server/_WF/MappingTools/MappingZLevelsSystem.cs`](MappingZLevelsSystem.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/MappingTools/MappingMapsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingMapsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsMath.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsMath.cs)
+- [`Content.Shared/_WF/MappingTools/MappingZLevelsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingZLevelsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/ToggleMappingToolsActionEvent.cs`](../../../Content.Shared/_WF/MappingTools/ToggleMappingToolsActionEvent.cs)
 
 ### Client
@@ -72,11 +82,13 @@ rotation maths).
 - [`Content.Client/_WF/MappingTools/MappingToolsSystem.cs`](../../../Content.Client/_WF/MappingTools/MappingToolsSystem.cs)
 - [`Content.Client/_WF/MappingTools/MappingToolsWindow.xaml`](../../../Content.Client/_WF/MappingTools/MappingToolsWindow.xaml)
 - [`Content.Client/_WF/MappingTools/MappingToolsWindow.xaml.cs`](../../../Content.Client/_WF/MappingTools/MappingToolsWindow.xaml.cs)
+- [`Content.Client/_WF/MappingTools/MappingZLevelsSystem.cs`](../../../Content.Client/_WF/MappingTools/MappingZLevelsSystem.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingMapsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingMapsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingZLevelsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingZLevelsTest.cs)
 
 ### Localization
 
@@ -85,9 +97,9 @@ rotation maths).
 ## Non-modular edits
 
 - [`Content.Client/Commands/MappingClientSideSetupCommand.cs`](../../../Content.Client/Commands/MappingClientSideSetupCommand.cs): open the mapping tools window
-- [`Content.Shared/Input/ContentKeyFunctions.cs`](../../../Content.Shared/Input/ContentKeyFunctions.cs): Select tool, clipboard and undo keys for the mapping tools
+- [`Content.Shared/Input/ContentKeyFunctions.cs`](../../../Content.Shared/Input/ContentKeyFunctions.cs): Select tool, clipboard, undo and z-level keys for the mapping tools
 - [`Resources/clientCommandPerms.yml`](../../../Resources/clientCommandPerms.yml): client-only command that opens the mapping tools window
-- [`Resources/keybinds.yml`](../../../Resources/keybinds.yml): Select tool, clipboard and undo keys for the mapping tools
+- [`Resources/keybinds.yml`](../../../Resources/keybinds.yml): Select tool, clipboard, undo and z-level keys for the mapping tools
 - [`Resources/mapping_actions.yml`](../../../Resources/mapping_actions.yml): button next to the eraser that opens or closes the mapping tools
 
 <!-- WOLFGATE-GENERATED END -->

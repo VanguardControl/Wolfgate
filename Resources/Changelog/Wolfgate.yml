@@ -1765,3 +1765,114 @@ Entries:
   id: 100144
   time: '2026-10-15T21:33:31.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/251
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added configurable Ship and Crashlanded crew starts with crew names,
+        roles, invitations and host-managed access.
+    - type: Add
+      message: >-
+        Ship crews can start in random space or docked at CC, and hosts can
+        change the crew type before launch.
+    - type: Add
+      message: >-
+        Crashlanded survivors receive emergency EVA equipment and
+        species-appropriate survival supplies.
+    - type: Tweak
+      message: >-
+        Redesigned lobby preparation with a compact character card,
+        state-colored readiness, on-demand crew browsing and simultaneous chat
+        and briefing panes.
+    - type: Tweak
+      message: >-
+        Clearer lobby backgrounds, equal-height join buttons and focused crew
+        navigation with a compact ship preview.
+  id: 100145
+  time: '2026-10-16T02:56:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/248
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Multi-Z map tooling
+  id: 100146
+  time: '2026-10-16T05:01:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/259
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: drydock can do partial repairs if it's short of a material type.
+    - type: Tweak
+      message: drydock no longer can break grids with indestructible walls
+    - type: Tweak
+      message: repair costs with materials using a drydock is more affordable now
+    - type: Tweak
+      message: Changed material calculations when disassembling stuff
+    - type: Tweak
+      message: >-
+        AME and zpinch now have a material cost that includes fissile uranium to
+        recover some when breaking them.
+  id: 100147
+  time: '2026-10-16T20:48:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/261
+- author: DriftingSkies
+  changes: []
+  id: 100148
+  time: '2026-10-16T21:21:05.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/263
+- author: Erol509
+  changes:
+    - type: Add
+      message: 'PDV can print their tacsuits from lathe again. '
+  id: 100149
+  time: '2026-10-16T21:21:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/254
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Hemostats now pull lodged rounds and shrapnel out of any limb, not just
+        the one you're aiming at. Synths can repair shot breaches again once the
+        round is out.
+    - type: Tweak
+      message: Crew Setup shows Vagrant instead of Drifter.
+    - type: Tweak
+      message: >-
+        Encounters that wait for players now start when you get within
+        600-1000m, not 1500-2500m.
+    - type: Add
+      message: Viper Group, USSP and Underground faction crews in Crew Setup.
+    - type: Fix
+      message: Chimera claws now inject through armor.
+    - type: Fix
+      message: Avali and Felionoids can be turned by chimera.
+    - type: Tweak
+      message: Chimera no longer die almost instantly when set on fire.
+    - type: Fix
+      message: TSF and PDV patrols no longer attack civilian ships that have IFF on.
+    - type: Tweak
+      message: >-
+        TSF and PDV patrols now sit 3-4km off stations instead of right next to
+        the docks.
+    - type: Add
+      message: Dead players now show on ship radar as a red diamond until revived.
+    - type: Add
+      message: >-
+        Tractor beams have an Auto-catch toggle that grabs and locks anything
+        entering the inner part of the beam, and have a bit more range and
+        strength.
+    - type: Tweak
+      message: >-
+        The custom marking editor has a number box for opacity and asks before
+        closing with unsaved changes.
+    - type: Fix
+      message: >-
+        Exported custom markings are saved as .png files to your CustomMarkings
+        folder.
+    - type: Fix
+      message: Crashlanded ships can be repaired with repair tools.
+    - type: Tweak
+      message: Dead players only show on radar after 5 minutes.
+  id: 100150
+  time: '2026-10-17T01:55:29.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/266

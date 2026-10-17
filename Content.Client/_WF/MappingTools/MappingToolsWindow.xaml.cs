@@ -29,7 +29,22 @@ public sealed partial class MappingToolsWindow : FancyWindow
         "wf-mapping-tools-key-keep-pasting",
         "wf-mapping-tools-key-clear",
         "wf-mapping-tools-key-history",
+        "wf-mapping-tools-key-level",
     };
+
+    private readonly List<int> _shownDepths = new();
+    private int? _shownCurrent;
+    private bool _confirmRemove;
+
+    /// <summary>
+    /// Raised with how many levels to move when a level in the list is clicked.
+    /// </summary>
+    public event Action<int>? LevelPicked;
+
+    /// <summary>
+    /// Raised when Remove is clicked a second time.
+    /// </summary>
+    public event Action? RemoveConfirmed;
 
     public MappingToolsWindow()
     {
@@ -45,5 +60,68 @@ public sealed partial class MappingToolsWindow : FancyWindow
                 HorizontalExpand = true,
             });
         }
+
+        RemoveLevelButton.OnPressed += _ => PressRemove();
+    }
+
+    /// <summary>
+    /// Shows the z-stack's levels, highest first, with the player's own pressed.
+    /// </summary>
+    public void SetLevels(List<int> depths, int current)
+    {
+        if (_shownCurrent == current && _shownDepths.Count == depths.Count && _shownDepths.TrueForAll(depths.Contains))
+            return;
+
+        if (_shownCurrent != current)
+            ResetRemove();
+
+        _shownDepths.Clear();
+        _shownDepths.AddRange(depths);
+        _shownCurrent = current;
+
+        LevelList.RemoveAllChildren();
+        for (var i = depths.Count - 1; i >= 0; i--)
+        {
+            var depth = depths[i];
+            var button = new Button
+            {
+                Text = Loc.GetString(depth == 0 ? "wf-mapping-tools-level-ground" : "wf-mapping-tools-level", ("depth", depth)),
+                ToggleMode = true,
+                Pressed = depth == current,
+                HorizontalExpand = true,
+            };
+            button.OnPressed += _ =>
+            {
+                button.Pressed = depth == current;
+                LevelPicked?.Invoke(depth - current);
+            };
+            LevelList.AddChild(button);
+        }
+
+        LevelUpButton.Disabled = depths.Count == 0 || current >= depths[^1];
+        LevelDownButton.Disabled = depths.Count == 0 || current <= depths[0];
+        RemoveLevelButton.Disabled = depths.Count < 2;
+    }
+
+    /// <summary>
+    /// Deleting a level takes a second click.
+    /// </summary>
+    private void PressRemove()
+    {
+        if (!_confirmRemove)
+        {
+            _confirmRemove = true;
+            RemoveLevelButton.Text = Loc.GetString("wf-mapping-tools-level-remove-confirm");
+            return;
+        }
+
+        ResetRemove();
+        RemoveConfirmed?.Invoke();
+    }
+
+    private void ResetRemove()
+    {
+        _confirmRemove = false;
+        RemoveLevelButton.Text = Loc.GetString("wf-mapping-tools-level-remove");
     }
 }

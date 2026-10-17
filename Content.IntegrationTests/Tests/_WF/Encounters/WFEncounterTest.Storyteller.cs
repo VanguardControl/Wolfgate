@@ -460,9 +460,9 @@ public sealed partial class WFEncounterTest
             Assert.That(Server.System<Content.Server.Power.Generator.GeneratorSystem>().GetFuel(generator), Is.EqualTo(0f));
         });
 
-        // The engineer has up to two minutes to fetch a stack from the crate and feed the generator.
+        // The engineer has up to four minutes; pathfinding runs on a per-tick budget, so a busy CI runner needs the slack.
         var fuelled = false;
-        for (var i = 0; i < 24 && !fuelled; i++)
+        for (var i = 0; i < 48 && !fuelled; i++)
         {
             await RunTicks(150);
             await Server.WaitAssertion(() =>

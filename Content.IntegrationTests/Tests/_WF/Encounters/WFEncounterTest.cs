@@ -305,9 +305,11 @@ public sealed partial class WFEncounterTest : InteractionTest
                     Assert.That(crews.Any(crew => crew.Group == ship.Group && crew.Alive > 0), Is.True, $"{id}: {ship.Group} has no crew");
                 }
             });
-            await RunTicks(5);
+            // Two updates catch a system that breaks on a fresh fleet; one more flushes the queued deletion. Big fleets make
+            // each tick expensive, so the loop keeps this to the minimum.
+            await RunTicks(2);
             await Server.WaitPost(() => Server.System<WFEncounterSystem>().End(encounter));
-            await RunTicks(5);
+            await RunTicks(1);
         }
 
         await Server.WaitPost(() =>
@@ -660,6 +662,15 @@ public sealed partial class WFEncounterTest : InteractionTest
             Assert.That(state.Engaged, Is.Empty, "Under the ceasefire a PDV ship inside the ring is not fired on.");
             Server.System<Content.Server._Mono.AlertLevel.WarLevelSystem>().SetLevel(true);
             Assert.That(Server.System<WFEncounterZoneSystem>().AtWar("PDV", "TSF"), Is.True, "A declared war is mutual.");
+            SEntMan.GetComponent<Content.Shared._Mono.Company.CompanyComponent>(intruder).CompanyName = "PDVCivilian";
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"];
+            Assert.That(state.Engaged, Is.Empty, "A PDV civilian ship showing its IFF is not fired on, even at war.");
+            Assert.That(state.Warned.ContainsKey(intruder), Is.False, "Nor is it warned off.");
+            SEntMan.GetComponent<Content.Shared._Mono.Company.CompanyComponent>(intruder).CompanyName = "PDV";
         });
         await RunTicks(150);
         await Server.WaitAssertion(() =>

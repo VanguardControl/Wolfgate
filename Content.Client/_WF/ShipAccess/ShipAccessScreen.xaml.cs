@@ -36,6 +36,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
     {
         WFDoorAccessRule.Default,
         WFDoorAccessRule.OwnerOnly,
+        WFDoorAccessRule.Crew,
         WFDoorAccessRule.Players,
         WFDoorAccessRule.Code,
         WFDoorAccessRule.PlayersOrCode,
@@ -67,6 +68,9 @@ public sealed partial class ShipAccessScreen : BoxContainer
     private readonly Dictionary<NetEntity, string> _doorCodes = new();
     private int _misses;
     private int _lockedOut;
+
+    /// <summary>The owner selected a ship-wide access mode.</summary>
+    public event Action<WFShipAccessMode>? ModeChanged;
 
     /// <summary>The deed holder flipped the lock checkbox.</summary>
     public event Action<bool>? LockedChanged;
@@ -112,6 +116,10 @@ public sealed partial class ShipAccessScreen : BoxContainer
         SetHint(DoorsEmptyLabel, Loc.GetString("ship-access-doors-empty"));
         SetHint(ShipCodeHint, Loc.GetString("ship-access-ship-code-hint"));
         SetHint(DoorCodeHint, Loc.GetString("ship-access-door-code-hint"));
+
+        ShipModeButton.AddItem(Loc.GetString("ship-access-mode-private"), (int) WFShipAccessMode.Private);
+        ShipModeButton.AddItem(Loc.GetString("ship-access-mode-crew"), (int) WFShipAccessMode.Crew);
+        ShipModeButton.OnItemSelected += args => ModeChanged?.Invoke((WFShipAccessMode) args.Id);
 
         LockedCheck.OnToggled += args => LockedChanged?.Invoke(args.Pressed);
         DoorMap.DoorSelected += _ => Refresh();
@@ -243,7 +251,8 @@ public sealed partial class ShipAccessScreen : BoxContainer
         sb.Append(isOwner).Append('|');
         if (comp != null)
         {
-            sb.Append(comp.OwnerName).Append('|').Append(comp.Mode.ToString()).Append('|').Append(comp.Locked).Append('|');
+            sb.Append(comp.OwnerName).Append('|').Append(comp.Mode.ToString()).Append('|').Append(comp.Locked).Append('|')
+                .Append(comp.CrewName).Append('|').Append(comp.CrewKeys.Count).Append('|');
             foreach (var entry in comp.AllowList)
                 sb.Append(entry.Key).Append(',').Append(entry.Name).Append(',').Append(entry.Label).Append(',').Append(entry.Builder).Append(';');
         }
@@ -404,8 +413,26 @@ public sealed partial class ShipAccessScreen : BoxContainer
         AllDoorsBox.Visible = isOwner;
 
         OwnerLabel.Text = comp != null && comp.OwnerName.Length > 0 ? comp.OwnerName : Loc.GetString("ship-access-owner-none");
-        var faction = comp != null ? comp.Mode == WFShipAccessMode.Faction : _grid != null && _access.IsFactionGrid(_grid.Value, out _);
-        ModeLabel.Text = Loc.GetString(faction ? "ship-access-mode-faction" : "ship-access-mode-private");
+        var faction = _grid != null && _access.IsFactionGrid(_grid.Value, out _);
+        var mode = comp?.Mode ?? (faction ? WFShipAccessMode.Faction : WFShipAccessMode.Private);
+        ModeLabel.Text = Loc.GetString(mode switch
+        {
+            WFShipAccessMode.Crew => "ship-access-mode-crew",
+            WFShipAccessMode.Faction => "ship-access-mode-faction",
+            _ => "ship-access-mode-private",
+        });
+        ModeLabel.Visible = !isOwner;
+        ShipModeButton.Visible = isOwner;
+        ShipModeButton.Clear();
+        ShipModeButton.AddItem(Loc.GetString("ship-access-mode-private"), (int) WFShipAccessMode.Private);
+        ShipModeButton.AddItem(Loc.GetString("ship-access-mode-crew"), (int) WFShipAccessMode.Crew);
+        if (faction)
+            ShipModeButton.AddItem(Loc.GetString("ship-access-mode-faction"), (int) WFShipAccessMode.Faction);
+        ShipModeButton.SelectId((int) mode);
+        ShipModeButton.ToolTip = Loc.GetString("ship-access-mode-hint") + "\n" + (comp?.CrewName == null
+            ? Loc.GetString("ship-access-no-crew")
+            : Loc.GetString("ship-access-linked-crew", ("name", comp.CrewName), ("count", comp.CrewKeys.Count)));
+        ModeLabel.ToolTip = ShipModeButton.ToolTip;
         OwnerLabel.ToolTip = OwnerLabel.Text;
         LockedLabel.Text = comp == null ? "-" : Loc.GetString(comp.Locked ? "ship-access-locked-yes" : "ship-access-locked-no");
 
@@ -633,6 +660,7 @@ public sealed partial class ShipAccessScreen : BoxContainer
         var id = rule switch
         {
             WFDoorAccessRule.OwnerOnly => "owner-only",
+            WFDoorAccessRule.Crew => "crew",
             WFDoorAccessRule.Players => "players",
             WFDoorAccessRule.Code => "code",
             WFDoorAccessRule.PlayersOrCode => "players-or-code",

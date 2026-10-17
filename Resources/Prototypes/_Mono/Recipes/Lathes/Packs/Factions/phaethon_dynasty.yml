@@ -1,7 +1,7 @@
 - type: latheRecipePack
   id: MonoRogueGearDynamic
   recipes:
-  - ClothingOuterHardsuitPirateScafRogue
+  #- ClothingOuterHardsuitPirateScafRogue
   - ClothingOuterVestWebRogue
   - ClothingOuterVestWebEliteRogue
 # - ClothingOuterHardsuitPDVMedic
@@ -17,6 +17,17 @@
 #  - ClothingOuterHardsuitJuggernautRogue
 #  - ClothingOuterHardsuitCybersunStealthRogue
 ## - ClothingOuterHardsuitSyndieCommanderRogue
+
+# WOLFGATE(MonoReverts) START: the pack the restored PDV suit research unlocks
+- type: latheRecipePack
+  id: MonoRogueGearProDynamic
+  recipes:
+  - ClothingOuterHardsuitSyndieRogue
+  - ClothingOuterHardsuitSyndieEliteRogue
+  - ClothingOuterHardsuitJuggernautRogue
+  - ClothingOuterHardsuitCybersunStealthRogue
+  - ClothingOuterHardsuitPDVMedic
+# WOLFGATE END
 
 - type: latheRecipePack
   id: MonoRogueWeaponsDynamicMelee
