@@ -1,7 +1,7 @@
 - type: entity # Base for yml-colored lockers
   abstract: true
   id: LockerWallColorBase
-  parent: [ BaseWallCloset, BaseStructureWallmount ]
+  parent: [ BaseWallClosetOld, BaseStructureWallmount ] #WOLFGATE(Resprites): Fixes shit NF lockers
   suffix: Frontier
   components:
   - type: Sprite
@@ -278,13 +278,15 @@
   parent: [BaseStructureWallmount, LockerWallMedical]
   name: chemistry wall locker
   components:
+#  - type: Sprite #WOLFGATE(Resprites) START: Fixes shit NF lockers
+#    sprite: _NF/Structures/Storage/wall_locker.rsi
+#  - type: Appearance
+#  - type: EntityStorageVisuals
+#    stateBaseClosed: med
+#    stateDoorOpen: med_open
+#    stateDoorClosed: chem_door #WOLFGATE END
   - type: Sprite
-    sprite: _NF/Structures/Storage/wall_locker.rsi
-  - type: Appearance
-  - type: EntityStorageVisuals
-    stateBaseClosed: med
-    stateDoorOpen: med_open
-    stateDoorClosed: chem_door
+    sprite: Structures/Storage/ClosetsWallmounted/medical-secure.rsi #WOLFGATE(Resprites): Repath
   - type: ContainerContainer
     containers:
       entity_storage: !type:Container
@@ -299,7 +301,7 @@
 - type: entity
   id: ClosetWallN2
   name: emergency nitrogen wall closet
-  parent: BaseWallCloset
+  parent: BaseWallClosetOld #WOLFGATE(Resprites): Fixes shit NF lockers
   description: It's a storage unit for emergency breath masks and N2 tanks.
   components:
   - type: Sprite
@@ -313,7 +315,7 @@
 - type: entity
   id: ClosetWallO2N2
   name: emergency internals wall closet
-  parent: BaseWallCloset
+  parent: BaseWallClosetOld #WOLFGATE(Resprites): Fixes shit NF lockers
   description: It's a storage unit for emergency breathing equipment for all species.
   components:
   - type: Sprite
@@ -326,7 +328,7 @@
 
 - type: entity
   id: NFPrisonerClosetWallOrange
-  parent: BaseWallCloset
+  parent: BaseWallClosetOld #WOLFGATE(Resprites): Fixes shit NF lockers
   name: prisoner wall closet
   description: It's a storage unit for Space Law compliant prisoner garb.
   components:
