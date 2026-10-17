@@ -1815,3 +1815,15 @@ Entries:
   id: 100147
   time: '2026-10-16T20:48:14.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/261
+- author: DriftingSkies
+  changes: []
+  id: 100148
+  time: '2026-10-16T21:21:05.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/263
+- author: Erol509
+  changes:
+    - type: Add
+      message: 'PDV can print their tacsuits from lathe again. '
+  id: 100149
+  time: '2026-10-16T21:21:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/254
