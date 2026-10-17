@@ -48,6 +48,7 @@ public sealed class TractorBeamAutoCatchTest
             system.UpdateBeforeSolve(false, 1f / 60f);
             system.RunAutoCatch();
             Assert.That(beam.LockedInPlace, Is.True, "a still catch was not locked in place.");
+            Assert.That(beam.AutoCaught, Is.True);
 
             beam.AutoCatch = false;
             system.Release(emitter, beam);

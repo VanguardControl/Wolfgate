@@ -209,6 +209,8 @@ public sealed partial class TractorBeamSystem : VirtualController
                 _popup.PopupEntity(Loc.GetString("tractor-beam-range-unavailable"), uid, args.Actor);
                 return;
             }
+            // A manual order on an auto-caught target takes over from auto-catch, which would pin it again.
+            beam.AutoCaught = false;
             beam.RequestedDistance = desired;
             beam.Pulling = beam.HoldDistance > desired;
             beam.LockedInPlace = false;
@@ -229,6 +231,7 @@ public sealed partial class TractorBeamSystem : VirtualController
         // Repeated lock commands must not ratchet the rest length or renew a failing lock.
         if (beam.Target == target)
         {
+            beam.AutoCaught = false;
             SetLockedInPlace(emitter, beam, source, target, args.LockInPlace);
             UpdateUi(uid, console);
             return;
