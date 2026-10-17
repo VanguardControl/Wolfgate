@@ -47,7 +47,13 @@ public sealed class RopeVisualizerSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
         _seen.Clear();
-        var view = _eye.GetWorldViewbounds().CalcBoundingBox().Enlarged(ViewMargin);
+        // On the frame the player changes bodies the eye's bounds can be NaN, which the engine's Box2 asserts on.
+        var rotated = _eye.GetWorldViewbounds();
+        if (!float.IsFinite(rotated.Box.Left) || !float.IsFinite(rotated.Box.Right)
+            || !float.IsFinite(rotated.Box.Bottom) || !float.IsFinite(rotated.Box.Top))
+            return;
+
+        var view = rotated.CalcBoundingBox().Enlarged(ViewMargin);
         var currentMap = _eye.CurrentMap;
         var time = (float) (_timing.CurTime.TotalSeconds % 1000);
 
