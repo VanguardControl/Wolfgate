@@ -21,7 +21,7 @@ public sealed class AsfModsuitTest
     private static readonly string[] Chestplates = ["WFAsfClothingModsuitChestplateField", "WFAsfClothingModsuitChestplateAegis"];
 
     [Test]
-    public async Task ChestplatesTakePlatesCoverWingsAndKeepTheirSeal()
+    public async Task ChestplatesCoverWingsAndKeepTheirSeal()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
@@ -33,7 +33,8 @@ public sealed class AsfModsuitTest
             foreach (var id in Chestplates)
             {
                 var proto = prototypes.Index<EntityPrototype>(id);
-                Assert.That(proto.TryGetComponent<ArmorPlateHolderComponent>(out _, factory), Is.True, $"{id} should accept armour plates.");
+                // Monolith#4845 took plate holders off every hardsuit and modsuit, ASF included.
+                Assert.That(proto.TryGetComponent<ArmorPlateHolderComponent>(out _, factory), Is.False, $"{id} follows upstream and takes no armour plates.");
                 Assert.That(proto.TryGetComponent<HarpyHideWingsComponent>(out _, factory), Is.True, $"{id} should cover wings like a hardsuit.");
                 // The seal's ComponentToggler listens to ItemToggle; a toggle here would strip pressure protection.
                 Assert.That(proto.TryGetComponent<ItemToggleComponent>(out _, factory), Is.False, $"{id} must not carry an item toggle.");

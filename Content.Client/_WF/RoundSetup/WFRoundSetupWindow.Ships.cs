@@ -12,6 +12,7 @@ namespace Content.Client._WF.RoundSetup;
 public sealed partial class WFRoundSetupWindow
 {
     private NetUserId? _shipCandidateOwner;
+    private VesselClass _shipClass = VesselClass.All;
 
     private static string ShipStartKey(WFShipStartLocation location) => location switch
     {
@@ -78,15 +79,22 @@ public sealed partial class WFRoundSetupWindow
             HorizontalExpand = true,
             Filterable = true,
         };
-        selector.AddItem(Text("ship-placeholder"), -1);
-        selector.DisableItem(0, Text("ship-unselected"));
-        for (var i = 0; i < state.Vessels.Length; i++)
-        {
-            var vessel = state.Vessels[i];
-            selector.AddItem(Text("ship-option", ("ship", vessel.Name), ("price", Price(vessel.Price))), i);
-        }
         var selected = Array.FindIndex(state.Vessels, vessel => vessel.Id == lobby.Vessel);
-        selector.SelectId(selected);
+        void Populate()
+        {
+            selector.ClearChoices();
+            selector.AddItem(Text("ship-placeholder"), -1);
+            selector.DisableItem(0, Text("ship-unselected"));
+            for (var i = 0; i < state.Vessels.Length; i++)
+            {
+                var vessel = state.Vessels[i];
+                if (i != selected && !ShipMatches(vessel))
+                    continue;
+                selector.AddItem(Text("ship-option", ("ship", vessel.Name), ("price", Price(vessel.Price))), i);
+            }
+            selector.SelectId(selected);
+        }
+        Populate();
         var choice = selected >= 0 ? state.Vessels[selected] : null;
         selector.ToolTip = choice?.Description;
         preview.SetVessel(PreviewVessel(choice?.Id));
@@ -94,6 +102,7 @@ public sealed partial class WFRoundSetupWindow
         selector.OnItemSelected += args =>
         {
             selector.SelectId(args.Id);
+            selected = args.Id;
             var vessel = args.Id < 0 ? null : state.Vessels[args.Id];
             selector.ToolTip = vessel?.Description;
             preview.ToolTip = vessel?.Description;
@@ -101,6 +110,7 @@ public sealed partial class WFRoundSetupWindow
             if (vessel != null)
                 SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.SelectVessel) { LobbyId = lobby.Id, Vessel = vessel.Id });
         };
+        section.AddChild(ShipFilters(state, Populate));
         section.AddChild(selector);
         section.AddChild(PlainDescription(state.HostBalance is { } balance
             ? Text("ship-balance", ("balance", Price(balance))) : Text("ship-bank-help")));
@@ -190,6 +200,29 @@ public sealed partial class WFRoundSetupWindow
         content.AddChild(FlowRow(approve, decline));
         return Panel(content);
     }
+
+    /// <summary>A class filter that narrows the ship selector.</summary>
+    private Control ShipFilters(WFRoundSetupState state, Action changed)
+    {
+        var classes = state.Vessels.SelectMany(vessel => PreviewVessel(vessel.Id)?.Classes ?? new List<VesselClass>())
+            .Where(shipClass => shipClass != VesselClass.All).Distinct().Order().Prepend(VesselClass.All).ToList();
+        if (!classes.Contains(_shipClass))
+            _shipClass = VesselClass.All;
+        var filter = new OptionButton { Name = "RoundSetupShipClass", HorizontalExpand = true };
+        for (var i = 0; i < classes.Count; i++)
+            filter.AddItem(classes[i] == VesselClass.All ? Text("ship-class-all") : Loc.GetString($"shipyard-console-class-{classes[i]}"), i);
+        filter.SelectId(classes.IndexOf(_shipClass));
+        filter.OnItemSelected += args =>
+        {
+            filter.SelectId(args.Id);
+            _shipClass = classes[args.Id];
+            changed();
+        };
+        return filter;
+    }
+
+    private bool ShipMatches(WFRoundSetupVessel vessel) =>
+        _shipClass == VesselClass.All || PreviewVessel(vessel.Id)?.Classes.Contains(_shipClass) == true;
 
     private VesselPrototype? PreviewVessel(string? id) =>
         id != null && _prototypes.TryIndex<VesselPrototype>(id, out var vessel) ? vessel : null;

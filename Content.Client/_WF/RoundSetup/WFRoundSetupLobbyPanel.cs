@@ -53,6 +53,15 @@ public sealed partial class WFRoundSetupLobbyPanel : PanelContainer
     {
         base.VisibilityChanged(newVisible);
         SetListening(VisibleInTree);
+        if (newVisible)
+            Relayout();
+    }
+
+    /// <summary>Re-measures the whole chain so a menu sized before the rows arrived doesn't stack them.</summary>
+    private void Relayout()
+    {
+        for (Control? control = _cards; control != null; control = control.Parent)
+            control.InvalidateMeasure();
     }
 
     /// <summary>Follows snapshots only while this screen is visible, including after character setup closes.</summary>
@@ -97,6 +106,7 @@ public sealed partial class WFRoundSetupLobbyPanel : PanelContainer
         foreach (var lobby in listings)
             _cards.AddChild(new WFRoundSetupCrewRow(lobby, invitations.Contains(lobby.Id),
                 () => UserInterfaceManager.GetUIController<WFRoundSetupUIController>().OpenLobby(lobby.Id)));
+        Relayout();
     }
 
     private static RichTextLabel Wrapped(string text)

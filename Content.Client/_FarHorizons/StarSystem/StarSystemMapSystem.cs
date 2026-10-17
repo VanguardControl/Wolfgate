@@ -13,7 +13,7 @@ public sealed partial class StarSystemMapSystem : SharedStarSystemMapSystem
     [Dependency] private IOverlayManager _overlayMan = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
 
-    [Dependency] private IMapManager _mapMan = default!;
+    [Dependency] private SharedMapSystem _mapMan = default!;
     [Dependency] private ITileDefinitionManager _tileDefMan = default!;
     [Dependency] private IClyde _clyde = default!;
 
@@ -33,6 +33,15 @@ public sealed partial class StarSystemMapSystem : SharedStarSystemMapSystem
 
         _cfg.OnValueChanged(FHCCVars.RenderStarSystem, EnsureStarSystem, true);
     }
+
+    // WOLFGATE START: drop overlays on shutdown so a reconnect doesn't keep stale ones querying dead systems
+    public override void Shutdown()
+    {
+        base.Shutdown();
+        _cfg.UnsubValueChanged(FHCCVars.RenderStarSystem, EnsureStarSystem);
+        EnsureStarSystem(false);
+    }
+    // WOLFGATE END
 
     private void EnsureStarSystem(bool enabled)
     {

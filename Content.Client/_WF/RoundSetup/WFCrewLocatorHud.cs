@@ -6,50 +6,54 @@ using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._WF.RoundSetup;
 
-/// <summary>A compact mouse-transparent compass pointing to the current crew leader.</summary>
+/// <summary>An alert-sized compass in the status column pointing to the crew leader.</summary>
 public sealed class WFCrewLocatorHud : PanelContainer
 {
+    private static readonly Color Tracking = Color.FromHex("#70DCC8");
+    private static readonly Color Down = Color.FromHex("#FF786C");
+
     private readonly CrewArrow _arrow = new();
-    private readonly Label _name = new() { ClipText = true, HorizontalExpand = true, MouseFilter = MouseFilterMode.Ignore };
-    private readonly Label _status = new() { ClipText = true, HorizontalExpand = true, MouseFilter = MouseFilterMode.Ignore };
+    private readonly Label _label = new()
+    {
+        HorizontalAlignment = HAlignment.Center,
+        VerticalAlignment = VAlignment.Bottom,
+        MouseFilter = MouseFilterMode.Ignore,
+    };
 
     public WFCrewLocatorHud()
     {
         Name = "CrewLocator";
-        SetWidth = 280;
-        MouseFilter = MouseFilterMode.Ignore;
+        SetSize = new Vector2(64, 64);
+        HorizontalAlignment = HAlignment.Left;
+        MouseFilter = MouseFilterMode.Stop;
         PanelOverride = new StyleBoxFlat
         {
-            BackgroundColor = Color.FromHex("#10232BCC"), BorderColor = Color.FromHex("#70DCC8"),
-            BorderThickness = new Thickness(1), ContentMarginLeftOverride = 10, ContentMarginRightOverride = 10,
-            ContentMarginTopOverride = 6, ContentMarginBottomOverride = 6,
+            BackgroundColor = Color.FromHex("#0E1B20CC"), BorderColor = Color.FromHex("#2E4A50"),
+            BorderThickness = new Thickness(2), ContentMarginBottomOverride = 1,
         };
-        var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 10, MouseFilter = MouseFilterMode.Ignore };
-        row.AddChild(_arrow);
-        var text = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true, MouseFilter = MouseFilterMode.Ignore };
-        text.AddChild(_name);
-        text.AddChild(_status);
-        row.AddChild(text);
-        AddChild(row);
+        _label.Text = Loc.GetString("wf-round-setup-locator-label");
+        AddChild(_arrow);
+        AddChild(_label);
     }
 
-    /// <summary>Updates existing controls without changing focus or rebuilding the HUD.</summary>
+    /// <summary>Updates the arrow, colour and tooltip without rebuilding the control.</summary>
     public void Refresh(WFCrewSignalEvent signal, Vector2? direction)
     {
-        _name.Text = Loc.GetString("wf-round-setup-locator-leader", ("name", signal.Leader));
-        _name.ToolTip = _name.Text;
-        var key = signal.Status switch
+        var name = Loc.GetString("wf-round-setup-locator-leader", ("name", signal.Leader));
+        var status = signal.Status switch
         {
-            WFCrewLeaderStatus.Self => "self",
-            WFCrewLeaderStatus.Down => "down",
-            WFCrewLeaderStatus.Elsewhere => "elsewhere",
-            WFCrewLeaderStatus.Tracking => "distance",
-            _ => "unavailable",
+            WFCrewLeaderStatus.Self => "wf-round-setup-locator-self",
+            WFCrewLeaderStatus.Down => "wf-round-setup-locator-down",
+            WFCrewLeaderStatus.Elsewhere => "wf-round-setup-locator-elsewhere",
+            WFCrewLeaderStatus.Tracking => null,
+            _ => "wf-round-setup-locator-unavailable",
         };
-        _status.Text = Loc.GetString("wf-round-setup-locator-" + key, ("distance", (int) MathF.Round(direction?.Length() ?? 0)));
-        _status.ToolTip = Loc.GetString("wf-round-setup-locator-channel", ("crew", signal.Crew));
+        var radio = Loc.GetString("wf-round-setup-locator-radio");
+        ToolTip = status == null ? $"{name}\n{radio}" : $"{name}\n{Loc.GetString(status)}\n{radio}";
         _arrow.Direction = direction;
-        _arrow.Modulate = signal.Status == WFCrewLeaderStatus.Down ? Color.FromHex("#FF786C") : Color.FromHex("#70DCC8");
+        var color = signal.Status == WFCrewLeaderStatus.Down ? Down : Tracking;
+        _arrow.Modulate = color;
+        _label.FontColorOverride = color;
     }
 
     private sealed class CrewArrow : Control
@@ -58,26 +62,24 @@ public sealed class WFCrewLocatorHud : PanelContainer
 
         public CrewArrow()
         {
-            SetSize = new Vector2(38, 38);
-            VerticalAlignment = VAlignment.Center;
             MouseFilter = MouseFilterMode.Ignore;
         }
 
         protected override void Draw(DrawingHandleScreen handle)
         {
-            var center = PixelSize / 2;
-            handle.DrawCircle(center, 16 * UIScale, Color.White.WithAlpha(0.35f), false);
+            var center = new Vector2(PixelSize.X / 2f, PixelSize.Y * 0.4f);
+            var scale = PixelSize.Y / 64f;
             if (Direction is not { } direction || direction.LengthSquared() < 4)
             {
-                handle.DrawCircle(center, 4 * UIScale, Color.White);
+                handle.DrawCircle(center, 5 * scale, Color.White);
                 return;
             }
             var forward = Vector2.Normalize(direction);
             var side = new Vector2(-forward.Y, forward.X);
-            var points = new[] { center + forward * 16 * UIScale,
-                center - forward * 8 * UIScale + side * 8 * UIScale,
-                center - forward * 3 * UIScale,
-                center - forward * 8 * UIScale - side * 8 * UIScale };
+            var points = new[] { center + forward * 16 * scale,
+                center - forward * 10 * scale + side * 11 * scale,
+                center - forward * 4 * scale,
+                center - forward * 10 * scale - side * 11 * scale };
             handle.DrawPrimitives(DrawPrimitiveTopology.TriangleFan, points, Color.White);
         }
     }

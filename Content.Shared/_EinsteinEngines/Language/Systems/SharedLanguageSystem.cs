@@ -6,23 +6,27 @@ namespace Content.Shared._EinsteinEngines.Language.Systems;
 
 public abstract partial class SharedLanguageSystem : EntitySystem
 {
+    // Starlight start
+    /// <summary>
+    /// The chat prefix used to begin parsing a language. e.g. <c>^gcThis will parse to Galactic Common</c>.
+    /// </summary>
+    public static readonly char ChatPrefixChar = '^';
+    // Starlight end
+
     /// <summary>
     ///     The language used as a fallback in cases where an entity suddenly becomes a Language Speaker (e.g. the usage of make-sentient).
     /// </summary>
-    [ValidatePrototypeId<LanguagePrototype>]
-    public static readonly string FallbackLanguagePrototype = "TauCetiBasic";
+    public static readonly ProtoId<LanguagePrototype> FallbackLanguagePrototype = "TauCetiBasic";
 
     /// <summary>
     ///     The language whose speakers are assumed to understand and speak every language. Should never be added directly.
     /// </summary>
-    [ValidatePrototypeId<LanguagePrototype>]
-    public static readonly string UniversalPrototype = "Universal";
+    public static readonly ProtoId<LanguagePrototype> UniversalPrototype = "Universal";
 
     /// <summary>
     ///     Language used for Xenoglossy, should have same effects as Universal but with different language prototype.
     /// </summary>
-    [ValidatePrototypeId<LanguagePrototype>]
-    public static readonly string PsychomanticPrototype = "Psychomantic";
+    public static readonly ProtoId<LanguagePrototype> PsychomanticPrototype = "Psychomantic";
 
     /// <summary>
     /// A cached instance of <see cref="PsychomanticPrototype"/>.

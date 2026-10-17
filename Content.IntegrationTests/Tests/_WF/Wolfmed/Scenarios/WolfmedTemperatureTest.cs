@@ -21,9 +21,8 @@ using Robust.Shared.GameObjects;
 namespace Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
 
 /// <summary>
-/// M5 (plan §3.10): cold and heat. The measurement comes first: where an unprotected human's surface settles in cold
-/// air and in space, and how fast it cools after a fire. Then the hypothermia and heat stroke courses on the core
-/// temperature, the fire grace, and a real-time smoke test in space.
+/// M5 (plan §3.10): cold and heat. The hypothermia and heat stroke courses on the core temperature, the fire grace,
+/// and a real-time smoke test in space.
 /// </summary>
 [TestFixture]
 [TestOf(typeof(WolfmedBodyTemperatureSystem))]
@@ -117,104 +116,6 @@ public sealed class WolfmedTemperatureTest : WolfmedGameTest
     private static void InBand(float actual, float derived, string what) =>
         Assert.That(actual, Is.InRange(derived * (1f - Band), derived * (1f + Band)),
             $"{what}: {actual} against {derived} derived.");
-
-    /// <summary>
-    /// The opening task (plan §12 M5): a naked human's surface and core temperature over five minutes in the default
-    /// test map, in space, and in station air at 293, 273, 253, 233, 213 and 173 K; and a 10-stack fire in station air,
-    /// how hot the surface gets and how long it takes to cool once the fire is out. Records only.
-    /// </summary>
-    [Test]
-    public async Task ColdRoomMeasurementTest()
-    {
-        await Pin();
-        var s = new WolfmedScenario(SEntMan);
-        var atmos = SEntMan.System<AtmosphereSystem>();
-        var rooms = new List<(string Name, EntityUid Body)>();
-        EntityUid burning = default;
-
-        var names = new[] { "default map", "space", "293 K", "273 K", "253 K", "233 K", "213 K", "173 K" };
-        var airs = new float?[] { null, null, 293.15f, 273.15f, 253.15f, 233.15f, 213.15f, 173.15f };
-        for (var i = 0; i < names.Length; i++)
-        {
-            var map = await CreateTestMap();
-            var index = i;
-            await Server.WaitPost(() =>
-            {
-                if (index == 1)
-                    atmos.SetMapAtmosphere(map.MapUid, true, GasMixture.SpaceGas);
-                else if (airs[index] is { } kelvin)
-                    atmos.SetMapAtmosphere(map.MapUid, false, AirAt(kelvin));
-                s.KeepGrid(map.Grid);
-                rooms.Add((names[index], SEntMan.SpawnEntity("MobHuman", map.GridCoords)));
-            });
-        }
-
-        // Two fires: one left to burn out, one put out at its hottest (30 s), the case the fire grace has to cover.
-        var fireMap = await CreateTestMap();
-        var doused = default(EntityUid);
-        await Server.WaitPost(() =>
-        {
-            s.SetAir(fireMap.MapUid, true);
-            s.KeepGrid(fireMap.Grid);
-            burning = SEntMan.SpawnEntity("MobHuman", fireMap.GridCoords);
-            doused = SEntMan.SpawnEntity("MobHuman", new Robust.Shared.Map.MapCoordinates(new System.Numerics.Vector2(40f, 40f), fireMap.MapId));
-        });
-        await RunSeconds(2);
-        await Server.WaitPost(() =>
-        {
-            SEntMan.System<FlammableSystem>().SetFireStacks(burning, 10, ignite: true);
-            SEntMan.System<FlammableSystem>().SetFireStacks(doused, 10, ignite: true);
-        });
-
-        var lines = new Dictionary<string, List<string>>();
-        foreach (var (name, _) in rooms)
-            lines[name] = new List<string>();
-        var fire = new List<string>();
-        var douse = new List<string>();
-        var fireOut = -1;
-        var peak = 0f;
-        int? burnedUnder = null, dousedUnder = null;
-
-        for (var second = 0; second <= 300; second += 5)
-        {
-            var now = second;
-            await Server.WaitPost(() =>
-            {
-                if (now % 10 == 0)
-                {
-                    foreach (var (name, body) in rooms)
-                    {
-                        var core = BodyTemperature.GetCore(body) is { } k ? $"{k:0}" : "-";
-                        var arrest = s.Life.InArrest(body) ? "/arrest" : "";
-                        lines[name].Add($"{now}:{Surface(body):0}/{core}/{s.State(body)}{arrest}");
-                    }
-                }
-
-                var flammable = SEntMan.GetComponent<FlammableComponent>(burning);
-                if (!flammable.OnFire && fireOut < 0)
-                    fireOut = now;
-                if (fireOut >= 0 && burnedUnder == null && Surface(burning) < 318f)
-                    burnedUnder = now - fireOut;
-                peak = MathF.Max(peak, Surface(burning));
-                fire.Add($"{now}:{Surface(burning):0}{(flammable.OnFire ? "*" : "")}/{s.State(burning)}");
-
-                if (now == 30)
-                    SEntMan.System<FlammableSystem>().Extinguish(doused);
-                if (now >= 30 && dousedUnder == null && Surface(doused) < 318f)
-                    dousedUnder = now - 30;
-                if (now <= 120)
-                    douse.Add($"{now}:{Surface(doused):0}/{s.State(doused)}");
-            });
-            await RunSeconds(5);
-        }
-
-        foreach (var (name, _) in rooms)
-            Note($"ColdRoomMeasurement {name} (surface/core/state): {string.Join(" ", lines[name])}");
-        Note($"ColdRoomMeasurement fire (out at {fireOut} s, peak {peak:0} K, under 318 K {burnedUnder} s later; * burning): " +
-             string.Join(" ", fire));
-        Note($"ColdRoomMeasurement fire put out at 30 s (under 318 K {dousedUnder} s later): {string.Join(" ", douse)}");
-        Assert.That(rooms.Count, Is.EqualTo(names.Length));
-    }
 
     /// <summary>
     /// <c>HypothermiaScenarioTest</c> (plan §3.10), with the lines from the M5 measurement: a human held at the 256 K

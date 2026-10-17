@@ -4865,7 +4865,7 @@ Files:
 | `Resources/Locale/en-US/_WF/Wolfmed/remaining-causes.ftl` | new | Every M5 string. |
 | `Resources/Locale/en-US/_WF/Wolfmed/treatment-advice.ftl`, `Resources/ServerInfo/_WF/Wolfmed/Guidebook/Medical/Wounds.xml`, `WoundTreatment.xml` | modified | Infection no longer "takes toxin damage"; a paragraph on the four causes. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRemainingCausesTest.cs` | new | `ToxinScenarioTest`, `RadiationScenarioTest`, `SepsisNotToxinTest`, `AcidResidueTest`. |
-| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs` | new | `ColdRoomMeasurementTest`, `HypothermiaScenarioTest`, `HeatStrokeScenarioTest`, `SpeciesLinesTest`, `SpaceColdSmokeTest`. |
+| `Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs` | new | `HypothermiaScenarioTest`, `HeatStrokeScenarioTest`, `SpeciesLinesTest`, `SpaceColdSmokeTest`. |
 | `Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedInfectionTest.cs` | modified | Infection and sepsis deal no Poison; `SepsisPoisonsAndAntibioticsClearItTest` renamed `SepsisShowsAndAntibioticsClearItTest`. |
 
 ## M6 (2026-09-24)

@@ -58,6 +58,13 @@ public sealed class WFRoundSetupOptionButton : OptionButton
         _caption.SetMessage(FormattedMessage.FromUnformatted((_shown ?? string.Empty).Trim()));
     }
 
+    /// <summary>Removes every choice so the list can be rebuilt.</summary>
+    public void ClearChoices()
+    {
+        Clear();
+        _choices.Clear();
+    }
+
     /// <summary>Explains why a popup choice cannot currently be selected.</summary>
     public void DisableItem(int index, string reason)
     {

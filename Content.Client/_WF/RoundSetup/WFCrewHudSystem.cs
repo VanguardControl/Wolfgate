@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using Content.Client.Gameplay;
 using Content.Client.Stylesheets;
+using Content.Client.UserInterface.Systems.Alerts.Widgets;
 using Content.Shared._WF.RoundSetup;
 using Content.Shared.GameTicking;
 using Content.Shared.Roles;
@@ -58,9 +59,7 @@ public sealed class WFCrewHudSystem : EntitySystem
                 BorderThickness = new Thickness(2), ContentMarginLeftOverride = 12, ContentMarginRightOverride = 12,
                 ContentMarginTopOverride = 10, ContentMarginBottomOverride = 10,
             } };
-        _ui.PopupRoot.AddChild(_locator);
         _ui.PopupRoot.AddChild(_request);
-        LayoutContainer.SetAnchorPreset(_locator, LayoutContainer.LayoutPreset.TopLeft);
         LayoutContainer.SetAnchorPreset(_request, LayoutContainer.LayoutPreset.TopLeft);
         SubscribeNetworkEvent<WFCrewSignalEvent>(OnSignal);
         SubscribeNetworkEvent<RoundRestartCleanupEvent>(OnRestart);
@@ -81,13 +80,12 @@ public sealed class WFCrewHudSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
         var width = _ui.PopupRoot.Width;
-        _locator.SetWidth = MathF.Min(280, MathF.Max(0, width - 24));
-        LayoutContainer.SetPosition(_locator, new Vector2(MathF.Max(12, (width - _locator.SetWidth) / 2), 62));
         _request.SetWidth = MathF.Min(320, MathF.Max(0, width - 24));
         LayoutContainer.SetPosition(_request, new Vector2(MathF.Max(12, width - _request.SetWidth - 16),
             MathF.Max(12, _ui.PopupRoot.Height - _request.Height - 100)));
         _locator.Visible = Signal is { Body: not null } signal && _timing.RealTime - _lastSignal < TimeSpan.FromSeconds(2) &&
             _states.CurrentState is GameplayState && _players.LocalEntity is { } body && GetNetEntity(body) == signal.Body;
+        PlaceLocator();
         if (!_locator.Visible || Signal is not { } current || _players.LocalEntity is not { } player)
             return;
         Vector2? direction = null;
@@ -98,6 +96,24 @@ public sealed class WFCrewHudSystem : EntitySystem
             direction = new Vector2(rotated.X, -rotated.Y);
         }
         _locator.Refresh(current, direction);
+    }
+
+    /// <summary>Keeps the locator as the last entry of the alerts column while it is shown.</summary>
+    private void PlaceLocator()
+    {
+        var column = _locator.Visible ? _ui.GetActiveUIWidgetOrNull<AlertsUI>()?.AlertContainer : null;
+        if (column == null)
+        {
+            _locator.Orphan();
+            return;
+        }
+        if (_locator.Parent != column)
+        {
+            _locator.Orphan();
+            column.AddChild(_locator);
+        }
+        else if (_locator.GetPositionInParent() != column.ChildCount - 1)
+            _locator.SetPositionInParent(column.ChildCount - 1);
     }
 
     private void OnSignal(WFCrewSignalEvent signal)

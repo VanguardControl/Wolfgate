@@ -23,6 +23,9 @@
                 <Button Name="LoadHereButton" Access="Public" HorizontalExpand="True" Disabled="True"
                         Text="{Loc 'wf-mapping-maps-load-here'}" ToolTip="{Loc 'wf-mapping-maps-load-here-tooltip'}"
                         TooltipDelay="0" />
+                <Button Name="OpenStackButton" Access="Public" HorizontalExpand="True" Disabled="True"
+                        Text="{Loc 'wf-mapping-maps-open-stack'}" ToolTip="{Loc 'wf-mapping-maps-open-stack-tooltip'}"
+                        TooltipDelay="0" />
             </BoxContainer>
 
             <Label Text="{Loc 'wf-mapping-maps-section-save'}" StyleClasses="LabelHeading" Margin="0 6 0 0" />
@@ -33,6 +36,8 @@
                         ToolTip="{Loc 'wf-mapping-maps-save-grid-tooltip'}" TooltipDelay="0" />
                 <Button Name="SaveMapButton" Access="Public" Text="{Loc 'wf-mapping-maps-save-map'}"
                         ToolTip="{Loc 'wf-mapping-maps-save-map-tooltip'}" TooltipDelay="0" />
+                <Button Name="SaveStackButton" Access="Public" Text="{Loc 'wf-mapping-maps-save-stack'}"
+                        ToolTip="{Loc 'wf-mapping-maps-save-stack-tooltip'}" TooltipDelay="0" />
             </BoxContainer>
             <Label Name="SaveFolderLabel" Access="Public" StyleClasses="LabelSubText" ClipText="True" />
         </BoxContainer>

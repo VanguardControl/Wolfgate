@@ -39,6 +39,8 @@ public sealed class MappingMapsSystem : EntitySystem
         _window.PreviewRequested += path => RaiseNetworkEvent(new MappingMapsPreviewRequestEvent(path));
         _window.LoadRequested += (path, here) => RaiseNetworkEvent(new MappingMapsLoadEvent(path, here));
         _window.SaveRequested += (name, wholeMap) => RaiseNetworkEvent(new MappingMapsSaveEvent(name, wholeMap));
+        _window.OpenStackRequested += path => RaiseNetworkEvent(new MappingZLevelsOpenEvent(path));
+        _window.SaveStackRequested += name => RaiseNetworkEvent(new MappingZLevelsSaveEvent(name));
         _window.OnClose += () => _window = null;
         _window.OpenCentered();
 

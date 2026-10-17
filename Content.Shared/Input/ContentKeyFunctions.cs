@@ -162,7 +162,7 @@ namespace Content.Shared.Input
         public static readonly BoundKeyFunction MappingRemoveDecal = "MappingRemoveDecal";
         public static readonly BoundKeyFunction MappingCancelEraseDecal = "MappingCancelEraseDecal";
         public static readonly BoundKeyFunction MappingOpenContextMenu = "MappingOpenContextMenu";
-        // WOLFGATE(MappingTools) START: Select tool, clipboard and undo keys for the mapping tools
+        // WOLFGATE(MappingTools) START: Select tool, clipboard, undo and z-level keys for the mapping tools
         public static readonly BoundKeyFunction WFMappingEnableSelect = "WFMappingEnableSelect";
         public static readonly BoundKeyFunction WFMappingSelect = "WFMappingSelect";
         public static readonly BoundKeyFunction WFMappingSelectCancel = "WFMappingSelectCancel";
@@ -175,6 +175,8 @@ namespace Content.Shared.Input
         public static readonly BoundKeyFunction WFMappingMirrorVertical = "WFMappingMirrorVertical";
         public static readonly BoundKeyFunction WFMappingUndo = "WFMappingUndo";
         public static readonly BoundKeyFunction WFMappingRedo = "WFMappingRedo";
+        public static readonly BoundKeyFunction WFMappingLevelUp = "WFMappingLevelUp";
+        public static readonly BoundKeyFunction WFMappingLevelDown = "WFMappingLevelDown";
         // WOLFGATE END
     }
 }

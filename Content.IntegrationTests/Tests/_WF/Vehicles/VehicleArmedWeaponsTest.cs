@@ -61,6 +61,7 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
     [SetUp]
     public async Task DisableRoomEcho()
     {
+        _checkedFlights.Clear();
         await Client.WaitPost(() => Client.ResolveDependency<IConfigurationManager>().SetCVar(MonoCVars.AreaEchoEnabled, false));
     }
 
@@ -352,7 +353,18 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
         public VehicleHardpointAmmoComponent? HardpointAmmo;
         public ProjectileMaxFixedRangeComponent? RoundCap;
         public bool TriggersAtStop;
+        public required string Bullet;
+        public required float Speed;
     }
+
+    /// <summary>
+    /// Fixed-distance flight profiles whose obstacle, face and moving-ship matrix already ran. The matrix tests how a round stops,
+    /// which depends only on the round, its speed, timer and range, so guns sharing a profile run it once.
+    /// </summary>
+    private readonly HashSet<string> _checkedFlights = new();
+
+    private static string FlightProfile(GunData data) =>
+        $"{data.Bullet}|{data.Speed}|{data.Pellets}|{data.Timer?.Delay}|{data.Fixed?.MaxFixedRange}|{data.RoundCap?.MaxFixedRange}|{data.TriggersAtStop}";
 
     private GunData ReadGun(EntityPrototype gun)
     {
@@ -375,6 +387,8 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
             HardpointAmmo = hardpointAmmo,
             RoundCap = roundCap,
             TriggersAtStop = bullet.TryGetComponent<TriggerOnFixedDistanceStopComponent>(out _, factory),
+            Bullet = bullet.ID,
+            Speed = Comp<GunComponent>(gun).ProjectileSpeed,
         };
     }
 
@@ -733,7 +747,7 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
             await CheckFarAim(gunProto, mount, vehicle, gun, netGun, vehiclePos, arcOffset, failures);
 
             // With the blast taken out, a round still shows where it came to rest.
-            if (arcOffset == Angle.Zero)
+            if (arcOffset == Angle.Zero && _checkedFlights.Add(FlightProfile(data)))
             {
                 await CheckObstacles(gunProto, mount, vehicle, gun, netGun, failures);
                 await CheckAimsAtTheFace(gunProto, mount, vehicle, gun, netGun, failures);
