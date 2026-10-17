@@ -17,7 +17,7 @@ namespace Content.IntegrationTests.Tests._WF.ReaverCampaign;
 [TestOf(typeof(WFReaverCampaignRuleSystem))]
 public sealed class WFReaverGameModeTest : WFReaverTestBase
 {
-    /// <summary>The preset is votable and is Standard's rules plus the Ashfall rule.</summary>
+    /// <summary>The preset is votable and is Standard's rules plus the Ashfall rule and the ADS rule.</summary>
     [Test]
     public async Task AshfallPresetIsStandardPlusTheRule()
     {
@@ -30,7 +30,8 @@ public sealed class WFReaverGameModeTest : WFReaverTestBase
             Assert.That(ashfall.ShowInVote, Is.True);
             Assert.That(ashfall.Rules, Is.SupersetOf(standard.Rules));
             Assert.That(ashfall.Rules, Does.Contain("WFReaverCampaignRule"));
-            Assert.That(ashfall.Rules.Count, Is.EqualTo(standard.Rules.Count + 1));
+            Assert.That(ashfall.Rules, Does.Contain("WFAdsCampaignRule"));
+            Assert.That(ashfall.Rules.Count, Is.EqualTo(standard.Rules.Count + 2));
         });
     }
 

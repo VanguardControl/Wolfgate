@@ -84,4 +84,8 @@ public sealed partial class WFReaverCampaignComponent : Component
     /// <summary>Held cells players have retaken this round.</summary>
     [ViewVariables]
     public int Retaken;
+
+    /// <summary>Held cells another faction took by challenge this round.</summary>
+    [ViewVariables]
+    public int CellsLost;
 }

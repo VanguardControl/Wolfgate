@@ -187,6 +187,56 @@
     - kind: Escort
       target: raider
 
+# A response to a challenge on a Reaver cell: the nearest stronghold sends a raider and its wing to the cell, where they
+# attack the challenger, then fly home. They hold their ground and drive the intruder off rather than run.
+- type: wfEncounter
+  id: WFReaverResponsePack
+  name: wf-reaver-name-response
+  start: Manual
+  lifetime: Transient
+  category: Threat
+  icon: Skull
+  cost: 2
+  minPlayers: 3
+  duration: 3600
+  ships:
+  - key: raider
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Kalisto, Metis, Mudskipper, Scallywag ]
+    deckhands: 3
+    warnRange: 900
+    attackRange: 450
+    evades: false
+    zoneLines: wf-encounter-pirate-zone
+    disengage: Deter
+    disengageRange: 1200
+  - key: wing
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Carrion, Horsefly, Tick, Hazel ]
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    offset: 160, 0
+    warnRange: 900
+    attackRange: 450
+    evades: false
+    zoneLines: wf-encounter-pirate-zone
+    disengage: Deter
+    disengageRange: 1200
+    objectives:
+    - kind: Escort
+      target: raider
+
 # Boarders sent after a player ship; they hunt as the storyteller's boarders do.
 - type: wfEncounter
   id: WFReaverRaidBoarders

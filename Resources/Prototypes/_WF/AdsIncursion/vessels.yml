@@ -1,0 +1,72 @@
+# The Automated Defense System's hulls, copied from the pre-Fracture derelicts with their ghost-role spawners removed.
+# Never sold at a shipyard; only the ADS campaign and admins spawn them.
+- type: vessel
+  id: WFAdsNebula
+  parent: BaseVesselIFFDisabled
+  name: ADS Nebula
+  description: A pre-Fracture Automated Defense System light cruiser, built to hold a position and burn down what crosses it. Not for sale; admins and the ADS only.
+  price: 450000
+  purchasable: false
+  category: Medium
+  group: BlackMarket
+  shuttlePath: /SharedMaps/_WF/AdsIncursion/nebula.yml
+  guidebookPage: null
+  class:
+  - Cruiser
+  - Brawler
+  engine:
+  - RTG
+  - APU
+
+- type: vessel
+  id: WFAdsWyrm
+  parent: BaseVesselIFFDisabled
+  name: ADS Wyrm
+  description: A pre-Fracture Automated Defense System gunship with torpedo tubes and a long reach. Not for sale; admins and the ADS only.
+  price: 350000
+  purchasable: false
+  category: Small
+  group: BlackMarket
+  shuttlePath: /SharedMaps/_WF/AdsIncursion/wyrm.yml
+  guidebookPage: null
+  class:
+  - Frigate
+  - Pursuit
+  engine:
+  - RTG
+  - APU
+
+- type: vessel
+  id: WFAdsZenith
+  parent: BaseVesselIFFDisabled
+  name: ADS Zenith
+  description: A pre-Fracture Automated Defense System fortress hull with a shield and four heavy batteries. Not for sale; admins and the ADS only.
+  price: 650000
+  purchasable: false
+  category: Medium
+  group: BlackMarket
+  shuttlePath: /SharedMaps/_WF/AdsIncursion/zenith.yml
+  guidebookPage: null
+  class:
+  - Cruiser
+  - Brawler
+  engine:
+  - RTG
+  - APU
+
+- type: vessel
+  id: WFAdsRazorN
+  parent: BaseVesselIFFDisabled
+  name: ADS Razor N
+  description: A pre-Fracture Automated Defense System scuttle hull with no guns, only a charge to bring itself down. Not for sale; admins and the ADS only.
+  price: 120000
+  purchasable: false
+  category: Small
+  group: BlackMarket
+  shuttlePath: /SharedMaps/_WF/AdsIncursion/razorn.yml
+  guidebookPage: null
+  class:
+  - Fighter
+  engine:
+  - RTG
+  - APU

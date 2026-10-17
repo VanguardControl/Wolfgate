@@ -119,6 +119,17 @@ wf-reaver-raid-station-warning = Reaver raiders are heading for {$station}, bear
 wf-reaver-raid-hunting = Reaver raiders are hunting {$ship}, bearing {$bearing}, {$range} km.
 wf-reaver-intercept-warning = Reaver patrol turning to intercept {$ship}, bearing {$bearing}, {$range} km.
 
+# Another faction challenging a Reaver cell; $faction is the challenger
+wf-reaver-response-launched = Reaver gunships are scrambling to {$callsign} to drive off the intruder.
+wf-reaver-response-destroyed = Reaver gunships destroyed at {$callsign}. { $paid ->
+        [0] No bounty was claimed.
+       *[other] Bounty {$bounty} { $bounty ->
+            [one] thaler
+           *[other] thalers
+        } paid.
+    }
+wf-reaver-cell-lost = {$callsign} lost to the {$faction}.
+
 # Map legend line
 wf-reaver-legend = {$faction}: {$tier}, { $strongholds ->
         [one] {$strongholds} stronghold
@@ -160,17 +171,26 @@ wf-reaver-round-end-broken = The Reavers were broken { $count ->
         [one] once
        *[other] {$count} times
     }.
+wf-reaver-round-end-lost = The Reavers lost { $count ->
+        [one] {$count} cell
+       *[other] {$count} cells
+    } to challenges.
 
 # wf_reavers command
 cmd-wf_reavers-desc = Shows and drives the Ashfall Reaver campaign.
-cmd-wf_reavers-help = Usage: {$command} status | found [x y] | convoy | reinforce <stronghold uid> | tier <n> | spread | patrol | raid | intercept <grid uid> | pause | resume | clear
-    found places a level 0 hub at once, an admin shortcut; convoy sends one out from a standing stronghold, as the campaign does; reinforce sends a stronghold its next reinforcement now.
+cmd-wf_reavers-help = Usage: {$command} status | found [x y] | convoy | reinforce <stronghold uid> | tier <n> | spread | patrol | raid | intercept <grid uid> | respond <q> <r> | pause | resume | clear
+    found places a level 0 hub at once, an admin shortcut; convoy sends one out from a standing stronghold, as the campaign does; reinforce sends a stronghold its next reinforcement now; respond sends a response pack to a challenged Reaver cell.
 cmd-wf_reavers-hint-sub = Subcommand
 cmd-wf_reavers-hint-x = Map x in metres
 cmd-wf_reavers-hint-y = Map y in metres
 cmd-wf_reavers-hint-tier = Threat tier
 cmd-wf_reavers-hint-grid = Grid uid of the ship to intercept
 cmd-wf_reavers-hint-stronghold = Stronghold uid
+cmd-wf_reavers-hint-q = Cell column (q)
+cmd-wf_reavers-hint-r = Cell row (r)
+cmd-wf_reavers-bad-cell = Not a cell: {$q} {$r}
+cmd-wf_reavers-respond = A response pack is scrambling to {$callsign}.
+cmd-wf_reavers-respond-failed = No response pack could be sent: the cell is not a challenged Reaver cell, a pack already defends it, or no stronghold has clear space beside it.
 cmd-wf_reavers-no-campaign = No Reaver campaign runs under the current preset.
 cmd-wf_reavers-status-header = Campaign {$campaign}: running {$running}, paused {$paused}, tier {$tier}, score {$score}.
 cmd-wf_reavers-status-counts = { $strongholds ->
@@ -240,8 +260,9 @@ wf-reaver-name-level = {$name} (level {$level})
 wf-reaver-name-reinforcement = Reaver reinforcements {$designation}
 wf-reaver-name-patrol = Reaver patrol {$designation}
 wf-reaver-name-raid = Reaver raiders {$designation}
+wf-reaver-name-response = Reaver response pack
 wf-reaver-name-boarders = Reaver boarders {$designation}
 
 # Game mode
 wf-reaver-preset-title = Ashfall
-wf-reaver-preset-description = Standard sector, and the Ashfall Reavers build strongholds and spread across it.
+wf-reaver-preset-description = Standard sector, and the Ashfall Reavers build strongholds and spread across it while the Automated Defense System holds ground of its own and contests theirs.

@@ -1,0 +1,26 @@
+<Document>
+  # Automated Defense System
+
+  The [color=#9B4DFF]Automated Defense System[/color] (ADS) is the pre-Fracture silicon fleet whose derelict hulls drift through the sector. Some of them are awake. They are organised, they hold ground, and they follow their directives to the letter. On the sector map they are [color=#9B4DFF]purple[/color].
+
+  ## What it does
+
+  - [color=#9B4DFF]Nodes[/color] are Nebula hulls holding a cell as gun platforms. They never leave their cell. Each is crewed by automatons and carries ADS repair tools and energy weapons worth boarding for.
+  - [color=#9B4DFF]Sentinels[/color] circle their node. [color=#9B4DFF]Sweeps[/color] fly fixed routes through ADS space. Both give up once they are out of it.
+  - [color=#9B4DFF]Interdictors[/color] turn on a crewed ship that lingers in ADS space, or sail out to contest a cell another faction holds.
+  - The ADS is at war with the TSF, the Vanguard and the Ashfall Reavers. It fights the Reavers as readily as it fights you.
+
+  ## The directives
+
+  - [bold]Disarmament.[/bold] The ADS disables, it does not kill. Its ships stop firing once yours is combat-ineffective. Nobody is hunted, boarded or chased across the sector.
+  - [bold]Asset preservation.[/bold] The ADS never claims, contests or blockades a cell that holds a station. Every station stays a safe harbour.
+
+  ## How to deal with it
+
+  1. Heed the warnings. An ADS ship hails any ship inside its exclusion zone and gives it a chance to power down its weapons and withdraw before it opens fire.
+  2. Cross ADS space quickly, or fly a different lane. A ship that does not linger is rarely interdicted.
+  3. To break a node, put its Nebula out of the fight. Its cells go free, its sentinels lose their anchor and the bounty is paid to those who hit it.
+  4. Sentinels and sweeps are small and mediocre. Destroying one frees the cell it died in and pays a bounty.
+  5. Stand off and let the machines and the Reavers bleed each other if you would rather not fight either.
+
+</Document>

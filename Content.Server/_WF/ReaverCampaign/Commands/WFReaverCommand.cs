@@ -24,7 +24,7 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
     [Dependency] private WFReaverCampaignSystem _campaign = default!;
     [Dependency] private WFSectorTerritorySystem _territory = default!;
 
-    private static readonly string[] Subcommands = { "status", "found", "convoy", "reinforce", "tier", "spread", "patrol", "raid", "intercept", "pause", "resume", "clear" };
+    private static readonly string[] Subcommands = { "status", "found", "convoy", "reinforce", "tier", "spread", "patrol", "raid", "intercept", "respond", "pause", "resume", "clear" };
 
     public override string Command => "wf_reavers";
 
@@ -78,6 +78,9 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
             case "intercept" when args.Length == 2:
                 Intercept(shell, args[1]);
                 break;
+            case "respond" when args.Length == 3:
+                Respond(shell, args[1], args[2]);
+                break;
             case "pause" when args.Length == 1:
                 _campaign.Paused = true;
                 shell.WriteLine(Loc.GetString("cmd-wf_reavers-paused"));
@@ -103,6 +106,8 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
             2 when args[0] == "found" => CompletionResult.FromHint(Loc.GetString("cmd-wf_reavers-hint-x")),
             3 when args[0] == "found" => CompletionResult.FromHint(Loc.GetString("cmd-wf_reavers-hint-y")),
             2 when args[0] == "intercept" => CompletionResult.FromHint(Loc.GetString("cmd-wf_reavers-hint-grid")),
+            2 when args[0] == "respond" => CompletionResult.FromHint(Loc.GetString("cmd-wf_reavers-hint-q")),
+            3 when args[0] == "respond" => CompletionResult.FromHint(Loc.GetString("cmd-wf_reavers-hint-r")),
             2 when args[0] == "reinforce" => CompletionResult.FromHint(Loc.GetString("cmd-wf_reavers-hint-stronghold")),
             2 when args[0] == "tier" => CompletionResult.FromHintOptions(
                 Enumerable.Range(0, WFReaverCampaignSystem.MaxTier + 1).Select(tier => tier.ToString()),
@@ -266,6 +271,26 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
         var name = EntityManager.GetComponent<MetaDataComponent>(grid.Value).EntityName;
         shell.WriteLine(Loc.GetString(_campaign.TryIntercept(grid.Value) ? "cmd-wf_reavers-intercept" : "cmd-wf_reavers-intercept-failed",
             ("ship", name)));
+    }
+
+    /// <summary>wf_reavers respond &lt;q&gt; &lt;r&gt;: sends a response pack to a challenged Reaver cell now.</summary>
+    private void Respond(IConsoleShell shell, string q, string r)
+    {
+        if (!int.TryParse(q, NumberStyles.Integer, CultureInfo.InvariantCulture, out var column)
+            || !int.TryParse(r, NumberStyles.Integer, CultureInfo.InvariantCulture, out var row))
+        {
+            shell.WriteLine(Loc.GetString("cmd-wf_reavers-bad-cell", ("q", q), ("r", r)));
+            return;
+        }
+
+        var cell = new WFSectorCell(column, row);
+        if (!_campaign.TryRespond(cell, out _))
+        {
+            Failed(shell, "cmd-wf_reavers-respond-failed");
+            return;
+        }
+
+        shell.WriteLine(Loc.GetString("cmd-wf_reavers-respond", ("callsign", WFSectorHex.Callsign(cell))));
     }
 
     /// <summary>Seconds until a time, or a dash when there is none.</summary>

@@ -158,6 +158,8 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
         SubscribeLocalEvent<WFSectorRetakeAttemptEvent>(OnRetakeAttempt);
         SubscribeLocalEvent<WFSectorCellRetakenEvent>(OnRetaken);
         SubscribeLocalEvent<WFSectorCellClearingEvent>(OnClearing);
+        SubscribeLocalEvent<WFSectorCellContestedEvent>(OnCellContested);
+        SubscribeLocalEvent<WFSectorContestResolvedEvent>(OnContestResolved);
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEndText);
     }
 
@@ -227,6 +229,7 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
         TendReinforcements();
         TendPatrols(state);
         TendRaids();
+        TendResponses();
         TendIntercepts(state);
         TendMarks();
         if (!running || Campaign is not { } campaign)
@@ -405,6 +408,8 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
             ConvoyResolved((args.Encounter, convoy), args.Resolution);
         else if (TryComp<WFReaverReinforcementComponent>(args.Encounter, out var reinforcement))
             ReinforcementResolved((args.Encounter, reinforcement), args.Resolution);
+        else if (TryComp<WFReaverResponseComponent>(args.Encounter, out var response))
+            ResponseResolved((args.Encounter, response), args.Resolution);
     }
 
     /// <summary>Scales the storyteller's own Reaver encounters by the tier, within the campaign's cap.</summary>
@@ -432,6 +437,8 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
             ("retaken", state.Retaken)));
         if (state.Defeats > 0)
             args.AddLine(Loc.GetString("wf-reaver-round-end-broken", ("count", state.Defeats)));
+        if (state.CellsLost > 0)
+            args.AddLine(Loc.GetString("wf-reaver-round-end-lost", ("count", state.CellsLost)));
     }
 
     /// <summary>Ends every campaign encounter, frees the faction's cells and starts the regroup clock. Returns how many encounters ended.</summary>
@@ -443,7 +450,7 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
         {
             if (encounter.Resolution == null && (HasComp<WFReaverStrongholdComponent>(uid) || HasComp<WFReaverConvoyComponent>(uid)
                     || HasComp<WFReaverPatrolComponent>(uid) || HasComp<WFReaverRaidComponent>(uid)
-                    || HasComp<WFReaverReinforcementComponent>(uid)))
+                    || HasComp<WFReaverReinforcementComponent>(uid) || HasComp<WFReaverResponseComponent>(uid)))
                 ended.Add(uid);
         }
 

@@ -80,6 +80,11 @@ stopped, raids launched and cells retaken, and how often the Reavers were broken
 Freed Reaver cells are announced as clearing (no chime, one line per batch) and breaking the last stronghold with no
 convoy out announces the ending; see `WFSectorCellClearingEvent` in the SectorControl module.
 
+When another faction challenges a Reaver cell (the ADS, `AdsIncursion`), the nearest stronghold scrambles a response
+pack (`.Conflict`, `WFReaverResponseComponent`, `campaign.ResponsePack`) to the cell to attack the challenger's lead and
+fly home once the challenge is decided; its ships count as Reaver presence there. A cell lost to a challenge is announced
+and counted for the round summary. `wf_reavers respond <q> <r>` sends one by hand.
+
 `Docs/_WF/ReaverCampaign/design.md` is the design.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -97,9 +102,11 @@ convoy out announces the ending; see `WFSectorCellClearingEvent` in the SectorCo
 - [`Content.Server/_WF/ReaverCampaign/Components/WFReaverPatrolComponent.cs`](Components/WFReaverPatrolComponent.cs)
 - [`Content.Server/_WF/ReaverCampaign/Components/WFReaverRaidComponent.cs`](Components/WFReaverRaidComponent.cs)
 - [`Content.Server/_WF/ReaverCampaign/Components/WFReaverReinforcementComponent.cs`](Components/WFReaverReinforcementComponent.cs)
+- [`Content.Server/_WF/ReaverCampaign/Components/WFReaverResponseComponent.cs`](Components/WFReaverResponseComponent.cs)
 - [`Content.Server/_WF/ReaverCampaign/Components/WFReaverStrongholdComponent.cs`](Components/WFReaverStrongholdComponent.cs)
 - [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignRuleSystem.cs`](Systems/WFReaverCampaignRuleSystem.cs)
 - [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignSystem.Announce.cs`](Systems/WFReaverCampaignSystem.Announce.cs)
+- [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignSystem.Conflict.cs`](Systems/WFReaverCampaignSystem.Conflict.cs)
 - [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignSystem.Convoys.cs`](Systems/WFReaverCampaignSystem.Convoys.cs)
 - [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignSystem.cs`](Systems/WFReaverCampaignSystem.cs)
 - [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignSystem.Disputes.cs`](Systems/WFReaverCampaignSystem.Disputes.cs)

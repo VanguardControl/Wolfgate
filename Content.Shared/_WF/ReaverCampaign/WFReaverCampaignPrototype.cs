@@ -151,6 +151,10 @@ public sealed partial class WFReaverCampaignPrototype : IPrototype
     [DataField]
     public ProtoId<WFEncounterPrototype> RaidStation = "WFReaverRaidStation";
 
+    /// <summary>The pack a stronghold sends to drive off a faction challenging a Reaver cell.</summary>
+    [DataField]
+    public ProtoId<WFEncounterPrototype> ResponsePack = "WFReaverResponsePack";
+
     /// <summary>The storyteller's own Reaver encounters, weighted up by tier.</summary>
     [DataField]
     public List<ProtoId<WFEncounterPrototype>> ScaledEncounters = new() { "WFEncounterPirateRaiders", "WFEncounterPirateBoarders" };
