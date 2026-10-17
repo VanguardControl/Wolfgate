@@ -445,11 +445,12 @@ public sealed partial class WFGodRosterControl : BoxContainer
         if (row.Entity is { } entity)
             Watch?.Invoke(entity, row.IsGrid);
     }
+
     private System.Numerics.Vector2 _lastMeasured;
 
     /// <summary>
-    /// The engine only re-arranges a control whose final rect changed, so a header measured before the styles gave
-    /// it a height stayed at zero while the list filled the space. A changed measure asks for a fresh arrange.
+    /// The window's first measure comes with no height, which clamps the header's desired height to zero, and the
+    /// engine only re-arranges a control whose own rect changes; so a changed measure asks for a fresh arrange.
     /// </summary>
     protected override System.Numerics.Vector2 MeasureOverride(System.Numerics.Vector2 availableSize)
     {

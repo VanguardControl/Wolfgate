@@ -44,6 +44,7 @@ public sealed partial class WFGodPanelWindow : FancyWindow
     private EntityUid? _radarEntity;
     private EntityUid _radarParent;
     private TimeSpan _nextRadar;
+    private bool _relaidOut;
 
     public WFGodPanelWindow()
     {
@@ -269,11 +270,29 @@ public sealed partial class WFGodPanelWindow : FancyWindow
     {
         base.FrameUpdate(args);
 
+        // The engine re-arranges a control only when its own rect changes, so panes whose children were measured
+        // before the styles gave them a height keep that first layout. One pass after the window has its size
+        // lays everything out again.
+        if (!_relaidOut && Size.Y > 0)
+        {
+            _relaidOut = true;
+            Relayout(this);
+        }
+
         TeleportToggle.Disabled = !_teleport.CanTeleport();
         if (_radar.ShowPlayers)
             _radar.RequestPlayers();
 
         UpdateRadarState();
+    }
+
+    private static void Relayout(Control control)
+    {
+        foreach (var child in control.Children)
+            Relayout(child);
+
+        control.InvalidateMeasure();
+        control.InvalidateArrange();
     }
 
     /// <summary>
