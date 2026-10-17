@@ -1,5 +1,13 @@
 #nullable enable
 using System.Collections.Generic;
+using System.Linq;
+using Content.Client._WF.Vehicles.Audio;
+using Content.Shared._WF.Vehicles.Audio;
+using Content.Shared._WF.Vehicles.Grid.Components;
+using Content.Client._WF.CombatConsole;
+using Content.Client._WF.Vehicles.Ui;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 using Content.IntegrationTests.Pair;
 using Content.Shared._WF.Vehicles.Base;
 using Content.Shared._WF.Vehicles.Core;
@@ -16,6 +24,175 @@ namespace Content.IntegrationTests.Tests._WF.Vehicles;
 [TestFixture]
 public sealed class VehicleClientTest
 {
+    [TestCase(20f, true, 0.0, false)]
+    [TestCase(19f, true, 0.0, true)]
+    [TestCase(5f, true, 0.75, true)]
+    [TestCase(4f, true, 0.25, true)]
+    [TestCase(4f, true, 0.75, false)]
+    [TestCase(4f, false, 0.25, false)]
+    public void FuelWarningRespectsPowerAndFlashingThreshold(float fuel, bool powered, double seconds, bool lit)
+    {
+        Assert.That(WFVehicleLamp.FuelWarningLit(fuel, powered, seconds), Is.EqualTo(lit));
+    }
+
+    [Test]
+    public void InstrumentSelfTestSweepsBeforeShowingTelemetry()
+    {
+        Assert.That(WFVehicleInstrumentStartup.Reading(40, 100, 0), Is.Zero);
+        Assert.That(WFVehicleInstrumentStartup.Reading(40, 100, 0.8f), Is.EqualTo(100).Within(0.001));
+        Assert.That(WFVehicleInstrumentStartup.Reading(40, 100, 1.6f), Is.Zero.Within(0.001));
+        Assert.That(WFVehicleInstrumentStartup.Reading(40, 100, 2.2f), Is.EqualTo(40).Within(0.001));
+    }
+
+    [Test]
+    public async Task EveryProductionHeadlightHasAForwardCone()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        await pair.Client.WaitAssertion(() =>
+        {
+            var factory = pair.Client.EntMan.ComponentFactory;
+            foreach (var id in new[] { "WFActionVehicleOvercharge", "ActionVehicleToggleView", "ActionVehicleLock",
+                         "WFActionVehicleScanner", "WFActionVehicleSteeringMode", "CMUActionVehicleEmergencyLights",
+                         "CMUActionCargoVehicleReturn", "CMUActionCargoVehicleToggleBay", "CMUActionCargoVehicleSelfDestruct" })
+            {
+                var action = pair.Client.ProtoMan.Index<EntityPrototype>(id);
+                Assert.That(action.TryGetComponent<Content.Shared.Actions.InstantActionComponent>(out var data, factory), Is.True, id);
+                Assert.That(data!.AutoPopulate, Is.False, $"{id} belongs in the vehicle panel, not the hotbar.");
+            }
+            var checkedVehicles = 0;
+            foreach (var proto in pair.Client.ProtoMan.EnumeratePrototypes<EntityPrototype>())
+            {
+                if (proto.Abstract || VehicleSpawnDefaultsTest.IsTestVehicle(proto.ID) ||
+                    !proto.TryGetComponent<VehicleSpotlightComponent>(out _, factory))
+                    continue;
+                Assert.That(proto.TryGetComponent<PointLightComponent>(out var light, factory), Is.True, proto.ID);
+                Assert.That(light!.LightMask?.Id, Is.EqualTo("ConeSingle"), proto.ID);
+                Assert.That(light.MaskAutoRotate, Is.True, proto.ID);
+                checkedVehicles++;
+            }
+            Assert.That(checkedVehicles, Is.GreaterThan(10));
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task BrakeAudioIgnoresGentleSlowingAndCardinalTravel()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var em = pair.Client.EntMan;
+            var vehicle = em.SpawnEntity("WFVehicleTestChassis", Robust.Shared.Map.MapCoordinates.Nullspace);
+            var audio = em.AddComponent<WFVehicleEngineAudioComponent>(vehicle);
+            var mover = em.GetComponent<GridVehicleMoverComponent>(vehicle);
+            var system = pair.Client.System<WFVehicleAudioSystem>();
+            mover.TurnInPlace = false;
+            mover.FreeSteering = false;
+            mover.CurrentSpeed = 7f;
+            audio.LastSpeed = 7f;
+            system.FrameUpdate(0.1f);
+            Assert.That(audio.SkidCooldown, Is.LessThanOrEqualTo(0f), "Four-way travel is not lateral slip.");
+            mover.CurrentSpeed = 5f;
+            audio.LastSpeed = 5.2f;
+            system.FrameUpdate(0.1f);
+            Assert.That(audio.BrakeCooldown, Is.LessThanOrEqualTo(0f), "Gentle slowing should not squeal.");
+            audio.LastSpeed = 6f;
+            system.FrameUpdate(0.1f);
+            Assert.That(audio.BrakeCooldown, Is.EqualTo(10f), "Hard braking should still sound.");
+            audio.LastSpeed = 6f;
+            system.FrameUpdate(0.1f);
+            Assert.That(audio.BrakeCooldown, Is.LessThan(10f), "Continued braking must not retrigger the sound.");
+            em.DeleteEntity(vehicle);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    private static IEnumerable<Control> Descendants(Control root)
+    {
+        foreach (var child in root.Children)
+        {
+            yield return child;
+            foreach (var descendant in Descendants(child))
+                yield return descendant;
+        }
+    }
+
+
+    [Test]
+    public async Task DriverHudAppearsAboveGameplayAndHidesAfterLeaving()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var rig = await VehicleRigs.Build(pair);
+        var server = pair.Server;
+        var client = pair.Client;
+        await server.WaitPost(() =>
+        {
+            server.EntMan.AddComponent<WFVehicleEngineComponent>(rig.Vehicle);
+            server.PlayerMan.SetAttachedEntity(pair.Player!, rig.Driver);
+        });
+        await VehicleRigs.Seat(rig);
+        await pair.RunTicksSync(30);
+        await client.WaitAssertion(() =>
+        {
+            client.System<WFVehicleHudSystem>().FrameUpdate(0f);
+            var ui = client.ResolveDependency<IUserInterfaceManager>();
+            var panel = ui.PopupRoot.Children.SingleOrDefault(control => control.Name == "WFVehicleHud");
+            Assert.That(panel, Is.Not.Null, "The instruments must be above the gameplay viewport, not under it in StateRoot.");
+            Assert.That(panel!.Visible, Is.True, "The driver's replicated operator state must reveal the HUD.");
+            var controls = Descendants(panel).ToArray();
+            Assert.That(controls.OfType<WFVehicleLamp>().Any(button => button.Visible && button.Legend == "Start engine"), Is.True);
+            Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => !gauge.Strip), Is.EqualTo(3));
+            Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => gauge.Strip), Is.EqualTo(1));
+            Assert.That(controls.OfType<WFGlassGauge>().All(gauge => !gauge.Powered), Is.True,
+                "Ignition OFF must suppress illuminated readouts.");
+            var hud = client.System<WFVehicleHudSystem>();
+            using var weapons = new VehicleWeaponsMenu();
+            Assert.That(hud.TryEmbedMenu(weapons, "WEAPONS"), Is.True);
+            Assert.That(weapons.IsOpen, Is.True);
+            Assert.That(weapons.Visible, Is.False, "Equipment stays folded until its dashboard tab is pressed.");
+            Assert.That(Descendants(panel).Contains(weapons), Is.True);
+            Assert.That(weapons.Children.Contains(weapons.ContentsContainer), Is.True,
+                "The embedded weapon selector must retain its contents without window chrome.");
+            weapons.Close();
+            using var radar = new Content.Client.Shuttles.UI.RadarConsoleWindow();
+            Assert.That(hud.TryEmbedMenu(radar, "RADAR"), Is.True);
+            Assert.That(Descendants(panel).Contains(radar), Is.True);
+            radar.Close();
+            Assert.That(Descendants(panel).Contains(weapons), Is.False);
+            var dashboard = (WFVehicleDashboard) panel;
+            foreach (var viewport in new[] { new System.Numerics.Vector2(1280, 720), new System.Numerics.Vector2(2048, 1080),
+                         new System.Numerics.Vector2(2560, 1440) })
+            {
+                var hotbar = Robust.Shared.Maths.UIBox2.FromDimensions(new System.Numerics.Vector2((viewport.X - 760) / 2, viewport.Y - 80),
+                    new System.Numerics.Vector2(760, 80));
+                dashboard.Fit(viewport, hotbar);
+                dashboard.Measure(viewport);
+                dashboard.Arrange(Robust.Shared.Maths.UIBox2.FromDimensions(System.Numerics.Vector2.Zero, viewport));
+                Assert.That(dashboard.LeftBounds.Right <= hotbar.Left || dashboard.LeftBounds.Bottom <= hotbar.Top, Is.True);
+                Assert.That(dashboard.RightBounds.Left >= hotbar.Right || dashboard.RightBounds.Bottom <= hotbar.Top, Is.True);
+                Assert.That(dashboard.LeftBounds.Right, Is.LessThan(dashboard.RightBounds.Left));
+                Assert.That(dashboard.LeftBank.Position.Y + dashboard.LeftBank.Size.Y, Is.LessThanOrEqualTo(dashboard.LeftBounds.Bottom));
+                if (dashboard.RightBounds.Bottom > hotbar.Top)
+                    Assert.That(viewport.X - dashboard.RightBounds.Right, Is.GreaterThanOrEqualTo(100), "Keep the body doll clear.");
+                Assert.That(dashboard.LeftBank.Width, Is.GreaterThanOrEqualTo(334), "The ignition must fit beside both driving gauges.");
+                Assert.That(controls.OfType<WFGlassGauge>().All(gauge => gauge.Reading.Value == 0), Is.True,
+                    "Unpowered needles park at zero instead of losing their dial.");
+            }
+            Assert.That(controls.OfType<WFVehicleIgnitionSlot>().Single().Width, Is.GreaterThanOrEqualTo(110));
+            Assert.That(controls.OfType<WFVehicleLamp>().All(lamp => lamp.Width >= 94), Is.True);
+        });
+        await server.WaitAssertion(() =>
+            Assert.That(server.System<RMCVehicleSystem>().TryRemoveOperator(new Entity<RMCVehicleOperatorComponent?>(rig.Driver, null)), Is.True));
+        await pair.RunTicksSync(30);
+        await client.WaitAssertion(() =>
+        {
+            client.System<WFVehicleHudSystem>().FrameUpdate(0f);
+            Assert.That(client.ResolveDependency<IUserInterfaceManager>().PopupRoot.Children
+                .Any(control => control.Name == "WFVehicleHud"), Is.False, "Leaving the seat must close its instrument window.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>
     /// A vehicle nobody sits inside is driven by a session attached to the vehicle itself (the Bison). The client picks the
     /// input context from the attached entity, and with none it falls back to "common", which has no use-item key: the

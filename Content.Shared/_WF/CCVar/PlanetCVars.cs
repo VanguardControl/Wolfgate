@@ -30,6 +30,50 @@ public sealed class PlanetCVars
         CVarDef.Create("wf.planet_terrain_load_budget", 4f, CVar.SERVERONLY);
 
     /// <summary>
+    /// Whether worlds are bounded to the circle their surface prototype gives: terrain outside it never loads, a
+    /// boundary keeps mobs in, hulls can't descend outside it and the radar shows nothing there.
+    /// </summary>
+    public static readonly CVarDef<bool> Bounds =
+        CVarDef.Create("wf.planet_bounds", true, CVar.SERVERONLY);
+
+    /// <summary>Radius in tiles that overrides every surface prototype's; zero keeps each prototype's own.</summary>
+    public static readonly CVarDef<int> Radius =
+        CVarDef.Create("wf.planet_radius", 0, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether a bounded world's whole ground is generated when its network is built, over the ticks after, so
+    /// nothing streams in or unloads on the surface later. Needs wf.planet_bounds.
+    /// </summary>
+    public static readonly CVarDef<bool> Preload =
+        CVarDef.Create("wf.planet_preload", true, CVar.SERVERONLY);
+
+    /// <summary>Milliseconds a tick the preload may spend generating ground; one chunk always goes.</summary>
+    public static readonly CVarDef<float> PreloadBudget =
+        CVarDef.Create("wf.planet_preload_budget", 20f, CVar.SERVERONLY);
+
+    /// <summary>Milliseconds a tick the preload may spend while the round is still in the lobby, where nobody feels it.</summary>
+    public static readonly CVarDef<float> PreloadBudgetLobby =
+        CVarDef.Create("wf.planet_preload_budget_lobby", 250f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether the round-start worlds of the lobby's preset are built, and preloaded, while the lobby is open; the
+    /// sector bodies that spawn where they were built take them over at round start.
+    /// </summary>
+    public static readonly CVarDef<bool> Prebuild =
+        CVarDef.Create("wf.planet_prebuild", true, CVar.SERVERONLY);
+
+    /// <summary>A wfPlanetPoiTable every world rolls its sites from instead of its surface's own; empty keeps each surface's.</summary>
+    public static readonly CVarDef<string> PoiTable =
+        CVarDef.Create("wf.planet_poi_table", "", CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether expedition consoles offer sites on the sector's worlds, flown to, in place of generated maps jumped
+    /// to. A round with no free site falls back to the maps.
+    /// </summary>
+    public static readonly CVarDef<bool> PlanetExpeditions =
+        CVarDef.Create("wf.planet_expeditions", true, CVar.SERVERONLY);
+
+    /// <summary>
     /// Whether planet terrain nobody is near is unloaded. Off, upstream's unloader is all there is, and it lets go of
     /// almost nothing.
     /// </summary>

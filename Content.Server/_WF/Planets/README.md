@@ -11,7 +11,11 @@ descending ship move onto the planet layers before the temporary flight map is d
 
 Worlds have day and night, phased weather with thunder, fauna, ambience, terrain on the orbit radar and an approach
 cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down. Lower layers of a planet are drawn smaller
-(`WFPlanetView`, the perspective Monolith turned off for other z-levels). Jetpacks only
+(`WFPlanetView`, the perspective Monolith turned off for other z-levels). Over a world's layers the shuttle console's
+strategic plot shows the world itself, drawn by the sector's planet shader close enough to fill it, instead of space
+(`ShuttleMapControl.PlanetBackground`). A floor nobody built that breaks on a planet, pried up or blown apart, gives
+the natural ground back instead of station plating and lattice (`WFPlanetTileBreakSystem`); a player's own floor over
+the ground breaks the station way, down to the ground they built on. Jetpacks only
 work in orbit and lattice goes straight onto natural ground. A room built on a planet holds its own air once it has a
 floor: bare ground counts as outdoors and keeps the planet's air. Players use landing thruster kits, parachutes and the
 planet timepiece. Admins get the Planet Control panel in the Wolfgate admin tab (`planetcontrol`) for sanction, time
@@ -33,8 +37,23 @@ rock comes back. `BiomeSystem.WFLoad` puts off the far part of a planet load are
 the next passes, so an arrival or a flight does not load it all in one tick. A hull that sets down flattens what is
 under it as an FTL arrival does, breaks the trees and rock it would rest against (`WfClearLandingObstacles`), and
 hurts a mob under it and shoves it clear instead of gibbing it (`ShuttleSystem.WFSetDown`).
+Every world is a circle (`radius` on its `wfPlanetSurface`, 256 tiles unless the prototype or `wf.planet_radius` says
+otherwise): `WFPlanetBoundsSystem` marks each layer with `WFPlanetBoundsComponent` when the network is built, the loader
+never generates a chunk outside it (`BiomeSystem.WFBounds`), an impassable boundary rings the ground and the layers
+below it, the radar draws nothing past it, a hull can't enter the atmosphere unless it is wholly inside, one adrift out
+there is pulled back to the edge before it falls, and one flying out in the air is turned back (`WFPlanetDragSystem`).
+`WFPlanetPreloadSystem` then generates the whole circle, nearest the centre first and `wf.planet_preload_budget` ms a
+tick, one world at a time, and walls the outermost ring of tiles with the surface's `boundaryWall`; a preloaded ground
+(`WFPlanetPreloadedComponent`) never streams or unloads again. `WFPlanetPreloadStartingEvent` goes out the tick before,
+for whatever must be placed while the ground is still unloaded, such as cavern mouths, and `WFPlanetPreloadedEvent`
+once the ring is laid. Caverns stay streamed, inside the same circle, with their own ring laid onto bare pinned ground.
+While the lobby is open, `WFPlanetRegistrySystem` builds the lobby preset's round-start worlds where its star system
+will put them (`wf.planet_prebuild`), so the preload runs at `wf.planet_preload_budget_lobby` before anyone is in the
+round; the body that spawns at a prebuilt centre under the same name takes that network over in `TryBuildNetwork`,
+and any network no body takes is deleted a few seconds into the round.
 Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`,
-`wf.planet_terrain_load_budget`); ecology and
+`wf.planet_terrain_load_budget`, `wf.planet_bounds`, `wf.planet_radius`, `wf.planet_preload`,
+`wf.planet_preload_budget`); ecology and
 landing notes and the playtest checklist are in `Docs/_WF/Planets`. `WFBiomeNoiseCacheSystem` keeps one seeded copy
 of each biome layer's noise for `SharedBiomeSystem.GetNoise`, which copied it for every tile planets and caverns
 generate or sample.
@@ -72,6 +91,10 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/BiomeSystem.WFRoll.cs`](BiomeSystem.WFRoll.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.WFUnload.cs`](BiomeSystem.WFUnload.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.Wolfgate.cs`](BiomeSystem.Wolfgate.cs)
+- [`Content.Server/_WF/Planets/Bounds/BiomeSystem.WFBounds.cs`](Bounds/BiomeSystem.WFBounds.cs)
+- [`Content.Server/_WF/Planets/Bounds/WFPlanetBoundsSystem.cs`](Bounds/WFPlanetBoundsSystem.cs)
+- [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadEvents.cs`](Bounds/WFPlanetPreloadEvents.cs)
+- [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadSystem.cs`](Bounds/WFPlanetPreloadSystem.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.WFTerrain.cs`](CEZLevelsSystem.WFTerrain.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.Wolfgate.cs`](CEZLevelsSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/Commands/WFPlanetCommand.cs`](Commands/WFPlanetCommand.cs)
@@ -130,7 +153,10 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/WFPlanetNetworkBuiltEvent.cs`](WFPlanetNetworkBuiltEvent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetNetworkComponent.cs`](WFPlanetNetworkComponent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetNetworkSystem.cs`](WFPlanetNetworkSystem.cs)
+- [`Content.Server/_WF/Planets/WFPlanetNetworkSystem.Prebuild.cs`](WFPlanetNetworkSystem.Prebuild.cs)
 - [`Content.Server/_WF/Planets/WFPlanetRegistrySystem.cs`](WFPlanetRegistrySystem.cs)
+- [`Content.Server/_WF/Planets/WFPlanetRegistrySystem.Lobby.cs`](WFPlanetRegistrySystem.Lobby.cs)
+- [`Content.Server/_WF/Planets/WFPlanetTileBreakSystem.cs`](WFPlanetTileBreakSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetTimepieceSystem.cs`](WFPlanetTimepieceSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWeatherComponent.cs`](WFPlanetWeatherComponent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWeatherSystem.Admin.cs`](WFPlanetWeatherSystem.Admin.cs)
@@ -161,6 +187,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Shared/_WF/Planets/WFOrbitLayerComponent.cs`](../../../Content.Shared/_WF/Planets/WFOrbitLayerComponent.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetAmbiencePrototype.cs`](../../../Content.Shared/_WF/Planets/WFPlanetAmbiencePrototype.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetApproachComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetApproachComponent.cs)
+- [`Content.Shared/_WF/Planets/WFPlanetBoundsComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetBoundsComponent.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetBuiltTilesComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetBuiltTilesComponent.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetEnvironmentComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetEnvironmentComponent.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetLayerComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetLayerComponent.cs)
@@ -181,6 +208,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Client/_WF/Planets/Flight/WFEnterAtmosphereConfirmWindow.xaml`](../../../Content.Client/_WF/Planets/Flight/WFEnterAtmosphereConfirmWindow.xaml)
 - [`Content.Client/_WF/Planets/Flight/WFEnterAtmosphereConfirmWindow.xaml.cs`](../../../Content.Client/_WF/Planets/Flight/WFEnterAtmosphereConfirmWindow.xaml.cs)
 - [`Content.Client/_WF/Planets/Parachute/WFParachuteVisualsSystem.cs`](../../../Content.Client/_WF/Planets/Parachute/WFParachuteVisualsSystem.cs)
+- [`Content.Client/_WF/Planets/ShuttleMapControl.PlanetBackground.cs`](../../../Content.Client/_WF/Planets/ShuttleMapControl.PlanetBackground.cs)
 - [`Content.Client/_WF/Planets/ShuttleNavControl.Terrain.cs`](../../../Content.Client/_WF/Planets/ShuttleNavControl.Terrain.cs)
 - [`Content.Client/_WF/Planets/WFOrbitButton.cs`](../../../Content.Client/_WF/Planets/WFOrbitButton.cs)
 - [`Content.Client/_WF/Planets/WFPlanetAmbienceSystem.cs`](../../../Content.Client/_WF/Planets/WFPlanetAmbienceSystem.cs)
@@ -217,6 +245,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/ParachuteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/ParachuteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePlaybackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePlaybackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePrototypeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetBoundsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetBoundsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetDragTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetDragTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetDroneBeltTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetDroneBeltTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyLifecycleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyLifecycleTest.cs)
@@ -225,9 +254,11 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPopulationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPopulationTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPrebuildTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPrebuildTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPrototypeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarDrawingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarDrawingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/SetDownTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/SetDownTest.cs)
@@ -240,6 +271,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/Planets/biomes.yml`](../../../Resources/Prototypes/_WF/Planets/biomes.yml)
+- [`Resources/Prototypes/_WF/Planets/bounds.yml`](../../../Resources/Prototypes/_WF/Planets/bounds.yml)
 - [`Resources/Prototypes/_WF/Planets/carcinoma.yml`](../../../Resources/Prototypes/_WF/Planets/carcinoma.yml)
 - [`Resources/Prototypes/_WF/Planets/carcinoma_regions.yml`](../../../Resources/Prototypes/_WF/Planets/carcinoma_regions.yml)
 - [`Resources/Prototypes/_WF/Planets/crash_effects.yml`](../../../Resources/Prototypes/_WF/Planets/crash_effects.yml)
@@ -374,6 +406,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - open grating is no roof.
 - [`Content.Client/Shuttles/UI/NavScreen.xaml`](../../../Content.Client/Shuttles/UI/NavScreen.xaml): enter/leave planet orbit, which needs no FTL drive (xmlns:wf above).
 - [`Content.Client/Shuttles/UI/NavScreen.xaml.cs`](../../../Content.Client/Shuttles/UI/NavScreen.xaml.cs): the orbit button reads its state off the console entity.
+- [`Content.Client/Shuttles/UI/ShuttleMapControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleMapControl.xaml.cs): over a world, the world fills the plot instead of space.
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs)
   - retain the moving origin while panned.
   - a map-pinned radar must follow travel to another map.

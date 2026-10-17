@@ -74,6 +74,8 @@ public static class CavernFixture
         {
             pair.Server.CfgMan.SetCVar(PlanetCVars.PlanetNetworks, true);
             pair.Server.CfgMan.SetCVar(PlanetCVars.TerrainLoadBudget, 0f);
+            pair.Server.CfgMan.SetCVar(PlanetCVars.Bounds, false);
+            pair.Server.CfgMan.SetCVar(PlanetCVars.Preload, false);
             pair.Server.CfgMan.SetCVar(CavernCVars.Caverns, true);
         });
     }
