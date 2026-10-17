@@ -79,6 +79,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         SubscribeLocalEvent<GridSplitEvent>(OnSplit);
         SubscribeLocalEvent<WFShipScenarioComponent, EntityTerminatingEvent>(OnHullTerminating);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRestart);
+        SubscribeLocalEvent<PrototypesReloadedEventArgs>(OnFactionPrototypesReloaded);
     }
 
     /// <summary>Lists civilian designs or the selected faction tier catalog at the authoritative shipyard price.</summary>

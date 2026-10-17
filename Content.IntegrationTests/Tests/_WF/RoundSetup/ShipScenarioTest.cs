@@ -72,6 +72,12 @@ public sealed partial class ShipScenarioTest
   id: WFRoundSetupPurchaseTestLimited
   parent: WFRoundSetupPurchaseTestVessel
   limit: 1
+
+- type: vessel
+  id: WFRoundSetupPurchaseTestViperVoucherOnly
+  parent: WFRoundSetupPurchaseTestVessel
+  group: Viper
+  purchasable: false
 ";
 
     /// <summary>Only ordinary paid civilian listings can be selected, including when requests forge a vessel ID.</summary>
@@ -121,7 +127,10 @@ public sealed partial class ShipScenarioTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>VG, USSP and the Underground offer every paid ship of their own shipyard, and nothing from another.</summary>
+    /// <summary>
+    /// VG, USSP and the Underground offer their shipyard's purchasable ships and those on their vouchers, and nothing
+    /// from another shipyard. A voucher-only ship that no voucher lists is never sold.
+    /// </summary>
     [TestCase(WFCrewFaction.VG, ShipyardConsoleUiKey.Viper, "Leviathan")]
     [TestCase(WFCrewFaction.USSP, ShipyardConsoleUiKey.Ussp, "Buran")]
     [TestCase(WFCrewFaction.Underground, ShipyardConsoleUiKey.Syndicate, "Mudskipper")]
@@ -133,11 +142,13 @@ public sealed partial class ShipScenarioTest
             var system = pair.Server.System<WFShipScenarioSystem>();
             var prototypes = pair.Server.ResolveDependency<IPrototypeManager>();
             var catalog = system.GetVessels(faction).Select(entry => entry.Id).ToList();
-            var expected = prototypes.EnumeratePrototypes<VesselPrototype>()
-                .Where(vessel => vessel.Group == group && vessel.Price > 0).Select(vessel => vessel.ID);
+            var purchasable = prototypes.EnumeratePrototypes<VesselPrototype>()
+                .Where(vessel => vessel.Group == group && vessel.Price > 0 && vessel.Purchasable).Select(vessel => vessel.ID);
             Assert.Multiple(() =>
             {
-                Assert.That(catalog, Is.EquivalentTo(expected));
+                Assert.That(catalog, Is.SupersetOf(purchasable));
+                Assert.That(catalog.Select(id => prototypes.Index<VesselPrototype>(id).Group), Has.All.EqualTo(group));
+                Assert.That(catalog, Does.Not.Contain("WFRoundSetupPurchaseTestViperVoucherOnly"));
                 Assert.That(catalog, Does.Contain(flagship));
                 Assert.That(system.IsVesselAvailable(flagship, faction), Is.True);
                 Assert.That(system.IsVesselAvailable("Calypso", faction), Is.False, "a TSF ship in another faction's catalog.");
