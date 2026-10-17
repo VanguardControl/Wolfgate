@@ -136,6 +136,30 @@ public sealed partial class WFReaverCampaignPrototype : IPrototype
     [DataField]
     public float LevelBountyScale = 0.5f;
 
+    /// <summary>The citadel raised at tier 5: a stronghold flown out as a convoy that holds more rings and grows past the cap; null for none.</summary>
+    [DataField]
+    public ProtoId<WFEncounterPrototype>? Citadel;
+
+    /// <summary>How long the campaign must stand at tier 5 before a citadel sets out.</summary>
+    [DataField]
+    public TimeSpan CitadelDelay = TimeSpan.FromMinutes(10);
+
+    /// <summary>Levels a citadel may grow past the tier's cap.</summary>
+    [DataField]
+    public int CitadelExtraLevels = 2;
+
+    /// <summary>What a citadel's bounty and credits are multiplied by over a stronghold's of the same level.</summary>
+    [DataField]
+    public float CitadelBountyScale = 3f;
+
+    /// <summary>How many rings round its cell a citadel claims.</summary>
+    [DataField]
+    public int CitadelRings = 2;
+
+    /// <summary>How long after a citadel falls the campaign founds nothing and launches no convoy or raid.</summary>
+    [DataField]
+    public TimeSpan CitadelLull = TimeSpan.FromMinutes(45);
+
     [DataField]
     public ProtoId<WFEncounterPrototype> Patrol = "WFReaverPatrol";
 

@@ -32,6 +32,14 @@
   maxLevelByTier: [ 0, 1, 1, 2, 2, 2 ]
   levelBountyScale: 0.5
   reinforcements: [ WFReaverReinforcementGunship, WFReaverReinforcementGunship, WFReaverReinforcementHeavy, WFReaverReinforcementHeavy ]
+  # The citadel: sets out once the campaign has stood at tier 5 for the delay, claims more rings, grows past the
+  # level cap, pays a scaled bounty, and leaves a lull of no founding, convoy or raid when it falls.
+  citadel: WFReaverCitadel
+  citadelDelay: 20m
+  citadelExtraLevels: 2
+  citadelBountyScale: 3
+  citadelRings: 2
+  citadelLull: 45m
   credits:
   - entity: FederationMilitaryCredit1
     companies: [ TSF, TSFCivilian ]
@@ -80,6 +88,14 @@
   maxLevelByTier: [ 0, 1, 2, 2, 3, 4 ]
   levelBountyScale: 0.5
   reinforcements: [ WFReaverReinforcementGunship, WFReaverReinforcementGunship, WFReaverReinforcementHeavy, WFReaverReinforcementHeavy ]
+  # The citadel: sets out once the campaign has stood at tier 5 for the delay, claims more rings, grows past the
+  # level cap, pays a scaled bounty, and leaves a lull of no founding, convoy or raid when it falls.
+  citadel: WFReaverCitadel
+  citadelDelay: 10m
+  citadelExtraLevels: 2
+  citadelBountyScale: 3
+  citadelRings: 2
+  citadelLull: 45m
   credits:
   - entity: FederationMilitaryCredit1
     companies: [ TSF, TSFCivilian ]
@@ -128,6 +144,14 @@
   maxLevelByTier: [ 0, 1, 2, 3, 4, 4 ]
   levelBountyScale: 0.5
   reinforcements: [ WFReaverReinforcementGunship, WFReaverReinforcementGunship, WFReaverReinforcementHeavy, WFReaverReinforcementHeavy ]
+  # The citadel: sets out once the campaign has stood at tier 5 for the delay, claims more rings, grows past the
+  # level cap, pays a scaled bounty, and leaves a lull of no founding, convoy or raid when it falls.
+  citadel: WFReaverCitadel
+  citadelDelay: 6m
+  citadelExtraLevels: 2
+  citadelBountyScale: 3
+  citadelRings: 2
+  citadelLull: 45m
   credits:
   - entity: FederationMilitaryCredit1
     companies: [ TSF, TSFCivilian ]

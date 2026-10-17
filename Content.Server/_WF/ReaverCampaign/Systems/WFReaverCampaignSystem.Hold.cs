@@ -25,6 +25,9 @@ public sealed partial class WFReaverCampaignSystem
         if (_nextFoundTry != TimeSpan.Zero)
             _nextFoundTry += span;
 
+        if (_nextCitadelTry != TimeSpan.Zero)
+            _nextCitadelTry += span;
+
         // The first founding is timed from the stations; later ones from the campaign state.
         if (_stationsAt != null && state is not { Founded: > 0 })
             _stationsAt += span;
@@ -84,6 +87,8 @@ public sealed partial class WFReaverCampaignSystem
         state.NoStrongholdSince += span;
         state.NextSpread += span;
         state.NextRaid += span;
+        state.OverrunSince += span;
+        state.LullUntil += span;
         Shift(state.Raided, span);
         Shift(state.InsideSince, span);
         Shift(state.InterceptCooldowns, span);

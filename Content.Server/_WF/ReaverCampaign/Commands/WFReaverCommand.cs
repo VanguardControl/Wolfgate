@@ -16,7 +16,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.ReaverCampaign.Commands;
 
-/// <summary>The Reaver campaign from the console: show it, found a stronghold or send a convoy or a reinforcement, set the tier, step it, send an intercept, pause it or clear it.</summary>
+/// <summary>The Reaver campaign from the console: show it, found a stronghold or send a convoy, the citadel or a reinforcement, set the tier, step it, send an intercept, pause it or clear it.</summary>
 [AdminCommand(AdminFlags.Admin)]
 public sealed partial class WFReaverCommand : LocalizedEntityCommands
 {
@@ -24,7 +24,7 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
     [Dependency] private WFReaverCampaignSystem _campaign = default!;
     [Dependency] private WFSectorTerritorySystem _territory = default!;
 
-    private static readonly string[] Subcommands = { "status", "found", "convoy", "reinforce", "tier", "spread", "patrol", "raid", "intercept", "respond", "pause", "resume", "clear" };
+    private static readonly string[] Subcommands = { "status", "found", "convoy", "citadel", "reinforce", "tier", "spread", "patrol", "raid", "intercept", "respond", "pause", "resume", "clear" };
 
     public override string Command => "wf_reavers";
 
@@ -40,6 +40,9 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
                 break;
             case "convoy" when args.Length == 1:
                 Convoy(shell);
+                break;
+            case "citadel" when args.Length == 1:
+                Citadel(shell);
                 break;
             case "reinforce" when args.Length == 2:
                 Reinforce(shell, args[1]);
@@ -143,6 +146,12 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
             ("spread", Seconds(state?.NextSpread, now)),
             ("raid", Seconds(state?.NextRaid, now))));
 
+        if (_campaign.InLull(state) && state?.LullUntil is { } until)
+            shell.WriteLine(Loc.GetString("cmd-wf_reavers-status-lull", ("minutes", (int) Math.Ceiling((until - now).TotalMinutes))));
+        else if (campaign.Citadel != null && state?.OverrunSince is { } overrun
+                 && _campaign.CitadelStanding() == null && _campaign.CitadelConvoy() == null)
+            shell.WriteLine(Loc.GetString("cmd-wf_reavers-status-citadel-due", ("seconds", Seconds(overrun + campaign.CitadelDelay, now))));
+
         if (strongholds.Count == 0)
             shell.WriteLine(WhyNoStronghold(campaign, state, now));
 
@@ -156,7 +165,8 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
                 ("hits", stronghold.Hits),
                 ("patrols", patrols.Count(patrol => patrol.Comp1.Stronghold == uid)),
                 ("reinforcements", stronghold.Reinforcements.Count),
-                ("state", (stronghold.Inbound != null ? Loc.GetString("cmd-wf_reavers-status-stronghold-inbound") : string.Empty)
+                ("state", (stronghold.Citadel ? Loc.GetString("cmd-wf_reavers-status-stronghold-citadel") : string.Empty)
+                    + (stronghold.Inbound != null ? Loc.GetString("cmd-wf_reavers-status-stronghold-inbound") : string.Empty)
                     + (stronghold.Scattered ? Loc.GetString("cmd-wf_reavers-status-stronghold-scattered") : string.Empty))));
         }
 
@@ -188,7 +198,7 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
             var at = encounter.Ships.TryGetValue(convoy.Lead, out var lead) && EntityManager.EntityExists(lead.Grid)
                 ? transform.GetWorldPosition(lead.Grid)
                 : encounter.Origin.Position;
-            shell.WriteLine(Loc.GetString("cmd-wf_reavers-status-convoy",
+            shell.WriteLine(Loc.GetString(convoy.Citadel ? "cmd-wf_reavers-status-citadel-convoy" : "cmd-wf_reavers-status-convoy",
                 ("uid", EntityManager.GetNetEntity(uid).ToString()),
                 ("callsign", WFSectorHex.Callsign(convoy.Target)),
                 ("range", WFReaverCampaignSystem.Kilometres(at, convoy.TargetPosition)),
@@ -344,6 +354,21 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
         }
 
         shell.WriteLine(Loc.GetString("cmd-wf_reavers-convoy",
+            ("uid", EntityManager.GetNetEntity(convoy).ToString()),
+            ("callsign", WFSectorHex.Callsign(comp.Target))));
+    }
+
+    /// <summary>wf_reavers citadel: sends the citadel out now, at any tier and before its delay, unless one stands or is under way.</summary>
+    private void Citadel(IConsoleShell shell)
+    {
+        if (!_campaign.TryLaunchCitadel(out var convoy)
+            || !EntityManager.TryGetComponent<WFReaverConvoyComponent>(convoy, out var comp))
+        {
+            Failed(shell, "cmd-wf_reavers-citadel-failed");
+            return;
+        }
+
+        shell.WriteLine(Loc.GetString("cmd-wf_reavers-citadel",
             ("uid", EntityManager.GetNetEntity(convoy).ToString()),
             ("callsign", WFSectorHex.Callsign(comp.Target))));
     }

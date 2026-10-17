@@ -70,7 +70,7 @@ public sealed partial class WFReaverCampaignSystem
         foreach (var stronghold in Strongholds())
         {
             var comp = stronghold.Comp1;
-            if (comp.Inbound != null || comp.Scattered || UnderFire(comp) || now < comp.NextReinforcement || comp.Level >= LevelCap(campaign, state))
+            if (comp.Inbound != null || comp.Scattered || UnderFire(comp) || now < comp.NextReinforcement || comp.Level >= LevelCap(campaign, state, comp))
                 continue;
 
             if (!TryReinforce(stronghold.Owner))
@@ -84,9 +84,9 @@ public sealed partial class WFReaverCampaignSystem
         if (Campaign is not { } campaign || State(true) is not { } state
             || !TryComp<WFReaverStrongholdComponent>(stronghold, out var comp)
             || !TryComp<WFEncounterComponent>(stronghold, out var encounter) || encounter.Resolution != null
-            || comp.Inbound != null || comp.Level >= LevelCap(campaign, state)
+            || comp.Inbound != null || comp.Level >= LevelCap(campaign, state, comp)
             || !encounter.Ships.TryGetValue(comp.Lead, out var hub) || TerminatingOrDeleted(hub.Grid)
-            || !_prototypes.TryIndex(campaign.Reinforcements[comp.Level], out var prototype) || prototype.Ships.Count == 0)
+            || !_prototypes.TryIndex(campaign.Reinforcements[Math.Min(comp.Level, campaign.Reinforcements.Count - 1)], out var prototype) || prototype.Ships.Count == 0)
             return false;
 
         var map = Transform(stronghold).MapID;

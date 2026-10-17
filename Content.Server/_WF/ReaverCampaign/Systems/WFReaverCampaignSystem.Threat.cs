@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Server._WF.ReaverCampaign.Components;
 using Content.Shared._WF.ReaverCampaign;
 using Content.Shared._WF.SectorControl;
@@ -31,7 +32,9 @@ public sealed partial class WFReaverCampaignSystem
 
         var now = _timing.CurTime;
         var held = _territory.Held(_territory.SectorMap, campaign.Faction);
-        var strongholds = Strongholds().Count;
+        var standing = Strongholds();
+        var strongholds = standing.Count;
+        var citadels = standing.Count(stronghold => stronghold.Comp1.Citadel);
         var nearest = float.MaxValue;
         foreach (var cell in held)
         {
@@ -39,7 +42,8 @@ public sealed partial class WFReaverCampaignSystem
         }
 
         var nearness = held.Count == 0 ? 0f : Math.Clamp(NearnessScore * (1f - nearest / SectorRadius), 0f, NearnessScore);
-        state.Score = strongholds * StrongholdScore + held.Count + nearness;
+        // A citadel scores as a stronghold and as much again, so Overrun holds while it stands.
+        state.Score = (strongholds + citadels) * StrongholdScore + held.Count + nearness;
         state.PeakCells = Math.Max(state.PeakCells, held.Count);
 
         var tier = TierFor(campaign, state.Score);
@@ -99,6 +103,11 @@ public sealed partial class WFReaverCampaignSystem
         state.Tier = tier;
         state.BelowSince = null;
         state.TierAnnounced = _timing.CurTime;
+        if (tier >= MaxTier)
+            state.OverrunSince ??= _timing.CurTime;
+        else
+            state.OverrunSince = null;
+
         Announce(campaign, Loc.GetString(rising ? "wf-reaver-tier-rising" : "wf-reaver-tier-falling",
             ("tier", TierName(tier)),
             ("strongholds", Strongholds().Count),
@@ -133,7 +142,8 @@ public sealed partial class WFReaverCampaignSystem
             ("strongholds", strongholds),
             ("cells", cells),
             ("bounty", ByTier(campaign.StrongholdBounty, state.Tier, 0)),
-            ("levels", LevelsText())));
+            ("levels", LevelsText()),
+            ("citadel", CitadelText())));
         _legend = campaign.Faction;
     }
 

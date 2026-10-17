@@ -85,4 +85,8 @@ public sealed partial class WFReaverStrongholdComponent : Component
     /// <summary>The encounter's name without its level, so the level can be shown on the map.</summary>
     [ViewVariables]
     public string BaseName = string.Empty;
+
+    /// <summary>Whether it is the tier 5 citadel: more rings, a higher level cap, a scaled bounty and a lull when it falls.</summary>
+    [ViewVariables]
+    public bool Citadel;
 }

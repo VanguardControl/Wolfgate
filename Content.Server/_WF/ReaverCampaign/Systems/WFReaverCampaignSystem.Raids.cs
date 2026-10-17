@@ -56,7 +56,8 @@ public sealed partial class WFReaverCampaignSystem
             return;
         }
 
-        if (now < next)
+        // A raid that falls due in a lull waits for its end.
+        if (now < next || InLull(state))
             return;
 
         state.NextRaid = now + interval;
@@ -66,10 +67,10 @@ public sealed partial class WFReaverCampaignSystem
         TryLaunchRaid();
     }
 
-    /// <summary>Launches one raid now, whatever the clock and cap; false if nothing qualifies.</summary>
+    /// <summary>Launches one raid now, whatever the clock and cap; false if nothing qualifies or the Reavers are in a lull.</summary>
     public bool TryLaunchRaid()
     {
-        if (Campaign is not { } campaign || State(true) is not { } state)
+        if (Campaign is not { } campaign || State(true) is not { } state || InLull(state))
             return false;
 
         var standing = Strongholds();

@@ -31,6 +31,7 @@ public abstract class WFReaverTestBase : WFSectorTestBase
     protected const string BarePreset = "WFTestReaverBarePreset";
     protected const string TestCampaign = "WFTestReaverCampaign";
     protected const string Stronghold = "WFTestReaverStronghold";
+    protected const string Citadel = "WFTestReaverCitadel";
     protected const string Reinforcement = "WFTestReaverReinforcement";
     protected const string Patrol = "WFTestReaverPatrol";
     protected const string Pack = "WFTestReaverPack";
@@ -90,6 +91,9 @@ public abstract class WFReaverTestBase : WFSectorTestBase
   maxLevelByTier: [ 0, 1, 2, 2, 3, 4 ]
   levelBountyScale: 0.5
   reinforcements: [ WFTestReaverReinforcement, WFTestReaverReinforcement, WFTestReaverReinforcement, WFTestReaverReinforcement ]
+  citadel: WFTestReaverCitadel
+  citadelDelay: 3s
+  citadelLull: 2m
   patrol: WFTestReaverPatrol
   raidPack: WFTestReaverPack
   raidBoarders: WFTestReaverBoarders
@@ -98,6 +102,24 @@ public abstract class WFReaverTestBase : WFSectorTestBase
 - type: wfEncounter
   id: WFTestReaverStronghold
   name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  icon: Flag
+  leash: 2000
+  ships:
+  - key: lead
+    vessel: WFDredger
+    side: reavers
+    distress: false
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+    objectives:
+    - kind: Hold
+
+- type: wfEncounter
+  id: WFTestReaverCitadel
+  name: wf-reaver-name-citadel
   start: Manual
   lifetime: Persistent
   icon: Flag

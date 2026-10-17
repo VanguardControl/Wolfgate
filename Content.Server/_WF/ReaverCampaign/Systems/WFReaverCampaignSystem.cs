@@ -180,6 +180,7 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
         _nextTick = TimeSpan.Zero;
         _lastTick = TimeSpan.Zero;
         _nextFoundTry = TimeSpan.Zero;
+        _nextCitadelTry = TimeSpan.Zero;
         _legend = null;
         _clearingPending.Clear();
         _campaignDirty = true;
@@ -241,6 +242,7 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
         if (!held)
         {
             TickFounding(campaign, state);
+            TickCitadel(campaign, state);
             TickReinforce(campaign, state);
             TickSpread(campaign, state);
             TickPatrols(campaign, state);
@@ -434,7 +436,10 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
             ("patrols", state.PatrolsDestroyed),
             ("convoys", state.ConvoysDestroyed),
             ("raids", state.Raids),
-            ("retaken", state.Retaken)));
+            ("retaken", state.Retaken),
+            ("citadels", state.Citadels > 0
+                ? Loc.GetString("wf-reaver-round-end-citadels", ("raised", state.Citadels), ("fallen", state.CitadelsBroken))
+                : string.Empty)));
         if (state.Defeats > 0)
             args.AddLine(Loc.GetString("wf-reaver-round-end-broken", ("count", state.Defeats)));
         if (state.CellsLost > 0)

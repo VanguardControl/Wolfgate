@@ -33,6 +33,13 @@ the ship that is hitting it, and dock again three minutes after the last hit
 with no attacker near. Breaking the hub ends its reinforcements and pays `strongholdBounty[tier]` times one plus
 half the level.
 
+At tier 5 the Reavers raise a citadel (`citadel` on the campaign, `WFReaverCitadel`, a Vulture; `.Citadel`). Once the
+campaign has stood at Overrun for `citadelDelay`, a citadel convoy sets out from the highest-level stronghold to a held
+edge cell, chimed to the sector; it stands outside `maxStrongholds` and the one-convoy rule. Raised, it claims
+`citadelRings` rings, grows `citadelExtraLevels` past the tier's level cap and scores ten more than a stronghold. Breaking
+it pays `citadelBountyScale` times a stronghold's bounty and scatters the Reavers for `citadelLull`: no founding, convoy
+or raid until it ends. `wf_reavers citadel` sends one out by hand.
+
 Players fight it by breaking strongholds (the lead ship out of the fight breaks it: its cells are freed and its bounty
 paid to everyone who hit it, with a fifth for the ships that stood by the assault), killing patrols (the cell the lead
 died in is freed and a smaller bounty paid; each navy's members also get its own faction credits, from the campaign's
@@ -106,6 +113,7 @@ and counted for the round summary. `wf_reavers respond <q> <r>` sends one by han
 - [`Content.Server/_WF/ReaverCampaign/Components/WFReaverStrongholdComponent.cs`](Components/WFReaverStrongholdComponent.cs)
 - [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignRuleSystem.cs`](Systems/WFReaverCampaignRuleSystem.cs)
 - [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignSystem.Announce.cs`](Systems/WFReaverCampaignSystem.Announce.cs)
+- [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignSystem.Citadel.cs`](Systems/WFReaverCampaignSystem.Citadel.cs)
 - [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignSystem.Conflict.cs`](Systems/WFReaverCampaignSystem.Conflict.cs)
 - [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignSystem.Convoys.cs`](Systems/WFReaverCampaignSystem.Convoys.cs)
 - [`Content.Server/_WF/ReaverCampaign/Systems/WFReaverCampaignSystem.cs`](Systems/WFReaverCampaignSystem.cs)
@@ -131,6 +139,7 @@ and counted for the round summary. `wf_reavers respond <q> <r>` sends one by han
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverCitadelTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverCitadelTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverContentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverContentTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverConvoyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverConvoyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverDisputeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverDisputeTest.cs)

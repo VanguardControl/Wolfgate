@@ -40,6 +40,41 @@
     objectives:
     - kind: Hold
 
+# The citadel: the tier 5 set piece, flown out as a convoy from the highest-level stronghold. Vulture carries 9 docking
+# ports and its own Sentinel shield generator, so the campaign places none. It holds and does not evade, as a hub.
+- type: wfEncounter
+  id: WFReaverCitadel
+  name: wf-reaver-name-citadel
+  start: Manual
+  lifetime: Persistent
+  category: Threat
+  icon: Flag
+  leash: 2000
+  manifests: [ WFManifestContraband ]
+  ships:
+  - key: lead
+    navigation: WFCrewNavigationRaider
+    side: reavers
+    faction: PirateNF
+    distress: false
+    company: WFAshfallReavers
+    profile: WFCrewProfilePirate
+    vessels: [ Vulture ]
+    deckhands: 6
+    guards: 4
+    cargo: 8
+    fuelStores: 16
+    skill: Veteran
+    evades: false
+    platform: true
+    warnRange: 2000
+    attackRange: 1200
+    zoneLines: wf-encounter-pirate-zone
+    disengage: Deter
+    disengageRange: 1500
+    objectives:
+    - kind: Hold
+
 # A gunship that flies in from the sector edge to dock with a hub and raise it to level 1 or 2. The campaign gives it
 # its orders: go to the hub, then dock.
 - type: wfEncounter

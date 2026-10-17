@@ -88,4 +88,20 @@ public sealed partial class WFReaverCampaignComponent : Component
     /// <summary>Held cells another faction took by challenge this round.</summary>
     [ViewVariables]
     public int CellsLost;
+
+    /// <summary>Since when the campaign has stood at tier 5; null below it.</summary>
+    [ViewVariables]
+    public TimeSpan? OverrunSince;
+
+    /// <summary>Until when the Reavers are scattered after a citadel fell: no founding, convoy or raid.</summary>
+    [ViewVariables]
+    public TimeSpan? LullUntil;
+
+    /// <summary>Citadels raised this round.</summary>
+    [ViewVariables]
+    public int Citadels;
+
+    /// <summary>Citadels broken this round.</summary>
+    [ViewVariables]
+    public int CitadelsBroken;
 }

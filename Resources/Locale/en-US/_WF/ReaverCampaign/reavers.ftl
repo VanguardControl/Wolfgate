@@ -102,6 +102,28 @@ wf-reaver-convoy-destroyed = The Reaver convoy bound for {$callsign} is destroye
         } paid.
     }
 
+# The tier 5 citadel: setting out, stopped on the way, raised and fallen; $station, $bearing and $range are as above
+wf-reaver-citadel-launched = The Reavers are raising a citadel at {$callsign}. {$range} km bearing {$bearing} from {$station}. Stop it before it digs in.
+wf-reaver-citadel-convoy-destroyed = The Reaver citadel convoy bound for {$callsign} is destroyed. { $paid ->
+        [0] No bounty was claimed.
+       *[other] Bounty {$bounty} { $bounty ->
+            [one] thaler
+           *[other] thalers
+        } paid.
+    }
+wf-reaver-citadel-raised = The Reavers have raised a citadel at {$callsign}, {$range} km bearing {$bearing} from {$station}. Bounty {$bounty} { $bounty ->
+            [one] thaler
+           *[other] thalers
+        }.
+wf-reaver-citadel-fallen = The Reaver citadel at {$callsign} has fallen. { $paid ->
+        [0] No bounty was claimed.
+       *[other] Bounty {$bounty} { $bounty ->
+            [one] thaler
+           *[other] thalers
+        } paid.
+    }
+wf-reaver-citadel-lull = The Reavers are scattered. Expect a lull.
+
 # A hub gaining a level; $minutes is the reinforcement's reckoned flight
 wf-reaver-reinforcement-launched = Reaver reinforcements are inbound to {$callsign}, ETA {$minutes} min.
 wf-reaver-grown = The Reaver stronghold at {$callsign} has grown to level {$level}.
@@ -137,12 +159,13 @@ wf-reaver-legend = {$faction}: {$tier}, { $strongholds ->
     }, { $cells ->
         [one] {$cells} cell
        *[other] {$cells} cells
-    }, bounty {$bounty}{$levels}
+    }, bounty {$bounty}{$levels}{$citadel}
 wf-reaver-legend-broken = {$faction}: broken, no strongholds standing
 wf-reaver-legend-levels = , { $count ->
         [one] level {$levels}
        *[other] levels {$levels}
     }
+wf-reaver-legend-citadel = , citadel at {$callsign}
 
 wf-reaver-round-end = Reavers held up to { $peak ->
         [one] {$peak} cell
@@ -162,10 +185,16 @@ wf-reaver-round-end = Reavers held up to { $peak ->
     } stopped and { $raids ->
         [one] {$raids} raid was
        *[other] {$raids} raids were
-    } sent. Players retook { $retaken ->
+    } sent.{$citadels} Players retook { $retaken ->
         [one] {$retaken} cell
        *[other] {$retaken} cells
     }.
+
+# Added to the round-end line when a citadel was raised; it starts with a space
+wf-reaver-round-end-citadels = {" "}They raised { $raised ->
+        [one] {$raised} citadel
+       *[other] {$raised} citadels
+    } and {$fallen} fell.
 
 wf-reaver-round-end-broken = The Reavers were broken { $count ->
         [one] once
@@ -178,8 +207,8 @@ wf-reaver-round-end-lost = The Reavers lost { $count ->
 
 # wf_reavers command
 cmd-wf_reavers-desc = Shows and drives the Ashfall Reaver campaign.
-cmd-wf_reavers-help = Usage: {$command} status | found [x y] | convoy | reinforce <stronghold uid> | tier <n> | spread | patrol | raid | intercept <grid uid> | respond <q> <r> | pause | resume | clear
-    found places a level 0 hub at once, an admin shortcut; convoy sends one out from a standing stronghold, as the campaign does; reinforce sends a stronghold its next reinforcement now; respond sends a response pack to a challenged Reaver cell.
+cmd-wf_reavers-help = Usage: {$command} status | found [x y] | convoy | citadel | reinforce <stronghold uid> | tier <n> | spread | patrol | raid | intercept <grid uid> | respond <q> <r> | pause | resume | clear
+    found places a level 0 hub at once, an admin shortcut; convoy sends one out from a standing stronghold, as the campaign does; citadel sends the citadel out now at any tier, one at a time; reinforce sends a stronghold its next reinforcement now; respond sends a response pack to a challenged Reaver cell.
 cmd-wf_reavers-hint-sub = Subcommand
 cmd-wf_reavers-hint-x = Map x in metres
 cmd-wf_reavers-hint-y = Map y in metres
@@ -226,6 +255,13 @@ cmd-wf_reavers-status-founding-untimed = No stronghold stands and the founding c
 cmd-wf_reavers-status-stronghold = Stronghold {$uid} at {$callsign}: level {$level}, {$prototype}, {$hits} hits, {$patrols} patrols, {$reinforcements} reinforcements{$state}.
 cmd-wf_reavers-status-stronghold-inbound = , one inbound
 cmd-wf_reavers-status-stronghold-scattered = , broken apart
+cmd-wf_reavers-status-stronghold-citadel = , the citadel
+cmd-wf_reavers-status-citadel-convoy = Citadel convoy {$uid} bound for {$callsign}: {$range} km to go, under way {$seconds} s.
+cmd-wf_reavers-status-lull = The Reavers are scattered after their citadel fell: no founding, convoy or raid for { $minutes ->
+        [one] {$minutes} more minute
+       *[other] {$minutes} more minutes
+    }.
+cmd-wf_reavers-status-citadel-due = At Overrun: the citadel sets out in {$seconds} s, once a held cell qualifies.
 cmd-wf_reavers-status-reinforcement = Reinforcement {$uid} for {$callsign}, level {$level}: {$phase}, {$range} km from the hub, out {$seconds} s.
 cmd-wf_reavers-status-intercept = Patrol {$patrol} intercepting {$ship} ({$uid}) for {$seconds} s.
 cmd-wf_reavers-status-mark = {$ship} ({$uid}) is marked for {$seconds} s more.
@@ -237,6 +273,8 @@ cmd-wf_reavers-reinforce = Reinforcement {$uid} sent to the stronghold at {$call
 cmd-wf_reavers-reinforce-failed = No reinforcement could be sent: the stronghold is at its tier's level cap, one is already on its way, or there is no clear space for it.
 cmd-wf_reavers-found-failed = No stronghold could be founded there.
 cmd-wf_reavers-convoy = Convoy {$uid} sent to found a stronghold at {$callsign}.
+cmd-wf_reavers-citadel = Citadel convoy {$uid} sent to raise a citadel at {$callsign}.
+cmd-wf_reavers-citadel-failed = No citadel could be sent: the campaign has none, one stands or is under way, the Reavers are in a lull, no held cell qualifies, or no stronghold has clear space beside it.
 cmd-wf_reavers-convoy-failed = No convoy could be sent: one is already under way, or no held cell qualifies, or no stronghold has clear space beside it.
 cmd-wf_reavers-bad-position = Not a position: {$x} {$y}
 cmd-wf_reavers-bad-tier = Not a tier from 0 to {$max}: {$arg}
@@ -256,6 +294,7 @@ cmd-wf_reavers-cleared = Cleared the campaign: {$count} encounters ended.
 
 # Encounter names
 wf-reaver-name-stronghold = Reaver stronghold {$designation}
+wf-reaver-name-citadel = Reaver citadel {$designation}
 wf-reaver-name-level = {$name} (level {$level})
 wf-reaver-name-reinforcement = Reaver reinforcements {$designation}
 wf-reaver-name-patrol = Reaver patrol {$designation}
