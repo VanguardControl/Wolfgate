@@ -12,7 +12,7 @@
   cost: 1
   replaceable: true
   placement: Station
-  standoff: 500
+  standoff: 3000 # posted on the approaches, clear of docking traffic
   cooldown: 2400
   ships:
   - key: lead
@@ -69,7 +69,7 @@
   cost: 1
   replaceable: true
   placement: Station
-  standoff: 500
+  standoff: 3000 # posted on the approaches, clear of docking traffic
   cooldown: 2400
   ships:
   - key: lead
@@ -2528,7 +2528,7 @@
   weight: 0.9
   minPlayers: 3
   placement: Station
-  standoff: 600
+  standoff: 3000 # posted on the approaches, clear of docking traffic
   cooldown: 3600
   duration: 2400
   ships:
@@ -2604,7 +2604,7 @@
   weight: 0.9
   minPlayers: 3
   placement: Station
-  standoff: 600
+  standoff: 3000 # posted on the approaches, clear of docking traffic
   cooldown: 3600
   duration: 2400
   ships:
@@ -4302,7 +4302,7 @@
   weight: 0.4
   minPlayers: 6
   placement: Station
-  standoff: 900
+  standoff: 3000 # posted on the approaches, clear of docking traffic
   cooldown: 5400
   duration: 2400
   ships:
@@ -4381,7 +4381,7 @@
   weight: 0.4
   minPlayers: 6
   placement: Station
-  standoff: 900
+  standoff: 3000 # posted on the approaches, clear of docking traffic
   cooldown: 5400
   duration: 2400
   ships:
@@ -4464,7 +4464,7 @@
   weight: 0.2
   minPlayers: 9
   placement: Station
-  standoff: 900
+  standoff: 4000 # posted on the approaches, clear of docking traffic
   cooldown: 7200
   duration: 2400
   ships:
@@ -4563,7 +4563,7 @@
   weight: 0.2
   minPlayers: 9
   placement: Station
-  standoff: 900
+  standoff: 4000 # posted on the approaches, clear of docking traffic
   cooldown: 7200
   duration: 2400
   ships:
@@ -4667,7 +4667,7 @@
   weight: 0
   minPlayers: 0
   placement: Station
-  standoff: 1200
+  standoff: 4000 # posted on the approaches, clear of docking traffic
   duration: 2400
   ships:
   - key: lead
@@ -4785,7 +4785,7 @@
   weight: 0
   minPlayers: 0
   placement: Station
-  standoff: 1200
+  standoff: 4000 # posted on the approaches, clear of docking traffic
   duration: 2400
   ships:
   - key: lead
