@@ -629,7 +629,7 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
 
             // A body without a mob state still counts; ghosts and the dead don't. Only the sector is open space:
             // a player on a planet, in its orbit or in a cavern is no place to put ships beside.
-            if (where.MapId != MapId.Nullspace && IsSector(where.MapId, _maps.GetMapEntityId(where.MapId)))
+            if (where.MapId != MapId.Nullspace && IsSector(where.MapId, _maps.GetMapOrInvalid(where.MapId)))
                 anchors.Add(where);
         }
 
