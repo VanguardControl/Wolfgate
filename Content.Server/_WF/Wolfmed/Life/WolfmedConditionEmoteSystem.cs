@@ -32,8 +32,8 @@ namespace Content.Server._WF.Wolfmed.Life;
 // The conditions are walked in priority order and each one that holds rolls wolfmed.condition_emote_chance; the first
 // success plays, so at most one emote a check and a lower condition still shows up now and then. The emote played
 // last check is passed over while another condition holds, so a septic patient alternates rather than coughing
-// forever. Nothing for the dead, a stopped heart (it looks dead), a pod mid-procedure, strong sedation or a chassis.
-// Unconscious bodies still choke and cough, so the emotes skip the action blocker.
+// forever. Nothing for the dead, the unconscious, a stopped heart (it looks dead), a pod mid-procedure, strong
+// sedation or a chassis. A downed body is still awake, so the emotes skip the action blocker.
 public sealed class WolfmedConditionEmoteSystem : EntitySystem
 {
     public static readonly ProtoId<EmotePrototype> Choke = "WFWolfmedChoke";
@@ -112,10 +112,10 @@ public sealed class WolfmedConditionEmoteSystem : EntitySystem
         }
     }
 
-    /// <summary>Whether this body may show a condition at all: alive, flesh, not in arrest, a working pod or deep sedation.</summary>
+    /// <summary>Whether this body may show a condition at all: awake, flesh, not in arrest, a working pod or deep sedation.</summary>
     public bool CanShow(EntityUid body)
     {
-        if (_mobState.IsDead(body) || HasComp<WolfmedCardiacArrestComponent>(body) || !IsOrganic(body))
+        if (_mobState.IsIncapacitated(body) || HasComp<WolfmedCardiacArrestComponent>(body) || !IsOrganic(body))
             return false;
 
         if (TryComp(body, out WolfmedAutodocOccupantComponent? occupant) &&

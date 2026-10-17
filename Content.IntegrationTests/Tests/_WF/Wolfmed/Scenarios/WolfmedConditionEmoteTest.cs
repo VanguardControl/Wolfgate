@@ -36,6 +36,8 @@ public sealed class WolfmedConditionEmoteTest : WolfmedGameTest
         await OverrideCVar(Side.Server, WolfmedCVars.ConditionRetchSepsis, 60f);
         await OverrideCVar(Side.Server, WolfmedCVars.ConditionVomitSepsis, 90f);
         await OverrideCVar(Side.Server, WolfmedCVars.SedationWarnHeavy, 0.8f);
+        // Septic shock knocks the body out, and an unconscious body shows nothing.
+        await OverrideCVar(Side.Server, WolfmedCVars.SepticShockAt, 101f);
     }
 
     /// <summary>
@@ -218,5 +220,41 @@ public sealed class WolfmedConditionEmoteTest : WolfmedGameTest
         var seen = (await Watch(24, new[] { body }))[body];
         TestContext.Out.WriteLine($"InfectedChestShiversTest: {string.Join(", ", seen)}");
         Assert.That(seen, Does.Contain(WolfmedConditionEmoteSystem.Shiver.Id), "a spreading torso never shivered.");
+    }
+
+    /// <summary>
+    /// <c>UnconsciousOrArrestedStaysQuietTest</c>: an unconscious body and one in cardiac arrest neither show a
+    /// condition nor vomit.
+    /// </summary>
+    [Test]
+    public async Task UnconsciousOrArrestedStaysQuietTest()
+    {
+        var map = await CreateTestMap();
+        await Server.WaitAssertion(() =>
+        {
+            var emotes = SEntMan.System<WolfmedConditionEmoteSystem>();
+            var awake = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            var arrested = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            var unconscious = SEntMan.SpawnEntity("MobHuman", map.GridCoords);
+            SEntMan.EnsureComponent<Content.Shared._WF.Wolfmed.Life.WolfmedCardiacArrestComponent>(arrested);
+            SEntMan.System<MobStateSystem>().ChangeMobState(unconscious, Content.Shared.Mobs.MobState.Critical);
+
+            bool Vomits(EntityUid body)
+            {
+                var attempt = new WolfmedVomitAttemptEvent();
+                SEntMan.EventBus.RaiseLocalEvent(body, ref attempt);
+                return !attempt.Cancelled;
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(emotes.CanShow(awake), Is.True);
+                Assert.That(Vomits(awake), Is.True);
+                Assert.That(emotes.CanShow(arrested), Is.False, "a stopped heart emoted.");
+                Assert.That(Vomits(arrested), Is.False, "a stopped heart vomited.");
+                Assert.That(emotes.CanShow(unconscious), Is.False, "an unconscious body emoted.");
+                Assert.That(Vomits(unconscious), Is.False, "an unconscious body vomited.");
+            });
+        });
     }
 }
