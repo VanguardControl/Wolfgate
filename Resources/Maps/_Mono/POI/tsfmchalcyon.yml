@@ -55328,14 +55328,14 @@ entities:
     - type: Transform
       pos: -6.5,-23.5
       parent: 1
-- proto: SuitStorageM86
+- proto: SuitStorageM82b
   entities:
   - uid: 8075
     components:
     - type: Transform
       pos: 24.5,-14.5
       parent: 1
-- proto: SuitStorageM86
+- proto: SuitStorageM82c
   entities:
   - uid: 5567
     components:
@@ -55400,7 +55400,7 @@ entities:
         moles:
           Oxygen: 1.7459903
           Nitrogen: 6.568249
-- proto: SuitStorageWallmountM86
+- proto: SuitStorageWallmountM82b
   entities:
   - uid: 8085
     components:

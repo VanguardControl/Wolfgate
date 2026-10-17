@@ -168,15 +168,16 @@
   categories:
   - UplinkWearables
 
-#- type: listing
-#  id: UplinkUllmanEnforcerMk2
-#  name: uplink-ullman-enforcer-mk2-name
-#  description: uplink-ullman-enforcer-mk2-desc
-#  productEntity: ClothingOuterHardsuitUIEnforcerMKII
-#  cost:
-#    Telecrystal: 90
-#  categories:
-#  - UplinkWearables
+# WOLFGATE(ArmorBalance): reverts Monolith#4845.
+- type: listing
+  id: UplinkUllmanEnforcerMk2
+  name: uplink-ullman-enforcer-mk2-name
+  description: uplink-ullman-enforcer-mk2-desc
+  productEntity: ClothingOuterHardsuitUIEnforcerMKII
+  cost:
+    Telecrystal: 90
+  categories:
+  - UplinkWearables
 
 - type: listing
   id: UplinkUllmanRx01

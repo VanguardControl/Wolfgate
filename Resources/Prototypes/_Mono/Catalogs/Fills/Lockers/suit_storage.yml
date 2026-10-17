@@ -106,7 +106,7 @@
     contents:
         - id: OxygenTankFilled
         - id: NitrogenTankFilled
-        - id: ClothingOuterHardsuitM86 # Frontier
+        - id: ClothingOuterHardsuitM82c # Frontier # WOLFGATE(ArmorBalance): reverts Monolith#4845.
         - id: ClothingMaskGasSheriff
         - id: JetpackNfsdFilled
         - id: ClothingShoesBootsMagSecurity # Frontier
