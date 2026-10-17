@@ -40,8 +40,8 @@ died in is freed and a smaller bounty paid; each navy's members also get its own
 contested for ten minutes, announced as a blockade, before it falls. Each storyteller preset has its own
 `wfReaverCampaign` (`Resources/Prototypes/_WF/ReaverCampaign/campaigns.yml`) with the pace, caps, tier ladder,
 bounties and encounter prototypes; a preset with none runs no campaign. It runs only while `wf.encounters.enabled`,
-`wf.sector.enabled` are on, the round is in progress and the Ashfall game mode runs (rule `WFReaverCampaignRule`, in
-preset `MonoAshfall`; `wf.reavers.enabled` forces it on without the rule), and its own Reaver encounters on
+`wf.sector.enabled` are on, the round is in progress and the Contested Sector game mode runs (rule `WFReaverCampaignRule`, in
+preset `WFContestedSector`; `wf.reavers.enabled` forces it on without the rule), and its own Reaver encounters on
 the storyteller's side are weighted up by tier through `WFEncounterWeightEvent`.
 
 A lead out of the fight (crew dead, disabled, hull shot to pieces, or no one at the helm for two minutes) breaks its
@@ -171,14 +171,14 @@ and counted for the round summary. `wf_reavers respond <q> <r>` sends one by han
 
 ## Non-modular edits
 
-- [`Resources/Prototypes/_Mono/PointsOfInterest/nodes.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/nodes.yml): the Ashfall game mode spawns the same sector as Standard
-- [`Resources/Prototypes/_Mono/PointsOfInterest/pdvhelios.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/pdvhelios.yml): the Ashfall game mode spawns the same sector as Standard
-- [`Resources/Prototypes/_Mono/PointsOfInterest/tsfmchalcyon.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/tsfmchalcyon.yml): the Ashfall game mode spawns the same sector as Standard
-- [`Resources/Prototypes/_Mono/PointsOfInterest/tsfmcindustry.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/tsfmcindustry.yml): the Ashfall game mode spawns the same sector as Standard
+- [`Resources/Prototypes/_Mono/PointsOfInterest/nodes.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/nodes.yml): the Contested Sector game mode spawns the same sector as Standard
+- [`Resources/Prototypes/_Mono/PointsOfInterest/pdvhelios.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/pdvhelios.yml): the Contested Sector game mode spawns the same sector as Standard
+- [`Resources/Prototypes/_Mono/PointsOfInterest/tsfmchalcyon.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/tsfmchalcyon.yml): the Contested Sector game mode spawns the same sector as Standard
+- [`Resources/Prototypes/_Mono/PointsOfInterest/tsfmcindustry.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/tsfmcindustry.yml): the Contested Sector game mode spawns the same sector as Standard
 - [`Resources/Prototypes/_Mono/PointsOfInterest/underground.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/underground.yml): the station flies the neutral WFUnderground company, so the Reavers leave it and its cell alone
-- [`Resources/Prototypes/_Mono/PointsOfInterest/ussp.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/ussp.yml): the Ashfall game mode spawns the same sector as Standard
+- [`Resources/Prototypes/_Mono/PointsOfInterest/ussp.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/ussp.yml): the Contested Sector game mode spawns the same sector as Standard
 - [`Resources/Prototypes/_Mono/Roles/Jobs/Underground/fugitive.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Underground/fugitive.yml): Underground crew fly the neutral WFUnderground company, so the Reavers leave them alone
 - [`Resources/Prototypes/_Mono/Roles/Jobs/Underground/godfather.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Underground/godfather.yml): Underground crew fly the neutral WFUnderground company, so the Reavers leave them alone
-- [`Resources/Prototypes/_NF/PointsOfInterest/base.yml`](../../../Resources/Prototypes/_NF/PointsOfInterest/base.yml): the Ashfall game mode spawns the same sector as Standard
+- [`Resources/Prototypes/_NF/PointsOfInterest/base.yml`](../../../Resources/Prototypes/_NF/PointsOfInterest/base.yml): the Contested Sector game mode spawns the same sector as Standard
 
 <!-- WOLFGATE-GENERATED END -->

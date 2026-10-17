@@ -84,8 +84,8 @@ The Reavers gain `WFReaverResponsePack` (`Resources/Prototypes/_WF/ReaverCampaig
 `WFAdsCampaignSystem` in `Content.Server/_WF/AdsIncursion`, built on the Reaver campaign's shape (partials by concern,
 one-shot public methods for tests and the command, state on `WFAdsCampaignComponent` on the sector map entity). Runs
 only while `wf.encounters.enabled` and `wf.sector.enabled` are on, the round is in progress and rule
-`WFAdsCampaignRule` runs (`wf.ads.enabled` is the admin override). The rule joins the `MonoAshfall` preset beside the
-Reaver rule: Ashfall is the sector-threats mode, and the two fight each other there. `addgamerule WFAdsCampaignRule`
+`WFAdsCampaignRule` runs (`wf.ads.enabled` is the admin override). The rule joins the `WFContestedSector` preset beside the
+Reaver rule: Contested Sector is the sector-threats mode, and the two fight each other there. `addgamerule WFAdsCampaignRule`
 starts it by hand in any other mode.
 
 **Nodes.** `firstNodeDelay` after `StationsGeneratedEvent`: a quiet cell 16–26 km out, clear centre

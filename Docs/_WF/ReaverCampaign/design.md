@@ -271,14 +271,14 @@ announcement says the bounty was paid only when it is above zero. Stronghold bou
 
 ## The game mode
 
-The Reavers are their own game mode, "Ashfall" (preset `MonoAshfall`, alias `ashfall`, shown in the gamemode vote). It has
+The Reavers run in the "Contested Sector" game mode (preset `WFContestedSector`, aliases `contested` and `ashfall`, shown in the gamemode vote), shared with the ADS incursion. It has
 the same rules as Standard plus the game rule `WFReaverCampaignRule`, and the same points of interest spawn. The campaign
 is on only while that rule runs; `wf.reavers.enabled` (default false) is an admin override that forces it on without
 the rule, and `addgamerule WFReaverCampaignRule` starts it by hand. While it is off, `wf_reavers status` says the game
 mode is not running and names both ways in.
 
 The lobby's sector danger vote picks the campaign: each `wfReaverCampaign` names the `wfEncounterPreset` it serves.
-The campaign runs only when `wf.encounters.enabled` and `wf.sector.enabled` are on and the Ashfall rule runs (or the override is set); a
+The campaign runs only when `wf.encounters.enabled` and `wf.sector.enabled` are on and the Contested Sector rule runs (or the override is set); a
 preset with no campaign runs none (logged once).
 
 | | Quiet | Standard | Dangerous |

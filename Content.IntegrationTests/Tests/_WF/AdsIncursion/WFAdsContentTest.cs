@@ -12,7 +12,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.AdsIncursion;
 
-/// <summary>The ADS campaign content as shipped: one campaign for every vote option, sound ladders and encounters, and the rule in the Ashfall preset.</summary>
+/// <summary>The ADS campaign content as shipped: one campaign for every vote option, sound ladders and encounters, and the rule in the Contested Sector preset.</summary>
 [TestFixture]
 public sealed class WFAdsContentTest
 {
@@ -42,8 +42,8 @@ public sealed class WFAdsContentTest
                 Assert.That(prototypes.HasIndex(campaign.Preset), Is.True, $"{campaign.ID} names a real preset");
             }
 
-            var ashfall = prototypes.Index<GamePresetPrototype>("MonoAshfall");
-            Assert.That(ashfall.Rules, Does.Contain("WFAdsCampaignRule"), "The Ashfall preset runs the ADS beside the Reavers.");
+            var ashfall = prototypes.Index<GamePresetPrototype>("WFContestedSector");
+            Assert.That(ashfall.Rules, Does.Contain("WFAdsCampaignRule"), "The Contested Sector preset runs the ADS beside the Reavers.");
         });
 
         await pair.CleanReturnAsync();

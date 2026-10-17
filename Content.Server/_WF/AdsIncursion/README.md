@@ -24,7 +24,7 @@ The Reavers answer a challenge on their space with a response pack (`ReaverCampa
 
 Each storyteller preset has its own `wfAdsCampaign` (`Resources/Prototypes/_WF/AdsIncursion/campaigns.yml`). It runs
 only while `wf.encounters.enabled` and `wf.sector.enabled` are on, the round is in progress and rule
-`WFAdsCampaignRule` runs (in preset `MonoAshfall`; `addgamerule` elsewhere; `wf.ads.enabled` forces it on).
+`WFAdsCampaignRule` runs (in preset `WFContestedSector`; `addgamerule` elsewhere; `wf.ads.enabled` forces it on).
 
 `WFAdsCampaignSystem` is the driver, in partials by concern: `.Nodes` (founding, regroup, breaking), `.Sentinels`,
 `.Deployments`, `.Spread`, `.Sweeps`, `.Interdicts`, `.Challenges` (interdictors and pickets), `.Retakes`, `.Threat`,
