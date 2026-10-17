@@ -1,29 +1,19 @@
-# Dark working dress and energy weapons for the Automated Defense System's units. The IPC inventory has no ears slot,
-# so none carries a headset. Weapons sit in slots, never in a bag: the crew draws from slots.
+# Energy weapons for the Automated Defense System's units, which go bare: no clothing, no suits. The IPC inventory has no
+# ears slot, so none carries a headset. Weapons sit in the belt and back slots, which need no jumpsuit, never in a bag:
+# the crew draws from slots.
 
 - type: startingGear
   id: WFCrewAdsUnit
   equipment:
-    jumpsuit: ClothingUniformJumpsuitColorBlack
-    shoes: ClothingShoesBootsCombat
-    gloves: ClothingHandsGlovesColorBlack
     belt: WeaponLaserGun
 
 - type: startingGear
   id: WFCrewAdsOfficer
   equipment:
-    jumpsuit: ClothingUniformJumpsuitColorBlack
-    shoes: ClothingShoesBootsCombat
-    gloves: ClothingHandsGlovesColorBlack
     belt: WeaponLaserGun
 
 - type: startingGear
   id: WFCrewAdsSentry
   equipment:
-    jumpsuit: ClothingUniformJumpsuitColorBlack
-    outerClothing: ClothingOuterArmorBulletproof
-    head: ClothingHeadHelmetBasic
-    shoes: ClothingShoesBootsCombat
-    gloves: ClothingHandsGlovesColorBlack
     back: WeaponLaserCarbine
     belt: WeaponLaserGun

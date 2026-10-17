@@ -15,7 +15,13 @@ Wyrm that flies in from the sector edge and circles it, up to a cap by tier; whe
 after the top attacker and come back three minutes after the last hit. Breaking a node (its lead out of the fight)
 frees its cells and pays `nodeBounty[tier]` times one plus half a sentinel alive, to those who hit it or its sentinels,
 with a fifth for the ships that stood by. A sweep or sentinel killed pays the sweep bounty, and a sweep frees the cell
-it died in. A crewed ship that stays `interdictDwell` in ADS space has the nearest sweep turned on it to disable it.
+it died in. A crewed ship that stays `interdictDwell` in ADS space has the nearest sweep sent to hold beside it and
+query it.
+
+Every ADS zone interrogates (`zoneTargets: Interrogate`, `WFEncounterInterrogationSystem` in `Encounters`): each crewed
+player ship in a warning zone is hailed and asked whether it is a threat. Only a ship that answers YES or fires on the
+ADS is warned off and fired on; NO leaves it alone for 15 minutes, no answer for 3. The crews are bare IPC automatons,
+immune to vacuum, with their guns in the belt and back slots.
 
 From `challengeTier` the ADS contests other factions' space: every `challengeInterval` an interdictor flies from the
 nearest node to a cell another faction holds and the framework challenge on it is decided by presence at the deadline.
@@ -79,6 +85,7 @@ challenge [q r] | pause | resume | clear`, and see every campaign encounter in t
 
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsChallengeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsChallengeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsContentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsContentTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsInterrogationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsInterrogationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsNodeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsNodeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsTestBase.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsTestBase.cs)
 
@@ -95,6 +102,7 @@ challenge [q r] | pause | resume | clear`, and see every campaign encounter in t
 - [`Resources/Prototypes/_WF/AdsIncursion/manifests.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/manifests.yml)
 - [`Resources/Prototypes/_WF/AdsIncursion/names.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/names.yml)
 - [`Resources/Prototypes/_WF/AdsIncursion/profiles.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/profiles.yml)
+- [`Resources/Prototypes/_WF/AdsIncursion/speech_verbs.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/speech_verbs.yml)
 - [`Resources/Prototypes/_WF/AdsIncursion/standing.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/standing.yml)
 - [`Resources/Prototypes/_WF/AdsIncursion/vessels.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/vessels.yml)
 

@@ -1,7 +1,8 @@
 # The Automated Defense System's encounters. Everything here is started by the ADS campaign or an admin, never the
 # storyteller. The first ship listed is the lead: a node breaks when its lead is out of the fight, and a sentinel,
 # sweep or interdictor flies the lead's orders. Every ADS ship disables what it fights: its guns stop once the target is
-# combat-ineffective, so nobody is hunted or boarded. Nobody gets a deed to a machine.
+# combat-ineffective, so nobody is hunted or boarded. Nobody gets a deed to a machine. Every zone interrogates: a ship
+# is hailed and asked whether it is a threat, and only one that says YES or fires on the ADS is fired on.
 
 # A node: a Nebula holding a cell centre as a gun platform. The lead does not evade: a hub that ran from an alert
 # would undock everything on it. The campaign adds sentinels to it as it ages.
@@ -34,7 +35,7 @@
     warnRange: 1800
     attackRange: 1000
     zoneLines: wf-ads-zone
-    zoneTargets: Everyone
+    zoneTargets: Interrogate
     disengage: Disable
     disengageRange: 1500
     iffColor: "#9B4DFF"
@@ -67,7 +68,7 @@
     warnRange: 1200
     attackRange: 700
     zoneLines: wf-ads-zone
-    zoneTargets: Everyone
+    zoneTargets: Interrogate
     disengage: Disable
     disengageRange: 1000
     iffColor: "#9B4DFF"
@@ -98,7 +99,7 @@
     warnRange: 1200
     attackRange: 700
     zoneLines: wf-ads-zone
-    zoneTargets: Everyone
+    zoneTargets: Interrogate
     disengage: Disable
     disengageRange: 1000
     iffColor: "#9B4DFF"
@@ -130,7 +131,7 @@
     warnRange: 1200
     attackRange: 700
     zoneLines: wf-ads-zone
-    zoneTargets: Everyone
+    zoneTargets: Interrogate
     disengage: Disable
     disengageRange: 1000
     iffColor: "#9B4DFF"
@@ -167,7 +168,7 @@
     warnRange: 1800
     attackRange: 1000
     zoneLines: wf-ads-zone
-    zoneTargets: Everyone
+    zoneTargets: Interrogate
     disengage: Disable
     disengageRange: 1500
     iffColor: "#9B4DFF"

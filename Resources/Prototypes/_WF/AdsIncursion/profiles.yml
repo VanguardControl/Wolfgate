@@ -1,5 +1,7 @@
 # An IPC crew body for the Automated Defense System: built as WFMobCrewBodyHuman is, on the IPC player mob. A crew
 # profile gives it its role's kit and a loadout when spawned. The IPC mob has no ears slot, so its radio is its own.
+# It is built immune to vacuum, so it is never put in a suit, even at a post with no air, and speaks in the synthetic
+# verbs and face (WFAdsSynth).
 - type: entity
   parent: [ MobIPC, MobPrying, WFCrewKit ]
   id: WFMobCrewBodyIpc
@@ -7,6 +9,11 @@
   description: A unit of the Automated Defense System, still following its directives.
   suffix: NPC crew body
   categories: [ HideSpawnMenu ]
+  components:
+  - type: PressureImmunity
+  - type: BreathingImmunity
+  - type: Speech
+    speechVerb: WFAdsSynth
 
 # The Automated Defense System's units: positronic automatons that need no air and shrug off vacuum. Mediocre crews;
 # they fight whoever is at war with the system and name themselves from its designations and serial numbers.

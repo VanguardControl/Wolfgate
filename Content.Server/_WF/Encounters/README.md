@@ -110,6 +110,11 @@ or Scallywag, Veteran, four guards, 40000 toll, 90000 base). The admin window an
 extorter is doing (roaming, closing on a ship, hailing with the attempt, waiting for an answer, boarding) and what any
 warrant pays now.
 
+A ship with `zoneTargets: Interrogate` (the ADS) fires on nobody until asked: `WFEncounterInterrogationSystem`
+hails each crewed player ship in its warning zone from its helm and asks `{zoneLines}-hail-question` with YES and NO.
+YES puts the ship in `Declared` on every ship of the encounter, and the zone warns and fires on it as any intruder;
+NO clears it for 15 minutes, no answer for 3. A ship that fires on it is engaged without a question.
+
 A ship docked to a station (a station member without a deed) is in sanctuary (`DockedAtStation`): hunts, extorters,
 `@player` objectives, the Reaver raids and intercepts and the zones never pick it, and a hunter, extorter, raid or
 patrol already on it lets it go when it berths.
@@ -160,6 +165,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterAdminSystem.cs`](Systems/WFEncounterAdminSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterBountySystem.cs`](Systems/WFEncounterBountySystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterDeedSystem.cs`](Systems/WFEncounterDeedSystem.cs)
+- [`Content.Server/_WF/Encounters/Systems/WFEncounterInterrogationSystem.cs`](Systems/WFEncounterInterrogationSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterMarkerSystem.cs`](Systems/WFEncounterMarkerSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterRewardSystem.cs`](Systems/WFEncounterRewardSystem.cs)
 - [`Content.Server/_WF/Encounters/Systems/WFEncounterSchedulerSystem.cs`](Systems/WFEncounterSchedulerSystem.cs)

@@ -9,6 +9,11 @@ Reavers running in the same round.
 
 ## Why it is beatable
 
+- **It asks before it shoots.** Every ADS zone is `zoneTargets: Interrogate`: a player ship in a warning zone is hailed
+  with "DIRECTIVE QUERY. ARE YOU A THREAT TO THE AUTOMATED DEFENSE SYSTEM?" and offered YES and NO. Only a ship that
+  answers YES (the encounter's `Declared` list) or fires on an ADS ship is warned off and fired on; NO clears it for
+  15 minutes, no answer for 3, and nobody else is ever shot at, civilian or navy, IFF or none. The hulls are far too
+  strong to fire on bystanders.
 - **It disables, it does not kill.** Every ADS ship fights with `disengage: Disable`: once a ship is combat-ineffective
   (`WFCrewShipStatusSystem.IsDisabled`) its guns stop. Nobody is hunted, boarded or chased across the sector. The
   Disarmament Directive is the rule, not flavour.
@@ -28,7 +33,8 @@ Reavers running in the same round.
 `WFSectorFactionAds` (`Resources/Prototypes/_WF/AdsIncursion/factions.yml`): name "Automated Defense System", colour
 purple `#9B4DFF`, company `WFAds`, `blockades: false`, `enteredNotice`/`leftNotice` in directive voice
 ("DIRECTIVE: you are entering an Automated Defense System exclusion zone (K-7). Military and unidentified craft will be
-made combat-ineffective."). Company `WFAds` (`companies.yml`, `disabled: true`, same colour). Standing `WFAds` at war
+made combat-ineffective.", now "Your vessel will be queried. Only declared threats and attackers are made
+combat-ineffective."). Company `WFAds` (`companies.yml`, `disabled: true`, same colour). Standing `WFAds` at war
 with TSF, TSFCivilian, TSFHighComm, PDV, PDVCivilian, PDVHighComm and WFAshfallReavers (war is mutual, so the Reavers
 are at war with it too). NPC faction `WFAds` (`ai_factions.yml`): `defaultHostile: true`, neutral to pets and
 `SimpleNeutral`, as `WFPdvNavy` is set up.
@@ -55,15 +61,23 @@ cleanly, else human bodies in ADS gear. Components: `PressureImmunity`, `Breathi
 exists. Names from two datasets: designations (Glimmer, Orion, Expanse, Symphony, Chorus, Flashpoint, Phoron, Conquest,
 Prime, Firestorm, Retaliation, Horizon, Marksman, Barricade, Vein, Zero, Midnight, Interdiction, Mist, Granite, Typhoon,
 Storm, Rubicon, Cauterizer, Evasion, Apprehension: Mono's ADS core names) and serials ("Unit 03" ... "Unit 99"). Gear:
-`WFCrewAdsUnit` (dark utility jumpsuit, energy sidearm), `WFCrewAdsSentry` (energy rifle); skills
+naked robots, no clothing or suits: `WFCrewAdsUnit` and `WFCrewAdsOfficer` (energy sidearm on the belt),
+`WFCrewAdsSentry` (energy rifle on the back too); the belt and back slots need no jumpsuit. The IPC body carries
+`PressureImmunity` and `BreathingImmunity` itself, so a post in vacuum never gets it a void kit; skills
 `[ Green, Regular, Regular ]`. Zone lines `wf-ads-zone-*` (`Resources/Locale/en-US/_WF/AdsIncursion/ads.ftl`) in
-directive voice: "DISARMAMENT DIRECTIVE. {$intruder}, you are {$distance} metres inside an exclusion zone. Power down
-your weapons and withdraw." The attack line: "Compliance window closed. {$intruder} will be made combat-ineffective."
+directive voice, said only to a declared threat or an attacker: "DISARMAMENT DIRECTIVE. {$intruder}, you are logged as
+a threat. ..." The query lines `wf-ads-zone-hail-question`, `-hail-yes`, `-hail-no`, `-hail-declared` and
+`-hail-cleared` go over the hail. The attack line: "Compliance window closed. {$intruder} will be made combat-ineffective."
 
 ## Encounters (`encounters.yml`)
 
 All `start: Manual`, off budget, `company: WFAds`, `faction: WFAds`, `profile: WFCrewProfileAds`, `distress: false`,
-`zoneTargets: Everyone`, `disengage: Disable`, `iffColor` purple, `deed: null` (nobody gets a deed to a machine).
+`zoneTargets: Interrogate`, `disengage: Disable`, `iffColor` purple, `deed: null` (nobody gets a deed to a machine).
+`Interrogate` is generic (`Encounters`): the zone fires only on vessels in the ship's `Declared` set or known attackers,
+and `WFEncounterInterrogationSystem` hails every other crewed player ship in the warning zone from the ship's helm with
+its pilot (any living crewman will do), asks the `{zoneLines}-hail-question` and offers YES and NO. YES declares the
+vessel to every ship of the encounter for its life; NO puts it on a 15 minute cooldown, an unanswered hail on 3. An
+interrogating ship turns on no rival encounter ship by itself either; it answers fire and rivals that turn on it.
 
 - `WFAdsNode`: lead Nebula, `platform: true`, `evades: false`, deckhands 2, guards 2, engineer, `fuelStores: 12`,
   skill Regular, warn 1800 m, attack 1000 m, disengage range 1500 m, `objectives: [ Hold ]`, `leash: 2000`,
@@ -115,9 +129,10 @@ three to five held-cell centres then home; resolves `Completed` home; one lost f
 a node stands there) and pays `sweepBounty`. Called back once 10 s outside held space and its ring.
 
 **Interdiction.** A crewed player ship inside ADS space for `interdictDwell` and off its cooldown gets the nearest sweep
-within three cells, else a fresh one from the nearest node, ordered `GoTo` it (600 m) then `Attack` it; the ship is
-told "DISARMAMENT DIRECTIVE. ADS interdictor turning to Hauler, bearing 045, 3.2 km." over PA and chat, and common
-hears it. Ends when the target is disabled, gone, 20 s out of held space or 20 s out of reach; then the sweep flies on
+within three cells, else a fresh one from the nearest node, ordered `GoTo` it (600 m) then `Hold` 180 s, so its zone
+queries the ship; it fires only through the zone, on a declared threat or an attacker. The ship is told "DISARMAMENT
+DIRECTIVE. ADS interdictor closing on Hauler to query it, bearing 045, 3.2 km." over PA and chat, and common hears
+it. Ends when the target is disabled, gone, 20 s out of held space or 20 s out of reach; then the sweep flies on
 and the ship gets `interdictCooldown`. Capped by `interdicts[tier]`. No marks, no raids.
 
 **Threat.** Score = nodes × 10 + held cells + 20 × (1 − nearest held cell's distance / 27 000). Tiers from

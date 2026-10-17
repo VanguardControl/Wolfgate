@@ -140,8 +140,9 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
         _rivals.RemoveWhere(pair => TerminatingOrDeleted(pair.Ship) || TerminatingOrDeleted(pair.Other));
         foreach (var (uid, ship) in _fleet)
         {
+            // An interrogating ship turns on nobody by itself: it answers fire and rivals that turn on it.
             var range = MathF.Max(ship.WarnRange, ship.AttackRange);
-            if (range <= 0f || IsDocked(ship.Grid))
+            if (range <= 0f || ship.ZoneTargets == WFEncounterZoneTargets.Interrogate || IsDocked(ship.Grid))
                 continue;
 
             var here = CentreOfMass(ship.Grid);
@@ -384,6 +385,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     private void Watch(WFEncounterComponent encounter, WFEncounterShipState ship)
     {
         Forget(encounter, ship);
+        ship.Strangers.Clear();
         var here = CentreOfMass(ship.Grid);
         AnswerFire(encounter, ship, here);
 
@@ -409,6 +411,18 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             {
                 Release(encounter, ship, intruder);
                 _alerts.EndZoneWarning(ship.Grid, intruder);
+                continue;
+            }
+
+            // An interrogating zone minds only a declared threat or an attacker, IFF or none; anyone else in the
+            // warning zone is left to be asked.
+            if (ship.ZoneTargets == WFEncounterZoneTargets.Interrogate && !IsThreat(ship, intruder))
+            {
+                Release(encounter, ship, intruder);
+                _alerts.EndZoneWarning(ship.Grid, intruder);
+                var at = CentreOfMass(intruder);
+                if (ship.WarnRange > 0f && at.MapId == here.MapId && (at.Position - here.Position).Length() <= ship.WarnRange)
+                    ship.Strangers.Add(intruder);
                 continue;
             }
 
@@ -449,7 +463,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             var distance = (there.Position - here.Position).Length();
             // One lying still is hailed to show itself and no more, wherever the zone finds it. Under way, or once
             // fired on, it is treated as any unknown.
-            var idle = masked && !ship.Engaged.Contains(intruder)
+            var idle = masked && ship.ZoneTargets != WFEncounterZoneTargets.Interrogate && !ship.Engaged.Contains(intruder)
                        && (!TryComp<Robust.Shared.Physics.Components.PhysicsComponent>(intruder, out var body)
                            || body.LinearVelocity.LengthSquared() < IdleSpeed * IdleSpeed);
             if (idle)
@@ -496,6 +510,12 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
                 _alerts.EndZoneWarning(ship.Grid, intruder);
             }
         }
+    }
+
+    /// <summary>Whether an interrogating ship has cause to fire on a vessel: it declared itself a threat, fired on the ship, or is already engaged.</summary>
+    public bool IsThreat(WFEncounterShipState ship, EntityUid intruder)
+    {
+        return ship.Declared.Contains(intruder) || ship.Engaged.Contains(intruder) || _alerts.IsAttacker(ship.Grid, intruder);
     }
 
     /// <summary>Below this speed, in metres a second, a vessel is lying still.</summary>

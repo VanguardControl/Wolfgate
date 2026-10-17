@@ -5,8 +5,8 @@ wf-sector-faction-ads = Automated Defense System
 wf-company-ads-description = The Automated Defense System is the pre-Fracture silicon fleet, awake again and following its directives to the letter. It disarms the navies and the Reavers, holds ground without ever touching a station, and disables what crosses it. It does not hunt, and it does not stop.
 
 # Border notices for ADS space, in place of the sector control defaults
-wf-ads-notice-entered = DIRECTIVE: you are entering an Automated Defense System exclusion zone ({$callsign}). Military and unidentified craft will be made combat-ineffective.
-wf-ads-notice-left = DIRECTIVE: you are leaving an Automated Defense System exclusion zone ({$callsign}). Compliance noted.
+wf-ads-notice-entered = DIRECTIVE: you are entering an Automated Defense System exclusion zone ({$callsign}). Your vessel will be queried. Only declared threats and attackers are made combat-ineffective.
+wf-ads-notice-left = DIRECTIVE: you are leaving an Automated Defense System exclusion zone ({$callsign}). Query closed. Compliance noted.
 
 # Encounter names
 wf-ads-name-node = ADS node
@@ -18,10 +18,17 @@ wf-ads-name-deployment = ADS deployment
 # What a node's hold is announced as when it is boarded
 wf-ads-cargo-tech = pre-Fracture ADS technology
 
-# What the system's ships say to intruders
-wf-ads-zone-warn-1 = DISARMAMENT DIRECTIVE. {$intruder}, you are {$distance} metres inside an exclusion zone. Power down your weapons and withdraw.
-wf-ads-zone-warn-2 = DISARMAMENT DIRECTIVE. {$intruder}, your weapons are still live. Power them down and withdraw.
-wf-ads-zone-warn-3 = FINAL NOTICE. {$intruder}, you are {$distance} metres inside an exclusion zone. Withdraw now.
+# What the system's ships say to a declared threat or an attacker in their zone; every other vessel is queried instead
+wf-ads-zone-warn-1 = DISARMAMENT DIRECTIVE. {$intruder}, you are {$distance} metres inside an exclusion zone. Vessels are queried; only declared threats and attackers are engaged. You are one. Withdraw.
+wf-ads-zone-warn-2 = DISARMAMENT DIRECTIVE. {$intruder}, you are logged as a threat. Only declared threats and attackers are engaged. Power down your weapons and withdraw.
+wf-ads-zone-warn-3 = FINAL NOTICE. {$intruder}, you are {$distance} metres inside an exclusion zone and logged as a threat. Withdraw now.
+
+# The query an ADS ship puts over a hail to every other vessel in its zone, the answers it offers, and its replies
+wf-ads-zone-hail-question = DIRECTIVE QUERY. ARE YOU A THREAT TO THE AUTOMATED DEFENSE SYSTEM?
+wf-ads-zone-hail-yes = YES
+wf-ads-zone-hail-no = NO
+wf-ads-zone-hail-declared = THREAT DECLARED. YOUR VESSEL WILL BE MADE COMBAT-INEFFECTIVE.
+wf-ads-zone-hail-cleared = ANSWER LOGGED. YOU ARE NOT A TARGET. DO NOT FIRE ON ADS UNITS.
 wf-ads-zone-attack = Compliance window closed. {$intruder} will be made combat-ineffective.
 
 # Guidebook
@@ -125,8 +132,8 @@ wf-ads-sweep-destroyed-held = ADS sweep destroyed at {$callsign}. { $paid ->
         } paid.
     }
 
-# Said to a ship the ADS turns on, and on the common channel
-wf-ads-interdict-warning = DISARMAMENT DIRECTIVE. ADS interdictor turning to {$ship}, bearing {$bearing}, {$range} km.
+# Said to a ship the ADS sends an interdictor to query, and on the common channel
+wf-ads-interdict-warning = DISARMAMENT DIRECTIVE. ADS interdictor closing on {$ship} to query it, bearing {$bearing}, {$range} km.
 
 # Challenges on cells another faction holds; $holder is that faction
 wf-ads-challenge-launched = ADS interdictor under way to {$callsign}, contesting space held by the {$holder}. {$range} km bearing {$bearing} from {$station}.
@@ -276,3 +283,6 @@ cmd-wf_ads-challenge-failed = No challenge could be made: no other faction's cel
 cmd-wf_ads-paused = Campaign paused.
 cmd-wf_ads-resumed = Campaign resumed.
 cmd-wf_ads-cleared = Cleared the campaign: {$count} encounters ended.
+
+# How the units' speech is labelled: the silicon verbs in a monospace face
+wf-ads-speech-verb-name = Synthetic

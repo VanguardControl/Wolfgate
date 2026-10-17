@@ -11,8 +11,11 @@ namespace Content.Server._WF.AdsIncursion.Systems;
 
 public sealed partial class WFAdsCampaignSystem
 {
-    /// <summary>How near the point it was sent to an interdicting sweep closes before it attacks.</summary>
+    /// <summary>How near the point it was sent to an interdicting sweep closes before it holds and queries.</summary>
     private const float InterdictApproach = 600f;
+
+    /// <summary>How long an interdicting sweep holds beside its target, so its zone puts the question, before it flies on.</summary>
+    private const float InterdictHold = 180f;
 
     /// <summary>How many cells from its target a sweep may be to be sent after it, or to keep after it.</summary>
     public const int InterdictReach = 3;
@@ -125,7 +128,11 @@ public sealed partial class WFAdsCampaignSystem
         return StartInterdict(campaign, (uid, comp, encounter), target, at, comp.Route.ToList());
     }
 
-    /// <summary>Turns a sweep on a ship: close on where it is and attack it, then fly the rest of the route and home. Warns those aboard and the sector.</summary>
+    /// <summary>
+    /// Turns a sweep on a ship: close on where it is and hold there, so its zone asks the ship whether it is a threat,
+    /// then fly the rest of the route and home. It fires only through its zone, on a declared threat or an attacker.
+    /// Warns those aboard and the sector.
+    /// </summary>
     private bool StartInterdict(WFAdsCampaignPrototype campaign, Entity<WFAdsSweepComponent, WFEncounterComponent> sweep,
         EntityUid target, Vector2 at, List<Vector2> resume)
     {
@@ -133,9 +140,9 @@ public sealed partial class WFAdsCampaignSystem
         var queue = new List<WFCrewObjective>
         {
             new() { Kind = WFCrewObjectiveKind.GoTo, Position = at, Range = InterdictApproach },
-            new() { Kind = WFCrewObjectiveKind.Attack, Target = GetNetEntity(target) },
+            new() { Kind = WFCrewObjectiveKind.Hold, Duration = InterdictHold },
         };
-        // The route stays queued behind the attack, so a sweep whose target is disabled flies on rather than going idle.
+        // The route stays queued behind the hold, so the sweep flies on rather than going idle.
         queue.AddRange(RouteOrders(comp, resume));
         if (!_encounters.SetOrders(uid, comp.Lead, queue))
             return false;

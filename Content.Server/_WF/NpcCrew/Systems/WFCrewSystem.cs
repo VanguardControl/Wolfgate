@@ -387,8 +387,10 @@ public sealed class WFCrewSystem : EntitySystem
         // A name given here replaces the body's before the title goes on and the card and records are written.
         if (name != null)
             _meta.SetEntityName(uid, name);
-        // A post in vacuum, such as an open cockpit, is manned in a pressure suit whose tank never empties.
-        if (post.EntityId is { Valid: true } deck && TryComp<Robust.Shared.Map.Components.MapGridComponent>(deck, out var deckGrid)
+        // A post in vacuum, such as an open cockpit, is manned in a pressure suit whose tank never empties. A body
+        // built immune, such as an automaton, needs none.
+        if (post.EntityId is { Valid: true } deck && !EntityManager.System<WFCrewEvaSystem>().IsImmune(uid)
+            && TryComp<Robust.Shared.Map.Components.MapGridComponent>(deck, out var deckGrid)
             && !EntityManager.System<WFCrewPlannerSystem>().IsSafePost(deck,
                 EntityManager.System<SharedMapSystem>().TileIndicesFor(deck, deckGrid, post), deckGrid))
             EntityManager.System<WFCrewEvaSystem>().GiveVoidKit(uid);

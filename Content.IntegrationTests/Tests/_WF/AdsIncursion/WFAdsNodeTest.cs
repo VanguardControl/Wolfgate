@@ -248,7 +248,7 @@ public sealed class WFAdsNodeTest : WFAdsTestBase
         });
     }
 
-    /// <summary>A crewed ship in ADS space past the dwell has the nearest sweep turned on it, and those aboard are warned.</summary>
+    /// <summary>A crewed ship in ADS space past the dwell has the nearest sweep sent to hold beside it and query it, never to attack it, and those aboard are warned.</summary>
     [Test]
     public async Task ShipPastTheDwellIsInterdicted()
     {
@@ -273,14 +273,15 @@ public sealed class WFAdsNodeTest : WFAdsTestBase
             ads.CheckInterdicts();
             Assert.That(SEntMan.GetComponent<WFAdsSweepComponent>(sweep).Interdicting, Is.EqualTo(ship));
             var orders = Orders(sweep);
-            Assert.That(orders.Take(2).Select(order => order.Kind), Is.EqualTo(new[] { WFCrewObjectiveKind.GoTo, WFCrewObjectiveKind.Attack }));
+            Assert.That(orders.Take(2).Select(order => order.Kind), Is.EqualTo(new[] { WFCrewObjectiveKind.GoTo, WFCrewObjectiveKind.Hold }));
             Assert.That(orders[0].Range, Is.EqualTo(600f));
-            Assert.That(orders[1].Target, Is.EqualTo(SEntMan.GetNetEntity(ship)));
+            Assert.That(orders[1].Duration, Is.EqualTo(180f), "It holds beside the ship while its zone puts the question.");
+            Assert.That(orders.Any(order => order.Kind == WFCrewObjectiveKind.Attack), Is.False, "It is never ordered to attack.");
             Assert.That(ads.Sweeps(), Has.Count.EqualTo(1), "The sweep that was out went; no other was sent.");
         });
 
         await RunTicks(30);
-        Assert.That(ChatSince(since).Any(line => line.Contains("DISARMAMENT DIRECTIVE. ADS interdictor turning to Test Hauler, bearing")), Is.True,
+        Assert.That(ChatSince(since).Any(line => line.Contains("DISARMAMENT DIRECTIVE. ADS interdictor closing on Test Hauler to query it, bearing")), Is.True,
             "Those aboard are warned in chat.");
         await Server.WaitPost(Disembark);
     }
