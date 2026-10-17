@@ -100,7 +100,7 @@ public sealed class PlanetExpeditionTest
 
             // A one-tile hull with the console, as the station the offers go to.
             shipMap = maps.CreateMap(out var shipMapId);
-            var ship = server.ResolveDependency<IMapManager>().CreateGridEntity(shipMapId);
+            var ship = maps.CreateGridEntity(shipMapId);
             maps.SetTile(ship.Owner, ship.Comp, Vector2i.Zero, new Tile(tileDefs["FloorSteel"].TileId));
             console = entMan.SpawnEntity("ComputerSalvageExpedition", new EntityCoordinates(ship.Owner, 0.5f, 0.5f));
             station = stations.InitializeNewStation(proto.Index<GameMapPrototype>(MapProto).Stations["Station"], new[] { ship.Owner }, MapProto);

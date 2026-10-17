@@ -58,7 +58,6 @@ public sealed class PlanetSignalsTest
         var server = pair.Server;
         var entMan = server.EntMan;
         var maps = server.System<SharedMapSystem>();
-        var mapMan = server.ResolveDependency<IMapManager>();
         var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
         var pois = server.System<WFPlanetPoiSystem>();
         var stations = server.System<StationSystem>();
@@ -88,7 +87,7 @@ public sealed class PlanetSignalsTest
 
                 EntityUid Hull(string name, Vector2i at)
                 {
-                    var grid = mapMan.CreateGridEntity(orbitId);
+                    var grid = maps.CreateGridEntity(orbitId);
                     var tiles = new List<(Vector2i, Tile)>();
                     for (var x = 0; x < 3; x++)
                     for (var y = 0; y < 3; y++)

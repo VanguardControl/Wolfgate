@@ -34,7 +34,7 @@ public sealed class ExpeditionShipThrusterTest
         await server.WaitPost(() =>
         {
             map = maps.CreateMap(out var mapId);
-            var ship = server.ResolveDependency<IMapManager>().CreateGridEntity(mapId);
+            var ship = server.System<SharedMapSystem>().CreateGridEntity(mapId);
             var floor = new Tile(tileDefs["FloorSteel"].TileId);
             for (var x = 0; x < 3; x++)
                 maps.SetTile(ship.Owner, ship.Comp, new Vector2i(x, 0), floor);

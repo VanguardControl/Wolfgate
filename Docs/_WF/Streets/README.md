@@ -61,6 +61,7 @@ Marines Universe's AGPL-3.0; the art is CC-BY-SA-3.0 unless its `meta.json` says
 - [`Resources/Prototypes/_WF/Streets/Furniture/supermart.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/supermart.yml)
 - [`Resources/Prototypes/_WF/Streets/Furniture/trash.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/trash.yml)
 - [`Resources/Prototypes/_WF/Streets/Furniture/trash_bins.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/trash_bins.yml)
+- [`Resources/Prototypes/_WF/Streets/Lighting/light_masks.yml`](../../../Resources/Prototypes/_WF/Streets/Lighting/light_masks.yml)
 - [`Resources/Prototypes/_WF/Streets/Lighting/lights.yml`](../../../Resources/Prototypes/_WF/Streets/Lighting/lights.yml)
 - [`Resources/Prototypes/_WF/Streets/Lighting/lights_cmu.yml`](../../../Resources/Prototypes/_WF/Streets/Lighting/lights_cmu.yml)
 - [`Resources/Prototypes/_WF/Streets/Signs/graffiti.yml`](../../../Resources/Prototypes/_WF/Streets/Signs/graffiti.yml)

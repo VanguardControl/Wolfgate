@@ -378,11 +378,22 @@ class Port:
                 comp["tags"] = [tag for tag in comp.get("tags", []) if self.known_tag(uid, tag)]
                 if not comp["tags"]:
                     continue
+            if name == "Occluder" and "boundingBox" in comp:
+                # The engine now takes an occluder outline as a polygon.
+                left, bottom, right, top = (float(part) for part in str(comp.pop("boundingBox")).split(","))
+                if (left, bottom, right, top) != (-0.5, -0.5, 0.5, 0.5):
+                    comp["polygon"] = [f"{left:g},{top:g}", f"{right:g},{top:g}", f"{right:g},{bottom:g}", f"{left:g},{bottom:g}"]
             if name == "Fixtures":
                 self.fixtures(comp)
             if name == "Destructible":
                 self.destructible(uid, comp)
             kept.append(self.walk_textures(comp, source))
+            if name == "PointLight" and "mask" in kept[-1]:
+                # The engine takes light masks as prototypes, not texture paths.
+                path = kept[-1].pop("mask")
+                kept[-1]["lightMask"] = self.config["light_masks"].get(path)
+                if kept[-1]["lightMask"] is None:
+                    self.problems.append(f"{uid}: light mask {path} has no light_masks entry")
         damageable = next((comp for comp in kept if comp["type"] == "Damageable"), None)
         if fold:
             if damageable is None:
@@ -414,6 +425,14 @@ class Port:
                         if value in gone:
                             self.dropped[(f"collision bit {value}", gone[value])] += 1
                     fixture[field] = [value for value in fixture[field] if value not in gone]
+            shape = fixture.get("shape")
+            if isinstance(shape, Tagged) and shape.tag == "type:PhysShapeAabb" and "bounds" in shape.value:
+                # The engine rejects a box whose corners are given out of order.
+                left, bottom, right, top = (float(part) for part in str(shape.value["bounds"]).split(","))
+                if left > right or bottom > top:
+                    left, right = sorted((left, right))
+                    bottom, top = sorted((bottom, top))
+                    shape.value["bounds"] = f"{left:g},{bottom:g},{right:g},{top:g}"
 
     def destructible(self, uid: str, comp: dict) -> None:
         """A threshold that moved the entity to a construction node spawns the broken twin and destroys it instead."""

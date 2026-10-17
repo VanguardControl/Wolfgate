@@ -27,7 +27,6 @@ public sealed partial class WFPlanetPoiSystem
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private GridFixtureSystem _fixtures = default!;
     [Dependency] private ITileDefinitionManager _tiles = default!;
-    [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private DecalSystem _decals = default!;
 
     /// <summary>Builds and validates every site and route before releasing the terrain hold.</summary>
@@ -231,7 +230,7 @@ public sealed partial class WFPlanetPoiSystem
         {
             var generationSeed = attempt == 0 ? seed : retries.Next();
             var map = _maps.CreateMap(out var mapId, runMapInit: false);
-            var grid = _mapManager.CreateGridEntity(mapId);
+            var grid = _maps.CreateGridEntity(mapId);
             grid.Comp.CanSplit = false;
             var retained = false;
             try

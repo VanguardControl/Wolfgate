@@ -85,7 +85,7 @@ public sealed class VehicleCoreFeaturesTest : InteractionTest
     energy: 2.5
     softness: 2
   - type: PointLight
-    mask: /Textures/Effects/LightMasks/cone.png
+    lightMask: ConeSingle
     autoRot: true
     enabled: false
     radius: 6
@@ -312,7 +312,7 @@ public sealed class VehicleCoreFeaturesTest : InteractionTest
         Assert.That(SEntMan.GetComponent<Robust.Server.GameObjects.PointLightComponent>(vehicle).Enabled, Is.True);
         Assert.That(CEntMan.GetComponent<VehicleSpotlightComponent>(ToClient(vehicle)).Enabled, Is.True, "The client never saw the spotlight come on.");
         var beam = CEntMan.GetComponent<Robust.Client.GameObjects.PointLightComponent>(ToClient(vehicle));
-        Assert.That(beam.MaskPath, Is.EqualTo("/Textures/Effects/LightMasks/cone.png"));
+        Assert.That(beam.LightMask?.Id, Is.EqualTo("ConeSingle"));
         Assert.That(beam.MaskAutoRotate, Is.True, "The beam must follow the chassis heading.");
         var fixtures = CEntMan.GetComponent<FixturesComponent>(ToClient(vehicle));
         var front = float.MinValue;

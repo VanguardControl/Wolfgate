@@ -66,7 +66,7 @@ public sealed class VehicleClientTest
                     !proto.TryGetComponent<VehicleSpotlightComponent>(out _, factory))
                     continue;
                 Assert.That(proto.TryGetComponent<PointLightComponent>(out var light, factory), Is.True, proto.ID);
-                Assert.That(light!.MaskPath, Is.EqualTo("/Textures/Effects/LightMasks/cone.png"), proto.ID);
+                Assert.That(light!.LightMask?.Id, Is.EqualTo("ConeSingle"), proto.ID);
                 Assert.That(light.MaskAutoRotate, Is.True, proto.ID);
                 checkedVehicles++;
             }

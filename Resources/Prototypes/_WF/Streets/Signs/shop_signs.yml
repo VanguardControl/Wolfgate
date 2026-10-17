@@ -34,7 +34,7 @@
     energy: 5
     offset: "0,0"
     color: "#ECFFFF"
-    mask: /Textures/_WF/Streets/Effects/LightMasks/quad_cone.png
+    lightMask: ConeQuad
 
 - type: entity
   parent: RMCOverheadSign

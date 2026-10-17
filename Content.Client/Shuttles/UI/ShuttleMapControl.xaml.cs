@@ -278,7 +278,7 @@ public sealed partial class ShuttleMapControl : BaseShuttleControl
         }
 
         // WOLFGATE(Planets) START: over a world, the world fills the plot instead of space.
-        if (!DrawWfPlanetBackground(handle, _mapManager.GetMapEntityId(ViewingMap)))
+        if (!DrawWfPlanetBackground(handle, _mapManager.GetMapOrInvalid(ViewingMap)))
             DrawParallax(handle);
         // WOLFGATE END
 
