@@ -178,7 +178,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
     private void UpdateSession()
     {
         _window?.SetSession(_mapping.InSession ? _mapping.Session : null, _player.LocalSession?.UserId,
-            _admin.HasFlag(AdminFlags.Admin));
+            _mapping.AdminObserver);
     }
 
     private void UpdateLibrary()

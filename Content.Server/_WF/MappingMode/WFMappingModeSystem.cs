@@ -1,3 +1,4 @@
+using Content.Server._CE.ZLevels.Core;
 using Content.Server._WF.MappingTools;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
@@ -39,6 +40,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
     [Dependency] private IResourceManager _res = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private ITileDefinitionManager _tileDefs = default!;
+    [Dependency] private CEZLevelsSystem _ceZLevels = default!;
     [Dependency] private DecalSystem _decals = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private GameTicker _ticker = default!;
@@ -78,6 +80,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         InitializeAdmin();
         InitializeLimits();
         InitializeAutosave();
+        InitializeRiders();
 
         Subs.CVar(_cfg, WFMappingModeCVars.Enabled, OnEnabledChanged, true);
         _initialized = true;

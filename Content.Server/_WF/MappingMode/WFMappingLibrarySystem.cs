@@ -463,11 +463,7 @@ public sealed class WFMappingLibrarySystem : EntitySystem
     /// <summary>Deletes loaded levels that no session took, unless a session did after all.</summary>
     private void DeleteLevels(List<EntityUid> levels)
     {
-        foreach (var level in levels)
-        {
-            if (!TerminatingOrDeleted(level) && !_mapping.TryGetSessionOfMap(level, out _))
-                Del(level);
-        }
+        _mapping.DeleteMaps(levels.Where(level => !_mapping.TryGetSessionOfMap(level, out _)));
     }
 
     private void OnDeleteRequest(WFMappingDeleteRequest ev, EntitySessionEventArgs args)

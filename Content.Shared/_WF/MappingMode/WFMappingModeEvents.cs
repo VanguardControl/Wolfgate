@@ -90,14 +90,20 @@ public sealed class WFMappingSessionInfo
 }
 
 /// <summary>
-/// Server to client: the player's session, if they are in one, and the sessions they can rejoin.
+/// Server to client: the player's session, if they are in one, the sessions they can rejoin, and whether they are an
+/// admin observing through mapping mode.
 /// </summary>
 [Serializable, NetSerializable]
-public sealed class WFMappingSessionStateEvent(WFMappingSessionInfo? session, List<WFMappingRejoinInfo> rejoinable)
-    : EntityEventArgs
+public sealed class WFMappingSessionStateEvent(
+    WFMappingSessionInfo? session,
+    List<WFMappingRejoinInfo> rejoinable,
+    bool adminObserver) : EntityEventArgs
 {
     public readonly WFMappingSessionInfo? Session = session;
     public readonly List<WFMappingRejoinInfo> Rejoinable = rejoinable;
+
+    /// <summary>The player is on an admin observer mapping mode spawned, which Return to lobby takes back.</summary>
+    public readonly bool AdminObserver = adminObserver;
 }
 
 /// <summary>A Fluent argument: text, or a number when <see cref="Text"/> is null.</summary>

@@ -537,6 +537,16 @@ public sealed partial class MappingToolsSystem : EntitySystem
         var grid = sel.Grid.Owner;
         var edit = new MappingEdit(name);
 
+        // Emptying a grid deletes it, so a selection over all of it takes the whole grid as one root, which undo
+        // brings back with everything on it.
+        if (CoversGrid(sel))
+        {
+            var gridGroup = new MappingEntityGroup();
+            gridGroup.Roots.Add(new MappingGroupRoot(GetRef(grid), -1, PoseOf(grid)));
+            edit.Deleted.Add(gridGroup);
+            return edit;
+        }
+
         foreach (var decal in sel.Decals)
         {
             edit.DecalsRemoved.Add(new MappingDecal(grid, decal));
@@ -559,6 +569,49 @@ public sealed partial class MappingToolsSystem : EntitySystem
         }
 
         return edit;
+    }
+
+    /// <summary>
+    /// Whether a selection holds every tile of its grid, on a grid that isn't also a map.
+    /// </summary>
+    private bool CoversGrid(Resolved sel)
+    {
+        var (uid, grid) = sel.Grid;
+        if (sel.Tiles.Count == 0 || HasComp<MapComponent>(uid) || Transform(uid).MapUid is null)
+            return false;
+
+        var count = 0;
+        var tiles = _map.GetAllTiles(uid, grid);
+        while (tiles.MoveNext(out _))
+        {
+            if (++count > sel.Tiles.Count)
+                return false;
+        }
+
+        return count == sel.Tiles.Count;
+    }
+
+    /// <summary>
+    /// Moves players, ghosts and whatever holds one off a grid about to be deleted, onto its map where they stand.
+    /// </summary>
+    private void MoveRidersOff(EntityUid grid)
+    {
+        if (Transform(grid).MapUid is not { } map)
+            return;
+
+        var riders = new List<EntityUid>();
+        var children = Transform(grid).ChildEnumerator;
+        while (children.MoveNext(out var child))
+        {
+            if (!IsSelectable(child))
+                riders.Add(child);
+        }
+
+        foreach (var uid in riders)
+        {
+            var (position, rotation) = _transform.GetWorldPositionRotation(uid);
+            _transform.SetCoordinates(uid, Transform(uid), new EntityCoordinates(map, position), rotation);
+        }
     }
 
     /// <summary>

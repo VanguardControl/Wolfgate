@@ -67,12 +67,12 @@ public sealed partial class WFMappingMenuWindow : FancyWindow
         };
     }
 
-    /// <summary>Shows the session, or the admin's Return to lobby when there is none.</summary>
-    public void SetSession(WFMappingSessionInfo? session, NetUserId? self, bool admin)
+    /// <summary>Shows the session, or Return to lobby for an admin observer when there is none.</summary>
+    public void SetSession(WFMappingSessionInfo? session, NetUserId? self, bool adminObserver)
     {
         _session = session;
         NoSessionBox.Visible = session == null;
-        ReturnButton.Visible = session == null && admin;
+        ReturnButton.Visible = session == null && adminObserver;
         SessionBox.Visible = session != null;
 
         if (session == null)

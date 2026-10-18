@@ -523,11 +523,29 @@ public sealed partial class WFMappingModeSystem
         }
 
         session.Members.Clear();
+        DeleteMaps(SessionMaps(session.Id));
+    }
 
-        foreach (var map in SessionMaps(session.Id))
+    /// <summary>
+    /// Deletes maps and the z-networks they belong to, which would otherwise keep pointing at the deleted maps.
+    /// </summary>
+    public void DeleteMaps(IEnumerable<EntityUid> maps)
+    {
+        var networks = new HashSet<EntityUid>();
+        foreach (var map in maps)
         {
-            if (!TerminatingOrDeleted(map))
-                QueueDel(map);
+            if (TerminatingOrDeleted(map))
+                continue;
+
+            if (_ceZLevels.TryGetMapNetwork(map, out var network))
+                networks.Add(network.Owner);
+
+            QueueDel(map);
+        }
+
+        foreach (var network in networks)
+        {
+            QueueDel(network);
         }
     }
 
@@ -552,6 +570,7 @@ public sealed partial class WFMappingModeSystem
         _registry.Clear();
         ClearAutosaveQueue();
         _adminMap = null;
+        _adminObservers.Clear();
         _joinThrottle.Clear();
         _toolsThrottle.Clear();
         _editThrottle.Clear();
@@ -610,7 +629,7 @@ public sealed partial class WFMappingModeSystem
             }
         }
 
-        RaiseNetworkEvent(new WFMappingSessionStateEvent(info, rejoinable), player);
+        RaiseNetworkEvent(new WFMappingSessionStateEvent(info, rejoinable, IsAdminObserver(player)), player);
     }
 
     private string NameOf(NetUserId user)

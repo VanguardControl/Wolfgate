@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Content.Shared.Decals;
 using Robust.Shared.EntitySerialization;
@@ -180,6 +181,12 @@ public sealed partial class MappingToolsSystem
         if (roots.Count == 0)
             return;
 
+        foreach (var uid in roots)
+        {
+            if (HasComp<MapGridComponent>(uid))
+                MoveRidersOff(uid);
+        }
+
         SaveGroup(group, roots);
 
         foreach (var uid in roots)
@@ -193,15 +200,38 @@ public sealed partial class MappingToolsSystem
     /// </summary>
     private void SaveGroup(MappingEntityGroup group, HashSet<EntityUid> roots)
     {
+        // A grid's islands would split apart while it loads back, and the split-off parts stay on the holding map.
+        foreach (var root in group.Roots)
+        {
+            if (!roots.Contains(root.Entity.Uid) || !TryComp(root.Entity.Uid, out MapGridComponent? grid))
+                continue;
+
+            root.CanSplit = grid.CanSplit;
+            grid.CanSplit = false;
+        }
+
         var serializer = new EntitySerializer(_dependency, SnapshotOptions);
         serializer.SerializeEntityRecursive(roots);
         group.Data = serializer.Write();
+
+        foreach (var root in group.Roots)
+        {
+            if (roots.Contains(root.Entity.Uid) && TryComp(root.Entity.Uid, out MapGridComponent? grid))
+                grid.CanSplit = root.CanSplit;
+        }
 
         // A root deleted by something else can't be restored from the new data.
         foreach (var root in group.Roots)
         {
             root.YamlUid = serializer.YamlUidMap.GetValueOrDefault(root.Entity.Uid, -1);
             _refs.Remove(root.Entity.Uid);
+        }
+
+        group.Inner.Clear();
+        foreach (var (uid, yamlUid) in serializer.YamlUidMap)
+        {
+            if (!roots.Contains(uid) && _refs.Remove(uid, out var inner))
+                group.Inner[yamlUid] = inner;
         }
     }
 
@@ -244,7 +274,7 @@ public sealed partial class MappingToolsSystem
                 return;
             }
 
-            PlaceRestored(byYaml, holding, result);
+            PlaceRestored(group, byYaml, holding, result);
         }
         finally
         {
@@ -255,7 +285,8 @@ public sealed partial class MappingToolsSystem
     /// <summary>
     /// Moves restored roots from the holding map to their poses and points their refs at the new entities.
     /// </summary>
-    private void PlaceRestored(Dictionary<int, MappingGroupRoot> byYaml, EntityUid holding, LoadResult result)
+    private void PlaceRestored(MappingEntityGroup group, Dictionary<int, MappingGroupRoot> byYaml, EntityUid holding,
+        LoadResult result)
     {
         var orphans = new List<EntityUid>();
         var children = Transform(holding).ChildEnumerator;
@@ -280,15 +311,30 @@ public sealed partial class MappingToolsSystem
             if (root.Pose.Anchored)
                 Anchor(orphan, root.Pose);
 
+            var old = root.Entity.Uid;
             root.Entity.Uid = orphan;
             _refs[orphan] = root.Entity;
             placed.Add(orphan);
+
+            if (TryComp(orphan, out MapGridComponent? grid))
+            {
+                grid.CanSplit = root.CanSplit;
+                RemapGrid(old, orphan);
+            }
         }
 
         foreach (var uid in result.Entities)
         {
-            if (!TerminatingOrDeleted(uid))
-                RemComp<YamlUidComponent>(uid);
+            if (TerminatingOrDeleted(uid) || !TryComp(uid, out YamlUidComponent? yaml))
+                continue;
+
+            if (group.Inner.Remove(yaml.Uid, out var inner))
+            {
+                inner.Uid = uid;
+                _refs[uid] = inner;
+            }
+
+            RemComp(uid, yaml);
         }
 
         foreach (var uid in placed)
@@ -359,5 +405,57 @@ public sealed partial class MappingToolsSystem
                a.ZIndex == b.ZIndex &&
                a.Cleanable == b.Cleanable &&
                (a.Coordinates - b.Coordinates).LengthSquared() < 0.001f;
+    }
+
+    /// <summary>
+    /// Points every recorded edit and clipboard at a grid's new uid after undo recreated it.
+    /// </summary>
+    private void RemapGrid(EntityUid old, EntityUid grid)
+    {
+        EntityUid Map(EntityUid uid) => uid == old ? grid : uid;
+
+        foreach (var history in _histories.Values)
+        {
+            foreach (var edit in history.Undo.Concat(history.Redo))
+            {
+                for (var i = 0; i < edit.Tiles.Count; i++)
+                {
+                    edit.Tiles[i] = edit.Tiles[i] with { Grid = Map(edit.Tiles[i].Grid) };
+                }
+
+                for (var i = 0; i < edit.Moves.Count; i++)
+                {
+                    var move = edit.Moves[i];
+                    edit.Moves[i] = move with
+                    {
+                        Old = move.Old with { Parent = Map(move.Old.Parent) },
+                        New = move.New with { Parent = Map(move.New.Parent) },
+                    };
+                }
+
+                foreach (var group in edit.Created.Concat(edit.Deleted))
+                {
+                    foreach (var root in group.Roots)
+                    {
+                        root.Pose = root.Pose with { Parent = Map(root.Pose.Parent) };
+                    }
+                }
+
+                for (var i = 0; i < edit.DecalsRemoved.Count; i++)
+                {
+                    edit.DecalsRemoved[i] = edit.DecalsRemoved[i] with { Grid = Map(edit.DecalsRemoved[i].Grid) };
+                }
+
+                for (var i = 0; i < edit.DecalsAdded.Count; i++)
+                {
+                    edit.DecalsAdded[i] = edit.DecalsAdded[i] with { Grid = Map(edit.DecalsAdded[i].Grid) };
+                }
+            }
+        }
+
+        foreach (var clip in _clipboards.Values)
+        {
+            clip.SourceGrid = Map(clip.SourceGrid);
+        }
     }
 }

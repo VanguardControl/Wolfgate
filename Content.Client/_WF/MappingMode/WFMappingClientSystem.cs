@@ -55,6 +55,9 @@ public sealed partial class WFMappingClientSystem : EntitySystem
     /// <summary>Sessions the player can go back into from the lobby.</summary>
     public IReadOnlyList<WFMappingRejoinInfo> Rejoinable => _rejoinable;
 
+    /// <summary>Whether the player is an admin observing through mapping mode, whom Return to lobby takes back.</summary>
+    public bool AdminObserver { get; private set; }
+
     /// <summary>The last library listing, or null before the first.</summary>
     public WFMappingLibraryEvent? Library { get; private set; }
 
@@ -111,6 +114,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
     private void OnSessionState(WFMappingSessionStateEvent ev)
     {
         Session = ev.Session;
+        AdminObserver = ev.AdminObserver;
         _rejoinable.Clear();
         _rejoinable.AddRange(ev.Rejoinable);
         SessionUpdated?.Invoke();

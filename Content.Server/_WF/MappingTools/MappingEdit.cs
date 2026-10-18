@@ -30,6 +30,11 @@ public sealed class MappingEntityGroup
     public MappingDataNode? Data;
 
     public readonly List<MappingGroupRoot> Roots = new();
+
+    /// <summary>
+    /// Refs of entities saved inside the roots, by yaml uid, so they follow a restore too.
+    /// </summary>
+    public readonly Dictionary<int, MappingEntityRef> Inner = new();
 }
 
 /// <summary>
@@ -40,6 +45,11 @@ public sealed class MappingGroupRoot(MappingEntityRef entity, int yamlUid, Mappi
     public readonly MappingEntityRef Entity = entity;
     public int YamlUid = yamlUid;
     public MappingPose Pose = pose;
+
+    /// <summary>
+    /// Whether a grid root could split; it is saved unsplittable so loading doesn't break it apart.
+    /// </summary>
+    public bool CanSplit = true;
 }
 
 public record struct MappingTileChange(EntityUid Grid, Vector2i Indices, Tile Old, Tile New);

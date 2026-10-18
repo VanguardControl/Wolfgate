@@ -15,6 +15,9 @@ public sealed partial class WFMappingModeSystem
     /// <summary>The private map admin observers start on, made on the first observe.</summary>
     private EntityUid? _adminMap;
 
+    /// <summary>Admin observers spawned by observe, which Return to lobby takes back.</summary>
+    private readonly HashSet<EntityUid> _adminObservers = new();
+
     private void InitializeAdmin()
     {
         SubscribeNetworkEvent<WFMappingAdminObserveRequest>(OnAdminObserve);
@@ -43,8 +46,23 @@ public sealed partial class WFMappingModeSystem
 
         var map = EnsureAdminMap();
         var observer = SpawnAttached(player, GameTicker.AdminObserverPrototypeName, Comp<MapComponent>(map).MapId);
+        _adminObservers.Add(observer);
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"{player:player} observes mapping mode as {ToPrettyString(observer)} on the admin map");
+        SendState(player);
+    }
+
+    /// <summary>Whether a player is on an admin observer that observe spawned.</summary>
+    public bool IsAdminObserver(ICommonSession player)
+    {
+        if (player.AttachedEntity is not { } entity || !_adminObservers.Contains(entity))
+            return false;
+
+        if (!TerminatingOrDeleted(entity))
+            return true;
+
+        _adminObservers.Remove(entity);
+        return false;
     }
 
     private EntityUid EnsureAdminMap()
@@ -70,25 +88,28 @@ public sealed partial class WFMappingModeSystem
             return;
 
         _adminLog.Add(LogType.Action, LogImpact.Low, $"{player:player} left mapping mode observation");
+        _adminObservers.Remove(entity);
         ReturnToLobby(player, entity);
     }
 
-    /// <summary>Sends every admin observer on the admin map back to the lobby and deletes the map.</summary>
+    /// <summary>Sends every admin observer, and anyone on the admin map, back to the lobby and deletes the map.</summary>
     private void ReturnAdminObservers()
     {
-        if (_adminMap is not { } map)
-            return;
-
+        var map = _adminMap;
         foreach (var player in _players.Sessions.ToList())
         {
-            if (player.AttachedEntity is { } entity && Transform(entity).MapUid == map)
+            if (player.AttachedEntity is { } entity &&
+                (_adminObservers.Contains(entity) || map != null && Transform(entity).MapUid == map))
+            {
                 ReturnToLobby(player, entity);
+            }
         }
 
-        if (!TerminatingOrDeleted(map))
-            QueueDel(map);
+        if (map != null && !TerminatingOrDeleted(map.Value))
+            QueueDel(map.Value);
 
         _adminMap = null;
+        _adminObservers.Clear();
     }
 
     /// <summary>The ground level of a session, for admins going there.</summary>

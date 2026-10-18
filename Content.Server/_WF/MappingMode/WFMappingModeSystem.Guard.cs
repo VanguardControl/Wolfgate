@@ -125,6 +125,7 @@ public sealed partial class WFMappingModeSystem
         if (CountGrids(session) > cap && IsSingleTile(change.Grid, grid))
         {
             Log.Info($"Deleted {ToPrettyString(change.Grid)}, a grid {player} made past their session's cap");
+            MoveRidersOff(change.Grid);
             QueueDel(change.Grid);
             Refuse(player, "wf-mapping-mode-limit-grids", ("max", cap));
         }
