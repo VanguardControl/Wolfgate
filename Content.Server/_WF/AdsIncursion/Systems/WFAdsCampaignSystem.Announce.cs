@@ -3,7 +3,16 @@ using Content.Server._WF.AdsIncursion.Components;
 using Content.Server._WF.ReaverCampaign.Systems;
 using Content.Shared._WF.AdsIncursion;
 using Content.Shared.Radio;
+using Content.Server.Administration.Logs;
+using Content.Server.Chat.Managers;
+using Content.Shared.Chat;
+using Content.Shared.Database;
 using Content.Shared.Radio.Components;
+using Content.Shared.Speech;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
+using Robust.Shared.Player;
+using Robust.Shared.Utility;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 
@@ -11,7 +20,14 @@ namespace Content.Server._WF.AdsIncursion.Systems;
 
 public sealed partial class WFAdsCampaignSystem
 {
+    [Dependency] private IChatManager _chatManager = default!;
+    [Dependency] private IAdminLogManager _adminLogger = default!;
+    [Dependency] private SharedAudioSystem _audio = default!;
+
     private static readonly ProtoId<RadioChannelPrototype> WarningChannel = "Common";
+
+    /// <summary>How the system's units and its watch speak: the synthetic verbs in a monospace face.</summary>
+    private static readonly ProtoId<SpeechVerbPrototype> SynthVerb = "WFAdsSynth";
 
     /// <summary>How long a quiet banner holds the next one back; a quiet banner inside it goes out on the radio instead.</summary>
     public static readonly TimeSpan QuietBannerInterval = TimeSpan.FromMinutes(5);
@@ -23,9 +39,8 @@ public sealed partial class WFAdsCampaignSystem
     private void Announce(WFAdsCampaignPrototype campaign, string message, bool rising, bool chime = true)
     {
         var sender = chime && rising ? "wf-ads-anomaly-alert" : "wf-ads-watch";
-        _chat.DispatchGlobalAnnouncement(message, Loc.GetString(sender), playSound: chime,
-            announcementSound: chime ? rising ? campaign.RisingSound : campaign.FallingSound : null,
-            colorOverride: rising ? campaign.RisingColor : campaign.FallingColor);
+        Banner(Loc.GetString(sender), message, chime ? rising ? campaign.RisingSound : campaign.FallingSound : null,
+            rising ? campaign.RisingColor : campaign.FallingColor);
     }
 
     /// <summary>A banner to everyone with no sound, at most one per <see cref="QuietBannerInterval"/>; inside the window it goes out on the radio.</summary>
@@ -40,8 +55,20 @@ public sealed partial class WFAdsCampaignSystem
             state.LastQuietBanner = now;
         }
 
-        _chat.DispatchGlobalAnnouncement(message, Loc.GetString("wf-ads-watch"), playSound: false,
-            colorOverride: rising ? campaign.RisingColor : campaign.FallingColor);
+        Banner(Loc.GetString("wf-ads-watch"), message, null, rising ? campaign.RisingColor : campaign.FallingColor);
+    }
+
+    /// <summary>
+    /// A global announcement in the system's own face: what <see cref="ChatSystem.DispatchGlobalAnnouncement"/> does, with the
+    /// message set in the monospace font the synthetic speech uses, since the chat system escapes any markup in the text.
+    /// </summary>
+    private void Banner(string sender, string message, SoundSpecifier? sound, Color colour)
+    {
+        var wrapped = Loc.GetString("wf-ads-announcement-wrap", ("sender", sender), ("message", FormattedMessage.EscapeText(message)));
+        _chatManager.ChatMessageToAll(ChatChannel.Radio, message, wrapped, default, false, true, colour);
+        if (sound != null)
+            _audio.PlayGlobal(_audio.ResolveSound(sound), Filter.Broadcast(), true, AudioParams.Default.WithVolume(-2f));
+        _adminLogger.Add(LogType.Chat, LogImpact.Low, $"Global station announcement from {sender}: {message}");
     }
 
     /// <summary>A routine line on the common channel from the sector watch, with no banner.</summary>
@@ -117,6 +144,7 @@ public sealed partial class WFAdsCampaignSystem
         var watch = Spawn(null, new EntityCoordinates(uid, Vector2.Zero));
         _meta.SetEntityName(watch, Loc.GetString("wf-ads-watch"));
         EnsureComp<TelecomExemptComponent>(watch);
+        EnsureComp<SpeechComponent>(watch).SpeechVerb = SynthVerb;
         state.Watch = watch;
         return watch;
     }

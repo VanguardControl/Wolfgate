@@ -348,10 +348,10 @@ public abstract class WFReaverTestBase : WFSectorTestBase
         return Lines(skip, text).Count(line => IsRadio(line));
     }
 
-    /// <summary>Whether a wrapped chat line is a radio message, which a banner is not.</summary>
+    /// <summary>Whether a wrapped chat line is a radio message rather than a banner, whatever verb the speaker uses.</summary>
     private static bool IsRadio(string wrapped)
     {
-        return wrapped.Contains(" says, ");
+        return !wrapped.Contains(" Announcement:");
     }
 
     private IEnumerable<string> Lines(int skip, string text)

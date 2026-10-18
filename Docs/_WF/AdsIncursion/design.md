@@ -144,7 +144,9 @@ bounty 100,000".
 **Announcements.** The sector watch speaks in three tiers so a banner stays rare. A **chimed banner** (global, rising
 or falling sound and colour) is for tier changes, a node founded (first, regrouped or deployment arrived), a node broken
 and the ADS going dormant; a rising one is sent as "Anomaly Alert" with the malfunctioning-AI klaxon from Meridian Rift
-(`/Audio/_WF/AdsIncursion/aimalf.ogg`), a falling one by the sector watch with the notice tone. A **quiet banner** (global, no sound) is for a deployment under way or stopped and a challenge
+(`/Audio/_WF/AdsIncursion/aimalf.ogg`), a falling one by the sector watch with the notice tone. Every ADS banner is set in the
+synthetic monospace face (its own wrap, `wf-ads-announcement-wrap`, since the chat system escapes markup in a message),
+and the watch entity speaks with the `WFAdsSynth` verb, so its radio lines read the same way. A **quiet banner** (global, no sound) is for a deployment under way or stopped and a challenge
 launched; at most one goes out per campaign every 5 minutes (`QuietBannerInterval`, `LastQuietBanner` on the
 campaign), and one inside the window is sent as a radio line instead, never dropped. Everything routine is a **radio
 line** on the Common channel from the watch entity, with no banner but still in every chat log: sentinels joined and

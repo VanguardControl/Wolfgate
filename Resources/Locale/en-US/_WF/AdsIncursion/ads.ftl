@@ -38,6 +38,9 @@ guide-entry-wf-ads = Automated Defense System
 wf-ads-watch = Sector Watch
 # The sender of the system's own chimed alerts: a node raised or broken, the tier rising, as a malfunctioning AI announces itself
 wf-ads-anomaly-alert = Anomaly Alert
+# The banner wrap for the system's announcements: the chat manager's, with the message in the synthetic monospace face
+wf-ads-announcement-wrap = [font size=14][bold]{$sender} Announcement:[/font][font="Monospace" size=12]
+    {$message}[/bold][/font]
 
 # Used as the station when the map has none
 wf-ads-place-origin = the sector core
