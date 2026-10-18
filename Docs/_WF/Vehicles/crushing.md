@@ -135,7 +135,9 @@ there); everything else relies on the target's own destruction sounds, as in RMC
 | `RMCShutterAlmayer`, `RMCPodDoor` | `WFVehicleSmashShutters` | `BaseShutter`, not `BlastDoor` | minContinue Heavy, crunch |
 | `RMCBaseTree` | `WFVehicleSmashTrees` | `BaseTree`, crocus trees | minDestroy Light, slowdown below Medium |
 | (none) | `WFVehicleSmashStumps` | `CrocusStump`, `FloraTreeStump`, `FloraTreeStumpConifer`, priority 1 | defaults |
-| `RMCBoulderLarge` | `WFVehicleSmashBoulders` | `BaseRock` | minDestroy Medium |
+| `RMCBoulderLarge` | `WFVehicleSmashBoulders` | `BaseRock`, `N14DecorStalagmite1` | minDestroy Medium |
+| `CMBarricadeSandbag*` | `WFVehicleSmashSandbags` | `N14BarricadeSandbagSingle`, `N14BarricadeWindow`, not the tank traps | slowdown below Medium |
+| (none) | `WFVehicleSmashClutter` | N14 pallet stacks, junk and shelves, dressers, railings, broken fences, scrap, robot showcases, targets (not the strange one), instruments, kegs, plastic flaps (not airtight), airlock assemblies | slowdown below Medium |
 | `CMHydroponicsTray` | `WFVehicleSmashHydroponicsTrays` | `hydroponicsTray` | defaults |
 | `CMDisposalUnit` | `WFVehicleSmashDisposalUnits` | `DisposalUnit`, `MailingUnit` | defaults |
 

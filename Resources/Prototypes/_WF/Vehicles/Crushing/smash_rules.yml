@@ -333,7 +333,48 @@
   id: WFVehicleSmashBoulders
   parents:
   - BaseRock
+  - N14DecorStalagmite1
   minDestroyWeightClass: Medium
+
+# Sandbags and the like (owner, 2026-10-17: a tank getting stuck on sandbags feels bad). A tank trap is built to stop
+# vehicles and still does.
+- type: vehicleSmashRule
+  id: WFVehicleSmashSandbags
+  parents:
+  - N14BarricadeSandbagSingle
+  - N14BarricadeWindow
+  excludeParents:
+  - N14BarricadeTanktrap
+  slowdownBelowWeightClass: Medium
+  slowdownMultiplier: 0.5
+  slowdownDuration: 0.4
+
+# Clutter and junk furniture: driven through like a table, a light vehicle slows down.
+- type: vehicleSmashRule
+  id: WFVehicleSmashClutter
+  parents:
+  - N14DecorFloorPalletStack
+  - N14JunkWoodBase
+  - N14ShelfWood1
+  - Dresser
+  - BaseRailing
+  - RMCFenceBroken
+  - BaseScrapLarge
+  - BaseShowcaseRobot
+  - BaseTarget
+  - TargetDarts
+  - BasePlaceableInstrument
+  - WoodenKeg
+  - PlasticFlapsClear
+  - PlasticFlapsOpaque
+  - AirlockAssembly
+  - AirlockHeavyAssembly
+  # Built to take a beating.
+  excludeParents:
+  - TargetStrange
+  slowdownBelowWeightClass: Medium
+  slowdownMultiplier: 0.5
+  slowdownDuration: 0.4
 
 - type: vehicleSmashRule
   id: WFVehicleSmashHydroponicsTrays
