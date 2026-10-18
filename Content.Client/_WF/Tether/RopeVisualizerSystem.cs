@@ -47,7 +47,10 @@ public sealed class RopeVisualizerSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
         _seen.Clear();
-        var view = _eye.GetWorldViewbounds().CalcBoundingBox().Enlarged(ViewMargin);
+        // The view is NaN or inside out while the eye has no viewport (map change, minimised window); Box2 asserts on that.
+        var bounds = _eye.GetWorldViewbounds().CalcBoundingBox();
+        var viewValid = Finite(bounds.BottomLeft) && Finite(bounds.TopRight) && bounds.Left <= bounds.Right && bounds.Bottom <= bounds.Top;
+        var view = viewValid ? bounds.Enlarged(ViewMargin) : default;
         var currentMap = _eye.CurrentMap;
         var time = (float) (_timing.CurTime.TotalSeconds % 1000);
 
@@ -64,8 +67,8 @@ public sealed class RopeVisualizerSystem : EntitySystem
             chain.MapId = mapId;
 
             var span = new Box2(Vector2.Min(endA, endB), Vector2.Max(endA, endB))
-                .Enlarged(MathF.Max(rope.Length * 0.5f, 1f));
-            chain.Visible = mapId == currentMap && view.Intersects(span);
+                .Enlarged(float.IsFinite(rope.Length) ? MathF.Max(rope.Length * 0.5f, 1f) : 1f);
+            chain.Visible = viewValid && mapId == currentMap && view.Intersects(span);
             // A hidden chain keeps its last simulated ends, so a big move off screen reseeds it on return.
             if (!chain.Visible)
                 continue;
@@ -191,4 +194,6 @@ public sealed class RopeVisualizerSystem : EntitySystem
         mapId = xform.MapID;
         return float.IsFinite(position.X) && float.IsFinite(position.Y);
     }
+
+    private static bool Finite(Vector2 v) => float.IsFinite(v.X) && float.IsFinite(v.Y);
 }
