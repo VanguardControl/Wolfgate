@@ -23,6 +23,7 @@ public abstract partial class SharedChatSystem : EntitySystem
     public const char EmotesPrefix = '@';
     public const char EmotesAltPrefix = '*';
     public const char AdminPrefix = ']';
+    public const char EventPrefix = '{'; // WOLFGATE(EventStaff): event staff chat
     public const char WhisperPrefix = ',';
     public const char CollectiveMindPrefix = '+';
     public const char DefaultChannelKey = 'h';

@@ -407,6 +407,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Client/Light/RoofOverlay.cs`](../../../Content.Client/Light/RoofOverlay.cs)
   - the open-grating check below reads tile definitions.
   - open grating is no roof.
+- [`Content.Client/Movement/Systems/FloorOcclusionSystem.cs`](../../../Content.Client/Movement/Systems/FloorOcclusionSystem.cs): a new entity's state lands before its sprite initialises; startup sets the shader.
 - [`Content.Client/Overlays/StencilOverlay.Weather.cs`](../../../Content.Client/Overlays/StencilOverlay.Weather.cs): no rain down a stairwell onto an indoor floor
 - [`Content.Client/Shuttles/UI/NavScreen.xaml`](../../../Content.Client/Shuttles/UI/NavScreen.xaml): enter/leave planet orbit, which needs no FTL drive (xmlns:wf above).
 - [`Content.Client/Shuttles/UI/NavScreen.xaml.cs`](../../../Content.Client/Shuttles/UI/NavScreen.xaml.cs): the orbit button reads its state off the console entity.
