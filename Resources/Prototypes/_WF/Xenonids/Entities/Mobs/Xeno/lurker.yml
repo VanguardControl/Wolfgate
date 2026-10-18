@@ -4,7 +4,7 @@
   - CMXenoDeveloped
   - CMXenoFlammable
   - RMCXenoSpeechSounds
-  - RMCXenoCommendationReceiver
+  # WOLFGATE: cut parent RMCXenoCommendationReceiver
   - RMCXenoMobCollision
   - RMCXenoVentCrawler
   id: RMCXenoLurkerBase
@@ -21,7 +21,7 @@
   - type: Tag
     tags:
     - DoorBumpOpener
-    - RMCSynthGrabbable
+    # WOLFGATE: cut RMCSynthGrabbable (synths)
   - type: MobThresholds
     thresholds:
       0: Alive
@@ -77,7 +77,7 @@
     - multiplier: 0.53
       whitelist:
         components:
-        - Marine
+        - HumanoidAppearance
     - multiplier: 0.59
       whitelist:
         components:
@@ -88,16 +88,11 @@
         - XenoHeavy
   - type: RMCXenoDamageVisuals
     prefix: lurker
-  - type: TacticalMapIcon
-    icon:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: lurker
-  - type: IntelRecoverCorpseObjectiveOnDeath
-    value: 0.2
+  # WOLFGATE: cut TacticalMapIcon (tactical map)
+  # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: FixedIdentity
     name: cm-job-name-xeno-lurker
-  - type: RMCSurgeryXenoHeart
-    item: RMCOrganXenoHeartT2
+  # WOLFGATE: cut RMCSurgeryXenoHeart (RMC medical)
 
 - type: entity
   parent:
@@ -106,9 +101,7 @@
   id: CMXenoLurker
   suffix: Base
   components:
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleLurker
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: XenoLeap
     plasmaCost: 20
     delay: 0
@@ -131,17 +124,14 @@
     - RMCXenoLurkerVampire
   - type: VentCrawler
     ventCrawlIcon: lurker
-  - type: RMCActionOrder
-    id: CMXenoLurker
+  # WOLFGATE: cut RMCActionOrder
 
 - type: entity
   parent: RMCXenoLurkerBase
   id: RMCXenoLurkerVampire
   suffix: Vampire
   components:
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleVampire
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Lurker/vampire_lurker.rsi
   - type: Xeno
@@ -207,5 +197,4 @@
   - type: XenoHidden
   - type: VentCrawler
     ventCrawlIcon: vampire
-  - type: RMCActionOrder
-    id: RMCXenoLurkerVampire
+  # WOLFGATE: cut RMCActionOrder

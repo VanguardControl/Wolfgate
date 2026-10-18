@@ -87,11 +87,10 @@
     - CMXenoBurrower
     - CMXenoCarrier
     - CMXenoHivelord
-    # XENOPORT(P3-M): CMXenoLurker, CMXenoWarrior
     earlyEvolvesTo:
     - CMXenoSpitter
-    # - CMXenoLurker
-    # - CMXenoWarrior
+    - CMXenoLurker
+    - CMXenoWarrior
     evolvesToWithoutPoints:
     - CMXenoQueen
   - type: Evasion

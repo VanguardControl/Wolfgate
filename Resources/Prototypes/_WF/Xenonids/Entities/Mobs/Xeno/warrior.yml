@@ -4,15 +4,13 @@
   - CMXenoTail
   - CMXenoFlammable
   - RMCXenoSpeechSounds
-  - RMCXenoCommendationReceiver
+  # WOLFGATE: cut parent RMCXenoCommendationReceiver
   - RMCXenoMobCollision
   id: CMXenoWarrior
   name: Warrior
   description: A beefy alien with an armored carapace.
   components:
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleWarrior
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Warrior/warrior.rsi
   - type: MobState
@@ -43,8 +41,9 @@
     restHealMultiplier:  1.4
   - type: XenoLight
   - type: XenoDevolve
-    devolvesTo:
-    - CMXenoDefender
+    # XENOPORT(P3-P): CMXenoDefender
+    devolvesTo: []
+    # - CMXenoDefender
   - type: XenoDevour
   - type: XenoPunch
     damage:
@@ -58,9 +57,10 @@
     plasmaRegenOnWeeds: 0
   - type: XenoEvolution
     max: 500
-    evolvesTo:
-    - RMCXenoCrusher
-    - CMXenoPraetorian
+    # XENOPORT(P3-P): RMCXenoCrusher, CMXenoPraetorian
+    evolvesTo: []
+    # - RMCXenoCrusher
+    # - CMXenoPraetorian
   - type: CMArmor
     xenoArmor: 20
     explosionArmor: 40
@@ -81,7 +81,7 @@
     - multiplier: 0.4525
       whitelist:
         components:
-        - Marine
+        - HumanoidAppearance
     - multiplier: 0.5025
       whitelist:
         components:
@@ -93,15 +93,9 @@
   - type: XenoLifesteal
   - type: RMCXenoDamageVisuals
     prefix: warrior
-  - type: TacticalMapIcon
-    icon:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: warrior
-  - type: IntelRecoverCorpseObjectiveOnDeath
-    value: 0.2
+  # WOLFGATE: cut TacticalMapIcon (tactical map)
+  # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: FixedIdentity
     name: cm-job-name-xeno-warrior
-  - type: RMCSurgeryXenoHeart
-    item: RMCOrganXenoHeartT2
-  - type: RMCActionOrder
-    id: CMXenoWarrior
+  # WOLFGATE: cut RMCSurgeryXenoHeart (RMC medical)
+  # WOLFGATE: cut RMCActionOrder

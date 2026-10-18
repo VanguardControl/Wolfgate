@@ -25,7 +25,7 @@
     actionIds:
     - ActionXenoRest
     - ActionXenoWatch
-    # XENOPORT(P3-M): - ActionXenoHide
+    - ActionXenoHide
     hudOffset: -0.1,0.25
     tier: 0
     unlockAt: 0
@@ -51,7 +51,7 @@
     - CMXenoDrone
     - CMXenoDefender
     - CMXenoSentinel
-    # XENOPORT(P3-M): - CMXenoRunner
+    - CMXenoRunner
   - type: XenoHide
   - type: Fixtures
     fixtures:

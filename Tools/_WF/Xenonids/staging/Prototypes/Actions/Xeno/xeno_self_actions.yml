@@ -18,29 +18,6 @@
       state: watch_xeno
 
 - type: entity
-  id: ActionXenoHide
-  parent: ActionXenoBase
-  name: Hide
-  description: Hide under tables and other objects.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: xenohide
-    useDelay: 0.5
-  - type: InstantAction
-    event: !type:XenoHideActionEvent
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoHide
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: Sprite
-    state: xenohide
-
-- type: entity
   parent: CMGuidebookActionXenoBase
   id: RMCGuidebookActionXenoResinWalker
   categories: [ HideSpawnMenu ]
@@ -56,47 +33,3 @@
     - type: Sprite
       state: toggle_long_range
 
-- type: entity
-  id: ActionXenoTurnInvisible
-  parent: ActionXenoBase
-  name: Turn Invisible (20) # TODO RMC14 proper plasma costs
-  description: Become partially invisible for 30 seconds, or until you either damage or attempt to devour an enemy. Can be toggled off to become visible again, with a refund of 90% remaining cloak time. Increases your movement speed by 15% until the ability expires.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: lurker_invisibility
-  - type: InstantAction
-    event: !type:XenoTurnInvisibleActionEvent
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoTurnInvisible
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: lurker_invisibility
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoEmpower
-  name: Empower (50)
-  description: On first activation it, gain a small amount of shield. After 6 seconds or using it again, get empowered based on surrounding enemies (max 6), gaining shield from each. If you empowered from at least 3 targets, you become Super-Empowered, gaing additional damage on melee attacks, and changing how some of your other abilities work.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: rav_empower
-  - type: InstantAction
-    event: !type:XenoEmpowerActionEvent
-  - type: ActionBlockIfResting
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoEmpower
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: rav_empower

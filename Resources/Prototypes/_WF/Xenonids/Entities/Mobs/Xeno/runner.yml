@@ -5,7 +5,7 @@
   - CMXenoTail
   - CMXenoFlammable
   - RMCXenoSpeechSounds
-  - RMCXenoCommendationReceiver
+  # WOLFGATE: cut parent RMCXenoCommendationReceiver
   - RMCXenoMobCollision
   - RMCXenoVentCrawler
   id: CMXenoRunnerBase
@@ -21,15 +21,11 @@
     - Alive
     - Critical
     - Dead
-  - type: FiremanCarriable
-    canThrow: true
-    carrierWhitelist:
-      components:
-      - Synth
+  # WOLFGATE: cut FiremanCarriable
   - type: Tag
     tags:
     - DoorBumpOpener
-    - RMCSynthGrabbable
+    # WOLFGATE: cut RMCSynthGrabbable (synths)
   - type: Xeno
     role: CMXenoRunner
     tier: 1
@@ -48,8 +44,7 @@
         - Impassable
         - HighImpassable
         - LowImpassable
-        - BarbedBarricade
-        - BarricadeImpassable
+        # WOLFGATE: no BarricadeImpassable or BarbedBarricade layers here
         layer:
         - MobLayer
       fix2:
@@ -77,8 +72,9 @@
     max: 200
     evolvesTo:
     - CMXenoLurker
-    evolvesToWithoutPoints:
-    - CMXenoQueen
+    # XENOPORT(P3-Q): CMXenoQueen
+    evolvesToWithoutPoints: []
+    # - CMXenoQueen
   - type: XenoZoom
   - type: MeleeWeapon
     attackRate: 1.4
@@ -100,7 +96,7 @@
     - multiplier: 0.3825
       whitelist:
         components:
-        - Marine
+        - HumanoidAppearance
     - multiplier: 0.425
       whitelist:
         components:
@@ -113,29 +109,22 @@
     size: SmallXeno
   - type: RMCXenoDamageVisuals
     prefix: runner
-  - type: TacticalMapIcon
-    icon:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: runner
+  # WOLFGATE: cut TacticalMapIcon (tactical map)
   - type: MovementSpeedModifier
     baseWalkSpeed: 5.55
     baseSprintSpeed: 10
-  - type: IntelRecoverCorpseObjectiveOnDeath
-    value: 0.1
+  # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: MobCollision
     minimumSpeedModifier: 0.1
   - type: FixedIdentity
     name: cm-job-name-xeno-runner
-  - type: RMCSurgeryXenoHeart
-    item: RMCOrganXenoHeartT1
+  # WOLFGATE: cut RMCSurgeryXenoHeart (RMC medical)
 
 - type: entity
   parent: CMXenoRunnerBase
   id: CMXenoRunner
   components:
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleRunner
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: MobThresholds
     thresholds:
       0: Alive
@@ -165,8 +154,7 @@
     - RMCXenoRunnerAcider
   - type: VentCrawler
     ventCrawlIcon: runner
-  - type: RMCActionOrder
-    id: CMXenoRunner
+  # WOLFGATE: cut RMCActionOrder
 
 - type: entity
   parent: CMXenoRunnerBase
@@ -257,7 +245,7 @@
     - multiplier: 0.59
       whitelist:
         components:
-        - Marine
+        - HumanoidAppearance
     - multiplier: 0.655
       whitelist:
         components:
@@ -269,5 +257,4 @@
   - type: XenoHidden
   - type: VentCrawler
     ventCrawlIcon: runner
-  - type: RMCActionOrder
-    id: RMCXenoRunnerAcider
+  # WOLFGATE: cut RMCActionOrder
