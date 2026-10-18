@@ -7,6 +7,8 @@ disables what it fights and stops there, and the ADS never claims, contests or c
 (a claim-attempt veto enforces it), so stations stay safe harbours. A threat score (10 a node, 1 a held cell, up to 20
 for held space near the origin) sets a tier from Dormant to Overrun; the sector map shows held cells in purple and a
 legend line with the tier, nodes, cells and node bounty.
+The sector watch announces in three tiers: chimed banners for the big moments, at most one quiet banner per five minutes
+(the rest go on the radio) and routine lines on the Common channel only.
 
 The first node, and a regrouped one after the last falls, appear far out (16 to 26 km, three cells from anyone else's
 space). Later ones fly out as deployments from the standing node nearest the chosen cell, the cell shown contested
@@ -83,6 +85,7 @@ challenge [q r] | pause | resume | clear`, and see every campaign encounter in t
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsAnnouncementTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsAnnouncementTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsChallengeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsChallengeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsContentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsContentTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsInterrogationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsInterrogationTest.cs)
@@ -109,6 +112,11 @@ challenge [q r] | pause | resume | clear`, and see every campaign encounter in t
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/AdsIncursion/ads.ftl`](../../../Resources/Locale/en-US/_WF/AdsIncursion/ads.ftl)
+
+### Audio
+
+- [`Resources/Audio/_WF/AdsIncursion/aimalf.ogg`](../../../Resources/Audio/_WF/AdsIncursion/aimalf.ogg)
+- [`Resources/Audio/_WF/AdsIncursion/attributions.yml`](../../../Resources/Audio/_WF/AdsIncursion/attributions.yml)
 
 ### Shared maps
 

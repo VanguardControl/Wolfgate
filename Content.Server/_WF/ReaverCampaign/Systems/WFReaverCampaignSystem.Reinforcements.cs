@@ -113,9 +113,9 @@ public sealed partial class WFReaverCampaignSystem
         comp.Inbound = uid;
 
         var minutes = Math.Max(1, (int) Math.Ceiling(Vector2.Distance(start, hubAt) / ConvoySpeed / 60f));
-        Announce(campaign, Loc.GetString("wf-reaver-reinforcement-launched",
+        AnnounceRadio(Loc.GetString("wf-reaver-reinforcement-launched",
             ("callsign", WFSectorHex.Callsign(comp.Cell)),
-            ("minutes", minutes)), true, chime: false);
+            ("minutes", minutes)));
         Log.Info($"Reaver reinforcement {ToPrettyString(uid)} (level {reinforcement.Level}) launched for hub {ToPrettyString(stronghold)}.");
         return true;
     }
@@ -322,9 +322,9 @@ public sealed partial class WFReaverCampaignSystem
         home.Reinforcements.Add(reinforcement);
         home.NextReinforcement = _timing.CurTime + campaign.ReinforcementInterval;
         SetLevel((comp.Stronghold, home, hubEncounter), comp.Level);
-        Announce(campaign, Loc.GetString("wf-reaver-grown",
+        AnnounceRadio(Loc.GetString("wf-reaver-grown",
             ("callsign", WFSectorHex.Callsign(home.Cell)),
-            ("level", home.Level)), true, chime: false);
+            ("level", home.Level)));
         Log.Info($"Reaver stronghold {ToPrettyString(comp.Stronghold)} grew to level {home.Level}.");
         Recompute();
 
@@ -526,9 +526,9 @@ public sealed partial class WFReaverCampaignSystem
 
         Mark(encounter.ShipHits.Keys.Select(key => key.Attacker));
         var (bounty, paid) = PayReinforcementBounty(campaign, uid);
-        Announce(campaign, Loc.GetString("wf-reaver-reinforcement-destroyed",
+        AnnounceRadio(Loc.GetString("wf-reaver-reinforcement-destroyed",
             ("callsign", WFSectorHex.Callsign(home.Cell)),
             ("bounty", bounty),
-            ("paid", paid)), false, chime: false);
+            ("paid", paid)));
     }
 }

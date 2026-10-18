@@ -6,6 +6,8 @@ its ring, spread one quiet frontier cell at a time toward the origin, send patro
 3, raids at player ships and stations. A threat score (10 a stronghold, 1 a held cell, up to 20 for held space near
 the origin) sets a tier from None to Overrun; a rise is announced at once, a fall only after ten minutes under the
 threshold. The sector map shows held cells and a legend line with the tier, strongholds, cells and current bounty.
+The sector watch announces in three tiers: chimed banners for the big moments, at most one quiet banner per five minutes
+(the rest go on the radio) and routine lines on the Common channel only.
 A cell where a campaign ship and a crewed player ship meet is disputed: the map hatches it, and the stronghold's
 reinforcement clock, the convoy and reinforcement deadlines there hold until one side leaves or dies; spread skips it.
 
@@ -35,7 +37,7 @@ half the level.
 
 At tier 5 the Reavers raise a citadel (`citadel` on the campaign, `WFReaverCitadel`, a Vulture; `.Citadel`). Once the
 campaign has stood at Overrun for `citadelDelay`, a citadel convoy sets out from the highest-level stronghold to a held
-edge cell, chimed to the sector; it stands outside `maxStrongholds` and the one-convoy rule. Raised, it claims
+edge cell, announced in a quiet banner; it stands outside `maxStrongholds` and the one-convoy rule. Raised, it claims
 `citadelRings` rings, grows `citadelExtraLevels` past the tier's level cap and scores ten more than a stronghold. Breaking
 it pays `citadelBountyScale` times a stronghold's bounty and scatters the Reavers for `citadelLull`: no founding, convoy
 or raid until it ends. `wf_reavers citadel` sends one out by hand.
@@ -84,7 +86,7 @@ paused, which also holds every running encounter's expiry; `wf_reavers status` s
 tier's `retakeBounty` to the crews of the ships that held it, through the encounter bounty path and its hourly cap, and
 the "retaken" announcement says so. The round-end summary lists peak cells held, strongholds founded and broken, patrols destroyed, convoys
 stopped, raids launched and cells retaken, and how often the Reavers were broken.
-Freed Reaver cells are announced as clearing (no chime, one line per batch) and breaking the last stronghold with no
+Freed Reaver cells are announced as clearing (on the radio, one line per batch) and breaking the last stronghold with no
 convoy out announces the ending; see `WFSectorCellClearingEvent` in the SectorControl module.
 
 When another faction challenges a Reaver cell (the ADS, `AdsIncursion`), the nearest stronghold scrambles a response
@@ -139,6 +141,7 @@ and counted for the round summary. `wf_reavers respond <q> <r>` sends one by han
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverAnnouncementTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverAnnouncementTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverCitadelTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverCitadelTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverContentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverContentTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverConvoyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ReaverCampaign/WFReaverConvoyTest.cs)

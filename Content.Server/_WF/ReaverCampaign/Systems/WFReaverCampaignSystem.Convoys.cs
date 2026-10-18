@@ -112,13 +112,12 @@ public sealed partial class WFReaverCampaignSystem
             comp.Citadel = citadel;
             _territory.Contest(map, target, campaign.Faction, _timing.CurTime + ConvoyEta(start, goal), uid);
 
-            // The citadel is the round's set piece: its setting out is chimed.
             var (station, bearing, range) = Place(map, goal);
-            Announce(campaign, Loc.GetString(citadel ? "wf-reaver-citadel-launched" : "wf-reaver-convoy-launched",
+            AnnounceQuiet(campaign, Loc.GetString(citadel ? "wf-reaver-citadel-launched" : "wf-reaver-convoy-launched",
                 ("callsign", WFSectorHex.Callsign(target)),
                 ("station", station),
                 ("bearing", bearing),
-                ("range", range)), true, chime: citadel);
+                ("range", range)), true);
             Log.Info($"Reaver {(citadel ? "citadel convoy" : "convoy")} {ToPrettyString(uid)} launched from {ToPrettyString(source.Owner)} for {WFSectorHex.Callsign(target)}.");
             convoy = uid;
             return true;
@@ -285,10 +284,10 @@ public sealed partial class WFReaverCampaignSystem
         Mark(encounter.ShipHits.Keys.Select(key => key.Attacker));
         var (bounty, paid) = PayConvoyBounty(campaign, state, uid, comp.Citadel);
         state.ConvoysDestroyed++;
-        Announce(campaign, Loc.GetString(comp.Citadel ? "wf-reaver-citadel-convoy-destroyed" : "wf-reaver-convoy-destroyed",
+        AnnounceQuiet(campaign, Loc.GetString(comp.Citadel ? "wf-reaver-citadel-convoy-destroyed" : "wf-reaver-convoy-destroyed",
             ("callsign", WFSectorHex.Callsign(comp.Target)),
             ("bounty", bounty),
-            ("paid", paid)), false, chime: false);
+            ("paid", paid)), false);
         Recompute();
     }
 }

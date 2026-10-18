@@ -32,7 +32,7 @@ public sealed partial class WFAdsCampaignSystem
             _clearingPending.Add((args.Cell, args.Until));
     }
 
-    /// <summary>Announces the pending freed cells in one line, with no chime.</summary>
+    /// <summary>Announces the pending freed cells in one line on the radio.</summary>
     private void AnnounceClearing()
     {
         var pending = new List<(WFSectorCell Cell, TimeSpan Until)>(_clearingPending);
@@ -48,10 +48,10 @@ public sealed partial class WFAdsCampaignSystem
 
         callsigns.Sort(StringComparer.Ordinal);
         var minutes = Math.Max(1, (int) Math.Round((pending[0].Until - _timing.CurTime).TotalMinutes));
-        Announce(campaign, Loc.GetString("wf-ads-clearing", ("cells", string.Join(", ", callsigns)), ("minutes", minutes)), false, chime: false);
+        AnnounceRadio(Loc.GetString("wf-ads-clearing", ("cells", string.Join(", ", callsigns)), ("minutes", minutes)));
     }
 
-    /// <summary>Pays the ships that held a retaken cell its bounty, announces it with no chime, and rescores the threat.</summary>
+    /// <summary>Pays the ships that held a retaken cell its bounty, announces it on the radio, and rescores the threat.</summary>
     private void OnRetaken(ref WFSectorCellRetakenEvent args)
     {
         var state = State();
@@ -70,7 +70,7 @@ public sealed partial class WFAdsCampaignSystem
         if (state != null)
             state.Retaken++;
 
-        Announce(campaign, Loc.GetString("wf-ads-retaken", ("callsign", callsign), ("bounty", bounty), ("paid", paid)), false, chime: false);
+        AnnounceRadio(Loc.GetString("wf-ads-retaken", ("callsign", callsign), ("bounty", bounty), ("paid", paid)));
         Recompute();
     }
 }

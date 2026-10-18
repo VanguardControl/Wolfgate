@@ -36,6 +36,8 @@ guide-entry-wf-ads = Automated Defense System
 
 # Sender of the campaign's announcements and name of its radio entity
 wf-ads-watch = Sector Watch
+# The sender of the system's own chimed alerts: a node raised or broken, the tier rising, as a malfunctioning AI announces itself
+wf-ads-anomaly-alert = Anomaly Alert
 
 # Used as the station when the map has none
 wf-ads-place-origin = the sector core

@@ -231,9 +231,9 @@ public sealed partial class WFAdsCampaignSystem
 
         node.NextSentinel = _timing.CurTime + campaign.SentinelInterval;
         _encounters.SetOrders(uid, comp.Lead, CircleOrders(hub, _transform.GetWorldPosition(hub)));
-        Announce(campaign, Loc.GetString("wf-ads-sentinel-joined",
+        AnnounceRadio(Loc.GetString("wf-ads-sentinel-joined",
             ("callsign", WFSectorHex.Callsign(node.Cell)),
-            ("count", AliveSentinels(node))), true, chime: false);
+            ("count", AliveSentinels(node))));
         Log.Info($"ADS sentinel {ToPrettyString(uid)} joined node {ToPrettyString(comp.Node)}.");
 
         // Arriving mid-fight, it goes straight out.
@@ -391,9 +391,9 @@ public sealed partial class WFAdsCampaignSystem
 
         var (bounty, paid) = PaySweepBounty(campaign, uid, "destroying the ADS sentinel");
         state.SweepsDestroyed++;
-        Announce(campaign, Loc.GetString("wf-ads-sentinel-lost",
+        AnnounceRadio(Loc.GetString("wf-ads-sentinel-lost",
             ("callsign", WFSectorHex.Callsign(node.Cell)),
             ("bounty", bounty),
-            ("paid", paid)), false, chime: false);
+            ("paid", paid)));
     }
 }

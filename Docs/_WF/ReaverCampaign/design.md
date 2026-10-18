@@ -75,7 +75,7 @@ under the cap for the current tier, sends the next one
 (`TryReinforce`; a hub that cannot send one tries again after a minute). The convoy spawns at a clear point 25 to
 28 km from the origin on the side the hub is on (within about 20 degrees of the line from the origin through it), or
 failing that at a clear point 3 to 5 km from the hub. The lead is ordered `GoTo` the hub (range 600 m), then `Dock`
-on the hub's grid, and the sector watch says "Reaver reinforcements are inbound to K-7, ETA n min" (no chime; the
+on the hub's grid, and the sector watch says "Reaver reinforcements are inbound to K-7, ETA n min" (a radio line; the
 ETA is the distance at 30 m/s). It carries `WFReaverReinforcementComponent` (stronghold, level, phase, deadline).
 There is one on the way per hub.
 
@@ -83,7 +83,7 @@ There is one on the way per hub.
 (`DockingSystem.AreGridsDocked`). On the dock (`CompleteDock`) the hub's level becomes the reinforcement's, it joins
 `Reinforcements`, `NextReinforcement` restarts, the hub encounter is renamed "Reaver stronghold XX-123 (level n)",
 which the map's hover card and the admin window read, and the legend gains the levels ("level 2", or "levels 3/1");
-the sector watch says "The Reaver stronghold at K-7 has grown to level n" (no chime). A pilot that runs out of docking
+the sector watch says "The Reaver stronghold at K-7 has grown to level n" (a radio line). A pilot that runs out of docking
 attempts (`WFPilotDockFailedEvent`; a crowded face, a lane that is never clear, three failed attempts) flies the
 reinforcement to 300 m of the hub and holds there (`Holding`), and it still counts: a dock that cannot be flown does
 not stall the stronghold. There is no timer on a dock in progress, so a heavy still settling in is not cut off.
@@ -126,7 +126,7 @@ the reckoned trip plus the slack). Orders by `SetOrders`: the
 lead `GoTo` the target centre (range 300, nudged clear as patrol route points are). The
 encounter's leash is off while it flies. The target cell is contested for the faction with the convoy as the source
 and a deadline of the reckoned arrival (distance / 30 m/s) plus 3 min, moved with `SetContestDeadline` as the convoy
-goes, so the framework never takes it first. The sector watch says so without a chime: "A Reaver convoy is under way to
+goes, so the framework never takes it first. The sector watch says so in a quiet banner: "A Reaver convoy is under way to
 K-7, 4.2 km bearing 045 from Outpost Lambda. Stop it before it digs in." If no stronghold has a clear point beside it,
 the founding is tried again after a minute.
 
@@ -162,7 +162,7 @@ Once the campaign has stood at tier 5 for `citadelDelay`, with no citadel standi
 launches one through the convoy path (`TryLaunchCitadel`, then `TryLaunchConvoy(target, out convoy, citadel: true)`):
 the target is picked as any convoy's (a held edge cell two from every stronghold and convoy target, nearer the core
 first), the hub sets out from the highest-level standing stronghold (nearest the target among equals), the target is
-contested as usual, and the convoy carries `Citadel = true`. The sector watch announces it with a chime: "The Reavers
+contested as usual, and the convoy carries `Citadel = true`. The sector watch announces it in a quiet banner: "The Reavers
 are raising a citadel at K-7. 4.2 km bearing 045 from Outpost Lambda. Stop it before it digs in." A launch that finds
 no cell or no clear point is tried again after a minute. The citadel stands outside the founding rules: it and its
 convoy do not count against `maxStrongholds`, its convoy does not block the one ordinary convoy, and its founding does
@@ -183,7 +183,7 @@ levelBountyScale × level)`, credits scaled the same, and the sector watch says 
 has fallen. Bounty n thalers paid." Then the **lull**: for `citadelLull` the campaign founds nothing and launches no
 convoy, citadel or raid. `LullUntil` on the state holds it; `LastFounded`, `NoStrongholdSince` and `NextRaid` are
 pushed by the lull so nothing falls due the moment it ends, the regroup waits for it, and a pause pushes `LullUntil` as
-it does every other clock. The sector watch adds, with no chime, "The Reavers are scattered. Expect a lull."
+it does every other clock. The sector watch adds, on the radio, "The Reavers are scattered. Expect a lull."
 `wf_reavers status` shows the minutes left. `CitadelsBroken` counts it; the round summary names both counts. Ended by an
 admin or the round, it pays and announces nothing. The numbers by preset are in the table under The game mode.
 
@@ -218,7 +218,7 @@ through held space, each checked clear (a point that is not is nudged or skipped
 route flown, it resolves `Completed`, jumps out and is swept; the stronghold sends another after `patrolInterval`.
 
 **Patrol killed.** When a patrol resolves `Destroyed`, the cell its lead died in is freed unless a stronghold stands
-in it, the patrol bounty is paid, and the sector watch says so without a chime ("Reaver patrol destroyed at K-7, the
+in it, the patrol bounty is paid, and the sector watch says so on the radio ("Reaver patrol destroyed at K-7, the
 cell is clear, bounty paid"). A patrol whose lead is out of the fight (above) is broken at once, whatever its wing is
 doing: the encounter resolves `Destroyed` (cell freed, bounty paid, cap freed) and the wing turns for the point it set out
 from. **Leash.** A patrol's lead outside held space and the ring of cells round it for 10 s is called back: its orders
@@ -233,11 +233,11 @@ own reinforcement is docked. A reinforcement that broke away to attack is called
 
 **Retaken cells.** Sector control frees a held cell a player ship has sat in unopposed for a while (`WFSectorRetakeAttemptEvent`
 asks, `WFSectorCellRetakenEvent` follows); the campaign vetoes a cell with a standing stronghold in it, which is freed only
-by breaking the hub, and announces the others, with no chime: "K-7 retaken from the Reavers." A ship out of the fight no
+by breaking the hub, and announces the others on the radio: "K-7 retaken from the Reavers." A ship out of the fight no
 longer counts as the Reavers' presence in a cell.
 
 **Freed space and the ending.** Any Reaver cell that is freed (a broken hub, a retake, `clear`) is clearing for
-`wf.sector.clearing_minutes`: no drones, and Sector Watch says so with no chime, one line per batch freed in the same
+`wf.sector.clearing_minutes`: no drones, and Sector Watch says so on the radio, one line per batch freed in the same
 frame: "Reaver space at K-7, K-8 is clearing. Drone activity returns in 10 minutes. Clear the area." When the last
 standing stronghold breaks with no convoy out, a chimed line follows the stronghold's own: "The Ashfall Reavers are
 broken. Their strongholds are gone and the sector is clear." The legend shows "broken, no strongholds standing" until a
@@ -294,6 +294,18 @@ colour falling, and names the tier, the strongholds and cells held and the curre
 breaking and regrouping are announced the same way with the cell callsign and the bearing and range from the nearest
 station. The legend line sent to the framework reads "Ashfall Reavers: Entrenched, 3 strongholds, 21 cells, bounty
 180,000".
+
+## Announcements
+
+The sector watch speaks in three tiers so a banner stays rare. A **chimed banner** (global, with the campaign's rising or
+falling sound and colour) is for the big moments: tier changes, a stronghold or citadel founded (first, regrouped or
+convoy arrived), broken or fallen, and the Reavers being broken. A **quiet banner** (global, no sound) is for convoys and
+the citadel convoy under way or destroyed, a station blockade and a cell lost to the other faction; at most one goes out
+per campaign every 5 minutes (`QuietBannerInterval`, `LastQuietBanner` on the campaign), and one inside the window is sent
+as a radio line instead, never dropped. Everything routine is a **radio line** on the Common channel from the watch
+entity, with no banner but still in every chat log: reinforcements launched, grown and destroyed, patrols and response
+packs destroyed, the response pack launched, clearing, retaken and the citadel lull. Ship and station warnings are
+unchanged. A founding or breaking announced in the same tick as a tier change is still a banner but silent, as before.
 
 ## Rewards
 

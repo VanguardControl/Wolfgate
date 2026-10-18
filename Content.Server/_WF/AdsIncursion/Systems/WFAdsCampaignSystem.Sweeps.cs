@@ -261,10 +261,10 @@ public sealed partial class WFAdsCampaignSystem
         var freed = !guarded && _territory.Owner(map, cell) == campaign.Faction && _territory.Free(map, cell);
         var (bounty, paid) = PaySweepBounty(campaign, uid, "destroying the ADS sweep");
         state.SweepsDestroyed++;
-        Announce(campaign, Loc.GetString(freed ? "wf-ads-sweep-destroyed" : "wf-ads-sweep-destroyed-held",
+        AnnounceRadio(Loc.GetString(freed ? "wf-ads-sweep-destroyed" : "wf-ads-sweep-destroyed-held",
             ("callsign", WFSectorHex.Callsign(cell)),
             ("bounty", bounty),
-            ("paid", paid)), false, chime: false);
+            ("paid", paid)));
         Recompute();
     }
 }

@@ -141,6 +141,16 @@ within 10 min of the last announcement. Announcer `wf-ads-watch` (the sector wat
 in purple, falling `/Audio/Misc/notice1.ogg` in teal. Legend: "Automated Defense System: Active, 2 nodes, 14 cells,
 bounty 100,000".
 
+**Announcements.** The sector watch speaks in three tiers so a banner stays rare. A **chimed banner** (global, rising
+or falling sound and colour) is for tier changes, a node founded (first, regrouped or deployment arrived), a node broken
+and the ADS going dormant; a rising one is sent as "Anomaly Alert" with the malfunctioning-AI klaxon from Meridian Rift
+(`/Audio/_WF/AdsIncursion/aimalf.ogg`), a falling one by the sector watch with the notice tone. A **quiet banner** (global, no sound) is for a deployment under way or stopped and a challenge
+launched; at most one goes out per campaign every 5 minutes (`QuietBannerInterval`, `LastQuietBanner` on the
+campaign), and one inside the window is sent as a radio line instead, never dropped. Everything routine is a **radio
+line** on the Common channel from the watch entity, with no banner but still in every chat log: sentinels joined and
+lost, sweeps destroyed, a challenge won, lost, withdrawn or its interdictor and picket destroyed, clearing and retaken.
+Zone, interdict and ship warnings are unchanged.
+
 **Retakes, clearing, disputes, pause, presence, round summary, admin command** as the Reaver campaign: a standing
 node's cell is never retaken; freed cells clear; every campaign ship's cell is reported with `SetPresence` each tick
 and a disputed cell holds the node's sentinel clock and a deployment's deadline; `wf_ads status | found [x y] | deploy |
@@ -209,7 +219,7 @@ announced "ADS interdictor withdraws from K-7."
 Reavers and another faction challenging, with no response out for that cell and a stronghold standing, the nearest
 stronghold launches `WFReaverResponsePack` (off budget, `WFReaverResponseComponent`: cell, target encounter, source
 stronghold) with orders `GoTo` the cell centre (600 m) then `Attack` the challenger's lead grid, then `GoTo` home; the
-sector watch says "Reaver gunships are scrambling to K-7 to drive off the intruder." (no chime). The pack's cells
+sector watch says "Reaver gunships are scrambling to K-7 to drive off the intruder." (a radio line). The pack's cells
 count as Reaver presence, so a pack alive in the cell at the deadline keeps it Reaver. The pack flies home and resolves
 `Completed` when the challenge resolves or its target is gone; destroyed by players it pays `patrolBounty`, and it
 breaks as a patrol does (lead out of the fight). A Reaver cell lost to a challenge is announced "K-7 lost to the

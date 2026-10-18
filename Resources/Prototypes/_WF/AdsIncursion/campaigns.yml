@@ -39,7 +39,7 @@
     stronghold: 30
     patrol: 10
   risingSound:
-    path: /Audio/Misc/redalert.ogg
+    path: /Audio/_WF/AdsIncursion/aimalf.ogg
   fallingSound:
     path: /Audio/Misc/notice1.ogg
   risingColor: "#9B4DFF"
@@ -83,7 +83,7 @@
     stronghold: 30
     patrol: 10
   risingSound:
-    path: /Audio/Misc/redalert.ogg
+    path: /Audio/_WF/AdsIncursion/aimalf.ogg
   fallingSound:
     path: /Audio/Misc/notice1.ogg
   risingColor: "#9B4DFF"
@@ -127,7 +127,7 @@
     stronghold: 30
     patrol: 10
   risingSound:
-    path: /Audio/Misc/redalert.ogg
+    path: /Audio/_WF/AdsIncursion/aimalf.ogg
   fallingSound:
     path: /Audio/Misc/notice1.ogg
   risingColor: "#9B4DFF"

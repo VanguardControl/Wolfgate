@@ -207,6 +207,7 @@ public abstract class WFAdsTestBase : WFReaverTestBase
             config.SetCVar(EncountersCVars.Preset, AdsPreset);
             config.SetCVar(EncountersCVars.MaxActive, 0);
         });
+        await HearRadio();
     }
 
     /// <summary>Founds an ADS node at a cell's centre.</summary>

@@ -169,12 +169,12 @@ public sealed partial class WFAdsCampaignSystem
             state.Challenges++;
 
             var (station, bearing, range) = Place(map, goal);
-            Announce(campaign, Loc.GetString("wf-ads-challenge-launched",
+            AnnounceQuiet(campaign, Loc.GetString("wf-ads-challenge-launched",
                 ("callsign", WFSectorHex.Callsign(target)),
                 ("holder", FactionName(holder)),
                 ("station", station),
                 ("bearing", bearing),
-                ("range", range)), true, chime: false);
+                ("range", range)), true);
             Log.Info($"ADS interdictor {ToPrettyString(uid)} launched from {ToPrettyString(node.Owner)} to challenge {WFSectorHex.Callsign(target)}.");
             interdictor = uid;
             return true;
@@ -237,8 +237,7 @@ public sealed partial class WFAdsCampaignSystem
                     Log.Info($"ADS interdictor {ToPrettyString(uid)} ran past its time short of {WFSectorHex.Callsign(comp.Target)} and was ended.");
                     // Ending it releases it, which drops the challenge.
                     _encounters.End(uid);
-                    Announce(campaign, Loc.GetString("wf-ads-challenge-withdrawn", ("callsign", WFSectorHex.Callsign(comp.Target))),
-                        false, chime: false);
+                    AnnounceRadio(Loc.GetString("wf-ads-challenge-withdrawn", ("callsign", WFSectorHex.Callsign(comp.Target))));
                     continue;
                 }
 
@@ -300,7 +299,7 @@ public sealed partial class WFAdsCampaignSystem
         if (State() is { } state)
             state.ChallengesWon++;
 
-        Announce(campaign, Loc.GetString("wf-ads-challenge-won", ("callsign", WFSectorHex.Callsign(cell))), true, chime: false);
+        AnnounceRadio(Loc.GetString("wf-ads-challenge-won", ("callsign", WFSectorHex.Callsign(cell))));
         Log.Info($"ADS interdictor {ToPrettyString(uid)} took {WFSectorHex.Callsign(cell)} and holds it as a picket.");
         Recompute();
     }
@@ -309,7 +308,7 @@ public sealed partial class WFAdsCampaignSystem
     private void Withdraw(WFAdsCampaignPrototype campaign, Entity<WFAdsInterdictorComponent, WFEncounterComponent> interdictor)
     {
         var (uid, comp, _) = interdictor;
-        Announce(campaign, Loc.GetString("wf-ads-challenge-lost", ("callsign", WFSectorHex.Callsign(comp.Target))), false, chime: false);
+        AnnounceRadio(Loc.GetString("wf-ads-challenge-lost", ("callsign", WFSectorHex.Callsign(comp.Target))));
         Log.Info($"ADS interdictor {ToPrettyString(uid)} lost its challenge for {WFSectorHex.Callsign(comp.Target)} and withdraws.");
         _encounters.Resolve(uid, WFEncounterResolution.Completed);
         _encounters.End(uid);
@@ -329,10 +328,10 @@ public sealed partial class WFAdsCampaignSystem
             return;
 
         var (bounty, paid) = PayInterdictorBounty(campaign, uid, "destroying the ADS interdictor");
-        Announce(campaign, Loc.GetString("wf-ads-challenge-destroyed",
+        AnnounceRadio(Loc.GetString("wf-ads-challenge-destroyed",
             ("callsign", WFSectorHex.Callsign(comp.Target)),
             ("bounty", bounty),
-            ("paid", paid)), false, chime: false);
+            ("paid", paid)));
     }
 
     /// <summary>Frees a picket's cell; destroyed, it pays the interdictor bounty and is announced.</summary>
@@ -350,10 +349,10 @@ public sealed partial class WFAdsCampaignSystem
         }
 
         var (bounty, paid) = PayInterdictorBounty(campaign, uid, "destroying the ADS picket");
-        Announce(campaign, Loc.GetString("wf-ads-picket-destroyed",
+        AnnounceRadio(Loc.GetString("wf-ads-picket-destroyed",
             ("callsign", WFSectorHex.Callsign(comp.Cell)),
             ("bounty", bounty),
-            ("paid", paid)), false, chime: false);
+            ("paid", paid)));
         Recompute();
     }
 }

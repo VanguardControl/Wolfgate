@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using Content.Client.UserInterface.Systems.Chat;
 using Content.IntegrationTests.Tests._WF.SectorControl;
 using Content.Server._NF.Bank;
 using Content.Server._WF.Encounters.Components;
@@ -15,9 +16,12 @@ using Content.Shared._NF.Bank.Components;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.ReaverCampaign;
 using Content.Shared._WF.SectorControl;
+using Content.Shared.Radio.Components;
+using Robust.Shared.Audio.Components;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Client.UserInterface;
 
 namespace Content.IntegrationTests.Tests._WF.ReaverCampaign;
 
@@ -243,6 +247,7 @@ public abstract class WFReaverTestBase : WFSectorTestBase
             // Not paused: a paused event runner holds the campaign too. No room for its own encounters keeps it quiet.
             config.SetCVar(EncountersCVars.MaxActive, 0);
         });
+        await HearRadio();
     }
 
     /// <summary>Founds a stronghold at a cell's centre.</summary>
@@ -309,6 +314,50 @@ public abstract class WFReaverTestBase : WFSectorTestBase
             Assert.That(Vector2.Distance(transform.GetWorldPosition(ship.Grid), at), Is.LessThanOrEqualTo(SpawnReach),
                 $"{key} spawns beside the stronghold it was launched from.");
         }
+    }
+
+    /// <summary>The sounds a campaign's banners chime with.</summary>
+    protected static readonly string[] BannerSounds = { "/Audio/Misc/redalert.ogg", "/Audio/Misc/notice1.ogg", "/Audio/_WF/AdsIncursion/aimalf.ogg" };
+
+    /// <summary>Lets the player hear every radio channel, as a headset would, so the watch's radio lines reach their chat log.</summary>
+    protected async Task HearRadio()
+    {
+        await Server.WaitPost(() =>
+        {
+            var body = SEntMan.GetEntity(Player);
+            SEntMan.EnsureComponent<ActiveRadioComponent>(body).ReceiveAllChannels = true;
+            SEntMan.EnsureComponent<IntrinsicRadioReceiverComponent>(body);
+        });
+    }
+
+    /// <summary>How many banner sounds are playing now.</summary>
+    protected int Chimes()
+    {
+        return SEntMan.EntityQuery<AudioComponent>().Count(audio => BannerSounds.Contains(audio.FileName));
+    }
+
+    /// <summary>The banners the client has had after the first <paramref name="skip"/> lines that contain <paramref name="text"/>.</summary>
+    protected int Banners(int skip, string text)
+    {
+        return Lines(skip, text).Count(line => !IsRadio(line));
+    }
+
+    /// <summary>The radio lines the client has had after the first <paramref name="skip"/> lines that contain <paramref name="text"/>.</summary>
+    protected int RadioLines(int skip, string text)
+    {
+        return Lines(skip, text).Count(line => IsRadio(line));
+    }
+
+    /// <summary>Whether a wrapped chat line is a radio message, which a banner is not.</summary>
+    private static bool IsRadio(string wrapped)
+    {
+        return wrapped.Contains(" says, ");
+    }
+
+    private IEnumerable<string> Lines(int skip, string text)
+    {
+        var chat = Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ChatUIController>();
+        return chat.History.Skip(skip).Where(entry => entry.Msg.Message.Contains(text)).Select(entry => entry.Msg.WrappedMessage);
     }
 
     protected WFReaverCampaignComponent State()

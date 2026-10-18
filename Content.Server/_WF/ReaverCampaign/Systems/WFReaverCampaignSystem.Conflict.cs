@@ -88,7 +88,7 @@ public sealed partial class WFReaverCampaignSystem
         comp.Stronghold = from.Owner;
         comp.Lead = lead;
         comp.Home = home;
-        Announce(campaign, Loc.GetString("wf-reaver-response-launched", ("callsign", WFSectorHex.Callsign(cell))), true, chime: false);
+        AnnounceRadio(Loc.GetString("wf-reaver-response-launched", ("callsign", WFSectorHex.Callsign(cell))));
         Log.Info($"Reaver response pack {ToPrettyString(uid)} launched from {ToPrettyString(from.Owner)} for {WFSectorHex.Callsign(cell)}.");
         pack = uid;
         return true;
@@ -161,9 +161,9 @@ public sealed partial class WFReaverCampaignSystem
             return;
 
         state.CellsLost++;
-        Announce(campaign, Loc.GetString("wf-reaver-cell-lost",
+        AnnounceQuiet(campaign, Loc.GetString("wf-reaver-cell-lost",
             ("callsign", WFSectorHex.Callsign(args.Cell)),
-            ("faction", FactionName(args.Faction))), false, chime: false);
+            ("faction", FactionName(args.Faction))), false);
         Recompute();
     }
 
@@ -182,9 +182,9 @@ public sealed partial class WFReaverCampaignSystem
             return;
 
         var (bounty, paid) = PayPatrolBounty(campaign, uid);
-        Announce(campaign, Loc.GetString("wf-reaver-response-destroyed",
+        AnnounceRadio(Loc.GetString("wf-reaver-response-destroyed",
             ("callsign", WFSectorHex.Callsign(comp.Cell)),
             ("bounty", bounty),
-            ("paid", paid)), false, chime: false);
+            ("paid", paid)));
     }
 }

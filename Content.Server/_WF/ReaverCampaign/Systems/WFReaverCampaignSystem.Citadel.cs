@@ -90,7 +90,7 @@ public sealed partial class WFReaverCampaignSystem
         state.LastFounded += lull;
         state.NoStrongholdSince += lull;
         state.NextRaid += lull;
-        Announce(campaign, Loc.GetString("wf-reaver-citadel-lull"), false, chime: false);
+        AnnounceRadio(Loc.GetString("wf-reaver-citadel-lull"));
     }
 
     /// <summary>The highest level a stronghold may reach at the current tier: the citadel's lifted by its extra levels.</summary>

@@ -347,10 +347,10 @@ public sealed partial class WFReaverCampaignSystem
         var freed = !guarded && _territory.Owner(map, cell) == campaign.Faction && _territory.Free(map, cell);
         var (bounty, paid) = PayPatrolBounty(campaign, uid);
         state.PatrolsDestroyed++;
-        Announce(campaign, Loc.GetString(freed ? "wf-reaver-patrol-destroyed" : "wf-reaver-patrol-destroyed-held",
+        AnnounceRadio(Loc.GetString(freed ? "wf-reaver-patrol-destroyed" : "wf-reaver-patrol-destroyed-held",
             ("callsign", WFSectorHex.Callsign(cell)),
             ("bounty", bounty),
-            ("paid", paid)), false, chime: false);
+            ("paid", paid)));
         Recompute();
     }
 }

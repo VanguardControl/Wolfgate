@@ -14,12 +14,37 @@ public sealed partial class WFReaverCampaignSystem
 {
     private static readonly ProtoId<RadioChannelPrototype> WarningChannel = "Common";
 
-    /// <summary>A sector-wide announcement from the sector watch: red with the rising sound, or teal with the falling one.</summary>
+    /// <summary>How long a quiet banner holds the next one back; a quiet banner inside it goes out on the radio instead.</summary>
+    public static readonly TimeSpan QuietBannerInterval = TimeSpan.FromMinutes(5);
+
+    /// <summary>A banner to everyone: red with the rising sound, or teal with the falling one; without <paramref name="chime"/> it is silent and never held back.</summary>
     private void Announce(WFReaverCampaignPrototype campaign, string message, bool rising, bool chime = true)
     {
         _chat.DispatchGlobalAnnouncement(message, Loc.GetString("wf-reaver-watch"), playSound: chime,
             announcementSound: chime ? rising ? campaign.RisingSound : campaign.FallingSound : null,
             colorOverride: rising ? campaign.RisingColor : campaign.FallingColor);
+    }
+
+    /// <summary>A banner to everyone with no sound, at most one per <see cref="QuietBannerInterval"/>; inside the window it goes out on the radio.</summary>
+    private void AnnounceQuiet(WFReaverCampaignPrototype campaign, string message, bool rising)
+    {
+        var now = _timing.CurTime;
+        if (State() is { } state)
+        {
+            if (state.LastQuietBanner is { } last && now - last < QuietBannerInterval && Radio(_territory.SectorMap, message))
+                return;
+
+            state.LastQuietBanner = now;
+        }
+
+        _chat.DispatchGlobalAnnouncement(message, Loc.GetString("wf-reaver-watch"), playSound: false,
+            colorOverride: rising ? campaign.RisingColor : campaign.FallingColor);
+    }
+
+    /// <summary>A routine line on the common channel from the sector watch, with no banner.</summary>
+    private void AnnounceRadio(string message)
+    {
+        Radio(_territory.SectorMap, message);
     }
 
     /// <summary>Announces something at a place, with the station, bearing and range from the nearest station added as arguments.</summary>
@@ -89,13 +114,14 @@ public sealed partial class WFReaverCampaignSystem
         Radio(map, message);
     }
 
-    /// <summary>Says something on the common channel as the sector watch.</summary>
-    private void Radio(MapId map, string message)
+    /// <summary>Says something on the common channel as the sector watch; false if there is no watch to say it.</summary>
+    private bool Radio(MapId map, string message)
     {
         if (State() is not { } state || Watch(state, map) is not { } watch)
-            return;
+            return false;
 
         _radio.SendRadioMessage(watch, message, WarningChannel, watch);
+        return true;
     }
 
     /// <summary>The sector watch's radio: an entity on the map, named for it and heard without a telecom server.</summary>
