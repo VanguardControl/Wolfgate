@@ -72,6 +72,10 @@ locked doors, pumps, rocks, fencing and spawn points away from the approach.
 - `Through`: at least two distinct sockets, preferably on opposite sides. Author a continuous open
   street between them at the configured width. A village entrance on one side and exit on another
   belongs here. The planner connects the external approaches; it does not build the internal street.
+- A building that should sit along a passing road (the gas station) is a `Through` site with that road
+  authored inside its own map along its front edge, at the network's width, sockets at both ends.
+- `rotate: true` gives an authored site a random quarter turn each round: tiles, entities, decals,
+  roofs, footprint and sockets all turn together, so author it in one orientation.
 - `Isolated`: intentionally disconnected. Use only for places whose isolation is part of the design,
   such as an inaccessible ruin. Omitting the field defaults to `Roadside`.
 

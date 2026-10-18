@@ -35,6 +35,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.cs`](WFPlanetPoiSystem.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Dressing.cs`](WFPlanetPoiSystem.Dressing.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Network.cs`](WFPlanetPoiSystem.Network.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Rotation.cs`](WFPlanetPoiSystem.Rotation.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetRoadPlanner.cs`](WFPlanetRoadPlanner.cs)
 - [`Content.Server/_WF/PlanetPois/WFRoadDressingPlanner.cs`](WFRoadDressingPlanner.cs)
 
@@ -50,6 +51,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiPlacementPlannerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiPlacementPlannerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiProceduralAccessTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiProceduralAccessTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiRotationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiRotationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingPlannerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingPlannerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingTest.cs)

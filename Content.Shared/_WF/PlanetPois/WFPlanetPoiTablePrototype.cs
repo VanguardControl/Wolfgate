@@ -97,6 +97,10 @@ public sealed partial class WFPlanetPoiEntry
     /// <summary>The expedition rating of this site, over the table's.</summary>
     [DataField]
     public DifficultyRating? Difficulty;
+
+    /// <summary>An authored map that takes a random quarter turn each round, entrances and all.</summary>
+    [DataField]
+    public bool Rotate;
 }
 
 /// <summary>Whether a site has one entrance, multiple entrances, or no roads.</summary>

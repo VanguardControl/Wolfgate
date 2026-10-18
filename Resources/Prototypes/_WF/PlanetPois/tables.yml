@@ -60,13 +60,16 @@
   - mapPath: /Maps/_WF/PlanetPois/verda_gas_station.yml
     name: wf-poi-verda-gas-station
     expeditions: false
-    footprint: -3,-9,13,3
+    footprint: -3,-16,13,3
     minCount: 1
     maxCount: 1
-    connection: Roadside
+    connection: Through
     sockets:
-    - offset: 12,-4
+    - offset: -3,-13
+      direction: West
+    - offset: 12,-13
       direction: East
+    rotate: true
   - dungeon: WFPoiAsclepiuResearch
     name: wf-poi-asclepiu-research
     connection: Isolated

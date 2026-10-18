@@ -60,10 +60,12 @@ public sealed partial class WFPlanetPoiSystem
             await PlaceCitiesAsync(ground, grid, biome, network, orbit, centre, radius, table, record, reserved, initialPins, created, createdDecals, changed);
             if (TerminatingOrDeleted(ground))
                 return;
-            foreach (var entry in entries)
+            foreach (var listed in entries)
             {
                 if (TerminatingOrDeleted(ground))
                     return;
+                var turns = listed.MapPath != null && listed.Rotate ? _random.Next(4) : 0;
+                var entry = turns == 0 ? listed : Turned(listed, turns);
                 var footprint = entry.Footprint ?? new Box2i(-table.Footprint, -table.Footprint, table.Footprint + 1, table.Footprint + 1);
                 HashSet<Vector2i> siteTiles;
                 Vector2i origin;
@@ -77,7 +79,7 @@ public sealed partial class WFPlanetPoiSystem
                         continue;
                     }
                     reservation = Translate(footprint, origin);
-                    siteTiles = LoadSite(ground, grid, path, origin, footprint, created, createdDecals, changed);
+                    siteTiles = LoadSite(ground, grid, path, origin, listed.Footprint ?? footprint, turns, created, createdDecals, changed);
                 }
                 else
                 {
@@ -403,7 +405,7 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>Loads an authored grid in isolation and merges it with its explicit roofs.</summary>
-    private HashSet<Vector2i> LoadSite(EntityUid ground, MapGridComponent grid, string path, Vector2i origin, Box2i footprint, HashSet<EntityUid> created, List<uint> createdDecals, HashSet<Vector2i> changed)
+    private HashSet<Vector2i> LoadSite(EntityUid ground, MapGridComponent grid, string path, Vector2i origin, Box2i footprint, int turns, HashSet<EntityUid> created, List<uint> createdDecals, HashSet<Vector2i> changed)
     {
         var stagingMap = _maps.CreateMap(out var stagingId, runMapInit: false);
         try
@@ -419,11 +421,11 @@ public sealed partial class WFPlanetPoiSystem
             {
                 var index = tile.Value.GridIndices;
                 if (!Contains(footprint, index)) throw new InvalidOperationException($"Map {path} has tiles outside its declared footprint.");
-                result.Add(index+origin);
-                if (roof != null && _roof.IsRooved((source.Owner, source.Comp, roof), index)) roofs.Add(index+origin);
+                result.Add(TurnTile(index, turns) + origin);
+                if (roof != null && _roof.IsRooved((source.Owner, source.Comp, roof), index)) roofs.Add(TurnTile(index, turns) + origin);
             }
             changed.UnionWith(result);
-            MergeSite(ground, grid, source, origin, footprint, created, createdDecals);
+            MergeSite(ground, grid, source, origin, footprint, created, createdDecals, turns);
             EnsureComp<RoofComponent>(ground);
             foreach (var tile in result) _roof.SetRoof((ground, grid, null), tile, roofs.Contains(tile));
             return result;
@@ -432,7 +434,7 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>Merges tiles, source entities and decals while preserving their local offsets.</summary>
-    private void MergeSite(EntityUid ground, MapGridComponent grid, Entity<MapGridComponent> source, Vector2i origin, Box2i footprint, HashSet<EntityUid> created, List<uint> createdDecals)
+    private void MergeSite(EntityUid ground, MapGridComponent grid, Entity<MapGridComponent> source, Vector2i origin, Box2i footprint, HashSet<EntityUid> created, List<uint> createdDecals, int turns = 0)
     {
         var children = Transform(source.Owner).ChildEnumerator;
         while (children.MoveNext(out var child))
@@ -451,7 +453,7 @@ public sealed partial class WFPlanetPoiSystem
         _transform.SetCoordinates(source.Owner, new EntityCoordinates(targetMap, targetMap == ground ? Vector2.Zero : _transform.GetWorldPosition(ground)));
         var canSplit = grid.CanSplit;
         grid.CanSplit = false;
-        try { _fixtures.Merge(ground, source.Owner, origin, Angle.Zero, grid, source.Comp); }
+        try { _fixtures.Merge(ground, source.Owner, origin, Turns(turns), grid, source.Comp); }
         finally { grid.CanSplit = canSplit; }
         var beforeInit = new HashSet<EntityUid>();
         CaptureChildren(ground, beforeInit);
@@ -473,8 +475,10 @@ public sealed partial class WFPlanetPoiSystem
         EnsureComp<DecalGridComponent>(ground);
         foreach (var (_, decal) in decals)
         {
-            var position = decal.Coordinates + origin;
-            if (!_decals.TryAddDecal(decal.WithCoordinates(position), new EntityCoordinates(ground, position), out var id))
+            // A decal sits on its bottom-left corner, so it turns about its middle.
+            var position = Turns(turns).RotateVec(decal.Coordinates + new Vector2(0.5f)) - new Vector2(0.5f) + origin;
+            var turned = decal.WithCoordinates(position).WithRotation(decal.Angle + Turns(turns));
+            if (!_decals.TryAddDecal(turned, new EntityCoordinates(ground, position), out var id))
                 throw new InvalidOperationException($"Could not transfer POI decal {decal.Id} at {position}.");
             createdDecals.Add(id);
         }
