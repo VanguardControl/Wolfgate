@@ -10,6 +10,8 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Inventory;
 using Content.Shared.Popups;
+using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Vehicles.Core;
 
@@ -23,6 +25,9 @@ public sealed class WFVehicleEngineSystem : EntitySystem
 
     [Dependency] private SharedContainerSystem _containers = default!;
     [Dependency] private InventorySystem _inventory = default!;
+    [Dependency] private VehicleLockSystem _lock = default!;
+
+    private static readonly EntProtoId NpcKey = "RMCVehicleKey";
 
     private float _elapsed;
 
@@ -203,6 +208,82 @@ public sealed class WFVehicleEngineSystem : EntitySystem
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Starts the engine for an NPC driver: puts the vehicle's key from its interior (or a new one) in the ignition,
+    /// switches the electrics on, starts it when fuel and battery allow and releases the parking brake.
+    /// </summary>
+    public bool TryStartForNpc(Entity<WFVehicleEngineComponent?> vehicle)
+    {
+        if (!Resolve(vehicle, ref vehicle.Comp, false))
+            return false;
+
+        var engine = vehicle.Comp;
+        engine.ParkingBrake = false;
+        var slot = _containers.EnsureContainer<ContainerSlot>(vehicle, WFVehicleEngineComponent.IgnitionContainer);
+        if (slot.ContainedEntity == null)
+        {
+            if (FindOrSpawnNpcKey(vehicle) is not { } key || !_containers.Insert(key, slot))
+            {
+                Dirty(vehicle.Owner, engine);
+                return false;
+            }
+
+            engine.IgnitionKey = key;
+        }
+
+        engine.Electrics = true;
+        if (!engine.Running)
+        {
+            if (engine.Fuel <= 0f || engine.BatteryCharge < engine.StarterEnergy)
+            {
+                Dirty(vehicle.Owner, engine);
+                return false;
+            }
+
+            engine.BatteryCharge -= engine.StarterEnergy;
+            engine.Running = true;
+        }
+
+        Dirty(vehicle.Owner, engine);
+        return true;
+    }
+
+    /// <summary>Switches the engine and electrics off, as an NPC crew leaving the vehicle.</summary>
+    public void StopForNpc(Entity<WFVehicleEngineComponent?> vehicle)
+    {
+        if (!Resolve(vehicle, ref vehicle.Comp, false))
+            return;
+
+        vehicle.Comp.Running = false;
+        vehicle.Comp.Electrics = false;
+        Dirty(vehicle.Owner, vehicle.Comp);
+    }
+
+    /// <summary>The vehicle's own loose key on its interior map, else a new key bound to it.</summary>
+    private EntityUid? FindOrSpawnNpcKey(EntityUid vehicle)
+    {
+        var keyId = _lock.EnsureVehicleKeyId(vehicle);
+        if (TryComp(vehicle, out VehicleInteriorComponent? interior) && interior.MapId != MapId.Nullspace)
+        {
+            var query = EntityQueryEnumerator<VehicleKeyComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out var key, out var xform))
+            {
+                if (xform.MapID == interior.MapId && key.KeyId == keyId && !_containers.IsEntityInContainer(uid))
+                    return uid;
+            }
+        }
+
+        var spawned = Spawn(NpcKey, Transform(vehicle).Coordinates);
+        if (!TryComp(spawned, out VehicleKeyComponent? spawnedKey))
+        {
+            Del(spawned);
+            return null;
+        }
+
+        _lock.BindKey((spawned, spawnedKey), keyId, vehicle);
+        return spawned;
     }
 
     private void OnInit(Entity<WFVehicleEngineComponent> ent, ref ComponentInit args)

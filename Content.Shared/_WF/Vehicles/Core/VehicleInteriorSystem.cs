@@ -1079,4 +1079,51 @@ public sealed partial class VehicleInteriorSystem : EntitySystem
 
         return TryGetInteriorEntryCoordinates((vehicle, enter), entryIndex, out targetCoords);
     }
+
+    /// <summary>Loads the vehicle's interior if it is not loaded yet; server only.</summary>
+    public bool TryLoadInterior(Entity<VehicleEnterComponent?> vehicle, [NotNullWhen(true)] out VehicleInteriorComponent? interior)
+    {
+        interior = null;
+        if (!Resolve(vehicle, ref vehicle.Comp, false))
+            return false;
+
+        return EnsureInterior(new Entity<VehicleEnterComponent>(vehicle.Owner, vehicle.Comp), out interior);
+    }
+
+    /// <summary>Counts someone put straight onto the interior's map, such as a spawned NPC crewman, as inside the vehicle.</summary>
+    public void TrackInteriorOccupant(EntityUid vehicle, EntityUid occupant)
+    {
+        TrackOccupant(occupant, vehicle);
+    }
+
+    /// <summary>
+    /// Puts an occupant out through the first of the interior's exits that has room, at once and past the lock, as an
+    /// NPC crew bailing out. The occupant must be unbuckled first.
+    /// </summary>
+    public bool TryExitVehicle(EntityUid vehicle, EntityUid occupant)
+    {
+        if (_net.IsClient ||
+            !TryComp(vehicle, out VehicleEnterComponent? enter) ||
+            !TryComp(vehicle, out VehicleInteriorComponent? interior) ||
+            !IsInteriorLoaded(interior))
+        {
+            return false;
+        }
+
+        var exitQuery = EntityQueryEnumerator<VehicleExitComponent, TransformComponent>();
+        while (exitQuery.MoveNext(out var exitUid, out var exit, out var exitXform))
+        {
+            if (exitXform.MapID != interior.MapId)
+                continue;
+
+            if (!TryFindExitSpot((exitUid, exit), enter, vehicle, occupant, out var spot))
+                continue;
+
+            _rmcTeleporter.HandlePulling(occupant, spot);
+            UntrackOccupant(occupant, vehicle);
+            return true;
+        }
+
+        return false;
+    }
 }
