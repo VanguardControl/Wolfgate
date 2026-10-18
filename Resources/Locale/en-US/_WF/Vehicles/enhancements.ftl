@@ -36,6 +36,8 @@ wf-vehicle-key-turn-off = Stop the engine and switch off.
 wf-vehicle-fuel-low = FUEL LOW
 
 wf-vehicle-hud-horn = Horn
+wf-vehicle-hud-turret-locked = Turret holds its bearing as the hull turns. Click to let it turn with the hull.
+wf-vehicle-hud-turret-free = Turret turns with the hull. Click to hold its bearing.
 wf-vehicle-hud-frame = HULL { $percent }%
 wf-vehicle-hud-empty-part = Empty mount
 wf-vehicle-tab-weapons = WEAPONS

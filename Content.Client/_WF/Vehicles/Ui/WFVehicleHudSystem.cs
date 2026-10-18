@@ -6,6 +6,7 @@ using Content.Shared._WF.Vehicles.Base;
 using Content.Shared._WF.Vehicles.Core;
 using Content.Shared._WF.Vehicles.Grid.Components;
 using Content.Shared._WF.Vehicles.Hardpoint;
+using Content.Shared._WF.Vehicles.Turret;
 using Content.Shared._WF.Vehicles.Weapons;
 using Content.Shared.Weapons.Ranged.Events;
 using Robust.Client.Player;
@@ -23,6 +24,7 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
     [Dependency] private IUserInterfaceManager _ui = default!;
 
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private VehicleTurretSystem _turrets = default!;
 
     private const float DialSize = 134;
 
@@ -49,6 +51,7 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
     private WFVehicleRoundButton _brake = default!;
     private WFVehicleRoundButton _headlights = default!;
     private WFVehicleRoundButton _horn = default!;
+    private WFVehicleRoundButton _turretLock = default!;
     private EntityUid? _vehicle;
 
     public override void Initialize()
@@ -86,13 +89,14 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
         _headlights = new WFVehicleRoundButton(WFVehicleGlyph.Headlights, "wf-vehicle-hud-headlights")
             { LitColor = WFInstrumentTheme.Skin.Caution };
         _horn = new WFVehicleRoundButton(WFVehicleGlyph.Horn, "wf-vehicle-hud-horn");
+        _turretLock = new WFVehicleRoundButton(WFVehicleGlyph.TurretLock) { LitColor = WFInstrumentTheme.Skin.Caution };
 
         _frameHealth = new Label { MouseFilter = Control.MouseFilterMode.Ignore };
         _panel.LeftBank.AddChild(WFInstrumentTheme.Row(_role, _engineState, _frameHealth));
         _panel.LeftBank.AddChild(_driverGauges);
         _panel.LeftBank.AddChild(_gunnery);
         _panel.RightBank.AddChild(_supplies);
-        InitializeVehicleControls(_key, _ejectKey, _brake, _headlights, _horn);
+        InitializeVehicleControls(_key, _ejectKey, _brake, _headlights, _horn, _turretLock);
         WFInstrumentTheme.Install(_panel);
 
         _key.OnPressed += _ => Send(new WFVehicleControlRequest(Net(), false) { Ignition = true });
@@ -102,6 +106,11 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
         {
             if (_vehicle is { } uid)
                 RaiseNetworkEvent(new VehicleSpotlightToggleRequestEvent(GetNetEntity(uid)));
+        };
+        _turretLock.OnPressed += _ =>
+        {
+            if (_vehicle is { } uid)
+                RaiseNetworkEvent(new WFTurretStabilizeRequestEvent(GetNetEntity(uid), !_turretLock.Lit));
         };
         _horn.OnPressed += _ =>
         {
@@ -218,6 +227,21 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
         _headlights.Disabled = !engine.Powered;
         _headlights.Lit = TryComp(uid, out VehicleSpotlightComponent? headlights) && headlights.Enabled;
         _brake.Lit = engine.ParkingBrake;
+
+        // Whoever holds the guns can lock the selected turret's bearing or let it turn with the hull.
+        _turretLock.Visible = false;
+        if (_player.LocalEntity is { } holder &&
+            TryComp(holder, out VehicleWeaponsOperatorComponent? weaponsOp) &&
+            weaponsOp.Vehicle == uid &&
+            weaponsOp.SelectedWeapon is { } aimed &&
+            !TerminatingOrDeleted(aimed) &&
+            _turrets.TryResolveRotationTarget(aimed, out _, out var turret) &&
+            turret.RotateToCursor)
+        {
+            _turretLock.Visible = true;
+            _turretLock.Lit = turret.StabilizedRotation;
+            _turretLock.ToolTip = Loc.GetString(turret.StabilizedRotation ? "wf-vehicle-hud-turret-locked" : "wf-vehicle-hud-turret-free");
+        }
 
         _weapon.Text = selected is { } gun ? Loc.GetString("wf-vehicle-hud-weapon", ("weapon", Name(gun))) : Loc.GetString("wf-vehicle-hud-no-weapon");
         _weapon.ToolTip = _weapon.Text;

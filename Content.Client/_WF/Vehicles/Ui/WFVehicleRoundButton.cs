@@ -21,6 +21,7 @@ public enum WFVehicleGlyph : byte
     Condition,
     Crosshair,
     Ammo,
+    TurretLock,
 }
 
 /// <summary>A round dashboard button: a texture or a drawn glyph inside a ring that shows its state.</summary>
@@ -128,6 +129,16 @@ public sealed class WFVehicleRoundButton : ContainerButton
                         center + new Vector2(x - 1.5f, -2) * unit, center + new Vector2(x + 1.5f, -2) * unit, center + new Vector2(x, -6) * unit,
                     }, ink);
                 }
+                break;
+            case WFVehicleGlyph.TurretLock:
+                // A padlock: shut while the turret holds its bearing, open while it turns with the hull.
+                handle.DrawRect(UIBox2.FromDimensions(center + new Vector2(-4.5f, -1) * unit, new Vector2(9, 7) * unit), ink);
+                var shackle = Lit ? 0f : -1.5f;
+                handle.DrawLine(center + new Vector2(-3, -1) * unit, center + new Vector2(-3, -4 + shackle) * unit, ink);
+                handle.DrawLine(center + new Vector2(3, -1 + (Lit ? 0f : -2f)) * unit, center + new Vector2(3, -4 + shackle) * unit, ink);
+                handle.DrawLine(center + new Vector2(-3, -4 + shackle) * unit, center + new Vector2(0, -6 + shackle) * unit, ink);
+                handle.DrawLine(center + new Vector2(0, -6 + shackle) * unit, center + new Vector2(3, -4 + shackle) * unit, ink);
+                handle.DrawRect(UIBox2.FromDimensions(center + new Vector2(-0.75f, 1.5f) * unit, new Vector2(1.5f, 2.5f) * unit), skin.Ink);
                 break;
             case WFVehicleGlyph.Parts:
                 // A wrench.
