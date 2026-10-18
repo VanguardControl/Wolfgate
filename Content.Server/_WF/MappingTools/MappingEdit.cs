@@ -104,5 +104,11 @@ public sealed class MappingClipboard
     public readonly List<(Vector2i Cell, Tile Tile)> Tiles = new();
     public readonly List<Decal> Decals = new();
     public MappingDataNode? Data;
+
+    /// <summary>
+    /// Entities in <see cref="Data"/>, contents included.
+    /// </summary>
+    public int EntityCount;
+
     public readonly List<(int YamlUid, MappingPose Pose)> Roots = new();
 }

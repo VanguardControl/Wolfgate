@@ -16,6 +16,7 @@ using Robust.Shared.Enums;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Content.Server._WF.ShipAccess; // WOLFGATE(ShipAccess)
+using Content.Server._WF.MappingMode; // WOLFGATE(MappingMode)
 
 namespace Content.Server.Sandbox
 {
@@ -30,6 +31,7 @@ namespace Content.Server.Sandbox
         [Dependency] private ItemSlotsSystem _slots = default!;
         [Dependency] private GameTicker _ticker = default!;
         [Dependency] private SharedHandsSystem _handsSystem = default!;
+        [Dependency] private WFMappingModeSystem _wfMapping = default!; // WOLFGATE(MappingMode)
 
         private bool _isSandboxEnabled;
 
@@ -70,6 +72,10 @@ namespace Content.Server.Sandbox
                 {
                     return true;
                 }
+
+                // WOLFGATE(MappingMode): mappers place, erase and lay tiles on their own session's maps
+                if (_wfMapping.AllowPlacement(player, placement))
+                    return true;
 
                 return false;
             };

@@ -58,6 +58,27 @@ public sealed class MappingZLevelsSystem : EntitySystem
     }
 
     /// <summary>
+    /// Whether a player may move between, add or remove levels: Mapping admins, or whoever a
+    /// <see cref="WFMappingCanUseEvent"/> handler allows. Saving and opening stacks stays admin-only.
+    /// </summary>
+    private bool CanUseLevels(ICommonSession session)
+    {
+        if (CanUse(session))
+            return true;
+
+        var ev = new WFMappingCanUseEvent(session, true);
+        RaiseLocalEvent(ev);
+        return ev.Allowed;
+    }
+
+    private bool CanEdit(ICommonSession session, EntityUid map, WFMappingEditKind kind)
+    {
+        var ev = new WFMappingCanEditEvent(session, map, kind);
+        RaiseLocalEvent(ev);
+        return !ev.Cancelled;
+    }
+
+    /// <summary>
     /// The levels of the stack a map belongs to, bottom-up, and the index of the one on depth 0. A map outside any
     /// stack is a stack of one.
     /// </summary>
@@ -104,7 +125,7 @@ public sealed class MappingZLevelsSystem : EntitySystem
     private void OnMove(MappingZLevelsMoveEvent ev, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
-        if (!CanUse(session) || !TryGetPlayerMap(session, out var player, out var map))
+        if (!CanUseLevels(session) || !TryGetPlayerMap(session, out var player, out var map))
             return;
 
         if (!_zLevels.TryMapOffset(map, ev.Offset, out var target, out var targetMap))
@@ -112,6 +133,9 @@ public sealed class MappingZLevelsSystem : EntitySystem
             _popup.PopupCursor(Loc.GetString(ev.Offset > 0 ? "wf-mapping-zlevels-none-above" : "wf-mapping-zlevels-none-below"), session);
             return;
         }
+
+        if (!CanEdit(session, target.Owner, WFMappingEditKind.Read))
+            return;
 
         MoveTo(player, targetMap.MapId);
         _popup.PopupCursor(Loc.GetString("wf-mapping-zlevels-moved", ("depth", target.Comp.Depth)), session);
@@ -125,8 +149,11 @@ public sealed class MappingZLevelsSystem : EntitySystem
     private void OnAdd(MappingZLevelsAddEvent ev, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
-        if (!CanUse(session) || !TryGetPlayerMap(session, out _, out var map))
+        if (!CanUseLevels(session) || !TryGetPlayerMap(session, out _, out var map) ||
+            !CanEdit(session, map, WFMappingEditKind.AddLevel))
+        {
             return;
+        }
 
         if (!TryAddLevel(map, ev.Above, out var added, out var depth, out var error))
         {
@@ -163,6 +190,7 @@ public sealed class MappingZLevelsSystem : EntitySystem
 
         ground = levels.IndexOf(groundMap);
         _zLevels.WfRestack(levels, ground);
+        RaiseLocalEvent(new WFMappingStackChangedEvent(levels, ground));
         depth = index - ground;
         return true;
     }
@@ -170,8 +198,11 @@ public sealed class MappingZLevelsSystem : EntitySystem
     private void OnRemove(MappingZLevelsRemoveEvent ev, EntitySessionEventArgs args)
     {
         var session = args.SenderSession;
-        if (!CanUse(session) || !TryGetPlayerMap(session, out _, out var map))
+        if (!CanUseLevels(session) || !TryGetPlayerMap(session, out _, out var map) ||
+            !CanEdit(session, map, WFMappingEditKind.RemoveLevel))
+        {
             return;
+        }
 
         if (!TryRemoveLevel(map, out var error))
         {
@@ -220,6 +251,7 @@ public sealed class MappingZLevelsSystem : EntitySystem
         }
 
         _zLevels.WfRestack(levels, ground);
+        RaiseLocalEvent(new WFMappingStackChangedEvent(levels, ground));
         QueueDel(map);
         return true;
     }

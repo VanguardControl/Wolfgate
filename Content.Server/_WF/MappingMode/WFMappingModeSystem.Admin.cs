@@ -1,0 +1,99 @@
+using System.Linq;
+using Content.Server.GameTicking;
+using Content.Shared._WF.MappingMode;
+using Content.Shared.Administration;
+using Content.Shared.Database;
+using Robust.Shared.Enums;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Player;
+
+namespace Content.Server._WF.MappingMode;
+
+public sealed partial class WFMappingModeSystem
+{
+    /// <summary>The private map admin observers start on, made on the first observe.</summary>
+    private EntityUid? _adminMap;
+
+    private void InitializeAdmin()
+    {
+        SubscribeNetworkEvent<WFMappingAdminObserveRequest>(OnAdminObserve);
+        SubscribeNetworkEvent<WFMappingAdminLeaveRequest>(OnAdminLeave);
+        SubscribeLocalEvent<LoadingMapsEvent>(OnLoadingMaps);
+    }
+
+    /// <summary>A forced round start loads no station while the mode is on.</summary>
+    private void OnLoadingMaps(LoadingMapsEvent ev)
+    {
+        if (Enabled)
+            ev.Maps.Clear();
+    }
+
+    private void OnAdminObserve(WFMappingAdminObserveRequest ev, EntitySessionEventArgs args)
+    {
+        var player = args.SenderSession;
+        if (!Enabled || !_admin.HasAdminFlag(player, AdminFlags.Admin))
+            return;
+
+        if (player.AttachedEntity != null || player.Status != SessionStatus.InGame || TryGetPresent(player, out _))
+        {
+            Refuse(player, "wf-mapping-mode-not-in-lobby");
+            return;
+        }
+
+        var map = EnsureAdminMap();
+        var observer = SpawnAttached(player, GameTicker.AdminObserverPrototypeName, Comp<MapComponent>(map).MapId);
+        _adminLog.Add(LogType.Action, LogImpact.Low,
+            $"{player:player} observes mapping mode as {ToPrettyString(observer)} on the admin map");
+    }
+
+    private EntityUid EnsureAdminMap()
+    {
+        if (_adminMap is { } existing && !TerminatingOrDeleted(existing))
+            return existing;
+
+        var map = _map.CreateMap(out _, runMapInit: false);
+        _meta.SetEntityName(map, Loc.GetString("wf-mapping-mode-admin-map-name"));
+        RegisterMap(map, WFMappingMapKind.Admin, 0);
+        _adminMap = map;
+        return map;
+    }
+
+    private void OnAdminLeave(WFMappingAdminLeaveRequest ev, EntitySessionEventArgs args)
+    {
+        var player = args.SenderSession;
+        if (!Enabled || !_admin.HasAdminFlag(player, AdminFlags.Admin) || player.AttachedEntity is not { } entity)
+            return;
+
+        // A mapper leaves through their session instead, so it hands over ownership.
+        if (TryGetPresent(player, out _))
+            return;
+
+        _adminLog.Add(LogType.Action, LogImpact.Low, $"{player:player} left mapping mode observation");
+        ReturnToLobby(player, entity);
+    }
+
+    /// <summary>Sends every admin observer on the admin map back to the lobby and deletes the map.</summary>
+    private void ReturnAdminObservers()
+    {
+        if (_adminMap is not { } map)
+            return;
+
+        foreach (var player in _players.Sessions.ToList())
+        {
+            if (player.AttachedEntity is { } entity && Transform(entity).MapUid == map)
+                ReturnToLobby(player, entity);
+        }
+
+        if (!TerminatingOrDeleted(map))
+            QueueDel(map);
+
+        _adminMap = null;
+    }
+
+    /// <summary>The ground level of a session, for admins going there.</summary>
+    public MapId RootMapId(WFMappingSession session)
+    {
+        return Comp<MapComponent>(session.RootMap).MapId;
+    }
+}

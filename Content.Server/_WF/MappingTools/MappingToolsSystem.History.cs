@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Content.Server.Decals;
 using Content.Shared.Administration;
@@ -95,6 +96,65 @@ public sealed partial class MappingToolsSystem
 
         Apply(edit, forward: true);
         Push(session, edit);
+        RaiseEdited(edit);
+    }
+
+    /// <summary>
+    /// The maps an edit touches.
+    /// </summary>
+    private HashSet<EntityUid> MapsOf(MappingEdit edit)
+    {
+        var maps = new HashSet<EntityUid>();
+
+        void Add(EntityUid uid)
+        {
+            if (Exists(uid) && Transform(uid).MapUid is { } map)
+                maps.Add(map);
+        }
+
+        foreach (var tile in edit.Tiles)
+        {
+            Add(tile.Grid);
+        }
+
+        foreach (var move in edit.Moves)
+        {
+            Add(move.Entity.Uid);
+            Add(move.Old.Parent);
+            Add(move.New.Parent);
+        }
+
+        foreach (var group in edit.Created.Concat(edit.Deleted))
+        {
+            foreach (var root in group.Roots)
+            {
+                Add(root.Entity.Uid);
+                Add(root.Pose.Parent);
+            }
+        }
+
+        foreach (var decal in edit.DecalsRemoved.Concat(edit.DecalsAdded))
+        {
+            Add(decal.Grid);
+        }
+
+        return maps;
+    }
+
+    private void RaiseEdited(MappingEdit edit)
+    {
+        foreach (var map in MapsOf(edit))
+        {
+            RaiseLocalEvent(new WFMappingEditedEvent(map));
+        }
+    }
+
+    /// <summary>
+    /// Drops a mapper's undo history, so it can't reach maps they no longer work on. The clipboard stays.
+    /// </summary>
+    public void ForgetHistory(ICommonSession session)
+    {
+        _histories.Remove(session);
     }
 
     private void Push(ICommonSession session, MappingEdit edit)
@@ -143,9 +203,16 @@ public sealed partial class MappingToolsSystem
 
         var (from, to) = redo ? (history.Redo, history.Undo) : (history.Undo, history.Redo);
         var edit = from[^1];
+        foreach (var map in MapsOf(edit))
+        {
+            if (!CanEdit(new WFMappingCanEditEvent(session, map, WFMappingEditKind.Edit)))
+                return;
+        }
+
         from.RemoveAt(from.Count - 1);
         Apply(edit, forward: redo);
         to.Add(edit);
+        RaiseEdited(edit);
 
         _popup.PopupCursor(Loc.GetString(redo ? "wf-mapping-tools-redid" : "wf-mapping-tools-undid",
             ("edit", Loc.GetString(edit.Name))), session);
@@ -225,13 +292,20 @@ public sealed partial class MappingToolsSystem
 
     private void OnDecalRemoval(RequestDecalRemovalEvent ev, EntitySessionEventArgs args)
     {
-        // The decal system only removes for Spawn admins.
-        if (!CanUse(args.SenderSession) || !_admin.HasAdminFlag(args.SenderSession, AdminFlags.Spawn))
+        if (!CanUse(args.SenderSession))
             return;
 
         var coords = GetCoordinates(ev.Coordinates);
         if (!coords.IsValid(EntityManager) || _transform.GetGrid(coords) is not { } grid)
             return;
+
+        // The decal system only removes for Spawn admins, and mapping mode for mappers on their own maps.
+        if (!_admin.HasAdminFlag(args.SenderSession, AdminFlags.Spawn) &&
+            (_transform.GetMap(coords) is not { } map ||
+             !CanEdit(new WFMappingCanEditEvent(args.SenderSession, map, WFMappingEditKind.Edit) { Quiet = true })))
+        {
+            return;
+        }
 
         // Mirrors the decal system, which removes every decal in range of the raw position.
         var edit = new MappingEdit("wf-mapping-tools-edit-decal");

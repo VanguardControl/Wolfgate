@@ -1,3 +1,4 @@
+using Content.Shared._WF.MappingMode; // WOLFGATE(MappingMode)
 using Content.Shared.ActionBlocker;
 using Content.Shared.Hands.Components;
 using Content.Shared.Interaction;
@@ -71,6 +72,10 @@ namespace Content.Shared.Verbs
         {
             SortedSet<Verb> verbs = new();
             extraCategories = new();
+
+            // WOLFGATE(MappingMode): mapping observers get no verbs; admin requests are forced and keep theirs
+            if (!force && HasComp<WFMappingObserverComponent>(user))
+                return verbs;
 
             // accessibility checks
             var canAccess = force || _interactionSystem.InRangeAndAccessible(user, target);

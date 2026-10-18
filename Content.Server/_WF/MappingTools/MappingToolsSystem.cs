@@ -73,9 +73,43 @@ public sealed partial class MappingToolsSystem : EntitySystem
         InitializeHistory();
     }
 
-    private bool CanUse(ICommonSession session)
+    /// <summary>
+    /// Whether a player may use the tools: Mapping admins, or whoever a <see cref="WFMappingCanUseEvent"/> handler
+    /// allows. <paramref name="request"/> marks a request the player sent.
+    /// </summary>
+    private bool CanUse(ICommonSession session, bool request = false)
     {
-        return _admin.HasAdminFlag(session, AdminFlags.Mapping);
+        if (_admin.HasAdminFlag(session, AdminFlags.Mapping))
+            return true;
+
+        var ev = new WFMappingCanUseEvent(session, request);
+        RaiseLocalEvent(ev);
+        return ev.Allowed;
+    }
+
+    /// <summary>
+    /// Raises <paramref name="ev"/> and says whether the request may go ahead.
+    /// </summary>
+    private bool CanEdit(WFMappingCanEditEvent ev)
+    {
+        RaiseLocalEvent(ev);
+        return !ev.Cancelled;
+    }
+
+    /// <summary>
+    /// Whether a request may work on a selection's grid, ending up covering <paramref name="cells"/>.
+    /// </summary>
+    private bool CanEdit(ICommonSession session, Resolved sel, WFMappingEditKind kind, Box2i cells)
+    {
+        if (Transform(sel.Grid.Owner).MapUid is not { } map)
+            return false;
+
+        return CanEdit(new WFMappingCanEditEvent(session, map, kind)
+        {
+            Grid = sel.Grid.Owner,
+            Cells = cells,
+            Tiles = sel.Tiles.Count,
+        });
     }
 
     private MappingEntityRef GetRef(EntityUid uid)
@@ -196,37 +230,37 @@ public sealed partial class MappingToolsSystem : EntitySystem
 
     private void OnMove(MappingToolsMoveEvent ev, EntitySessionEventArgs args)
     {
-        if (CanUse(args.SenderSession))
+        if (CanUse(args.SenderSession, request: true))
             Move(args.SenderSession, ev.Selection, ev.Offset, ev.Turns);
     }
 
     private void OnCopy(MappingToolsCopyEvent ev, EntitySessionEventArgs args)
     {
-        if (CanUse(args.SenderSession))
+        if (CanUse(args.SenderSession, request: true))
             Copy(args.SenderSession, ev.Selection, ev.Cut);
     }
 
     private void OnPaste(MappingToolsPasteEvent ev, EntitySessionEventArgs args)
     {
-        if (CanUse(args.SenderSession))
+        if (CanUse(args.SenderSession, request: true))
             Paste(args.SenderSession, GetCoordinates(ev.Target), ev.Turns);
     }
 
     private void OnMirror(MappingToolsMirrorEvent ev, EntitySessionEventArgs args)
     {
-        if (CanUse(args.SenderSession))
+        if (CanUse(args.SenderSession, request: true))
             Mirror(args.SenderSession, ev.Selection, ev.Vertical);
     }
 
     private void OnDelete(MappingToolsDeleteEvent ev, EntitySessionEventArgs args)
     {
-        if (CanUse(args.SenderSession))
+        if (CanUse(args.SenderSession, request: true))
             Delete(args.SenderSession, ev.Selection);
     }
 
     private void OnHistory(MappingToolsHistoryEvent ev, EntitySessionEventArgs args)
     {
-        if (CanUse(args.SenderSession))
+        if (CanUse(args.SenderSession, request: true))
             StepHistory(args.SenderSession, ev.Redo);
     }
 
@@ -240,6 +274,9 @@ public sealed partial class MappingToolsSystem : EntitySystem
 
         turns = MappingToolsMath.Normalize(turns);
         if (offset == Vector2i.Zero && turns == 0)
+            return;
+
+        if (!CanEdit(session, sel, WFMappingEditKind.Edit, MappingToolsMath.TransformBox(sel.Extent, sel.Extent, offset, turns)))
             return;
 
         var edit = TransformEdit(sel,
@@ -261,7 +298,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
     /// </summary>
     public void Mirror(ICommonSession session, MappingSelection selection, bool vertical)
     {
-        if (!TryResolve(selection, out var sel))
+        if (!TryResolve(selection, out var sel) || !CanEdit(session, sel, WFMappingEditKind.Edit, sel.Extent))
             return;
 
         var edit = TransformEdit(sel, "wf-mapping-tools-edit-mirror",
@@ -334,8 +371,11 @@ public sealed partial class MappingToolsSystem : EntitySystem
     /// </summary>
     public void Copy(ICommonSession session, MappingSelection selection, bool cut)
     {
-        if (!TryResolve(selection, out var sel))
+        if (!TryResolve(selection, out var sel) ||
+            !CanEdit(session, sel, cut ? WFMappingEditKind.Edit : WFMappingEditKind.Read, sel.Extent))
+        {
             return;
+        }
 
         var origin = sel.Extent.BottomLeft;
         var clip = new MappingClipboard { SourceGrid = sel.Grid.Owner, Size = sel.Extent.Size };
@@ -356,6 +396,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
             var serializer = new EntitySerializer(_dependency, SnapshotOptions);
             serializer.SerializeEntityRecursive(sel.Entities);
             clip.Data = serializer.Write();
+            clip.EntityCount = serializer.YamlUidMap.Count;
 
             foreach (var uid in sel.Entities)
             {
@@ -386,19 +427,44 @@ public sealed partial class MappingToolsSystem : EntitySystem
             return;
 
         var mapCoords = _transform.ToMapCoordinates(coords);
-        if (!_map.TryFindGridAt(mapCoords, out var gridUid, out var grid) &&
-            !TryPasteGrid(clip.SourceGrid, mapCoords.MapId, out gridUid, out grid))
-        {
-            // Off every grid, with the source grid gone: start a new grid under the cursor.
-            var newGrid = _map.CreateGridEntity(mapCoords.MapId);
-            _transform.SetWorldPosition(newGrid.Owner, new Vector2(MathF.Floor(mapCoords.X), MathF.Floor(mapCoords.Y)));
-            (gridUid, grid) = (newGrid.Owner, newGrid.Comp);
-        }
+        Entity<MapGridComponent>? target = null;
+        if (_map.TryFindGridAt(mapCoords, out var foundUid, out var found))
+            target = (foundUid, found);
+        else if (TryPasteGrid(clip.SourceGrid, mapCoords.MapId, out var sourceUid, out var source))
+            target = (sourceUid, source);
+
+        // Off every grid, with the source grid gone, a new grid starts with its origin at the cursor's tile.
+        var newOrigin = new Vector2i((int) MathF.Floor(mapCoords.X), (int) MathF.Floor(mapCoords.Y));
 
         turns = MappingToolsMath.Normalize(turns);
-        var cursor = _map.TileIndicesFor(gridUid, grid, mapCoords);
+        var cursor = target is { } t ? _map.TileIndicesFor(t, t.Comp, mapCoords) : Vector2i.Zero;
         var extent = new Box2i(Vector2i.Zero, clip.Size);
         var offset = MappingToolsMath.PasteOrigin(cursor, clip.Size, turns) - MappingToolsMath.DestinationOrigin(extent, Vector2i.Zero, turns);
+
+        var shift = target == null ? newOrigin : Vector2i.Zero;
+        var box = MappingToolsMath.TransformBox(extent, extent, offset, turns);
+        var check = new WFMappingCanEditEvent(session, _map.GetMapOrInvalid(mapCoords.MapId), WFMappingEditKind.Paste)
+        {
+            Grid = target?.Owner,
+            Cells = new Box2i(box.BottomLeft + shift, box.TopRight + shift),
+            Entities = clip.EntityCount,
+            Tiles = clip.Tiles.Count,
+            NewGrid = target == null,
+            EntityCells = clip.Roots.ConvertAll(r =>
+                MappingToolsMath.CellOf(MappingToolsMath.TransformPoint(r.Pose.Position, extent, offset, turns)) + shift),
+        };
+
+        if (!CanEdit(check))
+            return;
+
+        if (target == null)
+        {
+            var newGrid = _map.CreateGridEntity(mapCoords.MapId);
+            _transform.SetWorldPosition(newGrid.Owner, new Vector2(newOrigin.X, newOrigin.Y));
+            target = newGrid;
+        }
+
+        var (gridUid, grid) = target.Value;
 
         var edit = new MappingEdit("wf-mapping-tools-edit-paste");
         foreach (var (cell, tile) in clip.Tiles)
@@ -455,7 +521,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
     /// </summary>
     public void Delete(ICommonSession session, MappingSelection selection)
     {
-        if (!TryResolve(selection, out var sel))
+        if (!TryResolve(selection, out var sel) || !CanEdit(session, sel, WFMappingEditKind.Edit, sel.Extent))
             return;
 
         Commit(session, DeleteEdit(sel, "wf-mapping-tools-edit-delete"));
