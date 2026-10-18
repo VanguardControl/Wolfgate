@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Shared._WF.TileMovement;
 using Content.Shared.Doors.Components;
+using Content.Shared.Movement.Components;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
@@ -41,7 +42,8 @@ public abstract partial class SharedMoverController
             StopTileStep(uid, tile);
 
         var gridRot = _transform.GetWorldRotation(xform.ParentUid);
-        var speed = wishDir.Length();
+        // The press and release ticks scale input by the held fraction; a tap would store a crawl speed.
+        var speed = wishDir.Length() > 0f ? FullTileSpeed(uid) : 0f;
         var dir = SnapTileDirection((-gridRot).RotateVec(wishDir));
         var pos = xform.LocalPosition;
         var tileSize = gridComp.TileSize;
@@ -166,6 +168,18 @@ public abstract partial class SharedMoverController
         tile.Returning = false;
         tile.Grid = null;
         Dirty(uid, tile);
+    }
+
+    /// <summary>
+    /// Current walk or sprint speed, with slowdowns.
+    /// </summary>
+    private float FullTileSpeed(EntityUid uid)
+    {
+        var modifier = ModifierQuery.CompOrNull(uid);
+        var sprinting = MoverQuery.TryComp(uid, out var mover) && mover.Sprinting;
+        return sprinting
+            ? modifier?.CurrentSprintSpeed ?? MovementSpeedModifierComponent.DefaultBaseSprintSpeed
+            : modifier?.CurrentWalkSpeed ?? MovementSpeedModifierComponent.DefaultBaseWalkSpeed;
     }
 
     /// <summary>

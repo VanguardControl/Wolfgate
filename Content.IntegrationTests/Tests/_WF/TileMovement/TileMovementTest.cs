@@ -139,6 +139,33 @@ public sealed class TileMovementTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A tap late in one tick and released early in the next still takes a full-speed step.</summary>
+    [Test]
+    public async Task TapFinishesAtFullSpeed()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var mob = await Build(pair);
+        var server = pair.Server;
+        var mover = server.System<Content.Server.Physics.Controllers.MoverController>();
+
+        await server.WaitPost(() =>
+            mover.SetVelocityDirection((mob, server.EntMan.GetComponent<InputMoverComponent>(mob)), Direction.East, 60000, true));
+        await server.WaitRunTicks(1);
+        await server.WaitPost(() =>
+            mover.SetVelocityDirection((mob, server.EntMan.GetComponent<InputMoverComponent>(mob)), Direction.East, 2000, false));
+        // A walking step takes under half a second; the subtick-scaled speed took several.
+        await server.WaitRunTicks(40);
+
+        await server.WaitAssertion(() =>
+        {
+            var position = Position(pair, mob);
+            AssertCentred(position);
+            Assert.That(position.X, Is.EqualTo(3.5f).Within(0.02f));
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Wall-mounted lights and cameras along the way don't stop a step.</summary>
     [Test]
     public async Task WallmountsDontBlock([Values("Poweredlight", "EmergencyLight", "SurveillanceCameraGeneral")] string mount)
