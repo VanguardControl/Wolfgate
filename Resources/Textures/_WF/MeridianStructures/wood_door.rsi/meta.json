@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "license": "CC-BY-SA-3.0",
+  "copyright": "Replaced states from Meridian Rift (https://github.com/Aphelion-Moon/Meridian-Rift), NovaSector and tgstation. Other states: By AftrLite",
+  "size": {
+    "x": 32,
+    "y": 32
+  },
+  "states": [
+    {
+      "name": "opening",
+      "directions": 4,
+      "delays": [
+        [
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082
+        ],
+        [
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082
+        ],
+        [
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082
+        ],
+        [
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082
+        ]
+      ]
+    },
+    {
+      "name": "closed",
+      "directions": 4
+    },
+    {
+      "name": "open",
+      "directions": 4
+    },
+    {
+      "name": "closing",
+      "directions": 4,
+      "delays": [
+        [
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082
+        ],
+        [
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082
+        ],
+        [
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082
+        ],
+        [
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082,
+          0.082
+        ]
+      ]
+    }
+  ]
+}
