@@ -292,13 +292,11 @@ public sealed class MappingZLevelsSystem : EntitySystem
         if (!SaveName.IsMatch(name))
             return false;
 
+        var ok = TrySaveLevels(levels, ground, depth => new ResPath(MappingZLevels.StackPath(name, depth)));
         var saved = new HashSet<string>();
-        var ok = true;
         for (var i = 0; i < levels.Count; i++)
         {
-            var path = MappingZLevels.StackPath(name, i - ground);
-            ok &= _loader.TrySaveMap(levels[i], new ResPath(path));
-            saved.Add(path);
+            saved.Add(MappingZLevels.StackPath(name, i - ground));
         }
 
         var folder = new ResPath(MappingZLevels.StackPath(name, 0)).Directory;
@@ -316,6 +314,81 @@ public sealed class MappingZLevelsSystem : EntitySystem
         }
 
         return ok;
+    }
+
+    /// <summary>
+    /// Saves each level, listed bottom-up with depth 0 at <paramref name="ground"/>, as a whole map to the file
+    /// <paramref name="pathFor"/> gives its depth. False if any level failed.
+    /// </summary>
+    public bool TrySaveLevels(List<EntityUid> levels, int ground, Func<int, ResPath> pathFor)
+    {
+        var ok = true;
+        for (var i = 0; i < levels.Count; i++)
+        {
+            ok &= _loader.TrySaveMap(levels[i], pathFor(i - ground));
+        }
+
+        return ok;
+    }
+
+    /// <summary>
+    /// Loads level files, by depth, as new paused and uninitialised maps and stacks them with depth 0 as the ground,
+    /// then raises <see cref="WFMappingStackChangedEvent"/>. Nothing stays loaded when a level fails.
+    /// </summary>
+    public bool TryLoadLevels(SortedDictionary<int, ResPath> files, [NotNullWhen(true)] out List<EntityUid>? levels,
+        out int ground)
+    {
+        levels = null;
+        ground = 0;
+        if (!files.ContainsKey(0))
+            return false;
+
+        var loaded = new List<EntityUid>();
+        var opts = new DeserializationOptions
+        {
+            StoreYamlUids = true,
+            InitializeMaps = false,
+            PauseMaps = true,
+        };
+
+        try
+        {
+            foreach (var (depth, file) in files)
+            {
+                if (!_loader.TryLoadMap(file, out var map, out _, opts))
+                {
+                    Log.Error($"Couldn't load z-level {depth} from {file}");
+                    DeleteLevels(loaded);
+                    return false;
+                }
+
+                if (depth == 0)
+                    ground = loaded.Count;
+
+                loaded.Add(map.Value.Owner);
+            }
+        }
+        catch
+        {
+            DeleteLevels(loaded);
+            throw;
+        }
+
+        if (loaded.Count > 1)
+            _zLevels.WfRestack(loaded, ground);
+
+        RaiseLocalEvent(new WFMappingStackChangedEvent(loaded, ground));
+        levels = loaded;
+        return true;
+    }
+
+    private void DeleteLevels(List<EntityUid> levels)
+    {
+        foreach (var level in levels)
+        {
+            if (!TerminatingOrDeleted(level))
+                Del(level);
+        }
     }
 
     private void OnOpen(MappingZLevelsOpenEvent ev, EntitySessionEventArgs args)

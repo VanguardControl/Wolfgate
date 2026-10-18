@@ -33,7 +33,7 @@ public sealed partial class WFMappingModeSystem
     private static readonly TimeSpan ReferenceLifetime = TimeSpan.FromSeconds(60);
 
     /// <summary>Folder in the server's data directory holding every player's library.</summary>
-    public static readonly ResPath LibraryFolder = new("/Mapping/Library");
+    public static readonly ResPath LibraryFolder = WFMappingLibraryNames.Root;
 
     private const int MaxLibraryDepth = 4;
 
@@ -260,6 +260,25 @@ public sealed partial class WFMappingModeSystem
         }
 
         return true;
+    }
+
+    /// <summary>Deletes everything on a map that carries a denied component; the count deleted.</summary>
+    public int StripDenied(EntityUid map)
+    {
+        var denied = new List<EntityUid>();
+        var children = Transform(map).ChildEnumerator;
+        while (children.MoveNext(out var child))
+        {
+            CollectDenied(child, denied);
+        }
+
+        foreach (var uid in denied)
+        {
+            if (!TerminatingOrDeleted(uid))
+                Del(uid);
+        }
+
+        return denied.Count;
     }
 
     private void CollectDenied(EntityUid root, List<EntityUid> denied)

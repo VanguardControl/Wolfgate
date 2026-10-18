@@ -77,8 +77,8 @@ public sealed partial class WFMappingModeSystem
         if (!CanStartRequest(player))
             return;
 
-        var name = ev.Name.Length > WFMappingModeLimits.MaxNameLength * 2 ? string.Empty : ev.Name.Trim();
-        if (!WFMappingModeLimits.IsValidName(name))
+        // Session names double as library map names for autosaves.
+        if (!WFMappingLibraryNames.TryNormalizeMapName(ev.Name, out var name))
         {
             Refuse(player, "wf-mapping-mode-bad-name", ("max", WFMappingModeLimits.MaxNameLength));
             return;
@@ -93,23 +93,13 @@ public sealed partial class WFMappingModeSystem
     public bool TryCreateSession(ICommonSession player, string name, [NotNullWhen(true)] out WFMappingSession? session)
     {
         session = null;
-        var maxSessions = _cfg.GetCVar(WFMappingModeCVars.MaxSessions);
-        if (_sessions.Count >= maxSessions)
-        {
-            Refuse(player, "wf-mapping-mode-too-many-sessions", ("max", maxSessions));
+        if (!CheckSessionCap(player))
             return false;
-        }
 
         LeaveSession(player.UserId, kicked: false);
 
         var mapUid = _map.CreateMap(out _, runMapInit: false);
-        _meta.SetEntityName(mapUid, Loc.GetString("wf-mapping-mode-map-name", ("name", name)));
-
-        var codes = _sessions.Values.Select(s => s.Code).ToHashSet();
-        session = new WFMappingSession(_nextSessionId++, WFMappingSessionCodes.Generate(_random.Next, codes), name,
-            player.UserId, mapUid);
-        _sessions[session.Id] = session;
-        RegisterMap(mapUid, WFMappingMapKind.Session, session.Id);
+        session = StartSession(player, name, new List<EntityUid> { mapUid }, 0);
 
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"{player:player} created mapping session {session.Code} \"{name}\" on {ToPrettyString(mapUid)}");
@@ -117,6 +107,74 @@ public sealed partial class WFMappingModeSystem
         Enter(player, session);
         Notify(player, true, "wf-mapping-mode-created", ("name", name), ("code", session.Code));
         return true;
+    }
+
+    /// <summary>
+    /// Opens a new session on levels loaded from a library version, listed bottom-up with depth 0 at
+    /// <paramref name="ground"/>, and puts the player in it. When it fails the caller still owns the levels.
+    /// </summary>
+    public bool TryOpenSession(ICommonSession player, string name, List<EntityUid> levels, int ground,
+        string sourceMap, string sourceVersion, [NotNullWhen(true)] out WFMappingSession? session)
+    {
+        session = null;
+        if (levels.Count == 0 || ground < 0 || ground >= levels.Count || !CheckSessionCap(player))
+            return false;
+
+        LeaveSession(player.UserId, kicked: false);
+
+        var stripped = 0;
+        foreach (var level in levels)
+        {
+            stripped += StripDenied(level);
+        }
+
+        if (stripped > 0)
+            Log.Info($"Removed {stripped} denied entities from library map {sourceMap}/{sourceVersion} opened by {player}");
+
+        session = StartSession(player, name, levels, ground);
+        session.SourceMap = sourceMap;
+        session.SourceVersion = sourceVersion;
+        session.Dirty = false;
+
+        _adminLog.Add(LogType.Action, LogImpact.Low,
+            $"{player:player} opened mapping session {session.Code} from their library map \"{sourceMap}\" {sourceVersion} ({levels.Count} levels)");
+
+        Enter(player, session);
+        Notify(player, true, "wf-mapping-mode-opened", ("name", name), ("version", sourceVersion), ("code", session.Code));
+        return true;
+    }
+
+    /// <summary>Whether another session may start; tells the player when the server is at its cap.</summary>
+    public bool CheckSessionCap(ICommonSession player)
+    {
+        var maxSessions = _cfg.GetCVar(WFMappingModeCVars.MaxSessions);
+        if (_sessions.Count < maxSessions)
+            return true;
+
+        Refuse(player, "wf-mapping-mode-too-many-sessions", ("max", maxSessions));
+        return false;
+    }
+
+    /// <summary>
+    /// Makes a session over paused, uninitialised levels: names, pauses and registers each, and schedules its first
+    /// autosave.
+    /// </summary>
+    private WFMappingSession StartSession(ICommonSession player, string name, List<EntityUid> levels, int ground)
+    {
+        var codes = _sessions.Values.Select(s => s.Code).ToHashSet();
+        var session = new WFMappingSession(_nextSessionId++, WFMappingSessionCodes.Generate(_random.Next, codes), name,
+            player.UserId, levels[ground]);
+        _sessions[session.Id] = session;
+
+        foreach (var level in levels)
+        {
+            _meta.SetEntityName(level, Loc.GetString("wf-mapping-mode-map-name", ("name", name)));
+            _map.SetPaused(level, true);
+            RegisterMap(level, WFMappingMapKind.Session, session.Id);
+        }
+
+        InitAutosave(session);
+        return session;
     }
 
     private void OnJoinRequest(WFMappingJoinRequest ev, EntitySessionEventArgs args)
@@ -172,10 +230,10 @@ public sealed partial class WFMappingModeSystem
     }
 
     /// <summary>
-    /// Whether a create, join or rejoin may go ahead: the mode is on, the player is in the lobby, and they aren't
-    /// sending too many.
+    /// Whether a create, join, rejoin or open may go ahead: the mode is on, the player is in the lobby, and they
+    /// aren't sending too many.
     /// </summary>
-    private bool CanStartRequest(ICommonSession player)
+    public bool CanStartRequest(ICommonSession player)
     {
         if (!Enabled)
         {
@@ -285,6 +343,7 @@ public sealed partial class WFMappingModeSystem
             ReturnToLobby(player, observer);
 
         CancelReference(user);
+        RaiseLocalEvent(new WFMappingMembershipEndedEvent(user, session.Id));
         if (player != null)
         {
             _tools.ForgetHistory(player);
@@ -432,7 +491,7 @@ public sealed partial class WFMappingModeSystem
         {
             try
             {
-                _library.Autosave(session); // S2
+                _library.Autosave(session);
             }
             catch (Exception e)
             {
@@ -454,6 +513,7 @@ public sealed partial class WFMappingModeSystem
         {
             _membership.Remove(user);
             CancelReference(user);
+            RaiseLocalEvent(new WFMappingMembershipEndedEvent(user, session.Id));
             if (_players.TryGetSessionById(user, out var player))
             {
                 _tools.ForgetHistory(player);
@@ -490,6 +550,7 @@ public sealed partial class WFMappingModeSystem
         _sessions.Clear();
         _membership.Clear();
         _registry.Clear();
+        ClearAutosaveQueue();
         _adminMap = null;
         _joinThrottle.Clear();
         _toolsThrottle.Clear();
@@ -531,6 +592,10 @@ public sealed partial class WFMappingModeSystem
                     Code = session.Code,
                     Owner = session.Owner,
                     Limits = session.SentLimits ?? GetLimits(session),
+                    AutosaveMinutes = session.AutosaveMinutes,
+                    NextAutosave = session.AutosaveMinutes > 0 ? session.NextAutosave : null,
+                    LastSaved = session.LastSaved,
+                    Dirty = session.Dirty,
                 };
 
                 foreach (var (user, _) in session.Members.OrderBy(pair => pair.Value))

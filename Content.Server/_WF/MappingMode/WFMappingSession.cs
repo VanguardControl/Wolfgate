@@ -25,7 +25,13 @@ public sealed class WFMappingSession(int id, string code, string name, NetUserId
     /// <summary>Changed since the last save.</summary>
     public bool Dirty;
 
+    /// <summary>UTC time of the last save into a library.</summary>
     public DateTime? LastSaved;
+
+    /// <summary>The autosave step the owner picked, in minutes; 0 is off.</summary>
+    public int AutosaveMinutes;
+
+    /// <summary>Game time the session is next checked for an autosave.</summary>
     public TimeSpan NextAutosave;
 
     /// <summary>When the last present member went, while nobody is present.</summary>
@@ -41,4 +47,11 @@ public sealed class WFMappingSession(int id, string code, string name, NetUserId
 
     /// <summary>The limits last sent to its members.</summary>
     public WFMappingLimitsState? SentLimits;
+}
+
+/// <summary>Raised when a player stops being a member of a session: they left, were kicked or it closed.</summary>
+public sealed class WFMappingMembershipEndedEvent(NetUserId user, int sessionId) : EntityEventArgs
+{
+    public readonly NetUserId User = user;
+    public readonly int SessionId = sessionId;
 }

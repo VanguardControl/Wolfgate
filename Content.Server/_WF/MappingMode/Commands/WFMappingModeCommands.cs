@@ -194,7 +194,7 @@ public sealed partial class WFMappingModeSaveCommand : WFMappingModeCommandBase
         if (!TryGetSession(shell, args[0], out var session))
             return;
 
-        var saved = _library.Autosave(session); // S2
+        var saved = _library.Autosave(session);
         AdminLog.Add(LogType.Action, LogImpact.Low,
             $"{shell.Player:player} saved mapping session {session.Code}: {(saved ? "written" : "failed")}");
         shell.WriteLine(Loc.GetString(saved ? "cmd-wf_mappingmode_save-saved" : "cmd-wf_mappingmode_save-failed",

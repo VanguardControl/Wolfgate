@@ -75,6 +75,18 @@ public sealed class WFMappingSessionInfo
     public NetUserId Owner;
     public List<WFMappingMemberInfo> Members = new();
     public WFMappingLimitsState Limits;
+
+    /// <summary>The autosave step the owner picked, in minutes; 0 is off.</summary>
+    public int AutosaveMinutes;
+
+    /// <summary>Game time of the next autosave check, or null with autosave off.</summary>
+    public TimeSpan? NextAutosave;
+
+    /// <summary>UTC time of the last save into a library, if any.</summary>
+    public DateTime? LastSaved;
+
+    /// <summary>Changed since the last save.</summary>
+    public bool Dirty;
 }
 
 /// <summary>

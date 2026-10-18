@@ -17,6 +17,36 @@ wf-mapping-mode-kick-not-member = That player isn't another member of your sessi
 wf-mapping-mode-closed = The session "{$name}" was closed.
 wf-mapping-mode-owner-now = You now own "{$name}".
 
+wf-mapping-mode-opened = Opened "{$name}" {$version}. Its join code is {$code}.
+
+## Library
+
+wf-mapping-mode-saved = Saved "{$name}" as {$version}.
+wf-mapping-mode-save-failed = The map couldn't be saved.
+wf-mapping-mode-save-too-soon = Wait a few seconds between saves.
+wf-mapping-mode-autosave-failed = Autosave of "{$name}" failed.
+wf-mapping-mode-autosave-not-owner = Only the session owner can change autosave.
+wf-mapping-mode-library-full-maps = Your library is full ({$max} maps). Delete a map first.
+wf-mapping-mode-library-full-bytes = Your library is full ({$max} MiB). Delete some versions first.
+wf-mapping-mode-library-not-found = That map or version isn't in your library.
+wf-mapping-mode-library-read-failed = Your library couldn't be read.
+wf-mapping-mode-open-failed = "{$name}" couldn't be opened.
+wf-mapping-mode-deleted-map = Deleted "{$name}".
+wf-mapping-mode-deleted-version = Deleted {$version} of "{$name}".
+wf-mapping-mode-delete-failed = That couldn't be deleted.
+
+## Downloads
+
+wf-mapping-mode-download-busy = A download is already running.
+wf-mapping-mode-download-done = Downloaded "{$name}" {$version} ({$count ->
+    [one] 1 file
+   *[other] {$count} files
+}).
+wf-mapping-mode-download-failed = The download failed.
+wf-mapping-mode-download-too-large = A level is over the {$max} MiB download limit.
+wf-mapping-mode-download-stalled = The download stopped responding and was dropped.
+wf-mapping-mode-download-cancelled = The download was cancelled.
+
 ## Limits and refusals
 
 wf-mapping-mode-not-your-map = That isn't your session's map.

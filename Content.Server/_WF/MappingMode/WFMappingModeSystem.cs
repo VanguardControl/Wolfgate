@@ -77,6 +77,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         InitializeReference();
         InitializeAdmin();
         InitializeLimits();
+        InitializeAutosave();
 
         Subs.CVar(_cfg, WFMappingModeCVars.Enabled, OnEnabledChanged, true);
         _initialized = true;
@@ -98,6 +99,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         var now = _timing.CurTime;
         UpdateReferences(now);
         UpdateSessions(now);
+        UpdateAutosave(now);
     }
 
     private void OnEnabledChanged(bool enabled)
@@ -146,7 +148,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
     {
         // Maps still exist here; the flush right after deletes them.
         if (Enabled)
-            _library.AutosaveAll(); // S2
+            _library.AutosaveAll();
 
         ClearState();
     }

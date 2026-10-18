@@ -40,7 +40,11 @@ public sealed partial class WFMappingModeSystem
 
     private void MarkDirty(WFMappingSession session)
     {
+        if (session.Dirty)
+            return;
+
         session.Dirty = true;
+        SendState(session);
     }
 
     private void OnEdited(WFMappingEditedEvent ev)
