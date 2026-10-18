@@ -270,6 +270,9 @@ public sealed partial class WFEncounterShipState
     /// <summary>Whether its orders are paused while players are aboard or docked with it.</summary>
     public bool Serving;
 
+    /// <summary>Until when it holds position for a ship that hailed it to stop, so that ship can come alongside.</summary>
+    public TimeSpan? HeldUntil;
+
     /// <summary>The ship a hunter's raid went aboard.</summary>
     public EntityUid? Boarded;
 

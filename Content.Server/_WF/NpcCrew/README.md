@@ -54,6 +54,12 @@ hull, the guns with a clear line of fire past their own ship (fire control's own
 orbit the pilot holds the best armed bearing on the target, taking the nearer of equal sides, instead of flying nose
 along the orbit. A hull whose guns bear equally all round flies as before.
 
+Conduct aboard (`WFCrewConductSystem`): a crew that does not already fight strangers and is not in a fight tells a
+player it sees with a gun in hand to put it away, and turns on him if it is still out after 10 s; holstered in time,
+nothing comes of it. Items aboard when an encounter ship is set up are marked `WFCrewPropertyComponent`; a player
+seen by one of its fighters picking one up is fought at once. A pilot with `FleeAttackers` (traders) runs directly
+away from the nearest attacking ship instead of circling it.
+
 A Warn crew gives a stranger it notices aboard `WarnTime` (30 s) to leave; if he stays, or strikes any crewman, the
 crew's fighters (on-sight crew, marines, the captain and radio officer; not the helm or the guns) take him on as
 their own attacker, by the usual rules: in sight, and one man hunting him unseen. A when-attacked hand answers only
@@ -240,6 +246,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Components/WFCaptainComponent.cs`](Components/WFCaptainComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewComponent.cs`](Components/WFCrewComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewEngineerComponent.cs`](Components/WFCrewEngineerComponent.cs)
+- [`Content.Server/_WF/NpcCrew/Components/WFCrewPropertyComponent.cs`](Components/WFCrewPropertyComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewRadioComponent.cs`](Components/WFCrewRadioComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewRepairComponent.cs`](Components/WFCrewRepairComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewSecurityComponent.cs`](Components/WFCrewSecurityComponent.cs)
@@ -277,6 +284,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAccessSystem.cs`](Systems/WFCrewAccessSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAlertSystem.cs`](Systems/WFCrewAlertSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewCommsSystem.cs`](Systems/WFCrewCommsSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewConductSystem.cs`](Systems/WFCrewConductSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewEscortSystem.cs`](Systems/WFCrewEscortSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewEvaSystem.cs`](Systems/WFCrewEvaSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewFriendlyFireSystem.cs`](Systems/WFCrewFriendlyFireSystem.cs)
