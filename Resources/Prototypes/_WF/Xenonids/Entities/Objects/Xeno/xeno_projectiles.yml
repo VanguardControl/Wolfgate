@@ -483,8 +483,7 @@
     deleteOnFriendlyXeno: false
   - type: RMCProjectileAccuracy
     accuracy: 185
-  # XENOPORT(P3-P): XenoHookOnHit
-  # - type: XenoHookOnHit
+  - type: XenoHookOnHit
   - type: RMCTether
   - type: Fixtures
     fixtures:
