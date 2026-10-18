@@ -26,7 +26,7 @@ public sealed partial class WFAdsCampaignSystem
 
     private static readonly ProtoId<RadioChannelPrototype> WarningChannel = "Common";
 
-    /// <summary>How the system's units and its watch speak: the synthetic verbs in a monospace face.</summary>
+    /// <summary>How the system's units and its watch speak: the synthetic verbs in the system's readout face.</summary>
     private static readonly ProtoId<SpeechVerbPrototype> SynthVerb = "WFAdsSynth";
 
     /// <summary>How long a quiet banner holds the next one back; a quiet banner inside it goes out on the radio instead.</summary>
@@ -60,7 +60,7 @@ public sealed partial class WFAdsCampaignSystem
 
     /// <summary>
     /// A global announcement in the system's own face: what <see cref="ChatSystem.DispatchGlobalAnnouncement"/> does, with the
-    /// message set in the monospace font the synthetic speech uses, since the chat system escapes any markup in the text.
+    /// message set in the readout font the synthetic speech uses, since the chat system escapes any markup in the text.
     /// </summary>
     private void Banner(string sender, string message, SoundSpecifier? sound, Color colour)
     {

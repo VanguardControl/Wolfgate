@@ -99,6 +99,7 @@ challenge [q r] | pause | resume | clear`, and see every campaign encounter in t
 - [`Resources/Prototypes/_WF/AdsIncursion/companies.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/companies.yml)
 - [`Resources/Prototypes/_WF/AdsIncursion/encounters.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/encounters.yml)
 - [`Resources/Prototypes/_WF/AdsIncursion/factions.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/factions.yml)
+- [`Resources/Prototypes/_WF/AdsIncursion/fonts.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/fonts.yml)
 - [`Resources/Prototypes/_WF/AdsIncursion/game_rules.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/game_rules.yml)
 - [`Resources/Prototypes/_WF/AdsIncursion/gear.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/gear.yml)
 - [`Resources/Prototypes/_WF/AdsIncursion/guidebook.yml`](../../../Resources/Prototypes/_WF/AdsIncursion/guidebook.yml)
