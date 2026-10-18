@@ -139,6 +139,35 @@ public sealed class TileMovementTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>Wall-mounted lights and cameras along the way don't stop a step.</summary>
+    [Test]
+    public async Task WallmountsDontBlock([Values("Poweredlight", "EmergencyLight", "SurveillanceCameraGeneral")] string mount)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var mob = await Build(pair);
+
+        await pair.Server.WaitPost(() =>
+        {
+            var grid = pair.Server.EntMan.GetComponent<TransformComponent>(mob).ParentUid;
+            for (var x = 3; x < WallX; x++)
+            {
+                var mounted = pair.Server.EntMan.SpawnEntity(mount, new EntityCoordinates(grid, x + 0.5f, 2.5f));
+                pair.Server.System<SharedTransformSystem>().SetLocalRotation(mounted, Angle.FromDegrees(90 * x));
+            }
+        });
+
+        await Hold(pair, mob, MoveButtons.Right, 240);
+
+        await pair.Server.WaitAssertion(() =>
+        {
+            var position = Position(pair, mob);
+            AssertCentred(position);
+            Assert.That(position.X, Is.EqualTo(WallX - 0.5f).Within(0.02f));
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Without the component the mob still moves freely.</summary>
     [Test]
     public async Task FreeMovementUnchangedWithoutTrait()

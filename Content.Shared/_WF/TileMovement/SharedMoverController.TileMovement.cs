@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Shared._WF.TileMovement;
 using Content.Shared.Doors.Components;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 
 namespace Content.Shared.Movement.Systems;
@@ -78,7 +79,7 @@ public abstract partial class SharedMoverController
                 return;
             }
 
-            if (!TryPickTileStep(grid, gridComp, body, center, dir, out var stepDir))
+            if (!TryPickTileStep(grid, gridComp, uid, center, dir, out var stepDir))
             {
                 // Blocked: face the way but stay put.
                 velocity = gridRot.RotateVec(MoveToward(center - pos, tile.SettleSpeed, frameTime));
@@ -102,7 +103,7 @@ public abstract partial class SharedMoverController
             if (!tile.Returning
                 && dir != Vector2i.Zero
                 && speed > 0f
-                && TryPickTileStep(grid, gridComp, body, tile.Target, dir, out var nextDir))
+                && TryPickTileStep(grid, gridComp, uid, tile.Target, dir, out var nextDir))
             {
                 var arrived = tile.Target;
                 StartTileStep(uid, tile, grid, arrived, nextDir, speed, tileSize, now);
@@ -181,13 +182,13 @@ public abstract partial class SharedMoverController
     private bool TryPickTileStep(
         EntityUid grid,
         MapGridComponent gridComp,
-        PhysicsComponent body,
+        EntityUid mob,
         Vector2 from,
         Vector2i dir,
         out Vector2i stepDir)
     {
         stepDir = dir;
-        if (!IsTileBlocked(grid, gridComp, body, from + (Vector2) dir * gridComp.TileSize))
+        if (!IsTileBlocked(grid, gridComp, mob, from + (Vector2) dir * gridComp.TileSize))
             return true;
 
         if (dir.X == 0 || dir.Y == 0)
@@ -195,7 +196,7 @@ public abstract partial class SharedMoverController
 
         foreach (var part in new[] { new Vector2i(dir.X, 0), new Vector2i(0, dir.Y) })
         {
-            if (IsTileBlocked(grid, gridComp, body, from + (Vector2) part * gridComp.TileSize))
+            if (IsTileBlocked(grid, gridComp, mob, from + (Vector2) part * gridComp.TileSize))
                 continue;
 
             stepDir = part;
@@ -206,10 +207,25 @@ public abstract partial class SharedMoverController
     }
 
     /// <summary>
-    /// Whether an anchored solid (a wall, not a door) covers the tile centre.
+    /// Whether a hard fixture the mob collides with (a wall, not a door or wallmount) covers the tile centre.
     /// </summary>
-    private bool IsTileBlocked(EntityUid grid, MapGridComponent gridComp, PhysicsComponent body, Vector2 center)
+    private bool IsTileBlocked(EntityUid grid, MapGridComponent gridComp, EntityUid mob, Vector2 center)
     {
+        if (!TryComp<FixturesComponent>(mob, out var mobFixtures))
+            return false;
+
+        // Sensors (slips, flammability) carry masks the mob doesn't physically collide with.
+        var mobLayer = 0;
+        var mobMask = 0;
+        foreach (var fixture in mobFixtures.Fixtures.Values)
+        {
+            if (!fixture.Hard)
+                continue;
+
+            mobLayer |= fixture.CollisionLayer;
+            mobMask |= fixture.CollisionMask;
+        }
+
         var indices = new Vector2i(
             (int) MathF.Floor(center.X / gridComp.TileSize),
             (int) MathF.Floor(center.Y / gridComp.TileSize));
@@ -219,16 +235,28 @@ public abstract partial class SharedMoverController
         {
             if (!PhysicsQuery.TryComp(ent, out var other)
                 || !other.CanCollide
-                || !other.Hard
-                || (other.CollisionLayer & body.CollisionMask) == 0
-                || HasComp<DoorComponent>(ent))
+                || HasComp<DoorComponent>(ent)
+                || !TryComp<FixturesComponent>(ent, out var fixtures))
             {
                 continue;
             }
 
             var entXform = XformQuery.GetComponent(ent.Value);
-            if (_lookup.GetAABBNoContainer(ent.Value, entXform.LocalPosition, entXform.LocalRotation).Contains(center))
-                return true;
+            var transform = new Transform(entXform.LocalPosition, entXform.LocalRotation);
+            foreach (var fixture in fixtures.Fixtures.Values)
+            {
+                if (!fixture.Hard
+                    || ((fixture.CollisionLayer & mobMask) == 0 && (fixture.CollisionMask & mobLayer) == 0))
+                {
+                    continue;
+                }
+
+                for (var i = 0; i < fixture.Shape.ChildCount; i++)
+                {
+                    if (fixture.Shape.ComputeAABB(transform, i).Contains(center))
+                        return true;
+                }
+            }
         }
 
         return false;
