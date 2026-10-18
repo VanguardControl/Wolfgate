@@ -96,7 +96,6 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Tools/_WF/PlanetPois/generate.py`](../../../Tools/_WF/PlanetPois/generate.py)
 - [`Tools/_WF/PlanetPois/map_author.py`](../../../Tools/_WF/PlanetPois/map_author.py)
 - [`Tools/_WF/PlanetPois/settlements.py`](../../../Tools/_WF/PlanetPois/settlements.py)
-- [`Tools/_WF/PlanetPois/shrines.py`](../../../Tools/_WF/PlanetPois/shrines.py)
 
 ### Docs
 

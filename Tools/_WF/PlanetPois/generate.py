@@ -8,7 +8,6 @@ import yaml
 
 from cities import build_maps as cities
 from settlements import build_maps as settlements
-from shrines import build_maps as shrines
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -88,7 +87,7 @@ def main():
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--preview", type=Path, help="Optional directory for tile-plan PNGs (requires Pillow)")
     args = parser.parse_args()
-    maps = cities() + settlements() + shrines()
+    maps = cities() + settlements()
     table_path = ROOT / "Resources/Prototypes/_WF/PlanetPois/tables.yml"
     table_text = table_path.read_text(encoding="utf-8")
     tables = yaml.safe_load(table_text)
