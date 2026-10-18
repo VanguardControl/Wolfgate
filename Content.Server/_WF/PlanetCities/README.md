@@ -74,13 +74,13 @@ wade) and catwalks where it turns.
 ### Server
 
 - [`Content.Server/_WF/PlanetCities/WFPlanetCitiesComponent.cs`](WFPlanetCitiesComponent.cs)
-- [`Content.Server/_WF/PlanetCities/WFPlanetCityGridComponent.cs`](WFPlanetCityGridComponent.cs)
 - [`Content.Server/_WF/PlanetCities/WFPlanetCitySystem.cs`](WFPlanetCitySystem.cs)
 - [`Content.Server/_WF/PlanetCities/WFPlanetPoiSystem.Cities.cs`](WFPlanetPoiSystem.Cities.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/PlanetCities/WFFixedCityPrototype.cs`](../../../Content.Shared/_WF/PlanetCities/WFFixedCityPrototype.cs)
+- [`Content.Shared/_WF/PlanetCities/WFPlanetCityGridComponent.cs`](../../../Content.Shared/_WF/PlanetCities/WFPlanetCityGridComponent.cs)
 
 ### Integration tests
 
@@ -136,6 +136,6 @@ wade) and catwalks where it turns.
 
 ## Non-modular edits
 
-None.
+- [`Content.Client/_CE/ZLevels/Core/Overlays/CEZLevelShadowOverlay.cs`](../../../Content.Client/_CE/ZLevels/Core/Overlays/CEZLevelShadowOverlay.cs): a city's upper floors are buildings, roofed already, not a ship overhead.
 
 <!-- WOLFGATE-GENERATED END -->

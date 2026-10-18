@@ -180,6 +180,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Shared/_WF/Planets/Parachute/WFParachuteSystem.cs`](../../../Content.Shared/_WF/Planets/Parachute/WFParachuteSystem.cs)
 - [`Content.Shared/_WF/Planets/SharedBiomeSystem.Wolfgate.cs`](../../../Content.Shared/_WF/Planets/SharedBiomeSystem.Wolfgate.cs)
 - [`Content.Shared/_WF/Planets/SharedShuttleSystem.Wolfgate.cs`](../../../Content.Shared/_WF/Planets/SharedShuttleSystem.Wolfgate.cs)
+- [`Content.Shared/_WF/Planets/SharedWeatherSystem.Planets.cs`](../../../Content.Shared/_WF/Planets/SharedWeatherSystem.Planets.cs)
 - [`Content.Shared/_WF/Planets/WFBiomeKeepComponent.cs`](../../../Content.Shared/_WF/Planets/WFBiomeKeepComponent.cs)
 - [`Content.Shared/_WF/Planets/WFBiomeNoiseCacheSystem.cs`](../../../Content.Shared/_WF/Planets/WFBiomeNoiseCacheSystem.cs)
 - [`Content.Shared/_WF/Planets/WFConsoleOrbitTargetComponent.cs`](../../../Content.Shared/_WF/Planets/WFConsoleOrbitTargetComponent.cs)
@@ -210,6 +211,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Client/_WF/Planets/Parachute/WFParachuteVisualsSystem.cs`](../../../Content.Client/_WF/Planets/Parachute/WFParachuteVisualsSystem.cs)
 - [`Content.Client/_WF/Planets/ShuttleMapControl.PlanetBackground.cs`](../../../Content.Client/_WF/Planets/ShuttleMapControl.PlanetBackground.cs)
 - [`Content.Client/_WF/Planets/ShuttleNavControl.Terrain.cs`](../../../Content.Client/_WF/Planets/ShuttleNavControl.Terrain.cs)
+- [`Content.Client/_WF/Planets/StencilOverlay.Planets.cs`](../../../Content.Client/_WF/Planets/StencilOverlay.Planets.cs)
 - [`Content.Client/_WF/Planets/WFOrbitButton.cs`](../../../Content.Client/_WF/Planets/WFOrbitButton.cs)
 - [`Content.Client/_WF/Planets/WFPlanetAmbienceSystem.cs`](../../../Content.Client/_WF/Planets/WFPlanetAmbienceSystem.cs)
 - [`Content.Client/_WF/Planets/WFPlanetApproachOverlay.cs`](../../../Content.Client/_WF/Planets/WFPlanetApproachOverlay.cs)
@@ -260,6 +262,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherRoofTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherRoofTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/SetDownTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/SetDownTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs)
@@ -393,7 +396,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 ## Non-modular edits
 
 - [`Content.Client/_CE/ZLevels/Core/Overlays/CEZLevelShadowOverlay.cs`](../../../Content.Client/_CE/ZLevels/Core/Overlays/CEZLevelShadowOverlay.cs): orbit is above the atmosphere, not a storey up.
-- [`Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs`](../../../Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs): a planet's layers keep the perspective Monolith turned off
+- [`Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs`](../../../Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs): a planet's layers keep the perspective Monolith turned off, aboard a ship
 - [`Content.Client/_FarHorizons/StarSystem/PlanetOverlay.cs`](../../../Content.Client/_FarHorizons/StarSystem/PlanetOverlay.cs): public (was private), so the planet approach can draw the very same body over the orbit hop.
 - [`Content.Client/_Mono/Audio/AudioEchoSystem.cs`](../../../Content.Client/_Mono/Audio/AudioEchoSystem.cs)
   - a ray from a non-finite position is not cast, since a NaN crashes the client.
@@ -404,6 +407,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Client/Light/RoofOverlay.cs`](../../../Content.Client/Light/RoofOverlay.cs)
   - the open-grating check below reads tile definitions.
   - open grating is no roof.
+- [`Content.Client/Overlays/StencilOverlay.Weather.cs`](../../../Content.Client/Overlays/StencilOverlay.Weather.cs): no rain down a stairwell onto an indoor floor
 - [`Content.Client/Shuttles/UI/NavScreen.xaml`](../../../Content.Client/Shuttles/UI/NavScreen.xaml): enter/leave planet orbit, which needs no FTL drive (xmlns:wf above).
 - [`Content.Client/Shuttles/UI/NavScreen.xaml.cs`](../../../Content.Client/Shuttles/UI/NavScreen.xaml.cs): the orbit button reads its state off the console entity.
 - [`Content.Client/Shuttles/UI/ShuttleMapControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleMapControl.xaml.cs): over a world, the world fills the plot instead of space.
@@ -515,6 +519,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - lattice also goes straight onto planet ground.
   - the ground under lattice is kept so cutting it gives the ground back.
   - only a planet's untouched biome ground takes lattice directly.
+- [`Content.Shared/Weather/SharedWeatherSystem.cs`](../../../Content.Shared/Weather/SharedWeatherSystem.cs): on a planet, roofs decide rather than the tile, and a vessel is always under cover.
 - [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): planet networks are on in development builds.
 - [`Resources/Locale/en-US/_Mono/guidebook/planets.ftl`](../../../Resources/Locale/en-US/_Mono/guidebook/planets.ftl): Asclepiu is called Verda
 - [`Resources/Prototypes/_DV/Entities/Mobs/Species/harpy.yml`](../../../Resources/Prototypes/_DV/Entities/Mobs/Species/harpy.yml): z-level flight is back on, which Monolith#4812 turned off
