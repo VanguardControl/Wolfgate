@@ -312,6 +312,11 @@ public abstract partial class SharedMoverController : VirtualController
         if (!weightless || touching)
             Accelerate(ref velocity, in wishDir, accel, frameTime);
 
+        // WOLFGATE(TileMovement) START: grid-snapped stepping overrides the velocity
+        if (!weightless && !inAirHelpless)
+            ApplyTileMovement(uid, xform, physicsComponent, ref velocity, ref wishDir, frameTime);
+        // WOLFGATE END
+
         SetWishDir((uid, mover), wishDir);
 
         /*

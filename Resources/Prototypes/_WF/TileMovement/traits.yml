@@ -1,0 +1,7 @@
+- type: trait
+  id: WFTileMovement
+  name: trait-wf-tile-movement-name
+  description: trait-wf-tile-movement-desc
+  category: Quirks
+  components:
+  - type: WFTileMovement
