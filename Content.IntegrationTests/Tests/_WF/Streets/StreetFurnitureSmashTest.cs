@@ -26,8 +26,9 @@ public sealed class StreetFurnitureSmashTest
         ("RMCPhoneboxBroken", null, null),
         ("AU14PropTent1", null, null),
         ("RMCPropSupermartShelf1", null, null),
-        ("AU14DumpsterBlue", null, VehicleWeightClass.Light),
-        ("RMCPlanter", null, VehicleWeightClass.Light),
+        // Owner, 2026-10-17: small things never stop a vehicle.
+        ("AU14DumpsterBlue", null, null),
+        ("RMCPlanter", null, null),
         ("RMCFuelPump", VehicleWeightClass.Medium, null),
         ("RMCConcreteStatue", VehicleWeightClass.Medium, null),
     };

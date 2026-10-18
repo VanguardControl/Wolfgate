@@ -149,11 +149,9 @@ set:
   AU14PropTents:
     VehicleSmashable: {}
   AU14Dumpster:
-    VehicleSmashable:
-      minContinueWeightClass: Light
+    VehicleSmashable: {}
   RMCPlanter:
-    VehicleSmashable:
-      minContinueWeightClass: Light
+    VehicleSmashable: {}
   RMCConcreteStatue:
     VehicleSmashable:
       minDestroyWeightClass: Medium
