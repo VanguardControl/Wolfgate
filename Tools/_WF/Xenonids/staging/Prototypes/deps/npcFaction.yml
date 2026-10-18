@@ -1,0 +1,13 @@
+# RMC-14: Resources/Prototypes/_RMC14/Factions/rmc_factions.yml
+- type: npcFaction
+  id: RMCXeno
+  hostile:
+  - UNMC
+  - SPP
+  - Halcyon
+  - WeYa
+  - Civilian
+  - CLF
+  - TSE
+  - HEFA
+

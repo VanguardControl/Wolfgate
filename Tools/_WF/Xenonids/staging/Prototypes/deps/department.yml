@@ -1,0 +1,6 @@
+# RMC-14: Resources/Prototypes/_RMC14/Roles/cm_jobs_base.yml
+- type: department
+  abstract: true
+  id: CMDepartmentBase
+  isCM: true
+

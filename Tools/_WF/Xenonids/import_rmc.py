@@ -16,8 +16,10 @@ For every .cs and .xaml file the script
   * drops `readonly` from [Dependency] fields and adds `partial` to the type that holds one,
   * removes duplicate usings and a using that names the file's own namespace.
 
-Resource paths inside .yml, .ftl, .xaml and .cs files (`/Textures/_RMC14/`, `/Audio/_RMC14/`) are rewritten to the
-module's folders. Everything else (images, audio, json) is copied byte for byte. An existing destination file is
+Resource paths inside .yml, .ftl, .xaml and .cs files (`/Textures/_RMC14/`, `/Audio/_RMC14/`, and in .yml the
+relative `sprite: _RMC14/...` form) are rewritten to the module's folders, except the ones listed in asset_reuse.txt
+(files Wolfgate already has at the `_RMC14` path). RMC type names in .yml (`!type:Content.Shared._RMC14...`) follow
+namespaces.yml. Everything else (images, audio, json) is copied byte for byte. An existing destination file is
 skipped unless --force is given. The report lists every file written and the RMC namespaces still referenced.
 """
 from __future__ import annotations
@@ -121,9 +123,33 @@ def tidy_usings(text: str) -> str:
     return "".join(out)
 
 
-def rewrite_resources(text: str, module: str) -> str:
-    text = text.replace("/Textures/_RMC14/", f"/Textures/_WF/{module}/")
-    text = text.replace("/Audio/_RMC14/", f"/Audio/_WF/{module}/")
+def load_reuse() -> list[str]:
+    """Resource paths (`Textures/_RMC14/...`) that copy_assets.py found already in Wolfgate and left at `_RMC14`."""
+    f = Path(__file__).resolve().parent / "asset_reuse.txt"
+    return [l.strip() for l in f.read_text(encoding="utf-8").splitlines() if l.strip()] if f.exists() else []
+
+
+REUSE = load_reuse()
+RESOURCE = re.compile(r"(/Textures/|/Audio/)_RMC14/([^\s\"',;{}()\[\]|]*)")
+RELATIVE = re.compile(r"(?<![\w/.])_RMC14/(?=[A-Za-z])([^\s\"',;{}()\[\]|]*)")
+
+
+def kept(kind: str, sub: str) -> bool:
+    full = f"{kind}/_RMC14/{sub}"
+    return any(full == r or full.startswith(r + "/") for r in REUSE)
+
+
+def rewrite_resources(text: str, module: str, relative: bool = False) -> str:
+    """Rewrites absolute resource paths, and in prototypes (`relative`) the texture paths written without /Textures/."""
+    def absolute(m: re.Match) -> str:
+        kind = m.group(1).strip("/")
+        if kept(kind, m.group(2)):
+            return m.group(0)
+        return f"{m.group(1)}_WF/{module}/{m.group(2)}"
+
+    text = RESOURCE.sub(absolute, text)
+    if relative:
+        text = RELATIVE.sub(lambda m: m.group(0) if kept("Textures", m.group(1)) else f"_WF/{module}/{m.group(1)}", text)
     return text
 
 
@@ -135,7 +161,11 @@ def transform(path: Path, text: str, module: str, pairs) -> str:
             text = tidy_usings(text)
         else:
             text = text.replace("Content.Client._RMC14.", "Content.Client._WF." + module + ".")
-    return rewrite_resources(text, module)
+    elif path.suffix in {".yml", ".yaml"}:
+        # `!type:Content.Shared._RMC14.X.Event` and similar type names
+        text = re.sub(r"\b(Content\.(?:Shared|Server|Client)\._RMC14(?:\.\w+)*)", lambda m: next(
+            (dst + m.group(1)[len(src):] for src, dst in pairs if m.group(1) == src or m.group(1).startswith(src + ".")), m.group(1)), text)
+    return rewrite_resources(text, module, relative=path.suffix in {".yml", ".yaml"})
 
 
 def main() -> int:
