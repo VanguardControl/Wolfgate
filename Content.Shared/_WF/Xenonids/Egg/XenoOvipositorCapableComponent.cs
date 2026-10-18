@@ -1,4 +1,3 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using System.Numerics;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -6,6 +5,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._WF.Xenonids.Egg;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(XenoEggSystem))]
 public sealed partial class XenoOvipositorCapableComponent : Component
 {
     [DataField, AutoNetworkedField]

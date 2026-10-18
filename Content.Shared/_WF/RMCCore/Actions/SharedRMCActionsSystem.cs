@@ -196,6 +196,15 @@ public abstract partial class SharedRMCActionsSystem : EntitySystem
         return true;
     }
 
+    public bool TryUseAction(EntityWorldTargetActionEvent action)
+    {
+        if (!CanUseActionPopup(action.Performer, action.Action, action.Entity))
+            return false;
+
+        ActionUsed(action.Performer, action.Action);
+        return true;
+    }
+
     public IEnumerable<Entity<BaseActionComponent>> GetActionsWithEvent<T>(EntityUid user) where T : BaseActionEvent
     {
         foreach (var (id, comp) in _actions.GetActions(user))

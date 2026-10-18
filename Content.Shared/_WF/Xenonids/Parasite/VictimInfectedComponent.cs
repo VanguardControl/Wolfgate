@@ -1,4 +1,4 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
+using Content.Shared._WF.Xenonids.JoinXeno;
 using Content.Shared.Chat.Prototypes;
 using Content.Shared.Damage;
 using Robust.Shared.Audio;
@@ -12,6 +12,7 @@ using static Robust.Shared.Utility.SpriteSpecifier;
 namespace Content.Shared._WF.Xenonids.Parasite;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
+[Access(typeof(SharedXenoParasiteSystem), typeof(LarvaQueueSystem))]
 public sealed partial class VictimInfectedComponent : Component
 {
     /// <summary>
@@ -74,7 +75,7 @@ public sealed partial class VictimInfectedComponent : Component
     /// <summary>
     ///     Used by larva removal surgery.
     /// </summary>
-    [DataField, AutoNetworkedField]
+    [DataField, AutoNetworkedField, Access(typeof(SharedXenoParasiteSystem))]
     public bool RootsCut;
 
     /// <summary>

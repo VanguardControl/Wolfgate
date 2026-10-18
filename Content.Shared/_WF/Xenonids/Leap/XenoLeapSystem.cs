@@ -1,0 +1,9 @@
+// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
+namespace Content.Shared._WF.Xenonids.Leap;
+
+public sealed class XenoLeapSystem : EntitySystem
+{
+}
+
+[ByRefEvent]
+public record struct XenoLeapStoppedEvent;
