@@ -50,7 +50,7 @@ public sealed class PlanetPoiContentTest
             var roofs = server.System<SharedRoofSystem>();
             var entries = Tables.SelectMany(id => prototypes.Index<WFPlanetPoiTablePrototype>(id).Entries)
                 .Where(entry => entry.MapPath != null).GroupBy(entry => entry.MapPath).Select(group => group.First()).ToList();
-            Assert.That(entries, Has.Count.GreaterThanOrEqualTo(14), "All settlement and hazard maps must be registered in live tables.");
+            Assert.That(entries, Has.Count.GreaterThanOrEqualTo(13), "All settlement and hazard maps must be registered in live tables.");
             foreach (var entry in entries)
             {
                 var map = maps.CreateMap(out var mapId);
@@ -133,6 +133,7 @@ public sealed class PlanetPoiContentTest
             server.CfgMan.SetCVar(PlanetCVars.Bounds, true);
             server.CfgMan.SetCVar(PlanetCVars.Radius, radius);
             server.CfgMan.SetCVar(PlanetCVars.PoiTable, tableId);
+            server.CfgMan.SetCVar(PlanetCVars.FixedCities, true);
             var surface = prototypes.Index<WFPlanetSurfacePrototype>(surfaceId);
             var network = server.System<WFPlanetNetworkSystem>().BuildNetwork(surface, Vector2.Zero, surfaceId, null);
             Assert.That(network, Is.Not.Null);
@@ -152,8 +153,11 @@ public sealed class PlanetPoiContentTest
                 Assert.That(record.GenerationError, Is.Null, $"{tableId}, seed {seed}");
                 Assert.That(holds.All(hold => hold.IsCompletedSuccessfully), Is.True);
                 Assert.That(record.NetworkReady, Is.True);
-                Assert.That(record.Sites.Count, Is.InRange(table.MinCount, table.MaxCount));
-                Assert.That(record.Sites.Any(site => site.Bounds.Width >= 288 && site.Bounds.Height >= 144), Is.True, "The city was not guaranteed.");
+                // A fixed city comes on top of the table's own sites.
+                var tableSites = record.Sites.Count(site => table.Entries.Any(entry => entry.MapPath == site.MapPath && entry.Dungeon == site.Dungeon));
+                Assert.That(tableSites, Is.InRange(table.MinCount, table.MaxCount));
+                // Merak's city is authored; Asclepiu's is Crocus, a fixed city placed ahead of the table.
+                Assert.That(record.Sites.Any(site => site.Bounds.Width >= 280 && site.Bounds.Height >= 140), Is.True, "The city was not guaranteed.");
                 foreach (var entry in table.Entries)
                 {
                     var count = record.Sites.Count(site => site.MapPath == entry.MapPath && site.Dungeon == entry.Dungeon);

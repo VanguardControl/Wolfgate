@@ -70,6 +70,9 @@ public static class PlanetFixture
             // Worlds are infinite and stream in as they always did; the bounds tests turn these back on.
             pair.Server.CfgMan.SetCVar(PlanetCVars.Bounds, false);
             pair.Server.CfgMan.SetCVar(PlanetCVars.Preload, false);
+
+            // Crocus on Asclepiu is a minute of loading; only the tests about fixed cities build it.
+            pair.Server.CfgMan.SetCVar(PlanetCVars.FixedCities, false);
         });
     }
 

@@ -1,4 +1,3 @@
-wf-poi-asclepiu-city = Overgrown Industrial Township
 wf-poi-merak-caravan-city = Caravan Freight District
 wf-poi-asclepiu-garden-village = Garden Village
 wf-poi-asclepiu-derelict-village = Deserted Village

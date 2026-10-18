@@ -72,7 +72,6 @@ items and repair supplies through Traders; they do not automatically refuel dock
 ### Maps
 
 - [`Resources/Maps/_WF/PlanetPois/aerumna_salvage_yard.yml`](../../../Resources/Maps/_WF/PlanetPois/aerumna_salvage_yard.yml)
-- [`Resources/Maps/_WF/PlanetPois/asclepiu_city.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_city.yml)
 - [`Resources/Maps/_WF/PlanetPois/asclepiu_derelict_village.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_derelict_village.yml)
 - [`Resources/Maps/_WF/PlanetPois/asclepiu_fuel_service.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_fuel_service.yml)
 - [`Resources/Maps/_WF/PlanetPois/asclepiu_garden_village.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_garden_village.yml)
@@ -97,7 +96,6 @@ items and repair supplies through Traders; they do not automatically refuel dock
 ### Docs
 
 - [`Docs/_WF/PlanetPois/MapperGuide.md`](../../../Docs/_WF/PlanetPois/MapperGuide.md)
-- [`Docs/_WF/PlanetPois/Previews/asclepiu_city.webp`](../../../Docs/_WF/PlanetPois/Previews/asclepiu_city.webp)
 - [`Docs/_WF/PlanetPois/Previews/asclepiu_garden_village.webp`](../../../Docs/_WF/PlanetPois/Previews/asclepiu_garden_village.webp)
 - [`Docs/_WF/PlanetPois/Previews/merak_caravan_city.webp`](../../../Docs/_WF/PlanetPois/Previews/merak_caravan_city.webp)
 - [`Docs/_WF/PlanetPois/Previews/merak_fuel_service.webp`](../../../Docs/_WF/PlanetPois/Previews/merak_fuel_service.webp)

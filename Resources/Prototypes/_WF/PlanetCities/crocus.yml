@@ -1,0 +1,30 @@
+# Monolith's Crocus (Jianghui Industrial) on Asclepiu: a random spot each round, joinable through its own station.
+- type: wfFixedCity
+  id: WFCityCrocus
+  surface: WFSurfaceAsclepiu
+  gameMap: CrocusJianghuiIndustrial
+  station: Jianghui
+  name: wf-city-crocus
+  # The map's boundary rock and walls are indestructible on Crocus; here the whole city can be broken into.
+  replace:
+    N14WallRockIndestructible: WallRock
+    WallConcreteIndestructible: WallConcrete
+    N14WallRoughScrapSlantedIndestructible: N14WallRoughScrapSlanted
+    PlastitaniumWindowIndestructible: PlastitaniumWindow
+    BlastDoorIndestructible: BlastDoor
+    N14BlastDoorExteriorIndestructible: BlastDoor
+    # Ghosts start where the round's own map puts them, not in Crocus.
+    SpawnPointObserver: null
+  entrances:
+  # North out of the park, west off the main avenue; as wide as a world road with its shoulders.
+  - start: -40,71
+    direction: North
+    width: 7
+  - start: -79,39
+    direction: West
+    width: 7
+  # Below the street, the world's own rock fills in around the bunker.
+  terrain:
+  - N14WallRockIndestructible
+  # Every level's tiles, Crocus's own coordinates; the underground rock is left out (terrain below).
+  footprint: -105,-46,176,94

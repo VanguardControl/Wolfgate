@@ -1,5 +1,5 @@
 # Mapping markers for city plot and sewer templates. The city generator reads and deletes them; see
-# Docs/_WF/PlanetCities/README.md for where each one goes.
+# Content.Server/_WF/PlanetCities/README.md for where each one goes.
 - type: entity
   id: WFCityMarkerBase
   parent: MarkerBase

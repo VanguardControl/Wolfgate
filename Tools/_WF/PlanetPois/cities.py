@@ -131,4 +131,5 @@ def _city(asclepiu):
 
 
 def build_maps():
-    return [_city(True), _city(False)]
+    # Asclepiu has Crocus instead (Resources/Prototypes/_WF/PlanetCities/crocus.yml).
+    return [_city(False)]

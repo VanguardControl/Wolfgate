@@ -12,7 +12,7 @@ using Robust.Shared.Utility;
 namespace Content.IntegrationTests.Tests._WF.PlanetCities;
 
 /// <summary>
-/// Every city plot and sewer map follows the mapping rules in Docs/_WF/PlanetCities/README.md: full rectangles of the
+/// Every city plot and sewer map follows the mapping rules in Content.Server/_WF/PlanetCities/README.md: full rectangles of the
 /// allowed sizes, street doors on the south edge, stairs that meet a stairwell on the floor above, and sewer openings
 /// on the edges.
 /// </summary>

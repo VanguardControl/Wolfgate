@@ -516,7 +516,9 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - the ground under lattice is kept so cutting it gives the ground back.
   - only a planet's untouched biome ground takes lattice directly.
 - [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): planet networks are on in development builds.
+- [`Resources/Locale/en-US/_Mono/guidebook/planets.ftl`](../../../Resources/Locale/en-US/_Mono/guidebook/planets.ftl): Asclepiu is called Verda
 - [`Resources/Prototypes/_DV/Entities/Mobs/Species/harpy.yml`](../../../Resources/Prototypes/_DV/Entities/Mobs/Species/harpy.yml): z-level flight is back on, which Monolith#4812 turned off
+- [`Resources/Prototypes/_FarHorizons/Space/planets.yml`](../../../Resources/Prototypes/_FarHorizons/Space/planets.yml): Asclepiu is called Verda
 - [`Resources/Prototypes/_FarHorizons/Space/systems.yml`](../../../Resources/Prototypes/_FarHorizons/Space/systems.yml)
   - orbit well kept out of lock-on range of Monolith's drone belt.
   - orbit well moved out of Monolith's drone belt, a hazard world at its edge.
@@ -526,5 +528,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Resources/Prototypes/Entities/Mobs/Species/moth.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/moth.yml): z-level flight is back on, which Monolith#4812 turned off
 - [`Resources/Prototypes/Entities/Objects/Vehicles/buckleable.yml`](../../../Resources/Prototypes/Entities/Objects/Vehicles/buckleable.yml): vehicles and their riders leave temporary flight maps through normal z-level physics.
 - [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): landing thruster kits and parachutes.
+- [`Resources/ServerInfo/_Mono/Guidebook/StarSystem/Asclepiu.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/StarSystem/Asclepiu.xml): Asclepiu is called Verda
+- [`Resources/ServerInfo/_Mono/Guidebook/StarSystem/Kyphrus.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/StarSystem/Kyphrus.xml): Asclepiu is called Verda
 
 <!-- WOLFGATE-GENERATED END -->

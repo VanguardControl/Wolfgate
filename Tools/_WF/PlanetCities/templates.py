@@ -5,7 +5,7 @@
     python Tools/_WF/PlanetCities/templates.py --preview DIR   also draw each template as a PNG into DIR
 
 Plots face south (y = 0 is the street edge) and come as one file per floor: ground, upper1, upper2 and basement. Sewer
-pieces are 8x8 cells with openings marked on their edges. Docs/_WF/PlanetCities/README.md has the rules.
+pieces are 8x8 cells with openings marked on their edges. Content.Server/_WF/PlanetCities/README.md has the rules.
 """
 from __future__ import annotations
 

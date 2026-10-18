@@ -29,8 +29,8 @@ namespace Content.IntegrationTests.Tests._WF.Caverns;
 [TestOf(typeof(WFCavernSystem))]
 public sealed class CavernNetworkTest
 {
-    /// <summary>Layer roles for WFSurfaceAsclepiu: 0 ground, 1-3 air, 4 orbit.</summary>
-    private const int AsclepiuLayerCount = 5;
+    /// <summary>Layer roles for WFSurfaceAsclepiu: 0 ground, 1-4 air, 5 orbit.</summary>
+    private const int AsclepiuLayerCount = 6;
 
     /// <summary>With the CVar at its default the network is exactly the Planets stack.</summary>
     [Test]
@@ -105,7 +105,7 @@ public sealed class CavernNetworkTest
                         if (surfaceId == "WFSurfaceAsclepiu")
                         {
                             Assert.That(world.Layers, Has.Count.EqualTo(AsclepiuLayerCount),
-                                "PlanetNetworkTest's five-layer Asclepiu stack changed with caverns on.");
+                                "PlanetNetworkTest's six-layer Asclepiu stack changed with caverns on.");
                         }
 
                         var zMap = entMan.GetComponent<CEZMapComponent>(cavern);

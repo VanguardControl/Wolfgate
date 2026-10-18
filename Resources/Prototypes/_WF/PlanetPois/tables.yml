@@ -14,22 +14,6 @@
   minCount: 6
   maxCount: 7
   entries:
-  - mapPath: /Maps/_WF/PlanetPois/asclepiu_city.yml
-    name: wf-poi-asclepiu-city
-    expeditions: false
-    footprint: -144,-72,144,72
-    minCount: 1
-    maxCount: 1
-    connection: Through
-    sockets:
-    - offset: -144,0
-      direction: West
-    - offset: 143,0
-      direction: East
-    - offset: -72,71
-      direction: North
-    - offset: 72,-72
-      direction: South
   - mapPath: /Maps/_WF/PlanetPois/asclepiu_garden_village.yml
     name: wf-poi-asclepiu-garden-village
     expeditions: false

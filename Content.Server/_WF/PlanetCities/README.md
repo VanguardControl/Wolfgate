@@ -1,6 +1,22 @@
 # PlanetCities
 
-Generated cities on planet surfaces: a city boundary cut into blocks by a street grid, blocks filled wall to wall with
+Cities on planet surfaces, in two kinds.
+
+**Fixed cities** are hand-made multi-level maps stamped onto a world every round at a random spot, as a
+`wfFixedCity` prototype. Crocus (Monolith's Jianghui Industrial, `WFCityCrocus`) is the first, on Asclepiu. The
+city's game map gives everything: its main map goes on the ground, its maps above (`CEStationZLevels`) on the
+world's flight layers as static grids held up like mapped islands, and its maps below on the cavern, or on empty
+layers this module adds when the world has no cavern. Each level is loaded as a plain grid and merged in by the POI
+site code, so Monolith's map files are used as they are. The game map's station is created over the city's grids
+(the whole ground included), so it is joinable with the game map's jobs and spawn points. The prototype lists
+prototypes to swap on load (Crocus's indestructible rock and walls become ordinary ones, its observer spawns go)
+and road entrances cut from the city's streets to the edge of its footprint, where the world's roads join. A
+fixed city is placed before the world's other sites; one that finds no room is left out with a warning. Bare rock on
+the levels below the street (`terrain`) is dropped before loading where the layer under the world grows its own: the
+cavern, or the cavern's rock without its mouths on a world with caverns off. The city is built a level per tick,
+during the world's preload.
+
+**Generated cities** will be a city boundary cut into blocks by a street grid, blocks filled wall to wall with
 mapped plots, up to two floors above the street and a basement on the sewer level, and a sewer network under every
 street. Only the mapping side exists so far: the plot and sewer templates, the markers the generator will read, and
 a test that holds every city map to the rules below. The generator itself is not written yet.
@@ -55,13 +71,30 @@ wade) and catwalks where it turns.
 
 ## Files
 
+### Server
+
+- [`Content.Server/_WF/PlanetCities/WFPlanetCitiesComponent.cs`](WFPlanetCitiesComponent.cs)
+- [`Content.Server/_WF/PlanetCities/WFPlanetCityGridComponent.cs`](WFPlanetCityGridComponent.cs)
+- [`Content.Server/_WF/PlanetCities/WFPlanetCitySystem.cs`](WFPlanetCitySystem.cs)
+- [`Content.Server/_WF/PlanetCities/WFPlanetPoiSystem.Cities.cs`](WFPlanetPoiSystem.Cities.cs)
+
+### Shared
+
+- [`Content.Shared/_WF/PlanetCities/WFFixedCityPrototype.cs`](../../../Content.Shared/_WF/PlanetCities/WFFixedCityPrototype.cs)
+
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/PlanetCities/CityTemplateTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetCities/CityTemplateTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetCities/FixedCityTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetCities/FixedCityTest.cs)
 
 ### Prototypes
 
+- [`Resources/Prototypes/_WF/PlanetCities/crocus.yml`](../../../Resources/Prototypes/_WF/PlanetCities/crocus.yml)
 - [`Resources/Prototypes/_WF/PlanetCities/markers.yml`](../../../Resources/Prototypes/_WF/PlanetCities/markers.yml)
+
+### Localization
+
+- [`Resources/Locale/en-US/_WF/PlanetCities/cities.ftl`](../../../Resources/Locale/en-US/_WF/PlanetCities/cities.ftl)
 
 ### Maps
 

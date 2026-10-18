@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using Content.Server._WF.Caverns;
 using Content.Server._WF.Planets;
 using Content.Server._WF.Planets.Bounds;
 using Content.Server.Parallax;
@@ -45,7 +46,8 @@ public sealed partial class WFPlanetPoiSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<WFPlanetPreloadStartingEvent>(OnPreloadStarting);
+        // Ahead of the cavern mouths, so a fixed city can hold its spot before they claim the ground.
+        SubscribeLocalEvent<WFPlanetPreloadStartingEvent>(OnPreloadStarting, before: new[] { typeof(WFCavernMouthSystem) });
     }
 
     private void OnPreloadStarting(ref WFPlanetPreloadStartingEvent args)
@@ -70,7 +72,7 @@ public sealed partial class WFPlanetPoiSystem : EntitySystem
             return;
         }
 
-        args.Holds.Add(PlaceAsync(args.Ground, comp.OrbitMap, args.Centre, args.Radius, table));
+        args.Holds.Add(PlaceAsync(args.Ground, comp, args.Centre, args.Radius, table));
     }
 
     /// <summary>The marker on the orbit layer over a site, unidentified until someone on the ground reaches it.</summary>

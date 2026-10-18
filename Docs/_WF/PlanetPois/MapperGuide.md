@@ -164,7 +164,7 @@ Both habitable tables guarantee one city, one inhabited settlement, one abandone
 one trading post and one fuel service. Positions and connecting routes change between rounds.
 The four hazard tables each guarantee their authored shelter and retain randomized expedition sites.
 
-- Asclepiu: `asclepiu_city` (288 × 144), `asclepiu_garden_village` (64 × 48),
+- Asclepiu: Crocus (Jianghui Industrial, a fixed city: see `Content.Server/_WF/PlanetCities/README.md`), `asclepiu_garden_village` (64 × 48),
   `asclepiu_derelict_village` (80 × 56), `asclepiu_roadside_trader` (40 × 32),
   `asclepiu_fuel_service` (48 × 40).
 - Merak: `merak_caravan_city` (288 × 144), `merak_caravan_camp` and
@@ -173,8 +173,7 @@ The four hazard tables each guarantee their authored shelter and retain randomiz
 - Other worlds: `fervidus_rim_shelter`, `thrascias_survey_shelter`, `aerumna_salvage_yard`
   and `carcinoma_ruin_shelter` (48 × 40 each), all abandoned.
 
-Actual game-sprite previews: [Asclepiu city](Previews/asclepiu_city.webp),
-[Merak city](Previews/merak_caravan_city.webp), [garden village](Previews/asclepiu_garden_village.webp)
+Actual game-sprite previews: [Merak city](Previews/merak_caravan_city.webp), [garden village](Previews/asclepiu_garden_village.webp)
 and [Merak fuel stop](Previews/merak_fuel_service.webp). These are static map renders, without
 runtime planetary weather or generated exterior roads. Regenerate with `Content.MapRenderer`
 after changing a map; the optional Python previews are simpler tile plans.

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Server._WF.PlanetCities;
 using Content.Server._WF.PlanetPois;
 using Content.Server._WF.Planets;
 using Content.Shared._WF.Planets;
@@ -83,7 +84,8 @@ public sealed class WFPlanetSignalsSystem : EntitySystem
         while (grids.MoveNext(out var grid, out var gridComp, out var xform))
         {
             if (xform.MapUid is not { } map || map == grid || !_layers.TryGetValue(map, out var at)
-                || gridComp.LocalAABB.Width * gridComp.LocalAABB.Height < MinVesselArea)
+                || gridComp.LocalAABB.Width * gridComp.LocalAABB.Height < MinVesselArea
+                || HasComp<WFPlanetCityGridComponent>(grid))
                 continue;
 
             var iff = CompOrNull<IFFComponent>(grid);

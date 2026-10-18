@@ -21,6 +21,17 @@ public sealed partial class BiomeSystem
         }
     }
 
+    /// <summary>Lets the biome generate on tiles again.</summary>
+    public void WfUnpinTiles(Entity<BiomeComponent> biome, IEnumerable<Vector2i> indices)
+    {
+        foreach (var index in indices)
+        {
+            var chunkOrigin = SharedMapSystem.GetChunkIndices(index, ChunkSize) * ChunkSize;
+            if (biome.Comp.ModifiedTiles.TryGetValue(chunkOrigin, out var modified))
+                modified.Remove(index);
+        }
+    }
+
     /// <summary>Whether one tile index is pinned against biome regeneration.</summary>
     public bool WfIsPinned(Entity<BiomeComponent> biome, Vector2i index)
     {

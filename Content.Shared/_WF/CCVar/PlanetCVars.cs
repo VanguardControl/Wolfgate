@@ -62,6 +62,10 @@ public sealed class PlanetCVars
     public static readonly CVarDef<bool> Prebuild =
         CVarDef.Create("wf.planet_prebuild", true, CVar.SERVERONLY);
 
+    /// <summary>Whether worlds get their fixed cities (wfFixedCity), such as Crocus on Asclepiu.</summary>
+    public static readonly CVarDef<bool> FixedCities =
+        CVarDef.Create("wf.planet_fixed_cities", true, CVar.SERVERONLY);
+
     /// <summary>A wfPlanetPoiTable every world rolls its sites from instead of its surface's own; empty keeps each surface's.</summary>
     public static readonly CVarDef<string> PoiTable =
         CVarDef.Create("wf.planet_poi_table", "", CVar.SERVERONLY);

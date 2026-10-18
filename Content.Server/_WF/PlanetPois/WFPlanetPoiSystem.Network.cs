@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using Content.Server._WF.Planets;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared.Doors.Components;
 using Content.Shared.Decals;
@@ -30,7 +31,7 @@ public sealed partial class WFPlanetPoiSystem
     [Dependency] private DecalSystem _decals = default!;
 
     /// <summary>Builds and validates every site and route before releasing the terrain hold.</summary>
-    private async Task PlaceAsync(EntityUid ground, EntityUid orbit, Vector2 centre, float radius, WFPlanetPoiTablePrototype table)
+    private async Task PlaceAsync(EntityUid ground, WFPlanetNetworkComponent network, Vector2 centre, float radius, WFPlanetPoiTablePrototype table)
     {
         var record = EnsureComp<WFPlanetPoiComponent>(ground);
         var created = new HashSet<EntityUid>();
@@ -53,8 +54,12 @@ public sealed partial class WFPlanetPoiSystem
                 originalTiles[oldTile.Value.GridIndices] = oldTile.Value.Tile;
                 if (oldRoof != null && _roof.IsRooved((ground, grid, oldRoof), oldTile.Value.GridIndices)) originalRoof.Add(oldTile.Value.GridIndices);
             }
+            var orbit = network.OrbitMap;
             var entries = SelectEntries(table);
             var reserved = new List<Box2i>();
+            await PlaceCitiesAsync(ground, grid, biome, network, orbit, centre, radius, table, record, reserved, initialPins, created, createdDecals, changed);
+            if (TerminatingOrDeleted(ground))
+                return;
             foreach (var entry in entries)
             {
                 if (TerminatingOrDeleted(ground))
@@ -441,8 +446,9 @@ public sealed partial class WFPlanetPoiSystem
         var transferred = new HashSet<EntityUid>();
         CaptureChildren(source.Owner, transferred);
         created.UnionWith(transferred);
-        // Engine re-anchoring assumes both grids already belong to the same map.
-        _transform.SetCoordinates(source.Owner, new EntityCoordinates(ground, Vector2.Zero));
+        // Engine re-anchoring assumes both grids already belong to the same map; the target is the map itself or a grid on it.
+        var targetMap = Transform(ground).MapUid ?? ground;
+        _transform.SetCoordinates(source.Owner, new EntityCoordinates(targetMap, targetMap == ground ? Vector2.Zero : _transform.GetWorldPosition(ground)));
         var canSplit = grid.CanSplit;
         grid.CanSplit = false;
         try { _fixtures.Merge(ground, source.Owner, origin, Angle.Zero, grid, source.Comp); }
@@ -454,7 +460,7 @@ public sealed partial class WFPlanetPoiSystem
             foreach (var root in transferred)
             {
                 if (TerminatingOrDeleted(root)) continue;
-                InitializeTransferred(root, _maps.IsInitialized(ground), _maps.IsPaused(ground));
+                InitializeTransferred(root, _maps.IsInitialized(targetMap), _maps.IsPaused(targetMap));
             }
         }
         finally
