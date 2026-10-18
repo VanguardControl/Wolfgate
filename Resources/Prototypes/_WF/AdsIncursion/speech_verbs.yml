@@ -4,6 +4,7 @@
   id: WFAdsSynth
   name: wf-ads-speech-verb-name
   fontId: WFAdsSynth
+  fontSize: 10
   speechVerbStrings:
   - chat-speech-verb-robotic-1
   - chat-speech-verb-robotic-2
