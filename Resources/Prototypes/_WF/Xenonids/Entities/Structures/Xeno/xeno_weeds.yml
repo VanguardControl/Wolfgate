@@ -150,9 +150,8 @@
       behaviors:
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
-  # XENOPORT(P2b-1): XenoConstructionPlasmaCost
-  # - type: XenoConstructionPlasmaCost
-  #   plasma: 215
+  - type: XenoConstructionPlasmaCost
+    plasma: 215
   - type: RMCDeleteAnchoredOnInit
     enabled: true
     whitelist:
@@ -321,9 +320,8 @@
     healOnStopSpreading:
       groups:
         Brute: -6
-  # XENOPORT(P2b-1): XenoConstructionPlasmaCost
-  # - type: XenoConstructionPlasmaCost
-  #   plasma: 75
+  - type: XenoConstructionPlasmaCost
+    plasma: 75
   - type: Tag
     tags:
     - XenoWeedNode

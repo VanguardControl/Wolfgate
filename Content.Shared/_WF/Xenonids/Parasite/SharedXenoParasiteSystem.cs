@@ -1060,6 +1060,10 @@ public abstract partial class SharedXenoParasiteSystem : EntitySystem
         burster.BurstFrom = victim.Owner;
         Dirty(spawned, burster);
     }
+
+    public void RefreshIncubationMultipliers(EntityUid ent)
+    {
+    }
 }
 
 [Serializable, NetSerializable]
