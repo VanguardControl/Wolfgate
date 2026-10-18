@@ -389,6 +389,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBluntWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBluntWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBobMeleeSoundsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBobMeleeSoundsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBobSoundsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBobSoundsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBorgInstrumentsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBorgInstrumentsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBrainTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBrainTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedChoiceWindowLayoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedChoiceWindowLayoutTest.cs)
@@ -492,6 +493,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_WF/Wolfmed/Damage/treatment_overlays.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Damage/treatment_overlays.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Decals/blood.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Decals/blood.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Decals/gibs.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Decals/gibs.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Entities/borg_tools.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/borg_tools.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/debug_medbox.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/debug_medbox.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/range_spawner.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/range_spawner.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Entities/effects.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/effects.yml)
@@ -1076,6 +1078,7 @@ Skipped ("dirty-disposed").
   - a makeshift strap can slip
   - W2: an arterial bleed away from the limbs has nowhere to tie off; say so.
   - the tied part records how hard a hit knocks a makeshift strap loose
+  - a borg's tourniquet stays in its hand
   - D13 — class is now Content.Server-only, so Onyx's "if (_net.IsServer)" guard is always true; dropped with the INetManager dependency
   - D13 — class is now Content.Server-only, so Onyx's "!_net.IsServer ||" half of this guard is always false; dropped with the INetManager dependency
   - playtest 4: the strap ties off everything below it too (a leg's foot, an arm's hand).
@@ -1273,7 +1276,9 @@ Skipped ("dirty-disposed").
   - M1a: package D's vitals block
   - playtest 5, the repaired brain's trauma
   - playtest 5
-- [`Content.Shared/_Onyx/Medical/Tourniquet/TourniquetComponent.cs`](../../../Content.Shared/_Onyx/Medical/Tourniquet/TourniquetComponent.cs): ported from Onyx for Wolfmed.
+- [`Content.Shared/_Onyx/Medical/Tourniquet/TourniquetComponent.cs`](../../../Content.Shared/_Onyx/Medical/Tourniquet/TourniquetComponent.cs)
+  - ported from Onyx for Wolfmed.
+  - a borg's tourniquet stays in its hand
 - [`Content.Shared/_Onyx/Mobs/Systems/MobThresholdSystem.cs`](../../../Content.Shared/_Onyx/Mobs/Systems/MobThresholdSystem.cs)
   - Wolfgate keeps BodyComponent in Content.Shared.Body.Components.
   - D12 damage facade.
@@ -1959,6 +1964,9 @@ Skipped ("dirty-disposed").
   - ITEMS, playtest 5: 7x2, room for the tourniquet, splint, suture and painkillers.
   - playtest 5: 7x2 like the other kits, room for a tourniquet, a splint and an epinephrine pen.
 - [`Resources/Prototypes/Entities/Objects/Specific/Research/anomaly.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Research/anomaly.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
+- [`Resources/Prototypes/Entities/Objects/Specific/Robotics/borg_modules.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Robotics/borg_modules.yml)
+  - the field items Wolfmed's wound and IPC treatments call for
+  - fracture setting and burn grafting
 - [`Resources/Prototypes/Entities/Objects/Specific/Robotics/mmi.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Robotics/mmi.yml): BRAIN: organ health, so a chassis can be killed
 - [`Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml)
   - W6: the surgery tool for the servo step. Servo damage carries no damage type, so the coil's
