@@ -3265,6 +3265,26 @@
     sprite: _WF/MeridianStructures/blastdoor.rsi
 
 - type: entity
+  parent: Grille
+  id: WFMeridianGrille
+  suffix: "Meridian"
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianStructures/grille-new.rsi
+  - type: Icon
+    sprite: _WF/MeridianStructures/grille-new.rsi
+
+- type: entity
+  parent: GrilleBroken
+  id: WFMeridianGrilleBroken
+  suffix: "Meridian"
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianStructures/grille-new.rsi
+  - type: Icon
+    sprite: _WF/MeridianStructures/grille-new.rsi
+
+- type: entity
   parent: PlasmaReinforcedWindowDirectional
   id: WFMeridianPlasmaReinforcedWindowDirectional
   suffix: "Meridian"

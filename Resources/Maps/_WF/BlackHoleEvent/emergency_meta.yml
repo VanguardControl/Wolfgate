@@ -3606,7 +3606,7 @@ entities:
           - 277
           - 268
           - 278
-- proto: Grille
+- proto: WFMeridianGrille
   entities:
   - uid: 646
     components:

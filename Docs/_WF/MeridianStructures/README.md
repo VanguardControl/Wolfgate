@@ -1,6 +1,6 @@
 # MeridianStructures
 
-Meridian Rift's wall, window and door sprites (from its NovaSector and tgstation art) on copies of the
+Meridian Rift's wall, window, door and grille sprites (from its NovaSector and tgstation art) on copies of the
 upstream structures. Each `WFMeridian<Id>` entity is the upstream `<Id>` with only its sprite changed, so
 access, wires, construction and damage behave the same; deconstructing one gives upstream parts back.
 Only the structures Meta Station uses have variants; the black hole event map in `BlackHoleEvent` places them.
@@ -73,6 +73,7 @@ what is left upstream.
 - [`Resources/Textures/_WF/MeridianStructures/airlock_shuttle_glass.rsi/`](../../../Resources/Textures/_WF/MeridianStructures/airlock_shuttle_glass.rsi/)
 - [`Resources/Textures/_WF/MeridianStructures/blastdoor.rsi/`](../../../Resources/Textures/_WF/MeridianStructures/blastdoor.rsi/)
 - [`Resources/Textures/_WF/MeridianStructures/directional.rsi/`](../../../Resources/Textures/_WF/MeridianStructures/directional.rsi/)
+- [`Resources/Textures/_WF/MeridianStructures/grille-new.rsi/`](../../../Resources/Textures/_WF/MeridianStructures/grille-new.rsi/)
 - [`Resources/Textures/_WF/MeridianStructures/plastitanium.rsi/`](../../../Resources/Textures/_WF/MeridianStructures/plastitanium.rsi/)
 - [`Resources/Textures/_WF/MeridianStructures/reinforced_plasma_window.rsi/`](../../../Resources/Textures/_WF/MeridianStructures/reinforced_plasma_window.rsi/)
 - [`Resources/Textures/_WF/MeridianStructures/reinforced_uranium_window.rsi/`](../../../Resources/Textures/_WF/MeridianStructures/reinforced_uranium_window.rsi/)

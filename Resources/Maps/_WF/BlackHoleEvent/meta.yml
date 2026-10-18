@@ -120551,7 +120551,7 @@ entities:
       parent: 5350
     - type: PointLight
       radius: 175.75
-- proto: Grille
+- proto: WFMeridianGrille
   entities:
   - uid: 47
     components:
@@ -128071,7 +128071,7 @@ entities:
     - type: Transform
       pos: -58.5,-57.5
       parent: 5350
-- proto: GrilleBroken
+- proto: WFMeridianGrilleBroken
   entities:
   - uid: 2073
     components:

@@ -1,6 +1,6 @@
 # BlackHoleEvent
 
-Meta Station for the black hole event, with every wall, window and door swapped for its Meridian Rift
+Meta Station for the black hole event, with every wall, window, door and grille swapped for its Meridian Rift
 variant from `MeridianStructures`, including on its evac shuttle. It's the `WFMetaBlackHole` game map and
 isn't in any map pool; an admin starts it with `forcemap WFMetaBlackHole` before the round.
 

@@ -1,5 +1,5 @@
 """
-Ports Meridian Rift's wall, window and door sprites onto Meta Station's structures.
+Ports Meridian Rift's wall, window, door and grille sprites onto Meta Station's structures.
 
 Each upstream RSI that Meta's walls, windows and doors use is copied and the states Meridian Rift
 has art for are replaced; states it lacks (construction stages, cracks, AI overlays) stay upstream.
@@ -16,6 +16,7 @@ Art notes:
   go into a per-family effects RSI. All facings repeat the single SS13 facing.
 - Opening and closing keep the upstream animation length so door timing doesn't change.
 - Meridian Rift has no uranium windows; those are its plasma windows shifted to green.
+- Grilles don't smooth in SS13, so every corner state is a quadrant of the one grille sprite.
 """
 
 import argparse
@@ -40,7 +41,7 @@ MAPS = {
     "Resources/Maps/meta.yml": "Resources/Maps/_WF/BlackHoleEvent/meta.yml",
     "Resources/Maps/Shuttles/emergency_meta.yml": "Resources/Maps/_WF/BlackHoleEvent/emergency_meta.yml",
 }
-STRUCTURE = re.compile(r"Wall|Window|Airlock|Door|Shutter|Blast|Windoor", re.I)
+STRUCTURE = re.compile(r"Wall|Window|Airlock|Door|Shutter|Blast|Windoor|Grille", re.I)
 NOT_STRUCTURE = re.compile(r"Wallmount|ClosetWall|WallWeapon|InflatableWall|DoorRemote|DoorElectronics|VendingMachineWall")
 
 NOVA = "modular_nova/modules/aesthetics/"
@@ -106,8 +107,9 @@ EFFECT_STATES = {
     "sparks_open": "sparks_open",
 }
 
-# Smoothed upstream RSI -> {corner state base: (sheet, overlay state or None, recolour)}, plus the
-# single-tile states taken from the isolated junction.
+# Smoothed upstream RSI -> {corner state base: (sheet, overlay state or None, recolour[, fixed state])}, plus
+# the single-tile states taken from the isolated junction. A fixed state is a sprite that doesn't smooth: every
+# corner takes its quadrant of that one sprite.
 WALL = NOVA + "walls/icons/wall.dmi"
 RWALL = NOVA + "walls/icons/reinforced_wall.dmi"
 WINDOWS = NOVA + "windows/icons/"
@@ -147,6 +149,13 @@ SMOOTHED = {
     "Structures/Windows/reinforced_uranium_window.rsi": {
         "corners": {"ruwindow": (WINDOWS + "r_window_plasma.dmi", None, "uranium")},
         "single": {"full": (WINDOWS + "r_window_plasma.dmi", None, "uranium")},
+    },
+    "Structures/Walls/grille-new.rsi": {
+        "corners": {"grille": ("icons/obj/structures.dmi", None, None, "grille")},
+        "single": {
+            "full": ("icons/obj/structures.dmi", None, None, "grille"),
+            "broken": ("icons/obj/structures.dmi", None, None, "brokengrille"),
+        },
     },
     "Structures/Windows/shuttle_window.rsi": {
         "corners": {"swindow": ("icons/obj/smooth_structures/shuttle_window.dmi", None, None)},
@@ -349,26 +358,29 @@ def junction_prefix(dmi):
     raise ValueError("%s has no junction states" % dmi.path)
 
 
-def junction(source, sheet, bits, rust, how):
+def junction(source, sheet, bits, rust, how, fixed=None):
     dmi = Dmi.load(os.path.join(source, sheet))
-    prefix = junction_prefix(dmi)
-    state = dmi.states.get("%s-%d" % (prefix, bits))
-    if state is None:
-        state = dmi.states["%s-%d" % (prefix, bits & 15)]
+    if fixed is not None:
+        state = dmi.states[fixed]
+    else:
+        prefix = junction_prefix(dmi)
+        state = dmi.states.get("%s-%d" % (prefix, bits))
+        if state is None:
+            state = dmi.states["%s-%d" % (prefix, bits & 15)]
     image = state.images[0][0].copy()
     if rust:
         image.alpha_composite(dmi.states[rust].images[0][0])
     return recolour(image, how)
 
 
-def corner_state(source, sheet, fill, rust, how):
+def corner_state(source, sheet, fill, rust, how, fixed=None):
     frames = []
     for corner in CORNER_DIRS:
         ccw, diag, cw = CORNER_BITS[corner]
         bits = (ccw if fill & 1 else 0) | (cw if fill & 4 else 0)
         if fill & 2 and fill & 1 and fill & 4:
             bits |= diag
-        image = junction(source, sheet, bits, rust, how)
+        image = junction(source, sheet, bits, rust, how, fixed)
         box = QUADRANTS[corner]
         frame = blank()
         frame.paste(image.crop(box), box[:2])
@@ -428,11 +440,11 @@ def dirs_of(root, upstream, state):
 def smoothed_build(root, source, name, upstream):
     spec = SMOOTHED[upstream]
     build = Build(name, upstream)
-    for base, (sheet, rust, how) in spec["corners"].items():
+    for base, args in spec["corners"].items():
         for fill in range(8):
-            build.replaced["%s%d" % (base, fill)] = corner_state(source, sheet, fill, rust, how)
-    for state, (sheet, rust, how) in spec["single"].items():
-        build.replaced[state] = ([[junction(source, sheet, 0, rust, how)]], [[1.0]])
+            build.replaced["%s%d" % (base, fill)] = corner_state(source, *args[:1], fill, *args[1:])
+    for state, args in spec["single"].items():
+        build.replaced[state] = ([[junction(source, args[0], 0, *args[1:])]], [[1.0]])
     return build
 
 
