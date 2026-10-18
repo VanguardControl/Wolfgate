@@ -242,6 +242,10 @@
     name: wf-poi-thrascias-virology
 - type: wfPlanetPoiTable
   id: WFPoisAerumna
+  roamers:
+  - id: WFAerumnaLeviathan
+    minCount: 1
+    maxCount: 2
   wrecks:
     theme: WFWreckThemeAerumna
     minCount: 1

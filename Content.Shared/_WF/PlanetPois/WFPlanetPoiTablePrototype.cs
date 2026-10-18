@@ -55,6 +55,24 @@ public sealed partial class WFPlanetPoiTablePrototype : IPrototype
     /// <summary>Crashed ships scattered off the roads, reclaimed by the world.</summary>
     [DataField]
     public WFPlanetWrecks? Wrecks;
+
+    /// <summary>Big creatures set loose on the open ground each round, away from the landing zone.</summary>
+    [DataField]
+    public List<WFPlanetRoamer> Roamers = new();
+}
+
+/// <summary>A creature that roams a world's surface, and how many of it.</summary>
+[DataDefinition]
+public sealed partial class WFPlanetRoamer
+{
+    [DataField(required: true)]
+    public EntProtoId Id;
+
+    [DataField]
+    public int MinCount = 1;
+
+    [DataField]
+    public int MaxCount = 1;
 }
 
 /// <summary>One kind of site: the dungeon generated for it and what its signal is called once identified.</summary>

@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Shared.Procedural;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared.Salvage;
@@ -14,6 +15,19 @@ public sealed partial class WFPlanetPoiComponent : Component
 
     [ViewVariables]
     public bool NetworkReady;
+
+    /// <summary>Creatures to let loose once the whole ground exists, so none starts on terrain that isn't there yet.</summary>
+    [ViewVariables]
+    public List<WFPlanetRoamer> PendingRoamers = new();
+
+    [ViewVariables]
+    public Vector2 RoamerCentre;
+
+    [ViewVariables]
+    public float RoamerRadius;
+
+    [ViewVariables]
+    public float RoamerInner;
 
     [ViewVariables]
     public string? GenerationError;

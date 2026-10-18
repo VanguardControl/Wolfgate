@@ -35,6 +35,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.cs`](WFPlanetPoiSystem.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Dressing.cs`](WFPlanetPoiSystem.Dressing.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Network.cs`](WFPlanetPoiSystem.Network.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Roamers.cs`](WFPlanetPoiSystem.Roamers.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Rotation.cs`](WFPlanetPoiSystem.Rotation.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Wrecks.cs`](WFPlanetPoiSystem.Wrecks.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetRoadPlanner.cs`](WFPlanetRoadPlanner.cs)
