@@ -88,11 +88,11 @@
     # - CMXenoCarrier
     # - CMXenoBurrower
     # - CMXenoHivelord
-    # XENOPORT(P3-M): CMXenoLurker, CMXenoWarrior; XENOPORT(P3-B): CMXenoSpitter
-    earlyEvolvesTo: []
-    # - CMXenoLurker
+    # XENOPORT(P3-B): CMXenoSpitter
+    earlyEvolvesTo:
+    - CMXenoLurker
     # - CMXenoSpitter
-    # - CMXenoWarrior
+    - CMXenoWarrior
     # XENOPORT(P3-Q): CMXenoQueen
     evolvesToWithoutPoints: []
     # - CMXenoQueen

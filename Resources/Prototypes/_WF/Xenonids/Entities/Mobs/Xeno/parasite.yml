@@ -31,8 +31,8 @@
     actionIds:
     - ActionXenoRest
     - ActionXenoWatch
-    # XENOPORT(P3-M): - ActionXenoHide
-    # XENOPORT(P3-M): - ActionXenoLeap
+    - ActionXenoHide
+    - ActionXenoLeap
     tier: 0
     hudOffset: -0.1,0.1
     contributesToVictory: false
@@ -156,7 +156,7 @@
     actionIds:
     - ActionXenoRest
     - ActionXenoWatch
-    # XENOPORT(P3-M): - ActionXenoLeap
+    - ActionXenoLeap
     - ActionXenoZoom
   # XENOPORT(P2b-3): XenoStrain
   # - type: XenoStrain

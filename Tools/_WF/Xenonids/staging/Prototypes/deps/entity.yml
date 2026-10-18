@@ -35,24 +35,6 @@
       sprite: _WF/Xenonids/Actions/xeno_actions.rsi
       state: xeno_tacmap
 
-# RMC-14: Resources/Prototypes/_RMC14/Effects/slash.yml
-- type: entity
-  parent: RMCBaseEffect
-  id: RMCEffectExtraSlash
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: TimedDespawn
-    lifetime: 0.4
-  - type: Sprite
-    sprite: _WF/Xenonids/Effects/attacks.rsi
-    noRot: true
-    state: slash
-    drawdepth: Effects
-  - type: EffectVisuals
-  - type: Tag
-    tags:
-    - HideContextMenu
-
 # RMC-14: Resources/Prototypes/_RMC14/Effects/slam.yml
 - type: entity
   parent: RMCBaseEffect
@@ -66,24 +48,6 @@
     noRot: true
     state: slam
     drawdepth: Effects
-  - type: EffectVisuals
-  - type: Tag
-    tags:
-    - HideContextMenu
-
-# RMC-14: Resources/Prototypes/_RMC14/Effects/green.yml
-- type: entity
-  id: RMCEffectXenoTelegraphGreen
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: TimedDespawn
-    lifetime: 10
-  - type: Sprite
-    drawdepth: Effects
-    sprite: _WF/Xenonids/Effects/xeno_telegraph.rsi
-    color: "#008000"
-    noRot: true
-    state: xeno_telegraph_base
   - type: EffectVisuals
   - type: Tag
     tags:

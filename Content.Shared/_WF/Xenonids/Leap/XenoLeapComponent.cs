@@ -1,4 +1,3 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Content.Shared._WF.Xenonids.Parasite;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
@@ -57,10 +56,10 @@ public sealed partial class XenoLeapComponent : Component
     public int TargetCameraShakeStrength;
 
     [DataField, AutoNetworkedField]
-    public CollisionGroup IgnoredCollisionGroupLarge = CollisionGroup.MidImpassable; // WOLFGATE: no BarricadeImpassable layer here
+    public CollisionGroup IgnoredCollisionGroupLarge = CollisionGroup.MidImpassable;
 
     [DataField, AutoNetworkedField]
-    public CollisionGroup IgnoredCollisionGroupSmall = CollisionGroup.None; // WOLFGATE: no BarricadeImpassable layer here
+    public CollisionGroup IgnoredCollisionGroupSmall = CollisionGroup.None;
 
     [DataField, AutoNetworkedField]
     public EntityUid? LastHit;
