@@ -135,6 +135,8 @@ namespace Content.Client.Options.UI.Tabs
             };
             // WOLFGATE END
 
+            WfSearchBar.OnTextChanged += args => KeybindSearch.Filter(KeybindsContainer, args.Text); // WOLFGATE(Options): keybind search bar
+
             var first = true;
 
             void AddHeader(string headerContents)

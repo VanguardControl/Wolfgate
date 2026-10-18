@@ -11,6 +11,8 @@
         <Button Access="Public" Name="RoadmapButton" Text="{Loc 'wf-roadmap-button'}" />
         <!-- WOLFGATE(SectorControl): sector map entry under the roadmap -->
         <Button Access="Public" Name="SectorMapButton" Text="{Loc 'wf-sector-map-button'}" />
+        <!-- WOLFGATE(Feedback): bug report and suggestion entry, green so players find it -->
+        <Button Access="Public" Name="FeedbackButton" Text="{Loc 'wf-feedback-button'}" StyleClasses="ButtonColorGreen" />
         <ui:VoteCallMenuButton />
         <!-- WOLFGATE(InRoundCreator): opens the character creator over the round -->
         <Button Access="Public" Name="CharacterButton" Text="{Loc 'wf-escape-character-creator'}" ToolTip="{Loc 'wf-escape-character-creator-tooltip'}" />

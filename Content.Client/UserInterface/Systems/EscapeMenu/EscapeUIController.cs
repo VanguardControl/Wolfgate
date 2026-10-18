@@ -1,4 +1,5 @@
 ﻿using Content.Client.Gameplay;
+using Content.Client._WF.Feedback; // WOLFGATE(Feedback)
 using Content.Client._WF.RoundSetup; // WOLFGATE(RoundSetup)
 using Content.Client._WF.MappingMode; // WOLFGATE(MappingMode)
 using Content.Client.Lobby; // WOLFGATE(InRoundCreator)
@@ -82,6 +83,14 @@ public sealed partial class EscapeUIController : UIController, IOnStateEntered<G
         };
         // WOLFGATE END
 
+        // WOLFGATE(Feedback) START: bug report and suggestion entry in the game menu
+        _escapeWindow.FeedbackButton.OnPressed += _ =>
+        {
+            CloseEscapeWindow();
+            UIManager.GetUIController<FeedbackUIController>().ToggleWindow();
+        };
+        // WOLFGATE END
+
         // WOLFGATE(SectorControl) START: sector map entry in the game menu
         _escapeWindow.SectorMapButton.OnPressed += _ =>
         {
@@ -135,6 +144,10 @@ public sealed partial class EscapeUIController : UIController, IOnStateEntered<G
         _escapeWindow.DisconnectButton.OnPressed += _ =>
         {
             CloseEscapeWindow();
+            // WOLFGATE(Feedback) START: offer the end of shift survey before leaving
+            if (UIManager.GetUIController<FeedbackUIController>().TryOfferSurveyBeforeLeaving(() => _console.ExecuteCommand("disconnect")))
+                return;
+            // WOLFGATE END
             _console.ExecuteCommand("disconnect");
         };
 
@@ -147,6 +160,10 @@ public sealed partial class EscapeUIController : UIController, IOnStateEntered<G
         _escapeWindow.QuitButton.OnPressed += _ =>
         {
             CloseEscapeWindow();
+            // WOLFGATE(Feedback) START: offer the end of shift survey before quitting
+            if (UIManager.GetUIController<FeedbackUIController>().TryOfferSurveyBeforeLeaving(() => _console.ExecuteCommand("quit")))
+                return;
+            // WOLFGATE END
             _console.ExecuteCommand("quit");
         };
 

@@ -285,6 +285,12 @@
                                     <Label Text="{Loc 'humanoid-profile-editor-skin-color-label'}" StyleClasses="CreatorFieldLabel" Margin="0 6 0 0" />
                                     <Slider HorizontalExpand="True" Name="Skin" MinValue="0" MaxValue="100" Value="20" />
                                     <BoxContainer Name="RgbSkinColorContainer" Visible="False" Orientation="Vertical" HorizontalExpand="True" />
+                                    <!-- WOLFGATE(Biotype): organic or synthetic body (HumanoidProfileEditor.Biotype.cs) -->
+                                    <BoxContainer HorizontalExpand="True" SeparationOverride="6" Margin="0 6 0 0">
+                                        <Label Text="{Loc 'wf-biotype-label'}" StyleClasses="CreatorFieldLabel" VAlign="Center" />
+                                        <Control HorizontalExpand="True" />
+                                        <OptionButton Name="BiotypeButton" MinWidth="180" ToolTip="{Loc 'wf-biotype-tooltip'}" />
+                                    </BoxContainer>
                                     <!-- WOLFGATE(Species): lets any species wear every species' markings (HumanoidProfileEditor.MismatchedParts.cs) -->
                                     <CheckBox Name="MismatchedPartsCheckBox" Text="{Loc 'wf-mismatched-parts-toggle'}"
                                               ToolTip="{Loc 'wf-mismatched-parts-tooltip'}" Margin="0 6 0 0" />

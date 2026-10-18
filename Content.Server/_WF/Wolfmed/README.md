@@ -389,6 +389,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBluntWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBluntWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBobMeleeSoundsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBobMeleeSoundsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBobSoundsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBobSoundsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBorgInstrumentsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBorgInstrumentsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBrainTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBrainTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedBurnWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedChoiceWindowLayoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedChoiceWindowLayoutTest.cs)
@@ -492,6 +493,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_WF/Wolfmed/Damage/treatment_overlays.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Damage/treatment_overlays.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Decals/blood.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Decals/blood.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Decals/gibs.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Decals/gibs.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Entities/borg_tools.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/borg_tools.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/debug_medbox.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/debug_medbox.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/range_spawner.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/Debugging/range_spawner.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Entities/effects.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Entities/effects.yml)
@@ -1076,6 +1078,7 @@ Skipped ("dirty-disposed").
   - a makeshift strap can slip
   - W2: an arterial bleed away from the limbs has nowhere to tie off; say so.
   - the tied part records how hard a hit knocks a makeshift strap loose
+  - a borg's tourniquet stays in its hand
   - D13 — class is now Content.Server-only, so Onyx's "if (_net.IsServer)" guard is always true; dropped with the INetManager dependency
   - D13 — class is now Content.Server-only, so Onyx's "!_net.IsServer ||" half of this guard is always false; dropped with the INetManager dependency
   - playtest 4: the strap ties off everything below it too (a leg's foot, an arm's hand).
@@ -1273,7 +1276,9 @@ Skipped ("dirty-disposed").
   - M1a: package D's vitals block
   - playtest 5, the repaired brain's trauma
   - playtest 5
-- [`Content.Shared/_Onyx/Medical/Tourniquet/TourniquetComponent.cs`](../../../Content.Shared/_Onyx/Medical/Tourniquet/TourniquetComponent.cs): ported from Onyx for Wolfmed.
+- [`Content.Shared/_Onyx/Medical/Tourniquet/TourniquetComponent.cs`](../../../Content.Shared/_Onyx/Medical/Tourniquet/TourniquetComponent.cs)
+  - ported from Onyx for Wolfmed.
+  - a borg's tourniquet stays in its hand
 - [`Content.Shared/_Onyx/Mobs/Systems/MobThresholdSystem.cs`](../../../Content.Shared/_Onyx/Mobs/Systems/MobThresholdSystem.cs)
   - Wolfgate keeps BodyComponent in Content.Shared.Body.Components.
   - D12 damage facade.
@@ -1662,11 +1667,6 @@ Skipped ("dirty-disposed").
   - playtest 5, the IPC part container (as PartIPCBase), so the welder and the applicator repair a synth
   - metallic edible profile
 - [`Resources/Prototypes/_HL/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_HL/Damage/modifier_sets.yml): Wolfmed: OD16, a Synth is mechanical and takes no poison, like the IPC set
-- [`Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml)
-  - M4, OD16: a wound host, so Wolfmed decides its state (plan 9.2 group D). Not reparented to
-  - blood loss damage heals at every other species' rate; at a quarter of it the reading outlasted the bleed by half an hour
-  - M4, D29: passive regen is neutralised on a wound host, as BaseMobSpeciesOrganic's is.
-  - M4, D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed.
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml)
   - runs on the IPC's fluid so the pack, IV and autodoc refill it
   - M4, OD16: Synth is mechanical. A wound host on the machine ladder (plan 3.11, 9.3): the ccu is its
@@ -1738,6 +1738,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_NF/Entities/Objects/Tools/tools.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Tools/tools.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/_NF/Entities/Objects/Weapons/Melee/caveman_club.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Weapons/Melee/caveman_club.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/_NF/Entities/Objects/Weapons/Melee/wizard_staff.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Weapons/Melee/wizard_staff.yml): this staff cuts, so it speaks the throat lines its shovel parent replaced
+- [`Resources/Prototypes/_NF/Recipes/Lathes/Packs/medical.yml`](../../../Resources/Prototypes/_NF/Recipes/Lathes/Packs/medical.yml): AUTODOC: behind High-End Surgery research
 - [`Resources/Prototypes/_Onyx/Alerts/alerts.yml`](../../../Resources/Prototypes/_Onyx/Alerts/alerts.yml): WP7: only BrokenBones is ported; ModsuitPower/Centered/HierophantBeat/DragonPower/SneakAttack/LossOfSurprise are unrelated features.
 - [`Resources/Prototypes/_Onyx/Chemistry/circulatory_streams.yml`](../../../Resources/Prototypes/_Onyx/Chemistry/circulatory_streams.yml): ported from Onyx for Wolfmed.
 - [`Resources/Prototypes/_Onyx/Entities/categories.yml`](../../../Resources/Prototypes/_Onyx/Entities/categories.yml): only the StatusEffects entityCategory from Onyx's Resources/Prototypes/Entities/categories.yml.
@@ -1821,6 +1822,7 @@ Skipped ("dirty-disposed").
   - AUTODOC5: one close chain serves every part, so "ribcage" was on the head too
   - PROTO G, P4-D21: cauterise, close and roll surgery.scar_chance on the incision wound
   - PROTO G, P4-D21: the wound surgeries end here, so this closes the incision they opened
+- [`Resources/Prototypes/_Shitmed/Research/civilianservices.yml`](../../../Resources/Prototypes/_Shitmed/Research/civilianservices.yml): AUTODOC: S.A.M. and its programs are tier 3
 - [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml)
   - D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed, as on every other wound host
   - the Starlight teleport sound never shipped here, and the client logged an error every stasis.
@@ -1959,6 +1961,9 @@ Skipped ("dirty-disposed").
   - ITEMS, playtest 5: 7x2, room for the tourniquet, splint, suture and painkillers.
   - playtest 5: 7x2 like the other kits, room for a tourniquet, a splint and an epinephrine pen.
 - [`Resources/Prototypes/Entities/Objects/Specific/Research/anomaly.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Research/anomaly.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
+- [`Resources/Prototypes/Entities/Objects/Specific/Robotics/borg_modules.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Robotics/borg_modules.yml)
+  - the field items Wolfmed's wound and IPC treatments call for
+  - fracture setting and burn grafting
 - [`Resources/Prototypes/Entities/Objects/Specific/Robotics/mmi.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Robotics/mmi.yml): BRAIN: organ health, so a chassis can be killed
 - [`Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/cable_coils.yml)
   - W6: the surgery tool for the servo step. Servo damage carries no damage type, so the coil's
@@ -2011,8 +2016,8 @@ Skipped ("dirty-disposed").
   - W7: charring has no other exit, so the graft must be printable.
   - playtest 5: the plain suture prints from the start, no research.
   - ITEMS: the empty synthetic repair kit beside the other empty kits.
-  - AUTODOC
-- [`Resources/Prototypes/Research/civilianservices.yml`](../../../Resources/Prototypes/Research/civilianservices.yml): AUTODOC: the program disks and modules the medical lathe lists, behind the same research as the rest of surgery.
+  - AUTODOC: researched now, in NFMedicalBoards
+- [`Resources/Prototypes/Research/civilianservices.yml`](../../../Resources/Prototypes/Research/civilianservices.yml): AUTODOC: the program disks moved to High-End Surgery with the pod
 - [`Resources/Prototypes/SoundCollections/gasp.yml`](../../../Resources/Prototypes/SoundCollections/gasp.yml): the dying gasp is Bobstation's (owner's pick, playtest 4); organic bodies only
 - [`Resources/Prototypes/SoundCollections/gun_impacts.yml`](../../../Resources/Prototypes/SoundCollections/gun_impacts.yml): playtest 4, the owner's Bob flesh impacts replace the Skyrat ones (WOLFGATE(Weapons))
 - [`Resources/Prototypes/SoundCollections/punching.yml`](../../../Resources/Prototypes/SoundCollections/punching.yml): playtest 4, the owner's Bob punches replace the Skyrat ones (WOLFGATE(Weapons))

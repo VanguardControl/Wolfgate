@@ -2092,3 +2092,62 @@ Entries:
   id: 100163
   time: '2026-10-18T11:33:01.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/279
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Medical borgs now carry everything Wolfmed needs: sutures, a tourniquet,
+        a splint, antiseptic spray, hydraulic fluid and cable in the treatment
+        module, plus a bone setter and skin graft in both surgery modules.
+    - type: Tweak
+      message: A borg's tourniquet and splint aren't used up when applied.
+  id: 100164
+  time: '2026-10-18T18:33:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/284
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        A new bug report/feature suggestion service for you to report bugs and
+        request things, all reports are read and you'll be notified of the
+        outcome in-game!
+  id: 100165
+  time: '2026-10-18T18:52:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/278
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Chimeras can no longer revive once dead until after 3 minutes.
+  id: 100166
+  time: '2026-10-18T21:11:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/285
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added a search bar to the keybinds menu. Search by action name or by
+        key.
+  id: 100167
+  time: '2026-10-18T21:31:23.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/288
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Every species now has a Biotype toggle in the character creator: Organic
+        or Synthetic. Synthetic characters get an IPC-style chassis (power cell,
+        hydraulic fluid, core and pump, repair with welders and cable); Organic
+        characters get a flesh body with blood, breathing and normal medicine.
+        IPC and Synth default to Synthetic, everyone else to Organic.
+    - type: Tweak
+      message: >-
+        Medical, traits, survival boxes and zombie infection now follow the
+        character's biotype rather than their species. A synthetic Vulpkanin is
+        treated like an IPC; an organic IPC like a human.
+    - type: Remove
+      message: >-
+        The fourteen Protogen subspecies are gone. Existing characters on them
+        load as Protogen; pick a species and set its biotype instead.
+  id: 100168
+  time: '2026-10-18T21:34:19.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/280
