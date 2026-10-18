@@ -1738,6 +1738,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_NF/Entities/Objects/Tools/tools.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Tools/tools.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/_NF/Entities/Objects/Weapons/Melee/caveman_club.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Weapons/Melee/caveman_club.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/_NF/Entities/Objects/Weapons/Melee/wizard_staff.yml`](../../../Resources/Prototypes/_NF/Entities/Objects/Weapons/Melee/wizard_staff.yml): this staff cuts, so it speaks the throat lines its shovel parent replaced
+- [`Resources/Prototypes/_NF/Recipes/Lathes/Packs/medical.yml`](../../../Resources/Prototypes/_NF/Recipes/Lathes/Packs/medical.yml): AUTODOC: behind High-End Surgery research
 - [`Resources/Prototypes/_Onyx/Alerts/alerts.yml`](../../../Resources/Prototypes/_Onyx/Alerts/alerts.yml): WP7: only BrokenBones is ported; ModsuitPower/Centered/HierophantBeat/DragonPower/SneakAttack/LossOfSurprise are unrelated features.
 - [`Resources/Prototypes/_Onyx/Chemistry/circulatory_streams.yml`](../../../Resources/Prototypes/_Onyx/Chemistry/circulatory_streams.yml): ported from Onyx for Wolfmed.
 - [`Resources/Prototypes/_Onyx/Entities/categories.yml`](../../../Resources/Prototypes/_Onyx/Entities/categories.yml): only the StatusEffects entityCategory from Onyx's Resources/Prototypes/Entities/categories.yml.
@@ -1821,6 +1822,7 @@ Skipped ("dirty-disposed").
   - AUTODOC5: one close chain serves every part, so "ribcage" was on the head too
   - PROTO G, P4-D21: cauterise, close and roll surgery.scar_chance on the incision wound
   - PROTO G, P4-D21: the wound surgeries end here, so this closes the incision they opened
+- [`Resources/Prototypes/_Shitmed/Research/civilianservices.yml`](../../../Resources/Prototypes/_Shitmed/Research/civilianservices.yml): AUTODOC: S.A.M. and its programs are tier 3
 - [`Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml`](../../../Resources/Prototypes/_StarLight/Entities/Mobs/Species/avali.yml)
   - D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed, as on every other wound host
   - the Starlight teleport sound never shipped here, and the client logged an error every stasis.
@@ -2011,8 +2013,8 @@ Skipped ("dirty-disposed").
   - W7: charring has no other exit, so the graft must be printable.
   - playtest 5: the plain suture prints from the start, no research.
   - ITEMS: the empty synthetic repair kit beside the other empty kits.
-  - AUTODOC
-- [`Resources/Prototypes/Research/civilianservices.yml`](../../../Resources/Prototypes/Research/civilianservices.yml): AUTODOC: the program disks and modules the medical lathe lists, behind the same research as the rest of surgery.
+  - AUTODOC: researched now, in NFMedicalBoards
+- [`Resources/Prototypes/Research/civilianservices.yml`](../../../Resources/Prototypes/Research/civilianservices.yml): AUTODOC: the program disks moved to High-End Surgery with the pod
 - [`Resources/Prototypes/SoundCollections/gasp.yml`](../../../Resources/Prototypes/SoundCollections/gasp.yml): the dying gasp is Bobstation's (owner's pick, playtest 4); organic bodies only
 - [`Resources/Prototypes/SoundCollections/gun_impacts.yml`](../../../Resources/Prototypes/SoundCollections/gun_impacts.yml): playtest 4, the owner's Bob flesh impacts replace the Skyrat ones (WOLFGATE(Weapons))
 - [`Resources/Prototypes/SoundCollections/punching.yml`](../../../Resources/Prototypes/SoundCollections/punching.yml): playtest 4, the owner's Bob punches replace the Skyrat ones (WOLFGATE(Weapons))
