@@ -35,6 +35,22 @@ public sealed partial class WFPlanetPoiSystem
             : WFPlanetPoiDirection.South;
     }
 
+    /// <summary>
+    /// The grid merge turns every entity with the grid, even one that never rotates (noRot), and that one only breaks
+    /// when it is deleted. Puts those back to no rotation.
+    /// </summary>
+    internal void UnturnFixedRotation(IEnumerable<EntityUid> entities)
+    {
+        foreach (var uid in entities)
+        {
+            if (TerminatingOrDeleted(uid) || Transform(uid) is not { NoLocalRotation: true } xform || xform.LocalRotation == Angle.Zero)
+                continue;
+            // Rotation writes are ignored while the flag is up; raising it again zeroes the rotation.
+            _transform.SetNoLocalRotation((uid, xform), false);
+            _transform.SetNoLocalRotation((uid, xform), true);
+        }
+    }
+
     /// <summary>The entry as placed after a turn: its footprint and entrances turned with the map.</summary>
     private static WFPlanetPoiEntry Turned(WFPlanetPoiEntry entry, int turns)
     {

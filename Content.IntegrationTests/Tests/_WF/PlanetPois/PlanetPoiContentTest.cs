@@ -86,8 +86,10 @@ public sealed class PlanetPoiContentTest
                     var abandoned = path.Contains("derelict") || path.Contains("abandoned")
                         || path.Contains("fervidus") || path.Contains("thrascias") || path.Contains("aerumna") || path.Contains("carcinoma");
                     var traders = roots.Count(entity => entities.HasComponent<TraderComponent>(entity));
-                    Assert.That(traders, abandoned ? Is.Zero : Is.GreaterThanOrEqualTo(1),
-                        $"{entry.MapPath} has the wrong inhabited/abandoned trader population.");
+                    // A house is somebody's home, not a shop.
+                    if (!path.Contains("house"))
+                        Assert.That(traders, abandoned ? Is.Zero : Is.GreaterThanOrEqualTo(1),
+                            $"{entry.MapPath} has the wrong inhabited/abandoned trader population.");
                     var clearance = Tables.Select(id => prototypes.Index<WFPlanetPoiTablePrototype>(id))
                         .Where(table => table.Entries.Any(candidate => candidate.MapPath == entry.MapPath))
                         .Max(table => table.Roads is { } roads ? roads.Width / 2 + roads.ShoulderWidth : 0);

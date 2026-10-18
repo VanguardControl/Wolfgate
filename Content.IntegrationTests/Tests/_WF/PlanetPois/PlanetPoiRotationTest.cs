@@ -19,12 +19,15 @@ namespace Content.IntegrationTests.Tests._WF.PlanetPois;
 public sealed class PlanetPoiRotationTest
 {
     private const string Station = "/Maps/_WF/PlanetPois/verda_gas_station.yml";
+    private const string House = "/Maps/_WF/PlanetPois/verda_house_1.yml";
 
-    [TestCase(0)]
-    [TestCase(1)]
-    [TestCase(2)]
-    [TestCase(3)]
-    public async Task TheGasStationTurnsWithItsRoad(int turns)
+    [TestCase(Station, 0)]
+    [TestCase(Station, 1)]
+    [TestCase(Station, 2)]
+    [TestCase(Station, 3)]
+    [TestCase(House, 0)]
+    [TestCase(House, 1)]
+    public async Task ARoadsideSiteTurnsWithItsRoad(string site, int turns)
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
@@ -32,14 +35,14 @@ public sealed class PlanetPoiRotationTest
 
         await server.WaitAssertion(() =>
         {
-            var entry = server.ProtoMan.Index<WFPlanetPoiTablePrototype>("WFPoisAsclepiu").Entries.Single(e => e.MapPath == Station);
+            var entry = server.ProtoMan.Index<WFPlanetPoiTablePrototype>("WFPoisAsclepiu").Entries.Single(e => e.MapPath == site);
             Assert.That(entry.Rotate, Is.True);
             var footprint = entry.Footprint!.Value;
             var turnedBox = WFPlanetPoiSystem.TurnBox(footprint, turns);
 
             var maps = server.System<SharedMapSystem>();
             maps.CreateMap(out var sourceMap, runMapInit: false);
-            Assert.That(server.System<MapLoaderSystem>().TryLoadGrid(sourceMap, new ResPath(Station), out var loaded), Is.True);
+            Assert.That(server.System<MapLoaderSystem>().TryLoadGrid(sourceMap, new ResPath(site), out var loaded), Is.True);
             var source = loaded!.Value;
             var sourceTiles = maps.GetAllTiles(source.Owner, source.Comp).ToDictionary(t => t.GridIndices, t => t.Tile.TypeId);
 
@@ -47,6 +50,11 @@ public sealed class PlanetPoiRotationTest
             var targetGrid = entMan.AddComponent<MapGridComponent>(target);
             server.System<SharedTransformSystem>().SetCoordinates(source.Owner, new EntityCoordinates(target, System.Numerics.Vector2.Zero));
             server.System<GridFixtureSystem>().Merge(target, source.Owner, Vector2i.Zero, Angle.FromDegrees(90 * turns), targetGrid, source.Comp);
+            var merged = new List<EntityUid>();
+            var children = entMan.GetComponent<TransformComponent>(target).ChildEnumerator;
+            while (children.MoveNext(out var child))
+                merged.Add(child);
+            server.System<WFPlanetPoiSystem>().UnturnFixedRotation(merged);
 
             foreach (var (tile, type) in sourceTiles)
             {

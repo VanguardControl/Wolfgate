@@ -89,12 +89,14 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Resources/Maps/_WF/PlanetPois/Tests/through_service.yml`](../../../Resources/Maps/_WF/PlanetPois/Tests/through_service.yml)
 - [`Resources/Maps/_WF/PlanetPois/thrascias_survey_shelter.yml`](../../../Resources/Maps/_WF/PlanetPois/thrascias_survey_shelter.yml)
 - [`Resources/Maps/_WF/PlanetPois/verda_gas_station.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_gas_station.yml)
+- [`Resources/Maps/_WF/PlanetPois/verda_house_1.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_house_1.yml)
 
 ### Tools
 
 - [`Tools/_WF/PlanetPois/cities.py`](../../../Tools/_WF/PlanetPois/cities.py)
 - [`Tools/_WF/PlanetPois/generate.py`](../../../Tools/_WF/PlanetPois/generate.py)
 - [`Tools/_WF/PlanetPois/map_author.py`](../../../Tools/_WF/PlanetPois/map_author.py)
+- [`Tools/_WF/PlanetPois/roadside_map.py`](../../../Tools/_WF/PlanetPois/roadside_map.py)
 - [`Tools/_WF/PlanetPois/settlements.py`](../../../Tools/_WF/PlanetPois/settlements.py)
 
 ### Docs

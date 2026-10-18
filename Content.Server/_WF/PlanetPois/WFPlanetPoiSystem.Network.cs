@@ -455,6 +455,8 @@ public sealed partial class WFPlanetPoiSystem
         grid.CanSplit = false;
         try { _fixtures.Merge(ground, source.Owner, origin, Turns(turns), grid, source.Comp); }
         finally { grid.CanSplit = canSplit; }
+        if (turns != 0)
+            UnturnFixedRotation(transferred);
         var beforeInit = new HashSet<EntityUid>();
         CaptureChildren(ground, beforeInit);
         try
