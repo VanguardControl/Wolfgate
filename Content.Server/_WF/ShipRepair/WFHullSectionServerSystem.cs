@@ -27,6 +27,7 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private SharedGridTraversalSystem _traversal = default!;
     [Dependency] private ShipRepairSystem _repair = default!;
     [Dependency] private WFGridSplitOriginSystem _splitOrigin = default!;
     [Dependency] private WFHullSectionSystem _sections = default!;
@@ -229,9 +230,12 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         var motion = CarriedMotion(section);
 
         // The section's offset puts every tile back where it was on the hull. Splitting waits until the merge is done,
-        // or a section not yet joined would be torn off halfway through.
+        // or a section not yet joined would be torn off halfway through. Traversal waits too: while both grids hold the
+        // tiles, it could hand a moved body back to the section.
         var canSplit = hullGrid.CanSplit;
+        var traversal = _traversal.Enabled;
         hullGrid.CanSplit = false;
+        _traversal.Enabled = false;
         try
         {
             _fixtures.Merge(hull, section, offset, Angle.Zero, hullGrid, sectionGrid);
@@ -239,6 +243,7 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         finally
         {
             hullGrid.CanSplit = canSplit;
+            _traversal.Enabled = traversal;
         }
 
         foreach (var (_, decal) in decals)
