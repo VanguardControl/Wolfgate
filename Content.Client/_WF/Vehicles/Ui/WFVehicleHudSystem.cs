@@ -27,85 +27,90 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
     private readonly WFVehicleEngineComponent _unpowered = new();
     private WFVehicleDashboard _panel = default!;
     private WFGlassGauge[] _gauges = Array.Empty<WFGlassGauge>();
-    private WFVehicleLamp _fuelLamp = default!;
-    private Button _ejectKey = default!;
+    private BoxContainer _driverGauges = default!;
+    private BoxContainer _gunnery = default!;
     private bool _powered;
     private float _startup;
     private EntityUid? _lastVehicle;
     private Label _role = default!;
+    private Label _engineState = default!;
     private float _speedValue;
     private float _speedLimit = 60f;
     private float _rpmValue;
     private float _fuelValue;
     private float _batteryValue;
-    private Label _engineState = default!;
     private Label _weapon = default!;
     private Label _ammo = default!;
-    private WFVehicleLamp _ignition = default!;
-    private Button _brake = default!;
-    private WFVehicleIgnitionSlot _accessories = default!;
-    private Button _headlights = default!;
+    private WFVehicleRoundButton _key = default!;
+    private WFVehicleRoundButton _ejectKey = default!;
+    private WFVehicleRoundButton _brake = default!;
+    private WFVehicleRoundButton _headlights = default!;
+    private WFVehicleRoundButton _horn = default!;
     private EntityUid? _vehicle;
 
     public override void Initialize()
     {
         _panel = new WFVehicleDashboard();
         _role = WFInstrumentTheme.Label("wf-vehicle-hud-driver");
-        _engineState = new Label();
-        _weapon = new Label { MaxWidth = 250, ClipText = true };
+        _engineState = new Label { ClipText = true, HorizontalExpand = true };
+        _role.MouseFilter = _engineState.MouseFilter = Control.MouseFilterMode.Ignore;
+        _weapon = new Label { ClipText = true, HorizontalExpand = true };
         _ammo = new Label();
-        _ignition = new WFVehicleLamp { Legend = Loc.GetString("wf-vehicle-hud-start") };
-        _fuelLamp = new WFVehicleLamp { Legend = Loc.GetString("wf-vehicle-fuel-low"),
-            MouseFilter = Control.MouseFilterMode.Ignore };
-        _ejectKey = WFInstrumentTheme.Button("wf-vehicle-key-remove");
-        _accessories = new WFVehicleIgnitionSlot();
-        _headlights = WFInstrumentTheme.Button("wf-vehicle-hud-headlights");
-        _brake = WFInstrumentTheme.Button("wf-vehicle-hud-brake");
+
         var speed = new WFGlassGauge("wf-vehicle-gauge-speed", () => ReadGauge(_speedValue, _speedLimit, "wf-vehicle-unit-speed"));
         var rpm = new WFGlassGauge("wf-vehicle-gauge-rpm", () => ReadGauge(_rpmValue, 3000, "wf-vehicle-unit-rpm"));
-        var fuel = new WFGlassGauge("wf-vehicle-gauge-fuel", () => ReadGauge(_fuelValue, 100, "wf-vehicle-unit-percent"));
+        var fuel = new WFGlassGauge("wf-vehicle-gauge-fuel", () => ReadGauge(_fuelValue, 100, "wf-vehicle-unit-percent"), strip: true)
+            { CompactStrip = true, SetHeight = 44 };
         var battery = new WFGlassGauge("wf-vehicle-gauge-battery", () => ReadGauge(_batteryValue, 100, "wf-vehicle-unit-percent"), strip: true)
             { CompactStrip = true, SetHeight = 44 };
         _gauges = new[] { rpm, speed, fuel, battery };
-        rpm.SetHeight = speed.SetHeight = fuel.SetHeight = 118;
-        fuel.SetWidth = 130;
-        fuel.HorizontalExpand = false;
-        _role.MouseFilter = _engineState.MouseFilter = Control.MouseFilterMode.Ignore;
-        _engineState.ClipText = true;
-        var starter = WFInstrumentTheme.Column(_accessories, _ignition);
-        starter.SetWidth = 110;
-        _panel.LeftBank.AddChild(WFInstrumentTheme.Row(_role, _engineState));
-        _panel.LeftBank.AddChild(WFInstrumentTheme.Row(rpm, speed, starter));
-        _panel.LeftBank.AddChild(WFInstrumentTheme.Row(_headlights, _brake, _ejectKey));
-        _panel.RightBank.AddChild(WFInstrumentTheme.Label("wf-vehicle-dashboard-systems"));
-        var electrical = WFInstrumentTheme.Column(battery, _fuelLamp, _weapon, _ammo);
-        electrical.HorizontalExpand = true;
-        _panel.RightBank.AddChild(WFInstrumentTheme.Row(fuel, electrical));
-        InitializeVehicleControls();
+        foreach (var dial in new[] { speed, rpm })
+        {
+            dial.SetSize = new Vector2(96, 96);
+            dial.MinWidth = 96;
+            dial.HorizontalExpand = false;
+        }
+
+        var supplies = WFInstrumentTheme.Column(fuel, battery);
+        supplies.HorizontalExpand = true;
+        _driverGauges = WFInstrumentTheme.Row(speed, rpm, supplies);
+        _gunnery = WFInstrumentTheme.Column(_weapon, _ammo);
+
+        _key = new WFVehicleRoundButton(WFVehicleGlyph.Key);
+        _ejectKey = new WFVehicleRoundButton(WFVehicleGlyph.Eject, "wf-vehicle-key-remove");
+        _brake = new WFVehicleRoundButton(WFVehicleGlyph.Brake, "wf-vehicle-hud-brake") { LitColor = WFInstrumentTheme.Red };
+        _headlights = new WFVehicleRoundButton(WFVehicleGlyph.Headlights, "wf-vehicle-hud-headlights")
+            { LitColor = WFInstrumentTheme.Skin.Caution };
+        _horn = new WFVehicleRoundButton(WFVehicleGlyph.Horn, "wf-vehicle-hud-horn");
+
+        _frameHealth = new Label { MouseFilter = Control.MouseFilterMode.Ignore };
+        _panel.Cluster.AddChild(WFInstrumentTheme.Row(_role, _engineState, _frameHealth));
+        _panel.Cluster.AddChild(_driverGauges);
+        _panel.Cluster.AddChild(_gunnery);
+        InitializeVehicleControls(_key, _ejectKey, _brake, _headlights, _horn);
         WFInstrumentTheme.Install(_panel);
-        _ejectKey.OnPressed += _ =>
-        {
-            if (_vehicle is { } uid)
-                RaiseNetworkEvent(new WFVehicleControlRequest(GetNetEntity(uid), false, ejectKey: true));
-        };
-        _ignition.OnPressed += _ => SendControl(false);
-        _brake.OnPressed += _ => SendControl(true);
-        _accessories.OnPressed += _ =>
-        {
-            if (_vehicle is { } uid)
-                RaiseNetworkEvent(new WFVehicleControlRequest(GetNetEntity(uid), false, true));
-        };
+
+        _key.OnPressed += _ => Send(new WFVehicleControlRequest(Net(), false) { Ignition = true });
+        _ejectKey.OnPressed += _ => Send(new WFVehicleControlRequest(Net(), false, ejectKey: true));
+        _brake.OnPressed += _ => Send(new WFVehicleControlRequest(Net(), true));
         _headlights.OnPressed += _ =>
         {
             if (_vehicle is { } uid)
                 RaiseNetworkEvent(new VehicleSpotlightToggleRequestEvent(GetNetEntity(uid)));
         };
+        _horn.OnPressed += _ =>
+        {
+            if (_vehicle is { } uid)
+                RaiseNetworkEvent(new VehicleHornRequestEvent(GetNetEntity(uid)));
+        };
     }
 
-    private void SendControl(bool brake)
+    private NetEntity Net() => _vehicle is { } uid ? GetNetEntity(uid) : NetEntity.Invalid;
+
+    private void Send(WFVehicleControlRequest request)
     {
-        if (_vehicle is { } uid)
-            RaiseNetworkEvent(new WFVehicleControlRequest(GetNetEntity(uid), brake));
+        if (_vehicle != null)
+            RaiseNetworkEvent(request);
     }
 
     public override void Shutdown()
@@ -181,30 +186,34 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
         _fuelValue = Math.Clamp(100f * engine.Fuel / MathF.Max(1f, engine.Capacity), 0f, 100f);
         _batteryValue = Math.Clamp(100f * engine.BatteryCharge / MathF.Max(1f, engine.BatteryCapacity), 0f, 100f);
         PositionHud();
-        _engineState.Text = Loc.GetString(engine.Running ? "wf-vehicle-hud-running" :
-            engine.Powered ? "wf-vehicle-hud-accessory-state" : "wf-vehicle-hud-stopped");
-        _ignition.Visible = driver;
-        _brake.Visible = driver;
-        _accessories.Visible = driver;
-        _headlights.Visible = driver;
-        _accessories.Inserted = engine.IgnitionKey != null;
-        _accessories.On = engine.Electrics;
-        _accessories.ToolTip = Loc.GetString(engine.IgnitionKey == null ? "wf-vehicle-key-insert" :
-            engine.Electrics ? "wf-vehicle-key-turn-off" : "wf-vehicle-key-turn-on");
-        _ejectKey.Visible = driver;
-        _ejectKey.Disabled = engine.Electrics || engine.IgnitionKey == null;
-        _ignition.Disabled = !engine.Electrics || engine.IgnitionKey == null ||
-            !engine.Running && (engine.Fuel <= 0 || engine.BatteryCharge < engine.StarterEnergy);
-        _ignition.Lit = !_ignition.Disabled;
-        _ignition.LensColor = WFInstrumentTheme.Green;
-        _fuelLamp.LensColor = _fuelValue < 10 ? WFInstrumentTheme.Red : WFInstrumentTheme.Skin.Caution;
-        _fuelLamp.Lit = WFVehicleLamp.FuelWarningLit(_fuelValue, powered, _timing.RealTime.TotalSeconds);
+
+        var fuelWarning = WFVehicleLamp.FuelWarningLit(_fuelValue, powered, _timing.RealTime.TotalSeconds);
+        _engineState.Text = Loc.GetString(fuelWarning ? "wf-vehicle-fuel-low"
+            : engine.Running ? "wf-vehicle-hud-running"
+            : engine.Powered ? "wf-vehicle-hud-accessory-state"
+            : "wf-vehicle-hud-stopped");
+        _engineState.FontColorOverride = fuelWarning ? WFInstrumentTheme.Red : null;
+
+        _driverGauges.Visible = driver;
+        _gunnery.Visible = !driver;
+        _key.Visible = _brake.Visible = _headlights.Visible = _horn.Visible = driver;
+
+        // One key: in from anywhere on you, then accessories, then the engine, then off again.
+        var inserted = engine.IgnitionKey != null;
+        _key.KeyInserted = inserted;
+        _key.KeyOn = engine.Electrics;
+        _key.Lit = engine.Electrics;
+        _key.LitColor = engine.Running ? WFInstrumentTheme.Green : WFInstrumentTheme.Skin.Caution;
+        _key.ToolTip = Loc.GetString(!inserted ? "wf-vehicle-key-insert"
+            : !engine.Electrics ? "wf-vehicle-key-turn-on"
+            : !engine.Running ? "wf-vehicle-hud-start"
+            : "wf-vehicle-key-turn-off");
+        _ejectKey.Visible = driver && inserted && !engine.Electrics;
+
         _headlights.Disabled = !engine.Powered;
-        _headlights.Pressed = TryComp(uid, out VehicleSpotlightComponent? headlights) && headlights.Enabled;
-        _ignition.Legend = Loc.GetString(engine.Running ? "wf-vehicle-hud-stop" : "wf-vehicle-hud-start");
-        _brake.Pressed = engine.ParkingBrake;
-        _weapon.Visible = !driver;
-        _ammo.Visible = !driver;
+        _headlights.Lit = TryComp(uid, out VehicleSpotlightComponent? headlights) && headlights.Enabled;
+        _brake.Lit = engine.ParkingBrake;
+
         _weapon.Text = selected is { } gun ? Loc.GetString("wf-vehicle-hud-weapon", ("weapon", Name(gun))) : Loc.GetString("wf-vehicle-hud-no-weapon");
         _weapon.ToolTip = _weapon.Text;
         _ammo.Text = string.Empty;
@@ -216,7 +225,8 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
                 ("rounds", _ammunition.GetStoredRounds(ammo, ammo.MagazineSize)));
         }
     }
-    /// <summary>Fits the dashboard around the existing hand slots without intercepting their input.</summary>
+
+    /// <summary>Fits the dashboard beside the existing hand slots without intercepting their input.</summary>
     private void PositionHud()
     {
         var root = _ui.PopupRoot;
@@ -233,5 +243,4 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
         return WFGaugeReading.Number(_powered ? WFVehicleInstrumentStartup.Reading(actual, maximum, _startup) : 0,
             0, maximum, unit);
     }
-
 }

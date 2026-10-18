@@ -4,6 +4,7 @@ using Content.Server.Cargo.Systems;
 using Content.Server.Stack;
 using Content.Server._NF.Bank;
 using Content.Shared.Database;
+using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Item;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
@@ -27,7 +28,12 @@ namespace Content.Server._WF.VehicleShop;
 /// </summary>
 public sealed class WFVehicleShopSystem : EntitySystem
 {
+    /// <summary>The key handed over with every vehicle bought.</summary>
+    private static readonly EntProtoId VehicleKey = "RMCVehicleKey";
+
     [Dependency] private IAdminLogManager _adminLog = default!;
+    [Dependency] private SharedHandsSystem _hands = default!;
+    [Dependency] private VehicleLockSystem _locks = default!;
     [Dependency] private BankSystem _bank = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private MobStateSystem _mobState = default!;
@@ -79,6 +85,11 @@ public sealed class WFVehicleShopSystem : EntitySystem
 
         var vehicle = Spawn(listing.Vehicle, Transform(padUid).Coordinates);
         _transform.SetLocalRotation(vehicle, Angle.Zero);
+
+        // The buyer gets the vehicle's key; without one it can't be started.
+        var key = Spawn(VehicleKey, Transform(user).Coordinates);
+        _locks.BindKey((key, EnsureComp<VehicleKeyComponent>(key)), _locks.EnsureVehicleKeyId(vehicle), vehicle);
+        _hands.PickupOrDrop(user, key);
         _popup.PopupEntity(Loc.GetString("wf-vehicle-shop-delivered", ("vehicle", Name(vehicle))), ent, user);
         _adminLog.Add(LogType.ShipYardUsage, LogImpact.Low,
             $"{ToPrettyString(user):actor} bought {ToPrettyString(vehicle)} for {listing.Price} at {ToPrettyString(ent)}");

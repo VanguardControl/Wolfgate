@@ -94,6 +94,15 @@ public sealed class VehicleShopTest
                 Assert.That(onPad is { } delivered && entMan.GetComponent<MetaDataComponent>(delivered).EntityPrototype?.ID == "VehicleBoxVan", Is.True,
                     "The pad holds the wrong vehicle.");
                 Assert.That(entMan.GetComponent<BankAccountComponent>(payer).Balance, Is.EqualTo(before - price), "The buyer was not charged the listed price.");
+                var keyId = entMan.GetComponent<Content.Shared._WF.Vehicles.Core.VehicleLockComponent>(onPad!.Value).KeyId;
+                var keys = entMan.EntityQueryEnumerator<Content.Shared._WF.Vehicles.Core.VehicleKeyComponent>();
+                var handed = false;
+                while (keys.MoveNext(out _, out var key))
+                {
+                    handed |= key.KeyId != null && key.KeyId == keyId;
+                }
+
+                Assert.That(handed, Is.True, "The buyer was given no key for the vehicle.");
             }
 
             vehicle = onPad!.Value;

@@ -8,6 +8,7 @@ using Content.Shared._WF.Vehicles.Base;
 using Content.Shared._WF.Vehicles.Core;
 using Content.Shared._WF.Vehicles.Hardpoint;
 using Content.Shared._WF.Vehicles.Weapons;
+using Robust.Client.GameObjects;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.CustomControls;
@@ -17,6 +18,7 @@ namespace Content.Client._WF.Vehicles.Ui;
 public sealed partial class WFVehicleHudSystem
 {
     [Dependency] private ActionsSystem _actions = default!;
+    [Dependency] private SpriteSystem _sprites = default!;
 
     private static readonly HashSet<string> VehicleActions = new()
     {
@@ -24,44 +26,49 @@ public sealed partial class WFVehicleHudSystem
         "WFActionVehicleSteeringMode", "CMUActionVehicleEmergencyLights", "CMUActionCargoVehicleReturn",
         "CMUActionCargoVehicleToggleBay", "CMUActionCargoVehicleSelfDestruct",
     };
-    private readonly Dictionary<EntityUid, Button> _vehicleButtons = new();
+
+    /// <summary>Round buttons in a row: the driver's switches, the seat's actions, then the equipment tabs.</summary>
+    private const int ButtonColumns = 8;
+
+    private readonly Dictionary<EntityUid, WFVehicleRoundButton> _vehicleButtons = new();
     private GridContainer _controls = default!;
     private BoxContainer _parts = default!;
-    private BoxContainer _detailTabs = default!;
     private BoxContainer _detailHost = default!;
     private Label _frameHealth = default!;
     private float _statusElapsed;
 
-    private void InitializeVehicleControls()
+    private void InitializeVehicleControls(params Control[] switches)
     {
-        _controls = new GridContainer { Columns = 3, HorizontalExpand = true };
-        _frameHealth = new Label();
+        _controls = new GridContainer { Columns = ButtonColumns, HSeparationOverride = 4, VSeparationOverride = 4 };
+        foreach (var control in switches)
+        {
+            _controls.AddChild(control);
+        }
+
         _parts = WFInstrumentTheme.Column();
-        _detailTabs = WFInstrumentTheme.Row();
         _detailHost = _panel.Details;
         var scroll = new ScrollContainer { SetHeight = 220, HorizontalExpand = true, HScrollEnabled = false, Visible = false };
         scroll.AddChild(_parts);
         _detailHost.AddChild(scroll);
-        var condition = WFInstrumentTheme.Button("wf-vehicle-tab-parts");
-        condition.OnPressed += _ =>
-        {
-            var show = !scroll.Visible;
-            foreach (var child in _detailHost.Children)
-                child.Visible = child == scroll && show;
-        };
-        _panel.LeftBank.AddChild(_controls);
-        _panel.RightBank.AddChild(WFInstrumentTheme.Row(_frameHealth, condition));
-        _panel.RightBank.AddChild(_detailTabs);
-        var horn = WFInstrumentTheme.Button("wf-vehicle-hud-horn");
-        horn.OnPressed += _ =>
-        {
-            if (_vehicle is { } uid)
-                RaiseNetworkEvent(new VehicleHornRequestEvent(GetNetEntity(uid)));
-        };
-        _controls.AddChild(horn);
+
+        var condition = new WFVehicleRoundButton(WFVehicleGlyph.Condition, "wf-vehicle-tab-parts");
+        condition.OnPressed += _ => ShowDetail(scroll);
+        _controls.AddChild(condition);
+
+        _panel.Cluster.AddChild(_controls);
     }
 
-    /// <summary>Hosts the existing authorized equipment UI without opening a second floating window.</summary>
+    /// <summary>Shows one panel in the tray, or closes the tray if that panel is already open.</summary>
+    private void ShowDetail(Control panel)
+    {
+        var show = !panel.Visible;
+        foreach (var child in _detailHost.Children)
+        {
+            child.Visible = child == panel && show;
+        }
+    }
+
+    /// <summary>Hosts the existing authorized equipment UI in the tray, opened from a round tab on the cluster.</summary>
     public bool TryEmbedMenu(FancyWindow menu, string title)
     {
         if (_player.LocalEntity is not { } user ||
@@ -80,18 +87,21 @@ public sealed partial class WFVehicleHudSystem
         menu.Resizable = false;
         FlattenPanels(content);
         foreach (var child in _detailHost.Children)
-            child.Visible = false;
-        _detailHost.AddChild(menu);
-        menu.Visible = menu is not VehicleWeaponsMenu;
-        var tab = new Button { Text = title, HorizontalExpand = true };
-        WFInstrumentTheme.Switch(tab);
-        tab.OnPressed += _ =>
         {
-            var show = !menu.Visible;
-            foreach (var child in _detailHost.Children)
-                child.Visible = child == menu && show;
+            child.Visible = false;
+        }
+
+        _detailHost.AddChild(menu);
+        menu.Visible = false;
+        var glyph = menu switch
+        {
+            VehicleWeaponsMenu => WFVehicleGlyph.Crosshair,
+            VehicleAmmoLoaderMenu => WFVehicleGlyph.Ammo,
+            _ => WFVehicleGlyph.Parts,
         };
-        _detailTabs.AddChild(tab);
+        var tab = new WFVehicleRoundButton(glyph) { ToolTip = title };
+        tab.OnPressed += _ => ShowDetail(menu);
+        _controls.AddChild(tab);
         menu.OnClose += () => { tab.Orphan(); tab.Dispose(); };
         WFInstrumentTheme.Install(content);
         return true;
@@ -102,7 +112,9 @@ public sealed partial class WFVehicleHudSystem
         if (control is PanelContainer panel)
             panel.PanelOverride = WFInstrumentTheme.Face(Color.Transparent, Color.Transparent, 0);
         foreach (var child in control.Children)
+        {
             FlattenPanels(child);
+        }
     }
 
     private void RefreshVehicleControls(EntityUid vehicle, float frameTime)
@@ -118,8 +130,7 @@ public sealed partial class WFVehicleHudSystem
                 live.Add(action);
                 if (!_vehicleButtons.TryGetValue(action, out var button))
                 {
-                    button = new Button { HorizontalExpand = true, MinWidth = 72 };
-                    WFInstrumentTheme.Switch(button);
+                    button = new WFVehicleRoundButton();
                     var selectedAction = action;
                     button.OnPressed += _ =>
                     {
@@ -129,9 +140,11 @@ public sealed partial class WFVehicleHudSystem
                     _vehicleButtons.Add(action, button);
                     _controls.AddChild(button);
                 }
-                button.Text = Loc.GetString("wf-vehicle-switch-" + proto.ID);
+
+                var icon = data.Toggled && data.IconOn != null ? data.IconOn : data.Icon;
+                button.Icon = icon != null ? _sprites.Frame0(icon) : null;
                 button.ToolTip = Name(action) + "\n" + meta.EntityDescription;
-                button.Pressed = data.Toggled;
+                button.Lit = data.Toggled;
                 button.Disabled = !data.Enabled || data.Cooldown is { } cooldown && cooldown.End > _timing.CurTime;
             }
         }

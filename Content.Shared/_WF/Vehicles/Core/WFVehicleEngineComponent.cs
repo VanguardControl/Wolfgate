@@ -74,6 +74,9 @@ public sealed class WFVehicleControlRequest : EntityEventArgs
     public bool Accessories;
     public bool EjectKey;
 
+    /// <summary>The one key control: insert, accessories on, start, or switch everything off, whichever is next.</summary>
+    public bool Ignition;
+
     public WFVehicleControlRequest(NetEntity vehicle, bool brake, bool accessories = false, bool ejectKey = false)
     {
         Vehicle = vehicle;

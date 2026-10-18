@@ -140,9 +140,10 @@ public sealed class VehicleClientTest
             Assert.That(panel, Is.Not.Null, "The instruments must be above the gameplay viewport, not under it in StateRoot.");
             Assert.That(panel!.Visible, Is.True, "The driver's replicated operator state must reveal the HUD.");
             var controls = Descendants(panel).ToArray();
-            Assert.That(controls.OfType<WFVehicleLamp>().Any(button => button.Visible && button.Legend == "Start engine"), Is.True);
-            Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => !gauge.Strip), Is.EqualTo(3));
-            Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => gauge.Strip), Is.EqualTo(1));
+            Assert.That(controls.OfType<WFVehicleRoundButton>().Any(button => button.Visible && button.Glyph == WFVehicleGlyph.Key), Is.True,
+                "The driver needs the key.");
+            Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => !gauge.Strip), Is.EqualTo(2));
+            Assert.That(controls.OfType<WFGlassGauge>().Count(gauge => gauge.Strip), Is.EqualTo(2));
             Assert.That(controls.OfType<WFGlassGauge>().All(gauge => !gauge.Powered), Is.True,
                 "Ignition OFF must suppress illuminated readouts.");
             var hud = client.System<WFVehicleHudSystem>();
@@ -168,18 +169,16 @@ public sealed class VehicleClientTest
                 dashboard.Fit(viewport, hotbar);
                 dashboard.Measure(viewport);
                 dashboard.Arrange(Robust.Shared.Maths.UIBox2.FromDimensions(System.Numerics.Vector2.Zero, viewport));
-                Assert.That(dashboard.LeftBounds.Right <= hotbar.Left || dashboard.LeftBounds.Bottom <= hotbar.Top, Is.True);
-                Assert.That(dashboard.RightBounds.Left >= hotbar.Right || dashboard.RightBounds.Bottom <= hotbar.Top, Is.True);
-                Assert.That(dashboard.LeftBounds.Right, Is.LessThan(dashboard.RightBounds.Left));
-                Assert.That(dashboard.LeftBank.Position.Y + dashboard.LeftBank.Size.Y, Is.LessThanOrEqualTo(dashboard.LeftBounds.Bottom));
-                if (dashboard.RightBounds.Bottom > hotbar.Top)
-                    Assert.That(viewport.X - dashboard.RightBounds.Right, Is.GreaterThanOrEqualTo(100), "Keep the body doll clear.");
-                Assert.That(dashboard.LeftBank.Width, Is.GreaterThanOrEqualTo(334), "The ignition must fit beside both driving gauges.");
+                var cluster = dashboard.ClusterBounds;
+                Assert.That(cluster.Right <= hotbar.Left || cluster.Bottom <= hotbar.Top, Is.True, $"{viewport}: the cluster covers the hand slots.");
+                Assert.That(cluster.Left >= 0 && cluster.Top >= 0 && cluster.Right <= viewport.X, Is.True, $"{viewport}: the cluster is off screen.");
+                Assert.That(cluster.Height, Is.LessThanOrEqualTo(220), $"{viewport}: the cluster takes too much of the screen.");
+                Assert.That(dashboard.Cluster.Position.Y + dashboard.Cluster.Size.Y, Is.LessThanOrEqualTo(cluster.Bottom));
                 Assert.That(controls.OfType<WFGlassGauge>().All(gauge => gauge.Reading.Value == 0), Is.True,
                     "Unpowered needles park at zero instead of losing their dial.");
             }
-            Assert.That(controls.OfType<WFVehicleIgnitionSlot>().Single().Width, Is.GreaterThanOrEqualTo(110));
-            Assert.That(controls.OfType<WFVehicleLamp>().All(lamp => lamp.Width >= 94), Is.True);
+            Assert.That(controls.OfType<WFVehicleRoundButton>().Where(button => button.Visible)
+                .All(button => button.Width >= WFVehicleRoundButton.Size - 0.5f), Is.True, "A round button was squeezed.");
         });
         await server.WaitAssertion(() =>
             Assert.That(server.System<RMCVehicleSystem>().TryRemoveOperator(new Entity<RMCVehicleOperatorComponent?>(rig.Driver, null)), Is.True));

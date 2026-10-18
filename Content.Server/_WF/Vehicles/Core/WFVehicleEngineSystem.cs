@@ -8,6 +8,7 @@ using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.FixedPoint;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
+using Content.Shared.Inventory;
 using Content.Shared.Popups;
 
 namespace Content.Server._WF.Vehicles.Core;
@@ -21,6 +22,7 @@ public sealed class WFVehicleEngineSystem : EntitySystem
     [Dependency] private ActionBlockerSystem _blocker = default!;
 
     [Dependency] private SharedContainerSystem _containers = default!;
+    [Dependency] private InventorySystem _inventory = default!;
 
     private float _elapsed;
 
@@ -55,7 +57,13 @@ public sealed class WFVehicleEngineSystem : EntitySystem
         {
             if (engine.Electrics || slot.ContainedEntity is not { } inserted)
                 return;
-            _hands.TryPickupAnyHand(user, inserted);
+            _hands.PickupOrDrop(user, inserted);
+            return;
+        }
+
+        if (ev.Ignition)
+        {
+            Ignition((uid, engine), user, slot);
             return;
         }
 
@@ -103,6 +111,98 @@ public sealed class WFVehicleEngineSystem : EntitySystem
         }
         engine.Running = !engine.Running;
         Dirty(uid, engine);
+    }
+
+    /// <summary>
+    /// The one key control, each press the next step: the matching key goes in from anywhere on the driver and turns the
+    /// accessories on, then the engine starts, then everything switches off and the key can come out.
+    /// </summary>
+    private void Ignition(Entity<WFVehicleEngineComponent> vehicle, EntityUid user, ContainerSlot slot)
+    {
+        var engine = vehicle.Comp;
+        if (slot.ContainedEntity == null)
+        {
+            if (FindKey(user, vehicle) is not { } key)
+            {
+                _popup.PopupEntity(Loc.GetString("wf-vehicle-key-required"), user, user);
+                return;
+            }
+
+            if (!_containers.Insert(key, slot))
+                return;
+
+            engine.IgnitionKey = key;
+            engine.Electrics = true;
+            Dirty(vehicle);
+            return;
+        }
+
+        if (!engine.Electrics)
+        {
+            engine.Electrics = true;
+            Dirty(vehicle);
+            return;
+        }
+
+        if (engine.Running)
+        {
+            engine.Running = false;
+            engine.Electrics = false;
+            Dirty(vehicle);
+            return;
+        }
+
+        if (engine.Fuel <= 0f)
+        {
+            _popup.PopupEntity(Loc.GetString("wf-vehicle-no-fuel"), user, user);
+            return;
+        }
+
+        if (engine.BatteryCharge < engine.StarterEnergy)
+        {
+            _popup.PopupEntity(Loc.GetString("wf-vehicle-battery-flat"), user, user);
+            return;
+        }
+
+        engine.BatteryCharge -= engine.StarterEnergy;
+        engine.Running = true;
+        Dirty(vehicle);
+    }
+
+    /// <summary>This vehicle's key in the driver's hands, or worn, or in a pocket, belt or anything else they have on.</summary>
+    private EntityUid? FindKey(EntityUid user, EntityUid vehicle)
+    {
+        if (!TryComp(vehicle, out VehicleLockComponent? vehicleLock) || vehicleLock.KeyId == null)
+            return null;
+
+        bool Matches(EntityUid item) => TryComp(item, out VehicleKeyComponent? key) && key.KeyId == vehicleLock.KeyId;
+
+        foreach (var held in _hands.EnumerateHeld(user))
+        {
+            if (Matches(held))
+                return held;
+        }
+
+        var slots = _inventory.GetSlotEnumerator(user);
+        while (slots.MoveNext(out var inventorySlot))
+        {
+            if (inventorySlot.ContainedEntity is not { } worn)
+                continue;
+            if (Matches(worn))
+                return worn;
+            if (!TryComp(worn, out ContainerManagerComponent? containers))
+                continue;
+            foreach (var container in containers.Containers.Values)
+            {
+                foreach (var item in container.ContainedEntities)
+                {
+                    if (Matches(item))
+                        return item;
+                }
+            }
+        }
+
+        return null;
     }
 
     private void OnInit(Entity<WFVehicleEngineComponent> ent, ref ComponentInit args)

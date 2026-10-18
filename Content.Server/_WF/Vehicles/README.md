@@ -74,18 +74,21 @@ map conversion and YAML translation scripts are in `Tools/_WF/Vehicles`; namespa
 
 ## Driving, fuel and electrical power
 
-The fixed crew dashboard surrounds the hotbar with translucent corner wings and shares the cockpit's retro/futurist
-skins, round speed/RPM/fuel instruments, linear battery gauge and switch buttons. It has no floating window or popout.
+The crew dashboard is one compact cluster beside the hotbar (above it on a narrow screen) in the cockpit's
+retro/futurist skins: round speed and RPM dials, fuel and battery bars, and a row of round icon buttons (key, eject,
+parking brake, headlights, horn, the seat's vehicle actions with their own icons, and tabs for the condition, weapons,
+ammunition and equipment panels, which open in a tray above it). Tooltips name each button. No floating window.
 Ignition ON sweeps all gauges to maximum, back to zero and into live readings; OFF parks the needles and hides
 readout text while preserving the dial faces and tick marks. FUEL LOW is amber below 20%, red below 10%, and flashes red below 5%. RPM follows the same rev
 model as the engine audio, including gear-change drops. Headlights project a forward cone from the front bumper.
 Swept driving commits pushes at each clearance step; a vehicle already overlapping another can back out along
 a separating path without moving deeper into it.
 
-Ground vehicles start with a full tank and the engine off. Use an unbound normal or blank vehicle key on an
-unlocked hull to pair it. Hold it in the active hand and click the HUD ignition slot to insert it, click again
-to turn it ON, then press the green **Start engine** lamp. Turn the key OFF before using **Remove key**. The same key
-locks and unlocks the doors; duplicated keys work for ignition too. Stopping the engine needs no key.
+Ground vehicles start with a full tank and the engine off. A vehicle bought at a purchase terminal comes with its
+key; otherwise use an unbound normal or blank vehicle key on an unlocked hull to pair it. The dashboard's key button
+does the next step each press: it puts the matching key in from anywhere on the driver (hands, pockets, belt, bag)
+and switches the accessories on, then starts the engine, then stops it and switches everything off. The eject button
+appears once it is off. The same key locks and unlocks the doors; duplicated keys work for ignition too.
 Use a container of welding fuel on the stopped vehicle to refill it. Idle engines consume fuel, with higher
 consumption while driving. Fuel exhaustion stops propulsion while the chassis coasts down.
 
@@ -105,7 +108,7 @@ Use an existing Wolfgate parachute pack on a vehicle to strap it on. It deploys 
 limits descent speed and protects the hull during landing. The pack returns at touchdown, and the normal
 vehicle falling rules resume. A packed chute can also be unstrapped using its existing removal verb.
 
-The fixed dashboard uses translucent beveled wings in the lower corners, reserving a cutout for the existing hand slots. Detailed condition, weapons, ammunition and radar panels expand above the right wing. Ignition OFF keeps dial faces and parked needles visible while hiding their readouts.
+Ignition OFF keeps dial faces and parked needles visible while hiding their readouts.
 
 The seat HUD also hosts hull and component health, vehicle switches, weapon selection, stabilization and ammunition controls. Vehicle actions remain server-authorized but no longer populate the hotbar. Equipment windows used outside a vehicle remain available for maintenance.
 
@@ -301,9 +304,10 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleDashboard.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleDashboard.cs)
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleHudSystem.Controls.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleHudSystem.Controls.cs)
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleHudSystem.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleHudSystem.cs)
-- [`Content.Client/_WF/Vehicles/Ui/WFVehicleIgnitionControls.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleIgnitionControls.cs)
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleInstrumentStartup.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleInstrumentStartup.cs)
+- [`Content.Client/_WF/Vehicles/Ui/WFVehicleLamp.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleLamp.cs)
 - [`Content.Client/_WF/Vehicles/Ui/WFVehicleRadarBoundUserInterface.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleRadarBoundUserInterface.cs)
+- [`Content.Client/_WF/Vehicles/Ui/WFVehicleRoundButton.cs`](../../../Content.Client/_WF/Vehicles/Ui/WFVehicleRoundButton.cs)
 - [`Content.Client/_WF/Vehicles/Visuals/VehicleEyeRotationSystem.cs`](../../../Content.Client/_WF/Vehicles/Visuals/VehicleEyeRotationSystem.cs)
 - [`Content.Client/_WF/Vehicles/Visuals/VehicleFrameDamageVisualizerSystem.cs`](../../../Content.Client/_WF/Vehicles/Visuals/VehicleFrameDamageVisualizerSystem.cs)
 - [`Content.Client/_WF/Vehicles/Visuals/VehicleHardpointVisualizerSystem.cs`](../../../Content.Client/_WF/Vehicles/Visuals/VehicleHardpointVisualizerSystem.cs)
@@ -341,6 +345,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleGunHookTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleGunHookTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleGunSpinupTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleGunSpinupTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleIgnitionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleIgnitionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleInteriorTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleInteriorTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleNpcAttackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleNpcAttackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleRigs.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleRigs.cs)
