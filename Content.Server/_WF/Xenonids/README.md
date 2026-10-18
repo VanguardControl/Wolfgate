@@ -1125,6 +1125,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Resources/Locale/en-US/_WF/Xenonids/wf-xeno-categories.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/wf-xeno-categories.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/wf-xeno-commands.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/wf-xeno-commands.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/wf-xeno-core.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/wf-xeno-core.ftl)
+- [`Resources/Locale/en-US/_WF/Xenonids/xeno-toolshed-commands.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno-toolshed-commands.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/xeno/xeno-abilities.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno/xeno-abilities.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/xeno/xeno-access.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno/xeno-access.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/xeno/xeno-acid-blood.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno/xeno-acid-blood.ftl)
