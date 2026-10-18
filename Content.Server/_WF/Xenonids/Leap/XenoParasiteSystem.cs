@@ -1,4 +1,3 @@
-// XENOPORT-STUB: the concrete server system of SharedXenoParasiteSystem; RMC keeps it in Leap. Keep exactly one subclass.
 using Content.Server.Ghost;
 using Content.Server.Ghost.Roles.Components;
 using Content.Shared._WF.Xenonids.Parasite;
@@ -8,6 +7,7 @@ using Robust.Shared.Player;
 
 namespace Content.Server._WF.Xenonids.Leap;
 
+/// <summary>The server's concrete parasite system; keep exactly one subclass of <see cref="SharedXenoParasiteSystem"/>.</summary>
 public sealed partial class XenoParasiteSystem : SharedXenoParasiteSystem
 {
     [Dependency] private GhostSystem _ghostSystem = default!;

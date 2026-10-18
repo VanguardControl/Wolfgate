@@ -1,5 +1,0 @@
-# RMC-14: Resources/Prototypes/_RMC14/Reagents/base_reagent.yml
-- type: reagent
-  abstract: true
-  id: CMReagent
-  isCM: true

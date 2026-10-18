@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Stages RMC-14's xeno prototypes outside Resources until the C# they need has landed.
+"""Stages RMC-14's xeno prototypes outside Resources until the C# they need has landed; used once during the port.
 
     python Tools/_WF/Xenonids/stage_prototypes.py [--rmc E:/GitHub/RMC-14] [--verbose]
 

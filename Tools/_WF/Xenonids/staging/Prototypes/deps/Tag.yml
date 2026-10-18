@@ -1,7 +1,0 @@
-# RMC-14: Resources/Prototypes/_RMC14/Entities/Structures/Furniture/rollerbeds.yml
-- type: Tag
-  id: CMRollerBed
-
-# RMC-14: Resources/Prototypes/_RMC14/rmc_tags.yml
-- type: Tag
-  id: RMCSynthGrabbable # whitelist tag for synths being able to grab particular xenos

@@ -57,6 +57,8 @@
         Slash: 45
   - type: StickyResinSurgeBlocker
   - type: DeletedByWeedKiller
+  # WOLFGATE: Wolfgate's FlammableSystem logs an error for a flammable entity without Appearance
+  - type: Appearance
   - type: Flammable
     fireSpread: false
     maximumFireStacks: 0.5

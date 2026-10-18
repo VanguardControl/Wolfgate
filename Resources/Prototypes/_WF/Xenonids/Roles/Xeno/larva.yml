@@ -1,6 +1,4 @@
-# WOLFGATE: only the larva's job lands with the core lane, since XenoComponent.Role needs it; RMC's CMJobXenoBase
-# fields (isCM, medals, rank preference, isXeno) have no Wolfgate equivalent, so the base's usable fields are inlined.
-# XENOPORT(P2b-3): bring the caste jobs and decide whether to restore a shared CMJobXenoBase.
+# WOLFGATE: Wolfgate jobs have no inheritance, isCM, isXeno or hidden; the shared CMJobXenoBase fields are inlined.
 - type: job
   id: CMXenoLarva
   name: cm-job-name-xeno-larva

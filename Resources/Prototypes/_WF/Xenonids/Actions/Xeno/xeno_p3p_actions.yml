@@ -139,22 +139,13 @@
     cost: 50
 
 - type: entity
-  parent: ActionXenoBase
+  parent: ActionXenoDash
   id: ActionXenoBlitz
   name: Blitz (50)
   description: Dash a short distance towards a given location. After 3 seconds or if you use it again before then, damages enemies around you. Hitting 1 or more recharges your shield.
   components:
-  # WOLFGATE: RMC inherits this from ActionXenoDash (hunter lane); the Dash fields are inlined so Blitz does not wait for it
   - type: WorldTargetAction
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: prae_dash
     useDelay: 0
-    range: 15
-    checkCanAccess: false
-    event: !type:XenoLeapActionEvent
-  - type: RMCDazeableAction
   - type: ActionBlockIfResting
 
 - type: entity

@@ -62,24 +62,21 @@
       - XenoParasite
       - XenoEgg
       - XenoFruit
-  # XENOPORT(P2b-1): TunnelRenamer
-  # - type: TunnelRenamer
-  # XENOPORT(P2b-2): EggPlantTime
-  # - type: EggPlantTime
-  #   plantTime: 2.5
+  - type: TunnelRenamer
+  - type: EggPlantTime
+    plantTime: 2.5
   # WOLFGATE: cut MultiHandedHolder
   - type: RMCXenoDamageVisuals
     prefix: drone
   # WOLFGATE: cut TacticalMapIcon (tactical map)
-  # XENOPORT(P2b-1): XenoConstruction
-  # - type: XenoConstruction
-  #   buildDelay: 2
-  #   canOrderConstruction:
-  #   - HiveCoreXenoConstructionNode
-  #   - HiveEggMorpherXenoConstructionNode
-  #   - HiveClusterXenoConstructionNode
-  #   - HiveRecoveryNodeXenoConstructionNode
-  #   - HivePlasmaTreeXenoConstructionNode
+  - type: XenoConstruction
+    buildDelay: 2
+    canOrderConstruction:
+    - HiveCoreXenoConstructionNode
+    - HiveEggMorpherXenoConstructionNode
+    - HiveClusterXenoConstructionNode
+    - HiveRecoveryNodeXenoConstructionNode
+    - HivePlasmaTreeXenoConstructionNode
   - type: XenoEvolution
     canEvolveWithoutGranter: true
     max: 200
@@ -115,33 +112,31 @@
     - ActionXenoRegurgitate
     - ActionXenoWatch
     - ActionXenoTailStab
-    # XENOPORT(P2b-2): - ActionXenoAcidWeak
+    - ActionXenoAcidWeak
     - ActionXenoPheromones
-    # XENOPORT(P2b-1): - ActionXenoOrderConstruction
-    # XENOPORT(P2b-1): - ActionXenoPlantWeeds
-    # XENOPORT(P2b-1): - ActionXenoChooseStructure
-    # XENOPORT(P2b-1): - ActionXenoSecreteStructure
+    - ActionXenoOrderConstruction
+    - ActionXenoPlantWeeds
+    - ActionXenoChooseStructure
+    - ActionXenoSecreteStructure
     - ActionXenoTransferPlasma
     - ActionXenoDevolve
   - type: XenoEvolution
     strains:
     - CMXenoDroneGardener
     - CMXenoDroneHealer
-  # XENOPORT(P2b-2): XenoAcid
-  # - type: XenoAcid
+  - type: XenoAcid
   - type: AcidTrap
     trapLevel: 1
     cost: 70
     spray: XenoAcidSprayTrapWeak
-  # XENOPORT(P2b-1): XenoConstruction
-  # - type: XenoConstruction
-  #   canBuild:
-  #   - WallXenoResin
-  #   - WallXenoMembrane
-  #   - DoorXenoResin
-  #   - XenoStickyResin
-  #   - XenoFastResin
-  #   - XenoResinSpikes
+  - type: XenoConstruction
+    canBuild:
+    - WallXenoResin
+    - WallXenoMembrane
+    - DoorXenoResin
+    - XenoStickyResin
+    - XenoFastResin
+    - XenoResinSpikes
   - type: VentCrawler
     ventCrawlIcon: drone
   # WOLFGATE: cut RMCActionOrder
@@ -156,9 +151,8 @@
     layers:
     - map: [ "enum.XenoVisualLayers.Base" ]
       state: alive
-    # XENOPORT(P2b-1): the fruit layer
-    # - map: [ "enum.XenoFruitVisualLayers.Base" ]
-    #   visible: false
+    - map: [ "enum.XenoFruitVisualLayers.Base" ]
+      visible: false
     - map: [ "enum.RMCDamageVisualLayers.Base" ]
       visible: false
     - map: [ "enum.XenoInhandVisualLayers.Left" ]
@@ -168,10 +162,9 @@
     - map: [ "enum.RMCShieldVisuals.Base" ]
       sprite: _WF/Xenonids/Effects/xeno_shields.rsi
       visible: false
-  # XENOPORT(P2b-1): XenoFruitPlanterVisuals
-  # - type: XenoFruitPlanterVisuals
-  #   rsi: _WF/Xenonids/Mobs/Xenonids/Drone/gardener_drone.rsi
-  #   prefix: gardener
+  - type: XenoFruitPlanterVisuals
+    rsi: _WF/Xenonids/Mobs/Xenonids/Drone/gardener_drone.rsi
+    prefix: gardener
   - type: Xeno
     actionIds:
     - ActionXenoRest
@@ -179,11 +172,11 @@
     - ActionXenoWatch
     - ActionXenoTailStab
     - ActionXenoPheromones
-    # XENOPORT(P2b-1): - ActionXenoOrderConstruction
-    # XENOPORT(P2b-1): - ActionXenoPlantWeeds
-    # XENOPORT(P2b-1): - ActionXenoPlantWeedsHardy
-    # XENOPORT(P2b-1): - ActionXenoFruitPlant
-    # XENOPORT(P2b-1): - ActionXenoFruitChoose
+    - ActionXenoOrderConstruction
+    - ActionXenoPlantWeeds
+    - ActionXenoPlantWeedsHardy
+    - ActionXenoFruitPlant
+    - ActionXenoFruitChoose
     - ActionXenoResinSurge
     - ActionXenoTransferPlasma
     - ActionXenoDevolve
@@ -195,17 +188,16 @@
     name: rmc-xeno-gardener-name
     description: rmc-xeno-gardener-description
     popup: rmc-xeno-gardener-popup
-  # XENOPORT(P2b-1): XenoFruitPlanter
-  # - type: XenoFruitPlanter
-  #   canPlant:
-  #   - XenoFruitGreater
-  #   - XenoFruitPlasma
-  #   - XenoFruitSpeed
-  #   - XenoFruitSpore
-  #   - XenoFruitUnstable
-  #   maxFruitAllowed: 6
-  #   fruitPickingMultiplier: 0.5
-  #   fruitFeedingMultiplier: 0.5
+  - type: XenoFruitPlanter
+    canPlant:
+    - XenoFruitGreater
+    - XenoFruitPlasma
+    - XenoFruitSpeed
+    - XenoFruitSpore
+    - XenoFruitUnstable
+    maxFruitAllowed: 6
+    fruitPickingMultiplier: 0.5
+    fruitFeedingMultiplier: 0.5
   - type: XenoResinSurge
   - type: XenoHidden
   - type: VentCrawler
@@ -241,11 +233,11 @@
     - ActionXenoRegurgitate
     - ActionXenoWatch
     - ActionXenoTailStab
-    # XENOPORT(P2b-2): - ActionXenoAcidWeak
+    - ActionXenoAcidWeak
     - ActionXenoPheromones
-    # XENOPORT(P2b-1): - ActionXenoOrderConstruction
-    # XENOPORT(P2b-1): - ActionXenoPlantWeeds
-    # XENOPORT(P2b-1): - ActionXenoFruitPlantLesser
+    - ActionXenoOrderConstruction
+    - ActionXenoPlantWeeds
+    - ActionXenoFruitPlantLesser
     - ActionXenoApplySalve
     - ActionXenoHealerDroneTransferPlasma
     - ActionXenoSacrifice
@@ -270,12 +262,11 @@
     name: rmc-xeno-healer-name
     description: rmc-xeno-healer-description
     popup: rmc-xeno-healer-popup
-  # XENOPORT(P2b-1): XenoFruitPlanter
-  # - type: XenoFruitPlanter
-  #   fruitChoice: XenoFruitLesser
-  #   canPlant:
-  #   - XenoFruitLesser
-  #   maxFruitAllowed: 3
+  - type: XenoFruitPlanter
+    fruitChoice: XenoFruitLesser
+    canPlant:
+    - XenoFruitLesser
+    maxFruitAllowed: 3
   - type: Tackle
     max: 4
     stunMin: 3
@@ -287,8 +278,7 @@
     gain: 0
     gainAttack: 0
     gainAttackDowned: 0
-  # XENOPORT(P2b-2): XenoAcid
-  # - type: XenoAcid
+  - type: XenoAcid
   - type: XenoSalveVisuals
   - type: XenoHidden
   - type: VentCrawler

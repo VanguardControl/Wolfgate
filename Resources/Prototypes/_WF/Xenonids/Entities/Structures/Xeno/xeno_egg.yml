@@ -1,6 +1,7 @@
 - type: entity
   parent: BaseItem
   id: XenoEgg
+  categories: [ WFXenonids ]
   name: egg
   description: It looks like a weird egg.
   placement:
@@ -32,6 +33,8 @@
 #        - MobLayer
   - type: CollisionWake
     enabled: false
+  # WOLFGATE: Wolfgate's FlammableSystem logs an error for a flammable entity without Appearance
+  - type: Appearance
   - type: Flammable
     fireSpread: false
     damage:
@@ -116,6 +119,8 @@
         friction: 0.2
   - type: CollisionWake
     enabled: false
+  # WOLFGATE: Wolfgate's FlammableSystem logs an error for a flammable entity without Appearance
+  - type: Appearance
   - type: Flammable
     fireSpread: false
     damage:

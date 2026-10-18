@@ -49,13 +49,14 @@
     xenoDamage:
       types:
         Slash: 100
-  # XENOPORT(P2b-2): AcidPillar sprays XenoAcidSprayWeak, which lands with the acid effects
-  # - type: AcidPillar
+  - type: AcidPillar
   - type: XenoConstructionPlasmaCost
     plasma: 250
   - type: XenoSecretionLimited
     id: HiveAcidPillarXeno
   - type: DeletedByWeedKiller
+  # WOLFGATE: Wolfgate's FlammableSystem logs an error for a flammable entity without Appearance
+  - type: Appearance
   - type: Flammable
     fireSpread: false
     maximumFireStacks: 0.5

@@ -18,5 +18,5 @@ public sealed partial class ApplyAcidStacksComponent : Component
     public DamageSpecifier? Damage;
 
     [DataField, AutoNetworkedField]
-    public EntityWhitelist? Whitelist = new() { Components = ["Marine"] };
+    public EntityWhitelist? Whitelist = new() { Components = ["HumanoidAppearance"] }; // humanoids stand in for RMC's Marine
 }

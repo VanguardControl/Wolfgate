@@ -40,12 +40,10 @@
   - type: XenoEvolution
     canEvolveWithoutGranter: true
     max: 200
-    # XENOPORT(P3-M): CMXenoWarrior; restore the list below when the caste lands
-    evolvesTo: []
-    # - CMXenoWarrior
-    # XENOPORT(P3-Q): CMXenoQueen
-    evolvesToWithoutPoints: []
-    # - CMXenoQueen
+    evolvesTo:
+    - CMXenoWarrior
+    evolvesToWithoutPoints:
+    - CMXenoQueen
   - type: XenoPlasma
     plasma: 100
     maxPlasma: 100

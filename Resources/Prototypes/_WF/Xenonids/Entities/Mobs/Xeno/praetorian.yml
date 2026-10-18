@@ -32,19 +32,18 @@
     - ActionXenoTailStab
     - ActionXenoAcidNormal
     - ActionXenoSpitPraetorian
-    # XENOPORT(P3-M): - ActionXenoDash
+    - ActionXenoDash
     - ActionXenoAcidBall
-    # XENOPORT(P3-B): - ActionXenoSprayAcidPraetorian
+    - ActionXenoSprayAcidPraetorian
     - ActionXenoDevolve
     tier: 3
     hudOffset: -0.15,0.16
     unlockAt: 900 # 15 minutes
   - type: XenoHeavy
   - type: XenoDevolve
-    # XENOPORT(P3-M): CMXenoWarrior; XENOPORT(P3-B): CMXenoSpitter; restore the list below when the castes land
-    devolvesTo: []
-    # - CMXenoWarrior
-    # - CMXenoSpitter
+    devolvesTo:
+    - CMXenoWarrior
+    - CMXenoSpitter
   - type: XenoAcid
   - type: XenoDevour
   - type: XenoPlasma
@@ -89,12 +88,11 @@
     prefix: praetorian
   - type: XenoSpit
     projectileId: XenoSpitProjectilePraetorian
-  # XENOPORT(P3-B): XenoSprayAcid
-  # - type: XenoSprayAcid
-  #   barricadeDamage:
-  #     types:
-  #       Heat: 5
-  #   range: 7
+  - type: XenoSprayAcid
+    barricadeDamage:
+      types:
+        Heat: 5
+    range: 7
   # WOLFGATE: cut TacticalMapIcon (tactical map)
   - type: SlowOnPull
     # WOLFGATE: humanoids stand in for marines
@@ -121,13 +119,12 @@
   id: CMXenoPraetorian
   components:
   # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
-  # XENOPORT(P3-B): XenoSprayAcid
-  # - type: XenoSprayAcid
-  #   barricadeDamage:
-  #     types:
-  #       Heat: 5
-  #   acid: XenoAcidSprayAcidStacks
-  #   plasmaCost: 80
+  - type: XenoSprayAcid
+    barricadeDamage:
+      types:
+        Heat: 5
+    acid: XenoAcidSprayAcidStacks
+    plasmaCost: 80
   - type: XenoLeap
     plasmaCost: 40
     delay: 0
@@ -162,7 +159,7 @@
     - ActionXenoTailFountain
     - ActionXenoAcidNormal
     - ActionXenoPheromones
-    # XENOPORT(P3-M): - ActionXenoTantrum
+    - ActionXenoTantrum
     - ActionXenoHighGallop
     - ActionXenoFightOrFlight
     - ActionXenoRetrieve
@@ -205,8 +202,7 @@
   - type: XenoClaws
     clawType: VerySharp
   - type: XenoTailFountain
-  # XENOPORT(P3-M): XenoTantrum
-  # - type: XenoTantrum
+  - type: XenoTantrum
   - type: XenoFury
   - type: XenoFightOrFlight
     componentsRemove:

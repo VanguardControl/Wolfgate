@@ -29,6 +29,8 @@
         - MobLayer
   - type: CollisionWake
     enabled: false
+  # WOLFGATE: Wolfgate's FlammableSystem logs an error for a flammable entity without Appearance
+  - type: Appearance
   - type: Flammable
     fireSpread: false
     damage:
@@ -153,9 +155,8 @@
     duration: 90
     reductionMax: 0.25
     reductionPerSlash: 0.05
-  # XENOPORT(P2b-3): XenoPheromones
-  # - type: XenoPheromones
-  #   pheromonesMultiplier: 1
+  - type: XenoPheromones
+    pheromonesMultiplier: 1
   - type: XenoPheromonesObject
 
 - type: entity

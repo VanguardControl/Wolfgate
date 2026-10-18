@@ -57,7 +57,7 @@
     max: 500
     evolvesTo:
     - RMCXenoBoiler
-    # XENOPORT(P3-P): - CMXenoPraetorian
+    - CMXenoPraetorian
   - type: XenoSpit
   - type: XenoChargeSpit
   - type: XenoScatteredSpit

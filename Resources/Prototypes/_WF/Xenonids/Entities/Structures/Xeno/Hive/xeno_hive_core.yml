@@ -58,21 +58,19 @@
     level: 3
     blockOtherWeeds: true
     spreadsOnSemiWeedable: true
-  # XENOPORT(P2b-3): lesser drone ghost role (CMXenoLesserDrone lands with the growth lane)
-  # - type: GhostRole
-  #   name: roles-lesser-drone-name
-  #   description: roles-lesser-drone-description
-  #   raffle:
-  #     settings: short
-  # - type: GhostRoleMobSpawner
-  #   availableTakeovers: 2
-  #   deleteOnSpawn: false
-  #   prototype: CMXenoLesserDrone
+  - type: GhostRole
+    name: roles-lesser-drone-name
+    description: roles-lesser-drone-description
+    raffle:
+      settings: short
+  - type: GhostRoleMobSpawner
+    availableTakeovers: 2
+    deleteOnSpawn: false
+    prototype: CMXenoLesserDrone
   - type: HiveConstructionLimited
     id: HiveCoreXeno
   # WOLFGATE: cut RoofingEntity
-  # XENOPORT(P2b-3): EvolutionBonus
-  # - type: EvolutionBonus
+  - type: EvolutionBonus
   - type: WarpPoint
     location: hive core
   # WOLFGATE: cut XenoStructureMapTracked
@@ -158,16 +156,15 @@
     spawns: XenoHiveWeedsCluster
     level: 3
     blockOtherWeeds: true
-  # XENOPORT(P2b-3): lesser drone ghost role (CMXenoLesserDrone lands with the growth lane)
-  # - type: GhostRole
-  #   name: roles-lesser-drone-name
-  #   description: roles-lesser-drone-description
-  #   raffle:
-  #     settings: short
-  # - type: GhostRoleMobSpawner
-  #   availableTakeovers: 2
-  #   deleteOnSpawn: false
-  #   prototype: CMXenoLesserDrone
+  - type: GhostRole
+    name: roles-lesser-drone-name
+    description: roles-lesser-drone-description
+    raffle:
+      settings: short
+  - type: GhostRoleMobSpawner
+    availableTakeovers: 2
+    deleteOnSpawn: false
+    prototype: CMXenoLesserDrone
   - type: HiveConstructionLimited
     id: HivePylonXeno
   - type: WarpPoint

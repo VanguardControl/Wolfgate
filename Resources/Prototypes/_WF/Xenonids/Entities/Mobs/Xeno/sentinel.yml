@@ -60,9 +60,8 @@
     max: 200
     evolvesTo:
     - CMXenoSpitter
-    # XENOPORT(P3-Q): CMXenoQueen
-    evolvesToWithoutPoints: []
-    # - CMXenoQueen
+    evolvesToWithoutPoints:
+    - CMXenoQueen
   - type: XenoAcid
   - type: XenoParalyzingSlash
   - type: XenoSlowingSpit

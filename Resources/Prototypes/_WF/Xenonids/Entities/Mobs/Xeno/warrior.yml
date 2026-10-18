@@ -41,9 +41,8 @@
     restHealMultiplier:  1.4
   - type: XenoLight
   - type: XenoDevolve
-    # XENOPORT(P3-P): CMXenoDefender
-    devolvesTo: []
-    # - CMXenoDefender
+    devolvesTo:
+    - CMXenoDefender
   - type: XenoDevour
   - type: XenoPunch
     damage:
@@ -57,10 +56,9 @@
     plasmaRegenOnWeeds: 0
   - type: XenoEvolution
     max: 500
-    # XENOPORT(P3-P): RMCXenoCrusher, CMXenoPraetorian
-    evolvesTo: []
-    # - RMCXenoCrusher
-    # - CMXenoPraetorian
+    evolvesTo:
+    - RMCXenoCrusher
+    - CMXenoPraetorian
   - type: CMArmor
     xenoArmor: 20
     explosionArmor: 40

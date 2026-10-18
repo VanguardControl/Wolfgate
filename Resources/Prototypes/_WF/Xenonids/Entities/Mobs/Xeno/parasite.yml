@@ -127,13 +127,12 @@
     ventCrawlIcon: parasite
   - type: Unshieldable
   - type: ExcludedFromKingVote
-  # XENOPORT(P2b-3): MindTakeoverBehavior
-  # - type: MindTakeoverBehavior
-  #   ejectFromLarvaQueues: false
+  - type: MindTakeoverBehavior
+    ejectFromLarvaQueues: false
   - type: RemoveComponents
     components:
     - type: ComplexInteraction
-    # XENOPORT(P2b-3): - type: CanBeLarvaQueued
+    - type: CanBeLarvaQueued
 
 - type: entity
   parent: CMXenoParasiteBase
@@ -141,10 +140,9 @@
   components:
   # WOLFGATE: cut SleepNPC (RMC's NPC module) and RMCActionOrder
   - type: ParasiteAI
-  # XENOPORT(P2b-3): XenoEvolution
-  # - type: XenoEvolution
-  #   strains:
-  #   - RMCXenoParasiteWatcher
+  - type: XenoEvolution
+    strains:
+    - RMCXenoParasiteWatcher
 
 - type: entity
   parent: CMXenoParasiteBase
@@ -157,11 +155,10 @@
     - ActionXenoWatch
     - ActionXenoLeap
     - ActionXenoZoom
-  # XENOPORT(P2b-3): XenoStrain
-  # - type: XenoStrain
-  #   name: rmc-xeno-watcher-name
-  #   description: rmc-xeno-watcher-description
-  #   popup: rmc-xeno-watcher-popup
+  - type: XenoStrain
+    name: rmc-xeno-watcher-name
+    description: rmc-xeno-watcher-description
+    popup: rmc-xeno-watcher-popup
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Parasite/watcher_parasite.rsi
   - type: XenoZoom

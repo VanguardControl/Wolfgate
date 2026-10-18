@@ -1,7 +1,0 @@
-# RMC-14: Resources/Prototypes/Alerts/categories.yml
-- type: alertCategory
-  id: AreaInfo
-
-# RMC-14: Resources/Prototypes/Alerts/categories.yml
-- type: alertCategory
-  id: Sight

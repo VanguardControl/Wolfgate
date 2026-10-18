@@ -1,6 +1,3 @@
-// XENOPORT(P3-B), XENOPORT(P3-P): the previews of abilities from lanes that are not merged yet are compiled out.
-#define XENOPORT_P3B
-#define XENOPORT_P3P
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -8,26 +5,20 @@ using System.Linq;
 using System.Numerics;
 using Content.Client.Gameplay;
 using Content.Client.UserInterface.Systems.Actions;
-using Content.Shared._WF.Xenonids.ManageHive;
 using Content.Shared._WF.RMCCore.Line;
 using Content.Shared._WF.RMCCore.Projectiles;
 using Content.Shared._WF.RMCCore.Smoke;
-#if XENOPORT_P3B
+using Content.Shared._WF.Xenonids.Abduct;
 using Content.Shared._WF.Xenonids.AcidMine;
 using Content.Shared._WF.Xenonids.Bombard;
 using Content.Shared._WF.Xenonids.Burrow;
 using Content.Shared._WF.Xenonids.DeployTraps;
-#endif
 using Content.Shared._WF.Xenonids.Fruit.Components;
-#if XENOPORT_P3B
+using Content.Shared._WF.Xenonids.ManageHive;
+using Content.Shared._WF.Xenonids.Pierce;
 using Content.Shared._WF.Xenonids.ResinSurge;
 using Content.Shared._WF.Xenonids.Spray;
-#endif
 using Content.Shared._WF.Xenonids.Weeds;
-#if XENOPORT_P3P
-using Content.Shared._WF.Xenonids.Abduct;
-using Content.Shared._WF.Xenonids.Pierce;
-#endif
 using Content.Shared.Actions;
 using Content.Shared.Maps;
 using Content.Shared.Physics;
@@ -84,7 +75,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
     private readonly EntityQuery<ActionsComponent> _actionsQ;
     private readonly EntityQuery<WorldTargetActionComponent> _worldTargetQ;
     private readonly EntityQuery<EntityWorldTargetActionComponent> _entityWorldTargetQ; // WOLFGATE: spit-style actions target an entity or the world here
-#if XENOPORT_P3B
     private readonly EntityQuery<XenoSprayAcidComponent> _sprayQ;
     private readonly EntityQuery<XenoBombardComponent> _bombardQ;
     private readonly EntityQuery<XenoBurrowComponent> _burrowQ;
@@ -92,13 +82,10 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
     private readonly EntityQuery<XenoDeployTrapsComponent> _deployTrapsQ;
     private readonly EntityQuery<XenoResinSurgeComponent> _resinSurgeQ;
     private readonly EntityQuery<ResinSurgeReinforcableComponent> _reinforcableQ;
-#endif
     private readonly EntityQuery<XenoFruitComponent> _fruitQ;
     private readonly EntityQuery<XenoWeedsComponent> _weedsQ;
-#if XENOPORT_P3P
     private readonly EntityQuery<XenoAbductComponent> _abductQ;
     private readonly EntityQuery<XenoPierceComponent> _pierceQ;
-#endif
     private readonly EntityQuery<TransformComponent> _xformQ;
 
     public XenoAbilityPreviewOverlay(IEntityManager ents)
@@ -118,7 +105,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         _actionsQ = ents.GetEntityQuery<ActionsComponent>();
         _worldTargetQ = ents.GetEntityQuery<WorldTargetActionComponent>();
         _entityWorldTargetQ = ents.GetEntityQuery<EntityWorldTargetActionComponent>();
-#if XENOPORT_P3B
         _sprayQ = ents.GetEntityQuery<XenoSprayAcidComponent>();
         _bombardQ = ents.GetEntityQuery<XenoBombardComponent>();
         _burrowQ = ents.GetEntityQuery<XenoBurrowComponent>();
@@ -126,13 +112,10 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         _deployTrapsQ = ents.GetEntityQuery<XenoDeployTrapsComponent>();
         _resinSurgeQ = ents.GetEntityQuery<XenoResinSurgeComponent>();
         _reinforcableQ = ents.GetEntityQuery<ResinSurgeReinforcableComponent>();
-#endif
         _fruitQ = ents.GetEntityQuery<XenoFruitComponent>();
         _weedsQ = ents.GetEntityQuery<XenoWeedsComponent>();
-#if XENOPORT_P3P
         _abductQ = ents.GetEntityQuery<XenoAbductComponent>();
         _pierceQ = ents.GetEntityQuery<XenoPierceComponent>();
-#endif
         _xformQ = ents.GetEntityQuery<TransformComponent>();
     }
 
@@ -150,7 +133,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
 
         var actionController = _ui.GetUIController<ActionUIController>();
         var originMap = _transform.GetMapCoordinates(player.Value, xform: xform);
-#if XENOPORT_P3B
         float? burrowRange = null;
         if (_burrowQ.TryComp(player.Value, out var burrow) &&
             IsBurrowed(burrow) &&
@@ -159,7 +141,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
             burrowRange = GetBurrowRange(player.Value, burrow, actionController.SelectingTargetFor);
             DrawBurrowRange(args, originMap, burrowRange.Value);
         }
-#endif
 
         if (actionController.SelectingTargetFor is not { } action)
             return;
@@ -176,7 +157,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
 
         if (args.Space == OverlaySpace.WorldSpace)
         {
-#if XENOPORT_P3B
             if (actionEvent is not XenoBurrowActionEvent ||
                 !_burrowQ.TryComp(player.Value, out burrow) ||
                 !IsBurrowed(burrow))
@@ -186,7 +166,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
 
             burrowRange ??= GetBurrowRange(player.Value, burrow, action);
             DrawBurrowTarget(args, originMap, mousePos, burrowRange.Value);
-#endif
             return;
         }
 
@@ -195,31 +174,24 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
 
         switch (actionEvent)
         {
-#if XENOPORT_P3B
             case XenoSprayAcidActionEvent:
                 if (!_sprayQ.TryComp(player.Value, out var spray))
                     return;
 
                 DrawSpray(args, player.Value, xform, originMap, mousePos, spray);
                 break;
-#endif
-#if XENOPORT_P3B
             case XenoBombardActionEvent:
                 if (!_bombardQ.TryComp(player.Value, out var bombard))
                     return;
 
                 DrawBombard(args, player.Value, xform, originMap, mousePos, bombard);
                 break;
-#endif
-#if XENOPORT_P3B
             case XenoResinSurgeActionEvent:
                 if (!_resinSurgeQ.TryComp(player.Value, out var resinSurge))
                     return;
 
                 DrawResinSurge(args, originMap, mousePos, resinSurge);
                 break;
-#endif
-#if XENOPORT_P3B
             case XenoAcidMineActionEvent:
                 if (!_acidMineQ.TryComp(player.Value, out var acidMine))
                     return;
@@ -229,32 +201,24 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
 
                 DrawAcidMineSquare(args.WorldHandle, originMap, acidMineTile, acidMine.AcidMineRadius, acidMine.Range);
                 break;
-#endif
-#if XENOPORT_P3B
             case XenoDeployTrapsActionEvent:
                 if (!_deployTrapsQ.TryComp(player.Value, out var deployTraps))
                     return;
                 DrawDeployTraps(args, originMap, mousePos, deployTraps, DeployTrapsOutlineColor.WithAlpha(OutlineAlpha));
                 break;
-#endif
-#if XENOPORT_P3P
             case XenoAbductActionEvent:
                 if (!_abductQ.TryComp(player.Value, out var abduct))
                     return;
                 DrawAbduct(args, player.Value, xform, originMap, mousePos, abduct);
                 break;
-#endif
-#if XENOPORT_P3P
             case XenoPierceActionEvent:
                 if (!_pierceQ.TryComp(player.Value, out var pierce))
                     return;
                 DrawPierce(args, player.Value, xform, originMap, mousePos, pierce);
                 break;
-#endif
         }
     }
 
-#if XENOPORT_P3B
     private void DrawResinSurge(
         in OverlayDrawArgs args,
         MapCoordinates originMap,
@@ -280,9 +244,7 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
 
         DrawResinSurgeSquare(args.WorldHandle, originMap, targetTile, resinSurge.StickyResinRadius);
     }
-#endif
 
-#if XENOPORT_P3B
     private void DrawSpray(
         in OverlayDrawArgs args,
         EntityUid player,
@@ -298,7 +260,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         var color = SprayOutlineColor.WithAlpha(OutlineAlpha);
         DrawLinePreview(args, player, xform.Coordinates, mousePos, spray.Range, color);
     }
-#endif
 
     private void DrawSquareAoE(
         in OverlayDrawArgs args,
@@ -323,7 +284,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         DrawTileBorder(args.WorldHandle, gridUid, grid, tiles, color);
     }
 
-#if XENOPORT_P3B
     private void DrawDeployTraps(
         in OverlayDrawArgs args,
         MapCoordinates originMap,
@@ -371,9 +331,7 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         DrawTileBorder(args.WorldHandle, gridUid, grid, validTiles, color);
         DrawTileBorder(args.WorldHandle, gridUid, grid, invalidTiles, InvalidOutlineColor.WithAlpha(OutlineAlpha));
     }
-#endif
 
-#if XENOPORT_P3P
     private void DrawAbduct(
         in OverlayDrawArgs args,
         EntityUid player,
@@ -389,9 +347,7 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         var color = AbductOutlineColor.WithAlpha(OutlineAlpha);
         DrawLinePreview(args, player, xform.Coordinates, mousePos, abduct.Range, color);
     }
-#endif
 
-#if XENOPORT_P3P
     private void DrawPierce(
         in OverlayDrawArgs args,
         EntityUid player,
@@ -407,9 +363,7 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         var color = PierceOutlineColor.WithAlpha(OutlineAlpha);
         DrawLinePreview(args, player, xform.Coordinates, mousePos, (int)pierce.Range, color, ignoreCades: true);
     }
-#endif
 
-#if XENOPORT_P3B
     private void DrawBombard(
         in OverlayDrawArgs args,
         EntityUid player,
@@ -462,9 +416,7 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
 
         DrawTileBorder(args.WorldHandle, gridUid, grid, aoeTiles, color);
     }
-#endif
 
-#if XENOPORT_P3B
     private void DrawBurrowRange(
         in OverlayDrawArgs args,
         MapCoordinates originMap,
@@ -476,7 +428,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         var color = BurrowOutlineColor.WithAlpha(OutlineAlpha);
         DrawTileRange(args, originMap, range, color);
     }
-#endif
 
     private void DrawTileRange(
         in OverlayDrawArgs args,
@@ -506,7 +457,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         DrawTileBorder(args.WorldHandle, gridUid, grid, tiles, color);
     }
 
-#if XENOPORT_P3B
     private void DrawBurrowTarget(
         in OverlayDrawArgs args,
         MapCoordinates originMap,
@@ -523,16 +473,12 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         var color = BurrowOutlineColor.WithAlpha(OutlineAlpha);
         DrawLandingTile(args, mousePos, color);
     }
-#endif
 
-#if XENOPORT_P3B
     private static bool IsBurrowed(XenoBurrowComponent burrow)
     {
         return burrow.Active || burrow.Tunneling || burrow.ForcedUnburrowAt != null;
     }
-#endif
 
-#if XENOPORT_P3B
     private float GetBurrowRange(EntityUid player, XenoBurrowComponent burrow, EntityUid? selectedAction)
     {
         var maxRange = burrow.MaxTunnelingDistance;
@@ -559,9 +505,7 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
 
         return maxRange;
     }
-#endif
 
-#if XENOPORT_P3B
     private bool TryGetBurrowActionRange(EntityUid action, out float range)
     {
         range = default;
@@ -571,7 +515,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         range = targetAction.Range;
         return true;
     }
-#endif
 
     private void DrawLinePreview(
         in OverlayDrawArgs args,
@@ -632,7 +575,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         DrawTileBorder(args.WorldHandle, gridUid, grid, tiles, color);
     }
 
-#if XENOPORT_P3B
     private bool TryGetResinSurgeDirectTarget(MapCoordinates mousePos, out TileInfo target)
     {
         target = default;
@@ -650,7 +592,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
 
         return TryGetEntityTile(entity.Value, out target);
     }
-#endif
 
     private void DrawTileSquare(DrawingHandleWorld handle, TileInfo center, int radius, Color color)
     {
@@ -666,7 +607,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         DrawTileBorder(handle, center.GridUid, center.Grid, tiles, color);
     }
 
-#if XENOPORT_P3B
     private void DrawResinSurgeSquare(DrawingHandleWorld handle, MapCoordinates originMap, TileInfo center, int radius)
     {
         var validTiles = new HashSet<Vector2i>();
@@ -689,7 +629,6 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         DrawTileBorder(handle, center.GridUid, center.Grid, validTiles, ResinSurgeOutlineColor.WithAlpha(OutlineAlpha));
         DrawTileBorder(handle, center.GridUid, center.Grid, invalidTiles, InvalidOutlineColor.WithAlpha(OutlineAlpha));
     }
-#endif
 
     private void DrawAcidMineSquare(DrawingHandleWorld handle, MapCoordinates originMap, TileInfo center, int radius, float range)
     {

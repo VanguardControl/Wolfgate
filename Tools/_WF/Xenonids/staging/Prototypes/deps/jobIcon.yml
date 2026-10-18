@@ -1,8 +1,0 @@
-# RMC-14: Resources/Prototypes/_RMC14/Roles/Jobs/JobIcons/empty_job_icon.yml
-- type: jobIcon
-  parent: CMJobIconBase
-  id: CMJobIconEmpty
-  icon:
-    sprite: _WF/Xenonids/Interface/job_icons/Misc/other.rsi
-    state: empty
-

@@ -72,9 +72,8 @@
     max: 200
     evolvesTo:
     - CMXenoLurker
-    # XENOPORT(P3-Q): CMXenoQueen
-    evolvesToWithoutPoints: []
-    # - CMXenoQueen
+    evolvesToWithoutPoints:
+    - CMXenoQueen
   - type: XenoZoom
   - type: MeleeWeapon
     attackRate: 1.4

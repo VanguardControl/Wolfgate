@@ -36,11 +36,11 @@
     - ActionXenoRegurgitate
     - ActionXenoWatch
     - ActionXenoTailStab
-    # XENOPORT(P2b-2): - ActionXenoAcidWeak
+    - ActionXenoAcidWeak
     - ActionXenoPheromones
-    # XENOPORT(P2b-1): - ActionLesserDronePlantWeeds
-    # XENOPORT(P2b-1): - ActionXenoChooseStructure
-    # XENOPORT(P2b-1): - ActionXenoSecreteStructure
+    - ActionLesserDronePlantWeeds
+    - ActionXenoChooseStructure
+    - ActionXenoSecreteStructure
     tier: 0
     hudOffset: -0.15,-0.03
     contributesToVictory: false
@@ -48,15 +48,13 @@
     unlockAt: 0
     muteOnSpawn: true
   - type: XenoLight
-  # XENOPORT(P2b-2): XenoAcid
-  # - type: XenoAcid
-  # XENOPORT(P2b-1): XenoConstruction
-  # - type: XenoConstruction
-  #   buildDelay: 4
-  #   canBuild:
-  #   - WallXenoResin
-  #   - WallXenoMembrane
-  #   - DoorXenoResin
+  - type: XenoAcid
+  - type: XenoConstruction
+    buildDelay: 4
+    canBuild:
+    - WallXenoResin
+    - WallXenoMembrane
+    - DoorXenoResin
   - type: XenoDevour
   - type: XenoPheromones
     pheroSuffix: weak
@@ -91,15 +89,13 @@
       - XenoParasite
       - XenoEgg
       - XenoFruit
-  # XENOPORT(P2b-1): TunnelRenamer
-  # - type: TunnelRenamer
+  - type: TunnelRenamer
   # WOLFGATE: cut MultiHandedHolder
   - type: DamageOffWeeds
     damage:
       types:
         Blunt: 2.5
-  # XENOPORT(P2b-1): XenoHiveCoreRole
-  # - type: XenoHiveCoreRole
+  - type: XenoHiveCoreRole
   - type: RMCSize
     size: VerySmallXeno
   - type: RMCXenoDamageVisuals

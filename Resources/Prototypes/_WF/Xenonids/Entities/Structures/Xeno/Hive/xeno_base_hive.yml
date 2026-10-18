@@ -1,6 +1,7 @@
 - type: entity
   abstract: true
   id: BaseHiveStructure
+  categories: [ WFXenonids ]
   components:
   # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Transform
@@ -29,6 +30,8 @@
   - type: XenoAnnounceStructureDestruction
   - type: RequireProjectileTarget
   - type: DeletedByWeedKiller
+  # WOLFGATE: Wolfgate's FlammableSystem logs an error for a flammable entity without Appearance
+  - type: Appearance
   - type: Flammable
     fireSpread: false
     maximumFireStacks: 0.5

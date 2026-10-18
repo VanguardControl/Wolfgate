@@ -52,7 +52,7 @@ The folders are the record; there is no per-file table. Each script is rerunnabl
 | Textures | `Resources/Textures/_WF/Xenonids/` (RMC's `_RMC14/` sub path kept) | 135 RSI folders, 2496 files | `Tools/_WF/Xenonids/copy_assets.py` |
 | Audio | `Resources/Audio/_WF/Xenonids/` (`Xeno`, `Voice/Xeno` and the other sounds the xeno sources name) | 137 ogg files, 131 attribution entries | `Tools/_WF/Xenonids/copy_assets.py` |
 | Locale | `Resources/Locale/en-US/_WF/Xenonids/` (RMC's file names and sub-folders; `rmc-shared.ftl` holds keys RMC defines outside its xeno files) | 29 ftl files, 915 keys | `Tools/_WF/Xenonids/copy_locale.py` |
-| Prototypes | `Tools/_WF/Xenonids/staging/Prototypes/` (not loaded; see its README) | 95 files, 62 dependency blocks | `Tools/_WF/Xenonids/stage_prototypes.py` |
+| Prototypes | `Resources/Prototypes/_WF/Xenonids/` (staged outside `Resources` during the port, then moved lane by lane) | 95 files, 62 dependency blocks staged | `Tools/_WF/Xenonids/stage_prototypes.py` (used once) |
 | Component audit | `Docs/_WF/Xenonids/component-audit.md` | 497 components | `Tools/_WF/Xenonids/component_audit.py` |
 
 Textures not copied: `Actions/xeno_emotes.rsi`, which Wolfgate already has byte for byte under `_RMC14`; prototypes
@@ -63,3 +63,14 @@ No Wolfgate locale key collides with the copied ones, so nothing was dropped.
 
 `import_rmc.py` was extended for this: in `.yml` it now also rewrites the relative `sprite: _RMC14/...` form and
 `!type:Content.*._RMC14...` type names, and honours `asset_reuse.txt`.
+
+## Staging
+
+RMC's xeno prototypes were first staged in `Tools/_WF/Xenonids/staging/` (outside `Resources`, so the linter and
+server did not load them) and moved into `Resources/Prototypes/_WF/Xenonids` with the lane that brought their C#. The
+integration lane emptied it and deleted the folder; its last stale copies (crusher, defender, praetorian) had already
+landed, and the remaining action blocks were converted into `Actions/Xeno/xeno_p4_actions.yml`. RMC xeno prototypes
+deliberately not ported: guidebook entries (`RMCGuidebookAction*`, `GuideHelp`), xeno figurines, `fun.yml`, survivor
+jobs and `Roles/Jobs/Survivor`, the night-vision alerts (Wolfgate's night vision is used), job groups (no `JobGroup`
+here), tactical map actions and alerts (`RMCActionOpenTacticalMap*`, `AreaInfo`), dropship hijack, the parasite HTN
+compounds, `CMDepartmentBase`/`CMJobBase`, the `RMCXeno` NPC faction and the `Hivemind` radio channel.

@@ -31,7 +31,7 @@
     - ActionXenoRegurgitate
     - ActionXenoWatch
     - ActionXenoTailStab
-    # XENOPORT(P3-B): - ActionXenoStomp
+    - ActionXenoStomp
     - ActionXenoDevolve
     tier: 3
     hudOffset: -0.15,0.1
@@ -40,16 +40,14 @@
     standHealingMultiplier: 0.66
   - type: XenoHeavy
   - type: XenoDevolve
-    # XENOPORT(P3-M): CMXenoWarrior; restore the list below when the caste lands
-    devolvesTo: []
-    # - CMXenoWarrior
+    devolvesTo:
+    - CMXenoWarrior
   - type: XenoDevour
-  # XENOPORT(P3-B): XenoStomp
-  # - type: XenoStomp
-  #   damage:
-  #     types:
-  #       Blunt: 65
-  #   selfEffect: CMEffectSelfStomp
+  - type: XenoStomp
+    damage:
+      types:
+        Blunt: 65
+    selfEffect: CMEffectSelfStomp
   - type: XenoAnimateMovement
   - type: XenoPlasma
     plasma: 400
@@ -68,9 +66,8 @@
     tailDamage:
       groups:
         Brute: 48
-  # XENOPORT(P3-M): XenoMeleeSlow
-  # - type: XenoMeleeSlow
-  #   slowTime: 3.5
+  - type: XenoMeleeSlow
+    slowTime: 3.5
   - type: Tackle
     chance: 0.25
   - type: MovementSpeedModifier
@@ -103,8 +100,7 @@
   - type: StunOnExplosionReceived
     weak: false
   # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
-  # XENOPORT(P3-M): TantrumSpeedBuff
-  # - type: TantrumSpeedBuff
+  - type: TantrumSpeedBuff
   - type: FixedIdentity
     name: cm-job-name-xeno-crusher
   # WOLFGATE: cut RMCSurgeryXenoHeart (RMC medical)
@@ -120,7 +116,7 @@
     - ActionXenoWatch
     - ActionXenoTailStab
     - ActionXenoCharge
-    # XENOPORT(P3-B): - ActionXenoStomp
+    - ActionXenoStomp
     - ActionXenoDefensiveShield
     - ActionXenoDevolve
   - type: CrusherShield
@@ -155,9 +151,9 @@
     - ActionXenoWatch
     - ActionXenoTailStab
     - ActionXenoToggleCharging
-    # XENOPORT(P3-B): - ActionXenoStomp
+    - ActionXenoStomp
     - ActionXenoTumble
-    # XENOPORT(P3-M): - ActionXenoRam
+    - ActionXenoRam
     - ActionXenoDevolve
   - type: CMArmor
     xenoArmor: 20
@@ -184,18 +180,16 @@
     damage:
       types:
         Blunt: 15
-  # XENOPORT(P3-M): XenoFling
-  # - type: XenoFling
-  #   paralyzeTime: 0
-  #   slowTime: 8
-  # XENOPORT(P3-B): XenoStomp
-  # - type: XenoStomp # TODO RMC14 screen shake?
-  #   plasmaCost: 25
-  #   paralyzeUnderOnly: true
-  #   range: 3.95
-  #   damage:
-  #     types:
-  #       Blunt: 75
+  - type: XenoFling
+    paralyzeTime: 0
+    slowTime: 8
+  - type: XenoStomp # TODO RMC14 screen shake?
+    plasmaCost: 25
+    paralyzeUnderOnly: true
+    range: 3.95
+    damage:
+      types:
+        Blunt: 75
   - type: XenoToggleCharging
   - type: XenoToggleChargingDefaultCollide
     damagePerStage:

@@ -1,5 +1,6 @@
 - type: entity # TODO RMC14 sound
   id: XenoWeeds
+  categories: [ WFXenonids ]
   name: weeds
   description: Weird black weeds...
   placement:
@@ -108,6 +109,8 @@
     damage:
       types:
         Heat: 1
+  # WOLFGATE: Wolfgate's FlammableSystem logs an error for a flammable entity without Appearance
+  - type: Appearance
   - type: Reactive
     groups:
       Flammable: [Touch]

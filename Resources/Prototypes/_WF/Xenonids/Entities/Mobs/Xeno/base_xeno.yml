@@ -32,6 +32,7 @@
   id: CMXenoBase
   abstract: true
   save: false
+  categories: [ WFXenonids ]
   components: # TODO RMC14 camera recoil from large explosions? check 13
   - type: ZombieImmune
   - type: BlockEntityStorage
@@ -257,7 +258,7 @@
         whitelist:
           components:
           - XenoHeavy
-  # WOLFGATE: humanoids stand in for RMC's Infectable (XENOPORT(P2b-2)) and Synth (cut)
+  # WOLFGATE: humanoids stand in for RMC's Infectable and Synth (cut)
   - type: PullWhitelist
     whitelist:
       components:

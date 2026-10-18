@@ -11,8 +11,7 @@
   name: Burrower
   description: A beefy alien with sharp claws.
   components:
-  # XENOPORT(P3-Q): CanBuildThickFromConstructNode arrives with the designer
-  # - type: CanBuildThickFromConstructNode
+  - type: CanBuildThickFromConstructNode
   # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Burrower/burrower.rsi
