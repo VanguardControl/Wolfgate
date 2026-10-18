@@ -11,9 +11,7 @@
   description: A huge, looming alien creature. The biggest and the baddest.
   components:
   - type: CanBuildThickFromConstructNode
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleQueen
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: GhostRole
     name: cm-job-name-xeno-queen
     makeSentient: true
@@ -74,8 +72,8 @@
     - ActionXenoSecreteStructure
     - ActionXenoGrowOvipositor
     - ActionXenoManageHive
-#    - ActionXenoRoyalJelly
-#    - ActionXenoMarkResin
+    # WOLFGATE: cut ActionXenoRoyalJelly (commendations)
+    # WOLFGATE: cut ActionXenoMarkResin (RMC mark system)
     tier: 0
     bypassTierCount: true
     unlockAt: 0
@@ -115,10 +113,8 @@
   - type: VehicleDamageMultiplier
     multiplier: 3
   - type: XenoPsychicCommunication
-  - type: InnateCommandSpeech
-  - type: RMCInnateRadioTextIncrease
-    radioTextIncrease: 3
-    instrinsic: true
+  # WOLFGATE: cut InnateCommandSpeech (RMC command speech)
+  # WOLFGATE: cut RMCInnateRadioTextIncrease (RMC radio text)
   - type: XenoGut
   - type: XenoClaws
     clawType: VerySharp
@@ -145,8 +141,6 @@
         density: 185
         mask:
         - MobMask
-        - BarbedBarricade
-        - BarricadeImpassable
         layer:
         - MobLayer
       fix2:
@@ -156,7 +150,7 @@
         density: 185
         layer:
         - BulletImpassable
-  - type: DropshipHijacker
+  # WOLFGATE: cut DropshipHijacker (dropship hijack)
   - type: MovementSpeedModifier
     baseWalkSpeed: 1.4
     baseSprintSpeed: 2.5
@@ -165,7 +159,7 @@
     - multiplier: 0.505
       whitelist:
         components:
-        - Marine
+        - HumanoidAppearance # WOLFGATE: humanoids stand in for marines
     - multiplier: 0.5475
       whitelist:
         components:
@@ -230,22 +224,11 @@
     exceptEffects:
     - Stun
     - KnockedDown
-  - type: TacticalMapUser
-    xenos: true
-    canDraw: true
-    liveUpdate: true
-  - type: TacticalMapIcon
-    icon:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: xenoqueen
-    background:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: xeno_ruler
+  # WOLFGATE: cut TacticalMapUser (tactical map)
+  # WOLFGATE: cut TacticalMapIcon (tactical map)
   - type: AcidTrap
-  - type: TacticalMapLiveUpdateOnOvi
-    enabled: false
-  - type: RMCPointing
-    arrow: RMCPointingArrowBigQueen
+  # WOLFGATE: cut TacticalMapLiveUpdateOnOvi (tactical map)
+  # WOLFGATE: cut RMCPointing (RMC pointing)
   - type: ManageHive
   - type: HiveLeaderGranter
   - type: XenoHeal
@@ -254,22 +237,14 @@
   - type: XenoSpit
     projectileId: XenoQueenNeuroSpitProjectile
     plasmaCost: 50
-  - type: CommendationGiver
+  # WOLFGATE: cut CommendationGiver (commendations)
   - type: XenoInhands
     prefix: queen
   - type: XenoOmitNumber
-  - type: RMCFireArmorDebuffModifier
-    debuffModifier: 1.4
-  - type: RMCImmuneToIgnition
-    bypassWhitelist:
-      components:
-      - RMCFireImmunityBypass  # Only fires with this component can ignite the queen
-  - type: RMCImmuneToFireTileDamage
-    bypassWhitelist:
-      components:
-      - RMCFireImmunityBypass  # Only fires with this component can bypass immunity
-  - type: IntelRecoverCorpseObjectiveOnDeath
-    value: 1.4
+  # WOLFGATE: cut RMCFireArmorDebuffModifier (RMC fire)
+  # WOLFGATE: cut RMCImmuneToIgnition (RMC fire)
+  # WOLFGATE: cut RMCImmuneToFireTileDamage (RMC fire)
+  # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: QueenEyeAction
   - type: StunFriendlyXenoOnStep
     whitelist:
@@ -280,8 +255,7 @@
   - type: XenoToggleChargingStop
   - type: FixedIdentity
     name: cm-job-name-xeno-queen
-  - type: RMCSurgeryXenoHeart
-    item: RMCOrganXenoHeartTQ
+  # WOLFGATE: cut RMCSurgeryXenoHeart (RMC medical)
   - type: RMCTrackable
   - type: ExcludedFromKingVote
     canVote: true
@@ -293,13 +267,7 @@
 - type: entity
   parent: RMCXenoQueenBase
   id: CMXenoQueen
-  components:
-  - type: RMCActionOrder
-    id: CMXenoQueen
-    #  - type: XenoEvolution #can be enabled for events like april fools.
-    #    strains:
-    #    - RMCXenoQueenMaid
-    #    - RMCXenoQueenMagical
+  # WOLFGATE: cut RMCActionOrder (the XenoEvolution strain list for events stays out too)
 
 - type: entity
   id: XenoLeaderPheromoneRelay
@@ -371,7 +339,6 @@
   - type: Eye
     drawFov: false
   - type: QueenEye
-  - type: MotionDetectorTracked
-    isQueenEye: true
+  # WOLFGATE: cut MotionDetectorTracked (motion detector)
   - type: Visibility
     layer: 32770

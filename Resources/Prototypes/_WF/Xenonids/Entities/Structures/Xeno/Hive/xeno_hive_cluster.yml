@@ -28,8 +28,7 @@
     level: 3
     blockOtherWeeds: true
     spreadsOnSemiWeedable: true
-  # XENOPORT(P3-Q): HiveCluster
-  # - type: HiveCluster
+  - type: HiveCluster
   - type: XenoWeedsSpreading
   - type: HiveConstructionRequiresHiveCore
   - type: HiveConstructionRequiresWeedableSurface

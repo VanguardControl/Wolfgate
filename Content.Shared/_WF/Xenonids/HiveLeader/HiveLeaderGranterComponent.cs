@@ -1,10 +1,10 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Xenonids.HiveLeader;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(HiveLeaderSystem))]
 public sealed partial class HiveLeaderGranterComponent : Component
 {
     [DataField, AutoNetworkedField]

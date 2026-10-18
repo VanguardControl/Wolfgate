@@ -1,4 +1,3 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Content.Shared.DoAfter;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Serialization;

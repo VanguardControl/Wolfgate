@@ -1,4 +1,3 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Content.Shared.FixedPoint;
 using Content.Shared._WF.Xenonids.Construction;
 using Robust.Shared.GameObjects;
@@ -17,6 +16,7 @@ namespace Content.Shared._WF.Xenonids.Designer;
 // - Design nodes can be walls or doors (cosmetic only; both allow same structures).
 // - Designers can remotely thicken walls/doors within range of their nodes every 60 seconds.
 // - Greater Resin Surge: Converts all nearby nodes into reflective resin.
+[Access(typeof(SharedXenoConstructionSystem), typeof(DesignerGreaterResinSurgeSystem), typeof(DesignerNodeBindingSystem))]
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class DesignerStrainComponent : Component
 {

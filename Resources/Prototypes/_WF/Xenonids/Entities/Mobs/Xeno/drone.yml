@@ -83,19 +83,17 @@
   - type: XenoEvolution
     canEvolveWithoutGranter: true
     max: 200
-    # XENOPORT(P3-Q): CMXenoCarrier, CMXenoHivelord; restore the lists below when the castes land
     evolvesTo:
     - CMXenoBurrower
-    # - CMXenoCarrier
-    # - CMXenoHivelord
-    # XENOPORT(P3-M): CMXenoLurker, CMXenoWarrior; restore the lists below when the castes land
+    - CMXenoCarrier
+    - CMXenoHivelord
+    # XENOPORT(P3-M): CMXenoLurker, CMXenoWarrior
     earlyEvolvesTo:
     - CMXenoSpitter
     # - CMXenoLurker
     # - CMXenoWarrior
-    # XENOPORT(P3-Q): CMXenoQueen
-    evolvesToWithoutPoints: []
-    # - CMXenoQueen
+    evolvesToWithoutPoints:
+    - CMXenoQueen
   - type: Evasion
     evasion: 15
   - type: XenoInhands

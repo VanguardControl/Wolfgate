@@ -273,16 +273,15 @@
     event: !type:Content.Shared._WF.Xenonids.Designer.DesignerSelectedDesignToggleActionEvent
   - type: RMCDazeableAction
 
-# XENOPORT(P3-Q): DesignerGreaterResinSurgeActionEvent lands with the designer
-#- type: entity
-#  id: ActionXenoDesignerGreaterResinSurge
-#  parent: ActionXenoBase
-#  name: Greater Resin Surge (250)
-#  description: Consumes nearby design nodes to create temporary reflective resin walls.
-#  components:
-#  - type: InstantAction
-#    itemIconStyle: NoItem
-#    icon: { sprite: _WF/Xenonids/Actions/designer_actions.rsi, state: greater_resin_surge }
-#    useDelay: 30
-#    event: !type:Content.Shared._WF.Xenonids.Designer.DesignerGreaterResinSurgeActionEvent
-#  - type: RMCDazeableAction
+- type: entity
+  id: ActionXenoDesignerGreaterResinSurge
+  parent: ActionXenoBase
+  name: Greater Resin Surge (250)
+  description: Consumes nearby design nodes to create temporary reflective resin walls.
+  components:
+  - type: InstantAction
+    itemIconStyle: NoItem
+    icon: { sprite: _WF/Xenonids/Actions/designer_actions.rsi, state: greater_resin_surge }
+    useDelay: 30
+    event: !type:Content.Shared._WF.Xenonids.Designer.DesignerGreaterResinSurgeActionEvent
+  - type: RMCDazeableAction

@@ -126,8 +126,7 @@
   - type: VentCrawler
     ventCrawlIcon: parasite
   - type: Unshieldable
-  # XENOPORT(P3-Q): ExcludedFromKingVote
-  # - type: ExcludedFromKingVote
+  - type: ExcludedFromKingVote
   # XENOPORT(P2b-3): MindTakeoverBehavior
   # - type: MindTakeoverBehavior
   #   ejectFromLarvaQueues: false

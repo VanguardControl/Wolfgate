@@ -150,8 +150,7 @@
       types:
         Slash: 25
   - type: HiveLesserSpawner
-  # XENOPORT(P3-Q): HivePylon
-  # - type: HivePylon
+  - type: HivePylon
   - type: XenoWeedsSpreading
   # WOLFGATE: cut RoofingEntity
   - type: XenoWeeds

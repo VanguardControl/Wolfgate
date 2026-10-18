@@ -118,8 +118,7 @@
   - type: VentCrawler
     ventCrawlIcon: lesser
   # WOLFGATE: cut RMCActionOrder
-  # XENOPORT(P3-Q): ExcludedFromKingVote
-  # - type: ExcludedFromKingVote
+  - type: ExcludedFromKingVote
   - type: MindTakeoverBehavior
     ejectFromLarvaQueues: false
   - type: RemoveComponents
