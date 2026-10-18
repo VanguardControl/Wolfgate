@@ -97,9 +97,11 @@ public sealed partial class MappingToolsSystem : EntitySystem
     }
 
     /// <summary>
-    /// Whether a request may work on a selection's grid, ending up covering <paramref name="cells"/>.
+    /// Whether a request may work on a selection's grid, ending up covering <paramref name="cells"/>. A move passes
+    /// where each selected entity lands in <paramref name="entityCells"/>.
     /// </summary>
-    private bool CanEdit(ICommonSession session, Resolved sel, WFMappingEditKind kind, Box2i cells)
+    private bool CanEdit(ICommonSession session, Resolved sel, WFMappingEditKind kind, Box2i cells,
+        List<Vector2i>? entityCells = null, bool wholeGrid = false)
     {
         if (Transform(sel.Grid.Owner).MapUid is not { } map)
             return false;
@@ -109,7 +111,27 @@ public sealed partial class MappingToolsSystem : EntitySystem
             Grid = sel.Grid.Owner,
             Cells = cells,
             Tiles = sel.Tiles.Count,
+            // A whole-grid delete saves the grid as one root, so its cost is the entities, not the area.
+            SelectionCells = wholeGrid ? 0 : sel.AreaCells,
+            TouchedEntities = wholeGrid ? Tree(sel.Grid.Owner).Count : TreeCount(sel.Entities),
+            Decals = sel.Decals.Count,
+            EntityCells = entityCells,
+            Moving = entityCells != null ? sel.Entities : null,
         });
+    }
+
+    /// <summary>
+    /// Entities in the trees under <paramref name="roots"/>, roots included.
+    /// </summary>
+    private int TreeCount(IEnumerable<EntityUid> roots)
+    {
+        var count = 0;
+        foreach (var root in roots)
+        {
+            count += Tree(root).Count;
+        }
+
+        return count;
     }
 
     private MappingEntityRef GetRef(EntityUid uid)
@@ -130,6 +152,9 @@ public sealed partial class MappingToolsSystem : EntitySystem
     {
         public Entity<MapGridComponent> Grid;
         public Box2i Extent;
+
+        /// <summary>Cells in the requested area.</summary>
+        public long AreaCells;
         public readonly List<(Vector2i Cell, Tile Tile)> Tiles = new();
         public readonly List<Decal> Decals = new();
         public readonly HashSet<EntityUid> Entities = new();
@@ -148,6 +173,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
         if (selection.Area is { } area && area.Width > 0 && area.Height > 0 && (long) area.Width * area.Height <= MaxArea)
         {
             extent = area;
+            result.AreaCells = (long) area.Width * area.Height;
 
             for (var x = area.Left; x < area.Right; x++)
             {
@@ -276,8 +302,12 @@ public sealed partial class MappingToolsSystem : EntitySystem
         if (offset == Vector2i.Zero && turns == 0)
             return;
 
-        if (!CanEdit(session, sel, WFMappingEditKind.Edit, MappingToolsMath.TransformBox(sel.Extent, sel.Extent, offset, turns)))
+        var landing = LandingCells(sel, p => MappingToolsMath.TransformPoint(p, sel.Extent, offset, turns));
+        if (!CanEdit(session, sel, WFMappingEditKind.Edit, MappingToolsMath.TransformBox(sel.Extent, sel.Extent, offset, turns),
+                landing))
+        {
             return;
+        }
 
         var edit = TransformEdit(sel,
             turns == 0 ? "wf-mapping-tools-edit-move" : "wf-mapping-tools-edit-rotate",
@@ -298,8 +328,12 @@ public sealed partial class MappingToolsSystem : EntitySystem
     /// </summary>
     public void Mirror(ICommonSession session, MappingSelection selection, bool vertical)
     {
-        if (!TryResolve(selection, out var sel) || !CanEdit(session, sel, WFMappingEditKind.Edit, sel.Extent))
+        if (!TryResolve(selection, out var sel) ||
+            !CanEdit(session, sel, WFMappingEditKind.Edit, sel.Extent,
+                LandingCells(sel, p => MappingToolsMath.MirrorPoint(p, sel.Extent, vertical))))
+        {
             return;
+        }
 
         var edit = TransformEdit(sel, "wf-mapping-tools-edit-mirror",
             cell => MappingToolsMath.MirrorCell(cell, sel.Extent, vertical),
@@ -312,6 +346,20 @@ public sealed partial class MappingToolsSystem : EntitySystem
         Commit(session, edit);
         _adminLog.Add(LogType.Action, LogImpact.Medium,
             $"{session:player} used mapping tools to mirror {sel.Entities.Count} entities and {sel.Tiles.Count} tiles on {ToPrettyString(sel.Grid.Owner):grid}");
+    }
+
+    /// <summary>
+    /// The cell each selected entity lands in when its position is mapped by <paramref name="pointMap"/>.
+    /// </summary>
+    private List<Vector2i> LandingCells(Resolved sel, Func<Vector2, Vector2> pointMap)
+    {
+        var cells = new List<Vector2i>(sel.Entities.Count);
+        foreach (var uid in sel.Entities)
+        {
+            cells.Add(MappingToolsMath.CellOf(pointMap(Transform(uid).LocalPosition)));
+        }
+
+        return cells;
     }
 
     /// <summary>
@@ -377,6 +425,10 @@ public sealed partial class MappingToolsSystem : EntitySystem
             return;
         }
 
+        // A cut over a whole grid deletes the grid, which the copy doesn't take; the delete check applies too.
+        if (cut && CoversGrid(sel) && !CanEdit(session, sel, WFMappingEditKind.Edit, sel.Extent, wholeGrid: true))
+            return;
+
         var origin = sel.Extent.BottomLeft;
         var clip = new MappingClipboard { SourceGrid = sel.Grid.Owner, Size = sel.Extent.Size };
 
@@ -397,6 +449,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
             serializer.SerializeEntityRecursive(sel.Entities);
             clip.Data = serializer.Write();
             clip.EntityCount = serializer.YamlUidMap.Count;
+            clip.Bytes = MappingDataSize.Estimate(clip.Data);
 
             foreach (var uid in sel.Entities)
             {
@@ -443,6 +496,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
 
         var shift = target == null ? newOrigin : Vector2i.Zero;
         var box = MappingToolsMath.TransformBox(extent, extent, offset, turns);
+        var half = new Vector2(0.5f);
         var check = new WFMappingCanEditEvent(session, _map.GetMapOrInvalid(mapCoords.MapId), WFMappingEditKind.Paste)
         {
             Grid = target?.Owner,
@@ -452,6 +506,11 @@ public sealed partial class MappingToolsSystem : EntitySystem
             NewGrid = target == null,
             EntityCells = clip.Roots.ConvertAll(r =>
                 MappingToolsMath.CellOf(MappingToolsMath.TransformPoint(r.Pose.Position, extent, offset, turns)) + shift),
+            SelectionCells = (long) clip.Size.X * clip.Size.Y,
+            TouchedEntities = clip.EntityCount,
+            Decals = clip.Decals.Count,
+            DecalCells = clip.Decals.ConvertAll(d =>
+                MappingToolsMath.CellOf(MappingToolsMath.TransformPoint(d.Coordinates + half, extent, offset, turns)) + shift),
         };
 
         if (!CanEdit(check))
@@ -480,7 +539,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
             edit.DecalsAdded.Add(new MappingDecal(gridUid, moved));
         }
 
-        var group = new MappingEntityGroup { Data = clip.Data };
+        var group = new MappingEntityGroup { Data = clip.Data, EntityCount = clip.EntityCount, Bytes = clip.Bytes };
         foreach (var (yaml, pose) in clip.Roots)
         {
             var placed = pose with
@@ -521,8 +580,11 @@ public sealed partial class MappingToolsSystem : EntitySystem
     /// </summary>
     public void Delete(ICommonSession session, MappingSelection selection)
     {
-        if (!TryResolve(selection, out var sel) || !CanEdit(session, sel, WFMappingEditKind.Edit, sel.Extent))
+        if (!TryResolve(selection, out var sel) ||
+            !CanEdit(session, sel, WFMappingEditKind.Edit, sel.Extent, wholeGrid: CoversGrid(sel)))
+        {
             return;
+        }
 
         Commit(session, DeleteEdit(sel, "wf-mapping-tools-edit-delete"));
         _adminLog.Add(LogType.Action, LogImpact.Medium,

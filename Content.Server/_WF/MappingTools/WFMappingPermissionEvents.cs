@@ -31,7 +31,13 @@ public enum WFMappingEditKind : byte
 
     /// <summary>Deletes it from its z-stack.</summary>
     RemoveLevel,
+
+    /// <summary>Only asks for <see cref="WFMappingCanEditEvent.HistoryLimits"/>; the map is unused.</summary>
+    Limits,
 }
+
+/// <summary>How much undo history a mapper keeps: steps, and the estimated bytes of their saved entities.</summary>
+public readonly record struct WFMappingHistoryLimits(int MaxSteps, long MaxBytes);
 
 /// <summary>
 /// Raised before a mapping tools request changes or reads a map; cancelling it drops the request. The canceller tells
@@ -61,6 +67,24 @@ public sealed class WFMappingCanEditEvent(ICommonSession session, EntityUid map,
 
     /// <summary>The cell of each root entity the request adds, in the same frame as <see cref="Cells"/>.</summary>
     public List<Vector2i>? EntityCells;
+
+    /// <summary>Entities the request moves, left out of the per-tile counts it checks <see cref="EntityCells"/> against.</summary>
+    public HashSet<EntityUid>? Moving;
+
+    /// <summary>Cells the request's selection covers.</summary>
+    public long SelectionCells;
+
+    /// <summary>Entities, contents included, the request saves, loads, moves or deletes.</summary>
+    public int TouchedEntities;
+
+    /// <summary>Decals the request copies or adds.</summary>
+    public int Decals;
+
+    /// <summary>The cell of each decal the request adds, in the same frame as <see cref="Cells"/>.</summary>
+    public List<Vector2i>? DecalCells;
+
+    /// <summary>Set by a handler that limits the player's undo history; null keeps the default.</summary>
+    public WFMappingHistoryLimits? HistoryLimits;
 
     /// <summary>Only asks; the canceller doesn't tell the player.</summary>
     public bool Quiet;

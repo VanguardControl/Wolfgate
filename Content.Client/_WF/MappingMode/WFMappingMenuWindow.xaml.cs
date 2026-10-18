@@ -84,6 +84,7 @@ public sealed partial class WFMappingMenuWindow : FancyWindow
         var owner = self == session.Owner;
         SessionNameLabel.Text = session.Name;
         CodeLabel.Text = Loc.GetString("wf-mapping-mode-menu-code", ("code", session.Code));
+        NewCodeButton.Visible = owner;
 
         var limits = session.Limits;
         StatusLabel.Text = Loc.GetString("wf-mapping-mode-menu-status",

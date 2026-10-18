@@ -11,13 +11,17 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Placement;
 using Robust.Shared.Player;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.MappingMode;
 
 public sealed partial class WFMappingModeSystem
 {
-    /// <summary>The last tile change seen, so the placement event right after it can be reverted.</summary>
-    private (EntityUid Grid, Vector2i Cell, Tile Old)? _lastTileChange;
+    /// <summary>
+    /// The last tile change seen this tick, so the placement event right after it can be reverted. Cleared every
+    /// tick, and only claimed by a placement on the same grid and cell.
+    /// </summary>
+    private (EntityUid Grid, Vector2i Cell, Tile Old, GameTick Tick)? _lastTileChange;
 
     private void InitializeGuard()
     {
@@ -62,7 +66,7 @@ public sealed partial class WFMappingModeSystem
             return;
 
         var change = ev.Changes[^1];
-        _lastTileChange = (ev.Entity.Owner, change.GridIndices, change.OldTile);
+        _lastTileChange = (ev.Entity.Owner, change.GridIndices, change.OldTile, _timing.CurTick);
         MarkDirty(Transform(ev.Entity).MapUid);
     }
 
@@ -94,7 +98,8 @@ public sealed partial class WFMappingModeSystem
 
     /// <summary>
     /// Backstop for tiles: a tile a mapper laid off their session's maps is put back, and a grid made past the
-    /// session's grid cap goes.
+    /// session's grid cap goes. Only a change this placement made is touched: the engine raises the event for a tile
+    /// that didn't change too.
     /// </summary>
     private void OnPlacementTile(PlacementTileEvent ev)
     {
@@ -105,7 +110,8 @@ public sealed partial class WFMappingModeSystem
             !_players.TryGetSessionById(ev.PlacerNetUserId, out var player) ||
             IsAdminMapper(player) ||
             last is not { } change ||
-            !TryComp(change.Grid, out MapGridComponent? grid))
+            !TryComp(change.Grid, out MapGridComponent? grid) ||
+            !IsPlacementCell(ev.Coordinates, change.Grid, change.Cell, change.Tick))
         {
             return;
         }
@@ -135,6 +141,25 @@ public sealed partial class WFMappingModeSystem
     {
         var tiles = _map.GetAllTiles(uid, grid);
         return tiles.MoveNext(out _) && !tiles.MoveNext(out _);
+    }
+
+    /// <summary>
+    /// Whether a tile placement at <paramref name="coords"/> lands on <paramref name="cell"/> of
+    /// <paramref name="grid"/> this tick, resolved the way the engine's placement resolves it.
+    /// </summary>
+    private bool IsPlacementCell(EntityCoordinates coords, EntityUid grid, Vector2i cell, GameTick tick)
+    {
+        if (tick != _timing.CurTick || !coords.IsValid(EntityManager))
+            return false;
+
+        EntityUid gridUid;
+        MapGridComponent? gridComp;
+        if (TryComp(coords.EntityId, out gridComp))
+            gridUid = coords.EntityId;
+        else if (!_map.TryFindGridAt(_transform.ToMapCoordinates(coords), out gridUid, out gridComp))
+            return false;
+
+        return gridUid == grid && _map.TileIndicesFor(gridUid, gridComp, coords) == cell;
     }
 
     /// <summary>

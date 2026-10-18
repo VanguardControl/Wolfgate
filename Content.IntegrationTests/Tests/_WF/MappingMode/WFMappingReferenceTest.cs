@@ -41,7 +41,7 @@ public sealed class WFMappingReferenceTest
         var clientReference = client.EntMan.System<WFMappingReferenceSystem>();
         await Enable(pair);
         var player = pair.Player!;
-        var dummies = await AddMappers(pair, 2);
+        var dummies = await AddMappers(pair, 3);
 
         WFMappingSession session = default!;
         string shipPath = default!;
@@ -193,6 +193,16 @@ public sealed class WFMappingReferenceTest
         await server.WaitAssertion(() =>
         {
             var maps = Maps();
+
+            // Right after a load, the server-wide cooldown refuses anyone's pick before it loads.
+            RaiseAs(entMan, dummies[2], new WFMappingReferencePickRequest(shipPath));
+            Assert.Multiple(() =>
+            {
+                Assert.That(AnyScratch(), Is.False, "A pick during the cooldown loads nothing.");
+                Assert.That(Maps(), Is.EqualTo(maps));
+            });
+
+            server.CfgMan.SetCVar(WFMappingModeCVars.ReferenceCooldown, 0f);
             server.CfgMan.SetCVar(WFMappingModeCVars.MaxGridsPerSession, mapping.CountGrids(session));
             RaiseAs(entMan, dummies[0], new WFMappingReferencePickRequest(shipPath));
             Assert.Multiple(() =>
@@ -213,6 +223,7 @@ public sealed class WFMappingReferenceTest
                 Assert.That(Grids(), Has.Count.EqualTo(grids));
             });
             server.CfgMan.SetCVar(WFMappingModeCVars.MaxReferenceBytes, WFMappingModeCVars.MaxReferenceBytes.DefaultValue);
+            server.CfgMan.SetCVar(WFMappingModeCVars.ReferenceCooldown, WFMappingModeCVars.ReferenceCooldown.DefaultValue);
         });
 
         await Disable(pair);

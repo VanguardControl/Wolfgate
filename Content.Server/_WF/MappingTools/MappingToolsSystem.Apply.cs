@@ -35,6 +35,7 @@ public sealed partial class MappingToolsSystem
         }
 
         _applying = true;
+        EntityUid? holding = null;
         try
         {
             foreach (var decal in forward ? edit.DecalsRemoved : edit.DecalsAdded)
@@ -63,7 +64,7 @@ public sealed partial class MappingToolsSystem
 
             foreach (var group in forward ? edit.Created : edit.Deleted)
             {
-                RestoreGroup(group);
+                RestoreGroup(group, ref holding);
             }
 
             foreach (var decal in forward ? edit.DecalsAdded : edit.DecalsRemoved)
@@ -73,6 +74,9 @@ public sealed partial class MappingToolsSystem
         }
         finally
         {
+            if (holding is { } holdingMap && !TerminatingOrDeleted(holdingMap))
+                Del(holdingMap);
+
             _applying = false;
             foreach (var grid in splitGrids)
             {
@@ -210,9 +214,17 @@ public sealed partial class MappingToolsSystem
             grid.CanSplit = false;
         }
 
+        foreach (var root in group.Roots)
+        {
+            if (roots.Contains(root.Entity.Uid))
+                root.IsGrid = HasComp<MapGridComponent>(root.Entity.Uid);
+        }
+
         var serializer = new EntitySerializer(_dependency, SnapshotOptions);
         serializer.SerializeEntityRecursive(roots);
         group.Data = serializer.Write();
+        group.EntityCount = serializer.YamlUidMap.Count;
+        group.Bytes = MappingDataSize.Estimate(group.Data);
 
         foreach (var root in group.Roots)
         {
@@ -236,9 +248,10 @@ public sealed partial class MappingToolsSystem
     }
 
     /// <summary>
-    /// Recreates a saved group at its roots' poses and points their refs at the new entities.
+    /// Recreates a saved group at its roots' poses and points their refs at the new entities. The holding map is made
+    /// on first use and shared by every group of one apply; the caller deletes it.
     /// </summary>
-    private void RestoreGroup(MappingEntityGroup group)
+    private void RestoreGroup(MappingEntityGroup group, ref EntityUid? holding)
     {
         if (group.Data == null)
             return;
@@ -255,31 +268,28 @@ public sealed partial class MappingToolsSystem
 
         // The roots start up on a paused holding map, not in nullspace, where some startup handlers throw (a
         // conveyor's construction node snaps it to the grid).
-        var holding = _map.CreateMap(out var holdingId, runMapInit: false);
-        try
+        holding ??= _map.CreateMap(out _, runMapInit: false);
+        var options = new MapLoadOptions
         {
-            var options = new MapLoadOptions
+            MergeMap = Comp<MapComponent>(holding.Value).MapId,
+            DeserializationOptions = DeserializationOptions.Default with
             {
-                MergeMap = holdingId,
-                DeserializationOptions = DeserializationOptions.Default with
-                {
-                    StoreYamlUids = true,
-                    LogInvalidEntities = false,
-                },
-            };
+                StoreYamlUids = true,
+                LogInvalidEntities = false,
+            },
+        };
 
-            if (!_loader.TryLoadGeneric(group.Data.Copy(), "mapping tools", out var result, options))
-            {
-                Log.Error("Failed to restore a mapping tools snapshot");
-                return;
-            }
-
-            PlaceRestored(group, byYaml, holding, result);
-        }
-        finally
+        if (!_loader.TryLoadGeneric(group.Data.Copy(), "mapping tools", out var result, options))
         {
-            Del(holding);
+            Log.Error("Failed to restore a mapping tools snapshot");
+
+            // Leftovers would be taken for the next group's roots, whose yaml uids overlap.
+            Del(holding.Value);
+            holding = null;
+            return;
         }
+
+        PlaceRestored(group, byYaml, holding.Value, result);
     }
 
     /// <summary>

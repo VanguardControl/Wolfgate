@@ -20,6 +20,10 @@
                         <BoxContainer Orientation="Horizontal" SeparationOverride="6">
                             <Label Name="CodeLabel" Access="Public" HorizontalExpand="True" VAlign="Center" />
                             <Button Name="CopyCodeButton" Access="Public" Text="{Loc 'wf-mapping-mode-menu-copy'}" />
+                            <controls:ConfirmButton Name="NewCodeButton" Access="Public"
+                                                    Text="{Loc 'wf-mapping-mode-menu-new-code'}"
+                                                    ToolTip="{Loc 'wf-mapping-mode-menu-new-code-tooltip'}"
+                                                    TooltipDelay="0" />
                         </BoxContainer>
                         <Label Name="StatusLabel" Access="Public" StyleClasses="LabelSubText" ClipText="True" />
 

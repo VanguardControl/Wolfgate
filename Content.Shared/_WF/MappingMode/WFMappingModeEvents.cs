@@ -53,6 +53,10 @@ public sealed class WFMappingKickRequest(NetUserId user) : EntityEventArgs
     public readonly NetUserId User = user;
 }
 
+/// <summary>The session owner replaces the join code, so the old one stops working.</summary>
+[Serializable, NetSerializable]
+public sealed class WFMappingNewCodeRequest : EntityEventArgs;
+
 /// <summary>A session member as its members see it.</summary>
 [Serializable, NetSerializable]
 public readonly record struct WFMappingMemberInfo(NetUserId User, string Name, bool Present);

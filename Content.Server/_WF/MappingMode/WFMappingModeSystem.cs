@@ -96,6 +96,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
     {
         base.Update(frameTime);
 
+        _lastTileChange = null;
         if (!Enabled)
             return;
 
@@ -117,6 +118,11 @@ public sealed partial class WFMappingModeSystem : EntitySystem
             _cfg.SetCVar(CCVars.GameLobbyEnabled, true);
             _cfg.SetCVar(CCVars.EventsEnabled, false);
             _cfg.SetCVar(CCVars.EmergencyShuttleAutoCallTime, 0);
+
+            // Map and preset votes would only pick the round that never starts.
+            _cfg.SetCVar(CCVars.AutoVoteEnabled, false);
+            _cfg.SetCVar(CCVars.VoteMapEnabled, false);
+            _cfg.SetCVar(CCVars.VotePresetEnabled, false);
 
             if (_initialized && _ticker.RunLevel == GameRunLevel.PreRoundLobby && !_ticker.Paused)
                 _ticker.PauseStart(true);
@@ -202,6 +208,13 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         if (!Enabled || IsAdminMapper(ev.Session))
             return;
 
+        if (ev.Kind == WFMappingEditKind.Limits)
+        {
+            ev.HistoryLimits = new WFMappingHistoryLimits(Math.Max(1, _cfg.GetCVar(WFMappingModeCVars.MaxHistory)),
+                _cfg.GetCVar(WFMappingModeCVars.MaxHistoryBytes));
+            return;
+        }
+
         if (!TryGetPresent(ev.Session, out var mapping) || !IsSessionMap(ev.Map, mapping))
         {
             Log.Info($"Dropped a mapping tools request from {ev.Session} on {ToPrettyString(ev.Map)}, which isn't their session's map");
@@ -216,9 +229,13 @@ public sealed partial class WFMappingModeSystem : EntitySystem
                 if (_zLevels.GetLevels(ev.Map, out _).Count >= maxLevels)
                     Cancel(ev, "wf-mapping-mode-limit-levels", ("max", maxLevels));
                 break;
+            case WFMappingEditKind.Read:
+                CheckWorkLimits(ev);
+                break;
             case WFMappingEditKind.Edit:
             case WFMappingEditKind.Paste:
-                CheckEditLimits(ev, mapping);
+                if (CheckWorkLimits(ev))
+                    CheckEditLimits(ev, mapping);
                 break;
         }
     }

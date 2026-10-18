@@ -172,6 +172,32 @@ public sealed class WFMappingPermissionTest
         await pair.RunTicksSync(3);
         await server.WaitAssertion(() => Assert.That(entMan.Deleted(forced), Is.True));
 
+        // A placement that changes nothing (an empty tile on an empty cell of their own grid) reverts nothing, not
+        // even the tile another session laid just before it in the same tick. Tiles join the hull, so nothing splits.
+        await server.WaitAssertion(() =>
+        {
+            mapSys.SetTile(otherGrid, otherGrid, new Vector2i(2, 0), plating);
+            entMan.EventBus.RaiseEvent(EventSource.Local,
+                new PlacementTileEvent(0, new EntityCoordinates(ownGrid, new Vector2(7.5f, 7.5f)), a.UserId));
+            Assert.That(HasTile(otherGrid, 2, 0), Is.True, "Another session's tile stays.");
+
+            // Nor one laid on another cell of their own grid.
+            mapSys.SetTile(ownGrid, ownGrid, new Vector2i(2, 2), plating);
+            entMan.EventBus.RaiseEvent(EventSource.Local,
+                new PlacementTileEvent(plating.TypeId, new EntityCoordinates(ownGrid, new Vector2(0.5f, 2.5f)), a.UserId));
+            Assert.That(HasTile(ownGrid, 2, 2), Is.True);
+        });
+
+        // A change from an earlier tick is never claimed.
+        await server.WaitPost(() => mapSys.SetTile(otherGrid, otherGrid, new Vector2i(3, 0), plating));
+        await pair.RunTicksSync(1);
+        await server.WaitAssertion(() =>
+        {
+            entMan.EventBus.RaiseEvent(EventSource.Local,
+                new PlacementTileEvent(plating.TypeId, new EntityCoordinates(otherGrid, new Vector2(3.5f, 0.5f)), a.UserId));
+            Assert.That(HasTile(otherGrid, 3, 0), Is.True);
+        });
+
         await Disable(pair);
         await pair.CleanReturnAsync();
     }

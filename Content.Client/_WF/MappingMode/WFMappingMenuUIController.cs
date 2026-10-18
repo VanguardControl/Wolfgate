@@ -88,6 +88,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.ReturnButton.OnPressed += _ => _mapping.Send(new WFMappingAdminLeaveRequest());
         window.CopyCodeButton.OnPressed += _ => CopyCode();
         window.KickRequested += user => _mapping.Send(new WFMappingKickRequest(user));
+        window.NewCodeButton.OnPressed += _ => _mapping.Send(new WFMappingNewCodeRequest());
         window.AutosaveRequested += minutes => _mapping.Send(new WFMappingAutosaveStepRequest(minutes));
         window.DeleteGridButton.OnPressed += _ => DeleteGrid();
         window.ReferenceButton.OnToggled += args =>

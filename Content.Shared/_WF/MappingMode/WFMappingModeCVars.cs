@@ -74,11 +74,39 @@ public sealed class WFMappingModeCVars
     public static readonly CVarDef<int> MaxEntities =
         CVarDef.Create("wf.mapping_mode.max_entities", 25000, CVar.SERVERONLY);
 
-    /// <summary>Size of a file loaded as a reference grid.</summary>
+    /// <summary>Size of a file loaded as a reference grid; the default admits every ship and refuses stations.</summary>
     public static readonly CVarDef<long> MaxReferenceBytes =
-        CVarDef.Create("wf.mapping_mode.max_reference_bytes", 8L * 1024 * 1024, CVar.SERVERONLY);
+        CVarDef.Create("wf.mapping_mode.max_reference_bytes", 1536L * 1024, CVar.SERVERONLY);
+
+    /// <summary>Seconds after a reference load before anyone on the server may load another.</summary>
+    public static readonly CVarDef<float> ReferenceCooldown =
+        CVarDef.Create("wf.mapping_mode.reference_cooldown", 2f, CVar.SERVERONLY);
 
     /// <summary>Placement, tile and decal requests per second per mapper.</summary>
     public static readonly CVarDef<int> MaxEditsPerSecond =
         CVarDef.Create("wf.mapping_mode.max_edits_per_second", 60, CVar.SERVERONLY);
+
+    /// <summary>Live sessions a player may own, empty ones waiting out their grace included.</summary>
+    public static readonly CVarDef<int> MaxSessionsPerPlayer =
+        CVarDef.Create("wf.mapping_mode.max_sessions_per_player", 1, CVar.SERVERONLY);
+
+    /// <summary>Cells one mapping tools selection or area erase may cover.</summary>
+    public static readonly CVarDef<int> MaxSelectionCells =
+        CVarDef.Create("wf.mapping_mode.max_selection_cells", 4096, CVar.SERVERONLY);
+
+    /// <summary>Entities, contents included, one copy, paste, delete, erase or undo step may touch.</summary>
+    public static readonly CVarDef<int> MaxEditEntities =
+        CVarDef.Create("wf.mapping_mode.max_edit_entities", 2000, CVar.SERVERONLY);
+
+    /// <summary>Decals one copy or paste may carry.</summary>
+    public static readonly CVarDef<int> MaxEditDecals =
+        CVarDef.Create("wf.mapping_mode.max_edit_decals", 4096, CVar.SERVERONLY);
+
+    /// <summary>Undo steps kept per mapper; the oldest go first.</summary>
+    public static readonly CVarDef<int> MaxHistory =
+        CVarDef.Create("wf.mapping_mode.max_history", 30, CVar.SERVERONLY);
+
+    /// <summary>Estimated serialized bytes of a mapper's undo and redo steps; the oldest go first.</summary>
+    public static readonly CVarDef<long> MaxHistoryBytes =
+        CVarDef.Create("wf.mapping_mode.max_history_bytes", 16L * 1024 * 1024, CVar.SERVERONLY);
 }

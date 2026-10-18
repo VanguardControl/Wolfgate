@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using Content.Shared._WF.MappingMode;
@@ -29,6 +30,9 @@ public sealed partial class WFMappingModeSystem
 
     private readonly Dictionary<NetUserId, PendingReference> _references = new();
     private int _nextReferenceToken = 1;
+
+    /// <summary>Game time before which no reference may load, whoever asks; loads block the tick.</summary>
+    private TimeSpan _nextReferenceLoad;
 
     private static readonly TimeSpan ReferenceLifetime = TimeSpan.FromSeconds(60);
 
@@ -107,10 +111,19 @@ public sealed partial class WFMappingModeSystem
         var maxBytes = _cfg.GetCVar(WFMappingModeCVars.MaxReferenceBytes);
         if (FileSize(path) is not { } size || size > maxBytes)
         {
-            Refuse(player, "wf-mapping-mode-reference-too-large", ("max", maxBytes / (1024 * 1024)));
+            Refuse(player, "wf-mapping-mode-reference-too-large",
+                ("max", (maxBytes / (1024.0 * 1024.0)).ToString("0.#", CultureInfo.InvariantCulture)));
             return;
         }
 
+        var now = _timing.CurTime;
+        if (now < _nextReferenceLoad)
+        {
+            Refuse(player, "wf-mapping-mode-reference-busy");
+            return;
+        }
+
+        _nextReferenceLoad = now + TimeSpan.FromSeconds(Math.Max(0f, _cfg.GetCVar(WFMappingModeCVars.ReferenceCooldown)));
         CancelReference(player.UserId);
 
         var scratch = _map.CreateMap(out var scratchId, runMapInit: false);
@@ -193,6 +206,10 @@ public sealed partial class WFMappingModeSystem
         {
             (HasComp<MapGridComponent>(child) ? grids : loose).Add(child);
         }
+
+        // The caps come first, on everything loaded, so an oversized file costs nothing more than its load.
+        if (!CheckReferenceCaps(player, session, grids.Count, CountTree(pending.Scratch) - 1))
+            return false;
 
         foreach (var uid in loose)
         {
@@ -328,17 +345,32 @@ public sealed partial class WFMappingModeSystem
         return counts.Count == 0 ? 0 : counts.Values.Max();
     }
 
+    /// <summary>
+    /// Whether a reference fits the session's grid and entity caps, counting the references other members hold
+    /// waiting to be placed.
+    /// </summary>
     private bool CheckReferenceCaps(ICommonSession player, WFMappingSession session, int grids, int entities)
     {
+        var pendingGrids = 0;
+        var pendingEntities = 0;
+        foreach (var (user, pending) in _references)
+        {
+            if (user == player.UserId || pending.SessionId != session.Id)
+                continue;
+
+            pendingGrids += pending.Grids.Count;
+            pendingEntities += pending.Entities;
+        }
+
         var gridCap = GridCap(session);
-        if (CountGrids(session) + grids > gridCap)
+        if (CountGrids(session) + pendingGrids + grids > gridCap)
         {
             Refuse(player, "wf-mapping-mode-limit-grids", ("max", gridCap));
             return false;
         }
 
         var maxEntities = _cfg.GetCVar(WFMappingModeCVars.MaxEntities);
-        if (EntityCount(session) + entities > maxEntities)
+        if (EntityCount(session) + pendingEntities + entities > maxEntities)
         {
             Refuse(player, "wf-mapping-mode-limit-entities", ("max", maxEntities));
             return false;

@@ -150,18 +150,39 @@ public sealed partial class WFMappingModeSystem
         return count;
     }
 
-    /// <summary>Entities on a grid whose position falls in the cell.</summary>
-    private int EntitiesOnTile(EntityUid grid, Vector2i cell)
+    /// <summary>
+    /// Entities whose world position falls in a cell of a grid, whatever they are parented to. Entities in
+    /// <paramref name="moving"/>, and anything under them, aren't counted.
+    /// </summary>
+    private int EntitiesOnTile(EntityUid grid, Vector2i cell, HashSet<EntityUid>? moving = null)
     {
         var count = 0;
+        var invMatrix = _transform.GetInvWorldMatrix(grid);
         foreach (var uid in _lookup.GetLocalEntitiesIntersecting(grid, cell, 0f))
         {
-            var xform = Transform(uid);
-            if (xform.ParentUid == grid && MappingToolsMath.CellOf(xform.LocalPosition) == cell)
+            if (uid == grid || moving != null && UnderAny(uid, grid, moving))
+                continue;
+
+            var local = Vector2.Transform(_transform.GetWorldPosition(uid), invMatrix);
+            if (MappingToolsMath.CellOf(local) == cell)
                 count++;
         }
 
         return count;
+    }
+
+    /// <summary>Whether an entity, or a parent of it below <paramref name="stop"/>, is in <paramref name="set"/>.</summary>
+    private bool UnderAny(EntityUid uid, EntityUid stop, HashSet<EntityUid> set)
+    {
+        while (uid.IsValid() && uid != stop)
+        {
+            if (set.Contains(uid))
+                return true;
+
+            uid = Transform(uid).ParentUid;
+        }
+
+        return false;
     }
 
     /// <summary>Decals on a grid whose centre falls in the cell.</summary>
@@ -203,7 +224,36 @@ public sealed partial class WFMappingModeSystem
     }
 
     /// <summary>
-    /// The area, grid, entity and per-tile limits of a mapping tools edit or paste.
+    /// The size limits of one mapping tools request: cells selected, entities touched and decals carried.
+    /// </summary>
+    private bool CheckWorkLimits(WFMappingCanEditEvent ev)
+    {
+        var maxCells = _cfg.GetCVar(WFMappingModeCVars.MaxSelectionCells);
+        if (ev.SelectionCells > maxCells)
+        {
+            Cancel(ev, "wf-mapping-mode-limit-selection", ("max", maxCells));
+            return false;
+        }
+
+        var maxEntities = _cfg.GetCVar(WFMappingModeCVars.MaxEditEntities);
+        if (ev.TouchedEntities > maxEntities)
+        {
+            Cancel(ev, "wf-mapping-mode-limit-edit-entities", ("max", maxEntities));
+            return false;
+        }
+
+        var maxDecals = _cfg.GetCVar(WFMappingModeCVars.MaxEditDecals);
+        if (ev.Decals > maxDecals || ev.DecalCells?.Count > maxDecals)
+        {
+            Cancel(ev, "wf-mapping-mode-limit-edit-decals", ("max", maxDecals));
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// The area, grid, entity, per-tile entity and per-tile decal limits of a mapping tools edit or paste.
     /// </summary>
     private void CheckEditLimits(WFMappingCanEditEvent ev, WFMappingSession session)
     {
@@ -230,13 +280,27 @@ public sealed partial class WFMappingModeSystem
             return;
         }
 
+        if (ev.DecalCells is { Count: > 0 } decalCells)
+        {
+            var maxDecals = _cfg.GetCVar(WFMappingModeCVars.MaxDecalsPerTile);
+            foreach (var group in decalCells.GroupBy(c => c))
+            {
+                var existing = ev.Grid is { } decalGrid ? DecalsOnTile(decalGrid, group.Key) : 0;
+                if (existing + group.Count() > maxDecals)
+                {
+                    Cancel(ev, "wf-mapping-mode-limit-decals-per-tile", ("max", maxDecals));
+                    return;
+                }
+            }
+        }
+
         if (ev.EntityCells is not { Count: > 0 } entityCells)
             return;
 
         var maxPerTile = _cfg.GetCVar(WFMappingModeCVars.MaxEntitiesPerTile);
         foreach (var group in entityCells.GroupBy(c => c))
         {
-            var existing = ev.Grid is { } grid ? EntitiesOnTile(grid, group.Key) : 0;
+            var existing = ev.Grid is { } grid ? EntitiesOnTile(grid, group.Key, ev.Moving) : 0;
             if (existing + group.Count() > maxPerTile)
             {
                 Cancel(ev, "wf-mapping-mode-limit-entities-per-tile", ("max", maxPerTile));
@@ -329,15 +393,19 @@ public sealed partial class WFMappingModeSystem
             return false;
         }
 
-        if (gridUid is { } g && grid != null)
+        // Mappers build on grids; an entity in space would escape the per-tile count.
+        if (gridUid is not { } g || grid == null)
         {
-            var maxPerTile = _cfg.GetCVar(WFMappingModeCVars.MaxEntitiesPerTile);
-            var cell = _map.TileIndicesFor(g, grid, mapCoords);
-            if (EntitiesOnTile(g, cell) >= maxPerTile)
-            {
-                Refuse(player, "wf-mapping-mode-limit-entities-per-tile", ("max", maxPerTile));
-                return false;
-            }
+            Refuse(player, "wf-mapping-mode-limit-off-grid");
+            return false;
+        }
+
+        var maxPerTile = _cfg.GetCVar(WFMappingModeCVars.MaxEntitiesPerTile);
+        var cell = _map.TileIndicesFor(g, grid, mapCoords);
+        if (EntitiesOnTile(g, cell) >= maxPerTile)
+        {
+            Refuse(player, "wf-mapping-mode-limit-entities-per-tile", ("max", maxPerTile));
+            return false;
         }
 
         session.EntityCount++;
@@ -373,6 +441,25 @@ public sealed partial class WFMappingModeSystem
         {
             Log.Info($"Dropped an area erase from {player} at {msg.NetCoordinates}, off their session's maps");
             Refuse(player, "wf-mapping-mode-not-your-map");
+            return false;
+        }
+
+        // The engine takes the box as sent, so its size is checked here.
+        var size = msg.RectSize;
+        var maxCells = _cfg.GetCVar(WFMappingModeCVars.MaxSelectionCells);
+        if (!float.IsFinite(size.X) || !float.IsFinite(size.Y) || size.X < 0f || size.Y < 0f ||
+            (double) MathF.Ceiling(size.X) * MathF.Ceiling(size.Y) > maxCells)
+        {
+            Refuse(player, "wf-mapping-mode-limit-selection", ("max", maxCells));
+            return false;
+        }
+
+        var centre = _transform.ToMapCoordinates(GetCoordinates(msg.NetCoordinates));
+        var box = new Box2Rotated(Box2.CenteredAround(centre.Position, size), msg.RectRotation, centre.Position);
+        var maxEntities = _cfg.GetCVar(WFMappingModeCVars.MaxEditEntities);
+        if (_lookup.GetEntitiesIntersecting(centre.MapId, box).Count > maxEntities)
+        {
+            Refuse(player, "wf-mapping-mode-limit-edit-entities", ("max", maxEntities));
             return false;
         }
 

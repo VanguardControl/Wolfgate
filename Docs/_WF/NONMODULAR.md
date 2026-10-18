@@ -71,6 +71,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - a failed save is logged with its slot
   - sanitized here like FinishLoad does on login
 - [`Content.Server/Radio/EntitySystems/RadioDeviceSystem.cs`](../../Content.Server/Radio/EntitySystems/RadioDeviceSystem.cs): keep the speaker's own output type and the admin-safe ghost range the radio host port dropped
+- [`Content.Server/Sandbox/Commands/ColorNetworkCommand.cs`](../../Content.Server/Sandbox/Commands/ColorNetworkCommand.cs): missing return after the no-access error
 - [`Content.Server/Shuttles/Components/ShuttleComponent.cs`](../../Content.Server/Shuttles/Components/ShuttleComponent.cs): PDV pack, partial revert of Monolith speed cap (50->20)
 - [`Content.Server/Shuttles/Components/ThrusterComponent.cs`](../../Content.Server/Shuttles/Components/ThrusterComponent.cs): PDV pack, partial revert of Monolith thrust nerf (200->100)
 - [`Content.Server/Shuttles/Systems/FTLAntiCollisionSystem.cs`](../../Content.Server/Shuttles/Systems/FTLAntiCollisionSystem.cs): a docking jump ends on a free dock at its target, so don't push the shuttle off it

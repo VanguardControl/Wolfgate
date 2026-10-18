@@ -5,8 +5,9 @@ mapping menu, and every player gets the full MappingTools toolset on their own m
 a per-player library on the server, with versions and autosave, and can be downloaded to the player's computer.
 
 A host turns it on with `wf.mapping_mode.enabled true` (replicated, off by default). It forces `game.lobbyenabled`
-on, `events.enabled` off and `shuttle.auto_call_time` to 0, holds the ticker in the lobby and blocks late join. The
-other cvars are server only unless noted, all under `wf.mapping_mode.`:
+on, `events.enabled`, `vote.autovote_enabled`, `vote.map_enabled` and `vote.preset_enabled` off and
+`shuttle.auto_call_time` to 0, holds the ticker in the lobby and blocks late join. The other cvars are server only
+unless noted, all under `wf.mapping_mode.`:
 
 | Cvar | Default | What it limits |
 |---|---|---|
@@ -17,21 +18,28 @@ other cvars are server only unless noted, all under `wf.mapping_mode.`:
 | `max_maps` | 50 | Maps per player library |
 | `max_library_bytes` | 256 MiB | Size of a player library |
 | `max_sessions` | 32 | Live sessions on the server |
+| `max_sessions_per_player` | 1 | Live sessions one player may own, empty ones in their grace included |
 | `max_members` | 8 | Members per session, absent ones included |
 | `max_levels` | 3 | Z-levels per session |
-| `empty_session_grace` | 300 | Seconds a session with nobody present survives |
+| `empty_session_grace` | 300 | Seconds a session whose members are all away survives; one with no members closes at once |
 | `grids_per_player` / `max_grids_per_session` | 2 / 8 | Grids each member adds to the session cap, and the cap itself |
 | `max_entities_per_tile` / `max_decals_per_tile` | 30 / 16 | Entities and decals on one tile |
 | `max_entities` | 25000 | Entities across all of a session's maps |
-| `max_reference_bytes` | 8 MiB | Size of a file loaded as a reference grid |
+| `max_reference_bytes` | 1.5 MiB | Size of a file loaded as a reference grid; admits every ship, refuses stations |
+| `reference_cooldown` | 2 | Seconds after any reference load before anyone on the server may load another |
 | `max_edits_per_second` | 60 | Placement, tile, erase and decal requests per second per mapper |
+| `max_selection_cells` | 4096 | Cells one tools selection or area erase may cover (a whole-grid delete is checked by entities) |
+| `max_edit_entities` | 2000 | Entities, contents included, one copy, paste, delete, area erase or undo step may touch |
+| `max_edit_decals` | 4096 | Decals one copy or paste may carry |
+| `max_history` / `max_history_bytes` | 30 / 16 MiB | Undo steps per mapper, and their estimated saved size; the oldest go first |
 
 Players see a mapping panel in the lobby instead of the ready button. New map takes a name and makes a session with a
 fresh map and a six character join code. Join takes a code. Your sessions lists the ones you can rejoin after a
 reconnect, and My maps lists the library: Open starts a new session from a version, Download copies it to the
 client, Delete asks for a second click. In game, the Mapping entry of the escape menu opens the Mapping window. Its
-Session tab shows the name, join code (Copy), the live limits, members (the owner can remove them and set the
-autosave step), Delete the grid under me, Load reference and Leave. Save saves into your own library under a name
+Session tab shows the name, join code (Copy, and New code for the owner, which revokes the old one), the live limits,
+members (the owner can remove them for good and set the autosave step), Delete the grid under me, Load reference and
+Leave. Save saves into your own library under a name
 (blank uses the session name); Library lists, downloads and deletes. Downloads land in the client's
 `Mapping/<map>/<version>/` data folder, with an Open folder button.
 
@@ -64,7 +72,9 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 - Sessions and registry: a session (`WFMappingSession`) has an id, a code from `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, an
   owner, members (one observer each; absent members keep their place) and its levels. A player is in one session at a
   time; create, join and open end the old membership first. The owner passes to the longest-present member when they
-  leave, and an empty session closes after `empty_session_grace`, autosaving if dirty. The server makes every map a
+  leave. A session whose last member leaves or is kicked closes at once, autosaving if dirty; one whose members are
+  all away closes after `empty_session_grace`. A kicked player can't join that session again, and the owner can
+  replace the join code. The server makes every map a
   session uses and records map to session in a registry (`WFMappingSessionMapComponent` mirrors it); a request is
   checked against the sender's session, never against a map the client names. Z-levels are a CE z-network private to
   the session and are registered when added.
@@ -80,8 +90,12 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
   entity on the line after the event, so the gate is the only place to refuse them. Maps, actors, observers and
   anything a player is parented under are never erasable.
 - Limits: the entity total is recounted at most once a second and grows by one per allowed placement; tool edits and
-  reference loads recount. Per-tile counts use direct grid children, so container contents aren't counted. Area is
-  checked on the tile under a placement, or the AABB of a tool edit. Throttles per player: edits as above, tool
+  reference loads recount. Per-tile counts take every entity whose world position falls in the cell, whatever its
+  parent (container contents aren't counted), and apply to placements, pastes, moves and mirrors; mappers can't place
+  entities off a grid. Pastes check decals per cell the same way. Undo and redo are checked against the entity and
+  grid caps like a paste. Area is checked on the tile under a placement, or the AABB of a tool edit. Reference picks
+  are refused by file size before loading, checked against the caps (counting other members' pending references)
+  straight after, and one loads at a time per `reference_cooldown`. Throttles per player: edits as above, tool
   requests 10/s, create, join and open 1 per 3 s, manual save 1 per 10 s, kick 1/s, reference list 2/s, pick 1 per 5 s.
 - Library on disk: `/Mapping/Library/<NetUserId>/<MapName>/v<NNNN>_<yyyyMMdd-HHmmss>_<manual|auto>/z<D>.yml` in the
   server data folder, one file per level with 0 the ground. There is no index; listings are read from folder names and
@@ -97,7 +111,7 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 - Observer: `WFMappingObserver` doesn't inherit `AdminObserver` or `MobObserverBase`, which bring hands, pulling,
   stripping, consoles, access, global radio and unrestricted examine. It is `Incorporeal` and `BaseMob` with the
   `aghost` input context. `WFMappingObserverSystem` cancels interaction, use, pickup, drop, emote, speak, throw,
-  attack and pointing, and the marked `SharedVerbSystem` edit gives it no verbs. It isn't a ghost, so it has no warp
+  attack and pointing, and the marked `SharedVerbSystem` edit gives it no verbs unless its player has admin data. It isn't a ghost, so it has no warp
   list or dead chat, and `GhostAttemptHandleEvent` is handled so a mapper can't become one.
 - Admin only: the `mapping` command, the Maps window of MappingTools (its client button needs `AdminFlags.Mapping`),
   anyone else's library, `tp`, `loadgrid` and the rest of the admin tools. Nothing a mapper sends is run as a console
@@ -203,10 +217,12 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 
 - [`Docs/_WF/MappingMode/DESIGN.md`](../../../Docs/_WF/MappingMode/DESIGN.md)
 - [`Docs/_WF/MappingMode/PLAN.md`](../../../Docs/_WF/MappingMode/PLAN.md)
+- [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)
 - [`Docs/_WF/MappingMode/S1-NOTES.md`](../../../Docs/_WF/MappingMode/S1-NOTES.md)
 - [`Docs/_WF/MappingMode/S2-NOTES.md`](../../../Docs/_WF/MappingMode/S2-NOTES.md)
 - [`Docs/_WF/MappingMode/S3-NOTES.md`](../../../Docs/_WF/MappingMode/S3-NOTES.md)
 - [`Docs/_WF/MappingMode/S5-NOTES.md`](../../../Docs/_WF/MappingMode/S5-NOTES.md)
+- [`Docs/_WF/MappingMode/S6-NOTES.md`](../../../Docs/_WF/MappingMode/S6-NOTES.md)
 
 ## Non-modular edits
 
@@ -216,7 +232,7 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 - [`Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs`](../../../Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs): mappers open the spawn menus
 - [`Content.Server/Sandbox/SandboxSystem.cs`](../../Sandbox/SandboxSystem.cs): mappers place, erase and lay tiles on their own session's maps
 - [`Content.Shared/Input/ContentKeyFunctions.cs`](../../../Content.Shared/Input/ContentKeyFunctions.cs): Escape drops a reference grid being placed
-- [`Content.Shared/Verbs/SharedVerbSystem.cs`](../../../Content.Shared/Verbs/SharedVerbSystem.cs): mapping observers get no verbs; admin requests are forced and keep theirs
+- [`Content.Shared/Verbs/SharedVerbSystem.cs`](../../../Content.Shared/Verbs/SharedVerbSystem.cs): mapping observers without admin data get no verbs; admins keep theirs
 - [`Resources/keybinds.yml`](../../../Resources/keybinds.yml): Escape drops a reference grid being placed, ahead of the game menu
 
 <!-- WOLFGATE-GENERATED END -->

@@ -1,7 +1,10 @@
 using System.Numerics;
 using Content.Shared.Decals;
 using Robust.Shared.Map;
+using Robust.Shared.Serialization.Markdown;
 using Robust.Shared.Serialization.Markdown.Mapping;
+using Robust.Shared.Serialization.Markdown.Sequence;
+using Robust.Shared.Serialization.Markdown.Value;
 using Robust.Shared.Timing;
 
 namespace Content.Server._WF.MappingTools;
@@ -29,6 +32,12 @@ public sealed class MappingEntityGroup
     /// </summary>
     public MappingDataNode? Data;
 
+    /// <summary>Entities in <see cref="Data"/>, contents included.</summary>
+    public int EntityCount;
+
+    /// <summary>Estimated size of <see cref="Data"/>, for the history budget.</summary>
+    public long Bytes;
+
     public readonly List<MappingGroupRoot> Roots = new();
 
     /// <summary>
@@ -50,6 +59,9 @@ public sealed class MappingGroupRoot(MappingEntityRef entity, int yamlUid, Mappi
     /// Whether a grid root could split; it is saved unsplittable so loading doesn't break it apart.
     /// </summary>
     public bool CanSplit = true;
+
+    /// <summary>Whether the root was a grid when it was saved.</summary>
+    public bool IsGrid;
 }
 
 public record struct MappingTileChange(EntityUid Grid, Vector2i Indices, Tile Old, Tile New);
@@ -98,6 +110,66 @@ public sealed class MappingEdit(string name)
         DecalsRemoved.AddRange(other.DecalsRemoved);
         DecalsAdded.AddRange(other.DecalsAdded);
     }
+
+    /// <summary>Estimated memory the edit holds, for the history budget.</summary>
+    public long Bytes()
+    {
+        const int perChange = 64;
+        var bytes = (long) perChange * (Tiles.Count + Moves.Count + DecalsRemoved.Count + DecalsAdded.Count);
+        foreach (var group in Created)
+        {
+            bytes += group.Bytes + perChange * group.Roots.Count;
+        }
+
+        foreach (var group in Deleted)
+        {
+            bytes += group.Bytes + perChange * group.Roots.Count;
+        }
+
+        return bytes;
+    }
+}
+
+/// <summary>Rough sizes of saved entity data.</summary>
+public static class MappingDataSize
+{
+    /// <summary>The characters of every key and value in a node tree, plus a little per node.</summary>
+    public static long Estimate(DataNode? root)
+    {
+        if (root == null)
+            return 0;
+
+        var bytes = 0L;
+        var stack = new Stack<DataNode>();
+        stack.Push(root);
+        while (stack.TryPop(out var node))
+        {
+            bytes += 8;
+            switch (node)
+            {
+                case ValueDataNode value:
+                    bytes += value.Value.Length;
+                    break;
+                case MappingDataNode mapping:
+                    foreach (var (key, child) in mapping.Children)
+                    {
+                        bytes += key.Length;
+                        stack.Push(child);
+                    }
+
+                    break;
+                case SequenceDataNode sequence:
+                    foreach (var child in sequence.Sequence)
+                    {
+                        stack.Push(child);
+                    }
+
+                    break;
+            }
+        }
+
+        return bytes;
+    }
 }
 
 /// <summary>
@@ -119,6 +191,9 @@ public sealed class MappingClipboard
     /// Entities in <see cref="Data"/>, contents included.
     /// </summary>
     public int EntityCount;
+
+    /// <summary>Estimated size of <see cref="Data"/>.</summary>
+    public long Bytes;
 
     public readonly List<(int YamlUid, MappingPose Pose)> Roots = new();
 }

@@ -9,12 +9,16 @@ namespace Content.Server._WF.MappingMode;
 public sealed class WFMappingSession(int id, string code, string name, NetUserId owner, EntityUid rootMap)
 {
     public readonly int Id = id;
-    public readonly string Code = code;
+    /// <summary>The join code; the owner can replace it.</summary>
+    public string Code = code;
     public string Name = name;
     public NetUserId Owner = owner;
 
     /// <summary>Members, with the time each joined; absent members stay members until they leave.</summary>
     public readonly Dictionary<NetUserId, TimeSpan> Members = new();
+
+    /// <summary>Players removed from the session, who can't join it again.</summary>
+    public readonly HashSet<NetUserId> Kicked = new();
 
     /// <summary>The observer of each member in the session right now.</summary>
     public readonly Dictionary<NetUserId, EntityUid> Present = new();

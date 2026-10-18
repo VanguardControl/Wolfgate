@@ -16,6 +16,13 @@ wf-mapping-mode-kick-not-owner = Only the session owner can remove members.
 wf-mapping-mode-kick-not-member = That player isn't another member of your session.
 wf-mapping-mode-closed = The session "{$name}" was closed.
 wf-mapping-mode-owner-now = You now own "{$name}".
+wf-mapping-mode-too-many-own-sessions = You can own {$max ->
+    [one] one mapping session
+   *[other] {$max} mapping sessions
+} at a time.
+wf-mapping-mode-kicked-no-rejoin = You were removed from "{$name}" and can't join it again.
+wf-mapping-mode-new-code = The join code is now {$code}. The old one no longer works.
+wf-mapping-mode-new-code-not-owner = Only the session owner can change the join code.
 
 wf-mapping-mode-opened = Opened "{$name}" {$version}. Its join code is {$code}.
 
@@ -59,6 +66,10 @@ wf-mapping-mode-limit-levels = Level limit reached ({$max}).
 wf-mapping-mode-limit-prototype = That can't be placed in mapping mode.
 wf-mapping-mode-bad-tile = Unknown tile.
 wf-mapping-mode-erase-refused = That can't be erased.
+wf-mapping-mode-limit-selection = That covers more than {$max} tiles at once.
+wf-mapping-mode-limit-edit-entities = That touches more than {$max} entities at once.
+wf-mapping-mode-limit-edit-decals = That carries more than {$max} decals at once.
+wf-mapping-mode-limit-off-grid = Place things on a grid. Lay a tile first.
 
 ## Reference grids
 
@@ -67,6 +78,7 @@ wf-mapping-mode-reference-too-large = That file is over the {$max} MiB reference
 wf-mapping-mode-reference-failed = That file couldn't be loaded.
 wf-mapping-mode-reference-empty = That file has no grids.
 wf-mapping-mode-reference-expired = The reference wasn't placed in time and was dropped.
+wf-mapping-mode-reference-busy = Another reference is loading. Try again in a moment.
 wf-mapping-mode-reference-placed = Placed {$count ->
     [one] the reference grid
    *[other] {$count} reference grids
@@ -175,6 +187,8 @@ wf-mapping-mode-menu-return-tooltip = Leave the admin map and go back to the map
 wf-mapping-mode-menu-code = Join code: {$code}
 wf-mapping-mode-menu-copy = Copy
 wf-mapping-mode-menu-copied = Copied the join code.
+wf-mapping-mode-menu-new-code = New code
+wf-mapping-mode-menu-new-code-tooltip = Replace the join code. The old one stops working; members stay in.
 wf-mapping-mode-menu-status = Grids {$grids}/{$maxGrids} · Entities {$entities}/{$maxEntities} · Area {$size} × {$size}
 wf-mapping-mode-menu-members = Members
 wf-mapping-mode-menu-member = {$name}{$owner ->

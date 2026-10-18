@@ -35,6 +35,7 @@ public sealed partial class WFMappingModeSystem
         SubscribeNetworkEvent<WFMappingRejoinRequest>(OnRejoinRequest);
         SubscribeNetworkEvent<WFMappingLeaveRequest>(OnLeaveRequest);
         SubscribeNetworkEvent<WFMappingKickRequest>(OnKickRequest);
+        SubscribeNetworkEvent<WFMappingNewCodeRequest>(OnNewCodeRequest);
         SubscribeLocalEvent<WFMappingObserverComponent, PlayerDetachedEvent>(OnObserverDetached);
         SubscribeLocalEvent<PlayerJoinedLobbyEvent>(OnPlayerJoinedLobby);
 
@@ -144,11 +145,25 @@ public sealed partial class WFMappingModeSystem
         return true;
     }
 
-    /// <summary>Whether another session may start; tells the player when the server is at its cap.</summary>
+    /// <summary>
+    /// Whether the player may start another session; tells them when the server, or they, are at the cap. The session
+    /// they are in doesn't count against them, since starting another ends that membership.
+    /// </summary>
     public bool CheckSessionCap(ICommonSession player)
     {
+        var current = _membership.GetValueOrDefault(player.UserId);
+        var maxOwned = _cfg.GetCVar(WFMappingModeCVars.MaxSessionsPerPlayer);
+        var owned = _sessions.Values.Count(s => s.Owner == player.UserId && s.Id != current);
+        if (owned + 1 > maxOwned && !IsAdminMapper(player))
+        {
+            Refuse(player, "wf-mapping-mode-too-many-own-sessions", ("max", maxOwned));
+            return false;
+        }
+
+        // The session the player leaves closes if nobody else is in it, which frees its slot.
+        var freed = TryGetMembership(player.UserId, out var old) && old.Members.Count == 1 ? 1 : 0;
         var maxSessions = _cfg.GetCVar(WFMappingModeCVars.MaxSessions);
-        if (_sessions.Count < maxSessions)
+        if (_sessions.Count - freed < maxSessions)
             return true;
 
         Refuse(player, "wf-mapping-mode-too-many-sessions", ("max", maxSessions));
@@ -196,6 +211,12 @@ public sealed partial class WFMappingModeSystem
     /// <summary>Puts a player in a session, as a new member if they aren't one.</summary>
     public bool TryJoinSession(ICommonSession player, WFMappingSession session)
     {
+        if (session.Kicked.Contains(player.UserId) && !IsAdminMapper(player))
+        {
+            Refuse(player, "wf-mapping-mode-kicked-no-rejoin", ("name", session.Name));
+            return false;
+        }
+
         if (!session.Members.ContainsKey(player.UserId))
         {
             var maxMembers = _cfg.GetCVar(WFMappingModeCVars.MaxMembers);
@@ -327,9 +348,35 @@ public sealed partial class WFMappingModeSystem
         LeaveSession(ev.User, kicked: true);
     }
 
+    /// <summary>The owner replaces the join code, so a leaked one stops letting people in.</summary>
+    private void OnNewCodeRequest(WFMappingNewCodeRequest ev, EntitySessionEventArgs args)
+    {
+        var player = args.SenderSession;
+        if (!Enabled || !TryGetMembership(player.UserId, out var session) ||
+            !TryThrottle(_kickThrottle, player, "new code"))
+        {
+            return;
+        }
+
+        if (session.Owner != player.UserId)
+        {
+            Refuse(player, "wf-mapping-mode-new-code-not-owner");
+            return;
+        }
+
+        var old = session.Code;
+        var codes = _sessions.Values.Select(s => s.Code).ToHashSet();
+        session.Code = WFMappingSessionCodes.Generate(_random.Next, codes);
+        _adminLog.Add(LogType.Action, LogImpact.Low,
+            $"{player:player} replaced the join code of mapping session {old} with {session.Code}");
+        SendState(session);
+        Notify(player, true, "wf-mapping-mode-new-code", ("code", session.Code));
+    }
+
     /// <summary>
     /// Ends a player's membership: returns them to the lobby if present, and passes ownership on if they owned the
-    /// session. Their undo history goes, since it points at the session's maps.
+    /// session. Their undo history goes, since it points at the session's maps. A kicked player can't join again,
+    /// and a session left with no members closes at once, autosaving if dirty.
     /// </summary>
     public void LeaveSession(NetUserId user, bool kicked)
     {
@@ -337,6 +384,9 @@ public sealed partial class WFMappingModeSystem
             return;
 
         session.Members.Remove(user);
+        if (kicked)
+            session.Kicked.Add(user);
+
         _players.TryGetSessionById(user, out var player);
 
         if (session.Present.Remove(user, out var observer))
@@ -350,6 +400,14 @@ public sealed partial class WFMappingModeSystem
             SendState(player);
             if (kicked)
                 Notify(player, false, "wf-mapping-mode-kicked", ("name", session.Name));
+        }
+
+        if (session.Members.Count == 0)
+        {
+            _adminLog.Add(LogType.Action, LogImpact.Low,
+                $"Mapping session {session.Code} closed when its last member left");
+            CloseSession(session, autosave: true);
+            return;
         }
 
         if (session.Owner == user)
@@ -567,6 +625,7 @@ public sealed partial class WFMappingModeSystem
 
         _sessions.Clear();
         _membership.Clear();
+        _nextReferenceLoad = TimeSpan.Zero;
         _registry.Clear();
         ClearAutosaveQueue();
         _adminMap = null;
