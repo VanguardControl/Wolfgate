@@ -109,78 +109,6 @@
       state: toggle_long_range
 
 - type: entity
-  id: ActionXenoWordQueen
-  parent: ActionXenoBase
-  name: Word of the Queen (50) # TODO RMC14 proper plasma costs
-  description: Sends a message to all members of your hive.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: queen_word
-    useDelay: 10
-  - type: InstantAction
-    event: !type:XenoWordQueenActionEvent
-  - type: XenoWordQueenAction
-  - type: RMCDazeableAction
-
-- type: entity
-  id: ActionXenoPsychicWhisper
-  parent: ActionXenoBase
-  name: Psychic Whisper
-  description: Whisper a psychic message to a nearby mind.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: psychic_whisper
-    useDelay: 10
-  - type: TargetAction
-    range: 7
-  - type: EntityTargetAction
-    event: !type:XenoPsychicWhisperActionEvent
-    canTargetSelf: false
-    toggleOutline: false
-    whitelist:
-      components:
-      - MobState
-  - type: RMCDazeableAction
-
-- type: entity
-  id: ActionXenoPsychicRadiance
-  parent: ActionXenoBase
-  name: Psychic Radiance (100)
-  description: Radiate a psychic message to nearby minds.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: psychic_radiance
-    useDelay: 10
-  - type: InstantAction
-    event: !type:XenoPsychicRadianceActionEvent
-  - type: RMCDazeableAction
-
-- type: entity
-  id: ActionXenoGiveOrder
-  parent: ActionXenoBase
-  name: Give Order (100)
-  description: Send a psychic order to the xenonid you are watching.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: queen_order
-    useDelay: 10
-  - type: InstantAction
-    event: !type:XenoGiveOrderActionEvent
-  - type: RMCDazeableAction
-
-- type: entity
   id: ActionXenoTurnInvisible
   parent: ActionXenoBase
   name: Turn Invisible (20) # TODO RMC14 proper plasma costs
@@ -224,20 +152,6 @@
   components:
     - type: Sprite
       state: empower
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoManageHive
-  name: Manage The Hive
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: xeno_readmit
-    useDelay: 0.5
-  - type: InstantAction
-    event: !type:ManageHiveActionEvent
 
 - type: entity
   id: ActionXenoDodge

@@ -3,6 +3,7 @@ using Content.Shared._WF.RMCCore.Damage;
 using Content.Shared._WF.RMCCore.Stun;
 using Content.Shared._WF.Xenonids.Announce;
 using Content.Shared._WF.Xenonids.Energy;
+using Content.Shared._WF.Xenonids.Eye;
 using Content.Shared._WF.Xenonids.Hive;
 using Content.Shared._WF.Xenonids.Parasite;
 using Content.Shared._WF.Xenonids.Plasma;
@@ -38,6 +39,7 @@ public abstract partial class SharedXenoHealSystem : EntitySystem
     [Dependency] private MobThresholdSystem _mobThreshold = default!;
     [Dependency] private INetManager _net = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
+    [Dependency] private QueenEyeSystem _queenEye = default!;
     [Dependency] private SharedRMCActionsSystem _rmcActions = default!;
     [Dependency] private SharedRMCDamageableSystem _rmcDamageable = default!;
     [Dependency] private Content.Shared.StatusEffectNew.StatusEffectsSystem _statusEffect = default!;
@@ -69,7 +71,11 @@ public abstract partial class SharedXenoHealSystem : EntitySystem
         if (args.Handled)
             return;
 
-        // XENOPORT(P3-Q): restore the queen eye range check (QueenEyeSystem.IsInQueenEye / CanSeeTarget) when the queen lands.
+        if (_queenEye.IsInQueenEye(ent.Owner) &&
+            !_queenEye.CanSeeTarget(ent.Owner, args.Target))
+        {
+            return;
+        }
 
         if (!_rmcActions.TryUseAction(args))
             return;

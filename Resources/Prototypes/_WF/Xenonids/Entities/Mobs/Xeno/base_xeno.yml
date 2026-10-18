@@ -181,8 +181,8 @@
         type: XenoDevolveBui
       enum.XenoPheromonesUI.Key:
         type: XenoPheromonesBui
-      # XENOPORT(P3-Q): enum.XenoWordQueenUI.Key:
-      #   type: XenoWordQueenBui
+      enum.XenoWordQueenUI.Key:
+        type: XenoWordQueenBui
       enum.XenoChooseStructureUI.Key:
         type: XenoChooseStructureBui
       enum.XenoOrderConstructionUI.Key:

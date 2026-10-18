@@ -1,4 +1,3 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Robust.Shared.Analyzers;
 using Robust.Shared.GameObjects;
 using Robust.Shared.GameStates;
@@ -9,6 +8,7 @@ namespace Content.Shared._WF.Xenonids.Designer;
 
 // Marks a wall or door as bound to weeds.
 // When the bound weeds are destroyed, this wall collapses.
+[Access(typeof(DesignerConstructNodeSystem), typeof(WeedboundWallSystem))]
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WeedboundWallComponent : Component
 {

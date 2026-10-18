@@ -4,7 +4,7 @@
   - CMXenoTail
   - CMXenoFlammable
   - RMCXenoSpeechSounds
-  - RMCXenoCommendationReceiver
+  # WOLFGATE: cut parent RMCXenoCommendationReceiver
   - RMCXenoMobCollision
   id: RMCXenoCarrierBase
   name: Carrier
@@ -69,7 +69,7 @@
     - multiplier: 0.6375
       whitelist:
         components:
-        - Marine
+        - HumanoidAppearance # WOLFGATE: humanoids stand in for marines
     - multiplier: 0.7075
       whitelist:
         components:
@@ -92,26 +92,19 @@
     size: Big
   - type: RMCXenoDamageVisuals
     prefix: carrier
-  - type: TacticalMapIcon
-    icon:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: carrier
+  # WOLFGATE: cut TacticalMapIcon (tactical map)
   - type: XenoInhands
     prefix: carrier
-  - type: IntelRecoverCorpseObjectiveOnDeath
-    value: 0.2
+  # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: FixedIdentity
     name: cm-job-name-xeno-carrier
-  - type: RMCSurgeryXenoHeart
-    item: RMCOrganXenoHeartT2
+  # WOLFGATE: cut RMCSurgeryXenoHeart (RMC medical)
 
 - type: entity
   parent: RMCXenoCarrierBase
   id: CMXenoCarrier
   components:
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleCarrier
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Carrier/carrier.rsi
     layers:
@@ -152,8 +145,7 @@
   - type: XenoEvolution
     strains:
     - RMCXenoCarrierEggsac
-  - type: RMCActionOrder
-    id: CMXenoCarrier
+  # WOLFGATE: cut RMCActionOrder
 
 - type: entity
   parent: RMCXenoCarrierBase
@@ -161,9 +153,7 @@
   suffix: Eggsac
   components:
   - type: CanBuildThickFromConstructNode
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleEggsac
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Carrier/eggsac_carrier.rsi
     layers:
@@ -207,6 +197,5 @@
   - type: XenoGenerateEggs
   - type: XenoEggSustainer
   - type: XenoHidden
-  - type: RMCActionOrder
-    id: RMCXenoCarrierEggsac
+  # WOLFGATE: cut RMCActionOrder
 

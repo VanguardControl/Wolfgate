@@ -35,8 +35,7 @@
     damage:
       types:
         Heat: 3.8
-  # XENOPORT(P3-Q): QueenEyeVision
-  # - type: QueenEyeVision
+  - type: QueenEyeVision
   - type: XenoChargeDontHit
 
 - type: entity

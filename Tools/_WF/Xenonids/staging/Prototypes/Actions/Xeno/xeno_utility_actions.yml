@@ -7,23 +7,6 @@
       state: transfer_plasma
 
 - type: entity
-  id: ActionXenoTransferPlasmaHivelord
-  parent: ActionXenoBase
-  name: Transfer plasma (200) # TODO RMC14 proper plasma costs
-  description: Give plasma to a xenonid.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: transfer_plasma
-  - type: TargetAction
-    range: 7
-  - type: EntityTargetAction
-    event: !type:XenoTransferPlasmaActionEvent
-      amount: 200
-
-- type: entity
   id: ActionXenoResinSurge
   parent: ActionXenoBase
   name: Resin Surge (75)
@@ -151,22 +134,6 @@
 #    event: !type:XenoAidToggleActionEvent
 
 - type: entity
-  parent: ActionXenoBase
-  id: ActionXenoLeader
-  name: Choose/Follow Xenonid Leaders
-  description: Promotes and demotes xenonid leaders, or watches them. Promoting a xeno to leader will make them emit your pheromones around themselves.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    backgroundOn: null
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: xeno_lead
-    useDelay: 3
-  - type: InstantAction
-    event: !type:HiveLeaderActionEvent
-
-- type: entity
   parent: CMGuidebookActionXenoBase
   id: RMCGuidebookActionXenoLeader
   name: Choose Leaders
@@ -175,24 +142,6 @@
   components:
     - type: Sprite
       state: xeno_lead
-
-- type: entity
-  parent: ActionXenoTransferPlasma
-  id: ActionXenoTransferPlasmaQueen
-  name: Give Plasma (400) # TODO RMC14 proper plasma costs
-  description: Remotely restores 75% of a single xenonid's max plasma.
-  components:
-  - type: Action
-    useDelay: 12
-  - type: TargetAction
-    checkCanAccess: false
-    range: -1
-  - type: EntityTargetAction
-    event: !type:XenoTransferPlasmaActionEvent
-      cost: 400
-      amount: 0
-      targetPercentage: 0.75
-      range: null
 
 - type: entity
   parent: ActionXenoBase
@@ -274,21 +223,6 @@
 
 - type: entity
   parent: ActionXenoBase
-  id: ActionXenoQueenEye
-  name: Enter Eye Form
-  description: Look around any area with weeds remotely. You can use infinite range abilities while in this form, and build resin from afar.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: queen_eye
-    useDelay: 0.25
-  - type: InstantAction
-    event: !type:QueenEyeActionEvent
-
-- type: entity
-  parent: ActionXenoBase
   id: ActionXenoSpikeShield
   name: Spike Shield (150 shards)
   description: Expend shards to gain a temporary shield that lasts for a short amount of time. Whenever the shield is damaged, spray bone shards around you in a 5x5 AoE centered on yourself. Shield lasts for 2 seconds.
@@ -303,35 +237,3 @@
     event: !type:ActionXenoSpikeShieldEvent
   - type: ActionBlockIfResting
   - type: RMCDazeableAction
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoBulwarkOfTheHive
-  name: Bulwark Of The Hive
-  description: Grants all hivemembers around you a temporary shield that blocks 200 damage for 10 seconds. While their shield is up, hivemembers can only take damage up to 10% of their health at a time.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: soak
-    useDelay: 60
-  - type: InstantAction
-    event: !type:XenoBulwarkOfTheHiveActionEvent
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoDoom
-  name: Doom (50)
-  description: Turns off lights around you for 10 seconds, and slows, dazes, and drains hostiles as well.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: screech
-    useDelay: 45
-  - type: InstantAction
-    event: !type:XenoDoomActionEvent
-  - type: XenoActionPlasma
-    cost: 50

@@ -158,8 +158,7 @@
       tags:
       - XenoWeedNode
       - XenoWeedTile
-  # XENOPORT(P3-Q): QueenEyeVision
-  # - type: QueenEyeVision
+  - type: QueenEyeVision
   - type: Damageable
     damage:
       groups:
@@ -189,8 +188,7 @@
       tags:
       - XenoWeedNode
       - XenoWeedTile
-  # XENOPORT(P3-Q): QueenEyeVision
-  # - type: QueenEyeVision
+  - type: QueenEyeVision
   - type: Tag
     tags:
     - XenoWeedNode
@@ -314,8 +312,7 @@
       tags:
       - XenoWeedNode
       - XenoWeedTile
-  # XENOPORT(P3-Q): QueenEyeVision
-  # - type: QueenEyeVision
+  - type: QueenEyeVision
   - type: XenoWeeds
     healOnStopSpreading:
       groups:
@@ -343,8 +340,7 @@
       tags:
       - XenoWeedNode
       - XenoWeedTile
-  # XENOPORT(P3-Q): QueenEyeVision
-  # - type: QueenEyeVision
+  - type: QueenEyeVision
   - type: Tag
     tags:
     - XenoWeedNode
@@ -447,8 +443,7 @@
       tags:
       - XenoWeedNode
       - XenoWeedTile
-  # XENOPORT(P3-Q): QueenEyeVision
-  # - type: QueenEyeVision
+  - type: QueenEyeVision
   - type: Destructible
     thresholds:
     - trigger:

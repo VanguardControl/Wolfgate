@@ -5,7 +5,7 @@
   - CMXenoTail
   - CMXenoFlammable
   - RMCXenoSpeechSounds
-  - RMCXenoCommendationReceiver
+  # WOLFGATE: cut parent RMCXenoCommendationReceiver
   - RMCXenoMobCollision
   id: CMXenoHivelordBase
   name: Hivelord
@@ -59,7 +59,7 @@
     - multiplier: 0.6925
       whitelist:
         components:
-        - Marine
+        - HumanoidAppearance # WOLFGATE: humanoids stand in for marines
     - multiplier: 0.765
       whitelist:
         components:
@@ -74,37 +74,25 @@
       - XenoParasite
       - XenoEgg
       - XenoFruit
-  - type: MultiHandedHolder
-    items:
-    - hands: 2
-      whitelist:
-        components:
-        - XenoEgg
+  # WOLFGATE: cut MultiHandedHolder
   - type: RMCSize
     size: Big
   - type: RMCXenoDamageVisuals
     prefix: hivelord
-  - type: TacticalMapIcon
-    icon:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: hivelord
+  # WOLFGATE: cut TacticalMapIcon (tactical map)
   - type: XenoInhands
     prefix: hivelord
   - type: FixedIdentity
     name: cm-job-name-xeno-hivelord
-  - type: IntelRecoverCorpseObjectiveOnDeath
-    value: 0.2
-  - type: RMCSurgeryXenoHeart
-    item: RMCOrganXenoHeartT2
+  # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
+  # WOLFGATE: cut RMCSurgeryXenoHeart (RMC medical)
 
 - type: entity
   parent: CMXenoHivelordBase
   id: CMXenoHivelord
   components:
   - type: CanBuildThickFromConstructNode
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleHivelord
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Hivelord/hivelord.rsi
   - type: Xeno
@@ -151,8 +139,7 @@
     strains:
     - CMXenoHivelordResinWhisperer
     - CMXenoHivelordDesigner
-  - type: RMCActionOrder
-    id: CMXenoHivelord
+  # WOLFGATE: cut RMCActionOrder
 
 - type: entity
   parent: CMXenoHivelordBase
@@ -206,8 +193,7 @@
     description: rmc-xeno-resin-whisperer-description
     popup: rmc-xeno-resin-whisperer-popup
   - type: XenoHidden
-  - type: RMCActionOrder
-    id: CMXenoHivelordResinWhisperer
+  # WOLFGATE: cut RMCActionOrder
 
 # Designer Strain for Hivelord
 - type: entity
@@ -215,9 +201,7 @@
   id: CMXenoHivelordDesigner
   suffix: Designer
   components:
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleDesigner
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Hivelord/designer_hivelord.rsi
   - type: Xeno
@@ -295,5 +279,4 @@
     description: rmc-xeno-designer-description
     popup: rmc-xeno-designer-popup
   - type: XenoHidden
-  - type: RMCActionOrder
-    id: CMXenoHivelordDesigner
+  # WOLFGATE: cut RMCActionOrder

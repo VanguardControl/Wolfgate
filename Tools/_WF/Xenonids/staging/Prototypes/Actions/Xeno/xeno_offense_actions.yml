@@ -405,38 +405,6 @@
       state: lunge
 
 - type: entity
-  id: ActionXenoScreech
-  parent: ActionXenoBase
-  name: Screech (250)
-  description: A wide area of effect stun, screeches upon activation. [color=red]This will also stun parasites, and is blocked by solid walls, smoke, and boiler gas, but not windows![/color]
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: screech
-    useDelay: 50
-  - type: InstantAction
-    event: !type:XenoScreechActionEvent
-  - type: RMCDazeableAction
-
-- type: entity
-  id: ActionXenoGut
-  parent: ActionXenoBase
-  name: Gut (200)
-  description: Gibs the mob you decide to gut.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: gut
-  - type: TargetAction
-    range: 2
-  - type: EntityTargetAction
-    event: !type:XenoGutActionEvent
-
-- type: entity
   id: ActionXenoStomp
   parent: ActionXenoBase
   name: Stomp (30)
@@ -793,30 +761,6 @@
 #      state: prae_cleave_fling
 #  - type: InstantAction
 #    event: !type:XenoToggleCleaveActionEvent
-
-- type: entity
-  id: ActionXenoSpitQueen
-  parent: ActionXenoSpit
-  name: Xeno Spit (50/25)
-  description: Launches a projectile that will either paralyze the first enemy it hits or damage them and cover them in acid.
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoToggleSpitType
-  name: Toggle Spit Type
-  description: Toggle between Neurotoxic or Acidic spit. Neurotoxic has less range and costs 50 plasma, and knocks down the first enemy it hits. Acidic has more range and costs 25 plasma, and damages and covers in acid the first enemy it hits.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    backgroundOn: null
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: shift_spit_neurotoxin
-    iconOn:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: shift_spit_xeno_acid
-  - type: InstantAction
-    event: !type:XenoSpitToggleActionEvent
 
 - type: entity
   parent: ActionXenoBase
@@ -1183,43 +1127,6 @@
   - type: ActionBlockIfResting
   - type: RMCDazeableAction
 
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoRend
-  name: Rend (25)
-  description: Claw at enemies around you.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: rav_eviscerate
-    useDelay: 2.5
-  - type: InstantAction
-    event: !type:XenoRendActionEvent
-  - type: ActionBlockIfResting
-  - type: XenoActionPlasma
-    cost: 50
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoDestroy
-  name: Destroy
-  description: After a short time, jump to the targeted location, destroying structures and gibbing hostiles within a 3x3 range. Works over barricades and other short barriers.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: charge
-    useDelay: 60
-  - type: TargetAction
-    range: 7
-    deselectOnMiss: false
-  - type: WorldTargetAction
-    event: !type:XenoDestroyActionEvent
-
-# Trapper Actions
 - type: entity
   parent: ActionXenoBase
   id: ActionXenoAcidMine

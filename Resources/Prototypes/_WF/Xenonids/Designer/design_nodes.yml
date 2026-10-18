@@ -13,9 +13,7 @@
   placement:
     mode: SnapgridCenter
   components:
-    - type: GuideHelp
-      guides:
-      - RMCGuideRoleDesigner
+    # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
     - type: Transform
       anchored: true
     - type: Clickable
@@ -348,88 +346,4 @@
       plasma: 70
       scalingCost: false
 
-# Guidebook action entries
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoDesignerOptimizedNode
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      sprite: _WF/Xenonids/Actions/designer_actions.rsi
-      state: icon_speednode
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoDesignerFlexibleNode
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      sprite: _WF/Xenonids/Actions/designer_actions.rsi
-      state: icon_costnode
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoDesignerConstructNode
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      sprite: _WF/Xenonids/Actions/designer_actions.rsi
-      state: icon_constructnode
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoGreaterResinSurge
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      sprite: _WF/Xenonids/Actions/designer_actions.rsi
-      state: greater_resin_surge
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoToggleNodeType
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      sprite: _WF/Xenonids/Actions/designer_actions.rsi
-      state: design_mark_wall
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoRemoteUpgrade
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      sprite: _WF/Xenonids/Actions/designer_actions.rsi
-      state: upgrade_resin
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoRemoveNodes
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      sprite: _WF/Xenonids/Actions/designer_actions.rsi
-      state: remove_node
-
-- type: entity
-  parent: BaseItem
-  id: RMCGuidebookEntityWeedboundResinWall
-  name: weedbound resin wall
-  suffix: GuideBookEntity
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      sprite: _WF/Xenonids/Structures/Xenos/weedbound_resin_walls.rsi
-      state: weedboundresin
-
-- type: entity
-  parent: BaseItem
-  id: RMCGuidebookEntityWeedboundResinDoor
-  name: weedbound resin door
-  suffix: GuideBookEntity
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      sprite: _WF/Xenonids/Structures/Xenos/weedbound_resin_doors.rsi
-      state: weedbound_resin
+# WOLFGATE: cut the guidebook action and entity entries (RMC guidebook pages are not ported)

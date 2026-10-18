@@ -1,4 +1,3 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Content.Shared.FixedPoint;
 using Content.Shared._WF.Xenonids.Construction;
 using Robust.Shared.Audio;
@@ -8,6 +7,7 @@ using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Xenonids.Designer;
 
+[Access(typeof(SharedXenoConstructionSystem))]
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class DesignerRemoteThickenResinComponent : Component
 {
