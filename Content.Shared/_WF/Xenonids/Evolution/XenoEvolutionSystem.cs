@@ -30,4 +30,22 @@ public sealed partial class XenoEvolutionSystem : EntitySystem
 
         return false;
     }
+
+    public int GetLiving<T>(Predicate<Entity<T>>? predicate = null) where T : IComponent
+    {
+        var total = 0;
+        var query = EntityQueryEnumerator<T>();
+        while (query.MoveNext(out var uid, out var comp))
+        {
+            if (TryComp(uid, out MobStateComponent? mobState) && _mobState.IsDead(uid, mobState))
+                continue;
+
+            if (predicate != null && !predicate((uid, comp)))
+                continue;
+
+            total++;
+        }
+
+        return total;
+    }
 }

@@ -1,0 +1,23 @@
+// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
+using Robust.Shared.Serialization;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Content.Shared._WF.Xenonids.Devour;
+
+[Serializable, NetSerializable]
+public sealed partial class RegurgitateEvent : EntityEventArgs
+{
+    public NetEntity NetRegurgitater;
+
+    public NetEntity NetRegurgitated;
+
+    public RegurgitateEvent(NetEntity netRegurgitater, NetEntity netRegurgitated)
+    {
+        NetRegurgitater = netRegurgitater;
+        NetRegurgitated = netRegurgitated;
+    }
+}

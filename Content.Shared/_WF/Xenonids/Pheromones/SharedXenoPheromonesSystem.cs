@@ -2,4 +2,13 @@
 namespace Content.Shared._WF.Xenonids.Pheromones;
 
 [Virtual]
-public class SharedXenoPheromonesSystem : EntitySystem;
+public class SharedXenoPheromonesSystem : EntitySystem
+{
+    public void DeactivatePheromones(EntityUid xeno)
+    {
+    }
+
+    public void TryActivatePheromonesObject(EntityUid ent)
+    {
+    }
+}

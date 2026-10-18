@@ -8,4 +8,8 @@ public class SharedXenoParasiteSystem : EntitySystem
     {
         return false;
     }
+
+    public void RefreshIncubationMultipliers(EntityUid ent)
+    {
+    }
 }
