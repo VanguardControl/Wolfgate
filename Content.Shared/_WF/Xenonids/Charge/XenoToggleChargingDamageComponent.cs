@@ -1,4 +1,3 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Content.Shared._WF.RMCCore.Damage;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
@@ -9,6 +8,7 @@ namespace Content.Shared._WF.Xenonids.Charge;
 
 // TODO RMC14: vending machines, electrified fences, disposal unit collision, bed, filing cabinet, fuel tanks, prison windows, mounted machineguns, power loaders,
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(XenoToggleChargingSystem))]
 public sealed partial class XenoToggleChargingDamageComponent : Component
 {
     [DataField, AutoNetworkedField]
@@ -46,6 +46,7 @@ public sealed partial class XenoToggleChargingDamageComponent : Component
 
     // TODO RMC14 damageable in shared
     [DataField, AutoNetworkedField]
+    [Access(typeof(SharedRMCDamageableSystem))]
     public FixedPoint2 DestroyDamage;
 
     [DataField, AutoNetworkedField]

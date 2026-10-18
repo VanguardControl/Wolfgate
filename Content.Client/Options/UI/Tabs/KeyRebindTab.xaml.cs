@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client._WF.Options; // WOLFGATE(Options)
+using Content.Shared._WF.RMCCore.Input; // WOLFGATE(Xenonids)
 using Content.Client.Stylesheets;
 using Content.Shared.CCVar;
 using Content.Shared.Input;
@@ -292,6 +293,13 @@ namespace Content.Client.Options.UI.Tabs
             AddButton(ContentKeyFunctions.TargetRightLeg);
             AddButton(ContentKeyFunctions.TargetRightFoot);
             // Shitmed Change End
+
+            // WOLFGATE(Xenonids) START: RMC's xeno keys
+            AddHeader("ui-options-header-rmc-xeno");
+            AddButton(CMKeyFunctions.CMXenoWideSwing);
+            AddButton(CMKeyFunctions.RMCXenoRest);
+            AddButton(CMKeyFunctions.RMCResist);
+            // WOLFGATE END
 
             AddHeader("ui-options-header-misc");
             AddButton(ContentKeyFunctions.TakeScreenshot);

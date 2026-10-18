@@ -179,8 +179,13 @@ modules:
     Content.Shared._RMC14.Announce: Content.Shared._WF.Xenonids.Announce
     Content.Server._RMC14.Announce: Content.Server._WF.Xenonids.Announce
     Content.Shared._RMC14.Tracker: Content.Shared._WF.Xenonids.Tracker
+    Content.Server._RMC14.Name: Content.Server._WF.Xenonids.Name
+    Content.Client._RMC14.Announce: Content.Client._WF.Xenonids.Announce
+    # Shitmed already carries RMC's XenoChoiceControl with the same API.
+    Content.Client._RMC14.Xenonids.UI: Content.Client._Shitmed.Xenonids.UI
     # Only CMGhostXenoHud is used from RMC's Mobs; it lives in Xenonids.
     Content.Shared._RMC14.Mobs: Content.Shared._WF.Xenonids.Mobs
+    Content.Client._RMC14.Mobs: Content.Client._WF.Xenonids.Mobs
   RMCCore:
     Content.Shared._RMC14.Xenonids: Content.Shared._WF.Xenonids
     Content.Server._RMC14.Xenonids: Content.Server._WF.Xenonids

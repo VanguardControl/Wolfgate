@@ -1,8 +1,6 @@
 # Keys the xeno code uses that RMC-14 defines outside its xeno locale files.
 
-cm-pull-whitelist-denied = We have no use for {THE($name)}, why would we want to touch it?
 
-cm-pull-whitelist-denied-dead = {THE($name)} is dead, why would we want to touch it?
 
 rmc-acid-gun-second-wind-spent = {CAPITALIZE(THE($target))} can't be cleared of acid; its already to damaged.
 
@@ -88,19 +86,12 @@ rmc-ob-launch-area = [color=red]Launch command informs {$warhead}. Estimated imp
 
 rmc-ob-launch-detected = [font size=16][color=red]Orbital bombardment launch command detected![/color][/font]
 
-rmc-obstacle-slam-others = {$ent} slams into {THE($object)}!
 
-rmc-obstacle-slam-self = You slam into {THE($object)}!
 
-rmc-prevent-pull-alive = You can't pull {THE($target)} while {SUBJECT($target)} {CONJUGATE-BE($target)} alive!
 
-rmc-pull-infect-others = {$puller} tries to pull {$pulled}, but gets jumped on and infected in the process!
 
-rmc-pull-infect-self = You try to pull {$pulled}, but get jumped on and infected in the process!
 
-rmc-pull-paralyze-others = {$puller} tries to pull {THE($pulled)}, but gets a swipe to the head instead!
 
-rmc-pull-paralyze-self = You try to pull {THE($pulled)}, but get a swipe to the head!
 
 rmc-repairable-finish-others = {$user} repairs {THE($target)}
 

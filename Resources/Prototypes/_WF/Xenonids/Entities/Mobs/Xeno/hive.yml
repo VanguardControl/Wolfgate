@@ -1,0 +1,13 @@
+- type: entity
+  id: CMXenoHive
+  name: Default
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Hive
+    lateJoinGainLarva: true
+    # XENOPORT(P2b-1): RMC's structure limits (HiveCoreXeno 1, HiveClusterXeno 8, HivePylonXeno 2,
+    # HiveEggMorpherXeno 6, HiveRecoveryNodeXeno 6, HivePlasmaTreeXeno 3); drop this override when they exist
+    hiveStructureSlots: {}
+    # XENOPORT(P2b-3): RMC's free caste slots (CMXenoHivelord 1, CMXenoCarrier 1, CMXenoBurrower 1)
+    freeSlots: {}
+

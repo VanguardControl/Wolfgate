@@ -1,20 +1,4 @@
 - type: entity
-  id: ActionXenoTransferPlasma
-  parent: ActionXenoBase
-  name: Transfer plasma (50) # TODO RMC14 proper plasma costs
-  description: Give plasma to a nearby xenonid.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: transfer_plasma
-  - type: TargetAction
-    range: 2
-  - type: EntityTargetAction
-    event: !type:XenoTransferPlasmaActionEvent
-
-- type: entity
   parent: CMGuidebookActionXenoBase
   id: RMCGuidebookActionXenoTransferPlasma
   categories: [ HideSpawnMenu ]
@@ -182,21 +166,6 @@
 #    useDelay: 0.5
 #  - type: InstantAction
 #    event: !type:XenoAidToggleActionEvent
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoHiveLeaderSquad
-  name: View Hive Team
-  description: Opens your hive squad panel, showing your team members and allowing you to send announcements to them.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: xeno_lead
-    useDelay: 1
-  - type: InstantAction
-    event: !type:HiveLeaderSquadActionEvent
 
 - type: entity
   parent: ActionXenoBase

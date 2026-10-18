@@ -1,0 +1,23 @@
+// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
+using Robust.Shared.GameStates;
+
+namespace Content.Shared._WF.Xenonids.Devour;
+
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
+public sealed partial class DevouredComponent : Component
+{
+    [DataField, AutoNetworkedField, AutoPausedField]
+    public TimeSpan WarnAt;
+
+    [DataField, AutoNetworkedField]
+    public bool Warned;
+
+    [DataField, AutoNetworkedField, AutoPausedField]
+    public TimeSpan RegurgitateAt;
+
+    [DataField, AutoNetworkedField]
+    public TimeSpan TimeBetweenStruggles = TimeSpan.FromSeconds(1.4);
+
+    [DataField, AutoNetworkedField]
+    public TimeSpan NextDevouredAttackTimeAllowed;
+}

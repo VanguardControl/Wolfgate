@@ -1,5 +1,5 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using System.Numerics;
+using Content.Shared._WF.Xenonids.Pheromones;
 using Content.Shared.Access;
 using Content.Shared.Alert;
 using Content.Shared.Chat.Prototypes;
@@ -11,6 +11,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Shared._WF.Xenonids;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(XenoSystem))]
 public sealed partial class XenoComponent : Component
 {
     [DataField(required: true), AutoNetworkedField]
@@ -57,4 +58,9 @@ public sealed partial class XenoComponent : Component
 
     public EmoteSoundsPrototype? Sounds;
 
+    [DataField, AutoNetworkedField]
+    public VisibilityFlags Visibility = VisibilityFlags.Xeno;
+
+    [DataField, AutoNetworkedField]
+    public XenoPheromones? IgnorePheromones;
 }

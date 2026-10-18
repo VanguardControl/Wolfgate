@@ -1,19 +1,4 @@
 - type: entity
-  id: ActionXenoRest
-  parent: ActionXenoBase
-  name: Rest
-  description: Lie down to regenerate health more quickly while on weeds. [color=red]Your rest keybind will also activate this action, Shift+R by default.[/color]
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: resting
-    useDelay: 1
-  - type: InstantAction
-    event: !type:XenoRestActionEvent
-
-- type: entity
   parent: CMGuidebookActionXenoBase
   id: RMCGuidebookActionXenoRest
   name: Rest
@@ -22,19 +7,6 @@
   components:
   - type: Sprite
     state: resting
-
-- type: entity
-  id: ActionXenoWatch
-  parent: ActionXenoBase
-  name: Watch Xenonid
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: watch_xeno
-  - type: InstantAction
-    event: !type:XenoWatchActionEvent
 
 - type: entity
   parent: CMGuidebookActionXenoBase
@@ -146,41 +118,12 @@
   description: Become much slower, increasing your resistance to direct damage and explosions. Damage is greatly reduced from the direction you are facing. You count as two sizes bigger while fortified and still can attack structures or use tail slam, but your slashes do less damage.
 
 - type: entity
-  id: ActionXenoResinWalker
-  parent: ActionXenoBase
-  name: Resin Walker (50) # TODO RMC14 proper plasma costs
-  description: Run faster on weeds. [color=cyan]Consumes 30 plasma per second.[/color]
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: toggle_speed
-    useDelay: 0.25
-  - type: InstantAction
-    event: !type:XenoResinWalkerActionEvent
-
-- type: entity
   parent: CMGuidebookActionXenoBase
   id: RMCGuidebookActionXenoResinWalker
   categories: [ HideSpawnMenu ]
   components:
     - type: Sprite
       state: toggle_speed
-
-- type: entity
-  id: ActionXenoZoom
-  parent: ActionXenoBase
-  name: Toggle Long-Range Sight
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: toggle_long_range
-    useDelay: 0.2
-  - type: InstantAction
-    event: !type:XenoZoomActionEvent
 
 - type: entity
   parent: CMGuidebookActionXenoBase

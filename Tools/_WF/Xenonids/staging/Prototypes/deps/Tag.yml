@@ -5,8 +5,3 @@
 # RMC-14: Resources/Prototypes/_RMC14/rmc_tags.yml
 - type: Tag
   id: RMCSynthGrabbable # whitelist tag for synths being able to grab particular xenos
-
-# RMC-14: Resources/Prototypes/_RMC14/rmc_tags.yml
-- type: Tag
-  id: RMCXenoLarva
-

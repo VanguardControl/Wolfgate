@@ -1,24 +1,3 @@
-# RMC-14: Resources/Prototypes/_RMC14/Decals/cm_decal_base.yml
-- type: decal
-  id: CMDecalBase
-  abstract: true
-  isCM: true
-
-# RMC-14: Resources/Prototypes/_RMC14/Decals/blood.yml
-- type: decal
-  abstract: true
-  parent: CMDecalBase
-  id: RMCDecalBloodBase
-  tags: ["station", "markings"]
-
-# RMC-14: Resources/Prototypes/_RMC14/Decals/gib_splatters.yml
-- type: decal
-  id: RMCDecalGibSplatterDrone
-  parent: RMCDecalBloodBase
-  sprite:
-    sprite: _WF/Xenonids/Decals/gibs.rsi
-    state: drone
-
 # RMC-14: Resources/Prototypes/_RMC14/Decals/gib_splatters.yml
 - type: decal
   id: RMCDecalGibSplatterLesserDrone
