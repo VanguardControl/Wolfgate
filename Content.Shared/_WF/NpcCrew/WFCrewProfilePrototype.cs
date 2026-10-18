@@ -44,4 +44,8 @@ public sealed partial class WFCrewProfilePrototype : IPrototype
     /// <summary>Components every crewman gets, such as an accent.</summary>
     [DataField]
     public ComponentRegistry Components = new();
+
+    /// <summary>Hull parts swapped out when a ship is crewed with this profile: a pirate hull loses its adamantite for plastitanium.</summary>
+    [DataField]
+    public Dictionary<EntProtoId, EntProtoId> HullSwaps = new();
 }

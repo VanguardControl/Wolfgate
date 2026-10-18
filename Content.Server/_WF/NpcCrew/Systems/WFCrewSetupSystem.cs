@@ -308,6 +308,33 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     }
 
     /// <summary>Updates an existing crew without requiring a new spawn roster.</summary>
+    /// <summary>Replaces the hull parts a profile swaps out on a grid, in place and anchored as they were. Returns how many.</summary>
+    public int ApplyHullSwaps(EntityUid grid, ProtoId<WFCrewProfilePrototype>? profileId)
+    {
+        if (profileId is not { } id || !_prototypes.TryIndex(id, out var profile) || profile.HullSwaps.Count == 0)
+            return 0;
+
+        var swaps = new List<(EntityUid Old, EntProtoId New, EntityCoordinates At, Angle Rotation)>();
+        var query = EntityQueryEnumerator<TransformComponent, MetaDataComponent>();
+        while (query.MoveNext(out var uid, out var xform, out var meta))
+        {
+            if (xform.GridUid != grid || meta.EntityPrototype is not { } proto || !profile.HullSwaps.TryGetValue(proto.ID, out var replacement))
+                continue;
+            swaps.Add((uid, replacement, xform.Coordinates, xform.LocalRotation));
+        }
+
+        foreach (var (old, replacement, at, rotation) in swaps)
+        {
+            QueueDel(old);
+            var spawned = Spawn(replacement, at);
+            _transform.SetLocalRotation(spawned, rotation);
+            if (!Transform(spawned).Anchored)
+                _transform.AnchorEntity(spawned);
+        }
+
+        return swaps.Count;
+    }
+
     public bool TryApplyMission(EntityUid grid, WFCrewMission mission)
     {
         if (!ValidateMission(grid, mission))
