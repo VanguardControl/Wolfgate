@@ -3,6 +3,7 @@
   - CMXenoUndeveloped
   - CMXenoFlammable
   - RMCXenoVentCrawler
+  - WFXenoGrowth
   id: CMXenoLarva
   name: Larva
   components:
@@ -43,16 +44,15 @@
     entities:
     # - RMCDecalSpawnerGibsLarva # TODO
     - RMCGibEffectXenoSmall
-  # XENOPORT(P2b-3): XenoEvolution
-  # - type: XenoEvolution
-  #   canEvolveWithoutGranter: true
-  #   requiresGranter: false
-  #   max: 60
-  #   evolvesTo:
-  #   - CMXenoDrone
-  #   - CMXenoDefender
-  #   - CMXenoSentinel
-  #   - CMXenoRunner
+  - type: XenoEvolution
+    canEvolveWithoutGranter: true
+    requiresGranter: false
+    max: 60
+    evolvesTo:
+    - CMXenoDrone
+    # XENOPORT(P3-P): - CMXenoDefender
+    # XENOPORT(P3-B): - CMXenoSentinel
+    # XENOPORT(P3-M): - CMXenoRunner
   - type: XenoHide
   - type: Fixtures
     fixtures:
@@ -72,8 +72,7 @@
   - type: MovementSpeedModifier
     baseWalkSpeed: 3.7
     baseSprintSpeed: 6.7
-  # XENOPORT(P2b-3): RestrictEvolveOffWeeds
-  # - type: RestrictEvolveOffWeeds
+  - type: RestrictEvolveOffWeeds
   - type: Speech
     speechSounds: XenonidLarva
     allowedEmotes: [ "XenoRoar" ]

@@ -1,4 +1,3 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Content.Shared.FixedPoint;
 using Robust.Shared.GameStates;
 using Robust.Shared.Utility;
@@ -7,6 +6,7 @@ using static Robust.Shared.Utility.SpriteSpecifier;
 namespace Content.Shared._WF.Xenonids.Pheromones;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(SharedXenoPheromonesSystem))]
 public sealed partial class XenoRecoveryPheromonesComponent : Component
 {
     [DataField, AutoNetworkedField]

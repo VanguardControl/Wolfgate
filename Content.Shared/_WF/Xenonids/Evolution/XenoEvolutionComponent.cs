@@ -1,4 +1,3 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Content.Shared.Actions;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Audio;
@@ -9,6 +8,7 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 namespace Content.Shared._WF.Xenonids.Evolution;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true), AutoGenerateComponentPause]
+[Access(typeof(XenoEvolutionSystem))]
 public sealed partial class XenoEvolutionComponent : Component
 {
     [DataField, AutoNetworkedField]

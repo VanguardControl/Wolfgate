@@ -9,22 +9,21 @@
   # WOLFGATE: customName, departmentRadio and headOfDepartment are RMC fields Wolfgate lacks
   roles:
   - CMXenoLarva
-  # XENOPORT(P2b-3): the other xeno jobs land with Roles/Xeno; restore them then
-  # - CMXenoBoiler
-  # - CMXenoBurrower
-  # - CMXenoCarrier
-  # - CMXenoCrusher
-  # - CMXenoDefender
-  # - CMXenoDrone
-  # - CMXenoHivelord
-  # - CMXenoParasite
-  # - CMXenoLesserDrone
-  # - CMXenoLurker
-  # - CMXenoPraetorian
-  # - CMXenoQueen
-  # - CMXenoRavager
-  # - CMXenoRunner
-  # - CMXenoSentinel
-  # - CMXenoSpitter
-  # - CMXenoWarrior
-  # - CMXenoSelectableXeno
+  - CMXenoBoiler
+  - CMXenoBurrower
+  - CMXenoCarrier
+  - CMXenoCrusher
+  - CMXenoDefender
+  - CMXenoDrone
+  - CMXenoHivelord
+  - CMXenoParasite
+  - CMXenoLesserDrone
+  - CMXenoLurker
+  - CMXenoPraetorian
+  - CMXenoQueen
+  - CMXenoRavager
+  - CMXenoRunner
+  - CMXenoSentinel
+  - CMXenoSpitter
+  - CMXenoWarrior
+  - CMXenoSelectableXeno

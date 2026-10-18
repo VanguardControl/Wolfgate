@@ -118,17 +118,6 @@
       sprite: _WF/Xenonids/Actions/xeno_actions.rsi
       state: xeno_tacmap
 
-# RMC-14: Resources/Prototypes/_RMC14/Entities/Markers/Spawners/Random/Decals/gibs.yml
-- type: entity
-  parent: RMCDecalSpawnerGibsBase
-  id: RMCDecalSpawnerGibsLesserDrone
-  name: gibs spawner
-  suffix: RMC14, Lesser Drone
-  components:
-  - type: RandomDecalSpawner
-    decals:
-    - RMCDecalGibSplatterLesserDrone
-
 # RMC-14: Resources/Prototypes/_RMC14/Effects/slash.yml
 - type: entity
   parent: RMCBaseEffect
@@ -159,24 +148,6 @@
     sprite: _WF/Xenonids/Effects/attacks.rsi
     noRot: true
     state: slam
-    drawdepth: Effects
-  - type: EffectVisuals
-  - type: Tag
-    tags:
-    - HideContextMenu
-
-# RMC-14: Resources/Prototypes/_RMC14/Effects/tail.yml
-- type: entity
-  parent: RMCBaseEffect
-  id: RMCEffectTailHit
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: TimedDespawn
-    lifetime: 0.4
-  - type: Sprite
-    sprite: _WF/Xenonids/Effects/attacks.rsi
-    noRot: true
-    state: tail
     drawdepth: Effects
   - type: EffectVisuals
   - type: Tag
@@ -214,18 +185,6 @@
     sprite: _WF/Xenonids/Effects/xeno_boiler_telegraph.rsi
     state: boiler_telegraph
     color: "#A50824"
-
-# RMC-14: Resources/Prototypes/_RMC14/Effects/gib.yml
-- type: entity
-  parent: RMCBaseGibEffect
-  id: RMCGibEffectXenoLesserDrone
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: Sprite
-    sprite: _WF/Xenonids/Effects/Gibs/lesser_drone_gib.rsi
-    state: lesser_gib
-  - type: TimedDespawn
-    lifetime: 0.8
 
 # RMC-14: Resources/Prototypes/_RMC14/Effects/rmc_pointing.yml
 - type: entity
