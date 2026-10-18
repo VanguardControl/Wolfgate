@@ -1,9 +1,0 @@
-- type: job
-  parent: CMJobXenoBase
-  id: CMXenoCrusher
-  name: cm-job-name-xeno-crusher
-  playTimeTracker: CMJobXenoCrusher
-
-- type: playTimeTracker
-  id: CMJobXenoCrusher
-  isXeno: true

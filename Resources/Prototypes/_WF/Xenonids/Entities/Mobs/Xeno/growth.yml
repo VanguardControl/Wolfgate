@@ -1,0 +1,15 @@
+# WOLFGATE: base_xeno.yml is not edited by the growth lane, so the growth UIs and the larva queue flag live in this
+# mixin. Castes list it as a parent; the integrator may instead restore the lines in base_xeno.yml and drop this.
+- type: entity
+  abstract: true
+  id: WFXenoGrowth
+  components:
+  - type: UserInterface
+    interfaces:
+      enum.XenoEvolutionUIKey.Key:
+        type: XenoEvolutionBui
+      enum.XenoDevolveUIKey.Key:
+        type: XenoDevolveBui
+      enum.XenoPheromonesUI.Key:
+        type: XenoPheromonesBui
+  - type: CanBeLarvaQueued

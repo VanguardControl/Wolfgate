@@ -106,21 +106,6 @@
       vehicleDamage: 50
 
 - type: entity
-  id: ActionXenoRegurgitate
-  parent: ActionXenoBase
-  name: Regurgitate
-  description: Eject any devoured marines.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: regurgitate
-  - type: InstantAction
-    event: !type:XenoRegurgitateActionEvent
-  - type: RMCDazeableAction
-
-- type: entity
   id: ActionXenoTailSlam
   parent: ActionXenoTailStab
   name: Tail Slam

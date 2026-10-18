@@ -18,31 +18,6 @@
       state: watch_xeno
 
 - type: entity
-  id: ActionXenoPheromones
-  parent: ActionXenoBase
-  name: Emit Pheromones (35) # TODO RMC14 proper plasma costs
-  description: Gives a buff to nearby xenonids. [color=cyan]Consumes 2.5 plasma per second.[/color]
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: emit_pheromones
-    useDelay: 0.33
-  - type: InstantAction
-    event: !type:XenoPheromonesActionEvent
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoPheromones
-  name: Emit Pheromones
-  description: Gives a buff to nearby xenonids.
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: Sprite
-    state: emit_pheromones
-
-- type: entity
   id: ActionXenoHide
   parent: ActionXenoBase
   name: Hide

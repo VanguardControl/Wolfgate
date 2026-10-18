@@ -1,9 +1,9 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._WF.Xenonids.Devour;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
+[Access(typeof(XenoDevourSystem))]
 public sealed partial class DevouredComponent : Component
 {
     [DataField, AutoNetworkedField, AutoPausedField]
