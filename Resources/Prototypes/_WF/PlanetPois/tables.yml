@@ -104,6 +104,10 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisMerak
+  roamers:
+  - id: WFMerakSandMaw
+    minCount: 3
+    maxCount: 5
   wrecks:
     theme: WFWreckThemeMerak
     minCount: 1
