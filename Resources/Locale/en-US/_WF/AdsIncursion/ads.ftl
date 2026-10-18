@@ -8,6 +8,15 @@ wf-company-ads-description = The Automated Defense System is the pre-Fracture si
 wf-ads-notice-entered = DIRECTIVE: you are entering an Automated Defense System exclusion zone ({$callsign}). Your vessel will be queried. Only declared threats and attackers are made combat-ineffective.
 wf-ads-notice-left = DIRECTIVE: you are leaving an Automated Defense System exclusion zone ({$callsign}). Query closed. Compliance noted.
 
+# What the units are called by their posts, in place of the crew roles' own titles
+wf-ads-title-captain = Command Core
+wf-ads-title-pilot = Helm Unit
+wf-ads-title-radio-operator = Comms Unit
+wf-ads-title-gunner = Fire Control Unit
+wf-ads-title-engineer = Reactor Unit
+wf-ads-title-deckhand = Maintenance Unit
+wf-ads-title-marine = Sentry Unit
+
 # Encounter names
 wf-ads-name-node = ADS node
 wf-ads-name-sentinel = ADS sentinel

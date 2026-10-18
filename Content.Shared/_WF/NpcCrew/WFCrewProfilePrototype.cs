@@ -45,6 +45,10 @@ public sealed partial class WFCrewProfilePrototype : IPrototype
     [DataField]
     public ComponentRegistry Components = new();
 
+    /// <summary>Titles its crews carry in place of a role's own, by role: an automaton is a Helm Unit, not a First Officer.</summary>
+    [DataField]
+    public Dictionary<ProtoId<WFCrewRolePrototype>, LocId> Titles = new();
+
     /// <summary>Hull parts swapped out when a ship is crewed with this profile: a pirate hull loses its adamantite for plastitanium.</summary>
     [DataField]
     public Dictionary<EntProtoId, EntProtoId> HullSwaps = new();

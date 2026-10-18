@@ -352,7 +352,8 @@ public sealed class WFCrewSystem : EntitySystem
 
     /// <summary>Spawns one crewman of a role with its post at the coordinates. Null when the role is unknown.</summary>
     public EntityUid? SpawnCrewman(ProtoId<WFCrewRolePrototype> roleId, EntityCoordinates post, string group,
-        ProtoId<StartingGearPrototype>? loadout = null, EntProtoId? body = null, string? name = null)
+        ProtoId<StartingGearPrototype>? loadout = null, EntProtoId? body = null, string? name = null,
+        ProtoId<WFCrewProfilePrototype>? profile = null)
     {
         if (!_prototypes.TryIndex(roleId, out var role))
         {
@@ -380,6 +381,7 @@ public sealed class WFCrewSystem : EntitySystem
         EntityManager.AddComponents(uid, role.Components);
         var crew = EnsureComp<WFCrewComponent>(uid);
         crew.Role = roleId;
+        crew.Profile = profile;
         crew.Duty = role.Duty;
         crew.Engagement = role.Engagement;
         crew.Group = group;
@@ -490,12 +492,25 @@ public sealed class WFCrewSystem : EntitySystem
             _htn.Replan(htn);
         }
 
-        if (crew.Titled || crew.Role is not { } roleId || !_prototypes.TryIndex(roleId, out var role))
+        if (crew.Titled || Title((uid, crew)) is not { } title)
             return;
 
         _meta.SetEntityName(uid, Loc.GetString("wf-crew-name-format",
-            ("title", Loc.GetString(role.Title)),
+            ("title", title),
             ("name", Name(uid))));
         crew.Titled = true;
+    }
+
+    /// <summary>A crewman's title: the profile's for the role when it names one, else the role's own; null without a role.</summary>
+    public string? Title(Entity<WFCrewComponent> ent)
+    {
+        var crew = ent.Comp;
+        if (crew.Role is not { } roleId || !_prototypes.TryIndex(roleId, out var role))
+            return null;
+
+        if (crew.Profile is { } profileId && _prototypes.TryIndex(profileId, out var profile) && profile.Titles.TryGetValue(roleId, out var custom))
+            return Loc.GetString(custom);
+
+        return Loc.GetString(role.Title);
     }
 }

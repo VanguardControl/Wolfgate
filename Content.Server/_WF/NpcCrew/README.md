@@ -16,7 +16,8 @@ crewman gets (`components`), so a faction's people sound like one: Union crews c
 Federation and Dynasty crews their own names, pirates nicknames and a pirate's drawl. Each navy's loadouts wear its own
 headset, with the faction channel's key, and its own service ID cards (TSFMC, PDV and USSP ranks; pirate and mercenary
 cards for those crews); every crew card carries the crewman's name and role title.
-A profile can also swap hull parts out (`hullSwaps`): the encounter system applies them to a ship's grid before anything
+A profile can give its roles titles of its own (`titles`, by role: the ADS calls its pilot a Helm Unit, not a First
+Officer), used on the crewman's name and card in place of the role's. A profile can also swap hull parts out (`hullSwaps`): the encounter system applies them to a ship's grid before anything
 goes aboard, so pirates never fly adamantite (the black-market hulls' plating becomes plain plastitanium in place,
 anchored and turned as it was).
 
@@ -380,6 +381,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Sleep.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Sleep.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Titles.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Titles.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Work.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Wreck.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Wreck.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFNpcDownedShootingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFNpcDownedShootingTest.cs)

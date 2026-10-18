@@ -27,6 +27,14 @@
   bodies:
   - WFMobCrewBodyIpc
   skills: [ Green, Regular, Regular ]
+  titles:
+    WFCrewCaptain: wf-ads-title-captain
+    WFCrewPilot: wf-ads-title-pilot
+    WFCrewRadioOperator: wf-ads-title-radio-operator
+    WFCrewGunner: wf-ads-title-gunner
+    WFCrewEngineer: wf-ads-title-engineer
+    WFCrewDeckhand: wf-ads-title-deckhand
+    WFCrewMarine: wf-ads-title-marine
   loadouts:
     WFCrewDeckhand: [ WFCrewAdsUnit ]
     WFCrewEngineer: [ WFCrewAdsUnit ]
