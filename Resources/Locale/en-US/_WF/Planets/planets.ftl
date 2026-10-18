@@ -2,7 +2,7 @@
 wf-planet-orbit-map-name = { $planet } orbit
 wf-planet-orbit-marker-name = { $planet } orbital marker
 wf-planet-network-name = { $planet } planet network
-wf-planet-asclepiu-surface = Asclepiu
+wf-planet-asclepiu-surface = Verda
 
 ## FTL
 wf-shuttle-console-in-transit = Cannot engage FTL while changing altitude.
