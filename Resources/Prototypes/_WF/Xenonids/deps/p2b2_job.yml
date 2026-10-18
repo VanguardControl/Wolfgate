@@ -1,0 +1,17 @@
+# RMC-14: Resources/Prototypes/_RMC14/Roles/Xeno/parasite.yml
+# XENOPORT(P2b-3): remove this block when Roles/Xeno/parasite.yml lands from staging; it is here so CMXenoParasite loads now.
+# WOLFGATE: CMJobXenoBase's usable fields are inlined, as in Roles/Xeno/larva.yml.
+- type: job
+  id: CMXenoParasite
+  name: cm-job-name-xeno-parasite
+  playTimeTracker: CMJobXenoParasite
+  supervisors: cm-job-supervisors-queen
+  icon: RMCJobIconXeno
+  joinNotifyCrew: false
+  canBeAntag: false
+  setPreference: false
+  accessGroups:
+  - CMAccessXeno
+
+- type: playTimeTracker
+  id: CMJobXenoParasite

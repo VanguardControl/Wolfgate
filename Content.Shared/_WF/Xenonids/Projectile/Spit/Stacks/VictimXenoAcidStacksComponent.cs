@@ -1,10 +1,10 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 
 namespace Content.Shared._WF.Xenonids.Projectile.Spit.Stacks;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState, AutoGenerateComponentPause]
+[Access(typeof(XenoSpitSystem))]
 public sealed partial class VictimXenoAcidStacksComponent : Component
 {
     [DataField, AutoNetworkedField]

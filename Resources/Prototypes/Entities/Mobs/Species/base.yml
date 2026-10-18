@@ -102,6 +102,8 @@
   - type: RotationVisuals
     defaultRotation: 90
     horizontalRotation: 90
+  # WOLFGATE(Xenonids): species can host facehuggers
+  - type: Infectable
   - type: HumanoidAppearance
     species: Human
   - type: SlowOnDamage
