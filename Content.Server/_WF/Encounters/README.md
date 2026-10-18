@@ -224,6 +224,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Fuel.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Fuel.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.MapRoot.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.MapRoot.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.NeutralZones.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.NeutralZones.cs)
+- [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.PatrolApproach.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.PatrolApproach.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Pinned.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Pinned.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Reactor.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Reactor.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Sanctuary.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Sanctuary.cs)

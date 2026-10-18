@@ -290,6 +290,9 @@ public sealed partial class WFEncounterShipState
 
     /// <summary>Vessels in its warning zone that an interrogating zone has no cause to fire on, as of its last look: those it asks.</summary>
     public HashSet<EntityUid> Strangers = new();
+
+    /// <summary>Vessels inside its zone, and whether the ship came to them rather than they to it: those it leaves alone.</summary>
+    public Dictionary<EntityUid, bool> InZone = new();
 }
 
 /// <summary>Marks a passenger an encounter put aboard one of its ships.</summary>

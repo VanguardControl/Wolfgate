@@ -55,6 +55,10 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     private readonly HashSet<EntityUid> _liveShots = new();
     private readonly HashSet<(EntityUid Ship, EntityUid Shot)> _answeredShots = new();
 
+    /// <summary>Where each zoned ship and crewed ship was at the last look, and where it is at this one.</summary>
+    private readonly Dictionary<EntityUid, MapCoordinates> _seen = new();
+    private readonly Dictionary<EntityUid, MapCoordinates> _seenNow = new();
+
     /// <summary>A ship with a living player aboard.</summary>
     private sealed class Crewed
     {
@@ -106,6 +110,14 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
                 Watch(encounter, ship);
             }
         }
+
+        _seen.Clear();
+        foreach (var (uid, at) in _seenNow)
+        {
+            _seen[uid] = at;
+        }
+
+        _seenNow.Clear();
     }
 
     /// <summary>
@@ -214,6 +226,11 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             else
                 crewed.Unflagged = true;
         }
+
+        foreach (var grid in _crewed.Keys)
+        {
+            _seenNow[grid] = CentreOfMass(grid);
+        }
     }
 
     /// <summary>Whether a grid is a ship people fly: not a station, outpost or asteroid, and not one of an encounter's own.</summary>
@@ -280,6 +297,18 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
         foreach (var uid in _stale)
         {
             ship.Warned.Remove(uid);
+        }
+
+        _stale.Clear();
+        foreach (var uid in ship.InZone.Keys)
+        {
+            if (IsGone(uid, map))
+                _stale.Add(uid);
+        }
+
+        foreach (var uid in _stale)
+        {
+            ship.InZone.Remove(uid);
         }
     }
 
@@ -387,6 +416,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
         Forget(encounter, ship);
         ship.Strangers.Clear();
         var here = CentreOfMass(ship.Grid);
+        _seenNow[ship.Grid] = here;
         AnswerFire(encounter, ship, here);
 
         // A ship in port is not on guard: whatever is berthed beside it is none of its business.
@@ -461,6 +491,12 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             var challenged = masked && ship.ZoneTargets == WFEncounterZoneTargets.AtWar;
             var name = masked ? Loc.GetString("wf-encounter-zone-unknown") : Name(intruder);
             var distance = (there.Position - here.Position).Length();
+            if (CameToIt(ship, intruder, here, there, distance))
+            {
+                _alerts.EndZoneWarning(ship.Grid, intruder);
+                continue;
+            }
+
             // One lying still is hailed to show itself and no more, wherever the zone finds it. Under way, or once
             // fired on, it is treated as any unknown.
             var idle = masked && ship.ZoneTargets != WFEncounterZoneTargets.Interrogate && !ship.Engaged.Contains(intruder)
@@ -520,6 +556,54 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
 
     /// <summary>Below this speed, in metres a second, a vessel is lying still.</summary>
     private const float IdleSpeed = 2f;
+
+    /// <summary>
+    /// Whether a patrol's zone came to a vessel rather than it to the zone: one first found inside without closing on
+    /// the patrol under its own power is left alone until it leaves, closes in itself or fires.
+    /// </summary>
+    private bool CameToIt(WFEncounterShipState ship, EntityUid intruder, MapCoordinates here, MapCoordinates there, float distance)
+    {
+        var range = MathF.Max(ship.WarnRange, ship.AttackRange);
+        if (distance > range)
+        {
+            ship.InZone.Remove(intruder);
+            return false;
+        }
+
+        var idle = IdleSpeed * (float) Interval.TotalSeconds;
+        var own = Closed(intruder, there, here);
+        if (!ship.InZone.TryGetValue(intruder, out var cameToIt))
+        {
+            // Only a crossing the ship made counts: one unseen last look, as just spawned or jumped in, or already
+            // inside, came in itself.
+            cameToIt = ship.ZoneTargets == WFEncounterZoneTargets.AtWar && !ship.Engaged.Contains(intruder)
+                       && _seen.TryGetValue(intruder, out var was) && _seen.TryGetValue(ship.Grid, out var from)
+                       && was.MapId == from.MapId && (was.Position - from.Position).Length() > range
+                       && own is { } mine && mine < idle && Closed(ship.Grid, here, there) is { } theirs && theirs > mine;
+            ship.InZone[intruder] = cameToIt;
+        }
+
+        if (!cameToIt)
+            return false;
+
+        if (own > idle || _alerts.IsAttacker(ship.Grid, intruder))
+        {
+            ship.InZone[intruder] = false;
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>How far a grid moved towards a point since the last look, or null if it was not seen there.</summary>
+    private float? Closed(EntityUid grid, MapCoordinates now, MapCoordinates towards)
+    {
+        if (!_seen.TryGetValue(grid, out var before) || before.MapId != now.MapId)
+            return null;
+
+        var offset = towards.Position - now.Position;
+        return offset.LengthSquared() < 0.01f ? 0f : Vector2.Dot(now.Position - before.Position, Vector2.Normalize(offset));
+    }
 
     /// <summary>Every ship-weapon round in flight, with the grid it was fired from.</summary>
     private void GatherShots()
