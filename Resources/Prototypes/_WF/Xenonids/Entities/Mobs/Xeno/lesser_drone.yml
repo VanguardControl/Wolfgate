@@ -5,7 +5,6 @@
   - CMXenoFlammable
   - RMCXenoSpeechSounds
   - RMCXenoVentCrawler
-  - WFXenoGrowth
   id: CMXenoLesserDrone
   name: Lesser Drone
   description: An alien drone. Looks... smaller.
@@ -22,10 +21,6 @@
     allowedStates:
     - Alive
     - Dead
-  # WOLFGATE: CMXenoPrying's useSound: null does not load on this engine (PryingComponent.UseSound is not nullable)
-  - type: Prying
-    useSound:
-      path: /Audio/Items/crowbar.ogg
   - type: Tag
     tags:
     - DoorBumpOpener

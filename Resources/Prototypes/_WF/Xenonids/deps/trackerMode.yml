@@ -15,3 +15,9 @@
   id: Queen
   component: XenoOvipositorCapable
   alert: HiveTracker
+
+# RMC-14: Resources/Prototypes/_RMC14/Trackers/Trackers.yml
+- type: trackerMode
+  id: Tunnel
+  component: XenoTunnel
+  alert: TunnelTracker

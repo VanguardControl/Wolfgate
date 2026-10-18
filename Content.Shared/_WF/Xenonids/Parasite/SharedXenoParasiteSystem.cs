@@ -1061,9 +1061,6 @@ public abstract partial class SharedXenoParasiteSystem : EntitySystem
         Dirty(spawned, burster);
     }
 
-    public void RefreshIncubationMultipliers(EntityUid ent)
-    {
-    }
 }
 
 [Serializable, NetSerializable]

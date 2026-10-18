@@ -102,3 +102,36 @@
     state: sleeping
   name: rmc-alerts-unconscious-name
   description: rmc-alerts-unconscious-desc
+
+# RMC-14: Resources/Prototypes/_RMC14/Alerts/alerts.yml
+- type: alert
+  id: TunnelTracker
+  category: Tracker
+  icons:
+  - sprite: /Textures/_WF/Xenonids/Interface/Alerts/xeno_tracker.rsi
+    state: trackoff
+  - sprite: /Textures/_WF/Xenonids/Interface/Alerts/xeno_tracker.rsi
+    state: trackon-center
+  - sprite: /Textures/_WF/Xenonids/Interface/Alerts/xeno_tracker.rsi
+    state: trackon-south
+  - sprite: /Textures/_WF/Xenonids/Interface/Alerts/xeno_tracker.rsi
+    state: trackon-southeast
+  - sprite: /Textures/_WF/Xenonids/Interface/Alerts/xeno_tracker.rsi
+    state: trackon-east
+  - sprite: /Textures/_WF/Xenonids/Interface/Alerts/xeno_tracker.rsi
+    state: trackon-northeast
+  - sprite: /Textures/_WF/Xenonids/Interface/Alerts/xeno_tracker.rsi
+    state: trackon-north
+  - sprite: /Textures/_WF/Xenonids/Interface/Alerts/xeno_tracker.rsi
+    state: trackon-northwest
+  - sprite: /Textures/_WF/Xenonids/Interface/Alerts/xeno_tracker.rsi
+    state: trackon-west
+  - sprite: /Textures/_WF/Xenonids/Interface/Alerts/xeno_tracker.rsi
+    state: trackon-southwest
+  name: Tunnel Tracker
+  description: Tracks a tunnel.
+  clickEvent: !type:HiveTrackerClickedAlertEvent
+  minSeverity: 0
+  maxSeverity: 10
+
+# RMC-14: Resources/Prototypes/_RMC14/Alerts/alerts.yml

@@ -8,7 +8,6 @@
   # WOLFGATE: cut parent RMCXenoCommendationReceiver
   - RMCXenoMobCollision
   - RMCXenoVentCrawler
-  - WFXenoGrowth
   id: CMXenoDroneBase
   name: Drone
   description: An alien drone.
@@ -23,10 +22,6 @@
       0: Alive
       500: Critical
       600: Dead
-  # WOLFGATE: CMXenoPrying's useSound: null does not load on this engine (PryingComponent.UseSound is not nullable)
-  - type: Prying
-    useSound:
-      path: /Audio/Items/crowbar.ogg
   - type: Tag
     tags:
     - DoorBumpOpener

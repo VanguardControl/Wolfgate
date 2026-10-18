@@ -175,28 +175,25 @@
   - type: UserInterface
     interfaces:
       # WOLFGATE: RMC surgery and tactical map UIs are cut
-      # XENOPORT(P2b-3): evolution, devolve, pheromones and queen word UIs
-      # enum.XenoEvolutionUIKey.Key:
-      #   type: XenoEvolutionBui
-      # enum.XenoDevolveUIKey.Key:
-      #   type: XenoDevolveBui
-      # enum.XenoPheromonesUI.Key:
-      #   type: XenoPheromonesBui
-      # enum.XenoWordQueenUI.Key:
+      enum.XenoEvolutionUIKey.Key:
+        type: XenoEvolutionBui
+      enum.XenoDevolveUIKey.Key:
+        type: XenoDevolveBui
+      enum.XenoPheromonesUI.Key:
+        type: XenoPheromonesBui
+      # XENOPORT(P3-Q): enum.XenoWordQueenUI.Key:
       #   type: XenoWordQueenBui
-      # XENOPORT(P2b-1): structure, construction order and fruit UIs
-      # enum.XenoChooseStructureUI.Key:
-      #   type: XenoChooseStructureBui
-      # enum.XenoOrderConstructionUI.Key:
-      #   type: XenoOrderConstructionBui
-      # enum.XenoFruitChooseUI.Key:
-      #   type: XenoFruitChooseBui
-      # XENOPORT(P2b-2): parasite reserve and parasite ghost UIs
-      # enum.XenoReserveParasiteChangeUI.Key:
-      #   type: ReserveParasitesBoundUserInterface
-      # enum.XenoParasiteGhostUI.Key:
-      #   type: XenoParasiteGhostBui
-      #   requireInputValidation: false
+      enum.XenoChooseStructureUI.Key:
+        type: XenoChooseStructureBui
+      enum.XenoOrderConstructionUI.Key:
+        type: XenoOrderConstructionBui
+      enum.XenoFruitChooseUI.Key:
+        type: XenoFruitChooseBui
+      enum.XenoReserveParasiteChangeUI.Key:
+        type: ReserveParasitesBoundUserInterface
+      enum.XenoParasiteGhostUI.Key:
+        type: XenoParasiteGhostBui
+        requireInputValidation: false
       enum.XenoWatchUIKey.Key:
         type: XenoWatchBui
       enum.HiveTeamUIKey.Key:
@@ -294,7 +291,7 @@
     trackerModes:
     - Queen
     - HiveLeader
-    # XENOPORT(P2b-1): - Tunnel
+    - Tunnel
     - HiveCore
   - type: RequireProjectileTarget
     active: false
@@ -345,8 +342,7 @@
   - type: EmoteCooldown
   - type: RMCMesonsNonviewable
     xenoVisible: true
-  # XENOPORT(P2b-3): CanBeLarvaQueued
-  # - type: CanBeLarvaQueued
+  - type: CanBeLarvaQueued
 
 - type: entity
   abstract: true
@@ -355,7 +351,6 @@
   - type: Prying
     pryPowered: true
     speedModifier: 2.7
-    useSound: null
 
 - type: entity
   abstract: true
@@ -436,24 +431,21 @@
     tags:
     - DoorBumpOpener
   - type: Hands
-    examineShowEmpty: false
   - type: GiveHands
     hands:
     - name: Right Hand
       location: Right
     - name: Left Hand
       location: Left
-  # XENOPORT(P2b-1): WhitelistPickup
-  # - type: WhitelistPickup
-  #   whitelist:
-  #     components:
-  #     - XenoFruit
+  - type: WhitelistPickup
+    whitelist:
+      components:
+      - XenoFruit
   - type: ParalyzeOnPullAttempt
   # WOLFGATE: cut FirePatter
   - type: RMCHandEmotes
   - type: XenoToggleChargingKnockback
-  # XENOPORT(P2b-1): XenoCanAddPlasmaToConstruct
-  # - type: XenoCanAddPlasmaToConstruct
+  - type: XenoCanAddPlasmaToConstruct
 
 - type: entity
   abstract: true
