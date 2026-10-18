@@ -5,6 +5,7 @@
   parent: [ Incorporeal, BaseMob ]
   id: WFMappingObserver
   name: mapper
+  description: A mapper in a mapping session.
   save: false
   categories: [ HideSpawnMenu ]
   components:
