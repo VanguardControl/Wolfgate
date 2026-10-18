@@ -62,6 +62,7 @@ rotation maths).
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.cs`](MappingToolsSystem.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.History.cs`](MappingToolsSystem.History.cs)
 - [`Content.Server/_WF/MappingTools/MappingZLevelsSystem.cs`](MappingZLevelsSystem.cs)
+- [`Content.Server/_WF/MappingTools/WFMappingPermissionEvents.cs`](WFMappingPermissionEvents.cs)
 
 ### Shared
 

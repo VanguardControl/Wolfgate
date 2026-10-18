@@ -1,5 +1,6 @@
 ﻿using Content.Client.Gameplay;
 using Content.Client._WF.RoundSetup; // WOLFGATE(RoundSetup)
+using Content.Client._WF.MappingMode; // WOLFGATE(MappingMode)
 using Content.Client.Lobby; // WOLFGATE(InRoundCreator)
 using Content.Client._WF.Roadmap; // WOLFGATE(Roadmap)
 using Content.Client._WF.SectorControl; // WOLFGATE(SectorControl)
@@ -102,6 +103,26 @@ public sealed partial class EscapeUIController : UIController, IOnStateEntered<G
         {
             CloseEscapeWindow();
             UIManager.GetUIController<WFRoundSetupUIController>().OpenWindow();
+        };
+        // WOLFGATE END
+
+        // WOLFGATE(MappingMode) START: mapping session window; crew and character entries hidden while mapping
+        _escapeWindow.MappingButton.OnPressed += _ =>
+        {
+            CloseEscapeWindow();
+            UIManager.GetUIController<WFMappingMenuUIController>().OpenWindow();
+        };
+
+        _escapeWindow.OnOpen += () =>
+        {
+            if (_escapeWindow is not { } window)
+                return;
+
+            var mapping = UIManager.GetUIController<WFMappingMenuUIController>();
+            window.MappingButton.Visible = mapping.Available;
+            window.CharacterButton.Visible = !mapping.ModeEnabled;
+            window.RoundSetupButton.Visible = !mapping.ModeEnabled;
+            window.SectorMapButton.Visible = !mapping.ModeEnabled;
         };
         // WOLFGATE END
 

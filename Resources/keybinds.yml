@@ -689,6 +689,12 @@ binds:
   type: State
   key: PageDown
 # WOLFGATE END
+# WOLFGATE(MappingMode) START: Escape drops a reference grid being placed, ahead of the game menu
+- function: WFMappingReferenceCancel
+  type: State
+  key: Escape
+  priority: 5
+# WOLFGATE END
 # region Frontier
 - function: SwapHandsPrevious
   type: State

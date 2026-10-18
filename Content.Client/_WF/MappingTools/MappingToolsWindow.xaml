@@ -64,7 +64,7 @@
                     ToolTip="{Loc 'wf-mapping-tools-level-remove-tooltip'}" TooltipDelay="0" />
         </GridContainer>
 
-        <Label Text="{Loc 'wf-mapping-tools-section-files'}" StyleClasses="LabelHeading" Margin="0 8 0 0" />
+        <Label Name="FilesLabel" Access="Public" Text="{Loc 'wf-mapping-tools-section-files'}" StyleClasses="LabelHeading" Margin="0 8 0 0" />
         <Button Name="MapsButton" Access="Public" Text="{Loc 'wf-mapping-tools-maps'}"
                 ToolTip="{Loc 'wf-mapping-tools-maps-tooltip'}" TooltipDelay="0" />
 

@@ -1,5 +1,7 @@
+using Content.Client.Administration.Managers;
 using Content.Client.IconSmoothing;
 using Content.Shared._WF.MappingTools;
+using Content.Shared.Administration;
 using Content.Shared.Input;
 using Content.Shared.Tag;
 using Robust.Client.GameObjects;
@@ -23,6 +25,7 @@ namespace Content.Client._WF.MappingTools;
 /// </summary>
 public sealed class MappingToolsSystem : EntitySystem
 {
+    [Dependency] private IClientAdminManager _admin = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IInputManager _input = default!;
     [Dependency] private IOverlayManager _overlays = default!;
@@ -175,6 +178,8 @@ public sealed class MappingToolsSystem : EntitySystem
             _window.MirrorVerticalButton.OnPressed += _ => _tool.Mirror(true);
             _window.HideWallsButton.OnToggled += args => SetWallsHidden(args.Pressed);
             _window.MapsButton.OnPressed += _ => _maps.Open();
+            // The Maps window reads and writes the server's shared map folders, so it stays with admins.
+            _window.FilesLabel.Visible = _window.MapsButton.Visible = _admin.HasFlag(AdminFlags.Mapping);
             _window.EyedropperButton.OnToggled += args => SetPicking(args.Pressed);
             _window.LevelUpButton.OnPressed += _ => MoveLevel(1);
             _window.LevelDownButton.OnPressed += _ => MoveLevel(-1);

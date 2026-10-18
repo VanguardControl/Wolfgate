@@ -105,3 +105,118 @@ cmd-wf_mappingmode_save-desc = Saves a mapping session to its owner's library.
 cmd-wf_mappingmode_save-help = Usage: {$command} <code>
 cmd-wf_mappingmode_save-saved = Saved mapping session {$code}.
 cmd-wf_mappingmode_save-failed = Couldn't save mapping session {$code}.
+
+## Lobby
+
+wf-mapping-mode-lobby-title = Mapping workshop
+wf-mapping-mode-lobby-intro = Start a map, or join someone else's with their join code. Maps save to your library on this server.
+wf-mapping-mode-lobby-new = New map
+wf-mapping-mode-lobby-new-placeholder = Map name
+wf-mapping-mode-lobby-create = Create
+wf-mapping-mode-lobby-join = Join a session
+wf-mapping-mode-lobby-join-placeholder = Join code
+wf-mapping-mode-lobby-join-button = Join
+wf-mapping-mode-lobby-sessions = Your sessions
+wf-mapping-mode-lobby-sessions-none = You aren't in a session.
+wf-mapping-mode-lobby-session-entry = "{$name}", owner {$owner}, {$count ->
+    [one] 1 member
+   *[other] {$count} members
+}
+wf-mapping-mode-lobby-rejoin = Rejoin
+wf-mapping-mode-lobby-maps = My maps
+wf-mapping-mode-lobby-refresh = Refresh
+wf-mapping-mode-observe = Observe
+wf-mapping-mode-observe-tooltip = Admins only. Puts you on a private admin map; use tpto or wf_mappingmode_tp to reach a session.
+
+## Library list
+
+wf-mapping-mode-library-loading = Loading your library...
+wf-mapping-mode-library-empty = No saved maps yet.
+wf-mapping-mode-library-never = never
+wf-mapping-mode-library-usage = {$maps}/{$maxMaps} maps, {$used}/{$max} MiB
+wf-mapping-mode-library-map-info = {$count ->
+    [one] 1 version
+   *[other] {$count} versions
+}, last saved {$saved}
+wf-mapping-mode-library-version = {$version}, {$saved}, {$kind}, {$levels ->
+    [one] 1 level
+   *[other] {$levels} levels
+}, {$size} MiB
+wf-mapping-mode-kind-manual = saved
+wf-mapping-mode-kind-auto = autosave
+wf-mapping-mode-library-open = Open
+wf-mapping-mode-library-open-latest-tooltip = Open the newest version as a new session.
+wf-mapping-mode-library-download = Download
+wf-mapping-mode-library-download-latest-tooltip = Download the newest version to your computer.
+wf-mapping-mode-library-versions = Versions
+wf-mapping-mode-library-hide-versions = Hide versions
+wf-mapping-mode-library-delete = Delete
+wf-mapping-mode-library-delete-map-tooltip = Delete this map and every version of it.
+
+## Download progress
+
+wf-mapping-mode-download-progress = Downloading "{$name}" {$version}: file {$file} of {$files}, {$percent}%
+wf-mapping-mode-download-ready = Downloaded "{$name}" {$version}.
+wf-mapping-mode-download-cancel = Cancel
+wf-mapping-mode-download-open-folder = Open folder
+wf-mapping-mode-download-bad-data = The download arrived damaged and was stopped.
+wf-mapping-mode-download-write-failed = The download couldn't be written to your data folder.
+
+## Mapping window
+
+wf-mapping-mode-escape-button = Mapping
+wf-mapping-mode-menu-title = Mapping
+wf-mapping-mode-menu-tab-session = Session
+wf-mapping-mode-menu-tab-save = Save
+wf-mapping-mode-menu-tab-library = Library
+wf-mapping-mode-menu-no-session = You aren't in a mapping session.
+wf-mapping-mode-menu-return = Return to lobby
+wf-mapping-mode-menu-return-tooltip = Leave the admin map and go back to the mapping lobby.
+wf-mapping-mode-menu-code = Join code: {$code}
+wf-mapping-mode-menu-copy = Copy
+wf-mapping-mode-menu-copied = Copied the join code.
+wf-mapping-mode-menu-status = Grids {$grids}/{$maxGrids} · Entities {$entities}/{$maxEntities} · Area {$size} × {$size}
+wf-mapping-mode-menu-members = Members
+wf-mapping-mode-menu-member = {$name}{$owner ->
+    [yes] {" "}(owner)
+   *[no] {""}
+}{$away ->
+    [yes] {" "}(away)
+   *[no] {""}
+}
+wf-mapping-mode-menu-kick = Remove
+wf-mapping-mode-menu-autosave = Autosave
+wf-mapping-mode-menu-autosave-off = Off
+wf-mapping-mode-menu-autosave-step = Every {$minutes ->
+    [one] minute
+   *[other] {$minutes} minutes
+}
+wf-mapping-mode-menu-autosave-owner-only = Only the owner can change this.
+wf-mapping-mode-menu-grids = Grids
+wf-mapping-mode-menu-delete-grid = Delete the grid under me
+wf-mapping-mode-menu-delete-grid-tooltip = Deletes every tile and entity on the grid you're over. Undo brings it back.
+wf-mapping-mode-menu-delete-grid-none = You aren't over a grid.
+wf-mapping-mode-menu-delete-grid-too-large = That grid is too big to delete at once. Select and delete it in parts.
+wf-mapping-mode-menu-reference = Reference grids
+wf-mapping-mode-menu-reference-load = Load reference
+wf-mapping-mode-menu-reference-hint = Pick a file and press Place. R turns it, click puts it down, Escape or right click drops it.
+wf-mapping-mode-menu-reference-search = Search
+wf-mapping-mode-menu-reference-place = Place
+wf-mapping-mode-menu-reference-source-saved = My library
+wf-mapping-mode-menu-reference-source-ships = Ship grids
+wf-mapping-mode-menu-reference-source-maps = Maps
+wf-mapping-mode-menu-leave = Leave session
+wf-mapping-mode-menu-leave-tooltip = Leave this session for good. Save first; you can only come back with the join code.
+wf-mapping-mode-menu-save-name = Save as
+wf-mapping-mode-menu-save-now = Save now
+wf-mapping-mode-menu-save-hint = Saves go into your own library under this name.
+wf-mapping-mode-menu-last-saved = Last saved {$time}.
+wf-mapping-mode-menu-never-saved = Not saved yet.
+wf-mapping-mode-menu-next-autosave = Next autosave check in {$time}.
+wf-mapping-mode-menu-autosave-disabled = Autosave is off.
+wf-mapping-mode-menu-dirty = Unsaved changes.
+wf-mapping-mode-menu-clean = No unsaved changes.
+
+## Map limit overlay
+
+wf-mapping-mode-bounds-label = {$size} × {$size} map limit
