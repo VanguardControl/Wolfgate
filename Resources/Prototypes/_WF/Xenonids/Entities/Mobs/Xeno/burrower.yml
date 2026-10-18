@@ -4,17 +4,16 @@
   - CMXenoTail
   - CMXenoFlammable
   - RMCXenoSpeechSounds
-  - RMCXenoCommendationReceiver
+  # WOLFGATE: cut parent RMCXenoCommendationReceiver
   - RMCXenoMobCollision
   - RMCXenoVentCrawler
   id: CMXenoBurrower
   name: Burrower
   description: A beefy alien with sharp claws.
   components:
-  - type: CanBuildThickFromConstructNode
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleBurrower
+  # XENOPORT(P3-Q): CanBuildThickFromConstructNode arrives with the designer
+  # - type: CanBuildThickFromConstructNode
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Burrower/burrower.rsi
   - type: MobState
@@ -25,7 +24,7 @@
   - type: Tag
     tags:
     - DoorBumpOpener
-    - RMCSynthGrabbable
+    # WOLFGATE: cut RMCSynthGrabbable (synths)
   - type: MobThresholds
     thresholds:
       0: Alive
@@ -96,7 +95,7 @@
     - multiplier: 0.6425
       whitelist:
         components:
-        - Marine
+        - HumanoidAppearance # WOLFGATE: humanoids stand in for marines
     - multiplier: 0.7125
       whitelist:
         components:
@@ -107,10 +106,7 @@
         - XenoHeavy
   - type: RMCXenoDamageVisuals
     prefix: burrower
-  - type: TacticalMapIcon
-    icon:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: burrower
+  # WOLFGATE: cut TacticalMapIcon (tactical map)
   - type: AcidTrap #Do 2 CM code they make level 3 traps at a level 2 cost
     trapLevel: 3
     spray: XenoAcidSprayTrapStrong
@@ -121,13 +117,10 @@
     - HiveClusterXenoConstructionNode
     - HiveRecoveryNodeXenoConstructionNode
     - HivePlasmaTreeXenoConstructionNode
-  - type: IntelRecoverCorpseObjectiveOnDeath
-    value: 0.2
+  # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: FixedIdentity
     name: cm-job-name-xeno-burrower
-  - type: RMCSurgeryXenoHeart
-    item: RMCOrganXenoHeartT2
+  # WOLFGATE: cut RMCSurgeryXenoHeart (RMC medical)
   - type: VentCrawler
     ventCrawlIcon: burrower
-  - type: RMCActionOrder
-    id: CMXenoBurrower
+  # WOLFGATE: cut RMCActionOrder

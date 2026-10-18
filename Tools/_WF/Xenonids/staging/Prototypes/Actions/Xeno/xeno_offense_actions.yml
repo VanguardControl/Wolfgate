@@ -4,23 +4,6 @@
   name: Tail Slam
 
 - type: entity
-  parent: ActionXenoTailStab
-  id: ActionXenoTailStabCorrosive
-  name: Corrosive Tail Stab
-  description: Strikes the targeted enemy or barricade. The cooldown is faster if you miss. [color=red]It also injects diluted molecular acid into the target, dealing damage over time.[/color]
-  components:
-  - type: Action
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: tail_attack_acid
-
-- type: entity
-  parent: ActionXenoTailStabCorrosive
-  id: ActionXenoTailStabBoiler
-  name: Corrosive Tail Stab
-  description: Strikes the targeted enemy or barricade. The cooldown is faster if you miss. [color=red]It also injects diluted molecular acid or neurotoxin into the target, dealing damage or stunning over time. Which type depends on current gas type.[/color]
-
-- type: entity
   id: ActionXenoTailStabLance
   parent: ActionXenoTailStab
   name: Tail Lance Stab
@@ -217,47 +200,6 @@
       state: tail_sweep
 
 - type: entity
-  parent: ActionXenoBase
-  id: ActionXenoSprayAcid
-  name: Spray Acid (40)
-  description: Sprays acid along the ground in a line, covering tiles with it. [color=red]Will coat barricades in acid and significantly strengthen acid inflicted from Charge Spit![/color]
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: spray_acid
-    useDelay: 8
-  - type: TargetAction
-    range: 15
-    checkCanAccess: false
-  - type: WorldTargetAction
-    event: !type:XenoSprayAcidActionEvent
-  - type: ActionBlockIfResting
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoSprayAcid
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: spray_acid
-
-- type: entity
-  parent: ActionXenoSprayAcid
-  id: ActionXenoSprayAcidBoiler
-  description: Sprays acid along the ground in a line, covering tiles with it. [color=red]Will coat barricades in acid![/color]
-  components:
-  - type: Action
-    useDelay: 10
-  - type: ActionSharedCooldown
-    id: ActionXenoSprayAcidBoiler
-    ids:
-    - ActionXenoAcidShroud
-    activeIds:
-    - ActionXenoBombard
-
-- type: entity
   parent: ActionXenoSprayAcid
   id: ActionXenoSprayAcidPraetorian
   name: Spray Acid (80)
@@ -273,23 +215,6 @@
   components:
   - type: Action
     useDelay: 13
-
-- type: entity
-  id: ActionXenoParalyzingSlash
-  parent: ActionXenoBase
-  name: Paralyzing Slash (50) # TODO RMC14 proper plasma costs
-  description: Temporarily charge up a melee attack that will knockdown the first enemy it hits after a short delay.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: lurker_inject_neuro
-    useDelay: 12
-  - type: InstantAction
-    event: !type:XenoParalyzingSlashActionEvent
-  - type: XenoActionPlasma
-    cost: 50
 
 - type: entity
   parent: ActionXenoBase
@@ -437,29 +362,6 @@
     event: !type:XenoGutActionEvent
 
 - type: entity
-  id: ActionXenoStomp
-  parent: ActionXenoBase
-  name: Stomp (30)
-  description: Slam the ground with a 5x5 AOE, slowing down and disarming all enemies in range. Deals heavy damage to targets you are on top of.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: stomp
-    useDelay: 18
-  - type: InstantAction
-    event: !type:XenoStompActionEvent
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoStomp
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: stomp
-
-- type: entity
   parent: ActionXenoStomp
   id: ActionXenoCrush
   name: Crush (25)
@@ -494,119 +396,6 @@
     useDelay: 10
   - type: XenoActionPlasma
     cost: 10
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoBombard
-  name: Bombard (200)
-  description: Fire either an acidic or neurotoxic glob after a delay.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: bombard
-    useDelay: 1
-  - type: TargetAction
-    range: 15 # the actual range is in XenoBombardComponent
-    checkCanAccess: false
-  - type: WorldTargetAction
-    event: !type:XenoBombardActionEvent
-  - type: ActionSharedCooldown
-    id: ActionXenoBombard
-    ids:
-    - ActionXenoAcidShroud
-    cooldown: 30
-    onPerform: false
-  - type: ActionBlockIfResting
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoBombard
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: bombard
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoToggleGasType
-  name: Toggle Gas Type
-  description: Toggle between Acid or Neurotoxic gas types. Your acidic globs will deal continual damage to anything caught in its radius, while neurotoxin will cause targets to suffocate, be slowed down and blinded, alongside eventually knocking them unconscious to be kidnapped.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    backgroundOn: null
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: shift_spit_acid_glob
-    iconOn:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: shift_spit_neuro_glob
-    useDelay: 1
-  - type: InstantAction
-    event: !type:XenoGasToggleActionEvent
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoToggleGasType
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: shift_spit_acid_glob
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoAcidShroud
-  name: Acid Shroud
-  description: Create a small cloud of acidic or neurotoxic gas around you to cloak yourself. This will disable your other abilities for a short time to allow you to escape.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: acid_shroud
-  - type: InstantAction
-    event: !type:XenoAcidShroudActionEvent
-  - type: ActionSharedCooldown
-    id: ActionXenoAcidShroud
-    ids:
-    - ActionXenoBombard
-    - ActionXenoAcidShroud
-    - ActionXenoSprayAcidBoiler
-    cooldown: 30
-    onPerform: false
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoAcidShroud
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: acid_shroud
-
-- type: entity
-  id: ActionXenoTremor
-  parent: ActionXenoBase
-  name: Tremor (100)
-  description: Slam the ground with a 7x7 AOE, stunning all enemies in range for a short period of time.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: tremor
-    useDelay: 30
-  - type: InstantAction
-    event: !type:XenoStompActionEvent
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoTremor
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: tremor
 
 - type: entity
   parent: ActionXenoBase
@@ -1220,69 +1009,3 @@
     event: !type:XenoDestroyActionEvent
 
 # Trapper Actions
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoAcidMine
-  name: Acid Mine (40)
-  description: Cause an acid explosion at the targeted location. Each hit reduces Deploy Traps' cooldown. Empowered mines deal more damage and coat enemies in acid.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: acid_mine
-    useDelay: 5.5
-  - type: XenoAcidMine
-    actionIconEmpowered:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: acid_mine_empowered
-  - type: TargetAction
-    deselectOnMiss: false
-    checkCanAccess: false
-    repeat: true
-    range: 14 #Actual range on the AcidMine component.
-  - type: WorldTargetAction
-    event: !type:XenoAcidMineActionEvent
-  - type: ActionBlockIfResting
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoAcidMine
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: Sprite
-    state: acid_mine
-
-- type: entity
-  id: ActionXenoDeployTraps
-  parent: ActionXenoBase
-  name: Deploy Traps (60)
-  description: Deploys a line of snaring traps. Becomes empowered at 10 stacks of insight. Empowered traps snare longer and empower your Acid Mine.
-  components:
-  - type: Action
-    useDelay: 20.5
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: gas_mine
-  - type: XenoDeployTraps
-    actionIconEmpowered:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: gas_mine_empowered
-  - type: TargetAction
-    checkCanAccess: false
-    deselectOnMiss: false
-    repeat: true
-    range: 14
-  - type: WorldTargetAction
-    event: !type:XenoDeployTrapsActionEvent
-  - type: XenoActionPlasma
-    cost: 60
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoDeployTraps
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: Sprite
-    state: gas_mine

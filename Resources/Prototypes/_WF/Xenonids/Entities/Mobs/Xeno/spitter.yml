@@ -4,16 +4,14 @@
   - CMXenoTail
   - CMXenoFlammable
   - RMCXenoSpeechSounds
-  - RMCXenoCommendationReceiver
+  # WOLFGATE: cut parent RMCXenoCommendationReceiver
   - RMCXenoMobCollision
   - RMCXenoVentCrawler
   id: CMXenoSpitter
   name: Spitter
   description: A gross, oozing alien of some kind.
   components:
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleSpitter
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Spitter/spitter.rsi
   - type: MobState
@@ -29,7 +27,7 @@
   - type: Tag
     tags:
     - DoorBumpOpener
-    - RMCSynthGrabbable
+    # WOLFGATE: cut RMCSynthGrabbable (synths)
   - type: Xeno
     role: CMXenoSpitter
     actionIds:
@@ -59,7 +57,7 @@
     max: 500
     evolvesTo:
     - RMCXenoBoiler
-    - CMXenoPraetorian
+    # XENOPORT(P3-P): - CMXenoPraetorian
   - type: XenoSpit
   - type: XenoChargeSpit
   - type: XenoScatteredSpit
@@ -94,7 +92,7 @@
     - multiplier: 0.6375
       whitelist:
         components:
-        - Marine
+        - HumanoidAppearance # WOLFGATE: humanoids stand in for marines
     - multiplier: 0.7075
       whitelist:
         components:
@@ -105,18 +103,12 @@
         - XenoHeavy
   - type: RMCXenoDamageVisuals
     prefix: spitter
-  - type: TacticalMapIcon
-    icon:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: spitter
+  # WOLFGATE: cut TacticalMapIcon (tactical map)
   - type: AcidTrap
-  - type: IntelRecoverCorpseObjectiveOnDeath
-    value: 0.2
+  # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: FixedIdentity
     name: cm-job-name-xeno-spitter
-  - type: RMCSurgeryXenoHeart
-    item: RMCOrganXenoHeartT2
+  # WOLFGATE: cut RMCSurgeryXenoHeart (RMC medical)
   - type: VentCrawler
     ventCrawlIcon: spitter
-  - type: RMCActionOrder
-    id: CMXenoSpitter
+  # WOLFGATE: cut RMCActionOrder

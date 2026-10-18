@@ -5,15 +5,13 @@
   - CMXenoTail
   - CMXenoFlammable
   - RMCXenoSpeechSounds
-  - RMCXenoCommendationReceiver
+  # WOLFGATE: cut parent RMCXenoCommendationReceiver
   - RMCXenoMobCollision
   id: CMXenoBoiler
   name: Boiler
   description: A huge, grotesque xenonid covered in glowing, oozing acid slime.
   components:
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleBoiler
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Boiler/boiler.rsi
   - type: Fixtures
@@ -25,8 +23,7 @@
         density: 185
         mask:
         - MobMask
-        - BarbedBarricade
-        - BarricadeImpassable
+        # WOLFGATE: no BarricadeImpassable or BarbedBarricade layers here
         layer:
         - MobLayer
       fix2:
@@ -116,7 +113,7 @@
     - multiplier: 0.6375
       whitelist:
         components:
-        - Marine
+        - HumanoidAppearance # WOLFGATE: humanoids stand in for marines
     - multiplier: 0.7075
       whitelist:
         components:
@@ -149,10 +146,7 @@
           Brute: 5
   - type: RMCXenoDamageVisuals
     prefix: boiler
-  - type: TacticalMapIcon
-    icon:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: boiler
+  # WOLFGATE: cut TacticalMapIcon (tactical map)
   - type: Flammable
     damage: #per second, scales with number of fire 'stacks'
       types:
@@ -162,8 +156,7 @@
   - type: XenoToggleChargingStop
   - type: FixedIdentity
     name: cm-job-name-xeno-boiler
-  - type: RMCActionOrder
-    id: CMXenoBoiler
+  # WOLFGATE: cut RMCActionOrder
 
     #CMXenoBoiler
 - type: entity
@@ -188,8 +181,7 @@
   - type: XenoEvolution
     strains:
       - RMCXenoBoilerSapper
-  - type: RMCActionOrder
-    id: RMCXenoBoiler
+  # WOLFGATE: cut RMCActionOrder
 
     # Sapper strain
 - type: entity
@@ -244,7 +236,6 @@
   - type: XenoDeployTraps
   - type: XenoInsight
   - type: XenoAdrenalineSurge
-  - type: RMCActionOrder
-    id: RMCXenoBoilerSapper
+  # WOLFGATE: cut RMCActionOrder
 
 

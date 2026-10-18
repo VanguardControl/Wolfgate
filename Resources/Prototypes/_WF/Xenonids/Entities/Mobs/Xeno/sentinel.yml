@@ -4,16 +4,14 @@
   - CMXenoTail
   - CMXenoFlammable
   - RMCXenoSpeechSounds
-  - RMCXenoCommendationReceiver
+  # WOLFGATE: cut parent RMCXenoCommendationReceiver
   - RMCXenoMobCollision
   - RMCXenoVentCrawler
   id: CMXenoSentinel
   name: Sentinel
   description: A slithery, spitting kind of alien.
   components:
-  - type: GuideHelp
-    guides:
-    - RMCGuideRoleSentinel
+  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Sentinel/sentinel.rsi
   - type: MobState
@@ -29,7 +27,7 @@
   - type: Tag
     tags:
     - DoorBumpOpener
-    - RMCSynthGrabbable
+    # WOLFGATE: cut RMCSynthGrabbable (synths)
   - type: Xeno
     role: CMXenoSentinel
     actionIds:
@@ -62,8 +60,9 @@
     max: 200
     evolvesTo:
     - CMXenoSpitter
-    evolvesToWithoutPoints:
-    - CMXenoQueen
+    # XENOPORT(P3-Q): CMXenoQueen
+    evolvesToWithoutPoints: []
+    # - CMXenoQueen
   - type: XenoAcid
   - type: XenoParalyzingSlash
   - type: XenoSlowingSpit
@@ -84,21 +83,15 @@
     stunMax: 4
   - type: RMCXenoDamageVisuals
     prefix: sentinel
-  - type: TacticalMapIcon
-    icon:
-      sprite: /Textures/_WF/Xenonids/Interface/map_blips.rsi
-      state: sentinel
+  # WOLFGATE: cut TacticalMapIcon (tactical map)
   - type: AcidTrap
     trapLevel: 1
     cost: 70
     spray: XenoAcidSprayTrapWeak
-  - type: IntelRecoverCorpseObjectiveOnDeath
-    value: 0.1
+  # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: FixedIdentity
     name: cm-job-name-xeno-sentinel
-  - type: RMCSurgeryXenoHeart
-    item: RMCOrganXenoHeartT1
+  # WOLFGATE: cut RMCSurgeryXenoHeart (RMC medical)
   - type: VentCrawler
     ventCrawlIcon: sentinel
-  - type: RMCActionOrder
-    id: CMXenoSentinel
+  # WOLFGATE: cut RMCActionOrder

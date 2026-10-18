@@ -83,15 +83,15 @@
   - type: XenoEvolution
     canEvolveWithoutGranter: true
     max: 200
-    # XENOPORT(P3-Q): CMXenoCarrier, CMXenoHivelord; XENOPORT(P3-B): CMXenoBurrower; restore the lists below when the castes land
-    evolvesTo: []
+    # XENOPORT(P3-Q): CMXenoCarrier, CMXenoHivelord; restore the lists below when the castes land
+    evolvesTo:
+    - CMXenoBurrower
     # - CMXenoCarrier
-    # - CMXenoBurrower
     # - CMXenoHivelord
-    # XENOPORT(P3-M): CMXenoLurker, CMXenoWarrior; XENOPORT(P3-B): CMXenoSpitter
-    earlyEvolvesTo: []
+    # XENOPORT(P3-M): CMXenoLurker, CMXenoWarrior; restore the lists below when the castes land
+    earlyEvolvesTo:
+    - CMXenoSpitter
     # - CMXenoLurker
-    # - CMXenoSpitter
     # - CMXenoWarrior
     # XENOPORT(P3-Q): CMXenoQueen
     evolvesToWithoutPoints: []
@@ -132,11 +132,10 @@
     - CMXenoDroneHealer
   # XENOPORT(P2b-2): XenoAcid
   # - type: XenoAcid
-  # XENOPORT(P3-B): AcidTrap
-  # - type: AcidTrap
-  #   trapLevel: 1
-  #   cost: 70
-  #   spray: XenoAcidSprayTrapWeak
+  - type: AcidTrap
+    trapLevel: 1
+    cost: 70
+    spray: XenoAcidSprayTrapWeak
   # XENOPORT(P2b-1): XenoConstruction
   # - type: XenoConstruction
   #   canBuild:
@@ -188,7 +187,7 @@
     # XENOPORT(P2b-1): - ActionXenoPlantWeedsHardy
     # XENOPORT(P2b-1): - ActionXenoFruitPlant
     # XENOPORT(P2b-1): - ActionXenoFruitChoose
-    # XENOPORT(P3-B): - ActionXenoResinSurge
+    - ActionXenoResinSurge
     - ActionXenoTransferPlasma
     - ActionXenoDevolve
   - type: XenoRegen
@@ -210,8 +209,7 @@
   #   maxFruitAllowed: 6
   #   fruitPickingMultiplier: 0.5
   #   fruitFeedingMultiplier: 0.5
-  # XENOPORT(P3-B): XenoResinSurge
-  # - type: XenoResinSurge
+  - type: XenoResinSurge
   - type: XenoHidden
   - type: VentCrawler
     ventCrawlIcon: gardener
@@ -298,9 +296,8 @@
   - type: XenoHidden
   - type: VentCrawler
     ventCrawlIcon: healer
-  # XENOPORT(P3-B): AcidTrap
-  # - type: AcidTrap
-  #   trapLevel: 1
-  #   cost: 70
-  #   spray: XenoAcidSprayTrapWeak
+  - type: AcidTrap
+    trapLevel: 1
+    cost: 70
+    spray: XenoAcidSprayTrapWeak
   # WOLFGATE: cut RMCActionOrder

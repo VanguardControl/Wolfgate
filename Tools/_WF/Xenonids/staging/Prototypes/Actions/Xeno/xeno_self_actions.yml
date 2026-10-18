@@ -256,35 +256,6 @@
 
 - type: entity
   parent: ActionXenoBase
-  id: ActionXenoBurrow
-  name: Burrow
-  description: Burrow underground preventing you from getting hit from all sources. Once burrowed click a tile to move to it and resurface after a doafter that depends on distance.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: burrow
-    checkCanInteract: false
-  - type: TargetAction
-    range: 8
-    repeat: true
-    deselectOnMiss: false
-    checkCanAccess: false
-  - type: WorldTargetAction
-    event: !type:XenoBurrowActionEvent
-  - type: ActionBlockIfResting
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoBurrow
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: burrow
-
-- type: entity
-  parent: ActionXenoBase
   id: ActionXenoSoak
   name: Soak (20)
   description: Soak in damage for 6 seconds. If you take 140 damage or higher, you regen 75 health and your tail slam gets refreshed.

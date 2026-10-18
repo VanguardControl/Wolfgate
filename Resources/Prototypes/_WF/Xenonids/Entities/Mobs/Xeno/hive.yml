@@ -5,6 +5,7 @@
   components:
   - type: Hive
     lateJoinGainLarva: true
-    # XENOPORT(P2b-3): RMC's free caste slots (CMXenoHivelord 1, CMXenoCarrier 1, CMXenoBurrower 1)
-    freeSlots: {}
+    # XENOPORT(P3-Q): RMC's free caste slots CMXenoHivelord 1 and CMXenoCarrier 1
+    freeSlots:
+      CMXenoBurrower: 1
 
