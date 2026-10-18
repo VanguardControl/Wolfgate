@@ -347,7 +347,10 @@ and its own sprite.
 - [`Resources/Locale/en-US/_CD/markings/synthetic.ftl`](../../../Resources/Locale/en-US/_CD/markings/synthetic.ftl): ported from HardLight
 - [`Resources/Locale/en-US/_DV/markings/kitsune.ftl`](../../../Resources/Locale/en-US/_DV/markings/kitsune.ftl): ported from HardLight
 - [`Resources/Locale/en-US/_DV/markings/thaven.ftl`](../../../Resources/Locale/en-US/_DV/markings/thaven.ftl): ported from HardLight
-- [`Resources/Locale/en-US/_FarHorizons/markings/protogen_markings.ftl`](../../../Resources/Locale/en-US/_FarHorizons/markings/protogen_markings.ftl): ported from HardLight
+- [`Resources/Locale/en-US/_FarHorizons/markings/protogen_markings.ftl`](../../../Resources/Locale/en-US/_FarHorizons/markings/protogen_markings.ftl)
+  - ported from HardLight
+  - ported from HardLight - Protogen subspecies markings.
+  - per-layer names for the only two-layer marking of the 60.
 - [`Resources/Locale/en-US/_FarHorizons/radio/channels.ftl`](../../../Resources/Locale/en-US/_FarHorizons/radio/channels.ftl): ported from HardLight
 - [`Resources/Locale/en-US/_Funkystation/datasets/names/thaven_names.ftl`](../../../Resources/Locale/en-US/_Funkystation/datasets/names/thaven_names.ftl): ported from HardLight
 - [`Resources/Locale/en-US/_HL/accessories/human-hair.ftl`](../../../Resources/Locale/en-US/_HL/accessories/human-hair.ftl): ported from HardLight
@@ -450,7 +453,7 @@ and its own sprite.
 - [`Resources/Prototypes/_EinsteinEngines/Voice/speech_emotes.yml`](../../../Resources/Prototypes/_EinsteinEngines/Voice/speech_emotes.yml): was the default scream icon
 - [`Resources/Prototypes/_FarHorizons/Entities/Mobs/Customization/protogen.yml`](../../../Resources/Prototypes/_FarHorizons/Entities/Mobs/Customization/protogen.yml)
   - ported from HardLight
-  - Wolfgate species in the list
+  - shaped for this species; was the Proto subspecies' own
 - [`Resources/Prototypes/_FarHorizons/radio_channels.yml`](../../../Resources/Prototypes/_FarHorizons/radio_channels.yml): ported from HardLight
 - [`Resources/Prototypes/_FarHorizons/SoundCollections/disease.yml`](../../../Resources/Prototypes/_FarHorizons/SoundCollections/disease.yml): Protogen subspecies, ported from HardLight
 - [`Resources/Prototypes/_FarHorizons/SoundCollections/emotes.yml`](../../../Resources/Prototypes/_FarHorizons/SoundCollections/emotes.yml): Protogen subspecies, ported from HardLight
@@ -668,7 +671,7 @@ and its own sprite.
 - [`Resources/Textures/_DV/Mobs/Customization/kitsune/`](../../../Resources/Textures/_DV/Mobs/Customization/kitsune/): Kitsune marking sprites, ported in
 - [`Resources/Textures/_DV/Mobs/Customization/thaven/`](../../../Resources/Textures/_DV/Mobs/Customization/thaven/): Thaven marking sprites, ported in
 - [`Resources/Textures/_EE/Mobs/Customization/Harpy/harpy_wings.rsi/`](../../../Resources/Textures/_EE/Mobs/Customization/Harpy/harpy_wings.rsi/): whitescale_harpy_folded2 state added (meta.json re-serialised).
-- [`Resources/Textures/_FarHorizons/Mobs/Customization/protogen/`](../../../Resources/Textures/_FarHorizons/Mobs/Customization/protogen/): Protogen base marking sprites, ported in
+- [`Resources/Textures/_FarHorizons/Mobs/Customization/`](../../../Resources/Textures/_FarHorizons/Mobs/Customization/): Protogen base marking sprites, ported in
 - [`Resources/Textures/_Floof/`](../../../Resources/Textures/_Floof/): Floof marking sprites, ported from HardLight in
 - [`Resources/Textures/_HL/`](../../../Resources/Textures/_HL/): HardLight species and marking sprites, ported in
 - [`Resources/Textures/_Impstation/Mobs/Customization/thaven/`](../../../Resources/Textures/_Impstation/Mobs/Customization/thaven/): Thaven marking sprites, ported from HardLight in

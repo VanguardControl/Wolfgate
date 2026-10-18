@@ -167,6 +167,7 @@ markings. `MarkingSet` caps undergarments at one top and one bottom per characte
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi/)
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_EE/Mobs/Customization/Harpy/harpy_tails.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_EE/Mobs/Customization/Harpy/harpy_tails.rsi/)
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_EE/Mobs/Customization/Harpy/harpy_tails48x48.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_EE/Mobs/Customization/Harpy/harpy_tails48x48.rsi/)
+- [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_FarHorizons/Mobs/Customization/proto-avali/led_shapes_body.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_FarHorizons/Mobs/Customization/proto-avali/led_shapes_body.rsi/)
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Floof/Mobs/Customization/skyrattails.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Floof/Mobs/Customization/skyrattails.rsi/)
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Felinid/foxtail.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Felinid/foxtail.rsi/)
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi/)
@@ -462,6 +463,11 @@ markings. `MarkingSet` caps undergarments at one top and one bottom per characte
 - [`Resources/Prototypes/_EinsteinEngines/Species/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Species/ipc.yml)
   - split tail layers ported from HardLight/Floof
   - underwear/genital layers ported from HardLight
+- [`Resources/Prototypes/_FarHorizons/Entities/Mobs/Customization/protogen.yml`](../../../Resources/Prototypes/_FarHorizons/Entities/Mobs/Customization/protogen.yml)
+  - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
+  - both halves of a tail share one colour
+  - split art, anatomy zone only
+  - anatomy zone of the south frame on TailBehind
 - [`Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_ears.yml`](../../../Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_ears.yml): named EarsCow's sprites, so the link never applied
 - [`Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_tails.yml`](../../../Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_tails.yml)
   - the south frame draws behind the body, so the tail never covers anatomy
