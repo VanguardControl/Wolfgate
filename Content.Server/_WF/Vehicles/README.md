@@ -357,6 +357,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleSmashRuleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleSmashRuleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleSpawnDefaultsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleSpawnDefaultsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleSpriteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleSpriteTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleTrackMarkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleTrackMarkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleWeaponsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleWeaponsTest.cs)
 
 ### Unit tests
