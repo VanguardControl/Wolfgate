@@ -1,0 +1,33 @@
+# RMC-14: Resources/Prototypes/_RMC14/Roles/cm_jobs_base.yml
+- type: job
+  abstract: true
+  id: CMJobBase
+  isCM: true
+  canBeAntag: false
+  setRankPreference: true
+  medals:
+    Bronze: RMCMedalBronzeService
+    Silver: RMCMedalSilverService
+    Gold: RMCMedalGoldService
+    Platinum: RMCMedalPlatinumService
+    Ruby: RMCMedalRubyService
+    Amethyst: RMCMedalAmethystService
+    Emerald: RMCMedalEmeraldService
+    Prismatic: RMCMedalPrismaticService
+
+# RMC-14: Resources/Prototypes/_RMC14/Roles/cm_jobs_base.yml
+- type: job
+  abstract: true
+  parent: CMJobBase
+  id: CMJobXenoBase
+  description: null
+  joinNotifyCrew: false
+  icon: "CMJobIconEmpty"
+  supervisors: cm-job-supervisors-queen
+  accessGroups:
+  - CMAccessXeno
+  hasIcon: false
+  hidden: true
+  setRankPreference: false
+  isXeno: true
+

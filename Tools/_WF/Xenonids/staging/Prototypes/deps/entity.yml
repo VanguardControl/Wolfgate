@@ -1,0 +1,331 @@
+# RMC-14: Resources/Prototypes/_RMC14/Actions/cm_mob_state_actions.yml
+- type: entity
+  id: CMActionGhost
+  name: Ghost
+  description: Become a Ghost.
+  components:
+  - type: Action
+    itemIconStyle: NoItem
+    checkCanInteract: false
+    checkConsciousness: false
+    icon:
+      sprite: Mobs/Ghosts/ghost_human.rsi
+      state: icon
+  - type: InstantAction
+    event: !type:CMGhostActionEvent
+
+# RMC-14: Resources/Prototypes/_RMC14/Entities/Structures/Base/base_structure.yml
+- type: entity
+  parent:
+  - BaseWall
+  - CMBaseXenoStructure
+  id: CMBaseWallXeno
+  name: resin wall
+  abstract: true
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Damageable
+    damageContainer: StructuralXeno
+    damageModifierSet: Resin
+  - type: Appearance
+  - type: RadiationBlocker
+    resistance: 5
+  - type: PlacementReplacement
+    key: walls
+  - type: ExplosionResistance
+    damageCoefficient: 3.64
+  - type: DamageMultiplierFlags
+    flags:
+    - Turf
+    - Xeno
+  - type: ResinSurgeReinforcable
+  - type: Tag
+    tags:
+    - SpreaderIgnore
+    - Wall
+  - type: XenoToggleChargingDamage
+    stop: true
+    damage:
+      types:
+        Blunt: 5
+  - type: XenoRecentlyBuiltPreventCollisions
+
+# RMC-14: Resources/Prototypes/_RMC14/Entities/Structures/Base/base_structure.yml
+- type: entity
+  parent: BaseStructure
+  id: CMBaseXenoStructure
+  abstract: true
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Corrodible
+    isCorrodible: false
+  - type: CMIconSmooth
+  - type: MeleeReceivedMultiplier
+    otherMultiplier: 8.2
+  - type: XenoConstructionSupport
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        collection: XenoResinBreak
+  - type: XenoConstruct
+  - type: RMCDeleteAnchoredOnInit
+    whitelist:
+      tags:
+      - XenoWeedNode
+  - type: RMCWallExplosionDeletable
+  - type: DestroyedByExplosionType
+  - type: NpcFactionMember
+    factions:
+    - RMCXeno
+  - type: RMCNightVisionVisible
+    priority: -1
+    transparency: 0.2
+  - type: InvulnerabilityTime
+    whitelist:
+      components:
+      - Marine
+    hitsToInvulnerability: 3
+  - type: DamageMultiplierFlags
+    flags: Breaching
+  - type: DeletedByWeedKiller
+  - type: Flammable
+    fireSpread: false
+    maximumFireStacks: 0.5
+    damage:
+      types:
+        Heat: 4.8
+
+# RMC-14: Resources/Prototypes/_RMC14/StatusEffects/status_effects.yml
+- type: entity
+  parent: MobStatusEffectBase
+  id: Dazed
+  name: Dazed
+  components:
+  - type: RMCDazed
+
+# RMC-14: Resources/Prototypes/_RMC14/Actions/tactical_map_actions.yml
+- type: entity
+  abstract: true
+  id: RMCActionOpenTacticalMap
+  name: Open Tactical Map
+  components:
+  - type: Action
+    itemIconStyle: NoItem
+  - type: InstantAction
+    event: !type:OpenTacticalMapActionEvent
+
+# RMC-14: Resources/Prototypes/_RMC14/Actions/tactical_map_actions.yml
+- type: entity
+  parent: RMCActionOpenTacticalMap
+  id: RMCActionOpenTacticalMapXeno
+  components:
+  - type: Action
+    icon:
+      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
+      state: xeno_tacmap
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/base.yml
+- type: entity
+  id: RMCBaseEffect
+  abstract: true
+  components:
+  - type: RMCNightVisionVisible
+    priority: 1
+  - type: RMCEffect
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/gib.yml
+- type: entity
+  parent: RMCBaseEffect
+  id: RMCBaseGibEffect
+  abstract: true
+  components:
+  - type: Sprite
+    noRot: true
+    drawdepth: Effects
+  - type: TimedDespawn
+    lifetime: 0.8
+  - type: EffectVisuals
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+# RMC-14: Resources/Prototypes/_RMC14/Entities/Markers/Spawners/Random/Decals/gibs.yml
+- type: entity
+  abstract: true
+  parent: DecalSpawnerBase
+  id: RMCDecalSpawnerGibsBase
+  suffix: RMC14, Gibs
+  components:
+  - type: RandomDecalSpawner
+    radius: 0
+    randomRotation: false
+    cleanable: true
+    deleteSpawnerAfterSpawn: true
+
+# RMC-14: Resources/Prototypes/_RMC14/Entities/Markers/Spawners/Random/Decals/gibs.yml
+- type: entity
+  parent: RMCDecalSpawnerGibsBase
+  id: RMCDecalSpawnerGibsDrone
+  name: gibs spawner
+  suffix: RMC14, Drone
+  components:
+  - type: RandomDecalSpawner
+    decals:
+    - RMCDecalGibSplatterDrone
+
+# RMC-14: Resources/Prototypes/_RMC14/Entities/Markers/Spawners/Random/Decals/gibs.yml
+- type: entity
+  parent: RMCDecalSpawnerGibsBase
+  id: RMCDecalSpawnerGibsLesserDrone
+  name: gibs spawner
+  suffix: RMC14, Lesser Drone
+  components:
+  - type: RandomDecalSpawner
+    decals:
+    - RMCDecalGibSplatterLesserDrone
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/slash.yml
+- type: entity
+  parent: RMCBaseEffect
+  id: RMCEffectExtraSlash
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.4
+  - type: Sprite
+    sprite: _WF/Xenonids/Effects/attacks.rsi
+    noRot: true
+    state: slash
+    drawdepth: Effects
+  - type: EffectVisuals
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/slam.yml
+- type: entity
+  parent: RMCBaseEffect
+  id: RMCEffectSlam
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.4
+  - type: Sprite
+    sprite: _WF/Xenonids/Effects/attacks.rsi
+    noRot: true
+    state: slam
+    drawdepth: Effects
+  - type: EffectVisuals
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/tail.yml
+- type: entity
+  parent: RMCBaseEffect
+  id: RMCEffectTailHit
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.4
+  - type: Sprite
+    sprite: _WF/Xenonids/Effects/attacks.rsi
+    noRot: true
+    state: tail
+    drawdepth: Effects
+  - type: EffectVisuals
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/green.yml
+- type: entity
+  id: RMCEffectXenoTelegraphGreen
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 10
+  - type: Sprite
+    drawdepth: Effects
+    sprite: _WF/Xenonids/Effects/xeno_telegraph.rsi
+    color: "#008000"
+    noRot: true
+    state: xeno_telegraph_base
+  - type: EffectVisuals
+  - type: Tag
+    tags:
+    - HideContextMenu
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/green.yml
+- type: entity
+  parent: RMCEffectXenoTelegraphGreen
+  id: RMCEffectXenoTelegraphRedPulse
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 1.2
+  - type: Sprite
+    drawdepth: Effects
+    sprite: _WF/Xenonids/Effects/xeno_boiler_telegraph.rsi
+    state: boiler_telegraph
+    color: "#A50824"
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/gib.yml
+- type: entity
+  parent: RMCBaseGibEffect
+  id: RMCGibEffectXenoLesserDrone
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _WF/Xenonids/Effects/Gibs/lesser_drone_gib.rsi
+    state: lesser_gib
+  - type: TimedDespawn
+    lifetime: 0.8
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/gib.yml
+- type: entity
+  parent: RMCBaseGibEffect
+  id: RMCGibEffectXenoSmall
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Sprite
+    sprite: _WF/Xenonids/Effects/Gibs/xeno_gib_small.rsi
+    state: small_gib
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/rmc_pointing.yml
+- type: entity
+  parent: PointingArrow
+  id: RMCPointingArrowBig
+  save: false
+  components:
+  - type: Tag
+    tags:
+    - HideContextMenu
+  - type: Sprite
+    sprite: _WF/Xenonids/Effects/pointing.rsi
+    state: big_arrow
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/rmc_pointing.yml
+- type: entity
+  parent: RMCPointingArrowBig
+  id: RMCPointingArrowBigQueen
+  save: false
+  components:
+  - type: Sprite
+    state: big_arrow_queen
+
+# RMC-14: Resources/Prototypes/_RMC14/Effects/slash.yml
+- type: entity
+  parent: [WeaponArcClaw, RMCBaseEffect]
+  id: RMCWeaponArcXenoClaw
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: TimedDespawn
+    lifetime: 0.4
+  - type: Sprite
+    sprite: _WF/Xenonids/Effects/attacks.rsi
+    noRot: true
+    state: slash
+

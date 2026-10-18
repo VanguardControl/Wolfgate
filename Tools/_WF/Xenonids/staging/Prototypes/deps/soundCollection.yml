@@ -1,0 +1,20 @@
+# RMC-14: Resources/Prototypes/_RMC14/SoundCollections/alienclaw.yml
+- type: soundCollection
+  id: RCMXenoClaw
+  files:
+    - /Audio/_WF/Xenonids/Xeno/alien_claw_block.ogg
+    - /Audio/_WF/Xenonids/Xeno/alien_claw_flesh1.ogg
+    - /Audio/_WF/Xenonids/Xeno/alien_claw_flesh2.ogg
+    - /Audio/_WF/Xenonids/Xeno/alien_claw_flesh3.ogg
+    - /Audio/_WF/Xenonids/Xeno/alien_claw_flesh4.ogg
+    - /Audio/_WF/Xenonids/Xeno/alien_claw_flesh5.ogg
+
+# RMC-14: Resources/Prototypes/_RMC14/Audio/explosion_sound_collections.yml
+- type: soundCollection
+  id: RMCExplosionBig
+  files:
+  - /Audio/_WF/Xenonids/Explosion/bigboom1.ogg
+  - /Audio/_WF/Xenonids/Explosion/bigboom2.ogg
+  - /Audio/_WF/Xenonids/Explosion/bigboom3.ogg
+  - /Audio/_WF/Xenonids/Explosion/bigboom4.ogg
+
