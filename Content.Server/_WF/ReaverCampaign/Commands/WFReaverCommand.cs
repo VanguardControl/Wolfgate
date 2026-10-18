@@ -146,13 +146,13 @@ public sealed partial class WFReaverCommand : LocalizedEntityCommands
             ("spread", Seconds(state?.NextSpread, now)),
             ("raid", Seconds(state?.NextRaid, now))));
 
-        if (_campaign.InLull(state) && state?.LullUntil is { } until)
-            shell.WriteLine(Loc.GetString("cmd-wf_reavers-status-lull", ("minutes", (int) Math.Ceiling((until - now).TotalMinutes))));
+        if (_campaign.IsFinished(state))
+            shell.WriteLine(Loc.GetString("cmd-wf_reavers-status-finished"));
         else if (campaign.Citadel != null && state?.OverrunSince is { } overrun
                  && _campaign.CitadelStanding() == null && _campaign.CitadelConvoy() == null)
             shell.WriteLine(Loc.GetString("cmd-wf_reavers-status-citadel-due", ("seconds", Seconds(overrun + campaign.CitadelDelay, now))));
 
-        if (strongholds.Count == 0)
+        if (strongholds.Count == 0 && !_campaign.IsFinished(state))
             shell.WriteLine(WhyNoStronghold(campaign, state, now));
 
         foreach (var (uid, stronghold, encounter) in strongholds)

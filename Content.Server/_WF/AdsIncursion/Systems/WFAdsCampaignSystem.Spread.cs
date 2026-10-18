@@ -25,7 +25,7 @@ public sealed partial class WFAdsCampaignSystem
     /// <summary>Takes one quiet, unvetoed frontier cell with no station in it within support range of a node; never contests one.</summary>
     public bool TrySpreadOnce()
     {
-        if (Campaign is not { } campaign || State(true) is null)
+        if (Campaign is not { } campaign || State(true) is not { Finished: false })
             return false;
 
         var standing = Nodes();

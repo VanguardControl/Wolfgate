@@ -70,3 +70,20 @@
   engine:
   - RTG
   - APU
+
+- type: vessel
+  id: WFAdsWyvern
+  parent: BaseVesselIFFDisabled
+  name: ADS Wyvern
+  description: A pre-Fracture Automated Defense System dreadnought, a capital hull built to break fortresses. Not for sale; admins and the ADS only.
+  price: 11840000
+  purchasable: false
+  category: Large
+  group: BlackMarket
+  shuttlePath: /SharedMaps/_WF/AdsIncursion/wyvern.yml
+  guidebookPage: null
+  class:
+  - Capital
+  engine:
+  - RTG
+  - APU

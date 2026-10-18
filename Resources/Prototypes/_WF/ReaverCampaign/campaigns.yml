@@ -39,7 +39,6 @@
   citadelExtraLevels: 2
   citadelBountyScale: 3
   citadelRings: 2
-  citadelLull: 45m
   credits:
   - entity: FederationMilitaryCredit1
     companies: [ TSF, TSFCivilian ]
@@ -53,6 +52,8 @@
     path: /Audio/Misc/redalert.ogg
   fallingSound:
     path: /Audio/Misc/notice1.ogg
+  capitalSound:
+    path: /Audio/Misc/gamma.ogg
   risingColor: "#D84A3A"
   fallingColor: "#3FB8AF"
 
@@ -95,7 +96,6 @@
   citadelExtraLevels: 2
   citadelBountyScale: 3
   citadelRings: 2
-  citadelLull: 45m
   credits:
   - entity: FederationMilitaryCredit1
     companies: [ TSF, TSFCivilian ]
@@ -109,6 +109,8 @@
     path: /Audio/Misc/redalert.ogg
   fallingSound:
     path: /Audio/Misc/notice1.ogg
+  capitalSound:
+    path: /Audio/Misc/gamma.ogg
   risingColor: "#D84A3A"
   fallingColor: "#3FB8AF"
 
@@ -151,7 +153,6 @@
   citadelExtraLevels: 2
   citadelBountyScale: 3
   citadelRings: 2
-  citadelLull: 45m
   credits:
   - entity: FederationMilitaryCredit1
     companies: [ TSF, TSFCivilian ]
@@ -165,5 +166,7 @@
     path: /Audio/Misc/redalert.ogg
   fallingSound:
     path: /Audio/Misc/notice1.ogg
+  capitalSound:
+    path: /Audio/Misc/gamma.ogg
   risingColor: "#D84A3A"
   fallingColor: "#3FB8AF"

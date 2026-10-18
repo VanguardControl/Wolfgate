@@ -73,7 +73,7 @@ public sealed partial class WFAdsCampaignSystem
     /// <summary>Sends a node a sentinel now, whatever the caps, unless one is on its way: a gunship from the sector edge that flies to the node and circles it.</summary>
     public bool TrySentinel(EntityUid node)
     {
-        if (Campaign is not { } campaign || State(true) == null
+        if (Campaign is not { } campaign || State(true) is not { Finished: false }
             || !TryComp<WFAdsNodeComponent>(node, out var comp)
             || !TryComp<WFEncounterComponent>(node, out var encounter) || encounter.Resolution != null
             || comp.Inbound != null || LeadGrid(node, comp.Lead) is not { } hub

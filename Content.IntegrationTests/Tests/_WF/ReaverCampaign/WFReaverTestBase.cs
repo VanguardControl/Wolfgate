@@ -97,7 +97,6 @@ public abstract class WFReaverTestBase : WFSectorTestBase
   reinforcements: [ WFTestReaverReinforcement, WFTestReaverReinforcement, WFTestReaverReinforcement, WFTestReaverReinforcement ]
   citadel: WFTestReaverCitadel
   citadelDelay: 3s
-  citadelLull: 2m
   patrol: WFTestReaverPatrol
   raidPack: WFTestReaverPack
   raidBoarders: WFTestReaverBoarders
@@ -316,8 +315,11 @@ public abstract class WFReaverTestBase : WFSectorTestBase
         }
     }
 
-    /// <summary>The sounds a campaign's banners chime with.</summary>
-    protected static readonly string[] BannerSounds = { "/Audio/Misc/redalert.ogg", "/Audio/Misc/notice1.ogg", "/Audio/_WF/AdsIncursion/aimalf.ogg" };
+    /// <summary>The sounds a campaign's banners chime with, and the capital sound played on top of a capital event's.</summary>
+    protected static readonly string[] BannerSounds =
+    {
+        "/Audio/Misc/redalert.ogg", "/Audio/Misc/notice1.ogg", "/Audio/_WF/AdsIncursion/aimalf.ogg", "/Audio/Misc/gamma.ogg",
+    };
 
     /// <summary>Lets the player hear every radio channel, as a headset would, so the watch's radio lines reach their chat log.</summary>
     protected async Task HearRadio()

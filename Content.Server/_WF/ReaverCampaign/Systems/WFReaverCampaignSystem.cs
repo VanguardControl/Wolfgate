@@ -239,7 +239,8 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
             return;
         }
 
-        if (!held)
+        // A finished campaign founds, launches and sends nothing more; what stands fights on until broken.
+        if (!held && !state.Finished)
         {
             TickFounding(campaign, state);
             TickCitadel(campaign, state);
@@ -440,13 +441,15 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
             ("citadels", state.Citadels > 0
                 ? Loc.GetString("wf-reaver-round-end-citadels", ("raised", state.Citadels), ("fallen", state.CitadelsBroken))
                 : string.Empty)));
-        if (state.Defeats > 0)
+        if (state.Finished)
+            args.AddLine(Loc.GetString("wf-reaver-round-end-finished"));
+        else if (state.Defeats > 0)
             args.AddLine(Loc.GetString("wf-reaver-round-end-broken", ("count", state.Defeats)));
         if (state.CellsLost > 0)
             args.AddLine(Loc.GetString("wf-reaver-round-end-lost", ("count", state.CellsLost)));
     }
 
-    /// <summary>Ends every campaign encounter, frees the faction's cells and starts the regroup clock. Returns how many encounters ended.</summary>
+    /// <summary>Ends every campaign encounter, frees the faction's cells, lifts a finished campaign and starts the regroup clock. Returns how many encounters ended.</summary>
     public int ClearCampaign()
     {
         var ended = new List<EntityUid>();
@@ -470,6 +473,7 @@ public sealed partial class WFReaverCampaignSystem : EntitySystem
 
         if (state != null)
         {
+            state.Finished = false;
             state.NoStrongholdSince = state.Founded > 0 ? _timing.CurTime : null;
             state.NextSpread = null;
             state.NextRaid = null;

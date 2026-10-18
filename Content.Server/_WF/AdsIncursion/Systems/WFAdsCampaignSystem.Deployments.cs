@@ -27,7 +27,7 @@ public sealed partial class WFAdsCampaignSystem
     public bool TryLaunchDeployment(out EntityUid deployment)
     {
         deployment = default;
-        if (Campaign is not { } campaign || State(true) == null || Deployments().Count > 0)
+        if (Campaign is not { } campaign || State(true) is not { Finished: false } || Deployments().Count > 0)
             return false;
 
         var standing = Nodes();
@@ -41,7 +41,7 @@ public sealed partial class WFAdsCampaignSystem
     {
         deployment = default;
         var map = _territory.SectorMap;
-        if (Campaign is not { } campaign || State(true) == null || HasStation(map, target)
+        if (Campaign is not { } campaign || State(true) is not { Finished: false } || HasStation(map, target)
             || !_prototypes.TryIndex(campaign.Deployment, out var prototype) || prototype.Ships.Count == 0)
             return false;
 

@@ -68,6 +68,9 @@ public sealed partial class WFAdsCampaignSystem
     /// <summary>When a founding is due with none standing: the first after the stations generate, a regroup after the last node fell; null if that clock has not started.</summary>
     public TimeSpan? FoundingDue(WFAdsCampaignPrototype campaign, WFAdsCampaignComponent? state)
     {
+        if (state is { Finished: true })
+            return null;
+
         if (state == null || state.Founded == 0)
             return _stationsAt is { } at ? at + campaign.FirstNodeDelay : null;
 
@@ -78,7 +81,7 @@ public sealed partial class WFAdsCampaignSystem
     public bool TryFound(out EntityUid node)
     {
         node = default;
-        if (Campaign is not { } campaign || State(true) == null)
+        if (Campaign is not { } campaign || State(true) is not { Finished: false })
             return false;
 
         var standing = Nodes();
@@ -96,7 +99,7 @@ public sealed partial class WFAdsCampaignSystem
     public bool TryFoundAt(MapCoordinates at, out EntityUid node)
     {
         node = default;
-        if (Campaign is not { } campaign || State(true) is not { } state
+        if (Campaign is not { } campaign || State(true) is not { Finished: false } state
             || !_prototypes.TryIndex(campaign.Node, out var prototype) || prototype.Ships.Count == 0
             || HasStation(at.MapId, _territory.CellOf(at)))
             return false;
@@ -382,10 +385,10 @@ public sealed partial class WFAdsCampaignSystem
         AnnounceDefeat(campaign, state);
     }
 
-    /// <summary>Announces the ADS gone dormant when the last node has broken with no deployment out to found another.</summary>
+    /// <summary>Announces the ADS gone dormant when the last node has broken with no deployment out to found another; a finished campaign has had its ending.</summary>
     private void AnnounceDefeat(WFAdsCampaignPrototype campaign, WFAdsCampaignComponent state)
     {
-        if (state.Defeated || Nodes().Count > 0 || Deployments().Count > 0)
+        if (state.Finished || state.Defeated || Nodes().Count > 0 || Deployments().Count > 0)
             return;
 
         state.Defeated = true;

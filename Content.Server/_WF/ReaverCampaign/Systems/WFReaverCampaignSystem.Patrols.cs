@@ -79,7 +79,7 @@ public sealed partial class WFReaverCampaignSystem
     private bool TryLaunchPatrol(EntityUid stronghold, out EntityUid uid)
     {
         uid = default;
-        if (Campaign is not { } campaign
+        if (Campaign is not { } campaign || State() is { Finished: true }
             || !TryComp<WFReaverStrongholdComponent>(stronghold, out var comp)
             || !TryComp<WFEncounterComponent>(stronghold, out var encounter) || encounter.Resolution != null
             || !_prototypes.TryIndex(campaign.Patrol, out var prototype) || prototype.Ships.Count == 0)

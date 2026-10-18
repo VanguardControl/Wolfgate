@@ -4,14 +4,19 @@ using Content.Server._WF.ReaverCampaign.Components;
 using Content.Shared._WF.ReaverCampaign;
 using Content.Shared.Radio;
 using Content.Shared.Radio.Components;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.ReaverCampaign.Systems;
 
 public sealed partial class WFReaverCampaignSystem
 {
+    [Dependency] private SharedAudioSystem _audio = default!;
+
     private static readonly ProtoId<RadioChannelPrototype> WarningChannel = "Common";
 
     /// <summary>How long a quiet banner holds the next one back; a quiet banner inside it goes out on the radio instead.</summary>
@@ -23,6 +28,12 @@ public sealed partial class WFReaverCampaignSystem
         _chat.DispatchGlobalAnnouncement(message, Loc.GetString("wf-reaver-watch"), playSound: chime,
             announcementSound: chime ? rising ? campaign.RisingSound : campaign.FallingSound : null,
             colorOverride: rising ? campaign.RisingColor : campaign.FallingColor);
+    }
+
+    /// <summary>Plays the campaign's capital sound to everyone, on top of a capital event's chime.</summary>
+    private void PlayCapital(WFReaverCampaignPrototype campaign)
+    {
+        _audio.PlayGlobal(_audio.ResolveSound(campaign.CapitalSound), Filter.Broadcast(), true, AudioParams.Default.WithVolume(-2f));
     }
 
     /// <summary>A banner to everyone with no sound, at most one per <see cref="QuietBannerInterval"/>; inside the window it goes out on the radio.</summary>

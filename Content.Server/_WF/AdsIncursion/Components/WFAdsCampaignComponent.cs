@@ -91,4 +91,23 @@ public sealed partial class WFAdsCampaignComponent : Component
     /// <summary>How many times the ADS went dormant this round.</summary>
     [ViewVariables]
     public int Defeats;
+
+    /// <summary>Since when the campaign has stood at tier 5; null below it.</summary>
+    [ViewVariables]
+    public TimeSpan? OverrunSince;
+
+    /// <summary>Dreadnoughts activated this round.</summary>
+    [ViewVariables]
+    public int Dreadnoughts;
+
+    [ViewVariables]
+    public int DreadnoughtsDestroyed;
+
+    /// <summary>Reaver strongholds broken with a dreadnought among their attackers.</summary>
+    [ViewVariables]
+    public int StrongholdsBroken;
+
+    /// <summary>Whether the dreadnought has been destroyed: the ADS founds, launches and sends nothing more this round, and what stands fights on until broken.</summary>
+    [ViewVariables]
+    public bool Finished;
 }

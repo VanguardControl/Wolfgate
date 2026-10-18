@@ -140,6 +140,18 @@ public sealed partial class WFAdsCampaignPrototype : IPrototype
     [DataField]
     public ProtoId<WFEncounterPrototype> Interdictor = "WFAdsInterdictor";
 
+    /// <summary>The tier 5 dreadnought, sent against the Reavers' strongholds; null for none.</summary>
+    [DataField]
+    public ProtoId<WFEncounterPrototype>? Dreadnought;
+
+    /// <summary>How long the campaign must stand at tier 5 before the dreadnought is activated.</summary>
+    [DataField]
+    public TimeSpan DreadnoughtDelay = TimeSpan.FromMinutes(10);
+
+    /// <summary>Spesos for destroying the dreadnought, which finishes the ADS for the round.</summary>
+    [DataField]
+    public int DreadnoughtBounty = 400000;
+
     /// <summary>Played with a rising tier, a founding and a regroup.</summary>
     [DataField]
     public SoundSpecifier RisingSound = new SoundPathSpecifier("/Audio/Misc/redalert.ogg");
@@ -147,6 +159,10 @@ public sealed partial class WFAdsCampaignPrototype : IPrototype
     /// <summary>Played with a falling tier and a broken node.</summary>
     [DataField]
     public SoundSpecifier FallingSound = new SoundPathSpecifier("/Audio/Misc/notice1.ogg");
+
+    /// <summary>Played on top of the chime for a capital event: the dreadnought activated.</summary>
+    [DataField]
+    public SoundSpecifier CapitalSound = new SoundPathSpecifier("/Audio/Misc/gamma.ogg");
 
     [DataField]
     public Color RisingColor = Color.FromHex("#9B4DFF");

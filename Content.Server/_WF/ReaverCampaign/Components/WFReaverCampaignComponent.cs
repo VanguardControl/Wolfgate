@@ -97,9 +97,9 @@ public sealed partial class WFReaverCampaignComponent : Component
     [ViewVariables]
     public TimeSpan? OverrunSince;
 
-    /// <summary>Until when the Reavers are scattered after a citadel fell: no founding, convoy or raid.</summary>
+    /// <summary>Whether the citadel has fallen: the Reavers found, launch and send nothing more this round, and what stands fights on until broken.</summary>
     [ViewVariables]
-    public TimeSpan? LullUntil;
+    public bool Finished;
 
     /// <summary>Citadels raised this round.</summary>
     [ViewVariables]

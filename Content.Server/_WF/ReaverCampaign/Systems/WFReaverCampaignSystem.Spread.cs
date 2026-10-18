@@ -30,7 +30,7 @@ public sealed partial class WFReaverCampaignSystem
     /// <summary>Takes one quiet, unvetoed frontier cell within support range of a stronghold; a station cell is contested as a blockade.</summary>
     public bool TrySpreadOnce()
     {
-        if (Campaign is not { } campaign || State(true) is null)
+        if (Campaign is not { } campaign || State(true) is not { Finished: false })
             return false;
 
         var standing = Strongholds();

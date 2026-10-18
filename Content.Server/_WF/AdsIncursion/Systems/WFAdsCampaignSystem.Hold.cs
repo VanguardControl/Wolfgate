@@ -56,6 +56,14 @@ public sealed partial class WFAdsCampaignSystem
             comp.Overdue += span;
         }
 
+        if (_nextDreadnoughtTry != TimeSpan.Zero)
+            _nextDreadnoughtTry += span;
+
+        foreach (var (_, comp, _) in Dreadnoughts())
+        {
+            comp.NextLook += span;
+        }
+
         // The event runner holds every encounter's own timers when it is paused; otherwise the campaign holds its own.
         if (!_scheduler.Paused)
         {
@@ -80,6 +88,7 @@ public sealed partial class WFAdsCampaignSystem
         state.NoNodeSince += span;
         state.NextSpread += span;
         state.NextChallenge += span;
+        state.OverrunSince += span;
         Shift(state.InsideSince, span);
         Shift(state.InterdictCooldowns, span);
     }

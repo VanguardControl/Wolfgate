@@ -44,11 +44,12 @@ are at war with it too). NPC faction `WFAds` (`ai_factions.yml`): `defaultHostil
 ## Hulls and crews
 
 The hulls are copies of Mono's ADS maps in `Resources/SharedMaps/_WF/AdsIncursion/` (vessel grids must live in
-`SharedMaps`): `nebula.yml`, `wyrm.yml`, `zenith.yml`, `razorn.yml`. The copies lose their ghost-role spawners
-(`SpawnRedactedBorg`, `SpawnRedactedBorgPlaytime`, `PlayerStationAiRedacted`): a ghost at the helm of a node would fly
-the threat away. The turret-mob spawners (`SpawnMobWeaponTurret*`) stay: an automated hull defends its decks. Vessel
-prototypes `WFAdsNebula`, `WFAdsWyrm`, `WFAdsZenith`, `WFAdsRazorN` (`vessels.yml`), parent `BaseVesselIFFDisabled`,
-`purchasable: false`, as `WFChengdu` is.
+`SharedMaps`): `nebula.yml`, `wyrm.yml`, `zenith.yml`, `razorn.yml`, `wyvern.yml`. The copies lose their ghost-role
+spawners (`SpawnRedactedBorg`, `SpawnRedactedBorgPlaytime`, `PlayerStationAiRedacted`, and the Wyvern's
+`StationAiUploadComputerUnlocked`): a ghost at the helm of a node would fly the threat away. The turret-mob spawners (`SpawnMobWeaponTurret*`) stay: an automated hull defends its decks. Vessel
+prototypes `WFAdsNebula`, `WFAdsWyrm`, `WFAdsZenith`, `WFAdsRazorN`, `WFAdsWyvern` (`vessels.yml`), parent
+`BaseVesselIFFDisabled`, `purchasable: false`, as `WFChengdu` is. The Wyvern is class Capital, priced 11,840,000 just
+above its appraisal so the shipyard arbitrage test holds.
 
 | hull | guns | role |
 |---|---|---|
@@ -56,6 +57,7 @@ prototypes `WFAdsNebula`, `WFAdsWyrm`, `WFAdsZenith`, `WFAdsRazorN` (`vessels.ym
 | Wyrm | Entropy torpedo, Tartarus, Flayer | sentinel, sweep, interdictor |
 | Zenith | Sunder, Scythe, Reaper, Flayer; shield | reserved: a fortified node at tier 5 (not built in this pass) |
 | Razor N | none; scuttle charge | not used by the campaign |
+| Wyvern | capital batteries; turret mobs | the tier 5 dreadnought |
 
 Crews are `WFCrewProfileAds` (`profiles.yml`): automatons. Bodies are an IPC crew body (`WFMobCrewBodyIpc`, the IPC
 mob base with `MobPrying` and `WFCrewKit`, built as `WFMobCrewBodyHuman` is) if the IPC base takes the crew kit
@@ -91,6 +93,9 @@ interrogating ship turns on no rival encounter ship by itself either; it answers
 - `WFAdsInterdictor`: lead Wyrm, Persistent, `evades: false`, warn 1200 m, attack 700 m, `objectives: [ Hold ]` once
   arrived. The conflict boat (below).
 - `WFAdsDeployment`: lead Nebula, Persistent; a later node flying out from a standing one, as a Reaver convoy.
+- `WFAdsDreadnought`: lead Wyvern, Persistent, `platform: false` (a ship under way), `evades: false`, deckhands 8,
+  guards 6, engineer, `cargo: 4` of `WFManifestAdsTech`, `fuelStores: 24`, skill Veteran, warn 2500 m, attack 1500 m,
+  `icon: Skull`, no leash. The campaign gives its orders (below).
 
 The Reavers gain `WFReaverResponsePack` (`Resources/Prototypes/_WF/ReaverCampaign/encounters.yml`): raider and wing as
 `WFReaverRaidPack`, Transient, `duration: 3600`.
@@ -137,7 +142,8 @@ DIRECTIVE. ADS interdictor closing on Hauler to query it, bearing 045, 3.2 km." 
 it. Ends when the target is disabled, gone, 20 s out of held space or 20 s out of reach; then the sweep flies on
 and the ship gets `interdictCooldown`. Capped by `interdicts[tier]`. No marks, no raids.
 
-**Threat.** Score = nodes × 10 + held cells + 20 × (1 − nearest held cell's distance / 27 000). Tiers from
+**Threat.** Score = nodes × 10 + held cells + 20 × (1 − nearest held cell's distance / 27 000), + 10 while the
+dreadnought is out. Tiers from
 `tierThresholds`: Dormant, Waking, Active, Alert, Fortified, Overrun. Rise at once, fall after 10 min under, never
 within 10 min of the last announcement. Announcer `wf-ads-watch` (the sector watch), rising `/Audio/Misc/redalert.ogg`
 in purple, falling `/Audio/Misc/notice1.ogg` in teal. Legend: "Automated Defense System: Active, 2 nodes, 14 cells,
@@ -145,9 +151,10 @@ bounty 100,000".
 
 **Announcements.** The sector watch speaks in three tiers so a banner stays rare. A **chimed banner** (global, rising
 or falling sound and colour) is for tier changes, a node founded (first, regrouped or deployment arrived), a node broken
-and the ADS going dormant; a rising one is sent as "Anomaly Alert" with the malfunctioning-AI klaxon from Meridian Rift
+and the ADS going dormant or finished; a rising one is sent as "Anomaly Alert" with the malfunctioning-AI klaxon from Meridian Rift
 (`/Audio/_WF/AdsIncursion/aimalf.ogg`), a falling one by the sector watch with the notice tone. Every ADS banner is set in the
-synthetic readout face, Minecraftia as font `WFAdsSynth` (its own wrap, `wf-ads-announcement-wrap`, since the chat system escapes markup in a message),
+synthetic readout face. The capital event, the dreadnought activated, also plays the campaign's `capitalSound`
+(`/Audio/Misc/gamma.ogg`, the alert-level sound) on top of its chime; its destruction keeps the falling chime alone. Minecraftia as font `WFAdsSynth` (its own wrap, `wf-ads-announcement-wrap`, since the chat system escapes markup in a message),
 and the watch entity speaks with the `WFAdsSynth` verb, so its radio lines read the same way. A **quiet banner** (global, no sound) is for a deployment under way or stopped and a challenge
 launched; at most one goes out per campaign every 5 minutes (`QuietBannerInterval`, `LastQuietBanner` on the
 campaign), and one inside the window is sent as a radio line instead, never dropped. Everything routine is a **radio
@@ -158,7 +165,7 @@ Zone, interdict and ship warnings are unchanged.
 **Retakes, clearing, disputes, pause, presence, round summary, admin command** as the Reaver campaign: a standing
 node's cell is never retaken; freed cells clear; every campaign ship's cell is reported with `SetPresence` each tick
 and a disputed cell holds the node's sentinel clock and a deployment's deadline; `wf_ads status | found [x y] | deploy |
-sentinel <node uid> | tier <n> | spread | sweep | interdict <grid uid> | challenge [q r] | pause | resume | clear`.
+sentinel <node uid> | tier <n> | spread | sweep | interdict <grid uid> | challenge [q r] | dreadnought | pause | resume | clear`.
 
 | | Quiet | Standard | Dangerous |
 |---|---|---|---|
@@ -182,8 +189,53 @@ sentinel <node uid> | tier <n> | spread | sweep | interdict <grid uid> | challen
 | nodeBounty by tier | 50k, 75k, 100k, 130k, 170k, 220k (all) | | |
 | sweepBounty / interdictorBounty | 18k / 30k | | |
 | retakeBounty by tier | 8k–20k as the Reavers' Quiet/Standard/Dangerous ladders | | |
+| dreadnoughtDelay | 20 min | 10 min | 6 min |
+| dreadnoughtBounty | 400k | 400k | 400k |
 
 Credits as the Reavers' (`FederationMilitaryCredit1` for TSF, `Doubloon1` for PDV; node 30, sweep 10).
+
+## Dreadnought
+
+The capstone of an Overrun round: one capital hull with one directive, the Ashfall Reavers' strongholds, fought over as
+the round's set piece and the ADS's end. Off when the campaign's `dreadnought` is null.
+
+**Activated.** `OverrunSince` on the campaign state marks when tier 5 was reached and is cleared when the tier drops.
+Once the campaign has stood at tier 5 for `dreadnoughtDelay`, with no dreadnought out and the campaign not finished, it
+activates one (`TryLaunchDreadnought`) off budget at a clear point 600–1000 m from the strongest standing node's lead:
+most sentinels alive, else nearest the origin. `WFAdsDreadnoughtComponent` holds its source node, its target and when
+it set out, and `Dreadnoughts` counts it. The system announces it as an anomaly alert, a chimed rising banner with the
+capital sound on top: "DIRECTIVE UPDATE. Dreadnought-class asset activated at K-7. Hostile strongholds will be
+neutralised." An activation that finds no node or no clear point is tried again after a minute. `wf_ads dreadnought`
+activates one now at any tier and past no delay, but never a second while one is out.
+
+**Hunting.** Its target is the nearest standing Reaver stronghold (`WFReaverCampaignSystem.Strongholds()`); the citadel
+counts as one and is preferred whenever it stands. Orders: `GoTo` the hub (800 m), then `Attack` the hub's lead hull.
+When that stronghold resolves or its hub is gone it sets on the next; with none standing it flies `GoTo` the nearest
+node (1000 m) and `Hold`, and looks again once a minute. Its cell is reported as ADS presence like any ADS ship, but a
+dispute in its cell holds nothing: it is a ship under way. It fires on Reaver reinforcements, patrols and packs only
+when they fire on it, through its crew's own alert, and on a player ship only by the interrogation rules (YES, or fire
+first).
+
+**The Reavers answer it.** A Reaver hub counts only player hits in its encounter's `ShipHits`, so the dreadnought's
+own hull and shield hits on a hub or its reinforcements are counted in the hub's `NpcHits`
+(`WFReaverCampaignSystem.RecordCampaignHit`, fed by the ADS system from `WFCrewHullHitEvent` and
+`WFShipShieldAttackedEvent`). They add to the hub's `Hits`, so a fresh one breaks its reinforcements away at the
+dreadnought and, with none docked, sends a sortie pack after it (unwarned: there is nobody aboard to warn), exactly as a
+player's would; its crew's alert already makes the hub's gunners fire back. They pay nothing and mark nothing, and a hub
+brought down by them is broken (`Destroyed`), not starved. A stronghold broken with a dreadnought among its attackers is
+announced through the Reaver side as any broken stronghold and counted in `StrongholdsBroken` for the ADS round summary.
+
+**Destroyed.** Out of the fight as a node is (lead out of the fight), it resolves `Destroyed`, pays `dreadnoughtBounty`
+to those who hit it with the credits' node amounts, and the sector watch says with the falling chime "The ADS
+dreadnought is destroyed at K-7. Bounty n thalers paid. The Automated Defense System has gone dormant for good." That
+is the ending: it does not come back. `DreadnoughtsDestroyed` counts it and `Finished` on the state is set, holding
+until `wf_ads clear` or the round restarts. While it holds the campaign founds, regroups, spreads and launches nothing:
+no deployment (one under way is recalled, as it would found a node), sentinel, sweep, interdiction, challenge or
+dreadnought, by the tick or by the `Try` methods. Nodes, sentinels, sweeps, interdictors and pickets still out fight on
+until they are broken, and their cells free as usual. The tier still follows the score, but a rise is never announced
+again, and the last node breaking adds no "dormant" line. The legend reads "finished", `wf_ads status` says so, and the
+round summary notes it with the dreadnought counts. Ended by an admin or the round, it pays, announces and finishes
+nothing.
 
 ## Sector conflict
 

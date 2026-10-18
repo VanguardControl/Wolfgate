@@ -10,7 +10,7 @@ public sealed partial class WFReaverCampaignSystem
     /// <summary>When the next citadel launch may be tried after one found no cell or no clear point.</summary>
     private TimeSpan _nextCitadelTry;
 
-    /// <summary>Sends the citadel out once the campaign has stood at tier 5 for the delay, with none standing or under way and no lull.</summary>
+    /// <summary>Sends the citadel out once the campaign has stood at tier 5 for the delay, with none standing or under way.</summary>
     private void TickCitadel(WFReaverCampaignPrototype campaign, WFReaverCampaignComponent state)
     {
         if (campaign.Citadel == null)
@@ -24,7 +24,7 @@ public sealed partial class WFReaverCampaignSystem
         }
 
         var since = state.OverrunSince ??= now;
-        if (now < since + campaign.CitadelDelay || now < _nextCitadelTry || InLull(state)
+        if (now < since + campaign.CitadelDelay || now < _nextCitadelTry || state.Finished
             || CitadelStanding() != null || CitadelConvoy() != null)
             return;
 
@@ -32,11 +32,11 @@ public sealed partial class WFReaverCampaignSystem
             _nextCitadelTry = now + FoundRetry;
     }
 
-    /// <summary>Sends the citadel convoy now from the highest-level stronghold to the next held edge cell, whatever the tier; one citadel at a time, none in a lull.</summary>
+    /// <summary>Sends the citadel convoy now from the highest-level stronghold to the next held edge cell, whatever the tier; one citadel at a time, none once finished.</summary>
     public bool TryLaunchCitadel(out EntityUid convoy)
     {
         convoy = default;
-        if (Campaign is not { Citadel: not null } campaign || State(true) is not { } state || InLull(state)
+        if (Campaign is not { Citadel: not null } campaign || State(true) is not { } state || state.Finished
             || CitadelStanding() != null || CitadelConvoy() != null)
             return false;
 
@@ -76,21 +76,10 @@ public sealed partial class WFReaverCampaignSystem
         return Convoys().Count(convoy => !convoy.Comp1.Citadel);
     }
 
-    /// <summary>Whether the Reavers are scattered after a citadel fell.</summary>
-    public bool InLull(WFReaverCampaignComponent? state)
+    /// <summary>Whether the citadel has fallen this round, which finishes the Reavers.</summary>
+    public bool IsFinished(WFReaverCampaignComponent? state)
     {
-        return state?.LullUntil is { } until && _timing.CurTime < until;
-    }
-
-    /// <summary>Starts the lull after a citadel falls: no founding, convoy or raid, and the founding, regroup and raid clocks pushed past it.</summary>
-    private void StartLull(WFReaverCampaignPrototype campaign, WFReaverCampaignComponent state)
-    {
-        var lull = campaign.CitadelLull;
-        state.LullUntil = _timing.CurTime + lull;
-        state.LastFounded += lull;
-        state.NoStrongholdSince += lull;
-        state.NextRaid += lull;
-        AnnounceRadio(Loc.GetString("wf-reaver-citadel-lull"));
+        return state is { Finished: true };
     }
 
     /// <summary>The highest level a stronghold may reach at the current tier: the citadel's lifted by its extra levels.</summary>

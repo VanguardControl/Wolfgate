@@ -44,11 +44,11 @@ public sealed partial class WFReaverCampaignSystem
         return convoys;
     }
 
-    /// <summary>Sends a convoy to the held cell the rules pick next, unless an ordinary one is already under way or the Reavers are in a lull.</summary>
+    /// <summary>Sends a convoy to the held cell the rules pick next, unless an ordinary one is already under way or the Reavers are finished.</summary>
     public bool TryLaunchConvoy(out EntityUid convoy)
     {
         convoy = default;
-        if (Campaign is not { } campaign || State(true) is not { } state || OrdinaryConvoys() > 0 || InLull(state))
+        if (Campaign is not { } campaign || State(true) is not { } state || OrdinaryConvoys() > 0 || state.Finished)
             return false;
 
         var standing = Strongholds();
@@ -65,12 +65,12 @@ public sealed partial class WFReaverCampaignSystem
 
     /// <summary>
     /// Sends a hub out to found itself in a cell: a stronghold from the standing one nearest the cell, or the citadel from
-    /// the highest-level one. Contests the cell and announces it; refused in a lull.
+    /// the highest-level one. Contests the cell and announces it; refused once finished.
     /// </summary>
     public bool TryLaunchConvoy(WFSectorCell target, out EntityUid convoy, bool citadel)
     {
         convoy = default;
-        if (Campaign is not { } campaign || State(true) is not { } state || InLull(state)
+        if (Campaign is not { } campaign || State(true) is not { } state || state.Finished
             || (citadel ? campaign.Citadel : campaign.Stronghold) is not { } prototypeId
             || !_prototypes.TryIndex(prototypeId, out var prototype) || prototype.Ships.Count == 0)
             return false;
@@ -113,11 +113,22 @@ public sealed partial class WFReaverCampaignSystem
             _territory.Contest(map, target, campaign.Faction, _timing.CurTime + ConvoyEta(start, goal), uid);
 
             var (station, bearing, range) = Place(map, goal);
-            AnnounceQuiet(campaign, Loc.GetString(citadel ? "wf-reaver-citadel-launched" : "wf-reaver-convoy-launched",
+            var launched = Loc.GetString(citadel ? "wf-reaver-citadel-launched" : "wf-reaver-convoy-launched",
                 ("callsign", WFSectorHex.Callsign(target)),
                 ("station", station),
                 ("bearing", bearing),
-                ("range", range)), true);
+                ("range", range));
+
+            // The citadel setting out is a capital event: a chimed banner with the capital sound on top.
+            if (citadel)
+            {
+                Announce(campaign, launched, true);
+                PlayCapital(campaign);
+            }
+            else
+            {
+                AnnounceQuiet(campaign, launched, true);
+            }
             Log.Info($"Reaver {(citadel ? "citadel convoy" : "convoy")} {ToPrettyString(uid)} launched from {ToPrettyString(source.Owner)} for {WFSectorHex.Callsign(target)}.");
             convoy = uid;
             return true;

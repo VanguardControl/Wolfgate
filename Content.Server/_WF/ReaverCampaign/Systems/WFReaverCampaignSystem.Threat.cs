@@ -102,11 +102,16 @@ public sealed partial class WFReaverCampaignSystem
         var rising = tier > state.Tier;
         state.Tier = tier;
         state.BelowSince = null;
-        state.TierAnnounced = _timing.CurTime;
         if (tier >= MaxTier)
             state.OverrunSince ??= _timing.CurTime;
         else
             state.OverrunSince = null;
+
+        // A finished campaign never announces a rise again.
+        if (rising && state.Finished)
+            return;
+
+        state.TierAnnounced = _timing.CurTime;
 
         Announce(campaign, Loc.GetString(rising ? "wf-reaver-tier-rising" : "wf-reaver-tier-falling",
             ("tier", TierName(tier)),
@@ -129,6 +134,13 @@ public sealed partial class WFReaverCampaignSystem
         }
 
         var faction = _prototypes.TryIndex(campaign.Faction, out var prototype) ? Loc.GetString(prototype.Name) : campaign.Faction.Id;
+        if (state.Finished)
+        {
+            _sync.SetStatus(campaign.Faction, Loc.GetString("wf-reaver-legend-finished", ("faction", faction), ("strongholds", strongholds), ("cells", cells)));
+            _legend = campaign.Faction;
+            return;
+        }
+
         if (state.Defeated && strongholds == 0)
         {
             _sync.SetStatus(campaign.Faction, Loc.GetString("wf-reaver-legend-broken", ("faction", faction), ("cells", cells)));

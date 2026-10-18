@@ -45,7 +45,7 @@ public sealed partial class WFAdsCampaignSystem
     public bool TryChallenge(out EntityUid interdictor)
     {
         interdictor = default;
-        if (Campaign is not { } campaign || State(true) == null || Nodes().Count == 0)
+        if (Campaign is not { } campaign || State(true) is not { Finished: false } || Nodes().Count == 0)
             return false;
 
         foreach (var cell in ChallengeCells(campaign))
@@ -134,7 +134,7 @@ public sealed partial class WFAdsCampaignSystem
     {
         interdictor = default;
         var map = _territory.SectorMap;
-        if (Campaign is not { } campaign || State(true) is not { } state || !CanChallenge(campaign, map, target)
+        if (Campaign is not { } campaign || State(true) is not { Finished: false } state || !CanChallenge(campaign, map, target)
             || _territory.Owner(map, target) is not { } holder
             || !_prototypes.TryIndex(campaign.Interdictor, out var prototype) || prototype.Ships.Count == 0)
             return false;

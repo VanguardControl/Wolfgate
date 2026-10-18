@@ -5,9 +5,11 @@ using Content.Server._WF.AdsIncursion.Components;
 using Content.Server._WF.Encounters;
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.Encounters.Systems;
+using Content.Server._WF.NpcCrew;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server._WF.SectorControl;
 using Content.Server._WF.SectorControl.Systems;
+using Content.Server._WF.ShipShields;
 using Content.Server.Chat.Systems;
 using Content.Server.GameTicking;
 using Content.Server.Radio.EntitySystems;
@@ -152,6 +154,8 @@ public sealed partial class WFAdsCampaignSystem : EntitySystem
         SubscribeLocalEvent<WFSectorCellClearingEvent>(OnClearing);
         SubscribeLocalEvent<WFSectorContestResolvedEvent>(OnContestResolved);
         SubscribeLocalEvent<RoundEndTextAppendEvent>(OnRoundEndText);
+        SubscribeLocalEvent<WFCrewHullHitEvent>(OnHullHit);
+        SubscribeLocalEvent<WFShipShieldAttackedEvent>(OnShieldHit);
     }
 
     private void OnPrototypesReloaded(PrototypesReloadedEventArgs args)
@@ -171,6 +175,7 @@ public sealed partial class WFAdsCampaignSystem : EntitySystem
         _nextTick = TimeSpan.Zero;
         _lastTick = TimeSpan.Zero;
         _nextFoundTry = TimeSpan.Zero;
+        _nextDreadnoughtTry = TimeSpan.Zero;
         _legend = null;
         _clearingPending.Clear();
         _campaignDirty = true;
@@ -221,13 +226,15 @@ public sealed partial class WFAdsCampaignSystem : EntitySystem
         TendInterdicts(state);
         TendChallenges(state, !held);
         TendPickets();
+        TendDreadnoughts();
         if (!running || Campaign is not { } campaign)
         {
             ClearLegend();
             return;
         }
 
-        if (!held)
+        // A finished campaign founds, launches and sends nothing more; what stands fights on until broken.
+        if (!held && !state.Finished)
         {
             TickFounding(campaign, state);
             TickSentinels(campaign, state);
@@ -235,6 +242,7 @@ public sealed partial class WFAdsCampaignSystem : EntitySystem
             TickSweeps(campaign, state);
             TickInterdicts(campaign, state, ships);
             TickChallenges(campaign, state);
+            TickDreadnought(campaign, state);
         }
 
         Recompute();
@@ -434,6 +442,10 @@ public sealed partial class WFAdsCampaignSystem : EntitySystem
             InterdictorResolved((args.Encounter, interdictor), args.Resolution);
         else if (TryComp<WFAdsPicketComponent>(args.Encounter, out var picket))
             PicketResolved((args.Encounter, picket), args.Resolution);
+        else if (TryComp<WFAdsDreadnoughtComponent>(args.Encounter, out var dreadnought))
+            DreadnoughtResolved((args.Encounter, dreadnought), args.Resolution);
+        else
+            StrongholdResolved(args.Encounter, args.Resolution);
     }
 
     private void OnRoundEndText(RoundEndTextAppendEvent args)
@@ -456,18 +468,29 @@ public sealed partial class WFAdsCampaignSystem : EntitySystem
                 ("lost", state.ChallengesLost)));
         }
 
-        if (state.Defeats > 0)
+        if (state.Dreadnoughts > 0)
+        {
+            args.AddLine(Loc.GetString("wf-ads-round-end-dreadnought",
+                ("activated", state.Dreadnoughts),
+                ("destroyed", state.DreadnoughtsDestroyed),
+                ("strongholds", state.StrongholdsBroken)));
+        }
+
+        if (state.Finished)
+            args.AddLine(Loc.GetString("wf-ads-round-end-finished"));
+        else if (state.Defeats > 0)
             args.AddLine(Loc.GetString("wf-ads-round-end-dormant", ("count", state.Defeats)));
     }
 
-    /// <summary>Whether an encounter is an ADS node, sentinel, sweep, deployment, interdictor or picket.</summary>
+    /// <summary>Whether an encounter is an ADS node, sentinel, sweep, deployment, interdictor, picket or dreadnought.</summary>
     private bool IsCampaignEncounter(EntityUid uid)
     {
         return HasComp<WFAdsNodeComponent>(uid) || HasComp<WFAdsSentinelComponent>(uid) || HasComp<WFAdsSweepComponent>(uid)
-            || HasComp<WFAdsDeploymentComponent>(uid) || HasComp<WFAdsInterdictorComponent>(uid) || HasComp<WFAdsPicketComponent>(uid);
+            || HasComp<WFAdsDeploymentComponent>(uid) || HasComp<WFAdsInterdictorComponent>(uid) || HasComp<WFAdsPicketComponent>(uid)
+            || HasComp<WFAdsDreadnoughtComponent>(uid);
     }
 
-    /// <summary>Ends every campaign encounter, frees the faction's cells and starts the regroup clock. Returns how many encounters ended.</summary>
+    /// <summary>Ends every campaign encounter, frees the faction's cells, lifts a finished campaign and starts the regroup clock. Returns how many encounters ended.</summary>
     public int ClearCampaign()
     {
         var ended = new List<EntityUid>();
@@ -489,6 +512,7 @@ public sealed partial class WFAdsCampaignSystem : EntitySystem
 
         if (state != null)
         {
+            state.Finished = false;
             state.NoNodeSince = state.Founded > 0 ? _timing.CurTime : null;
             state.NextSpread = null;
             state.NextChallenge = null;

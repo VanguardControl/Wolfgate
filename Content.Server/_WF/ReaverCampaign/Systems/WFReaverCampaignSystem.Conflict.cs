@@ -50,7 +50,7 @@ public sealed partial class WFReaverCampaignSystem
     {
         pack = default;
         var map = _territory.SectorMap;
-        if (Campaign is not { } campaign || State(true) == null
+        if (Campaign is not { } campaign || State(true) is not { Finished: false }
             || _territory.ContestOf(map, cell) is not { Holder: { } holder } contest || holder != campaign.Faction
             || Responses().Any(response => response.Comp1.Cell == cell && !response.Comp1.Returning)
             || !_prototypes.TryIndex(campaign.ResponsePack, out var prototype) || prototype.Ships.Count == 0)

@@ -15,17 +15,15 @@ using Content.Shared._WF.ReaverCampaign;
 using Content.Shared._WF.SectorControl;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.ReaverCampaign;
 
-/// <summary>The tier 5 citadel: it sets out after the delay at Overrun, raises a bigger stronghold, pays a scaled bounty and leaves a lull when it falls.</summary>
+/// <summary>The tier 5 citadel: it sets out after the delay at Overrun, raises a bigger stronghold, pays a scaled bounty and finishes the Reavers when it falls.</summary>
 [TestOf(typeof(WFReaverCampaignSystem))]
 public sealed class WFReaverCitadelTest : WFReaverTestBase
 {
-    /// <summary>The test campaign's citadel lull.</summary>
-    private static readonly TimeSpan Lull = TimeSpan.FromMinutes(2);
-
     /// <summary>Lifts the hourly payout cap for the bounty checks, so earlier tests on a pooled pair cannot cut them short.</summary>
     [SetUp]
     public async Task LiftPayoutCap()
@@ -216,7 +214,9 @@ public sealed class WFReaverCitadelTest : WFReaverTestBase
             Board(ship);
             (_, target) = Prepare();
             campaign.SetTier(WFReaverCampaignSystem.MaxTier);
+            var chimes = Chimes();
             Assert.That(campaign.TryLaunchCitadel(out var convoy), Is.True);
+            Assert.That(Chimes() - chimes, Is.EqualTo(2), "The setting out chimes and plays the capital sound.");
             ShootAt(convoy, "lead", ship);
             before = Balance();
 
@@ -225,7 +225,7 @@ public sealed class WFReaverCitadelTest : WFReaverTestBase
             Assert.That(SEntMan.GetComponent<WFEncounterComponent>(convoy).Resolution, Is.EqualTo(WFEncounterResolution.Destroyed));
             Assert.That(campaign.CitadelStanding(), Is.Null);
             Assert.That(State().Citadels, Is.Zero);
-            Assert.That(State().LullUntil, Is.Null, "Only a fallen citadel brings the lull.");
+            Assert.That(State().Finished, Is.False, "Only a fallen citadel finishes the Reavers.");
         });
 
         await RunTicks(30);
@@ -237,75 +237,97 @@ public sealed class WFReaverCitadelTest : WFReaverTestBase
             Is.True);
     }
 
-    /// <summary>Breaking the citadel pays the scaled bounty and starts the lull: nothing is founded, launched or raided until it ends, then founding resumes.</summary>
+    /// <summary>
+    /// Breaking the citadel pays the scaled bounty and finishes the Reavers: nothing is founded, launched or raided
+    /// again, however long it waits, while a stronghold still standing fights on and pays when broken.
+    /// </summary>
     [Test]
-    public async Task BrokenCitadelPaysAndBringsALull()
+    public async Task BrokenCitadelPaysAndFinishesTheReavers()
     {
         await StartCampaign();
         WFSectorCell target = default;
+        EntityUid stronghold = default;
+        EntityUid ship = default;
         var before = 0;
         var since = ChatCount();
         await Server.WaitAssertion(() =>
         {
             var campaign = Server.System<WFReaverCampaignSystem>();
-            var encounters = Server.System<WFEncounterSystem>();
-            var ship = SpawnGrid(CentreOf(Home) + new Vector2(0f, 7000f), "Test Gunship");
+            ship = SpawnGrid(CentreOf(Home) + new Vector2(0f, 7000f), "Test Gunship");
             Board(ship);
-            (var stronghold, var citadel, target) = Raise();
+            (stronghold, var citadel, target) = Raise();
             var state = State();
-            var lastFounded = state.LastFounded!.Value;
-            var nextRaid = STiming.CurTime + TimeSpan.FromMinutes(1);
-            state.NextRaid = nextRaid;
-
-            // With the ordinary hub ended, the citadel is the last to stand and the regroup clock starts on its fall.
-            encounters.End(stronghold);
-            Assert.That(state.NoStrongholdSince, Is.Null);
 
             ShootAt(citadel, "lead", ship);
             before = Balance();
             KillCrew(citadel, "lead");
             campaign.CheckStrongholds();
 
-            var now = STiming.CurTime;
             Assert.That(SEntMan.GetComponent<WFEncounterComponent>(citadel).Resolution, Is.EqualTo(WFEncounterResolution.Destroyed));
-            Assert.That(campaign.Strongholds(), Is.Empty);
+            Assert.That(campaign.Strongholds().Select(entry => entry.Owner), Is.EqualTo(new[] { stronghold }), "The ordinary hub still stands.");
             Assert.That(state.CitadelsBroken, Is.EqualTo(1));
-            Assert.That(state.LullUntil, Is.EqualTo(now + Lull));
-            Assert.That(campaign.InLull(state), Is.True);
-            Assert.That(state.LastFounded, Is.EqualTo(lastFounded + Lull), "The founding interval is pushed by the lull.");
-            Assert.That(state.NextRaid, Is.EqualTo(nextRaid + Lull), "The raid clock is pushed by the lull.");
-            Assert.That(state.NoStrongholdSince, Is.EqualTo(now + Lull), "The regroup clock is pushed by the lull.");
-            Assert.That(campaign.FoundingDue(campaign.Campaign!, state)!.Value, Is.GreaterThanOrEqualTo(state.LullUntil!.Value));
+            Assert.That(state.Finished, Is.True);
+            Assert.That(campaign.IsFinished(state), Is.True);
+            Assert.That(Server.System<WFSectorSyncSystem>().BuildStatus().Lines.Single().Line, Does.Contain(": finished,"),
+                "The legend reads finished.");
 
-            Assert.That(campaign.TryFound(out _), Is.False, "No founding in the lull.");
-            Assert.That(campaign.TryLaunchConvoy(out _), Is.False, "No convoy in the lull.");
+            Assert.That(campaign.TryFound(out _), Is.False, "No founding once finished.");
+            Assert.That(campaign.TryFoundAt(new MapCoordinates(CentreOf(Home), MapData.MapId), out _), Is.False);
+            Assert.That(campaign.TryLaunchConvoy(out _), Is.False, "No convoy once finished.");
             Assert.That(campaign.TryLaunchConvoy(target, out _), Is.False);
-            Assert.That(campaign.TryLaunchRaid(), Is.False, "No raid in the lull.");
+            Assert.That(campaign.TryLaunchRaid(), Is.False, "No raid once finished.");
             Assert.That(campaign.TryLaunchCitadel(out _), Is.False);
+            Assert.That(campaign.TrySpreadOnce(), Is.False, "No spread once finished.");
+            Assert.That(campaign.TryLaunchPatrol(stronghold), Is.False, "No patrol once finished.");
+            Assert.That(campaign.TryReinforce(stronghold), Is.False, "No reinforcement once finished.");
+
+            // The tier follows the score but a rise is not announced again.
+            var announced = state.TierAnnounced;
+            state.Tier = 3;
+            campaign.SetTier(WFReaverCampaignSystem.MaxTier);
+            Assert.That(state.Tier, Is.EqualTo(WFReaverCampaignSystem.MaxTier));
+            Assert.That(state.TierAnnounced, Is.EqualTo(announced), "No rise is announced once finished.");
+
+            var summary = new RoundEndTextAppendEvent();
+            SEntMan.EventBus.RaiseEvent(EventSource.Local, summary);
+            Assert.That(summary.Text, Does.Contain("The Reavers were finished when their citadel fell."));
         });
 
-        // The regroup delay is seconds, but the lull holds it back.
-        await RunTicks(300);
+        await RunTicks(150);
         await Server.WaitAssertion(() =>
         {
-            Assert.That(Server.System<WFReaverCampaignSystem>().Strongholds(), Is.Empty, "No regroup inside the lull.");
             Assert.That(Balance() - before, Is.EqualTo(Bounties[5] * 3), "Three times the tier's bounty at level 0.");
+            Assert.That(Server.System<WFReaverCampaignSystem>().Convoys(), Is.Empty, "Nothing sets out once finished.");
+            Assert.That(Server.System<WFReaverCampaignSystem>().Patrols(), Is.Empty);
+
+            // The ordinary hub fights on and still breaks and pays.
+            before = Balance();
+            ShootAt(stronghold, "lead", ship);
+            KillCrew(stronghold, "lead");
+            Server.System<WFReaverCampaignSystem>().CheckStrongholds();
+            Assert.That(SEntMan.GetComponent<WFEncounterComponent>(stronghold).Resolution, Is.EqualTo(WFEncounterResolution.Destroyed));
+            Assert.That(State().Broken, Is.EqualTo(2));
+            Assert.That(State().Defeated, Is.False, "A finished campaign is not broken as well.");
+
+            // The regroup delay is seconds; once finished it never falls due.
+            State().NoStrongholdSince = STiming.CurTime - TimeSpan.FromHours(1);
         });
 
-        var lines = ChatSince(since);
-        Assert.That(lines.Any(line => line.Contains($"The Reaver citadel at {WFSectorHex.Callsign(target)} has fallen. Bounty {Bounties[5] * 3}")),
-            Is.True, "The fall is announced with the bounty.");
-        Assert.That(lines.Any(line => line.Contains("The Reavers are scattered. Expect a lull.")), Is.True);
-
-        // Shortened, the lull runs out on its own and founding resumes.
-        await Server.WaitPost(() => State().LullUntil = STiming.CurTime + TimeSpan.FromSeconds(1));
-        await RunTicks(120);
+        await RunTicks(150);
         await Server.WaitAssertion(() =>
         {
             var campaign = Server.System<WFReaverCampaignSystem>();
-            Assert.That(campaign.InLull(State()), Is.False);
-            Assert.That(campaign.TryFound(out _), Is.True, "Founding resumes after the lull.");
+            Assert.That(campaign.Strongholds(), Is.Empty, "No regroup once finished.");
+            Assert.That(campaign.FoundingDue(campaign.Campaign!, State()), Is.Null);
+            Assert.That(campaign.TryFound(out _), Is.False, "Founding never resumes.");
+            Assert.That(Balance() - before, Is.EqualTo(Bounties[5]), "The last hub pays its own bounty.");
         });
+
+        var lines = ChatSince(since);
+        Assert.That(lines.Any(line => line.Contains(
+                $"The Reaver citadel at {WFSectorHex.Callsign(target)} has fallen. Bounty {Bounties[5] * 3} thalers paid. The Ashfall Reavers are finished.")),
+            Is.True, "The fall is announced as the ending.");
+        Assert.That(lines.Any(line => line.Contains("The Ashfall Reavers are broken.")), Is.False, "No second ending.");
     }
 
     /// <summary>Every real campaign raises a citadel from a well-formed encounter, and its numbers are sane.</summary>
@@ -321,7 +343,6 @@ public sealed class WFReaverCitadelTest : WFReaverTestBase
                 Assert.That(campaign.Citadel, Is.Not.Null, $"{id} raises a citadel");
                 var citadelId = campaign.Citadel!.Value;
                 Assert.That(campaign.CitadelDelay, Is.GreaterThan(TimeSpan.Zero), id);
-                Assert.That(campaign.CitadelLull, Is.GreaterThan(TimeSpan.Zero), id);
                 Assert.That(campaign.CitadelRings, Is.GreaterThanOrEqualTo(1), id);
                 Assert.That(campaign.CitadelExtraLevels, Is.GreaterThanOrEqualTo(0), id);
                 Assert.That(campaign.CitadelBountyScale, Is.GreaterThanOrEqualTo(1f), id);

@@ -80,7 +80,7 @@ public sealed partial class WFAdsCampaignSystem
     private bool TryLaunchSweep(EntityUid node, out EntityUid uid)
     {
         uid = default;
-        if (Campaign is not { } campaign
+        if (Campaign is not { } campaign || State() is { Finished: true }
             || !TryComp<WFAdsNodeComponent>(node, out var comp)
             || !TryComp<WFEncounterComponent>(node, out var encounter) || encounter.Resolution != null
             || !_prototypes.TryIndex(campaign.Sweep, out var prototype) || prototype.Ships.Count == 0)

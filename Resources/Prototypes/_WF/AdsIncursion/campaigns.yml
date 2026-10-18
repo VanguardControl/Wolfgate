@@ -38,10 +38,15 @@
     companies: [ PDV, PDVCivilian ]
     stronghold: 30
     patrol: 10
+  dreadnought: WFAdsDreadnought
+  dreadnoughtDelay: 20m
+  dreadnoughtBounty: 400000
   risingSound:
     path: /Audio/_WF/AdsIncursion/aimalf.ogg
   fallingSound:
     path: /Audio/Misc/notice1.ogg
+  capitalSound:
+    path: /Audio/Misc/gamma.ogg
   risingColor: "#9B4DFF"
   fallingColor: "#3FB8AF"
 
@@ -82,10 +87,15 @@
     companies: [ PDV, PDVCivilian ]
     stronghold: 30
     patrol: 10
+  dreadnought: WFAdsDreadnought
+  dreadnoughtDelay: 10m
+  dreadnoughtBounty: 400000
   risingSound:
     path: /Audio/_WF/AdsIncursion/aimalf.ogg
   fallingSound:
     path: /Audio/Misc/notice1.ogg
+  capitalSound:
+    path: /Audio/Misc/gamma.ogg
   risingColor: "#9B4DFF"
   fallingColor: "#3FB8AF"
 
@@ -126,9 +136,14 @@
     companies: [ PDV, PDVCivilian ]
     stronghold: 30
     patrol: 10
+  dreadnought: WFAdsDreadnought
+  dreadnoughtDelay: 6m
+  dreadnoughtBounty: 400000
   risingSound:
     path: /Audio/_WF/AdsIncursion/aimalf.ogg
   fallingSound:
     path: /Audio/Misc/notice1.ogg
+  capitalSound:
+    path: /Audio/Misc/gamma.ogg
   risingColor: "#9B4DFF"
   fallingColor: "#3FB8AF"

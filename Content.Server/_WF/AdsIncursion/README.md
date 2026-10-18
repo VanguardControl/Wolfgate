@@ -30,19 +30,27 @@ nearest node to a cell another faction holds and the framework challenge on it i
 Won, the interdictor stays as a picket holding the cell; lost, it withdraws; killed, it pays the interdictor bounty.
 The Reavers answer a challenge on their space with a response pack (`ReaverCampaign`, `.Conflict`).
 
+At tier 5 the ADS activates its dreadnought (`dreadnought` on the campaign, `WFAdsDreadnought`, a Wyvern capital hull;
+`.Dreadnought`). Once the campaign has stood at Overrun for `dreadnoughtDelay`, it activates beside the strongest node
+with an anomaly alert and the gamma alert (`capitalSound`) and hunts the Reavers' strongholds one by one, the citadel
+first, holding by a node when none stands. Its hits count as an attack on a Reaver hub, so the hub's reinforcements and
+sorties turn on it. It adds 10 to the threat score while out. Destroying it pays `dreadnoughtBounty` and finishes the ADS
+for the round: nothing more is founded or launched, and what still stands fights on until broken. `wf_ads dreadnought`
+activates one by hand.
+
 Each storyteller preset has its own `wfAdsCampaign` (`Resources/Prototypes/_WF/AdsIncursion/campaigns.yml`). It runs
 only while `wf.encounters.enabled` and `wf.sector.enabled` are on, the round is in progress and rule
 `WFAdsCampaignRule` runs (in preset `WFContestedSector`; `addgamerule` elsewhere; `wf.ads.enabled` forces it on).
 
 `WFAdsCampaignSystem` is the driver, in partials by concern: `.Nodes` (founding, regroup, breaking), `.Sentinels`,
 `.Deployments`, `.Spread`, `.Sweeps`, `.Interdicts`, `.Challenges` (interdictors and pickets), `.Retakes`, `.Threat`,
-`.Announce`, `.Rewards`, `.Hold` (pause and the event runner) and `.Disputes` (presence). Each step is a one-shot public
+`.Announce`, `.Rewards`, `.Hold` (pause and the event runner), `.Disputes` (presence) and `.Dreadnought` (the tier 5 capstone and the finished state). Each step is a one-shot public
 method for tests and the command: `TryFound`, `TryFoundAt`, `TryLaunchDeployment`, `CompleteDeployment`, `TrySentinel`,
-`TrySpreadOnce`, `TryLaunchSweep`, `TryInterdict`, `TryChallenge`, `SetTier`, `Recompute`, `ClearCampaign`. State lives on
+`TrySpreadOnce`, `TryLaunchSweep`, `TryInterdict`, `TryChallenge`, `TryLaunchDreadnought`, `SetTier`, `Recompute`, `ClearCampaign`. State lives on
 `WFAdsCampaignComponent` on the sector map entity, with one component per encounter kind on the encounter entities.
 
 Admins use `wf_ads status | found [x y] | deploy | sentinel <node uid> | tier <n> | spread | sweep | interdict <grid uid> |
-challenge [q r] | pause | resume | clear`, and see every campaign encounter in the Encounters window.
+challenge [q r] | dreadnought | pause | resume | clear`, and see every campaign encounter in the Encounters window.
 
 `Docs/_WF/AdsIncursion/design.md` is the design.
 
@@ -57,6 +65,7 @@ challenge [q r] | pause | resume | clear`, and see every campaign encounter in t
 - [`Content.Server/_WF/AdsIncursion/Components/WFAdsCampaignComponent.cs`](Components/WFAdsCampaignComponent.cs)
 - [`Content.Server/_WF/AdsIncursion/Components/WFAdsCampaignRuleComponent.cs`](Components/WFAdsCampaignRuleComponent.cs)
 - [`Content.Server/_WF/AdsIncursion/Components/WFAdsDeploymentComponent.cs`](Components/WFAdsDeploymentComponent.cs)
+- [`Content.Server/_WF/AdsIncursion/Components/WFAdsDreadnoughtComponent.cs`](Components/WFAdsDreadnoughtComponent.cs)
 - [`Content.Server/_WF/AdsIncursion/Components/WFAdsInterdictorComponent.cs`](Components/WFAdsInterdictorComponent.cs)
 - [`Content.Server/_WF/AdsIncursion/Components/WFAdsNodeComponent.cs`](Components/WFAdsNodeComponent.cs)
 - [`Content.Server/_WF/AdsIncursion/Components/WFAdsPicketComponent.cs`](Components/WFAdsPicketComponent.cs)
@@ -68,6 +77,7 @@ challenge [q r] | pause | resume | clear`, and see every campaign encounter in t
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.cs`](Systems/WFAdsCampaignSystem.cs)
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Deployments.cs`](Systems/WFAdsCampaignSystem.Deployments.cs)
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Disputes.cs`](Systems/WFAdsCampaignSystem.Disputes.cs)
+- [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Dreadnought.cs`](Systems/WFAdsCampaignSystem.Dreadnought.cs)
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Hold.cs`](Systems/WFAdsCampaignSystem.Hold.cs)
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Interdicts.cs`](Systems/WFAdsCampaignSystem.Interdicts.cs)
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Nodes.cs`](Systems/WFAdsCampaignSystem.Nodes.cs)
@@ -88,6 +98,7 @@ challenge [q r] | pause | resume | clear`, and see every campaign encounter in t
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsAnnouncementTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsAnnouncementTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsChallengeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsChallengeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsContentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsContentTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsDreadnoughtTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsDreadnoughtTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsInterrogationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsInterrogationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsNodeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsNodeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsTestBase.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsTestBase.cs)
@@ -124,6 +135,7 @@ challenge [q r] | pause | resume | clear`, and see every campaign encounter in t
 - [`Resources/SharedMaps/_WF/AdsIncursion/nebula.yml`](../../../Resources/SharedMaps/_WF/AdsIncursion/nebula.yml)
 - [`Resources/SharedMaps/_WF/AdsIncursion/razorn.yml`](../../../Resources/SharedMaps/_WF/AdsIncursion/razorn.yml)
 - [`Resources/SharedMaps/_WF/AdsIncursion/wyrm.yml`](../../../Resources/SharedMaps/_WF/AdsIncursion/wyrm.yml)
+- [`Resources/SharedMaps/_WF/AdsIncursion/wyvern.yml`](../../../Resources/SharedMaps/_WF/AdsIncursion/wyvern.yml)
 - [`Resources/SharedMaps/_WF/AdsIncursion/zenith.yml`](../../../Resources/SharedMaps/_WF/AdsIncursion/zenith.yml)
 
 ### Guidebook

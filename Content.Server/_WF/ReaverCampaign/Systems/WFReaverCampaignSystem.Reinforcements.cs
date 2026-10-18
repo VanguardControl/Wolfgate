@@ -81,7 +81,7 @@ public sealed partial class WFReaverCampaignSystem
     /// <summary>Sends a stronghold's next reinforcement now, if it is under its tier's level cap and none is on its way: a convoy from the sector edge that flies to the hub and docks.</summary>
     public bool TryReinforce(EntityUid stronghold)
     {
-        if (Campaign is not { } campaign || State(true) is not { } state
+        if (Campaign is not { } campaign || State(true) is not { Finished: false } state
             || !TryComp<WFReaverStrongholdComponent>(stronghold, out var comp)
             || !TryComp<WFEncounterComponent>(stronghold, out var encounter) || encounter.Resolution != null
             || comp.Inbound != null || comp.Level >= LevelCap(campaign, state, comp)
@@ -120,7 +120,7 @@ public sealed partial class WFReaverCampaignSystem
         return true;
     }
 
-    /// <summary>Whether a hub took a hit from a player ship within the support window.</summary>
+    /// <summary>Whether a hub took a hit, from a player ship or another campaign's, within the support window.</summary>
     private bool UnderFire(WFReaverStrongholdComponent home)
     {
         return home.Hits > 0 && _timing.CurTime - home.LastHit < SupportWindow;
@@ -341,7 +341,7 @@ public sealed partial class WFReaverCampaignSystem
     }
 
     /// <summary>
-    /// The player ship a hub's reinforcements go for: of the <paramref name="fresh"/> ships that just hit it, the one
+    /// The ship a hub's reinforcements go for, a player's or another campaign's: of the <paramref name="fresh"/> ships that just hit it, the one
     /// with most hits. With none fresh, the last one chosen if it is still near the hub, else the top attacker near
     /// it, else the top attacker anywhere.
     /// </summary>
@@ -349,6 +349,12 @@ public sealed partial class WFReaverCampaignSystem
     {
         var hits = new Dictionary<EntityUid, int>();
         foreach (var ((attacker, _), count) in encounter.ShipHits)
+        {
+            if (!TerminatingOrDeleted(attacker))
+                hits[attacker] = hits.GetValueOrDefault(attacker) + count;
+        }
+
+        foreach (var (attacker, count) in home.NpcHits)
         {
             if (!TerminatingOrDeleted(attacker))
                 hits[attacker] = hits.GetValueOrDefault(attacker) + count;
@@ -437,7 +443,7 @@ public sealed partial class WFReaverCampaignSystem
         {
             var hubAt = _transform.GetWorldPosition(hub.Grid);
             if (_timing.CurTime - home.LastHit < ReturnDelay
-                || hubEncounter.ShipHits.Keys.Select(key => key.Attacker).Distinct().Any(attacker => !TerminatingOrDeleted(attacker)
+                || hubEncounter.ShipHits.Keys.Select(key => key.Attacker).Concat(home.NpcHits.Keys).Distinct().Any(attacker => !TerminatingOrDeleted(attacker)
                     && Vector2.Distance(_transform.GetWorldPosition(attacker), hubAt) <= ReturnClearance))
                 return;
         }

@@ -32,6 +32,7 @@ public abstract class WFAdsTestBase : WFReaverTestBase
     protected static readonly int[] NodeBounties = { 5000, 6000, 7000, 8000, 9000, 10000 };
 
     protected const int SweepBounty = 2000;
+    protected const int DreadnoughtBounty = 20000;
     protected const int InterdictorBounty = 3000;
 
     /// <summary>A cell far enough out to hold a node, a ring and two more rings clear of the core, across the origin from the Reavers' test cell.</summary>
@@ -78,6 +79,9 @@ public abstract class WFAdsTestBase : WFReaverTestBase
   sentinel: WFTestAdsSentinel
   sweep: WFTestAdsSweep
   interdictor: WFTestAdsInterdictor
+  dreadnought: WFTestAdsDreadnought
+  dreadnoughtDelay: 3s
+  dreadnoughtBounty: 20000
 
 # A Reaver campaign under the same preset that does nothing on its own, so a test can found a stronghold and watch it answer.
 - type: wfReaverCampaign
@@ -156,6 +160,21 @@ public abstract class WFAdsTestBase : WFReaverTestBase
   lifetime: Transient
   icon: Shield
   duration: 3600
+  ships:
+  - key: lead
+    vessel: WFDredger
+    side: ads
+    distress: false
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot, WFCrewGunner ]
+
+- type: wfEncounter
+  id: WFTestAdsDreadnought
+  name: wf-ads-name-dreadnought
+  start: Manual
+  lifetime: Persistent
+  icon: Skull
   ships:
   - key: lead
     vessel: WFDredger

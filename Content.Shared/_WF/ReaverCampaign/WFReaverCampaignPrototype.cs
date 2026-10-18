@@ -156,10 +156,6 @@ public sealed partial class WFReaverCampaignPrototype : IPrototype
     [DataField]
     public int CitadelRings = 2;
 
-    /// <summary>How long after a citadel falls the campaign founds nothing and launches no convoy or raid.</summary>
-    [DataField]
-    public TimeSpan CitadelLull = TimeSpan.FromMinutes(45);
-
     [DataField]
     public ProtoId<WFEncounterPrototype> Patrol = "WFReaverPatrol";
 
@@ -190,6 +186,10 @@ public sealed partial class WFReaverCampaignPrototype : IPrototype
     /// <summary>Played with a falling tier and a broken stronghold.</summary>
     [DataField]
     public SoundSpecifier FallingSound = new SoundPathSpecifier("/Audio/Misc/notice1.ogg");
+
+    /// <summary>Played on top of the chime for a capital event: the citadel setting out and raised.</summary>
+    [DataField]
+    public SoundSpecifier CapitalSound = new SoundPathSpecifier("/Audio/Misc/gamma.ogg");
 
     [DataField]
     public Color RisingColor = Color.FromHex("#D84A3A");

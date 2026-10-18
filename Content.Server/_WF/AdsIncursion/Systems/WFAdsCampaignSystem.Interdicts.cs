@@ -86,7 +86,7 @@ public sealed partial class WFAdsCampaignSystem
     public bool TryInterdict(EntityUid target)
     {
         var map = _territory.SectorMap;
-        if (Campaign is not { } campaign || State(true) is not { } state || TerminatingOrDeleted(target)
+        if (Campaign is not { } campaign || State(true) is not { Finished: false } state || TerminatingOrDeleted(target)
             || !HasComp<MapGridComponent>(target) || HasComp<WFEncounterGridComponent>(target) || Transform(target).MapID != map
             || _scheduler.IsSecretPlace(target) || _activity.IsNeutralTo(campaign.Faction, target) || _encounters.DockedAtStation(target))
             return false;

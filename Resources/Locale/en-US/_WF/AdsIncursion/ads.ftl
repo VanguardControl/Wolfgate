@@ -23,6 +23,7 @@ wf-ads-name-sentinel = ADS sentinel
 wf-ads-name-sweep = ADS sweep
 wf-ads-name-interdictor = ADS interdictor
 wf-ads-name-deployment = ADS deployment
+wf-ads-name-dreadnought = ADS dreadnought
 
 # What a node's hold is announced as when it is boarded
 wf-ads-cargo-tech = pre-Fracture ADS technology
@@ -103,6 +104,16 @@ wf-ads-node-broken = The ADS node at {$callsign}, {$range} km bearing {$bearing}
         } paid.
     }
 wf-ads-dormant = The Automated Defense System has gone dormant. Its nodes are gone and the sector is clear.
+
+# The tier 5 dreadnought: activated as an anomaly alert, and destroyed as the campaign's ending
+wf-ads-dreadnought-activated = DIRECTIVE UPDATE. Dreadnought-class asset activated at {$callsign}. Hostile strongholds will be neutralised.
+wf-ads-dreadnought-destroyed = The ADS dreadnought is destroyed at {$callsign}. { $paid ->
+        [0] No bounty was claimed.
+       *[other] Bounty {$bounty} { $bounty ->
+            [one] thaler
+           *[other] thalers
+        } paid.
+    } The Automated Defense System has gone dormant for good.
 
 # A node flying out from a standing one to found itself
 wf-ads-deployment-launched = An ADS deployment is under way to {$callsign}, {$range} km bearing {$bearing} from {$station}. Stop it before it comes online.
@@ -192,6 +203,13 @@ wf-ads-legend = {$faction}: {$tier}, { $nodes ->
        *[other] {$cells} cells
     }, bounty {$bounty}
 wf-ads-legend-dormant = {$faction}: dormant, no nodes standing
+wf-ads-legend-finished = {$faction}: finished, { $nodes ->
+        [one] {$nodes} node
+       *[other] {$nodes} nodes
+    } left, { $cells ->
+        [one] {$cells} cell
+       *[other] {$cells} cells
+    }
 
 wf-ads-round-end = The Automated Defense System held up to { $peak ->
         [one] {$peak} cell
@@ -220,11 +238,19 @@ wf-ads-round-end-dormant = The ADS went dormant { $count ->
         [one] once
        *[other] {$count} times
     }.
+wf-ads-round-end-dreadnought = The ADS activated { $activated ->
+        [one] {$activated} dreadnought
+       *[other] {$activated} dreadnoughts
+    }: {$destroyed} destroyed, { $strongholds ->
+        [one] {$strongholds} Reaver stronghold
+       *[other] {$strongholds} Reaver strongholds
+    } broken with one among the attackers.
+wf-ads-round-end-finished = The ADS went dormant for good when its dreadnought was destroyed.
 
 # wf_ads command
 cmd-wf_ads-desc = Shows and drives the Automated Defense System incursion.
-cmd-wf_ads-help = Usage: {$command} status | found [x y] | deploy | sentinel <node uid> | tier <n> | spread | sweep | interdict <grid uid> | challenge [q r] | pause | resume | clear
-    found places a node at once, an admin shortcut; deploy sends one out from a standing node, as the campaign does; sentinel sends a node its next sentinel now; challenge sends an interdictor against a cell another faction holds.
+cmd-wf_ads-help = Usage: {$command} status | found [x y] | deploy | sentinel <node uid> | tier <n> | spread | sweep | interdict <grid uid> | challenge [q r] | dreadnought | pause | resume | clear
+    found places a node at once, an admin shortcut; deploy sends one out from a standing node, as the campaign does; sentinel sends a node its next sentinel now; challenge sends an interdictor against a cell another faction holds; dreadnought activates the dreadnought now at any tier, one at a time.
 cmd-wf_ads-hint-sub = Subcommand
 cmd-wf_ads-hint-x = Map x in metres
 cmd-wf_ads-hint-y = Map y in metres
@@ -273,6 +299,10 @@ cmd-wf_ads-status-regroup-due = No node stands. The ADS wakes again in { $minute
     }. Run wf_ads found to place one now.
 cmd-wf_ads-status-founding-overdue = No node stands. A founding is due now and retries every minute until a cell qualifies. Run wf_ads found to place one now.
 cmd-wf_ads-status-founding-untimed = No node stands and the founding clock has not started. Run wf_ads found to place one now.
+cmd-wf_ads-status-finished = The ADS is finished: its dreadnought was destroyed. Nothing more is founded, launched or sent this round; what stands fights on until broken. Run wf_ads clear to lift it.
+cmd-wf_ads-status-dreadnought-due = At Overrun: the dreadnought activates in {$seconds} s, once a node has clear space beside it.
+cmd-wf_ads-status-dreadnought-hunting = Dreadnought {$uid} hunting {$target}, {$range} km off, out {$seconds} s.
+cmd-wf_ads-status-dreadnought-holding = Dreadnought {$uid} holding by {$target} with no Reaver stronghold standing, {$range} km off, out {$seconds} s.
 cmd-wf_ads-status-deployment-out = A deployment is under way; the next founding waits until it arrives or is stopped.
 cmd-wf_ads-founded = Founded node {$uid} at {$callsign}.
 cmd-wf_ads-found-failed = No node could be founded there.
@@ -294,6 +324,8 @@ cmd-wf_ads-interdict = A sweep is turning to interdict {$ship}.
 cmd-wf_ads-interdict-failed = No sweep could be sent to interdict {$ship}.
 cmd-wf_ads-challenge = Interdictor {$uid} sent to challenge {$callsign}.
 cmd-wf_ads-challenge-failed = No challenge could be made: no other faction's cell qualifies, or no node has clear space beside it.
+cmd-wf_ads-dreadnought = Dreadnought {$uid} activated, hunting {$target}.
+cmd-wf_ads-dreadnought-failed = No dreadnought could be activated: the campaign has none, one is out, the ADS is finished, or no node has clear space beside it.
 cmd-wf_ads-paused = Campaign paused.
 cmd-wf_ads-resumed = Campaign resumed.
 cmd-wf_ads-cleared = Cleared the campaign: {$count} encounters ended.

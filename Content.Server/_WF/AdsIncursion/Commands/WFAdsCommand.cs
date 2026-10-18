@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Linq;
 using Content.Server._WF.AdsIncursion.Components;
 using Content.Server._WF.AdsIncursion.Systems;
+using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.ReaverCampaign.Systems;
 using Content.Server._WF.SectorControl.Systems;
 using Content.Server.Administration;
@@ -16,7 +17,7 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.AdsIncursion.Commands;
 
-/// <summary>The ADS incursion from the console: show it, found or deploy a node, send a sentinel, sweep, interdiction or challenge, set the tier, step it, pause it or clear it.</summary>
+/// <summary>The ADS incursion from the console: show it, found or deploy a node, send a sentinel, sweep, interdiction, challenge or the dreadnought, set the tier, step it, pause it or clear it.</summary>
 [AdminCommand(AdminFlags.Admin)]
 public sealed partial class WFAdsCommand : LocalizedEntityCommands
 {
@@ -25,7 +26,7 @@ public sealed partial class WFAdsCommand : LocalizedEntityCommands
     [Dependency] private WFSectorTerritorySystem _territory = default!;
 
     private static readonly string[] Subcommands =
-        { "status", "found", "deploy", "sentinel", "tier", "spread", "sweep", "interdict", "challenge", "pause", "resume", "clear" };
+        { "status", "found", "deploy", "sentinel", "tier", "spread", "sweep", "interdict", "challenge", "dreadnought", "pause", "resume", "clear" };
 
     public override string Command => "wf_ads";
 
@@ -62,6 +63,9 @@ public sealed partial class WFAdsCommand : LocalizedEntityCommands
                 break;
             case "challenge" when args.Length is 1 or 3:
                 Challenge(shell, args);
+                break;
+            case "dreadnought" when args.Length == 1:
+                Dreadnought(shell);
                 break;
             case "pause" when args.Length == 1:
                 _campaign.Paused = true;
@@ -126,7 +130,12 @@ public sealed partial class WFAdsCommand : LocalizedEntityCommands
             ("spread", Seconds(state?.NextSpread, now)),
             ("challenge", Seconds(state?.NextChallenge, now))));
 
-        if (nodes.Count == 0)
+        if (state is { Finished: true })
+            shell.WriteLine(Loc.GetString("cmd-wf_ads-status-finished"));
+        else if (campaign.Dreadnought != null && state?.OverrunSince is { } overrun && _campaign.Dreadnoughts().Count == 0)
+            shell.WriteLine(Loc.GetString("cmd-wf_ads-status-dreadnought-due", ("seconds", Seconds(overrun + campaign.DreadnoughtDelay, now))));
+
+        if (nodes.Count == 0 && state is not { Finished: true })
             shell.WriteLine(WhyNoNode(campaign, state, now));
 
         foreach (var (uid, node, _) in nodes)
@@ -141,6 +150,21 @@ public sealed partial class WFAdsCommand : LocalizedEntityCommands
         }
 
         var transform = EntityManager.System<SharedTransformSystem>();
+        foreach (var (uid, dreadnought, encounter) in _campaign.Dreadnoughts())
+        {
+            if (!encounter.Ships.TryGetValue(dreadnought.Lead, out var ship) || !EntityManager.EntityExists(ship.Grid))
+                continue;
+
+            var at = transform.GetWorldPosition(ship.Grid);
+            var target = dreadnought.Target ?? dreadnought.Station;
+            var range = target is { } aim && EntityManager.EntityExists(aim) ? WFReaverCampaignSystem.Kilometres(at, Lead(aim, transform) ?? at) : "-";
+            shell.WriteLine(Loc.GetString(dreadnought.Target != null ? "cmd-wf_ads-status-dreadnought-hunting" : "cmd-wf_ads-status-dreadnought-holding",
+                ("uid", EntityManager.GetNetEntity(uid).ToString()),
+                ("target", target is { } named && EntityManager.TryGetComponent<MetaDataComponent>(named, out var meta) ? meta.EntityName : "-"),
+                ("range", range),
+                ("seconds", Math.Max(0, (int) (now - dreadnought.Launched).TotalSeconds))));
+        }
+
         foreach (var (uid, deployment, encounter) in _campaign.Deployments())
         {
             var at = encounter.Ships.TryGetValue(deployment.Lead, out var lead) && EntityManager.EntityExists(lead.Grid)
@@ -209,6 +233,36 @@ public sealed partial class WFAdsCommand : LocalizedEntityCommands
         var minutes = (int) Math.Ceiling((due - now).TotalMinutes);
         return Loc.GetString(state is { Founded: > 0 } ? "cmd-wf_ads-status-regroup-due" : "cmd-wf_ads-status-first-due",
             ("minutes", minutes));
+    }
+
+    /// <summary>Where an encounter's first ship is, or the entity itself if it is no encounter.</summary>
+    private System.Numerics.Vector2? Lead(EntityUid uid, SharedTransformSystem transform)
+    {
+        if (!EntityManager.TryGetComponent<WFEncounterComponent>(uid, out var encounter))
+            return transform.GetWorldPosition(uid);
+
+        foreach (var ship in encounter.Ships.Values)
+        {
+            if (EntityManager.EntityExists(ship.Grid))
+                return transform.GetWorldPosition(ship.Grid);
+        }
+
+        return null;
+    }
+
+    /// <summary>wf_ads dreadnought: activates the dreadnought now, whatever the tier and delay; one at a time.</summary>
+    private void Dreadnought(IConsoleShell shell)
+    {
+        if (!_campaign.TryLaunchDreadnought(out var dreadnought))
+        {
+            Failed(shell, "cmd-wf_ads-dreadnought-failed");
+            return;
+        }
+
+        var target = EntityManager.GetComponent<WFAdsDreadnoughtComponent>(dreadnought).Target;
+        shell.WriteLine(Loc.GetString("cmd-wf_ads-dreadnought",
+            ("uid", EntityManager.GetNetEntity(dreadnought).ToString()),
+            ("target", target is { } aim && EntityManager.TryGetComponent<MetaDataComponent>(aim, out var meta) ? meta.EntityName : "-")));
     }
 
     /// <summary>Seconds until a time, or a dash when there is none.</summary>

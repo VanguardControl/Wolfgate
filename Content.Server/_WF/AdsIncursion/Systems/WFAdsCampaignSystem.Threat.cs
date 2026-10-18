@@ -39,7 +39,7 @@ public sealed partial class WFAdsCampaignSystem
         }
 
         var nearness = held.Count == 0 ? 0f : Math.Clamp(NearnessScore * (1f - nearest / SectorRadius), 0f, NearnessScore);
-        state.Score = nodes * NodeScore + held.Count + nearness;
+        state.Score = nodes * NodeScore + held.Count + nearness + Dreadnoughts().Count * DreadnoughtScore;
         state.PeakCells = Math.Max(state.PeakCells, held.Count);
 
         var tier = TierFor(campaign, state.Score);
@@ -98,6 +98,15 @@ public sealed partial class WFAdsCampaignSystem
         var rising = tier > state.Tier;
         state.Tier = tier;
         state.BelowSince = null;
+        if (tier >= MaxTier)
+            state.OverrunSince ??= _timing.CurTime;
+        else
+            state.OverrunSince = null;
+
+        // A finished campaign never announces a rise again.
+        if (rising && state.Finished)
+            return;
+
         state.TierAnnounced = _timing.CurTime;
         Announce(campaign, Loc.GetString(rising ? "wf-ads-tier-rising" : "wf-ads-tier-falling",
             ("tier", TierName(tier)),
@@ -113,13 +122,20 @@ public sealed partial class WFAdsCampaignSystem
             _sync.SetStatus(shown, null);
 
         // Nothing to show before the first founding.
-        if (state.Founded == 0 && cells == 0)
+        if (state.Founded == 0 && cells == 0 && !state.Finished)
         {
             ClearLegend();
             return;
         }
 
         var faction = FactionName(campaign.Faction);
+        if (state.Finished)
+        {
+            _sync.SetStatus(campaign.Faction, Loc.GetString("wf-ads-legend-finished", ("faction", faction), ("nodes", nodes), ("cells", cells)));
+            _legend = campaign.Faction;
+            return;
+        }
+
         if (state.Defeated && nodes == 0)
         {
             _sync.SetStatus(campaign.Faction, Loc.GetString("wf-ads-legend-dormant", ("faction", faction), ("cells", cells)));

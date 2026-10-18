@@ -37,10 +37,10 @@ half the level.
 
 At tier 5 the Reavers raise a citadel (`citadel` on the campaign, `WFReaverCitadel`, a Vulture; `.Citadel`). Once the
 campaign has stood at Overrun for `citadelDelay`, a citadel convoy sets out from the highest-level stronghold to a held
-edge cell, announced in a quiet banner; it stands outside `maxStrongholds` and the one-convoy rule. Raised, it claims
+edge cell, announced in a chimed banner with the gamma alert (`capitalSound`) on top; it stands outside `maxStrongholds` and the one-convoy rule. Raised, it claims
 `citadelRings` rings, grows `citadelExtraLevels` past the tier's level cap and scores ten more than a stronghold. Breaking
-it pays `citadelBountyScale` times a stronghold's bounty and scatters the Reavers for `citadelLull`: no founding, convoy
-or raid until it ends. `wf_reavers citadel` sends one out by hand.
+it pays `citadelBountyScale` times a stronghold's bounty and finishes the Reavers for the round: nothing more is founded
+or launched, and what still stands fights on until broken. `wf_reavers citadel` sends one out by hand.
 
 Players fight it by breaking strongholds (the lead ship out of the fight breaks it: its cells are freed and its bounty
 paid to everyone who hit it, with a fifth for the ships that stood by the assault), killing patrols (the cell the lead
