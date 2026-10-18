@@ -1,7 +1,9 @@
 // XENOPORT(P3-B), XENOPORT(P3-P): the previews of abilities from lanes that are not merged yet are compiled out.
-// Add `#define XENOPORT_P3B` and `#define XENOPORT_P3P` here once their components exist.
+#define XENOPORT_P3B
+#define XENOPORT_P3P
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
 using Content.Client.Gameplay;
@@ -81,6 +83,7 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
     private readonly LineSystem _line;
     private readonly EntityQuery<ActionsComponent> _actionsQ;
     private readonly EntityQuery<WorldTargetActionComponent> _worldTargetQ;
+    private readonly EntityQuery<EntityWorldTargetActionComponent> _entityWorldTargetQ; // WOLFGATE: spit-style actions target an entity or the world here
 #if XENOPORT_P3B
     private readonly EntityQuery<XenoSprayAcidComponent> _sprayQ;
     private readonly EntityQuery<XenoBombardComponent> _bombardQ;
@@ -114,6 +117,7 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         _line = ents.System<LineSystem>();
         _actionsQ = ents.GetEntityQuery<ActionsComponent>();
         _worldTargetQ = ents.GetEntityQuery<WorldTargetActionComponent>();
+        _entityWorldTargetQ = ents.GetEntityQuery<EntityWorldTargetActionComponent>();
 #if XENOPORT_P3B
         _sprayQ = ents.GetEntityQuery<XenoSprayAcidComponent>();
         _bombardQ = ents.GetEntityQuery<XenoBombardComponent>();
@@ -167,13 +171,13 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         if (originMap.MapId != mousePos.MapId)
             return;
 
-        if (!_worldTargetQ.TryComp(action, out var worldTarget) || worldTarget.Event == null)
+        if (!TryGetTargetAction(action, out var targetAction) || targetAction.BaseEvent is not { } actionEvent)
             return;
 
         if (args.Space == OverlaySpace.WorldSpace)
         {
 #if XENOPORT_P3B
-            if (worldTarget.Event is not XenoBurrowActionEvent ||
+            if (actionEvent is not XenoBurrowActionEvent ||
                 !_burrowQ.TryComp(player.Value, out burrow) ||
                 !IsBurrowed(burrow))
             {
@@ -189,7 +193,7 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         if (args.Space != OverlaySpace.WorldSpaceBelowFOV)
             return;
 
-        switch (worldTarget.Event)
+        switch (actionEvent)
         {
 #if XENOPORT_P3B
             case XenoSprayAcidActionEvent:
@@ -561,10 +565,7 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
     private bool TryGetBurrowActionRange(EntityUid action, out float range)
     {
         range = default;
-        if (!_worldTargetQ.TryComp(action, out var worldTarget) || worldTarget.Event is not XenoBurrowActionEvent)
-            return false;
-
-        if (!_targetActionQ.TryComp(action, out var targetAction))
+        if (!TryGetTargetAction(action, out var targetAction) || targetAction.BaseEvent is not XenoBurrowActionEvent)
             return false;
 
         range = targetAction.Range;
@@ -906,5 +907,24 @@ public sealed class XenoAbilityPreviewOverlay : Overlay
         {
             Grid = grid;
         }
+    }
+
+    /// <summary>The world or entity-world target action component of an action, whichever it has.</summary>
+    private bool TryGetTargetAction(EntityUid action, [NotNullWhen(true)] out BaseTargetActionComponent? target)
+    {
+        if (_worldTargetQ.TryComp(action, out var world))
+        {
+            target = world;
+            return true;
+        }
+
+        if (_entityWorldTargetQ.TryComp(action, out var entityWorld))
+        {
+            target = entityWorld;
+            return true;
+        }
+
+        target = null;
+        return false;
     }
 }
