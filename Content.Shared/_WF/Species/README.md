@@ -318,6 +318,16 @@ and its own sprite.
 - [`Resources/Audio/_DEN/Voice/Shadowkin/Emotes/attributions.yml`](../../../Resources/Audio/_DEN/Voice/Shadowkin/Emotes/attributions.yml): ported from HardLight
 - [`Resources/Audio/_DEN/Voice/Shadowkin/Talk/attributions.yml`](../../../Resources/Audio/_DEN/Voice/Shadowkin/Talk/attributions.yml): ported from HardLight
 - [`Resources/Audio/_EE/`](../../../Resources/Audio/_EE/): Einstein Engines species sounds, ported in
+- [`Resources/Audio/_FarHorizons/Voice/Proto/Arachnid/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Arachnid/attributions.yml): ported from HardLight
+- [`Resources/Audio/_FarHorizons/Voice/Proto/Avali/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Avali/attributions.yml): ported from HardLight
+- [`Resources/Audio/_FarHorizons/Voice/Proto/Felionoid/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Felionoid/attributions.yml): ported from HardLight
+- [`Resources/Audio/_FarHorizons/Voice/Proto/Human/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Human/attributions.yml): ported from HardLight
+- [`Resources/Audio/_FarHorizons/Voice/Proto/Moth/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Moth/attributions.yml): ported from HardLight
+- [`Resources/Audio/_FarHorizons/Voice/Proto/Reptilian/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Reptilian/attributions.yml): ported from HardLight
+- [`Resources/Audio/_FarHorizons/Voice/Proto/Resomi/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Resomi/attributions.yml): ported from HardLight
+- [`Resources/Audio/_FarHorizons/Voice/Proto/Shadekin/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Shadekin/attributions.yml): ported from HardLight
+- [`Resources/Audio/_FarHorizons/Voice/Proto/Vox/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Vox/attributions.yml): ported from HardLight
+- [`Resources/Audio/_FarHorizons/Voice/Proto/Vulpkanin/attributions.yml`](../../../Resources/Audio/_FarHorizons/Voice/Proto/Vulpkanin/attributions.yml): ported from HardLight
 - [`Resources/Audio/_HL/`](../../../Resources/Audio/_HL/): HardLight species sound, ported in
 - [`Resources/Audio/_Impstation/Thaven/`](../../../Resources/Audio/_Impstation/Thaven/): Thaven sounds, ported from HardLight in
 - [`Resources/Audio/_Impstation/Thaven/attributions.yml`](../../../Resources/Audio/_Impstation/Thaven/attributions.yml): ported from HardLight
@@ -442,6 +452,9 @@ and its own sprite.
   - ported from HardLight
   - Wolfgate species in the list
 - [`Resources/Prototypes/_FarHorizons/radio_channels.yml`](../../../Resources/Prototypes/_FarHorizons/radio_channels.yml): ported from HardLight
+- [`Resources/Prototypes/_FarHorizons/SoundCollections/disease.yml`](../../../Resources/Prototypes/_FarHorizons/SoundCollections/disease.yml): Protogen subspecies, ported from HardLight
+- [`Resources/Prototypes/_FarHorizons/SoundCollections/emotes.yml`](../../../Resources/Prototypes/_FarHorizons/SoundCollections/emotes.yml): Protogen subspecies, ported from HardLight
+- [`Resources/Prototypes/_FarHorizons/SoundCollections/screams.yml`](../../../Resources/Prototypes/_FarHorizons/SoundCollections/screams.yml): Protogen subspecies, ported from HardLight
 - [`Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro.yml`](../../../Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro.yml): ported from HardLight
 - [`Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_ears.yml`](../../../Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_ears.yml): ported from HardLight
 - [`Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_tails.yml`](../../../Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_tails.yml): ported from HardLight

@@ -181,6 +181,9 @@ unmarked:
   - path: Resources/Audio/_EE/
     module: Species
     reason: Einstein Engines species sounds, ported in #14 (Customisation Update).
+  - path: Resources/Audio/_FarHorizons/Voice/
+    module: EmoteVoices
+    reason: Robotic voice packs for the scream and laugh picker, ported from HardLight (Far Horizons).
   - path: Resources/Audio/_HL/
     module: Species
     reason: HardLight species sound, ported in #14 (Customisation Update).
