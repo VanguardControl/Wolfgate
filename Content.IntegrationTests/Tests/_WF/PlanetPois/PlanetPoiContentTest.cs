@@ -69,9 +69,13 @@ public sealed class PlanetPoiContentTest
                     }
                     Assert.That(tiles, Is.Not.Empty, entry.MapPath);
                     Assert.That(entities.TryGetComponent<RoofComponent>(grid.Owner, out var roof), Is.True, entry.MapPath);
-                    Assert.That(tiles.Any(tile => roofs.IsRooved((grid.Owner, grid.Comp, roof!), tile)), Is.True, $"{entry.MapPath} has no covered buildings.");
+                    // A site off the roads, such as a shrine, is open ground with no building to roof or door.
+                    var building = entry.Connection != WFPlanetPoiConnection.Isolated;
+                    if (building)
+                        Assert.That(tiles.Any(tile => roofs.IsRooved((grid.Owner, grid.Comp, roof!), tile)), Is.True, $"{entry.MapPath} has no covered buildings.");
                     var roots = Children(entities, grid.Owner);
-                    Assert.That(roots.Any(entity => entities.HasComponent<DoorComponent>(entity)), Is.True, $"{entry.MapPath} has no authored doors.");
+                    if (building)
+                        Assert.That(roots.Any(entity => entities.HasComponent<DoorComponent>(entity)), Is.True, $"{entry.MapPath} has no authored doors.");
                     foreach (var root in roots)
                     {
                         var metadata = entities.GetComponent<MetaDataComponent>(root);

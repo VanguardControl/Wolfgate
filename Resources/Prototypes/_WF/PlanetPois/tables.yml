@@ -229,8 +229,8 @@
   roads:
     tile: FloorDirt
     width: 3
-  minCount: 2
-  maxCount: 2
+  minCount: 3
+  maxCount: 3
   spacing: 96
   edgeMargin: 72
   centreClear: 64
@@ -244,5 +244,13 @@
     sockets:
     - offset: -24,-1
       direction: West
+  - mapPath: /Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml
+    name: wf-poi-carcinoma-fountain-of-life
+    expeditions: false
+    footprint: -12,-12,13,13
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    sockets: []
   - dungeon: WFPoiCarcinomaRuin
     name: wf-poi-carcinoma-ruin

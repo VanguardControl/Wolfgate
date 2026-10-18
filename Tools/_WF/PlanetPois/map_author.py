@@ -10,10 +10,12 @@ import yaml
 class PoiMap:
     """One authored site, with explicit roof coverage and outward road sockets."""
 
-    def __init__(self, slug, width, height, planet, title_key, connection="Through", inhabited=True, ground="FloorGrass"):
+    def __init__(self, slug, width, height, planet, title_key, connection="Through", inhabited=True, ground="FloorGrass", expeditions=None):
         self.slug, self.width, self.height = slug, width, height
         self.planet, self.title_key = planet, title_key
         self.connection, self.inhabited = connection, inhabited
+        # An inhabited settlement is never an expedition target; anything else is unless it says otherwise.
+        self.expeditions = not inhabited if expeditions is None else expeditions
         self.tiles = {(x, y): ground for y in range(height) for x in range(width)}
         self.entities, self.sockets, self.decals = [], [], []
         self.roofs = set()
@@ -202,8 +204,7 @@ class PoiMap:
     def entry(self):
         ox, oy = self.width // 2, self.height // 2
         entry = {"mapPath": f"/Maps/_WF/PlanetPois/{self.slug}.yml", "name": self.title_key}
-        # An inhabited settlement is never an expedition target.
-        if self.inhabited:
+        if not self.expeditions:
             entry["expeditions"] = False
         entry.update({
             "footprint": f"{-ox},{-oy},{self.width - ox},{self.height - oy}",

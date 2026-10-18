@@ -76,6 +76,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Resources/Maps/_WF/PlanetPois/asclepiu_fuel_service.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_fuel_service.yml)
 - [`Resources/Maps/_WF/PlanetPois/asclepiu_garden_village.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_garden_village.yml)
 - [`Resources/Maps/_WF/PlanetPois/asclepiu_roadside_trader.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_roadside_trader.yml)
+- [`Resources/Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml`](../../../Resources/Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml)
 - [`Resources/Maps/_WF/PlanetPois/carcinoma_ruin_shelter.yml`](../../../Resources/Maps/_WF/PlanetPois/carcinoma_ruin_shelter.yml)
 - [`Resources/Maps/_WF/PlanetPois/fervidus_rim_shelter.yml`](../../../Resources/Maps/_WF/PlanetPois/fervidus_rim_shelter.yml)
 - [`Resources/Maps/_WF/PlanetPois/merak_abandoned_work_camp.yml`](../../../Resources/Maps/_WF/PlanetPois/merak_abandoned_work_camp.yml)
@@ -92,6 +93,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Tools/_WF/PlanetPois/generate.py`](../../../Tools/_WF/PlanetPois/generate.py)
 - [`Tools/_WF/PlanetPois/map_author.py`](../../../Tools/_WF/PlanetPois/map_author.py)
 - [`Tools/_WF/PlanetPois/settlements.py`](../../../Tools/_WF/PlanetPois/settlements.py)
+- [`Tools/_WF/PlanetPois/shrines.py`](../../../Tools/_WF/PlanetPois/shrines.py)
 
 ### Docs
 
