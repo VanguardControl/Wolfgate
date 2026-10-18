@@ -283,6 +283,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/WFCaptainSystem.cs`](Systems/WFCaptainSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAccessSystem.cs`](Systems/WFCrewAccessSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewAlertSystem.cs`](Systems/WFCrewAlertSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewAlertSystem.Mechs.cs`](Systems/WFCrewAlertSystem.Mechs.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewCommsSystem.cs`](Systems/WFCrewCommsSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewConductSystem.cs`](Systems/WFCrewConductSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewEscortSystem.cs`](Systems/WFCrewEscortSystem.cs)

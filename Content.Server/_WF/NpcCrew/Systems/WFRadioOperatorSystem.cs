@@ -252,7 +252,7 @@ public sealed class WFRadioOperatorSystem : EntitySystem
             return;
         foreach (var op in OperatorsOn(args.Grid))
         {
-            if (GroupOf(op) == args.Group && (HasComp<MapGridComponent>(args.Hostiles[0])
+            if (GroupOf(op) == args.Group && (EntityManager.System<WFCrewAlertSystem>().IsVessel(args.Hostiles[0])
                 || EntityManager.System<WFCrewWeaponSystem>().CanSee(op, args.Hostiles[0])
                 || EntityManager.System<WFCrewCommsSystem>().Knows(op, args.Hostiles[0])))
                 HostileAct(op, args.Hostiles[0]);

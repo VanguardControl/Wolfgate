@@ -186,7 +186,8 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out _, out var xform))
         {
-            if (xform.GridUid is not { } grid || HasComp<GhostComponent>(uid) || _mobs.IsDead(uid))
+            // A pilot's mech flying free of any grid is a vessel of its own.
+            if ((xform.GridUid ?? _alerts.FreeMechOf(uid)) is not { } grid || HasComp<GhostComponent>(uid) || _mobs.IsDead(uid))
                 continue;
 
             if (!_crewed.TryGetValue(grid, out var crewed))
@@ -521,7 +522,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     /// <summary>Below this speed, in metres a second, a vessel is lying still.</summary>
     private const float IdleSpeed = 2f;
 
-    /// <summary>Every ship-weapon round in flight, with the grid it was fired from.</summary>
+    /// <summary>Every ship-weapon or free-flying mech round in flight, with the grid or mech it was fired from.</summary>
     private void GatherShots()
     {
         _shots.Clear();
@@ -530,10 +531,13 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
         while (query.MoveNext(out var uid, out var projectile, out var xform))
         {
             _liveShots.Add(uid);
-            if (!_alerts.IsShipWeapon(projectile.Weapon) || Transform(projectile.Weapon!.Value).GridUid is not { } shooter)
+            var shooter = _alerts.IsShipWeapon(projectile.Weapon)
+                ? Transform(projectile.Weapon!.Value).GridUid
+                : _alerts.FreeMechOf(projectile.Weapon ?? projectile.Shooter);
+            if (shooter is not { } source)
                 continue;
 
-            _shots.Add((uid, _transform.GetWorldPosition(xform), xform.MapID, shooter));
+            _shots.Add((uid, _transform.GetWorldPosition(xform), xform.MapID, source));
         }
 
         _answeredShots.RemoveWhere(key => !_liveShots.Contains(key.Shot));
