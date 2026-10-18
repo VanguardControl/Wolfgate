@@ -51,6 +51,10 @@ public sealed partial class WFPlanetPoiTablePrototype : IPrototype
     /// <summary>The expedition rating of this world's sites, unless an entry says otherwise.</summary>
     [DataField]
     public DifficultyRating Difficulty = DifficultyRating.Moderate;
+
+    /// <summary>Crashed ships scattered off the roads, reclaimed by the world.</summary>
+    [DataField]
+    public WFPlanetWrecks? Wrecks;
 }
 
 /// <summary>One kind of site: the dungeon generated for it and what its signal is called once identified.</summary>

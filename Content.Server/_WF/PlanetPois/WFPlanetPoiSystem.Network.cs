@@ -197,6 +197,8 @@ public sealed partial class WFPlanetPoiSystem
                     DressRoads(ground, grid, record, roads, plan, created, createdDecals);
                 }
             }
+            // Wrecks last: they keep off the sites and roads, which are pinned by now.
+            PlaceWrecks(ground, grid, biome, orbit, centre, radius, table, record, created);
             record.NetworkReady = true;
         }
         catch (Exception error)

@@ -4,6 +4,10 @@
 
 - type: wfPlanetPoiTable
   id: WFPoisAsclepiu
+  wrecks:
+    theme: WFWreckThemeVerda
+    minCount: 1
+    maxCount: 2
   difficulty: Moderate
   roads:
     tile: RMCPlanetHybrisaAsphalt
@@ -100,6 +104,10 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisMerak
+  wrecks:
+    theme: WFWreckThemeMerak
+    minCount: 1
+    maxCount: 3
   difficulty: Moderate
   roads:
     tile: RMCPlanetHybrisaAsphalt
@@ -182,6 +190,10 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisFervidus
+  wrecks:
+    theme: WFWreckThemeFervidus
+    minCount: 1
+    maxCount: 3
   difficulty: Hazardous
   roads:
     tile: FloorDarkPavement
@@ -204,6 +216,10 @@
     name: wf-poi-fervidus-camp
 - type: wfPlanetPoiTable
   id: WFPoisThrascias
+  wrecks:
+    theme: WFWreckThemeThrascias
+    minCount: 1
+    maxCount: 3
   difficulty: Hazardous
   roads:
     tile: FloorSnowDug
@@ -226,6 +242,10 @@
     name: wf-poi-thrascias-virology
 - type: wfPlanetPoiTable
   id: WFPoisAerumna
+  wrecks:
+    theme: WFWreckThemeAerumna
+    minCount: 1
+    maxCount: 3
   difficulty: Extreme
   roads:
     tile: FloorChromite
@@ -251,6 +271,10 @@
     name: wf-poi-aerumna-mine
 - type: wfPlanetPoiTable
   id: WFPoisCarcinoma
+  wrecks:
+    theme: WFWreckThemeCarcinoma
+    minCount: 2
+    maxCount: 3
   difficulty: Extreme
   roads:
     tile: FloorDirt
