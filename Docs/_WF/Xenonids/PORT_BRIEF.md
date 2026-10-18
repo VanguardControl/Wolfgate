@@ -120,3 +120,29 @@ extend that pattern, don't add a second subscription to the same (component, eve
 
 Commits: short lowercase subject, no body (`xeno core`, `rmccore`), one per verified lane; never amend or rebase.
 Don't run `python Tools/_WF/Ci/modules.py --write`; the integrator does that once at the end.
+
+## Lanes
+
+Folder names are RMC's `_RMC14/Xenonids/<Folder>` (Shared, Server and Client sides of the same folder go together).
+Each lane owns its folders' C#, the prototypes that need only its components (moved from staging), their locale
+and the action prototypes those castes use. A folder belongs to exactly one lane; a lane never edits another lane's
+folder and never edits `base_xeno.yml` after P2a (it adds to its own caste files instead).
+
+| Lane | Folders | Castes / prototypes it lands |
+|---|---|---|
+| P1 `RMCCore` | RMC infrastructure (see Modules) | none |
+| P2a core | `<root>`, Hive, HiveTeam, Plasma, Energy, Rest, Name, Movement, Organs, Inhands, Animation, Animations, Actions, Damage, Collision, Walker, Zoom, Hud, Announce, Emote, AcidBloodSplash, UI, Stab, Charge, ClawSharpness, CriticalGrace, Weeds, Watch | `base_xeno.yml`, `hive.yml`, `larva.yml` (without evolution), xeno damage containers/modifier sets, alerts, body, access, job icons, department, `xeno_weeds.yml`, voice/emotes, sound collections, action base yml |
+| P2b-1 structures | Construction (all sub-folders), Fruit | every `Entities/Structures/Xeno/**` file, `xeno_fruit.yml`, construction actions |
+| P2b-2 lifecycle | Egg, Parasite, Projectile, Acid | `xeno_egg.yml`, `parasite.yml`, `xeno_projectiles.yml`, `xeno_impacts.yml`, `xeno_smoke.yml`, acid effects |
+| P2b-3 growth | Evolution, Maturing, Strain, Rank, JoinXeno, Respawn, Heal, Word, Infected, Devour, Pheromones | evolve actions, `Roles/Xeno/*` (jobs, playtime trackers, `selectable.yml`), `drone.yml`, `lesser_drone.yml`, `larva.yml` evolution block |
+| P3-Q command | ManageHive, HiveLeader, Eye, Psychic, Screech, SpitToggle, Gut, Designer, Destroy, Doom, Rend, Targeting, Rotate | `queen.yml`, `king.yml`, `hivelord.yml`, `carrier.yml` |
+| P3-M hunters | Leap, Lunge, Invisibility, Crippling, Flurry, Headbite, TailJab, MeleeSlow, Hide, ForTheHive, AcidSlash, AciderGeneration, Acider, Lifesteal, Punch, Fling, Empower, Eviscerate, Hedgehog, Rage, ScissorCut, Cruelty, Tantrum | `runner.yml`, `lurker.yml`, `warrior.yml`, `ravager.yml` |
+| P3-P line | Abduct, Blitz, Cleave, Dislocate, Dodge, FightOrFlight, Finesse, Fury, HighGallop, Hook, Impale, Pierce, Retrieve, Smackdown, SwiftSteps, TailFountain, TailLash, TailSeize, TailTrip, Crest, Fortify, Headbutt, Soak, Sweep, Brutalize, Tumble | `praetorian.yml`, `defender.yml`, `crusher.yml` |
+| P3-B ranged | AcidMine, AcidShroud, AdrenalineSurge, Bombard, Deathcloud, DeployTraps, GasToggle, Insight, Neurotoxin, Spray, Paralyzing, Aid, Salve, ResinSurge, Burrow, Stomp | `boiler.yml`, `spitter.yml`, `sentinel.yml`, `burrower.yml` |
+
+Shared prototype files (`Actions/Xeno/*.yml`, `Alerts/Xeno/*`, locale): P2a lands the files with what it needs;
+later lanes append their own blocks at the end of the right file. Append-only edits merge cleanly.
+
+Parallel lanes run in their own worktrees from the same base commit, each with a private engine copy
+(`robocopy E:\GitHub\RobustToolbox-291 <worktree>\RobustToolbox /E /XD bin obj /XF .git`), and commit to a lane
+branch; the integrator merges them and runs the gate.
