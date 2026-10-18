@@ -671,7 +671,7 @@ and its own sprite.
 - [`Resources/Textures/_DV/Mobs/Customization/kitsune/`](../../../Resources/Textures/_DV/Mobs/Customization/kitsune/): Kitsune marking sprites, ported in
 - [`Resources/Textures/_DV/Mobs/Customization/thaven/`](../../../Resources/Textures/_DV/Mobs/Customization/thaven/): Thaven marking sprites, ported in
 - [`Resources/Textures/_EE/Mobs/Customization/Harpy/harpy_wings.rsi/`](../../../Resources/Textures/_EE/Mobs/Customization/Harpy/harpy_wings.rsi/): whitescale_harpy_folded2 state added (meta.json re-serialised).
-- [`Resources/Textures/_FarHorizons/Mobs/Customization/`](../../../Resources/Textures/_FarHorizons/Mobs/Customization/): Protogen base marking sprites, ported in
+- [`Resources/Textures/_FarHorizons/Mobs/Customization/`](../../../Resources/Textures/_FarHorizons/Mobs/Customization/): Protogen and subspecies-shaped marking sprites, ported in
 - [`Resources/Textures/_Floof/`](../../../Resources/Textures/_Floof/): Floof marking sprites, ported from HardLight in
 - [`Resources/Textures/_HL/`](../../../Resources/Textures/_HL/): HardLight species and marking sprites, ported in
 - [`Resources/Textures/_Impstation/Mobs/Customization/thaven/`](../../../Resources/Textures/_Impstation/Mobs/Customization/thaven/): Thaven marking sprites, ported from HardLight in
