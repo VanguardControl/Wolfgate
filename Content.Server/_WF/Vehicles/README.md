@@ -346,6 +346,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleGunHookTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleGunHookTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleGunSpinupTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleGunSpinupTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleHeadlightTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleHeadlightTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleIgnitionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleIgnitionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleInteriorTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleInteriorTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleNpcAttackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleNpcAttackTest.cs)

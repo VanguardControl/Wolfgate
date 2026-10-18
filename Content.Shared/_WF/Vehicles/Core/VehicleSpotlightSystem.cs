@@ -137,11 +137,12 @@ public sealed partial class VehicleSpotlightSystem : EntitySystem
         if (!_lights.ResolveLight(uid, ref light))
             return;
 
-        // Mount the lamp just beyond the front bumper, rotating its offset with the chassis.
+        // Mount the lamp just beyond the front bumper, rotating its offset with the chassis. At rotation 0 a vehicle
+        // faces south, the way the cone points, so its front is the hull's bottom edge.
         if (TryComp(uid, out FixturesComponent? fixtures) &&
             GridVehicleMoverSystem.TryGetFixtureAabb(fixtures, Robust.Shared.Physics.Transform.Empty, out var hull))
         {
-            var offset = new Vector2(0f, hull.Top + 0.05f);
+            var offset = new Vector2(hull.Center.X, hull.Bottom - 0.05f);
             if (light.Offset != offset)
             {
                 light.Offset = offset;
