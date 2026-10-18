@@ -39,7 +39,8 @@ public sealed partial class WFVehicleHudSystem
 
     private void InitializeVehicleControls(params Control[] switches)
     {
-        _controls = new GridContainer { Columns = ButtonColumns, HSeparationOverride = 4, VSeparationOverride = 4 };
+        _controls = new GridContainer { Columns = ButtonColumns, HSeparationOverride = 4, VSeparationOverride = 4,
+            HorizontalAlignment = Control.HAlignment.Left };
         foreach (var control in switches)
         {
             _controls.AddChild(control);
@@ -55,7 +56,7 @@ public sealed partial class WFVehicleHudSystem
         condition.OnPressed += _ => ShowDetail(scroll);
         _controls.AddChild(condition);
 
-        _panel.Cluster.AddChild(_controls);
+        _panel.RightBank.AddChild(_controls);
     }
 
     /// <summary>Shows one panel in the tray, or closes the tray if that panel is already open.</summary>

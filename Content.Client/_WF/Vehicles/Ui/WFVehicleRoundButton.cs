@@ -27,7 +27,7 @@ public enum WFVehicleGlyph : byte
 public sealed class WFVehicleRoundButton : ContainerButton
 {
     /// <summary>Diameter in UI units.</summary>
-    public const float Size = 38;
+    public const float Size = 44;
 
     public WFVehicleGlyph Glyph;
     public Texture? Icon;

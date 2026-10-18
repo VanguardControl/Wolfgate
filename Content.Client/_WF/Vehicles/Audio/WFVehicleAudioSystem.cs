@@ -8,6 +8,7 @@ using Robust.Shared.Audio;
 using Robust.Shared.Audio.Components;
 using Robust.Shared.Audio.Sources;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Map;
 using Robust.Shared.Player;
 using Robust.Shared.Random;
 
@@ -60,16 +61,23 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
 
-        var engines = EntityQueryEnumerator<WFVehicleEngineAudioComponent, RMCVehicleComponent>();
-        while (engines.MoveNext(out var uid, out var engine, out var vehicle))
+        // A vehicle out of view is parked in nullspace, where the lobby's listener is too: it would be heard there.
+        var engines = EntityQueryEnumerator<WFVehicleEngineAudioComponent, RMCVehicleComponent, TransformComponent>();
+        while (engines.MoveNext(out var uid, out var engine, out var vehicle, out var xform))
         {
-            UpdateEngine(uid, engine, vehicle, frameTime);
+            if (xform.MapID == MapId.Nullspace)
+                StopLoops(engine);
+            else
+                UpdateEngine(uid, engine, vehicle, frameTime);
         }
 
-        var turrets = EntityQueryEnumerator<WFTurretTraverseAudioComponent, VehicleTurretComponent>();
-        while (turrets.MoveNext(out var uid, out var audio, out var turret))
+        var turrets = EntityQueryEnumerator<WFTurretTraverseAudioComponent, VehicleTurretComponent, TransformComponent>();
+        while (turrets.MoveNext(out var uid, out var audio, out var turret, out var xform))
         {
-            UpdateTurret(uid, audio, turret, frameTime);
+            if (xform.MapID == MapId.Nullspace)
+                audio.LoopStream = _audio.Stop(audio.LoopStream);
+            else
+                UpdateTurret(uid, audio, turret, frameTime);
         }
     }
 

@@ -74,10 +74,11 @@ map conversion and YAML translation scripts are in `Tools/_WF/Vehicles`; namespa
 
 ## Driving, fuel and electrical power
 
-The crew dashboard is one compact cluster beside the hotbar (above it on a narrow screen) in the cockpit's
-retro/futurist skins: round speed and RPM dials, fuel and battery bars, and a row of round icon buttons (key, eject,
-parking brake, headlights, horn, the seat's vehicle actions with their own icons, and tabs for the condition, weapons,
-ammunition and equipment panels, which open in a tray above it). Tooltips name each button. No floating window.
+The crew dashboard is two low beveled wings either side of the hotbar (both above it on a narrow screen) in the
+cockpit's retro/futurist skins. The left wing has the speed and RPM dials; the right has the fuel and battery bars and
+round icon buttons (key, eject, parking brake, headlights, horn, the seat's vehicle actions with their own icons, and
+tabs for the condition, weapons, ammunition and equipment panels, which open in a tray above it). Tooltips name each
+button. No floating window.
 Ignition ON sweeps all gauges to maximum, back to zero and into live readings; OFF parks the needles and hides
 readout text while preserving the dial faces and tick marks. FUEL LOW is amber below 20%, red below 10%, and flashes red below 5%. RPM follows the same rev
 model as the engine audio, including gear-change drops. Headlights project a forward cone from the front bumper.

@@ -24,10 +24,13 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
 
     [Dependency] private IGameTiming _timing = default!;
 
+    private const float DialSize = 134;
+
     private readonly WFVehicleEngineComponent _unpowered = new();
     private WFVehicleDashboard _panel = default!;
     private WFGlassGauge[] _gauges = Array.Empty<WFGlassGauge>();
     private BoxContainer _driverGauges = default!;
+    private BoxContainer _supplies = default!;
     private BoxContainer _gunnery = default!;
     private bool _powered;
     private float _startup;
@@ -60,20 +63,21 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
         var speed = new WFGlassGauge("wf-vehicle-gauge-speed", () => ReadGauge(_speedValue, _speedLimit, "wf-vehicle-unit-speed"));
         var rpm = new WFGlassGauge("wf-vehicle-gauge-rpm", () => ReadGauge(_rpmValue, 3000, "wf-vehicle-unit-rpm"));
         var fuel = new WFGlassGauge("wf-vehicle-gauge-fuel", () => ReadGauge(_fuelValue, 100, "wf-vehicle-unit-percent"), strip: true)
-            { CompactStrip = true, SetHeight = 44 };
+            { CompactStrip = true, SetHeight = 52, HorizontalExpand = true };
         var battery = new WFGlassGauge("wf-vehicle-gauge-battery", () => ReadGauge(_batteryValue, 100, "wf-vehicle-unit-percent"), strip: true)
-            { CompactStrip = true, SetHeight = 44 };
+            { CompactStrip = true, SetHeight = 52, HorizontalExpand = true };
         _gauges = new[] { rpm, speed, fuel, battery };
         foreach (var dial in new[] { speed, rpm })
         {
-            dial.SetSize = new Vector2(96, 96);
-            dial.MinWidth = 96;
+            dial.SetSize = new Vector2(DialSize, DialSize);
+            dial.MinWidth = DialSize;
             dial.HorizontalExpand = false;
         }
 
-        var supplies = WFInstrumentTheme.Column(fuel, battery);
-        supplies.HorizontalExpand = true;
-        _driverGauges = WFInstrumentTheme.Row(speed, rpm, supplies);
+        _driverGauges = WFInstrumentTheme.Row(speed, rpm);
+        _driverGauges.HorizontalAlignment = Control.HAlignment.Center;
+        _driverGauges.HorizontalExpand = false;
+        _supplies = WFInstrumentTheme.Row(fuel, battery);
         _gunnery = WFInstrumentTheme.Column(_weapon, _ammo);
 
         _key = new WFVehicleRoundButton(WFVehicleGlyph.Key);
@@ -84,9 +88,10 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
         _horn = new WFVehicleRoundButton(WFVehicleGlyph.Horn, "wf-vehicle-hud-horn");
 
         _frameHealth = new Label { MouseFilter = Control.MouseFilterMode.Ignore };
-        _panel.Cluster.AddChild(WFInstrumentTheme.Row(_role, _engineState, _frameHealth));
-        _panel.Cluster.AddChild(_driverGauges);
-        _panel.Cluster.AddChild(_gunnery);
+        _panel.LeftBank.AddChild(WFInstrumentTheme.Row(_role, _engineState, _frameHealth));
+        _panel.LeftBank.AddChild(_driverGauges);
+        _panel.LeftBank.AddChild(_gunnery);
+        _panel.RightBank.AddChild(_supplies);
         InitializeVehicleControls(_key, _ejectKey, _brake, _headlights, _horn);
         WFInstrumentTheme.Install(_panel);
 
@@ -194,7 +199,7 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
             : "wf-vehicle-hud-stopped");
         _engineState.FontColorOverride = fuelWarning ? WFInstrumentTheme.Red : null;
 
-        _driverGauges.Visible = driver;
+        _driverGauges.Visible = _supplies.Visible = driver;
         _gunnery.Visible = !driver;
         _key.Visible = _brake.Visible = _headlights.Visible = _horn.Visible = driver;
 

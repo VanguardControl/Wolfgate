@@ -82,7 +82,8 @@ public sealed class VehicleClientTest
         await pair.Client.WaitAssertion(() =>
         {
             var em = pair.Client.EntMan;
-            var vehicle = em.SpawnEntity("WFVehicleTestChassis", Robust.Shared.Map.MapCoordinates.Nullspace);
+            em.System<SharedMapSystem>().CreateMap(out var map);
+            var vehicle = em.SpawnEntity("WFVehicleTestChassis", new Robust.Shared.Map.MapCoordinates(0, 0, map));
             var audio = em.AddComponent<WFVehicleEngineAudioComponent>(vehicle);
             var mover = em.GetComponent<GridVehicleMoverComponent>(vehicle);
             var system = pair.Client.System<WFVehicleAudioSystem>();
@@ -103,6 +104,37 @@ public sealed class VehicleClientTest
             system.FrameUpdate(0.1f);
             Assert.That(audio.BrakeCooldown, Is.LessThan(10f), "Continued braking must not retrigger the sound.");
             em.DeleteEntity(vehicle);
+            em.System<SharedMapSystem>().DeleteMap(map);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A vehicle that leaves view is parked in nullspace on the client, and the lobby listens from nullspace: a running
+    /// engine left behind would idle over the lobby screen.
+    /// </summary>
+    [Test]
+    public async Task ARunningEngineOutOfViewIsSilent()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            var em = pair.Client.EntMan;
+            em.System<SharedMapSystem>().CreateMap(out var map);
+            var vehicle = em.SpawnEntity("WFVehicleTestChassis", new Robust.Shared.Map.MapCoordinates(0, 0, map));
+            var engine = em.EnsureComponent<WFVehicleEngineComponent>(vehicle);
+            engine.Electrics = engine.Running = true;
+            var audio = em.EnsureComponent<WFVehicleEngineAudioComponent>(vehicle);
+            audio.IdleLoop = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/_WF/Vehicles/RCSM/engine/idle_loop.ogg");
+            var system = pair.Client.System<WFVehicleAudioSystem>();
+            system.FrameUpdate(0.1f);
+            Assert.That(audio.IdleStream, Is.Not.Null, "A running engine in view should idle.");
+
+            em.System<SharedTransformSystem>().DetachEntity(vehicle, em.GetComponent<TransformComponent>(vehicle));
+            system.FrameUpdate(0.1f);
+            Assert.That(audio.IdleStream, Is.Null, "A vehicle parked in nullspace must not be heard.");
+            em.DeleteEntity(vehicle);
+            em.System<SharedMapSystem>().DeleteMap(map);
         });
         await pair.CleanReturnAsync();
     }
@@ -169,11 +201,15 @@ public sealed class VehicleClientTest
                 dashboard.Fit(viewport, hotbar);
                 dashboard.Measure(viewport);
                 dashboard.Arrange(Robust.Shared.Maths.UIBox2.FromDimensions(System.Numerics.Vector2.Zero, viewport));
-                var cluster = dashboard.ClusterBounds;
-                Assert.That(cluster.Right <= hotbar.Left || cluster.Bottom <= hotbar.Top, Is.True, $"{viewport}: the cluster covers the hand slots.");
-                Assert.That(cluster.Left >= 0 && cluster.Top >= 0 && cluster.Right <= viewport.X, Is.True, $"{viewport}: the cluster is off screen.");
-                Assert.That(cluster.Height, Is.LessThanOrEqualTo(220), $"{viewport}: the cluster takes too much of the screen.");
-                Assert.That(dashboard.Cluster.Position.Y + dashboard.Cluster.Size.Y, Is.LessThanOrEqualTo(cluster.Bottom));
+                foreach (var (wing, bank) in new[] { (dashboard.LeftBounds, dashboard.LeftBank), (dashboard.RightBounds, dashboard.RightBank) })
+                {
+                    Assert.That(wing.Right <= hotbar.Left || wing.Left >= hotbar.Right || wing.Bottom <= hotbar.Top, Is.True,
+                        $"{viewport}: a wing covers the hand slots.");
+                    Assert.That(wing.Left >= 0 && wing.Top >= 0 && wing.Right <= viewport.X, Is.True, $"{viewport}: a wing is off screen.");
+                    Assert.That(wing.Height, Is.LessThanOrEqualTo(190), $"{viewport}: the dashboard takes too much of the screen.");
+                    Assert.That(bank.DesiredSize.Y, Is.LessThanOrEqualTo(bank.Size.Y + 0.5f), $"{viewport}: a wing's instruments overflow it.");
+                }
+                Assert.That(dashboard.LeftBounds.Right, Is.LessThan(dashboard.RightBounds.Left));
                 Assert.That(controls.OfType<WFGlassGauge>().All(gauge => gauge.Reading.Value == 0), Is.True,
                     "Unpowered needles park at zero instead of losing their dial.");
             }
