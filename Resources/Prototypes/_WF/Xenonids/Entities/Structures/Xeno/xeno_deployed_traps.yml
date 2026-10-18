@@ -3,8 +3,7 @@
   name: xeno trap
   description: A resin trap laid by a Sapper.
   components:
-  # XENOPORT(P3-B): DeployTrapsBlocker
-  # - type: DeployTrapsBlocker
+  - type: DeployTrapsBlocker
   - type: Transform
     anchored: true
   - type: Sprite

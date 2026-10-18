@@ -50,7 +50,7 @@
     evolvesTo:
     - CMXenoDrone
     - CMXenoDefender
-    # XENOPORT(P3-B): - CMXenoSentinel
+    - CMXenoSentinel
     # XENOPORT(P3-M): - CMXenoRunner
   - type: XenoHide
   - type: Fixtures

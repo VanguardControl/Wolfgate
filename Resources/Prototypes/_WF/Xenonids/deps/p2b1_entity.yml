@@ -23,8 +23,7 @@
     flags:
     - Turf
     - Xeno
-  # XENOPORT(P3-B): ResinSurgeReinforcable
-  # - type: ResinSurgeReinforcable
+  - type: ResinSurgeReinforcable
   - type: Tag
     tags:
     - SpreaderIgnore

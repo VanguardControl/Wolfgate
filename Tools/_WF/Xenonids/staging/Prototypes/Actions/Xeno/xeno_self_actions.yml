@@ -166,35 +166,6 @@
 
 - type: entity
   parent: ActionXenoBase
-  id: ActionXenoBurrow
-  name: Burrow
-  description: Burrow underground preventing you from getting hit from all sources. Once burrowed click a tile to move to it and resurface after a doafter that depends on distance.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: burrow
-    checkCanInteract: false
-  - type: TargetAction
-    range: 8
-    repeat: true
-    deselectOnMiss: false
-    checkCanAccess: false
-  - type: WorldTargetAction
-    event: !type:XenoBurrowActionEvent
-  - type: ActionBlockIfResting
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoBurrow
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: burrow
-
-- type: entity
-  parent: ActionXenoBase
   id: ActionXenoEmpower
   name: Empower (50)
   description: On first activation it, gain a small amount of shield. After 6 seconds or using it again, get empowered based on surrounding enemies (max 6), gaining shield from each. If you empowered from at least 3 targets, you become Super-Empowered, gaing additional damage on melee attacks, and changing how some of your other abilities work.

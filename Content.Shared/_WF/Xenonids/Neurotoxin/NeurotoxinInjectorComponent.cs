@@ -1,9 +1,9 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Content.Shared.Damage;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._WF.Xenonids.Neurotoxin;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(SharedNeurotoxinSystem))]
 public sealed partial class NeurotoxinInjectorComponent : Component
 {
     [DataField(required: true), AutoNetworkedField]

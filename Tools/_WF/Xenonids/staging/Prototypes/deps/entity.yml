@@ -35,21 +35,7 @@
       sprite: _WF/Xenonids/Actions/xeno_actions.rsi
       state: xeno_tacmap
 
-# RMC-14: Resources/Prototypes/_RMC14/Effects/green.yml
-- type: entity
-  parent: RMCEffectXenoTelegraphGreen
-  id: RMCEffectXenoTelegraphRedPulse
-  categories: [ HideSpawnMenu ]
-  components:
-  - type: TimedDespawn
-    lifetime: 1.2
-  - type: Sprite
-    drawdepth: Effects
-    sprite: _WF/Xenonids/Effects/xeno_boiler_telegraph.rsi
-    state: boiler_telegraph
-    color: "#A50824"
-
-# RMC-14: Resources/Prototypes/_RMC14/Effects/rmc_pointing.yml
+# RMC-14: Resources/Prototypes/_RMC14/Effects/slash.yml
 - type: entity
   parent: PointingArrow
   id: RMCPointingArrowBig

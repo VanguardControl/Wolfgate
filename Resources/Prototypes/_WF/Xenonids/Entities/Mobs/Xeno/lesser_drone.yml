@@ -105,11 +105,10 @@
   - type: RMCXenoDamageVisuals
     prefix: lesser
   # WOLFGATE: cut TacticalMapIcon (tactical map)
-  # XENOPORT(P3-B): AcidTrap
-  # - type: AcidTrap
-  #   trapLevel: 1
-  #   cost: 70
-  #   spray: XenoAcidSprayTrapWeak
+  - type: AcidTrap
+    trapLevel: 1
+    cost: 70
+    spray: XenoAcidSprayTrapWeak
   - type: Evasion
     evasion: 10
   - type: XenoInhands
