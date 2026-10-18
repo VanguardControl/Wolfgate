@@ -168,6 +168,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 ### Shared
 
 - [`Content.Shared/_WF/Planets/Administration/PlanetControlEvents.cs`](../../../Content.Shared/_WF/Planets/Administration/PlanetControlEvents.cs)
+- [`Content.Shared/_WF/Planets/CESharedZLevelsSystem.Roofs.cs`](../../../Content.Shared/_WF/Planets/CESharedZLevelsSystem.Roofs.cs)
 - [`Content.Shared/_WF/Planets/CESharedZLevelsSystem.Terrain.cs`](../../../Content.Shared/_WF/Planets/CESharedZLevelsSystem.Terrain.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFApcRepairDoAfterEvent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFApcRepairDoAfterEvent.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFEnterAtmosphereMessage.cs`](../../../Content.Shared/_WF/Planets/Flight/WFEnterAtmosphereMessage.cs)
@@ -260,6 +261,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPrototypeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarDrawingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarDrawingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRoofFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRoofFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherRoofTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherRoofTest.cs)
@@ -497,7 +499,9 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - atmospheric efficiency and continuous power demand.
   - severed engines retain their last firing command while powered.
   - preserve upgraded rating across atmosphere transitions.
-- [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs): planet terrain that isn't loaded is still ground
+- [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs)
+  - a roof one layer down is something to stand on, not to drop through.
+  - planet terrain that isn't loaded is still ground
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs): z-motion carried off the z-network is cleared, not kept for the next planet.
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs): retain the contacted obstacle for crash ploughing.
 - [`Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs`](../../../Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs): a throw only has an arc where there are levels to arc through.
