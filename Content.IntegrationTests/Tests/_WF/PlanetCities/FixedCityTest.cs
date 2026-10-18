@@ -76,6 +76,10 @@ public sealed class FixedCityTest
             Assert.That(record.GenerationError, Is.Null);
             Assert.That(holds.All(hold => hold.IsCompletedSuccessfully), Is.True);
 
+            var gasStation = record.Sites.SingleOrDefault(placed => placed.MapPath == "/Maps/_WF/PlanetPois/verda_gas_station.yml");
+            Assert.That(gasStation, Is.Not.Null, "The gas station was not placed.");
+            Assert.That(gasStation!.Connection, Is.EqualTo(WFPlanetPoiConnection.Roadside), "The gas station is off the roads.");
+
             var site = record.Sites.SingleOrDefault(site => site.Name == "wf-city-crocus");
             Assert.That(site, Is.Not.Null, "Crocus was not placed.");
             Assert.That(site!.Expeditions, Is.False, "A lived-in city is never an expedition site.");

@@ -13,3 +13,4 @@ wf-poi-thrascias-virology = Iced-over virology lab
 wf-poi-aerumna-factory = Collapsed cave factory
 wf-poi-aerumna-mine = Chromite mine
 wf-poi-carcinoma-ruin = Flesh-choked ruin
+wf-poi-verda-gas-station = Roadside gas station

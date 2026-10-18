@@ -86,6 +86,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Resources/Maps/_WF/PlanetPois/merak_roadside_trader.yml`](../../../Resources/Maps/_WF/PlanetPois/merak_roadside_trader.yml)
 - [`Resources/Maps/_WF/PlanetPois/Tests/through_service.yml`](../../../Resources/Maps/_WF/PlanetPois/Tests/through_service.yml)
 - [`Resources/Maps/_WF/PlanetPois/thrascias_survey_shelter.yml`](../../../Resources/Maps/_WF/PlanetPois/thrascias_survey_shelter.yml)
+- [`Resources/Maps/_WF/PlanetPois/verda_gas_station.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_gas_station.yml)
 
 ### Tools
 
