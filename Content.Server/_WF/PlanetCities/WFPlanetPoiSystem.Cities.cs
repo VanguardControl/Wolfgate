@@ -321,6 +321,20 @@ public sealed partial class WFPlanetPoiSystem
     private void PrepareCityLevel(WFFixedCityPrototype city, CityLevel level, Box2i footprint)
     {
         var grid = level.Grid;
+        if (city.ReplaceTiles.Count > 0)
+        {
+            var swaps = city.ReplaceTiles.ToDictionary(pair => (int) _tiles[pair.Key].TileId, pair => (int) _tiles[pair.Value].TileId);
+            var swapped = new List<(Vector2i, Tile)>();
+            var all = _maps.GetAllTilesEnumerator(grid.Owner, grid.Comp);
+            while (all.MoveNext(out var tileRef))
+            {
+                if (swaps.TryGetValue(tileRef.Value.Tile.TypeId, out var swap))
+                    swapped.Add((tileRef.Value.GridIndices, new Tile(swap)));
+            }
+
+            _maps.SetTiles(grid.Owner, grid.Comp, swapped);
+        }
+
         var outside = LevelTiles(grid).Where(tile => !Contains(footprint, tile)).ToList();
         if (outside.Count > 0)
         {
@@ -418,13 +432,23 @@ public sealed partial class WFPlanetPoiSystem
         var (city, config, entry, footprint, origin, reservation) = plan;
         var stationGrids = new List<EntityUid>();
         var siteTiles = new HashSet<Vector2i>();
+        // A floor is under cover wherever any level above it has a tile: the separate grids of the upper levels don't
+        // roof what is below them the way a planet's own layers do.
+        var tilesByDepth = levels.ToDictionary(level => level.Depth, level => LevelTiles(level.Grid));
         foreach (var level in levels.OrderBy(level => level.Depth))
         {
             if (TerminatingOrDeleted(ground))
                 return new HashSet<Vector2i>();
 
             var tiles = LevelTiles(level.Grid).Select(tile => tile + origin).ToHashSet();
-            var roofs = LevelRoofs(level.Grid).Select(tile => tile + origin).ToHashSet();
+            var roofs = LevelRoofs(level.Grid);
+            foreach (var (depth, higher) in tilesByDepth)
+            {
+                if (depth > level.Depth)
+                    roofs.UnionWith(higher);
+            }
+
+            roofs = roofs.Select(tile => tile + origin).ToHashSet();
             EntityUid target;
             if (level.Depth == 0)
             {

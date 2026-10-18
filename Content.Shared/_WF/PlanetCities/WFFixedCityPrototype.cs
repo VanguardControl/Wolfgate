@@ -43,6 +43,10 @@ public sealed partial class WFFixedCityPrototype : IPrototype
     [DataField]
     public Dictionary<EntProtoId, EntProtoId?> Replace = new();
 
+    /// <summary>Tiles swapped on load, such as a city's own road surface for the world's.</summary>
+    [DataField]
+    public Dictionary<string, string> ReplaceTiles = new();
+
     /// <summary>
     /// Bare rock on the levels below the street. Where the layer grows its own rock it is dropped with its tiles before
     /// loading, so the world's underground fills in around the city; elsewhere it is swapped as <see cref="Replace"/> says.

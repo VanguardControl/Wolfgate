@@ -15,14 +15,41 @@
     N14BlastDoorExteriorIndestructible: BlastDoor
     # Ghosts start where the round's own map puts them, not in Crocus.
     SpawnPointObserver: null
+    # Admin markers: warp points and Crocus's region definitions.
+    WarpPoint: null
+    WarpPointAdmin: null
+    BiomeSourceFallbackCrocusUnderground: null
+    BiomeSourceFallbackJianghuiCity: null
+    BiomeSourceFallbackJianghuiIndustrial: null
+    BiomeSourceFallbackJianghuiPort: null
+    # The ground war's: time-lock seals, base turrets, objectives and the factions' free gear.
+    WindowTimedSeal10Minutes: null
+    SpawnMobWeaponTurretLaserPDVCrocus: null
+    SpawnMobWeaponTurretLaserTSFMCCrocus: null
+    SpawnMobWeaponTurretPDV: null
+    WeaponTurretHeavyTSFMC: null
+    PDVOverwatchComputer: null
+    TSFOverwatchComputer: null
+    PDVThiefBeacon: null
+    TSFThiefBeacon: null
+    TSFNaniteCanisterLarge: null
+    CrocusBeaconBroken: null
+    ColMarTechEquipmentPDV: null
+    ColMarTechEquipmentTSF: null
+    VendingMachinePDVGear: null
+  # Crocus's streets get the world's road surface.
+  replaceTiles:
+    FloorAsphalt: RMCPlanetHybrisaAsphalt
   entrances:
   # North out of the park, west off the main avenue; as wide as a world road with its shoulders.
   - start: -40,71
     direction: North
     width: 7
+    tile: RMCPlanetHybrisaAsphalt
   - start: -79,39
     direction: West
     width: 7
+    tile: RMCPlanetHybrisaAsphalt
   # Below the street, the world's own rock fills in around the bunker.
   terrain:
   - N14WallRockIndestructible

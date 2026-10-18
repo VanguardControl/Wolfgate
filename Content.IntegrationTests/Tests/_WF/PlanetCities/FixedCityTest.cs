@@ -1,4 +1,5 @@
 #nullable enable
+using Content.Shared._WF.PlanetCities;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -120,10 +121,9 @@ public sealed class FixedCityTest
                 var id = entMan.GetComponent<MetaDataComponent>(child).EntityPrototype?.ID ?? string.Empty;
                 Assert.That(id, Does.Not.Contain("Indestructible"), $"{id} is still indestructible.");
                 Assert.That(id, Is.Not.EqualTo("SpawnPointObserver"));
-                // Turrets guarding the faction bases are godmoded by their own prototype, as spawn protection.
-                var proto = entMan.GetComponent<MetaDataComponent>(child).EntityPrototype;
-                if (proto == null || !proto.Components.ContainsKey("Godmode"))
-                    Assert.That(entMan.HasComponent<GodmodeComponent>(child), Is.False, $"{id} kept godmode.");
+                Assert.That(entMan.HasComponent<GodmodeComponent>(child), Is.False, $"{id} kept godmode.");
+                Assert.That(id, Does.Not.Contain("Timed").And.Not.Contain("Warp").And.Not.Contain("BiomeSource").And.Not.Contain("Turret"),
+                    $"{id} belongs to the ground war, not a city.");
             }
 
             // The station covers the city and offers its jobs.
