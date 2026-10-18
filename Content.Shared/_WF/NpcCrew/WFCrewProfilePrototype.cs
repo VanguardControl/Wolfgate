@@ -45,6 +45,10 @@ public sealed partial class WFCrewProfilePrototype : IPrototype
     [DataField]
     public ComponentRegistry Components = new();
 
+    /// <summary>Whether its ships never count one another as attackers, however much fire passes between them: a machine fleet does not turn on itself.</summary>
+    [DataField]
+    public bool ForgivesOwn;
+
     /// <summary>Titles its crews carry in place of a role's own, by role: an automaton is a Helm Unit, not a First Officer.</summary>
     [DataField]
     public Dictionary<ProtoId<WFCrewRolePrototype>, LocId> Titles = new();

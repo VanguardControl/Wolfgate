@@ -20,7 +20,9 @@ Reavers running in the same round.
 - **It never touches population centres.** The ADS never claims, contests or blockades a cell that holds a station
   (Asset Preservation Directive; `blockades: false`), so every station stays a safe harbour and the front can never
   reach the core.
-- **Its crews are mediocre.** Skills Green and Regular only, never Veteran. One gunner per hull at founding.
+- **It never fires first, and it never turns on itself.** Its crews are Veteran and its hulls are plated in adamantite
+  (the profile swaps the plastitanium in), so what it does fight it outlasts; but nobody is shot at who has not said YES
+  or opened fire, and ADS ships never count one another as attackers whatever fire passes between them (`forgivesOwn`).
 - **It stands still.** Nodes are gun platforms that never leave their cell. Sentinels circle the node and sweeps fly
   fixed routes through held space; both give up once out of held space. No raids on player ships, no marks.
 - **It is small.** Fewer nodes than Reaver strongholds, no docking reinforcements, no shields on the light hull that
@@ -64,7 +66,7 @@ Storm, Rubicon, Cauterizer, Evasion, Apprehension: Mono's ADS core names) and se
 naked robots, no clothing or suits: `WFCrewAdsUnit` and `WFCrewAdsOfficer` (energy sidearm on the belt),
 `WFCrewAdsSentry` (energy rifle on the back too); the belt and back slots need no jumpsuit. The IPC body carries
 `PressureImmunity` and `BreathingImmunity` itself, so a post in vacuum never gets it a void kit; skills
-`[ Green, Regular, Regular ]`. Zone lines `wf-ads-zone-*` (`Resources/Locale/en-US/_WF/AdsIncursion/ads.ftl`) in
+`[ Veteran ]`. Zone lines `wf-ads-zone-*` (`Resources/Locale/en-US/_WF/AdsIncursion/ads.ftl`) in
 directive voice, said only to a declared threat or an attacker: "DISARMAMENT DIRECTIVE. {$intruder}, you are logged as
 a threat. ..." The query lines `wf-ads-zone-hail-question`, `-hail-yes`, `-hail-no`, `-hail-declared` and
 `-hail-cleared` go over the hail. The attack line: "Compliance window closed. {$intruder} will be made combat-ineffective."

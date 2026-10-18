@@ -308,6 +308,13 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
     }
 
     /// <summary>Updates an existing crew without requiring a new spawn roster.</summary>
+    /// <summary>Records on a grid the profile its crew flies under, for the rules a profile sets between its own ships.</summary>
+    public void MarkProfile(EntityUid grid, ProtoId<WFCrewProfilePrototype>? profileId)
+    {
+        if (profileId is { } id && _prototypes.HasIndex(id))
+            EnsureComp<WFCrewShipProfileComponent>(grid).Profile = id;
+    }
+
     /// <summary>Replaces the hull parts a profile swaps out on a grid, in place and anchored as they were. Returns how many.</summary>
     public int ApplyHullSwaps(EntityUid grid, ProtoId<WFCrewProfilePrototype>? profileId)
     {

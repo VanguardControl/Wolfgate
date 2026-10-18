@@ -608,6 +608,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
         Unload(grid);
         // A crew that is not allowed the hull's best plating gets it swapped out before anything else goes aboard.
         _setup.ApplyHullSwaps(grid, ship.Profile);
+        _setup.MarkProfile(grid, ship.Profile);
 
         var name = Loc.GetString("wf-encounter-ship-name", ("vessel", vessel.Name), ("designation", designation));
         _meta.SetEntityName(grid, name);

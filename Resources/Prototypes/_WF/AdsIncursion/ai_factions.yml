@@ -2,6 +2,8 @@
 # Neutral to pets and the harmless, but not to PirateNF: the Reavers are its enemy.
 - type: npcFaction
   id: WFAds
+  friendly:
+  - WFAds
   neutral:
   - Cat
   - PetsNT
