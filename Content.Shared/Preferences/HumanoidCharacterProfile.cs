@@ -2,6 +2,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Content.Shared._Mono.Company;
 using Content.Shared._NF.Bank;
+using Content.Shared._WF.Biotype; // WOLFGATE(Biotype)
 using Content.Shared._WF.EmoteVoices; // WOLFGATE(EmoteVoices)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Migration; // WOLFGATE(Genitals)
@@ -251,6 +252,7 @@ namespace Content.Shared.Preferences
             MismatchedParts = other.MismatchedParts; // WOLFGATE(Species)
             CustomMarkings = new(other.CustomMarkings); // WOLFGATE(CustomMarkings)
             LegStance = other.LegStance; // WOLFGATE(LegStyle)
+            Biotype = other.Biotype; // WOLFGATE(Biotype)
         }
 
         /// <summary>Copy constructor</summary>
@@ -285,6 +287,7 @@ namespace Content.Shared.Preferences
             MismatchedParts = other.MismatchedParts; // WOLFGATE(Species)
             CustomMarkings = new(other.CustomMarkings); // WOLFGATE(CustomMarkings)
             LegStance = other.LegStance; // WOLFGATE(LegStyle)
+            Biotype = other.Biotype; // WOLFGATE(Biotype)
         }
 
         /// <summary>
@@ -626,6 +629,7 @@ namespace Content.Shared.Preferences
             if (MismatchedParts != other.MismatchedParts) return false; // WOLFGATE(Species)
             if (!CustomMarkingsEqual(other)) return false; // WOLFGATE(CustomMarkings)
             if (LegStance != other.LegStance) return false; // WOLFGATE(LegStyle)
+            if (Biotype != other.Biotype) return false; // WOLFGATE(Biotype)
             if (ScreamVoice != other.ScreamVoice || LaughVoice != other.LaughVoice) return false; // WOLFGATE(EmoteVoices)
             if (!Flags.SequenceEqual(other.Flags)) return false; // Mono
             if (!Components.SequenceEqual(other.Components)) return false; // Mono
@@ -834,6 +838,7 @@ namespace Content.Shared.Preferences
             EnsureCustomMarkingsValid(configManager); // WOLFGATE(CustomMarkings)
             EnsureValidEmoteVoices(prototypeManager); // WOLFGATE(EmoteVoices)
             LegStance = LegStyleRules.Validate(Species, LegStance, prototypeManager); // WOLFGATE(LegStyle): legs the species doesn't have fall back to its own
+            Biotype = WFBiotypeRules.Resolve(Biotype, speciesPrototype); // WOLFGATE(Biotype): Default and unknown values become the species' own
 
             // Check if the company exists, if not set to "None"
             if (!string.IsNullOrEmpty(Company) &&
@@ -890,6 +895,9 @@ namespace Content.Shared.Preferences
             foreach (var trait in traits)
             {
                 if (!protoManager.TryIndex(trait, out var traitProto))
+                    continue;
+
+                if (WFBiotypeGates.TraitBlocked(traitProto, this, protoManager)) // WOLFGATE(Biotype): a trait the effective biotype can't take is dropped
                     continue;
 
                 // Always valid.
@@ -974,6 +982,7 @@ namespace Content.Shared.Preferences
             hashCode.Add(MismatchedParts); // WOLFGATE(Species)
             hashCode.Add(CustomMarkings.Count); // WOLFGATE(CustomMarkings)
             hashCode.Add((int) LegStance); // WOLFGATE(LegStyle)
+            hashCode.Add((int) Biotype); // WOLFGATE(Biotype)
             hashCode.Add(ScreamVoice); // WOLFGATE(EmoteVoices)
             hashCode.Add(LaughVoice); // WOLFGATE(EmoteVoices)
             return hashCode.ToHashCode();

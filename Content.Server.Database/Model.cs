@@ -554,6 +554,9 @@ namespace Content.Server.Database
         // WOLFGATE(LegStyle): the legs picked in the creator, 0 for the species' own.
         [Column("leg_stance")] public int LegStance { get; set; }
 
+        // WOLFGATE(Biotype): organic or synthetic body, 0 for the species' own.
+        [Column("biotype")] public int Biotype { get; set; }
+
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 

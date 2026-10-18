@@ -167,7 +167,6 @@ markings. `MarkingSet` caps undergarments at one top and one bottom per characte
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_DV/Mobs/Customization/Vulpkanin/tail_markings.rsi/)
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_EE/Mobs/Customization/Harpy/harpy_tails.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_EE/Mobs/Customization/Harpy/harpy_tails.rsi/)
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_EE/Mobs/Customization/Harpy/harpy_tails48x48.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_EE/Mobs/Customization/Harpy/harpy_tails48x48.rsi/)
-- [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_FarHorizons/Mobs/Customization/proto-avali/led_shapes_body.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_FarHorizons/Mobs/Customization/proto-avali/led_shapes_body.rsi/)
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Floof/Mobs/Customization/skyrattails.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Floof/Mobs/Customization/skyrattails.rsi/)
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Felinid/foxtail.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Felinid/foxtail.rsi/)
 - [`Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi/`](../../../Resources/Textures/_WF/Genitals/Mobs/Customization/TailSplit/_Goobstation/Mobs/Customization/Tajaran/leopard_tail.rsi/)
@@ -463,12 +462,6 @@ markings. `MarkingSet` caps undergarments at one top and one bottom per characte
 - [`Resources/Prototypes/_EinsteinEngines/Species/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Species/ipc.yml)
   - split tail layers ported from HardLight/Floof
   - underwear/genital layers ported from HardLight
-- [`Resources/Prototypes/_FarHorizons/Entities/Mobs/Customization/protogen.yml`](../../../Resources/Prototypes/_FarHorizons/Entities/Mobs/Customization/protogen.yml)
-  - the anatomy zone of the south frame draws behind the body, so the tail never covers anatomy
-  - both halves of a tail share one colour
-  - split art, anatomy zone only
-  - anatomy zone of the south frame on TailBehind
-- [`Resources/Prototypes/_FarHorizons/Species/protogen_subspecies.yml`](../../../Resources/Prototypes/_FarHorizons/Species/protogen_subspecies.yml): as MobThavenSprites, so undergarment markings draw
 - [`Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_ears.yml`](../../../Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_ears.yml): named EarsCow's sprites, so the link never applied
 - [`Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_tails.yml`](../../../Resources/Prototypes/_Floof/Entities/Mobs/Customization/Markings/anthro_tails.yml)
   - the south frame draws behind the body, so the tail never covers anatomy
@@ -527,14 +520,6 @@ markings. `MarkingSet` caps undergarments at one top and one bottom per characte
   - the south frame draws behind the body, so the tail never covers anatomy
   - split art
   - south frame on TailBehind
-- [`Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/protogen_subspecies.yml)
-  - anatomy anchor
-  - anatomy anchor, directly after gloves: exposed anatomy draws over the arms, hands and gloves but under shoes, belts, bags, hair, neckwear, outer clothing and tails
-  - anatomy anchor, directly after outerClothing: the show-through-clothing set, still under the neck slots, hair and tails
-  - drawn above the neck slot so cloaks do not cover the tail
-  - split tail layers ported from HardLight/Floof
-  - underwear/genital layers ported from HardLight
-  - drawn above the neck slots so cloaks do not cover the tail
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml)
   - moved first so the tail back half is drawn behind the body
   - anatomy anchor
@@ -691,7 +676,7 @@ markings. `MarkingSet` caps undergarments at one top and one bottom per characte
 - [`Resources/Prototypes/Entities/Mobs/Customization/Markings/undergarments.yml`](../../../Resources/Prototypes/Entities/Mobs/Customization/Markings/undergarments.yml)
   - ported from HardLight
   - added Protogen and afterwards, so every anatomy-eligible body except Resomi has undergarments
-  - Vox and ProtoVox restored, these are the Vox-shaped states
+  - Vox restored, these are the Vox-shaped states
 - [`Resources/Prototypes/Entities/Mobs/Customization/Markings/Vulpkanin/vulpkanin_tail.yml`](../../../Resources/Prototypes/Entities/Mobs/Customization/Markings/Vulpkanin/vulpkanin_tail.yml)
   - the south frame draws behind the body, so the tail never covers anatomy
   - both halves of a tail share one colour

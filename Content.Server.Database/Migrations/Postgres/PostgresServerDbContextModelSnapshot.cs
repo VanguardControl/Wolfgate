@@ -962,6 +962,10 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("integer")
                         .HasColumnName("bank_balance");
 
+                    b.Property<int>("Biotype")
+                        .HasColumnType("integer")
+                        .HasColumnName("biotype");
+
                     b.Property<string>("CharacterName")
                         .IsRequired()
                         .HasColumnType("text")

@@ -908,6 +908,10 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("INTEGER")
                         .HasColumnName("bank_balance");
 
+                    b.Property<int>("Biotype")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("biotype");
+
                     b.Property<string>("CharacterName")
                         .IsRequired()
                         .HasColumnType("TEXT")
