@@ -367,6 +367,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSpaceExposureTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSpaceExposureTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSpeciesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSpeciesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedStumpPainTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedStumpPainTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSynthCareTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSynthCareTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTemperatureTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTourniquetHoldsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedTourniquetHoldsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAimScatterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedAimScatterTest.cs)
@@ -520,6 +521,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/tourniquet.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/Construction/tourniquet.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Recipes/lathes.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/lathes.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Recipes/reactions.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/reactions.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Recipes/synth_organs.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Recipes/synth_organs.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Shaders/shaders.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Shaders/shaders.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/SoundCollections/bobmed.yml`](../../../Resources/Prototypes/_WF/Wolfmed/SoundCollections/bobmed.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/SoundCollections/wounds.yml`](../../../Resources/Prototypes/_WF/Wolfmed/SoundCollections/wounds.yml)
@@ -527,6 +529,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Surgery/surgeries.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Surgery/surgery_steps.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Surgery/synth_core.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Surgery/synth_core.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Surgery/synth_power_cell.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Surgery/synth_power_cell.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Voice/bobmed_emote_sounds.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Voice/bobmed_emote_sounds.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Voice/bobmed_emotes.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Voice/bobmed_emotes.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Voice/condition_emotes.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Voice/condition_emotes.yml)
@@ -1664,7 +1667,9 @@ Skipped ("dirty-disposed").
   - blood loss damage heals at every other species' rate; at a quarter of it the reading outlasted the bleed by half an hour
   - M4, D29: passive regen is neutralised on a wound host, as BaseMobSpeciesOrganic's is.
   - M4, D22, OD12: the Blunt gib moves to 1500 and the Heat body ash is removed.
-- [`Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml): M4, OD16: Synth is mechanical. A wound host on the machine ladder (plan 3.11, 9.3): the ccu is its
+- [`Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml)
+  - runs on the IPC's fluid so the pack, IV and autodoc refill it
+  - M4, OD16: Synth is mechanical. A wound host on the machine ladder (plan 3.11, 9.3): the ccu is its
 - [`Resources/Prototypes/_Mono/Body/Organs/hydra.yml`](../../../Resources/Prototypes/_Mono/Body/Organs/hydra.yml)
   - Wolfmed stomach data, so the organ can be hurt, scanned and treated
   - Wolfmed liver data, so the organ can be hurt, scanned and treated
@@ -1980,7 +1985,9 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Entities/Objects/Weapons/Melee/mining.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Melee/mining.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/Entities/Objects/Weapons/Melee/weapon_toolbox.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Melee/weapon_toolbox.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/Entities/StatusEffects/misc.yml`](../../../Resources/Prototypes/Entities/StatusEffects/misc.yml): Onyx's status effect bases, ported without its standing base or concrete effects.
-- [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): AUTODOC: the four program disks, behind the same research as the rest of medbay.
+- [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml)
+  - replacement synth organs
+  - AUTODOC: the four program disks, behind the same research as the rest of medbay.
 - [`Resources/Prototypes/Guidebook/medical.yml`](../../../Resources/Prototypes/Guidebook/medical.yml)
   - PROTO L (WP12-10) - wounds guidebook entries
   - AUTODOC
