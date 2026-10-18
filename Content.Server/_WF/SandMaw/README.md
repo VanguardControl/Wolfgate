@@ -1,14 +1,18 @@
 # SandMaw
 
-Merak's sand maws, a sarlacc-style hazard: three to five sit on the open sand each round (the `roamers` list on
-Merak's POI table).
+Merak's sand maws, a sarlacc-style hazard: ten to twenty sit on the open sand each round (the `roamers` list on
+Merak's POI table), and admins can place more from the spawn menu.
 
-- A maw lashes a tentacle round the nearest creature within 6 m every few seconds and drags it in at 1.2 m/s. The
-  tentacle is a rope (`_WF/Tether`) you can see, with a coil on the victim: slash the coil (only an edge really cuts it)
-  or cut the rope with a cutting tool to get free. Loose items within 3 m slide in on their own.
-- Whatever reaches the throat is swallowed into the maw's belly, a pocket of flesh made the first time it eats: a ring
-  of meat walls, pools of digestive acid, a faint glow and the loot of earlier meals (gems, gold, cash, guns, bones).
-- Breaking a belly wall leaves a torn gut; step into it to climb out beside the maw, past the tentacle's reach.
+- A maw lashes a tentacle round the nearest creature within 6 m every few seconds. The tentacle only ever shortens, and
+  faster the longer it holds (1 m/s up to 3 m/s); its catch can't get further away than its length and slows from 65 %
+  speed down to 10 %. Slash the coil on the victim (only an edge really cuts it) or cut the rope to get free. The
+  tentacle is a textured, tapered rope (`_WF/Tether`, texture from `Tools/_WF/SandMaw/tentacle.py`). Loose items within
+  3 m slide in on their own.
+- Whatever reaches the throat drops into the maw's belly, cut out of the planet layer right under it the first time it
+  eats: a ring of meat walls, pools of digestive acid, a faint glow and the loot of earlier meals (gems, gold, cash,
+  guns, bones, and always a pickaxe). Break the walls and dig through the rock to get out into the caves.
+- On a map with no layer below, the belly is a pocket map instead, and a broken wall leaves a torn gut that climbs out
+  beside the maw.
 
 Entry points: `WFSandMawSystem`, `WFSandMawComponent`. The sprite is the necromorph leviathan from an old Dead Space
 13 repository (see its `meta.json`).
@@ -37,7 +41,13 @@ Entry points: `WFSandMawSystem`, `WFSandMawComponent`. The sprite is the necromo
 
 ### Textures
 
+- [`Resources/Textures/_WF/SandMaw/attributions.yml`](../../../Resources/Textures/_WF/SandMaw/attributions.yml)
 - [`Resources/Textures/_WF/SandMaw/leviathan.rsi/`](../../../Resources/Textures/_WF/SandMaw/leviathan.rsi/)
+- [`Resources/Textures/_WF/SandMaw/tentacle.png`](../../../Resources/Textures/_WF/SandMaw/tentacle.png)
+
+### Tools
+
+- [`Tools/_WF/SandMaw/tentacle.py`](../../../Tools/_WF/SandMaw/tentacle.py)
 
 ## Non-modular edits
 

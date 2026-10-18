@@ -7,7 +7,9 @@ using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._WF.PlanetPois;
 using Content.Server._WF.Planets;
 using Content.Server._WF.Planets.Bounds;
+using Content.Server.Parallax;
 using Content.Server.Shuttles.Components;
+using Content.Shared.Parallax.Biomes;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.PlanetCities;
 using Content.Shared._WF.PlanetPois;
@@ -17,6 +19,7 @@ using Content.Shared.Mobs.Components;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Maths;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Prototypes;
@@ -63,6 +66,24 @@ public sealed class PlanetWreckTest
                 Assert.That(record.GenerationError, Is.Null);
                 var wreckSites = record.Sites.Where(site => site.Name == "wf-poi-wreck").ToList();
                 Assert.That(wreckSites, Is.Not.Empty, "Carcinoma got no wrecks.");
+
+                // Pinned ground round a wreck must have been laid first, or it stays a black ring.
+                var groundGrid = entities.GetComponent<MapGridComponent>(ground);
+                var biomes = server.System<BiomeSystem>();
+                var groundBiome = (ground, entities.GetComponent<BiomeComponent>(ground));
+                var holes = 0;
+                foreach (var site in wreckSites)
+                {
+                    for (var x = site.Bounds.Left; x < site.Bounds.Right; x++)
+                    for (var y = site.Bounds.Bottom; y < site.Bounds.Top; y++)
+                    {
+                        var index = new Vector2i(x, y);
+                        if (biomes.WfIsPinned(groundBiome, index)
+                            && server.System<SharedMapSystem>().GetTileRef(ground, groundGrid, index).Tile.IsEmpty)
+                            holes++;
+                    }
+                }
+                Assert.That(holes, Is.Zero, "The ground under and round a wreck was pinned empty.");
 
                 var map = entities.GetComponent<TransformComponent>(ground).MapID;
                 var maps = server.System<SharedMapSystem>();

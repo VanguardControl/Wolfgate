@@ -18,6 +18,7 @@ public sealed class RopeVisualizerSystem : EntitySystem
     [Dependency] private IPrototypeManager _protos = default!;
     [Dependency] private IEyeManager _eye = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private Robust.Client.ResourceManagement.IResourceCache _resources = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
     /// <summary>Metres of viewport margin kept simulated, so a rope entering the screen is already settled.</summary>
@@ -126,6 +127,10 @@ public sealed class RopeVisualizerSystem : EntitySystem
         chain.Color = Color.InterpolateBetween(proto.Color, proto.TautColor,
             Math.Clamp(float.IsFinite(rope.Strain) ? rope.Strain : 0f, 0f, 1f));
         chain.Width = MathF.Max(proto.Width, 0.01f);
+        chain.Taper = Math.Clamp(proto.Taper, 0.05f, 1f);
+        chain.Texture = proto.Texture is { } texture
+            ? _resources.GetResource<Robust.Client.ResourceManagement.TextureResource>(texture).Texture
+            : null;
 
         if (chain.Count != count || chain.Points.Length < count || !MathHelper.CloseTo(chain.SegmentRest, rest, 0.0001f))
         {

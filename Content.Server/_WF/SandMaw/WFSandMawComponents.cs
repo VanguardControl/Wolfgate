@@ -20,9 +20,19 @@ public sealed partial class WFSandMawComponent : Component
     [DataField]
     public TimeSpan GrabCooldown = TimeSpan.FromSeconds(4);
 
-    /// <summary>Metres a second the tentacle reels in.</summary>
+    /// <summary>Metres a second the tentacle reels in at first; it pulls harder the longer it holds.</summary>
     [DataField]
-    public float ReelSpeed = 1.2f;
+    public float ReelSpeed = 1f;
+
+    [DataField]
+    public float MaxReelSpeed = 3f;
+
+    /// <summary>Speed left to a fresh catch, falling to <see cref="MinGrippedSpeed"/> the longer it's held.</summary>
+    [DataField]
+    public float GrippedSpeed = 0.65f;
+
+    [DataField]
+    public float MinGrippedSpeed = 0.1f;
 
     [DataField]
     public ProtoId<RopeTypePrototype> Tentacle = "WFSandMawTentacle";
@@ -69,8 +79,16 @@ public sealed partial class WFSandMawComponent : Component
     [DataField]
     public SoundSpecifier? LashSound = new SoundPathSpecifier("/Audio/Effects/gib1.ogg");
 
+    /// <summary>The belly's grid: the layer under the maw, or a pocket map on a world without one.</summary>
     [ViewVariables]
     public EntityUid? Belly;
+
+    [ViewVariables]
+    public Vector2i BellyCentre;
+
+    /// <summary>Whether the belly is a pocket map, left by a tear back up beside the maw.</summary>
+    [ViewVariables]
+    public bool PocketBelly;
 
     [ViewVariables]
     public TimeSpan NextGrab;
@@ -84,9 +102,21 @@ public sealed class WFSandMawGrab
 {
     public EntityUid Rope;
     public EntityUid Grip;
+    public TimeSpan Since;
+
+    /// <summary>The tentacle's length now; the catch can't get further away than this.</summary>
+    public float Length;
 
     /// <summary>Whether the victim got its rope point from the maw, to take away again.</summary>
     public bool AddedPoint;
+}
+
+/// <summary>On a creature in a maw's grip: it slows the longer it's held.</summary>
+[RegisterComponent]
+public sealed partial class WFSandMawGrabbedComponent : Component
+{
+    [ViewVariables]
+    public float Speed = 1f;
 }
 
 /// <summary>The tentacle's coil round a victim; slash it apart to get free.</summary>

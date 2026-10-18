@@ -106,8 +106,8 @@
   id: WFPoisMerak
   roamers:
   - id: WFMerakSandMaw
-    minCount: 3
-    maxCount: 5
+    minCount: 10
+    maxCount: 20
   wrecks:
     theme: WFWreckThemeMerak
     minCount: 1

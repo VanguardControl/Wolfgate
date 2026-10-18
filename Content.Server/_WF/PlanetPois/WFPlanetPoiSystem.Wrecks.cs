@@ -108,6 +108,16 @@ public sealed partial class WFPlanetPoiSystem
                 foreach (var uid in anchored)
                     QueueDel(uid);
             }
+
+            // Ground the biome hasn't laid yet would stay empty once pinned: lay it now.
+            var fill = new List<(Vector2i, Tile)>();
+            foreach (var tile in under)
+            {
+                if (_maps.GetTileRef(ground, grid, tile).Tile.IsEmpty && _biome.TryGetBiomeTile(ground, grid, tile, out var natural))
+                    fill.Add((tile, natural.Value));
+            }
+            if (fill.Count > 0)
+                _maps.SetTiles(ground, grid, fill);
             _biome.WfPinTiles((ground, biome), under);
 
             SpawnWreckFauna(ship, theme);

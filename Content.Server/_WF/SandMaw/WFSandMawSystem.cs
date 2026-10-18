@@ -1,7 +1,9 @@
 using System.Linq;
 using System.Numerics;
+using Content.Server._WF.Planets;
 using Content.Server._WF.Tether;
 using Content.Server.Atmos.EntitySystems;
+using Content.Server.Parallax;
 using Content.Shared._WF.Tether;
 using Content.Shared._WF.Vehicles.Base;
 using Content.Shared.Atmos;
@@ -12,6 +14,9 @@ using Content.Shared.Gravity;
 using Content.Shared.Item;
 using Content.Shared.Maps;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Movement.Systems;
+using Content.Shared.Parallax.Biomes;
+using Content.Shared._WF.Planets;
 using Content.Shared.Physics;
 using Content.Shared.Popups;
 using Robust.Server.GameObjects;
@@ -34,6 +39,7 @@ namespace Content.Server._WF.SandMaw;
 public sealed class WFSandMawSystem : EntitySystem
 {
     [Dependency] private AtmosphereSystem _atmos = default!;
+    [Dependency] private BiomeSystem _biome = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private EntityTableSystem _tables = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -41,6 +47,7 @@ public sealed class WFSandMawSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private MapSystem _maps = default!;
     [Dependency] private MetaDataSystem _meta = default!;
+    [Dependency] private MovementSpeedModifierSystem _speed = default!;
     [Dependency] private RopeSystem _ropes = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedContainerSystem _containers = default!;
@@ -63,13 +70,19 @@ public sealed class WFSandMawSystem : EntitySystem
         SubscribeLocalEvent<WFSandMawComponent, ComponentShutdown>(OnMawShutdown);
         SubscribeLocalEvent<WFSandMawGripComponent, DestructionEventArgs>(OnGripDestroyed);
         SubscribeLocalEvent<WFSandMawBellyWallComponent, DestructionEventArgs>(OnWallDestroyed);
+        SubscribeLocalEvent<WFSandMawGrabbedComponent, RefreshMovementSpeedModifiersEvent>(OnRefreshSpeed);
+    }
+
+    private void OnRefreshSpeed(Entity<WFSandMawGrabbedComponent> ent, ref RefreshMovementSpeedModifiersEvent args)
+    {
+        args.ModifySpeed(ent.Comp.Speed);
     }
 
     private void OnMawShutdown(Entity<WFSandMawComponent> ent, ref ComponentShutdown args)
     {
         foreach (var victim in ent.Comp.Grabs.Keys.ToList())
             Release(ent, victim);
-        if (ent.Comp.Belly is { } belly && Transform(belly).MapUid is { } map)
+        if (ent.Comp.PocketBelly && ent.Comp.Belly is { } belly && Transform(belly).MapUid is { } map)
             QueueDel(map);
     }
 
@@ -156,15 +169,17 @@ public sealed class WFSandMawSystem : EntitySystem
         gripComp.Maw = maw;
         gripComp.Victim = victim;
 
-        maw.Comp.Grabs[victim] = new WFSandMawGrab { Rope = made, Grip = grip, AddedPoint = added };
+        maw.Comp.Grabs[victim] = new WFSandMawGrab { Rope = made, Grip = grip, AddedPoint = added, Since = _timing.CurTime, Length = best };
+        EnsureComp<WFSandMawGrabbedComponent>(victim).Speed = maw.Comp.GrippedSpeed;
+        _speed.RefreshMovementSpeedModifiers(victim);
         _audio.PlayPvs(maw.Comp.LashSound, maw);
         _popup.PopupEntity(Loc.GetString("wf-sand-maw-grabbed"), victim, victim, PopupType.LargeCaution);
     }
 
     /// <summary>
-    /// Drags each catch toward the throat and shortens the tentacle to match; a catch at the throat is swallowed. Mobs
-    /// move kinematically, so the rope can't pull them: it is the tentacle you see, and the drag is done here, stopping
-    /// short of anything solid in the way.
+    /// Shortens each tentacle, faster the longer it holds, and keeps its catch within that length; a catch at the throat
+    /// is swallowed. Mobs move kinematically, so the rope can't pull them: it is the tentacle you see, and the leash is
+    /// done here, stopping short of anything solid in the way. The catch slows as it tires.
     /// </summary>
     private void Reel(Entity<WFSandMawComponent> maw, Vector2 centre, float dt)
     {
@@ -185,12 +200,27 @@ public sealed class WFSandMawSystem : EntitySystem
                 continue;
             }
 
-            var position = _transform.GetWorldPosition(victim);
-            var step = MathF.Min(maw.Comp.ReelSpeed * dt, distance);
-            var next = position + (centre - position) / distance * step;
-            if (!Blocked(victim, position, next))
-                _transform.SetWorldPosition(victim, next);
-            _ropes.SetLength(grab.Rope, MathF.Max(0.5f, Vector2.Distance(centre, _transform.GetWorldPosition(victim))));
+            var held = (float) (_timing.CurTime - grab.Since).TotalSeconds;
+            var reel = MathF.Min(maw.Comp.MaxReelSpeed, maw.Comp.ReelSpeed * (1f + 0.25f * held));
+            grab.Length = MathF.Max(0.5f, MathF.Min(grab.Length, distance) - reel * dt);
+            if (distance > grab.Length)
+            {
+                var position = _transform.GetWorldPosition(victim);
+                var next = centre + (position - centre) / distance * grab.Length;
+                if (!Blocked(victim, position, next))
+                    _transform.SetWorldPosition(victim, next);
+            }
+            _ropes.SetLength(grab.Rope, grab.Length);
+
+            if (TryComp(victim, out WFSandMawGrabbedComponent? grabbed))
+            {
+                var speed = MathF.Max(maw.Comp.MinGrippedSpeed, maw.Comp.GrippedSpeed - 0.12f * held);
+                if (MathF.Abs(grabbed.Speed - speed) > 0.02f)
+                {
+                    grabbed.Speed = speed;
+                    _speed.RefreshMovementSpeedModifiers(victim);
+                }
+            }
         }
 
         foreach (var victim in _release)
@@ -230,6 +260,8 @@ public sealed class WFSandMawSystem : EntitySystem
             QueueDel(grab.Grip);
         if (grab.AddedPoint && !TerminatingOrDeleted(victim))
             RemComp<RopeAttachPointComponent>(victim);
+        if (!TerminatingOrDeleted(victim) && RemComp<WFSandMawGrabbedComponent>(victim))
+            _speed.RefreshMovementSpeedModifiers(victim);
     }
 
     private void OnGripDestroyed(Entity<WFSandMawGripComponent> ent, ref DestructionEventArgs args)
@@ -280,8 +312,8 @@ public sealed class WFSandMawSystem : EntitySystem
     private void Swallow(Entity<WFSandMawComponent> maw, EntityUid prey)
     {
         var belly = EnsureBelly(maw);
-        var spot = new Vector2(_random.NextFloat(-1.5f, 1.5f), _random.NextFloat(-1.5f, 1.5f));
-        _transform.SetCoordinates(prey, new EntityCoordinates(belly, spot + new Vector2(0.5f)));
+        var spot = (Vector2) maw.Comp.BellyCentre + new Vector2(0.5f) + new Vector2(_random.NextFloat(-1.5f, 1.5f), _random.NextFloat(-1.5f, 1.5f));
+        _transform.SetCoordinates(prey, new EntityCoordinates(belly, spot));
         _transform.AttachToGridOrMap(prey);
         if (TryComp(prey, out PhysicsComponent? body))
             _physics.SetLinearVelocity(prey, Vector2.Zero, body: body);
@@ -292,13 +324,23 @@ public sealed class WFSandMawSystem : EntitySystem
     }
 
     /// <summary>
-    /// The belly, made the first time the maw eats: a ring of meat round a floor of flesh, acid pooled in it and the
-    /// loot of earlier meals scattered about.
+    /// The belly, made the first time the maw eats: cut out of the layer right under it, or a pocket map of its own on
+    /// a world with nothing below.
     /// </summary>
     private EntityUid EnsureBelly(Entity<WFSandMawComponent> maw)
     {
         if (maw.Comp.Belly is { } existing && !TerminatingOrDeleted(existing))
             return existing;
+
+        if (TryGetLayerBelow(maw, out var below))
+        {
+            var centre = _transform.GetWorldPosition(maw).Floored();
+            CarveBelly(maw, below, centre, true);
+            maw.Comp.Belly = below;
+            maw.Comp.BellyCentre = centre;
+            maw.Comp.PocketBelly = false;
+            return below;
+        }
 
         var map = _maps.CreateMap(out var mapId);
         _meta.SetEntityName(map, Loc.GetString("wf-sand-maw-belly"));
@@ -312,6 +354,34 @@ public sealed class WFSandMawSystem : EntitySystem
         _atmos.SetMapAtmosphere(map, false, air);
 
         var grid = _maps.CreateGridEntity(mapId);
+        CarveBelly(maw, grid.Owner, Vector2i.Zero, false);
+        maw.Comp.Belly = grid.Owner;
+        maw.Comp.BellyCentre = Vector2i.Zero;
+        maw.Comp.PocketBelly = true;
+        return grid.Owner;
+    }
+
+    /// <summary>The planet layer directly under a maw on the ground, if there is one.</summary>
+    private bool TryGetLayerBelow(EntityUid maw, out EntityUid below)
+    {
+        below = default;
+        if (Transform(maw).MapUid is not { } map || !TryComp(map, out WFPlanetLayerComponent? layer)
+            || !TryGetEntity(layer.Network, out var network) || !TryComp(network, out WFPlanetNetworkComponent? comp))
+            return false;
+        if (comp.Layers.Count == 0 || comp.Layers[0] != map || comp.LowerLayers.Count == 0)
+            return false;
+
+        below = comp.LowerLayers[0];
+        return HasComp<MapGridComponent>(below);
+    }
+
+    /// <summary>
+    /// A ring of meat round a floor of flesh, acid pooled in it and the loot of earlier meals scattered about. Cut out of a
+    /// planet layer, it clears the rock there and pins its tiles.
+    /// </summary>
+    private void CarveBelly(Entity<WFSandMawComponent> maw, EntityUid gridUid, Vector2i centre, bool clear)
+    {
+        var grid = Comp<MapGridComponent>(gridUid);
         var floor = new Tile(_tiles[maw.Comp.BellyFloor].TileId);
         var radius = maw.Comp.BellyRadius;
         var tiles = new List<(Vector2i, Tile)>();
@@ -323,27 +393,42 @@ public sealed class WFSandMawSystem : EntitySystem
             var distance = MathF.Sqrt(x * x + y * y);
             if (distance > radius + 1.5f)
                 continue;
-            var tile = new Vector2i(x, y);
+            var tile = centre + new Vector2i(x, y);
             tiles.Add((tile, floor));
             if (distance > radius + 0.5f)
                 walls.Add(tile);
             else
                 open.Add(tile);
         }
-        _maps.SetTiles(grid.Owner, grid.Comp, tiles);
+
+        if (clear)
+        {
+            var anchored = new List<EntityUid>();
+            foreach (var (tile, _) in tiles)
+            {
+                var enumerator = _maps.GetAnchoredEntitiesEnumerator(gridUid, grid, tile);
+                while (enumerator.MoveNext(out var uid))
+                    anchored.Add(uid.Value);
+            }
+            foreach (var uid in anchored)
+                Del(uid);
+        }
+        _maps.SetTiles(gridUid, grid, tiles);
+        if (TryComp(gridUid, out BiomeComponent? biome))
+            _biome.WfPinTiles((gridUid, biome), tiles.Select(t => t.Item1).ToList());
 
         foreach (var tile in walls)
         {
-            var wall = Spawn(maw.Comp.BellyWall, new EntityCoordinates(grid.Owner, tile + new Vector2(0.5f)));
+            var wall = Spawn(maw.Comp.BellyWall, new EntityCoordinates(gridUid, tile + new Vector2(0.5f)));
             EnsureComp<WFSandMawBellyWallComponent>(wall).Maw = maw.Owner;
         }
 
         _random.Shuffle(open);
         var next = 0;
         for (; next < Math.Min(6, open.Count); next++)
-            Spawn(maw.Comp.Acid, new EntityCoordinates(grid.Owner, open[next] + new Vector2(0.5f)));
+            Spawn(maw.Comp.Acid, new EntityCoordinates(gridUid, open[next] + new Vector2(0.5f)));
         for (var glow = 0; glow < 3 && next < open.Count; glow++, next++)
-            Spawn(maw.Comp.Glow, new EntityCoordinates(grid.Owner, open[next] + new Vector2(0.5f)));
+            Spawn(maw.Comp.Glow, new EntityCoordinates(gridUid, open[next] + new Vector2(0.5f)));
 
         // The loot of the fallen, off the acid.
         if (maw.Comp.Loot is { } loot && next < open.Count)
@@ -351,16 +436,16 @@ public sealed class WFSandMawSystem : EntitySystem
             foreach (var id in _tables.GetSpawns(loot))
             {
                 var tile = open[_random.Next(next, open.Count)];
-                Spawn(id, new EntityCoordinates(grid.Owner, tile + new Vector2(_random.NextFloat(0.2f, 0.8f), _random.NextFloat(0.2f, 0.8f))));
+                Spawn(id, new EntityCoordinates(gridUid, tile + new Vector2(_random.NextFloat(0.2f, 0.8f), _random.NextFloat(0.2f, 0.8f))));
             }
         }
-
-        maw.Comp.Belly = grid.Owner;
-        return grid.Owner;
     }
 
     private void OnWallDestroyed(Entity<WFSandMawBellyWallComponent> ent, ref DestructionEventArgs args)
     {
+        // Under the maw, a broken wall is just the way out into the rock.
+        if (!TryComp(ent.Comp.Maw, out WFSandMawComponent? maw) || !maw.PocketBelly)
+            return;
         var exit = Spawn(ent.Comp.Exit, Transform(ent).Coordinates);
         EnsureComp<WFSandMawExitComponent>(exit).Maw = ent.Comp.Maw;
     }
