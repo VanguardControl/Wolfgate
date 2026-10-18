@@ -244,7 +244,7 @@ public sealed partial class GhostOrbitWindow : FancyWindow
         return target.Category switch
         {
             GhostOrbitCategory.Ship or GhostOrbitCategory.Encounter => sprite.Frame0(ShipIcon),
-            GhostOrbitCategory.Location => sprite.Frame0(LocationIcon),
+            GhostOrbitCategory.Location or GhostOrbitCategory.PlanetPoi => sprite.Frame0(LocationIcon),
             _ => null,
         };
     }
@@ -261,6 +261,7 @@ public sealed partial class GhostOrbitWindow : FancyWindow
             GhostOrbitCategory.Dead => skin.TextMuted,
             GhostOrbitCategory.Ghost => Color.FromHex("#BFD3FF"),
             GhostOrbitCategory.Location => skin.Caution,
+            GhostOrbitCategory.PlanetPoi => Color.FromHex("#7BD88F"),
             GhostOrbitCategory.Ship => Color.FromHex("#5FA8FF"),
             GhostOrbitCategory.Encounter => Color.FromHex("#FFAE3D"),
             GhostOrbitCategory.Npc => Color.FromHex("#C8B27A"),

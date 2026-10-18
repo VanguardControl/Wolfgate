@@ -19,6 +19,7 @@ public enum GhostOrbitCategory : byte
     Dead,
     Ghost,
     Location,
+    PlanetPoi,
     Ship,
     Encounter,
     Npc,
