@@ -168,6 +168,8 @@
   - type: Body
     prototype: Xenonid
   - type: Xeno
+  # WOLFGATE: every xeno is a hive member from spawn so WFXenoHiveBootstrapSystem can give it the default hive
+  - type: HiveMember
   - type: VehicleDamageMultiplier
     multiplier: 1.5
   - type: XenoRegen
