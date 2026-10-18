@@ -63,11 +63,14 @@ The game inserts rows and, through the calls below, writes the last four columns
 
 `message`, `notify` (default true) and `actor` (for the server log) are optional. The message replaces the last one;
 leave it out for none. Answers `{ "symphony_module", "id", "status", "notify", "player_online" }`, 404 for an unknown
-number, 400 for a body it can't read. With `notify` the player is shown the notice now if online, or at login.
+number, 400 for a body it can't read. `player_online` is whether the player is in game now, notified or not. With
+`notify` the player is shown the notice now if online, or at login.
 
 With the server down, write `status`, `staff_message`, `status_changed_at` and `notify_player = true` on the row
 instead. Players see it at their next login. If the server is up when the row is written this way,
-`POST /symphony/feedback/refresh` with `{ "users": ["<uuid>", ...] }` (or no body, for everyone online) shows it now.
+`POST /symphony/feedback/refresh` with `{ "users": ["<uuid>", ...] }` (or no body or `{}`, for everyone online) shows it
+now and answers `{ "symphony_module", "online" }`. Malformed JSON, an empty `users` list or a bad id is a 400, never a
+refresh of everyone.
 
 `symphony_module` in `/status` is 8 or more on a build with all of this.
 

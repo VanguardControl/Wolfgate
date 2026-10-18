@@ -154,6 +154,10 @@ public sealed class FeedbackTest : InteractionTest
             await Send(new FeedbackSubmitEvent { Title = Title, Description = Description, Category = "nonsense" });
             Assert.That((await Answer()).Error, Is.EqualTo("wf-feedback-error-invalid"));
 
+            // A hand-built event with null fields is refused, not thrown on.
+            await Send(new FeedbackSubmitEvent { Title = null!, Description = Description });
+            Assert.That((await Answer()).Error, Is.EqualTo("wf-feedback-error-invalid"));
+
             // A suggestion with a screenshot, and text PostgreSQL would refuse as it is.
             var jpeg = new byte[] { 0xFF, 0xD8, 0xFF, 0xE0, 0, 16, 74, 70, 73, 70 };
             await Send(new FeedbackSubmitEvent

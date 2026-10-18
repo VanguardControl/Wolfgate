@@ -45,7 +45,10 @@ wf-feedback-error-title-long = The title is too long.
 wf-feedback-error-description-short = Describe it in a sentence or two.
 wf-feedback-error-text-long = That's too long. Cut it down.
 wf-feedback-error-disabled = Reports are turned off on this server.
-wf-feedback-error-cooldown = Wait { $seconds } seconds before sending another.
+wf-feedback-error-cooldown = Wait { $seconds } { $seconds ->
+    [one] second
+   *[other] seconds
+} before sending another.
 wf-feedback-error-daily = You've sent the most reports allowed in a day.
 wf-feedback-error-failed = The server couldn't store that. Try again later.
 

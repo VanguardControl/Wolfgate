@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -43,6 +44,7 @@ public sealed partial class FeedbackSystem : EntitySystem
     private readonly Dictionary<NetUserId, TimeSpan> _lastSent = new();
     private readonly HashSet<NetUserId> _sending = new();
     private readonly Dictionary<NetUserId, TimeSpan> _nextHistory = new();
+    private readonly Dictionary<NetUserId, TimeSpan> _nextSeen = new();
     // Who has sent a survey this round: one each.
     private readonly HashSet<NetUserId> _surveyed = new();
 
@@ -59,6 +61,7 @@ public sealed partial class FeedbackSystem : EntitySystem
         {
             _lastSent.Clear();
             _nextHistory.Clear();
+            _nextSeen.Clear();
             _surveyed.Clear();
         });
     }
@@ -72,7 +75,7 @@ public sealed partial class FeedbackSystem : EntitySystem
 
     /// <summary>
     /// Sets a report's status and the message staff have for its player, and tells the player if asked to. Null
-    /// when no report has this number; otherwise whether the player is online to be told now.
+    /// when no report has this number; otherwise whether the player is in game, told or not.
     /// </summary>
     public async Task<bool?> SetStatusAsync(int id, FeedbackStatus status, string? message, bool notify)
     {
@@ -80,7 +83,7 @@ public sealed partial class FeedbackSystem : EntitySystem
         if (await _db.SetFeedbackStatusAsync(id, FeedbackRules.StatusId(status), text, notify) is not { } owner)
             return null;
 
-        return notify && NotifyPlayer(owner);
+        return notify ? NotifyPlayer(owner) : InGame(owner, out _);
     }
 
     /// <summary>
@@ -89,11 +92,16 @@ public sealed partial class FeedbackSystem : EntitySystem
     /// </summary>
     public bool NotifyPlayer(Guid user)
     {
-        if (!_players.TryGetSessionById(new NetUserId(user), out var session) || session.Status != SessionStatus.InGame)
+        if (!InGame(user, out var session))
             return false;
 
         SendNotices(session);
         return true;
+    }
+
+    private bool InGame(Guid user, [NotNullWhen(true)] out ICommonSession? session)
+    {
+        return _players.TryGetSessionById(new NetUserId(user), out session) && session.Status == SessionStatus.InGame;
     }
 
     /// <summary>Whether the player has already sent a survey this round.</summary>
@@ -161,8 +169,16 @@ public sealed partial class FeedbackSystem : EntitySystem
 
     private async void OnNoticeSeen(FeedbackNoticeSeenEvent ev, EntitySessionEventArgs args)
     {
-        if (ev.Ids.Count == 0 || ev.Ids.Count > MaxNotices)
+        if (ev.Ids is not { Count: > 0 and <= MaxNotices })
             return;
+
+        // One write a second at most, however often a client sends this.
+        var user = args.SenderSession.UserId;
+        var now = _timing.RealTime;
+        if (_nextSeen.GetValueOrDefault(user) > now)
+            return;
+
+        _nextSeen[user] = now + HistoryInterval;
 
         try
         {

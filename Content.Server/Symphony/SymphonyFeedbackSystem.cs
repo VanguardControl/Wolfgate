@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.IO;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Content.Server._WF.Feedback;
@@ -106,27 +108,50 @@ public sealed partial class SymphonyFeedbackSystem : EntitySystem
 
     private async Task RespondRefresh(IStatusHandlerContext context)
     {
+        // No body, or no users in it, means everyone online. Named users must all be real ids: a refresh meant for
+        // a few players never falls back to everyone.
+        using var reader = new StreamReader(context.RequestBody);
+        var text = await reader.ReadToEndAsync();
         RefreshBody? body = null;
-        try
+        if (!string.IsNullOrWhiteSpace(text))
         {
-            body = await context.RequestBodyJsonAsync<RefreshBody>();
-        }
-        catch (Exception)
-        {
-            // No body, or not JSON: everyone online.
+            try
+            {
+                body = JsonSerializer.Deserialize<RefreshBody>(text);
+            }
+            catch (JsonException)
+            {
+                await context.RespondAsync("expected {\"users\": [\"<uuid>\", ...]} or no body", HttpStatusCode.BadRequest);
+                return;
+            }
         }
 
-        var wanted = new List<Guid>();
-        foreach (var raw in body?.Users ?? new List<string>())
+        List<Guid>? wanted = null;
+        if (body?.Users is { } users)
         {
-            if (Guid.TryParse(raw, out var user))
+            wanted = new List<Guid>();
+            foreach (var raw in users)
+            {
+                if (!Guid.TryParse(raw, out var user))
+                {
+                    await context.RespondAsync($"not a user id: {raw}", HttpStatusCode.BadRequest);
+                    return;
+                }
+
                 wanted.Add(user);
+            }
+
+            if (wanted.Count == 0)
+            {
+                await context.RespondAsync("users is empty; leave it out to refresh everyone", HttpStatusCode.BadRequest);
+                return;
+            }
         }
 
         var told = await _tasks.OnMainThread(() =>
         {
-            var users = wanted.Count > 0 ? wanted : _players.Sessions.Select(s => s.UserId.UserId).ToList();
-            return users.Count(_feedback.NotifyPlayer);
+            var targets = wanted ?? _players.Sessions.Select(s => s.UserId.UserId).ToList();
+            return targets.Count(_feedback.NotifyPlayer);
         });
 
         await context.RespondJsonAsync(new RefreshResponse { SymphonyModule = SharedSymphony.ModuleVersion, Online = told });

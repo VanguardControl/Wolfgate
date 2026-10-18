@@ -82,6 +82,13 @@ public static class FeedbackRules
     /// <summary>The Fluent id of what is wrong with the report's text, or null when it may be sent.</summary>
     public static string? Validate(FeedbackSubmitEvent report)
     {
+        // The client builds this event, so any field may arrive null.
+        if (report.Category == null || report.Title == null || report.Description == null || report.Steps == null
+            || report.Expected == null || report.Frustrations == null || report.ClientInfo == null || report.ClientLog == null)
+        {
+            return "wf-feedback-error-invalid";
+        }
+
         if (!Enum.IsDefined(report.Kind) || !Enum.IsDefined(report.Severity) || Array.IndexOf(Categories, report.Category) < 0)
             return "wf-feedback-error-invalid";
 

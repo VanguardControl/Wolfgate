@@ -206,7 +206,11 @@ public sealed partial class FeedbackUIController : UIController, IOnSystemChange
 
     private void OpenSurvey(FeedbackSurveyTrigger trigger)
     {
+        // Closing an unsent survey calls off the leaving, but this one is opened for that same leaving.
+        var leave = _leave;
         _survey?.Close();
+        _leave = leave;
+        _awaitingSurvey = false;
         var window = new FeedbackSurveyWindow { Trigger = trigger };
         window.Submitted += survey =>
         {
