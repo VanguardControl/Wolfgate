@@ -3,7 +3,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerFujinLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Fujin, Left"
   components:
   - type: Sprite
@@ -13,7 +13,7 @@
 - type: entity
   parent: RMCContainerFujinLeft
   id: RMCContainerFujinMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Fujin, Middle"
   components:
   - type: Sprite
@@ -22,7 +22,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerApocraphyLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Apocraphy, Left"
   components:
   - type: Sprite
@@ -32,7 +32,7 @@
 - type: entity
   parent: RMCContainerApocraphyLeft
   id: RMCContainerApocraphyMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Apocraphy, Middle"
   components:
   - type: Sprite
@@ -41,7 +41,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerPathosLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Pathos, Left"
   components:
   - type: Sprite
@@ -51,7 +51,7 @@
 - type: entity
   parent: RMCContainerPathosLeft
   id: RMCContainerPathosMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Pathos, Middle"
   components:
   - type: Sprite
@@ -60,7 +60,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerWeYaLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: Weston-Yamada Cargo Container
   suffix: "WeYa, Left"
   description: "A huge industrial shipping container.\nThis one is from The Weston-Yamada Corporation, you have probably heard of them before."
@@ -72,7 +72,7 @@
 - type: entity
   parent: RMCContainerWeYaLeft
   id: RMCContainerWeYaMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa, Middle"
   components:
   - type: Sprite
@@ -81,7 +81,7 @@
 - type: entity
   parent: RMCContainerWeYaLeft
   id: RMCContainerWeYaRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa, Right"
   components:
   - type: Sprite
@@ -90,7 +90,7 @@
 - type: entity
   parent: RMCContainerWeYaLeft
   id: RMCContainerWeYaAltLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa Alt, Left"
   components:
   - type: Sprite
@@ -99,7 +99,7 @@
 - type: entity
   parent: RMCContainerWeYaLeft
   id: RMCContainerWeYaAltMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa Alt, Middle"
   components:
   - type: Sprite
@@ -108,7 +108,7 @@
 - type: entity
   parent: RMCContainerWeYaLeft
   id: RMCContainerWeYaAltRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa Alt, Right"
   components:
   - type: Sprite
@@ -117,7 +117,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerTrijentLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: Trijent Cargo Container
   suffix: "Trijent, Left"
   description: "A huge industrial shipping container.\nThis one is from The Trijent's mining operations.\nIf this breaks open, you figure you probably shouldn't breathe in what's inside."
@@ -129,7 +129,7 @@
 - type: entity
   parent: RMCContainerTrijentLeft
   id: RMCContainerTrijentMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Trijent, Middle"
   components:
   - type: Sprite
@@ -138,7 +138,7 @@
 - type: entity
   parent: RMCContainerTrijentLeft
   id: RMCContainerTrijentRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Trijent, Right"
   components:
   - type: Sprite
@@ -147,7 +147,7 @@
 - type: entity
   parent: RMCContainerTrijentLeft
   id: RMCContainerTrijentAltLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Trijent Alt, Left"
   components:
   - type: Sprite
@@ -156,7 +156,7 @@
 - type: entity
   parent: RMCContainerTrijentLeft
   id: RMCContainerTrijentAltMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Trijent Alt, Middle"
   components:
   - type: Sprite
@@ -165,7 +165,7 @@
 - type: entity
   parent: RMCContainerTrijentLeft
   id: RMCContainerTrijentAltRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Trijent Alt, Right"
   components:
   - type: Sprite
@@ -174,7 +174,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerFerretLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Ferret, Left"
   components:
   - type: Sprite
@@ -184,7 +184,7 @@
 - type: entity
   parent: RMCContainerFerretLeft
   id: RMCContainerFerretMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Ferret, Middle"
   components:
   - type: Sprite
@@ -193,7 +193,7 @@
 - type: entity
   parent: RMCContainerFerretLeft
   id: RMCContainerFerretRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Ferret, Right"
   components:
   - type: Sprite
@@ -202,7 +202,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerNovarisLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: Novaris Cargo Container
   suffix: "Novaris, Left"
   description: "A huge industrial shipping containerThis one is from Novaris, they makes just about anything and everything.\nYou notice this container has a peeling note on it, saying all contents were transferred from another station decades ago, how long has it been here?"
@@ -214,7 +214,7 @@
 - type: entity
   parent: RMCContainerNovarisLeft
   id: RMCContainerNovarisMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Novaris, Middle"
   components:
   - type: Sprite
@@ -223,7 +223,7 @@
 - type: entity
   parent: RMCContainerNovarisLeft
   id: RMCContainerNovarisRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Novaris, Right"
   components:
   - type: Sprite
@@ -232,7 +232,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerAICMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "AIC, Middle"
   components:
   - type: Sprite
@@ -242,7 +242,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerSPPLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: SPP Cargo Container
   suffix: "SPP, Left"
   description: "A huge industrial shipping container.\nThis one is from the Socialist Progressive Peoples, as indicated by the massive symbol on the side."
@@ -254,7 +254,7 @@
 - type: entity
   parent: RMCContainerSPPLeft
   id: RMCContainerSPPMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, Middle"
   components:
   - type: Sprite
@@ -263,7 +263,7 @@
 - type: entity
   parent: RMCContainerSPPLeft
   id: RMCContainerSPPRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, Right"
   components:
   - type: Sprite
@@ -272,7 +272,7 @@
 - type: entity
   parent: RMCContainerSPPLeft
   id: RMCContainerSPPAltLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP Alt, Left"
   components:
   - type: Sprite
@@ -281,7 +281,7 @@
 - type: entity
   parent: RMCContainerSPPLeft
   id: RMCContainerSPPAltMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP Alt, Middle"
   components:
   - type: Sprite
@@ -290,7 +290,7 @@
 - type: entity
   parent: RMCContainerSPPLeft
   id: RMCContainerSPPAltRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP Alt, Right"
   components:
   - type: Sprite
@@ -299,7 +299,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerMSPLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "MSP, Left"
   components:
   - type: Sprite
@@ -309,7 +309,7 @@
 - type: entity
   parent: RMCContainerMSPLeft
   id: RMCContainerMSPMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "MSP, Middle"
   components:
   - type: Sprite
@@ -318,7 +318,7 @@
 - type: entity
   parent: RMCContainerMSPLeft
   id: RMCContainerMSPRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "MSP, Right"
   components:
   - type: Sprite
@@ -327,7 +327,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerUNMCLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: United Nations Marine Corps Cargo Container
   suffix: "UNMC, Left"
   description: "A huge industrial shipping container.\nThis one belongs to the United Nations Marine Corps."
@@ -339,7 +339,7 @@
 - type: entity
   parent: RMCContainerUNMCLeft
   id: RMCContainerUNMCMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "UNMC, Middle"
   components:
   - type: Sprite
@@ -348,7 +348,7 @@
 - type: entity
   parent: RMCContainerUNMCLeft
   id: RMCContainerUNMCRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "UNMC, Right"
   components:
   - type: Sprite
@@ -357,7 +357,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerAegisLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: AEGIS Cargo Container
   suffix: "AEGIS, Left"
   description: "A huge industrial shipping container.\nThis one is from AEGIS, the defense contractors behind the M54C and other marine weaponry."
@@ -369,7 +369,7 @@
 - type: entity
   parent: RMCContainerAegisLeft
   id: RMCContainerAegisMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "AEGIS, Middle"
   components:
   - type: Sprite
@@ -378,7 +378,7 @@
 - type: entity
   parent: RMCContainerAegisLeft
   id: RMCContainerAegisRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "AEGIS, Right"
   components:
   - type: Sprite
@@ -387,7 +387,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerGrafLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: Cargo Container
   suffix: "Graffiti, Left"
   description: "A huge industrial shipping container.\nThis one has been turned into a canvas for street art."
@@ -399,7 +399,7 @@
 - type: entity
   parent: RMCContainerGrafLeft
   id: RMCContainerGrafMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Middle"
   components:
   - type: Sprite
@@ -408,7 +408,7 @@
 - type: entity
   parent: RMCContainerGrafLeft
   id: RMCContainerGrafRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Right"
   components:
   - type: Sprite
@@ -417,7 +417,7 @@
 - type: entity
   parent: RMCContainerGrafLeft
   id: RMCContainerGraf2Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Left"
   components:
   - type: Sprite
@@ -426,7 +426,7 @@
 - type: entity
   parent: RMCContainerGraf2Left
   id: RMCContainerGraf2Middle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Middle"
   components:
   - type: Sprite
@@ -435,7 +435,7 @@
 - type: entity
   parent: RMCContainerGraf2Left
   id: RMCContainerGraf2Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Right"
   components:
   - type: Sprite
@@ -444,7 +444,7 @@
 - type: entity
   parent: RMCContainerGrafLeft
   id: RMCContainerGraf3Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Left"
   components:
   - type: Sprite
@@ -453,7 +453,7 @@
 - type: entity
   parent: RMCContainerGraf3Left
   id: RMCContainerGraf3Middle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Middle"
   components:
   - type: Sprite
@@ -462,7 +462,7 @@
 - type: entity
   parent: RMCContainerGraf3Left
   id: RMCContainerGraf3Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Right"
   components:
   - type: Sprite
@@ -471,7 +471,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerAvantLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: Avant Biomedical Cargo Container
   suffix: "Avant, Left"
   description: "A huge industrial shipping container. This one is from Avant Biomedical, a producer of biotechnology and medical goods. Despite being renowned for making high-quality products, rumors of shady projects seem to follow them."
@@ -483,7 +483,7 @@
 - type: entity
   parent: RMCContainerAvantLeft
   id: RMCContainerAvantMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Avant, Middle"
   components:
   - type: Sprite
@@ -492,7 +492,7 @@
 - type: entity
   parent: RMCContainerAvantLeft
   id: RMCContainerAvantRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Avant, Right"
   components:
   - type: Sprite
@@ -501,7 +501,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerTartarusLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -520,7 +520,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerTartarusRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -529,7 +529,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortBlueLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Blue, Left"
   components:
   - type: Sprite
@@ -538,7 +538,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortBlueRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Blue, Right"
   components:
   - type: Sprite
@@ -547,7 +547,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortGreenLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Green, Left"
   components:
   - type: Sprite
@@ -556,7 +556,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortGreenRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Green, Right"
   components:
   - type: Sprite
@@ -565,7 +565,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortRedLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Red, Left"
   components:
   - type: Sprite
@@ -574,7 +574,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortRedRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Red, Right"
   components:
   - type: Sprite
@@ -583,7 +583,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortTanLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tan, Left"
   components:
   - type: Sprite
@@ -592,7 +592,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortTanRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tan, Right"
   components:
   - type: Sprite
@@ -601,7 +601,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPPLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 1, Left"
   components:
   - type: Sprite
@@ -610,7 +610,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPPRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 1, Right"
   components:
   - type: Sprite
@@ -619,7 +619,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP2Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 2, Left"
   components:
   - type: Sprite
@@ -628,7 +628,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP2Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 2, Right"
   components:
   - type: Sprite
@@ -637,7 +637,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP3Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 3, Left"
   components:
   - type: Sprite
@@ -646,7 +646,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP3Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 3, Right"
   components:
   - type: Sprite
@@ -655,7 +655,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP4Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 4, Left"
   components:
   - type: Sprite
@@ -664,7 +664,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP4Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 4, Right"
   components:
   - type: Sprite
@@ -673,7 +673,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP5Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 5, Left"
   components:
   - type: Sprite
@@ -682,7 +682,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP5Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 5, Right"
   components:
   - type: Sprite
@@ -691,7 +691,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP6Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 6, Left"
   components:
   - type: Sprite
@@ -700,7 +700,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP6Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 6, Right"
   components:
   - type: Sprite
@@ -709,7 +709,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP7Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 7, Left"
   components:
   - type: Sprite
@@ -718,7 +718,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP7Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 7, Right"
   components:
   - type: Sprite
@@ -727,7 +727,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP8Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 8, Left"
   components:
   - type: Sprite
@@ -736,7 +736,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP8Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 8, Right"
   components:
   - type: Sprite
@@ -745,7 +745,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP9Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 9, Left"
   components:
   - type: Sprite
@@ -754,7 +754,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP9Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 9, Right"
   components:
   - type: Sprite
@@ -763,7 +763,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP10Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 10, Left"
   components:
   - type: Sprite
@@ -772,7 +772,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP10Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 10, Right"
   components:
   - type: Sprite
@@ -781,7 +781,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP11Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 11, Left"
   components:
   - type: Sprite
@@ -790,7 +790,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP11Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 11, Right"
   components:
   - type: Sprite
@@ -799,7 +799,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP12Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 12, Left"
   components:
   - type: Sprite
@@ -808,7 +808,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP12Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 12, Right"
   components:
   - type: Sprite
@@ -817,7 +817,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP13Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 13, Left"
   components:
   - type: Sprite
@@ -826,7 +826,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP13Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 13, Right"
   components:
   - type: Sprite
@@ -835,7 +835,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP14Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 14, Left"
   components:
   - type: Sprite
@@ -844,7 +844,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP14Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 14, Right"
   components:
   - type: Sprite
@@ -853,7 +853,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP15Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 15, Left"
   components:
   - type: Sprite
@@ -862,7 +862,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP15Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 15, Right"
   components:
   - type: Sprite
@@ -871,7 +871,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP16Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 16, Left"
   components:
   - type: Sprite
@@ -880,7 +880,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP16Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 16, Right"
   components:
   - type: Sprite
@@ -889,7 +889,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP17Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 17, Left"
   components:
   - type: Sprite
@@ -898,7 +898,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP17Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 17, Right"
   components:
   - type: Sprite
@@ -907,7 +907,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP18Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 18, Left"
   components:
   - type: Sprite
@@ -916,7 +916,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP18Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 18, Right"
   components:
   - type: Sprite
@@ -925,7 +925,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP19Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 19, Left"
   components:
   - type: Sprite
@@ -934,7 +934,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP19Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 19, Right"
   components:
   - type: Sprite
@@ -943,7 +943,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP20Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 20, Left"
   components:
   - type: Sprite
@@ -952,7 +952,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerShortSPP20Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "SPP, 20, Right"
   components:
   - type: Sprite
@@ -961,7 +961,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerWeYaBlackLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa, Black, Left"
   components:
   - type: Sprite
@@ -970,7 +970,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerWeYaBlackRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa, Black, Right"
   components:
   - type: Sprite
@@ -979,7 +979,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerWeYaGreyLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa, Grey, Left"
   components:
   - type: Sprite
@@ -988,7 +988,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerWeYaGreyRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa, Grey, Right"
   components:
   - type: Sprite
@@ -997,7 +997,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerWeYaLightGreyLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa, Light Grey, Left"
   components:
   - type: Sprite
@@ -1006,7 +1006,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerWeYaLightGreyRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa, Light Grey, Right"
   components:
   - type: Sprite
@@ -1015,7 +1015,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerWeYaWhiteLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa, White, Left"
   components:
   - type: Sprite
@@ -1024,7 +1024,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerWeYaWhiteRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WeYa, White, Right"
   components:
   - type: Sprite
@@ -1033,7 +1033,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerAMSLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "AMS, Left"
   components:
   - type: Sprite
@@ -1042,7 +1042,7 @@
 - type: entity
   parent: RMCContainerAMSLeft
   id: RMCContainerAMSRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "AMS, Right"
   components:
   - type: Sprite
@@ -1051,7 +1051,7 @@
 - type: entity
   parent: RMCContainerTartarusLeft
   id: RMCContainerMedicalLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: medical cargo container
   suffix: "Medical, Left"
   description: "A huge industrial shipping container. This one belongs to Avant Biomedical, a company that produces medical supplies and pharmaceuticals."
@@ -1062,7 +1062,7 @@
 - type: entity
   parent: RMCContainerMedicalLeft
   id: RMCContainerMedicalEmptyRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Medical, Empty, Right"
   description: A small piece of a huge industrial shipping container.
   components:
@@ -1078,7 +1078,7 @@
 - type: entity
   parent: RMCContainerMedicalLeft
   id: RMCContainerMedicalRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Medical, Right"
   components:
   - type: Sprite
@@ -1087,7 +1087,7 @@
 - type: entity
   parent: RMCContainerBase
   id: RMCContainerVerticalBottom
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: Bottom
   components:
   - type: Fixtures
@@ -1108,7 +1108,7 @@
 - type: entity
   parent: RMCContainerVerticalBottom
   id: RMCContainerVerticalMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: Middle
   components:
   - type: Sprite
@@ -1117,7 +1117,7 @@
 - type: entity
   parent: RMCContainerVerticalBottom
   id: RMCContainerVerticalTop
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: Top
   components:
   - type: Sprite

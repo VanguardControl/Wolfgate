@@ -5,7 +5,7 @@
   abstract: true
   parent: BaseStructureDynamic
   id: WFStreetsTrashBinBase
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: trash bin
   description: A street bin. Somebody will empty it one day.
   placement:

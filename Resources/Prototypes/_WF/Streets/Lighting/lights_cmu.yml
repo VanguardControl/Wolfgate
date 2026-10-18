@@ -3,7 +3,7 @@
 - type: entity
   parent: BaseStructure
   id: AU14TallFloodlight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: tall floodlight
   suffix: AU14
   description: A pillar of light in the darkness.
@@ -69,7 +69,7 @@
 - type: entity
   parent: BaseStructure
   id: AU14FloodlightBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: tall broken floodlight
   suffix: AU14
   description: "A pasted on note says 'To fix, unscrew the panel, crowbar out the damaged assembly, weld it fixed, add 2 cable, then close the panel.'"
@@ -101,7 +101,7 @@
 - type: entity
   parent: AU14TallFloodlight
   id: AU14Streetlight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: colony streetlight
   suffix: AU14
   components:
@@ -145,7 +145,7 @@
 - type: entity
   parent: AU14FloodlightBroken
   id: AU14StreetlightBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: broken colony streetlight
   suffix: AU14
   description: "A pasted on note says 'To fix, unscrew the panel, crowbar out the damaged assembly, weld it fixed, add 2 cable, then close the panel.'"

@@ -2,7 +2,7 @@
 
 - type: entity
   id: RMCFuelPump
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: fuel pump
   description: It pumps fuel out of the tanks under the forecourt.
   placement:

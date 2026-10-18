@@ -3,7 +3,7 @@
 - type: entity
   parent: BaseStructure
   id: RMCConcreteStatue
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: concrete statue
   description: "A decorative statue with the Weston-Yamada 'Wings' adorned on it, A corporate brutalist piece of art."
   components:
@@ -29,7 +29,7 @@
 - type: entity
   parent: RMCConcreteStatue
   id: RMCConcreteStatueOffset
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Offset
   components:
   - type: Sprite

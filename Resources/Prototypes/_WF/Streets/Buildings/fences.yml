@@ -3,7 +3,7 @@
 - type: entity
   parent: BaseFenceMetal
   id: CMFence
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: fence
   description: "A large metal mesh strewn between two poles. Intended as a cheap way to separate areas, while allowing one to see through it."
   components:
@@ -50,7 +50,7 @@
 - type: entity
   parent: BaseStructure
   id: RMCFenceBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: broken fence
   description: "A mess of broken wire strewn between two poles, it's not blocking anyone's way through."
   components:
@@ -82,7 +82,7 @@
 - type: entity
   parent: CMFence
   id: RMCFenceHybrisa
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     sprite: _WF/Streets/Structures/hybrisa_fences.rsi
@@ -91,7 +91,7 @@
 - type: entity
   parent: RMCFenceBroken
   id: RMCFenceHybrisaBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     sprite: _WF/Streets/Structures/hybrisa_fences.rsi
@@ -100,7 +100,7 @@
 - type: entity
   parent: CMFence
   id: RMCFenceHybrisaElectric
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   suffix: electric
   components:
   - type: Sprite
@@ -110,7 +110,7 @@
 - type: entity
   parent: RMCFenceBroken
   id: RMCFenceHybrisaElectricBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   suffix: electric
   components:
   - type: Sprite
@@ -120,7 +120,7 @@
 - type: entity
   parent: CMFence
   id: RMCFenceOvergrown
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: overgrown fence
   description: "A large metal mesh strewn between two poles, tangled with vines and creeping growth. Still separates areas, but nature is reclaiming it."
   components:
@@ -131,7 +131,7 @@
 - type: entity
   parent: RMCFenceBroken
   id: RMCFenceOvergrownBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: broken overgrown fence
   description: "A mess of broken wire and creeping weeds strung between two posts, swallowed by years of unchecked growth."
   components:
@@ -142,7 +142,7 @@
 - type: entity
   parent: CMFence
   id: RMCFenceSPP
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   suffix: SPP
   components:
   - type: Sprite
@@ -152,7 +152,7 @@
 - type: entity
   parent: RMCFenceBroken
   id: RMCFenceSPPBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   suffix: SPP
   components:
   - type: Sprite

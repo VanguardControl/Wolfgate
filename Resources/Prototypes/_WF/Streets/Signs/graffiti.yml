@@ -3,7 +3,7 @@
 - type: entity
   abstract: true
   id: RMCWallPropBase
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Transform
     anchored: false
@@ -28,7 +28,7 @@
 - type: entity
   parent: RMCWallPropBase
   id: RMCWallPropBloodWallFloor
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   name: blood
   suffix: "Wall Blood, Floor Blood, RMC14"
   components:
@@ -38,7 +38,7 @@
 - type: entity
   parent: RMCWallPropBloodWallFloor
   id: RMCWallPropBloodWall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   name: blood
   suffix: "Wall Blood, RMC14"
   components:
@@ -48,7 +48,7 @@
 - type: entity
   parent: RMCWallPropBloodWallFloor
   id: RMCWallPropBloodWallAlt
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   name: blood
   suffix: "Wall Blood, RMC14, Alt"
   components:
@@ -58,7 +58,7 @@
 - type: entity
   parent: RMCWallPropBase
   id: RMCWallPropGraffiti
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   name: graffiti
   suffix: "Wall Graffiti, RMC14, One"
   components:
@@ -68,7 +68,7 @@
 - type: entity
   parent: RMCWallPropGraffiti
   id: RMCWallPropGraffitiTwo
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   suffix: "Wall Graffiti, RMC14, Two"
   components:
   - type: Sprite
@@ -77,7 +77,7 @@
 - type: entity
   parent: RMCWallPropGraffiti
   id: RMCWallPropGraffitiThree
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   suffix: "Wall Graffiti, RMC14, Three"
   components:
   - type: Sprite
@@ -86,7 +86,7 @@
 - type: entity
   parent: RMCWallPropGraffiti
   id: RMCWallPropGraffitiFour
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   suffix: "Wall Graffiti, RMC14, Four"
   components:
   - type: Sprite
@@ -95,7 +95,7 @@
 - type: entity
   parent: RMCWallPropGraffiti
   id: RMCWallPropGraffitiFive
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   suffix: "Wall Graffiti, RMC14, Five"
   components:
   - type: Sprite
@@ -104,7 +104,7 @@
 - type: entity
   parent: RMCWallPropGraffiti
   id: RMCWallPropGraffitiSix
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   suffix: "Wall Graffiti, RMC14, Six"
   components:
   - type: Sprite
@@ -113,7 +113,7 @@
 - type: entity
   parent: RMCWallPropGraffiti
   id: RMCWallPropGraffitiSeven
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   suffix: "Wall Graffiti, RMC14, Seven"
   components:
   - type: Sprite
@@ -122,7 +122,7 @@
 - type: entity
   parent: RMCWallPropBase
   id: RMCWallPropDeadTrooper
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   name: Unknown Trooper
   description: What remains of a unknown trooper. May they rest in peace.
   components:
@@ -133,7 +133,7 @@
 - type: entity
   parent: RMCWallPropDeadTrooper
   id: RMCWallPropDeadTrooperCabinet
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   suffix: Cabinet
   components:
   - type: Sprite
@@ -142,6 +142,6 @@
 - type: entity
   parent: RMCWallPropDeadTrooperCabinet
   id: RMCWallPropDeadSteven
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   name: Rep. Steve Haifisch
   description: "A card lays in his lap. \"Happy birthday, Steve. Here's to another fruitful year!\""

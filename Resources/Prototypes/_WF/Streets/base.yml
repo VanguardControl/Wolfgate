@@ -4,6 +4,26 @@
   id: WFStreets
   name: wf-streets-entity-category
 
+- type: entityCategory
+  id: WFStreetsBuildings
+  name: wf-streets-entity-category-buildings
+
+- type: entityCategory
+  id: WFStreetsFurniture
+  name: wf-streets-entity-category-furniture
+
+- type: entityCategory
+  id: WFStreetsLighting
+  name: wf-streets-entity-category-lighting
+
+- type: entityCategory
+  id: WFStreetsSigns
+  name: wf-streets-entity-category-signs
+
+- type: entityCategory
+  id: WFStreetsYards
+  name: wf-streets-entity-category-yards
+
 # Roads, pavements and bare ground: open to the weather, and not pried up.
 - type: tile
   abstract: true

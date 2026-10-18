@@ -4,7 +4,7 @@
   abstract: true
   parent: [ BaseStructureDynamic, BaseBagOpenClose, StructureWheeled ]
   id: AU14Dumpster
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: dumpster
   description: "Filled with what you hope is just trash, but you know isn't."
   components:
@@ -56,7 +56,7 @@
 - type: entity
   parent: AU14Dumpster
   id: AU14DumpsterBlue
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Blue
   components:
   - type: ContainerContainer
@@ -76,7 +76,7 @@
 - type: entity
   parent: AU14Dumpster
   id: AU14DumpsterYellow
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Yellow
   components:
   - type: ContainerContainer
@@ -96,7 +96,7 @@
 - type: entity
   parent: AU14Dumpster
   id: AU14DumpsterRed
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Red
   components:
   - type: ContainerContainer
@@ -116,7 +116,7 @@
 - type: entity
   parent: AU14Dumpster
   id: AU14DumpsterGreen
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Green
   components:
   - type: ContainerContainer
@@ -136,7 +136,7 @@
 - type: entity
   parent: AU14Dumpster
   id: AU14DumpsterOrange
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Orange
   components:
   - type: ContainerContainer
@@ -156,7 +156,7 @@
 - type: entity
   parent: AU14Dumpster
   id: AU14DumpsterPurple
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Purple
   components:
   - type: ContainerContainer
@@ -176,7 +176,7 @@
 - type: entity
   parent: AU14Dumpster
   id: AU14DumpsterWeYu
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: We-Yu
   components:
   - type: ContainerContainer

@@ -3,7 +3,7 @@
 - type: entity
   abstract: true
   id: RMCBarrelPileBase
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: barrel pile
   description: big pile energy.
   placement:
@@ -29,7 +29,7 @@
 - type: entity
   parent: RMCBarrelPileBase
   id: RMCBarrelPileYard
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   components:
   - type: Sprite
     state: pile_0
@@ -37,7 +37,7 @@
 - type: entity
   parent: BaseStructureDynamic
   id: RMCBarrelBase
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: barrel
   description: A storage barrel.
   components:
@@ -72,7 +72,7 @@
 - type: entity
   parent: RMCBarrelBase
   id: RMCBarrelBlue
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: blue barrel
   description: A blue storage barrel.
   components:
@@ -82,7 +82,7 @@
 - type: entity
   parent: RMCBarrelBase
   id: RMCBarrelGreen
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: green barrel
   description: A green storage barrel.
   components:
@@ -92,7 +92,7 @@
 - type: entity
   parent: RMCBarrelBase
   id: RMCBarrelRed
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: red barrel
   description: A red storage barrel.
   components:
@@ -102,7 +102,7 @@
 - type: entity
   parent: RMCBarrelBase
   id: RMCBarrelWhite
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: white barrel
   description: A white storage barrel.
   components:
@@ -112,7 +112,7 @@
 - type: entity
   parent: RMCBarrelBase
   id: RMCBarrelYellow
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: yellow barrel
   description: A yellow storage barrel.
   components:
@@ -122,7 +122,7 @@
 - type: entity
   parent: RMCBarrelWhite
   id: RMCBarrelPureWhite
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   components:
   - type: Sprite
     state: barrel_purewhite
@@ -130,7 +130,7 @@
 - type: entity
   parent: RMCBarrelBase
   id: RMCBarrelBlack
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: black barrel
   description: A black storage barrel.
   components:
@@ -140,7 +140,7 @@
 - type: entity
   parent: RMCBarrelBase
   id: RMCBarrelBrown
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: brown barrel
   description: A brown storage barrel.
   components:
@@ -150,7 +150,7 @@
 - type: entity
   parent: RMCBarrelBase
   id: RMCBarrelFire
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: barrel
   suffix: fire
   description: A burning barrel.

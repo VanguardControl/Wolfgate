@@ -3,7 +3,7 @@
 - type: entity
   parent: BaseStructureDynamic
   id: RMCSmallFloodlight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: small floodlight
   description: A small bit of light in the darkness.
   components:
@@ -66,7 +66,7 @@
 - type: entity
   parent: RMCSmallFloodlight
   id: RMCSmallFloodlightUnanchored
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: small floodlight
   description: A small bit of light in the darkness.
   components:
@@ -78,7 +78,7 @@
 - type: entity
   parent: BaseStructure
   id: RMCTallFloodlight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: tall floodlight
   description: A pillar of light in the darkness.
   placement:
@@ -142,7 +142,7 @@
 - type: entity
   parent: BaseStructure
   id: RMCFloodlightBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: tall broken floodlight
   description: "A pasted on note says 'To fix, unscrew the panel, crowbar out the damaged assembly, weld it fixed, add 2 cable, then close the panel.'"
   components:
@@ -173,7 +173,7 @@
 - type: entity
   parent: RMCTallFloodlight
   id: RMCStreetlight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: colony streetlight
   components:
   - type: Fixtures
@@ -215,7 +215,7 @@
 - type: entity
   parent: RMCFloodlightBroken
   id: RMCStreetlightBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: broken colony streetlight
   description: "A pasted on note says 'To fix, unscrew the panel, crowbar out the damaged assembly, weld it fixed, add 2 cable, then close the panel.'"
   components:
@@ -239,7 +239,7 @@
   abstract: true
   parent: BaseStructure
   id: RMCTrafficLightBase
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: traffic light
   description: A traffic light.
   placement:
@@ -297,13 +297,13 @@
 - type: entity
   parent: RMCTrafficLightBase
   id: RMCTrafficLight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   components: []
 
 - type: entity
   parent: RMCStreetlightBroken
   id: RMCTrafficLightBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   name: broken traffic light
   description: "A pasted on note says 'To fix, unscrew the panel, crowbar out the damaged assembly, weld it fixed, add 2 cable, then close the panel.'"
   components:
@@ -317,7 +317,7 @@
 - type: entity
   parent: RMCTrafficLight
   id: RMCTrafficLightAlt
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   suffix: Alt
   components:
   - type: Sprite
@@ -346,7 +346,7 @@
 - type: entity
   parent: RMCTrafficLightBroken
   id: RMCTrafficLightBrokenAlt
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsLighting ]
   suffix: Alt
   components:
   - type: Sprite

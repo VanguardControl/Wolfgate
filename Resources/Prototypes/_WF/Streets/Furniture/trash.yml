@@ -3,7 +3,7 @@
 - type: entity
   parent: BaseItem
   id: RMCPropTrashFull
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: full trash bag
   description: "It's the heavy-duty black polymer kind. It's full of old trash, you don't want to touch it."
   components:
@@ -14,7 +14,7 @@
 - type: entity
   parent: RMCPropTrashFull
   id: RMCPropBananaPeel
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: banana peel
   suffix: RMC
   description: A peel from a banana.
@@ -25,7 +25,7 @@
 - type: entity
   parent: RMCPropTrashFull
   id: RMCPropCuppaJoeLid
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: The Daily Grind coffee cup lid
   description: A lid from a disposable coffee cup. It's made of plastic and has a small hole for sipping.
   components:
@@ -35,7 +35,7 @@
 - type: entity
   parent: RMCPropTrashFull
   id: RMCPropCuppaJoeNoLid
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: empty The Daily Grind coffee cup
   description: "An empty disposable coffee cup from The Daily Grind. It has a small hole at the bottom, so it's not very useful for holding liquids anymore."
   components:
@@ -45,7 +45,7 @@
 - type: entity
   parent: RMCPropTrashFull
   id: RMCPropCuppaJoeNoLidStack
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: empty The Daily Grind cup stack
   description: A stack of empty disposable coffee cups from The Daily Grind.
   components:
@@ -55,7 +55,7 @@
 - type: entity
   parent: RMCPropTrashFull
   id: RMCPropCuppaJoeLidStack
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: The Daily Grind coffee cup lid stack
   description: A stack of coffee cup lids from The Daily Grind.
   components:

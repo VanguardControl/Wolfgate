@@ -3,7 +3,7 @@
 - type: entity
   parent: RMCPropBase
   id: RMCPropDogcatchersuit
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: Weston-Yamada 'M5X Apesuit' showcase
   description: "A display model of the Weston-Yamada 'Apesuit', shame it's only a model..."
   components:
@@ -14,7 +14,7 @@
 - type: entity
   parent: RMCPropDogcatchersuit
   id: RMCPropFireHydrantRed
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: fire hydrant
   description: It is just a fire hydrant. You know what it does.
   components:
@@ -24,7 +24,7 @@
 - type: entity
   parent: RMCPropFireHydrantRed
   id: RMCPropFireHydrantBlue
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   components:
   - type: Sprite
     state: firehydrant_blue
@@ -32,7 +32,7 @@
 - type: entity
   parent: RMCPropFireHydrantRed
   id: RMCPropFireHydrantwhite
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   components:
   - type: Sprite
     state: firehydrant_white
@@ -40,7 +40,7 @@
 - type: entity
   parent: RMCPropFireHydrantRed
   id: RMCPropFireHydrantGrey
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   components:
   - type: Sprite
     state: firehydrant_grey
@@ -48,7 +48,7 @@
 - type: entity
   parent: RMCPropBase
   id: RMCPropFactoryConveyer
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: large conveyor belt
   description: A large conveyor belt used in industrial factories.
   components:
@@ -61,7 +61,7 @@
 - type: entity
   parent: RMCPropBase
   id: RMCPropFactoryRoboticArm
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: robotic arm
   suffix: left
   description: "A robust robotic arm used in a range of mechanical processes, including assembly and packaging."
@@ -75,7 +75,7 @@
 - type: entity
   parent: RMCPropFactoryRoboticArm
   id: RMCPropFactoryRoboticArm2
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: right
   components:
   - type: Sprite
@@ -85,7 +85,7 @@
 - type: entity
   parent: RMCPropBase
   id: RMCPropPowerTransformer
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: power transformer
   description: A passive electrical component that controls where and which circuits power flows into...
   components:
@@ -105,7 +105,7 @@
 - type: entity
   parent: RMCPropBase
   id: RMCPropSlotmachinebroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: slot machine
   suffix: broken
   description: Looks like the house lost... a machine.
@@ -153,7 +153,7 @@
 - type: entity
   parent: RMCPropSlotmachinebroken
   id: RMCPropSlotmachineIdle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: slot machine
   suffix: "idle, prop"
   description: "A fast way to lose all of your money, but hey, atleast you had fun while doing so, right?"
@@ -164,7 +164,7 @@
 - type: entity
   parent: RMCPropBase
   id: RMCPropHybrisaPole
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: pole
   description: For all of your 'pole' related activities.
   components:

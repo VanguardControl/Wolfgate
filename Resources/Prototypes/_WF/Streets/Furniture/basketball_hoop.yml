@@ -2,7 +2,7 @@
 
 - type: entity
   id: RMCBasketballHoop
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: basketball hoop
   description: "Boom, Shakalaka!"
   placement:
@@ -20,7 +20,7 @@
 - type: entity
   parent: RMCBasketballHoop
   id: RMCBasketballHoopAlt
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Alt
   components:
   - type: Sprite

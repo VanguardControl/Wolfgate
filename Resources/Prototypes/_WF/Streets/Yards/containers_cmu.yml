@@ -3,7 +3,7 @@
 - type: entity
   abstract: true
   id: AU14ContainerBase
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   name: cargo container
   description: A huge industrial shipping container.
   placement:
@@ -31,7 +31,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerGreenAriousLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Arious, Left"
   components:
   - type: Sprite
@@ -40,7 +40,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerGreenAriousMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Arious, Middle"
   components:
   - type: Sprite
@@ -49,7 +49,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerDarkGreenCANC
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "CANC, Left"
   components:
   - type: Sprite
@@ -58,7 +58,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerDarkGreenCANCRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "CANC, Right"
   components:
   - type: Sprite
@@ -67,7 +67,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerDarkGreenCANCMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "CANC, Middle"
   components:
   - type: Sprite
@@ -76,7 +76,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerTanCANC
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "CANC, Left"
   components:
   - type: Sprite
@@ -85,7 +85,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerTanCANCRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "CANC, Right"
   components:
   - type: Sprite
@@ -94,7 +94,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerTanCANCMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "CANC, Middle"
   components:
   - type: Sprite
@@ -103,7 +103,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerBlueGraffitiLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Blue"
   components:
   - type: Sprite
@@ -112,7 +112,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerBlueGraffitiMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Blue"
   components:
   - type: Sprite
@@ -121,7 +121,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerBlueGraffitiRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Blue"
   components:
   - type: Sprite
@@ -130,7 +130,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerRedGraffitiLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Red"
   components:
   - type: Sprite
@@ -139,7 +139,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerRedGraffitiMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Red"
   components:
   - type: Sprite
@@ -148,7 +148,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerRedGraffitiRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Red"
   components:
   - type: Sprite
@@ -157,7 +157,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerGreenGraffitiLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Green"
   components:
   - type: Sprite
@@ -166,7 +166,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerGreenGraffitiMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Green"
   components:
   - type: Sprite
@@ -175,7 +175,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerGreenGraffitiRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Graffiti, Green"
   components:
   - type: Sprite
@@ -184,7 +184,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerHyperdyneLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Hyperdyne, DarkBlue"
   components:
   - type: Sprite
@@ -193,7 +193,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerHyperdyneMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Hyperdyne, DarkBlue"
   components:
   - type: Sprite
@@ -202,7 +202,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerHyperdyneRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Hyperdyne, DarkBlue"
   components:
   - type: Sprite
@@ -211,7 +211,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerLightHyperdyneLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Hyperdyne, LightBlue"
   components:
   - type: Sprite
@@ -220,7 +220,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerLightHyperdyneMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Hyperdyne, LightBlue"
   components:
   - type: Sprite
@@ -229,7 +229,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerLightHyperdyneRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Hyperdyne, LightBlue"
   components:
   - type: Sprite
@@ -238,7 +238,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerLockmartLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Lockmart, LightBlue"
   components:
   - type: Sprite
@@ -247,7 +247,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerLockmartMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Lockmart, LightBlue"
   components:
   - type: Sprite
@@ -256,7 +256,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerLockmartRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Lockmart, LightBlue"
   components:
   - type: Sprite
@@ -265,7 +265,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerSeegsonLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Seegson, LightBlue"
   components:
   - type: Sprite
@@ -274,7 +274,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerSeegsonMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Seegson, LightBlue"
   components:
   - type: Sprite
@@ -283,7 +283,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerSeegsonRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Seegson, LightBlue"
   components:
   - type: Sprite
@@ -292,7 +292,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerUPPDarkGreenLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "UPP, DarkGreen"
   components:
   - type: Sprite
@@ -301,7 +301,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerUPPDarkGreenMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "UPP, DarkGreen"
   components:
   - type: Sprite
@@ -310,7 +310,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerUPPDarkGreenRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "UPP, DarkGreen"
   components:
   - type: Sprite
@@ -319,7 +319,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerUPPTanLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "UPP, Tan"
   components:
   - type: Sprite
@@ -328,7 +328,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerUPPTanMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "UPP, Tan"
   components:
   - type: Sprite
@@ -337,7 +337,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerUPPTanRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "UPP, Tan"
   components:
   - type: Sprite
@@ -346,7 +346,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerUSCMLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "USCM, Gray"
   components:
   - type: Sprite
@@ -355,7 +355,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerUSCMMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "USCM, Gray"
   components:
   - type: Sprite
@@ -364,7 +364,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerUSCMRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "USCM, Gray"
   components:
   - type: Sprite
@@ -373,7 +373,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerWYLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WY, Gray"
   components:
   - type: Sprite
@@ -382,7 +382,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerWYMiddle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WY, Gray"
   components:
   - type: Sprite
@@ -391,7 +391,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerWYRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "WY, Gray"
   components:
   - type: Sprite
@@ -400,7 +400,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerMK6Left
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "MK6, DarkGreen"
   components:
   - type: Sprite
@@ -409,7 +409,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerMK6Middle
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "MK6, DarkGreen"
   components:
   - type: Sprite
@@ -418,7 +418,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerMK6Right
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "MK6, DarkGreen"
   components:
   - type: Sprite
@@ -427,7 +427,7 @@
 - type: entity
   parent: AU14ContainerBase
   id: AU14ContainerTartarusLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -446,7 +446,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftBlackWY
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -455,7 +455,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightBlackWY
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -464,7 +464,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftBlueWYWings
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -473,7 +473,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightBlueWYWings
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -482,7 +482,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftMedicalEmpty
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -491,7 +491,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightMedicalEmpty
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -500,7 +500,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftGrayWY
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -509,7 +509,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightGrayWY
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -518,7 +518,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftKelland
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -527,7 +527,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightKelland
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -536,7 +536,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftKellandAlt
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -545,7 +545,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightKellandAlt
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -554,7 +554,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftLightGrayWY
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -563,7 +563,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightLightGrayWY
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -572,7 +572,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftMedicalEmptyAlt
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -581,7 +581,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightMedicalEmptyAlt
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -590,7 +590,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftRedWYWings
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -599,7 +599,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightRedWYWings
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -608,7 +608,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftTanWYWings
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -617,7 +617,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightTanWYWings
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite
@@ -626,7 +626,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusLeftOffBlueWY
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Left"
   components:
   - type: Sprite
@@ -635,7 +635,7 @@
 - type: entity
   parent: AU14ContainerTartarusLeft
   id: AU14ContainerTartarusRightOffBlueWY
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsYards ]
   suffix: "Tartarus, Right"
   components:
   - type: Sprite

@@ -12,6 +12,7 @@ public enum WfSpawnGroup : byte
     Mobs,
     Weapons,
     Vehicles,
+    Streets,
     Clothing,
     Engineering,
     Medical,
@@ -50,6 +51,13 @@ public enum WfSpawnCategory : byte
     VehicleParts,
     VehicleInteriors,
     VehicleScenery,
+
+    // Streets
+    StreetFurniture,
+    StreetSigns,
+    StreetLighting,
+    StreetBuildings,
+    StreetYards,
 
     // Clothing
     ClothingHead,
@@ -151,6 +159,12 @@ public static class WfSpawnCategories
         (WfSpawnCategory.VehicleInteriors, WfSpawnGroup.Vehicles),
         (WfSpawnCategory.VehicleScenery, WfSpawnGroup.Vehicles),
 
+        (WfSpawnCategory.StreetFurniture, WfSpawnGroup.Streets),
+        (WfSpawnCategory.StreetSigns, WfSpawnGroup.Streets),
+        (WfSpawnCategory.StreetLighting, WfSpawnGroup.Streets),
+        (WfSpawnCategory.StreetBuildings, WfSpawnGroup.Streets),
+        (WfSpawnCategory.StreetYards, WfSpawnGroup.Streets),
+
         (WfSpawnCategory.ClothingHead, WfSpawnGroup.Clothing),
         (WfSpawnCategory.ClothingEyes, WfSpawnGroup.Clothing),
         (WfSpawnCategory.ClothingNeck, WfSpawnGroup.Clothing),
@@ -246,6 +260,7 @@ public static class WfSpawnCategories
             WfSpawnGroup.Mobs => Color.FromHex("#6FD98A"),
             WfSpawnGroup.Weapons => skin.Danger,
             WfSpawnGroup.Vehicles => Color.FromHex("#8FA86B"),
+            WfSpawnGroup.Streets => Color.FromHex("#C9B48A"),
             WfSpawnGroup.Clothing => Color.FromHex("#C79BFF"),
             WfSpawnGroup.Engineering => Color.FromHex("#FFC14D"),
             WfSpawnGroup.Medical => Color.FromHex("#7FC7FF"),

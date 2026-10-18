@@ -3,7 +3,7 @@
 - type: entity
   abstract: true
   id: CMPlatformBase
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: platform
   description: A square metal surface resting on four legs.
   components:
@@ -20,7 +20,7 @@
 - type: entity
   abstract: true
   id: CMPlatformBaseBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: destroyed platform
   description: A square metal surface resting on four legs. It has been destroyed.
   components:
@@ -36,7 +36,7 @@
   abstract: true
   parent: CMPlatformBase
   id: CMPlatformBaseDestructible
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Damageable
     damageContainer: Inorganic
@@ -54,7 +54,7 @@
 - type: entity
   parent: CMPlatformBaseBroken
   id: CMPlatformBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   placement:
     mode: SnapgridCenter
     snap: [ Wall ]
@@ -67,7 +67,7 @@
 - type: entity
   parent: CMPlatformBaseDestructible
   id: CMPlatform
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: platform
   description: A square metal surface resting on four legs.
   placement:
@@ -90,7 +90,7 @@
 - type: entity
   parent: CMPlatformBase
   id: CMPlatformCorner
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: platform
   description: A square metal surface resting on four legs.
   placement:
@@ -131,7 +131,7 @@
 - type: entity
   parent: CMPlatformBase
   id: RMCPlatformCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: platform
   description: A square metal surface resting on four legs.
   placement:
@@ -166,7 +166,7 @@
 - type: entity
   parent: CMPlatformBase
   id: RMCPlatformRound
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: platform
   description: A square metal surface resting on four legs.
   placement:
@@ -214,7 +214,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformStairRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: platform_stair
@@ -222,7 +222,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformStairLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: platform_stair_alt
@@ -230,7 +230,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformKutjevo
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal edge
   description: "A raised level of metal, often used to elevate areas above others, or construct bridges. You could probably climb it."
   components:
@@ -240,7 +240,7 @@
 - type: entity
   parent: CMPlatformBroken
   id: RMCPlatformKutjevoBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: kutjevo_platform_broken
@@ -248,7 +248,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformKutjevoCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal corner
   description: "The corner of what appears to be raised piece of metal, often used to imply the illusion of elevation in non-Euclidean 2d spaces. But you don't know that, you're just a spaceman with a rifle."
   components:
@@ -258,7 +258,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformKutjevoSM
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal edge
   description: "A raised level of metal, often used to elevate areas above others, or construct bridges. You could probably climb it."
   components:
@@ -268,7 +268,7 @@
 - type: entity
   parent: CMPlatformCorner
   id: RMCPlatformKutjevoSMCorner
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal edge
   description: "A raised level of metal, often used to elevate areas above others, or construct bridges. You could probably climb it."
   components:
@@ -278,7 +278,7 @@
 - type: entity
   parent: RMCPlatformRound
   id: RMCPlatformKutjevoSMRound
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal edge
   description: "A raised level of metal, often used to elevate areas above others, or construct bridges. You could probably climb it."
   components:
@@ -288,7 +288,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformKutjevoStairRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal edge
   description: "A raised level of metal, often used to elevate areas above others, or construct bridges. You could probably climb it."
   components:
@@ -298,7 +298,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformKutjevoStairLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal edge
   description: "A raised level of metal, often used to elevate areas above others, or construct bridges. You could probably climb it."
   components:
@@ -308,7 +308,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformShiva
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised rubber cord platform
   description: Reliable steel and a polymer rubber substitute. Doesn't crack under cold weather.
   components:
@@ -318,7 +318,7 @@
 - type: entity
   parent: CMPlatformBroken
   id: RMCPlatformShivaBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: destroyed rubber cord platform
   description: Reliable steel and a polymer rubber substitute. Doesn't crack under cold weather. It has been destroyed.
   components:
@@ -328,7 +328,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformShivaCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised rubber cord platform
   description: Reliable steel and a polymer rubber substitute. Doesn't crack under cold weather.
   components:
@@ -338,7 +338,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformKutjevoRock
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised rock edge
   description: A collection of stones and rocks that provide ample grappling and vaulting opportunity. Indicates a change in elevation. You could probably climb it.
   components:
@@ -350,7 +350,7 @@
 - type: entity
   parent: CMPlatformBroken
   id: RMCPlatformKutjevoRockBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: destroyed raised rock edge
   description: A collection of stones and rocks that provide ample grappling and vaulting opportunity. Indicates a change in elevation. You could probably climb it. It has been destroyed.
   components:
@@ -360,7 +360,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformKutjevoRockCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised rock corner
   description: A collection of stones and rocks that cap the edge of some conveniently 1-meter-long lengths of perfectly climbable chest high walls.
   components:
@@ -372,7 +372,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformHybrisaEdge
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal edge
   description: "A raised level of metal, often used to elevate areas above others. You could probably climb it."
   components:
@@ -382,7 +382,7 @@
 - type: entity
   parent: CMPlatformBroken
   id: RMCPlatformHybrisaEdgeBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: hybrisametal_broken
@@ -390,7 +390,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformHybrisaEdgeCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal corner
   description: "A raised level of metal, often used to elevate areas above others. This is the corner."
   components:
@@ -400,7 +400,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformHybrisa
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal platform
   description: "A raised level of metal, often used to elevate areas above others. You could probably climb it."
   components:
@@ -410,7 +410,7 @@
 - type: entity
   parent: CMPlatformBroken
   id: RMCPlatformHybrisaBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: hybrisametal_broken
@@ -418,7 +418,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformHybrisaCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal corner
   description: "A raised level of metal, often used to elevate areas above others. This is the corner."
   components:
@@ -428,7 +428,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformHybrisaTwo
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal platform
   description: "A raised level of metal, often used to elevate areas above others. You could probably climb it."
   components:
@@ -438,7 +438,7 @@
 - type: entity
   parent: CMPlatformBroken
   id: RMCPlatformHybrisa2Broken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: hybrisaplatform2_broken
@@ -446,7 +446,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformHybrisaTwoCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal corner
   description: "A raised level of metal, often used to elevate areas above others. This is the corner."
   components:
@@ -456,7 +456,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformHybrisaThree
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal platform
   description: "A raised level of metal, often used to elevate areas above others. You could probably climb it."
   components:
@@ -466,7 +466,7 @@
 - type: entity
   parent: CMPlatformBroken
   id: RMCPlatformHybrisa3Broken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: hybrisaplatform3_broken
@@ -474,7 +474,7 @@
 - type: entity
   parent: CMPlatformCorner
   id: RMCPlatformHybrisaThreeCorner
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal platform
   description: "A raised level of metal, often used to elevate areas above others. You could probably climb it."
   components:
@@ -484,7 +484,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformHybrisaThreeStair
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal platform
   description: "A raised level of metal, often used to elevate areas above others. You could probably climb it."
   components:
@@ -494,7 +494,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformHybrisaThreeStairAlt
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal platform
   description: "A raised level of metal, often used to elevate areas above others. You could probably climb it."
   components:
@@ -504,7 +504,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformHybrisaThreeCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal corner
   description: "A raised level of metal, often used to elevate areas above others. This is the corner."
   components:
@@ -514,7 +514,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformHybrisaRock
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised rock edges
   description: A collection of stones and rocks that provide ample grappling and vaulting opportunity. Indicates a change in elevation. You could probably climb it.
   components:
@@ -524,7 +524,7 @@
 - type: entity
   parent: CMPlatformBroken
   id: RMCPlatformHybrisaRockBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: kutjevo_rockdark_broken
@@ -532,7 +532,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformHybrisaRockCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised rock corner
   description: A collection of stones and rocks that cap the edge of some conveniently 1-meter-long lengths of perfectly climbable chest high walls.
   components:
@@ -542,7 +542,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformHybrisaStone
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised stone platform
   description: "A raised level of stone, often used to elevate areas above others. You could probably climb it."
   components:
@@ -552,7 +552,7 @@
 - type: entity
   parent: CMPlatformBroken
   id: RMCPlatformHybrisaStoneBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: stone_broken
@@ -560,7 +560,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformHybrisaStoneCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised stone corner
   description: "A raised level of stone, often used to elevate areas above others. This is the corner."
   components:
@@ -570,7 +570,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformSandstone
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: sandstone platform
   description: "A raised level of metal, often used to elevate areas above others, or construct bridges. You could probably climb it."
   components:
@@ -581,7 +581,7 @@
 - type: entity
   parent: CMPlatformBroken
   id: RMCPlatformSandstoneBroken
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: stone_broken
@@ -590,7 +590,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformSandstoneCornerSmall
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: sandstone platform corner
   description: "The corner of what appears to be raised piece of metal, often used to imply the illusion of elevation in non-Euclidean 2d spaces. But you don't know that, you're just a spaceman with a rifle."
   components:
@@ -601,7 +601,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformSandstoneStairRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: sandstone platform stair
   components:
   - type: Sprite
@@ -611,7 +611,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformSandstoneStairLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: sandstone platform stair
   components:
   - type: Sprite
@@ -621,7 +621,7 @@
 - type: entity
   parent: CMPlatform
   id: RMCPlatformAlmayer
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal edge
   suffix: Almayer
   description: "A raised level of metal, often used to elevate areas above others, or construct bridges. You could probably climb it."
@@ -632,7 +632,7 @@
 - type: entity
   parent: RMCPlatformCornerSmall
   id: RMCPlatformAlmayerCorner
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: raised metal corner
   suffix: Almayer
   description: "A raised level of metal, often used to elevate areas above others. This is the corner."
@@ -643,7 +643,7 @@
 - type: entity
   parent: RMCPlatformAlmayer
   id: RMCPlatformAlmayerStairs
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: platform_sm_stair
@@ -651,7 +651,7 @@
 - type: entity
   parent: RMCPlatformAlmayer
   id: RMCPlatformAlmayerStairsAlt
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: platform_sm_stair_alt

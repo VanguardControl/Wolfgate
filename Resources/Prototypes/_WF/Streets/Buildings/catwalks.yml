@@ -2,7 +2,7 @@
 
 - type: entity
   id: CMCatwalk
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: catwalk
   description: A catwalk for easier EVA maneuvering and cable placement.
   placement:
@@ -51,7 +51,7 @@
 - type: entity
   parent: CMCatwalk
   id: RMCCatwalkAI
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: ai_catwalk
@@ -59,7 +59,7 @@
 - type: entity
   parent: CMCatwalk
   id: RMCCatwalkAIWhite
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: w_ai_catwalk
@@ -67,7 +67,7 @@
 - type: entity
   parent: CMCatwalk
   id: CMCatwalkShiva
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: shiva_catwalk
@@ -75,7 +75,7 @@
 - type: entity
   parent: CMCatwalk
   id: CMCatwalkPrison
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: prison_catwalk
@@ -83,7 +83,7 @@
 - type: entity
   parent: CMCatwalk
   id: RMCCatwalkKutjevo
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: kutjevo_catwalk
@@ -91,7 +91,7 @@
 - type: entity
   parent: CMCatwalk
   id: RMCCatwalkStrata
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     state: strata_catwalk
@@ -99,7 +99,7 @@
 - type: entity
   parent: CMCatwalk
   id: RMCCatwalkHybrisa
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: solid metal grate
   components:
   - type: Sprite
@@ -108,7 +108,7 @@
 - type: entity
   parent: CMCatwalk
   id: RMCCatwalkHybrisaLattice
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: structural lattice
   components:
   - type: Sprite
@@ -117,7 +117,7 @@
 - type: entity
   parent: CMCatwalk
   id: RMCCatwalkHybrisaElevator
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: solid metal grate
   components:
   - type: Sprite
@@ -126,7 +126,7 @@
 - type: entity
   parent: RMCMonorailStraight
   id: RMCCatwalkHybrisaReinforcedGlass
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: reinforced glass floor
   description: "A heavily reinforced glass floor panel, this looks almost indestructible."
   components:
@@ -135,7 +135,7 @@
 
 - type: entity
   id: RMCMonorailStraight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: monorail track
   description: The rail system for the CORSAT monorail.
   placement:
@@ -163,7 +163,7 @@
 - type: entity
   parent: RMCMonorailStraight
   id: RMCMonorailBend
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     sprite: _WF/Streets/Structures/catwalk.rsi
@@ -176,7 +176,7 @@
 - type: entity
   parent: RMCMonorailStraight
   id: RMCRailroadStraight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: rails
   description: Minecarts and rail vehicles go on these.
   components:
@@ -191,7 +191,7 @@
 - type: entity
   parent: RMCRailroadStraight
   id: RMCRailroadBend
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   components:
   - type: Sprite
     sprite: _WF/Streets/Structures/catwalk.rsi
@@ -204,7 +204,7 @@
 - type: entity
   parent: RMCRailroadStraight
   id: RMCRailroadBumper
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   name: rail bumpers
   description: This (usually) stops minecarts and other rail vehicles at the end of a line of track.
   components:

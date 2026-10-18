@@ -5,7 +5,7 @@
   abstract: true
   parent: BaseStructure
   id: WFStreetsRailBase
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsBuildings ]
   placement:
     mode: SnapgridCenter
   components:

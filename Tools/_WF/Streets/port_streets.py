@@ -288,6 +288,12 @@ class Port:
         if not kept:
             self.problems.append(f"{entry['file']} gave no entities")
             return
+        # The spawn menu's Streets sub-folder is the output folder: Buildings, Furniture, Lighting, Signs or Yards.
+        folder = entry['out'].split('/')[0]
+        if folder in ("Buildings", "Furniture", "Lighting", "Signs", "Yards"):
+            for doc in kept:
+                if "categories" in doc:
+                    doc["categories"] = doc["categories"] + [f"{self.config['category']}{folder}"]
         origin = f"{self.sources[source]['dir']} {entry['file']} ({self.sources[source]['licence']})"
         self.outputs.append((f"{PROTOTYPES}/{entry['out']}", HEADER.format(origin=origin), kept))
 

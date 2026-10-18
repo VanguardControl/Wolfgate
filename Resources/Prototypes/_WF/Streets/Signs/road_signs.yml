@@ -2,7 +2,7 @@
 
 - type: entity
   id: RMCOverheadRoadsign
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   name: road sign
   description: A road sign.
   components:
@@ -22,7 +22,7 @@
 - type: entity
   parent: RMCOverheadRoadsign
   id: RMCOverheadRoadsign2
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: roadsign_2
@@ -32,7 +32,7 @@
 - type: entity
   parent: RMCOverheadRoadsign
   id: RMCOverheadRoadsign3
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: roadsign_3
@@ -42,7 +42,7 @@
 - type: entity
   parent: RMCOverheadRoadsign
   id: RMCOverheadRoadsign4
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: roadsign_4
@@ -52,7 +52,7 @@
 - type: entity
   parent: RMCOverheadRoadsign
   id: RMCOverheadRoadsignAlt1
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: roadsign_alt_1
@@ -62,7 +62,7 @@
 - type: entity
   parent: RMCOverheadRoadsign
   id: RMCOverheadRoadsignAlt2
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: roadsign_alt_2
@@ -72,7 +72,7 @@
 - type: entity
   parent: RMCOverheadRoadsign
   id: RMCOverheadRoadsignAlt3
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: roadsign_alt_3
@@ -82,7 +82,7 @@
 - type: entity
   parent: RMCOverheadRoadsign
   id: RMCOverheadRoadsignAlt4
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: roadsign_alt_4
@@ -92,7 +92,7 @@
 - type: entity
   parent: RMCOverheadRoadsign
   id: RMCOverheadBillboardBigger1
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   name: billboard
   description: An advertisement billboard.
   components:
@@ -107,7 +107,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboardBigger2
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_2
@@ -117,7 +117,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboardBigger3
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_3
@@ -127,7 +127,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboardBigger4
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_4
@@ -137,7 +137,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboardBigger5
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_5
@@ -147,7 +147,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboardBigger6
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_6
@@ -157,7 +157,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboardBigger7
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_7
@@ -167,7 +167,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboardBigger8
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_8
@@ -177,7 +177,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard1A
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_a
@@ -187,7 +187,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard1B
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_b
@@ -197,7 +197,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard1C
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_c
@@ -207,7 +207,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard1D
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_d
@@ -217,7 +217,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard1E
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_e
@@ -227,7 +227,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard1F
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_f
@@ -237,7 +237,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard1G
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_g
@@ -247,7 +247,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard1H
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_h
@@ -257,7 +257,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard2A
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_a
@@ -267,7 +267,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard2B
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_b
@@ -277,7 +277,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard2C
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_c
@@ -287,7 +287,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard2D
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_d
@@ -297,7 +297,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard2E
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_e
@@ -307,7 +307,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard2F
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_f
@@ -317,7 +317,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard2G
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_g
@@ -327,7 +327,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard2H
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_h
@@ -337,7 +337,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard3A
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_a
@@ -347,7 +347,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard3B
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_b
@@ -357,7 +357,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard3C
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_c
@@ -367,7 +367,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard3D
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_d
@@ -377,7 +377,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard3E
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_e
@@ -387,7 +387,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard3F
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_f
@@ -397,7 +397,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard3G
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_g
@@ -407,7 +407,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard3H
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_h
@@ -417,7 +417,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard4A
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard4_a
@@ -427,7 +427,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard4B
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard4_b
@@ -437,7 +437,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard4C
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard4_c
@@ -447,7 +447,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard4D
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard4_d
@@ -457,7 +457,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard4E
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard4_e
@@ -467,7 +467,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard4F
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard4_f
@@ -477,7 +477,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard4G
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard4_g
@@ -487,7 +487,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard4H
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard4_h
@@ -497,7 +497,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard5A
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_a
@@ -507,7 +507,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard5B
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_b
@@ -517,7 +517,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard5C
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_c
@@ -527,7 +527,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard5D
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_d
@@ -537,7 +537,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard5E
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_e
@@ -547,7 +547,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard5F
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_f
@@ -557,7 +557,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard5G
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_g
@@ -567,7 +567,7 @@
 - type: entity
   parent: RMCOverheadBillboardBigger1
   id: RMCOverheadBillboard5H
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_h
@@ -577,7 +577,7 @@
 - type: entity
   parent: RMCOverheadRoadsign
   id: RMCOverheadBillboardWallmount1
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   name: billboard
   description: An advertisement billboard.
   components:
@@ -592,7 +592,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount2
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_c
@@ -602,7 +602,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount3
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_c
@@ -612,7 +612,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount4
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_h
@@ -622,7 +622,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount5
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_a
@@ -632,7 +632,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount6
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_h
@@ -642,7 +642,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount7
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_1
@@ -652,7 +652,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount8
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_a
@@ -662,7 +662,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount9
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_b
@@ -672,7 +672,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount10
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_g
@@ -682,7 +682,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount11
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_g
@@ -692,7 +692,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount12
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_a
@@ -702,7 +702,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount13
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_d
@@ -712,7 +712,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount14
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_5
@@ -722,7 +722,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount15
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard4_b
@@ -732,7 +732,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount16
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_g
@@ -742,7 +742,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount17
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_a
@@ -752,7 +752,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount18
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_6
@@ -762,7 +762,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount19
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard4_c
@@ -772,7 +772,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount20
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_b
@@ -782,7 +782,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount21
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_7
@@ -792,7 +792,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount22
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_3
@@ -802,7 +802,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount23
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_b
@@ -812,7 +812,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount24
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard3_e
@@ -822,7 +822,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount25
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_e
@@ -832,7 +832,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount26
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_h
@@ -842,7 +842,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount27
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard_bigger_2
@@ -852,7 +852,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount28
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard2_d
@@ -862,7 +862,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount29
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard5_d
@@ -872,7 +872,7 @@
 - type: entity
   parent: RMCOverheadBillboardWallmount1
   id: RMCOverheadBillboardWallmount30
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsSigns ]
   components:
   - type: Sprite
     state: billboard1_f

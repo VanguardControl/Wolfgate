@@ -3,7 +3,7 @@
 - type: entity
   parent: RMCPropBase
   id: RMCPropSupermartBasketEmpty
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: basket
   suffix: empty
   description: A basket.
@@ -18,7 +18,7 @@
 - type: entity
   parent: RMCPropSupermartBasketEmpty
   id: RMCPropSupermartBasketOranges
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Oranges
   description: A basket full of oranges.
   components:
@@ -29,7 +29,7 @@
 - type: entity
   parent: RMCPropSupermartBasketEmpty
   id: RMCPropSupermartBasketPears
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Pears
   description: A basket full of pears.
   components:
@@ -40,7 +40,7 @@
 - type: entity
   parent: RMCPropSupermartBasketEmpty
   id: RMCPropSupermartBasketCarrots
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Carrots
   description: A basket full of carrots.
   components:
@@ -51,7 +51,7 @@
 - type: entity
   parent: RMCPropSupermartBasketEmpty
   id: RMCPropSupermartBasketMelons
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Melons
   description: A basket full of melons.
   components:
@@ -62,7 +62,7 @@
 - type: entity
   parent: RMCPropSupermartBasketEmpty
   id: RMCPropSupermartBasketApples
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: Apples
   description: A basket full of apples.
   components:
@@ -73,7 +73,7 @@
 - type: entity
   parent: RMCPropBase
   id: RMCPropSupermartShelfEmpty
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: shelf
   suffix: Empty
   description: A long empty shelf.
@@ -117,7 +117,7 @@
 - type: entity
   parent: RMCPropSupermartShelfEmpty
   id: RMCPropSupermartShelf1
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: 1
   description: A long shelf filled with various foodstuffs.
   components:
@@ -128,7 +128,7 @@
 - type: entity
   parent: RMCPropSupermartShelf1
   id: RMCPropSupermartShelf2
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: 2
   components:
   - type: Sprite
@@ -138,7 +138,7 @@
 - type: entity
   parent: RMCPropSupermartShelf1
   id: RMCPropSupermartSodaRack
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: Bobda cans rack
   suffix: Soda
   description: A rack filled with Bobda cans of various flavors.
@@ -150,7 +150,7 @@
 - type: entity
   parent: RMCPropSupermartSodaRack
   id: RMCPropSupermartSodaStack
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: stacked Bobda cans
   description: A large stack of "Bobda-Classic" cans.
   components:
@@ -161,7 +161,7 @@
 - type: entity
   parent: RMCPropBase
   id: RMCPropSupermartSodaMan
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: Bobda Man mannequin
   description: "A mannequin of the famous \"Bobda-Man\", Party like it's 1999!"
   components:
@@ -174,7 +174,7 @@
 - type: entity
   parent: RMCPropBase
   id: RMCPropSupermartFreezerLeft
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   name: commercial freezer
   suffix: Upper
   description: A commercial grade freezer.
@@ -207,7 +207,7 @@
 - type: entity
   parent: RMCPropSupermartFreezerLeft
   id: RMCPropSupermartFreezerRight
-  categories: [ WFStreets ]
+  categories: [ WFStreets, WFStreetsFurniture ]
   suffix: "Mid, Lower"
   components:
   - type: Sprite
