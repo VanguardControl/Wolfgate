@@ -5,7 +5,7 @@ using Content.Shared.Damage;
 using Content.Shared.DeviceLinking; // Frontier
 using Robust.Shared.GameStates;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
+using Content.Shared._WF.EngineCompat;
 
 namespace Content.Server.Shuttles.Components
 {
@@ -26,10 +26,10 @@ namespace Content.Server.Shuttles.Components
 
         // Need to serialize this because RefreshParts isn't called on Init and this will break post-mapinit maps!
         [ViewVariables(VVAccess.ReadWrite), DataField("thrust")]
-        public float Thrust = 100f;
+        public float Thrust = 150f; // WOLFGATE: PDV pack, partial revert of Monolith thrust nerf (200->100)
 
         [DataField("baseThrust"), ViewVariables(VVAccess.ReadWrite)]
-        public float BaseThrust = 100f;
+        public float BaseThrust = 150f; // WOLFGATE: PDV pack, partial revert of Monolith thrust nerf (200->100)
 
         [DataField("thrusterType")]
         public ThrusterType Type = ThrusterType.Linear;

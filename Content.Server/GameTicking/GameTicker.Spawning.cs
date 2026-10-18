@@ -35,10 +35,8 @@ namespace Content.Server.GameTicking
         [Dependency] private AdminSystem _admin = default!;
         [Dependency] private RespawnSystem _respawn = default!; // Frontier
 
-        [ValidatePrototypeId<EntityPrototype>]
-        public const string ObserverPrototypeName = "MobObserver";
+        public static readonly EntProtoId ObserverPrototypeName = "MobObserver";
 
-        [ValidatePrototypeId<EntityPrototype>]
         public const string AdminObserverPrototypeName = "AdminObserver";
 
         /// <summary>
@@ -56,6 +54,12 @@ namespace Content.Server.GameTicking
             var query = EntityQueryEnumerator<StationJobsComponent, StationSpawningComponent>();
             while (query.MoveNext(out var uid, out _, out _))
             {
+                // WOLFGATE(RoundSetup) START: ordinary joining excludes private scenario stations
+                // if (HasComp<Content.Server._WF.RoundSetup.WFCrashScenarioStationComponent>(uid) ||
+                //     HasComp<Content.Server._WF.RoundSetup.WFShipScenarioStationComponent>(uid))
+                if (!EntityManager.System<Content.Server._WF.RoundSetup.WFRoundSetupSystem>().IsStandardStation(uid))
+                    continue;
+                // WOLFGATE END
                 spawnableStations.Add(uid);
             }
 
@@ -92,9 +96,11 @@ namespace Content.Server.GameTicking
             }
 
             var spawnableStations = GetSpawnableStations();
-            var assignedJobs = _stationJobs.AssignJobs(profiles, spawnableStations);
-
-            _stationJobs.AssignOverflowJobs(ref assignedJobs, playerNetIds, profiles, spawnableStations);
+            // WOLFGATE(RoundSetup) START: explicit Normal choices share the regular job allocation
+            // var assignedJobs = _stationJobs.AssignJobs(profiles, spawnableStations);
+            // _stationJobs.AssignOverflowJobs(ref assignedJobs, playerNetIds, profiles, spawnableStations);
+            var assignedJobs = WFAssignRoundSetupJobs(profiles, spawnableStations, playerNetIds);
+            // WOLFGATE END
 
             // Calculate extended access for stations.
             var stationJobCounts = spawnableStations.ToDictionary(e => e, _ => 0);
@@ -119,7 +125,10 @@ namespace Content.Server.GameTicking
                 if (job == null)
                     continue;
 
-                SpawnPlayer(_playerManager.GetSessionById(player), profiles[player], station, job, false);
+                // WOLFGATE(RoundSetup) START: authorize the assigned group member while preserving the saved profile
+                // SpawnPlayer(_playerManager.GetSessionById(player), profiles[player], station, job, false);
+                WFSpawnAssignedPlayer(_playerManager.GetSessionById(player), profiles[player], station, job);
+                // WOLFGATE END
             }
 
             RefreshLateJoinAllowed();
@@ -174,6 +183,11 @@ namespace Content.Server.GameTicking
                 else
                     station = stations[0];
             }
+
+            // WOLFGATE(RoundSetup) START: require authenticated scenario membership on every spawn path
+            if (!EntityManager.System<Content.Server._WF.RoundSetup.WFRoundSetupSystem>().CanSpawnOnStation(player, station))
+                return;
+            // WOLFGATE END
 
             if (lateJoin && DisallowLateJoin)
             {
@@ -459,7 +473,7 @@ namespace Content.Server.GameTicking
                 var spawn = _robustRandom.Pick(_possiblePositions);
                 var toMap = _transform.ToMapCoordinates(spawn);
 
-                if (_mapManager.TryFindGridAt(toMap, out var gridUid, out _))
+                if (_map.TryFindGridAt(toMap, out var gridUid, out _))
                 {
                     var gridXform = Transform(gridUid);
 
@@ -469,17 +483,17 @@ namespace Content.Server.GameTicking
                 return spawn;
             }
 
-            if (_mapManager.MapExists(DefaultMap))
+            if (_map.MapExists(DefaultMap))
             {
-                var mapUid = _mapManager.GetMapEntityId(DefaultMap);
+                var mapUid = _map.GetMapOrInvalid(DefaultMap);
                 if (!TerminatingOrDeleted(mapUid))
                     return new EntityCoordinates(mapUid, Vector2.Zero);
             }
 
             // Just pick a point at this point I guess.
-            foreach (var map in _mapManager.GetAllMapIds())
+            foreach (var map in _map.GetAllMapIds())
             {
-                var mapUid = _mapManager.GetMapEntityId(map);
+                var mapUid = _map.GetMapOrInvalid(map);
 
                 if (!metaQuery.TryGetComponent(mapUid, out var meta)
                     || meta.EntityPaused

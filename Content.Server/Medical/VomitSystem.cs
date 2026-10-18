@@ -31,8 +31,7 @@ namespace Content.Server.Medical
         [Dependency] private ForensicsSystem _forensics = default!;
         [Dependency] private BloodstreamSystem _bloodstream = default!;
 
-        [ValidatePrototypeId<SoundCollectionPrototype>]
-        private const string VomitCollection = "Vomit";
+        private static readonly ProtoId<SoundCollectionPrototype> VomitCollection = "Vomit";
 
         private readonly SoundSpecifier _vomitSound = new SoundCollectionSpecifier(VomitCollection,
             AudioParams.Default.WithVariation(0.2f).WithVolume(-4f));
@@ -46,6 +45,13 @@ namespace Content.Server.Medical
             var stomachList = _body.GetBodyOrganEntityComps<StomachComponent>(uid);
             if (stomachList.Count == 0)
                 return;
+
+            // WOLFGATE(Wolfmed) START: no vomiting while dead or in cardiac arrest.
+            var wolfmedAttempt = new Content.Server._WF.Wolfmed.Life.WolfmedVomitAttemptEvent();
+            RaiseLocalEvent(uid, ref wolfmedAttempt);
+            if (wolfmedAttempt.Cancelled)
+                return;
+            // WOLFGATE END
 
             // Vomiting makes you hungrier and thirstier
             if (TryComp<HungerComponent>(uid, out var hunger))

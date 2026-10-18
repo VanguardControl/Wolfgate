@@ -40,8 +40,14 @@ wf-encounter-name-boarders = Pirate boarders {$designation}
 wf-encounter-name-trader = Wandering trader {$designation}
 wf-encounter-name-backup = TSF patrol {$designation} under attack
 wf-encounter-announce-backup = Any vessel, any vessel, this is {$name}. We are engaged by pirate raiders and outgunned. Requesting immediate backup. The Federation pays its debts.
-wf-encounter-reward-paid = For your help with {$name}, {$amount} spesos have been paid into your account.
-wf-encounter-reward-paid-credits = For your help with {$name}, {$amount} spesos have been paid into your account and you have been issued {$credits} military credits.
+wf-encounter-reward-paid = For your help with {$name}, {$amount} { $amount ->
+        [one] thaler has
+       *[other] thalers have
+    } been paid into your account.
+wf-encounter-reward-paid-credits = For your help with {$name}, {$amount} { $amount ->
+        [one] thaler has
+       *[other] thalers have
+    } been paid into your account and you have been issued {$credits} military credits.
 wf-encounter-reward-thanks-tsf = All vessels that answered our call: the Federation thanks you. Payment has been made.
 wf-encounter-reward-thanks-hauler = Whoever that was, thank you. We've sent what we can spare.
 wf-encounter-announce-trader = {$name} is passing through the sector, open for business to anyone who comes alongside. Small stock, low prices, no refunds.
@@ -158,6 +164,11 @@ wf-salvage-claim-not-aboard = You have to be aboard the ship to claim it.
 wf-salvage-claim-no-card = You need an ID card that holds no ship deed to register the ship to.
 wf-salvage-claim-failed = The registry won't take the claim.
 wf-salvage-claim-done = {$ship} is registered to you.
+# Encounter ship deeds
+wf-encounter-deed-name = deed to {$ship}
+wf-encounter-deed-gone = The ship this deed names is gone.
+wf-encounter-deed-already = {$ship} is already permanent.
+wf-encounter-deed-done = {$ship} is now permanent. It will never despawn.
 wf-encounter-ambush-sprung-1 = Kind of you to come. There never was a mayday. Cut your engines and open your holds, our friends are already on their way in.
 wf-encounter-ambush-sprung-2 = That's close enough. Drive's fine, by the way. Shut down and stand by to be boarded, or the ships behind you open fire.
 wf-encounter-ambush-sprung-3 = Thanks for answering. Nobody here needs rescuing but you. Kill your engines, we're taking the ship.

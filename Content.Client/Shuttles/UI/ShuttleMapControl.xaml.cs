@@ -27,7 +27,7 @@ public sealed partial class ShuttleMapControl : BaseShuttleControl
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IInputManager _inputs = default!;
-    [Dependency] private IMapManager _mapManager = default!;
+    private SharedMapSystem _mapManager => EntManager.System<SharedMapSystem>();
     [Dependency] private IEntityManager _entManager = default!; // Frontier
     private readonly DetectionSystem _detection; // Mono
     private readonly ShuttleSystem _shuttles;
@@ -135,7 +135,7 @@ public sealed partial class ShuttleMapControl : BaseShuttleControl
         {
             if (args.Function == EngineKeyFunctions.UIClick)
             {
-                var mapUid = _mapManager.GetMapEntityId(ViewingMap);
+                var mapUid = _mapManager.GetMapOrInvalid(ViewingMap);
 
                 var beaconsOnly = EntManager.TryGetComponent(mapUid, out FTLDestinationComponent? destComp) &&
                                   destComp.BeaconsOnly;
@@ -166,6 +166,9 @@ public sealed partial class ShuttleMapControl : BaseShuttleControl
         {
             _ftlAngle -= Angle.FromDegrees(15f) * args.Delta.Y; // Mono Edit: Subtract instead of add to preserve clockwise rotation when scrolling up. (positive angles are actually counter-clockwise)
             _ftlAngle = _ftlAngle.Reduced();
+            // WOLFGATE(Cockpit): rotating an FTL destination must not also scroll its MFD page.
+            if (WfCockpitControls)
+                args.Handle();
             return;
         }
 
@@ -276,7 +279,7 @@ public sealed partial class ShuttleMapControl : BaseShuttleControl
 
         DrawParallax(handle);
 
-        var viewedMapUid = _mapManager.GetMapEntityId(ViewingMap);
+        var viewedMapUid = _mapManager.GetMapOrInvalid(ViewingMap);
         var matty = Matrix3Helpers.CreateInverseTransform(Offset, Angle.Zero);
         var realTime = _timing.RealTime;
         var viewBox = new Box2(Offset - WorldRangeVector, Offset + WorldRangeVector);
@@ -284,6 +287,7 @@ public sealed partial class ShuttleMapControl : BaseShuttleControl
         _viewportExclusions.Clear();
 
         DrawStarSystem(handle, matty);
+        DrawSectorTerritory(handle, matty); // WOLFGATE(SectorControl): faction territory fills, borders and legend on the sector map.
         DrawDroneRings(handle, matty, viewedMapUid); // WOLFGATE(DroneRings): draw rings where drones start to spawn.
 
         // Draw our FTL range + no FTL zones

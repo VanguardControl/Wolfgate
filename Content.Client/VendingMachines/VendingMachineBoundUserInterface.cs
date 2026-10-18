@@ -5,7 +5,10 @@ using Robust.Client.UserInterface;
 using Robust.Shared.Input;
 using System.Linq;
 using Content.Client._Mono.Economy;
-using Content.Shared._Mono.Economy.Component; // Mono
+// WOLFGATE(EngineCompat) START: Engine v291 serialization generation cannot use a namespace named Component.
+// using Content.Shared._Mono.Economy.Component; // Mono
+using Content.Shared._Mono.Economy.Components; // Mono
+// WOLFGATE END
 using Robust.Client.GameObjects;
 using Content.Shared._NF.Bank.Components; // Frontier
 using Content.Shared.Containers.ItemSlots; // Frontier
@@ -66,6 +69,11 @@ namespace Content.Client.VendingMachines
 
         public override void Update()
         {
+            // WOLFGATE: skip updates queued before Open(), _uiSystem is still null and the NRE crashes state handling
+            // The engine lists a BUI as open a tick before it calls Open(), so vending/cash state can land in between.
+            if (!IsOpened)
+                return;
+
             var system = EntMan.System<VendingMachineSystem>();
             _cachedInventory = system.GetAllInventory(Owner);
 

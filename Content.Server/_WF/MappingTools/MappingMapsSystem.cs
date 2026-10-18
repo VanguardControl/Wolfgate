@@ -26,7 +26,7 @@ public sealed class MappingMapsSystem : EntitySystem
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private IAdminManager _admin = default!;
     [Dependency] private IConsoleHost _console = default!;
-    [Dependency] private IMapManager _mapManager = default!;
+    [Dependency] private SharedMapSystem _mapManager = default!;
     [Dependency] private IResourceManager _res = default!;
     [Dependency] private MapLoaderSystem _loader = default!;
     [Dependency] private PopupSystem _popup = default!;
@@ -113,7 +113,7 @@ public sealed class MappingMapsSystem : EntitySystem
     /// <summary>
     /// Whether <see cref="ListFiles"/> offers a path, so requests can't reach anything else on disk.
     /// </summary>
-    private bool IsListed(string path)
+    public bool IsListed(string path)
     {
         var res = new ResPath(path);
         if (!res.IsRooted || res.Extension != "yml" || path.Contains(".."))
@@ -131,7 +131,7 @@ public sealed class MappingMapsSystem : EntitySystem
         SendList(args.SenderSession);
     }
 
-    private void SendList(ICommonSession session)
+    public void SendList(ICommonSession session)
     {
         var folder = _res.UserData.RootDir is { } root
             ? Path.Combine(root, SaveFolder.ToRelativePath().ToString())

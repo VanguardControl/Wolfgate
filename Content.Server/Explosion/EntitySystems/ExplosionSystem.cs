@@ -57,7 +57,6 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
     [Dependency] private readonly ESTileFireSystem _tileFire = default!;
     // ES END
 
-    [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private IRobustRandom _robustRandom = default!;
     [Dependency] private ITileDefinitionManager _tileDefinitionManager = default!;
     [Dependency] private IPrototypeManager _prototypeManager = default!;
@@ -108,8 +107,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
     ///     find errors. However some components, like rogue arrows, or some commands like the admin-smite need to have
     ///     a "default" option specified outside of yaml data-fields. Hence this const string.
     /// </remarks>
-    [ValidatePrototypeId<ExplosionPrototype>]
-    public const string DefaultExplosionPrototypeId = "Default";
+    public static readonly ProtoId<ExplosionPrototype> DefaultExplosionPrototypeId = "Default";
     private static readonly TimeSpan AlertCooldown = TimeSpan.FromSeconds(60); // Mono: Explosion Admin Alert Cooldown
     public TimeSpan NextAlertTime; // Mono
 
@@ -315,7 +313,13 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
 
         var mapPos = _transformSystem.GetMapCoordinates(pos);
 
-        var posFound = _transformSystem.TryGetMapOrGridCoordinates(uid, out var gridPos, pos);
+        // WOLFGATE(Weapons) START: an entity held on a grid keeps that grid's frame even just off its tiles.
+        // A shell detonating on a hull's outer face is off the tiles, so the lookup below gave map coordinates, and a
+        // ship closing faster than a wall's width per tick had moved past them by the time the blast spawned.
+        // var posFound = _transformSystem.TryGetMapOrGridCoordinates(uid, out var gridPos, pos);
+        EntityCoordinates? gridPos = HasComp<MapGridComponent>(pos.ParentUid) ? pos.Coordinates : null;
+        var posFound = gridPos != null || _transformSystem.TryGetMapOrGridCoordinates(uid, out gridPos, pos);
+        // WOLFGATE END
         if (!posFound)
             return;
 
@@ -325,7 +329,7 @@ public sealed partial class ExplosionSystem : SharedExplosionSystem
         if (!addLog)
             return;
 
-        var gridFound = _mapManager.TryFindGridAt(mapPos, out var gridUid, out _); // Mono, sanity. Grid ID included with alerts, and mapPos is always used for coords.
+        var gridFound = _map.TryFindGridAt(mapPos, out var gridUid, out _); // Mono, sanity. Grid ID included with alerts, and mapPos is always used for coords.
 
         if (user == null)
         {

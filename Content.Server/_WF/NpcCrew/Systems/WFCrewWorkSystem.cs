@@ -789,9 +789,11 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             || price < ClothingFloor && HasComp<ClothingComponent>(item);
     }
 
-    /// <summary>Whether the air where something stands can be breathed without a suit.</summary>
+    /// <summary>Whether the air where something stands can be breathed without a suit, or he is immune to bad air.</summary>
     private bool InSafeAir(EntityUid uid)
     {
+        if (_eva.IsImmune(uid))
+            return true;
         var air = _atmos.GetTileMixture((uid, Transform(uid)));
         return air != null && _atmos.IsMixtureProbablySafe(air) && WFCrewPlannerSystem.IsBreathable(air, air.Pressure);
     }
@@ -814,7 +816,7 @@ public sealed partial class WFCrewWorkSystem : EntitySystem
             ports.Add(_maps.TileIndicesFor(grid, map, Transform(dock).Coordinates));
         }
 
-        foreach (var tile in _planner.HoldTiles(grid, LootLimit))
+        foreach (var tile in _planner.CargoTiles(grid, LootLimit))
         {
             var at = _maps.TileIndicesFor(grid, map, tile);
             if (ports.TrueForAll(port => Chebyshev(port, at) >= StashClearance))

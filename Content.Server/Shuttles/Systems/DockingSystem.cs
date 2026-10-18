@@ -19,7 +19,6 @@ namespace Content.Server.Shuttles.Systems
 {
     public sealed partial class DockingSystem : SharedDockingSystem
     {
-        [Dependency] private IMapManager _mapManager = default!;
         [Dependency] private SharedMapSystem _mapSystem = default!;
         [Dependency] private DoorSystem _doorSystem = default!;
         [Dependency] private EntityLookupSystem _lookup = default!;
@@ -438,6 +437,9 @@ namespace Content.Server.Shuttles.Systems
 
             var dock = (dockEnt.Value, dockComp);
 
+            if (WfClampHolds(uid, dock)) // WOLFGATE(Encounters): a raider's docking clamps hold the ship until released at its helm.
+                return;
+
             if (!CanUndock(dock))
             {
                 _popup.PopupCursor(Loc.GetString("shuttle-console-undock-fail"));
@@ -559,6 +561,9 @@ namespace Content.Server.Shuttles.Systems
                 }
 
                 var dock = (dockEnt.Value, dockComp);
+
+                if (WfClampHolds(uid, dock)) // WOLFGATE(Encounters): a raider's docking clamps hold the ship until released at its helm.
+                    continue;
 
                 if (!CanUndock(dock))
                 {

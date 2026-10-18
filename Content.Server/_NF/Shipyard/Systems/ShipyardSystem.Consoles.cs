@@ -60,7 +60,10 @@ using Content.Shared.Tag;
 using Robust.Shared.Timing;
 using Content.Server._Mono.Detection;
 using Content.Shared._Mono.Economy; // Mono
-using Content.Shared._Mono.Economy.Component; // Mono
+// WOLFGATE(EngineCompat) START: Engine v291 serialization generation cannot use a namespace named Component.
+// using Content.Shared._Mono.Economy.Component; // Mono
+using Content.Shared._Mono.Economy.Components; // Mono
+// WOLFGATE END
 
 namespace Content.Server._NF.Shipyard.Systems;
 
@@ -888,6 +891,13 @@ public sealed partial class ShipyardSystem : SharedShipyardSystem
                 var charName = FoundOrganics(child, mobQuery, xformQuery);
                 if (charName != null)
                     return charName;
+
+                // WOLFGATE(Vehicles) START: people inside a parked vehicle stand on its interior map, not under the hull.
+                var interiorSearch = new Content.Server._WF.Vehicles.Safety.ShipyardOrganicsSearchEvent();
+                RaiseLocalEvent(child, ref interiorSearch);
+                if (interiorSearch.Name != null)
+                    return interiorSearch.Name;
+                // WOLFGATE END
             }
         }
 

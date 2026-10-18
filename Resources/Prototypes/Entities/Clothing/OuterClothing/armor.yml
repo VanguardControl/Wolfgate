@@ -29,7 +29,7 @@
 
 #Standard armor vest, allowed for security and bartenders
 - type: entity
-  parent: [ClothingOuterArmorBase, ClothingArmorPlate] # Mono - armor plates
+  parent: ClothingOuterArmorBase
   id: ClothingOuterArmorBasic
   components:
   - type: Tag  # Mono
@@ -180,7 +180,7 @@
     color: "#80ff80"
     radius: 5
     energy: 2
-    mask: /Textures/Effects/LightMasks/cone.png
+    lightMask: ConeSingle
     autoRot: true
     netsync: false
   - type: LightBehaviour

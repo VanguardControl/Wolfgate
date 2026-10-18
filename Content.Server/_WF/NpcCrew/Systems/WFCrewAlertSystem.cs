@@ -17,6 +17,7 @@ namespace Content.Server._WF.NpcCrew.Systems;
 /// <summary>Shares live targets among on-sight crew aboard the same ship and restores awareness after an alert.</summary>
 public sealed partial class WFCrewAlertSystem : EntitySystem
 {
+    [Dependency] private Robust.Shared.Prototypes.IPrototypeManager _prototypes = default!;
     [Dependency] private NpcFactionSystem _factions = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private HTNSystem _htn = default!;
@@ -87,12 +88,13 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// <summary>
     /// A formation partner stays an ally unless it fired on this ship within the attack window. A vessel that has
     /// <paramref name="fired"/> on the ship is a target however far off it is: a crew that only deters attackers still
-    /// answers one shooting at it from beyond its reach, and lets it go once its fire stops. Zone intruders and docking
-    /// threats keep the disengage range.
+    /// answers one shooting at it from beyond its reach, and lets it go once its fire stops or it is past
+    /// <see cref="WFCrewShipStatusSystem.ShooterReach"/> times that range. Zone intruders and docking threats keep the
+    /// disengage range.
     /// </summary>
     private bool ValidShip(EntityUid grid, EntityUid ship, bool attacked, bool fired = false)
     {
-        return !TerminatingOrDeleted(ship) && !_status.ShouldDisengage(grid, ship, range: !fired)
+        return !TerminatingOrDeleted(ship) && !_status.ShouldDisengage(grid, ship, range: !fired, shooter: fired)
             && Transform(ship).MapID == Transform(grid).MapID && (attacked || !_escorts.AreInFormation(grid, ship));
     }
 
@@ -115,6 +117,11 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         return false;
     }
 
+    /// <summary>Whether a vessel has fired ship weapons on this ship within the attack window, not merely been reported.</summary>
+    public bool FiredShipGuns(EntityUid grid, string group, EntityUid ship) =>
+        _alerts.TryGetValue((grid, group), out var alert) && alert.Fired.TryGetValue(ship, out var until)
+        && _timing.CurTime < until;
+
     /// <summary>Ship weapons are fire-controlled or mounted on a grid; carried guns are personal.</summary>
     public bool IsShipWeapon(EntityUid? weapon)
     {
@@ -130,7 +137,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     {
         if (Excuse(args.Grid, args.AttackerGrid))
             return;
-        ReportAttack(args.Grid, args.AttackerGrid);
+        ReportAttack(args.Grid, args.AttackerGrid, gunfire: true);
     }
 
     /// <summary>How many stray hits a ship lets a friendly vessel land inside the window before it is an attack.</summary>
@@ -143,13 +150,20 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     private readonly Dictionary<(EntityUid Grid, EntityUid Attacker), (TimeSpan First, TimeSpan Last, int Count)> _strays = new();
 
     /// <summary>
-    /// Counts a ship weapon hit from a vessel of the struck ship's own faction and says whether it is let pass as an
-    /// accident. A few stray shots in a fight are; more than <see cref="StrayHits"/> inside the window are not, and
-    /// once a vessel is taken for an attacker nothing more of its fire is excused.
+    /// Says whether a ship weapon hit is let pass. Fire from a vessel fighting on the ship's side, by alliance or by
+    /// whom it has been shooting, is forgiven outright, whatever its colours: in a melee nobody's aim is clean. A
+    /// vessel of the ship's own faction is allowed a few stray shots, and more than <see cref="StrayHits"/> inside the
+    /// window are not an accident. Once a vessel is taken for an attacker nothing more of its fire is excused.
     /// </summary>
     private bool Excuse(EntityUid grid, EntityUid attacker)
     {
-        if (!SameFaction(grid, attacker) || KnownAttacker(grid, attacker))
+        if (OwnKind(grid, attacker))
+            return true;
+        if (KnownAttacker(grid, attacker))
+            return false;
+        if (Friend(grid, attacker))
+            return true;
+        if (!SameFaction(grid, attacker))
             return false;
 
         var now = _timing.CurTime;
@@ -163,12 +177,34 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         return strays.Count <= StrayHits;
     }
 
-    /// <summary>Whether a vessel's recent fire on a ship is still being let pass as stray shots from its own side.</summary>
+    /// <summary>Whether a vessel's recent fire on a ship is being let pass: a friend's, or a few strays from its own side.</summary>
     public bool IsExcused(EntityUid grid, EntityUid attacker)
     {
-        return SameFaction(grid, attacker) && !KnownAttacker(grid, attacker)
+        if (OwnKind(grid, attacker))
+            return true;
+        if (KnownAttacker(grid, attacker))
+            return false;
+        if (Friend(grid, attacker))
+            return true;
+
+        return SameFaction(grid, attacker)
                && (!_strays.TryGetValue((grid, attacker), out var strays) || _timing.CurTime - strays.First > StrayWindow
                    || strays.Count <= StrayHits);
+    }
+
+    /// <summary>Whether two ships fly under one crew profile that never turns on its own, whatever fire passes between them.</summary>
+    public bool OwnKind(EntityUid first, EntityUid second)
+    {
+        return TryComp<WFCrewShipProfileComponent>(first, out var own) && TryComp<WFCrewShipProfileComponent>(second, out var other)
+            && own.Profile == other.Profile && _prototypes.TryIndex(own.Profile, out var profile) && profile.ForgivesOwn;
+    }
+
+    /// <summary>Whether whoever knows the vessel, the encounter it is fighting in, vouches for it as the ship's friend.</summary>
+    private bool Friend(EntityUid grid, EntityUid attacker)
+    {
+        var ev = new WFCrewFriendlyFireQueryEvent(grid, attacker);
+        RaiseLocalEvent(ref ev);
+        return ev.Friendly;
     }
 
     /// <summary>Whether two ships fly for the same faction: the same company, or two of one faction's companies.</summary>
@@ -201,10 +237,10 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
             return;
         if (Excuse(args.Grid, args.AttackerGrid))
             return;
-        ReportAttack(args.Grid, args.AttackerGrid);
+        ReportAttack(args.Grid, args.AttackerGrid, gunfire: true);
     }
 
-    private void ReportAttack(EntityUid grid, EntityUid attacker, string? group = null)
+    private void ReportAttack(EntityUid grid, EntityUid attacker, string? group = null, bool gunfire = false)
     {
         if (grid == attacker || !HasComp<MapGridComponent>(grid) || !HasComp<MapGridComponent>(attacker)
             || Transform(grid).MapID != Transform(attacker).MapID)
@@ -227,11 +263,17 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         }
         // Snapshot every recipient before captains change their flight orders in response.
         foreach (var recipient in recipients)
-            AlertShip(recipient.Grid, recipient.Group, attacker);
+            AlertShip(recipient.Grid, recipient.Group, attacker, gunfire: gunfire);
     }
 
     /// <summary>Reports an explicit vessel threat to a crew and every ship in its escort formation.</summary>
     public void ReportShipThreat(EntityUid grid, string group, EntityUid attacker) => ReportAttack(grid, attacker, group);
+
+    /// <summary>
+    /// Reports a drydock breaking a ship up as an attack on it by the drydock's grid. Never excused as stray fire,
+    /// whatever its colours.
+    /// </summary>
+    public void ReportBreaking(EntityUid grid, EntityUid attacker) => ReportAttack(grid, attacker, gunfire: true);
 
     /// <summary>
     /// Reports a vessel's ship-weapon fire that came at a ship, hit or miss, as an attack. False while it is let pass
@@ -242,7 +284,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         if (Excuse(grid, attacker))
             return false;
 
-        ReportAttack(grid, attacker, group);
+        ReportAttack(grid, attacker, group, gunfire: true);
         return true;
     }
 
@@ -328,7 +370,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// <summary>Raises a local docking alert without treating a changeable security policy as incoming fire.</summary>
     public void ReportDockingThreat(EntityUid grid, string group, EntityUid visitor) => AlertShip(grid, group, visitor, false);
 
-    private void AlertShip(EntityUid grid, string group, EntityUid attacker, bool retaliation = true)
+    private void AlertShip(EntityUid grid, string group, EntityUid attacker, bool retaliation = true, bool gunfire = false)
     {
         if (grid == attacker || !HasComp<MapGridComponent>(grid) || !HasComp<MapGridComponent>(attacker)
             || Transform(grid).MapID != Transform(attacker).MapID)
@@ -345,6 +387,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
             // A vessel known only from a zone report is news again once it really attacks.
             var known = live && (_zoneReport || !alert.Zone.Contains(attacker));
             alert.Vessels[attacker] = now + Decay;
+            if (gunfire)
+                alert.Fired[attacker] = now + Decay;
             if (!_zoneReport)
                 alert.Zone.Remove(attacker);
             else if (!live)
@@ -395,6 +439,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
             {
                 alert.Vessels.Remove(ship);
                 alert.Zone.Remove(ship);
+                alert.Fired.Remove(ship);
             }
             alert.DockingVessels.RemoveWhere(ship => TerminatingOrDeleted(ship));
 
@@ -576,6 +621,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         public readonly Dictionary<EntityUid, TimeSpan> Vessels = new();
         /// <summary>The attacking vessels known only from a patrol zone report, not from a hit.</summary>
         public readonly HashSet<EntityUid> Zone = new();
+        /// <summary>The vessels that fired ship weapons on the ship, and when that fire's window closes.</summary>
+        public readonly Dictionary<EntityUid, TimeSpan> Fired = new();
         public readonly HashSet<EntityUid> DockingVessels = new();
         public readonly HashSet<EntityUid> Hostiles = new();
         public readonly Dictionary<EntityUid, Awareness> Members = new();

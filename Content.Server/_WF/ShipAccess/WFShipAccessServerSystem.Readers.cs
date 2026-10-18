@@ -94,6 +94,7 @@ public sealed partial class WFShipAccessServerSystem
     {
         var owners = OwnerKeys(ship);
         _writtenOwners[ship.Owner] = owners;
+        PublishOwnerKeys(ship, owners);
         var children = Transform(ship.Owner).ChildEnumerator;
         while (children.MoveNext(out var child))
             RefreshReader(ship, child, owners);
@@ -188,6 +189,11 @@ public sealed partial class WFShipAccessServerSystem
             foreach (var entry in ship.Comp.AllowList)
                 keys.Add(_access.ToRecordKey(entry.Key));
 
+            if (ship.Comp.Mode == WFShipAccessMode.Crew)
+            {
+                foreach (var key in ship.Comp.CrewKeys)
+                    keys.Add(_access.ToRecordKey(key));
+            }
             backup.Locked = false;
             backup.OwnLists = true;
             CommitReader(reader);
@@ -215,6 +221,11 @@ public sealed partial class WFShipAccessServerSystem
             case WFDoorAccessRule.Code:
                 keys.UnionWith(owners);
                 break;
+            case WFDoorAccessRule.Crew:
+                keys.UnionWith(owners);
+                foreach (var key in ship.Comp.CrewKeys)
+                    keys.Add(_access.ToRecordKey(key));
+                break;
             case WFDoorAccessRule.Players:
             case WFDoorAccessRule.PlayersOrCode:
                 keys.UnionWith(owners);
@@ -225,6 +236,12 @@ public sealed partial class WFShipAccessServerSystem
                 keys.UnionWith(owners);
                 foreach (var entry in ship.Comp.AllowList)
                     keys.Add(_access.ToRecordKey(entry.Key));
+
+                if (ship.Comp.Mode == WFShipAccessMode.Crew)
+                {
+                    foreach (var key in ship.Comp.CrewKeys)
+                        keys.Add(_access.ToRecordKey(key));
+                }
 
                 // Any one of the company's access levels is enough, each on its own list.
                 if (ship.Comp.Mode == WFShipAccessMode.Faction && _access.IsFactionGrid(ship, out var company))
@@ -393,6 +410,20 @@ public sealed partial class WFShipAccessServerSystem
         }
 
         return keys;
+    }
+
+    /// <summary>Copies the owner keys onto the component, where the client and <see cref="WFShipAccessSystem.IsOwner"/> read them.</summary>
+    private void PublishOwnerKeys(Entity<WFShipAccessComponent> ship, HashSet<StationRecordKey> owners)
+    {
+        var keys = new List<WFShipAccessKey>();
+        foreach (var key in owners)
+            keys.Add(_access.ToKey(key));
+
+        if (keys.Count == ship.Comp.OwnerKeys.Count && keys.TrueForAll(ship.Comp.OwnerKeys.Contains))
+            return;
+
+        ship.Comp.OwnerKeys = keys;
+        Dirty(ship);
     }
 
     /// <summary>Whether the ship can be locked without shutting its owner out: someone's card must carry an owner key.</summary>

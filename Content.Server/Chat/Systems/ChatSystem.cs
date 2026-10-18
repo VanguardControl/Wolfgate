@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
+using Content.Server._WF.ChatWebhook; // WOLFGATE(ChatWebhook)
 using Content.Server.Chat.Managers;
 using Content.Server.Discord.DiscordLink;
 using Content.Server.GameTicking;
@@ -241,6 +242,9 @@ public sealed partial class ChatSystem : SharedChatSystem
             || (CultureInfo.CurrentCulture.IsNeutralCulture && CultureInfo.CurrentCulture.Name == "en");
 
         message = SanitizeInGameICMessage(source, message, out var emoteStr, shouldCapitalize, shouldPunctuate, shouldCapitalizeTheWordI);
+
+        var prefix = _language.GetLanguageFromPrefix(source, ref message, out var parsed, true); // Starlight: Language prefixes
+        language = parsed && _language.CanSpeak(source, prefix) ? prefix : language;
 
         // Was there an emote in the message? If so, send it.
         if (player != null && emoteStr != message && emoteStr != null)
@@ -632,6 +636,9 @@ public sealed partial class ChatSystem : SharedChatSystem
         if (!_actionBlocker.CanSpeak(source) && !ignoreActionBlocker)
             return;
 
+        var prefix = _language.GetLanguageFromPrefix(source, ref originalMessage, out var parsed, true); // Starlight: Language prefixes
+        language = parsed && _language.CanSpeak(source, prefix) ? prefix : language;
+
         var message = TransformSpeech(source, FormattedMessage.RemoveMarkupOrThrow(originalMessage), language); // Einstein Engines - Language
         if (message.Length == 0)
             return;
@@ -852,6 +859,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             player.UserId,
             languageOverride: LanguageSystem.Universal); // Einstein Engines - Language
         _adminLogger.Add(LogType.Chat, LogImpact.Low, $"LOOC from {player:Player}: {message}");
+        RaiseLocalEvent(new ChatWebhookEvent(ChatWebhookChannel.Looc, $"{Identity.Name(source, EntityManager)} ({player.Name})", message)); // WOLFGATE(ChatWebhook): one-way Discord webhook copy
     }
 
     private void SendDeadChat(EntityUid source, ICommonSession player, string message, bool hideChat)
@@ -883,6 +891,7 @@ public sealed partial class ChatSystem : SharedChatSystem
         // Format author name as "Character Name (Username)" for Discord
         var discordAuthor = $"{playerName} ({player.Name})";
         _discordLink.SendMessage(message, discordAuthor, ChatChannel.Dead);
+        RaiseLocalEvent(new ChatWebhookEvent(ChatWebhookChannel.Dead, discordAuthor, message)); // WOLFGATE(ChatWebhook): one-way Discord webhook copy
     }
     #endregion
 
@@ -957,12 +966,13 @@ public sealed partial class ChatSystem : SharedChatSystem
             if (session.AttachedEntity is not { Valid: true } playerEntity)
                 continue;
             EntityUid listener = session.AttachedEntity.Value;
+            var bubbleSource = channel is ChatChannel.Local or ChatChannel.Emotes ? data.BubbleSource ?? source : source; // WOLFGATE(Vehicles): a listener may see the speech bubble on another entity
 
             // If the channel does not support languages, or the entity can understand the message, send the original message, otherwise send the obfuscated version
             if (channel == ChatChannel.LOOC || channel == ChatChannel.Emotes || _language.CanUnderstand(listener, language.ID))
-                _chatManager.ChatMessageToOne(channel, message, wrappedMessage, source, entHideChat, session.Channel, author: author);
+                _chatManager.ChatMessageToOne(channel, message, wrappedMessage, bubbleSource, entHideChat, session.Channel, author: author); // WOLFGATE(Vehicles): bubbleSource in place of source
             else
-                _chatManager.ChatMessageToOne(channel, obfuscated, obfuscatedWrappedMessage, source, entHideChat, session.Channel, author: author);
+                _chatManager.ChatMessageToOne(channel, obfuscated, obfuscatedWrappedMessage, bubbleSource, entHideChat, session.Channel, author: author); // WOLFGATE(Vehicles): bubbleSource in place of source
             // Einstein Engines - Language end
         }
 
@@ -1064,8 +1074,7 @@ public sealed partial class ChatSystem : SharedChatSystem
         return message;
     }
 
-    [ValidatePrototypeId<ReplacementAccentPrototype>]
-    public const string ChatSanitize_Accent = "chatsanitize";
+    public static readonly ProtoId<ReplacementAccentPrototype> ChatSanitize_Accent = "chatsanitize";
 
     public string SanitizeMessageReplaceWords(string message)
     {
@@ -1170,7 +1179,7 @@ public sealed partial class ChatSystem : SharedChatSystem
         return recipients;
     }
 
-    public readonly record struct ICChatRecipientData(float Range, bool Observer, bool? HideChatOverride = null)
+    public readonly record struct ICChatRecipientData(float Range, bool Observer, bool? HideChatOverride = null, EntityUid? BubbleSource = null) // WOLFGATE(Vehicles): BubbleSource, the entity this listener sees the bubble on
     {
     }
 

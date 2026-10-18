@@ -30,7 +30,6 @@ public sealed partial class MapScreen : BoxContainer
 {
     [Dependency] private IEntityManager _entManager = default!;
     [Dependency] private IGameTiming _timing = default!;
-    [Dependency] private IMapManager _mapManager = default!;
     [Dependency] private IRobustRandom _random = default!;
     private readonly DetectionSystem _detection; // Mono
     private readonly SharedAudioSystem _audio;
@@ -132,6 +131,7 @@ public sealed partial class MapScreen : BoxContainer
         _ftlTime = state.FTLTime;
         MapRadar.InFtl = true;
         MapFTLState.Text = Loc.GetString($"shuttle-console-ftl-state-{_state.ToString()}");
+        WfUpdateFtlDrive(state.FtlDrive); // WOLFGATE(Shuttles): the drive status decides whether the FTL button can be used
 
         //frontier - we only allow pre-approved vessels to FTL
         if (!_entManager.HasComponent<ShuttleFTLComponent>(_shuttleEntity))
@@ -191,6 +191,14 @@ public sealed partial class MapScreen : BoxContainer
 
     private void SetFTLAllowed(bool value)
     {
+        // WOLFGATE(Shuttles) START: without a powered drive the FTL button stays off and its preview is released
+        if (value && WfFtlDriveBlocked)
+        {
+            WfBlockFtl();
+            return;
+        }
+        // WOLFGATE END
+
         if (value)
         {
             MapFTLButton.Disabled = false;
@@ -377,7 +385,7 @@ public sealed partial class MapScreen : BoxContainer
             };
 
             _mapHeadings.Add(mapComp.MapId, gridContents);
-            foreach (var grid in _mapManager.GetAllGrids(mapComp.MapId))
+            foreach (var grid in _maps.GetAllGrids(mapComp.MapId))
             {
                 _entManager.TryGetComponent(grid.Owner, out IFFComponent? iffComp);
 

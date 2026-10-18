@@ -3,13 +3,14 @@ using System.Numerics;
 using Content.Server._Mono.FireControl;
 using Content.Server._Mono.NPC.HTN;
 using Content.Server._WF.NpcCrew.Components;
+using Content.Server._WF.Cockpit;
 using Content.Server._WF.NpcCrew.HTN;
 using Content.Server.NPC.HTN;
+using Content.Server.NPC.Systems;
 using Content.Server.Power.EntitySystems;
 using Content.Shared._Mono.FireControl;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Interaction;
-using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Systems;
 using Content.Shared.Weapons.Hitscan.Components;
 using Content.Shared.Weapons.Ranged.Components;
@@ -34,7 +35,7 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private ShipTargetingSystem _targeting = default!;
     [Dependency] private PowerReceiverSystem _power = default!;
-    [Dependency] private MobStateSystem _mobs = default!;
+    [Dependency] private NPCCombatSystem _npcCombat = default!;
     [Dependency] private NpcFactionSystem _factions = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedInteractionSystem _interaction = default!;
@@ -110,7 +111,8 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
             || Transform(console).GridUid != grid || !Transform(console).Anchored || !_power.IsPowered(console))
             return false;
         // Only an authorized operator at the screen takes the console from the gunner.
-        foreach (var actor in _ui.GetActors(console, FireControlConsoleUiKey.Key))
+        foreach (var actor in _ui.GetActors(console, FireControlConsoleUiKey.Key)
+                     .Concat(EntityManager.System<WFCockpitGunnerySystem>().GetActors(console)))
         {
             if (actor != mob && (_crew.SameCrew(mob, actor) || _security.IsAuthorized(mob, actor)))
                 return false;
@@ -128,7 +130,7 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     public bool TryTakeConsole(EntityUid mob, EntityUid console)
     {
         if (!TryComp<WFGunnerDutyComponent>(mob, out var duty) || Transform(mob).GridUid is not { } grid
-            || !_mobs.IsAlive(mob) || HasComp<ActorComponent>(mob) || !Usable(console, grid, mob)
+            || !_npcCombat.CanNpcShoot(mob) || HasComp<ActorComponent>(mob) || !Usable(console, grid, mob)
             || !_interaction.InRangeUnobstructed(mob, console))
             return false;
         if (duty.AtConsole && duty.Console is { } previous && previous != console
@@ -169,7 +171,7 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
                 _batteries.Remove(uid);
                 continue;
             }
-            if (crew.Duty != WFCrewDuties.Gunnery || !htn.Enabled || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid)
+            if (crew.Duty != WFCrewDuties.Gunnery || !htn.Enabled || !_npcCombat.CanNpcShoot(uid) || HasComp<ActorComponent>(uid)
                 || duty.Console is not { } console || Transform(uid).GridUid is not { } grid
                 || !Usable(console, grid, uid) || !_interaction.InRangeUnobstructed(uid, console)
                 || htn.Plan is { } plan && !plan.Tasks.Any(task => task.Operator is WFTakeGunneryOperator))
@@ -373,9 +375,14 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     {
         if (ship == grid || TerminatingOrDeleted(ship))
             return null;
+        // A boarding party's ship only answers ship guns with its own.
+        if (HasComp<WFHoldFireComponent>(grid) && !_alerts.FiredShipGuns(grid, crew.Group, ship))
+            return null;
         // An assigned target starts out of range, so only its state releases the gunner, as for the pilot.
         var assigned = _objectives.IsAttackTarget(grid, crew.Group, ship);
-        if (_status.ShouldDisengage(grid, ship, range: !assigned))
+        // A ship that has fired on this one is answered from beyond a deterring crew's range, as its captain does.
+        var fired = !assigned && _alerts.FiredShipGuns(grid, crew.Group, ship);
+        if (_status.ShouldDisengage(grid, ship, range: !assigned && !fired, shooter: fired))
             return null;
         // Reported attackers stay targets even inside the formation for their attack window.
         if (!hostile && (_escorts.AreInFormation(grid, ship)

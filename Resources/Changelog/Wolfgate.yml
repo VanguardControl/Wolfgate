@@ -1445,3 +1445,620 @@ Entries:
   id: 100110
   time: '2026-10-11T06:14:38.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/213
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: NPC's no longer show on the crew monitor
+    - type: Tweak
+      message: NPC friendly fire is more lenient
+    - type: Tweak
+      message: NPC Combat zones are now merged
+  id: 100111
+  time: '2026-10-11T08:16:06.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/209
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Autosurgeons no longer replace your balls.
+    - type: Add
+      message: >-
+        Ventilators! A stand with a gas tank that breathes for a patient whose
+        lungs are gone or failing. Sold as a flatpack wherever IV drips are.
+    - type: Tweak
+      message: A sealed autodoc now breathes for its patient.
+    - type: Tweak
+      message: >-
+        The health analyzer tells you what to do first for a patient with no
+        lungs.
+  id: 100112
+  time: '2026-10-11T08:57:21.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/212
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Chat now has filterable chats and a popout feature.
+  id: 100113
+  time: '2026-10-11T09:28:23.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/216
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: You can finally bind middle click to things.
+  id: 100114
+  time: '2026-10-11T09:37:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/217
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Cockpit view and refactored gunnery and pilot controls.
+    - type: Add
+      message: Auto flare dispense system.
+    - type: Add
+      message: Gun grouping system.
+    - type: Add
+      message: Hull and fuel gauges for ships.
+    - type: Add
+      message: Ship PA playlist, queue up songs!
+    - type: Add
+      message: The FTL page now warns you when the ship has no FTL drive.
+    - type: Tweak
+      message: >-
+        Flare launchers are fired with DISPENSE or AUTO instead of being aimed
+        from the weapon list.
+    - type: Tweak
+      message: Flares can now pull a missile lock off your ship.
+    - type: Tweak
+      message: The external pilot view pans with right mouse.
+    - type: Tweak
+      message: Retro is now the default UI style.
+    - type: Tweak
+      message: The autopilot warning is quieter.
+  id: 100115
+  time: '2026-10-11T10:10:53.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/202
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: You can now default keybinds to TG SS13 default in the options menu.
+  id: 100116
+  time: '2026-10-11T20:54:46.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/218
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Emergency responders now start with a jaws of life.
+  id: 100117
+  time: '2026-10-11T22:37:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/219
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Boarders no longer light a ship up unless fired upon by the ship guns.
+  id: 100118
+  time: '2026-10-11T23:00:36.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/221
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: Fixes mob pathing with SmashNav.
+  id: 100119
+  time: '2026-10-12T01:07:26.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/224
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: NPC's now fight more smartly.
+    - type: Tweak
+      message: NPC's now spawn with hardsuits if they are exposed to space.
+  id: 100120
+  time: '2026-10-12T02:40:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/225
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: You can now edit characters in-game.
+  id: 100121
+  time: '2026-10-12T04:26:10.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/226
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Ship hailing! this should be your go-to for talking to a ship you wish
+        to escelate with.
+  id: 100122
+  time: '2026-10-12T07:36:19.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/227
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: several balance changes to factions
+    - type: Tweak
+      message: thrusters buffed some again
+    - type: Add
+      message: >-
+        adamantite plastitanium wall for PDV, all their ships retroactively
+        refitted with it.
+    - type: Tweak
+      message: armored hardpoints now protect from all damage types
+    - type: Tweak
+      message: >-
+        TSF now receives the report for a smuggling drop several minutes later
+        than before on average
+  id: 100123
+  time: '2026-10-12T20:14:30.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/220
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Doppler shifting no longer applies to looping sounds.
+  id: 100124
+  time: '2026-10-12T22:44:19.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/230
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Sector map (Shift+N) showing faction territory, stations and encounters.
+    - type: Add
+      message: >-
+        The Ashfall Reavers now found strongholds, spread across the sector,
+        patrol, raid and level up over the round. Hunt them for bounties.
+  id: 100125
+  time: '2026-10-12T23:25:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/215
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Wolfgate settings now show up in the wolfgate tab.
+    - type: Fix
+      message: Cockpit UI now saves states
+  id: 100126
+  time: '2026-10-13T01:08:38.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/232
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: mapping tools no longer give an error when pasting conveyors.
+  id: 100127
+  time: '2026-10-13T02:41:10.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/234
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Extortion encounters!
+    - type: Add
+      message: NPC hailing.
+    - type: Add
+      message: NPC fugitives, kill em for a reward.
+  id: 100128
+  time: '2026-10-13T03:25:51.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/233
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Adds a proper shipyard POI to repair your ships and a machine that does
+        the same job if fitted into a ship.
+    - type: Tweak
+      message: TSF vouchers are now single use.
+  id: 100129
+  time: '2026-10-13T04:50:41.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/229
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: A whole bunch of vehicles and tanks have been ported from RMC/CMU.
+  id: 100130
+  time: '2026-10-14T01:15:10.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/235
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: IPC's have been mostly fixed! Markings and such will work again.
+  id: 100131
+  time: '2026-10-14T01:36:31.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/238
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Cockpit layout has been tweaked slightly.
+    - type: Fix
+      message: Chat systems no longer bug on a failed entry attempt.
+  id: 100132
+  time: '2026-10-14T02:03:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/239
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: NPC encounters no longer harass ships at CC
+    - type: Tweak
+      message: Engineers now actually refuel AMEs
+  id: 100133
+  time: '2026-10-14T02:42:31.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/237
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: Fixed autoloader UI
+  id: 100134
+  time: '2026-10-14T20:55:05.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/241
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Species languages are now readable
+  id: 100135
+  time: '2026-10-14T21:17:02.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/242
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Chat should no longer break randomly while in cockpit view. Mk.2
+  id: 100136
+  time: '2026-10-14T21:46:45.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/244
+- author: TheSlapper
+  changes:
+    - type: Add
+      message: Various clown & mime related clothing and facepaints.
+  id: 100137
+  time: '2026-10-15T01:19:42.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/246
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: An SOS button in the PA tab of your ship, press this to get help.
+  id: 100138
+  time: '2026-10-15T02:23:33.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/247
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Reaver strongholds should no longer run out of power and despawn.
+  id: 100139
+  time: '2026-10-15T08:20:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/249
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Atmospherics decompression no longer dematerialises your entire being.
+  id: 100140
+  time: '2026-10-15T08:52:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/250
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: Crane can now do shipwreck.
+    - type: Tweak
+      message: disables radio announcement for shipyards
+    - type: Tweak
+      message: Shipyard speed was increased
+    - type: Tweak
+      message: capital ship vouchers sit behind research now.
+    - type: Tweak
+      message: Several economy adjustments to mining and ore processing.
+    - type: Add
+      message: A civilian ship called carabela that includes a mobile crane by default
+  id: 100141
+  time: '2026-10-15T10:14:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/240
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Shells and missiles no longer explode inside a fast-approaching ship
+        behind walls they didn't break.
+  id: 100142
+  time: '2026-10-15T19:20:32.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/252
+- author: TheSlapper
+  changes:
+    - type: Add
+      message: Option to mute background music when listening to midi/jukebox songs.
+  id: 100143
+  time: '2026-10-15T20:56:57.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/253
+- author: DriftingSkies
+  changes:
+    - type: Tweak
+      message: Rename Spesos to Thalers.
+  id: 100144
+  time: '2026-10-15T21:33:31.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/251
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added configurable Ship and Crashlanded crew starts with crew names,
+        roles, invitations and host-managed access.
+    - type: Add
+      message: >-
+        Ship crews can start in random space or docked at CC, and hosts can
+        change the crew type before launch.
+    - type: Add
+      message: >-
+        Crashlanded survivors receive emergency EVA equipment and
+        species-appropriate survival supplies.
+    - type: Tweak
+      message: >-
+        Redesigned lobby preparation with a compact character card,
+        state-colored readiness, on-demand crew browsing and simultaneous chat
+        and briefing panes.
+    - type: Tweak
+      message: >-
+        Clearer lobby backgrounds, equal-height join buttons and focused crew
+        navigation with a compact ship preview.
+  id: 100145
+  time: '2026-10-16T02:56:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/248
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Multi-Z map tooling
+  id: 100146
+  time: '2026-10-16T05:01:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/259
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: drydock can do partial repairs if it's short of a material type.
+    - type: Tweak
+      message: drydock no longer can break grids with indestructible walls
+    - type: Tweak
+      message: repair costs with materials using a drydock is more affordable now
+    - type: Tweak
+      message: Changed material calculations when disassembling stuff
+    - type: Tweak
+      message: >-
+        AME and zpinch now have a material cost that includes fissile uranium to
+        recover some when breaking them.
+  id: 100147
+  time: '2026-10-16T20:48:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/261
+- author: DriftingSkies
+  changes: []
+  id: 100148
+  time: '2026-10-16T21:21:05.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/263
+- author: Erol509
+  changes:
+    - type: Add
+      message: 'PDV can print their tacsuits from lathe again. '
+  id: 100149
+  time: '2026-10-16T21:21:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/254
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Hemostats now pull lodged rounds and shrapnel out of any limb, not just
+        the one you're aiming at. Synths can repair shot breaches again once the
+        round is out.
+    - type: Tweak
+      message: Crew Setup shows Vagrant instead of Drifter.
+    - type: Tweak
+      message: >-
+        Encounters that wait for players now start when you get within
+        600-1000m, not 1500-2500m.
+    - type: Add
+      message: Viper Group, USSP and Underground faction crews in Crew Setup.
+    - type: Fix
+      message: Chimera claws now inject through armor.
+    - type: Fix
+      message: Avali and Felionoids can be turned by chimera.
+    - type: Tweak
+      message: Chimera no longer die almost instantly when set on fire.
+    - type: Fix
+      message: TSF and PDV patrols no longer attack civilian ships that have IFF on.
+    - type: Tweak
+      message: >-
+        TSF and PDV patrols now sit 3-4km off stations instead of right next to
+        the docks.
+    - type: Add
+      message: Dead players now show on ship radar as a red diamond until revived.
+    - type: Add
+      message: >-
+        Tractor beams have an Auto-catch toggle that grabs and locks anything
+        entering the inner part of the beam, and have a bit more range and
+        strength.
+    - type: Tweak
+      message: >-
+        The custom marking editor has a number box for opacity and asks before
+        closing with unsaved changes.
+    - type: Fix
+      message: >-
+        Exported custom markings are saved as .png files to your CustomMarkings
+        folder.
+    - type: Fix
+      message: Crashlanded ships can be repaired with repair tools.
+    - type: Tweak
+      message: Dead players only show on radar after 5 minutes.
+  id: 100150
+  time: '2026-10-17T01:55:29.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/266
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Ship access is now fully tied to your ID card.
+  id: 100151
+  time: '2026-10-17T09:03:48.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/268
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Encounters now allow you to claim the ships making them never despawn
+  id: 100152
+  time: '2026-10-17T09:03:53.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/269
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: engine bumped to 291
+  id: 100153
+  time: '2026-10-17T09:38:38.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/121
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: 'Showers have been added! Check construction menu. '
+  id: 100154
+  time: '2026-10-17T22:38:47.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/271
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Washing a chemical burn with water now stops the acid for good. It no
+        longer starts burning again while the wound heals.
+    - type: Fix
+      message: You no longer vomit while dead or with a stopped heart.
+    - type: Fix
+      message: Unconscious characters no longer scream from pain shock.
+    - type: Fix
+      message: >-
+        Default markings that aren't required (synth tail, antenna and visor,
+        oni ears, harpy wings) can now be removed. Existing characters that
+        never picked one need to add it back.
+  id: 100155
+  time: '2026-10-17T23:57:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/270
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: A new event chat in-game.
+    - type: Add
+      message: Split Ahelp into two categories, Gameplay and Player. Use appropriately.
+  id: 100156
+  time: '2026-10-18T00:58:28.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/274
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Vending machines no longer crash clients.
+    - type: Tweak
+      message: >-
+        Rocks broken close together within a fifth of a second share one break
+        sound, so mass mining sends far fewer sounds over the network.
+    - type: Tweak
+      message: >-
+        Guns firing faster than 5 shots a second play at most 5 gunshot sounds a
+        second for other players. The shooter still hears every shot.
+  id: 100157
+  time: '2026-10-18T03:20:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/275
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Ported RMC's barricades, craftable, and abundant.
+  id: 100158
+  time: '2026-10-18T03:44:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/276
+- author: DriftingSkies
+  changes:
+    - type: Add
+      message: >-
+        The PDV CV-53 and TSFMC M92-X tacsuits have a new soft shield. Hits pass
+        through it, but while it's up it soaks 60% of incoming brute damage
+        (blunt, slash and piercing) and stops you from bleeding. Burns, lasers
+        included, pass straight through and only your armour stops them. The
+        field drains as it soaks damage and breaks when empty, and
+        shield-breaker rounds still shatter it.
+    - type: Tweak
+      message: >-
+        Every TSF and PDV tacsuit now has a distinct role within its tier. Suits
+        in the same tier are sidegrades of each other, and T3 suits are tougher
+        overall than T2.
+    - type: Tweak
+      message: >-
+        The M82b is now the TSF burn and environment suit: much better against
+        heat, now protects against shock, keeps its radiation and caustic
+        protection, and is weaker against brute.
+    - type: Tweak
+      message: >-
+        The SCAF is now the PDV burn suit: much better against heat and slightly
+        weaker against brute.
+    - type: Tweak
+      message: >-
+        The M82c and CV-32 are slightly tougher, and the CV-32 is now a little
+        faster.
+    - type: Tweak
+      message: >-
+        The CV-53 no longer resists heat nearly as well. Lasers are now the way
+        to get through its soft shield.
+    - type: Tweak
+      message: >-
+        The CV-280 Basilisk had T3 protection on a T2 suit. It is now a fast T2
+        skirmisher with lighter armour.
+    - type: Tweak
+      message: >-
+        The M86 Mk.4 has lost its hard shield and is now the fast T3 suit:
+        lighter armour, full movement speed. MARSOC's starting suit changes with
+        it.
+    - type: Tweak
+      message: The M92-X is now much faster but takes a little more heat damage.
+    - type: Tweak
+      message: The M86 Mk.3 takes a little more heat damage.
+    - type: Tweak
+      message: >-
+        The M92 colonel tacsuit is still the toughest suit, but by a smaller
+        margin.
+    - type: Tweak
+      message: >-
+        PDV tacsuits are cheaper at the pirate uplink, since PDV can't craft
+        them: the CV-32 and CV-53 cost 35 doubloons (were 45) and the CV-82
+        costs 80 (was 90).
+  id: 100159
+  time: '2026-10-18T03:48:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/262
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Synths now run on hydraulic fluid, so hydraulic packs, IV drips and the
+        autodoc can refill them.
+    - type: Fix
+      message: >-
+        Synth power cells can be taken out and put back in with surgery on the
+        opened torso.
+    - type: Add
+      message: The exosuit fabricator can now print replacement synth organs.
+  id: 100160
+  time: '2026-10-18T06:04:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/277
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        The Automated Defense System is loose in the sector. Its nodes hold
+        ground in purple on the sector map, sweeps and sentinels fly it, and it
+        never touches a station.
+    - type: Add
+      message: >-
+        Enter ADS space and the nearest ADS ship hails your console with one
+        question: are you a threat? Answer no, or don't fire, and it leaves you
+        alone. Answer yes, or shoot first, and it disables you.
+    - type: Add
+      message: >-
+        The ADS and the Ashfall Reavers fight over cells. ADS interdictors
+        contest Reaver space and the Reavers scramble gunships to drive them
+        off. Join either side or pick off the winner.
+    - type: Add
+      message: >-
+        At Overrun the Reavers raise a citadel: a Vulture fortress with two
+        rings of territory that pays triple and buys the sector a lull when it
+        falls.
+    - type: Add
+      message: >-
+        ADS crews are bare automatons with unit designations and a synthetic
+        voice, and their alerts come in with the anomaly klaxon.
+    - type: Tweak
+      message: Ashfall is now the Contested Sector game mode and runs both threats.
+    - type: Tweak
+      message: >-
+        Sector Watch is quieter. Routine news goes over Common radio; only the
+        big events get a banner.
+    - type: Tweak
+      message: Pirates no longer fly adamantite. Their hulls arrive in plastitanium.
+  id: 100161
+  time: '2026-10-18T08:28:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/272

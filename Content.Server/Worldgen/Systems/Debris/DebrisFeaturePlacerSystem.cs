@@ -11,6 +11,7 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Random;
 using Robust.Shared.Utility;
 using Content.Server._NF.Worldgen.Components.Debris; // Frontier
+using Content.Server._WF.DroneRings; // WOLFGATE(DroneRings)
 
 namespace Content.Server.Worldgen.Systems.Debris;
 
@@ -24,7 +25,7 @@ public sealed partial class DebrisFeaturePlacerSystem : BaseWorldSystem
     [Dependency] private PoissonDiskSampler _sampler = default!;
     [Dependency] private TransformSystem _xformSys = default!;
     [Dependency] private ILogManager _logManager = default!;
-    [Dependency] private IMapManager _mapManager = default!;
+    [Dependency] private SharedMapSystem _mapManager = default!;
     [Dependency] private IRobustRandom _random = default!;
 
     private ISawmill _sawmill = default!;
@@ -231,6 +232,13 @@ public sealed partial class DebrisFeaturePlacerSystem : BaseWorldSystem
                     continue;
                 }
             }
+
+            // WOLFGATE(DroneRings) START: no drone spawns in held space
+            var placing = new WFDebrisPlacingEvent(debrisFeatureEv.DebrisProto, new MapCoordinates(point, mapId));
+            RaiseLocalEvent(ref placing);
+            if (placing.Cancelled)
+                continue;
+            // WOLFGATE END
 
             var ent = Spawn(debrisFeatureEv.DebrisProto, coords);
             component.OwnedDebris.Add(point, ent);

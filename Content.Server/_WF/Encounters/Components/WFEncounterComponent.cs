@@ -106,6 +106,18 @@ public sealed partial class WFEncounterComponent : Component
     /// <summary>Player ships a side has taken as allies for the encounter.</summary>
     public List<(EntityUid Ship, EntityUid Ally)> Allies = new();
 
+    /// <summary>When each other vessel's ship weapon hits landed on each side over the last half minute, excused or not: whom it is really fighting.</summary>
+    public Dictionary<(EntityUid Attacker, string Side), List<TimeSpan>> Fire = new();
+
+    /// <summary>The vessels each side has hailed, and when it may hail each again: one voice for a side, however many ships.</summary>
+    public Dictionary<(string Side, EntityUid Intruder), TimeSpan> Hailed = new();
+
+    /// <summary>The vessels each side has called its guns onto, and when it may call each again.</summary>
+    public Dictionary<(string Side, EntityUid Intruder), TimeSpan> Called = new();
+
+    /// <summary>The vessels its interrogating ships have asked, and when each may be asked again.</summary>
+    public Dictionary<EntityUid, TimeSpan> Interrogated = new();
+
     /// <summary>When its ships jump out, whoever is near.</summary>
     [DataField]
     public TimeSpan? JumpAt;
@@ -155,6 +167,9 @@ public sealed partial class WFEncounterShipState
     [DataField]
     public bool AutoRefuel;
 
+    /// <summary>When its fuel stores are next checked, for a persistent ship.</summary>
+    public TimeSpan NextStock;
+
     /// <summary>While stranded: since when it has had thrust without a break.</summary>
     public TimeSpan? UnderwaySince;
 
@@ -169,6 +184,10 @@ public sealed partial class WFEncounterShipState
     [DataField]
     public bool Lurking;
 
+    /// <summary>Whether it flies unlabelled for good and keeps its encounter off the sector markers.</summary>
+    [DataField]
+    public bool Stealth;
+
     [DataField]
     public float WarnRange;
 
@@ -181,6 +200,10 @@ public sealed partial class WFEncounterShipState
     [DataField]
     public WFEncounterZoneTargets ZoneTargets;
 
+    /// <summary>Companies its zones and hunt leave alone: never warned, fired on or boarded, though a shot at it is still answered.</summary>
+    [DataField]
+    public List<string> NeutralCompanies = new();
+
     /// <summary>Since when no player has been near it, while resolved.</summary>
     public TimeSpan? Quiet;
 
@@ -191,6 +214,29 @@ public sealed partial class WFEncounterShipState
     /// <summary>The ship it is trying to dock with.</summary>
     [DataField]
     public EntityUid? Prey;
+
+    /// <summary>Set on an extorter: where it is in its round of tolls.</summary>
+    public WFExtortState? Extort;
+
+    /// <summary>Whether it answers an attack by turning on the attacker.</summary>
+    [DataField]
+    public bool Evades = true;
+
+    /// <summary>How near a player ship may come before it runs; zero for never.</summary>
+    [DataField]
+    public float Flees;
+
+    /// <summary>Whether it is flying a run from a player ship, not its own route.</summary>
+    public bool Fleeing;
+
+    /// <summary>The direction of the run it is on.</summary>
+    public System.Numerics.Vector2 FleeHeading;
+
+    /// <summary>Where the run ends.</summary>
+    public System.Numerics.Vector2 FleeGoal;
+
+    /// <summary>The ship was taken out of the encounter by cleanup or an admin, not destroyed.</summary>
+    public bool Removed;
 
     /// <summary>Whether it calls for help when adrift.</summary>
     [DataField]
@@ -235,6 +281,12 @@ public sealed partial class WFEncounterShipState
 
     /// <summary>Intruders inside the attack zone that have been told so.</summary>
     public HashSet<EntityUid> Engaged = new();
+
+    /// <summary>Vessels that answered its interrogation as a threat: an interrogating zone fires on them for the encounter's life.</summary>
+    public HashSet<EntityUid> Declared = new();
+
+    /// <summary>Vessels in its warning zone that an interrogating zone has no cause to fire on, as of its last look: those it asks.</summary>
+    public HashSet<EntityUid> Strangers = new();
 }
 
 /// <summary>Marks a passenger an encounter put aboard one of its ships.</summary>

@@ -168,7 +168,7 @@
     channels:
     - Trinary
   - type: Bloodstream
-    bloodReagent: SynthBlood
+    bloodReagent: WFWolfmedHydraulicFluid # WOLFGATE(Wolfmed): runs on the IPC's fluid so the pack, IV and autodoc refill it
     bloodMaxVolume: 300
     bloodRefreshAmount: 0.0
     bloodlossDamage:

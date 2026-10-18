@@ -4,7 +4,7 @@ A client-only viewport that shows a vessel prototype's grid inside a window. Eac
 own client-side map, so nothing reaches the server or the player's own view and two open previews don't interfere.
 Drag to pan, wheel to zoom.
 
-Used by the admin vessel spawner and the shipyard console's Preview button; `wf_shippreview <vesselId>` opens one on
+Used by the admin vessel spawner, Round Setup's ship options and the shipyard console's Preview button; `wf_shippreview <vesselId>` opens one on
 its own. Entry points: `ShipPreviewSystem` (loads grids onto preview maps), `ShipPreviewControl` (draws one) and
 `ShipPreviewWindow`. `ShipPreviewMigrationSystem` applies the entity migration files (`/migration.yml`,
 `/nf_migration.yml`, `/mono_migration.yml`) the way the server's `MapMigrationSystem` does; without it a grid that
@@ -26,6 +26,7 @@ previews in a dev client. `VesselGridPathTest` checks every vessel.
 - [`Content.Client/_WF/ShipPreview/ShipPreviewControl.cs`](ShipPreviewControl.cs)
 - [`Content.Client/_WF/ShipPreview/ShipPreviewMigrationSystem.cs`](ShipPreviewMigrationSystem.cs)
 - [`Content.Client/_WF/ShipPreview/ShipPreviewSystem.cs`](ShipPreviewSystem.cs)
+- [`Content.Client/_WF/ShipPreview/ShipPreviewSystem.Load.cs`](ShipPreviewSystem.Load.cs)
 - [`Content.Client/_WF/ShipPreview/UI/ShipPreviewWindow.xaml`](UI/ShipPreviewWindow.xaml)
 - [`Content.Client/_WF/ShipPreview/UI/ShipPreviewWindow.xaml.cs`](UI/ShipPreviewWindow.xaml.cs)
 

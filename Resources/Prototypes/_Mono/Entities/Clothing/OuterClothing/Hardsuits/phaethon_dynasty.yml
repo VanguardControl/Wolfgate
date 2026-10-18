@@ -18,10 +18,11 @@
   - type: Armor
     modifiers:
       coefficients:
-        Blunt: 0.65
-        Slash: 0.65
-        Piercing: 0.55
-        Heat: 0.7
+        # WOLFGATE(ArmorBalance): sidegrade pass.
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.65
+        Heat: 0.45
         Radiation: 0.5
         Caustic: 0.9
   - type: StaminaDamageResistance # Mono - Stamres
@@ -66,17 +67,18 @@
   - type: Armor
     modifiers:
       coefficients:
-        Blunt: 0.7
-        Slash: 0.75
-        Piercing: 0.35
-        Heat: 0.75
+        # WOLFGATE(ArmorBalance): sidegrade pass.
+        Blunt: 0.75
+        Slash: 0.65
+        Piercing: 0.4
+        Heat: 0.7
         Radiation: 0.7
         Caustic: 0.9
   - type: ClothingSpeedModifier
-    walkModifier: 0.9
-    sprintModifier: 0.9
+    walkModifier: 0.95
+    sprintModifier: 0.95
   - type: ExplosionResistance
-    damageCoefficient: 0.7
+    damageCoefficient: 0.5
   - type: Tag
     tags:
     - RogueHardsuit
@@ -156,7 +158,7 @@
   parent: [ ClothingOuterHardsuitBaseNoPlateholder, MonoEnergyShieldClothing ]
   id: ClothingOuterHardsuitAshenElite
   name: PDV CV-53 combat tacsuit
-  description: Originally based off of the CV-32 hardsuit, the CV-53 tacsuit sacrifices conventional armor plating for environmental protection, and a rechargeable hard-shield.
+  description: Originally based off of the CV-32 hardsuit, the CV-53 tacsuit sacrifices conventional armor plating for environmental protection, and a rechargeable soft-shield. # WOLFGATE(SoftShield): soft shield
   components:
   - type: Sprite
     sprite: _Mono/Clothing/OuterClothing/Hardsuits/syndieelite.rsi
@@ -186,20 +188,22 @@
   - type: Armor # Mono - Armor Value Changes
     modifiers:
       coefficients:
+        # WOLFGATE(ArmorBalance): sidegrade pass.
         Blunt: 0.75
         Slash: 0.75
-        Piercing: 0.65
-        Heat: 0.2
+        Piercing: 0.7
+        Heat: 0.7
         Radiation: 0.1
         Caustic: 0.5
   - type: Item
     size: Huge
   - type: ClothingSpeedModifier
-    walkModifier: 1.0
-    sprintModifier: 0.9
+    walkModifier: 0.95
+    sprintModifier: 0.95
   - type: Tag
     tags:
     - RogueHardsuit
+  - type: WFSoftShield # WOLFGATE(SoftShield): brute damage bleeds through the field dampened.
   # Shielding
   - type: PersonalShield
     visuals:
@@ -237,7 +241,7 @@
     - description: Alt-click or otherwise interact to toggle additional shielding.
       color: "#4f94ad"
       requireDetailRange: true
-    - description: The CV-53 hardshield is designed to inhibit the velocity of incoming conventional firearms. However, it struggles against anything involving high-energy particles, such as lasers.
+    - description: The CV-53 soft-shield lets blows and rounds through but bleeds off much of their force, and keeps its wearer from bleeding while it holds. It does nothing against lasers or fire. # WOLFGATE(SoftShield): soft shield
       color: "#94768c"
       requireDetailRange: true
 
@@ -261,11 +265,12 @@
   - type: Armor
     modifiers:
       coefficients:
-        Blunt: 0.55
-        Slash: 0.45
-        Piercing: 0.375
+        # WOLFGATE(ArmorBalance): sidegrade pass.
+        Blunt: 0.7
+        Slash: 0.65
+        Piercing: 0.6
         Shock: 0.95
-        Heat: 0.7
+        Heat: 0.75
         Radiation: 0.5
         Caustic: 0.6
   - type: ClothingSpeedModifier

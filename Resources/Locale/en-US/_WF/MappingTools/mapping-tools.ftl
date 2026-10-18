@@ -15,6 +15,7 @@ wf-mapping-tools-section-history = History
 wf-mapping-tools-section-view = View
 wf-mapping-tools-section-keys = Keys
 wf-mapping-tools-section-files = Files
+wf-mapping-tools-section-zlevels = Z-levels
 wf-mapping-tools-maps = Save / load maps...
 wf-mapping-tools-maps-tooltip = Save your grid or map, or open a saved one, with a preview.
 
@@ -39,6 +40,20 @@ wf-mapping-tools-redo-tooltip = Redo (Ctrl+Y or Ctrl+Shift+Z)
 
 wf-mapping-tools-hide-walls = Hide walls
 wf-mapping-tools-hide-walls-tooltip = Hides every wall on your screen, so you can see and click what's behind them. Only you see this.
+
+wf-mapping-tools-level = Level {$depth}
+wf-mapping-tools-level-ground = Level 0 (ground)
+wf-mapping-tools-level-up = Up
+wf-mapping-tools-level-down = Down
+wf-mapping-tools-level-up-tooltip = Go up a level (Page Up). The level below shows through empty space.
+wf-mapping-tools-level-down-tooltip = Go down a level (Page Down)
+wf-mapping-tools-level-add-above = Add above
+wf-mapping-tools-level-add-below = Add below
+wf-mapping-tools-level-remove = Remove
+wf-mapping-tools-level-add-above-tooltip = Adds an empty level directly above yours. Levels above it move up one.
+wf-mapping-tools-level-add-below-tooltip = Adds an empty level directly below yours. Levels below it move down one.
+wf-mapping-tools-level-remove-tooltip = Deletes your level and everything on it. Can't be undone.
+wf-mapping-tools-level-remove-confirm = Delete level?
 
 wf-mapping-tools-key-toggle = M
 wf-mapping-tools-key-toggle-desc = Turn selection tools on or off
@@ -66,6 +81,8 @@ wf-mapping-tools-key-clear = Right click
 wf-mapping-tools-key-clear-desc = Clear the selection
 wf-mapping-tools-key-history = Ctrl+Z / Ctrl+Y
 wf-mapping-tools-key-history-desc = Undo, redo (spawn menu too)
+wf-mapping-tools-key-level = Page Up / Down
+wf-mapping-tools-key-level-desc = Go up or down a level
 
 wf-mapping-maps-title = Maps
 wf-mapping-maps-search = Search files
@@ -75,6 +92,8 @@ wf-mapping-maps-source-ships = Ships
 wf-mapping-maps-source-maps = Maps
 wf-mapping-maps-open = Open on a new map
 wf-mapping-maps-open-tooltip = Opens the file for editing on a fresh map, like the mapping command.
+wf-mapping-maps-open-stack = Open z-stack
+wf-mapping-maps-open-stack-tooltip = Opens every level of the z-stack this file belongs to (name_z0.yml, name_z1.yml, ...).
 wf-mapping-maps-load-here = Load here
 wf-mapping-maps-load-here-tooltip = Drops a copy of the grid where you are standing, on the current map.
 wf-mapping-maps-section-save = Save
@@ -83,6 +102,8 @@ wf-mapping-maps-save-grid = Save grid
 wf-mapping-maps-save-grid-tooltip = Saves the grid you are standing on.
 wf-mapping-maps-save-map = Save map
 wf-mapping-maps-save-map-tooltip = Saves the whole map you are on, every grid included.
+wf-mapping-maps-save-stack = Save z-stack
+wf-mapping-maps-save-stack-tooltip = Saves every level of your z-stack into a folder of that name, one map file per level.
 wf-mapping-maps-overwrite = Overwrite?
 wf-mapping-maps-save-folder = Saves go to {$folder}
 wf-mapping-maps-info = {$path} - {$width}x{$height}, {$tiles} tiles
@@ -95,6 +116,21 @@ wf-mapping-maps-no-grid = Stand on the grid you want to save
 wf-mapping-maps-saved = Saved to {$path}
 wf-mapping-maps-save-failed = Couldn't save {$path}
 wf-mapping-maps-load-here-failed = Couldn't load that as a single grid
+
+wf-mapping-zlevels-none-above = No level above
+wf-mapping-zlevels-none-below = No level below
+wf-mapping-zlevels-moved = Level {$depth}
+wf-mapping-zlevels-added = Added level {$depth}
+wf-mapping-zlevels-removed = Level removed
+wf-mapping-zlevels-last = Can't remove the only level
+wf-mapping-zlevels-live = Only maps opened for mapping can change levels
+wf-mapping-zlevels-saved = Saved {$count ->
+    [one] 1 level
+   *[other] {$count} levels
+} to {$path}
+wf-mapping-zlevels-save-failed = Couldn't save every level to {$path}
+wf-mapping-zlevels-no-ground = That z-stack has no level 0 (name_z0.yml)
+wf-mapping-zlevels-open-failed = Couldn't open {$path}
 
 wf-mapping-tools-nothing-to-undo = Nothing to undo
 wf-mapping-tools-nothing-to-redo = Nothing to redo
