@@ -1,10 +1,10 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Content.Shared._WF.RMCCore.Stun;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._WF.Xenonids.Crest;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(XenoCrestSystem))]
 public sealed partial class XenoCrestComponent : Component
 {
     [DataField, AutoNetworkedField]

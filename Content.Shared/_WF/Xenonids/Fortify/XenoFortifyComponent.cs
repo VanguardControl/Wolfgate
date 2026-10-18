@@ -1,4 +1,3 @@
-// XENOPORT-STUB: replaced by the Xenonids module port; keeps RMC's file name and namespace.
 using Content.Shared._WF.RMCCore.Stun;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
@@ -9,6 +8,7 @@ using Robust.Shared.Physics.Collision.Shapes;
 namespace Content.Shared._WF.Xenonids.Fortify;
 
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[Access(typeof(XenoFortifySystem))]
 public sealed partial class XenoFortifyComponent : Component
 {
     public const string FixtureId = "cm-xeno-fortify";

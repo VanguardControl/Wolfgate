@@ -50,37 +50,6 @@
 
 - type: entity
   parent: ActionXenoBase
-  id: ActionXenoRetrieve
-  name: Retrieve (180 plasma, 100 fury)
-  description: Pulls a xenonid to you if they are still, with a 0.6 second doafter. You can't pull very big xenonids unless they are downed.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: retrieve
-  - type: TargetAction
-    range: 7
-  - type: EntityTargetAction
-    event: !type:XenoRetrieveActionEvent
-  - type: XenoActionPlasma
-    cost: 180
-  - type: XenoActionEnergy
-    cost: 100
-  - type: ActionCooldown
-    cooldown: 10
-  - type: ActionBlockIfResting
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoRetrieve
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: retrieve
-
-- type: entity
-  parent: ActionXenoBase
   id: ActionXenoAidHeal
   name: Aid Xenonid Healing (100 plasma, 100+ health reserves)
   description: Heals a nearby ally Xeno. Healing another Xeno will also heal you, and half your remaining health reserves will be consumed for extra healing. [color=red]This can't heal ignited xenonids![/color]
@@ -196,31 +165,6 @@
 
 - type: entity
   parent: ActionXenoBase
-  id: ActionXenoTailFountain
-  name: Tail Fountain
-  description: Extinguishes fire from a nearby ally or foe. Uses up your melee attack.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: prae_tail_fountain
-    useDelay: 10
-  - type: TargetAction
-    range: 2
-  - type: EntityTargetAction
-    event: !type:XenoTailFountainActionEvent
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoTailFountain
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: prae_tail_fountain
-
-- type: entity
-  parent: ActionXenoBase
   id: ActionXenoTantrum
   name: Tantrum (100 plasma, 75 fury)
   description: Give an ally and yourself temporary armor for a few seconds, which lasts longer on you. Crushers and Ravagers get a speed boost instead.
@@ -244,33 +188,6 @@
   components:
     - type: Sprite
       state: warden_heal
-
-- type: entity
-  parent: ActionXenoBase
-  id: ActionXenoFightOrFlight
-  name: Fight or Flight (300 plasma, 75 fury)
-  description: Remove ailments and stuns from all allies around you. The radius is longer if you have 75+ fury after paying the cost.
-  components:
-  - type: Action
-    itemIconStyle: NoItem
-    icon:
-      sprite: _WF/Xenonids/Actions/xeno_actions.rsi
-      state: screech
-    useDelay: 45
-  - type: InstantAction
-    event: !type:XenoFightOrFlightActionEvent
-  - type: XenoActionEnergy
-    cost: 75
-  - type: XenoActionPlasma
-    cost: 300
-
-- type: entity
-  parent: CMGuidebookActionXenoBase
-  id: RMCGuidebookActionXenoFightOrFlight
-  categories: [ HideSpawnMenu ]
-  components:
-    - type: Sprite
-      state: screech
 
 - type: entity
   parent: ActionXenoBase

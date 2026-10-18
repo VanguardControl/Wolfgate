@@ -49,7 +49,7 @@
     max: 60
     evolvesTo:
     - CMXenoDrone
-    # XENOPORT(P3-P): - CMXenoDefender
+    - CMXenoDefender
     # XENOPORT(P3-B): - CMXenoSentinel
     # XENOPORT(P3-M): - CMXenoRunner
   - type: XenoHide
