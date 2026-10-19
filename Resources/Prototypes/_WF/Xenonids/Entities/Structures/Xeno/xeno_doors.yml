@@ -153,7 +153,9 @@
   name: weedbound resin door
   description: That's a resin door, bound to weeds.
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleDesigner
   - type: Sprite
     sprite: _WF/Xenonids/Structures/Xenos/weedbound_resin_doors.rsi
     layers:
@@ -179,7 +181,9 @@
   name: thick weedbound resin door
   description: A thick resin door, bound to weeds.
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleDesigner
   - type: Sprite
     sprite: _WF/Xenonids/Structures/Xenos/weedbound_resin_doors.rsi
     layers:

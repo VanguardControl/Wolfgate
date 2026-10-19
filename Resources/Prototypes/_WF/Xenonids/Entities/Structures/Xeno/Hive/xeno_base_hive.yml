@@ -3,7 +3,9 @@
   id: BaseHiveStructure
   categories: [ WFXenonids ]
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideHiveStructures
   - type: Transform
     anchored: true
   - type: Physics
@@ -45,7 +47,9 @@
   abstract: true
   id: BaseHiveStructureNode
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideHiveStructures
   - type: Transform
     anchored: true
   - type: InteractionOutline

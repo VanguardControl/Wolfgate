@@ -92,7 +92,9 @@
   id: CMXenoHivelord
   components:
   - type: CanBuildThickFromConstructNode
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleHivelord
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Hivelord/hivelord.rsi
   - type: Xeno
@@ -201,7 +203,9 @@
   id: CMXenoHivelordDesigner
   suffix: Designer
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleDesigner
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Hivelord/designer_hivelord.rsi
   - type: Xeno

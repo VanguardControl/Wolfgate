@@ -101,7 +101,9 @@
   id: CMXenoLurker
   suffix: Base
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleLurker
   - type: XenoLeap
     plasmaCost: 20
     delay: 0
@@ -131,7 +133,9 @@
   id: RMCXenoLurkerVampire
   suffix: Vampire
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleVampire
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Lurker/vampire_lurker.rsi
   - type: Xeno

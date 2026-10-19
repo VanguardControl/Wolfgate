@@ -11,7 +11,9 @@
   name: Crusher
   description: A huge alien with an enormous armored crest.
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleCrusher
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Crusher/crusher.rsi
   - type: MobState

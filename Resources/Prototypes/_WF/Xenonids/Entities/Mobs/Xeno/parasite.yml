@@ -8,7 +8,9 @@
   name: Child
   suffix: Parasite
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleParasite
   - type: GhostRole
     name: cm-job-name-xeno-parasite
     prob: 0

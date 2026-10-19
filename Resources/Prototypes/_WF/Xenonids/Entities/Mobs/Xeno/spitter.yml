@@ -11,7 +11,9 @@
   name: Spitter
   description: A gross, oozing alien of some kind.
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleSpitter
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Spitter/spitter.rsi
   - type: MobState

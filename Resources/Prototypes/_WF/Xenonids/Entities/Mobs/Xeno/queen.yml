@@ -11,7 +11,9 @@
   description: A huge, looming alien creature. The biggest and the baddest.
   components:
   - type: CanBuildThickFromConstructNode
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleQueen
   - type: GhostRole
     name: cm-job-name-xeno-queen
     makeSentient: true

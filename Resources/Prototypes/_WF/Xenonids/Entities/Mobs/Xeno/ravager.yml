@@ -11,7 +11,9 @@
   description: A huge, nasty red alien with enormous scythed claws.
   abstract: true
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleRavager
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Ravager/ravager.rsi
     layers:

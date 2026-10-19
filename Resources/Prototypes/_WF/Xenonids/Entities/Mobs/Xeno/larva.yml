@@ -6,7 +6,9 @@
   id: CMXenoLarva
   name: Larva
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleDrone
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Larva/larva.rsi
   # WOLFGATE: cut FiremanCarriable

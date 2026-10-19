@@ -11,7 +11,9 @@
   name: Boiler
   description: A huge, grotesque xenonid covered in glowing, oozing acid slime.
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleBoiler
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Boiler/boiler.rsi
   - type: Fixtures

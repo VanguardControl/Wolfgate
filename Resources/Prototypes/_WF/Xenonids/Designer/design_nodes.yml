@@ -13,7 +13,9 @@
   placement:
     mode: SnapgridCenter
   components:
-    # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+    - type: GuideHelp
+      guides:
+      - RMCGuideRoleDesigner
     - type: Transform
       anchored: true
     - type: Clickable

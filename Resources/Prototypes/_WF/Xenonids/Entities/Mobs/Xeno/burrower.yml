@@ -12,7 +12,9 @@
   description: A beefy alien with sharp claws.
   components:
   - type: CanBuildThickFromConstructNode
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleBurrower
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Burrower/burrower.rsi
   - type: MobState

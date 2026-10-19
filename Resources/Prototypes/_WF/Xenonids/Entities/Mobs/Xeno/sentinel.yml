@@ -11,7 +11,9 @@
   name: Sentinel
   description: A slithery, spitting kind of alien.
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleSentinel
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Sentinel/sentinel.rsi
   - type: MobState

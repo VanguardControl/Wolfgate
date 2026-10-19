@@ -7,7 +7,9 @@
     snap:
     - Wall
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideResinHoles
   - type: Clickable
   - type: Transform
     anchored: true

@@ -108,7 +108,9 @@
   parent: CMXenoDefenderBase
   id: CMXenoDefender
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleDefender
   - type: Xeno
     actionIds:
     - ActionXenoRest

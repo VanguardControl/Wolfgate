@@ -118,7 +118,9 @@
   parent: CMXenoPraetorianBase
   id: CMXenoPraetorian
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRolePraetorian
   - type: XenoSprayAcid
     barricadeDamage:
       types:
@@ -148,7 +150,9 @@
   id: RMCXenoPraetorianValkyrie
   suffix: Valkyrie
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleValkyrie
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Praetorian/valkyrie_praetorian.rsi
   - type: Xeno
@@ -267,7 +271,9 @@
   id: RMCXenoPraetorianVanguard
   suffix: Vanguard
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleVanguard
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Praetorian/vanguard_praetorian.rsi
   - type: MobThresholds
@@ -317,7 +323,9 @@
   id: RMCXenoPraetorianOppressor
   suffix: Oppressor
   components:
-  # WOLFGATE: cut GuideHelp (RMC guidebook pages are not ported)
+  - type: GuideHelp
+    guides:
+    - RMCGuideRoleOppressor
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/Praetorian/oppressor_praetorian.rsi
   - type: Xeno
