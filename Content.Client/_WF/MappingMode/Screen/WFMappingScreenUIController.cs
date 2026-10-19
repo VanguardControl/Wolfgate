@@ -12,24 +12,31 @@ using Robust.Client.State;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.ContentPack;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Client._WF.MappingMode.Screen;
 
 /// <summary>
 /// Chooses the mapping screen for mappers in a session and fills its hosts each time it loads: the palette, the
-/// mode rail, the properties, tools, layers and keys tabs and the cursor readout. The readout, the properties and
-/// the layers are refreshed from here, only while they show.
+/// mode bar, the properties, tools, layers and keys tabs and the cursor readout. The readout, the properties and
+/// the layers are refreshed from here, only while they show. The mode bar's place is kept in
+/// <see cref="LayoutPath"/> of the client data folder.
 /// </summary>
 public sealed partial class WFMappingScreenUIController : UIController
 {
     [Dependency] private IEyeManager _eye = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IInputManager _input = default!;
+    [Dependency] private IResourceManager _resources = default!;
     [Dependency] private IStateManager _state = default!;
     [Dependency] private ITileDefinitionManager _tileDefs = default!;
+
+    /// <summary>Where the mode bar's place is saved.</summary>
+    public static readonly ResPath LayoutPath = new("/Mapping/screen.yml");
 
     private static readonly TimeSpan ReadoutInterval = TimeSpan.FromSeconds(0.1);
     private static readonly TimeSpan PanelInterval = TimeSpan.FromSeconds(0.25);
@@ -161,6 +168,8 @@ public sealed partial class WFMappingScreenUIController : UIController
         screen.StatusHost.AddChild(_readout);
 
         BuildRail(screen, modes);
+        screen.SetLayout(LoadLayout());
+        screen.LayoutChanged += SaveLayout;
         modes.ModeChanged += OnModeChanged;
         screen.RightTabs.OnTabChanged += OnTabChanged;
         OnModeChanged(modes.Mode);
@@ -191,7 +200,8 @@ public sealed partial class WFMappingScreenUIController : UIController
             _modes.ModeChanged -= OnModeChanged;
 
         screen.RightTabs.OnTabChanged -= OnTabChanged;
-        screen.ModeRail.RemoveAllChildren();
+        screen.LayoutChanged -= SaveLayout;
+        screen.ModeBar.Buttons.RemoveAllChildren();
         screen.StatusHost.RemoveAllChildren();
         _railButtons.Clear();
 
@@ -206,7 +216,7 @@ public sealed partial class WFMappingScreenUIController : UIController
 
     private void BuildRail(WFMappingScreen screen, WFMappingBuildModeSystem modes)
     {
-        screen.ModeRail.RemoveAllChildren();
+        screen.ModeBar.Buttons.RemoveAllChildren();
         _railButtons.Clear();
 
         var group = new ButtonGroup();
@@ -225,7 +235,54 @@ public sealed partial class WFMappingScreenUIController : UIController
             };
             button.OnPressed += _ => modes.SetMode(mode);
             _railButtons[mode] = button;
-            screen.ModeRail.AddChild(button);
+            screen.ModeBar.Buttons.AddChild(button);
+        }
+    }
+
+    /// <summary>The saved mode bar layout, or the default one when there is none or it can't be read.</summary>
+    private WFMappingScreenLayout LoadLayout()
+    {
+        try
+        {
+            if (_resources.UserData.Exists(LayoutPath) && _resources.UserData.TryReadAllText(LayoutPath, out var text))
+                return WFMappingScreenLayout.Read(text);
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"Reading the mapping screen layout {LayoutPath} failed: {e}");
+        }
+
+        return new WFMappingScreenLayout();
+    }
+
+    private void SaveLayout(WFMappingScreenLayout layout)
+    {
+        try
+        {
+            var dir = LayoutPath.Directory;
+            if (!_resources.UserData.Exists(dir))
+                _resources.UserData.CreateDir(dir);
+
+            _resources.UserData.WriteAllText(LayoutPath, layout.Write());
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"Saving the mapping screen layout {LayoutPath} failed: {e}");
+        }
+    }
+
+    /// <summary>Puts the mode bar back in its default spot and forgets the saved layout.</summary>
+    public void ResetLayout()
+    {
+        _screen?.SetLayout(new WFMappingScreenLayout());
+        try
+        {
+            if (_resources.UserData.Exists(LayoutPath))
+                _resources.UserData.Delete(LayoutPath);
+        }
+        catch (Exception e)
+        {
+            Log.Warning($"Removing the mapping screen layout {LayoutPath} failed: {e}");
         }
     }
 

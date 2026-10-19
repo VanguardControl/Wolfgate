@@ -19,12 +19,12 @@
         </PanelContainer>
         <SplitContainer Name="RightSplit" HorizontalExpand="True" VerticalExpand="True" SplitWidth="2"
                         StretchDirection="TopLeft">
-            <LayoutContainer Name="ViewportContainer" HorizontalExpand="True" VerticalExpand="True">
+            <LayoutContainer Name="ViewportContainer" Access="Public" HorizontalExpand="True" VerticalExpand="True">
                 <controls:MainViewport Name="MainViewport" />
                 <menuBar:GameTopMenuBar Name="TopBar" Access="Protected" />
-                <BoxContainer Name="ModeRail" Access="Public" Orientation="Horizontal" SeparationOverride="2" />
                 <BoxContainer Name="QuickBarHost" Access="Public" Orientation="Horizontal" />
                 <BoxContainer Name="StatusHost" Access="Public" Orientation="Vertical" MouseFilter="Ignore" />
+                <screen:WFMappingModeBar Name="ModeBar" Access="Public" />
             </LayoutContainer>
             <PanelContainer Name="RightDock" SetWidth="360" MinWidth="280" VerticalExpand="True">
                 <PanelContainer.PanelOverride>

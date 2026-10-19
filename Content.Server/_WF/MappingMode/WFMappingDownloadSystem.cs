@@ -13,8 +13,8 @@ using Robust.Shared.Utility;
 namespace Content.Server._WF.MappingMode;
 
 /// <summary>
-/// Streams a library version's level files to their owner, one transfer per file and one download per player, in
-/// chunks paced by the client's acknowledgements.
+/// Streams a library version's level files, or its ship grid and vessel prototype, to their owner: one transfer per
+/// file and one download per player, in chunks paced by the client's acknowledgements.
 /// </summary>
 public sealed class WFMappingDownloadSystem : EntitySystem
 {
@@ -105,9 +105,11 @@ public sealed class WFMappingDownloadSystem : EntitySystem
                 return;
             }
 
-            var files = version.Levels
-                .Select(pair => (WFMappingLibraryNames.LevelFile(pair.Key), pair.Value))
-                .ToList();
+            if (!TryGetFiles(map.Name, version, ev.Ship, out var files, out var error, out var errorArgs))
+            {
+                _mapping.Notify(player, false, error, errorArgs);
+                return;
+            }
 
             var download = new Download(player, map.Name, version.Name.Folder, files)
             {
@@ -116,7 +118,7 @@ public sealed class WFMappingDownloadSystem : EntitySystem
 
             _downloads[player.UserId] = download;
             _adminLog.Add(LogType.Action, LogImpact.Low,
-                $"{player:player} downloads their library map \"{map.Name}\" {version.Name.Folder} ({files.Count} files)");
+                $"{player:player} downloads their library map \"{map.Name}\" {version.Name.Folder} ({files.Count} files{(ev.Ship ? ", as a ship" : string.Empty)})");
             NextFile(download);
         }
         catch (Exception e)
@@ -127,6 +129,69 @@ public sealed class WFMappingDownloadSystem : EntitySystem
             else
                 _mapping.Notify(player, false, "wf-mapping-mode-download-failed");
         }
+    }
+
+    /// <summary>
+    /// The files a download sends and the names they arrive under. A single level is <c>&lt;MapName&gt;.yml</c>, its
+    /// grid file when it has one; several levels are <c>&lt;MapName&gt;_z&lt;D&gt;.yml</c>. A ship is the one grid as
+    /// <c>&lt;MapName&gt;.yml</c> and its vessel prototype as <c>&lt;MapName&gt;.vessel.yml</c>, refused unless the
+    /// version holds exactly one grid with its grid file.
+    /// </summary>
+    public static bool TryGetFiles(string mapName, WFMappingLibrarySystem.LibraryVersion version, bool ship,
+        out List<(string Name, ResPath Path)> files, out string error, out (string, object)[] args)
+    {
+        files = new List<(string Name, ResPath Path)>();
+        error = string.Empty;
+        args = Array.Empty<(string, object)>();
+
+        if (!ship)
+        {
+            if (version.Levels.Count == 1)
+            {
+                var (depth, level) = version.Levels.First();
+                files.Add((WFMappingLibraryNames.DownloadMapFile(mapName), version.Grids.GetValueOrDefault(depth, level)));
+                return true;
+            }
+
+            foreach (var (depth, level) in version.Levels)
+            {
+                files.Add((WFMappingLibraryNames.DownloadLevelFile(mapName, depth), level));
+            }
+
+            return true;
+        }
+
+        var total = version.TotalGrids;
+        if (total < 0)
+        {
+            error = "wf-mapping-mode-library-read-failed";
+            return false;
+        }
+
+        if (total == 0)
+        {
+            error = "wf-mapping-ship-no-grid";
+            return false;
+        }
+
+        if (total > 1)
+        {
+            error = "wf-mapping-ship-several-grids";
+            args = new (string, object)[] { ("count", total) };
+            return false;
+        }
+
+        if (version.ShipDepth is not { } shipDepth)
+        {
+            error = "wf-mapping-ship-no-grid-file";
+            return false;
+        }
+
+        files.Add((WFMappingLibraryNames.DownloadMapFile(mapName), version.Grids[shipDepth]));
+        if (version.Vessels.TryGetValue(shipDepth, out var vessel))
+            files.Add((WFMappingLibraryNames.DownloadVesselFile(mapName), vessel));
+
+        return true;
     }
 
     /// <summary>Reads the next file and starts sending it, or finishes the download after the last.</summary>

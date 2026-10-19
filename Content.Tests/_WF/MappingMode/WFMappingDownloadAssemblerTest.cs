@@ -17,19 +17,25 @@ public sealed class WFMappingDownloadAssemblerTest
 
     private static WFMappingDownloadAssembler Create(int chunkCount)
     {
-        Assert.That(WFMappingDownloadAssembler.TryCreate(1, "z0.yml", chunkCount, out var assembler), Is.True);
+        Assert.That(WFMappingDownloadAssembler.TryCreate(1, "Map", "Map.yml", chunkCount, out var assembler), Is.True);
         return assembler!;
     }
 
-    [TestCase("z0.yml", 1, true)]
-    [TestCase("z-2.yml", 3, true)]
-    [TestCase("z0.yml", 0, false)]
-    [TestCase("z0.yml", WFMappingDownloadAssembler.MaxChunks + 1, false)]
-    [TestCase("../z0.yml", 1, false)]
-    [TestCase("map.yml", 1, false)]
+    [TestCase("My Map.yml", 1, true)]
+    [TestCase("My Map_z0.yml", 1, true)]
+    [TestCase("My Map_z-2.yml", 3, true)]
+    [TestCase("My Map.vessel.yml", 1, true)]
+    [TestCase("My Map.yml", 0, false)]
+    [TestCase("My Map.yml", WFMappingDownloadAssembler.MaxChunks + 1, false)]
+    [TestCase("z0.yml", 1, false)]
+    [TestCase("../My Map.yml", 1, false)]
+    [TestCase("My Map_z0.grid.yml", 1, false)]
+    [TestCase("My Map_z01.yml", 1, false)]
+    [TestCase("My Map/../x.yml", 1, false)]
+    [TestCase("Other.yml", 1, false)]
     public void TransfersCheckNameAndCount(string name, int chunks, bool valid)
     {
-        Assert.That(WFMappingDownloadAssembler.TryCreate(1, name, chunks, out _), Is.EqualTo(valid));
+        Assert.That(WFMappingDownloadAssembler.TryCreate(1, "My Map", name, chunks, out _), Is.EqualTo(valid));
     }
 
     [TestCase(new[] { 0, 1, 2 })]

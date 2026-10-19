@@ -18,7 +18,7 @@ public enum WFMappingChunkResult : byte
 }
 
 /// <summary>
-/// Puts one downloaded level file back together from its chunks: a transfer is one file, sent as up to
+/// Puts one downloaded file back together from its chunks: a transfer is one file, sent as up to
 /// <see cref="MaxChunks"/> chunks of at most <see cref="ChunkSize"/> bytes.
 /// </summary>
 public sealed class WFMappingDownloadAssembler
@@ -44,14 +44,14 @@ public sealed class WFMappingDownloadAssembler
     }
 
     /// <summary>
-    /// Starts a transfer; false when the file name isn't a level file or the chunk count is outside 1 to
-    /// <see cref="MaxChunks"/>.
+    /// Starts a transfer; false when the file name isn't one a download of <paramref name="mapName"/> may carry
+    /// (<see cref="WFMappingLibraryNames.IsDownloadFile"/>) or the chunk count is outside 1 to <see cref="MaxChunks"/>.
     /// </summary>
-    public static bool TryCreate(int transferId, string fileName, int chunkCount,
+    public static bool TryCreate(int transferId, string mapName, string fileName, int chunkCount,
         [NotNullWhen(true)] out WFMappingDownloadAssembler? assembler)
     {
         assembler = null;
-        if (chunkCount < 1 || chunkCount > MaxChunks || !WFMappingLibraryNames.TryParseLevelFile(fileName, out _))
+        if (chunkCount < 1 || chunkCount > MaxChunks || !WFMappingLibraryNames.IsDownloadFile(mapName, fileName))
             return false;
 
         assembler = new WFMappingDownloadAssembler(transferId, fileName, chunkCount);

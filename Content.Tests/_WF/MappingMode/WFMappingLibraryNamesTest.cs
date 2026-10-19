@@ -89,6 +89,43 @@ public sealed class WFMappingLibraryNamesTest
         Assert.That(parsed, Is.EqualTo(depth));
     }
 
+    [TestCase(-1)]
+    [TestCase(0)]
+    [TestCase(3)]
+    public void GridAndVesselFilesRoundTrip(int depth)
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(WFMappingLibraryNames.GridFile(depth), Is.EqualTo($"z{depth}.grid.yml"));
+            Assert.That(WFMappingLibraryNames.VesselFile(depth), Is.EqualTo($"z{depth}.vessel.yml"));
+            Assert.That(WFMappingLibraryNames.TryParseGridFile(WFMappingLibraryNames.GridFile(depth), out var grid) &&
+                        grid == depth, Is.True);
+            Assert.That(WFMappingLibraryNames.TryParseVesselFile(WFMappingLibraryNames.VesselFile(depth), out var vessel) &&
+                        vessel == depth, Is.True);
+
+            // The three kinds never read as one another.
+            Assert.That(WFMappingLibraryNames.TryParseLevelFile(WFMappingLibraryNames.GridFile(depth), out _), Is.False);
+            Assert.That(WFMappingLibraryNames.TryParseLevelFile(WFMappingLibraryNames.VesselFile(depth), out _), Is.False);
+            Assert.That(WFMappingLibraryNames.TryParseGridFile(WFMappingLibraryNames.LevelFile(depth), out _), Is.False);
+            Assert.That(WFMappingLibraryNames.TryParseGridFile(WFMappingLibraryNames.VesselFile(depth), out _), Is.False);
+        });
+    }
+
+    [Test]
+    public void DownloadNames()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(WFMappingLibraryNames.DownloadMapFile("test"), Is.EqualTo("test.yml"));
+            Assert.That(WFMappingLibraryNames.DownloadLevelFile("test", 1), Is.EqualTo("test_z1.yml"));
+            Assert.That(WFMappingLibraryNames.DownloadLevelFile("test", -1), Is.EqualTo("test_z-1.yml"));
+            Assert.That(WFMappingLibraryNames.DownloadVesselFile("test"), Is.EqualTo("test.vessel.yml"));
+            Assert.That(WFMappingLibraryNames.IsDownloadFile("test", "test_z1.yml"), Is.True);
+            Assert.That(WFMappingLibraryNames.IsDownloadFile("test", "test.grid.yml"), Is.False);
+            Assert.That(WFMappingLibraryNames.IsDownloadFile("CON", "CON.yml"), Is.False, "Not a valid map name.");
+        });
+    }
+
     [TestCase("z.yml")]
     [TestCase("z01.yml")]
     [TestCase("z-0.yml")]

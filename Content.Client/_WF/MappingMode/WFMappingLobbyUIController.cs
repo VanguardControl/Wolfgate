@@ -99,6 +99,7 @@ public sealed partial class WFMappingLobbyUIController : UIController, IOnStateE
         panel.RefreshButton.OnPressed += _ => _mapping.Send(new WFMappingLibraryRequest());
         panel.LibraryList.OpenRequested += (map, version) => _mapping.Send(new WFMappingOpenRequest(map, version));
         panel.LibraryList.DownloadRequested += (map, version) => _mapping.RequestDownload(map, version);
+        panel.LibraryList.ShipRequested += (map, version) => _mapping.RequestShipDownload(map, version);
         panel.LibraryList.DeleteRequested += (map, version) => _mapping.Send(new WFMappingDeleteRequest(map, version));
         panel.DownloadRow.CancelPressed += () => _mapping.CancelDownload();
         panel.DownloadRow.OpenFolderPressed += () => _mapping.OpenDownloadFolder();

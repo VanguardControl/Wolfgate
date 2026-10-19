@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using Content.Server._WF.MappingTools;
 using Content.Server.Administration.Logs;
@@ -7,6 +8,8 @@ using Content.Shared.Database;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Robust.Shared.ContentPack;
+using Robust.Shared.EntitySerialization.Systems;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
@@ -25,15 +28,31 @@ public sealed class WFMappingLibrarySystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _players = default!;
     [Dependency] private IResourceManager _res = default!;
+    [Dependency] private MapLoaderSystem _loader = default!;
     [Dependency] private MappingZLevelsSystem _zLevels = default!;
     [Dependency] private WFMappingModeSystem _mapping = default!;
+    [Dependency] private WFMappingVesselSystem _vessel = default!;
 
-    /// <summary>A version folder on disk: its name, level files by depth and size.</summary>
+    /// <summary>
+    /// A version folder on disk: its name, level files by depth, the grid and vessel files beside levels holding one
+    /// grid, each level's grid count from its file header (-1 when unreadable) and size.
+    /// </summary>
     public sealed class LibraryVersion(WFMappingVersionName name)
     {
         public readonly WFMappingVersionName Name = name;
         public readonly SortedDictionary<int, ResPath> Levels = new();
+        public readonly SortedDictionary<int, ResPath> Grids = new();
+        public readonly SortedDictionary<int, ResPath> Vessels = new();
+        public readonly SortedDictionary<int, int> GridCounts = new();
         public long Bytes;
+
+        /// <summary>Grids across every level, or -1 when a level's count couldn't be read.</summary>
+        public int TotalGrids => GridCounts.Values.Any(c => c < 0) ? -1 : GridCounts.Values.Sum();
+
+        /// <summary>The depth of the one grid file, when the whole version holds exactly that one grid.</summary>
+        public int? ShipDepth => TotalGrids == 1 && Grids.Count == 1 && GridCounts.GetValueOrDefault(Grids.Keys.First()) == 1
+            ? Grids.Keys.First()
+            : null;
     }
 
     /// <summary>A map folder on disk and its versions, oldest first.</summary>
@@ -119,9 +138,19 @@ public sealed class WFMappingLibrarySystem : EntitySystem
                 if (_res.UserData.IsDir(filePath))
                     continue;
 
-                version.Bytes += FileSize(filePath);
                 if (WFMappingLibraryNames.TryParseLevelFile(file, out var depth))
+                {
+                    version.Bytes += ReadLevelHeader(filePath, out var grids);
                     version.Levels[depth] = filePath;
+                    version.GridCounts[depth] = grids;
+                    continue;
+                }
+
+                version.Bytes += FileSize(filePath);
+                if (WFMappingLibraryNames.TryParseGridFile(file, out depth))
+                    version.Grids[depth] = filePath;
+                else if (WFMappingLibraryNames.TryParseVesselFile(file, out depth))
+                    version.Vessels[depth] = filePath;
             }
 
             map.Versions.Add(version);
@@ -136,6 +165,65 @@ public sealed class WFMappingLibrarySystem : EntitySystem
     {
         using var stream = _res.UserData.OpenRead(path);
         return stream.Length;
+    }
+
+    /// <summary>Lines of a level file's header read for its grid list; the list comes long before the entities.</summary>
+    private const int MaxHeaderLines = 4096;
+
+    /// <summary>
+    /// A level file's size, and how many grids its <c>grids:</c> header lists (-1 when the header has none), read
+    /// without parsing the file.
+    /// </summary>
+    private long ReadLevelHeader(ResPath path, out int grids)
+    {
+        using var stream = _res.UserData.OpenRead(path);
+        var bytes = stream.Length;
+        grids = -1;
+        try
+        {
+            grids = CountHeaderGrids(stream);
+        }
+        finally
+        {
+            // The in-memory data folder of tests reports a file's length as wherever it was last read up to.
+            stream.Position = bytes;
+            stream.ReadByte();
+        }
+
+        return bytes;
+    }
+
+    /// <summary>The length of the <c>grids:</c> list at the head of a map file, or -1 without one.</summary>
+    private static int CountHeaderGrids(Stream stream)
+    {
+        using var reader = new StreamReader(stream, leaveOpen: true);
+        var inList = false;
+        var count = 0;
+        for (var i = 0; i < MaxHeaderLines && reader.ReadLine() is { } line; i++)
+        {
+            if (inList)
+            {
+                if (!line.StartsWith("- ", StringComparison.Ordinal))
+                    return count;
+
+                count++;
+                continue;
+            }
+
+            if (line.StartsWith("grids:", StringComparison.Ordinal))
+            {
+                if (line.TrimEnd() == "grids: []")
+                    return 0;
+
+                inList = true;
+            }
+            else if (line.StartsWith("entities:", StringComparison.Ordinal))
+            {
+                break;
+            }
+        }
+
+        return inList ? count : -1;
     }
 
     /// <summary>The map whose folder matches a name, ignoring case as Windows does.</summary>
@@ -207,7 +295,8 @@ public sealed class WFMappingLibrarySystem : EntitySystem
             for (var i = map.Versions.Count - 1; i >= 0; i--)
             {
                 var version = map.Versions[i];
-                versions.Add(new WFMappingLibraryVersion(version.Name, version.Levels.Count, version.Bytes));
+                versions.Add(new WFMappingLibraryVersion(version.Name, version.Levels.Count, version.Bytes,
+                    version.ShipDepth != null));
             }
 
             maps.Add(new WFMappingLibraryMap(map.Name, versions));
@@ -400,7 +489,8 @@ public sealed class WFMappingLibrarySystem : EntitySystem
 
             written = folder;
             if (!_zLevels.TrySaveLevels(levels, ground,
-                    depth => WFMappingLibraryNames.LevelPath(user, folderName, versionName.Folder, depth)))
+                    depth => WFMappingLibraryNames.LevelPath(user, folderName, versionName.Folder, depth)) ||
+                !SaveGrids(levels, ground, user, folderName, versionName.Folder))
             {
                 DeleteQuietly(folder);
                 return SaveResult.Fail("wf-mapping-mode-save-failed");
@@ -440,6 +530,54 @@ public sealed class WFMappingLibrarySystem : EntitySystem
         {
             _scans.Remove(user);
         }
+    }
+
+    /// <summary>
+    /// Saves the grid of every level that holds exactly one as a grid file beside the level, with its generated vessel
+    /// prototype; false when a grid file failed. A vessel that fails to generate is only logged.
+    /// </summary>
+    private bool SaveGrids(List<EntityUid> levels, int ground, NetUserId user, string mapName, string version)
+    {
+        for (var i = 0; i < levels.Count; i++)
+        {
+            if (SingleGrid(levels[i]) is not { } grid)
+                continue;
+
+            var depth = i - ground;
+            if (!_loader.TrySaveGrid(grid, WFMappingLibraryNames.GridPath(user, mapName, version, depth)))
+                return false;
+
+            try
+            {
+                _res.UserData.WriteAllText(WFMappingLibraryNames.VesselPath(user, mapName, version, depth),
+                    _vessel.Generate(grid, mapName));
+            }
+            catch (Exception e)
+            {
+                Log.Warning($"Generating the vessel prototype of {ToPrettyString(grid)} for \"{mapName}\" failed: {e}");
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>The map's only grid, or null when it has none or several.</summary>
+    private EntityUid? SingleGrid(EntityUid map)
+    {
+        EntityUid? found = null;
+        var children = Transform(map).ChildEnumerator;
+        while (children.MoveNext(out var child))
+        {
+            if (!HasComp<MapGridComponent>(child))
+                continue;
+
+            if (found != null)
+                return null;
+
+            found = child;
+        }
+
+        return found;
     }
 
     private void DeleteQuietly(ResPath path)

@@ -38,6 +38,14 @@
                         </BoxContainer>
 
                         <Label Text="{Loc 'wf-mapping-mode-menu-grids'}" StyleClasses="LabelHeading" Margin="0 6 0 0" />
+                        <BoxContainer Orientation="Horizontal" SeparationOverride="6">
+                            <Label Name="GridsHint" Access="Public" StyleClasses="LabelSubText" VAlign="Center"
+                                   HorizontalExpand="True" ClipText="True" />
+                            <Button Name="NextGridButton" Access="Public" Text="{Loc 'wf-mapping-ship-menu-next-grid'}"
+                                    ToolTip="{Loc 'wf-mapping-ship-menu-next-grid-tooltip'}" TooltipDelay="0" />
+                            <Button Name="GridsRefreshButton" Access="Public" Text="{Loc 'wf-mapping-mode-lobby-refresh'}" />
+                        </BoxContainer>
+                        <BoxContainer Name="GridList" Access="Public" Orientation="Vertical" SeparationOverride="2" />
                         <controls:ConfirmButton Name="DeleteGridButton" Access="Public"
                                                 Text="{Loc 'wf-mapping-mode-menu-delete-grid'}"
                                                 ToolTip="{Loc 'wf-mapping-mode-menu-delete-grid-tooltip'}"
@@ -56,6 +64,12 @@
                                     Text="{Loc 'wf-mapping-mode-menu-reference-place'}" />
                         </BoxContainer>
 
+                        <Label Text="{Loc 'wf-mapping-modebar-menu-screen'}" StyleClasses="LabelHeading"
+                               Margin="0 6 0 0" />
+                        <Button Name="ResetLayoutButton" Access="Public" HorizontalAlignment="Left"
+                                Text="{Loc 'wf-mapping-modebar-menu-reset'}"
+                                ToolTip="{Loc 'wf-mapping-modebar-menu-reset-tooltip'}" TooltipDelay="0" />
+
                         <controls:ConfirmButton Name="LeaveButton" Access="Public" Margin="0 12 0 0"
                                                 Text="{Loc 'wf-mapping-mode-menu-leave'}"
                                                 ToolTip="{Loc 'wf-mapping-mode-menu-leave-tooltip'}"
@@ -72,6 +86,9 @@
                     <Button Name="SaveButton" Access="Public" Text="{Loc 'wf-mapping-mode-menu-save-now'}" />
                 </BoxContainer>
                 <Label Text="{Loc 'wf-mapping-mode-menu-save-hint'}" StyleClasses="LabelSubText" />
+                <Button Name="ShipDownloadButton" Access="Public" HorizontalAlignment="Left" Margin="0 8 0 0"
+                        Text="{Loc 'wf-mapping-ship-menu-download'}"
+                        ToolTip="{Loc 'wf-mapping-ship-menu-download-tooltip'}" TooltipDelay="0" />
                 <Label Name="LastSavedLabel" Access="Public" Margin="0 8 0 0" />
                 <Label Name="NextAutosaveLabel" Access="Public" />
                 <Label Name="DirtyLabel" Access="Public" StyleClasses="LabelSubText" />

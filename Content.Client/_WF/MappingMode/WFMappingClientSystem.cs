@@ -89,6 +89,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         SubscribeLocalEvent<LocalPlayerDetachedEvent>(OnDetached);
 
         InitializeDownload();
+        InitializeGrids();
     }
 
     public override void Shutdown()

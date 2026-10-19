@@ -25,8 +25,9 @@ public readonly record struct WFMappingVersionName(int Number, DateTime Stamp, W
 }
 
 /// <summary>
-/// Names and paths of the per-player map library:
-/// <c>/Mapping/Library/&lt;NetUserId&gt;/&lt;MapName&gt;/v&lt;NNNN&gt;_&lt;yyyyMMdd-HHmmss&gt;_&lt;kind&gt;/z&lt;D&gt;.yml</c>.
+/// Names and paths of the per-player map library,
+/// <c>/Mapping/Library/&lt;NetUserId&gt;/&lt;MapName&gt;/v&lt;NNNN&gt;_&lt;yyyyMMdd-HHmmss&gt;_&lt;kind&gt;/z&lt;D&gt;.yml</c> with
+/// <c>z&lt;D&gt;.grid.yml</c> and <c>z&lt;D&gt;.vessel.yml</c> beside a level holding one grid, and of downloads.
 /// </summary>
 public static class WFMappingLibraryNames
 {
@@ -149,23 +150,57 @@ public static class WFMappingLibraryNames
         return IsValidMapName(name) ? name : UploadFallbackName;
     }
 
+    private const string LevelSuffix = ".yml";
+    private const string GridSuffix = ".grid.yml";
+    private const string VesselSuffix = ".vessel.yml";
+
     /// <summary>The file a level is saved to inside a version folder: <c>z0.yml</c> for the ground.</summary>
     public static string LevelFile(int depth)
     {
-        return $"z{depth.ToString(CultureInfo.InvariantCulture)}.yml";
+        return $"z{depth.ToString(CultureInfo.InvariantCulture)}{LevelSuffix}";
+    }
+
+    /// <summary>The grid file saved beside a level that holds exactly one grid: <c>z0.grid.yml</c>.</summary>
+    public static string GridFile(int depth)
+    {
+        return $"z{depth.ToString(CultureInfo.InvariantCulture)}{GridSuffix}";
+    }
+
+    /// <summary>The generated vessel prototype saved beside a grid file: <c>z0.vessel.yml</c>.</summary>
+    public static string VesselFile(int depth)
+    {
+        return $"z{depth.ToString(CultureInfo.InvariantCulture)}{VesselSuffix}";
     }
 
     /// <summary>Reads a level file name back to its depth.</summary>
     public static bool TryParseLevelFile(string fileName, out int depth)
     {
+        return TryParseDepthFile(fileName, LevelSuffix, out depth) && LevelFile(depth) == fileName;
+    }
+
+    /// <summary>Reads a grid file name back to its depth.</summary>
+    public static bool TryParseGridFile(string fileName, out int depth)
+    {
+        return TryParseDepthFile(fileName, GridSuffix, out depth) && GridFile(depth) == fileName;
+    }
+
+    /// <summary>Reads a vessel file name back to its depth.</summary>
+    public static bool TryParseVesselFile(string fileName, out int depth)
+    {
+        return TryParseDepthFile(fileName, VesselSuffix, out depth) && VesselFile(depth) == fileName;
+    }
+
+    /// <summary>Reads <c>z&lt;D&gt;</c> followed by exactly <paramref name="suffix"/>.</summary>
+    private static bool TryParseDepthFile(string fileName, string suffix, out int depth)
+    {
         depth = 0;
-        if (fileName.Length < 6 || fileName.Length > 16 || fileName[0] != 'z' ||
-            !fileName.EndsWith(".yml", StringComparison.Ordinal))
+        if (fileName.Length < suffix.Length + 2 || fileName.Length > suffix.Length + 12 || fileName[0] != 'z' ||
+            !fileName.EndsWith(suffix, StringComparison.Ordinal))
         {
             return false;
         }
 
-        var digits = fileName.AsSpan(1, fileName.Length - 5);
+        var digits = fileName.AsSpan(1, fileName.Length - suffix.Length - 1);
         var start = digits[0] == '-' ? 1 : 0;
         if (digits.Length == start)
             return false;
@@ -176,8 +211,38 @@ public static class WFMappingLibraryNames
                 return false;
         }
 
-        return int.TryParse(digits, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out depth) &&
-               LevelFile(depth) == fileName;
+        return int.TryParse(digits, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out depth);
+    }
+
+    /// <summary>A single-level download's file: <c>&lt;MapName&gt;.yml</c>, also the grid of a ship download.</summary>
+    public static string DownloadMapFile(string mapName)
+    {
+        return mapName + LevelSuffix;
+    }
+
+    /// <summary>One level of a multi-level download: <c>&lt;MapName&gt;_z&lt;D&gt;.yml</c>.</summary>
+    public static string DownloadLevelFile(string mapName, int depth)
+    {
+        return $"{mapName}_{LevelFile(depth)}";
+    }
+
+    /// <summary>The vessel prototype of a ship download: <c>&lt;MapName&gt;.vessel.yml</c>.</summary>
+    public static string DownloadVesselFile(string mapName)
+    {
+        return mapName + VesselSuffix;
+    }
+
+    /// <summary>Whether a downloaded file name is one the server may send for <paramref name="mapName"/>.</summary>
+    public static bool IsDownloadFile(string mapName, string fileName)
+    {
+        if (!IsValidMapName(mapName) || !fileName.StartsWith(mapName, StringComparison.Ordinal))
+            return false;
+
+        if (fileName == DownloadMapFile(mapName) || fileName == DownloadVesselFile(mapName))
+            return true;
+
+        var rest = fileName.Substring(mapName.Length);
+        return rest.Length > 1 && rest[0] == '_' && TryParseLevelFile(rest.Substring(1), out _);
     }
 
     public static ResPath UserFolder(NetUserId user)
@@ -200,7 +265,17 @@ public static class WFMappingLibraryNames
         return VersionFolder(user, mapName, version) / LevelFile(depth);
     }
 
-    /// <summary>Where the client writes a downloaded level: <c>/Mapping/&lt;MapName&gt;/&lt;version&gt;/z&lt;D&gt;.yml</c>.</summary>
+    public static ResPath GridPath(NetUserId user, string mapName, string version, int depth)
+    {
+        return VersionFolder(user, mapName, version) / GridFile(depth);
+    }
+
+    public static ResPath VesselPath(NetUserId user, string mapName, string version, int depth)
+    {
+        return VersionFolder(user, mapName, version) / VesselFile(depth);
+    }
+
+    /// <summary>Where the client writes a downloaded file: <c>/Mapping/&lt;MapName&gt;/&lt;version&gt;/&lt;file&gt;</c>.</summary>
     public static ResPath DownloadPath(string mapName, string version, string fileName)
     {
         return DownloadRoot / mapName / version / fileName;

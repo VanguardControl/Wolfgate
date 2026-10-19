@@ -81,6 +81,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         InitializeLimits();
         InitializeAutosave();
         InitializeRiders();
+        InitializeGrids();
 
         Subs.CVar(_cfg, WFMappingModeCVars.Enabled, OnEnabledChanged, true);
         _initialized = true;

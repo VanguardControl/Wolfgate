@@ -38,12 +38,23 @@ unless noted, all under `wf.mapping_mode.`:
 Players see a mapping panel in the lobby instead of the ready button. New map takes a name and makes a session with a
 fresh map and a six character join code. Join takes a code. Your sessions lists the ones you can rejoin after a
 reconnect, and My maps lists the library: Open starts a new session from a version, Download copies it to the
-client, Delete asks for a second click. In game, the Mapping entry of the escape menu opens the Mapping window. Its
-Session tab shows the name, join code (Copy, and New code for the owner, which revokes the old one), the live limits,
-members (the owner can remove them for good and set the autosave step), Delete the grid under me, Load reference and
-Leave. Save saves into your own library under a name
-(blank uses the session name); Library lists, downloads and deletes. Downloads land in the client's
-`Mapping/<map>/<version>/` data folder, with an Open folder button.
+client, Ship downloads it as a ship, Delete asks for a second click. In game, the Mapping entry of the escape menu
+opens the Mapping window. Its Session tab shows the name, join code (Copy, and New code for the owner, which revokes
+the old one), the live limits, members (the owner can remove them for good and set the autosave step), the grids on
+your level (tiles, entities and Go to, with Next grid to cycle through them largest first), Delete the grid under me,
+Load reference, Reset layout (the mode bar) and Leave. Save saves into your own library under a name (blank uses the
+session name), and Download as ship downloads the newest saved version of that name as a ship; Library lists,
+downloads and deletes. Opening a map, rejoining and placing a reference put you at the centre of the largest grid
+instead of the origin.
+
+Downloads land in the client's `Mapping/<map>/<version>/` data folder, with an Open folder button. A map of one level
+arrives as `<map>.yml`: its grid file when the level holds exactly one grid, so it loads straight into the game as a
+ship, else the map file. A map of several levels arrives as `<map>_z<D>.yml` per level. A ship download, from Ship in
+the library or Download as ship in the Save tab, sends the version's one grid as `<map>.yml` and a generated vessel
+prototype as `<map>.vessel.yml`; it is refused, saying why, when the version has no grid, several grids, or was saved
+before grid files were kept. The vessel file's comment header says where both files go:
+`Resources/SharedMaps/_WF/Community/<file>.yml` and `Resources/Prototypes/_WF/Community/<file>.yml`, where `<file>` is
+the map name in lower case with `_` between words.
 
 Reference grids are game ships (`/SharedMaps`), game maps (`/Maps`) or a level of your own library, loaded onto your
 session's map to copy from. Pick one, move the outline, R turns it, click puts it down, Escape or right click drops
@@ -56,7 +67,7 @@ map; the raw file never touches disk. Open then starts a session from it.
 
 In a session the player gets the mapping screen instead of the game layout. The palette (Entities, Tiles and Decals
 tabs, with search, favourites, recents and a strip of the last 12 entries) is docked on the left; the viewport sits in
-the middle with the mode rail on top, the quick-select bar at the bottom and the cursor readout bottom left; the
+the middle with the mode bar, the quick-select bar at the bottom and the cursor readout bottom left; the
 Properties, Tools, Layers, Template and Keys tabs sit over the chat on the right. Each docked panel has an Undock
 button that moves it into its own window, which the window pop-out can take out of the game; closing the window docks
 it again. Once every panel of a column is undocked (the palette on the left, all five tabs on the right) that column
@@ -64,7 +75,13 @@ collapses and the viewport takes its width; while the right column is gone the c
 right. Docking any of its panels brings the column back. `ui.layout` is ignored while in a session and back in force on
 leaving.
 
-Build modes, on keys 1 to 8 or the rail:
+The mode bar starts bottom left, above the quick bar and the readout and below the menu bar, lying flat when the
+viewport is wide enough and standing upright otherwise. Its grab handle drags it anywhere over the viewport; let go
+near an edge and it snaps there, standing upright on the left or right edge alone and lying flat on the top or bottom
+edge alone. Its place is kept in `Mapping/screen.yml` of the client data folder and restored with the screen; Reset
+layout in the Session tab puts it back and forgets the file.
+
+Build modes, on keys 1 to 8 or the mode bar:
 
 - Place (1): left click places the selected entry as the engine does, right click erases the entity or tile under the
   cursor (a decal entry leaves it to the decal eraser), middle click eyedrops, Ctrl+wheel or R turns it, Escape
@@ -125,8 +142,10 @@ parts), `WFMappingLibrarySystem` (library, versions, open, delete), `WFMappingDo
 `WFMappingClientSystem` (client state and setup), `WFMappingLobbyUIController` and `WFMappingLobbyPanel` (lobby),
 `WFMappingMenuUIController` and `WFMappingMenuWindow` (Mapping window), `WFMappingReferenceSystem` (reference
 placement), `WFMappingBoundsOverlay` (map limit border), `WFMappingUploadSystem` and `WFMappingUploadValidator`
-(server upload), `WFMappingUploadClientSystem` (client upload). The mapping screen is `WFMappingScreen` and
-`WFMappingScreenUIController` (`Screen/`), the modes `WFMappingBuildModeSystem` and its handlers (`Modes/`), the
+(server upload), `WFMappingVesselSystem` and the pure `WFMappingVesselYaml` (server; the vessel prototype written
+beside a grid file), `WFMappingUploadClientSystem` (client upload). The mapping screen is `WFMappingScreen` and
+`WFMappingScreenUIController` (`Screen/`, with the mode bar `WFMappingModeBar` and its saved place
+`WFMappingScreenLayout`), the modes `WFMappingBuildModeSystem` and its handlers (`Modes/`), the
 palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` (`Template/`) and quick select
 `WFMappingQuickSelectSystem` (`QuickSelect/`), all client. Cvars are in `WFMappingModeCVars` and key functions in
 `WFMappingKeyFunctions`. The `WFMappingObserver` prototype is in `Resources/Prototypes/_WF/MappingMode`.
@@ -162,16 +181,34 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
   straight after, and one loads at a time per `reference_cooldown`. Throttles per player: edits as above, tool
   requests 10/s, create, join and open 1 per 3 s, manual save 1 per 10 s, kick 1/s, reference list 2/s, pick 1 per 5 s.
 - Library on disk: `/Mapping/Library/<NetUserId>/<MapName>/v<NNNN>_<yyyyMMdd-HHmmss>_<manual|auto|upload>/z<D>.yml`
-  in the server data folder, one file per level with 0 the ground. There is no index; listings are read from folder names and
-  cached for 30 s. Map names are 1 to 48 letters, digits, spaces, dashes or underscores, and not a Windows device
+  in the server data folder, one file per level with 0 the ground. Every save (manual, auto or upload) also writes
+  `z<D>.grid.yml` (`MapLoaderSystem.TrySaveGrid`) and `z<D>.vessel.yml` beside each level that holds exactly one grid;
+  they count towards the library size. There is no index; listings are read from folder names, plus the `grids:` list
+  at the head of each level file, and cached for 30 s. A version is listed as a ship when it holds exactly one grid in
+  all and has that grid's file. Reference lists show level files only. Map names are 1 to 48 letters, digits, spaces, dashes or underscores, and not a Windows device
   name. Pruning keeps `max_versions`, removes `auto` versions before `manual` and `upload` ones and never the newest. Only the
   owner's manual save or an autosave clears the dirty flag, as autosaves go to the owner's library. Autosave steps
   are Off, 1, 2, 5, 10 and 15 minutes, clamped to the cvar range; at most one session is saved per tick, and the
   first check is offset at random so sessions don't line up. A round restart saves every dirty session at once.
-- Download: the server sends each level as its own transfer in chunks of up to 256 KiB, two in flight, each acked in
+- Download: the server sends each file as its own transfer in chunks of up to 256 KiB, two in flight, each acked in
   order; 32 MiB per file, one download at a time per player, dropped after 30 s without an ack. The client assembles
   with `WFMappingDownloadAssembler` (pure and shared, so a unit test can cover it), checks the map name, version
-  folder and `z<D>.yml` name before writing, and deletes what it wrote if a chunk is damaged or the server cancels.
+  folder and file name (`<map>.yml`, `<map>_z<D>.yml` or `<map>.vessel.yml`) before writing, and deletes what it wrote
+  if a chunk is damaged or the server cancels.
+- Vessel prototype: written at save time from the live grid, so the appraisal sees it as saved (map-uninitialised,
+  so random container fills aren't counted). `id` is `WF` and the map name's words in PascalCase, `name` the map name,
+  `description` a placeholder, `parent: BaseVessel`, `group: Shipyard`, `guidebookPage: null`, `shuttlePath`
+  `/SharedMaps/_WF/Community/<file>.yml`, with a `gameMap` of the same id as the shipyard vessels have. `price` is
+  the `PricingSystem.AppraiseGrid` value plus 25 %, rounded up to 500 below 20,000, 1,000 below 100,000 and 5,000
+  above, at least 1,000. `category` goes by tiles: Micro under 50, Small under 200, Medium under 500, else Large
+  (the Small, Medium and Large medians of the existing vessels are 132, 338 and 744 tiles). `class` is Cargo for a
+  cargo pallet, Salvage for mining gear (ore processor, ore box, ore magnet, salvage magnet, pickaxe, mining drill)
+  and Mercenary for an anchored gun, or Civilian when none of them is on the grid. `engine` comes from the prototype
+  ids of what stands on the grid: AME controller, P.A.C.M.A.N.s (plasma, uranium, welding fuel, bananium), pinch
+  generators, reactors, RTGs, APUs, solar panels, TEG, supermatter, tesla and singularity generators.
+- Grids list and Go to: the client asks for the grids of its level every 3 s while the Session tab shows; the server
+  answers for the level the observer is on if it is a session map, and moves the observer to a grid's bounds centre
+  (`SetMapCoordinates`) only when the grid is on one of the player's session maps. Entity counts leave out players.
 - Upload: 128 KiB chunks, two in flight, put together by the pure `WFMappingUploadAssembler`. Every begin is
   answered, and a refused one costs no cooldown. The file is scanned for anchors, aliases, nesting over 64 and more
   than one document, parsed, its prototype ids checked through the loader's renames, then loaded onto a paused scratch
@@ -225,6 +262,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Admin.cs`](WFMappingModeSystem.Admin.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Autosave.cs`](WFMappingModeSystem.Autosave.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.cs`](WFMappingModeSystem.cs)
+- [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Grids.cs`](WFMappingModeSystem.Grids.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Guard.cs`](WFMappingModeSystem.Guard.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Limits.cs`](WFMappingModeSystem.Limits.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Reference.cs`](WFMappingModeSystem.Reference.cs)
@@ -235,12 +273,15 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Content.Server/_WF/MappingMode/WFMappingSessionMapComponent.cs`](WFMappingSessionMapComponent.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingUploadSystem.cs`](WFMappingUploadSystem.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingUploadValidator.cs`](WFMappingUploadValidator.cs)
+- [`Content.Server/_WF/MappingMode/WFMappingVesselSystem.cs`](WFMappingVesselSystem.cs)
+- [`Content.Server/_WF/MappingMode/WFMappingVesselYaml.cs`](WFMappingVesselYaml.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/MappingMode/WFMappingAdminEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingAdminEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingDownloadAssembler.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingDownloadAssembler.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingFootprint.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingFootprint.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingGridEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingGridEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingKeyFunctions.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingKeyFunctions.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingLibraryEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingLibraryEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingLibraryNames.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingLibraryNames.cs)
@@ -291,8 +332,10 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Content.Client/_WF/MappingMode/QuickSelect/WFMappingQuickSlot.cs`](../../../Content.Client/_WF/MappingMode/QuickSelect/WFMappingQuickSlot.cs)
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingDockSlot.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingDockSlot.cs)
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingDockWindow.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingDockWindow.cs)
+- [`Content.Client/_WF/MappingMode/Screen/WFMappingModeBar.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingModeBar.cs)
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml)
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml.cs)
+- [`Content.Client/_WF/MappingMode/Screen/WFMappingScreenLayout.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreenLayout.cs)
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingScreenUIController.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreenUIController.cs)
 - [`Content.Client/_WF/MappingMode/Template/WFMappingPngHeader.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingPngHeader.cs)
 - [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateMode.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateMode.cs)
@@ -304,6 +347,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Content.Client/_WF/MappingMode/WFMappingBoundsOverlay.cs`](../../../Content.Client/_WF/MappingMode/WFMappingBoundsOverlay.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Download.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Download.cs)
+- [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Grids.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Grids.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingLibraryList.cs`](../../../Content.Client/_WF/MappingMode/WFMappingLibraryList.cs)
@@ -326,11 +370,13 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLimitsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLimitsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeBarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeBarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeTestUtil.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeTestUtil.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPermissionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPermissionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingReferenceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingReferenceTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingScreenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingScreenTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingSessionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingSessionTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingShipTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingShipTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTickerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTickerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadTest.cs)
 
@@ -341,10 +387,12 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Content.Tests/_WF/MappingMode/WFMappingLibraryNamesTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingLibraryNamesTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingPruneTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingPruneTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingQuickSelectStoreTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingQuickSelectStoreTest.cs)
+- [`Content.Tests/_WF/MappingMode/WFMappingScreenLayoutTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingScreenLayoutTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingSessionCodesTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingSessionCodesTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingTemplateSettingsTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingTemplateSettingsTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingThrottleTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingThrottleTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingUploadAssemblerTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingUploadAssemblerTest.cs)
+- [`Content.Tests/_WF/MappingMode/WFMappingVesselYamlTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingVesselYamlTest.cs)
 
 ### Prototypes
 
@@ -355,6 +403,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-mode.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-mode.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-quickselect.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-quickselect.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-screen.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-screen.ftl)
+- [`Resources/Locale/en-US/_WF/MappingMode/mapping-ship.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-ship.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-template.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-template.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-upload.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-upload.ftl)
 
@@ -369,6 +418,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Docs/_WF/MappingMode/P8-NOTES.md`](../../../Docs/_WF/MappingMode/P8-NOTES.md)
 - [`Docs/_WF/MappingMode/PLAN.md`](../../../Docs/_WF/MappingMode/PLAN.md)
 - [`Docs/_WF/MappingMode/PLAN2.md`](../../../Docs/_WF/MappingMode/PLAN2.md)
+- [`Docs/_WF/MappingMode/R1-NOTES.md`](../../../Docs/_WF/MappingMode/R1-NOTES.md)
 - [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)
 - [`Docs/_WF/MappingMode/S1-NOTES.md`](../../../Docs/_WF/MappingMode/S1-NOTES.md)
 - [`Docs/_WF/MappingMode/S2-NOTES.md`](../../../Docs/_WF/MappingMode/S2-NOTES.md)

@@ -176,8 +176,9 @@ public sealed class WFMappingLibraryTest
             RaiseAs(server.EntMan, pair.Player!, new WFMappingDownloadRequest(map, null));
         });
 
-        var groundPath = WFMappingLibraryNames.DownloadPath(map, version, WFMappingLibraryNames.LevelFile(0));
-        var upperPath = WFMappingLibraryNames.DownloadPath(map, version, WFMappingLibraryNames.LevelFile(1));
+        // Several levels arrive as <MapName>_z<D>.yml.
+        var groundPath = WFMappingLibraryNames.DownloadPath(map, version, "Download Test_z0.yml");
+        var upperPath = WFMappingLibraryNames.DownloadPath(map, version, "Download Test_z1.yml");
         for (var i = 0; i < 300 && !clientRes.UserData.Exists(upperPath); i++)
         {
             await pair.RunTicksSync(1);

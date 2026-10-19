@@ -13,9 +13,12 @@ public static class WFMappingAutosaveSteps
     }
 }
 
-/// <summary>One saved version of a library map.</summary>
+/// <summary>
+/// One saved version of a library map. <see cref="Ship"/> is set when the version holds exactly one grid and its grid
+/// file was saved, so it downloads as a ship.
+/// </summary>
 [Serializable, NetSerializable]
-public readonly record struct WFMappingLibraryVersion(WFMappingVersionName Name, int Levels, long Bytes);
+public readonly record struct WFMappingLibraryVersion(WFMappingVersionName Name, int Levels, long Bytes, bool Ship);
 
 /// <summary>A map in a player's library and its versions, newest first.</summary>
 [Serializable, NetSerializable]
@@ -71,12 +74,16 @@ public sealed class WFMappingLibraryEvent(List<WFMappingLibraryMap> maps, long b
     public readonly int MaxVersions = maxVersions;
 }
 
-/// <summary>Downloads every level of a version of a library map; null means the newest.</summary>
+/// <summary>
+/// Downloads a version of a library map, null meaning the newest: every level, or with <see cref="Ship"/> its one grid
+/// and the generated vessel prototype.
+/// </summary>
 [Serializable, NetSerializable]
-public sealed class WFMappingDownloadRequest(string mapName, string? version) : EntityEventArgs
+public sealed class WFMappingDownloadRequest(string mapName, string? version, bool ship = false) : EntityEventArgs
 {
     public readonly string MapName = mapName;
     public readonly string? Version = version;
+    public readonly bool Ship = ship;
 }
 
 /// <summary>Stops the player's download.</summary>

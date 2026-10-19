@@ -234,3 +234,10 @@ wf-mapping-mode-menu-clean = No unsaved changes.
 ## Map limit overlay
 
 wf-mapping-mode-bounds-label = {$size} × {$size} map limit
+
+## Mode bar
+
+wf-mapping-modebar-handle-tooltip = Drag to move the mode bar. It snaps to the edges of the view, and stands upright on a side edge.
+wf-mapping-modebar-menu-screen = Screen
+wf-mapping-modebar-menu-reset = Reset layout
+wf-mapping-modebar-menu-reset-tooltip = Put the mode bar back in its default place, bottom left.

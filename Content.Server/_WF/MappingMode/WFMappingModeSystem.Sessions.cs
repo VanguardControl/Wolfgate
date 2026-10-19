@@ -275,8 +275,8 @@ public sealed partial class WFMappingModeSystem
     }
 
     /// <summary>
-    /// Makes a player a present member: joins them to the game and attaches them to a new observer at the origin of
-    /// the session's ground level.
+    /// Makes a player a present member: joins them to the game and attaches them to a new observer at the centre of
+    /// the largest grid on the session's ground level, or its origin when it has none.
     /// </summary>
     private void Enter(ICommonSession player, WFMappingSession session)
     {
@@ -288,17 +288,18 @@ public sealed partial class WFMappingModeSystem
         if (!session.Members.ContainsKey(session.Owner))
             session.Owner = user;
 
-        var observer = SpawnAttached(player, ObserverPrototype, Comp<MapComponent>(session.RootMap).MapId);
+        var observer = SpawnAttached(player, ObserverPrototype, Comp<MapComponent>(session.RootMap).MapId,
+            LargestGridCentre(session.RootMap) ?? Vector2.Zero);
         session.Present[user] = observer;
         session.EmptySince = null;
         SendState(session);
     }
 
     /// <summary>
-    /// Joins a player to the game in a fresh mind on a new entity of <paramref name="prototype"/> at the origin of
-    /// <paramref name="map"/>.
+    /// Joins a player to the game in a fresh mind on a new entity of <paramref name="prototype"/> at
+    /// <paramref name="position"/> on <paramref name="map"/>.
     /// </summary>
-    private EntityUid SpawnAttached(ICommonSession player, EntProtoId prototype, MapId map)
+    private EntityUid SpawnAttached(ICommonSession player, EntProtoId prototype, MapId map, Vector2 position = default)
     {
         _ticker.PlayerJoinGame(player, silent: true);
         _mind.WipeMind(player);
@@ -306,7 +307,7 @@ public sealed partial class WFMappingModeSystem
 
         // Spawned in nullspace first so it map-initialises; the session's map never is.
         var entity = Spawn(prototype);
-        _transform.SetMapCoordinates(entity, new MapCoordinates(Vector2.Zero, map));
+        _transform.SetMapCoordinates(entity, new MapCoordinates(position, map));
         _mind.TransferTo(mind, entity);
         return entity;
     }
@@ -496,6 +497,7 @@ public sealed partial class WFMappingModeSystem
         _joinThrottle.Forget(user);
         _toolsThrottle.Forget(user);
         _editThrottle.Forget(user);
+        _gridThrottle.Forget(user);
     }
 
     private void OnPlayerJoinedLobby(PlayerJoinedLobbyEvent ev)
@@ -637,6 +639,7 @@ public sealed partial class WFMappingModeSystem
         _listThrottle.Clear();
         _pickThrottle.Clear();
         _confirmThrottle.Clear();
+        _gridThrottle.Clear();
     }
 
     /// <summary>Sends every online member their view of a session.</summary>

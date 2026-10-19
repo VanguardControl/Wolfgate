@@ -45,6 +45,12 @@ public sealed partial class WFMappingClientSystem
         RaiseNetworkEvent(new WFMappingDownloadRequest(mapName, version));
     }
 
+    /// <summary>Asks for a library version's one grid and its generated vessel prototype; null is the newest.</summary>
+    public void RequestShipDownload(string mapName, string? version)
+    {
+        RaiseNetworkEvent(new WFMappingDownloadRequest(mapName, version, ship: true));
+    }
+
     public void CancelDownload()
     {
         RaiseNetworkEvent(new WFMappingDownloadCancelRequest());
@@ -87,7 +93,8 @@ public sealed partial class WFMappingClientSystem
         if (_assembler == null || _assembler.TransferId != ev.TransferId)
         {
             if (ev.Chunk != 0 ||
-                !WFMappingDownloadAssembler.TryCreate(ev.TransferId, ev.FileName, ev.ChunkCount, out var assembler))
+                !WFMappingDownloadAssembler.TryCreate(ev.TransferId, ev.MapName, ev.FileName, ev.ChunkCount,
+                    out var assembler))
             {
                 Fail(ev.TransferId, "wf-mapping-mode-download-bad-data");
                 return;

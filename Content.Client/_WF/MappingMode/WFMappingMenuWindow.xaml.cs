@@ -29,6 +29,13 @@ public sealed partial class WFMappingMenuWindow : FancyWindow
     public event Action<NetUserId>? KickRequested;
     public event Action<int>? AutosaveRequested;
     public event Action<string>? ReferencePicked;
+    public event Action<NetEntity>? GoToGridRequested;
+
+    /// <summary>Raised every few seconds while the Session tab shows, so the grid list follows level changes.</summary>
+    public event Action? GridsWanted;
+
+    private static readonly TimeSpan GridsInterval = TimeSpan.FromSeconds(3);
+    private TimeSpan _nextGrids;
 
     public WFMappingMenuWindow()
     {
@@ -146,6 +153,34 @@ public sealed partial class WFMappingMenuWindow : FancyWindow
                 ("max", WFMappingLibraryList.FormatMiB(library.MaxBytes)));
     }
 
+    /// <summary>One row per grid on the mapper's level: tiles, entities and Go to.</summary>
+    public void SetGrids(List<WFMappingGridInfo> grids)
+    {
+        GridList.RemoveAllChildren();
+        NextGridButton.Disabled = grids.Count == 0;
+        GridsHint.Text = grids.Count == 0
+            ? Loc.GetString("wf-mapping-ship-menu-grids-none")
+            : Loc.GetString("wf-mapping-ship-menu-grids-count", ("count", grids.Count));
+
+        foreach (var grid in grids)
+        {
+            var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 4 };
+            row.AddChild(new Label
+            {
+                Text = Loc.GetString("wf-mapping-ship-menu-grid-row", ("name", grid.Name), ("tiles", grid.Tiles),
+                    ("entities", grid.Entities)),
+                HorizontalExpand = true,
+                ClipText = true,
+            });
+
+            var target = grid.Grid;
+            var goTo = new Button { Text = Loc.GetString("wf-mapping-ship-menu-goto") };
+            goTo.OnPressed += _ => GoToGridRequested?.Invoke(target);
+            row.AddChild(goTo);
+            GridList.AddChild(row);
+        }
+    }
+
     public void SetReferenceFiles(List<MappingMapFile> files)
     {
         _referenceFiles = files;
@@ -168,6 +203,13 @@ public sealed partial class WFMappingMenuWindow : FancyWindow
     {
         base.FrameUpdate(args);
         UpdateSaveTimes();
+
+        var now = _timing.RealTime;
+        if (now < _nextGrids || !SessionBox.VisibleInTree)
+            return;
+
+        _nextGrids = now + GridsInterval;
+        GridsWanted?.Invoke();
     }
 
     private void UpdateSaveTimes()

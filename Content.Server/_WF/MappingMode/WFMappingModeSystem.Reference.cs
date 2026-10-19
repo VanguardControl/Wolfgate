@@ -88,6 +88,7 @@ public sealed partial class WFMappingModeSystem
         return result;
     }
 
+    /// <summary>Level files under a library folder; the grid and vessel files beside them are left out.</summary>
     private void FindLibraryFiles(ResPath dir, List<ResPath> found, int depth)
     {
         if (!_res.UserData.IsDir(dir))
@@ -101,7 +102,7 @@ public sealed partial class WFMappingModeSystem
                 if (depth < MaxLibraryDepth)
                     FindLibraryFiles(path, found, depth + 1);
             }
-            else if (path.Extension == "yml")
+            else if (WFMappingLibraryNames.TryParseLevelFile(entry, out _))
             {
                 found.Add(path);
             }
@@ -533,6 +534,7 @@ public sealed partial class WFMappingModeSystem
 
         _references.Remove(player.UserId);
         Del(pending.Scratch);
+        MoveToLargest(player, map, pending.Grids.Select(g => g.Grid));
 
         MarkDirty(session);
         session.CountedAt = TimeSpan.Zero;

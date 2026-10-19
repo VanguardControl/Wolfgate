@@ -1,4 +1,5 @@
 using Content.Client.Administration.Managers;
+using Content.Client._WF.MappingMode.Screen;
 using Content.Client.Gameplay;
 using Content.Shared._WF.MappingMode;
 using Content.Shared._WF.MappingTools;
@@ -48,6 +49,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         system.ResultReceived += UpdateResult;
         system.DownloadUpdated += UpdateDownload;
         system.SessionEnded += UpdateSession;
+        system.GridsUpdated += UpdateGrids;
     }
 
     public void OnSystemUnloaded(WFMappingClientSystem system)
@@ -58,6 +60,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         system.ResultReceived -= UpdateResult;
         system.DownloadUpdated -= UpdateDownload;
         system.SessionEnded -= UpdateSession;
+        system.GridsUpdated -= UpdateGrids;
     }
 
     public void OnSystemLoaded(WFMappingReferenceSystem system)
@@ -103,6 +106,12 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.NewCodeButton.OnPressed += _ => _mapping.Send(new WFMappingNewCodeRequest());
         window.AutosaveRequested += minutes => _mapping.Send(new WFMappingAutosaveStepRequest(minutes));
         window.DeleteGridButton.OnPressed += _ => DeleteGrid();
+        window.GoToGridRequested += grid => _mapping.GoToGrid(grid);
+        window.NextGridButton.OnPressed += _ => _mapping.GoToNextGrid();
+        window.GridsRefreshButton.OnPressed += _ => _mapping.RequestGrids();
+        window.GridsWanted += () => _mapping.RequestGrids();
+        window.ResetLayoutButton.OnPressed += _ => UIManager.GetUIController<WFMappingScreenUIController>().ResetLayout();
+        window.ShipDownloadButton.OnPressed += _ => DownloadShip();
         window.ReferenceButton.OnToggled += args =>
         {
             if (args.Pressed)
@@ -114,6 +123,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.SaveNameEdit.OnTextEntered += _ => Save();
         window.LibraryRefreshButton.OnPressed += _ => _mapping.Send(new WFMappingLibraryRequest());
         window.LibraryList.DownloadRequested += (map, version) => _mapping.RequestDownload(map, version);
+        window.LibraryList.ShipRequested += (map, version) => _mapping.RequestShipDownload(map, version);
         window.LibraryList.DeleteRequested += (map, version) => _mapping.Send(new WFMappingDeleteRequest(map, version));
         window.DownloadRow.CancelPressed += () => _mapping.CancelDownload();
         window.DownloadRow.OpenFolderPressed += () => _mapping.OpenDownloadFolder();
@@ -122,6 +132,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
 
         UpdateSession();
         UpdateLibrary();
+        UpdateGrids();
         UpdateReferences();
         UpdateDownload();
         UpdateUpload();
@@ -129,6 +140,25 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.OpenCentered();
 
         _mapping.Send(new WFMappingLibraryRequest());
+    }
+
+    /// <summary>Downloads the newest saved version of the map named in the Save tab as a ship.</summary>
+    private void DownloadShip()
+    {
+        if (_window == null || _mapping.Session is not { } session)
+            return;
+
+        var name = _window.SaveNameEdit.Text.Trim();
+        if (name.Length == 0)
+            name = session.Name;
+
+        if (!WFMappingLibraryNames.IsValidMapName(name))
+        {
+            _mapping.ReportLocal("wf-mapping-mode-bad-name", false, ("max", WFMappingModeLimits.MaxNameLength));
+            return;
+        }
+
+        _mapping.RequestShipDownload(name, null);
     }
 
     private void CopyCode()
@@ -200,6 +230,11 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
     private void UpdateLibrary()
     {
         _window?.SetLibrary(_mapping.Library);
+    }
+
+    private void UpdateGrids()
+    {
+        _window?.SetGrids(_mapping.Grids);
     }
 
     private void UpdateReferences()
