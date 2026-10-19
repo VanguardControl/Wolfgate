@@ -5,6 +5,9 @@ using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Server.Database;
 using Content.Shared._WF.BloodColour;
+using Content.Shared._WF.Wolfmed.Compat;
+using Content.Shared.Body.Part;
+using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.Humanoid;
@@ -121,6 +124,40 @@ public sealed class BloodColourTest
                 Assert.That(entMan.HasComponent<WFBloodColourComponent>(mob), Is.False);
             });
 
+            entMan.DeleteEntity(mob);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task SeveredPartTest()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entMan = server.EntMan;
+
+        await server.WaitAssertion(() =>
+        {
+            var mob = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.System<SharedHumanoidAppearanceSystem>()
+                .LoadProfile(mob, HumanoidCharacterProfile.RandomWithSpecies("Human").WithBloodColor(Green));
+
+            var body = entMan.System<SharedBodySystem>();
+            var arm = body.GetBodyChildrenOfType(mob, BodyPartType.Arm).First();
+            var hand = body.GetBodyPartChildren(arm.Id, arm.Component).Skip(1).Select(p => p.Id).First();
+            Assert.That(entMan.System<WolfmedBodySystem>().TryDetachPart(arm.Id));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(entMan.GetComponent<WFBloodColourComponent>(arm.Id).Color, Is.EqualTo(Green),
+                    "A severed arm should keep the body's blood colour.");
+                Assert.That(entMan.GetComponent<WFBloodColourComponent>(hand).Color, Is.EqualTo(Green),
+                    "The hand on a severed arm should keep it too.");
+            });
+
+            entMan.DeleteEntity(arm.Id);
             entMan.DeleteEntity(mob);
         });
 

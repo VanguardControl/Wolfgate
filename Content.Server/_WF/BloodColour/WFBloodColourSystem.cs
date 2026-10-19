@@ -2,6 +2,8 @@ using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
 using Content.Shared._Shitmed.Humanoid.Events;
 using Content.Shared._WF.BloodColour;
+using Content.Shared.Body.Part;
+using Content.Shared.Body.Systems;
 using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
 
@@ -11,18 +13,39 @@ namespace Content.Server._WF.BloodColour;
 public sealed class WFBloodColourSystem : EntitySystem
 {
     [Dependency] private BloodstreamSystem _bloodstream = default!;
+    [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<BloodstreamComponent, ProfileLoadFinishedEvent>(OnProfileLoadFinished);
+        SubscribeLocalEvent<WFBloodColourComponent, BodyPartRemovedEvent>(OnPartRemoved);
     }
 
     private void OnProfileLoadFinished(Entity<BloodstreamComponent> ent, ref ProfileLoadFinishedEvent args)
     {
         if (args.Profile != null)
             SetColour(ent.AsNullable(), args.Profile.BloodColor);
+    }
+
+    /// <summary>A severed part and everything still on it keep the body's colour for their own wound art.</summary>
+    private void OnPartRemoved(Entity<WFBloodColourComponent> ent, ref BodyPartRemovedEvent args)
+    {
+        // A body being deleted takes its parts apart on the way out; those need nothing.
+        if (TerminatingOrDeleted(ent))
+            return;
+
+        foreach (var (part, _) in _body.GetBodyPartChildren(args.Part, args.Part.Comp))
+        {
+            if (TerminatingOrDeleted(part))
+                continue;
+
+            var colour = EnsureComp<WFBloodColourComponent>(part);
+            colour.Color = ent.Comp.Color;
+            colour.Reagent = ent.Comp.Reagent;
+            Dirty(part, colour);
+        }
     }
 
     /// <summary>Sets or, with null, clears a mob's blood colour, and repaints its bloodstream.</summary>
