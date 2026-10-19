@@ -79,6 +79,8 @@
       params:
         volume: -4
   # WOLFGATE: cut RMCHealthExaminable
+  # WOLFGATE: RMC xenos have no bloodstream; this drops acid-blood decals on hits and death and gibs a battered corpse
+  - type: WFXenoBlood
   - type: AcidBloodSplash
     closeSplashRadius: 0.5
     standardSplashRadius: 1.5
