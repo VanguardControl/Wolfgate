@@ -19,6 +19,8 @@ public sealed class WolfgateNestedScrollContainer : ScrollContainer
         if (args.Delta.Y == 0f || !Overflows())
             return;
 
+        // Re-clamped first: a list that shrank leaves the target past its new end.
+        VScrollTarget = VScrollTarget;
         var before = VScrollTarget;
         VScrollTarget = before - args.Delta.Y * ScrollSpeedY;
         // Clamped to where it was: at the edge, so the parent scrolls instead.

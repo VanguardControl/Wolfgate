@@ -349,7 +349,7 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
 
         // A first stop with no clear spot, such as one right beside an avoided station, gives way to another.
         var anchors = new List<Entity<MapGridComponent>>(stations);
-        while (anchors.Count >= wanted)
+        while (anchors.Count > 0)
         {
             // The first stop is picked at random; each next one is the nearest station not yet on the route, so a
             // haul works its way across the sector and doesn't zigzag. A station placement keeps off a station that

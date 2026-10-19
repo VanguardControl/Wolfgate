@@ -21,11 +21,12 @@ public sealed class WolfgateNestedScrollContainerTest
         {
             var ui = pair.Client.ResolveDependency<IUserInterfaceManager>();
             using var outer = new ScrollContainer { HScrollEnabled = false };
+            var content = new Control { MinSize = new Vector2(300, 400) };
             var inner = new WolfgateNestedScrollContainer
             {
                 ReturnMeasure = true,
                 MaxHeight = 100,
-                Children = { new Control { MinSize = new Vector2(300, 400) } },
+                Children = { content },
             };
             outer.AddChild(new BoxContainer
             {
@@ -58,6 +59,19 @@ public sealed class WolfgateNestedScrollContainerTest
             Layout(outer);
             Wheel(ui, over, -1);
             Assert.That(outer.VScrollTarget, Is.GreaterThan(100f), "At its bottom the wheel goes on to the page.");
+
+            // A filter shrinks the list while it sits at the bottom: its old scroll target is past the new end.
+            outer.VScroll = 100;
+            inner.VScroll = 300;
+            Layout(outer);
+            content.MinSize = new Vector2(300, 200);
+            // The frame's layout pass would carry the change up; done by hand here.
+            for (Control? control = content; control != null && control != outer.Parent; control = control.Parent)
+                control.InvalidateMeasure();
+            Layout(outer);
+            Assert.That(inner.VScroll, Is.EqualTo(100f), "The list's range shrank.");
+            Wheel(ui, over, -1);
+            Assert.That(outer.VScrollTarget, Is.GreaterThan(100f), "A list that shrank under the cursor still hands the wheel on at its new end.");
             ui.RootControl.RemoveChild(outer);
         });
         await pair.CleanReturnAsync();
