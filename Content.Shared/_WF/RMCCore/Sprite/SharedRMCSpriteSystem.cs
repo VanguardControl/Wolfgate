@@ -52,7 +52,8 @@ public abstract partial class SharedRMCSpriteSystem : EntitySystem
     public virtual DrawDepth.DrawDepth UpdateDrawDepth(EntityUid sprite)
     {
         var depth = GetDrawDepth(sprite);
-        _appearance.SetData(sprite, RMCSpriteDrawDepth.Key, depth);
+        // WOLFGATE: stored as an int; Wolfgate's DrawDepth enum is not NetSerializable and the server crashed serializing it
+        _appearance.SetData(sprite, RMCSpriteDrawDepth.Key, (int) depth);
         return depth;
     }
 }
