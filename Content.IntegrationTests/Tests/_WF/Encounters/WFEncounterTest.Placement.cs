@@ -39,11 +39,14 @@ public sealed partial class WFEncounterTest
 
             var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestPlacementPatrol");
             var scheduler = Server.System<WFEncounterSchedulerSystem>();
+            // The standoff is kept from the avoided station's hull, not its centre.
+            var keepOff = SEntMan.GetComponent<Robust.Shared.Map.Components.MapGridComponent>(central).LocalAABB.Size.Length() / 2f
+                + prototype.Standoff;
             for (var i = 0; i < 40; i++)
             {
                 Assert.That(scheduler.TryPlaceAtStations(prototype, map, out var origin, out var stops), Is.True);
                 Assert.That(stops, Does.Not.Contain(central));
-                Assert.That(Vector2.Distance(origin.Position, transform.GetWorldPosition(central)), Is.GreaterThanOrEqualTo(3000f),
+                Assert.That(Vector2.Distance(origin.Position, transform.GetWorldPosition(central)), Is.GreaterThanOrEqualTo(keepOff),
                     "The patrol is posted at least its standoff from the avoided station.");
             }
 
