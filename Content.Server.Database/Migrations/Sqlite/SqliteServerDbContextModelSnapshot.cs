@@ -912,6 +912,10 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("INTEGER")
                         .HasColumnName("biotype");
 
+                    b.Property<string>("BloodColor")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("blood_color");
+
                     b.Property<string>("CharacterName")
                         .IsRequired()
                         .HasColumnType("TEXT")

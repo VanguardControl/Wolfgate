@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Content.Shared._Mono.Company;
 using Content.Shared._NF.Bank;
 using Content.Shared._WF.Biotype; // WOLFGATE(Biotype)
+using Content.Shared._WF.BloodColour; // WOLFGATE(BloodColour)
 using Content.Shared._WF.EmoteVoices; // WOLFGATE(EmoteVoices)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Migration; // WOLFGATE(Genitals)
@@ -253,6 +254,7 @@ namespace Content.Shared.Preferences
             CustomMarkings = new(other.CustomMarkings); // WOLFGATE(CustomMarkings)
             LegStance = other.LegStance; // WOLFGATE(LegStyle)
             Biotype = other.Biotype; // WOLFGATE(Biotype)
+            BloodColor = other.BloodColor; // WOLFGATE(BloodColour)
         }
 
         /// <summary>Copy constructor</summary>
@@ -288,6 +290,7 @@ namespace Content.Shared.Preferences
             CustomMarkings = new(other.CustomMarkings); // WOLFGATE(CustomMarkings)
             LegStance = other.LegStance; // WOLFGATE(LegStyle)
             Biotype = other.Biotype; // WOLFGATE(Biotype)
+            BloodColor = other.BloodColor; // WOLFGATE(BloodColour)
         }
 
         /// <summary>
@@ -630,6 +633,7 @@ namespace Content.Shared.Preferences
             if (!CustomMarkingsEqual(other)) return false; // WOLFGATE(CustomMarkings)
             if (LegStance != other.LegStance) return false; // WOLFGATE(LegStyle)
             if (Biotype != other.Biotype) return false; // WOLFGATE(Biotype)
+            if (BloodColor != other.BloodColor) return false; // WOLFGATE(BloodColour)
             if (ScreamVoice != other.ScreamVoice || LaughVoice != other.LaughVoice) return false; // WOLFGATE(EmoteVoices)
             if (!Flags.SequenceEqual(other.Flags)) return false; // Mono
             if (!Components.SequenceEqual(other.Components)) return false; // Mono
@@ -839,6 +843,7 @@ namespace Content.Shared.Preferences
             EnsureValidEmoteVoices(prototypeManager); // WOLFGATE(EmoteVoices)
             LegStance = LegStyleRules.Validate(Species, LegStance, prototypeManager); // WOLFGATE(LegStyle): legs the species doesn't have fall back to its own
             Biotype = WFBiotypeRules.Resolve(Biotype, speciesPrototype); // WOLFGATE(Biotype): Default and unknown values become the species' own
+            BloodColor = WFBloodColourRules.Validate(BloodColor); // WOLFGATE(BloodColour)
 
             // Check if the company exists, if not set to "None"
             if (!string.IsNullOrEmpty(Company) &&
@@ -983,6 +988,7 @@ namespace Content.Shared.Preferences
             hashCode.Add(CustomMarkings.Count); // WOLFGATE(CustomMarkings)
             hashCode.Add((int) LegStance); // WOLFGATE(LegStyle)
             hashCode.Add((int) Biotype); // WOLFGATE(Biotype)
+            hashCode.Add(BloodColor); // WOLFGATE(BloodColour)
             hashCode.Add(ScreamVoice); // WOLFGATE(EmoteVoices)
             hashCode.Add(LaughVoice); // WOLFGATE(EmoteVoices)
             return hashCode.ToHashCode();

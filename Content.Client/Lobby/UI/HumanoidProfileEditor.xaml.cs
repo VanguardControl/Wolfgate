@@ -259,6 +259,7 @@ namespace Content.Client.Lobby.UI
             // WOLFGATE END
 
             InitializeEmoteVoices(); // WOLFGATE(EmoteVoices)
+            InitializeBloodColour(); // WOLFGATE(BloodColour)
 
             #endregion Sex
 
@@ -1338,6 +1339,7 @@ namespace Content.Client.Lobby.UI
             UpdateAgeEdit();
             UpdateEyePickers();
             UpdateEmoteVoiceControls(); // WOLFGATE(EmoteVoices)
+            UpdateBloodColour(); // WOLFGATE(BloodColour)
             UpdateSaveButton();
             UpdateMarkings();
             // WOLFGATE(Genitals) START: sync the anatomy tab and doll with the loaded profile

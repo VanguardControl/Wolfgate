@@ -323,6 +323,8 @@
                         </PanelContainer>
                         <!-- WOLFGATE(EmoteVoices): Voice card, filled in by HumanoidProfileEditor.EmoteVoices.cs -->
                         <BoxContainer Name="EmoteVoiceContainer" Orientation="Vertical" HorizontalExpand="True" />
+                        <!-- WOLFGATE(BloodColour): Blood card, filled in by HumanoidProfileEditor.BloodColour.cs -->
+                        <BoxContainer Name="BloodColourContainer" Orientation="Vertical" HorizontalExpand="True" />
                     </BoxContainer>
                 </ScrollContainer>
             </BoxContainer>

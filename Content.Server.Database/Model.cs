@@ -566,6 +566,9 @@ namespace Content.Server.Database
         // WOLFGATE(Biotype): organic or synthetic body, 0 for the species' own.
         [Column("biotype")] public int Biotype { get; set; }
 
+        // WOLFGATE(BloodColour): blood and flesh colour as hex, null for the species' own.
+        [Column("blood_color")] public string? BloodColor { get; set; }
+
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 
