@@ -412,11 +412,12 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         return false;
     }
 
-    /// <summary>Whether a point is within a distance of a station's hull.</summary>
+    /// <summary>Whether a point is within a distance of a station's hull, measured from the hull's centre.</summary>
     private bool TooNear(Entity<MapGridComponent> station, Vector2 point, float distance)
     {
         var reach = station.Comp.LocalAABB.Size.Length() / 2f + distance;
-        return (_transform.GetWorldPosition(station) - point).LengthSquared() < reach * reach;
+        var centre = Vector2.Transform(station.Comp.LocalAABB.Center, _transform.GetWorldMatrix(station));
+        return (centre - point).LengthSquared() < reach * reach;
     }
 
     /// <summary>Stations kept secret: never a stop or a berth, and open space near them is never used.</summary>
