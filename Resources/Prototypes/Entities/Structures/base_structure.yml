@@ -4,6 +4,9 @@
   placement:
     mode: SnapgridCenter
   components:
+  # WOLFGATE(Xenonids): every structure can be melted by xeno acid, as in RMC-14 (CMCorrodible)
+  - type: Corrodible
+    timeToApply: 1
   - type: ExaminableDamage
     messages: WindowMessages
   - type: Transform
