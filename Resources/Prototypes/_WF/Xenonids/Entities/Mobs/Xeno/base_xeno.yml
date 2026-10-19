@@ -320,7 +320,7 @@
     explosions: []
 
   # WOLFGATE: cut TileFirePatter
-  # WOLFGATE: no CanBeFirePatted; XenoFirePatter pats any burning mob
+  # WOLFGATE: no CanBeFirePatted; XenoFirePatter pats anything burning
   # WOLFGATE: cut BlockIdExamine
   - type: NoStunOnExit
   - type: RMCSpeciesSlowdownModifier

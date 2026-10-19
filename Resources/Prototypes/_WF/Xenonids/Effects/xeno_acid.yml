@@ -70,7 +70,7 @@
         Heat: 10
     whitelist:
       components:
-      - HumanoidAppearance # WOLFGATE: humanoids stand in for marines
+      - MobState # WOLFGATE: any mob stands in for marines; the hive check spares allies
       - Xeno
   - type: UncloakOnHit
   # WOLFGATE: cut ExtinguishFire (RMC fire)

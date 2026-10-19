@@ -147,8 +147,6 @@ public sealed partial class XenoClawsSystem : EntitySystem
         if (!TryComp<DoorComponent>(ent, out var door))
             return;
 
-        if (!TryComp<DoorBoltComponent>(ent, out var bolt))
-            return;
 
         var damage = new DamageSpecifier(_protoManager.Index(_clawsDamageGroup), 0);
 
@@ -156,11 +154,15 @@ public sealed partial class XenoClawsSystem : EntitySystem
         {
             if (claws.ClawType.CompareTo(receiver.MinimumClawStrength) >= 0)
             {
-                if (bolt.BoltsDown)
-                    damage = new DamageSpecifier(_protoManager.Index(_clawsDamageGroup), receiver.MaxHealth / receiver.HitsToDestroyBolted);
-
+                // WOLFGATE: RMC only lets claws hurt bolted or welded airlocks; here they break any airlock
+                var hits = receiver.HitsToDestroyBolted;
                 if (door.State == DoorState.Welded)
-                    damage = new DamageSpecifier(_protoManager.Index(_clawsDamageGroup), receiver.MaxHealth / receiver.HitsToDestroyWelded);
+                    hits = receiver.HitsToDestroyWelded;
+
+                if (claws.ClawType.CompareTo(XenoClawType.VerySharp) >= 0)
+                    hits = Math.Min(hits, receiver.HitsToDestroyVerySharp);
+
+                damage = new DamageSpecifier(_protoManager.Index(_clawsDamageGroup), receiver.MaxHealth / hits);
             }
         }
 

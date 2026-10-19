@@ -15,6 +15,10 @@ public sealed partial class AirlockReceiverXenoClawsComponent : Component
     [DataField, AutoNetworkedField]
     public int HitsToDestroyWelded = 15;
 
+    /// <summary>Hits for very sharp claws (queen, crusher, ravager), bolted or not; Wolfgate addition.</summary>
+    [DataField, AutoNetworkedField]
+    public int HitsToDestroyVerySharp = 8;
+
     [DataField, AutoNetworkedField]
     public XenoClawType MinimumClawStrength = XenoClawType.Sharp;
 }

@@ -103,12 +103,16 @@
   - type: Tag
     tags:
     - XenoWeedTile
+  # WOLFGATE: no RMC tile fire to burn weeds away, so weeds burn until patted or destroyed and light their neighbours
+  # Heat 6 at 0.5 stacks through the Weed resists is about 1 damage a second: plain weeds last ~5 s, hive weeds ~15 s
   - type: Flammable
     fireSpread: false
     maximumFireStacks: 0.5
+    firestackFade: 0
     damage:
       types:
-        Heat: 1
+        Heat: 6
+  - type: XenoWeedsBurn
   # WOLFGATE: Wolfgate's FlammableSystem logs an error for a flammable entity without Appearance
   - type: Appearance
   - type: Reactive

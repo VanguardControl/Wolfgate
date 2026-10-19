@@ -3,7 +3,6 @@ using Content.Server.Damage.Systems;
 using Content.Shared._WF.Xenonids.FirePat;
 using Content.Shared.Atmos.Components;
 using Content.Shared.Interaction;
-using Content.Shared.Mobs.Components;
 using Content.Shared.Popups;
 using Robust.Server.Audio;
 using Robust.Shared.Player;
@@ -12,8 +11,8 @@ using Robust.Shared.Timing;
 namespace Content.Server._WF.Xenonids.FirePat;
 
 /// <summary>
-/// RMC's fire patting on upstream fire: a <see cref="XenoFirePatterComponent"/> holder clicking a burning mob with
-/// an empty hand takes fire stacks off it.
+/// RMC's fire patting on upstream fire: a <see cref="XenoFirePatterComponent"/> holder clicking anything burning (a mob,
+/// weeds, a resin structure, an item) with an empty hand takes fire stacks off it.
 /// </summary>
 public sealed class XenoFirePatSystem : EntitySystem
 {
@@ -35,7 +34,6 @@ public sealed class XenoFirePatSystem : EntitySystem
             args.Target != ent.Owner ||
             user == ent.Owner ||
             !ent.Comp.OnFire ||
-            !HasComp<MobStateComponent>(ent) ||
             !TryComp(user, out XenoFirePatterComponent? patter))
         {
             return;
@@ -43,10 +41,10 @@ public sealed class XenoFirePatSystem : EntitySystem
 
         args.Handled = true;
         var time = _timing.CurTime;
-        if (time < patter.LastPat + patter.Cooldown)
+        if (time < patter.NextPat)
             return;
 
-        patter.LastPat = time;
+        patter.NextPat = time + patter.Cooldown;
         _flammable.AdjustFireStacks(ent, patter.Stacks, ent.Comp);
 
         _audio.PlayPvs(patter.Sound, user);

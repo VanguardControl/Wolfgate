@@ -122,8 +122,10 @@
     size: Big
   - type: RMCXenoDamageVisuals
     prefix: ravager
-  # WOLFGATE: cut RMCFireArmorDebuffModifier (RMC fire)
-  # WOLFGATE: cut RMCImmuneToFireTileDamage (RMC fire)
+  # WOLFGATE: tile fire immunity halves burn damage
+  - type: RMCFireArmorDebuffModifier
+    debuffModifier: 1.2
+  - type: RMCImmuneToFireTileDamage
   # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: TantrumSpeedBuff
   - type: XenoCruelty

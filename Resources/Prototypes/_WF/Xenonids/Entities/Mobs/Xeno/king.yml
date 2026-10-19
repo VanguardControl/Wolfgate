@@ -138,7 +138,8 @@
   - type: StunOnExplosionReceived
     weak: false
   - type: XenoOmitNumber
-  # WOLFGATE: cut RMCImmuneToFireTileDamage (RMC fire)
+  # WOLFGATE: cut the bypass whitelist (RMC fire types aren't ported); tile fire immunity halves burn damage
+  - type: RMCImmuneToFireTileDamage
   - type: StunFriendlyXenoOnStep
     whitelist:
       components:

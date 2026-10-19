@@ -254,9 +254,11 @@
   - type: XenoInhands
     prefix: queen
   - type: XenoOmitNumber
-  # WOLFGATE: cut RMCFireArmorDebuffModifier (RMC fire)
-  # WOLFGATE: cut RMCImmuneToIgnition (RMC fire)
-  # WOLFGATE: cut RMCImmuneToFireTileDamage (RMC fire)
+  # WOLFGATE: cut the bypass whitelists (RMC fire types aren't ported); tile fire immunity halves burn damage
+  - type: RMCFireArmorDebuffModifier
+    debuffModifier: 1.4
+  - type: RMCImmuneToIgnition
+  - type: RMCImmuneToFireTileDamage
   # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: QueenEyeAction
   # WOLFGATE: RMC lights the eye's view only around weed nodes and hive structures; the queen lights her own spot so the eye never opens on pure static

@@ -80,7 +80,7 @@ public sealed class XenoMeleeDamageTest
         return damage;
     }
 
-    /// <summary>Claws hurt machines and humans, tails hurt humans, sharp claws break bolted airlocks and walls, and a drone's can't.</summary>
+    /// <summary>Claws hurt machines and humans, tails hurt humans, sharp claws break airlocks and walls, and a drone's can't.</summary>
     [Test]
     public async Task ClawsDamageByRmcRules()
     {
@@ -98,6 +98,16 @@ public sealed class XenoMeleeDamageTest
             "Sharp claws take a tenth of a bolted airlock's 500 health.");
         Assert.That(await Swing(pair, map, "CMXenoDrone", "Airlock", bolt: true), Is.EqualTo(FixedPoint2.Zero),
             "A drone's normal claws can't break a bolted airlock.");
+        Assert.That(await Swing(pair, map, "CMXenoWarrior", "Airlock"), Is.EqualTo(FixedPoint2.New(50)),
+            "Sharp claws break an unbolted airlock at the bolted rate.");
+        Assert.That(await Swing(pair, map, "CMXenoQueen", "Airlock"), Is.EqualTo(FixedPoint2.New(62.5)),
+            "Very sharp claws break an airlock in eight hits.");
+        Assert.That(await Swing(pair, map, "CMXenoQueen", "Airlock", bolt: true), Is.EqualTo(FixedPoint2.New(62.5)),
+            "Bolts don't slow very sharp claws.");
+        Assert.That(await Swing(pair, map, "CMXenoDrone", "Airlock"), Is.EqualTo(FixedPoint2.Zero),
+            "A drone's normal claws can't break an unbolted airlock either.");
+        Assert.That(await Swing(pair, map, "MobHuman", "Airlock"), Is.EqualTo(FixedPoint2.Zero),
+            "A human's fists still bounce off an airlock's flat reductions.");
 
         Assert.That(await Swing(pair, map, "CMXenoQueen", "WallSolid"), Is.EqualTo(FixedPoint2.New(65)),
             "Very sharp claws take a twentieth of a wall's 1300 health.");

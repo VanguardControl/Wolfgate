@@ -7,6 +7,7 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Standing;
 using Content.Shared.Stunnable;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Network;
 using Robust.Shared.Timing;
@@ -15,6 +16,7 @@ namespace Content.Shared._WF.Xenonids.Construction.AcidPillar;
 
 public sealed partial class AcidPillarSystem : EntitySystem
 {
+    [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private EntityLookupSystem _entityLookup = default!;
     [Dependency] private SharedXenoHiveSystem _hive = default!;
     [Dependency] private MobStateSystem _mobState = default!;
@@ -24,9 +26,8 @@ public sealed partial class AcidPillarSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private XenoSprayAcidSystem _xenoSprayAcid = default!;
-    [Dependency] private XenoSystem _xeno = default!;
 
-    private readonly HashSet<Entity<MobStateComponent>> _marines = new(); // WOLFGATE: host candidates replace MarineComponent
+    private readonly HashSet<Entity<MobStateComponent>> _marines = new(); // WOLFGATE: any living non-xeno mob replaces MarineComponent
     private readonly HashSet<Entity<XenoComponent>> _xenos = new();
 
     private bool CanTarget(EntityUid pillar, EntityUid target)
@@ -91,7 +92,8 @@ public sealed partial class AcidPillarSystem : EntitySystem
             (EntityUid Ent, float Range) closest = (default, float.MaxValue);
             foreach (var marine in _marines)
             {
-                if (!_xeno.IsHostCandidate(marine))
+                // xenos are checked below
+                if (HasComp<XenoComponent>(marine))
                     continue;
 
                 TrySetIfCloserTarget(ref closest, uid, marine, pillarCoords);
@@ -108,6 +110,7 @@ public sealed partial class AcidPillarSystem : EntitySystem
             var end = _transform.GetMoverCoordinates(closest.Ent);
             _xenoSprayAcid.CreateLine(uid, pillarCoords, end, comp.AcidSpreadDelay, comp.Range, comp.Acid, false);
             _rmcAnimation.TryFlick(uid, comp.FiringSprite, comp.IdleSprite);
+            _audio.PlayPvs(comp.Sound, uid); // WOLFGATE: RMC's pillar fires silently
         }
     }
 }

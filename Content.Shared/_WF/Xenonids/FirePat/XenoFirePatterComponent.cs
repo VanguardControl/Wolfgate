@@ -5,7 +5,7 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 namespace Content.Shared._WF.Xenonids.FirePat;
 
 /// <summary>
-/// RMC's fire patting: clicking a burning mob with an empty hand takes fire stacks off it.
+/// RMC's fire patting: clicking anything burning with an empty hand takes fire stacks off it.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentPause]
 public sealed partial class XenoFirePatterComponent : Component
@@ -14,7 +14,7 @@ public sealed partial class XenoFirePatterComponent : Component
     public SoundSpecifier? Sound = new SoundPathSpecifier("/Audio/Effects/thudswoosh.ogg");
 
     [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
-    public TimeSpan LastPat;
+    public TimeSpan NextPat;
 
     [DataField]
     public TimeSpan Cooldown = TimeSpan.FromSeconds(1);
