@@ -1040,6 +1040,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoRangedTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoRangedTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoRosterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoRosterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoSensorTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoSensorTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoSpriteHideTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoSpriteHideTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoTunnelTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoTunnelTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoWeedsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoWeedsTest.cs)
 
