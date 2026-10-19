@@ -195,6 +195,12 @@ public sealed partial class LarvaQueueSystem : EntitySystem
         _disconnectExpiresAt.Clear();
     }
 
+    /// <summary>Whether a queued player has been offered this larva and may still accept.</summary>
+    public bool IsReserved(EntityUid larva)
+    {
+        return _reservedBurstLarva.Contains(larva);
+    }
+
     private void OnJoinLarvaQueue(Entity<JoinXenoComponent> ent, ref JoinLarvaQueueEvent args)
     {
         if (_net.IsClient)

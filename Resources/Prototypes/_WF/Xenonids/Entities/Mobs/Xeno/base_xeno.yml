@@ -50,7 +50,12 @@
     - Alive
     - Critical
     - Dead
-  # WOLFGATE: cut Language
+  # WOLFGATE: RMC's Language is cut; every xeno speaks and understands what the crew does, so a lesser drone is heard by the hive
+  - type: LanguageKnowledge
+    speaks:
+    - TauCetiBasic
+    understands:
+    - TauCetiBasic
   - type: MobThresholds
     thresholds:
       0: Alive

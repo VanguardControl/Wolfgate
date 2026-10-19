@@ -117,6 +117,8 @@ public abstract partial class SharedXenoWeedsSystem : EntitySystem
 
         SubscribeLocalEvent<AffectableByWeedsComponent, RefreshMovementSpeedModifiersEvent>(WeedsRefreshPassiveSpeed);
         SubscribeLocalEvent<AffectableByWeedsComponent, XenoOvipositorChangedEvent>(WeedsOvipositorChanged);
+        SubscribeLocalEvent<AffectableByWeedsComponent, HiveChangedEvent>(OnAffectedHiveChanged);
+        SubscribeLocalEvent<XenoWeedsComponent, HiveChangedEvent>(OnWeedsHiveChanged);
 
         SubscribeLocalEvent<XenoWeedsSpreadingComponent, MapInitEvent>(OnSpreadingMapInit);
 
@@ -269,6 +271,18 @@ public abstract partial class SharedXenoWeedsSystem : EntitySystem
         damage.Comp.DamageAt = _timing.CurTime + damage.Comp.Every;
     }
 
+    // Friend or foe depends on hive membership, which is set after spawn, so the speed has to be recomputed.
+    private void OnAffectedHiveChanged(Entity<AffectableByWeedsComponent> ent, ref HiveChangedEvent args)
+    {
+        _toUpdate.Add(ent);
+    }
+
+    private void OnWeedsHiveChanged(Entity<XenoWeedsComponent> ent, ref HiveChangedEvent args)
+    {
+        if (TryComp(ent, out PhysicsComponent? phys))
+            _toUpdate.UnionWith(_physics.GetContactingEntities(ent, phys));
+    }
+
     private void WeedsRefreshPassiveSpeed(Entity<AffectableByWeedsComponent> ent, ref RefreshMovementSpeedModifiersEvent args)
     {
         if (!TryComp<PhysicsComponent>(ent, out var physicsComponent))
@@ -339,6 +353,12 @@ public abstract partial class SharedXenoWeedsSystem : EntitySystem
             {
                 speedWeeds += weeds.SpeedMultiplierXeno;
                 friendlyWeeds = true;
+                entriesWeeds++;
+            }
+            // Weeds never slow a xeno that has no hive or sits on weeds nobody owns; only a rival hive's weeds do
+            else if (isXeno && (!_hive.HasHive(ent.Owner) || !_hive.HasHive(contacting)))
+            {
+                speedWeeds += 1f;
                 entriesWeeds++;
             }
             else if (hive == null || !_hive.IsMember(contacting, hive.Hive))
@@ -527,6 +547,7 @@ public abstract partial class SharedXenoWeedsSystem : EntitySystem
         if (!_mapSystem.TryGetTileRef(grid, grid, tileIndex, out var tileRef) ||
             !_tile.TryGetDefinition(tileRef.Tile.TypeId, out var tileDef) ||
             tileDef.ID == ContentTileDefinition.SpaceID ||
+            tileDef is ContentTileDefinition { MapAtmosphere: true } || // lattice and space plating are open to space
             tileDef is ContentTileDefinition { WeedsSpreadable: false } &&
             !(tileDef is ContentTileDefinition { SemiWeedable: true } && semiWeedable)
             )

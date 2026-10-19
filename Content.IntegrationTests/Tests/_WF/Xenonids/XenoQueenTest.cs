@@ -1,4 +1,6 @@
 #nullable enable
+using Content.Server.Atmos.Components;
+using Content.Shared.Atmos.Components;
 using Content.Shared._WF.Xenonids;
 using Content.Shared._WF.Xenonids.Eye;
 using Content.Shared._WF.Xenonids.Hive;
@@ -32,6 +34,13 @@ public sealed class XenoQueenTest
 
             Assert.That(entities.HasComponent<XenoComponent>(queen), "A queen is a xeno.");
             Assert.That(entities.GetComponent<HiveComponent>(hive).CurrentQueen, Is.EqualTo(queen), "The queen should be the hive's queen.");
+            Assert.That(entities.HasComponent<PressureImmunityComponent>(queen), "Pressure doesn't hurt the queen.");
+            Assert.That(entities.GetComponent<MovedByPressureComponent>(queen).Enabled, Is.False, "Pressure doesn't throw the queen.");
+            var king = entities.SpawnEntity("RMCXenoKing", map.GridCoords);
+            Assert.That(entities.HasComponent<PressureImmunityComponent>(king), "Pressure doesn't hurt the king.");
+            Assert.That(entities.GetComponent<MovedByPressureComponent>(king).Enabled, Is.False, "Pressure doesn't throw the king.");
+            var drone = entities.SpawnEntity("CMXenoDrone", map.GridCoords);
+            Assert.That(entities.HasComponent<PressureImmunityComponent>(drone), Is.False, "Other castes keep RMC's pressure rules.");
         });
 
         await pair.CleanReturnAsync();

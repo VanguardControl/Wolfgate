@@ -40,6 +40,7 @@ public sealed class WFXenoCVars : CVars
     public static readonly CVarDef<float> RMCWeedSpreadMaxProcessTimeMilliseconds =
         CVarDef.Create("rmc.weed_spread_max_process_time_milliseconds", 1f, CVar.REPLICATED | CVar.SERVER);
 
+    // RMC mutes a fresh lesser drone or parasite for 180 seconds; players here wait for nothing, so it defaults to off.
     public static readonly CVarDef<float> RMCXenoSpawnInitialMuteDurationSeconds =
-        CVarDef.Create("rmc.xeno_spawn_initial_mute_duration_seconds", 180f, CVar.REPLICATED | CVar.SERVER);
+        CVarDef.Create("rmc.xeno_spawn_initial_mute_duration_seconds", 0f, CVar.REPLICATED | CVar.SERVER);
 }

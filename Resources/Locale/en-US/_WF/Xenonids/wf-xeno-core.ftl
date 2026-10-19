@@ -10,3 +10,4 @@ wf-xeno-hive-chat-no-hive = We have no hive to hear us.
 wf-xeno-fire-pat-user = You try to put out the fire on {THE($target)}!
 wf-xeno-fire-pat-target = {CAPITALIZE(THE($user))} tries to put out the fire on you!
 wf-xeno-fire-pat-others = {CAPITALIZE(THE($user))} tries to put out the fire on {THE($target)}!
+wf-xeno-larva-role-description = A larva has burst from a host and nobody has claimed it. Join the hive and grow.

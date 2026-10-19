@@ -172,7 +172,7 @@ public sealed partial class XenoSystem : EntitySystem
         if (!MathHelper.CloseTo(_xenoSpeedMultiplier, 1))
             _movementSpeed.RefreshMovementSpeedModifiers(xeno);
 
-        if (xeno.Comp.MuteOnSpawn)
+        if (xeno.Comp.MuteOnSpawn && _xenoSpawnMuteDuration > TimeSpan.Zero)
             _status.TryAddStatusEffect(xeno, "Muted", _xenoSpawnMuteDuration, true, "Muted");
 
         _eye.RefreshVisibilityMask(xeno.Owner);
@@ -254,7 +254,8 @@ public sealed partial class XenoSystem : EntitySystem
             return;
 
         if (HasComp<LatheComponent>(args.Target) ||
-            HasComp<CMAutomatedVendorComponent>(args.Target))
+            HasComp<CMAutomatedVendorComponent>(args.Target) ||
+            !CanXenoUseConsole(ent, args.Target))
         {
             args.Cancel();
         }
