@@ -13,6 +13,7 @@ public static class WFMappingKeyFunctions
     public static readonly BoundKeyFunction WFMappingMode5 = "WFMappingMode5";
     public static readonly BoundKeyFunction WFMappingMode6 = "WFMappingMode6";
     public static readonly BoundKeyFunction WFMappingMode7 = "WFMappingMode7";
+    public static readonly BoundKeyFunction WFMappingMode8 = "WFMappingMode8";
     public static readonly BoundKeyFunction WFMappingModePrimary = "WFMappingModePrimary";
     public static readonly BoundKeyFunction WFMappingModeSecondary = "WFMappingModeSecondary";
     public static readonly BoundKeyFunction WFMappingModeMiddle = "WFMappingModeMiddle";
@@ -32,6 +33,7 @@ public static class WFMappingKeyFunctions
         WFMappingMode5,
         WFMappingMode6,
         WFMappingMode7,
+        WFMappingMode8,
     };
 
     /// <summary>The template's arrow keys, added while Template mode is on.</summary>

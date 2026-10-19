@@ -7,6 +7,7 @@ wf-mapping-screen-mode-fill = Fill
 wf-mapping-screen-mode-shape = Shape
 wf-mapping-screen-mode-pick = Pick
 wf-mapping-screen-mode-template = Template
+wf-mapping-screen-mode-pipe = Pipe
 wf-mapping-screen-mode-current = Mode: {$mode}
 wf-mapping-screen-rail-button = {$key} {$mode}
 
@@ -17,6 +18,7 @@ wf-mapping-screen-mouse-fill = Click: fill the connected tiles of that kind with
 wf-mapping-screen-mouse-shape = Drag: draw a line, rectangle or circle of the selected tile or entity. Shift: square or round. Right click: switch fill and border.
 wf-mapping-screen-mouse-pick = Click: pick what's under the cursor and go back to Place.
 wf-mapping-screen-mouse-template = Drag the template image; the arrows nudge it.
+wf-mapping-screen-mouse-pipe = Drag: lay a pipe along the path. Middle click: paint a pipe's whole network. Right click: cancel.
 
 wf-mapping-screen-too-many = That covers too many tiles; the most is {$max}.
 wf-mapping-screen-needs-grid = Start on a grid. Place a tile first to make one.
@@ -81,6 +83,35 @@ wf-mapping-screen-shape-fill-tooltip = Right click in Shape mode switches betwee
 wf-mapping-screen-readout-erase = Erasing: {$target}
 wf-mapping-screen-readout-line = Drawing: line
 wf-mapping-screen-readout-shape = Drawing: {$shape}, {$fill}
+wf-mapping-screen-readout-pipe = Piping: {$colour}, layer {$layer}{$join ->
+    [yes] , auto-join
+   *[no] {""}
+}{$replace ->
+    [yes] , replace
+   *[no] {""}
+}
+wf-mapping-screen-readout-pipe-paint = Painting: click a pipe to paint its network {$colour}
+
+wf-mapping-screen-pipe-colour = Colour
+wf-mapping-screen-pipe-preset-distro = Distro
+wf-mapping-screen-pipe-preset-waste = Waste (scrubbers)
+wf-mapping-screen-pipe-preset-air = Air
+wf-mapping-screen-pipe-preset-mix = Mix
+wf-mapping-screen-pipe-preset-custom = Custom
+wf-mapping-screen-pipe-preset-auto = Auto
+wf-mapping-screen-pipe-custom = Hex
+wf-mapping-screen-pipe-custom-placeholder = #RRGGBB
+wf-mapping-screen-pipe-layer = Layer
+wf-mapping-screen-pipe-layer-primary = 1 (primary)
+wf-mapping-screen-pipe-layer-secondary = 2 (secondary)
+wf-mapping-screen-pipe-layer-tertiary = 3 (tertiary)
+wf-mapping-screen-pipe-join = Auto-join
+wf-mapping-screen-pipe-join-tooltip = Connect to pipes pointing at the path, and turn a pipe past either end into a T or a four-way.
+wf-mapping-screen-pipe-replace = Replace
+wf-mapping-screen-pipe-replace-tooltip = Rebuild a plain pipe on the path with the new connections added. Off: leave it as it is.
+wf-mapping-screen-pipe-paint = Paint a network
+wf-mapping-screen-pipe-paint-tooltip = The next left click paints the clicked pipe and everything connected to it. Middle click does it too.
+wf-mapping-screen-pipe-paint-needs-color = Pick a colour to paint with first.
 
 wf-mapping-screen-layer-walls = Walls
 wf-mapping-screen-layer-subfloor = Subfloor (pipes, cables)

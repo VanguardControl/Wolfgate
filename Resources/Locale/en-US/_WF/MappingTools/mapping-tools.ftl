@@ -150,6 +150,8 @@ wf-mapping-tools-edit-decal = decal edit
 wf-mapping-tools-edit-draw-tiles = tile drawing
 wf-mapping-tools-edit-draw-entities = entity drawing
 wf-mapping-tools-edit-erase-decals = decal erase
+wf-mapping-tools-edit-draw-pipes = pipe laying
+wf-mapping-tools-edit-paint-pipes = pipe painting
 
 wf-mapping-tools-draw-too-many = That covers too many tiles; the most is {$max}.
 wf-mapping-tools-draw-bad = That shape can't be drawn.
@@ -163,3 +165,14 @@ wf-mapping-tools-draw-skipped = Skipped {$count} {$count ->
     [one] cell
    *[other] cells
 } with no floor.
+wf-mapping-tools-pipes-no-floor = Pipes need a floor, and {$count} {$count ->
+    [one] cell has
+   *[other] cells have
+} none.
+wf-mapping-tools-pipes-nothing = Those pipes are already like that.
+wf-mapping-tools-pipes-kept = Left {$count} {$count ->
+    [one] cell
+   *[other] cells
+} alone: a pipe there can't be rebuilt, or nothing connects to it.
+wf-mapping-tools-pipes-needs-color = Pick a colour to paint with first.
+wf-mapping-tools-pipes-no-pipe = There's no pipe there.

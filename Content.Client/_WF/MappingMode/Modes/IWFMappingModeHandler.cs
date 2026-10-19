@@ -30,6 +30,12 @@ public interface IWFMappingModeHandler
     bool Cancel();
 }
 
+/// <summary>A mode that follows the mouse every frame while it is current.</summary>
+public interface IWFMappingFrameHandler
+{
+    void FrameUpdate();
+}
+
 /// <summary>A mode that shows cells it is about to change, drawn by <see cref="WFMappingShapeOverlay"/>.</summary>
 public interface IWFMappingPreviewSource
 {

@@ -64,7 +64,7 @@ collapses and the viewport takes its width; while the right column is gone the c
 right. Docking any of its panels brings the column back. `ui.layout` is ignored while in a session and back in force on
 leaving.
 
-Build modes, on keys 1 to 7 or the rail:
+Build modes, on keys 1 to 8 or the rail:
 
 - Place (1): left click places the selected entry as the engine does, right click erases the entity or tile under the
   cursor (a decal entry leaves it to the decal eraser), middle click eyedrops, Ctrl+wheel or R turns it, Escape
@@ -86,6 +86,13 @@ Build modes, on keys 1 to 7 or the rail:
 - Pick (6): the eyedropper; the pick becomes the entry and Place comes back.
 - Template (7): drag moves the template, Ctrl+drag scales it, Shift+drag turns it, the wheel scales it and the arrows
   nudge it by a pixel (eight with Shift).
+- Pipe (8): drag a path over a grid's floor and plain gas pipes are laid along it: halves at loose ends, straights,
+  bends, Ts and four-ways where the path and the pipes around it meet. Properties picks the colour (Distro, Waste, Air
+  and Mix as the spray painter has them, a Custom hex, or Auto to match the first pipe the path joins), the layer (1 to
+  3), Auto-join (connect to pipes pointing at the path, and turn the pipe past either end into a T or four-way) and
+  Replace (rebuild a plain pipe on the path with the new connections, or leave it). Middle click, or Paint a network
+  then a left click, paints the clicked pipe and everything connected to it on its layer. Each draw or paint is one
+  undo step.
 
 Right click or Escape drops a drag; Escape with nothing to drop goes back to Place. The wheel zooms whenever a mode
 doesn't take it.
@@ -259,6 +266,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingFillMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingFillMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingModeHandlerBase.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingModeHandlerBase.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingPickMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPickMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingPipeMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPipeMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingPlaceMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPlaceMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingSelectMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingSelectMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingShapeMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingShapeMode.cs)
@@ -358,6 +366,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Docs/_WF/MappingMode/P3-NOTES.md`](../../../Docs/_WF/MappingMode/P3-NOTES.md)
 - [`Docs/_WF/MappingMode/P6-NOTES.md`](../../../Docs/_WF/MappingMode/P6-NOTES.md)
 - [`Docs/_WF/MappingMode/P7-NOTES.md`](../../../Docs/_WF/MappingMode/P7-NOTES.md)
+- [`Docs/_WF/MappingMode/P8-NOTES.md`](../../../Docs/_WF/MappingMode/P8-NOTES.md)
 - [`Docs/_WF/MappingMode/PLAN.md`](../../../Docs/_WF/MappingMode/PLAN.md)
 - [`Docs/_WF/MappingMode/PLAN2.md`](../../../Docs/_WF/MappingMode/PLAN2.md)
 - [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)

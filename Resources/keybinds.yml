@@ -724,6 +724,10 @@ binds:
   type: State
   key: Num7
   priority: 1
+- function: WFMappingMode8
+  type: State
+  key: Num8
+  priority: 1
 - function: WFMappingModePrimary
   type: State
   key: MouseLeft

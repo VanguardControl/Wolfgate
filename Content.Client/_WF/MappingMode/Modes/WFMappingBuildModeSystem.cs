@@ -6,6 +6,7 @@ using Content.Client.Decals;
 using Content.Client.Popups;
 using Content.Shared._WF.MappingMode;
 using Content.Shared._WF.MappingTools;
+using Content.Shared.Atmos.Components;
 using Content.Shared.Input;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
@@ -55,6 +56,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         WFMappingKeyFunctions.WFMappingMode5,
         WFMappingKeyFunctions.WFMappingMode6,
         WFMappingKeyFunctions.WFMappingMode7,
+        WFMappingKeyFunctions.WFMappingMode8,
         WFMappingKeyFunctions.WFMappingModePrimary,
         WFMappingKeyFunctions.WFMappingModeSecondary,
         WFMappingKeyFunctions.WFMappingModeMiddle,
@@ -91,6 +93,35 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
 
     public WFMappingDecalSettings DecalSettings { get; private set; } = new(0f, true, 0, false);
 
+    /// <summary>The pipe layer Pipe mode lays on.</summary>
+    public AtmosPipeLayer PipeLayer { get; private set; } = AtmosPipeLayer.Primary;
+
+    public WFMappingPipePreset PipePreset { get; private set; } = WFMappingPipePreset.Distro;
+
+    /// <summary>The colour of the Custom preset.</summary>
+    public Color PipeCustomColor { get; private set; } = Color.White;
+
+    /// <summary>Whether a pipe path joins the pipes around it.</summary>
+    public bool PipeAutoJoin { get; private set; } = true;
+
+    /// <summary>Whether a pipe path rebuilds plain pipes on its cells instead of keeping them.</summary>
+    public bool PipeReplace { get; private set; } = true;
+
+    /// <summary>Whether the next left click in Pipe mode paints the clicked pipe's network.</summary>
+    public bool PipePainting { get; private set; }
+
+    /// <summary>The colour Pipe mode paints with; null for Auto.</summary>
+    public Color? PipeColor => PipePreset switch
+    {
+        WFMappingPipePreset.Auto => null,
+        WFMappingPipePreset.Custom => PipeCustomColor,
+        _ => WFMappingPipeMode.PresetColor(PipePreset),
+    };
+
+    /// <summary>What a pipe draw sends.</summary>
+    public WFMappingPipeSpec PipeSpec => new(PipeLayer, PipeColor, PipePreset == WFMappingPipePreset.Auto,
+        PipeAutoJoin, PipeReplace);
+
     /// <summary>Index into the placement manager's mode names; the Default name uses each prototype's own mode.</summary>
     public int PlacementModeIndex { get; private set; } = -1;
 
@@ -121,6 +152,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         RegisterHandler(new WFMappingFillMode(this));
         RegisterHandler(new WFMappingShapeMode(this));
         RegisterHandler(new WFMappingPickMode(this));
+        RegisterHandler(new WFMappingPipeMode(this));
 
         _tools.SelectingChanged += OnSelectingChanged;
         _tools.PickingChanged += OnPickingChanged;
@@ -294,6 +326,46 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         SettingsChanged?.Invoke();
     }
 
+    public void SetPipeLayer(AtmosPipeLayer layer)
+    {
+        PipeLayer = layer;
+        SettingsChanged?.Invoke();
+    }
+
+    public void SetPipePreset(WFMappingPipePreset preset)
+    {
+        PipePreset = preset;
+        SettingsChanged?.Invoke();
+    }
+
+    public void SetPipeCustomColor(Color color)
+    {
+        PipeCustomColor = color;
+        SettingsChanged?.Invoke();
+    }
+
+    public void SetPipeAutoJoin(bool autoJoin)
+    {
+        PipeAutoJoin = autoJoin;
+        SettingsChanged?.Invoke();
+    }
+
+    public void SetPipeReplace(bool replace)
+    {
+        PipeReplace = replace;
+        SettingsChanged?.Invoke();
+    }
+
+    /// <summary>Arms or disarms painting a pipe network with the next left click in Pipe mode.</summary>
+    public void SetPipePainting(bool painting)
+    {
+        if (PipePainting == painting)
+            return;
+
+        PipePainting = painting;
+        SettingsChanged?.Invoke();
+    }
+
     /// <summary>What the current mode works with, for the cursor readout; empty for modes without a sub-choice.</summary>
     public string SettingsText()
     {
@@ -306,8 +378,23 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
             WFMappingBuildMode.Shape => Loc.GetString("wf-mapping-screen-readout-shape",
                 ("shape", Loc.GetString($"wf-mapping-screen-shape-{ShapeKind.ToString().ToLowerInvariant()}")),
                 ("fill", Loc.GetString($"wf-mapping-screen-shape-fill-{ShapeFill.ToString().ToLowerInvariant()}"))),
+            WFMappingBuildMode.Pipe when PipePainting => Loc.GetString("wf-mapping-screen-readout-pipe-paint",
+                ("colour", PipePresetName())),
+            WFMappingBuildMode.Pipe => Loc.GetString("wf-mapping-screen-readout-pipe",
+                ("colour", PipePresetName()),
+                ("layer", (int) PipeLayer + 1),
+                ("join", PipeAutoJoin ? "yes" : "no"),
+                ("replace", PipeReplace ? "yes" : "no")),
             _ => string.Empty,
         };
+    }
+
+    /// <summary>The name of the pipe colour preset, or the custom colour's hex.</summary>
+    public string PipePresetName()
+    {
+        return PipePreset == WFMappingPipePreset.Custom
+            ? PipeCustomColor.ToHexNoAlpha()
+            : Loc.GetString($"wf-mapping-screen-pipe-preset-{PipePreset.ToString().ToLowerInvariant()}");
     }
 
     /// <summary>Sets how decals are laid, and applies it to a decal being placed.</summary>
@@ -433,6 +520,9 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
+
+        if (Active && Handler is IWFMappingFrameHandler frame)
+            frame.FrameUpdate();
 
         if (!Active || _driving)
             return;

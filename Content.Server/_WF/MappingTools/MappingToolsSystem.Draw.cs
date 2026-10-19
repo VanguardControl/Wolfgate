@@ -79,6 +79,12 @@ public sealed partial class MappingToolsSystem
             case MappingDrawOp.EraseDecals:
                 EraseDecals(session, grid, map, ev, box);
                 break;
+            case MappingDrawOp.Pipes:
+                DrawPipes(session, grid, map, ev);
+                break;
+            case MappingDrawOp.PipeColor:
+                PaintPipes(session, grid, map, ev);
+                break;
         }
     }
 
@@ -126,7 +132,7 @@ public sealed partial class MappingToolsSystem
     {
         if (ev.Op != MappingDrawOp.SetTiles)
         {
-            Refuse(session, ev, ev.Op == MappingDrawOp.SpawnEntities
+            Refuse(session, ev, ev.Op is MappingDrawOp.SpawnEntities or MappingDrawOp.Pipes
                 ? "wf-mapping-tools-draw-needs-grid"
                 : "wf-mapping-tools-draw-bad");
             return;

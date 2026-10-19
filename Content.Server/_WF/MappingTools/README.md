@@ -22,8 +22,9 @@ the normal game screen instead. MappingMode's own mapping screen docks the same 
 through `MappingToolsSystem.SetDock`) instead of opening the window.
 
 The draw request, `MappingToolsDrawEvent`, lays one tile type over a set of cells, spawns one prototype at each cell's
-centre with a rotation, or removes the decals on the cells, as one undoable edit. MappingMode's Fill, Shape and area
-erase send it; anyone who may use the tools may send it, up to 16384 distinct cells.
+centre with a rotation, removes the decals on the cells, lays plain gas pipes along a path or paints a pipe network, as
+one undoable edit. MappingMode's Fill, Shape, Pipe and area erase send it; anyone who may use the tools may send it, up
+to 16384 distinct cells.
 
 Entry points: `MappingToolsSystem` (server; the requests, the per-mapper history and clipboard, and the placement and
 decal hooks), `MappingToolsSystem` (client; the window, keys and on/off state), `MappingSelectionTool` and
@@ -50,6 +51,14 @@ rotation maths).
   count and, for entities, the cells and prototype, so MappingMode can apply its selection, per-tile and prototype
   limits. Tiles that already match are left out; clearing every tile of a grid deletes the grid as one root, so undo
   brings it back whole. `MappingToolsShapes` (shared) makes the lines, rectangles and flood fills the client sends.
+- A pipe draw (`MappingToolsSystem.Pipes.cs`) takes the path in order, fills diagonal jumps with an L, and gives each
+  cell the plain pipe (half, straight, bend, T, four-way, or their layer alternatives) that opens to its path
+  neighbours. `MappingToolsPipes.Plan` (shared, pure) adds the joins: pipes pointing at a cell, and the plain pipe past
+  each end of the path, which is rebuilt with the extra side. A plain pipe on the path is rebuilt with its old sides
+  added, or kept when Replace is off; a device is never rebuilt. Rebuilt pipes go in the edit's deleted group and new
+  ones in its created group. Paint changes `AtmosPipeColorComponent` in place, as `MappingEdit.PipeColors`.
+- A pipe network is found by a flood over anchored pipe nodes whose sides face each other on one layer, the rule
+  `PipeNode` joins nets by, so it doesn't depend on node groups having formed on a paused map.
 - Grid splitting is paused while an edit applies, so moving tiles away from the hull leaves one grid.
 - Z-stacks are CE z-networks. Each change rebuilds the stack's network (`CEZLevelsSystem.WfRestack`) around the
   ground level, which keeps depth 0; levels shift away from it. Only stacks whose maps are all uninitialized can change,
@@ -74,6 +83,7 @@ rotation maths).
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.cs`](MappingToolsSystem.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.Draw.cs`](MappingToolsSystem.Draw.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.History.cs`](MappingToolsSystem.History.cs)
+- [`Content.Server/_WF/MappingTools/MappingToolsSystem.Pipes.cs`](MappingToolsSystem.Pipes.cs)
 - [`Content.Server/_WF/MappingTools/MappingZLevelsSystem.cs`](MappingZLevelsSystem.cs)
 - [`Content.Server/_WF/MappingTools/WFMappingPermissionEvents.cs`](WFMappingPermissionEvents.cs)
 
@@ -82,6 +92,7 @@ rotation maths).
 - [`Content.Shared/_WF/MappingTools/MappingMapsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingMapsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsMath.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsMath.cs)
+- [`Content.Shared/_WF/MappingTools/MappingToolsPipes.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsPipes.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsShapes.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsShapes.cs)
 - [`Content.Shared/_WF/MappingTools/MappingZLevelsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingZLevelsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/ToggleMappingToolsActionEvent.cs`](../../../Content.Shared/_WF/MappingTools/ToggleMappingToolsActionEvent.cs)
@@ -105,11 +116,13 @@ rotation maths).
 
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingMapsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingMapsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsDrawTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsDrawTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsPipesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsPipesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingZLevelsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingZLevelsTest.cs)
 
 ### Unit tests
 
+- [`Content.Tests/_WF/MappingTools/MappingToolsPipesTest.cs`](../../../Content.Tests/_WF/MappingTools/MappingToolsPipesTest.cs)
 - [`Content.Tests/_WF/MappingTools/MappingToolsShapesTest.cs`](../../../Content.Tests/_WF/MappingTools/MappingToolsShapesTest.cs)
 
 ### Localization

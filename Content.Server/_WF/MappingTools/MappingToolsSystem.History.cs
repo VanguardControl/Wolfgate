@@ -138,6 +138,11 @@ public sealed partial class MappingToolsSystem
             Add(decal.Grid);
         }
 
+        foreach (var change in edit.PipeColors)
+        {
+            Add(change.Entity.Uid);
+        }
+
         return maps;
     }
 
@@ -245,7 +250,7 @@ public sealed partial class MappingToolsSystem
             var check = new WFMappingCanEditEvent(session, map, WFMappingEditKind.Edit)
             {
                 Entities = Math.Max(0, added - removed),
-                TouchedEntities = added + removed + edit.Moves.Count,
+                TouchedEntities = added + removed + edit.Moves.Count + edit.PipeColors.Count,
                 NewGrid = newGrid,
             };
 

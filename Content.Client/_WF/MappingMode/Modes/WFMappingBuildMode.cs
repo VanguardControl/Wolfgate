@@ -10,6 +10,7 @@ public enum WFMappingBuildMode : byte
     Shape,
     Pick,
     Template,
+    Pipe,
 }
 
 /// <summary>What Erase mode removes.</summary>
@@ -38,4 +39,19 @@ public enum WFMappingShapeFill : byte
 {
     Fill,
     Border,
+}
+
+/// <summary>The colour Pipe mode paints with.</summary>
+public enum WFMappingPipePreset : byte
+{
+    Distro,
+    Waste,
+    Air,
+    Mix,
+
+    /// <summary>The colour typed into Properties.</summary>
+    Custom,
+
+    /// <summary>The colour of the first pipe the path joins, else none.</summary>
+    Auto,
 }

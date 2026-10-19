@@ -71,6 +71,11 @@ public sealed partial class MappingToolsSystem
             {
                 AddDecal(decal);
             }
+
+            foreach (var change in edit.PipeColors)
+            {
+                SetPipeColor(change.Entity.Uid, forward ? change.New : change.Old);
+            }
         }
         finally
         {

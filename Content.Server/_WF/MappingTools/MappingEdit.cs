@@ -68,6 +68,9 @@ public record struct MappingTileChange(EntityUid Grid, Vector2i Indices, Tile Ol
 
 public record struct MappingEntityMove(MappingEntityRef Entity, MappingPose Old, MappingPose New);
 
+/// <summary>A pipe painted another colour, which stays the same entity.</summary>
+public record struct MappingPipeColorChange(MappingEntityRef Entity, Color Old, Color New);
+
 /// <summary>
 /// A decal by value, with grid-local coordinates; decal ids change when one is re-added.
 /// </summary>
@@ -94,9 +97,10 @@ public sealed class MappingEdit(string name)
     public readonly List<MappingEntityGroup> Deleted = new();
     public readonly List<MappingDecal> DecalsRemoved = new();
     public readonly List<MappingDecal> DecalsAdded = new();
+    public readonly List<MappingPipeColorChange> PipeColors = new();
 
     public bool IsEmpty => Tiles.Count == 0 && Moves.Count == 0 && Created.Count == 0 && Deleted.Count == 0 &&
-                           DecalsRemoved.Count == 0 && DecalsAdded.Count == 0;
+                           DecalsRemoved.Count == 0 && DecalsAdded.Count == 0 && PipeColors.Count == 0;
 
     /// <summary>
     /// Appends another edit that happened after this one.
@@ -109,13 +113,15 @@ public sealed class MappingEdit(string name)
         Deleted.AddRange(other.Deleted);
         DecalsRemoved.AddRange(other.DecalsRemoved);
         DecalsAdded.AddRange(other.DecalsAdded);
+        PipeColors.AddRange(other.PipeColors);
     }
 
     /// <summary>Estimated memory the edit holds, for the history budget.</summary>
     public long Bytes()
     {
         const int perChange = 64;
-        var bytes = (long) perChange * (Tiles.Count + Moves.Count + DecalsRemoved.Count + DecalsAdded.Count);
+        var bytes = (long) perChange * (Tiles.Count + Moves.Count + DecalsRemoved.Count + DecalsAdded.Count +
+                                        PipeColors.Count);
         foreach (var group in Created)
         {
             bytes += group.Bytes + perChange * group.Roots.Count;

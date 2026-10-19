@@ -121,6 +121,12 @@ public enum MappingDrawOp : byte
 
     /// <summary>Removes the decals whose centre falls in a cell.</summary>
     EraseDecals,
+
+    /// <summary>Lays a pipe along the cells, a path in order, as <see cref="MappingToolsDrawEvent.Pipes"/> says.</summary>
+    Pipes,
+
+    /// <summary>Paints the pipe network at the one cell with the colour in <see cref="MappingToolsDrawEvent.Pipes"/>.</summary>
+    PipeColor,
 }
 
 /// <summary>
@@ -149,4 +155,7 @@ public sealed class MappingToolsDrawEvent(
 
     /// <summary>The map a draw with no grid goes on.</summary>
     public NetEntity? Map;
+
+    /// <summary>The layer, colour and joining of a pipe draw or network paint.</summary>
+    public WFMappingPipeSpec? Pipes;
 }
