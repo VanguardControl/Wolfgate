@@ -978,6 +978,8 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoCoreTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoCoreTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoDevourTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoDevourTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoEggCultivationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoEggCultivationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoEvolutionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoEvolutionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveBootstrapTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveBootstrapTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHunterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHunterTest.cs)
@@ -1479,6 +1481,6 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Resources/Prototypes/Entities/Mobs/Player/observer.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/observer.yml)
   - the join-as-xeno hive dialog
   - ghosts can join a hive as a burrowed larva
-- [`Resources/Prototypes/Entities/Mobs/Species/base.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/base.yml): species can host facehuggers
+- [`Resources/Prototypes/Entities/Mobs/Species/base.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/base.yml): species can host facehuggers and be devoured by xenos
 
 <!-- WOLFGATE-GENERATED END -->

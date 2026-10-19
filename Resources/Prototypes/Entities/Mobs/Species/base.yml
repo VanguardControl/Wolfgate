@@ -102,8 +102,9 @@
   - type: RotationVisuals
     defaultRotation: 90
     horizontalRotation: 90
-  # WOLFGATE(Xenonids): species can host facehuggers
+  # WOLFGATE(Xenonids): species can host facehuggers and be devoured by xenos
   - type: Infectable
+  - type: Devourable
   - type: HumanoidAppearance
     species: Human
   - type: SlowOnDamage

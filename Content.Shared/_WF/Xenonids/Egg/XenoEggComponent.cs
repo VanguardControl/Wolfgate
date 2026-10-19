@@ -68,6 +68,10 @@ public sealed partial class XenoEggComponent : Component
     [DataField]
     public TimeSpan CheckWeedsDelay = TimeSpan.FromSeconds(2); //To not check constantly for weeds
 
+    /// <summary>WOLFGATE: planted by a non-xeno; grows anywhere, never turns fragile and costs no plasma.</summary>
+    [DataField, AutoNetworkedField]
+    public bool Cultivated;
+
     [DataField]
     public TimeSpan FragileEggDuration = TimeSpan.FromMinutes(6);
 

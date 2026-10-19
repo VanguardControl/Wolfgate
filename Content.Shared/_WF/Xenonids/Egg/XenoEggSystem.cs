@@ -302,11 +302,16 @@ public sealed partial class XenoEggSystem : EntitySystem
         if (!CanPlaceEggPopup(args.User, egg, coordinates, false, out var hiveweeds))
             return;
 
-        if (!_plasma.TryRemovePlasmaPopup(args.User, 30))
+        // WOLFGATE: a non-xeno planter (the research loop) pays no plasma and the egg grows wherever it is put
+        var cultivated = !HasComp<XenoComponent>(args.User);
+        if (!cultivated && !_plasma.TryRemovePlasmaPopup(args.User, 30))
             return;
 
+        egg.Comp.Cultivated = cultivated;
+        Dirty(egg);
+
         //Eggsac code
-        if (!hiveweeds)
+        if (!hiveweeds && !cultivated)
             EggsacSustain(args.User, egg);
 
         // Hand code is god-awful and its reach distance is inconsistent with args.CanReach
@@ -678,16 +683,7 @@ public sealed partial class XenoEggSystem : EntitySystem
     private bool CanPlaceEggPopup(EntityUid user, Entity<XenoEggComponent> egg, EntityCoordinates coordinates, bool handled, out bool hasHiveWeeds)
     {
         hasHiveWeeds = false;
-        if (_xeno.IsHostCandidate(user)) // WOLFGATE: host test replaces MarineComponent
-        {
-            if (!handled)
-            {
-                _hands.TryDrop(user, egg, coordinates);
-                _popup.PopupClient(Loc.GetString("cm-xeno-egg-failed-plant-outside"), user, user);
-            }
-
-            return false;
-        }
+        // WOLFGATE: RMC refuses marines here; Wolfgate lets anyone plant an egg, it still needs hive weeds under it
 
         if (_transform.GetGrid(coordinates) is not { } gridId ||
             !TryComp(gridId, out MapGridComponent? grid))
@@ -725,7 +721,7 @@ public sealed partial class XenoEggSystem : EntitySystem
             return false;
         }
 
-        if (!hasHiveWeeds)
+        if (!hasHiveWeeds && HasComp<XenoComponent>(user)) // WOLFGATE: only xenos need weeds under an egg
         {
             if (!HasComp<XenoEggSustainerComponent>(user))
                 _popup.PopupClient(Loc.GetString("cm-xeno-egg-failed-must-hive-weeds"), user, user);
@@ -929,7 +925,7 @@ public sealed partial class XenoEggSystem : EntitySystem
             if (!xform.Anchored)
                 continue;
 
-            if (time >= egg.CheckWeedsAt)
+            if (time >= egg.CheckWeedsAt && !egg.Cultivated) // WOLFGATE: cultivated eggs never turn fragile
             {
                 egg.CheckWeedsAt = time + egg.CheckWeedsDelay;
 
