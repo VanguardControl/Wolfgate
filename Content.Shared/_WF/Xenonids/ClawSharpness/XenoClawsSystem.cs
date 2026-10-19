@@ -1,3 +1,4 @@
+using Content.Shared._WF.RMCCore.Melee;
 using Content.Shared._WF.Xenonids.Charge;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
@@ -10,6 +11,7 @@ namespace Content.Shared._WF.Xenonids.ClawSharpness;
 public sealed partial class XenoClawsSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _protoManager = default!;
+    [Dependency] private DamageableSystem _damageable = default!;
 
     private EntityQuery<MeleeWeaponComponent> _meleeWeaponQuery;
     private EntityQuery<XenoClawsComponent> _xenoClawsQuery;
@@ -24,6 +26,55 @@ public sealed partial class XenoClawsSystem : EntitySystem
 
         SubscribeLocalEvent<ReceiverXenoClawsComponent, DamageModifyEvent>(OnReceiverDamageModify);
         SubscribeLocalEvent<AirlockReceiverXenoClawsComponent, DamageModifyEvent>(OnAirlockReceiverDamageModify);
+        SubscribeLocalEvent<XenoSlashableComponent, BeforeDamageChangedEvent>(OnSlashableBeforeDamage);
+    }
+
+    /// <summary>
+    /// Re-applies a xeno claw or tail hit without the structure's flat reductions, which split brute damage never
+    /// gets past. Coefficients still apply.
+    /// </summary>
+    private void OnSlashableBeforeDamage(Entity<XenoSlashableComponent> ent, ref BeforeDamageChangedEvent args)
+    {
+        if (args.Cancelled ||
+            args.IgnoreResistances ||
+            args.Tool is not { } tool ||
+            !_xenoClawsQuery.HasComp(tool) ||
+            !_meleeWeaponQuery.HasComp(tool))
+        {
+            return;
+        }
+
+        // these replace the damage themselves after resistances
+        if (HasComp<ReceiverXenoClawsComponent>(ent) ||
+            HasComp<AirlockReceiverXenoClawsComponent>(ent) ||
+            HasComp<MeleeReceivedMultiplierComponent>(ent))
+        {
+            return;
+        }
+
+        if (!TryComp(ent, out DamageableComponent? damageable) ||
+            damageable.DamageModifierSetId is not { } setId ||
+            !_protoManager.TryIndex(setId, out var set) ||
+            set.FlatReduction.Count == 0)
+        {
+            return;
+        }
+
+        var damage = new DamageSpecifier(args.Damage);
+        foreach (var (type, coefficient) in set.Coefficients)
+        {
+            if (damage.DamageDict.TryGetValue(type, out var value) && value > 0)
+                damage.DamageDict[type] = value * coefficient;
+        }
+
+        args.Cancelled = true;
+        args.Applied = _damageable.TryChangeDamage(ent,
+            damage,
+            ignoreResistances: true,
+            interruptsDoAfters: args.InterruptsDoAfters,
+            damageable: damageable,
+            origin: args.Origin,
+            tool: tool);
     }
 
     /*
@@ -89,7 +140,8 @@ public sealed partial class XenoClawsSystem : EntitySystem
 
         // WOLFGATE: no ShouldIgnoreClawLogic upstream; callers that skip claws pass no tool
 
-        if (!_meleeWeaponQuery.HasComp(xeno))
+        // WOLFGATE: only xeno hits; Wolfgate puts this on every airlock, and other melee keeps its normal damage
+        if (!_meleeWeaponQuery.HasComp(xeno) || !_xenoClawsQuery.HasComp(xeno))
             return;
 
         if (!TryComp<DoorComponent>(ent, out var door))

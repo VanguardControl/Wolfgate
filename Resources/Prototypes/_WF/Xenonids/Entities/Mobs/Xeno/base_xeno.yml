@@ -315,7 +315,7 @@
     explosions: []
 
   # WOLFGATE: cut TileFirePatter
-  # WOLFGATE: cut CanBeFirePatted
+  # WOLFGATE: no CanBeFirePatted; XenoFirePatter pats any burning mob
   # WOLFGATE: cut BlockIdExamine
   - type: NoStunOnExit
   - type: RMCSpeciesSlowdownModifier
@@ -445,7 +445,9 @@
       components:
       - XenoFruit
   - type: ParalyzeOnPullAttempt
-  # WOLFGATE: cut FirePatter
+  # WOLFGATE: RMC's FirePatter on upstream fire
+  - type: XenoFirePatter
+    stacks: -5
   - type: RMCHandEmotes
   - type: XenoToggleChargingKnockback
   - type: XenoCanAddPlasmaToConstruct

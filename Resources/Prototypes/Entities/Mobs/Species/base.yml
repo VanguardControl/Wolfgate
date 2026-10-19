@@ -105,6 +105,10 @@
   # WOLFGATE(Xenonids): species can host facehuggers and be devoured by xenos
   - type: Infectable
   - type: Devourable
+  # WOLFGATE(Xenonids): xeno slows (slowing spit, neurotoxin) need RMC's species modifier; RMC's marine values
+  - type: RMCSpeciesSlowdownModifier
+    slowModifier: 2
+    superSlowModifier: 4
   - type: HumanoidAppearance
     species: Human
   - type: SlowOnDamage

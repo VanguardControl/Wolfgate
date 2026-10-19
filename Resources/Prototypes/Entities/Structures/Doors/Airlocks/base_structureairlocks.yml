@@ -150,6 +150,8 @@
   - type: Damageable
     damageContainer: StructuralInorganic
     damageModifierSet: StrongMetallic
+  # WOLFGATE(Xenonids): RMC's airlock rule, sharp xeno claws break it only when bolted or welded
+  - type: AirlockReceiverXenoClaws
   - type: RCDDeconstructable
     cost: 6
     delay: 8

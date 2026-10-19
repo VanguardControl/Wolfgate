@@ -212,7 +212,7 @@ public sealed partial class SharedXenoConstructionSystem : EntitySystem
         if (!construction.OrderConstructionTargeting || construction.OrderConstructionChoice != ev.StructureId)
             return;
 
-        var target = GetCoordinates(ev.Target);
+        var target = OnGrid(GetCoordinates(ev.Target)); // WOLFGATE: map-relative clicks build on the grid under them
 
         if (!CanOrderConstructionPopup((user, construction), target, ev.StructureId))
             return;
@@ -455,6 +455,7 @@ public sealed partial class SharedXenoConstructionSystem : EntitySystem
 
     private void HandleSecreteResinPlacement(Entity<XenoConstructionComponent> xeno, ref XenoSecreteStructureActionEvent args)
     {
+        args.Target = OnGrid(args.Target); // WOLFGATE: map-relative clicks build on the grid under them
         var snapped = args.Target.SnapToGrid(EntityManager, _mapSystem);
         var hasBoost = _queenBoostQuery.HasComp(xeno.Owner);
 
@@ -1228,6 +1229,21 @@ public sealed partial class SharedXenoConstructionSystem : EntitySystem
                !_xenoNest.HasAdjacentNestFacing(target);
     }
 
+    /// <summary>
+    /// WOLFGATE: re-expresses map-relative coordinates on the grid under them, so the tile checks find that grid.
+    /// </summary>
+    private EntityCoordinates OnGrid(EntityCoordinates coordinates)
+    {
+        if (!coordinates.IsValid(EntityManager) || _transform.GetGrid(coordinates) != null)
+            return coordinates;
+
+        var mapCoordinates = _transform.ToMapCoordinates(coordinates);
+        if (!_mapSystem.TryFindGridAt(mapCoordinates, out var gridUid, out _))
+            return coordinates;
+
+        return _transform.ToCoordinates(gridUid, mapCoordinates);
+    }
+
     private bool InRangePopup(EntityUid xeno, EntityCoordinates target, float range, float minRange = 0, bool popup = true)
     {
         var origin = _transform.GetMoverCoordinates(xeno);
@@ -1253,6 +1269,8 @@ public sealed partial class SharedXenoConstructionSystem : EntitySystem
 
     public bool CanSecreteOnTilePopup(Entity<XenoConstructionComponent> xeno, EntProtoId? buildChoice, EntityCoordinates target, bool checkStructureSelected, bool checkWeeds, bool popup = true)
     {
+        target = OnGrid(target); // WOLFGATE: map-relative clicks build on the grid under them
+
         if (HasComp<VehicleInteriorOccupantComponent>(xeno.Owner))
         {
             if (popup)
