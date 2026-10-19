@@ -24,4 +24,20 @@ public sealed class WFMappingDockWindow : FancyWindow
         };
         ContentsContainer.AddChild(Body);
     }
+
+    /// <summary>
+    /// Raised when the window has left the UI tree and is still out of it once the frame's deferred actions run:
+    /// closed, or its pop-out OS window torn down. A pop-out moves it out and back in at once, which does not count.
+    /// </summary>
+    public event Action? Lost;
+
+    protected override void ExitedTree()
+    {
+        base.ExitedTree();
+        UserInterfaceManager.DeferAction(() =>
+        {
+            if (!IsInsideTree)
+                Lost?.Invoke();
+        });
+    }
 }

@@ -88,12 +88,18 @@ public sealed class WFMappingDockSlot : BoxContainer
             if (_window == window)
                 Dock();
         };
+        // The ways out that skip OnClose, such as the root of a popped-out window's OS window being torn down.
+        window.Lost += () =>
+        {
+            if (_window == window)
+                Dock();
+        };
         _window = window;
         window.OpenCentered();
         DockChanged?.Invoke();
     }
 
-    /// <summary>Brings the panel back from its window.</summary>
+    /// <summary>Brings the panel back from its window; does nothing while docked.</summary>
     public void Dock()
     {
         if (_window is not { } window)

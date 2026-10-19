@@ -313,6 +313,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingAdminTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingAdminTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDockPopoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDockPopoutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingGridDeleteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingGridDeleteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryTest.cs)
@@ -356,6 +357,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Docs/_WF/MappingMode/P2-NOTES.md`](../../../Docs/_WF/MappingMode/P2-NOTES.md)
 - [`Docs/_WF/MappingMode/P3-NOTES.md`](../../../Docs/_WF/MappingMode/P3-NOTES.md)
 - [`Docs/_WF/MappingMode/P6-NOTES.md`](../../../Docs/_WF/MappingMode/P6-NOTES.md)
+- [`Docs/_WF/MappingMode/P7-NOTES.md`](../../../Docs/_WF/MappingMode/P7-NOTES.md)
 - [`Docs/_WF/MappingMode/PLAN.md`](../../../Docs/_WF/MappingMode/PLAN.md)
 - [`Docs/_WF/MappingMode/PLAN2.md`](../../../Docs/_WF/MappingMode/PLAN2.md)
 - [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)

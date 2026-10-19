@@ -49,29 +49,44 @@ public sealed partial class WFMappingPaletteIcons
             return cached;
 
         Texture? icon = null;
-        if (_tileDefs.TryGetDefinition(id, out var tile) && tile.Sprite is { } path && Load(path) is { } texture)
+        if (_tileDefs.TryGetDefinition(id, out var tile) && tile.Sprite is { } path)
         {
-            var variants = Math.Max(1, (int) tile.Variants);
-            icon = new AtlasTexture(texture, UIBox2.FromDimensions(0, 0, texture.Width / variants, texture.Height));
+            if (path.Directory.Extension == "rsi")
+            {
+                // An RSI frame is already one tile cell.
+                icon = RsiFrame(path);
+            }
+            else if (_resources.TryGetResource<TextureResource>(path, out var resource))
+            {
+                var texture = resource.Texture;
+                var variants = Math.Max(1, (int) tile.Variants);
+                icon = SubRegion(texture, UIBox2.FromDimensions(0, 0, texture.Width / variants, texture.Height));
+            }
         }
 
         _tileIcons[id] = icon;
         return icon;
     }
 
-    /// <summary>A tile sprite; one inside an RSI is read through the RSI's state, as raw loads there warn.</summary>
-    private Texture? Load(ResPath path)
+    /// <summary>A tile sprite inside an RSI, read through the RSI's state, as raw loads there warn.</summary>
+    private Texture? RsiFrame(ResPath path)
     {
-        var directory = path.Directory;
-        if (directory.Extension == "rsi")
-        {
-            return _resources.TryGetResource<RSIResource>(directory, out var rsi) &&
-                   rsi.RSI.TryGetState(path.FilenameWithoutExtension, out var state)
-                ? state.Frame0
-                : null;
-        }
+        return _resources.TryGetResource<RSIResource>(path.Directory, out var rsi) &&
+               rsi.RSI.TryGetState(path.FilenameWithoutExtension, out var state)
+            ? state.Frame0
+            : null;
+    }
 
-        return _resources.TryGetResource<TextureResource>(path, out var resource) ? resource.Texture : null;
+    /// <summary>
+    /// A region of a texture. An atlas is cut from its own source, never wrapped: Clyde draws an atlas through the
+    /// source's GPU texture and dereferences null for an atlas of an atlas, which aborts the whole UI root's draw.
+    /// </summary>
+    public static AtlasTexture SubRegion(Texture texture, UIBox2 region)
+    {
+        if (texture is AtlasTexture atlas)
+            return new AtlasTexture(atlas.SourceTexture, region.Translated(atlas.SubRegion.TopLeft));
+
+        return new AtlasTexture(texture, region);
     }
 
     public Texture? Decal(string id)

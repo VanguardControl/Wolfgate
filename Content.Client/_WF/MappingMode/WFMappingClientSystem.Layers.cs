@@ -1,4 +1,5 @@
 using Content.Client.Decals;
+using Robust.Shared.Network;
 using Content.Client.Decals.Overlays;
 
 namespace Content.Client._WF.MappingMode;
@@ -16,6 +17,7 @@ public enum WFMappingLayer : byte
 public sealed partial class WFMappingClientSystem
 {
     [Dependency] private DecalSystem _decalSystem = default!;
+    [Dependency] private IClientNetManager _netManager = default!;
 
     public static readonly WFMappingLayer[] Layers =
     {
@@ -48,7 +50,9 @@ public sealed partial class WFMappingClientSystem
                 _tools.SetWallsHidden(!shown);
                 break;
             case WFMappingLayer.Subfloor:
-                _subFloor.ShowAll = shown;
+                // The setter asks the server too, which logs an error once the client has disconnected.
+                if (_subFloor.ShowAll != shown && _netManager.IsConnected)
+                    _subFloor.ShowAll = shown;
                 break;
             case WFMappingLayer.Decals:
                 if (GetLayer(WFMappingLayer.Decals) != shown)
