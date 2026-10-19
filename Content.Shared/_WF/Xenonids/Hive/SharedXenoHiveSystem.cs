@@ -377,6 +377,19 @@ public abstract partial class SharedXenoHiveSystem : EntitySystem
         return hive.Comp.FreeSlots.TryGetValue(caste, out value);
     }
 
+    /// <summary>Burrowed larva waiting across all hives.</summary>
+    public int GetBurrowedLarva()
+    {
+        var total = 0;
+        var hives = EntityQueryEnumerator<HiveComponent>();
+        while (hives.MoveNext(out _, out var hive))
+        {
+            total += hive.BurrowedLarva;
+        }
+
+        return total;
+    }
+
     public void ChangeBurrowedLarva(int amount)
     {
         var hives = EntityQueryEnumerator<HiveComponent>();
