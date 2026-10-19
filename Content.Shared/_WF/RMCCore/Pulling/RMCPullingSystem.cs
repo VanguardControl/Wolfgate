@@ -6,6 +6,7 @@ using Content.Shared._WF.Xenonids.Parasite;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Coordinates;
+using Content.Shared.Ghost;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Interaction;
 using Content.Shared.Interaction.Components;
@@ -99,7 +100,7 @@ public sealed partial class RMCPullingSystem : EntitySystem
         if (ent.Owner != ev.Target)
             return;
 
-        if (HasComp<XenoComponent>(ev.User))
+        if (HasComp<XenoComponent>(ev.User) || IsAdminGhost(ev.User))
             return;
 
         if (HasComp<RMCRetargetBucklePullComponent>(ent.Comp.BuckledTo))
@@ -112,6 +113,7 @@ public sealed partial class RMCPullingSystem : EntitySystem
         var target = args.PulledUid;
         if (target != ent.Owner ||
             HasComp<ParalyzeOnPullAttemptImmuneComponent>(user) ||
+            IsAdminGhost(user) ||
             _mobState.IsDead(ent))
         {
             return;
@@ -212,6 +214,7 @@ public sealed partial class RMCPullingSystem : EntitySystem
         var target = args.PulledUid;
         if (target != ent.Owner ||
             HasComp<InfectOnPullAttemptImmuneComponent>(user) ||
+            IsAdminGhost(user) ||
             _mobState.IsDead(ent))
         {
             return;
@@ -387,7 +390,7 @@ public sealed partial class RMCPullingSystem : EntitySystem
         if (!Resolve(pulled, ref pulled.Comp, false))
             return true;
 
-        if (!_mobState.IsAlive(pulled))
+        if (!_mobState.IsAlive(pulled) || IsAdminGhost(user))
             return true;
 
         if (!_whitelist.IsWhitelistPassOrNull(pulled.Comp.Whitelist, user))
@@ -506,6 +509,12 @@ public sealed partial class RMCPullingSystem : EntitySystem
         // WOLFGATE: CMEffectGrab comes with the Xenonids prototypes; skip it until it exists
         if (_prototypes.HasIndex(PullEffect))
             PredictedSpawnAttachedTo(PullEffect, pulled.ToCoordinates());
+    }
+
+    /// <summary>Whether this is an admin ghost, which drags any xeno without RMC's pull penalties.</summary>
+    public bool IsAdminGhost(EntityUid uid)
+    {
+        return TryComp(uid, out GhostComponent? ghost) && ghost.CanGhostInteract;
     }
 
     private bool CanPullDead(EntityUid puller, EntityUid pulled)

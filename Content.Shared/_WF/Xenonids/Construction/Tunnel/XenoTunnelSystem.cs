@@ -1,7 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Content.Shared._WF.RMCCore.Actions;
+using Content.Shared._WF.RMCCore.Explosion;
 using Content.Shared._WF.RMCCore.Stun;
+using Content.Shared._WF.Xenonids.Announce;
 using Content.Shared._WF.Xenonids.Devour;
 using Content.Shared._WF.Xenonids.Hive;
 using Content.Shared._WF.Xenonids.Plasma;
@@ -23,6 +25,7 @@ using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Events;
 using Content.Shared.Popups;
+using Content.Shared.Tools.Systems;
 using Content.Shared.Verbs;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
@@ -42,6 +45,7 @@ public sealed partial class XenoTunnelSystem : EntitySystem
     [Dependency] private SharedActionsSystem _action = default!;
     [Dependency] private ActionBlockerSystem _actionBlocker = default!;
     [Dependency] private ISharedAdminLogManager _adminLog = default!;
+    [Dependency] private SharedXenoAnnounceSystem _announce = default!;
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedXenoHiveSystem _hive = default!;
@@ -52,6 +56,7 @@ public sealed partial class XenoTunnelSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private SharedRMCActionsSystem _rmcActions = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private SharedToolSystem _tool = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private TurfSystem _turf = default!;
     [Dependency] private SharedUserInterfaceSystem _ui = default!;
@@ -99,6 +104,7 @@ public sealed partial class XenoTunnelSystem : EntitySystem
         SubscribeLocalEvent<XenoTunnelComponent, InteractUsingEvent>(OnFillTunnel);
         SubscribeLocalEvent<XenoTunnelComponent, XenoCollapseTunnelDoAfterEvent>(OnCollapseTunnelFinish);
         SubscribeLocalEvent<XenoTunnelComponent, EntityTerminatingEvent>(OnDeleteTunnel);
+        SubscribeLocalEvent<XenoTunnelComponent, ExplosionReceivedEvent>(OnTunnelExplosion);
         SubscribeLocalEvent<XenoTunnelComponent, EntInsertedIntoContainerMessage>(OnTunnelEntInserted);
 
         SubscribeLocalEvent<XenoTunnelComponent, ContainerIsInsertingAttemptEvent>(OnInsertEntityIntoTunnel);
@@ -472,6 +478,12 @@ public sealed partial class XenoTunnelSystem : EntitySystem
         if (!HasComp<XenoTunnelComponent>(destinationTunnel))
             return;
 
+        if (!SameGrid(startingTunnel, destinationTunnel))
+        {
+            _popup.PopupClient(Loc.GetString("wf-xeno-tunnel-other-grid"), traversingXeno, traversingXeno);
+            return;
+        }
+
         var mobContainer = _container.EnsureContainer<Container>(destinationTunnel, XenoTunnelComponent.ContainedMobsContainerId);
         if (mobContainer.Count >= xenoTunnel.Comp.MaxMobs)
         {
@@ -543,6 +555,13 @@ public sealed partial class XenoTunnelSystem : EntitySystem
         if (_transform.GetMap(startingTunnel) != _transform.GetMap(destinationXenoTunnel.Owner))
             return;
 
+        // WOLFGATE: tunnels only link within one grid, so a ship's tunnels never reach a station's
+        if (!SameGrid(startingTunnel, destinationXenoTunnel.Owner))
+        {
+            _popup.PopupClient(Loc.GetString("wf-xeno-tunnel-other-grid"), traversingXeno, traversingXeno);
+            return;
+        }
+
         var mobContainer = _container.EnsureContainer<Container>(destinationXenoTunnel, XenoTunnelComponent.ContainedMobsContainerId);
         if (mobContainer.Count >= destinationXenoTunnel.Comp.MaxMobs)
         {
@@ -589,9 +608,8 @@ public sealed partial class XenoTunnelSystem : EntitySystem
         if (!TryComp(hive, out HiveComponent? hiveComp))
             return;
 
-        var hiveTunnels = hiveComp.HiveTunnels;
         Dictionary<string, NetEntity> netHiveTunnels = new();
-        foreach (var (name, tunnel) in hiveTunnels)
+        foreach (var (name, tunnel) in GetTravelDestinations(destinationXenoTunnel.Owner))
         {
             netHiveTunnels.Add(name, GetNetEntity(tunnel));
         }
@@ -608,30 +626,26 @@ public sealed partial class XenoTunnelSystem : EntitySystem
             return;
         }
 
+        // WOLFGATE: any shovel fills a tunnel, not only tools marked as fillers
         var tool = args.Used;
-        if (TryComp(tool, out XenoTunnelFillerComponent? tunnelFillerComp))
-        {
-            if (TryComp(tool, out ItemToggleComponent? toggleComp))
-            {
-                if (!toggleComp.Activated)
-                {
-                    return;
-                }
-            }
-            args.Handled = true;
-            var ev = new XenoCollapseTunnelDoAfterEvent();
-            var doAfterArgs = new DoAfterArgs(EntityManager, args.User, tunnelFillerComp.FillDelay, ev, xenoTunnel.Owner, xenoTunnel, tool)
-            {
-                BreakOnMove = true,
-                NeedHand = true,
-                BreakOnDropItem = true,
-                BreakOnHandChange = true,
-                // WOLFGATE: no RootEntity on DoAfterArgs here
-            };
+        if (!TryGetFillDelay(xenoTunnel, tool, args.User, out var fillDelay))
+            return;
 
+        args.Handled = true;
+        var ev = new XenoCollapseTunnelDoAfterEvent();
+        var doAfterArgs = new DoAfterArgs(EntityManager, args.User, fillDelay, ev, xenoTunnel.Owner, xenoTunnel, tool)
+        {
+            BreakOnMove = true,
+            NeedHand = true,
+            BreakOnDropItem = true,
+            BreakOnHandChange = true,
+            BlockDuplicate = true,
+            DuplicateCondition = DuplicateConditions.SameTarget,
+            // WOLFGATE: no RootEntity on DoAfterArgs here
+        };
+
+        if (_doAfter.TryStartDoAfter(doAfterArgs))
             _popup.PopupClient(Loc.GetString("rmc-xeno-construction-tunnel-fill"), args.User, args.User);
-            _doAfter.TryStartDoAfter(doAfterArgs);
-        }
     }
 
     private void OnCollapseTunnelFinish(Entity<XenoTunnelComponent> xenoTunnel, ref XenoCollapseTunnelDoAfterEvent args)
@@ -639,7 +653,7 @@ public sealed partial class XenoTunnelSystem : EntitySystem
         if (args.Handled || args.Cancelled)
             return;
 
-        CollapseTunnel(xenoTunnel);
+        CollapseTunnel(xenoTunnel, "wf-xeno-tunnel-announce-filled");
     }
 
     private void OnDeleteTunnel(Entity<XenoTunnelComponent> xenoTunnel, ref EntityTerminatingEvent args)
@@ -680,20 +694,31 @@ public sealed partial class XenoTunnelSystem : EntitySystem
     /// Delete a tunnel and remove anything within it. CALLING DEL OR QUEUEDEL DIRECTLY ON THE TUNNEL IS NOT RECOMMENDED.
     /// </summary>
     /// <param name="xenoTunnel"></param>
-    private void CollapseTunnel(Entity<XenoTunnelComponent> xenoTunnel)
+    private void CollapseTunnel(Entity<XenoTunnelComponent> xenoTunnel, string? announceLocId = null, string dropLocId = "rmc-xeno-construction-tunnel-fill-xeno-drop")
     {
         if (_net.IsClient)
             return;
 
         if (_hive.GetHive(xenoTunnel.Owner) is { } hive && TryGetHiveTunnelName(xenoTunnel, out var tunnelName))
+        {
             hive.Comp.HiveTunnels.Remove(tunnelName);
 
-        if (_container.TryGetContainer(xenoTunnel.Owner, XenoTunnelComponent.ContainedMobsContainerId, out var mobContainer))
+            // WOLFGATE: the hive hears of tunnels lost to explosives and shovels, not of cleanup deletions
+            if (announceLocId != null)
+            {
+                var message = Loc.GetString(announceLocId, ("tunnelName", tunnelName), ("location", _xenoConstruct.GetLocationName(xenoTunnel.Owner)));
+                _announce.AnnounceToHive(hive.Owner, hive.Owner, message);
+            }
+        }
+
+        // WOLFGATE: a tunnel deleted along with its grid or map takes its occupants with it, there is nowhere to drop them
+        var parentGone = TerminatingOrDeleted(Transform(xenoTunnel.Owner).ParentUid);
+        if (!parentGone && _container.TryGetContainer(xenoTunnel.Owner, XenoTunnelComponent.ContainedMobsContainerId, out var mobContainer))
         {
             foreach (var mob in mobContainer.ContainedEntities.ToArray())
             {
                 RemoveFromTunnel(mob, mobContainer.Owner);
-                _popup.PopupEntity(Loc.GetString("rmc-xeno-construction-tunnel-fill-xeno-drop"), mob, mob);
+                _popup.PopupEntity(Loc.GetString(dropLocId), mob, mob);
             }
         }
 

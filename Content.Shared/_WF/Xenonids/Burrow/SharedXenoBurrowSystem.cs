@@ -336,6 +336,13 @@ public abstract partial class SharedXenoBurrowSystem : EntitySystem
 
         var gridId = _transform.GetGrid(ent.Owner);
 
+        // WOLFGATE: a burrower stays on the grid it burrowed from
+        if (_transform.GetGrid(target) is { } targetGrid && targetGrid != gridId)
+        {
+            _popup.PopupClient(Loc.GetString("wf-xeno-burrow-other-grid"), ent, ent);
+            return false;
+        }
+
         if (TryComp(gridId, out MapGridComponent? grid))
         {
             var tile = _map.GetTileRef(gridId.Value, grid, target);
@@ -385,13 +392,24 @@ public abstract partial class SharedXenoBurrowSystem : EntitySystem
             return;
         }
 
+        // WOLFGATE: surfacing on another grid is refused; the burrower stays under until it is forced up
+        var targetCoords = _entities.GetCoordinates(args.TargetCoords);
+        if (_transform.GetGrid(targetCoords) != _transform.GetGrid(burrower.Owner))
+        {
+            burrower.Comp.Tunneling = false;
+            burrower.Comp.NextTunnelAt = _time.CurTime + burrower.Comp.TunnelCooldown;
+            Dirty(burrower);
+            _popup.PopupClient(Loc.GetString("wf-xeno-burrow-other-grid"), burrower, burrower);
+            return;
+        }
+
         burrower.Comp.Tunneling = false;
         burrower.Comp.NextTunnelAt = null;
         burrower.Comp.ForcedUnburrowAt = null;
         _rmcPulling.TryStopAllPullsFromAndOn(burrower);
         Dirty(burrower);
         if (_net.IsServer)
-            _transform.SetCoordinates(burrower, _entities.GetCoordinates(args.TargetCoords));
+            _transform.SetCoordinates(burrower, targetCoords);
         var ev = new BurrowedEvent(false);
         RaiseLocalEvent(burrower, ref ev);
         _popup.PopupClient(Loc.GetString("rmc-xeno-burrow-move-finish"), burrower, burrower);

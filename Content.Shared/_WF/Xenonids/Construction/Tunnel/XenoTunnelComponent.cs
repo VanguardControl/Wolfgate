@@ -1,4 +1,5 @@
 using System;
+using Content.Shared.FixedPoint;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -39,4 +40,15 @@ public sealed partial class XenoTunnelComponent : Component
 
     [DataField]
     public TimeSpan LargeXenoMoveDelay = TimeSpan.FromSeconds(6);
+
+    /// <summary>
+    /// Total explosion damage at the tunnel's tile that collapses it. A C4 deals over ten thousand there and a
+    /// grenade's centre several hundred, so only the stray edge of a blast falls under it.
+    /// </summary>
+    [DataField]
+    public FixedPoint2 ExplosionCollapseDamage = 200;
+
+    /// <summary>How long a shovel or entrenching tool takes to fill the tunnel, unless the tool says otherwise.</summary>
+    [DataField]
+    public TimeSpan ShovelFillDelay = TimeSpan.FromSeconds(30);
 }
