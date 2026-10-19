@@ -82,12 +82,15 @@
                 <BoxContainer Orientation="Horizontal" SeparationOverride="8">
                     <Label Name="LibraryUsage" Access="Public" StyleClasses="LabelSubText" HorizontalExpand="True"
                            VAlign="Center" />
+                    <Button Name="LibraryUploadButton" Access="Public" Text="{Loc 'wf-mapping-mode-upload-button'}"
+                            ToolTip="{Loc 'wf-mapping-mode-upload-button-tooltip'}" TooltipDelay="0" />
                     <Button Name="LibraryRefreshButton" Access="Public" Text="{Loc 'wf-mapping-mode-lobby-refresh'}" />
                 </BoxContainer>
                 <ScrollContainer HScrollEnabled="False" VerticalExpand="True">
                     <mapping:WFMappingLibraryList Name="LibraryList" Access="Public" />
                 </ScrollContainer>
                 <mapping:WFMappingDownloadRow Name="DownloadRow" Access="Public" />
+                <mapping:WFMappingUploadRow Name="UploadRow" Access="Public" />
             </BoxContainer>
         </TabContainer>
         <Label Name="ResultLabel" Access="Public" ClipText="True" />

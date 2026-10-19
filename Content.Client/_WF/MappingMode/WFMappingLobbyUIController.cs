@@ -14,12 +14,13 @@ namespace Content.Client._WF.MappingMode;
 /// and the server's answers back and forth.
 /// </summary>
 public sealed partial class WFMappingLobbyUIController : UIController, IOnStateEntered<LobbyState>, IOnStateExited<LobbyState>,
-    IOnSystemChanged<WFMappingClientSystem>
+    IOnSystemChanged<WFMappingClientSystem>, IOnSystemChanged<WFMappingUploadClientSystem>
 {
     [Dependency] private IClientAdminManager _admin = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
 
     [UISystemDependency] private readonly WFMappingClientSystem _mapping = default!;
+    [UISystemDependency] private readonly WFMappingUploadClientSystem _upload = default!;
 
     private LobbyGui? _lobby;
     private WFMappingLobbyPanel? _panel;
@@ -59,6 +60,16 @@ public sealed partial class WFMappingLobbyUIController : UIController, IOnStateE
         system.DownloadUpdated -= UpdateDownload;
     }
 
+    public void OnSystemLoaded(WFMappingUploadClientSystem system)
+    {
+        system.UploadUpdated += UpdateUpload;
+    }
+
+    public void OnSystemUnloaded(WFMappingUploadClientSystem system)
+    {
+        system.UploadUpdated -= UpdateUpload;
+    }
+
     /// <summary>Applies or removes the mapping lobby to match the cvar.</summary>
     private void Refresh()
     {
@@ -91,12 +102,16 @@ public sealed partial class WFMappingLobbyUIController : UIController, IOnStateE
         panel.LibraryList.DeleteRequested += (map, version) => _mapping.Send(new WFMappingDeleteRequest(map, version));
         panel.DownloadRow.CancelPressed += () => _mapping.CancelDownload();
         panel.DownloadRow.OpenFolderPressed += () => _mapping.OpenDownloadFolder();
+        panel.UploadButton.OnPressed += _ => _upload.PickAndUpload();
+        panel.UploadRow.CancelPressed += () => _upload.Cancel();
+        panel.UploadRow.OpenPressed += (map, version) => _mapping.Send(new WFMappingOpenRequest(map, version));
 
         lobby.WFApplyMappingMode(panel, () => _mapping.Send(new WFMappingAdminObserveRequest()));
         UpdateObserve();
         UpdateSessions();
         UpdateLibrary();
         UpdateDownload();
+        UpdateUpload();
         panel.SetResult(_mapping.LastResult);
 
         _mapping.Send(new WFMappingLibraryRequest());
@@ -152,5 +167,10 @@ public sealed partial class WFMappingLobbyUIController : UIController, IOnStateE
     private void UpdateDownload()
     {
         _panel?.DownloadRow.SetProgress(_mapping.Download);
+    }
+
+    private void UpdateUpload()
+    {
+        _panel?.UploadRow.SetProgress(_upload.Upload);
     }
 }

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text;
 using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
@@ -10,6 +11,9 @@ public enum WFMappingVersionKind : byte
 {
     Manual,
     Auto,
+
+    /// <summary>A map file the player uploaded, as the server saved it again after its checks.</summary>
+    Upload,
 }
 
 /// <summary>A library version as its folder name spells it: number, UTC time of the save and kind.</summary>
@@ -35,6 +39,10 @@ public static class WFMappingLibraryNames
     private const string StampFormat = "yyyyMMdd-HHmmss";
     private const string ManualSuffix = "manual";
     private const string AutoSuffix = "auto";
+    private const string UploadSuffix = "upload";
+
+    /// <summary>The map name an upload gets when its file name has nothing usable.</summary>
+    public const string UploadFallbackName = "Upload";
 
     /// <summary>Names Windows refuses as file or folder names, whatever the case.</summary>
     private static readonly HashSet<string> Reserved = new(StringComparer.OrdinalIgnoreCase)
@@ -62,7 +70,12 @@ public static class WFMappingLibraryNames
 
     public static string FormatVersion(int number, DateTime stamp, WFMappingVersionKind kind)
     {
-        var suffix = kind == WFMappingVersionKind.Auto ? AutoSuffix : ManualSuffix;
+        var suffix = kind switch
+        {
+            WFMappingVersionKind.Auto => AutoSuffix,
+            WFMappingVersionKind.Upload => UploadSuffix,
+            _ => ManualSuffix,
+        };
         return $"v{number.ToString("D4", CultureInfo.InvariantCulture)}_{stamp.ToString(StampFormat, CultureInfo.InvariantCulture)}_{suffix}";
     }
 
@@ -99,12 +112,41 @@ public static class WFMappingLibraryNames
             case AutoSuffix:
                 kind = WFMappingVersionKind.Auto;
                 break;
+            case UploadSuffix:
+                kind = WFMappingVersionKind.Upload;
+                break;
             default:
                 return false;
         }
 
         version = new WFMappingVersionName(number, stamp, kind);
         return version.Folder == folder;
+    }
+
+    /// <summary>
+    /// A map name made from an uploaded file's name: the part after the last slash, without <c>.yml</c>, kept to the
+    /// name alphabet and length; <see cref="UploadFallbackName"/> when nothing valid is left.
+    /// </summary>
+    public static string UploadNameFromFile(string? fileName)
+    {
+        if (string.IsNullOrEmpty(fileName))
+            return UploadFallbackName;
+
+        var start = fileName.LastIndexOfAny(new[] { '/', '\\' }) + 1;
+        var end = fileName.Length;
+        if (fileName.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))
+            end -= 4;
+
+        var builder = new StringBuilder(WFMappingModeLimits.MaxNameLength);
+        for (var i = start; i < end && builder.Length < WFMappingModeLimits.MaxNameLength; i++)
+        {
+            var c = fileName[i];
+            if (c is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or >= '0' and <= '9' or ' ' or '_' or '-')
+                builder.Append(c);
+        }
+
+        var name = builder.ToString().Trim();
+        return IsValidMapName(name) ? name : UploadFallbackName;
     }
 
     /// <summary>The file a level is saved to inside a version folder: <c>z0.yml</c> for the ground.</summary>

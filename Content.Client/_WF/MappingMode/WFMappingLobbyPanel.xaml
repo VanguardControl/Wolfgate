@@ -33,6 +33,8 @@
             <Label Text="{Loc 'wf-mapping-mode-lobby-maps'}" StyleClasses="LabelHeading" />
             <Label Name="LibraryUsage" Access="Public" StyleClasses="LabelSubText" HorizontalExpand="True"
                    VAlign="Center" />
+            <Button Name="UploadButton" Access="Public" Text="{Loc 'wf-mapping-mode-upload-button'}"
+                    ToolTip="{Loc 'wf-mapping-mode-upload-button-tooltip'}" TooltipDelay="0" />
             <Button Name="RefreshButton" Access="Public" Text="{Loc 'wf-mapping-mode-lobby-refresh'}" />
         </BoxContainer>
         <ScrollContainer HScrollEnabled="False" VerticalExpand="True">
@@ -40,6 +42,7 @@
         </ScrollContainer>
 
         <mapping:WFMappingDownloadRow Name="DownloadRow" Access="Public" />
+        <mapping:WFMappingUploadRow Name="UploadRow" Access="Public" />
         <Label Name="ResultLabel" Access="Public" ClipText="True" />
     </BoxContainer>
 </mapping:WFMappingLobbyPanel>

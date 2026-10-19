@@ -315,26 +315,70 @@ public sealed class WFMappingLibrarySystem : EntitySystem
         return true;
     }
 
-    /// <summary>
-    /// Writes a session's levels as the next version of a map in a player's library, then prunes the map to
-    /// <c>max_versions</c>. Refused at <c>max_maps</c>, or when the library would end up over
-    /// <c>max_library_bytes</c>; a refused or failed save leaves nothing behind.
-    /// </summary>
+    /// <summary>Writes a session's levels as the next version of a map in a player's library.</summary>
     private SaveResult SaveVersion(WFMappingSession session, NetUserId user, string mapName, WFMappingVersionKind kind)
     {
-        ResPath? written = null;
+        List<EntityUid> levels;
+        int ground;
         try
         {
             if (TerminatingOrDeleted(session.RootMap))
                 return SaveResult.Fail("wf-mapping-mode-save-failed");
 
-            var levels = _zLevels.GetLevels(session.RootMap, out var ground);
+            levels = _zLevels.GetLevels(session.RootMap, out ground);
             if (levels.Any(level => !_mapping.IsSessionMap(level, session)))
             {
                 Log.Error($"Mapping session {session.Code} has a level outside the session; not saving it");
                 return SaveResult.Fail("wf-mapping-mode-save-failed");
             }
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Reading the levels of mapping session {session.Code} failed: {e}");
+            return SaveResult.Fail("wf-mapping-mode-save-failed");
+        }
 
+        return SaveVersion(levels, ground, user, mapName, kind, $"mapping session {session.Code}");
+    }
+
+    /// <summary>
+    /// Stores an uploaded map, loaded aside and checked, as the next <see cref="WFMappingVersionKind.Upload"/>
+    /// version of a map in a player's library; only the engine's save of <paramref name="map"/> is written.
+    /// </summary>
+    public bool SaveUpload(NetUserId user, string mapName, EntityUid map, [NotNullWhen(true)] out string? version,
+        out string error, out (string, object)[] args)
+    {
+        var result = SaveVersion(new List<EntityUid> { map }, 0, user, mapName, WFMappingVersionKind.Upload,
+            $"an upload of {user}");
+        version = result.Version;
+        error = result.Error;
+        args = result.Args;
+        return version != null;
+    }
+
+    /// <summary>
+    /// Whether a player's library takes a version of <paramref name="mapName"/>: an existing map always does, a new
+    /// one only below <c>max_maps</c>.
+    /// </summary>
+    public bool HasRoomForMap(NetUserId user, string mapName, out int maxMaps)
+    {
+        maxMaps = _cfg.GetCVar(WFMappingModeCVars.MaxMaps);
+        var scan = GetScan(user);
+        return FindMap(scan, mapName) is { Versions.Count: > 0 } || scan.MapCount < maxMaps;
+    }
+
+    /// <summary>
+    /// Writes levels, listed bottom-up with depth 0 at <paramref name="ground"/>, as the next version of a map in a
+    /// player's library, then prunes the map to <c>max_versions</c>. Refused at <c>max_maps</c>, or when the library
+    /// would end up over <c>max_library_bytes</c>; a refused or failed save leaves nothing behind.
+    /// <paramref name="logName"/> names what was saved in the log.
+    /// </summary>
+    private SaveResult SaveVersion(List<EntityUid> levels, int ground, NetUserId user, string mapName,
+        WFMappingVersionKind kind, string logName)
+    {
+        ResPath? written = null;
+        try
+        {
             var scan = GetScan(user, fresh: true);
             var map = FindMap(scan, mapName);
             var maxMaps = _cfg.GetCVar(WFMappingModeCVars.MaxMaps);
@@ -386,7 +430,7 @@ public sealed class WFMappingLibrarySystem : EntitySystem
         }
         catch (Exception e)
         {
-            Log.Error($"Saving mapping session {session.Code} into {user}'s library as \"{mapName}\" failed: {e}");
+            Log.Error($"Saving {logName} into {user}'s library as \"{mapName}\" failed: {e}");
             if (written is { } partial)
                 DeleteQuietly(partial);
 

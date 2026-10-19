@@ -82,6 +82,17 @@ public sealed class WFMappingModeCVars
     public static readonly CVarDef<float> ReferenceCooldown =
         CVarDef.Create("wf.mapping_mode.reference_cooldown", 2f, CVar.SERVERONLY);
 
+    /// <summary>
+    /// Size of a map file a player may upload into their library; replicated so the client refuses early. Clamped
+    /// to <see cref="WFMappingUploadAssembler.MaxFileBytes"/>.
+    /// </summary>
+    public static readonly CVarDef<long> MaxUploadBytes =
+        CVarDef.Create("wf.mapping_mode.max_upload_bytes", 1536L * 1024, CVar.SERVER | CVar.REPLICATED);
+
+    /// <summary>Seconds after an upload starts before the same player may start another.</summary>
+    public static readonly CVarDef<float> UploadCooldown =
+        CVarDef.Create("wf.mapping_mode.upload_cooldown", 30f, CVar.SERVERONLY);
+
     /// <summary>Placement, tile and decal requests per second per mapper.</summary>
     public static readonly CVarDef<int> MaxEditsPerSecond =
         CVarDef.Create("wf.mapping_mode.max_edits_per_second", 60, CVar.SERVERONLY);

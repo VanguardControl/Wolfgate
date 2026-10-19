@@ -14,7 +14,8 @@ namespace Content.Client._WF.MappingMode;
 /// Opens the Mapping window from the game menu and passes its requests and the server's answers back and forth.
 /// </summary>
 public sealed partial class WFMappingMenuUIController : UIController, IOnStateExited<GameplayState>,
-    IOnSystemChanged<WFMappingClientSystem>, IOnSystemChanged<WFMappingReferenceSystem>
+    IOnSystemChanged<WFMappingClientSystem>, IOnSystemChanged<WFMappingReferenceSystem>,
+    IOnSystemChanged<WFMappingUploadClientSystem>
 {
     [Dependency] private IClientAdminManager _admin = default!;
     [Dependency] private IClipboardManager _clipboard = default!;
@@ -22,6 +23,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
 
     [UISystemDependency] private readonly WFMappingClientSystem _mapping = default!;
     [UISystemDependency] private readonly WFMappingReferenceSystem _reference = default!;
+    [UISystemDependency] private readonly WFMappingUploadClientSystem _upload = default!;
 
     /// <summary>The largest selection MappingTools accepts, in cells; it ignores bigger ones.</summary>
     private const long MaxDeleteCells = 256 * 256;
@@ -68,6 +70,16 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         system.PlacementStarted -= OnPlacementStarted;
     }
 
+    public void OnSystemLoaded(WFMappingUploadClientSystem system)
+    {
+        system.UploadUpdated += UpdateUpload;
+    }
+
+    public void OnSystemUnloaded(WFMappingUploadClientSystem system)
+    {
+        system.UploadUpdated -= UpdateUpload;
+    }
+
     /// <summary>Opens the window, or brings it forward if it is already open.</summary>
     public void OpenWindow()
     {
@@ -105,11 +117,14 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.LibraryList.DeleteRequested += (map, version) => _mapping.Send(new WFMappingDeleteRequest(map, version));
         window.DownloadRow.CancelPressed += () => _mapping.CancelDownload();
         window.DownloadRow.OpenFolderPressed += () => _mapping.OpenDownloadFolder();
+        window.LibraryUploadButton.OnPressed += _ => _upload.PickAndUpload();
+        window.UploadRow.CancelPressed += () => _upload.Cancel();
 
         UpdateSession();
         UpdateLibrary();
         UpdateReferences();
         UpdateDownload();
+        UpdateUpload();
         window.SetResult(_mapping.LastResult);
         window.OpenCentered();
 
@@ -200,5 +215,10 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
     private void UpdateDownload()
     {
         _window?.DownloadRow.SetProgress(_mapping.Download);
+    }
+
+    private void UpdateUpload()
+    {
+        _window?.UploadRow.SetProgress(_upload.Upload);
     }
 }

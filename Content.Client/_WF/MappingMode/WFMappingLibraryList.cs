@@ -127,9 +127,12 @@ public sealed class WFMappingLibraryList : BoxContainer
     {
         var row = new BoxContainer { Orientation = LayoutOrientation.Horizontal, SeparationOverride = 4 };
         var folder = version.Name.Folder;
-        var kind = Loc.GetString(version.Name.Kind == WFMappingVersionKind.Auto
-            ? "wf-mapping-mode-kind-auto"
-            : "wf-mapping-mode-kind-manual");
+        var kind = Loc.GetString(version.Name.Kind switch
+        {
+            WFMappingVersionKind.Auto => "wf-mapping-mode-kind-auto",
+            WFMappingVersionKind.Upload => "wf-mapping-mode-kind-upload",
+            _ => "wf-mapping-mode-kind-manual",
+        });
 
         row.AddChild(new Label
         {

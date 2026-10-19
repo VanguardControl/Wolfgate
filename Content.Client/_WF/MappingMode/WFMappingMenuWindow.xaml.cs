@@ -56,6 +56,7 @@ public sealed partial class WFMappingMenuWindow : FancyWindow
         };
 
         LibraryList.ShowOpen = false;
+        UploadRow.ShowOpen = false;
         ReferenceButton.OnToggled += args => ReferenceBox.Visible = args.Pressed;
         ReferenceSearch.OnTextChanged += _ => PopulateReferences();
         ReferenceList.OnItemSelected += args => SelectReference(ReferenceList[args.ItemIndex].Metadata as string);

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -10,6 +11,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
+using Robust.Shared.Serialization.Markdown.Mapping;
 using Robust.Shared.Utility;
 
 namespace Content.Server._WF.MappingMode;
@@ -26,6 +28,26 @@ public sealed partial class WFMappingModeSystem
         public readonly List<(EntityUid Grid, WFMappingFootprintGrid Footprint)> Grids = new();
         public int Entities;
         public TimeSpan Expires;
+    }
+
+    /// <summary>A file loaded aside onto a scratch map: the map, its grids and the entities on them.</summary>
+    public sealed class ScratchLoad(EntityUid map)
+    {
+        public readonly EntityUid Map = map;
+        public readonly List<EntityUid> Grids = new();
+        public int Entities;
+
+        /// <summary>Entities deleted for carrying a denied component, contents included.</summary>
+        public int Stripped;
+    }
+
+    /// <summary>Why a load was refused: a Fluent id and its arguments.</summary>
+    public readonly record struct LoadRefusal(string Key, (string, object)[] Args)
+    {
+        public static LoadRefusal Of(string key, params (string, object)[] args)
+        {
+            return new LoadRefusal(key, args);
+        }
     }
 
     private readonly Dictionary<NetUserId, PendingReference> _references = new();
@@ -116,41 +138,27 @@ public sealed partial class WFMappingModeSystem
             return;
         }
 
-        var now = _timing.CurTime;
-        if (now < _nextReferenceLoad)
+        if (!TryReserveLoad())
         {
             Refuse(player, "wf-mapping-mode-reference-busy");
             return;
         }
 
-        _nextReferenceLoad = now + TimeSpan.FromSeconds(Math.Max(0f, _cfg.GetCVar(WFMappingModeCVars.ReferenceCooldown)));
         CancelReference(player.UserId);
-
-        var scratch = _map.CreateMap(out var scratchId, runMapInit: false);
-        RegisterMap(scratch, WFMappingMapKind.Scratch, session.Id);
-        var pending = new PendingReference(_nextReferenceToken++, session.Id, scratch, ev.Path)
+        if (!TryLoadOntoScratch(path, player, session, false, "wf-mapping-mode-reference-failed", out var load,
+                out var refusal))
         {
-            Expires = _timing.CurTime + ReferenceLifetime,
-        };
-
-        try
-        {
-            if (!TryLoadReference(pending, path, scratchId, player, session))
-            {
-                Del(scratch);
-                return;
-            }
-        }
-        catch (Exception e)
-        {
-            Log.Error($"Loading {ev.Path} as a reference for {player} failed: {e}");
-            if (!TerminatingOrDeleted(scratch))
-                Del(scratch);
-
-            Refuse(player, "wf-mapping-mode-reference-failed");
+            Refuse(player, refusal.Key, refusal.Args);
             return;
         }
 
+        var pending = new PendingReference(_nextReferenceToken++, session.Id, load.Map, ev.Path)
+        {
+            Expires = _timing.CurTime + ReferenceLifetime,
+            Entities = load.Entities,
+        };
+
+        AddFootprints(pending, load.Grids);
         _references[player.UserId] = pending;
         RaiseNetworkEvent(new WFMappingReferenceFootprintEvent(pending.Token,
             pending.Grids.Select(g => g.Footprint).ToList()), player);
@@ -176,11 +184,73 @@ public sealed partial class WFMappingModeSystem
     }
 
     /// <summary>
-    /// Loads a reference onto its scratch map, strips what can't go on a mapper's map, checks the session's caps
-    /// and works out its footprint. False, with the player told why, when it can't be placed.
+    /// Takes the server-wide load slot, shared by reference loads and uploads since a load blocks the tick; false
+    /// while the last load's <c>reference_cooldown</c> runs.
     /// </summary>
-    private bool TryLoadReference(PendingReference pending, ResPath path, MapId scratchId, ICommonSession player,
-        WFMappingSession session)
+    public bool TryReserveLoad()
+    {
+        var now = _timing.CurTime;
+        if (now < _nextReferenceLoad)
+            return false;
+
+        _nextReferenceLoad = now + TimeSpan.FromSeconds(Math.Max(0f, _cfg.GetCVar(WFMappingModeCVars.ReferenceCooldown)));
+        return true;
+    }
+
+    /// <summary>Loads a file onto a new scratch map; see the <see cref="MappingDataNode"/> overload.</summary>
+    public bool TryLoadOntoScratch(ResPath path, ICommonSession player, WFMappingSession? session, bool checkArea,
+        string failKey, [NotNullWhen(true)] out ScratchLoad? load, out LoadRefusal refusal)
+    {
+        return TryLoadOntoScratch(options => _loader.TryLoadGeneric(path, out _, options), path.ToString(), player,
+            session, checkArea, failKey, out load, out refusal);
+    }
+
+    /// <summary>
+    /// Loads map data onto a new paused, uninitialised scratch map, deletes loose and denied entities, and checks the
+    /// grid, entity and per-tile caps against <paramref name="session"/>, or those of a new session when null; with
+    /// <paramref name="checkArea"/> every grid must also lie inside <c>map_size</c> where it is. The caller owns the
+    /// scratch map on success; on failure it is gone and <paramref name="refusal"/> says why.
+    /// </summary>
+    public bool TryLoadOntoScratch(MappingDataNode data, string source, ICommonSession player,
+        WFMappingSession? session, bool checkArea, string failKey, [NotNullWhen(true)] out ScratchLoad? load,
+        out LoadRefusal refusal)
+    {
+        return TryLoadOntoScratch(options => _loader.TryLoadGeneric(data, source, out _, options), source, player,
+            session, checkArea, failKey, out load, out refusal);
+    }
+
+    private bool TryLoadOntoScratch(Func<MapLoadOptions, bool> loadWith, string source, ICommonSession player,
+        WFMappingSession? session, bool checkArea, string failKey, [NotNullWhen(true)] out ScratchLoad? load,
+        out LoadRefusal refusal)
+    {
+        load = null;
+        var scratch = _map.CreateMap(out var scratchId, runMapInit: false);
+        RegisterMap(scratch, WFMappingMapKind.Scratch, session?.Id ?? 0);
+        var loaded = new ScratchLoad(scratch);
+        try
+        {
+            if (FillScratch(loaded, loadWith, scratchId, player.UserId, session, checkArea, failKey, out refusal))
+            {
+                load = loaded;
+                return true;
+            }
+
+            Log.Info($"Refused {source} for {player} after loading it aside: {refusal.Key}");
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Loading {source} onto a scratch map for {player} failed: {e}");
+            refusal = LoadRefusal.Of(failKey);
+        }
+
+        if (!TerminatingOrDeleted(scratch))
+            Del(scratch);
+
+        return false;
+    }
+
+    private bool FillScratch(ScratchLoad load, Func<MapLoadOptions, bool> loadWith, MapId scratchId, NetUserId user,
+        WFMappingSession? session, bool checkArea, string failKey, out LoadRefusal refusal)
     {
         var options = new MapLoadOptions
         {
@@ -193,22 +263,22 @@ public sealed partial class WFMappingModeSystem
             },
         };
 
-        if (!_loader.TryLoadGeneric(path, out _, options))
+        if (!loadWith(options))
         {
-            Refuse(player, "wf-mapping-mode-reference-failed");
+            refusal = LoadRefusal.Of(failKey);
             return false;
         }
 
-        var grids = new List<EntityUid>();
+        var grids = load.Grids;
         var loose = new List<EntityUid>();
-        var children = Transform(pending.Scratch).ChildEnumerator;
+        var children = Transform(load.Map).ChildEnumerator;
         while (children.MoveNext(out var child))
         {
             (HasComp<MapGridComponent>(child) ? grids : loose).Add(child);
         }
 
         // The caps come first, on everything loaded, so an oversized file costs nothing more than its load.
-        if (!CheckReferenceCaps(player, session, grids.Count, CountTree(pending.Scratch) - 1))
+        if (!CheckLoadCaps(user, session, grids.Count, CountTree(load.Map) - 1, out refusal))
             return false;
 
         foreach (var uid in loose)
@@ -218,7 +288,7 @@ public sealed partial class WFMappingModeSystem
 
         if (grids.Count == 0)
         {
-            Refuse(player, "wf-mapping-mode-reference-empty");
+            refusal = LoadRefusal.Of("wf-mapping-mode-reference-empty");
             return false;
         }
 
@@ -234,29 +304,46 @@ public sealed partial class WFMappingModeSystem
                 Del(uid);
         }
 
-        pending.Entities = grids.Sum(CountTree);
-        if (!CheckReferenceCaps(player, session, grids.Count, pending.Entities))
+        load.Stripped = denied.Count;
+        load.Entities = grids.Sum(CountTree);
+        if (!CheckLoadCaps(user, session, grids.Count, load.Entities, out refusal))
             return false;
 
         var maxPerTile = _cfg.GetCVar(WFMappingModeCVars.MaxEntitiesPerTile);
         var maxDecals = _cfg.GetCVar(WFMappingModeCVars.MaxDecalsPerTile);
-        Box2? bounds = null;
         foreach (var grid in grids)
         {
             var comp = Comp<MapGridComponent>(grid);
             if (MaxPerCell(grid, comp) > maxPerTile)
             {
-                Refuse(player, "wf-mapping-mode-limit-entities-per-tile", ("max", maxPerTile));
+                refusal = LoadRefusal.Of("wf-mapping-mode-limit-entities-per-tile", ("max", maxPerTile));
                 return false;
             }
 
             if (MaxDecalsPerCell(grid, comp) > maxDecals)
             {
-                Refuse(player, "wf-mapping-mode-limit-decals-per-tile", ("max", maxDecals));
+                refusal = LoadRefusal.Of("wf-mapping-mode-limit-decals-per-tile", ("max", maxDecals));
                 return false;
             }
 
-            var box = _transform.GetWorldMatrix(grid).TransformBox(comp.LocalAABB);
+            if (checkArea && !InBounds(_transform.GetWorldMatrix(grid).TransformBox(comp.LocalAABB)))
+            {
+                refusal = LoadRefusal.Of("wf-mapping-mode-limit-area", ("size", MapSize));
+                return false;
+            }
+        }
+
+        refusal = default;
+        return true;
+    }
+
+    /// <summary>Works out a loaded reference's footprint, relative to the floored centre of its grids' bounds.</summary>
+    private void AddFootprints(PendingReference pending, List<EntityUid> grids)
+    {
+        Box2? bounds = null;
+        foreach (var grid in grids)
+        {
+            var box = _transform.GetWorldMatrix(grid).TransformBox(Comp<MapGridComponent>(grid).LocalAABB);
             bounds = bounds is { } b ? b.Union(box) : box;
         }
 
@@ -275,8 +362,6 @@ public sealed partial class WFMappingModeSystem
             var (position, rotation) = _transform.GetWorldPositionRotation(grid);
             pending.Grids.Add((grid, new WFMappingFootprintGrid(position - anchor, rotation, WFMappingFootprint.Merge(cells))));
         }
-
-        return true;
     }
 
     /// <summary>Deletes everything on a map that carries a denied component; the count deleted.</summary>
@@ -347,35 +432,57 @@ public sealed partial class WFMappingModeSystem
 
     /// <summary>
     /// Whether a reference fits the session's grid and entity caps, counting the references other members hold
-    /// waiting to be placed.
+    /// waiting to be placed; tells the player when it doesn't.
     /// </summary>
     private bool CheckReferenceCaps(ICommonSession player, WFMappingSession session, int grids, int entities)
     {
-        var pendingGrids = 0;
-        var pendingEntities = 0;
-        foreach (var (user, pending) in _references)
-        {
-            if (user == player.UserId || pending.SessionId != session.Id)
-                continue;
+        if (CheckLoadCaps(player.UserId, session, grids, entities, out var refusal))
+            return true;
 
-            pendingGrids += pending.Grids.Count;
-            pendingEntities += pending.Entities;
+        Refuse(player, refusal.Key, refusal.Args);
+        return false;
+    }
+
+    /// <summary>
+    /// Whether a load fits the session's grid and entity caps, with the references other members hold waiting to be
+    /// placed, or the caps a new session starts with when <paramref name="session"/> is null.
+    /// </summary>
+    private bool CheckLoadCaps(NetUserId user, WFMappingSession? session, int grids, int entities,
+        out LoadRefusal refusal)
+    {
+        var gridCap = _cfg.GetCVar(WFMappingModeCVars.MaxGridsPerSession);
+        var existingGrids = 0;
+        var existingEntities = 0;
+        if (session != null)
+        {
+            foreach (var (other, pending) in _references)
+            {
+                if (other == user || pending.SessionId != session.Id)
+                    continue;
+
+                existingGrids += pending.Grids.Count;
+                existingEntities += pending.Entities;
+            }
+
+            gridCap = GridCap(session);
+            existingGrids += CountGrids(session);
+            existingEntities += EntityCount(session);
         }
 
-        var gridCap = GridCap(session);
-        if (CountGrids(session) + pendingGrids + grids > gridCap)
+        if (existingGrids + grids > gridCap)
         {
-            Refuse(player, "wf-mapping-mode-limit-grids", ("max", gridCap));
+            refusal = LoadRefusal.Of("wf-mapping-mode-limit-grids", ("max", gridCap));
             return false;
         }
 
         var maxEntities = _cfg.GetCVar(WFMappingModeCVars.MaxEntities);
-        if (EntityCount(session) + pendingEntities + entities > maxEntities)
+        if (existingEntities + entities > maxEntities)
         {
-            Refuse(player, "wf-mapping-mode-limit-entities", ("max", maxEntities));
+            refusal = LoadRefusal.Of("wf-mapping-mode-limit-entities", ("max", maxEntities));
             return false;
         }
 
+        refusal = default;
         return true;
     }
 
