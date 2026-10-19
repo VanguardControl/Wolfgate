@@ -18,6 +18,9 @@ The loop: drones plant weeds and order resin structures (walls, doors, nests, tu
 fruit), queens and carriers lay eggs, a facehugger infects a host, the incubated larva bursts out and joins the hive.
 Entry points: `XenoSystem`, `SharedXenoHiveSystem`, `XenoEvolutionSystem`, `SharedXenoParasiteSystem`,
 `SharedXenoWeedsSystem`, `XenoConstruction*`, `XenoEggSystem`, `XenoHiveChatSystem` and the client `XenoHudOverlay`.
+A hive works on planet terrain like on a station: weeds, resin, nodes, eggs, tunnels and burrows go on any solid ground tile,
+stay when their chunk unloads, and stay on their layer (a tunnel or burrow never reaches the cavern below). Water, lava, liquid
+plasma and chasm tiles take none of it (`BlockWeeds`, `BlockXenoConstruction`). `XenoPlanetTest` covers this.
 
 Cut from RMC: marines, tactical maps, intel, dropship hijack, areas, RMC fire, medical and surgery (an infection ends
 in a burst or the host's death), language, the parasite and other xeno NPC AI, guidebook pages, figurines, RMC's
