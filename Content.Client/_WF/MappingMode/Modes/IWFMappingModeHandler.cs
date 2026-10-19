@@ -23,7 +23,7 @@ public interface IWFMappingModeHandler
 
     bool Middle(in PointerInputCmdHandler.PointerInputCmdArgs args);
 
-    /// <summary>Ctrl+wheel over the viewport; true when the mode used it.</summary>
+    /// <summary>The wheel over the viewport, plain or with Ctrl; true when the mode used it, false to zoom.</summary>
     bool Wheel(float delta);
 
     /// <summary>Escape; true when the mode dropped something of its own.</summary>

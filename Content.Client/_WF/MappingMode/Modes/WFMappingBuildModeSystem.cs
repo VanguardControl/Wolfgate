@@ -443,14 +443,17 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         return permission.EntityType is { } id ? new WFMappingPaletteEntry(WFMappingPaletteKind.Entity, id) : null;
     }
 
-    /// <summary>Ctrl+wheel over the game viewport, from <c>ScalingViewport</c>; true when the mode used it.</summary>
+    /// <summary>The wheel over the game viewport, from <c>ScalingViewport</c>; true when the mode used it, else it zooms.</summary>
     public bool TryWheel(float delta)
     {
-        if (!Active || delta == 0f || !_input.IsKeyDown(Keyboard.Key.Control) || Handler is not { } handler)
+        if (!Active || delta == 0f || Handler is not { } handler)
             return false;
 
         return handler.Wheel(delta);
     }
+
+    /// <summary>Whether Ctrl is held, for handlers that only take Ctrl+wheel.</summary>
+    public bool CtrlDown => _input.IsKeyDown(Keyboard.Key.Control);
 
     /// <summary>Turns what Place mode is placing by quarter turns, clockwise for positive steps.</summary>
     public bool RotatePlacement(int steps)

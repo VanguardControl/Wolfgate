@@ -27,6 +27,8 @@ unless noted, all under `wf.mapping_mode.`:
 | `max_entities` | 25000 | Entities across all of a session's maps |
 | `max_reference_bytes` | 1.5 MiB | Size of a file loaded as a reference grid; admits every ship, refuses stations |
 | `reference_cooldown` | 2 | Seconds after any reference load before anyone on the server may load another |
+| `max_upload_bytes` (replicated) | 1.5 MiB | Size of an uploaded map file; clamped to a fixed 8 MiB |
+| `upload_cooldown` | 30 | Seconds after an accepted upload before the same player may start another |
 | `max_edits_per_second` | 60 | Placement, tile, erase and decal requests per second per mapper |
 | `max_selection_cells` | 4096 | Cells one tools selection or area erase may cover (a whole-grid delete is checked by entities) |
 | `max_edit_entities` | 2000 | Entities, contents included, one copy, paste, delete, area erase or undo step may touch |
@@ -47,6 +49,45 @@ Reference grids are game ships (`/SharedMaps`), game maps (`/Maps`) or a level o
 session's map to copy from. Pick one, move the outline, R turns it, click puts it down, Escape or right click drops
 it. They count against the grid, entity and area limits like anything else.
 
+Upload, in the lobby panel and the Mapping window's Library tab, sends a `.yml` map file from the player's computer
+into their library as a new `upload` version, named after the file. The server refuses anchors and aliases, unknown
+prototypes and anything over the caps of a new session, strips denied components, and stores its own re-save of the
+map; the raw file never touches disk. Open then starts a session from it.
+
+In a session the player gets the mapping screen instead of the game layout. The palette (Entities, Tiles and Decals
+tabs, with search, favourites, recents and a strip of the last 12 entries) is docked on the left; the viewport sits in
+the middle with the mode rail on top, the quick-select bar at the bottom and the cursor readout bottom left; the
+Properties, Tools, Layers, Template and Keys tabs sit over the chat on the right. Each docked panel has an Undock
+button that moves it into its own window, which the window pop-out can take out of the game; closing the window docks
+it again. `ui.layout` is ignored while in a session and back in force on leaving.
+
+Build modes, on keys 1 to 7 or the rail:
+
+- Place (1): left click places the selected entry as the engine does, right click erases the entity or tile under the
+  cursor (a decal entry leaves it to the decal eraser), middle click eyedrops, Ctrl+wheel or R turns it, Escape
+  drops the entry.
+- Erase (2): click or drag a rectangle to remove entities, tiles or decals, as its sub-choice says.
+- Select (3): the MappingTools selection.
+- Fill (4): flood-fills the tile under the click with the selected tile, up to 4096 cells.
+- Shape (5): drag a line, filled rectangle or hollow rectangle of the selected tile or entity, with a preview;
+  Ctrl+wheel turns it.
+- Pick (6): the eyedropper; the pick becomes the entry and Place comes back.
+- Template (7): drag moves the template, Ctrl+drag scales it, Shift+drag turns it, the wheel scales it and the arrows
+  nudge it by a pixel (eight with Shift).
+
+Right click or Escape drops a drag; Escape with nothing to drop goes back to Place. The wheel zooms whenever a mode
+doesn't take it.
+
+The template is a PNG drawn under the grids (or over everything) at a chosen position, scale, rotation and opacity,
+on the level it was loaded on, for tracing. It is refused over 16 MiB, 8192 pixels a side or 4096² pixels. It lives
+only on the player's computer, in `Mapping/Templates/<session name>/` of the client data folder with its settings, and
+comes back whenever a session of that name is entered.
+
+The quick-select bar holds named sets of pages of ten slots. Click a slot to place it, drag to swap, right click to
+rename, remove or move it to another page; the palette's star and menu add entries, and so can every eyedropper pick.
+The first set is filled from `/mapping_actions.yml`. It is stored in `Mapping/quickselect.yml` of the client data
+folder; an unreadable file is kept as `quickselect.bad.yml` and the defaults are used.
+
 Every limit is enforced on the server. A refusal reaches the player as a cursor popup in game and a status line in the
 Mapping window or lobby, naming the limit. Placement past a limit is reverted or dropped, a paste or reference load
 that would cross one is refused whole, and requests over their rate are dropped. A save past `max_maps`, or into a
@@ -64,8 +105,12 @@ parts), `WFMappingLibrarySystem` (library, versions, open, delete), `WFMappingDo
 `WFMappingModeCommands` (console), `WFMappingObserverSystem` (shared; what an observer can't do),
 `WFMappingClientSystem` (client state and setup), `WFMappingLobbyUIController` and `WFMappingLobbyPanel` (lobby),
 `WFMappingMenuUIController` and `WFMappingMenuWindow` (Mapping window), `WFMappingReferenceSystem` (reference
-placement), `WFMappingBoundsOverlay` (map limit border). Cvars are in `WFMappingModeCVars`. The `WFMappingObserver`
-prototype is in `Resources/Prototypes/_WF/MappingMode`.
+placement), `WFMappingBoundsOverlay` (map limit border), `WFMappingUploadSystem` and `WFMappingUploadValidator`
+(server upload), `WFMappingUploadClientSystem` (client upload). The mapping screen is `WFMappingScreen` and
+`WFMappingScreenUIController` (`Screen/`), the modes `WFMappingBuildModeSystem` and its handlers (`Modes/`), the
+palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` (`Template/`) and quick select
+`WFMappingQuickSelectSystem` (`QuickSelect/`), all client. Cvars are in `WFMappingModeCVars` and key functions in
+`WFMappingKeyFunctions`. The `WFMappingObserver` prototype is in `Resources/Prototypes/_WF/MappingMode`.
 
 ## Design notes
 
@@ -97,10 +142,10 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
   are refused by file size before loading, checked against the caps (counting other members' pending references)
   straight after, and one loads at a time per `reference_cooldown`. Throttles per player: edits as above, tool
   requests 10/s, create, join and open 1 per 3 s, manual save 1 per 10 s, kick 1/s, reference list 2/s, pick 1 per 5 s.
-- Library on disk: `/Mapping/Library/<NetUserId>/<MapName>/v<NNNN>_<yyyyMMdd-HHmmss>_<manual|auto>/z<D>.yml` in the
-  server data folder, one file per level with 0 the ground. There is no index; listings are read from folder names and
+- Library on disk: `/Mapping/Library/<NetUserId>/<MapName>/v<NNNN>_<yyyyMMdd-HHmmss>_<manual|auto|upload>/z<D>.yml`
+  in the server data folder, one file per level with 0 the ground. There is no index; listings are read from folder names and
   cached for 30 s. Map names are 1 to 48 letters, digits, spaces, dashes or underscores, and not a Windows device
-  name. Pruning keeps `max_versions`, removes `auto` versions before `manual` ones and never the newest. Only the
+  name. Pruning keeps `max_versions`, removes `auto` versions before `manual` and `upload` ones and never the newest. Only the
   owner's manual save or an autosave clears the dirty flag, as autosaves go to the owner's library. Autosave steps
   are Off, 1, 2, 5, 10 and 15 minutes, clamped to the cvar range; at most one session is saved per tick, and the
   first check is offset at random so sessions don't line up. A round restart saves every dirty session at once.
@@ -108,6 +153,21 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
   order; 32 MiB per file, one download at a time per player, dropped after 30 s without an ack. The client assembles
   with `WFMappingDownloadAssembler` (pure and shared, so a unit test can cover it), checks the map name, version
   folder and `z<D>.yml` name before writing, and deletes what it wrote if a chunk is damaged or the server cancels.
+- Upload: 128 KiB chunks, two in flight, put together by the pure `WFMappingUploadAssembler`. Every begin is
+  answered, and a refused one costs no cooldown. The file is scanned for anchors, aliases, nesting over 64 and more
+  than one document, parsed, its prototype ids checked through the loader's renames, then loaded onto a paused scratch
+  map under the shared reference load slot, stripped, checked against a new session's caps wherever it was sent from,
+  saved with the engine and the scratch map deleted.
+- Mapping screen: `GameplayState.LoadMainScreen` asks `WFMappingScreenUIController.WantsMappingScreen` first (a marked
+  edit). Setup and teardown reload the screen while the gameplay state is up; the controller builds the docked panels
+  on every load of the screen. The screen holds the widgets other controllers need (`MainViewport` in
+  `ViewportContainer`, a plain `ChatBox`, `GameTopMenuBar`) and no hotbar. The mode keys are added to `common` only
+  while a session is set up and win over the hotbar keys by priority (a marked block in `keybinds.yml`). A mode
+  handler that doesn't claim a click lets it fall through to the reference placement, MappingTools and the placement
+  manager; the wheel goes to the mode first and zooms when the mode doesn't take it.
+- Draws: Fill, Shape and area erase send one `MappingToolsDrawEvent`, checked as a single tool edit
+  (`max_selection_cells`, per-tile caps, denied and hidden prototypes) and undone as one step, instead of one
+  placement per cell, which the edit throttle would cut short.
 - Observer: `WFMappingObserver` doesn't inherit `AdminObserver` or `MobObserverBase`, which bring hands, pulling,
   stripping, consoles, access, global radio and unrestricted examine. It is `Incorporeal` and `BaseMob` with the
   `aghost` input context. `WFMappingObserverSystem` cancels interaction, use, pickup, drop, emote, speak, throw,
@@ -125,8 +185,9 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
   sees the Mapping button. The decal window stays open when a mapper leaves. A planet file loaded as a reference makes
   the engine log an error and loads without its planet grid. Opening a large library map loads synchronously, with no
   size cap beyond `max_library_bytes`. A decal removal dropped by the edit throttle is still recorded in MappingTools
-  history. The forced cvars aren't restored when the mode is turned off. Save, autosave, open, delete and download
-  were built and sandbox-checked but not run against a live server and client.
+  history. The forced cvars aren't restored when the mode is turned off. An entity shape drawn past a grid's tiles
+  puts the cells without a tile on the map instead of the grid. The mapping screen, modes, template and quick bar are
+  covered by a headless client test; the docks, pop-out and drawing over a real viewport haven't been driven by mouse.
 
 <!-- WOLFGATE-GENERATED START -->
 <!-- Generated by python Tools/_WF/Ci/modules.py --write. Don't edit by hand. -->
@@ -150,12 +211,15 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Sessions.cs`](WFMappingModeSystem.Sessions.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingSession.cs`](WFMappingSession.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingSessionMapComponent.cs`](WFMappingSessionMapComponent.cs)
+- [`Content.Server/_WF/MappingMode/WFMappingUploadSystem.cs`](WFMappingUploadSystem.cs)
+- [`Content.Server/_WF/MappingMode/WFMappingUploadValidator.cs`](WFMappingUploadValidator.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/MappingMode/WFMappingAdminEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingAdminEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingDownloadAssembler.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingDownloadAssembler.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingFootprint.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingFootprint.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingKeyFunctions.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingKeyFunctions.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingLibraryEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingLibraryEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingLibraryNames.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingLibraryNames.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingModeCVars.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingModeCVars.cs)
@@ -166,13 +230,58 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 - [`Content.Shared/_WF/MappingMode/WFMappingReferenceEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingReferenceEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingSessionCodes.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingSessionCodes.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingThrottle.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingThrottle.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingUploadAssembler.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingUploadAssembler.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingUploadEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingUploadEvents.cs)
 
 ### Client
 
 - [`Content.Client/_WF/MappingMode/LobbyGui.MappingMode.cs`](../../../Content.Client/_WF/MappingMode/LobbyGui.MappingMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/IWFMappingModeHandler.cs`](../../../Content.Client/_WF/MappingMode/Modes/IWFMappingModeHandler.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingDragModeBase.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingDragModeBase.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingEraseMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingEraseMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingFillMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingFillMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingModeHandlerBase.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingModeHandlerBase.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingPickMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPickMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingPlaceMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPlaceMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingSelectMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingSelectMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingShapeMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingShapeMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingShapeOverlay.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingShapeOverlay.cs)
+- [`Content.Client/_WF/MappingMode/Palette/WFMappingDecalPalette.xaml`](../../../Content.Client/_WF/MappingMode/Palette/WFMappingDecalPalette.xaml)
+- [`Content.Client/_WF/MappingMode/Palette/WFMappingDecalPalette.xaml.cs`](../../../Content.Client/_WF/MappingMode/Palette/WFMappingDecalPalette.xaml.cs)
+- [`Content.Client/_WF/MappingMode/Palette/WFMappingPalette.xaml`](../../../Content.Client/_WF/MappingMode/Palette/WFMappingPalette.xaml)
+- [`Content.Client/_WF/MappingMode/Palette/WFMappingPalette.xaml.cs`](../../../Content.Client/_WF/MappingMode/Palette/WFMappingPalette.xaml.cs)
+- [`Content.Client/_WF/MappingMode/Palette/WFMappingPaletteEntry.cs`](../../../Content.Client/_WF/MappingMode/Palette/WFMappingPaletteEntry.cs)
+- [`Content.Client/_WF/MappingMode/Palette/WFMappingPaletteIcons.cs`](../../../Content.Client/_WF/MappingMode/Palette/WFMappingPaletteIcons.cs)
+- [`Content.Client/_WF/MappingMode/Palette/WFMappingPaletteStore.cs`](../../../Content.Client/_WF/MappingMode/Palette/WFMappingPaletteStore.cs)
+- [`Content.Client/_WF/MappingMode/Palette/WFMappingTilePalette.cs`](../../../Content.Client/_WF/MappingMode/Palette/WFMappingTilePalette.cs)
+- [`Content.Client/_WF/MappingMode/Panels/WFMappingCursorReadout.cs`](../../../Content.Client/_WF/MappingMode/Panels/WFMappingCursorReadout.cs)
+- [`Content.Client/_WF/MappingMode/Panels/WFMappingKeysPanel.cs`](../../../Content.Client/_WF/MappingMode/Panels/WFMappingKeysPanel.cs)
+- [`Content.Client/_WF/MappingMode/Panels/WFMappingLayersPanel.xaml`](../../../Content.Client/_WF/MappingMode/Panels/WFMappingLayersPanel.xaml)
+- [`Content.Client/_WF/MappingMode/Panels/WFMappingLayersPanel.xaml.cs`](../../../Content.Client/_WF/MappingMode/Panels/WFMappingLayersPanel.xaml.cs)
+- [`Content.Client/_WF/MappingMode/Panels/WFMappingPropertiesPanel.xaml`](../../../Content.Client/_WF/MappingMode/Panels/WFMappingPropertiesPanel.xaml)
+- [`Content.Client/_WF/MappingMode/Panels/WFMappingPropertiesPanel.xaml.cs`](../../../Content.Client/_WF/MappingMode/Panels/WFMappingPropertiesPanel.xaml.cs)
+- [`Content.Client/_WF/MappingMode/QuickSelect/WFMappingQuickBar.cs`](../../../Content.Client/_WF/MappingMode/QuickSelect/WFMappingQuickBar.cs)
+- [`Content.Client/_WF/MappingMode/QuickSelect/WFMappingQuickSelectStore.cs`](../../../Content.Client/_WF/MappingMode/QuickSelect/WFMappingQuickSelectStore.cs)
+- [`Content.Client/_WF/MappingMode/QuickSelect/WFMappingQuickSelectSystem.cs`](../../../Content.Client/_WF/MappingMode/QuickSelect/WFMappingQuickSelectSystem.cs)
+- [`Content.Client/_WF/MappingMode/QuickSelect/WFMappingQuickSlot.cs`](../../../Content.Client/_WF/MappingMode/QuickSelect/WFMappingQuickSlot.cs)
+- [`Content.Client/_WF/MappingMode/Screen/WFMappingDockSlot.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingDockSlot.cs)
+- [`Content.Client/_WF/MappingMode/Screen/WFMappingDockWindow.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingDockWindow.cs)
+- [`Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml)
+- [`Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml.cs)
+- [`Content.Client/_WF/MappingMode/Screen/WFMappingScreenUIController.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreenUIController.cs)
+- [`Content.Client/_WF/MappingMode/Template/WFMappingPngHeader.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingPngHeader.cs)
+- [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateMode.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateMode.cs)
+- [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateOverlay.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateOverlay.cs)
+- [`Content.Client/_WF/MappingMode/Template/WFMappingTemplatePanel.xaml`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplatePanel.xaml)
+- [`Content.Client/_WF/MappingMode/Template/WFMappingTemplatePanel.xaml.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplatePanel.xaml.cs)
+- [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateSettings.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateSettings.cs)
+- [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateSystem.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateSystem.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingBoundsOverlay.cs`](../../../Content.Client/_WF/MappingMode/WFMappingBoundsOverlay.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Download.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Download.cs)
+- [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingLibraryList.cs`](../../../Content.Client/_WF/MappingMode/WFMappingLibraryList.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingLobbyPanel.xaml`](../../../Content.Client/_WF/MappingMode/WFMappingLobbyPanel.xaml)
@@ -183,6 +292,8 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 - [`Content.Client/_WF/MappingMode/WFMappingMenuWindow.xaml.cs`](../../../Content.Client/_WF/MappingMode/WFMappingMenuWindow.xaml.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingReferenceOverlay.cs`](../../../Content.Client/_WF/MappingMode/WFMappingReferenceOverlay.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingReferenceSystem.cs`](../../../Content.Client/_WF/MappingMode/WFMappingReferenceSystem.cs)
+- [`Content.Client/_WF/MappingMode/WFMappingUploadClientSystem.cs`](../../../Content.Client/_WF/MappingMode/WFMappingUploadClientSystem.cs)
+- [`Content.Client/_WF/MappingMode/WFMappingUploadRow.cs`](../../../Content.Client/_WF/MappingMode/WFMappingUploadRow.cs)
 
 ### Integration tests
 
@@ -194,8 +305,10 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeTestUtil.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeTestUtil.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPermissionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPermissionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingReferenceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingReferenceTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingScreenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingScreenTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingSessionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingSessionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTickerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTickerTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadTest.cs)
 
 ### Unit tests
 
@@ -203,8 +316,11 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 - [`Content.Tests/_WF/MappingMode/WFMappingFootprintTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingFootprintTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingLibraryNamesTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingLibraryNamesTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingPruneTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingPruneTest.cs)
+- [`Content.Tests/_WF/MappingMode/WFMappingQuickSelectStoreTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingQuickSelectStoreTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingSessionCodesTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingSessionCodesTest.cs)
+- [`Content.Tests/_WF/MappingMode/WFMappingTemplateSettingsTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingTemplateSettingsTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingThrottleTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingThrottleTest.cs)
+- [`Content.Tests/_WF/MappingMode/WFMappingUploadAssemblerTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingUploadAssemblerTest.cs)
 
 ### Prototypes
 
@@ -213,11 +329,19 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-mode.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-mode.ftl)
+- [`Resources/Locale/en-US/_WF/MappingMode/mapping-quickselect.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-quickselect.ftl)
+- [`Resources/Locale/en-US/_WF/MappingMode/mapping-screen.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-screen.ftl)
+- [`Resources/Locale/en-US/_WF/MappingMode/mapping-template.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-template.ftl)
+- [`Resources/Locale/en-US/_WF/MappingMode/mapping-upload.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-upload.ftl)
 
 ### Docs
 
 - [`Docs/_WF/MappingMode/DESIGN.md`](../../../Docs/_WF/MappingMode/DESIGN.md)
+- [`Docs/_WF/MappingMode/P1-NOTES.md`](../../../Docs/_WF/MappingMode/P1-NOTES.md)
+- [`Docs/_WF/MappingMode/P2-NOTES.md`](../../../Docs/_WF/MappingMode/P2-NOTES.md)
+- [`Docs/_WF/MappingMode/P3-NOTES.md`](../../../Docs/_WF/MappingMode/P3-NOTES.md)
 - [`Docs/_WF/MappingMode/PLAN.md`](../../../Docs/_WF/MappingMode/PLAN.md)
+- [`Docs/_WF/MappingMode/PLAN2.md`](../../../Docs/_WF/MappingMode/PLAN2.md)
 - [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)
 - [`Docs/_WF/MappingMode/S1-NOTES.md`](../../../Docs/_WF/MappingMode/S1-NOTES.md)
 - [`Docs/_WF/MappingMode/S2-NOTES.md`](../../../Docs/_WF/MappingMode/S2-NOTES.md)
@@ -227,6 +351,7 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 
 ## Non-modular edits
 
+- [`Content.Client/Gameplay/GameplayState.cs`](../../../Content.Client/Gameplay/GameplayState.cs): mapping observers get the mapping screen
 - [`Content.Client/Options/UI/EscapeMenu.xaml`](../../../Content.Client/Options/UI/EscapeMenu.xaml): session, save and library window while mapping
 - [`Content.Client/UserInterface/Systems/DecalPlacer/DecalPlacerUIController.cs`](../../../Content.Client/UserInterface/Systems/DecalPlacer/DecalPlacerUIController.cs): mappers open the decal placer
 - [`Content.Client/UserInterface/Systems/EscapeMenu/EscapeUIController.cs`](../../../Content.Client/UserInterface/Systems/EscapeMenu/EscapeUIController.cs): mapping session window; crew and character entries hidden while mapping
@@ -235,6 +360,8 @@ prototype is in `Resources/Prototypes/_WF/MappingMode`.
 - [`Content.Server/Sandbox/SandboxSystem.cs`](../../Sandbox/SandboxSystem.cs): mappers place, erase and lay tiles on their own session's maps
 - [`Content.Shared/Input/ContentKeyFunctions.cs`](../../../Content.Shared/Input/ContentKeyFunctions.cs): Escape drops a reference grid being placed
 - [`Content.Shared/Verbs/SharedVerbSystem.cs`](../../../Content.Shared/Verbs/SharedVerbSystem.cs): mapping observers without admin data get no verbs; admins keep theirs
-- [`Resources/keybinds.yml`](../../../Resources/keybinds.yml): Escape drops a reference grid being placed, ahead of the game menu
+- [`Resources/keybinds.yml`](../../../Resources/keybinds.yml)
+  - Escape drops a reference grid being placed, ahead of the game menu
+  - build mode keys for the mapping screen
 
 <!-- WOLFGATE-GENERATED END -->

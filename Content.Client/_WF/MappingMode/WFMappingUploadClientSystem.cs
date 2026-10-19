@@ -34,7 +34,7 @@ public sealed class WFMappingUploadProgress
 /// Uploads a map file the player picks into their library: reads it whole, sends it in chunks as the server
 /// acknowledges them, and shows the progress. One upload at a time.
 /// </summary>
-public sealed class WFMappingUploadClientSystem : EntitySystem
+public sealed partial class WFMappingUploadClientSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IFileDialogManager _dialogs = default!;

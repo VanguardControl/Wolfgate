@@ -22,7 +22,7 @@ namespace Content.Client._WF.MappingMode.Template;
 /// <see cref="WFMappingTemplateOverlay"/> and moved by <see cref="WFMappingTemplateMode"/>. The image and its settings
 /// are kept per session name in the client data folder and come back when a session of that name is entered.
 /// </summary>
-public sealed class WFMappingTemplateSystem : EntitySystem
+public sealed partial class WFMappingTemplateSystem : EntitySystem
 {
     [Dependency] private IEyeManager _eye = default!;
     [Dependency] private IFileDialogManager _dialogs = default!;

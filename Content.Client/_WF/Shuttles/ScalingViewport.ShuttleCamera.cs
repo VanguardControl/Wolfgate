@@ -7,7 +7,7 @@ namespace Content.Client.Viewport;
 
 public sealed partial class ScalingViewport
 {
-    /// <summary>Zooms a pilot's external view with the mouse wheel, over the game's own viewport; a mapping build mode gets Ctrl+wheel first.</summary>
+    /// <summary>Zooms a pilot's external view with the mouse wheel, over the game's own viewport; a mapping build mode gets the wheel first.</summary>
     protected override void MouseWheel(GUIMouseWheelEventArgs args)
     {
         base.MouseWheel(args);

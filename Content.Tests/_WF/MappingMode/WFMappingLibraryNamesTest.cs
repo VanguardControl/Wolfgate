@@ -46,6 +46,7 @@ public sealed class WFMappingLibraryNamesTest
     [TestCase(1, WFMappingVersionKind.Manual, "v0001_20261018-142501_manual")]
     [TestCase(42, WFMappingVersionKind.Auto, "v0042_20261018-142501_auto")]
     [TestCase(12345, WFMappingVersionKind.Manual, "v12345_20261018-142501_manual")]
+    [TestCase(7, WFMappingVersionKind.Upload, "v0007_20261018-142501_upload")]
     public void VersionFoldersRoundTrip(int number, WFMappingVersionKind kind, string folder)
     {
         var version = new WFMappingVersionName(number, Stamp, kind);
@@ -62,6 +63,8 @@ public sealed class WFMappingLibraryNamesTest
     [TestCase("v0000_20261018-142501_manual")]
     [TestCase("x0001_20261018-142501_manual")]
     [TestCase("v0001_20261018-142501_other")]
+    [TestCase("v0001_20261018-142501_Upload")]
+    [TestCase("v0001_20261018-142501_uploaded")]
     [TestCase("v0001_20261318-142501_manual")]
     [TestCase("v0001_20261018-142501")]
     [TestCase("v0001_20261018-142501_manual_x")]
@@ -98,6 +101,34 @@ public sealed class WFMappingLibraryNamesTest
     public void BadLevelFilesAreRefused(string file)
     {
         Assert.That(WFMappingLibraryNames.TryParseLevelFile(file, out _), Is.False);
+    }
+
+    [TestCase("Outpost.yml", "Outpost")]
+    [TestCase(@"C:\Users\me\Maps\My Base.YML", "My Base")]
+    [TestCase("/home/me/maps/dock-7_b.yml", "dock-7_b")]
+    [TestCase("  spaced  .yml", "spaced")]
+    [TestCase("bad.name!.yml", "badname")]
+    [TestCase("map.yaml", "mapyaml")]
+    [TestCase("con.yml", WFMappingLibraryNames.UploadFallbackName)]
+    [TestCase("!!!.yml", WFMappingLibraryNames.UploadFallbackName)]
+    [TestCase(".yml", WFMappingLibraryNames.UploadFallbackName)]
+    [TestCase("folder/", WFMappingLibraryNames.UploadFallbackName)]
+    [TestCase("", WFMappingLibraryNames.UploadFallbackName)]
+    [TestCase(null, WFMappingLibraryNames.UploadFallbackName)]
+    public void UploadNameFromFile(string file, string expected)
+    {
+        Assert.That(WFMappingLibraryNames.UploadNameFromFile(file), Is.EqualTo(expected));
+    }
+
+    [Test]
+    public void UploadNameIsCutToLength()
+    {
+        var name = WFMappingLibraryNames.UploadNameFromFile(new string('a', 100) + ".yml");
+        Assert.Multiple(() =>
+        {
+            Assert.That(name, Has.Length.EqualTo(WFMappingModeLimits.MaxNameLength));
+            Assert.That(WFMappingLibraryNames.IsValidMapName(name), Is.True);
+        });
     }
 
     [Test]

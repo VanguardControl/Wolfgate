@@ -14,7 +14,7 @@ namespace Content.Client._WF.MappingMode.QuickSelect;
 /// Keeps the quick-select store in <c>/Mapping/quickselect.yml</c> of the client data folder, takes additions from the
 /// palette and, when asked, the eyedropper, and puts <see cref="WFMappingQuickBar"/> on the mapping screen.
 /// </summary>
-public sealed class WFMappingQuickSelectSystem : EntitySystem
+public sealed partial class WFMappingQuickSelectSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IResourceManager _resources = default!;

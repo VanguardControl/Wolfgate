@@ -91,6 +91,6 @@ public sealed partial class WFMappingShapeMode(WFMappingBuildModeSystem modes) :
 
     public override bool Wheel(float delta)
     {
-        return Modes.RotatePlacement(delta > 0 ? 1 : -1);
+        return Modes.CtrlDown && Modes.RotatePlacement(delta > 0 ? 1 : -1);
     }
 }

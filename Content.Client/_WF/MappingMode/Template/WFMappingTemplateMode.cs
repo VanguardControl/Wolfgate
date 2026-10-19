@@ -9,7 +9,7 @@ using Robust.Shared.Map;
 namespace Content.Client._WF.MappingMode.Template;
 
 /// <summary>
-/// Template mode: left drag moves the template, Ctrl+drag scales it about its centre, Shift+drag turns it, Ctrl+wheel
+/// Template mode: left drag moves the template, Ctrl+drag scales it about its centre, Shift+drag turns it, the wheel
 /// scales it and the arrows nudge it by an image pixel (eight with Shift). Right click or Escape drops a drag.
 /// </summary>
 public sealed partial class WFMappingTemplateMode : WFMappingModeHandlerBase

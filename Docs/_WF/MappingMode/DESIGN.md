@@ -232,3 +232,12 @@ The plan stage verifies and records: the exact GameTicker calls for join and ret
 gate on the mapping UI; what `AdminObserver` needs without `Ghost`; the CE z-network API for "all levels of this
 session"; whether broadcast network events (`RequestDecalPlacementEvent`) may have a second subscriber and how to
 order it; the engine's net message size limit for chunk sizing; an event fired before round restart deletes maps.
+
+## Phase 2
+
+Phase 2 adds the mapping screen (docked palette, properties, tools, layers, template and keys panels round the
+viewport), seven SDMM-style build modes on keys 1 to 7, a PNG template underlay, a quick-select bar and map upload
+into the library. Its verified facts, decisions and stages are in [PLAN2.md](PLAN2.md); the choices made while
+building each stage are in `P1-NOTES.md`, `P2-NOTES.md` and `P3-NOTES.md`. Tests: `MappingToolsShapesTest`,
+`WFMappingQuickSelectStoreTest`, `WFMappingTemplateSettingsTest` and `WFMappingUploadAssemblerTest` (unit),
+`MappingToolsDrawTest`, `WFMappingUploadTest` and `WFMappingScreenTest` (integration, the last with the real client).

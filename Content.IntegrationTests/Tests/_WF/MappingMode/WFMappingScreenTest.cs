@@ -1,0 +1,241 @@
+#nullable enable
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using Content.Client._WF.MappingMode;
+using Content.Client._WF.MappingMode.Modes;
+using Content.Client._WF.MappingMode.QuickSelect;
+using Content.Client._WF.MappingMode.Screen;
+using Content.Client._WF.MappingMode.Template;
+using Content.Client.Gameplay;
+using Content.Client.UserInterface.Controls;
+using Content.Client.UserInterface.Screens;
+using Content.Client.UserInterface.Systems.Chat.Widgets;
+using Content.Client.UserInterface.Systems.MenuBar.Widgets;
+using Content.Server._WF.MappingMode;
+using Content.Shared._WF.MappingMode;
+using Content.Shared.CCVar;
+using Robust.Client.GameObjects;
+using Robust.Client.Input;
+using Robust.Client.State;
+using Robust.Client.UserInterface;
+using Robust.Shared.ContentPack;
+using Robust.Shared.GameObjects;
+using Robust.Shared.Input;
+using Robust.Shared.Map;
+using Robust.Shared.Timing;
+using Robust.Shared.Utility;
+using static Content.IntegrationTests.Tests._WF.MappingMode.WFMappingModeTestUtil;
+
+namespace Content.IntegrationTests.Tests._WF.MappingMode;
+
+/// <summary>
+/// The real client gets the mapping screen in a session: its widgets, the mode keys, the quick bar and the template
+/// panel; a layout change keeps it, the modes claim clicks as they should, the template settings go through the
+/// data folder, and leaving the session puts the chosen layout and the normal keys back.
+/// </summary>
+[TestFixture]
+public sealed class WFMappingScreenTest
+{
+    private const string SessionName = "screen test";
+
+    /// <summary>A 1x1 PNG.</summary>
+    private static readonly byte[] Png = Convert.FromBase64String(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==");
+
+    private static IEnumerable<Control> Descendants(Control control)
+    {
+        foreach (var child in control.Children)
+        {
+            yield return child;
+            foreach (var nested in Descendants(child))
+            {
+                yield return nested;
+            }
+        }
+    }
+
+    [Test]
+    public async Task MappingScreen()
+    {
+        await using var pair = await PoolManager.GetServerClient(Settings);
+        var server = pair.Server;
+        var client = pair.Client;
+        var mapping = server.EntMan.System<WFMappingModeSystem>();
+        var clientSys = client.EntMan.System<WFMappingClientSystem>();
+        var modes = client.EntMan.System<WFMappingBuildModeSystem>();
+        var template = client.EntMan.System<WFMappingTemplateSystem>();
+        var uiMan = client.ResolveDependency<IUserInterfaceManager>();
+        var inputMan = client.ResolveDependency<IInputManager>();
+        var states = client.ResolveDependency<IStateManager>();
+        var userData = client.ResolveDependency<IResourceManager>().UserData;
+        var folder = new ResPath("/Mapping/Templates") / WFMappingTemplateSystem.FolderKey(SessionName);
+        await Enable(pair);
+
+        // A template saved for this session's name before it exists is restored when it opens.
+        var saved = new WFMappingTemplateSettings
+        {
+            Position = new Vector2(3f, -4f),
+            ScaleX = 2f,
+            ScaleY = 2f,
+            Rotation = 45f,
+            Opacity = 0.8f,
+            Layer = WFMappingTemplateLayer.Over,
+        };
+        await client.WaitPost(() =>
+        {
+            userData.CreateDir(folder);
+            userData.WriteAllBytes(folder / "template.png", Png);
+            userData.WriteAllText(folder / "settings.yml", saved.Write());
+        });
+
+        await client.WaitPost(() => clientSys.Send(new WFMappingCreateRequest(SessionName)));
+        for (var i = 0; i < 100 && uiMan.ActiveScreen is not WFMappingScreen; i++)
+        {
+            await pair.RunTicksSync(1);
+        }
+
+        await pair.RunTicksSync(10);
+
+        void AssertMappingScreen(string when)
+        {
+            Assert.That(states.CurrentState, Is.TypeOf<GameplayState>(), when);
+            Assert.That(uiMan.ActiveScreen, Is.TypeOf<WFMappingScreen>(), when);
+            var screen = (WFMappingScreen) uiMan.ActiveScreen!;
+            Assert.Multiple(() =>
+            {
+                Assert.That(clientSys.SetUp, Is.True, when);
+                Assert.That(modes.Active, Is.True, when);
+                foreach (var function in WFMappingKeyFunctions.Modes.Append(WFMappingKeyFunctions.WFMappingModePrimary))
+                {
+                    Assert.That(inputMan.Contexts.ActiveContext.FunctionExistsHierarchy(function), Is.True,
+                        $"{when}: {function.FunctionName} is in the active context.");
+                }
+
+                Assert.That(screen.GetWidget<ChatBox>(), Is.Not.Null, when);
+                Assert.That(screen.GetWidget<MainViewport>(), Is.Not.Null, when);
+                Assert.That(screen.GetWidget<GameTopMenuBar>(), Is.Not.Null, when);
+                Assert.That(screen.QuickBarHost.Children.OfType<WFMappingQuickBar>().Count(), Is.EqualTo(1),
+                    $"{when}: one quick bar.");
+                Assert.That(Descendants(screen.TemplateHost).OfType<WFMappingTemplatePanel>().Count(), Is.EqualTo(1),
+                    $"{when}: one template panel.");
+                Assert.That(Descendants(screen.PaletteHost).Any(), Is.True, $"{when}: the palette is docked.");
+            });
+        }
+
+        await client.WaitAssertion(() =>
+        {
+            AssertMappingScreen("After joining");
+            Assert.Multiple(() =>
+            {
+                Assert.That(template.HasTemplate, Is.True, "The saved template is restored.");
+                Assert.That(template.Settings.Write(), Is.EqualTo(saved.Write()));
+            });
+        });
+
+        // Changing ui.layout reloads the screen, which stays the mapping screen with every panel rebuilt once.
+        var layout = string.Empty;
+        await client.WaitPost(() =>
+        {
+            layout = client.CfgMan.GetCVar(CCVars.UILayout);
+            client.CfgMan.SetCVar(CCVars.UILayout, nameof(ScreenType.Separated));
+        });
+        await pair.RunTicksSync(10);
+        await client.WaitAssertion(() => AssertMappingScreen("After a layout change"));
+
+        // Erase claims the left button; Place leaves it to the engine's placement.
+        bool Press(BoundKeyState state)
+        {
+            var inputSys = client.EntMan.System<InputSystem>();
+            var timing = client.ResolveDependency<IGameTiming>();
+            var function = WFMappingKeyFunctions.WFMappingModePrimary;
+            var message = new ClientFullInputCmdMessage(timing.CurTick, timing.TickFraction,
+                inputMan.NetworkBindMap.KeyFunctionID(function))
+            {
+                State = state,
+            };
+            return inputSys.HandleInputCommand(client.Session!, function, message);
+        }
+
+        await client.WaitAssertion(() =>
+        {
+            modes.SetMode(WFMappingBuildMode.Erase);
+            Assert.That(modes.Mode, Is.EqualTo(WFMappingBuildMode.Erase));
+            Assert.Multiple(() =>
+            {
+                Assert.That(Press(BoundKeyState.Down), Is.True, "Erase claims the press.");
+                Assert.That(Press(BoundKeyState.Up), Is.True, "and its release.");
+            });
+
+            modes.SetMode(WFMappingBuildMode.Place);
+            Assert.That(modes.Mode, Is.EqualTo(WFMappingBuildMode.Place));
+            Assert.Multiple(() =>
+            {
+                Assert.That(Press(BoundKeyState.Down), Is.False, "Place leaves the press to the placement manager.");
+                Assert.That(Press(BoundKeyState.Up), Is.False);
+            });
+
+            // Template mode takes the wheel only with a template loaded; Place only with Ctrl.
+            modes.SetMode(WFMappingBuildMode.Template);
+            var scale = template.Settings.ScaleX;
+            Assert.That(modes.TryWheel(1f), Is.True, "Template mode scales on the plain wheel.");
+            Assert.That(template.Settings.ScaleX, Is.GreaterThan(scale));
+            modes.SetMode(WFMappingBuildMode.Place);
+            Assert.That(modes.TryWheel(1f), Is.False, "Place mode leaves the plain wheel to the zoom.");
+
+            // A changed setting is written to the data folder when the session is left.
+            template.Settings.Opacity = 0.25f;
+            template.Modified();
+        });
+
+        // Leaving: the player is put on a plain entity, as when an admin ghosts out of the session.
+        EntityUid elsewhere = default;
+        await server.WaitPost(() =>
+        {
+            var map = server.EntMan.System<SharedMapSystem>().CreateMap(out var mapId);
+            elsewhere = server.EntMan.SpawnEntity(null, new MapCoordinates(Vector2.Zero, mapId));
+            server.ResolveDependency<Robust.Server.Player.IPlayerManager>().SetAttachedEntity(pair.Player!, elsewhere, force: true);
+            Assert.That(map.IsValid(), Is.True);
+        });
+
+        for (var i = 0; i < 100 && uiMan.ActiveScreen is WFMappingScreen; i++)
+        {
+            await pair.RunTicksSync(1);
+        }
+
+        await pair.RunTicksSync(5);
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(states.CurrentState, Is.TypeOf<GameplayState>());
+            Assert.Multiple(() =>
+            {
+                Assert.That(clientSys.SetUp, Is.False);
+                Assert.That(modes.Active, Is.False);
+                Assert.That(uiMan.ActiveScreen, Is.TypeOf<SeparatedChatGameScreen>(), "The layout ui.layout names.");
+                foreach (var function in WFMappingKeyFunctions.Modes.Append(WFMappingKeyFunctions.WFMappingModePrimary))
+                {
+                    Assert.That(inputMan.Contexts.ActiveContext.FunctionExistsHierarchy(function), Is.False,
+                        $"{function.FunctionName} is gone.");
+                }
+
+                Assert.That(template.HasTemplate, Is.False, "The template is dropped with the session.");
+                Assert.That(userData.TryReadAllText(folder / "settings.yml", out var text), Is.True);
+                Assert.That(WFMappingTemplateSettings.Read(text!).Opacity, Is.EqualTo(0.25f), "Saved on leaving.");
+                Assert.That(userData.Exists(folder / "template.png"), Is.True, "Leaving keeps the image.");
+            });
+
+            client.CfgMan.SetCVar(CCVars.UILayout, layout);
+        });
+
+        await server.WaitPost(() =>
+        {
+            if (mapping.TryGetMembership(pair.Player!.UserId, out _))
+                mapping.LeaveSession(pair.Player.UserId, kicked: false);
+            server.EntMan.DeleteEntity(elsewhere);
+        });
+        await pair.RunTicksSync(5);
+
+        await Disable(pair);
+        await pair.CleanReturnAsync();
+    }
+}

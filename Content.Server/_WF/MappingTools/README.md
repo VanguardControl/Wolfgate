@@ -18,7 +18,12 @@ writes every level to `Mapping/<name>/<name>_z<depth>.yml` (depth 0 is the groun
 of the stack the selected file belongs to. It needs the Mapping admin flag.
 
 Upstream's mapping screen (`MappingState`) is unreachable since upstream stopped switching to it, so these tools sit on
-the normal game screen instead.
+the normal game screen instead. MappingMode's own mapping screen docks the same tools panel (`MappingToolsPanel`,
+through `MappingToolsSystem.SetDock`) instead of opening the window.
+
+The draw request, `MappingToolsDrawEvent`, lays one tile type over a set of cells, spawns one prototype at each cell's
+centre with a rotation, or removes the decals on the cells, as one undoable edit. MappingMode's Fill, Shape and area
+erase send it; anyone who may use the tools may send it, up to 16384 distinct cells.
 
 Entry points: `MappingToolsSystem` (server; the requests, the per-mapper history and clipboard, and the placement and
 decal hooks), `MappingToolsSystem` (client; the window, keys and on/off state), `MappingSelectionTool` and
@@ -41,6 +46,10 @@ rotation maths).
   swap to their mirrored ID when it exists; rotatable tiles take the rotate/mirror state that matches Clyde's
   rendering. Other lopsided sprites (a chair's armrest, a sign's text) can't be mirrored and keep their look.
 - Pasting off every grid lands on the grid the clipboard came from, or on a new grid if that one is gone.
+- A draw checks its cells, grid and tile or prototype first, then asks `WFMappingCanEditEvent` with its box, cell
+  count and, for entities, the cells and prototype, so MappingMode can apply its selection, per-tile and prototype
+  limits. Tiles that already match are left out; clearing every tile of a grid deletes the grid as one root, so undo
+  brings it back whole. `MappingToolsShapes` (shared) makes the lines, rectangles and flood fills the client sends.
 - Grid splitting is paused while an edit applies, so moving tiles away from the hull leaves one grid.
 - Z-stacks are CE z-networks. Each change rebuilds the stack's network (`CEZLevelsSystem.WfRestack`) around the
   ground level, which keeps depth 0; levels shift away from it. Only stacks whose maps are all uninitialized can change,
@@ -63,6 +72,7 @@ rotation maths).
 - [`Content.Server/_WF/MappingTools/MappingMapsSystem.cs`](MappingMapsSystem.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.Apply.cs`](MappingToolsSystem.Apply.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.cs`](MappingToolsSystem.cs)
+- [`Content.Server/_WF/MappingTools/MappingToolsSystem.Draw.cs`](MappingToolsSystem.Draw.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.History.cs`](MappingToolsSystem.History.cs)
 - [`Content.Server/_WF/MappingTools/MappingZLevelsSystem.cs`](MappingZLevelsSystem.cs)
 - [`Content.Server/_WF/MappingTools/WFMappingPermissionEvents.cs`](WFMappingPermissionEvents.cs)
@@ -72,6 +82,7 @@ rotation maths).
 - [`Content.Shared/_WF/MappingTools/MappingMapsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingMapsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsMath.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsMath.cs)
+- [`Content.Shared/_WF/MappingTools/MappingToolsShapes.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsShapes.cs)
 - [`Content.Shared/_WF/MappingTools/MappingZLevelsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingZLevelsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/ToggleMappingToolsActionEvent.cs`](../../../Content.Shared/_WF/MappingTools/ToggleMappingToolsActionEvent.cs)
 
@@ -83,6 +94,8 @@ rotation maths).
 - [`Content.Client/_WF/MappingTools/MappingSelectionOverlay.cs`](../../../Content.Client/_WF/MappingTools/MappingSelectionOverlay.cs)
 - [`Content.Client/_WF/MappingTools/MappingSelectionTool.cs`](../../../Content.Client/_WF/MappingTools/MappingSelectionTool.cs)
 - [`Content.Client/_WF/MappingTools/MappingToolsCommand.cs`](../../../Content.Client/_WF/MappingTools/MappingToolsCommand.cs)
+- [`Content.Client/_WF/MappingTools/MappingToolsPanel.xaml`](../../../Content.Client/_WF/MappingTools/MappingToolsPanel.xaml)
+- [`Content.Client/_WF/MappingTools/MappingToolsPanel.xaml.cs`](../../../Content.Client/_WF/MappingTools/MappingToolsPanel.xaml.cs)
 - [`Content.Client/_WF/MappingTools/MappingToolsSystem.cs`](../../../Content.Client/_WF/MappingTools/MappingToolsSystem.cs)
 - [`Content.Client/_WF/MappingTools/MappingToolsWindow.xaml`](../../../Content.Client/_WF/MappingTools/MappingToolsWindow.xaml)
 - [`Content.Client/_WF/MappingTools/MappingToolsWindow.xaml.cs`](../../../Content.Client/_WF/MappingTools/MappingToolsWindow.xaml.cs)
@@ -91,8 +104,13 @@ rotation maths).
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingMapsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingMapsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsDrawTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsDrawTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingZLevelsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingZLevelsTest.cs)
+
+### Unit tests
+
+- [`Content.Tests/_WF/MappingTools/MappingToolsShapesTest.cs`](../../../Content.Tests/_WF/MappingTools/MappingToolsShapesTest.cs)
 
 ### Localization
 
