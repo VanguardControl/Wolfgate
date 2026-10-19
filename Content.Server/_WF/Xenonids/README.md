@@ -58,6 +58,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.Server/_WF/Xenonids/Emote/XenoEmoteSystem.cs`](Emote/XenoEmoteSystem.cs)
 - [`Content.Server/_WF/Xenonids/Evolution/EvolutionPointsCommand.cs`](Evolution/EvolutionPointsCommand.cs)
 - [`Content.Server/_WF/Xenonids/Evolution/WithXenoTierCommand.cs`](Evolution/WithXenoTierCommand.cs)
+- [`Content.Server/_WF/Xenonids/Fire/XenoFireSystem.cs`](Fire/XenoFireSystem.cs)
 - [`Content.Server/_WF/Xenonids/FirePat/XenoFirePatSystem.cs`](FirePat/XenoFirePatSystem.cs)
 - [`Content.Server/_WF/Xenonids/ForTheHive/XenoForTheHiveSystem.cs`](ForTheHive/XenoForTheHiveSystem.cs)
 - [`Content.Server/_WF/Xenonids/Heal/XenoHealSystem.cs`](Heal/XenoHealSystem.cs)
@@ -421,6 +422,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.Shared/_WF/Xenonids/Finesse/XenoFinesseSystem.cs`](../../../Content.Shared/_WF/Xenonids/Finesse/XenoFinesseSystem.cs)
 - [`Content.Shared/_WF/Xenonids/Finesse/XenoMarkedComponent.cs`](../../../Content.Shared/_WF/Xenonids/Finesse/XenoMarkedComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Finesse/XenoSpreadMarkAttemptComponent.cs`](../../../Content.Shared/_WF/Xenonids/Finesse/XenoSpreadMarkAttemptComponent.cs)
+- [`Content.Shared/_WF/Xenonids/Fire/XenoFireComponents.cs`](../../../Content.Shared/_WF/Xenonids/Fire/XenoFireComponents.cs)
 - [`Content.Shared/_WF/Xenonids/FirePat/XenoFirePatterComponent.cs`](../../../Content.Shared/_WF/Xenonids/FirePat/XenoFirePatterComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Fling/XenoFlingActionEvent.cs`](../../../Content.Shared/_WF/Xenonids/Fling/XenoFlingActionEvent.cs)
 - [`Content.Shared/_WF/Xenonids/Fling/XenoFlingAttemptEvent.cs`](../../../Content.Shared/_WF/Xenonids/Fling/XenoFlingAttemptEvent.cs)
@@ -996,6 +998,7 @@ take half burn damage in place of RMC's tile fire immunity.
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoAcidPillarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoAcidPillarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoAcidStructureTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoAcidStructureTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionReachTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionReachTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionSupportTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionSupportTest.cs)
@@ -1006,6 +1009,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoEggCultivationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoEggCultivationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoEvolutionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoEvolutionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoFirePatTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoFirePatTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoFireTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoFireTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoGhostMenuTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoGhostMenuTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveBootstrapTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveBootstrapTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveFixesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveFixesTest.cs)
@@ -1016,6 +1020,8 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoMeleeDamageTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoMeleeDamageTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoParalyzingSlashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoParalyzingSlashTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.Underground.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.Underground.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoRangedTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoRangedTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoRosterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoRosterTest.cs)
@@ -1564,13 +1570,21 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Resources/Prototypes/Entities/Structures/base_structure.yml`](../../../Resources/Prototypes/Entities/Structures/base_structure.yml)
   - every structure can be melted by xeno acid, as in RMC-14 (CMCorrodible)
   - xeno claws get past the flat reductions RMC structures don't have
-- [`Resources/Prototypes/Entities/Structures/Doors/Airlocks/base_structureairlocks.yml`](../../../Resources/Prototypes/Entities/Structures/Doors/Airlocks/base_structureairlocks.yml): RMC's airlock rule, sharp xeno claws break it only when bolted or welded
+- [`Resources/Prototypes/Entities/Structures/Doors/Airlocks/base_structureairlocks.yml`](../../../Resources/Prototypes/Entities/Structures/Doors/Airlocks/base_structureairlocks.yml): sharp xeno claws break any airlock, very sharp ones faster
 - [`Resources/Prototypes/Entities/Structures/Walls/walls.yml`](../../../Resources/Prototypes/Entities/Structures/Walls/walls.yml)
   - RMC's wall rule, sharp xeno claws break it in 20 hits and blunter ones not at all
   - walls hold up resin doors and membranes, as RMC's walls do
-- [`Resources/Prototypes/Entities/Tiles/chasm.yml`](../../../Resources/Prototypes/Entities/Tiles/chasm.yml): xeno weeds do not grow on liquid or chasm tiles
-- [`Resources/Prototypes/Entities/Tiles/lava.yml`](../../../Resources/Prototypes/Entities/Tiles/lava.yml): xeno weeds do not grow on liquid or chasm tiles
-- [`Resources/Prototypes/Entities/Tiles/liquid_plasma.yml`](../../../Resources/Prototypes/Entities/Tiles/liquid_plasma.yml): xeno weeds do not grow on liquid or chasm tiles
-- [`Resources/Prototypes/Entities/Tiles/water.yml`](../../../Resources/Prototypes/Entities/Tiles/water.yml): xeno weeds do not grow on liquid or chasm tiles
+- [`Resources/Prototypes/Entities/Tiles/chasm.yml`](../../../Resources/Prototypes/Entities/Tiles/chasm.yml)
+  - xeno weeds do not grow on liquid or chasm tiles
+  - resin, nodes and tunnels do not go on liquid or chasm tiles
+- [`Resources/Prototypes/Entities/Tiles/lava.yml`](../../../Resources/Prototypes/Entities/Tiles/lava.yml)
+  - xeno weeds do not grow on liquid or chasm tiles
+  - resin, nodes and tunnels do not go on liquid or chasm tiles
+- [`Resources/Prototypes/Entities/Tiles/liquid_plasma.yml`](../../../Resources/Prototypes/Entities/Tiles/liquid_plasma.yml)
+  - xeno weeds do not grow on liquid or chasm tiles
+  - resin, nodes and tunnels do not go on liquid or chasm tiles
+- [`Resources/Prototypes/Entities/Tiles/water.yml`](../../../Resources/Prototypes/Entities/Tiles/water.yml)
+  - xeno weeds do not grow on liquid or chasm tiles
+  - resin, nodes and tunnels do not go on liquid or chasm tiles
 
 <!-- WOLFGATE-GENERATED END -->
