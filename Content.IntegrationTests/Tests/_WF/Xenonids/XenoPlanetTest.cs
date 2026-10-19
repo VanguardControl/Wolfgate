@@ -37,7 +37,7 @@ namespace Content.IntegrationTests.Tests._WF.Xenonids;
 
 /// <summary>A hive works on a planet's terrain grid: weeds, resin, nodes, eggs, tunnels, burrowing and the air.</summary>
 [TestFixture]
-public sealed class XenoPlanetTest
+public sealed partial class XenoPlanetTest
 {
     private const string Surface = "WFSurfaceAsclepiu";
 
@@ -66,9 +66,10 @@ public sealed class XenoPlanetTest
     plasmaRegenOffWeeds: 0
 ";
 
-    private sealed record Planet(TestPair Pair, World World, IEntityManager Entities)
+    /// <summary>A planet world and the layer a test builds on: the ground, or the cavern under it.</summary>
+    private sealed record Planet(TestPair Pair, World World, IEntityManager Entities, EntityUid? Layer = null)
     {
-        public EntityUid Ground => World.Ground;
+        public EntityUid Ground => Layer ?? World.Ground;
 
         public Entity<MapGridComponent> Grid => (Ground, Entities.GetComponent<MapGridComponent>(Ground));
 
@@ -76,22 +77,62 @@ public sealed class XenoPlanetTest
     }
 
     /// <summary>Builds an Asclepiu stack with its cavern, loads the ground round the origin and clears a block to build in.</summary>
-    private static async Task<(Planet Planet, Vector2i Centre)> Create(TestPair pair, string surface = Surface, int reach = Reach)
+    private static async Task<(Planet Planet, Vector2i Centre)> Create(TestPair pair, string surface = Surface, int reach = Reach, bool underground = false)
     {
         var server = pair.Server;
         await EnableCaverns(pair);
         await DisableClaims(pair);
         var world = await BuildWorld(pair, surface);
-        var planet = new Planet(pair, world, server.EntMan);
+        var planet = new Planet(pair, world, server.EntMan, underground ? world.Cavern : null);
 
-        await LoadChunks(pair, world.Ground, new Vector2i(-24, -24), new Vector2i(24, 24));
+        Assert.That(planet.Ground, Is.Not.EqualTo(EntityUid.Invalid), $"{surface} has no cavern.");
+        await LoadChunks(pair, planet.Ground, new Vector2i(-24, -24), new Vector2i(24, 24));
         var centre = Vector2i.Zero;
-        await server.WaitPost(() => centre = FindOpenBlock(planet, reach));
+        await server.WaitPost(() => centre = underground ? DigOutBlock(planet, surface, reach) : FindOpenBlock(planet, reach));
         return (planet, centre);
+    }
+
+    /// <summary>A bare block in the cavern: a natural one if the rock has any near the origin, else the origin dug out.</summary>
+    private static Vector2i DigOutBlock(Planet planet, string surface, int reach)
+    {
+        if (TryFindOpenBlock(planet, reach) is { } found)
+            return found;
+
+        var maps = planet.Entities.System<SharedMapSystem>();
+        var tiles = planet.Pair.Server.ResolveDependency<ITileDefinitionManager>();
+        var floor = new Tile(tiles[Floors[surface].Chamber].TileId);
+        var grid = planet.Grid;
+        var anchored = new List<EntityUid>();
+
+        for (var x = -reach; x <= reach; x++)
+        for (var y = -reach; y <= reach; y++)
+        {
+            var index = new Vector2i(x, y);
+            anchored.Clear();
+            maps.GetAnchoredEntities(grid, index, anchored);
+
+            foreach (var uid in anchored)
+            {
+                planet.Entities.DeleteEntity(uid);
+            }
+
+            maps.SetTile(grid, grid, index, floor);
+        }
+
+        return Vector2i.Zero;
     }
 
     /// <summary>The first tile, searching outward from the origin, whose block of the given reach is natural, solid and bare.</summary>
     private static Vector2i FindOpenBlock(Planet planet, int reach)
+    {
+        if (TryFindOpenBlock(planet, reach) is { } found)
+            return found;
+
+        Assert.Fail("The layer has no bare block near its origin to build in.");
+        return default;
+    }
+
+    private static Vector2i? TryFindOpenBlock(Planet planet, int reach)
     {
         var maps = planet.Entities.System<SharedMapSystem>();
         var grid = planet.Grid;
@@ -118,8 +159,7 @@ public sealed class XenoPlanetTest
                 return new Vector2i(x, y);
         }
 
-        Assert.Fail("The planet has no bare block near its origin to build in.");
-        return default;
+        return null;
     }
 
     /// <summary>Gives a do-after event the finished do-after its handlers read.</summary>
@@ -155,12 +195,12 @@ public sealed class XenoPlanetTest
     }
 
     /// <summary>A node on bare terrain spreads weeds over the whole block, whatever tiles are under it.</summary>
-    [TestCaseSource(typeof(Content.IntegrationTests.Tests._WF.Caverns.CavernFixture), nameof(Surfaces))]
-    public async Task WeedsSpreadOverTerrain(string surface)
+    [Test]
+    public async Task WeedsSpreadOverTerrain([ValueSource(typeof(Content.IntegrationTests.Tests._WF.Caverns.CavernFixture), nameof(Surfaces))] string surface, [Values] bool underground)
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
-        var (planet, centre) = await Create(pair, surface, Spread);
+        var (planet, centre) = await Create(pair, surface, Spread, underground);
         var maps = server.System<SharedMapSystem>();
 
         await server.WaitPost(() =>
@@ -188,7 +228,7 @@ public sealed class XenoPlanetTest
                     missing.Add(index);
             }
 
-            Assert.That(missing, Is.Empty, $"Weeds did not reach these tiles of {string.Join(", ", kinds)} on {surface}.");
+            Assert.That(missing, Is.Empty, $"Weeds did not reach these tiles of {string.Join(", ", kinds)} on {surface} (underground {underground}).");
         });
 
         await Teardown(pair, planet.World);
@@ -257,11 +297,11 @@ public sealed class XenoPlanetTest
 
     /// <summary>A builder secretes a resin wall on hive weeds, and a queen orders a hive core and its nodes there.</summary>
     [Test]
-    public async Task ResinAndNodesGoUpOnTerrain()
+    public async Task ResinAndNodesGoUpOnTerrain([Values] bool underground)
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
-        var (planet, centre) = await Create(pair);
+        var (planet, centre) = await Create(pair, underground: underground);
         var entities = planet.Entities;
 
         EntityUid hive = default;
@@ -375,11 +415,11 @@ public sealed class XenoPlanetTest
 
     /// <summary>A drone plants an egg on hive weeds over terrain and it grows there.</summary>
     [Test]
-    public async Task EggPlantsOnHiveWeeds()
+    public async Task EggPlantsOnHiveWeeds([Values] bool underground)
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
-        var (planet, centre) = await Create(pair);
+        var (planet, centre) = await Create(pair, underground: underground);
         var entities = planet.Entities;
         var hands = entities.System<SharedHandsSystem>();
         var interaction = entities.System<SharedInteractionSystem>();
@@ -508,12 +548,12 @@ public sealed class XenoPlanetTest
     }
 
     /// <summary>A queen standing on the surface takes no pressure or temperature harm in the planet's air.</summary>
-    [TestCaseSource(typeof(Content.IntegrationTests.Tests._WF.Caverns.CavernFixture), nameof(Surfaces))]
-    public async Task QueenLivesInPlanetAir(string surface)
+    [Test]
+    public async Task QueenLivesInPlanetAir([ValueSource(typeof(Content.IntegrationTests.Tests._WF.Caverns.CavernFixture), nameof(Surfaces))] string surface, [Values] bool underground)
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
-        var (planet, centre) = await Create(pair, surface, 0);
+        var (planet, centre) = await Create(pair, surface, 0, underground);
         var entities = planet.Entities;
 
         EntityUid queen = default;
@@ -521,6 +561,7 @@ public sealed class XenoPlanetTest
         await server.WaitPost(() =>
         {
             var hive = SpawnHive(planet);
+            SetHive(planet, hive, entities.SpawnEntity("XenoWeedsSource", planet.At(centre)));
             queen = entities.SpawnEntity("CMXenoQueen", planet.At(centre));
             SetHive(planet, hive, queen);
         });
@@ -541,7 +582,8 @@ public sealed class XenoPlanetTest
         await server.WaitAssertion(() =>
         {
             Assert.That(entities.Deleted(queen), Is.False);
-            Assert.That(worst, Is.EqualTo(FixedPoint2.Zero), $"The queen took damage standing on {surface}.");
+            Assert.That(entities.GetComponent<TransformComponent>(queen).MapUid, Is.EqualTo(planet.Ground), "The queen fell or rose off her layer.");
+            Assert.That(worst, Is.EqualTo(FixedPoint2.Zero), $"The queen took damage standing on {surface} (underground {underground}).");
         });
 
         await Teardown(pair, planet.World);
