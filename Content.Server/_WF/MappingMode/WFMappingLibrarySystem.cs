@@ -213,6 +213,7 @@ public sealed class WFMappingLibrarySystem : EntitySystem
             maps.Add(new WFMappingLibraryMap(map.Name, versions));
         }
 
+        Log.Debug($"Sending {player} their mapping library: {maps.Count} maps, {scan.Bytes} bytes");
         RaiseNetworkEvent(new WFMappingLibraryEvent(maps, scan.Bytes,
             _cfg.GetCVar(WFMappingModeCVars.MaxLibraryBytes),
             _cfg.GetCVar(WFMappingModeCVars.MaxMaps),

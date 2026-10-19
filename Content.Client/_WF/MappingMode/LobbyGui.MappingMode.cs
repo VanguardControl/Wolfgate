@@ -9,14 +9,19 @@ public sealed partial class LobbyGui
     private Control? _wfMappingPanel;
     private Button? _wfMappingObserve;
 
+    /// <summary>The mapping panel on the lobby, if the mode is on.</summary>
+    public Control? WFMappingPanel => _wfMappingPanel;
+
     /// <summary>
     /// Turns the lobby into the mapping menu: hides the round, crew and character controls, puts the mapping panel in
     /// the hero area and adds an admin-only Observe entry, since the upstream one stays disabled before a round.
     /// </summary>
     public void WFApplyMappingMode(Control panel, Action observe)
     {
-        if (_wfMappingPanel != null)
-            return;
+        // The engine keeps one LobbyGui for every visit, so a panel from an earlier visit is replaced, not kept.
+        _wfMappingPanel?.Orphan();
+        _wfMappingObserve?.Orphan();
+        _wfMappingObserve = null;
 
         WFMappingHide(ReadyButton.Parent);
         WFMappingHide(CustomizeButton);
