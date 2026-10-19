@@ -1,6 +1,7 @@
+using Content.Client._WF.MappingMode.Modes;
+using Content.Client._WF.MappingMode.Screen;
 using Content.Client._WF.MappingTools;
 using Content.Client._WF.Spawning;
-using Content.Client.Actions;
 using Content.Client.Gameplay;
 using Content.Client.Markers;
 using Content.Client.SubFloor;
@@ -33,15 +34,17 @@ public sealed partial class WFMappingClientSystem : EntitySystem
     [Dependency] private IPlayerManager _player = default!;
     [Dependency] private IStateManager _state = default!;
     [Dependency] private IUserInterfaceManager _ui = default!;
-    [Dependency] private ActionsSystem _actions = default!;
     [Dependency] private MappingToolsSystem _tools = default!;
     [Dependency] private MarkerSystem _markers = default!;
     [Dependency] private SubFloorHideSystem _subFloor = default!;
-
-    private const string MappingActions = "/mapping_actions.yml";
+    [Dependency] private WFMappingBuildModeSystem _modes = default!;
 
     private readonly List<WFMappingRejoinInfo> _rejoinable = new();
     private bool _setUp;
+    private bool _shuttingDown;
+
+    /// <summary>Whether the in-session setup has run, so the mapping screen is in use.</summary>
+    public bool SetUp => _setUp;
 
     /// <summary>Whether the server runs in mapping mode.</summary>
     public bool ModeEnabled => _cfg.GetCVar(WFMappingModeCVars.Enabled);
@@ -91,6 +94,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
     public override void Shutdown()
     {
         base.Shutdown();
+        _shuttingDown = true;
         Teardown();
     }
 
@@ -155,43 +159,52 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         Teardown();
     }
 
-    /// <summary>What <c>mappingclientsidesetup</c> does, from code: markers, no lighting, subfloor, the mapping bar.</summary>
+    /// <summary>
+    /// What <c>mappingclientsidesetup</c> does, from code: markers, no lighting, subfloor. The mapping screen takes
+    /// the place of the actions bar, so <c>/mapping_actions.yml</c> isn't loaded; the tools dock into the screen.
+    /// </summary>
     private void Setup()
     {
         _setUp = true;
-        _markers.MarkersVisible = true;
-        _light.Enabled = false;
-        _subFloor.ShowAll = true;
-
-        try
-        {
-            _actions.LoadActionAssignments(MappingActions, false);
-        }
-        catch (Exception e)
-        {
-            Log.Error($"Loading {MappingActions} for a mapping session failed: {e}");
-        }
-
-        _tools.SetEnabled(true);
+        ResetLayers(true);
+        _tools.PickDecals = true;
         _overlays.AddOverlay(new WFMappingBoundsOverlay(this));
+        ReloadScreen();
+        _tools.SetEnabled(true);
+        _modes.SetActive(true);
     }
 
-    /// <summary>Undoes <see cref="Setup"/> and closes the spawn and mapping windows.</summary>
+    /// <summary>Undoes <see cref="Setup"/>, closes the spawn and mapping windows and goes back to the chosen screen.</summary>
     private void Teardown()
     {
         if (!_setUp)
             return;
 
         _setUp = false;
-        _markers.MarkersVisible = false;
-        _light.Enabled = true;
-        _subFloor.ShowAll = false;
+        _modes.SetActive(false);
+        ResetLayers(false);
         _tools.SetEnabled(false);
+        _tools.SetDock(null);
+        _tools.PickDecals = false;
         _placement.Clear();
         _ui.GetUIController<WolfgateSpawnUIController>().CloseWindow();
         _ui.GetUIController<TileSpawningUIController>().CloseWindow();
         _overlays.RemoveOverlay<WFMappingBoundsOverlay>();
+        if (!_shuttingDown)
+            ReloadScreen();
+
         SessionEnded?.Invoke();
+    }
+
+    /// <summary>Loads the mapping screen after setup, or the chosen layout after teardown, if it isn't up already.</summary>
+    private void ReloadScreen()
+    {
+        if (_state.CurrentState is not GameplayState gameplay)
+            return;
+
+        var onMapping = _ui.ActiveScreen is WFMappingScreen;
+        if (_setUp != onMapping)
+            gameplay.ReloadMainScreen();
     }
 
     /// <summary>The side of the square every level's tiles must lie in.</summary>

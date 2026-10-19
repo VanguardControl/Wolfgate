@@ -83,6 +83,9 @@ public sealed class WFMappingCanEditEvent(ICommonSession session, EntityUid map,
     /// <summary>The cell of each decal the request adds, in the same frame as <see cref="Cells"/>.</summary>
     public List<Vector2i>? DecalCells;
 
+    /// <summary>Entity prototypes the request spawns by id.</summary>
+    public List<string>? Prototypes;
+
     /// <summary>Set by a handler that limits the player's undo history; null keeps the default.</summary>
     public WFMappingHistoryLimits? HistoryLimits;
 

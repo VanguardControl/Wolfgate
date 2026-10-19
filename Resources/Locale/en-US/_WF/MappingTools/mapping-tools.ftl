@@ -147,3 +147,11 @@ wf-mapping-tools-edit-place = place
 wf-mapping-tools-edit-erase = erase
 wf-mapping-tools-edit-tile = tile placement
 wf-mapping-tools-edit-decal = decal edit
+wf-mapping-tools-edit-draw-tiles = tile drawing
+wf-mapping-tools-edit-draw-entities = entity drawing
+wf-mapping-tools-edit-erase-decals = decal erase
+
+wf-mapping-tools-draw-too-many = That covers too many tiles; the most is {$max}.
+wf-mapping-tools-draw-bad = That shape can't be drawn.
+wf-mapping-tools-draw-bad-tile = That tile doesn't exist.
+wf-mapping-tools-draw-bad-prototype = That can't be placed.

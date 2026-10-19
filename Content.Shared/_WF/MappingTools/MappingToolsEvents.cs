@@ -106,3 +106,41 @@ public sealed class MappingToolsSelectEvent(MappingSelection selection) : Entity
 /// </summary>
 [Serializable, NetSerializable]
 public readonly record struct MappingClipEntity(string? Prototype, Vector2 Position, Angle Rotation);
+
+/// <summary>What a <see cref="MappingToolsDrawEvent"/> does to its cells.</summary>
+[Serializable, NetSerializable]
+public enum MappingDrawOp : byte
+{
+    /// <summary>Lays <see cref="MappingToolsDrawEvent.TileId"/> on every cell; Space clears them.</summary>
+    SetTiles,
+
+    /// <summary>Spawns <see cref="MappingToolsDrawEvent.Prototype"/> at every cell's centre.</summary>
+    SpawnEntities,
+
+    /// <summary>Removes the decals whose centre falls in a cell.</summary>
+    EraseDecals,
+}
+
+/// <summary>
+/// A shape, fill or area erase from the mapping screen: one operation over grid-local cells, checked and undone as
+/// one edit.
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class MappingToolsDrawEvent(
+    NetEntity grid,
+    MappingDrawOp op,
+    List<Vector2i> cells,
+    string? tileId,
+    byte tileRotationMirroring,
+    string? prototype,
+    Angle rotation)
+    : EntityEventArgs
+{
+    public readonly NetEntity Grid = grid;
+    public readonly MappingDrawOp Op = op;
+    public readonly List<Vector2i> Cells = cells;
+    public readonly string? TileId = tileId;
+    public readonly byte TileRotationMirroring = tileRotationMirroring;
+    public readonly string? Prototype = prototype;
+    public readonly Angle Rotation = rotation;
+}

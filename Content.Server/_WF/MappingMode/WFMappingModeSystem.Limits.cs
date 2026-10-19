@@ -257,6 +257,18 @@ public sealed partial class WFMappingModeSystem
     /// </summary>
     private void CheckEditLimits(WFMappingCanEditEvent ev, WFMappingSession session)
     {
+        if (ev.Prototypes != null)
+        {
+            foreach (var id in ev.Prototypes)
+            {
+                if (!_prototypes.TryIndex<EntityPrototype>(id, out var prototype) || IsDenied(prototype))
+                {
+                    Cancel(ev, "wf-mapping-mode-limit-prototype");
+                    return;
+                }
+            }
+        }
+
         if (ev.Cells is { } cells && !CellsInBounds(ev.Grid, cells))
         {
             Cancel(ev, "wf-mapping-mode-limit-area", ("size", MapSize));

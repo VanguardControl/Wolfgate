@@ -69,6 +69,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
         SubscribeNetworkEvent<MappingToolsDeleteEvent>(OnDelete);
         SubscribeNetworkEvent<MappingToolsMirrorEvent>(OnMirror);
         SubscribeNetworkEvent<MappingToolsHistoryEvent>(OnHistory);
+        SubscribeNetworkEvent<MappingToolsDrawEvent>(OnDraw);
 
         InitializeHistory();
     }

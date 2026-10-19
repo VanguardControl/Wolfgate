@@ -12,6 +12,9 @@ public static class WFMappingModeLimits
     /// <summary>Longest file path a reference request may name.</summary>
     public const int MaxPathLength = 256;
 
+    /// <summary>Most cells one shape, fill or area erase from the mapping screen may cover.</summary>
+    public const int MaxDrawCells = 4096;
+
     private static readonly Regex NamePattern = new("^[A-Za-z0-9 _-]{1,48}$", RegexOptions.Compiled);
 
     /// <summary>Whether a trimmed name is 1 to 48 letters, digits, spaces, dashes or underscores.</summary>
