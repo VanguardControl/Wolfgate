@@ -6,7 +6,7 @@ Paces the material economy so the faction voucher ladder takes about 150 minutes
   vein and is the main tuning knob. Sand and chromite rocks spawn in the 9 km ring at half their old weight and in
   the Wilds; andesite leaves the ring.
 - Scrap: the scrap processor smelts strategic sheets at 250 raw scrap (lithium 1,000) with the upgrade discount, and
-  diamond and bluespace at 16,000 without it. Lathe upgrade kits don't fit ore processors. Plastitanium is uncommon
+  diamond and bluespace at 16,000 without it. Lathe upgrade kits don't fit ore processors, except the hyper-convection kit. Plastitanium is uncommon
   in scrap rolls and drone loot, and the crystallizer makes five plastitanium (`WFSheetPlastitanium5`) per batch from
   far more gas; plasteel and plasma also cost more gas.
 - Research: the capital ships (Luda, Flyssa, Saturn) sit behind `WFTsfCapitalVouchers` and `WFPdvCapitalVouchers`,
@@ -35,6 +35,7 @@ networked audio entity per cluster instead of one per rock. `GatherSoundThrottle
 
 - [`Content.IntegrationTests/Tests/_WF/Mining/GasSaleConsoleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Mining/GasSaleConsoleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Mining/GatherSoundThrottleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Mining/GatherSoundThrottleTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Mining/OreProcessorUpgradeKitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Mining/OreProcessorUpgradeKitTest.cs)
 
 ### Prototypes
 
@@ -62,7 +63,9 @@ networked audio entity per cluster instead of one per rock. `GatherSoundThrottle
 - [`Content.Shared/_NF/Atmos/BUI/GasSaleConsoleBoundUserInterfaceState.cs`](../../../Content.Shared/_NF/Atmos/BUI/GasSaleConsoleBoundUserInterfaceState.cs): the appraisal shows the payout currency
 - [`Content.Shared/_NF/Bank/Components/MarketModifierComponent.cs`](../../../Content.Shared/_NF/Bank/Components/MarketModifierComponent.cs): a console can state its rate in its description instead
 - [`Content.Shared/_NF/Bank/MarketModifierSystem.cs`](../../../Content.Shared/_NF/Bank/MarketModifierSystem.cs): some consoles state their rate in their description instead
-- [`Resources/Prototypes/_DV/Entities/Objects/Tools/lathe_upgrade_kits.yml`](../../../Resources/Prototypes/_DV/Entities/Objects/Tools/lathe_upgrade_kits.yml): kits don't fit ore processors
+- [`Resources/Prototypes/_DV/Entities/Objects/Tools/lathe_upgrade_kits.yml`](../../../Resources/Prototypes/_DV/Entities/Objects/Tools/lathe_upgrade_kits.yml)
+  - kits don't fit ore processors
+  - the hyper-convection kit is the one kit that fits ore processors, so it drops the base kit's tag blacklist
 - [`Resources/Prototypes/_Mono/Atmospherics/crystallizer.yml`](../../../Resources/Prototypes/_Mono/Atmospherics/crystallizer.yml)
   - five plastitanium sheets per batch from about 480 mol of gas, most of it ammonia
   - crystallizer plasteel costs real gas, 8 -> 100
