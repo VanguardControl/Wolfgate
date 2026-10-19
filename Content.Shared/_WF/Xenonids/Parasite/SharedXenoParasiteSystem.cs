@@ -523,6 +523,7 @@ public abstract partial class SharedXenoParasiteSystem : EntitySystem
                && parasite.Comp.InfectedVictim == null
                && !infected.BeingInfected
                && !HasComp<ParasiteSpentComponent>(parasite)
+               && !HasComp<WFParasiteBiteOnlyComponent>(parasite) // WOLFGATE: admin bite-only variants never infect
                && !HasComp<VictimInfectedComponent>(victim);
     }
 

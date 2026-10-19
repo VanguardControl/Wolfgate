@@ -75,6 +75,12 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.Server/_WF/Xenonids/Maturing/XenoMatureCommand.cs`](Maturing/XenoMatureCommand.cs)
 - [`Content.Server/_WF/Xenonids/Name/XenoNameSystem.cs`](Name/XenoNameSystem.cs)
 - [`Content.Server/_WF/Xenonids/NeurotoxinSystem.cs`](NeurotoxinSystem.cs)
+- [`Content.Server/_WF/Xenonids/Parasite/AI/WFLeapOperator.cs`](Parasite/AI/WFLeapOperator.cs)
+- [`Content.Server/_WF/Xenonids/Parasite/AI/WFNPCLeapComponent.cs`](Parasite/AI/WFNPCLeapComponent.cs)
+- [`Content.Server/_WF/Xenonids/Parasite/AI/WFNPCLeapSystem.cs`](Parasite/AI/WFNPCLeapSystem.cs)
+- [`Content.Server/_WF/Xenonids/Parasite/AI/WFParasiteAIComponent.cs`](Parasite/AI/WFParasiteAIComponent.cs)
+- [`Content.Server/_WF/Xenonids/Parasite/AI/WFParasiteAISystem.cs`](Parasite/AI/WFParasiteAISystem.cs)
+- [`Content.Server/_WF/Xenonids/Parasite/AI/WFTargetInfectableCon.cs`](Parasite/AI/WFTargetInfectableCon.cs)
 - [`Content.Server/_WF/Xenonids/Parasite/XenoParasiteRoleSystem.cs`](Parasite/XenoParasiteRoleSystem.cs)
 - [`Content.Server/_WF/Xenonids/Parasite/XenoParasiteThrowerSystem.cs`](Parasite/XenoParasiteThrowerSystem.cs)
 - [`Content.Server/_WF/Xenonids/Pheromones/XenoPheromonesSystem.cs`](Pheromones/XenoPheromonesSystem.cs)
@@ -649,6 +655,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.Shared/_WF/Xenonids/Parasite/VictimBurstComponent.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/VictimBurstComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Parasite/VictimInfectedComponent.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/VictimInfectedComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Parasite/VictimInfectedEmoteEvent.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/VictimInfectedEmoteEvent.cs)
+- [`Content.Shared/_WF/Xenonids/Parasite/WFParasiteBiteOnlyComponent.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/WFParasiteBiteOnlyComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Parasite/WFXenoParasiteCVars.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/WFXenoParasiteCVars.cs)
 - [`Content.Shared/_WF/Xenonids/Parasite/XenoParasiteComponent.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/XenoParasiteComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Pheromones/SharedXenoPheromonesSystem.cs`](../../../Content.Shared/_WF/Xenonids/Pheromones/SharedXenoPheromonesSystem.cs)
@@ -1020,6 +1027,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoMeleeDamageTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoMeleeDamageTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoParalyzingSlashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoParalyzingSlashTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteVariantTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteVariantTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.Underground.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.Underground.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenTest.cs)
@@ -1131,6 +1139,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Resources/Prototypes/_WF/Xenonids/Entities/Structures/Xeno/xeno_weeds.yml`](../../../Resources/Prototypes/_WF/Xenonids/Entities/Structures/Xeno/xeno_weeds.yml)
 - [`Resources/Prototypes/_WF/Xenonids/GhostRoleRaffles/xeno_settings.yml`](../../../Resources/Prototypes/_WF/Xenonids/GhostRoleRaffles/xeno_settings.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Guidebook/guides.yml`](../../../Resources/Prototypes/_WF/Xenonids/Guidebook/guides.yml)
+- [`Resources/Prototypes/_WF/Xenonids/NPC/parasite.yml`](../../../Resources/Prototypes/_WF/Xenonids/NPC/parasite.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Roles/Jobs/JobIcons/xeno_job_icons.yml`](../../../Resources/Prototypes/_WF/Xenonids/Roles/Jobs/JobIcons/xeno_job_icons.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Roles/Xeno/boiler.yml`](../../../Resources/Prototypes/_WF/Xenonids/Roles/Xeno/boiler.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Roles/Xeno/burrower.yml`](../../../Resources/Prototypes/_WF/Xenonids/Roles/Xeno/burrower.yml)
@@ -1546,6 +1555,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.Client/Options/UI/Tabs/KeyRebindTab.xaml.cs`](../../../Content.Client/Options/UI/Tabs/KeyRebindTab.xaml.cs): RMC's xeno keys
 - [`Content.Client/Weapons/Melee/MeleeWeaponSystem.cs`](../../../Content.Client/Weapons/Melee/MeleeWeaponSystem.cs): xeno wide swing calls it
 - [`Content.Server/Chat/Systems/ChatSystem.cs`](../../Chat/Systems/ChatSystem.cs): a xeno's radio prefix sends the message to its hive instead
+- [`Content.Server/NPC/Systems/NPCUtilitySystem.cs`](../../NPC/Systems/NPCUtilitySystem.cs): AI facehuggers pick hosts they can still infect
 - [`Content.Shared/Eye/VisibilityFlags.cs`](../../../Content.Shared/Eye/VisibilityFlags.cs): things only xenos see
 - [`Content.Shared/Interaction/SharedInteractionSystem.cs`](../../../Content.Shared/Interaction/SharedInteractionSystem.cs): devoured mobs and devouring xenos override combat-mode interaction
 - [`Content.Shared/Inventory/VirtualItem/SharedVirtualItemSystem.cs`](../../../Content.Shared/Inventory/VirtualItem/SharedVirtualItemSystem.cs): the held entity may take over the click (devouring a pulled victim, nesting)
