@@ -117,6 +117,7 @@
     - HiveEggMorpherXenoConstructionNode
     - HiveClusterXenoConstructionNode
     - HiveRecoveryNodeXenoConstructionNode
+    - HiveSensorXenoConstructionNode
     - HivePlasmaTreeXenoConstructionNode
   # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: FixedIdentity

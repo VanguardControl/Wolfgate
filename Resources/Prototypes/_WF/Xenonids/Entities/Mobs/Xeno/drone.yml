@@ -76,6 +76,7 @@
     - HiveEggMorpherXenoConstructionNode
     - HiveClusterXenoConstructionNode
     - HiveRecoveryNodeXenoConstructionNode
+    - HiveSensorXenoConstructionNode
     - HivePlasmaTreeXenoConstructionNode
   - type: XenoEvolution
     canEvolveWithoutGranter: true

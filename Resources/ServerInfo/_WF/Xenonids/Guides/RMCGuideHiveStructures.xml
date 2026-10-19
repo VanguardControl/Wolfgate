@@ -17,12 +17,14 @@
   </Box>
   <Box>
     <GuideEntityEmbed Entity="HiveAcidPillarXeno"/>
+    <GuideEntityEmbed Entity="HiveSensorXeno"/>
   </Box>
   ##Each have limits!
   - 1 Hive Core
   - 6 Egg Morphers
   - 6 Recovery nodes
   - 3 Plasma Trees
+  - 2 Resin Sensors
   - 8 Hive Clusters
   - 2 Hive Pylons
   - 1 Acid Pillar per Hivelord or Queen
@@ -42,6 +44,8 @@
   [bold]Plasma Tree[/bold]: Plasma Trees are just like Recovery Nodes but give plasma instead of healing to Xenonids.
 
   [bold]Acid Pillar[/bold]: Defends the hive with acid.
+
+  [bold]Resin Sensor[/bold]: A mass scanner for the hive. Any Xenonid of the hive can use it to see the ships and grids nearby, centred on the sensor.
 
   ## Where to place!
   Since they are limited it is always best to communicate with your hive when you are placing one.

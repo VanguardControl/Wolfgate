@@ -129,6 +129,7 @@
     - HiveEggMorpherXenoConstructionNode
     - HiveClusterXenoConstructionNode
     - HiveRecoveryNodeXenoConstructionNode
+    - HiveSensorXenoConstructionNode
     - HivePlasmaTreeXenoConstructionNode
     canUpgrade: true
   - type: XenoPlasma
@@ -181,6 +182,7 @@
     - HiveEggMorpherXenoConstructionNode
     - HiveClusterXenoConstructionNode
     - HiveRecoveryNodeXenoConstructionNode
+    - HiveSensorXenoConstructionNode
     - HivePlasmaTreeXenoConstructionNode
   - type: XenoPlasma
     plasma: 800
@@ -260,6 +262,7 @@
     - HiveEggMorpherXenoConstructionNode
     - HiveClusterXenoConstructionNode
     - HiveRecoveryNodeXenoConstructionNode
+    - HiveSensorXenoConstructionNode
     - HivePlasmaTreeXenoConstructionNode
   - type: XenoPlasma
     plasma: 700
