@@ -197,7 +197,8 @@ public sealed class WFAdsInterrogationTest : WFAdsTestBase
                 Does.Contain(Loc.GetString("wf-ads-zone-hail-declared")));
         });
 
-        await RunTicks(150);
+        // The channel closes a few seconds after the answer, on the system's once-a-second pass.
+        await WaitUntilServer(() => Server.System<HailingSystem>().GetState(scene.Helm) == null, 600);
         await Server.WaitAssertion(() =>
         {
             Assert.That(scene.Ship.Engaged, Does.Contain(scene.PlayerShip), "A declared threat in the attack zone is engaged.");

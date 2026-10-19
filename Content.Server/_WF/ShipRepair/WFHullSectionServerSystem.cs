@@ -215,9 +215,8 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         if (!TryComp<MapGridComponent>(hull, out var hullGrid) || !TryComp<MapGridComponent>(section, out var sectionGrid))
             return;
 
-        // The engine merge moves tiles, anchored entities and whatever stands on a tile, and engines change banks as
-        // they re-anchor; the rest is carried here.
-        ReleaseStrays((section, sectionGrid));
+        // The engine merge moves tiles and anchored entities, and engines change banks as they re-anchor; the rest is
+        // carried here.
         var offset = _sections.OffsetOf(section);
         var shift = (Vector2) offset * sectionGrid.TileSize;
         var decals = _decals.GetDecalsIntersecting(section, sectionGrid.LocalAABB.Enlarged(1f));
@@ -238,6 +237,7 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         _traversal.Enabled = false;
         try
         {
+            CarryLoose((section, sectionGrid), hull, shift);
             _fixtures.Merge(hull, section, offset, Angle.Zero, hullGrid, sectionGrid);
         }
         finally
@@ -283,27 +283,40 @@ public sealed partial class WFHullSectionServerSystem : EntitySystem
         return motion;
     }
 
-    /// <summary>Leaves loose entities that sit off the section's tiles where they are; the merge would delete them with the grid.</summary>
-    private void ReleaseStrays(Entity<MapGridComponent> section)
+    /// <summary>
+    /// Moves what the engine merge would miss and delete with the section: loose entities aboard go to their place on
+    /// the hull, and anything off the section's tiles is left where it is in space. The merge only finds a loose entity
+    /// inside a tile's bounds, so one on a tile's edge would be lost.
+    /// </summary>
+    private void CarryLoose(Entity<MapGridComponent> section, EntityUid hull, Vector2 shift)
     {
         var xform = Transform(section);
         if (xform.MapUid is not { } map)
             return;
 
+        var aboard = new List<EntityUid>();
         var strays = new List<EntityUid>();
         var children = xform.ChildEnumerator;
         while (children.MoveNext(out var child))
         {
             var childXform = Transform(child);
-            if (!childXform.Anchored
-                && _map.GetTileRef(section, _sections.TileOf(section, childXform.LocalPosition)).Tile.IsEmpty)
+            var onTile = !_map.GetTileRef(section, _sections.TileOf(section, childXform.LocalPosition)).Tile.IsEmpty;
+            if (!onTile)
                 strays.Add(child);
+            else if (!childXform.Anchored)
+                aboard.Add(child);
         }
 
         foreach (var stray in strays)
         {
             var (position, rotation) = _transform.GetWorldPositionRotation(stray);
             _transform.SetCoordinates(stray, Transform(stray), new EntityCoordinates(map, position), rotation);
+        }
+
+        foreach (var uid in aboard)
+        {
+            var childXform = Transform(uid);
+            _transform.SetCoordinates(uid, childXform, new EntityCoordinates(hull, childXform.LocalPosition + shift), childXform.LocalRotation);
         }
     }
 }
