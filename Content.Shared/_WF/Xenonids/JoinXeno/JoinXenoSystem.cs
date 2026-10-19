@@ -32,7 +32,8 @@ public sealed partial class JoinXenoSystem : EntitySystem
         SubscribeLocalEvent<JoinXenoComponent, MapInitEvent>(OnJoinXenoMapInit);
         SubscribeLocalEvent<JoinXenoComponent, JoinXenoActionEvent>(OnJoinXenoAction);
         SubscribeLocalEvent<JoinXenoComponent, JoinXenoBurrowedLarvaEvent>(OnJoinXenoBurrowedLarva);
-        SubscribeLocalEvent<BurrowedLarvaChangedEvent>(OnBurrowedLarvaChanged); // WOLFGATE: the action only exists while larva wait
+        SubscribeLocalEvent<HiveComponent, ComponentStartup>(OnHiveStartup); // WOLFGATE: the action only exists while a hive does
+        SubscribeLocalEvent<HiveComponent, ComponentShutdown>(OnHiveShutdown);
 
         Subs.CVar(_config, WFGrowthCVars.RMCLateJoinsBurrowedLarvaDeathTime, v => _burrowedLarvaDeathTime = TimeSpan.FromMinutes(v), true);
         Subs.CVar(_config, WFGrowthCVars.RMCLateJoinsBurrowedLarvaDeathTimeIgnoreBeforeMinutes, v => _burrowedLarvaDeathIgnoreTime = TimeSpan.FromMinutes(v), true);
@@ -40,26 +41,35 @@ public sealed partial class JoinXenoSystem : EntitySystem
 
     private void OnJoinXenoMapInit(Entity<JoinXenoComponent> ent, ref MapInitEvent args)
     {
-        RefreshAction(ent, AnyBurrowedLarva());
+        RefreshAction(ent, AnyHive());
     }
 
-    // WOLFGATE: Wolfgate has no xeno round rule, so ghosts only see the join action while some hive holds burrowed larva.
-    private void OnBurrowedLarvaChanged(ref BurrowedLarvaChangedEvent args)
+    // WOLFGATE: Wolfgate has no xeno round rule, so ghosts only see the join action once a hive exists to queue for.
+    private void OnHiveStartup(Entity<HiveComponent> ent, ref ComponentStartup args)
     {
-        var any = AnyBurrowedLarva();
+        RefreshAllActions(true);
+    }
+
+    private void OnHiveShutdown(Entity<HiveComponent> ent, ref ComponentShutdown args)
+    {
+        RefreshAllActions(AnyHive(ent.Owner));
+    }
+
+    private void RefreshAllActions(bool available)
+    {
         var ghosts = EntityQueryEnumerator<JoinXenoComponent>();
         while (ghosts.MoveNext(out var uid, out var join))
         {
-            RefreshAction((uid, join), any);
+            RefreshAction((uid, join), available);
         }
     }
 
-    private bool AnyBurrowedLarva()
+    private bool AnyHive(EntityUid? except = null)
     {
         var hives = EntityQueryEnumerator<HiveComponent>();
-        while (hives.MoveNext(out _, out var hive))
+        while (hives.MoveNext(out var uid, out _))
         {
-            if (hive.BurrowedLarva > 0)
+            if (uid != except)
                 return true;
         }
 
@@ -68,8 +78,14 @@ public sealed partial class JoinXenoSystem : EntitySystem
 
     private void RefreshAction(Entity<JoinXenoComponent> ent, bool available)
     {
+        if (_net.IsClient)
+            return;
+
         if (available)
         {
+            if (ent.Comp.Action is { } current && Exists(current))
+                return;
+
             _actions.AddAction(ent, ref ent.Comp.Action, ent.Comp.ActionId);
         }
         else if (ent.Comp.Action != null)

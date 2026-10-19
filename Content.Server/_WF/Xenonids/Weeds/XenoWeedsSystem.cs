@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Content.Server.Atmos.Components;
 using Content.Server.Spreader;
@@ -17,6 +18,8 @@ using Content.Shared.Tag;
 using Robust.Server.GameObjects;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Physics;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -35,6 +38,7 @@ public sealed partial class XenoWeedsSystem : SharedXenoWeedsSystem
     [Dependency] private DamageableSystem _damageable = default!;
     [Dependency] private SharedDirectionalAttackBlockSystem _directionBlocker = default!;
     [Dependency] private TurfSystem _turf = default!;
+    [Dependency] private SharedPhysicsSystem _physics = default!;
 
     private static readonly ProtoId<TagPrototype> IgnoredTag = "SpreaderIgnore";
 
@@ -42,6 +46,7 @@ public sealed partial class XenoWeedsSystem : SharedXenoWeedsSystem
     private readonly List<Entity<XenoWeedsComponent>> _spread = new();
 
     private EntityQuery<AirtightComponent> _airtightQuery;
+    private EntityQuery<BarricadeComponent> _barricadeQuery;
     private EntityQuery<AllowWeedSpreadComponent> _allowWeedSpreadQuery;
     private EntityQuery<MapGridComponent> _mapGridQuery;
     private EntityQuery<XenoNestSurfaceComponent> _xenoNestSurfaceQuery;
@@ -55,6 +60,7 @@ public sealed partial class XenoWeedsSystem : SharedXenoWeedsSystem
         base.Initialize();
 
         _airtightQuery = GetEntityQuery<AirtightComponent>();
+        _barricadeQuery = GetEntityQuery<BarricadeComponent>();
         _allowWeedSpreadQuery = GetEntityQuery<AllowWeedSpreadComponent>();
         _mapGridQuery = GetEntityQuery<MapGridComponent>();
         _xenoNestSurfaceQuery = GetEntityQuery<XenoNestSurfaceComponent>();
@@ -67,6 +73,18 @@ public sealed partial class XenoWeedsSystem : SharedXenoWeedsSystem
             v => _maxProcessTime = TimeSpan.FromMilliseconds(v),
             true
         );
+    }
+
+    /// <summary>Whether a barricade sits just across the tile edge in a grid-relative cardinal direction.</summary>
+    private bool IsBarricadeBlocked(EntityUid origin, AtmosDirection cardinal)
+    {
+        // RMC's BarricadeImpassable layer doesn't exist here; barricades share TableLayer with tables, machines and weeds.
+        var xform = Transform(origin);
+        var rotation = _transform.GetWorldRotation(xform.GridUid ?? xform.ParentUid);
+        var direction = rotation.RotateVec((Vector2) cardinal.CardinalToIntVec());
+        var ray = new CollisionRay(_transform.GetWorldPosition(xform), direction, (int) CollisionGroup.MidImpassable);
+        var hits = _physics.IntersectRayWithPredicate(xform.MapID, ray, 0.6f, e => !_barricadeQuery.HasComp(e) || !Transform(e).Anchored);
+        return hits.Any();
     }
 
     public override void Update(float frameTime)
@@ -124,9 +142,7 @@ public sealed partial class XenoWeedsSystem : SharedXenoWeedsSystem
                     }
                 }
 
-                if (_directionBlocker.IsDirectionBlocked(uid,
-                        cardinal,
-                        collisionGroup: CollisionGroup.Impassable | CollisionGroup.MidImpassable)) // WOLFGATE: no BarricadeImpassable layer here
+                if (IsBarricadeBlocked(uid, cardinal))
                     blocked = true;
 
                 if (blocked)

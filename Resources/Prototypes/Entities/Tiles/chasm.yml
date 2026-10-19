@@ -7,6 +7,8 @@
     snap:
     - Wall
   components:
+  # WOLFGATE(Xenonids): xeno weeds do not grow on liquid or chasm tiles
+  - type: BlockWeeds
   - type: Chasm
   - type: StepTrigger
     requiredTriggeredSpeed: 0

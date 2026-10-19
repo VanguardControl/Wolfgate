@@ -9,6 +9,10 @@
   name: King
   description: The end of the line.
   components:
+  # Queens and kings are huge: pressure neither hurts nor throws them (other castes keep RMC's MovedByPressure).
+  - type: PressureImmunity
+  - type: MovedByPressure
+    enabled: false
   - type: Sprite
     sprite: _WF/Xenonids/Mobs/Xenonids/King/king.rsi
   - type: MobState

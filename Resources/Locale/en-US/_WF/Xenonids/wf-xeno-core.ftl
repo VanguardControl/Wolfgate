@@ -5,3 +5,4 @@ ui-options-function-rmc-xeno-rest = Xenonid rest
 ui-options-function-rmc-resist = Resist
 wf-xeno-hive-chat-wrap = [color={$color}][bold]{$name}[/bold] hiveminds, "{$message}"[/color]
 wf-xeno-hive-chat-no-hive = We have no hive to hear us.
+wf-xeno-larva-role-description = A larva has burst from a host and nobody has claimed it. Join the hive and grow.

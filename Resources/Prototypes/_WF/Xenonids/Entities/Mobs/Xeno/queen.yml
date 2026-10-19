@@ -10,6 +10,10 @@
   name: Queen
   description: A huge, looming alien creature. The biggest and the baddest.
   components:
+  # Queens and kings are huge: pressure neither hurts nor throws them (other castes keep RMC's MovedByPressure).
+  - type: PressureImmunity
+  - type: MovedByPressure
+    enabled: false
   - type: CanBuildThickFromConstructNode
   - type: GuideHelp
     guides:
@@ -53,6 +57,12 @@
     tags:
     - DoorBumpOpener
     - FootstepSound
+    - CanPilot
+  # The queen can fly a ship from its shuttle console; gunnery consoles stay closed to every xeno.
+  - type: XenoConsoleUser
+    whitelist:
+      components:
+      - ShuttleConsole
   - type: Xeno
     role: CMXenoQueen
     spawnAtLeaderPoint: true
@@ -248,6 +258,9 @@
   # WOLFGATE: cut RMCImmuneToFireTileDamage (RMC fire)
   # WOLFGATE: cut IntelRecoverCorpseObjectiveOnDeath (intel)
   - type: QueenEyeAction
+  # WOLFGATE: RMC lights the eye's view only around weed nodes and hive structures; the queen lights her own spot so the eye never opens on pure static
+  - type: QueenEyeVision
+    range: 14
   - type: StunFriendlyXenoOnStep
     whitelist:
       components:
