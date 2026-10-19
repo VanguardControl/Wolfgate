@@ -624,6 +624,7 @@ public sealed partial class SharedXenoConstructionSystem : EntitySystem
 
             var structure = Spawn(structureToSpawn, coordinates);
             _hive.SetSameHive(xeno.Owner, structure);
+            AlignDoorToWalls(structure, coordinates);
             if (TryComp(structure, out DesignNodeComponent? nodeComp))
             {
                 nodeComp.BoundXeno = xeno.Owner;
@@ -780,6 +781,7 @@ public sealed partial class SharedXenoConstructionSystem : EntitySystem
         var structure = Spawn(args.StructureId, coordinates);
 
         _hive.SetSameHive(xeno.Owner, structure);
+        AlignDoorToWalls(structure, coordinates);
 
         _adminLogs.Add(LogType.Construction, $"Xeno {ToPrettyString(xeno):xeno} ordered construction of {ToPrettyString(structure):structure} at {coordinates}"); // WOLFGATE: no RMC log types here
 
@@ -1073,6 +1075,40 @@ public sealed partial class SharedXenoConstructionSystem : EntitySystem
 
     public void BeginStructureUpgrade(EntityUid uid) => _upgradingStructures.Add(uid);
     public void EndStructureUpgrade(EntityUid uid) => _upgradingStructures.Remove(uid);
+
+    /// <summary>
+    /// WOLFGATE: turns a freshly built resin door so it spans the walls beside it. RMC's door sprite has four
+    /// directions and RMC never rotates it, so a door in an east-west wall stood sideways.
+    /// </summary>
+    private void AlignDoorToWalls(EntityUid structure, EntityCoordinates coordinates)
+    {
+        if (!HasComp<DoorComponent>(structure) ||
+            _transform.GetGrid(coordinates) is not { } gridId ||
+            !TryComp(gridId, out MapGridComponent? grid))
+        {
+            return;
+        }
+
+        var tile = _mapSystem.CoordinatesToTile(gridId, grid, coordinates);
+        var eastWest = HasSupportAt(gridId, grid, tile + new Vector2i(1, 0)) || HasSupportAt(gridId, grid, tile + new Vector2i(-1, 0));
+        var northSouth = HasSupportAt(gridId, grid, tile + new Vector2i(0, 1)) || HasSupportAt(gridId, grid, tile + new Vector2i(0, -1));
+        if (eastWest == northSouth)
+            return;
+
+        _transform.SetLocalRotation(structure, eastWest ? Angle.FromDegrees(90) : Angle.Zero);
+    }
+
+    private bool HasSupportAt(EntityUid gridId, MapGridComponent grid, Vector2i tile)
+    {
+        var anchored = _mapSystem.GetAnchoredEntitiesEnumerator(gridId, grid, tile);
+        while (anchored.MoveNext(out var uid))
+        {
+            if (_constructionSupportQuery.HasComp(uid) && !HasComp<DoorComponent>(uid))
+                return true;
+        }
+
+        return false;
+    }
 
     private void OnCheckAdjacentCollapse<T>(Entity<XenoConstructionSupportComponent> ent, ref T args)
     {

@@ -26,9 +26,10 @@ public sealed class XenoConstructionSupportTest
     buildChoice: DoorXenoResin
 ";
 
-    [TestCase("WallPlastitanium")]
-    [TestCase("WallSolid")]
-    public async Task ResinDoorBetweenStationWalls(string wallProto)
+    [TestCase("WallPlastitanium", false)]
+    [TestCase("WallSolid", false)]
+    [TestCase("WallSolid", true)]
+    public async Task ResinDoorBetweenStationWalls(string wallProto, bool eastWest)
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
@@ -40,18 +41,28 @@ public sealed class XenoConstructionSupportTest
         await server.WaitPost(() =>
         {
             var maps = entities.System<SharedMapSystem>();
-            for (var y = -1; y <= 1; y++)
-                maps.SetTile(map.Grid, new Vector2i(1, y), map.Tile.Tile);
+            for (var x = 0; x <= 2; x++)
+                for (var y = -1; y <= 1; y++)
+                    maps.SetTile(map.Grid, new Vector2i(x, y), map.Tile.Tile);
 
             doorCoords = new EntityCoordinates(map.Grid, 1.5f, 0.5f);
-            entities.SpawnEntity(wallProto, new EntityCoordinates(map.Grid, 1.5f, 1.5f));
-            entities.SpawnEntity(wallProto, new EntityCoordinates(map.Grid, 1.5f, -0.5f));
+            if (eastWest)
+            {
+                // walls left and right of the door; the drone stands below it
+                entities.SpawnEntity(wallProto, new EntityCoordinates(map.Grid, 0.5f, 0.5f));
+                entities.SpawnEntity(wallProto, new EntityCoordinates(map.Grid, 2.5f, 0.5f));
+            }
+            else
+            {
+                entities.SpawnEntity(wallProto, new EntityCoordinates(map.Grid, 1.5f, 1.5f));
+                entities.SpawnEntity(wallProto, new EntityCoordinates(map.Grid, 1.5f, -0.5f));
+            }
 
             var hives = entities.System<SharedXenoHiveSystem>();
             var hive = entities.SpawnEntity("CMXenoHive", MapCoordinates.Nullspace);
             hives.SetHive(entities.SpawnEntity("XenoWeeds", doorCoords), hive);
 
-            drone = entities.SpawnEntity("WFTestXenoDoorBuilder", new EntityCoordinates(map.Grid, 0.5f, 0.5f));
+            drone = entities.SpawnEntity("WFTestXenoDoorBuilder", eastWest ? new EntityCoordinates(map.Grid, 1.5f, -0.5f) : new EntityCoordinates(map.Grid, 0.5f, 0.5f));
             hives.SetHive(drone, hive);
             var plasma = entities.GetComponent<XenoPlasmaComponent>(drone);
             entities.System<XenoPlasmaSystem>().SetPlasma((drone, plasma), plasma.MaxPlasma);
@@ -77,6 +88,8 @@ public sealed class XenoConstructionSupportTest
                     entities.HasComponent<DoorComponent>(uid))
                 {
                     found = true;
+                    var rotation = entities.GetComponent<TransformComponent>(uid).LocalRotation.Degrees;
+                    Assert.That(rotation, Is.EqualTo(eastWest ? 90 : 0).Within(0.01), "The door turns to span the walls beside it.");
                 }
             }
 
