@@ -1,6 +1,8 @@
 using System.Numerics;
+using Content.Shared.Access;
 using Content.Shared.Decals;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Markdown;
 using Robust.Shared.Serialization.Markdown.Mapping;
 using Robust.Shared.Serialization.Markdown.Sequence;
@@ -71,6 +73,29 @@ public record struct MappingEntityMove(MappingEntityRef Entity, MappingPose Old,
 /// <summary>A pipe painted another colour, which stays the same entity.</summary>
 public record struct MappingPipeColorChange(MappingEntityRef Entity, Color Old, Color New);
 
+/// <summary>The signal links between a source and a sink before and after; an empty list is no link.</summary>
+public record struct MappingLinkChange(
+    MappingEntityRef Source,
+    MappingEntityRef Sink,
+    List<(string Source, string Sink)> Old,
+    List<(string Source, string Sink)> New);
+
+/// <summary>A device list's devices before and after.</summary>
+public record struct MappingDeviceListChange(
+    MappingEntityRef Holder,
+    List<MappingEntityRef> Old,
+    List<MappingEntityRef> New);
+
+/// <summary>
+/// A reader's access lists before and after, and whether it carried a <c>WFMappingAccessFill</c> marker.
+/// </summary>
+public record struct MappingAccessChange(
+    MappingEntityRef Reader,
+    List<HashSet<ProtoId<AccessLevelPrototype>>> Old,
+    List<HashSet<ProtoId<AccessLevelPrototype>>> New,
+    bool OldFill,
+    bool NewFill);
+
 /// <summary>
 /// A decal by value, with grid-local coordinates; decal ids change when one is re-added.
 /// </summary>
@@ -98,9 +123,16 @@ public sealed class MappingEdit(string name)
     public readonly List<MappingDecal> DecalsRemoved = new();
     public readonly List<MappingDecal> DecalsAdded = new();
     public readonly List<MappingPipeColorChange> PipeColors = new();
+    public readonly List<MappingLinkChange> Links = new();
+    public readonly List<MappingDeviceListChange> DeviceLists = new();
+    public readonly List<MappingAccessChange> Access = new();
 
     public bool IsEmpty => Tiles.Count == 0 && Moves.Count == 0 && Created.Count == 0 && Deleted.Count == 0 &&
-                           DecalsRemoved.Count == 0 && DecalsAdded.Count == 0 && PipeColors.Count == 0;
+                           DecalsRemoved.Count == 0 && DecalsAdded.Count == 0 && PipeColors.Count == 0 &&
+                           Links.Count == 0 && DeviceLists.Count == 0 && Access.Count == 0;
+
+    /// <summary>Entities whose settings (colour, links, device list, access) change without moving.</summary>
+    public int SettingChanges => PipeColors.Count + 2 * Links.Count + DeviceLists.Count + Access.Count;
 
     /// <summary>
     /// Appends another edit that happened after this one.
@@ -114,6 +146,9 @@ public sealed class MappingEdit(string name)
         DecalsRemoved.AddRange(other.DecalsRemoved);
         DecalsAdded.AddRange(other.DecalsAdded);
         PipeColors.AddRange(other.PipeColors);
+        Links.AddRange(other.Links);
+        DeviceLists.AddRange(other.DeviceLists);
+        Access.AddRange(other.Access);
     }
 
     /// <summary>Estimated memory the edit holds, for the history budget.</summary>
@@ -121,7 +156,11 @@ public sealed class MappingEdit(string name)
     {
         const int perChange = 64;
         var bytes = (long) perChange * (Tiles.Count + Moves.Count + DecalsRemoved.Count + DecalsAdded.Count +
-                                        PipeColors.Count);
+                                        SettingChanges);
+        foreach (var list in DeviceLists)
+        {
+            bytes += 8L * (list.Old.Count + list.New.Count);
+        }
         foreach (var group in Created)
         {
             bytes += group.Bytes + perChange * group.Roots.Count;

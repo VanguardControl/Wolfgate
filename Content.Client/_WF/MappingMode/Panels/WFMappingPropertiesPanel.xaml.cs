@@ -1,4 +1,5 @@
 using System.Globalization;
+using Content.Client._WF.MappingMode.Link;
 using Content.Client._WF.MappingMode.Modes;
 using Content.Client._WF.MappingMode.Palette;
 using Content.Client._WF.MappingTools;
@@ -19,9 +20,11 @@ namespace Content.Client._WF.MappingMode.Panels;
 [GenerateTypedNameReferences]
 public sealed partial class WFMappingPropertiesPanel : BoxContainer
 {
+    [Dependency] private IEntityManager _entities = default!;
     [Dependency] private IPlacementManager _placement = default!;
 
     private readonly WFMappingBuildModeSystem _modes = default!;
+    private readonly WFMappingLinkSystem _link = default!;
     private readonly MappingZLevelsSystem _zLevels = default!;
     private readonly WFMappingPaletteIcons _icons = new();
     private readonly List<int> _shownDepths = new();
@@ -38,6 +41,7 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
     {
         _modes = modes;
         _zLevels = zLevels;
+        _link = _entities.System<WFMappingLinkSystem>();
 
         var names = _placement.AllModeNames;
         for (var i = 0; i < names.Length; i++)
@@ -119,6 +123,15 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
         PipeReplaceButton.OnToggled += args => _modes.SetPipeReplace(args.Pressed);
         PipePaintButton.OnToggled += args => _modes.SetPipePainting(args.Pressed);
 
+        var linkGroup = new ButtonGroup();
+        LinkSignalsButton.Group = linkGroup;
+        LinkDevicesButton.Group = linkGroup;
+        LinkAccessButton.Group = linkGroup;
+        LinkSignalsButton.OnPressed += _ => _link.SetTool(WFMappingLinkTool.Signals);
+        LinkDevicesButton.OnPressed += _ => _link.SetTool(WFMappingLinkTool.Devices);
+        LinkAccessButton.OnPressed += _ => _link.SetTool(WFMappingLinkTool.Access);
+        LinkClearButton.OnPressed += _ => _link.ClearSelection();
+
         QuickSelectButton.OnPressed += _ =>
         {
             if (_modes.Entry is { } entry)
@@ -132,10 +145,12 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
         _modes.ModeChanged += OnModeChanged;
         _modes.SettingsChanged += OnSettingsChanged;
         _placement.DirectionChanged += OnDirectionChanged;
+        _link.Changed += UpdateLink;
 
         OnEntryChanged(_modes.Entry);
         OnModeChanged(_modes.Mode);
         OnSettingsChanged();
+        UpdateLink();
     }
 
     /// <summary>Drops the subscriptions, before the panel is thrown away.</summary>
@@ -145,6 +160,7 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
         _modes.ModeChanged -= OnModeChanged;
         _modes.SettingsChanged -= OnSettingsChanged;
         _placement.DirectionChanged -= OnDirectionChanged;
+        _link.Changed -= UpdateLink;
     }
 
     /// <summary>Reads the z-stack and the session again; the screen controller calls it while the panel shows.</summary>
@@ -238,6 +254,7 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
         EraseRow.Visible = mode == WFMappingBuildMode.Erase;
         ShapeRow.Visible = mode == WFMappingBuildMode.Shape;
         PipeBox.Visible = mode == WFMappingBuildMode.Pipe;
+        LinkBox.Visible = mode == WFMappingBuildMode.Link;
         UpdateShapeFill();
     }
 
@@ -268,6 +285,19 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
         PipeJoinButton.Pressed = _modes.PipeAutoJoin;
         PipeReplaceButton.Pressed = _modes.PipeReplace;
         PipePaintButton.Pressed = _modes.PipePainting;
+    }
+
+    private void UpdateLink()
+    {
+        LinkSignalsButton.Pressed = _link.Tool == WFMappingLinkTool.Signals;
+        LinkDevicesButton.Pressed = _link.Tool == WFMappingLinkTool.Devices;
+        LinkAccessButton.Pressed = _link.Tool == WFMappingLinkTool.Access;
+
+        var selected = _link.Source ?? _link.Holder;
+        LinkClearButton.Disabled = selected == null;
+        LinkSelectedLabel.Text = selected is { } uid && _entities.TryGetComponent(uid, out MetaDataComponent? meta)
+            ? Loc.GetString("wf-mapping-link-selected", ("name", meta.EntityName))
+            : Loc.GetString($"wf-mapping-link-hint-{_link.Tool.ToString().ToLowerInvariant()}");
     }
 
     private void OnDirectionChanged(object? sender, EventArgs e)

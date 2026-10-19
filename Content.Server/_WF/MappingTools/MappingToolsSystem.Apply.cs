@@ -76,6 +76,8 @@ public sealed partial class MappingToolsSystem
             {
                 SetPipeColor(change.Entity.Uid, forward ? change.New : change.Old);
             }
+
+            ApplySettings(edit, forward);
         }
         finally
         {

@@ -97,6 +97,7 @@ public sealed partial class MappingToolsSystem
         Apply(edit, forward: true);
         Push(session, edit);
         RaiseEdited(edit);
+        SendLinkSnapshots(session, edit);
     }
 
     /// <summary>
@@ -141,6 +142,22 @@ public sealed partial class MappingToolsSystem
         foreach (var change in edit.PipeColors)
         {
             Add(change.Entity.Uid);
+        }
+
+        foreach (var change in edit.Links)
+        {
+            Add(change.Source.Uid);
+            Add(change.Sink.Uid);
+        }
+
+        foreach (var change in edit.DeviceLists)
+        {
+            Add(change.Holder.Uid);
+        }
+
+        foreach (var change in edit.Access)
+        {
+            Add(change.Reader.Uid);
         }
 
         return maps;
@@ -250,7 +267,7 @@ public sealed partial class MappingToolsSystem
             var check = new WFMappingCanEditEvent(session, map, WFMappingEditKind.Edit)
             {
                 Entities = Math.Max(0, added - removed),
-                TouchedEntities = added + removed + edit.Moves.Count + edit.PipeColors.Count,
+                TouchedEntities = added + removed + edit.Moves.Count + edit.SettingChanges,
                 NewGrid = newGrid,
             };
 
@@ -262,6 +279,7 @@ public sealed partial class MappingToolsSystem
         Apply(edit, forward: redo);
         to.Add(edit);
         RaiseEdited(edit);
+        SendLinkSnapshots(session, edit);
 
         _popup.PopupCursor(Loc.GetString(redo ? "wf-mapping-tools-redid" : "wf-mapping-tools-undid",
             ("edit", Loc.GetString(edit.Name))), session);

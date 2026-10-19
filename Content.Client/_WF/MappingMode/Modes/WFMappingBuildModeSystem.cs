@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using Content.Client._WF.MappingMode.Link;
 using Content.Client._WF.MappingMode.Palette;
 using Content.Client._WF.MappingTools;
 using Content.Client.Decals;
@@ -43,6 +44,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WFMappingClientSystem _client = default!;
     [Dependency] private WFMappingReferenceSystem _reference = default!;
+    [Dependency] private WFMappingLinkSystem _link = default!;
 
     private const string TilePlacementMode = "AlignTileAny";
 
@@ -57,6 +59,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         WFMappingKeyFunctions.WFMappingMode6,
         WFMappingKeyFunctions.WFMappingMode7,
         WFMappingKeyFunctions.WFMappingMode8,
+        WFMappingKeyFunctions.WFMappingMode9,
         WFMappingKeyFunctions.WFMappingModePrimary,
         WFMappingKeyFunctions.WFMappingModeSecondary,
         WFMappingKeyFunctions.WFMappingModeMiddle,
@@ -153,6 +156,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         RegisterHandler(new WFMappingShapeMode(this));
         RegisterHandler(new WFMappingPickMode(this));
         RegisterHandler(new WFMappingPipeMode(this));
+        RegisterHandler(new WFMappingLinkMode(this));
 
         _tools.SelectingChanged += OnSelectingChanged;
         _tools.PickingChanged += OnPickingChanged;
@@ -385,6 +389,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
                 ("layer", (int) PipeLayer + 1),
                 ("join", PipeAutoJoin ? "yes" : "no"),
                 ("replace", PipeReplace ? "yes" : "no")),
+            WFMappingBuildMode.Link => _link.ReadoutText(),
             _ => string.Empty,
         };
     }

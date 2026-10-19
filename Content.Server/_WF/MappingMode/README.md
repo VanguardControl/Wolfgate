@@ -81,7 +81,7 @@ near an edge and it snaps there, standing upright on the left or right edge alon
 edge alone. Its place is kept in `Mapping/screen.yml` of the client data folder and restored with the screen; Reset
 layout in the Session tab puts it back and forgets the file.
 
-Build modes, on keys 1 to 8 or the mode bar:
+Build modes, on keys 1 to 9 or the mode bar:
 
 - Place (1): left click places the selected entry as the engine does, right click erases the entity or tile under the
   cursor (a decal entry leaves it to the decal eraser), middle click eyedrops, Ctrl+wheel or R turns it, Escape
@@ -110,6 +110,23 @@ Build modes, on keys 1 to 8 or the mode bar:
   Replace (rebuild a plain pipe on the path with the new connections, or leave it). Middle click, or Paint a network
   then a left click, paints the clicked pipe and everything connected to it on its layer. Each draw or paint is one
   undo step.
+- Link (9): wires a map up without hands, so it works once downloaded. Three tools, picked in Properties or cycled with
+  Tab:
+  - Signals: click a signal source (button, lever, sensor), then a sink (door, light, machine); a window lists the
+    source's ports against the sink's as checkboxes, with Link defaults (the game's default pairs) and Unlink all, and
+    Apply sets exactly the ticked pairs. Right click a sink unlinks it from the source. The source's links are drawn
+    while it is selected. The game's own checks apply (the source's range, link refusals).
+  - Devices: click a device list (air alarm, fire alarm, sensor console), then click network devices to add or take
+    them out, or drag a box to add every one in it. Devices must have a device network, be on the same map and not be
+    the list itself, as the network configurator asks; the list's own limit (32) holds. Lines go to its devices.
+  - Access: click a door or other reader to open a window of access levels grouped by access group; Apply sets the
+    reader to accept any one of the ticked levels (none ticked opens it to all), Apply to selection sets every reader in
+    the MappingTools selection, Copy from last ticks what was applied last. An airlock's access lives in its
+    electronics, which only appear at map init; until then its own reader is set and marked, and map init copies it
+    across.
+
+  Each change is one undo step. Escape drops the selected source or list. The Links layer draws every signal link
+  (amber) and device list (blue) on the level.
 
 Right click or Escape drops a drag; Escape with nothing to drop goes back to Place. The wheel zooms whenever a mode
 doesn't take it.
@@ -147,7 +164,8 @@ beside a grid file), `WFMappingUploadClientSystem` (client upload). The mapping 
 `WFMappingScreenUIController` (`Screen/`, with the mode bar `WFMappingModeBar` and its saved place
 `WFMappingScreenLayout`), the modes `WFMappingBuildModeSystem` and its handlers (`Modes/`), the
 palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` (`Template/`) and quick select
-`WFMappingQuickSelectSystem` (`QuickSelect/`), all client. Cvars are in `WFMappingModeCVars` and key functions in
+`WFMappingQuickSelectSystem` (`QuickSelect/`) and Link mode's `WFMappingLinkSystem` (`Link/`), all client; Link mode's
+requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are in `WFMappingModeCVars` and key functions in
 `WFMappingKeyFunctions`. The `WFMappingObserver` prototype is in `Resources/Prototypes/_WF/MappingMode`.
 
 ## Design notes
@@ -298,6 +316,10 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 
 ### Client
 
+- [`Content.Client/_WF/MappingMode/Link/WFMappingAccessWindow.cs`](../../../Content.Client/_WF/MappingMode/Link/WFMappingAccessWindow.cs)
+- [`Content.Client/_WF/MappingMode/Link/WFMappingLinkOverlay.cs`](../../../Content.Client/_WF/MappingMode/Link/WFMappingLinkOverlay.cs)
+- [`Content.Client/_WF/MappingMode/Link/WFMappingLinkPortsWindow.cs`](../../../Content.Client/_WF/MappingMode/Link/WFMappingLinkPortsWindow.cs)
+- [`Content.Client/_WF/MappingMode/Link/WFMappingLinkSystem.cs`](../../../Content.Client/_WF/MappingMode/Link/WFMappingLinkSystem.cs)
 - [`Content.Client/_WF/MappingMode/LobbyGui.MappingMode.cs`](../../../Content.Client/_WF/MappingMode/LobbyGui.MappingMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/IWFMappingModeHandler.cs`](../../../Content.Client/_WF/MappingMode/Modes/IWFMappingModeHandler.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildMode.cs)
@@ -305,6 +327,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingDragModeBase.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingDragModeBase.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingEraseMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingEraseMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingFillMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingFillMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingLinkMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingLinkMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingModeHandlerBase.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingModeHandlerBase.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingPickMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPickMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingPipeMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPipeMode.cs)
@@ -400,6 +423,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 
 ### Localization
 
+- [`Resources/Locale/en-US/_WF/MappingMode/mapping-link.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-link.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-mode.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-mode.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-quickselect.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-quickselect.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-screen.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-screen.ftl)
@@ -419,6 +443,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Docs/_WF/MappingMode/PLAN.md`](../../../Docs/_WF/MappingMode/PLAN.md)
 - [`Docs/_WF/MappingMode/PLAN2.md`](../../../Docs/_WF/MappingMode/PLAN2.md)
 - [`Docs/_WF/MappingMode/R1-NOTES.md`](../../../Docs/_WF/MappingMode/R1-NOTES.md)
+- [`Docs/_WF/MappingMode/R2-NOTES.md`](../../../Docs/_WF/MappingMode/R2-NOTES.md)
 - [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)
 - [`Docs/_WF/MappingMode/S1-NOTES.md`](../../../Docs/_WF/MappingMode/S1-NOTES.md)
 - [`Docs/_WF/MappingMode/S2-NOTES.md`](../../../Docs/_WF/MappingMode/S2-NOTES.md)

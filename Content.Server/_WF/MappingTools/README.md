@@ -26,6 +26,11 @@ centre with a rotation, removes the decals on the cells, lays plain gas pipes al
 one undoable edit. MappingMode's Fill, Shape, Pipe and area erase send it; anyone who may use the tools may send it, up
 to 16384 distinct cells.
 
+The link requests set signal links between a source and a sink (`MappingToolsLinkEvent`), add devices to or take them
+out of a device list (`MappingToolsDeviceListEvent`) and set the access of readers (`MappingToolsAccessEvent`), each
+as one undoable edit through the game's own systems; `MappingToolsLinksRequestEvent` returns the signal links of a map,
+which aren't networked. MappingMode's Link mode sends them.
+
 Entry points: `MappingToolsSystem` (server; the requests, the per-mapper history and clipboard, and the placement and
 decal hooks), `MappingToolsSystem` (client; the window, keys and on/off state), `MappingSelectionTool` and
 `MappingSelectionOverlay` (client selection and previews), `MappingToolsCommand` and `MappingToolsMath` (the shared
@@ -33,8 +38,8 @@ rotation maths).
 
 ## Design notes
 
-- Every change is a `MappingEdit`: tile changes, entity moves, created and deleted entity groups, and removed and added
-  decals. Applying one forward or backward is the same code, which the tools also use for the first application.
+- Every change is a `MappingEdit`: tile changes, entity moves, created and deleted entity groups, removed and added
+  decals, pipe colours, signal links, device lists and access. Applying one forward or backward is the same code, which the tools also use for the first application.
 - Deleted entities are saved with the engine's `EntitySerializer`, so undo and paste recreate them with their contents
   and settings. References to entities outside the saved set are dropped, so a restored button loses a link to a door
   that wasn't deleted with it. Restored entities get new uids; `MappingEntityRef` lets older edits follow them.
@@ -83,6 +88,7 @@ rotation maths).
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.cs`](MappingToolsSystem.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.Draw.cs`](MappingToolsSystem.Draw.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.History.cs`](MappingToolsSystem.History.cs)
+- [`Content.Server/_WF/MappingTools/MappingToolsSystem.Links.cs`](MappingToolsSystem.Links.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.Pipes.cs`](MappingToolsSystem.Pipes.cs)
 - [`Content.Server/_WF/MappingTools/MappingZLevelsSystem.cs`](MappingZLevelsSystem.cs)
 - [`Content.Server/_WF/MappingTools/WFMappingPermissionEvents.cs`](WFMappingPermissionEvents.cs)
@@ -91,11 +97,13 @@ rotation maths).
 
 - [`Content.Shared/_WF/MappingTools/MappingMapsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingMapsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsEvents.cs)
+- [`Content.Shared/_WF/MappingTools/MappingToolsLinkEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsLinkEvents.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsMath.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsMath.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsPipes.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsPipes.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsShapes.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsShapes.cs)
 - [`Content.Shared/_WF/MappingTools/MappingZLevelsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingZLevelsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/ToggleMappingToolsActionEvent.cs`](../../../Content.Shared/_WF/MappingTools/ToggleMappingToolsActionEvent.cs)
+- [`Content.Shared/_WF/MappingTools/WFMappingAccessFillComponent.cs`](../../../Content.Shared/_WF/MappingTools/WFMappingAccessFillComponent.cs)
 
 ### Client
 
@@ -116,6 +124,7 @@ rotation maths).
 
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingMapsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingMapsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsDrawTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsDrawTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsLinkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsLinkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsPipesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsPipesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingToolsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingTools/MappingZLevelsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingTools/MappingZLevelsTest.cs)

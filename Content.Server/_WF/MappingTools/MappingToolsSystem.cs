@@ -72,6 +72,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
         SubscribeNetworkEvent<MappingToolsDrawEvent>(OnDraw);
 
         InitializeHistory();
+        InitializeLinks();
     }
 
     /// <summary>

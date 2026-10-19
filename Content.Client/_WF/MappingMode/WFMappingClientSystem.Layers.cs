@@ -1,3 +1,4 @@
+using Content.Client._WF.MappingMode.Link;
 using Content.Client.Decals;
 using Robust.Shared.Network;
 using Content.Client.Decals.Overlays;
@@ -12,12 +13,16 @@ public enum WFMappingLayer : byte
     Decals,
     Markers,
     Lights,
+
+    /// <summary>Signal links and device lists drawn as lines.</summary>
+    Links,
 }
 
 public sealed partial class WFMappingClientSystem
 {
     [Dependency] private DecalSystem _decalSystem = default!;
     [Dependency] private IClientNetManager _netManager = default!;
+    [Dependency] private WFMappingLinkSystem _link = default!;
 
     public static readonly WFMappingLayer[] Layers =
     {
@@ -26,6 +31,7 @@ public sealed partial class WFMappingClientSystem
         WFMappingLayer.Decals,
         WFMappingLayer.Markers,
         WFMappingLayer.Lights,
+        WFMappingLayer.Links,
     };
 
     /// <summary>Whether a layer is shown.</summary>
@@ -37,6 +43,7 @@ public sealed partial class WFMappingClientSystem
             WFMappingLayer.Subfloor => _subFloor.ShowAll,
             WFMappingLayer.Decals => _overlays.HasOverlay<DecalOverlay>(),
             WFMappingLayer.Markers => _markers.MarkersVisible,
+            WFMappingLayer.Links => _link.ShowAll,
             _ => _light.Enabled,
         };
     }
@@ -64,11 +71,14 @@ public sealed partial class WFMappingClientSystem
             case WFMappingLayer.Lights:
                 _light.Enabled = shown;
                 break;
+            case WFMappingLayer.Links:
+                _link.SetShowAll(shown);
+                break;
         }
     }
 
     /// <summary>
-    /// Puts every layer back: the mapping defaults (markers, subfloor, no lighting) or the normal game's.
+    /// Puts every layer back: the mapping defaults (markers, subfloor, no lighting, no links) or the normal game's.
     /// </summary>
     private void ResetLayers(bool mapping)
     {
@@ -77,5 +87,6 @@ public sealed partial class WFMappingClientSystem
         SetLayer(WFMappingLayer.Subfloor, mapping);
         SetLayer(WFMappingLayer.Markers, mapping);
         SetLayer(WFMappingLayer.Lights, !mapping);
+        SetLayer(WFMappingLayer.Links, false);
     }
 }

@@ -2,7 +2,7 @@ using Robust.Shared.Input;
 
 namespace Content.Shared._WF.MappingMode;
 
-/// <summary>Keys of the mapping screen: the build modes, the mode's mouse buttons and the template nudges.</summary>
+/// <summary>Keys of the mapping screen: build modes, the mode's mouse buttons, template nudges and the link tool.</summary>
 [KeyFunctions]
 public static class WFMappingKeyFunctions
 {
@@ -14,6 +14,7 @@ public static class WFMappingKeyFunctions
     public static readonly BoundKeyFunction WFMappingMode6 = "WFMappingMode6";
     public static readonly BoundKeyFunction WFMappingMode7 = "WFMappingMode7";
     public static readonly BoundKeyFunction WFMappingMode8 = "WFMappingMode8";
+    public static readonly BoundKeyFunction WFMappingMode9 = "WFMappingMode9";
     public static readonly BoundKeyFunction WFMappingModePrimary = "WFMappingModePrimary";
     public static readonly BoundKeyFunction WFMappingModeSecondary = "WFMappingModeSecondary";
     public static readonly BoundKeyFunction WFMappingModeMiddle = "WFMappingModeMiddle";
@@ -22,6 +23,9 @@ public static class WFMappingKeyFunctions
     public static readonly BoundKeyFunction WFMappingTemplateNudgeDown = "WFMappingTemplateNudgeDown";
     public static readonly BoundKeyFunction WFMappingTemplateNudgeLeft = "WFMappingTemplateNudgeLeft";
     public static readonly BoundKeyFunction WFMappingTemplateNudgeRight = "WFMappingTemplateNudgeRight";
+
+    /// <summary>Tab in Link mode: the next sub-tool.</summary>
+    public static readonly BoundKeyFunction WFMappingLinkCycle = "WFMappingLinkCycle";
 
     /// <summary>The mode keys, Place first.</summary>
     public static readonly BoundKeyFunction[] Modes =
@@ -34,6 +38,7 @@ public static class WFMappingKeyFunctions
         WFMappingMode6,
         WFMappingMode7,
         WFMappingMode8,
+        WFMappingMode9,
     };
 
     /// <summary>The template's arrow keys, added while Template mode is on.</summary>

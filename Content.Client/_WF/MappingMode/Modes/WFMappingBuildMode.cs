@@ -11,6 +11,7 @@ public enum WFMappingBuildMode : byte
     Pick,
     Template,
     Pipe,
+    Link,
 }
 
 /// <summary>What Erase mode removes.</summary>
@@ -54,4 +55,17 @@ public enum WFMappingPipePreset : byte
 
     /// <summary>The colour of the first pipe the path joins, else none.</summary>
     Auto,
+}
+
+/// <summary>What Link mode configures.</summary>
+public enum WFMappingLinkTool : byte
+{
+    /// <summary>Signal links from a source's ports to a sink's.</summary>
+    Signals,
+
+    /// <summary>The devices in a device list, such as an air alarm's.</summary>
+    Devices,
+
+    /// <summary>The access levels a reader accepts.</summary>
+    Access,
 }

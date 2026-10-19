@@ -4,7 +4,7 @@ using Robust.Client.UserInterface.XAML;
 
 namespace Content.Client._WF.MappingMode.Panels;
 
-/// <summary>Toggles for what this client shows while mapping: walls, subfloor, decals, markers and lighting.</summary>
+/// <summary>What this client shows while mapping: walls, subfloor, decals, markers, lighting and links.</summary>
 [GenerateTypedNameReferences]
 public sealed partial class WFMappingLayersPanel : BoxContainer
 {

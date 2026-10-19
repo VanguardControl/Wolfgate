@@ -728,6 +728,10 @@ binds:
   type: State
   key: Num8
   priority: 1
+- function: WFMappingMode9
+  type: State
+  key: Num9
+  priority: 1
 - function: WFMappingModePrimary
   type: State
   key: MouseLeft
@@ -759,6 +763,10 @@ binds:
   type: State
   key: Escape
   priority: 4
+- function: WFMappingLinkCycle
+  type: State
+  key: Tab
+  priority: 2
 - function: WFMappingTemplateNudgeUp
   type: State
   key: Up

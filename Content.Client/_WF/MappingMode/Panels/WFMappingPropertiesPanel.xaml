@@ -67,6 +67,21 @@
                 <Button Name="PipePaintButton" ToggleMode="True" Text="{Loc 'wf-mapping-screen-pipe-paint'}"
                         ToolTip="{Loc 'wf-mapping-screen-pipe-paint-tooltip'}" />
             </BoxContainer>
+            <BoxContainer Name="LinkBox" Orientation="Vertical" SeparationOverride="4">
+                <BoxContainer Orientation="Horizontal" SeparationOverride="0">
+                    <Button Name="LinkSignalsButton" ToggleMode="True" HorizontalExpand="True" StyleClasses="OpenRight"
+                            Text="{Loc 'wf-mapping-link-tool-signals'}"
+                            ToolTip="{Loc 'wf-mapping-link-tool-signals-tooltip'}" />
+                    <Button Name="LinkDevicesButton" ToggleMode="True" HorizontalExpand="True" StyleClasses="OpenBoth"
+                            Text="{Loc 'wf-mapping-link-tool-devices'}"
+                            ToolTip="{Loc 'wf-mapping-link-tool-devices-tooltip'}" />
+                    <Button Name="LinkAccessButton" ToggleMode="True" HorizontalExpand="True" StyleClasses="OpenLeft"
+                            Text="{Loc 'wf-mapping-link-tool-access'}"
+                            ToolTip="{Loc 'wf-mapping-link-tool-access-tooltip'}" />
+                </BoxContainer>
+                <Label Name="LinkSelectedLabel" ClipText="True" />
+                <Button Name="LinkClearButton" Text="{Loc 'wf-mapping-link-clear'}" />
+            </BoxContainer>
 
             <Label Text="{Loc 'wf-mapping-screen-section-levels'}" StyleClasses="LabelHeading" Margin="0 8 0 0" />
             <BoxContainer Name="LevelList" Orientation="Vertical" SeparationOverride="2" />
