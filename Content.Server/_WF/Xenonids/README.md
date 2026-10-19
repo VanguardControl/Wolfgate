@@ -51,6 +51,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Content.Server/_WF/Xenonids/Emote/XenoEmoteSystem.cs`](Emote/XenoEmoteSystem.cs)
 - [`Content.Server/_WF/Xenonids/Evolution/EvolutionPointsCommand.cs`](Evolution/EvolutionPointsCommand.cs)
 - [`Content.Server/_WF/Xenonids/Evolution/WithXenoTierCommand.cs`](Evolution/WithXenoTierCommand.cs)
+- [`Content.Server/_WF/Xenonids/FirePat/XenoFirePatSystem.cs`](FirePat/XenoFirePatSystem.cs)
 - [`Content.Server/_WF/Xenonids/ForTheHive/XenoForTheHiveSystem.cs`](ForTheHive/XenoForTheHiveSystem.cs)
 - [`Content.Server/_WF/Xenonids/Heal/XenoHealSystem.cs`](Heal/XenoHealSystem.cs)
 - [`Content.Server/_WF/Xenonids/Hive/HiveCommand.cs`](Hive/HiveCommand.cs)
@@ -60,6 +61,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Content.Server/_WF/Xenonids/Hive/XenoLarvaCommand.cs`](Hive/XenoLarvaCommand.cs)
 - [`Content.Server/_WF/Xenonids/HiveTeam/HiveTeamSystem.cs`](HiveTeam/HiveTeamSystem.cs)
 - [`Content.Server/_WF/Xenonids/Hud/XenoGhostHudSystem.cs`](Hud/XenoGhostHudSystem.cs)
+- [`Content.Server/_WF/Xenonids/JoinXeno/XenoLarvaRoleSystem.cs`](JoinXeno/XenoLarvaRoleSystem.cs)
 - [`Content.Server/_WF/Xenonids/Leap/XenoParasiteSystem.cs`](Leap/XenoParasiteSystem.cs)
 - [`Content.Server/_WF/Xenonids/Maturing/XenoMatureCommand.cs`](Maturing/XenoMatureCommand.cs)
 - [`Content.Server/_WF/Xenonids/Name/XenoNameSystem.cs`](Name/XenoNameSystem.cs)
@@ -160,6 +162,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Content.Shared/_WF/Xenonids/ClawSharpness/ReceiverXenoClawsComponent.cs`](../../../Content.Shared/_WF/Xenonids/ClawSharpness/ReceiverXenoClawsComponent.cs)
 - [`Content.Shared/_WF/Xenonids/ClawSharpness/XenoClawsComponent.cs`](../../../Content.Shared/_WF/Xenonids/ClawSharpness/XenoClawsComponent.cs)
 - [`Content.Shared/_WF/Xenonids/ClawSharpness/XenoClawsSystem.cs`](../../../Content.Shared/_WF/Xenonids/ClawSharpness/XenoClawsSystem.cs)
+- [`Content.Shared/_WF/Xenonids/ClawSharpness/XenoSlashableComponent.cs`](../../../Content.Shared/_WF/Xenonids/ClawSharpness/XenoSlashableComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Cleave/XenoCleaveActionEvent.cs`](../../../Content.Shared/_WF/Xenonids/Cleave/XenoCleaveActionEvent.cs)
 - [`Content.Shared/_WF/Xenonids/Cleave/XenoCleaveComponent.cs`](../../../Content.Shared/_WF/Xenonids/Cleave/XenoCleaveComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Cleave/XenoCleaveSystem.cs`](../../../Content.Shared/_WF/Xenonids/Cleave/XenoCleaveSystem.cs)
@@ -168,6 +171,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Content.Shared/_WF/Xenonids/Collision/StunFriendlyXenoOnStepComponent.cs`](../../../Content.Shared/_WF/Xenonids/Collision/StunFriendlyXenoOnStepComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Collision/StunHostilesOnStepComponent.cs`](../../../Content.Shared/_WF/Xenonids/Collision/StunHostilesOnStepComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Collision/XenoCollisionSystem.cs`](../../../Content.Shared/_WF/Xenonids/Collision/XenoCollisionSystem.cs)
+- [`Content.Shared/_WF/Xenonids/ConsoleUse/XenoConsoleUserComponent.cs`](../../../Content.Shared/_WF/Xenonids/ConsoleUse/XenoConsoleUserComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Construction/AcidPillar/AcidPillarComponent.cs`](../../../Content.Shared/_WF/Xenonids/Construction/AcidPillar/AcidPillarComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Construction/AcidPillar/AcidPillarSystem.cs`](../../../Content.Shared/_WF/Xenonids/Construction/AcidPillar/AcidPillarSystem.cs)
 - [`Content.Shared/_WF/Xenonids/Construction/BlockXenoConstructionComponent.cs`](../../../Content.Shared/_WF/Xenonids/Construction/BlockXenoConstructionComponent.cs)
@@ -408,6 +412,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Content.Shared/_WF/Xenonids/Finesse/XenoFinesseSystem.cs`](../../../Content.Shared/_WF/Xenonids/Finesse/XenoFinesseSystem.cs)
 - [`Content.Shared/_WF/Xenonids/Finesse/XenoMarkedComponent.cs`](../../../Content.Shared/_WF/Xenonids/Finesse/XenoMarkedComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Finesse/XenoSpreadMarkAttemptComponent.cs`](../../../Content.Shared/_WF/Xenonids/Finesse/XenoSpreadMarkAttemptComponent.cs)
+- [`Content.Shared/_WF/Xenonids/FirePat/XenoFirePatterComponent.cs`](../../../Content.Shared/_WF/Xenonids/FirePat/XenoFirePatterComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Fling/XenoFlingActionEvent.cs`](../../../Content.Shared/_WF/Xenonids/Fling/XenoFlingActionEvent.cs)
 - [`Content.Shared/_WF/Xenonids/Fling/XenoFlingAttemptEvent.cs`](../../../Content.Shared/_WF/Xenonids/Fling/XenoFlingAttemptEvent.cs)
 - [`Content.Shared/_WF/Xenonids/Fling/XenoFlingComponent.cs`](../../../Content.Shared/_WF/Xenonids/Fling/XenoFlingComponent.cs)
@@ -853,6 +858,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Content.Shared/_WF/Xenonids/XenoLightComponent.cs`](../../../Content.Shared/_WF/Xenonids/XenoLightComponent.cs)
 - [`Content.Shared/_WF/Xenonids/XenoRegenComponent.cs`](../../../Content.Shared/_WF/Xenonids/XenoRegenComponent.cs)
 - [`Content.Shared/_WF/Xenonids/XenoStateVisualsComponent.cs`](../../../Content.Shared/_WF/Xenonids/XenoStateVisualsComponent.cs)
+- [`Content.Shared/_WF/Xenonids/XenoSystem.ConsoleUse.cs`](../../../Content.Shared/_WF/Xenonids/XenoSystem.ConsoleUse.cs)
 - [`Content.Shared/_WF/Xenonids/XenoSystem.cs`](../../../Content.Shared/_WF/Xenonids/XenoSystem.cs)
 - [`Content.Shared/_WF/Xenonids/XenoSystem.HiveVsHive.cs`](../../../Content.Shared/_WF/Xenonids/XenoSystem.HiveVsHive.cs)
 - [`Content.Shared/_WF/Xenonids/XenoSystem.Visuals.cs`](../../../Content.Shared/_WF/Xenonids/XenoSystem.Visuals.cs)
@@ -979,19 +985,29 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoAcidStructureTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoAcidStructureTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionReachTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionReachTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionSupportTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionSupportTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoConstructionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoCoreTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoCoreTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoDevourTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoDevourTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoDoorwayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoDoorwayTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoEggCultivationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoEggCultivationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoEvolutionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoEvolutionTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoFirePatTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoFirePatTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoGhostMenuTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoGhostMenuTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveBootstrapTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveBootstrapTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveFixesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveFixesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHunterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHunterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoLarvaSurgeryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoLarvaSurgeryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoLineTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoLineTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoMeleeDamageTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoMeleeDamageTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoParalyzingSlashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoParalyzingSlashTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoRangedTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoRangedTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoRosterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoRosterTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoWeedsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoWeedsTest.cs)
 
 ### Prototypes
 
@@ -1133,6 +1149,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Resources/Locale/en-US/_WF/Xenonids/wf-xeno-categories.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/wf-xeno-categories.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/wf-xeno-commands.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/wf-xeno-commands.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/wf-xeno-core.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/wf-xeno-core.ftl)
+- [`Resources/Locale/en-US/_WF/Xenonids/wf-xeno-ghost.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/wf-xeno-ghost.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/xeno-guidebook.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno-guidebook.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/xeno-surgery.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno-surgery.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/xeno-toolshed-commands.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno-toolshed-commands.ftl)
@@ -1515,10 +1532,28 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Content.Shared/Weapons/Melee/MeleeWeaponComponent.cs`](../../../Content.Shared/Weapons/Melee/MeleeWeaponComponent.cs): xeno wide swing; the wide-swing key does a heavy attack with this weapon
 - [`Content.Shared/Weapons/Ranged/Components/TargetedProjectileComponent.cs`](../../../Content.Shared/Weapons/Ranged/Components/TargetedProjectileComponent.cs): the xeno projectile system sets the target of its shots
 - [`Resources/keybinds.yml`](../../../Resources/keybinds.yml): RMC's xeno wide swing, xeno rest and resist keys
+- [`Resources/Prototypes/_Mono/ai_factions.yml`](../../../Resources/Prototypes/_Mono/ai_factions.yml): station turrets shoot xenos
+- [`Resources/Prototypes/_Mono/Entities/Structures/walls.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/walls.yml)
+  - RMC's reinforced wall rule, only very sharp xeno claws break it
+  - outpost walls can't be clawed down
 - [`Resources/Prototypes/_Mono/Guidebook/creatures.yml`](../../../Resources/Prototypes/_Mono/Guidebook/creatures.yml): guidebook
+- [`Resources/Prototypes/Entities/Mobs/NPCs/animals.yml`](../../../Resources/Prototypes/Entities/Mobs/NPCs/animals.yml): RMC monkeys are hosts for facehuggers and can be devoured
 - [`Resources/Prototypes/Entities/Mobs/Player/observer.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/observer.yml)
   - the join-as-xeno hive dialog
   - ghosts can join a hive as a burrowed larva
-- [`Resources/Prototypes/Entities/Mobs/Species/base.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/base.yml): species can host facehuggers and be devoured by xenos
+- [`Resources/Prototypes/Entities/Mobs/Species/base.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/base.yml)
+  - species can host facehuggers, be devoured by xenos and are slowed by their weeds
+  - xeno slows (slowing spit, neurotoxin) need RMC's species modifier; RMC's marine values
+- [`Resources/Prototypes/Entities/Structures/base_structure.yml`](../../../Resources/Prototypes/Entities/Structures/base_structure.yml)
+  - every structure can be melted by xeno acid, as in RMC-14 (CMCorrodible)
+  - xeno claws get past the flat reductions RMC structures don't have
+- [`Resources/Prototypes/Entities/Structures/Doors/Airlocks/base_structureairlocks.yml`](../../../Resources/Prototypes/Entities/Structures/Doors/Airlocks/base_structureairlocks.yml): RMC's airlock rule, sharp xeno claws break it only when bolted or welded
+- [`Resources/Prototypes/Entities/Structures/Walls/walls.yml`](../../../Resources/Prototypes/Entities/Structures/Walls/walls.yml)
+  - RMC's wall rule, sharp xeno claws break it in 20 hits and blunter ones not at all
+  - walls hold up resin doors and membranes, as RMC's walls do
+- [`Resources/Prototypes/Entities/Tiles/chasm.yml`](../../../Resources/Prototypes/Entities/Tiles/chasm.yml): xeno weeds do not grow on liquid or chasm tiles
+- [`Resources/Prototypes/Entities/Tiles/lava.yml`](../../../Resources/Prototypes/Entities/Tiles/lava.yml): xeno weeds do not grow on liquid or chasm tiles
+- [`Resources/Prototypes/Entities/Tiles/liquid_plasma.yml`](../../../Resources/Prototypes/Entities/Tiles/liquid_plasma.yml): xeno weeds do not grow on liquid or chasm tiles
+- [`Resources/Prototypes/Entities/Tiles/water.yml`](../../../Resources/Prototypes/Entities/Tiles/water.yml): xeno weeds do not grow on liquid or chasm tiles
 
 <!-- WOLFGATE-GENERATED END -->
