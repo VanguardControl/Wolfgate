@@ -10,12 +10,15 @@ using Robust.Shared.Maths;
 
 namespace Content.IntegrationTests.Tests._WF.Xenonids;
 
-/// <summary>A drone's corrosive acid melts station structures.</summary>
+/// <summary>A drone's corrosive acid melts station structures, furniture outside the structure base, and loose items.</summary>
 [TestFixture]
 public sealed class XenoAcidStructureTest
 {
     [TestCase("WallSolid")]
     [TestCase("Airlock")]
+    [TestCase("Chair")]
+    [TestCase("Wrench")]
+    [TestCase("ClothingBackpack")]
     public async Task DroneAcidMeltsStructure(string targetProto)
     {
         await using var pair = await PoolManager.GetServerClient();
@@ -59,9 +62,10 @@ public sealed class XenoAcidStructureTest
             Assert.That(ev.Handled, "The drone should start applying acid.");
         });
 
-        await pair.RunSeconds(2);
+        // structures take 1 s to apply and may already be gone; anything else takes 4 s
+        await pair.RunSeconds(5);
         await server.WaitAssertion(() =>
-            Assert.That(entities.HasComponent<TimedCorrodingComponent>(target), "The acid should be on the target once applied."));
+            Assert.That(entities.Deleted(target) || entities.HasComponent<TimedCorrodingComponent>(target), "The acid should be on the target once applied."));
 
         await pair.RunSeconds(2);
         await server.WaitAssertion(() =>

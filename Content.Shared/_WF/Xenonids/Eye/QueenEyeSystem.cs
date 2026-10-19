@@ -442,9 +442,13 @@ public sealed partial class QueenEyeSystem : EntitySystem
         {
             var seed = Data[index];
             var seedXform = EntManager.GetComponent<TransformComponent>(seed);
+            // WOLFGATE: the tile query takes grid-local bounds; RMC passed world bounds, which only line up for a grid
+            // sitting unrotated at the map origin, so the eye saw nothing on a ship.
+            var seedWorldPos = System._transform.GetWorldPosition(seedXform);
+            var seedLocalPos = Vector2.Transform(seedWorldPos, System._transform.GetInvWorldMatrix(Grid.Owner));
             var squircles = Maps.GetLocalTilesIntersecting(Grid.Owner,
                 Grid.Comp,
-                Box2.CenteredAround(System._transform.GetWorldPosition(seedXform), new Vector2(seed.Comp.Range)),
+                Box2.CenteredAround(seedLocalPos, new Vector2(seed.Comp.Range)),
                 ignoreEmpty: false);
 
             lock (VisibleTiles)

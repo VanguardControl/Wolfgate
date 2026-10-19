@@ -1030,6 +1030,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteVariantTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteVariantTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.Underground.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoPlanetTest.Underground.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenEyeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenEyeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoRangedTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoRangedTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoRosterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoRosterTest.cs)
@@ -1556,6 +1557,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.Client/Weapons/Melee/MeleeWeaponSystem.cs`](../../../Content.Client/Weapons/Melee/MeleeWeaponSystem.cs): xeno wide swing calls it
 - [`Content.Server/Chat/Systems/ChatSystem.cs`](../../Chat/Systems/ChatSystem.cs): a xeno's radio prefix sends the message to its hive instead
 - [`Content.Server/NPC/Systems/NPCUtilitySystem.cs`](../../NPC/Systems/NPCUtilitySystem.cs): AI facehuggers pick hosts they can still infect
+- [`Content.Shared/Doors/Systems/SharedDoorSystem.Bolts.cs`](../../../Content.Shared/Doors/Systems/SharedDoorSystem.Bolts.cs): resin doors are airlocks without bolts; no error spam
 - [`Content.Shared/Eye/VisibilityFlags.cs`](../../../Content.Shared/Eye/VisibilityFlags.cs): things only xenos see
 - [`Content.Shared/Interaction/SharedInteractionSystem.cs`](../../../Content.Shared/Interaction/SharedInteractionSystem.cs): devoured mobs and devouring xenos override combat-mode interaction
 - [`Content.Shared/Inventory/VirtualItem/SharedVirtualItemSystem.cs`](../../../Content.Shared/Inventory/VirtualItem/SharedVirtualItemSystem.cs): the held entity may take over the click (devouring a pulled victim, nesting)
@@ -1569,6 +1571,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Resources/Prototypes/_Mono/Entities/Structures/walls.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/walls.yml)
   - RMC's reinforced wall rule, only very sharp xeno claws break it
   - outpost walls can't be clawed down
+- [`Resources/Prototypes/_Mono/Entities/Structures/windows.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/windows.yml): outpost windows are not meant to fall to claws; a hundred hits
 - [`Resources/Prototypes/_Mono/Guidebook/creatures.yml`](../../../Resources/Prototypes/_Mono/Guidebook/creatures.yml): guidebook
 - [`Resources/Prototypes/Entities/Mobs/NPCs/animals.yml`](../../../Resources/Prototypes/Entities/Mobs/NPCs/animals.yml): RMC monkeys are hosts for facehuggers and can be devoured
 - [`Resources/Prototypes/Entities/Mobs/Player/observer.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/observer.yml)
@@ -1577,6 +1580,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Resources/Prototypes/Entities/Mobs/Species/base.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/base.yml)
   - species can host facehuggers, be devoured by xenos and are slowed by their weeds
   - xeno slows (slowing spit, neurotoxin) need RMC's species modifier; RMC's marine values
+- [`Resources/Prototypes/Entities/Objects/Misc/dat_fukken_disk.yml`](../../../Resources/Prototypes/Entities/Objects/Misc/dat_fukken_disk.yml): xeno acid melts any item by default; not this one
 - [`Resources/Prototypes/Entities/Structures/base_structure.yml`](../../../Resources/Prototypes/Entities/Structures/base_structure.yml)
   - every structure can be melted by xeno acid, as in RMC-14 (CMCorrodible)
   - xeno claws get past the flat reductions RMC structures don't have
@@ -1584,6 +1588,26 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Resources/Prototypes/Entities/Structures/Walls/walls.yml`](../../../Resources/Prototypes/Entities/Structures/Walls/walls.yml)
   - RMC's wall rule, sharp xeno claws break it in 20 hits and blunter ones not at all
   - walls hold up resin doors and membranes, as RMC's walls do
+- [`Resources/Prototypes/Entities/Structures/Windows/plasma.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/plasma.yml)
+  - xeno claws break a plasma window in four hits
+  - xeno claws break a plasma directional window in three hits
+- [`Resources/Prototypes/Entities/Structures/Windows/plastitanium.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/plastitanium.yml): sharp xeno claws break a plastitanium window in eight hits; its 3500 health would otherwise take hundreds
+- [`Resources/Prototypes/Entities/Structures/Windows/reinforced.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/reinforced.yml)
+  - xeno claws break a reinforced window in five hits, as in CM
+  - xeno claws break a reinforced directional window in three hits
+- [`Resources/Prototypes/Entities/Structures/Windows/rplasma.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/rplasma.yml)
+  - sharp xeno claws break a reinforced plasma window in six hits
+  - sharp xeno claws break a reinforced plasma directional window in four hits
+- [`Resources/Prototypes/Entities/Structures/Windows/ruranium.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/ruranium.yml)
+  - sharp xeno claws break a reinforced uranium window in six hits
+  - sharp xeno claws break a reinforced uranium directional window in four hits
+- [`Resources/Prototypes/Entities/Structures/Windows/shuttle.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/shuttle.yml): sharp xeno claws break a shuttle window in eight hits; its 2000 health would otherwise take over a hundred
+- [`Resources/Prototypes/Entities/Structures/Windows/uranium.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/uranium.yml)
+  - xeno claws break a uranium window in four hits
+  - xeno claws break a uranium directional window in two hits
+- [`Resources/Prototypes/Entities/Structures/Windows/window.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/window.yml)
+  - xeno claws break a window in two hits, as in CM
+  - xeno claws break a directional window in two hits, as in CM
 - [`Resources/Prototypes/Entities/Tiles/chasm.yml`](../../../Resources/Prototypes/Entities/Tiles/chasm.yml)
   - xeno weeds do not grow on liquid or chasm tiles
   - resin, nodes and tunnels do not go on liquid or chasm tiles
