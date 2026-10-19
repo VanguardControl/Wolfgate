@@ -12,7 +12,8 @@ namespace Content.Client._WF.MappingMode.Modes;
 
 /// <summary>
 /// Erase: a click removes the entity, tile or decal under the cursor, as the sub-choice says; a drag removes them
-/// over a rectangle.
+/// over a rectangle. Everything removes entities, decals and tiles; its click takes the entity under the cursor, or
+/// the tile and its decals when there is none.
 /// </summary>
 public sealed partial class WFMappingEraseMode(WFMappingBuildModeSystem modes) : WFMappingDragModeBase(modes)
 {
@@ -27,7 +28,8 @@ public sealed partial class WFMappingEraseMode(WFMappingBuildModeSystem modes) :
 
     protected override Color PreviewColor => Color.FromHex("#ef5350");
 
-    protected override Box2i? Preview(Vector2i start, Vector2i end, List<Vector2i> cells, ref Color color)
+    protected override Box2i? Preview(EntityUid? grid, Vector2i start, Vector2i end, List<Vector2i> cells,
+        ref Color color)
     {
         var box = Corners(start, end);
         if ((long) box.Width * box.Height > WFMappingModeLimits.MaxDrawCells)
@@ -51,51 +53,63 @@ public sealed partial class WFMappingEraseMode(WFMappingBuildModeSystem modes) :
             return;
         }
 
-        switch (Modes.EraseTarget)
+        var target = Modes.EraseTarget;
+        var all = target == WFMappingEraseTarget.Everything;
+        var net = _entities.GetNetEntity(gridUid);
+
+        // Everything goes top down: entities and decals before the floor under them.
+        if (all || target == WFMappingEraseTarget.Entity)
         {
-            case WFMappingEraseTarget.Entity:
+            var local = new Box2(box.Left, box.Bottom, box.Right, box.Top);
+            _net.ClientSendMessage(new MsgPlacement
             {
-                var local = new Box2(box.Left, box.Bottom, box.Right, box.Top);
-                _net.ClientSendMessage(new MsgPlacement
-                {
-                    PlaceType = PlacementManagerMessage.RequestRectRemove,
-                    NetCoordinates = _entities.GetNetCoordinates(new EntityCoordinates(gridUid, local.Center)),
-                    RectSize = local.Size - new System.Numerics.Vector2(RectInset * 2f),
-                    RectRotation = (float) Modes.WorldBox(gridUid, local).Rotation.Theta,
-                });
-                break;
-            }
-            case WFMappingEraseTarget.Tile:
-                Modes.SendDraw(new MappingToolsDrawEvent(_entities.GetNetEntity(gridUid), MappingDrawOp.SetTiles,
-                    MappingToolsShapes.Rect(start, end, false), ContentTileDefinition.SpaceID, 0, null, Angle.Zero));
-                break;
-            case WFMappingEraseTarget.Decal:
-                Modes.SendDraw(new MappingToolsDrawEvent(_entities.GetNetEntity(gridUid), MappingDrawOp.EraseDecals,
-                    MappingToolsShapes.Rect(start, end, false), null, 0, null, Angle.Zero));
-                break;
+                PlaceType = PlacementManagerMessage.RequestRectRemove,
+                NetCoordinates = _entities.GetNetCoordinates(new EntityCoordinates(gridUid, local.Center)),
+                RectSize = local.Size - new System.Numerics.Vector2(RectInset * 2f),
+                RectRotation = (float) Modes.WorldBox(gridUid, local).Rotation.Theta,
+            });
+        }
+
+        if (all || target == WFMappingEraseTarget.Decal)
+        {
+            Modes.SendDraw(new MappingToolsDrawEvent(net, MappingDrawOp.EraseDecals,
+                MappingToolsShapes.Rect(start, end, false), null, 0, null, Angle.Zero));
+        }
+
+        if (all || target == WFMappingEraseTarget.Tile)
+        {
+            Modes.SendDraw(new MappingToolsDrawEvent(net, MappingDrawOp.SetTiles,
+                MappingToolsShapes.Rect(start, end, false), ContentTileDefinition.SpaceID, 0, null, Angle.Zero));
         }
     }
 
     private void Click(EntityUid? grid, Vector2i cell)
     {
-        switch (Modes.EraseTarget)
+        var target = Modes.EraseTarget;
+        if (target == WFMappingEraseTarget.Everything)
+        {
+            if (TryEraseClicked())
+                return;
+
+            if (grid is { } tileGrid && HasTile(tileGrid, cell))
+            {
+                var cells = new List<Vector2i> { cell };
+                var net = _entities.GetNetEntity(tileGrid);
+                Modes.SendDraw(new MappingToolsDrawEvent(net, MappingDrawOp.EraseDecals, cells, null, 0, null, Angle.Zero));
+                Modes.SendDraw(new MappingToolsDrawEvent(net, MappingDrawOp.SetTiles, new List<Vector2i> { cell },
+                    ContentTileDefinition.SpaceID, 0, null, Angle.Zero));
+            }
+
+            return;
+        }
+
+        switch (target)
         {
             case WFMappingEraseTarget.Entity:
-                var target = PressClicked;
-                if (target.IsValid() && _entities.EntityExists(target) && target != _player.LocalEntity)
-                {
-                    _net.ClientSendMessage(new MsgPlacement
-                    {
-                        PlaceType = PlacementManagerMessage.RequestEntRemove,
-                        EntityUid = _entities.GetNetEntity(target),
-                    });
-                }
-
+                TryEraseClicked();
                 break;
             case WFMappingEraseTarget.Tile:
-                if (grid is { } gridUid &&
-                    _entities.TryGetComponent(gridUid, out Robust.Shared.Map.Components.MapGridComponent? comp) &&
-                    Modes.TileTypeAt((gridUid, comp), cell) != 0)
+                if (grid is { } gridUid && HasTile(gridUid, cell))
                 {
                     Modes.SendDraw(new MappingToolsDrawEvent(_entities.GetNetEntity(gridUid), MappingDrawOp.SetTiles,
                         new List<Vector2i> { cell }, ContentTileDefinition.SpaceID, 0, null, Angle.Zero));
@@ -108,5 +122,26 @@ public sealed partial class WFMappingEraseMode(WFMappingBuildModeSystem modes) :
 
                 break;
         }
+    }
+
+    /// <summary>Asks to remove the entity the press landed on; false when there was none.</summary>
+    private bool TryEraseClicked()
+    {
+        var target = PressClicked;
+        if (!target.IsValid() || !_entities.EntityExists(target) || target == _player.LocalEntity)
+            return false;
+
+        _net.ClientSendMessage(new MsgPlacement
+        {
+            PlaceType = PlacementManagerMessage.RequestEntRemove,
+            EntityUid = _entities.GetNetEntity(target),
+        });
+        return true;
+    }
+
+    private bool HasTile(EntityUid grid, Vector2i cell)
+    {
+        return _entities.TryGetComponent(grid, out Robust.Shared.Map.Components.MapGridComponent? comp) &&
+               Modes.TileTypeAt((grid, comp), cell) != 0;
     }
 }

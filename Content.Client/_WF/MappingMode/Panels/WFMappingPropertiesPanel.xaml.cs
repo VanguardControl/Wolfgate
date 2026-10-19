@@ -76,6 +76,12 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
             _modes.SetShapeKind((WFMappingShapeKind) args.Id);
         };
 
+        var fillGroup = new ButtonGroup();
+        ShapeFillButton.Group = fillGroup;
+        ShapeBorderButton.Group = fillGroup;
+        ShapeFillButton.OnPressed += _ => _modes.SetShapeFill(WFMappingShapeFill.Fill);
+        ShapeBorderButton.OnPressed += _ => _modes.SetShapeFill(WFMappingShapeFill.Border);
+
         QuickSelectButton.OnPressed += _ =>
         {
             if (_modes.Entry is { } entry)
@@ -194,12 +200,21 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
             ("mode", Loc.GetString($"wf-mapping-screen-mode-{mode.ToString().ToLowerInvariant()}")));
         EraseRow.Visible = mode == WFMappingBuildMode.Erase;
         ShapeRow.Visible = mode == WFMappingBuildMode.Shape;
+        UpdateShapeFill();
+    }
+
+    private void UpdateShapeFill()
+    {
+        ShapeFillRow.Visible = _modes.Mode == WFMappingBuildMode.Shape && _modes.ShapeKind != WFMappingShapeKind.Line;
+        ShapeFillButton.Pressed = _modes.ShapeFill == WFMappingShapeFill.Fill;
+        ShapeBorderButton.Pressed = _modes.ShapeFill == WFMappingShapeFill.Border;
     }
 
     private void OnSettingsChanged()
     {
         EraseTargetMenu.TrySelectId((int) _modes.EraseTarget);
         ShapeKindMenu.TrySelectId((int) _modes.ShapeKind);
+        UpdateShapeFill();
         PlacementModeMenu.TrySelectId(_modes.PlacementModeIndex);
         UpdateRotation();
     }

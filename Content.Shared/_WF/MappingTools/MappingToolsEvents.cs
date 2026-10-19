@@ -5,13 +5,15 @@ using Robust.Shared.Serialization;
 namespace Content.Shared._WF.MappingTools;
 
 /// <summary>
-/// A mapping-tools selection on one grid: a tile area (right and top exclusive) and/or loose entities.
+/// A mapping-tools selection on one grid: a tile area (right and top exclusive), single cells picked on top of it
+/// and/or loose entities. A cell holds its tile and everything on it, as the area does.
 /// </summary>
 [Serializable, NetSerializable]
 public sealed class MappingSelection
 {
     public NetEntity Grid;
     public Box2i? Area;
+    public List<Vector2i> Cells = new();
     public List<NetEntity> Entities = new();
 }
 
@@ -123,11 +125,12 @@ public enum MappingDrawOp : byte
 
 /// <summary>
 /// A shape, fill or area erase from the mapping screen: one operation over grid-local cells, checked and undone as
-/// one edit.
+/// one edit. With no grid, <see cref="MappingDrawOp.SetTiles"/> makes a new grid on <see cref="Map"/> over those map
+/// cells.
 /// </summary>
 [Serializable, NetSerializable]
 public sealed class MappingToolsDrawEvent(
-    NetEntity grid,
+    NetEntity? grid,
     MappingDrawOp op,
     List<Vector2i> cells,
     string? tileId,
@@ -136,11 +139,14 @@ public sealed class MappingToolsDrawEvent(
     Angle rotation)
     : EntityEventArgs
 {
-    public readonly NetEntity Grid = grid;
+    public readonly NetEntity? Grid = grid;
     public readonly MappingDrawOp Op = op;
     public readonly List<Vector2i> Cells = cells;
     public readonly string? TileId = tileId;
     public readonly byte TileRotationMirroring = tileRotationMirroring;
     public readonly string? Prototype = prototype;
     public readonly Angle Rotation = rotation;
+
+    /// <summary>The map a draw with no grid goes on.</summary>
+    public NetEntity? Map;
 }

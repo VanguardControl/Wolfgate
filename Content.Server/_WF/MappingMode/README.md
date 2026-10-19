@@ -59,18 +59,30 @@ tabs, with search, favourites, recents and a strip of the last 12 entries) is do
 the middle with the mode rail on top, the quick-select bar at the bottom and the cursor readout bottom left; the
 Properties, Tools, Layers, Template and Keys tabs sit over the chat on the right. Each docked panel has an Undock
 button that moves it into its own window, which the window pop-out can take out of the game; closing the window docks
-it again. `ui.layout` is ignored while in a session and back in force on leaving.
+it again. Once every panel of a column is undocked (the palette on the left, all five tabs on the right) that column
+collapses and the viewport takes its width; while the right column is gone the chat floats at the viewport's top
+right. Docking any of its panels brings the column back. `ui.layout` is ignored while in a session and back in force on
+leaving.
 
 Build modes, on keys 1 to 7 or the rail:
 
 - Place (1): left click places the selected entry as the engine does, right click erases the entity or tile under the
   cursor (a decal entry leaves it to the decal eraser), middle click eyedrops, Ctrl+wheel or R turns it, Escape
   drops the entry.
-- Erase (2): click or drag a rectangle to remove entities, tiles or decals, as its sub-choice says.
-- Select (3): the MappingTools selection.
+- Erase (2): click or drag a rectangle to remove what its sub-choice in Properties says: Everything (the default:
+  entities, decals and tiles; a click takes the entity under the cursor, or else the tile), Entities, Tiles or Decals.
+  The cursor readout names the current target.
+- Select (3): the MappingTools selection. A click on an entity selects it; a click on a tile with no entity there
+  selects that cell with everything on it. Shift+click adds or takes out an entity or a cell (a cell taken out of a
+  dragged box splits the box into single cells, up to 4096). A box drag selects every tile in it and may start in space;
+  it lands on the first grid it reaches. Move, rotate, mirror, delete, copy, cut and paste carry the cells' tiles.
 - Fill (4): flood-fills the tile under the click with the selected tile, up to 4096 cells.
-- Shape (5): drag a line, filled rectangle or hollow rectangle of the selected tile or entity, with a preview;
-  Ctrl+wheel turns it.
+- Shape (5): drag a line, rectangle or circle (the ellipse fitted to the dragged box) of the selected tile or entity,
+  with a preview; Fill or Border in Properties, or a right click with nothing held, picks whether rectangles and circles
+  are whole or only their edge. Shift keeps them square or round, Ctrl+wheel turns entities. The shape goes on the
+  grid under the drag's start, else under its end, else a grid whose tiles touch or overlap the box, and the preview
+  snaps to that grid's cells; tiles past its edge grow it. With no grid near, a tile shape makes a new grid (counted
+  against the grid cap). Entity shapes need a grid and skip cells with no floor, saying how many.
 - Pick (6): the eyedropper; the pick becomes the entry and Place comes back.
 - Template (7): drag moves the template, Ctrl+drag scales it, Shift+drag turns it, the wheel scales it and the arrows
   nudge it by a pixel (eight with Shift).
@@ -167,7 +179,9 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
   manager; the wheel goes to the mode first and zooms when the mode doesn't take it.
 - Draws: Fill, Shape and area erase send one `MappingToolsDrawEvent`, checked as a single tool edit
   (`max_selection_cells`, per-tile caps, denied and hidden prototypes) and undone as one step, instead of one
-  placement per cell, which the edit throttle would cut short.
+  placement per cell, which the edit throttle would cut short. A tile draw with no grid names the map and makes a grid
+  there (`NewGrid` on the edit check), undone as one root. Every refusal pops up at the cursor and is logged at debug
+  level on both ends.
 - Observer: `WFMappingObserver` doesn't inherit `AdminObserver` or `MobObserverBase`, which bring hands, pulling,
   stripping, consoles, access, global radio and unrestricted examine. It is `Incorporeal` and `BaseMob` with the
   `aghost` input context. `WFMappingObserverSystem` cancels interaction, use, pickup, drop, emote, speak, throw,
@@ -185,9 +199,10 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
   sees the Mapping button. The decal window stays open when a mapper leaves. A planet file loaded as a reference makes
   the engine log an error and loads without its planet grid. Opening a large library map loads synchronously, with no
   size cap beyond `max_library_bytes`. A decal removal dropped by the edit throttle is still recorded in MappingTools
-  history. The forced cvars aren't restored when the mode is turned off. An entity shape drawn past a grid's tiles
-  puts the cells without a tile on the map instead of the grid. The mapping screen, modes, template and quick bar are
-  covered by a headless client test; the docks, pop-out and drawing over a real viewport haven't been driven by mouse.
+  history. The forced cvars aren't restored when the mode is turned off. The mapping screen, modes, template, quick
+  bar, dock collapse and a tile click in Select are covered by a headless client test; the pop-out and drawing over a
+  real viewport haven't been driven by mouse. Erase's Everything sends its entity, decal and tile parts as separate
+  requests, so undo takes them back one at a time.
 
 <!-- WOLFGATE-GENERATED START -->
 <!-- Generated by python Tools/_WF/Ci/modules.py --write. Don't edit by hand. -->
@@ -340,6 +355,7 @@ palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` 
 - [`Docs/_WF/MappingMode/P1-NOTES.md`](../../../Docs/_WF/MappingMode/P1-NOTES.md)
 - [`Docs/_WF/MappingMode/P2-NOTES.md`](../../../Docs/_WF/MappingMode/P2-NOTES.md)
 - [`Docs/_WF/MappingMode/P3-NOTES.md`](../../../Docs/_WF/MappingMode/P3-NOTES.md)
+- [`Docs/_WF/MappingMode/P6-NOTES.md`](../../../Docs/_WF/MappingMode/P6-NOTES.md)
 - [`Docs/_WF/MappingMode/PLAN.md`](../../../Docs/_WF/MappingMode/PLAN.md)
 - [`Docs/_WF/MappingMode/PLAN2.md`](../../../Docs/_WF/MappingMode/PLAN2.md)
 - [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)

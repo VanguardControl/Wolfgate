@@ -74,6 +74,75 @@ public static class MappingToolsShapes
     }
 
     /// <summary>
+    /// The cells of the ellipse inscribed in the box with corners <paramref name="a"/> and <paramref name="b"/>, both
+    /// included: every cell whose centre lies inside it, plus the middle cells of any row or column that would
+    /// otherwise stay empty, so it touches all four sides. When <paramref name="hollow"/>, only the cells with a side
+    /// on the outside, a closed ring one cell thick.
+    /// </summary>
+    public static List<Vector2i> Ellipse(Vector2i a, Vector2i b, bool hollow)
+    {
+        var min = Vector2i.ComponentMin(a, b);
+        var max = Vector2i.ComponentMax(a, b);
+        long w = max.X - min.X + 1;
+        long h = max.Y - min.Y + 1;
+
+        // Twice a cell centre's offset from the box centre is an integer, so the test is exact and symmetric.
+        bool Inside(long x, long y)
+        {
+            var dx = 2 * (x - min.X) + 1 - w;
+            var dy = 2 * (y - min.Y) + 1 - h;
+            return dx * dx * h * h + dy * dy * w * w <= w * w * h * h;
+        }
+
+        bool Middle(long offset, long size)
+        {
+            return offset == (size - 1) / 2 || offset == size / 2;
+        }
+
+        // A row or column is empty only at the very ends of a thin ellipse; its middle cell(s) stand in.
+        var rowFilled = new bool[h];
+        var columnFilled = new bool[w];
+        for (var y = 0L; y < h; y++)
+        {
+            for (var x = 0L; x < w; x++)
+            {
+                if (!Inside(min.X + x, min.Y + y))
+                    continue;
+
+                rowFilled[y] = true;
+                columnFilled[x] = true;
+            }
+        }
+
+        bool Filled(long x, long y)
+        {
+            if (x < 0 || y < 0 || x >= w || y >= h)
+                return false;
+
+            return Inside(min.X + x, min.Y + y) ||
+                   !rowFilled[y] && Middle(x, w) ||
+                   !columnFilled[x] && Middle(y, h);
+        }
+
+        var cells = new List<Vector2i>();
+        for (var y = 0L; y < h; y++)
+        {
+            for (var x = 0L; x < w; x++)
+            {
+                if (!Filled(x, y))
+                    continue;
+
+                if (hollow && Filled(x + 1, y) && Filled(x - 1, y) && Filled(x, y + 1) && Filled(x, y - 1))
+                    continue;
+
+                cells.Add(new Vector2i(min.X + (int) x, min.Y + (int) y));
+            }
+        }
+
+        return cells;
+    }
+
+    /// <summary>
     /// The 4-connected cells around <paramref name="start"/> whose type matches the start's, inside
     /// <paramref name="bounds"/> (right and top exclusive). A null type is a cell that can't be filled. Stops after
     /// <paramref name="cap"/> cells and sets <paramref name="truncated"/>.

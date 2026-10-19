@@ -18,12 +18,24 @@ public enum WFMappingEraseTarget : byte
     Entity,
     Tile,
     Decal,
+
+    /// <summary>Entities, decals and tiles together.</summary>
+    Everything,
 }
 
 /// <summary>What Shape mode draws.</summary>
 public enum WFMappingShapeKind : byte
 {
     Line,
-    FilledRect,
-    HollowRect,
+    Rect,
+
+    /// <summary>The ellipse inscribed in the dragged box.</summary>
+    Circle,
+}
+
+/// <summary>Whether a rectangle or circle is drawn whole or only its border.</summary>
+public enum WFMappingShapeFill : byte
+{
+    Fill,
+    Border,
 }

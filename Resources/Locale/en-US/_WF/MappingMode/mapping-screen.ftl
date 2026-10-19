@@ -11,16 +11,17 @@ wf-mapping-screen-mode-current = Mode: {$mode}
 wf-mapping-screen-rail-button = {$key} {$mode}
 
 wf-mapping-screen-mouse-place = Left: place. Right: erase what's under the cursor. Middle: eyedropper.
-wf-mapping-screen-mouse-erase = Click: erase one. Drag: erase an area. Right click: cancel the drag.
-wf-mapping-screen-mouse-select = The mapping tools' selection: click, drag, move.
+wf-mapping-screen-mouse-erase = Click: erase one. Drag: erase an area. Right click: cancel the drag. Pick what goes in Properties.
+wf-mapping-screen-mouse-select = Click an entity or a tile to select it, Shift+click to add or take it out, drag a box, drag the selection to move it.
 wf-mapping-screen-mouse-fill = Click: fill the connected tiles of that kind with the selected tile.
-wf-mapping-screen-mouse-shape = Drag: draw a line or rectangle of the selected tile or entity.
+wf-mapping-screen-mouse-shape = Drag: draw a line, rectangle or circle of the selected tile or entity. Shift: square or round. Right click: switch fill and border.
 wf-mapping-screen-mouse-pick = Click: pick what's under the cursor and go back to Place.
 wf-mapping-screen-mouse-template = Drag the template image; the arrows nudge it.
 
 wf-mapping-screen-too-many = That covers too many tiles; the most is {$max}.
 wf-mapping-screen-needs-grid = Start on a grid. Place a tile first to make one.
 wf-mapping-screen-shape-needs-entry = Pick a tile or an entity to draw with first.
+wf-mapping-screen-shape-entities-need-grid = Entities need a floor. Draw tiles there first.
 wf-mapping-screen-fill-needs-tile = Pick a tile to fill with first.
 wf-mapping-screen-fill-truncated = The fill stopped at {$max} tiles.
 
@@ -68,10 +69,18 @@ wf-mapping-screen-erase-target = Erase
 wf-mapping-screen-erase-entity = Entities
 wf-mapping-screen-erase-tile = Tiles
 wf-mapping-screen-erase-decal = Decals
+wf-mapping-screen-erase-everything = Everything
 wf-mapping-screen-shape-kind = Shape
 wf-mapping-screen-shape-line = Line
-wf-mapping-screen-shape-filledrect = Filled rectangle
-wf-mapping-screen-shape-hollowrect = Hollow rectangle
+wf-mapping-screen-shape-rect = Rectangle
+wf-mapping-screen-shape-circle = Circle
+wf-mapping-screen-shape-fill = Draw
+wf-mapping-screen-shape-fill-fill = Fill
+wf-mapping-screen-shape-fill-border = Border
+wf-mapping-screen-shape-fill-tooltip = Right click in Shape mode switches between fill and border.
+wf-mapping-screen-readout-erase = Erasing: {$target}
+wf-mapping-screen-readout-line = Drawing: line
+wf-mapping-screen-readout-shape = Drawing: {$shape}, {$fill}
 
 wf-mapping-screen-layer-walls = Walls
 wf-mapping-screen-layer-subfloor = Subfloor (pipes, cables)

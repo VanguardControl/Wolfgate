@@ -19,9 +19,18 @@ public abstract partial class WFMappingDragModeBase(WFMappingBuildModeSystem mod
 
     protected EntityCoordinates PressCoordinates { get; private set; }
 
+    /// <summary>Where the press landed on the map.</summary>
+    protected MapCoordinates PressPosition { get; private set; }
+
     protected EntityUid PressClicked { get; private set; }
 
     protected virtual Color PreviewColor => Color.FromHex("#4fc3f7");
+
+    /// <summary>
+    /// Whether the drag picks its grid from both ends (<see cref="WFMappingBuildModeSystem.ResolveShapeGrid"/>)
+    /// instead of the press, so it may start in space; with no grid its cells are map tiles.
+    /// </summary>
+    protected virtual bool ResolvesGrid => false;
 
     public override void Exit()
     {
@@ -34,14 +43,26 @@ public abstract partial class WFMappingDragModeBase(WFMappingBuildModeSystem mod
         {
             Pressing = false;
             var position = Modes.ToMap(args.Coordinates);
-            EntityUid? grid = Modes.TryGetGridCell(position, out var found, out var cell) ? found.Owner : null;
-            if (!CanStart(grid))
+            EntityUid? grid;
+            Vector2i cell;
+            if (ResolvesGrid)
+            {
+                grid = Modes.ResolveShapeGrid(position, position);
+                cell = Modes.CellAt(grid, position);
+            }
+            else
+            {
+                grid = Modes.TryGetGridCell(position, out var found, out cell) ? found.Owner : null;
+            }
+
+            if (ResolvesGrid && position.MapId == MapId.Nullspace || !CanStart(grid))
                 return true;
 
             Pressing = true;
             PressGrid = grid;
             PressCell = cell;
             PressCoordinates = args.Coordinates;
+            PressPosition = position;
             PressClicked = args.EntityUid;
             return true;
         }
@@ -50,11 +71,8 @@ public abstract partial class WFMappingDragModeBase(WFMappingBuildModeSystem mod
             return true;
 
         Pressing = false;
-        var end = PressCell;
-        if (PressGrid is { } pressGrid && Modes.TryGetCellOn(pressGrid, Modes.ToMap(args.Coordinates), out var released))
-            end = released;
-
-        Release(PressGrid, PressCell, end);
+        var (releaseGrid, start, end) = Span(Modes.ToMap(args.Coordinates));
+        Release(releaseGrid, start, end);
         return true;
     }
 
@@ -78,26 +96,64 @@ public abstract partial class WFMappingDragModeBase(WFMappingBuildModeSystem mod
         cells.Clear();
         box = null;
         color = PreviewColor;
+        grid = default;
 
-        if (Pressing && PressGrid is { } pressGrid)
+        if (Pressing)
         {
-            grid = pressGrid;
-            if (!Modes.TryGetCellOn(pressGrid, Modes.MouseMapPosition, out var end))
-                end = PressCell;
+            var (pressGrid, start, end) = Span(Modes.MouseMapPosition);
+            if (pressGrid == null && !ResolvesGrid || !TryGetFrame(pressGrid, PressPosition.MapId, out grid))
+                return false;
 
-            box = Preview(PressCell, end, cells, ref color);
+            box = Preview(pressGrid, start, end, cells, ref color);
             return true;
         }
 
-        if (!Modes.TryGetGridCell(Modes.MouseMapPosition, out var hovered, out var cell))
+        var mouse = Modes.MouseMapPosition;
+        if (ResolvesGrid)
         {
-            grid = default;
-            return false;
+            if (mouse.MapId == MapId.Nullspace)
+                return false;
+
+            var hoverGrid = Modes.ResolveShapeGrid(mouse, mouse);
+            if (!TryGetFrame(hoverGrid, mouse.MapId, out grid))
+                return false;
+
+            cells.Add(Modes.CellAt(hoverGrid, mouse));
+            return true;
         }
+
+        if (!Modes.TryGetGridCell(mouse, out var hovered, out var cell))
+            return false;
 
         grid = hovered.Owner;
         cells.Add(cell);
         return true;
+    }
+
+    /// <summary>The entity whose frame the preview is drawn in: the grid, or the map for map tiles.</summary>
+    private bool TryGetFrame(EntityUid? grid, MapId map, out EntityUid frame)
+    {
+        frame = grid ?? Modes.MapUid(map);
+        return frame.IsValid();
+    }
+
+    /// <summary>The grid and the two corner cells of the drag from the press to <paramref name="end"/>.</summary>
+    private (EntityUid? Grid, Vector2i Start, Vector2i End) Span(MapCoordinates end)
+    {
+        if (!ResolvesGrid)
+        {
+            var released = PressCell;
+            if (PressGrid is { } pressGrid && Modes.TryGetCellOn(pressGrid, end, out var cell))
+                released = cell;
+
+            return (PressGrid, PressCell, released);
+        }
+
+        if (end.MapId != PressPosition.MapId)
+            end = PressPosition;
+
+        var grid = Modes.ResolveShapeGrid(PressPosition, end);
+        return (grid, Modes.CellAt(grid, PressPosition), Modes.CellAt(grid, end));
     }
 
     /// <summary>Whether a press may start a drag here; refusals tell the player why.</summary>
@@ -106,8 +162,12 @@ public abstract partial class WFMappingDragModeBase(WFMappingBuildModeSystem mod
         return true;
     }
 
-    /// <summary>Fills the cells the drag would change, or returns a box to shade instead.</summary>
-    protected abstract Box2i? Preview(Vector2i start, Vector2i end, List<Vector2i> cells, ref Color color);
+    /// <summary>
+    /// Fills the cells the drag would change, or returns a box to shade instead. <paramref name="grid"/> is null
+    /// when the cells are map tiles.
+    /// </summary>
+    protected abstract Box2i? Preview(EntityUid? grid, Vector2i start, Vector2i end, List<Vector2i> cells,
+        ref Color color);
 
     /// <summary>The button came up; <paramref name="start"/> equals <paramref name="end"/> for a plain click.</summary>
     protected abstract void Release(EntityUid? grid, Vector2i start, Vector2i end);

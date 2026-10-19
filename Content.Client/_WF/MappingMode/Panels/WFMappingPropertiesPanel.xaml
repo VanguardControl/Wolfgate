@@ -33,6 +33,14 @@
                 <Label Text="{Loc 'wf-mapping-screen-shape-kind'}" />
                 <OptionButton Name="ShapeKindMenu" HorizontalExpand="True" />
             </BoxContainer>
+            <BoxContainer Name="ShapeFillRow" Orientation="Horizontal" SeparationOverride="0">
+                <Label Text="{Loc 'wf-mapping-screen-shape-fill'}" Margin="0 0 4 0" />
+                <Button Name="ShapeFillButton" ToggleMode="True" HorizontalExpand="True" StyleClasses="OpenRight"
+                        Text="{Loc 'wf-mapping-screen-shape-fill-fill'}" />
+                <Button Name="ShapeBorderButton" ToggleMode="True" HorizontalExpand="True" StyleClasses="OpenLeft"
+                        Text="{Loc 'wf-mapping-screen-shape-fill-border'}"
+                        ToolTip="{Loc 'wf-mapping-screen-shape-fill-tooltip'}" />
+            </BoxContainer>
 
             <Label Text="{Loc 'wf-mapping-screen-section-levels'}" StyleClasses="LabelHeading" Margin="0 8 0 0" />
             <BoxContainer Name="LevelList" Orientation="Vertical" SeparationOverride="2" />

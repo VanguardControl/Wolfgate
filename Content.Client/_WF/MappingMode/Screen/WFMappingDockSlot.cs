@@ -19,6 +19,9 @@ public sealed class WFMappingDockSlot : BoxContainer
 
     public bool Undocked => _window != null;
 
+    /// <summary>Raised after the panel moves into its window or back.</summary>
+    public event Action? DockChanged;
+
     public WFMappingDockSlot(string title)
     {
         _title = title;
@@ -87,6 +90,7 @@ public sealed class WFMappingDockSlot : BoxContainer
         };
         _window = window;
         window.OpenCentered();
+        DockChanged?.Invoke();
     }
 
     /// <summary>Brings the panel back from its window.</summary>
@@ -102,6 +106,8 @@ public sealed class WFMappingDockSlot : BoxContainer
         _placeholder.Visible = false;
         if (window.IsOpen)
             window.Close();
+
+        DockChanged?.Invoke();
     }
 
     private static void Move(Control from, Control to)

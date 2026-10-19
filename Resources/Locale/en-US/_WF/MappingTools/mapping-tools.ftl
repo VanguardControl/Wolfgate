@@ -155,3 +155,11 @@ wf-mapping-tools-draw-too-many = That covers too many tiles; the most is {$max}.
 wf-mapping-tools-draw-bad = That shape can't be drawn.
 wf-mapping-tools-draw-bad-tile = That tile doesn't exist.
 wf-mapping-tools-draw-bad-prototype = That can't be placed.
+wf-mapping-tools-draw-not-allowed = You can't use the mapping tools right now.
+wf-mapping-tools-draw-nothing = Nothing there to change.
+wf-mapping-tools-draw-needs-grid = Entities need a floor. Draw tiles there first.
+wf-mapping-tools-draw-no-tiles = None of those cells has a floor to put that on.
+wf-mapping-tools-draw-skipped = Skipped {$count} {$count ->
+    [one] cell
+   *[other] cells
+} with no floor.

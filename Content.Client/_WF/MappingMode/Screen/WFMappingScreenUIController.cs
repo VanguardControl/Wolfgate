@@ -76,7 +76,50 @@ public sealed partial class WFMappingScreenUIController : UIController
 
         host.AddChild(slot);
         _slots.Add(slot);
+        slot.DockChanged += UpdateDocks;
         return slot;
+    }
+
+    /// <summary>
+    /// Collapses a dock column once none of its panels is docked, so the viewport takes its width, and brings it
+    /// back when one is docked again. Driven by the slots' events, as a hidden column gets no frame updates.
+    /// </summary>
+    private void UpdateDocks()
+    {
+        if (_screen is not { } screen)
+            return;
+
+        screen.SetLeftCollapsed(AllUndocked(screen.PaletteHost));
+        screen.SetRightCollapsed(AllUndocked(screen.RightTabs));
+    }
+
+    /// <summary>Whether a column holds slots and every one of them is undocked.</summary>
+    private bool AllUndocked(Control column)
+    {
+        var any = false;
+        foreach (var slot in _slots)
+        {
+            if (!IsUnder(slot, column))
+                continue;
+
+            if (!slot.Undocked)
+                return false;
+
+            any = true;
+        }
+
+        return any;
+    }
+
+    private static bool IsUnder(Control control, Control ancestor)
+    {
+        for (var parent = control.Parent; parent != null; parent = parent.Parent)
+        {
+            if (parent == ancestor)
+                return true;
+        }
+
+        return false;
     }
 
     private void OnScreenLoad()
@@ -121,6 +164,7 @@ public sealed partial class WFMappingScreenUIController : UIController
         modes.ModeChanged += OnModeChanged;
         screen.RightTabs.OnTabChanged += OnTabChanged;
         OnModeChanged(modes.Mode);
+        UpdateDocks();
     }
 
     private void OnScreenUnload()
@@ -131,10 +175,16 @@ public sealed partial class WFMappingScreenUIController : UIController
         foreach (var slot in _slots)
         {
             slot.Dock();
+        }
+
+        foreach (var slot in _slots)
+        {
+            slot.DockChanged -= UpdateDocks;
             slot.Orphan();
         }
 
         _slots.Clear();
+        UpdateDocks();
         _palette?.Unbind();
         _properties?.Unbind();
         if (_modes != null)
@@ -240,6 +290,7 @@ public sealed partial class WFMappingScreenUIController : UIController
         readout.SetLimits(EntityManager.TrySystem<WFMappingClientSystem>(out var mapping) && mapping.Session is { } session
             ? WFMappingPropertiesPanel.Status(session.Limits)
             : string.Empty);
+        readout.SetSettings(_modes?.SettingsText() ?? string.Empty);
 
         var mouse = _input.MouseScreenPosition;
         var position = _eye.PixelToMap(mouse);

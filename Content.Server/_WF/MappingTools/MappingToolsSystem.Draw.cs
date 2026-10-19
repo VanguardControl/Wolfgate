@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Content.Shared._WF.MappingTools;
 using Content.Shared.Database;
@@ -19,10 +20,19 @@ public sealed partial class MappingToolsSystem
     private void OnDraw(MappingToolsDrawEvent ev, EntitySessionEventArgs args)
     {
         if (CanUse(args.SenderSession, request: true))
+        {
             Draw(args.SenderSession, ev);
+            return;
+        }
+
+        Log.Debug($"Refused a {ev.Op} draw from {args.SenderSession}: they may not use the mapping tools now");
+        _popup.PopupCursor(Loc.GetString("wf-mapping-tools-draw-not-allowed"), args.SenderSession);
     }
 
-    /// <summary>Lays tiles, spawns entities or removes decals over a set of cells, as one undoable edit.</summary>
+    /// <summary>
+    /// Lays tiles, spawns entities or removes decals over a set of cells, as one undoable edit. Tiles drawn with no
+    /// grid make a new grid over those map cells; entities skip cells without a tile.
+    /// </summary>
     public void Draw(ICommonSession session, MappingToolsDrawEvent ev)
     {
         var cells = ev.Cells;
@@ -31,17 +41,28 @@ public sealed partial class MappingToolsSystem
 
         if (cells.Count > MaxDrawCells)
         {
-            _popup.PopupCursor(Loc.GetString("wf-mapping-tools-draw-too-many", ("max", MaxDrawCells)), session);
+            Refuse(session, ev, "wf-mapping-tools-draw-too-many", ("max", MaxDrawCells));
             return;
         }
 
-        var gridUid = GetEntity(ev.Grid);
-        if (new HashSet<Vector2i>(cells).Count != cells.Count ||
-            !TryComp(gridUid, out MapGridComponent? gridComp) ||
+        if (new HashSet<Vector2i>(cells).Count != cells.Count)
+        {
+            Refuse(session, ev, "wf-mapping-tools-draw-bad");
+            return;
+        }
+
+        if (ev.Grid == null)
+        {
+            DrawNewGrid(session, ev);
+            return;
+        }
+
+        var gridUid = GetEntity(ev.Grid.Value);
+        if (!TryComp(gridUid, out MapGridComponent? gridComp) ||
             TerminatingOrDeleted(gridUid) ||
             Transform(gridUid).MapUid is not { } map)
         {
-            _popup.PopupCursor(Loc.GetString("wf-mapping-tools-draw-bad"), session);
+            Refuse(session, ev, "wf-mapping-tools-draw-bad");
             return;
         }
 
@@ -61,16 +82,125 @@ public sealed partial class MappingToolsSystem
         }
     }
 
+    /// <summary>Tells the player why a draw did nothing, and logs it.</summary>
+    private void Refuse(ICommonSession session, MappingToolsDrawEvent ev, string key, params (string, object)[] args)
+    {
+        Log.Debug($"Refused a {ev.Op} draw of {ev.Cells.Count} cells from {session}: {key}");
+        _popup.PopupCursor(Loc.GetString(key, args), session);
+    }
+
+    /// <summary>Asks whether a draw may go ahead; a refusal is logged, and the canceller tells the player why.</summary>
+    private bool CanDraw(ICommonSession session, MappingToolsDrawEvent ev, WFMappingCanEditEvent check)
+    {
+        if (CanEdit(check))
+            return true;
+
+        Log.Debug($"Refused a {ev.Op} draw of {ev.Cells.Count} cells from {session}: {check.Reason ?? "cancelled"}");
+        if (check.Reason == null)
+            _popup.PopupCursor(Loc.GetString("wf-mapping-tools-draw-not-allowed"), session);
+
+        return false;
+    }
+
+    private bool TryGetTileDef(ICommonSession session, MappingToolsDrawEvent ev,
+        [NotNullWhen(true)] out ContentTileDefinition? tileDef)
+    {
+        tileDef = null;
+        if (ev.TileId != null &&
+            _tileDefs.TryGetDefinition(ev.TileId, out var definition) &&
+            definition is ContentTileDefinition content)
+        {
+            tileDef = content;
+            return true;
+        }
+
+        Refuse(session, ev, "wf-mapping-tools-draw-bad-tile");
+        return false;
+    }
+
+    /// <summary>
+    /// Tiles drawn off every grid: a new grid over those map cells, made and undone as one root so undo removes it
+    /// whole. Checked as a new grid against the grid cap.
+    /// </summary>
+    private void DrawNewGrid(ICommonSession session, MappingToolsDrawEvent ev)
+    {
+        if (ev.Op != MappingDrawOp.SetTiles)
+        {
+            Refuse(session, ev, ev.Op == MappingDrawOp.SpawnEntities
+                ? "wf-mapping-tools-draw-needs-grid"
+                : "wf-mapping-tools-draw-bad");
+            return;
+        }
+
+        if (ev.Map is not { } netMap ||
+            !TryGetEntity(netMap, out var mapUid) ||
+            !TryComp(mapUid, out MapComponent? mapComp) ||
+            TerminatingOrDeleted(mapUid.Value))
+        {
+            Refuse(session, ev, "wf-mapping-tools-draw-bad");
+            return;
+        }
+
+        if (!TryGetTileDef(session, ev, out var tileDef))
+            return;
+
+        if (tileDef.TileId == Tile.Empty.TypeId)
+        {
+            Refuse(session, ev, "wf-mapping-tools-draw-nothing");
+            return;
+        }
+
+        var box = Bounds(ev.Cells);
+        var check = new WFMappingCanEditEvent(session, mapUid.Value, WFMappingEditKind.Paste)
+        {
+            Grid = null,
+            Cells = box,
+            Tiles = ev.Cells.Count,
+            NewGrid = true,
+            SelectionCells = ev.Cells.Count,
+        };
+
+        if (!CanDraw(session, ev, check))
+            return;
+
+        // The new grid's origin sits on the shape's bottom-left cell, so its cells line up with the map's tiles.
+        var origin = box.BottomLeft;
+        var grid = _map.CreateGridEntity(mapComp.MapId);
+        _transform.SetWorldPosition(grid.Owner, new Vector2(origin.X, origin.Y));
+
+        var rotation = tileDef.AllowRotationMirror ? (byte) (ev.TileRotationMirroring & 7) : (byte) 0;
+        var canSplit = grid.Comp.CanSplit;
+        grid.Comp.CanSplit = false;
+        _applying = true;
+        try
+        {
+            foreach (var cell in ev.Cells)
+            {
+                _map.SetTile(grid.Owner, grid.Comp, cell - origin,
+                    new Tile(tileDef.TileId, variant: _tileSystem.PickVariant(tileDef), rotationMirroring: rotation));
+            }
+        }
+        finally
+        {
+            _applying = false;
+            grid.Comp.CanSplit = canSplit;
+        }
+
+        var group = new MappingEntityGroup();
+        group.Roots.Add(new MappingGroupRoot(GetRef(grid.Owner), -1, PoseOf(grid.Owner)));
+        var edit = new MappingEdit("wf-mapping-tools-edit-draw-tiles");
+        edit.Created.Add(group);
+        Push(session, edit);
+        RaiseEdited(edit);
+        _adminLog.Add(LogType.Action, LogImpact.Medium,
+            $"{session:player} used mapping tools to draw {ev.Cells.Count} {tileDef.ID} tiles on a new grid {ToPrettyString(grid.Owner):grid}");
+    }
+
     private void DrawTiles(ICommonSession session, Entity<MapGridComponent> grid, EntityUid map,
         MappingToolsDrawEvent ev, Box2i box)
     {
-        if (ev.TileId == null ||
-            !_tileDefs.TryGetDefinition(ev.TileId, out var definition) ||
-            definition is not ContentTileDefinition tileDef)
-        {
-            _popup.PopupCursor(Loc.GetString("wf-mapping-tools-draw-bad-tile"), session);
+        if (!TryGetTileDef(session, ev, out var tileDef))
             return;
-        }
 
         var clearing = tileDef.TileId == Tile.Empty.TypeId;
         var rotation = tileDef.AllowRotationMirror ? (byte) (ev.TileRotationMirroring & 7) : (byte) 0;
@@ -88,7 +218,10 @@ public sealed partial class MappingToolsSystem
         }
 
         if (changes.Count == 0)
+        {
+            Refuse(session, ev, "wf-mapping-tools-draw-nothing");
             return;
+        }
 
         // Clearing every tile deletes the grid, so the grid goes as one root that undo brings back whole.
         var wholeGrid = clearing && ClearsGrid(grid, changes.Count);
@@ -101,7 +234,7 @@ public sealed partial class MappingToolsSystem
             TouchedEntities = wholeGrid ? Tree(grid.Owner).Count : 0,
         };
 
-        if (!CanEdit(check))
+        if (!CanDraw(session, ev, check))
             return;
 
         var edit = new MappingEdit("wf-mapping-tools-edit-draw-tiles");
@@ -145,27 +278,42 @@ public sealed partial class MappingToolsSystem
             !_prototypes.TryIndex<EntityPrototype>(ev.Prototype, out var prototype) ||
             prototype.Abstract)
         {
-            _popup.PopupCursor(Loc.GetString("wf-mapping-tools-draw-bad-prototype"), session);
+            Refuse(session, ev, "wf-mapping-tools-draw-bad-prototype");
+            return;
+        }
+
+        // Entities only go on tiles; a cell past the grid's floor is skipped rather than left on the map.
+        var onTiles = new List<Vector2i>(ev.Cells.Count);
+        foreach (var cell in ev.Cells)
+        {
+            if (!TileAt(grid, cell).IsEmpty)
+                onTiles.Add(cell);
+        }
+
+        var skipped = ev.Cells.Count - onTiles.Count;
+        if (onTiles.Count == 0)
+        {
+            Refuse(session, ev, "wf-mapping-tools-draw-no-tiles");
             return;
         }
 
         var check = new WFMappingCanEditEvent(session, map, WFMappingEditKind.Paste)
         {
             Grid = grid.Owner,
-            Cells = box,
-            Entities = ev.Cells.Count,
-            EntityCells = new List<Vector2i>(ev.Cells),
+            Cells = Bounds(onTiles),
+            Entities = onTiles.Count,
+            EntityCells = new List<Vector2i>(onTiles),
             SelectionCells = ev.Cells.Count,
-            TouchedEntities = ev.Cells.Count,
+            TouchedEntities = onTiles.Count,
             Prototypes = new List<string> { prototype.ID },
         };
 
-        if (!CanEdit(check))
+        if (!CanDraw(session, ev, check))
             return;
 
         var rotation = double.IsFinite(ev.Rotation.Theta) ? ev.Rotation.Reduced() : Angle.Zero;
         var group = new MappingEntityGroup();
-        foreach (var cell in ev.Cells)
+        foreach (var cell in onTiles)
         {
             var uid = Spawn(prototype.ID, new EntityCoordinates(grid.Owner, new Vector2(cell.X + 0.5f, cell.Y + 0.5f)));
             _transform.SetLocalRotation(uid, rotation);
@@ -177,7 +325,10 @@ public sealed partial class MappingToolsSystem
         Push(session, edit);
         RaiseEdited(edit);
         _adminLog.Add(LogType.Action, LogImpact.Medium,
-            $"{session:player} used mapping tools to draw {ev.Cells.Count} {prototype.ID} on {ToPrettyString(grid.Owner):grid}");
+            $"{session:player} used mapping tools to draw {onTiles.Count} {prototype.ID} on {ToPrettyString(grid.Owner):grid}");
+
+        if (skipped > 0)
+            _popup.PopupCursor(Loc.GetString("wf-mapping-tools-draw-skipped", ("count", skipped)), session);
     }
 
     private void EraseDecals(ICommonSession session, Entity<MapGridComponent> grid, EntityUid map,
@@ -203,7 +354,7 @@ public sealed partial class MappingToolsSystem
             Decals = edit.DecalsRemoved.Count,
         };
 
-        if (!CanEdit(check))
+        if (!CanDraw(session, ev, check))
             return;
 
         Commit(session, edit);

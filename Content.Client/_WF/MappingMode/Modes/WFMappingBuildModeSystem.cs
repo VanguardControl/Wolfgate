@@ -62,6 +62,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
     };
 
     private readonly Dictionary<WFMappingBuildMode, IWFMappingModeHandler> _handlers = new();
+    private List<Entity<MapGridComponent>> _nearGrids = new();
     private readonly bool[] _claimed = new bool[3];
     private bool _switching;
 
@@ -81,9 +82,12 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
     /// <summary>What Place mode places; the other modes keep it for when Place comes back.</summary>
     public WFMappingPaletteEntry? Entry { get; private set; }
 
-    public WFMappingEraseTarget EraseTarget { get; private set; } = WFMappingEraseTarget.Entity;
+    public WFMappingEraseTarget EraseTarget { get; private set; } = WFMappingEraseTarget.Everything;
 
     public WFMappingShapeKind ShapeKind { get; private set; } = WFMappingShapeKind.Line;
+
+    /// <summary>Whether rectangles and circles are drawn whole or only their border.</summary>
+    public WFMappingShapeFill ShapeFill { get; private set; } = WFMappingShapeFill.Fill;
 
     public WFMappingDecalSettings DecalSettings { get; private set; } = new(0f, true, 0, false);
 
@@ -284,6 +288,28 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         SettingsChanged?.Invoke();
     }
 
+    public void SetShapeFill(WFMappingShapeFill fill)
+    {
+        ShapeFill = fill;
+        SettingsChanged?.Invoke();
+    }
+
+    /// <summary>What the current mode works with, for the cursor readout; empty for modes without a sub-choice.</summary>
+    public string SettingsText()
+    {
+        return Mode switch
+        {
+            WFMappingBuildMode.Erase => Loc.GetString("wf-mapping-screen-readout-erase",
+                ("target", Loc.GetString($"wf-mapping-screen-erase-{EraseTarget.ToString().ToLowerInvariant()}"))),
+            WFMappingBuildMode.Shape when ShapeKind == WFMappingShapeKind.Line => Loc.GetString(
+                "wf-mapping-screen-readout-line"),
+            WFMappingBuildMode.Shape => Loc.GetString("wf-mapping-screen-readout-shape",
+                ("shape", Loc.GetString($"wf-mapping-screen-shape-{ShapeKind.ToString().ToLowerInvariant()}")),
+                ("fill", Loc.GetString($"wf-mapping-screen-shape-fill-{ShapeFill.ToString().ToLowerInvariant()}"))),
+            _ => string.Empty,
+        };
+    }
+
     /// <summary>Sets how decals are laid, and applies it to a decal being placed.</summary>
     public void SetDecalSettings(WFMappingDecalSettings settings)
     {
@@ -454,6 +480,9 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
 
     /// <summary>Whether Ctrl is held, for handlers that only take Ctrl+wheel.</summary>
     public bool CtrlDown => _input.IsKeyDown(Keyboard.Key.Control);
+
+    /// <summary>Whether Shift is held, which keeps rectangles square and circles round.</summary>
+    public bool ShiftDown => _input.IsKeyDown(Keyboard.Key.Shift);
 
     /// <summary>Turns what Place mode is placing by quarter turns, clockwise for positive steps.</summary>
     public bool RotatePlacement(int steps)
@@ -635,6 +664,66 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         return true;
     }
 
+    /// <summary>
+    /// The grid a shape from <paramref name="start"/> to <paramref name="end"/> goes on: the grid under the start,
+    /// else the one under the end, else one whose tiles touch or overlap the shape's box of cells; null for none.
+    /// </summary>
+    public EntityUid? ResolveShapeGrid(MapCoordinates start, MapCoordinates end)
+    {
+        if (start.MapId == MapId.Nullspace || end.MapId != start.MapId)
+            return null;
+
+        if (_map.TryFindGridAt(start, out var under, out _) || _map.TryFindGridAt(end, out under, out _))
+            return under;
+
+        // A rotated grid's box of cells has its corners on the circle through the two ends.
+        var centre = (start.Position + end.Position) / 2f;
+        var reach = (end.Position - start.Position).Length() / 2f + 2f;
+        _nearGrids.Clear();
+        _map.FindGridsIntersecting(start.MapId, new Box2(centre - new Vector2(reach), centre + new Vector2(reach)),
+            ref _nearGrids, includeMap: false);
+
+        EntityUid? best = null;
+        foreach (var grid in _nearGrids)
+        {
+            if (!TouchesTiles(grid, start, end) || best is { } chosen && chosen.Id <= grid.Owner.Id)
+                continue;
+
+            best = grid.Owner;
+        }
+
+        return best;
+    }
+
+    /// <summary>Whether the box of a grid's cells between two map positions overlaps or borders its tiles.</summary>
+    private bool TouchesTiles(Entity<MapGridComponent> grid, MapCoordinates start, MapCoordinates end)
+    {
+        var tiles = grid.Comp.LocalAABB;
+        if (tiles.Width <= 0f || tiles.Height <= 0f)
+            return false;
+
+        var a = _map.TileIndicesFor(grid, grid.Comp, start);
+        var b = _map.TileIndicesFor(grid, grid.Comp, end);
+        var min = Vector2i.ComponentMin(a, b);
+        var max = Vector2i.ComponentMax(a, b) + Vector2i.One;
+        return min.X <= tiles.Right && max.X >= tiles.Left && min.Y <= tiles.Top && max.Y >= tiles.Bottom;
+    }
+
+    /// <summary>The cell of a map position on a grid, or the map tile under it when the grid is null.</summary>
+    public Vector2i CellAt(EntityUid? grid, MapCoordinates position)
+    {
+        if (grid is { } uid && TryGetCellOn(uid, position, out var cell))
+            return cell;
+
+        return new Vector2i((int) MathF.Floor(position.X), (int) MathF.Floor(position.Y));
+    }
+
+    /// <summary>The entity of a map, or invalid.</summary>
+    public EntityUid MapUid(MapId map)
+    {
+        return _map.GetMapOrInvalid(map);
+    }
+
     /// <summary>The map position of a click.</summary>
     public MapCoordinates ToMap(EntityCoordinates coordinates)
     {
@@ -691,6 +780,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
 
     public void SendDraw(MappingToolsDrawEvent ev)
     {
+        Log.Debug($"Sending a {ev.Op} draw of {ev.Cells.Count} cells on {ev.Grid?.ToString() ?? $"a new grid on {ev.Map}"}");
         RaiseNetworkEvent(ev);
     }
 

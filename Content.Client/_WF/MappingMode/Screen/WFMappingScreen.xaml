@@ -30,7 +30,8 @@
                 <PanelContainer.PanelOverride>
                     <graphics:StyleBoxFlat BackgroundColor="#16161A" />
                 </PanelContainer.PanelOverride>
-                <SplitContainer Orientation="Vertical" VerticalExpand="True" SplitWidth="2" StretchDirection="TopLeft">
+                <SplitContainer Name="RightColumn" Orientation="Vertical" VerticalExpand="True" SplitWidth="2"
+                                StretchDirection="TopLeft">
                     <TabContainer Name="RightTabs" Access="Public" VerticalExpand="True" HorizontalExpand="True">
                         <BoxContainer Name="PropertiesHost" Access="Public" Orientation="Vertical"
                                       HorizontalExpand="True" VerticalExpand="True" />

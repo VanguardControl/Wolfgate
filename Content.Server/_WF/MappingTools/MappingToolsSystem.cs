@@ -204,6 +204,42 @@ public sealed partial class MappingToolsSystem : EntitySystem
             }
         }
 
+        // Single cells outside the area, each with its tile, entities and decals.
+        var picked = new HashSet<Vector2i>();
+        var resolvedArea = extent;
+        if (selection.Cells.Count <= MaxArea)
+        {
+            foreach (var cell in selection.Cells)
+            {
+                if (resolvedArea is { } areaBox && MappingToolsMath.Contains(areaBox, cell) || !picked.Add(cell))
+                {
+                    continue;
+                }
+
+                result.AreaCells++;
+                extent = MappingToolsMath.Include(extent, cell);
+                if (_map.TryGetTileRef(gridUid, grid, cell, out var tileRef) && !tileRef.Tile.IsEmpty)
+                    result.Tiles.Add((cell, tileRef.Tile));
+
+                var cellBounds = new Box2(cell.X - 1, cell.Y - 1, cell.X + 2, cell.Y + 2);
+                foreach (var (_, decal) in _decals.GetDecalsIntersecting(gridUid, cellBounds))
+                {
+                    if (MappingToolsMath.CellOf(decal.Coordinates + new Vector2(0.5f)) == cell)
+                        result.Decals.Add(decal);
+                }
+            }
+        }
+
+        if (picked.Count > 0)
+        {
+            var children = Transform(gridUid).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                if (picked.Contains(MappingToolsMath.CellOf(Transform(child).LocalPosition)) && IsSelectable(child))
+                    result.Entities.Add(child);
+            }
+        }
+
         foreach (var netEntity in selection.Entities)
         {
             if (!TryGetEntity(netEntity, out var uid) ||

@@ -121,6 +121,9 @@ public sealed class MappingToolsSystem : EntitySystem
     /// <summary>Whether anything is selected.</summary>
     public bool HasSelection => _tool.HasSelection;
 
+    /// <summary>The selection tool, read by tests and the mapping screen.</summary>
+    public MappingSelectionTool Selection => _tool;
+
     /// <summary>
     /// Whether the window is open and the keys work.
     /// </summary>

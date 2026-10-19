@@ -7,6 +7,7 @@ using Content.Client._WF.MappingMode.Modes;
 using Content.Client._WF.MappingMode.QuickSelect;
 using Content.Client._WF.MappingMode.Screen;
 using Content.Client._WF.MappingMode.Template;
+using Content.Client._WF.MappingTools;
 using Content.Client.Gameplay;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Screens;
@@ -15,6 +16,7 @@ using Content.Client.UserInterface.Systems.MenuBar.Widgets;
 using Content.Server._WF.MappingMode;
 using Content.Shared._WF.MappingMode;
 using Content.Shared.CCVar;
+using Content.Shared.Input;
 using Robust.Client.GameObjects;
 using Robust.Client.Input;
 using Robust.Client.State;
@@ -23,6 +25,7 @@ using Robust.Shared.ContentPack;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Input;
 using Robust.Shared.Map;
+using Robust.Shared.Maths;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 using static Content.IntegrationTests.Tests._WF.MappingMode.WFMappingModeTestUtil;
@@ -143,7 +146,101 @@ public sealed class WFMappingScreenTest
         await pair.RunTicksSync(10);
         await client.WaitAssertion(() => AssertMappingScreen("After a layout change"));
 
+        // Undocking a column's last docked panel collapses that column; docking one brings it back.
+        await client.WaitAssertion(() =>
+        {
+            var screen = (WFMappingScreen) uiMan.ActiveScreen!;
+            var palette = Descendants(screen.PaletteHost).OfType<WFMappingDockSlot>().Single();
+            var tabs = Descendants(screen.RightTabs).OfType<WFMappingDockSlot>().ToList();
+            Assert.Multiple(() =>
+            {
+                Assert.That(screen.LeftCollapsed, Is.False);
+                Assert.That(screen.RightCollapsed, Is.False);
+                Assert.That(tabs, Has.Count.GreaterThan(1));
+            });
+
+            palette.Undock();
+            Assert.That(screen.LeftCollapsed, Is.True, "Undocking the palette collapses the left dock.");
+            palette.Dock();
+            Assert.That(screen.LeftCollapsed, Is.False, "Docking it brings the column back.");
+
+            tabs[0].Undock();
+            Assert.That(screen.RightCollapsed, Is.False, "The other tabs are still docked.");
+            foreach (var tab in tabs)
+            {
+                tab.Undock();
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(screen.RightCollapsed, Is.True, "Every tab undocked collapses the right dock.");
+                Assert.That(Descendants(screen).Contains(screen.ChatBox), Is.True, "The chat stays on screen.");
+                Assert.That(screen.GetWidget<GameTopMenuBar>()?.VisibleInTree, Is.True, "The top bar stays.");
+                Assert.That(screen.QuickBarHost.VisibleInTree, Is.True, "The quick bar stays.");
+            });
+
+            tabs[1].Dock();
+            Assert.That(screen.RightCollapsed, Is.False, "Docking one tab brings the column back.");
+            foreach (var tab in tabs)
+            {
+                tab.Dock();
+            }
+
+            Assert.That(screen.RightCollapsed, Is.False);
+        });
+
+        // Select mode: a click on a tile with nothing on it selects that cell.
+        NetEntity tileGridNet = default;
+        await server.WaitPost(() =>
+        {
+            var serverMap = server.EntMan.System<SharedMapSystem>();
+            var mapId = server.EntMan.GetComponent<TransformComponent>(pair.Player!.AttachedEntity!.Value).MapID;
+            var tileGrid = serverMap.CreateGridEntity(mapId);
+            server.EntMan.System<SharedTransformSystem>().SetWorldPosition(tileGrid.Owner, new Vector2(40f, 40f));
+            serverMap.SetTile(tileGrid.Owner, tileGrid.Comp, new Vector2i(2, 3),
+                new Tile(server.ResolveDependency<ITileDefinitionManager>()["Plating"].TileId));
+            tileGridNet = server.EntMan.GetNetEntity(tileGrid.Owner);
+        });
+        await pair.RunTicksSync(10);
+
+        await client.WaitAssertion(() =>
+        {
+            var tools = client.EntMan.System<MappingToolsSystem>();
+            var tileGrid = client.EntMan.GetEntity(tileGridNet);
+            Assert.That(client.EntMan.EntityExists(tileGrid), Is.True, "The tile grid reached the client.");
+
+            modes.SetMode(WFMappingBuildMode.Select);
+            Assert.That(modes.Mode, Is.EqualTo(WFMappingBuildMode.Select));
+            tools.Selection.Clear();
+            var at = new EntityCoordinates(tileGrid, new Vector2(2.5f, 3.5f));
+            Select(BoundKeyState.Down, at);
+            Select(BoundKeyState.Up, at);
+            Assert.Multiple(() =>
+            {
+                Assert.That(tools.Selection.Grid, Is.EqualTo(tileGrid), "The tile's grid is selected.");
+                Assert.That(tools.Selection.Area, Is.EqualTo(new Box2i(new Vector2i(2, 3), new Vector2i(3, 4))),
+                    "The selection is that one cell.");
+            });
+
+            tools.Selection.Clear();
+            modes.SetMode(WFMappingBuildMode.Place);
+        });
+
         // Erase claims the left button; Place leaves it to the engine's placement.
+        bool Select(BoundKeyState state, EntityCoordinates at)
+        {
+            var inputSys = client.EntMan.System<InputSystem>();
+            var timing = client.ResolveDependency<IGameTiming>();
+            var function = ContentKeyFunctions.WFMappingSelect;
+            var message = new ClientFullInputCmdMessage(timing.CurTick, timing.TickFraction,
+                inputMan.NetworkBindMap.KeyFunctionID(function))
+            {
+                State = state,
+                Coordinates = at,
+            };
+            return inputSys.HandleInputCommand(client.Session!, function, message);
+        }
+
         bool Press(BoundKeyState state)
         {
             var inputSys = client.EntMan.System<InputSystem>();
