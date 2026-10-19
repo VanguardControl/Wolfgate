@@ -626,6 +626,9 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Content.Shared/_WF/Xenonids/Parasite/RMCHideParasiteInfectionContainerPopupComponent.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/RMCHideParasiteInfectionContainerPopupComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Parasite/SharedXenoParasiteSystem.AI.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/SharedXenoParasiteSystem.AI.cs)
 - [`Content.Shared/_WF/Xenonids/Parasite/SharedXenoParasiteSystem.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/SharedXenoParasiteSystem.cs)
+- [`Content.Shared/_WF/Xenonids/Parasite/Surgery/SharedXenoParasiteSystem.Surgery.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/Surgery/SharedXenoParasiteSystem.Surgery.cs)
+- [`Content.Shared/_WF/Xenonids/Parasite/Surgery/XenoLarvaSurgeryComponents.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/Surgery/XenoLarvaSurgeryComponents.cs)
+- [`Content.Shared/_WF/Xenonids/Parasite/Surgery/XenoLarvaSurgerySystem.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/Surgery/XenoLarvaSurgerySystem.cs)
 - [`Content.Shared/_WF/Xenonids/Parasite/TrapParasiteComponent.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/TrapParasiteComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Parasite/VictimBurstComponent.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/VictimBurstComponent.cs)
 - [`Content.Shared/_WF/Xenonids/Parasite/VictimInfectedComponent.cs`](../../../Content.Shared/_WF/Xenonids/Parasite/VictimInfectedComponent.cs)
@@ -983,6 +986,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoEvolutionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoEvolutionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveBootstrapTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveBootstrapTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHunterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHunterTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoLarvaSurgeryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoLarvaSurgeryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoLineTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoLineTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoParasiteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoQueenTest.cs)
@@ -1089,6 +1093,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Resources/Prototypes/_WF/Xenonids/Entities/Structures/Xeno/xeno_walls.yml`](../../../Resources/Prototypes/_WF/Xenonids/Entities/Structures/Xeno/xeno_walls.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Entities/Structures/Xeno/xeno_weeds.yml`](../../../Resources/Prototypes/_WF/Xenonids/Entities/Structures/Xeno/xeno_weeds.yml)
 - [`Resources/Prototypes/_WF/Xenonids/GhostRoleRaffles/xeno_settings.yml`](../../../Resources/Prototypes/_WF/Xenonids/GhostRoleRaffles/xeno_settings.yml)
+- [`Resources/Prototypes/_WF/Xenonids/Guidebook/guides.yml`](../../../Resources/Prototypes/_WF/Xenonids/Guidebook/guides.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Roles/Jobs/JobIcons/xeno_job_icons.yml`](../../../Resources/Prototypes/_WF/Xenonids/Roles/Jobs/JobIcons/xeno_job_icons.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Roles/Xeno/boiler.yml`](../../../Resources/Prototypes/_WF/Xenonids/Roles/Xeno/boiler.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Roles/Xeno/burrower.yml`](../../../Resources/Prototypes/_WF/Xenonids/Roles/Xeno/burrower.yml)
@@ -1114,6 +1119,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Resources/Prototypes/_WF/Xenonids/Shaders/shaders.yml`](../../../Resources/Prototypes/_WF/Xenonids/Shaders/shaders.yml)
 - [`Resources/Prototypes/_WF/Xenonids/SoundCollections/xeno_speech.yml`](../../../Resources/Prototypes/_WF/Xenonids/SoundCollections/xeno_speech.yml)
 - [`Resources/Prototypes/_WF/Xenonids/SoundCollections/xeno_structures.yml`](../../../Resources/Prototypes/_WF/Xenonids/SoundCollections/xeno_structures.yml)
+- [`Resources/Prototypes/_WF/Xenonids/Surgery/larva_removal.yml`](../../../Resources/Prototypes/_WF/Xenonids/Surgery/larva_removal.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Trapper/acid_explosion.yml`](../../../Resources/Prototypes/_WF/Xenonids/Trapper/acid_explosion.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Voice/Xenonid/xeno_emote_sounds.yml`](../../../Resources/Prototypes/_WF/Xenonids/Voice/Xenonid/xeno_emote_sounds.yml)
 - [`Resources/Prototypes/_WF/Xenonids/Voice/Xenonid/xeno_emotes.yml`](../../../Resources/Prototypes/_WF/Xenonids/Voice/Xenonid/xeno_emotes.yml)
@@ -1127,6 +1133,8 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Resources/Locale/en-US/_WF/Xenonids/wf-xeno-categories.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/wf-xeno-categories.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/wf-xeno-commands.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/wf-xeno-commands.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/wf-xeno-core.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/wf-xeno-core.ftl)
+- [`Resources/Locale/en-US/_WF/Xenonids/xeno-guidebook.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno-guidebook.ftl)
+- [`Resources/Locale/en-US/_WF/Xenonids/xeno-surgery.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno-surgery.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/xeno-toolshed-commands.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno-toolshed-commands.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/xeno/xeno-abilities.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno/xeno-abilities.ftl)
 - [`Resources/Locale/en-US/_WF/Xenonids/xeno/xeno-access.ftl`](../../../Resources/Locale/en-US/_WF/Xenonids/xeno/xeno-access.ftl)
@@ -1446,6 +1454,35 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Resources/Audio/_WF/Xenonids/Xeno/xeno_newlarva.ogg`](../../../Resources/Audio/_WF/Xenonids/Xeno/xeno_newlarva.ogg)
 - [`Resources/Audio/_WF/Xenonids/Xeno/xenos_roaring.ogg`](../../../Resources/Audio/_WF/Xenonids/Xeno/xenos_roaring.ogg)
 
+### Guidebook
+
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideDesignerHivelord.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideDesignerHivelord.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideHiveStructures.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideHiveStructures.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideResinHoles.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideResinHoles.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleBoiler.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleBoiler.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleBurrower.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleBurrower.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleCarrier.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleCarrier.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleCrusher.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleCrusher.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleDefender.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleDefender.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleDrone.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleDrone.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleEggsac.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleEggsac.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleHivelord.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleHivelord.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleLurker.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleLurker.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleOppressor.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleOppressor.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleParasite.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleParasite.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRolePraetorian.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRolePraetorian.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleQueen.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleQueen.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleRavager.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleRavager.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleRunner.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleRunner.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleSapper.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleSapper.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleSentinel.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleSentinel.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleSpitter.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleSpitter.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleValkyrie.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleValkyrie.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleVampire.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleVampire.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleVanguard.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleVanguard.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleWarrior.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideRoleWarrior.xml)
+- [`Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideXenonidRoles.xml`](../../../Resources/ServerInfo/_WF/Xenonids/Guides/RMCGuideXenonidRoles.xml)
+
 ### Tools
 
 - [`Tools/_WF/Xenonids/asset_reuse.txt`](../../../Tools/_WF/Xenonids/asset_reuse.txt)
@@ -1478,6 +1515,7 @@ Port notes and API differences are in `Docs/_WF/Xenonids/PORT_BRIEF.md`.
 - [`Content.Shared/Weapons/Melee/MeleeWeaponComponent.cs`](../../../Content.Shared/Weapons/Melee/MeleeWeaponComponent.cs): xeno wide swing; the wide-swing key does a heavy attack with this weapon
 - [`Content.Shared/Weapons/Ranged/Components/TargetedProjectileComponent.cs`](../../../Content.Shared/Weapons/Ranged/Components/TargetedProjectileComponent.cs): the xeno projectile system sets the target of its shots
 - [`Resources/keybinds.yml`](../../../Resources/keybinds.yml): RMC's xeno wide swing, xeno rest and resist keys
+- [`Resources/Prototypes/_Mono/Guidebook/creatures.yml`](../../../Resources/Prototypes/_Mono/Guidebook/creatures.yml): guidebook
 - [`Resources/Prototypes/Entities/Mobs/Player/observer.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/observer.yml)
   - the join-as-xeno hive dialog
   - ghosts can join a hive as a burrowed larva
