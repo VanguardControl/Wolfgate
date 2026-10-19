@@ -1,0 +1,39 @@
+## Mapping screen: the PNG template
+
+wf-mapping-template-title = Template
+wf-mapping-template-load = Load PNG
+wf-mapping-template-load-tooltip = Pick a PNG to trace over. It replaces the current template.
+wf-mapping-template-clear = Clear
+wf-mapping-template-clear-tooltip = Remove the template and its saved copy for this session.
+wf-mapping-template-visible = Show
+wf-mapping-template-locked = Lock
+wf-mapping-template-locked-tooltip = Dragging, the wheel and the arrows leave it alone.
+wf-mapping-template-layer = Layer
+wf-mapping-template-layer-under = Under the map
+wf-mapping-template-layer-over = Over the map
+wf-mapping-template-section-position = Centre (tiles)
+wf-mapping-template-section-scale = Scale
+wf-mapping-template-section-rotation = Rotation
+wf-mapping-template-section-opacity = Opacity
+wf-mapping-template-x = X
+wf-mapping-template-y = Y
+wf-mapping-template-scale-x = X
+wf-mapping-template-scale-y = Y
+wf-mapping-template-degrees = Degrees
+wf-mapping-template-uniform = Keep proportions
+wf-mapping-template-uniform-tooltip = Changing one scale changes the other by the same amount.
+wf-mapping-template-pixels-per-tile = Pixels per tile
+wf-mapping-template-reset = Reset
+wf-mapping-template-reset-tooltip = Default scale, rotation and opacity, centred on the view.
+wf-mapping-template-opacity-value = {$percent}%
+wf-mapping-template-hint = Template mode (7): drag to move, Ctrl+drag to scale, Shift+drag to rotate, Ctrl+wheel to scale. Arrows nudge by one pixel, Shift+arrows by eight. Right click or Escape drops a drag.
+wf-mapping-template-info = {$width}×{$height} px, {$tilesX}×{$tilesY} tiles
+wf-mapping-template-info-none = No template loaded.
+wf-mapping-template-info-no-session = Join a session to load a template.
+
+wf-mapping-template-none = Load a template first.
+wf-mapping-template-is-locked = The template is locked.
+wf-mapping-template-not-png = That isn't a PNG this can read.
+wf-mapping-template-file-too-large = That file is too big. The most is {$max} MiB.
+wf-mapping-template-image-too-large = That image is too big. The most is {$side} pixels a side and 4096×4096 in all.
+wf-mapping-template-read-failed = Couldn't load that file.
