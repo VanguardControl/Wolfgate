@@ -2,7 +2,9 @@
 
 Client-predicted guns and some weapon content. The shooter's client fires its own copy of each projectile and hitscan
 beam, so shots appear the moment they're fired; the server links its copy to the prediction and hides it from the
-shooter. Also material bullet impact and punch sounds ported from Skyrat-tg, and a Mosin loadout for the Contractor.
+shooter. When the server fires fewer rounds than a request predicted (a burst it carried on itself, a late request it
+had already caught up), it names the unfired copies in `WFPredictedShotsRefusedEvent` and the shooter's client drops
+them, so no phantom round flies on. Also material bullet impact and punch sounds ported from Skyrat-tg, and a Mosin loadout for the Contractor.
 
 Entry points: the `GunSystem.Prediction` partials (shared, client and server), `impacts.yml` with the sounds under
 `Resources/Audio/_WF/Weapons`, and `WFContractorMosinLoadout`. `WFGunPredictionTest` covers prediction.
@@ -38,11 +40,13 @@ predicted on their own client; this only cuts the audio entities other players r
 ### Shared
 
 - [`Content.Shared/_WF/Weapons/Ranged/Components/WFLoaderAutoFeedComponent.cs`](../../../Content.Shared/_WF/Weapons/Ranged/Components/WFLoaderAutoFeedComponent.cs)
+- [`Content.Shared/_WF/Weapons/Ranged/Events/WFPredictedShotsRefusedEvent.cs`](../../../Content.Shared/_WF/Weapons/Ranged/Events/WFPredictedShotsRefusedEvent.cs)
 - [`Content.Shared/_WF/Weapons/Ranged/Systems/SharedGunSystem.Prediction.cs`](../../../Content.Shared/_WF/Weapons/Ranged/Systems/SharedGunSystem.Prediction.cs)
 
 ### Client
 
 - [`Content.Client/_WF/Weapons/Ranged/Systems/GunSystem.Prediction.cs`](../../../Content.Client/_WF/Weapons/Ranged/Systems/GunSystem.Prediction.cs)
+- [`Content.Client/_WF/Weapons/Ranged/Systems/WFPredictedShotRefusalSystem.cs`](../../../Content.Client/_WF/Weapons/Ranged/Systems/WFPredictedShotRefusalSystem.cs)
 
 ### Integration tests
 
