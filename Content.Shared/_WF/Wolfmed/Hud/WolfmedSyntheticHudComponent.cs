@@ -127,4 +127,7 @@ public enum WolfmedSyntheticCondition : byte
 
     /// <summary>The optics carry flash damage: blurred or blind until glass or the eye surgery fixes them.</summary>
     OpticsDamaged,
+
+    /// <summary>Synthetics: the chassis panel has cut the part's servos and sensors. Shown instead of PartDisabled.</summary>
+    PartIsolated,
 }

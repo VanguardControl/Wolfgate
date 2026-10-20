@@ -62,6 +62,7 @@ wolfmed-synthetic-line-actuator-offline = ACTUATOR OFFLINE
 wolfmed-synthetic-line-limb-detached = LIMB DETACHED
 wolfmed-synthetic-line-embedded = FOREIGN OBJECT
 wolfmed-synthetic-line-optics = OPTICS DAMAGED
+wolfmed-synthetic-line-isolated = ISOLATED
 
 # One-line advice for the worst fault. The analyzer's own advice keys are whole paragraphs; these are the
 # same instruction cut to what fits under the SYSTEM block.
@@ -80,6 +81,7 @@ wolfmed-synthetic-advice-core = SEEK AUTODOC
 wolfmed-synthetic-advice-limb = REATTACH LIMB
 wolfmed-synthetic-advice-embedded = EXTRACT OBJECT
 wolfmed-synthetic-advice-optics = APPLY GLASS SHEET
+wolfmed-synthetic-advice-isolated = RESTORE FROM PANEL
 
 # Banners across the top edge, worst first.
 wolfmed-synthetic-banner-integrity = STRUCTURAL INTEGRITY { $value } - SEEK MAINTENANCE
@@ -95,6 +97,7 @@ wolfmed-synthetic-cause-shutdown = { $source ->
     [Pump] COOLANT PUMP OFFLINE: SHUTDOWN
    *[other] CELL EMPTY: SHUTDOWN. AWAITING POWER.
 }
+wolfmed-synthetic-cause-reboot = SYSTEM REBOOT
 
 wolfmed-synthetic-banner-panic = KERNEL PANIC
 wolfmed-synthetic-panic-dump = SEGMENTATION FAULT AT 0x{ $address }

@@ -115,6 +115,14 @@
   severity: Fail
   advice: wolfmed-synthetic-advice-servo
 
+# Synthetics: a limb the chassis panel isolated. Deliberate, so it is a note rather than a failure.
+- type: syntheticHudLine
+  id: WFSyntheticHudPartIsolated
+  condition: PartIsolated
+  line: wolfmed-synthetic-line-isolated
+  severity: Info
+  advice: wolfmed-synthetic-advice-isolated
+
 - type: syntheticHudLine
   id: WFSyntheticHudPartMissing
   condition: PartMissing
