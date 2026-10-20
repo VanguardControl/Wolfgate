@@ -623,7 +623,9 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         var total = 0f;
         foreach (var (part, _) in _body.GetBodyChildren(body))
         {
-            if (TryComp(part, out PainComponent? pain))
+            // Synthetics: an isolated chassis part has its sensors off.
+            if (TryComp(part, out PainComponent? pain) &&
+                !HasComp<Content.Shared._WF.Synthetics.WFIsolatedPartComponent>(part))
                 total += _pain.GetPain((part, pain)).Float();
         }
 

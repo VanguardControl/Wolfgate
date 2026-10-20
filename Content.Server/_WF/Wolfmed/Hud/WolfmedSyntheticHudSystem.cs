@@ -38,6 +38,9 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
 
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(0.5);
 
+    /// <summary>Synthetics: the standby title while the chassis panel reboots the frame.</summary>
+    private const string RebootLine = "wolfmed-synthetic-cause-reboot";
+
     [Dependency] private BloodstreamSystem _blood = default!;
     [Dependency] private BodyPartFunctionalitySystem _functionality = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -142,7 +145,10 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
                 Add(found, target, line.Line, tag, line.Advice);
             }
 
-            if (state == BodyPartFunctionalityState.Disabled)
+            // Synthetics: a part the panel isolated says so, rather than reading as broken.
+            if (HasComp<Content.Shared._WF.Synthetics.WFIsolatedPartComponent>(part))
+                AddCondition(found, target, WolfmedSyntheticCondition.PartIsolated);
+            else if (state == BodyPartFunctionalityState.Disabled)
                 AddCondition(found, target, WolfmedSyntheticCondition.PartDisabled);
             else if (state == BodyPartFunctionalityState.Unavailable)
                 AddCondition(found, target, WolfmedSyntheticCondition.PartMissing);
@@ -173,6 +179,9 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         if (down)
             AddCondition(found, TargetBodyPart.Torso, WolfmedSyntheticCondition.Shutdown);
 
+        // Synthetics: a panel reboot puts the readout on its standby screen, REBOOT PENDING under it.
+        var rebooting = HasComp<Content.Server._WF.Synthetics.WFChassisRebootComponent>(hud.Owner);
+
         var core = _life.GetBrainOrgan(hud.Owner);
         var offline = core is { } organ && organ.Comp.Health <= FixedPoint2.Zero;
         if (offline)
@@ -200,7 +209,8 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
 
         var newIntegrity = weight > 0f ? integrity / weight : 1f;
         var newServos = limbs > 0f ? servos / limbs : 1f;
-        var causeLine = CauseLine(hud.Owner);
+        var causeLine = rebooting && !down ? RebootLine : CauseLine(hud.Owner);
+        down |= rebooting;
         // Full like every other gauge when nothing is wrong; it empties as the damage sensors overload.
         var sensors = TryComp(hud.Owner, out PainComponent? pain) && pain.SoftPainCap > FixedPoint2.Zero
             ? 1f - Math.Clamp(pain.Value.Float() / pain.SoftPainCap.Float(), 0f, 1f)
@@ -324,7 +334,7 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
     }
 
     /// <summary>How whole one part is: 1 untouched, 0 at the damage that would take it off.</summary>
-    private float PartIntegrity(EntityUid part)
+    public float PartIntegrity(EntityUid part)
     {
         var thresholds = _wfPart.Get(part).AmputationThresholds;
         if (thresholds.Count == 0 || !TryComp(part, out DamageableComponent? damageable))
