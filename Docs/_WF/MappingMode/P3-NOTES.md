@@ -39,3 +39,32 @@ Stage P3 of PLAN2.md. What was built, and the choices the plan left open.
   result's Fluent id) are public, since a dummy session can't receive the result events.
 - **Open from the Mapping window.** The upload row's Open is hidden there, as the library list's is: opening needs the
   lobby.
+
+## Unknown prototypes
+
+A file using prototypes this server lacks is no longer refused outright; the player may load it without them.
+
+- **Flow.** When validation finds unknown prototypes and nothing else wrong, the server keeps the assembled bytes for
+  `upload_confirm_seconds` (120, server only) and sends `WFMappingUploadNeedsConfirmEvent`: up to 25 names, sorted,
+  the total count, and the entities that would go. Nothing is loaded yet. The upload row shows the warning with Load
+  anyway, which sends `WFMappingUploadConfirmRequest(DropMissing: true)`, and Cancel, which sends the usual cancel.
+  The done event and result say how many entities were dropped.
+- **Server decides.** The confirm carries no names. The bytes are validated again, the missing set worked out again,
+  stripped, and stored exactly as a clean upload (scratch load, deny strip, caps). A confirm without `DropMissing` is
+  ignored and the upload keeps waiting. The drop is logged at Info with the player and the count.
+- **What goes.** `StripMissing` removes the missing prototypes' groups, then, round after round, every entity whose
+  Transform parent was removed. Removed uids also leave the root `maps`/`grids`/`orphans`/`nullspace` lists and
+  survivors' container `ents` lists and `ent` slots, since the loader logs an error for an unknown uid and the
+  integration tests fail on error logs. Other references to a removed entity (device links and the like) still log
+  that error and load as invalid. `meta.entityCount` becomes the remaining count. The entity cap is checked on the
+  file before stripping.
+- **Discarded.** Timeout (the result says it waited too long), disconnect, cancel, the end of the player's session
+  membership, and a new begin from the same player, which replaces it. A confirm that arrives after the deadline
+  but before the tick that drops it is treated as expired.
+- **Client.** A new `Confirming` stage that the client's 40 s stall timer skips; the server's deadline ends it. The
+  warning sits in a wrapping `RichTextLabel` in place of the clipped label, as plain text so prototype ids can't carry
+  markup.
+- **Tests.** `WFMappingUploadTest` covers the pending question and its counts (with an item parented to a missing
+  wall), an ignored confirm without the flag, an expired one, and the stored version opening with only the surviving
+  item. `WFMappingUploadClientTest` runs the warning and Load anyway through the real client. `StripMissing` has unit
+  tests in `Content.Tests/_WF/MappingMode/WFMappingUploadValidatorTest.cs`.

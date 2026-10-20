@@ -105,6 +105,7 @@ public sealed partial class WFMappingLobbyUIController : UIController, IOnStateE
         panel.DownloadRow.OpenFolderPressed += () => _mapping.OpenDownloadFolder();
         panel.UploadButton.OnPressed += _ => _upload.PickAndUpload();
         panel.UploadRow.CancelPressed += () => _upload.Cancel();
+        panel.UploadRow.LoadAnywayPressed += () => _upload.ConfirmDropMissing();
         panel.UploadRow.OpenPressed += (map, version) => _mapping.Send(new WFMappingOpenRequest(map, version));
 
         lobby.WFApplyMappingMode(panel, () => _mapping.Send(new WFMappingAdminObserveRequest()));

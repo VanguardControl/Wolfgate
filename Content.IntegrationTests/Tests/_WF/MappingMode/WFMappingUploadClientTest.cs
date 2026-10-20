@@ -17,8 +17,9 @@ using static Content.IntegrationTests.Tests._WF.MappingMode.WFMappingModeTestUti
 namespace Content.IntegrationTests.Tests._WF.MappingMode;
 
 /// <summary>
-/// The real client's upload path, from the bytes a picked file gives it to the version in its library. The picker
-/// itself can't run headless, so this starts where it hands the file over.
+/// The real client's upload path, from the bytes a picked file gives it to the version in its library, and through
+/// the unknown-prototype warning to a confirmed upload. The picker itself can't run headless, so this starts where it
+/// hands the file over.
 /// </summary>
 [TestFixture]
 public sealed class WFMappingUploadClientTest
@@ -39,10 +40,15 @@ public sealed class WFMappingUploadClientTest
         await Enable(pair);
         var player = pair.Player!;
 
-        // A small map saved to text, as a file on the player's disk would hold it.
+        // A small map saved to text, as a file on the player's disk would hold it; then with a wall of a prototype
+        // this server lacks.
+        const string missingProto = "WFUploadClientTestMissing";
         var yaml = string.Empty;
+        var missingYaml = string.Empty;
         await server.WaitAssertion(() =>
         {
+            server.CfgMan.SetCVar(WFMappingModeCVars.UploadCooldown, 0f);
+            server.CfgMan.SetCVar(WFMappingModeCVars.ReferenceCooldown, 0f);
             Assert.That(mapping.TryCreateSession(player, "Upload Source", out var source), Is.True);
             var mapId = entMan.GetComponent<MapComponent>(source!.RootMap).MapId;
             var grid = mapSys.CreateGridEntity(mapId);
@@ -51,6 +57,11 @@ public sealed class WFMappingUploadClientTest
             using var writer = new StringWriter();
             Assert.That(loader.TrySaveMap(source.RootMap, writer), Is.True);
             yaml = writer.ToString();
+
+            entMan.SpawnEntity("WallSolid", new EntityCoordinates(grid, 1.5f, 0.5f));
+            using var withWall = new StringWriter();
+            Assert.That(loader.TrySaveMap(source.RootMap, withWall), Is.True);
+            missingYaml = withWall.ToString().Replace("proto: WallSolid", $"proto: {missingProto}");
         });
         await pair.RunTicksSync(5);
 
@@ -73,6 +84,47 @@ public sealed class WFMappingUploadClientTest
             var versions = res.UserData.DirectoryEntries(folder).ToList();
             Assert.That(versions, Has.Count.EqualTo(1));
             Assert.That(versions[0], Does.EndWith("_upload"));
+        });
+
+        // The unknown prototype stops at a warning; Load anyway stores it without the wall.
+        await client.WaitPost(() => upload.Start("Client Missing", Encoding.UTF8.GetBytes(missingYaml)));
+        for (var i = 0; i < 200 && upload.Upload is not { Stage: WFMappingUploadStage.Confirming }; i++)
+        {
+            await pair.RunTicksSync(1);
+        }
+
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(upload.Upload?.Stage, Is.EqualTo(WFMappingUploadStage.Confirming), "No warning came.");
+            var progress = upload.Upload!;
+            Assert.Multiple(() =>
+            {
+                Assert.That(progress.MissingPrototypes, Is.EqualTo(new[] { missingProto }));
+                Assert.That(progress.MissingPrototypeCount, Is.EqualTo(1));
+                Assert.That(progress.EntitiesToDrop, Is.EqualTo(1));
+                Assert.That(WFMappingUploadRow.WarningText(progress),
+                    Is.EqualTo($"This server doesn't know 1 prototype used by 1 entity: {missingProto}"));
+            });
+            upload.ConfirmDropMissing();
+        });
+
+        for (var i = 0; i < 200 && upload.Upload is not { Stage: WFMappingUploadStage.Done }; i++)
+        {
+            await pair.RunTicksSync(1);
+        }
+
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(upload.Upload?.Stage, Is.EqualTo(WFMappingUploadStage.Done), "The confirmed upload did not finish.");
+            Assert.That(upload.Upload!.EntitiesToDrop, Is.EqualTo(1));
+        });
+        await server.WaitAssertion(() =>
+        {
+            var folder = WFMappingLibraryNames.MapFolder(player.UserId, "Client Missing");
+            Assert.That(res.UserData.IsDir(folder), Is.True);
+            Assert.That(res.UserData.DirectoryEntries(folder).ToList(), Has.Count.EqualTo(1));
+            server.CfgMan.SetCVar(WFMappingModeCVars.UploadCooldown, WFMappingModeCVars.UploadCooldown.DefaultValue);
+            server.CfgMan.SetCVar(WFMappingModeCVars.ReferenceCooldown, WFMappingModeCVars.ReferenceCooldown.DefaultValue);
         });
 
         await Disable(pair);

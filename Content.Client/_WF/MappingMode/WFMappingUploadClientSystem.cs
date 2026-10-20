@@ -15,6 +15,9 @@ public enum WFMappingUploadStage : byte
 
     /// <summary>Every chunk is in; the server checks and stores the file.</summary>
     Checking,
+
+    /// <summary>The file uses prototypes the server lacks; it waits for the player to load it anyway or cancel.</summary>
+    Confirming,
     Done,
 }
 
@@ -28,6 +31,13 @@ public sealed class WFMappingUploadProgress
 
     /// <summary>The library version it became, once done.</summary>
     public string Version = string.Empty;
+
+    /// <summary>Unknown prototypes the server named while confirming, at most 25.</summary>
+    public List<string> MissingPrototypes = new();
+    public int MissingPrototypeCount;
+
+    /// <summary>Entities that go if the player loads it anyway; once done, those that went.</summary>
+    public int EntitiesToDrop;
 }
 
 /// <summary>
@@ -67,6 +77,7 @@ public sealed partial class WFMappingUploadClientSystem : EntitySystem
 
         SubscribeNetworkEvent<WFMappingUploadReadyEvent>(OnReady);
         SubscribeNetworkEvent<WFMappingUploadAckEvent>(OnAck);
+        SubscribeNetworkEvent<WFMappingUploadNeedsConfirmEvent>(OnNeedsConfirm);
         SubscribeNetworkEvent<WFMappingUploadDoneEvent>(OnDone);
         SubscribeNetworkEvent<WFMappingUploadCancelledEvent>(OnCancelled);
     }
@@ -75,7 +86,9 @@ public sealed partial class WFMappingUploadClientSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
 
-        if (Upload is { Stage: not WFMappingUploadStage.Done } && _timing.RealTime - _lastActivity > StallTimeout)
+        // While confirming the player takes their time; the server ends it if they take too long.
+        if (Upload is { Stage: not (WFMappingUploadStage.Done or WFMappingUploadStage.Confirming) } &&
+            _timing.RealTime - _lastActivity > StallTimeout)
         {
             Drop();
             _mapping.ReportLocal("wf-mapping-mode-upload-stalled", false);
@@ -188,6 +201,18 @@ public sealed partial class WFMappingUploadClientSystem : EntitySystem
         _mapping.ReportLocal("wf-mapping-mode-upload-cancelled", false);
     }
 
+    /// <summary>Tells the server to store the held upload without the entities it can't load.</summary>
+    public void ConfirmDropMissing()
+    {
+        if (Upload is not { Stage: WFMappingUploadStage.Confirming } progress)
+            return;
+
+        progress.Stage = WFMappingUploadStage.Checking;
+        _lastActivity = _timing.RealTime;
+        RaiseNetworkEvent(new WFMappingUploadConfirmRequest(_transferId, true));
+        UploadUpdated?.Invoke();
+    }
+
     private void OnReady(WFMappingUploadReadyEvent ev)
     {
         if (Upload is not { Stage: WFMappingUploadStage.Starting } progress)
@@ -240,6 +265,18 @@ public sealed partial class WFMappingUploadClientSystem : EntitySystem
         _lastActivity = _timing.RealTime;
     }
 
+    private void OnNeedsConfirm(WFMappingUploadNeedsConfirmEvent ev)
+    {
+        if (Upload is not { Stage: WFMappingUploadStage.Checking } progress || ev.TransferId != _transferId)
+            return;
+
+        progress.Stage = WFMappingUploadStage.Confirming;
+        progress.MissingPrototypes = ev.MissingPrototypes;
+        progress.MissingPrototypeCount = ev.MissingPrototypeCount;
+        progress.EntitiesToDrop = ev.EntitiesToDrop;
+        UploadUpdated?.Invoke();
+    }
+
     private void OnDone(WFMappingUploadDoneEvent ev)
     {
         if (Upload is not { } progress || ev.TransferId != _transferId)
@@ -248,6 +285,7 @@ public sealed partial class WFMappingUploadClientSystem : EntitySystem
         progress.Stage = WFMappingUploadStage.Done;
         progress.MapName = ev.MapName;
         progress.Version = ev.Version;
+        progress.EntitiesToDrop = ev.Dropped;
         _data = Array.Empty<byte>();
         UploadUpdated?.Invoke();
     }

@@ -21,14 +21,17 @@ namespace Content.IntegrationTests.Tests._WF.MappingMode;
 
 /// <summary>
 /// An uploaded map file is checked, stripped and stored as an upload version that opens as a session; files over the
-/// size or grid cap, with anchors or unknown prototypes, and uploads while busy or cooling down are refused, and no
-/// scratch map is left behind.
+/// size or grid cap or with anchors, and uploads while busy or cooling down are refused, and no scratch map is left
+/// behind. A file with an unknown prototype waits for a confirm and is stored without those entities.
 /// </summary>
 [TestFixture]
 public sealed class WFMappingUploadTest
 {
     private const string MapName = "Upload Test";
     private const string Wall = "WallSolid";
+    private const string Missing = "WFUploadTestMissingPrototype";
+    private const string OnWall = "Crowbar";
+    private const string Loose = "Wrench";
 
     private static List<string> Versions(IResourceManager res, NetUserId user, string map)
     {
@@ -51,7 +54,7 @@ public sealed class WFMappingUploadTest
         var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
         await Enable(pair);
         // The uploader, then one mapper per refusal, since each player may only send a couple of requests a second.
-        var dummies = await AddMappers(pair, 7);
+        var dummies = await AddMappers(pair, 8);
         var a = dummies[0];
 
         bool AnyScratch() => entMan.EntityQuery<WFMappingSessionMapComponent>(true).Any(m => m.Kind == WFMappingMapKind.Scratch);
@@ -77,6 +80,7 @@ public sealed class WFMappingUploadTest
         }
 
         var yaml = string.Empty;
+        var missingYaml = string.Empty;
         await server.WaitAssertion(() =>
         {
             server.CfgMan.SetCVar(WFMappingModeCVars.UploadCooldown, 0f);
@@ -88,7 +92,7 @@ public sealed class WFMappingUploadTest
             var grid = mapSys.CreateGridEntity(mapId);
             var plating = new Tile(tileDefs["Plating"].TileId);
             mapSys.SetTiles(grid, grid.Comp, Enumerable.Range(0, 5).Select(x => (new Vector2i(x, 0), plating)).ToList());
-            entMan.SpawnEntity(Wall, new EntityCoordinates(grid, 1.5f, 0.5f));
+            var wall = entMan.SpawnEntity(Wall, new EntityCoordinates(grid, 1.5f, 0.5f));
             var denied = entMan.SpawnEntity(Wall, new EntityCoordinates(grid, 3.5f, 0.5f));
             entMan.AddComponent<SingularityDistortionComponent>(denied);
 
@@ -97,6 +101,14 @@ public sealed class WFMappingUploadTest
             yaml = writer.ToString();
             Assert.That(yaml, Does.Contain("SingularityDistortion"));
             Assert.That(yaml, Does.Contain($"proto: {Wall}"));
+
+            // The same map with an item parented to a wall and one loose on the grid, and the walls' prototype unknown.
+            entMan.SpawnEntity(OnWall, new EntityCoordinates(wall, 0f, 0f));
+            entMan.SpawnEntity(Loose, new EntityCoordinates(grid, 2.5f, 0.5f));
+            using var withItems = new StringWriter();
+            Assert.That(loader.TrySaveMap(source.RootMap, withItems), Is.True);
+            missingYaml = withItems.ToString().Replace($"proto: {Wall}", $"proto: {Missing}");
+            Assert.That(missingYaml, Does.Contain($"proto: {OnWall}").And.Contain($"proto: {Missing}"));
 
             // Uploaded from inside the session: stored as the first upload version.
             Assert.That(Upload(a, MapName, Encoding.UTF8.GetBytes(yaml)), Is.EqualTo("wf-mapping-mode-upload-done"));
@@ -190,10 +202,6 @@ public sealed class WFMappingUploadTest
             var anchors = "meta: &meta\n  format: 7\n  category: Map\nentities:\n- proto: \"\"\n  entities: []\nother: *meta\n";
             Refused(dummies[2], "Anchors", Encoding.UTF8.GetBytes(anchors), "wf-mapping-mode-upload-anchors", "Anchors");
 
-            var missing = yaml.Replace($"proto: {Wall}", "proto: WFUploadTestMissingPrototype");
-            Refused(dummies[3], "Missing", Encoding.UTF8.GetBytes(missing), "wf-mapping-mode-upload-unknown-prototypes",
-                "A missing prototype");
-
             server.CfgMan.SetCVar(WFMappingModeCVars.MaxGridsPerSession, 0);
             Refused(dummies[4], "Grid Cap", valid, "wf-mapping-mode-limit-grids", "Over the grid cap");
             server.CfgMan.SetCVar(WFMappingModeCVars.MaxGridsPerSession, WFMappingModeCVars.MaxGridsPerSession.DefaultValue);
@@ -225,6 +233,119 @@ public sealed class WFMappingUploadTest
             Refused(c, "Cooldown", valid, "wf-mapping-mode-upload-cooldown", "Inside the cooldown");
             server.CfgMan.SetCVar(WFMappingModeCVars.UploadCooldown, 0f);
         });
+
+        // An unknown prototype: held unloaded until confirmed, then stored without its entities and their children.
+        var d = dummies[3];
+        var e = dummies[7];
+        var missingBytes = Encoding.UTF8.GetBytes(missingYaml);
+        var expired = 0;
+        await server.WaitAssertion(() =>
+        {
+            var maps = Maps();
+            Assert.That(Upload(d, "Missing", missingBytes), Is.EqualTo("wf-mapping-mode-upload-needs-confirm"));
+            var question = upload.PendingConfirmation(d.UserId);
+            Assert.That(question, Is.Not.Null, "The upload waits for a confirm.");
+            Assert.Multiple(() =>
+            {
+                Assert.That(question!.MissingPrototypes, Is.EqualTo(new[] { Missing }));
+                Assert.That(question.MissingPrototypeCount, Is.EqualTo(1));
+                Assert.That(question.EntitiesToDrop, Is.EqualTo(3), "Both walls and the item on one of them.");
+                Assert.That(Versions(res, d.UserId, "Missing"), Is.Empty);
+                Assert.That(AnyScratch(), Is.False, "Nothing loads before the confirm.");
+                Assert.That(Maps(), Is.EqualTo(maps));
+            });
+
+            RaiseAs(entMan, d, new WFMappingUploadConfirmRequest(question!.TransferId, false));
+            Assert.Multiple(() =>
+            {
+                Assert.That(upload.PendingConfirmation(d.UserId), Is.Not.Null, "A confirm without DropMissing does nothing.");
+                Assert.That(Versions(res, d.UserId, "Missing"), Is.Empty);
+                Assert.That(Maps(), Is.EqualTo(maps));
+            });
+
+            RaiseAs(entMan, d, new WFMappingUploadConfirmRequest(question.TransferId, true));
+            var versions = Versions(res, d.UserId, "Missing");
+            Assert.Multiple(() =>
+            {
+                Assert.That(upload.LastOutcome(d.UserId), Is.EqualTo("wf-mapping-mode-upload-done"));
+                Assert.That(upload.PendingConfirmation(d.UserId), Is.Null);
+                Assert.That(versions, Has.Count.EqualTo(1));
+                Assert.That(AnyScratch(), Is.False);
+                Assert.That(Maps(), Is.EqualTo(maps));
+            });
+
+            var stored = res.UserData.ReadAllText(WFMappingLibraryNames.LevelPath(d.UserId, "Missing", versions[0], 0));
+            Assert.Multiple(() =>
+            {
+                Assert.That(stored, Does.Not.Contain(Missing));
+                Assert.That(stored, Does.Not.Contain($"proto: {OnWall}"));
+                Assert.That(stored, Does.Contain($"proto: {Loose}"));
+            });
+
+            // A held upload that nobody confirms in time is dropped.
+            server.CfgMan.SetCVar(WFMappingModeCVars.UploadConfirmSeconds, 1f);
+            Assert.That(Upload(e, "Expired", missingBytes), Is.EqualTo("wf-mapping-mode-upload-needs-confirm"));
+            expired = upload.PendingConfirmation(e.UserId)?.TransferId ?? 0;
+            Assert.That(expired, Is.Not.Zero);
+        });
+
+        await pair.RunSeconds(1.5f);
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(upload.PendingConfirmation(e.UserId), Is.Null);
+                Assert.That(upload.LastOutcome(e.UserId), Is.EqualTo("wf-mapping-mode-upload-confirm-expired"));
+            });
+
+            RaiseAs(entMan, e, new WFMappingUploadConfirmRequest(expired, true));
+            Assert.Multiple(() =>
+            {
+                Assert.That(Versions(res, e.UserId, "Expired"), Is.Empty, "A confirm after the wait stores nothing.");
+                Assert.That(upload.LastOutcome(e.UserId), Is.EqualTo("wf-mapping-mode-upload-confirm-expired"));
+                Assert.That(AnyScratch(), Is.False);
+            });
+            server.CfgMan.SetCVar(WFMappingModeCVars.UploadConfirmSeconds, WFMappingModeCVars.UploadConfirmSeconds.DefaultValue);
+
+            // The stored version opens with only the loose item left on its grid.
+            RaiseAs(entMan, d, new WFMappingOpenRequest("Missing", null));
+            Assert.That(mapping.TryGetPresent(d, out var opened), Is.True);
+
+            var remaining = new List<string>();
+            var stack = new Stack<EntityUid>();
+            var grids = 0;
+            var children = entMan.GetComponent<TransformComponent>(opened!.RootMap).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                if (!entMan.HasComponent<MapGridComponent>(child))
+                    continue;
+
+                grids++;
+                stack.Push(child);
+            }
+
+            while (stack.TryPop(out var parent))
+            {
+                var onParent = entMan.GetComponent<TransformComponent>(parent).ChildEnumerator;
+                while (onParent.MoveNext(out var entity))
+                {
+                    if (entMan.HasComponent<WFMappingObserverComponent>(entity))
+                        continue;
+
+                    remaining.Add(entMan.GetComponent<MetaDataComponent>(entity).EntityPrototype?.ID ?? string.Empty);
+                    stack.Push(entity);
+                }
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(grids, Is.EqualTo(1));
+                Assert.That(remaining, Is.EqualTo(new[] { Loose }), "Only the loose item is left.");
+            });
+
+            mapping.LeaveSession(d.UserId, kicked: false);
+        });
+        await pair.RunTicksSync(5);
 
         // The request throttle refills.
         await pair.RunSeconds(1.5f);

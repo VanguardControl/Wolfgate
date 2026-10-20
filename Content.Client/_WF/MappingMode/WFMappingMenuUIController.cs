@@ -129,6 +129,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.DownloadRow.OpenFolderPressed += () => _mapping.OpenDownloadFolder();
         window.LibraryUploadButton.OnPressed += _ => _upload.PickAndUpload();
         window.UploadRow.CancelPressed += () => _upload.Cancel();
+        window.UploadRow.LoadAnywayPressed += () => _upload.ConfirmDropMissing();
 
         UpdateSession();
         UpdateLibrary();

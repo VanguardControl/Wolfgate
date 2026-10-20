@@ -29,6 +29,7 @@ unless noted, all under `wf.mapping_mode.`:
 | `reference_cooldown` | 2 | Seconds after any reference load before anyone on the server may load another |
 | `max_upload_bytes` (replicated) | 1.5 MiB | Size of an uploaded map file; clamped to a fixed 8 MiB |
 | `upload_cooldown` | 30 | Seconds after an accepted upload before the same player may start another |
+| `upload_confirm_seconds` | 120 | Seconds an upload with unknown prototypes waits for Load anyway before it is dropped |
 | `max_edits_per_second` | 60 | Placement, tile, erase and decal requests per second per mapper |
 | `max_selection_cells` | 4096 | Cells one tools selection or area erase may cover (a whole-grid delete is checked by entities) |
 | `max_edit_entities` | 2000 | Entities, contents included, one copy, paste, delete, area erase or undo step may touch |
@@ -61,9 +62,11 @@ session's map to copy from. Pick one, move the outline, R turns it, click puts i
 it. They count against the grid, entity and area limits like anything else.
 
 Upload, in the lobby panel and the Mapping window's Library tab, sends a `.yml` map file from the player's computer
-into their library as a new `upload` version, named after the file. The server refuses anchors and aliases, unknown
-prototypes and anything over the caps of a new session, strips denied components, and stores its own re-save of the
-map; the raw file never touches disk. Open then starts a session from it.
+into their library as a new `upload` version, named after the file. The server refuses anchors and aliases and
+anything over the caps of a new session, strips denied components, and stores its own re-save of the map; the raw file
+never touches disk. A file using prototypes this server lacks is held unloaded while the upload row warns how many
+prototypes and entities that is, naming up to 25; Load anyway stores it without those entities and anything parented
+to them, Cancel or `upload_confirm_seconds` without an answer drops it. Open then starts a session from it.
 
 In a session the player gets the mapping screen instead of the game layout. The palette (Entities, Tiles and Decals
 tabs, with search, favourites, recents and a strip of the last 12 entries) is docked on the left; the viewport sits in
@@ -231,7 +234,9 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
   answered, and a refused one costs no cooldown. The file is scanned for anchors, aliases, nesting over 64 and more
   than one document, parsed, its prototype ids checked through the loader's renames, then loaded onto a paused scratch
   map under the shared reference load slot, stripped, checked against a new session's caps wherever it was sent from,
-  saved with the engine and the scratch map deleted.
+  saved with the engine and the scratch map deleted. Unknown prototypes hold the bytes in a pending entry
+  (`PendingConfirmation`) and send `WFMappingUploadNeedsConfirmEvent`; `WFMappingUploadConfirmRequest` with
+  `DropMissing` re-validates the bytes and runs the pure `WFMappingUploadValidator.StripMissing` before the load.
 - Mapping screen: `GameplayState.LoadMainScreen` asks `WFMappingScreenUIController.WantsMappingScreen` first (a marked
   edit). Setup and teardown reload the screen while the gameplay state is up; the controller builds the docked panels
   on every load of the screen. The screen holds the widgets other controllers need (`MainViewport` in
@@ -416,6 +421,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Tests/_WF/MappingMode/WFMappingTemplateSettingsTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingTemplateSettingsTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingThrottleTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingThrottleTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingUploadAssemblerTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingUploadAssemblerTest.cs)
+- [`Content.Tests/_WF/MappingMode/WFMappingUploadValidatorTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingUploadValidatorTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingVesselYamlTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingVesselYamlTest.cs)
 
 ### Prototypes

@@ -93,6 +93,10 @@ public sealed class WFMappingModeCVars
     public static readonly CVarDef<float> UploadCooldown =
         CVarDef.Create("wf.mapping_mode.upload_cooldown", 30f, CVar.SERVERONLY);
 
+    /// <summary>Seconds the server holds an upload with unknown prototypes while the player decides.</summary>
+    public static readonly CVarDef<float> UploadConfirmSeconds =
+        CVarDef.Create("wf.mapping_mode.upload_confirm_seconds", 120f, CVar.SERVERONLY);
+
     /// <summary>Placement, tile and decal requests per second per mapper.</summary>
     public static readonly CVarDef<int> MaxEditsPerSecond =
         CVarDef.Create("wf.mapping_mode.max_edits_per_second", 60, CVar.SERVERONLY);
