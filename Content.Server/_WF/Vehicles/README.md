@@ -323,6 +323,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/CMUCargoVehicleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/CMUCargoVehicleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/CMUEmergencyLightsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/CMUEmergencyLightsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Vehicles/FoldedVehicleBuckleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/FoldedVehicleBuckleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/GridVehicleFloorTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/GridVehicleFloorTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/GridVehicleHardeningTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/GridVehicleHardeningTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/GridVehicleMoverTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/GridVehicleMoverTest.cs)
@@ -1015,6 +1016,9 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Server/NPC/Systems/NPCUtilitySystem.cs`](../../NPC/Systems/NPCUtilitySystem.cs): an occupied vehicle is a live target.
 - [`Content.Server/Shuttles/Systems/RadarConsoleSystem.cs`](../../Shuttles/Systems/RadarConsoleSystem.cs): a vehicle's scanner looks out from the vehicle, not from the seat inside it.
 - [`Content.Shared/Physics/CollisionGroup.cs`](../../../Content.Shared/Physics/CollisionGroup.cs): ground vehicle fixtures and vehicle blockers
+- [`Content.Shared/Vehicle/SharedVehicleSystem.cs`](../../../Content.Shared/Vehicle/SharedVehicleSystem.cs)
+  - only check for a free hand; a later attempt handler (folded) can still cancel
+  - take the hand once the buckle has gone through
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs`](../../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs)
   - the origin is settled before the event so handlers can move it and the target
   - a refused vehicle shot leaves no cooldown

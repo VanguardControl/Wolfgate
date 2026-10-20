@@ -315,7 +315,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
             return false;
 
         // On the map itself: parented to a grid under the origin, it would go with that grid and orphan its ships.
+        // Out of grid traversal too, or a ship loaded on top of it would pick it up as it flies off.
         var uid = Spawn(null, new EntityCoordinates(map.Value, origin.Position));
+        Transform(uid).GridTraversal = false;
         var comp = AddComp<WFEncounterComponent>(uid);
         var designation = $"{(char) ('A' + _random.Next(26))}{(char) ('A' + _random.Next(26))}-{_random.Next(100, 1000)}";
         comp.Prototype = prototype.ID;
@@ -474,6 +476,20 @@ public sealed partial class WFEncounterSystem : EntitySystem
         return IssueOrders(encounter, prototype);
     }
 
+    /// <summary>
+    /// Has a ship that serves visitors hold position for a while, as asked by a ship that hailed it. False if it has no
+    /// orders to pause.
+    /// </summary>
+    public bool HoldPosition(WFEncounterShipState ship, TimeSpan duration)
+    {
+        if (!HoldsForVisitors(ship) || !ship.HasOrders || TerminatingOrDeleted(ship.Grid))
+            return false;
+
+        ship.HeldUntil = _timing.CurTime + duration;
+        Serve(ship);
+        return true;
+    }
+
     /// <summary>Whether a ship waits for players aboard or docked with it before it flies on or jumps out.</summary>
     private static bool HoldsForVisitors(WFEncounterShipState ship)
     {
@@ -606,6 +622,9 @@ public sealed partial class WFEncounterSystem : EntitySystem
         marker.Encounter = encounter;
         marker.Key = ship.Key;
         Unload(grid);
+        // A crew that is not allowed the hull's best plating gets it swapped out before anything else goes aboard.
+        _setup.ApplyHullSwaps(grid, ship.Profile);
+        _setup.MarkProfile(grid, ship.Profile);
 
         var name = Loc.GetString("wf-encounter-ship-name", ("vessel", vessel.Name), ("designation", designation));
         _meta.SetEntityName(grid, name);
@@ -668,6 +687,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
             BoardingResponse = ship.Boarding,
             DockingResponse = ship.Docking,
             HeaveTo = ship.Evades,
+            // Traders carry no fight worth having: attacked, they run.
+            FleeAttackers = ship.Passengers.Count > 0,
             FaceThreats = ship.Platform,
             CallsForHelp = ship.Distress && ship.Passengers.Count == 0,
             Disengage = ship.Disengage,
@@ -750,6 +771,8 @@ public sealed partial class WFEncounterSystem : EntitySystem
             aboard.Key = ship.Key;
         }
 
+        // Whatever came aboard with the ship is the crew's: taking it in front of them is theft.
+        EntityManager.System<WFCrewConductSystem>().MarkProperty(grid, state.Group);
         return true;
     }
 
@@ -1065,12 +1088,12 @@ public sealed partial class WFEncounterSystem : EntitySystem
     }
 
     /// <summary>
-    /// A ship with passengers stays put while players are aboard or docked with it: its next leg would cast off
-    /// with them. Its orders carry on once they have gone.
+    /// A ship with passengers stays put while players are aboard or docked with it, or while it holds for a ship that
+    /// hailed it: its next leg would cast off with them. Its orders carry on once they have gone.
     /// </summary>
     private void Serve(WFEncounterShipState ship)
     {
-        var customers = PlayersAboard(ship.Grid);
+        var customers = PlayersAboard(ship.Grid) || ship.HeldUntil is { } until && _timing.CurTime < until;
         if (customers == ship.Serving)
             return;
 
