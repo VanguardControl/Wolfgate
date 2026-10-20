@@ -94,6 +94,8 @@
     - WFWolfmedOverheatingWound
     # WOLFGATE(Wolfmed): EVISC: the chassis torso opened up. Created only by WolfmedEviscerationSystem.
     - WFWolfmedChassisBreachWound
+    # WOLFGATE(Synthetics): a limb put back by hand. Created only by WFSyntheticLimbSystem.
+    - WFWolfmedLooseCouplingWound
   organDamage:
     # WOLFGATE(Wolfmed): P5-1/P5-D13, corrected M6: live. The core and the pump carry OrganDamage since BRAIN, and the
     # IPC torso's organReach (M3) replaces this roll there. Do NOT add maxAffected - Onyx sets it only on
