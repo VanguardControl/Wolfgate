@@ -94,7 +94,9 @@ public sealed partial class WFChassisPanelSystem : SharedWFSyntheticsSystem
         }
 
         if (!_ui.HasUi(body, WFChassisPanelUiKey.Key))
-            _ui.SetUi(body, WFChassisPanelUiKey.Key, new InterfaceData(BoundUserInterface));
+            // No input validation: a Downed body cannot "interact", and the panel is the one thing it must still reach.
+            // The sender still has to be an actor of this UI, which only the action and a multitool link make them.
+            _ui.SetUi(body, WFChassisPanelUiKey.Key, new InterfaceData(BoundUserInterface, requireInputValidation: false));
     }
 
     /// <summary>Takes the chassis and the action off a body that is no longer synthetic.</summary>

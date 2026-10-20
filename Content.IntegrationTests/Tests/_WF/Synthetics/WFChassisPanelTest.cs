@@ -176,6 +176,12 @@ public sealed class WFChassisPanelTest : WolfmedGameTest
             Assert.Multiple(() =>
             {
                 Assert.That(consciousness.State, Is.EqualTo(WolfmedConsciousness.Downed), "two isolated legs left the body up.");
+
+                // Playtest: the panel has to stay reachable from the floor, or a downed chassis can never restore a leg.
+                var open = new WFOpenChassisPanelActionEvent { Performer = body };
+                SEntMan.EventBus.RaiseLocalEvent(body, open);
+                Assert.That(SEntMan.System<SharedUserInterfaceSystem>().IsUiOpen(body, WFChassisPanelUiKey.Key),
+                    "a downed chassis could not open its panel.");
                 Assert.That(consciousness.Cause, Is.EqualTo(WolfmedCause.Legs), "the body is down for some other reason.");
             });
             Assert.That(SEntMan.System<WFChassisPanelSystem>().SetIsolated(body, left, false, body));

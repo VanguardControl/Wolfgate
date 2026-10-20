@@ -8,6 +8,7 @@
   - type: InstantAction
     itemIconStyle: NoItem
     checkCanInteract: false
+    checkConsciousness: false # a downed chassis still has its panel
     icon:
       sprite: Interface/Actions/actions_borg.rsi
       state: diagnosis-module

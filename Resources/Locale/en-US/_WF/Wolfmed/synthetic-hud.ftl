@@ -92,7 +92,7 @@ wolfmed-synthetic-banner-reboot = REBOOT PENDING...
 # M1a: the banner names what holds the chassis down instead of a blanket STANDBY (plan §5.6).
 wolfmed-synthetic-cause-pain = MOBILITY LOST: FRAME DAMAGE
 wolfmed-synthetic-cause-legs = MOBILITY LOST: ACTUATORS OFFLINE
-wolfmed-synthetic-cause-oil = HYDRAULIC PRESSURE LOW
+wolfmed-synthetic-cause-oil = HYDRAULIC PRESSURE LOW: WELD LEAKS, FIT HYDRAULIC PACK
 wolfmed-synthetic-cause-shutdown = { $source ->
     [Pump] COOLANT PUMP OFFLINE: SHUTDOWN
    *[other] CELL EMPTY: SHUTDOWN. AWAITING POWER.

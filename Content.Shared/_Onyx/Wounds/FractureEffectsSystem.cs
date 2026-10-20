@@ -19,6 +19,7 @@ public sealed partial class FractureEffectSystem : EntitySystem
     }
 
     [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private Robust.Shared.Containers.SharedContainerSystem _containers = default!; // WOLFGATE(Wolfmed): missing-foot slowdown
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
     [Dependency] private WoundFractureSystem _fractures = default!;
@@ -113,6 +114,19 @@ public sealed partial class FractureEffectSystem : EntitySystem
 
             var (modifier, partScale, treatmentScale) = GetEffect((part, woundable), body.Comp, bodyPart, EffectKind.Mobility);
             args.ModifySpeed(1f - (1f - modifier) * partScale * treatmentScale);
+
+            // WOLFGATE(Wolfmed) START: a missing foot slows like a disabled one. The loop above only sees parts that are
+            // on the body, so a foot that came off cost nothing while a loose one put back cost its wound.
+            foreach (var (slotId, slot) in bodyPart.Children)
+            {
+                if (!body.Comp.MobilityParts.Contains(slot.Type) ||
+                    !_containers.TryGetContainer(part, SharedBodySystem.GetPartSlotContainerId(slotId), out var socket) ||
+                    socket.ContainedEntities.Count > 0)
+                    continue;
+
+                args.ModifySpeed(1f - body.Comp.PartEffectScales.GetValueOrDefault(slot.Type, 1f));
+            }
+            // WOLFGATE END
         }
     }
 

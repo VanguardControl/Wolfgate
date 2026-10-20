@@ -50,6 +50,9 @@
   - type: Bloodstream
     bloodReagent: WFWolfmedHydraulicFluid
     bloodMaxVolume: 250
+    # Synthetics playtest: HYDRAULIC PRESSURE LOW with no way out. Half a human's blood regeneration, so a sealed
+    # chassis tops itself up in about half an hour; a pack or the autodoc is still the quick fix.
+    bloodRefreshAmount: 0.5
     chemicalMaxVolume: 0
     bloodlossDamage:
       types: {}
