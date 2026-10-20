@@ -7,6 +7,7 @@ using System.Text;
 using Content.Server._WF.MappingMode;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.MappingMode;
+using Content.Shared.Maps;
 using Robust.Server.GameObjects;
 using Robust.Shared.ContentPack;
 using Robust.Shared.EntitySerialization.Systems;
@@ -164,10 +165,14 @@ public sealed class WFMappingShipTest
             var vesselText = res.UserData.ReadAllText(WFMappingLibraryNames.VesselPath(a.UserId, MapName, shipVersion, 0));
             var id = WFMappingVesselYaml.VesselId(MapName);
             Assert.That(prototypes.HasIndex<VesselPrototype>(id), Is.False);
+
+            // Reload only the vessel. ResolveResults would rebuild every prototype without a reload event, leaving the
+            // tile definitions with tile id 0, so biomes on this pooled server would generate nothing from then on.
+            var changed = new Dictionary<Type, HashSet<string>>();
             try
             {
-                prototypes.LoadString(vesselText);
-                prototypes.ResolveResults();
+                prototypes.LoadString(vesselText, changed: changed);
+                prototypes.ReloadPrototypes(changed);
                 Assert.That(prototypes.TryIndex<VesselPrototype>(id, out var vessel), Is.True, vesselText);
                 Assert.Multiple(() =>
                 {
@@ -183,10 +188,14 @@ public sealed class WFMappingShipTest
             finally
             {
                 prototypes.RemoveString(vesselText);
-                prototypes.ResolveResults();
+                prototypes.ReloadPrototypes(new Dictionary<Type, HashSet<string>>(),
+                    new Dictionary<Type, HashSet<string>> { { typeof(VesselPrototype), new HashSet<string> { id } } });
             }
 
             Assert.That(prototypes.HasIndex<VesselPrototype>(id), Is.False, "The throwaway vessel is gone again.");
+            Assert.That(prototypes.Index<ContentTileDefinition>("FloorSteel").TileId,
+                Is.EqualTo(server.ResolveDependency<ITileDefinitionManager>()["FloorSteel"].TileId),
+                "Loading the vessel rebuilt the tile definitions without their tile ids.");
         });
 
         // The grid file uploads back into the library, and is a ship there too.
