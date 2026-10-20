@@ -86,6 +86,14 @@ collapses and the viewport takes its width; while the right column is gone the c
 right. Docking any of its panels brings the column back. `ui.layout` is ignored while in a session and back in force on
 leaving.
 
+The menu bar over the viewport keeps only what helps while mapping: the escape menu, the guidebook, the admin and
+sandbox buttons for those who have them, the bug report and AHelp. The gameplay buttons (sector map, character, crew
+setup, emotes, crafting, actions, language, and the consent cog or anatomy panel) are hidden and their keys do nothing.
+Mapping (map icon) opens and closes the Mapping window and shows pressed while it is open. Quicksave (floppy icon,
+Ctrl+S) saves the session to your own library under the session name in one click, as Save with a blank name does;
+the server's answer shows as a popup, and the button stays off for 10 seconds, the server's save throttle. The
+escape menu's Mapping entry stays. The other screens' menu bars are untouched.
+
 The mode bar starts bottom left, above the quick bar and the readout and below the menu bar, lying flat when the
 viewport is wide enough and standing upright otherwise. Its grab handle drags it anywhere over the viewport; let go
 near an edge and it snaps there, standing upright on the left or right edge alone and lying flat on the top or bottom
@@ -426,6 +434,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml.cs)
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingScreenLayout.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreenLayout.cs)
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingScreenUIController.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreenUIController.cs)
+- [`Content.Client/_WF/MappingMode/Screen/WFMappingScreenUIController.TopBar.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreenUIController.TopBar.cs)
 - [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateMode.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateMode.cs)
 - [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateOverlay.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateOverlay.cs)
 - [`Content.Client/_WF/MappingMode/Template/WFMappingTemplatePanel.xaml`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplatePanel.xaml)
@@ -505,6 +514,12 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-template.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-template.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-upload.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-upload.ftl)
 
+### Textures
+
+- [`Resources/Textures/_WF/MappingMode/Interface/attributions.yml`](../../../Resources/Textures/_WF/MappingMode/Interface/attributions.yml)
+- [`Resources/Textures/_WF/MappingMode/Interface/mapping.png`](../../../Resources/Textures/_WF/MappingMode/Interface/mapping.png)
+- [`Resources/Textures/_WF/MappingMode/Interface/quicksave.png`](../../../Resources/Textures/_WF/MappingMode/Interface/quicksave.png)
+
 ### Docs
 
 - [`Docs/_WF/MappingMode/DESIGN.md`](../../../Docs/_WF/MappingMode/DESIGN.md)
@@ -543,6 +558,6 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Shared/Verbs/SharedVerbSystem.cs`](../../../Content.Shared/Verbs/SharedVerbSystem.cs): mapping observers without admin data get no verbs; admins keep theirs
 - [`Resources/keybinds.yml`](../../../Resources/keybinds.yml)
   - Escape drops a reference grid being placed, ahead of the game menu
-  - build mode keys for the mapping screen
+  - build mode and quicksave keys for the mapping screen
 
 <!-- WOLFGATE-GENERATED END -->

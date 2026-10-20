@@ -22,9 +22,9 @@ namespace Content.Client._WF.MappingMode.Screen;
 
 /// <summary>
 /// Chooses the mapping screen for mappers in a session and fills its hosts each time it loads: the palette, the
-/// mode bar, the properties, tools, layers and keys tabs and the cursor readout. The readout, the properties and
-/// the layers are refreshed from here, only while they show. The mode bar's place is kept in
-/// <see cref="LayoutPath"/> of the client data folder.
+/// mode bar, the properties, tools, layers and keys tabs, the cursor readout and the menu bar's Mapping and Quicksave
+/// buttons. The readout, the properties and the layers are refreshed from here, only while they show. The mode bar's
+/// place is kept in <see cref="LayoutPath"/> of the client data folder.
 /// </summary>
 public sealed partial class WFMappingScreenUIController : UIController
 {
@@ -174,6 +174,7 @@ public sealed partial class WFMappingScreenUIController : UIController
         screen.RightTabs.OnTabChanged += OnTabChanged;
         OnModeChanged(modes.Mode);
         UpdateDocks();
+        LoadTopBar(screen);
     }
 
     private void OnScreenUnload()
@@ -194,6 +195,7 @@ public sealed partial class WFMappingScreenUIController : UIController
 
         _slots.Clear();
         UpdateDocks();
+        UnloadTopBar();
         _palette?.Unbind();
         _properties?.Unbind();
         if (_modes != null)
@@ -317,6 +319,7 @@ public sealed partial class WFMappingScreenUIController : UIController
         if (_screen == null || UIManager.ActiveScreen != _screen)
             return;
 
+        UpdateTopBar();
         var now = _timing.RealTime;
         if (now >= _nextReadout && _readout is { VisibleInTree: true } readout)
         {

@@ -26,6 +26,7 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Input;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
+using Robust.Shared.Network;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 using static Content.IntegrationTests.Tests._WF.MappingMode.WFMappingModeTestUtil;
@@ -35,7 +36,8 @@ namespace Content.IntegrationTests.Tests._WF.MappingMode;
 /// <summary>
 /// The real client gets the mapping screen in a session: its widgets, the mode keys, the quick bar and the template
 /// panel; a layout change keeps it, the modes claim clicks as they should, the template settings go through the
-/// data folder, and leaving the session puts the chosen layout and the normal keys back.
+/// data folder, the menu bar keeps only the mapping buttons and its Mapping and Quicksave buttons work, and leaving
+/// the session puts the chosen layout, the normal menu bar and the normal keys back.
 /// </summary>
 [TestFixture]
 public sealed class WFMappingScreenTest
@@ -45,6 +47,26 @@ public sealed class WFMappingScreenTest
     /// <summary>A 1x1 PNG.</summary>
     private static readonly byte[] Png = Convert.FromBase64String(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==");
+
+    /// <summary>The menu bar's buttons that stay on the mapping screen for everyone.</summary>
+    private static readonly string[] KeptButtons = { "EscapeButton", "GuidebookButton", "FeedbackButton", "AHelpButton" };
+
+    /// <summary>The keys of the hidden buttons: character, emotes, crafting, actions, language and the sector map.</summary>
+    private static readonly BoundKeyFunction[] GameplayFunctions =
+    {
+        ContentKeyFunctions.OpenCharacterMenu,
+        ContentKeyFunctions.OpenEmotesMenu,
+        ContentKeyFunctions.OpenCraftingMenu,
+        ContentKeyFunctions.OpenActionsMenu,
+        ContentKeyFunctions.OpenLanguageMenu,
+        ContentKeyFunctions.OpenSectorMap,
+    };
+
+    private static List<string> Versions(IResourceManager res, NetUserId user, string map)
+    {
+        var folder = WFMappingLibraryNames.MapFolder(user, map);
+        return res.UserData.IsDir(folder) ? res.UserData.DirectoryEntries(folder).Order().ToList() : new List<string>();
+    }
 
     private static IEnumerable<Control> Descendants(Control control)
     {
@@ -72,6 +94,8 @@ public sealed class WFMappingScreenTest
         var inputMan = client.ResolveDependency<IInputManager>();
         var states = client.ResolveDependency<IStateManager>();
         var userData = client.ResolveDependency<IResourceManager>().UserData;
+        var screenUi = uiMan.GetUIController<WFMappingScreenUIController>();
+        var menu = uiMan.GetUIController<WFMappingMenuUIController>();
         var folder = new ResPath("/Mapping/Templates") / WFMappingTemplateSystem.FolderKey(SessionName);
         await Enable(pair);
 
@@ -123,7 +147,57 @@ public sealed class WFMappingScreenTest
                 Assert.That(Descendants(screen.TemplateHost).OfType<WFMappingTemplatePanel>().Count(), Is.EqualTo(1),
                     $"{when}: one template panel.");
                 Assert.That(Descendants(screen.PaletteHost).Any(), Is.True, $"{when}: the palette is docked.");
+
+                // The menu bar: the gameplay buttons hidden, the mapping ones shown, Mapping and Quicksave added.
+                var bar = screen.GetWidget<GameTopMenuBar>()!;
+                foreach (var name in WFMappingScreenUIController.GameplayButtonNames)
+                {
+                    Assert.That(bar.FindControl<MenuButton>(name).Visible, Is.False, $"{when}: {name} is hidden.");
+                }
+
+                foreach (var name in KeptButtons)
+                {
+                    Assert.That(bar.FindControl<MenuButton>(name).Visible, Is.True, $"{when}: {name} stays.");
+                }
+
+                Assert.That(bar.FindControl<MenuButton>("AdminButton").Visible, Is.False, $"{when}: a mapper is no admin.");
+                Assert.That(bar.FindControl<MenuButton>("SandboxButton").Visible, Is.False, $"{when}: no sandbox.");
+                var mappingButton = screenUi.MappingButton;
+                var quicksaveButton = screenUi.QuicksaveButton;
+                Assert.That(mappingButton?.Parent, Is.SameAs(bar), $"{when}: the Mapping button is on the bar.");
+                Assert.That(quicksaveButton?.Parent, Is.SameAs(bar), $"{when}: the Quicksave button is on the bar.");
+                Assert.That(mappingButton?.Visible, Is.True, when);
+                Assert.That(quicksaveButton?.Visible, Is.True, when);
+                Assert.That(bar.Children.Count(c => c.Name is "WFMappingButton" or "WFQuicksaveButton"), Is.EqualTo(2),
+                    $"{when}: one of each.");
+                var feedback = bar.FindControl<MenuButton>("FeedbackButton").GetPositionInParent();
+                Assert.That(mappingButton?.GetPositionInParent(), Is.EqualTo(feedback - 2), $"{when}: Mapping first.");
+                Assert.That(quicksaveButton?.GetPositionInParent(), Is.EqualTo(feedback - 1),
+                    $"{when}: Quicksave next, before the bug report button.");
+
+                foreach (var function in GameplayFunctions)
+                {
+                    Assert.That(inputMan.Contexts.ActiveContext.FunctionExistsHierarchy(function), Is.False,
+                        $"{when}: {function.FunctionName} can't be pressed.");
+                }
+
+                Assert.That(inputMan.Contexts.ActiveContext.FunctionExistsHierarchy(
+                    WFMappingKeyFunctions.WFMappingQuicksave), Is.True, $"{when}: the quicksave key is in.");
             });
+        }
+
+        async Task Click(Control control)
+        {
+            var coords = new ScreenCoordinates(control.GlobalPixelPosition + control.PixelSize / 2,
+                control.Window?.Id ?? default);
+            var relative = coords.Position / control.UIScale - control.GlobalPosition;
+            var relativePixel = coords.Position - control.GlobalPixelPosition;
+            await client.DoGuiEvent(control, new GUIBoundKeyEventArgs(EngineKeyFunctions.UIClick, BoundKeyState.Down,
+                coords, default, relative, relativePixel));
+            await pair.RunTicksSync(1);
+            await client.DoGuiEvent(control, new GUIBoundKeyEventArgs(EngineKeyFunctions.UIClick, BoundKeyState.Up,
+                coords, default, relative, relativePixel));
+            await pair.RunTicksSync(1);
         }
 
         await client.WaitAssertion(() =>
@@ -134,6 +208,65 @@ public sealed class WFMappingScreenTest
                 Assert.That(template.HasTemplate, Is.True, "The saved template is restored.");
                 Assert.That(template.Settings.Write(), Is.EqualTo(saved.Write()));
             });
+        });
+
+        // The Mapping button opens the Mapping window and shows pressed; a second press closes it.
+        await Click(screenUi.MappingButton!);
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(menu.IsOpen, Is.True, "The Mapping button opens the Mapping window.");
+            Assert.That(screenUi.MappingButton!.Pressed, Is.True, "and shows pressed.");
+        });
+        await Click(screenUi.MappingButton!);
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(menu.IsOpen, Is.False, "A second press closes it.");
+            Assert.That(screenUi.MappingButton!.Pressed, Is.False);
+        });
+
+        // Quicksave writes a manual version under the session name. A second press inside the cooldown, by button
+        // or key, sends nothing: the server would answer it with save-too-soon.
+        var quicksave = screenUi.QuicksaveButton!;
+        await Click(quicksave);
+        await client.WaitAssertion(() => Assert.That(quicksave.Disabled, Is.True, "Quicksave cools down."));
+        await Click(quicksave);
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(screenUi.Quicksave(), Is.False, "The key is blocked during the cooldown too.");
+            var inputSys = client.EntMan.System<InputSystem>();
+            var timing = client.ResolveDependency<IGameTiming>();
+            var function = WFMappingKeyFunctions.WFMappingQuicksave;
+            var message = new ClientFullInputCmdMessage(timing.CurTick, timing.TickFraction,
+                inputMan.NetworkBindMap.KeyFunctionID(function))
+            {
+                State = BoundKeyState.Down,
+            };
+            Assert.That(inputSys.HandleInputCommand(client.Session!, function, message), Is.True,
+                "The quicksave key is bound.");
+        });
+
+        var serverRes = server.ResolveDependency<IResourceManager>();
+        var userId = pair.Player!.UserId;
+        for (var i = 0; i < 100 && clientSys.LastResult?.LocKey != "wf-mapping-mode-saved"; i++)
+        {
+            await pair.RunTicksSync(1);
+        }
+
+        await pair.RunTicksSync(10);
+        await server.WaitAssertion(() =>
+        {
+            var versions = Versions(serverRes, userId, SessionName);
+            Assert.That(versions, Has.Count.EqualTo(1), "One quicksave reached the library.");
+            Assert.That(WFMappingLibraryNames.TryParseVersion(versions[0], out var version), Is.True, versions[0]);
+            Assert.That(version.Number, Is.EqualTo(1));
+            Assert.That(version.Kind, Is.EqualTo(WFMappingVersionKind.Manual));
+            Assert.That(versions[0], Does.StartWith("v0001_").And.EndWith("_manual"));
+        });
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(clientSys.LastResult?.LocKey, Is.EqualTo("wf-mapping-mode-saved"),
+                "The server never heard the second press.");
+            Assert.That(quicksave.Disabled, Is.True, "Still cooling down.");
         });
 
         // Changing ui.layout reloads the screen, which stays the mapping screen with every panel rebuilt once.
@@ -319,6 +452,34 @@ public sealed class WFMappingScreenTest
                 Assert.That(userData.TryReadAllText(folder / "settings.yml", out var text), Is.True);
                 Assert.That(WFMappingTemplateSettings.Read(text!).Opacity, Is.EqualTo(0.25f), "Saved on leaving.");
                 Assert.That(userData.Exists(folder / "template.png"), Is.True, "Leaving keeps the image.");
+
+                // The normal menu bar is untouched: its gameplay buttons show, the mapping ones were never on it.
+                var bar = uiMan.ActiveScreen!.GetWidget<GameTopMenuBar>()!;
+                foreach (var name in WFMappingScreenUIController.GameplayButtonNames)
+                {
+                    // Crafting follows what the entity can build; consent and anatomy share one slot.
+                    if (name is "CraftingButton" or "ConsentButton" or "AnatomyButton")
+                        continue;
+
+                    Assert.That(bar.FindControl<MenuButton>(name).Visible, Is.True, $"{name} is back.");
+                }
+
+                Assert.That(bar.FindControl<MenuButton>("ConsentButton").Visible,
+                    Is.Not.EqualTo(bar.FindControl<MenuButton>("AnatomyButton").Visible), "One of consent or anatomy.");
+                Assert.That(bar.Children.Any(c => c.Name is "WFMappingButton" or "WFQuicksaveButton"), Is.False,
+                    "No Mapping or Quicksave button on the normal bar.");
+                Assert.That(screenUi.MappingButton, Is.Null);
+                Assert.That(screenUi.QuicksaveButton, Is.Null);
+                Assert.That(menu.IsOpen, Is.False);
+
+                var common = inputMan.Contexts.GetContext("common");
+                foreach (var function in WFMappingScreenUIController.GameplayKeys)
+                {
+                    Assert.That(common.FunctionExists(function), Is.True, $"{function.FunctionName} is back.");
+                }
+
+                Assert.That(common.FunctionExists(WFMappingKeyFunctions.WFMappingQuicksave), Is.False,
+                    "The quicksave key is gone.");
             });
 
             client.CfgMan.SetCVar(CCVars.UILayout, layout);

@@ -29,6 +29,7 @@ public sealed partial class WFMappingKeysPanel : BoxContainer
         ContentKeyFunctions.WFMappingLevelDown,
         WFMappingKeyFunctions.WFMappingModeCancel,
         WFMappingKeyFunctions.WFMappingLinkCycle,
+        WFMappingKeyFunctions.WFMappingQuicksave,
     };
 
     private readonly GridContainer _grid;

@@ -695,7 +695,7 @@ binds:
   key: Escape
   priority: 5
 # WOLFGATE END
-# WOLFGATE(MappingMode) START: build mode keys for the mapping screen
+# WOLFGATE(MappingMode) START: build mode and quicksave keys for the mapping screen
 - function: WFMappingMode1
   type: State
   key: Num1
@@ -803,6 +803,10 @@ binds:
   key: Right
   mod1: Shift
   canRepeat: true
+- function: WFMappingQuicksave
+  type: State
+  key: S
+  mod1: Control
 # WOLFGATE END
 # region Frontier
 - function: SwapHandsPrevious

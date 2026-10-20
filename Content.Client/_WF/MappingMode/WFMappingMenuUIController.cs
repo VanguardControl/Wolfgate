@@ -83,6 +83,24 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         system.UploadUpdated -= UpdateUpload;
     }
 
+    /// <summary>Whether the window is open.</summary>
+    public bool IsOpen => _window != null;
+
+    /// <summary>Raised when the window opens or closes.</summary>
+    public event Action? WindowChanged;
+
+    /// <summary>Opens the window, or closes it if it is open.</summary>
+    public void ToggleWindow()
+    {
+        if (_window != null)
+        {
+            _window.Close();
+            return;
+        }
+
+        OpenWindow();
+    }
+
     /// <summary>Opens the window, or brings it forward if it is already open.</summary>
     public void OpenWindow()
     {
@@ -98,6 +116,8 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         {
             if (_window == window)
                 _window = null;
+
+            WindowChanged?.Invoke();
         };
 
         window.ReturnButton.OnPressed += _ => _mapping.Send(new WFMappingAdminLeaveRequest());
@@ -141,6 +161,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         UpdateUpload();
         window.SetResult(_mapping.LastResult);
         window.OpenCentered();
+        WindowChanged?.Invoke();
 
         _mapping.Send(new WFMappingLibraryRequest());
     }

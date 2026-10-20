@@ -27,6 +27,9 @@ public static class WFMappingKeyFunctions
     /// <summary>Tab in Link mode: the next sub-tool.</summary>
     public static readonly BoundKeyFunction WFMappingLinkCycle = "WFMappingLinkCycle";
 
+    /// <summary>Ctrl+S: saves the session to the player's library under its name, as the menu bar's Quicksave.</summary>
+    public static readonly BoundKeyFunction WFMappingQuicksave = "WFMappingQuicksave";
+
     /// <summary>The mode keys, Place first.</summary>
     public static readonly BoundKeyFunction[] Modes =
     {

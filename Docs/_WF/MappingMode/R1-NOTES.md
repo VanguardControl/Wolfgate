@@ -106,9 +106,49 @@ Round R1 of owner feedback. What was built for each report, and the choices the 
   Palette tiles are shared with the spawn window, which passes no note, so it looks as before.
 - Not covered: tiles and decals always save; entries in the recent strip and quick bar aren't marked.
 
+## 6. Mapping screen menu bar
+
+- The bar is the screen's own `GameTopMenuBar`; the game's controllers find it through `GetActiveUIWidgetOrNull` and
+  `ConstructionMenuPresenter` through `GetActiveUIWidget`, which throws without it (PLAN2 widget table), so no button
+  is removed. `WFMappingScreenUIController.TopBar.cs` hides the gameplay ones on load and again every frame, since
+  `ConstructionMenuPresenter` (crafting), `AnatomyUIController.UpdateButtons` (consent and anatomy) and others set
+  `Visible` themselves later. The controller's `FrameUpdate` runs whatever is hidden, unlike a control's.
+- Decisions, from each button's controller:
+  - Kept: escape menu (it holds the Mapping entry and leaving), guidebook, bug report (`FeedbackUIController`), AHelp.
+  - Kept on their own rules: admin (`IClientConGroupController.CanAdminMenu`) and sandbox (`SandboxSystem.
+    SandboxAllowed`). Those controllers only update the bar that is up when the state is entered or admin or sandbox
+    status changes, and the mapping screen loads a frame later, so by reading the code its bar keeps the XAML default
+    (shown) for everyone; not checked before the change. The mapping screen now applies their rules each frame.
+  - Hidden: sector map (the hexagon, `WFSectorMapUIController`, the hex territory map), character, crew setup (the
+    `>`-looking `group.svg` icon, `WFRoundSetupUIController`: crews and player lobbies, not an expander), emotes,
+    crafting, actions, language, and the consent cog (`ConsentUiController`, the gear in the screenshot; it is the
+    consent window, not game options, which stay in the escape menu) with the anatomy panel that takes its slot.
+- Keys: a mapper's entity uses the `aghost` context, which inherits `common` and not `human`, so character (C),
+  emotes (N), crafting (G) and language (J) never reach it. Actions (K), sector map (Shift+N), consent and anatomy are
+  in `common`; they are taken out of it while the screen is up and put back on unload, as the build mode keys are added
+  and removed.
+- Mapping and Quicksave are `MenuButton`s with `ButtonSquare`, made in code on load and put just before the bug
+  report button, and orphaned on unload, so `GameTopMenuBar.xaml` is unchanged. Icons are 64x64 white PNGs drawn for
+  this (`Resources/Textures/_WF/MappingMode/Interface/mapping.png`, `quicksave.png`); nothing in `Resources/Textures`
+  had a map or floppy in the menu style, which the button tints.
+- Mapping has no key. Quicksave is `WFMappingQuicksave` on Ctrl+S: Ctrl+S is otherwise only the engine `SaveMap`,
+  which exists only in `MappingState`. Its label under the icon is blank, as `BoundKeyHelper` leaves out keys with a
+  modifier, so the tooltip names it.
+- Quicksave sends `WFMappingSaveRequest` with no name, so the server saves under the session name into the sender's
+  library. The server already answers every save with a cursor popup and a result line (`Notify`), so the client adds
+  only a popup for a key press during its cooldown. The cooldown is 10 seconds of real time, matching
+  `WFMappingLibrarySystem._saveThrottle` (one save per 10 s), and outlasts screen reloads.
+- Test (`WFMappingScreenTest`, connected client): after joining and after a layout reload the hidden buttons and keys
+  are gone and Mapping and Quicksave sit before the bug report button; Mapping opens and closes the window with its
+  pressed state; Quicksave writes `v0001_*_manual` under the session name, and a second click and the key inside the
+  cooldown send nothing (the client's last result stays "saved", not "too soon"); after leaving to a plain entity the
+  normal bar shows its gameplay buttons, has no Mapping or Quicksave and the keys are back in `common`.
+
 ## Not exercised
 
 - No mouse drag was driven in a real client; the test moves and drops the bar through `MoveBar`/`DropBar`, which the
   handle's drag calls.
 - A downloaded ship hasn't been added to the game and bought from a shipyard console. The integration test loads the
   grid file with the shipyard's `TryLoadGrid` call and indexes the vessel prototype, but doesn't buy it.
+- The menu bar was checked in a connected headless client only: the icons and their tint weren't looked at in a real
+  client, and Quicksave turning back on after 10 seconds isn't waited for in the test.

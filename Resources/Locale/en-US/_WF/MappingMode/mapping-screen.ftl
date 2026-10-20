@@ -155,6 +155,7 @@ wf-mapping-screen-key-WFMappingRedo = Redo
 wf-mapping-screen-key-WFMappingLevelUp = Go up a level
 wf-mapping-screen-key-WFMappingLevelDown = Go down a level
 wf-mapping-screen-key-WFMappingModeCancel = Cancel, or back to Place
+wf-mapping-screen-key-WFMappingQuicksave = Quicksave to your library
 
 wf-mapping-screen-cursor-none = Cursor off the map
 wf-mapping-screen-cursor-map = Space {$x}, {$y}
@@ -168,3 +169,9 @@ wf-mapping-screen-use-spawner = Use spawner instead
 wf-mapping-screen-unsaved-hint = Won't be saved. Use {$spawner}.
 wf-mapping-screen-unsaved-use = Use spawner
 wf-mapping-screen-unsaved-mark = !
+
+## Menu bar
+
+wf-mapping-screen-bar-mapping = Mapping: session, saving and library
+wf-mapping-screen-bar-quicksave = Quicksave ({$key}): save to your library under the session name
+wf-mapping-screen-quicksave-wait = Quicksave is ready again in {$seconds}s.
