@@ -1,12 +1,14 @@
 using System.Globalization;
 using System.IO;
 using System.Numerics;
+using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
 using YamlDotNet.RepresentationModel;
 
-namespace Content.Client._WF.MappingMode.Template;
+namespace Content.Shared._WF.MappingMode;
 
 /// <summary>Whether the template draws below the grids or over everything.</summary>
+[Serializable, NetSerializable]
 public enum WFMappingTemplateLayer : byte
 {
     Under,
@@ -149,6 +151,34 @@ public sealed class WFMappingTemplateSettings
         Visible = other.Visible;
         Layer = other.Layer;
         Depth = other.Depth;
+    }
+
+    /// <summary>The part a session shares: centre, scale, pixels per tile, rotation, layer and depth.</summary>
+    public WFMappingTemplateState ToState()
+    {
+        return new WFMappingTemplateState(_position.X, _position.Y, _scaleX, _scaleY, _rotation, _pixelsPerTile, Layer,
+            Depth);
+    }
+
+    /// <summary>Takes the shared part from <paramref name="state"/>, clamped; opacity, show and lock stay.</summary>
+    public void ApplyState(WFMappingTemplateState state)
+    {
+        Position = new Vector2(state.X, state.Y);
+        ScaleX = state.ScaleX;
+        ScaleY = state.ScaleY;
+        Rotation = state.Rotation;
+        PixelsPerTile = state.PixelsPerTile;
+        Layer = state.Layer == WFMappingTemplateLayer.Over ? WFMappingTemplateLayer.Over : WFMappingTemplateLayer.Under;
+        Depth = state.Depth;
+    }
+
+    /// <summary>A state with every value clamped as the setters do, and the depth kept between the two given.</summary>
+    public static WFMappingTemplateState Clamp(WFMappingTemplateState state, int minDepth, int maxDepth)
+    {
+        var settings = new WFMappingTemplateSettings();
+        settings.ApplyState(state);
+        settings.Depth = Math.Clamp(state.Depth, minDepth, Math.Max(minDepth, maxDepth));
+        return settings.ToState();
     }
 
     /// <summary>Reads settings; missing or malformed values keep their defaults, as does unreadable text.</summary>

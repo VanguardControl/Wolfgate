@@ -32,6 +32,7 @@ public sealed class WFMappingLibrarySystem : EntitySystem
     [Dependency] private MappingZLevelsSystem _zLevels = default!;
     [Dependency] private WFMappingModeSystem _mapping = default!;
     [Dependency] private WFMappingVesselSystem _vessel = default!;
+    [Dependency] private WFMappingTemplateShareSystem _share = default!;
 
     /// <summary>
     /// A version folder on disk: its name, level files by depth, the grid and vessel files beside levels holding one
@@ -45,6 +46,10 @@ public sealed class WFMappingLibrarySystem : EntitySystem
         public readonly SortedDictionary<int, ResPath> Vessels = new();
         public readonly SortedDictionary<int, int> GridCounts = new();
         public long Bytes;
+
+        /// <summary>The shared template saved with the version, and its placement.</summary>
+        public ResPath? TemplateImage;
+        public ResPath? TemplateSettings;
 
         /// <summary>Grids across every level, or -1 when a level's count couldn't be read.</summary>
         public int TotalGrids => GridCounts.Values.Any(c => c < 0) ? -1 : GridCounts.Values.Sum();
@@ -151,6 +156,10 @@ public sealed class WFMappingLibrarySystem : EntitySystem
                     version.Grids[depth] = filePath;
                 else if (WFMappingLibraryNames.TryParseVesselFile(file, out depth))
                     version.Vessels[depth] = filePath;
+                else if (file == WFMappingTemplateShareSystem.ImageFile)
+                    version.TemplateImage = filePath;
+                else if (file == WFMappingTemplateShareSystem.SettingsFile)
+                    version.TemplateSettings = filePath;
             }
 
             map.Versions.Add(version);
@@ -427,7 +436,7 @@ public sealed class WFMappingLibrarySystem : EntitySystem
             return SaveResult.Fail("wf-mapping-mode-save-failed");
         }
 
-        return SaveVersion(levels, ground, user, mapName, kind, $"mapping session {session.Code}");
+        return SaveVersion(levels, ground, user, mapName, kind, $"mapping session {session.Code}", session.Template);
     }
 
     /// <summary>
@@ -457,13 +466,13 @@ public sealed class WFMappingLibrarySystem : EntitySystem
     }
 
     /// <summary>
-    /// Writes levels, listed bottom-up with depth 0 at <paramref name="ground"/>, as the next version of a map in a
-    /// player's library, then prunes the map to <c>max_versions</c>. Refused at <c>max_maps</c>, or when the library
-    /// would end up over <c>max_library_bytes</c>; a refused or failed save leaves nothing behind.
-    /// <paramref name="logName"/> names what was saved in the log.
+    /// Writes levels, listed bottom-up with depth 0 at <paramref name="ground"/>, and the session's shared template
+    /// if any, as the next version of a map in a player's library, then prunes the map to <c>max_versions</c>.
+    /// Refused at <c>max_maps</c>, or when the library would end up over <c>max_library_bytes</c>; a refused or failed
+    /// save leaves nothing behind. <paramref name="logName"/> names what was saved in the log.
     /// </summary>
     private SaveResult SaveVersion(List<EntityUid> levels, int ground, NetUserId user, string mapName,
-        WFMappingVersionKind kind, string logName)
+        WFMappingVersionKind kind, string logName, WFMappingSessionTemplate? template = null)
     {
         ResPath? written = null;
         try
@@ -495,6 +504,9 @@ public sealed class WFMappingLibrarySystem : EntitySystem
                 DeleteQuietly(folder);
                 return SaveResult.Fail("wf-mapping-mode-save-failed");
             }
+
+            if (template != null)
+                _share.WriteSaved(template, folder);
 
             var saved = ScanMap(WFMappingLibraryNames.MapFolder(user, folderName), folderName);
             var newBytes = saved.Versions.FirstOrDefault(v => v.Name == versionName)?.Bytes ?? 0;
@@ -628,8 +640,15 @@ public sealed class WFMappingLibrarySystem : EntitySystem
                 return;
             }
 
-            if (_mapping.TryOpenSession(player, map.Name, levels, ground, map.Name, version.Name.Folder, out _))
+            WFMappingSessionTemplate? template = null;
+            if (version.TemplateImage is { } image)
+                template = _share.ReadSaved(image, version.TemplateSettings, player, -ground, levels.Count - 1 - ground);
+
+            if (_mapping.TryOpenSession(player, map.Name, levels, ground, map.Name, version.Name.Folder, out _,
+                    template))
+            {
                 return;
+            }
 
             DeleteLevels(levels);
         }

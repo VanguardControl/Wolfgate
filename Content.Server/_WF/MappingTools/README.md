@@ -69,6 +69,10 @@ rotation maths).
   each end of the path, which is rebuilt with the extra side. A plain pipe on the path is rebuilt with its old sides
   added, or kept when Replace is off; a device is never rebuilt. Rebuilt pipes go in the edit's deleted group and new
   ones in its created group. Paint changes `AtmosPipeColorComponent` in place, as `MappingEdit.PipeColors`.
+- A device placement (`MappingDrawOp.PipeDevice`, `MappingToolsSystem.PipeDevices.cs`) takes one id from
+  `MappingToolsPipeDevices.Ids` and nothing else. The layer's prototype is the device's `AtmosPipeLayers` alternative,
+  or the device moved to the layer before it anchors; `MappingToolsPipes.DeviceTurns` picks the turn that meets the
+  most pipes. The edit check names the primary id, so the hidden `...Alt` prototypes pass MappingMode's prototype check.
 - A pipe network is found by a flood over anchored pipe nodes whose sides face each other on one layer, the rule
   `PipeNode` joins nets by, so it doesn't depend on node groups having formed on a paused map.
 - Grid splitting is paused while an edit applies, so moving tiles away from the hull leaves one grid.
@@ -97,6 +101,7 @@ rotation maths).
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.Draw.cs`](MappingToolsSystem.Draw.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.History.cs`](MappingToolsSystem.History.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.Links.cs`](MappingToolsSystem.Links.cs)
+- [`Content.Server/_WF/MappingTools/MappingToolsSystem.PipeDevices.cs`](MappingToolsSystem.PipeDevices.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.Pipes.cs`](MappingToolsSystem.Pipes.cs)
 - [`Content.Server/_WF/MappingTools/MappingZLevelsSystem.cs`](MappingZLevelsSystem.cs)
 - [`Content.Server/_WF/MappingTools/WFMappingPermissionEvents.cs`](WFMappingPermissionEvents.cs)
@@ -107,6 +112,7 @@ rotation maths).
 - [`Content.Shared/_WF/MappingTools/MappingToolsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsEvents.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsLinkEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsLinkEvents.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsMath.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsMath.cs)
+- [`Content.Shared/_WF/MappingTools/MappingToolsPipeDevices.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsPipeDevices.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsPipes.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsPipes.cs)
 - [`Content.Shared/_WF/MappingTools/MappingToolsShapes.cs`](../../../Content.Shared/_WF/MappingTools/MappingToolsShapes.cs)
 - [`Content.Shared/_WF/MappingTools/MappingZLevelsEvents.cs`](../../../Content.Shared/_WF/MappingTools/MappingZLevelsEvents.cs)

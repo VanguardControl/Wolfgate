@@ -51,6 +51,9 @@ public sealed class WFMappingSession(int id, string code, string name, NetUserId
 
     /// <summary>The limits last sent to its members.</summary>
     public WFMappingLimitsState? SentLimits;
+
+    /// <summary>The PNG template shared with every member, if any.</summary>
+    public WFMappingSessionTemplate? Template;
 }
 
 /// <summary>Raised when a player stops being a member of a session: they left, were kicked or it closed.</summary>

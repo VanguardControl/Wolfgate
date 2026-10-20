@@ -123,7 +123,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
 
     /// <summary>What a pipe draw sends.</summary>
     public WFMappingPipeSpec PipeSpec => new(PipeLayer, PipeColor, PipePreset == WFMappingPipePreset.Auto,
-        PipeAutoJoin, PipeReplace);
+        PipeAutoJoin, PipeReplace, PipeFacing);
 
     /// <summary>Index into the placement manager's mode names; the Default name uses each prototype's own mode.</summary>
     public int PlacementModeIndex { get; private set; } = -1;
@@ -367,6 +367,9 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
             return;
 
         PipePainting = painting;
+        if (painting)
+            PipeDevice = null;
+
         SettingsChanged?.Invoke();
     }
 
@@ -384,9 +387,16 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
                 ("fill", Loc.GetString($"wf-mapping-screen-shape-fill-{ShapeFill.ToString().ToLowerInvariant()}"))),
             WFMappingBuildMode.Pipe when PipePainting => Loc.GetString("wf-mapping-screen-readout-pipe-paint",
                 ("colour", PipePresetName())),
+            WFMappingBuildMode.Pipe when PipeDevice is { } device => Loc.GetString("wf-mapping-screen-readout-pipe-device",
+                ("device", _prototypes.TryIndex<EntityPrototype>(device, out var proto) ? proto.Name : device),
+                ("colour", PipePresetName()),
+                ("layer", (int) PipeLayer + 1),
+                ("facing", PipeFacingName()),
+                ("join", PipeAutoJoin ? "yes" : "no")),
             WFMappingBuildMode.Pipe => Loc.GetString("wf-mapping-screen-readout-pipe",
                 ("colour", PipePresetName()),
                 ("layer", (int) PipeLayer + 1),
+                ("facing", PipeFacingName()),
                 ("join", PipeAutoJoin ? "yes" : "no"),
                 ("replace", PipeReplace ? "yes" : "no")),
             WFMappingBuildMode.Link => _link.ReadoutText(),
@@ -625,9 +635,15 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         return true;
     }
 
-    /// <summary>R in Place mode, when the mapping tools had no selection or paste to turn.</summary>
+    /// <summary>R in Place mode, or Pipe mode's facing, when the mapping tools had no selection or paste to turn.</summary>
     private bool RotateKey()
     {
+        if (Active && Mode == WFMappingBuildMode.Pipe)
+        {
+            RotatePipeFacing(1);
+            return true;
+        }
+
         return Active && Mode == WFMappingBuildMode.Place && RotatePlacement(1);
     }
 

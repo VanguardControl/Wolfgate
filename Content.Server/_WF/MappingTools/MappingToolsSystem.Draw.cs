@@ -93,6 +93,9 @@ public sealed partial class MappingToolsSystem
             case MappingDrawOp.EraseEntities:
                 EraseEntities(session, map, grid.Owner, ev);
                 break;
+            case MappingDrawOp.PipeDevice:
+                PlacePipeDevice(session, grid, map, ev);
+                break;
         }
     }
 

@@ -159,7 +159,8 @@ public sealed class MappingToolsPipesTest
             Assert.That(PlacedAt(plan, V(2, 0)), Is.EqualTo(PipeDirection.Lateral));
             Assert.That(PlacedAt(plan, V(3, 0)), Is.EqualTo(PipeDirection.West));
             Assert.That(plan.Upgraded, Is.Empty);
-            Assert.That(plan.Kept, Is.Zero);
+            Assert.That(plan.Skipped, Is.Zero);
+            Assert.That(plan.Blocked, Is.Zero);
         });
     }
 
@@ -171,14 +172,18 @@ public sealed class MappingToolsPipesTest
     }
 
     [Test]
-    public void LoneCellNeedsSomethingToJoin()
+    public void LoneCellIsAHalf()
     {
+        // A click with nothing around used to plan nothing at all, which the server reported as "already like that".
         var plan = Plan(Path(V(0, 0)), new());
         Assert.Multiple(() =>
         {
-            Assert.That(plan.Placed, Is.Empty);
-            Assert.That(plan.Kept, Is.EqualTo(1));
+            Assert.That(PlacedAt(plan, V(0, 0)), Is.EqualTo(PipeDirection.North), "With no facing a lone half opens north.");
+            Assert.That(plan.Skipped + plan.Blocked, Is.Zero);
         });
+
+        plan = MappingToolsPipes.Plan(Path(V(0, 0)), _ => null, true, true, PipeDirection.East);
+        Assert.That(PlacedAt(plan, V(0, 0)), Is.EqualTo(PipeDirection.East), "It opens to the facing.");
 
         var vent = new Dictionary<Vector2i, MappingExistingPipe> { [V(0, 1)] = new(PipeDirection.South, false) };
         plan = Plan(Path(V(0, 0)), vent);
@@ -186,6 +191,112 @@ public sealed class MappingToolsPipesTest
         {
             Assert.That(PlacedAt(plan, V(0, 0)), Is.EqualTo(PipeDirection.North), "A click under a device facing it joins it.");
             Assert.That(plan.Joined, Is.EqualTo(new[] { V(0, 1) }));
+        });
+
+        var beside = new Dictionary<Vector2i, MappingExistingPipe>
+        {
+            [V(-1, 0)] = new(PipeDirection.Longitudinal, true),
+            [V(0, -1)] = new(PipeDirection.Lateral, false),
+        };
+        plan = MappingToolsPipes.Plan(Path(V(0, 0)), c => beside.TryGetValue(c, out var p) ? p : null, true, true,
+            PipeDirection.South);
+        Assert.Multiple(() =>
+        {
+            Assert.That(PlacedAt(plan, V(0, 0)), Is.EqualTo(PipeDirection.West),
+                "A plain pipe beside it is joined; the device below can't gain a side.");
+            Assert.That(plan.Upgraded.Single(), Is.EqualTo(new MappingPipeCell(V(-1, 0), PipeDirection.TEast)));
+        });
+
+        plan = MappingToolsPipes.Plan(Path(V(0, 0)), c => beside.TryGetValue(c, out var p) ? p : null, false, true,
+            PipeDirection.South);
+        Assert.Multiple(() =>
+        {
+            Assert.That(PlacedAt(plan, V(0, 0)), Is.EqualTo(PipeDirection.South), "Without auto-join it keeps the facing.");
+            Assert.That(plan.Upgraded, Is.Empty);
+        });
+    }
+
+    [Test]
+    public void ClickOnAPipe()
+    {
+        var straight = new Dictionary<Vector2i, MappingExistingPipe> { [V(0, 0)] = new(PipeDirection.Lateral, true) };
+        var plan = Plan(Path(V(0, 0)), straight);
+        Assert.That(PlacedAt(plan, V(0, 0)), Is.EqualTo(PipeDirection.Lateral),
+            "Replace on: the pipe is planned as it is, which the server reports as nothing to change.");
+
+        plan = Plan(Path(V(0, 0)), straight, replace: false);
+        Assert.Multiple(() =>
+        {
+            Assert.That(plan.Placed, Is.Empty);
+            Assert.That(plan.Skipped, Is.EqualTo(1), "Replace off: the cell is counted as skipped.");
+        });
+
+        var device = new Dictionary<Vector2i, MappingExistingPipe> { [V(0, 0)] = new(PipeDirection.South, false) };
+        plan = Plan(Path(V(0, 0)), device);
+        Assert.That(plan.Blocked, Is.EqualTo(1));
+    }
+
+    [Test]
+    public void ReportsNameTheReason()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(MappingToolsPipes.ReportKey(3, 0, 0), Is.Null, "A clean draw says nothing.");
+            Assert.That(MappingToolsPipes.ReportKey(0, 0, 0), Is.EqualTo("wf-mapping-tools-pipes-nothing"));
+            Assert.That(MappingToolsPipes.ReportKey(0, 2, 0), Is.EqualTo("wf-mapping-tools-pipes-all-skipped"));
+            Assert.That(MappingToolsPipes.ReportKey(0, 0, 1), Is.EqualTo("wf-mapping-tools-pipes-all-blocked"));
+            Assert.That(MappingToolsPipes.ReportKey(0, 1, 1), Is.EqualTo("wf-mapping-tools-pipes-all-skipped-blocked"));
+            Assert.That(MappingToolsPipes.ReportKey(5, 2, 0), Is.EqualTo("wf-mapping-tools-pipes-laid-skipped"));
+            Assert.That(MappingToolsPipes.ReportKey(5, 0, 2), Is.EqualTo("wf-mapping-tools-pipes-laid-blocked"));
+            Assert.That(MappingToolsPipes.ReportKey(5, 1, 2), Is.EqualTo("wf-mapping-tools-pipes-laid-skipped-blocked"));
+        });
+    }
+
+    [Test]
+    public void FacingTurns()
+    {
+        Assert.Multiple(() =>
+        {
+            Assert.That(MappingToolsPipes.TurnsToFace(PipeDirection.South), Is.Zero);
+            Assert.That(MappingToolsPipes.TurnsToFace(PipeDirection.East), Is.EqualTo(1));
+            Assert.That(MappingToolsPipes.TurnsToFace(PipeDirection.North), Is.EqualTo(2));
+            Assert.That(MappingToolsPipes.TurnsToFace(PipeDirection.West), Is.EqualTo(3));
+            Assert.That(MappingToolsPipes.TurnsToFace(PipeDirection.None), Is.EqualTo(2), "No facing is north.");
+            foreach (var side in MappingToolsPipes.Sides)
+            {
+                Assert.That(MappingToolsPipes.Turn(PipeDirection.South, MappingToolsPipes.TurnsToFace(side)),
+                    Is.EqualTo(side));
+            }
+        });
+    }
+
+    [Test]
+    public void DevicesTurnToMeetPipes()
+    {
+        const PipeDirection none = PipeDirection.None;
+        Assert.Multiple(() =>
+        {
+            // One port, south at rest.
+            Assert.That(MappingToolsPipes.DeviceTurns(PipeDirection.South, PipeDirection.West, none, 0), Is.EqualTo(3),
+                "A vent faces the one pipe pointing at it.");
+            Assert.That(MappingToolsPipes.DeviceTurns(PipeDirection.South, none, PipeDirection.North, 0), Is.EqualTo(2),
+                "With nothing pointing at it, it faces a plain pipe that can gain the side.");
+            Assert.That(MappingToolsPipes.DeviceTurns(PipeDirection.South, PipeDirection.East, PipeDirection.North, 0),
+                Is.EqualTo(1), "A pipe pointing at it beats one that would have to be rebuilt.");
+            Assert.That(MappingToolsPipes.DeviceTurns(PipeDirection.South, none, none, 3), Is.EqualTo(3),
+                "Nothing around: the requested turn.");
+
+            // Two ports in a line, north and south at rest.
+            Assert.That(MappingToolsPipes.DeviceTurns(PipeDirection.Longitudinal, PipeDirection.Lateral, none, 0),
+                Is.EqualTo(1), "A pump between two east-west pipes turns across.");
+            Assert.That(MappingToolsPipes.DeviceTurns(PipeDirection.Longitudinal, PipeDirection.Lateral, none, 3),
+                Is.EqualTo(3), "Either way along works; the nearer to the request wins, keeping the flow direction.");
+            Assert.That(MappingToolsPipes.DeviceTurns(PipeDirection.Longitudinal, PipeDirection.Longitudinal, none, 1),
+                Is.EqualTo(0).Or.EqualTo(2), "Already in line with a north-south run.");
+
+            // Three ports: a filter, north, west and south at rest.
+            Assert.That(MappingToolsPipes.DeviceTurns(PipeDirection.TWest, PipeDirection.TSouth, none, 0),
+                Is.EqualTo(1), "A filter meets three pipes on east, south and west.");
         });
     }
 
@@ -273,11 +384,15 @@ public sealed class MappingToolsPipesTest
             Assert.That(plan.Joined, Is.EqualTo(new[] { V(1, 0) }));
         });
 
+        // Before the fix the cells either side of a kept pipe had no sides and were dropped, so this drag laid nothing.
         plan = Plan(Path(V(0, 0), V(2, 0)), existing, replace: false);
         Assert.Multiple(() =>
         {
-            Assert.That(plan.Placed, Is.Empty, "The kept straight doesn't face the cells beside it.");
-            Assert.That(plan.Kept, Is.EqualTo(3));
+            Assert.That(PlacedAt(plan, V(0, 0)), Is.EqualTo(PipeDirection.East),
+                "A cell cut off by a kept pipe still gets a half, towards it.");
+            Assert.That(PlacedAt(plan, V(2, 0)), Is.EqualTo(PipeDirection.West));
+            Assert.That(plan.Skipped, Is.EqualTo(1));
+            Assert.That(plan.Blocked, Is.Zero);
         });
 
         var facing = new Dictionary<Vector2i, MappingExistingPipe> { [V(1, 0)] = new(PipeDirection.Lateral, true) };
@@ -286,12 +401,16 @@ public sealed class MappingToolsPipesTest
         {
             Assert.That(PlacedAt(plan, V(0, 0)), Is.EqualTo(PipeDirection.East), "A kept pipe that faces the path joins it.");
             Assert.That(PlacedAt(plan, V(2, 0)), Is.EqualTo(PipeDirection.West));
-            Assert.That(plan.Kept, Is.EqualTo(1));
+            Assert.That(plan.Skipped, Is.EqualTo(1));
         });
 
         var device = new Dictionary<Vector2i, MappingExistingPipe> { [V(1, 0)] = new(PipeDirection.Lateral, false) };
         plan = Plan(Path(V(0, 0), V(2, 0)), device);
-        Assert.That(plan.Placed.Select(p => p.Cell), Is.EqualTo(new[] { V(0, 0), V(2, 0) }),
-            "A device on the path is never rebuilt, even when replacing.");
+        Assert.Multiple(() =>
+        {
+            Assert.That(plan.Placed.Select(p => p.Cell), Is.EqualTo(new[] { V(0, 0), V(2, 0) }),
+                "A device on the path is never rebuilt, even when replacing.");
+            Assert.That(plan.Blocked, Is.EqualTo(1));
+        });
     }
 }

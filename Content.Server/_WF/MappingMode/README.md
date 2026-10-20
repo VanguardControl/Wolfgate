@@ -30,6 +30,8 @@ unless noted, all under `wf.mapping_mode.`:
 | `max_upload_bytes` (replicated) | 1.5 MiB | Size of an uploaded map file; clamped to a fixed 8 MiB |
 | `upload_cooldown` | 30 | Seconds after an accepted upload before the same player may start another |
 | `upload_confirm_seconds` | 120 | Seconds an upload with unknown prototypes waits for Load anyway before it is dropped |
+| `template_max_bytes` (replicated) | 8 MiB | Size of a PNG template shared with a session; clamped to a fixed 8 MiB |
+| `template_cooldown` | 10 | Seconds after a share starts before the same player may share another template |
 | `max_edits_per_second` | 60 | Placement, tile, erase and decal requests per second per mapper |
 | `max_selection_cells` | 4096 | Cells one tools selection or area erase may cover (a whole-grid delete is checked by entities) |
 | `max_edit_entities` | 2000 | Entities, contents included, one copy, paste, delete, area erase or undo step may touch |
@@ -115,9 +117,15 @@ Build modes, on keys 1 to 9 or the mode bar:
   bends, Ts and four-ways where the path and the pipes around it meet. Properties picks the colour (Distro, Waste, Air
   and Mix as the spray painter has them, a Custom hex, or Auto to match the first pipe the path joins), the layer (1 to
   3), Auto-join (connect to pipes pointing at the path, and turn the pipe past either end into a T or four-way) and
-  Replace (rebuild a plain pipe on the path with the new connections, or leave it). Middle click, or Paint a network
-  then a left click, paints the clicked pipe and everything connected to it on its layer. Each draw or paint is one
-  undo step.
+  Replace (rebuild a plain pipe on the path with the new connections, or leave it). A single click lays a half: towards
+  a pipe beside it with Auto-join, else towards the facing, which R or Ctrl+wheel turns (north to start). A draw that
+  skips cells says how many and why (pipes kept with Replace off, devices in the way); one that changes nothing says
+  that instead. Middle click, or Paint a network then a left click, paints the clicked pipe and everything connected to
+  it on its layer. Properties' Atmos devices box (vents, scrubbers, ports, injectors, pumps, valves, filters, mixers,
+  thermomachines, radiators, sensors and the half as a cap) arms a device: a left click places it on the hovered cell
+  on the current layer and in the current colour, turned so its ports meet the pipes around it when Auto-join is on
+  (else to the facing), and a plain pipe beside it gains the side it needs. With Replace on it swaps a plain pipe on the
+  cell; right click or Escape goes back to drawing. Each draw, paint or device is one undo step.
 - Link (9): wires a map up without hands, so it works once downloaded. Three tools, picked in Properties or cycled with
   Tab:
   - Signals: click a signal source (button, lever, sensor), then a sink (door, light, machine); a window lists the
@@ -140,9 +148,16 @@ Right click or Escape drops a drag; Escape with nothing to drop goes back to Pla
 doesn't take it.
 
 The template is a PNG drawn under the grids (or over everything) at a chosen position, scale, rotation and opacity,
-on the level it was loaded on, for tracing. It is refused over 16 MiB, 8192 pixels a side or 4096² pixels. It lives
-only on the player's computer, in `Mapping/Templates/<session name>/` of the client data folder with its settings, and
-comes back whenever a session of that name is entered.
+on the level it was loaded on, for tracing. It is refused over 16 MiB, 8192 pixels a side or 4096² pixels. A player's
+own template lives on their computer, in `Mapping/Templates/<session name>/` of the client data folder with its
+settings, and comes back whenever a session of that name is entered. Share with session sends it (up to
+`template_max_bytes`) to the server, which checks the PNG header against the same caps without decoding it and sends
+it to every member present, now or later; the latest share replaces the one before, and Unshare removes it for
+everyone. While a template is shared it is the one every member sees, "Shared by" its sharer, in place of their own:
+its position, scale, pixels per tile, rotation, layer and level are session state any member moves, and the server
+clamps; opacity, show and lock stay with each player. A save writes it into the version as `template.png` and
+`template.yml` (counted in the library size), and opening the version shares it again; downloads and uploads leave it
+out.
 
 The quick-select bar holds named sets of pages of ten slots. Click a slot to place it, drag to swap, right click to
 rename, remove or move it to another page; the palette's star and menu add entries, and so can every eyedropper pick.
@@ -171,7 +186,8 @@ parts), `WFMappingLibrarySystem` (library, versions, open, delete), `WFMappingDo
 `WFMappingMenuUIController` and `WFMappingMenuWindow` (Mapping window), `WFMappingReferenceSystem` (reference
 placement), `WFMappingBoundsOverlay` (map limit border), `WFMappingUploadSystem` and `WFMappingUploadValidator`
 (server upload), `WFMappingVesselSystem` and the pure `WFMappingVesselYaml` (server; the vessel prototype written
-beside a grid file), `WFMappingUploadClientSystem` (client upload). The mapping screen is `WFMappingScreen` and
+beside a grid file), `WFMappingUploadClientSystem` (client upload), `WFMappingTemplateShareSystem` (server; the
+template shared with a session). The mapping screen is `WFMappingScreen` and
 `WFMappingScreenUIController` (`Screen/`, with the mode bar `WFMappingModeBar` and its saved place
 `WFMappingScreenLayout`), the modes `WFMappingBuildModeSystem` and its handlers (`Modes/`), the
 palette `WFMappingPalette` (`Palette/`), the template `WFMappingTemplateSystem` (`Template/`) and quick select
@@ -317,6 +333,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Sessions.cs`](WFMappingModeSystem.Sessions.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingSession.cs`](WFMappingSession.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingSessionMapComponent.cs`](WFMappingSessionMapComponent.cs)
+- [`Content.Server/_WF/MappingMode/WFMappingTemplateShareSystem.cs`](WFMappingTemplateShareSystem.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingUploadSystem.cs`](WFMappingUploadSystem.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingUploadValidator.cs`](WFMappingUploadValidator.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingVesselSystem.cs`](WFMappingVesselSystem.cs)
@@ -335,9 +352,13 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Shared/_WF/MappingMode/WFMappingModeEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingModeEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingObserverComponent.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingObserverComponent.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingObserverSystem.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingObserverSystem.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingPngHeader.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingPngHeader.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingPrune.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingPrune.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingReferenceEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingReferenceEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingSessionCodes.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingSessionCodes.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingTemplateCVars.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingTemplateCVars.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingTemplateEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingTemplateEvents.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingTemplateSettings.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingTemplateSettings.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingThrottle.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingThrottle.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingUploadAssembler.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingUploadAssembler.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingUploadEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingUploadEvents.cs)
@@ -352,12 +373,14 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/Modes/IWFMappingModeHandler.cs`](../../../Content.Client/_WF/MappingMode/Modes/IWFMappingModeHandler.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.PipeDevices.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.PipeDevices.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingDragModeBase.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingDragModeBase.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingEraseMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingEraseMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingFillMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingFillMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingLinkMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingLinkMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingModeHandlerBase.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingModeHandlerBase.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingPickMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPickMode.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingPipeDeviceOverlay.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPipeDeviceOverlay.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingPipeMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPipeMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingPlaceMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingPlaceMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingSelectMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingSelectMode.cs)
@@ -388,13 +411,12 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreen.xaml.cs)
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingScreenLayout.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreenLayout.cs)
 - [`Content.Client/_WF/MappingMode/Screen/WFMappingScreenUIController.cs`](../../../Content.Client/_WF/MappingMode/Screen/WFMappingScreenUIController.cs)
-- [`Content.Client/_WF/MappingMode/Template/WFMappingPngHeader.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingPngHeader.cs)
 - [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateMode.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateMode.cs)
 - [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateOverlay.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateOverlay.cs)
 - [`Content.Client/_WF/MappingMode/Template/WFMappingTemplatePanel.xaml`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplatePanel.xaml)
 - [`Content.Client/_WF/MappingMode/Template/WFMappingTemplatePanel.xaml.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplatePanel.xaml.cs)
-- [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateSettings.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateSettings.cs)
 - [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateSystem.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateSystem.cs)
+- [`Content.Client/_WF/MappingMode/Template/WFMappingTemplateSystem.Share.cs`](../../../Content.Client/_WF/MappingMode/Template/WFMappingTemplateSystem.Share.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingBoundsOverlay.cs`](../../../Content.Client/_WF/MappingMode/WFMappingBoundsOverlay.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Download.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Download.cs)
@@ -430,6 +452,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingScreenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingScreenTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingSessionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingSessionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingShipTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingShipTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTemplateShareTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTemplateShareTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTickerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTickerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadClientTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadClientTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadTest.cs)
@@ -477,6 +500,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Docs/_WF/MappingMode/R1-NOTES.md`](../../../Docs/_WF/MappingMode/R1-NOTES.md)
 - [`Docs/_WF/MappingMode/R2-NOTES.md`](../../../Docs/_WF/MappingMode/R2-NOTES.md)
 - [`Docs/_WF/MappingMode/R3-NOTES.md`](../../../Docs/_WF/MappingMode/R3-NOTES.md)
+- [`Docs/_WF/MappingMode/R4-NOTES.md`](../../../Docs/_WF/MappingMode/R4-NOTES.md)
 - [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)
 - [`Docs/_WF/MappingMode/S1-NOTES.md`](../../../Docs/_WF/MappingMode/S1-NOTES.md)
 - [`Docs/_WF/MappingMode/S2-NOTES.md`](../../../Docs/_WF/MappingMode/S2-NOTES.md)

@@ -50,8 +50,7 @@ colour of the first pipe the path joins (none when it joins nothing). Painting n
   on, and kept as it is when Replace is off. A kept pipe joins the path only where it already points at it. Devices
   (anything with pipe nodes that isn't one of the fifteen plain pipe prototypes), and cells holding more than one pipe
   entity on the layer, are never rebuilt.
-- A path cell that ends up with no sides (a lone click with nothing around) gets nothing; the server says how many
-  cells it left alone.
+- A path cell that ends up with no sides gets a half (see "Fixes" below); it used to get nothing.
 
 ## Server (`MappingToolsSystem.Pipes.cs`)
 
@@ -97,3 +96,66 @@ colour of the first pipe the path joins (none when it joins nothing). Painting n
 
 - The preview, the Properties rows and the drag in a real client haven't been looked at; the tests cover the server and
   the pure parts.
+
+## Fixes: "Those pipes are already like that"
+
+The refusal fired whenever a draw changed nothing, for reasons that weren't that. Found with tests
+(`MappingToolsPipesTest`, unit and integration):
+
+- A single click is a path of one cell. It has no path neighbours and no ends, so with nothing pointing at it `Plan`
+  gave it no sides, `TryShape` failed on the empty set and the cell was dropped. This was the common one.
+- A drag across a plain pipe with Replace off kept that pipe, and a path cell whose only path neighbour was a kept pipe
+  not pointing at it got no sides either. A two- or three-cell drag across a pipe laid nothing at all.
+- Cells holding a device (or several pipes on the layer) and cells kept with Replace off were folded into one "kept"
+  count with the dropped lone cells, and when nothing else changed the message blamed the pipes.
+- Not causes, checked: the client's path is grid-local (`TileIndicesFor` on the press's grid, rotated grids included),
+  the release adds the last cell, and `PipesAt` only sees nodes on the drawn layer, so pipes on other layers don't
+  count as present.
+
+Now:
+
+- A cell left with no sides becomes a half: towards its path neighbour when it has one (the kept pipe it was cut off
+  by); a lone click opens to a pipe pointing at it, else (with Auto-join) to a plain pipe beside it, which gains the
+  side, else to the facing (`WFMappingPipeSpec.Facing`, R or Ctrl+wheel in Pipe mode, north by default).
+- `MappingPipePlan.Skipped` counts plain pipes kept with Replace off and `Blocked` counts devices and stacks.
+  `MappingToolsPipes.ReportKey` picks the message: a draw that changed nothing says whether the cells all had pipes
+  (turn on Replace), all held devices, both, or really had nothing to change; a draw that changed something and
+  skipped cells says how many were laid and skipped. A clean draw stays quiet, as before.
+- Network paint has its own "already that colour" message.
+- `MappingToolsSystem.LastPipeReport` keeps the last pipe message's Fluent id, for the tests.
+
+## Atmos devices box
+
+- Properties shows an icon grid in Pipe mode, one button per `MappingToolsPipeDevices.Ids` entry that exists and isn't
+  `HideSpawnMenu`; the tooltip is the name with its suffix. The list: `GasVentPump`, `GasPassiveVent`,
+  `GasVentScrubber`, `GasDualPortVentPump`, `GasPort`, `GasOutletInjector`, `GasPressurePump`, `GasVolumePump`,
+  `GasPassiveGate`, `GasPressureRegulator`, `GasValve`, `SignalControlledValve`, `PressureControlledValve`,
+  `GasFilter`, `GasFilterFlipped`, `GasMixer`, `GasMixerFlipped`, `GasThermoMachineHeater`,
+  `GasThermoMachineFreezer`, `HeatExchanger`, `HeatExchangerBend`, `GasPipeSensor`, `GasPipeHalf`. There is no pipe
+  cap prototype; the half is the cap. The `...On`, `...Enabled`, gas-specific filter and sensor variants are left out
+  to keep the grid small; Place mode still has them.
+- Picking one arms it. A left click sends `MappingDrawOp.PipeDevice` with the id and the pipe spec; right click or
+  Escape disarms it, and arming Paint a network disarms it too. The hovered cell shows the icon turned to the facing
+  and a tick on the facing side. The client can't know a device's ports (`PipeNode` is server-only), so the preview
+  shows the facing, not the turn auto-join will pick.
+- The server takes only ids in the list, with pipe nodes. Ports at rest are the union of the prototype's `PipeNode`
+  directions. With Auto-join, `MappingToolsPipes.DeviceTurns` scores each quarter turn by pipes pointing at the cell
+  (weighted 8) and plain pipes beside it that could gain a side (1), and of the best takes the nearest to the facing,
+  so a pump between two straights keeps the flow direction its facing gives. Without Auto-join the facing decides.
+- A plain pipe beside a port that doesn't point at the cell is rebuilt with that side added, keeping its own colour.
+  The device takes the preset colour; Auto takes the colour of the plain pipe it replaces or a pipe it joins.
+- Layers: the prototype's `AtmosPipeLayers.AlternativePrototypes` entry when there is one (pumps, valves, sensors, the
+  half), else the device is created uninitialised, `SetPipeLayer` moves it, and only then is it initialised and
+  anchored, so `PipeRestrictOverlap` sees the right layer. A device whose `NumberOfPipeLayers` doesn't reach the layer,
+  or whose layers are locked (the radiator has one layer), is refused by name. The check's `Prototypes` names the
+  primary id, as pipe draws do, so the hidden `...Alt1`/`...Alt2` ids pass MappingMode's prototype check only through
+  this path.
+- On the cell: nothing on the layer, or one plain pipe with Replace on (swapped for the device), else refused: a pipe
+  with Replace off, a device or a stack. No floor is refused. The edit check is `Paste` like a pipe draw.
+- Undo: the swapped pipe and the rebuilt neighbours are the deleted group, the device and the new neighbours the
+  created group.
+
+## Not verified (devices)
+
+- The device grid, its tooltips, the hover icon and R/Ctrl+wheel in a real client haven't been looked at. A rotated
+  device icon may not match how the device's own sprite turns (vents draw with `noRot`).

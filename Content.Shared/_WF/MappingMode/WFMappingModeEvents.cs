@@ -94,6 +94,9 @@ public sealed class WFMappingSessionInfo
 
     /// <summary>Changed since the last save.</summary>
     public bool Dirty;
+
+    /// <summary>The template shared with the session, if any.</summary>
+    public WFMappingTemplateInfo? Template;
 }
 
 /// <summary>

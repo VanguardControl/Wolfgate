@@ -19,8 +19,9 @@ namespace Content.Client._WF.MappingMode.Template;
 
 /// <summary>
 /// The mapping screen's PNG template: one image at a time, loaded through the file dialog, drawn by
-/// <see cref="WFMappingTemplateOverlay"/> and moved by <see cref="WFMappingTemplateMode"/>. The image and its settings
-/// are kept per session name in the client data folder and come back when a session of that name is entered.
+/// <see cref="WFMappingTemplateOverlay"/> and moved by <see cref="WFMappingTemplateMode"/>. The player's own image and
+/// its settings are kept per session name in the client data folder and come back when a session of that name is
+/// entered. A template shared with the session (<c>WFMappingTemplateSystem.Share.cs</c>) is shown in its place.
 /// </summary>
 public sealed partial class WFMappingTemplateSystem : EntitySystem
 {
@@ -50,13 +51,20 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
     private WFMappingTemplatePanel? _panel;
     private WFMappingDockSlot? _slot;
 
-    /// <summary>The decoded image, or null with no template.</summary>
-    public Texture? Texture { get; private set; }
+    private Texture? _localTexture;
+    private byte[]? _localBytes;
+    private readonly WFMappingTemplateSettings _localSettings = new();
 
-    /// <summary>Where and how the image is drawn; call <see cref="Modified"/> after changing it.</summary>
-    public WFMappingTemplateSettings Settings { get; } = new();
+    /// <summary>The decoded image shown: the shared one when there is one, else the player's own, or null.</summary>
+    public Texture? Texture => SharedActive ? _sharedTexture : _localTexture;
+
+    /// <summary>Where and how the shown image is drawn; call <see cref="Modified"/> after changing it.</summary>
+    public WFMappingTemplateSettings Settings => SharedActive ? _sharedSettings : _localSettings;
 
     public bool HasTemplate => Texture != null;
+
+    /// <summary>Whether the player has an image of their own loaded, shown or behind a shared one.</summary>
+    public bool HasLocal => _localTexture != null;
 
     /// <summary>Whether a session is entered, so a template can be loaded.</summary>
     public bool CanLoad => _folder != null && !_picking;
@@ -71,6 +79,7 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
         _mode = new WFMappingTemplateMode(_modes, this);
         _modes.RegisterHandler(_mode);
         _client.SessionEnded += OnSessionEnded;
+        InitializeShare();
 
         var gameplay = _ui.GetUIController<GameplayStateLoadController>();
         gameplay.OnScreenLoad += OnScreenLoad;
@@ -90,6 +99,7 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
 
         CommandBinds.Unregister<WFMappingTemplateSystem>();
         _client.SessionEnded -= OnSessionEnded;
+        ShutdownShare();
         var gameplay = _ui.GetUIController<GameplayStateLoadController>();
         gameplay.OnScreenLoad -= OnScreenLoad;
         gameplay.OnScreenUnload -= OnScreenUnload;
@@ -115,12 +125,21 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
 
         if (_dirty && _timing.RealTime >= _nextSave)
             SaveSettings();
+
+        UpdateShare();
     }
 
-    /// <summary>Marks the settings changed: redraws the panel and saves within a second.</summary>
+    /// <summary>
+    /// Marks the shown settings changed: redraws the panel and saves the player's own within a second, or sends a
+    /// shared template's new placement to the session.
+    /// </summary>
     public void Modified()
     {
-        _dirty = true;
+        if (SharedActive)
+            _sharedModified = true;
+        else
+            _dirty = true;
+
         Changed?.Invoke();
     }
 
@@ -171,13 +190,9 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
                 return;
             }
 
-            if (!CheckPng(data) || Decode(data, true) is not { } texture)
+            if (!LoadBytes(data))
                 return;
 
-            SetTexture(texture);
-            _zLevels.GetStack(_depths, out var depth);
-            Settings.Reset(ViewCentre());
-            Settings.Depth = depth;
             WriteImage(folder, data);
             SaveSettings();
             Changed?.Invoke();
@@ -194,12 +209,37 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
         }
     }
 
-    /// <summary>Drops the template and deletes its saved copy.</summary>
+    /// <summary>
+    /// Makes PNG bytes the player's own template, centred on the view at the current z-level, without saving it; false
+    /// with a popup when they can't be used.
+    /// </summary>
+    public bool LoadBytes(byte[] data)
+    {
+        if (!CheckPng(data) || Decode(data, true) is not { } texture)
+            return false;
+
+        if (!SharedActive)
+            _mode.CancelDrag();
+
+        SetLocalTexture(texture, data);
+        _zLevels.GetStack(_depths, out var depth);
+        _localSettings.Reset(ViewCentre());
+        _localSettings.Depth = depth;
+        if (SharedActive)
+            Popup("wf-mapping-template-own-hidden");
+
+        Changed?.Invoke();
+        return true;
+    }
+
+    /// <summary>Drops the player's own template and deletes its saved copy; a shared one stays.</summary>
     public void Clear()
     {
-        _mode.CancelDrag();
-        SetTexture(null);
-        Settings.Reset(Vector2.Zero);
+        if (!SharedActive)
+            _mode.CancelDrag();
+
+        SetLocalTexture(null, null);
+        _localSettings.Reset(Vector2.Zero);
         _dirty = false;
         if (_folder is { } folder)
         {
@@ -220,11 +260,24 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
         Changed?.Invoke();
     }
 
-    /// <summary>Back to the defaults, centred on the view.</summary>
+    /// <summary>Back to the defaults, centred on the view; a shared template keeps its z-level and layer.</summary>
     public void Reset()
     {
         _mode.CancelDrag();
-        Settings.Reset(ViewCentre());
+        var settings = Settings;
+        var layer = settings.Layer;
+        var opacity = settings.Opacity;
+        var visible = settings.Visible;
+        var locked = settings.Locked;
+        settings.Reset(ViewCentre());
+        if (SharedActive)
+        {
+            settings.Layer = layer;
+            settings.Opacity = opacity;
+            settings.Visible = visible;
+            settings.Locked = locked;
+        }
+
         Modified();
     }
 
@@ -235,18 +288,21 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
 
     private void OnSessionEnded()
     {
+        DropShared(true);
         LeaveSession();
     }
 
-    /// <summary>Saves pending settings and forgets the template, keeping its files.</summary>
+    /// <summary>Saves pending settings and forgets the player's own template, keeping its files.</summary>
     private void LeaveSession()
     {
         if (_dirty)
             SaveSettings();
 
-        _mode.CancelDrag();
-        SetTexture(null);
-        Settings.Reset(Vector2.Zero);
+        if (!SharedActive)
+            _mode.CancelDrag();
+
+        SetLocalTexture(null, null);
+        _localSettings.Reset(Vector2.Zero);
         _sessionName = null;
         _folder = null;
         Changed?.Invoke();
@@ -272,11 +328,11 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
                 return;
             }
 
-            SetTexture(texture);
+            SetLocalTexture(texture, data);
             if (_resources.UserData.Exists(settings) && _resources.UserData.TryReadAllText(settings, out var text))
-                Settings.CopyFrom(WFMappingTemplateSettings.Read(text));
+                _localSettings.CopyFrom(WFMappingTemplateSettings.Read(text));
             else
-                Settings.Reset(ViewCentre());
+                _localSettings.Reset(ViewCentre());
         }
         catch (Exception e)
         {
@@ -323,18 +379,25 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
         }
     }
 
-    private void SetTexture(Texture? texture)
+    private void SetLocalTexture(Texture? texture, byte[]? data)
     {
-        if (ReferenceEquals(Texture, texture))
+        _localBytes = data;
+        if (ReferenceEquals(_localTexture, texture))
             return;
 
-        if (Texture is OwnedTexture owned)
+        if (_localTexture is OwnedTexture owned)
             owned.Dispose();
 
-        Texture = texture;
-        if (texture != null && !_overlays.HasOverlay<WFMappingTemplateOverlay>())
+        _localTexture = texture;
+        UpdateOverlay();
+    }
+
+    /// <summary>Adds the overlay while an image is shown and removes it when none is.</summary>
+    private void UpdateOverlay()
+    {
+        if (Texture != null && !_overlays.HasOverlay<WFMappingTemplateOverlay>())
             _overlays.AddOverlay(new WFMappingTemplateOverlay(this, _modes));
-        else if (texture == null)
+        else if (Texture == null)
             _overlays.RemoveOverlay<WFMappingTemplateOverlay>();
     }
 
@@ -357,7 +420,7 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
     {
         _dirty = false;
         _nextSave = _timing.RealTime + SaveInterval;
-        if (_folder is not { } folder || !HasTemplate)
+        if (_folder is not { } folder || !HasLocal)
             return;
 
         try
@@ -365,7 +428,7 @@ public sealed partial class WFMappingTemplateSystem : EntitySystem
             if (!_resources.UserData.Exists(folder))
                 _resources.UserData.CreateDir(folder);
 
-            _resources.UserData.WriteAllText(folder / SettingsFile, Settings.Write());
+            _resources.UserData.WriteAllText(folder / SettingsFile, _localSettings.Write());
         }
         catch (Exception e)
         {

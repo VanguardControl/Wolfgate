@@ -2,6 +2,7 @@
 using System;
 using System.Numerics;
 using Content.Client._WF.MappingMode.Template;
+using Content.Shared._WF.MappingMode;
 using NUnit.Framework;
 
 namespace Content.Tests._WF.MappingMode;
@@ -251,6 +252,66 @@ layer: sideways
             Assert.That(WFMappingPngHeader.Check(ReadOnlySpan<byte>.Empty, out _, out _), Is.EqualTo(WFMappingPngCheck.NotPng));
             Assert.That(WFMappingPngHeader.Check(full.AsSpan(0, 24), out _, out _), Is.EqualTo(WFMappingPngCheck.Ok),
                 "The size is all the check needs.");
+        });
+    }
+
+    [Test]
+    public void PngCheckTakesItsOwnFileCap()
+    {
+        var png = Png(1, 1, 100);
+        Assert.Multiple(() =>
+        {
+            Assert.That(WFMappingPngHeader.Check(png, png.Length, out _, out _), Is.EqualTo(WFMappingPngCheck.Ok));
+            Assert.That(WFMappingPngHeader.Check(png, png.Length - 1, out _, out _),
+                Is.EqualTo(WFMappingPngCheck.FileTooLarge));
+            Assert.That(WFMappingPngHeader.Check(Png(9000, 1), png.Length, out _, out _),
+                Is.EqualTo(WFMappingPngCheck.ImageTooLarge), "The image caps hold whatever the file cap.");
+        });
+    }
+
+    [Test]
+    public void StateRoundTripLeavesLocalOptions()
+    {
+        var source = new WFMappingTemplateSettings
+        {
+            Position = new Vector2(7.5f, -2f),
+            ScaleX = 3f,
+            ScaleY = 0.5f,
+            Rotation = -45f,
+            PixelsPerTile = 16,
+            Layer = WFMappingTemplateLayer.Over,
+            Depth = 1,
+        };
+
+        var target = new WFMappingTemplateSettings { Opacity = 0.9f, Visible = false, Locked = true, Uniform = false };
+        target.ApplyState(source.ToState());
+        Assert.Multiple(() =>
+        {
+            Assert.That(target.ToState(), Is.EqualTo(source.ToState()));
+            Assert.That(target.Opacity, Is.EqualTo(0.9f), "Opacity stays with the player.");
+            Assert.That(target.Visible, Is.False);
+            Assert.That(target.Locked, Is.True);
+            Assert.That(target.Uniform, Is.False);
+        });
+    }
+
+    [Test]
+    public void ClampKeepsAStateInBounds()
+    {
+        var wild = new WFMappingTemplateState(1e9f, float.NaN, 5000f, 0f, 270f, 0, (WFMappingTemplateLayer) 9, 7);
+        var clamped = WFMappingTemplateSettings.Clamp(wild, -1, 2);
+        Assert.Multiple(() =>
+        {
+            Assert.That(clamped.X, Is.EqualTo(WFMappingTemplateSettings.MaxOffset));
+            Assert.That(clamped.Y, Is.EqualTo(0f));
+            Assert.That(clamped.ScaleX, Is.EqualTo(WFMappingTemplateSettings.MaxScale));
+            Assert.That(clamped.ScaleY, Is.EqualTo(WFMappingTemplateSettings.MinScale));
+            Assert.That(clamped.Rotation, Is.EqualTo(-90f).Within(1e-4f));
+            Assert.That(clamped.PixelsPerTile, Is.EqualTo(WFMappingTemplateSettings.MinPixelsPerTile));
+            Assert.That(clamped.Layer, Is.EqualTo(WFMappingTemplateLayer.Under), "An unknown layer is Under.");
+            Assert.That(clamped.Depth, Is.EqualTo(2));
+            Assert.That(WFMappingTemplateSettings.Clamp(wild with { Depth = -5 }, -1, 2).Depth, Is.EqualTo(-1));
+            Assert.That(WFMappingTemplateSettings.Clamp(clamped, -1, 2), Is.EqualTo(clamped), "Clamping is stable.");
         });
     }
 }

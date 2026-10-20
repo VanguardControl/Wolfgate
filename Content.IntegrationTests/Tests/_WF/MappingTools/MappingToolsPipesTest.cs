@@ -17,6 +17,7 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Prototypes;
 using static Content.IntegrationTests.Tests._WF.MappingMode.WFMappingModeTestUtil;
 
 namespace Content.IntegrationTests.Tests._WF.MappingTools;
@@ -191,13 +192,16 @@ public sealed class MappingToolsPipesTest
                 Assert.That(At(1, 8).Count, Is.Zero);
             });
 
-            // A path across a pipe that isn't replaced keeps that pipe.
+            // A path across a pipe that isn't replaced keeps that pipe, and lays halves on either side of it.
             var keep = distro with { Replace = false, Color = Waste };
             tools.Draw(session, Pipes(net, new List<Vector2i> { new(2, -1), new(2, 0), new(2, 1) }, keep));
             Assert.Multiple(() =>
             {
                 Assert.That(At(2, 0).Id, Is.EqualTo("GasPipeStraight"), "Replace off leaves the pipe.");
                 Assert.That(At(2, 0).Color, Is.EqualTo(Distro));
+                Assert.That(At(2, -1).Directions, Is.EqualTo(PipeDirection.North));
+                Assert.That(At(2, 1).Directions, Is.EqualTo(PipeDirection.South));
+                Assert.That(tools.LastPipeReport, Is.EqualTo("wf-mapping-tools-pipes-laid-skipped"));
             });
 
             // With replace on the crossing becomes a four-way.
@@ -280,9 +284,250 @@ public sealed class MappingToolsPipesTest
 
             tools.Draw(a, Pipes(net, new List<Vector2i> { new(1, 0) }, spec with { Color = Waste }, MappingDrawOp.PipeColor));
             Assert.That(Run(0, 2, 0).All(c => At(c.X, c.Y).Color == Waste), Is.True, "Under the cap the paint goes through.");
+
+            // A mapper's layer-2 device is the hidden Alt1 prototype, allowed because the check names the primary.
+            tools.Draw(a, Device(net, new Vector2i(4, 0), "GasPressurePump", spec));
+            Assert.That(At(4, 0).Id, Is.EqualTo("GasPressurePumpAlt1"), tools.LastPipeReport);
+
+            // A device needs a floor.
+            tools.Draw(a, Device(net, new Vector2i(9, 0), "GasPressurePump", spec));
+            Assert.Multiple(() =>
+            {
+                Assert.That(At(9, 0).Count, Is.Zero);
+                Assert.That(tools.LastPipeReport, Is.EqualTo("wf-mapping-tools-pipes-device-no-floor"));
+            });
         });
 
         await Disable(pair);
+        await pair.CleanReturnAsync();
+    }
+
+    private static MappingToolsDrawEvent Device(NetEntity grid, Vector2i cell, string prototype, WFMappingPipeSpec spec)
+    {
+        return new MappingToolsDrawEvent(grid, MappingDrawOp.PipeDevice, new List<Vector2i> { cell }, null, 0, prototype,
+            Angle.Zero) { Pipes = spec };
+    }
+
+    /// <summary>Every device in the box exists, shows in the spawn menu and has pipe ports.</summary>
+    [Test]
+    public async Task DeviceListIsReal()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var prototypes = server.ProtoMan;
+        var factory = server.ResolveDependency<IComponentFactory>();
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                foreach (var id in MappingToolsPipeDevices.Ids)
+                {
+                    Assert.That(prototypes.TryIndex<EntityPrototype>(id, out var prototype), Is.True, id);
+                    Assert.That(prototype!.Abstract || prototype.HideSpawnMenu, Is.False, id);
+                    Assert.That(prototype.TryGetComponent<NodeContainerComponent>(out var nodes, factory), Is.True, id);
+                    Assert.That(nodes!.Nodes.Values.OfType<PipeNode>().Any(), Is.True, $"{id} has pipe ports.");
+                }
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// The causes of "already like that": a lone click laid nothing, and a drag across kept pipes dropped the cells
+    /// beside them. Now a click lays a half, skipped cells are counted, and refusals say why.
+    /// </summary>
+    [Test]
+    public async Task ClicksAndSkippedCells()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        var testMap = await pair.CreateTestMap();
+        var mapSys = entMan.System<MapSystem>();
+        var tools = entMan.System<MappingToolsSystem>();
+        var session = pair.Player!;
+        var grid = testMap.Grid;
+        var net = entMan.GetNetEntity(grid.Owner);
+        var distro = new WFMappingPipeSpec(AtmosPipeLayer.Primary, Distro, false, true, true);
+        var keep = distro with { Replace = false };
+
+        PipeInfo At(int x, int y) => PipeAt(entMan, grid, new Vector2i(x, y));
+
+        await server.WaitAssertion(() =>
+        {
+            grid.Comp.CanSplit = false;
+            var plating = new Tile(tileDefs["Plating"].TileId);
+            mapSys.SetTiles(grid, grid.Comp, Enumerable.Range(-2, 16)
+                .SelectMany(x => Enumerable.Range(-2, 12).Select(y => (new Vector2i(x, y), plating)))
+                .ToList());
+
+            // A click with nothing around lays a half facing north, or the facing asked for.
+            tools.Draw(session, Pipes(net, new List<Vector2i> { new(0, 0) }, distro));
+            Assert.Multiple(() =>
+            {
+                Assert.That(At(0, 0), Is.EqualTo(new PipeInfo("GasPipeHalf", PipeDirection.North, Distro, 1)));
+                Assert.That(tools.LastPipeReport, Is.Null);
+            });
+
+            tools.Draw(session, Pipes(net, new List<Vector2i> { new(8, 8) }, distro with { Facing = PipeDirection.East }));
+            Assert.That(At(8, 8), Is.EqualTo(new PipeInfo("GasPipeHalf", PipeDirection.East, Distro, 1)));
+
+            // A click beside a straight joins it, turning it into a T.
+            tools.Draw(session, Pipes(net, Run(0, 2, 6), distro));
+            tools.Draw(session, Pipes(net, new List<Vector2i> { new(1, 7) }, distro));
+            Assert.Multiple(() =>
+            {
+                Assert.That(At(1, 7).Directions, Is.EqualTo(PipeDirection.South));
+                Assert.That(At(1, 6), Is.EqualTo(new PipeInfo("GasPipeTJunction", PipeDirection.TNorth, Distro, 1)));
+            });
+
+            // Clicking that pipe again with Replace on changes nothing, and says so.
+            tools.Draw(session, Pipes(net, new List<Vector2i> { new(1, 7) }, distro));
+            Assert.Multiple(() =>
+            {
+                Assert.That(tools.LastPipeReport, Is.EqualTo("wf-mapping-tools-pipes-nothing"));
+                Assert.That(At(1, 7).Count, Is.EqualTo(1));
+            });
+
+            // A path over existing pipes with Replace off lays the rest and counts the pipes it skipped.
+            tools.Draw(session, Pipes(net, Run(0, 4, 3), distro));
+            tools.Draw(session, Pipes(net, new List<Vector2i> { new(1, 2), new(1, 3), new(1, 4), new(2, 4), new(3, 4), new(3, 3), new(3, 2) }, keep));
+            Assert.Multiple(() =>
+            {
+                Assert.That(tools.LastPipeReport, Is.EqualTo("wf-mapping-tools-pipes-laid-skipped"));
+                Assert.That(At(1, 3).Directions, Is.EqualTo(PipeDirection.Lateral), "The skipped straight is left alone.");
+                Assert.That(At(3, 3).Directions, Is.EqualTo(PipeDirection.Lateral));
+                Assert.That(At(1, 2).Directions, Is.EqualTo(PipeDirection.North), "The cell cut off by it is still laid.");
+                Assert.That(At(3, 2).Directions, Is.EqualTo(PipeDirection.North));
+                Assert.That(At(1, 4).Directions, Is.EqualTo(PipeDirection.East), "It doesn't open towards the kept pipe.");
+                Assert.That(At(2, 4).Directions, Is.EqualTo(PipeDirection.Lateral));
+            });
+
+            // A path only over existing pipes with Replace off lays nothing and says why.
+            tools.Draw(session, Pipes(net, Run(0, 4, 3), keep));
+            Assert.That(tools.LastPipeReport, Is.EqualTo("wf-mapping-tools-pipes-all-skipped"));
+
+            // A device in the way is never rebuilt.
+            entMan.SpawnEntity("GasPressurePump", new EntityCoordinates(grid, new Vector2(10.5f, 0.5f)));
+            tools.Draw(session, Pipes(net, new List<Vector2i> { new(10, 0) }, distro));
+            Assert.Multiple(() =>
+            {
+                Assert.That(tools.LastPipeReport, Is.EqualTo("wf-mapping-tools-pipes-all-blocked"));
+                Assert.That(At(10, 0).Id, Is.EqualTo("GasPressurePump"));
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// The device box: a device turns to meet the pipes around it, joins a plain pipe beside it, takes the layer's
+    /// prototype and the colour, undoes as one edit, and nothing outside the device list is placed.
+    /// </summary>
+    [Test]
+    public async Task DevicesJoinTurnAndUndo()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        var testMap = await pair.CreateTestMap();
+        var mapSys = entMan.System<MapSystem>();
+        var tools = entMan.System<MappingToolsSystem>();
+        var session = pair.Player!;
+        var grid = testMap.Grid;
+        var net = entMan.GetNetEntity(grid.Owner);
+        var distro = new WFMappingPipeSpec(AtmosPipeLayer.Primary, Distro, false, true, true);
+
+        PipeInfo At(int x, int y, AtmosPipeLayer layer = AtmosPipeLayer.Primary) =>
+            PipeAt(entMan, grid, new Vector2i(x, y), layer);
+
+        await server.WaitAssertion(() =>
+        {
+            grid.Comp.CanSplit = false;
+            var plating = new Tile(tileDefs["Plating"].TileId);
+            mapSys.SetTiles(grid, grid.Comp, Enumerable.Range(-2, 16)
+                .SelectMany(x => Enumerable.Range(-2, 12).Select(y => (new Vector2i(x, y), plating)))
+                .ToList());
+
+            // A vent past the end of a run faces it, and the run's end half becomes a straight into it.
+            tools.Draw(session, Pipes(net, Run(0, 3, 0), distro));
+            tools.Draw(session, Device(net, new Vector2i(4, 0), "GasVentPump", distro));
+            Assert.Multiple(() =>
+            {
+                Assert.That(At(4, 0), Is.EqualTo(new PipeInfo("GasVentPump", PipeDirection.West, Distro, 1)),
+                    tools.LastPipeReport);
+                Assert.That(At(3, 0), Is.EqualTo(new PipeInfo("GasPipeStraight", PipeDirection.Lateral, Distro, 1)));
+            });
+
+            // Undo takes the vent away and gives the half back.
+            tools.StepHistory(session, redo: false);
+            Assert.Multiple(() =>
+            {
+                Assert.That(At(4, 0).Count, Is.Zero);
+                Assert.That(At(3, 0), Is.EqualTo(new PipeInfo("GasPipeHalf", PipeDirection.West, Distro, 1)));
+            });
+
+            // A pump dropped on a straight in a run swaps it, in line with the run, keeping its facing's flow.
+            tools.Draw(session, Pipes(net, Run(0, 6, 2), distro));
+            tools.Draw(session, Device(net, new Vector2i(3, 2), "GasPressurePump", distro with { Facing = PipeDirection.West }));
+            Assert.Multiple(() =>
+            {
+                Assert.That(At(3, 2).Id, Is.EqualTo("GasPressurePump"), tools.LastPipeReport);
+                Assert.That(At(3, 2).Directions, Is.EqualTo(PipeDirection.Lateral));
+                Assert.That(At(3, 2).Count, Is.EqualTo(2), "Its two ports.");
+                Assert.That(At(2, 2).Directions, Is.EqualTo(PipeDirection.Lateral), "Its neighbours are untouched.");
+                Assert.That(At(4, 2).Directions, Is.EqualTo(PipeDirection.Lateral));
+            });
+
+            // Without Replace the straight stays and the device is refused.
+            tools.Draw(session, Device(net, new Vector2i(5, 2), "GasPressurePump", distro with { Replace = false }));
+            Assert.Multiple(() =>
+            {
+                Assert.That(At(5, 2).Id, Is.EqualTo("GasPipeStraight"));
+                Assert.That(tools.LastPipeReport, Is.EqualTo("wf-mapping-tools-pipes-device-occupied"));
+            });
+
+            // Layer 2 places the Alt1 prototype; a device without one is moved to the layer before it anchors.
+            var second = distro with { Layer = AtmosPipeLayer.Secondary };
+            tools.Draw(session, Device(net, new Vector2i(0, 5), "GasPressurePump", second));
+            tools.Draw(session, Device(net, new Vector2i(2, 5), "GasVentScrubber", second));
+            Assert.Multiple(() =>
+            {
+                Assert.That(At(0, 5, AtmosPipeLayer.Secondary).Id, Is.EqualTo("GasPressurePumpAlt1"));
+                Assert.That(At(2, 5, AtmosPipeLayer.Secondary).Id, Is.EqualTo("GasVentScrubber"));
+                Assert.That(At(2, 5).Count, Is.Zero, "Nothing is left on the first layer.");
+                Assert.That(At(2, 5, AtmosPipeLayer.Secondary).Directions, Is.EqualTo(PipeDirection.North),
+                    "No pipes around: it faces the requested way.");
+            });
+
+            // A colour preset paints the device.
+            tools.Draw(session, Device(net, new Vector2i(6, 6), "GasPassiveVent", distro with { Color = Waste }));
+            Assert.That(At(6, 6).Color, Is.EqualTo(Waste));
+
+            // A radiator only has the first layer.
+            tools.Draw(session, Device(net, new Vector2i(8, 6), "HeatExchanger", second));
+            Assert.Multiple(() =>
+            {
+                Assert.That(At(8, 6, AtmosPipeLayer.Secondary).Count, Is.Zero);
+                Assert.That(tools.LastPipeReport, Is.EqualTo("wf-mapping-tools-pipes-device-no-layer"));
+            });
+
+            // Only the device list is placed: a plain pipe, another entity and an unknown id are refused.
+            foreach (var id in new[] { "GasPipeStraight", "GasCanister", "WFNoSuchPrototype" })
+            {
+                tools.Draw(session, Device(net, new Vector2i(10, 6), id, distro));
+                Assert.Multiple(() =>
+                {
+                    Assert.That(At(10, 6).Count, Is.Zero, id);
+                    Assert.That(tools.LastPipeReport, Is.EqualTo("wf-mapping-tools-pipes-device-bad"), id);
+                });
+            }
+        });
+
         await pair.CleanReturnAsync();
     }
 }

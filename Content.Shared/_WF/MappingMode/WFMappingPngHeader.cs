@@ -1,4 +1,4 @@
-namespace Content.Client._WF.MappingMode.Template;
+namespace Content.Shared._WF.MappingMode;
 
 /// <summary>Why a PNG was refused before decoding, or <see cref="Ok"/>.</summary>
 public enum WFMappingPngCheck : byte
@@ -53,9 +53,15 @@ public static class WFMappingPngHeader
     /// <summary>Checks the file length, the header and the image size against the caps.</summary>
     public static WFMappingPngCheck Check(ReadOnlySpan<byte> data, out int width, out int height)
     {
+        return Check(data, MaxFileBytes, out width, out height);
+    }
+
+    /// <summary>As <see cref="Check(ReadOnlySpan{byte}, out int, out int)"/>, with its own file size cap.</summary>
+    public static WFMappingPngCheck Check(ReadOnlySpan<byte> data, long maxBytes, out int width, out int height)
+    {
         width = 0;
         height = 0;
-        if (data.Length > MaxFileBytes)
+        if (data.Length > maxBytes)
             return WFMappingPngCheck.FileTooLarge;
 
         if (!TryReadSize(data, out width, out height))

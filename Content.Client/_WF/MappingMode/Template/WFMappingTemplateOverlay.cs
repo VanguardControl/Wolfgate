@@ -1,4 +1,5 @@
 using Content.Client._WF.MappingMode.Modes;
+using Content.Shared._WF.MappingMode;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Robust.Client.Graphics;
 using Robust.Shared.Enums;

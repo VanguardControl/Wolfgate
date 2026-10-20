@@ -1,5 +1,6 @@
 using Content.Shared._WF.MappingMode;
 using Content.Shared._WF.MappingTools;
+using Robust.Client.Graphics;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.Map;
 
@@ -7,12 +8,14 @@ namespace Content.Client._WF.MappingMode.Modes;
 
 /// <summary>
 /// Pipe: drag a path of cells on a grid and the server lays plain gas pipes along it, joined to the pipes around it.
-/// Middle click, or a left click after Properties' paint button, paints the clicked pipe's whole network.
+/// Middle click, or a left click after Properties' paint button, paints the clicked pipe's whole network. With a
+/// device armed from Properties' device box, a left click places that device instead.
 /// </summary>
 public sealed partial class WFMappingPipeMode(WFMappingBuildModeSystem modes)
     : WFMappingModeHandlerBase(modes), IWFMappingPreviewSource, IWFMappingFrameHandler
 {
     [Dependency] private IEntityManager _entities = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
 
     private static readonly Color NoColor = Color.FromHex("#b0bec5");
     private static readonly Color TooMany = Color.FromHex("#ff1744");
@@ -23,6 +26,15 @@ public sealed partial class WFMappingPipeMode(WFMappingBuildModeSystem modes)
     private bool _overflow;
 
     public override WFMappingBuildMode Mode => WFMappingBuildMode.Pipe;
+
+    /// <summary>Whether a path is being dragged.</summary>
+    public bool Pressing => _pressing;
+
+    public override void Enter()
+    {
+        if (!_overlays.HasOverlay<WFMappingPipeDeviceOverlay>())
+            _overlays.AddOverlay(new WFMappingPipeDeviceOverlay(Modes, this));
+    }
 
     /// <summary>
     /// The colour of a preset: the standard atmos pipe colours of the spray painter
@@ -44,6 +56,7 @@ public sealed partial class WFMappingPipeMode(WFMappingBuildModeSystem modes)
     {
         Drop();
         Modes.SetPipePainting(false);
+        _overlays.RemoveOverlay<WFMappingPipeDeviceOverlay>();
     }
 
     public override bool Primary(in PointerInputCmdHandler.PointerInputCmdArgs args)
@@ -61,6 +74,13 @@ public sealed partial class WFMappingPipeMode(WFMappingBuildModeSystem modes)
             {
                 Modes.SetPipePainting(false);
                 Paint(grid.Owner, cell);
+                return true;
+            }
+
+            if (Modes.PipeDevice is { } device)
+            {
+                Modes.SendDraw(new MappingToolsDrawEvent(_entities.GetNetEntity(grid.Owner), MappingDrawOp.PipeDevice,
+                    new List<Vector2i> { cell }, null, 0, device, Angle.Zero) { Pipes = Modes.PipeSpec });
                 return true;
             }
 
@@ -82,9 +102,21 @@ public sealed partial class WFMappingPipeMode(WFMappingBuildModeSystem modes)
     public override bool Secondary(in PointerInputCmdHandler.PointerInputCmdArgs args)
     {
         if (IsDown(args) && !_pressing)
+        {
             Modes.SetPipePainting(false);
+            Modes.SetPipeDevice(null);
+        }
 
         Drop();
+        return true;
+    }
+
+    public override bool Wheel(float delta)
+    {
+        if (!Modes.CtrlDown)
+            return false;
+
+        Modes.RotatePipeFacing(delta > 0 ? 1 : -1);
         return true;
     }
 
@@ -106,6 +138,12 @@ public sealed partial class WFMappingPipeMode(WFMappingBuildModeSystem modes)
         if (_pressing)
         {
             Drop();
+            return true;
+        }
+
+        if (Modes.PipeDevice != null)
+        {
+            Modes.SetPipeDevice(null);
             return true;
         }
 

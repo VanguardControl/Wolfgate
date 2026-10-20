@@ -112,10 +112,12 @@ public sealed partial class WFMappingModeSystem
 
     /// <summary>
     /// Opens a new session on levels loaded from a library version, listed bottom-up with depth 0 at
-    /// <paramref name="ground"/>, and puts the player in it. When it fails the caller still owns the levels.
+    /// <paramref name="ground"/>, with the shared template saved beside them, and puts the player in it. When it
+    /// fails the caller still owns the levels.
     /// </summary>
     public bool TryOpenSession(ICommonSession player, string name, List<EntityUid> levels, int ground,
-        string sourceMap, string sourceVersion, [NotNullWhen(true)] out WFMappingSession? session)
+        string sourceMap, string sourceVersion, [NotNullWhen(true)] out WFMappingSession? session,
+        WFMappingSessionTemplate? template = null)
     {
         session = null;
         if (levels.Count == 0 || ground < 0 || ground >= levels.Count || !CheckSessionCap(player))
@@ -135,6 +137,7 @@ public sealed partial class WFMappingModeSystem
         session = StartSession(player, name, levels, ground);
         session.SourceMap = sourceMap;
         session.SourceVersion = sourceVersion;
+        session.Template = template;
         session.Dirty = false;
 
         _adminLog.Add(LogType.Action, LogImpact.Low,
@@ -680,6 +683,7 @@ public sealed partial class WFMappingModeSystem
                     NextAutosave = session.AutosaveMinutes > 0 ? session.NextAutosave : null,
                     LastSaved = session.LastSaved,
                     Dirty = session.Dirty,
+                    Template = session.Template?.Info(),
                 };
 
                 foreach (var (user, _) in session.Members.OrderBy(pair => pair.Value))

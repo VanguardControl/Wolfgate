@@ -133,6 +133,11 @@ public enum MappingDrawOp : byte
     /// cells are map tiles on <see cref="MappingToolsDrawEvent.Map"/>.
     /// </summary>
     EraseEntities,
+    /// <summary>
+    /// Places the atmos device <see cref="MappingToolsDrawEvent.Prototype"/>, one of
+    /// <see cref="MappingToolsPipeDevices.Ids"/>, on the one cell as <see cref="MappingToolsDrawEvent.Pipes"/> says.
+    /// </summary>
+    PipeDevice,
 }
 
 /// <summary>

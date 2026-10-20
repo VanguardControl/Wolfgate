@@ -18,7 +18,7 @@ wf-mapping-screen-mouse-fill = Click: fill the connected tiles of that kind with
 wf-mapping-screen-mouse-shape = Drag: draw a line, rectangle or circle of the selected tile or entity. Shift: square or round. Right click: switch fill and border.
 wf-mapping-screen-mouse-pick = Click: pick what's under the cursor and go back to Place.
 wf-mapping-screen-mouse-template = Drag the template image; the arrows nudge it.
-wf-mapping-screen-mouse-pipe = Drag: lay a pipe along the path. Middle click: paint a pipe's whole network. Right click: cancel.
+wf-mapping-screen-mouse-pipe = Drag: lay a pipe along the path. Click: a half. Middle click: paint a pipe's whole network. Right click: cancel, or stop placing a device. R: turn.
 
 wf-mapping-screen-too-many = That covers too many tiles; the most is {$max}.
 wf-mapping-screen-needs-grid = Start on a grid. Place a tile first to make one.
@@ -86,7 +86,7 @@ wf-mapping-screen-shape-fill-tooltip = Right click in Shape mode switches betwee
 wf-mapping-screen-readout-erase = Erasing: {$target}
 wf-mapping-screen-readout-line = Drawing: line
 wf-mapping-screen-readout-shape = Drawing: {$shape}, {$fill}
-wf-mapping-screen-readout-pipe = Piping: {$colour}, layer {$layer}{$join ->
+wf-mapping-screen-readout-pipe = Piping: {$colour}, layer {$layer}, lone halves face {$facing}{$join ->
     [yes] , auto-join
    *[no] {""}
 }{$replace ->
@@ -94,6 +94,10 @@ wf-mapping-screen-readout-pipe = Piping: {$colour}, layer {$layer}{$join ->
    *[no] {""}
 }
 wf-mapping-screen-readout-pipe-paint = Painting: click a pipe to paint its network {$colour}
+wf-mapping-screen-readout-pipe-device = Placing: {$device}, {$colour}, layer {$layer}, facing {$facing}{$join ->
+    [yes] , turns to meet pipes
+   *[no] {""}
+}
 
 wf-mapping-screen-pipe-colour = Colour
 wf-mapping-screen-pipe-preset-distro = Distro
@@ -115,6 +119,14 @@ wf-mapping-screen-pipe-replace-tooltip = Rebuild a plain pipe on the path with t
 wf-mapping-screen-pipe-paint = Paint a network
 wf-mapping-screen-pipe-paint-tooltip = The next left click paints the clicked pipe and everything connected to it. Middle click does it too.
 wf-mapping-screen-pipe-paint-needs-color = Pick a colour to paint with first.
+wf-mapping-screen-pipe-devices = Atmos devices
+wf-mapping-screen-pipe-devices-hint = Pick one, then left click to place it. Right click goes back to drawing pipes.
+wf-mapping-screen-pipe-device-tooltip-suffix = {$name} ({$suffix})
+wf-mapping-screen-pipe-facing = Facing: {$facing} (R or Ctrl+wheel turns it)
+wf-mapping-screen-pipe-facing-north = north
+wf-mapping-screen-pipe-facing-east = east
+wf-mapping-screen-pipe-facing-south = south
+wf-mapping-screen-pipe-facing-west = west
 
 wf-mapping-screen-layer-walls = Walls
 wf-mapping-screen-layer-subfloor = Subfloor (pipes, cables)

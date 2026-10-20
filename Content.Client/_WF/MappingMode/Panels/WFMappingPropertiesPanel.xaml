@@ -66,6 +66,11 @@
                 </BoxContainer>
                 <Button Name="PipePaintButton" ToggleMode="True" Text="{Loc 'wf-mapping-screen-pipe-paint'}"
                         ToolTip="{Loc 'wf-mapping-screen-pipe-paint-tooltip'}" />
+                <Label Name="PipeFacingLabel" StyleClasses="LabelSubText" />
+                <Label Text="{Loc 'wf-mapping-screen-pipe-devices'}" Margin="0 4 0 0"
+                       ToolTip="{Loc 'wf-mapping-screen-pipe-devices-hint'}" />
+                <GridContainer Name="PipeDeviceGrid" Columns="6" HSeparationOverride="2" VSeparationOverride="2" />
+                <Label Name="PipeDeviceLabel" ClipText="True" StyleClasses="LabelSubText" />
             </BoxContainer>
             <BoxContainer Name="LinkBox" Orientation="Vertical" SeparationOverride="4">
                 <BoxContainer Orientation="Horizontal" SeparationOverride="0">

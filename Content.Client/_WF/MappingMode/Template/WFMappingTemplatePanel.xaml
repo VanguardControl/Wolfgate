@@ -13,6 +13,17 @@
             </BoxContainer>
             <Label Name="InfoLabel" ClipText="True" StyleClasses="LabelSubText" />
 
+            <BoxContainer Orientation="Horizontal" SeparationOverride="4">
+                <Button Name="ShareButton" HorizontalExpand="True" Text="{Loc 'wf-mapping-template-share'}"
+                        ToolTip="{Loc 'wf-mapping-template-share-tooltip'}" />
+                <Button Name="UnshareButton" HorizontalExpand="True" Text="{Loc 'wf-mapping-template-unshare'}"
+                        ToolTip="{Loc 'wf-mapping-template-unshare-tooltip'}" />
+            </BoxContainer>
+            <Label Name="SharedLabel" ClipText="True" StyleClasses="LabelSubText" />
+            <ProgressBar Name="TransferBar" MinValue="0" MaxValue="1" MinHeight="6" Visible="False" />
+            <Label Name="OwnHiddenLabel" ClipText="True" StyleClasses="LabelSubText"
+                   Text="{Loc 'wf-mapping-template-own-hidden'}" Visible="False" />
+
             <BoxContainer Name="SettingsBox" Orientation="Vertical" SeparationOverride="4">
                 <BoxContainer Orientation="Horizontal" SeparationOverride="8">
                     <CheckBox Name="VisibleCheck" Text="{Loc 'wf-mapping-template-visible'}" />

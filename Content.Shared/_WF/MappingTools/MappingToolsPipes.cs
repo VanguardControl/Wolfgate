@@ -6,7 +6,8 @@ namespace Content.Shared._WF.MappingTools;
 
 /// <summary>
 /// How a pipe draw lays its pipes: the layer, the colour (or <see cref="AutoColor"/> to match the first pipe it
-/// joins) and whether it joins or rebuilds pipes already there.
+/// joins) and whether it joins or rebuilds pipes already there. <see cref="Facing"/> is the side a lone half opens
+/// to and the side a device's first port faces when nothing around it decides; None means north.
 /// </summary>
 [Serializable, NetSerializable]
 public readonly record struct WFMappingPipeSpec(
@@ -14,7 +15,8 @@ public readonly record struct WFMappingPipeSpec(
     Color? Color,
     bool AutoColor,
     bool AutoJoin,
-    bool Replace);
+    bool Replace,
+    PipeDirection Facing = PipeDirection.None);
 
 /// <summary>The pipes already on a cell, on the layer being drawn: their open sides and whether they are one plain pipe.</summary>
 public readonly record struct MappingExistingPipe(PipeDirection Directions, bool Plain);
@@ -34,8 +36,11 @@ public sealed class MappingPipePlan
     /// <summary>Cells of pipes the path joins, in path order.</summary>
     public readonly List<Vector2i> Joined = new();
 
-    /// <summary>Path cells left alone: a pipe is there that may not be rebuilt, or nothing connects to the cell.</summary>
-    public int Kept;
+    /// <summary>Path cells holding one plain pipe that was kept because Replace is off.</summary>
+    public int Skipped;
+
+    /// <summary>Path cells holding a device or several pipes on the layer, which are never rebuilt.</summary>
+    public int Blocked;
 }
 
 /// <summary>
@@ -221,14 +226,102 @@ public static class MappingToolsPipes
         return false;
     }
 
+    /// <summary>Whether exactly one of the four sides is set.</summary>
+    public static bool IsSide(PipeDirection direction)
+    {
+        return Array.IndexOf(Sides, direction) >= 0;
+    }
+
+    /// <summary>Sides turned by quarter turns, as an entity rotated by <c>90 * turns</c> degrees turns its pipe nodes.</summary>
+    public static PipeDirection Turn(PipeDirection directions, int turns)
+    {
+        return directions.RotatePipeDirection(QuarterTurns(turns).Theta);
+    }
+
+    /// <summary>An angle of whole quarter turns, 0 to 3.</summary>
+    public static Angle QuarterTurns(int turns)
+    {
+        return Angle.FromDegrees(90 * (((turns % 4) + 4) % 4));
+    }
+
+    /// <summary>
+    /// The quarter turns that point a device's first port, south at rest as prototypes are drawn, to
+    /// <paramref name="facing"/>; north when it isn't one side.
+    /// </summary>
+    public static int TurnsToFace(PipeDirection facing)
+    {
+        if (!IsSide(facing))
+            facing = PipeDirection.North;
+
+        for (var turn = 0; turn < 4; turn++)
+        {
+            if (Turn(PipeDirection.South, turn) == facing)
+                return turn;
+        }
+
+        return 0;
+    }
+
+    /// <summary>
+    /// The quarter turns for a device with <paramref name="ports"/> (its sides at rest) on a cell: the turn whose
+    /// ports meet the most pipes pointing at the cell, then the most plain pipes beside it that can gain a side, and
+    /// of those the nearest to <paramref name="requested"/>.
+    /// </summary>
+    public static int DeviceTurns(PipeDirection ports, PipeDirection pointing, PipeDirection joinable, int requested)
+    {
+        var best = ((requested % 4) + 4) % 4;
+        var bestScore = -1;
+        foreach (var offset in new[] { 0, 1, 3, 2 })
+        {
+            var turn = ((requested + offset) % 4 + 4) % 4;
+            var turned = Turn(ports & PipeDirection.Fourway, turn);
+            var score = 8 * Count(turned & pointing) + Count(turned & joinable);
+            if (score <= bestScore)
+                continue;
+
+            best = turn;
+            bestScore = score;
+        }
+
+        return best;
+    }
+
+    /// <summary>
+    /// The message a pipe draw ends with, from what it changed and the path cells it left alone: a refusal when it
+    /// changed nothing, a note when it skipped cells, else null.
+    /// </summary>
+    public static string? ReportKey(int changed, int skipped, int blocked)
+    {
+        if (changed == 0)
+        {
+            return (skipped, blocked) switch
+            {
+                (> 0, > 0) => "wf-mapping-tools-pipes-all-skipped-blocked",
+                (> 0, _) => "wf-mapping-tools-pipes-all-skipped",
+                (_, > 0) => "wf-mapping-tools-pipes-all-blocked",
+                _ => "wf-mapping-tools-pipes-nothing",
+            };
+        }
+
+        return (skipped, blocked) switch
+        {
+            (> 0, > 0) => "wf-mapping-tools-pipes-laid-skipped-blocked",
+            (> 0, _) => "wf-mapping-tools-pipes-laid-skipped",
+            (_, > 0) => "wf-mapping-tools-pipes-laid-blocked",
+            _ => null,
+        };
+    }
+
     /// <summary>
     /// Works out a pipe draw. Each path cell opens to its neighbours along the path. A cell holding pipes on the
     /// layer is rebuilt with its old sides added when <paramref name="replace"/> is on and it is one plain pipe, else
     /// kept. With <paramref name="autoJoin"/> a cell also opens to pipes pointing at it, kept path cells included,
-    /// and each end of the path runs into the plain pipe straight past it, which gains the side it needs.
+    /// and each end of the path runs into the plain pipe straight past it, which gains the side it needs. A cell
+    /// left with no sides becomes a half: towards its path neighbour, else (a lone click) towards a plain pipe beside
+    /// it, which gains the side, else towards <paramref name="facing"/>.
     /// </summary>
     public static MappingPipePlan Plan(IReadOnlyList<Vector2i> path, Func<Vector2i, MappingExistingPipe?> existing,
-        bool autoJoin, bool replace)
+        bool autoJoin, bool replace, PipeDirection facing = PipeDirection.None)
     {
         var plan = new MappingPipePlan();
         var count = path.Count;
@@ -259,6 +352,24 @@ public static class MappingToolsPipes
                 directions[i] = pipe.Directions & PipeDirection.Fourway;
                 Join(path[i]);
             }
+            else if (pipe.Plain)
+            {
+                plan.Skipped++;
+            }
+            else
+            {
+                plan.Blocked++;
+            }
+        }
+
+        void Upgrade(Vector2i cell, PipeDirection plainDirections, PipeDirection side)
+        {
+            var current = upgrades.TryGetValue(cell, out var upgraded) ? upgraded : plainDirections & PipeDirection.Fourway;
+            if (!upgrades.ContainsKey(cell))
+                plan.Upgraded.Add(new MappingPipeCell(cell, PipeDirection.None));
+
+            upgrades[cell] = current | side;
+            Join(cell);
         }
 
         MappingExistingPipe? PipeAt(Vector2i cell)
@@ -320,21 +431,48 @@ public static class MappingToolsPipes
                 continue;
             }
 
-            var current = upgrades.TryGetValue(beyond, out var upgraded) ? upgraded : plain.Directions & PipeDirection.Fourway;
-            if (!upgrades.ContainsKey(beyond))
-                plan.Upgraded.Add(new MappingPipeCell(beyond, PipeDirection.None));
-
-            upgrades[beyond] = current | ahead.GetOpposite();
             directions[i] |= ahead;
-            Join(beyond);
+            Upgrade(beyond, plain.Directions, ahead.GetOpposite());
         }
 
         for (var i = 0; i < count; i++)
         {
-            if (placed[i] && directions[i] != PipeDirection.None)
-                plan.Placed.Add(new MappingPipeCell(path[i], directions[i]));
-            else
-                plan.Kept++;
+            if (!placed[i])
+                continue;
+
+            if (directions[i] == PipeDirection.None)
+                directions[i] = LoneSide(i);
+
+            plan.Placed.Add(new MappingPipeCell(path[i], directions[i]));
+        }
+
+        // The side a cell that joins nothing opens to: along the path towards a kept pipe, else a plain pipe beside
+        // a lone click (which gains the side), else the facing.
+        PipeDirection LoneSide(int i)
+        {
+            if (i > 0)
+                return Side(path[i], path[i - 1]);
+
+            if (i < count - 1)
+                return Side(path[i], path[i + 1]);
+
+            var preferred = IsSide(facing) ? facing : PipeDirection.North;
+            if (autoJoin)
+            {
+                var start = Array.IndexOf(Sides, preferred);
+                for (var turn = 0; turn < Sides.Length; turn++)
+                {
+                    var side = Sides[(start + turn) % Sides.Length];
+                    var next = Step(path[i], side);
+                    if (index.ContainsKey(next) || existing(next) is not { Plain: true } plain)
+                        continue;
+
+                    Upgrade(next, plain.Directions, side.GetOpposite());
+                    return side;
+                }
+            }
+
+            return preferred;
         }
 
         for (var i = 0; i < plan.Upgraded.Count; i++)

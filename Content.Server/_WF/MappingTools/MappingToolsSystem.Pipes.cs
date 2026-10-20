@@ -34,6 +34,9 @@ public sealed partial class MappingToolsSystem
 
     private readonly List<EntityUid> _anchored = new();
 
+    /// <summary>The Fluent id the last pipe draw, paint or device placement ended with, refusal or note; null for none.</summary>
+    internal string? LastPipeReport { get; private set; }
+
     /// <summary>The pipes on one cell and one layer: their open sides, and the plain pipe when it is the only one.</summary>
     private readonly record struct CellPipes(PipeDirection Directions, EntityUid? Plain);
 
@@ -44,21 +47,22 @@ public sealed partial class MappingToolsSystem
     private void DrawPipes(ICommonSession session, Entity<MapGridComponent> grid, EntityUid map,
         MappingToolsDrawEvent ev)
     {
+        LastPipeReport = null;
         if (ev.Pipes is not { } spec || !Enum.IsDefined(spec.Layer))
         {
-            Refuse(session, ev, "wf-mapping-tools-draw-bad");
+            RefusePipes(session, ev, "wf-mapping-tools-draw-bad");
             return;
         }
 
         if (MappingToolsPipes.Normalise(ev.Cells, MaxDrawCells) is not { } path)
         {
-            Refuse(session, ev, "wf-mapping-tools-draw-too-many", ("max", MaxDrawCells));
+            RefusePipes(session, ev, "wf-mapping-tools-draw-too-many", ("max", MaxDrawCells));
             return;
         }
 
         if (!TryGetPipePrototypes(spec.Layer, out var byShape))
         {
-            Refuse(session, ev, "wf-mapping-tools-draw-bad-prototype");
+            RefusePipes(session, ev, "wf-mapping-tools-draw-bad-prototype");
             return;
         }
 
@@ -77,12 +81,12 @@ public sealed partial class MappingToolsSystem
 
         var plan = MappingToolsPipes.Plan(path,
             cell => At(cell) is { } pipes ? new MappingExistingPipe(pipes.Directions, pipes.Plain != null) : null,
-            spec.AutoJoin, spec.Replace);
+            spec.AutoJoin, spec.Replace, spec.Facing);
 
         var noFloor = plan.Placed.Count(p => TileAt(grid, p.Cell).IsEmpty);
         if (noFloor > 0)
         {
-            Refuse(session, ev, "wf-mapping-tools-pipes-no-floor", ("count", noFloor));
+            RefusePipes(session, ev, "wf-mapping-tools-pipes-no-floor", ("count", noFloor));
             return;
         }
 
@@ -137,9 +141,17 @@ public sealed partial class MappingToolsSystem
             Build(upgraded, false);
         }
 
+        var report = MappingToolsPipes.ReportKey(spawns.Count + paints.Count, plan.Skipped, plan.Blocked);
+        var reportArgs = new (string, object)[]
+        {
+            ("laid", spawns.Count + paints.Count),
+            ("skipped", plan.Skipped),
+            ("blocked", plan.Blocked),
+        };
+
         if (spawns.Count == 0 && paints.Count == 0)
         {
-            Refuse(session, ev, "wf-mapping-tools-pipes-nothing");
+            RefusePipes(session, ev, report ?? "wf-mapping-tools-pipes-nothing", reportArgs);
             return;
         }
 
@@ -163,35 +175,15 @@ public sealed partial class MappingToolsSystem
             Prototypes = spawns.Select(s => MappingToolsPipes.PrototypeFor(s.Shape)).Distinct().ToList(),
         };
 
-        if (!CanDraw(session, ev, check))
+        if (!CanDrawPipes(session, ev, check))
             return;
 
-        var edit = new MappingEdit("wf-mapping-tools-edit-draw-pipes");
-        if (removals.Count > 0)
-        {
-            var deleted = new MappingEntityGroup();
-            foreach (var uid in removals)
-            {
-                deleted.Roots.Add(new MappingGroupRoot(GetRef(uid), -1, PoseOf(uid)));
-            }
-
-            edit.Deleted.Add(deleted);
-            Apply(edit, forward: true);
-        }
-
-        var created = new MappingEntityGroup();
+        var edit = StartPipeEdit("wf-mapping-tools-edit-draw-pipes", removals);
+        var created = new List<EntityUid>();
         foreach (var (cell, shape, rotation, color) in spawns)
         {
-            var uid = SpawnAttachedTo(byShape[shape], new EntityCoordinates(grid.Owner, new Vector2(cell.X + 0.5f, cell.Y + 0.5f)),
-                rotation: rotation);
-            if (color is { } paint)
-                SetPipeColor(uid, paint);
-
-            created.Roots.Add(new MappingGroupRoot(GetRef(uid), -1, PoseOf(uid)));
+            created.Add(SpawnPipe(grid, byShape[shape], cell, rotation, null, color));
         }
-
-        if (created.Roots.Count > 0)
-            edit.Created.Add(created);
 
         foreach (var (uid, old, paint) in paints)
         {
@@ -199,13 +191,13 @@ public sealed partial class MappingToolsSystem
             edit.PipeColors.Add(new MappingPipeColorChange(GetRef(uid), old, paint));
         }
 
-        Push(session, edit);
-        RaiseEdited(edit);
+        FinishPipeEdit(session, edit, created);
         _adminLog.Add(LogType.Action, LogImpact.Medium,
             $"{session:player} used mapping tools to lay {spawns.Count} pipes (replacing {removals.Count}, painting {paints.Count}) on layer {spec.Layer} of {ToPrettyString(grid.Owner):grid}");
 
-        if (plan.Kept > 0)
-            _popup.PopupCursor(Loc.GetString("wf-mapping-tools-pipes-kept", ("count", plan.Kept)), session);
+        LastPipeReport = report;
+        if (report != null)
+            _popup.PopupCursor(Loc.GetString(report, reportArgs), session);
     }
 
     /// <summary>
@@ -215,9 +207,10 @@ public sealed partial class MappingToolsSystem
     private void PaintPipes(ICommonSession session, Entity<MapGridComponent> grid, EntityUid map,
         MappingToolsDrawEvent ev)
     {
+        LastPipeReport = null;
         if (ev.Pipes is not { Color: { } color } spec || ev.Cells.Count != 1 || !Enum.IsDefined(spec.Layer))
         {
-            Refuse(session, ev, ev.Pipes is { Color: null } ? "wf-mapping-tools-pipes-needs-color" : "wf-mapping-tools-draw-bad");
+            RefusePipes(session, ev, ev.Pipes is { Color: null } ? "wf-mapping-tools-pipes-needs-color" : "wf-mapping-tools-draw-bad");
             return;
         }
 
@@ -232,14 +225,14 @@ public sealed partial class MappingToolsSystem
 
         if (startNodes.Count == 0)
         {
-            Refuse(session, ev, "wf-mapping-tools-pipes-no-pipe");
+            RefusePipes(session, ev, "wf-mapping-tools-pipes-no-pipe");
             return;
         }
 
         var network = PipeNetwork(grid, startNodes, MaxDrawCells);
         if (network == null)
         {
-            Refuse(session, ev, "wf-mapping-tools-draw-too-many", ("max", MaxDrawCells));
+            RefusePipes(session, ev, "wf-mapping-tools-draw-too-many", ("max", MaxDrawCells));
             return;
         }
 
@@ -256,7 +249,7 @@ public sealed partial class MappingToolsSystem
 
         if (edit.IsEmpty)
         {
-            Refuse(session, ev, "wf-mapping-tools-pipes-nothing");
+            RefusePipes(session, ev, "wf-mapping-tools-pipes-paint-nothing");
             return;
         }
 
@@ -268,7 +261,7 @@ public sealed partial class MappingToolsSystem
             TouchedEntities = edit.PipeColors.Count,
         };
 
-        if (!CanDraw(session, ev, check))
+        if (!CanDrawPipes(session, ev, check))
             return;
 
         Commit(session, edit);
@@ -403,6 +396,88 @@ public sealed partial class MappingToolsSystem
         }
 
         return true;
+    }
+
+    /// <summary>Refuses a pipe draw, paint or device and keeps the reason for <see cref="LastPipeReport"/>.</summary>
+    private void RefusePipes(ICommonSession session, MappingToolsDrawEvent ev, string key,
+        params (string, object)[] args)
+    {
+        LastPipeReport = key;
+        Refuse(session, ev, key, args);
+    }
+
+    /// <summary><see cref="CanDraw"/>, keeping the canceller's reason for <see cref="LastPipeReport"/>.</summary>
+    private bool CanDrawPipes(ICommonSession session, MappingToolsDrawEvent ev, WFMappingCanEditEvent check)
+    {
+        if (CanDraw(session, ev, check))
+            return true;
+
+        LastPipeReport = check.Reason ?? "wf-mapping-tools-draw-not-allowed";
+        return false;
+    }
+
+    /// <summary>A pipe edit whose replaced pipes are already gone, so the new ones never overlap them.</summary>
+    private MappingEdit StartPipeEdit(string name, List<EntityUid> removals)
+    {
+        var edit = new MappingEdit(name);
+        if (removals.Count == 0)
+            return edit;
+
+        var deleted = new MappingEntityGroup();
+        foreach (var uid in removals)
+        {
+            deleted.Roots.Add(new MappingGroupRoot(GetRef(uid), -1, PoseOf(uid)));
+        }
+
+        edit.Deleted.Add(deleted);
+        Apply(edit, forward: true);
+        return edit;
+    }
+
+    /// <summary>Adds the spawned pipes to a pipe edit and pushes it onto the session's history.</summary>
+    private void FinishPipeEdit(ICommonSession session, MappingEdit edit, List<EntityUid> spawned)
+    {
+        if (spawned.Count > 0)
+        {
+            var created = new MappingEntityGroup();
+            foreach (var uid in spawned)
+            {
+                created.Roots.Add(new MappingGroupRoot(GetRef(uid), -1, PoseOf(uid)));
+            }
+
+            edit.Created.Add(created);
+        }
+
+        Push(session, edit);
+        RaiseEdited(edit);
+    }
+
+    /// <summary>
+    /// Spawns a pipe or device at a cell's centre with a rotation, moved to <paramref name="layer"/> before it
+    /// anchors when that is set, and painted.
+    /// </summary>
+    private EntityUid SpawnPipe(Entity<MapGridComponent> grid, string id, Vector2i cell, Angle rotation,
+        AtmosPipeLayer? layer, Color? color)
+    {
+        var coordinates = new EntityCoordinates(grid.Owner, new Vector2(cell.X + 0.5f, cell.Y + 0.5f));
+        EntityUid uid;
+        if (layer is { } moved)
+        {
+            uid = EntityManager.CreateEntityUninitialized(id, coordinates, null, rotation);
+            if (TryComp(uid, out AtmosPipeLayersComponent? layers))
+                _pipeLayers.SetPipeLayer((uid, layers), moved);
+
+            EntityManager.InitializeAndStartEntity(uid, _transform.GetMapId(coordinates));
+        }
+        else
+        {
+            uid = SpawnAttachedTo(id, coordinates, rotation: rotation);
+        }
+
+        if (color is { } paint)
+            SetPipeColor(uid, paint);
+
+        return uid;
     }
 
     /// <summary>Paints a pipe, if it still exists and can be painted.</summary>
