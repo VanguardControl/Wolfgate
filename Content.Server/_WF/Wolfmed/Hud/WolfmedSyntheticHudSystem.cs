@@ -41,6 +41,9 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
     /// <summary>Synthetics: the standby title while the chassis panel reboots the frame.</summary>
     private const string RebootLine = "wolfmed-synthetic-cause-reboot";
 
+    /// <summary>Synthetics: the banner while the chassis runs on low power, up but crawling on one arm.</summary>
+    private const string LowPowerLine = "wolfmed-synthetic-cause-low-power";
+
     [Dependency] private BloodstreamSystem _blood = default!;
     [Dependency] private BodyPartFunctionalitySystem _functionality = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -145,8 +148,10 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
                 Add(found, target, line.Line, tag, line.Advice);
             }
 
-            // Synthetics: a part the panel isolated says so, rather than reading as broken.
-            if (HasComp<Content.Shared._WF.Synthetics.WFIsolatedPartComponent>(part))
+            // Synthetics: a part the panel isolated says so, rather than reading as broken; one low power cut says that.
+            if (CompOrNull<Content.Server._WF.Synthetics.WFLowPowerPartComponent>(part) is { UserIsolated: false })
+                AddCondition(found, target, WolfmedSyntheticCondition.LowPower);
+            else if (HasComp<Content.Shared._WF.Synthetics.WFIsolatedPartComponent>(part))
                 AddCondition(found, target, WolfmedSyntheticCondition.PartIsolated);
             else if (state == BodyPartFunctionalityState.Disabled)
                 AddCondition(found, target, WolfmedSyntheticCondition.PartDisabled);
@@ -179,6 +184,11 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         if (down)
             AddCondition(found, TargetBodyPart.Torso, WolfmedSyntheticCondition.Shutdown);
 
+        // Synthetics: an empty cell no longer shuts the chassis down; it runs on low power.
+        var lowPower = HasComp<Content.Shared._WF.Synthetics.WFLowPowerComponent>(hud.Owner);
+        if (lowPower)
+            AddCondition(found, TargetBodyPart.Torso, WolfmedSyntheticCondition.LowPower);
+
         // Synthetics: a panel reboot puts the readout on its standby screen, REBOOT PENDING under it.
         var rebooting = HasComp<Content.Server._WF.Synthetics.WFChassisRebootComponent>(hud.Owner);
 
@@ -210,6 +220,8 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         var newIntegrity = weight > 0f ? integrity / weight : 1f;
         var newServos = limbs > 0f ? servos / limbs : 1f;
         var causeLine = rebooting && !down ? RebootLine : CauseLine(hud.Owner);
+        if (causeLine.Length == 0 && lowPower)
+            causeLine = LowPowerLine;
         down |= rebooting;
         // Full like every other gauge when nothing is wrong; it empties as the damage sensors overload.
         var sensors = TryComp(hud.Owner, out PainComponent? pain) && pain.SoftPainCap > FixedPoint2.Zero

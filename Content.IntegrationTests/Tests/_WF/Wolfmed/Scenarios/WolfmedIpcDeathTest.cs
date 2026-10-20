@@ -225,9 +225,10 @@ public sealed class WolfmedIpcDeathTest : WolfmedGameTest
     }
 
     /// <summary>
-    /// Playtest 5, "no ghost button when COOLANT PUMP OFFLINE: SHUTDOWN": a chassis shut down for want of power or a
-    /// pump runs nothing out, but nobody may come. It gets Succumb and Last Words like an arrest, the dialog names the
-    /// reason, a yes is core failure with the core left in place, and power back takes the actions away again.
+    /// Playtest 5, "no ghost button when COOLANT PUMP OFFLINE: SHUTDOWN": a chassis shut down for want of a pump runs
+    /// nothing out, but nobody may come. It gets Succumb and Last Words like an arrest, the dialog names the reason, a
+    /// yes is core failure with the core left in place, and the pump back takes the actions away again. No power is
+    /// low power since Synthetics: the chassis stays up and is offered no way out.
     /// </summary>
     [Test]
     public async Task PowerShutdownSuccumbTest()
@@ -251,18 +252,29 @@ public sealed class WolfmedIpcDeathTest : WolfmedGameTest
         {
             var shutdown = SEntMan.System<WolfmedShutdownSystem>();
             var dying = SEntMan.System<WolfmedDyingActionsSystem>();
+            var graph = SEntMan.System<Content.Shared.Body.Systems.SharedBodySystem>();
+            var pumps = new Dictionary<EntityUid, (EntityUid Pump, EntityUid Part, string Slot)>();
             foreach (var chassis in new[] { ipc, restored })
             {
                 shutdown.Refresh(chassis, powered: false);
-                Assert.That(shutdown.IsShutDown(chassis), Is.True, "the chassis did not shut down without power.");
+                Assert.That(shutdown.IsShutDown(chassis), Is.False, "no power shut the chassis down instead of low power.");
+                Assert.That(HasDyingActions(chassis), Is.False, "low power offered Succumb.");
+                shutdown.Refresh(chassis, powered: true);
+
+                var pump = graph.GetBodyOrgans(chassis).First(o => SEntMan.HasComponent<Content.Shared._Shitmed.Body.Organ.HeartComponent>(o.Id)).Id;
+                Assert.That(SEntMan.System<Robust.Shared.Containers.SharedContainerSystem>().TryGetContainingContainer(pump, out var holder), Is.True);
+                pumps[chassis] = (pump, holder!.Owner, SEntMan.GetComponent<Content.Shared.Body.Organ.OrganComponent>(pump).SlotId);
+                Assert.That(graph.RemoveOrgan(pump), Is.True);
+                Assert.That(shutdown.IsShutDown(chassis), Is.True, "the chassis did not shut down without its pump.");
                 Assert.That(dying.IsDying(chassis), Is.True, "a shut-down chassis is not Dying.");
                 Assert.That(HasDyingActions(chassis), Is.True, "a shut-down chassis has no Succumb and Last Words.");
             }
 
-            // Power back: the way out goes with it.
-            shutdown.Refresh(restored, powered: true);
+            // The pump back: the way out goes with it.
+            var back = pumps[restored];
+            Assert.That(graph.InsertOrgan(back.Part, back.Pump, back.Slot), Is.True, "the pump would not go back in.");
             Assert.That(shutdown.IsShutDown(restored), Is.False);
-            Assert.That(HasDyingActions(restored), Is.False, "a chassis back on power kept Succumb.");
+            Assert.That(HasDyingActions(restored), Is.False, "a chassis with its pump back kept Succumb.");
 
             dying.OpenSuccumbDialog(ipc);
             Assert.That(dying.GetPendingChoice(ipc), Is.EqualTo(WolfmedEndingChoice.Succumb));

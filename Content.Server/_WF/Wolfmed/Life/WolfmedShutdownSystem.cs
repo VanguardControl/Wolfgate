@@ -1,5 +1,6 @@
 using Content.Server._EinsteinEngines.Silicon.Charge;
 using Content.Server._EinsteinEngines.Silicon.Death;
+using Content.Server._WF.Synthetics;
 using Content.Server._WF.Wolfmed.Consciousness;
 using Content.Shared._EinsteinEngines.Silicon.Components;
 using Content.Shared._HL.Silicons.Synths.Battery;
@@ -17,7 +18,10 @@ using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Wolfmed.Life;
 
-/// <summary>A mechanical body's cardiac arrest: without power or its pump it shuts down until repaired.</summary>
+/// <summary>
+/// A mechanical body's cardiac arrest: without its pump it shuts down until repaired. Without power a synthetic
+/// chassis goes on low power instead (Synthetics); only a mechanical body that is not synthetic shuts down for it.
+/// </summary>
 // No blood and no breathing means no oxygenation clock, so a shut-down machine stays unconscious indefinitely with
 // nothing running out. Death is still the brain, the positronic one for a chassis, through the ordinary organ path.
 public sealed class WolfmedShutdownSystem : EntitySystem
@@ -35,6 +39,7 @@ public sealed class WolfmedShutdownSystem : EntitySystem
     [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SiliconChargeSystem _siliconCharge = default!;
     [Dependency] private WolfmedDyingActionsSystem _dyingActions = default!; // Playtest 5
+    [Dependency] private WFLowPowerSystem _lowPower = default!; // Synthetics
 
     private TimeSpan _nextReconcile;
 
@@ -155,13 +160,18 @@ public sealed class WolfmedShutdownSystem : EntitySystem
         // they are two halves of one state and only one of them survives a rejuvenate. SetExternalPressure
         // is itself a no-op when the level has not moved.
         var power = powered ?? HasPower(body);
-        var down = !power || !HasPump(body);
+        // Synthetics: an empty cell puts a synthetic chassis on low power, still up; the pump alone shuts it down.
+        var lowPower = !power && _lowPower.SetLowPower(body, true);
+        if (power)
+            _lowPower.SetLowPower(body, false);
+
+        var down = !power && !lowPower || !HasPump(body);
         if (down)
         {
             // M1a: the reason the HUD and the alerts name. An empty cell is the one the player can fix.
             var fresh = !HasComp<WolfmedShutdownComponent>(body);
             var shutdown = EnsureComp<WolfmedShutdownComponent>(body);
-            var reason = power ? WolfmedCauseSource.Pump : WolfmedCauseSource.Power;
+            var reason = power || lowPower ? WolfmedCauseSource.Pump : WolfmedCauseSource.Power;
             if (shutdown.Reason != reason)
             {
                 shutdown.Reason = reason;

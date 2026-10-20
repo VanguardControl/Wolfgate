@@ -253,6 +253,12 @@ public sealed class WolfmedSyntheticHudOverlaySystem : EntitySystem
             _hud.Banner = Loc.GetString("wolfmed-synthetic-banner-integrity", ("value", Percent(hud.Integrity)));
             _hud.BannerSeverity = WolfmedSyntheticSeverity.Crit;
         }
+        else if (causeLine != null)
+        {
+            // Synthetics: the one cause a chassis still up carries is low power.
+            _hud.Banner = causeLine;
+            _hud.BannerSeverity = WolfmedSyntheticSeverity.Warn;
+        }
         else
         {
             _hud.BannerAlpha = Math.Max(0f, _hud.BannerAlpha - 0.08f);
