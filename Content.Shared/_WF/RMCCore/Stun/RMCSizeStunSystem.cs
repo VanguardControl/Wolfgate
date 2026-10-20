@@ -329,8 +329,15 @@ public sealed partial class RMCSizeStunSystem : EntitySystem
         if (!_status.TryAddStatusEffect<RMCUnconsciousComponent>(uid, KnockedOut, duration, refresh))
             return false;
 
-        // WOLFGATE: a knocked-out host also sleeps, so it reads as unconscious to Wolfgate players and medics
-        _status.TryAddStatusEffect<ForcedSleepingComponent>(uid, ForcedSleep, duration, refresh);
+        // WOLFGATE: a knocked-out host also sleeps, so it reads as unconscious to Wolfgate players and medics.
+        // A forced sleep from elsewhere (drugs) is left to run; only the knockout's own sleep is refreshed and ended with it.
+        var unconscious = Comp<RMCUnconsciousComponent>(uid);
+        if (unconscious.SleepFromKnockout || !HasComp<ForcedSleepingComponent>(uid))
+        {
+            if (_status.TryAddStatusEffect<ForcedSleepingComponent>(uid, ForcedSleep, duration, refresh))
+                unconscious.SleepFromKnockout = true;
+        }
+
         return true;
     }
 
@@ -365,8 +372,9 @@ public sealed partial class RMCSizeStunSystem : EntitySystem
         if (!_status.TryGetTime(ent, "Deaf", out statusTime) || statusTime.Value.Item2 < time)
             RemComp<DeafComponent>(ent);
 
-        // wake with the knockout; the forced sleep status ends at the same time
-        _sleeping.TryWaking(ent.Owner, force: true);
+        // wake with the knockout when the sleep was its own; its forced sleep status ends at the same time
+        if (ent.Comp.SleepFromKnockout)
+            _sleeping.TryWaking(ent.Owner, force: true);
     }
 
     private void OnUnconsciousUpdate(Entity<RMCUnconsciousComponent> ent, ref StatusEffectEndedEvent args)

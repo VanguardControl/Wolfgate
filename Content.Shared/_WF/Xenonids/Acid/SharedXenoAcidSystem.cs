@@ -317,8 +317,15 @@ public abstract partial class SharedXenoAcidSystem : EntitySystem
         if (HasComp<MobStateComponent>(target) || HasComp<XenoComponent>(target) || HasComp<XenoWeedsComponent>(target))
             return false;
 
-        if (_container.TryGetContainingContainer((target, null, null), out var container) && HasComp<MobStateComponent>(container.Owner))
-            return false;
+        // held or worn, however deep (a gun in a bag on a back): walk up through every container
+        var current = target;
+        while (_container.TryGetContainingContainer((current, null, null), out var container))
+        {
+            if (HasComp<MobStateComponent>(container.Owner))
+                return false;
+
+            current = container.Owner;
+        }
 
         return HasComp<ItemComponent>(target) || HasComp<DamageableComponent>(target);
     }

@@ -28,7 +28,9 @@ void fragment() {
             highp float Diff = Dist - CurrentTime;
             highp float ScaleDiff = 1.0 - pow(abs(Diff * sharpness[i]), width[i]);
             highp float DiffTime = Diff * ScaleDiff;
-            highp vec2 DiffTexCoord = normalize(coord - WaveCentre);
+            // WOLFGATE: no direction at the centre itself; normalize(0) would poison the sample
+            highp vec2 FromCentre = coord - WaveCentre;
+            highp vec2 DiffTexCoord = length(FromCentre) > 0.0001 ? normalize(FromCentre) : vec2(0.0, 0.0);
             coord += (DiffTexCoord * DiffTime) / (CurrentTime * Dist * falloffPower[i]);
             highp vec4 Color = zTextureSpec(SCREEN_TEXTURE, coord);
             Color += (Color * ScaleDiff) / (CurrentTime * Dist * 40.0);

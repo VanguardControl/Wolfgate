@@ -39,6 +39,13 @@ public sealed partial class XenoBurrowSystem : SharedXenoBurrowSystem
         var burrowed = ent.Comp.Active;
         if (_player.LocalEntity == ent.Owner)
         {
+            // taking over a xeno this system hid: the player sees themselves translucent, not not at all
+            if (ent.Comp.HiddenByBurrow)
+            {
+                ent.Comp.HiddenByBurrow = false;
+                _sprite.SetVisible((ent, sprite), true);
+            }
+
             _sprite.SetColor((ent, sprite), burrowed ? Color.White.WithAlpha(0.4f) : Color.White);
         }
         else if (burrowed)
