@@ -155,8 +155,12 @@ public sealed partial class WFMappingUploadClientSystem : EntitySystem
     /// <summary>Asks the server to take a file under a map name.</summary>
     public void Start(string mapName, byte[] data)
     {
-        if (Busy)
+        // Not Busy: the picker that hands the file over is still open when this runs.
+        if (Upload is { Stage: not WFMappingUploadStage.Done })
+        {
+            _mapping.ReportLocal("wf-mapping-mode-upload-busy", false);
             return;
+        }
 
         _data = data;
         _transferId = 0;
