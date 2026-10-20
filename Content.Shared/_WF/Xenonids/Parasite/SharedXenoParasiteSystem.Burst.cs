@@ -19,6 +19,10 @@ public abstract partial class SharedXenoParasiteSystem
 
         var link = EnsureComp<WFBurstLarvaComponent>(larva);
         link.Host = victim.Owner;
+
+        // a queued player may already be in the larva before it bursts, so no MindAddedMessage will come
+        if (_mind.TryGetMind(larva, out var mindId, out var mind) && IsBurstHostPlayer((victim.Owner, burst), mindId, mind.UserId))
+            MarkBurstHostLeft((victim.Owner, burst));
     }
 
     /// <summary>The host's own player now drives the larva: the body cannot be mended any more.</summary>

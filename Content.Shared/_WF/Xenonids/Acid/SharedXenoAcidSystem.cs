@@ -312,7 +312,8 @@ public abstract partial class SharedXenoAcidSystem : EntitySystem
             return corrodible.IsCorrodible;
         }
 
-        info = new CorrodibleInfo(DefaultTimeToApply, false, 1, XenoAcidStrength.Weak);
+        // anchored things count as structures, so castes that can't melt structures (runners) still can't
+        info = new CorrodibleInfo(DefaultTimeToApply, Transform(target).Anchored, 1, XenoAcidStrength.Weak);
         if (HasComp<MobStateComponent>(target) || HasComp<XenoComponent>(target) || HasComp<XenoWeedsComponent>(target))
             return false;
 

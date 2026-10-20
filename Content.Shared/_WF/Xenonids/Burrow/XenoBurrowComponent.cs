@@ -11,6 +11,10 @@ public sealed partial class XenoBurrowComponent : Component
     [DataField, AutoNetworkedField]
     public bool Active = false;
 
+    /// <summary>WOLFGATE: client only; the burrow system hid this sprite and may show it again.</summary>
+    [ViewVariables]
+    public bool HiddenByBurrow;
+
     /// <summary>
     /// Whether the xeno is currently tunneling or not
     /// </summary>

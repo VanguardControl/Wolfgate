@@ -1,5 +1,6 @@
 #nullable enable
 using System.Collections.Generic;
+using Content.Shared._WF.Xenonids.Burrow;
 using Robust.Client.GameObjects;
 using Robust.Shared.GameObjects;
 
@@ -43,6 +44,41 @@ public sealed class XenoSpriteHideTest
                 Assert.That(client.EntMan.GetComponent<SpriteComponent>(clientUid).Visible, Is.False, $"{protos[i]} stays hidden.");
             }
         });
+
+        // a burrow state update must not re-show a sprite something else hid
+        var burrower = uids[2];
+        var clientBurrower = EntityUid.Invalid;
+        await server.WaitPost(() =>
+        {
+            var burrow = server.EntMan.GetComponent<XenoBurrowComponent>(burrower);
+            burrow.Tunneling = true;
+            server.EntMan.Dirty(burrower, burrow);
+        });
+        await pair.RunTicksSync(10);
+        await client.WaitAssertion(() =>
+        {
+            clientBurrower = client.EntMan.GetEntity(server.EntMan.GetNetEntity(burrower));
+            Assert.That(client.EntMan.GetComponent<SpriteComponent>(clientBurrower).Visible, Is.False, "An unrelated burrow state update leaves the hidden burrower hidden.");
+        });
+
+        // burrowing hides a visible burrower and surfacing shows it again
+        await client.WaitPost(() => client.EntMan.System<SpriteSystem>().SetVisible((clientBurrower, client.EntMan.GetComponent<SpriteComponent>(clientBurrower)), true));
+        await server.WaitPost(() =>
+        {
+            var burrow = server.EntMan.GetComponent<XenoBurrowComponent>(burrower);
+            burrow.Active = true;
+            server.EntMan.Dirty(burrower, burrow);
+        });
+        await pair.RunTicksSync(10);
+        await client.WaitAssertion(() => Assert.That(client.EntMan.GetComponent<SpriteComponent>(clientBurrower).Visible, Is.False, "A burrowed xeno is hidden."));
+        await server.WaitPost(() =>
+        {
+            var burrow = server.EntMan.GetComponent<XenoBurrowComponent>(burrower);
+            burrow.Active = false;
+            server.EntMan.Dirty(burrower, burrow);
+        });
+        await pair.RunTicksSync(10);
+        await client.WaitAssertion(() => Assert.That(client.EntMan.GetComponent<SpriteComponent>(clientBurrower).Visible, Is.True, "Surfacing shows the burrower the burrow hid."));
 
         await pair.CleanReturnAsync();
     }

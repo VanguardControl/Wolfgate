@@ -21,8 +21,8 @@ void fragment() {
         // removes the first few frames of the "animation"
         Dist = max(Dist, 0.13);
         
-        highp float offset = (TIME - floor(TIME)) / TIME;
-        highp float CurrentTime = TIME * offset;
+        // WOLFGATE: same value as RMC's (TIME - floor(TIME)) / TIME * TIME without dividing by a zero first frame
+        highp float CurrentTime = max(fract(TIME), 0.0001);
 
         if (Dist <= (CurrentTime + 0.1) && Dist >= (CurrentTime - 0.1)) {
             highp float Diff = Dist - CurrentTime;

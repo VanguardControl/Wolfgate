@@ -43,10 +43,16 @@ public sealed partial class XenoBurrowSystem : SharedXenoBurrowSystem
         }
         else if (burrowed)
         {
-            _sprite.SetVisible((ent, sprite), false);
+            // only remember a hide of our own; something else may have hidden it already
+            if (sprite.Visible)
+            {
+                _sprite.SetVisible((ent, sprite), false);
+                ent.Comp.HiddenByBurrow = true;
+            }
         }
-        else if (!sprite.Visible)
+        else if (ent.Comp.HiddenByBurrow)
         {
+            ent.Comp.HiddenByBurrow = false;
             _sprite.SetVisible((ent, sprite), true);
         }
 

@@ -84,7 +84,7 @@ public sealed class XenoNicknameSystem : EntitySystem
         }
 
         name = name.Trim().ToUpperInvariant();
-        if (name.Length == 0 || name.Length > max || !name.All(char.IsLetterOrDigit))
+        if (name.Length == 0 || name.Length > max || !name.All(char.IsAsciiLetterOrDigit))
         {
             error = Loc.GetString("wf-xeno-nickname-invalid", ("max", max));
             return false;
@@ -93,7 +93,7 @@ public sealed class XenoNicknameSystem : EntitySystem
         _xenoName.SetPrefix(xeno, name, named: true);
         _nameModifier.RefreshNameModifiers(xeno);
         _popup.PopupEntity(Loc.GetString("wf-xeno-nickname-set", ("name", name)), xeno, xeno);
-        RefreshAction((xeno, Comp<XenoNicknameComponent>(xeno)));
+        RefreshAction(xeno);
         return true;
     }
 

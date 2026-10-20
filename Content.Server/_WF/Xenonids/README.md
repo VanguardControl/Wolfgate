@@ -1632,6 +1632,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Resources/Prototypes/Entities/Structures/Windows/window.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/window.yml)
   - xeno claws break a window in two hits, as in CM
   - xeno claws break a directional window in two hits, as in CM
+- [`Resources/Prototypes/Entities/Structures/Windows/xenoresin.yml`](../../../Resources/Prototypes/Entities/Structures/Windows/xenoresin.yml): this window has twice a plain window's health, so its claw values are its own
 - [`Resources/Prototypes/Entities/Tiles/chasm.yml`](../../../Resources/Prototypes/Entities/Tiles/chasm.yml)
   - xeno weeds do not grow on liquid or chasm tiles
   - resin, nodes and tunnels do not go on liquid or chasm tiles
