@@ -48,6 +48,7 @@ predicted on their own client; this only cuts the audio entities other players r
 
 - [`Content.IntegrationTests/Tests/_WF/Weapons/AttachmentWieldBonusTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/AttachmentWieldBonusTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/GunshotAudioThrottleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/GunshotAudioThrottleTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Weapons/HitscanJumpShooterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/HitscanJumpShooterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/ProjectileSweepTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/ProjectileSweepTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/ShieldSidearmTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/ShieldSidearmTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/WFGunPredictionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/WFGunPredictionTest.cs)
@@ -199,7 +200,9 @@ predicted on their own client; this only cuts the audio entities other players r
   - a reflected projectile is no longer the shooter's predicted bullet, so stop hiding it from them
   - skip these for a shooter whose own predicted copy already played them
 - [`Content.Shared/Weapons/Hitscan/Events/HitscanEvents.cs`](../../../Content.Shared/Weapons/Hitscan/Events/HitscanEvents.cs): predicted hitscan
-- [`Content.Shared/Weapons/Hitscan/Systems/HitscanBasicRaycastSystem.cs`](../../../Content.Shared/Weapons/Hitscan/Systems/HitscanBasicRaycastSystem.cs): the client predicts the beam only; damage, stun and reflections stay server-side
+- [`Content.Shared/Weapons/Hitscan/Systems/HitscanBasicRaycastSystem.cs`](../../../Content.Shared/Weapons/Hitscan/Systems/HitscanBasicRaycastSystem.cs)
+  - a chained beam passes through its shooter and the targets it already hit
+  - the client predicts the beam only; damage, stun and reflections stay server-side
 - [`Content.Shared/Weapons/Hitscan/Systems/HitscanBasicVisualsSystem.cs`](../../../Content.Shared/Weapons/Hitscan/Systems/HitscanBasicVisualsSystem.cs)
   - predicted hitscan beams
   - on the client this only runs for a beam the shooter is predicting, so draw it here and now

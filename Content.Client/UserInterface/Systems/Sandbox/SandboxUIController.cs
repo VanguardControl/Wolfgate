@@ -105,6 +105,7 @@ public sealed partial class SandboxUIController : UIController, IOnStateChanged<
         }
 
         SandboxButton.OnPressed += SandboxButtonPressed;
+        CheckSandboxVisibility(); // WOLFGATE: a HUD layout swap rebuilds the button visible
     }
 
     private void EnsureWindow()
