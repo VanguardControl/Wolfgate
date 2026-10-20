@@ -19,13 +19,15 @@ public sealed partial class SalvageSystem
             return;
 
         // A station whose offers lapsed without regenerating gets them now instead of an empty board.
-        if (TryComp<SalvageExpeditionDataComponent>(_station.GetOwningStation(console), out var data) &&
+        if (_station.GetOwningStation(console) is { } station &&
+            TryComp<SalvageExpeditionDataComponent>(station, out var data) &&
             !data.Claimed &&
             data.Missions.Count == 0 &&
             data.NextOffer <= _timing.CurTime)
         {
             data.NextOffer = _timing.CurTime + TimeSpan.FromSeconds(_cooldown);
             GenerateMissions(data);
+            UpdateConsoles(station, data);
         }
 
         UpdateConsole(console);
