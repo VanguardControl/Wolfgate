@@ -4,7 +4,12 @@
                              HorizontalExpand="True"
                              VerticalExpand="True">
     <BoxContainer Orientation="Vertical" Margin="16" SeparationOverride="8">
-        <Label Text="{Loc 'wf-mapping-mode-lobby-title'}" StyleClasses="LabelHeading" />
+        <BoxContainer Orientation="Horizontal" SeparationOverride="8">
+            <Label Text="{Loc 'wf-mapping-mode-lobby-title'}" StyleClasses="LabelHeading" HorizontalExpand="True"
+                   VAlign="Center" />
+            <Button Name="GuideButton" Access="Public" Text="{Loc 'wf-mapping-guide-button'}"
+                    ToolTip="{Loc 'wf-mapping-guide-button-tooltip'}" TooltipDelay="0" />
+        </BoxContainer>
         <RichTextLabel Name="IntroLabel" StyleClasses="LabelSubText" />
 
         <BoxContainer Orientation="Horizontal" SeparationOverride="16" Margin="0 4 0 0">

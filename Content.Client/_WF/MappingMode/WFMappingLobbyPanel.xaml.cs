@@ -18,6 +18,7 @@ public sealed partial class WFMappingLobbyPanel : PanelContainer
     {
         RobustXamlLoader.Load(this);
         IntroLabel.SetMessage(Loc.GetString("wf-mapping-mode-lobby-intro"));
+        GuideButton.OnPressed += _ => WFMappingGuideLauncher.Open();
     }
 
     /// <summary>Lists the sessions the player is still a member of.</summary>

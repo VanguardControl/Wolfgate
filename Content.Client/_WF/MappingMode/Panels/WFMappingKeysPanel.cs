@@ -41,6 +41,16 @@ public sealed partial class WFMappingKeysPanel : BoxContainer
         HorizontalExpand = true;
         VerticalExpand = true;
 
+        var guide = new Button
+        {
+            Text = Loc.GetString("wf-mapping-guide-button"),
+            ToolTip = Loc.GetString("wf-mapping-guide-button-tooltip"),
+            HorizontalAlignment = HAlignment.Left,
+            Margin = new Thickness(6, 6, 6, 0),
+        };
+        guide.OnPressed += _ => WFMappingGuideLauncher.Open();
+        AddChild(guide);
+
         var scroll = new ScrollContainer { HScrollEnabled = false, VerticalExpand = true };
         _grid = new GridContainer { Columns = 2, HSeparationOverride = 12, VSeparationOverride = 2, Margin = new Thickness(6) };
         scroll.AddChild(_grid);

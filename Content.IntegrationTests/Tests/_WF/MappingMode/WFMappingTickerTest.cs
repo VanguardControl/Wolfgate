@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Content.Server._WF.MappingMode;
 using Content.Server.GameTicking;
+using Content.Shared._WF.MappingMode;
+using Content.Shared.CCVar;
 using Content.Shared.Maps;
 using Content.Shared.Station.Components;
 using Content.Shared.GameTicking;
@@ -42,7 +44,12 @@ public sealed class WFMappingTickerTest
             });
         }
 
-        await server.WaitAssertion(() => AssertLobby("once the mode is on"));
+        await server.WaitAssertion(() =>
+        {
+            AssertLobby("once the mode is on");
+            Assert.That(server.CfgMan.GetCVar(CCVars.DefaultGuide), Is.EqualTo(WFMappingGuide.Root.Id),
+                "The guidebook opens on the mapping guide.");
+        });
         await pair.RunSeconds(3);
         await server.WaitAssertion(() => AssertLobby("after waiting"));
 
@@ -83,6 +90,8 @@ public sealed class WFMappingTickerTest
         {
             Assert.That(ticker.Paused, Is.False, "Turning the mode off lets the lobby run again.");
             Assert.That(mapping.Sessions, Is.Empty, "Turning the mode off closes every session.");
+            Assert.That(server.CfgMan.GetCVar(CCVars.DefaultGuide), Is.EqualTo(CCVars.DefaultGuide.DefaultValue),
+                "Turning the mode off gives the guidebook its usual first page back.");
         });
 
         await pair.CleanReturnAsync();

@@ -194,6 +194,13 @@ and `wf_mappingmode_purge <code> <prototype>` (deletes every instance of a proto
 slipped past the limits; players, ghosts and observers stay).
 Turning the cvar off closes every session after an autosave and sends everyone back to the lobby.
 
+The guidebook has a mapping guide for players: `WFMappingGuide` and its children in
+`Resources/Prototypes/_WF/MappingMode/guidebook.yml`, with the pages in `Resources/ServerInfo/_WF/MappingMode/Guidebook`.
+The lobby panel's Guide button, the Keys tab's Guide button and the Mapping window's ? open it showing only its pages
+(`WFMappingGuideLauncher`). While the mode is on it sets `server.default_guide` to the guide, so the menu bar's
+guidebook button and key open there unless the player last read another page; turning the mode off puts the default
+back. Keep the pages in step with the keys and labels when they change.
+
 Entry points: `WFMappingModeSystem` (server; sessions, registry, guard, limits, reference loads, autosave and admin
 parts), `WFMappingLibrarySystem` (library, versions, open, delete), `WFMappingDownloadSystem` (chunked downloads),
 `WFMappingModeCommands` (console), `WFMappingObserverSystem` (shared; what an observer can't do),
@@ -366,6 +373,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Shared/_WF/MappingMode/WFMappingDownloadAssembler.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingDownloadAssembler.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingFootprint.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingFootprint.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingGridEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingGridEvents.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingGuide.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingGuide.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingKeyFunctions.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingKeyFunctions.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingLibraryEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingLibraryEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingLibraryNames.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingLibraryNames.cs)
@@ -448,6 +456,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingDownloadTargetPicker.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDownloadTargetPicker.cs)
+- [`Content.Client/_WF/MappingMode/WFMappingGuideLauncher.cs`](../../../Content.Client/_WF/MappingMode/WFMappingGuideLauncher.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingLibraryList.cs`](../../../Content.Client/_WF/MappingMode/WFMappingLibraryList.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingLobbyPanel.xaml`](../../../Content.Client/_WF/MappingMode/WFMappingLobbyPanel.xaml)
 - [`Content.Client/_WF/MappingMode/WFMappingLobbyPanel.xaml.cs`](../../../Content.Client/_WF/MappingMode/WFMappingLobbyPanel.xaml.cs)
@@ -467,6 +476,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDockPopoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDockPopoutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDownloadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDownloadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingGridDeleteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingGridDeleteTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingGuideTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingGuideTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLimitsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLimitsTest.cs)
@@ -502,10 +512,12 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 
 ### Prototypes
 
+- [`Resources/Prototypes/_WF/MappingMode/guidebook.yml`](../../../Resources/Prototypes/_WF/MappingMode/guidebook.yml)
 - [`Resources/Prototypes/_WF/MappingMode/observer.yml`](../../../Resources/Prototypes/_WF/MappingMode/observer.yml)
 
 ### Localization
 
+- [`Resources/Locale/en-US/_WF/MappingMode/mapping-guide.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-guide.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-link.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-link.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-mode.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-mode.ftl)
 - [`Resources/Locale/en-US/_WF/MappingMode/mapping-quickselect.ftl`](../../../Resources/Locale/en-US/_WF/MappingMode/mapping-quickselect.ftl)
@@ -519,6 +531,23 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Resources/Textures/_WF/MappingMode/Interface/attributions.yml`](../../../Resources/Textures/_WF/MappingMode/Interface/attributions.yml)
 - [`Resources/Textures/_WF/MappingMode/Interface/mapping.png`](../../../Resources/Textures/_WF/MappingMode/Interface/mapping.png)
 - [`Resources/Textures/_WF/MappingMode/Interface/quicksave.png`](../../../Resources/Textures/_WF/MappingMode/Interface/quicksave.png)
+
+### Guidebook
+
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/Admins.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/Admins.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/BuildModes.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/BuildModes.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/GettingStarted.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/GettingStarted.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/Limits.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/Limits.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/MappingServer.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/MappingServer.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/Pipes.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/Pipes.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/Placing.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/Placing.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/Saving.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/Saving.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/Selecting.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/Selecting.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/Shapes.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/Shapes.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/Templates.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/Templates.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/Together.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/Together.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/Wiring.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/Wiring.xml)
+- [`Resources/ServerInfo/_WF/MappingMode/Guidebook/ZLevels.xml`](../../../Resources/ServerInfo/_WF/MappingMode/Guidebook/ZLevels.xml)
 
 ### Docs
 

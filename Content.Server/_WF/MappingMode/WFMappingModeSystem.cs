@@ -127,11 +127,17 @@ public sealed partial class WFMappingModeSystem : EntitySystem
             _cfg.SetCVar(CCVars.VoteMapEnabled, false);
             _cfg.SetCVar(CCVars.VotePresetEnabled, false);
 
+            // The guidebook opens on the mapping guide unless a player picked another page.
+            _cfg.SetCVar(CCVars.DefaultGuide, WFMappingGuide.Root.Id);
+
             if (_initialized && _ticker.RunLevel == GameRunLevel.PreRoundLobby && !_ticker.Paused)
                 _ticker.PauseStart(true);
 
             return;
         }
+
+        if (_cfg.GetCVar(CCVars.DefaultGuide) == WFMappingGuide.Root.Id)
+            _cfg.SetCVar(CCVars.DefaultGuide, CCVars.DefaultGuide.DefaultValue);
 
         if (!_initialized)
             return;
