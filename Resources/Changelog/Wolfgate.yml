@@ -2339,3 +2339,54 @@ Entries:
   id: 100177
   time: '2026-10-20T05:14:27.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/295
+- author: bluebrouny
+  changes:
+    - type: Tweak
+      message: Changed the McChicken, now you can chickenmaxx
+  id: 100178
+  time: '2026-10-20T17:31:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/291
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Dragging yourself onto a folded unicycle no longer locks one of your
+        hands.
+    - type: Fix
+      message: >-
+        The laser cannon's chaining beam no longer jumps back into the person
+        who fired it.
+    - type: Fix
+      message: >-
+        Expedition consoles no longer get stuck on an empty board with the timer
+        at 00:00; opening or re-anchoring the console refreshes it.
+    - type: Fix
+      message: >-
+        The admin and sandbox buttons no longer show for regular players after
+        switching HUD layout.
+    - type: Fix
+      message: >-
+        Vulpkanin and Canine hand markings (fade, sharp, crest, claws) no longer
+        draw over the body when the far hand should be hidden from the side.
+    - type: Fix
+      message: >-
+        Wagging your tail no longer sometimes leaves the still tail drawn
+        underneath it.
+    - type: Fix
+      message: >-
+        Automatic and burst weapons no longer sometimes show a phantom shot that
+        was never fired.
+  id: 100179
+  time: '2026-10-20T19:42:28.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/297
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        The Unidentified Vessel's Scythe, Sunder and Flayer guns now link to its
+        gunnery console.
+    - type: Fix
+      message: The AK570 on the Monolithic asteroid ship now links to gunnery.
+  id: 100180
+  time: '2026-10-20T19:42:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/300

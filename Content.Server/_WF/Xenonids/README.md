@@ -1019,6 +1019,7 @@ take half burn damage in place of RMC's tile fire immunity.
 
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoAcidPillarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoAcidPillarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoAcidStructureTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoAcidStructureTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoBiodomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoBiodomeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoBloodTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoBloodTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoBurstRepairTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoBurstRepairTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoClientShaderTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoClientShaderTest.cs)
@@ -1593,6 +1594,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.Shared/Weapons/Ranged/Components/TargetedProjectileComponent.cs`](../../../Content.Shared/Weapons/Ranged/Components/TargetedProjectileComponent.cs): the xeno projectile system sets the target of its shots
 - [`Resources/keybinds.yml`](../../../Resources/keybinds.yml): RMC's xeno wide swing, xeno rest and resist keys
 - [`Resources/Prototypes/_Mono/ai_factions.yml`](../../../Resources/Prototypes/_Mono/ai_factions.yml): station turrets shoot xenos
+- [`Resources/Prototypes/_Mono/Entities/Structures/Machines/shield_generator.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/Machines/shield_generator.yml): the biodome excites xenonid DNA too
 - [`Resources/Prototypes/_Mono/Entities/Structures/walls.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/walls.yml)
   - RMC's reinforced wall rule, only very sharp xeno claws break it
   - outpost walls can't be clawed down
