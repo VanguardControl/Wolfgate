@@ -216,6 +216,14 @@ public sealed class WFChassisPanelTest : WolfmedGameTest
                     "the arm left still isolated.");
                 Assert.That(SEntMan.System<WoundSystem>().GetWounds(torso).Select(w => w.Comp.Prototype),
                     Does.Not.Contain(stump), "detaching left a dismemberment wound.");
+
+                // Playtest: the state threw on an empty slot, so the panel froze on its last good picture.
+                var state = panel.BuildState(body);
+                Assert.That(state.Parts.Single(p => p.Slot == TargetBodyPart.LeftArm).Attached, Is.False,
+                    "the panel still lists the detached arm as attached.");
+                Assert.That(state.Parts.Single(p => p.Slot == TargetBodyPart.LeftHand).Attached, Is.False,
+                    "the panel lists the hand that left with the arm as attached.");
+                Assert.That(state.Parts, Has.Count.EqualTo(10), "a detached limb dropped its slot from the panel.");
             });
         });
     }

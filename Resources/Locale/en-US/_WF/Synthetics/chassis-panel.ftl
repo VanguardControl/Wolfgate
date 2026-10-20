@@ -33,7 +33,3 @@ wf-chassis-status-reboot = Rebooting...
 wf-chassis-status-bay-open = Bay open. Plating loose.
 wf-chassis-status-overclocked = Servos overclocked.
 
-wf-chassis-band-normal = OK
-wf-chassis-band-impaired = Impaired
-wf-chassis-band-failed = Failed
-wf-chassis-band-charge = Charge

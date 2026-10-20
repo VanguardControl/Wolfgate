@@ -73,7 +73,8 @@ public sealed partial class WFChassisPanelSystem
             if (slots != null ? !slots.Contains(slot) : !attached.ContainsKey(target))
                 continue;
 
-            state.Parts.Add(PartEntry(target, attached.GetValueOrDefault(target), hud, softCap));
+            // An empty slot is null, not a default struct: GetValueOrDefault would hand PartEntry a part with no component.
+            state.Parts.Add(PartEntry(target, attached.TryGetValue(target, out var present) ? present : null, hud, softCap));
         }
 
         foreach (var (target, part) in attached.OrderBy(pair => Array.FindIndex(PartSlots, s => s.Target == pair.Key)))
