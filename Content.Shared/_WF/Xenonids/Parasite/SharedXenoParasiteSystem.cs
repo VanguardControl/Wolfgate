@@ -438,7 +438,8 @@ public abstract partial class SharedXenoParasiteSystem : EntitySystem
 
     private void OnVictimInfectedRemoved(Entity<VictimInfectedComponent> victim, ref ComponentRemove args)
     {
-        if (_status.HasStatusEffect(victim, "Unconscious", null))
+        // WOLFGATE: server only; the client removing it too double-deletes the component when the state arrives
+        if (_net.IsServer && _status.HasStatusEffect(victim, "Unconscious", null))
         {
             _status.TryRemoveStatusEffect(victim, "Unconscious");
         }

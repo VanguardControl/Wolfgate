@@ -531,6 +531,13 @@ public sealed partial class XenoLeapSystem : EntitySystem
             return true;
         }
 
+        // WOLFGATE: an AI-driven parasite is after hosts; whatever hive a xeno in its path belongs to, it is not one
+        if (HasComp<ParasiteAIComponent>(xeno) && HasComp<XenoComponent>(target))
+        {
+            StopLeap(xeno);
+            return true;
+        }
+
         var leapEv = new XenoLeapHitAttempt(xeno.Owner);
         RaiseLocalEvent(target, ref leapEv);
 

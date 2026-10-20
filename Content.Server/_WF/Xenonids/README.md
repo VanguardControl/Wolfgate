@@ -1037,6 +1037,7 @@ take half burn damage in place of RMC's tile fire immunity.
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveBootstrapTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveBootstrapTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveFixesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHiveFixesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHivePvsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHivePvsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHugEffectsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHugEffectsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoHunterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoHunterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoLarvaSurgeryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoLarvaSurgeryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Xenonids/XenoLineTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Xenonids/XenoLineTest.cs)
@@ -1597,13 +1598,15 @@ take half burn damage in place of RMC's tile fire immunity.
   - outpost walls can't be clawed down
 - [`Resources/Prototypes/_Mono/Entities/Structures/windows.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/windows.yml): outpost windows are not meant to fall to claws; a hundred hits
 - [`Resources/Prototypes/_Mono/Guidebook/creatures.yml`](../../../Resources/Prototypes/_Mono/Guidebook/creatures.yml): guidebook
-- [`Resources/Prototypes/Entities/Mobs/NPCs/animals.yml`](../../../Resources/Prototypes/Entities/Mobs/NPCs/animals.yml): RMC monkeys are hosts for facehuggers and can be devoured
+- [`Resources/Prototypes/Entities/Mobs/NPCs/animals.yml`](../../../Resources/Prototypes/Entities/Mobs/NPCs/animals.yml): RMC monkeys are hosts for facehuggers, can be nested and devoured
+- [`Resources/Prototypes/Entities/Mobs/NPCs/simplemob.yml`](../../../Resources/Prototypes/Entities/Mobs/NPCs/simplemob.yml): a facehugger's hug knocks a monkey out
 - [`Resources/Prototypes/Entities/Mobs/Player/observer.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/observer.yml)
   - the join-as-xeno hive dialog
   - ghosts can join a hive as a burrowed larva
 - [`Resources/Prototypes/Entities/Mobs/Species/base.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/base.yml)
-  - species can host facehuggers, be devoured by xenos and are slowed by their weeds
+  - species can host facehuggers, be nested, be devoured by xenos and are slowed by their weeds
   - xeno slows (slowing spit, neurotoxin) need RMC's species modifier; RMC's marine values
+  - a facehugger's hug knocks the host out
 - [`Resources/Prototypes/Entities/Objects/Misc/dat_fukken_disk.yml`](../../../Resources/Prototypes/Entities/Objects/Misc/dat_fukken_disk.yml): xeno acid melts any item by default; not this one
 - [`Resources/Prototypes/Entities/Structures/base_structure.yml`](../../../Resources/Prototypes/Entities/Structures/base_structure.yml)
   - every structure can be melted by xeno acid, as in RMC-14 (CMCorrodible)

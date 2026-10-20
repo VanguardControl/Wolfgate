@@ -15,6 +15,7 @@ using Content.Shared.Popups;
 using Content.Shared.Projectiles;
 using Content.Shared.Speech.Muting;
 using Content.Shared.Standing;
+using Content.Shared.Bed.Sleep;
 using Content.Shared.StatusEffect;
 using Content.Shared.Stunnable;
 using Content.Shared.Throwing;
@@ -36,6 +37,7 @@ public sealed partial class RMCSizeStunSystem : EntitySystem
     private const double DazedMultiplierSmallXeno = 0.7;
     private const double DazedMultiplierBigXeno = 1.2;
     private static readonly ProtoId<StatusEffectPrototype> KnockedOut = "Unconscious";
+    private static readonly ProtoId<StatusEffectPrototype> ForcedSleep = "ForcedSleep"; // WOLFGATE
 
     [Dependency] private RMCDazedSystem _dazed = default!;
     [Dependency] private EntityLookupSystem _entityLookup = default!;
@@ -54,6 +56,7 @@ public sealed partial class RMCSizeStunSystem : EntitySystem
     [Dependency] private ThrowingSystem _throwing = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private StatusEffectsSystem _status = default!;
+    [Dependency] private SleepingSystem _sleeping = default!; // WOLFGATE
     [Dependency] private IGameTiming _timing = default!;
 
     // WOLFGATE: RMC stuns MarineComponent holders here; Marines is cut, so it's every non-xeno mob
@@ -326,6 +329,8 @@ public sealed partial class RMCSizeStunSystem : EntitySystem
         if (!_status.TryAddStatusEffect<RMCUnconsciousComponent>(uid, KnockedOut, duration, refresh))
             return false;
 
+        // WOLFGATE: a knocked-out host also sleeps, so it reads as unconscious to Wolfgate players and medics
+        _status.TryAddStatusEffect<ForcedSleepingComponent>(uid, ForcedSleep, duration, refresh);
         return true;
     }
 
@@ -342,17 +347,26 @@ public sealed partial class RMCSizeStunSystem : EntitySystem
 
     private void OnUnconsciousEnd(Entity<RMCUnconsciousComponent> ent, ref ComponentShutdown args)
     {
+        // WOLFGATE: server only and immediate. The client would also drop these when their own statuses end, and a
+        // deferred removal raced the status system's direct one, both logging double deletes. A deleting entity sheds
+        // them itself.
+        if (_net.IsClient || TerminatingOrDeleted(ent))
+            return;
+
         var time = _timing.CurTime;
         if (!_status.TryGetTime(ent, "Stun", out var statusTime) || statusTime.Value.Item2 < time)
-            RemCompDeferred<StunnedComponent>(ent);
+            RemComp<StunnedComponent>(ent);
         if (!_status.TryGetTime(ent, "KnockedDown", out statusTime) || statusTime.Value.Item2 < time)
-            RemCompDeferred<KnockedDownComponent>(ent);
+            RemComp<KnockedDownComponent>(ent);
         if (!_status.TryGetTime(ent, "TemporaryBlindness", out statusTime) || statusTime.Value.Item2 < time)
-            RemCompDeferred<TemporaryBlindnessComponent>(ent);
+            RemComp<TemporaryBlindnessComponent>(ent);
         if (!_status.TryGetTime(ent, "Muted", out statusTime) || statusTime.Value.Item2 < time)
-            RemCompDeferred<MutedComponent>(ent);
+            RemComp<MutedComponent>(ent);
         if (!_status.TryGetTime(ent, "Deaf", out statusTime) || statusTime.Value.Item2 < time)
-            RemCompDeferred<DeafComponent>(ent);
+            RemComp<DeafComponent>(ent);
+
+        // wake with the knockout; the forced sleep status ends at the same time
+        _sleeping.TryWaking(ent.Owner, force: true);
     }
 
     private void OnUnconsciousUpdate(Entity<RMCUnconsciousComponent> ent, ref StatusEffectEndedEvent args)
