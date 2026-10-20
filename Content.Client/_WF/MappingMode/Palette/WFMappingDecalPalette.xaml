@@ -12,6 +12,11 @@
     </ScrollContainer>
     <Label Name="EmptyLabel" Text="{Loc 'wf-mapping-screen-empty'}" StyleClasses="LabelSubText" Visible="False" />
     <ColorSelectorSliders Name="ColorPicker" IsAlphaVisible="True" />
+    <BoxContainer Orientation="Horizontal" SeparationOverride="4">
+        <Label Text="{Loc 'decal-placer-window-palette'}" />
+        <OptionButton Name="PaletteMenu" HorizontalExpand="True" />
+    </BoxContainer>
+    <GridContainer Name="PaletteGrid" Columns="10" HSeparationOverride="2" VSeparationOverride="2" />
     <GridContainer Columns="2" HSeparationOverride="8">
         <CheckBox Name="UseColorBox" Text="{Loc 'decal-placer-window-use-color'}" />
         <CheckBox Name="AutoBox" Text="{Loc 'decal-placer-window-enable-auto'}" Pressed="True" />

@@ -13,7 +13,7 @@ public enum WFMappingChunkResult : byte
     /// <summary>That chunk already arrived.</summary>
     Duplicate,
 
-    /// <summary>The chunk, or the file so far, is over its size cap.</summary>
+    /// <summary>The chunk, or the file so far, is over its size cap or the size the server announced.</summary>
     TooLarge,
 }
 
@@ -31,31 +31,45 @@ public sealed class WFMappingDownloadAssembler
     public readonly string FileName;
     public readonly int ChunkCount;
 
+    /// <summary>The file's size as the server read it; the chunks must add up to exactly this.</summary>
+    public readonly int TotalBytes;
+
     private readonly byte[]?[] _chunks;
     private int _received;
     private long _bytes;
 
-    private WFMappingDownloadAssembler(int transferId, string fileName, int chunkCount)
+    private WFMappingDownloadAssembler(int transferId, string fileName, int chunkCount, int totalBytes)
     {
         TransferId = transferId;
         FileName = fileName;
         ChunkCount = chunkCount;
+        TotalBytes = totalBytes;
         _chunks = new byte[]?[chunkCount];
     }
 
     /// <summary>
     /// Starts a transfer; false when the file name isn't one a download of <paramref name="mapName"/> may carry
-    /// (<see cref="WFMappingLibraryNames.IsDownloadFile"/>) or the chunk count is outside 1 to <see cref="MaxChunks"/>.
+    /// (<see cref="WFMappingLibraryNames.IsDownloadFile"/>), the chunk count is outside 1 to <see cref="MaxChunks"/>
+    /// or the size is outside 1 to <see cref="MaxFileBytes"/>: an empty file is never a valid download.
     /// </summary>
-    public static bool TryCreate(int transferId, string mapName, string fileName, int chunkCount,
+    public static bool TryCreate(int transferId, string mapName, string fileName, int chunkCount, int totalBytes,
         [NotNullWhen(true)] out WFMappingDownloadAssembler? assembler)
     {
         assembler = null;
-        if (chunkCount < 1 || chunkCount > MaxChunks || !WFMappingLibraryNames.IsDownloadFile(mapName, fileName))
+        if (chunkCount < 1 || chunkCount > MaxChunks || totalBytes < 1 || totalBytes > MaxFileBytes ||
+            !WFMappingLibraryNames.IsDownloadFile(mapName, fileName))
+        {
             return false;
+        }
 
-        assembler = new WFMappingDownloadAssembler(transferId, fileName, chunkCount);
+        assembler = new WFMappingDownloadAssembler(transferId, fileName, chunkCount, totalBytes);
         return true;
+    }
+
+    /// <summary>Chunks a file of <paramref name="bytes"/> is sent in.</summary>
+    public static int ChunksFor(int bytes)
+    {
+        return Math.Max(1, (bytes + ChunkSize - 1) / ChunkSize);
     }
 
     /// <summary>Chunks received so far.</summary>
@@ -72,7 +86,7 @@ public sealed class WFMappingDownloadAssembler
         if (_chunks[index] != null)
             return WFMappingChunkResult.Duplicate;
 
-        if (data.Length > ChunkSize || _bytes + data.Length > MaxFileBytes)
+        if (data.Length > ChunkSize || _bytes + data.Length > Math.Min(MaxFileBytes, TotalBytes))
             return WFMappingChunkResult.TooLarge;
 
         _chunks[index] = data;
@@ -81,11 +95,11 @@ public sealed class WFMappingDownloadAssembler
         return WFMappingChunkResult.Accepted;
     }
 
-    /// <summary>The whole file once every chunk has arrived.</summary>
+    /// <summary>The whole file once every chunk has arrived and they add up to <see cref="TotalBytes"/>.</summary>
     public bool TryComplete(out byte[] data)
     {
         data = Array.Empty<byte>();
-        if (!IsComplete)
+        if (!IsComplete || _bytes != TotalBytes)
             return false;
 
         data = new byte[_bytes];

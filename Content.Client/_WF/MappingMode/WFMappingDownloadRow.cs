@@ -1,8 +1,12 @@
+using Content.Shared._WF.MappingMode;
 using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._WF.MappingMode;
 
-/// <summary>The running download's progress with Cancel, or the finished one's Open folder.</summary>
+/// <summary>
+/// The running download's progress with Cancel, the file a Save to download's dialog is asking for, or the finished
+/// one's Open folder.
+/// </summary>
 public sealed class WFMappingDownloadRow : BoxContainer
 {
     private readonly Label _label;
@@ -36,14 +40,52 @@ public sealed class WFMappingDownloadRow : BoxContainer
             return;
 
         _cancel.Visible = progress.Active;
-        _openFolder.Visible = !progress.Active;
-        _label.Text = progress.Active
-            ? Loc.GetString("wf-mapping-mode-download-progress",
+        _openFolder.Visible = !progress.Active && !progress.SaveTo;
+        if (progress.Active)
+        {
+            _label.Text = Loc.GetString("wf-mapping-mode-download-progress",
                 ("name", progress.MapName),
                 ("version", progress.Version),
                 ("file", progress.FileIndex + 1),
                 ("files", progress.FileCount),
-                ("percent", progress.ChunkCount == 0 ? 0 : progress.Chunks * 100 / progress.ChunkCount))
-            : Loc.GetString("wf-mapping-mode-download-ready", ("name", progress.MapName), ("version", progress.Version));
+                ("percent", progress.ChunkCount == 0 ? 0 : progress.Chunks * 100 / progress.ChunkCount));
+        }
+        else if (progress.Asking is { } file)
+        {
+            _label.Text = Loc.GetString("wf-mapping-mode-download-asking",
+                ("file", file),
+                ("kind", Loc.GetString(KindKey(progress, file))),
+                ("index", progress.AskingIndex + 1),
+                ("count", progress.FileCount));
+        }
+        else if (progress.SaveTo)
+        {
+            _label.Text = Loc.GetString("wf-mapping-mode-download-saved-row",
+                ("name", progress.MapName),
+                ("version", progress.Version),
+                ("saved", progress.Saved),
+                ("count", progress.FileCount));
+        }
+        else
+        {
+            _label.Text = Loc.GetString("wf-mapping-mode-download-ready",
+                ("name", progress.MapName), ("version", progress.Version));
+        }
+
+        _label.ToolTip = _label.Text;
+    }
+
+    /// <summary>What a downloaded file is, so the player can tell a ship's grid from its vessel prototype.</summary>
+    private static string KindKey(WFMappingDownloadProgress progress, string file)
+    {
+        if (file == WFMappingLibraryNames.DownloadVesselFile(progress.MapName))
+            return "wf-mapping-mode-download-kind-vessel";
+
+        if (progress.Ship)
+            return "wf-mapping-mode-download-kind-grid";
+
+        return file == WFMappingLibraryNames.DownloadMapFile(progress.MapName)
+            ? "wf-mapping-mode-download-kind-map"
+            : "wf-mapping-mode-download-kind-level";
     }
 }

@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using Content.Server.Administration.Logs;
 using Content.Shared._WF.MappingMode;
@@ -208,26 +209,53 @@ public sealed class WFMappingDownloadSystem : EntitySystem
         }
 
         var (name, path) = download.Files[download.FileIndex];
+        byte[]? data;
         using (var stream = _res.UserData.OpenRead(path))
         {
-            if (stream.Length > WFMappingDownloadAssembler.MaxFileBytes)
-            {
-                Cancel(user, "wf-mapping-mode-download-too-large",
-                    ("max", WFMappingDownloadAssembler.MaxFileBytes / (1024 * 1024)));
-                return;
-            }
-
-            download.Data = new byte[stream.Length];
-            stream.ReadExactly(download.Data);
+            data = ReadCapped(stream, WFMappingDownloadAssembler.MaxFileBytes);
         }
 
+        if (data == null)
+        {
+            Cancel(user, "wf-mapping-mode-download-too-large",
+                ("max", WFMappingDownloadAssembler.MaxFileBytes / (1024 * 1024)));
+            return;
+        }
+
+        if (data.Length == 0)
+        {
+            Log.Warning($"Library file {path} of \"{download.MapName}\" {download.Version} is empty; not sending it to {download.Player}");
+            Cancel(user, "wf-mapping-mode-download-empty", ("file", name));
+            return;
+        }
+
+        download.Data = data;
         download.TransferId = _nextTransferId++;
-        download.ChunkCount = Math.Max(1,
-            (download.Data.Length + WFMappingDownloadAssembler.ChunkSize - 1) / WFMappingDownloadAssembler.ChunkSize);
+        download.ChunkCount = WFMappingDownloadAssembler.ChunksFor(data.Length);
         download.NextChunk = 0;
         download.Acked = 0;
         Log.Debug($"Sending {name} of \"{download.MapName}\" {download.Version} to {download.Player} in {download.ChunkCount} chunks");
         Pump(download);
+    }
+
+    /// <summary>
+    /// Reads a stream to its end, or null past <paramref name="cap"/> bytes. The stream's <c>Length</c> isn't trusted:
+    /// the in-memory data folder of tests reports wherever it was last read up to, and a file system may report 0.
+    /// </summary>
+    public static byte[]? ReadCapped(Stream stream, int cap)
+    {
+        using var memory = new MemoryStream();
+        var buffer = new byte[81920];
+        int read;
+        while ((read = stream.Read(buffer, 0, buffer.Length)) > 0)
+        {
+            if (memory.Length + read > cap)
+                return null;
+
+            memory.Write(buffer, 0, read);
+        }
+
+        return memory.ToArray();
     }
 
     /// <summary>Sends chunks until <see cref="InFlight"/> are unacknowledged or the file is all sent.</summary>
@@ -241,7 +269,8 @@ public sealed class WFMappingDownloadSystem : EntitySystem
             var data = download.Data.AsSpan(offset, length).ToArray();
 
             RaiseNetworkEvent(new WFMappingDownloadChunkEvent(download.TransferId, download.MapName, download.Version,
-                name, download.FileIndex, download.Files.Count, download.NextChunk, download.ChunkCount, data),
+                name, download.FileIndex, download.Files.Count, download.NextChunk, download.ChunkCount,
+                download.Data.Length, data),
                 download.Player);
             download.NextChunk++;
         }

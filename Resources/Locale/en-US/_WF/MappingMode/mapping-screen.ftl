@@ -53,6 +53,7 @@ wf-mapping-screen-unfavourite = Unfavourite
 wf-mapping-screen-add-quick-select = Add to quick select
 wf-mapping-screen-quick-select-star = ★
 wf-mapping-screen-recent-strip = Recent
+wf-mapping-screen-decal-swatch = {$name} ({$hex})
 
 wf-mapping-screen-section-selected = Selected
 wf-mapping-screen-section-mode = Mode

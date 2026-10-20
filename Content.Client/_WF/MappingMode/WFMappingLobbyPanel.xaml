@@ -41,6 +41,7 @@
             <mapping:WFMappingLibraryList Name="LibraryList" Access="Public" />
         </ScrollContainer>
 
+        <mapping:WFMappingDownloadTargetPicker Name="DownloadTarget" Access="Public" />
         <mapping:WFMappingDownloadRow Name="DownloadRow" Access="Public" />
         <mapping:WFMappingUploadRow Name="UploadRow" Access="Public" />
         <Label Name="ResultLabel" Access="Public" ClipText="True" />

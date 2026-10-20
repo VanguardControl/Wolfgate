@@ -104,6 +104,7 @@ public sealed class WFMappingDownloadChunkEvent(
     int fileCount,
     int chunk,
     int chunkCount,
+    int totalBytes,
     byte[] data) : EntityEventArgs
 {
     public readonly int TransferId = transferId;
@@ -114,6 +115,10 @@ public sealed class WFMappingDownloadChunkEvent(
     public readonly int FileCount = fileCount;
     public readonly int Chunk = chunk;
     public readonly int ChunkCount = chunkCount;
+
+    /// <summary>The whole file's size, which the client checks what it wrote against.</summary>
+    public readonly int TotalBytes = totalBytes;
+
     public readonly byte[] Data = data;
 }
 

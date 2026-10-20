@@ -10,6 +10,13 @@ public sealed class WFMappingModeCVars
     public static readonly CVarDef<bool> Enabled =
         CVarDef.Create("wf.mapping_mode.enabled", false, CVar.SERVER | CVar.REPLICATED);
 
+    /// <summary>
+    /// Client: downloads go through the save dialog, one file at a time, instead of into the data folder. The sandbox
+    /// only lets the client write outside its data folder through that dialog.
+    /// </summary>
+    public static readonly CVarDef<bool> DownloadSaveTo =
+        CVarDef.Create("wf.mapping_mode.download_save_to", false, CVar.CLIENTONLY | CVar.ARCHIVE);
+
     /// <summary>Side of the square, in tiles and centred on the origin, that every level's tiles must lie in.</summary>
     public static readonly CVarDef<int> MapSize =
         CVarDef.Create("wf.mapping_mode.map_size", 256, CVar.SERVER | CVar.REPLICATED);

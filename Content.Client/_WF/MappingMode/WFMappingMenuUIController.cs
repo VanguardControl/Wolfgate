@@ -127,6 +127,8 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.LibraryList.DeleteRequested += (map, version) => _mapping.Send(new WFMappingDeleteRequest(map, version));
         window.DownloadRow.CancelPressed += () => _mapping.CancelDownload();
         window.DownloadRow.OpenFolderPressed += () => _mapping.OpenDownloadFolder();
+        window.SaveDownloadRow.CancelPressed += () => _mapping.CancelDownload();
+        window.SaveDownloadRow.OpenFolderPressed += () => _mapping.OpenDownloadFolder();
         window.LibraryUploadButton.OnPressed += _ => _upload.PickAndUpload();
         window.UploadRow.CancelPressed += () => _upload.Cancel();
         window.UploadRow.LoadAnywayPressed += () => _upload.ConfirmDropMissing();
@@ -251,6 +253,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
     private void UpdateDownload()
     {
         _window?.DownloadRow.SetProgress(_mapping.Download);
+        _window?.SaveDownloadRow.SetProgress(_mapping.Download);
     }
 
     private void UpdateUpload()

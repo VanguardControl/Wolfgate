@@ -53,6 +53,7 @@ wf-mapping-mode-download-failed = The download failed.
 wf-mapping-mode-download-too-large = A level is over the {$max} MiB download limit.
 wf-mapping-mode-download-stalled = The download stopped responding and was dropped.
 wf-mapping-mode-download-cancelled = The download was cancelled.
+wf-mapping-mode-download-empty = {$file} is empty on the server, so it wasn't sent. Open the map and save it again.
 
 ## Limits and refusals
 
@@ -184,6 +185,23 @@ wf-mapping-mode-download-cancel = Cancel
 wf-mapping-mode-download-open-folder = Open folder
 wf-mapping-mode-download-bad-data = The download arrived damaged and was stopped.
 wf-mapping-mode-download-write-failed = The download couldn't be written to your data folder.
+wf-mapping-mode-download-verify-failed = {$file} came out a different size from the download, so the download was dropped.
+wf-mapping-mode-download-target = Downloads go to
+wf-mapping-mode-download-target-data = Data folder
+wf-mapping-mode-download-target-save-to = Save to...
+wf-mapping-mode-download-target-tooltip = Data folder puts every file in Mapping/<map>/<version>/ of the game's data folder, with Open folder. Save to... asks where to save each file. The game can only write outside its data folder through that dialog, so it asks once per file.
+wf-mapping-mode-download-asking = Pick where to save {$file} ({$kind}, file {$index} of {$count}).
+wf-mapping-mode-download-kind-map = the map
+wf-mapping-mode-download-kind-level = one level
+wf-mapping-mode-download-kind-grid = the ship's grid
+wf-mapping-mode-download-kind-vessel = the ship's vessel prototype
+wf-mapping-mode-download-saved-row = Saved {$saved} of {$count} files of "{$name}" {$version}.
+wf-mapping-mode-download-saved = Saved {$count ->
+    [one] 1 file
+   *[other] {$count} files
+}.
+wf-mapping-mode-download-save-skipped = Saved {$saved} of {$count} files; the others were cancelled in the save dialog.
+wf-mapping-mode-download-save-failed = {$file} couldn't be saved there.
 
 ## Mapping window
 

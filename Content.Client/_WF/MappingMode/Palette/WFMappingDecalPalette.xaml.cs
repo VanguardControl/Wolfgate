@@ -13,8 +13,8 @@ using Robust.Shared.Prototypes;
 namespace Content.Client._WF.MappingMode.Palette;
 
 /// <summary>
-/// The palette's Decals tab: search, tag categories with Favourites and Recent, and the colour, rotation, snap,
-/// z-index and cleanable settings of the decal placer.
+/// The palette's Decals tab: search, tag categories with Favourites and Recent, and the colour (sliders or a colour
+/// palette), rotation, snap, z-index and cleanable settings of the decal placer.
 /// </summary>
 [GenerateTypedNameReferences]
 public sealed partial class WFMappingDecalPalette : BoxContainer
@@ -29,6 +29,7 @@ public sealed partial class WFMappingDecalPalette : BoxContainer
     private readonly WFMappingPaletteIcons _icons = default!;
     private readonly FloatSpinBox _rotation = default!;
     private readonly List<string> _tags = new();
+    private readonly List<ColorPalettePrototype> _palettes = new();
 
     private int _category = CategoryAll;
     private string? _selected;
@@ -82,6 +83,22 @@ public sealed partial class WFMappingDecalPalette : BoxContainer
             Refresh();
         };
 
+        foreach (var palette in _prototypes.EnumeratePrototypes<ColorPalettePrototype>()
+                     .Where(p => !p.Hidden)
+                     .OrderBy(p => p.Name, StringComparer.Ordinal))
+        {
+            PaletteMenu.AddItem(palette.Name, _palettes.Count);
+            _palettes.Add(palette);
+        }
+
+        PaletteMenu.Disabled = _palettes.Count == 0;
+        PaletteMenu.OnItemSelected += args =>
+        {
+            PaletteMenu.SelectId(args.Id);
+            BuildSwatches();
+        };
+        BuildSwatches();
+
         SearchBar.OnTextChanged += _ => Refresh();
         ColorPicker.OnColorChanged += color =>
         {
@@ -132,6 +149,45 @@ public sealed partial class WFMappingDecalPalette : BoxContainer
         }
 
         Refresh();
+    }
+
+    /// <summary>Shows the colours of the chosen colour palette as swatches.</summary>
+    private void BuildSwatches()
+    {
+        PaletteGrid.RemoveAllChildren();
+        var index = PaletteMenu.SelectedId;
+        if (index < 0 || index >= _palettes.Count)
+            return;
+
+        foreach (var (name, color) in _palettes[index].Colors)
+        {
+            var swatch = new ContainerButton
+            {
+                MinSize = new Vector2(16, 16),
+                ToolTip = Loc.GetString("wf-mapping-screen-decal-swatch", ("name", name), ("hex", color.ToHex())),
+                TooltipDelay = 0,
+            };
+            swatch.AddChild(new PanelContainer
+            {
+                PanelOverride = new StyleBoxFlat
+                {
+                    BackgroundColor = color,
+                    BorderColor = Color.Black,
+                    BorderThickness = new Thickness(1),
+                },
+            });
+            swatch.OnPressed += _ => PickColor(color);
+            PaletteGrid.AddChild(swatch);
+        }
+    }
+
+    /// <summary>Takes a palette colour as the decal colour and turns Use colour on, as picking one means to use it.</summary>
+    private void PickColor(Color color)
+    {
+        _color = color;
+        ColorPicker.Color = color;
+        UseColorBox.Pressed = true;
+        ColorUpdated();
     }
 
     private void ColorUpdated()

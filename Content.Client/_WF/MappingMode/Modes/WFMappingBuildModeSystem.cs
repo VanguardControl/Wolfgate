@@ -527,7 +527,9 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
 
     private void SetDecalActive(bool active)
     {
-        if (DecalPlacing == active)
+        // Turning it on always reaches the decal system: closing the decal placer window (F8) turns it off behind
+        // this system's back, and picking the decal again must bring it back.
+        if (DecalPlacing == active && !active)
             return;
 
         DecalPlacing = active;

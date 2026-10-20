@@ -50,7 +50,12 @@ session name), and Download as ship downloads the newest saved version of that n
 downloads and deletes. Opening a map, rejoining and placing a reference put you at the centre of the largest grid
 instead of the origin.
 
-Downloads land in the client's `Mapping/<map>/<version>/` data folder, with an Open folder button. A map of one level
+Downloads land in the client's `Mapping/<map>/<version>/` data folder, with an Open folder button. "Downloads go to"
+beside the library, the Library tab and the Save tab's Download as ship switches to Save to..., which asks where to
+save each file through the game's save dialog, the row naming the file it asks for (a ship asks twice: the grid, then
+the vessel prototype). The choice is kept in the client cvar `wf.mapping_mode.download_save_to`. A folder can't be
+picked once for every download: the client sandbox only writes outside its data folder through a stream the save
+dialog hands back, one file per dialog, and the engine's dialog takes no starting folder or file name. A map of one level
 arrives as `<map>.yml`: its grid file when the level holds exactly one grid, so it loads straight into the game as a
 ship, else the map file. A map of several levels arrives as `<map>_z<D>.yml` per level. A ship download, from Ship in
 the library or Download as ship in the Save tab, sends the version's one grid as `<map>.yml` and a generated vessel
@@ -71,7 +76,8 @@ prototypes and entities that is, naming up to 25; Load anyway stores it without 
 to them, Cancel or `upload_confirm_seconds` without an answer drops it. Open then starts a session from it.
 
 In a session the player gets the mapping screen instead of the game layout. The palette (Entities, Tiles and Decals
-tabs, with search, favourites, recents and a strip of the last 12 entries) is docked on the left; the viewport sits in
+tabs, with search, favourites, recents and a strip of the last 12 entries; the Decals tab also has the decal placer's
+colour sliders, colour palettes, rotation, snap, cleanable and z-index) is docked on the left; the viewport sits in
 the middle with the mode bar, the quick-select bar at the bottom and the cursor readout bottom left; the
 Properties, Tools, Layers, Template and Keys tabs sit over the chat on the right. Each docked panel has an Undock
 button that moves it into its own window, which the window pop-out can take out of the game; closing the window docks
@@ -256,7 +262,11 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
   order; 32 MiB per file, one download at a time per player, dropped after 30 s without an ack. The client assembles
   with `WFMappingDownloadAssembler` (pure and shared, so a unit test can cover it), checks the map name, version
   folder and file name (`<map>.yml`, `<map>_z<D>.yml` or `<map>.vessel.yml`) before writing, and deletes what it wrote
-  if a chunk is damaged or the server cancels.
+  if a chunk is damaged or the server cancels. The server reads each file to its end rather than trusting its stream
+  length, refuses an empty one (`wf-mapping-mode-download-empty`) and sends the file's size with every chunk; the
+  client refuses chunks that don't add up to it, reads a written file back and drops the download when the size
+  differs. Save to holds the files in memory until the last arrives, then opens one save dialog per file;
+  `R5-NOTES.md` has the details.
 - Vessel prototype: written at save time from the live grid, so the appraisal sees it as saved (map-uninitialised,
   so random container fills aren't counted). `id` is `WF` and the map name's words in PascalCase, `name` the map name,
   `description` a placeholder, `parent: BaseVessel`, `group: Shipyard`, `guidebookPage: null`, `shuttlePath`
@@ -428,6 +438,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Grids.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Grids.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs)
+- [`Content.Client/_WF/MappingMode/WFMappingDownloadTargetPicker.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDownloadTargetPicker.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingLibraryList.cs`](../../../Content.Client/_WF/MappingMode/WFMappingLibraryList.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingLobbyPanel.xaml`](../../../Content.Client/_WF/MappingMode/WFMappingLobbyPanel.xaml)
 - [`Content.Client/_WF/MappingMode/WFMappingLobbyPanel.xaml.cs`](../../../Content.Client/_WF/MappingMode/WFMappingLobbyPanel.xaml.cs)
@@ -445,6 +456,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingAdminTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingAdminTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDenyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDenyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDockPopoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDockPopoutTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDownloadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDownloadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingGridDeleteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingGridDeleteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryTest.cs)
@@ -508,6 +520,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Docs/_WF/MappingMode/R2-NOTES.md`](../../../Docs/_WF/MappingMode/R2-NOTES.md)
 - [`Docs/_WF/MappingMode/R3-NOTES.md`](../../../Docs/_WF/MappingMode/R3-NOTES.md)
 - [`Docs/_WF/MappingMode/R4-NOTES.md`](../../../Docs/_WF/MappingMode/R4-NOTES.md)
+- [`Docs/_WF/MappingMode/R5-NOTES.md`](../../../Docs/_WF/MappingMode/R5-NOTES.md)
 - [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)
 - [`Docs/_WF/MappingMode/S1-NOTES.md`](../../../Docs/_WF/MappingMode/S1-NOTES.md)
 - [`Docs/_WF/MappingMode/S2-NOTES.md`](../../../Docs/_WF/MappingMode/S2-NOTES.md)
