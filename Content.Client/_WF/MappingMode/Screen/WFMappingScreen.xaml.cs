@@ -20,6 +20,9 @@ public sealed partial class WFMappingScreen : InGameScreen
 {
     private const float DockSplitWidth = 2f;
 
+    /// <summary>The chat's starting height in the right column.</summary>
+    private const float ChatHeight = 260f;
+
     /// <summary>Space left between the mode bar in its default spot and what it sits above or below.</summary>
     private const float BarGap = 8f;
 
@@ -81,8 +84,21 @@ public sealed partial class WFMappingScreen : InGameScreen
     protected override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
+        PlaceChatSplit();
         if (!ModeBar.Dragging)
             PlaceModeBar();
+    }
+
+    /// <summary>
+    /// Starts the right column with the chat about <see cref="ChatHeight"/> tall at the bottom; the chat fills its part of
+    /// the split, so the tabs and the chat share the whole column with no gap. A dragged split is left alone.
+    /// </summary>
+    private void PlaceChatSplit()
+    {
+        if (RightColumn.State != SplitContainer.SplitState.Auto || Chat.Parent != RightColumn || RightColumn.Size.Y <= 0)
+            return;
+
+        RightColumn.SplitCenter = MathF.Max(RightColumn.Size.Y / 2f, RightColumn.Size.Y - ChatHeight);
     }
 
     /// <summary>Puts the mode bar where the layout says, or in its default spot.</summary>

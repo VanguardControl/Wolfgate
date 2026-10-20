@@ -44,7 +44,7 @@
                         <BoxContainer Name="KeysHost" Access="Public" Orientation="Vertical"
                                       HorizontalExpand="True" VerticalExpand="True" />
                     </TabContainer>
-                    <chat:ChatBox Name="Chat" Access="Protected" HorizontalExpand="True" SetHeight="240"
+                    <chat:ChatBox Name="Chat" Access="Protected" HorizontalExpand="True" VerticalExpand="True"
                                   MinSize="0 120" />
                 </SplitContainer>
             </PanelContainer>
