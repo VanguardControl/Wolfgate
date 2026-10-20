@@ -7,6 +7,8 @@ using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.DoAfter;
 using Content.Shared.Item;
+using Content.Shared._WF.Xenonids.Weeds;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
 using Content.Shared.Storage;
@@ -149,7 +151,7 @@ public abstract partial class SharedXenoAcidSystem : EntitySystem
         if (args.Handled || args.Cancelled || args.Target is not { } target)
             return;
 
-        if (!TryComp(target, out CorrodibleComponent? corrodible) || !corrodible.IsCorrodible)
+        if (!TryGetCorrodible(target, out var corrodible))
             return;
 
         if (!xeno.Comp.CanMeltStructures && corrodible.Structure)
@@ -251,8 +253,7 @@ public abstract partial class SharedXenoAcidSystem : EntitySystem
     {
         time = TimeSpan.Zero;
         mult = 1;
-        if (!TryComp(target, out CorrodibleComponent? corrodible) ||
-            !corrodible.IsCorrodible)
+        if (!TryGetCorrodible(target, out var corrodible))
         {
             _popup.PopupClient(Loc.GetString("cm-xeno-acid-not-corrodible", ("target", target)), xeno, xeno, PopupType.SmallCaution);
             return false;
@@ -291,6 +292,42 @@ public abstract partial class SharedXenoAcidSystem : EntitySystem
         mult = corrodible.MeltTimeMult;
 
         return true;
+    }
+
+    /// <summary>How acid treats a target: its <see cref="CorrodibleComponent"/>, or defaults for anything else that is an item or can be damaged.</summary>
+    public readonly record struct CorrodibleInfo(TimeSpan TimeToApply, bool Structure, float MeltTimeMult, XenoAcidStrength MinimumAcidStrength);
+
+    /// <summary>Default apply time for things without a <see cref="CorrodibleComponent"/>; RMC's item default.</summary>
+    private static readonly TimeSpan DefaultTimeToApply = TimeSpan.FromSeconds(4);
+
+    /// <summary>
+    /// WOLFGATE: RMC marks each meltable thing with Corrodible. Here acid melts almost anything: a Corrodible decides for
+    /// itself, and anything else counts if it is an item or damageable, is not a mob, xeno or weed, and is not held or worn.
+    /// </summary>
+    public bool TryGetCorrodible(EntityUid target, out CorrodibleInfo info)
+    {
+        if (TryComp(target, out CorrodibleComponent? corrodible))
+        {
+            info = new CorrodibleInfo(corrodible.TimeToApply, corrodible.Structure, corrodible.MeltTimeMult, corrodible.MinimumAcidStrength);
+            return corrodible.IsCorrodible;
+        }
+
+        // anchored things count as structures, so castes that can't melt structures (runners) still can't
+        info = new CorrodibleInfo(DefaultTimeToApply, Transform(target).Anchored, 1, XenoAcidStrength.Weak);
+        if (HasComp<MobStateComponent>(target) || HasComp<XenoComponent>(target) || HasComp<XenoWeedsComponent>(target))
+            return false;
+
+        // held or worn, however deep (a gun in a bag on a back): walk up through every container
+        var current = target;
+        while (_container.TryGetContainingContainer((current, null, null), out var container))
+        {
+            if (HasComp<MobStateComponent>(container.Owner))
+                return false;
+
+            current = container.Owner;
+        }
+
+        return HasComp<ItemComponent>(target) || HasComp<DamageableComponent>(target);
     }
 
     public void ApplyAcid(EntProtoId acidId, XenoAcidStrength strength, EntityUid target, float dps, float lightDps,
@@ -393,8 +430,7 @@ public abstract partial class SharedXenoAcidSystem : EntitySystem
             {
                 foreach (var contained in storage.Container.ContainedEntities.ToArray())
                 {
-                    if (!TryComp(contained, out CorrodibleComponent? corrodible) ||
-                        !corrodible.IsCorrodible)
+                    if (!TryGetCorrodible(contained, out _))
                     {
                         _container.Remove(contained, storage.Container);
                     }

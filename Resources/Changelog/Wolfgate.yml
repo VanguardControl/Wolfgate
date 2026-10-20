@@ -2301,3 +2301,48 @@ Entries:
   id: 100176
   time: '2026-10-20T03:15:10.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/296
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Three admin-spawn facehuggers: a hardy one that bites, and two that hunt
+        on their own (one bites only, one infects). None of them wither off
+        weeds.
+    - type: Add
+      message: >-
+        Burst Chest Repair surgery. A chestburst body can be mended and revived,
+        unless the host's own player took the larva.
+    - type: Add
+      message: Every xeno has a built-in mass scanner.
+    - type: Add
+      message: >-
+        Xenos can name themselves once with a tag of up to four letters,
+        replacing the XX in their name.
+    - type: Add
+      message: >-
+        Xenos splatter acid blood when hurt and when they die, and a corpse that
+        keeps taking damage gibs.
+    - type: Tweak
+      message: >-
+        Xeno claws break windows by hits, as in CM. Reinforced in five,
+        plastitanium in eight with sharp claws.
+    - type: Tweak
+      message: >-
+        Xeno acid melts almost anything: furniture, items, machines. Not the
+        nuke disk.
+    - type: Fix
+      message: >-
+        Crusher stomp and charge, plant weeds button vanishing on the
+        ovipositor, queen eye black on ships, resin doors spamming client
+        errors, berserker ravager failing to load on clients, burrowers showing
+        in the external camera view.
+  id: 100177
+  time: '2026-10-20T05:14:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/295
+- author: bluebrouny
+  changes:
+    - type: Tweak
+      message: Changed the McChicken, now you can chickenmaxx
+  id: 100178
+  time: '2026-10-20T17:31:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/291

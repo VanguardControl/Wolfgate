@@ -114,6 +114,19 @@ public sealed class XenoMeleeDamageTest
         Assert.That(await Swing(pair, map, "CMXenoDrone", "WallSolid"), Is.EqualTo(FixedPoint2.Zero),
             "A drone's normal claws can't break a wall.");
 
+        Assert.That(await Swing(pair, map, "CMXenoDrone", "Window"), Is.EqualTo(FixedPoint2.New(25)),
+            "Any claws break a window in two hits.");
+        Assert.That(await Swing(pair, map, "CMXenoDrone", "ReinforcedWindow"), Is.EqualTo(FixedPoint2.New(30)),
+            "Any claws break a reinforced window in five hits.");
+        Assert.That(await Swing(pair, map, "CMXenoQueen", "ReinforcedWindow"), Is.EqualTo(FixedPoint2.New(30)),
+            "The queen breaks a reinforced window in the same five hits.");
+        Assert.That(await Swing(pair, map, "CMXenoQueen", "PlastitaniumWindow"), Is.EqualTo(FixedPoint2.New(437.5)),
+            "Very sharp claws break a plastitanium window in eight hits instead of hundreds.");
+        Assert.That(await Swing(pair, map, "CMXenoDrone", "PlastitaniumWindow"), Is.EqualTo(FixedPoint2.Zero),
+            "Normal claws can't break a plastitanium window.");
+        Assert.That(await Swing(pair, map, "CMXenoWarrior", "ShuttleWindow"), Is.EqualTo(FixedPoint2.New(250)),
+            "Sharp claws break a shuttle window in eight hits.");
+
         await pair.CleanReturnAsync();
     }
 }

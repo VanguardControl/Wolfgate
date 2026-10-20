@@ -97,21 +97,32 @@ public abstract partial class SharedXenoNameSystem : EntitySystem
 
     private void OnGetFixedIdentity(Entity<XenoNameComponent> ent, ref RMCGetFixedIdentityEvent args)
     {
+        // WOLFGATE: a self-chosen tag shows in the fixed identity too
+        var prefix = ent.Comp.Prefix.Length > 0 ? ent.Comp.Prefix : DefaultPrefix;
         if (HasComp<XenoOmitNumberComponent>(ent))
         {
             args.Name = Loc.GetString("rmc-xeno-name",
                 ("baseName", args.Name),
-                ("prefix", DefaultPrefix),
+                ("prefix", prefix),
                 ("postfix", string.Empty));
         }
         else
         {
             args.Name = Loc.GetString("rmc-xeno-name-number",
                 ("baseName", args.Name),
-                ("prefix", DefaultPrefix),
+                ("prefix", prefix),
                 ("number", ent.Comp.Number),
                 ("postfix", string.Empty));
         }
+    }
+
+    /// <summary>WOLFGATE: sets the tag before the number; <paramref name="named"/> spends the xeno's one self-naming.</summary>
+    public void SetPrefix(EntityUid xeno, string prefix, bool named)
+    {
+        var name = EnsureComp<XenoNameComponent>(xeno);
+        name.Prefix = prefix;
+        name.Named = named;
+        Dirty(xeno, name);
     }
 
     private TimeSpan GetXenoPlaytime(ICommonSession player)
@@ -165,6 +176,7 @@ public abstract partial class SharedXenoNameSystem : EntitySystem
         var newName = EnsureComp<XenoNameComponent>(newXeno);
         newName.Rank = oldName.Rank;
         newName.Prefix = oldName.Prefix;
+        newName.Named = oldName.Named;
         newName.Number = oldName.Number;
         newName.Postfix = oldName.Postfix;
         Dirty(newXeno, newName);

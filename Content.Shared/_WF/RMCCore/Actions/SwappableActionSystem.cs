@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Shared.Actions;
 using Robust.Shared.GameStates;
 
@@ -40,7 +41,7 @@ public sealed partial class SwappableActionSystem : EntitySystem
         string swappedName,
         string swappedDescription) where TOriginalEvent : InstantActionEvent
     {
-        foreach (var (actionId, _) in _actions.GetActions(owner))
+        foreach (var (actionId, _) in _actions.GetActions(owner).ToArray()) // re-attaching edits the set
         {
             if (!TryComp<InstantActionComponent>(actionId, out var instant) ||
                 instant.Event is not TOriginalEvent)
@@ -66,9 +67,11 @@ public sealed partial class SwappableActionSystem : EntitySystem
             world.DeselectOnMiss = false;
             world.Repeat = false;
 
+            // removing the old component detaches the action from its owner; attach the new one again or the button is lost
             RemComp<InstantActionComponent>(actionId);
             AddComp(actionId, world, true);
             _rmcActions.SetEvent(actionId, swappable.SwappedEventTemplate);
+            _actions.AddActionDirect(owner, actionId, action: world);
 
             _metaData.SetEntityName(actionId, swappedName);
             _metaData.SetEntityDescription(actionId, swappedDescription);
@@ -81,7 +84,7 @@ public sealed partial class SwappableActionSystem : EntitySystem
 
     public void SwapAllToInstant(EntityUid owner)
     {
-        foreach (var (actionId, _) in _actions.GetActions(owner))
+        foreach (var (actionId, _) in _actions.GetActions(owner).ToArray()) // re-attaching edits the set
         {
             if (!TryComp<SwappableActionComponent>(actionId, out var swappable))
                 continue;
@@ -104,6 +107,7 @@ public sealed partial class SwappableActionSystem : EntitySystem
             RemComp<WorldTargetActionComponent>(actionId);
             AddComp(actionId, instant, true);
             _rmcActions.SetEvent(actionId, swappable.OriginalEventTemplate);
+            _actions.AddActionDirect(owner, actionId, action: instant);
 
             _metaData.SetEntityName(actionId, swappable.OriginalName);
             _metaData.SetEntityDescription(actionId, swappable.OriginalDescription);

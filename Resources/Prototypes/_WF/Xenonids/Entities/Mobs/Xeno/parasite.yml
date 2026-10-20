@@ -176,3 +176,59 @@
   suffix: Parasite, Auto-Assign, Prime Hive
   components:
   - type: AutoAssignHive
+
+# Admin event huggers. None of them wither off weeds; they still die to damage and after a successful hug.
+# Toggling combat mode makes clicks bite instead of hug; the leap bites too.
+- type: entity
+  abstract: true
+  parent: CMXenoParasiteBase
+  id: WFXenoParasiteHardyBase
+  components:
+  - type: DamageOffWeeds
+    damage:
+      types:
+        Blunt: 0
+  - type: CombatMode
+    canDisarm: false
+  - type: MeleeWeapon
+    autoAttack: true
+    angle: 0
+    attackRate: 1
+    animation: WeaponArcBite
+    soundHit:
+      path: /Audio/Effects/bite.ogg
+    damage:
+      types:
+        Piercing: 5
+  - type: XenoLeap
+    knockdownTime: 1
+    damage:
+      types:
+        Piercing: 5
+
+- type: entity
+  parent: WFXenoParasiteHardyBase
+  id: WFXenoParasiteHardy
+  suffix: Parasite, Hardy, Admin
+  description: A facehugger that does not wither away off weeds and can bite.
+
+- type: entity
+  parent: WFXenoParasiteHardyBase
+  id: WFXenoParasiteHunterBiter
+  suffix: Parasite, Hunter AI, Bites Only, Admin
+  description: A facehugger that hunts on its own, leaping at and biting anyone nearby, but never infects.
+  components:
+  - type: ParasiteAI
+  - type: WFParasiteBiteOnly
+  - type: WFParasiteAI
+    rootTask: WFParasiteHunterCompound
+
+- type: entity
+  parent: WFXenoParasiteHardyBase
+  id: WFXenoParasiteHunterInfector
+  suffix: Parasite, Hunter AI, Infects, Admin
+  description: A facehugger that hunts on its own and infects whoever it lands on.
+  components:
+  - type: ParasiteAI
+  - type: WFParasiteAI
+    rootTask: WFParasiteInfectorCompound

@@ -438,7 +438,8 @@ public abstract partial class SharedXenoParasiteSystem : EntitySystem
 
     private void OnVictimInfectedRemoved(Entity<VictimInfectedComponent> victim, ref ComponentRemove args)
     {
-        if (_status.HasStatusEffect(victim, "Unconscious", null))
+        // WOLFGATE: server only; the client removing it too double-deletes the component when the state arrives
+        if (_net.IsServer && _status.HasStatusEffect(victim, "Unconscious", null))
         {
             _status.TryRemoveStatusEffect(victim, "Unconscious");
         }
@@ -523,6 +524,7 @@ public abstract partial class SharedXenoParasiteSystem : EntitySystem
                && parasite.Comp.InfectedVictim == null
                && !infected.BeingInfected
                && !HasComp<ParasiteSpentComponent>(parasite)
+               && !HasComp<WFParasiteBiteOnlyComponent>(parasite) // WOLFGATE: admin bite-only variants never infect
                && !HasComp<VictimInfectedComponent>(victim);
     }
 
@@ -926,7 +928,7 @@ public abstract partial class SharedXenoParasiteSystem : EntitySystem
         if (_net.IsClient)
             return;
 
-        EnsureComp<VictimBurstComponent>(ent.Owner);
+        var burst = EnsureComp<VictimBurstComponent>(ent.Owner);
         _appearance.SetData(ent.Owner, BurstVisuals.Visuals, VictimBurstState.Burst);
 
         if (TryComp(ent.Owner, out MobStateComponent? mobState))
@@ -938,6 +940,7 @@ public abstract partial class SharedXenoParasiteSystem : EntitySystem
         {
             foreach (var larva in container.ContainedEntities)
             {
+                RecordBurstHost(ent, burst, larva);
                 RemCompDeferred<BursterComponent>(larva);
                 var invc = EnsureComp<RMCTemporaryInvincibilityComponent>(larva);
                 invc.ExpiresAt = _timing.CurTime + ent.Comp.LarvaInvincibilityTime;

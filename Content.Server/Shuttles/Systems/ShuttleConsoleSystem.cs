@@ -384,6 +384,7 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
                 HighlightedRadarColor = comp.HighlightedRadarColor, // Frontier
                 DockType = comp.DockType, // Frontier
                 ReceiveOnly = comp.ReceiveOnly, // Frontier
+                WfClampedBy = WfClampedBy((uid, comp)), // WOLFGATE(Encounters): docking screens show clamped ports.
             };
 
             gridDocks.Add(state);

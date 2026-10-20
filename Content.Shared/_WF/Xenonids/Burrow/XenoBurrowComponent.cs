@@ -2,7 +2,7 @@ using Robust.Shared.Audio;
 using Robust.Shared.GameStates;
 
 namespace Content.Shared._WF.Xenonids.Burrow;
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)] // WOLFGATE: the client applies burrow visibility on state change
 public sealed partial class XenoBurrowComponent : Component
 {
     /// <summary>
@@ -10,6 +10,10 @@ public sealed partial class XenoBurrowComponent : Component
     /// </summary>
     [DataField, AutoNetworkedField]
     public bool Active = false;
+
+    /// <summary>WOLFGATE: client only; the burrow system hid this sprite and may show it again.</summary>
+    [ViewVariables]
+    public bool HiddenByBurrow;
 
     /// <summary>
     /// Whether the xeno is currently tunneling or not
