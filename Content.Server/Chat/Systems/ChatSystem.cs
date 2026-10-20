@@ -274,6 +274,10 @@ public sealed partial class ChatSystem : SharedChatSystem
             message = $"{CollectiveMindPrefix} {message}";
         // WOLFGATE END
 
+        // WOLFGATE(Xenonids): a xeno's radio prefix sends the message to its hive instead
+        if (checkRadioPrefix && EntityManager.System<Content.Server._WF.Xenonids.Hive.XenoHiveChatSystem>().TrySendHiveMessage(source, message))
+            return;
+
         // This message may have a radio prefix, and should then be whispered to the resolved radio channel
         if (checkRadioPrefix)
         {

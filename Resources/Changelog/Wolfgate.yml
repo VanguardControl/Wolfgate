@@ -2151,3 +2151,191 @@ Entries:
   id: 100168
   time: '2026-10-18T21:34:19.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/280
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Pirate and other NPC ships now notice and fire on mechs flying in open
+        space, and fight back when a mech attacks them.
+  id: 100169
+  time: '2026-10-18T23:48:36.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/286
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Cortical borers no longer come out of vents on ships or Caelestinus
+        Central.
+    - type: Tweak
+      message: >-
+        The borer vent event now fires on other stations and outposts, with 1-3
+        borers per event.
+    - type: Tweak
+      message: Cockroach migrations now always bring a moproach.
+  id: 100170
+  time: '2026-10-19T00:30:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/287
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        TSF and Dynasty patrols no longer post themselves next to Caelestinus
+        Central when guarding a station nearby.
+    - type: Fix
+      message: >-
+        Scrolling over the markings, hair or facial hair lists now scrolls the
+        page once the list hits its top or bottom, so you can always scroll back
+        up.
+  id: 100171
+  time: '2026-10-19T07:06:53.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/289
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Xenomorphs. Every RMC-14 caste is playable: larva, drone, lesser drone,
+        runner, lurker, warrior, ravager, praetorian (all strains), defender,
+        crusher, boiler, spitter, sentinel, burrower, hivelord (with the
+        designer strain), carrier, queen and king, with their abilities,
+        evolution and strains.
+    - type: Add
+      message: >-
+        The hive: hivemind chat (;), plasma, weeds and hive weeds, resin walls,
+        doors and membranes, nests, tunnels, hive core, clusters, pylons,
+        recovery and plasma nodes, egg morpher, acid pillar, traps, resin fruit,
+        and a resin sensor that works as a mass scanner.
+    - type: Add
+      message: >-
+        Eggs and facehuggers. Hosts (humans and monkeys) can be infected and
+        burst into larva. Anyone can plant an egg anywhere.
+    - type: Add
+      message: >-
+        Alien Embryo Removal surgery: surgeons and the autodoc can remove a
+        larva from an infected host.
+    - type: Add
+      message: >-
+        Ghosts can join a hive as a burrowed larva (Join Xeno) when one is
+        available. Burst larva nobody claims become ghost roles.
+    - type: Add
+      message: >-
+        A Xenonids section in the ghost menu and a Xenonids group in the admin
+        spawn menu; xeno_larva and hive admin commands.
+    - type: Add
+      message: Xenonid guidebook pages.
+    - type: Tweak
+      message: >-
+        Xeno acid melts any structure; xeno claws damage walls and airlocks by
+        RMC's rules (sharp claws and up; drones pry or acid). Fire burns weeds
+        and spreads along them; xenos pat fires out by clicking them. The queen
+        cannot be set on fire; king and ravager resist burn damage.
+    - type: Tweak
+      message: >-
+        Queens can pilot shuttle consoles but no xeno can use gunnery. Queens
+        and kings ignore air pressure. Station (CC) turrets shoot xenos.
+    - type: Tweak
+      message: >-
+        C4 and grenades collapse xeno tunnels; shovels and entrenching tools
+        fill them. Tunnels and burrowing never cross between grids.
+  id: 100172
+  time: '2026-10-19T07:30:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/282
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Ore veins now drop about two thirds of upstream yields instead of a
+        third; lithium veins always drop at least one ore.
+    - type: Tweak
+      message: >-
+        The scrap processor smelts strategic sheets for 250 raw scrap (lithium
+        1000) and lathe upgrades discount them again.
+    - type: Tweak
+      message: >-
+        The crystallizer makes five plastitanium sheets per batch instead of
+        one.
+    - type: Tweak
+      message: >-
+        Sand and chromite rocks are back in the 9 km asteroid ring at half their
+        old weight, and still spawn in the Wilds.
+    - type: Tweak
+      message: The hyper-convection upgrade kit fits ore processors again.
+  id: 100173
+  time: '2026-10-19T20:37:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/292
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: You can now set your species blood and flesh colour.
+  id: 100174
+  time: '2026-10-19T22:48:11.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/293
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: Fixed severe server lag when drydocks repair large ships.
+    - type: Fix
+      message: >-
+        Mobile drydock cranes are now built in a 2x2 machine frame and can be
+        pulled while unbolted.
+    - type: Fix
+      message: >-
+        Breaking a ship at a mobile drydock no longer leaves its wiring behind
+        as cable coils.
+    - type: Fix
+      message: >-
+        Salvaged parts no longer get dropped through walls, and linked parts
+        silos now store circuit boards.
+    - type: Tweak
+      message: >-
+        The mobile drydock crane now needs plasteel, MV cable, motors and armor
+        plating to build.
+  id: 100175
+  time: '2026-10-19T23:12:32.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/290
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Ships with no crew, pilot or running engines now drift to a stop, which
+        cuts network lag and stutter for everyone.
+  id: 100176
+  time: '2026-10-20T03:15:10.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/296
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Three admin-spawn facehuggers: a hardy one that bites, and two that hunt
+        on their own (one bites only, one infects). None of them wither off
+        weeds.
+    - type: Add
+      message: >-
+        Burst Chest Repair surgery. A chestburst body can be mended and revived,
+        unless the host's own player took the larva.
+    - type: Add
+      message: Every xeno has a built-in mass scanner.
+    - type: Add
+      message: >-
+        Xenos can name themselves once with a tag of up to four letters,
+        replacing the XX in their name.
+    - type: Add
+      message: >-
+        Xenos splatter acid blood when hurt and when they die, and a corpse that
+        keeps taking damage gibs.
+    - type: Tweak
+      message: >-
+        Xeno claws break windows by hits, as in CM. Reinforced in five,
+        plastitanium in eight with sharp claws.
+    - type: Tweak
+      message: >-
+        Xeno acid melts almost anything: furniture, items, machines. Not the
+        nuke disk.
+    - type: Fix
+      message: >-
+        Crusher stomp and charge, plant weeds button vanishing on the
+        ovipositor, queen eye black on ships, resin doors spamming client
+        errors, berserker ravager failing to load on clients, burrowers showing
+        in the external camera view.
+  id: 100177
+  time: '2026-10-20T05:14:27.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/295

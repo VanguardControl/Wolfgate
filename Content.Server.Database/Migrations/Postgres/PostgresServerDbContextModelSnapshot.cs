@@ -966,6 +966,10 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("integer")
                         .HasColumnName("biotype");
 
+                    b.Property<string>("BloodColor")
+                        .HasColumnType("text")
+                        .HasColumnName("blood_color");
+
                     b.Property<string>("CharacterName")
                         .IsRequired()
                         .HasColumnType("text")

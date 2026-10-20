@@ -50,6 +50,7 @@ Entry points: `BarricadeSystem` (placement, sandbags, entrenching tool), `Shared
 - [`Content.Shared/_WF/Barricades/RMCFoldingBarricadeSystem.cs`](../../../Content.Shared/_WF/Barricades/RMCFoldingBarricadeSystem.cs)
 - [`Content.Shared/_WF/Barricades/RMCUpgradeSystem.cs`](../../../Content.Shared/_WF/Barricades/RMCUpgradeSystem.cs)
 - [`Content.Shared/_WF/Barricades/SharedBarbedSystem.cs`](../../../Content.Shared/_WF/Barricades/SharedBarbedSystem.cs)
+- [`Content.Shared/_WF/Barricades/SharedDirectionalAttackBlockSystem.cs`](../../../Content.Shared/_WF/Barricades/SharedDirectionalAttackBlockSystem.cs)
 - [`Content.Shared/_WF/Barricades/TileBarricadeClear.cs`](../../../Content.Shared/_WF/Barricades/TileBarricadeClear.cs)
 
 ### Client

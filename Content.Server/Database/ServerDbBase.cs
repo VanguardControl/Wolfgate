@@ -14,6 +14,7 @@ using Content.Server.Administration.Managers;
 using Content.Shared._Common.Consent; // WOLFGATE(Genitals)
 using Content.Shared._Mono.Company;
 using Content.Shared._WF.Biotype; // WOLFGATE(Biotype)
+using Content.Shared._WF.BloodColour; // WOLFGATE(BloodColour)
 using Content.Shared._WF.EmoteVoices; // WOLFGATE(EmoteVoices)
 using Content.Shared._WF.CustomMarkings; // WOLFGATE(CustomMarkings)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
@@ -332,6 +333,7 @@ namespace Content.Server.Database
                 CustomMarkings = CustomMarkingRules.FromStored(profile.CustomMarkings), // WOLFGATE(CustomMarkings)
                 LegStance = (LegStance) profile.LegStance, // WOLFGATE(LegStyle)
                 Biotype = (WFBiotype) profile.Biotype, // WOLFGATE(Biotype)
+                BloodColor = WFBloodColourRules.FromStored(profile.BloodColor), // WOLFGATE(BloodColour)
             };
         }
 
@@ -373,6 +375,7 @@ namespace Content.Server.Database
             profile.CustomMarkings = CustomMarkingRules.ToStored(humanoid.CustomMarkings); // WOLFGATE(CustomMarkings)
             profile.LegStance = (int) humanoid.LegStance; // WOLFGATE(LegStyle)
             profile.Biotype = (int) humanoid.Biotype; // WOLFGATE(Biotype)
+            profile.BloodColor = WFBloodColourRules.ToStored(humanoid.BloodColor); // WOLFGATE(BloodColour)
             profile.ScreamVoice = EmoteVoiceRules.ToStored(humanoid.ScreamVoice); // WOLFGATE(EmoteVoices)
             profile.LaughVoice = EmoteVoiceRules.ToStored(humanoid.LaughVoice); // WOLFGATE(EmoteVoices)
 

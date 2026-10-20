@@ -94,7 +94,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// </summary>
     private bool ValidShip(EntityUid grid, EntityUid ship, bool attacked, bool fired = false)
     {
-        return !TerminatingOrDeleted(ship) && !_status.ShouldDisengage(grid, ship, range: !fired, shooter: fired)
+        return !TerminatingOrDeleted(ship) && IsVessel(ship) && !_status.ShouldDisengage(grid, ship, range: !fired, shooter: fired)
             && Transform(ship).MapID == Transform(grid).MapID && (attacked || !_escorts.AreInFormation(grid, ship));
     }
 
@@ -229,8 +229,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
 
     private void OnShieldHit(ref WFShipShieldAttackedEvent args)
     {
-        // A handheld shot at a shield is not its grid's attack; only ship weapons raise ship alerts.
-        if (!IsShipWeapon(args.Weapon))
+        // A handheld shot at a shield is not its grid's attack; only ship weapons and free-flying mechs raise ship alerts.
+        if (!IsShipWeapon(args.Weapon) && !IsFreeMech(args.AttackerGrid))
             return;
         if ((args.Weapon ?? args.Shooter) is { } source
             && EntityManager.System<WFCrewFriendlyFireSystem>().Protected(source, args.Grid))
@@ -242,7 +242,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
 
     private void ReportAttack(EntityUid grid, EntityUid attacker, string? group = null, bool gunfire = false)
     {
-        if (grid == attacker || !HasComp<MapGridComponent>(grid) || !HasComp<MapGridComponent>(attacker)
+        if (grid == attacker || !HasComp<MapGridComponent>(grid) || !IsVessel(attacker)
             || Transform(grid).MapID != Transform(attacker).MapID)
             return;
         // Grids without crew, escorts or battlegroups have nobody to alert.
@@ -372,7 +372,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
 
     private void AlertShip(EntityUid grid, string group, EntityUid attacker, bool retaliation = true, bool gunfire = false)
     {
-        if (grid == attacker || !HasComp<MapGridComponent>(grid) || !HasComp<MapGridComponent>(attacker)
+        if (grid == attacker || !HasComp<MapGridComponent>(grid) || !IsVessel(attacker)
             || Transform(grid).MapID != Transform(attacker).MapID)
             return;
         var key = (grid, group);
