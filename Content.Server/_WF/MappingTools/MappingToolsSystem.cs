@@ -11,7 +11,6 @@ using Content.Shared.Administration;
 using Content.Shared.Atmos;
 using Content.Shared.Database;
 using Content.Shared.Decals;
-using Content.Shared.Ghost;
 using Content.Shared.Maps;
 using Content.Shared.NodeContainer;
 using Robust.Server.GameObjects;
@@ -40,6 +39,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
     [Dependency] private MetaDataSystem _meta = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private PopupSystem _popup = default!;
+    [Dependency] private MappingProtectionSystem _protection = default!;
     [Dependency] private TransformSystem _transform = default!;
 
     /// <summary>
@@ -263,15 +263,15 @@ public sealed partial class MappingToolsSystem : EntitySystem
     }
 
     /// <summary>
-    /// Whether an entity can be edited: not a grid, map, player or ghost, and not holding a player.
+    /// Whether an entity can be edited: not a grid or map, and neither protected nor holding anything protected
+    /// (<see cref="MappingProtectionSystem"/>).
     /// </summary>
     private bool IsSelectable(EntityUid uid)
     {
         return !TerminatingOrDeleted(uid) &&
                !HasComp<MapGridComponent>(uid) &&
                !HasComp<MapComponent>(uid) &&
-               !HasComp<GhostComponent>(uid) &&
-               !Tree(uid).Any(HasComp<ActorComponent>);
+               _protection.CanTouch(uid);
     }
 
     /// <summary>
@@ -481,15 +481,23 @@ public sealed partial class MappingToolsSystem : EntitySystem
         }
 
         var preview = new List<MappingClipEntity>(sel.Entities.Count);
-        if (sel.Entities.Count > 0)
+        var serializer = new EntitySerializer(_dependency, SnapshotOptions);
+
+        // Entities that never save (mobs, ghosts) can't be copied; they stay behind, and a cut deletes them.
+        var copied = sel.Entities.Where(uid => serializer.IsSerializable(uid)).ToHashSet();
+        if (copied.Count > 0)
         {
-            var serializer = new EntitySerializer(_dependency, SnapshotOptions);
-            serializer.SerializeEntityRecursive(sel.Entities);
+            serializer.SerializeEntityRecursive(copied);
             clip.Data = serializer.Write();
             clip.EntityCount = serializer.YamlUidMap.Count;
             clip.Bytes = MappingDataSize.Estimate(clip.Data);
+            foreach (var uid in serializer.YamlUidMap.Keys)
+            {
+                if (MetaData(uid).EntityPrototype is { } prototype)
+                    clip.Prototypes.Add(prototype.ID);
+            }
 
-            foreach (var uid in sel.Entities)
+            foreach (var uid in copied)
             {
                 var pose = PoseOf(uid) with { Parent = EntityUid.Invalid };
                 pose.Position -= origin;
@@ -549,6 +557,7 @@ public sealed partial class MappingToolsSystem : EntitySystem
             Decals = clip.Decals.Count,
             DecalCells = clip.Decals.ConvertAll(d =>
                 MappingToolsMath.CellOf(MappingToolsMath.TransformPoint(d.Coordinates + half, extent, offset, turns)) + shift),
+            CarriedPrototypes = clip.Prototypes,
         };
 
         if (!CanEdit(check))
@@ -689,29 +698,6 @@ public sealed partial class MappingToolsSystem : EntitySystem
         }
 
         return count == sel.Tiles.Count;
-    }
-
-    /// <summary>
-    /// Moves players, ghosts and whatever holds one off a grid about to be deleted, onto its map where they stand.
-    /// </summary>
-    private void MoveRidersOff(EntityUid grid)
-    {
-        if (Transform(grid).MapUid is not { } map)
-            return;
-
-        var riders = new List<EntityUid>();
-        var children = Transform(grid).ChildEnumerator;
-        while (children.MoveNext(out var child))
-        {
-            if (!IsSelectable(child))
-                riders.Add(child);
-        }
-
-        foreach (var uid in riders)
-        {
-            var (position, rotation) = _transform.GetWorldPositionRotation(uid);
-            _transform.SetCoordinates(uid, Transform(uid), new EntityCoordinates(map, position), rotation);
-        }
     }
 
     /// <summary>

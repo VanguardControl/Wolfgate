@@ -8,6 +8,7 @@ using Content.Shared.Database;
 using Robust.Server.Player;
 using Robust.Shared.Console;
 using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.MappingMode.Commands;
 
@@ -199,5 +200,49 @@ public sealed partial class WFMappingModeSaveCommand : WFMappingModeCommandBase
             $"{shell.Player:player} saved mapping session {session.Code}: {(saved ? "written" : "failed")}");
         shell.WriteLine(Loc.GetString(saved ? "cmd-wf_mappingmode_save-saved" : "cmd-wf_mappingmode_save-failed",
             ("code", session.Code)));
+    }
+}
+
+/// <summary>Deletes every entity of one prototype on a session's maps, for cleaning up what slipped past the limits.</summary>
+[AdminCommand(AdminFlags.Mapping)]
+public sealed partial class WFMappingModePurgeCommand : WFMappingModeCommandBase
+{
+    [Dependency] private IPrototypeManager _prototypes = default!;
+
+    public override string Command => "wf_mappingmode_purge";
+
+    public override void Execute(IConsoleShell shell, string argStr, string[] args)
+    {
+        if (args.Length != 2)
+        {
+            shell.WriteLine(Help);
+            return;
+        }
+
+        if (!TryGetSession(shell, args[0], out var session))
+            return;
+
+        if (!_prototypes.HasIndex<EntityPrototype>(args[1]))
+        {
+            shell.WriteError(Loc.GetString("cmd-wf_mappingmode_purge-no-prototype", ("prototype", args[1])));
+            return;
+        }
+
+        var count = Mapping.Purge(session, args[1]);
+        AdminLog.Add(LogType.Action, LogImpact.Medium,
+            $"{shell.Player:player} purged {count} {args[1]} from mapping session {session.Code} \"{session.Name}\"");
+        shell.WriteLine(Loc.GetString("cmd-wf_mappingmode_purge-purged", ("count", count), ("prototype", args[1]),
+            ("code", session.Code)));
+    }
+
+    public override CompletionResult GetCompletion(IConsoleShell shell, string[] args)
+    {
+        return args.Length switch
+        {
+            1 => base.GetCompletion(shell, args),
+            2 => CompletionResult.FromHintOptions(CompletionHelper.PrototypeIDs<EntityPrototype>(),
+                Loc.GetString("cmd-wf_mappingmode-hint-prototype")),
+            _ => CompletionResult.Empty,
+        };
     }
 }

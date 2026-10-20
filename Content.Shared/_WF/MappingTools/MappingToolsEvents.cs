@@ -127,6 +127,12 @@ public enum MappingDrawOp : byte
 
     /// <summary>Paints the pipe network at the one cell with the colour in <see cref="MappingToolsDrawEvent.Pipes"/>.</summary>
     PipeColor,
+
+    /// <summary>
+    /// Removes the entities whose position falls in a cell, never players, ghosts or observers. With no grid the
+    /// cells are map tiles on <see cref="MappingToolsDrawEvent.Map"/>.
+    /// </summary>
+    EraseEntities,
 }
 
 /// <summary>

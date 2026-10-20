@@ -143,6 +143,13 @@ public sealed partial class MappingToolsSystem
             return;
         }
 
+        // A pipe that carries something protected (a following ghost) isn't replaced.
+        if (removals.Any(uid => !IsSelectable(uid)))
+        {
+            Refuse(session, ev, "wf-mapping-tools-protected");
+            return;
+        }
+
         var touched = spawns.Select(s => s.Cell).Concat(paints.Select(p => CellOf(grid, p.Uid))).ToList();
         var check = new WFMappingCanEditEvent(session, map, WFMappingEditKind.Paste)
         {

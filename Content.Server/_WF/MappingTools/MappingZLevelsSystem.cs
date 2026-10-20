@@ -38,6 +38,7 @@ public sealed class MappingZLevelsSystem : EntitySystem
     [Dependency] private MappingMapsSystem _maps = default!;
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private TransformSystem _transform = default!;
+    [Dependency] private MappingProtectionSystem _protection = default!;
 
     private static readonly Regex SaveName = new("^[A-Za-z0-9_-]{1,64}$", RegexOptions.Compiled);
 
@@ -242,13 +243,9 @@ public sealed class MappingZLevelsSystem : EntitySystem
         if (index < ground || index == ground && index == levels.Count)
             ground--;
 
+        // Players, ghosts and observers, attached or not, move to the next level instead of going with this one.
         var refuge = Comp<MapComponent>(levels[Math.Min(index, levels.Count - 1)]).MapId;
-        var actors = EntityQueryEnumerator<ActorComponent, TransformComponent>();
-        while (actors.MoveNext(out var uid, out _, out var xform))
-        {
-            if (xform.MapUid == map)
-                MoveTo(uid, refuge);
-        }
+        _protection.MoveProtectedToMap(map, refuge);
 
         _zLevels.WfRestack(levels, ground);
         RaiseLocalEvent(new WFMappingStackChangedEvent(levels, ground));

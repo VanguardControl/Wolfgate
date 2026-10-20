@@ -91,7 +91,12 @@ Build modes, on keys 1 to 9 or the mode bar:
   drops the entry.
 - Erase (2): click or drag a rectangle to remove what its sub-choice in Properties says: Everything (the default:
   entities, decals and tiles; a click takes the entity under the cursor, or else the tile), Entities, Tiles or Decals.
-  The cursor readout names the current target.
+  A click takes the entity hit exactly, else the one sprite whose bounds hold the cursor (so a big sprite like a
+  2x2 machine is hit anywhere on it, not only on its own cell); where several overlap it opens Delete under cursor, a
+  list of them by name and prototype, which a right click opens at any time. A drag may start in space: on a grid it
+  removes the entities whose position is in its cells, off every grid the loose entities whose bounds centre is in
+  the box, as one undo step. Players, ghosts and observers are never erased. The cursor readout names the current
+  target.
 - Select (3): the MappingTools selection. A click on an entity selects it; a click on a tile with no entity there
   selects that cell with everything on it. Shift+click adds or takes out an entity or a cell (a cell taken out of a
   dragged box splits the box into single cells, up to 4096). A box drag selects every tile in it and may start in space;
@@ -153,12 +158,15 @@ Admins keep everything they have. An admin with the Mapping flag may edit any ma
 Observe button in the lobby, which puts them on a private admin map (Return to lobby in the Mapping window brings
 them back); from there `tpto <name>` reaches any mapper. Console commands, all `AdminFlags.Mapping` and admin logged:
 `wf_mappingmode_list` (sessions with code, owner, members, maps, unsaved state, last save), `wf_mappingmode_tp <code>`,
-`wf_mappingmode_close <code>` (autosaves, then closes), `wf_mappingmode_kick <player>` and `wf_mappingmode_save <code>`.
+`wf_mappingmode_close <code>` (autosaves, then closes), `wf_mappingmode_kick <player>`, `wf_mappingmode_save <code>`
+and `wf_mappingmode_purge <code> <prototype>` (deletes every instance of a prototype on the session's maps, for what
+slipped past the limits; players, ghosts and observers stay).
 Turning the cvar off closes every session after an autosave and sends everyone back to the lobby.
 
 Entry points: `WFMappingModeSystem` (server; sessions, registry, guard, limits, reference loads, autosave and admin
 parts), `WFMappingLibrarySystem` (library, versions, open, delete), `WFMappingDownloadSystem` (chunked downloads),
 `WFMappingModeCommands` (console), `WFMappingObserverSystem` (shared; what an observer can't do),
+`MappingProtectionSystem` (MappingTools; who no edit touches),
 `WFMappingClientSystem` (client state and setup), `WFMappingLobbyUIController` and `WFMappingLobbyPanel` (lobby),
 `WFMappingMenuUIController` and `WFMappingMenuWindow` (Mapping window), `WFMappingReferenceSystem` (reference
 placement), `WFMappingBoundsOverlay` (map limit border), `WFMappingUploadSystem` and `WFMappingUploadValidator`
@@ -191,8 +199,23 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - Guard: the placement gate refuses off-session and over-limit requests before the engine acts. A backstop on
   `PlacementEntityEvent` and `PlacementTileEvent` deletes an entity or reverts a tile that still landed off the
   session's maps, and deletes a grid made past the cap. Erasures can't be reverted there: the engine deletes the
-  entity on the line after the event, so the gate is the only place to refuse them. Maps, actors, observers and
-  anything a player is parented under are never erasable.
+  entity on the line after the event, so the gate is the only place to refuse them. The engine's area erase
+  (`RequestRectRemove`) is refused for mappers outright, since it takes everything in its box but actors; Erase mode
+  sends `MappingDrawOp.EraseEntities` instead. Admins keep the engine's.
+- Protected entities: `MappingProtectionSystem` (in MappingTools) is the one rule for what no edit touches: a player
+  (`ActorComponent`), a ghost (admin ghosts included), a mapping observer with or without its player, a body whose
+  `MindContainer` holds a mind, and anything parented under one. Single erase, every MappingTools selection, area
+  erase, pipe replacement, undo and redo, purge and the map entity are refused or skip them, and a grid, z-level or
+  entity being deleted hands any of them on to the map, the next level or the grid underneath first.
+- Deny set: a prototype or entity carrying a component that reaches past the session or its paused map is refused at
+  placement, draw and paste (the clipboard's prototypes, contents included) and stripped at reference load, upload
+  and library open, with a count shown. Always: `SingularityDistortion`, `Singularity`, `EventHorizon`,
+  `GravityWell`, `PointManager`, `GameRule`, `StationEvent`, `StarSystemMap`, `AnnounceOnSpawn`, `GhostRole` and
+  `GhostRoleMobSpawner`. With data: `ActiveRadio` with `globalReceive` or `receiveAllChannels`, `WarpPoint` with
+  `follow` (Nar'Sie, Ratvar, the singularity, tesla ball, nuke, disk, rod, vehicles), and `SpawnOnDespawn` whose
+  prototype is denied (Nar'Sie's spawn animation), followed four deep. Plain warp markers stay. Map markers with
+  `GlobalPvs` (radar edge markers, biome sources) are ordinary ship content, so on a paused map in mapping mode they
+  only lose their global PVS override; a real round adds it back. `R3-NOTES.md` has the reasons.
 - Limits: the entity total is recounted at most once a second and grows by one per allowed placement; tool edits and
   reference loads recount. Per-tile counts take every entity whose world position falls in the cell, whatever its
   parent (container contents aren't counted), and apply to placements, pastes, moves and mirrors; mappers can't place
@@ -244,7 +267,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
   while a session is set up and win over the hotbar keys by priority (a marked block in `keybinds.yml`). A mode
   handler that doesn't claim a click lets it fall through to the reference placement, MappingTools and the placement
   manager; the wheel goes to the mode first and zooms when the mode doesn't take it.
-- Draws: Fill, Shape and area erase send one `MappingToolsDrawEvent`, checked as a single tool edit
+- Draws: Fill, Shape and area erase (`EraseEntities`, `EraseDecals` and a Space `SetTiles`) send one `MappingToolsDrawEvent`, checked as a single tool edit
   (`max_selection_cells`, per-tile caps, denied and hidden prototypes) and undone as one step, instead of one
   placement per cell, which the edit throttle would cut short. A tile draw with no grid names the map and makes a grid
   there (`NewGrid` on the edit check), undone as one root. Every refusal pops up at the cursor and is logged at debug
@@ -261,8 +284,8 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
   the game menu hides Character, Round setup and Sector map, and the round setup handler drops its requests. Nothing
   loads a station, sector, planet or vessel, because no round starts.
 - Known gaps: Delete the grid under me goes through a MappingTools delete over the grid's tile box and refuses grids
-  over 256 x 256 cells. Deleting the grid a mapper stands on probably deletes the mapper, who is a child of that grid,
-  and leaves them with no entity; not exercised. The client can't tell the admin map from a session, so every admin
+  over 256 x 256 cells. Mobs (`BaseMob` is `save: false`) can be placed but never save, so they vanish from the
+  library and an erased one can't be brought back by undo. The client can't tell the admin map from a session, so every admin
   sees the Mapping button. The decal window stays open when a mapper leaves. A planet file loaded as a reference makes
   the engine log an error and loads without its planet grid. Opening a large library map loads synchronously, with no
   size cap beyond `max_library_bytes`. A decal removal dropped by the edit throttle is still recorded in MappingTools
@@ -393,6 +416,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingAdminTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingAdminTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDenyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDenyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDockPopoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDockPopoutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingGridDeleteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingGridDeleteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs)
@@ -401,6 +425,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeBarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeBarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeTestUtil.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeTestUtil.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPermissionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPermissionTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingProtectionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingProtectionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingReferenceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingReferenceTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingScreenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingScreenTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingSessionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingSessionTest.cs)
@@ -451,6 +476,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Docs/_WF/MappingMode/PLAN2.md`](../../../Docs/_WF/MappingMode/PLAN2.md)
 - [`Docs/_WF/MappingMode/R1-NOTES.md`](../../../Docs/_WF/MappingMode/R1-NOTES.md)
 - [`Docs/_WF/MappingMode/R2-NOTES.md`](../../../Docs/_WF/MappingMode/R2-NOTES.md)
+- [`Docs/_WF/MappingMode/R3-NOTES.md`](../../../Docs/_WF/MappingMode/R3-NOTES.md)
 - [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)
 - [`Docs/_WF/MappingMode/S1-NOTES.md`](../../../Docs/_WF/MappingMode/S1-NOTES.md)
 - [`Docs/_WF/MappingMode/S2-NOTES.md`](../../../Docs/_WF/MappingMode/S2-NOTES.md)

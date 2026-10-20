@@ -86,6 +86,12 @@ public sealed class WFMappingCanEditEvent(ICommonSession session, EntityUid map,
     /// <summary>Entity prototypes the request spawns by id.</summary>
     public List<string>? Prototypes;
 
+    /// <summary>
+    /// Prototypes of every entity a paste brings back, contents included. Unlike <see cref="Prototypes"/> these may
+    /// be hidden from the spawn menu; only what they carry is checked.
+    /// </summary>
+    public IReadOnlyCollection<string>? CarriedPrototypes;
+
     /// <summary>Set by a handler that limits the player's undo history; null keeps the default.</summary>
     public WFMappingHistoryLimits? HistoryLimits;
 

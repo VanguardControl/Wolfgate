@@ -241,4 +241,7 @@ public sealed class MappingClipboard
     public long Bytes;
 
     public readonly List<(int YamlUid, MappingPose Pose)> Roots = new();
+
+    /// <summary>The prototype of every entity in <see cref="Data"/>, so a paste can be checked against them.</summary>
+    public readonly HashSet<string> Prototypes = new();
 }

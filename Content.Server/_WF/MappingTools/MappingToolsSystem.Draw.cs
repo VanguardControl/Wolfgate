@@ -13,6 +13,7 @@ namespace Content.Server._WF.MappingTools;
 public sealed partial class MappingToolsSystem
 {
     [Dependency] private TileSystem _tileSystem = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
 
     /// <summary>Most cells one draw request may hold for anyone; mapping mode checks its own lower limit.</summary>
     private const int MaxDrawCells = 16384;
@@ -53,7 +54,11 @@ public sealed partial class MappingToolsSystem
 
         if (ev.Grid == null)
         {
-            DrawNewGrid(session, ev);
+            if (ev.Op == MappingDrawOp.EraseEntities)
+                EraseEntitiesOffGrid(session, ev);
+            else
+                DrawNewGrid(session, ev);
+
             return;
         }
 
@@ -84,6 +89,9 @@ public sealed partial class MappingToolsSystem
                 break;
             case MappingDrawOp.PipeColor:
                 PaintPipes(session, grid, map, ev);
+                break;
+            case MappingDrawOp.EraseEntities:
+                EraseEntities(session, map, grid.Owner, ev);
                 break;
         }
     }
@@ -366,6 +374,125 @@ public sealed partial class MappingToolsSystem
         Commit(session, edit);
         _adminLog.Add(LogType.Action, LogImpact.Medium,
             $"{session:player} used mapping tools to erase {edit.DecalsRemoved.Count} decals on {ToPrettyString(grid.Owner):grid}");
+    }
+
+    /// <summary>An entity erase over map tiles, off every grid.</summary>
+    private void EraseEntitiesOffGrid(ICommonSession session, MappingToolsDrawEvent ev)
+    {
+        if (ev.Map is not { } netMap ||
+            !TryGetEntity(netMap, out var mapUid) ||
+            !HasComp<MapComponent>(mapUid) ||
+            TerminatingOrDeleted(mapUid.Value))
+        {
+            Refuse(session, ev, "wf-mapping-tools-draw-bad");
+            return;
+        }
+
+        EraseEntities(session, mapUid.Value, null, ev);
+    }
+
+    /// <summary>
+    /// Removes the entities in the cells as one undoable edit: those on the grid by their position, and loose ones
+    /// off every grid by the centre of their bounds. Protected entities, and anything holding one, stay.
+    /// </summary>
+    private void EraseEntities(ICommonSession session, EntityUid map, EntityUid? grid, MappingToolsDrawEvent ev)
+    {
+        var roots = EntitiesInCells(map, grid, ev.Cells, out var kept);
+        if (roots.Count == 0)
+        {
+            Refuse(session, ev, kept > 0 ? "wf-mapping-tools-protected" : "wf-mapping-tools-draw-nothing");
+            return;
+        }
+
+        var check = new WFMappingCanEditEvent(session, map, WFMappingEditKind.Edit)
+        {
+            Grid = grid,
+            Cells = Bounds(ev.Cells),
+            SelectionCells = ev.Cells.Count,
+            TouchedEntities = TreeCount(roots),
+        };
+
+        if (!CanDraw(session, ev, check))
+            return;
+
+        var group = new MappingEntityGroup();
+        foreach (var uid in roots)
+        {
+            group.Roots.Add(new MappingGroupRoot(GetRef(uid), -1, PoseOf(uid)));
+        }
+
+        var edit = new MappingEdit("wf-mapping-tools-edit-erase-entities");
+        edit.Deleted.Add(group);
+        Commit(session, edit);
+        _adminLog.Add(LogType.Action, LogImpact.Medium,
+            $"{session:player} used mapping tools to erase {roots.Count} entities on {ToPrettyString(grid ?? map):grid}");
+    }
+
+    /// <summary>
+    /// The topmost editable entities in a set of cells: of <paramref name="grid"/>, or map tiles when it is null.
+    /// Grid entities count by position, entities off every grid by the centre of their bounds. <paramref name="kept"/>
+    /// counts those left out as protected.
+    /// </summary>
+    private List<EntityUid> EntitiesInCells(EntityUid map, EntityUid? grid, List<Vector2i> cellList, out int kept)
+    {
+        kept = 0;
+        var found = new HashSet<EntityUid>();
+        if (cellList.Count == 0 || !TryComp(map, out MapComponent? mapComp))
+            return new List<EntityUid>();
+
+        var cells = new HashSet<Vector2i>(cellList);
+        var box = Bounds(cellList);
+        var frame = grid ?? map;
+        var invMatrix = _transform.GetInvWorldMatrix(frame);
+        var worldBox = _transform.GetWorldMatrix(frame)
+            .TransformBox(new Box2(box.Left, box.Bottom, box.Right, box.Top));
+
+        foreach (var uid in _lookup.GetEntitiesIntersecting(mapComp.MapId, worldBox))
+        {
+            if (uid == frame || TerminatingOrDeleted(uid) || HasComp<MapGridComponent>(uid) || HasComp<MapComponent>(uid))
+                continue;
+
+            var xform = Transform(uid);
+            Vector2 point;
+            if (grid != null && xform.GridUid == grid)
+                point = _transform.GetWorldPosition(xform);
+            else if (xform.GridUid == null)
+                point = _lookup.GetWorldAABB(uid, xform).Center;
+            else
+                continue;
+
+            if (cells.Contains(MappingToolsMath.CellOf(Vector2.Transform(point, invMatrix))))
+                found.Add(uid);
+        }
+
+        var roots = new List<EntityUid>();
+        foreach (var uid in found)
+        {
+            // Something under another erased entity goes with it.
+            if (HasAncestorIn(uid, found))
+                continue;
+
+            if (IsSelectable(uid))
+                roots.Add(uid);
+            else
+                kept++;
+        }
+
+        return roots;
+    }
+
+    private bool HasAncestorIn(EntityUid uid, HashSet<EntityUid> set)
+    {
+        var parent = Transform(uid).ParentUid;
+        while (parent.IsValid())
+        {
+            if (set.Contains(parent))
+                return true;
+
+            parent = Transform(parent).ParentUid;
+        }
+
+        return false;
     }
 
     /// <summary>The box round a set of cells, right and top exclusive.</summary>

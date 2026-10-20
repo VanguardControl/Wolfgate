@@ -3,8 +3,16 @@ using System.Numerics;
 using Content.Server._WF.MappingTools;
 using Content.Shared._WF.MappingMode;
 using Content.Shared._WF.MappingTools;
+using Content.Server.Chat;
+using Content.Server.Ghost.Roles.Components;
+using Content.Server.Singularity.Components;
+using Content.Server.Spawners.Components;
+using Content.Server.StationEvents.Components;
+using Content.Server.Warps;
 using Content.Shared.GameTicking.Components;
+using Content.Shared.Ghost.Roles.Components;
 using Content.Shared.Points;
+using Content.Shared.Radio.Components;
 using Content.Shared.Singularity.Components;
 using Content.Shared._FarHorizons.StarSystem;
 using Robust.Shared.Enums;
@@ -31,10 +39,16 @@ public sealed partial class WFMappingModeSystem
     private static readonly TimeSpan CountLifetime = TimeSpan.FromSeconds(1);
 
     /// <summary>
-    /// Components that add global PVS overrides on startup, or that only belong to rounds; nothing carrying one
-    /// goes onto a mapper's map.
+    /// Components that reach past the session or its paused map: global PVS overrides, server-wide announcements,
+    /// roles, rules and events, singularity behaviour. Nothing carrying one goes onto a mapper's map. Some more are
+    /// denied only with certain data; see <see cref="DeniesComponent"/>.
     /// </summary>
     private readonly HashSet<string> _deniedComponents = new();
+
+    private readonly List<Type> _deniedTypes = new();
+
+    /// <summary>How deep a chain of spawn-on-despawn prototypes is followed before it counts as denied.</summary>
+    private const int MaxSpawnChain = 4;
 
     private void InitializeLimits()
     {
@@ -42,6 +56,17 @@ public sealed partial class WFMappingModeSystem
         _deniedComponents.Add(_factory.GetComponentName<PointManagerComponent>());
         _deniedComponents.Add(_factory.GetComponentName<GameRuleComponent>());
         _deniedComponents.Add(_factory.GetComponentName<StarSystemMapComponent>());
+        _deniedComponents.Add(_factory.GetComponentName<SingularityComponent>());
+        _deniedComponents.Add(_factory.GetComponentName<EventHorizonComponent>());
+        _deniedComponents.Add(_factory.GetComponentName<GravityWellComponent>());
+        _deniedComponents.Add(_factory.GetComponentName<AnnounceOnSpawnComponent>());
+        _deniedComponents.Add(_factory.GetComponentName<GhostRoleComponent>());
+        _deniedComponents.Add(_factory.GetComponentName<GhostRoleMobSpawnerComponent>());
+        _deniedComponents.Add(_factory.GetComponentName<StationEventComponent>());
+        foreach (var name in _deniedComponents)
+        {
+            _deniedTypes.Add(_factory.GetRegistration(name).Type);
+        }
 
         Subs.CVar(_cfg, WFMappingModeCVars.MaxEditsPerSecond, rate =>
         {
@@ -199,22 +224,62 @@ public sealed partial class WFMappingModeSystem
         return count;
     }
 
+    /// <summary>Whether mappers may not place a prototype: abstract, hidden, or carrying a denied component.</summary>
     private bool IsDenied(EntityPrototype prototype)
     {
-        return prototype.Abstract ||
-               prototype.HideSpawnMenu ||
-               _deniedComponents.Any(prototype.Components.ContainsKey);
+        return prototype.Abstract || prototype.HideSpawnMenu || CarriesDenied(prototype, 0);
     }
 
-    private bool HasDeniedComponent(EntityUid uid)
+    /// <summary>Whether a prototype carries a denied component.</summary>
+    public bool CarriesDenied(EntityPrototype prototype)
     {
-        foreach (var name in _deniedComponents)
+        return CarriesDenied(prototype, 0);
+    }
+
+    private bool CarriesDenied(EntityPrototype prototype, int depth)
+    {
+        foreach (var (name, entry) in prototype.Components)
         {
-            if (HasComp(uid, _factory.GetRegistration(name).Type))
+            if (_deniedComponents.Contains(name) || DeniesComponent(entry.Component, depth))
                 return true;
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// The components denied only with certain data: a radio that hears every channel, a warp point ghosts follow
+    /// (Nar'Sie, the singularity, the nuke disk), and a despawn that leaves something denied behind.
+    /// </summary>
+    private bool DeniesComponent(IComponent component, int depth)
+    {
+        switch (component)
+        {
+            case ActiveRadioComponent radio:
+                return radio.GlobalReceive || radio.ReceiveAllChannels;
+            case WarpPointComponent warp:
+                return warp.Follow;
+            case SpawnOnDespawnComponent spawn:
+                return depth >= MaxSpawnChain ||
+                       !_prototypes.TryIndex<EntityPrototype>(spawn.Prototype, out var spawned) ||
+                       CarriesDenied(spawned, depth + 1);
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>Whether a live entity carries a denied component.</summary>
+    public bool HasDeniedComponent(EntityUid uid)
+    {
+        foreach (var type in _deniedTypes)
+        {
+            if (HasComp(uid, type))
+                return true;
+        }
+
+        return TryComp(uid, out ActiveRadioComponent? radio) && DeniesComponent(radio, 0) ||
+               TryComp(uid, out WarpPointComponent? warp) && DeniesComponent(warp, 0) ||
+               TryComp(uid, out SpawnOnDespawnComponent? spawn) && DeniesComponent(spawn, 0);
     }
 
     public WFMappingLimitsState GetLimits(WFMappingSession session)
@@ -262,6 +327,18 @@ public sealed partial class WFMappingModeSystem
             foreach (var id in ev.Prototypes)
             {
                 if (!_prototypes.TryIndex<EntityPrototype>(id, out var prototype) || IsDenied(prototype))
+                {
+                    Cancel(ev, "wf-mapping-mode-limit-prototype");
+                    return;
+                }
+            }
+        }
+
+        if (ev.CarriedPrototypes != null)
+        {
+            foreach (var id in ev.CarriedPrototypes)
+            {
+                if (_prototypes.TryIndex<EntityPrototype>(id, out var prototype) && CarriesDenied(prototype))
                 {
                     Cancel(ev, "wf-mapping-mode-limit-prototype");
                     return;
@@ -340,7 +417,11 @@ public sealed partial class WFMappingModeSystem
             case PlacementManagerMessage.RequestEntRemove:
                 return TryThrottle(_editThrottle, player, "erase") && AllowErase(player, session, msg);
             case PlacementManagerMessage.RequestRectRemove:
-                return TryThrottle(_editThrottle, player, "erase") && AllowRectErase(player, session, msg);
+                // The engine's area erase takes everything in the box but players, ghosts and observers included;
+                // mappers erase areas through Erase mode's tools request instead.
+                Log.Debug($"Refused an engine area erase from {player}");
+                Refuse(player, "wf-mapping-mode-erase-area-tools");
+                return false;
             default:
                 return false;
         }
@@ -436,67 +517,12 @@ public sealed partial class WFMappingModeSystem
             return false;
         }
 
-        if (HasComp<MapComponent>(target) || HoldsPlayer(target.Value))
+        if (HasComp<MapComponent>(target) || !_protection.CanTouch(target.Value))
         {
             Refuse(player, "wf-mapping-mode-erase-refused");
             return false;
         }
 
         return true;
-    }
-
-    private bool AllowRectErase(ICommonSession player, WFMappingSession session, MsgPlacement msg)
-    {
-        if (!TryGetEntity(msg.NetCoordinates.NetEntity, out var parent) ||
-            Transform(parent.Value).MapUid is not { } map ||
-            !IsSessionMap(map, session))
-        {
-            Log.Info($"Dropped an area erase from {player} at {msg.NetCoordinates}, off their session's maps");
-            Refuse(player, "wf-mapping-mode-not-your-map");
-            return false;
-        }
-
-        // The engine takes the box as sent, so its size is checked here.
-        var size = msg.RectSize;
-        var maxCells = _cfg.GetCVar(WFMappingModeCVars.MaxSelectionCells);
-        if (!float.IsFinite(size.X) || !float.IsFinite(size.Y) || size.X < 0f || size.Y < 0f ||
-            (double) MathF.Ceiling(size.X) * MathF.Ceiling(size.Y) > maxCells)
-        {
-            Refuse(player, "wf-mapping-mode-limit-selection", ("max", maxCells));
-            return false;
-        }
-
-        var centre = _transform.ToMapCoordinates(GetCoordinates(msg.NetCoordinates));
-        var box = new Box2Rotated(Box2.CenteredAround(centre.Position, size), msg.RectRotation, centre.Position);
-        var maxEntities = _cfg.GetCVar(WFMappingModeCVars.MaxEditEntities);
-        if (_lookup.GetEntitiesIntersecting(centre.MapId, box).Count > maxEntities)
-        {
-            Refuse(player, "wf-mapping-mode-limit-edit-entities", ("max", maxEntities));
-            return false;
-        }
-
-        return true;
-    }
-
-    /// <summary>Whether an entity is, or carries, a player or a mapping observer.</summary>
-    private bool HoldsPlayer(EntityUid target)
-    {
-        if (HasComp<ActorComponent>(target) || HasComp<WFMappingObserverComponent>(target))
-            return true;
-
-        var actors = EntityQueryEnumerator<ActorComponent, TransformComponent>();
-        while (actors.MoveNext(out _, out _, out var xform))
-        {
-            var parent = xform.ParentUid;
-            while (parent.IsValid())
-            {
-                if (parent == target)
-                    return true;
-
-                parent = Transform(parent).ParentUid;
-            }
-        }
-
-        return false;
     }
 }

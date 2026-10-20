@@ -22,8 +22,15 @@ the normal game screen instead. MappingMode's own mapping screen docks the same 
 through `MappingToolsSystem.SetDock`) instead of opening the window.
 
 The draw request, `MappingToolsDrawEvent`, lays one tile type over a set of cells, spawns one prototype at each cell's
-centre with a rotation, removes the decals on the cells, lays plain gas pipes along a path or paints a pipe network, as
-one undoable edit. MappingMode's Fill, Shape, Pipe and area erase send it; anyone who may use the tools may send it, up
+centre with a rotation, removes the decals on the cells, removes the entities on the cells (`EraseEntities`: grid
+entities by position, loose ones off every grid by the centre of their bounds, and with no grid the cells are map
+tiles), lays plain gas pipes along a path or paints a pipe network, as one undoable edit.
+
+No edit touches a player, a ghost, a mapping observer (with or without its player), a body holding a mind, or anything
+parented under one (`MappingProtectionSystem`). Selections leave them out, area erase and pipe replacement skip or
+refuse them, undo doesn't move or delete them, and deleting a grid, a z-level or an entity moves them off first.
+Entities whose prototype never saves (mobs, `save: false`) can be deleted but not copied, and undo can't restore
+them. MappingMode's Fill, Shape, Pipe and area erase send it; anyone who may use the tools may send it, up
 to 16384 distinct cells.
 
 The link requests set signal links between a source and a sink (`MappingToolsLinkEvent`), add devices to or take them
@@ -32,7 +39,7 @@ as one undoable edit through the game's own systems; `MappingToolsLinksRequestEv
 which aren't networked. MappingMode's Link mode sends them.
 
 Entry points: `MappingToolsSystem` (server; the requests, the per-mapper history and clipboard, and the placement and
-decal hooks), `MappingToolsSystem` (client; the window, keys and on/off state), `MappingSelectionTool` and
+decal hooks), `MappingProtectionSystem` (server; who no edit touches), `MappingToolsSystem` (client; the window, keys and on/off state), `MappingSelectionTool` and
 `MappingSelectionOverlay` (client selection and previews), `MappingToolsCommand` and `MappingToolsMath` (the shared
 rotation maths).
 
@@ -84,6 +91,7 @@ rotation maths).
 - [`Content.Server/_WF/MappingTools/CEZLevelsSystem.MappingTools.cs`](CEZLevelsSystem.MappingTools.cs)
 - [`Content.Server/_WF/MappingTools/MappingEdit.cs`](MappingEdit.cs)
 - [`Content.Server/_WF/MappingTools/MappingMapsSystem.cs`](MappingMapsSystem.cs)
+- [`Content.Server/_WF/MappingTools/MappingProtectionSystem.cs`](MappingProtectionSystem.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.Apply.cs`](MappingToolsSystem.Apply.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.cs`](MappingToolsSystem.cs)
 - [`Content.Server/_WF/MappingTools/MappingToolsSystem.Draw.cs`](MappingToolsSystem.Draw.cs)

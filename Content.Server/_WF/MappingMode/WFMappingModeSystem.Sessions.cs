@@ -142,6 +142,9 @@ public sealed partial class WFMappingModeSystem
 
         Enter(player, session);
         Notify(player, true, "wf-mapping-mode-opened", ("name", name), ("version", sourceVersion), ("code", session.Code));
+        if (stripped > 0)
+            Notify(player, true, "wf-mapping-mode-denied-stripped", ("count", stripped));
+
         return true;
     }
 

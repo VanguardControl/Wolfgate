@@ -150,6 +150,7 @@ wf-mapping-tools-edit-decal = decal edit
 wf-mapping-tools-edit-draw-tiles = tile drawing
 wf-mapping-tools-edit-draw-entities = entity drawing
 wf-mapping-tools-edit-erase-decals = decal erase
+wf-mapping-tools-edit-erase-entities = entity erase
 wf-mapping-tools-edit-draw-pipes = pipe laying
 wf-mapping-tools-edit-paint-pipes = pipe painting
 
@@ -159,6 +160,7 @@ wf-mapping-tools-draw-bad-tile = That tile doesn't exist.
 wf-mapping-tools-draw-bad-prototype = That can't be placed.
 wf-mapping-tools-draw-not-allowed = You can't use the mapping tools right now.
 wf-mapping-tools-draw-nothing = Nothing there to change.
+wf-mapping-tools-protected = Players, ghosts and observers can't be erased.
 wf-mapping-tools-draw-needs-grid = Entities need a floor. Draw tiles there first.
 wf-mapping-tools-draw-no-tiles = None of those cells has a floor to put that on.
 wf-mapping-tools-draw-skipped = Skipped {$count} {$count ->

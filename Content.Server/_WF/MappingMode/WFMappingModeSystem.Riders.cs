@@ -1,9 +1,5 @@
-using Content.Shared._WF.MappingMode;
-using Content.Shared.Ghost;
-using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Map.Events;
-using Robust.Shared.Player;
 using EngineMapSystem = Robust.Server.GameObjects.MapSystem;
 
 namespace Content.Server._WF.MappingMode;
@@ -23,26 +19,14 @@ public sealed partial class WFMappingModeSystem
     }
 
     /// <summary>
-    /// Moves mapping observers, players and ghosts standing on a grid onto its map where they are, so deleting the
-    /// grid doesn't take them along.
+    /// Moves mapping observers, players, ghosts and bodies with a mind on a grid, at any depth, onto its map where they
+    /// are, so deleting the grid doesn't take them along.
     /// </summary>
     public void MoveRidersOff(EntityUid grid)
     {
-        if (!HasComp<MapGridComponent>(grid) || Transform(grid).MapUid is not { } map || map == grid)
+        if (!HasComp<MapGridComponent>(grid))
             return;
 
-        var riders = new List<EntityUid>();
-        var children = Transform(grid).ChildEnumerator;
-        while (children.MoveNext(out var child))
-        {
-            if (HasComp<WFMappingObserverComponent>(child) || HasComp<ActorComponent>(child) || HasComp<GhostComponent>(child))
-                riders.Add(child);
-        }
-
-        foreach (var uid in riders)
-        {
-            var (position, rotation) = _transform.GetWorldPositionRotation(uid);
-            _transform.SetCoordinates(uid, Transform(uid), new EntityCoordinates(map, position), rotation);
-        }
+        _protection.MoveProtectedOff(grid);
     }
 }

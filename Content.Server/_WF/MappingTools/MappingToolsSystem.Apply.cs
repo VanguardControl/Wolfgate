@@ -56,7 +56,8 @@ public sealed partial class MappingToolsSystem
             {
                 var uid = move.Entity.Uid;
                 var pose = forward ? move.New : move.Old;
-                if (!TerminatingOrDeleted(uid) && !TerminatingOrDeleted(pose.Parent))
+                // Something protected may have come to sit under it since; it stays where it is.
+                if (!TerminatingOrDeleted(uid) && !TerminatingOrDeleted(pose.Parent) && _protection.CanTouch(uid))
                     MoveEntity(uid, pose);
             }
 
@@ -174,7 +175,8 @@ public sealed partial class MappingToolsSystem
     }
 
     /// <summary>
-    /// Saves the group's roots with everything inside them, then deletes them.
+    /// Saves the group's roots with everything inside them, then deletes them. Protected entities under a root are
+    /// moved off it first, and a root that is itself protected stays.
     /// </summary>
     private void RemoveGroup(MappingEntityGroup group)
     {
@@ -182,7 +184,7 @@ public sealed partial class MappingToolsSystem
         foreach (var root in group.Roots)
         {
             var uid = root.Entity.Uid;
-            if (TerminatingOrDeleted(uid))
+            if (TerminatingOrDeleted(uid) || _protection.IsProtected(uid))
                 continue;
 
             root.Pose = PoseOf(uid);
@@ -194,8 +196,7 @@ public sealed partial class MappingToolsSystem
 
         foreach (var uid in roots)
         {
-            if (HasComp<MapGridComponent>(uid))
-                MoveRidersOff(uid);
+            _protection.MoveProtectedOff(uid);
         }
 
         SaveGroup(group, roots);
@@ -227,11 +228,24 @@ public sealed partial class MappingToolsSystem
                 root.IsGrid = HasComp<MapGridComponent>(root.Entity.Uid);
         }
 
+        // Entities that never save (mobs, ghosts) throw in the serializer; they are deleted without a snapshot, so
+        // undo can't bring them back. A failed save still lets the delete go ahead.
         var serializer = new EntitySerializer(_dependency, SnapshotOptions);
-        serializer.SerializeEntityRecursive(roots);
-        group.Data = serializer.Write();
-        group.EntityCount = serializer.YamlUidMap.Count;
-        group.Bytes = MappingDataSize.Estimate(group.Data);
+        var saved = roots.Where(uid => serializer.IsSerializable(uid)).ToHashSet();
+        try
+        {
+            serializer.SerializeEntityRecursive(saved);
+            group.Data = saved.Count > 0 ? serializer.Write() : null;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Failed to snapshot {saved.Count} entities for mapping tools undo: {e}");
+            group.Data = null;
+        }
+
+        var yamlUids = group.Data != null ? serializer.YamlUidMap : new Dictionary<EntityUid, int>();
+        group.EntityCount = yamlUids.Count;
+        group.Bytes = group.Data != null ? MappingDataSize.Estimate(group.Data) : 0;
 
         foreach (var root in group.Roots)
         {
@@ -242,12 +256,12 @@ public sealed partial class MappingToolsSystem
         // A root deleted by something else can't be restored from the new data.
         foreach (var root in group.Roots)
         {
-            root.YamlUid = serializer.YamlUidMap.GetValueOrDefault(root.Entity.Uid, -1);
+            root.YamlUid = yamlUids.GetValueOrDefault(root.Entity.Uid, -1);
             _refs.Remove(root.Entity.Uid);
         }
 
         group.Inner.Clear();
-        foreach (var (uid, yamlUid) in serializer.YamlUidMap)
+        foreach (var (uid, yamlUid) in yamlUids)
         {
             if (!roots.Contains(uid) && _refs.Remove(uid, out var inner))
                 group.Inner[yamlUid] = inner;

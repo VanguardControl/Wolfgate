@@ -47,6 +47,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
     [Dependency] private MapLoaderSystem _loader = default!;
     [Dependency] private MapSystem _map = default!;
     [Dependency] private MappingMapsSystem _mapFiles = default!;
+    [Dependency] private MappingProtectionSystem _protection = default!;
     [Dependency] private MappingToolsSystem _tools = default!;
     [Dependency] private MappingZLevelsSystem _zLevels = default!;
     [Dependency] private MetaDataSystem _meta = default!;

@@ -112,6 +112,51 @@ public sealed partial class WFMappingModeSystem
         _adminObservers.Clear();
     }
 
+    /// <summary>
+    /// Deletes every entity of a prototype on a session's maps, with what is inside it. Players, ghosts and observers
+    /// under one are moved off first, and one that is itself protected stays. The count deleted.
+    /// </summary>
+    public int Purge(WFMappingSession session, string prototype)
+    {
+        var found = new List<EntityUid>();
+        var stack = new Stack<EntityUid>();
+        foreach (var map in SessionMaps(session.Id))
+        {
+            stack.Push(map);
+            while (stack.TryPop(out var uid))
+            {
+                if (uid != map && MetaData(uid).EntityPrototype?.ID == prototype && !_protection.IsProtected(uid))
+                {
+                    found.Add(uid);
+                    continue;
+                }
+
+                var children = Transform(uid).ChildEnumerator;
+                while (children.MoveNext(out var child))
+                {
+                    stack.Push(child);
+                }
+            }
+        }
+
+        foreach (var uid in found)
+        {
+            if (TerminatingOrDeleted(uid))
+                continue;
+
+            _protection.MoveProtectedOff(uid);
+            Del(uid);
+        }
+
+        if (found.Count > 0)
+        {
+            MarkDirty(session);
+            session.CountedAt = TimeSpan.Zero;
+        }
+
+        return found.Count;
+    }
+
     /// <summary>The ground level of a session, for admins going there.</summary>
     public MapId RootMapId(WFMappingSession session)
     {

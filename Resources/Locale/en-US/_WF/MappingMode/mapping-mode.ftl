@@ -66,6 +66,11 @@ wf-mapping-mode-limit-levels = Level limit reached ({$max}).
 wf-mapping-mode-limit-prototype = That can't be placed in mapping mode.
 wf-mapping-mode-bad-tile = Unknown tile.
 wf-mapping-mode-erase-refused = That can't be erased.
+wf-mapping-mode-erase-area-tools = Use Erase mode to erase an area.
+wf-mapping-mode-denied-stripped = Removed {$count ->
+    [one] 1 thing
+   *[other] {$count} things
+} that can't be used in mapping mode.
 wf-mapping-mode-limit-selection = That covers more than {$max} tiles at once.
 wf-mapping-mode-limit-edit-entities = That touches more than {$max} entities at once.
 wf-mapping-mode-limit-edit-decals = That carries more than {$max} decals at once.
@@ -89,6 +94,7 @@ wf-mapping-mode-reference-placed = Placed {$count ->
 cmd-wf_mappingmode-no-session = No mapping session has the code {$code}.
 cmd-wf_mappingmode-hint-code = <session code>
 cmd-wf_mappingmode-hint-player = <player name>
+cmd-wf_mappingmode-hint-prototype = <entity prototype>
 
 cmd-wf_mappingmode_list-desc = Lists mapping sessions with their codes, owners, members and maps.
 cmd-wf_mappingmode_list-help = Usage: {$command}
@@ -117,6 +123,11 @@ cmd-wf_mappingmode_save-desc = Saves a mapping session to its owner's library.
 cmd-wf_mappingmode_save-help = Usage: {$command} <code>
 cmd-wf_mappingmode_save-saved = Saved mapping session {$code}.
 cmd-wf_mappingmode_save-failed = Couldn't save mapping session {$code}.
+
+cmd-wf_mappingmode_purge-desc = Deletes every entity of one prototype on a mapping session's maps.
+cmd-wf_mappingmode_purge-help = Usage: {$command} <code> <prototype>
+cmd-wf_mappingmode_purge-no-prototype = No entity prototype called {$prototype}.
+cmd-wf_mappingmode_purge-purged = Deleted {$count} {$prototype} from mapping session {$code}.
 
 ## Lobby
 

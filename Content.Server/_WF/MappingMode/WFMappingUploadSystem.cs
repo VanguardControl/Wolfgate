@@ -396,6 +396,9 @@ public sealed class WFMappingUploadSystem : EntitySystem
             _mapping.Notify(player, true, "wf-mapping-mode-upload-done", ("name", mapName), ("version", version));
         }
 
+        if (load.Stripped > 0)
+            _mapping.Notify(player, true, "wf-mapping-mode-denied-stripped", ("count", load.Stripped));
+
         _library.SendLibrary(player);
     }
 

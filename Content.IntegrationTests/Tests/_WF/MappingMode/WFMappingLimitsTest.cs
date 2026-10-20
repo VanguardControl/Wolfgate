@@ -310,6 +310,7 @@ public sealed class WFMappingLimitsTest
             tools.Delete(a, Area(new Box2i(1, -50, 101, 50)));
             Assert.That(mapSys.TryGetTileRef(grid, entMan.GetComponent<MapGridComponent>(grid), new Vector2i(1, 0), out var kept) && !kept.Tile.IsEmpty, Is.True);
 
+            // The engine's area erase is refused at any size; Erase mode's tools request takes its place.
             var erase = new MsgPlacement
             {
                 PlaceType = PlacementManagerMessage.RequestRectRemove,
@@ -318,7 +319,22 @@ public sealed class WFMappingLimitsTest
             };
             Assert.That(mapping.AllowPlacement(a, erase), Is.False);
             erase.RectSize = new Vector2(2f, 2f);
-            Assert.That(mapping.AllowPlacement(a, erase), Is.True);
+            Assert.That(mapping.AllowPlacement(a, erase), Is.False);
+
+            var survivor = entMan.SpawnEntity("WFMappingModeLimitItem", new EntityCoordinates(grid, new Vector2(3.5f, 0.5f)));
+            var cells = new List<Vector2i>();
+            for (var x = 0; x < 70; x++)
+            {
+                for (var y = -30; y < 30; y++)
+                {
+                    cells.Add(new Vector2i(x, y));
+                }
+            }
+
+            tools.Draw(a, new MappingToolsDrawEvent(entMan.GetNetEntity(grid), MappingDrawOp.EraseEntities, cells,
+                null, 0, null, Angle.Zero));
+            Assert.That(entMan.Deleted(survivor), Is.False, "An area erase over max_selection_cells is refused.");
+            entMan.DeleteEntity(survivor);
         });
 
         // Undo and redo respect the session entity cap.

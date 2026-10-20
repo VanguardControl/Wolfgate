@@ -7,6 +7,8 @@ using Content.Shared._WF.MappingTools;
 using Content.Shared.Administration;
 using Content.Shared.Database;
 using Content.Shared.Decals;
+using Content.Shared._Mono.Pvs;
+using Robust.Server.GameStates;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Placement;
@@ -17,6 +19,8 @@ namespace Content.Server._WF.MappingMode;
 
 public sealed partial class WFMappingModeSystem
 {
+    [Dependency] private PvsOverrideSystem _pvsOverride = default!;
+
     /// <summary>
     /// The last tile change seen this tick, so the placement event right after it can be reverted. Cleared every
     /// tick, and only claimed by a placement on the same grid and cell.
@@ -29,10 +33,22 @@ public sealed partial class WFMappingModeSystem
         SubscribeLocalEvent<PlacementTileEvent>(OnPlacementTile);
         SubscribeLocalEvent<TileChangedEvent>(OnTileChanged);
         SubscribeLocalEvent<WFMappingEditedEvent>(OnEdited);
+        SubscribeLocalEvent<GlobalPvsComponent, ComponentStartup>(OnGlobalPvsStartup);
         SubscribeNetworkEvent<RequestDecalPlacementEvent>(OnDecalPlacement,
             after: [typeof(MappingToolsSystem)], before: [typeof(DecalSystem)]);
         SubscribeNetworkEvent<RequestDecalRemovalEvent>(OnDecalRemoval,
             after: [typeof(MappingToolsSystem)], before: [typeof(DecalSystem)]);
+    }
+
+    /// <summary>
+    /// Map markers that every client sees wherever it is (radar edge markers, biome sources) are normal ship content,
+    /// so they aren't denied; on a paused map in mapping mode they lose that override, so mappers can't push entities
+    /// to everyone. A real round adds it back when the saved map loads.
+    /// </summary>
+    private void OnGlobalPvsStartup(Entity<GlobalPvsComponent> ent, ref ComponentStartup args)
+    {
+        if (Enabled && Transform(ent).MapUid is { } map && MetaData(map).EntityPaused)
+            _pvsOverride.RemoveGlobalOverride(ent);
     }
 
     /// <summary>Marks the session a map belongs to as changed since its last save.</summary>

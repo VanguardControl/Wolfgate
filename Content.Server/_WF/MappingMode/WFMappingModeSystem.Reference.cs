@@ -165,6 +165,8 @@ public sealed partial class WFMappingModeSystem
             pending.Grids.Select(g => g.Footprint).ToList()), player);
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"{player:player} loaded {ev.Path} as a reference for mapping session {session.Code}");
+        if (load.Stripped > 0)
+            Notify(player, true, "wf-mapping-mode-denied-stripped", ("count", load.Stripped));
     }
 
     private long? FileSize(ResPath path)
