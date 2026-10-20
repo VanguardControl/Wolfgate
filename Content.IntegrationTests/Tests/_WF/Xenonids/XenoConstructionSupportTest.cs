@@ -89,7 +89,7 @@ public sealed class XenoConstructionSupportTest
                 {
                     found = true;
                     var rotation = entities.GetComponent<TransformComponent>(uid).LocalRotation.Degrees;
-                    Assert.That(rotation, Is.EqualTo(eastWest ? 90 : 0).Within(0.01), "The door turns to span the walls beside it.");
+                    Assert.That(rotation, Is.EqualTo(eastWest ? 0 : 90).Within(0.01), "The door turns to span the walls beside it; the sprite runs north-south at rotation 0.");
                 }
             }
 

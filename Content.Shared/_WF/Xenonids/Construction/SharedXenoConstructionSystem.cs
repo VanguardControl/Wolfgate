@@ -1095,7 +1095,8 @@ public sealed partial class SharedXenoConstructionSystem : EntitySystem
         if (eastWest == northSouth)
             return;
 
-        _transform.SetLocalRotation(structure, eastWest ? Angle.FromDegrees(90) : Angle.Zero);
+        // the resin door sprite spans north-south at rotation 0, so walls to its north and south need no turn
+        _transform.SetLocalRotation(structure, eastWest ? Angle.Zero : Angle.FromDegrees(90));
     }
 
     private bool HasSupportAt(EntityUid gridId, MapGridComponent grid, Vector2i tile)
