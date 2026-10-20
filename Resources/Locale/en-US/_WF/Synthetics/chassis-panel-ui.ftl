@@ -13,6 +13,8 @@ wf-chassis-ui-col-slot = SLOT
 wf-chassis-ui-col-component = COMPONENT
 wf-chassis-ui-col-health = HEALTH
 wf-chassis-ui-col-band = STATUS
+wf-chassis-ui-col-actions = ACTIONS
+wf-chassis-ui-doll-hint = SELECT A LIMB
 
 wf-chassis-ui-state-detached = DETACHED
 wf-chassis-ui-state-isolated = ISOLATED

@@ -1,8 +1,8 @@
 <controls:FancyWindow xmlns="https://spacestation14.io"
                       xmlns:controls="clr-namespace:Content.Client.UserInterface.Controls"
                       Title="{Loc 'wf-chassis-ui-title'}"
-                      MinSize="780 520"
-                      SetSize="920 700">
+                      MinSize="900 480"
+                      SetSize="1100 640">
     <PanelContainer Name="Backdrop" VerticalExpand="True" HorizontalExpand="True">
         <BoxContainer Orientation="Vertical" SeparationOverride="6">
             <PanelContainer Name="HeaderPanel" HorizontalExpand="True">
