@@ -84,6 +84,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcHand must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcLeg must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcFoot must stay FIRST
+- [`Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml): slow hydraulic regeneration, as the synthetic biotype overlay
 - [`Resources/Prototypes/_HL/Body/Parts/synth.yml`](../../../Resources/Prototypes/_HL/Body/Parts/synth.yml)
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcArm must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcHand must stay FIRST
