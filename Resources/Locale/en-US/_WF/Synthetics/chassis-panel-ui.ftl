@@ -55,3 +55,30 @@ wf-chassis-slot-ears = AUDIO PACK
 wf-chassis-slot-tongue = VOCODER
 wf-chassis-slot-appendix = SPARE
 wf-chassis-slot-battery = POWER CELL
+
+# Hover tips. Sentences, not readout caps.
+wf-chassis-ui-tip-state-ok = Running within rating.
+wf-chassis-ui-tip-state-offline = Too damaged to run. Weld the chassis, replace the servo, or isolate it to stop the sensor load.
+wf-chassis-ui-tip-state-isolated = Servos and sensors cut from the panel. The limb does nothing and reports no pain. RESTORE to power it.
+wf-chassis-ui-tip-state-loose = Seated by hand. Slow and clumsy until a cable coil recouples it.
+wf-chassis-ui-tip-state-detached = The limb is off the chassis. Click the limb on the body to seat it; it runs loose until a cable coil recouples it.
+
+wf-chassis-ui-tip-load = Pain this part's damage sensors put on the chassis, as a share of what drops it. Repair the wounds, or isolate the part to mute it.
+wf-chassis-ui-tip-faults-none = No faults logged.
+wf-chassis-ui-tip-fault = { $fault } - { $advice }
+
+wf-chassis-ui-tip-band-normal = Running within rating.
+wf-chassis-ui-tip-band-impaired = Worn or damaged and running badly. Repair it before it fails.
+wf-chassis-ui-tip-band-failed = Dead. The chassis loses whatever this component does until it is replaced or repaired.
+wf-chassis-ui-tip-band-charge = Charge left in the power cell. At zero the chassis shuts down.
+wf-chassis-ui-tip-vital = Pulling this stops the chassis (pump) or ends the mind (core).
+
+wf-chassis-ui-tip-isolate = Cuts the limb's servos and sensors. The limb does nothing and its wounds put no pain on the chassis. RESTORE reverses it.
+wf-chassis-ui-tip-restore = Powers the limb's servos and sensors again. Its wounds count towards the sensor load once more.
+wf-chassis-ui-tip-detach = Releases the limb's coupling so it comes off in one piece. Click it on the body to seat it again; it runs loose until a cable coil recouples it.
+wf-chassis-ui-tip-disconnect = Pulls the component out of the chassis. Needs the bay open. A vital one asks you to confirm.
+wf-chassis-ui-tip-bay-open = Opens the torso plating. Takes 3 seconds, 6 on yourself. Components can be pulled and seated by hand, but the chassis is slower and its components are exposed while it is open.
+wf-chassis-ui-tip-bay-close = Shuts the torso plating. Takes 3 seconds, 6 on yourself. Speed returns to normal and the components are covered again.
+wf-chassis-ui-tip-reboot = Restarts the chassis. It is down for 4 seconds and uses 10% of the charge, and the sensor load and lockups are cleared. Click twice to confirm.
+wf-chassis-ui-tip-overclock-off = Runs the servos 25% faster for 3 times the drain. The chassis heats, throws sparks and short circuits as it does, and cuts out at 15% charge or when the torso overheats.
+wf-chassis-ui-tip-overclock-on = Overclock is running: 25% faster, 3 times the drain. Click to stop it and let the chassis cool.

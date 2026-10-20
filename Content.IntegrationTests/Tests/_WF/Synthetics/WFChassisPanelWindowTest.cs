@@ -252,6 +252,85 @@ public sealed class WFChassisPanelWindowTest : GameTest
         });
     }
 
+    /// <summary>
+    /// Every state tag, the load cell, the faults cell, the bands and the controls carry a tip; a fault's tip holds the
+    /// readout prototype's advice and, for a wound fault, the analyzer's treatment summary.
+    /// </summary>
+    [Test]
+    public async Task TooltipsTest()
+    {
+        await Client.WaitAssertion(() =>
+        {
+            using var panel = new WFChassisPanelWindow();
+            panel.Update(State());
+
+            // Wrapped tips are compared on their words.
+            string Flat(string? tip) => (tip ?? string.Empty).Replace("\n", " ");
+
+            Assert.Multiple(() =>
+            {
+                // OK, OFFLINE, ISOLATED, LOOSE and DETACHED are parts 0, 5, 8, 9 and 7.
+                var expected = new Dictionary<int, string>
+                {
+                    [0] = "Running within rating.",
+                    [5] = "Too damaged to run.",
+                    [8] = "Servos and sensors cut from the panel.",
+                    [9] = "Seated by hand.",
+                    [7] = "The limb is off the chassis.",
+                };
+                foreach (var (index, text) in expected)
+                {
+                    Assert.That(panel.Parts[index].State.ToolTip, Is.Not.Null.And.Not.Empty, $"part {index} state tip");
+                    Assert.That(Flat(panel.Parts[index].State.ToolTip), Does.StartWith(text), $"part {index} state tip");
+                    Assert.That(panel.Parts[index].State.MouseFilter, Is.Not.EqualTo(Control.MouseFilterMode.Ignore),
+                        $"part {index} state cell must take the mouse for its tip");
+                }
+
+                foreach (var row in panel.Parts)
+                {
+                    Assert.That(Flat(row.Load.ToolTip), Does.StartWith("Pain this part's damage sensors"));
+                    Assert.That(row.Faults.ToolTip, Is.Not.Null.And.Not.Empty);
+                    Assert.That(row.Isolate.ToolTip, Is.Not.Null.And.Not.Empty);
+                    Assert.That(row.Detach.ToolTip, Is.Not.Null.And.Not.Empty);
+                    foreach (var tip in new[] { row.State.ToolTip, row.Load.ToolTip, row.Faults.ToolTip, row.Isolate.ToolTip, row.Detach.ToolTip })
+                        Assert.That(tip, Does.Not.Contain("wf-chassis-"), "a tip that is still a loc key");
+                }
+
+                Assert.That(panel.Parts[0].Faults.ToolTip, Is.EqualTo("No faults logged."));
+                Assert.That(Flat(panel.Parts[2].Isolate.ToolTip), Does.StartWith("Cuts the limb's servos"));
+                Assert.That(Flat(panel.Parts[8].Isolate.ToolTip), Does.StartWith("Powers the limb's servos"));
+
+                // The breach fault: readout line, HUD advice, then the analyzer's treatment summary.
+                var breach = Flat(panel.Parts[9].Faults.ToolTip);
+                Assert.That(breach, Does.Contain("FLUID LEAK - WELD BREACH"));
+                Assert.That(breach, Does.Contain("A hole in the chassis leaking coolant and hydraulic fluid. It never clots."));
+                Assert.That(breach, Does.Contain("PANEL DEFORMED"), "the second fault gets its own entry.");
+                Assert.That(panel.Parts[9].Faults.ToolTip, Does.Contain("\n"), "one fault per line at least.");
+
+                Assert.That(Flat(panel.Parts[2].Faults.ToolTip), Does.StartWith("SERVO DAMAGE"));
+
+                // A line no readout prototype owns shows the line alone.
+                Assert.That(panel.FaultTip("wf-chassis-band-normal"), Is.EqualTo("NOMINAL"));
+
+                Assert.That(Flat(panel.Organs[1].Vital.ToolTip), Is.EqualTo("Pulling this stops the chassis (pump) or ends the mind (core)."));
+                Assert.That(panel.Organs[0].Vital.ToolTip, Is.Null);
+                foreach (var index in new[] { 0, 1, 3 })
+                    Assert.That(panel.Organs[index].Band.ToolTip, Is.Not.Null.And.Not.Empty, $"organ {index} band tip");
+                Assert.That(panel.Organs[2].Band.ToolTip, Is.Null, "an empty slot has no band.");
+                Assert.That(Flat(panel.Organs[3].Band.ToolTip), Does.StartWith("Charge left in the power cell."));
+
+                Assert.That(Flat(panel.BayButton.ToolTip), Does.StartWith("Opens the torso plating. Takes 3 seconds, 6 on yourself."));
+                Assert.That(Flat(panel.RebootControl.ToolTip), Does.Contain("down for 4 seconds"));
+                Assert.That(Flat(panel.OverclockControl.ToolTip), Does.Contain("25% faster for 3 times the drain"));
+                Assert.That(Flat(panel.Organs[0].Disconnect.ToolTip), Does.StartWith("Pulls the component out"));
+            });
+
+            panel.Update(State(bayOpen: true, overclocked: true));
+            Assert.That(Flat(panel.BayButton.ToolTip), Does.StartWith("Shuts the torso plating."));
+            Assert.That(Flat(panel.OverclockControl.ToolTip), Does.StartWith("Overclock is running"));
+        });
+    }
+
     /// <summary>Every control sends its message; the dangerous ones need a second click on the same control.</summary>
     [Test]
     public async Task ControlsSendMessagesTest()

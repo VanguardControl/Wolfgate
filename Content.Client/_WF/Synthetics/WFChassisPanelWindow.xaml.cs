@@ -69,6 +69,7 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
         RobustXamlLoader.Load(this);
         _timing = IoCManager.Resolve<IGameTiming>();
         _loc = IoCManager.Resolve<ILocalizationManager>();
+        InitTips();
 
         Backdrop.PanelOverride = Box(Screen, margin: 8f);
         HeaderPanel.PanelOverride = Box(Panel, Border, 8f);
@@ -136,6 +137,7 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
         SyncParts(state.Parts);
         SyncOrgans(state.Organs);
 
+        UpdateControlTips(state);
         OpenBayButton.Text = Loc.GetString(state.BayOpen ? "wf-chassis-ui-bay-close" : "wf-chassis-ui-bay-open");
         OpenBayButton.Label.FontColorOverride = state.BayOpen ? Alert : Amber;
         RebootButton.Text = Loc.GetString(IsArmed(new ArmKey("reboot", null)) ? "wf-chassis-ui-confirm" : "wf-chassis-ui-reboot");
@@ -198,7 +200,7 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
             ApplyOrgan(_organRows[i], entries[i]);
     }
 
-    private static void ApplyPart(PartRow row, WFChassisPartEntry entry)
+    private void ApplyPart(PartRow row, WFChassisPartEntry entry)
     {
         row.Entry = entry;
         row.Name.Text = Loc.GetString(entry.Name);
@@ -211,6 +213,7 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
             { Working: false } => ("wf-chassis-ui-state-offline", Alert),
             _ => ("wf-chassis-ui-state-ok", Good),
         };
+        ApplyPartTips(row, entry, "wf-chassis-ui-tip-" + stateKey["wf-chassis-ui-".Length..]);
         row.State.Text = Loc.GetString(stateKey);
         row.State.FontColorOverride = stateColour;
 
@@ -259,6 +262,7 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
         row.Vital.Text = entry.Vital ? Loc.GetString("wf-chassis-ui-vital") : string.Empty;
 
         var armed = entry.Organ is { } organ && IsArmed(new ArmKey("organ", organ));
+        ApplyOrganTips(row, entry);
         row.Disconnect.Text = Loc.GetString(armed ? "wf-chassis-ui-confirm" : "wf-chassis-ui-disconnect");
         SetEnabled(row.Disconnect, present && entry.CanDisconnect);
         if (armed)
@@ -357,6 +361,7 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
         else
             label.HorizontalExpand = true;
         label.ClipText = true;
+        Hoverable(label);
         return label;
     }
 
