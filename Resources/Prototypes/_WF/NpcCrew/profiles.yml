@@ -303,7 +303,8 @@
     WFCrewGunner: [ WFCrewPdvOfficer ]
     WFCrewMarine: [ WFCrewPdvGuard ]
 
-# Reavers: pirate slops and bandanas, a tricorn on the officers, and whatever armour they took off the last crew.
+# Reavers: pirate slops and bandanas, a tricorn on the officers, red death squad hardsuits on the riflemen and whatever
+# armour the rest took off the last crew.
 - type: startingGear
   id: WFCrewPirateHand
   equipment:
@@ -335,8 +336,8 @@
   id: WFCrewPirateRifle
   equipment:
     jumpsuit: ClothingUniformJumpsuitPirate
-    outerClothing: ClothingOuterArmorBulletproof
-    head: ClothingHeadBandBlack
+    outerClothing: WFClothingOuterHardsuitReaver
+    head: WFClothingHeadHelmetHardsuitReaver
     shoes: ClothingShoesBootsPirate
     gloves: ClothingHandsGlovesColorBlack
     back: WeaponRifleLecter

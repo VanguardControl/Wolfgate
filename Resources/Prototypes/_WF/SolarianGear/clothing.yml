@@ -1,0 +1,245 @@
+# Solarian Alliance military kit, ported from Lonestar by way of Panta-Rhei PR 1177 (Floof-Station/Panta-Rhei).
+# Entity IDs are the port's own. Component names were brought over to Wolfgate's: StaminaResistance is
+# StaminaDamageResistance, the helmet is attached the Monolith way, the HidesHarpyWings tag is the HarpyHideWings
+# component the hardsuit base already carries, and DamageOnShootProtection has no equivalent here and was dropped.
+
+# Hardsuits
+
+- type: entity
+  parent: ClothingOuterHardsuitBase
+  id: ClothingOuterHardsuitSolarianM86Hardsuit
+  name: TSMC M86 combat hardsuit
+  description: A standard issue combat hardsuit for Solarian Marines, designed for survivability in the harshest conditions.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/OuterClothing/m86.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/OuterClothing/m86.rsi
+    clothingVisuals:
+      outerClothing:
+      - state: equipped-OUTERCLOTHING
+      outerClothing-harpy:
+      - state: equipped-OUTERCLOTHING-harpy
+      outerClothing-vox:
+      - state: equipped-OUTERCLOTHING-vox
+  - type: PressureProtection
+    highPressureMultiplier: 0.05
+    lowPressureMultiplier: 1000
+  - type: ExplosionResistance
+    damageCoefficient: 0.5
+  - type: StaminaDamageResistance
+    coefficient: 0.2
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.4
+        Slash: 0.4
+        Piercing: 0.3
+        Heat: 0.5
+        Radiation: 0.25
+        Caustic: 0.4
+        Cold: 0.8
+  - type: ClothingSpeedModifier
+    walkModifier: 1
+    sprintModifier: 1
+  - type: HeldSpeedModifier
+  - type: ToggleableClothing
+    requiredSlot: outerclothing
+    blockUnequipWhenAttached: false
+    replaceCurrentClothing: true
+    clothingPrototypes:
+      head: ClothingHeadHelmetHardsuitSolarianM86
+      helmetcover: ClothingHeadHelmetCoverBlock
+      helmetattachment: ClothingHeadHelmetAttachmentBlock
+  - type: Tag
+    tags:
+    - Hardsuit
+    - WhitelistChameleon
+
+- type: entity
+  parent: ClothingOuterHardsuitSolarianM86Hardsuit
+  id: ClothingOuterHardsuitSolarianMK4Hardsuit
+  name: TSN M86 Mark Four hardsuit
+  description: A hardsuit used by the Solarian Navy, specifically designed for EVA operations above all.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/OuterClothing/m86_mk4.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/OuterClothing/m86_mk4.rsi
+    clothingVisuals:
+      outerClothing:
+      - state: equipped-OUTERCLOTHING
+      outerClothing-vox:
+      - state: equipped-OUTERCLOTHING-vox
+
+# Helmet: the Lonestar helmet carried its night vision and thermals on the Floof components; here it uses Monolith's
+# M86 helmet night vision and the thermal vision the deathsquad helmet already wears.
+- type: entity
+  parent: ClothingHeadHelmetHardsuitSyndieCommander
+  id: ClothingHeadHelmetHardsuitSolarianM86
+  name: TSMC M86 combat hardsuit helmet
+  description: Stare into the industrial complex, and it stares back.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/Head/m86.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/Head/m86.rsi
+  - type: ToggleableVisuals
+    spriteLayer: light
+    clothingVisuals:
+      head:
+      - state: on-equipped-HELMET-light
+        shader: unshaded
+      head-vox:
+      - state: on-equipped-HELMET-vox-light
+        shader: unshaded
+      head-reptilian:
+      - state: on-equipped-HELMET-reptilian-light
+        shader: unshaded
+  - type: PointLight
+    color: orange
+  - type: PressureProtection
+    highPressureMultiplier: 0.08
+    lowPressureMultiplier: 1000
+  - type: Armor
+    coverage: [Head]
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.9
+        Heat: 0.9
+  - type: NightVision
+    relayOverlay: true
+    goggleEffect: true
+    viewCircleRadius: 450
+    viewCircleCount: 4
+    viewCircleSpacing: 280
+    action: ActionToggleNightVision
+    phosphorColor: "#41D7D9"
+    lightingColor: "#FFFFFF32"
+  - type: ThermalVision
+    isEquipment: true
+    lightRadius: 15
+
+# Uniforms
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformSolarianMarine
+  name: Solarian Marine jumpsuit
+  description: A combat jumpsuit worn by Solarian Marines.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/Uniforms/tsfmc_digital.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/Uniforms/tsfmc_digital.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformSolarianNavy
+  name: Solarian Navy jumpsuit
+  description: A jumpsuit worn by the Solarian Navy.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/Uniforms/tsfmc.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/Uniforms/tsfmc.rsi
+
+- type: entity
+  parent: ClothingUniformBase
+  id: ClothingUniformSolarianEngineerNavy
+  name: Solarian Engineer's jumpsuit
+  description: Worn by Naval Engineers within the Solarian Military.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/Uniforms/tsfmcengi.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/Uniforms/tsfmcengi.rsi
+
+# Back, belt, ears
+
+- type: entity
+  parent: ClothingBackpackERTLeader
+  id: ClothingBackpackSolarianBackpack
+  name: Solarian Marine backpack
+  description: A combat backpack used by the Solarian Alliance's Marines and other military forces.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/Back/tsfmc.rsi
+
+- type: entity
+  parent: ClothingBeltSecurityWebbing
+  id: ClothingBeltSolarianChestRig
+  name: Solarian combat chest rig
+  description: A chest rig designed to hold all the ammo a soldier could need.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/Belt/webbings_normal_tsf.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/Belt/webbings_normal_tsf.rsi
+
+# The port's headset also carried Floof's EncryptionKeyAdmeme2, which doesn't exist here.
+- type: entity
+  parent: ClothingHeadset
+  id: ClothingHeadsetSolarian
+  name: Solarian Military headset
+  description: A headset used by the Solarian Military.
+  components:
+  - type: ContainerFill
+    containers:
+      key_slots:
+      - EncryptionKeyTraffic
+      - EncryptionKeyCommon
+      - EncryptionKeyCentCom
+  - type: Sprite
+    sprite: _WF/SolarianGear/Ears/mieyo.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/Ears/mieyo.rsi
+
+# Head and neck
+
+- type: entity
+  parent: ClothingHeadBase
+  id: ClothingHeadSolarianBeret
+  name: Solarian Armed Forces beret
+  description: A beret worn by Officers and Solarian Special Forces.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/Head/tsfberet.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/Head/tsfberet.rsi
+
+# The port shipped this beret's sprites without an entity.
+- type: entity
+  parent: ClothingHeadBase
+  id: ClothingHeadSolarianBeretBlue
+  name: Solarian Navy beret
+  description: A blue beret worn by Officers of the Solarian Navy.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/Head/tsf_blue_beret.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/Head/tsf_blue_beret.rsi
+
+- type: entity
+  parent: ClothingNeckBase
+  id: ClothingNeckSolarianOfficerCloak
+  name: Solarian Officer's cloak
+  description: A cloak worn by Officers of high standing within the Solarian Military.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/Neck/tsfcaptaincloak.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/Neck/tsfcaptaincloak.rsi
+
+- type: entity
+  parent: ClothingNeckBase
+  id: ClothingNeckSolarianAdmiralCloak
+  name: Solarian Admiralty cloak
+  description: A cloak worn by the highest ranking officers within the Solarian Military.
+  components:
+  - type: Sprite
+    sprite: _WF/SolarianGear/Neck/tsfcolonelcloak.rsi
+  - type: Clothing
+    sprite: _WF/SolarianGear/Neck/tsfcolonelcloak.rsi
