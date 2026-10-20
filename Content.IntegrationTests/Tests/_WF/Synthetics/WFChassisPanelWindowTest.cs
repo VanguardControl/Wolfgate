@@ -1,6 +1,7 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Content.Client._WF.Synthetics;
 using Content.Client._WF.Wolfmed.Overlays;
@@ -8,17 +9,21 @@ using Content.IntegrationTests.Fixtures;
 using Content.IntegrationTests.Tests._WF.CombatConsole;
 using Content.Shared._Shitmed.Targeting;
 using Content.Shared._WF.Synthetics;
+using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Input;
+using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using Robust.UnitTesting.Pool;
 
 namespace Content.IntegrationTests.Tests._WF.Synthetics;
 
 /// <summary>
-/// The chassis panel window on the client, fed hand-built states: row counts, localized text, which buttons are
-/// live, the confirm-by-second-click controls, and where the bay overlay draws.
+/// The chassis panel window on the client, fed hand-built states: table rows and columns, localized text, which
+/// buttons are live, the confirm-by-second-click controls, the body doll and row selection, and where the bay overlay
+/// draws.
 /// </summary>
 [TestFixture]
 public sealed class WFChassisPanelWindowTest : GameTest
@@ -47,7 +52,7 @@ public sealed class WFChassisPanelWindowTest : GameTest
     }
 
     /// <summary>Ten parts: two arms, two hands, two legs, a head and torso, a detached leg and an isolated foot.</summary>
-    private static WFChassisPanelState State(bool bayOpen = false, bool overclocked = false, float power = 0.7f)
+    internal static WFChassisPanelState State(bool bayOpen = false, bool overclocked = false, float power = 0.7f)
     {
         var state = new WFChassisPanelState
         {
@@ -98,7 +103,7 @@ public sealed class WFChassisPanelWindowTest : GameTest
         return state;
     }
 
-    private static IEnumerable<Control> Descendants(Control root)
+    internal static IEnumerable<Control> Descendants(Control root)
     {
         yield return root;
         foreach (var child in root.Children)
@@ -419,6 +424,166 @@ public sealed class WFChassisPanelWindowTest : GameTest
             Assert.That(core.Text, Is.EqualTo("DISCONNECT"), "the arming lapses after the confirm window.");
             WFButtonTestInput.Click(core);
             Assert.That(disconnects, Has.Count.EqualTo(2), "a late second click only re-arms.");
+        });
+
+        await Client.WaitPost(() => window!.Dispose());
+    }
+
+    /// <summary>A left click on a table cell; the cells take the mouse themselves.</summary>
+    internal static void ClickCell(Control cell)
+    {
+        var local = cell.Size / 2;
+        var pointer = new ScreenCoordinates(cell.GlobalPixelPosition + local * cell.UIScale, cell.Window!.Id);
+        var args = new GUIBoundKeyEventArgs(EngineKeyFunctions.UIClick, BoundKeyState.Down, pointer, true,
+            local, local * cell.UIScale);
+        cell.GetType().GetMethod("KeyBindDown", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)!
+            .Invoke(cell, new object[] { args });
+    }
+
+    internal static Color Background(Control cell) => ((StyleBoxFlat) ((PanelContainer) cell).PanelOverride!).BackgroundColor;
+
+    internal static readonly Color SelectedBackground = Color.FromHex("#4a3508");
+
+    /// <summary>Parts and components are tables: a header row, then one cell per column, lined up under the header.</summary>
+    [Test]
+    public async Task TablesLineUpTest()
+    {
+        WFChassisPanelWindow? window = null;
+        await Client.WaitPost(() =>
+        {
+            window = new WFChassisPanelWindow();
+            window.OpenCentered();
+            window.Update(State());
+        });
+        await RunTicksSync(3);
+
+        await Client.WaitAssertion(() =>
+        {
+            var panel = window!;
+            var grids = Descendants(panel).OfType<GridContainer>().ToList();
+            Assert.That(grids, Has.Count.EqualTo(2), "one grid for parts, one for components.");
+            Assert.That(grids[0].Columns, Is.EqualTo(7));
+            Assert.That(grids[1].Columns, Is.EqualTo(6));
+            Assert.That(grids[0].ChildCount, Is.EqualTo(7 * 11), "a header row and ten part rows.");
+            Assert.That(grids[1].ChildCount, Is.EqualTo(6 * 5), "a header row and four component rows.");
+
+            var texts = Texts(panel).ToList();
+            foreach (var title in new[] { "PART", "STATE", "INTEGRITY", "LOAD", "FAULTS", "ACTIONS", "SLOT", "COMPONENT", "HEALTH", "STATUS" })
+                Assert.That(texts, Has.Some.EqualTo(title), $"column title {title}");
+
+            Assert.Multiple(() =>
+            {
+                foreach (var grid in grids)
+                {
+                    var columns = grid.Columns;
+                    var cells = grid.Children.ToList();
+                    for (var i = columns; i < cells.Count; i++)
+                    {
+                        var header = cells[i % columns];
+                        Assert.That(cells[i].GlobalPosition.X, Is.EqualTo(header.GlobalPosition.X).Within(0.5f),
+                            $"cell {i} must sit under its header");
+                        Assert.That(cells[i].Width, Is.EqualTo(header.Width).Within(0.5f), $"cell {i} width");
+                    }
+                }
+
+                foreach (var row in panel.Parts)
+                    Assert.That(row.Cells, Has.Count.EqualTo(7));
+                foreach (var row in panel.Organs)
+                    Assert.That(row.Cells, Has.Count.EqualTo(6));
+                Assert.That(Background(panel.Parts[0].Cells[0]), Is.Not.EqualTo(Background(panel.Parts[1].Cells[0])),
+                    "rows alternate their background.");
+            });
+        });
+
+        await Client.WaitPost(() => window!.Dispose());
+    }
+
+    /// <summary>Each part's colouring on the doll: off, disabled or an integrity band.</summary>
+    [Test]
+    public void DollMappingTest()
+    {
+        var state = State();
+        var body = WFChassisPanelWindow.BuildDoll(state.Parts);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(body[TargetBodyPart.Head], Is.EqualTo(TargetIntegrity.LightlyWounded), "0.8 is lightly wounded.");
+            Assert.That(body[TargetBodyPart.RightLeg], Is.EqualTo(TargetIntegrity.Severed), "not attached.");
+            Assert.That(body[TargetBodyPart.LeftFoot], Is.EqualTo(TargetIntegrity.Disabled), "isolated.");
+            Assert.That(body[TargetBodyPart.RightHand], Is.EqualTo(TargetIntegrity.Disabled), "not working.");
+            Assert.That(body[TargetBodyPart.Groin], Is.EqualTo(body[TargetBodyPart.Torso]), "the groin follows the torso.");
+            Assert.That(body, Has.Count.EqualTo(11));
+
+            var bands = new (float Integrity, TargetIntegrity Expected)[]
+            {
+                (1f, TargetIntegrity.Healthy), (0.9f, TargetIntegrity.Healthy), (0.89f, TargetIntegrity.LightlyWounded),
+                (0.7f, TargetIntegrity.LightlyWounded), (0.69f, TargetIntegrity.SomewhatWounded),
+                (0.5f, TargetIntegrity.SomewhatWounded), (0.49f, TargetIntegrity.ModeratelyWounded),
+                (0.3f, TargetIntegrity.ModeratelyWounded), (0.29f, TargetIntegrity.HeavilyWounded),
+                (0.1f, TargetIntegrity.HeavilyWounded), (0.09f, TargetIntegrity.CriticallyWounded),
+                (0f, TargetIntegrity.CriticallyWounded),
+            };
+            foreach (var (integrity, expected) in bands)
+            {
+                var entry = Part(TargetBodyPart.LeftArm, "x", 1, e => e.Integrity = integrity);
+                Assert.That(WFChassisPanelWindow.DollIntegrity(entry), Is.EqualTo(expected), $"integrity {integrity}");
+            }
+
+            // Detached outranks isolated; isolated outranks a healthy reading.
+            var both = Part(TargetBodyPart.LeftArm, "x", 1, e => { e.Attached = false; e.Isolated = true; });
+            Assert.That(WFChassisPanelWindow.DollIntegrity(both), Is.EqualTo(TargetIntegrity.Severed));
+            var isolated = Part(TargetBodyPart.LeftArm, "x", 1, e => { e.Isolated = true; e.Integrity = 1f; });
+            Assert.That(WFChassisPanelWindow.DollIntegrity(isolated), Is.EqualTo(TargetIntegrity.Disabled));
+        });
+    }
+
+    /// <summary>A pick from the doll selects its row and a click on a row selects it; picking the same one again clears it.</summary>
+    [Test]
+    public async Task DollSelectsRowsTest()
+    {
+        WFChassisPanelWindow? window = null;
+        await Client.WaitPost(() =>
+        {
+            window = new WFChassisPanelWindow();
+            window.OpenCentered();
+            window.Update(State());
+        });
+        await RunTicksSync(3);
+
+        await Client.WaitAssertion(() =>
+        {
+            var panel = window!;
+            Assert.That(panel.Selected, Is.Null);
+            Assert.That(panel.Doll, Is.Null, "a disconnected client has no entity systems to draw the doll with.");
+
+            panel.PickFromDoll(TargetBodyPart.LeftArm);
+            Assert.That(panel.Selected, Is.EqualTo(TargetBodyPart.LeftArm));
+            Assert.That(Background(panel.Parts[2].Cells[0]), Is.EqualTo(SelectedBackground), "the left arm row is lit.");
+            Assert.That(panel.Parts.Count(r => Background(r.Cells[0]) == SelectedBackground), Is.EqualTo(1));
+
+            // The groin has no row of its own and picks the torso.
+            panel.PickFromDoll(TargetBodyPart.Groin);
+            Assert.That(panel.Selected, Is.EqualTo(TargetBodyPart.Torso));
+            Assert.That(Background(panel.Parts[1].Cells[0]), Is.EqualTo(SelectedBackground));
+            Assert.That(Background(panel.Parts[2].Cells[0]), Is.Not.EqualTo(SelectedBackground));
+
+            // A click on a row's cell selects it on the doll.
+            ClickCell(panel.Parts[3].Cells[0]);
+            Assert.That(panel.Selected, Is.EqualTo(TargetBodyPart.RightArm));
+            Assert.That(Background(panel.Parts[3].Cells[0]), Is.EqualTo(SelectedBackground));
+
+            // A new state keeps the pick and its highlight.
+            panel.Update(State(bayOpen: true));
+            Assert.That(panel.Selected, Is.EqualTo(TargetBodyPart.RightArm));
+            Assert.That(Background(panel.Parts[3].Cells[0]), Is.EqualTo(SelectedBackground));
+
+            ClickCell(panel.Parts[3].Cells[0]);
+            Assert.That(panel.Selected, Is.Null, "the same row again clears the pick.");
+            Assert.That(panel.Parts.Any(r => Background(r.Cells[0]) == SelectedBackground), Is.False);
+
+            // The buttons in a row still do their own job and do not select.
+            WFButtonTestInput.Click(panel.Parts[2].Isolate);
+            Assert.That(panel.Selected, Is.Null);
         });
 
         await Client.WaitPost(() => window!.Dispose());
