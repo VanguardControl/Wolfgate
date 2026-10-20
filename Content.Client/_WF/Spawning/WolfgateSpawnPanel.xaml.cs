@@ -63,6 +63,9 @@ public sealed partial class WolfgateSpawnPanel : BoxContainer
     /// <summary>Raised when an entry is right-clicked.</summary>
     public event Action<WolfgateSpawnEntry>? OnEntryContext;
 
+    /// <summary>A warning for an entry, shown as a mark and in its tooltip; null for none.</summary>
+    public Func<WolfgateSpawnEntry, string?>? EntryNote { get; set; }
+
     public WolfgateSpawnPanel()
     {
         IoCManager.InjectDependencies(this);
@@ -135,6 +138,12 @@ public sealed partial class WolfgateSpawnPanel : BoxContainer
     {
         get => PlacementRow.Visible;
         set => PlacementRow.Visible = value;
+    }
+
+    /// <summary>Redraws the visible entries, after <see cref="EntryNote"/> would answer differently.</summary>
+    public void RefreshEntries()
+    {
+        UpdateGrid();
     }
 
     /// <summary>Highlights an entry without raising <see cref="OnEntrySelected"/>.</summary>
@@ -442,7 +451,8 @@ public sealed partial class WolfgateSpawnPanel : BoxContainer
                     Icon(entry),
                     accent,
                     _favourites.Contains(entry.Id),
-                    entry.Id == _selectedId);
+                    entry.Id == _selectedId,
+                    EntryNote?.Invoke(entry));
             }
         }
         finally

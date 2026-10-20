@@ -90,7 +90,9 @@ Build modes, on keys 1 to 9 or the mode bar:
 
 - Place (1): left click places the selected entry as the engine does, right click erases the entity or tile under the
   cursor (a decal entry leaves it to the decal eraser), middle click eyedrops, Ctrl+wheel or R turns it, Escape
-  drops the entry.
+  drops the entry. What a map file leaves out, such as a mob, still places, but a popup and status line say it won't
+  be saved (once per prototype) and name the spawner to use; the palette marks it, and its right-click menu and the
+  Properties panel offer Use spawner.
 - Erase (2): click or drag a rectangle to remove what its sub-choice in Properties says: Everything (the default:
   entities, decals and tiles; a click takes the entity under the cursor, or else the tile), Entities, Tiles or Decals.
   A click takes the entity hit exactly, else the one sprite whose bounds hold the cursor (so a big sprite like a
@@ -331,6 +333,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Registry.cs`](WFMappingModeSystem.Registry.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Riders.cs`](WFMappingModeSystem.Riders.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Sessions.cs`](WFMappingModeSystem.Sessions.cs)
+- [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Spawners.cs`](WFMappingModeSystem.Spawners.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingSession.cs`](WFMappingSession.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingSessionMapComponent.cs`](WFMappingSessionMapComponent.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingTemplateShareSystem.cs`](WFMappingTemplateShareSystem.cs)
@@ -356,6 +359,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Shared/_WF/MappingMode/WFMappingPrune.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingPrune.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingReferenceEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingReferenceEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingSessionCodes.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingSessionCodes.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingSpawnerIndex.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingSpawnerIndex.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingTemplateCVars.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingTemplateCVars.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingTemplateEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingTemplateEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingTemplateSettings.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingTemplateSettings.cs)
@@ -374,6 +378,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.PipeDevices.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.PipeDevices.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.Spawners.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.Spawners.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingDragModeBase.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingDragModeBase.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingEraseMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingEraseMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingFillMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingFillMode.cs)
@@ -454,6 +459,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingShipTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingShipTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTemplateShareTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTemplateShareTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTickerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingTickerTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUnsavedTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUnsavedTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadClientTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadClientTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadTest.cs)
 
@@ -466,6 +472,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Tests/_WF/MappingMode/WFMappingQuickSelectStoreTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingQuickSelectStoreTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingScreenLayoutTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingScreenLayoutTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingSessionCodesTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingSessionCodesTest.cs)
+- [`Content.Tests/_WF/MappingMode/WFMappingSpawnerIndexTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingSpawnerIndexTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingTemplateSettingsTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingTemplateSettingsTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingThrottleTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingThrottleTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingUploadAssemblerTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingUploadAssemblerTest.cs)
@@ -516,7 +523,9 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/UserInterface/Systems/EscapeMenu/EscapeUIController.cs`](../../../Content.Client/UserInterface/Systems/EscapeMenu/EscapeUIController.cs): mapping session window; crew and character entries hidden while mapping
 - [`Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs`](../../../Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs): mappers open the spawn menus
 - [`Content.Server/Physics/Controllers/MoverController.cs`](../../Physics/Controllers/MoverController.cs): mapping observers move on their paused session maps like admin ghosts
-- [`Content.Server/Sandbox/SandboxSystem.cs`](../../Sandbox/SandboxSystem.cs): mappers place, erase and lay tiles on their own session's maps
+- [`Content.Server/Sandbox/SandboxSystem.cs`](../../Sandbox/SandboxSystem.cs)
+  - admins who map get the won't-be-saved warning too
+  - mappers place, erase and lay tiles on their own session's maps
 - [`Content.Shared/Input/ContentKeyFunctions.cs`](../../../Content.Shared/Input/ContentKeyFunctions.cs): Escape drops a reference grid being placed
 - [`Content.Shared/Verbs/SharedVerbSystem.cs`](../../../Content.Shared/Verbs/SharedVerbSystem.cs): mapping observers without admin data get no verbs; admins keep theirs
 - [`Resources/keybinds.yml`](../../../Resources/keybinds.yml)

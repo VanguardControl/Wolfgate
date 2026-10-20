@@ -502,6 +502,7 @@ public sealed partial class WFMappingModeSystem
         }
 
         session.EntityCount++;
+        WarnUnsaved(player, prototype.ID);
         return true;
     }
 

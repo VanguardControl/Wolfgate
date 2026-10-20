@@ -65,9 +65,20 @@ public sealed partial class WFMappingPalette : BoxContainer
             else
                 _modes.BeginPlacing(new WFMappingPaletteEntry(WFMappingPaletteKind.Entity, entry.Id));
         };
-        _entities.OnEntryContext += entry => WFMappingEntryMenu.Open(
-            (Loc.GetString("wf-mapping-screen-add-quick-select"),
-                () => _modes.RequestQuickSelect(new WFMappingPaletteEntry(WFMappingPaletteKind.Entity, entry.Id))));
+        _entities.EntryNote = entry => _modes.UnsavedNote(entry.Id);
+        _entities.OnEntryContext += entry =>
+        {
+            var chosen = new WFMappingPaletteEntry(WFMappingPaletteKind.Entity, entry.Id);
+            var items = new List<(string Text, Action Action)>
+            {
+                (Loc.GetString("wf-mapping-screen-add-quick-select"), () => _modes.RequestQuickSelect(chosen)),
+            };
+
+            if (_modes.TryGetSpawner(chosen, out _))
+                items.Add((Loc.GetString("wf-mapping-screen-use-spawner"), () => _modes.UseSpawner(chosen)));
+
+            WFMappingEntryMenu.Open(items.ToArray());
+        };
 
         _tiles.EntrySelected += _modes.BeginPlacing;
         _tiles.QuickSelectRequested += _modes.RequestQuickSelect;
@@ -80,6 +91,7 @@ public sealed partial class WFMappingPalette : BoxContainer
 
         _modes.EntryChanged += OnEntryChanged;
         _modes.PrototypePicked += OnPicked;
+        _modes.SpawnersChanged += _entities.RefreshEntries;
 
         RebuildStrip();
         OnEntryChanged(_modes.Entry);
@@ -90,6 +102,7 @@ public sealed partial class WFMappingPalette : BoxContainer
     {
         _modes.EntryChanged -= OnEntryChanged;
         _modes.PrototypePicked -= OnPicked;
+        _modes.SpawnersChanged -= _entities.RefreshEntries;
     }
 
     private void OnEntryChanged(WFMappingPaletteEntry? entry)

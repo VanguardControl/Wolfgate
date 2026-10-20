@@ -86,6 +86,26 @@ Round R1 of owner feedback. What was built for each report, and the choices the 
   spot is inside the viewport, bottom left, and clear of the menu bar, quick bar, readout and chat. Numbers seen at
   1280x720: viewport 697x795 UI units, bar upright 113x261 at (10, 428) over the viewport, quick bar from y 698.
 
+## 5. Entities that won't save
+
+- Every mob inherits `save: false`, so a mapper could place one, see it, and lose it from the saved and downloaded
+  file. Maps use spawner markers instead. `WFMappingSpawnerIndex` (Shared) maps each prototype with `MapSavable` false
+  to one spawner prototype: a spawner of only that prototype with chance 1 first, then a common entry before a rare
+  one, then the shortest list, then the lowest id. Spawners that are abstract, hidden, denied for mappers or wait for a
+  game rule are left out. Example: `MobCorgiMouse` gets `SpawnMobCorgiMouse`, `MobCorgiIan` gets the shared
+  `SpawnMobCorgi`, and `MobCorgi` itself has none.
+- The spawner components are server-only (the client ignores them), so the server builds the index lazily, drops it on
+  an entity prototype reload, and sends only the unsaveable entries when the client sets up its mapping screen
+  (`WFMappingSpawnerIndexRequest`/`Event`, on the list throttle). The client holds it in `WFMappingClientSystem`.
+- The warning is a popup plus a result line, shown red, once per prototype per player until they leave their session
+  or disconnect: engine placement (`AllowPlace`, and for admins a marked call in `SandboxSystem`), and mapping tools
+  draws and pastes (`WFMappingCanEditEvent.Prototypes`/`CarriedPrototypes`, admins included). The edit is never
+  refused for this. The text is `wf-mapping-mode-unsaved-spawner` or `wf-mapping-mode-unsaved-none`.
+- Client: the Entities tab marks such an entry with an amber `!` and adds the same text to its tooltip; its right-click
+  menu gets Use spawner instead when one exists; placing one shows a hint and a Use spawner button in Properties.
+  Palette tiles are shared with the spawn window, which passes no note, so it looks as before.
+- Not covered: tiles and decals always save; entries in the recent strip and quick bar aren't marked.
+
 ## Not exercised
 
 - No mouse drag was driven in a real client; the test moves and drops the bar through `MoveBar`/`DropBar`, which the

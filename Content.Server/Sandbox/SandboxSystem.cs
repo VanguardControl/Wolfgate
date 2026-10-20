@@ -70,6 +70,9 @@ namespace Content.Server.Sandbox
 
                 if (_conGroupController.CanAdminPlace(player))
                 {
+                    // WOLFGATE(MappingMode) START: admins who map get the won't-be-saved warning too
+                    _wfMapping.WarnPlacement(player, placement);
+                    // WOLFGATE END
                     return true;
                 }
 

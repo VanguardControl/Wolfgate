@@ -161,6 +161,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         _tools.SelectingChanged += OnSelectingChanged;
         _tools.PickingChanged += OnPickingChanged;
         _tools.Picked += OnPicked;
+        InitializeSpawners();
 
         var builder = CommandBinds.Builder;
         for (var i = 0; i < WFMappingKeyFunctions.Modes.Length; i++)
@@ -186,6 +187,7 @@ public sealed partial class WFMappingBuildModeSystem : EntitySystem
         _tools.SelectingChanged -= OnSelectingChanged;
         _tools.PickingChanged -= OnPickingChanged;
         _tools.Picked -= OnPicked;
+        ShutdownSpawners();
         CommandBinds.Unregister<WFMappingBuildModeSystem>();
     }
 

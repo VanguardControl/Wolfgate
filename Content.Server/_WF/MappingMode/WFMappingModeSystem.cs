@@ -83,6 +83,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         InitializeAutosave();
         InitializeRiders();
         InitializeGrids();
+        InitializeSpawners();
 
         Subs.CVar(_cfg, WFMappingModeCVars.Enabled, OnEnabledChanged, true);
         _initialized = true;
@@ -207,8 +208,14 @@ public sealed partial class WFMappingModeSystem : EntitySystem
 
     private void OnCanEdit(WFMappingCanEditEvent ev)
     {
-        if (!Enabled || IsAdminMapper(ev.Session))
+        if (!Enabled)
             return;
+
+        if (IsAdminMapper(ev.Session))
+        {
+            WarnUnsaved(ev);
+            return;
+        }
 
         if (ev.Kind == WFMappingEditKind.Limits)
         {
@@ -240,6 +247,8 @@ public sealed partial class WFMappingModeSystem : EntitySystem
                     CheckEditLimits(ev, mapping);
                 break;
         }
+
+        WarnUnsaved(ev);
     }
 
     private void Cancel(WFMappingCanEditEvent ev, string reason, params (string, object)[] args)

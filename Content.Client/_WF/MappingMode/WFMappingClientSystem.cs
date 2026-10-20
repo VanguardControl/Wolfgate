@@ -70,9 +70,13 @@ public sealed partial class WFMappingClientSystem : EntitySystem
     /// <summary>The outcome of the player's last request.</summary>
     public WFMappingResult? LastResult { get; private set; }
 
+    /// <summary>The spawner to place instead of each entity a map file leaves out, as the server last sent it.</summary>
+    public WFMappingSpawnerIndex SpawnerIndex { get; } = new();
+
     public event Action? SessionUpdated;
     public event Action? LibraryUpdated;
     public event Action? ReferenceFilesUpdated;
+    public event Action? SpawnerIndexUpdated;
     public event Action<WFMappingResult>? ResultReceived;
 
     /// <summary>Raised when the in-session setup is undone, after leaving or losing the observer.</summary>
@@ -86,6 +90,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         SubscribeNetworkEvent<WFMappingLibraryEvent>(OnLibrary);
         SubscribeNetworkEvent<WFMappingReferenceListEvent>(OnReferenceList);
         SubscribeNetworkEvent<WFMappingResultEvent>(OnResult);
+        SubscribeNetworkEvent<WFMappingSpawnerIndexEvent>(OnSpawnerIndex);
         SubscribeLocalEvent<LocalPlayerDetachedEvent>(OnDetached);
 
         InitializeDownload();
@@ -137,6 +142,12 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         ReferenceFilesUpdated?.Invoke();
     }
 
+    private void OnSpawnerIndex(WFMappingSpawnerIndexEvent ev)
+    {
+        SpawnerIndex.Load(ev.Spawners);
+        SpawnerIndexUpdated?.Invoke();
+    }
+
     private void OnResult(WFMappingResultEvent ev)
     {
         Report(new WFMappingResult(ev.LocKey, Loc.GetString(ev.LocKey, ev.LocArgs()), ev.Success));
@@ -173,6 +184,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         ReloadScreen();
         _tools.SetEnabled(true);
         _modes.SetActive(true);
+        RaiseNetworkEvent(new WFMappingSpawnerIndexRequest());
     }
 
     /// <summary>Undoes <see cref="Setup"/>, closes the spawn and mapping windows and goes back to the chosen screen.</summary>

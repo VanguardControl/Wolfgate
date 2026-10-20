@@ -145,12 +145,20 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
                 _modes.RequestQuickSelect(entry);
         };
 
+        UnsavedLabel.FontColorOverride = Color.FromHex("#e0a030");
+        UnsavedButton.OnPressed += _ =>
+        {
+            if (_modes.Entry is { } entry)
+                _modes.UseSpawner(entry);
+        };
+
         LevelUpButton.OnPressed += _ => _zLevels.Move(1);
         LevelDownButton.OnPressed += _ => _zLevels.Move(-1);
 
         _modes.EntryChanged += OnEntryChanged;
         _modes.ModeChanged += OnModeChanged;
         _modes.SettingsChanged += OnSettingsChanged;
+        _modes.SpawnersChanged += UpdateUnsaved;
         _placement.DirectionChanged += OnDirectionChanged;
         _link.Changed += UpdateLink;
 
@@ -166,6 +174,7 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
         _modes.EntryChanged -= OnEntryChanged;
         _modes.ModeChanged -= OnModeChanged;
         _modes.SettingsChanged -= OnSettingsChanged;
+        _modes.SpawnersChanged -= UpdateUnsaved;
         _placement.DirectionChanged -= OnDirectionChanged;
         _link.Changed -= UpdateLink;
     }
@@ -251,7 +260,17 @@ public sealed partial class WFMappingPropertiesPanel : BoxContainer
                 ("id", chosen.Id));
         }
 
+        UpdateUnsaved();
         UpdateRotation();
+    }
+
+    /// <summary>Shows the spawner hint under an entry that won't be saved, when a spawner would stand in for it.</summary>
+    private void UpdateUnsaved()
+    {
+        var hint = _modes.Entry is { } entry ? _modes.SpawnerHint(entry) : null;
+        UnsavedRow.Visible = hint != null;
+        UnsavedLabel.Text = hint ?? string.Empty;
+        UnsavedLabel.ToolTip = hint;
     }
 
     private void OnModeChanged(WFMappingBuildMode mode)

@@ -504,6 +504,7 @@ public sealed partial class WFMappingModeSystem
         _toolsThrottle.Forget(user);
         _editThrottle.Forget(user);
         _gridThrottle.Forget(user);
+        _unsavedWarned.Remove(user);
     }
 
     private void OnPlayerJoinedLobby(PlayerJoinedLobbyEvent ev)
@@ -646,6 +647,7 @@ public sealed partial class WFMappingModeSystem
         _pickThrottle.Clear();
         _confirmThrottle.Clear();
         _gridThrottle.Clear();
+        _unsavedWarned.Clear();
     }
 
     /// <summary>Sends every online member their view of a session.</summary>

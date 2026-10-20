@@ -15,6 +15,11 @@
                 <Button Name="QuickSelectButton" Disabled="True" Text="{Loc 'wf-mapping-screen-quick-select-star'}"
                         ToolTip="{Loc 'wf-mapping-screen-add-quick-select'}" TooltipDelay="0" />
             </BoxContainer>
+            <BoxContainer Name="UnsavedRow" Orientation="Horizontal" SeparationOverride="4" Visible="False">
+                <Label Name="UnsavedLabel" ClipText="True" HorizontalExpand="True" VerticalAlignment="Center"
+                       StyleClasses="LabelSubText" />
+                <Button Name="UnsavedButton" Text="{Loc 'wf-mapping-screen-unsaved-use'}" />
+            </BoxContainer>
             <Label Name="RotationLabel" />
             <BoxContainer Orientation="Horizontal" SeparationOverride="4">
                 <OptionButton Name="PlacementModeMenu" HorizontalExpand="True"

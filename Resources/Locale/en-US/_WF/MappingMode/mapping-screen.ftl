@@ -162,3 +162,8 @@ wf-mapping-screen-cursor-grid = Grid {$name} ({$net})
 wf-mapping-screen-cursor-tile = Floor {$id}
 wf-mapping-screen-cursor-tile-empty = Floor: none
 wf-mapping-screen-cursor-entity = {$name} ({$id})
+
+wf-mapping-screen-use-spawner = Use spawner instead
+wf-mapping-screen-unsaved-hint = Won't be saved. Use {$spawner}.
+wf-mapping-screen-unsaved-use = Use spawner
+wf-mapping-screen-unsaved-mark = !

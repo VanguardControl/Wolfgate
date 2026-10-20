@@ -252,3 +252,7 @@ wf-mapping-modebar-handle-tooltip = Drag to move the mode bar. It snaps to the e
 wf-mapping-modebar-menu-screen = Screen
 wf-mapping-modebar-menu-reset = Reset layout
 wf-mapping-modebar-menu-reset-tooltip = Put the mode bar back in its default place, bottom left.
+
+# Entities a map file leaves out, such as mobs: shown when one is placed and in the palette
+wf-mapping-mode-unsaved-spawner = {$name} won't be saved with the map. Place {$spawner} instead.
+wf-mapping-mode-unsaved-none = {$name} won't be saved with the map. Nothing spawns it yet; it needs a spawner prototype.
