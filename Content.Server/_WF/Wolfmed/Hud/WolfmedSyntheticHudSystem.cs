@@ -15,6 +15,7 @@ using Content.Shared.Body.Components;
 using Content.Shared.Damage;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
+using Content.Shared.Eye.Blinding.Components;
 using Content.Shared.FixedPoint;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
@@ -188,6 +189,9 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         if (heat is { Hot: true, ThermalShutdown: false } && !offline)
             AddCondition(found, TargetBodyPart.Torso, WolfmedSyntheticCondition.CoreTempCritical);
 
+        if (TryComp(hud.Owner, out BlindableComponent? sight) && sight.EyeDamage > sight.MinDamage)
+            AddCondition(found, TargetBodyPart.Head, WolfmedSyntheticCondition.OpticsDamaged);
+
         var faults = Order(hud.Comp.Faults, found);
         var advice = faults.Count > 0 ? faults[0].Advice : string.Empty;
         var power = _charge.TryGetSiliconBattery(hud.Owner, out var battery) && battery.MaxCharge > 0f
@@ -197,9 +201,10 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
         var newIntegrity = weight > 0f ? integrity / weight : 1f;
         var newServos = limbs > 0f ? servos / limbs : 1f;
         var causeLine = CauseLine(hud.Owner);
+        // Full like every other gauge when nothing is wrong; it empties as the damage sensors overload.
         var sensors = TryComp(hud.Owner, out PainComponent? pain) && pain.SoftPainCap > FixedPoint2.Zero
-            ? Math.Clamp(pain.Value.Float() / pain.SoftPainCap.Float(), 0f, 1f)
-            : 0f;
+            ? 1f - Math.Clamp(pain.Value.Float() / pain.SoftPainCap.Float(), 0f, 1f)
+            : 1f;
         // M4 (plan §3.11): the CORE row is the core's own temperature once the core-heat route tracks it.
         var temperature = heat?.CoreTemperature ??
                           (TryComp(hud.Owner, out TemperatureComponent? chassis) ? chassis.CurrentTemperature : -1f);

@@ -1,5 +1,6 @@
 using Content.Server._WF.Wolfmed.Life;
 using Content.Server.Body.Components;
+using Content.Shared._WF.Biotype;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Consciousness;
@@ -96,6 +97,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
         SubscribeLocalEvent<WolfmedConsciousnessComponent, DamageChangedEvent>(OnDamageChanged);
         SubscribeLocalEvent<WolfmedConsciousnessComponent, MobStateChangedEvent>(OnMobStateChanged);
         SubscribeLocalEvent<WolfmedConsciousnessComponent, RejuvenateEvent>(OnRejuvenate);
+        SubscribeLocalEvent<WolfmedConsciousnessComponent, WFBiotypeAppliedEvent>(OnBiotypeApplied);
         SubscribeLocalEvent<BodyPartFunctionalityComponent, BodyPartFunctionalityChangedEvent>(OnFunctionality);
     }
 
@@ -697,6 +699,17 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
 
         // M1a: the Dead alert, and the way back out of it, are the condition alert system's.
         _conditionAlerts.Refresh(uid);
+    }
+
+    /// <summary>
+    /// A biotype conversion swaps the whole body, so the moment between the old legs going and the new ones arriving
+    /// is not a lost pair of legs: the dwell it started is dropped and the new body is read as it stands.
+    /// </summary>
+    private void OnBiotypeApplied(Entity<WolfmedConsciousnessComponent> body, ref WFBiotypeAppliedEvent args)
+    {
+        body.Comp.HadLegs = false;
+        body.Comp.DownedUntil = TimeSpan.Zero;
+        Evaluate(body);
     }
 
     private void OnRejuvenate(EntityUid uid, WolfmedConsciousnessComponent comp, RejuvenateEvent args)

@@ -328,9 +328,8 @@ wolfmed-treatment-step-wolfmed-short-circuit-wound-3 = Use a cable coil on the c
 wolfmed-treatment-avoid-wolfmed-short-circuit-wound-1 = A welding tool does not reach shorted wiring.
 
 wolfmed-treatment-short-wolfmed-servo-damage-wound = A cut servo run. The limb stays slow or lame until the run behind the panel is replaced.
-wolfmed-treatment-step-wolfmed-servo-damage-wound-1 = Open the limb.
-wolfmed-treatment-step-wolfmed-servo-damage-wound-2 = Run the Replace Damaged Servo surgery. Its tool is a cable coil.
-wolfmed-treatment-step-wolfmed-servo-damage-wound-3 = Seal it.
+wolfmed-treatment-step-wolfmed-servo-damage-wound-1 = Lie the patient down. A synth can lie down and do it alone.
+wolfmed-treatment-step-wolfmed-servo-damage-wound-2 = Run the Replace Damaged Servo surgery with a cable coil. No cutting needed.
 wolfmed-treatment-avoid-wolfmed-servo-damage-wound-1 = Welding the panel shut does nothing for the servo underneath.
 
 wolfmed-treatment-short-wolfmed-overheating-wound = The part is running too hot to work properly. Time and cold are the only treatments.

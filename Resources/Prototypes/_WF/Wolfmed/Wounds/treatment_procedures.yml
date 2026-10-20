@@ -688,15 +688,10 @@
   summary: wolfmed-treatment-short-wolfmed-servo-damage-wound
   steps:
   - text: wolfmed-treatment-step-wolfmed-servo-damage-wound-1
-    tool: Scalpel
-    surgery: true
   - text: wolfmed-treatment-step-wolfmed-servo-damage-wound-2
     tool: CableApcStack
     surgery: true
     done: [ SubjectGone ]
-  - text: wolfmed-treatment-step-wolfmed-servo-damage-wound-3
-    tool: Cautery
-    surgery: true
   avoid:
   - wolfmed-treatment-avoid-wolfmed-servo-damage-wound-1
 

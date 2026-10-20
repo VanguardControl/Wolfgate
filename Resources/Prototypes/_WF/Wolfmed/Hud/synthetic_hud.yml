@@ -144,3 +144,11 @@
   line: wolfmed-synthetic-line-core-temp-critical
   severity: Crit
   advice: wolfmed-synthetic-advice-core-temp
+
+# Flash-burnt optics: a sheet of glass replaces the lenses, the eye surgery does it too.
+- type: syntheticHudLine
+  id: WFSyntheticHudOpticsDamaged
+  condition: OpticsDamaged
+  line: wolfmed-synthetic-line-optics
+  severity: Warn
+  advice: wolfmed-synthetic-advice-optics

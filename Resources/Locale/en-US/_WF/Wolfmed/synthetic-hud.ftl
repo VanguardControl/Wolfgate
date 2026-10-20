@@ -61,6 +61,7 @@ wolfmed-synthetic-line-core-offline = CORE UNRESPONSIVE
 wolfmed-synthetic-line-actuator-offline = ACTUATOR OFFLINE
 wolfmed-synthetic-line-limb-detached = LIMB DETACHED
 wolfmed-synthetic-line-embedded = FOREIGN OBJECT
+wolfmed-synthetic-line-optics = OPTICS DAMAGED
 
 # One-line advice for the worst fault. The analyzer's own advice keys are whole paragraphs; these are the
 # same instruction cut to what fits under the SYSTEM block.
@@ -68,7 +69,7 @@ wolfmed-synthetic-advice = ADVICE: { $advice }
 wolfmed-synthetic-advice-dent = BEAT OUT PANEL
 wolfmed-synthetic-advice-breach = WELD BREACH
 wolfmed-synthetic-advice-short-circuit = RESPLICE WIRING
-wolfmed-synthetic-advice-servo = REPLACE SERVO
+wolfmed-synthetic-advice-servo = REPLACE SERVO: COIL
 wolfmed-synthetic-advice-overheating = SHED HEAT
 wolfmed-synthetic-advice-chassis-breach = SEEK AUTODOC
 wolfmed-synthetic-advice-frame = SEEK MAINTENANCE
@@ -78,6 +79,7 @@ wolfmed-synthetic-advice-shutdown = RESTORE POWER
 wolfmed-synthetic-advice-core = SEEK AUTODOC
 wolfmed-synthetic-advice-limb = REATTACH LIMB
 wolfmed-synthetic-advice-embedded = EXTRACT OBJECT
+wolfmed-synthetic-advice-optics = APPLY GLASS SHEET
 
 # Banners across the top edge, worst first.
 wolfmed-synthetic-banner-integrity = STRUCTURAL INTEGRITY { $value } - SEEK MAINTENANCE
