@@ -28,6 +28,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Content.Server/_WF/Synthetics/WFChassisPanelSystem.Controls.cs`](WFChassisPanelSystem.Controls.cs)
 - [`Content.Server/_WF/Synthetics/WFChassisPanelSystem.cs`](WFChassisPanelSystem.cs)
 - [`Content.Server/_WF/Synthetics/WFChassisPanelSystem.State.cs`](WFChassisPanelSystem.State.cs)
+- [`Content.Server/_WF/Synthetics/WFLowPowerSystem.cs`](WFLowPowerSystem.cs)
 - [`Content.Server/_WF/Synthetics/WFSyntheticLimbSystem.cs`](WFSyntheticLimbSystem.cs)
 
 ### Shared
@@ -37,6 +38,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Content.Shared/_WF/Synthetics/WFChassisPanelEvents.cs`](../../../Content.Shared/_WF/Synthetics/WFChassisPanelEvents.cs)
 - [`Content.Shared/_WF/Synthetics/WFChassisPanelSpeedSystem.cs`](../../../Content.Shared/_WF/Synthetics/WFChassisPanelSpeedSystem.cs)
 - [`Content.Shared/_WF/Synthetics/WFChassisPanelUi.cs`](../../../Content.Shared/_WF/Synthetics/WFChassisPanelUi.cs)
+- [`Content.Shared/_WF/Synthetics/WFLowPowerComponent.cs`](../../../Content.Shared/_WF/Synthetics/WFLowPowerComponent.cs)
 - [`Content.Shared/_WF/Synthetics/WFSyntheticEvents.cs`](../../../Content.Shared/_WF/Synthetics/WFSyntheticEvents.cs)
 
 ### Client
@@ -44,20 +46,24 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Content.Client/_WF/Synthetics/WFChassisBayOverlay.cs`](../../../Content.Client/_WF/Synthetics/WFChassisBayOverlay.cs)
 - [`Content.Client/_WF/Synthetics/WFChassisBayOverlaySystem.cs`](../../../Content.Client/_WF/Synthetics/WFChassisBayOverlaySystem.cs)
 - [`Content.Client/_WF/Synthetics/WFChassisPanelBoundUserInterface.cs`](../../../Content.Client/_WF/Synthetics/WFChassisPanelBoundUserInterface.cs)
+- [`Content.Client/_WF/Synthetics/WFChassisPanelWindow.Tips.cs`](../../../Content.Client/_WF/Synthetics/WFChassisPanelWindow.Tips.cs)
 - [`Content.Client/_WF/Synthetics/WFChassisPanelWindow.xaml`](../../../Content.Client/_WF/Synthetics/WFChassisPanelWindow.xaml)
 - [`Content.Client/_WF/Synthetics/WFChassisPanelWindow.xaml.cs`](../../../Content.Client/_WF/Synthetics/WFChassisPanelWindow.xaml.cs)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisBayOverlayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisBayOverlayTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisBayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisBayTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPanelTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPanelTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPanelWindowTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPanelWindowTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPowerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPowerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFSyntheticLimbTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFSyntheticLimbTest.cs)
 
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/Synthetics/actions.yml`](../../../Resources/Prototypes/_WF/Synthetics/actions.yml)
 - [`Resources/Prototypes/_WF/Synthetics/hud_lines.yml`](../../../Resources/Prototypes/_WF/Synthetics/hud_lines.yml)
+- [`Resources/Prototypes/_WF/Synthetics/low_power.yml`](../../../Resources/Prototypes/_WF/Synthetics/low_power.yml)
 - [`Resources/Prototypes/_WF/Synthetics/wounds.yml`](../../../Resources/Prototypes/_WF/Synthetics/wounds.yml)
 
 ### Localization
@@ -65,6 +71,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Resources/Locale/en-US/_WF/Synthetics/chassis-bay.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/chassis-bay.ftl)
 - [`Resources/Locale/en-US/_WF/Synthetics/chassis-panel-ui.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/chassis-panel-ui.ftl)
 - [`Resources/Locale/en-US/_WF/Synthetics/chassis-panel.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/chassis-panel.ftl)
+- [`Resources/Locale/en-US/_WF/Synthetics/low-power.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/low-power.ftl)
 - [`Resources/Locale/en-US/_WF/Synthetics/synthetic-limbs.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/synthetic-limbs.ftl)
 - [`Resources/Locale/en-US/_WF/Synthetics/synthetics.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/synthetics.ftl)
 

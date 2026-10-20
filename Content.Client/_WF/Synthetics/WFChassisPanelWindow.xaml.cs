@@ -119,10 +119,17 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
     }
 
     /// <summary>Show a new state; rows are rebuilt only when the number of entries changed.</summary>
+    /// <summary>The last state said the cell is empty, so a dead arm is unpowered rather than broken.</summary>
+    private bool _lowPower;
+
+    private static bool IsArm(TargetBodyPart slot) =>
+        slot is TargetBodyPart.LeftArm or TargetBodyPart.RightArm or TargetBodyPart.LeftHand or TargetBodyPart.RightHand;
+
     public void Update(WFChassisPanelState state)
     {
         _state = state;
 
+        _lowPower = state.Status == "wf-chassis-status-low-power";
         StatusLabel.Text = state.Status.Length > 0 ? Loc.GetString(state.Status) : string.Empty;
         StatusLabel.Visible = state.Status.Length > 0;
 
@@ -210,6 +217,8 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
             { Attached: false } => ("wf-chassis-ui-state-detached", Alert),
             { Isolated: true } => ("wf-chassis-ui-state-isolated", Cyan),
             { Loose: true } => ("wf-chassis-ui-state-loose", Amber),
+            // An empty cell cuts every arm but one; that is not damage, and the fix is a cell, not a welder.
+            { Working: false } when _lowPower && IsArm(entry.Slot) => ("wf-chassis-ui-state-unpowered", Amber),
             { Working: false } => ("wf-chassis-ui-state-offline", Alert),
             _ => ("wf-chassis-ui-state-ok", Good),
         };

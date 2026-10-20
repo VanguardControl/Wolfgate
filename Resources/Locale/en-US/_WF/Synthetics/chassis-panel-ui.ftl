@@ -17,7 +17,8 @@ wf-chassis-ui-col-band = STATUS
 wf-chassis-ui-state-detached = DETACHED
 wf-chassis-ui-state-isolated = ISOLATED
 wf-chassis-ui-state-loose = LOOSE
-wf-chassis-ui-state-offline = OFFLINE
+wf-chassis-ui-state-offline = OFFLINE
+wf-chassis-ui-state-unpowered = UNPOWERED
 wf-chassis-ui-state-ok = OK
 
 wf-chassis-ui-none = --
@@ -58,7 +59,8 @@ wf-chassis-slot-battery = POWER CELL
 
 # Hover tips. Sentences, not readout caps.
 wf-chassis-ui-tip-state-ok = Running within rating.
-wf-chassis-ui-tip-state-offline = Too damaged to run. Weld the chassis, replace the servo, or isolate it to stop the sensor load.
+wf-chassis-ui-tip-state-offline = Too damaged to run. Weld the chassis, replace the servo, or isolate it to stop the sensor load.
+wf-chassis-ui-tip-state-unpowered = The cell is empty, so only one arm has power. Route power to this arm from your own menu, or seat a charged cell.
 wf-chassis-ui-tip-state-isolated = Servos and sensors cut from the panel. The limb does nothing and reports no pain. RESTORE to power it.
 wf-chassis-ui-tip-state-loose = Seated by hand. Slow and clumsy until a cable coil recouples it.
 wf-chassis-ui-tip-state-detached = The limb is off the chassis. Click the limb on the body to seat it; it runs loose until a cable coil recouples it.
