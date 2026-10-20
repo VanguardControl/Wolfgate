@@ -17,4 +17,8 @@ public sealed partial class XenoNameComponent : Component
 
     [DataField, AutoNetworkedField]
     public string Postfix = string.Empty;
+
+    /// <summary>WOLFGATE: the xeno has used its one chance to pick its own tag.</summary>
+    [DataField, AutoNetworkedField]
+    public bool Named;
 }

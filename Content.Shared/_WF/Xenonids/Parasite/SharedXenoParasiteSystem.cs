@@ -927,7 +927,7 @@ public abstract partial class SharedXenoParasiteSystem : EntitySystem
         if (_net.IsClient)
             return;
 
-        EnsureComp<VictimBurstComponent>(ent.Owner);
+        var burst = EnsureComp<VictimBurstComponent>(ent.Owner);
         _appearance.SetData(ent.Owner, BurstVisuals.Visuals, VictimBurstState.Burst);
 
         if (TryComp(ent.Owner, out MobStateComponent? mobState))
@@ -939,6 +939,7 @@ public abstract partial class SharedXenoParasiteSystem : EntitySystem
         {
             foreach (var larva in container.ContainedEntities)
             {
+                RecordBurstHost(ent, burst, larva);
                 RemCompDeferred<BursterComponent>(larva);
                 var invc = EnsureComp<RMCTemporaryInvincibilityComponent>(larva);
                 invc.ExpiresAt = _timing.CurTime + ent.Comp.LarvaInvincibilityTime;

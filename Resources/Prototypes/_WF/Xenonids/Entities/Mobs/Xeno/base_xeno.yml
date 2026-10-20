@@ -182,9 +182,16 @@
     multiplier: 1.5
   - type: XenoRegen
   - type: XenoStateVisuals
+  # WOLFGATE: every xeno carries a mass scanner it opens with an action, and may name itself once
+  - type: XenoMassScanner
+  - type: RadarConsole
+    followEntity: true
+  - type: XenoNickname
   - type: UserInterface
     interfaces:
       # WOLFGATE: RMC surgery and tactical map UIs are cut
+      enum.RadarConsoleUiKey.Key:
+        type: RadarConsoleBoundUserInterface
       enum.XenoEvolutionUIKey.Key:
         type: XenoEvolutionBui
       enum.XenoDevolveUIKey.Key:
