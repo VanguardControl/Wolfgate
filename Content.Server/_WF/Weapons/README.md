@@ -47,6 +47,7 @@ predicted on their own client; this only cuts the audio entities other players r
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Weapons/AttachmentWieldBonusTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/AttachmentWieldBonusTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Weapons/EventGridHardpointTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/EventGridHardpointTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/GunshotAudioThrottleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/GunshotAudioThrottleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/ProjectileSweepTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/ProjectileSweepTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Weapons/ShieldSidearmTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Weapons/ShieldSidearmTest.cs)

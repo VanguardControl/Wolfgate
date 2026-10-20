@@ -2272,6 +2272,12 @@ unmarked:
   - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml
     module: null
     reason: PDV pack, top-left thruster was mapped disabled.
+  - path: Resources/Maps/_Mono/Bluespace/prefracture.yml
+    module: null
+    reason: Hardpoints mapped under the Unidentified Vessel's Scythe, Sunder and Flayer guns so gunnery links them.
+  - path: Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml
+    module: null
+    reason: Hardpoint mapped under the asteroid ship's AK570 so gunnery links it.
   - path: Resources/Maps/_Mono/POI/tsfmchalcyon.yml
     module: ArmorBalance
     reason: Reverts Monolith#4845, putting the mapped M82b and M82c suit storage back in place of the M86.

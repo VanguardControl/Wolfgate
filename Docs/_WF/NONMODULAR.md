@@ -114,6 +114,8 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - keeps [bold]; upstream's [color=bold] tag is unbalanced
   - the map has one UndergroundVend, not four
 - [`Resources/Locale/en-US/_Mono/prototypes/access/accesses.ftl`](../../Resources/Locale/en-US/_Mono/prototypes/access/accesses.ftl): Monolith#4816 shipped the Underground access levels without names
+- [`Resources/Maps/_Mono/Bluespace/prefracture.yml`](../../Resources/Maps/_Mono/Bluespace/prefracture.yml): Hardpoints mapped under the Unidentified Vessel's Scythe, Sunder and Flayer guns so gunnery links them.
+- [`Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml`](../../Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml): Hardpoint mapped under the asteroid ship's AK570 so gunnery links it.
 - [`Resources/migration.yml`](../../Resources/migration.yml): Monolith#4816 renamed the WL-01 suit and helmet without a migration
 - [`Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/production_bounties.yml`](../../Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/production_bounties.yml): the camera bounty asked for optical sensors (OpticsEconomy1)
 - [`Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/value_bounties.yml`](../../Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/value_bounties.yml): MMC cash bounties pay 0.9x their value so cash-to-MIC-to-cash can't loop for profit
