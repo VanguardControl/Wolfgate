@@ -95,6 +95,7 @@ public sealed partial class WFChassisPanelSystem
         state.CoreTemperature = hud?.CoreTemperature ?? -1f;
         state.Status = state.Shutdown ? "wf-chassis-status-shutdown"
             : HasComp<WFChassisRebootComponent>(body) ? "wf-chassis-status-reboot"
+            : HasComp<WFLowPowerComponent>(body) ? "wf-chassis-status-low-power"
             : state.BayOpen ? "wf-chassis-status-bay-open"
             : state.Overclocked ? "wf-chassis-status-overclocked"
             : "wf-chassis-status-nominal";
@@ -128,7 +129,8 @@ public sealed partial class WFChassisPanelSystem
 
         entry.Part = GetNetEntity(attached);
         entry.Attached = true;
-        entry.Isolated = HasComp<WFIsolatedPartComponent>(attached);
+        // An arm low power has cut is offline, not isolated: the panel offers no restore for it.
+        entry.Isolated = _isolation.IsUserIsolated(attached);
         entry.Loose = HasComp<WFLooseLimbComponent>(attached);
         entry.Working = attached.Comp.Enabled && !entry.Isolated &&
                         _functionality.GetState((attached.Owner, (WoundableComponent?) null)) != BodyPartFunctionalityState.Disabled;

@@ -130,4 +130,7 @@ public enum WolfmedSyntheticCondition : byte
 
     /// <summary>Synthetics: the chassis panel has cut the part's servos and sensors. Shown instead of PartDisabled.</summary>
     PartIsolated,
+
+    /// <summary>Synthetics: an empty cell or none. On the torso, and on each arm low power has cut.</summary>
+    LowPower,
 }

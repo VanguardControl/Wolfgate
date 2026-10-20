@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Server.Power.EntitySystems;
 using Content.Shared._EinsteinEngines.Silicon.Components;
 using Content.Shared._HL.Silicons.Synths.Battery;
@@ -5,6 +6,8 @@ using Content.Shared._Onyx.Wounds;
 using Content.Shared._WF.Synthetics;
 using Content.Shared._WF.Wolfmed.Compat;
 using Content.Shared.Body.Part;
+using Content.Shared.Damage;
+using Content.Shared.Damage.Prototypes;
 using Content.Shared.FixedPoint;
 using Content.Shared.Movement.Systems;
 using Content.Shared.Popups;
@@ -13,6 +16,7 @@ using Content.Shared.Stunnable;
 using Robust.Server.Audio;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 
 namespace Content.Server._WF.Synthetics;
 
@@ -44,13 +48,42 @@ public sealed partial class WFChassisPanelSystem
 
     public static readonly ProtoId<WoundPrototype> OverheatingWound = "WFWolfmedOverheatingWound";
 
+    /// <summary>Chance per overclock tick of sparks with a cold core; it rises with the heat.</summary>
+    public const float OverclockSparkChance = 0.15f;
+
+    /// <summary>Torso overheating from which every overclock tick sparks.</summary>
+    public static readonly FixedPoint2 OverclockSparkCertain = FixedPoint2.New(35);
+
+    /// <summary>Torso overheating from which a tick can short a limb.</summary>
+    public static readonly FixedPoint2 OverclockShortFrom = FixedPoint2.New(20);
+
+    /// <summary>Heat past <see cref="OverclockShortFrom"/> at which a short is certain: the cut-off.</summary>
+    public const float OverclockShortSpan = 25f;
+
+    /// <summary>Severity of the short-circuit wound an overheated tick puts on a limb.</summary>
+    public static readonly FixedPoint2 OverclockShortSeverity = FixedPoint2.New(8);
+
+    /// <summary>Torso overheating from which each tick cooks the torso.</summary>
+    public static readonly FixedPoint2 OverclockCookFrom = FixedPoint2.New(35);
+
+    /// <summary>Heat damage to the torso per tick past <see cref="OverclockCookFrom"/>.</summary>
+    public static readonly FixedPoint2 OverclockCookDamage = FixedPoint2.New(3);
+
+    public static readonly ProtoId<WoundPrototype> ShortCircuitWound = "WFWolfmedShortCircuitWound";
+    public static readonly EntProtoId SparkEffect = "EffectSparks";
+    private static readonly ProtoId<DamageTypePrototype> CookDamageType = "Heat";
+
     private static readonly SoundSpecifier DetachSound = new SoundPathSpecifier("/Audio/Items/ratchet.ogg");
     private static readonly SoundSpecifier RebootStartSound = new SoundPathSpecifier("/Audio/Machines/quickbeep.ogg");
     private static readonly SoundSpecifier RebootDoneSound = new SoundPathSpecifier("/Audio/Machines/twobeep.ogg");
     private static readonly SoundSpecifier OverclockSound = new SoundPathSpecifier("/Audio/Machines/beep.ogg");
+    private static readonly SoundSpecifier SparkSound = new SoundCollectionSpecifier("sparks");
 
     [Dependency] private AudioSystem _audio = default!;
     [Dependency] private BatterySystem _battery = default!;
+    [Dependency] private IRobustRandom _random = default!;
+    [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private WoundDamageRoutingSystem _damageRouting = default!;
     [Dependency] private MovementSpeedModifierSystem _speed = default!;
     [Dependency] private PainSystem _pain = default!;
     [Dependency] private SharedStunSystem _stun = default!;
@@ -86,15 +119,16 @@ public sealed partial class WFChassisPanelSystem
         if (CompOrNull<BodyPartComponent>(part)?.Body != body)
             return false;
 
-        var done = isolate ? _isolation.TryIsolate(part) : _isolation.TryRestore(part);
-        if (!done)
+        if (!_isolation.TrySetUserIsolated(part, isolate, out var deferred))
         {
             if (isolate)
                 _popup.PopupEntity(Loc.GetString("wf-chassis-isolate-refuse"), body, user);
             return false;
         }
 
-        _popup.PopupEntity(Loc.GetString(isolate ? "wf-chassis-isolate-done" : "wf-chassis-restore-done",
+        // Low power has the limb cut already: the choice is kept for when power returns.
+        var done = isolate ? "wf-chassis-isolate-done" : "wf-chassis-restore-done";
+        _popup.PopupEntity(Loc.GetString(deferred && !isolate ? "wf-chassis-restore-low-power" : done,
             ("part", part)), body, user);
         PushState(body);
         return true;
@@ -239,6 +273,9 @@ public sealed partial class WFChassisPanelSystem
         if (HasComp<WFChassisRebootComponent>(body))
             return "wf-chassis-reboot-refuse-busy";
 
+        if (HasComp<WFLowPowerComponent>(body))
+            return "wf-chassis-overclock-refuse-low-power";
+
         if (TryGetCell(body, out var cell) && ChargeFraction(cell.Value.Comp) < OverclockMinCharge)
             return "wf-chassis-overclock-refuse-charge";
 
@@ -272,7 +309,7 @@ public sealed partial class WFChassisPanelSystem
         }
     }
 
-    /// <summary>One overclock tick: extra drain on the cell and heat in the legs and torso.</summary>
+    /// <summary>One overclock tick: extra drain on the cell, heat in the legs and torso, and what the heat does.</summary>
     private void Strain(EntityUid body)
     {
         if (TryGetCell(body, out var cell))
@@ -289,6 +326,45 @@ public sealed partial class WFChassisPanelSystem
         {
             if (bodyPart.PartType is BodyPartType.Leg or BodyPartType.Torso)
                 _wounds.CreateOrMergeWound(part, OverheatingWound, OverclockHeat);
+        }
+
+        Overheat(body);
+    }
+
+    /// <summary>
+    /// The hotter the core, the worse it gets: sparks more and more often (every tick near the cut-off), then
+    /// shorts in the limbs (WolfmedShortCircuitSystem arcs and stuns on each), then the torso itself cooks.
+    /// </summary>
+    private void Overheat(EntityUid body)
+    {
+        var heat = TorsoHeat(body);
+        var sparkChance = heat >= OverclockSparkCertain
+            ? 1f
+            : OverclockSparkChance + (1f - OverclockSparkChance) * heat.Float() / OverclockSparkCertain.Float();
+        if (_random.Prob(Math.Clamp(sparkChance, 0f, 1f)))
+        {
+            Spawn(SparkEffect, _transform.GetMapCoordinates(body));
+            _audio.PlayPvs(SparkSound, body, AudioParams.Default.WithVariation(0.1f));
+        }
+
+        if (heat > OverclockShortFrom &&
+            _random.Prob(Math.Clamp((heat - OverclockShortFrom).Float() / OverclockShortSpan, 0f, 1f)))
+        {
+            var limbs = _body.GetBodyChildren(body)
+                .Where(part => WFChassisIsolationSystem.CanIsolate(part.Component))
+                .Select(part => part.Id)
+                .ToList();
+            if (limbs.Count > 0)
+                _wounds.CreateOrMergeWound(_random.Pick(limbs), ShortCircuitWound, OverclockShortSeverity);
+        }
+
+        if (heat < OverclockCookFrom)
+            return;
+
+        foreach (var (torso, _) in _body.GetBodyChildrenOfType(body, BodyPartType.Torso))
+        {
+            _damageRouting.TryApplyPartDamage(body, torso, new DamageSpecifier(_prototypes.Index(CookDamageType), OverclockCookDamage));
+            break;
         }
     }
 

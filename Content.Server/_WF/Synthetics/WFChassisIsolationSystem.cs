@@ -65,6 +65,7 @@ public sealed class WFChassisIsolationSystem : EntitySystem
         var couldEnable = isolated.CouldEnable;
         RemComp<WFIsolatedPartComponent>(part);
         RemComp<WFIsolatedPainComponent>(part);
+        RemComp<WFLowPowerPartComponent>(part);
 
         if (!TryComp(part, out BodyPartComponent? bodyPart))
             return true;
@@ -90,6 +91,57 @@ public sealed class WFChassisIsolationSystem : EntitySystem
             _pain.SetPain((part, pain), FixedPoint2.Max(remembered, pain.WoundPain));
 
         Refresh(body, part);
+        return true;
+    }
+
+    /// <summary>Isolated by the panel's user, as opposed to cut by low power alone.</summary>
+    public bool IsUserIsolated(EntityUid part) =>
+        HasComp<WFIsolatedPartComponent>(part) &&
+        (!TryComp(part, out WFLowPowerPartComponent? lowPower) || lowPower.UserIsolated);
+
+    /// <summary>
+    /// The panel's isolate or restore. On a limb low power has cut it only records the choice, which applies once
+    /// power returns; restoring a limb that is only unpowered is refused. Deferred is true when only recorded.
+    /// </summary>
+    public bool TrySetUserIsolated(EntityUid part, bool isolate, out bool deferred)
+    {
+        deferred = false;
+        if (!TryComp(part, out WFLowPowerPartComponent? lowPower))
+            return isolate ? TryIsolate(part) : TryRestore(part);
+
+        if (lowPower.UserIsolated == isolate)
+            return false;
+
+        lowPower.UserIsolated = isolate;
+        deferred = true;
+        return true;
+    }
+
+    /// <summary>Cuts a limb for low power, as isolation does, remembering whether the user had isolated it already.</summary>
+    public bool TryCutPower(EntityUid part)
+    {
+        if (HasComp<WFLowPowerPartComponent>(part))
+            return false;
+
+        var user = HasComp<WFIsolatedPartComponent>(part);
+        if (!user && !TryIsolate(part))
+            return false;
+
+        EnsureComp<WFLowPowerPartComponent>(part).UserIsolated = user;
+        return true;
+    }
+
+    /// <summary>Gives a limb its power back; one the user had isolated stays isolated.</summary>
+    public bool TryRestorePower(EntityUid part)
+    {
+        if (!TryComp(part, out WFLowPowerPartComponent? lowPower))
+            return false;
+
+        var user = lowPower.UserIsolated;
+        RemComp<WFLowPowerPartComponent>(part);
+        if (!user)
+            TryRestore(part);
+
         return true;
     }
 
@@ -127,6 +179,15 @@ public sealed class WFChassisIsolationSystem : EntitySystem
         foreach (var uid in stale)
             TryRestore(uid);
     }
+}
+
+/// <summary>A limb cut by low power rather than by the panel; isolated the same way while it lasts.</summary>
+[RegisterComponent]
+public sealed partial class WFLowPowerPartComponent : Component
+{
+    /// <summary>The user isolated it too: it stays isolated when power returns.</summary>
+    [DataField]
+    public bool UserIsolated;
 }
 
 /// <summary>The pain an isolated part carried when its sensors were cut, given back on restore.</summary>

@@ -10,6 +10,7 @@ wf-chassis-link-done-target = { CAPITALIZE(THE($user)) } is linked into your cha
 wf-chassis-isolate-done = Servos and sensors in { THE($part) } cut.
 wf-chassis-restore-done = { CAPITALIZE(THE($part)) } is back online.
 wf-chassis-isolate-refuse = That part can't be isolated.
+wf-chassis-restore-low-power = { CAPITALIZE(THE($part)) } stays dark until power returns.
 
 wf-chassis-detach-done = { CAPITALIZE(THE($part)) } comes off { THE($target) } in one piece.
 wf-chassis-detach-done-owner = Your coupling releases. { CAPITALIZE(THE($part)) } comes off.
@@ -25,6 +26,7 @@ wf-chassis-overclock-off = Servos back at rating.
 wf-chassis-overclock-refuse-shutdown = The chassis is shut down.
 wf-chassis-overclock-refuse-charge = Charge too low to overclock.
 wf-chassis-overclock-refuse-heat = Core too hot to overclock.
+wf-chassis-overclock-refuse-low-power = No power to overclock with.
 wf-chassis-overclock-auto-off = Overclock off. { $reason }
 
 wf-chassis-status-nominal = All systems nominal.
@@ -32,4 +34,5 @@ wf-chassis-status-shutdown = Shut down. Awaiting power.
 wf-chassis-status-reboot = Rebooting...
 wf-chassis-status-bay-open = Bay open. Plating loose.
 wf-chassis-status-overclocked = Servos overclocked.
+wf-chassis-status-low-power = Low power. One arm, crawl speed. Seat a charged cell.
 
