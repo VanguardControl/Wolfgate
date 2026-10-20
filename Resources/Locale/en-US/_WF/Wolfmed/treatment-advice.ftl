@@ -337,6 +337,12 @@ wolfmed-treatment-step-wolfmed-overheating-wound-1 = No tool reaches it. The par
 wolfmed-treatment-step-wolfmed-overheating-wound-2 = It cools faster in a cold room or under anything cold.
 wolfmed-treatment-step-wolfmed-overheating-wound-3 = Fastest of all, hose the patient down with water or a fire extinguisher.
 
+# Synthetics: a chassis limb put back on by hand.
+wolfmed-treatment-short-wolfmed-loose-coupling-wound = A limb put back on by hand. It works, badly, until the coupling is spliced.
+wolfmed-treatment-step-wolfmed-loose-coupling-wound-1 = Select the limb on the doll.
+wolfmed-treatment-step-wolfmed-loose-coupling-wound-2 = Use a cable coil on the chassis until it clears.
+wolfmed-treatment-avoid-wolfmed-loose-coupling-wound-1 = A welding tool does not reach the coupling.
+
 # Conditions ------------------------------------------------------------------
 
 wolfmed-treatment-short-cond-bleeding = This part is losing blood. Gauze slows it, sutures close it, a tourniquet stops a limb outright.

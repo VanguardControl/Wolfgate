@@ -707,6 +707,19 @@
     tool: SprayBottleWater
     done: [ Cooled ]
 
+# Synthetics: a limb put back on by hand (_WF/Synthetics/wounds.yml). The cable coil splices the coupling.
+- type: wolfmedTreatmentProcedure
+  id: WFWolfmedLooseCouplingWound
+  summary: wolfmed-treatment-short-wolfmed-loose-coupling-wound
+  steps:
+  - text: wolfmed-treatment-step-wolfmed-loose-coupling-wound-1
+    done: [ PartTargeted ]
+  - text: wolfmed-treatment-step-wolfmed-loose-coupling-wound-2
+    tool: CableApcStack
+    done: [ SubjectGone ]
+  avoid:
+  - wolfmed-treatment-avoid-wolfmed-loose-coupling-wound-1
+
 - type: wolfmedTreatmentProcedure
   id: CondBleeding
   summary: wolfmed-treatment-short-cond-bleeding

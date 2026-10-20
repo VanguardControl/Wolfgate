@@ -1,0 +1,8 @@
+# The synthetic readout's line for a limb put back on by hand (see wounds.yml).
+
+- type: syntheticHudLine
+  id: WFSyntheticHudLooseCoupling
+  wound: WFWolfmedLooseCouplingWound
+  line: wf-synthetic-line-loose
+  severity: Warn
+  advice: wf-synthetic-advice-loose
