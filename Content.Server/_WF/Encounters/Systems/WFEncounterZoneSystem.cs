@@ -38,6 +38,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WarLevelSystem _warLevel = default!;
     [Dependency] private WFCrewStealthSystem _stealth = default!;
+    [Dependency] private WFCrewSparedSystem _spared = default!;
 
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan WarnCooldown = TimeSpan.FromSeconds(45);
@@ -407,6 +408,15 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             // radio. So does anyone flying with one of its people.
             if (company.Length > 0 && (crewed.Flags.Contains(company) || crewed.Aboard.Contains(company)))
                 continue;
+
+            // Nor is a player vessel its side has sworn never to fire on, or any player vessel for a ship that minds
+            // only NPCs. Their fire is still answered.
+            if (ship.NpcTargetsOnly || _spared.Spared(ship.Grid, intruder))
+            {
+                Release(encounter, ship, intruder);
+                _alerts.EndZoneWarning(ship.Grid, intruder);
+                continue;
+            }
 
             // Neutral companies, and ships berthed with one, are left alone whatever their IFF says.
             if (IsNeutral(ship, intruder, crewed))

@@ -27,6 +27,7 @@ namespace Content.Server._WF.NpcCrew.Systems;
 public sealed partial class WFGunnerDutySystem : EntitySystem
 {
     [Dependency] private WFCrewAlertSystem _alerts = default!;
+    [Dependency] private WFCrewSparedSystem _spared = default!;
     [Dependency] private Robust.Shared.Random.IRobustRandom _skillRandom = default!;
     [Dependency] private WFCrewObjectiveSystem _objectives = default!;
     [Dependency] private WFCrewSecuritySystem _security = default!;
@@ -377,7 +378,7 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     private float? Engageable(EntityUid uid, EntityUid grid, WFCrewComponent crew, WFGunnerDutyComponent duty,
         MapCoordinates here, EntityUid ship, bool hostile)
     {
-        if (ship == grid || TerminatingOrDeleted(ship))
+        if (ship == grid || TerminatingOrDeleted(ship) || _spared.Spared(grid, ship))
             return null;
         // A boarding party's ship only answers ship guns with its own.
         if (HasComp<WFHoldFireComponent>(grid) && !_alerts.FiredShipGuns(grid, crew.Group, ship))

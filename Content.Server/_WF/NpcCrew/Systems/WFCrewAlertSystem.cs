@@ -26,6 +26,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     [Dependency] private WFCrewShipStatusSystem _status = default!;
     [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private WFCrewStealthSystem _stealth = default!;
+    [Dependency] private WFCrewSparedSystem _spared = default!;
 
     private const string Vision = "VisionRadius";
     private const string AggroVision = "AggroVisionRadius";
@@ -77,7 +78,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// <summary>Explicit incoming fire permits retaliation even against a normally friendly company.</summary>
     public bool IsHostileShip(EntityUid grid, string group, EntityUid target)
     {
-        if (TerminatingOrDeleted(grid) || !_alerts.TryGetValue((grid, group), out var alert))
+        if (TerminatingOrDeleted(grid) || _spared.Spared(grid, target) || !_alerts.TryGetValue((grid, group), out var alert))
             return false;
         var attacked = alert.Vessels.TryGetValue(target, out var until) && _timing.CurTime < until;
         if (!attacked && (!alert.DockingVessels.Contains(target)
@@ -159,7 +160,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// </summary>
     private bool Excuse(EntityUid grid, EntityUid attacker)
     {
-        if (OwnKind(grid, attacker))
+        if (OwnKind(grid, attacker) || _spared.Spared(grid, attacker))
             return true;
         if (KnownAttacker(grid, attacker))
             return false;
@@ -182,7 +183,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// <summary>Whether a vessel's recent fire on a ship is being let pass: a friend's, or a few strays from its own side.</summary>
     public bool IsExcused(EntityUid grid, EntityUid attacker)
     {
-        if (OwnKind(grid, attacker))
+        if (OwnKind(grid, attacker) || _spared.Spared(grid, attacker))
             return true;
         if (KnownAttacker(grid, attacker))
             return false;
@@ -390,7 +391,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     private void AlertShip(EntityUid grid, string group, EntityUid attacker, bool retaliation = true, bool gunfire = false)
     {
         if (grid == attacker || !HasComp<MapGridComponent>(grid) || !IsVessel(attacker)
-            || Transform(grid).MapID != Transform(attacker).MapID)
+            || Transform(grid).MapID != Transform(attacker).MapID || _spared.Spared(grid, attacker))
             return;
         var key = (grid, group);
         if (!_alerts.TryGetValue(key, out var alert))

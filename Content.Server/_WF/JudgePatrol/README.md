@@ -7,7 +7,8 @@ their spacing, and replaces a lost or ended one after `respawn` seconds, opposit
 
 `WFStationPatrolCaelestinus` keeps two judge ships (`WFEncounterJudgePatrol`: Hornet, Lightning, Petra or Roswell,
 a pilot, a gunner and two guards) 2000 m out round Caelestinus Central. They fly as `WFJudges`, at war only with the
-Reavers, the ADS and the corsairs: those are fought on sight within 1500 m and driven 2500 m off. Hostile drones
+Reavers, the ADS and the corsairs: their NPC ships are fought on sight within 1500 m and driven 2500 m off. With
+`npcTargetsOnly` their zones never take on a player ship, whatever its flag. Hostile drones
 (`HostileDroneGrid`) within the patrol's `droneRange` (6000 m) of the station get an attack order from every ship,
 which flies back to its orbit once the drone is down or gone; Caelestinus itself deletes drones inside 4000 m. Captains are never
 warned or fired on, and a player vessel may land 40 stray ship hits in 30 s on one (`strayHits` on
@@ -36,6 +37,7 @@ starts its respawn timer.
 
 - [`Content.IntegrationTests/Tests/_WF/JudgePatrol/WFCrewTest.JudgeStrays.cs`](../../../Content.IntegrationTests/Tests/_WF/JudgePatrol/WFCrewTest.JudgeStrays.cs)
 - [`Content.IntegrationTests/Tests/_WF/JudgePatrol/WFEncounterTest.KnownThreats.cs`](../../../Content.IntegrationTests/Tests/_WF/JudgePatrol/WFEncounterTest.KnownThreats.cs)
+- [`Content.IntegrationTests/Tests/_WF/JudgePatrol/WFEncounterTest.NpcTargetsOnly.cs`](../../../Content.IntegrationTests/Tests/_WF/JudgePatrol/WFEncounterTest.NpcTargetsOnly.cs)
 - [`Content.IntegrationTests/Tests/_WF/JudgePatrol/WFEncounterTest.StationPatrol.cs`](../../../Content.IntegrationTests/Tests/_WF/JudgePatrol/WFEncounterTest.StationPatrol.cs)
 
 ### Prototypes

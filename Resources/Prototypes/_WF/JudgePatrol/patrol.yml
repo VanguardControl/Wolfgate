@@ -95,6 +95,7 @@
     attackRange: 400
     zoneTargets: AtWar
     knownThreatsOnly: true # player hulls running dark are left alone until they fire
+    npcTargetsOnly: true # no player ship is a target until its fire runs past the judges' 40 stray hits
     objectives:
     - kind: Circle
       target: "@origin"

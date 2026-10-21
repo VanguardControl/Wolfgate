@@ -233,6 +233,13 @@ public sealed partial class WFEncounterShip
     [DataField]
     public bool KnownThreatsOnly;
 
+    /// <summary>
+    /// Takes on only NPC ships: no player ship is warned or fired on by its zones, only answered once its fire runs
+    /// past the crew's stray allowance.
+    /// </summary>
+    [DataField]
+    public bool NpcTargetsOnly;
+
     /// <summary>Player ships of another company inside this range are told over the radio to turn away.</summary>
     [DataField]
     public float WarnRange;
