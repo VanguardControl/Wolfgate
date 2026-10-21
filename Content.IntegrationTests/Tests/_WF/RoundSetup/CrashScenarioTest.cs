@@ -210,7 +210,11 @@ public sealed class CrashScenarioTest
                 var actor = em.SpawnEntity("MobHuman", em.GetComponent<TransformComponent>(helm).Coordinates);
                 var open = new ActivatableUIOpenAttemptEvent(actor);
                 em.EventBus.RaiseLocalEvent(helm, open);
-                Assert.That(open.Cancelled, Is.False, "The helm stayed locked after the crash.");
+                var helmGrid = em.GetComponent<TransformComponent>(helm).GridUid;
+                Assert.That(open.Cancelled, Is.False, $"The helm stayed locked after the crash: grid={em.ToPrettyString(helmGrid)} crashed={em.ToPrettyString(crashed)} "
+                    + $"gridCrashed={(helmGrid is { } g && em.TryGetComponent<WFCrashScenarioComponent>(g, out var gc) ? gc.Crashed.ToString() : "none")} "
+                    + $"powered={(em.TryGetComponent<Content.Server.Power.Components.ApcPowerReceiverComponent>(helm, out var power) ? power.Powered.ToString() : "n/a")} "
+                    + $"lock={(em.TryGetComponent<Content.Shared.Shuttles.Components.ShuttleConsoleLockComponent>(helm, out var lk) ? IsLocked(lk).ToString() : "n/a")}");
                 em.DeleteEntity(actor);
             }
 
@@ -221,6 +225,10 @@ public sealed class CrashScenarioTest
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();
     }
+
+#pragma warning disable RA0002
+    private static bool IsLocked(Content.Shared.Shuttles.Components.ShuttleConsoleLockComponent lk) => lk.Locked;
+#pragma warning restore RA0002
 
     /// <summary>Destroyed preparations cannot grant a replacement ship or borrow another lobby's spawn.</summary>
     [Test]
