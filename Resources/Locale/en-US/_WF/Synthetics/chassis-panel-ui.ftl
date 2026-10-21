@@ -1,7 +1,7 @@
 # Synthetics: the chassis panel window and the bay-open overlay. ALL CAPS, like the synthetic HUD.
 wf-chassis-ui-title = CHASSIS PANEL
-wf-chassis-ui-parts = PARTS
-wf-chassis-ui-components = COMPONENTS
+wf-chassis-ui-tab-parts = PARTS
+wf-chassis-ui-tab-components = COMPONENTS
 wf-chassis-ui-controls = CONTROLS
 
 wf-chassis-ui-col-part = PART

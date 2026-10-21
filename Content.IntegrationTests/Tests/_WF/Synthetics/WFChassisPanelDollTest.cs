@@ -34,6 +34,9 @@ public sealed class WFChassisPanelDollTest : GameTest
             var panel = window!;
             var doll = panel.Doll;
             Assert.That(doll, Is.Not.Null, "a connected client draws the doll.");
+            Assert.That(WFChassisPanelWindowTest.Descendants(panel.TabHost.GetChild(0)), Does.Contain(doll),
+                "the doll lives in the parts tab.");
+            Assert.That(WFChassisPanelWindowTest.Descendants(panel.TabHost.GetChild(1)), Does.Not.Contain(doll));
 
             int Lit() => WFChassisPanelWindowTest.Descendants(doll!).OfType<TextureRect>().Count(r => r.Visible);
             BaseButton Button(string style) => WFChassisPanelWindowTest.Descendants(doll!).OfType<BaseButton>()

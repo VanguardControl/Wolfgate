@@ -21,8 +21,8 @@ namespace Content.Client._WF.Synthetics;
 
 /// <summary>
 /// The chassis panel: a diagnostics terminal for a synthetic body's own parts and components, with the controls for
-/// them, as two tables (one grid each) with a body doll beside the parts. Rows are updated in place while the entry
-/// counts stay the same.
+/// them. A PARTS tab holds the parts table with a body doll beside it and a COMPONENTS tab holds the components
+/// table; the header and controls sit around the tabs. Rows are updated in place while the entry counts stay the same.
 /// </summary>
 [GenerateTypedNameReferences]
 public sealed partial class WFChassisPanelWindow : FancyWindow
@@ -46,6 +46,9 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
     /// <summary>Least width of the column that takes the leftover space (faults, component name).</summary>
     private const float ExpandMinWidth = 150;
 
+    /// <summary>Least height of a tab's scroll area, so the controls below it always stay on screen.</summary>
+    private const float TabMinHeight = 160;
+
     private const int PartColumns = 7;
     private const int OrganColumns = 6;
 
@@ -59,6 +62,10 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
 
     private readonly List<PartRow> _partRows = new();
     private readonly List<OrganRow> _organRows = new();
+    private readonly TerminalScroll _partsScroll = new() { HScrollEnabled = false, MinHeight = TabMinHeight };
+    private readonly TerminalScroll _organsScroll = new() { HScrollEnabled = false, MinHeight = TabMinHeight };
+    private readonly BoxContainer _partsHost = new() { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
+    private readonly BoxContainer _organsHost = new() { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
     private readonly GridContainer _partsGrid = Table(PartColumns);
     private readonly GridContainer _organsGrid = Table(OrganColumns);
     private WolfmedBodyDoll? _doll;
@@ -76,6 +83,19 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
     public event Action? OnToggleBay;
     public event Action? OnReboot;
     public event Action<bool>? OnOverclock;
+
+    /// <summary>Raised with the new tab index when the user switches tabs.</summary>
+    public event Action<int>? OnTabChanged;
+
+    /// <summary>The shown tab: 0 for the parts, 1 for the components. A state update never changes it.</summary>
+    public int CurrentTab
+    {
+        get => Tabs.CurrentTab;
+        set => Tabs.CurrentTab = Math.Clamp(value, 0, Tabs.ChildCount - 1);
+    }
+
+    /// <summary>The tab strip, whose children are the tabs in order.</summary>
+    public TabContainer TabHost => Tabs;
 
     /// <summary>The part rows, in the order the state listed them.</summary>
     public IReadOnlyList<PartRow> Parts => _partRows;
@@ -109,7 +129,18 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
         foreach (var label in new[] { PowerLabel, FluidLabel, SensorLabel, CoreLabel })
             Style(label, 11, Amber);
 
-        PartsHost.AddChild(Heading(Loc.GetString("wf-chassis-ui-parts")));
+        Tabs.PanelStyleBoxOverride = Box(Screen, Border, 4f);
+        Tabs.TabFontColorOverride = Amber;
+        Tabs.TabFontColorInactiveOverride = AmberDim;
+        Tabs.AddChild(_partsScroll);
+        Tabs.AddChild(_organsScroll);
+        TabContainer.SetTabTitle(_partsScroll, Loc.GetString("wf-chassis-ui-tab-parts"));
+        TabContainer.SetTabTitle(_organsScroll, Loc.GetString("wf-chassis-ui-tab-components"));
+        Tabs.OnTabChanged += tab => OnTabChanged?.Invoke(tab);
+
+        _partsScroll.AddChild(_partsHost);
+        _organsScroll.AddChild(_organsHost);
+
         AddHeader(_partsGrid, new[]
         {
             (Loc.GetString("wf-chassis-ui-col-part"), NameWidth),
@@ -141,9 +172,8 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
         }
 
         partsTable.AddChild(_partsGrid);
-        PartsHost.AddChild(partsTable);
+        _partsHost.AddChild(partsTable);
 
-        OrgansHost.AddChild(Heading(Loc.GetString("wf-chassis-ui-components")));
         AddHeader(_organsGrid, new[]
         {
             (Loc.GetString("wf-chassis-ui-col-slot"), SlotWidth),
@@ -153,7 +183,7 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
             (string.Empty, VitalWidth),
             (Loc.GetString("wf-chassis-ui-col-actions"), DisconnectWidth),
         });
-        OrgansHost.AddChild(_organsGrid);
+        _organsHost.AddChild(_organsGrid);
 
         var controlsHeading = Heading(Loc.GetString("wf-chassis-ui-controls"));
         ControlsHost.AddChild(controlsHeading);
@@ -305,7 +335,7 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
     {
         var offset = 0f;
         Control? walk = control;
-        while (walk != null && walk != BodyColumn)
+        while (walk != null && walk != _partsHost)
         {
             offset += walk.Position.Y;
             walk = walk.Parent;
@@ -314,11 +344,11 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
         if (walk == null)
             return;
 
-        var top = Body.GetScrollValue().Y;
+        var top = _partsScroll.GetScrollValue().Y;
         if (offset < top)
-            Body.VScrollTarget = MathF.Max(0f, offset - 4f);
-        else if (offset + control.Height > top + Body.Height)
-            Body.VScrollTarget = offset + control.Height - Body.Height + 4f;
+            _partsScroll.VScrollTarget = MathF.Max(0f, offset - 4f);
+        else if (offset + control.Height > top + _partsScroll.Height)
+            _partsScroll.VScrollTarget = offset + control.Height - _partsScroll.Height + 4f;
     }
 
     /// <summary>
