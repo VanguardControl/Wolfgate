@@ -32,6 +32,13 @@ public sealed class WolfmedOpticsSystem : EntitySystem
             return;
 
         var strain = EnsureComp<WolfmedOpticStrainComponent>(eyes);
+
+        // An organ at zero is destroyed on the next organ tick; strain clearing in between must not hand it health back.
+        if (eyes.Comp.Health <= FixedPoint2.Zero)
+        {
+            strain.Applied = FixedPoint2.Zero;
+            return;
+        }
         var target = FixedPoint2.New(eyes.Comp.MaxHealth.Float() * Math.Clamp(args.Damage, 0, sight.MaxDamage) / sight.MaxDamage);
         var room = FixedPoint2.Max(FixedPoint2.Zero, strain.Applied + eyes.Comp.Health - FixedPoint2.New(1));
         target = FixedPoint2.Min(target, room);
