@@ -10,6 +10,7 @@ wf-shuttle-console-atmosphere-mode-tooltip = Atmosphere mode:
 
 ## Descent gates
 wf-flight-descend-use-button = Use the console's "enter atmosphere" control to leave orbit.
+wf-flight-landing-blocked = Can't set down here. There's something solid under the hull.
 wf-flight-busy = This hull is already under way.
 wf-flight-descent-refused = Atmospheric entry refused.
 wf-flight-lift-warning = Atmospheric lift is { $ratio } : 1. Confirm descent to proceed.

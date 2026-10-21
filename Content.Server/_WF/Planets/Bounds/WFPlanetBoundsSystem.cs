@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Server.Salvage;
+using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Robust.Shared.Configuration;
@@ -82,9 +83,20 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
         Dirty(layer, bounds);
     }
 
-    /// <summary>The circle of a map, from a layer's own bounds or an orbit layer's radar copy; false where unbounded.</summary>
+    /// <summary>
+    /// The circle of a map, from a layer's own bounds, an orbit layer's radar copy or, for the gap between two layers,
+    /// the layers either side; false where unbounded.
+    /// </summary>
     public bool TryGetBounds(EntityUid map, out Vector2 centre, out float radius)
     {
+        if (TryComp<CEZTransitMapComponent>(map, out var transit))
+        {
+            if (transit.LowerMap is { } lower && TryGetBounds(lower, out centre, out radius))
+                return true;
+            if (transit.UpperMap is { } upper && TryGetBounds(upper, out centre, out radius))
+                return true;
+        }
+
         if (TryComp<WFPlanetBoundsComponent>(map, out var bounds))
         {
             centre = bounds.Centre;

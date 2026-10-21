@@ -5,6 +5,7 @@ using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.Planets.Flight;
 using Content.Shared._WF.Planets;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics.Systems;
 
@@ -24,6 +25,9 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
     /// <summary>Metres a second a hull past the world's edge is pushed back towards its centre.</summary>
     public const float PushBackSpeed = 2f;
 
+    /// <summary>Metres past the edge a hull may get, through the push back, before it is put back inside outright.</summary>
+    public const float HardEdgeSlack = 12f;
+
     /// <inheritdoc/>
     public override void Update(float frameTime)
     {
@@ -37,6 +41,9 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
             if (HasComp<MapComponent>(uid))
                 continue;
 
+            // Every layer of a bounded world turns hulls back at its edge, the gaps between layers and the ground too.
+            TurnBack(uid, body, xform);
+
             if (!TryGetLimits(uid, xform, out var maxSpeed, out var damping))
             {
                 Release(uid, body);
@@ -45,25 +52,34 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
 
             Hold(uid, body, damping);
             Clamp(uid, body, maxSpeed);
-            TurnBack(uid, body, xform);
         }
     }
 
     /// <summary>
     /// A hull flying out past a bounded world's circle loses its outward speed and is pushed back in: a soft wall,
-    /// where the ground below has its hard one.
+    /// where the ground below has its hard one. Below orbit, one that still gets well past it is put back inside.
     /// </summary>
     private void TurnBack(EntityUid grid, PhysicsComponent body, TransformComponent xform)
     {
-        if (xform.MapUid is not { } map || !TryComp<WFPlanetBoundsComponent>(map, out var bounds) || bounds.Radius <= 0f)
+        // Only what moves under its own power: cities, wrecks and broken-off terrain stay where they were put.
+        if (body.BodyType != BodyType.Dynamic || HasComp<WFDetachedTerrainComponent>(grid) || HasComp<ForceAnchorComponent>(grid)
+            || xform.MapUid is not { } map || !_bounds.TryGetBounds(map, out var centre, out var radius))
             return;
 
         var reach = _bounds.HullReach(grid) + WFPlanetBoundsSystem.HullMargin;
-        var offset = _transform.GetWorldPosition(xform) - bounds.Centre;
+        var offset = _transform.GetWorldPosition(xform) - centre;
         var distance = offset.Length();
 
-        if (distance <= 0f || distance + reach <= bounds.Radius)
+        if (distance <= 0f || distance + reach <= radius)
             return;
+
+        // Orbit is where ships arrive from FTL, anywhere; there the push back alone brings them in.
+        if (distance + reach > radius + HardEdgeSlack && !HasComp<WFOrbitLayerComponent>(map))
+        {
+            _bounds.ClampHull(grid);
+            _physics.SetLinearVelocity(grid, Vector2.Zero, body: body);
+            return;
+        }
 
         var outward = offset / distance;
         var velocity = body.LinearVelocity;

@@ -145,6 +145,47 @@ public sealed class PlanetBoundsTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A hull flying out of the circle is turned back on every layer, the ground too; one far out is put back inside.</summary>
+    [Test]
+    public async Task HullsAreTurnedBackAtTheEdgeOnEveryLayer()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var xforms = server.System<SharedTransformSystem>();
+        var bounds = server.System<WFPlanetBoundsSystem>();
+
+        await EnableBounded(pair);
+        var layers = await PlanetFixture.BuildStandalone(pair);
+        try
+        {
+            // Just past the edge in the air, flying outward.
+            var air = await PlanetFixture.BuildHull(pair, await MapIdOf(pair, layers[1]), new Vector2(Radius - 6, 0));
+            // Far out on the ground, where there is no flight drag at all.
+            var stray = await PlanetFixture.BuildHull(pair, await MapIdOf(pair, layers[0]), new Vector2(Radius + 60, 0));
+            float start = 0;
+            await server.WaitPost(() =>
+            {
+                start = xforms.GetWorldPosition(air).X;
+                server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>().SetLinearVelocity(air, new Vector2(8, 0));
+            });
+            await pair.RunTicksSync(pair.SecondsToTicks(3f));
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(bounds.IsHullInside(stray), Is.True, "A hull far outside the circle on the ground was left there.");
+                var velocity = entMan.GetComponent<Robust.Shared.Physics.Components.PhysicsComponent>(air).LinearVelocity;
+                Assert.That(velocity.X, Is.LessThanOrEqualTo(0f), "The hull is still flying outward past the edge.");
+                Assert.That(xforms.GetWorldPosition(air).X, Is.LessThan(start + 12f), "The hull got well past the edge.");
+            });
+        }
+        finally
+        {
+            await PlanetFixture.Teardown(pair, layers);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>The feature on, with a small circle and a preload that goes as fast as it can.</summary>
     private static async Task EnableBounded(TestPair pair)
     {

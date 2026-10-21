@@ -101,6 +101,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFFlight.cs`](Flight/CEZLevelsSystem.WFFlight.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFGravityCache.cs`](Flight/CEZLevelsSystem.WFGravityCache.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFLandingClearance.cs`](Flight/CEZLevelsSystem.WFLandingClearance.cs)
+- [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFLandingRefusal.cs`](Flight/CEZLevelsSystem.WFLandingRefusal.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFLiftoff.cs`](Flight/CEZLevelsSystem.WFLiftoff.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFVirtualMass.cs`](Flight/CEZLevelsSystem.WFVirtualMass.cs)
 - [`Content.Server/_WF/Planets/Flight/MoverController.WFAtmosphere.cs`](Flight/MoverController.WFAtmosphere.cs)
@@ -431,6 +432,8 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - grids parked on a planet orbit layer never fall.
   - partial landing-thruster lift slows the sink, and this is where lift lost begins.
   - the sink uses the lift-adjusted gravity.
+  - no setting down on walls or rock.
+  - a gentle set-down onto walls or rock holds just above them; a crash still comes down.
   - planetary landings can clear, land hard, break up or skid instead of only crashing.
   - leave clearance around planetary impact wrecks.
   - a lift-lost hull that touched down slowly enough lands hard and skids instead of exploding.
