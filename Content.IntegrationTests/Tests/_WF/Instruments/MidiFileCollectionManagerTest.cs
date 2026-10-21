@@ -40,11 +40,10 @@ public sealed class MidiFileCollectionManagerTest
         {
             await pair.Client.WaitAssertion(() => midis.RemoveAllMidiFiles());
 
-            // Add from a stream.
-            var ok = await midis.AddMidiFile(TestFile, new MemoryStream(TestBytes));
+            // Add from a stream, on the client thread: user data needs the client's IoC.
             await pair.Client.WaitAssertion(() =>
             {
-                Assert.That(ok, Is.True);
+                Assert.That(midis.AddMidiFile(TestFile, new MemoryStream(TestBytes)).GetAwaiter().GetResult(), Is.True);
                 Assert.That(midis.GetMidiFiles(), Contains.Item(TestFile));
                 Assert.That(res.UserData.ReadAllBytes(Dir / TestFile), Is.EqualTo(TestBytes));
                 Assert.That(midis.GetMidiData(TestFile), Is.EqualTo(TestBytes));
@@ -79,10 +78,10 @@ public sealed class MidiFileCollectionManagerTest
             });
 
             // Clear all.
-            await midis.AddMidiFile(new ResPath("1_unit_test.midi"), TestBytes);
-            await midis.AddMidiFile(new ResPath("2_unit_test.midi"), TestBytes);
             await pair.Client.WaitAssertion(() =>
             {
+                midis.AddMidiFile(new ResPath("1_unit_test.midi"), TestBytes).GetAwaiter().GetResult();
+                midis.AddMidiFile(new ResPath("2_unit_test.midi"), TestBytes).GetAwaiter().GetResult();
                 Assert.That(midis.GetMidiFiles().Count(), Is.EqualTo(3));
                 reset = false;
                 midis.RemoveAllMidiFiles();
