@@ -52,12 +52,10 @@ Marines Universe's AGPL-3.0; the art is CC-BY-SA-3.0 unless its `meta.json` says
 - [`Resources/Prototypes/_WF/Streets/Decals/hybrisa.yml`](../../../Resources/Prototypes/_WF/Streets/Decals/hybrisa.yml)
 - [`Resources/Prototypes/_WF/Streets/Decals/road.yml`](../../../Resources/Prototypes/_WF/Streets/Decals/road.yml)
 - [`Resources/Prototypes/_WF/Streets/Furniture/basketball_hoop.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/basketball_hoop.yml)
-- [`Resources/Prototypes/_WF/Streets/Furniture/benches.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/benches.yml)
 - [`Resources/Prototypes/_WF/Streets/Furniture/dumpsters.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/dumpsters.yml)
 - [`Resources/Prototypes/_WF/Streets/Furniture/fuel_pump.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/fuel_pump.yml)
 - [`Resources/Prototypes/_WF/Streets/Furniture/hybrisa_props.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/hybrisa_props.yml)
 - [`Resources/Prototypes/_WF/Streets/Furniture/phoneboxes.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/phoneboxes.yml)
-- [`Resources/Prototypes/_WF/Streets/Furniture/planter.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/planter.yml)
 - [`Resources/Prototypes/_WF/Streets/Furniture/statue.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/statue.yml)
 - [`Resources/Prototypes/_WF/Streets/Furniture/supermart.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/supermart.yml)
 - [`Resources/Prototypes/_WF/Streets/Furniture/trash.yml`](../../../Resources/Prototypes/_WF/Streets/Furniture/trash.yml)
@@ -121,8 +119,6 @@ Marines Universe's AGPL-3.0; the art is CC-BY-SA-3.0 unless its `meta.json` says
 - [`Resources/Textures/_WF/Streets/Structures/fences.rsi/`](../../../Resources/Textures/_WF/Streets/Structures/fences.rsi/)
 - [`Resources/Textures/_WF/Streets/Structures/fences_overgrown.rsi/`](../../../Resources/Textures/_WF/Streets/Structures/fences_overgrown.rsi/)
 - [`Resources/Textures/_WF/Streets/Structures/fences_spp.rsi/`](../../../Resources/Textures/_WF/Streets/Structures/fences_spp.rsi/)
-- [`Resources/Textures/_WF/Streets/Structures/Furniture/bench.rsi/`](../../../Resources/Textures/_WF/Streets/Structures/Furniture/bench.rsi/)
-- [`Resources/Textures/_WF/Streets/Structures/Furniture/hybrisa_planter.rsi/`](../../../Resources/Textures/_WF/Streets/Structures/Furniture/hybrisa_planter.rsi/)
 - [`Resources/Textures/_WF/Streets/Structures/hybrisa_fences.rsi/`](../../../Resources/Textures/_WF/Streets/Structures/hybrisa_fences.rsi/)
 - [`Resources/Textures/_WF/Streets/Structures/hybrisa_fences_electric.rsi/`](../../../Resources/Textures/_WF/Streets/Structures/hybrisa_fences_electric.rsi/)
 - [`Resources/Textures/_WF/Streets/Structures/hybrisa_machine_props.rsi/`](../../../Resources/Textures/_WF/Streets/Structures/hybrisa_machine_props.rsi/)
@@ -399,6 +395,11 @@ Marines Universe's AGPL-3.0; the art is CC-BY-SA-3.0 unless its `meta.json` says
 
 ## Non-modular edits
 
-None.
+- [`Resources/Prototypes/_RMC14/Entities/Structures/Furniture/bench.yml`](../../../Resources/Prototypes/_RMC14/Entities/Structures/Furniture/bench.yml)
+  - in the spawn menu's Streets group
+  - a vehicle drives through it
+- [`Resources/Prototypes/_RMC14/Entities/Structures/Furniture/hybrisa_planter.yml`](../../../Resources/Prototypes/_RMC14/Entities/Structures/Furniture/hybrisa_planter.yml)
+  - in the spawn menu's Streets group
+  - a vehicle drives through it
 
 <!-- WOLFGATE-GENERATED END -->

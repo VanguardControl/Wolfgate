@@ -223,12 +223,8 @@ entities:
     skip: [RMCWallPropDeadPilot, RMCWallPropDeadPilotAlt]
 
   # ---- Furniture -----------------------------------------------------------------------------------------------
-  - source: rmc
-    file: Resources/Prototypes/_RMC14/Entities/Structures/Furniture/bench.yml
-    out: Furniture/benches.yml
-  - source: rmc
-    file: Resources/Prototypes/_RMC14/Entities/Structures/Furniture/hybrisa_planter.yml
-    out: Furniture/planter.yml
+  # The benches and planter came in with the decor import (_RMC14/Entities/Structures/Furniture), which carries the
+  # Streets category and VehicleSmashable for them.
   - source: rmc
     file: Resources/Prototypes/_RMC14/Entities/Structures/Furniture/hybrisa_concrete_structure.yml
     out: Furniture/statue.yml
