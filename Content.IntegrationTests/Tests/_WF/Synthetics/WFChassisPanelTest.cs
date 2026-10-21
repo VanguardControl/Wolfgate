@@ -273,7 +273,8 @@ public sealed class WFChassisPanelTest : WolfmedGameTest
             Assert.That(before, Is.GreaterThan(FixedPoint2.Zero));
         });
 
-        await RunSeconds(3.5f);
+        // The 4 s reboot ends at 3 s here; the HUD refreshes every 0.5 s, so leave it two refreshes to catch up.
+        await RunSeconds(4f);
 
         await Server.WaitAssertion(() =>
         {
