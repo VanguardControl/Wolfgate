@@ -76,8 +76,15 @@ public sealed class PlanetCampTest
                 // Crazy camps: a fire with tents, and strangers round it; more strangers roam the open ground.
                 Assert.That(record.Sites.Count(site => site.Name == "wf-poi-crazy-camp"), Is.InRange(1, 2), "Merak has no crazy camp.");
                 var strangers = entities.EntityQuery<Content.Server._WF.Strangers.WFStrangerComponent>()
-                    .Count(stranger => entities.GetComponent<TransformComponent>(stranger.Owner).MapID == map);
-                Assert.That(strangers, Is.GreaterThanOrEqualTo(6), "Merak should have its strangers, at camp and wandering.");
+                    .Where(stranger => entities.GetComponent<TransformComponent>(stranger.Owner).MapID == map)
+                    .ToList();
+                Assert.That(strangers, Has.Count.GreaterThanOrEqualTo(6), "Merak should have its strangers, at camp and wandering.");
+                var campers = strangers.Where(stranger => stranger.Home is { } home
+                    && entities.GetComponent<MetaDataComponent>(home).EntityPrototype?.ID == "WFStrangerCampHome").ToList();
+                Assert.That(campers, Has.Count.GreaterThanOrEqualTo(2), "The crazy camp's strangers don't live there.");
+                Assert.That(campers.All(stranger => entities.GetComponent<MetaDataComponent>(stranger.Owner).EntityPrototype?.ID
+                    is "WFStrangerMugger" or "WFStrangerPreacher" or "WFStrangerBeggar"), Is.True, "Only camp types live at a camp.");
+                Assert.That(strangers.Any(stranger => stranger.Home == null), Is.True, "Some strangers should roam.");
             });
         }
         finally { await PlanetFixture.Teardown(pair, layers); }

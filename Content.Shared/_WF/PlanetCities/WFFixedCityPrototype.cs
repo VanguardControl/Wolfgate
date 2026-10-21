@@ -1,5 +1,6 @@
 using Content.Shared._WF.PlanetPois;
 using Content.Shared._WF.Planets;
+using Content.Shared.EntityTable.EntitySelectors;
 using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 
@@ -61,6 +62,42 @@ public sealed partial class WFFixedCityPrototype : IPrototype
     /// <summary>Roads cut from the city's own streets out to the edge of its footprint, where the world's roads join.</summary>
     [DataField]
     public List<WFFixedCityEntrance> Entrances = new();
+
+    /// <summary>What has become of the city this round, one picked by weight: overrun by something, or left alone.</summary>
+    [DataField]
+    public List<WFCityFate> Fates = new();
+}
+
+/// <summary>One way a city can be found: groups of something spread through its ground level, or nothing at all.</summary>
+[DataDefinition]
+public sealed partial class WFCityFate
+{
+    /// <summary>For the log.</summary>
+    [DataField(required: true)]
+    public string Name = string.Empty;
+
+    [DataField]
+    public float Weight = 1f;
+
+    /// <summary>One pick per member of a group; none for a city left alone.</summary>
+    [DataField]
+    public EntityTableSelector? Spawns;
+
+    [DataField]
+    public int MinGroups;
+
+    [DataField]
+    public int MaxGroups;
+
+    [DataField]
+    public int MinGroupSize = 1;
+
+    [DataField]
+    public int MaxGroupSize = 1;
+
+    /// <summary>Spawned where each group gathers, under the open sky: their home and a fire, say.</summary>
+    [DataField]
+    public List<EntProtoId> Gathering = new();
 }
 
 /// <summary>A straight road cut from a street tile in the ground level out to the edge of the city's footprint.</summary>

@@ -139,6 +139,7 @@ public sealed partial class WFPlanetPoiSystem
                     Origin = origin, Bounds = table.Roads != null || entry.MapPath != null ? reservation : actual,
                     TileCount = siteTiles.Count, Connection = entry.Connection,
                     Expeditions = entry.Expeditions, Difficulty = entry.Difficulty ?? table.Difficulty,
+                    Dwelling = entry.Dwelling,
                 };
                 if (entry.Trail && entry.Sockets.Count > 0)
                 {
@@ -216,6 +217,7 @@ public sealed partial class WFPlanetPoiSystem
             record.PendingRoamers = table.Roamers.ToList();
             record.PendingResidents = table.Residents;
             record.ResidentChance = table.ResidentChance;
+            record.ResidentHome = table.ResidentHome;
             record.RoamerCentre = centre;
             record.RoamerRadius = radius - table.EdgeMargin;
             record.RoamerInner = table.CentreClear + RoamerClearance;

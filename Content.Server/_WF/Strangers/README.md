@@ -1,11 +1,18 @@
 # Strangers
 
-Oddballs found on planets: in the wilderness, living in houses and other authored sites, and round the fires of crazy
-camps. Most notice a player in sight, walk up and hail them; the hail pops up for the player with Talk and Ignore,
+Oddballs found on planets: in the wilderness, living in houses, and round the fires of crazy camps. Most notice a player in sight, walk up and hail them; the hail pops up for the player with Talk and Ignore,
 and talking opens a Fallout-style conversation of the stranger's lines and the player's answers. A conversation can
 end in a sale (paid from cash in hand, else the bank), a hand-out, a mugging or a temper, after which the stranger's
 own brain takes over and he fights. Ignoring some of them is taken badly. Anyone can also start a conversation with
-the Talk verb, and a stranger fights whoever hurts him.
+the Talk verb, and a stranger fights whoever hurts him, gun or vehicle included, and his housemates join in. He goes
+for the vehicle his enemy sits in and climbs in after them if it's unlocked (`WFVehicleBoarder`, in `_WF/Vehicles`).
+With nobody left to fight for thirty seconds he calms down, but remembers: there's no more talking to someone in his
+bad books, and he goes for them again on sight.
+
+Roamers wander the world a leg at a time. A stranger who spawns in a home (`WFStrangerHome`) keeps to it: he warns off
+anyone he sees coming and attacks, with the rest of the home, anyone who comes in. The dealer, the conspiracist and the
+stalker live in houses (`dwelling` sites on the POI table, `WFStrangerHouseSpawner`); the mugger, the preacher and the
+beggar at crazy camps (`WFStrangersCamp`).
 
 The stalker never starts a conversation: he keeps five to nine metres behind someone, mutters now and then, and when
 they board a ship he isn't on, he turns up aboard it a little later at the far end of the deck.
@@ -13,7 +20,7 @@ they board a ship he isn't on, he turns up aboard it a little later at the far e
 The cast is in `Resources/Prototypes/_WF/Strangers`: a drug dealer, a mugger, a doomsday preacher, a conspiracy nut,
 a beggar and the stalker, with their dialogues (`wfStrangerDialogue`: nodes of a line, an action and the answers,
 which can cost spesos, hand over items and lead on). `WFStrangerRandomSpawner` picks one. Planet POI tables place them
-as roamers, as residents of authored sites (`residents`, `residentChance`) and in `WFCampCrazies` camps
+as roamers, as residents of dwellings (`residents`, `residentChance`, `residentHome`) and in `WFCampCrazies` camps
 (`_WF/PlanetPois/camps.yml`).
 
 Entry points: `WFStrangerSystem` (server), `WFStrangerClientSystem` (the hail and the dialogue window).
@@ -27,6 +34,7 @@ Entry points: `WFStrangerSystem` (server), `WFStrangerClientSystem` (the hail an
 
 - [`Content.Server/_WF/Strangers/WFStrangerComponent.cs`](WFStrangerComponent.cs)
 - [`Content.Server/_WF/Strangers/WFStrangerSystem.cs`](WFStrangerSystem.cs)
+- [`Content.Server/_WF/Strangers/WFStrangerSystem.Home.cs`](WFStrangerSystem.Home.cs)
 
 ### Shared
 

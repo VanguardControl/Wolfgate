@@ -1,16 +1,20 @@
 using System.Linq;
 using System.Numerics;
 using Content.Server._NF.Bank;
+using Content.Server._WF.Planets.Bounds;
+using Content.Server._WF.Vehicles.Npc;
 using Content.Server.Chat.Systems;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
 using Content.Server.Shuttles.Components;
 using Content.Shared._WF.Strangers;
+using Content.Shared._WF.Vehicles.Core;
 using Content.Shared.Chat;
 using Content.Shared.Damage;
 using Content.Shared.Examine;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Humanoid;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
@@ -28,9 +32,10 @@ namespace Content.Server._WF.Strangers;
 /// <summary>
 /// Strangers: they notice players, walk up and hail them, and talk them through a branching dialogue that can end in a
 /// sale, a mugging or a temper; or, for a stalker, keep a few metres back and turn up aboard the player's ship. Their own
-/// brain stays off while they do it and only takes over when they turn hostile.
+/// brain stays off while they do it and only takes over when they turn hostile, until there's nobody left to fight.
+/// Roamers wander the world; those with a home stay about it and guard it (see WFStrangerSystem.Home.cs).
 /// </summary>
-public sealed class WFStrangerSystem : EntitySystem
+public sealed partial class WFStrangerSystem : EntitySystem
 {
     [Dependency] private BankSystem _bank = default!;
     [Dependency] private ChatSystem _chat = default!;
@@ -48,6 +53,7 @@ public sealed class WFStrangerSystem : EntitySystem
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private SharedStackSystem _stacks = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private WFPlanetBoundsSystem _bounds = default!;
 
     private const float Interval = 0.5f;
 
@@ -56,6 +62,9 @@ public sealed class WFStrangerSystem : EntitySystem
 
     /// <summary>How long he leaves someone be after they've talked.</summary>
     private static readonly TimeSpan Cooldown = TimeSpan.FromMinutes(10);
+
+    /// <summary>How long a hostile stranger goes without anyone to fight before he calms down.</summary>
+    private static readonly TimeSpan CalmDelay = TimeSpan.FromSeconds(30);
 
     /// <summary>How far apart a conversation can stretch before he gives up on it.</summary>
     private const float ConversationRange = 4f;
@@ -70,7 +79,7 @@ public sealed class WFStrangerSystem : EntitySystem
         SubscribeNetworkEvent<WFStrangerChooseEvent>(OnChoose);
         SubscribeLocalEvent<WFStrangerComponent, GetVerbsEvent<ActivationVerb>>(OnVerbs);
         SubscribeLocalEvent<WFStrangerComponent, MapInitEvent>(OnMapInit);
-        SubscribeLocalEvent<WFStrangerComponent, DamageChangedEvent>(OnDamaged);
+        SubscribeLocalEvent<WFStrangerComponent, BeforeDamageChangedEvent>(OnDamaged);
     }
 
     private void OnMapInit(Entity<WFStrangerComponent> ent, ref MapInitEvent args)
@@ -79,21 +88,40 @@ public sealed class WFStrangerSystem : EntitySystem
         if (TryComp(ent, out HTNComponent? htn))
             _htn.SetHTNEnabled((ent, htn), false);
         ent.Comp.NextMutter = _timing.CurTime + ent.Comp.MutterInterval;
+        ent.Comp.Home = FindHome(ent);
     }
 
-    /// <summary>Whoever hurts him, he goes for.</summary>
-    private void OnDamaged(Entity<WFStrangerComponent> ent, ref DamageChangedEvent args)
+    /// <summary>
+    /// Whoever hurts him, he goes for, and his housemates with him. Read before the damage lands, as medical routing
+    /// applies a body's damage itself and the attacker doesn't reach the change.
+    /// </summary>
+    private void OnDamaged(Entity<WFStrangerComponent> ent, ref BeforeDamageChangedEvent args)
     {
-        if (!args.DamageIncreased || args.Origin is not { } attacker || attacker == ent.Owner || !HasComp<ActorComponent>(attacker))
+        if (!args.Damage.AnyPositive() || args.Origin is not { } origin || Culprit(origin) is not { } attacker || attacker == ent.Owner
+            || !_mobs.IsAlive(ent))
             return;
-        if (ent.Comp.Target == attacker && ent.Comp.Node != null)
-            EndConversation(ent, leave: false);
-        TurnOn(ent, attacker);
+        if (ent.Comp.Hostile && _factions.GetHostiles(ent.Owner).Contains(attacker))
+            return;
+        TurnOn(ent, attacker, rally: true);
+    }
+
+    /// <summary>Who is behind a hit: whoever fired it, or the vehicle it came from.</summary>
+    private EntityUid? Culprit(EntityUid origin)
+    {
+        var current = origin;
+        for (var i = 0; i < 6 && current.IsValid(); i++)
+        {
+            if (HasComp<MobStateComponent>(current) || HasComp<VehicleInteriorComponent>(current))
+                return current;
+            current = Transform(current).ParentUid;
+        }
+        return null;
     }
 
     private void OnVerbs(Entity<WFStrangerComponent> ent, ref GetVerbsEvent<ActivationVerb> args)
     {
-        if (!args.CanAccess || !args.CanInteract || !_mobs.IsAlive(ent) || !HasComp<ActorComponent>(args.User))
+        if (!args.CanAccess || !args.CanInteract || !_mobs.IsAlive(ent) || !HasComp<ActorComponent>(args.User)
+            || HoldsGrudge(ent, args.User))
             return;
         var user = args.User;
         args.Verbs.Add(new ActivationVerb
@@ -117,7 +145,13 @@ public sealed class WFStrangerSystem : EntitySystem
         {
             if (!_mobs.IsAlive(uid) || xform.MapUid is not { } map || Paused(map))
                 continue;
-            if (stranger.Behaviour == WFStrangerBehaviour.Stalk)
+            if (stranger.Hostile)
+                CalmDown((uid, stranger), now);
+            else if (Grudge((uid, stranger), xform) is { } grudge)
+                TurnOn((uid, stranger), grudge, rally: false);
+            else if (stranger.Home is { } home && TryComp(home, out WFStrangerHomeComponent? homeComp))
+                Guard((uid, stranger), (home, homeComp), xform, now);
+            else if (stranger.Behaviour == WFStrangerBehaviour.Stalk)
                 Stalk((uid, stranger), xform, now);
             else
                 Approach((uid, stranger), xform, now);
@@ -144,7 +178,10 @@ public sealed class WFStrangerSystem : EntitySystem
 
         stranger.Target ??= Nearest(ent, xform, now);
         if (stranger.Target is not { } mark)
+        {
+            Wander(ent, xform, now, null, stranger.WanderRange);
             return;
+        }
 
         if (stranger.Hailed)
         {
@@ -245,6 +282,13 @@ public sealed class WFStrangerSystem : EntitySystem
             return;
         if (ent.Comp.Node != null && ent.Comp.Target != user)
             return;
+        // He remembers: there's no talking to him once you're in his bad books.
+        if (HoldsGrudge(ent, user))
+        {
+            if (!ent.Comp.Hostile)
+                TurnOn(ent, user, rally: true);
+            return;
+        }
 
         _steering.Unregister(ent);
         ent.Comp.Target = user;
@@ -324,7 +368,7 @@ public sealed class WFStrangerSystem : EntitySystem
         switch (node.Action)
         {
             case WFStrangerAction.Hostile:
-                TurnOn(ent, user);
+                TurnOn(ent, user, rally: true);
                 break;
             case WFStrangerAction.Leave:
                 Finish(ent, user);
@@ -357,14 +401,76 @@ public sealed class WFStrangerSystem : EntitySystem
         _steering.Unregister(ent);
     }
 
-    /// <summary>He goes for the player: his own brain takes over, hostile to them alone.</summary>
-    private void TurnOn(Entity<WFStrangerComponent> ent, EntityUid user)
+    /// <summary>
+    /// He goes for someone: his own brain takes over, hostile to them alone and to the vehicle they're in. Rallied, the
+    /// others who live with him join in.
+    /// </summary>
+    private void TurnOn(Entity<WFStrangerComponent> ent, EntityUid user, bool rally)
     {
+        if (ent.Comp.Target == user && ent.Comp.Node != null)
+            EndConversation(ent, leave: false);
         Finish(ent, user);
         ent.Comp.Done[user] = TimeSpan.MaxValue;
+        ent.Comp.Hostile = true;
+        ent.Comp.CalmAt = null;
         _factions.AggroEntity(ent.Owner, user);
+        if (TryComp(user, out VehicleInteriorOccupantComponent? occupant) && Exists(occupant.Vehicle))
+            _factions.AggroEntity(ent.Owner, occupant.Vehicle);
         if (TryComp(ent, out HTNComponent? htn))
             _htn.SetHTNEnabled((ent, htn), true);
+
+        if (!rally || ent.Comp.Home is not { } home)
+            return;
+        var mates = EntityQueryEnumerator<WFStrangerComponent>();
+        while (mates.MoveNext(out var mate, out var stranger))
+        {
+            if (mate != ent.Owner && stranger.Home == home && _mobs.IsAlive(mate)
+                && !_factions.GetHostiles(mate).Contains(user))
+                TurnOn((mate, stranger), user, rally: false);
+        }
+    }
+
+    /// <summary>With nobody left to fight for a while he calms down and goes back to his business, grudges kept.</summary>
+    private void CalmDown(Entity<WFStrangerComponent> ent, TimeSpan now)
+    {
+        if (_factions.GetNearbyHostiles(ent.Owner, ent.Comp.SightRange * 1.5f).Any())
+        {
+            ent.Comp.CalmAt = null;
+            return;
+        }
+        ent.Comp.CalmAt ??= now + CalmDelay;
+        if (now < ent.Comp.CalmAt)
+            return;
+
+        ent.Comp.Hostile = false;
+        ent.Comp.CalmAt = null;
+        ent.Comp.NextWander = now;
+        if (TryComp(ent, out HTNComponent? htn))
+            _htn.SetHTNEnabled((ent, htn), false);
+        _steering.Unregister(ent);
+    }
+
+    /// <summary>Whether he has turned on this person before.</summary>
+    public bool HoldsGrudge(Entity<WFStrangerComponent> ent, EntityUid user)
+    {
+        return ent.Comp.Done.TryGetValue(user, out var until) && until == TimeSpan.MaxValue;
+    }
+
+    /// <summary>Someone he holds a grudge against, back in sight.</summary>
+    private EntityUid? Grudge(Entity<WFStrangerComponent> ent, TransformComponent xform)
+    {
+        if (!TryComp(ent, out FactionExceptionComponent? exceptions) || exceptions.Hostiles.Count == 0)
+            return null;
+        var here = _transform.GetMapCoordinates(ent, xform);
+        foreach (var enemy in exceptions.Hostiles)
+        {
+            if (TerminatingOrDeleted(enemy) || !_mobs.IsAlive(enemy) && !HasComp<WFOccupiedVehicleComponent>(enemy))
+                continue;
+            var there = _transform.GetMapCoordinates(enemy);
+            if (there.MapId == here.MapId && _examine.InRangeUnOccluded(here, there, ent.Comp.SightRange, null))
+                return enemy;
+        }
+        return null;
     }
 
     /// <summary>Cash in hand first, then the bank.</summary>
@@ -392,7 +498,7 @@ public sealed class WFStrangerSystem : EntitySystem
             stranger.Target = Nearest(ent, xform, now);
             stranger.MarkAboardSince = null;
             if (stranger.Target == null)
-                _steering.Unregister(ent);
+                Wander(ent, xform, now, null, stranger.WanderRange);
             return;
         }
 

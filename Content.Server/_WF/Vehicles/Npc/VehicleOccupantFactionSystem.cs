@@ -1,3 +1,4 @@
+using System.Linq;
 using Content.Shared._WF.Vehicles.Core;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
@@ -11,7 +12,8 @@ namespace Content.Server._WF.Vehicles.Npc;
 
 /// <summary>
 /// A vehicle with someone alive inside stands for them to NPCs: it takes the factions of its living occupants and counts
-/// as a live target, so whoever is hostile to the crew attacks the vehicle. Empty, it belongs to nobody.
+/// as a live target, so whoever is hostile to the crew attacks the vehicle. An NPC with a grudge against someone inside
+/// holds it against the vehicle too. Empty, it belongs to nobody.
 /// </summary>
 public sealed class VehicleOccupantFactionSystem : EntitySystem
 {
@@ -45,6 +47,7 @@ public sealed class VehicleOccupantFactionSystem : EntitySystem
                     continue;
 
                 occupied = true;
+                CarryGrudges(passenger, vehicle);
                 if (TryComp<NpcFactionMemberComponent>(passenger, out var member))
                 {
                     var factions = member.Factions;
@@ -67,6 +70,19 @@ public sealed class VehicleOccupantFactionSystem : EntitySystem
 
             _factions.ClearFactions((vehicle, current), false);
             _factions.AddFactions((vehicle, current), _wanted);
+        }
+    }
+
+    /// <summary>Whoever is out to get the passenger is out to get the vehicle he's sitting in.</summary>
+    private void CarryGrudges(EntityUid passenger, EntityUid vehicle)
+    {
+        if (!TryComp<FactionExceptionTrackerComponent>(passenger, out var tracker))
+            return;
+        foreach (var npc in tracker.Entities)
+        {
+            var hostiles = _factions.GetHostiles(npc).ToList();
+            if (hostiles.Contains(passenger) && !hostiles.Contains(vehicle))
+                _factions.AggroEntity(npc, vehicle);
         }
     }
 }

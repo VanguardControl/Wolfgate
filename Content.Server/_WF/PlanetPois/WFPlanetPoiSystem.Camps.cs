@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
+using Content.Server._WF.Strangers;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared.NPC.Components;
@@ -238,6 +239,9 @@ public sealed partial class WFPlanetPoiSystem
                     SpawnCampGuard(camp, new EntityCoordinates(ground, (Vector2) tile + new Vector2(0.5f)), pending.Group);
             }
 
+            if (camp.Home is { } home)
+                SpawnHome(home, new EntityCoordinates(ground, pending.Centre), pending.Reach + CampRing - 2f);
+
             if (camp.Residents is { } residents)
             {
                 var count = _random.Next(camp.MinResidents, camp.MaxResidents + 1);
@@ -251,6 +255,16 @@ public sealed partial class WFPlanetPoiSystem
                 }
             }
         }
+    }
+
+    /// <summary>Marks a camp or house as somewhere strangers live, so whoever lives there guards it.</summary>
+    private void SpawnHome(EntProtoId id, EntityCoordinates centre, float radius)
+    {
+        var home = Spawn(id, centre);
+        if (!TryComp(home, out WFStrangerHomeComponent? comp))
+            return;
+        comp.WarnRadius += radius - comp.Radius;
+        comp.Radius = radius;
     }
 
     /// <summary>One guard from the camp's profile, posted where he stands, on the camp's side.</summary>

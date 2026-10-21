@@ -61,13 +61,17 @@ public sealed partial class WFPlanetPoiTablePrototype : IPrototype
     [DataField]
     public List<WFPlanetCampEntry> Camps = new();
 
-    /// <summary>Who may be found living in an authored site, such as a house; spawned on its floor once the world exists.</summary>
+    /// <summary>Who may be found living in a dwelling site, such as a house; spawned on its floor once the world exists.</summary>
     [DataField]
     public EntProtoId? Residents;
 
-    /// <summary>The chance each authored site has a resident.</summary>
+    /// <summary>The chance each dwelling site has a resident.</summary>
     [DataField]
     public float ResidentChance;
+
+    /// <summary>Marks a lived-in site as its resident's home, which he guards; sized to the site.</summary>
+    [DataField]
+    public EntProtoId? ResidentHome;
 
     /// <summary>Big creatures set loose on the open ground each round, away from the landing zone.</summary>
     [DataField]
@@ -140,6 +144,10 @@ public sealed partial class WFPlanetPoiEntry
     /// <summary>An off-road site that a footpath links to the nearest road, from just outside its first socket.</summary>
     [DataField]
     public bool Trail;
+
+    /// <summary>A house or hideout someone may live in: the table's residents move in by its chance.</summary>
+    [DataField]
+    public bool Dwelling;
 }
 
 /// <summary>Whether a site has one entrance, multiple entrances, or no roads.</summary>

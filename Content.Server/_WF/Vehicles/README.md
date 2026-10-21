@@ -16,7 +16,10 @@ and use the horn, spotlight and overcharge button while driving. The driver turn
 carries the vehicle's mass scanner (`WFVehicleScannerSystem`): a HUD switch opens a radar that looks out from the
 vehicle, with its position, the world's terrain and its sites. A vehicle with someone alive inside takes their NPC
 factions and counts as a live target (`VehicleOccupantFactionSystem`, hooked into NPC target scoring and melee reach), so
-mobs hostile to the crew attack it; empty, it belongs to nobody. Leaving puts you on free floor you can walk to from the
+mobs hostile to the crew attack it, and an NPC's grudge against someone inside carries to the vehicle; empty, it
+belongs to nobody. NPCs with `WFVehicleBoarder` (wreck zombies, strangers) walk to the nearest doorway of an unlocked
+vehicle and climb in after the crew (`WFNpcBoardingSystem`); a locked one they attack from outside. A player in a cabin
+wakes NPCs round the vehicle as if standing there. Leaving puts you on free floor you can walk to from the
 hull, never behind a wall, a closed door or a deck edge; a vehicle walled in on every side keeps you inside. A prying tool
 on the vehicle opens the hardpoint window to fit or remove parts; a welder repairs them. A gunner picks a hardpoint in the
 seat's integrated weapon selector and aims with the cursor, and the turret turns to follow; rounds aimed at a point stop at
@@ -141,6 +144,8 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Server/_WF/Vehicles/Npc/NPCCombatSystem.Vehicles.cs`](Npc/NPCCombatSystem.Vehicles.cs)
 - [`Content.Server/_WF/Vehicles/Npc/NPCUtilitySystem.Vehicles.cs`](Npc/NPCUtilitySystem.Vehicles.cs)
 - [`Content.Server/_WF/Vehicles/Npc/VehicleOccupantFactionSystem.cs`](Npc/VehicleOccupantFactionSystem.cs)
+- [`Content.Server/_WF/Vehicles/Npc/WFNpcBoardingSystem.cs`](Npc/WFNpcBoardingSystem.cs)
+- [`Content.Server/_WF/Vehicles/NPCSystem.Vehicles.cs`](NPCSystem.Vehicles.cs)
 - [`Content.Server/_WF/Vehicles/Safety/ShipyardOrganicsSearchEvent.cs`](Safety/ShipyardOrganicsSearchEvent.cs)
 - [`Content.Server/_WF/Vehicles/Safety/VehicleSafetySystem.cs`](Safety/VehicleSafetySystem.cs)
 - [`Content.Server/_WF/Vehicles/Viewport/VehicleViewportSystem.cs`](Viewport/VehicleViewportSystem.cs)
@@ -179,6 +184,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Shared/_WF/Vehicles/Core/VehicleInteriorSystem.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleInteriorSystem.cs)
 - [`Content.Shared/_WF/Vehicles/Core/VehicleInteriorSystem.Demolition.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleInteriorSystem.Demolition.cs)
 - [`Content.Shared/_WF/Vehicles/Core/VehicleInteriorSystem.Eject.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleInteriorSystem.Eject.cs)
+- [`Content.Shared/_WF/Vehicles/Core/VehicleInteriorSystem.Npc.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleInteriorSystem.Npc.cs)
 - [`Content.Shared/_WF/Vehicles/Core/VehicleLockComponents.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleLockComponents.cs)
 - [`Content.Shared/_WF/Vehicles/Core/VehicleLockSystem.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleLockSystem.cs)
 - [`Content.Shared/_WF/Vehicles/Core/VehicleOverchargeComponent.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleOverchargeComponent.cs)
@@ -337,6 +343,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/GridVehicleSteeringTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/GridVehicleSteeringTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/HardpointPrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/HardpointPrototypeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/HardpointTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/HardpointTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Vehicles/NpcBoardingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/NpcBoardingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleAmmoTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleAmmoTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleArmedDataTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleArmedDataTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleArmedWeaponsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleArmedWeaponsTest.cs)
@@ -1019,6 +1026,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
   - bubbleSource in place of source
   - BubbleSource, the entity this listener sees the bubble on
 - [`Content.Server/NPC/Systems/NPCCombatSystem.Melee.cs`](../../NPC/Systems/NPCCombatSystem.Melee.cs): a vehicle is in reach once its hull is.
+- [`Content.Server/NPC/Systems/NPCSystem.cs`](../../NPC/Systems/NPCSystem.cs): a player in a vehicle's cabin is where the vehicle is.
 - [`Content.Server/NPC/Systems/NPCUtilitySystem.cs`](../../NPC/Systems/NPCUtilitySystem.cs): an occupied vehicle is a live target.
 - [`Content.Server/Shuttles/Systems/RadarConsoleSystem.cs`](../../Shuttles/Systems/RadarConsoleSystem.cs): a vehicle's scanner looks out from the vehicle, not from the seat inside it.
 - [`Content.Shared/Physics/CollisionGroup.cs`](../../../Content.Shared/Physics/CollisionGroup.cs): ground vehicle fixtures and vehicle blockers

@@ -70,6 +70,7 @@
     max: 4
     distance: 4
   residents: !type:NestedSelector
-    tableId: WFStrangers
+    tableId: WFStrangersCamp
+  home: WFStrangerCampHome
   minResidents: 2
   maxResidents: 4

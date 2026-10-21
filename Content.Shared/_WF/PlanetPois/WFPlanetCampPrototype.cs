@@ -41,6 +41,10 @@ public sealed partial class WFPlanetCampPrototype : IPrototype
     [DataField]
     public int MaxResidents;
 
+    /// <summary>Marks the camp as its residents' home, which they guard; sized to the camp when it's set down.</summary>
+    [DataField]
+    public EntProtoId? Home;
+
     /// <summary>The guards' role: its duty and engagement, and the profile's loadout for it.</summary>
     [DataField]
     public ProtoId<WFCrewRolePrototype> Role = "WFCrewMarine";

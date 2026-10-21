@@ -14,6 +14,8 @@
         next: menu
       - text: wf-stranger-dealer-no
         next: snubbed
+      - text: wf-stranger-dealer-threaten
+        next: snubbed
     menu:
       line: wf-stranger-dealer-menu
       options:
@@ -79,6 +81,8 @@
         next: prophecy
       - text: wf-stranger-preacher-mock
         next: cursed
+      - text: wf-stranger-preacher-threaten
+        next: wrath
     prophecy:
       line: wf-stranger-preacher-prophecy
       options:
@@ -98,6 +102,9 @@
     cursed:
       line: wf-stranger-preacher-cursed
       action: Leave
+    wrath:
+      line: wf-stranger-preacher-wrath
+      action: Hostile
 
 - type: wfStrangerDialogue
   id: WFStrangerDialogueConspiracist
@@ -111,6 +118,8 @@
         next: theory
       - text: wf-stranger-conspiracist-help
         next: offended
+      - text: wf-stranger-conspiracist-insult
+        next: snapped
     theory:
       line: wf-stranger-conspiracist-theory
       options:
@@ -119,12 +128,17 @@
         next: gift
       - text: wf-stranger-conspiracist-doubt
         next: offended
+      - text: wf-stranger-conspiracist-accuse
+        next: snapped
     gift:
       line: wf-stranger-conspiracist-gift
       action: Leave
     offended:
       line: wf-stranger-conspiracist-offended
       action: Leave
+    snapped:
+      line: wf-stranger-conspiracist-snapped
+      action: Hostile
 
 - type: wfStrangerDialogue
   id: WFStrangerDialogueBeggar
@@ -141,6 +155,8 @@
         broke: sorry
       - text: wf-stranger-beggar-refuse
         next: sad
+      - text: wf-stranger-beggar-mock
+        next: spite
     thanks:
       line: wf-stranger-beggar-thanks
       action: Leave
@@ -150,6 +166,9 @@
     sad:
       line: wf-stranger-beggar-sad
       action: Leave
+    spite:
+      line: wf-stranger-beggar-spite
+      action: Hostile
 
 # The stalker never starts a conversation; this is what he says when someone confronts him.
 - type: wfStrangerDialogue
@@ -163,6 +182,8 @@
         next: nobody
       - text: wf-stranger-stalker-leave
         next: okay
+      - text: wf-stranger-stalker-threaten
+        next: unmasked
     nobody:
       line: wf-stranger-stalker-nobody
       options:
@@ -170,3 +191,6 @@
         next: okay
     okay:
       line: wf-stranger-stalker-okay
+    unmasked:
+      line: wf-stranger-stalker-unmasked
+      action: Hostile

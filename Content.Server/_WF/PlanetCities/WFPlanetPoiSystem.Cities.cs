@@ -544,6 +544,7 @@ public sealed partial class WFPlanetPoiSystem
 
         created.Add(station);
         EnsureComp<WFPlanetCitiesComponent>(ground).Stations.Add(station);
+        RollCityFate(city, (ground, grid), siteTiles, created);
         Log.Info($"Built {city.ID} on {ToPrettyString(ground)} at {origin}, {levels.Count} levels.");
         return siteTiles;
     }

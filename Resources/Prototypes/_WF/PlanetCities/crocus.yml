@@ -55,3 +55,37 @@
   - N14WallRockIndestructible
   # Every level's tiles, Crocus's own coordinates; the underground rock is left out (terrain below).
   footprint: -105,-46,176,94
+  # What's become of the city this round.
+  fates:
+  - name: safe
+    weight: 3
+  - name: zombies
+    spawns: !type:EntSelector
+      id: WFWreckZombieVerda
+    minGroups: 6
+    maxGroups: 10
+    minGroupSize: 2
+    maxGroupSize: 4
+  - name: spiders
+    spawns: !type:EntSelector
+      id: MobGiantSpiderAngry
+    minGroups: 5
+    maxGroups: 8
+    minGroupSize: 1
+    maxGroupSize: 3
+  - name: crazies
+    weight: 2
+    spawns: !type:NestedSelector
+      tableId: WFStrangersCamp
+    minGroups: 3
+    maxGroups: 5
+    minGroupSize: 2
+    maxGroupSize: 4
+    gathering: [ WFStrangerCampHome, Bonfire ]
+  - name: flesh
+    spawns: !type:NestedSelector
+      tableId: WFCarcinomaAberrantFlesh
+    minGroups: 5
+    maxGroups: 8
+    minGroupSize: 2
+    maxGroupSize: 3

@@ -14,7 +14,7 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Tiles a roamer starts beyond the landing zone's edge.</summary>
     private const float RoamerClearance = 24f;
 
-    /// <summary>Somebody living in some of the authored sites, such as houses: one each, on open floor under its roof.</summary>
+    /// <summary>Somebody living in some of the dwellings, such as houses: one each, on open floor under its roof.</summary>
     private void SpawnResidents(EntityUid ground, MapGridComponent grid, WFPlanetPoiComponent record)
     {
         if (record.PendingResidents is not { } resident)
@@ -23,7 +23,7 @@ public sealed partial class WFPlanetPoiSystem
 
         foreach (var site in record.Sites)
         {
-            if (site.MapPath == null || site.Name.Id.StartsWith("wf-city-") || !_random.Prob(record.ResidentChance))
+            if (!site.Dwelling || !_random.Prob(record.ResidentChance))
                 continue;
 
             var floor = new List<Vector2i>();
@@ -35,8 +35,14 @@ public sealed partial class WFPlanetPoiSystem
                     && TryComp<Content.Shared.Light.Components.RoofComponent>(ground, out var roof) && _roof.IsRooved((ground, grid, roof), tile))
                     floor.Add(tile);
             }
-            if (floor.Count > 0)
-                Spawn(resident, new EntityCoordinates(ground, (Vector2) _random.Pick(floor) + new Vector2(0.5f)));
+            if (floor.Count == 0)
+                continue;
+            if (record.ResidentHome is { } home)
+            {
+                var size = (Vector2) site.Bounds.Size;
+                SpawnHome(home, new EntityCoordinates(ground, (Vector2) site.Bounds.Center), MathF.Max(size.X, size.Y) / 2f + 1f);
+            }
+            Spawn(resident, new EntityCoordinates(ground, (Vector2) _random.Pick(floor) + new Vector2(0.5f)));
         }
     }
 

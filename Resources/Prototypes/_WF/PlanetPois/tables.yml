@@ -4,8 +4,9 @@
 
 - type: wfPlanetPoiTable
   id: WFPoisAsclepiu
-  residents: WFStrangerRandomSpawner
-  residentChance: 0.4
+  residents: WFStrangerHouseSpawner
+  residentHome: WFStrangerHouseHome
+  residentChance: 0.6
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4
@@ -89,6 +90,7 @@
     minCount: 1
     maxCount: 1
     connection: Through
+    dwelling: true
     sockets:
     - offset: 0,-4
       direction: West
@@ -103,6 +105,7 @@
     maxCount: 3
     connection: Isolated
     trail: true
+    dwelling: true
     sockets:
     - offset: -1,-8
       direction: South
@@ -115,6 +118,7 @@
     maxCount: 2
     connection: Isolated
     trail: true
+    dwelling: true
     sockets:
     - offset: -1,-1
       direction: West
@@ -127,6 +131,7 @@
     maxCount: 1
     connection: Isolated
     trail: true
+    dwelling: true
     sockets:
     - offset: 12,2
       direction: East
@@ -161,8 +166,9 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisMerak
-  residents: WFStrangerRandomSpawner
-  residentChance: 0.4
+  residents: WFStrangerHouseSpawner
+  residentHome: WFStrangerHouseHome
+  residentChance: 0.6
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -266,6 +272,7 @@
     maxCount: 1
     connection: Isolated
     trail: true
+    dwelling: true
     sockets:
     - offset: 12,2
       direction: East
@@ -283,8 +290,9 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisFervidus
-  residents: WFStrangerRandomSpawner
-  residentChance: 0.4
+  residents: WFStrangerHouseSpawner
+  residentHome: WFStrangerHouseHome
+  residentChance: 0.6
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4
@@ -330,8 +338,9 @@
     name: wf-poi-fervidus-camp
 - type: wfPlanetPoiTable
   id: WFPoisThrascias
-  residents: WFStrangerRandomSpawner
-  residentChance: 0.4
+  residents: WFStrangerHouseSpawner
+  residentHome: WFStrangerHouseHome
+  residentChance: 0.6
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4
@@ -377,8 +386,9 @@
     name: wf-poi-thrascias-virology
 - type: wfPlanetPoiTable
   id: WFPoisAerumna
-  residents: WFStrangerRandomSpawner
-  residentChance: 0.4
+  residents: WFStrangerHouseSpawner
+  residentHome: WFStrangerHouseHome
+  residentChance: 0.6
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -430,8 +440,9 @@
     name: wf-poi-aerumna-mine
 - type: wfPlanetPoiTable
   id: WFPoisCarcinoma
-  residents: WFStrangerRandomSpawner
-  residentChance: 0.4
+  residents: WFStrangerHouseSpawner
+  residentHome: WFStrangerHouseHome
+  residentChance: 0.6
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4

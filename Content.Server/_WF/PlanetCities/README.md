@@ -14,7 +14,8 @@ and road entrances cut from the city's streets to the edge of its footprint, whe
 fixed city is placed before the world's other sites; one that finds no room is left out with a warning. Bare rock on
 the levels below the street (`terrain`) is dropped before loading where the layer under the world grows its own: the
 cavern, or the cavern's rock without its mouths on a world with caverns off. The city is built a level per tick,
-during the world's preload.
+during the world's preload. Each round it rolls one of its `fates`: left alone, or overrun by groups of something
+spread through its streets (Crocus: zombies, spiders, crazy camps or aberrant flesh), kept clear of its spawn points.
 
 **Generated cities** will be a city boundary cut into blocks by a street grid, blocks filled wall to wall with
 mapped plots, up to two floors above the street and a basement on the sewer level, and a sewer network under every
@@ -76,6 +77,7 @@ wade) and catwalks where it turns.
 - [`Content.Server/_WF/PlanetCities/WFPlanetCitiesComponent.cs`](WFPlanetCitiesComponent.cs)
 - [`Content.Server/_WF/PlanetCities/WFPlanetCitySystem.cs`](WFPlanetCitySystem.cs)
 - [`Content.Server/_WF/PlanetCities/WFPlanetPoiSystem.Cities.cs`](WFPlanetPoiSystem.Cities.cs)
+- [`Content.Server/_WF/PlanetCities/WFPlanetPoiSystem.CityFates.cs`](WFPlanetPoiSystem.CityFates.cs)
 
 ### Shared
 

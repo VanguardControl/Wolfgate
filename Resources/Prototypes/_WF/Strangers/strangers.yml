@@ -1,6 +1,8 @@
 # Strangers (WFStrangerSystem): oddballs found in the wilderness, in houses and sites, and round crazy camps' fires.
 # Most walk up to whoever they see and want a word; the stalker just follows. Their own brain only takes over when
-# they turn on someone, or someone hurts them. Dialogues are in dialogues.yml.
+# they turn on someone, or someone hurts them, and they remember who. Roamers wander the world; the dealer, the
+# conspiracist and the stalker may live in a house, the mugger, the preacher and the beggar at a crazy camp, and both
+# guard their homes. Dialogues are in dialogues.yml.
 
 - type: entity
   abstract: true
@@ -18,6 +20,7 @@
   - type: HTN
     rootTask:
       task: SimpleHumanoidHostileCompound
+  - type: WFVehicleBoarder
 
 - type: entity
   parent: WFStrangerBase
@@ -106,6 +109,66 @@
   - type: EntityTableSpawner
     table: !type:NestedSelector
       tableId: WFStrangers
+
+# A stranger who lives in a house, and the house as his home.
+- type: entity
+  parent: WFStrangerRandomSpawner
+  id: WFStrangerHouseSpawner
+  name: house stranger spawner
+  components:
+  - type: EntityTableSpawner
+    table: !type:NestedSelector
+      tableId: WFStrangersHouse
+
+- type: entity
+  id: WFStrangerHouseHome
+  name: stranger house
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WFStrangerHome
+    radius: 5
+    warnRadius: 11
+    warnings:
+    - wf-stranger-home-house-1
+    - wf-stranger-home-house-2
+    - wf-stranger-home-house-3
+    - wf-stranger-home-house-4
+
+- type: entity
+  id: WFStrangerCampHome
+  name: crazy camp
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WFStrangerHome
+    radius: 8
+    warnRadius: 16
+    warnings:
+    - wf-stranger-home-camp-1
+    - wf-stranger-home-camp-2
+    - wf-stranger-home-camp-3
+    - wf-stranger-home-camp-4
+
+- type: entityTable
+  id: WFStrangersHouse
+  table: !type:GroupSelector
+    children:
+    - id: WFStrangerDealer
+      weight: 3
+    - id: WFStrangerConspiracist
+      weight: 2
+    - id: WFStrangerStalker
+      weight: 1
+
+- type: entityTable
+  id: WFStrangersCamp
+  table: !type:GroupSelector
+    children:
+    - id: WFStrangerMugger
+      weight: 2
+    - id: WFStrangerPreacher
+      weight: 2
+    - id: WFStrangerBeggar
+      weight: 3
 
 - type: entityTable
   id: WFStrangers

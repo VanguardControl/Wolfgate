@@ -32,6 +32,9 @@ public sealed partial class WFPlanetPoiComponent : Component
     public float ResidentChance;
 
     [ViewVariables]
+    public EntProtoId? ResidentHome;
+
+    [ViewVariables]
     public Vector2 RoamerCentre;
 
     [ViewVariables]
@@ -89,6 +92,9 @@ public sealed class WFPlanetPoiSite
 
     /// <summary>Whether its footpath reached a road; one too far from any goes without.</summary>
     public bool TrailLaid;
+
+    /// <summary>Whether someone may live here (see <see cref="WFPlanetPoiEntry.Dwelling"/>).</summary>
+    public bool Dwelling;
 
     /// <summary>The site's own tiles, which a footpath crosses without repainting.</summary>
     public HashSet<Vector2i> Tiles = new();

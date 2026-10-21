@@ -74,4 +74,47 @@ public sealed partial class WFStrangerComponent : Component
 
     [ViewVariables]
     public TimeSpan HailedAt;
+
+    /// <summary>How far a roamer walks in one go.</summary>
+    [DataField]
+    public float WanderRange = 20f;
+
+    /// <summary>Whether he has turned on someone and his own brain is fighting.</summary>
+    [ViewVariables]
+    public bool Hostile;
+
+    /// <summary>When a hostile stranger with nobody left to fight calms down.</summary>
+    [ViewVariables]
+    public TimeSpan? CalmAt;
+
+    /// <summary>The camp or house he lives at, if any; null for a roamer.</summary>
+    [ViewVariables]
+    public EntityUid? Home;
+
+    /// <summary>When he next picks somewhere to wander to.</summary>
+    [ViewVariables]
+    public TimeSpan NextWander;
+
+    /// <summary>People he's told to clear off, and when he'll say it again.</summary>
+    [ViewVariables]
+    public Dictionary<EntityUid, TimeSpan> Warned = new();
+}
+
+/// <summary>
+/// Where strangers live, such as a crazy camp or a house. Those who live here wander about it, warn off whoever they see
+/// coming and go for anyone who comes in.
+/// </summary>
+[RegisterComponent]
+public sealed partial class WFStrangerHomeComponent : Component
+{
+    /// <summary>The home itself: come inside and they attack.</summary>
+    [DataField]
+    public float Radius = 7f;
+
+    /// <summary>How far out they warn people off.</summary>
+    [DataField]
+    public float WarnRadius = 15f;
+
+    [DataField]
+    public List<LocId> Warnings = new();
 }
