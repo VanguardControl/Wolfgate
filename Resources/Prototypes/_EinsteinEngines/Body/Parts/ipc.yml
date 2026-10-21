@@ -46,6 +46,9 @@
         id: "posbrain"
       pump:
         id: "pump"
+      # WOLFGATE(Synthetics): the radiation collector's slot
+      radcollector:
+        id: "radcollector"
   - type: Destructible # no ashing trigger
     thresholds:
     - trigger:

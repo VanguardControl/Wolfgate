@@ -133,4 +133,10 @@ public enum WolfmedSyntheticCondition : byte
 
     /// <summary>Synthetics: an empty cell or none. On the torso, and on each arm low power has cut.</summary>
     LowPower,
+
+    /// <summary>Synthetics: the radiation collector is full; more radiation strains it and leaks into the core.</summary>
+    RadSaturated,
+
+    /// <summary>Synthetics: no working radiation collector; radiation goes straight into the core.</summary>
+    RadMissing,
 }

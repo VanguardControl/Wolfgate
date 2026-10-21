@@ -60,6 +60,7 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
     [Dependency] private WolfmedWoundTraitSystem _traits = default!;
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private Content.Server._HL.Silicons.Synths.Battery.SynthBatterySystem _synthBattery = default!; // M4
+    [Dependency] private Content.Server._WF.Synthetics.WFRadCollectorSystem _radCollector = default!; // Synthetics
 
     private TimeSpan _next;
 
@@ -210,6 +211,15 @@ public sealed class WolfmedSyntheticHudSystem : EntitySystem
 
         if (TryComp(hud.Owner, out BlindableComponent? sight) && sight.EyeDamage > sight.MinDamage)
             AddCondition(found, TargetBodyPart.Head, WolfmedSyntheticCondition.OpticsDamaged);
+
+        // Synthetics: the radiation collector, full or missing.
+        if (HasComp<Content.Shared._WF.Synthetics.WFChassisComponent>(hud.Owner))
+        {
+            if (_radCollector.GetCollector(hud.Owner) is not { } collector)
+                AddCondition(found, TargetBodyPart.Torso, WolfmedSyntheticCondition.RadMissing);
+            else if (collector.Comp1.Charge >= collector.Comp1.Capacity)
+                AddCondition(found, TargetBodyPart.Torso, WolfmedSyntheticCondition.RadSaturated);
+        }
 
         var faults = Order(hud.Comp.Faults, found);
         var advice = faults.Count > 0 ? faults[0].Advice : string.Empty;

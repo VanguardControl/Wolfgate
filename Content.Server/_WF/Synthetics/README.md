@@ -14,6 +14,10 @@ the character's profile. Nothing keys on a species or a mob prototype.
   components exposed. The owner sees it on their HUD.
 - **Loose limbs** (`WFSyntheticLimbSystem`): chassis limbs come off more readily than flesh and go back on by
   clicking the limb on the body. A limb put back by hand works, badly, until a cable coil repairs its coupling.
+- **Radiation collector** (`WFRadCollectorSystem`, `rad_collector.yml`): a chassis organ that takes the radiation a
+  synthetic would otherwise pile up on its body for ever. Full, the overflow strains it and leaks into the core at half
+  rate; missing or burnt out (zero integrity, then deleted), it all corrupts the core. Pulled, it vents; a welder
+  restores integrity; replacements print at the exosuit fabricator.
 - **Survival box** (`survival.yml`): a synthetic body is issued `WFBoxSurvivalSynthetic` (spare cell, hydraulic
   fluid, cable, flares, crowbar, mass scanner) in every survival loadout group where an organic one gets a breather box.
 
@@ -31,6 +35,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Content.Server/_WF/Synthetics/WFChassisPanelSystem.cs`](WFChassisPanelSystem.cs)
 - [`Content.Server/_WF/Synthetics/WFChassisPanelSystem.State.cs`](WFChassisPanelSystem.State.cs)
 - [`Content.Server/_WF/Synthetics/WFLowPowerSystem.cs`](WFLowPowerSystem.cs)
+- [`Content.Server/_WF/Synthetics/WFRadCollectorSystem.cs`](WFRadCollectorSystem.cs)
 - [`Content.Server/_WF/Synthetics/WFSyntheticLimbSystem.cs`](WFSyntheticLimbSystem.cs)
 - [`Content.Server/_WF/Synthetics/WFSynthManualSystem.cs`](WFSynthManualSystem.cs)
 
@@ -42,6 +47,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Content.Shared/_WF/Synthetics/WFChassisPanelSpeedSystem.cs`](../../../Content.Shared/_WF/Synthetics/WFChassisPanelSpeedSystem.cs)
 - [`Content.Shared/_WF/Synthetics/WFChassisPanelUi.cs`](../../../Content.Shared/_WF/Synthetics/WFChassisPanelUi.cs)
 - [`Content.Shared/_WF/Synthetics/WFLowPowerComponent.cs`](../../../Content.Shared/_WF/Synthetics/WFLowPowerComponent.cs)
+- [`Content.Shared/_WF/Synthetics/WFRadCollectorComponent.cs`](../../../Content.Shared/_WF/Synthetics/WFRadCollectorComponent.cs)
 - [`Content.Shared/_WF/Synthetics/WFSyntheticEvents.cs`](../../../Content.Shared/_WF/Synthetics/WFSyntheticEvents.cs)
 
 ### Client
@@ -61,6 +67,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPanelTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPanelTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPanelWindowTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPanelWindowTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPowerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPowerTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Synthetics/WFRadCollectorTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFRadCollectorTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFSyntheticLimbTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFSyntheticLimbTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFSynthManualTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFSynthManualTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFSynthNeedsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFSynthNeedsTest.cs)
@@ -72,6 +79,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Resources/Prototypes/_WF/Synthetics/guidebook.yml`](../../../Resources/Prototypes/_WF/Synthetics/guidebook.yml)
 - [`Resources/Prototypes/_WF/Synthetics/hud_lines.yml`](../../../Resources/Prototypes/_WF/Synthetics/hud_lines.yml)
 - [`Resources/Prototypes/_WF/Synthetics/low_power.yml`](../../../Resources/Prototypes/_WF/Synthetics/low_power.yml)
+- [`Resources/Prototypes/_WF/Synthetics/rad_collector.yml`](../../../Resources/Prototypes/_WF/Synthetics/rad_collector.yml)
 - [`Resources/Prototypes/_WF/Synthetics/survival.yml`](../../../Resources/Prototypes/_WF/Synthetics/survival.yml)
 - [`Resources/Prototypes/_WF/Synthetics/wounds.yml`](../../../Resources/Prototypes/_WF/Synthetics/wounds.yml)
 
@@ -94,10 +102,12 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Content.Shared/_Onyx/Wounds/BodyPartFunctionalitySystem.cs`](../../../Content.Shared/_Onyx/Wounds/BodyPartFunctionalitySystem.cs): a chassis part isolated from the panel has no servos.
 - [`Content.Shared/_Onyx/Wounds/PainSystem.cs`](../../../Content.Shared/_Onyx/Wounds/PainSystem.cs): a chassis part isolated from the panel has its damage sensors off.
 - [`Resources/Prototypes/_EinsteinEngines/Body/Parts/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Body/Parts/ipc.yml)
+  - the radiation collector's slot
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcArm must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcHand must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcLeg must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcFoot must stay FIRST
+- [`Resources/Prototypes/_EinsteinEngines/Body/Prototypes/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Body/Prototypes/ipc.yml): soaks up radiation instead of the body
 - [`Resources/Prototypes/_EinsteinEngines/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_EinsteinEngines/Damage/modifier_sets.yml): the chassis is plated. Heat and shock still hurt it more than flesh, not half again;
 - [`Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml): slow hydraulic regeneration, as the synthetic biotype overlay
 - [`Resources/Prototypes/_HL/Body/Parts/synth.yml`](../../../Resources/Prototypes/_HL/Body/Parts/synth.yml)
@@ -105,6 +115,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcHand must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcLeg must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcFoot must stay FIRST
+- [`Resources/Prototypes/_HL/Body/Prototypes/synth.yml`](../../../Resources/Prototypes/_HL/Body/Prototypes/synth.yml): soaks up radiation instead of the body
 - [`Resources/Prototypes/_NF/Loadouts/contractor_loadout_groups.yml`](../../../Resources/Prototypes/_NF/Loadouts/contractor_loadout_groups.yml): a synthetic body's box, in place of the breather ones
 - [`Resources/Prototypes/_NF/Loadouts/nfsd_loadout_groups.yml`](../../../Resources/Prototypes/_NF/Loadouts/nfsd_loadout_groups.yml): a synthetic body's box, in place of the breather ones
 - [`Resources/Prototypes/_Onyx/Wounds/wounds.yml`](../../../Resources/Prototypes/_Onyx/Wounds/wounds.yml)

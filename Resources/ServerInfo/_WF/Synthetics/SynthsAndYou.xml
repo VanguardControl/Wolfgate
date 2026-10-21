@@ -98,6 +98,18 @@ Only a missing [bold]pump[/bold] shuts a synth down. A shut-down synth is uncons
     <GuideEntityEmbed Entity="PowerCellMedium"/>
   </Box>
 
+## Radiation
+
+Radiation does not build up on a chassis. A [bold]radiation collector[/bold] in the torso soaks it up instead, and the synth notices nothing until it is full (about 300 rads). Its HUD then says RAD COLLECTOR FULL: more radiation strains the collector and leaks slowly into the positronic core.
+
+To empty it, pull it through the bay; out of the body it vents in about a minute. Examine it to see its charge and integrity. A [bold]welder[/bold] on a pulled collector restores its integrity. Run it at full for too long (around a thousand rads more) and it [bold]burns out[/bold] and is gone; print a new one at the exosuit fabricator and seat it.
+
+With no working collector every rad goes into the core, and a core corrupted to nothing is death.
+  <Box>
+    <GuideEntityEmbed Entity="WFOrganRadCollector"/>
+    <GuideEntityEmbed Entity="Welder"/>
+  </Box>
+
 ## Death and revival
 
 A destroyed core is death. A destroyed core is also not the end: [bold]Repair Positronic Core[/bold] on the torso (a synth's core sits in the head, and its surgery is [bold]Repair Synth Core[/bold]). Unbolt the housing with a wrench, re-flash the core with a multitool, weld the housing shut. Then alt-click the body and choose [bold]Reboot[/bold].

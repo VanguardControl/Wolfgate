@@ -58,6 +58,7 @@ wf-chassis-slot-ears = AUDIO PACK
 wf-chassis-slot-tongue = VOCODER
 wf-chassis-slot-appendix = SPARE
 wf-chassis-slot-battery = POWER CELL
+wf-chassis-slot-radcollector = RAD COLLECTOR
 
 # Hover tips. Sentences, not readout caps.
 wf-chassis-ui-tip-state-ok = Running within rating.

@@ -12,6 +12,7 @@
   - WFOrganSynthStomach
   - WFOrganSynthLiver
   - WFOrganSynthKidneys
+  - WFOrganRadCollector # Synthetics: the chassis radiation collector (_WF/Synthetics/rad_collector.yml)
 
 - type: latheRecipe
   parent: BaseIPCOrganRecipe
