@@ -3,7 +3,8 @@
 Fixes to how player emotes read in chat.
 
 - Typed emotes: an emote that is exactly an emote's trigger word, such as `*salute` or `*laugh!`, shows that emote's
-  own message ("David salutes.") instead of the raw word ("David salute"). Longer emotes are left as typed.
+  own message ("David salutes.") instead of the raw word ("David salute"). Punctuation typed after the word replaces
+  the message's own, so `*salute?` gives "David salutes?". Longer emotes are left as typed.
 - Proper names: hiding your face no longer strips the "proper noun" flag from your body, which made every later emote
   read "The David looks at you." Only the masked identity ("the old man") is treated as a common noun.
 - Ellipsis: a message starting with `..` (such as `...`) is no longer read as the `.` radio prefix, so it is said

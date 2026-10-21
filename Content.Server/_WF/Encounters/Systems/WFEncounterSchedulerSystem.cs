@@ -326,7 +326,7 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         var avoided = new List<Entity<MapGridComponent>>();
         if (prototype.AvoidStations.Count > 0)
         {
-            avoided.AddRange(stations.Where(station => Avoided(station, prototype.AvoidStations)));
+            avoided.AddRange(stations.Where(station => StationMatches(station, prototype.AvoidStations)));
             stations.RemoveAll(station => avoided.Contains(station));
         }
 
@@ -493,11 +493,11 @@ public sealed partial class WFEncounterSchedulerSystem : EntitySystem
         if (TryComp<IFFComponent>(station, out var iff) && (iff.Flags & (IFFFlags.Hide | IFFFlags.HideLabel | IFFFlags.HideLabelAlways)) != 0)
             return true;
 
-        return _hidden.Count > 0 && Avoided(station, _hidden);
+        return _hidden.Count > 0 && StationMatches(station, _hidden);
     }
 
     /// <summary>Whether a station's grid name, station name or station id contains any of the given fragments.</summary>
-    private bool Avoided(EntityUid station, List<string> fragments)
+    public bool StationMatches(EntityUid station, List<string> fragments)
     {
         var name = Name(station);
         var id = CompOrNull<Content.Server.Station.Components.BecomesStationComponent>(station)?.Id ?? string.Empty;

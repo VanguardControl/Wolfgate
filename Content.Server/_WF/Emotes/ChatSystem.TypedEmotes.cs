@@ -6,6 +6,7 @@ public sealed partial class ChatSystem
 {
     /// <summary>
     /// Returns the chat message of the emote whose trigger is exactly <paramref name="action"/>, or the action unchanged.
+    /// Punctuation typed after the trigger replaces the message's own ("*trills?" gives "trills?").
     /// </summary>
     public string ResolveTypedEmote(EntityUid source, string action)
     {
@@ -25,7 +26,16 @@ public sealed partial class ChatSystem
             if (emote.ChatMessages.Count == 0 || !AllowedToUseEmote(source, emote))
                 continue;
 
-            return Loc.GetString(_random.Pick(emote.ChatMessages), ("entity", source));
+            var message = Loc.GetString(_random.Pick(emote.ChatMessages), ("entity", source));
+            if (end == word.Length)
+                return message;
+
+            message = message.TrimEnd();
+            var cut = message.Length;
+            while (cut > 0 && char.IsPunctuation(message[cut - 1]))
+                cut--;
+
+            return message[..cut] + word[end..].ToString();
         }
 
         return action;
