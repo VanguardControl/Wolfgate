@@ -88,7 +88,7 @@
     fractureProfile: null
     # WOLFGATE (P5-D7): no amputationThresholds key here; this abstract is shared by every slot and can hold only
     # one dict. The head and torso inherit Base<Slot>'s organic P3 set (_WF/Wolfmed/Body/parts.yml) and so do the
-    # finishing minimums on every part. Synthetics (lego limbs): arms, hands, legs and feet come off at 60% of the
+    # finishing minimums on every part. Synthetics (lego limbs): arms, hands, legs and feet come off at 40% of the
     # organic thresholds, from WFWolfmedPartIpcArm/Hand/Leg/Foot below, which the IPC and Synth limbs list FIRST.
     # Onyx's own IPC numbers (arm 270/400/600, ONYX Corvax/Body/Species/ipc.yml:365-372) sit on a different part
     # chain; see PLAN5 P5-D7/P5-D8.
@@ -134,7 +134,7 @@
       Heat: 20
       Shock: 15
 
-# Synthetics (lego limbs): a chassis limb's coupling gives way sooner than flesh and bone, so it comes off at 60% of
+# Synthetics (lego limbs): a chassis limb's coupling gives way sooner than flesh and bone, so it comes off at 40% of
 # the organic thresholds in _WF/Wolfmed/Body/parts.yml, and goes back on by hand (WFSyntheticLimbSystem).
 # Per limb type because WFWolfmedPartIpc is shared by every slot. Each must be FIRST in its IPC and Synth limb's
 # parent list (RT first-parent-wins) to beat Base<Slot>'s organic dict; the finishing minimums still come from
@@ -145,10 +145,10 @@
   components:
   - type: WolfmedBodyPart
     amputationThresholds:
-      Slash: 78
-      Piercing: 150
-      Blunt: 150
-      Heat: 150
+      Slash: 52
+      Piercing: 100
+      Blunt: 100
+      Heat: 100
 
 - type: entity
   id: WFWolfmedPartIpcHand
@@ -156,10 +156,10 @@
   components:
   - type: WolfmedBodyPart
     amputationThresholds:
-      Slash: 42
-      Piercing: 120
-      Blunt: 90
-      Heat: 120
+      Slash: 28
+      Piercing: 80
+      Blunt: 60
+      Heat: 80
 
 - type: entity
   id: WFWolfmedPartIpcLeg
@@ -167,10 +167,10 @@
   components:
   - type: WolfmedBodyPart
     amputationThresholds:
-      Slash: 90
-      Piercing: 150
-      Blunt: 180
-      Heat: 150
+      Slash: 60
+      Piercing: 100
+      Blunt: 120
+      Heat: 100
 
 - type: entity
   id: WFWolfmedPartIpcFoot
@@ -178,7 +178,7 @@
   components:
   - type: WolfmedBodyPart
     amputationThresholds:
-      Slash: 48
-      Piercing: 132
-      Blunt: 102
-      Heat: 132
+      Slash: 32
+      Piercing: 88
+      Blunt: 68
+      Heat: 88

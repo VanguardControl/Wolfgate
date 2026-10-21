@@ -6,7 +6,8 @@ and shock, bleeding and blood volume, organ damage, fractures, burns, infection,
 reattachment, temperature, toxins and radiation, and death as a brain that stops rather than a damage total. A
 wound host (`WoundHostComponent`: every organic species and the IPC chassis) takes damage as wounds on its parts,
 and the mob-state thresholds, the health alert, the damage overlay, health bars, examine and the health analyzer
-all read those wounds instead of the flat damage total.
+all read those wounds instead of the flat damage total. NPCs re-roll the part they aim at every second from their
+`TargetingComponent` odds (`WolfmedNpcAimSystem`); without it every mob only ever hit the torso.
 
 What players use: the health analyzer's wound readout, vitals card and treatment advice; the field medicine in
 the Wolfgate vendor (splints, antiseptic, skin grafts, analgesic, stimulant and opiate pens, hydraulic fluid for a
@@ -123,6 +124,7 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WF/Wolfmed/Surgery/SurgerySystem.Autodoc.cs`](Surgery/SurgerySystem.Autodoc.cs)
 - [`Content.Server/_WF/Wolfmed/Surgery/WolfmedChassisRepairSurgerySystem.cs`](Surgery/WolfmedChassisRepairSurgerySystem.cs)
 - [`Content.Server/_WF/Wolfmed/Surgery/WolfmedWoundSurgerySystem.cs`](Surgery/WolfmedWoundSurgerySystem.cs)
+- [`Content.Server/_WF/Wolfmed/Targeting/WolfmedNpcAimSystem.cs`](Targeting/WolfmedNpcAimSystem.cs)
 - [`Content.Server/_WF/Wolfmed/WolfmedBodyPartLifecycleSystem.cs`](WolfmedBodyPartLifecycleSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Wounds/WolfmedCauteryAnnounceComponent.cs`](Wounds/WolfmedCauteryAnnounceComponent.cs)
 - [`Content.Server/_WF/Wolfmed/Wounds/WolfmedCauterySystem.cs`](Wounds/WolfmedCauterySystem.cs)
@@ -422,6 +424,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMedicalPatchTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMedicalPatchTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMissingFootTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMissingFootTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNecrosisSurgeryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNecrosisSurgeryTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNpcAimTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNpcAimTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOverheatTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOverheatTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPainTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPainTest.cs)

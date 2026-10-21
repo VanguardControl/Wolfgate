@@ -63,6 +63,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPowerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPowerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFSyntheticLimbTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFSyntheticLimbTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFSynthManualTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFSynthManualTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Synthetics/WFSynthNeedsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFSynthNeedsTest.cs)
 
 ### Prototypes
 
