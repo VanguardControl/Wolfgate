@@ -39,7 +39,7 @@ Gates follow the effective biotype (`WFBiotypeGates.Effective`), not the species
 treated as a machine. A trait lists `biotypeBlacklist` next to `speciesBlacklist`: the creator hides and drops it
 (`TraitPrototype.Biotype.cs`), and `GetValidTraits` drops it on the server. `WFBiotypeLoadoutEffect` (`biotypes`) gates a
 loadout; the oxygen and nitrogen breather groups require Organic, so only a flesh body is issued a survival box, and
-IPC and Synth stay in the species lists so an organic one gets it. `WFBiotypeRequirement` (`biotypes`, `inverted`) gates
+IPC and Synth stay in the species lists so an organic one gets it. A synthetic body gets the Synthetics module's box instead. `WFBiotypeRequirement` (`biotypes`, `inverted`) gates
 a role or antag; the zombie roles refuse Synthetic. Species identity (the IPC name rule, genitals, inventory template,
 markings) stays keyed on the species.
 

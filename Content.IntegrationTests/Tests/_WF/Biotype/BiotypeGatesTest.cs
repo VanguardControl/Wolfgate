@@ -135,11 +135,69 @@ public sealed class BiotypeGatesTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// Every role that hands an organic body a breather box (not a bare tank) hands a synthetic one the synthetic box instead, and the box
+    /// holds its whole fill.
+    /// </summary>
+    [Test]
+    public async Task SyntheticSurvivalBoxTest()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var proto = server.ResolveDependency<IPrototypeManager>();
+        var entMan = server.ResolveDependency<IEntityManager>();
+        var map = await pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            // Breather boxes only: prisoners and tank-only roles get a bare tank, which a synthetic doesn't need.
+            var breathers = Breathers(proto, "OxygenBreatherNF").Concat(Breathers(proto, "NitrogenBreatherNF"))
+                .Where(id => proto.Index(id).Storage.Count > 0)
+                .ToHashSet();
+            var synthetic = Breathers(proto, "WFSyntheticBody");
+            Assert.That(synthetic, Is.Not.Empty);
+
+            Assert.Multiple(() =>
+            {
+                foreach (var role in proto.EnumeratePrototypes<RoleLoadoutPrototype>())
+                {
+                    if (Picks(proto, role.ID, Profile("Human", WFBiotype.Default)).Any(breathers.Contains) != true)
+                        continue;
+
+                    foreach (var species in new[] { "Human", "Vulpkanin", "Vox", "IPC" })
+                    {
+                        var picks = Picks(proto, role.ID, Profile(species, WFBiotype.Synthetic));
+                        Assert.That(picks.Any(synthetic.Contains), $"{role.ID}: a synthetic {species} gets no synthetic box");
+                        Assert.That(picks.Any(breathers.Contains), Is.False, $"{role.ID}: a synthetic {species} gets a breather box");
+                    }
+
+                    Assert.That(Picks(proto, role.ID, Profile("Human", WFBiotype.Organic)).Any(synthetic.Contains), Is.False,
+                        $"{role.ID}: an organic Human gets the synthetic box");
+                }
+            });
+
+            var box = entMan.SpawnEntity("WFBoxSurvivalSynthetic", map.GridCoords);
+            var stored = entMan.GetComponent<Content.Shared.Storage.StorageComponent>(box).Container.ContainedEntities;
+            Assert.That(stored, Has.Count.EqualTo(9), "the synthetic box doesn't hold its whole fill");
+            entMan.DeleteEntity(box);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The loadouts a role's defaults hand the profile.</summary>
+    private static List<ProtoId<LoadoutPrototype>> Picks(IPrototypeManager proto, string role, HumanoidCharacterProfile profile)
+    {
+        var loadout = new RoleLoadout(role);
+        loadout.SetDefault(profile, null, proto);
+        return loadout.SelectedLoadouts.Values.SelectMany(l => l).Select(l => l.Prototype).ToList();
+    }
+
     /// <summary>Loadouts that sit behind the given breather effect group.</summary>
     private static HashSet<ProtoId<LoadoutPrototype>> Breathers(IPrototypeManager proto, string group)
     {
         return proto.EnumeratePrototypes<LoadoutPrototype>()
-            .Where(l => l.Effects.OfType<GroupLoadoutEffect>().Any(e => e.Proto == group))
+            .Where(l => l.Effects.Concat(l.HideEffects).OfType<GroupLoadoutEffect>().Any(e => e.Proto == group))
             .Select(l => (ProtoId<LoadoutPrototype>) l.ID)
             .ToHashSet();
     }
