@@ -61,6 +61,14 @@ public sealed partial class WFPlanetPoiTablePrototype : IPrototype
     [DataField]
     public List<WFPlanetCampEntry> Camps = new();
 
+    /// <summary>Who may be found living in an authored site, such as a house; spawned on its floor once the world exists.</summary>
+    [DataField]
+    public EntProtoId? Residents;
+
+    /// <summary>The chance each authored site has a resident.</summary>
+    [DataField]
+    public float ResidentChance;
+
     /// <summary>Big creatures set loose on the open ground each round, away from the landing zone.</summary>
     [DataField]
     public List<WFPlanetRoamer> Roamers = new();

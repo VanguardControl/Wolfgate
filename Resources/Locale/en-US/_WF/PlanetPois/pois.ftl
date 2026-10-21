@@ -21,3 +21,4 @@ wf-poi-abandoned-bandit-hideout = Bandit hideout
 wf-poi-wreck = Crashed ship
 wf-poi-reaver-encampment = Reaver encampment
 wf-poi-ads-control-site = ADS control site
+wf-poi-crazy-camp = Camp

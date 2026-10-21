@@ -63,7 +63,9 @@ public sealed partial class WFPlanetPoiSystem
     private bool TryPlaceCamp(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
         WFPlanetPoiTablePrototype table, WFPlanetPoiComponent record, WFPlanetCampPrototype camp, HashSet<EntityUid> created)
     {
-        if (camp.Vessels.Count == 0 || !_proto.TryIndex(_random.Pick(camp.Vessels), out var vessel))
+        if (camp.Vessels.Count == 0)
+            return TryPlaceOpenCamp(ground, grid, biome, orbit, centre, radius, table, record, camp, created);
+        if (!_proto.TryIndex(_random.Pick(camp.Vessels), out var vessel))
             return false;
 
         var stagingMap = _maps.CreateMap(out var stagingId, runMapInit: false);
@@ -91,38 +93,13 @@ public sealed partial class WFPlanetPoiSystem
             SettleWreck(ship);
             EnsureComp<WFPlanetCampComponent>(ship).Camp = camp.ID;
 
-            // The ground under the hull and the camp round it: cleared, laid and pinned.
-            var under = new HashSet<Vector2i>();
-            var anchored = new List<EntityUid>();
-            for (var x = (int) MathF.Floor(spot.X - camped); x <= (int) MathF.Ceiling(spot.X + camped); x++)
-            for (var y = (int) MathF.Floor(spot.Y - camped); y <= (int) MathF.Ceiling(spot.Y + camped); y++)
-            {
-                var tile = new Vector2i(x, y);
-                if (Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), spot) > camped)
-                    continue;
-                under.Add(tile);
-                anchored.Clear();
-                var enumerator = _maps.GetAnchoredEntitiesEnumerator(ground, grid, tile);
-                while (enumerator.MoveNext(out var uid))
-                    anchored.Add(uid.Value);
-                foreach (var uid in anchored)
-                    QueueDel(uid);
-            }
-            var fill = new List<(Vector2i, Tile)>();
-            foreach (var tile in under)
-            {
-                if (_maps.GetTileRef(ground, grid, tile).Tile.IsEmpty && _biome.TryGetBiomeTile(ground, grid, tile, out var natural))
-                    fill.Add((tile, natural.Value));
-            }
-            if (fill.Count > 0)
-                _maps.SetTiles(ground, grid, fill);
-            _biome.WfPinTiles((ground, biome), under);
+            var under = ClearCampGround(ground, grid, biome, spot, camped);
 
             var group = $"{camp.ID}-{++_campCount}";
             var deck = _maps.GetAllTiles(ship.Owner, ship.Comp).Select(t => t.GridIndices).Except(SolidTiles(ship)).ToList();
             if (deck.Count > 0)
             {
-                var guards = _random.Next(camp.MinDeckGuards, camp.MaxDeckGuards + 1);
+                var guards = camp.Profile == null ? 0 : _random.Next(camp.MinDeckGuards, camp.MaxDeckGuards + 1);
                 for (var i = 0; i < guards; i++)
                     SpawnCampGuard(camp, new EntityCoordinates(ship.Owner, (Vector2) _random.Pick(deck) + new Vector2(0.5f)), group);
 
@@ -135,22 +112,7 @@ public sealed partial class WFPlanetPoiSystem
 
             record.PendingCamps.Add(new WFPendingCamp(camp.ID, spot, reach, group));
 
-            var origin = spot.Floored();
-            var bounds = new Box2i((int) MathF.Floor(spot.X - camped), (int) MathF.Floor(spot.Y - camped),
-                (int) MathF.Ceiling(spot.X + camped) + 1, (int) MathF.Ceiling(spot.Y + camped) + 1);
-            var site = new WFPlanetPoiSite
-            {
-                Name = camp.Name,
-                Origin = origin,
-                Bounds = bounds,
-                TileCount = under.Count,
-                Connection = WFPlanetPoiConnection.Isolated,
-                Expeditions = false,
-                Difficulty = table.Difficulty,
-            };
-            site.Signal = SpawnSignal(ground, orbit, origin, new WFPlanetPoiEntry { Name = camp.Name }, table);
-            created.Add(site.Signal);
-            record.Sites.Add(site);
+            AddCampSite(ground, orbit, table, record, camp, spot, camped, under.Count, created);
             return true;
         }
         finally
@@ -158,6 +120,72 @@ public sealed partial class WFPlanetPoiSystem
             if (!TerminatingOrDeleted(stagingMap))
                 QueueDel(stagingMap);
         }
+    }
+
+    /// <summary>A camp in the open, round a fire: no ship, its folk and their tents set out once the ground exists.</summary>
+    private bool TryPlaceOpenCamp(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre,
+        float radius, WFPlanetPoiTablePrototype table, WFPlanetPoiComponent record, WFPlanetCampPrototype camp, HashSet<EntityUid> created)
+    {
+        const float reach = 1f;
+        var camped = reach + CampRing;
+        if (!TryWreckSpot((ground, biome), grid, centre, radius, table, camped, out var spot))
+            return false;
+        var under = ClearCampGround(ground, grid, biome, spot, camped);
+        record.PendingCamps.Add(new WFPendingCamp(camp.ID, spot, reach, $"{camp.ID}-{++_campCount}"));
+        AddCampSite(ground, orbit, table, record, camp, spot, camped, under.Count, created);
+        return true;
+    }
+
+    /// <summary>The ground under a camp: whatever grew there cleared, the world's own tiles laid, and all of it pinned.</summary>
+    private HashSet<Vector2i> ClearCampGround(EntityUid ground, MapGridComponent grid, BiomeComponent biome, Vector2 spot, float camped)
+    {
+        var under = new HashSet<Vector2i>();
+        var anchored = new List<EntityUid>();
+        for (var x = (int) MathF.Floor(spot.X - camped); x <= (int) MathF.Ceiling(spot.X + camped); x++)
+        for (var y = (int) MathF.Floor(spot.Y - camped); y <= (int) MathF.Ceiling(spot.Y + camped); y++)
+        {
+            var tile = new Vector2i(x, y);
+            if (Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), spot) > camped)
+                continue;
+            under.Add(tile);
+            anchored.Clear();
+            var enumerator = _maps.GetAnchoredEntitiesEnumerator(ground, grid, tile);
+            while (enumerator.MoveNext(out var uid))
+                anchored.Add(uid.Value);
+            foreach (var uid in anchored)
+                QueueDel(uid);
+        }
+        var fill = new List<(Vector2i, Tile)>();
+        foreach (var tile in under)
+        {
+            if (_maps.GetTileRef(ground, grid, tile).Tile.IsEmpty && _biome.TryGetBiomeTile(ground, grid, tile, out var natural))
+                fill.Add((tile, natural.Value));
+        }
+        if (fill.Count > 0)
+            _maps.SetTiles(ground, grid, fill);
+        _biome.WfPinTiles((ground, biome), under);
+        return under;
+    }
+
+    /// <summary>Records the camp as a site, with its orbit signal.</summary>
+    private void AddCampSite(EntityUid ground, EntityUid orbit, WFPlanetPoiTablePrototype table, WFPlanetPoiComponent record,
+        WFPlanetCampPrototype camp, Vector2 spot, float camped, int tiles, HashSet<EntityUid> created)
+    {
+        var origin = spot.Floored();
+        var site = new WFPlanetPoiSite
+        {
+            Name = camp.Name,
+            Origin = origin,
+            Bounds = new Box2i((int) MathF.Floor(spot.X - camped), (int) MathF.Floor(spot.Y - camped),
+                (int) MathF.Ceiling(spot.X + camped) + 1, (int) MathF.Ceiling(spot.Y + camped) + 1),
+            TileCount = tiles,
+            Connection = WFPlanetPoiConnection.Isolated,
+            Expeditions = false,
+            Difficulty = table.Difficulty,
+        };
+        site.Signal = SpawnSignal(ground, orbit, origin, new WFPlanetPoiEntry { Name = camp.Name }, table);
+        created.Add(site.Signal);
+        record.Sites.Add(site);
     }
 
     /// <summary>Once the ground exists: the guards outside, in a loose ring round the hull, and their cover.</summary>
@@ -203,11 +231,24 @@ public sealed partial class WFPlanetPoiSystem
                     Spawn(_random.Pick(camp.Cover), new EntityCoordinates(ground, (Vector2) tile + new Vector2(0.5f)));
             }
 
-            var guards = _random.Next(camp.MinGroundGuards, camp.MaxGroundGuards + 1);
+            var guards = camp.Profile == null ? 0 : _random.Next(camp.MinGroundGuards, camp.MaxGroundGuards + 1);
             for (var i = 0; i < guards; i++)
             {
                 if (RingTile(pending.Reach + _random.NextFloat(1.5f, 2.5f)) is { } tile)
                     SpawnCampGuard(camp, new EntityCoordinates(ground, (Vector2) tile + new Vector2(0.5f)), pending.Group);
+            }
+
+            if (camp.Residents is { } residents)
+            {
+                var count = _random.Next(camp.MinResidents, camp.MaxResidents + 1);
+                for (var i = 0; i < count; i++)
+                {
+                    foreach (var id in _entityTables.GetSpawns(residents))
+                    {
+                        if (RingTile(pending.Reach + _random.NextFloat(1.5f, 3f)) is { } tile)
+                            Spawn(id, new EntityCoordinates(ground, (Vector2) tile + new Vector2(0.5f)));
+                    }
+                }
             }
         }
     }
@@ -215,7 +256,9 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>One guard from the camp's profile, posted where he stands, on the camp's side.</summary>
     private EntityUid? SpawnCampGuard(WFPlanetCampPrototype camp, EntityCoordinates post, string group)
     {
-        _proto.TryIndex(camp.Profile, out var profile);
+        if (camp.Profile is not { } profileId)
+            return null;
+        _proto.TryIndex(profileId, out var profile);
         ProtoId<StartingGearPrototype>? loadout = null;
         if (profile != null && profile.Loadouts.TryGetValue(camp.Role, out var pool) && pool.Count > 0)
             loadout = _random.Pick(pool);
@@ -226,7 +269,7 @@ public sealed partial class WFPlanetPoiSystem
             && first.Values.Count > 0 && last.Values.Count > 0)
             name = $"{_random.Pick(first.Values)} {_random.Pick(last.Values)}";
 
-        if (_crew.SpawnCrewman(camp.Role, post, group, loadout, body, name, camp.Profile) is not { } guard)
+        if (_crew.SpawnCrewman(camp.Role, post, group, loadout, body, name, profileId) is not { } guard)
             return null;
 
         if (profile != null && profile.Components.Count > 0)

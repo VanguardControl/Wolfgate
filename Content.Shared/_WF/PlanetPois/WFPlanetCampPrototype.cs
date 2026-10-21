@@ -20,16 +20,26 @@ public sealed partial class WFPlanetCampPrototype : IPrototype
     [DataField(required: true)]
     public LocId Name;
 
-    /// <summary>The ships it may be built round, one picked per camp.</summary>
-    [DataField(required: true)]
+    /// <summary>The ships it may be built round, one picked per camp; none makes a camp in the open, round its fire.</summary>
+    [DataField]
     public List<ProtoId<VesselPrototype>> Vessels = new();
 
-    /// <summary>Bodies, names and loadouts of the guards.</summary>
-    [DataField(required: true)]
-    public ProtoId<WFCrewProfilePrototype> Profile;
+    /// <summary>Bodies, names and loadouts of the guards; none posts no guards.</summary>
+    [DataField]
+    public ProtoId<WFCrewProfilePrototype>? Profile;
 
-    [DataField(required: true)]
-    public ProtoId<NpcFactionPrototype> Faction;
+    [DataField]
+    public ProtoId<NpcFactionPrototype> Faction = "SimpleNeutral";
+
+    /// <summary>Whoever lives there instead of, or as well as, a crew: one pick each, set round the fire.</summary>
+    [DataField]
+    public EntityTableSelector? Residents;
+
+    [DataField]
+    public int MinResidents;
+
+    [DataField]
+    public int MaxResidents;
 
     /// <summary>The guards' role: its duty and engagement, and the profile's loadout for it.</summary>
     [DataField]

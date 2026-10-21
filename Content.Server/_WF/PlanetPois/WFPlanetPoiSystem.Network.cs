@@ -214,6 +214,8 @@ public sealed partial class WFPlanetPoiSystem
             PlaceWrecks(ground, grid, biome, orbit, centre, radius, table, record, created);
             PlaceCamps(ground, grid, biome, orbit, centre, radius, table, record, created);
             record.PendingRoamers = table.Roamers.ToList();
+            record.PendingResidents = table.Residents;
+            record.ResidentChance = table.ResidentChance;
             record.RoamerCentre = centre;
             record.RoamerRadius = radius - table.EdgeMargin;
             record.RoamerInner = table.CentreClear + RoamerClearance;

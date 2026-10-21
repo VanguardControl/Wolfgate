@@ -4,6 +4,12 @@
 
 - type: wfPlanetPoiTable
   id: WFPoisAsclepiu
+  residents: WFStrangerRandomSpawner
+  residentChance: 0.4
+  roamers:
+  - id: WFStrangerRandomSpawner
+    minCount: 4
+    maxCount: 8
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -11,6 +17,9 @@
   - camp: WFCampAds
     minCount: 1
     maxCount: 1
+  - camp: WFCampCrazies
+    minCount: 1
+    maxCount: 2
   wrecks:
     theme: WFWreckThemeVerda
     minCount: 1
@@ -152,6 +161,8 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisMerak
+  residents: WFStrangerRandomSpawner
+  residentChance: 0.4
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -159,7 +170,13 @@
   - camp: WFCampAds
     minCount: 1
     maxCount: 1
+  - camp: WFCampCrazies
+    minCount: 1
+    maxCount: 2
   roamers:
+  - id: WFStrangerRandomSpawner
+    minCount: 4
+    maxCount: 8
   - id: WFMerakSandMaw
     minCount: 10
     maxCount: 20
@@ -266,6 +283,12 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisFervidus
+  residents: WFStrangerRandomSpawner
+  residentChance: 0.4
+  roamers:
+  - id: WFStrangerRandomSpawner
+    minCount: 4
+    maxCount: 8
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -273,6 +296,9 @@
   - camp: WFCampAds
     minCount: 1
     maxCount: 1
+  - camp: WFCampCrazies
+    minCount: 1
+    maxCount: 2
   wrecks:
     theme: WFWreckThemeFervidus
     minCount: 1
@@ -304,6 +330,12 @@
     name: wf-poi-fervidus-camp
 - type: wfPlanetPoiTable
   id: WFPoisThrascias
+  residents: WFStrangerRandomSpawner
+  residentChance: 0.4
+  roamers:
+  - id: WFStrangerRandomSpawner
+    minCount: 4
+    maxCount: 8
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -311,6 +343,9 @@
   - camp: WFCampAds
     minCount: 1
     maxCount: 1
+  - camp: WFCampCrazies
+    minCount: 1
+    maxCount: 2
   wrecks:
     theme: WFWreckThemeThrascias
     minCount: 1
@@ -342,6 +377,8 @@
     name: wf-poi-thrascias-virology
 - type: wfPlanetPoiTable
   id: WFPoisAerumna
+  residents: WFStrangerRandomSpawner
+  residentChance: 0.4
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -349,7 +386,13 @@
   - camp: WFCampAds
     minCount: 1
     maxCount: 1
+  - camp: WFCampCrazies
+    minCount: 1
+    maxCount: 2
   roamers:
+  - id: WFStrangerRandomSpawner
+    minCount: 4
+    maxCount: 8
   - id: WFAerumnaLeviathan
     minCount: 1
     maxCount: 2
@@ -387,6 +430,12 @@
     name: wf-poi-aerumna-mine
 - type: wfPlanetPoiTable
   id: WFPoisCarcinoma
+  residents: WFStrangerRandomSpawner
+  residentChance: 0.4
+  roamers:
+  - id: WFStrangerRandomSpawner
+    minCount: 4
+    maxCount: 8
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -394,6 +443,9 @@
   - camp: WFCampAds
     minCount: 1
     maxCount: 1
+  - camp: WFCampCrazies
+    minCount: 1
+    maxCount: 2
   wrecks:
     theme: WFWreckThemeCarcinoma
     minCount: 2

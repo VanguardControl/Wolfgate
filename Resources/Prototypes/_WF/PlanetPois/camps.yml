@@ -55,3 +55,21 @@
     distance: 4
   loot: !type:NestedSelector
     tableId: WFWreckGunneryChips
+
+# A crazy camp: no ship, just a few tents round a fire, and whoever's odd enough to live out here (_WF/Strangers).
+- type: wfPlanetCamp
+  id: WFCampCrazies
+  name: wf-poi-crazy-camp
+  props:
+  - ids: [ Bonfire ]
+    min: 1
+    max: 1
+    distance: 0
+  - ids: [ AU14PropTent3, AU14PropTent4, AU14PropTent5 ]
+    min: 2
+    max: 4
+    distance: 4
+  residents: !type:NestedSelector
+    tableId: WFStrangers
+  minResidents: 2
+  maxResidents: 4

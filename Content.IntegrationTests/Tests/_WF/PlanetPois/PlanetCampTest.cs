@@ -72,6 +72,12 @@ public sealed class PlanetCampTest
                     .Count(meta => meta.EntityPrototype?.ID == id && entities.GetComponent<TransformComponent>(meta.Owner).MapID == map);
                 Assert.That(Count("Bonfire"), Is.GreaterThanOrEqualTo(1), "The Reavers have no campfire.");
                 Assert.That(Count("AU14TallFloodlight"), Is.GreaterThanOrEqualTo(3), "The camps aren't lit.");
+
+                // Crazy camps: a fire with tents, and strangers round it; more strangers roam the open ground.
+                Assert.That(record.Sites.Count(site => site.Name == "wf-poi-crazy-camp"), Is.InRange(1, 2), "Merak has no crazy camp.");
+                var strangers = entities.EntityQuery<Content.Server._WF.Strangers.WFStrangerComponent>()
+                    .Count(stranger => entities.GetComponent<TransformComponent>(stranger.Owner).MapID == map);
+                Assert.That(strangers, Is.GreaterThanOrEqualTo(6), "Merak should have its strangers, at camp and wandering.");
             });
         }
         finally { await PlanetFixture.Teardown(pair, layers); }

@@ -24,6 +24,13 @@ public sealed partial class WFPlanetPoiComponent : Component
     [ViewVariables]
     public List<WFPendingCamp> PendingCamps = new();
 
+    /// <summary>Who may live in the authored sites, posted once the world exists; null once done.</summary>
+    [ViewVariables]
+    public EntProtoId? PendingResidents;
+
+    [ViewVariables]
+    public float ResidentChance;
+
     [ViewVariables]
     public Vector2 RoamerCentre;
 

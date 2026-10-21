@@ -14,6 +14,32 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Tiles a roamer starts beyond the landing zone's edge.</summary>
     private const float RoamerClearance = 24f;
 
+    /// <summary>Somebody living in some of the authored sites, such as houses: one each, on open floor under its roof.</summary>
+    private void SpawnResidents(EntityUid ground, MapGridComponent grid, WFPlanetPoiComponent record)
+    {
+        if (record.PendingResidents is not { } resident)
+            return;
+        record.PendingResidents = null;
+
+        foreach (var site in record.Sites)
+        {
+            if (site.MapPath == null || site.Name.Id.StartsWith("wf-city-") || !_random.Prob(record.ResidentChance))
+                continue;
+
+            var floor = new List<Vector2i>();
+            for (var x = site.Bounds.Left; x < site.Bounds.Right; x++)
+            for (var y = site.Bounds.Bottom; y < site.Bounds.Top; y++)
+            {
+                var tile = new Vector2i(x, y);
+                if (!_maps.GetTileRef(ground, grid, tile).Tile.IsEmpty && !_maps.GetAnchoredEntitiesEnumerator(ground, grid, tile).MoveNext(out _)
+                    && TryComp<Content.Shared.Light.Components.RoofComponent>(ground, out var roof) && _roof.IsRooved((ground, grid, roof), tile))
+                    floor.Add(tile);
+            }
+            if (floor.Count > 0)
+                Spawn(resident, new EntityCoordinates(ground, (Vector2) _random.Pick(floor) + new Vector2(0.5f)));
+        }
+    }
+
     private void OnPreloaded(ref WFPlanetPreloadedEvent args)
     {
         var ground = args.Ground;
@@ -22,6 +48,7 @@ public sealed partial class WFPlanetPoiSystem
             return;
 
         SpawnPendingCamps((ground, biome), grid, record);
+        SpawnResidents(ground, grid, record);
         if (record.PendingRoamers.Count == 0)
             return;
 
