@@ -618,6 +618,7 @@ namespace Content.Client.Lobby.UI
             InitializeCustomMarkings(); // WOLFGATE(CustomMarkings)
             InitializeMismatchedParts(); // WOLFGATE(Species)
             InitializeBiotype(); // WOLFGATE(Biotype)
+            InitializeChatFont(); // WOLFGATE(ChatFont)
             InitializeLegStyle(); // WOLFGATE(LegStyle)
 
             #region Dummy
@@ -1330,6 +1331,7 @@ namespace Content.Client.Lobby.UI
             UpdateMismatchedParts(); // WOLFGATE(Species)
             UpdateBiotype(); // WOLFGATE(Biotype)
             UpdateLegStyle(); // WOLFGATE(LegStyle)
+            UpdateChatFont(); // WOLFGATE(ChatFont)
             UpdateSexControls();
             UpdateGenderControls();
             UpdateSkinColor();

@@ -921,6 +921,11 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("TEXT")
                         .HasColumnName("char_name");
 
+                    b.Property<string>("ChatFont")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("chat_font");
+
                     b.Property<string>("Company")
                         .IsRequired()
                         .HasColumnType("TEXT")
