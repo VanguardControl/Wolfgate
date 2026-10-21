@@ -4,6 +4,7 @@ using Content.Server._NF.Shuttles.Components;
 using Content.Server._WF.Planets;
 using Content.Server._WF.Planets.Flight;
 using Content.Server._WF.RoundSetup;
+using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Events;
 using Content.Server.Station.Components;
@@ -199,18 +200,27 @@ public sealed class CrashScenarioTest
                 "The crashed hull is not on the ground layer.");
         });
 
+        // The impact can wreck the hull's power, which also refuses a pilot; only the scenario lock is under test.
+        var helm = EntityUid.Invalid;
+        await server.WaitPost(() =>
+        {
+            helm = FindShuttleConsole(em, crashed);
+            if (helm != EntityUid.Invalid)
+                server.System<PowerReceiverSystem>().SetNeedsPower(helm, false);
+        });
+
         // The scenario sweep runs twice a second; after it sees the impact the helm opens again.
         await server.WaitRunTicks(pair.SecondsToTicks(1f));
         await server.WaitAssertion(() =>
         {
             Assert.That(em.GetComponent<WFCrashScenarioComponent>(crashed).Crashed, Is.True);
-            var helm = FindShuttleConsole(em, crashed);
-            if (helm != EntityUid.Invalid)
+            if (helm != EntityUid.Invalid && em.GetComponent<TransformComponent>(helm).Anchored)
             {
                 var actor = em.SpawnEntity("MobHuman", em.GetComponent<TransformComponent>(helm).Coordinates);
                 var open = new ActivatableUIOpenAttemptEvent(actor);
                 em.EventBus.RaiseLocalEvent(helm, open);
-                Assert.That(open.Cancelled, Is.False, "The helm stayed locked after the crash.");
+                Assert.That(open.Cancelled, Is.False,
+                    $"The helm stayed locked after the crash; powered: {server.System<PowerReceiverSystem>().IsPowered(helm)}.");
                 em.DeleteEntity(actor);
             }
 
