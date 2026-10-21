@@ -189,9 +189,9 @@
     # M4 (plan §8.5): the pump cools the positronic core; under half health it cools at half the rate.
     impairedCoolingFactor: 0.5
     # Playtest 3: sized with the core; the pump fails on the rifle round the human lungs are gone (about 8).
-    # Synthetics playtest: raised with the core, so a torso full of rounds shuts a synthetic down after a human's lungs go, not before.
-    health: 40
-    maxHealth: 40
+    # Synthetics playtest: raised towards the core but under it, so a torso full of rounds shuts a synthetic down after a human's heart, and before the core.
+    health: 35
+    maxHealth: 35
     hitCap: 2.5 # playtest 3: as the core
   - type: OrganDamage
     hitChance: 0.8
