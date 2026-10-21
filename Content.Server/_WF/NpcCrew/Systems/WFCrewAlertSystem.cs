@@ -25,6 +25,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     [Dependency] private WFCrewEscortSystem _escorts = default!;
     [Dependency] private WFCrewShipStatusSystem _status = default!;
     [Dependency] private WFCrewSystem _crew = default!;
+    [Dependency] private WFCrewStealthSystem _stealth = default!;
 
     private const string Vision = "VisionRadius";
     private const string AggroVision = "AggroVisionRadius";
@@ -94,7 +95,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// </summary>
     private bool ValidShip(EntityUid grid, EntityUid ship, bool attacked, bool fired = false)
     {
-        return !TerminatingOrDeleted(ship) && IsVessel(ship) && !_status.ShouldDisengage(grid, ship, range: !fired, shooter: fired)
+        return !TerminatingOrDeleted(ship) && IsVessel(ship) && !_stealth.ShipUnseen(ship) && !_status.ShouldDisengage(grid, ship, range: !fired, shooter: fired)
             && Transform(ship).MapID == Transform(grid).MapID && (attacked || !_escorts.AreInFormation(grid, ship));
     }
 
@@ -245,6 +246,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         if (grid == attacker || !HasComp<MapGridComponent>(grid) || !IsVessel(attacker)
             || Transform(grid).MapID != Transform(attacker).MapID)
             return;
+        // An attack shows a cloaked ship to every crew for a while.
+        _stealth.RevealShip(attacker);
         // Grids without crew, escorts or battlegroups have nobody to alert.
         if (group == null && !_escorts.IsInvolved(grid))
             return;

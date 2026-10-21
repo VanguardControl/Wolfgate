@@ -12,6 +12,10 @@ drydock-console-started = Repair started: { $count } { $count ->
     [one] item
    *[other] items
 } for { $price } cr.
+drydock-console-voucher-used = Repair started: { $count } { $count ->
+    [one] item
+   *[other] items
+}, paid by your repair voucher.
 drydock-console-refit-started = Refit started on { $count } { $count ->
     [one] machine
    *[other] machines

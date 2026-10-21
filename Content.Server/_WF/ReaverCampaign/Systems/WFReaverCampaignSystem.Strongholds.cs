@@ -303,7 +303,7 @@ public sealed partial class WFReaverCampaignSystem
             {
                 // A hub that went dark with nobody shooting at it has not been beaten: its engineer and the restock
                 // bring the power back. One that stays dark past the grace is broken all the same.
-                if (lead != null && encounter.ShipHits.Count == 0 && comp.NpcHits.Count == 0 && _encounters.OutForWantOfPower(lead))
+                if (lead != null && encounter.ShipHits.Count == 0 && encounter.Kills.Count == 0 && comp.NpcHits.Count == 0 && _encounters.OutForWantOfPower(lead))
                 {
                     if (!comp.Starved)
                     {

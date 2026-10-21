@@ -108,7 +108,8 @@ public sealed class CrashScenarioTest
             Assert.That(engines.All(uid => !em.GetComponent<ThrusterComponent>(uid).Enabled), Is.True);
         });
 
-        await server.WaitRunTicks(pair.SecondsToTicks(13f));
+        // Tick the client too; one left past PVS's 20-tick dirty buffer gets false "empty state" errors.
+        await pair.RunTicksSync(pair.SecondsToTicks(13f));
         await server.WaitAssertion(() =>
         {
             Assert.That(em.HasComponent<WFOrbitDecayComponent>(hull), Is.False,
@@ -127,7 +128,7 @@ public sealed class CrashScenarioTest
             Assert.That(system.TryGetCountdown(actor, out _), Is.False);
         });
 
-        await server.WaitRunTicks(pair.SecondsToTicks(2f));
+        await pair.RunTicksSync(pair.SecondsToTicks(2f));
         await server.WaitAssertion(() =>
         {
             Assert.That(em.GetComponent<WFCrashScenarioComponent>(hull).Descending, Is.True);

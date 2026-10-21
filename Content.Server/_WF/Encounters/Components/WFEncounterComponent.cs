@@ -103,6 +103,9 @@ public sealed partial class WFEncounterComponent : Component
     /// <summary>The same count per attacking ship.</summary>
     public Dictionary<(EntityUid Attacker, string Side), int> ShipHits = new();
 
+    /// <summary>Crewmen of each side each player downed in person, kills and assists.</summary>
+    public Dictionary<Robust.Shared.Network.NetUserId, Dictionary<string, int>> Kills = new();
+
     /// <summary>Player ships a side has taken as allies for the encounter.</summary>
     public List<(EntityUid Ship, EntityUid Ally)> Allies = new();
 
@@ -206,6 +209,9 @@ public sealed partial class WFEncounterShipState
 
     /// <summary>Since when no player has been near it, while resolved.</summary>
     public TimeSpan? Quiet;
+
+    /// <summary>When players were last aboard it or docked with it, while resolved.</summary>
+    public TimeSpan? LastVisited;
 
     /// <summary>Whether it hunts player ships to dock with and board.</summary>
     [DataField]

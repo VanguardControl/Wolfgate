@@ -2339,3 +2339,167 @@ Entries:
   id: 100177
   time: '2026-10-20T05:14:27.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/295
+- author: bluebrouny
+  changes:
+    - type: Tweak
+      message: Changed the McChicken, now you can chickenmaxx
+  id: 100178
+  time: '2026-10-20T17:31:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/291
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Dragging yourself onto a folded unicycle no longer locks one of your
+        hands.
+    - type: Fix
+      message: >-
+        The laser cannon's chaining beam no longer jumps back into the person
+        who fired it.
+    - type: Fix
+      message: >-
+        Expedition consoles no longer get stuck on an empty board with the timer
+        at 00:00; opening or re-anchoring the console refreshes it.
+    - type: Fix
+      message: >-
+        The admin and sandbox buttons no longer show for regular players after
+        switching HUD layout.
+    - type: Fix
+      message: >-
+        Vulpkanin and Canine hand markings (fade, sharp, crest, claws) no longer
+        draw over the body when the far hand should be hidden from the side.
+    - type: Fix
+      message: >-
+        Wagging your tail no longer sometimes leaves the still tail drawn
+        underneath it.
+    - type: Fix
+      message: >-
+        Automatic and burst weapons no longer sometimes show a phantom shot that
+        was never fired.
+  id: 100179
+  time: '2026-10-20T19:42:28.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/297
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        The Unidentified Vessel's Scythe, Sunder and Flayer guns now link to its
+        gunnery console.
+    - type: Fix
+      message: The AK570 on the Monolithic asteroid ship now links to gunnery.
+  id: 100180
+  time: '2026-10-20T19:42:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/300
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Mapping mode: a server cvar (wf.mapping_mode.enabled) that turns the
+        server into a mapping workshop. No rounds, no maps loaded; the lobby
+        becomes a mapping menu where you create a map, join one by code, or open
+        one from your library.
+    - type: Add
+      message: >-
+        Mapping sessions: private maps with join codes, up to 8 members, owner
+        kick and new code, rejoin after a disconnect, z-levels per session.
+    - type: Add
+      message: >-
+        Full mapping tools for everyone in mapping mode, no admin needed, on a
+        dedicated mapping screen with a palette, Properties, Tools, Layers,
+        Template and Keys tabs, undockable panels, a movable mode bar and a
+        customisable quick-select bar.
+    - type: Add
+      message: >-
+        Build modes: Place, Erase, Select, Fill, Shape (line, rectangle, circle,
+        fill or border), Pick, Template, Pipe (smart pipes, atmos device box,
+        colour presets, network painting) and Link (signal links, device lists,
+        door access).
+    - type: Add
+      message: >-
+        Map library: numbered versions, autosave, Quicksave (Ctrl+S), download
+        to your data folder or anywhere with Save to, upload a map to edit
+        (unknown prototypes can be dropped), delete.
+    - type: Add
+      message: >-
+        Ship export: download a single-grid map as a ship grid with a generated
+        vessel prototype.
+    - type: Add
+      message: >-
+        PNG templates you can share with your session, and reference grids from
+        game ships, maps or your own saves.
+    - type: Add
+      message: >-
+        An in-game mapping guide, opened from the lobby, the Mapping window, the
+        Keys tab or the Guidebook button.
+    - type: Add
+      message: >-
+        Limits that keep the server healthy and stop griefing: map area, grids
+        per player, entities per tile and per map, request rates, library
+        quotas, protected players and ghosts, and a block list for things like
+        singularities and Nar'Sie.
+    - type: Add
+      message: >-
+        Admins keep every tool, get an Observe button in the lobby, and
+        wf_mappingmode_* commands to list, visit, save, close, kick and purge.
+    - type: Fix
+      message: The rcd/colornetwork command no longer runs for players without access.
+  id: 100181
+  time: '2026-10-20T23:35:44.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/294
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Typing just an emote's name, like *salute or *laugh, now does that emote
+        ("David salutes.").
+    - type: Fix
+      message: Emotes no longer say "The David" after you've worn a mask.
+    - type: Fix
+      message: You can type "..." in chat again.
+  id: 100182
+  time: '2026-10-21T02:16:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/302
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Ashfall Reaver kit: orange combat and void hardsuits, fatigues, deck and
+        engine jumpsuits, pack, chest rig, headset, beret and captain's and
+        warlord's cloaks.
+    - type: Tweak
+      message: >-
+        Reaver crews now wear their own hardsuits: red raider suits on riflemen,
+        orange combat suits on bruisers, a stolen cloak on officers.
+  id: 100183
+  time: '2026-10-21T02:30:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/303
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Encounter ships no longer vanish the moment you step off them. They wait
+        5 minutes after the last player leaves, and never go while docked to a
+        player ship.
+    - type: Fix
+      message: >-
+        Reaver reinforcements no longer disappear from under you when their
+        stronghold falls.
+    - type: Tweak
+      message: >-
+        Killing an encounter's crew in person now earns a share of its reward,
+        split evenly with the ships that fought it.
+    - type: Tweak
+      message: >-
+        Reaver stronghold and patrol bounties are much higher, and the hourly
+        reward cap is raised to 250k.
+    - type: Add
+      message: >-
+        Reaver bounties now include a drydock repair voucher, good for one free
+        full repair at Anvilhold.
+    - type: Add
+      message: >-
+        NPC crews can't see players in stealth suits or ships with a cloak up,
+        until they attack, steal or shoot.
+  id: 100184
+  time: '2026-10-21T02:52:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/305

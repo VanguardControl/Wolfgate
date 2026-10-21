@@ -3,7 +3,9 @@
 Anvilhold Drydock is a POI station (`WFDrydock`, `Resources/Maps/_WF/Drydock/drydock.yml`) that repairs and refits
 ships parked in its four berths, North, East, South and West. A pilot either pulls up to a berth console or hails the
 dockmaster from their helm (Hailing module) and books a berth. Any ship can also build a mobile drydock, which pays in
-materials instead of credits.
+materials instead of credits. A `WFDrydockRepairVoucher` (a Reaver bounty reward) on the payer, in hand or a worn
+slot, pays for one whole repair at a console that takes credits; it is used up when the work starts and handed back if
+the job aborts (`WFDrydockSystem.Vouchers.cs`).
 
 Entry points: `WFDrydockSystem` (berths, quotes, payment; `.Job.cs` for jobs and cranes, `.Booking.cs` for the hail
 service, bookings and guides, `.Materials.cs` for material bills), `WFShipRefitSystem` and `WFPartRefitSystem` (refit
@@ -171,6 +173,7 @@ Mk IV manipulators on stock bins draw 30 kW.
 - [`Content.Server/_WF/Drydock/WFDrydockBookingComponent.cs`](WFDrydockBookingComponent.cs)
 - [`Content.Server/_WF/Drydock/WFDrydockCraneUpgradesComponent.cs`](WFDrydockCraneUpgradesComponent.cs)
 - [`Content.Server/_WF/Drydock/WFDrydockJobComponent.cs`](WFDrydockJobComponent.cs)
+- [`Content.Server/_WF/Drydock/WFDrydockRepairVoucherComponent.cs`](WFDrydockRepairVoucherComponent.cs)
 - [`Content.Server/_WF/Drydock/WFDrydockSystem.BerthLights.cs`](WFDrydockSystem.BerthLights.cs)
 - [`Content.Server/_WF/Drydock/WFDrydockSystem.Blockers.cs`](WFDrydockSystem.Blockers.cs)
 - [`Content.Server/_WF/Drydock/WFDrydockSystem.Booking.cs`](WFDrydockSystem.Booking.cs)
@@ -183,6 +186,7 @@ Mk IV manipulators on stock bins draw 30 kW.
 - [`Content.Server/_WF/Drydock/WFDrydockSystem.Refits.cs`](WFDrydockSystem.Refits.cs)
 - [`Content.Server/_WF/Drydock/WFDrydockSystem.Supplies.cs`](WFDrydockSystem.Supplies.cs)
 - [`Content.Server/_WF/Drydock/WFDrydockSystem.Upgrades.cs`](WFDrydockSystem.Upgrades.cs)
+- [`Content.Server/_WF/Drydock/WFDrydockSystem.Vouchers.cs`](WFDrydockSystem.Vouchers.cs)
 - [`Content.Server/_WF/Drydock/WFDrydockWorkItem.cs`](WFDrydockWorkItem.cs)
 - [`Content.Server/_WF/Drydock/WFHulkComponent.cs`](WFHulkComponent.cs)
 - [`Content.Server/_WF/Drydock/WFLandingThrusterRefitSystem.cs`](WFLandingThrusterRefitSystem.cs)
@@ -245,6 +249,7 @@ Mk IV manipulators on stock bins draw 30 kW.
 - [`Resources/Prototypes/_WF/Drydock/refits.yml`](../../../Resources/Prototypes/_WF/Drydock/refits.yml)
 - [`Resources/Prototypes/_WF/Drydock/salvage.yml`](../../../Resources/Prototypes/_WF/Drydock/salvage.yml)
 - [`Resources/Prototypes/_WF/Drydock/sounds.yml`](../../../Resources/Prototypes/_WF/Drydock/sounds.yml)
+- [`Resources/Prototypes/_WF/Drydock/vouchers.yml`](../../../Resources/Prototypes/_WF/Drydock/vouchers.yml)
 
 ### Localization
 

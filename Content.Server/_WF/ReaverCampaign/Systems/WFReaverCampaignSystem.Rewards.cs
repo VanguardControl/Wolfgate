@@ -4,6 +4,7 @@ using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.ReaverCampaign.Components;
 using Content.Shared._WF.Encounters;
 using Content.Shared._WF.ReaverCampaign;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.ReaverCampaign.Systems;
 
@@ -47,7 +48,7 @@ public sealed partial class WFReaverCampaignSystem
                 supporters.Add(ship);
         }
 
-        var (reward, extra) = Rewards(campaign, bounty, grant => (int) (grant.Stronghold * factor));
+        var (reward, extra) = Rewards(campaign, bounty, grant => (int) (grant.Stronghold * factor), campaign.StrongholdItems);
         var paid = _rewards.PayBounty(uid, reward, comp.Citadel ? "breaking the Reaver citadel" : "breaking the Reaver stronghold", supporters, extra);
         return (bounty, paid);
     }
@@ -55,7 +56,7 @@ public sealed partial class WFReaverCampaignSystem
     /// <summary>Pays a destroyed patrol's bounty to those who hit it; returns the bounty and how many were paid.</summary>
     private (int Bounty, int Paid) PayPatrolBounty(WFReaverCampaignPrototype campaign, EntityUid patrol)
     {
-        var (reward, extra) = Rewards(campaign, campaign.PatrolBounty, grant => grant.Patrol);
+        var (reward, extra) = Rewards(campaign, campaign.PatrolBounty, grant => grant.Patrol, campaign.PatrolItems);
         var paid = _rewards.PayBounty(patrol, reward, "destroying the Reaver patrol", null, extra);
         return (campaign.PatrolBounty, paid);
     }
@@ -63,7 +64,7 @@ public sealed partial class WFReaverCampaignSystem
     /// <summary>Pays a destroyed reinforcement's bounty, the patrol bounty, to those who hit it; returns the bounty and how many were paid.</summary>
     private (int Bounty, int Paid) PayReinforcementBounty(WFReaverCampaignPrototype campaign, EntityUid reinforcement)
     {
-        var (reward, extra) = Rewards(campaign, campaign.PatrolBounty, grant => grant.Patrol);
+        var (reward, extra) = Rewards(campaign, campaign.PatrolBounty, grant => grant.Patrol, campaign.PatrolItems);
         var paid = _rewards.PayBounty(reinforcement, reward, "destroying the Reaver reinforcements", null, extra);
         return (campaign.PatrolBounty, paid);
     }
@@ -74,14 +75,14 @@ public sealed partial class WFReaverCampaignSystem
     {
         var scale = citadel ? campaign.CitadelBountyScale : 1f;
         var bounty = (int) (ByTier(campaign.StrongholdBounty, state.Tier, 0) * scale) / 2;
-        var (reward, extra) = Rewards(campaign, bounty, grant => (int) (grant.Stronghold * scale) / 2);
+        var (reward, extra) = Rewards(campaign, bounty, grant => (int) (grant.Stronghold * scale) / 2, campaign.StrongholdItems);
         var paid = _rewards.PayBounty(convoy, reward, citadel ? "destroying the Reaver citadel convoy" : "destroying the Reaver convoy", null, extra);
         return (bounty, paid);
     }
 
-    /// <summary>A bounty as an encounter reward with the first navy's credits, and the other navies' credits as rewards of no spesos.</summary>
+    /// <summary>A bounty as an encounter reward with the first navy's credits and the items, and the other navies' credits as rewards of no spesos.</summary>
     private static (WFEncounterReward Reward, List<WFEncounterReward> Extra) Rewards(WFReaverCampaignPrototype campaign, int spesos,
-        Func<WFReaverCreditGrant, int> amount)
+        Func<WFReaverCreditGrant, int> amount, List<EntProtoId> items)
     {
         var extra = campaign.Credits.Select(grant => new WFEncounterReward
         {
@@ -91,10 +92,11 @@ public sealed partial class WFReaverCampaignSystem
         }).ToList();
 
         if (extra.Count == 0)
-            return (new WFEncounterReward { Spesos = spesos }, extra);
+            return (new WFEncounterReward { Spesos = spesos, Items = new List<EntProtoId>(items) }, extra);
 
         var reward = extra[0];
         reward.Spesos = spesos;
+        reward.Items = new List<EntProtoId>(items);
         extra.RemoveAt(0);
         return (reward, extra);
     }

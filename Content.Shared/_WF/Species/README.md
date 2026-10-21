@@ -84,6 +84,7 @@ and its own sprite.
 - [`Content.IntegrationTests/Tests/_WF/Species/OptionalDefaultMarkingsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/OptionalDefaultMarkingsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/ShadekinNightVisionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/ShadekinNightVisionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/SpeciesLoadoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/SpeciesLoadoutTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Species/WaggingTailLayersTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/WaggingTailLayersTest.cs)
 
 ### Prototypes
 
@@ -185,7 +186,9 @@ and its own sprite.
   - keeps other species' markings
   - optional defaults live in the profile
   - hair and beards the species can't wear
+  - a layer drawn outside the last full rebuild (say a wag swapped in between) left a still tail behind
   - mismatched parts draw without a species layer
+  - removed on the next rebuild whatever drew it
   - mismatched parts are coloured without a species layer
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): lets any species wear every species' markings (HumanoidProfileEditor.MismatchedParts.cs)
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
@@ -283,6 +286,7 @@ and its own sprite.
   - merge parent sounds into children
 - [`Content.Shared/Damage/Systems/DamageableSystem.cs`](../../Damage/Systems/DamageableSystem.cs): heal modifiers, ported from HardLight
 - [`Content.Shared/Eye/VisibilityFlags.cs`](../../Eye/VisibilityFlags.cs): ported from HardLight/Starlight, for Shadekin dark phasing
+- [`Content.Shared/Humanoid/HumanoidAppearanceComponent.cs`](../../Humanoid/HumanoidAppearanceComponent.cs): every marking layer the client drew, so a rebuild removes all of them
 - [`Content.Shared/Humanoid/HumanoidCharacterAppearance.cs`](../../Humanoid/HumanoidCharacterAppearance.cs)
   - optional defaults start saved, so they can be removed
   - optional defaults start saved

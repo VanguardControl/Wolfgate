@@ -821,6 +821,12 @@ public sealed partial class ChatSystem : SharedChatSystem
         var ent = Identity.Entity(source, EntityManager);
         string name = FormattedMessage.EscapeText(nameOverride ?? Name(ent));
 
+        // WOLFGATE(Emotes) START: a typed trigger word like *salute shows that emote's own message
+        var typedAction = action;
+        if (checkEmote)
+            action = ResolveTypedEmote(source, action);
+        // WOLFGATE END
+
         // Emotes use Identity.Name, since it doesn't actually involve your voice at all.
         var wrappedMessage = Loc.GetString("chat-manager-entity-me-wrap-message",
             ("entityName", name),
@@ -828,7 +834,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             ("message", FormattedMessage.RemoveMarkupOrThrow(action)));
 
         if (checkEmote)
-            TryEmoteChatInput(source, action);
+            TryEmoteChatInput(source, typedAction); // WOLFGATE(Emotes): match the trigger on what was typed
         SendInVoiceRange(ChatChannel.Emotes, name, action, wrappedMessage, obfuscated: "", obfuscatedWrappedMessage: "", source, range, author); // Einstein Engines - Language
         if (!hideLog)
             if (name != Name(source))
