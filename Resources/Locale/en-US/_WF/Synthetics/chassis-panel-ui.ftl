@@ -87,3 +87,10 @@ wf-chassis-ui-tip-bay-close = Shuts the torso plating. Takes 3 seconds, 6 on you
 wf-chassis-ui-tip-reboot = Restarts the chassis. It is down for 4 seconds and uses 10% of the charge, and the sensor load and lockups are cleared. Click twice to confirm.
 wf-chassis-ui-tip-overclock-off = Runs the servos 25% faster for 3 times the drain. The chassis heats, throws sparks and short circuits as it does, and cuts out at 15% charge or when the torso overheats.
 wf-chassis-ui-tip-overclock-on = Overclock is running: 25% faster, 3 times the drain. Click to stop it and let the chassis cool.
+
+# The radiation collector and the built-in radiation meter.
+wf-chassis-ui-rad-collector = RAD COL
+wf-chassis-ui-rad-collector-none = NONE
+wf-chassis-ui-radiation = RAD {$value} r/s
+wf-chassis-ui-tip-rad-collector = How full the radiation collector is. Full, more radiation strains it and leaks into the core; pull it through the bay to let it vent. NONE: missing or burnt out, and the core takes all of it.
+wf-chassis-ui-tip-radiation = Radiation reaching the chassis right now, in rads a second.

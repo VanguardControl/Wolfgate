@@ -112,7 +112,7 @@ With no working collector every rad goes into the core, and a core corrupted to 
 
 ## Death and revival
 
-A destroyed core is death. A destroyed core is also not the end: [bold]Repair Positronic Core[/bold] on the torso (a synth's core sits in the head, and its surgery is [bold]Repair Synth Core[/bold]). Unbolt the housing with a wrench, re-flash the core with a multitool, weld the housing shut. Then alt-click the body and choose [bold]Reboot[/bold].
+A destroyed core is death, but not the end. A core that is only damaged (by hits, heat or radiation) is fixed the same way, before it gets there. Lay the synth down and run [bold]Repair Positronic Core[/bold] on the torso; a Synth's core, the [bold]CCU[/bold], sits in the head, and its surgery is [bold]Repair Synth Core[/bold] on the head. Unbolt the housing with a wrench, re-flash the core with a multitool, weld the housing shut. A destroyed core then needs a [bold]Reboot[/bold] (alt-click the body).
 
 The Reboot checks what the chassis needs to run and names whatever is still missing: a head, a core, a pump, a charged cell. Fix what it names and press it again.
 

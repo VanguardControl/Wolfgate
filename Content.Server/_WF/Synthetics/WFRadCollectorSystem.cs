@@ -39,6 +39,12 @@ public sealed class WFRadCollectorSystem : EntitySystem
     [Dependency] private WolfmedLifeSystem _life = default!;
 
     private readonly Dictionary<EntityUid, TimeSpan> _nextWarning = new();
+
+    /// <summary>The last radiation each chassis took, in rads a second, and when.</summary>
+    private readonly Dictionary<EntityUid, (float Rate, TimeSpan At)> _exposure = new();
+
+    /// <summary>How long a reading holds after the last irradiation; the radiation system ticks once a second.</summary>
+    private static readonly TimeSpan ExposureHold = TimeSpan.FromSeconds(2.5);
     private TimeSpan _nextVent;
 
     public override void Initialize()
@@ -52,8 +58,15 @@ public sealed class WFRadCollectorSystem : EntitySystem
         SubscribeLocalEvent<WFRadCollectorComponent, WFRadCollectorWeldDoAfterEvent>(OnWeldDone);
     }
 
-    private void OnChassisShutdown(Entity<WFChassisComponent> ent, ref ComponentShutdown args) =>
+    private void OnChassisShutdown(Entity<WFChassisComponent> ent, ref ComponentShutdown args)
+    {
         _nextWarning.Remove(ent);
+        _exposure.Remove(ent);
+    }
+
+    /// <summary>Rads a second reaching the chassis now: the built-in meter the chassis panel reads.</summary>
+    public float GetExposure(EntityUid body) =>
+        _exposure.TryGetValue(body, out var last) && _timing.CurTime - last.At <= ExposureHold ? last.Rate : 0f;
 
     // A chassis keeps no radiation of its own: the collector or the core takes it in OnIrradiated.
     private void OnDamageModify(Entity<WFChassisComponent> ent, ref DamageModifyEvent args)
@@ -68,6 +81,7 @@ public sealed class WFRadCollectorSystem : EntitySystem
 
     private void OnIrradiated(EntityUid uid, WFChassisComponent comp, OnIrradiatedEvent args)
     {
+        _exposure[uid] = (args.RadsPerSecond, _timing.CurTime);
         var rads = args.TotalRads;
         if (rads > 0f)
             Absorb(uid, rads);

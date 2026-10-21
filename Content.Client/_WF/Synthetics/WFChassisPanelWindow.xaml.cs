@@ -126,8 +126,10 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
 
         Style(PanelTitle, 16, Amber, true);
         Style(StatusLabel, 11, Alert, true);
-        foreach (var label in new[] { PowerLabel, FluidLabel, SensorLabel, CoreLabel })
+        foreach (var label in new[] { PowerLabel, FluidLabel, SensorLabel, CoreLabel, RadCollectorLabel, RadiationLabel })
             Style(label, 11, Amber);
+        RadCollectorLabel.ToolTip = Loc.GetString("wf-chassis-ui-tip-rad-collector");
+        RadiationLabel.ToolTip = Loc.GetString("wf-chassis-ui-tip-radiation");
 
         Tabs.PanelStyleBoxOverride = Box(Screen, Border, 4f);
         Tabs.TabFontColorOverride = Amber;
@@ -225,6 +227,8 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
         CoreLabel.Visible = state.CoreTemperature >= 0f;
         CoreLabel.Text = Loc.GetString("wolfmed-synthetic-row-core") + " " + Loc.GetString("wolfmed-synthetic-row-core-temp",
             ("value", (int) MathF.Round(state.CoreTemperature)));
+
+        UpdateRadiation(state);
 
         SyncParts(state.Parts);
         SyncOrgans(state.Organs);
@@ -530,6 +534,26 @@ public sealed partial class WFChassisPanelWindow : FancyWindow
     public static bool IsLimb(TargetBodyPart slot) =>
         (slot & (TargetBodyPart.Arms | TargetBodyPart.Hands | TargetBodyPart.Legs | TargetBodyPart.Feet)) != 0 &&
         (slot & (TargetBodyPart.Head | TargetBodyPart.Torso | TargetBodyPart.Groin)) == 0;
+
+    /// <summary>The collector's charge (full is bad) and the built-in radiation meter.</summary>
+    private void UpdateRadiation(WFChassisPanelState state)
+    {
+        if (state.RadCollector < 0f)
+        {
+            RadCollectorLabel.Text = Loc.GetString("wf-chassis-ui-rad-collector") + " " + Loc.GetString("wf-chassis-ui-rad-collector-none");
+            RadCollectorLabel.FontColorOverride = Alert;
+        }
+        else
+        {
+            RadCollectorLabel.Text = Loc.GetString("wf-chassis-ui-rad-collector") + " " + GaugeText(state.RadCollector);
+            RadCollectorLabel.FontColorOverride = state.RadCollector >= 1f ? Alert : FractionColour(1f - state.RadCollector);
+        }
+
+        RadiationLabel.Text = Loc.GetString("wf-chassis-ui-radiation", ("value", state.Radiation.ToString("0.0")));
+        RadiationLabel.FontColorOverride = state.Radiation <= 0f ? AmberDim
+            : state.RadCollector < 0f || state.RadCollector >= 1f ? Alert
+            : Amber;
+    }
 
     private static void SetGauge(Label label, string key, float fraction, bool visible)
     {

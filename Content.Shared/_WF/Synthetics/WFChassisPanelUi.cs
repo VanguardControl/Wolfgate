@@ -98,6 +98,12 @@ public sealed class WFChassisPanelState : BoundUserInterfaceState
     /// <summary>Core temperature in kelvin, or -1.</summary>
     public float CoreTemperature = -1f;
 
+    /// <summary>The radiation collector's charge, 0 to 1, or -1 with no working collector.</summary>
+    public float RadCollector = -1f;
+
+    /// <summary>Rads a second reaching the chassis right now.</summary>
+    public float Radiation;
+
     /// <summary>The chassis is shut down (no power or no pump).</summary>
     public bool Shutdown;
 

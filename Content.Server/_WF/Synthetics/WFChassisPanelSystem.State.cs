@@ -47,6 +47,7 @@ public sealed partial class WFChassisPanelSystem
     [Dependency] private SharedBodySystem _body = default!;
     [Dependency] private SharedContainerSystem _containers = default!;
     [Dependency] private SynthBatterySystem _synthBattery = default!;
+    [Dependency] private WFRadCollectorSystem _radCollector = default!;
 
     /// <summary>Everything the panel shows for this body, read fresh.</summary>
     public WFChassisPanelState BuildState(EntityUid body)
@@ -93,6 +94,10 @@ public sealed partial class WFChassisPanelSystem
         state.Fluid = hud?.Fluid ?? 1f;
         state.Sensors = hud?.Sensors ?? 1f;
         state.CoreTemperature = hud?.CoreTemperature ?? -1f;
+        state.RadCollector = _radCollector.GetCollector(body) is { } collector && collector.Comp1.Capacity > 0f
+            ? Math.Clamp(collector.Comp1.Charge / collector.Comp1.Capacity, 0f, 1f)
+            : -1f;
+        state.Radiation = _radCollector.GetExposure(body);
         state.Status = state.Shutdown ? "wf-chassis-status-shutdown"
             : HasComp<WFChassisRebootComponent>(body) ? "wf-chassis-status-reboot"
             : HasComp<WFLowPowerComponent>(body) ? "wf-chassis-status-low-power"

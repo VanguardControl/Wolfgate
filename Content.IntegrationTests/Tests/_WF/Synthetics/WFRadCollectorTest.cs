@@ -48,6 +48,14 @@ public sealed class WFRadCollectorTest : WolfmedGameTest
                 Assert.That(CoreHealth(body), Is.EqualTo(CoreMax(body)), "the core was touched while the collector had room.");
             });
 
+            // The chassis panel shows the collector's charge and the built-in meter's reading.
+            var panel = SEntMan.System<WFChassisPanelSystem>().BuildState(body);
+            Assert.Multiple(() =>
+            {
+                Assert.That(panel.RadCollector, Is.EqualTo(100f / 300f).Within(0.001f), "the panel does not show the collector's charge.");
+                Assert.That(panel.Radiation, Is.EqualTo(100f).Within(0.01f), "the panel's meter does not read the exposure.");
+            });
+
             // 200 fills it, 200 overflows: strain on the collector, half-rate corruption in the core.
             Irradiate(body, 400);
             Assert.Multiple(() =>
