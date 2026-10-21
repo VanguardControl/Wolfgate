@@ -291,6 +291,13 @@
                                         <Control HorizontalExpand="True" />
                                         <OptionButton Name="BiotypeButton" MinWidth="180" ToolTip="{Loc 'wf-biotype-tooltip'}" />
                                     </BoxContainer>
+                                    <!-- WOLFGATE(ChatFont): the font the character's speech is shown in (HumanoidProfileEditor.ChatFont.cs) -->
+                                    <BoxContainer HorizontalExpand="True" SeparationOverride="6">
+                                        <Label Text="{Loc 'wf-chat-font-label'}" StyleClasses="CreatorFieldLabel" VAlign="Center" />
+                                        <Control HorizontalExpand="True" />
+                                        <OptionButton Name="ChatFontButton" MinWidth="180" ToolTip="{Loc 'wf-chat-font-tooltip'}" />
+                                    </BoxContainer>
+                                    <RichTextLabel Name="ChatFontPreview" HorizontalExpand="True" />
                                     <!-- WOLFGATE(Species): lets any species wear every species' markings (HumanoidProfileEditor.MismatchedParts.cs) -->
                                     <CheckBox Name="MismatchedPartsCheckBox" Text="{Loc 'wf-mismatched-parts-toggle'}"
                                               ToolTip="{Loc 'wf-mismatched-parts-tooltip'}" Margin="0 6 0 0" />
