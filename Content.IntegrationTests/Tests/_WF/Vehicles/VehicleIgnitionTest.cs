@@ -48,16 +48,25 @@ public sealed class VehicleIgnitionTest
         Assert.That(engine.Electrics, Is.True, "Putting the key in should switch the accessories on.");
         Assert.That(engine.Running, Is.False);
 
-        await Press(new WFVehicleControlRequest(request, false) { Ignition = true });
-        Assert.That(engine.Running, Is.True, "The second press should start the engine.");
+        await Press(new WFVehicleControlRequest(request, false) { StartStop = true });
+        Assert.That(engine.Running, Is.True, "Start/stop should start the engine.");
 
-        await Press(new WFVehicleControlRequest(request, false) { Ignition = true });
-        Assert.That(engine.Running, Is.False, "The third press should stop the engine.");
-        Assert.That(engine.Electrics, Is.False, "Stopping should switch everything off.");
+        await Press(new WFVehicleControlRequest(request, false) { StartStop = true });
+        Assert.That(engine.Running, Is.False, "Start/stop should stop it again.");
+        Assert.That(engine.Electrics, Is.True, "Stopping the engine leaves the accessories on.");
 
-        await Press(new WFVehicleControlRequest(request, false, ejectKey: true));
+        await Press(new WFVehicleControlRequest(request, false) { StartStop = true });
+        Assert.That(engine.Running, Is.True);
+
+        // Taking the key out of a running engine stops it and hands the key back.
+        await Press(new WFVehicleControlRequest(request, false) { Ignition = true });
         Assert.That(engine.IgnitionKey, Is.Null);
-        Assert.That(server.System<SharedHandsSystem>().IsHolding(rig.Driver, key), Is.True, "The ejected key should be in hand.");
+        Assert.That(engine.Running, Is.False, "The engine ran on without its key.");
+        Assert.That(engine.Electrics, Is.False);
+        Assert.That(server.System<SharedHandsSystem>().IsHolding(rig.Driver, key), Is.True, "The key should come out to hand.");
+
+        await Press(new WFVehicleControlRequest(request, false) { StartStop = true });
+        Assert.That(engine.Running, Is.False, "It started with no key in.");
 
         await pair.CleanReturnAsync();
     }

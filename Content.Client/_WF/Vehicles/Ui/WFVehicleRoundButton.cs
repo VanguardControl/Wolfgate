@@ -22,6 +22,7 @@ public enum WFVehicleGlyph : byte
     Crosshair,
     Ammo,
     TurretLock,
+    Power,
 }
 
 /// <summary>A round dashboard button: a texture or a drawn glyph inside a ring that shows its state.</summary>
@@ -85,6 +86,17 @@ public sealed class WFVehicleRoundButton : ContainerButton
                     center + new Vector2(-5, 1) * unit, center + new Vector2(5, 1) * unit, center + new Vector2(0, -5) * unit,
                 }, ink);
                 handle.DrawRect(UIBox2.FromDimensions(center + new Vector2(-5, 3) * unit, new Vector2(10, 2) * unit), ink);
+                break;
+            case WFVehicleGlyph.Power:
+                // The power symbol: a ring broken at the top, a bar through the gap.
+                for (var i = 0; i < 20; i++)
+                {
+                    var from = MathF.PI * (0.65f + i * 1.7f / 20f);
+                    var to = MathF.PI * (0.65f + (i + 1) * 1.7f / 20f);
+                    handle.DrawLine(center + new Vector2(MathF.Sin(from), -MathF.Cos(from)) * 5 * unit,
+                        center + new Vector2(MathF.Sin(to), -MathF.Cos(to)) * 5 * unit, ink);
+                }
+                handle.DrawRect(UIBox2.FromDimensions(center + new Vector2(-0.75f, -6.5f) * unit, new Vector2(1.5f, 6) * unit), ink);
                 break;
             case WFVehicleGlyph.Headlights:
                 // A lamp facing right, with three beams.
