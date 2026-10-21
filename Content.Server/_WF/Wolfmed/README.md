@@ -1321,13 +1321,14 @@ Skipped ("dirty-disposed").
   - D8, Onyx's extra part fields.
   - D8, FractureProfile lives on WolfmedBodyPartComponent, not Shitmed's BodyPartComponent.
 - [`Content.Shared/_Onyx/Wounds/FractureEffectsSystem.cs`](../../../Content.Shared/_Onyx/Wounds/FractureEffectsSystem.cs)
+  - missing-foot slowdown
   - W2
   - CONSC
   - Onyx's OrganGotInserted/RemovedEvent are compat shims here.
-  - missing-foot slowdown
   - W2: limb penalties from wounds
   - CONSC: a strong painkiller masks the wound slowdowns, so a player walks on a broken leg
   - a missing foot slows like a disabled one. The loop above only sees parts that are
+  - whether the body's own prototype puts a part in this slot.
   - Wolfgate's hands API hands back Hand objects, not hand-id strings (GetActiveHand returns
   - W2: Wolfmed's mechanical wounds (a severed tendon) answer here rather than through
 - [`Content.Shared/_Onyx/Wounds/PainSystem.cs`](../../../Content.Shared/_Onyx/Wounds/PainSystem.cs)
