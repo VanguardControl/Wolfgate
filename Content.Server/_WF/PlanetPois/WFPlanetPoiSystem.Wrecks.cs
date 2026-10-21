@@ -259,7 +259,7 @@ public sealed partial class WFPlanetPoiSystem
         return solid;
     }
 
-    /// <summary>The wildlife that moved in, and what's left of the crew.</summary>
+    /// <summary>The wildlife that moved in, what's left in the hold and what's left of the crew.</summary>
     private void SpawnWreckFauna(Entity<MapGridComponent> ship, WFWreckThemePrototype theme)
     {
         if (theme.Fauna is not { } fauna)
@@ -273,6 +273,12 @@ public sealed partial class WFPlanetPoiSystem
         for (var i = 0; i < count; i++)
         {
             foreach (var id in _entityTables.GetSpawns(fauna))
+                Spawn(id, new EntityCoordinates(ship.Owner, (Vector2) _random.Pick(open) + new Vector2(0.5f)));
+        }
+
+        if (theme.Loot is { } loot && _random.Prob(theme.LootChance))
+        {
+            foreach (var id in _entityTables.GetSpawns(loot))
                 Spawn(id, new EntityCoordinates(ship.Owner, (Vector2) _random.Pick(open) + new Vector2(0.5f)));
         }
 

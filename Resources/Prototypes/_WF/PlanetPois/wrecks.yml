@@ -1,5 +1,6 @@
 # How each world reclaims the ships that crashed on it (WFPlanetPoiSystem.Wrecks): its ground creeping over the deck,
-# what grows or settles there, the wildlife that moved in and the crew that never left (wreck_crew.yml).
+# what grows or settles there, the wildlife that moved in and the crew that never left (wreck_crew.yml),
+# and sometimes salvage still in the hold (wreck_loot.yml).
 
 - type: wfWreckTheme
   id: WFWreckThemeVerda
@@ -11,6 +12,8 @@
     tableId: WFFaunaAsclepiu
   crew: !type:EntSelector
     id: WFWreckZombieVerda
+  loot: !type:NestedSelector
+    tableId: WFWreckLoot
 
 - type: wfWreckTheme
   id: WFWreckThemeMerak
@@ -22,6 +25,8 @@
     tableId: MonoPlanetmapFaunaDesert
   crew: !type:EntSelector
     id: WFWreckZombieMerak
+  loot: !type:NestedSelector
+    tableId: WFWreckLoot
 
 - type: wfWreckTheme
   id: WFWreckThemeFervidus
@@ -33,6 +38,8 @@
     tableId: WFFaunaFervidus
   crew: !type:EntSelector
     id: WFWreckZombieFervidus
+  loot: !type:NestedSelector
+    tableId: WFWreckLoot
 
 - type: wfWreckTheme
   id: WFWreckThemeThrascias
@@ -44,6 +51,8 @@
     tableId: WFFaunaThrascias
   crew: !type:EntSelector
     id: WFWreckZombieThrascias
+  loot: !type:NestedSelector
+    tableId: WFWreckLoot
 
 - type: wfWreckTheme
   id: WFWreckThemeAerumna
@@ -55,6 +64,8 @@
     tableId: WFFaunaAerumna
   crew: !type:EntSelector
     id: WFWreckZombieAerumna
+  loot: !type:NestedSelector
+    tableId: WFWreckLoot
 
 - type: wfWreckTheme
   id: WFWreckThemeCarcinoma
@@ -68,3 +79,5 @@
     tableId: WFFaunaCarcinoma
   crew: !type:EntSelector
     id: WFWreckZombieCarcinoma
+  loot: !type:NestedSelector
+    tableId: WFWreckLoot

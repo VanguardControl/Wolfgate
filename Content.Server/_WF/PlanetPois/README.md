@@ -90,6 +90,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Resources/Prototypes/_WF/PlanetPois/traders.yml`](../../../Resources/Prototypes/_WF/PlanetPois/traders.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/tunnels.yml`](../../../Resources/Prototypes/_WF/PlanetPois/tunnels.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/wreck_crew.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wreck_crew.yml)
+- [`Resources/Prototypes/_WF/PlanetPois/wreck_loot.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wreck_loot.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/wrecks.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wrecks.yml)
 
 ### Localization

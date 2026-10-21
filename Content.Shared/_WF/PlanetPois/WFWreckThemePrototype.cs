@@ -46,6 +46,13 @@ public sealed partial class WFWreckThemePrototype : IPrototype
 
     [DataField]
     public int MaxCrew = 3;
+
+    /// <summary>What may still be in the hold, such as salvaged ship guns; one pick, at <see cref="LootChance"/>.</summary>
+    [DataField]
+    public EntityTableSelector? Loot;
+
+    [DataField]
+    public float LootChance = 0.5f;
 }
 
 /// <summary>The crashed ships a world gets each round.</summary>
