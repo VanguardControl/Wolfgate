@@ -119,7 +119,7 @@ public sealed class PlanetWreckTest
                 var query = entities.EntityQueryEnumerator<WFPlanetCityGridComponent, MapGridComponent, TransformComponent>();
                 while (query.MoveNext(out var uid, out _, out var grid, out var xform))
                 {
-                    if (xform.MapID != map)
+                    if (xform.MapID != map || entities.HasComponent<WFPlanetCampComponent>(uid))
                         continue;
                     wrecks.Add(uid);
                     Assert.Multiple(() =>

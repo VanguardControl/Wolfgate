@@ -1,0 +1,80 @@
+#nullable enable
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
+using System.Threading.Tasks;
+using Content.IntegrationTests.Tests._WF.Planets;
+using Content.Server._WF.NpcCrew.Components;
+using Content.Server._WF.PlanetPois;
+using Content.Server._WF.Planets;
+using Content.Shared._WF.CCVar;
+using Content.Shared._WF.Planets;
+using Content.Shared.NPC.Components;
+using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
+using Robust.Shared.Prototypes;
+
+namespace Content.IntegrationTests.Tests._WF.PlanetPois;
+
+/// <summary>Every world has a Reaver encampment and an ADS control site, guarded on the deck and round the hull.</summary>
+[TestFixture]
+public sealed class PlanetCampTest
+{
+    [Test]
+    public async Task MerakHasItsCamps()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entities = server.EntMan;
+        await PlanetFixture.EnableFeature(pair);
+        var layers = new List<EntityUid>();
+        var prototypes = server.ResolveDependency<IPrototypeManager>();
+        const int radius = 320;
+        await server.WaitPost(() =>
+        {
+            server.CfgMan.SetCVar(PlanetCVars.Bounds, true);
+            server.CfgMan.SetCVar(PlanetCVars.Radius, radius);
+            server.CfgMan.SetCVar(PlanetCVars.Preload, true);
+            server.CfgMan.SetCVar(PlanetCVars.PreloadBudget, 1000f);
+            server.CfgMan.SetCVar(PlanetCVars.PoiTable, "WFPoisMerak");
+            var surface = prototypes.Index<WFPlanetSurfacePrototype>("WFSurfaceMerak");
+            var network = server.System<WFPlanetNetworkSystem>().BuildNetwork(surface, Vector2.Zero, "WFSurfaceMerak", null);
+            Assert.That(network, Is.Not.Null);
+            layers.AddRange(entities.GetComponent<WFPlanetNetworkComponent>(network!.Value).Layers);
+        });
+        try
+        {
+            await PlanetBoundsTest.WaitPreloaded(pair, layers[0]);
+            await pair.RunTicksSync(10);
+            await server.WaitAssertion(() =>
+            {
+                var record = entities.GetComponent<WFPlanetPoiComponent>(layers[0]);
+                Assert.That(record.GenerationError, Is.Null);
+                foreach (var (name, camp, faction) in new[]
+                         {
+                             ("wf-poi-reaver-encampment", "WFCampReavers", "PirateNF"),
+                             ("wf-poi-ads-control-site", "WFCampAds", "WFAds"),
+                         })
+                {
+                    Assert.That(record.Sites.Count(site => site.Name == name), Is.EqualTo(1), $"Merak has no {name}.");
+                    var guards = entities.EntityQuery<WFCrewComponent>().Where(crew => crew.Group.StartsWith(camp + "-")).ToList();
+                    Assert.That(guards, Has.Count.GreaterThanOrEqualTo(4), $"The {camp} is barely guarded.");
+                    var factions = server.System<Content.Shared.NPC.Systems.NpcFactionSystem>();
+                    Assert.That(guards.All(guard => factions.IsMember(guard.Owner, faction)), Is.True, $"A {camp} guard is on the wrong side.");
+                    var outside = guards.Count(guard => entities.GetComponent<TransformComponent>(guard.Owner).GridUid == layers[0]);
+                    Assert.That(outside, Is.GreaterThanOrEqualTo(1), $"No {camp} guard stands outside the hull.");
+                    Assert.That(record.PendingCamps, Is.Empty, "The camps' outside guards were never posted.");
+                }
+
+                // The camps' own dressing: a fire at the Reavers', floodlights at both.
+                var map = entities.GetComponent<TransformComponent>(layers[0]).MapID;
+                int Count(string id) => entities.EntityQuery<MetaDataComponent>()
+                    .Count(meta => meta.EntityPrototype?.ID == id && entities.GetComponent<TransformComponent>(meta.Owner).MapID == map);
+                Assert.That(Count("Bonfire"), Is.GreaterThanOrEqualTo(1), "The Reavers have no campfire.");
+                Assert.That(Count("AU14TallFloodlight"), Is.GreaterThanOrEqualTo(3), "The camps aren't lit.");
+            });
+        }
+        finally { await PlanetFixture.Teardown(pair, layers); }
+        await pair.CleanReturnAsync();
+    }
+}

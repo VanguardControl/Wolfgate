@@ -19,3 +19,5 @@ wf-poi-verda-corner-house = Run-down house
 wf-poi-verda-small-house = Small house
 wf-poi-abandoned-bandit-hideout = Bandit hideout
 wf-poi-wreck = Crashed ship
+wf-poi-reaver-encampment = Reaver encampment
+wf-poi-ads-control-site = ADS control site

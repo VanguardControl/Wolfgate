@@ -20,6 +20,10 @@ public sealed partial class WFPlanetPoiComponent : Component
     [ViewVariables]
     public List<WFPlanetRoamer> PendingRoamers = new();
 
+    /// <summary>Camps whose outside guards and cover wait for the ground round them to exist.</summary>
+    [ViewVariables]
+    public List<WFPendingCamp> PendingCamps = new();
+
     [ViewVariables]
     public Vector2 RoamerCentre;
 
@@ -53,6 +57,9 @@ public sealed partial class WFPlanetPoiComponent : Component
     [ViewVariables]
     public List<EntityUid> Furniture = new();
 }
+
+/// <summary>A camp set down before the ground round it existed, and what still goes outside it.</summary>
+public sealed record WFPendingCamp(ProtoId<WFPlanetCampPrototype> Camp, Vector2 Centre, float Reach, string Group);
 
 /// <summary>One placed site: what was generated, where, how big it came out and the signal that marks it.</summary>
 public sealed class WFPlanetPoiSite

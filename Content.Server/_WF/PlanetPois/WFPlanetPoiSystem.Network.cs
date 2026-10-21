@@ -212,6 +212,7 @@ public sealed partial class WFPlanetPoiSystem
             }
             // Wrecks last: they keep off the sites and roads, which are pinned by now.
             PlaceWrecks(ground, grid, biome, orbit, centre, radius, table, record, created);
+            PlaceCamps(ground, grid, biome, orbit, centre, radius, table, record, created);
             record.PendingRoamers = table.Roamers.ToList();
             record.RoamerCentre = centre;
             record.RoamerRadius = radius - table.EdgeMargin;

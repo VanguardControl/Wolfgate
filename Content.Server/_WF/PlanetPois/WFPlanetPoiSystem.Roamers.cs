@@ -17,8 +17,12 @@ public sealed partial class WFPlanetPoiSystem
     private void OnPreloaded(ref WFPlanetPreloadedEvent args)
     {
         var ground = args.Ground;
-        if (!TryComp<WFPlanetPoiComponent>(ground, out var record) || record.PendingRoamers.Count == 0
+        if (!TryComp<WFPlanetPoiComponent>(ground, out var record)
             || !TryComp<BiomeComponent>(ground, out var biome) || !TryComp<MapGridComponent>(ground, out var grid))
+            return;
+
+        SpawnPendingCamps((ground, biome), grid, record);
+        if (record.PendingRoamers.Count == 0)
             return;
 
         var inner = record.RoamerInner;

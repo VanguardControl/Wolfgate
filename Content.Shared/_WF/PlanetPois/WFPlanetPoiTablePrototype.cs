@@ -57,6 +57,10 @@ public sealed partial class WFPlanetPoiTablePrototype : IPrototype
     [DataField]
     public WFPlanetWrecks? Wrecks;
 
+    /// <summary>Armed camps round ships set down off the roads, such as Reaver encampments.</summary>
+    [DataField]
+    public List<WFPlanetCampEntry> Camps = new();
+
     /// <summary>Big creatures set loose on the open ground each round, away from the landing zone.</summary>
     [DataField]
     public List<WFPlanetRoamer> Roamers = new();

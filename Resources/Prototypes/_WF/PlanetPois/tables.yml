@@ -4,6 +4,13 @@
 
 - type: wfPlanetPoiTable
   id: WFPoisAsclepiu
+  camps:
+  - camp: WFCampReavers
+    minCount: 1
+    maxCount: 1
+  - camp: WFCampAds
+    minCount: 1
+    maxCount: 1
   wrecks:
     theme: WFWreckThemeVerda
     minCount: 1
@@ -145,6 +152,13 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisMerak
+  camps:
+  - camp: WFCampReavers
+    minCount: 1
+    maxCount: 1
+  - camp: WFCampAds
+    minCount: 1
+    maxCount: 1
   roamers:
   - id: WFMerakSandMaw
     minCount: 10
@@ -252,6 +266,13 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisFervidus
+  camps:
+  - camp: WFCampReavers
+    minCount: 1
+    maxCount: 1
+  - camp: WFCampAds
+    minCount: 1
+    maxCount: 1
   wrecks:
     theme: WFWreckThemeFervidus
     minCount: 1
@@ -283,6 +304,13 @@
     name: wf-poi-fervidus-camp
 - type: wfPlanetPoiTable
   id: WFPoisThrascias
+  camps:
+  - camp: WFCampReavers
+    minCount: 1
+    maxCount: 1
+  - camp: WFCampAds
+    minCount: 1
+    maxCount: 1
   wrecks:
     theme: WFWreckThemeThrascias
     minCount: 1
@@ -314,6 +342,13 @@
     name: wf-poi-thrascias-virology
 - type: wfPlanetPoiTable
   id: WFPoisAerumna
+  camps:
+  - camp: WFCampReavers
+    minCount: 1
+    maxCount: 1
+  - camp: WFCampAds
+    minCount: 1
+    maxCount: 1
   roamers:
   - id: WFAerumnaLeviathan
     minCount: 1
@@ -352,6 +387,13 @@
     name: wf-poi-aerumna-mine
 - type: wfPlanetPoiTable
   id: WFPoisCarcinoma
+  camps:
+  - camp: WFCampReavers
+    minCount: 1
+    maxCount: 1
+  - camp: WFCampAds
+    minCount: 1
+    maxCount: 1
   wrecks:
     theme: WFWreckThemeCarcinoma
     minCount: 2

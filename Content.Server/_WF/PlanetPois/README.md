@@ -23,7 +23,14 @@ inside one leaves a gap in its wall. Every road world has them.
 
 A table's `wrecks` (`WFPlanetPoiSystem.Wrecks`, themes in `wrecks.yml`) crash a few vessels off the roads, torn open
 and reclaimed by the world, with its wildlife and what's left of the crew inside: spacers dressed for that world who
-rise as zombies when spawned (`WFZombifyOnSpawn`, `wreck_crew.yml`).
+rise as zombies when spawned (`WFZombifyOnSpawn`, `wreck_crew.yml`). About half the wrecks still have something in the hold
+(`wreck_loot.yml`): a crate with a ship gun flatpack and the hardpoint it mounts on, or a crate of gunnery co-processor
+chips (`_WF/GunneryChips`).
+
+A table's `camps` (`WFPlanetPoiSystem.Camps`, `camps.yml`) set a ship down intact and square to the world off the roads,
+with an armed crew from an NpcCrew profile guarding it: two or three on the deck at once, more round the hull behind a
+ring of cover once the ground there exists. Every world has a Reaver encampment (Ashfall Reaver raiders) and an ADS
+control site (ADS automatons); the hold has loot of the same kind as the wrecks'.
 
 An isolated site with `trail: true` stands off the roads and gets a footpath instead (`WFPlanetPoiSystem.Trails`,
 routed by `WFPlanetTrailPlanner`): a wandering track of the network's `trailTile`, a tile or two wide, from just
@@ -46,6 +53,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiComponent.cs`](WFPlanetPoiComponent.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiPlacementPlanner.cs`](WFPlanetPoiPlacementPlanner.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Camps.cs`](WFPlanetPoiSystem.Camps.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.cs`](WFPlanetPoiSystem.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Dressing.cs`](WFPlanetPoiSystem.Dressing.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Network.cs`](WFPlanetPoiSystem.Network.cs)
@@ -61,12 +69,14 @@ items and repair supplies through Traders; they do not automatically refuel dock
 
 ### Shared
 
+- [`Content.Shared/_WF/PlanetPois/WFPlanetCampPrototype.cs`](../../../Content.Shared/_WF/PlanetPois/WFPlanetCampPrototype.cs)
 - [`Content.Shared/_WF/PlanetPois/WFPlanetPoiTablePrototype.cs`](../../../Content.Shared/_WF/PlanetPois/WFPlanetPoiTablePrototype.cs)
 - [`Content.Shared/_WF/PlanetPois/WFRoadDressingPrototype.cs`](../../../Content.Shared/_WF/PlanetPois/WFRoadDressingPrototype.cs)
 - [`Content.Shared/_WF/PlanetPois/WFWreckThemePrototype.cs`](../../../Content.Shared/_WF/PlanetPois/WFWreckThemePrototype.cs)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetCampTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetCampTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiContentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiContentTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiLegacyNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiLegacyNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiNetworkTest.cs)
@@ -82,6 +92,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 
 ### Prototypes
 
+- [`Resources/Prototypes/_WF/PlanetPois/camps.yml`](../../../Resources/Prototypes/_WF/PlanetPois/camps.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/dungeons.yml`](../../../Resources/Prototypes/_WF/PlanetPois/dungeons.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/entities.yml`](../../../Resources/Prototypes/_WF/PlanetPois/entities.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/road_dressing.yml`](../../../Resources/Prototypes/_WF/PlanetPois/road_dressing.yml)
