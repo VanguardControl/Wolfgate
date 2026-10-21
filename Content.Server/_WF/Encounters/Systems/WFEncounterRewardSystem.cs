@@ -509,13 +509,8 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
                 }
             }
 
-            if (paid == 0 && credits == 0 && reward.Items.Count == 0)
+            if (paid == 0 && credits == 0)
                 continue;
-
-            foreach (var item in reward.Items)
-            {
-                _hands.PickupOrDrop(mob, Spawn(item, Transform(mob).Coordinates));
-            }
 
             received++;
             _chat.DispatchServerMessage(session, Loc.GetString(credits > 0 ? "wf-encounter-reward-paid-credits" : "wf-encounter-reward-paid",
