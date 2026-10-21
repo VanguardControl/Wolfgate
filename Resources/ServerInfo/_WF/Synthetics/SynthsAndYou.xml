@@ -49,7 +49,7 @@ None of this needs an incision. Scan, match the finding to the tool, and work.
 
 [bold]Optics:[/bold] bright flashes and welding without eye protection blur the view. A [bold]sheet of glass[/bold] used on the chassis replaces the lenses. The Heal Eyes surgery does it too.
 
-[bold]Fluid:[/bold] a [bold]hydraulic fluid pack[/bold] used on the chassis refills it. So does an IV, and so does the autodoc. Never oil; a chassis refuses it. A standard chassis also regenerates fluid slowly by itself.
+[bold]Fluid:[/bold] a [bold]hydraulic fluid pack[/bold] used on the chassis refills it. So does an IV, and so does the autodoc. Never oil; a chassis refuses it. A standard chassis also regenerates fluid slowly by itself. Below half its fluid a synth is down; below about a third its pump has nothing to move and it shuts down ([bold]hydraulic pressure lost[/bold]) until refilled.
 
 A [bold]nanite applicator[/bold] does the welder's job on a chassis and runs on its own fuel. The [bold]autodoc[/bold] handles all of it, surgery included.
   <Box>
@@ -80,7 +80,7 @@ While the bay is open the synth is slower, and every hit on its torso reaches th
 
 Chassis limbs come off more readily than flesh does, and they keep: a limb that is off is just a part until somebody puts it back.
 
-To reattach one, click it on the body. Four seconds, or eight on yourself. It clicks in [bold]loose[/bold]: the limb works, but slowly and clumsily, and the analyzer reads [bold]loose coupling[/bold]. Use a [bold]cable coil[/bold] on it to recouple it and it is as good as new.
+To reattach one, click it on the body. Four seconds, or eight on yourself. It clicks in [bold]loose[/bold]: the limb works, but slowly and clumsily, and the analyzer reads [bold]loose coupling[/bold]. Use a [bold]cable coil[/bold] on it, aimed at that limb, to recouple it: it takes about fourteen passes of cable, and each pass says how many are left. Then it is as good as new.
 
 A hand comes off with its arm and goes back on the arm separately, so put the arm on first. A missing foot or leg slows the synth just as a disabled one would.
   <Box>

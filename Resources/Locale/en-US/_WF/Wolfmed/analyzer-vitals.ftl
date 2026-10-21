@@ -45,6 +45,7 @@ wolfmed-vitals-source-arrestshock = shock
 wolfmed-vitals-source-arrestother = unknown cause
 wolfmed-vitals-source-power = no power
 wolfmed-vitals-source-pump = coolant pump offline
+wolfmed-vitals-source-fluid = hydraulic pressure lost
 
 # Playtest 3: breathing, the pulse and the blood are items on the one vitals line, shown only when not normal.
 wolfmed-vitals-breathing-depressed = Breathing depressed, sedation { $percent }%

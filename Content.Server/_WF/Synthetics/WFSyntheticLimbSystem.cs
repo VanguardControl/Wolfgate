@@ -182,11 +182,27 @@ public sealed partial class WFSyntheticLimbSystem : SharedWFSyntheticsSystem
         return true;
     }
 
-    /// <summary>The coupling repaired: the limb is seated properly again.</summary>
+    /// <summary>Says how far each pass of cable got, and seats the limb properly once the coupling is repaired.</summary>
     private void OnWoundLifecycle(ref WolfmedWoundLifecycleEvent args)
     {
-        if (args.Kind != WolfmedWoundLifecycle.Removed || args.Prototype != LooseCouplingWound ||
-            !HasComp<WFLooseLimbComponent>(args.Part))
+        if (args.Prototype != LooseCouplingWound || !HasComp<WFLooseLimbComponent>(args.Part))
+            return;
+
+        var body = CompOrNull<BodyPartComponent>(args.Part)?.Body;
+        if (args.Kind == WolfmedWoundLifecycle.Changed)
+        {
+            var pass = args.OldSeverity - args.Severity;
+            if (body != null && pass > FixedPoint2.Zero && args.Severity > FixedPoint2.Zero)
+            {
+                var left = (int) MathF.Ceiling(args.Severity.Float() / pass.Float());
+                _popup.PopupEntity(Loc.GetString("wf-synthetic-limb-coupling-tightened", ("limb", args.Part), ("passes", left)),
+                    body.Value, PopupType.Small);
+            }
+
+            return;
+        }
+
+        if (args.Kind != WolfmedWoundLifecycle.Removed)
             return;
 
         foreach (var wound in _wounds.GetWounds(args.Part))
@@ -196,6 +212,8 @@ public sealed partial class WFSyntheticLimbSystem : SharedWFSyntheticsSystem
         }
 
         RemComp<WFLooseLimbComponent>(args.Part);
+        if (body != null)
+            _popup.PopupEntity(Loc.GetString("wf-synthetic-limb-coupling-seated", ("limb", args.Part)), body.Value);
     }
 
     /// <summary>One examine line per loose limb on the body. Called from the bay system's examine handler.</summary>

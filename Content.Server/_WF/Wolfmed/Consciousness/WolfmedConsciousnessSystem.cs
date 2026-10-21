@@ -151,6 +151,10 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
             return;
 
         consciousness.BloodFraction = fraction;
+        // Synthetics playtest: a chassis whose fluid runs out shuts down, and starts again once it is refilled.
+        if (_shutdown.IsMechanical(body))
+            _shutdown.Refresh(body);
+
         Evaluate((body, consciousness));
     }
 

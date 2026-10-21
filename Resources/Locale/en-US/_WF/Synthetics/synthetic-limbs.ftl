@@ -4,7 +4,12 @@ wf-synthetic-limb-reattaching-other = { CAPITALIZE(THE($user)) } starts coupling
 wf-synthetic-limb-reattached = { CAPITALIZE(THE($limb)) } clicks into place, loosely.
 wf-synthetic-limb-not-chassis = That will not couple to a chassis.
 wf-synthetic-limb-no-socket = There is no free socket for that.
-wf-synthetic-limb-examine-loose = [color=yellow]{ CAPITALIZE(POSS-ADJ($target)) } { $part } sits loose in its socket.[/color]
+wf-synthetic-limb-examine-loose = [color=yellow]{ CAPITALIZE(POSS-ADJ($target)) } { $part } sits loose in its socket. Cable coil on it will recouple it.[/color]
+wf-synthetic-limb-coupling-tightened = { CAPITALIZE(THE($limb)) }'s coupling tightens. { $passes ->
+    [one] One more pass of cable.
+   *[other] About { $passes } more passes of cable.
+}
+wf-synthetic-limb-coupling-seated = { CAPITALIZE(THE($limb)) } seats firmly in its socket.
 
 # The wound a hand reattach leaves (wounds.yml).
 wf-synthetics-wound-name-loose-coupling = loose coupling
