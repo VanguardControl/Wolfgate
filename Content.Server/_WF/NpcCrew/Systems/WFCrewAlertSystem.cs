@@ -78,7 +78,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// <summary>Explicit incoming fire permits retaliation even against a normally friendly company.</summary>
     public bool IsHostileShip(EntityUid grid, string group, EntityUid target)
     {
-        if (TerminatingOrDeleted(grid) || _spared.Spared(grid, target) || !_alerts.TryGetValue((grid, group), out var alert))
+        if (TerminatingOrDeleted(grid) || !_alerts.TryGetValue((grid, group), out var alert))
             return false;
         var attacked = alert.Vessels.TryGetValue(target, out var until) && _timing.CurTime < until;
         if (!attacked && (!alert.DockingVessels.Contains(target)
@@ -144,6 +144,9 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
 
     /// <summary>How many stray hits a ship lets a friendly vessel land inside the window before it is an attack.</summary>
     public const int StrayHits = 6;
+
+    /// <summary>How many stray hits a player vessel of the crew's own faction may land inside the window: a great many.</summary>
+    public const int OwnFactionStrayHits = 40;
     private static readonly TimeSpan StrayWindow = TimeSpan.FromSeconds(30);
 
     /// <summary>Hits closer together than this are one burst or one shell, and count once.</summary>
@@ -156,11 +159,12 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// whom it has been shooting, is forgiven outright, whatever its colours: in a melee nobody's aim is clean. A
     /// vessel of the ship's own faction is allowed a few stray shots, and more than <see cref="StrayHits"/> inside the
     /// window are not an accident; a profile with its own <see cref="WFCrewProfilePrototype.StrayHits"/> allows that
-    /// many to any vessel no NPC crew flies. Once a vessel is taken for an attacker nothing more of its fire is excused.
+    /// many to any vessel no NPC crew flies. A player vessel of the ship's faction is allowed
+    /// <see cref="OwnFactionStrayHits"/>. Once a vessel is taken for an attacker nothing more of its fire is excused.
     /// </summary>
     private bool Excuse(EntityUid grid, EntityUid attacker)
     {
-        if (OwnKind(grid, attacker) || _spared.Spared(grid, attacker))
+        if (OwnKind(grid, attacker))
             return true;
         if (KnownAttacker(grid, attacker))
             return false;
@@ -183,7 +187,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// <summary>Whether a vessel's recent fire on a ship is being let pass: a friend's, or a few strays from its own side.</summary>
     public bool IsExcused(EntityUid grid, EntityUid attacker)
     {
-        if (OwnKind(grid, attacker) || _spared.Spared(grid, attacker))
+        if (OwnKind(grid, attacker))
             return true;
         if (KnownAttacker(grid, attacker))
             return false;
@@ -201,6 +205,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// </summary>
     private int? StrayLimit(EntityUid grid, EntityUid attacker)
     {
+        if (_spared.Spared(grid, attacker))
+            return OwnFactionStrayHits;
         if (TryComp<WFCrewShipProfileComponent>(grid, out var own) && _prototypes.TryIndex(own.Profile, out var profile)
             && profile.StrayHits is { } allowance && !HasComp<WFCrewShipProfileComponent>(attacker))
             return SameFaction(grid, attacker) ? Math.Max(allowance, StrayHits) : allowance;
@@ -391,7 +397,10 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     private void AlertShip(EntityUid grid, string group, EntityUid attacker, bool retaliation = true, bool gunfire = false)
     {
         if (grid == attacker || !HasComp<MapGridComponent>(grid) || !IsVessel(attacker)
-            || Transform(grid).MapID != Transform(attacker).MapID || _spared.Spared(grid, attacker))
+            || Transform(grid).MapID != Transform(attacker).MapID)
+            return;
+        // Only its own gunfire, past the stray allowance, turns a crew on a player vessel of its faction.
+        if (!gunfire && _spared.Spared(grid, attacker))
             return;
         var key = (grid, group);
         if (!_alerts.TryGetValue(key, out var alert))

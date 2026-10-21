@@ -378,7 +378,10 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
     private float? Engageable(EntityUid uid, EntityUid grid, WFCrewComponent crew, WFGunnerDutyComponent duty,
         MapCoordinates here, EntityUid ship, bool hostile)
     {
-        if (ship == grid || TerminatingOrDeleted(ship) || _spared.Spared(grid, ship))
+        if (ship == grid || TerminatingOrDeleted(ship))
+            return null;
+        // A player vessel of the crew's faction is fired on only once its own fire has made it an attacker.
+        if (_spared.Spared(grid, ship) && !_alerts.FiredShipGuns(grid, crew.Group, ship))
             return null;
         // A boarding party's ship only answers ship guns with its own.
         if (HasComp<WFHoldFireComponent>(grid) && !_alerts.FiredShipGuns(grid, crew.Group, ship))

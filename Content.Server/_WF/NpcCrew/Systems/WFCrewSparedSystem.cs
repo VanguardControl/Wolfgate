@@ -7,8 +7,8 @@ using Robust.Shared.Timing;
 namespace Content.Server._WF.NpcCrew.Systems;
 
 /// <summary>
-/// Player vessels an NPC crew never turns on, whatever they do: its own faction's. Every ship hostility decision checks
-/// this before anything else.
+/// Player vessels of an NPC crew's own faction, IFF or none. The crew never warns, hunts or zones them, and answers
+/// their fire only once it runs past <see cref="WFCrewAlertSystem.OwnFactionStrayHits"/>.
 /// </summary>
 public sealed class WFCrewSparedSystem : EntitySystem
 {
@@ -17,7 +17,7 @@ public sealed class WFCrewSparedSystem : EntitySystem
     private readonly Dictionary<EntityUid, HashSet<string>> _aboard = new();
     private GameTick _aboardTick;
 
-    /// <summary>Whether the crew of <paramref name="grid"/> must never alert on, hunt or fire on <paramref name="target"/>.</summary>
+    /// <summary>Whether <paramref name="target"/> is a player vessel of the faction <paramref name="grid"/> flies for.</summary>
     public bool Spared(EntityUid grid, EntityUid target)
     {
         // NPC crews settle their own fights; this only shields vessels players fly.
@@ -28,12 +28,12 @@ public sealed class WFCrewSparedSystem : EntitySystem
         if (own.Length == 0)
             return false;
 
-        var theirs = Company(target);
-        if (theirs.Length > 0)
-            return WFCompanyFamily.Same(own, theirs);
+        // The people aboard decide, whatever flag the hull flies; an empty hull goes by its flag.
+        var aboard = Aboard(target);
+        if (aboard.Count == 0)
+            return WFCompanyFamily.Same(own, Company(target));
 
-        // A vessel with no flag of its own flies the colours of the people aboard.
-        foreach (var company in Aboard(target))
+        foreach (var company in aboard)
         {
             if (WFCompanyFamily.Same(own, company))
                 return true;
