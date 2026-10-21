@@ -85,7 +85,9 @@ public sealed class TypedEmoteTest
             mindSys.TransferTo(mindSys.CreateMind(session.UserId).Owner, human);
 
             Assert.That(chat.ResolveTypedEmote(human, "salute"), Is.EqualTo(salutes));
-            Assert.That(chat.ResolveTypedEmote(human, " Salute! "), Is.EqualTo(salutes));
+            Assert.That(chat.ResolveTypedEmote(human, " Salute. "), Is.EqualTo(salutes));
+            Assert.That(chat.ResolveTypedEmote(human, "salute!"), Is.EqualTo(salutes.TrimEnd('.') + "!"));
+            Assert.That(chat.ResolveTypedEmote(human, "salute?!"), Is.EqualTo(salutes.TrimEnd('.') + "?!"));
             Assert.That(chat.ResolveTypedEmote(human, "salutes the captain"), Is.EqualTo("salutes the captain"));
         });
         await pair.RunTicksSync(5);
