@@ -2549,3 +2549,78 @@ Entries:
   id: 100187
   time: '2026-10-21T07:02:13.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/308
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        The shuttle console flight panel now shows your flight status, lift and
+        power against what you need, whether you're ready for liftoff, and what
+        is holding you down.
+    - type: Add
+      message: >-
+        The flight panel tells you how many thrusters to convert or add, or how
+        much power you're missing.
+    - type: Add
+      message: >-
+        Hold ascend on the ground to lift off. Hold descend in orbit to enter
+        the atmosphere when you have enough lift and power.
+    - type: Add
+      message: The ship preview shows the strongest gravity a ship can lift off in.
+    - type: Add
+      message: Added a Planet Flight guidebook page under Piloting.
+    - type: Tweak
+      message: >-
+        Ordinary thrusters no longer use triple power in atmosphere. They still
+        give half thrust.
+    - type: Tweak
+      message: Lift comes back as soon as power returns, instead of after two seconds.
+    - type: Fix
+      message: Fixed a client crash from tether ropes when switching bodies.
+  id: 100188
+  time: '2026-10-21T07:05:39.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/307
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: >-
+        After a fist fight broke out between a safety inspector and a negligent
+        engineer on Caelestinus Central, the Overseer has instated a new fire
+        code. Fire extinguishers and fire safety cabinets can be frequently
+        found throughout the hallways now.
+    - type: Fix
+      message: >-
+        Fixed the cryopods in the Caelestinus Central medical department, they
+        should no longer pull a vacuum and suffocate the patient.
+  id: 100189
+  time: '2026-10-21T07:08:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/309
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Encounter ships no longer get adamantium hulls.
+  id: 100190
+  time: '2026-10-21T18:43:19.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/311
+- author: TheSlapper
+  changes:
+    - type: Add
+      message: Various mapping assets.
+  id: 100191
+  time: '2026-10-21T18:54:51.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/310
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        NPC ship gunners hold fire rather than shoot through a friendly or
+        neutral ship in the way. The Reavers don't care and fire anyway.
+  id: 100192
+  time: '2026-10-21T18:59:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/313
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Cockpit panning should be less buggy.
+  id: 100193
+  time: '2026-10-21T18:59:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/314

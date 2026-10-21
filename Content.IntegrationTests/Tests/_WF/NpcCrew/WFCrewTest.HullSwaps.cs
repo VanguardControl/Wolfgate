@@ -1,10 +1,13 @@
 #nullable enable
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Content.Server._WF.NpcCrew.Systems;
+using Content.Shared._WF.NpcCrew;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
+using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.NpcCrew;
 
@@ -62,6 +65,34 @@ public sealed partial class WFCrewTest
                 Server.System<SharedTransformSystem>().AnchorEntity(wall);
             Assert.That(Server.System<WFCrewSetupSystem>().ApplyHullSwaps(deck, "WFCrewProfileHauler"), Is.EqualTo(0));
             Assert.That(SEntMan.Deleted(wall), Is.False);
+        });
+    }
+
+    /// <summary>Every profile that kits its crew as pirates swaps out every adamantite wall.</summary>
+    [Test]
+    public async Task PirateProfilesNeverFlyAdamantite()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var adamantite = ProtoMan.EnumeratePrototypes<EntityPrototype>()
+                .Where(proto => proto.ID.StartsWith("WFWallAdamantite"))
+                .Select(proto => proto.ID)
+                .ToList();
+            Assert.That(adamantite, Is.Not.Empty);
+
+            var checkedAny = false;
+            foreach (var profile in ProtoMan.EnumeratePrototypes<WFCrewProfilePrototype>())
+            {
+                if (!profile.Loadouts.Values.Any(gear => gear.Any(id => id.Id.StartsWith("WFCrewPirate"))))
+                    continue;
+                checkedAny = true;
+                foreach (var wall in adamantite)
+                {
+                    Assert.That(profile.HullSwaps.ContainsKey(wall), Is.True, $"{profile.ID} crews pirates but keeps {wall}.");
+                }
+            }
+
+            Assert.That(checkedAny, Is.True, "No pirate profile was found.");
         });
     }
 
