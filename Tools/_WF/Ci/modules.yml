@@ -2326,3 +2326,120 @@ unmarked:
   - path: Resources/SharedMaps/_Mono/Shuttles/TSF/xiphos.yml
     module: ArmorBalance
     reason: Reverts Monolith#4845, putting the mapped M82b and M82c suit storage back in place of the M86.
+  - path: Resources/Textures/ADT/
+    module: DecorImport
+    reason: Decor sprites, ported from ADT.
+  - path: Resources/Textures/Backmen/
+    module: DecorImport
+    reason: Decor sprites, ported from Backmen.
+  - path: Resources/Textures/Corvax/
+    module: DecorImport
+    reason: Decor sprites, ported from Corvax.
+  - path: Resources/Textures/_CP14/
+    module: DecorImport
+    reason: Decor sprites, ported from CrystallEdge.
+  - path: Resources/Textures/_DEN/
+    module: DecorImport
+    reason: Decor sprites, ported from Delta-V.
+  - path: Resources/Textures/_DV/CosmicCult/
+    module: DecorImport
+    reason: Decor sprites, ported from Delta-V.
+  - path: Resources/Textures/_DV/Objects/Decoration/
+    module: DecorImport
+    reason: Decor sprites, ported from Delta-V.
+  - path: Resources/Textures/_Euphoria/
+    module: DecorImport
+    reason: Decor sprites, ported from Panta Rhei.
+  - path: Resources/Textures/_Floof/Structures/
+    module: DecorImport
+    reason: Decor sprites, ported from Panta Rhei.
+  - path: Resources/Textures/_Goobstation/Structures/Decoration/
+    module: DecorImport
+    reason: Decor sprites, ported from Goob Station.
+  - path: Resources/Textures/_Goobstation/Structures/Specific/
+    module: DecorImport
+    reason: Decor sprites, ported from Goob Station.
+  - path: Resources/Textures/_Impstation/Structures/Furniture/
+    module: DecorImport
+    reason: Decor sprites, ported from Impstation.
+  - path: Resources/Textures/_Impstation/Structures/Lighting/
+    module: DecorImport
+    reason: Decor sprites, ported from Impstation.
+  - path: Resources/Textures/_Lavaland/
+    module: DecorImport
+    reason: Decor sprites, ported from Goob Station.
+  - path: Resources/Textures/_Nuclear14/Structures/Furniture/Street_Furniture/
+    module: DecorImport
+    reason: Decor sprites, ported from Nuclear 14.
+  - path: Resources/Textures/_Nuclear14/Structures/Furniture/schoolchair.rsi/
+    module: DecorImport
+    reason: Decor sprites, ported from Nuclear 14.
+  - path: Resources/Textures/_Paradise/
+    module: DecorImport
+    reason: Decor sprites, ported from Starlight.
+  - path: Resources/Textures/_RMC14/Decals/
+    module: DecorImport
+    reason: Decor sprites, ported from RMC-14.
+  - path: Resources/Textures/_RMC14/Objects/Flora/
+    module: DecorImport
+    reason: Decor sprites, ported from Einstein Engines.
+  - path: Resources/Textures/_RMC14/Objects/Medical/
+    module: DecorImport
+    reason: Decor sprites, ported from RMC-14.
+  - path: Resources/Textures/_RMC14/Structures/Flora/
+    module: DecorImport
+    reason: Decor sprites, ported from RMC-14.
+  - path: Resources/Textures/_RMC14/Structures/Furniture/
+    module: DecorImport
+    reason: Decor sprites, ported from RMC-14.
+  - path: Resources/Textures/_RMC14/Structures/Wallmounts/Lighting/
+    module: DecorImport
+    reason: Decor sprites, ported from RMC-14.
+  - path: Resources/Textures/_Shitmed/Structures/Furniture/
+    module: DecorImport
+    reason: Decor sprites, ported from Goob Station.
+  - path: Resources/Textures/_Starlight/Decals/
+    module: DecorImport
+    reason: Decor sprites, ported from Starlight.
+  - path: Resources/Textures/_Starlight/Structures/Furniture/
+    module: DecorImport
+    reason: Decor sprites, ported from Starlight.
+  - path: Resources/Textures/_Starlight/Structures/Wallmounts/
+    module: DecorImport
+    reason: Decor sprites, ported from Starlight.
+  - path: Resources/Textures/_White/Decals/
+    module: DecorImport
+    reason: Decor sprites, ported from White Dream.
+  - path: Resources/Textures/_White/Objects/Decoration/
+    module: DecorImport
+    reason: Decor sprites, ported from White Dream.
+  - path: Resources/Audio/_CP14/Effects/bone_crush1.ogg
+    module: DecorImport
+    reason: Bone crack sound, ported from CrystallEdge.
+  - path: Resources/Audio/_CP14/Effects/bone_crush2.ogg
+    module: DecorImport
+    reason: Bone crack sound, ported from CrystallEdge.
+  - path: Resources/Audio/_CP14/Effects/Footsteps/bones1.ogg
+    module: DecorImport
+    reason: Bone footstep sound, ported from CrystallEdge.
+  - path: Resources/Audio/_CP14/Effects/Footsteps/bones2.ogg
+    module: DecorImport
+    reason: Bone footstep sound, ported from CrystallEdge.
+  - path: Resources/Audio/_CP14/Effects/Footsteps/bones3.ogg
+    module: DecorImport
+    reason: Bone footstep sound, ported from CrystallEdge.
+  - path: Resources/Audio/_CP14/Effects/Footsteps/bones4.ogg
+    module: DecorImport
+    reason: Bone footstep sound, ported from CrystallEdge.
+  - path: Resources/Audio/_CP14/Items/grass_gather.ogg
+    module: DecorImport
+    reason: Grass hit sound, ported from CrystallEdge.
+  - path: Resources/Audio/_CP14/Items/grass_gather2.ogg
+    module: DecorImport
+    reason: Grass hit sound, ported from CrystallEdge.
+  - path: Resources/Audio/_CP14/Items/grass_gather3.ogg
+    module: DecorImport
+    reason: Grass hit sound, ported from CrystallEdge.
+  - path: Resources/Audio/_Starlight/Effects/Machinery/electric_buzz.ogg
+    module: DecorImport
+    reason: Bar sign buzz sound, ported from Starlight.

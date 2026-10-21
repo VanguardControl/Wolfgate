@@ -23,6 +23,10 @@ public sealed partial class WFStandingPrototype : IPrototype
     /// <summary>Companies it is at war with once war has been declared.</summary>
     [DataField]
     public List<ProtoId<CompanyPrototype>> DeclaredWar = new();
+
+    /// <summary>Whether its crews fire through any ship in the way of their target, friend or bystander, where others hold fire.</summary>
+    [DataField]
+    public bool RecklessFire;
 }
 
 /// <summary>Which ships a zone answers to.</summary>
