@@ -94,13 +94,16 @@ the character's profile. Nothing keys on a species or a mob prototype.
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcHand must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcLeg must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcFoot must stay FIRST
+- [`Resources/Prototypes/_EinsteinEngines/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_EinsteinEngines/Damage/modifier_sets.yml): the chassis is plated. Heat and shock still hurt it more than flesh, not half again;
 - [`Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/ipc.yml): slow hydraulic regeneration, as the synthetic biotype overlay
 - [`Resources/Prototypes/_HL/Body/Parts/synth.yml`](../../../Resources/Prototypes/_HL/Body/Parts/synth.yml)
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcArm must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcHand must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcLeg must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcFoot must stay FIRST
-- [`Resources/Prototypes/_Onyx/Wounds/wounds.yml`](../../../Resources/Prototypes/_Onyx/Wounds/wounds.yml): a limb put back by hand. Created only by WFSyntheticLimbSystem.
+- [`Resources/Prototypes/_Onyx/Wounds/wounds.yml`](../../../Resources/Prototypes/_Onyx/Wounds/wounds.yml)
+  - a limb put back by hand. Created only by WFSyntheticLimbSystem.
+  - the chassis total sits beside the specific finding (dent, breach, short, overheating), so at 0.87
 - [`Resources/Prototypes/Guidebook/medical.yml`](../../../Resources/Prototypes/Guidebook/medical.yml): guide for repairing synthetics
 
 <!-- WOLFGATE-GENERATED END -->
