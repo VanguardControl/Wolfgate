@@ -303,7 +303,8 @@ public sealed class WFChassisPanelTest : WolfmedGameTest
                 Is.GreaterThan(rated), "overclocking did not speed the chassis up.");
         });
 
-        await RunSeconds(5.5f);
+        // The tick is due at 5 s and polled every 0.5 s, so 5.5 s was a coin toss in a pooled run.
+        await RunSeconds(7f);
 
         await Server.WaitAssertion(() =>
         {
