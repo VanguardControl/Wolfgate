@@ -386,7 +386,8 @@ public sealed partial class WFOrbitButton : BoxContainer
 
         PhaseText = phase;
 
-        if (phase == null)
+        // In orbit the Leave orbit key already names the planet; the line would push the helm column past its height.
+        if (phase == null || target.InOrbit)
             return;
 
         Show(_phaseLabel);
