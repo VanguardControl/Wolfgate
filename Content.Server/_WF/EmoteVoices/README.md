@@ -106,5 +106,6 @@ cloning and polymorphs that keep the appearance keep the voices. A voice plays w
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs)
   - the chosen voices follow the Mono data
   - copies keep the chosen voices
+- [`Resources/Audio/_FarHorizons/Voice/`](../../../Resources/Audio/_FarHorizons/Voice/): Robotic voice packs for the scream and laugh picker, ported from HardLight (Far Horizons).
 
 <!-- WOLFGATE-GENERATED END -->

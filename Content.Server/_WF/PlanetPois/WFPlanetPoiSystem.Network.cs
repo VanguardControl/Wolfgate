@@ -124,6 +124,12 @@ public sealed partial class WFPlanetPoiSystem
                     for (var x = reservation.Left; x < reservation.Right; x++)
                     for (var y = reservation.Bottom; y < reservation.Top; y++) claimed.Add(new Vector2i(x, y));
                     changed.UnionWith(claimed);
+                    // The map's open ground is the world's: lay it before the pin keeps the biome off for good.
+                    var open = new List<(Vector2i, Tile)>();
+                    foreach (var tile in claimed)
+                        if (_maps.GetTileRef(ground, grid, tile).Tile.IsEmpty && _biome.TryGetBiomeTile(ground, grid, tile, out var natural))
+                            open.Add((tile, natural.Value));
+                    _maps.SetTiles(ground, grid, open);
                     _biome.WfPinTiles((ground, biome), claimed);
                 }
                 else _biome.WfPinTiles((ground, biome), siteTiles);
@@ -134,6 +140,11 @@ public sealed partial class WFPlanetPoiSystem
                     TileCount = siteTiles.Count, Connection = entry.Connection,
                     Expeditions = entry.Expeditions, Difficulty = entry.Difficulty ?? table.Difficulty,
                 };
+                if (entry.Trail && entry.Sockets.Count > 0)
+                {
+                    site.TrailStart = new WFPlanetRoadSocket(origin + entry.Sockets[0].Offset, entry.Sockets[0].Direction);
+                    site.Tiles = siteTiles;
+                }
                 if (table.Roads != null && entry.Connection != WFPlanetPoiConnection.Isolated)
                 {
                     // A site whose entrances can't be reached on this ground stays, off the roads.
@@ -195,8 +206,16 @@ public sealed partial class WFPlanetPoiSystem
                     record.ShoulderTiles.UnionWith(plan.ShoulderTiles);
                     record.Centreline.UnionWith(plan.Centreline);
                     DressRoads(ground, grid, record, roads, plan, created, createdDecals);
+                    LayTrails(ground, grid, biome, record, roads, centre, radius - 1, changed);
+                    DigTunnels(ground, grid, biome, record, roads, plan, created, changed);
                 }
             }
+            // Wrecks last: they keep off the sites and roads, which are pinned by now.
+            PlaceWrecks(ground, grid, biome, orbit, centre, radius, table, record, created);
+            record.PendingRoamers = table.Roamers.ToList();
+            record.RoamerCentre = centre;
+            record.RoamerRadius = radius - table.EdgeMargin;
+            record.RoamerInner = table.CentreClear + RoamerClearance;
             record.NetworkReady = true;
         }
         catch (Exception error)
@@ -216,6 +235,8 @@ public sealed partial class WFPlanetPoiSystem
             record.Sites.Clear();
             record.RoadTiles.Clear();
             record.ShoulderTiles.Clear();
+            record.TrailTiles.Clear();
+            record.Tunnels.Clear();
             record.Centreline.Clear();
             record.Furniture.Clear();
             record.GenerationError = $"POI table {table.ID}: {error.Message}";
@@ -381,6 +402,7 @@ public sealed partial class WFPlanetPoiSystem
                 throw new InvalidOperationException("Invalid road width or shoulder width.");
             _ = _tiles[roads.Tile];
             if (roads.ShoulderTile != null) _ = _tiles[roads.ShoulderTile];
+            _ = _tiles[roads.TrailTile];
         }
     }
 

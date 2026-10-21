@@ -164,6 +164,10 @@ public abstract partial class SharedChatSystem : EntitySystem
         if (!(input.StartsWith(RadioChannelPrefix) || input.StartsWith(RadioChannelAltPrefix)))
             return false;
 
+        // WOLFGATE(Emotes): "..." is a wordless reply, not a radio key
+        if (input.StartsWith($"{RadioChannelAltPrefix}{RadioChannelAltPrefix}"))
+            return false;
+
         if (input.Length < 2 || char.IsWhiteSpace(input[1]))
         {
             output = SanitizeMessageCapital(input[1..].TrimStart());

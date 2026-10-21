@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using Content.Server._NF.Shuttles.Components;
 using Content.Server._WF.Planets;
+using Content.Server._WF.Planets.Flight;
 using Content.Server._WF.RoundSetup;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Events;
@@ -108,7 +109,8 @@ public sealed class CrashScenarioTest
             Assert.That(engines.All(uid => !em.GetComponent<ThrusterComponent>(uid).Enabled), Is.True);
         });
 
-        await server.WaitRunTicks(pair.SecondsToTicks(13f));
+        // Tick the client too; one left past PVS's 20-tick dirty buffer gets false "empty state" errors.
+        await pair.RunTicksSync(pair.SecondsToTicks(13f));
         await server.WaitAssertion(() =>
         {
             Assert.That(em.HasComponent<WFOrbitDecayComponent>(hull), Is.False,
@@ -127,7 +129,7 @@ public sealed class CrashScenarioTest
             Assert.That(system.TryGetCountdown(actor, out _), Is.False);
         });
 
-        await server.WaitRunTicks(pair.SecondsToTicks(2f));
+        await pair.RunTicksSync(pair.SecondsToTicks(2f));
         await server.WaitAssertion(() =>
         {
             Assert.That(em.GetComponent<WFCrashScenarioComponent>(hull).Descending, Is.True);
@@ -145,6 +147,88 @@ public sealed class CrashScenarioTest
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();
     }
+
+    /// <summary>An expired crash start falls the whole way and crashes on the ground, after which its helm unlocks.</summary>
+    [Test]
+    public async Task ExpiredStartCrashesOnTheGround()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        await EnableFeature(pair);
+        var (layers, _, _) = await BuildOwnedStack(pair);
+        var system = server.System<WFCrashScenarioSystem>();
+        var hull = EntityUid.Invalid;
+        var station = EntityUid.Invalid;
+        const int lobby = 19003;
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(system.TryPrepare(lobby, out station, out var reason), Is.True, reason);
+            Assert.That(system.TryGetSpawn(lobby, out var spawn), Is.True);
+            hull = spawn.EntityId;
+            var crash = em.GetComponent<WFCrashScenarioComponent>(hull);
+            crash.Started = true;
+            crash.DescendAt = server.ResolveDependency<IGameTiming>().CurTime;
+        });
+
+        // Poll the whole scenario, since a breakup moves the impact onto fragments.
+        var crashed = EntityUid.Invalid;
+        var seconds = 0;
+        for (; seconds < 120 && crashed == EntityUid.Invalid; seconds++)
+        {
+            await server.WaitRunTicks(pair.SecondsToTicks(1f));
+            await server.WaitPost(() =>
+            {
+                var query = em.EntityQueryEnumerator<WFCrashScenarioComponent, WFCrashImpactComponent>();
+                while (query.MoveNext(out var uid, out var crash, out _))
+                {
+                    if (crash.LobbyId == lobby)
+                        crashed = uid;
+                }
+            });
+        }
+
+        await server.WaitAssertion(() =>
+        {
+            var map = em.EntityExists(hull) ? em.GetComponent<TransformComponent>(hull).MapUid : null;
+            Assert.That(crashed, Is.Not.EqualTo(EntityUid.Invalid),
+                $"The crash start never crashed within {seconds} s; the hull is on {em.ToPrettyString(map)}, "
+                + $"lift lost: {em.HasComponent<WFLiftLostComponent>(hull)}.");
+            Assert.That(em.GetComponent<TransformComponent>(crashed).MapUid, Is.EqualTo(layers[0]),
+                "The crashed hull is not on the ground layer.");
+        });
+
+        // The scenario sweep runs twice a second; after it sees the impact the helm opens again.
+        await server.WaitRunTicks(pair.SecondsToTicks(1f));
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.GetComponent<WFCrashScenarioComponent>(crashed).Crashed, Is.True);
+            var helm = FindShuttleConsole(em, crashed);
+            if (helm != EntityUid.Invalid)
+            {
+                var actor = em.SpawnEntity("MobHuman", em.GetComponent<TransformComponent>(helm).Coordinates);
+                var open = new ActivatableUIOpenAttemptEvent(actor);
+                em.EventBus.RaiseLocalEvent(helm, open);
+                var helmGrid = em.GetComponent<TransformComponent>(helm).GridUid;
+                Assert.That(open.Cancelled, Is.False, $"The helm stayed locked after the crash: grid={em.ToPrettyString(helmGrid)} crashed={em.ToPrettyString(crashed)} "
+                    + $"gridCrashed={(helmGrid is { } g && em.TryGetComponent<WFCrashScenarioComponent>(g, out var gc) ? gc.Crashed.ToString() : "none")} "
+                    + $"powered={(em.TryGetComponent<Content.Server.Power.Components.ApcPowerReceiverComponent>(helm, out var power) ? power.Powered.ToString() : "n/a")} "
+                    + $"lock={(em.TryGetComponent<Content.Shared.Shuttles.Components.ShuttleConsoleLockComponent>(helm, out var lk) ? IsLocked(lk).ToString() : "n/a")}");
+                em.DeleteEntity(actor);
+            }
+
+            system.RemoveScenario(lobby);
+            em.DeleteEntity(station);
+        });
+
+        await Teardown(pair, layers);
+        await pair.CleanReturnAsync();
+    }
+
+#pragma warning disable RA0002
+    private static bool IsLocked(Content.Shared.Shuttles.Components.ShuttleConsoleLockComponent lk) => lk.Locked;
+#pragma warning restore RA0002
 
     /// <summary>Destroyed preparations cannot grant a replacement ship or borrow another lobby's spawn.</summary>
     [Test]

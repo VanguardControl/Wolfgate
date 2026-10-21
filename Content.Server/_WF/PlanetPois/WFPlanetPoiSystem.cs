@@ -48,6 +48,7 @@ public sealed partial class WFPlanetPoiSystem : EntitySystem
         base.Initialize();
         // Ahead of the cavern mouths, so a fixed city can hold its spot before they claim the ground.
         SubscribeLocalEvent<WFPlanetPreloadStartingEvent>(OnPreloadStarting, before: new[] { typeof(WFCavernMouthSystem) });
+        SubscribeLocalEvent<WFPlanetPreloadedEvent>(OnPreloaded);
     }
 
     private void OnPreloadStarting(ref WFPlanetPreloadStartingEvent args)

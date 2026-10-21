@@ -138,8 +138,6 @@
       - id: VehicleHumveeARCCannon
       - id: VehicleHumveeLauncher
       - id: VehicleHumveeOverlight
-      - id: VehicleAPCM56FPWPortGunRight
-      - id: VehicleAPCM56FPWPortGunLeft
       - id: VehicleSPPAPCWheel
       - id: VehicleSPPTankReactiveArmor
       - id: VehicleSPPTankWarningArray

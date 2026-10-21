@@ -47,7 +47,7 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
     private Label _weapon = default!;
     private Label _ammo = default!;
     private WFVehicleRoundButton _key = default!;
-    private WFVehicleRoundButton _ejectKey = default!;
+    private WFVehicleRoundButton _startStop = default!;
     private WFVehicleRoundButton _brake = default!;
     private WFVehicleRoundButton _headlights = default!;
     private WFVehicleRoundButton _horn = default!;
@@ -84,7 +84,7 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
         _gunnery = WFInstrumentTheme.Column(_weapon, _ammo);
 
         _key = new WFVehicleRoundButton(WFVehicleGlyph.Key);
-        _ejectKey = new WFVehicleRoundButton(WFVehicleGlyph.Eject, "wf-vehicle-key-remove");
+        _startStop = new WFVehicleRoundButton(WFVehicleGlyph.Power) { LitColor = WFInstrumentTheme.Green };
         _brake = new WFVehicleRoundButton(WFVehicleGlyph.Brake, "wf-vehicle-hud-brake") { LitColor = WFInstrumentTheme.Red };
         _headlights = new WFVehicleRoundButton(WFVehicleGlyph.Headlights, "wf-vehicle-hud-headlights")
             { LitColor = WFInstrumentTheme.Skin.Caution };
@@ -96,11 +96,11 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
         _panel.LeftBank.AddChild(_driverGauges);
         _panel.LeftBank.AddChild(_gunnery);
         _panel.RightBank.AddChild(_supplies);
-        InitializeVehicleControls(_key, _ejectKey, _brake, _headlights, _horn, _turretLock);
+        InitializeVehicleControls(_key, _startStop, _brake, _headlights, _horn, _turretLock);
         WFInstrumentTheme.Install(_panel);
 
         _key.OnPressed += _ => Send(new WFVehicleControlRequest(Net(), false) { Ignition = true });
-        _ejectKey.OnPressed += _ => Send(new WFVehicleControlRequest(Net(), false, ejectKey: true));
+        _startStop.OnPressed += _ => Send(new WFVehicleControlRequest(Net(), false) { StartStop = true });
         _brake.OnPressed += _ => Send(new WFVehicleControlRequest(Net(), true));
         _headlights.OnPressed += _ =>
         {
@@ -210,19 +210,18 @@ public sealed partial class WFVehicleHudSystem : EntitySystem
 
         _driverGauges.Visible = _supplies.Visible = driver;
         _gunnery.Visible = !driver;
-        _key.Visible = _brake.Visible = _headlights.Visible = _horn.Visible = driver;
+        _key.Visible = _startStop.Visible = _brake.Visible = _headlights.Visible = _horn.Visible = driver;
 
-        // One key: in from anywhere on you, then accessories, then the engine, then off again.
+        // The key goes in from anywhere on you and comes out to your hand; the button beside it runs the engine.
         var inserted = engine.IgnitionKey != null;
         _key.KeyInserted = inserted;
         _key.KeyOn = engine.Electrics;
         _key.Lit = engine.Electrics;
-        _key.LitColor = engine.Running ? WFInstrumentTheme.Green : WFInstrumentTheme.Skin.Caution;
-        _key.ToolTip = Loc.GetString(!inserted ? "wf-vehicle-key-insert"
-            : !engine.Electrics ? "wf-vehicle-key-turn-on"
-            : !engine.Running ? "wf-vehicle-hud-start"
-            : "wf-vehicle-key-turn-off");
-        _ejectKey.Visible = driver && inserted && !engine.Electrics;
+        _key.LitColor = WFInstrumentTheme.Skin.Caution;
+        _key.ToolTip = Loc.GetString(inserted ? "wf-vehicle-key-remove" : "wf-vehicle-key-insert");
+        _startStop.Disabled = !inserted;
+        _startStop.Lit = engine.Running;
+        _startStop.ToolTip = Loc.GetString(engine.Running ? "wf-vehicle-hud-stop" : "wf-vehicle-hud-start");
 
         _headlights.Disabled = !engine.Powered;
         _headlights.Lit = TryComp(uid, out VehicleSpotlightComponent? headlights) && headlights.Enabled;

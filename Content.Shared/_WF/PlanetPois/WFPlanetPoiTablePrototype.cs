@@ -1,3 +1,4 @@
+using Content.Shared.EntityTable.EntitySelectors;
 using Content.Shared.Procedural;
 using Content.Shared.Salvage;
 using Robust.Shared.Maths;
@@ -51,6 +52,28 @@ public sealed partial class WFPlanetPoiTablePrototype : IPrototype
     /// <summary>The expedition rating of this world's sites, unless an entry says otherwise.</summary>
     [DataField]
     public DifficultyRating Difficulty = DifficultyRating.Moderate;
+
+    /// <summary>Crashed ships scattered off the roads, reclaimed by the world.</summary>
+    [DataField]
+    public WFPlanetWrecks? Wrecks;
+
+    /// <summary>Big creatures set loose on the open ground each round, away from the landing zone.</summary>
+    [DataField]
+    public List<WFPlanetRoamer> Roamers = new();
+}
+
+/// <summary>A creature that roams a world's surface, and how many of it.</summary>
+[DataDefinition]
+public sealed partial class WFPlanetRoamer
+{
+    [DataField(required: true)]
+    public EntProtoId Id;
+
+    [DataField]
+    public int MinCount = 1;
+
+    [DataField]
+    public int MaxCount = 1;
 }
 
 /// <summary>One kind of site: the dungeon generated for it and what its signal is called once identified.</summary>
@@ -101,6 +124,10 @@ public sealed partial class WFPlanetPoiEntry
     /// <summary>An authored map that takes a random quarter turn each round, entrances and all.</summary>
     [DataField]
     public bool Rotate;
+
+    /// <summary>An off-road site that a footpath links to the nearest road, from just outside its first socket.</summary>
+    [DataField]
+    public bool Trail;
 }
 
 /// <summary>Whether a site has one entrance, multiple entrances, or no roads.</summary>
@@ -145,4 +172,59 @@ public sealed partial class WFPlanetRoadNetwork
     /// <summary>Kerbs, lane lines, street lights and scattered traffic laid over the painted roads; none leaves them bare.</summary>
     [DataField]
     public ProtoId<WFRoadDressingPrototype>? Dressing;
+
+    /// <summary>Footpath surface tile prototype, worn from off-road sites to the roads.</summary>
+    [DataField]
+    public string TrailTile = "FloorDirt";
+
+    /// <summary>The longest footpath, in tiles; a site further from the roads goes without.</summary>
+    [DataField]
+    public int TrailLength = 240;
+
+    /// <summary>Stretches of road walled in and roofed over, dark, with something living inside; none leaves them open.</summary>
+    [DataField]
+    public WFRoadTunnels? Tunnels;
+}
+
+/// <summary>How a world's roads tunnel through rock: how many, how long, what they're cut through and what lurks there.</summary>
+[DataDefinition]
+public sealed partial class WFRoadTunnels
+{
+    [DataField]
+    public int MinCount = 1;
+
+    [DataField]
+    public int MaxCount = 2;
+
+    /// <summary>Length along the road, in tiles.</summary>
+    [DataField]
+    public int MinLength = 16;
+
+    [DataField]
+    public int MaxLength = 28;
+
+    /// <summary>The rock either side.</summary>
+    [DataField]
+    public EntProtoId Wall = "WallRock";
+
+    /// <summary>How many tiles thick the rock is each side.</summary>
+    [DataField]
+    public int Thickness = 2;
+
+    /// <summary>What lives in there; one pick per lurker.</summary>
+    [DataField]
+    public EntityTableSelector? Lurkers;
+
+    [DataField]
+    public int MinLurkers = 2;
+
+    [DataField]
+    public int MaxLurkers = 4;
+
+    /// <summary>Webs, bones and the like strewn along the edges.</summary>
+    [DataField]
+    public List<EntProtoId> Clutter = new();
+
+    [DataField]
+    public float ClutterChance = 0.1f;
 }

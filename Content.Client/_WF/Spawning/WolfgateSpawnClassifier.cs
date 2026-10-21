@@ -198,6 +198,9 @@ public sealed class WolfgateSpawnClassifier
                 return WfSpawnCategory.StreetYards;
             return WfSpawnCategory.StreetFurniture;
         }
+        // Everything the xenonids module adds, apart from its rounds and effects.
+        if (HasCategory(proto, "WFXenonids") && !Has(comps, _projectile) && !Lineage("Effect"))
+            return Has(comps, _mobState) ? WfSpawnCategory.XenoCastes : WfSpawnCategory.XenoHive;
 
         // Mobs.
         if (Has(comps, _humanoid))

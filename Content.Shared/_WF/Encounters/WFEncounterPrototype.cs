@@ -473,7 +473,6 @@ public sealed partial class WFEncounterReward
 
     [DataField]
     public List<string> CreditCompanies = new();
-
     /// <summary>What the winning ship says on the common channel; takes $count, the number of helpers.</summary>
     [DataField]
     public LocId? Thanks;

@@ -2,20 +2,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Content.Server._Mono.ShipRepair;
 using Content.Server._NF.Shipyard.Systems;
-using Content.Server._NF.Station.Components;
 using Content.Server._WF.ShipAccess;
 using Content.Server.Access.Systems;
 using Content.Server.Administration.Logs;
-using Content.Server.Station.Systems;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared.Database;
 using Content.Shared.Ghost;
-using Content.Shared.Maps;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
 using Robust.Shared.Player;
-using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Administration.Systems;
 
@@ -27,9 +23,7 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
     [Dependency] private MapLoaderSystem _mapLoader = default!;
     [Dependency] private MetaDataSystem _metaData = default!;
     [Dependency] private IAdminLogManager _adminLogger = default!;
-    [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IdCardSystem _idCard = default!;
-    [Dependency] private StationSystem _station = default!;
     [Dependency] private ShipyardSystem _shipyard = default!;
     [Dependency] private ShipRepairSystem _shipRepair = default!;
     [Dependency] private WFShipAccessServerSystem _shipAccess = default!;
@@ -42,7 +36,8 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
     /// <param name="position">World position for the grid origin.</param>
     /// <param name="spawner">Entity credited in the admin log, if any.</param>
     /// <param name="gridUid">The spawned grid.</param>
-    public bool TrySpawnVessel(VesselPrototype vessel, MapId mapId, Vector2 position, EntityUid? spawner, [NotNullWhen(true)] out EntityUid? gridUid)
+    /// <param name="createStation">Give the vessel its late-join station and job slots, as a purchase would.</param>
+    public bool TrySpawnVessel(VesselPrototype vessel, MapId mapId, Vector2 position, EntityUid? spawner, [NotNullWhen(true)] out EntityUid? gridUid, bool createStation = false)
     {
         gridUid = null;
 
@@ -58,21 +53,29 @@ public sealed partial class AdminVesselSpawnSystem : EntitySystem
         EntityManager.AddComponents(gridUid.Value, vessel.AddComponents);
         _metaData.SetEntityName(gridUid.Value, vessel.Name);
 
-        // The station a bought vessel gets, for late joins and for whatever asks the grid's owning station, such as the
-        // expedition console.
-        if (_proto.TryIndex<GameMapPrototype>(vessel.ID, out var stationProto)
-            && stationProto.Stations.TryGetValue(vessel.ID, out var stationConfig))
-        {
-            var station = _station.InitializeNewStation(stationConfig, new List<EntityUid> { gridUid.Value });
-            EnsureComp<ExtraShuttleInformationComponent>(station).Vessel = vessel.ID;
-        }
-
         // This path raises no purchase event: the shipyard's repair snapshot has to be taken here too, or an SRD has
         // nothing to rebuild the vessel from.
         _shipRepair.GenerateRepairData(gridUid.Value);
 
+        if (createStation && _shipyard.TryCreateVesselStation(gridUid.Value, vessel) is { } station)
+            _metaData.SetEntityName(gridUid.Value, Name(station));
+
         _adminLogger.Add(LogType.EntitySpawn, LogImpact.Medium,
             $"{ToPrettyString(spawner):player} spawned vessel {vessel.ID} as {ToPrettyString(gridUid.Value):grid} on map {mapId}");
+        return true;
+    }
+
+    /// <summary>
+    /// Renames a vessel's grid, its station and any deeds for it.
+    /// </summary>
+    public bool TryRenameVessel(EntityUid gridUid, string newName, EntityUid? renamer)
+    {
+        var oldName = Name(gridUid);
+        if (!_shipyard.TryRenameVessel(gridUid, newName))
+            return false;
+
+        _adminLogger.Add(LogType.EntitySpawn, LogImpact.Low,
+            $"{ToPrettyString(renamer):player} renamed vessel {ToPrettyString(gridUid):grid} from '{oldName}' to '{Name(gridUid)}'");
         return true;
     }
 

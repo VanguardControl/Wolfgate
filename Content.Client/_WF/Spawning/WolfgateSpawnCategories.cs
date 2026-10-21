@@ -13,6 +13,7 @@ public enum WfSpawnGroup : byte
     Weapons,
     Vehicles,
     Streets,
+    Xenonids,
     Clothing,
     Engineering,
     Medical,
@@ -58,6 +59,9 @@ public enum WfSpawnCategory : byte
     StreetLighting,
     StreetBuildings,
     StreetYards,
+    // Xenonids
+    XenoCastes,
+    XenoHive,
 
     // Clothing
     ClothingHead,
@@ -164,6 +168,8 @@ public static class WfSpawnCategories
         (WfSpawnCategory.StreetLighting, WfSpawnGroup.Streets),
         (WfSpawnCategory.StreetBuildings, WfSpawnGroup.Streets),
         (WfSpawnCategory.StreetYards, WfSpawnGroup.Streets),
+        (WfSpawnCategory.XenoCastes, WfSpawnGroup.Xenonids),
+        (WfSpawnCategory.XenoHive, WfSpawnGroup.Xenonids),
 
         (WfSpawnCategory.ClothingHead, WfSpawnGroup.Clothing),
         (WfSpawnCategory.ClothingEyes, WfSpawnGroup.Clothing),
@@ -261,6 +267,7 @@ public static class WfSpawnCategories
             WfSpawnGroup.Weapons => skin.Danger,
             WfSpawnGroup.Vehicles => Color.FromHex("#8FA86B"),
             WfSpawnGroup.Streets => Color.FromHex("#C9B48A"),
+            WfSpawnGroup.Xenonids => Color.FromHex("#A2D94B"),
             WfSpawnGroup.Clothing => Color.FromHex("#C79BFF"),
             WfSpawnGroup.Engineering => Color.FromHex("#FFC14D"),
             WfSpawnGroup.Medical => Color.FromHex("#7FC7FF"),

@@ -4,6 +4,10 @@
 
 - type: wfPlanetPoiTable
   id: WFPoisAsclepiu
+  wrecks:
+    theme: WFWreckThemeVerda
+    minCount: 1
+    maxCount: 2
   difficulty: Moderate
   roads:
     tile: RMCPlanetHybrisaAsphalt
@@ -11,8 +15,13 @@
     shoulderTile: RMCPlanetHybrisaSidewalk
     shoulderWidth: 1
     dressing: WFRoadDressingAsclepiu
-  minCount: 8
-  maxCount: 9
+    tunnels:
+      wall: WallRock
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersVerda
+      clutter: [ SpiderWeb, MaterialBones1 ]
+  minCount: 11
+  maxCount: 15
   entries:
   - mapPath: /Maps/_WF/PlanetPois/asclepiu_garden_village.yml
     name: wf-poi-asclepiu-garden-village
@@ -70,6 +79,42 @@
     - offset: 10,-4
       direction: East
     rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/verda_corner_house.yml
+    name: wf-poi-verda-corner-house
+    expeditions: false
+    footprint: -3,-8,6,2
+    minCount: 1
+    maxCount: 3
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -1,-8
+      direction: South
+    rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/verda_small_house.yml
+    name: wf-poi-verda-small-house
+    expeditions: false
+    footprint: -2,-8,10,6
+    minCount: 1
+    maxCount: 2
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -1,-1
+      direction: West
+    rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml
+    name: wf-poi-abandoned-bandit-hideout
+    expeditions: false
+    footprint: -4,-4,13,10
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 12,2
+      direction: East
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/verda_gas_station.yml
     name: wf-poi-verda-gas-station
     expeditions: false
@@ -100,6 +145,14 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisMerak
+  roamers:
+  - id: WFMerakSandMaw
+    minCount: 10
+    maxCount: 20
+  wrecks:
+    theme: WFWreckThemeMerak
+    minCount: 1
+    maxCount: 3
   difficulty: Moderate
   roads:
     tile: RMCPlanetHybrisaAsphalt
@@ -107,8 +160,13 @@
     shoulderTile: RMCPlanetHybrisaSidewalk
     shoulderWidth: 1
     dressing: WFRoadDressingMerak
+    tunnels:
+      wall: WallRockSand
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersMerak
+      clutter: [ MaterialBones1 ]
   minCount: 6
-  maxCount: 7
+  maxCount: 8
   entries:
   - mapPath: /Maps/_WF/PlanetPois/merak_caravan_city.yml
     name: wf-poi-merak-caravan-city
@@ -169,6 +227,18 @@
     sockets:
     - offset: -24,-6
       direction: West
+  - mapPath: /Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml
+    name: wf-poi-abandoned-bandit-hideout
+    expeditions: false
+    footprint: -4,-4,13,10
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 12,2
+      direction: East
+    rotate: true
   - dungeon: WFPoiMerakMineshaft
     name: wf-poi-merak-mineshaft
     connection: Isolated
@@ -182,10 +252,19 @@
   centreClear: 96
 - type: wfPlanetPoiTable
   id: WFPoisFervidus
+  wrecks:
+    theme: WFWreckThemeFervidus
+    minCount: 1
+    maxCount: 3
   difficulty: Hazardous
   roads:
     tile: FloorDarkPavement
     width: 3
+    tunnels:
+      wall: WallRockBasalt
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersFervidus
+      clutter: [ MaterialBones1 ]
   minCount: 2
   maxCount: 3
   entries:
@@ -204,10 +283,19 @@
     name: wf-poi-fervidus-camp
 - type: wfPlanetPoiTable
   id: WFPoisThrascias
+  wrecks:
+    theme: WFWreckThemeThrascias
+    minCount: 1
+    maxCount: 3
   difficulty: Hazardous
   roads:
     tile: FloorSnowDug
     width: 3
+    tunnels:
+      wall: WallRockSnow
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersThrascias
+      clutter: [ SpiderWeb, MaterialBones1 ]
   minCount: 2
   maxCount: 3
   entries:
@@ -226,10 +314,23 @@
     name: wf-poi-thrascias-virology
 - type: wfPlanetPoiTable
   id: WFPoisAerumna
+  roamers:
+  - id: WFAerumnaLeviathan
+    minCount: 1
+    maxCount: 2
+  wrecks:
+    theme: WFWreckThemeAerumna
+    minCount: 1
+    maxCount: 3
   difficulty: Extreme
   roads:
     tile: FloorChromite
     width: 3
+    tunnels:
+      wall: WallRockChromite
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersAerumna
+      clutter: [ SpiderWeb, MaterialBones1 ]
   minCount: 2
   maxCount: 2
   spacing: 96
@@ -251,10 +352,19 @@
     name: wf-poi-aerumna-mine
 - type: wfPlanetPoiTable
   id: WFPoisCarcinoma
+  wrecks:
+    theme: WFWreckThemeCarcinoma
+    minCount: 2
+    maxCount: 3
   difficulty: Extreme
   roads:
     tile: FloorDirt
     width: 3
+    tunnels:
+      wall: WallMeat
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersCarcinoma
+      clutter: [ WFFleshPolyp, MaterialBones1 ]
   minCount: 3
   maxCount: 3
   spacing: 96

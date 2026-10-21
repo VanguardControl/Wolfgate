@@ -7,6 +7,7 @@ using Content.Server._WF.Encounters.Systems;
 using Content.Server._WF.NpcCrew;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
+using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Encounters;
 using Content.Shared._WF.NpcCrew;
 using Robust.Shared.GameObjects;
@@ -381,8 +382,11 @@ public sealed partial class WFEncounterTest
     public async Task FinishedShipWaitsForPlayersToLeaveAndLoadsNoWorld()
     {
         EntityUid encounter = default, ship = default;
+        var config = Server.ResolveDependency<Robust.Shared.Configuration.IConfigurationManager>();
         await Server.WaitAssertion(() =>
         {
+            // No grace after the player leaves; ResolvedShipWaitsOutTheGraceAfterPlayersLeave covers it.
+            config.SetCVar(EncountersCVars.CleanupGrace, 0f);
             var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestStoryRival");
             Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(-31000, -31000), MapData.MapId), out encounter), Is.True);
             ship = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["rival"].Grid;
@@ -406,6 +410,7 @@ public sealed partial class WFEncounterTest
         await Server.WaitAssertion(() =>
         {
             Assert.That(SEntMan.EntityExists(ship), Is.False, "Once the player has left, it jumps.");
+            config.SetCVar(EncountersCVars.CleanupGrace, EncountersCVars.CleanupGrace.DefaultValue);
         });
         await RunTicks(10);
     }

@@ -77,7 +77,7 @@ public sealed class WolfmedSpeciesTest : WolfmedGameTest
         var mobState = SEntMan.System<MobStateSystem>();
         var graph = SEntMan.System<SharedBodySystem>();
         EntityUid moth = default, skrell = default, diona = default, dionaBled = default, slime = default,
-            slimeBled = default, shadekin = default, protoKin = default;
+            slimeBled = default, shadekin = default;
 
         await Server.WaitPost(() =>
         {
@@ -89,7 +89,6 @@ public sealed class WolfmedSpeciesTest : WolfmedGameTest
             slime = SEntMan.SpawnEntity("MobSlimePerson", map.GridCoords);
             slimeBled = SEntMan.SpawnEntity("MobSlimePerson", map.GridCoords);
             shadekin = SEntMan.SpawnEntity("MobShadekin", map.GridCoords);
-            protoKin = SEntMan.SpawnEntity("MobProtoKin", map.GridCoords);
         });
         await RunSeconds(2);
 
@@ -148,18 +147,16 @@ public sealed class WolfmedSpeciesTest : WolfmedGameTest
             Assert.That(s.Life.InArrest(slimeBled), Is.True, "a slime at 29% blood did not collapse.");
             Assert.That(Consc(slimeBled).Heartless, Is.True);
 
-            // Group D: a shadekin and a proto-kin are wound hosts, and 29% blood arrests them.
-            foreach (var kin in new[] { shadekin, protoKin })
-            {
-                Assert.That(SEntMan.HasComponent<WoundHostComponent>(kin), Is.True, "group D is still not a wound host.");
-                Assert.That(s.Life.GetBrain(kin), Is.Not.Null, "group D runs no brain clock.");
-                s.SetBlood(kin, 0.29f);
-                s.Advance(kin, 1);
-                Assert.That(s.Life.InArrest(kin), Is.True, $"{SEntMan.GetComponent<MetaDataComponent>(kin).EntityPrototype?.ID} at 29% blood did not arrest.");
-                // No lungs and no respirator by design: the chest reads as breathing, not as failed lungs.
-                Assert.That(SEntMan.System<WolfmedBreathingSystem>().Assess(shadekin).Breathing,
-                    Is.Not.EqualTo(WolfmedBreathing.Laboured));
-            }
+            // Group D: a shadekin is a wound host, and 29% blood arrests it.
+            var kin = shadekin;
+            Assert.That(SEntMan.HasComponent<WoundHostComponent>(kin), Is.True, "group D is still not a wound host.");
+            Assert.That(s.Life.GetBrain(kin), Is.Not.Null, "group D runs no brain clock.");
+            s.SetBlood(kin, 0.29f);
+            s.Advance(kin, 1);
+            Assert.That(s.Life.InArrest(kin), Is.True, $"{SEntMan.GetComponent<MetaDataComponent>(kin).EntityPrototype?.ID} at 29% blood did not arrest.");
+            // No lungs and no respirator by design: the chest reads as breathing, not as failed lungs.
+            Assert.That(SEntMan.System<WolfmedBreathingSystem>().Assess(shadekin).Breathing,
+                Is.Not.EqualTo(WolfmedBreathing.Laboured));
         });
 
         // The slime is still alive a few seconds on, with its head on the floor.

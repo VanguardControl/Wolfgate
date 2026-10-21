@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Shared.Procedural;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared.Salvage;
@@ -15,6 +16,19 @@ public sealed partial class WFPlanetPoiComponent : Component
     [ViewVariables]
     public bool NetworkReady;
 
+    /// <summary>Creatures to let loose once the whole ground exists, so none starts on terrain that isn't there yet.</summary>
+    [ViewVariables]
+    public List<WFPlanetRoamer> PendingRoamers = new();
+
+    [ViewVariables]
+    public Vector2 RoamerCentre;
+
+    [ViewVariables]
+    public float RoamerRadius;
+
+    [ViewVariables]
+    public float RoamerInner;
+
     [ViewVariables]
     public string? GenerationError;
 
@@ -23,6 +37,14 @@ public sealed partial class WFPlanetPoiComponent : Component
 
     [ViewVariables]
     public HashSet<Vector2i> ShoulderTiles = new();
+
+    /// <summary>The footpaths to off-road sites.</summary>
+    [ViewVariables]
+    public HashSet<Vector2i> TrailTiles = new();
+
+    /// <summary>The roofed road through each tunnel, one set a tunnel.</summary>
+    [ViewVariables]
+    public List<HashSet<Vector2i>> Tunnels = new();
 
     /// <summary>The tiles down the middle of the roads, and everything the roads were furnished with.</summary>
     [ViewVariables]
@@ -47,6 +69,15 @@ public sealed class WFPlanetPoiSite
     /// <summary>The generated tile count and reserved bounds with exclusive upper edges.</summary>
     public int TileCount;
     public Box2i Bounds;
+
+    /// <summary>Where a footpath to the roads starts, for an off-road site that has one.</summary>
+    public WFPlanetRoadSocket? TrailStart;
+
+    /// <summary>Whether its footpath reached a road; one too far from any goes without.</summary>
+    public bool TrailLaid;
+
+    /// <summary>The site's own tiles, which a footpath crosses without repainting.</summary>
+    public HashSet<Vector2i> Tiles = new();
     public EntityUid Signal;
 
     /// <summary>Whether an expedition console may offer the site, and at what rating.</summary>

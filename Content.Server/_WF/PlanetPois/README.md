@@ -16,6 +16,20 @@ scattered along it from the Streets and Vehicles props. Blocking pieces keep off
 and apart from one another, so a road is never shut, and nothing is placed inside a site. Asclepiu and
 Merak have one each (`road_dressing.yml`).
 
+A network's `tunnels` (`WFPlanetPoiSystem.Tunnels`) wall one or two straight stretches of road in the world's rock and roof
+them over: dark, with webs and bones along the edges and lurkers inside (`tunnels.yml`: giant spiders and the world's
+risen wreck crew). A tunnel keeps off the sites and clear of bends and junctions, and a footpath meeting the road
+inside one leaves a gap in its wall. Every road world has them.
+
+A table's `wrecks` (`WFPlanetPoiSystem.Wrecks`, themes in `wrecks.yml`) crash a few vessels off the roads, torn open
+and reclaimed by the world, with its wildlife and what's left of the crew inside: spacers dressed for that world who
+rise as zombies when spawned (`WFZombifyOnSpawn`, `wreck_crew.yml`).
+
+An isolated site with `trail: true` stands off the roads and gets a footpath instead (`WFPlanetPoiSystem.Trails`,
+routed by `WFPlanetTrailPlanner`): a wandering track of the network's `trailTile`, a tile or two wide, from just
+outside its first socket (a door) to the nearest road or earlier footpath. A site more than `trailLength` (240) steps from
+any road goes without. `Tools/_WF/PlanetPois/roadside_map.py <map> <name> --trail` turns a mapper's grid into one.
+
 Players discover orbit signals by approaching sites on the ground. Content authors add maps, entry
 limits and road sockets through the table prototypes; see [MapperGuide](../../../Docs/_WF/PlanetPois/MapperGuide.md)
 for the map contract, generator and content roadmap. Fourteen authored maps add two Crocus-scale
@@ -35,14 +49,21 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.cs`](WFPlanetPoiSystem.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Dressing.cs`](WFPlanetPoiSystem.Dressing.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Network.cs`](WFPlanetPoiSystem.Network.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Roamers.cs`](WFPlanetPoiSystem.Roamers.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Rotation.cs`](WFPlanetPoiSystem.Rotation.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Trails.cs`](WFPlanetPoiSystem.Trails.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Tunnels.cs`](WFPlanetPoiSystem.Tunnels.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Wrecks.cs`](WFPlanetPoiSystem.Wrecks.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetRoadPlanner.cs`](WFPlanetRoadPlanner.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetTrailPlanner.cs`](WFPlanetTrailPlanner.cs)
 - [`Content.Server/_WF/PlanetPois/WFRoadDressingPlanner.cs`](WFRoadDressingPlanner.cs)
+- [`Content.Server/_WF/PlanetPois/WFZombifyOnSpawnSystem.cs`](WFZombifyOnSpawnSystem.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/PlanetPois/WFPlanetPoiTablePrototype.cs`](../../../Content.Shared/_WF/PlanetPois/WFPlanetPoiTablePrototype.cs)
 - [`Content.Shared/_WF/PlanetPois/WFRoadDressingPrototype.cs`](../../../Content.Shared/_WF/PlanetPois/WFRoadDressingPrototype.cs)
+- [`Content.Shared/_WF/PlanetPois/WFWreckThemePrototype.cs`](../../../Content.Shared/_WF/PlanetPois/WFWreckThemePrototype.cs)
 
 ### Integration tests
 
@@ -56,6 +77,8 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingPlannerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingPlannerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadPlannerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadPlannerTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetTrailPlannerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetTrailPlannerTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetWreckTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetWreckTest.cs)
 
 ### Prototypes
 
@@ -65,6 +88,9 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Resources/Prototypes/_WF/PlanetPois/road_props.yml`](../../../Resources/Prototypes/_WF/PlanetPois/road_props.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/tables.yml`](../../../Resources/Prototypes/_WF/PlanetPois/tables.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/traders.yml`](../../../Resources/Prototypes/_WF/PlanetPois/traders.yml)
+- [`Resources/Prototypes/_WF/PlanetPois/tunnels.yml`](../../../Resources/Prototypes/_WF/PlanetPois/tunnels.yml)
+- [`Resources/Prototypes/_WF/PlanetPois/wreck_crew.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wreck_crew.yml)
+- [`Resources/Prototypes/_WF/PlanetPois/wrecks.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wrecks.yml)
 
 ### Localization
 
@@ -73,6 +99,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 
 ### Maps
 
+- [`Resources/Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml`](../../../Resources/Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml)
 - [`Resources/Maps/_WF/PlanetPois/aerumna_salvage_yard.yml`](../../../Resources/Maps/_WF/PlanetPois/aerumna_salvage_yard.yml)
 - [`Resources/Maps/_WF/PlanetPois/asclepiu_derelict_village.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_derelict_village.yml)
 - [`Resources/Maps/_WF/PlanetPois/asclepiu_fuel_service.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_fuel_service.yml)
@@ -88,8 +115,10 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Resources/Maps/_WF/PlanetPois/merak_roadside_trader.yml`](../../../Resources/Maps/_WF/PlanetPois/merak_roadside_trader.yml)
 - [`Resources/Maps/_WF/PlanetPois/Tests/through_service.yml`](../../../Resources/Maps/_WF/PlanetPois/Tests/through_service.yml)
 - [`Resources/Maps/_WF/PlanetPois/thrascias_survey_shelter.yml`](../../../Resources/Maps/_WF/PlanetPois/thrascias_survey_shelter.yml)
+- [`Resources/Maps/_WF/PlanetPois/verda_corner_house.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_corner_house.yml)
 - [`Resources/Maps/_WF/PlanetPois/verda_gas_station.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_gas_station.yml)
 - [`Resources/Maps/_WF/PlanetPois/verda_house_1.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_house_1.yml)
+- [`Resources/Maps/_WF/PlanetPois/verda_small_house.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_small_house.yml)
 
 ### Tools
 

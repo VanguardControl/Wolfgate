@@ -72,6 +72,12 @@ public sealed class WFVehicleEngineSystem : EntitySystem
             return;
         }
 
+        if (ev.StartStop)
+        {
+            StartStop((uid, engine), user, slot);
+            return;
+        }
+
         if (ev.Accessories)
         {
             if (slot.ContainedEntity == null)
@@ -119,40 +125,48 @@ public sealed class WFVehicleEngineSystem : EntitySystem
     }
 
     /// <summary>
-    /// The one key control, each press the next step: the matching key goes in from anywhere on the driver and turns the
-    /// accessories on, then the engine starts, then everything switches off and the key can come out.
+    /// The key: the matching key goes in from anywhere on the driver and turns the accessories on; with it in, the
+    /// engine stops, everything switches off and the key comes out to the driver's hand.
     /// </summary>
     private void Ignition(Entity<WFVehicleEngineComponent> vehicle, EntityUid user, ContainerSlot slot)
     {
         var engine = vehicle.Comp;
-        if (slot.ContainedEntity == null)
+        if (slot.ContainedEntity is { } inserted)
         {
-            if (FindKey(user, vehicle) is not { } key)
-            {
-                _popup.PopupEntity(Loc.GetString("wf-vehicle-key-required"), user, user);
-                return;
-            }
-
-            if (!_containers.Insert(key, slot))
-                return;
-
-            engine.IgnitionKey = key;
-            engine.Electrics = true;
+            engine.Running = false;
+            engine.Electrics = false;
             Dirty(vehicle);
+            _hands.PickupOrDrop(user, inserted);
             return;
         }
 
-        if (!engine.Electrics)
+        if (FindKey(user, vehicle) is not { } key)
         {
-            engine.Electrics = true;
-            Dirty(vehicle);
+            _popup.PopupEntity(Loc.GetString("wf-vehicle-key-required"), user, user);
+            return;
+        }
+
+        if (!_containers.Insert(key, slot))
+            return;
+
+        engine.IgnitionKey = key;
+        engine.Electrics = true;
+        Dirty(vehicle);
+    }
+
+    /// <summary>The start/stop button: with the key in, starts the engine (accessories and all) or stops it.</summary>
+    private void StartStop(Entity<WFVehicleEngineComponent> vehicle, EntityUid user, ContainerSlot slot)
+    {
+        var engine = vehicle.Comp;
+        if (slot.ContainedEntity == null)
+        {
+            _popup.PopupEntity(Loc.GetString("wf-vehicle-key-required"), user, user);
             return;
         }
 
         if (engine.Running)
         {
             engine.Running = false;
-            engine.Electrics = false;
             Dirty(vehicle);
             return;
         }
@@ -170,6 +184,7 @@ public sealed class WFVehicleEngineSystem : EntitySystem
         }
 
         engine.BatteryCharge -= engine.StarterEnergy;
+        engine.Electrics = true;
         engine.Running = true;
         Dirty(vehicle);
     }

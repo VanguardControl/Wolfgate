@@ -77,6 +77,12 @@ public sealed class PlanetSignalsTest
         try
         {
             await PlanetBoundsTest.WaitPreloaded(pair, ground);
+            await server.WaitAssertion(() =>
+            {
+                var placed = entMan.GetComponent<WFPlanetPoiComponent>(ground);
+                Assert.That(placed.GenerationError, Is.Null);
+                Assert.That(placed.Sites, Has.Count.EqualTo(2), "The test world did not get its two sites.");
+            });
 
             EntityUid hauler = default;
             await server.WaitPost(() =>
@@ -103,7 +109,6 @@ public sealed class PlanetSignalsTest
 
                 // The first site is identified and has the hauler's expedition on it.
                 var record = entMan.GetComponent<WFPlanetPoiComponent>(ground);
-                Assert.That(record.Sites, Has.Count.EqualTo(2), "The test world did not get its two sites.");
                 var site = record.Sites[0];
                 pois.Reveal((site.Signal, entMan.GetComponent<WFPoiSignalComponent>(site.Signal)), null);
 
