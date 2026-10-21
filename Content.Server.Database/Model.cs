@@ -572,6 +572,9 @@ namespace Content.Server.Database
         // WOLFGATE(ChatFont): the wfChatFont prototype id, empty for the default.
         [Column("chat_font")] public string ChatFont { get; set; } = "";
 
+        // WOLFGATE(TypingBubble): the typingIndicator prototype id, null for the species' own.
+        [Column("typing_indicator")] public string? TypingIndicator { get; set; }
+
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 

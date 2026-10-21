@@ -416,7 +416,7 @@ public abstract partial class SharedHumanoidAppearanceSystem : EntitySystem
         // WOLFGATE END
         humanoid.CustomSpeciesName = profile.CustomSpeciesName; // WOLFGATE(Humanoid): applies the profile's custom species name
 
-        SetSkinColor(uid, profile.Appearance.SkinColor, false);
+        SetSkinColor(uid, profile.Appearance.SkinColor, false, verify: !profile.MismatchedParts); // WOLFGATE(Species): Mismatched parts lets the skin take any colour
 
         humanoid.MarkingSet.Clear();
         humanoid.MarkingSet.OpenPoints(profile.MismatchedParts); // WOLFGATE(Species): one point for each category the species has none for

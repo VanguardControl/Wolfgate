@@ -1,4 +1,5 @@
 using Content.Shared._WF.ChatFont;
+using Content.Client._WF.ChatFont;
 using Robust.Shared.Utility;
 
 namespace Content.Client.Lobby.UI;
@@ -53,6 +54,8 @@ public sealed partial class HumanoidProfileEditor
     private void UpdateChatFontPreview(WFChatFontPrototype font)
     {
         var sample = FormattedMessage.EscapeText(Loc.GetString("wf-chat-font-preview"));
-        ChatFontPreview.SetMessage(FormattedMessage.FromMarkupOrThrow($"[font=\"{font.Font}\"]{sample}[/font]"));
+        // The default tag set leaves out font, so the sample would draw in the label's own.
+        ChatFontPreview.SetMessage(FormattedMessage.FromMarkupOrThrow($"[font=\"{font.Font}\"]{sample}[/font]"),
+            WFChatFontTags.Allowed);
     }
 }

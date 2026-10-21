@@ -8,6 +8,7 @@ using Content.Client._WF.Humanoid; // WOLFGATE(Humanoid)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
 using Content.Shared._WF.Biotype; // WOLFGATE(Biotype)
+using Content.Shared._WF.Species; // WOLFGATE(Species)
 using Content.Client.Lobby.UI.Loadouts;
 using Content.Client.Lobby.UI.Roles;
 using Content.Client.Message;
@@ -619,6 +620,7 @@ namespace Content.Client.Lobby.UI
             InitializeMismatchedParts(); // WOLFGATE(Species)
             InitializeBiotype(); // WOLFGATE(Biotype)
             InitializeChatFont(); // WOLFGATE(ChatFont)
+            InitializeTypingBubble(); // WOLFGATE(TypingBubble)
             InitializeLegStyle(); // WOLFGATE(LegStyle)
 
             #region Dummy
@@ -1332,6 +1334,7 @@ namespace Content.Client.Lobby.UI
             UpdateBiotype(); // WOLFGATE(Biotype)
             UpdateLegStyle(); // WOLFGATE(LegStyle)
             UpdateChatFont(); // WOLFGATE(ChatFont)
+            UpdateTypingBubble(); // WOLFGATE(TypingBubble)
             UpdateSexControls();
             UpdateGenderControls();
             UpdateSkinColor();
@@ -1833,7 +1836,7 @@ namespace Content.Client.Lobby.UI
         {
             if (Profile is null) return;
 
-            var skin = _prototypeManager.Index<SpeciesPrototype>(Profile.Species).SkinColoration;
+            var skin = MismatchedPartsRules.SkinColoration(_prototypeManager.Index<SpeciesPrototype>(Profile.Species).SkinColoration, Profile.MismatchedParts); // WOLFGATE(Species): any colour with Mismatched parts
 
             switch (skin)
             {
@@ -2011,6 +2014,7 @@ namespace Content.Client.Lobby.UI
             Profile = Profile?.WithBiotype(WFBiotype.Default); // WOLFGATE(Biotype): a new species starts on its own biotype
             UpdateBiotype(); // WOLFGATE(Biotype)
             UpdateLegStyle(); // WOLFGATE(LegStyle): legs the new species lacks fall back to its own
+            UpdateTypingBubble(); // WOLFGATE(TypingBubble): the species' own bubble changes with it
             // WOLFGATE(Humanoid) START: keep the species picker and dropdown in step, drop hair the new species lacks
             EnforceSpeciesHair();
             SpeciesPicker.SetSelected(newSpecies);
@@ -2250,7 +2254,7 @@ namespace Content.Client.Lobby.UI
             if (Profile == null)
                 return;
 
-            var skin = _prototypeManager.Index<SpeciesPrototype>(Profile.Species).SkinColoration;
+            var skin = MismatchedPartsRules.SkinColoration(_prototypeManager.Index<SpeciesPrototype>(Profile.Species).SkinColoration, Profile.MismatchedParts); // WOLFGATE(Species): any colour with Mismatched parts
 
             switch (skin)
             {

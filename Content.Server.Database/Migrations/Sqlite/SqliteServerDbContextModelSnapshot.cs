@@ -1048,6 +1048,10 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("TEXT")
                         .HasColumnName("species");
 
+                    b.Property<string>("TypingIndicator")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("typing_indicator");
+
                     b.Property<float>("Width")
                         .HasColumnType("REAL")
                         .HasColumnName("width");

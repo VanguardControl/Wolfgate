@@ -9,6 +9,9 @@
   biotype: Synthetic
   name: wf-biotype-synthetic
   description: wf-biotype-synthetic-desc
+  icon:
+    sprite: Objects/Specific/Robotics/mmi.rsi
+    state: posibrain
   body: IPC
   remove:
   - Barotrauma
@@ -210,6 +213,9 @@
   biotype: Organic
   name: wf-biotype-organic
   description: wf-biotype-organic-desc
+  icon:
+    sprite: Mobs/Species/Human/organs.rsi
+    state: heart-on
   body: Human
   remove:
   - Silicon
