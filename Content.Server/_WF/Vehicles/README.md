@@ -67,6 +67,9 @@ noise and turn-in-place squeals; and a turret's traverse from `WFTurretTraverseA
 (server) plays a gun's distant boom and loader cycle (`WFGunExtraSounds`), hull hits and ricochets (`WFVehicleHitSound`),
 round ricochets off what they hit (`WFImpactRicochet`) and the blast, cook-off and fire of a destroyed vehicle
 (`WFVehicleDestroyedSound`).
+In the cabin, `WFVehicleCabinAudioSystem` (client) plays every sound within 24 m of the hull again, 9 dB quieter and dulled
+(the `Underwater` reverb), louder the nearer it is; `WFVehicleCabinHearingSystem` (server) keeps the hull in the cabin's
+view so those sounds reach the client. Anyone looking out through the hull hears the outside as it is.
 
 `Docs/_WF/Vehicles/design.md` has the decisions behind it, one note per area sits beside it, and
 `Docs/_WF/Vehicles/port-manifest.md` records where each file came from and under which licence. The import, namespace,
@@ -120,6 +123,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 
 ### Server
 
+- [`Content.Server/_WF/Vehicles/Audio/WFVehicleCabinHearingSystem.cs`](Audio/WFVehicleCabinHearingSystem.cs)
 - [`Content.Server/_WF/Vehicles/Audio/WFVehicleCombatAudioSystem.cs`](Audio/WFVehicleCombatAudioSystem.cs)
 - [`Content.Server/_WF/Vehicles/Bison/CMUCargoVehicleSystem.Cargo.cs`](Bison/CMUCargoVehicleSystem.Cargo.cs)
 - [`Content.Server/_WF/Vehicles/Bison/CMUCargoVehicleSystem.Control.cs`](Bison/CMUCargoVehicleSystem.Control.cs)
@@ -280,6 +284,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 ### Client
 
 - [`Content.Client/_WF/Vehicles/Audio/WFVehicleAudioSystem.cs`](../../../Content.Client/_WF/Vehicles/Audio/WFVehicleAudioSystem.cs)
+- [`Content.Client/_WF/Vehicles/Audio/WFVehicleCabinAudioSystem.cs`](../../../Content.Client/_WF/Vehicles/Audio/WFVehicleCabinAudioSystem.cs)
 - [`Content.Client/_WF/Vehicles/Falling/VehicleFallSystem.cs`](../../../Content.Client/_WF/Vehicles/Falling/VehicleFallSystem.cs)
 - [`Content.Client/_WF/Vehicles/Grid/GridVehicleMoverOverlay.cs`](../../../Content.Client/_WF/Vehicles/Grid/GridVehicleMoverOverlay.cs)
 - [`Content.Client/_WF/Vehicles/Grid/GridVehicleMoverSystem.cs`](../../../Content.Client/_WF/Vehicles/Grid/GridVehicleMoverSystem.cs)
@@ -336,6 +341,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleArmedDataTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleArmedDataTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleArmedWeaponsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleArmedWeaponsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleArmedWeaponsTest.Rounds.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleArmedWeaponsTest.Rounds.cs)
+- [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleCabinHearingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleCabinHearingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleChatRelayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleChatRelayTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleClientTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleClientTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Vehicles/VehicleCompatTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Vehicles/VehicleCompatTest.cs)
