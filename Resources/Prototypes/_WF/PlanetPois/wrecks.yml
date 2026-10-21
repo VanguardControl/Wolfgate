@@ -1,5 +1,5 @@
 # How each world reclaims the ships that crashed on it (WFPlanetPoiSystem.Wrecks): its ground creeping over the deck,
-# what grows or settles there, and the wildlife that moved in.
+# what grows or settles there, the wildlife that moved in and the crew that never left (wreck_crew.yml).
 
 - type: wfWreckTheme
   id: WFWreckThemeVerda
@@ -9,6 +9,8 @@
   overgrowthChance: 0.04
   fauna: !type:NestedSelector
     tableId: WFFaunaAsclepiu
+  crew: !type:EntSelector
+    id: WFWreckZombieVerda
 
 - type: wfWreckTheme
   id: WFWreckThemeMerak
@@ -18,6 +20,8 @@
   overgrowthChance: 0.03
   fauna: !type:NestedSelector
     tableId: MonoPlanetmapFaunaDesert
+  crew: !type:EntSelector
+    id: WFWreckZombieMerak
 
 - type: wfWreckTheme
   id: WFWreckThemeFervidus
@@ -27,6 +31,8 @@
   overgrowthChance: 0.08
   fauna: !type:NestedSelector
     tableId: WFFaunaFervidus
+  crew: !type:EntSelector
+    id: WFWreckZombieFervidus
 
 - type: wfWreckTheme
   id: WFWreckThemeThrascias
@@ -36,6 +42,8 @@
   overgrowthChance: 0.06
   fauna: !type:NestedSelector
     tableId: WFFaunaThrascias
+  crew: !type:EntSelector
+    id: WFWreckZombieThrascias
 
 - type: wfWreckTheme
   id: WFWreckThemeAerumna
@@ -45,6 +53,8 @@
   overgrowthChance: 0.05
   fauna: !type:NestedSelector
     tableId: WFFaunaAerumna
+  crew: !type:EntSelector
+    id: WFWreckZombieAerumna
 
 - type: wfWreckTheme
   id: WFWreckThemeCarcinoma
@@ -56,3 +66,5 @@
   maxFauna: 4
   fauna: !type:NestedSelector
     tableId: WFFaunaCarcinoma
+  crew: !type:EntSelector
+    id: WFWreckZombieCarcinoma

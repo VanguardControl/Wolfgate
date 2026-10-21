@@ -259,6 +259,7 @@ public sealed partial class WFPlanetPoiSystem
         return solid;
     }
 
+    /// <summary>The wildlife that moved in, and what's left of the crew.</summary>
     private void SpawnWreckFauna(Entity<MapGridComponent> ship, WFWreckThemePrototype theme)
     {
         if (theme.Fauna is not { } fauna)
@@ -272,6 +273,15 @@ public sealed partial class WFPlanetPoiSystem
         for (var i = 0; i < count; i++)
         {
             foreach (var id in _entityTables.GetSpawns(fauna))
+                Spawn(id, new EntityCoordinates(ship.Owner, (Vector2) _random.Pick(open) + new Vector2(0.5f)));
+        }
+
+        if (theme.Crew is not { } crew)
+            return;
+        var survivors = _random.Next(theme.MinCrew, theme.MaxCrew + 1);
+        for (var i = 0; i < survivors; i++)
+        {
+            foreach (var id in _entityTables.GetSpawns(crew))
                 Spawn(id, new EntityCoordinates(ship.Owner, (Vector2) _random.Pick(open) + new Vector2(0.5f)));
         }
     }

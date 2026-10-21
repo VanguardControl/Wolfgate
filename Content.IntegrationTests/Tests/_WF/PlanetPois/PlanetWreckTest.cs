@@ -16,6 +16,7 @@ using Content.Shared._WF.PlanetPois;
 using Content.Shared._WF.Planets;
 using Content.Shared.Gravity;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Zombies;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -30,6 +31,27 @@ namespace Content.IntegrationTests.Tests._WF.PlanetPois;
 [TestFixture]
 public sealed class PlanetWreckTest
 {
+    [Test]
+    public async Task WreckedCrewRiseDressedForTheirWorld()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entities = server.EntMan;
+        var map = await pair.CreateTestMap();
+        EntityUid zombie = default;
+        await server.WaitPost(() => zombie = entities.SpawnEntity("WFWreckZombieThrascias", map.GridCoords));
+        await pair.RunTicksSync(5);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entities.HasComponent<ZombieComponent>(zombie), Is.True, "The crewmember never rose.");
+            Assert.That(entities.HasComponent<Content.Server.NPC.HTN.HTNComponent>(zombie), Is.True, "A risen crewmember needs a mind of its own.");
+            Assert.That(server.System<Content.Shared.Inventory.InventorySystem>().TryGetSlotEntity(zombie, "outerClothing", out _), Is.True,
+                "The crewmember should still wear its winter gear.");
+            entities.DeleteEntity(zombie);
+        });
+        await pair.CleanReturnAsync();
+    }
+
     [TestCase(1977)]
     [TestCase(8231)]
     public async Task CarcinomaHasOvergrownWrecks(int seed)
@@ -108,6 +130,9 @@ public sealed class PlanetWreckTest
                 var fauna = wrecks.Sum(wreck => entities.EntityQuery<MobStateComponent>()
                     .Count(mob => entities.GetComponent<TransformComponent>(mob.Owner).GridUid == wreck));
                 Assert.That(fauna, Is.GreaterThanOrEqualTo(wrecks.Count), "The wrecks should have wildlife in them.");
+                // They wander, so they're counted across the world rather than per hull.
+                var crew = entities.EntityQuery<ZombieComponent>().Count(zombie => entities.GetComponent<TransformComponent>(zombie.Owner).MapID == map);
+                Assert.That(crew, Is.GreaterThanOrEqualTo(wrecks.Count), "The wrecks should have their risen crew.");
             });
         }
         finally { await PlanetFixture.Teardown(pair, layers); }

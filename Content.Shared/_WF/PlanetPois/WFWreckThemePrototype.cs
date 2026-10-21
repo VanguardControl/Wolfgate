@@ -36,6 +36,16 @@ public sealed partial class WFWreckThemePrototype : IPrototype
 
     [DataField]
     public int MaxFauna = 3;
+
+    /// <summary>What's left of the crew, risen as zombies; one pick per survivor.</summary>
+    [DataField]
+    public EntityTableSelector? Crew;
+
+    [DataField]
+    public int MinCrew = 1;
+
+    [DataField]
+    public int MaxCrew = 3;
 }
 
 /// <summary>The crashed ships a world gets each round.</summary>

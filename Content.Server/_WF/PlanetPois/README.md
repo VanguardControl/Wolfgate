@@ -47,6 +47,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Content.Server/_WF/PlanetPois/WFPlanetRoadPlanner.cs`](WFPlanetRoadPlanner.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetTrailPlanner.cs`](WFPlanetTrailPlanner.cs)
 - [`Content.Server/_WF/PlanetPois/WFRoadDressingPlanner.cs`](WFRoadDressingPlanner.cs)
+- [`Content.Server/_WF/PlanetPois/WFZombifyOnSpawnSystem.cs`](WFZombifyOnSpawnSystem.cs)
 
 ### Shared
 
@@ -77,6 +78,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Resources/Prototypes/_WF/PlanetPois/road_props.yml`](../../../Resources/Prototypes/_WF/PlanetPois/road_props.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/tables.yml`](../../../Resources/Prototypes/_WF/PlanetPois/tables.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/traders.yml`](../../../Resources/Prototypes/_WF/PlanetPois/traders.yml)
+- [`Resources/Prototypes/_WF/PlanetPois/wreck_crew.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wreck_crew.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/wrecks.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wrecks.yml)
 
 ### Localization
