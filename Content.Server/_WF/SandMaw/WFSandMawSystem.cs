@@ -82,7 +82,7 @@ public sealed class WFSandMawSystem : EntitySystem
     {
         foreach (var victim in ent.Comp.Grabs.Keys.ToList())
             Release(ent, victim);
-        if (ent.Comp.PocketBelly && ent.Comp.Belly is { } belly && Transform(belly).MapUid is { } map)
+        if (ent.Comp.PocketBelly && ent.Comp.Belly is { } belly && TryComp(belly, out TransformComponent? bellyXform) && bellyXform.MapUid is { } map)
             QueueDel(map);
     }
 

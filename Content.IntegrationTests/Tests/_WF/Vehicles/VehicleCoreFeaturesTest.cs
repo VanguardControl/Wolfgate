@@ -315,15 +315,16 @@ public sealed class VehicleCoreFeaturesTest : InteractionTest
         Assert.That(beam.LightMask?.Id, Is.EqualTo("ConeSingle"));
         Assert.That(beam.MaskAutoRotate, Is.True, "The beam must follow the chassis heading.");
         var fixtures = CEntMan.GetComponent<FixturesComponent>(ToClient(vehicle));
-        var front = float.MinValue;
+        // Vehicles face south, so the front bumper is the bottom of the hull.
+        var front = float.MaxValue;
         foreach (var fixture in fixtures.Fixtures.Values)
         {
             if (!fixture.Hard)
                 continue;
             for (var child = 0; child < fixture.Shape.ChildCount; child++)
-                front = MathF.Max(front, fixture.Shape.ComputeAABB(Robust.Shared.Physics.Transform.Empty, child).Top);
+                front = MathF.Min(front, fixture.Shape.ComputeAABB(Robust.Shared.Physics.Transform.Empty, child).Bottom);
         }
-        Assert.That(beam.Offset.Y, Is.EqualTo(front + 0.05f).Within(0.001f),
+        Assert.That(beam.Offset.Y, Is.EqualTo(front - 0.05f).Within(0.001f),
             "The light must originate at the front bumper, not the hull centre.");
 
         await PressAndCheckSwallowed(ContentKeyFunctions.FlipObject);
