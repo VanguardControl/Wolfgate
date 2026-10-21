@@ -8,7 +8,6 @@ wf-vehicle-hud-speed = {$speed} km/h
 wf-vehicle-hud-fuel = FUEL {$fuel}%
 wf-vehicle-hud-start = Start engine
 wf-vehicle-hud-stop = Stop engine
-wf-vehicle-hud-stop = Stop engine
 wf-vehicle-hud-brake = Parking brake
 wf-vehicle-hud-weapon = Weapon: {$weapon}
 wf-vehicle-hud-no-weapon = No weapon selected

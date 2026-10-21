@@ -64,6 +64,28 @@ public sealed partial class VehicleHornSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Sounds the vehicle's horn on its cooldown without a player at the wheel, as an NPC driver; server only.</summary>
+    public bool TrySoundHorn(EntityUid vehicle)
+    {
+        if (!_net.IsServer)
+            return false;
+
+        if (TryComp(vehicle, out WFVehicleEngineComponent? engine) && !engine.Powered)
+            return false;
+
+        if (!TryComp(vehicle, out VehicleSoundComponent? sound) || sound.HornSound == null)
+            return false;
+
+        var now = _timing.CurTime;
+        if (sound.NextHornSound > now)
+            return false;
+
+        sound.NextHornSound = now + TimeSpan.FromSeconds(sound.HornCooldown);
+        _audio.PlayPvs(sound.HornSound, vehicle);
+        Dirty(vehicle, sound);
+        return true;
+    }
+
     private void OnHornRequest(VehicleHornRequestEvent ev, EntitySessionEventArgs args)
     {
         if (!_net.IsServer)

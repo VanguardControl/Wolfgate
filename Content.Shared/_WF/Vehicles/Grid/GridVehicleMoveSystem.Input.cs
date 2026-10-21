@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using Content.Shared._WF.NpcVehicleCrew;
 using Content.Shared._WF.Vehicles.Base;
 using Content.Shared.Movement.Components;
 using Content.Shared.Stunnable;
@@ -41,13 +42,17 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
     }
 
     /// <summary>The operator's held keys; a driver who is dead, unconscious or stunned steers nothing, whatever keys they still hold.</summary>
-    private VehicleControlInput GetMoverInput(RMCVehicleComponent vehicle, TransformComponent vehicleXform)
+    private VehicleControlInput GetMoverInput(EntityUid uid, RMCVehicleComponent vehicle, TransformComponent vehicleXform)
     {
         if (vehicle.Operator is not { } op)
             return default;
 
         if (!_actionBlocker.CanConsciouslyPerformAction(op) || HasComp<StunnedComponent>(op))
             return default;
+
+        // An NPC crew's driver steers through the autopilot instead of held keys.
+        if (TryComp<WFVehicleAutopilotComponent>(uid, out var autopilot) && autopilot.Active)
+            return new VehicleControlInput(autopilot.Direction, autopilot.Throttle, autopilot.Steering);
 
         if (!TryComp<InputMoverComponent>(op, out var inputComp))
             return default;
