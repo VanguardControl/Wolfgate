@@ -18,7 +18,7 @@ Merak have one each (`road_dressing.yml`).
 
 An isolated site with `trail: true` stands off the roads and gets a footpath instead (`WFPlanetPoiSystem.Trails`,
 routed by `WFPlanetTrailPlanner`): a wandering track of the network's `trailTile`, a tile or two wide, from just
-outside its first socket (a door) to the nearest road or earlier footpath. A site more than `trailLength` steps from
+outside its first socket (a door) to the nearest road or earlier footpath. A site more than `trailLength` (240) steps from
 any road goes without. `Tools/_WF/PlanetPois/roadside_map.py <map> <name> --trail` turns a mapper's grid into one.
 
 Players discover orbit signals by approaching sites on the ground. Content authors add maps, entry
@@ -86,6 +86,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 
 ### Maps
 
+- [`Resources/Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml`](../../../Resources/Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml)
 - [`Resources/Maps/_WF/PlanetPois/aerumna_salvage_yard.yml`](../../../Resources/Maps/_WF/PlanetPois/aerumna_salvage_yard.yml)
 - [`Resources/Maps/_WF/PlanetPois/asclepiu_derelict_village.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_derelict_village.yml)
 - [`Resources/Maps/_WF/PlanetPois/asclepiu_fuel_service.yml`](../../../Resources/Maps/_WF/PlanetPois/asclepiu_fuel_service.yml)
@@ -104,6 +105,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Resources/Maps/_WF/PlanetPois/verda_corner_house.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_corner_house.yml)
 - [`Resources/Maps/_WF/PlanetPois/verda_gas_station.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_gas_station.yml)
 - [`Resources/Maps/_WF/PlanetPois/verda_house_1.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_house_1.yml)
+- [`Resources/Maps/_WF/PlanetPois/verda_small_house.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_small_house.yml)
 
 ### Tools
 

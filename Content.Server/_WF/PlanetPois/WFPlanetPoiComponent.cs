@@ -69,6 +69,9 @@ public sealed class WFPlanetPoiSite
     /// <summary>Where a footpath to the roads starts, for an off-road site that has one.</summary>
     public WFPlanetRoadSocket? TrailStart;
 
+    /// <summary>Whether its footpath reached a road; one too far from any goes without.</summary>
+    public bool TrailLaid;
+
     /// <summary>The site's own tiles, which a footpath crosses without repainting.</summary>
     public HashSet<Vector2i> Tiles = new();
     public EntityUid Signal;

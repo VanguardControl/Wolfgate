@@ -178,5 +178,5 @@ public sealed partial class WFPlanetRoadNetwork
 
     /// <summary>The longest footpath, in tiles; a site further from the roads goes without.</summary>
     [DataField]
-    public int TrailLength = 160;
+    public int TrailLength = 240;
 }

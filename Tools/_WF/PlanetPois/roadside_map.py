@@ -13,6 +13,7 @@ With --trail there is no road strip: the site stands off the roads, and a footpa
 door to the nearest road (an Isolated site with `trail: true`). Its footprint keeps a tile of open ground round it.
 """
 import base64
+import math
 import re
 import struct
 import sys
@@ -24,7 +25,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[3]
 ROAD, SHOULDER, WIDTH = "RMCPlanetHybrisaAsphalt", "RMCPlanetHybrisaSidewalk", 5
 KEEP = {"MetaData", "Transform", "MapGrid", "DecalGrid"}
-BLOCKS = re.compile(r"^(Wall|Window|Grille|Airlock|.*Door|.*Window)")
+BLOCKS = re.compile(r"^(Wall|Window|Grille|Airlock|.*Door|.*Window|.*Barricade|.*Girder)")
 SIDES = (((0, -1), "South"), ((0, 1), "North"), ((-1, 0), "West"), ((1, 0), "East"))
 
 
@@ -38,7 +39,7 @@ Loader.add_multi_constructor('!', lambda l, s, n: None)
 def main():
     source, name = Path(sys.argv[1]), sys.argv[2]
     trail = "--trail" in sys.argv[3:]
-    text = source.read_text(encoding="utf-8").replace("\r\n", "\n")
+    text = flatten(source.read_text(encoding="utf-8").replace("\r\n", "\n"))
     data = yaml.load(text, Loader=Loader)
 
     text = re.sub(r"(- proto: \w+?)Indestructible\n", r"\1\n", text)
@@ -130,6 +131,88 @@ def main():
     rotate: true""")
 
 
+def flatten(text):
+    """
+    Makes any save a single grid with uid 1: a whole map's save keeps its biggest grid, and stray grids (a light or a
+    wall placed off the edge makes one) are folded into it where they stood.
+    """
+    data = yaml.load(text, Loader=Loader)
+    tilemap = {int(k): v for k, v in data["tilemap"].items()}
+    grids = {}
+    for ent in data["entities"][0]["entities"]:
+        comps = {c["type"]: c for c in ent.get("components", [])}
+        if "MapGrid" not in comps:
+            continue
+        x, y = map(float, str(comps["Transform"].get("pos", "0,0")).split(","))
+        tiles = {}
+        for key, chunk in comps["MapGrid"]["chunks"].items():
+            cx, cy = map(int, key.split(","))
+            raw = base64.b64decode(chunk["tiles"])
+            for i in range(256):
+                if tilemap.get(struct.unpack_from("<i", raw, i * 7)[0], "Space") != "Space":
+                    tiles[cx * 16 + i % 16, cy * 16 + i // 16] = raw[i * 7:i * 7 + 7]
+        grids[ent["uid"]] = ((x, y), tiles)
+    main = max(grids, key=lambda uid: len(grids[uid][1]))
+    if len(grids) == 1 and main == 1:
+        return text
+    (mx, my), merged = grids[main]
+    offsets = {}
+    for uid, ((x, y), tiles) in grids.items():
+        offsets[uid] = (x - mx, y - my)
+        if uid != main:
+            if (x - mx) % 1 or (y - my) % 1:
+                sys.exit(f"Grid {uid} isn't on the main grid's tiles; move it into place first.")
+            for (tx, ty), tile in tiles.items():
+                merged.setdefault((tx + int(x - mx), ty + int(y - my)), tile)
+    print(f"Folded {len(grids) - 1} stray grid(s) into grid {main}.", file=sys.stderr)
+
+    # A free uid for whatever else holds 1, then everything on any grid moves onto the main one as uid 1.
+    spare = max(int(u) for u in re.findall(r"^  - uid: (\d+)$", text, re.M)) + 1
+    lines, out, parent = text.split("\n"), [], None
+    for line in lines:
+        if re.fullmatch(r"  - uid: 1", line) and 1 not in grids:
+            line = f"  - uid: {spare}"
+        if m := re.fullmatch(r"(\s+)parent: (\d+)", line):
+            parent = int(m.group(2))
+            line = f"{m.group(1)}parent: {1 if parent in grids else spare if parent == 1 else parent}"
+        elif (m := re.fullmatch(r"(\s+)pos: (-?[\d.]+),(-?[\d.]+)", line)) and parent in offsets and parent != main:
+            dx, dy = offsets[parent]
+            line = f"{m.group(1)}pos: {float(m.group(2)) + dx:g},{float(m.group(3)) + dy:g}"
+        elif m := re.fullmatch(r"(\s+)gridUid: (\d+)", line):
+            line = f"{m.group(1)}gridUid: {1 if int(m.group(2)) in grids else m.group(2)}"
+        if line.startswith("    - type: ") and line != "    - type: Transform":
+            parent = None
+        out.append(line)
+    text = "\n".join(out)
+
+    # The main grid alone, with the merged tiles; write() rebuilds the rest of it.
+    chunks = {}
+    for (x, y), tile in merged.items():
+        key = f"{x // 16},{y // 16}"
+        space = next(k for k, v in tilemap.items() if v == "Space")
+        chunk = chunks.setdefault(key, bytearray(struct.pack("<iBBB", space, 0, 0, 0) * 256))
+        i = (y - (y // 16) * 16) * 16 + (x - (x // 16) * 16)
+        chunk[i * 7:i * 7 + 7] = tile
+    start = text.index("- proto: \"\"\n")
+    end = text.index("\n- proto: ", start + 1) + 1
+    group = text[start:end]
+    own = group[group.index(f"  - uid: {main}\n"):]
+    following = re.search(r"\n  - uid: \d+\n", own[1:])
+    own = own[:following.start() + 2] if following else own
+    decals = re.search(r"    - type: DecalGrid\n(?:      .*\n|        .*\n)*", own)
+    body = "".join(f"        {k}:\n          ind: {k}\n          tiles: {base64.b64encode(bytes(v)).decode()}\n          version: 7\n"
+                   for k, v in sorted(chunks.items()))
+    grid = ("- proto: \"\"\n  entities:\n  - uid: 1\n    components:\n    - type: MetaData\n    - type: Transform\n"
+            "      parent: invalid\n    - type: MapGrid\n      chunks:\n" + body + (decals.group(0) if decals else ""))
+    text = text[:start] + grid + text[end:]
+    text = re.sub(r"category: Map\n", "category: Grid\n", text, count=1)
+    text = re.sub(r"^maps:\n(?:- .*\n)*", "maps: []\n", text, count=1, flags=re.M)
+    text = re.sub(r"^grids:\n(?:- .*\n)*", "grids:\n- 1\n", text, count=1, flags=re.M)
+    text = re.sub(r"^orphans:.*\n(?:- .*\n)*", "orphans:\n- 1\n", text, count=1, flags=re.M)
+    count = len(re.findall(r"^  - uid: \d+$", text, re.M))
+    return re.sub(r"entityCount: \d+", f"entityCount: {count}", text, count=1)
+
+
 def write(text, tilemap, tiles, chunks, roofed, name, road):
     """Writes the site: its tiles, a roof over the rooms and its decals, without what a shuttle carries."""
     for (x, y), tid in tiles.items():
@@ -159,12 +242,27 @@ def write(text, tilemap, tiles, chunks, roofed, name, road):
     body = "".join(f"        {k}:\n          ind: {k}\n          tiles: {base64.b64encode(bytes(v)).decode()}\n          version: 7\n"
                    for k, v in sorted(chunks.items()))
     roof = "    - type: Roof\n      data:\n" + "".join(f"        {k}: {v}\n" for k, v in sorted(masks.items()))
-    text = text[:grid_start] + header + body + roof + (decals.group(0) if decals else "") + text[grid_end:]
+    decal_text = keep_decals(decals.group(0), tiles) if decals else ""
+    text = text[:grid_start] + header + body + roof + decal_text + text[grid_end:]
 
     if road:
         text = re.sub(r"tilemap:\n((?:  .*\n)*)", lambda m: "tilemap:\n" + m.group(1) + f"  {road[0]}: {ROAD}\n  {road[1]}: {SHOULDER}\n", text, count=1)
     out = ROOT / "Resources/Maps/_WF/PlanetPois" / f"{name}.yml"
     out.write_text(text, encoding="utf-8", newline="\n")
+
+
+def keep_decals(block, tiles):
+    """Drops decals that hang off the site's own tiles: a turned site can't place them on ground that isn't there yet."""
+    head, *nodes = re.split(r"(?=^        - node:\n)", block, flags=re.M)
+    kept = []
+    for node in nodes:
+        lines = node.split("\n")
+        decals = [line for line in lines if (m := re.fullmatch(r"            \d+: (-?[\d.]+),(-?[\d.]+)", line))
+                  and all((tx, ty) in tiles for tx in {math.floor(float(m.group(1))), math.floor(float(m.group(1)) + 0.999)}
+                          for ty in {math.floor(float(m.group(2))), math.floor(float(m.group(2)) + 0.999)})]
+        if decals:
+            kept.append("\n".join(line for line in lines if not re.fullmatch(r"            \d+: .*", line) or line in decals))
+    return head + "".join(kept) if kept else head.replace("        nodes:\n", "        nodes: []\n")
 
 
 if __name__ == "__main__":

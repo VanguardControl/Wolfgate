@@ -15,8 +15,8 @@
     shoulderTile: RMCPlanetHybrisaSidewalk
     shoulderWidth: 1
     dressing: WFRoadDressingAsclepiu
-  minCount: 9
-  maxCount: 12
+  minCount: 11
+  maxCount: 15
   entries:
   - mapPath: /Maps/_WF/PlanetPois/asclepiu_garden_village.yml
     name: wf-poi-asclepiu-garden-village
@@ -86,6 +86,30 @@
     - offset: -1,-8
       direction: South
     rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/verda_small_house.yml
+    name: wf-poi-verda-small-house
+    expeditions: false
+    footprint: -2,-8,10,6
+    minCount: 1
+    maxCount: 2
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -1,-1
+      direction: West
+    rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml
+    name: wf-poi-abandoned-bandit-hideout
+    expeditions: false
+    footprint: -4,-4,13,10
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 12,2
+      direction: East
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/verda_gas_station.yml
     name: wf-poi-verda-gas-station
     expeditions: false
@@ -132,7 +156,7 @@
     shoulderWidth: 1
     dressing: WFRoadDressingMerak
   minCount: 6
-  maxCount: 7
+  maxCount: 8
   entries:
   - mapPath: /Maps/_WF/PlanetPois/merak_caravan_city.yml
     name: wf-poi-merak-caravan-city
@@ -193,6 +217,18 @@
     sockets:
     - offset: -24,-6
       direction: West
+  - mapPath: /Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml
+    name: wf-poi-abandoned-bandit-hideout
+    expeditions: false
+    footprint: -4,-4,13,10
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 12,2
+      direction: East
+    rotate: true
   - dungeon: WFPoiMerakMineshaft
     name: wf-poi-merak-mineshaft
     connection: Isolated

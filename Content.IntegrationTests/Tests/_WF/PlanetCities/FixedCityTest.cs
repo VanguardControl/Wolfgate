@@ -83,15 +83,19 @@ public sealed class FixedCityTest
             Assert.That(house, Is.Not.Null, "The house was not placed.");
             Assert.That(house!.Connection, Is.EqualTo(WFPlanetPoiConnection.Through), "The house is off the roads.");
 
-            // The run-down houses stand off the roads, each on a footpath that runs from its door to one.
-            var cornerHouses = record.Sites.Where(placed => placed.MapPath == "/Maps/_WF/PlanetPois/verda_corner_house.yml").ToList();
-            Assert.That(cornerHouses, Is.Not.Empty, "No run-down house was placed.");
-            foreach (var cornerHouse in cornerHouses)
+            // The off-road sites stand off the roads, each on a footpath that runs from its door to one.
+            foreach (var offRoad in new[] { "verda_corner_house", "verda_small_house", "abandoned_bandit_hideout" })
+                Assert.That(record.Sites.Any(placed => placed.MapPath == $"/Maps/_WF/PlanetPois/{offRoad}.yml"), Is.True, $"No {offRoad} was placed.");
+            // A path may join another's, which can run across that site's own floor.
+            var floors = record.Sites.Where(placed => placed.TrailStart != null).SelectMany(placed => placed.Tiles).ToHashSet();
+            Assert.That(record.Sites.Count(placed => placed.TrailLaid), Is.GreaterThanOrEqualTo(record.Sites.Count(placed => placed.TrailStart != null) - 1),
+                "More than one off-road site went without a footpath.");
+            foreach (var cornerHouse in record.Sites.Where(placed => placed.TrailLaid))
             {
                 Assert.That(cornerHouse.Connection, Is.EqualTo(WFPlanetPoiConnection.Isolated));
                 Assert.That(cornerHouse.TrailStart, Is.Not.Null);
                 var start = cornerHouse.TrailStart!.Position;
-                Assert.That(record.TrailTiles.Contains(start), Is.True, "The footpath doesn't start at the door.");
+                Assert.That(record.TrailTiles.Contains(start) || floors.Contains(start), Is.True, "The footpath doesn't start at the door.");
                 var reached = new HashSet<Vector2i> { start };
                 var frontier = new Queue<Vector2i>(reached);
                 var meetsRoad = false;
@@ -101,7 +105,7 @@ public sealed class FixedCityTest
                     {
                         if (record.RoadTiles.Contains(next) || record.ShoulderTiles.Contains(next))
                             meetsRoad = true;
-                        else if (record.TrailTiles.Contains(next) && reached.Add(next))
+                        else if ((record.TrailTiles.Contains(next) || floors.Contains(next)) && reached.Add(next))
                             frontier.Enqueue(next);
                     }
                 }

@@ -28,8 +28,9 @@ public sealed partial class WFPlanetPoiSystem
 
             bool Passable(Vector2i tile)
             {
+                // Through its own yard, or across its own floor where nothing stands in the way.
                 if (Contains(site.Bounds, tile))
-                    return !site.Tiles.Contains(tile);
+                    return !site.Tiles.Contains(tile) || Unblocked(ground, grid, tile);
                 return !_biome.WfIsPinned((ground, biome), tile);
             }
 
@@ -40,19 +41,20 @@ public sealed partial class WFPlanetPoiSystem
                 continue;
             }
 
-            var worn = path.Where(tile => !targets.Contains(tile)).ToHashSet();
+            var worn = path.Where(tile => !targets.Contains(tile) && !site.Tiles.Contains(tile)).ToHashSet();
             foreach (var tile in worn.ToList())
             {
                 if (!_random.Prob(TrailWidening))
                     continue;
                 var side = tile + (_random.Prob(0.5f) ? new Vector2i(1, 0) : new Vector2i(0, 1));
-                if (!targets.Contains(side) && Passable(side) && Vector2.DistanceSquared(side, centre) < radius * radius)
+                if (!targets.Contains(side) && !site.Tiles.Contains(side) && Passable(side) && Vector2.DistanceSquared(side, centre) < radius * radius)
                     worn.Add(side);
             }
 
             changed.UnionWith(worn);
             PaintRoad(ground, grid, biome, worn, roads.TrailTile);
             record.TrailTiles.UnionWith(worn);
+            site.TrailLaid = true;
             targets.UnionWith(worn);
         }
     }
