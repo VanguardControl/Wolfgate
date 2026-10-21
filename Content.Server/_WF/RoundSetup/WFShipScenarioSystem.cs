@@ -23,6 +23,7 @@ using Content.Shared.GameTicking;
 using Content.Shared.Maps;
 using Content.Shared.Physics;
 using Content.Shared.Preferences;
+using Content.Shared.Salvage.Expeditions;
 using Content.Shared.Station;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Map;
@@ -179,9 +180,22 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
             StationComponentOverrides = new ComponentRegistry(),
         }, new[] { hull }, vessel.Name);
         EnsureComp<WFShipScenarioStationComponent>(station).LobbyId = lobbyId;
+        AddVesselExpeditions(station, vessel);
         EnsureComp<WFShipScenarioComponent>(hull).LobbyId = lobbyId;
         _scenarios.Add(lobbyId, new Scenario(hull, station, vessel.ID, location) { Faction = faction, PurchaseJob = job });
         return true;
+    }
+
+    /// <summary>Gives a private scenario station the expedition offers the vessel's own station would have.</summary>
+    public void AddVesselExpeditions(EntityUid station, VesselPrototype vessel)
+    {
+        if (_prototypes.TryIndex<GameMapPrototype>(vessel.ID, out var gameMap) &&
+            gameMap.Stations.TryGetValue(vessel.ID, out var config) &&
+            _prototypes.TryIndex(config.StationPrototype, out var stationProto) &&
+            stationProto.Components.ContainsKey(Factory.GetComponentName<SalvageExpeditionDataComponent>()))
+        {
+            EnsureComp<SalvageExpeditionDataComponent>(station);
+        }
     }
 
     /// <summary>Gives the successfully spawned buyer a deed and registers normal ship ownership.</summary>
