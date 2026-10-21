@@ -23,6 +23,11 @@ A crew is a `wfVehicleCrew` prototype (vehicle, seat roles, profile, faction, be
 from the spawn menu's vehicle group, which spawns its crew when the map loads. Encounters and planet sites call
 `WFVehicleCrewSystem.TrySpawn`.
 
+The admin tab's **NPC vehicle crews** button opens a panel (`WFVehicleCrewPanel`, served by `WFVehicleCrewSystem.Panel`):
+pick a crew from the roster, its orders, how many and how far away, and spawn them beside you; the live crews list
+shows each one's orders, crew alive and hull, and lets you give new orders (Escort follows you), make where you stand
+its home, go to it, delete it or clear them all. Each crew prototype's `name` is what the panel calls it.
+
 Design notes are in `Docs/_WF/NpcVehicleCrew/design.md`.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -38,15 +43,23 @@ Design notes are in `Docs/_WF/NpcVehicleCrew/design.md`.
 - [`Content.Server/_WF/NpcVehicleCrew/WFVehicleCrewSystem.cs`](WFVehicleCrewSystem.cs)
 - [`Content.Server/_WF/NpcVehicleCrew/WFVehicleCrewSystem.Drive.cs`](WFVehicleCrewSystem.Drive.cs)
 - [`Content.Server/_WF/NpcVehicleCrew/WFVehicleCrewSystem.Gunnery.cs`](WFVehicleCrewSystem.Gunnery.cs)
+- [`Content.Server/_WF/NpcVehicleCrew/WFVehicleCrewSystem.Panel.cs`](WFVehicleCrewSystem.Panel.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/NpcVehicleCrew/WFVehicleAutopilotComponent.cs`](../../../Content.Shared/_WF/NpcVehicleCrew/WFVehicleAutopilotComponent.cs)
 - [`Content.Shared/_WF/NpcVehicleCrew/WFVehicleBehaviour.cs`](../../../Content.Shared/_WF/NpcVehicleCrew/WFVehicleBehaviour.cs)
+- [`Content.Shared/_WF/NpcVehicleCrew/WFVehicleCrewPanelMessages.cs`](../../../Content.Shared/_WF/NpcVehicleCrew/WFVehicleCrewPanelMessages.cs)
 - [`Content.Shared/_WF/NpcVehicleCrew/WFVehicleCrewPrototype.cs`](../../../Content.Shared/_WF/NpcVehicleCrew/WFVehicleCrewPrototype.cs)
+
+### Client
+
+- [`Content.Client/_WF/NpcVehicleCrew/WFVehicleCrewPanel.cs`](../../../Content.Client/_WF/NpcVehicleCrew/WFVehicleCrewPanel.cs)
+- [`Content.Client/_WF/NpcVehicleCrew/WFVehicleCrewPanelSystem.cs`](../../../Content.Client/_WF/NpcVehicleCrew/WFVehicleCrewPanelSystem.cs)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/NpcVehicleCrew/WFVehicleCrewPanelTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcVehicleCrew/WFVehicleCrewPanelTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcVehicleCrew/WFVehicleCrewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcVehicleCrew/WFVehicleCrewTest.cs)
 
 ### Prototypes

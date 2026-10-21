@@ -76,6 +76,7 @@ public sealed partial class WFVehicleCrewSystem : EntitySystem
         SubscribeLocalEvent<WFVehicleCrewMemberComponent, DamageChangedEvent>(OnMemberDamaged);
         SubscribeLocalEvent<WFVehicleCrewMemberComponent, MobStateChangedEvent>(OnMemberMobState);
         SubscribeLocalEvent<WFVehicleCrewSpawnerComponent, MapInitEvent>(OnSpawnerMapInit);
+        InitializePanel();
     }
 
     public override void Update(float frameTime)

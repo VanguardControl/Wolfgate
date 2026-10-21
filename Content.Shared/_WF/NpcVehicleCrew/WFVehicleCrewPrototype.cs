@@ -11,6 +11,10 @@ public sealed partial class WFVehicleCrewPrototype : IPrototype
     [IdDataField]
     public string ID { get; private set; } = default!;
 
+    /// <summary>What the admin panel calls this crew; left out, its id.</summary>
+    [DataField]
+    public LocId? Name;
+
     /// <summary>The vehicle spawned, an armed variant for a fighting crew.</summary>
     [DataField(required: true)]
     public EntProtoId Vehicle;

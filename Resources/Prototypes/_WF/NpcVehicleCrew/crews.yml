@@ -4,6 +4,7 @@
 
 - type: wfVehicleCrew
   id: WFVehicleCrewPirateHumvee
+  name: wf-vehicle-crew-name-pirate-humvee
   vehicle: VehicleHumvee
   driver: WFVehicleDriver
   gunner: WFVehicleGunner
@@ -19,6 +20,7 @@
 
 - type: wfVehicleCrew
   id: WFVehicleCrewPirateTank
+  name: wf-vehicle-crew-name-pirate-tank
   vehicle: WFVehicleTankArmed
   driver: WFVehicleDriver
   gunner: WFVehicleGunner
@@ -33,6 +35,7 @@
 
 - type: wfVehicleCrew
   id: WFVehicleCrewPirateApc
+  name: wf-vehicle-crew-name-pirate-apc
   vehicle: WFVehicleAPCArmed
   driver: WFVehicleDriver
   gunner: WFVehicleGunner
@@ -49,6 +52,7 @@
 # MercenariesExpeditionNF is hostile to everyone, so mercenaries use the neutral crew faction.
 - type: wfVehicleCrew
   id: WFVehicleCrewMercenaryTank
+  name: wf-vehicle-crew-name-mercenary-tank
   vehicle: WFVehicleTankPMCArmed
   driver: WFVehicleDriver
   gunner: WFVehicleGunner
@@ -64,6 +68,7 @@
 
 - type: wfVehicleCrew
   id: WFVehicleCrewTsfTank
+  name: wf-vehicle-crew-name-tsf-tank
   vehicle: WFVehicleTankTWEArmed
   driver: WFVehicleDriver
   gunner: WFVehicleGunner
@@ -79,6 +84,7 @@
 
 - type: wfVehicleCrew
   id: WFVehicleCrewTsfApc
+  name: wf-vehicle-crew-name-tsf-apc
   vehicle: WFVehicleAPCArmed
   driver: WFVehicleDriver
   gunner: WFVehicleGunner
@@ -94,6 +100,7 @@
 
 - type: wfVehicleCrew
   id: WFVehicleCrewUsspApc
+  name: wf-vehicle-crew-name-ussp-apc
   vehicle: VehicleSPPAPC
   driver: WFVehicleDriver
   gunner: WFVehicleGunner
@@ -109,6 +116,7 @@
 
 - type: wfVehicleCrew
   id: WFVehicleCrewUsspTank
+  name: wf-vehicle-crew-name-ussp-tank
   vehicle: VehicleSPPTank
   driver: WFVehicleDriver
   gunner: WFVehicleGunner
@@ -123,6 +131,7 @@
 
 - type: wfVehicleCrew
   id: WFVehicleCrewCivilianTruck
+  name: wf-vehicle-crew-name-civilian-truck
   vehicle: AU14VehicleCivTruck
   driver: WFVehicleDriver
   profile: WFVehicleCrewProfileCivilian
@@ -133,6 +142,7 @@
 
 - type: wfVehicleCrew
   id: WFVehicleCrewCivilianVan
+  name: wf-vehicle-crew-name-civilian-van
   vehicle: AU14VehicleCivVan
   driver: WFVehicleDriver
   profile: WFVehicleCrewProfileCivilian
