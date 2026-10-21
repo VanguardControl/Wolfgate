@@ -120,6 +120,11 @@ public sealed class WFLowPowerSystem : SharedWFSyntheticsSystem
         if (arms.Count == 0)
             return null;
 
+        // Review: an arm the player isolated on purpose is the last choice, not the first.
+        var free = arms.Where(arm => !_isolation.IsUserIsolated(arm.Id)).ToList();
+        if (free.Count > 0)
+            arms = free;
+
         if (CompOrNull<HandsComponent>(body)?.ActiveHand is { } active)
         {
             var side = active.Location switch

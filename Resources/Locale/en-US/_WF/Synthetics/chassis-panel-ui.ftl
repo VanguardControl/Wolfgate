@@ -74,7 +74,7 @@ wf-chassis-ui-tip-fault = { $fault } - { $advice }
 wf-chassis-ui-tip-band-normal = Running within rating.
 wf-chassis-ui-tip-band-impaired = Worn or damaged and running badly. Repair it before it fails.
 wf-chassis-ui-tip-band-failed = Dead. The chassis loses whatever this component does until it is replaced or repaired.
-wf-chassis-ui-tip-band-charge = Charge left in the power cell. At zero the chassis shuts down.
+wf-chassis-ui-tip-band-charge = Charge left in the power cell. At zero the chassis drops to low power: crawl speed and one arm, until a charged cell is seated.
 wf-chassis-ui-tip-vital = Pulling this stops the chassis (pump) or ends the mind (core).
 
 wf-chassis-ui-tip-isolate = Cuts the limb's servos and sensors. The limb does nothing and its wounds put no pain on the chassis. RESTORE reverses it.

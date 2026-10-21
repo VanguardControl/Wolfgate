@@ -614,6 +614,8 @@ public sealed class WFChassisPanelWindowTest : GameTest
 
                     var tag = WFChassisBayLayout.Tag(screen, WolfmedSyntheticHudLayout.Scale(1f, ui));
                     Assert.That(WolfmedSyntheticHudLayout.Contains(screen, tag), Is.True, $"tag inside {width}x{height}, ui scale {ui}");
+                    foreach (var (name, box) in WolfmedSyntheticHudLayout.Reserved(screen))
+                        Assert.That(WolfmedSyntheticHudLayout.Overlaps(tag, box), Is.False, $"tag overlaps {name} at {width}x{height}, ui scale {ui}");
                 }
             }
         });

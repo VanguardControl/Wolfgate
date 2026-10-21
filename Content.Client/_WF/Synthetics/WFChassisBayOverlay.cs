@@ -22,14 +22,14 @@ public static class WFChassisBayLayout
         screen.Left + screen.Width * 0.30f, screen.Top + screen.Height * StripTop,
         screen.Left + screen.Width * 0.70f, screen.Top + screen.Height * StripBottom);
 
-    /// <summary>The small OVERCLOCK tag in the top-right corner.</summary>
+    /// <summary>The small OVERCLOCK tag at the top, in the gap between the toolbar and the chat (review: the corner is chat's).</summary>
     public static UIBox2 Tag(UIBox2 screen, float scale)
     {
         var width = 14f * WolfmedSyntheticHudLayout.CharWidth(scale) + WolfmedSyntheticHudLayout.Padding * 2f;
         var height = WolfmedSyntheticHudLayout.LineHeight(scale) + WolfmedSyntheticHudLayout.Padding;
-        var right = screen.Right - WolfmedSyntheticHudLayout.Margin;
+        var centre = screen.Left + screen.Width * 0.575f;
         var top = screen.Top + WolfmedSyntheticHudLayout.Margin;
-        return new UIBox2(right - width, top, right, top + height);
+        return new UIBox2(centre - width / 2f, top, centre + width / 2f, top + height);
     }
 }
 
