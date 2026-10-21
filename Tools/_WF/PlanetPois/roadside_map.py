@@ -1,6 +1,6 @@
-"""Turn a hand-made grid map into a roadside site that faces a road on its south edge.
+"""Turn a hand-made grid map into a roadside site that faces a road on its south edge, or an off-road one on a trail.
 
-    python Tools/_WF/PlanetPois/roadside_map.py <saved grid.yml> <name>
+    python Tools/_WF/PlanetPois/roadside_map.py <saved grid.yml> <name> [--trail]
 
 Writes Resources/Maps/_WF/PlanetPois/<name>.yml and prints the table entry for it. On the way it:
 - swaps indestructible walls for their ordinary versions (sites are fully destructible),
@@ -8,6 +8,9 @@ Writes Resources/Maps/_WF/PlanetPois/<name>.yml and prints the table entry for i
 - roofs the enclosed rooms: every tile the open ground can't reach past walls, windows and doors, and their walls,
 - lays a strip of the world's road (5 wide, a sidewalk each side) along the south edge, with an entrance at each end.
 The site is a Through site that turns with the road (`rotate: true`).
+
+With --trail there is no road strip: the site stands off the roads, and a footpath is worn from the outside of its first
+door to the nearest road (an Isolated site with `trail: true`). Its footprint keeps a tile of open ground round it.
 """
 import base64
 import re
@@ -22,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[3]
 ROAD, SHOULDER, WIDTH = "RMCPlanetHybrisaAsphalt", "RMCPlanetHybrisaSidewalk", 5
 KEEP = {"MetaData", "Transform", "MapGrid", "DecalGrid"}
 BLOCKS = re.compile(r"^(Wall|Window|Grille|Airlock|.*Door|.*Window)")
+SIDES = (((0, -1), "South"), ((0, 1), "North"), ((-1, 0), "West"), ((1, 0), "East"))
 
 
 class Loader(yaml.SafeLoader):
@@ -33,6 +37,7 @@ Loader.add_multi_constructor('!', lambda l, s, n: None)
 
 def main():
     source, name = Path(sys.argv[1]), sys.argv[2]
+    trail = "--trail" in sys.argv[3:]
     text = source.read_text(encoding="utf-8").replace("\r\n", "\n")
     data = yaml.load(text, Loader=Loader)
 
@@ -53,7 +58,7 @@ def main():
                             tid = struct.unpack_from("<i", raw, i * 7)[0]
                             if tilemap.get(tid, "Space") != "Space":
                                 tiles[cx * 16 + i % 16, cy * 16 + i // 16] = tid
-    blocked = set()
+    blocked, doors = set(), set()
     for group in data["entities"]:
         if not group["proto"] or not BLOCKS.match(group["proto"]):
             continue
@@ -62,6 +67,8 @@ def main():
                 if comp.get("type") == "Transform" and comp.get("parent") == 1:
                     x, y = map(float, str(comp["pos"]).split(","))
                     blocked.add((int(x // 1), int(y // 1)))
+                    if "Door" in group["proto"] or "Airlock" in group["proto"]:
+                        doors.add((int(x // 1), int(y // 1)))
 
     xs, ys = [p[0] for p in tiles], [p[1] for p in tiles]
     left, right, bottom, top = min(xs), max(xs), min(ys), max(ys)
@@ -77,6 +84,26 @@ def main():
     roofed = {p for p in tiles if p not in outside}
     roofed |= {p for p in blocked if any((p[0] + dx, p[1] + dy) in roofed for dx in (-1, 0, 1) for dy in (-1, 0, 1))}
 
+    if trail:
+        # The trail starts on the open ground beside the first outside door.
+        start = next(((door[0] + dx, door[1] + dy), facing) for door in sorted(doors, key=lambda p: (p[1], p[0]))
+                     for (dx, dy), facing in SIDES if (door[0] + dx, door[1] + dy) in outside)
+        write(text, tilemap, tiles, chunks, roofed, name, None)
+        print(f"""Wrote Resources/Maps/_WF/PlanetPois/{name}.yml: {right - left + 1} x {top - bottom + 1}, {len(roofed)} roofed tiles.
+  - mapPath: /Maps/_WF/PlanetPois/{name}.yml
+    name: wf-poi-{name.replace('_', '-')}
+    expeditions: false
+    footprint: {left - 1},{bottom - 1},{right + 2},{top + 2}
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: {start[0][0]},{start[0][1]}
+      direction: {start[1]}
+    rotate: true""")
+        return
+
     # The road along the south edge.
     road_id, shoulder_id = max(tilemap) + 1, max(tilemap) + 2
     depth = WIDTH + 2
@@ -84,10 +111,32 @@ def main():
         for i in range(depth):
             y = bottom - 1 - i
             tiles[x, y] = shoulder_id if i in (0, depth - 1) else road_id
+    write(text, tilemap, tiles, chunks, roofed, name, (road_id, shoulder_id))
+
+    lane = bottom - 1 - depth // 2
+    print(f"""Wrote Resources/Maps/_WF/PlanetPois/{name}.yml: {right - left + 1} x {top - bottom + 1 + depth}, {len(roofed)} roofed tiles.
+  - mapPath: /Maps/_WF/PlanetPois/{name}.yml
+    name: wf-poi-{name.replace('_', '-')}
+    expeditions: false
+    footprint: {left},{bottom - depth},{right + 1},{top + 1}
+    minCount: 1
+    maxCount: 1
+    connection: Through
+    sockets:
+    - offset: {left},{lane}
+      direction: West
+    - offset: {right},{lane}
+      direction: East
+    rotate: true""")
+
+
+def write(text, tilemap, tiles, chunks, roofed, name, road):
+    """Writes the site: its tiles, a roof over the rooms and its decals, without what a shuttle carries."""
     for (x, y), tid in tiles.items():
         key = f"{x // 16},{y // 16}"
+        new = key not in chunks
         chunk = chunks.setdefault(key, bytearray(struct.pack("<iBBB", 0, 0, 0, 0) * 256))
-        if key not in data["entities"][0]["entities"][0]["components"][2]["chunks"] and tilemap.get(0) != "Space":
+        if new and tilemap.get(0) != "Space":
             # A new chunk's empty tiles have to name Space.
             space = next(k for k, v in tilemap.items() if v == "Space")
             for i in range(256):
@@ -112,25 +161,10 @@ def main():
     roof = "    - type: Roof\n      data:\n" + "".join(f"        {k}: {v}\n" for k, v in sorted(masks.items()))
     text = text[:grid_start] + header + body + roof + (decals.group(0) if decals else "") + text[grid_end:]
 
-    text = re.sub(r"tilemap:\n((?:  .*\n)*)", lambda m: "tilemap:\n" + m.group(1) + f"  {road_id}: {ROAD}\n  {shoulder_id}: {SHOULDER}\n", text, count=1)
+    if road:
+        text = re.sub(r"tilemap:\n((?:  .*\n)*)", lambda m: "tilemap:\n" + m.group(1) + f"  {road[0]}: {ROAD}\n  {road[1]}: {SHOULDER}\n", text, count=1)
     out = ROOT / "Resources/Maps/_WF/PlanetPois" / f"{name}.yml"
     out.write_text(text, encoding="utf-8", newline="\n")
-
-    lane = bottom - 1 - depth // 2
-    print(f"""Wrote {out.relative_to(ROOT)}: {right - left + 1} x {top - bottom + 1 + depth}, {len(roofed)} roofed tiles.
-  - mapPath: /Maps/_WF/PlanetPois/{name}.yml
-    name: wf-poi-{name.replace('_', '-')}
-    expeditions: false
-    footprint: {left},{bottom - depth},{right + 1},{top + 1}
-    minCount: 1
-    maxCount: 1
-    connection: Through
-    sockets:
-    - offset: {left},{lane}
-      direction: West
-    - offset: {right},{lane}
-      direction: East
-    rotate: true""")
 
 
 if __name__ == "__main__":

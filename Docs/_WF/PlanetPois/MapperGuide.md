@@ -136,6 +136,20 @@ specific village street or service driveway. Register new map paths only once th
 Maps inside `_WF/PlanetPois` are discovered by the module generator; regenerate module
 documentation after adding them. Only maps outside `_WF` need an `unmarked` entry. New themes usually need only a map, one localized name and one table entry.
 
+## Hand-made buildings: roadside or off the track
+
+Map the building as a plain grid (the mapping server, then "save grid"), with the open ground round it left empty.
+
+- **Roadside** (a gas station, a house on the street): put the side that faces the road on the south edge and run
+  `python Tools/_WF/PlanetPois/roadside_map.py <saved grid.yml> <name>`. It lays the road strip along that edge.
+- **Off the track** (a hut, a shack, a lone house): give it at least one outside door and run the same tool with
+  `--trail`. The site stands off the roads, and a footpath is worn from its first outside door (lowest first) to the
+  nearest road.
+
+Either way the tool writes `Resources/Maps/_WF/PlanetPois/<name>.yml`, roofs the rooms, swaps indestructible walls for
+ordinary ones and prints the table entry; paste it into the world's table in `tables.yml`, raise the table's
+`maxCount`, and add `wf-poi-<name>` to `pois.ftl`. Both kinds turn to face whatever way suits the spot (`rotate: true`).
+
 ## Road dressing
 
 A table's `roads` block may name a `dressing` (`wfRoadDressing`, in `road_dressing.yml`). It is applied to the

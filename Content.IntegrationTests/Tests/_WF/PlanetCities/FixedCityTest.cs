@@ -83,6 +83,31 @@ public sealed class FixedCityTest
             Assert.That(house, Is.Not.Null, "The house was not placed.");
             Assert.That(house!.Connection, Is.EqualTo(WFPlanetPoiConnection.Through), "The house is off the roads.");
 
+            // The run-down houses stand off the roads, each on a footpath that runs from its door to one.
+            var cornerHouses = record.Sites.Where(placed => placed.MapPath == "/Maps/_WF/PlanetPois/verda_corner_house.yml").ToList();
+            Assert.That(cornerHouses, Is.Not.Empty, "No run-down house was placed.");
+            foreach (var cornerHouse in cornerHouses)
+            {
+                Assert.That(cornerHouse.Connection, Is.EqualTo(WFPlanetPoiConnection.Isolated));
+                Assert.That(cornerHouse.TrailStart, Is.Not.Null);
+                var start = cornerHouse.TrailStart!.Position;
+                Assert.That(record.TrailTiles.Contains(start), Is.True, "The footpath doesn't start at the door.");
+                var reached = new HashSet<Vector2i> { start };
+                var frontier = new Queue<Vector2i>(reached);
+                var meetsRoad = false;
+                while (frontier.TryDequeue(out var tile) && !meetsRoad)
+                {
+                    foreach (var next in new[] { tile + new Vector2i(1, 0), tile - new Vector2i(1, 0), tile + new Vector2i(0, 1), tile - new Vector2i(0, 1) })
+                    {
+                        if (record.RoadTiles.Contains(next) || record.ShoulderTiles.Contains(next))
+                            meetsRoad = true;
+                        else if (record.TrailTiles.Contains(next) && reached.Add(next))
+                            frontier.Enqueue(next);
+                    }
+                }
+                Assert.That(meetsRoad, Is.True, $"The footpath from the house at {start} never reaches a road.");
+            }
+
             var site = record.Sites.SingleOrDefault(site => site.Name == "wf-city-crocus");
             Assert.That(site, Is.Not.Null, "Crocus was not placed.");
             Assert.That(site!.Expeditions, Is.False, "A lived-in city is never an expedition site.");

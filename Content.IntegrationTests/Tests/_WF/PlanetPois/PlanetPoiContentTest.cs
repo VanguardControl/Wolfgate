@@ -97,6 +97,14 @@ public sealed class PlanetPoiContentTest
                     {
                         var direction = WFPlanetRoadPlanner.Direction(socket.Direction);
                         Assert.That(Contains(bounds, socket.Offset) && !Contains(bounds, socket.Offset + direction), Is.True, entry.MapPath);
+                        if (entry.Trail)
+                        {
+                            // A footpath starts on open ground with a door behind it.
+                            Assert.That(maps.GetAnchoredEntities(grid, socket.Offset), Is.Empty, $"{entry.MapPath} blocks its footpath.");
+                            Assert.That(maps.GetAnchoredEntities(grid, socket.Offset - direction).Any(entities.HasComponent<DoorComponent>), Is.True,
+                                $"{entry.MapPath}'s footpath doesn't start at a door.");
+                            continue;
+                        }
                         for (var side = -clearance; side <= clearance; side++)
                         {
                             var mouth = socket.Offset + new Vector2i(-direction.Y, direction.X) * side;

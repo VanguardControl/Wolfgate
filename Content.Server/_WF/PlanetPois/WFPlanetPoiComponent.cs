@@ -38,6 +38,10 @@ public sealed partial class WFPlanetPoiComponent : Component
     [ViewVariables]
     public HashSet<Vector2i> ShoulderTiles = new();
 
+    /// <summary>The footpaths to off-road sites.</summary>
+    [ViewVariables]
+    public HashSet<Vector2i> TrailTiles = new();
+
     /// <summary>The tiles down the middle of the roads, and everything the roads were furnished with.</summary>
     [ViewVariables]
     public HashSet<Vector2i> Centreline = new();
@@ -61,6 +65,12 @@ public sealed class WFPlanetPoiSite
     /// <summary>The generated tile count and reserved bounds with exclusive upper edges.</summary>
     public int TileCount;
     public Box2i Bounds;
+
+    /// <summary>Where a footpath to the roads starts, for an off-road site that has one.</summary>
+    public WFPlanetRoadSocket? TrailStart;
+
+    /// <summary>The site's own tiles, which a footpath crosses without repainting.</summary>
+    public HashSet<Vector2i> Tiles = new();
     public EntityUid Signal;
 
     /// <summary>Whether an expedition console may offer the site, and at what rating.</summary>

@@ -134,6 +134,11 @@ public sealed partial class WFPlanetPoiSystem
                     TileCount = siteTiles.Count, Connection = entry.Connection,
                     Expeditions = entry.Expeditions, Difficulty = entry.Difficulty ?? table.Difficulty,
                 };
+                if (entry.Trail && entry.Sockets.Count > 0)
+                {
+                    site.TrailStart = new WFPlanetRoadSocket(origin + entry.Sockets[0].Offset, entry.Sockets[0].Direction);
+                    site.Tiles = siteTiles;
+                }
                 if (table.Roads != null && entry.Connection != WFPlanetPoiConnection.Isolated)
                 {
                     // A site whose entrances can't be reached on this ground stays, off the roads.
@@ -195,6 +200,7 @@ public sealed partial class WFPlanetPoiSystem
                     record.ShoulderTiles.UnionWith(plan.ShoulderTiles);
                     record.Centreline.UnionWith(plan.Centreline);
                     DressRoads(ground, grid, record, roads, plan, created, createdDecals);
+                    LayTrails(ground, grid, biome, record, roads, centre, radius - 1, changed);
                 }
             }
             // Wrecks last: they keep off the sites and roads, which are pinned by now.
@@ -222,6 +228,7 @@ public sealed partial class WFPlanetPoiSystem
             record.Sites.Clear();
             record.RoadTiles.Clear();
             record.ShoulderTiles.Clear();
+            record.TrailTiles.Clear();
             record.Centreline.Clear();
             record.Furniture.Clear();
             record.GenerationError = $"POI table {table.ID}: {error.Message}";
@@ -387,6 +394,7 @@ public sealed partial class WFPlanetPoiSystem
                 throw new InvalidOperationException("Invalid road width or shoulder width.");
             _ = _tiles[roads.Tile];
             if (roads.ShoulderTile != null) _ = _tiles[roads.ShoulderTile];
+            _ = _tiles[roads.TrailTile];
         }
     }
 

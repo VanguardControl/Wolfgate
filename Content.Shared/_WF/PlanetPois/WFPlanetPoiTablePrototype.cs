@@ -123,6 +123,10 @@ public sealed partial class WFPlanetPoiEntry
     /// <summary>An authored map that takes a random quarter turn each round, entrances and all.</summary>
     [DataField]
     public bool Rotate;
+
+    /// <summary>An off-road site that a footpath links to the nearest road, from just outside its first socket.</summary>
+    [DataField]
+    public bool Trail;
 }
 
 /// <summary>Whether a site has one entrance, multiple entrances, or no roads.</summary>
@@ -167,4 +171,12 @@ public sealed partial class WFPlanetRoadNetwork
     /// <summary>Kerbs, lane lines, street lights and scattered traffic laid over the painted roads; none leaves them bare.</summary>
     [DataField]
     public ProtoId<WFRoadDressingPrototype>? Dressing;
+
+    /// <summary>Footpath surface tile prototype, worn from off-road sites to the roads.</summary>
+    [DataField]
+    public string TrailTile = "FloorDirt";
+
+    /// <summary>The longest footpath, in tiles; a site further from the roads goes without.</summary>
+    [DataField]
+    public int TrailLength = 160;
 }

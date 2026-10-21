@@ -15,4 +15,5 @@ wf-poi-aerumna-mine = Chromite mine
 wf-poi-carcinoma-ruin = Flesh-choked ruin
 wf-poi-verda-gas-station = Roadside gas station
 wf-poi-verda-house-1 = Roadside house
+wf-poi-verda-corner-house = Run-down house
 wf-poi-wreck = Crashed ship

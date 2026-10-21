@@ -15,8 +15,8 @@
     shoulderTile: RMCPlanetHybrisaSidewalk
     shoulderWidth: 1
     dressing: WFRoadDressingAsclepiu
-  minCount: 8
-  maxCount: 9
+  minCount: 9
+  maxCount: 12
   entries:
   - mapPath: /Maps/_WF/PlanetPois/asclepiu_garden_village.yml
     name: wf-poi-asclepiu-garden-village
@@ -73,6 +73,18 @@
       direction: West
     - offset: 10,-4
       direction: East
+    rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/verda_corner_house.yml
+    name: wf-poi-verda-corner-house
+    expeditions: false
+    footprint: -3,-8,6,2
+    minCount: 1
+    maxCount: 3
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -1,-8
+      direction: South
     rotate: true
   - mapPath: /Maps/_WF/PlanetPois/verda_gas_station.yml
     name: wf-poi-verda-gas-station

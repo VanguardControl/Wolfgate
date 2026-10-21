@@ -78,6 +78,7 @@ public sealed partial class WFPlanetPoiSystem
             Expeditions = entry.Expeditions,
             Difficulty = entry.Difficulty,
             Rotate = entry.Rotate,
+            Trail = entry.Trail,
         };
     }
 }
