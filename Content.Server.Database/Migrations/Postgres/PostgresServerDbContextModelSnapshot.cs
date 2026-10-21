@@ -1062,6 +1062,11 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("jsonb")
                         .HasColumnName("markings");
 
+                    b.Property<string>("MessageSound")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("message_sound");
+
                     b.Property<bool>("MismatchedParts")
                         .HasColumnType("boolean")
                         .HasColumnName("mismatched_parts");

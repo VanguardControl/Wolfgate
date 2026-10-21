@@ -338,6 +338,7 @@ namespace Content.Server.Database
                 BloodColor = WFBloodColourRules.FromStored(profile.BloodColor), // WOLFGATE(BloodColour)
                 ChatFont = WFChatFontRules.FromStored(profile.ChatFont), // WOLFGATE(ChatFont)
                 TypingIndicator = WFTypingBubbleRules.FromStored(profile.TypingIndicator), // WOLFGATE(TypingBubble)
+                MessageSound = MessageSoundRules.FromStored(profile.MessageSound), // WOLFGATE(EmoteVoices)
             };
         }
 
@@ -384,6 +385,7 @@ namespace Content.Server.Database
             profile.TypingIndicator = WFTypingBubbleRules.ToStored(humanoid.TypingIndicator); // WOLFGATE(TypingBubble)
             profile.ScreamVoice = EmoteVoiceRules.ToStored(humanoid.ScreamVoice); // WOLFGATE(EmoteVoices)
             profile.LaughVoice = EmoteVoiceRules.ToStored(humanoid.LaughVoice); // WOLFGATE(EmoteVoices)
+            profile.MessageSound = MessageSoundRules.ToStored(humanoid.MessageSound); // WOLFGATE(EmoteVoices)
 
             // WOLFGATE(Genitals) START: anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
             if (!(existingRow && humanoid.Genitals.LoadFailed))

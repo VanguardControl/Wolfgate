@@ -1008,6 +1008,11 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("jsonb")
                         .HasColumnName("markings");
 
+                    b.Property<string>("MessageSound")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("message_sound");
+
                     b.Property<bool>("MismatchedParts")
                         .HasColumnType("INTEGER")
                         .HasColumnName("mismatched_parts");

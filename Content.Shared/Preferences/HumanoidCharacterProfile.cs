@@ -259,6 +259,7 @@ namespace Content.Shared.Preferences
             ChatFont = other.ChatFont; // WOLFGATE(ChatFont)
             TypingIndicator = other.TypingIndicator; // WOLFGATE(TypingBubble)
             BloodColor = other.BloodColor; // WOLFGATE(BloodColour)
+            MessageSound = other.MessageSound; // WOLFGATE(EmoteVoices)
         }
 
         /// <summary>Copy constructor</summary>
@@ -297,6 +298,7 @@ namespace Content.Shared.Preferences
             ChatFont = other.ChatFont; // WOLFGATE(ChatFont)
             TypingIndicator = other.TypingIndicator; // WOLFGATE(TypingBubble)
             BloodColor = other.BloodColor; // WOLFGATE(BloodColour)
+            MessageSound = other.MessageSound; // WOLFGATE(EmoteVoices)
         }
 
         /// <summary>
@@ -643,6 +645,7 @@ namespace Content.Shared.Preferences
             if (TypingIndicator != other.TypingIndicator) return false; // WOLFGATE(TypingBubble)
             if (BloodColor != other.BloodColor) return false; // WOLFGATE(BloodColour)
             if (ScreamVoice != other.ScreamVoice || LaughVoice != other.LaughVoice) return false; // WOLFGATE(EmoteVoices)
+            if (MessageSound != other.MessageSound) return false; // WOLFGATE(EmoteVoices)
             if (!Flags.SequenceEqual(other.Flags)) return false; // Mono
             if (!Components.SequenceEqual(other.Components)) return false; // Mono
             if (!Items.SequenceEqual(other.Items)) return false; // Mono
@@ -849,6 +852,7 @@ namespace Content.Shared.Preferences
             EnsureHeadshotValid(); // WOLFGATE(Headshot)
             EnsureCustomMarkingsValid(configManager); // WOLFGATE(CustomMarkings)
             EnsureValidEmoteVoices(prototypeManager); // WOLFGATE(EmoteVoices)
+            MessageSound = MessageSoundRules.Sanitize(MessageSound, prototypeManager); // WOLFGATE(EmoteVoices): an unknown message sound becomes the species' own
             LegStance = LegStyleRules.Validate(Species, LegStance, prototypeManager); // WOLFGATE(LegStyle): legs the species doesn't have fall back to its own
             Biotype = WFBiotypeRules.Resolve(Biotype, speciesPrototype); // WOLFGATE(Biotype): Default and unknown values become the species' own
             ChatFont = WFChatFontRules.Validate(ChatFont, prototypeManager); // WOLFGATE(ChatFont): an unknown font becomes the default
@@ -1003,6 +1007,7 @@ namespace Content.Shared.Preferences
             hashCode.Add(BloodColor); // WOLFGATE(BloodColour)
             hashCode.Add(ScreamVoice); // WOLFGATE(EmoteVoices)
             hashCode.Add(LaughVoice); // WOLFGATE(EmoteVoices)
+            hashCode.Add(MessageSound); // WOLFGATE(EmoteVoices)
             return hashCode.ToHashCode();
         }
 
