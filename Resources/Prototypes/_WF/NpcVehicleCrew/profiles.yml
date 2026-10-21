@@ -5,6 +5,12 @@
   id: WFVehicleCrewProfilePirate
   firstNames: WFNamesPirateFirst
   lastNames: WFNamesPirateLast
+  # Pirates never fly adamantite, as with NpcCrew's own pirate profile.
+  hullSwaps:
+    WFWallAdamantite: WallPlastitanium
+    WFWallAdamantiteDiagonal: WallPlastitaniumDiagonal
+    WFWallAdamantiteCapital: WallPlastitanium
+    WFWallAdamantiteDiagonalCapital: WallPlastitaniumDiagonal
   components:
   - type: PirateAccent
   - type: WFCrewSuitUp
@@ -23,6 +29,8 @@
   - WFMobCrewBodyMoth
   skills: [ Green, Regular, Regular, Veteran ]
   loadouts:
+    # Every profile must kit a deckhand: NpcCrew's own posts may draw on it.
+    WFCrewDeckhand: [ WFCrewPirateHand ]
     WFVehicleDriver: [ WFCrewPirateOfficer, WFCrewPirateHand ]
     WFVehicleGunner: [ WFCrewPirateOfficer, WFCrewPirateHand ]
     WFVehicleTrooper: [ WFCrewPirateRifle, WFCrewPirateBruiser, WFCrewPirateHand ]
@@ -39,6 +47,8 @@
   - WFMobCrewBodyTajaran
   skills: [ Regular, Veteran, Veteran ]
   loadouts:
+    # Every profile must kit a deckhand: NpcCrew's own posts may draw on it.
+    WFCrewDeckhand: [ WFCrewMercGuard ]
     WFVehicleDriver: [ WFCrewMercOfficer ]
     WFVehicleGunner: [ WFCrewMercOfficer ]
     WFVehicleTrooper: [ WFCrewMercGuard ]
@@ -58,6 +68,8 @@
   - WFMobCrewBodyTajaran
   skills: [ Green, Regular, Regular ]
   loadouts:
+    # Every profile must kit a deckhand: NpcCrew's own posts may draw on it.
+    WFCrewDeckhand: [ WFCrewTsfGuard ]
     WFVehicleDriver: [ WFCrewTsfOfficer ]
     WFVehicleGunner: [ WFCrewTsfOfficer ]
     WFVehicleTrooper: [ WFCrewTsfGuard ]
@@ -77,6 +89,8 @@
   - WFMobCrewBodyTajaran
   skills: [ Green, Regular, Regular ]
   loadouts:
+    # Every profile must kit a deckhand: NpcCrew's own posts may draw on it.
+    WFCrewDeckhand: [ WFCrewPdvGuard ]
     WFVehicleDriver: [ WFCrewPdvOfficer ]
     WFVehicleGunner: [ WFCrewPdvOfficer ]
     WFVehicleTrooper: [ WFCrewPdvGuard ]
@@ -95,6 +109,8 @@
   - WFMobCrewBodyReptilian
   skills: [ Regular, Regular, Veteran ]
   loadouts:
+    # Every profile must kit a deckhand: NpcCrew's own posts may draw on it.
+    WFCrewDeckhand: [ WFCrewUsspGuard ]
     WFVehicleDriver: [ WFCrewUsspOfficer ]
     WFVehicleGunner: [ WFCrewUsspOfficer ]
     WFVehicleTrooper: [ WFCrewUsspGuard ]
@@ -118,6 +134,8 @@
   - WFMobCrewBodyArachnid
   skills: [ Green, Green, Regular ]
   loadouts:
+    # Every profile must kit a deckhand: NpcCrew's own posts may draw on it.
+    WFCrewDeckhand: [ WFCrewHaulerHandOveralls ]
     WFVehicleDriver:
     - WFCrewHaulerHandCargo
     - WFCrewHaulerHandHazard

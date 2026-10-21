@@ -388,7 +388,8 @@ public sealed partial class VehicleWeaponsSystem : EntitySystem
 
     private void OnHardpointSlotsChanged(Entity<VehicleWeaponsComponent> ent, ref HardpointSlotsChangedEvent args)
     {
-        if (_net.IsClient)
+        // A vehicle being deleted empties its slots on the way out; there's nobody left to refresh for.
+        if (_net.IsClient || TerminatingOrDeleted(ent))
             return;
 
         var vehicle = ent.Owner;
