@@ -118,6 +118,9 @@ Autonomous crew projectiles pass through allies; allied damage is also stopped b
 retaliation. Crews holster when no living hostile remains. Forward travel faces the destination, and pilots face
 their console when taking the helm. Spawned crew register ordinary, revocable ID credentials even on map-loaded
 ships that do not yet have ship access management.
+A gunner's guns hold fire while any ship its crew does not count as hostile lies between them and the aim point
+(`WFGunnerDutySystem.LineOfFire.cs`, a ray per gun every half second), so bystanders and friends are not shot through;
+a company whose `wfStanding` has `recklessFire` (the Reavers) fires through anything.
 Crew-operated cannon rounds also protect allies and allied hulls, retaining their firing origin after a gunner dies
 or a player takes over. Explicit Attack orders, incoming fire and hostile docking permit retaliation against
 the targeted ship, including a normally friendly company; escorts in the same formation remain protected. Before a
@@ -315,6 +318,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWorkSystem.Engineer.cs`](Systems/WFCrewWorkSystem.Engineer.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWorkSystem.Repair.cs`](Systems/WFCrewWorkSystem.Repair.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFGunnerDutySystem.cs`](Systems/WFGunnerDutySystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFGunnerDutySystem.LineOfFire.cs`](Systems/WFGunnerDutySystem.LineOfFire.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.cs`](Systems/WFPilotDutySystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.Docking.cs`](Systems/WFPilotDutySystem.Docking.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFPilotDutySystem.Navigation.cs`](Systems/WFPilotDutySystem.Navigation.cs)
@@ -374,6 +378,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.HoldFacing.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.HoldFacing.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.HullSwaps.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.HullSwaps.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.HunterSpeed.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.HunterSpeed.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.LineOfFire.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.LineOfFire.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Navigation.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Navigation.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.NavigationSettings.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.NavigationSettings.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Objectives.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Objectives.cs)
