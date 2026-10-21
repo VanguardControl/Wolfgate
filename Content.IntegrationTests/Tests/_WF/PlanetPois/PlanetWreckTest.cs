@@ -45,6 +45,11 @@ public sealed class PlanetWreckTest
         {
             Assert.That(entities.HasComponent<ZombieComponent>(zombie), Is.True, "The crewmember never rose.");
             Assert.That(entities.HasComponent<Content.Server.NPC.HTN.HTNComponent>(zombie), Is.True, "A risen crewmember needs a mind of its own.");
+            var factions = entities.GetComponent<Content.Shared.NPC.Components.NpcFactionMemberComponent>(zombie).Factions;
+            Assert.That(factions, Does.Contain(new Robust.Shared.Prototypes.ProtoId<Content.Shared.NPC.Prototypes.NpcFactionPrototype>("SimpleHostile")),
+                "A risen crewmember should side with the wildlife.");
+            Assert.That(factions, Does.Not.Contain(new Robust.Shared.Prototypes.ProtoId<Content.Shared.NPC.Prototypes.NpcFactionPrototype>("Zombie")),
+                "A risen crewmember would brawl with the wildlife as a plain zombie.");
             Assert.That(server.System<Content.Shared.Inventory.InventorySystem>().TryGetSlotEntity(zombie, "outerClothing", out _), Is.True,
                 "The crewmember should still wear its winter gear.");
             entities.DeleteEntity(zombie);

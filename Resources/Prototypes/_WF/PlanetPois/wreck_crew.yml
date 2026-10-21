@@ -54,6 +54,8 @@
   parent: WFWreckZombieBase
   id: WFWreckZombieCarcinoma
   components:
+  - type: WFZombifyOnSpawn
+    factions: [ SimpleHostile, AberrantFleshExpeditionNF, Chimera ]
   - type: Loadout
     prototypes: [ WFWreckCrewGearCarcinoma ]
 

@@ -34,6 +34,7 @@ public sealed class WFVehicleCabinAudioSystem : EntitySystem
 
     private readonly Dictionary<EntityUid, EntityUid> _mirrors = new();
     private readonly List<EntityUid> _gone = new();
+    private readonly List<(EntityUid, AudioComponent, TransformComponent)> _heard = new();
 
     public override void Shutdown()
     {
@@ -55,12 +56,18 @@ public sealed class WFVehicleCabinAudioSystem : EntitySystem
         }
 
         var hull = _transform.GetWorldPosition(vehicleXform);
+        // Gathered first: starting a copy adds an audio entity, which the query can't take mid-walk.
+        _heard.Clear();
         var sources = EntityQueryEnumerator<AudioComponent, TransformComponent>();
         while (sources.MoveNext(out var uid, out var audio, out var xform))
         {
-            if (audio.Global || xform.MapID != vehicleXform.MapID || audio.State != AudioState.Playing
-                || string.IsNullOrEmpty(audio.FileName))
-                continue;
+            if (!audio.Global && xform.MapID == vehicleXform.MapID && audio.State == AudioState.Playing
+                && !string.IsNullOrEmpty(audio.FileName))
+                _heard.Add((uid, audio, xform));
+        }
+
+        foreach (var (uid, audio, xform) in _heard)
+        {
 
             var range = MathF.Min(Reach, audio.Params.MaxDistance);
             var distance = Vector2.Distance(_transform.GetWorldPosition(xform), hull);
