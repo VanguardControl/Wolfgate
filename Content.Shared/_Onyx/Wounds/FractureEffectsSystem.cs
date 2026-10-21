@@ -1,4 +1,5 @@
 using Content.Shared.Body;
+using Content.Shared.Body.Components; // WOLFGATE(Wolfmed): missing-foot slowdown
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
 using Content.Shared.Hands.Components;
@@ -19,6 +20,7 @@ public sealed partial class FractureEffectSystem : EntitySystem
     }
 
     [Dependency] private SharedBodySystem _body = default!;
+    [Dependency] private Robust.Shared.Prototypes.IPrototypeManager _prototypes = default!; // WOLFGATE(Wolfmed): missing-foot slowdown
     [Dependency] private Robust.Shared.Containers.SharedContainerSystem _containers = default!; // WOLFGATE(Wolfmed): missing-foot slowdown
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private MovementSpeedModifierSystem _movement = default!;
@@ -116,10 +118,12 @@ public sealed partial class FractureEffectSystem : EntitySystem
             args.ModifySpeed(1f - (1f - modifier) * partScale * treatmentScale);
 
             // WOLFGATE(Wolfmed) START: a missing foot slows like a disabled one. The loop above only sees parts that are
-            // on the body, so a foot that came off cost nothing while a loose one put back cost its wound.
+            // on the body, so a foot that came off cost nothing while a loose one put back cost its wound. Feet only (a
+            // missing leg is already charged by the body's leg count), and only feet the body's prototype fills: a
+            // leg's socket that was always empty is not a loss.
             foreach (var (slotId, slot) in bodyPart.Children)
             {
-                if (!body.Comp.MobilityParts.Contains(slot.Type) ||
+                if (slot.Type != BodyPartType.Foot || !PrototypeFills(body, slotId) ||
                     !_containers.TryGetContainer(part, SharedBodySystem.GetPartSlotContainerId(slotId), out var socket) ||
                     socket.ContainedEntities.Count > 0)
                     continue;
@@ -129,6 +133,12 @@ public sealed partial class FractureEffectSystem : EntitySystem
             // WOLFGATE END
         }
     }
+
+    // WOLFGATE(Wolfmed) START: whether the body's own prototype puts a part in this slot.
+    private bool PrototypeFills(EntityUid body, string slotId) =>
+        TryComp(body, out BodyComponent? bodyComp) && bodyComp.Prototype is { } id &&
+        _prototypes.TryIndex(id, out var prototype) && prototype.Slots.ContainsKey(slotId);
+    // WOLFGATE END
 
     private void OnGetMultiplier(Entity<WoundHostComponent> body, ref GetManipulationDurationMultiplierEvent args)
     {
