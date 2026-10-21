@@ -1,6 +1,7 @@
 #nullable enable
 using System.IO;
 using System.Linq;
+using Content.IntegrationTests.Pair;
 using Content.Client.Audio.Midi;
 using Robust.Shared.ContentPack;
 using Robust.Shared.Utility;
@@ -40,9 +41,7 @@ public sealed class MidiFileCollectionManagerTest
         {
             await pair.Client.WaitAssertion(() => midis.RemoveAllMidiFiles());
 
-            // Awaited here, not blocked on inside WaitAssertion: the add's continuations post to the client loop,
-            // so blocking the client thread on them deadlocks.
-            Assert.That(await midis.AddMidiFile(TestFile, new MemoryStream(TestBytes)), Is.True);
+            Assert.That(await Add(pair, () => midis.AddMidiFile(TestFile, new MemoryStream(TestBytes))), Is.True);
             await pair.Client.WaitAssertion(() =>
             {
                 Assert.That(midis.GetMidiFiles(), Contains.Item(TestFile));
@@ -79,8 +78,8 @@ public sealed class MidiFileCollectionManagerTest
             });
 
             // Clear all.
-            await midis.AddMidiFile(new ResPath("1_unit_test.midi"), TestBytes);
-            await midis.AddMidiFile(new ResPath("2_unit_test.midi"), TestBytes);
+            await Add(pair, () => midis.AddMidiFile(new ResPath("1_unit_test.midi"), TestBytes));
+            await Add(pair, () => midis.AddMidiFile(new ResPath("2_unit_test.midi"), TestBytes));
             await pair.Client.WaitAssertion(() =>
             {
                 Assert.That(midis.GetMidiFiles().Count(), Is.EqualTo(3));
@@ -99,5 +98,20 @@ public sealed class MidiFileCollectionManagerTest
         }
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// Starts an add on the client thread, which user data needs, then ticks the client until it finishes: its
+    /// continuations post to the client loop, so blocking that thread on them deadlocks.
+    /// </summary>
+    private static async Task<bool> Add(TestPair pair, Func<Task<bool>> add)
+    {
+        Task<bool>? task = null;
+        await pair.Client.WaitPost(() => task = add());
+        for (var i = 0; i < 600 && !task!.IsCompleted; i++)
+            await pair.Client.WaitRunTicks(1);
+
+        Assert.That(task!.IsCompleted, Is.True, "The MIDI add never finished.");
+        return await task;
     }
 }
