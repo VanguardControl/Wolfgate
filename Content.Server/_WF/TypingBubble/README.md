@@ -30,6 +30,10 @@ changes the bubble still wins. The picked bubble keeps its own offset.
 
 - [`Content.Client/_WF/TypingBubble/HumanoidProfileEditor.TypingBubble.cs`](../../../Content.Client/_WF/TypingBubble/HumanoidProfileEditor.TypingBubble.cs)
 
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/_WF/TypingBubble/TypingBubbleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/TypingBubble/TypingBubbleTest.cs)
+
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/TypingBubble/typing-bubble.ftl`](../../../Resources/Locale/en-US/_WF/TypingBubble/typing-bubble.ftl)
