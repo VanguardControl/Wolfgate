@@ -921,6 +921,11 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("TEXT")
                         .HasColumnName("char_name");
 
+                    b.Property<string>("ChatFont")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("chat_font");
+
                     b.Property<string>("Company")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -1042,6 +1047,10 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("species");
+
+                    b.Property<string>("TypingIndicator")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("typing_indicator");
 
                     b.Property<float>("Width")
                         .HasColumnType("REAL")

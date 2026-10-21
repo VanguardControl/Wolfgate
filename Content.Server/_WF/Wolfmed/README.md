@@ -6,7 +6,8 @@ and shock, bleeding and blood volume, organ damage, fractures, burns, infection,
 reattachment, temperature, toxins and radiation, and death as a brain that stops rather than a damage total. A
 wound host (`WoundHostComponent`: every organic species and the IPC chassis) takes damage as wounds on its parts,
 and the mob-state thresholds, the health alert, the damage overlay, health bars, examine and the health analyzer
-all read those wounds instead of the flat damage total.
+all read those wounds instead of the flat damage total. NPCs re-roll the part they aim at every second from their
+`TargetingComponent` odds (`WolfmedNpcAimSystem`); without it every mob only ever hit the torso.
 
 What players use: the health analyzer's wound readout, vitals card and treatment advice; the field medicine in
 the Wolfgate vendor (splints, antiseptic, skin grafts, analgesic, stimulant and opiate pens, hydraulic fluid for a
@@ -49,6 +50,7 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Ui.cs`](Autodoc/AutodocSystem.Ui.cs)
 - [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Undress.cs`](Autodoc/AutodocSystem.Undress.cs)
 - [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Voice.cs`](Autodoc/AutodocSystem.Voice.cs)
+- [`Content.Server/_WF/Wolfmed/Body/WolfmedOpticsSystem.cs`](Body/WolfmedOpticsSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Body/WolfmedOrganConsequenceSystem.cs`](Body/WolfmedOrganConsequenceSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Body/WolfmedOrganThresholdSystem.cs`](Body/WolfmedOrganThresholdSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Body/WolfmedPartCeilingSystem.cs`](Body/WolfmedPartCeilingSystem.cs)
@@ -122,6 +124,7 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WF/Wolfmed/Surgery/SurgerySystem.Autodoc.cs`](Surgery/SurgerySystem.Autodoc.cs)
 - [`Content.Server/_WF/Wolfmed/Surgery/WolfmedChassisRepairSurgerySystem.cs`](Surgery/WolfmedChassisRepairSurgerySystem.cs)
 - [`Content.Server/_WF/Wolfmed/Surgery/WolfmedWoundSurgerySystem.cs`](Surgery/WolfmedWoundSurgerySystem.cs)
+- [`Content.Server/_WF/Wolfmed/Targeting/WolfmedNpcAimSystem.cs`](Targeting/WolfmedNpcAimSystem.cs)
 - [`Content.Server/_WF/Wolfmed/WolfmedBodyPartLifecycleSystem.cs`](WolfmedBodyPartLifecycleSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Wounds/WolfmedCauteryAnnounceComponent.cs`](Wounds/WolfmedCauteryAnnounceComponent.cs)
 - [`Content.Server/_WF/Wolfmed/Wounds/WolfmedCauterySystem.cs`](Wounds/WolfmedCauterySystem.cs)
@@ -419,7 +422,9 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMannitolTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMannitolTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMedicalPatchTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMedicalPatchTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMissingFootTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMissingFootTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNecrosisSurgeryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNecrosisSurgeryTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNpcAimTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNpcAimTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOverheatTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOverheatTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPainTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPainTest.cs)
@@ -447,6 +452,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSurgeryClosingStepTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSurgeryClosingStepTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSutureTiersTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSutureTiersTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSyntheticHudTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSynthRepairTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSynthRepairTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTestMapTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTestMapTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedThresholdFallbackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedThresholdFallbackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentAdviceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedTreatmentAdviceTest.cs)
@@ -1021,6 +1027,9 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_EinsteinEngines/Medical/CPR/CPRSystem.cs`](../../_EinsteinEngines/Medical/CPR/CPRSystem.cs)
   - BRAIN
   - BRAIN: on a wound host, CPR marks the chest as being worked on for the do-after's
+- [`Content.Server/_EinsteinEngines/Silicon/BlindHealing/BlindHealingSystem.cs`](../../_EinsteinEngines/Silicon/BlindHealing/BlindHealingSystem.cs)
+  - the repaired body, not the glass
+  - check and repair the target's optics, not the user's own
 - [`Content.Server/_EinsteinEngines/Silicon/Charge/Systems/SiliconChargeSystem.cs`](../../_EinsteinEngines/Silicon/Charge/Systems/SiliconChargeSystem.cs)
   - playtest 1
   - playtest 1: the client predicts the crawl speed from it
@@ -1315,11 +1324,14 @@ Skipped ("dirty-disposed").
   - D8, Onyx's extra part fields.
   - D8, FractureProfile lives on WolfmedBodyPartComponent, not Shitmed's BodyPartComponent.
 - [`Content.Shared/_Onyx/Wounds/FractureEffectsSystem.cs`](../../../Content.Shared/_Onyx/Wounds/FractureEffectsSystem.cs)
+  - missing-foot slowdown
   - W2
   - CONSC
   - Onyx's OrganGotInserted/RemovedEvent are compat shims here.
   - W2: limb penalties from wounds
   - CONSC: a strong painkiller masks the wound slowdowns, so a player walks on a broken leg
+  - a missing foot slows like a disabled one. The loop above only sees parts that are
+  - whether the body's own prototype puts a part in this slot.
   - Wolfgate's hands API hands back Hand objects, not hand-id strings (GetActiveHand returns
   - W2: Wolfmed's mechanical wounds (a severed tendon) answer here rather than through
 - [`Content.Shared/_Onyx/Wounds/PainSystem.cs`](../../../Content.Shared/_Onyx/Wounds/PainSystem.cs)
@@ -1614,7 +1626,9 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_DV/Body/Organs/chitinid.yml`](../../../Resources/Prototypes/_DV/Body/Organs/chitinid.yml): Wolfmed liver data, so the organ can be hurt, scanned and treated
 - [`Resources/Prototypes/_DV/Body/Organs/feroxi.yml`](../../../Resources/Prototypes/_DV/Body/Organs/feroxi.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
 - [`Resources/Prototypes/_DV/Body/Organs/harpy.yml`](../../../Resources/Prototypes/_DV/Body/Organs/harpy.yml): M4: OD16 parity, Wolfmed lung data (plan 9.2 group A-prime)
-- [`Resources/Prototypes/_DV/Entities/Clothing/Eyes/glasses.yml`](../../../Resources/Prototypes/_DV/Entities/Clothing/Eyes/glasses.yml): playtest 3: the IPC's container, so its bar shows
+- [`Resources/Prototypes/_DV/Entities/Clothing/Eyes/glasses.yml`](../../../Resources/Prototypes/_DV/Entities/Clothing/Eyes/glasses.yml)
+  - playtest 3: the IPC's container, so its bar shows
+  - the HardLight Synth's container, so its bar shows
 - [`Resources/Prototypes/_DV/Species/avali.yml`](../../../Resources/Prototypes/_DV/Species/avali.yml): the Starlight teleport sound never shipped here, and the client logged an error every stasis.
 - [`Resources/Prototypes/_EinsteinEngines/Body/Organs/ipc.yml`](../../../Resources/Prototypes/_EinsteinEngines/Body/Organs/ipc.yml)
   - playtest 3 IPC 2: the chassis's own fluid, not Oil
@@ -1638,7 +1652,9 @@ Skipped ("dirty-disposed").
   - HUD/BRAIN: Critical is back.
   - D22/P5-D11: the Blunt gib moves from 400 to 1500.
 - [`Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml`](../../../Resources/Prototypes/_EinsteinEngines/Entities/Mobs/Player/silicon_base.yml): W6: water takes heat out of an overheated chassis.
-- [`Resources/Prototypes/_Goobstation/Entities/Clothing/Eyes/glasses.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/Eyes/glasses.yml): playtest 3: the IPC's container, so its bar shows
+- [`Resources/Prototypes/_Goobstation/Entities/Clothing/Eyes/glasses.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/Eyes/glasses.yml)
+  - playtest 3: the IPC's container, so its bar shows
+  - the HardLight Synth's container, so its bar shows
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/Head/hardsuit-helmets.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/Head/hardsuit-helmets.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/OuterClothing/armour.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/OuterClothing/armour.yml): P6, P3-D6: locational armour coverage
@@ -1669,6 +1685,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_HL/Damage/modifier_sets.yml`](../../../Resources/Prototypes/_HL/Damage/modifier_sets.yml): Wolfmed: OD16, a Synth is mechanical and takes no poison, like the IPC set
 - [`Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml`](../../../Resources/Prototypes/_HL/Entities/Mobs/Species/synth.yml)
   - runs on the IPC's fluid so the pack, IV and autodoc refill it
+  - shock already short-circuits the chassis; the Cellular side effect had no repair
   - M4, OD16: Synth is mechanical. A wound host on the machine ladder (plan 3.11, 9.3): the ccu is its
 - [`Resources/Prototypes/_Mono/Body/Organs/hydra.yml`](../../../Resources/Prototypes/_Mono/Body/Organs/hydra.yml)
   - Wolfmed stomach data, so the organ can be hurt, scanned and treated
@@ -1682,10 +1699,13 @@ Skipped ("dirty-disposed").
   - Wolfmed stomach data, so the organ can be hurt, scanned and treated
   - Wolfmed liver data, so the organ can be hurt, scanned and treated
   - Wolfmed kidneys data, so the organ can be hurt, scanned and treated
-- [`Resources/Prototypes/_Mono/borg_types.yml`](../../../Resources/Prototypes/_Mono/borg_types.yml): playtest 3: the IPC's container, so its bar shows
+- [`Resources/Prototypes/_Mono/borg_types.yml`](../../../Resources/Prototypes/_Mono/borg_types.yml)
+  - playtest 3: the IPC's container, so its bar shows
+  - the HardLight Synth's container, so its bar shows
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Eyes/glasses.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Eyes/glasses.yml)
   - P6, P3-D6: locational armour coverage
   - the IPC's container, so its bar shows
+  - the HardLight Synth's container, so its bar shows
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Hands/gloves.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Hands/gloves.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/asakim.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/asakim.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/c_sec.yml`](../../../Resources/Prototypes/_Mono/Entities/Clothing/Head/Hardsuits/c_sec.yml): P6, P3-D6: locational armour coverage
@@ -1708,6 +1728,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_Mono/Entities/Objects/Tools/nanite_applicator.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Tools/nanite_applicator.yml)
   - P5-D5, PROTO T: as welders.yml - MobIPC moves to WFSiliconWolfmed in WP13-2 and
   - playtest 5, an IPC's parts sit in this container, as the welder lists
+  - as the welder, so a chassis's Cold and Caustic damage can be repaired
 - [`Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/12_gauge.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/12_gauge.yml): W1: buckshot leaves fragments, not a clean channel.
 - [`Resources/Prototypes/_Mono/Entities/Objects/Weapons/Melee/shockmaul.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Weapons/Melee/shockmaul.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/_NF/Body/Organs/goblin_organs.yml`](../../../Resources/Prototypes/_NF/Body/Organs/goblin_organs.yml)
@@ -1728,7 +1749,9 @@ Skipped ("dirty-disposed").
   - ITEMS: Infinite, the surgical basics a wound procedure names.
   - Infinite, the ventilator.
   - ITEMS: Infinite, a first aid kit for synthetic crew.
-- [`Resources/Prototypes/_NF/Entities/Clothing/Eyes/glasses_punks.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Eyes/glasses_punks.yml): the IPC's container, so its bar shows
+- [`Resources/Prototypes/_NF/Entities/Clothing/Eyes/glasses_punks.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Eyes/glasses_punks.yml)
+  - the IPC's container, so its bar shows
+  - the HardLight Synth's container, so its bar shows
 - [`Resources/Prototypes/_NF/Entities/Clothing/Head/hardsuit-helmets.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Head/hardsuit-helmets.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_NF/Entities/Clothing/Head/headwear_punks.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Head/headwear_punks.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_NF/Entities/Clothing/Neck/scarfs.yml`](../../../Resources/Prototypes/_NF/Entities/Clothing/Neck/scarfs.yml): warm like the other scarves
@@ -1863,7 +1886,9 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Body/Parts/slime.yml`](../../../Resources/Prototypes/Body/Parts/slime.yml)
   - P5-1: slime wound profile, no bone fractures; WFWolfmedPartSlime must stay FIRST (RT first-parent-wins)
   - M4, plan 9.3: a slime's core, its brain, is in the torso, so losing the head is not death.
-- [`Resources/Prototypes/borg_types.yml`](../../../Resources/Prototypes/borg_types.yml): playtest 3: the IPC's container, so its bar shows
+- [`Resources/Prototypes/borg_types.yml`](../../../Resources/Prototypes/borg_types.yml)
+  - playtest 3: the IPC's container, so its bar shows
+  - the HardLight Synth's container, so its bar shows
 - [`Resources/Prototypes/Catalog/Fills/Backpacks/duffelbag.yml`](../../../Resources/Prototypes/Catalog/Fills/Backpacks/duffelbag.yml): W4: the graft step's tool, beside the bone gel it mirrors.
 - [`Resources/Prototypes/Catalog/Fills/Crates/medical.yml`](../../../Resources/Prototypes/Catalog/Fills/Crates/medical.yml)
   - W7: infection cure, orderable without chemistry.
@@ -1922,7 +1947,9 @@ Skipped ("dirty-disposed").
   - ITEMS: knits a simple fracture without surgery.
   - ITEMS: osteogen beside the epinephrine bottles.
 - [`Resources/Prototypes/Entities/Clothing/Eyes/glasses.yml`](../../../Resources/Prototypes/Entities/Clothing/Eyes/glasses.yml): P6, P3-D6: locational armour coverage
-- [`Resources/Prototypes/Entities/Clothing/Eyes/hud.yml`](../../../Resources/Prototypes/Entities/Clothing/Eyes/hud.yml): playtest 3: the IPC's container, so its bar shows
+- [`Resources/Prototypes/Entities/Clothing/Eyes/hud.yml`](../../../Resources/Prototypes/Entities/Clothing/Eyes/hud.yml)
+  - playtest 3: the IPC's container, so its bar shows
+  - the HardLight Synth's container, so its bar shows
 - [`Resources/Prototypes/Entities/Clothing/Hands/gloves.yml`](../../../Resources/Prototypes/Entities/Clothing/Hands/gloves.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Clothing/Head/base_clothinghead.yml`](../../../Resources/Prototypes/Entities/Clothing/Head/base_clothinghead.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Clothing/Head/eva-helmets.yml`](../../../Resources/Prototypes/Entities/Clothing/Head/eva-helmets.yml): P6, P3-D6: locational armour coverage
@@ -1936,9 +1963,13 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Entities/Clothing/OuterClothing/armor.yml`](../../../Resources/Prototypes/Entities/Clothing/OuterClothing/armor.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Clothing/OuterClothing/vests.yml`](../../../Resources/Prototypes/Entities/Clothing/OuterClothing/vests.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Markers/Spawners/Random/Department/medical.yml`](../../../Resources/Prototypes/Entities/Markers/Spawners/Random/Department/medical.yml): playtest 5: sutures found in more places.
-- [`Resources/Prototypes/Entities/Mobs/Cyborgs/borg_chassis.yml`](../../../Resources/Prototypes/Entities/Mobs/Cyborgs/borg_chassis.yml): playtest 3: the IPC's container, so its bar shows
+- [`Resources/Prototypes/Entities/Mobs/Cyborgs/borg_chassis.yml`](../../../Resources/Prototypes/Entities/Mobs/Cyborgs/borg_chassis.yml)
+  - playtest 3: the IPC's container, so its bar shows
+  - the HardLight Synth's container, so its bar shows
 - [`Resources/Prototypes/Entities/Mobs/NPCs/simplemob.yml`](../../../Resources/Prototypes/Entities/Mobs/NPCs/simplemob.yml): W2: an animal's unarmed attack is a bite, which Wolfmed's wound rules turn into an avulsion.
-- [`Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml): playtest 3: the IPC's container, so its bar shows
+- [`Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml)
+  - playtest 3: the IPC's container, so its bar shows
+  - the HardLight Synth's container, so its bar shows
 - [`Resources/Prototypes/Entities/Mobs/Species/base.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/base.yml)
   - WP11-4, P3-4 Option B: the damage overlays use Onyx's wound art, severed parts included.
   - W4: rinses caustic residue off a wound host.
@@ -1947,6 +1978,7 @@ Skipped ("dirty-disposed").
   - D20-D22, P2-D7, P2-D9: organic species get wound hosting, pain and a Blunt gib threshold.
   - D29: passive regen is neutralised on wound hosts.
 - [`Resources/Prototypes/Entities/Mobs/Species/reptilian.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/reptilian.yml): was 285; room air chills a lizard, only cold that harms a human harms it
+- [`Resources/Prototypes/Entities/Objects/Materials/Sheets/glass.yml`](../../../Resources/Prototypes/Entities/Objects/Materials/Sheets/glass.yml): IPCs, synthetic biotypes and Synths moved off Silicon and could no longer fix their optics
 - [`Resources/Prototypes/Entities/Objects/Misc/fire_extinguisher.yml`](../../../Resources/Prototypes/Entities/Objects/Misc/fire_extinguisher.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/Entities/Objects/Specific/chemistry.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/chemistry.yml): Bobstation's pill swallow (owner's pick, playtest 4), inherited by every Pill variant
 - [`Resources/Prototypes/Entities/Objects/Specific/Janitorial/janitor.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Janitorial/janitor.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
@@ -1983,6 +2015,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Entities/Objects/Tools/welders.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/welders.yml)
   - EVISC: the surgery step that welds a chassis breach shut
   - P5-D5, PROTO S: MobIPC moves to the WFSiliconWolfmed container in WP13-2;
+  - frost-cracked and acid-eaten plating; nothing else repaired a chassis's Cold or Caustic
   - V124: the welder loop covers the pass; this is the seam cooling at the end of it.
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/grenade_shrapnel.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/grenade_shrapnel.yml): W1: cluster pellets leave fragments behind.
 - [`Resources/Prototypes/Entities/Objects/Weapons/Melee/baseball_bat.yml`](../../../Resources/Prototypes/Entities/Objects/Weapons/Melee/baseball_bat.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones

@@ -25,6 +25,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     [Dependency] private WFCrewEscortSystem _escorts = default!;
     [Dependency] private WFCrewShipStatusSystem _status = default!;
     [Dependency] private WFCrewSystem _crew = default!;
+    [Dependency] private WFCrewStealthSystem _stealth = default!;
 
     private const string Vision = "VisionRadius";
     private const string AggroVision = "AggroVisionRadius";
@@ -94,7 +95,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// </summary>
     private bool ValidShip(EntityUid grid, EntityUid ship, bool attacked, bool fired = false)
     {
-        return !TerminatingOrDeleted(ship) && IsVessel(ship) && !_status.ShouldDisengage(grid, ship, range: !fired, shooter: fired)
+        return !TerminatingOrDeleted(ship) && IsVessel(ship) && !_stealth.ShipUnseen(ship) && !_status.ShouldDisengage(grid, ship, range: !fired, shooter: fired)
             && Transform(ship).MapID == Transform(grid).MapID && (attacked || !_escorts.AreInFormation(grid, ship));
     }
 
@@ -153,7 +154,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// Says whether a ship weapon hit is let pass. Fire from a vessel fighting on the ship's side, by alliance or by
     /// whom it has been shooting, is forgiven outright, whatever its colours: in a melee nobody's aim is clean. A
     /// vessel of the ship's own faction is allowed a few stray shots, and more than <see cref="StrayHits"/> inside the
-    /// window are not an accident. Once a vessel is taken for an attacker nothing more of its fire is excused.
+    /// window are not an accident; a profile with its own <see cref="WFCrewProfilePrototype.StrayHits"/> allows that
+    /// many to any vessel no NPC crew flies. Once a vessel is taken for an attacker nothing more of its fire is excused.
     /// </summary>
     private bool Excuse(EntityUid grid, EntityUid attacker)
     {
@@ -163,7 +165,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
             return false;
         if (Friend(grid, attacker))
             return true;
-        if (!SameFaction(grid, attacker))
+        if (StrayLimit(grid, attacker) is not { } limit)
             return false;
 
         var now = _timing.CurTime;
@@ -174,7 +176,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
             strays = (strays.First, now, strays.Count + 1);
 
         _strays[key] = strays;
-        return strays.Count <= StrayHits;
+        return strays.Count <= limit;
     }
 
     /// <summary>Whether a vessel's recent fire on a ship is being let pass: a friend's, or a few strays from its own side.</summary>
@@ -187,9 +189,22 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         if (Friend(grid, attacker))
             return true;
 
-        return SameFaction(grid, attacker)
+        return StrayLimit(grid, attacker) is { } limit
                && (!_strays.TryGetValue((grid, attacker), out var strays) || _timing.CurTime - strays.First > StrayWindow
-                   || strays.Count <= StrayHits);
+                   || strays.Count <= limit);
+    }
+
+    /// <summary>
+    /// How many stray hits a ship lets a vessel land inside the window, or null for none: its profile's own allowance
+    /// for a vessel no NPC crew flies, else <see cref="StrayHits"/> for one of its own faction.
+    /// </summary>
+    private int? StrayLimit(EntityUid grid, EntityUid attacker)
+    {
+        if (TryComp<WFCrewShipProfileComponent>(grid, out var own) && _prototypes.TryIndex(own.Profile, out var profile)
+            && profile.StrayHits is { } allowance && !HasComp<WFCrewShipProfileComponent>(attacker))
+            return SameFaction(grid, attacker) ? Math.Max(allowance, StrayHits) : allowance;
+
+        return SameFaction(grid, attacker) ? StrayHits : null;
     }
 
     /// <summary>Whether two ships fly under one crew profile that never turns on its own, whatever fire passes between them.</summary>
@@ -245,6 +260,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
         if (grid == attacker || !HasComp<MapGridComponent>(grid) || !IsVessel(attacker)
             || Transform(grid).MapID != Transform(attacker).MapID)
             return;
+        // An attack shows a cloaked ship to every crew for a while.
+        _stealth.RevealShip(attacker);
         // Grids without crew, escorts or battlegroups have nobody to alert.
         if (group == null && !_escorts.IsInvolved(grid))
             return;

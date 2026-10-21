@@ -10,6 +10,7 @@ using Content.Shared.Medical.SuitSensor;
 using Content.Shared.Roles;
 using Content.Server.NPC.Systems;
 using Content.Server.Medical.SuitSensors;
+using Content.Server.KillTracking;
 using Content.Server.Radiation.Components;
 using Content.Shared._WF.NpcCrew;
 using Content.Shared.Mobs;
@@ -201,6 +202,7 @@ public sealed class WFCrewSystem : EntitySystem
             Remember(uid, retaliation, attacker);
         }
 
+        EntityManager.System<WFCrewStealthSystem>().Reveal(attacker);
         EntityManager.System<WFCrewShelterSystem>().Shelter(grid, group);
         if (!_wanted.TryGetValue((grid, group), out var wanted))
             _wanted[(grid, group)] = wanted = new Dictionary<EntityUid, TimeSpan>();
@@ -469,6 +471,8 @@ public sealed class WFCrewSystem : EntitySystem
         RemComp<SSDIndicatorComponent>(uid);
         // Crews work and fight beside reactors with nothing but their jumpsuits; radiation passes them by.
         RemComp<RadiationReceiverComponent>(uid);
+        // Who downs a crewman is reported, so a boarding party shares an encounter's reward.
+        EnsureComp<KillTrackerComponent>(uid);
         // Their suit sensors are switched off, so a crew monitor shows players and not a sector's worth of NPCs. A
         // player who takes the suit can switch them back on.
         foreach (var worn in _inventory.GetHandOrInventoryEntities(uid))

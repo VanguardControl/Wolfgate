@@ -32,7 +32,7 @@ and in the legend), announced to the sector; a reinforcement whose pilot gives u
 and counts all the same, and one that never gets near the hub is ended past its deadline. One lost on the way
 founds nothing and pays the patrol bounty. When the hub is hit by player ships its reinforcements undock and attack
 the ship that is hitting it, and dock again three minutes after the last hit
-with no attacker near. Breaking the hub ends its reinforcements and pays `strongholdBounty[tier]` times one plus
+with no attacker near. Breaking the hub resolves its reinforcements, which then go through the usual cleanup, and pays `strongholdBounty[tier]` times one plus
 half the level.
 
 At tier 5 the Reavers raise a citadel (`citadel` on the campaign, `WFReaverCitadel`, a Vulture; `.Citadel`). Once the
@@ -45,7 +45,9 @@ or launched, and what still stands fights on until broken. `wf_reavers citadel` 
 Players fight it by breaking strongholds (the lead ship out of the fight breaks it: its cells are freed and its bounty
 paid to everyone who hit it, with a fifth for the ships that stood by the assault), killing patrols (the cell the lead
 died in is freed and a smaller bounty paid; each navy's members also get its own faction credits, from the campaign's
-`credits` list), and flying lanes: only quiet cells are taken, and a station's cell is
+`credits` list, and each player ship that helped break a stronghold or convoy, or destroy a patrol or reinforcement,
+gets the campaign's `strongholdVoucher` or `patrolVoucher`, a `WFDrydockRepairVoucher` bound to that ship, unless it
+still holds one), and flying lanes: only quiet cells are taken, and a station's cell is
 contested for ten minutes, announced as a blockade, before it falls. Each storyteller preset has its own
 `wfReaverCampaign` (`Resources/Prototypes/_WF/ReaverCampaign/campaigns.yml`) with the pace, caps, tier ladder,
 bounties and encounter prototypes; a preset with none runs no campaign. It runs only while `wf.encounters.enabled`,

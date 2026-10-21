@@ -1,8 +1,8 @@
 # BloodColour
 
-Players can give their character a blood and flesh colour of their own in place of the species'. The Blood card in the
-character creator (`Content.Client/_WF/BloodColour/BloodColourPicker.cs`) has a "Custom blood colour" toggle and a
-colour picker; off keeps the species' own. The profile stores it as `BloodColor` (null for the species' own), saved in
+Players can give their character a blood and flesh colour of their own in place of the species'. The Body card in the
+character creator (`Content.Client/_WF/BloodColour/BloodColourPicker.cs`, under the leg toggle) has a "Custom blood
+colour" toggle and a colour picker; off keeps the species' own. The profile stores it as `BloodColor` (null for the species' own), saved in
 the `blood_color` profile column as hex.
 
 On profile load `WFBloodColourSystem` puts a `WFBloodColourComponent` on the mob and repaints its bloodstream. The
@@ -48,7 +48,7 @@ A part cut off a coloured body gets the component too, so a severed limb's wound
 
 ## Non-modular edits
 
-- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): Blood card, filled in by HumanoidProfileEditor.BloodColour.cs
+- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): blood colour toggle and picker, filled in by HumanoidProfileEditor.BloodColour.cs
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs): blood and flesh colour as hex, null for the species' own.
 - [`Content.Server/Body/Systems/BloodstreamSystem.cs`](../../Body/Systems/BloodstreamSystem.cs)

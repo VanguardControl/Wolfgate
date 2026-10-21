@@ -37,6 +37,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     [Dependency] private MobStateSystem _mobs = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private WarLevelSystem _warLevel = default!;
+    [Dependency] private WFCrewStealthSystem _stealth = default!;
 
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan WarnCooldown = TimeSpan.FromSeconds(45);
@@ -192,7 +193,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
 
             if (!_crewed.TryGetValue(grid, out var crewed))
             {
-                if (!IsPlayerShip(grid) || _encounters.DockedAtStation(grid))
+                if (!IsPlayerShip(grid) || _encounters.DockedAtStation(grid) || _stealth.ShipUnseen(grid))
                     continue;
 
                 _crewed[grid] = crewed = new Crewed { GridFlag = WFCompanyFamily.Of(Company(grid)) };

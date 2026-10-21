@@ -18,7 +18,9 @@ head's points; no species limits it.
 ## Mismatched parts
 
 A per-character checkbox in the creator's Body card, saved with the profile, as on Nova Sector. With it on, the
-character may wear every species' markings, hair and facial hair. The species' point budgets still apply, and a
+character may wear every species' markings, hair and facial hair, and the skin takes any colour even where the species
+limits it to skin tones (`MismatchedPartsRules.SkinColoration`, used by validation, `LoadProfile` and the creator's
+skin picker). The species' point budgets still apply, and a
 category the species has no points for gets one. Body parts only some species' sprites have (Resomi tail extras,
 harpy arm extensions) stay with those species. Random profiles leave it off, and turning it off in the creator drops
 whatever only the option allowed.
@@ -82,6 +84,7 @@ and its own sprite.
 - [`Content.IntegrationTests/Tests/_WF/Species/OptionalDefaultMarkingsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/OptionalDefaultMarkingsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/ShadekinNightVisionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/ShadekinNightVisionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/SpeciesLoadoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/SpeciesLoadoutTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Species/WaggingTailLayersTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/WaggingTailLayersTest.cs)
 
 ### Prototypes
 
@@ -183,11 +186,14 @@ and its own sprite.
   - keeps other species' markings
   - optional defaults live in the profile
   - hair and beards the species can't wear
+  - a layer drawn outside the last full rebuild (say a wag swapped in between) left a still tail behind
   - mismatched parts draw without a species layer
+  - removed on the next rebuild whatever drew it
   - mismatched parts are coloured without a species layer
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): lets any species wear every species' markings (HumanoidProfileEditor.MismatchedParts.cs)
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
   - the first style the option allows
+  - any colour with Mismatched parts
   - ported from HardLight, unrestricted skin colour
   - the new species' defaults are saved into the profile, so they can be removed
   - the styles the option allows
@@ -280,11 +286,13 @@ and its own sprite.
   - merge parent sounds into children
 - [`Content.Shared/Damage/Systems/DamageableSystem.cs`](../../Damage/Systems/DamageableSystem.cs): heal modifiers, ported from HardLight
 - [`Content.Shared/Eye/VisibilityFlags.cs`](../../Eye/VisibilityFlags.cs): ported from HardLight/Starlight, for Shadekin dark phasing
+- [`Content.Shared/Humanoid/HumanoidAppearanceComponent.cs`](../../Humanoid/HumanoidAppearanceComponent.cs): every marking layer the client drew, so a rebuild removes all of them
 - [`Content.Shared/Humanoid/HumanoidCharacterAppearance.cs`](../../Humanoid/HumanoidCharacterAppearance.cs)
   - optional defaults start saved, so they can be removed
   - optional defaults start saved
   - mismatchedParts lets the hair check accept the styles the option opens
   - was new MarkingSet(...), opens the species' closed categories
+  - Mismatched parts lets the skin take any colour
   - per-species eye colour, ported from HardLight/Starlight
   - keeps other species' markings
 - [`Content.Shared/Humanoid/Markings/MarkingCategories.cs`](../../Humanoid/Markings/MarkingCategories.cs)
@@ -301,6 +309,7 @@ and its own sprite.
 - [`Content.Shared/Humanoid/SharedHumanoidAppearanceSystem.cs`](../../Humanoid/SharedHumanoidAppearanceSystem.cs)
   - copies keep drawing mismatched hair
   - ported from HardLight/Starlight, constrain eye colour per species
+  - Mismatched parts lets the skin take any colour
   - one point for each category the species has none for
   - keeps other species' markings
   - hair and beards the species can't wear

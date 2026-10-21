@@ -975,6 +975,11 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("text")
                         .HasColumnName("char_name");
 
+                    b.Property<string>("ChatFont")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("chat_font");
+
                     b.Property<string>("Company")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1096,6 +1101,10 @@ namespace Content.Server.Database.Migrations.Postgres
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("species");
+
+                    b.Property<string>("TypingIndicator")
+                        .HasColumnType("text")
+                        .HasColumnName("typing_indicator");
 
                     b.Property<float>("Width")
                         .HasColumnType("real")

@@ -87,6 +87,10 @@ public sealed partial class WFDrydockJobComponent : Component
     [ViewVariables]
     public bool PaidInMaterials;
 
+    /// <summary>The repair voucher that paid for the job, handed back if it aborts; null for a paid job.</summary>
+    [ViewVariables]
+    public string? Voucher;
+
     /// <summary>Refit lines the job's refit items bring up, to the highest tier among them.</summary>
     public Dictionary<string, int> Refits = new();
 

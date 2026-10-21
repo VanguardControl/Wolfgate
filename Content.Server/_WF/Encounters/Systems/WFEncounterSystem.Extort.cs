@@ -592,7 +592,7 @@ public sealed partial class WFEncounterSystem
     {
         mark = extort.Mark ?? default;
         return extort.Mark != null && !TerminatingOrDeleted(mark) && Transform(mark).MapID == Transform(ship.Grid).MapID
-               && !DockedAtStation(mark);
+               && !DockedAtStation(mark) && !_stealth.ShipUnseen(mark);
     }
 
     private string ExtortMarkName(WFExtortState extort)

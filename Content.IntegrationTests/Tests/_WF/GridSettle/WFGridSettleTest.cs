@@ -1,6 +1,10 @@
 using System.Numerics;
 using Content.Server._WF.GridSettle;
+using Content.Server.Atmos.Components;
+using Content.Server.Body.Components;
 using Content.Server.Shuttles.Components;
+using Content.Server.Shuttles.Systems;
+using Content.Shared.Shuttles.Components;
 using Content.Shared.Maps;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -25,10 +29,10 @@ public sealed class WFGridSettleTest
         var maps = server.System<SharedMapSystem>();
         var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
 
-        EntityUid idle = default, thrusting = default, piloted = default;
+        EntityUid idle = default, thrusting = default, piloted = default, map = default;
         await server.WaitPost(() =>
         {
-            maps.CreateMap(out var mapId);
+            map = maps.CreateMap(out var mapId);
             var plating = new Tile(tileDefs["Plating"].TileId);
 
             EntityUid MakeGrid(float x)
@@ -49,7 +53,12 @@ public sealed class WFGridSettleTest
             em.GetComponent<ShuttleComponent>(thrusting).ThrustDirections = DirectionFlag.North;
 
             var console = em.SpawnEntity("ComputerShuttle", new EntityCoordinates(piloted, 1.5f, 1.5f));
-            em.GetComponent<ShuttleConsoleComponent>(console).SubscribedPilots.Add(console);
+            var pilot = em.SpawnEntity("MobHuman", new EntityCoordinates(piloted, 1.5f, 1.5f));
+            // Kept conscious in vacuum, so the console doesn't drop it as a pilot.
+            em.RemoveComponent<BarotraumaComponent>(pilot);
+            em.RemoveComponent<RespiratorComponent>(pilot);
+            em.EnsureComponent<PilotComponent>(pilot);
+            server.System<ShuttleConsoleSystem>().AddPilot(console, pilot, em.GetComponent<ShuttleConsoleComponent>(console));
         });
 
         await server.WaitRunTicks(pair.SecondsToTicks(20f));
@@ -68,6 +77,7 @@ public sealed class WFGridSettleTest
             }
         });
 
+        await server.WaitPost(() => em.DeleteEntity(map));
         await pair.CleanReturnAsync();
     }
 }

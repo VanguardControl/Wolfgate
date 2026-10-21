@@ -182,7 +182,8 @@ public sealed class WFRadioOperatorSystem : EntitySystem
 
         // A beam names the gun as its origin; the contact is whoever holds it.
         var origin = EntityManager.System<WFCrewSystem>().Wielder(source);
-        if (origin == uid)
+        // A shot can land after the gun that fired it is gone.
+        if (origin == uid || TerminatingOrDeleted(origin))
             return;
 
         var home = HomeGridOf(uid);

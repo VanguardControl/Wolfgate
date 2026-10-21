@@ -569,6 +569,12 @@ namespace Content.Server.Database
         // WOLFGATE(BloodColour): blood and flesh colour as hex, null for the species' own.
         [Column("blood_color")] public string? BloodColor { get; set; }
 
+        // WOLFGATE(ChatFont): the wfChatFont prototype id, empty for the default.
+        [Column("chat_font")] public string ChatFont { get; set; } = "";
+
+        // WOLFGATE(TypingBubble): the typingIndicator prototype id, null for the species' own.
+        [Column("typing_indicator")] public string? TypingIndicator { get; set; }
+
         public int PreferenceId { get; set; }
         public Preference Preference { get; set; } = null!;
 

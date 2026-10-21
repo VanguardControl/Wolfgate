@@ -56,6 +56,10 @@ combatant whose attack is flown, or whose target is lost with all hands, while a
 the nearest enemy left (`WFEncounterSystem.Battle.cs`); once a battle is decided the victors stay on the field with
 their zones standing until cleanup, where every other resolved encounter's zones stand down.
 
+A resolved ship is never removed while players are aboard, while it is docked with a player-owned ship (one with a
+deed), or within `wf.encounters.cleanup_grace` (300 s) of the last time either was true, so stepping off a wreck to
+fetch tools doesn't lose it.
+
 An encounter an admin starts, from the window or the command, is pinned unless told otherwise (the "Keep until ended"
 box, or `jump` on the command): it has no clock, takes no slot under the scheduler's cap, never jumps out, and its
 ships are never swept up however far away players are, until an admin ends it. Unpinned, it jumps out and is cleaned
@@ -142,9 +146,10 @@ end <encounter> | schedule | pause | resume`. Other code calls `WFEncounterSyste
 Systems that run encounters of their own (the Reaver campaign, sector control) have more entry points. `TrySpawn(..., offBudget)`
 keeps a transient encounter out of the cap and budget. `SetOrders(encounter, key, queue)` gives one ship a fresh queue
 as its own orders. `WFEncounterRewardSystem.PayBounty` pays a beaten encounter's bounty to every player who hit its ships
-(split per attacking ship, then per head), with a fifth for the players aboard any supporter grids, and returns how many
+or downed one of its crewmen in person (crews carry a `KillTrackerComponent`; kills and assists are kept in `Kills`),
+split per attacking ship and then per head, a boarding party counting as one more ship, with a fifth for the players aboard any supporter grids, and returns how many
 were paid, and its optional `extraCredits` are further rewards of which only the faction credits are handed out, so one
-bounty can pay several navies; `GetHelpers` is
+bounty can pay several navies, and its optional `helperMobs` collects everyone it was shared among; `GetHelpers` is
 the helper rule it shares with the Decided payout. The scheduler's `IsClearSpace` and `Stations` give placement checks, and
 the broadcast by-ref `WFEncounterCollectMarkersEvent` (add markers of your own, as the ShipPa SOS does), `WFEncounterWeightEvent` (change a candidate's weight) and `WFEncounterStationsEvent` (drop stations
 from a map's list) let other modules shape what it picks and where.
@@ -221,6 +226,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Bounty.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Bounty.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Cargo.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Cargo.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Clamps.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Clamps.cs)
+- [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Cleanup.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Cleanup.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Conduct.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Conduct.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Deed.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Deed.cs)
@@ -234,6 +240,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Placement.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Placement.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Reactor.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Reactor.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Sanctuary.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Sanctuary.cs)
+- [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Stealth.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Stealth.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Storyteller.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Storyteller.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Stranded.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Stranded.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.TraderHail.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.TraderHail.cs)

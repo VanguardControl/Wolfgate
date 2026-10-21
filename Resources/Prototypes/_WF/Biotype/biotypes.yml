@@ -9,6 +9,9 @@
   biotype: Synthetic
   name: wf-biotype-synthetic
   description: wf-biotype-synthetic-desc
+  icon:
+    sprite: Objects/Specific/Robotics/mmi.rsi
+    state: posibrain
   body: IPC
   remove:
   - Barotrauma
@@ -50,6 +53,9 @@
   - type: Bloodstream
     bloodReagent: WFWolfmedHydraulicFluid
     bloodMaxVolume: 250
+    # Synthetics playtest: HYDRAULIC PRESSURE LOW with no way out. Half a human's blood regeneration, so a sealed
+    # chassis tops itself up in about half an hour; a pack or the autodoc is still the quick fix.
+    bloodRefreshAmount: 0.5
     chemicalMaxVolume: 0
     bloodlossDamage:
       types: {}
@@ -207,6 +213,9 @@
   biotype: Organic
   name: wf-biotype-organic
   description: wf-biotype-organic-desc
+  icon:
+    sprite: Mobs/Species/Human/organs.rsi
+    state: heart-on
   body: Human
   remove:
   - Silicon

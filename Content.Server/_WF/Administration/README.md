@@ -51,6 +51,7 @@ Audio.
 - [`Content.Server/_WF/Administration/Commands/SpawnOutfitCommand.cs`](Commands/SpawnOutfitCommand.cs)
 - [`Content.Server/_WF/Administration/Commands/SpawnOutfitGhostCommand.cs`](Commands/SpawnOutfitGhostCommand.cs)
 - [`Content.Server/_WF/Administration/Commands/SpawnVesselCommand.cs`](Commands/SpawnVesselCommand.cs)
+- [`Content.Server/_WF/Administration/Systems/AdminFollowSystem.cs`](Systems/AdminFollowSystem.cs)
 - [`Content.Server/_WF/Administration/Systems/AdminRadarSystem.cs`](Systems/AdminRadarSystem.cs)
 - [`Content.Server/_WF/Administration/Systems/AdminVesselSpawnSystem.cs`](Systems/AdminVesselSpawnSystem.cs)
 - [`Content.Server/_WF/Administration/Systems/ErtSystem.cs`](Systems/ErtSystem.cs)
@@ -117,6 +118,7 @@ Audio.
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Administration/AdminFollowTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Administration/AdminFollowTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Administration/GhostOfferTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Administration/GhostOfferTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Administration/RadarTeleportTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Administration/RadarTeleportTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Administration/SecondChanceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Administration/SecondChanceTest.cs)
@@ -146,5 +148,7 @@ Audio.
 - [`Content.Client/Shuttles/BUI/RadarConsoleBoundUserInterface.cs`](../../../Content.Client/Shuttles/BUI/RadarConsoleBoundUserInterface.cs)
   - the scanner window an admin in a ghost gets instead
   - an admin in a ghost gets the resizable, far-zooming scanner
+- [`Content.Server/Administration/Commands/FollowCommand.cs`](../../Administration/Commands/FollowCommand.cs): aghost before orbiting
+- [`Content.Server/Administration/UI/AdminCameraEui.cs`](../../Administration/UI/AdminCameraEui.cs): aghost before orbiting
 
 <!-- WOLFGATE-GENERATED END -->
