@@ -34,6 +34,7 @@ public sealed partial class WFOrbitButton : BoxContainer
     private readonly ProgressBar _liftBar;
     private readonly RichTextLabel _holdLabel;
     private readonly RichTextLabel _fixLabel;
+    private readonly RichTextLabel _hintLabel;
 
     private WFEnterAtmosphereConfirmWindow? _confirm;
     private WFUnsanctionedOrbitConfirmWindow? _unsanctionedConfirm;
@@ -143,6 +144,8 @@ public sealed partial class WFOrbitButton : BoxContainer
 
         _holdLabel = NewNote();
         _fixLabel = NewNote();
+        _hintLabel = NewNote();
+        _hintLabel.StyleClasses.Add(StyleBase.StyleClassLabelSubText);
 
         AddChild(_phaseLabel);
         AddChild(_readyLabel);
@@ -154,6 +157,7 @@ public sealed partial class WFOrbitButton : BoxContainer
         AddChild(_liftBar);
         AddChild(_holdLabel);
         AddChild(_fixLabel);
+        AddChild(_hintLabel);
     }
 
     private static RichTextLabel NewNote()
@@ -192,7 +196,6 @@ public sealed partial class WFOrbitButton : BoxContainer
         }
 
         UpdatePhase(target);
-        _checks.ToolTip = Loc.GetString("wf-shuttle-console-atmosphere-mode-tooltip");
 
         var grounded = target.LiftoffAvailable || target.LiftoffActive;
         if (grounded)
@@ -204,8 +207,7 @@ public sealed partial class WFOrbitButton : BoxContainer
         if (target.Airborne)
         {
             UpdateChecklist(target);
-            // How to fly lives in a tooltip: the helm page has no line to spare for it.
-            _checks.ToolTip += "\n" + Loc.GetString("wf-flight-hint-air");
+            SetNote(_hintLabel, Loc.GetString("wf-flight-hint-air"));
             return;
         }
 
@@ -241,7 +243,7 @@ public sealed partial class WFOrbitButton : BoxContainer
         UpdateChecklist(target);
 
         if (CanFly(target))
-            _atmosphereButton.ToolTip += "\n" + Loc.GetString("wf-flight-hint-orbit");
+            SetNote(_hintLabel, Loc.GetString("wf-flight-hint-orbit"));
     }
 
     /// <summary>Marks a control to be shown this frame.</summary>
@@ -285,7 +287,8 @@ public sealed partial class WFOrbitButton : BoxContainer
         if (target.Hold is { } hold)
             SetNote(_holdLabel, Loc.GetString("wf-flight-check-hold", ("reason", hold)), LiftBad);
 
-        _liftoffButton.ToolTip = ready ? Loc.GetString("wf-flight-hint-grounded") : null;
+        if (ready)
+            SetNote(_hintLabel, Loc.GetString("wf-flight-hint-grounded"));
     }
 
     /// <summary>Lift and power rows, the lift bar and what to change when either falls short.</summary>
@@ -383,7 +386,7 @@ public sealed partial class WFOrbitButton : BoxContainer
 
         PhaseText = phase;
 
-        // In orbit the orbit button below already names the planet; the page has no line to spare repeating it.
+        // In orbit the Leave orbit key already names the planet; the line would push the helm column past its height.
         if (phase == null || target.InOrbit)
             return;
 

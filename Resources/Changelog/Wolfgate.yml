@@ -2624,3 +2624,10 @@ Entries:
   id: 100193
   time: '2026-10-21T18:59:58.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/314
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Following a player as admin now aghosts you
+  id: 100194
+  time: '2026-10-21T20:14:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/312

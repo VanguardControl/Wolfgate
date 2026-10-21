@@ -75,7 +75,7 @@ public sealed class LiftoffTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A grounded ascend key engages liftoff, as the Liftoff button does, when the hull has the lift.</summary>
+    /// <summary>A grounded ascend key engages liftoff like the console button.</summary>
     [Test]
     public async Task GroundedAscendKeyEngagesLiftoff()
     {
@@ -92,16 +92,11 @@ public sealed class LiftoffTest
         await MapInitHull(pair, hull);
         await AddLandingThrusters(pair, hull, 3);
         await HoldVertical(pair, hull, ShuttleButtons.AscendZ);
-        await server.WaitRunTicks(pair.SecondsToTicks(3f));
+        await server.WaitRunTicks(2);
 
         await server.WaitAssertion(() =>
-        {
-            using (Assert.EnterMultipleScope())
-            {
-                Assert.That(entMan.GetComponent<TransformComponent>(hull).MapUid != ground || entMan.HasComponent<WFLiftoffComponent>(hull),
-                    Is.True, "Holding ascend on the ground with full lift didn't lift off.");
-            }
-        });
+            Assert.That(entMan.HasComponent<WFLiftoffComponent>(hull), Is.True,
+                "Grounded ascend did not engage liftoff."));
 
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();
