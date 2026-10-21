@@ -1,7 +1,13 @@
 #nullable enable
+using System.Linq;
+using Content.Client.UserInterface.Systems.Chat;
 using Content.Server.Chat.Systems;
+using Content.Shared.Chat;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Inventory;
+using Content.Shared.Mind;
+using Content.Shared.Players;
+using Robust.Client.UserInterface;
 using Robust.Shared.GameObjects;
 using Robust.Shared.GameObjects.Components.Localization;
 using Robust.Shared.Localization;
@@ -47,6 +53,7 @@ public sealed class TypedEmoteTest
         {
             var ent = Identity.Entity(human, entMan);
             Assert.That(entMan.GetComponent<MetaDataComponent>(ent).EntityName, Is.EqualTo("David"));
+            Assert.That(entMan.GetComponent<GrammarComponent>(ent).ProperNoun, Is.True);
             var wrapped = loc.GetString("chat-manager-entity-me-wrap-message",
                 ("entityName", "David"), ("entity", ent), ("message", "looks at you."));
             Assert.That(wrapped, Does.StartWith("[italic]David looks"));
@@ -58,22 +65,40 @@ public sealed class TypedEmoteTest
     [Test]
     public async Task TriggerWordBecomesEmoteMessage()
     {
-        await using var pair = await PoolManager.GetServerClient();
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var server = pair.Server;
         var entMan = server.EntMan;
         var loc = server.ResolveDependency<ILocalizationManager>();
         var chat = entMan.System<ChatSystem>();
+        var mindSys = entMan.System<SharedMindSystem>();
+        var history = pair.Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ChatUIController>();
+        var session = server.PlayerMan.GetSessionById(pair.Client.Session!.UserId);
         var map = await pair.CreateTestMap();
+        var salutes = loc.GetString("chat-emote-msg-salute");
 
+        var human = EntityUid.Invalid;
         await server.WaitAssertion(() =>
         {
-            var human = entMan.SpawnEntity("MobHuman", map.GridCoords);
-            var salutes = loc.GetString("chat-emote-msg-salute");
+            mindSys.WipeMind(session.ContentData()?.Mind);
+            human = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.System<MetaDataSystem>().SetEntityName(human, "David");
+            mindSys.TransferTo(mindSys.CreateMind(session.UserId).Owner, human);
 
             Assert.That(chat.ResolveTypedEmote(human, "salute"), Is.EqualTo(salutes));
             Assert.That(chat.ResolveTypedEmote(human, " Salute! "), Is.EqualTo(salutes));
             Assert.That(chat.ResolveTypedEmote(human, "salutes the captain"), Is.EqualTo("salutes the captain"));
         });
+        await pair.RunTicksSync(5);
+
+        // The typed word goes through the real emote path and arrives as the emote's message.
+        await server.WaitPost(() =>
+            chat.TrySendInGameICMessage(human, "salute", InGameICChatType.Emote, hideChat: false, player: session));
+
+        bool Arrived() => history.History.Any(h =>
+            h.Msg.Channel == ChatChannel.Emotes && h.Msg.WrappedMessage.Contains($"David {salutes}"));
+        for (var i = 0; i < 120 && !Arrived(); i++)
+            await pair.RunTicksSync(1);
+        Assert.That(Arrived(), Is.True, "The typed *salute did not arrive as the salute emote's message.");
 
         await pair.CleanReturnAsync();
     }
