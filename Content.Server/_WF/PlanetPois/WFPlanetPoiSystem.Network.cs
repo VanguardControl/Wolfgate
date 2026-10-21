@@ -124,6 +124,12 @@ public sealed partial class WFPlanetPoiSystem
                     for (var x = reservation.Left; x < reservation.Right; x++)
                     for (var y = reservation.Bottom; y < reservation.Top; y++) claimed.Add(new Vector2i(x, y));
                     changed.UnionWith(claimed);
+                    // The map's open ground is the world's: lay it before the pin keeps the biome off for good.
+                    var open = new List<(Vector2i, Tile)>();
+                    foreach (var tile in claimed)
+                        if (_maps.GetTileRef(ground, grid, tile).Tile.IsEmpty && _biome.TryGetBiomeTile(ground, grid, tile, out var natural))
+                            open.Add((tile, natural.Value));
+                    _maps.SetTiles(ground, grid, open);
                     _biome.WfPinTiles((ground, biome), claimed);
                 }
                 else _biome.WfPinTiles((ground, biome), siteTiles);

@@ -9,7 +9,9 @@ using Content.Server._WF.PlanetCities;
 using Content.Server._WF.PlanetPois;
 using Content.Server._WF.Planets;
 using Content.Server._WF.Planets.Bounds;
+using Content.Server.Parallax;
 using Content.Server.Station.Systems;
+using Content.Shared.Parallax.Biomes;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.PlanetPois;
@@ -82,6 +84,24 @@ public sealed class FixedCityTest
             var house = record.Sites.SingleOrDefault(placed => placed.MapPath == "/Maps/_WF/PlanetPois/verda_house_1.yml");
             Assert.That(house, Is.Not.Null, "The house was not placed.");
             Assert.That(house!.Connection, Is.EqualTo(WFPlanetPoiConnection.Through), "The house is off the roads.");
+
+            // No authored site leaves its open ground pinned empty, a hole down to nothing.
+            var groundGrid = entMan.GetComponent<MapGridComponent>(ground);
+            var groundBiome = (ground, entMan.GetComponent<BiomeComponent>(ground));
+            var biomes = server.System<BiomeSystem>();
+            var mapSystem = server.System<SharedMapSystem>();
+            foreach (var authored in record.Sites.Where(placed => placed.MapPath != null && placed.Name != "wf-city-crocus"))
+            {
+                var holes = 0;
+                for (var x = authored.Bounds.Left; x < authored.Bounds.Right; x++)
+                for (var y = authored.Bounds.Bottom; y < authored.Bounds.Top; y++)
+                {
+                    var index = new Vector2i(x, y);
+                    if (biomes.WfIsPinned(groundBiome, index) && mapSystem.GetTileRef(ground, groundGrid, index).Tile.IsEmpty)
+                        holes++;
+                }
+                Assert.That(holes, Is.Zero, $"{authored.MapPath} left {holes} empty tiles in its footprint.");
+            }
 
             // The off-road sites stand off the roads, each on a footpath that runs from its door to one.
             foreach (var offRoad in new[] { "verda_corner_house", "verda_small_house", "abandoned_bandit_hideout" })
