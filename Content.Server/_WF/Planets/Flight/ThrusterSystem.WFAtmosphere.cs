@@ -101,8 +101,7 @@ public sealed partial class ThrusterSystem
             thruster.Thrust = thrust;
         }
         state.Atmospheric = inAtmosphere;
-        var hoverPower = penalized && (xform.GridUid is not { } restingGrid || !WfRestingWreck(restingGrid));
-        thruster.OriginalLoad = state.RatedLoad * (hoverPower ? WfAtmospherePowerMultiplier : 1f);
+        thruster.OriginalLoad = state.RatedLoad * (penalized ? WfAtmospherePowerMultiplier : 1f);
         if (TryComp<ApcPowerReceiverComponent>(uid, out var receiver))
             receiver.Load = thruster.Enabled && !state.Cooling ? thruster.OriginalLoad : 1f;
         if (state.Cooling)

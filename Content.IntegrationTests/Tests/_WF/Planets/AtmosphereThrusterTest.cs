@@ -153,45 +153,6 @@ public sealed class AtmosphereThrusterTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Thrust and APC demand track the engine, hover and re-entry included, without compounding.</summary>
-    [Test]
-    public async Task GroundedWreckStopsHoverDrawAndAscentRestoresIt()
-    {
-        await using var pair = await PoolManager.GetServerClient();
-        var server = pair.Server;
-        var em = server.EntMan;
-        await EnableFeature(pair);
-        var layers = await BuildStandalone(pair);
-        await LayTiles(pair, layers[0], new Vector2i(-8, -8), new Vector2i(32, 32));
-        var hull = await BuildHull(pair, await MapIdOf(pair, layers[0]));
-        await MapInitHull(pair, hull);
-        await RemoveOrdinaryThrusters(pair, hull);
-        var engine = await AddPaidEngine(pair, hull, 4000f);
-        await server.WaitPost(() => em.EnsureComponent<WFCrashImpactComponent>(hull));
-        await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
-        await server.WaitAssertion(() =>
-        {
-            var state = em.GetComponent<WFAtmosphereThrusterComponent>(engine);
-            Assert.That(state.PowerLimited, Is.False);
-            Assert.That(em.GetComponent<ApcPowerReceiverComponent>(engine).Load, Is.EqualTo(state.RatedLoad));
-        });
-        var pilot = await HoldVertical(pair, hull, Content.Shared.Movement.Systems.ShuttleButtons.None);
-        var console = FindShuttleConsole(em, hull);
-        var levels = server.System<CEZLevelsSystem>();
-        var started = false;
-        string? reason = null;
-        await server.WaitPost(() => started = levels.WfTryBeginLiftoff(hull, console, pilot, out reason));
-        Assert.That(started, Is.True, $"The wreck's Liftoff request was refused: {reason}");
-        await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
-        await server.WaitAssertion(() =>
-        {
-            var state = em.GetComponent<WFAtmosphereThrusterComponent>(engine);
-            Assert.That(em.GetComponent<ApcPowerReceiverComponent>(engine).Load, Is.EqualTo(state.RatedLoad * ThrusterSystem.WfAtmospherePowerMultiplier));
-        });
-        await Teardown(pair, layers);
-        await pair.CleanReturnAsync();
-    }
-
     [Test]
     public async Task RepeatedAirGroundTransitOrbitAndSpaceTransitionsRestoreThrustAndLoad()
     {

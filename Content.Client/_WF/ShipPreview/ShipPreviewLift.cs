@@ -38,6 +38,10 @@ public static class ShipPreviewLift
             if (data.TryGet<ValueDataNode>("thrusterType", out var type) && type.Value != "Linear")
                 continue;
 
+            // The server gives a disabled engine no lift.
+            if (data.TryGet<ValueDataNode>("enabled", out var enabled) && enabled.Value == "false")
+                continue;
+
             var thrust = DefaultThrust;
             if (data.TryGet<ValueDataNode>("thrust", out var rated) && Parse.TryFloat(rated.Value, out var parsed))
                 thrust = parsed;

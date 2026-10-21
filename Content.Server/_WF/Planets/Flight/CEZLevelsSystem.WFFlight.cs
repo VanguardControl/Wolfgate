@@ -17,7 +17,7 @@ namespace Content.Server._CE.ZLevels.Core;
 /// <summary>Atmospheric flight hooks: thruster lift over a planet, sinking without it, and touchdown costs.</summary>
 public sealed partial class CEZLevelsSystem
 {
-    /// <summary>Crashed hulls stop paying hover power while grounded; an ascent command restores full demand.</summary>
+    /// <summary>A crashed hull resting on the ground with no ascent command; its engines skip the overload pulse.</summary>
     public bool WfWreckResting(EntityUid grid) =>
         HasComp<WFCrashImpactComponent>(grid) && WfHasSkidGround(grid) &&
         !HasComp<WFLiftoffComponent>(grid) && _pilotVerticalInput.GetValueOrDefault(grid) <= 0f;
