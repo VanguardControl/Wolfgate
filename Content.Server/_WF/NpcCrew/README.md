@@ -60,6 +60,11 @@ nothing comes of it. Items aboard when an encounter ship is set up are marked `W
 seen by one of its fighters picking one up is fought at once. A pilot with `FleeAttackers` (traders) runs directly
 away from the nearest attacking ship instead of circling it.
 
+Stealth (`WFCrewStealthSystem`): crews do not see a mob whose stealth field is up (a stealth suit) or a ship whose
+IFF is hidden (a cloak). `WFCrewWeaponSystem.CanSee` drops the mob, and the alert ship lists, zones, hunts and extort
+marks drop the ship. A hostile act shows either to every crew for a while: a mob that attacks, strips or robs a crew
+or fires a gun is seen for 60 s, and a ship reported attacking for 120 s. A theft in plain view is still noticed.
+
 A Warn crew gives a stranger it notices aboard `WarnTime` (30 s) to leave; if he stays, or strikes any crewman, the
 crew's fighters (on-sight crew, marines, the captain and radio officer; not the helm or the guns) take him on as
 their own attacker, by the usual rules: in sight, and one man hunting him unseen. A when-attacked hand answers only
@@ -300,6 +305,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewShipStatusSystem.cs`](Systems/WFCrewShipStatusSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSleepSystem.cs`](Systems/WFCrewSleepSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSpeechSystem.cs`](Systems/WFCrewSpeechSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewStealthSystem.cs`](Systems/WFCrewStealthSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewUiDiagnosticsSystem.cs`](Systems/WFCrewUiDiagnosticsSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewWeaponSystem.cs`](Systems/WFCrewWeaponSystem.cs)

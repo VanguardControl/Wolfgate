@@ -482,7 +482,11 @@ public sealed partial class WFReaverCampaignSystem
             if (fold && TryComp<WFEncounterComponent>(uid, out var hub))
                 FoldHits(hub, reinforcement.Comp2);
 
-            _encounters.End(reinforcement.Owner);
+            // Beaten with its hub, it is resolved, not ended: hulls players are aboard or docked with go through the usual cleanup.
+            if (fold)
+                _encounters.Resolve(reinforcement.Owner, WFEncounterResolution.Ended);
+            else
+                _encounters.End(reinforcement.Owner);
         }
 
         comp.Reinforcements.Clear();
@@ -490,18 +494,26 @@ public sealed partial class WFReaverCampaignSystem
     }
 
     /// <summary>Adds the hits a reinforcement took to a hub's, so those who shot at either are paid for the stronghold.</summary>
-    private static void FoldHits(WFEncounterComponent hub, WFEncounterComponent reinforcement)
+    /// <summary>Adds each player's counts by side into another tally.</summary>
+    private static void Fold(Dictionary<Robust.Shared.Network.NetUserId, Dictionary<string, int>> into,
+        Dictionary<Robust.Shared.Network.NetUserId, Dictionary<string, int>> from)
     {
-        foreach (var (user, bySide) in reinforcement.Hits)
+        foreach (var (user, bySide) in from)
         {
-            if (!hub.Hits.TryGetValue(user, out var into))
-                hub.Hits[user] = into = new Dictionary<string, int>();
+            if (!into.TryGetValue(user, out var tally))
+                into[user] = tally = new Dictionary<string, int>();
 
-            foreach (var (side, hits) in bySide)
+            foreach (var (side, count) in bySide)
             {
-                into[side] = into.GetValueOrDefault(side) + hits;
+                tally[side] = tally.GetValueOrDefault(side) + count;
             }
         }
+    }
+
+    private static void FoldHits(WFEncounterComponent hub, WFEncounterComponent reinforcement)
+    {
+        Fold(hub.Hits, reinforcement.Hits);
+        Fold(hub.Kills, reinforcement.Kills);
 
         foreach (var (key, hits) in reinforcement.ShipHits)
         {

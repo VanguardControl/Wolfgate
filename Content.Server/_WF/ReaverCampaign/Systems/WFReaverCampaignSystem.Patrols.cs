@@ -237,7 +237,7 @@ public sealed partial class WFReaverCampaignSystem
     /// </summary>
     private WFEncounterResolution LostResolution(WFEncounterComponent encounter, string lead)
     {
-        return encounter.ShipHits.Count == 0 && encounter.Ships.TryGetValue(lead, out var state) && _encounters.OutForWantOfPilot(state)
+        return encounter.ShipHits.Count == 0 && encounter.Kills.Count == 0 && encounter.Ships.TryGetValue(lead, out var state) && _encounters.OutForWantOfPilot(state)
             ? WFEncounterResolution.Ended
             : WFEncounterResolution.Destroyed;
     }

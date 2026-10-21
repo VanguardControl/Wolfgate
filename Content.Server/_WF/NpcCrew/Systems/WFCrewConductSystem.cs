@@ -162,7 +162,7 @@ public sealed class WFCrewConductSystem : EntitySystem
         {
             if (member.Group != ent.Comp.Group || xform.GridUid != grid || !WFCrewSystem.IsFighter(member)
                 || !_mobs.IsAlive(uid) || HasComp<ActorComponent>(uid) || _crew.SameCrew(uid, thief)
-                || !_weapons.CanSee(uid, thief))
+                || !_weapons.CanSee(uid, thief, ignoreStealth: true))
                 continue;
 
             Say(uid, "wf-crew-conduct-theft");

@@ -2446,3 +2446,90 @@ Entries:
   id: 100181
   time: '2026-10-20T23:35:44.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/294
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Typing just an emote's name, like *salute or *laugh, now does that emote
+        ("David salutes.").
+    - type: Fix
+      message: Emotes no longer say "The David" after you've worn a mask.
+    - type: Fix
+      message: You can type "..." in chat again.
+  id: 100182
+  time: '2026-10-21T02:16:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/302
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Ashfall Reaver kit: orange combat and void hardsuits, fatigues, deck and
+        engine jumpsuits, pack, chest rig, headset, beret and captain's and
+        warlord's cloaks.
+    - type: Tweak
+      message: >-
+        Reaver crews now wear their own hardsuits: red raider suits on riflemen,
+        orange combat suits on bruisers, a stolen cloak on officers.
+  id: 100183
+  time: '2026-10-21T02:30:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/303
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Encounter ships no longer vanish the moment you step off them. They wait
+        5 minutes after the last player leaves, and never go while docked to a
+        player ship.
+    - type: Fix
+      message: >-
+        Reaver reinforcements no longer disappear from under you when their
+        stronghold falls.
+    - type: Tweak
+      message: >-
+        Killing an encounter's crew in person now earns a share of its reward,
+        split evenly with the ships that fought it.
+    - type: Tweak
+      message: >-
+        Reaver stronghold and patrol bounties are much higher, and the hourly
+        reward cap is raised to 250k.
+    - type: Add
+      message: >-
+        Reaver bounties now include a drydock repair voucher, good for one free
+        full repair at Anvilhold.
+    - type: Add
+      message: >-
+        NPC crews can't see players in stealth suits or ships with a cloak up,
+        until they attack, steal or shoot.
+  id: 100184
+  time: '2026-10-21T02:52:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/305
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        The instrument menu has been overhauled. It shows your instrument and
+        splits playing into Files, Band and Input tabs, with a Configuration tab
+        for channels.
+    - type: Add
+      message: >-
+        MIDI files you add are now saved in a collection you can filter, rename,
+        remove and shuffle. You can also drop files straight into the UserMidis
+        folder in your game data.
+    - type: Add
+      message: A min volume slider for MIDI input devices.
+    - type: Fix
+      message: >-
+        Turning off the percussion channel now actually mutes it. Channels are
+        numbered from 1.
+  id: 100185
+  time: '2026-10-21T03:11:05.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/304
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added a "Cortical borers may enter me" consent toggle. It's on by
+        default; turn it off to stop borers infesting you.
+  id: 100186
+  time: '2026-10-21T03:11:44.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/306

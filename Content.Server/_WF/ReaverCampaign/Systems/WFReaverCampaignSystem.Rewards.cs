@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Server._WF.Drydock;
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.ReaverCampaign.Components;
 using Content.Shared._WF.Encounters;
@@ -9,6 +10,8 @@ namespace Content.Server._WF.ReaverCampaign.Systems;
 
 public sealed partial class WFReaverCampaignSystem
 {
+    [Dependency] private WFDrydockSystem _drydock = default!;
+
     /// <summary>How near a stronghold's lead a player ship must stand by to count for the support pool.</summary>
     private const float SupportRange = 2500f;
 
@@ -48,7 +51,9 @@ public sealed partial class WFReaverCampaignSystem
         }
 
         var (reward, extra) = Rewards(campaign, bounty, grant => (int) (grant.Stronghold * factor));
-        var paid = _rewards.PayBounty(uid, reward, comp.Citadel ? "breaking the Reaver citadel" : "breaking the Reaver stronghold", supporters, extra);
+        var helpers = new List<EntityUid>();
+        var paid = _rewards.PayBounty(uid, reward, comp.Citadel ? "breaking the Reaver citadel" : "breaking the Reaver stronghold", supporters, extra, helpers);
+        _drydock.IssueShipVouchers(campaign.StrongholdVoucher, helpers);
         return (bounty, paid);
     }
 
@@ -56,7 +61,9 @@ public sealed partial class WFReaverCampaignSystem
     private (int Bounty, int Paid) PayPatrolBounty(WFReaverCampaignPrototype campaign, EntityUid patrol)
     {
         var (reward, extra) = Rewards(campaign, campaign.PatrolBounty, grant => grant.Patrol);
-        var paid = _rewards.PayBounty(patrol, reward, "destroying the Reaver patrol", null, extra);
+        var helpers = new List<EntityUid>();
+        var paid = _rewards.PayBounty(patrol, reward, "destroying the Reaver patrol", null, extra, helpers);
+        _drydock.IssueShipVouchers(campaign.PatrolVoucher, helpers);
         return (campaign.PatrolBounty, paid);
     }
 
@@ -64,7 +71,9 @@ public sealed partial class WFReaverCampaignSystem
     private (int Bounty, int Paid) PayReinforcementBounty(WFReaverCampaignPrototype campaign, EntityUid reinforcement)
     {
         var (reward, extra) = Rewards(campaign, campaign.PatrolBounty, grant => grant.Patrol);
-        var paid = _rewards.PayBounty(reinforcement, reward, "destroying the Reaver reinforcements", null, extra);
+        var helpers = new List<EntityUid>();
+        var paid = _rewards.PayBounty(reinforcement, reward, "destroying the Reaver reinforcements", null, extra, helpers);
+        _drydock.IssueShipVouchers(campaign.PatrolVoucher, helpers);
         return (campaign.PatrolBounty, paid);
     }
 
@@ -75,7 +84,9 @@ public sealed partial class WFReaverCampaignSystem
         var scale = citadel ? campaign.CitadelBountyScale : 1f;
         var bounty = (int) (ByTier(campaign.StrongholdBounty, state.Tier, 0) * scale) / 2;
         var (reward, extra) = Rewards(campaign, bounty, grant => (int) (grant.Stronghold * scale) / 2);
-        var paid = _rewards.PayBounty(convoy, reward, citadel ? "destroying the Reaver citadel convoy" : "destroying the Reaver convoy", null, extra);
+        var helpers = new List<EntityUid>();
+        var paid = _rewards.PayBounty(convoy, reward, citadel ? "destroying the Reaver citadel convoy" : "destroying the Reaver convoy", null, extra, helpers);
+        _drydock.IssueShipVouchers(campaign.StrongholdVoucher, helpers);
         return (bounty, paid);
     }
 

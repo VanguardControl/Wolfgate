@@ -380,7 +380,7 @@ public sealed partial class WFDrydockSystem
         }
         else
         {
-            var refund = returned.Sum(i => i.Cost);
+            var refund = job.Voucher != null ? 0 : returned.Sum(i => i.Cost);
             job.SkippedRefund += refund;
             Refund(job, refund);
         }
@@ -749,8 +749,9 @@ public sealed partial class WFDrydockSystem
             }
             else
             {
-                var refund = unfinished.Sum(i => i.Cost);
+                var refund = job.Voucher != null ? 0 : unfinished.Sum(i => i.Cost);
                 Refund(job, refund);
+                ReturnVoucher(job);
                 Notify(console, comp, job, Loc.GetString(powerLost ? "drydock-console-aborted-power" : "drydock-console-aborted", ("refund", refund)));
             }
             _audio.PlayPvs(comp.DenySound, console);
