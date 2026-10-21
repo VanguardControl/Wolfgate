@@ -132,12 +132,12 @@
     - WFCrewIntercom
     defaultChannel: WFCrewIntercom
 
-# The Reavers' own pressure suit: a death squad hardsuit in their red and black, with a pirate's armour under it.
-# Marines wear it off the ship, so it is what a boarding party meets and what a looter takes home.
+# The Reavers' raider suit: a death squad hardsuit in their red and black, with a pirate's armour under it. The
+# riflemen wear it, so it is what a boarding party meets and what a looter takes home; the rest of the kit is in ReaverGear.
 - type: entity
   parent: ClothingOuterHardsuitBase
   id: WFClothingOuterHardsuitReaver
-  name: reaver hardsuit
+  name: reaver raider hardsuit
   description: A death squad hardsuit stripped of its plating and painted in Ashfall red. The armour under the paint is a pirate's, not a commando's.
   components:
   - type: Sprite
@@ -177,7 +177,7 @@
 - type: entity
   parent: ClothingHeadHardsuitBase
   id: WFClothingHeadHelmetHardsuitReaver
-  name: reaver hardsuit helmet
+  name: reaver raider helmet
   description: A death squad helmet in Ashfall red. The lenses still glow; the electronics behind them are long gone.
   components:
   - type: Sprite
