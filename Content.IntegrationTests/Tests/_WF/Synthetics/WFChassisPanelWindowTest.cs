@@ -375,6 +375,15 @@ public sealed class WFChassisPanelWindowTest : GameTest
             WFButtonTestInput.Click(panel.Parts[3].Detach);
             WFButtonTestInput.Click(panel.Parts[1].Detach);
             Assert.That(detaches, Is.EqualTo(new[] { Net(4) }));
+        });
+
+        // The component buttons are on the second tab and are only laid out once it is shown.
+        await Client.WaitPost(() => window!.CurrentTab = 1);
+        await RunTicksSync(3);
+
+        await Client.WaitAssertion(() =>
+        {
+            var panel = window!;
 
             // A plain component goes at once; the core asks twice.
             WFButtonTestInput.Click(panel.Organs[0].Disconnect);
@@ -457,10 +466,11 @@ public sealed class WFChassisPanelWindowTest : GameTest
         });
         await RunTicksSync(3);
 
+        List<GridContainer> grids = null!;
         await Client.WaitAssertion(() =>
         {
             var panel = window!;
-            var grids = Descendants(panel).OfType<GridContainer>().ToList();
+            grids = Descendants(panel).OfType<GridContainer>().ToList();
             Assert.That(grids, Has.Count.EqualTo(2), "one grid for parts, one for components.");
             Assert.That(grids[0].Columns, Is.EqualTo(7));
             Assert.That(grids[1].Columns, Is.EqualTo(6));
@@ -471,28 +481,108 @@ public sealed class WFChassisPanelWindowTest : GameTest
             foreach (var title in new[] { "PART", "STATE", "INTEGRITY", "LOAD", "FAULTS", "ACTIONS", "SLOT", "COMPONENT", "HEALTH", "STATUS" })
                 Assert.That(texts, Has.Some.EqualTo(title), $"column title {title}");
 
-            Assert.Multiple(() =>
-            {
-                foreach (var grid in grids)
-                {
-                    var columns = grid.Columns;
-                    var cells = grid.Children.ToList();
-                    for (var i = columns; i < cells.Count; i++)
-                    {
-                        var header = cells[i % columns];
-                        Assert.That(cells[i].GlobalPosition.X, Is.EqualTo(header.GlobalPosition.X).Within(0.5f),
-                            $"cell {i} must sit under its header");
-                        Assert.That(cells[i].Width, Is.EqualTo(header.Width).Within(0.5f), $"cell {i} width");
-                    }
-                }
+            foreach (var row in panel.Parts)
+                Assert.That(row.Cells, Has.Count.EqualTo(7));
+            foreach (var row in panel.Organs)
+                Assert.That(row.Cells, Has.Count.EqualTo(6));
+            Assert.That(Background(panel.Parts[0].Cells[0]), Is.Not.EqualTo(Background(panel.Parts[1].Cells[0])),
+                "rows alternate their background.");
 
-                foreach (var row in panel.Parts)
-                    Assert.That(row.Cells, Has.Count.EqualTo(7));
-                foreach (var row in panel.Organs)
-                    Assert.That(row.Cells, Has.Count.EqualTo(6));
-                Assert.That(Background(panel.Parts[0].Cells[0]), Is.Not.EqualTo(Background(panel.Parts[1].Cells[0])),
-                    "rows alternate their background.");
-            });
+            AssertAligned(grids[0]);
+        });
+
+        // A hidden tab is not laid out, so the components table is checked once its tab is shown.
+        await Client.WaitPost(() => window!.CurrentTab = 1);
+        await RunTicksSync(3);
+        await Client.WaitAssertion(() => AssertAligned(grids[1]));
+
+        await Client.WaitPost(() => window!.Dispose());
+    }
+
+    private static void AssertAligned(GridContainer grid)
+    {
+        Assert.Multiple(() =>
+        {
+            var columns = grid.Columns;
+            var cells = grid.Children.ToList();
+            for (var i = columns; i < cells.Count; i++)
+            {
+                var header = cells[i % columns];
+                Assert.That(cells[i].GlobalPosition.X, Is.EqualTo(header.GlobalPosition.X).Within(0.5f),
+                    $"cell {i} must sit under its header");
+                Assert.That(cells[i].Width, Is.EqualTo(header.Width).Within(0.5f), $"cell {i} width");
+                Assert.That(cells[i].Width, Is.GreaterThan(0f), $"cell {i} must be laid out");
+            }
+        });
+    }
+
+    /// <summary>
+    /// The window has two tabs, PARTS and COMPONENTS; the parts table and the doll live in the first, the components
+    /// table in the second, and a new state never moves the player off the tab they chose.
+    /// </summary>
+    [Test]
+    public async Task TabsTest()
+    {
+        WFChassisPanelWindow? window = null;
+        var changes = new List<int>();
+        await Client.WaitPost(() =>
+        {
+            window = new WFChassisPanelWindow();
+            window.OnTabChanged += changes.Add;
+            window.OpenCentered();
+            window.Update(State());
+        });
+        await RunTicksSync(3);
+
+        await Client.WaitAssertion(() =>
+        {
+            var panel = window!;
+            var tabs = panel.TabHost;
+            Assert.That(tabs.ChildCount, Is.EqualTo(2));
+            Assert.That(tabs.GetActualTabTitle(0), Is.EqualTo("PARTS"));
+            Assert.That(tabs.GetActualTabTitle(1), Is.EqualTo("COMPONENTS"));
+            Assert.That(panel.CurrentTab, Is.EqualTo(0), "the window opens on the parts.");
+
+            var parts = tabs.GetChild(0);
+            var components = tabs.GetChild(1);
+            var grids = Descendants(panel).OfType<GridContainer>().ToList();
+            Assert.That(grids, Has.Count.EqualTo(2));
+            Assert.That(Descendants(parts).OfType<GridContainer>().ToList(), Is.EqualTo(new[] { grids[0] }),
+                "the parts table is in tab 0.");
+            Assert.That(Descendants(components).OfType<GridContainer>().ToList(), Is.EqualTo(new[] { grids[1] }),
+                "the components table is in tab 1.");
+            Assert.That(grids[0].Columns, Is.EqualTo(7));
+            Assert.That(grids[1].Columns, Is.EqualTo(6));
+            Assert.That(parts.Visible, Is.True);
+            Assert.That(components.Visible, Is.False);
+
+            // The header and the controls stay out of the tabs, so they show on both.
+            foreach (var control in new Control[] { panel.BayButton, panel.RebootControl, panel.OverclockControl })
+                Assert.That(Descendants(tabs).Contains(control), Is.False, $"{control.GetType().Name} sits below the tabs.");
+
+            panel.Update(State(bayOpen: true));
+            Assert.That(panel.CurrentTab, Is.EqualTo(0), "an update keeps the tab.");
+            panel.CurrentTab = 1;
+            Assert.That(changes, Is.EqualTo(new[] { 1 }));
+            panel.Update(State());
+            panel.Update(new WFChassisPanelState());
+            Assert.That(panel.CurrentTab, Is.EqualTo(1), "updates, even an empty one, do not reset the tab.");
+            Assert.That(components.Visible, Is.True);
+            Assert.That(parts.Visible, Is.False);
+
+            panel.CurrentTab = 99;
+            Assert.That(panel.CurrentTab, Is.EqualTo(1), "an index past the last tab clamps to it.");
+        });
+
+        // The controls are live on the components tab as well.
+        await RunTicksSync(3);
+        await Client.WaitAssertion(() =>
+        {
+            var bay = 0;
+            window!.OnToggleBay += () => bay++;
+            window.Update(State());
+            WFButtonTestInput.Click(window.BayButton);
+            Assert.That(bay, Is.EqualTo(1));
         });
 
         await Client.WaitPost(() => window!.Dispose());

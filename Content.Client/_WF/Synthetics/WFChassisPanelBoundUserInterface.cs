@@ -8,6 +8,9 @@ namespace Content.Client._WF.Synthetics;
 [UsedImplicitly]
 public sealed class WFChassisPanelBoundUserInterface(EntityUid owner, Enum uiKey) : BoundUserInterface(owner, uiKey)
 {
+    /// <summary>The tab the player last had open, so the panel reopens on it.</summary>
+    private static int _lastTab;
+
     [ViewVariables]
     private WFChassisPanelWindow? _window;
 
@@ -22,6 +25,9 @@ public sealed class WFChassisPanelBoundUserInterface(EntityUid owner, Enum uiKey
         _window.OnToggleBay += () => SendMessage(new WFChassisToggleBayMessage());
         _window.OnReboot += () => SendMessage(new WFChassisRebootMessage());
         _window.OnOverclock += on => SendMessage(new WFChassisOverclockMessage(on));
+
+        _window.CurrentTab = _lastTab;
+        _window.OnTabChanged += tab => _lastTab = tab;
     }
 
     protected override void UpdateState(BoundUserInterfaceState state)
