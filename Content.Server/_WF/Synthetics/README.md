@@ -30,6 +30,7 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Content.Server/_WF/Synthetics/WFChassisPanelSystem.State.cs`](WFChassisPanelSystem.State.cs)
 - [`Content.Server/_WF/Synthetics/WFLowPowerSystem.cs`](WFLowPowerSystem.cs)
 - [`Content.Server/_WF/Synthetics/WFSyntheticLimbSystem.cs`](WFSyntheticLimbSystem.cs)
+- [`Content.Server/_WF/Synthetics/WFSynthManualSystem.cs`](WFSynthManualSystem.cs)
 
 ### Shared
 
@@ -59,10 +60,13 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPanelWindowTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPanelWindowTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPowerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFChassisPowerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Synthetics/WFSyntheticLimbTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFSyntheticLimbTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Synthetics/WFSynthManualTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Synthetics/WFSynthManualTest.cs)
 
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/Synthetics/actions.yml`](../../../Resources/Prototypes/_WF/Synthetics/actions.yml)
+- [`Resources/Prototypes/_WF/Synthetics/book.yml`](../../../Resources/Prototypes/_WF/Synthetics/book.yml)
+- [`Resources/Prototypes/_WF/Synthetics/guidebook.yml`](../../../Resources/Prototypes/_WF/Synthetics/guidebook.yml)
 - [`Resources/Prototypes/_WF/Synthetics/hud_lines.yml`](../../../Resources/Prototypes/_WF/Synthetics/hud_lines.yml)
 - [`Resources/Prototypes/_WF/Synthetics/low_power.yml`](../../../Resources/Prototypes/_WF/Synthetics/low_power.yml)
 - [`Resources/Prototypes/_WF/Synthetics/wounds.yml`](../../../Resources/Prototypes/_WF/Synthetics/wounds.yml)
@@ -72,9 +76,14 @@ the character's profile. Nothing keys on a species or a mob prototype.
 - [`Resources/Locale/en-US/_WF/Synthetics/chassis-bay.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/chassis-bay.ftl)
 - [`Resources/Locale/en-US/_WF/Synthetics/chassis-panel-ui.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/chassis-panel-ui.ftl)
 - [`Resources/Locale/en-US/_WF/Synthetics/chassis-panel.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/chassis-panel.ftl)
+- [`Resources/Locale/en-US/_WF/Synthetics/guidebook.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/guidebook.ftl)
 - [`Resources/Locale/en-US/_WF/Synthetics/low-power.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/low-power.ftl)
 - [`Resources/Locale/en-US/_WF/Synthetics/synthetic-limbs.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/synthetic-limbs.ftl)
 - [`Resources/Locale/en-US/_WF/Synthetics/synthetics.ftl`](../../../Resources/Locale/en-US/_WF/Synthetics/synthetics.ftl)
+
+### Guidebook
+
+- [`Resources/ServerInfo/_WF/Synthetics/SynthsAndYou.xml`](../../../Resources/ServerInfo/_WF/Synthetics/SynthsAndYou.xml)
 
 ## Non-modular edits
 
@@ -92,5 +101,6 @@ the character's profile. Nothing keys on a species or a mob prototype.
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcLeg must stay FIRST
   - lego limbs, chassis amputation thresholds; WFWolfmedPartIpcFoot must stay FIRST
 - [`Resources/Prototypes/_Onyx/Wounds/wounds.yml`](../../../Resources/Prototypes/_Onyx/Wounds/wounds.yml): a limb put back by hand. Created only by WFSyntheticLimbSystem.
+- [`Resources/Prototypes/Guidebook/medical.yml`](../../../Resources/Prototypes/Guidebook/medical.yml): guide for repairing synthetics
 
 <!-- WOLFGATE-GENERATED END -->
