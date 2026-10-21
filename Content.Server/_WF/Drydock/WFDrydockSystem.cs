@@ -68,6 +68,7 @@ public sealed partial class WFDrydockSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+        InitializeVouchers();
 
         SubscribeLocalEvent<WFDrydockConsoleComponent, BoundUIOpenedEvent>(OnUiOpened);
         SubscribeLocalEvent<WFDrydockConsoleComponent, WFDrydockRepairMessage>(OnRepair);

@@ -3,9 +3,10 @@
 Anvilhold Drydock is a POI station (`WFDrydock`, `Resources/Maps/_WF/Drydock/drydock.yml`) that repairs and refits
 ships parked in its four berths, North, East, South and West. A pilot either pulls up to a berth console or hails the
 dockmaster from their helm (Hailing module) and books a berth. Any ship can also build a mobile drydock, which pays in
-materials instead of credits. A `WFDrydockRepairVoucher` (a Reaver bounty reward) on the payer, in hand or a worn
-slot, pays for one whole repair at a console that takes credits; it is used up when the work starts and handed back if
-the job aborts (`WFDrydockSystem.Vouchers.cs`).
+materials instead of credits. A `WFDrydockRepairVoucher` on the payer, in hand or a worn slot, pays for one whole
+repair at a console that takes credits; it is used up when the work starts and handed back if the job aborts
+(`WFDrydockSystem.Vouchers.cs`). `IssueShipVouchers` (used by Reaver bounties) binds one to each helping ship, which it
+alone can repair, and skips a ship that still holds an unused one.
 
 Entry points: `WFDrydockSystem` (berths, quotes, payment; `.Job.cs` for jobs and cranes, `.Booking.cs` for the hail
 service, bookings and guides, `.Materials.cs` for material bills), `WFShipRefitSystem` and `WFPartRefitSystem` (refit

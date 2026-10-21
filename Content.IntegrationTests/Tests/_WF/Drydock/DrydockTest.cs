@@ -1573,4 +1573,42 @@ public sealed class DrydockTest
 
         await pair.CleanReturnAsync();
     }
+
+    /// <summary>A ship gets one voucher bound to it, however many of its crew helped, and no second while it holds one.</summary>
+    [Test]
+    public async Task ShipVouchersAreOnePerShipAndBound()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var drydock = server.System<WFDrydockSystem>();
+
+        await server.WaitAssertion(() =>
+        {
+            var ship = CreateShip(pair, map.MapId);
+            em.EnsureComponent<Content.Shared._NF.Shipyard.Components.ShuttleDeedComponent>(ship);
+            var loose = CreateShip(pair, map.MapId, new Vector2(200f, 0f));
+            SetFloor(pair, ship, 2);
+            SetFloor(pair, loose, 2);
+            var coords = new EntityCoordinates(ship, new Vector2(0.5f));
+            var crew = new List<EntityUid>
+            {
+                em.SpawnEntity("MobHuman", coords),
+                em.SpawnEntity("MobHuman", coords),
+                em.SpawnEntity("MobHuman", new EntityCoordinates(loose, new Vector2(0.5f))),
+            };
+
+            Assert.That(drydock.IssueShipVouchers("WFDrydockRepairVoucher", crew), Is.EqualTo(1), "One voucher for the deeded ship, none for a ship with no deed.");
+            Assert.That(drydock.HasVoucher(ship), Is.True);
+            var voucher = em.EntityQuery<WFDrydockRepairVoucherComponent>().Single();
+            Assert.That(voucher.Ship, Is.EqualTo(ship), "The voucher is bound to the ship.");
+            Assert.That(drydock.IssueShipVouchers("WFDrydockRepairVoucher", crew), Is.EqualTo(0), "No second voucher while the first is unused.");
+
+            em.DeleteEntity(voucher.Owner);
+            Assert.That(drydock.IssueShipVouchers("WFDrydockRepairVoucher", crew), Is.EqualTo(1), "Once it is spent the ship can earn another.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
 }

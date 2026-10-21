@@ -2503,3 +2503,33 @@ Entries:
   id: 100184
   time: '2026-10-21T02:52:40.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/305
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        The instrument menu has been overhauled. It shows your instrument and
+        splits playing into Files, Band and Input tabs, with a Configuration tab
+        for channels.
+    - type: Add
+      message: >-
+        MIDI files you add are now saved in a collection you can filter, rename,
+        remove and shuffle. You can also drop files straight into the UserMidis
+        folder in your game data.
+    - type: Add
+      message: A min volume slider for MIDI input devices.
+    - type: Fix
+      message: >-
+        Turning off the percussion channel now actually mutes it. Channels are
+        numbered from 1.
+  id: 100185
+  time: '2026-10-21T03:11:05.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/304
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added a "Cortical borers may enter me" consent toggle. It's on by
+        default; turn it off to stop borers infesting you.
+  id: 100186
+  time: '2026-10-21T03:11:44.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/306

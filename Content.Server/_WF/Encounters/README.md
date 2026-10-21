@@ -149,7 +149,7 @@ as its own orders. `WFEncounterRewardSystem.PayBounty` pays a beaten encounter's
 or downed one of its crewmen in person (crews carry a `KillTrackerComponent`; kills and assists are kept in `Kills`),
 split per attacking ship and then per head, a boarding party counting as one more ship, with a fifth for the players aboard any supporter grids, and returns how many
 were paid, and its optional `extraCredits` are further rewards of which only the faction credits are handed out, so one
-bounty can pay several navies; a reward's `items` are handed to each player paid; `GetHelpers` is
+bounty can pay several navies, and its optional `helperMobs` collects everyone it was shared among; `GetHelpers` is
 the helper rule it shares with the Decided payout. The scheduler's `IsClearSpace` and `Stations` give placement checks, and
 the broadcast by-ref `WFEncounterCollectMarkersEvent` (add markers of your own, as the ShipPa SOS does), `WFEncounterWeightEvent` (change a candidate's weight) and `WFEncounterStationsEvent` (drop stations
 from a map's list) let other modules shape what it picks and where.

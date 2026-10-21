@@ -24,9 +24,9 @@
   tierThresholds: [ 10, 22, 40, 60, 80 ]
   strongholdBounty: [ 100000, 150000, 200000, 260000, 330000, 400000 ]
   patrolBounty: 35000
-  # Each player paid a bounty also gets a free repair at the Anvilhold Drydock.
-  strongholdItems: [ WFDrydockRepairVoucher ]
-  patrolItems: [ WFDrydockRepairVoucher ]
+  # Each ship that helps also gets a free repair at the Anvilhold Drydock, bound to it, one unused at a time.
+  strongholdVoucher: WFDrydockRepairVoucher
+  patrolVoucher: WFDrydockRepairVoucher
   # Spesos for retaking a held cell, by tier, split among the crews of the ships that held it through the countdown.
   retakeBounty: [ 8000, 10000, 12000, 14000, 16000, 20000 ]
   # Reinforcements dock to a stronghold hub one by one: the interval a hub stands before the next sets out, the level
@@ -84,9 +84,9 @@
   tierThresholds: [ 12, 30, 55, 80, 105 ]
   strongholdBounty: [ 100000, 150000, 200000, 260000, 330000, 400000 ]
   patrolBounty: 35000
-  # Each player paid a bounty also gets a free repair at the Anvilhold Drydock.
-  strongholdItems: [ WFDrydockRepairVoucher ]
-  patrolItems: [ WFDrydockRepairVoucher ]
+  # Each ship that helps also gets a free repair at the Anvilhold Drydock, bound to it, one unused at a time.
+  strongholdVoucher: WFDrydockRepairVoucher
+  patrolVoucher: WFDrydockRepairVoucher
   # Spesos for retaking a held cell, by tier, split among the crews of the ships that held it through the countdown.
   retakeBounty: [ 10000, 12000, 14000, 17000, 20000, 25000 ]
   # Reinforcements dock to a stronghold hub one by one: the interval a hub stands before the next sets out, the level
@@ -144,9 +144,9 @@
   tierThresholds: [ 15, 35, 60, 90, 120 ]
   strongholdBounty: [ 100000, 150000, 200000, 260000, 330000, 400000 ]
   patrolBounty: 35000
-  # Each player paid a bounty also gets a free repair at the Anvilhold Drydock.
-  strongholdItems: [ WFDrydockRepairVoucher ]
-  patrolItems: [ WFDrydockRepairVoucher ]
+  # Each ship that helps also gets a free repair at the Anvilhold Drydock, bound to it, one unused at a time.
+  strongholdVoucher: WFDrydockRepairVoucher
+  patrolVoucher: WFDrydockRepairVoucher
   # Spesos for retaking a held cell, by tier, split among the crews of the ships that held it through the countdown.
   retakeBounty: [ 12000, 15000, 18000, 22000, 26000, 30000 ]
   # Reinforcements dock to a stronghold hub one by one: the interval a hub stands before the next sets out, the level

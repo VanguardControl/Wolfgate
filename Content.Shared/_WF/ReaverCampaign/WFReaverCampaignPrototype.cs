@@ -98,13 +98,13 @@ public sealed partial class WFReaverCampaignPrototype : IPrototype
     [DataField]
     public int PatrolBounty = 20000;
 
-    /// <summary>Items handed to each player paid for breaking a stronghold or convoy.</summary>
+    /// <summary>The repair voucher each ship that helps break a stronghold or convoy gets, bound to that ship.</summary>
     [DataField]
-    public List<EntProtoId> StrongholdItems = new();
+    public EntProtoId? StrongholdVoucher;
 
-    /// <summary>Items handed to each player paid for destroying a patrol or reinforcement.</summary>
+    /// <summary>The repair voucher each ship that helps destroy a patrol or reinforcement gets, bound to that ship.</summary>
     [DataField]
-    public List<EntProtoId> PatrolItems = new();
+    public EntProtoId? PatrolVoucher;
 
     /// <summary>Spesos for retaking a held cell, by tier, split among the crews of the ships that held it through the countdown.</summary>
     [DataField]
