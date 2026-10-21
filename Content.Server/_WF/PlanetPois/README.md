@@ -16,6 +16,15 @@ scattered along it from the Streets and Vehicles props. Blocking pieces keep off
 and apart from one another, so a road is never shut, and nothing is placed inside a site. Asclepiu and
 Merak have one each (`road_dressing.yml`).
 
+A network's `tunnels` (`WFPlanetPoiSystem.Tunnels`) wall one or two straight stretches of road in the world's rock and roof
+them over: dark, with webs and bones along the edges and lurkers inside (`tunnels.yml`: giant spiders and the world's
+risen wreck crew). A tunnel keeps off the sites and clear of bends and junctions, and a footpath meeting the road
+inside one leaves a gap in its wall. Every road world has them.
+
+A table's `wrecks` (`WFPlanetPoiSystem.Wrecks`, themes in `wrecks.yml`) crash a few vessels off the roads, torn open
+and reclaimed by the world, with its wildlife and what's left of the crew inside: spacers dressed for that world who
+rise as zombies when spawned (`WFZombifyOnSpawn`, `wreck_crew.yml`).
+
 An isolated site with `trail: true` stands off the roads and gets a footpath instead (`WFPlanetPoiSystem.Trails`,
 routed by `WFPlanetTrailPlanner`): a wandering track of the network's `trailTile`, a tile or two wide, from just
 outside its first socket (a door) to the nearest road or earlier footpath. A site more than `trailLength` (240) steps from
@@ -43,6 +52,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Roamers.cs`](WFPlanetPoiSystem.Roamers.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Rotation.cs`](WFPlanetPoiSystem.Rotation.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Trails.cs`](WFPlanetPoiSystem.Trails.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Tunnels.cs`](WFPlanetPoiSystem.Tunnels.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Wrecks.cs`](WFPlanetPoiSystem.Wrecks.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetRoadPlanner.cs`](WFPlanetRoadPlanner.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetTrailPlanner.cs`](WFPlanetTrailPlanner.cs)
@@ -78,6 +88,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Resources/Prototypes/_WF/PlanetPois/road_props.yml`](../../../Resources/Prototypes/_WF/PlanetPois/road_props.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/tables.yml`](../../../Resources/Prototypes/_WF/PlanetPois/tables.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/traders.yml`](../../../Resources/Prototypes/_WF/PlanetPois/traders.yml)
+- [`Resources/Prototypes/_WF/PlanetPois/tunnels.yml`](../../../Resources/Prototypes/_WF/PlanetPois/tunnels.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/wreck_crew.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wreck_crew.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/wrecks.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wrecks.yml)
 

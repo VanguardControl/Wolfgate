@@ -207,6 +207,7 @@ public sealed partial class WFPlanetPoiSystem
                     record.Centreline.UnionWith(plan.Centreline);
                     DressRoads(ground, grid, record, roads, plan, created, createdDecals);
                     LayTrails(ground, grid, biome, record, roads, centre, radius - 1, changed);
+                    DigTunnels(ground, grid, biome, record, roads, plan, created, changed);
                 }
             }
             // Wrecks last: they keep off the sites and roads, which are pinned by now.
@@ -235,6 +236,7 @@ public sealed partial class WFPlanetPoiSystem
             record.RoadTiles.Clear();
             record.ShoulderTiles.Clear();
             record.TrailTiles.Clear();
+            record.Tunnels.Clear();
             record.Centreline.Clear();
             record.Furniture.Clear();
             record.GenerationError = $"POI table {table.ID}: {error.Message}";

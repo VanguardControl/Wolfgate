@@ -15,6 +15,11 @@
     shoulderTile: RMCPlanetHybrisaSidewalk
     shoulderWidth: 1
     dressing: WFRoadDressingAsclepiu
+    tunnels:
+      wall: WallRock
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersVerda
+      clutter: [ SpiderWeb, MaterialBones1 ]
   minCount: 11
   maxCount: 15
   entries:
@@ -155,6 +160,11 @@
     shoulderTile: RMCPlanetHybrisaSidewalk
     shoulderWidth: 1
     dressing: WFRoadDressingMerak
+    tunnels:
+      wall: WallRockSand
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersMerak
+      clutter: [ MaterialBones1 ]
   minCount: 6
   maxCount: 8
   entries:
@@ -250,6 +260,11 @@
   roads:
     tile: FloorDarkPavement
     width: 3
+    tunnels:
+      wall: WallRockBasalt
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersFervidus
+      clutter: [ MaterialBones1 ]
   minCount: 2
   maxCount: 3
   entries:
@@ -276,6 +291,11 @@
   roads:
     tile: FloorSnowDug
     width: 3
+    tunnels:
+      wall: WallRockSnow
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersThrascias
+      clutter: [ SpiderWeb, MaterialBones1 ]
   minCount: 2
   maxCount: 3
   entries:
@@ -306,6 +326,11 @@
   roads:
     tile: FloorChromite
     width: 3
+    tunnels:
+      wall: WallRockChromite
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersAerumna
+      clutter: [ SpiderWeb, MaterialBones1 ]
   minCount: 2
   maxCount: 2
   spacing: 96
@@ -335,6 +360,11 @@
   roads:
     tile: FloorDirt
     width: 3
+    tunnels:
+      wall: WallMeat
+      lurkers: !type:NestedSelector
+        tableId: WFTunnelLurkersCarcinoma
+      clutter: [ WFFleshPolyp, MaterialBones1 ]
   minCount: 3
   maxCount: 3
   spacing: 96

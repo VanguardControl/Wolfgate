@@ -42,6 +42,10 @@ public sealed partial class WFPlanetPoiComponent : Component
     [ViewVariables]
     public HashSet<Vector2i> TrailTiles = new();
 
+    /// <summary>The roofed road through each tunnel, one set a tunnel.</summary>
+    [ViewVariables]
+    public List<HashSet<Vector2i>> Tunnels = new();
+
     /// <summary>The tiles down the middle of the roads, and everything the roads were furnished with.</summary>
     [ViewVariables]
     public HashSet<Vector2i> Centreline = new();

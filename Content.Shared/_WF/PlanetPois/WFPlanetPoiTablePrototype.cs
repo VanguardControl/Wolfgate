@@ -1,3 +1,4 @@
+using Content.Shared.EntityTable.EntitySelectors;
 using Content.Shared.Procedural;
 using Content.Shared.Salvage;
 using Robust.Shared.Maths;
@@ -179,4 +180,51 @@ public sealed partial class WFPlanetRoadNetwork
     /// <summary>The longest footpath, in tiles; a site further from the roads goes without.</summary>
     [DataField]
     public int TrailLength = 240;
+
+    /// <summary>Stretches of road walled in and roofed over, dark, with something living inside; none leaves them open.</summary>
+    [DataField]
+    public WFRoadTunnels? Tunnels;
+}
+
+/// <summary>How a world's roads tunnel through rock: how many, how long, what they're cut through and what lurks there.</summary>
+[DataDefinition]
+public sealed partial class WFRoadTunnels
+{
+    [DataField]
+    public int MinCount = 1;
+
+    [DataField]
+    public int MaxCount = 2;
+
+    /// <summary>Length along the road, in tiles.</summary>
+    [DataField]
+    public int MinLength = 16;
+
+    [DataField]
+    public int MaxLength = 28;
+
+    /// <summary>The rock either side.</summary>
+    [DataField]
+    public EntProtoId Wall = "WallRock";
+
+    /// <summary>How many tiles thick the rock is each side.</summary>
+    [DataField]
+    public int Thickness = 2;
+
+    /// <summary>What lives in there; one pick per lurker.</summary>
+    [DataField]
+    public EntityTableSelector? Lurkers;
+
+    [DataField]
+    public int MinLurkers = 2;
+
+    [DataField]
+    public int MaxLurkers = 4;
+
+    /// <summary>Webs, bones and the like strewn along the edges.</summary>
+    [DataField]
+    public List<EntProtoId> Clutter = new();
+
+    [DataField]
+    public float ClutterChance = 0.1f;
 }

@@ -331,6 +331,28 @@ public sealed class PlanetRoadDressingTest
                 var dressing = proto.Index<WFPlanetPoiTablePrototype>(tableId).Roads!.Dressing!.Value;
                 var world = new Box2(-radius - 8, -radius - 8, radius + 8, radius + 8);
                 Check(server, layers[0], dressing, world, null);
+
+                // A tunnel or two: roofed road, still open to drive, walled with rock either side.
+                var record = entMan.GetComponent<WFPlanetPoiComponent>(layers[0]);
+                var grid = entMan.GetComponent<MapGridComponent>(layers[0]);
+                var maps = server.System<SharedMapSystem>();
+                var roofs = server.System<Content.Shared.Light.EntitySystems.SharedRoofSystem>();
+                var roof = entMan.GetComponent<Content.Shared.Light.Components.RoofComponent>(layers[0]);
+                var wall = proto.Index<WFPlanetPoiTablePrototype>(tableId).Roads!.Tunnels!.Wall.Id;
+                Assert.That(record.Tunnels, Is.Not.Empty, "The roads have no tunnels.");
+                foreach (var tunnel in record.Tunnels)
+                {
+                    Assert.That(tunnel.All(tile => roofs.IsRooved((layers[0], grid, roof), tile)), Is.True, "A tunnel is open to the sky.");
+                    Assert.That(tunnel.All(tile => record.RoadTiles.Contains(tile) || record.ShoulderTiles.Contains(tile)), Is.True,
+                        "A tunnel strays off the road.");
+                    Assert.That(tunnel.Any(tile => maps.GetAnchoredEntities((layers[0], grid), tile)
+                        .Any(entity => entMan.GetComponent<MetaDataComponent>(entity).EntityPrototype?.ID == wall)), Is.False,
+                        "Rock was left across the road.");
+                    var walled = tunnel.Count(tile => new[] { new Vector2i(1, 0), new Vector2i(-1, 0), new Vector2i(0, 1), new Vector2i(0, -1) }
+                        .Any(step => maps.GetAnchoredEntities((layers[0], grid), tile + step)
+                            .Any(entity => entMan.GetComponent<MetaDataComponent>(entity).EntityPrototype?.ID == wall)));
+                    Assert.That(walled, Is.GreaterThan(tunnel.Count / 4), "A tunnel has no rock either side.");
+                }
             });
         }
         finally
