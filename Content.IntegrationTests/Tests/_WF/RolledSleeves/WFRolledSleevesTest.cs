@@ -9,15 +9,15 @@ using Robust.Shared.GameObjects;
 
 namespace Content.IntegrationTests.Tests._WF.RolledSleeves;
 
-/// <summary>Any jumpsuit gets rollable sleeves, and rolling them puts the sleeve mask on its worn layers.</summary>
+/// <summary>Any jumpsuit gets the roll verbs; each style cuts the worn layers or swaps in a drawn sprite.</summary>
 [TestFixture]
 public sealed class WFRolledSleevesTest : InteractionTest
 {
     private const string MaskSuffix = "-wf-rolled-sleeves";
 
-    [TestCase("ClothingUniformJumpsuitEngineering")]
-    [TestCase("ClothingUniformJumpsuitColorGrey")]
-    public async Task RollingMasksTheWornLayers(string suitId)
+    [TestCase("ClothingUniformJumpsuitEngineering", null)]
+    [TestCase("ClothingUniformJumpsuitColorGrey", "down")]
+    public async Task StylesRestyleTheWornLayers(string suitId, string? rolledDownMask)
     {
         var target = await SpawnTarget("MobHuman");
         var mob = ToServer(target);
@@ -31,45 +31,67 @@ public sealed class WFRolledSleevesTest : InteractionTest
             Assert.That(SEntMan.System<InventorySystem>().TryEquip(mob, suit, "jumpsuit", force: true), Is.True);
         });
         await RunTicks(5);
-        await AssertMasked(target, false);
+        await AssertMasked(target, null);
 
+        foreach (var (style, mask) in new (WFJumpsuitStyle, string?)[]
+                 {
+                     (WFJumpsuitStyle.SleevesRolled, "sleeves"),
+                     (WFJumpsuitStyle.RolledDown, rolledDownMask),
+                     (WFJumpsuitStyle.Normal, null),
+                 })
+        {
+            await Server.WaitAssertion(() =>
+            {
+                var comp = SEntMan.GetComponent<WFRolledSleevesComponent>(suit);
+                SEntMan.System<WFRolledSleevesSystem>().SetStyle((suit, comp), style, mob);
+            });
+            await RunTicks(5);
+            await AssertMasked(target, mask);
+        }
+
+        if (rolledDownMask != null)
+            return;
+
+        // A suit with a drawn Meridian roll-down swaps to that sprite instead of the cut.
         await Server.WaitAssertion(() =>
         {
             var comp = SEntMan.GetComponent<WFRolledSleevesComponent>(suit);
-            SEntMan.System<WFRolledSleevesSystem>().Toggle((suit, comp), mob);
+            SEntMan.System<WFRolledSleevesSystem>().SetStyle((suit, comp), WFJumpsuitStyle.RolledDown, mob);
         });
         await RunTicks(5);
-        await AssertMasked(target, true);
-
-        await Server.WaitAssertion(() =>
+        await Client.WaitAssertion(() =>
         {
-            var comp = SEntMan.GetComponent<WFRolledSleevesComponent>(suit);
-            SEntMan.System<WFRolledSleevesSystem>().Toggle((suit, comp), mob);
+            var sprite = CEntMan.GetComponent<SpriteComponent>(ToClient(target));
+            var slots = CEntMan.GetComponent<InventorySlotsComponent>(ToClient(target));
+            var drawn = slots.VisualLayerKeys["jumpsuit"]
+                .Where(k => sprite.LayerMapTryGet(k, out _))
+                .Select(k => ((SpriteComponent.Layer) sprite[sprite.LayerMapGet(k)]).ActualRsi?.Path.ToString())
+                .Any(p => p != null && p.StartsWith("/Textures/_WF/RolledSleeves/Meridian/"));
+            Assert.That(drawn, Is.True, "The rolled-down suit didn't use its drawn Meridian sprite.");
         });
-        await RunTicks(5);
-        await AssertMasked(target, false);
     }
 
-    private async Task AssertMasked(NetEntity target, bool rolled)
+    private async Task AssertMasked(NetEntity target, string? maskState)
     {
         await Client.WaitAssertion(() =>
         {
             var sprite = CEntMan.GetComponent<SpriteComponent>(ToClient(target));
             var slots = CEntMan.GetComponent<InventorySlotsComponent>(ToClient(target));
             var maskKeys = slots.VisualLayerKeys["jumpsuit"].Where(k => k.EndsWith(MaskSuffix)).ToList();
-            if (!rolled)
+            if (maskState == null)
             {
-                Assert.That(maskKeys, Is.Empty, "Unrolled sleeves still have a mask layer.");
+                Assert.That(maskKeys, Is.Empty, "A suit worn this way still has a mask layer.");
                 return;
             }
 
-            Assert.That(maskKeys, Is.Not.Empty, "Rolled sleeves have no mask layer.");
+            Assert.That(maskKeys, Is.Not.Empty, "A restyled suit has no mask layer.");
             foreach (var maskKey in maskKeys)
             {
                 var suitKey = maskKey[..^MaskSuffix.Length];
                 Assert.That(sprite.LayerMapTryGet(suitKey, out var suitIndex), Is.True);
                 Assert.That(sprite.LayerMapTryGet(maskKey, out var maskIndex), Is.True);
                 Assert.That(maskIndex, Is.LessThan(suitIndex), "The mask layer must come before the suit layer.");
+                Assert.That(((SpriteComponent.Layer) sprite[maskIndex]).State.Name, Is.EqualTo(maskState));
 
                 var shader = ((SpriteComponent.Layer) sprite[suitIndex]).ShaderPrototype?.Id;
                 Assert.That(shader, Is.AnyOf("WFRolledSleeves", "WFRolledSleevesDisplaced"));

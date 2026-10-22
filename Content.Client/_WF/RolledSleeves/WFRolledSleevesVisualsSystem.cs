@@ -1,18 +1,23 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using Content.Shared._WF.RolledSleeves;
 using Content.Shared.Clothing;
 using Content.Shared.Item;
 using Robust.Client.GameObjects;
+using Robust.Client.Graphics;
+using Robust.Client.ResourceManagement;
+using Robust.Shared.Serialization.TypeSerializers.Implementations;
 using Robust.Shared.Utility;
 
 namespace Content.Client._WF.RolledSleeves;
 
 /// <summary>
-/// Cuts the sleeves of a rolled jumpsuit at draw time: its worn layers get the rolled-sleeve shader, fed a mask cut
-/// from the human arm silhouette. Works on any jumpsuit sprite without a drawn rolled state.
+/// Restyles a rolled jumpsuit at draw time: its worn layers get the rolled-sleeves shader, fed a mask built from the
+/// human body silhouette. Works on any jumpsuit sprite without drawn rolled states.
 /// </summary>
 public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
 {
+    [Dependency] private IResourceCache _cache = default!;
     [Dependency] private SharedItemSystem _item = default!;
     [Dependency] private SpriteSystem _sprite = default!;
 
@@ -23,6 +28,7 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
     private const int MaskSize = 32;
 
     private static readonly ResPath MaskRsi = new("/Textures/_WF/RolledSleeves/sleeve_mask.rsi");
+    private static readonly ResPath DrawnRoot = new("/Textures/_WF/RolledSleeves/Meridian");
 
     /// <summary>Human jumpsuit states, optionally prefixed; species-specific states are left alone.</summary>
     private static readonly Regex JumpsuitState = new(@"^(?:[^-]+-)?equipped-INNERCLOTHING$", RegexOptions.Compiled);
@@ -42,7 +48,14 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
 
     private void OnVisualsUpdated(Entity<WFRolledSleevesComponent> ent, ref EquipmentVisualsUpdatedEvent args)
     {
-        if (!ent.Comp.Rolled || !TryComp(args.Equipee, out SpriteComponent? sprite))
+        var maskState = ent.Comp.Style switch
+        {
+            WFJumpsuitStyle.SleevesRolled => "sleeves",
+            WFJumpsuitStyle.RolledDown => "down",
+            _ => null,
+        };
+
+        if (maskState == null || !TryComp(args.Equipee, out SpriteComponent? sprite))
             return;
 
         // Copied: mask keys are added to the set while walking it.
@@ -61,13 +74,20 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
                 continue;
             }
 
+            // Suits Meridian Rift drew a rolled-down sprite for use it instead of the cut.
+            if (ent.Comp.Style == WFJumpsuitStyle.RolledDown && TryGetDrawnRollDown(rsi, state, out var drawn))
+            {
+                _sprite.LayerSetRsi((args.Equipee, sprite), index, drawn, state);
+                continue;
+            }
+
             var displaced = args.RevealedLayers.Contains(key + DisplacementSuffix);
             sprite.LayerSetShader(index, displaced ? DisplacedShader : Shader);
 
             var mask = new PrototypeLayerData
             {
                 RsiPath = MaskRsi.ToString(),
-                State = "mask",
+                State = maskState,
                 CopyToShaderParameters = new PrototypeCopyToShaderParameters
                 {
                     LayerKey = key,
@@ -82,5 +102,20 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
             _sprite.LayerMapSet((args.Equipee, sprite), maskKey, index);
             args.RevealedLayers.Add(maskKey);
         }
+    }
+
+    /// <summary>Finds the imported Meridian Rift rolled-down copy of a worn state, if there is one.</summary>
+    private bool TryGetDrawnRollDown(RSI rsi, string state, [NotNullWhen(true)] out RSI? drawn)
+    {
+        drawn = null;
+        if (!rsi.Path.TryRelativeTo(SpriteSpecifierSerializer.TextureRoot, out var relative) ||
+            !_cache.TryGetResource<RSIResource>(DrawnRoot / relative.Value, out var resource) ||
+            !resource.RSI.TryGetState(state, out _))
+        {
+            return false;
+        }
+
+        drawn = resource.RSI;
+        return true;
     }
 }

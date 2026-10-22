@@ -1,7 +1,13 @@
-"""Generates the rolled-sleeve mask from the human arm silhouette.
+"""Generates the rolled-sleeve and rolled-down masks from the human body silhouette.
 
-The mask is read by the WFRolledSleeves shaders over a rolled jumpsuit: alpha 0 cuts the sleeve below the elbow, red
-lightens the cuff row. It is one 4-direction 32x32 state, in the S, N, E, W frame order of an RSI.
+The WFRolledSleeves shaders read a mask over the worn jumpsuit, per output pixel:
+- alpha 0 cuts the pixel;
+- red shades it: 128 leaves it, higher lightens, lower darkens;
+- green and blue move where the suit is sampled from, in pixels: 128 + dx, 128 + dy (image space, y down).
+
+States, each 4-direction 32x32 in the S, N, E, W frame order of an RSI:
+- `sleeves`: cuts the sleeve below the elbow and lightens the cuff row.
+- `down`: cuts everything above the belt and draws the tied sleeves round the waist, sampled from the chest.
 
 Usage:
     python Tools/_WF/RolledSleeves/generate_sleeve_mask.py
@@ -21,9 +27,19 @@ BODY = TEXTURES / "Mobs" / "Species" / "Human" / "parts.rsi"
 OUTPUT = TEXTURES / "_WF" / "RolledSleeves" / "sleeve_mask.rsi"
 
 FRAME = 32
-# First arm row that gets cut; rows above it stay covered (upper arm).
+DIRS = ("S", "N", "E", "W")
+NEUTRAL = (128, 128, 128, 255)
+CUT = (128, 128, 128, 0)
+
+# First arm row that gets cut when the sleeves are rolled; rows above it stay covered (upper arm).
 ELBOW_ROW = 15
-CUFF_LIGHTEN = 0.25
+# The belt row: rolling down cuts every row above it.
+WAIST_ROW = 20
+# How far up the tied sleeves sample the suit, to pick up the shirt rather than the belt or trousers.
+CHEST_OFFSET = -6
+CUFF_SHADE = 255
+BAND_SHADE = 104
+KNOT_SHADE = 92
 
 
 def opaque(name):
@@ -35,36 +51,84 @@ def opaque(name):
     return sets
 
 
-def build_mask():
+def body_parts():
     arms = [a | b for a, b in zip(opaque("l_arm"), opaque("r_arm"))]
     hands = [a | b for a, b in zip(opaque("l_hand"), opaque("r_hand"))]
     torso = [a | b for a, b in zip(opaque("torso_m"), opaque("torso_f"))]
-
-    mask = Image.new("RGBA", (FRAME * 2, FRAME * 2), (0, 0, 0, 255))
-    for d in range(4):
-        ox, oy = (d % 2) * FRAME, (d // 2) * FRAME
-        lower = {p for p in arms[d] if p[1] >= ELBOW_ROW} | hands[d]
-        # Sleeve outlines sit one pixel outside the arm; take those too unless they're over the torso.
-        grown = {(x + dx, y) for x, y in lower for dx in (-1, 1)}
-        cut = lower | (grown - torso[d] - arms[d])
-        cuff = {(x, y - 1) for x, y in cut if y == ELBOW_ROW and (x, y - 1) in arms[d] | (grown - torso[d])}
-        for x, y in cuff:
-            mask.putpixel((ox + x, oy + y), (255, 0, 0, 255))
-        for x, y in cut:
-            mask.putpixel((ox + x, oy + y), (0, 0, 0, 0))
-    return mask
+    return arms, hands, torso
 
 
-def write(mask):
+def sleeves_frame(d, arms, hands, torso):
+    """Pixel -> mask colour for one direction of the rolled-sleeve state."""
+    pixels = {}
+    lower = {p for p in arms[d] if p[1] >= ELBOW_ROW} | hands[d]
+    # Sleeve outlines sit one pixel outside the arm; take those too unless they're over the torso.
+    grown = {(x + dx, y) for x, y in lower for dx in (-1, 1)}
+    cut = lower | (grown - torso[d] - arms[d])
+    for x, y in cut:
+        if y == ELBOW_ROW and (x, y - 1) in arms[d] | (grown - torso[d]):
+            pixels[(x, y - 1)] = (CUFF_SHADE, 128, 128, 255)
+    for p in cut:
+        pixels[p] = CUT
+    return pixels
+
+
+def down_frame(d, arms, hands, torso):
+    """Pixel -> mask colour for one direction of the rolled-down state."""
+    pixels = {(x, y): CUT for x in range(FRAME) for y in range(WAIST_ROW)}
+    chest = (128, 128 + CHEST_OFFSET)
+
+    # The tied sleeves: two rows at the belt, a pixel wider than the waist each side where no hand hangs there.
+    limbs = arms[d] | hands[d]
+    for y in (WAIST_ROW, WAIST_ROW + 1):
+        xs = [x for x in range(FRAME) if (x, y) in torso[d] and (x, y) not in limbs]
+        if not xs:
+            continue
+        for x in range(min(xs) - 1, max(xs) + 2):
+            if (x, y) not in limbs:
+                pixels[(x, y)] = (BAND_SHADE, chest[0], chest[1], 255)
+
+    # The knot: hanging at the front, so at the centre facing S or N and at the leading edge side-on.
+    xs = sorted(x for x in range(FRAME) if (x, WAIST_ROW) in torso[d])
+    if DIRS[d] in ("S", "N"):
+        mid = (xs[0] + xs[-1]) // 2
+        knot = [(mid - 1, WAIST_ROW + 2), (mid, WAIST_ROW + 2), (mid + 1, WAIST_ROW + 2), (mid, WAIST_ROW + 3)]
+    else:
+        edge = xs[-1] + 1 if DIRS[d] == "E" else xs[0] - 1
+        knot = [(edge, WAIST_ROW + 2), (edge, WAIST_ROW + 3)]
+    for p in knot:
+        pixels[p] = (KNOT_SHADE, chest[0], chest[1] - 2, 255)
+    return pixels
+
+
+def build_masks():
+    parts = body_parts()
+    masks = {}
+    for name, frame in (("sleeves", sleeves_frame), ("down", down_frame)):
+        mask = Image.new("RGBA", (FRAME * 2, FRAME * 2), NEUTRAL)
+        for d in range(4):
+            ox, oy = (d % 2) * FRAME, (d // 2) * FRAME
+            for (x, y), colour in frame(d, *parts).items():
+                if 0 <= x < FRAME and 0 <= y < FRAME:
+                    mask.putpixel((ox + x, oy + y), colour)
+        masks[name] = mask
+    return masks
+
+
+def write(masks):
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    mask.save(OUTPUT / "mask.png", optimize=True)
+    for old in OUTPUT.glob("*.png"):
+        old.unlink()
+    for name, mask in masks.items():
+        mask.save(OUTPUT / f"{name}.png", optimize=True)
     meta = {
         "version": 1,
         "license": "CC-BY-SA-3.0",
         "copyright": "Generated by Tools/_WF/RolledSleeves/generate_sleeve_mask.py from the human body sprites "
                      "(Mobs/Species/Human/parts.rsi).",
         "size": {"x": FRAME, "y": FRAME},
-        "states": [{"name": "mask", "directions": 4}],
+        "load": {"srgb": False},
+        "states": [{"name": name, "directions": 4} for name in masks],
     }
     (OUTPUT / "meta.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(f"Wrote {OUTPUT.relative_to(ROOT)}")
@@ -72,24 +136,33 @@ def write(mask):
 
 def apply(suit, mask):
     """What the shader does, for the preview."""
-    out = suit.copy()
+    out = Image.new("RGBA", suit.size)
     for y in range(out.height):
         for x in range(out.width):
-            r, g, b, a = out.getpixel((x, y))
-            mr, _, _, ma = mask.getpixel((x, y))
-            if mr:
-                r, g, b = (int(c + (255 - c) * CUFF_LIGHTEN) for c in (r, g, b))
-            out.putpixel((x, y), (r, g, b, a if ma else 0))
+            mr, mg, mb, ma = mask.getpixel((x, y))
+            if not ma:
+                continue
+            fx, fy = x - x % FRAME, y - y % FRAME
+            sx, sy = x + mg - 128, y + mb - 128
+            if not (fx <= sx < fx + FRAME and fy <= sy < fy + FRAME):
+                continue
+            r, g, b, a = suit.getpixel((sx, sy))
+            shade = mr / 255 * 2 - 1
+            if shade > 0:
+                r, g, b = (int(c + (255 - c) * shade * 0.25) for c in (r, g, b))
+            else:
+                r, g, b = (int(c * (1 + shade * 0.5)) for c in (r, g, b))
+            out.putpixel((x, y), (r, g, b, a))
     return out
 
 
-def preview(out, filters, mask):
-    """Draws original and rolled sprites over a plain body, four directions each, scaled up."""
+def preview(out, filters, masks):
+    """Draws each suit normal, with rolled sleeves and rolled down over a plain body, scaled up."""
     body = Image.new("RGBA", (FRAME * 2, FRAME * 2))
     for part in ("torso_m", "l_arm", "r_arm", "l_hand", "r_hand", "l_leg", "r_leg", "head_m"):
         layer = Image.open(BODY / f"{part}.png").convert("RGBA")
-        tint = Image.new("RGBA", layer.size, (224, 172, 132, 255))
-        body.alpha_composite(Image.composite(tint, Image.new("RGBA", layer.size), layer.split()[3]))
+        body.alpha_composite(Image.composite(Image.new("RGBA", layer.size, (224, 172, 132, 255)),
+                                             Image.new("RGBA", layer.size), layer.split()[3]))
     suits = []
     for png in sorted(TEXTURES.rglob("*.rsi/equipped-INNERCLOTHING.png")):
         if filters and not any(f in png.as_posix() for f in filters):
@@ -99,9 +172,9 @@ def preview(out, filters, mask):
             suits.append(img)
         if len(suits) >= 8:
             break
-    sheet = Image.new("RGBA", (FRAME * 8, FRAME * len(suits)), (60, 60, 70, 255))
+    sheet = Image.new("RGBA", (FRAME * 12, FRAME * len(suits)), (60, 60, 70, 255))
     for r, suit in enumerate(suits):
-        for c, img in enumerate((suit, apply(suit, mask))):
+        for c, img in enumerate((suit, apply(suit, masks["sleeves"]), apply(suit, masks["down"]))):
             for d in range(4):
                 ox, oy = (d % 2) * FRAME, (d // 2) * FRAME
                 tile = body.crop((ox, oy, ox + FRAME, oy + FRAME))
@@ -116,11 +189,11 @@ def main():
     parser.add_argument("--preview", metavar="PNG")
     parser.add_argument("filters", nargs="*")
     args = parser.parse_args()
-    mask = build_mask()
+    masks = build_masks()
     if args.preview:
-        preview(args.preview, args.filters, mask)
+        preview(args.preview, args.filters, masks)
     else:
-        write(mask)
+        write(masks)
 
 
 if __name__ == "__main__":
