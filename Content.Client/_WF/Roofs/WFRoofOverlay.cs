@@ -1,0 +1,134 @@
+using System.Numerics;
+using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared.Light.Components;
+using Content.Shared.Maps;
+using Robust.Client.Graphics;
+using Robust.Client.ResourceManagement;
+using Robust.Shared.Enums;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
+
+namespace Content.Client._WF.Roofs;
+
+/// <summary>
+/// Draws a solid roof over roofed tiles, so nobody sees into a building or a ship they aren't in: a vessel's whole
+/// deck as hull plating, a building's roofed tiles as roofing, shaded at the eaves and lit by the map's daylight.
+/// The roof over whatever the local player is in lifts (<see cref="WFRoofSystem"/>). Drawn over the world after
+/// lighting, so it isn't darkened as the sunless indoors below it is.
+/// </summary>
+public sealed class WFRoofOverlay : Overlay
+{
+    [Dependency] private IEntityManager _entities = default!;
+    [Dependency] private IResourceCache _resources = default!;
+    [Dependency] private ITileDefinitionManager _tileDefs = default!;
+
+    private readonly SharedMapSystem _maps;
+    private readonly SharedTransformSystem _transform;
+    private readonly WFRoofSystem _roofs;
+    private readonly CESharedZLevelsSystem _zLevels;
+    private readonly Texture _hull;
+    private readonly Texture _roofing;
+    private List<Entity<MapGridComponent>> _grids = new();
+
+    /// <summary>Light on a roof with no daylight to go by, such as out in space.</summary>
+    private static readonly Color Unlit = new(0.55f, 0.55f, 0.6f);
+
+    /// <summary>The least light a roof gets, so it still reads at night.</summary>
+    private const float MinLight = 0.22f;
+
+    /// <summary>Width of the shadow along a roof's edge, in tiles.</summary>
+    private const float Eaves = 0.12f;
+
+    public override OverlaySpace Space => OverlaySpace.WorldSpace;
+
+    public WFRoofOverlay()
+    {
+        IoCManager.InjectDependencies(this);
+        _maps = _entities.System<SharedMapSystem>();
+        _transform = _entities.System<SharedTransformSystem>();
+        _roofs = _entities.System<WFRoofSystem>();
+        _zLevels = _entities.System<CESharedZLevelsSystem>();
+        _hull = _resources.GetResource<TextureResource>("/Textures/Tiles/hull.png").Texture;
+        _roofing = _resources.GetResource<TextureResource>("/Textures/Tiles/plating.png").Texture;
+        ZIndex = -10;
+    }
+
+    protected override bool BeforeDraw(in OverlayDrawArgs args)
+    {
+        return _roofs.Enabled;
+    }
+
+    protected override void Draw(in OverlayDrawArgs args)
+    {
+        var handle = args.WorldHandle;
+        var light = Daylight(args.MapUid);
+        _grids.Clear();
+        _maps.FindGridsIntersecting(args.MapId, args.WorldAABB, ref _grids, approx: true, includeMap: true);
+
+        foreach (var grid in _grids)
+        {
+            var implicitRoof = _entities.HasComponent<ImplicitRoofComponent>(grid);
+            _entities.TryGetComponent(grid.Owner, out RoofComponent? roof);
+            if (!implicitRoof && (roof == null || Underground(grid)))
+                continue;
+
+            var own = _roofs.Grid == grid.Owner;
+            if (implicitRoof && own && _roofs.WholeGrid)
+                continue;
+
+            bool Covered(Vector2i index)
+            {
+                if (own && _roofs.Revealed.Contains(index))
+                    return false;
+                if (implicitRoof)
+                {
+                    return _maps.TryGetTileRef(grid, grid.Comp, index, out var tile) && !tile.Tile.IsEmpty
+                           && _tileDefs[tile.Tile.TypeId] is not ContentTileDefinition { MapAtmosphere: true };
+                }
+                return WFRoofSystem.IsRoofed(roof!, index);
+            }
+
+            handle.SetTransform(_transform.GetWorldMatrix(grid));
+            var texture = implicitRoof ? _hull : _roofing;
+            var shade = light.WithAlpha(1f);
+            var eaves = new Color(light.R * 0.45f, light.G * 0.45f, light.B * 0.45f);
+            var size = grid.Comp.TileSize;
+            var tiles = _maps.GetTilesEnumerator(grid, grid.Comp, args.WorldAABB, ignoreEmpty: implicitRoof);
+            while (tiles.MoveNext(out var tileRef))
+            {
+                var index = tileRef.GridIndices;
+                if (!Covered(index))
+                    continue;
+
+                var box = new Box2(index * size, (index + Vector2i.One) * size);
+                handle.DrawTextureRect(texture, box, shade);
+                if (!Covered(index + new Vector2i(-1, 0)))
+                    handle.DrawRect(new Box2(box.Left, box.Bottom, box.Left + Eaves, box.Top), eaves);
+                if (!Covered(index + new Vector2i(1, 0)))
+                    handle.DrawRect(new Box2(box.Right - Eaves, box.Bottom, box.Right, box.Top), eaves);
+                if (!Covered(index + new Vector2i(0, -1)))
+                    handle.DrawRect(new Box2(box.Left, box.Bottom, box.Right, box.Bottom + Eaves), eaves);
+                if (!Covered(index + new Vector2i(0, 1)))
+                    handle.DrawRect(new Box2(box.Left, box.Top - Eaves, box.Right, box.Top), eaves);
+            }
+        }
+
+        handle.SetTransform(Matrix3x2.Identity);
+    }
+
+    /// <summary>The map's ambient light, kept bright enough to see a roof by.</summary>
+    private Color Daylight(EntityUid map)
+    {
+        if (!_entities.TryGetComponent(map, out MapLightComponent? mapLight))
+            return Unlit;
+        var ambient = mapLight.AmbientLightColor;
+        return new Color(MathF.Max(ambient.R, MinLight), MathF.Max(ambient.G, MinLight), MathF.Max(ambient.B, MinLight));
+    }
+
+    /// <summary>A layer under another world layer, such as a cavern: roofed all over by the ground above, not by buildings.</summary>
+    private bool Underground(EntityUid grid)
+    {
+        return _entities.HasComponent<MapComponent>(grid) && _zLevels.TryMapUp(grid, out var above)
+               && _entities.HasComponent<MapGridComponent>(above.Owner);
+    }
+}
