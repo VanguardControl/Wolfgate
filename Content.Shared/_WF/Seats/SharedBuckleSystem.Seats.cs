@@ -13,7 +13,8 @@ public abstract partial class SharedBuckleSystem
     /// </summary>
     private bool WFSeatIgnoresCollision(BuckleComponent component, ref PreventCollideEvent args)
     {
-        if (!component.Buckled || !args.OurFixture.Hard || !args.OtherFixture.Hard)
+        if (!component.Buckled || !args.OurFixture.Hard || !args.OtherFixture.Hard ||
+            args.OtherEntity == component.BuckledTo)
             return false;
 
         return args.OtherBody.BodyType == BodyType.Static ||

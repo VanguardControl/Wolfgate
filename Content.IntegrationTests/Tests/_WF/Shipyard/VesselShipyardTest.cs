@@ -9,6 +9,7 @@ using Content.Shared._WF.NpcCrew;
 using Content.Shared._WF.Tether.Harpoon;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
+using Robust.Shared.Containers;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -106,6 +107,7 @@ public sealed class VesselShipyardTest
         var loader = entities.System<MapLoaderSystem>();
         var maps = entities.System<SharedMapSystem>();
         var buckle = entities.System<SharedBuckleSystem>();
+        var containers = entities.System<SharedContainerSystem>();
         var failures = new List<string>();
         var seats = 0;
 
@@ -121,9 +123,11 @@ public sealed class VesselShipyardTest
 
                 var straps = new List<EntityUid>();
                 var query = entities.EntityQueryEnumerator<StrapComponent, TransformComponent>();
-                while (query.MoveNext(out var uid, out _, out var xform))
+                while (query.MoveNext(out var uid, out var strap, out var xform))
                 {
-                    if (xform.GridUid == grid.Value.Owner && !entities.HasComponent<ShipHarpoonTurretComponent>(uid))
+                    // Folded and stored seats refuse a buckle by design.
+                    if (xform.GridUid == grid.Value.Owner && strap.Enabled && !containers.IsEntityInContainer(uid) &&
+                        !entities.HasComponent<ShipHarpoonTurretComponent>(uid))
                         straps.Add(uid);
                 }
 
@@ -133,6 +137,8 @@ public sealed class VesselShipyardTest
                     var mob = entities.SpawnEntity("MobHuman", xform.Coordinates);
                     if (buckle.TryBuckle(mob, mob, seat))
                         seated.Add((mob, seat, xform.LocalPosition));
+                    else
+                        failures.Add($"{vessel.ID}: {entities.ToPrettyString(seat)} at {xform.LocalPosition} can't be buckled into.");
                 }
             });
 
