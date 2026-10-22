@@ -247,6 +247,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.IntegrationTests/Tests/_WF/Planets/TerrainLoadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainLoadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/TerrainUnloadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainUnloadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/ThrustAmbienceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/ThrustAmbienceTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/ZLevelJumpTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/ZLevelJumpTest.cs)
 
 ### Prototypes
 
@@ -482,7 +483,9 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - severed engines retain their last firing command while powered.
   - preserve upgraded rating across atmosphere transitions.
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs): planet terrain that isn't loaded is still ground
-- [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs): z-motion carried off the z-network is cleared, not kept for the next planet.
+- [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs)
+  - z-motion carried off the z-network is cleared, not kept for the next planet.
+  - a thrown body stays InAir until the throw lands, or friction eats a jump at once.
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs): retain the contacted obstacle for crash ploughing.
 - [`Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs`](../../../Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs): a throw only has an arc where there are levels to arc through.
 - [`Content.Shared/CCVar/CCVars.Game.cs`](../../../Content.Shared/CCVar/CCVars.Game.cs): defaults to MonoStandard (was nfpirate), whose round start spawns the star system.
@@ -493,6 +496,7 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - an atmosphere refusal is said plainly, rather than the gravity line, which is not why it failed.
   - jetpacks fly on a planet's orbit layer but not in its atmosphere.
   - no jetpack below a planet's orbit layer.
+- [`Content.Shared/Movement/Systems/SharedMoverController.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.cs): every species can move in air for z-levels, so a thrown mob (a jump) must not, or ground friction stops it.
 - [`Content.Shared/Movement/Systems/SharedMoverController.Input.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.Input.cs): a planet surface is a map that is also a grid, and its tiles are ground, not space.
 - [`Content.Shared/Parallax/Biomes/SharedBiomeSystem.cs`](../../../Content.Shared/Parallax/Biomes/SharedBiomeSystem.cs)
   - reuse one copy per source noise and seed, since callers only read it
