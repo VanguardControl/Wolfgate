@@ -582,6 +582,9 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/UserInterface/Systems/DecalPlacer/DecalPlacerUIController.cs`](../../../Content.Client/UserInterface/Systems/DecalPlacer/DecalPlacerUIController.cs): mappers open the decal placer
 - [`Content.Client/UserInterface/Systems/EscapeMenu/EscapeUIController.cs`](../../../Content.Client/UserInterface/Systems/EscapeMenu/EscapeUIController.cs): mapping session window; crew and character entries hidden while mapping
 - [`Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs`](../../../Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs): mappers open the spawn menus
+- [`Content.Server/GameTicking/GameTicker.RoundFlow.cs`](../../GameTicking/GameTicker.RoundFlow.cs)
+  - mapping mode loads no game map or preset rule
+  - mapping mode never starts a round
 - [`Content.Server/Physics/Controllers/MoverController.cs`](../../Physics/Controllers/MoverController.cs): mapping observers move on their paused session maps like admin ghosts
 - [`Content.Server/Sandbox/SandboxSystem.cs`](../../Sandbox/SandboxSystem.cs)
   - admins who map get the won't-be-saved warning too

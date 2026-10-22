@@ -87,6 +87,9 @@
                 </BoxContainer>
                 <Label Text="{Loc 'wf-mapping-mode-menu-save-hint'}" StyleClasses="LabelSubText" />
                 <BoxContainer Orientation="Horizontal" SeparationOverride="8" Margin="0 8 0 0">
+                    <Button Name="MapDownloadButton" Access="Public"
+                            Text="{Loc 'wf-mapping-mode-menu-download'}"
+                            ToolTip="{Loc 'wf-mapping-mode-menu-download-tooltip'}" TooltipDelay="0" />
                     <Button Name="ShipDownloadButton" Access="Public"
                             Text="{Loc 'wf-mapping-ship-menu-download'}"
                             ToolTip="{Loc 'wf-mapping-ship-menu-download-tooltip'}" TooltipDelay="0" />

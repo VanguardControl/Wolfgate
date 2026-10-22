@@ -3,6 +3,7 @@
 wf-mapping-mode-map-name = Mapping: {$name}
 wf-mapping-mode-admin-map-name = Mapping mode admin map
 wf-mapping-mode-off = Mapping mode is off.
+wf-mapping-mode-no-round = Mapping mode is on, so no round starts.
 wf-mapping-mode-not-in-lobby = You have to be in the lobby to do that.
 wf-mapping-mode-bad-name = Names are 1 to {$max} letters, digits, spaces, dashes or underscores.
 wf-mapping-mode-too-many-sessions = The server is at its limit of {$max} mapping sessions.
@@ -172,6 +173,8 @@ wf-mapping-mode-library-open = Open
 wf-mapping-mode-library-open-latest-tooltip = Open the newest version as a new session.
 wf-mapping-mode-library-download = Download
 wf-mapping-mode-library-download-latest-tooltip = Download the newest version to your computer.
+wf-mapping-mode-menu-download = Download
+wf-mapping-mode-menu-download-tooltip = Downloads the newest saved version of the map named above to your computer, one file per level. Save first.
 wf-mapping-mode-library-versions = Versions
 wf-mapping-mode-library-hide-versions = Hide versions
 wf-mapping-mode-library-delete = Delete

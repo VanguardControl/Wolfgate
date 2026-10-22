@@ -112,6 +112,7 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedIvDripSystem.cs`](Medical/WolfmedIvDripSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedOralAbsorptionSystem.cs`](Medical/WolfmedOralAbsorptionSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedReagentDamageSystem.cs`](Medical/WolfmedReagentDamageSystem.cs)
+- [`Content.Server/_WF/Wolfmed/Medical/WolfmedReagentWoundMendSystem.cs`](Medical/WolfmedReagentWoundMendSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedVentilatedComponent.cs`](Medical/WolfmedVentilatedComponent.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WolfmedVentilatorSystem.cs`](Medical/WolfmedVentilatorSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Medical/WoundHealingSystem.Wolfmed.cs`](Medical/WoundHealingSystem.Wolfmed.cs)
@@ -436,6 +437,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentBleedingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentBleedingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentDamageTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentDamageTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentTreatmentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentTreatmentTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentWoundMendTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReagentWoundMendTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReattachTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedReattachTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSlashBiteWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSlashBiteWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSleepThroughDeathTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedSleepThroughDeathTest.cs)
@@ -1193,6 +1195,7 @@ Skipped ("dirty-disposed").
   - HOOK 9 - which body-part materials this healing can treat on a wound host.
   - HOOK 9, the call becomes a delegate so healing can run inside a treatment-capability scope.
   - HOOK 9 - scope only the healing case on a wound host; everything else is unchanged (D2).
+  - healing chemicals also close the wounds of the groups they heal. Read from the groups, not
 - [`Content.Server/EntityEffects/Effects/HealthChange.cs`](../../EntityEffects/Effects/HealthChange.cs)
   - HOOK 9 - treatment-capability scope
   - a metabolising reagent's damage is toxin load on a wound host
@@ -1200,6 +1203,7 @@ Skipped ("dirty-disposed").
   - HOOK 9, the call becomes a delegate so healing can run inside a treatment-capability scope.
   - playtest 5, what a metabolising reagent deals to a wound host is toxin load, not wounds.
   - HOOK 9 - scope only the healing case on a wound host; everything else is unchanged (D2).
+  - healing chemicals also close the wounds of the types they heal.
 - [`Content.Server/EntityEffects/Effects/ModifyBleedAmount.cs`](../../EntityEffects/Effects/ModifyBleedAmount.cs): a wound host's bleeding is its wounds' (GUARD E3), so a reagent treats the wounds.
 - [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs`](../../Explosion/EntitySystems/ExplosionSystem.Processing.cs)
   - HOOK 22

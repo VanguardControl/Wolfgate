@@ -2812,3 +2812,125 @@ Entries:
   id: 100201
   time: '2026-10-22T04:45:16.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/321
+- author: TheSlapper
+  changes:
+    - type: Add
+      message: Various walls and doors.
+  id: 100202
+  time: '2026-10-22T21:12:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/315
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        You can roll up the sleeves of any jumpsuit or jumpskirt. Right-click it
+        and pick Roll up sleeves.
+    - type: Add
+      message: >-
+        You can roll a jumpsuit down and tie the sleeves round your waist with
+        Roll down jumpsuit.
+    - type: Add
+      message: >-
+        Many department jumpsuits and skirts roll down using sprites from
+        Meridian Rift.
+  id: 100203
+  time: '2026-10-22T21:19:54.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/327
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        You no longer get unbuckled the moment you sit in a chair placed next to
+        a table, wall or another chair.
+    - type: Fix
+      message: Bunk beds keep both sleepers buckled in.
+    - type: Fix
+      message: Wall handrails hold you instead of dropping you instantly.
+    - type: Tweak
+      message: >-
+        The pilot seat turns toward wherever you click while you're sitting in
+        it.
+  id: 100204
+  time: '2026-10-22T21:45:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/322
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Screen shake no longer throws your view far. Hard hits now shake faster
+        and a bit longer instead.
+    - type: Add
+      message: >-
+        Added a "Default to North" option to the Extra tab of the game options.
+        With it on, your view faces north on every grid you step onto.
+  id: 100205
+  time: '2026-10-22T21:45:30.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/323
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Low-threat Reavers and pirates now fly beat-up civilian ships with
+        bolted-on light guns and green crews. Faction gunships only show up once
+        the Reaver threat climbs to tier 3 and up.
+    - type: Add
+      message: >-
+        Pirate retrofitting: raider ships come with random guns on their
+        hardpoints, rusted walls, dirty floors, cobwebs, grime and dead lights.
+    - type: Tweak
+      message: >-
+        Pirate guns and crew skill scale with the Reaver threat tier. No heavy
+        cannons or EMP guns at the low tiers.
+    - type: Tweak
+      message: >-
+        Reaver strongholds use a mix of civilian hulls with matching gun counts,
+        and get tougher guns as the threat rises.
+    - type: Add
+      message: The MMC Dredger can now show up as a pirate ship.
+    - type: Add
+      message: >-
+        Pirate and Reaver contacts show their threat as chevrons and stars on
+        the radar and sector map, and as "Threat N" in the map list.
+    - type: Tweak
+      message: >-
+        Ships far from any player are simulated instead of spawned, which cuts
+        server load. They spawn when you get within 4 km or jump in nearby.
+    - type: Tweak
+      message: >-
+        Fights between NPC factions nobody is watching are decided by a dice
+        roll. Show up and you'll find the real fight.
+    - type: Tweak
+      message: Simulated extorters still roam and pick a victim from the map.
+    - type: Fix
+      message: >-
+        Factions can no longer claim sectors outside the hex grid shown on the
+        sector map.
+  id: 100206
+  time: '2026-10-22T22:32:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/319
+- author: TheSlapper
+  changes:
+    - type: Add
+      message: Various floors
+  id: 100207
+  time: '2026-10-22T22:32:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/326
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Healing chems now close wounds of the damage type they heal, not just
+        the damage number. Bleeds, fractures, lodged rounds and pumping arteries
+        still need proper treatment.
+  id: 100208
+  time: '2026-10-22T22:33:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/328
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Missile engine sounds no longer keep looping forever after the missile
+        is gone, which you'd hear in the lobby or after respawning.
+  id: 100209
+  time: '2026-10-22T22:54:12.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/329

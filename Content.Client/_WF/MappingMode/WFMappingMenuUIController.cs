@@ -131,7 +131,8 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.GridsRefreshButton.OnPressed += _ => _mapping.RequestGrids();
         window.GridsWanted += () => _mapping.RequestGrids();
         window.ResetLayoutButton.OnPressed += _ => UIManager.GetUIController<WFMappingScreenUIController>().ResetLayout();
-        window.ShipDownloadButton.OnPressed += _ => DownloadShip();
+        window.MapDownloadButton.OnPressed += _ => DownloadSaved(ship: false);
+        window.ShipDownloadButton.OnPressed += _ => DownloadSaved(ship: true);
         window.ReferenceButton.OnToggled += args =>
         {
             if (args.Pressed)
@@ -166,8 +167,8 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         _mapping.Send(new WFMappingLibraryRequest());
     }
 
-    /// <summary>Downloads the newest saved version of the map named in the Save tab as a ship.</summary>
-    private void DownloadShip()
+    /// <summary>Downloads the newest saved version of the map named in the Save tab, every level or as a ship.</summary>
+    private void DownloadSaved(bool ship)
     {
         if (_window == null || _mapping.Session is not { } session)
             return;
@@ -182,7 +183,10 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
             return;
         }
 
-        _mapping.RequestShipDownload(name, null);
+        if (ship)
+            _mapping.RequestShipDownload(name, null);
+        else
+            _mapping.RequestDownload(name, null);
     }
 
     private void CopyCode()
