@@ -181,7 +181,7 @@ public abstract partial class SharedGasTankSystem : EntitySystem
             }
         }
 
-        // WOLFGATE(SuitTank): a tank in a worn suit's slot belongs to the suit's wearer
+        // WOLFGATE(SuitTank): a tank in a worn suit's storage belongs to the suit's wearer
         if (TryGetSuitWearerInternals(ent, out internalsUid, out internalsComp))
             return true;
 

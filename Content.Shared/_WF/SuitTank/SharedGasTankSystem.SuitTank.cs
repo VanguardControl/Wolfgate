@@ -5,7 +5,7 @@ namespace Content.Shared.Atmos.EntitySystems;
 
 public abstract partial class SharedGasTankSystem
 {
-    [Dependency] private WFSuitTankSlotSystem _suitTank = default!;
+    [Dependency] private WFSuitTankStorageSystem _suitTank = default!;
 
     /// <summary>
     /// Gets the internals of whoever wears the suit holding this tank.

@@ -2,16 +2,18 @@ using Content.Shared._WF.SuitTank;
 using Content.Shared.Clothing;
 using Robust.Client.GameObjects;
 using Robust.Shared.Serialization.Manager;
+using Robust.Shared.Utility;
 
 namespace Content.Client._WF.SuitTank;
 
 /// <summary>
-/// Draws a tank in a worn suit's slot on the wearer, using the tank's suit storage sprite.
+/// Draws a tank in a worn suit's storage on the wearer, using the tank's suit storage sprite.
 /// </summary>
 public sealed class WFSuitTankVisualsSystem : EntitySystem
 {
     [Dependency] private ISerializationManager _serialization = default!;
     [Dependency] private SpriteSystem _sprite = default!;
+    [Dependency] private WFSuitTankStorageSystem _suitTank = default!;
 
     private const string TankSlot = "suitstorage";
     private const string LayerPrefix = "wf-suit-tank";
@@ -20,13 +22,17 @@ public sealed class WFSuitTankVisualsSystem : EntitySystem
     {
         base.Initialize();
 
-        SubscribeLocalEvent<WFSuitTankSlotComponent, EquipmentVisualsUpdatedEvent>(OnVisualsUpdated);
+        SubscribeLocalEvent<WFSuitTankStorageComponent, EquipmentVisualsUpdatedEvent>(OnVisualsUpdated);
     }
 
-    private void OnVisualsUpdated(EntityUid uid, WFSuitTankSlotComponent comp, EquipmentVisualsUpdatedEvent args)
+    private void OnVisualsUpdated(EntityUid uid, WFSuitTankStorageComponent comp, EquipmentVisualsUpdatedEvent args)
     {
-        if (comp.Slot.Item is not { } tank || !TryComp<SpriteComponent>(args.Equipee, out var sprite))
+        // One tank drawn is enough; a second would sit on the same spot.
+        if (_suitTank.GetTanks(uid).FirstOrNull() is not { } tank
+            || !TryComp<SpriteComponent>(args.Equipee, out var sprite))
+        {
             return;
+        }
 
         var ev = new GetEquipmentVisualsEvent(args.Equipee, TankSlot);
         RaiseLocalEvent(tank, ev);

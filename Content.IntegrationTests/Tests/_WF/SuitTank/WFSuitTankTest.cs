@@ -2,49 +2,60 @@ using System.Numerics;
 using Content.Shared._WF.SuitTank;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Systems;
-using Content.Shared.Containers.ItemSlots;
 using Content.Shared.Inventory;
+using Content.Shared.Storage.EntitySystems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 
 namespace Content.IntegrationTests.Tests._WF.SuitTank;
 
 /// <summary>
-/// A tank in a worn suit's slot feeds internals and lets go when the suit comes off.
+/// A tank in a worn suit's 2x2 storage feeds internals and lets go when the suit comes off.
 /// </summary>
-[TestOf(typeof(WFSuitTankSlotSystem))]
+[TestOf(typeof(WFSuitTankStorageSystem))]
 public sealed class WFSuitTankTest
 {
     [Test]
-    public async Task SuitSlotTankFeedsInternals()
+    public async Task SuitStorageTankFeedsInternals()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
         var map = await pair.CreateTestMap();
         var entities = server.ResolveDependency<IEntityManager>();
         var inventory = entities.System<InventorySystem>();
-        var itemSlots = entities.System<ItemSlotsSystem>();
+        var storage = entities.System<SharedStorageSystem>();
         var internals = entities.System<SharedInternalsSystem>();
 
         EntityUid mob = default;
-        EntityUid suit = default;
         EntityUid tank = default;
 
         await server.WaitAssertion(() =>
         {
             var coords = new EntityCoordinates(map.Grid, new Vector2(0.5f, 0.5f));
             mob = entities.SpawnEntity("MobHuman", coords);
-            suit = entities.SpawnEntity("ClothingOuterHardsuitEVA", coords);
+            var suit = entities.SpawnEntity("ClothingOuterHardsuitEVA", coords);
             tank = entities.SpawnEntity("OxygenTankFilled", coords);
             var mask = entities.SpawnEntity("ClothingMaskBreath", coords);
             var jetpack = entities.SpawnEntity("JetpackBlueFilled", coords);
+            var crowbar = entities.SpawnEntity("Crowbar", coords);
+            var emergencyA = entities.SpawnEntity("EmergencyOxygenTankFilled", coords);
+            var emergencyB = entities.SpawnEntity("EmergencyOxygenTankFilled", coords);
 
-            Assert.That(entities.HasComponent<WFSuitTankSlotComponent>(suit));
+            Assert.That(entities.HasComponent<WFSuitTankStorageComponent>(suit));
             Assert.That(inventory.TryEquip(mob, mask, "mask", silent: true, force: true));
             Assert.That(inventory.TryEquip(mob, suit, "outerClothing", silent: true, force: true));
-            Assert.That(itemSlots.TryInsert(suit, WFSuitTankSlotComponent.SlotId, jetpack, null), Is.False,
-                "Jetpacks don't fit the suit's tank slot.");
-            Assert.That(itemSlots.TryInsert(suit, WFSuitTankSlotComponent.SlotId, tank, null));
+
+            Assert.That(storage.CanInsert(suit, jetpack, out _), Is.False, "Jetpacks don't go in the suit.");
+            Assert.That(storage.CanInsert(suit, crowbar, out _), Is.False, "Only gas tanks go in the suit.");
+
+            // 2x2 holds two small emergency tanks.
+            Assert.That(storage.Insert(suit, emergencyA, out _, playSound: false));
+            Assert.That(storage.Insert(suit, emergencyB, out _, playSound: false));
+            Assert.That(storage.CanInsert(suit, tank, out _), Is.False, "The grid is full.");
+            entities.DeleteEntity(emergencyA);
+            entities.DeleteEntity(emergencyB);
+
+            Assert.That(storage.Insert(suit, tank, out _, playSound: false));
             Assert.That(inventory.TryGetSlotEntity(mob, "suitstorage", out _), Is.False,
                 "The tank leaves suit storage free.");
 

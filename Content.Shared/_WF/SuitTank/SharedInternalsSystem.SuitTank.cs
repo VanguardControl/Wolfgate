@@ -5,15 +5,18 @@ namespace Content.Shared.Body.Systems;
 
 public abstract partial class SharedInternalsSystem
 {
-    [Dependency] private WFSuitTankSlotSystem _suitTank = default!;
+    [Dependency] private WFSuitTankStorageSystem _suitTank = default!;
 
     /// <summary>
-    /// A connectable tank in the slot of the suit the user wears.
+    /// The first connectable tank in the storage of the suit the user wears.
     /// </summary>
-    private Entity<GasTankComponent>? FindSuitSlotTank(EntityUid user)
+    private Entity<GasTankComponent>? FindSuitStorageTank(EntityUid user)
     {
-        if (_suitTank.TryGetWornTank(user, out var tank) && _gasTank.CanConnectToInternals(tank))
-            return tank;
+        foreach (var tank in _suitTank.GetWornTanks(user))
+        {
+            if (_gasTank.CanConnectToInternals(tank))
+                return tank;
+        }
 
         return null;
     }
