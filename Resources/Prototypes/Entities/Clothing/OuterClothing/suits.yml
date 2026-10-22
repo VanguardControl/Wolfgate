@@ -299,6 +299,12 @@
   components:
   # WOLFGATE(SuitTank) START: 2x2 storage for air tanks that feed internals
   - type: WFSuitTankStorage
+  # A hooded or helmeted child's toggle keeps its container here too, so the list stays whole whichever parent it takes.
+  - type: ContainerContainer
+    containers:
+      toggleable-clothing: !type:Container {}
+      storagebase: !type:Container
+        ents: []
   - type: Storage
     grid:
     - 0,0,1,1
