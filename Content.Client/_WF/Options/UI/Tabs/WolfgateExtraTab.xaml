@@ -13,6 +13,7 @@
                 <ui:OptionDropDown Name="DropDownWolfgateStyle" Title="{Loc 'ui-options-wf-ui-style'}" />
                 <CheckBox Name="WindowPopoutCheckBox" Text="{Loc 'ui-options-wf-window-popout'}" />
                 <CheckBox Name="CockpitAutoEnterCheckBox" Text="{Loc 'ui-options-wf-cockpit-auto-enter'}" />
+                <CheckBox Name="DefaultNorthCheckBox" Text="{Loc 'ui-options-wf-default-north'}" />
                 <Label Text="{Loc 'ui-options-wf-effects'}" StyleClasses="LabelKeyText"/>
                 <CheckBox Name="HeatHazeCheckBox" Text="{Loc 'ui-options-wf-heat-haze'}" />
                 <ui:OptionSlider Name="HeatHazeStrengthSlider" Title="{Loc 'ui-options-wf-heat-haze-strength'}" />

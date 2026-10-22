@@ -442,11 +442,23 @@ public sealed class WFMappingLibrarySystem : EntitySystem
         return SaveVersion(levels, ground, user, mapName, kind, $"mapping session {session.Code}", session.Template);
     }
 
-    /// <summary>Resets the air on every grid of the levels to its roundstart mix, as <c>fixgridatmos</c> does.</summary>
+    /// <summary>
+    /// Resets the air on every grid of the levels to its roundstart mix, as <c>fixgridatmos</c> does, and relinks
+    /// windows to the grid they stand on.
+    /// </summary>
     private void FixAtmos(List<EntityUid> levels, WFMappingSession session)
     {
         foreach (var level in levels)
         {
+            try
+            {
+                _atmos.WfRelinkDeltaPressure(level);
+            }
+            catch (Exception e)
+            {
+                Log.Warning($"Relinking windows on {ToPrettyString(level)} in mapping session {session.Code} failed: {e}");
+            }
+
             var children = Transform(level).ChildEnumerator;
             while (children.MoveNext(out var child))
             {
