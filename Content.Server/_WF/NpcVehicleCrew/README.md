@@ -60,6 +60,7 @@ Design notes are in `Docs/_WF/NpcVehicleCrew/design.md`.
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/NpcVehicleCrew/WFVehicleCrewDrivingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcVehicleCrew/WFVehicleCrewDrivingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcVehicleCrew/WFVehicleCrewPanelTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcVehicleCrew/WFVehicleCrewPanelTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcVehicleCrew/WFVehicleCrewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcVehicleCrew/WFVehicleCrewTest.cs)
 
