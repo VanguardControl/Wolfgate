@@ -43,6 +43,8 @@ public sealed class PlanetSignalsTest
   edgeMargin: 56
   centreClear: 24
   footprint: 24
+  # Players walking near a site identify it; the test's characters stand by the world's middle and mustn't.
+  revealRange: 1
   entries:
   # A small authored site, so two always fit on a small world.
   - mapPath: /Maps/_WF/PlanetPois/Tests/through_service.yml
