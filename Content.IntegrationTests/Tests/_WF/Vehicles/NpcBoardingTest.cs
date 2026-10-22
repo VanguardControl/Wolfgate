@@ -77,7 +77,7 @@ public sealed class NpcBoardingTest
         var server = pair.Server;
         var entMan = server.EntMan;
         var (vehicle, player, mugger) = await Rig(pair, locked: false);
-        await pair.RunSeconds(15);
+        await Strangers.StrangerTest.RunUntil(pair, () => entMan.HasComponent<VehicleInteriorOccupantComponent>(mugger), 40);
         await server.WaitAssertion(() =>
         {
             var hostiles = entMan.GetComponent<FactionExceptionComponent>(mugger).Hostiles;

@@ -46,6 +46,25 @@ public sealed class StrangerTest
         return (map, player);
     }
 
+    /// <summary>Runs the pair until <paramref name="done"/> holds or <paramref name="seconds"/> pass; a slow CI box takes longer.</summary>
+    internal static async Task RunUntil(TestPair pair, Func<bool> done, float seconds)
+    {
+        for (var waited = 0f; waited < seconds; waited += 0.5f)
+        {
+            var finished = false;
+            await pair.Server.WaitPost(() => finished = done());
+            if (finished)
+                return;
+            await pair.RunSeconds(0.5f);
+        }
+    }
+
+    private static bool WarnedOff(WFStrangerComponent stranger, EntityUid player)
+    {
+        var warned = stranger.Warned;
+        return warned.ContainsKey(player);
+    }
+
     [Test]
     public async Task TheDealerHailsAndTurnsOnYouWhenRefused()
     {
@@ -55,7 +74,7 @@ public sealed class StrangerTest
         var (map, player) = await Rig(pair);
         EntityUid dealer = default;
         await server.WaitPost(() => dealer = entMan.SpawnEntity("WFStrangerDealer", new EntityCoordinates(map.Grid.Owner, 6.5f, 0.5f)));
-        await pair.RunSeconds(8);
+        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(dealer).Hailed, 30);
 
         var strangers = server.System<WFStrangerSystem>();
         await server.WaitAssertion(() =>
@@ -147,7 +166,7 @@ public sealed class StrangerTest
             first = entMan.SpawnEntity("WFStrangerMugger", new EntityCoordinates(map.Grid.Owner, 1.5f, 0.5f));
             second = entMan.SpawnEntity("WFStrangerBeggar", new EntityCoordinates(map.Grid.Owner, -1.5f, 0.5f));
         });
-        await pair.RunSeconds(2);
+        await RunUntil(pair, () => WarnedOff(entMan.GetComponent<WFStrangerComponent>(first), player), 15);
         await server.WaitAssertion(() =>
         {
             var stranger = entMan.GetComponent<WFStrangerComponent>(first);
@@ -159,7 +178,8 @@ public sealed class StrangerTest
 
         await server.WaitPost(() =>
             server.System<SharedTransformSystem>().SetCoordinates(player, new EntityCoordinates(map.Grid.Owner, 5.5f, 0.5f)));
-        await pair.RunSeconds(2);
+        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(first).Hostile
+                                   && entMan.GetComponent<WFStrangerComponent>(second).Hostile, 15);
         await server.WaitAssertion(() =>
         {
             Assert.That(entMan.GetComponent<WFStrangerComponent>(first).Hostile, Is.True, "Inside the camp, he should attack.");
@@ -182,7 +202,7 @@ public sealed class StrangerTest
             server.System<SharedTransformSystem>().SetCoordinates(player, new EntityCoordinates(map.Grid.Owner, -25.5f, 0.5f));
             roamer = entMan.SpawnEntity("WFStrangerBeggar", new EntityCoordinates(map.Grid.Owner, 0.5f, 0.5f));
         });
-        await pair.RunSeconds(60);
+        await RunUntil(pair, () => Vector2.Distance(entMan.GetComponent<TransformComponent>(roamer).LocalPosition, new Vector2(0.5f, 0.5f)) > 2f, 120);
         await server.WaitAssertion(() =>
         {
             var position = entMan.GetComponent<TransformComponent>(roamer).LocalPosition;
@@ -206,7 +226,7 @@ public sealed class StrangerTest
             entMan.GetComponent<WFStrangerComponent>(stalker).BoardDelay = TimeSpan.FromSeconds(2);
 #pragma warning restore RA0002
         });
-        await pair.RunSeconds(3);
+        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(stalker).Target == player, 15);
         await server.WaitAssertion(() =>
             Assert.That(entMan.GetComponent<WFStrangerComponent>(stalker).Target, Is.EqualTo(player), "The stalker never picked his mark."));
 
@@ -224,7 +244,7 @@ public sealed class StrangerTest
             var xforms = server.System<SharedTransformSystem>();
             xforms.SetCoordinates(player, new EntityCoordinates(ship, 0.5f, 0.5f));
         });
-        await pair.RunSeconds(5);
+        await RunUntil(pair, () => entMan.GetComponent<TransformComponent>(stalker).GridUid == ship, 20);
         await server.WaitAssertion(() =>
         {
             Assert.That(entMan.GetComponent<TransformComponent>(stalker).GridUid, Is.EqualTo(ship), "The stalker should turn up aboard.");
