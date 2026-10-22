@@ -7,7 +7,7 @@ than the shared Apply row.
 Entry point: `WolfgateConsentTab`, added to `OptionsMenu` at `OptionsMenu.ConsentTabIndex` by a marked edit.
 
 The Extra tab is `WolfgateExtraTab`, which takes the place of Delta-V's `DeltaTab` by a marked edit in `OptionsMenu`.
-It lists every Wolfgate client setting a player can change (UI skin, window pop-out, cockpit auto-enter, heat haze,
+It lists every Wolfgate client setting a player can change (UI skin, window pop-out, cockpit auto-enter, default to north, heat haze,
 shockwave, Wolfmed effects, admin radio volume, soundtrack mute) on the shared Apply row, plus the one Delta-V setting
 the old tab had. A new player-facing client cvar gets a control here; a setting Delta-V adds to `DeltaTab` has to be
 copied over.
