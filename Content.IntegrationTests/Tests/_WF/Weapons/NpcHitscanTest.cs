@@ -38,14 +38,25 @@ public sealed class NpcHitscanTest
             Assert.That(server.System<SharedHandsSystem>().TryPickupAnyHand(shooter, gun), Is.True);
         });
         await server.WaitRunTicks(5);
-        await server.WaitPost(() =>
+        // Fired the way NPC ranged combat fires it, again each half second until it lands: a gun just picked up may not
+        // be ready on the first try.
+        for (var attempt = 0; attempt < 10; attempt++)
         {
-            var guns = server.System<SharedGunSystem>();
-            var comp = entMan.GetComponent<GunComponent>(gun);
-            guns.SetTarget(comp, player);
-            guns.AttemptShoot(shooter, gun, comp, new EntityCoordinates(map.Grid.Owner, 5.5f, 0.5f));
-        });
-        await server.WaitRunTicks(10);
+            var hurt = false;
+            await server.WaitPost(() =>
+            {
+                hurt = entMan.GetComponent<DamageableComponent>(player).TotalDamage.Float() > 0f;
+                if (hurt)
+                    return;
+                var guns = server.System<SharedGunSystem>();
+                var comp = entMan.GetComponent<GunComponent>(gun);
+                guns.SetTarget(comp, player);
+                guns.AttemptShoot(shooter, gun, comp, new EntityCoordinates(map.Grid.Owner, 5.5f, 0.5f));
+            });
+            if (hurt)
+                break;
+            await pair.RunSeconds(0.5f);
+        }
         await server.WaitAssertion(() =>
             Assert.That(entMan.GetComponent<DamageableComponent>(player).TotalDamage.Float(), Is.GreaterThan(0f), "The laser didn't hurt the player."));
         await pair.CleanReturnAsync();
