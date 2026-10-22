@@ -344,7 +344,8 @@ public sealed partial class WFEncounterTest
             transform.SetCoordinates(visitor, new EntityCoordinates(MapData.MapUid, new Vector2(31150, 31000)));
             transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(visitor, new Vector2(0.5f)));
             SEntMan.EnsureComponent<Content.Shared._Mono.Company.CompanyComponent>(visitor).CompanyName = "TSFCivilian";
-            // With its IFF off: its own faction knows it over the radio all the same.
+            SEntMan.EnsureComponent<Content.Shared._Mono.Company.CompanyComponent>(SEntMan.GetEntity(Player)).CompanyName = "TSFCivilian";
+            // With its IFF off: its own faction knows its crew over the radio all the same.
             Server.System<Content.Server.Shuttles.Systems.ShuttleSystem>().AddIFFFlag(visitor, Content.Shared.Shuttles.Components.IFFFlags.HideLabel);
             var body = SEntMan.EnsureComponent<Robust.Shared.Physics.Components.PhysicsComponent>(visitor);
             var physics = Server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>();
@@ -359,6 +360,7 @@ public sealed partial class WFEncounterTest
             Assert.That(state.Engaged, Is.Empty, "A Federation civilian is no intruder to a Federation warship, IFF or no.");
             Assert.That(state.Warned, Is.Empty, "Nor is it warned off.");
             SEntMan.GetComponent<Content.Shared._Mono.Company.CompanyComponent>(visitor).CompanyName = "USSP";
+            SEntMan.GetComponent<Content.Shared._Mono.Company.CompanyComponent>(SEntMan.GetEntity(Player)).CompanyName = "USSP";
             Server.System<SharedTransformSystem>().SetCoordinates(visitor, new EntityCoordinates(MapData.MapUid, new Vector2(31150, 31000)));
             Server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>().SetLinearVelocity(visitor, new Vector2(0f, 4f));
         });
