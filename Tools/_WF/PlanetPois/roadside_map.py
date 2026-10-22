@@ -180,6 +180,11 @@ def flatten(text):
             line = f"{m.group(1)}pos: {float(m.group(2)) + dx:g},{float(m.group(3)) + dy:g}"
         elif m := re.fullmatch(r"(\s+)gridUid: (\d+)", line):
             line = f"{m.group(1)}gridUid: {1 if int(m.group(2)) in grids else m.group(2)}"
+        elif 1 not in grids and (m := re.fullmatch(r"(\s+- |\s+ent: )1", line)):
+            # Whatever held uid 1 is also named in containers, slots and links; they follow it to the spare uid.
+            line = f"{m.group(1)}{spare}"
+        elif 1 not in grids and (m := re.fullmatch(r"(\s+)1:", line)):
+            line = f"{m.group(1)}{spare}:"
         if line.startswith("    - type: ") and line != "    - type: Transform":
             parent = None
         out.append(line)

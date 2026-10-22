@@ -121,6 +121,7 @@ station's fuel merchant sells usable fuel items through Traders; it does not ref
 
 - [`Resources/Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml`](../../../Resources/Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml)
 - [`Resources/Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml`](../../../Resources/Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml)
+- [`Resources/Maps/_WF/PlanetPois/planetary_vault.yml`](../../../Resources/Maps/_WF/PlanetPois/planetary_vault.yml)
 - [`Resources/Maps/_WF/PlanetPois/Tests/through_service.yml`](../../../Resources/Maps/_WF/PlanetPois/Tests/through_service.yml)
 - [`Resources/Maps/_WF/PlanetPois/verda_corner_house.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_corner_house.yml)
 - [`Resources/Maps/_WF/PlanetPois/verda_gas_station.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_gas_station.yml)

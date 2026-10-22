@@ -13,6 +13,8 @@ existing procedural expedition dungeons.
   and off the roads with footpaths: `verda_corner_house`, `verda_small_house` and `abandoned_bandit_hideout`.
 - Merak: `abandoned_bandit_hideout`.
 - Carcinoma: `carcinoma_fountain_of_life`, the shrine.
+- Every world: `planetary_vault`, a rock-cut bunker guarded by PDV troops and turrets, off the roads with a footpath to
+  its blast doors (up to one a world).
 
 The houses and the hideout are `dwelling` sites, where a stranger may live.
 

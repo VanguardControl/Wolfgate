@@ -48,6 +48,18 @@
   minCount: 7
   maxCount: 11
   entries:
+  - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
+    name: wf-poi-planetary-vault
+    expeditions: false
+    footprint: -9,-21,16,10
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -5,-5
+      direction: West
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/verda_house_1.yml
     name: wf-poi-verda-house-1
     expeditions: false
@@ -78,7 +90,7 @@
   - mapPath: /Maps/_WF/PlanetPois/verda_small_house.yml
     name: wf-poi-verda-small-house
     expeditions: false
-    footprint: -2,-8,10,6
+    footprint: -1,-8,10,5
     minCount: 1
     maxCount: 2
     connection: Isolated
@@ -178,6 +190,18 @@
   minCount: 3
   maxCount: 5
   entries:
+  - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
+    name: wf-poi-planetary-vault
+    expeditions: false
+    footprint: -9,-21,16,10
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -5,-5
+      direction: West
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml
     name: wf-poi-abandoned-bandit-hideout
     expeditions: false
@@ -245,6 +269,18 @@
   minCount: 2
   maxCount: 3
   entries:
+  - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
+    name: wf-poi-planetary-vault
+    expeditions: false
+    footprint: -9,-21,16,10
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -5,-5
+      direction: West
+    rotate: true
   - dungeon: WFPoiFervidusBrig
     name: wf-poi-fervidus-brig
   - dungeon: WFPoiFervidusCamp
@@ -292,6 +328,18 @@
   minCount: 2
   maxCount: 3
   entries:
+  - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
+    name: wf-poi-planetary-vault
+    expeditions: false
+    footprint: -9,-21,16,10
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -5,-5
+      direction: West
+    rotate: true
   - dungeon: WFPoiThrasciasLabs
     name: wf-poi-thrascias-labs
   - dungeon: WFPoiThrasciasVirology
@@ -345,6 +393,18 @@
   edgeMargin: 72
   centreClear: 64
   entries:
+  - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
+    name: wf-poi-planetary-vault
+    expeditions: false
+    footprint: -9,-21,16,10
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -5,-5
+      direction: West
+    rotate: true
   - dungeon: WFPoiAerumnaFactory
     name: wf-poi-aerumna-factory
   - dungeon: WFPoiAerumnaMine
@@ -395,6 +455,18 @@
   edgeMargin: 72
   centreClear: 64
   entries:
+  - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
+    name: wf-poi-planetary-vault
+    expeditions: false
+    footprint: -9,-21,16,10
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -5,-5
+      direction: West
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml
     name: wf-poi-carcinoma-fountain-of-life
     expeditions: false
