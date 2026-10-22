@@ -157,31 +157,27 @@ public sealed class PlanetBoundsTest
 
         await EnableBounded(pair);
         var layers = await PlanetFixture.BuildStandalone(pair);
-        try
+        // No try/finally: a failed check leaves the server mid-assertion, and tearing down then would throw over it.
+        // Just past the edge in the air, flying outward.
+        var air = await PlanetFixture.BuildHull(pair, await MapIdOf(pair, layers[1]), new Vector2(Radius - 6, 0));
+        // Far out on the ground, where there is no flight drag at all.
+        var stray = await PlanetFixture.BuildHull(pair, await MapIdOf(pair, layers[0]), new Vector2(Radius + 60, 0));
+        float start = 0;
+        await server.WaitPost(() =>
         {
-            // Just past the edge in the air, flying outward.
-            var air = await PlanetFixture.BuildHull(pair, await MapIdOf(pair, layers[1]), new Vector2(Radius - 6, 0));
-            // Far out on the ground, where there is no flight drag at all.
-            var stray = await PlanetFixture.BuildHull(pair, await MapIdOf(pair, layers[0]), new Vector2(Radius + 60, 0));
-            float start = 0;
-            await server.WaitPost(() =>
-            {
-                start = xforms.GetWorldPosition(air).X;
-                server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>().SetLinearVelocity(air, new Vector2(8, 0));
-            });
-            await pair.RunTicksSync(pair.SecondsToTicks(3f));
-            await server.WaitAssertion(() =>
-            {
-                Assert.That(bounds.IsHullInside(stray), Is.True, "A hull far outside the circle on the ground was left there.");
-                var velocity = entMan.GetComponent<Robust.Shared.Physics.Components.PhysicsComponent>(air).LinearVelocity;
-                Assert.That(velocity.X, Is.LessThanOrEqualTo(0f), "The hull is still flying outward past the edge.");
-                Assert.That(xforms.GetWorldPosition(air).X, Is.LessThan(start + 12f), "The hull got well past the edge.");
-            });
-        }
-        finally
+            start = xforms.GetWorldPosition(air).X;
+            server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>().SetLinearVelocity(air, new Vector2(8, 0));
+        });
+        await pair.RunTicksSync(pair.SecondsToTicks(3f));
+        await server.WaitAssertion(() =>
         {
-            await PlanetFixture.Teardown(pair, layers);
-        }
+            Assert.That(bounds.IsHullInside(stray), Is.True, "A hull far outside the circle on the ground was left there.");
+            var velocity = entMan.GetComponent<Robust.Shared.Physics.Components.PhysicsComponent>(air).LinearVelocity;
+            Assert.That(velocity.X, Is.LessThanOrEqualTo(0f), "The hull is still flying outward past the edge.");
+            Assert.That(xforms.GetWorldPosition(air).X, Is.LessThan(start + 12f), "The hull got well past the edge.");
+        });
+
+        await PlanetFixture.Teardown(pair, layers);
 
         await pair.CleanReturnAsync();
     }
