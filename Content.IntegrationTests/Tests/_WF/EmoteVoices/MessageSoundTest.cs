@@ -2,6 +2,7 @@
 using System.Linq;
 using Content.Server._WF.EmoteVoices;
 using Content.Shared._WF.EmoteVoices;
+using Content.Shared.Cloning;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Preferences;
@@ -119,6 +120,33 @@ public sealed class MessageSoundTest
         });
         await server.WaitAssertion(() =>
             Assert.That(entMan.GetComponent<SpeechComponent>(mob).SpeechSounds?.Id, Is.EqualTo("WFMoth")));
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task CloneKeepsPickTest()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var humanoid = entMan.System<SharedHumanoidAppearanceSystem>();
+
+        EntityUid clone = default;
+        await server.WaitPost(() =>
+        {
+            var source = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            humanoid.LoadProfile(source, HumanoidCharacterProfile.DefaultWithSpecies("Human").WithMessageSound(Rodentia));
+
+            // CloningSystem's order: spawn the species prototype, copy the appearance, raise CloningEvent on the source.
+            clone = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            humanoid.CloneAppearance(source, clone);
+            var ev = new CloningEvent(source, clone);
+            entMan.EventBus.RaiseLocalEvent(source, ref ev);
+        });
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.GetComponent<SpeechComponent>(clone).SpeechSounds?.Id, Is.EqualTo("Squeak")));
 
         await pair.CleanReturnAsync();
     }

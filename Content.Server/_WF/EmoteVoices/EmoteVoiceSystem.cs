@@ -34,6 +34,7 @@ public sealed partial class EmoteVoiceSystem : EntitySystem
         SubscribeLocalEvent<EmoteVoiceComponent, MapInitEvent>(OnMapInit, after: [typeof(VocalSystem)]);
         SubscribeLocalEvent<EmoteVoiceComponent, SexChangedEvent>(OnSexChanged, after: [typeof(VocalSystem)]);
         SubscribeLocalEvent<EmoteVoiceComponent, CloningEvent>(OnCloning);
+        SubscribeLocalEvent<SpeechComponent, CloningEvent>(OnSpeechCloning);
         SubscribeLocalEvent<EmoteVoiceComponent, PolymorphedEvent>(OnPolymorphed);
     }
 
@@ -63,6 +64,13 @@ public sealed partial class EmoteVoiceSystem : EntitySystem
     private void OnCloning(Entity<EmoteVoiceComponent> ent, ref CloningEvent args)
     {
         SetVoices(args.Target, ent.Comp.Voices);
+    }
+
+    /// <summary>A clone keeps the message sound too.</summary>
+    private void OnSpeechCloning(Entity<SpeechComponent> ent, ref CloningEvent args)
+    {
+        if (TryComp<SpeechComponent>(args.Target, out var target))
+            target.SpeechSounds = ent.Comp.SpeechSounds;
     }
 
     /// <summary>A transformation that keeps the person's appearance keeps their voices too.</summary>
