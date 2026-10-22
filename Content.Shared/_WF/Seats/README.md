@@ -3,7 +3,7 @@
 Keeps people in the seat they buckle into. A buckled body that is pushed even slightly off its seat is unbuckled, and
 a seat mapped against a table or wall, a handrail in a wall, or a bunk shared with the bunkmate above, pushed its
 occupant off on the next physics tick. `SharedBuckleSystem.Seats` cancels hard contacts between a buckled body and
-static bodies or other buckled bodies; bullets, thrown items and people walking past still hit. Every vessel's seats
+static bodies, other seats, climbable furniture such as tables, and other buckled bodies; bullets, thrown items and people walking past still hit. Every vessel's seats
 are checked by `VesselShipyardTest.VesselSeatsHoldOccupants`.
 
 <!-- WOLFGATE-GENERATED START -->
