@@ -2796,3 +2796,19 @@ Entries:
   id: 100200
   time: '2026-10-22T04:37:58.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/320
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Spacesuits, hardsuits and modsuits now have a 2x2 storage for air tanks.
+        Internals breathe from a tank in there, so your suit storage slot stays
+        free.
+    - type: Add
+      message: >-
+        With two tanks in your suit, internals switch to the other one when the
+        first runs low.
+    - type: Tweak
+      message: A tank in your suit still shows on your character.
+  id: 100201
+  time: '2026-10-22T04:45:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/321
