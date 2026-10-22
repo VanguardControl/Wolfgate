@@ -28,6 +28,9 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Road tiles between one patrol point and the next.</summary>
     private const int PatrolPointSpacing = 14;
 
+    /// <summary>The shortest stretch of road worth patrolling.</summary>
+    private const int MinPatrolRoute = 12;
+
     /// <summary>The longest stretch of road a patrol drives before it turns round.</summary>
     private const int PatrolRouteLength = 420;
 
@@ -134,9 +137,10 @@ public sealed partial class WFPlanetPoiSystem
         if (patrols.Count == 0 || record.Centreline.Count == 0)
             return;
 
+        // Well off the landing zone if the roads go that far, anywhere on them if not.
         var starts = record.Centreline.Where(tile => Vector2.Distance(tile, record.RoamerCentre) > record.RoamerInner).ToList();
         if (starts.Count == 0)
-            return;
+            starts = record.Centreline.ToList();
 
         foreach (var patrol in patrols)
         {
@@ -144,11 +148,13 @@ public sealed partial class WFPlanetPoiSystem
             for (var i = 0; i < count; i++)
             {
                 var route = TraceRoad(record.Centreline, _random.Pick(starts));
-                if (route.Count < PatrolPointSpacing * 3)
+                if (route.Count < MinPatrolRoute)
                     continue;
 
+                // A short road gets its points closer together, so there are still a few to drive between.
+                var spacing = Math.Min(PatrolPointSpacing, route.Count / 3);
                 var points = new List<MapCoordinates>();
-                for (var step = 0; step < route.Count; step += PatrolPointSpacing)
+                for (var step = 0; step < route.Count; step += spacing)
                     points.Add(_transform.ToMapCoordinates(new EntityCoordinates(ground, (Vector2) route[step] + new Vector2(0.5f))));
                 // There and back along the same road.
                 for (var back = points.Count - 2; back > 0; back--)
