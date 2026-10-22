@@ -404,13 +404,8 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             if (intruder == ship.Grid || _escorts.AreInFormation(ship.Grid, intruder))
                 continue;
 
-            // The ship's own faction comes and goes as it likes, IFF or no: its ships keep each other posted over the
-            // radio. So does anyone flying with one of its people.
-            if (company.Length > 0 && crewed.Aboard.Contains(company))
-                continue;
-
-            // Nor is a player vessel with its people aboard, or any player vessel for a ship that minds only NPCs.
-            // Their fire is still answered.
+            // Its own side comes and goes as it likes: a hull showing its colours, or one with its people free aboard.
+            // A ship that minds only NPCs lets every player vessel by. Their fire is still answered.
             if (ship.NpcTargetsOnly || _spared.Spared(ship.Grid, intruder))
             {
                 Release(encounter, ship, intruder);
