@@ -42,6 +42,7 @@
   id: ClothingOuterHardsuitBaseNoPlateholder
   name: base hardsuit no plateholder
   components:
+  - type: WFSuitTankSlot # WOLFGATE(SuitTank): air tank slot that feeds internals
   - type: PressureProtection
     highPressureMultiplier: 0.3
     lowPressureMultiplier: 1000
