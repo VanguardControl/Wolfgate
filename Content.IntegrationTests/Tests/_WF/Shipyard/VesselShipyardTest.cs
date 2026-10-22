@@ -6,8 +6,12 @@ using Content.Server.Shuttles.Components;
 using Content.Shared._Crescent.Hardpoints;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.NpcCrew;
+using Content.Shared._WF.Tether.Harpoon;
+using Content.Shared.Buckle;
+using Content.Shared.Buckle.Components;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Shipyard;
@@ -87,6 +91,67 @@ public sealed class VesselShipyardTest
 
         Assert.That(guns, Is.Positive, "No hardpoint-only guns were found on any vessel.");
         Assert.That(helmShips, Is.Positive, "No vessel with a square console was planned.");
+        Assert.That(failures, Is.Empty, string.Join("\n", failures));
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Every seat on every vessel keeps whoever buckles into it, so none is jammed against a table or wall.</summary>
+    [Test]
+    public async Task VesselSeatsHoldOccupants()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entities = server.ResolveDependency<IEntityManager>();
+        var prototypes = server.ResolveDependency<IPrototypeManager>();
+        var loader = entities.System<MapLoaderSystem>();
+        var maps = entities.System<SharedMapSystem>();
+        var buckle = entities.System<SharedBuckleSystem>();
+        var failures = new List<string>();
+        var seats = 0;
+
+        foreach (var vessel in prototypes.EnumeratePrototypes<VesselPrototype>())
+        {
+            var mapId = MapId.Nullspace;
+            var seated = new List<(EntityUid Mob, EntityUid Seat, Vector2 Position)>();
+            await server.WaitPost(() =>
+            {
+                maps.CreateMap(out mapId);
+                if (!loader.TryLoadGrid(mapId, vessel.ShuttlePath, out var grid))
+                    return;
+
+                var straps = new List<EntityUid>();
+                var query = entities.EntityQueryEnumerator<StrapComponent, TransformComponent>();
+                while (query.MoveNext(out var uid, out _, out var xform))
+                {
+                    if (xform.GridUid == grid.Value.Owner && !entities.HasComponent<ShipHarpoonTurretComponent>(uid))
+                        straps.Add(uid);
+                }
+
+                foreach (var seat in straps)
+                {
+                    var xform = entities.GetComponent<TransformComponent>(seat);
+                    var mob = entities.SpawnEntity("MobHuman", xform.Coordinates);
+                    if (buckle.TryBuckle(mob, mob, seat))
+                        seated.Add((mob, seat, xform.LocalPosition));
+                }
+            });
+
+            await pair.RunTicksSync(30);
+
+            await server.WaitPost(() =>
+            {
+                foreach (var (mob, seat, position) in seated)
+                {
+                    seats++;
+                    if (entities.GetComponent<BuckleComponent>(mob).BuckledTo != seat)
+                        failures.Add($"{vessel.ID}: {entities.ToPrettyString(seat)} at {position} drops whoever buckles in.");
+                }
+
+                maps.DeleteMap(mapId);
+            });
+        }
+
+        Assert.That(seats, Is.Positive, "No vessel seat was buckled into.");
         Assert.That(failures, Is.Empty, string.Join("\n", failures));
         await pair.CleanReturnAsync();
     }
