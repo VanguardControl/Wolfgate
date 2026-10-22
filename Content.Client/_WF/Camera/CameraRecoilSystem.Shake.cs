@@ -80,6 +80,12 @@ public sealed partial class CameraRecoilSystem
 
     private void WFUpdateShakes(float frameTime)
     {
+        if (_intensity == 0)
+        {
+            _wfShakes.Clear();
+            return;
+        }
+
         foreach (var (uid, shake) in _wfShakes)
         {
             shake.Remaining -= frameTime;
@@ -94,7 +100,8 @@ public sealed partial class CameraRecoilSystem
                 continue;
 
             var frequency = MathHelper.Lerp(WFMinShakeFrequency, WFMaxShakeFrequency, shake.Strength / WFMaxShakeStrength);
-            shake.Timer = 1f / frequency;
+            // Carry the overshoot so the beat keeps its frequency at any frame rate.
+            shake.Timer = Math.Max(0f, shake.Timer + 1f / frequency);
 
             // Swing to the far side of the last offset, give or take 60 degrees.
             var amplitude = WFMaxOffset * Math.Min(1f, shake.Remaining / WFShakeFade);
