@@ -18,6 +18,9 @@ public sealed record WFPlanetRoadPlan(bool Success, string? Error, HashSet<Vecto
 {
     /// <summary>The tiles down the middle of the routed roads; the short approaches into the sites are not among them.</summary>
     public HashSet<Vector2i> Centreline { get; init; } = new();
+
+    /// <summary>On a failure that is one entrance's alone, that entrance: the rest may route without its site.</summary>
+    public Vector2i? FailedEntrance { get; init; }
 }
 
 /// <summary>Routes a bounded connected network without crossing reserved buildings or pinned terrain.</summary>
@@ -30,7 +33,8 @@ public static class WFPlanetRoadPlanner
         IReadOnlyList<WFPlanetRoadSite> sites, IReadOnlySet<Vector2i> blocked,
         int width, int shoulderWidth, int seed)
     {
-        WFPlanetRoadPlan Fail(string reason) => new(false, reason, new(), new());
+        WFPlanetRoadPlan Fail(string reason, Vector2i? entrance = null) =>
+            new(false, reason, new(), new()) { FailedEntrance = entrance };
         if (!float.IsFinite(radius) || !float.IsFinite(centreClear) || !float.IsFinite(centre.X) || !float.IsFinite(centre.Y)
             || width < 1 || width > 15 || width % 2 == 0 || shoulderWidth < 0 || shoulderWidth > 8 || radius <= 0 || radius > 4096 || centreClear < 0)
             return Fail("Invalid road dimensions or world bounds.");
@@ -114,11 +118,11 @@ public static class WFPlanetRoadPlanner
                 {
                     var lane = point + new Vector2i(-direction.Y, direction.X) * side;
                     if (!TileAllowed(lane))
-                        return Fail($"The approach from the entrance at {socket.Position} is blocked or outside the world at {lane}.");
+                        return Fail($"The approach from the entrance at {socket.Position} is blocked or outside the world at {lane}.", socket.Position);
                 }
             }
             if (!Allowed(start))
-                return Fail($"The entrance at {socket.Position} lacks road clearance at {start}.");
+                return Fail($"The entrance at {socket.Position} lacks road clearance at {start}.", socket.Position);
             if (network.Count > 0)
             {
                 var goal = network.OrderBy(p => Math.Abs(p.X - start.X) + Math.Abs(p.Y - start.Y)).ThenBy(p => p.X).ThenBy(p => p.Y).First();
@@ -145,7 +149,7 @@ public static class WFPlanetRoadPlanner
                     }
                 }
                 if (!found)
-                    return Fail($"The entrance at {socket.Position} cannot reach the road network within the routing budget.");
+                    return Fail($"The entrance at {socket.Position} cannot reach the road network within the routing budget.", socket.Position);
                 for (var point = goal; point != start; point = previous[point])
                     network.Add(point);
             }

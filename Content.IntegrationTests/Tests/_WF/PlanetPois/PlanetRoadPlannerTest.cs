@@ -115,7 +115,9 @@ public sealed class PlanetRoadPlannerTest
     public void PinnedEntranceCannotBeOverwritten()
     {
         var site = Site(20, 10);
-        Assert.That(Plan(new[] { site }, new HashSet<Vector2i> { site.Sockets[0].Position }).Success, Is.False);
+        var plan = Plan(new[] { site }, new HashSet<Vector2i> { site.Sockets[0].Position });
+        Assert.That(plan.Success, Is.False);
+        Assert.That(plan.FailedEntrance, Is.EqualTo(site.Sockets[0].Position), "The failure should name the entrance, so the world can route without its site.");
     }
     [Test]
     public void SocketApproachCannotExcuseAnotherBuilding()

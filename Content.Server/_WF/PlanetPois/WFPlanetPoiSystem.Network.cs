@@ -189,8 +189,7 @@ public sealed partial class WFPlanetPoiSystem
                             blocked.Remove(tile);
                     }
                 }
-                var sites = record.Sites.Select(site => new WFPlanetRoadSite(site.Bounds, site.Connection, site.Sockets)).ToList();
-                var plan = WFPlanetRoadPlanner.Plan(centre, radius - 1, table.CentreClear, sites, blocked, roads.Width, roads.ShoulderWidth, _random.Next());
+                var plan = PlanRoads(ground, record, centre, radius, table, roads, blocked);
                 if (!plan.Success)
                     Log.Warning($"No roads on {ToPrettyString(ground)}: {plan.Error ?? "routing failed"}. The sites stay.");
                 else
@@ -306,6 +305,33 @@ public sealed partial class WFPlanetPoiSystem
     private static Box2i Union(Box2i a, Box2i b) => new(Math.Min(a.Left, b.Left), Math.Min(a.Bottom, b.Bottom), Math.Max(a.Right, b.Right), Math.Max(a.Top, b.Top));
     private static Box2i BoundsOf(HashSet<Vector2i> tiles) => new(tiles.Min(t => t.X), tiles.Min(t => t.Y), tiles.Max(t => t.X) + 1, tiles.Max(t => t.Y) + 1);
     private static bool Contains(Box2i b, Vector2i t) => t.X >= b.Left && t.X < b.Right && t.Y >= b.Bottom && t.Y < b.Top;
+
+    /// <summary>
+    /// Plans the world's roads. A site whose own entrance can't be joined up, say one set down hard against the rock, is
+    /// left off the roads and the rest planned again, rather than the whole world going without.
+    /// </summary>
+    private WFPlanetRoadPlan PlanRoads(EntityUid ground, WFPlanetPoiComponent record, Vector2 centre, float radius,
+        WFPlanetPoiTablePrototype table, WFPlanetRoadNetwork roads, HashSet<Vector2i> blocked)
+    {
+        var seed = _random.Next();
+        while (true)
+        {
+            var sites = record.Sites.Select(site => new WFPlanetRoadSite(site.Bounds, site.Connection, site.Sockets)).ToList();
+            var plan = WFPlanetRoadPlanner.Plan(centre, radius - 1, table.CentreClear, sites, blocked, roads.Width, roads.ShoulderWidth, seed);
+            if (plan.Success || plan.FailedEntrance is not { } entrance)
+                return plan;
+
+            var failed = record.Sites.FirstOrDefault(site => site.Connection != WFPlanetPoiConnection.Isolated
+                                                             && site.Sockets.Any(socket => socket.Position == entrance));
+            if (failed == null)
+                return plan;
+
+            Log.Warning($"{Loc.GetString(failed.Name)} on {ToPrettyString(ground)} stays off the roads: {plan.Error}");
+            failed.Sockets = new List<WFPlanetRoadSocket>();
+            failed.AccessPaths.Clear();
+            failed.Connection = WFPlanetPoiConnection.Isolated;
+        }
+    }
 
     /// <summary>Keeps the complete footprint within the boundary and outside arrivals.</summary>
     private static bool Fits(Box2i b, Vector2 c, float radius, float clear)
