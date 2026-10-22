@@ -1,6 +1,7 @@
 """Imports Meridian Rift's drawn rolled-down jumpsuit sprites for the suits we share with it.
 
-Meridian Rift (an SS13 fork) draws a rolled-down `<state>_d` for many of its jumpsuits. This matches every worn
+Meridian Rift (an SS13 fork) draws a rolled-down `<state>_d` for many of its jumpsuits (for others `_d` only rolls
+the sleeves; those are skipped). This matches every worn
 jumpsuit state here against Meridian's worn states by pixels; where one matches closely and has a `_d` sibling, the
 `_d` sprite is written to Resources/Textures/_WF/RolledSleeves/Meridian/<original rsi path>, under the original state
 name. The game uses it for "Roll down jumpsuit" and falls back to the cut mask for everything else.
@@ -29,6 +30,8 @@ FRAME = 32
 COLOUR_TOLERANCE = 24
 # A `_d` this close to its normal sprite isn't rolled down.
 IDENTICAL = 0.9
+# Rows of the south-facing chest a roll-down leaves bare.
+CHEST_ROWS = range(12, 18)
 
 
 def dmi_states(path):
@@ -74,6 +77,11 @@ def score(a, b, a_mask, b_mask):
     return count(ImageChops.darker(both, close)) / union
 
 
+def covers_chest(img):
+    """Whether the south-facing sprite still covers the middle of the chest."""
+    return all(img.getpixel((FRAME // 2 - 1, y))[3] for y in CHEST_ROWS)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("dmis", type=Path)
@@ -87,9 +95,10 @@ def main():
             down = states.get(f"{name}_d")
             if down is None or name.endswith("_d"):
                 continue
-            # Suits Meridian can't adjust carry a `_d` copy of the normal sprite; those get the cut mask instead.
+            # Suits Meridian can't adjust carry a `_d` copy of the normal sprite, and some suits' `_d` only rolls the
+            # sleeves (the chest stays covered); neither is a roll-down, so those suits get the cut mask instead.
             mask = alpha_mask(img)
-            if score(img, down, mask, alpha_mask(down)) > IDENTICAL:
+            if score(img, down, mask, alpha_mask(down)) > IDENTICAL or covers_chest(down):
                 continue
             candidates.append((dmi.name, name, img, mask, down))
     print(f"{len(candidates)} Meridian suits with a rolled-down sprite")

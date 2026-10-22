@@ -6,7 +6,7 @@ The WFRolledSleeves shaders read a mask over the worn jumpsuit, per output pixel
 - green and blue move where the suit is sampled from, in pixels: 128 + dx, 128 + dy (image space, y down).
 
 States, each 4-direction 32x32 in the S, N, E, W frame order of an RSI:
-- `sleeves`: cuts the sleeve below the elbow and lightens the cuff row.
+- `sleeves`: cuts the sleeve below the elbow the way Meridian Rift draws it, with a one-pixel rolled cuff.
 - `down`: cuts everything above the belt and draws the tied sleeves round the waist, sampled from the chest.
 
 Usage:
@@ -31,13 +31,10 @@ DIRS = ("S", "N", "E", "W")
 NEUTRAL = (128, 128, 128, 255)
 CUT = (128, 128, 128, 0)
 
-# First arm row that gets cut when the sleeves are rolled; rows above it stay covered (upper arm).
-ELBOW_ROW = 15
 # The belt row: rolling down cuts every row above it.
 WAIST_ROW = 20
 # How far up the tied sleeves sample the suit, to pick up the shirt rather than the belt or trousers.
 CHEST_OFFSET = -6
-CUFF_SHADE = 255
 BAND_SHADE = 104
 KNOT_SHADE = 92
 
@@ -52,24 +49,37 @@ def opaque(name):
 
 
 def body_parts():
-    arms = [a | b for a, b in zip(opaque("l_arm"), opaque("r_arm"))]
+    """Per direction: each arm on its own, both hands, and the torso."""
+    arms = list(zip(opaque("l_arm"), opaque("r_arm")))
     hands = [a | b for a, b in zip(opaque("l_hand"), opaque("r_hand"))]
     torso = [a | b for a, b in zip(opaque("torso_m"), opaque("torso_f"))]
     return arms, hands, torso
 
 
 def sleeves_frame(d, arms, hands, torso):
-    """Pixel -> mask colour for one direction of the rolled-sleeve state."""
+    """Pixel -> mask colour for one direction of the rolled-sleeve state, after Meridian Rift's drawn cut.
+
+    Facing S or N each sleeve loses its bottom three rows, except at the elbow row: the pixel against the torso stays
+    and the one beside it becomes the rolled cuff, copied from the shade up and outward of it. Side-on only the bottom
+    two rows go.
+    """
     pixels = {}
-    lower = {p for p in arms[d] if p[1] >= ELBOW_ROW} | hands[d]
-    # Sleeve outlines sit one pixel outside the arm; take those too unless they're over the torso.
-    grown = {(x + dx, y) for x, y in lower for dx in (-1, 1)}
-    cut = lower | (grown - torso[d] - arms[d])
-    for x, y in cut:
-        if y == ELBOW_ROW and (x, y - 1) in arms[d] | (grown - torso[d]):
-            pixels[(x, y - 1)] = (CUFF_SHADE, 128, 128, 255)
-    for p in cut:
-        pixels[p] = CUT
+    centre = sum(x for x, _ in torso[d]) / len(torso[d])
+    for arm in arms[d]:
+        if not arm:
+            continue
+        bottom = max(y for _, y in arm)
+        rows = 3 if DIRS[d] in ("S", "N") else 2
+        for x, y in arm:
+            if y > bottom - rows:
+                pixels[(x, y)] = CUT
+        if DIRS[d] not in ("S", "N"):
+            continue
+        elbow = bottom - rows + 1
+        xs = sorted((x for x, y in arm if y == elbow), key=lambda x: abs(x - centre))
+        outward = 1 if xs[0] > centre else -1
+        pixels.pop((xs[0], elbow))
+        pixels[(xs[1], elbow)] = (128, 128 + outward, 128 - 1, 255)
     return pixels
 
 
@@ -79,7 +89,7 @@ def down_frame(d, arms, hands, torso):
     chest = (128, 128 + CHEST_OFFSET)
 
     # The tied sleeves: two rows at the belt, a pixel wider than the waist each side where no hand hangs there.
-    limbs = arms[d] | hands[d]
+    limbs = arms[d][0] | arms[d][1] | hands[d]
     for y in (WAIST_ROW, WAIST_ROW + 1):
         xs = [x for x in range(FRAME) if (x, y) in torso[d] and (x, y) not in limbs]
         if not xs:

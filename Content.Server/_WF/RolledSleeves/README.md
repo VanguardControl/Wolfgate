@@ -6,11 +6,11 @@ matching verb puts it back. Sleeves can't be rolled while the top is down.
 
 Rolled down, a suit uses Meridian Rift's drawn `_d` sprite where we share the suit with it: those are imported to
 `Textures/_WF/RolledSleeves/Meridian/<original rsi path>` by `Tools/_WF/RolledSleeves/import_meridian_rolldowns.py`,
-which matches our worn sprites to Meridian's by pixels. Every other suit, and rolled sleeves on all of them, is
+which matches our worn sprites to Meridian's by pixels and skips `_d` sprites that only roll the sleeves. Every other suit, and rolled sleeves on all of them, is
 restyled at draw time: `WFRolledSleevesVisualsSystem` gives the worn layers the `WFRolledSleeves` shader (or
 `WFRolledSleevesDisplaced` where the species or body type displaces the suit) and feeds it a state of
 `Textures/_WF/RolledSleeves/sleeve_mask.rsi`. A mask pixel can cut the suit, shade it, or sample it from elsewhere:
-`sleeves` cuts below the elbow and lightens the cuff; `down` cuts above the belt and draws the tied sleeves from the
+`sleeves` cuts below the elbow with a one-pixel rolled cuff, as Meridian draws it; `down` cuts above the belt and draws the tied sleeves from the
 suit's own chest colours. `Tools/_WF/RolledSleeves/generate_sleeve_mask.py` builds both from the human body
 silhouette; `--preview out.png` draws a before/after sheet. Species-specific worn states and non-32x32 sprites are left
 as they are. Coverage is unchanged: a rolled-down suit still counts as covering the chest.
@@ -56,8 +56,6 @@ sprite, or shader and mask).
 - [`Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/ce.rsi/`](../../../Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/ce.rsi/)
 - [`Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/chemistry.rsi/`](../../../Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/chemistry.rsi/)
 - [`Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/cmo.rsi/`](../../../Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/cmo.rsi/)
-- [`Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/detective.rsi/`](../../../Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/detective.rsi/)
-- [`Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/detective_grey.rsi/`](../../../Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/detective_grey.rsi/)
 - [`Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/engineering.rsi/`](../../../Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/engineering.rsi/)
 - [`Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/hop.rsi/`](../../../Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/hop.rsi/)
 - [`Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/hos.rsi/`](../../../Resources/Textures/_WF/RolledSleeves/Meridian/Clothing/Uniforms/Jumpskirt/hos.rsi/)
