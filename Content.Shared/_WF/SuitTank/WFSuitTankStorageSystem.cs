@@ -80,6 +80,24 @@ public sealed class WFSuitTankStorageSystem : EntitySystem
     }
 
     /// <summary>
+    /// Gets the connectable worn suit tank with the most pressure, optionally skipping one tank.
+    /// </summary>
+    public Entity<GasTankComponent>? FindFullestTank(EntityUid wearer, EntityUid? except = null)
+    {
+        Entity<GasTankComponent>? best = null;
+        foreach (var tank in GetWornTanks(wearer))
+        {
+            if (tank.Owner == except || !_gasTank.CanConnectToInternals(tank))
+                continue;
+
+            if (best == null || tank.Comp.Air.Pressure > best.Value.Comp.Air.Pressure)
+                best = tank;
+        }
+
+        return best;
+    }
+
+    /// <summary>
     /// Gets the mob wearing the suit that holds this tank in its storage.
     /// </summary>
     public bool TryGetWearer(EntityUid tank, [NotNullWhen(true)] out EntityUid? wearer)

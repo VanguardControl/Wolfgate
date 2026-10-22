@@ -5,13 +5,14 @@ tanks. Click the suit to open it, or click it with a tank to put the tank in. In
 there, so the suit storage slot stays free for something else. The first stored tank draws on the wearer, with its
 suit storage sprite.
 
-Taking the suit off disconnects the tank. Internals pick a tank in this order: back, suit storage grid, suit storage
-slot, then hands and pockets. The grid takes gas tanks only, not jetpacks. Mono's shield hardsuits keep their own 2x2
+Taking the suit off disconnects the tank. Internals pick a tank in this order: back, suit storage grid (fullest tank
+first), suit storage slot, then hands and pockets. When a connected suit tank drops to its low-pressure mark,
+internals switch to the fullest other tank in the suit that isn't low, with a popup. The grid takes gas tanks only, not jetpacks. Mono's shield hardsuits keep their own 2x2
 storage, which takes any normal item, and tanks in it count too. The tank's own action button and pressure UI only
 work out of the suit; toggle internals with the alert or the verb.
 
 Entry points: `WFSuitTankStorageComponent` (marks a suit whose `Storage` feeds internals), `WFSuitTankStorageSystem`
-(stored tanks, wearer lookup, disconnect on unequip), the `SharedInternalsSystem`, `SharedGasTankSystem` and
+(stored tanks, wearer lookup, disconnect on unequip), `WFSuitTankSwitchSystem` (the switch-over), the `SharedInternalsSystem`, `SharedGasTankSystem` and
 `GasTankSystem` partials that teach internals about the suit, and `WFSuitTankVisualsSystem` (the mob overlay).
 
 <!-- WOLFGATE-GENERATED START -->
@@ -22,6 +23,7 @@ Entry points: `WFSuitTankStorageComponent` (marks a suit whose `Storage` feeds i
 ### Server
 
 - [`Content.Server/_WF/SuitTank/GasTankSystem.SuitTank.cs`](GasTankSystem.SuitTank.cs)
+- [`Content.Server/_WF/SuitTank/WFSuitTankSwitchSystem.cs`](WFSuitTankSwitchSystem.cs)
 
 ### Shared
 
@@ -37,6 +39,10 @@ Entry points: `WFSuitTankStorageComponent` (marks a suit whose `Storage` feeds i
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/SuitTank/WFSuitTankTest.cs`](../../../Content.IntegrationTests/Tests/_WF/SuitTank/WFSuitTankTest.cs)
+
+### Localization
+
+- [`Resources/Locale/en-US/_WF/SuitTank/suit-tank.ftl`](../../../Resources/Locale/en-US/_WF/SuitTank/suit-tank.ftl)
 
 ## Non-modular edits
 

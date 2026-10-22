@@ -8,16 +8,10 @@ public abstract partial class SharedInternalsSystem
     [Dependency] private WFSuitTankStorageSystem _suitTank = default!;
 
     /// <summary>
-    /// The first connectable tank in the storage of the suit the user wears.
+    /// The fullest connectable tank in the storage of the suit the user wears.
     /// </summary>
     private Entity<GasTankComponent>? FindSuitStorageTank(EntityUid user)
     {
-        foreach (var tank in _suitTank.GetWornTanks(user))
-        {
-            if (_gasTank.CanConnectToInternals(tank))
-                return tank;
-        }
-
-        return null;
+        return _suitTank.FindFullestTank(user);
     }
 }
