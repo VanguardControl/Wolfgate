@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using Content.Server._WF.Administration.Systems;
@@ -315,31 +316,57 @@ public sealed partial class WFCrewSetupSystem : EntitySystem
             EnsureComp<WFCrewShipProfileComponent>(grid).Profile = id;
     }
 
-    /// <summary>Replaces the hull parts a profile swaps out on a grid, in place and anchored as they were. Returns how many.</summary>
+    /// <summary>Hull parts waiting to be swapped, worked off a few each tick so crewing a ship never costs one long tick.</summary>
+    private readonly Queue<(EntityUid Old, EntProtoId New)> _hullSwaps = new();
+
+    /// <summary>How long one tick may spend swapping hull parts.</summary>
+    private static readonly TimeSpan HullSwapBudget = TimeSpan.FromMilliseconds(2);
+
+    /// <summary>
+    /// Queues the hull parts a profile swaps out on a grid, to be replaced in place and anchored as they were over the
+    /// next ticks. Returns how many.
+    /// </summary>
     public int ApplyHullSwaps(EntityUid grid, ProtoId<WFCrewProfilePrototype>? profileId)
     {
         if (profileId is not { } id || !_prototypes.TryIndex(id, out var profile) || profile.HullSwaps.Count == 0)
             return 0;
 
-        var swaps = new List<(EntityUid Old, EntProtoId New, EntityCoordinates At, Angle Rotation)>();
-        var query = EntityQueryEnumerator<TransformComponent, MetaDataComponent>();
-        while (query.MoveNext(out var uid, out var xform, out var meta))
+        // Hull parts are anchored, so they are the grid's own children.
+        var count = 0;
+        var children = Transform(grid).ChildEnumerator;
+        while (children.MoveNext(out var uid))
         {
-            if (xform.GridUid != grid || meta.EntityPrototype is not { } proto || !profile.HullSwaps.TryGetValue(proto.ID, out var replacement))
+            if (MetaData(uid).EntityPrototype is not { } proto || !profile.HullSwaps.TryGetValue(proto.ID, out var replacement))
                 continue;
-            swaps.Add((uid, replacement, xform.Coordinates, xform.LocalRotation));
+            _hullSwaps.Enqueue((uid, replacement));
+            count++;
         }
 
-        foreach (var (old, replacement, at, rotation) in swaps)
+        return count;
+    }
+
+    /// <summary>Whether any hull part is still waiting to be swapped.</summary>
+    public bool HullSwapsPending => _hullSwaps.Count > 0;
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+        if (_hullSwaps.Count == 0)
+            return;
+
+        var watch = Stopwatch.StartNew();
+        while (watch.Elapsed < HullSwapBudget && _hullSwaps.TryDequeue(out var swap))
         {
-            QueueDel(old);
-            var spawned = Spawn(replacement, at);
+            if (TerminatingOrDeleted(swap.Old))
+                continue;
+            var xform = Transform(swap.Old);
+            var rotation = xform.LocalRotation;
+            var spawned = Spawn(swap.New, xform.Coordinates);
+            QueueDel(swap.Old);
             _transform.SetLocalRotation(spawned, rotation);
             if (!Transform(spawned).Anchored)
                 _transform.AnchorEntity(spawned);
         }
-
-        return swaps.Count;
     }
 
     public bool TryApplyMission(EntityUid grid, WFCrewMission mission)
