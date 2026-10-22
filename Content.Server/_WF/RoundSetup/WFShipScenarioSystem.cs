@@ -9,6 +9,7 @@ using Content.Server.GameTicking;
 using Content.Server.Hands.Systems;
 using Content.Server.Preferences.Managers;
 using Content.Server.Shuttles.Components;
+using Content.Server.Station.Components;
 using Content.Server.Station.Systems;
 using Content.Shared._Mono.Ships.Components;
 using Content.Shared._Mono.Shipyard;
@@ -178,12 +179,26 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         {
             StationPrototype = "WFShipScenarioStation",
             StationComponentOverrides = new ComponentRegistry(),
-        }, new[] { hull }, vessel.Name);
+        }, new[] { hull }, VesselStationName(vessel));
         EnsureComp<WFShipScenarioStationComponent>(station).LobbyId = lobbyId;
         AddVesselExpeditions(station, vessel);
         EnsureComp<WFShipScenarioComponent>(hull).LobbyId = lobbyId;
         _scenarios.Add(lobbyId, new Scenario(hull, station, vessel.ID, location) { Faction = faction, PurchaseJob = job });
         return true;
+    }
+
+    /// <summary>The numbered name a shipyard purchase of the vessel gets, such as "HT Sagittarius EXP14-123".</summary>
+    private string VesselStationName(VesselPrototype vessel)
+    {
+        if (_prototypes.TryIndex<GameMapPrototype>(vessel.ID, out var gameMap) &&
+            gameMap.Stations.TryGetValue(vessel.ID, out var config) &&
+            config.StationComponentOverrides?.TryGetValue(Factory.GetComponentName<StationNameSetupComponent>(), out var entry) == true &&
+            entry.Component is StationNameSetupComponent setup)
+        {
+            return setup.NameGenerator?.FormatName(setup.StationNameTemplate) ?? setup.StationNameTemplate;
+        }
+
+        return vessel.Name;
     }
 
     /// <summary>Gives a private scenario station the expedition offers the vessel's own station would have.</summary>
@@ -220,7 +235,7 @@ public sealed partial class WFShipScenarioSystem : EntitySystem
         var vessel = _prototypes.Index<VesselPrototype>(scenario.Vessel);
         // Crew purchases bypass the normal loader that initializes the sale service.
         _shipyard.SetupShipyardIfNeeded();
-        if (!_shipyard.TryAssignDeed(scenario.Hull, card, host, vessel, string.IsNullOrWhiteSpace(shipName) ? null : shipName, existingStation: scenario.Station))
+        if (!_shipyard.TryAssignDeed(scenario.Hull, card, host, vessel, string.IsNullOrWhiteSpace(shipName) ? Name(scenario.Station) : shipName, existingStation: scenario.Station))
             return false;
         scenario.Used = true;
         EnsureComp<ShipActivityComponent>(scenario.Hull);
