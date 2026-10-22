@@ -6,6 +6,7 @@ public sealed partial class ChatSystem
 {
     /// <summary>
     /// Returns the chat message of the emote whose trigger is exactly <paramref name="action"/>, or the action unchanged.
+    /// Only a message that starts with the typed word counts, so a synonym trigger ("*giggles" for Laugh) stays as typed.
     /// Punctuation typed after the trigger replaces the message's own ("*trills?" gives "trills?").
     /// </summary>
     public string ResolveTypedEmote(EntityUid source, string action)
@@ -18,7 +19,8 @@ public sealed partial class ChatSystem
         while (end > start && char.IsPunctuation(word[end - 1]))
             end--;
 
-        if (!_wordEmoteDict.TryGetValue(word[start..end].ToString().ToLowerInvariant(), out var emotes))
+        var typed = word[start..end].ToString().ToLowerInvariant();
+        if (!_wordEmoteDict.TryGetValue(typed, out var emotes))
             return action;
 
         foreach (var emote in emotes)
@@ -26,7 +28,18 @@ public sealed partial class ChatSystem
             if (emote.ChatMessages.Count == 0 || !AllowedToUseEmote(source, emote))
                 continue;
 
-            var message = Loc.GetString(_random.Pick(emote.ChatMessages), ("entity", source));
+            var messages = new List<string>();
+            foreach (var id in emote.ChatMessages)
+            {
+                var text = Loc.GetString(id, ("entity", source));
+                if (text.TrimStart().StartsWith(typed, StringComparison.OrdinalIgnoreCase))
+                    messages.Add(text);
+            }
+
+            if (messages.Count == 0)
+                continue;
+
+            var message = _random.Pick(messages);
             if (end == word.Length)
                 return message;
 
