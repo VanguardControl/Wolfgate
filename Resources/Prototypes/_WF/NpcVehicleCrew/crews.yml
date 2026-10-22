@@ -150,3 +150,23 @@
   behaviour: Patrol
   engagement: WhenAttacked
   skill: Green
+
+# Ashfall Reavers driving the roads of every world in an old APC (a POI table's `roadPatrols`): they leave people be
+# unless shot at, and barely stop on their way up and down the road.
+- type: wfVehicleCrew
+  id: WFVehicleCrewReaverRoadPatrol
+  name: wf-vehicle-crew-name-reaver-road-patrol
+  vehicle: WFVehicleAPCArmed
+  driver: WFVehicleDriver
+  gunner: WFVehicleGunner
+  troopers: [ WFVehicleTrooper, WFVehicleTrooper ]
+  profile: WFVehicleCrewProfilePirate
+  faction: PirateNF
+  behaviour: Patrol
+  engagement: WhenAttacked
+  engageRange: 16
+  standoff: 8
+  fireOnTheMove: true
+  skill: Green
+  patrolPauseMin: 0
+  patrolPauseMax: 2

@@ -12,7 +12,8 @@ bad books, and he goes for them again on sight.
 Roamers wander the world a leg at a time. A stranger who spawns in a home (`WFStrangerHome`) keeps to it: he warns off
 anyone he sees coming and attacks, with the rest of the home, anyone who comes in. The dealer, the conspiracist and the
 stalker live in houses (`dwelling` sites on the POI table, `WFStrangerHouseSpawner`); the mugger, the preacher and the
-beggar at crazy camps (`WFStrangersCamp`).
+beggar at crazy camps (`WFStrangersCamp`). The squatter (`Squat`) holes up in a parked vehicle with its key and goes for
+anyone he sees; a stranger drops what he's holding when he dies.
 
 The stalker never starts a conversation: he keeps five to nine metres behind someone, mutters now and then, and when
 they board a ship he isn't on, he turns up aboard it a little later at the far end of the deck.

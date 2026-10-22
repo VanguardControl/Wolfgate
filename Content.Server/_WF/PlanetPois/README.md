@@ -29,8 +29,15 @@ chips (`_WF/GunneryChips`).
 
 A table's `camps` (`WFPlanetPoiSystem.Camps`, `camps.yml`) set a ship down intact and square to the world off the roads,
 with an armed crew from an NpcCrew profile guarding it: two or three on the deck at once, more round the hull behind a
-ring of cover once the ground there exists. Every world has a Reaver encampment (Ashfall Reaver raiders) and an ADS
+ring of cover once the ground there exists. Dwelling sites (`dwelling: true`, such as the houses) may get a resident. Every world has a Reaver encampment (Ashfall Reaver raiders) and an ADS
 control site (ADS automatons); the hold has loot of the same kind as the wrecks'.
+
+Once the ground exists, a table's `vehicles` (`WFPlanetPoiSystem.Vehicles`, `vehicles.yml`) park a few working
+trucks, vans and the odd humvee by the roads and out in the open, part-fuelled, with the key on the driver's seat; in
+about a third a squatter (`WFStrangerSquatter`) has holed up with the key in his hand, attacks whoever comes in and
+drops it when he dies. A table's `roadPatrols` send an NPC-crewed vehicle up and down a stretch of road, there and back
+along points traced down the centreline: every world has a Reaver APC (`WFVehicleCrewReaverRoadPatrol`) that leaves
+people be unless shot at.
 
 An isolated site with `trail: true` stands off the roads and gets a footpath instead (`WFPlanetPoiSystem.Trails`,
 routed by `WFPlanetTrailPlanner`): a wandering track of the network's `trailTile`, a tile or two wide, from just
@@ -61,6 +68,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Rotation.cs`](WFPlanetPoiSystem.Rotation.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Trails.cs`](WFPlanetPoiSystem.Trails.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Tunnels.cs`](WFPlanetPoiSystem.Tunnels.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Vehicles.cs`](WFPlanetPoiSystem.Vehicles.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Wrecks.cs`](WFPlanetPoiSystem.Wrecks.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetRoadPlanner.cs`](WFPlanetRoadPlanner.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetTrailPlanner.cs`](WFPlanetTrailPlanner.cs)
@@ -100,6 +108,7 @@ items and repair supplies through Traders; they do not automatically refuel dock
 - [`Resources/Prototypes/_WF/PlanetPois/tables.yml`](../../../Resources/Prototypes/_WF/PlanetPois/tables.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/traders.yml`](../../../Resources/Prototypes/_WF/PlanetPois/traders.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/tunnels.yml`](../../../Resources/Prototypes/_WF/PlanetPois/tunnels.yml)
+- [`Resources/Prototypes/_WF/PlanetPois/vehicles.yml`](../../../Resources/Prototypes/_WF/PlanetPois/vehicles.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/wreck_crew.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wreck_crew.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/wreck_loot.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wreck_loot.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/wrecks.yml`](../../../Resources/Prototypes/_WF/PlanetPois/wrecks.yml)

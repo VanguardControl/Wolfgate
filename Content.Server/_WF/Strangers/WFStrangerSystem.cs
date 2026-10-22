@@ -14,6 +14,7 @@ using Content.Shared.Damage;
 using Content.Shared.Examine;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Humanoid;
+using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Components;
@@ -80,6 +81,7 @@ public sealed partial class WFStrangerSystem : EntitySystem
         SubscribeLocalEvent<WFStrangerComponent, GetVerbsEvent<ActivationVerb>>(OnVerbs);
         SubscribeLocalEvent<WFStrangerComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<WFStrangerComponent, BeforeDamageChangedEvent>(OnDamaged);
+        SubscribeLocalEvent<WFStrangerComponent, MobStateChangedEvent>(OnMobState);
     }
 
     private void OnMapInit(Entity<WFStrangerComponent> ent, ref MapInitEvent args)
@@ -103,6 +105,15 @@ public sealed partial class WFStrangerSystem : EntitySystem
         if (ent.Comp.Hostile && _factions.GetHostiles(ent.Owner).Contains(attacker))
             return;
         TurnOn(ent, attacker, rally: true);
+    }
+
+    /// <summary>Dead, he lets go of whatever he was holding, a squatter's vehicle key included.</summary>
+    private void OnMobState(Entity<WFStrangerComponent> ent, ref MobStateChangedEvent args)
+    {
+        if (args.NewMobState != MobState.Dead)
+            return;
+        foreach (var held in _hands.EnumerateHeld(ent.Owner).ToList())
+            _hands.TryDrop(ent.Owner, held);
     }
 
     /// <summary>Who is behind a hit: whoever fired it, or the vehicle it came from.</summary>
@@ -151,6 +162,11 @@ public sealed partial class WFStrangerSystem : EntitySystem
                 TurnOn((uid, stranger), grudge, rally: false);
             else if (stranger.Home is { } home && TryComp(home, out WFStrangerHomeComponent? homeComp))
                 Guard((uid, stranger), (home, homeComp), xform, now);
+            else if (stranger.Behaviour == WFStrangerBehaviour.Squat)
+            {
+                if (Nearest((uid, stranger), xform, now) is { } intruder)
+                    TurnOn((uid, stranger), intruder, rally: false);
+            }
             else if (stranger.Behaviour == WFStrangerBehaviour.Stalk)
                 Stalk((uid, stranger), xform, now);
             else

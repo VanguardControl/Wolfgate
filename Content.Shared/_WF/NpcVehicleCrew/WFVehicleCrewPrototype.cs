@@ -62,6 +62,13 @@ public sealed partial class WFVehicleCrewPrototype : IPrototype
     [DataField]
     public float PatrolRadius = 40f;
 
+    /// <summary>How long a patrol waits at each point; a road patrol with points close together barely stops.</summary>
+    [DataField]
+    public TimeSpan PatrolPauseMin = TimeSpan.FromSeconds(10);
+
+    [DataField]
+    public TimeSpan PatrolPauseMax = TimeSpan.FromSeconds(20);
+
     /// <summary>Hold only: a stranger inside it is warned with the horn and then counts as hostile; 0 disables.</summary>
     [DataField]
     public float GuardRadius;

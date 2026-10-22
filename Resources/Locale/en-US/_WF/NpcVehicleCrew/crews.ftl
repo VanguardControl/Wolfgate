@@ -14,3 +14,4 @@ wf-vehicle-crew-name-ussp-apc = USSP APC
 wf-vehicle-crew-name-ussp-tank = USSP tank
 wf-vehicle-crew-name-civilian-truck = Civilian truck
 wf-vehicle-crew-name-civilian-van = Civilian van
+wf-vehicle-crew-name-reaver-road-patrol = Reaver road patrol

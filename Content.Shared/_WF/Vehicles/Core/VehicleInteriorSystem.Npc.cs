@@ -13,10 +13,11 @@ public sealed partial class VehicleInteriorSystem
         return IsEntryBlockedByLock(vehicle, user);
     }
 
-    /// <summary>The doorway of a vehicle nearest a would-be boarder, where he has to stand to climb in.</summary>
-    public bool TryGetNearestEntry(EntityUid vehicle, EntityUid user, out MapCoordinates entry)
+    /// <summary>The doorway of a vehicle nearest a would-be boarder, and how near it he has to stand to climb in.</summary>
+    public bool TryGetNearestEntry(EntityUid vehicle, EntityUid user, out MapCoordinates entry, out float radius)
     {
         entry = MapCoordinates.Nullspace;
+        radius = 1f;
         if (!TryComp(vehicle, out VehicleEnterComponent? enter))
             return false;
 
@@ -38,6 +39,7 @@ public sealed partial class VehicleInteriorSystem
                 continue;
             best = distance;
             entry = new MapCoordinates(world, vehicleXform.MapID);
+            radius = point.Radius;
         }
         return best < float.MaxValue;
     }

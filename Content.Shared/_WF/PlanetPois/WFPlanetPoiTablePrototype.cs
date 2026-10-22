@@ -1,3 +1,4 @@
+using Content.Shared._WF.NpcVehicleCrew;
 using Content.Shared.EntityTable.EntitySelectors;
 using Content.Shared.Procedural;
 using Content.Shared.Salvage;
@@ -76,6 +77,54 @@ public sealed partial class WFPlanetPoiTablePrototype : IPrototype
     /// <summary>Big creatures set loose on the open ground each round, away from the landing zone.</summary>
     [DataField]
     public List<WFPlanetRoamer> Roamers = new();
+
+    /// <summary>Working vehicles left about the world, by the roads and off them, some with someone holed up inside.</summary>
+    [DataField]
+    public WFPlanetVehicles? Vehicles;
+
+    /// <summary>NPC-crewed vehicles that patrol up and down the roads.</summary>
+    [DataField]
+    public List<WFPlanetRoadPatrol> RoadPatrols = new();
+}
+
+/// <summary>Working vehicles parked about a world: the key on the driver's seat, or in a squatter's hand.</summary>
+[DataDefinition]
+public sealed partial class WFPlanetVehicles
+{
+    /// <summary>One pick per vehicle.</summary>
+    [DataField(required: true)]
+    public EntityTableSelector Spawns = default!;
+
+    [DataField]
+    public int MinCount = 2;
+
+    [DataField]
+    public int MaxCount = 4;
+
+    /// <summary>The share parked by a road, where the world has roads; the rest are off in the open.</summary>
+    [DataField]
+    public float Roadside = 0.6f;
+
+    /// <summary>The chance someone has holed up inside one, with its key.</summary>
+    [DataField]
+    public float SquatterChance = 0.35f;
+
+    [DataField]
+    public EntProtoId? Squatter;
+}
+
+/// <summary>A crewed vehicle driving up and down a stretch of a world's roads.</summary>
+[DataDefinition]
+public sealed partial class WFPlanetRoadPatrol
+{
+    [DataField(required: true)]
+    public ProtoId<WFVehicleCrewPrototype> Crew;
+
+    [DataField]
+    public int MinCount = 1;
+
+    [DataField]
+    public int MaxCount = 1;
 }
 
 /// <summary>A creature that roams a world's surface, and how many of it.</summary>

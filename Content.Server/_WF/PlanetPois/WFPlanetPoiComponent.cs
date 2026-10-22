@@ -34,6 +34,13 @@ public sealed partial class WFPlanetPoiComponent : Component
     [ViewVariables]
     public EntProtoId? ResidentHome;
 
+    /// <summary>Vehicles to park and road patrols to send out once the world exists; cleared once done.</summary>
+    [ViewVariables]
+    public WFPlanetVehicles? PendingVehicles;
+
+    [ViewVariables]
+    public List<WFPlanetRoadPatrol> PendingRoadPatrols = new();
+
     [ViewVariables]
     public Vector2 RoamerCentre;
 

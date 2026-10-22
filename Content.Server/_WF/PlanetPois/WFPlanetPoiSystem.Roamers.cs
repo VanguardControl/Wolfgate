@@ -55,6 +55,8 @@ public sealed partial class WFPlanetPoiSystem
 
         SpawnPendingCamps((ground, biome), grid, record);
         SpawnResidents(ground, grid, record);
+        SpawnVehicles((ground, biome), grid, record);
+        SpawnRoadPatrols(ground, grid, record);
         if (record.PendingRoamers.Count == 0)
             return;
 

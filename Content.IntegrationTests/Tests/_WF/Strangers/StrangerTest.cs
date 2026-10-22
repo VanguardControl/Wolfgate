@@ -9,6 +9,7 @@ using Content.Server.Shuttles.Components;
 using Content.Shared.Damage;
 using Content.Shared.Damage.Prototypes;
 using Content.Shared.Hands.EntitySystems;
+using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Components;
 using Content.Shared.Stacks;
 using Robust.Shared.GameObjects;
@@ -207,6 +208,38 @@ public sealed class StrangerTest
         {
             var position = entMan.GetComponent<TransformComponent>(roamer).LocalPosition;
             Assert.That(Vector2.Distance(position, new Vector2(0.5f, 0.5f)), Is.GreaterThan(2f), "With nobody about, he should wander.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task TheSquatterAttacksOnSightAndDropsHisKey()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var (map, player) = await Rig(pair);
+        EntityUid squatter = default, key = default;
+        await server.WaitPost(() =>
+        {
+            squatter = entMan.SpawnEntity("WFStrangerSquatter", new EntityCoordinates(map.Grid.Owner, 5.5f, 0.5f));
+            key = entMan.SpawnEntity("RMCVehicleKeyBlank", new EntityCoordinates(map.Grid.Owner, 5.5f, 0.5f));
+            Assert.That(server.System<SharedHandsSystem>().TryPickupAnyHand(squatter, key), Is.True);
+        });
+        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(squatter).Hostile, 15);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.GetComponent<WFStrangerComponent>(squatter).Hostile, Is.True, "He should go for the player on sight.");
+            Assert.That(entMan.GetComponent<FactionExceptionComponent>(squatter).Hostiles, Does.Contain(player));
+
+            server.System<MobStateSystem>().ChangeMobState(squatter, Content.Shared.Mobs.MobState.Dead);
+        });
+        await server.WaitRunTicks(5);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(server.System<MobStateSystem>().IsDead(squatter), Is.True);
+            Assert.That(server.System<SharedHandsSystem>().EnumerateHeld(squatter), Does.Not.Contain(key), "Dead, he should drop the key.");
+            Assert.That(entMan.GetComponent<TransformComponent>(key).ParentUid, Is.Not.EqualTo(squatter));
         });
         await pair.CleanReturnAsync();
     }

@@ -95,6 +95,29 @@
   - type: Loadout
     prototypes: [ WFStrangerGearStalker ]
 
+# Holed up in a vehicle he's taken (a POI table's `vehicles`), its key in his hand: he goes for anyone he sees.
+- type: entity
+  parent: WFStrangerBase
+  id: WFStrangerSquatter
+  name: wild-eyed squatter
+  suffix: Squatter
+  components:
+  - type: WFStranger
+    dialogue: WFStrangerDialogueSquatter
+    behaviour: Squat
+    sightRange: 9
+  - type: Loadout
+    prototypes: [ WFStrangerGearSquatter ]
+
+- type: startingGear
+  id: WFStrangerGearSquatter
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitColorBrown
+    outerClothing: ClothingOuterWinterCoat
+    gloves: ClothingHandsGlovesFingerless
+    shoes: ClothingShoesBootsWork
+    pocket1: KitchenKnife
+
 # A random stranger, for maps, camps and the wilderness.
 - type: entity
   parent: MarkerBase

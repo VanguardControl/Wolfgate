@@ -11,6 +11,9 @@ public enum WFStrangerBehaviour : byte
 
     /// <summary>Keeps his distance and follows, aboard their ship too. Never starts a conversation.</summary>
     Stalk,
+
+    /// <summary>Holed up somewhere, such as a vehicle he's taken: goes for anyone he sees.</summary>
+    Squat,
 }
 
 /// <summary>A wandering oddball: someone who walks up to players and talks at them, or just follows them about.</summary>

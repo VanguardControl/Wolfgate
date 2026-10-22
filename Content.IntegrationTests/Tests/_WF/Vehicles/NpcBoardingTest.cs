@@ -1,4 +1,5 @@
 #nullable enable
+using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.Server._WF.Strangers;
@@ -103,6 +104,38 @@ public sealed class NpcBoardingTest
             Assert.That(entMan.GetComponent<FactionExceptionComponent>(mugger).Hostiles, Does.Contain(vehicle), "He should be going for the hull.");
             Assert.That(entMan.GetComponent<WFStrangerComponent>(mugger).Hostile, Is.True);
             Assert.That(entMan.HasComponent<ActiveNPCComponent>(mugger), Is.True, "A player in the cab should keep him awake.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ASquatterWaitsInsideWithTheKey()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        EntityUid vehicle = default;
+        await server.WaitPost(() =>
+        {
+            var maps = server.System<SharedMapSystem>();
+            var plating = server.ResolveDependency<ITileDefinitionManager>()["Plating"].TileId;
+            for (var x = -4; x < 16; x++)
+            for (var y = -4; y < 16; y++)
+                maps.SetTile(map.Grid.Owner, map.Grid.Comp, new Vector2i(x, y), new Tile(plating));
+            vehicle = entMan.SpawnEntity("WFInteriorTestVehicle", new EntityCoordinates(map.Grid.Owner, VehicleSpot));
+        });
+        await server.WaitRunTicks(5);
+        await server.WaitAssertion(() =>
+        {
+            server.System<Content.Server._WF.PlanetPois.WFPlanetPoiSystem>().HoleUp(vehicle, "WFStrangerSquatter");
+            var interior = entMan.GetComponent<VehicleInteriorComponent>(vehicle);
+            var squatter = interior.Passengers.Single(uid => entMan.HasComponent<WFStrangerComponent>(uid));
+            Assert.That(entMan.GetComponent<TransformComponent>(squatter).MapID, Is.EqualTo(interior.MapId), "He isn't inside.");
+            var held = server.System<Content.Shared.Hands.EntitySystems.SharedHandsSystem>().EnumerateHeld(squatter).ToList();
+            var keyId = entMan.GetComponent<VehicleLockComponent>(vehicle).KeyId;
+            Assert.That(held.Any(item => entMan.TryGetComponent<VehicleKeyComponent>(item, out var key) && key.KeyId == keyId),
+                Is.True, "He should be holding the vehicle's key.");
         });
         await pair.CleanReturnAsync();
     }

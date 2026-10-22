@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
 using Content.Shared._WF.Vehicles.Core;
@@ -33,6 +34,10 @@ public sealed partial class WFVehicleBoarderComponent : Component
     /// <summary>When he next looks for a vehicle to board.</summary>
     [ViewVariables]
     public TimeSpan NextLook;
+
+    /// <summary>Until when he's climbing in, so the door isn't tried again mid-climb.</summary>
+    [ViewVariables]
+    public TimeSpan ClimbingUntil;
 }
 
 public sealed class WFNpcBoardingSystem : EntitySystem
@@ -47,6 +52,9 @@ public sealed class WFNpcBoardingSystem : EntitySystem
 
     private static readonly TimeSpan Patience = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan LookInterval = TimeSpan.FromSeconds(1);
+
+    /// <summary>Longer than any vehicle's climb-in do-after.</summary>
+    private static readonly TimeSpan ClimbTime = TimeSpan.FromSeconds(4);
 
     public override void Update(float frameTime)
     {
@@ -88,16 +96,21 @@ public sealed class WFNpcBoardingSystem : EntitySystem
     {
         if (TerminatingOrDeleted(vehicle) || now >= ent.Comp.GiveUpAt || _interiors.IsLockedAgainst(vehicle, ent)
             || !HasComp<WFOccupiedVehicleComponent>(vehicle)
-            || !_interiors.TryGetNearestEntry(vehicle, ent, out var door) || door.MapId != Transform(ent).MapID)
+            || !_interiors.TryGetNearestEntry(vehicle, ent, out var door, out var doorRadius) || door.MapId != Transform(ent).MapID)
         {
             Stop(ent, htn);
             ent.Comp.NextLook = now + Patience;
             return;
         }
 
+        // Right up to the doorway: the door only lets in someone standing within its radius.
         var here = _transform.GetMapCoordinates(ent);
-        if ((here.Position - door.Position).Length() > 1f)
+        if ((here.Position - door.Position).Length() > doorRadius * 0.7f)
         {
+            // A rocking hull moves its door a little; re-planning the path for that would keep him from ever arriving.
+            if (TryComp(ent, out NPCSteeringComponent? steering)
+                && (_transform.ToMapCoordinates(steering.Coordinates).Position - door.Position).Length() < 0.3f)
+                return;
             if (Transform(ent).GridUid is { } grid)
                 _steering.Register(ent, _transform.ToCoordinates(grid, door));
             else if (Transform(ent).MapUid is { } map)
@@ -106,7 +119,8 @@ public sealed class WFNpcBoardingSystem : EntitySystem
         }
 
         _steering.Unregister(ent);
-        _interiors.TryNpcEnter(vehicle, ent);
+        if (now >= ent.Comp.ClimbingUntil && _interiors.TryNpcEnter(vehicle, ent))
+            ent.Comp.ClimbingUntil = now + ClimbTime;
     }
 
     /// <summary>Back to fighting on his own, inside or out.</summary>

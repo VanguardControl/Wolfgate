@@ -194,3 +194,12 @@
     unmasked:
       line: wf-stranger-stalker-unmasked
       action: Hostile
+
+# The squatter attacks on sight; this is all he has to say to anyone who gets a word in first.
+- type: wfStrangerDialogue
+  id: WFStrangerDialogueSquatter
+  start: mine
+  nodes:
+    mine:
+      line: wf-stranger-squatter-mine
+      action: Hostile

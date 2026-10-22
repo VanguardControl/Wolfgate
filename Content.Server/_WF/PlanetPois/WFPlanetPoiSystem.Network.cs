@@ -218,6 +218,8 @@ public sealed partial class WFPlanetPoiSystem
             record.PendingResidents = table.Residents;
             record.ResidentChance = table.ResidentChance;
             record.ResidentHome = table.ResidentHome;
+            record.PendingVehicles = table.Vehicles;
+            record.PendingRoadPatrols = table.RoadPatrols.ToList();
             record.RoamerCentre = centre;
             record.RoamerRadius = radius - table.EdgeMargin;
             record.RoamerInner = table.CentreClear + RoamerClearance;

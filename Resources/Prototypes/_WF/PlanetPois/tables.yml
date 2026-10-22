@@ -7,6 +7,14 @@
   residents: WFStrangerHouseSpawner
   residentHome: WFStrangerHouseHome
   residentChance: 0.6
+  vehicles:
+    spawns: !type:NestedSelector
+      tableId: WFPlanetVehicles
+    minCount: 2
+    maxCount: 4
+    squatter: WFStrangerSquatter
+  roadPatrols:
+  - crew: WFVehicleCrewReaverRoadPatrol
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4
@@ -169,6 +177,14 @@
   residents: WFStrangerHouseSpawner
   residentHome: WFStrangerHouseHome
   residentChance: 0.6
+  vehicles:
+    spawns: !type:NestedSelector
+      tableId: WFPlanetVehicles
+    minCount: 2
+    maxCount: 4
+    squatter: WFStrangerSquatter
+  roadPatrols:
+  - crew: WFVehicleCrewReaverRoadPatrol
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -293,6 +309,14 @@
   residents: WFStrangerHouseSpawner
   residentHome: WFStrangerHouseHome
   residentChance: 0.6
+  vehicles:
+    spawns: !type:NestedSelector
+      tableId: WFPlanetVehicles
+    minCount: 2
+    maxCount: 4
+    squatter: WFStrangerSquatter
+  roadPatrols:
+  - crew: WFVehicleCrewReaverRoadPatrol
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4
@@ -341,6 +365,14 @@
   residents: WFStrangerHouseSpawner
   residentHome: WFStrangerHouseHome
   residentChance: 0.6
+  vehicles:
+    spawns: !type:NestedSelector
+      tableId: WFPlanetVehicles
+    minCount: 2
+    maxCount: 4
+    squatter: WFStrangerSquatter
+  roadPatrols:
+  - crew: WFVehicleCrewReaverRoadPatrol
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4
@@ -389,6 +421,14 @@
   residents: WFStrangerHouseSpawner
   residentHome: WFStrangerHouseHome
   residentChance: 0.6
+  vehicles:
+    spawns: !type:NestedSelector
+      tableId: WFPlanetVehicles
+    minCount: 2
+    maxCount: 4
+    squatter: WFStrangerSquatter
+  roadPatrols:
+  - crew: WFVehicleCrewReaverRoadPatrol
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -443,6 +483,14 @@
   residents: WFStrangerHouseSpawner
   residentHome: WFStrangerHouseHome
   residentChance: 0.6
+  vehicles:
+    spawns: !type:NestedSelector
+      tableId: WFPlanetVehicles
+    minCount: 2
+    maxCount: 4
+    squatter: WFStrangerSquatter
+  roadPatrols:
+  - crew: WFVehicleCrewReaverRoadPatrol
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4

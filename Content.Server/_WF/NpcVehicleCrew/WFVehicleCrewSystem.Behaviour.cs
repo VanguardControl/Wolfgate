@@ -21,9 +21,6 @@ public sealed partial class WFVehicleCrewSystem
 
     private const int PatrolPointTries = 20;
 
-    private static readonly TimeSpan PatrolPauseMin = TimeSpan.FromSeconds(10);
-    private static readonly TimeSpan PatrolPauseMax = TimeSpan.FromSeconds(20);
-
     /// <summary>How long a patrol that stops to fight waits after losing sight of the target.</summary>
     private static readonly TimeSpan ContactLoss = TimeSpan.FromSeconds(30);
 
@@ -204,7 +201,9 @@ public sealed partial class WFVehicleCrewSystem
         }
 
         crew.WaypointIndex = (crew.WaypointIndex + 1) % crew.Waypoints.Count;
-        crew.PauseUntil = now + _random.Next(PatrolPauseMin, PatrolPauseMax);
+        crew.PauseUntil = now + (proto.PatrolPauseMax > proto.PatrolPauseMin
+            ? _random.Next(proto.PatrolPauseMin, proto.PatrolPauseMax)
+            : proto.PatrolPauseMin);
         crew.Goal = null;
     }
 

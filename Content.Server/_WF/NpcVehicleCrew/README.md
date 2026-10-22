@@ -21,7 +21,8 @@ A crew is a `wfVehicleCrew` prototype (vehicle, seat roles, profile, faction, be
 `Resources/Prototypes/_WF/NpcVehicleCrew/crews.yml`. Admins spawn one with
 `wf_vehiclecrew spawn <id> [behaviour] [distance]` (also `list` and `clear`), or place a `WFVehicleCrewSpawner*` marker
 from the spawn menu's vehicle group, which spawns its crew when the map loads. Encounters and planet sites call
-`WFVehicleCrewSystem.TrySpawn`.
+`WFVehicleCrewSystem.TrySpawn`; planet road patrols give it waypoints down the road (`SetWaypoints`), and a crew's
+`patrolPauseMin`/`patrolPauseMax` set how long it stops at each.
 
 The admin tab's **NPC vehicle crews** button opens a panel (`WFVehicleCrewPanel`, served by `WFVehicleCrewSystem.Panel`):
 pick a crew from the roster, its orders, how many and how far away, and spawn them beside you; the live crews list
