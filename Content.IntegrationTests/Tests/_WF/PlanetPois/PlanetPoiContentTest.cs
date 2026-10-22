@@ -26,7 +26,7 @@ using Robust.Shared.Utility;
 
 namespace Content.IntegrationTests.Tests._WF.PlanetPois;
 
-/// <summary>Checks shipped authored content and complete settlement networks at production world sizes.</summary>
+/// <summary>Checks shipped authored content and complete road networks at production world sizes.</summary>
 [TestFixture]
 [TestOf(typeof(WFPlanetPoiSystem))]
 public sealed class PlanetPoiContentTest
@@ -50,7 +50,7 @@ public sealed class PlanetPoiContentTest
             var roofs = server.System<SharedRoofSystem>();
             var entries = Tables.SelectMany(id => prototypes.Index<WFPlanetPoiTablePrototype>(id).Entries)
                 .Where(entry => entry.MapPath != null).GroupBy(entry => entry.MapPath).Select(group => group.First()).ToList();
-            Assert.That(entries, Has.Count.GreaterThanOrEqualTo(13), "All settlement and hazard maps must be registered in live tables.");
+            Assert.That(entries, Has.Count.GreaterThanOrEqualTo(6), "Every authored map must be registered in a live table.");
             foreach (var entry in entries)
             {
                 var map = maps.CreateMap(out var mapId);
@@ -133,7 +133,7 @@ public sealed class PlanetPoiContentTest
     [TestCase("WFSurfaceMerak", "WFPoisMerak", 320, 1977)]
     [TestCase("WFSurfaceMerak", "WFPoisMerak", 320, 8231)]
     [TestCase("WFSurfaceMerak", "WFPoisMerak", 320, 44119)]
-    public async Task CityVillagesAndServicesConnectAtProductionRadius(string surfaceId, string tableId, int radius, int seed)
+    public async Task RoadWorldsConnectAtProductionRadius(string surfaceId, string tableId, int radius, int seed)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true, ServerSeed = seed });
         var server = pair.Server;
@@ -171,8 +171,9 @@ public sealed class PlanetPoiContentTest
                 // A fixed city comes on top of the table's own sites.
                 var tableSites = record.Sites.Count(site => table.Entries.Any(entry => entry.MapPath == site.MapPath && entry.Dungeon == site.Dungeon));
                 Assert.That(tableSites, Is.InRange(table.MinCount, table.MaxCount));
-                // Merak's city is authored; Asclepiu's is Crocus, a fixed city placed ahead of the table.
-                Assert.That(record.Sites.Any(site => site.Bounds.Width >= 280 && site.Bounds.Height >= 140), Is.True, "The city was not guaranteed.");
+                // Asclepiu's city is Crocus, a fixed city placed ahead of the table.
+                if (surfaceId == "WFSurfaceAsclepiu")
+                    Assert.That(record.Sites.Any(site => site.Bounds.Width >= 280 && site.Bounds.Height >= 140), Is.True, "The city was not guaranteed.");
                 foreach (var entry in table.Entries)
                 {
                     var count = record.Sites.Count(site => site.MapPath == entry.MapPath && site.Dungeon == entry.Dungeon);

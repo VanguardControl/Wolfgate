@@ -3,203 +3,22 @@
 ## What exists now
 
 The world builds its randomized POI layout and routes before terrain preloading. All non-isolated
-sites belong to one connected network. Production tables combine fourteen authored maps with the
-existing procedural expedition dungeons. Asclepiu and Merak each have a 288 × 144 city district,
-an inhabited through settlement, an abandoned through settlement, a roadside trader and a fuel
-service stop. Fervidus, Thrascias, Aerumna and Carcinoma each add one abandoned roadside shelter.
-The cities mix an occupied western service core with a derelict eastern quarter; neither copies
-Crocus's station or multilevel setup. Fuel services sell real reactor fuel and welding-fuel cans,
-plus repair supplies. They do not provide automatic docking or ship refuelling.
+sites belong to one connected network. Production tables combine the mappers' authored maps with the
+existing procedural expedition dungeons.
 
-Carcinoma retains the haunted cave layout, with exterior airlocks added during dungeon generation.
-Procedural layouts are checked for a usable exterior approach before placement. Sealed rolls are
-regenerated with deterministic retry seeds, up to sixteen attempts; if every attempt is sealed, that
-site is skipped with a warning and the rest of the network is still built. No walls are demolished.
+## Shipped maps
 
-Reusable content already present includes `FloorAsphalt`, concrete and pavement tiles, Mono's
-`RoadSlow`/`RoadStop` decals, Frontier planet-base dungeon interiors and the biome/dungeon tile-pinning
-systems. These provide surfaces and placement tools; the PlanetPois planner supplies the connections.
-Traders should use the existing Wolfgate Traders module rather than a new shop implementation.
+- Asclepiu (Verda): Crocus (Jianghui Industrial, a fixed city: see `Content.Server/_WF/PlanetCities/README.md`),
+  `verda_house_1` (the owner's roadside house), `verda_gas_station` (by the road, with a fuel merchant),
+  and off the roads with footpaths: `verda_corner_house`, `verda_small_house` and `abandoned_bandit_hideout`.
+- Merak: `abandoned_bandit_hideout`.
+- Carcinoma: `carcinoma_fountain_of_life`, the shrine.
 
-## Scale and the Crocus reference
-
-`Resources/Prototypes/_Mono/Maps/crocus.yml` selects `jianghui_industrial_1.yml` as the Crocus ground
-map, with level 0 below and levels 2–5 above. Decoding the ground map's version-7 tile chunks gives
-non-Space bounds **x = -105..175, y = -46..93**, or **281 × 140 tiles**, with **24,577 non-Space tiles**.
-This measures the ground footprint, not the combined floors, building count or populated area.
-The enclosing serialized chunk envelope is **288 × 144** tiles; use that convenient rounded size for a city district of roughly Crocus ground size. Do not copy Crocus's
-station setup or six-level stack into a surface POI: the authored loader currently stamps one grid.
-
-Current playable ground radii are 384 Asclepiu, 320 Merak, 256 Fervidus and Thrascias, and 192 Aerumna
-and Carcinoma. Their diameters are respectively 768, 640, 512 and 384 tiles. At one metre per tile,
-these are compact 0.384–0.768 km playable districts, not literal whole planets. Straight-line trips
-are hundreds of metres; detours add distance. The bounding rectangle of a Crocus-size city alone
-occupies about 9% of Asclepiu's circular area and 13% of Merak's. A city plus villages and open country
-fits most comfortably on those two larger worlds. Do not promise multiple Crocus-size cities on a
-384-tile-diameter world.
-
-A centered 288 × 144 city has a corner radius of about 161 tiles. Keep its complete footprint inside
-the world and away from the arrival area. The live tables guarantee five sites per habitable world and use 96-tile origin spacing.
-Through sites reserve an exterior road-clearance ring; a bounded fallback search handles narrow
-city placement regions when random attempts miss them. Increase the world
-radius if the intended content is several such cities with substantial rural travel between them.
-Entry count is not a guarantee of placement when clear land is insufficient.
-
-## Single-grid map contract
-
-Save one grid (`savegrid`, format category `Grid`) under `Resources/Maps/_WF/PlanetPois/`. The file is a POI fragment, not a game-map or
-shipyard registration. Use an unrotated grid with local tile coordinates matching the declared
-footprint; placement translates those coordinates without random rotation. Declare `mapPath` in
-its table entry. Exactly one of `mapPath` and `dungeon` is required.
-
-`footprint` is a local tile rectangle with exclusive upper bounds. `0,0,64,48` covers x 0..63 and
-y 0..47. It must contain every authored non-Space tile and everything placed on those tiles;
-include courtyards, paths, fences, storage and projecting equipment. Reserve extra space within it
-for furniture clearance. The planner reserves this whole rectangle and never cuts a new road
-through its interior. Keep scenery and collision-bearing entities inside it.
-
-Sockets describe actual usable entrances, not approximate map centres. `offset` names the border
-tile of the footprint and `direction` points outward: West at the left edge, East at right minus
-one, South at bottom, North at top minus one. Provide an open floor or usable doorway at each
-socket. Match the road's full width, including shoulders, with a clear approach and enough clear
-border tiles on either side of the socket. For the production paved roads, that is five carriageway
-tiles plus one shoulder on each side: seven clear tiles. Avoid sockets at corners. Keep walls,
-locked doors, pumps, rocks, fencing and spawn points away from the approach.
-
-- `Roadside`: a branch reaches the entrance. Put the building and service forecourt beside the road;
-  vehicles must not drive through the building to continue along the network. A fuel station uses
-  this mode, with pumps set back from the entrance and enough room to enter, turn and leave.
-- `Through`: at least two distinct sockets, preferably on opposite sides. Author a continuous open
-  street between them at the configured width. A village entrance on one side and exit on another
-  belongs here. The planner connects the external approaches; it does not build the internal street.
-- A building that should sit along a passing road (the gas station) is a `Through` site with that road
-  authored inside its own map along its front edge, at the network's width, sockets at both ends.
-- `rotate: true` gives an authored site a random quarter turn each round: tiles, entities, decals,
-  roofs, footprint and sockets all turn together, so author it in one orientation.
-- `Isolated`: intentionally disconnected. Use only for places whose isolation is part of the design,
-  such as an inaccessible ruin. Omitting the field defaults to `Roadside`.
-
-Roof buildings deliberately and leave streets, courtyards and forecourts unroofed. The loader
-preserves explicit source `Roof` tiles; it does not roof an entire settlement. Weather exposure
-therefore follows the authored roof coverage. Enclosed hazardous-world rooms also need their own
-working life support and pressure boundaries; a roof flag is not atmospheric protection.
-
-Remove `Station`, `StationData`, `StationJobs`, station spawning/ownership setup, `CEStationZLevels`,
-`Shuttle`, `FTL`, ship navigation, docking and other shuttle-only controllers. Avoid latejoin or
-job spawn points and round-start station setup. The planet supplies map atmosphere, lighting,
-gravity and its z-stack. Do not give the temporary source map a competing world network. Grid
-physics and mapper-generated supporting components are fine; furniture, doors, lighting, local
-power and an existing trader are ordinary POI contents. Do not add an independent `gameMap` entry.
-
-## Adding content
-
-The following example is a mapping specification, **not an active prototype**. Its proposed map
-path must be created and verified before copying it into production. The through-village map
-would contain x 0..63 and y 0..47, with a seven-tile-clear street centred on y 24 across the map.
-
-```yaml
-- type: wfPlanetPoiTable
-  id: WFPoisExampleVillage
-  minCount: 1
-  maxCount: 1
-  roads:
-    tile: FloorAsphalt
-    width: 5
-    shoulderTile: FloorConcrete
-    shoulderWidth: 1
-  entries:
-  - mapPath: /Maps/_WF/PlanetPois/asclepiu_village_01.yml
-    name: wf-poi-asclepiu-village
-    footprint: 0,0,64,48
-    minCount: 1
-    maxCount: 1
-    connection: Through
-    sockets:
-    - offset: 0,24
-      direction: West
-    - offset: 63,24
-      direction: East
-```
-
-For a roadside service map of 40 × 32 tiles, use `footprint: 0,0,40,32`, `connection: Roadside`
-and an entrance such as `[20, 0]` facing `South`. Author the forecourt behind that entrance,
-the service building farther to one side, and a turning area. The exterior route must remain
-outside the reserved rectangle. A city entry should use `minCount: 1` and `maxCount: 1` when the
-world's site budget includes one guaranteed city. Entry guarantees are drawn before weighted
-choices; `weight` controls additional selections, while `maxCount` caps duplicates. Raise the
-table count budget to include the sum of guaranteed entries. Include localized signal names in
-`Resources/Locale/en-US/_WF/PlanetPois/pois.ftl`.
-
-Existing dungeon entries remain valid without new fields. Their reserved space and inferred
-entrances provide expedition connections; authored socket layouts are the way to guarantee a
-specific village street or service driveway. Register new map paths only once the files exist.
-Maps inside `_WF/PlanetPois` are discovered by the module generator; regenerate module
-documentation after adding them. Only maps outside `_WF` need an `unmarked` entry. New themes usually need only a map, one localized name and one table entry.
-
-## Hand-made buildings: roadside or off the track
-
-Map the building as a plain grid (the mapping server, then "save grid"), with the open ground round it left empty.
-
-- **Roadside** (a gas station, a house on the street): put the side that faces the road on the south edge and run
-  `python Tools/_WF/PlanetPois/roadside_map.py <saved grid.yml> <name>`. It lays the road strip along that edge.
-- **Off the track** (a hut, a shack, a lone house): give it at least one outside door and run the same tool with
-  `--trail`. The site stands off the roads, and a footpath is worn from its first outside door (lowest first) to the
-  nearest road.
-
-Either way the tool writes `Resources/Maps/_WF/PlanetPois/<name>.yml`, roofs the rooms, swaps indestructible walls for
-ordinary ones and prints the table entry; paste it into the world's table in `tables.yml`, raise the table's
-`maxCount`, and add `wf-poi-<name>` to `pois.ftl`. Both kinds turn to face whatever way suits the spot (`rotate: true`).
-
-## Road dressing
-
-A table's `roads` block may name a `dressing` (`wfRoadDressing`, in `road_dressing.yml`). It is applied to the
-generated network only, never inside a site's footprint, so a site furnishes its own streets.
-
-- `kerbs` maps where the road lies from a shoulder tile (`North`, `SouthEast`, `InnerNorthWest`, ...) to the tile
-  that shows a kerb on that side. A case left out keeps the network's `shoulderTile`.
-- `lineNorthSouth` and `lineEastWest` are the decals drawn down the middle of straight stretches, every
-  `lineEvery` tiles.
-- `light` stands on the shoulder every `lightSpacing` tiles on alternating sides; `brokenLight` replaces it
-  `brokenLightChance` of the time. `junctionLight` stands on two corners where three or more roads meet.
-- `scatter` rules drop pieces along the straight stretches: `where` is `Lane`, `Kerb` (the lane against the kerb, for
-  vehicles) or `Shoulder`, `per100` is how many
-  per hundred tiles of road, `axis` limits a rule to roads running `NorthSouth` or `EastWest`, and `align` turns the
-  piece to point along the road. The tiles a piece covers come from its fixtures.
-- `decals` rules scatter marks the same way.
-
-RMC's civilian vehicle props are drawn from the side only. Sound ones belong on `EastWest` roads; wrecks may go
-anywhere, since a wreck slewed across a lane reads well. The `WFRoadProp*` army vehicles are drawn from every side
-and can be aligned on any road. A rule with `align` must not name a prototype whose `Transform` has `noRot`
-(`PlanetRoadDressingTest` checks the shipped ones). A piece is only placed where every tile it covers is road (or
-shoulder), none is the middle tile of the road, and no other blocking piece is within seven tiles.
-
-The generator draws a site's own streets with the same asphalt and pavement tiles (`map_author.py`, `road()`), so a
-site meets the network without a seam.
-
-## Shipped map pack
-
-Both habitable tables guarantee one city, one inhabited settlement, one abandoned settlement,
-one trading post and one fuel service. Positions and connecting routes change between rounds.
-The four hazard tables each guarantee their authored shelter and retain randomized expedition sites.
-
-- Asclepiu: Crocus (Jianghui Industrial, a fixed city: see `Content.Server/_WF/PlanetCities/README.md`), `asclepiu_garden_village` (64 × 48),
-  `asclepiu_derelict_village` (80 × 56), `asclepiu_roadside_trader` (40 × 32),
-  `asclepiu_fuel_service` (48 × 40).
-- Merak: `merak_caravan_city` (288 × 144), `merak_caravan_camp` and
-  `merak_abandoned_work_camp` (64 × 48 each), `merak_roadside_trader` (40 × 32),
-  `merak_fuel_service` (48 × 40).
-- Other worlds: `fervidus_rim_shelter`, `thrascias_survey_shelter`, `aerumna_salvage_yard`
-  and `carcinoma_ruin_shelter` (48 × 40 each), all abandoned.
-
-Actual game-sprite previews: [Merak city](Previews/merak_caravan_city.webp), [garden village](Previews/asclepiu_garden_village.webp)
-and [Merak fuel stop](Previews/merak_fuel_service.webp). These are static map renders, without
-runtime planetary weather or generated exterior roads. Regenerate with `Content.MapRenderer`
-after changing a map; the optional Python previews are simpler tile plans.
+The houses and the hideout are `dwelling` sites, where a stranger may live.
 
 ## Content roadmap
 
-The generated layouts below are starter authored content. Their shape, equipment and services are
-explicit; mapper refinement should focus on varied interiors, richer signage, decoration and playtesting.
+What the worlds could use next, for mappers to build by hand.
 
 1. **Asclepiu city district, 288 × 144.** One per world; two to four clear road exits, with a complete
    authored internal street network. Add a civic square, clinic, housing, small industry and trader
@@ -233,30 +52,6 @@ explicit; mapper refinement should focus on varied interiors, richer signage, de
 9. **Carcinoma salvage sites, 40 × 32 to 64 × 48.** Dirt tracks, flesh encroachment, abandoned
    infrastructure and quarantine barriers. Roadside or Through when connected; explicitly
    Isolated only for intentionally unreachable horror sites. This world is unsanctioned.
-
-## Reproducing and refining the maps
-
-Run `python Tools/_WF/PlanetPois/generate.py` from the repository root to regenerate the fourteen maps
-and live table entries from `cities.py`, `settlements.py` and the shared `map_author.py` helpers.
-The generator requires PyYAML; `--check` compares the generated files without rewriting them.
-Optional `--preview bin/poi-map-previews` also writes tile-plan PNGs and requires Pillow.
-Generation checks for overlapping fixtures and inaccessible doors or road entrances. Review the
-actual game renders and playtest before accepting layout changes.
-Edit the layout source for repeatable changes; direct mapper edits require an explicit decision
-about retaining that map outside future generation so they are not overwritten.
-
-The two city sources intentionally use five-wide trunk streets and three-wide local loops,
-with four cardinal exits. Asclepiu uses grass, timber homes, clinics, markets, gardens and derelict
-industrial blocks. Merak uses desert ground, modular steel cabins, freight and water storage,
-with abandoned old buildings reflecting the earthquake lore. Inhabited means operating traders
-and furnished usable spaces; it does not promise a simulated civilian population.
-
-Through villages and caravan camps include opposite-side exits and accessible buildings on each
-side of the street. Abandoned variants retain salvage and broken roofs without resident traders.
-Roadside service maps keep the building and loading yard beside a single branch driveway.
-Fuel and repair merchants mirror the existing fuel and tool vendor catalogues through the Trader
-system; they do not depend on a mapped powered vending machine. Hazard shelters are exploration sites, not safe breathable
-settlements, and keep the corresponding world's terrain and route palette.
 
 ## Fixture and acceptance
 
