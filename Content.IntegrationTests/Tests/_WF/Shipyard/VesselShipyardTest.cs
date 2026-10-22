@@ -119,7 +119,10 @@ public sealed class VesselShipyardTest
             {
                 maps.CreateMap(out mapId);
                 if (!loader.TryLoadGrid(mapId, vessel.ShuttlePath, out var grid))
+                {
+                    failures.Add($"{vessel.ID}: {vessel.ShuttlePath} did not load.");
                     return;
+                }
 
                 var straps = new List<EntityUid>();
                 var query = entities.EntityQueryEnumerator<StrapComponent, TransformComponent>();
