@@ -19,7 +19,7 @@
   - key: lead
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -55,7 +55,7 @@
   - key: lead
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -88,7 +88,7 @@
   - key: lead
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -115,7 +115,7 @@
   - key: lead
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -144,7 +144,7 @@
   - key: lead
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -160,7 +160,7 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -194,7 +194,7 @@
   - key: raider
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -206,7 +206,7 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -238,7 +238,7 @@
   - key: raider
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -253,7 +253,7 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -288,7 +288,7 @@
   - key: boarder
     navigation: WFCrewNavigationHunter
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -314,7 +314,7 @@
   - key: raider
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate
@@ -326,7 +326,7 @@
   - key: wing
     navigation: WFCrewNavigationRaider
     side: reavers
-    faction: PirateNF
+    faction: WFAshfallReavers
     distress: false
     company: WFAshfallReavers
     profile: WFCrewProfilePirate

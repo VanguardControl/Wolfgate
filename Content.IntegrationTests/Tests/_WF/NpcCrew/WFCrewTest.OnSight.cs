@@ -1,9 +1,11 @@
 #nullable enable
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Shared._Mono.Company;
+using Content.Shared.NPC.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 
@@ -40,6 +42,39 @@ public sealed partial class WFCrewTest
 
             SEntMan.EnsureComponent<CompanyComponent>(outside).CompanyName = "WFUnderground";
             Assert.That(weapons.CanEngage(hand, outside), Is.False, "A spared company is left alone.");
+        });
+    }
+
+    /// <summary>The Reavers' crews take every navy's people for enemies, the Dynasty's included, and the Underground for allies.</summary>
+    [Test]
+    public async Task ReaverCrewsSpareOnlyTheUnderground()
+    {
+        var deck = await CreateDeck(new Vector2(60, 0), 7, gravity: true);
+        await Server.WaitAssertion(() =>
+        {
+            var factions = Server.System<NpcFactionSystem>();
+            var weapons = Server.System<WFCrewWeaponSystem>();
+            var reaver = ConvoyCrew(deck, "WFCrewDeckhand", "reavers", new Vector2(1.5f));
+            factions.ClearFactions(reaver);
+            factions.AddFaction(reaver, "WFAshfallReavers");
+
+            EntityUid Person(float x, params string[] memberOf)
+            {
+                var mob = SEntMan.SpawnAtPosition("MobHuman", new EntityCoordinates(deck, new Vector2(x, 3.5f)));
+                factions.ClearFactions(mob);
+                foreach (var faction in memberOf)
+                    factions.AddFaction(mob, faction);
+                return mob;
+            }
+
+            var colonist = Person(1.5f, "NanoTrasen");
+            var dynasty = Person(2.5f, "PirateNF");
+            var fugitive = Person(3.5f, "NanoTrasen", "WFUnderground");
+            var hostiles = factions.GetNearbyHostiles(reaver, 10f).ToList();
+            Assert.That(hostiles, Does.Contain(colonist), "A colonist is an enemy.");
+            Assert.That(hostiles, Does.Contain(dynasty), "So is the Dynasty.");
+            Assert.That(hostiles, Does.Not.Contain(fugitive), "The Underground are allies.");
+            Assert.That(weapons.HasLiveThreat(reaver), Is.True);
         });
     }
 }
