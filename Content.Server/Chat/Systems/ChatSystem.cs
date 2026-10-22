@@ -5,6 +5,7 @@ using System.Text;
 using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Server._WF.ChatWebhook; // WOLFGATE(ChatWebhook)
+using Content.Shared._WF.ChatFont; // WOLFGATE(ChatFont)
 using Content.Server.Chat.Managers;
 using Content.Server.Discord.DiscordLink;
 using Content.Server.GameTicking;
@@ -1139,7 +1140,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             ("color", color),
             ("entityName", entityName),
             ("verb", Loc.GetString(verbId)),
-            ("fontType", language.SpeechOverride.FontId ?? speech.FontId),
+            ("fontType", language.SpeechOverride.FontId ?? CompOrNull<WFChatFontComponent>(source)?.Font ?? speech.FontId), // WOLFGATE(ChatFont): the character's picked font, under a language's own
             ("fontSize", language.SpeechOverride.FontSize ?? speech.FontSize),
             ("message", message),
             ("language", languageDisplay));

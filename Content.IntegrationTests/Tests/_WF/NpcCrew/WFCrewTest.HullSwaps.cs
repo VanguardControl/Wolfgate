@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -49,6 +50,51 @@ public sealed partial class WFCrewTest
             foreach (var part in rotated)
             {
                 Assert.That(SEntMan.GetComponent<TransformComponent>(part).LocalRotation.Degrees, Is.EqualTo(90).Within(0.01), "The diagonal keeps its rotation.");
+            }
+        });
+    }
+
+    /// <summary>A big hull is swapped a share at a time over several ticks, never all in one, and ends with no adamantite.</summary>
+    [Test]
+    public async Task BigHullSwapsAreSpreadOverTicks()
+    {
+        var deck = await CreateDeck(new Vector2(760, 700), 24, true);
+        var walls = new List<EntityUid>();
+        await Server.WaitAssertion(() =>
+        {
+            var transforms = Server.System<SharedTransformSystem>();
+            for (var x = 0; x < 20; x++)
+            {
+                for (var y = 0; y < 20; y++)
+                {
+                    var wall = SEntMan.SpawnAtPosition("WFWallAdamantite", new EntityCoordinates(deck, new Vector2(x + 0.5f, y + 0.5f)));
+                    if (!SEntMan.GetComponent<TransformComponent>(wall).Anchored)
+                        transforms.AnchorEntity(wall);
+                    walls.Add(wall);
+                }
+            }
+
+            Assert.That(Server.System<WFCrewSetupSystem>().ApplyHullSwaps(deck, "WFCrewProfilePirate"), Is.EqualTo(walls.Count));
+        });
+        await RunTicks(1);
+
+        var setup = Server.System<WFCrewSetupSystem>();
+        await Server.WaitAssertion(() =>
+            Assert.That(setup.HullSwapsPending, Is.True, "Four hundred parts are not all swapped in one tick."));
+        for (var i = 0; i < 600 && setup.HullSwapsPending; i++)
+            await RunTicks(1);
+        await RunTicks(1);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(setup.HullSwapsPending, Is.False);
+            Assert.That(walls.All(SEntMan.Deleted), Is.True, "Every adamantite wall is gone.");
+            var map = Server.System<SharedMapSystem>();
+            var gridComp = SEntMan.GetComponent<Robust.Shared.Map.Components.MapGridComponent>(deck);
+            for (var x = 0; x < 20; x++)
+            {
+                for (var y = 0; y < 20; y++)
+                    Assert.That(FindAnchored(map, deck, gridComp, new Vector2i(x, y)), Is.EqualTo("WallPlastitanium"));
             }
         });
     }

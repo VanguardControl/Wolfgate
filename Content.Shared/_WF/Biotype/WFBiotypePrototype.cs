@@ -1,5 +1,6 @@
 using Content.Shared.Body.Prototypes;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Utility;
 
 namespace Content.Shared._WF.Biotype;
 
@@ -21,6 +22,10 @@ public sealed partial class WFBiotypePrototype : IPrototype
 
     [DataField(required: true)]
     public LocId Description;
+
+    /// <summary>The icon on the biotype's box in the character creator.</summary>
+    [DataField]
+    public SpriteSpecifier? Icon;
 
     /// <summary>The body a mob of the other biotype is rebuilt as.</summary>
     [DataField(required: true)]

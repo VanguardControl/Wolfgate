@@ -89,6 +89,10 @@ public sealed class TypedEmoteTest
             Assert.That(chat.ResolveTypedEmote(human, "salute!"), Is.EqualTo(salutes.TrimEnd('.') + "!"));
             Assert.That(chat.ResolveTypedEmote(human, "salute?!"), Is.EqualTo(salutes.TrimEnd('.') + "?!"));
             Assert.That(chat.ResolveTypedEmote(human, "salutes the captain"), Is.EqualTo("salutes the captain"));
+            Assert.That(chat.ResolveTypedEmote(human, "laugh"), Is.EqualTo(loc.GetString("chat-emote-msg-laugh")));
+            // A synonym trigger keeps the word typed rather than turning into another verb.
+            Assert.That(chat.ResolveTypedEmote(human, "giggles"), Is.EqualTo("giggles"));
+            Assert.That(chat.ResolveTypedEmote(human, "chuckles!"), Is.EqualTo("chuckles!"));
         });
         await pair.RunTicksSync(5);
 

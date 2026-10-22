@@ -84,6 +84,10 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs`](../../Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs)
   - start a real jump, as an ensured FTLComponent stayed Available and was removed
   - pick the dock without teleporting the shuttle there before the jump
+- [`Content.Server/Solar/EntitySystems/PowerSolarControlConsoleSystem.cs`](../../Content.Server/Solar/EntitySystems/PowerSolarControlConsoleSystem.cs)
+  - closed UIs skip updates, so refresh on open
+  - refresh the state on open; the update loop skips closed UIs
+  - skip closed UIs; each update re-sent the whole UI component, a large radar state on admin ghosts
 - [`Content.Server/VendingMachines/VendingMachineSystem.cs`](../../Content.Server/VendingMachines/VendingMachineSystem.cs): a free vend skips the cash payment, which logs a zero amount as invalid
 - [`Content.Shared/_FinalHorizon/Guns/AlternateGun/AlternateGunSystem.cs`](../../Content.Shared/_FinalHorizon/Guns/AlternateGun/AlternateGunSystem.cs): the client picks the gun to fire from this
 - [`Content.Shared/_Goobstation/StationRadio/Systems/StationRadioReceiverSystem.cs`](../../Content.Shared/_Goobstation/StationRadio/Systems/StationRadioReceiverSystem.cs)
@@ -104,6 +108,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - bodiless giblets are skipped when flung.
   - bodiless dropped contents are skipped instead of flung.
 - [`Content.Shared/Maps/ContentTileDefinition.cs`](../../Content.Shared/Maps/ContentTileDefinition.cs): Monolith#4804 made this true, which draws weather inside ships and buildings
+- [`Content.Shared/Pinpointer/SharedNavMapSystem.cs`](../../Content.Shared/Pinpointer/SharedNavMapSystem.cs): compare region seeds by content; the reference compare dirtied every nav map each second
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../Content.Shared/Preferences/HumanoidCharacterProfile.cs)
   - the company is passed through the constructor
   - copies keep the company

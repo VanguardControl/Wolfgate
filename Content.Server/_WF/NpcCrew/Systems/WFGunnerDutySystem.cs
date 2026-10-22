@@ -27,6 +27,7 @@ namespace Content.Server._WF.NpcCrew.Systems;
 public sealed partial class WFGunnerDutySystem : EntitySystem
 {
     [Dependency] private WFCrewAlertSystem _alerts = default!;
+    [Dependency] private WFCrewSparedSystem _spared = default!;
     [Dependency] private Robust.Shared.Random.IRobustRandom _skillRandom = default!;
     [Dependency] private WFCrewObjectiveSystem _objectives = default!;
     [Dependency] private WFCrewSecuritySystem _security = default!;
@@ -378,6 +379,9 @@ public sealed partial class WFGunnerDutySystem : EntitySystem
         MapCoordinates here, EntityUid ship, bool hostile)
     {
         if (ship == grid || TerminatingOrDeleted(ship))
+            return null;
+        // A player vessel of the crew's faction is fired on only once its own fire has made it an attacker.
+        if (_spared.Spared(grid, ship) && !_alerts.FiredShipGuns(grid, crew.Group, ship))
             return null;
         // A boarding party's ship only answers ship guns with its own.
         if (HasComp<WFHoldFireComponent>(grid) && !_alerts.FiredShipGuns(grid, crew.Group, ship))

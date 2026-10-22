@@ -130,11 +130,15 @@ public sealed partial class WFCrewWeaponSystem
     /// <summary>Crew defend their assigned ship without pursuing targets across docking connections.</summary>
     public bool CanEngage(EntityUid uid, EntityUid target)
     {
-        if (TerminatingOrDeleted(target) || !_mobs.IsAlive(target)
-            || Transform(uid).GridUid is not { } grid || Transform(target).GridUid != grid)
+        if (TerminatingOrDeleted(target) || !_mobs.IsAlive(target) || Transform(uid).GridUid is not { } grid)
             return false;
 
         TryComp<WFCrewComponent>(uid, out var crew);
+        if (OnSight(uid, crew, grid, target))
+            return true;
+        if (Transform(target).GridUid != grid)
+            return false;
+
         var attacked = WasAttackedBy(uid, target);
         // Off his post's grid a crewman starts nothing. He answers whoever attacked him, in sight, only when sent
         // there on a job or a raid, or when the attacker is his faction's enemy anyway, as for a raider carried off;
@@ -168,6 +172,21 @@ public sealed partial class WFCrewWeaponSystem
     {
         return TryComp<WFCrewComponent>(uid, out var crew) && crew.Struck.TryGetValue(target, out var at)
                && _timing.CurTime < at + PursuitWindow;
+    }
+
+    /// <summary>
+    /// Whether an on-sight crewman opens fire on a faction enemy he sees: anywhere for the hands, only aboard for the
+    /// helm, guns and radio, which stay manned against anyone outside.
+    /// </summary>
+    private bool OnSight(EntityUid uid, WFCrewComponent? crew, EntityUid grid, EntityUid target)
+    {
+        if (!TryComp<WFCrewOnSightComponent>(crew?.Post?.EntityId ?? grid, out var onSight)
+            || Transform(target).GridUid != grid && IsStationCrew(uid)
+            || !IsFactionEnemy(uid, target) || !CanSee(uid, target))
+            return false;
+
+        var company = WFCompanyFamily.Of(CompOrNull<Content.Shared._Mono.Company.CompanyComponent>(target)?.CompanyName.Id);
+        return company.Length == 0 || !onSight.Spares.Any(spared => WFCompanyFamily.Of(spared) == company);
     }
 
     /// <summary>Whether the target belongs to a faction the crewman's own is hostile to, attack or no attack.</summary>

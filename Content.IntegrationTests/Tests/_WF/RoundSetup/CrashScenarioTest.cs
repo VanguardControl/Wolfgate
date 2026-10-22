@@ -200,13 +200,16 @@ public sealed class CrashScenarioTest
                 "The crashed hull is not on the ground layer.");
         });
 
-        // The impact can wreck the hull's power, which also refuses a pilot; only the scenario lock is under test.
+        // The impact can wreck the hull's power, and some ships' helms come locked to an owner; both refuse a pilot
+        // too, and only the scenario lock is under test.
         var helm = EntityUid.Invalid;
         await server.WaitPost(() =>
         {
             helm = FindShuttleConsole(em, crashed);
-            if (helm != EntityUid.Invalid)
-                server.System<PowerReceiverSystem>().SetNeedsPower(helm, false);
+            if (helm == EntityUid.Invalid)
+                return;
+            server.System<PowerReceiverSystem>().SetNeedsPower(helm, false);
+            em.RemoveComponent<Content.Shared.Shuttles.Components.ShuttleConsoleLockComponent>(helm);
         });
 
         // The scenario sweep runs twice a second; after it sees the impact the helm opens again.
@@ -220,7 +223,9 @@ public sealed class CrashScenarioTest
                 var open = new ActivatableUIOpenAttemptEvent(actor);
                 em.EventBus.RaiseLocalEvent(helm, open);
                 Assert.That(open.Cancelled, Is.False,
-                    $"The helm stayed locked after the crash; powered: {server.System<PowerReceiverSystem>().IsPowered(helm)}.");
+                    $"The helm stayed locked after the crash; powered: {server.System<PowerReceiverSystem>().IsPowered(helm)}, "
+                    + $"can interact: {server.System<Content.Shared.ActionBlocker.ActionBlockerSystem>().CanInteract(actor, helm)}, "
+                    + $"access: {server.System<Content.Shared.Access.Systems.AccessReaderSystem>().IsAllowed(actor, helm)}.");
                 em.DeleteEntity(actor);
             }
 

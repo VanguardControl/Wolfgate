@@ -8,7 +8,7 @@ blood; machine: core, pump and power).
 A species' native biotype is `biotype` on its `SpeciesPrototype`: Organic unless set, Synthetic for IPC and Synth. A
 native mob is exactly the species' own prototype; a synthetic IPC is today's IPC. The character profile stores
 `Biotype`; `Default` means native and validation (`EnsureValid`) turns it into the species' own, so a saved character
-keeps its body. Players pick it with the Biotype dropdown in the Body card of the character creator
+keeps its body. Players pick it with the Biotype switch (one icon box each, the icon is the prototype's `icon`) in the Body card of the character creator
 (`Content.Client/_WF/Biotype/HumanoidProfileEditor.Biotype.cs`); it shows the species' own biotype until changed, and
 switching species resets it to the new species' own.
 
@@ -39,7 +39,7 @@ Gates follow the effective biotype (`WFBiotypeGates.Effective`), not the species
 treated as a machine. A trait lists `biotypeBlacklist` next to `speciesBlacklist`: the creator hides and drops it
 (`TraitPrototype.Biotype.cs`), and `GetValidTraits` drops it on the server. `WFBiotypeLoadoutEffect` (`biotypes`) gates a
 loadout; the oxygen and nitrogen breather groups require Organic, so only a flesh body is issued a survival box, and
-IPC and Synth stay in the species lists so an organic one gets it. `WFBiotypeRequirement` (`biotypes`, `inverted`) gates
+IPC and Synth stay in the species lists so an organic one gets it. A synthetic body gets the Synthetics module's box instead. `WFBiotypeRequirement` (`biotypes`, `inverted`) gates
 a role or antag; the zombie roles refuse Synthetic. Species identity (the IPC name rule, genitals, inventory template,
 markings) stays keyed on the species.
 
@@ -90,7 +90,7 @@ markings) stays keyed on the species.
 ## Non-modular edits
 
 - [`Content.Client/Damage/DamageVisualsSystem.cs`](../../../Content.Client/Damage/DamageVisualsSystem.cs): a converted body keeps its species' visuals, so groups its new container lacks are dropped
-- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): organic or synthetic body (HumanoidProfileEditor.Biotype.cs)
+- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): organic or synthetic body, a two-way switch (HumanoidProfileEditor.Biotype.cs)
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
   - the biotypes a trait can't be taken by
   - a biotype the trait lists hides it like a listed species

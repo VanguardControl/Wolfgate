@@ -2631,3 +2631,168 @@ Entries:
   id: 100194
   time: '2026-10-21T20:14:00.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/312
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Synthetics (any species with the Synthetic biotype, plus IPCs and
+        Synths) get a chassis panel action, which works while downed. It has a
+        Parts tab with a body doll and a Components tab, gauges for power,
+        fluid, sensor load, core temperature, radiation collector charge and a
+        built-in radiation meter, and tooltips explaining every state, load and
+        fault. From it you can isolate a limb (cuts its servos and sensor load),
+        detach a limb, reboot, overclock, open your chassis bay and disconnect
+        your own components, power cell included.
+    - type: Add
+      message: >-
+        Chassis bay: alt-click a synthetic to open its bay and pull or seat
+        components by hand, no surgery needed. An overlay shows when the bay is
+        open.
+    - type: Add
+      message: >-
+        Lego limbs: synthetic limbs come off more easily, and you click one on
+        to reattach it. It runs loose until you recouple it with cable coil, and
+        each pass tells you how many are left.
+    - type: Add
+      message: A mechanic can link a multitool into a synthetic's chassis panel.
+    - type: Add
+      message: Overclocking sparks and shorts more the hotter the chassis gets.
+    - type: Add
+      message: Synthetics hear a quiet alarm beep when close to going down.
+    - type: Add
+      message: >-
+        Synthetics have a radiation collector in their chassis. It soaks up
+        radiation until full, then strains and leaks into the core. Pull it to
+        vent it, weld it to repair it, and print a new one if it burns out.
+    - type: Add
+      message: >-
+        Synthetics spawn with a "Synths and You" book on how to repair them,
+        also in the guidebook.
+    - type: Add
+      message: >-
+        Synthetics spawn with a synthetic survival box: a spare power cell,
+        hydraulic fluid, cable, flares, a crowbar and a mass scanner.
+    - type: Add
+      message: >-
+        Chat font picker in the character creator: Default, Terminal, Boxfont
+        Round, Iceberg, Fondamento or Minecraftia. It shows in chat and speech
+        bubbles.
+    - type: Add
+      message: Typing bubble picker in the character creator, with animated previews.
+    - type: Add
+      message: >-
+        With Mismatched parts ticked, humans and other skin-tone species can
+        pick any skin colour.
+    - type: Tweak
+      message: Biotype is now a two-way Organic/Synthetic switch with icons.
+    - type: Tweak
+      message: >-
+        The blood colour toggle moved into the Body card, under Digitigrade
+        legs.
+    - type: Tweak
+      message: >-
+        A dead or missing power cell no longer shuts a synthetic down. It crawls
+        and can use one arm, picked from its own menu.
+    - type: Tweak
+      message: >-
+        Synthetics take damage more like flesh does. Gunfire puts them down in
+        about as many hits as a human, and sustained laser fire and blunt hits
+        now put them down too, armoured or not.
+    - type: Tweak
+      message: >-
+        Synthetic hydraulic fluid slowly refills on its own. HYDRAULIC PRESSURE
+        LOW now tells you to weld leaks and fit a hydraulic pack.
+    - type: Fix
+      message: >-
+        Synthetic sensor and optics damage can now be repaired. Glass fixes
+        optics, welders fix cold and acid damage, and Replace Damaged Servo
+        needs nothing opened.
+    - type: Fix
+      message: >-
+        Picking the Synthetic biotype no longer knocks you down with damage on
+        spawn.
+    - type: Fix
+      message: >-
+        A synthetic drained of hydraulic fluid now shuts down and can succumb,
+        instead of lying there indefinitely.
+    - type: Fix
+      message: Radiation no longer piles up endlessly on synthetics.
+    - type: Fix
+      message: >-
+        NPCs now aim at any part of the body instead of always hitting the
+        chest.
+    - type: Fix
+      message: A missing foot now slows you down, organic or synthetic.
+    - type: Fix
+      message: Blind healing repairs the target instead of the user.
+  id: 100195
+  time: '2026-10-21T21:11:30.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/301
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: EMP's no longer affect shuttle consoles.
+  id: 100196
+  time: '2026-10-21T22:33:08.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/298
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added a message sound picker to the Voice section of the character
+        creator. Choose the sound your character makes when they talk, or keep
+        your species' default.
+    - type: Add
+      message: Added the Moth, Wawa, Gorilla and Sheleg message sounds from HardLight.
+    - type: Tweak
+      message: Moths now chatter when they talk.
+  id: 100197
+  time: '2026-10-22T01:45:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/316
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Expedition consoles on ships started from the lobby now show offers.
+    - type: Fix
+      message: Ships started from the lobby now get a numbered name like bought ships.
+    - type: Fix
+      message: >-
+        NPC ships no longer attack player ships of their own faction. They only
+        shoot back after a lot of friendly fire.
+    - type: Tweak
+      message: >-
+        NPC patrols judge a ship by its IFF flag when it shows theirs, otherwise
+        by the free crew aboard. Cuffed prisoners don't count.
+    - type: Tweak
+      message: Judge patrols leave player ships alone unless fired on heavily.
+    - type: Tweak
+      message: >-
+        Reaver campaign crews shoot on sight and are hostile to everyone except
+        the Underground, PDV included.
+    - type: Fix
+      message: '*giggles and similar emotes read as typed instead of "laughs".'
+    - type: Fix
+      message: Less lag when NPC ships spawn.
+  id: 100198
+  time: '2026-10-22T02:56:50.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/317
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Fixed a few sources of network traffic causing clientside jittering.
+  id: 100199
+  time: '2026-10-22T03:17:54.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/318
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Jump boots and the modsuit jump carry you the full distance again
+        instead of a third of a tile.
+    - type: Fix
+      message: >-
+        A welder now seals a synthetic's fluid leak even after the chassis
+        damage is already repaired.
+  id: 100200
+  time: '2026-10-22T04:37:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/320

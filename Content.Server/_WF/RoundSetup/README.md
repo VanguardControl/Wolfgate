@@ -129,6 +129,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/RoundSetupUiTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/RoundSetupUiTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/RoundSetupUiTest.Refresh.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/RoundSetupUiTest.Refresh.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.Expeditions.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.Expeditions.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.Payments.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.Payments.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.Sales.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/ShipScenarioTest.Sales.cs)
 - [`Content.IntegrationTests/Tests/_WF/RoundSetup/WFCrewRadioTestSystem.cs`](../../../Content.IntegrationTests/Tests/_WF/RoundSetup/WFCrewRadioTestSystem.cs)

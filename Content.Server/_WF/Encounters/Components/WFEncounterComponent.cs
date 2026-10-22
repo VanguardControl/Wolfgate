@@ -203,6 +203,14 @@ public sealed partial class WFEncounterShipState
     [DataField]
     public WFEncounterZoneTargets ZoneTargets;
 
+    /// <summary>Whether its zones leave player ships with hidden or unlabelled IFF alone until they fire.</summary>
+    [DataField]
+    public bool KnownThreatsOnly;
+
+    /// <summary>Whether its zones take on only NPC ships, leaving every player ship alone until it fires.</summary>
+    [DataField]
+    public bool NpcTargetsOnly;
+
     /// <summary>Companies its zones and hunt leave alone: never warned, fired on or boarded, though a shot at it is still answered.</summary>
     [DataField]
     public List<string> NeutralCompanies = new();

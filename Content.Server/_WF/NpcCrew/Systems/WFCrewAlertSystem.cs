@@ -26,6 +26,7 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     [Dependency] private WFCrewShipStatusSystem _status = default!;
     [Dependency] private WFCrewSystem _crew = default!;
     [Dependency] private WFCrewStealthSystem _stealth = default!;
+    [Dependency] private WFCrewSparedSystem _spared = default!;
 
     private const string Vision = "VisionRadius";
     private const string AggroVision = "AggroVisionRadius";
@@ -143,6 +144,9 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
 
     /// <summary>How many stray hits a ship lets a friendly vessel land inside the window before it is an attack.</summary>
     public const int StrayHits = 6;
+
+    /// <summary>How many stray hits a player vessel of the crew's own faction may land inside the window: a great many.</summary>
+    public const int OwnFactionStrayHits = 40;
     private static readonly TimeSpan StrayWindow = TimeSpan.FromSeconds(30);
 
     /// <summary>Hits closer together than this are one burst or one shell, and count once.</summary>
@@ -155,7 +159,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// whom it has been shooting, is forgiven outright, whatever its colours: in a melee nobody's aim is clean. A
     /// vessel of the ship's own faction is allowed a few stray shots, and more than <see cref="StrayHits"/> inside the
     /// window are not an accident; a profile with its own <see cref="WFCrewProfilePrototype.StrayHits"/> allows that
-    /// many to any vessel no NPC crew flies. Once a vessel is taken for an attacker nothing more of its fire is excused.
+    /// many to any vessel no NPC crew flies. A player vessel of the ship's faction is allowed
+    /// <see cref="OwnFactionStrayHits"/>. Once a vessel is taken for an attacker nothing more of its fire is excused.
     /// </summary>
     private bool Excuse(EntityUid grid, EntityUid attacker)
     {
@@ -200,6 +205,8 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     /// </summary>
     private int? StrayLimit(EntityUid grid, EntityUid attacker)
     {
+        if (_spared.Spared(grid, attacker))
+            return OwnFactionStrayHits;
         if (TryComp<WFCrewShipProfileComponent>(grid, out var own) && _prototypes.TryIndex(own.Profile, out var profile)
             && profile.StrayHits is { } allowance && !HasComp<WFCrewShipProfileComponent>(attacker))
             return SameFaction(grid, attacker) ? Math.Max(allowance, StrayHits) : allowance;
@@ -391,6 +398,9 @@ public sealed partial class WFCrewAlertSystem : EntitySystem
     {
         if (grid == attacker || !HasComp<MapGridComponent>(grid) || !IsVessel(attacker)
             || Transform(grid).MapID != Transform(attacker).MapID)
+            return;
+        // Only its own gunfire, past the stray allowance, turns a crew on a player vessel of its faction.
+        if (!gunfire && _spared.Spared(grid, attacker))
             return;
         var key = (grid, group);
         if (!_alerts.TryGetValue(key, out var alert))

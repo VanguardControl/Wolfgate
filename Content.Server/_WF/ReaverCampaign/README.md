@@ -10,6 +10,11 @@ The sector watch announces in three tiers: chimed banners for the big moments, a
 (the rest go on the radio) and routine lines on the Common channel only.
 A cell where a campaign ship and a crewed player ship meet is disputed: the map hatches it, and the stronghold's
 reinforcement clock, the convoy and reinforcement deadlines there hold until one side leaves or dies; spread skips it.
+Campaign crews fire on sight (`WFCrewOnSightComponent` on every campaign hull, set in `SpawnEncounter`): any faction
+enemy a crewman sees within 10 m is engaged, aboard or off the ship; the helm, guns and radio only turn on one aboard.
+The faction's neutral companies are spared. The sector's random Reaver encounters keep the ordinary rules.
+Campaign crews carry their own NPC faction, `WFAshfallReavers`, hostile to everyone, the Dynasty's people included;
+the Fugitive and Godfather jobs add `WFUnderground` beside `NanoTrasen`, and the two are allies.
 
 A stronghold is a hub: a shielded Saintie with docking ports and no guard ships. A hull with no shield generator is
 given one, anchored on a free tile in reach of an APC, when the hub spawns. The first stronghold, and a regrouped one
@@ -167,6 +172,7 @@ and counted for the round summary. `wf_reavers respond <q> <r>` sends one by han
 
 ### Prototypes
 
+- [`Resources/Prototypes/_WF/ReaverCampaign/ai_factions.yml`](../../../Resources/Prototypes/_WF/ReaverCampaign/ai_factions.yml)
 - [`Resources/Prototypes/_WF/ReaverCampaign/campaigns.yml`](../../../Resources/Prototypes/_WF/ReaverCampaign/campaigns.yml)
 - [`Resources/Prototypes/_WF/ReaverCampaign/companies.yml`](../../../Resources/Prototypes/_WF/ReaverCampaign/companies.yml)
 - [`Resources/Prototypes/_WF/ReaverCampaign/encounters.yml`](../../../Resources/Prototypes/_WF/ReaverCampaign/encounters.yml)
@@ -191,8 +197,12 @@ and counted for the round summary. `wf_reavers respond <q> <r>` sends one by han
 - [`Resources/Prototypes/_Mono/PointsOfInterest/tsfmcindustry.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/tsfmcindustry.yml): the Contested Sector game mode spawns the same sector as Standard
 - [`Resources/Prototypes/_Mono/PointsOfInterest/underground.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/underground.yml): the station flies the neutral WFUnderground company, so the Reavers leave it and its cell alone
 - [`Resources/Prototypes/_Mono/PointsOfInterest/ussp.yml`](../../../Resources/Prototypes/_Mono/PointsOfInterest/ussp.yml): the Contested Sector game mode spawns the same sector as Standard
-- [`Resources/Prototypes/_Mono/Roles/Jobs/Underground/fugitive.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Underground/fugitive.yml): Underground crew fly the neutral WFUnderground company, so the Reavers leave them alone
-- [`Resources/Prototypes/_Mono/Roles/Jobs/Underground/godfather.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Underground/godfather.yml): Underground crew fly the neutral WFUnderground company, so the Reavers leave them alone
+- [`Resources/Prototypes/_Mono/Roles/Jobs/Underground/fugitive.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Underground/fugitive.yml)
+  - Underground crew fly the neutral WFUnderground company, so the Reavers leave them alone
+  - Underground people are allied with the Reaver campaign's crews
+- [`Resources/Prototypes/_Mono/Roles/Jobs/Underground/godfather.yml`](../../../Resources/Prototypes/_Mono/Roles/Jobs/Underground/godfather.yml)
+  - Underground crew fly the neutral WFUnderground company, so the Reavers leave them alone
+  - Underground people are allied with the Reaver campaign's crews
 - [`Resources/Prototypes/_NF/PointsOfInterest/base.yml`](../../../Resources/Prototypes/_NF/PointsOfInterest/base.yml): the Contested Sector game mode spawns the same sector as Standard
 
 <!-- WOLFGATE-GENERATED END -->

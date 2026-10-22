@@ -266,7 +266,8 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - Library on disk: `/Mapping/Library/<NetUserId>/<MapName>/v<NNNN>_<yyyyMMdd-HHmmss>_<manual|auto|upload>/z<D>.yml`
   in the server data folder, one file per level with 0 the ground. Every save (manual, auto or upload) also writes
   `z<D>.grid.yml` (`MapLoaderSystem.TrySaveGrid`) and `z<D>.vessel.yml` beside each level that holds exactly one grid;
-  they count towards the library size. There is no index; listings are read from folder names, plus the `grids:` list
+  they count towards the library size. Manual saves and autosaves first run `fixgridatmos` on every session grid with
+  an atmosphere, so saved tiles hold their roundstart air (markers respected); uploads are stored as sent. There is no index; listings are read from folder names, plus the `grids:` list
   at the head of each level file, and cached for 30 s. A version is listed as a ship when it holds exactly one grid in
   all and has that grid's file. Reference lists show level files only. Map names are 1 to 48 letters, digits, spaces, dashes or underscores, and not a Windows device
   name. Pruning keeps `max_versions`, removes `auto` versions before `manual` and `upload` ones and never the newest. Only the
@@ -344,6 +345,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 
 ### Server
 
+- [`Content.Server/_WF/MappingMode/AtmosphereSystem.WFMappingFix.cs`](AtmosphereSystem.WFMappingFix.cs)
 - [`Content.Server/_WF/MappingMode/Commands/WFMappingModeCommands.cs`](Commands/WFMappingModeCommands.cs)
 - [`Content.Server/_WF/MappingMode/GameTicker.MappingMode.cs`](GameTicker.MappingMode.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingDownloadSystem.cs`](WFMappingDownloadSystem.cs)
@@ -472,6 +474,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingAdminTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingAdminTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingAtmosFixTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingAtmosFixTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDenyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDenyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDockPopoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDockPopoutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDownloadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingDownloadTest.cs)

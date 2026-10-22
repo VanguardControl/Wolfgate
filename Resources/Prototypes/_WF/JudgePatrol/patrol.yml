@@ -63,7 +63,8 @@
 # One judge ship circling Caelestinus Central. The station patrol below keeps two of them on the orbit, opposite each
 # other, and replaces one 20 minutes after it is lost. Neutral to every captain: it fires only on the Reavers, the ADS
 # and the corsairs, on sight inside 1500 m, and on hostile drones within 6000 m of the station, and drives them off
-# rather than chasing them down.
+# rather than chasing them down. Only known threats: a player hull with its IFF hidden or unlabelled is left alone until
+# it fires, where other patrols warn it off and fire on it as an unknown.
 - type: wfEncounter
   id: WFEncounterJudgePatrol
   name: wf-encounter-name-judge-patrol
@@ -93,6 +94,8 @@
     warnRange: 1500
     attackRange: 400
     zoneTargets: AtWar
+    knownThreatsOnly: true # player hulls running dark are left alone until they fire
+    npcTargetsOnly: true # no player ship is a target until its fire runs past the judges' 40 stray hits
     objectives:
     - kind: Circle
       target: "@origin"

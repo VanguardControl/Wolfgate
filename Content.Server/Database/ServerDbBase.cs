@@ -15,6 +15,8 @@ using Content.Shared._Common.Consent; // WOLFGATE(Genitals)
 using Content.Shared._Mono.Company;
 using Content.Shared._WF.Biotype; // WOLFGATE(Biotype)
 using Content.Shared._WF.BloodColour; // WOLFGATE(BloodColour)
+using Content.Shared._WF.ChatFont; // WOLFGATE(ChatFont)
+using Content.Shared._WF.TypingBubble; // WOLFGATE(TypingBubble)
 using Content.Shared._WF.EmoteVoices; // WOLFGATE(EmoteVoices)
 using Content.Shared._WF.CustomMarkings; // WOLFGATE(CustomMarkings)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
@@ -334,6 +336,9 @@ namespace Content.Server.Database
                 LegStance = (LegStance) profile.LegStance, // WOLFGATE(LegStyle)
                 Biotype = (WFBiotype) profile.Biotype, // WOLFGATE(Biotype)
                 BloodColor = WFBloodColourRules.FromStored(profile.BloodColor), // WOLFGATE(BloodColour)
+                ChatFont = WFChatFontRules.FromStored(profile.ChatFont), // WOLFGATE(ChatFont)
+                TypingIndicator = WFTypingBubbleRules.FromStored(profile.TypingIndicator), // WOLFGATE(TypingBubble)
+                MessageSound = MessageSoundRules.FromStored(profile.MessageSound), // WOLFGATE(EmoteVoices)
             };
         }
 
@@ -376,8 +381,11 @@ namespace Content.Server.Database
             profile.LegStance = (int) humanoid.LegStance; // WOLFGATE(LegStyle)
             profile.Biotype = (int) humanoid.Biotype; // WOLFGATE(Biotype)
             profile.BloodColor = WFBloodColourRules.ToStored(humanoid.BloodColor); // WOLFGATE(BloodColour)
+            profile.ChatFont = WFChatFontRules.ToStored(humanoid.ChatFont); // WOLFGATE(ChatFont)
+            profile.TypingIndicator = WFTypingBubbleRules.ToStored(humanoid.TypingIndicator); // WOLFGATE(TypingBubble)
             profile.ScreamVoice = EmoteVoiceRules.ToStored(humanoid.ScreamVoice); // WOLFGATE(EmoteVoices)
             profile.LaughVoice = EmoteVoiceRules.ToStored(humanoid.LaughVoice); // WOLFGATE(EmoteVoices)
+            profile.MessageSound = MessageSoundRules.ToStored(humanoid.MessageSound); // WOLFGATE(EmoteVoices)
 
             // WOLFGATE(Genitals) START: anatomy JSON; an unreadable column is kept as it is until the player edits anatomy.
             if (!(existingRow && humanoid.Genitals.LoadFailed))

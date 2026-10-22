@@ -11,6 +11,10 @@ membership where available, otherwise a shared NPC faction. A crew's ordered doc
 for that approach. Incoming ships do not cause the stationary crew to announce that it is docking. Radio officers
 announce their own approach and completed docking, and warn unauthorized arrivals.
 
+`WFCrewSparedSystem` marks player vessels a crew takes for its own side: a hull showing the crew's faction on its IFF,
+or, running dark or under another flag, one with a living, uncuffed player of that faction aboard. They are never
+warned, hunted or zoned, and their fire is answered only past `OwnFactionStrayHits` (40) hits in 30 s.
+
 A profile can name datasets its crews' first and last names come from (`firstNames`, `lastNames`) and components every
 crewman gets (`components`), so a faction's people sound like one: Union crews carry Russian names and a Russian accent,
 Federation and Dynasty crews their own names, pirates nicknames and a pirate's drawl. Each navy's loadouts wear its own
@@ -255,6 +259,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Components/WFCaptainComponent.cs`](Components/WFCaptainComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewComponent.cs`](Components/WFCrewComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewEngineerComponent.cs`](Components/WFCrewEngineerComponent.cs)
+- [`Content.Server/_WF/NpcCrew/Components/WFCrewOnSightComponent.cs`](Components/WFCrewOnSightComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewPropertyComponent.cs`](Components/WFCrewPropertyComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewRadioComponent.cs`](Components/WFCrewRadioComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewRepairComponent.cs`](Components/WFCrewRepairComponent.cs)
@@ -308,6 +313,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewShieldProtectionSystem.cs`](Systems/WFCrewShieldProtectionSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewShipStatusSystem.cs`](Systems/WFCrewShipStatusSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSleepSystem.cs`](Systems/WFCrewSleepSystem.cs)
+- [`Content.Server/_WF/NpcCrew/Systems/WFCrewSparedSystem.cs`](Systems/WFCrewSparedSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSpeechSystem.cs`](Systems/WFCrewSpeechSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewStealthSystem.cs`](Systems/WFCrewStealthSystem.cs)
 - [`Content.Server/_WF/NpcCrew/Systems/WFCrewSystem.cs`](Systems/WFCrewSystem.cs)
@@ -382,6 +388,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Navigation.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Navigation.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.NavigationSettings.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.NavigationSettings.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Objectives.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Objectives.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.OnSight.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.OnSight.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.OwnKind.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.OwnKind.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.PirateAir.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.PirateAir.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.RadioSecurity.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.RadioSecurity.cs)
@@ -402,6 +409,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Shove.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Shove.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Skill.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Skill.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Sleep.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Sleep.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Spared.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Spared.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Stations.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.TargetLifetime.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Titles.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Titles.cs)

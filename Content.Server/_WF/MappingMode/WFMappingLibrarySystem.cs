@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Content.Server._WF.MappingTools;
+using Content.Server.Atmos.EntitySystems;
 using Content.Server.Administration.Logs;
 using Content.Shared._WF.MappingMode;
 using Content.Shared.Database;
@@ -24,6 +25,7 @@ namespace Content.Server._WF.MappingMode;
 public sealed class WFMappingLibrarySystem : EntitySystem
 {
     [Dependency] private IAdminLogManager _adminLog = default!;
+    [Dependency] private AtmosphereSystem _atmos = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPlayerManager _players = default!;
@@ -436,7 +438,31 @@ public sealed class WFMappingLibrarySystem : EntitySystem
             return SaveResult.Fail("wf-mapping-mode-save-failed");
         }
 
+        FixAtmos(levels, session);
         return SaveVersion(levels, ground, user, mapName, kind, $"mapping session {session.Code}", session.Template);
+    }
+
+    /// <summary>Resets the air on every grid of the levels to its roundstart mix, as <c>fixgridatmos</c> does.</summary>
+    private void FixAtmos(List<EntityUid> levels, WFMappingSession session)
+    {
+        foreach (var level in levels)
+        {
+            var children = Transform(level).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                if (!HasComp<MapGridComponent>(child))
+                    continue;
+
+                try
+                {
+                    _atmos.WfFixGridAtmos(child);
+                }
+                catch (Exception e)
+                {
+                    Log.Warning($"Fixing the atmosphere of {ToPrettyString(child)} in mapping session {session.Code} failed: {e}");
+                }
+            }
+        }
     }
 
     /// <summary>
