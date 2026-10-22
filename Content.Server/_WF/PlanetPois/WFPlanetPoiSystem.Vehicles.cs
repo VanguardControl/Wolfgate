@@ -28,6 +28,9 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Road tiles between one patrol point and the next.</summary>
     private const int PatrolPointSpacing = 14;
 
+    /// <summary>Random starts tried for a patrol's stretch of road.</summary>
+    private const int PatrolRouteTries = 8;
+
     /// <summary>The shortest stretch of road worth patrolling.</summary>
     private const int MinPatrolRoute = 12;
 
@@ -147,7 +150,7 @@ public sealed partial class WFPlanetPoiSystem
             var count = _random.Next(patrol.MinCount, patrol.MaxCount + 1);
             for (var i = 0; i < count; i++)
             {
-                var route = TraceRoad(record.Centreline, _random.Pick(starts));
+                var route = PatrolRoute(record.Centreline, starts);
                 if (route.Count < MinPatrolRoute)
                     continue;
 
@@ -168,13 +171,34 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>
-    /// Follows the road's centreline from a tile as far as it goes, up to <see cref="PatrolRouteLength"/>: straight on
+    /// The longest of a few stretches of road, each followed both ways from a random start, so a start on a short spur
+    /// still finds the road it joins.
+    /// </summary>
+    private List<Vector2i> PatrolRoute(HashSet<Vector2i> centreline, List<Vector2i> starts)
+    {
+        var best = new List<Vector2i>();
+        for (var attempt = 0; attempt < PatrolRouteTries && best.Count < PatrolRouteLength; attempt++)
+        {
+            var start = _random.Pick(starts);
+            var ahead = TraceRoad(centreline, start, new HashSet<Vector2i>());
+            var behind = TraceRoad(centreline, start, new HashSet<Vector2i>(ahead));
+            behind.RemoveAt(0);
+            behind.Reverse();
+            behind.AddRange(ahead);
+            if (behind.Count > best.Count)
+                best = behind;
+        }
+        return best.Count > PatrolRouteLength ? best.GetRange(0, PatrolRouteLength) : best;
+    }
+
+    /// <summary>
+    /// Follows the road's centreline from a tile as far as it goes, past the tiles already visited, up to <see cref="PatrolRouteLength"/>: straight on
     /// where it can, a random way at a junction.
     /// </summary>
-    private List<Vector2i> TraceRoad(HashSet<Vector2i> centreline, Vector2i start)
+    private List<Vector2i> TraceRoad(HashSet<Vector2i> centreline, Vector2i start, HashSet<Vector2i> visited)
     {
         var route = new List<Vector2i> { start };
-        var visited = new HashSet<Vector2i> { start };
+        visited.Add(start);
         var heading = Vector2.Zero;
         var here = start;
         while (route.Count < PatrolRouteLength)
