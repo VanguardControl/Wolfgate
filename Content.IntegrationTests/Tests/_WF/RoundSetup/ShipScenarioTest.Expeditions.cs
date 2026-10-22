@@ -31,6 +31,7 @@ public sealed partial class ShipScenarioTest
                 "The start made no expedition offers.");
             system.Rollback(19140);
         });
+        await ReturnToLobby(pair);
         await pair.CleanReturnAsync();
     }
 }
