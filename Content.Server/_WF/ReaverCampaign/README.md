@@ -10,6 +10,9 @@ The sector watch announces in three tiers: chimed banners for the big moments, a
 (the rest go on the radio) and routine lines on the Common channel only.
 A cell where a campaign ship and a crewed player ship meet is disputed: the map hatches it, and the stronghold's
 reinforcement clock, the convoy and reinforcement deadlines there hold until one side leaves or dies; spread skips it.
+Campaign crews fire on sight (`WFCrewOnSightComponent` on every campaign hull, set in `SpawnEncounter`): any faction
+enemy a crewman sees within 10 m is engaged, aboard or off the ship; the helm, guns and radio only turn on one aboard.
+The faction's neutral companies are spared. The sector's random Reaver encounters keep the ordinary rules.
 
 A stronghold is a hub: a shielded Saintie with docking ports and no guard ships. A hull with no shield generator is
 given one, anchored on a free tile in reach of an APC, when the hub spawns. The first stronghold, and a regrouped one
