@@ -40,6 +40,11 @@ namespace Content.Server.Solar.EntitySystems
                 var query = EntityQueryEnumerator<SolarControlConsoleComponent, UserInterfaceComponent, TransformComponent>();
                 while (query.MoveNext(out var uid, out _, out var uiComp, out var xform))
                 {
+                    // WOLFGATE START: skip closed UIs; each update re-sent the whole UI component, a large radar state on admin ghosts
+                    if (!_uiSystem.IsUiOpen((uid, uiComp), SolarControlConsoleUiKey.Key))
+                        continue;
+                    // WOLFGATE END
+
                     SolarControlConsoleBoundInterfaceState state;
                     if (xform.GridUid != null && TryComp<SolarPoweredGridComponent>(xform.GridUid, out var gridPower))
                         state = new SolarControlConsoleBoundInterfaceState(gridPower.TargetPanelRotation, gridPower.TargetPanelVelocity, gridPower.TotalPanelPower, _powerSolarSystem.TowardsSun);
