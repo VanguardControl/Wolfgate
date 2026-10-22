@@ -11,8 +11,8 @@ using Robust.Shared.Map.Components;
 namespace Content.Client._WF.Roofs;
 
 /// <summary>
-/// Draws a solid roof over roofed tiles, so nobody sees into a building or a ship they aren't in: a vessel's whole
-/// deck as hull plating, a building's roofed tiles as roofing, shaded at the eaves and lit by the map's daylight.
+/// Draws a solid roof over roofed tiles, so nobody sees into a building or a ship they aren't in: a vessel's enclosed
+/// rooms as hull plating, a building's roofed tiles as roofing, shaded at the eaves and lit by the map's daylight.
 /// The roof over whatever the local player is in lifts (<see cref="WFRoofSystem"/>). Drawn over the world after
 /// lighting, so it isn't darkened as the sunless indoors below it is.
 /// </summary>
@@ -76,16 +76,12 @@ public sealed class WFRoofOverlay : Overlay
             if (implicitRoof && own && _roofs.WholeGrid)
                 continue;
 
+            var enclosed = implicitRoof ? _roofs.Enclosed(grid) : null;
             bool Covered(Vector2i index)
             {
                 if (own && _roofs.Revealed.Contains(index))
                     return false;
-                if (implicitRoof)
-                {
-                    return _maps.TryGetTileRef(grid, grid.Comp, index, out var tile) && !tile.Tile.IsEmpty
-                           && _tileDefs[tile.Tile.TypeId] is not ContentTileDefinition { MapAtmosphere: true };
-                }
-                return WFRoofSystem.IsRoofed(roof!, index);
+                return enclosed?.Contains(index) ?? WFRoofSystem.IsRoofed(roof!, index);
             }
 
             handle.SetTransform(_transform.GetWorldMatrix(grid));

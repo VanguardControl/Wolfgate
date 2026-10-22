@@ -13,7 +13,7 @@ namespace Content.Client._WF.Roofs;
 /// Works out what the local player is under for <see cref="WFRoofOverlay"/>: aboard a ship its whole roof lifts, in a
 /// roofed building the room they're in does. A ghost sees no roofs at all.
 /// </summary>
-public sealed class WFRoofSystem : EntitySystem
+public sealed partial class WFRoofSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IPlayerManager _player = default!;
@@ -43,6 +43,7 @@ public sealed class WFRoofSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+        InitializeVessels();
         _overlays.AddOverlay(new WFRoofOverlay());
     }
 
@@ -56,6 +57,7 @@ public sealed class WFRoofSystem : EntitySystem
     {
         base.FrameUpdate(frameTime);
         _accumulator += frameTime;
+        UpdateVessels(frameTime);
 
         var player = _player.LocalEntity;
         Enabled = player != null && !HasComp<GhostComponent>(player);
@@ -110,7 +112,7 @@ public sealed class WFRoofSystem : EntitySystem
     }
 
     /// <summary>A wall, window or shut door: something anchored there that nobody walks through.</summary>
-    private bool IsSolid(EntityUid grid, MapGridComponent gridComp, Vector2i index)
+    public bool IsSolid(EntityUid grid, MapGridComponent gridComp, Vector2i index)
     {
         var anchored = _maps.GetAnchoredEntitiesEnumerator(grid, gridComp, index);
         while (anchored.MoveNext(out var uid))

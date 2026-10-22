@@ -1,8 +1,9 @@
 # Roofs
 
 Roofs you can't see through. Every roofed tile gets a solid roof drawn over it after lighting, lit by the map's
-daylight and shaded along its edges: a vessel or station grid (all of it counts as roofed) as hull plating, a planet
-building's roofed tiles as roofing. Caverns and other layers under a world layer are left alone, as their roof is the
+daylight and shaded along its edges: a vessel or station's enclosed rooms and their walls as hull plating (exterior
+plating, catwalks and lattice open to the outside stay bare; worked out again whenever a tile or anything anchored on
+the grid changes, so building, deconstruction and breaches show at once), a planet building's roofed tiles as roofing. Caverns and other layers under a world layer are left alone, as their roof is the
 ground above.
 
 The roof over whatever the local player is in lifts: aboard a ship its whole roof, in a building the room they stand
@@ -20,6 +21,7 @@ Entry points: `WFRoofSystem` (what lifts), `WFRoofOverlay` (the drawing).
 - [`Content.Client/_WF/Roofs/WFRoofOverlay.cs`](WFRoofOverlay.cs)
 - [`Content.Client/_WF/Roofs/WFRoofReveal.cs`](WFRoofReveal.cs)
 - [`Content.Client/_WF/Roofs/WFRoofSystem.cs`](WFRoofSystem.cs)
+- [`Content.Client/_WF/Roofs/WFRoofSystem.Vessels.cs`](WFRoofSystem.Vessels.cs)
 
 ### Unit tests
 
