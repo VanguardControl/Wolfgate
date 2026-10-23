@@ -2,36 +2,9 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBeige
-  name: tiles-wf-streets-beige-metal-tile
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/tilebeige.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorHybrisaBeigeCheck
   name: tiles-wf-streets-beige-metal-tile
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/tilebeigecheck.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBeigeCheckAlt
-  name: tiles-wf-streets-beige-metal-tile
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/tilebeigecheckalt.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBeigeLight
-  name: tiles-wf-streets-beige-metal-tile
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/tilelightbeige.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1
@@ -59,15 +32,6 @@
   id: RMCFloorHybrisaBeigeSupermart
   name: tiles-wf-streets-beige-metal-tile
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/supermartfloor2.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBeigeCarpet
-  name: tiles-wf-streets-beige-carpet
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/carpetbeige.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1

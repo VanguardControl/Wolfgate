@@ -2,27 +2,9 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorAsphaltTile
-  name: tiles-wf-streets-tiles-rmc-asphalt
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/tile.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorAsphaltSunBleached
   name: tiles-wf-streets-tiles-rmc-asphalt
   sprite: /Textures/_WF/Streets/Tiles/asphalt/sunbleached_asphalt.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorAsphalt
-  name: tiles-wf-streets-tiles-rmc-asphalt
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/asphalt.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1
@@ -50,15 +32,6 @@
   id: RMCFloorAsphalt3
   name: tiles-wf-streets-tiles-rmc-asphalt
   sprite: /Textures/_WF/Streets/Tiles/asphalt/asphalt3.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorAsphalt4
-  name: tiles-wf-streets-tiles-rmc-asphalt
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/asphalt4.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1
@@ -110,15 +83,6 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorAsphalt10
-  name: tiles-wf-streets-tiles-rmc-asphalt
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/asphalt10.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorAsphalt11
   name: tiles-wf-streets-tiles-rmc-asphalt
   sprite: /Textures/_WF/Streets/Tiles/asphalt/asphalt11.png
@@ -164,27 +128,9 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorAsphalt16
-  name: tiles-wf-streets-tiles-rmc-asphalt
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/asphalt16.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorAsphalt17
   name: tiles-wf-streets-tiles-rmc-asphalt
   sprite: /Textures/_WF/Streets/Tiles/asphalt/asphalt17.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorCement1
-  name: tiles-wf-streets-tiles-rmc-cement
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/cement1.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1
@@ -209,27 +155,9 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorCement4
-  name: tiles-wf-streets-tiles-rmc-cement
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/cement4.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorCement5
   name: tiles-wf-streets-tiles-rmc-cement
   sprite: /Textures/_WF/Streets/Tiles/asphalt/cement5.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorCement6
-  name: tiles-wf-streets-tiles-rmc-cement
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/cement6.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1
@@ -299,15 +227,6 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorCement14
-  name: tiles-wf-streets-tiles-rmc-cement
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/cement14.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorCement15
   name: tiles-wf-streets-tiles-rmc-cement
   sprite: /Textures/_WF/Streets/Tiles/asphalt/cement15.png
@@ -344,27 +263,9 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorCement19
-  name: tiles-wf-streets-tiles-rmc-cement
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/cement19.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorCement20
   name: tiles-wf-streets-tiles-rmc-cement
   sprite: /Textures/_WF/Streets/Tiles/asphalt/cement20.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorCementSunBleached1
-  name: tiles-wf-streets-tiles-rmc-cement
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/cement_sunbleached1.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1
@@ -383,15 +284,6 @@
   id: RMCFloorCementSunBleached3
   name: tiles-wf-streets-tiles-rmc-cement
   sprite: /Textures/_WF/Streets/Tiles/asphalt/cement_sunbleached3.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorCementSunBleached4
-  name: tiles-wf-streets-tiles-rmc-cement
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/cement_sunbleached4.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1
@@ -488,15 +380,6 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorCementSunBleached15
-  name: tiles-wf-streets-tiles-rmc-cement
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/cement_sunbleached15.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorCementSunBleached16
   name: tiles-wf-streets-tiles-rmc-cement
   sprite: /Textures/_WF/Streets/Tiles/asphalt/cement_sunbleached16.png
@@ -518,15 +401,6 @@
   id: RMCFloorCementSunBleached18
   name: tiles-wf-streets-tiles-rmc-cement
   sprite: /Textures/_WF/Streets/Tiles/asphalt/cement_sunbleached18.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorCementSunBleached19
-  name: tiles-wf-streets-tiles-rmc-cement
-  sprite: /Textures/_WF/Streets/Tiles/asphalt/cement_sunbleached19.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1

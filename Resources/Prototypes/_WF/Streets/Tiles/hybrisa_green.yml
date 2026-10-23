@@ -11,15 +11,6 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaGreenTile
-  name: tiles-wf-streets-green-metal-tile
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/tilegreen.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorHybrisaGreenMetal1
   name: tiles-wf-streets-green-metal-tile
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/greenmetal1.png
@@ -86,24 +77,6 @@
   id: RMCFloorHybrisaGreenMetal8
   name: tiles-wf-streets-green-metal-tile
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/greenmetal8.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaGreenCarpet
-  name: tiles-wf-streets-green-carpet
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/carpetgreen.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaGreenCarpetDeco
-  name: tiles-wf-streets-green-carpet
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/carpetgreen_deco.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1

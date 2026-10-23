@@ -109,7 +109,8 @@ public sealed class FixedCityTest
             // A path may join another's, which can run across that site's own floor.
             var floors = record.Sites.Where(placed => placed.TrailStart != null).SelectMany(placed => placed.Tiles).ToHashSet();
             Assert.That(record.Sites.Count(placed => placed.TrailLaid), Is.GreaterThanOrEqualTo(record.Sites.Count(placed => placed.TrailStart != null) - 1),
-                "More than one off-road site went without a footpath.");
+                "More than one off-road site went without a footpath: " + string.Join(", ",
+                    record.Sites.Where(placed => placed.TrailStart != null && !placed.TrailLaid).Select(placed => $"{placed.MapPath} at {placed.Origin}")));
             foreach (var cornerHouse in record.Sites.Where(placed => placed.TrailLaid))
             {
                 Assert.That(cornerHouse.Connection, Is.EqualTo(WFPlanetPoiConnection.Isolated));

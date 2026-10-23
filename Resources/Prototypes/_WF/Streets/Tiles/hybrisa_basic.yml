@@ -295,21 +295,9 @@
 
 - type: tile
   parent: WFStreetsOutdoorTile
-  id: RMCPlanetHybrisaAsphalt
-  name: tiles-wf-streets-asphalt
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/asphalt_old.png
-
-- type: tile
-  parent: WFStreetsOutdoorTile
   id: RMCPlanetHybrisaAsphaltLines3
   name: tiles-wf-streets-asphalt
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/asphalt_old_roadlines3.png
-
-- type: tile
-  parent: WFStreetsOutdoorTile
-  id: RMCPlanetHybrisaAsphaltLines4
-  name: tiles-wf-streets-asphalt
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/asphalt_old_roadlines4.png
 
 - type: tile
   parent: WFStreetsOutdoorTile
@@ -346,18 +334,6 @@
   id: RMCPlanetHybrisaAsphaltSidewalkEast
   name: tiles-wf-streets-asphalt
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/sidewalkcenter_4.png
-
-- type: tile
-  parent: WFStreetsOutdoorTile
-  id: RMCPlanetHybrisaCement
-  name: tiles-wf-streets-cement
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/cement1.png
-
-- type: tile
-  parent: WFStreetsOutdoorTile
-  id: RMCPlanetHybrisaCement2
-  name: tiles-wf-streets-cement
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/cement2.png
 
 - type: tile
   parent: WFStreetsOutdoorTile
@@ -445,15 +421,6 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaEngineerShip
-  name: tiles-wf-streets-strange-metal-floor
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/floor.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorHybrisaEngineerShipPlating
   name: tiles-wf-streets-strange-metal-floor
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/plating.png
@@ -488,24 +455,6 @@
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/engineer_metalfloor_3.png
   variants: 4
   placementVariants: [ 1.0, 1.0, 1.0, 1.0 ]
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaEngineerShip4
-  name: tiles-wf-streets-strange-metal-floor
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/engineer_metalfloor_4.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaEngineerShip5
-  name: tiles-wf-streets-strange-metal-floor
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/engineer_floor_5.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1

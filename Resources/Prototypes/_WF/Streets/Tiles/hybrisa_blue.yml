@@ -2,51 +2,6 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueFull
-  name: tiles-wf-streets-blue-metal-tile
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/bluemetalfull.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueTile
-  name: tiles-wf-streets-blue-metal-tile
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/tileblue.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueTileCheck
-  name: tiles-wf-streets-blue-metal-tile
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/tilebluecheck.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueSupermart
-  name: tiles-wf-streets-blue-metal-tile
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/supermartfloor1.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueSouth
-  name: tiles-wf-streets-blue-metal-tile
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/bluemetal_1.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorHybrisaBlueNorth
   name: tiles-wf-streets-blue-metal-tile
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/bluemetal_2.png
@@ -146,60 +101,6 @@
 
 - type: tile
   parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueCarpet
-  name: tiles-wf-streets-blue-carpet
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/carpetblue.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueDarkerCarpet
-  name: tiles-wf-streets-blue-carpet
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/carpetdarkerblue.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueCarpetDeco
-  name: tiles-wf-streets-blue-carpet
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/carpetblue_deco.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBluePatternCarpet
-  name: tiles-wf-streets-blue-carpet
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/carpetpatternblue.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueSpacePort1
-  name: tiles-wf-streets-blue-carpet
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/spaceport1.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueSpacePort2
-  name: tiles-wf-streets-blue-carpet
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/spaceport2.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
   id: RMCFloorHybrisaBlueDropship1
   name: tiles-wf-streets-blue-metal-tile
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/dropshipfloor1.png
@@ -248,15 +149,6 @@
   id: RMCFloorHybrisaBlueDropshipCorner2
   name: tiles-wf-streets-blue-metal-tile
   sprite: /Textures/_WF/Streets/Tiles/hybrisa/dropshipfloorcorner2.png
-  footstepSounds:
-    collection: FootstepFloor
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaBlueDropshipFull
-  name: tiles-wf-streets-blue-metal-tile
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/dropshipfloorfull.png
   footstepSounds:
     collection: FootstepFloor
   friction: 1

@@ -10,36 +10,3 @@
   barestepSounds:
     collection: BarestepWood
   friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaWoodGrey
-  name: tiles-wf-streets-tiles-cm-wood
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/greywood.png
-  footstepSounds:
-    collection: FootstepWood
-  barestepSounds:
-    collection: BarestepWood
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaWoodRed
-  name: tiles-wf-streets-tiles-cm-wood
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/redwood.png
-  footstepSounds:
-    collection: FootstepWood
-  barestepSounds:
-    collection: BarestepWood
-  friction: 1
-
-- type: tile
-  parent: WFStreetsIndoorTile
-  id: RMCFloorHybrisaWoodBlack
-  name: tiles-wf-streets-tiles-cm-wood
-  sprite: /Textures/_WF/Streets/Tiles/hybrisa/blackwood.png
-  footstepSounds:
-    collection: FootstepWood
-  barestepSounds:
-    collection: BarestepWood
-  friction: 1

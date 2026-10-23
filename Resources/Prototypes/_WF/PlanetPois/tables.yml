@@ -35,6 +35,8 @@
     maxCount: 2
   difficulty: Moderate
   roads:
+    # Few roads join few sites, so a site off them can be well out: its footpath reaches that far.
+    trailLength: 480
     tile: RMCPlanetHybrisaAsphalt
     width: 5
     shoulderTile: RMCPlanetHybrisaSidewalk
@@ -177,6 +179,8 @@
     maxCount: 3
   difficulty: Moderate
   roads:
+    # Few roads join few sites, so a site off them can be well out: its footpath reaches that far.
+    trailLength: 480
     tile: RMCPlanetHybrisaAsphalt
     width: 5
     shoulderTile: RMCPlanetHybrisaSidewalk

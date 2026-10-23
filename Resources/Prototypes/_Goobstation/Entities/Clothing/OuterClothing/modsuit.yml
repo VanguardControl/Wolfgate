@@ -11,10 +11,6 @@
   components:
   # WOLFGATE(SuitTank) START: 2x2 storage for air tanks that feed internals
   - type: WFSuitTankStorage
-  - type: ContainerContainer
-    containers:
-      storagebase: !type:Container
-        ents: []
   - type: Storage
     grid:
     - 0,0,1,1

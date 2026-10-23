@@ -281,7 +281,8 @@ entities:
     file: Content.CMU/Resources/Prototypes/CMU14/Entities/Structures/Misc/tentprops.yml
     out: Yards/tents.yml
 
-# `root` is the folder whose prototypes are read to resolve parents.
+# `root` is the folder whose prototypes are read to resolve parents. A tile Wolfgate already has (the decor import
+# brought most of RMC's floors) is skipped, so the white tiles and the dirt road have nothing left to port.
 tiles:
   - {source: rmc, root: Resources/Prototypes/_RMC14/Tiles, file: Resources/Prototypes/_RMC14/Tiles/asphalt.yml, out: Tiles/asphalt.yml}
   - {source: rmc, root: Resources/Prototypes/_RMC14/Tiles, file: Resources/Prototypes/_RMC14/Tiles/Hybrisa/basic_tiles.yml, out: Tiles/hybrisa_basic.yml}
@@ -291,10 +292,8 @@ tiles:
   - {source: rmc, root: Resources/Prototypes/_RMC14/Tiles, file: Resources/Prototypes/_RMC14/Tiles/Hybrisa/brown_tiles.yml, out: Tiles/hybrisa_brown.yml}
   - {source: rmc, root: Resources/Prototypes/_RMC14/Tiles, file: Resources/Prototypes/_RMC14/Tiles/Hybrisa/green_tiles.yml, out: Tiles/hybrisa_green.yml}
   - {source: rmc, root: Resources/Prototypes/_RMC14/Tiles, file: Resources/Prototypes/_RMC14/Tiles/Hybrisa/red_tiles.yml, out: Tiles/hybrisa_red.yml}
-  - {source: rmc, root: Resources/Prototypes/_RMC14/Tiles, file: Resources/Prototypes/_RMC14/Tiles/Hybrisa/white_tiles.yml, out: Tiles/hybrisa_white.yml}
   - {source: rmc, root: Resources/Prototypes/_RMC14/Tiles, file: Resources/Prototypes/_RMC14/Tiles/Hybrisa/wood_tiles.yml, out: Tiles/hybrisa_wood.yml}
   - {source: rmc, root: Resources/Prototypes/_RMC14/Tiles, file: Resources/Prototypes/_RMC14/Tiles/Hybrisa/yellow_tiles.yml, out: Tiles/hybrisa_yellow.yml}
-  - {source: rmc, root: Resources/Prototypes/_RMC14/Tiles, file: Resources/Prototypes/_RMC14/Tiles/Planet/base.yml, out: Tiles/dirt_road.yml, only: [RMCPlanetDirtBrownRoad]}
 
 decals:
   - {source: rmc, root: Resources/Prototypes/_RMC14/Decals, file: Resources/Prototypes/_RMC14/Decals/hybrisa.yml, out: Decals/hybrisa.yml}
