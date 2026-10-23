@@ -97,11 +97,31 @@ public sealed class FixedCityTest
                 for (var y = authored.Bounds.Bottom; y < authored.Bounds.Top; y++)
                 {
                     var index = new Vector2i(x, y);
-                    if (biomes.WfIsPinned(groundBiome, index) && mapSystem.GetTileRef(ground, groundGrid, index).Tile.IsEmpty)
+                    if (biomes.WfIsPinned(groundBiome, index) && mapSystem.GetTileRef(ground, groundGrid, index).Tile.IsEmpty && !authored.Shafts.Contains(index))
                         holes++;
                 }
                 Assert.That(holes, Is.Zero, $"{authored.MapPath} left {holes} empty tiles in its footprint.");
             }
+
+            // The house with a basement: the basement on the level under, under the house and turned with it, and the
+            // floor open over its stairs. Crocus gives the world a level under even with caverns off.
+            var basementHouse = record.Sites.SingleOrDefault(placed => placed.MapPath == "/Maps/_WF/PlanetPois/atalis_house.yml");
+            Assert.That(basementHouse, Is.Not.Null, "The house with a basement was not placed.");
+            Assert.That(basementHouse!.Shafts, Has.Count.EqualTo(1), "The house's floor isn't open over its stairs.");
+            var shaft = basementHouse.Shafts.Single();
+            Assert.That(mapSystem.GetTileRef(ground, groundGrid, shaft).Tile.IsEmpty, Is.True, "The stairwell is floored over.");
+            var below = lower[0];
+            var belowGrid = entMan.GetComponent<MapGridComponent>(below);
+            Assert.That(mapSystem.GetTileRef(below, belowGrid, shaft).Tile.IsEmpty, Is.False, "There's no basement under the stairwell.");
+            var stairs = mapSystem.GetAnchoredEntities((below, belowGrid), shaft)
+                .FirstOrDefault(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == "CEZLevelLadderWooden");
+            Assert.That(stairs, Is.Not.EqualTo(EntityUid.Invalid), "The basement's stairs aren't under the stairwell.");
+            // Turned with the house, they still climb toward the basement wall they were mapped against.
+            var climb = entMan.GetComponent<TransformComponent>(stairs).LocalRotation.RotateVec(new Vector2(0, 1));
+            var ahead = shaft + new Vector2i((int) MathF.Round(climb.X), (int) MathF.Round(climb.Y));
+            Assert.That(mapSystem.GetAnchoredEntities((below, belowGrid), ahead)
+                .Any(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID?.Contains("Wall") == true),
+                Is.True, "The basement stairs were turned apart from the house.");
 
             // The off-road sites stand off the roads, each on a footpath that runs from its door to one.
             foreach (var offRoad in new[] { "verda_corner_house", "verda_small_house", "abandoned_bandit_hideout" })

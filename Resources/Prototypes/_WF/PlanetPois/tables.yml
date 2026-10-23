@@ -50,6 +50,20 @@
   minCount: 7
   maxCount: 11
   entries:
+  - mapPath: /Maps/_WF/PlanetPois/atalis_house.yml
+    name: wf-poi-atalis-house
+    expeditions: false
+    footprint: -16,2,1,15
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    dwelling: true
+    sockets:
+    - offset: -10,4
+      direction: South
+    rotate: true
+    below: /Maps/_WF/PlanetPois/atalis_house_below.yml
   - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
     name: wf-poi-planetary-vault
     expeditions: false
@@ -194,6 +208,20 @@
   minCount: 3
   maxCount: 5
   entries:
+  - mapPath: /Maps/_WF/PlanetPois/atalis_house.yml
+    name: wf-poi-atalis-house
+    expeditions: false
+    footprint: -16,2,1,15
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    dwelling: true
+    sockets:
+    - offset: -10,4
+      direction: South
+    rotate: true
+    below: /Maps/_WF/PlanetPois/atalis_house_below.yml
   - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
     name: wf-poi-planetary-vault
     expeditions: false

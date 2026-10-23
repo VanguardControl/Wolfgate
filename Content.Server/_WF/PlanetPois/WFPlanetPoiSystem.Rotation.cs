@@ -79,6 +79,8 @@ public sealed partial class WFPlanetPoiSystem
             Difficulty = entry.Difficulty,
             Rotate = entry.Rotate,
             Trail = entry.Trail,
+            Dwelling = entry.Dwelling,
+            Below = entry.Below,
         };
     }
 }

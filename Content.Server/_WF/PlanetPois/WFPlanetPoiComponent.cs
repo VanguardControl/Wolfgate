@@ -103,6 +103,9 @@ public sealed class WFPlanetPoiSite
     /// <summary>Whether someone may live here (see <see cref="WFPlanetPoiEntry.Dwelling"/>).</summary>
     public bool Dwelling;
 
+    /// <summary>Openings in the site's floor down to the level under it, over its stairs.</summary>
+    public HashSet<Vector2i> Shafts = new();
+
     /// <summary>The site's own tiles, which a footpath crosses without repainting.</summary>
     public HashSet<Vector2i> Tiles = new();
     public EntityUid Signal;

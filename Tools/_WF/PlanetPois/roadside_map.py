@@ -1,6 +1,6 @@
 """Turn a hand-made grid map into a roadside site that faces a road on its south edge, or an off-road one on a trail.
 
-    python Tools/_WF/PlanetPois/roadside_map.py <saved grid.yml> <name> [--trail]
+    python Tools/_WF/PlanetPois/roadside_map.py <saved grid.yml> <name> [--trail] [--below <level under.yml> [--offset x,y]]
 
 Writes Resources/Maps/_WF/PlanetPois/<name>.yml and prints the table entry for it. On the way it:
 - swaps indestructible walls for their ordinary versions (sites are fully destructible),
@@ -11,6 +11,10 @@ The site is a Through site that turns with the road (`rotate: true`).
 
 With --trail there is no road strip: the site stands off the roads, and a footpath is worn from the outside of its first
 door to the nearest road (an Isolated site with `trail: true`). Its footprint keeps a tile of open ground round it.
+
+With --below the level under the site, such as a basement saved from the z-level below in mapping mode, is written too,
+as <name>_below.yml in the site's frame, and the entry names it (`below`). The offset between the two is worked out
+from where their grids stood and where the stairs meet an opening in the site's floor; --offset sets it by hand.
 """
 import base64
 import math
@@ -25,7 +29,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[3]
 ROAD, SHOULDER, WIDTH = "RMCPlanetHybrisaAsphalt", "RMCPlanetHybrisaSidewalk", 5
 KEEP = {"MetaData", "Transform", "MapGrid", "DecalGrid"}
-BLOCKS = re.compile(r"^(Wall|Window|Grille|Airlock|.*Door|.*Window|.*Barricade|.*Girder)")
+BLOCKS = re.compile(r"^((N14|CE|RMC|WF)?Wall(?!mount)|Window|Grille|Airlock|.*Door|.*Window|.*Barricade|.*Girder)")
 SIDES = (((0, -1), "South"), ((0, 1), "North"), ((-1, 0), "West"), ((1, 0), "East"))
 
 
@@ -36,15 +40,8 @@ class Loader(yaml.SafeLoader):
 Loader.add_multi_constructor('!', lambda l, s, n: None)
 
 
-def main():
-    source, name = Path(sys.argv[1]), sys.argv[2]
-    trail = "--trail" in sys.argv[3:]
-    text = flatten(source.read_text(encoding="utf-8").replace("\r\n", "\n"))
-    data = yaml.load(text, Loader=Loader)
-
-    text = re.sub(r"(- proto: \w+?)Indestructible\n", r"\1\n", text)
-
-    # Tiles and where blocking entities stand.
+def read_tiles(data):
+    """The save's tilemap, its non-space tiles by position and its raw chunks."""
     tilemap = {int(k): v for k, v in data["tilemap"].items()}
     tiles, chunks = {}, {}
     for group in data["entities"]:
@@ -59,6 +56,94 @@ def main():
                             tid = struct.unpack_from("<i", raw, i * 7)[0]
                             if tilemap.get(tid, "Space") != "Space":
                                 tiles[cx * 16 + i % 16, cy * 16 + i // 16] = tid
+    return tilemap, tiles, chunks
+
+
+def grid_position(path):
+    """Where the save's biggest grid stood in its map, before flatten() moves it."""
+    data = yaml.load(path.read_text(encoding="utf-8"), Loader=Loader)
+    best, size = (0.0, 0.0), -1
+    for ent in data["entities"][0]["entities"]:
+        comps = {c["type"]: c for c in ent.get("components", [])}
+        if "MapGrid" in comps and len(comps["MapGrid"]["chunks"]) > size:
+            size = len(comps["MapGrid"]["chunks"])
+            best = tuple(map(float, str(comps["Transform"].get("pos", "0,0")).split(",")))
+    return best
+
+
+def stairs(data):
+    """The tiles of the z-level stairs in a save."""
+    found = set()
+    for group in data["entities"]:
+        if "Ladder" not in (group["proto"] or "") and "Stairs" not in (group["proto"] or ""):
+            continue
+        for ent in group["entities"]:
+            for comp in ent.get("components", []):
+                if comp.get("type") == "Transform" and "pos" in comp:
+                    x, y = map(float, str(comp["pos"]).split(","))
+                    found.add((int(x // 1), int(y // 1)))
+    return found
+
+
+def below(source, ground_source, ground_tiles, name, offset):
+    """
+    Writes the level under the site as <name>_below.yml in the site's own frame, so the game lays it under the site with
+    the same origin and turn. Its offset comes from where the two grids stood, settled on the nearby whole-tile offset
+    that puts its stairs under an opening in the site's floor and the most of it under the site.
+    """
+    text = flatten(source.read_text(encoding="utf-8").replace("\r\n", "\n"))
+    data = yaml.load(text, Loader=Loader)
+    text = re.sub(r"(- proto: \w+?)Indestructible\n", r"\1\n", text)
+    tilemap, tiles, _ = read_tiles(data)
+    if offset is None:
+        (gx, gy), (bx, by) = grid_position(ground_source), grid_position(source)
+        guess = (round(bx - gx), round(by - gy))
+        steps = stairs(data)
+
+        def opening(x, y):
+            # A gap in the floor: no tile there, floor all round it.
+            return (x, y) not in ground_tiles and all((x + a, y + b) in ground_tiles for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+
+        def score(o):
+            shafts = sum(1 for (x, y) in steps if opening(x + o[0], y + o[1]))
+            under = sum(1 for (x, y) in tiles if (x + o[0], y + o[1]) in ground_tiles)
+            return shafts * 1000 + under
+        offset = max(((guess[0] + dx, guess[1] + dy) for dx in range(-2, 3) for dy in range(-2, 3)), key=score)
+    dx, dy = offset
+
+    # Everything on the grid moves by the offset: tiles, entity positions and decals.
+    lines, parent = text.split("\n"), None
+    for i, line in enumerate(lines):
+        if m := re.fullmatch(r"(\s+)parent: (\d+)", line):
+            parent = int(m.group(2))
+        elif (m := re.fullmatch(r"(\s+)pos: (-?[\d.]+),(-?[\d.]+)", line)) and parent == 1:
+            lines[i] = f"{m.group(1)}pos: {float(m.group(2)) + dx:g},{float(m.group(3)) + dy:g}"
+        elif m := re.fullmatch(r"(            \d+): (-?[\d.]+),(-?[\d.]+)", line):
+            lines[i] = f"{m.group(1)}: {float(m.group(2)) + dx:g},{float(m.group(3)) + dy:g}"
+        if line.startswith("    - type: ") and line != "    - type: Transform":
+            parent = None
+    text = "\n".join(lines)
+    moved = {(x + dx, y + dy): tid for (x, y), tid in tiles.items()}
+    # Underground, all of it is under cover.
+    write(text, tilemap, moved, {}, set(moved), f"{name}_below", None)
+    shafts = sorted((x + dx, y + dy) for (x, y) in stairs(data) if (x + dx, y + dy) not in ground_tiles)
+    print(f"Wrote Resources/Maps/_WF/PlanetPois/{name}_below.yml: {len(moved)} tiles, offset {dx},{dy}, stairwells at {shafts}.")
+    return f"    below: /Maps/_WF/PlanetPois/{name}_below.yml\n"
+
+
+def main():
+    source, name = Path(sys.argv[1]), sys.argv[2]
+    trail = "--trail" in sys.argv[3:]
+    below_path = Path(sys.argv[sys.argv.index("--below") + 1]) if "--below" in sys.argv else None
+    offset = tuple(map(int, sys.argv[sys.argv.index("--offset") + 1].split(","))) if "--offset" in sys.argv else None
+    text = flatten(source.read_text(encoding="utf-8").replace("\r\n", "\n"))
+    data = yaml.load(text, Loader=Loader)
+
+    text = re.sub(r"(- proto: \w+?)Indestructible\n", r"\1\n", text)
+
+    # Tiles and where blocking entities stand.
+    tilemap, tiles, chunks = read_tiles(data)
+    below_entry = below(below_path, source, tiles, name, offset) if below_path else ""
     blocked, doors = set(), set()
     for group in data["entities"]:
         if not group["proto"] or not BLOCKS.match(group["proto"]):
@@ -102,7 +187,8 @@ def main():
     sockets:
     - offset: {start[0][0]},{start[0][1]}
       direction: {start[1]}
-    rotate: true""")
+    rotate: true
+{below_entry}""", end="")
         return
 
     # The road along the south edge.

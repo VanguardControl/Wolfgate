@@ -59,6 +59,14 @@ public sealed class PlanetPoiContentTest
                     Assert.That(loader.TryLoadGrid(mapId, new ResPath(entry.MapPath!), out var loaded), Is.True, entry.MapPath);
                     var grid = loaded!.Value;
                     Assert.That(entry.Footprint, Is.Not.Null, entry.MapPath);
+                    if (entry.Below is { } below)
+                    {
+                        // The level below shares the site's frame and footprint.
+                        Assert.That(loader.TryLoadGrid(mapId, new ResPath(below), out var lower), Is.True, below);
+                        var lowerTiles = maps.GetAllTilesEnumerator(lower!.Value.Owner, lower.Value.Comp);
+                        while (lowerTiles.MoveNext(out var tile))
+                            Assert.That(Contains(entry.Footprint!.Value, tile.Value.GridIndices), Is.True, $"{below} has a tile outside its site's footprint.");
+                    }
                     var bounds = entry.Footprint!.Value;
                     var tiles = new HashSet<Vector2i>();
                     var enumerator = maps.GetAllTilesEnumerator(grid.Owner, grid.Comp);

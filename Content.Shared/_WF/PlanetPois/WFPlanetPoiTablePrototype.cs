@@ -197,6 +197,13 @@ public sealed partial class WFPlanetPoiEntry
     /// <summary>A house or hideout someone may live in: the table's residents move in by its chance.</summary>
     [DataField]
     public bool Dwelling;
+
+    /// <summary>
+    /// The level under the site, such as a basement, in the site's own frame; it goes on the level under the ground,
+    /// where the world has one, and the floor is opened over its stairs.
+    /// </summary>
+    [DataField]
+    public string? Below;
 }
 
 /// <summary>Whether a site has one entrance, multiple entrances, or no roads.</summary>

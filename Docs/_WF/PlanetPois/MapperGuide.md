@@ -13,10 +13,20 @@ existing procedural expedition dungeons.
   and off the roads with footpaths: `verda_corner_house`, `verda_small_house` and `abandoned_bandit_hideout`.
 - Merak: `abandoned_bandit_hideout`.
 - Carcinoma: `carcinoma_fountain_of_life`, the shrine.
+- Verda and Merak: `atalis_house`, a small house with a basement (`atalis_house_below`), off the roads.
 - Every world: `planetary_vault`, a rock-cut bunker guarded by PDV troops and turrets, off the roads with a footpath to
   its blast doors (up to one a world).
 
 The houses and the hideout are `dwelling` sites, where a stranger may live.
+
+### A level below
+
+A site can have a basement: map it on the z-level under the site in mapping mode, with stairs down to it under a gap in
+the site's floor, and save both levels. `Tools/_WF/PlanetPois/roadside_map.py <site.yml> <name> --trail --below
+<level under.yml>` writes `<name>_below.yml` in the site's frame (the offset comes from where the stairs meet the gap;
+`--offset x,y` sets it by hand) and adds `below` to the entry. In game the basement goes on the level under the ground,
+turned with the site, and the floor is opened over its stairs. A world with no level under its ground (caverns off and no
+city) gets the house without the basement, its floor whole.
 
 ## Content roadmap
 

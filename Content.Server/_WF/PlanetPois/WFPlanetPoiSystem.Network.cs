@@ -68,6 +68,7 @@ public sealed partial class WFPlanetPoiSystem
                 var entry = turns == 0 ? listed : Turned(listed, turns);
                 var footprint = entry.Footprint ?? new Box2i(-table.Footprint, -table.Footprint, table.Footprint + 1, table.Footprint + 1);
                 HashSet<Vector2i> siteTiles;
+                var shafts = new HashSet<Vector2i>();
                 Vector2i origin;
                 Box2i reservation;
                 if (entry.MapPath is { } path)
@@ -131,6 +132,8 @@ public sealed partial class WFPlanetPoiSystem
                             open.Add((tile, natural.Value));
                     _maps.SetTiles(ground, grid, open);
                     _biome.WfPinTiles((ground, biome), claimed);
+                    if (listed.Below is { } belowPath)
+                        shafts = LayBelow(ground, grid, network, belowPath, origin, listed.Footprint ?? footprint, turns, siteTiles, created, createdDecals);
                 }
                 else _biome.WfPinTiles((ground, biome), siteTiles);
                 var site = new WFPlanetPoiSite
@@ -140,6 +143,7 @@ public sealed partial class WFPlanetPoiSystem
                     TileCount = siteTiles.Count, Connection = entry.Connection,
                     Expeditions = entry.Expeditions, Difficulty = entry.Difficulty ?? table.Difficulty,
                     Dwelling = entry.Dwelling,
+                    Shafts = shafts,
                 };
                 if (entry.Trail && entry.Sockets.Count > 0)
                 {
@@ -459,8 +463,42 @@ public sealed partial class WFPlanetPoiSystem
         return result.OrderByDescending(e => e.Footprint is { } b ? (long)(b.Right-b.Left)*(b.Top-b.Bottom) : 0).ToList();
     }
 
+    /// <summary>
+    /// Lays a site's level below on the level under the ground, in the site's frame, clearing the rock there first, and
+    /// opens the site's floor over its stairs: a gap with floor all round it. With no level under the ground, there is
+    /// no basement and the floor stays whole.
+    /// </summary>
+    private HashSet<Vector2i> LayBelow(EntityUid ground, MapGridComponent grid, WFPlanetNetworkComponent network, string path, Vector2i origin,
+        Box2i footprint, int turns, HashSet<Vector2i> siteTiles, HashSet<EntityUid> created, List<uint> createdDecals)
+    {
+        var shafts = new HashSet<Vector2i>();
+        if (network.LowerLayers.Count == 0 || !TryComp<MapGridComponent>(network.LowerLayers[0], out var lowerGrid))
+            return shafts;
+
+        var lower = network.LowerLayers[0];
+        var lowerBiome = CompOrNull<BiomeComponent>(lower);
+        var tiles = LoadSite(lower, lowerGrid, path, origin, footprint, turns, created, createdDecals, new HashSet<Vector2i>(), clearFirst: lowerBiome != null);
+        if (lowerBiome != null)
+            _biome.WfPinTiles((lower, lowerBiome), tiles);
+
+        foreach (var tile in tiles)
+        {
+            if (!siteTiles.Contains(tile)
+                && siteTiles.Contains(tile + new Vector2i(1, 0)) && siteTiles.Contains(tile - new Vector2i(1, 0))
+                && siteTiles.Contains(tile + new Vector2i(0, 1)) && siteTiles.Contains(tile - new Vector2i(0, 1)))
+                shafts.Add(tile);
+        }
+        foreach (var shaft in shafts)
+        {
+            ClearForCity(ground, grid, new HashSet<Vector2i> { shaft });
+            _maps.SetTile(ground, grid, shaft, Tile.Empty);
+            _roof.SetRoof((ground, grid, null), shaft, false);
+        }
+        return shafts;
+    }
+
     /// <summary>Loads an authored grid in isolation and merges it with its explicit roofs.</summary>
-    private HashSet<Vector2i> LoadSite(EntityUid ground, MapGridComponent grid, string path, Vector2i origin, Box2i footprint, int turns, HashSet<EntityUid> created, List<uint> createdDecals, HashSet<Vector2i> changed)
+    private HashSet<Vector2i> LoadSite(EntityUid ground, MapGridComponent grid, string path, Vector2i origin, Box2i footprint, int turns, HashSet<EntityUid> created, List<uint> createdDecals, HashSet<Vector2i> changed, bool clearFirst = false)
     {
         var stagingMap = _maps.CreateMap(out var stagingId, runMapInit: false);
         try
@@ -480,6 +518,9 @@ public sealed partial class WFPlanetPoiSystem
                 if (roof != null && _roof.IsRooved((source.Owner, source.Comp, roof), index)) roofs.Add(TurnTile(index, turns) + origin);
             }
             changed.UnionWith(result);
+            // A layer with terrain of its own, such as a cavern's rock, makes way for the site.
+            if (clearFirst)
+                ClearForCity(ground, grid, result);
             MergeSite(ground, grid, source, origin, footprint, created, createdDecals, turns);
             EnsureComp<RoofComponent>(ground);
             foreach (var tile in result) _roof.SetRoof((ground, grid, null), tile, roofs.Contains(tile));

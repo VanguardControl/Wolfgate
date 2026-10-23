@@ -39,6 +39,10 @@ drops it when he dies. A table's `roadPatrols` send an NPC-crewed vehicle up and
 along points traced down the centreline: every world has a Reaver APC (`WFVehicleCrewReaverRoadPatrol`) that leaves
 people be unless shot at.
 
+An authored site's `below` is a level under it, such as a basement: it is laid on the world's level under the ground
+(the cavern, or the rock a city adds) in the site's frame and turn, clearing the rock there, and the site's floor is
+opened over its stairs (`WFPlanetPoiSystem.LayBelow`). With no level under the ground the site goes without it.
+
 An isolated site with `trail: true` stands off the roads and gets a footpath instead (`WFPlanetPoiSystem.Trails`,
 routed by `WFPlanetTrailPlanner`): a wandering track of the network's `trailTile`, a tile or two wide, from just
 outside its first socket (a door) to the nearest road or earlier footpath. A site more than `trailLength` (240) steps from
@@ -120,6 +124,8 @@ station's fuel merchant sells usable fuel items through Traders; it does not ref
 ### Maps
 
 - [`Resources/Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml`](../../../Resources/Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml)
+- [`Resources/Maps/_WF/PlanetPois/atalis_house.yml`](../../../Resources/Maps/_WF/PlanetPois/atalis_house.yml)
+- [`Resources/Maps/_WF/PlanetPois/atalis_house_below.yml`](../../../Resources/Maps/_WF/PlanetPois/atalis_house_below.yml)
 - [`Resources/Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml`](../../../Resources/Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml)
 - [`Resources/Maps/_WF/PlanetPois/planetary_vault.yml`](../../../Resources/Maps/_WF/PlanetPois/planetary_vault.yml)
 - [`Resources/Maps/_WF/PlanetPois/Tests/through_service.yml`](../../../Resources/Maps/_WF/PlanetPois/Tests/through_service.yml)
