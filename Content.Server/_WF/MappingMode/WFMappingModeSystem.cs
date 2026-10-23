@@ -13,6 +13,7 @@ using Content.Shared.GameTicking;
 using Content.Shared.Mind;
 using Robust.Server.GameObjects;
 using Robust.Server.Player;
+using Robust.Shared;
 using Robust.Shared.Configuration;
 using Robust.Shared.ContentPack;
 using Robust.Shared.EntitySerialization.Systems;
@@ -83,6 +84,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         InitializeAutosave();
         InitializeRiders();
         InitializeGrids();
+        InitializeWorldGrid();
         InitializeSpawners();
 
         Subs.CVar(_cfg, WFMappingModeCVars.Enabled, OnEnabledChanged, true);
@@ -107,6 +109,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         UpdateReferences(now);
         UpdateSessions(now);
         UpdateAutosave(now);
+        UpdateWorldGrid();
     }
 
     private void OnEnabledChanged(bool enabled)
@@ -127,6 +130,9 @@ public sealed partial class WFMappingModeSystem : EntitySystem
             _cfg.SetCVar(CCVars.VoteMapEnabled, false);
             _cfg.SetCVar(CCVars.VotePresetEnabled, false);
 
+            // Erasing tiles would split a grid into one grid per island, past the grid cap.
+            _cfg.SetCVar(CVars.GridSplitting, false);
+
             // The guidebook opens on the mapping guide unless a player picked another page.
             _cfg.SetCVar(CCVars.DefaultGuide, WFMappingGuide.Root.Id);
 
@@ -138,6 +144,8 @@ public sealed partial class WFMappingModeSystem : EntitySystem
 
         if (_cfg.GetCVar(CCVars.DefaultGuide) == WFMappingGuide.Root.Id)
             _cfg.SetCVar(CCVars.DefaultGuide, CCVars.DefaultGuide.DefaultValue);
+
+        _cfg.SetCVar(CVars.GridSplitting, CVars.GridSplitting.DefaultValue);
 
         if (!_initialized)
             return;

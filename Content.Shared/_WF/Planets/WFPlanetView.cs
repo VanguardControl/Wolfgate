@@ -1,5 +1,6 @@
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
+using Content.Shared._WF.MappingMode;
 using Content.Shared._WF.PlanetCities;
 
 namespace Content.Shared._WF.Planets;
@@ -11,9 +12,10 @@ public static class WFPlanetView
     public const float LayerShrink = 0.85f;
 
     /// <summary>
-    /// The per-level scale for a map: a planet layer's, or the transit map between two, else the renderer's own. A
-    /// <paramref name="viewer"/> on foot (on the ground, a city's level or no grid at all) sees a planet's lower layers
-    /// full size, as storeys of a building rather than the ground far below a ship.
+    /// The per-level scale for a map: a planet layer's or a mapping level with Depth perspective on, or the transit map
+    /// between two, else the renderer's own. A <paramref name="viewer"/> on foot (on the ground, a city's level or no
+    /// grid at all) sees a planet's lower layers full size, as storeys of a building rather than the ground far below a
+    /// ship.
     /// </summary>
     public static float Shrink(IEntityManager entMan, EntityUid? map, EntityUid? viewer = null)
     {
@@ -29,6 +31,8 @@ public static class WFPlanetView
         if (entMan.TryGetComponent(uid, out CEZTransitMapComponent? transit))
             uid = transit.LowerMap ?? transit.UpperMap ?? uid;
 
-        return entMan.HasComponent<WFPlanetLayerComponent>(uid) ? LayerShrink : CESharedZLevelsSystem.ZLevelViewShrink;
+        return entMan.HasComponent<WFPlanetLayerComponent>(uid) || entMan.HasComponent<WFMappingPerspectiveComponent>(uid)
+            ? LayerShrink
+            : CESharedZLevelsSystem.ZLevelViewShrink;
     }
 }

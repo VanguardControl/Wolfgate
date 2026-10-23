@@ -95,6 +95,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
 
         InitializeDownload();
         InitializeGrids();
+        InitializeWorldGrid();
     }
 
     public override void Shutdown()
@@ -114,6 +115,13 @@ public sealed partial class WFMappingClientSystem : EntitySystem
             Setup();
         else if (_setUp && !inSession)
             Teardown();
+
+        if (_setUp)
+        {
+            UpdateTilePlacement();
+            if (_perspective)
+                UpdatePerspective();
+        }
     }
 
     public void Send(EntityEventArgs ev)
@@ -181,6 +189,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         ResetLayers(true);
         _tools.PickDecals = true;
         _overlays.AddOverlay(new WFMappingBoundsOverlay(this));
+        _overlays.AddOverlay(new WFMappingDeletePreviewOverlay(this));
         ReloadScreen();
         _tools.SetEnabled(true);
         _modes.SetActive(true);
@@ -203,6 +212,13 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         _ui.GetUIController<WolfgateSpawnUIController>().CloseWindow();
         _ui.GetUIController<TileSpawningUIController>().CloseWindow();
         _overlays.RemoveOverlay<WFMappingBoundsOverlay>();
+        _overlays.RemoveOverlay<WFMappingDeletePreviewOverlay>();
+        CancelDelete();
+        if (NewGridNext)
+        {
+            NewGridNext = false;
+            NewGridChanged?.Invoke();
+        }
         if (!_shuttingDown)
             ReloadScreen();
 

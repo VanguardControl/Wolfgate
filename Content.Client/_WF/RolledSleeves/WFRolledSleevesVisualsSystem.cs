@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
 using Content.Shared._WF.RolledSleeves;
 using Content.Shared.Clothing;
+using Content.Shared.Inventory;
 using Content.Shared.Item;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
@@ -30,9 +30,6 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
     private static readonly ResPath MaskRsi = new("/Textures/_WF/RolledSleeves/sleeve_mask.rsi");
     private static readonly ResPath DrawnRoot = new("/Textures/_WF/RolledSleeves/Meridian");
 
-    /// <summary>Human jumpsuit states, optionally prefixed; species-specific states are left alone.</summary>
-    private static readonly Regex JumpsuitState = new(@"^(?:[^-]+-)?equipped-INNERCLOTHING$", RegexOptions.Compiled);
-
     public override void Initialize()
     {
         base.Initialize();
@@ -58,6 +55,9 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
         if (maskState == null || !TryComp(args.Equipee, out SpriteComponent? sprite))
             return;
 
+        // States drawn for the wearer's species have their own arms; the mask fits the human body.
+        var speciesSuffix = CompOrNull<InventoryComponent>(args.Equipee)?.SpeciesId is { } species ? $"-{species}" : null;
+
         // Copied: mask keys are added to the set while walking it.
         foreach (var key in new List<string>(args.RevealedLayers))
         {
@@ -67,7 +67,7 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
             if (!_sprite.LayerMapTryGet((args.Equipee, sprite), key, out var index, false) ||
                 sprite[index] is not SpriteComponent.Layer layer ||
                 layer.State.Name is not { } state ||
-                !JumpsuitState.IsMatch(state) ||
+                (speciesSuffix != null && state.EndsWith(speciesSuffix)) ||
                 sprite.LayerGetActualRSI(index) is not { } rsi ||
                 rsi.Size.X != MaskSize || rsi.Size.Y != MaskSize)
             {

@@ -2934,3 +2934,39 @@ Entries:
   id: 100209
   time: '2026-10-22T22:54:12.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/329
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Mapping mode grids list has a Delete button on each grid. It takes you
+        to the grid and shows what gets deleted in red before you confirm.
+    - type: Add
+      message: >-
+        Mapping mode grids list has a Snap button that puts a grid on whole
+        tiles so it lines up with other levels.
+    - type: Tweak
+      message: >-
+        "Delete the grid under me" now shows the same red preview instead of
+        asking for a second click.
+    - type: Tweak
+      message: Mapping mode allows 6 grids per player, up from 2.
+  id: 100210
+  time: '2026-10-23T03:29:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/332
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added Blackanvil Chop-Shop, an illegal drydock out past Anvilhold. Pull
+        any ship into a berth and break it for sheets and cash.
+    - type: Add
+      message: >-
+        Breaking someone else's ship or a lawful NPC ship puts a warrant on you.
+        Whoever kills you collects it.
+    - type: Tweak
+      message: >-
+        NPC crews now go after the player breaking their ship, and that player's
+        own ship, instead of the drydock.
+  id: 100211
+  time: '2026-10-23T03:29:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/331

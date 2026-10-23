@@ -26,9 +26,6 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
     [UISystemDependency] private readonly WFMappingReferenceSystem _reference = default!;
     [UISystemDependency] private readonly WFMappingUploadClientSystem _upload = default!;
 
-    /// <summary>The largest selection MappingTools accepts, in cells; it ignores bigger ones.</summary>
-    private const long MaxDeleteCells = 256 * 256;
-
     private WFMappingMenuWindow? _window;
 
     public bool ModeEnabled => _mapping.ModeEnabled;
@@ -50,6 +47,8 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         system.DownloadUpdated += UpdateDownload;
         system.SessionEnded += UpdateSession;
         system.GridsUpdated += UpdateGrids;
+        system.PendingDeleteChanged += UpdatePendingDelete;
+        system.NewGridChanged += UpdateNewGrid;
     }
 
     public void OnSystemUnloaded(WFMappingClientSystem system)
@@ -61,6 +60,8 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         system.DownloadUpdated -= UpdateDownload;
         system.SessionEnded -= UpdateSession;
         system.GridsUpdated -= UpdateGrids;
+        system.PendingDeleteChanged -= UpdatePendingDelete;
+        system.NewGridChanged -= UpdateNewGrid;
     }
 
     public void OnSystemLoaded(WFMappingReferenceSystem system)
@@ -117,6 +118,8 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
             if (_window == window)
                 _window = null;
 
+            _mapping.CancelDelete();
+
             WindowChanged?.Invoke();
         };
 
@@ -126,6 +129,10 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.NewCodeButton.OnPressed += _ => _mapping.Send(new WFMappingNewCodeRequest());
         window.AutosaveRequested += minutes => _mapping.Send(new WFMappingAutosaveStepRequest(minutes));
         window.DeleteGridButton.OnPressed += _ => DeleteGrid();
+        window.DeleteGridRequested += grid => _mapping.PreviewDelete(grid);
+        window.NewGridButton.OnToggled += args => _mapping.SetNewGrid(args.Pressed);
+        window.DeleteConfirmButton.OnPressed += _ => _mapping.ConfirmDelete();
+        window.DeleteCancelButton.OnPressed += _ => _mapping.CancelDelete();
         window.GoToGridRequested += grid => _mapping.GoToGrid(grid);
         window.NextGridButton.OnPressed += _ => _mapping.GoToNextGrid();
         window.GridsRefreshButton.OnPressed += _ => _mapping.RequestGrids();
@@ -157,6 +164,8 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         UpdateSession();
         UpdateLibrary();
         UpdateGrids();
+        UpdatePendingDelete();
+        UpdateNewGrid();
         UpdateReferences();
         UpdateDownload();
         UpdateUpload();
@@ -213,35 +222,19 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         _mapping.Send(new WFMappingSaveRequest(name));
     }
 
-    /// <summary>
-    /// Deletes the grid under the mapper as one MappingTools delete over its whole tile area, which leaves the grid
-    /// empty for the engine to remove.
-    /// </summary>
+    /// <summary>Shows the grid under the mapper for deletion, the same as its Delete button in the list.</summary>
     private void DeleteGrid()
     {
         var map = EntityManager.System<SharedMapSystem>();
         var transform = EntityManager.System<SharedTransformSystem>();
         if (_player.LocalEntity is not { } local ||
-            !map.TryFindGridAt(transform.GetMapCoordinates(local), out var gridUid, out var grid))
+            !map.TryFindGridAt(transform.GetMapCoordinates(local), out var gridUid, out _))
         {
             _mapping.ReportLocal("wf-mapping-mode-menu-delete-grid-none", false);
             return;
         }
 
-        var aabb = grid.LocalAABB;
-        var area = new Box2i((int) MathF.Floor(aabb.Left), (int) MathF.Floor(aabb.Bottom),
-            (int) MathF.Ceiling(aabb.Right), (int) MathF.Ceiling(aabb.Top));
-        if (area.Width <= 0 || area.Height <= 0 || (long) area.Width * area.Height > MaxDeleteCells)
-        {
-            _mapping.ReportLocal("wf-mapping-mode-menu-delete-grid-too-large", false);
-            return;
-        }
-
-        _mapping.Send(new MappingToolsDeleteEvent(new MappingSelection
-        {
-            Grid = EntityManager.GetNetEntity(gridUid),
-            Area = area,
-        }));
+        _mapping.PreviewDelete(EntityManager.GetNetEntity(gridUid));
     }
 
     private void OnPlacementStarted()
@@ -263,6 +256,17 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
     private void UpdateGrids()
     {
         _window?.SetGrids(_mapping.Grids);
+    }
+
+    private void UpdateNewGrid()
+    {
+        if (_window != null)
+            _window.NewGridButton.Pressed = _mapping.NewGridNext;
+    }
+
+    private void UpdatePendingDelete()
+    {
+        _window?.SetPendingDelete(_mapping.PendingDelete);
     }
 
     private void UpdateReferences()

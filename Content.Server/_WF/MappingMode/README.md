@@ -4,10 +4,14 @@ A server-wide mode that turns the server into a shared mapping workshop. Rounds 
 mapping menu, and every player gets the full MappingTools toolset on their own map without admin rights. Maps save into
 a per-player library on the server, with versions and autosave, and can be downloaded to the player's computer.
 
+Every grid on a session level sits on whole world tiles at a right angle, so levels line up: a sweep each tick
+snaps any grid that isn't, whatever placed or loaded it. Tiles laid off every grid, by the spawn menu, Fill, Shape or
+Paste, join the nearest grid on that level unless the mapper pressed New grid (`WFMappingModeSystem.WorldGrid.cs`).
+
 A host turns it on with `wf.mapping_mode.enabled true` (replicated, off by default). It forces `game.lobbyenabled`
 on, `events.enabled`, `vote.autovote_enabled`, `vote.map_enabled` and `vote.preset_enabled` off and
-`shuttle.auto_call_time` to 0, holds the ticker in the lobby and blocks late join. The other cvars are server only
-unless noted, all under `wf.mapping_mode.`:
+`shuttle.auto_call_time` to 0 and `physics.grid_splitting` off (put back when the mode turns off), holds the ticker in
+the lobby and blocks late join. The other cvars are server only unless noted, all under `wf.mapping_mode.`:
 
 | Cvar | Default | What it limits |
 |---|---|---|
@@ -22,7 +26,7 @@ unless noted, all under `wf.mapping_mode.`:
 | `max_members` | 8 | Members per session, absent ones included |
 | `max_levels` | 3 | Z-levels per session |
 | `empty_session_grace` | 300 | Seconds a session whose members are all away survives; one with no members closes at once |
-| `grids_per_player` / `max_grids_per_session` | 2 / 8 | Grids each member adds to the session cap, and the cap itself |
+| `grids_per_player` / `max_grids_per_session` | 6 / 8 | Grids each member adds to the session cap, and the cap itself |
 | `max_entities_per_tile` / `max_decals_per_tile` | 30 / 16 | Entities and decals on one tile |
 | `max_entities` | 25000 | Entities across all of a session's maps |
 | `max_reference_bytes` | 1.5 MiB | Size of a file loaded as a reference grid; admits every ship, refuses stations |
@@ -361,6 +365,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Riders.cs`](WFMappingModeSystem.Riders.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Sessions.cs`](WFMappingModeSystem.Sessions.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingModeSystem.Spawners.cs`](WFMappingModeSystem.Spawners.cs)
+- [`Content.Server/_WF/MappingMode/WFMappingModeSystem.WorldGrid.cs`](WFMappingModeSystem.WorldGrid.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingSession.cs`](WFMappingSession.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingSessionMapComponent.cs`](WFMappingSessionMapComponent.cs)
 - [`Content.Server/_WF/MappingMode/WFMappingTemplateShareSystem.cs`](WFMappingTemplateShareSystem.cs)
@@ -383,6 +388,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Shared/_WF/MappingMode/WFMappingModeEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingModeEvents.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingObserverComponent.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingObserverComponent.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingObserverSystem.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingObserverSystem.cs)
+- [`Content.Shared/_WF/MappingMode/WFMappingPerspectiveComponent.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingPerspectiveComponent.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingPngHeader.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingPngHeader.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingPrune.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingPrune.cs)
 - [`Content.Shared/_WF/MappingMode/WFMappingReferenceEvents.cs`](../../../Content.Shared/_WF/MappingMode/WFMappingReferenceEvents.cs)
@@ -403,6 +409,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/Link/WFMappingLinkSystem.cs`](../../../Content.Client/_WF/MappingMode/Link/WFMappingLinkSystem.cs)
 - [`Content.Client/_WF/MappingMode/LobbyGui.MappingMode.cs`](../../../Content.Client/_WF/MappingMode/LobbyGui.MappingMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/IWFMappingModeHandler.cs`](../../../Content.Client/_WF/MappingMode/Modes/IWFMappingModeHandler.cs)
+- [`Content.Client/_WF/MappingMode/Modes/WFAlignWorldTile.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFAlignWorldTile.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildMode.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildMode.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.cs)
 - [`Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.PipeDevices.cs`](../../../Content.Client/_WF/MappingMode/Modes/WFMappingBuildModeSystem.PipeDevices.cs)
@@ -456,6 +463,8 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Download.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Download.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Grids.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Grids.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs)
+- [`Content.Client/_WF/MappingMode/WFMappingClientSystem.WorldGrid.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.WorldGrid.cs)
+- [`Content.Client/_WF/MappingMode/WFMappingDeletePreviewOverlay.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDeletePreviewOverlay.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingDownloadTargetPicker.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDownloadTargetPicker.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingGuideLauncher.cs`](../../../Content.Client/_WF/MappingMode/WFMappingGuideLauncher.cs)
@@ -470,6 +479,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/WFMappingReferenceSystem.cs`](../../../Content.Client/_WF/MappingMode/WFMappingReferenceSystem.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingUploadClientSystem.cs`](../../../Content.Client/_WF/MappingMode/WFMappingUploadClientSystem.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingUploadRow.cs`](../../../Content.Client/_WF/MappingMode/WFMappingUploadRow.cs)
+- [`Content.Client/_WF/MappingMode/WFMappingWorldGridOverlay.cs`](../../../Content.Client/_WF/MappingMode/WFMappingWorldGridOverlay.cs)
 
 ### Integration tests
 
@@ -496,6 +506,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUnsavedTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUnsavedTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadClientTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadClientTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingUploadTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingWorldGridTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingWorldGridTest.cs)
 
 ### Unit tests
 

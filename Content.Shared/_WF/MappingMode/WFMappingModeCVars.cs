@@ -63,7 +63,7 @@ public sealed class WFMappingModeCVars
 
     /// <summary>Grids each member adds to their session's grid cap.</summary>
     public static readonly CVarDef<int> GridsPerPlayer =
-        CVarDef.Create("wf.mapping_mode.grids_per_player", 2, CVar.SERVERONLY);
+        CVarDef.Create("wf.mapping_mode.grids_per_player", 6, CVar.SERVERONLY);
 
     /// <summary>Grids per session, whatever the member count.</summary>
     public static readonly CVarDef<int> MaxGridsPerSession =

@@ -61,6 +61,8 @@ public sealed partial class WFDrydockConsoleWindow : FancyWindow
     private readonly WFDrydockReadout _damage = new("drydock-ui-count-damage", counter: true);
     private readonly WFDrydockReadout _quote = new("drydock-ui-quote");
     private readonly WFDrydockReadout _salvage = new("drydock-ui-salvage");
+    private readonly WFDrydockReadout _cash = new("drydock-ui-chop-cash");
+    private readonly WFDrydockReadout _warrant = new("drydock-ui-chop-warrant");
     private readonly WFDrydockReadout _eta = new("drydock-ui-eta");
     private readonly WFDrydockReadout _expires = new("drydock-ui-expires");
     private readonly WFGlassGauge _progress;
@@ -70,6 +72,8 @@ public sealed partial class WFDrydockConsoleWindow : FancyWindow
     private readonly WFInstrumentPanel _bookingPanel;
     private readonly WFInstrumentPanel _berthPanel;
     private readonly WFInstrumentPanel _suppliesPanel;
+    private readonly WFInstrumentPanel _refitsPanel;
+    private readonly BoxContainer _counters;
     private readonly BoxContainer _supplyList = new() { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 2 };
 
     /// <summary>Stock the supplies list was last built from, so unchanged stock keeps its rows.</summary>
@@ -130,15 +134,18 @@ public sealed partial class WFDrydockConsoleWindow : FancyWindow
         left.HorizontalExpand = left.VerticalExpand = true;
 
         // Right: the hull survey and repair key, the cranes' supplies, the refit bay, and the berth's lights and booking.
-        var counters = Row(_tiles, _parts, _damage);
-        var survey = Panel("drydock-ui-repairs", Column(counters, _quote, _progress, _eta, RepairButton, _salvage, BreakButton), padding: 10, gap: 4);
+        _counters = Row(_tiles, _parts, _damage);
+        _warrant.Tint = Red;
+        _warrant.Lit = true;
+        _warrant.Value = Loc.GetString("drydock-ui-chop-warrant-text");
+        var survey = Panel("drydock-ui-repairs", Column(_counters, _quote, _progress, _eta, RepairButton, _salvage, _cash, _warrant, BreakButton), padding: 10, gap: 4);
         var supplies = new ScrollContainer { HScrollEnabled = false, HorizontalExpand = true, SetHeight = SupplyListHeight };
         supplies.AddChild(_supplyList);
         _suppliesPanel = Panel("drydock-ui-supplies", supplies, padding: 10, gap: 4);
-        var refits = Panel("drydock-ui-refits", RefitContainer, padding: 10, gap: 4);
+        _refitsPanel = Panel("drydock-ui-refits", RefitContainer, padding: 10, gap: 4);
         _bookingPanel = Panel("drydock-ui-booking", Column(_booked, _expires, CancelBookingButton), padding: 10, gap: 4);
         _berthPanel = Panel("drydock-ui-berth", BerthLightsButton, padding: 10, gap: 4);
-        var column = Column(survey, _suppliesPanel, refits, _bookingPanel, _berthPanel);
+        var column = Column(survey, _suppliesPanel, _refitsPanel, _bookingPanel, _berthPanel);
         column.HorizontalExpand = true;
         var right = Scroll(column);
         right.HorizontalExpand = false;
@@ -282,6 +289,15 @@ public sealed partial class WFDrydockConsoleWindow : FancyWindow
             _quote.Tint = null;
             RepairButton.Disabled = state.ShipName is null || state.Working || state.RepairPrice <= 0 || blocked;
         }
+
+        // A chop shop sells no repairs: it shows only what a break hands over and pays.
+        _counters.Visible = RepairButton.Visible = !state.BreakOnly;
+        _quote.Visible &= !state.BreakOnly;
+        _refitsPanel.Visible = !state.BreakOnly;
+        _cash.Visible = state.BreakOnly && !state.Working;
+        _cash.Value = Loc.GetString("drydock-ui-credits", ("price", state.BreakCash.ToString("N0", CultureInfo.InvariantCulture)));
+        _cash.Lit = state.BreakCash > 0;
+        _warrant.Visible = state.BreakWarrant && !state.Working;
 
         _salvage.Visible = state.CanBreak && !state.Working;
         _salvage.SetRows(BillRows(state.BreakYield, new Dictionary<string, int>()));

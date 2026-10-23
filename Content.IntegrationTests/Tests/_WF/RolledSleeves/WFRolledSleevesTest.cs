@@ -17,6 +17,7 @@ public sealed class WFRolledSleevesTest : InteractionTest
 
     [TestCase("ClothingUniformJumpsuitEngineering", null)]
     [TestCase("ClothingUniformJumpsuitColorGrey", "down")]
+    [TestCase("ClothingUniformJumpsuitMilitaryCaptain", "down")]
     public async Task StylesRestyleTheWornLayers(string suitId, string? rolledDownMask)
     {
         var target = await SpawnTarget("MobHuman");

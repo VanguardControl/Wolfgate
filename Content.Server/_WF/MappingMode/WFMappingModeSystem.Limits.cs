@@ -461,6 +461,10 @@ public sealed partial class WFMappingModeSystem
 
             if (gridUid == null && msg.TileType != 0)
             {
+                RouteOffGridTile(player, map, mapCoords, msg);
+                if (TryComp<MapGridComponent>(GetCoordinates(msg.NetCoordinates).EntityId, out _))
+                    return true;
+
                 var cap = GridCap(session);
                 if (CountGrids(session) >= cap)
                 {

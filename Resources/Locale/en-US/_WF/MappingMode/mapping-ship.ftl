@@ -22,13 +22,13 @@ wf-mapping-ship-vessel-description = Describe the ship here.
 
 ## Grids list
 
-wf-mapping-ship-menu-grids-none = No grids on this level.
+wf-mapping-ship-menu-grids-none = No grids on any level.
 wf-mapping-ship-menu-grids-count = {$count ->
-    [one] 1 grid on this level
-   *[other] {$count} grids on this level
+    [one] 1 grid across your levels
+   *[other] {$count} grids across your levels
 }
-wf-mapping-ship-menu-grid-row = {$name}: {$tiles} tiles, {$entities} entities
+wf-mapping-ship-menu-grid-row = Level {$depth}, {$name}: {$tiles} tiles, {$entities} entities
 wf-mapping-ship-menu-goto = Go to
 wf-mapping-ship-menu-next-grid = Next grid
-wf-mapping-ship-menu-next-grid-tooltip = Go to the next grid on this level, largest first.
+wf-mapping-ship-menu-next-grid-tooltip = Go to the next grid, top level first, largest first.
 wf-mapping-ship-goto-not-yours = That grid isn't in your session.

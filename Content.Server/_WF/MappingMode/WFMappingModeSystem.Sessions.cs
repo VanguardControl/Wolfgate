@@ -387,6 +387,7 @@ public sealed partial class WFMappingModeSystem
     /// </summary>
     public void LeaveSession(NetUserId user, bool kicked)
     {
+        _newGridNext.Remove(user);
         if (!_membership.Remove(user, out var id) || !_sessions.TryGetValue(id, out var session))
             return;
 
