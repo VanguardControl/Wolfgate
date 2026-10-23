@@ -82,7 +82,9 @@ public sealed class StrangerTest
         {
             var stranger = entMan.GetComponent<WFStrangerComponent>(dealer);
             Assert.That(stranger.Target, Is.EqualTo(player), "The dealer never went for the player.");
-            Assert.That(stranger.Hailed, Is.True, "The dealer walked up but never hailed.");
+            Assert.That(stranger.Hailed, Is.True,
+                $"The dealer walked up but never hailed: awake {entMan.HasComponent<Content.Shared.NPC.ActiveNPCComponent>(dealer)}, "
+                + $"hostile {stranger.Hostile}, {System.Numerics.Vector2.Distance(server.System<SharedTransformSystem>().GetWorldPosition(dealer), server.System<SharedTransformSystem>().GetWorldPosition(player)):0.0} tiles off.");
 
             strangers.StartConversation((dealer, stranger), player);
             Assert.That(stranger.Node, Is.EqualTo("pitch"));

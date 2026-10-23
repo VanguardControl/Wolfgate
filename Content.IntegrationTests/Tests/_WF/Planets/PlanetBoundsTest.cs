@@ -171,7 +171,11 @@ public sealed class PlanetBoundsTest
         await pair.RunTicksSync(pair.SecondsToTicks(3f));
         await server.WaitAssertion(() =>
         {
-            Assert.That(bounds.IsHullInside(stray), Is.True, "A hull far outside the circle on the ground was left there.");
+            var strayXform = entMan.GetComponent<TransformComponent>(stray);
+            var strayBody = entMan.GetComponent<Robust.Shared.Physics.Components.PhysicsComponent>(stray);
+            Assert.That(bounds.IsHullInside(stray), Is.True,
+                $"A hull far outside the circle on the ground was left there: on {strayXform.MapUid} (ground {layers[0]}), "
+                + $"{strayBody.BodyType}, at {xforms.GetWorldPosition(strayXform)}.");
             var velocity = entMan.GetComponent<Robust.Shared.Physics.Components.PhysicsComponent>(air).LinearVelocity;
             Assert.That(velocity.X, Is.LessThanOrEqualTo(0f), "The hull is still flying outward past the edge.");
             Assert.That(xforms.GetWorldPosition(air).X, Is.LessThan(start + 12f), "The hull got well past the edge.");
