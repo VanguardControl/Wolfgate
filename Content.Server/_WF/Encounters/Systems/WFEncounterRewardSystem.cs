@@ -78,6 +78,8 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
         if (args.Suicide || !TryComp<WFCrewComponent>(args.Entity, out var member) || member.Group.Length == 0)
             return;
 
+        PayKillBounty(args);
+
         var query = EntityQueryEnumerator<WFEncounterComponent>();
         while (query.MoveNext(out _, out var encounter))
         {
@@ -90,6 +92,49 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
                 RecordKill(encounter, assist, ship.Side);
             return;
         }
+    }
+
+    /// <summary>
+    /// Pays a player on the spot for killing a crewman of a company with a kill bounty, and half that to one who assisted,
+    /// whether the crewman's encounter is still running or not: boarders left aboard a player's ship pay too.
+    /// </summary>
+    private void PayKillBounty(KillReportedEvent args)
+    {
+        if (CompOrNull<CompanyComponent>(args.Entity)?.CompanyName.Id is not { } company
+            || !_prototypes.TryIndex<WFStandingPrototype>(company, out var standing) || standing.KillBounty <= 0)
+            return;
+
+        var name = _prototypes.TryIndex<CompanyPrototype>(company, out var companyPrototype) ? companyPrototype.Name : company;
+        PayKill(args.Primary, standing.KillBounty, name, args.Entity);
+        if (args.Assist is { } assist && !SamePlayer(assist, args.Primary))
+            PayKill(assist, standing.KillBounty / 2, name, args.Entity);
+    }
+
+    private static bool SamePlayer(KillSource first, KillSource second)
+    {
+        return first is KillPlayerSource a && second is KillPlayerSource b && a.PlayerId == b.PlayerId;
+    }
+
+    private void PayKill(KillSource source, int amount, string company, EntityUid victim)
+    {
+        if (source is not KillPlayerSource player || !_playerManager.TryGetSessionById(player.PlayerId, out var session)
+            || session.AttachedEntity is not { } mob)
+            return;
+
+        var paid = Capped(session.UserId, amount, _config.GetCVar(EncountersCVars.PayoutHourlyCap));
+        if (paid <= 0)
+            return;
+
+        // A deposit that fails, with no bank account or deposits off, pays nothing and keeps the allowance.
+        if (!_bank.TryBankDeposit(mob, paid, false))
+        {
+            Refund(session.UserId, paid);
+            return;
+        }
+
+        _chat.DispatchServerMessage(session, Loc.GetString("wf-encounter-kill-bounty-paid", ("amount", paid), ("company", company)));
+        _adminLog.Add(LogType.Action, LogImpact.Medium,
+            $"{session.Name} was paid {paid} spesos for killing {ToPrettyString(victim):entity} of {company}");
     }
 
     private static void RecordKill(WFEncounterComponent encounter, KillSource source, string side)

@@ -23,3 +23,5 @@
   id: WFAshfallReavers
   atWar: [ TSF, TSFCivilian, TSFHighComm, PDV, PDVCivilian, PDVHighComm ]
   recklessFire: true
+  # Paid on the spot for each Reaver or pirate a player kills, wherever it happens.
+  killBounty: 1500

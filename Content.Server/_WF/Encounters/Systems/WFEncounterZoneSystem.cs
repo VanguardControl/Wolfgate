@@ -94,7 +94,7 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
             foreach (var ship in encounter.Ships.Values)
             {
                 // A ship lying in wait gives itself away to nobody.
-                if (ship.WarnRange <= 0f && ship.AttackRange <= 0f || ship.Lurking || ship.Virtual || TerminatingOrDeleted(ship.Grid)
+                if (ship.WarnRange <= 0f && ship.AttackRange <= 0f || ship.Lurking || ship.Virtual || ship.Building || TerminatingOrDeleted(ship.Grid)
                     || Disabled(ship))
                     continue;
 
@@ -134,7 +134,8 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
 
             foreach (var ship in encounter.Ships.Values)
             {
-                if (!ship.Lurking && !ship.Virtual && !TerminatingOrDeleted(ship.Grid) && !Disabled(ship))
+                // A hull still being built has no crew or company yet: no zone of its own, and nobody's intruder.
+                if (!ship.Lurking && !ship.Virtual && !ship.Building && !TerminatingOrDeleted(ship.Grid) && !Disabled(ship))
                     _fleet.Add((uid, ship));
             }
         }
