@@ -1,11 +1,11 @@
-# Blackanvil Breakyard: an illegal drydock on Anvilhold's layout. Its berths only break ships, hand back a quarter of
+# Blackanvil Chop-Shop: an illegal drydock on Anvilhold's layout. Its berths only break ships, hand back a quarter of
 # the yield as sheets at the console and pay cash for the rest. Breaking a registered ship or a lawful NPC ship posts
 # a warrant on the breaker. See the Drydock README.
 
 - type: entity
   parent: WFComputerDrydock
   id: WFComputerChopShop
-  name: breakyard console
+  name: chop-shop console
   description: A drydock console with its registry uplink cut. It only breaks ships, and pays for what comes off them.
   components:
   - type: Sprite
@@ -84,7 +84,7 @@
   id: WFDrydockFence
   parent: WFBaseTrader
   name: Kord Blackanvil
-  description: The breakyard's dwarf fence. His hazard vest has had its company patch cut off.
+  description: The Chop-Shop's dwarf fence. His hazard vest has had its company patch cut off.
   suffix: Drydock, Fence
   components:
   - type: HumanoidAppearance

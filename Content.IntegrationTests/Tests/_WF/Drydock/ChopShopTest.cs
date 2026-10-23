@@ -17,7 +17,7 @@ using Robust.Shared.Utility;
 
 namespace Content.IntegrationTests.Tests._WF.Drydock;
 
-/// <summary>Tests the breakyard's chop-shop consoles: sheets and cash for a break, no repairs, and what counts as lawful property.</summary>
+/// <summary>Tests the Chop-Shop's consoles: sheets and cash for a break, no repairs, and what counts as lawful property.</summary>
 [TestFixture]
 public sealed class ChopShopTest
 {
@@ -182,9 +182,9 @@ public sealed class ChopShopTest
         return ship;
     }
 
-    /// <summary>The breakyard map loads with four chop-shop berths, each with its cranes, and a fence who books nothing.</summary>
+    /// <summary>The Chop-Shop map loads with four chop-shop berths, each with its cranes, and a fence who books nothing.</summary>
     [Test]
-    public async Task BreakyardMapLoads()
+    public async Task ChopShopMapLoads()
     {
         await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
@@ -194,8 +194,8 @@ public sealed class ChopShopTest
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(server.System<MapLoaderSystem>().TryLoadGrid(map.MapId, new ResPath("/Maps/_WF/Drydock/breakyard.yml"),
-                out var grid, offset: new Vector2(500f, 500f)), "breakyard.yml should load.");
+            Assert.That(server.System<MapLoaderSystem>().TryLoadGrid(map.MapId, new ResPath("/Maps/_WF/Drydock/chopshop.yml"),
+                out var grid, offset: new Vector2(500f, 500f)), "chopshop.yml should load.");
             var station = grid!.Value.Owner;
 
             var consoles = 0;
@@ -212,9 +212,9 @@ public sealed class ChopShopTest
 
             Assert.Multiple(() =>
             {
-                Assert.That(consoles, Is.EqualTo(4), "The breakyard should have four berths.");
+                Assert.That(consoles, Is.EqualTo(4), "The Chop-Shop should have four berths.");
                 Assert.That(DrydockTest.HailContactsOn(pair, station), Has.Count.EqualTo(1), "The fence should answer hails.");
-                Assert.That(em.EntityQuery<WFDrydockOperatorComponent>().Any(), Is.False, "Nobody at the breakyard books berths.");
+                Assert.That(em.EntityQuery<WFDrydockOperatorComponent>().Any(), Is.False, "Nobody at the Chop-Shop books berths.");
             });
         });
 

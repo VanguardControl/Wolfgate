@@ -3,7 +3,7 @@ drydock-chop-yield = { $materials }, and { $cash } thlr paid out
 drydock-chop-warrant-author = Sector Warrant Office
 drydock-chop-warrant-description = { $name } broke up the { $ship } at an illegal drydock.
 drydock-chop-warrant-paid = Shipbreaking warrant on { $name } claimed. { $amount } thlr paid to you.
-drydock-chop-warrant-posted = The breakyard's records leak. There's a warrant out for you now.
+drydock-chop-warrant-posted = The Chop-Shop's records leak. There's a warrant out for you now.
 
 drydock-ui-chop-cash = Payout
 drydock-ui-chop-warrant = Warrant

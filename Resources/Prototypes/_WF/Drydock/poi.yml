@@ -22,13 +22,13 @@
 
 # Illegal drydock on Anvilhold's layout: break-only berths and a fence instead of a dockmaster. See chopshop.yml.
 - type: pointOfInterest
-  id: WFBreakyard
+  id: WFChopShop
   parent: BasePOI
-  name: 'Blackanvil Breakyard'
+  name: 'Blackanvil Chop-Shop'
   minimumDistance: 11000
   maximumDistance: 13000
   spawnGroup: Required
-  gridPath: /Maps/_WF/Drydock/breakyard.yml
+  gridPath: /Maps/_WF/Drydock/chopshop.yml
   addComponents:
   - type: IFF
     color: "#8E2A1E"
