@@ -11,6 +11,7 @@
   name: NE lattice
   sprite: /Textures/_Mono/Tiles/lattice/ne.png
   variants: 1 #WOLFGATE(Resprites): Needed to not crash
+  placementVariants: [ 1.0 ] #WOLFGATE(Resprites): Lattice's three placement weights would pick missing variants
   vertices: ["1, 0", "1, 1", "0, 1"]
 
 - type: tile
@@ -19,6 +20,7 @@
   name: NW lattice
   sprite: /Textures/_Mono/Tiles/lattice/nw.png
   variants: 1 #WOLFGATE(Resprites): Needed to not crash
+  placementVariants: [ 1.0 ] #WOLFGATE(Resprites): Lattice's three placement weights would pick missing variants
   vertices: ["0, 0", "1, 1", "0, 1"]
 
 - type: tile
@@ -27,6 +29,7 @@
   name: SE lattice
   sprite: /Textures/_Mono/Tiles/lattice/se.png
   variants: 1 #WOLFGATE(Resprites): Needed to not crash
+  placementVariants: [ 1.0 ] #WOLFGATE(Resprites): Lattice's three placement weights would pick missing variants
   vertices: ["0, 0", "1, 0", "1, 1"]
 
 - type: tile
@@ -35,6 +38,7 @@
   name: SW lattice
   sprite: /Textures/_Mono/Tiles/lattice/sw.png
   variants: 1 #WOLFGATE(Resprites): Needed to not crash
+  placementVariants: [ 1.0 ] #WOLFGATE(Resprites): Lattice's three placement weights would pick missing variants
   vertices: ["0, 0", "1, 0", "0, 1"]
 
 - type: tile

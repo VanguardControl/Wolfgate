@@ -155,7 +155,7 @@
   id: FloorLowDesert
   name: tiles-low-desert-floor
   sprite: /Textures/_WF/Resprites/Wizden/Tiles/Desert/desert.png
-  variants: 5
+  variants: 6
   placementVariants:
   - 0.95
   - 0.65
@@ -347,7 +347,7 @@
   id: FloorSnow
   name: tiles-snow
   sprite: /Textures/_WF/Resprites/Wizden/Tiles/Snow/snow.png
-  variants: 6
+  variants: 13
   placementVariants:
   - 1.0
   - 1.0

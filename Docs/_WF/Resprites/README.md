@@ -366,6 +366,7 @@ Ports visual updates and matching prototypes for closets, lockers, wardrobes, wa
 - [`Resources/Prototypes/_Mono/Turf/plating.yml`](../../../Resources/Prototypes/_Mono/Turf/plating.yml)
   - Repathed
   - Needed to not crash
+  - Lattice's three placement weights would pick missing variants
 - [`Resources/Prototypes/_NF/Entities/Structures/Machines/Computers/frame_wallmount.yml`](../../../Resources/Prototypes/_NF/Entities/Structures/Machines/Computers/frame_wallmount.yml): Needed
 - [`Resources/Prototypes/_NF/Entities/Structures/Machines/jukebox.yml`](../../../Resources/Prototypes/_NF/Entities/Structures/Machines/jukebox.yml): Needed
 - [`Resources/Prototypes/_NF/Entities/Structures/Storage/Closets/closets.yml`](../../../Resources/Prototypes/_NF/Entities/Structures/Storage/Closets/closets.yml): Repath Frontier closet prototypes for the new closet sprites.
@@ -418,8 +419,8 @@ Ports visual updates and matching prototypes for closets, lockers, wardrobes, wa
 - [`Resources/Prototypes/Tiles/basic.yml`](../../../Resources/Prototypes/Tiles/basic.yml): Port redesigned Gray, White, and Dark floor sprites.
 - [`Resources/Prototypes/Tiles/floors.yml`](../../../Resources/Prototypes/Tiles/floors.yml)
   - Moved to basic.yml
+  - Wizden resprite; variant count kept so saved maps don't show error tiles.
   - Repathed
-  - Repathed and made to not crash
   - Repath the glass floor sprites.
   - Repath grass, dirt, and asteroid floor sprites and variants.
   - Repath the cave floor sprite and edge textures.
@@ -431,6 +432,7 @@ Ports visual updates and matching prototypes for closets, lockers, wardrobes, wa
   - Repathed
 - [`Resources/Prototypes/Tiles/plating.yml`](../../../Resources/Prototypes/Tiles/plating.yml)
   - Repathed
+  - Wizden resprite; variant count kept so saved maps don't show error tiles.
   - Added variants
 - [`Resources/Textures/_Impstation/Structures/`](../../../Resources/Textures/_Impstation/Structures/): Impstation structure resprites (thermomachines, cryo pod, cryosleep, hydro tray, conveyor, fax, stasis bed, suit storage).
 

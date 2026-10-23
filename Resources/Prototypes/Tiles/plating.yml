@@ -34,12 +34,15 @@
 - type: tile
   id: PlatingDamaged
   name: tiles-plating
-  sprite: /Textures/Tiles/plating_damaged.png
-  variants: 3
+  # WOLFGATE(Resprites) START: Wizden resprite; variant count kept so saved maps don't show error tiles.
+  sprite: /Textures/_WF/Resprites/Wizden/Tiles/plating-damaged.png
+  variants: 4
   placementVariants:
   - 1.0
   - 1.0
   - 1.0
+  - 1.0
+  # WOLFGATE END
   baseTurf: Lattice
   isSubfloor: true
   deconstructTools: [ Axing ] # DeltaV - The return of fireaxe prying
@@ -87,7 +90,12 @@
 - type: tile
   id: PlatingSnow
   name: tiles-snow-plating
-  sprite: /Textures/Tiles/snow_plating.png #Not in the snow planet RSI because it doesn't have any metadata. Should probably be moved to its own folder later.
+  # WOLFGATE(Resprites) START: Wizden resprite; variant count kept so saved maps don't show error tiles.
+  sprite: /Textures/_WF/Resprites/Wizden/Tiles/Snow/snow-plating.png
+  variants: 1
+  placementVariants:
+  - 1.0
+  # WOLFGATE END
   baseTurf: Lattice
   isSubfloor: true
   deconstructTools: [ Axing ] # DeltaV - The return of fireaxe prying
