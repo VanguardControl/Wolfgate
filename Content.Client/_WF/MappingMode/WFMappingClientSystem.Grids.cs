@@ -9,6 +9,11 @@ public sealed partial class WFMappingClientSystem
 
     public event Action? GridsUpdated;
 
+    /// <summary>The grid shown in red while its deletion waits for confirmation.</summary>
+    public WFMappingGridInfo? PendingDelete { get; private set; }
+
+    public event Action? PendingDeleteChanged;
+
     /// <summary>The grid the last Next grid went to, so the next press moves on from it.</summary>
     private NetEntity? _lastGrid;
 
@@ -20,6 +25,12 @@ public sealed partial class WFMappingClientSystem
     private void OnGridList(WFMappingGridListEvent ev)
     {
         Grids = ev.Grids;
+        if (PendingDelete is { } pending)
+        {
+            var index = Grids.FindIndex(g => g.Grid == pending.Grid);
+            SetPendingDelete(index < 0 ? null : Grids[index]);
+        }
+
         GridsUpdated?.Invoke();
     }
 
@@ -46,5 +57,42 @@ public sealed partial class WFMappingClientSystem
 
         var index = _lastGrid is { } last ? Grids.FindIndex(g => g.Grid == last) + 1 : 0;
         GoToGrid(Grids[index % Grids.Count].Grid);
+    }
+
+    /// <summary>Asks the server to move a grid onto whole tiles and the nearest right angle.</summary>
+    public void SnapGrid(NetEntity grid)
+    {
+        RaiseNetworkEvent(new WFMappingSnapGridRequest(grid));
+    }
+
+    /// <summary>Goes to a grid and shows it in red until the deletion is confirmed or cancelled.</summary>
+    public void PreviewDelete(NetEntity grid)
+    {
+        var index = Grids.FindIndex(g => g.Grid == grid);
+        SetPendingDelete(index < 0 ? new WFMappingGridInfo(grid, string.Empty, 0, 0) : Grids[index]);
+        GoToGrid(grid);
+    }
+
+    public void ConfirmDelete()
+    {
+        if (PendingDelete is not { } pending)
+            return;
+
+        SetPendingDelete(null);
+        RaiseNetworkEvent(new WFMappingDeleteGridRequest(pending.Grid));
+    }
+
+    public void CancelDelete()
+    {
+        SetPendingDelete(null);
+    }
+
+    private void SetPendingDelete(WFMappingGridInfo? grid)
+    {
+        if (PendingDelete == grid)
+            return;
+
+        PendingDelete = grid;
+        PendingDeleteChanged?.Invoke();
     }
 }

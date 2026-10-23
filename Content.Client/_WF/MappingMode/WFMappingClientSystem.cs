@@ -181,6 +181,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         ResetLayers(true);
         _tools.PickDecals = true;
         _overlays.AddOverlay(new WFMappingBoundsOverlay(this));
+        _overlays.AddOverlay(new WFMappingDeletePreviewOverlay(this));
         ReloadScreen();
         _tools.SetEnabled(true);
         _modes.SetActive(true);
@@ -203,6 +204,8 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         _ui.GetUIController<WolfgateSpawnUIController>().CloseWindow();
         _ui.GetUIController<TileSpawningUIController>().CloseWindow();
         _overlays.RemoveOverlay<WFMappingBoundsOverlay>();
+        _overlays.RemoveOverlay<WFMappingDeletePreviewOverlay>();
+        CancelDelete();
         if (!_shuttingDown)
             ReloadScreen();
 

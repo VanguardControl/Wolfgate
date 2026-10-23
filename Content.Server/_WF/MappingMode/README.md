@@ -22,7 +22,7 @@ unless noted, all under `wf.mapping_mode.`:
 | `max_members` | 8 | Members per session, absent ones included |
 | `max_levels` | 3 | Z-levels per session |
 | `empty_session_grace` | 300 | Seconds a session whose members are all away survives; one with no members closes at once |
-| `grids_per_player` / `max_grids_per_session` | 2 / 8 | Grids each member adds to the session cap, and the cap itself |
+| `grids_per_player` / `max_grids_per_session` | 6 / 8 | Grids each member adds to the session cap, and the cap itself |
 | `max_entities_per_tile` / `max_decals_per_tile` | 30 / 16 | Entities and decals on one tile |
 | `max_entities` | 25000 | Entities across all of a session's maps |
 | `max_reference_bytes` | 1.5 MiB | Size of a file loaded as a reference grid; admits every ship, refuses stations |
@@ -456,6 +456,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Download.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Download.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Grids.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Grids.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs`](../../../Content.Client/_WF/MappingMode/WFMappingClientSystem.Layers.cs)
+- [`Content.Client/_WF/MappingMode/WFMappingDeletePreviewOverlay.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDeletePreviewOverlay.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDownloadRow.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingDownloadTargetPicker.cs`](../../../Content.Client/_WF/MappingMode/WFMappingDownloadTargetPicker.cs)
 - [`Content.Client/_WF/MappingMode/WFMappingGuideLauncher.cs`](../../../Content.Client/_WF/MappingMode/WFMappingGuideLauncher.cs)

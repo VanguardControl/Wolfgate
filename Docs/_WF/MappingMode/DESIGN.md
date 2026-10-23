@@ -155,7 +155,7 @@ Every refusal gives the mapper a popup with the limit it hit.
   default 2) and the server clamps it to `autosave_min_interval` (60 s) .. `autosave_max_interval` (900 s). Saves
   are only written when the session is dirty, at most one session is saved per server tick (a queue, so ten
   sessions due at once stagger over ten ticks), and sessions get a random initial offset so intervals don't line up.
-- Grids: `grids_per_player` (2) grids per member, so a session's cap is `2 × members` (capped by `max_grids_per_session`,
+- Grids: `grids_per_player` (6) grids per member, so a session's cap is `6 × members` (capped by `max_grids_per_session`,
   8). Placing a tile in empty space makes a grid; above the cap the guard deletes that grid and tells the player.
   Grid splits (erasing tiles until a grid breaks apart) are counted but not reverted; the mapper can't create more
   until they delete one. The Mapping window has a `Delete grid` action for the grid under the mapper (confirm).

@@ -15,6 +15,10 @@
 
   Your PNG template shows only on the level you loaded it on.
 
+  ## Lining up levels
+
+  Levels share the same tiles, and Up and Down keep you where you are, so build over what shows through from below. Fill and Shape start new grids on whole tiles. A grid from the spawn menu can sit part of a tile off. Its [bold]Snap[/bold] button in the Grids list on the Session tab moves it onto whole tiles and squares its rotation. Snap isn't in the undo history.
+
   ## Saving and downloading
 
   Every level saves with the map. A download of a map with several levels gives one file per level, named after the map with _z and the level number, so level 0 ends in _z0.

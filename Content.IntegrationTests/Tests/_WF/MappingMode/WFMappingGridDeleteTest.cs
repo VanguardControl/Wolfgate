@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -169,6 +170,133 @@ public sealed class WFMappingGridDeleteTest
             mapSys.SetTile(small.Owner, small.Comp, Vector2i.Zero, Tile.Empty);
             Assert.That(entMan.Deleted(small.Owner), Is.True);
             AssertObserverSafe(new Vector2(10.5f, 10.5f));
+        });
+
+        await Disable(pair);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The grid list's Delete: the owner's request removes a whole grid, a stranger's is refused.</summary>
+    [Test]
+    public async Task DeleteGridRequest()
+    {
+        await using var pair = await PoolManager.GetServerClient(Settings);
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var mapping = entMan.System<WFMappingModeSystem>();
+        var tools = entMan.System<MappingToolsSystem>();
+        var mapSys = entMan.System<MapSystem>();
+        var xformSys = entMan.System<TransformSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        await Enable(pair);
+        var players = await AddMappers(pair, 2);
+        var (a, b) = (players[0], players[1]);
+
+        WFMappingSession session = default!;
+        EntityUid kept = default;
+        EntityUid stray = default;
+        var plating = new Tile(tileDefs["Plating"].TileId);
+
+        List<EntityUid> Grids() => Children(entMan.GetComponent<TransformComponent>(session.RootMap).ChildEnumerator)
+            .Where(entMan.HasComponent<MapGridComponent>)
+            .ToList();
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(mapping.TryCreateSession(a, "Grid Request Test", out var created), Is.True);
+            session = created!;
+            Assert.That(mapping.TryCreateSession(b, "Other Session", out _), Is.True);
+            Assert.That(mapping.GridCap(session), Is.EqualTo(6), "One member gets six grids.");
+
+            var mapId = entMan.GetComponent<MapComponent>(session.RootMap).MapId;
+            var keptGrid = mapSys.CreateGridEntity(mapId);
+            kept = keptGrid.Owner;
+            mapSys.SetTile(kept, keptGrid.Comp, Vector2i.Zero, plating);
+
+            var strayGrid = mapSys.CreateGridEntity(mapId);
+            stray = strayGrid.Owner;
+            xformSys.SetWorldPosition(stray, new Vector2(20, 20));
+            for (var x = 0; x < 3; x++)
+            {
+                mapSys.SetTile(stray, strayGrid.Comp, new Vector2i(x, 0), plating);
+            }
+
+            entMan.SpawnEntity("WFMappingModeTestFixture", new EntityCoordinates(stray, new Vector2(1.5f, 0.5f)));
+
+            RaiseAs(entMan, b, new WFMappingDeleteGridRequest(entMan.GetNetEntity(stray)));
+        });
+
+        await pair.RunTicksSync(3);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.Deleted(stray), Is.False, "Another session's mapper can't delete it.");
+            RaiseAs(entMan, a, new WFMappingDeleteGridRequest(entMan.GetNetEntity(stray)));
+        });
+
+        await pair.RunTicksSync(3);
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(entMan.Deleted(stray), Is.True, "The owner's request deletes the grid.");
+                Assert.That(Grids(), Is.EquivalentTo(new[] { kept }), "The other grid stays.");
+            });
+
+            tools.StepHistory(a, redo: false);
+            var grids = Grids();
+            Assert.That(grids, Has.Count.EqualTo(2), "Undo brings it back.");
+            var restored = grids.Single(g => g != kept);
+            Assert.That(Children(entMan.GetComponent<TransformComponent>(restored).ChildEnumerator).Any(c =>
+                    entMan.GetComponent<MetaDataComponent>(c).EntityPrototype?.ID == "WFMappingModeTestFixture"),
+                Is.True, "The fixture comes back with it.");
+        });
+
+        await Disable(pair);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The grid list's Snap: a grid part of a tile off and turned moves onto whole tiles and a right angle.</summary>
+    [Test]
+    public async Task SnapGridRequest()
+    {
+        await using var pair = await PoolManager.GetServerClient(Settings);
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var mapping = entMan.System<WFMappingModeSystem>();
+        var mapSys = entMan.System<MapSystem>();
+        var xformSys = entMan.System<TransformSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        await Enable(pair);
+        var a = (await AddMappers(pair, 1))[0];
+
+        EntityUid grid = default;
+        WFMappingSession session = default!;
+        var plating = new Tile(tileDefs["Plating"].TileId);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(mapping.TryCreateSession(a, "Grid Snap Test", out var created), Is.True);
+            session = created!;
+            var newGrid = mapSys.CreateGridEntity(entMan.GetComponent<MapComponent>(session.RootMap).MapId);
+            grid = newGrid.Owner;
+            mapSys.SetTile(grid, newGrid.Comp, Vector2i.Zero, plating);
+            xformSys.SetLocalPositionRotation(grid, new Vector2(11.3916435f, -14.710812f), Angle.FromDegrees(92));
+
+            Assert.That(mapping.GridsOn(session.RootMap).Single().Aligned, Is.False);
+            RaiseAs(entMan, a, new WFMappingSnapGridRequest(entMan.GetNetEntity(grid)));
+        });
+
+        await pair.RunTicksSync(3);
+        await server.WaitAssertion(() =>
+        {
+            var xform = entMan.GetComponent<TransformComponent>(grid);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Vector2.Distance(xform.LocalPosition, new Vector2(11, -15)), Is.LessThan(0.001f));
+                Assert.That(Math.Abs(Angle.ShortestDistance(xform.LocalRotation, Angle.FromDegrees(90)).Theta),
+                    Is.LessThan(0.001));
+                Assert.That(mapping.GridsOn(session.RootMap).Single().Aligned, Is.True);
+            });
         });
 
         await Disable(pair);
