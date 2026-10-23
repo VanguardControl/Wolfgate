@@ -85,9 +85,9 @@ The console window is an instrument deck in the cockpit style (CombatConsole's i
 missing parts as red diamonds, damage amber) and each crane as the client animates it. A ship outside the plot gets
 an edge pointer with its range. Open consoles refresh once a second.
 
-## Breakyard
+## Chop-Shop
 
-Blackanvil Breakyard (`WFBreakyard`, `Resources/Maps/_WF/Drydock/breakyard.yml`) is an illegal drydock on Anvilhold's
+Blackanvil Chop-Shop (`WFChopShop`, `Resources/Maps/_WF/Drydock/chopshop.yml`) is an illegal drydock on Anvilhold's
 layout, farther out (11 to 13 km). Its berth consoles (`WFComputerChopShop`, `chopshop.yml`) only break ships: they
 refuse repairs and refits, and nobody there books berths, so it's walk-in only. Its fence, Kord Blackanvil
 (`WFDrydockFence`), answers hails and explains the rules.
@@ -95,15 +95,17 @@ refuse repairs and refits, and nobody there books berths, so it's walk-in only. 
 A chop-shop console (`WFDrydockChopShopComponent`, `WFDrydockSystem.ChopShop.cs`) breaks with the mobile drydock's
 yields, but stores nothing in its cranes. When the job ends, finished or aborted, it drops `materialShare` (25%) of
 each material as sheets by the console and pays the breaker `cashRate` (75%) of the market price of the rest, to their
-bank account. The console shows both before the break. Stripped boards, parts and guns land beside the cranes as usual.
+bank account, or as a ghost their character's. The console shows both before the break. A break cut short by the
+console's destruction still pays what it recovered. Stripped boards, parts and guns land beside the cranes as usual.
 That comes to about 5 to 12% of a ship's shipyard price in cash (a Caracara about 7,700, an Autumn about 27,000).
 
 Breaking lawful property puts a warrant (`warrantReward`, 15,000) on the breaker, posted on the bounty board's warrant
-list (`WFShipbreakerWarrantSystem`). Lawful property is a ship whose deed is in someone else's name, or a live
+list (`WFShipbreakerWarrantSystem`). Lawful property is a ship registered to another player (`ShipOwnershipComponent`; an unregistered deed goes by
+the owner's name), or a live
 encounter ship whose faction isn't in `outlawFactions` (pirates, the ADS, the Reavers) and isn't a derelict. A ship
 freed from its encounter with its deed is anyone's. Each further lawful break adds its reward to the same warrant.
 When the breaker dies, the players who hurt them in person share it equally; if none did, it stands, and it comes off
-the board unpaid if their body is deleted.
+the board unpaid if their body is deleted. A warrant posted while the board was down is posted on the next break.
 
 ## Mobile drydock
 
@@ -141,7 +143,8 @@ the drydock's own grid are refused, and so is a grid with an indestructible wall
 monolith fragment. Player ships, encounter and event ships are fair game. Breaking a crewed
 ship is an attack on it, reported on start and with every tile through `WFCrewAlertSystem.ReportBreaking`, so its
 crew, escorts and allies respond. The attack is blamed on the breaker's vessel, the console's own grid when that is a
-ship, else the ship on the breaker's ID deed, and on the breaker in person, whom those crews turn hostile to. Nobody aboard stops the job.
+ship, else the nearest ship registered to the breaker's player, else the ship on their ID's deed, and on the breaker in
+person, whom those crews turn hostile to. Nobody aboard stops the job.
 
 The hull is peeled tile by tile from its edges inward: each crane takes the nearest tile it reaches that has an open
 side and whose loss leaves the hull in one piece, so the grid never splits. Tiles out of reach are skipped, and only
@@ -296,7 +299,7 @@ Mk IV manipulators on stock bins draw 30 kW.
 
 ### Maps
 
-- [`Resources/Maps/_WF/Drydock/breakyard.yml`](../../../Resources/Maps/_WF/Drydock/breakyard.yml)
+- [`Resources/Maps/_WF/Drydock/chopshop.yml`](../../../Resources/Maps/_WF/Drydock/chopshop.yml)
 - [`Resources/Maps/_WF/Drydock/drydock.yml`](../../../Resources/Maps/_WF/Drydock/drydock.yml)
 
 ## Non-modular edits

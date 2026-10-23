@@ -41,20 +41,27 @@ public sealed class WFShipbreakerWarrantSystem : EntitySystem
         if (reward <= 0)
             return;
 
-        var name = Name(breaker);
         if (TryComp<WFShipbreakerWarrantComponent>(breaker, out var warrant))
         {
             warrant.Reward = (int) Math.Min((long) warrant.Reward + reward, int.MaxValue);
             if (warrant.Contract is { } id)
                 _board.TrySetContractReward(id, warrant.Reward);
+            else
+                Post(breaker, warrant, description, author);
             Log.Info($"Shipbreaking warrant on {ToPrettyString(breaker)} raised to {warrant.Reward} for {ship}.");
             return;
         }
 
         warrant = AddComp<WFShipbreakerWarrantComponent>(breaker);
         warrant.Reward = reward;
+        Post(breaker, warrant, description, author);
+    }
+
+    /// <summary>Posts a warrant on the board, or leaves it unposted to try again on the next break if the board is down.</summary>
+    private void Post(EntityUid breaker, WFShipbreakerWarrantComponent warrant, string description, string author)
+    {
         warrant.Contract = _board.TryPostSystemContract(BountyContractSystem.WarrantCollection, BountyContractCategory.Criminal,
-            name, reward, description, author: author)?.ContractId;
+            Name(breaker), warrant.Reward, description, author: author)?.ContractId;
         if (warrant.Contract == null)
             Log.Warning($"Shipbreaking warrant on {ToPrettyString(breaker)} stands unposted: the bounty board is not up.");
     }

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System;
 using Content.IntegrationTests.Pair;
 using Content.Server._NF.Bank;
 using Content.Server._WF.Drydock;
@@ -17,6 +18,7 @@ using Content.Shared.NPC.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
+using Robust.Shared.Network;
 
 namespace Content.IntegrationTests.Tests._WF.Drydock;
 
@@ -166,6 +168,79 @@ public sealed class ShipbreakerWarrantTest
                 Assert.That(server.System<NpcFactionSystem>().GetHostiles(crewman).Contains(breaker), Is.True,
                     "The victim's crew should turn on the breaker.");
             });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A registered ship is its player's whatever their character is called, a break is blamed on the breaker's
+    /// registered ship, and a break whose console is destroyed still pays what it recovered.
+    /// </summary>
+    [Test]
+    public async Task RegisteredOwnerAndDestroyedConsole()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var drydock = server.System<WFDrydockSystem>();
+        var bank = server.System<BankSystem>();
+
+        EntityUid console = default, crane = default, ship = default, breaker = default, own = default;
+        var before = 0;
+        await server.WaitAssertion(() =>
+        {
+            var yard = MobileDrydockTest.SpawnMobileYard(pair, map.MapId);
+            var at = em.GetComponent<TransformComponent>(yard.Console).Coordinates;
+            em.DeleteEntity(yard.Console);
+            console = em.SpawnEntity("WFComputerChopShop", at);
+            crane = yard.Crane;
+            DrydockTest.LinkCrane(pair, console, crane);
+            var comp = em.GetComponent<WFDrydockConsoleComponent>(console);
+            Assert.That(drydock.TryGetBerth(console, comp, out var berth), "The crane should make a berth.");
+
+            ship = DrydockTest.CreateShip(pair, map.MapId);
+            DrydockTest.SetFloor(pair, ship, 4);
+            DrydockTest.SpawnAnchored(pair, ship, "Autolathe", new Vector2i(1, 1));
+            DrydockTest.SpawnAnchored(pair, ship, "Autolathe", new Vector2i(2, 2));
+            DrydockTest.PlaceOver(pair, ship, yard.Grid, berth.Area.Center);
+
+            breaker = DrydockTest.CreatePayer(pair, map.MapId);
+            var user = pair.Client.Session!.UserId;
+            own = DrydockTest.CreateShip(pair, map.MapId, new Vector2(400f, 0f));
+            DrydockTest.SetFloor(pair, own, 2);
+            em.AddComponent<ShuttleDeedComponent>(own);
+            var ownership = em.AddComponent<ShipOwnershipComponent>(own);
+            ownership.OwnerUserId = user;
+
+            var chop = em.GetComponent<WFDrydockChopShopComponent>(console);
+            Assert.That(drydock.IsLawfulProperty(chop, own, breaker), Is.False, "A ship registered to the breaker's player is theirs.");
+            ownership.OwnerUserId = new NetUserId(Guid.NewGuid());
+            Assert.That(drydock.IsLawfulProperty(chop, own, breaker), Is.True, "A ship registered to another player is not.");
+            ownership.OwnerUserId = user;
+            Assert.That(bank.TryGetBalance(breaker, out before), "The breaker should have an account.");
+        });
+
+        await MobileDrydockTest.WaitForCranePower(pair, crane);
+
+        await server.WaitAssertion(() =>
+        {
+            var comp = em.GetComponent<WFDrydockConsoleComponent>(console);
+            Assert.That(drydock.TryStartBreak(console, comp, ship, breaker), Is.True, "The break should start.");
+            Assert.That(em.GetComponent<WFDrydockJobComponent>(console).Attacker, Is.EqualTo(own),
+                "The break should be blamed on the breaker's registered ship.");
+        });
+
+        await DrydockTest.RunUntil(pair, 400, 10, () => !em.TryGetComponent(console, out WFDrydockJobComponent job) || job.Done >= 4);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.HasComponent<WFDrydockJobComponent>(console), "The break should still be running.");
+            Assert.That(em.GetComponent<WFDrydockJobComponent>(console).Yield, Is.Not.Empty, "The break should have recovered something.");
+            em.DeleteEntity(console);
+            Assert.That(bank.TryGetBalance(breaker, out var after), "The breaker should still have an account.");
+            Assert.That(after, Is.GreaterThan(before), "A break cut short by a destroyed console should still pay.");
         });
 
         await pair.CleanReturnAsync();

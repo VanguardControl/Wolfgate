@@ -1,8 +1,11 @@
 using Content.Server._WF.Encounters.Components;
+using Content.Server._WF.Encounters.Systems;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WF.Drydock;
 using Content.Shared.Materials;
+using Robust.Server.Player;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Player;
 
 namespace Content.Server._WF.Drydock;
 
@@ -13,6 +16,8 @@ namespace Content.Server._WF.Drydock;
 public sealed partial class WFDrydockSystem
 {
     [Dependency] private WFShipbreakerWarrantSystem _warrants = default!;
+    [Dependency] private WFEncounterBountySystem _bounties = default!;
+    [Dependency] private IPlayerManager _players = default!;
 
     /// <summary>Splits a break yield into the sheets a chop shop hands over and the cash it pays for the rest.</summary>
     private (Dictionary<string, int> Sheets, int Cash) SplitChopYield(WFDrydockChopShopComponent chop,
@@ -37,6 +42,7 @@ public sealed partial class WFDrydockSystem
     private (Dictionary<string, int> Sheets, int Cash) PayChopShop(EntityUid console, WFDrydockChopShopComponent chop,
         WFDrydockJobComponent job)
     {
+        job.Settled = true;
         var (sheets, cash) = SplitChopYield(chop, job.Yield, job.Done - job.Skipped);
         var drop = DropSpot(console);
         foreach (var (id, amount) in sheets)
@@ -44,10 +50,19 @@ public sealed partial class WFDrydockSystem
             _sheets.SpawnMultipleFromMaterial(amount, id, drop);
         }
 
-        if (cash > 0 && (job.Payer is not { } payer || TerminatingOrDeleted(payer) || !_bank.TryBankDeposit(payer, cash, false)))
+        if (cash > 0 && !DepositChopCash(job, cash))
             Log.Warning($"Could not pay {cash} for a chop-shop break at {ToPrettyString(console)} to {ToPrettyString(job.Payer)}.");
 
         return (sheets, cash);
+    }
+
+    /// <summary>Pays a breaker's cash into their body's account, else, as a ghost, their character's.</summary>
+    private bool DepositChopCash(WFDrydockJobComponent job, int cash)
+    {
+        if (job.Payer is { } payer && !TerminatingOrDeleted(payer) && _bank.TryBankDeposit(payer, cash, false))
+            return true;
+
+        return job.BreakerUser is { } user && _players.TryGetSessionById(user, out var session) && _bounties.Deposit(session, cash);
     }
 
     /// <summary>Hull tiles a grid has.</summary>
@@ -73,7 +88,16 @@ public sealed partial class WFDrydockSystem
     public bool IsLawfulProperty(WFDrydockChopShopComponent chop, EntityUid ship, EntityUid? breaker)
     {
         if (TryComp<ShuttleDeedComponent>(ship, out var deed))
-            return breaker == null || deed.ShuttleOwner != Name(breaker.Value);
+        {
+            if (breaker == null)
+                return true;
+
+            // Registered ships go by the owner's player, since character names aren't unique.
+            if (TryComp<ShipOwnershipComponent>(ship, out var ownership))
+                return CompOrNull<ActorComponent>(breaker.Value)?.PlayerSession.UserId != ownership.OwnerUserId;
+
+            return deed.ShuttleOwner != Name(breaker.Value);
+        }
 
         if (!TryComp<WFEncounterGridComponent>(ship, out var member) ||
             !TryComp<WFEncounterComponent>(member.Encounter, out var encounter) ||

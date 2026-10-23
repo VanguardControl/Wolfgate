@@ -1,4 +1,5 @@
 using System.Numerics;
+using Robust.Shared.Network;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
 using Robust.Shared.ViewVariables;
@@ -149,6 +150,12 @@ public sealed partial class WFDrydockJobComponent : Component
 
     /// <summary>Who started a break, reported as attacking the ship in person.</summary>
     public EntityUid? Breaker;
+
+    /// <summary>Player who started a break, paid through their character when their body can't take a chop shop's cash.</summary>
+    public NetUserId? BreakerUser;
+
+    /// <summary>Whether a chop shop has handed over and paid out this break's yield.</summary>
+    public bool Settled;
 
     /// <summary>Materials a break job has credited to its cranes so far.</summary>
     public Dictionary<string, int> Yield = new();

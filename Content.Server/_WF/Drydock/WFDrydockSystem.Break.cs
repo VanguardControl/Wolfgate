@@ -19,6 +19,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Materials;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Station.Components;
+using Robust.Shared.Player;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -58,6 +59,14 @@ public sealed partial class WFDrydockSystem
         SubscribeLocalEvent<WFDrydockConsoleComponent, WFDrydockBreakMessage>(OnBreak);
         SubscribeLocalEvent<WFSalvagedHardwareComponent, WFFlatpackUnpackedEvent>(OnSalvagedUnpacked);
         SubscribeLocalEvent<WFSalvagedHardwareComponent, PriceCalculationEvent>(OnSalvagedPrice);
+        SubscribeLocalEvent<WFDrydockJobComponent, ComponentShutdown>(OnJobShutdown);
+    }
+
+    /// <summary>A chop-shop break cut short without ending, as when its console is destroyed, still pays what it recovered.</summary>
+    private void OnJobShutdown(Entity<WFDrydockJobComponent> ent, ref ComponentShutdown args)
+    {
+        if (ent.Comp.Break && !ent.Comp.Settled && TryComp<WFDrydockChopShopComponent>(ent, out var chop))
+            PayChopShop(ent, chop, ent.Comp);
     }
 
     private void OnBreak(EntityUid uid, WFDrydockConsoleComponent comp, WFDrydockBreakMessage args)
@@ -98,6 +107,7 @@ public sealed partial class WFDrydockSystem
 
         job.Attacker = BreakerVessel(console, ship, actor);
         job.Breaker = actor;
+        job.BreakerUser = CompOrNull<ActorComponent>(actor)?.PlayerSession.UserId;
         _crewAlert.ReportBreaking(ship, job.Attacker, job.Breaker);
 
         if (TryComp<WFDrydockChopShopComponent>(console, out var chop) && IsLawfulProperty(chop, ship, actor))
@@ -108,15 +118,39 @@ public sealed partial class WFDrydockSystem
 
     /// <summary>
     /// The vessel a break is blamed on: the console's own grid when it stands on a ship, as a mobile drydock does, else
-    /// the ship on the breaker's deed. Null when neither is a ship other than the one being broken.
+    /// the nearest ship registered to the breaker's player, else the ship on the deed of their ID. Null when none is a
+    /// ship other than the one being broken.
     /// </summary>
     private EntityUid? BreakerVessel(EntityUid console, EntityUid ship, EntityUid breaker)
     {
         if (Transform(console).GridUid is { } yard && yard != ship && HasComp<ShuttleDeedComponent>(yard))
             return yard;
 
-        if (_idCards.TryFindIdCard(breaker, out var card) && _shipyard.TryGetDeedShip(card, out var owned) && owned != ship)
-            return owned;
+        if (TryComp<ActorComponent>(breaker, out var actor))
+        {
+            var at = _transform.GetMapCoordinates(breaker);
+            EntityUid? nearest = null;
+            var best = float.MaxValue;
+            var owned = EntityQueryEnumerator<ShipOwnershipComponent, TransformComponent>();
+            while (owned.MoveNext(out var uid, out var ownership, out var xform))
+            {
+                if (uid == ship || ownership.OwnerUserId != actor.PlayerSession.UserId || xform.MapID != at.MapId)
+                    continue;
+
+                var distance = (_transform.GetWorldPosition(xform) - at.Position).LengthSquared();
+                if (distance < best)
+                {
+                    best = distance;
+                    nearest = uid;
+                }
+            }
+
+            if (nearest != null)
+                return nearest;
+        }
+
+        if (_idCards.TryFindIdCard(breaker, out var card) && _shipyard.TryGetDeedShip(card, out var deedShip) && deedShip != ship)
+            return deedShip;
 
         return null;
     }
