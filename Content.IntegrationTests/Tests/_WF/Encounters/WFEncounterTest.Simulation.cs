@@ -342,15 +342,22 @@ public sealed partial class WFEncounterTest
                 "Simulated, it picks the player's ship as its mark.");
             EntityUid? markWhenSpawned = null;
             var spawnedAt = 0f;
-            await Until(() =>
+            void Track(WFEncounterShipState ship)
             {
-                var ship = Ship(encounter);
-                if (!ship.Virtual)
-                    return true;
-
                 markWhenSpawned = ship.Extort!.Mark;
                 spawnedAt = (Server.System<SharedTransformSystem>().GetWorldPosition(ship.Grid)
                              - Server.System<SharedTransformSystem>().GetWorldPosition(grid)).Length();
+            }
+
+            await Server.WaitPost(() => Track(Ship(encounter)));
+            // Spawned means built: the hull is placed a few ticks before its crew are aboard.
+            await Until(() =>
+            {
+                var ship = Ship(encounter);
+                if (!ship.Virtual && !ship.Building)
+                    return true;
+
+                Track(ship);
                 return false;
             }, 120, "It closes on its mark and is spawned on the way.");
             await Server.WaitAssertion(() =>
