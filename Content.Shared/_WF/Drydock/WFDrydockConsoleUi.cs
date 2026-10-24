@@ -94,6 +94,9 @@ public sealed class WFDrydockConsoleState : BoundUserInterfaceState
     /// <summary>Whether the ship in the berth may be broken here.</summary>
     public bool Breakable;
 
+    /// <summary>Localized reason the ship in the berth can't be broken, or null.</summary>
+    public string? BreakRefusal;
+
     /// <summary>Whether the running job breaks the ship.</summary>
     public bool Breaking;
 

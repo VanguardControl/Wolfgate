@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using Content.Server._NF.Shipyard.Systems;
 using Content.Server._WF.NpcCrew.Systems;
+using Content.Server._NF.Station.Components;
 using Content.Server.Atmos.Components;
 using Content.Server.Cargo.Systems;
 using Content.Server.Construction;
@@ -161,14 +162,25 @@ public sealed partial class WFDrydockSystem
         if (IsShipyardGrid(console, comp, ship))
             return Loc.GetString("drydock-console-own-grid");
 
-        // A bought ship is a station of its own but carries a deed; a station member without one is an outpost or POI.
-        if (HasComp<StationMemberComponent>(ship) && !HasComp<ShuttleDeedComponent>(ship))
+        if (IsOutpost(ship))
             return Loc.GetString("drydock-console-break-station");
 
         if (HasIndestructibleBarrier(ship))
             return Loc.GetString("drydock-console-break-indestructible");
 
         return null;
+    }
+
+    /// <summary>
+    /// Whether a grid is part of a station or outpost rather than a ship. A ship can be a station of its own: one bought
+    /// carries a deed, and one spawned without an owner still has a vessel station.
+    /// </summary>
+    private bool IsOutpost(EntityUid grid)
+    {
+        if (!TryComp<StationMemberComponent>(grid, out var member) || HasComp<ShuttleDeedComponent>(grid))
+            return false;
+
+        return !HasComp<ExtraShuttleInformationComponent>(member.Station);
     }
 
     /// <summary>Whether a grid has a damageable wall, window or door that can't be destroyed, such as a vault's.</summary>

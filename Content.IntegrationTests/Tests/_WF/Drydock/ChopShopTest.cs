@@ -2,9 +2,12 @@ using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.Server._NF.Bank;
+using Content.Server._WF.Administration.Systems;
 using Content.Server._WF.Drydock;
 using Content.Server._WF.Encounters.Components;
 using Content.Shared._NF.Shipyard.Components;
+using Content.Shared._NF.Shipyard.Prototypes;
+using Content.Shared.Station.Components;
 using Content.Shared._WF.Drydock;
 using Content.Shared.Materials;
 using Content.Shared.Stacks;
@@ -180,6 +183,40 @@ public sealed class ChopShopTest
         member.Encounter = encounter;
         member.Key = key;
         return ship;
+    }
+
+    /// <summary>
+    /// A vessel spawned by an admin with no owner gets a station of its own but no deed; it is a ship, not an outpost,
+    /// so it can be broken. Refused hulls say why on the console.
+    /// </summary>
+    [Test]
+    public async Task OwnerlessSpawnedVesselIsBreakable()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var drydock = server.System<WFDrydockSystem>();
+
+        await server.WaitAssertion(() =>
+        {
+            var vessel = server.ProtoMan.Index<VesselPrototype>("Guppy");
+            Assert.That(server.System<AdminVesselSpawnSystem>().TrySpawnVessel(vessel, map.MapId, new Vector2(800f, 0f), null,
+                out var spawned, createStation: true), Is.True, "The Guppy should spawn.");
+            var ship = spawned!.Value;
+            Assert.That(em.HasComponent<StationMemberComponent>(ship), "The spawned vessel should be a station member.");
+
+            var console = em.SpawnEntity("WFComputerChopShop", new MapCoordinates(0, 0, map.MapId));
+            var comp = em.GetComponent<WFDrydockConsoleComponent>(console);
+            Assert.That(drydock.BreakRefusal(console, comp, ship), Is.Null, "An ownerless spawned vessel should be breakable.");
+
+            var outpost = DrydockTest.CreateShip(pair, map.MapId, new Vector2(-800f, 0f));
+            DrydockTest.SetFloor(pair, outpost, 2);
+            em.AddComponent<StationMemberComponent>(outpost);
+            Assert.That(drydock.BreakRefusal(console, comp, outpost), Is.Not.Null, "An outpost should still be refused.");
+        });
+
+        await pair.CleanReturnAsync();
     }
 
     /// <summary>The Chop-Shop map loads with four chop-shop berths, each with its cranes, and a fence who books nothing.</summary>

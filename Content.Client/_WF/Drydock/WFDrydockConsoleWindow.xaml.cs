@@ -300,8 +300,20 @@ public sealed partial class WFDrydockConsoleWindow : FancyWindow
         _warrant.Visible = state.BreakWarrant && !state.Working;
 
         _salvage.Visible = state.CanBreak && !state.Working;
-        _salvage.SetRows(BillRows(state.BreakYield, new Dictionary<string, int>()));
-        _salvage.Lit = state.BreakYield.Count > 0;
+        // A refused ship shows why in place of the salvage bill.
+        if (state.BreakRefusal is { } refusal)
+        {
+            _salvage.SetRows(null);
+            _salvage.Value = refusal;
+            _salvage.Tint = Red;
+            _salvage.Lit = true;
+        }
+        else
+        {
+            _salvage.SetRows(BillRows(state.BreakYield, new Dictionary<string, int>()));
+            _salvage.Tint = null;
+            _salvage.Lit = state.BreakYield.Count > 0;
+        }
         BreakButton.Visible = state.CanBreak;
         BreakButton.Disabled = state.ShipName is null || state.Working || !state.Breakable || blocked;
 

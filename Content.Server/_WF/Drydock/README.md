@@ -138,9 +138,11 @@ little.
 ### Hull breaking
 
 A mobile console also breaks up the ship in its berth for materials (`WFDrydockSystem.Break.cs`), behind a confirm on
-its Break hull key. Anything but a station can be broken: outposts and POIs (station members with no `ShuttleDeed`) and
-the drydock's own grid are refused, and so is a grid with an indestructible wall, window or door, such as a vault or
-monolith fragment. Player ships, encounter and event ships are fair game. Breaking a crewed
+its Break hull key. Anything but a station can be broken: outposts and POIs (station members with no `ShuttleDeed` whose
+station isn't a vessel's, as `ExtraShuttleInformation` marks it) and the drydock's own grid are refused, and so is a
+grid with an indestructible wall, window or door, such as a vault or monolith fragment. The console says why in place
+of the salvage bill. Player ships, admin-spawned ships with or without an owner, encounter and event ships are fair
+game. Breaking a crewed
 ship is an attack on it, reported on start and with every tile through `WFCrewAlertSystem.ReportBreaking`, so its
 crew, escorts and allies respond. The attack is blamed on the breaker's vessel, the console's own grid when that is a
 ship, else the nearest ship registered to the breaker's player, else the ship on their ID's deed, and on the breaker in
