@@ -11,6 +11,8 @@ Behaviours:
 
 - Hold: parked at its post; the turret engages, and a guard crew honks at strangers inside `guardRadius`.
 - Patrol: loops through waypoints round home; armed crews that can fire on the move keep rolling, a tank stops to fight.
+  A road patrol (`patrolPauseMax` of 2 s or less) rolls through each waypoint on to the next without slowing for it,
+  planning the next leg ahead; it stops only at a turnaround or the end of the line. Longer pauses stop at every point.
 - Hunt: closes on a target to the prototype's standoff distance, then holds and shoots.
 - Escort: follows a lead entity and defends it.
 - Flee: unarmed vehicles drive away from whatever hit them.

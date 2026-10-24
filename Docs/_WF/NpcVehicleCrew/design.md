@@ -53,7 +53,10 @@ WFVehicleCrewCommand (Server)                      wf_vehiclecrew spawn|list|cle
 - **Hold**: parked at home. Turret tracks and engages; a vehicle whose selected gun can't bear (fixed arc) turns the
   hull on the spot instead. Returns home if displaced more than 3 tiles.
 - **Patrol**: loops through waypoints (given, else N=4..6 random points within `patrolRadius` of home that the
-  pathfinder can reach), pauses 10-20 s at each. On contact: `fireOnTheMove` vehicles keep rolling and shoot; a tank
+  pathfinder can reach), pauses 10-20 s at each. A road patrol (`patrolPauseMax` <= 2 s) instead rolls through each
+  point: the driver's goal is the point with `NextGoal` the one after it, the look-ahead runs on into that leg, there
+  is no approach slowdown, and the leg after the goal is pre-planned (`NextRoute`) and taken up unchanged when the
+  goal advances. A turnaround (the next leg doubles back) and the last point still brake and pause. On contact: `fireOnTheMove` vehicles keep rolling and shoot; a tank
   stops, fights, then resumes. Loses contact after 30 s without line of sight -> resume.
 - **Hunt**: closes on the target to `standoff` (advance past 1.3x, back off under 0.6x, otherwise hold and shoot).
   Without line of sight for 10 s it drives to the target's last seen position; nothing there after 60 s -> back to

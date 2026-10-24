@@ -40,8 +40,14 @@ public sealed partial class WFVehicleCrewSystem
     /// <summary>The share of the chassis's turn rate the speed for a turn is worked out on, leaving some in hand.</summary>
     private const float TurnMargin = 0.75f;
 
-    /// <summary>How far over the speed cap the vehicle may run before the driver brakes.</summary>
+    /// <summary>How far over the speed cap the vehicle may run before the driver brakes; between, it coasts.</summary>
     private const float SpeedSlack = 0.75f;
+
+    /// <summary>
+    /// The throttle is let go this share of a think's pickup short of the cap, so the speed settles in the coast band
+    /// rather than overshooting into the brake.
+    /// </summary>
+    private const float ThrottleLead = 0.5f;
 
     /// <summary>Heading error a tracked chassis stops and pivots for rather than driving round.</summary>
     private const float TurnInPlaceDegrees = 70f;
@@ -124,6 +130,8 @@ public sealed partial class WFVehicleCrewSystem
             crew.StuckSince = null;
             crew.Route.Clear();
             crew.RouteGoal = null;
+            crew.NextRoute.Clear();
+            crew.NextRouteGoal = null;
             if (TryBrake(autopilot, mover, 0f))
                 return;
 
@@ -138,6 +146,7 @@ public sealed partial class WFVehicleCrewSystem
             _engine.TryStartForNpc((uid, engine));
 
         UpdateRoute(uid, crew, here, goal, now);
+        UpdateNextRoute(uid, crew, goal);
 
         // Drop the route points already reached or driven past.
         while (crew.Route.Count > 0)
@@ -153,7 +162,7 @@ public sealed partial class WFVehicleCrewSystem
         }
 
         var finalDistance = Distance(here, goal);
-        if (crew.Route.Count == 0 && finalDistance <= ArriveDistance)
+        if (crew.Route.Count == 0 && finalDistance <= ArriveDistance && crew.NextGoal == null)
         {
             crew.StuckSince = null;
             crew.StuckCount = 0;
@@ -171,7 +180,7 @@ public sealed partial class WFVehicleCrewSystem
         // Aim a little way down the route rather than at its next point: the line stays smooth and never asks for a
         // turn tighter than the chassis can make.
         var lookAhead = Math.Clamp(MathF.Abs(mover.CurrentSpeed) * LookAheadTime, LookAheadMin, LookAheadMax);
-        var point = LookAheadPoint(here, crew.Route, goal, lookAhead);
+        var point = LookAheadPoint(here, crew.Route, goal, lookAhead, crew.NextGoal, crew.NextRoute);
         var delta = point.Position - here.Position;
         var heading = _transform.GetWorldRotation(uid);
         var bearing = delta.ToWorldAngle();
@@ -211,7 +220,7 @@ public sealed partial class WFVehicleCrewSystem
                 cap = MathF.Min(cap, MathF.Max(CrawlSpeed, turnRate * delta.Length() / (2f * MathF.Sin(off))));
             if (behind)
                 cap = CrawlSpeed;
-            if (crew.Route.Count == 0 && finalDistance < ApproachDistance)
+            if (crew.Route.Count == 0 && finalDistance < ApproachDistance && crew.NextGoal == null)
                 cap = MathF.Min(cap, ApproachSpeed);
 
             // The mover takes any throttle as full: speed is held by braking above the cap and coasting near it.
@@ -222,7 +231,8 @@ public sealed partial class WFVehicleCrewSystem
                 return;
             }
 
-            throttle = mover.CurrentSpeed < cap ? 1f : 0f;
+            var lead = MathF.Min(mover.Acceleration * ThinkLatency * ThrottleLead, cap * 0.1f);
+            throttle = mover.CurrentSpeed < cap - lead ? 1f : 0f;
         }
 
         UpdateStuck(crew, mover, throttle, steering, now);
@@ -247,14 +257,25 @@ public sealed partial class WFVehicleCrewSystem
         return Math.Clamp(MathF.Sign(error) * rate / maxRate, -1f, 1f);
     }
 
-    /// <summary>The point <paramref name="distance"/> along the route from here, or the goal if the route is shorter.</summary>
-    private static MapCoordinates LookAheadPoint(MapCoordinates here, List<MapCoordinates> route, MapCoordinates goal, float distance)
+    /// <summary>
+    /// The point <paramref name="distance"/> along the route from here, or its end if it is shorter. A vehicle rolling on
+    /// through the goal carries on along <paramref name="nextRoute"/> to <paramref name="next"/>, so the line stays smooth.
+    /// </summary>
+    private static MapCoordinates LookAheadPoint(MapCoordinates here, List<MapCoordinates> route, MapCoordinates goal, float distance,
+        MapCoordinates? next, List<MapCoordinates> nextRoute)
     {
         var previous = here.Position;
         var travelled = 0f;
-        for (var i = 0; i <= route.Count; i++)
+        var count = route.Count + 1 + (next != null ? nextRoute.Count + 1 : 0);
+        for (var i = 0; i < count; i++)
         {
-            var node = i < route.Count ? route[i].Position : goal.Position;
+            var node = i < route.Count
+                ? route[i].Position
+                : i == route.Count
+                    ? goal.Position
+                    : i - route.Count - 1 < nextRoute.Count
+                        ? nextRoute[i - route.Count - 1].Position
+                        : next!.Value.Position;
             var leg = node - previous;
             var length = leg.Length();
             if (length > 0f && travelled + length >= distance)
@@ -264,7 +285,7 @@ public sealed partial class WFVehicleCrewSystem
             previous = node;
         }
 
-        return goal;
+        return next ?? goal;
     }
 
     /// <summary>Brakes a rolling vehicle by asking for the opposite direction, which the chassis takes as a stop; false once it is as good as stopped.</summary>
@@ -360,6 +381,19 @@ public sealed partial class WFVehicleCrewSystem
         if (crew.RouteGoal is { } planned && Distance(planned, goal) <= RepathDrift)
             return;
 
+        // A leg planned on the way here is taken up as it is: the route carries straight on, with no stall to plan it.
+        if (crew.NextRouteGoal is { } preplanned && crew.NextPathCancel == null && Distance(preplanned, goal) <= RepathDrift)
+        {
+            crew.PathCancel?.Cancel();
+            crew.PathCancel = null;
+            (crew.Route, crew.NextRoute) = (crew.NextRoute, crew.Route);
+            crew.NextRoute.Clear();
+            crew.NextRouteGoal = null;
+            crew.RouteGoal = goal;
+            crew.NextRepath = now + RepathInterval;
+            return;
+        }
+
         if (crew.RouteGoal != null && now < crew.NextRepath)
             return;
 
@@ -372,6 +406,23 @@ public sealed partial class WFVehicleCrewSystem
         // Without a path the driver heads straight for the goal: a short hop, or a clear run such as down a road.
         if (Distance(here, goal) > DirectRange && !ClearRun(uid, here.Position, goal.Position))
             RequestPath(uid, crew, goal);
+    }
+
+    /// <summary>Plans the leg on from the goal to <see cref="WFVehicleCrewComponent.NextGoal"/> ahead of getting there.</summary>
+    private void UpdateNextRoute(EntityUid uid, WFVehicleCrewComponent crew, MapCoordinates goal)
+    {
+        if (crew.NextGoal is not { } next)
+            return;
+
+        if (crew.NextRouteGoal is { } planned && Distance(planned, next) <= RepathDrift)
+            return;
+
+        crew.NextRouteGoal = next;
+        crew.NextRoute.Clear();
+        crew.NextPathCancel?.Cancel();
+        crew.NextPathCancel = null;
+        if (Distance(goal, next) > DirectRange && !ClearRun(uid, goal.Position, next.Position))
+            RequestPath(uid, crew, next, goal);
     }
 
     /// <summary>
@@ -424,20 +475,29 @@ public sealed partial class WFVehicleCrewSystem
         return false;
     }
 
-    /// <summary>Asks the pathfinder for a route across the vehicle's grid; nothing happens off a grid with a nav graph.</summary>
-    private void RequestPath(EntityUid uid, WFVehicleCrewComponent crew, MapCoordinates goal)
+    /// <summary>
+    /// Asks the pathfinder for a route across the vehicle's grid; nothing happens off a grid with a nav graph. With
+    /// <paramref name="from"/> the route is the leg on from there, for after the goal.
+    /// </summary>
+    private void RequestPath(EntityUid uid, WFVehicleCrewComponent crew, MapCoordinates goal, MapCoordinates? from = null)
     {
         var xform = Transform(uid);
         if (xform.GridUid is not { } grid || !HasComp<GridPathfindingComponent>(grid))
             return;
 
         var cancel = new CancellationTokenSource();
-        crew.PathCancel = cancel;
-        _ = FollowPath(uid, cancel, xform.Coordinates, _transform.ToCoordinates(grid, goal));
+        if (from != null)
+            crew.NextPathCancel = cancel;
+        else
+            crew.PathCancel = cancel;
+
+        var start = from is { } origin ? _transform.ToCoordinates(grid, origin) : xform.Coordinates;
+        _ = FollowPath(uid, cancel, start, _transform.ToCoordinates(grid, goal), from);
     }
 
-    /// <summary>Waits for a path and makes it the route, unless it was superseded meanwhile.</summary>
-    private async Task FollowPath(EntityUid uid, CancellationTokenSource cancel, EntityCoordinates start, EntityCoordinates end)
+    /// <summary>Waits for a path and makes it the route, or the leg after it, unless it was superseded meanwhile.</summary>
+    private async Task FollowPath(EntityUid uid, CancellationTokenSource cancel, EntityCoordinates start, EntityCoordinates end,
+        MapCoordinates? origin)
     {
         PathResultEvent result;
         try
@@ -449,14 +509,18 @@ public sealed partial class WFVehicleCrewSystem
             return;
         }
 
+        var onward = origin != null;
         if (cancel.IsCancellationRequested ||
             !TryComp<WFVehicleCrewComponent>(uid, out var crew) ||
-            crew.PathCancel != cancel)
+            (onward ? crew.NextPathCancel : crew.PathCancel) != cancel)
         {
             return;
         }
 
-        crew.PathCancel = null;
+        if (onward)
+            crew.NextPathCancel = null;
+        else
+            crew.PathCancel = null;
         if (result.Result is not (PathResult.Path or PathResult.PartialPath) || result.Path.Count == 0)
             return;
 
@@ -466,8 +530,9 @@ public sealed partial class WFVehicleCrewSystem
         foreach (var poly in result.Path)
             points.Add(_transform.ToMapCoordinates(poly.Coordinates));
 
-        crew.Route.Clear();
-        var from = _transform.GetMapCoordinates(uid).Position;
+        var route = onward ? crew.NextRoute : crew.Route;
+        route.Clear();
+        var from = origin?.Position ?? _transform.GetMapCoordinates(uid).Position;
         var index = 0;
         while (index < points.Count)
         {
@@ -483,7 +548,7 @@ public sealed partial class WFVehicleCrewSystem
             // Nothing ahead in a clear line: follow the path a few polygons on, as before.
             if (reach == index)
                 reach = Math.Min(points.Count - 1, index + PathStride - 1);
-            crew.Route.Add(points[reach]);
+            route.Add(points[reach]);
             from = points[reach].Position;
             if (reach == points.Count - 1)
                 break;
