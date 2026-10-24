@@ -365,6 +365,7 @@ versus about 0.2 seconds with simulation disabled. Longer combat playtesting rem
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFBodyToolTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFBodyToolTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewSuitHelmetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewSuitHelmetTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Arena.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.Arena.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.AuditCombat.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.AuditCombat.cs)
 - [`Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.AuditNavigation.cs`](../../../Content.IntegrationTests/Tests/_WF/NpcCrew/WFCrewTest.AuditNavigation.cs)
