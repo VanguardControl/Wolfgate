@@ -34,7 +34,8 @@ namespace Content.Server._WF.Strangers;
 /// Strangers: they notice players, walk up and hail them, and talk them through a branching dialogue that can end in a
 /// sale, a mugging or a temper; or, for a stalker, keep a few metres back and turn up aboard the player's ship. Their own
 /// brain stays off while they do it and only takes over when they turn hostile, until there's nobody left to fight.
-/// Roamers wander the world; those with a home stay about it and guard it (see WFStrangerSystem.Home.cs).
+/// Roamers wander the world; those with a home stay about it, go out to meet visitors and walk home after (see
+/// WFStrangerSystem.Home.cs).
 /// </summary>
 public sealed partial class WFStrangerSystem : EntitySystem
 {
@@ -160,21 +161,19 @@ public sealed partial class WFStrangerSystem : EntitySystem
                 CalmDown((uid, stranger), now);
             else if (Grudge((uid, stranger), xform) is { } grudge)
                 TurnOn((uid, stranger), grudge, rally: false);
-            else if (stranger.Home is { } home && TryComp(home, out WFStrangerHomeComponent? homeComp))
-                Guard((uid, stranger), (home, homeComp), xform, now);
             else if (stranger.Behaviour == WFStrangerBehaviour.Squat)
             {
                 if (Nearest((uid, stranger), xform, now) is { } intruder)
                     TurnOn((uid, stranger), intruder, rally: false);
             }
             else if (stranger.Behaviour == WFStrangerBehaviour.Stalk)
-                Stalk((uid, stranger), xform, now);
+                Stalk((uid, stranger), xform, now, HomeOf(stranger));
             else
-                Approach((uid, stranger), xform, now);
+                Approach((uid, stranger), xform, now, HomeOf(stranger));
         }
     }
 
-    private void Approach(Entity<WFStrangerComponent> ent, TransformComponent xform, TimeSpan now)
+    private void Approach(Entity<WFStrangerComponent> ent, TransformComponent xform, TimeSpan now, Entity<WFStrangerHomeComponent>? home = null)
     {
         var stranger = ent.Comp;
         if (stranger.Node != null)
@@ -185,17 +184,20 @@ public sealed partial class WFStrangerSystem : EntitySystem
             return;
         }
 
-        if (stranger.Target is { } target && !Usable(ent, target, now))
+        if (stranger.Target is { } target && !Usable(ent, target, now, home))
         {
             stranger.Target = null;
             stranger.Hailed = false;
             _steering.Unregister(ent);
         }
 
-        stranger.Target ??= Nearest(ent, xform, now);
+        stranger.Target ??= home is { } place ? Visitor(ent, xform, place, now) : Nearest(ent, xform, now);
         if (stranger.Target is not { } mark)
         {
-            Wander(ent, xform, now, null, stranger.WanderRange);
+            if (home is { } residence)
+                Wander(ent, xform, now, residence, residence.Comp.Radius * 0.8f);
+            else
+                Wander(ent, xform, now, null, stranger.WanderRange);
             return;
         }
 
@@ -213,20 +215,26 @@ public sealed partial class WFStrangerSystem : EntitySystem
             return;
         }
 
+        if (home is { } place2)
+            Greet(ent, place2, mark, now);
         _steering.Register(ent, Transform(mark).Coordinates);
     }
 
-    /// <summary>Somebody he hasn't finished with yet: alive, a player, in sight.</summary>
-    private bool Usable(Entity<WFStrangerComponent> ent, EntityUid target, TimeSpan now)
+    /// <summary>Somebody he hasn't finished with yet: alive, a player, in sight, and within a resident's leash.</summary>
+    private bool Usable(Entity<WFStrangerComponent> ent, EntityUid target, TimeSpan now, Entity<WFStrangerHomeComponent>? home = null)
     {
         return !TerminatingOrDeleted(target) && _mobs.IsAlive(target) && HasComp<ActorComponent>(target)
                && (!ent.Comp.Done.TryGetValue(target, out var until) || now >= until)
                && Transform(target).MapID == Transform(ent).MapID
-               && Near(ent, target, ent.Comp.SightRange * 1.5f);
+               && Near(ent, target, ent.Comp.SightRange * 1.5f)
+               && (home is not { } place || WithinLeash(place, ent) && Reachable(ent, target));
     }
 
-    private EntityUid? Nearest(Entity<WFStrangerComponent> ent, TransformComponent xform, TimeSpan now)
+    private EntityUid? Nearest(Entity<WFStrangerComponent> ent, TransformComponent xform, TimeSpan now, Entity<WFStrangerHomeComponent>? home = null)
     {
+        // Too far from home to pick anyone up: he's on his way back.
+        if (home is { } place && !WithinLeash(place, ent))
+            return null;
         _seen.Clear();
         var origin = _transform.GetMapCoordinates(ent, xform);
         _lookup.GetEntitiesInRange(origin, ent.Comp.SightRange, _seen);
@@ -234,7 +242,7 @@ public sealed partial class WFStrangerSystem : EntitySystem
         var bestDistance = float.MaxValue;
         foreach (var other in _seen)
         {
-            if (other.Owner == ent.Owner || !Usable(ent, other, now))
+            if (other.Owner == ent.Owner || !Usable(ent, other, now, home))
                 continue;
             var there = _transform.GetMapCoordinates(other);
             var distance = Vector2.Distance(origin.Position, there.Position);
@@ -407,10 +415,11 @@ public sealed partial class WFStrangerSystem : EntitySystem
         ent.Comp.Node = null;
     }
 
-    /// <summary>He's done with this player for a while and goes back to wandering.</summary>
+    /// <summary>He's done with this player for a while and goes back to wandering, or home.</summary>
     private void Finish(Entity<WFStrangerComponent> ent, EntityUid user)
     {
         ent.Comp.Done[user] = _timing.CurTime + Cooldown;
+        ent.Comp.NextWander = _timing.CurTime;
         ent.Comp.Target = null;
         ent.Comp.Node = null;
         ent.Comp.Hailed = false;
@@ -504,22 +513,28 @@ public sealed partial class WFStrangerSystem : EntitySystem
 
     /// <summary>
     /// Keeps a few metres behind his mark, mutters now and then, and when the mark goes aboard a ship he isn't on, turns
-    /// up aboard it a little later, somewhere out of the way.
+    /// up aboard it a little later, somewhere out of the way. One with a home keeps to its leash and never boards.
     /// </summary>
-    private void Stalk(Entity<WFStrangerComponent> ent, TransformComponent xform, TimeSpan now)
+    private void Stalk(Entity<WFStrangerComponent> ent, TransformComponent xform, TimeSpan now, Entity<WFStrangerHomeComponent>? home = null)
     {
         var stranger = ent.Comp;
-        if (stranger.Target is not { } mark || TerminatingOrDeleted(mark) || !_mobs.IsAlive(mark) || !HasComp<ActorComponent>(mark))
+        if (stranger.Target is not { } mark || TerminatingOrDeleted(mark) || !_mobs.IsAlive(mark) || !HasComp<ActorComponent>(mark)
+            || home is { } leashed && (Transform(mark).MapID != xform.MapID || !WithinLeash(leashed, mark) || !Reachable(ent, mark)))
         {
-            stranger.Target = Nearest(ent, xform, now);
+            stranger.Target = Nearest(ent, xform, now, home);
             stranger.MarkAboardSince = null;
             if (stranger.Target == null)
-                Wander(ent, xform, now, null, stranger.WanderRange);
+            {
+                if (home is { } residence)
+                    Wander(ent, xform, now, residence, residence.Comp.Radius * 0.8f);
+                else
+                    Wander(ent, xform, now, null, stranger.WanderRange);
+            }
             return;
         }
 
         var markXform = Transform(mark);
-        if (markXform.GridUid is { } ship && ship != xform.GridUid && HasComp<ShuttleComponent>(ship))
+        if (home == null && markXform.GridUid is { } ship && ship != xform.GridUid && HasComp<ShuttleComponent>(ship))
         {
             stranger.MarkAboardSince ??= now;
             if (now - stranger.MarkAboardSince >= stranger.BoardDelay)

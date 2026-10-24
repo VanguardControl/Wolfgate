@@ -151,11 +151,11 @@
   - type: WFStrangerHome
     radius: 5
     warnRadius: 11
-    warnings:
-    - wf-stranger-home-house-1
-    - wf-stranger-home-house-2
-    - wf-stranger-home-house-3
-    - wf-stranger-home-house-4
+    greetings:
+    - wf-stranger-greeting-house-1
+    - wf-stranger-greeting-house-2
+    - wf-stranger-greeting-house-3
+    - wf-stranger-greeting-house-4
 
 - type: entity
   id: WFStrangerCampHome
@@ -165,11 +165,11 @@
   - type: WFStrangerHome
     radius: 8
     warnRadius: 16
-    warnings:
-    - wf-stranger-home-camp-1
-    - wf-stranger-home-camp-2
-    - wf-stranger-home-camp-3
-    - wf-stranger-home-camp-4
+    greetings:
+    - wf-stranger-greeting-camp-1
+    - wf-stranger-greeting-camp-2
+    - wf-stranger-greeting-camp-3
+    - wf-stranger-greeting-camp-4
 
 - type: entityTable
   id: WFStrangersHouse

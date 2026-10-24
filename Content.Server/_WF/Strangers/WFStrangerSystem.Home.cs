@@ -1,18 +1,20 @@
 using System.Numerics;
-using Content.Server._WF.Vehicles.Npc;
+using Content.Server.Shuttles.Components;
 using Content.Shared.Chat;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
-using Robust.Shared.Player;
 using Robust.Shared.Random;
 
 namespace Content.Server._WF.Strangers;
 
-/// <summary>Where strangers go when nobody has their attention: roamers wander the world, the rest keep to home and guard it.</summary>
+/// <summary>
+/// Where strangers go when nobody has their attention: roamers wander the world, the rest keep to home, go out to meet
+/// visitors on a leash and walk back after.
+/// </summary>
 public sealed partial class WFStrangerSystem
 {
-    /// <summary>How long between his warnings to the same person.</summary>
-    private static readonly TimeSpan WarnCooldown = TimeSpan.FromSeconds(20);
+    /// <summary>How far past <see cref="WFStrangerHomeComponent.WarnRadius"/> a resident goes after anyone, in multiples of it.</summary>
+    private const float LeashFactor = 2f;
 
     /// <summary>The home he spawned in, if any.</summary>
     private EntityUid? FindHome(EntityUid uid)
@@ -31,88 +33,75 @@ public sealed partial class WFStrangerSystem
         return best;
     }
 
-    /// <summary>Gives a stranger a home to keep to and guard; null turns him loose to roam.</summary>
+    /// <summary>Gives a stranger a home to keep to and return to; null turns him loose to roam.</summary>
     public void SetHome(Entity<WFStrangerComponent> ent, EntityUid? home)
     {
         ent.Comp.Home = home;
         ent.Comp.NextWander = _timing.CurTime;
     }
 
-    /// <summary>
-    /// At home: whoever he sees coming gets told to clear off, whoever comes in gets set on by the lot of them. Anyone
-    /// he's done business with lately is let be. Otherwise he potters about.
-    /// </summary>
-    private void Guard(Entity<WFStrangerComponent> ent, Entity<WFStrangerHomeComponent> home, TransformComponent xform, TimeSpan now)
+    /// <summary>His home, if he has one that still exists.</summary>
+    private Entity<WFStrangerHomeComponent>? HomeOf(WFStrangerComponent stranger)
     {
-        var stranger = ent.Comp;
-        if (stranger.Node != null)
-        {
-            if (stranger.Target is not { } partner || !Near(ent, partner, ConversationRange))
-                EndConversation(ent, leave: false);
-            return;
-        }
-
-        var centre = _transform.GetMapCoordinates(home);
-        var here = _transform.GetMapCoordinates(ent, xform);
-        EntityUid? warn = null;
-        foreach (var intruder in Intruders(ent, here))
-        {
-            if (stranger.Done.TryGetValue(intruder, out var until) && now < until)
-                continue;
-            var there = _transform.GetMapCoordinates(intruder);
-            var distance = Vector2.Distance(there.Position, centre.Position);
-            if (there.MapId != centre.MapId || distance > home.Comp.WarnRadius)
-                continue;
-            if (distance <= home.Comp.Radius)
-            {
-                TurnOn(ent, intruder, rally: true);
-                return;
-            }
-            warn ??= intruder;
-        }
-
-        if (warn is { } trespasser)
-        {
-            // He stops to watch them.
-            _steering.Unregister(ent);
-            stranger.NextWander = now + TimeSpan.FromSeconds(4);
-            if (!stranger.Warned.TryGetValue(trespasser, out var next) || now >= next)
-            {
-                stranger.Warned[trespasser] = now + WarnCooldown;
-                if (home.Comp.Warnings.Count > 0)
-                    _chat.TrySendInGameICMessage(ent, Loc.GetString(_random.Pick(home.Comp.Warnings)), InGameICChatType.Speak, false);
-            }
-            return;
-        }
-
-        Wander(ent, xform, now, home, home.Comp.Radius * 0.8f);
+        return stranger.Home is { } home && TryComp(home, out WFStrangerHomeComponent? comp) ? (home, comp) : null;
     }
 
-    /// <summary>Living players he can see, and any vehicle with someone inside.</summary>
-    private IEnumerable<EntityUid> Intruders(Entity<WFStrangerComponent> ent, MapCoordinates here)
+    /// <summary>Whether somebody is close enough to home for a resident to bother with.</summary>
+    private bool WithinLeash(Entity<WFStrangerHomeComponent> home, EntityUid who)
     {
-        _seen.Clear();
-        _lookup.GetEntitiesInRange(here, ent.Comp.SightRange, _seen);
-        foreach (var other in _seen)
-        {
-            if (other.Owner != ent.Owner && _mobs.IsAlive(other) && HasComp<ActorComponent>(other)
-                && _examine.InRangeUnOccluded(here, _transform.GetMapCoordinates(other), ent.Comp.SightRange, null))
-                yield return other;
-        }
+        var centre = _transform.GetMapCoordinates(home);
+        var there = _transform.GetMapCoordinates(who);
+        return centre.MapId == there.MapId && Vector2.Distance(centre.Position, there.Position) <= home.Comp.WarnRadius * LeashFactor;
+    }
 
-        var vehicles = EntityQueryEnumerator<WFOccupiedVehicleComponent, TransformComponent>();
-        while (vehicles.MoveNext(out var vehicle, out _, out var vehicleXform))
+    /// <summary>A resident doesn't go after people on a ship of their own, as he can't follow aboard.</summary>
+    private bool Reachable(EntityUid ent, EntityUid who)
+    {
+        return Transform(who).GridUid is not { } grid || grid == Transform(ent).GridUid || !HasComp<ShuttleComponent>(grid);
+    }
+
+    /// <summary>
+    /// A player in sight of the home whom this resident should go and meet: the nearest free one among those who live
+    /// here, so two never walk up to the same visitor.
+    /// </summary>
+    private EntityUid? Visitor(Entity<WFStrangerComponent> ent, TransformComponent xform, Entity<WFStrangerHomeComponent> home, TimeSpan now)
+    {
+        if (Nearest(ent, xform, now, home) is not { } visitor)
+            return null;
+
+        var mine = Vector2.Distance(_transform.GetWorldPosition(xform), _transform.GetWorldPosition(visitor));
+        var mates = EntityQueryEnumerator<WFStrangerComponent, TransformComponent>();
+        while (mates.MoveNext(out var mate, out var stranger, out var mateXform))
         {
-            var there = _transform.GetMapCoordinates(vehicle, vehicleXform);
-            if (there.MapId == here.MapId && Vector2.Distance(there.Position, here.Position) <= ent.Comp.SightRange
-                && _examine.InRangeUnOccluded(here, there, ent.Comp.SightRange, null))
-                yield return vehicle;
+            if (mate == ent.Owner || stranger.Home != ent.Comp.Home || !_mobs.IsAlive(mate))
+                continue;
+            if (stranger.Target == visitor)
+                return null;
+            if (stranger.Target != null || stranger.Hostile || stranger.Node != null || stranger.Behaviour != WFStrangerBehaviour.Approach)
+                continue;
+
+            var theirs = Vector2.Distance(_transform.GetWorldPosition(mateXform), _transform.GetWorldPosition(visitor));
+            if ((theirs < mine || theirs == mine && mate.Id < ent.Owner.Id)
+                && Usable((mate, stranger), visitor, now, home)
+                && _examine.InRangeUnOccluded(_transform.GetMapCoordinates(mate, mateXform), _transform.GetMapCoordinates(visitor), stranger.SightRange, null))
+                return null;
         }
+        return visitor;
+    }
+
+    /// <summary>Says hello, once per visitor, as he sets off to meet them.</summary>
+    private void Greet(Entity<WFStrangerComponent> ent, Entity<WFStrangerHomeComponent> home, EntityUid visitor, TimeSpan now)
+    {
+        if (ent.Comp.Greeted.ContainsKey(visitor))
+            return;
+        ent.Comp.Greeted[visitor] = now;
+        if (home.Comp.Greetings.Count > 0)
+            _chat.TrySendInGameICMessage(ent, Loc.GetString(_random.Pick(home.Comp.Greetings)), InGameICChatType.Speak, false);
     }
 
     /// <summary>
     /// Every so often he sets off for somewhere else: anywhere open within <paramref name="range"/> of himself, or of
-    /// his home if he has one. Now and then he just stands about.
+    /// his home if he has one. Now and then he just stands about, unless he's strayed from home and heads back.
     /// </summary>
     private void Wander(Entity<WFStrangerComponent> ent, TransformComponent xform, TimeSpan now, EntityUid? home, float range)
     {
@@ -120,7 +109,10 @@ public sealed partial class WFStrangerSystem
             return;
         ent.Comp.NextWander = now + TimeSpan.FromSeconds(_random.NextFloat(8f, 20f));
         _steering.Unregister(ent);
-        if (_random.Prob(0.25f) || xform.GridUid is not { } grid || !TryComp(grid, out MapGridComponent? gridComp))
+
+        var straying = home is { } place
+                       && Vector2.Distance(_transform.GetWorldPosition(place), _transform.GetWorldPosition(xform)) > range + 1f;
+        if (!straying && _random.Prob(0.25f) || xform.GridUid is not { } grid || !TryComp(grid, out MapGridComponent? gridComp))
             return;
 
         var origin = home is { } centre ? _transform.GetWorldPosition(centre) : _transform.GetWorldPosition(xform);
