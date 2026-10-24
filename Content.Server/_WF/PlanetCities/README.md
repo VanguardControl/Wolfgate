@@ -14,8 +14,14 @@ and road entrances cut from the city's streets to the edge of its footprint, whe
 fixed city is placed before the world's other sites; one that finds no room is left out with a warning. Bare rock on
 the levels below the street (`terrain`) is dropped before loading where the layer under the world grows its own: the
 cavern, or the cavern's rock without its mouths on a world with caverns off. The city is built a level per tick,
-during the world's preload. Each round it rolls one of its `fates`: left alone, or overrun by groups of something
-spread through its streets (Crocus: zombies, spiders, crazy camps or aberrant flesh), kept clear of its spawn points.
+during the world's preload. Whatever has become of it, its `residents` (Crocus: 24 to 36 civilians with the odd dealer or
+conspiracy nut, `WFCityResidents`) live in its rooms: standing on bare roofed floor on every level, the ground floor, the
+upper levels and the underground each (`ground`/`upper`/`lower`), one on every level that has room and the rest in
+proportion to each level's floor, a few tiles apart and clear of the spawn points. They wake like any NPC, when a player is
+near on their map, so the ones in the towers wait for someone on that flight layer. Each round it also rolls one of its
+`fates`: left alone, or overrun by groups of something (Crocus: zombies, spiders, crazy camps or aberrant flesh), kept
+clear of its spawn points. A fate's `indoorShare` of its groups settle on roofed floor instead of the open streets, upstairs
+too with `upperLevels`; only groups in the open get the fate's `gathering` props.
 
 **Generated cities** will be a city boundary cut into blocks by a street grid, blocks filled wall to wall with
 mapped plots, up to two floors above the street and a basement on the sewer level, and a sewer network under every
@@ -78,6 +84,7 @@ wade) and catwalks where it turns.
 - [`Content.Server/_WF/PlanetCities/WFPlanetCitySystem.cs`](WFPlanetCitySystem.cs)
 - [`Content.Server/_WF/PlanetCities/WFPlanetPoiSystem.Cities.cs`](WFPlanetPoiSystem.Cities.cs)
 - [`Content.Server/_WF/PlanetCities/WFPlanetPoiSystem.CityFates.cs`](WFPlanetPoiSystem.CityFates.cs)
+- [`Content.Server/_WF/PlanetCities/WFPlanetPoiSystem.CityPeople.cs`](WFPlanetPoiSystem.CityPeople.cs)
 
 ### Shared
 
@@ -93,6 +100,7 @@ wade) and catwalks where it turns.
 
 - [`Resources/Prototypes/_WF/PlanetCities/crocus.yml`](../../../Resources/Prototypes/_WF/PlanetCities/crocus.yml)
 - [`Resources/Prototypes/_WF/PlanetCities/markers.yml`](../../../Resources/Prototypes/_WF/PlanetCities/markers.yml)
+- [`Resources/Prototypes/_WF/PlanetCities/residents.yml`](../../../Resources/Prototypes/_WF/PlanetCities/residents.yml)
 
 ### Localization
 
