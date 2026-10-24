@@ -14184,6 +14184,30 @@ entities:
       parent: 2
       rot: 1.5707963267948966 rad
       pos: 2.5,13.5
+- proto: PosterLegitBlessThisSpess
+  entities:
+  - uid: 1714
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: -2.5,11.5
+- proto: PosterLegitBuild
+  entities:
+  - uid: 1710
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: -17.5,10.5
+- proto: PosterLegitCarpMount
+  entities:
+  - uid: 1711
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: -17.5,4.5
 - proto: PosterLegitCleanliness
   entities:
   - uid: 1702
@@ -14200,6 +14224,14 @@ entities:
       parent: 2
       rot: 1.5707963267948966 rad
       pos: -6.5,-7.5
+- proto: PosterLegitFruitBowl
+  entities:
+  - uid: 1709
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: 1.5,-11.5
 - proto: PosterLegitHelpOthers
   entities:
   - uid: 1704
@@ -14240,46 +14272,6 @@ entities:
       parent: 2
       rot: 1.5707963267948966 rad
       pos: -8.5,4.5
-- proto: PosterLegitNanotrasenLogo
-  entities:
-  - uid: 1709
-    components:
-    - type: Transform
-      parent: 2
-      rot: 1.5707963267948966 rad
-      pos: 1.5,-11.5
-  - uid: 1710
-    components:
-    - type: Transform
-      parent: 2
-      rot: 1.5707963267948966 rad
-      pos: -17.5,10.5
-  - uid: 1711
-    components:
-    - type: Transform
-      parent: 2
-      rot: 1.5707963267948966 rad
-      pos: -17.5,4.5
-  - uid: 1712
-    components:
-    - type: Transform
-      parent: 2
-      rot: 1.5707963267948966 rad
-      pos: -6.5,10.5
-  - uid: 1713
-    components:
-    - type: Transform
-      parent: 2
-      rot: 1.5707963267948966 rad
-      pos: 1.5,26.5
-- proto: PosterLegitNTTGC
-  entities:
-  - uid: 1714
-    components:
-    - type: Transform
-      parent: 2
-      rot: 1.5707963267948966 rad
-      pos: -2.5,11.5
 - proto: PosterLegitPDAAd
   entities:
   - uid: 1715
@@ -14320,6 +14312,14 @@ entities:
       parent: 2
       rot: 1.5707963267948966 rad
       pos: -5.5,20.5
+- proto: PosterLegitSoftCapPopArt
+  entities:
+  - uid: 1713
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: 1.5,26.5
 - proto: PosterLegitSpaceCops
   entities:
   - uid: 1721
@@ -14328,6 +14328,14 @@ entities:
       parent: 2
       rot: 1.5707963267948966 rad
       pos: 1.5,14.5
+- proto: PosterLegitTheOwl
+  entities:
+  - uid: 1712
+    components:
+    - type: Transform
+      parent: 2
+      rot: 1.5707963267948966 rad
+      pos: -6.5,10.5
 - proto: PosterLegitUeNo
   entities:
   - uid: 1722
