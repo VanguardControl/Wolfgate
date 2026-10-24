@@ -2979,3 +2979,10 @@ Entries:
   id: 100212
   time: '2026-10-23T18:45:54.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/182
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: The SY Reach, a civilian capital ship, for 400,000 thalers.
+  id: 100213
+  time: '2026-10-24T04:16:47.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/337
