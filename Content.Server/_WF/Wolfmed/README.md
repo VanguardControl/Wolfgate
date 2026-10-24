@@ -1379,7 +1379,9 @@ Skipped ("dirty-disposed").
   - W5: sepsis, dead tissue and tourniquets are not wounds, so clearing the wounds leaves
   - D11 - was (Entity\<WoundableComponent>, ref DamageDealtEvent).
   - D11, the post-write event carries the delta.
+  - the body's damage event names who hit the part, for kill credit.
   - Shitmed's BodyPartComponent has no Parent field; walk the slot containers instead.
+  - origin, for kill credit.
   - D19 - InjurableComponent is not ported. Wolfgate parts already carry
   - V3: public so the degradation overlay maps parts to layers the same way instead of forking it.
   - D9
