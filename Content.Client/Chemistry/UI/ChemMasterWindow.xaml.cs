@@ -210,7 +210,8 @@ namespace Content.Client.Chemistry.UI
         /// <param name="state">State data sent by the server.</param>
         private string GenerateLabel(ChemMasterBoundUserInterfaceState state)
         {
-            if (state.BufferCurrentVolume == 0)
+            // WOLFGATE: a merge left the old guard nested over the new one, so an empty beaker with a full buffer threw
+            // if (state.BufferCurrentVolume == 0)
             if (
                 state.BufferCurrentVolume == 0 && state.DrawSource == ChemMasterDrawSource.Internal ||
                 state.InputContainerInfo?.CurrentVolume == 0 && state.DrawSource == ChemMasterDrawSource.External ||

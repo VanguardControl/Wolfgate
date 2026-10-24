@@ -14,6 +14,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Client/CharacterInfo/CharacterInfoSystem.cs`](../../Content.Client/CharacterInfo/CharacterInfoSystem.cs)
   - replays skip the character info request
   - Replay spectators have a local entity but no server to answer this request.
+- [`Content.Client/Chemistry/UI/ChemMasterWindow.xaml.cs`](../../Content.Client/Chemistry/UI/ChemMasterWindow.xaml.cs): a merge left the old guard nested over the new one, so an empty beaker with a full buffer threw
 - [`Content.Client/Guidebook/GuidebookDataSystem.cs`](../../Content.Client/Guidebook/GuidebookDataSystem.cs)
   - replays skip the guidebook data request
   - partial for the network dependency
