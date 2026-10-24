@@ -19,7 +19,8 @@ public static class SharedSymphony
     /// server runs. Version 8 added player feedback: bug reports and suggestions in wolfgate_feedback_report, a table
     /// the panel reads, /symphony/feedback/status, which sets a report's status and tells its player in game, and
     /// /symphony/feedback/refresh, for after the panel has written a status itself. Version 9 added /symphony/lobby: the
-    /// lobby's title screen art and music, picked from what the build ships or uploaded from the panel, shown at once.
+    /// lobby's title screen art and music, picked from what the build ships or uploaded from the panel, shown at once,
+    /// a notice box in the lobby, and /symphony/announce, a server announcement in everyone's chat.
     /// </summary>
     public const int ModuleVersion = 9;
 

@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Web;
 using Content.Server.Audio;
+using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
 using Content.Shared.GameTicking;
 using Content.Shared.Symphony;
@@ -21,6 +22,7 @@ using Robust.Shared.Configuration;
 using Robust.Shared.ContentPack;
 using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
+using Robust.Shared.Maths;
 using Robust.Shared.Network;
 using Robust.Shared.Player;
 using Robust.Shared.Utility;
@@ -51,6 +53,17 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     /// <summary>POST {"tracks": [...]} plays that playlist now; {"tracks": null} goes back to the shuffled collection.</summary>
     public const string MusicPath = "/symphony/lobby/music";
 
+    /// <summary>POST {"title", "body", "style"} shows a notice in the lobby; an empty title and body take it away.</summary>
+    public const string NoticePath = "/symphony/lobby/notice";
+
+    /// <summary>POST {"message", "color"}: a server announcement in everyone's chat, as the update notice is sent.</summary>
+    public const string AnnouncePath = "/symphony/announce";
+
+    private const int MaxNoticeTitle = 120;
+    private const int MaxNoticeBody = 1500;
+    private const int MaxAnnouncement = 1000;
+    private static readonly string[] NoticeStyles = ["info", "warning", "event"];
+
     public const int MaxImageBytes = 8_000_000;
     public const int MaxTrackBytes = 16_000_000;
     private const int MaxTracks = 30;
@@ -68,6 +81,10 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     [Dependency] private NetworkResourceManager _netRes = default!;
     [Dependency] private GameTicker _ticker = default!;
     [Dependency] private ContentAudioSystem _audio = default!;
+    [Dependency] private IChatManager _chat = default!;
+
+    /// <summary>The lobby notice now, or an empty one.</summary>
+    private SymphonyLobbyNoticeEvent _notice = new(null, null, "info");
 
     /// <summary>Files this server shares, by their /Uploaded path, with their size. Only those in use are kept.</summary>
     private readonly Dictionary<string, int> _uploads = new();
@@ -76,14 +93,21 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     {
         base.Initialize();
         _statusHost.AddHandler(HandleAsync);
+        SubscribeLocalEvent<PlayerJoinedLobbyEvent>(OnJoinedLobby);
         Restore();
+    }
+
+    private void OnJoinedLobby(PlayerJoinedLobbyEvent ev)
+    {
+        if (!_notice.IsEmpty)
+            RaiseNetworkEvent(_notice, ev.PlayerSession);
     }
 
     // Runs on the status host's thread; the work itself hops to the main thread.
     private async Task<bool> HandleAsync(IStatusHandlerContext context)
     {
         var path = context.Url.AbsolutePath;
-        if (path != StatePath && path != FilePath && path != UploadPath && path != BackgroundPath && path != MusicPath)
+        if (path != StatePath && path != FilePath && path != UploadPath && path != BackgroundPath && path != MusicPath && path != NoticePath && path != AnnouncePath)
             return false;
         if (!await SymphonyApi.AuthorisedAsync(_cfg, context))
             return true;
@@ -108,6 +132,12 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
                 break;
             case BackgroundPath:
                 await RespondBackground(context);
+                break;
+            case NoticePath:
+                await RespondNotice(context);
+                break;
+            case AnnouncePath:
+                await RespondAnnounce(context);
                 break;
             default:
                 await RespondMusic(context);
@@ -140,7 +170,68 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
                 Collection = _audio.LobbyCollection.ToList(),
             },
             Uploads = _uploads.Select(kv => new UploadState { Path = kv.Key, Size = kv.Value }).ToList(),
+            Notice = _notice.IsEmpty ? null : new NoticeBody { Title = _notice.Title, Body = _notice.Body, Style = _notice.Style },
         };
+    }
+
+    private async Task RespondNotice(IStatusHandlerContext context)
+    {
+        NoticeBody? body;
+        try
+        {
+            body = await context.RequestBodyJsonAsync<NoticeBody>();
+        }
+        catch (Exception)
+        {
+            body = null;
+        }
+        var title = body?.Title?.Trim() ?? "";
+        var text = body?.Body?.Trim() ?? "";
+        var style = body?.Style ?? "info";
+        if (body == null || title.Length > MaxNoticeTitle || text.Length > MaxNoticeBody || !NoticeStyles.Contains(style))
+        {
+            await context.RespondAsync($"expected {{\"title\": \"...\", \"body\": \"...\", \"style\": \"info|warning|event\"}}, a title of at most {MaxNoticeTitle} and a body of at most {MaxNoticeBody} characters; empty takes the notice away", HttpStatusCode.BadRequest);
+            return;
+        }
+        var outcome = await _tasks.OnMainThread(() =>
+        {
+            _notice = new SymphonyLobbyNoticeEvent(title == "" ? null : title, text == "" ? null : text, style);
+            // Everyone has it now, so those in a round see it the moment they are back in the lobby.
+            RaiseNetworkEvent(_notice);
+            WriteState();
+            return new ApplyResponse { SymphonyModule = SharedSymphony.ModuleVersion, Custom = !_notice.IsEmpty, Players = _players.PlayerCount, InLobby = LobbySessions().Count };
+        });
+        Log.Info($"{body.Actor ?? "The panel"} {(title == "" && text == "" ? "took the lobby notice away" : $"set the lobby notice: {title}")}");
+        await context.RespondJsonAsync(outcome);
+    }
+
+    private async Task RespondAnnounce(IStatusHandlerContext context)
+    {
+        AnnounceBody? body;
+        try
+        {
+            body = await context.RequestBodyJsonAsync<AnnounceBody>();
+        }
+        catch (Exception)
+        {
+            body = null;
+        }
+        var message = body?.Message?.Trim() ?? "";
+        Color? color = null;
+        if (body?.Color is { Length: > 0 } hex && Color.TryFromHex(hex, out var parsed))
+            color = parsed;
+        if (message == "" || message.Length > MaxAnnouncement || (body?.Color is { Length: > 0 } && color == null))
+        {
+            await context.RespondAsync($"expected {{\"message\": \"...\", \"color\": \"#rrggbb\"}}, a message of 1 to {MaxAnnouncement} characters", HttpStatusCode.BadRequest);
+            return;
+        }
+        var players = await _tasks.OnMainThread(() =>
+        {
+            _chat.DispatchServerAnnouncement(message, color);
+            return _players.PlayerCount;
+        });
+        Log.Info($"{body!.Actor ?? "The panel"} announced: {message}");
+        await context.RespondJsonAsync(new ApplyResponse { SymphonyModule = SharedSymphony.ModuleVersion, Players = players });
     }
 
     /// <summary>Players not in a round: the ones a change is shown or played to at once.</summary>
@@ -389,6 +480,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
             {
                 Background = _ticker.LobbyBackgroundOverride,
                 Playlist = _audio.LobbyPlaylistOverride?.ToList(),
+                Notice = _notice.IsEmpty ? null : new NoticeBody { Title = _notice.Title, Body = _notice.Body, Style = _notice.Style },
             }));
         }
         catch (Exception e)
@@ -414,6 +506,8 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
         }
         if (state == null)
             return;
+        if (state.Notice is { } saved && NoticeStyles.Contains(saved.Style ?? "info"))
+            _notice = new SymphonyLobbyNoticeEvent(saved.Title, saved.Body, saved.Style ?? "info");
 
         bool Available(string path)
         {
@@ -499,6 +593,22 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
         [JsonPropertyName("background")] public BackgroundState Background { get; set; } = new();
         [JsonPropertyName("music")] public MusicState Music { get; set; } = new();
         [JsonPropertyName("uploads")] public List<UploadState> Uploads { get; set; } = [];
+        [JsonPropertyName("notice")] public NoticeBody? Notice { get; set; }
+    }
+
+    private sealed class NoticeBody
+    {
+        [JsonPropertyName("title")] public string? Title { get; set; }
+        [JsonPropertyName("body")] public string? Body { get; set; }
+        [JsonPropertyName("style")] public string? Style { get; set; }
+        [JsonPropertyName("actor")] public string? Actor { get; set; }
+    }
+
+    private sealed class AnnounceBody
+    {
+        [JsonPropertyName("message")] public string? Message { get; set; }
+        [JsonPropertyName("color")] public string? Color { get; set; }
+        [JsonPropertyName("actor")] public string? Actor { get; set; }
     }
 
     private sealed class BackgroundState
@@ -557,5 +667,6 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     {
         [JsonPropertyName("background")] public string? Background { get; set; }
         [JsonPropertyName("playlist")] public List<string>? Playlist { get; set; }
+        [JsonPropertyName("notice")] public NoticeBody? Notice { get; set; }
     }
 }
