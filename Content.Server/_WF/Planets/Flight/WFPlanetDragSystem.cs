@@ -73,8 +73,10 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
         if (distance <= 0f || distance + reach <= radius)
             return;
 
-        // Orbit is where ships arrive from FTL, anywhere; there the push back alone brings them in.
-        if (distance + reach > radius + HardEdgeSlack && !HasComp<WFOrbitLayerComponent>(map))
+        // Orbit is where ships arrive from FTL, anywhere; there the push back alone brings them in. On the ground
+        // friction eats the push, so the edge is hard there.
+        var grounded = HasComp<CEZGroundLayerComponent>(map) || TryComp<CEZMapComponent>(map, out var zMap) && zMap.Depth == 0;
+        if ((grounded || distance + reach > radius + HardEdgeSlack) && !HasComp<WFOrbitLayerComponent>(map))
         {
             _bounds.ClampHull(grid);
             _physics.SetLinearVelocity(grid, Vector2.Zero, body: body);
