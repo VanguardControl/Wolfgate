@@ -195,6 +195,18 @@ public sealed partial class WFCrewObjectiveSystem : EntitySystem
             }
             if (state.Paused || state.Items.Count == 0)
                 continue;
+            // A ship that cloaks is lost to the crew sent after it, pilot at the helm or not.
+            if (state.Items[0] is { Kind: WFCrewObjectiveKind.Attack, Target: { } hunted }
+                && TryGetEntity(hunted, out var huntedShip) && EntityManager.System<WFCrewStealthSystem>().ShipUnseen(huntedShip.Value))
+            {
+                if (state.Started && state.Pilot is { } chasing && !TerminatingOrDeleted(chasing))
+                    _pilots.Hold(chasing);
+                state.Items.RemoveAt(0);
+                state.Started = false;
+                state.Elapsed = 0;
+                state.Status = state.Items.Count == 0 ? "complete" : "pending";
+                continue;
+            }
             if ((Pilot(grid, group) ?? Promote(grid, group)) is not { } pilot)
             {
                 state.Status = CrewAway(grid, group) ? "pilot-away" : "no-pilot";
