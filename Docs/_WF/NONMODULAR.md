@@ -70,6 +70,8 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs`](../../Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs)
   - a freed tile is never scheduled earlier than the current iteration.
   - a blocker never clears earlier than the current iteration.
+- [`Content.Server/Ghost/Roles/Components/ToggleableGhostRoleComponent.cs`](../../Content.Server/Ghost/Roles/Components/ToggleableGhostRoleComponent.cs): a device that only carries the wipe verb (a PDA) keeps its own activation
+- [`Content.Server/Ghost/Roles/ToggleableGhostRoleSystem.cs`](../../Content.Server/Ghost/Roles/ToggleableGhostRoleSystem.cs): a device that only carries the wipe verb (a PDA) leaves using and activating it to its own UI
 - [`Content.Server/Preferences/Managers/ServerPreferencesManager.cs`](../../Content.Server/Preferences/Managers/ServerPreferencesManager.cs)
   - a failed save is logged with its slot
   - sanitized here like FinishLoad does on login
@@ -168,6 +170,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/Entities/Clothing/OuterClothing/suits.yml`](../../Resources/Prototypes/Entities/Clothing/OuterClothing/suits.yml)
   - radiation suit blocks more radiation (was 0.1)
   - vend price for the EngiVend, instead of its scrap value
+- [`Resources/Prototypes/Entities/Objects/Devices/pda.yml`](../../Resources/Prototypes/Entities/Objects/Devices/pda.yml): E and Z open the PDA instead of searching for a player to control it
 - [`Resources/Prototypes/Entities/Objects/Misc/identification_cards.yml`](../../Resources/Prototypes/Entities/Objects/Misc/identification_cards.yml): the universal card opens the Underground Black Market too
 - [`Resources/Prototypes/Entities/Objects/Tools/access_configurator.yml`](../../Resources/Prototypes/Entities/Objects/Tools/access_configurator.yml): Monolith#4816 added the level without a way to hand it out
 - [`Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml`](../../Resources/Prototypes/Entities/Objects/Weapons/Guns/Turrets/turrets_ballistic.yml)
