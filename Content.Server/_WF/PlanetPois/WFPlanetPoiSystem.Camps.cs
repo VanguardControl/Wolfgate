@@ -39,6 +39,12 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Tiles of camp round a hull: guards, cover, tents and fires, all on cleared ground.</summary>
     private const float CampRing = 8f;
 
+    /// <summary>Tiles a roadside camp keeps along the road from its bends, junctions and ends.</summary>
+    private const int CampRoadClear = 16;
+
+    /// <summary>Stretches of road tried for a roadside camp before it goes out in the open instead.</summary>
+    private const int RoadsideAttempts = 64;
+
     private void PlaceCamps(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
         WFPlanetPoiTablePrototype table, WFPlanetPoiComponent record, HashSet<EntityUid> created)
     {
@@ -79,11 +85,14 @@ public sealed partial class WFPlanetPoiSystem
             // Room round the hull for the guards and their cover.
             var reach = hull.Size.Length() / 2f;
             var camped = reach + CampRing;
-            if (!TryWreckSpot((ground, biome), grid, centre, radius, table, camped, out var spot))
+            var spot = Vector2.Zero;
+            var toRoad = Vector2i.Zero;
+            var roadside = camp.Roadside && TryRoadsideSpot((ground, biome), centre, radius, table, record, camped, out spot, out toRoad);
+            if (!roadside && !TryWreckSpot((ground, biome), grid, centre, radius, table, camped, out spot))
                 return false;
 
-            // Set down square to the world, the right way up.
-            var angle = Angle.FromDegrees(90 * _random.Next(4));
+            // Set down square to the world, the right way up; beside a road, nose to it.
+            var angle = roadside ? new Angle(MathF.Atan2(-toRoad.X, toRoad.Y)) : Angle.FromDegrees(90 * _random.Next(4));
             var targetMap = Transform(ground).MapUid ?? ground;
             var world = _transform.ToMapCoordinates(new EntityCoordinates(ground, spot)).Position - angle.RotateVec(hull.Center);
             _transform.SetCoordinates(ship.Owner, new EntityCoordinates(targetMap, world));
@@ -129,11 +138,63 @@ public sealed partial class WFPlanetPoiSystem
     {
         const float reach = 1f;
         var camped = reach + CampRing;
-        if (!TryWreckSpot((ground, biome), grid, centre, radius, table, camped, out var spot))
+        var spot = Vector2.Zero;
+        if (!(camp.Roadside && TryRoadsideSpot((ground, biome), centre, radius, table, record, camped, out spot, out _))
+            && !TryWreckSpot((ground, biome), grid, centre, radius, table, camped, out spot))
             return false;
         var under = ClearCampGround(ground, grid, biome, spot, camped);
         record.PendingCamps.Add(new WFPendingCamp(camp.ID, spot, reach, $"{camp.ID}-{++_campCount}"));
         AddCampSite(ground, orbit, table, record, camp, spot, camped, under.Count, created);
+        return true;
+    }
+
+    /// <summary>
+    /// Somewhere just off a road, beside a straight stretch well clear of its bends, junctions and tunnels, with nothing
+    /// pinned or wet in the camp's ring, so the road and its shoulder stay outside it; and the way from there to the road.
+    /// </summary>
+    private bool TryRoadsideSpot(Entity<BiomeComponent> ground, Vector2 centre, float radius, WFPlanetPoiTablePrototype table,
+        WFPlanetPoiComponent record, float camped, out Vector2 spot, out Vector2i toRoad)
+    {
+        spot = default;
+        toRoad = default;
+        if (table.Roads is not { } roads || record.Centreline.Count == 0)
+            return false;
+
+        var tunnels = record.Tunnels.SelectMany(tunnel => tunnel).ToHashSet();
+        var straight = WFRoadDressingPlanner.StraightRuns(record.Centreline, CampRoadClear)
+            .Where(pair => !tunnels.Contains(pair.Key))
+            .OrderBy(pair => pair.Key.X).ThenBy(pair => pair.Key.Y)
+            .ToList();
+        if (straight.Count == 0)
+            return false;
+
+        // The ring's edge a tile off the shoulder's.
+        var off = roads.Width / 2 + roads.ShoulderWidth + camped + 2f;
+        for (var attempt = 0; attempt < RoadsideAttempts; attempt++)
+        {
+            var (tile, axis) = _random.Pick(straight);
+            var across = WFRoadDressingPlanner.Across(axis) * (_random.Prob(0.5f) ? 1 : -1);
+            var candidate = new Vector2(tile.X + 0.5f, tile.Y + 0.5f) + (Vector2) across * off;
+            var distance = Vector2.Distance(candidate, centre);
+            if (distance + camped > radius - 2f || distance - camped < table.CentreClear || !CampGroundFree(ground, candidate, camped + 1f))
+                continue;
+            spot = candidate;
+            toRoad = -across;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>Whether nothing is pinned and no water lies within a circle.</summary>
+    private bool CampGroundFree(Entity<BiomeComponent> ground, Vector2 spot, float clear)
+    {
+        for (var x = (int) MathF.Floor(spot.X - clear); x <= (int) MathF.Ceiling(spot.X + clear); x++)
+        for (var y = (int) MathF.Floor(spot.Y - clear); y <= (int) MathF.Ceiling(spot.Y + clear); y++)
+        {
+            var tile = new Vector2i(x, y);
+            if (Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), spot) <= clear && (_biome.WfIsPinned(ground, tile) || _biome.WfIsWater(ground, tile)))
+                return false;
+        }
         return true;
     }
 

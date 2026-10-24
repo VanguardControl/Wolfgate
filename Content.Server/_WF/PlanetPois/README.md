@@ -8,6 +8,17 @@ room, or whose entrances can't be reached, is skipped or left off the roads with
 that can't be laid costs the world its roads, never its sites; roads clear whatever the biome had grown
 on unpinned ground, as the boundary ring does.
 
+The roads are a network, not a string of paths (`WFPlanetRoadPlanner`). On a world with room for it, an arterial
+network goes down first: an inner ring road round the landing zone, an outer ring short of the world's edge and
+straight trunks between them (one a side, two on a wide world), each ring an octagon of long straight sides with 45°
+corners. Every site then joins the nearest road by a spur that runs straight and turns square. Whatever is in the way
+(a site, a cavern mouth, a lake) is routed round; a stretch that can't get round is cut and the rest stays joined up. A
+table can turn the arterial network off (`backbone: false`), and a small world gets just the spurs, site to site.
+
+No site, road, footpath, camp, wreck, parked vehicle or roamer is put down in standing water
+(`BiomeSystem.WfIsWater`, which reads the biome's recipe before the ground exists). A footprint over 48 tiles square may
+cover the edge of a pond, which is drained where it is laid. Every world's water comes as lakes and ponds, not seas.
+
 A network that names a `wfRoadDressing` is furnished as it is painted (`WFPlanetPoiSystem.Dressing`,
 laid out by `WFRoadDressingPlanner`): the shoulder becomes kerbed pavement facing the road, a dashed
 line runs down the middle of the straight stretches, street lights stand on alternating sides, signals
@@ -27,8 +38,10 @@ rise as zombies when spawned (`WFZombifyOnSpawn`, `wreck_crew.yml`). About half 
 (`wreck_loot.yml`): a crate with a ship gun flatpack and the hardpoint it mounts on, or a crate of gunnery co-processor
 chips (`_WF/GunneryChips`).
 
-A table's `camps` (`WFPlanetPoiSystem.Camps`, `camps.yml`) set a ship down intact and square to the world off the roads,
-with an armed crew from an NpcCrew profile guarding it: two or three on the deck at once, more round the hull behind a
+A table's `camps` (`WFPlanetPoiSystem.Camps`, `camps.yml`) set a ship down intact and square to the world beside a
+road, just off the shoulder of a straight stretch and nose to it, where whoever drives by sees it (out in the open
+instead when no stretch has room, or for a camp with `roadside: false`), with an armed crew from an NpcCrew profile
+guarding it: two or three on the deck at once, more round the hull behind a
 ring of cover once the ground there exists. Dwelling sites (`dwelling: true`, such as the houses) may get a resident. Every world has a Reaver encampment (Ashfall Reaver raiders) and an ADS
 control site (ADS automatons); the hold has loot of the same kind as the wrecks'.
 

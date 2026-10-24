@@ -54,11 +54,12 @@
     entities: [MonoPlanetmapOreChromite]
     threshold: 0.72
     noise: { seed: 19, noiseType: OpenSimplex2, frequency: 0.025 }
+  # Pools in the clearings, a dozen tiles or so across.
   - !type:BiomeEntityLayer
     allowedTiles: [FloorChromite]
     entities: [MonoFloorWaterEntity]
-    threshold: 0.965
-    noise: { seed: 41, noiseType: OpenSimplex2, frequency: 0.006, fractalType: Ridged, octaves: 1 }
+    threshold: 0.75
+    noise: { seed: 41, noiseType: OpenSimplex2, frequency: 0.016, fractalType: FBm, octaves: 2 }
 
 - type: biomeTemplate
   id: WFShadowGrove
@@ -119,11 +120,12 @@
     entities: [MonoPlanetmapOreBase]
     threshold: 0.72
     noise: { seed: 11, noiseType: OpenSimplex2, frequency: 0.02 }
+  # Ponds a few tiles across, between the lakes.
   - !type:BiomeEntityLayer
     allowedTiles: [FloorPlanetGrass, FloorPlanetDirt]
     entities: [MonoFloorWaterEntity]
-    threshold: 0.95
-    noise: { seed: 41, noiseType: OpenSimplex2, frequency: 0.006, fractalType: Ridged, octaves: 1 }
+    threshold: 0.85
+    noise: { seed: 41, noiseType: OpenSimplex2, frequency: 0.03, fractalType: FBm, octaves: 2 }
 
 - type: biomeTemplate
   id: WFTemperateWoodland
@@ -156,8 +158,9 @@
     threshold: 0.75
     noise: { seed: 23, noiseType: OpenSimplex2, frequency: 0.018 }
 
+# A lake: riverbed under open water, as far as its meta layer reaches.
 - type: biomeTemplate
-  id: WFCoastalOcean
+  id: WFTemperateLake
   layers:
   - !type:BiomeTileLayer
     tile: FloorRiverbed
@@ -314,8 +317,9 @@
       octaves: 5
       cellularDistanceFunction: Euclidean
       cellularReturnType: Distance2
+  # Oasis ponds, ten tiles or so across.
   - !type:BiomeEntityLayer
     allowedTiles: [FloorDesert, FloorDesertRocky, FloorDesertPlanet, FloorAsteroidSandUnvariantizedPlanet, FloorAsteroidSandPlanet]
     entities: [MonoFloorWaterEntity]
-    threshold: 0.98
-    noise: { seed: 41, noiseType: OpenSimplex2, frequency: 0.004, fractalType: Ridged, octaves: 1 }
+    threshold: 0.8
+    noise: { seed: 41, noiseType: OpenSimplex2, frequency: 0.016, fractalType: FBm, octaves: 2 }

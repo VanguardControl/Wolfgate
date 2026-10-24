@@ -66,6 +66,20 @@ public sealed class PlanetCampTest
                 Assert.That(record.PendingCamps, Is.Empty, "The camps' outside guards were never posted.");
             }
 
+            // Reavers and crazies camp where the road goes by: just off the shoulder, the road outside their ring.
+            foreach (var name in new[] { "wf-poi-reaver-encampment", "wf-poi-crazy-camp" })
+            foreach (var site in record.Sites.Where(site => site.Name == name))
+            {
+                var spot = new Vector2((site.Bounds.Left + site.Bounds.Right) / 2f, (site.Bounds.Bottom + site.Bounds.Top) / 2f);
+                var camped = (site.Bounds.Width - 2) / 2f;
+                var road = record.Centreline.Min(tile => Vector2.Distance(new Vector2(tile.X + 0.5f, tile.Y + 0.5f), spot));
+                TestContext.Out.WriteLine($"{name} at {spot}: ring {camped:F1}, {road:F1} from the road's middle");
+                Assert.That(road, Is.LessThanOrEqualTo(camped + 8f), $"The {name} is out in the open, not by a road.");
+                Assert.That(record.RoadTiles.Concat(record.ShoulderTiles)
+                    .Any(tile => Vector2.Distance(new Vector2(tile.X + 0.5f, tile.Y + 0.5f), spot) < camped - 1f), Is.False,
+                    $"The {name}'s ring covers the road.");
+            }
+
             // The camps' own dressing: a fire at the Reavers', floodlights at both.
             var map = entities.GetComponent<TransformComponent>(layers[0]).MapID;
             int Count(string id) => entities.EntityQuery<MetaDataComponent>()

@@ -77,7 +77,7 @@ public sealed partial class WFPlanetPoiSystem
                     var spot = record.RoamerCentre + _random.NextAngle().ToVec() * MathF.Sqrt(_random.NextFloat(inner * inner, outer * outer));
                     var tile = spot.Floored();
                     // Open ground: no site, road or anything standing there.
-                    if (_biome.WfIsPinned((ground, biome), tile) || _maps.GetTileRef(ground, grid, tile).Tile.IsEmpty
+                    if (_biome.WfIsPinned((ground, biome), tile) || _biome.WfIsWater((ground, biome), tile) || _maps.GetTileRef(ground, grid, tile).Tile.IsEmpty
                         || _maps.GetAnchoredEntitiesEnumerator(ground, grid, tile).MoveNext(out _))
                         continue;
 

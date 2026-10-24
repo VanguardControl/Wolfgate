@@ -6,6 +6,16 @@ The world builds its randomized POI layout and routes before terrain preloading.
 sites belong to one connected network. Production tables combine the mappers' authored maps with the
 existing procedural expedition dungeons.
 
+The network's shape: an inner ring road round the landing zone, an outer ring near the world's edge and
+straight trunks between them, with each connected site joined to the nearest road by a short spur. A
+roadside or through site's sockets face whichever road it ends up nearest, so give a site sockets on the
+sides a road may come from. Expect roads to pass close to a site's yard on the way round it.
+
+Nothing is placed in water. A site's footprint, its socket approaches and a footpath all keep out of
+lakes and ponds; a footprint over 48 × 48 may cover up to 3% water, the edge of a pond, which is
+drained under it. Water is any biome entity with `FloorOccluder` (lakes, ponds, the blood lakes);
+lava and liquid plasma are not water and roads still cross them.
+
 ## Shipped maps
 
 - Asclepiu (Verda): Crocus (Jianghui Industrial, a fixed city: see `Content.Server/_WF/PlanetCities/README.md`),

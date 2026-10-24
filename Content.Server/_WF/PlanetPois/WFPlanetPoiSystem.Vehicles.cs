@@ -94,7 +94,7 @@ public sealed partial class WFPlanetPoiSystem
             else
                 return null;
 
-            if (Vector2.Distance(tile, record.RoamerCentre) < inner || roadside == null && _biome.WfIsPinned(ground, tile))
+            if (Vector2.Distance(tile, record.RoamerCentre) < inner || roadside == null && (_biome.WfIsPinned(ground, tile) || _biome.WfIsWater(ground, tile)))
                 continue;
             if (Clear(tile))
                 return tile;
