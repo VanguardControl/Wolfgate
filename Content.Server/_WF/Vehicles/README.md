@@ -14,7 +14,7 @@ Players walk up to a vehicle's doorway and use it to go in, sit in a seat to dri
 and use the horn, spotlight and overcharge button while driving. The driver turns the view outside with the camera keys
 (the four-way drive follows the turned view), coming inside turns the view to the interior's north, and the driver's seat
 carries the vehicle's mass scanner (`WFVehicleScannerSystem`): a HUD switch opens a radar that looks out from the
-vehicle, with its position, the world's terrain and its sites. A vehicle with someone alive inside takes their NPC
+vehicle, with its position and the world's map (`PlanetMap`: ground, water, roads and sites). A vehicle with someone alive inside takes their NPC
 factions and counts as a live target (`VehicleOccupantFactionSystem`, hooked into NPC target scoring and melee reach), so
 mobs hostile to the crew attack it, and an NPC's grudge against someone inside carries to the vehicle; empty, it
 belongs to nobody. NPCs with `WFVehicleBoarder` (wreck zombies, strangers) walk to the nearest doorway of an unlocked
