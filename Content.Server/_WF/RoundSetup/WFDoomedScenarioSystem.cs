@@ -190,8 +190,9 @@ public sealed class WFDoomedScenarioSystem : EntitySystem
     /// <summary>Forgets a lobby; only a never-used preparation is deleted.</summary>
     public void RemoveScenario(int lobbyId)
     {
-        if (!_scenarios.Remove(lobbyId, out var scenario) || scenario.Used)
+        if (!_scenarios.TryGetValue(lobbyId, out var scenario) || scenario.Used)
             return;
+        _scenarios.Remove(lobbyId);
         foreach (var grid in scenario.Grids)
             QueueDel(grid);
         QueueDel(scenario.Station);
