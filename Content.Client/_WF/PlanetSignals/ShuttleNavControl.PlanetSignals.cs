@@ -48,6 +48,10 @@ public partial class ShuttleNavControl
                 continue;
 
             var mine = ours != null && signal.Expedition == ours;
+            // The planet map marks sites by kind; only the ship's own expedition site keeps its marker here.
+            if (signal.Kind == WFPlanetSignalKind.Site && !mine && _wfMapDrewSites)
+                continue;
+
             var point = Vector2.Transform(new Vector2(signal.Position.X + 0.5f, signal.Position.Y + 0.5f), worldToView);
             var offset = point - centre;
 

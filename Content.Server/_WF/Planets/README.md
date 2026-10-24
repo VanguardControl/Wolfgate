@@ -16,7 +16,7 @@ gravity a vessel lifts off in (`ShipPreviewLift`). The guidebook page is Planet 
 Rideable vehicles use the same z-level physics as loose objects, so a hoverbike and its buckled rider leaving a
 descending ship move onto the planet layers before the temporary flight map is deleted.
 
-Worlds have day and night, phased weather with thunder, fauna, ambience, terrain on the orbit radar and an approach
+Worlds have day and night, phased weather with thunder, fauna, ambience, a map on the orbit radar (`PlanetMap`) and an approach
 cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down. Lower layers of a planet are drawn smaller
 (`WFPlanetView`, the perspective Monolith turned off for other z-levels). Over a world's layers the shuttle console's
 strategic plot shows the world itself, drawn by the sector's planet shader close enough to fill it, instead of space
@@ -321,7 +321,6 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Resources/Locale/en-US/_WF/Planets/liftoff.ftl`](../../../Resources/Locale/en-US/_WF/Planets/liftoff.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/parachute.ftl`](../../../Resources/Locale/en-US/_WF/Planets/parachute.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/planets.ftl`](../../../Resources/Locale/en-US/_WF/Planets/planets.ftl)
-- [`Resources/Locale/en-US/_WF/Planets/radar.ftl`](../../../Resources/Locale/en-US/_WF/Planets/radar.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/timepiece.ftl`](../../../Resources/Locale/en-US/_WF/Planets/timepiece.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/weather.ftl`](../../../Resources/Locale/en-US/_WF/Planets/weather.ftl)
 
