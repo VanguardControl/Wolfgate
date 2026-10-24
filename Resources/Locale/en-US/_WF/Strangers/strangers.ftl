@@ -77,11 +77,11 @@ wf-stranger-stalker-mutter-5 = ...we're friends now...
 
 wf-stranger-squatter-mine = MINE! It's MINE! Get OUT!
 
-wf-stranger-home-house-1 = Hey! This is my house. Get lost!
-wf-stranger-home-house-2 = Private property! Turn around!
-wf-stranger-home-house-3 = One more step and you're dead, stranger!
-wf-stranger-home-house-4 = I see you out there! Keep walking!
-wf-stranger-home-camp-1 = Hey! This is our camp. Leave!
-wf-stranger-home-camp-2 = Turn around! Nobody comes in here!
-wf-stranger-home-camp-3 = You don't belong here. Walk away!
-wf-stranger-home-camp-4 = Come any closer and we'll gut you!
+wf-stranger-greeting-house-1 = Hey there! Come on over, stranger.
+wf-stranger-greeting-house-2 = Visitors! Haven't seen one in a while.
+wf-stranger-greeting-house-3 = Don't be shy. Come say hello.
+wf-stranger-greeting-house-4 = You there! You lost, or just passing?
+wf-stranger-greeting-camp-1 = Welcome to our camp, stranger.
+wf-stranger-greeting-camp-2 = What brings you to our fire?
+wf-stranger-greeting-camp-3 = You look like you could use some company.
+wf-stranger-greeting-camp-4 = Hey! Over here. Don't mind the smell.

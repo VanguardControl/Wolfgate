@@ -19,7 +19,7 @@ using Robust.Shared.Maths;
 
 namespace Content.IntegrationTests.Tests._WF.Strangers;
 
-/// <summary>Strangers walk up and hail, sell, get mad when refused, and the stalker turns up aboard your ship.</summary>
+/// <summary>Strangers walk up and hail, sell, get mad when refused, camps send someone out to meet you, and the stalker turns up aboard your ship.</summary>
 [TestFixture]
 [TestOf(typeof(WFStrangerSystem))]
 public sealed class StrangerTest
@@ -58,12 +58,6 @@ public sealed class StrangerTest
                 return;
             await pair.RunSeconds(0.5f);
         }
-    }
-
-    private static bool WarnedOff(WFStrangerComponent stranger, EntityUid player)
-    {
-        var warned = stranger.Warned;
-        return warned.ContainsKey(player);
     }
 
     [Test]
@@ -153,41 +147,137 @@ public sealed class StrangerTest
         await pair.CleanReturnAsync();
     }
 
+    private static bool Greeted(WFStrangerComponent stranger, EntityUid player)
+    {
+        var greeted = stranger.Greeted;
+        return greeted.ContainsKey(player);
+    }
+
+    /// <summary>A camp at the origin with a stranger of each prototype in <paramref name="members"/> at the given x, and the player at <paramref name="playerX"/>.</summary>
+    private static async Task<EntityUid[]> Camp(TestPair pair, TestMapData map, EntityUid player, float playerX, params (string Proto, float X)[] members)
+    {
+        var server = pair.Server;
+        var spawned = new EntityUid[members.Length];
+        await server.WaitPost(() =>
+        {
+            var xforms = server.System<SharedTransformSystem>();
+            xforms.SetCoordinates(player, new EntityCoordinates(map.Grid.Owner, playerX, 0.5f));
+            server.EntMan.SpawnEntity("WFStrangerCampHome", new EntityCoordinates(map.Grid.Owner, 0.5f, 0.5f));
+            for (var i = 0; i < members.Length; i++)
+                spawned[i] = server.EntMan.SpawnEntity(members[i].Proto, new EntityCoordinates(map.Grid.Owner, members[i].X, 0.5f));
+        });
+        return spawned;
+    }
+
     [Test]
-    public async Task TheCampWarnsYouOffThenAttacks()
+    public async Task ACamperSetsOffToMeetAVisitorAndTheRestStayPut()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var server = pair.Server;
         var entMan = server.EntMan;
         var (map, player) = await Rig(pair, 20);
-        EntityUid first = default, second = default;
-        await server.WaitPost(() =>
-        {
-            var xforms = server.System<SharedTransformSystem>();
-            xforms.SetCoordinates(player, new EntityCoordinates(map.Grid.Owner, 13.5f, 0.5f));
-            entMan.SpawnEntity("WFStrangerCampHome", new EntityCoordinates(map.Grid.Owner, 0.5f, 0.5f));
-            first = entMan.SpawnEntity("WFStrangerMugger", new EntityCoordinates(map.Grid.Owner, 1.5f, 0.5f));
-            second = entMan.SpawnEntity("WFStrangerBeggar", new EntityCoordinates(map.Grid.Owner, -1.5f, 0.5f));
-        });
-        await RunUntil(pair, () => WarnedOff(entMan.GetComponent<WFStrangerComponent>(first), player), 15);
+        // Both see the player at the camp's edge; the mugger is nearer.
+        var camp = await Camp(pair, map, player, 13.5f, ("WFStrangerMugger", 4.5f), ("WFStrangerBeggar", 0.5f));
+        var mugger = camp[0];
+        var beggar = camp[1];
+        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(mugger).Hailed, 45);
         await server.WaitAssertion(() =>
         {
-            var stranger = entMan.GetComponent<WFStrangerComponent>(first);
+            var stranger = entMan.GetComponent<WFStrangerComponent>(mugger);
+            var other = entMan.GetComponent<WFStrangerComponent>(beggar);
             Assert.That(stranger.Home, Is.Not.Null, "Spawned in the camp, it should be his home.");
-            Assert.That(stranger.Warned, Does.ContainKey(player), "He should warn off someone coming up to the camp.");
-            Assert.That(stranger.Hostile, Is.False, "A warning first, not a fight.");
-            Assert.That(stranger.Target, Is.Null, "Someone with a home doesn't go after strangers to talk.");
+            Assert.That(stranger.Target, Is.EqualTo(player), "The nearest camper should go out to meet the visitor.");
+            Assert.That(stranger.Hailed, Is.True, "He should walk up and hail them.");
+            Assert.That(stranger.Hostile, Is.False, "Meeting a visitor isn't a fight.");
+            Assert.That(Greeted(stranger, player), Is.True, "He should greet them on his way over.");
+            Assert.That(other.Target, Is.Null, "Only one camper takes a visitor at a time.");
+            Assert.That(other.Hailed, Is.False);
+            Assert.That(other.Hostile, Is.False);
         });
+        await pair.CleanReturnAsync();
+    }
 
-        await server.WaitPost(() =>
-            server.System<SharedTransformSystem>().SetCoordinates(player, new EntityCoordinates(map.Grid.Owner, 5.5f, 0.5f)));
-        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(first).Hostile
-                                   && entMan.GetComponent<WFStrangerComponent>(second).Hostile, 15);
+    [Test]
+    public async Task WalkingIntoTheCampIsNotHostile()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var (map, player) = await Rig(pair, 20);
+        var camp = await Camp(pair, map, player, 5.5f, ("WFStrangerMugger", 1.5f), ("WFStrangerBeggar", -1.5f));
+        bool Angry() => camp.Any(member => entMan.GetComponent<WFStrangerComponent>(member).Hostile);
+        bool Hailing() => camp.Any(member => entMan.GetComponent<WFStrangerComponent>(member).Hailed);
+        await RunUntil(pair, () => Hailing() || Angry(), 30);
+        await pair.RunSeconds(2);
         await server.WaitAssertion(() =>
         {
-            Assert.That(entMan.GetComponent<WFStrangerComponent>(first).Hostile, Is.True, "Inside the camp, he should attack.");
-            Assert.That(entMan.GetComponent<WFStrangerComponent>(second).Hostile, Is.True, "...and the rest of the camp with him.");
+            Assert.That(Angry(), Is.False, "Walking into the camp shouldn't turn anyone on you.");
+            Assert.That(Hailing(), Is.True, "Someone should have come over to talk.");
         });
+        await pair.CleanReturnAsync();
+    }
+
+    [TestCase("WFStrangerMugger", 1)]
+    [TestCase("WFStrangerDealer", 1)]
+    public async Task RefusingACamperTurnsTheWholeCampHostile(string proto, int refuse)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var (map, player) = await Rig(pair, 20);
+        var camp = await Camp(pair, map, player, 13.5f, (proto, 4.5f), ("WFStrangerBeggar", 0.5f));
+        var talker = camp[0];
+        var mate = camp[1];
+        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(talker).Hailed, 45);
+        var strangers = server.System<WFStrangerSystem>();
+        await server.WaitAssertion(() =>
+        {
+            var stranger = entMan.GetComponent<WFStrangerComponent>(talker);
+            Assert.That(stranger.Hailed, Is.True, "He never hailed the visitor.");
+            Assert.That(entMan.GetComponent<WFStrangerComponent>(mate).Hostile, Is.False, "Not before the talk goes wrong.");
+
+            strangers.StartConversation((talker, stranger), player);
+            strangers.Choose((talker, stranger), player, refuse);
+
+            Assert.That(stranger.Hostile, Is.True, "Refused, he should turn on the visitor.");
+            Assert.That(entMan.GetComponent<FactionExceptionComponent>(talker).Hostiles, Does.Contain(player));
+            Assert.That(entMan.GetComponent<WFStrangerComponent>(mate).Hostile, Is.True, "...and the rest of the camp with him.");
+            Assert.That(entMan.GetComponent<FactionExceptionComponent>(mate).Hostiles, Does.Contain(player));
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task TheCamperWalksHomeAfterTheTalk()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var (map, player) = await Rig(pair, 20);
+        var camp = await Camp(pair, map, player, 13.5f, ("WFStrangerBeggar", 4.5f));
+        var beggar = camp[0];
+        var home = new Vector2(0.5f, 0.5f);
+        float Distance() => Vector2.Distance(entMan.GetComponent<TransformComponent>(beggar).LocalPosition, home);
+        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(beggar).Hailed, 45);
+
+        var strangers = server.System<WFStrangerSystem>();
+        var radius = 0f;
+        await server.WaitAssertion(() =>
+        {
+            var stranger = entMan.GetComponent<WFStrangerComponent>(beggar);
+            Assert.That(stranger.Hailed, Is.True, "He never hailed the visitor.");
+            radius = entMan.GetComponent<WFStrangerHomeComponent>(stranger.Home!.Value).Radius;
+            Assert.That(Distance(), Is.GreaterThan(radius), "He should have come out of the camp to meet them.");
+
+            strangers.StartConversation((beggar, stranger), player);
+            // "Not today."
+            strangers.Choose((beggar, stranger), player, 1);
+            Assert.That(stranger.Target, Is.Null, "The talk is over.");
+            Assert.That(stranger.Hostile, Is.False);
+        });
+        await RunUntil(pair, () => Distance() < radius, 90);
+        await server.WaitAssertion(() =>
+            Assert.That(Distance(), Is.LessThan(radius), "Afterwards he should make his way back to the camp."));
         await pair.CleanReturnAsync();
     }
 

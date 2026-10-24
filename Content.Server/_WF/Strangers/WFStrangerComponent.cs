@@ -98,26 +98,28 @@ public sealed partial class WFStrangerComponent : Component
     [ViewVariables]
     public TimeSpan NextWander;
 
-    /// <summary>People he's told to clear off, and when he'll say it again.</summary>
+    /// <summary>Visitors he has already greeted on his way over, and when.</summary>
     [ViewVariables]
-    public Dictionary<EntityUid, TimeSpan> Warned = new();
+    public Dictionary<EntityUid, TimeSpan> Greeted = new();
 }
 
 /// <summary>
-/// Where strangers live, such as a crazy camp or a house. Those who live here wander about it, warn off whoever they see
-/// coming and go for anyone who comes in.
+/// Where strangers live, such as a crazy camp or a house. Those who live here wander about it and go out to meet whoever
+/// they see, one of them at a time, and walk home after. Visitors are welcome: it's only the talk going badly that turns
+/// them.
 /// </summary>
 [RegisterComponent]
 public sealed partial class WFStrangerHomeComponent : Component
 {
-    /// <summary>The home itself: come inside and they attack.</summary>
+    /// <summary>The home itself: they potter about within it.</summary>
     [DataField]
     public float Radius = 7f;
 
-    /// <summary>How far out they warn people off.</summary>
+    /// <summary>How far out they go to meet visitors; they won't chase anyone beyond twice this from home.</summary>
     [DataField]
     public float WarnRadius = 15f;
 
+    /// <summary>What one says, once, on setting off to meet a visitor.</summary>
     [DataField]
-    public List<LocId> Warnings = new();
+    public List<LocId> Greetings = new();
 }
