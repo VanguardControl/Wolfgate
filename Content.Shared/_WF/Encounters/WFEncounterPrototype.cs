@@ -628,6 +628,7 @@ public enum WFEncounterIcon : byte
     Flag,
     Swords,
     Ghost,
+    Drone,
 }
 
 public enum WFEncounterPlacement : byte

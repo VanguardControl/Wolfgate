@@ -426,7 +426,7 @@ public sealed class WFSectorMapControl : Control
 
             var color = marker.Color ?? WFEncounterColors.Category(marker.Category);
             into.Add(new WFSectorEncounterView(marker.Encounter, marker.Name, marker.Category, color, system.GetPosition(marker),
-                marker.Threat, marker.Retrofitted));
+                marker.Threat, marker.Retrofitted, marker.Icon));
         }
     }
 
@@ -723,7 +723,8 @@ public sealed class WFSectorMapControl : Control
             if (!bounds.Contains(point))
                 continue;
 
-            handle.DrawTextureRect(Glyph(GlyphFor(encounter.Category)), UIBox2.FromDimensions(point - glyph / 2f, glyph), WFEncounterColors.Category(encounter.Category));
+            var icon = encounter.Icon != WFEncounterIcon.Category ? encounter.Icon : GlyphFor(encounter.Category);
+            handle.DrawTextureRect(Glyph(icon), UIBox2.FromDimensions(point - glyph / 2f, glyph), WFEncounterColors.Category(encounter.Category));
             // Its threat rank in a row under the glyph.
             var rank = 9f * UIScale;
             var width = WFEncounterRanks.Width(encounter.Threat, rank);
@@ -934,7 +935,7 @@ public enum WFSectorBlipKind : byte
 
 /// <summary>An encounter on the sector map: its name, its category, its first ship's side colour and where that ship is in map space.</summary>
 public readonly record struct WFSectorEncounterView(NetEntity Encounter, string Name, WFEncounterCategory Category, Color Color, Vector2 Position,
-    int? Threat = null, bool Retrofitted = false);
+    int? Threat = null, bool Retrofitted = false, WFEncounterIcon Icon = WFEncounterIcon.Category);
 
 /// <summary>A blip on the sector map, a named grid or an encounter, with what its card shows.</summary>
 public readonly record struct WFSectorBlip(WFSectorBlipKind Kind, string Name, Vector2 Position, Color Color, EntityUid Grid, NetEntity Encounter, WFEncounterCategory Category,
