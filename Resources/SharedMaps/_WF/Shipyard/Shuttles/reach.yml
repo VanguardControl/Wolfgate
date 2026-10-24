@@ -66,7 +66,7 @@ entities:
   - uid: 2
     components:
     - type: MetaData
-      name: SS Calypso
+      name: SY Reach
     - type: Transform
       parent: invalid
     - type: MapGrid
@@ -141,7 +141,7 @@ entities:
     - type: Fixtures
       fixtures: {}
     - type: BecomesStation
-      id: WFCalypso
+      id: WFReach
     - type: OccluderTree
     - type: Shuttle
       dampingModifier: 0.25

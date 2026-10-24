@@ -1,12 +1,12 @@
 - type: vessel
-  id: WFCalypso
+  id: WFReach
   parent: BaseVessel
-  name: SS Calypso
+  name: SY Reach
   description: "A civilian capital ship with a full crew's worth of departments: bridge, medbay and chemistry, research, botany, kitchen and bar, salvage bay, brig and dorms. Twin pinch reactors, a shield generator and sixteen L85 autocannons. Needs a crew to fly."
   price: 400000
   category: Large
   group: Shipyard
-  shuttlePath: /SharedMaps/_WF/Shipyard/Shuttles/calypso.yml
+  shuttlePath: /SharedMaps/_WF/Shipyard/Shuttles/reach.yml
   guidebookPage: null
   class:
   - Capital
@@ -23,16 +23,16 @@
   - APU
 
 - type: gameMap
-  id: WFCalypso
-  mapName: 'SS Calypso'
-  mapPath: /SharedMaps/_WF/Shipyard/Shuttles/calypso.yml
+  id: WFReach
+  mapName: 'SY Reach'
+  mapPath: /SharedMaps/_WF/Shipyard/Shuttles/reach.yml
   minPlayers: 0
   stations:
-    WFCalypso:
+    WFReach:
       stationProto: StandardFrontierVessel
       components:
       - type: StationNameSetup
-        mapNameTemplate: 'Calypso CIV{1}'
+        mapNameTemplate: 'Reach CIV{1}'
         nameGenerator:
           !type:NanotrasenNameGenerator
           prefixCreator: '14'
