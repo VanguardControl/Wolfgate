@@ -1,8 +1,10 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using Content.Client.Inventory;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Shared._WF.RolledSleeves;
+using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Inventory;
 using Robust.Client.GameObjects;
 using Robust.Shared.GameObjects;
@@ -70,6 +72,87 @@ public sealed class WFRolledSleevesTest : InteractionTest
                 .Any(p => p != null && p.StartsWith("/Textures/_WF/RolledSleeves/Meridian/"));
             Assert.That(drawn, Is.True, "The rolled-down suit didn't use its drawn Meridian sprite.");
         });
+    }
+
+    /// <summary>
+    /// A wearer the client first sees already dressed (an outfit spawn, or walking into view) still redraws when the
+    /// sleeves are rolled.
+    /// </summary>
+    [Test]
+    public async Task RollsOnSuitTheClientFirstSawWorn()
+    {
+        EntityUid mob = default;
+        EntityUid suit = default;
+
+        // Spawned and dressed in one tick, so the client never sees the equip happen.
+        await Server.WaitAssertion(() =>
+        {
+            mob = SEntMan.SpawnEntity("MobHuman", SEntMan.GetCoordinates(TargetCoords));
+            suit = SEntMan.SpawnEntity("ClothingUniformJumpsuitEngineering", SEntMan.GetCoordinates(TargetCoords));
+            Assert.That(SEntMan.System<InventorySystem>().TryEquip(mob, suit, "jumpsuit", force: true), Is.True);
+        });
+        await RunTicks(5);
+        var target = SEntMan.GetNetEntity(mob);
+        await AssertMasked(target, null);
+
+        await Server.WaitAssertion(() =>
+        {
+            var comp = SEntMan.GetComponent<WFRolledSleevesComponent>(suit);
+            SEntMan.System<WFRolledSleevesSystem>().SetStyle((suit, comp), WFJumpsuitStyle.SleevesRolled, mob);
+        });
+        await RunTicks(5);
+        await AssertMasked(target, "sleeves");
+    }
+
+    /// <summary>Every playable species gets the sleeve cut on a plain jumpsuit.</summary>
+    [Test]
+    public async Task EverySpeciesRollsSleeves()
+    {
+        var species = Server.ProtoMan.EnumeratePrototypes<SpeciesPrototype>()
+            .Where(s => s.RoundStart)
+            .OrderBy(s => s.ID)
+            .ToList();
+        var failures = new List<string>();
+
+        foreach (var proto in species)
+        {
+            var target = await SpawnTarget(proto.Prototype);
+            var mob = ToServer(target);
+            var equipped = false;
+
+            await Server.WaitAssertion(() =>
+            {
+                var suit = SEntMan.SpawnEntity("ClothingUniformJumpsuitDetective", SEntMan.GetCoordinates(TargetCoords));
+                equipped = SEntMan.System<InventorySystem>().TryEquip(mob, suit, "jumpsuit", force: true);
+                if (equipped)
+                {
+                    var comp = SEntMan.GetComponent<WFRolledSleevesComponent>(suit);
+                    SEntMan.System<WFRolledSleevesSystem>().SetStyle((suit, comp), WFJumpsuitStyle.SleevesRolled, mob);
+                }
+            });
+
+            if (!equipped)
+            {
+                failures.Add($"{proto.ID}: can't wear a jumpsuit");
+                continue;
+            }
+
+            await RunTicks(5);
+            await Client.WaitAssertion(() =>
+            {
+                var sprite = CEntMan.GetComponent<SpriteComponent>(ToClient(target));
+                var keys = CEntMan.GetComponent<InventorySlotsComponent>(ToClient(target)).VisualLayerKeys["jumpsuit"];
+                if (keys.Any(k => k.EndsWith(MaskSuffix)))
+                    return;
+
+                var states = keys.Where(k => sprite.LayerMapTryGet(k, out _))
+                    .Select(k => (SpriteComponent.Layer) sprite[sprite.LayerMapGet(k)])
+                    .Select(l => $"{l.ActualRsi?.Path}:{l.State.Name}");
+                failures.Add($"{proto.ID}: no mask ({string.Join(", ", states)})");
+            });
+        }
+
+        Assert.That(failures, Is.Empty, string.Join("\n", failures));
     }
 
     private async Task AssertMasked(NetEntity target, string? maskState)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Content.Client._WF.MappingMode;
 using Content.Client._WF.MappingMode.Modes;
+using Content.Client._WF.MappingMode.Palette;
 using Content.Client._WF.MappingMode.QuickSelect;
 using Content.Client._WF.MappingMode.Screen;
 using Content.Client._WF.MappingMode.Template;
@@ -412,6 +413,16 @@ public sealed class WFMappingScreenTest
             Assert.That(template.Settings.ScaleX, Is.GreaterThan(scale));
             modes.SetMode(WFMappingBuildMode.Place);
             Assert.That(modes.TryWheel(1f), Is.False, "Place mode leaves the plain wheel to the zoom.");
+
+            // Picking another palette entry keeps the mode; only Pick hands over to Place.
+            Assert.That(client.ResolveDependency<Robust.Client.Placement.IPlacementManager>().Replacement, Is.True,
+                "Placement replaces like walls by default.");
+            modes.SetMode(WFMappingBuildMode.Fill);
+            modes.BeginPlacing(new WFMappingPaletteEntry(WFMappingPaletteKind.Tile, "Plating"));
+            Assert.That(modes.Mode, Is.EqualTo(WFMappingBuildMode.Fill));
+            modes.SetMode(WFMappingBuildMode.Pick);
+            modes.BeginPlacing(new WFMappingPaletteEntry(WFMappingPaletteKind.Tile, "Plating"));
+            Assert.That(modes.Mode, Is.EqualTo(WFMappingBuildMode.Place));
 
             // A changed setting is written to the data folder when the session is left.
             template.Settings.Opacity = 0.25f;

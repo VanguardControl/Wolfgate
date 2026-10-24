@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Server._WF.MappingTools;
 using Content.Shared._WF.MappingMode;
+using Robust.Shared.Enums;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Network;
@@ -96,6 +97,27 @@ public sealed partial class WFMappingModeSystem
         }
 
         msg.NetCoordinates = GetNetCoordinates(new EntityCoordinates(map, cell));
+    }
+
+    /// <summary>
+    /// Sends an admin's tile placement off every grid on a session map onto the nearest grid, as mappers' placements
+    /// are; admins skip the placement gate, so without this each tile off a grid starts a grid of its own.
+    /// </summary>
+    public void RouteAdminPlacement(ICommonSession player, MsgPlacement msg)
+    {
+        if (!Enabled || msg.PlaceType != PlacementManagerMessage.RequestPlacement || !msg.IsTile || msg.TileType == 0)
+            return;
+
+        var coords = GetCoordinates(msg.NetCoordinates);
+        if (!coords.IsValid(EntityManager) || HasComp<MapGridComponent>(coords.EntityId) ||
+            _transform.GetMap(coords) is not { } map || !TryGetSessionOfMap(map, out _))
+        {
+            return;
+        }
+
+        var mapCoords = _transform.ToMapCoordinates(coords);
+        if (!_map.TryFindGridAt(mapCoords, out _, out _))
+            RouteOffGridTile(player, map, mapCoords, msg);
     }
 
     private void OnNewGridTarget(WFMappingNewGridTargetEvent ev)

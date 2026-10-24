@@ -1,5 +1,4 @@
 using Content.Shared.Inventory;
-using Content.Shared.Item;
 using Content.Shared.Popups;
 using Content.Shared.Verbs;
 using Robust.Shared.Utility;
@@ -10,7 +9,6 @@ namespace Content.Shared._WF.RolledSleeves;
 public sealed partial class WFRolledSleevesSystem : EntitySystem
 {
     [Dependency] private InventorySystem _inventory = default!;
-    [Dependency] private SharedItemSystem _item = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
 
     private static readonly SpriteSpecifier VerbIcon =
@@ -72,7 +70,13 @@ public sealed partial class WFRolledSleevesSystem : EntitySystem
 
         ent.Comp.Style = style;
         Dirty(ent);
-        _item.VisualsChanged(ent);
+
+        var ev = new WFJumpsuitStyleChangedEvent();
+        RaiseLocalEvent(ent, ref ev);
         _popup.PopupClient(Loc.GetString(msg, ("item", ent.Owner)), user, user);
     }
 }
+
+/// <summary>Raised on a jumpsuit when its style changes, so the client redraws it.</summary>
+[ByRefEvent]
+public record struct WFJumpsuitStyleChangedEvent;

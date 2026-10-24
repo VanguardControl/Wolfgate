@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using Content.Client.Clothing;
 using Content.Shared._WF.RolledSleeves;
 using Content.Shared.Clothing;
 using Content.Shared.Inventory;
-using Content.Shared.Item;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -18,7 +18,8 @@ namespace Content.Client._WF.RolledSleeves;
 public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
 {
     [Dependency] private IResourceCache _cache = default!;
-    [Dependency] private SharedItemSystem _item = default!;
+    [Dependency] private ClientClothingSystem _clothing = default!;
+    [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private SpriteSystem _sprite = default!;
 
     private const string Shader = "WFRolledSleeves";
@@ -36,11 +37,27 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
 
         SubscribeLocalEvent<WFRolledSleevesComponent, EquipmentVisualsUpdatedEvent>(OnVisualsUpdated);
         SubscribeLocalEvent<WFRolledSleevesComponent, AfterAutoHandleStateEvent>(OnAfterState);
+        SubscribeLocalEvent<WFRolledSleevesComponent, WFJumpsuitStyleChangedEvent>(OnStyleChanged);
     }
 
     private void OnAfterState(Entity<WFRolledSleevesComponent> ent, ref AfterAutoHandleStateEvent args)
     {
-        _item.VisualsChanged(ent);
+        Redraw(ent);
+    }
+
+    private void OnStyleChanged(Entity<WFRolledSleevesComponent> ent, ref WFJumpsuitStyleChangedEvent args)
+    {
+        Redraw(ent);
+    }
+
+    /// <summary>
+    /// Redraws the wearer's clothes. Not through the item system: that needs the suit's InSlot, which the client
+    /// never sets when it first sees the wearer already dressed.
+    /// </summary>
+    private void Redraw(EntityUid suit)
+    {
+        if (_inventory.TryGetContainingEntity(suit, out var wearer) && TryComp(wearer, out InventoryComponent? inventory))
+            _clothing.InitClothing(wearer.Value, inventory);
     }
 
     private void OnVisualsUpdated(Entity<WFRolledSleevesComponent> ent, ref EquipmentVisualsUpdatedEvent args)

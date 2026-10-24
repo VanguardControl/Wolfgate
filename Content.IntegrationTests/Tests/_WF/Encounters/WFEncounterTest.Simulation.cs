@@ -180,7 +180,7 @@ public sealed partial class WFEncounterTest
                 "The simulated ship flies its wander legs.");
 
             await Server.WaitPost(() => MovePlayer(Server.System<SharedTransformSystem>().GetWorldPosition(proxy) + new Vector2(0f, 1500f)));
-            await Until(() => !Ship(encounter).Virtual, 30, "A player within range spawns the hull.");
+            await Until(() => !Ship(encounter).Virtual && !Ship(encounter).Building, 30, "A player within range spawns the hull.");
             await Server.WaitAssertion(() =>
             {
                 var ship = Ship(encounter);
@@ -225,7 +225,7 @@ public sealed partial class WFEncounterTest
                 SEntMan.EventBus.RaiseEvent(EventSource.Local, ref ev);
             });
 
-            await Until(() => !Ship(encounter).Virtual, 30, "The ship near the jump's exit is spawned.");
+            await Until(() => !Ship(encounter).Virtual && !Ship(encounter).Building, 30, "The ship near the jump's exit is spawned.");
             await Server.WaitPost(() => Server.System<WFEncounterSystem>().End(encounter));
         });
     }
@@ -300,7 +300,7 @@ public sealed partial class WFEncounterTest
                 "The simulated visitor reaches the host and counts as docked.");
 
             await Server.WaitPost(() => MovePlayer(at + new Vector2(0f, 1500f)));
-            await Until(() => !Ship(host).Virtual && !Ship(visitor).Virtual, 30, "Both hulls are spawned.");
+            await Until(() => !Ship(host).Virtual && !Ship(host).Building && !Ship(visitor).Virtual && !Ship(visitor).Building, 30, "Both hulls are spawned.");
             await Server.WaitAssertion(() =>
             {
                 var encounters = Server.System<WFEncounterSystem>();
@@ -342,16 +342,23 @@ public sealed partial class WFEncounterTest
                 "Simulated, it picks the player's ship as its mark.");
             EntityUid? markWhenSpawned = null;
             var spawnedAt = 0f;
+            void Track(WFEncounterShipState ship, bool built)
+            {
+                // Built, its crew fly it and may drop the mark straight away; the mark it came in with is the one before.
+                if (!built)
+                    markWhenSpawned = ship.Extort!.Mark;
+                spawnedAt = (Server.System<SharedTransformSystem>().GetWorldPosition(ship.Grid)
+                             - Server.System<SharedTransformSystem>().GetWorldPosition(grid)).Length();
+            }
+
+            await Server.WaitPost(() => Track(Ship(encounter), false));
+            // Spawned means built: the hull is placed a few ticks before its crew are aboard.
             await Until(() =>
             {
                 var ship = Ship(encounter);
-                if (!ship.Virtual)
-                    return true;
-
-                markWhenSpawned = ship.Extort!.Mark;
-                spawnedAt = (Server.System<SharedTransformSystem>().GetWorldPosition(ship.Grid)
-                             - Server.System<SharedTransformSystem>().GetWorldPosition(grid)).Length();
-                return false;
+                var built = !ship.Virtual && !ship.Building;
+                Track(ship, built);
+                return built;
             }, 120, "It closes on its mark and is spawned on the way.");
             await Server.WaitAssertion(() =>
             {
@@ -382,7 +389,7 @@ public sealed partial class WFEncounterTest
                 var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestSimHauler");
                 Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(at, MapData.MapId), out encounter), Is.True);
             });
-            await Until(() => !Ship(encounter).Virtual, 30, "The hauler near the player is spawned.");
+            await Until(() => !Ship(encounter).Virtual && !Ship(encounter).Building, 30, "The hauler near the player is spawned.");
             await Server.WaitPost(() =>
             {
                 var hit = new WFCrewHullHitEvent(Ship(encounter).Grid, MapData.Grid);

@@ -51,7 +51,8 @@ public sealed partial class WFMappingClientSystem
 
         EntityUid? nearest = null;
         var best = float.MaxValue;
-        var query = EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+        // Session maps are paused, so their grids are too.
+        var query = AllEntityQuery<MapGridComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var grid, out var xform))
         {
             if (xform.MapID != mapId || xform.ParentUid != xform.MapUid)

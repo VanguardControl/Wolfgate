@@ -496,6 +496,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeBarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeBarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeTestUtil.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeTestUtil.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPermissionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPermissionTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPlaceSpamTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPlaceSpamTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingProtectionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingProtectionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingReferenceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingReferenceTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingScreenTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingScreenTest.cs)
@@ -598,7 +599,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
   - mapping mode never starts a round
 - [`Content.Server/Physics/Controllers/MoverController.cs`](../../Physics/Controllers/MoverController.cs): mapping observers move on their paused session maps like admin ghosts
 - [`Content.Server/Sandbox/SandboxSystem.cs`](../../Sandbox/SandboxSystem.cs)
-  - admins who map get the won't-be-saved warning too
+  - admins who map get the won't-be-saved warning and tile routing too
   - mappers place, erase and lay tiles on their own session's maps
 - [`Content.Shared/Input/ContentKeyFunctions.cs`](../../../Content.Shared/Input/ContentKeyFunctions.cs): Escape drops a reference grid being placed
 - [`Content.Shared/Verbs/SharedVerbSystem.cs`](../../../Content.Shared/Verbs/SharedVerbSystem.cs): mapping observers without admin data get no verbs; admins keep theirs
