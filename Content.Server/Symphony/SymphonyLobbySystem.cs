@@ -511,8 +511,9 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
 
         bool Available(string path)
         {
+            // A file the build ships must still be in it: a content update may have taken it away since it was set.
             if (!path.StartsWith(SymphonyUploads.Root + "/", StringComparison.Ordinal))
-                return true;
+                return _resources.ContentFileExists(new ResPath(path));
             if (_uploads.ContainsKey(path))
                 return true;
             var relative = new ResPath(path).RelativeTo(SymphonyUploads.Root);

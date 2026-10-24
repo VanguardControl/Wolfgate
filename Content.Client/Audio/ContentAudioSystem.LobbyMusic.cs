@@ -176,11 +176,14 @@ public sealed partial class ContentAudioSystem
         if (!_resourceCache.TryGetResource(new ResPath(soundtrackFilename), out AudioResource? audio))
         {
             // WOLFGATE(Symphony) START: a track the panel uploaded can arrive just after the playlist naming it
-            if (soundtrackFilename.StartsWith("/Uploaded/") && attempt < 20)
+            // Only for a first start: while a track plays, advancing already asks again every frame. The music switch
+            // is asked again too, in case it was turned off while the file was on its way.
+            if (soundtrackFilename.StartsWith("/Uploaded/") && attempt < 20 && _lobbySoundtrackInfo == null)
             {
                 Timer.Spawn(500, () =>
                 {
-                    if (_lobbySoundtrackInfo == null && _lobbyPlaylist != null && _lobbyPlaylist.Contains(soundtrackFilename) && _state.CurrentState is LobbyState)
+                    if (_lobbySoundtrackInfo == null && _lobbyPlaylist != null && _lobbyPlaylist.Contains(soundtrackFilename)
+                        && _state.CurrentState is LobbyState && _configManager.GetCVar(CCVars.LobbyMusicEnabled))
                         PlaySoundtrack(soundtrackFilename, attempt + 1);
                 });
             }
