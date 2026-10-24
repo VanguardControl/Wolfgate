@@ -605,11 +605,14 @@ public sealed partial class WFDrydockSystem : EntitySystem
             if (job == null && ship is { } target && refusal == null)
             {
                 state.Breakable = true;
-                state.BreakYield = BreakPreview(target, breaker);
                 if (chop != null)
                 {
-                    (state.BreakYield, state.BreakCash) = SplitChopYield(chop, state.BreakYield, TileCount(target));
+                    state.BreakCash = ChopPayout(chop, target);
                     state.BreakWarrant = IsLawfulProperty(chop, target, null);
+                }
+                else
+                {
+                    state.BreakYield = BreakPreview(target, breaker);
                 }
             }
         }

@@ -106,7 +106,7 @@ public sealed class WFDrydockConsoleState : BoundUserInterfaceState
     /// <summary>Whether this console is a chop shop: it breaks hulls and sells no work.</summary>
     public bool BreakOnly;
 
-    /// <summary>Cash a chop shop pays for breaking the ship, on top of <see cref="BreakYield"/>.</summary>
+    /// <summary>Thalers a chop shop pays for breaking the whole ship.</summary>
     public int BreakCash;
 
     /// <summary>Whether breaking the ship posts a warrant, unless its deed is in the breaker's name.</summary>

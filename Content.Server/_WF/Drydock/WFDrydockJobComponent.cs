@@ -1,5 +1,4 @@
 using System.Numerics;
-using Robust.Shared.Network;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Maths;
 using Robust.Shared.ViewVariables;
@@ -151,11 +150,22 @@ public sealed partial class WFDrydockJobComponent : Component
     /// <summary>Who started a break, reported as attacking the ship in person.</summary>
     public EntityUid? Breaker;
 
-    /// <summary>Player who started a break, paid through their character when their body can't take a chop shop's cash.</summary>
-    public NetUserId? BreakerUser;
+    /// <summary>Thalers a chop-shop break pays for the whole hull, fixed when it starts.</summary>
+    [ViewVariables]
+    public int CashTotal;
 
-    /// <summary>Whether a chop shop has handed over and paid out this break's yield.</summary>
-    public bool Settled;
+    /// <summary>Thalers a chop-shop break has printed so far.</summary>
+    [ViewVariables]
+    public int CashPaid;
+
+    /// <summary>Work time of every tile in a chop-shop break, which its payout is shared out by.</summary>
+    public float CashWeight;
+
+    /// <summary>Work time of the tiles broken so far.</summary>
+    public float CashWeightDone;
+
+    /// <summary>Stack the latest bills went on, topped up while it lies by the console.</summary>
+    public EntityUid? CashStack;
 
     /// <summary>Materials a break job has credited to its cranes so far.</summary>
     public Dictionary<string, int> Yield = new();
