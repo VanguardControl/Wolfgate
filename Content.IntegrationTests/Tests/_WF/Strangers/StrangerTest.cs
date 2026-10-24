@@ -47,7 +47,10 @@ public sealed class StrangerTest
         return (map, player);
     }
 
-    /// <summary>Runs the pair until <paramref name="done"/> holds or <paramref name="seconds"/> pass; a slow CI box takes longer.</summary>
+    /// <summary>
+    /// Runs the pair until <paramref name="done"/> holds or <paramref name="seconds"/> pass. Ticks run as fast as the box allows,
+    /// but the pathfinder answers on a worker thread in real time, so each poll also yields a little wall-clock time to it.
+    /// </summary>
     internal static async Task RunUntil(TestPair pair, Func<bool> done, float seconds)
     {
         for (var waited = 0f; waited < seconds; waited += 0.5f)
@@ -57,6 +60,7 @@ public sealed class StrangerTest
             if (finished)
                 return;
             await pair.RunSeconds(0.5f);
+            await Task.Delay(25);
         }
     }
 
@@ -69,7 +73,7 @@ public sealed class StrangerTest
         var (map, player) = await Rig(pair);
         EntityUid dealer = default;
         await server.WaitPost(() => dealer = entMan.SpawnEntity("WFStrangerDealer", new EntityCoordinates(map.Grid.Owner, 6.5f, 0.5f)));
-        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(dealer).Hailed, 30);
+        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(dealer).Hailed, 45);
 
         var strangers = server.System<WFStrangerSystem>();
         await server.WaitAssertion(() =>
