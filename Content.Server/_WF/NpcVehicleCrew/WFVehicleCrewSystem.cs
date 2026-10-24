@@ -122,6 +122,8 @@ public sealed partial class WFVehicleCrewSystem : EntitySystem
     {
         ent.Comp.PathCancel?.Cancel();
         ent.Comp.PathCancel = null;
+        ent.Comp.NextPathCancel?.Cancel();
+        ent.Comp.NextPathCancel = null;
     }
 
     /// <summary>
@@ -680,6 +682,7 @@ public sealed partial class WFVehicleCrewSystem : EntitySystem
 
         vehicle.Comp.Waypoints = new List<MapCoordinates>(points);
         vehicle.Comp.WaypointIndex = 0;
+        vehicle.Comp.PatrolFrom = _transform.GetMapCoordinates(vehicle);
         vehicle.Comp.PauseUntil = TimeSpan.Zero;
         SetBehaviour(vehicle, WFVehicleBehaviour.Patrol);
     }

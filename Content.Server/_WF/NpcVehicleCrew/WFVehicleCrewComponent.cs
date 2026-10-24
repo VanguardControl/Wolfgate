@@ -37,6 +37,10 @@ public sealed partial class WFVehicleCrewComponent : Component
     [ViewVariables]
     public int WaypointIndex;
 
+    /// <summary>Where the patrol's current leg began: the last point it reached, or where it set out from.</summary>
+    [ViewVariables]
+    public MapCoordinates? PatrolFrom;
+
     /// <summary>The entity escorted.</summary>
     [ViewVariables]
     public EntityUid? Lead;
@@ -127,6 +131,21 @@ public sealed partial class WFVehicleCrewComponent : Component
 
     [ViewVariables]
     public CancellationTokenSource? PathCancel;
+
+    /// <summary>The point after the goal on a patrol that rolls on to it without stopping; null stops at the goal.</summary>
+    [ViewVariables]
+    public MapCoordinates? NextGoal;
+
+    /// <summary>The route from the goal on to <see cref="NextGoal"/>, planned before the vehicle gets there.</summary>
+    [ViewVariables]
+    public List<MapCoordinates> NextRoute = new();
+
+    /// <summary>The next goal <see cref="NextRoute"/> was planned for.</summary>
+    [ViewVariables]
+    public MapCoordinates? NextRouteGoal;
+
+    [ViewVariables]
+    public CancellationTokenSource? NextPathCancel;
 
     /// <summary>When throttle was held with the vehicle not moving; null while it moves.</summary>
     [ViewVariables]

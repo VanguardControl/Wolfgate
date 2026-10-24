@@ -21,6 +21,12 @@ public sealed partial class WFVehicleCrewSystem
 
     private const int PatrolPointTries = 20;
 
+    /// <summary>A patrol whose longest pause is no more than this rolls through its points without stopping at each.</summary>
+    private static readonly TimeSpan RollOnPause = TimeSpan.FromSeconds(2);
+
+    /// <summary>How near a point a rolling patrol counts as through it, wider than an arrival since it doesn't stop there.</summary>
+    private const float RollOnRadius = 3f;
+
     /// <summary>How long a patrol that stops to fight waits after losing sight of the target.</summary>
     private static readonly TimeSpan ContactLoss = TimeSpan.FromSeconds(30);
 
@@ -137,6 +143,7 @@ public sealed partial class WFVehicleCrewSystem
     private void UpdateBehaviour(EntityUid uid, WFVehicleCrewComponent crew, WFVehicleCrewPrototype proto, TimeSpan now)
     {
         var here = _transform.GetMapCoordinates(uid);
+        crew.NextGoal = null;
         if (crew.Target != null && crew.TargetVisible && crew.Pursues &&
             crew.Behaviour is WFVehicleBehaviour.Hold or WFVehicleBehaviour.Patrol)
         {
@@ -176,7 +183,10 @@ public sealed partial class WFVehicleCrewSystem
         crew.Goal = away > slack || crew.Goal != null && away > ArriveDistance ? crew.Home : null;
     }
 
-    /// <summary>Loops the patrol points, pausing at each; a crew that does not fire on the move stops while in contact.</summary>
+    /// <summary>
+    /// Loops the patrol points; a crew that does not fire on the move stops while in contact. A road patrol (short
+    /// pauses) rolls through each point on to the next, and stops only at a turnaround; any other pauses at each point.
+    /// </summary>
     private void UpdatePatrol(EntityUid uid, WFVehicleCrewComponent crew, WFVehicleCrewPrototype proto, MapCoordinates here, TimeSpan now)
     {
         EnsurePatrolPoints(uid, crew, proto);
@@ -194,17 +204,58 @@ public sealed partial class WFVehicleCrewSystem
 
         crew.WaypointIndex %= crew.Waypoints.Count;
         var point = crew.Waypoints[crew.WaypointIndex];
-        if (Distance(here, point) > ArriveDistance)
+        var rollOn = RollOnPoint(crew, proto, here);
+        var reached = Distance(here, point) <= ArriveDistance ||
+                      rollOn != null && Distance(here, point) <= RollOnRadius ||
+                      rollOn is { } following && PassedPoint(here, point, following);
+        if (!reached)
         {
             crew.Goal = point;
+            crew.NextGoal = rollOn;
             return;
         }
 
         crew.WaypointIndex = (crew.WaypointIndex + 1) % crew.Waypoints.Count;
+        crew.PatrolFrom = point;
+        if (rollOn is { } through)
+        {
+            crew.Goal = through;
+            crew.NextGoal = RollOnPoint(crew, proto, here);
+            return;
+        }
+
         crew.PauseUntil = now + (proto.PatrolPauseMax > proto.PatrolPauseMin
             ? _random.Next(proto.PatrolPauseMin, proto.PatrolPauseMax)
             : proto.PatrolPauseMin);
         crew.Goal = null;
+    }
+
+    /// <summary>
+    /// The point after the current one, when the patrol should roll through the current one to it: a road patrol with
+    /// another point to go to that doesn't double back on the way it came. Null means stop at the current point.
+    /// </summary>
+    private static MapCoordinates? RollOnPoint(WFVehicleCrewComponent crew, WFVehicleCrewPrototype proto, MapCoordinates here)
+    {
+        var count = crew.Waypoints.Count;
+        if (count < 2 || proto.PatrolPauseMax > RollOnPause)
+            return null;
+
+        var index = crew.WaypointIndex % count;
+        var previous = crew.PatrolFrom ?? here;
+        var point = crew.Waypoints[index];
+        var next = crew.Waypoints[(index + 1) % count];
+        if (point.MapId != here.MapId || next.MapId != here.MapId || previous.MapId != here.MapId)
+            return null;
+
+        // Reversing on itself: a turnaround is a stop.
+        return Vector2.Dot(point.Position - previous.Position, next.Position - point.Position) < 0f ? null : next;
+    }
+
+    /// <summary>Whether the vehicle has driven past a point on its way to the one after it.</summary>
+    private static bool PassedPoint(MapCoordinates here, MapCoordinates point, MapCoordinates next)
+    {
+        var toPoint = point.Position - here.Position;
+        return toPoint.Length() < LookAheadMin && Vector2.Dot(toPoint, next.Position - point.Position) < 0f;
     }
 
     /// <summary>Rolls patrol points round home on floor of the vehicle's grid, when none were given.</summary>

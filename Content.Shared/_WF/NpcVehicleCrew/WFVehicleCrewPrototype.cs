@@ -62,7 +62,7 @@ public sealed partial class WFVehicleCrewPrototype : IPrototype
     [DataField]
     public float PatrolRadius = 40f;
 
-    /// <summary>How long a patrol waits at each point; a road patrol with points close together barely stops.</summary>
+    /// <summary>How long a patrol waits at each point; 2 s or less makes it roll through them without stopping.</summary>
     [DataField]
     public TimeSpan PatrolPauseMin = TimeSpan.FromSeconds(10);
 
