@@ -171,10 +171,20 @@ public sealed partial class ContentAudioSystem
         PlaySoundtrack(playlist[0]);
     }
 
-    private void PlaySoundtrack(string soundtrackFilename)
+    private void PlaySoundtrack(string soundtrackFilename, int attempt = 0) // WOLFGATE(Symphony): attempt
     {
         if (!_resourceCache.TryGetResource(new ResPath(soundtrackFilename), out AudioResource? audio))
         {
+            // WOLFGATE(Symphony) START: a track the panel uploaded can arrive just after the playlist naming it
+            if (soundtrackFilename.StartsWith("/Uploaded/") && attempt < 20)
+            {
+                Timer.Spawn(500, () =>
+                {
+                    if (_lobbySoundtrackInfo == null && _lobbyPlaylist != null && _lobbyPlaylist.Contains(soundtrackFilename) && _state.CurrentState is LobbyState)
+                        PlaySoundtrack(soundtrackFilename, attempt + 1);
+                });
+            }
+            // WOLFGATE END
             return;
         }
 

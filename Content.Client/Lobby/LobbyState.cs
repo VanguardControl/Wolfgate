@@ -253,6 +253,13 @@ namespace Content.Client.Lobby
 
         private void UpdateLobbyBackground()
         {
+            // WOLFGATE(Symphony) START: a background the panel uploaded can arrive just after the status naming it
+            if (_gameTicker.LobbyBackground != null && _gameTicker.LobbyBackground.StartsWith("/Uploaded/"))
+            {
+                WaitForLobbyBackground(_gameTicker.LobbyBackground, 0);
+                return;
+            }
+            // WOLFGATE END
             if (_gameTicker.LobbyBackground != null)
             {
                 Lobby!.Background.Texture = _resourceCache.GetResource<TextureResource>(_gameTicker.LobbyBackground );
@@ -263,6 +270,21 @@ namespace Content.Client.Lobby
             }
 
         }
+
+        // WOLFGATE(Symphony) START: shown once the uploaded file is here, tried twice a second for ten seconds
+        private void WaitForLobbyBackground(string path, int attempt)
+        {
+            if (Lobby == null || _gameTicker.LobbyBackground != path)
+                return;
+            if (_resourceCache.TryGetResource<TextureResource>(new ResPath(path), out var texture))
+            {
+                Lobby.Background.Texture = texture;
+                return;
+            }
+            if (attempt < 20)
+                Timer.Spawn(500, () => WaitForLobbyBackground(path, attempt + 1));
+        }
+        // WOLFGATE END
 
         private void SetReady(bool newReady)
         {
