@@ -214,7 +214,7 @@ namespace Content.Server.NPC.Systems
                             || TryComp<MobStateComponent>(playerEnt, out var state) && state.CurrentState != MobState.Alive)
                             continue;
 
-                        var playerCoords = Transform(playerEnt).Coordinates;
+                        var playerCoords = WfPlayerPresence(playerEnt); // WOLFGATE(Vehicles): a player in a vehicle's cabin is where the vehicle is.
 
                         if (npcCoords.TryDistance(EntityManager, playerCoords, out var distance) &&
                             distance <= minDistance)

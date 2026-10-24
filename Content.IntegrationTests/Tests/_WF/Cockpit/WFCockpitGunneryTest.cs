@@ -635,7 +635,16 @@ public sealed class WFCockpitGunneryTest
             Assert.That(em.GetComponent<WFFlareLauncherComponent>(flareUid).NextBurst, Is.EqualTo(TimeSpan.Zero));
             em.GetComponent<TargetSeekingComponent>(missileUid).MaxSpeed = 300;
         });
+        // The launcher answers on its own beat: give it up to a second, still well before a 300 m/s missile arrives.
         await pair.RunTicksSync(20);
+        for (var tick = 20; tick < 60; tick += 10)
+        {
+            var fired = false;
+            await pair.Server.WaitPost(() => fired = em.GetComponent<WFFlareLauncherComponent>(flareUid).NextBurst > TimeSpan.Zero);
+            if (fired)
+                break;
+            await pair.RunTicksSync(10);
+        }
         await pair.Server.WaitAssertion(() =>
         {
             Assert.That(em.GetComponent<WFCombatConsoleComponent>(consoleUid).Threats, Is.EqualTo(1),

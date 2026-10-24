@@ -40,12 +40,15 @@
         reagents:
         - ReagentId: Water
           Quantity: 9999999
-  - type: SolutionRegeneration
-    solution: pool
-    generated:
-      reagents:
-      - ReagentId: Water
-        Quantity: 100
+  # WOLFGATE(Planets) START: no refill on water tiles; every planet lake is thousands of them, walked every tick for nothing.
+  # The pool is already bottomless.
+  # - type: SolutionRegeneration
+  #   solution: pool
+  #   generated:
+  #     reagents:
+  #     - ReagentId: Water
+  #       Quantity: 100
+  # WOLFGATE END
   - type: DrainableSolution
     solution: pool
   - type: StepTrigger

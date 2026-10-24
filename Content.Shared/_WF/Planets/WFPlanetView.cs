@@ -1,6 +1,7 @@
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared._WF.MappingMode;
+using Content.Shared._WF.PlanetCities;
 
 namespace Content.Shared._WF.Planets;
 
@@ -12,12 +13,20 @@ public static class WFPlanetView
 
     /// <summary>
     /// The per-level scale for a map: a planet layer's or a mapping level with Depth perspective on, or the transit map
-    /// between two, else the renderer's own.
+    /// between two, else the renderer's own. A <paramref name="viewer"/> on foot (on the ground, a city's level or no
+    /// grid at all) sees a planet's lower layers full size, as storeys of a building rather than the ground far below a
+    /// ship.
     /// </summary>
-    public static float Shrink(IEntityManager entMan, EntityUid? map)
+    public static float Shrink(IEntityManager entMan, EntityUid? map, EntityUid? viewer = null)
     {
         if (map is not { } uid)
             return CESharedZLevelsSystem.ZLevelViewShrink;
+
+        if (viewer is { } who && entMan.TryGetComponent(who, out TransformComponent? xform)
+            && !entMan.HasComponent<CEZTransitMapComponent>(xform.MapUid)
+            && (xform.GridUid is not { } grid || grid == xform.MapUid || entMan.HasComponent<WFPlanetCityGridComponent>(grid))
+            && entMan.HasComponent<WFPlanetLayerComponent>(xform.MapUid))
+            return 1f;
 
         if (entMan.TryGetComponent(uid, out CEZTransitMapComponent? transit))
             uid = transit.LowerMap ?? transit.UpperMap ?? uid;

@@ -23,6 +23,12 @@ public sealed class RopeChain
     public float Width = 0.1f;
     public Color Color = Color.White;
 
+    /// <summary>The rope type's texture, drawn along the rope instead of a plain strip.</summary>
+    public Robust.Client.Graphics.Texture? Texture;
+
+    /// <summary>Width at end B as a share of the width at end A.</summary>
+    public float Taper = 1f;
+
     /// <summary>False while the rope is off screen: it keeps its chain but is neither stepped nor drawn.</summary>
     public bool Visible;
 

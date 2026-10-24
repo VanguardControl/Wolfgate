@@ -27,7 +27,8 @@ public sealed class VehicleAmmoLoaderBoundUserInterface : BoundUserInterface, IR
 
         _menu.OnSlotSelected += (slotPath, ammoSlot, action) =>
             SendMessage(new VehicleAmmoLoaderSelectMessage(slotPath, ammoSlot, action));
-        _menu.OpenCentered();
+        if (!EntMan.System<WFVehicleHudSystem>().TryEmbedMenu(_menu, Loc.GetString("wf-vehicle-tab-ammunition")))
+            _menu.OpenCentered();
         Refresh();
     }
 
@@ -41,6 +42,7 @@ public sealed class VehicleAmmoLoaderBoundUserInterface : BoundUserInterface, IR
         if (_menu != null)
             _menu.OnClose -= Close;
 
+        _menu?.Close();
         _menu?.Dispose();
         _menu = null;
     }

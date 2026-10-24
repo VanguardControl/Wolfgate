@@ -419,6 +419,9 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
         {
             vehicle = SEntMan.SpawnEntity(mount.Vehicle, new EntityCoordinates(MapData.Grid.Owner, VehicleSpot));
             Transform.SetLocalRotation(vehicle, Angle.Zero);
+            var engine = SEntMan.GetComponent<WFVehicleEngineComponent>(vehicle);
+            engine.Running = true;
+            engine.Electrics = true;
         });
         await RunTicks(5);
 
@@ -888,6 +891,9 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
         {
             vehicle = SEntMan.SpawnEntity(vehicleId, new EntityCoordinates(MapData.Grid.Owner, VehicleSpot));
             Transform.SetLocalRotation(vehicle, Angle.Zero);
+            var engine = SEntMan.GetComponent<WFVehicleEngineComponent>(vehicle);
+            engine.Running = true;
+            engine.Electrics = true;
         });
         await RunTicks(5);
 
@@ -1118,6 +1124,9 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
             {
                 vehicle = SEntMan.SpawnEntity(id, new EntityCoordinates(MapData.Grid.Owner, VehicleSpot));
                 Transform.SetLocalRotation(vehicle, Angle.Zero);
+                var engine = SEntMan.GetComponent<WFVehicleEngineComponent>(vehicle);
+                engine.Running = true;
+                engine.Electrics = true;
             });
             await RunTicks(5);
             await Server.WaitPost(() => mounted = MountedGuns(vehicle));

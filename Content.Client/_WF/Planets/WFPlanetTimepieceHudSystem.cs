@@ -2,8 +2,6 @@ using System.Numerics;
 using Content.Client._Shitmed.UserInterface.Systems.Targeting.Widgets;
 using Content.Client._WF.Cockpit;
 using Content.Shared.GameTicking;
-using Content.Shared.Inventory;
-using Content.Shared.Inventory.Events;
 using Content.Shared._WF.Planets;
 using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
@@ -13,13 +11,12 @@ using Robust.Shared.Player;
 
 namespace Content.Client._WF.Planets;
 
-/// <summary>Shows planetary environment data only while the local player wears a marked timepiece.</summary>
+/// <summary>Shows the planet's local time and weather to anyone standing on a planet.</summary>
 public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
 {
     private const float RefreshInterval = 0.25f;
 
     [Dependency] private IPlayerManager _player = default!;
-    [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private IUserInterfaceManager _ui = default!;
     [Dependency] private IResourceCache _resources = default!;
 
@@ -45,10 +42,6 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
         _ui.PopupRoot.AddChild(_hud);
         LayoutContainer.SetAnchorPreset(_hud, LayoutContainer.LayoutPreset.TopLeft);
 
-        SubscribeLocalEvent<InventoryComponent, DidEquipEvent>(OnEquipmentChanged);
-        SubscribeLocalEvent<InventoryComponent, DidUnequipEvent>(OnEquipmentChanged);
-        SubscribeLocalEvent<WFPlanetTimepieceComponent, ComponentStartup>(OnMarkerStartup);
-        SubscribeLocalEvent<WFPlanetTimepieceComponent, ComponentRemove>(OnMarkerRemove);
         SubscribeLocalEvent<WFPlanetEnvironmentComponent, AfterAutoHandleStateEvent>(OnEnvironmentState);
         SubscribeLocalEvent<LocalPlayerAttachedEvent>(OnPlayerAttached);
         SubscribeLocalEvent<LocalPlayerDetachedEvent>(OnPlayerDetached);
@@ -75,33 +68,13 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
         if (!_active)
             return;
         PositionHud();
-        if (_player.LocalEntity is not { } player || !IsWorn(player))
+        if (_player.LocalEntity is not { } player || !IsOnPlanet(player))
         {
             SetActive(false);
             return;
         }
 
         RefreshReadout();
-    }
-
-    private void OnEquipmentChanged(EntityUid uid, InventoryComponent component, DidEquipEvent args)
-    {
-        RefreshVisibility(uid);
-    }
-
-    private void OnEquipmentChanged(EntityUid uid, InventoryComponent component, DidUnequipEvent args)
-    {
-        RefreshVisibility(uid);
-    }
-
-    private void OnMarkerStartup(Entity<WFPlanetTimepieceComponent> ent, ref ComponentStartup args)
-    {
-        RefreshLocalVisibility();
-    }
-
-    private void OnMarkerRemove(Entity<WFPlanetTimepieceComponent> ent, ref ComponentRemove args)
-    {
-        RefreshLocalVisibility();
     }
 
     private void OnEnvironmentState(Entity<WFPlanetEnvironmentComponent> ent, ref AfterAutoHandleStateEvent args)
@@ -145,19 +118,12 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
         if (player != _player.LocalEntity)
             return;
 
-        SetActive(IsWorn(player));
+        SetActive(IsOnPlanet(player));
     }
 
-    private bool IsWorn(EntityUid player)
+    private bool IsOnPlanet(EntityUid player)
     {
-        var slots = _inventory.GetSlotEnumerator(player, SlotFlags.ARMBANDLEFT | SlotFlags.ARMBANDRIGHT);
-        while (slots.NextItem(out var item))
-        {
-            if (HasComp<WFPlanetTimepieceComponent>(item))
-                return true;
-        }
-
-        return false;
+        return TryComp(player, out TransformComponent? xform) && HasComp<WFPlanetEnvironmentComponent>(xform.MapUid);
     }
 
     private void SetActive(bool active)
@@ -172,7 +138,7 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
             RefreshReadout();
     }
 
-    /// <summary>Shows the panel while worn, except under the cockpit, which has no HUD corner for it.</summary>
+    /// <summary>Shows the panel on a planet, except under the cockpit, which has no HUD corner for it.</summary>
     private void ApplyVisibility()
     {
         _hud.Visible = _active && !_ui.GetUIController<WFCockpitUIController>().Active;

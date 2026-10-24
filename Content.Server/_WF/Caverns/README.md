@@ -33,7 +33,9 @@ carve one by hand (`open`) and measure the terrain around them (`stats <planet>`
 ore share and how much of the tunnel floor is within a short walk of a light, over a 192-tile square, read from noise
 by `WFCavernSampler`, the same sampler the cavern tests use).
 
-There are ways down everywhere, not only at the gate. The ground is split into cells about 96 tiles across, and each
+There are ways down everywhere, not only at the gate. On a world that preloads its ground (the Planets
+`WFPlanetPreloadStartingEvent`) every cell inside the circle is claimed first, in one go, since the lazy claims below
+only ever cut unloaded ground; a site must lie wholly inside the circle. The ground is split into cells about 96 tiles across, and each
 cell's mouth is claimed ahead of whoever loads terrain there (players, admin ghosts, and the eye on the ground of anyone
 flying above), never into loaded ground or ground about to load (`wf.cavern_claims`, on by default). Any ground tile
 that becomes a real hole, dug, blown, pried, cut or taken by an RCD, is fitted out within a tick by the hole queue:
@@ -107,6 +109,7 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Content.Server/_WF/Caverns/WFCavernMouthSystem.Claims.cs`](WFCavernMouthSystem.Claims.cs)
 - [`Content.Server/_WF/Caverns/WFCavernMouthSystem.cs`](WFCavernMouthSystem.cs)
 - [`Content.Server/_WF/Caverns/WFCavernMouthSystem.Holes.cs`](WFCavernMouthSystem.Holes.cs)
+- [`Content.Server/_WF/Caverns/WFCavernMouthSystem.Preclaim.cs`](WFCavernMouthSystem.Preclaim.cs)
 - [`Content.Server/_WF/Caverns/WFCavernMouthSystem.Stairs.cs`](WFCavernMouthSystem.Stairs.cs)
 - [`Content.Server/_WF/Caverns/WFCavernSampler.cs`](WFCavernSampler.cs)
 - [`Content.Server/_WF/Caverns/WFCavernStairsSystem.cs`](WFCavernStairsSystem.cs)
@@ -159,6 +162,7 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernOrbitalFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernOrbitalFallTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernPreclaimTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernPreclaimTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernPrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernPrototypeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernRampTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernRampTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernRoofTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernRoofTest.cs)

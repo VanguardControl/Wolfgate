@@ -12,6 +12,35 @@
   name: LTB cannon
   description: A light tank cannon hardpoint.
   components:
+  - type: WFGunExtraSounds
+    distantSound:
+      collection: WFRcsmCannonFar
+    loadingSequence:
+    - delay: 0.8
+      sound:
+        collection: WFRcsmBreechOpen
+        params:
+          maxDistance: 10
+    - delay: 4.5
+      sound:
+        collection: WFRcsmAmmoDoor
+        params:
+          maxDistance: 10
+    - delay: 7
+      sound:
+        collection: WFRcsmRoundHandle
+        params:
+          maxDistance: 8
+    - delay: 14.5
+      sound:
+        collection: WFRcsmRam
+        params:
+          maxDistance: 10
+    - delay: 17.5
+      sound:
+        collection: WFRcsmCannonReload
+        params:
+          maxDistance: 10
   - type: Sprite
     state: ltb_cannon
   - type: HardpointItem
@@ -46,7 +75,11 @@
     selectedMode: SemiAuto
     availableModes:
     - SemiAuto
-    soundGunshot: /Audio/_WF/Vehicles/weapons/cannon_fire1.ogg
+    soundGunshot:
+      collection: WFRcsmCannon
+      params:
+        volume: 2
+        maxDistance: 26
     cameraRecoilScalar: 0
   - type: ContainerContainer
     containers:

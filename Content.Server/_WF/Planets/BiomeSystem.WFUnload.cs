@@ -1,4 +1,5 @@
 using Content.Server._WF.Planets;
+using Content.Server._WF.Planets.Bounds;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Content.Shared.Chemistry.Components.SolutionManager;
@@ -129,6 +130,10 @@ public sealed partial class BiomeSystem
     {
         if (!_wfUnloadEnabled || !HasComp<WFPlanetLayerComponent>(map))
             return false;
+
+        // A preloaded ground keeps everything; there is nothing to scan for.
+        if (HasComp<WFPlanetPreloadedComponent>(map))
+            return true;
 
         var layer = _wfLayers.GetOrNew(map);
         var now = _wfTiming.CurTime;

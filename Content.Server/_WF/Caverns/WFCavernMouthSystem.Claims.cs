@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using Content.Shared._WF.Caverns;
+using Content.Shared._WF.Planets;
 using Content.Shared.Maps;
 using Content.Shared.Parallax.Biomes;
 using Robust.Shared.Map;
@@ -388,7 +389,22 @@ public sealed partial class WFCavernMouthSystem
             return false;
 
         site = new WFCavernSite(origin, shape);
-        return CavernAllows(context, site) && GroundAllows(context, site);
+        return InBounds(context, site) && CavernAllows(context, site) && GroundAllows(context, site);
+    }
+
+    /// <summary>On a bounded world, the whole footprint and pad lie inside its circle.</summary>
+    private bool InBounds(MouthContext context, WFCavernSite site)
+    {
+        if (!TryComp<WFPlanetBoundsComponent>(context.Ground, out var bounds) || bounds.Radius <= 0f)
+            return true;
+
+        foreach (var offset in site.Shape.Pad(context.Spec.PadRadius))
+        {
+            if (!bounds.ContainsTile(site.Origin + offset))
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>Anchors a candidate: the gate candidate where it is, the others spread by their fractions over the spots whose whole pad stays <see cref="CellMargin"/> inside the cell.</summary>

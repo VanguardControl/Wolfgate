@@ -1,0 +1,22 @@
+- type: traderDialogue
+  id: WFPoiFuelDialogue
+  greeting: wf-poi-fuel-greeting
+  farewell: wf-poi-trader-farewell
+  options:
+  - prompt: wf-poi-fuel-shop
+    response: wf-poi-fuel-stock
+    action: OpenShop
+
+- type: entity
+  id: WFPoiFuelTrader
+  parent: WFBaseTrader
+  components:
+  - type: HumanoidAppearance
+    species: Human
+    initial: WFTraderFuelTechnicianProfile
+  - type: Loadout
+    prototypes: [ WFTraderFuelTechnicianGear ]
+  - type: Trader
+    dialogue: WFPoiFuelDialogue
+  - type: TraderShop
+    vendors: [ VendingMachineFuelVend, VendingMachineYouToolPOI ]
