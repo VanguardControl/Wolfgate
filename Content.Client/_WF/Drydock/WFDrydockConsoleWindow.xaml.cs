@@ -294,14 +294,27 @@ public sealed partial class WFDrydockConsoleWindow : FancyWindow
         _counters.Visible = RepairButton.Visible = !state.BreakOnly;
         _quote.Visible &= !state.BreakOnly;
         _refitsPanel.Visible = !state.BreakOnly;
-        _cash.Visible = state.BreakOnly && !state.Working;
+        _cash.Visible = state.BreakOnly && !state.Working && state.BreakRefusal == null;
         _cash.Value = Loc.GetString("drydock-ui-credits", ("price", state.BreakCash.ToString("N0", CultureInfo.InvariantCulture)));
         _cash.Lit = state.BreakCash > 0;
         _warrant.Visible = state.BreakWarrant && !state.Working;
 
-        _salvage.Visible = state.CanBreak && !state.Working;
-        _salvage.SetRows(BillRows(state.BreakYield, new Dictionary<string, int>()));
-        _salvage.Lit = state.BreakYield.Count > 0;
+        // A chop shop pays in thalers, so it shows its payout in place of the salvage bill unless it refuses the hull.
+        _salvage.Visible = state.CanBreak && !state.Working && (!state.BreakOnly || state.BreakRefusal != null);
+        // A refused ship shows why in place of the salvage bill.
+        if (state.BreakRefusal is { } refusal)
+        {
+            _salvage.SetRows(null);
+            _salvage.Value = refusal;
+            _salvage.Tint = Red;
+            _salvage.Lit = true;
+        }
+        else
+        {
+            _salvage.SetRows(BillRows(state.BreakYield, new Dictionary<string, int>()));
+            _salvage.Tint = null;
+            _salvage.Lit = state.BreakYield.Count > 0;
+        }
         BreakButton.Visible = state.CanBreak;
         BreakButton.Disabled = state.ShipName is null || state.Working || !state.Breakable || blocked;
 

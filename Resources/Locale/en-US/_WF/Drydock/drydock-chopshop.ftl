@@ -1,5 +1,5 @@
 drydock-chop-break-only = This yard only breaks ships.
-drydock-chop-yield = { $materials }, and { $cash } thlr paid out
+drydock-chop-yield = { $cash } thlr printed
 drydock-chop-warrant-author = Sector Warrant Office
 drydock-chop-warrant-description = { $name } broke up the { $ship } at an illegal drydock.
 drydock-chop-warrant-paid = Shipbreaking warrant on { $name } claimed. { $amount } thlr paid to you.
@@ -16,7 +16,7 @@ drydock-fence-hail-greeting-3 = { $location }, an' ye didnae hear it fae me. Go 
 drydock-fence-greeting = Lookin' tae sell somethin' big?
 drydock-fence-farewell = Ye were never here.
 drydock-fence-prompt-how = How does this work?
-drydock-fence-response-how = Pull a hull intae a berth an' hit the break key at its console. The cranes strip her tae the frame. Ah keep a cut o' the metal an' pay ye cash fer the rest. Ye get a quarter o' the sheets back by the console.
+drydock-fence-response-how = Pull a hull intae a berth an' hit the break key at its console. The cranes strip her tae the frame, an' the console prints ye eight tenths o' whit she'd fetch at a shipyard, a bit fer every plate they lift.
 drydock-fence-prompt-law = Is this legal?
 drydock-fence-response-law = Pirate hulks, derelicts, yer ain ship? Nae bother. Break a registered ship or a navy hull an' the warrant office hears aboot it. Ah dinnae ask whose it is. They dae.
 drydock-fence-prompt-who = Who are you?

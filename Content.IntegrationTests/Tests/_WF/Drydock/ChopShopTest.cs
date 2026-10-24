@@ -2,10 +2,15 @@ using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.Server._NF.Bank;
+using Content.Server._WF.Administration.Systems;
 using Content.Server._WF.Drydock;
 using Content.Server._WF.Encounters.Components;
 using Content.Shared._NF.Shipyard.Components;
+using Content.Shared._NF.Shipyard.Prototypes;
+using Content.Shared.Station.Components;
+using Content.Shared._Mono.Ships.Components;
 using Content.Shared._WF.Drydock;
+using Content.Shared.Cargo.Components;
 using Content.Shared.Materials;
 using Content.Shared.Stacks;
 using Robust.Shared.EntitySerialization.Systems;
@@ -44,28 +49,47 @@ public sealed class ChopShopTest
         return (console, yard.Crane, ship);
     }
 
+    /// <summary>Counts the thalers lying on a grid.</summary>
+    private static int ThalersOn(TestPair pair, EntityUid grid, out int stacks)
+    {
+        var em = pair.Server.EntMan;
+        var total = 0;
+        stacks = 0;
+        var query = em.EntityQueryEnumerator<CashComponent, StackComponent, TransformComponent>();
+        while (query.MoveNext(out _, out _, out var stack, out var xform))
+        {
+            if (xform.GridUid != grid)
+                continue;
+
+            total += stack.Count;
+            stacks++;
+        }
+
+        return total;
+    }
+
     /// <summary>
-    /// A break at a chop shop stores nothing in its crane: it hands over a share of the yield as sheets by the console
-    /// and pays the breaker cash for the rest, as its preview said. It sells no repairs.
+    /// A break at a chop shop stores nothing in its crane and pays 80% of the ship's shipyard price in thalers, printed
+    /// by the console as the tiles come off, onto one stack, to the thaler its preview quoted. It sells no repairs.
     /// </summary>
     [Test]
-    public async Task BreakPaysSheetsAndCash()
+    public async Task BreakPrintsShareOfShipValue()
     {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
         var server = pair.Server;
         var em = server.EntMan;
         var map = await pair.CreateTestMap();
         var drydock = server.System<WFDrydockSystem>();
-        var bank = server.System<BankSystem>();
 
-        EntityUid console = default, crane = default, ship = default, actor = default;
-        var before = 0;
-        var preview = 0;
+        EntityUid console = default, crane = default, ship = default, actor = default, yard = default;
+        var expected = 0;
         await server.WaitAssertion(() =>
         {
             (console, crane, ship) = SetUpChopShop(pair, map.MapId);
-            actor = DrydockTest.CreatePayer(pair, map.MapId);
-            Assert.That(bank.TryGetBalance(actor, out before), "The breaker should have an account.");
+            yard = em.GetComponent<TransformComponent>(console).GridUid!.Value;
+            em.AddComponent<VesselComponent>(ship).VesselId = "Guppy";
+            expected = (int) (server.ProtoMan.Index<VesselPrototype>("Guppy").Price * 0.8);
+            actor = em.SpawnEntity("MobHuman", new MapCoordinates(0, 0, map.MapId));
         });
 
         await MobileDrydockTest.WaitForCranePower(pair, crane);
@@ -80,14 +104,22 @@ public sealed class ChopShopTest
                 Assert.That(state!.BreakOnly, Is.True, "A chop shop should say it only breaks.");
                 Assert.That(state.PaysWithMaterials, Is.False, "A chop shop should list no supplies.");
                 Assert.That(state.Upgrades, Is.Empty, "A chop shop should offer no refits.");
-                Assert.That(state.BreakCash, Is.GreaterThan(0), "The preview should quote cash.");
+                Assert.That(state.BreakCash, Is.EqualTo(expected), "The preview should quote 80% of the shipyard price.");
                 Assert.That(state.BreakWarrant, Is.False, "An unregistered hull is anyone's.");
             });
-            preview = state!.BreakCash;
 
             var comp = em.GetComponent<WFDrydockConsoleComponent>(console);
             Assert.That(drydock.TryStartRepair(console, comp, ship, actor), Is.False, "A chop shop should refuse a repair.");
             Assert.That(drydock.TryStartBreak(console, comp, ship, actor), Is.True, "The break should start.");
+        });
+
+        await DrydockTest.RunUntil(pair, 400, 5, () =>
+            !em.TryGetComponent(console, out WFDrydockJobComponent job) || job.Done >= HullSize * HullSize / 2);
+
+        await server.WaitAssertion(() =>
+        {
+            var midway = ThalersOn(pair, yard, out _);
+            Assert.That(midway, Is.InRange(1, expected - 1), "Thalers should be printed as the tiles come off.");
         });
 
         await DrydockTest.RunUntil(pair, 400, 30, () => !em.HasComponent<WFDrydockJobComponent>(console));
@@ -95,26 +127,15 @@ public sealed class ChopShopTest
         await server.WaitAssertion(() =>
         {
             Assert.That(em.HasComponent<WFDrydockJobComponent>(console), Is.False, "The break should end.");
-            var storage = server.System<SharedMaterialStorageSystem>();
-            var consoleXform = em.GetComponent<TransformComponent>(console);
-            var sheets = 0;
-            var query = em.EntityQueryEnumerator<MaterialComponent, StackComponent, TransformComponent>();
-            while (query.MoveNext(out _, out _, out var stack, out var xform))
-            {
-                if (xform.GridUid == consoleXform.GridUid)
-                    sheets += stack.Count;
-            }
-
-            Assert.That(bank.TryGetBalance(actor, out var after), "The breaker should still have an account.");
+            var printed = ThalersOn(pair, yard, out var stacks);
             Assert.Multiple(() =>
             {
                 Assert.That(em.Deleted(ship), Is.True, "The hull should be gone.");
-                Assert.That(storage.GetMaterialAmount(crane, "Steel", localOnly: true), Is.Zero,
+                Assert.That(server.System<SharedMaterialStorageSystem>().GetMaterialAmount(crane, "Steel", localOnly: true), Is.Zero,
                     "A chop shop should store nothing in its crane.");
-                Assert.That(sheets, Is.GreaterThan(0), "A share of the yield should be handed over as sheets.");
-                Assert.That(after - before, Is.EqualTo(preview), "The breaker should be paid what the preview quoted.");
+                Assert.That(printed, Is.EqualTo(expected), "The whole hull should print 80% of the shipyard price.");
+                Assert.That(stacks, Is.EqualTo(1), "The bills should pile on one stack while nobody takes it.");
             });
-            TestContext.Out.WriteLine($"Chop shop paid {after - before} for a {HullSize}x{HullSize} hull and {sheets} sheets.");
         });
 
         await pair.CleanReturnAsync();
@@ -180,6 +201,40 @@ public sealed class ChopShopTest
         member.Encounter = encounter;
         member.Key = key;
         return ship;
+    }
+
+    /// <summary>
+    /// A vessel spawned by an admin with no owner gets a station of its own but no deed; it is a ship, not an outpost,
+    /// so it can be broken. Refused hulls say why on the console.
+    /// </summary>
+    [Test]
+    public async Task OwnerlessSpawnedVesselIsBreakable()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var drydock = server.System<WFDrydockSystem>();
+
+        await server.WaitAssertion(() =>
+        {
+            var vessel = server.ProtoMan.Index<VesselPrototype>("Guppy");
+            Assert.That(server.System<AdminVesselSpawnSystem>().TrySpawnVessel(vessel, map.MapId, new Vector2(800f, 0f), null,
+                out var spawned, createStation: true), Is.True, "The Guppy should spawn.");
+            var ship = spawned!.Value;
+            Assert.That(em.HasComponent<StationMemberComponent>(ship), "The spawned vessel should be a station member.");
+
+            var console = em.SpawnEntity("WFComputerChopShop", new MapCoordinates(0, 0, map.MapId));
+            var comp = em.GetComponent<WFDrydockConsoleComponent>(console);
+            Assert.That(drydock.BreakRefusal(console, comp, ship), Is.Null, "An ownerless spawned vessel should be breakable.");
+
+            var outpost = DrydockTest.CreateShip(pair, map.MapId, new Vector2(-800f, 0f));
+            DrydockTest.SetFloor(pair, outpost, 2);
+            em.AddComponent<StationMemberComponent>(outpost);
+            Assert.That(drydock.BreakRefusal(console, comp, outpost), Is.Not.Null, "An outpost should still be refused.");
+        });
+
+        await pair.CleanReturnAsync();
     }
 
     /// <summary>The Chop-Shop map loads with four chop-shop berths, each with its cranes, and a fence who books nothing.</summary>
