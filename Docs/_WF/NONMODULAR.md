@@ -85,6 +85,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs`](../../Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs)
   - start a real jump, as an ensured FTLComponent stayed Available and was removed
   - pick the dock without teleporting the shuttle there before the jump
+  - the jump knocks crew down but never throws them off the grid; only leaving it strands you
 - [`Content.Server/Solar/EntitySystems/PowerSolarControlConsoleSystem.cs`](../../Content.Server/Solar/EntitySystems/PowerSolarControlConsoleSystem.cs)
   - closed UIs skip updates, so refresh on open
   - refresh the state on open; the update loop skips closed UIs
