@@ -60,14 +60,6 @@ public sealed partial class WFDrydockSystem
         SubscribeLocalEvent<WFDrydockConsoleComponent, WFDrydockBreakMessage>(OnBreak);
         SubscribeLocalEvent<WFSalvagedHardwareComponent, WFFlatpackUnpackedEvent>(OnSalvagedUnpacked);
         SubscribeLocalEvent<WFSalvagedHardwareComponent, PriceCalculationEvent>(OnSalvagedPrice);
-        SubscribeLocalEvent<WFDrydockJobComponent, ComponentShutdown>(OnJobShutdown);
-    }
-
-    /// <summary>A chop-shop break cut short without ending, as when its console is destroyed, still pays what it recovered.</summary>
-    private void OnJobShutdown(Entity<WFDrydockJobComponent> ent, ref ComponentShutdown args)
-    {
-        if (ent.Comp.Break && !ent.Comp.Settled && TryComp<WFDrydockChopShopComponent>(ent, out var chop))
-            PayChopShop(ent, chop, ent.Comp);
     }
 
     private void OnBreak(EntityUid uid, WFDrydockConsoleComponent comp, WFDrydockBreakMessage args)
@@ -108,11 +100,14 @@ public sealed partial class WFDrydockSystem
 
         job.Attacker = BreakerVessel(console, ship, actor);
         job.Breaker = actor;
-        job.BreakerUser = CompOrNull<ActorComponent>(actor)?.PlayerSession.UserId;
         _crewAlert.ReportBreaking(ship, job.Attacker, job.Breaker);
 
-        if (TryComp<WFDrydockChopShopComponent>(console, out var chop) && IsLawfulProperty(chop, ship, actor))
-            PostBreakWarrant(console, chop, ship, actor);
+        if (TryComp<WFDrydockChopShopComponent>(console, out var chop))
+        {
+            SetUpChopPay(chop, job, items);
+            if (IsLawfulProperty(chop, ship, actor))
+                PostBreakWarrant(console, chop, ship, actor);
+        }
 
         return true;
     }
@@ -462,11 +457,11 @@ public sealed partial class WFDrydockSystem
             AddPerTileYield(pay, yield);
 
         EnsureComp<WFHulkComponent>(ship).LastWork = _timing.CurTime;
-        if (yield.Count > 0)
+        // A chop shop pays in thalers, not materials.
+        var chop = HasComp<WFDrydockChopShopComponent>(console);
+        if (yield.Count > 0 && !chop)
         {
-            // A chop shop settles the whole yield when the job ends.
-            if (!HasComp<WFDrydockChopShopComponent>(console))
-                DepositYield(crane, drop, yield);
+            DepositYield(crane, drop, yield);
             AddBill(job.Yield, yield);
         }
 
@@ -478,6 +473,9 @@ public sealed partial class WFDrydockSystem
             job.HullGone = true;
             SetAdrift(ship);
         }
+
+        if (chop)
+            PrintChopCash(console, job, item);
 
         // Lifting a tile casts off whoever stands on it; lifting the last one deletes the grid.
         _map.SetTile(ship, grid, item.TileIndex, Tile.Empty);
@@ -601,14 +599,9 @@ public sealed partial class WFDrydockSystem
     /// <summary>Ends a break and reports what the cranes recovered.</summary>
     private void EndBreak(EntityUid console, WFDrydockConsoleComponent comp, WFDrydockJobComponent job, JobEnd end)
     {
-        var materials = job.Yield;
-        var cash = 0;
-        if (TryComp<WFDrydockChopShopComponent>(console, out var chop))
-            (materials, cash) = PayChopShop(console, chop, job);
-
-        var yield = materials.Count == 0 ? Loc.GetString("drydock-console-materials-none") : FormatMaterials(materials);
-        if (chop != null)
-            yield = Loc.GetString("drydock-chop-yield", ("materials", yield), ("cash", cash));
+        var yield = HasComp<WFDrydockChopShopComponent>(console)
+            ? Loc.GetString("drydock-chop-yield", ("cash", job.CashPaid))
+            : job.Yield.Count == 0 ? Loc.GetString("drydock-console-materials-none") : FormatMaterials(job.Yield);
         var message = end switch
         {
             JobEnd.Finished when job.HullGone || job.Skipped == 0 =>

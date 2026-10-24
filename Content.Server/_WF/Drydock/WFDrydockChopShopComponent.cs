@@ -4,23 +4,15 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._WF.Drydock;
 
 /// <summary>
-/// A chop-shop drydock console: it only breaks hulls, hands over a share of the yield as sheets and buys the rest for
-/// cash, and posts a warrant on whoever breaks a ship that is neither theirs nor an outlaw's.
+/// A chop-shop drydock console: it only breaks hulls, pays a share of the ship's value in thalers printed by the console
+/// as the tiles come off, and posts a warrant on whoever breaks a ship that is neither theirs nor an outlaw's.
 /// </summary>
 [RegisterComponent]
 public sealed partial class WFDrydockChopShopComponent : Component
 {
-    /// <summary>Share of each recovered material handed over as sheets at the console; the rest is bought for cash.</summary>
+    /// <summary>Share of the ship's value (its shipyard price, else its appraisal) paid for breaking all of it.</summary>
     [DataField]
-    public float MaterialShare = 0.25f;
-
-    /// <summary>Share of the market price paid for the materials bought.</summary>
-    [DataField]
-    public float CashRate = 0.75f;
-
-    /// <summary>Flat cash paid per hull tile lifted, on top of the materials bought.</summary>
-    [DataField]
-    public int TileCash;
+    public float ValueShare = 0.8f;
 
     /// <summary>Reward on the warrant posted on whoever breaks lawful property; 0 posts none.</summary>
     [DataField]
