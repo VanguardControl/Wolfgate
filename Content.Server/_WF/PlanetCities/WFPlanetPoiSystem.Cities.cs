@@ -435,6 +435,7 @@ public sealed partial class WFPlanetPoiSystem
         // A floor is under cover wherever any level above it has a tile: the separate grids of the upper levels don't
         // roof what is below them the way a planet's own layers do.
         var tilesByDepth = levels.ToDictionary(level => level.Depth, level => LevelTiles(level.Grid));
+        var floors = new List<CityFloor>();
         foreach (var level in levels.OrderBy(level => level.Depth))
         {
             if (TerminatingOrDeleted(ground))
@@ -473,6 +474,7 @@ public sealed partial class WFPlanetPoiSystem
                 _roof.SetRoof((target, targetGrid, null), tile, roofs.Contains(tile));
             }
 
+            floors.Add(new CityFloor(level.Depth, (target, targetGrid), tiles, tiles.Where(roofs.Contains).ToHashSet()));
             if (TryComp<BiomeComponent>(target, out var targetBiome))
                 _biome.WfPinTiles((target, targetBiome), tiles);
 
@@ -544,7 +546,8 @@ public sealed partial class WFPlanetPoiSystem
 
         created.Add(station);
         EnsureComp<WFPlanetCitiesComponent>(ground).Stations.Add(station);
-        RollCityFate(city, (ground, grid), siteTiles, created);
+        SpawnCityResidents(city, floors, created);
+        RollCityFate(city, floors, created);
         Log.Info($"Built {city.ID} on {ToPrettyString(ground)} at {origin}, {levels.Count} levels.");
         return siteTiles;
     }

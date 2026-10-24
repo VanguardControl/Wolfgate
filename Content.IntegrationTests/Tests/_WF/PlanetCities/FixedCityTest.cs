@@ -4,11 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._WF.PlanetCities;
 using Content.Server._WF.PlanetPois;
 using Content.Server._WF.Planets;
 using Content.Server._WF.Planets.Bounds;
+using Content.Server.NPC.HTN;
+using Content.Server.Spawners.Components;
 using Content.Server.Parallax;
 using Content.Server.Station.Systems;
 using Content.Shared.Parallax.Biomes;
@@ -16,9 +19,14 @@ using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared._WF.Planets;
+using Content.Shared.CCVar;
 using Content.Shared.Damage.Components;
+using Content.Shared.Light.Components;
+using Content.Shared.Light.EntitySystems;
+using Content.Shared.Mobs.Components;
 using Content.Shared.Station.Components;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics;
@@ -44,32 +52,9 @@ public sealed class FixedCityTest
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true, ServerSeed = 1977 });
         var server = pair.Server;
         var entMan = server.EntMan;
-        var prototypes = server.ResolveDependency<IPrototypeManager>();
         await PlanetFixture.EnableFeature(pair);
 
-        var layers = new List<EntityUid>();
-        var lower = new List<EntityUid>();
-        var holds = new List<Task>();
-        await server.WaitPost(() =>
-        {
-            server.CfgMan.SetCVar(PlanetCVars.Bounds, true);
-            server.CfgMan.SetCVar(PlanetCVars.Radius, Radius);
-            server.CfgMan.SetCVar(CavernCVars.Caverns, caverns);
-            server.CfgMan.SetCVar(PlanetCVars.FixedCities, true);
-            var surface = prototypes.Index<WFPlanetSurfacePrototype>("WFSurfaceAsclepiu");
-            var network = server.System<WFPlanetNetworkSystem>().BuildNetwork(surface, Vector2.Zero, "Asclepiu", null);
-            Assert.That(network, Is.Not.Null);
-            var comp = entMan.GetComponent<WFPlanetNetworkComponent>(network!.Value);
-            layers.AddRange(comp.Layers);
-            lower.AddRange(comp.LowerLayers);
-            var preload = new WFPlanetPreloadStartingEvent(layers[0], Vector2.Zero, Radius, holds);
-            entMan.EventBus.RaiseEvent(EventSource.Local, ref preload);
-        });
-
-        for (var attempt = 0; attempt < 900 && holds.Any(hold => !hold.IsCompleted); attempt++)
-        {
-            await pair.RunTicksSync(10);
-        }
+        var (layers, lower, holds) = await BuildCrocus(pair, caverns);
 
         await server.WaitAssertion(() =>
         {
@@ -220,6 +205,140 @@ public sealed class FixedCityTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// Civilians live in Crocus's rooms on the ground and the upper levels, on bare floor clear of the spawn points, and
+    /// a fate's groups settle indoors on both too.
+    /// </summary>
+    [Test]
+    public async Task CrocusHasPeopleIndoors()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true, ServerSeed = 1977 });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var prototypes = server.ResolveDependency<IPrototypeManager>();
+        await PlanetFixture.EnableFeature(pair);
+
+        // Zombies, all of them indoors and upstairs too, whatever the round would have rolled. Nobody walks off their tile.
+        const string zombie = "WFWreckZombieVerda";
+        var (layers, _, holds) = await BuildCrocus(pair, false, () =>
+        {
+            server.CfgMan.SetCVar(CCVars.NPCEnabled, false);
+            var city = prototypes.Index<WFFixedCityPrototype>("WFCityCrocus");
+            var fate = city.Fates.Single(fate => fate.Name == "zombies");
+            fate.IndoorShare = 1f;
+            fate.UpperLevels = true;
+            fate.MinGroups = fate.MaxGroups = 12;
+            city.Fates = new List<WFCityFate> { fate };
+        });
+
+        await server.WaitAssertion(() =>
+        {
+            var ground = layers[0];
+            var record = entMan.GetComponent<WFPlanetPoiComponent>(ground);
+            Assert.That(record.GenerationError, Is.Null);
+            Assert.That(holds.All(hold => hold.IsCompletedSuccessfully), Is.True);
+
+            var city = prototypes.Index<WFFixedCityPrototype>("WFCityCrocus");
+            var site = record.Sites.Single(site => site.Name == "wf-city-crocus");
+            var cityGrids = new Dictionary<EntityUid, int> { [ground] = 0 };
+            for (var depth = 1; depth <= 4; depth++)
+            {
+                foreach (var grid in Grids(entMan, layers[depth]).Where(entMan.HasComponent<WFPlanetCityGridComponent>))
+                    cityGrids[grid] = depth;
+            }
+
+            var maps = server.System<SharedMapSystem>();
+            var roofs = server.System<SharedRoofSystem>();
+            var spawnPoints = new List<(EntityUid Grid, Vector2 Position)>();
+            var points = entMan.EntityQueryEnumerator<SpawnPointComponent, TransformComponent>();
+            while (points.MoveNext(out _, out var pointXform))
+            {
+                if (pointXform.GridUid is { } pointGrid)
+                    spawnPoints.Add((pointGrid, pointXform.LocalPosition));
+            }
+
+            var residents = new Dictionary<int, int>();
+            var zombies = new Dictionary<int, int>();
+            var minds = entMan.EntityQueryEnumerator<HTNComponent, MobStateComponent, TransformComponent, MetaDataComponent>();
+            while (minds.MoveNext(out var uid, out _, out _, out var xform, out var meta))
+            {
+                if (xform.GridUid is not { } gridUid || !cityGrids.TryGetValue(gridUid, out var depth))
+                    continue;
+
+                // Only Crocus's own footprint; the layers are shared with the rest of the world.
+                var tile = xform.LocalPosition.Floored();
+                if (tile.X < site.Bounds.Left || tile.X >= site.Bounds.Right || tile.Y < site.Bounds.Bottom || tile.Y >= site.Bounds.Top)
+                    continue;
+
+                var grid = entMan.GetComponent<MapGridComponent>(gridUid);
+                var isZombie = meta.EntityPrototype?.ID == zombie;
+                var what = $"{meta.EntityPrototype?.ID} on level {depth} at {tile}";
+                Assert.That(maps.GetTileRef(gridUid, grid, tile).Tile.IsEmpty, Is.False, $"{what} stands on no floor.");
+                Assert.That(maps.GetAnchoredEntities((gridUid, grid), tile).Any(blocker =>
+                    entMan.TryGetComponent<PhysicsComponent>(blocker, out var body) && body.Hard && body.CanCollide), Is.False,
+                    $"{what} stands inside a solid.");
+                Assert.That(entMan.TryGetComponent<RoofComponent>(gridUid, out var roof) && roofs.IsRooved((gridUid, grid, roof), tile), Is.True,
+                    $"{what} is not indoors.");
+                // The mob stands mid-tile, a half tile off the tile corner the clearance is measured from.
+                foreach (var (pointGrid, position) in spawnPoints)
+                {
+                    if (pointGrid == gridUid)
+                        Assert.That(Vector2.Distance(position, xform.LocalPosition), Is.GreaterThan(isZombie ? 12f : 15f), $"{what} stands by a spawn point.");
+                }
+
+                var counts = isZombie ? zombies : residents;
+                counts[depth] = counts.GetValueOrDefault(depth) + 1;
+            }
+
+            var total = residents.Values.Sum();
+            TestContext.Out.WriteLine($"Residents by level: {string.Join(", ", residents.OrderBy(pair => pair.Key).Select(pair => $"{pair.Key}={pair.Value}"))}; zombies: {string.Join(", ", zombies.OrderBy(pair => pair.Key).Select(pair => $"{pair.Key}={pair.Value}"))}");
+            var before = entMan.EntityCount;
+            var probe = entMan.SpawnEntity("WFCityResident", new EntityCoordinates(ground, Vector2.Zero));
+            TestContext.Out.WriteLine($"One resident is {entMan.EntityCount - before} entities; the world has {before}.");
+            entMan.DeleteEntity(probe);
+            Assert.That(total, Is.InRange(city.Residents!.Min * 3 / 4, city.Residents.Max), "Crocus has the wrong number of residents.");
+            Assert.That(residents.GetValueOrDefault(0), Is.GreaterThanOrEqualTo(4), "Too few residents in the ground floor's rooms.");
+            Assert.That(residents.Where(pair => pair.Key > 0).Sum(pair => pair.Value), Is.GreaterThan(0), "Nobody lives in the towers.");
+            Assert.That(zombies.GetValueOrDefault(0), Is.GreaterThan(0), "No fate group settled indoors on the ground floor.");
+            Assert.That(zombies.Where(pair => pair.Key > 0).Sum(pair => pair.Value), Is.GreaterThan(0), "No fate group settled upstairs.");
+        });
+
+        await PlanetFixture.Teardown(pair, layers);
+        await pair.CleanReturnAsync();
+    }
+    /// <summary>Builds Verda's layers and runs the preload to the end, so Crocus stands on them.</summary>
+    private static async Task<(List<EntityUid> Layers, List<EntityUid> Lower, List<Task> Holds)> BuildCrocus(TestPair pair, bool caverns, Action? beforePreload = null)
+    {
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var prototypes = server.ResolveDependency<IPrototypeManager>();
+        var layers = new List<EntityUid>();
+        var lower = new List<EntityUid>();
+        var holds = new List<Task>();
+        await server.WaitPost(() =>
+        {
+            server.CfgMan.SetCVar(PlanetCVars.Bounds, true);
+            server.CfgMan.SetCVar(PlanetCVars.Radius, Radius);
+            server.CfgMan.SetCVar(CavernCVars.Caverns, caverns);
+            server.CfgMan.SetCVar(PlanetCVars.FixedCities, true);
+            beforePreload?.Invoke();
+            var surface = prototypes.Index<WFPlanetSurfacePrototype>("WFSurfaceAsclepiu");
+            var network = server.System<WFPlanetNetworkSystem>().BuildNetwork(surface, Vector2.Zero, "Asclepiu", null);
+            Assert.That(network, Is.Not.Null);
+            var comp = entMan.GetComponent<WFPlanetNetworkComponent>(network!.Value);
+            layers.AddRange(comp.Layers);
+            lower.AddRange(comp.LowerLayers);
+            var preload = new WFPlanetPreloadStartingEvent(layers[0], Vector2.Zero, Radius, holds);
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref preload);
+        });
+
+        for (var attempt = 0; attempt < 900 && holds.Any(hold => !hold.IsCompleted); attempt++)
+        {
+            await pair.RunTicksSync(10);
+        }
+
+        return (layers, lower, holds);
+    }
     private static Vector2i Step(WFPlanetPoiDirection direction) => direction switch
     {
         WFPlanetPoiDirection.North => new Vector2i(0, 1),

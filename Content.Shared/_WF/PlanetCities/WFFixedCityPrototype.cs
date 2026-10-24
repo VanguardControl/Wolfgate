@@ -66,9 +66,45 @@ public sealed partial class WFFixedCityPrototype : IPrototype
     /// <summary>What has become of the city this round, one picked by weight: overrun by something, or left alone.</summary>
     [DataField]
     public List<WFCityFate> Fates = new();
+
+    /// <summary>The people living and working indoors on every level, whatever the fate; none if unset.</summary>
+    [DataField]
+    public WFCityResidents? Residents;
 }
 
-/// <summary>One way a city can be found: groups of something spread through its ground level, or nothing at all.</summary>
+/// <summary>Civilians living in a city's buildings, spread over its levels in proportion to their roofed floor.</summary>
+[DataDefinition]
+public sealed partial class WFCityResidents
+{
+    /// <summary>One pick per resident.</summary>
+    [DataField(required: true)]
+    public EntityTableSelector Spawns = default!;
+
+    /// <summary>Residents in the whole city.</summary>
+    [DataField]
+    public int Min = 24;
+
+    [DataField]
+    public int Max = 40;
+
+    /// <summary>Whether the street level has residents.</summary>
+    [DataField]
+    public bool Ground = true;
+
+    /// <summary>Whether the levels above the street have residents.</summary>
+    [DataField]
+    public bool Upper = true;
+
+    /// <summary>Whether the levels below the street have residents.</summary>
+    [DataField]
+    public bool Lower = true;
+
+    /// <summary>Tiles two residents on a level keep apart where there is room.</summary>
+    [DataField]
+    public int Spacing = 3;
+}
+
+/// <summary>One way a city can be found: groups of something spread through its buildings and streets, or nothing at all.</summary>
 [DataDefinition]
 public sealed partial class WFCityFate
 {
@@ -94,6 +130,14 @@ public sealed partial class WFCityFate
 
     [DataField]
     public int MaxGroupSize = 1;
+
+    /// <summary>The share of groups, 0 to 1, that settle indoors on roofed floor instead of in the open streets.</summary>
+    [DataField]
+    public float IndoorShare;
+
+    /// <summary>Whether indoor groups may also settle on the levels above the street, not only the ground floor.</summary>
+    [DataField]
+    public bool UpperLevels;
 
     /// <summary>Spawned where each group gathers, under the open sky: their home and a fire, say.</summary>
     [DataField]
