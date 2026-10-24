@@ -75,6 +75,11 @@ or gun accuracy changes removed before the upstream PR was merged.
 - [`Resources/Textures/_WF/Avali/feather.rsi/`](../../../Resources/Textures/_WF/Avali/feather.rsi/)
 - [`Resources/Textures/_WF/Avali/organs.rsi/`](../../../Resources/Textures/_WF/Avali/organs.rsi/)
 
+### Audio
+
+- [`Resources/Audio/_WF/Avali/attributions.yml`](../../../Resources/Audio/_WF/Avali/attributions.yml)
+- [`Resources/Audio/_WF/Avali/avali_deathgasp.ogg`](../../../Resources/Audio/_WF/Avali/avali_deathgasp.ogg)
+
 ## Non-modular edits
 
 - [`Resources/Locale/en-US/_Starlight/Avali/stasis.ftl`](../../../Resources/Locale/en-US/_Starlight/Avali/stasis.ftl): stasis is a short hold now, not an open-ended heal
@@ -90,6 +95,7 @@ or gun accuracy changes removed before the upstream PR was merged.
   - enable feather preening and regrowth for Avali
   - stasis mends at a quarter of the stock rate and rests twice as long
   - flight between z-levels, on the moth's numbers
+- [`Resources/Prototypes/_StarLight/Voice/speech_emote_sounds.yml`](../../../Resources/Prototypes/_StarLight/Voice/speech_emote_sounds.yml): Avali deathgasp from Moffstation in place of the human one
 - [`Resources/Prototypes/Reagents/botany.yml`](../../../Resources/Prototypes/Reagents/botany.yml)
   - ammonia quenches Avali thirst; in the Poison group so only their heart takes it up
   - Avali breathe ammonia unharmed
