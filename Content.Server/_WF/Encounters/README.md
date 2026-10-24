@@ -199,6 +199,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 ### Server
 
 - [`Content.Server/_WF/Encounters/Commands/WFEncounterCommand.cs`](Commands/WFEncounterCommand.cs)
+- [`Content.Server/_WF/Encounters/Components/WFCrewKillPaidComponent.cs`](Components/WFCrewKillPaidComponent.cs)
 - [`Content.Server/_WF/Encounters/Components/WFDockingClampComponent.cs`](Components/WFDockingClampComponent.cs)
 - [`Content.Server/_WF/Encounters/Components/WFEncounterBountyComponent.cs`](Components/WFEncounterBountyComponent.cs)
 - [`Content.Server/_WF/Encounters/Components/WFEncounterComponent.cs`](Components/WFEncounterComponent.cs)
@@ -285,6 +286,7 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Sanctuary.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Sanctuary.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Simulation.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Simulation.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Stealth.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Stealth.cs)
+- [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.StealthBoarding.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.StealthBoarding.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Storyteller.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Storyteller.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Stranded.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.Stranded.cs)
 - [`Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.TraderHail.cs`](../../../Content.IntegrationTests/Tests/_WF/Encounters/WFEncounterTest.TraderHail.cs)

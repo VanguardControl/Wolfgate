@@ -28,9 +28,16 @@ public sealed partial class WFStandingPrototype : IPrototype
     [DataField]
     public bool RecklessFire;
 
-    /// <summary>Spesos paid at once to a player who kills one of its NPC crewmen, half that to one who assists; zero for none.</summary>
+    /// <summary>Thalers paid at once to a player who kills one of its NPC crewmen, half that to one who assists; zero for none.</summary>
     [DataField]
     public int KillBounty;
+
+    /// <summary>
+    /// Thalers a downed NPC crewman drops at his feet per step of threat tier, tier 0 counting as one step, give or take
+    /// a quarter; zero for none.
+    /// </summary>
+    [DataField]
+    public int CashDrop;
 }
 
 /// <summary>Which ships a zone answers to.</summary>
