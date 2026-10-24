@@ -11,6 +11,8 @@ using Content.Shared._WF.Planets;
 using Content.Shared._WF.Traders;
 using Content.Server._WF.Planets;
 using Content.Server._WF.Planets.Bounds;
+using Content.Server.Parallax;
+using Content.Shared.Parallax.Biomes;
 using Content.Shared.Doors.Components;
 using Content.Shared.Light.Components;
 using Content.Shared.Light.EntitySystems;
@@ -195,6 +197,31 @@ public sealed class PlanetPoiContentTest
                 foreach (var site in record.Sites.Where(site => site.Connection != WFPlanetPoiConnection.Isolated))
                 foreach (var socket in site.Sockets)
                     Assert.That(reached, Does.Contain(socket.Position), site.MapPath);
+
+                // Nothing stands in water: no road or footpath, no camp or wreck in its ring, no house; a bigger site at
+                // most on a pond's edge.
+                var biome = new Entity<BiomeComponent>(ground, entities.GetComponent<BiomeComponent>(ground));
+                var biomes = server.System<BiomeSystem>();
+                Assert.That(record.RoadTiles.Concat(record.ShoulderTiles).Concat(record.TrailTiles).Where(tile => biomes.WfIsWater(biome, tile)),
+                    Is.Empty, "A road or footpath runs through water.");
+                foreach (var site in record.Sites.Where(site => site.Bounds.Width * site.Bounds.Height <= 96 * 96))
+                {
+                    var middle = new Vector2((site.Bounds.Left + site.Bounds.Right) / 2f, (site.Bounds.Bottom + site.Bounds.Top) / 2f);
+                    var round = site.MapPath == null && site.Dungeon == null;
+                    var tiles = 0;
+                    var wet = 0;
+                    for (var x = site.Bounds.Left; x < site.Bounds.Right; x++)
+                    for (var y = site.Bounds.Bottom; y < site.Bounds.Top; y++)
+                    {
+                        if (round && Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), middle) > (site.Bounds.Width - 2) / 2f)
+                            continue;
+                        tiles++;
+                        if (biomes.WfIsWater(biome, new Vector2i(x, y)))
+                            wet++;
+                    }
+                    var small = round || site.Bounds.Width * site.Bounds.Height <= 48 * 48;
+                    Assert.That(wet, Is.LessThanOrEqualTo(small ? 0 : tiles * 0.03f), $"{site.Name} at {site.Origin} stands in water.");
+                }
             });
         }
         finally { await PlanetFixture.Teardown(pair, layers); }

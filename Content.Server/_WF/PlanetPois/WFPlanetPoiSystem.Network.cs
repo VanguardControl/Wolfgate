@@ -318,12 +318,19 @@ public sealed partial class WFPlanetPoiSystem
         WFPlanetPoiTablePrototype table, WFPlanetRoadNetwork roads, HashSet<Vector2i> blocked)
     {
         var seed = _random.Next();
+        var biome = new Entity<BiomeComponent>(ground, Comp<BiomeComponent>(ground));
+        var water = new Func<Vector2i, bool>(tile => _biome.WfIsWater(biome, tile));
+        var watch = System.Diagnostics.Stopwatch.StartNew();
         while (true)
         {
             var sites = record.Sites.Select(site => new WFPlanetRoadSite(site.Bounds, site.Connection, site.Sockets)).ToList();
-            var plan = WFPlanetRoadPlanner.Plan(centre, radius - 1, table.CentreClear, sites, blocked, roads.Width, roads.ShoulderWidth, seed);
+            var plan = WFPlanetRoadPlanner.Plan(centre, radius - 1, table.CentreClear, sites, blocked, roads.Width, roads.ShoulderWidth, seed,
+                water, roads.Backbone);
             if (plan.Success || plan.FailedEntrance is not { } entrance)
+            {
+                Log.Info($"Roads on {ToPrettyString(ground)} planned in {watch.ElapsedMilliseconds} ms: {plan.Centreline.Count} tiles of centreline, {plan.Backbone.Count} arterial.");
                 return plan;
+            }
 
             var failed = record.Sites.FirstOrDefault(site => site.Connection != WFPlanetPoiConnection.Isolated
                                                              && site.Sockets.Any(socket => socket.Position == entrance));
@@ -367,9 +374,10 @@ public sealed partial class WFPlanetPoiSystem
                 return false;
             if (entry.MapPath != null && table.Roads is { } roads && entry.Connection != WFPlanetPoiConnection.Isolated
                 && entry.Sockets.Any(socket => !ApproachFits(candidateOrigin + socket.Offset, socket.Direction, roads, centre, radius - 1, table.CentreClear,
-                    tile => reserved.Any(other => Contains(other, tile)) || _biome.WfIsPinned(ground, tile))))
+                    tile => reserved.Any(other => Contains(other, tile)) || _biome.WfIsPinned(ground, tile) || _biome.WfIsWater(ground, tile))))
                 return false;
-            return !ground.Comp.ModifiedTiles.Values.Any(indices => indices.Any(tile => Contains(placement, tile)));
+            return !ground.Comp.ModifiedTiles.Values.Any(indices => indices.Any(tile => Contains(placement, tile)))
+                   && !Flooded(ground, box);
         }
         for (var attempt = 0; attempt < AttemptsPerSite; attempt++)
         {
@@ -386,6 +394,39 @@ public sealed partial class WFPlanetPoiSystem
             return true;
         }
         return false;
+    }
+
+    /// <summary>
+    /// The share of a bigger footprint that may be under water, the edge of a pond or lake: it is drained where the
+    /// site is laid.
+    /// </summary>
+    private const float SiteWater = 0.03f;
+
+    /// <summary>A footprint up to this many tiles, such as a house, keeps out of water altogether.</summary>
+    private const int SmallSite = 48 * 48;
+
+    /// <summary>A footprint over this many tiles, such as a city, is sampled every other tile.</summary>
+    private const int LargeSite = 96 * 96;
+
+    /// <summary>
+    /// Whether a footprint stands in water: any tile of a small one, or more than a few percent of a bigger one, which
+    /// can't hope to miss every pond.
+    /// </summary>
+    private bool Flooded(Entity<BiomeComponent> ground, Box2i box)
+    {
+        var area = box.Width * box.Height;
+        var allowed = area <= SmallSite ? 0f : SiteWater;
+        var step = area > LargeSite ? 2 : 1;
+        var samples = 0;
+        var wet = 0;
+        for (var x = box.Left; x < box.Right; x += step)
+        for (var y = box.Bottom; y < box.Top; y += step)
+        {
+            samples++;
+            if (_biome.WfIsWater(ground, new Vector2i(x, y)))
+                wet++;
+        }
+        return wet > samples * allowed;
     }
 
     /// <summary>Checks complete road and shoulder approaches against bounds and protected terrain.</summary>
@@ -610,6 +651,8 @@ public sealed partial class WFPlanetPoiSystem
     {
         var sockets = new List<WFPlanetRoadSocket>();
         var otherBounds = Comp<WFPlanetPoiComponent>(ground).Sites.Select(other => other.Bounds).ToArray();
+        var biome = CompOrNull<BiomeComponent>(ground);
+        bool Water(Vector2i tile) => biome != null && _biome.WfIsWater((ground, biome), tile);
         if (entry.Sockets.Count > 0)
         {
             foreach (var socket in entry.Sockets)
@@ -665,7 +708,7 @@ public sealed partial class WFPlanetPoiSystem
                             frontier.Enqueue(next);
                             continue;
                         }
-                        var clear = ApproachFits(current, cardinal, roads, centre, radius, centreClear, tile => initialPins.Contains(tile) || otherBounds.Any(bounds => Contains(bounds, tile)));
+                        var clear = ApproachFits(current, cardinal, roads, centre, radius, centreClear, tile => initialPins.Contains(tile) || otherBounds.Any(bounds => Contains(bounds, tile)) || Water(tile));
                         for (var step = 0; step <= clearance + 1 && clear; step++)
                         for (var side = -clearance; side <= clearance; side++)
                         {

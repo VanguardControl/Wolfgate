@@ -111,18 +111,18 @@
     entities: [WFFleshPustule]
     threshold: 0.985
     noise: { seed: 43, noiseType: OpenSimplex2, frequency: 0.35 }
-  # Rivers win over walls/trees/fauna; they are static water effects, not spreading reagent puddles.
+  # Blood pools win over walls/trees/fauna; they are static water effects, not spreading reagent puddles.
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFlesh, FloorFlesh]
     entities: [WFBloodRiver]
-    threshold: 0.94
-    noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.008, fractalType: Ridged, octaves: 1 }
+    threshold: 0.8
+    noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.03, fractalType: FBm, octaves: 2 }
 
-  # Broad seas override all terrestrial features, as on Asclepiu.
+  # Blood lakes override all terrestrial features, as Asclepiu's lakes do.
   - !type:BiomeMetaLayer
     template: WFCarcinomaBloodOcean
-    threshold: 0.45
-    noise: { seed: 61, frequency: 0.002, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, lacunarity: 2 }
+    threshold: 0.75
+    noise: { seed: 61, frequency: 0.012, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, lacunarity: 2 }
 
 - type: biomeTemplate
   id: WFCarcinomaGrove

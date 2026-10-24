@@ -165,7 +165,8 @@ public sealed partial class WFPlanetPoiSystem
             for (var x = (int) MathF.Floor(spot.X - clear); x <= (int) MathF.Ceiling(spot.X + clear) && free; x++)
             for (var y = (int) MathF.Floor(spot.Y - clear); y <= (int) MathF.Ceiling(spot.Y + clear) && free; y++)
             {
-                if (Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), spot) <= clear && _biome.WfIsPinned(ground, new Vector2i(x, y)))
+                if (Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), spot) <= clear
+                    && (_biome.WfIsPinned(ground, new Vector2i(x, y)) || _biome.WfIsWater(ground, new Vector2i(x, y))))
                     free = false;
             }
             if (free)

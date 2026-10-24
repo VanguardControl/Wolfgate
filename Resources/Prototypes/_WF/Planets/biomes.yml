@@ -1,4 +1,4 @@
-# Asclepiu: temperate continents, seas and polar snow.
+# Asclepiu: temperate continents dotted with lakes, and polar snow.
 
 - type: biomeTemplate
   id: WFBiomeAsclepiu
@@ -12,11 +12,13 @@
       fractalType: FBm
       octaves: 2
       lacunarity: 2
+  # Lakes some 8 to 40 tiles across, a couple to every hundred tiles square, not seas.
   - !type:BiomeMetaLayer
-    template: WFCoastalOcean
-    threshold: 0.45
+    template: WFTemperateLake
+    threshold: 0.78
     noise:
-      frequency: 0.002
+      seed: 71
+      frequency: 0.012
       noiseType: OpenSimplex2
       fractalType: FBm
       octaves: 2

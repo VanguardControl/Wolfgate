@@ -31,7 +31,7 @@ public sealed partial class WFPlanetPoiSystem
                 // Through its own yard, or across its own floor where nothing stands in the way.
                 if (Contains(site.Bounds, tile))
                     return !site.Tiles.Contains(tile) || Unblocked(ground, grid, tile);
-                return !_biome.WfIsPinned((ground, biome), tile);
+                return !_biome.WfIsPinned((ground, biome), tile) && !_biome.WfIsWater((ground, biome), tile);
             }
 
             var path = WFPlanetTrailPlanner.Route(start.Position, targets, Passable, centre, radius, roads.TrailLength, _random.Next());

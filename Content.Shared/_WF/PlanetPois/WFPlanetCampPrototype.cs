@@ -31,6 +31,13 @@ public sealed partial class WFPlanetCampPrototype : IPrototype
     [DataField]
     public ProtoId<NpcFactionPrototype> Faction = "SimpleNeutral";
 
+    /// <summary>
+    /// Whether the camp is pitched beside a road, just off the shoulder on a straight stretch and facing it, where
+    /// whoever drives by sees it; out in the open instead when the world has no roads or no stretch has room.
+    /// </summary>
+    [DataField]
+    public bool Roadside = true;
+
     /// <summary>Whoever lives there instead of, or as well as, a crew: one pick each, set round the fire.</summary>
     [DataField]
     public EntityTableSelector? Residents;
