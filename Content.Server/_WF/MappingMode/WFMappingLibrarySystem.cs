@@ -522,9 +522,9 @@ public sealed class WFMappingLibrarySystem : EntitySystem
 
     /// <summary>
     /// Resets the air on every grid of the levels to its roundstart mix, as <c>fixgridatmos</c> does, and relinks
-    /// windows to the grid they stand on.
+    /// windows to the grid they stand on. Live testing runs it on its copy of the levels.
     /// </summary>
-    private void FixAtmos(List<EntityUid> levels, WFMappingSession session)
+    public void FixAtmos(List<EntityUid> levels, WFMappingSession session)
     {
         foreach (var level in levels)
         {

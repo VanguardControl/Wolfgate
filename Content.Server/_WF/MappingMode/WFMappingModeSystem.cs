@@ -189,7 +189,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
     /// <summary>Whether a player may map at all: a present session member, or a Mapping admin.</summary>
     public bool CanMap(ICommonSession session)
     {
-        return IsAdminMapper(session) || Enabled && TryGetPresent(session, out _);
+        return IsAdminMapper(session) || Enabled && TryGetPresent(session, out _) && !IsTesting(session);
     }
 
     /// <summary>Whether a player may edit a map: a level of their session, or any map for a Mapping admin.</summary>
@@ -198,7 +198,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         if (IsAdminMapper(session))
             return true;
 
-        return Enabled && TryGetPresent(session, out var mapping) && IsSessionMap(map, mapping);
+        return Enabled && TryGetPresent(session, out var mapping) && IsSessionMap(map, mapping) && !IsTesting(session);
     }
 
     private void OnCanUse(WFMappingCanUseEvent ev)
@@ -208,6 +208,15 @@ public sealed partial class WFMappingModeSystem : EntitySystem
 
         if (ev.Request && !TryThrottle(_toolsThrottle, ev.Session, "mapping tools"))
             return;
+
+        // A tester walks the map; nothing edits until they are back on the observer.
+        if (IsTesting(ev.Session))
+        {
+            if (ev.Request)
+                Refuse(ev.Session, "wf-mapping-test-no-edit");
+
+            return;
+        }
 
         ev.Allowed = true;
     }

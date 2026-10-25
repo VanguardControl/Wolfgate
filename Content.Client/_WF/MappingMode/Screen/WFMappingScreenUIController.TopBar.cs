@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Client._WF.MappingMode.Test;
 using Content.Client.Popups;
 using Content.Client.Resources;
 using Content.Client.Sandbox;
@@ -19,7 +20,7 @@ namespace Content.Client._WF.MappingMode.Screen;
 /// <summary>
 /// The mapping screen's menu bar. The game's controllers wire the screen's own <see cref="GameTopMenuBar"/> as on any
 /// screen and show their buttons again when they like, so the gameplay buttons are hidden every frame instead of
-/// removed, and their keys leave <c>common</c>. Mapping and Quicksave go in before the bug report button.
+/// removed, and their keys leave <c>common</c>. Mapping, Quicksave and Test map go in before the bug report button.
 /// </summary>
 public sealed partial class WFMappingScreenUIController
 {
@@ -57,6 +58,7 @@ public sealed partial class WFMappingScreenUIController
 
     private static readonly ResPath MappingIcon = new("/Textures/_WF/MappingMode/Interface/mapping.png");
     private static readonly ResPath QuicksaveIcon = new("/Textures/_WF/MappingMode/Interface/quicksave.png");
+    private static readonly ResPath TestIcon = new("/Textures/_WF/MappingMode/Interface/test.png");
 
     private readonly List<Control> _gameplayButtons = new();
     private readonly List<BoundKeyFunction> _removedKeys = new();
@@ -68,6 +70,9 @@ public sealed partial class WFMappingScreenUIController
 
     /// <summary>The bar's Quicksave button while the mapping screen is up.</summary>
     public MenuButton? QuicksaveButton { get; private set; }
+
+    /// <summary>The bar's Test map button while the mapping screen is up; it joins a test already running.</summary>
+    public MenuButton? TestButton { get; private set; }
 
     private void LoadTopBar(WFMappingScreen screen)
     {
@@ -91,8 +96,13 @@ public sealed partial class WFMappingScreenUIController
         quicksave.ToggleMode = false;
         quicksave.OnPressed += _ => Quicksave();
 
-        // Each takes the bug report button's slot and pushes it right: Mapping, Quicksave, bug report.
-        foreach (var button in new[] { mapping, quicksave })
+        var test = MakeButton("WFTestButton", TestIcon, Loc.GetString("wf-mapping-screen-bar-test"));
+        test.BoundKey = string.Empty;
+        test.ToggleMode = false;
+        test.OnPressed += _ => EntityManager.System<WFMappingTestClientSystem>().Start();
+
+        // Each takes the bug report button's slot and pushes it right: Mapping, Quicksave, Test map, bug report.
+        foreach (var button in new[] { mapping, quicksave, test })
         {
             var slot = bar.FeedbackButton.GetPositionInParent();
             bar.AddChild(button);
@@ -101,6 +111,8 @@ public sealed partial class WFMappingScreenUIController
 
         MappingButton = mapping;
         QuicksaveButton = quicksave;
+        TestButton = test;
+        UpdateTestButton();
         UIManager.GetUIController<WFMappingMenuUIController>().WindowChanged += UpdateMappingButton;
         UpdateMappingButton();
 
@@ -145,8 +157,10 @@ public sealed partial class WFMappingScreenUIController
         UIManager.GetUIController<WFMappingMenuUIController>().WindowChanged -= UpdateMappingButton;
         MappingButton?.Orphan();
         QuicksaveButton?.Orphan();
+        TestButton?.Orphan();
         MappingButton = null;
         QuicksaveButton = null;
+        TestButton = null;
         _gameplayButtons.Clear();
         _topBar = null;
     }
@@ -190,6 +204,22 @@ public sealed partial class WFMappingScreenUIController
         bar.SandboxButton.Visible = EntityManager.TrySystem<SandboxSystem>(out var sandbox) && sandbox.SandboxAllowed;
         if (QuicksaveButton is { } quicksave)
             quicksave.Disabled = _timing.RealTime < _quicksaveReady;
+
+        UpdateTestButton();
+    }
+
+    /// <summary>Test map offers to join while another member's test runs.</summary>
+    private void UpdateTestButton()
+    {
+        if (TestButton is not { } button)
+            return;
+
+        var running = EntityManager.System<WFMappingTestClientSystem>().Running;
+        var tooltip = running == null
+            ? Loc.GetString("wf-mapping-screen-bar-test")
+            : Loc.GetString("wf-mapping-screen-bar-test-join", ("testers", string.Join(", ", running.Testers)));
+        if (button.ToolTip != tooltip)
+            button.ToolTip = tooltip;
     }
 
     private void UpdateMappingButton()

@@ -131,4 +131,19 @@ public sealed class WFMappingModeCVars
     /// <summary>Estimated serialized bytes of a mapper's undo and redo steps; the oldest go first.</summary>
     public static readonly CVarDef<long> MaxHistoryBytes =
         CVarDef.Create("wf.mapping_mode.max_history_bytes", 16L * 1024 * 1024, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Grid file loaded beside the ship on a live test's ground level, 60 tiles off, to fly to and dock at. Empty
+    /// means space only.
+    /// </summary>
+    public static readonly CVarDef<string> TestRange =
+        CVarDef.Create("wf.mapping_mode.test_range", "/Maps/_NF/POI/cargodepot.yml", CVar.SERVERONLY);
+
+    /// <summary>Minutes a live test runs before everyone is sent back to mapping.</summary>
+    public static readonly CVarDef<int> TestMaxMinutes =
+        CVarDef.Create("wf.mapping_mode.test_max_minutes", 30, CVar.SERVERONLY);
+
+    /// <summary>Seconds after a session's live test ends before it may start another.</summary>
+    public static readonly CVarDef<float> TestCooldown =
+        CVarDef.Create("wf.mapping_mode.test_cooldown", 10f, CVar.SERVERONLY);
 }
