@@ -5,7 +5,7 @@
         "y": 32
     },
     "license": "CC-BY-SA-3.0",
-    "copyright": "",
+    "copyright": "Taken from Backmen at commit https://github.com/Rxup/space-station-14/commit/af8a395979b3d30d81deefba77f255122e15f715.",
     "states": [
         {
             "name": "full"

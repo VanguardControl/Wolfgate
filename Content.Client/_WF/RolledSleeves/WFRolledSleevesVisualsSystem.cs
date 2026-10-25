@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
+using Content.Client.Clothing;
 using Content.Shared._WF.RolledSleeves;
 using Content.Shared.Clothing;
-using Content.Shared.Item;
+using Content.Shared.Inventory;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
@@ -18,7 +18,8 @@ namespace Content.Client._WF.RolledSleeves;
 public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
 {
     [Dependency] private IResourceCache _cache = default!;
-    [Dependency] private SharedItemSystem _item = default!;
+    [Dependency] private ClientClothingSystem _clothing = default!;
+    [Dependency] private InventorySystem _inventory = default!;
     [Dependency] private SpriteSystem _sprite = default!;
 
     private const string Shader = "WFRolledSleeves";
@@ -30,20 +31,33 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
     private static readonly ResPath MaskRsi = new("/Textures/_WF/RolledSleeves/sleeve_mask.rsi");
     private static readonly ResPath DrawnRoot = new("/Textures/_WF/RolledSleeves/Meridian");
 
-    /// <summary>Human jumpsuit states, optionally prefixed; species-specific states are left alone.</summary>
-    private static readonly Regex JumpsuitState = new(@"^(?:[^-]+-)?equipped-INNERCLOTHING$", RegexOptions.Compiled);
-
     public override void Initialize()
     {
         base.Initialize();
 
         SubscribeLocalEvent<WFRolledSleevesComponent, EquipmentVisualsUpdatedEvent>(OnVisualsUpdated);
         SubscribeLocalEvent<WFRolledSleevesComponent, AfterAutoHandleStateEvent>(OnAfterState);
+        SubscribeLocalEvent<WFRolledSleevesComponent, WFJumpsuitStyleChangedEvent>(OnStyleChanged);
     }
 
     private void OnAfterState(Entity<WFRolledSleevesComponent> ent, ref AfterAutoHandleStateEvent args)
     {
-        _item.VisualsChanged(ent);
+        Redraw(ent);
+    }
+
+    private void OnStyleChanged(Entity<WFRolledSleevesComponent> ent, ref WFJumpsuitStyleChangedEvent args)
+    {
+        Redraw(ent);
+    }
+
+    /// <summary>
+    /// Redraws the wearer's clothes. Not through the item system: that needs the suit's InSlot, which the client
+    /// never sets when it first sees the wearer already dressed.
+    /// </summary>
+    private void Redraw(EntityUid suit)
+    {
+        if (_inventory.TryGetContainingEntity(suit, out var wearer) && TryComp(wearer, out InventoryComponent? inventory))
+            _clothing.InitClothing(wearer.Value, inventory);
     }
 
     private void OnVisualsUpdated(Entity<WFRolledSleevesComponent> ent, ref EquipmentVisualsUpdatedEvent args)
@@ -58,6 +72,9 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
         if (maskState == null || !TryComp(args.Equipee, out SpriteComponent? sprite))
             return;
 
+        // States drawn for the wearer's species have their own arms; the mask fits the human body.
+        var speciesSuffix = CompOrNull<InventoryComponent>(args.Equipee)?.SpeciesId is { } species ? $"-{species}" : null;
+
         // Copied: mask keys are added to the set while walking it.
         foreach (var key in new List<string>(args.RevealedLayers))
         {
@@ -67,7 +84,7 @@ public sealed partial class WFRolledSleevesVisualsSystem : EntitySystem
             if (!_sprite.LayerMapTryGet((args.Equipee, sprite), key, out var index, false) ||
                 sprite[index] is not SpriteComponent.Layer layer ||
                 layer.State.Name is not { } state ||
-                !JumpsuitState.IsMatch(state) ||
+                (speciesSuffix != null && state.EndsWith(speciesSuffix)) ||
                 sprite.LayerGetActualRSI(index) is not { } rsi ||
                 rsi.Size.X != MaskSize || rsi.Size.Y != MaskSize)
             {
