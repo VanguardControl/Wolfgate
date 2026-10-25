@@ -20,6 +20,9 @@ public sealed partial class WFStrangerSystem
     /// <summary>How long a wander leg may take before he gives it up and lingers where he got to.</summary>
     private static readonly TimeSpan WanderPatience = TimeSpan.FromSeconds(60);
 
+    /// <summary>How soon he tries again after a wander leg that went nowhere.</summary>
+    private static readonly TimeSpan FailedLegRetry = TimeSpan.FromSeconds(5);
+
     /// <summary>How long a resident leaves someone be after they've led him past his leash.</summary>
     private static readonly TimeSpan LeashCooldown = TimeSpan.FromSeconds(90);
 
@@ -118,9 +121,11 @@ public sealed partial class WFStrangerSystem
             // Still on his way: leave the leg be until he gets there, or gives up on it.
             if (now < until && TryComp(ent, out NPCSteeringComponent? steering) && steering.Status == SteeringStatus.Moving)
                 return;
+            // A leg with no way there: he tries another spot shortly rather than standing about.
+            var noPath = !TryComp(ent, out NPCSteeringComponent? ended) || ended.Status == SteeringStatus.NoPath;
             ent.Comp.WanderUntil = null;
             _steering.Unregister(ent);
-            ent.Comp.NextWander = now + Linger(ent.Comp);
+            ent.Comp.NextWander = now + (noPath ? FailedLegRetry : Linger(ent.Comp));
             return;
         }
 
