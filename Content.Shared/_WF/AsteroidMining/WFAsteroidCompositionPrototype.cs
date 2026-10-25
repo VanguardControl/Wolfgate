@@ -26,6 +26,9 @@ public sealed partial class WFAsteroidCompositionPrototype : IPrototype
     /// <summary>Tint of the rock body, for kinds that should stand out from plain rock.</summary>
     [DataField] public Color RockColor = Color.White;
 
+    /// <summary>Which of the rock's <see cref="WFAsteroidComponent.Looks"/> this kind uses.</summary>
+    [DataField] public string? Look;
+
     /// <summary>Name for rocks of this kind, given the rock's own name as <c>$name</c>.</summary>
     [DataField] public LocId? Name;
 

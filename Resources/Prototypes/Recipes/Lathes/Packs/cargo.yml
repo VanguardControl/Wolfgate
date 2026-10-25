@@ -38,4 +38,7 @@
   - ShuttleGunKineticCircuitboard
   - WeaponTurretM25Circuitboard # Mono
   - ShipDrillMachineCircuitboard # Mono
-  - WFWeaponTurretMiningBeamCircuitboard # WOLFGATE(AsteroidMining): mining laser board
+  # WOLFGATE(AsteroidMining) START: heavy and light mining laser boards
+  - WFWeaponTurretMiningBeamCircuitboard
+  - WFWeaponTurretMiningLaserSmallCircuitboard
+  # WOLFGATE END

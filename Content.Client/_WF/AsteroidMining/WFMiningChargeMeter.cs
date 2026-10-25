@@ -1,28 +1,29 @@
 using System.Numerics;
+using Content.Shared._WF.AsteroidMining;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 
 namespace Content.Client._WF.AsteroidMining;
 
 /// <summary>
-/// A rock's heat on a bar: cold, the green cracking window, hot, then the red overcharge zone. A white needle shows the
-/// heat now and a cyan notch where the current power setting will settle it.
+/// A rock's heat on a bar: cold, the green cracking window, the yellow band that cracks faster but loses ore, then the
+/// red overcharge zone. A white needle shows the heat now and a cyan notch where the current power setting will settle it.
 /// </summary>
 public sealed class WFMiningChargeMeter : Control
 {
     /// <summary>Heat at the right-hand end of the bar.</summary>
-    public const float Scale = 1.25f;
+    public const float Scale = WFAsteroidHeat.MeterScale;
 
     public float Charge;
     public float WindowLow = 0.45f;
     public float WindowHigh = 0.65f;
-    public float OverchargeLine = 1f;
+    public float OverchargeLine = WFAsteroidHeat.OverchargeLine;
     public float? Predicted;
     public bool Overcharging;
 
     private static readonly Color Cold = new(0.16f, 0.2f, 0.24f);
     private static readonly Color WindowColor = new(0.15f, 0.75f, 0.3f);
-    private static readonly Color Hot = new(0.85f, 0.5f, 0.1f);
+    private static readonly Color Hot = new(0.9f, 0.72f, 0.12f);
     private static readonly Color Danger = new(0.85f, 0.1f, 0.08f);
 
     public WFMiningChargeMeter()

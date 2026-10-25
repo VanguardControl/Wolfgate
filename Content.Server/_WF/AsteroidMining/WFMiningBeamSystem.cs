@@ -30,11 +30,8 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     [Dependency] private ActionBlockerSystem _blocker = default!;
     [Dependency] private WFAsteroidSystem _asteroids = default!;
 
-    /// <summary>Seconds over the overcharge line before a rock blows up.</summary>
-    public const float OverchargeDuration = 2.5f;
-
-    /// <summary>Displayed heat at which a rock starts to overcharge.</summary>
-    public const float OverchargeLine = 1f;
+    public const float OverchargeDuration = WFAsteroidHeat.OverchargeDuration;
+    public const float OverchargeLine = WFAsteroidHeat.OverchargeLine;
 
     private static readonly TimeSpan UiInterval = TimeSpan.FromSeconds(0.25);
     private TimeSpan _nextUi;
@@ -153,6 +150,12 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             beam.Audio = _audio.PlayPvs(beam.LoopSound, gun)?.Entity;
     }
 
+    /// <summary>Keeps a rock's heat running though no beam is on it yet, such as a fragment born hot.</summary>
+    public void Track(EntityUid rock)
+    {
+        _heated.Add(rock);
+    }
+
     /// <summary>Puts a gun's beam out.</summary>
     public void Stop(EntityUid gun, WFMiningBeamEmitterComponent comp)
     {
@@ -178,6 +181,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             if (TryComp<WFAsteroidComponent>(rock, out var comp))
             {
                 comp.IncomingPower = 0f;
+                comp.CrackRate = 0f;
                 comp.WindowScale = 1f;
             }
         }
@@ -199,9 +203,10 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
                 !TryComp<WFAsteroidComponent>(rock, out var asteroid) || asteroid.Cracking)
             {
                 beam.Contribution = 0f;
-                if (beam.InWindow)
+                if (beam.InWindow || beam.Hot)
                 {
                     beam.InWindow = false;
+                    beam.Hot = false;
                     Dirty(uid, beam);
                 }
                 continue;
@@ -209,15 +214,18 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
 
             beam.Contribution = beam.Power * beam.Strength;
             asteroid.IncomingPower += beam.Contribution;
+            asteroid.CrackRate += beam.CrackRate;
             asteroid.WindowScale = MathF.Max(asteroid.WindowScale, beam.WindowScale);
             _heated.Add(rock);
 
             var (low, high) = Window(asteroid);
             var inWindow = asteroid.Charge >= low && asteroid.Charge <= high;
-            if (MathF.Abs(beam.Charge - asteroid.Charge) > 0.03f || beam.InWindow != inWindow)
+            var hot = asteroid.Charge > high && asteroid.Charge < OverchargeLine;
+            if (MathF.Abs(beam.Charge - asteroid.Charge) > 0.03f || beam.InWindow != inWindow || beam.Hot != hot)
             {
                 beam.Charge = asteroid.Charge;
                 beam.InWindow = inWindow;
+                beam.Hot = hot;
                 Dirty(uid, beam);
             }
         }
@@ -265,22 +273,36 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         var heating = comp.IncomingPower > 0f;
         var equilibrium = comp.IncomingPower * (1f - comp.Resistance);
         // Heavier rocks heat and cool more slowly; with no beam they cool at half speed.
-        var tau = (1.2f + comp.Mass * 0.01f) * (heating ? 1f : 2f);
+        var tau = (0.5f + comp.Mass * 0.004f) * (heating ? 1f : 2f);
         comp.BaseCharge += (equilibrium - comp.BaseCharge) * (1f - MathF.Exp(-frameTime / tau));
 
         // Unstable rocks drift slowly around the beam's heat, so the power has to follow them.
         var time = (float) _timing.CurTime.TotalSeconds;
         var wobble = heating
-            ? comp.Instability * 0.12f * (0.6f * MathF.Sin(time * 0.9f + comp.NoiseSeed) +
+            ? comp.Instability * 0.08f * (0.6f * MathF.Sin(time * 0.9f + comp.NoiseSeed) +
                                           0.4f * MathF.Sin(time * 0.37f + comp.NoiseSeed * 1.7f))
             : 0f;
         var charge = MathF.Max(0f, comp.BaseCharge + wobble);
         var (low, high) = Window(comp);
 
+        var rate = comp.CrackRate / WFAsteroidSystem.CrackTime(comp);
         if (heating && charge >= low && charge <= high)
-            comp.Progress += frameTime / WFAsteroidSystem.CrackTime(comp);
-        else
+        {
+            comp.Progress += frameTime * rate;
+        }
+        else if (heating && charge > high && charge < OverchargeLine)
+        {
+            // Pushing past the window cracks faster, but the hot share of the crack costs ore.
+            var step = frameTime * rate * WFAsteroidHeat.HotCrackSpeed;
+            comp.Progress += step;
+            comp.HotProgress += step;
+        }
+        else if (comp.Progress > 0f)
+        {
+            var before = comp.Progress;
             comp.Progress = MathF.Max(0f, comp.Progress - frameTime * 0.04f);
+            comp.HotProgress *= comp.Progress / before;
+        }
 
         comp.OverchargeTime = charge >= OverchargeLine
             ? comp.OverchargeTime + frameTime
@@ -359,7 +381,8 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             var (low, high) = Window(comp);
             var ores = comp.Ores.Select(o => new WFMiningBeamOreEntry(OreName(o.Ore), o.Fraction, o.Color)).ToArray();
             target = new WFMiningBeamTargetEntry(Name(uid), comp.Mass, ores, comp.Resistance, low, high, comp.Charge,
-                Math.Clamp(comp.Progress, 0f, 1f), comp.OverchargeTime / OverchargeDuration, comp.IncomingPower,
+                Math.Clamp(comp.Progress, 0f, 1f), comp.OverchargeTime / OverchargeDuration,
+                WFAsteroidHeat.Yield(comp.Progress, comp.HotProgress), comp.IncomingPower,
                 strength, on.Count > 0);
         }
         else

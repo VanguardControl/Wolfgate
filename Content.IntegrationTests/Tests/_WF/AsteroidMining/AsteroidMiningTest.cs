@@ -113,7 +113,7 @@ public sealed class AsteroidMiningTest
         var asteroids = server.System<WFAsteroidSystem>();
 
         EntityUid rock = default, grid = default, passenger = default;
-        var mass = 0f;
+        float mass = 0f, share = 0f;
         await server.WaitAssertion(() =>
         {
             rock = SpawnAsteroid(pair, map.MapId, "WFAsteroidLarge", ShipPos);
@@ -122,17 +122,21 @@ public sealed class AsteroidMiningTest
             var xform = em.GetComponent<TransformComponent>(rock);
             grid = xform.GridUid!.Value;
             mass = comp.Mass;
+            share = comp.FragmentShare;
             Assert.Multiple(() =>
             {
                 Assert.That(xform.Anchored, Is.True, "The rock should be anchored at the grid's centre.");
+                // Irregular variants fill about half the disc and hold correspondingly less rock.
                 Assert.That(server.System<SharedMapSystem>().GetAllTiles(grid, em.GetComponent<MapGridComponent>(grid)).Count(),
-                    Is.GreaterThan(50), "A radius 5 rock should sit on a disc of tiles.");
-                Assert.That(mass, Is.InRange(comp.MinMass, comp.MaxMass), "The rolled mass should be in the rock's range.");
+                    Is.GreaterThan(30), "A radius 5 rock should sit on a field of tiles.");
+                Assert.That(mass, Is.InRange(comp.MinMass * comp.MassScale, comp.MaxMass * comp.MassScale),
+                    "The rolled mass should be in the rock's range for its silhouette.");
                 Assert.That(comp.Ores, Is.Not.Empty, "The rock should hold at least one ore.");
                 Assert.That(comp.Ores.Sum(o => o.Fraction), Is.LessThan(1f), "Part of the rock should be inert.");
             });
 
             passenger = em.SpawnEntity("Crowbar", new EntityCoordinates(grid, 4.5f, 0.5f));
+            comp.BaseCharge = 0.5f;
             asteroids.QueueCrack(rock, WFAsteroidCrack.Clean);
         });
 
@@ -147,9 +151,10 @@ public sealed class AsteroidMiningTest
             {
                 Assert.That(em.Deleted(grid), Is.True, "Cracking should remove the rock's grid.");
                 Assert.That(fragments, Has.Count.EqualTo(2), "A large rock should split into two fragments.");
-                Assert.That(fragments.Sum(f => f.Mass), Is.EqualTo(mass * 0.5f).Within(0.01f),
+                Assert.That(fragments.Sum(f => f.Mass), Is.EqualTo(mass * share).Within(0.01f),
                     "Fragments should carry the fragment share of the mass.");
                 Assert.That(fragments.All(f => f.Ores.Count > 0), Is.True, "Fragments should keep the parent's ores.");
+                Assert.That(fragments.All(f => f.BaseCharge > 0f), Is.True, "Fragments should come off hot.");
                 Assert.That(boulders, Is.Not.Empty, "Part of the dropped ore should come out as boulders.");
                 Assert.That(OreItems(em), Is.GreaterThan(0), "The rest of the mass should drop as ore.");
             });
@@ -242,7 +247,7 @@ public sealed class AsteroidMiningTest
                 Assert.That(rocks, Is.Not.Empty, "The cluster should spawn rocks.");
                 Assert.That(rocks.All(r => r.CompositionId?.Id == "WFAsteroidMetallic"), Is.True,
                     "A certain rare roll should make every rock metallic.");
-                Assert.That(rocks.All(r => r.RockColor != Color.White), Is.True, "Metallic rocks should be tinted.");
+                Assert.That(rocks.All(r => r.Look == "metallic"), Is.True, "Metallic rocks should use their own sprite.");
                 Assert.That(rocks.All(r => r.Resistance >= 0.45f), Is.True, "Metallic rocks should be tough.");
                 Assert.That(MetallicNames(em).All(n => n.StartsWith("metallic")), Is.True,
                     "Metallic rocks should say so in their name.");
@@ -437,7 +442,43 @@ public sealed class AsteroidMiningTest
     }
 
     [Test]
-    public async Task DefaultPowerCracksAHardMediumRock()
+    public async Task HotBandCracksFasterButCostsOre()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        EntityUid gun = default, rock = default;
+        await server.WaitAssertion(() =>
+        {
+            (gun, rock) = SetUpBeam(pair, map.MapId);
+            var beam = em.GetComponent<WFMiningBeamEmitterComponent>(gun);
+            // Settles between the window's top (0.67) and the overcharge line; slow enough to crack not to finish yet.
+            beam.Power = 0.76f / beam.Strength;
+            em.GetComponent<WFAsteroidComponent>(rock).CrackTimeBase = 30f;
+        });
+
+        await HoldFire(pair, gun, rock, 4f);
+
+        await server.WaitAssertion(() =>
+        {
+            var comp = em.GetComponent<WFAsteroidComponent>(rock);
+            Assert.Multiple(() =>
+            {
+                Assert.That(comp.Overcharging, Is.False, "The hot band is below the overcharge line.");
+                Assert.That(comp.HotProgress, Is.GreaterThan(0f), "Cracking in the hot band should count against the yield.");
+                Assert.That(WFAsteroidHeat.Yield(comp.Progress, comp.HotProgress), Is.LessThan(0.8f),
+                    "A crack made mostly hot should lose a good share of the ore.");
+                Assert.That(em.GetComponent<WFMiningBeamEmitterComponent>(gun).Hot, Is.True, "The beam should show it is running hot.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task SmallLaserNeverOverchargesPlainRock()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
         var server = pair.Server;
@@ -449,21 +490,71 @@ public sealed class AsteroidMiningTest
         {
             var ship = DrydockTest.CreateShip(pair, map.MapId, ShipPos);
             DrydockTest.SetFloor(pair, ship, 5);
-            gun = DrydockTest.SpawnAnchored(pair, ship, Gun, new Vector2i(2, 2));
-            rock = SpawnAsteroid(pair, map.MapId, "WFAsteroidMedium", ShipPos + new Vector2(2f, 17f));
+            gun = DrydockTest.SpawnAnchored(pair, ship, "WFWeaponTurretMiningLaserSmall", new Vector2i(2, 2));
+            rock = SpawnAsteroid(pair, map.MapId, "WFAsteroidSmall", ShipPos + new Vector2(2f, 17f));
             server.System<WFAsteroidSystem>().Roll(rock, "WFAsteroidRock");
-            // The worst a medium rock-type asteroid can roll: most resistant, most unstable, highest window.
             var comp = em.GetComponent<WFAsteroidComponent>(rock);
-            comp.Resistance = 0.33f;
-            comp.Instability = 0.45f;
-            comp.WindowCenter = 0.6f;
-            comp.WindowHalfWidth = 0.14f * (1f - 0.5f * comp.Instability);
+            comp.Resistance = 0f;
+            comp.Instability = 0f;
+            comp.WindowCenter = 0.55f;
+            comp.WindowHalfWidth = 0.09f;
+            em.GetComponent<WFMiningBeamEmitterComponent>(gun).Power = 1f;
         });
 
         await HoldFire(pair, gun, rock, 60f);
 
         await server.WaitAssertion(() =>
-            Assert.That(em.Deleted(rock), Is.True, "Holding fire at the default power should crack any medium rock-type asteroid."));
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(em.Deleted(rock), Is.True, "Full power from a light laser should crack a soft rock.");
+                Assert.That(em.GetComponent<WFMiningBeamEmitterComponent>(gun).CooldownUntil, Is.EqualTo(TimeSpan.Zero),
+                    "A light laser on full power should never overcharge it.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task IrregularRocksFillTheirOutline()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var maps = server.System<SharedMapSystem>();
+            var irregular = 0;
+            // Half the variants are irregular, so a dozen rocks all but surely include one.
+            for (var i = 0; i < 12; i++)
+            {
+                var rock = SpawnAsteroid(pair, map.MapId, "WFAsteroidMedium", ShipPos + new Vector2(i * 20f, 0f));
+                var comp = em.GetComponent<WFAsteroidComponent>(rock);
+                var grid = em.GetComponent<TransformComponent>(rock).GridUid!.Value;
+                var tiles = maps.GetAllTiles(grid, em.GetComponent<MapGridComponent>(grid)).Count();
+                var fixture = em.GetComponent<Robust.Shared.Physics.FixturesComponent>(rock).Fixtures["fix1"];
+                if (!comp.Shapes.ContainsKey(comp.Variant))
+                {
+                    Assert.That(fixture.Shape, Is.TypeOf<Robust.Shared.Physics.Collision.Shapes.PhysShapeCircle>(),
+                        "A round rock keeps its round fixture.");
+                    continue;
+                }
+
+                irregular++;
+                Assert.Multiple(() =>
+                {
+                    Assert.That(tiles, Is.InRange(8, 28), "An irregular rock should fill less than the 29-tile disc.");
+                    Assert.That(fixture.Shape, Is.TypeOf<Robust.Shared.Physics.Collision.Shapes.PolygonShape>(),
+                        "An irregular rock's fixture should follow its hull.");
+                    Assert.That(comp.MassScale, Is.LessThan(1f), "A smaller silhouette should hold less rock.");
+                });
+            }
+
+            Assert.That(irregular, Is.GreaterThan(0), "Some rocks should come out irregular.");
+        });
 
         await pair.CleanReturnAsync();
     }
@@ -562,8 +653,8 @@ public sealed class AsteroidMiningTest
             Assert.That(panel.Visible, Is.False, "A ship with no mining laser has no mining panel.");
 
             var rock = new WFMiningBeamTargetEntry("medium asteroid", 34f,
-                new[] { new WFMiningBeamOreEntry("iron ore", 0.4f, Color.Brown) }, 0.2f, 0.4f, 0.6f, 0.5f, 0.3f, 0f, 0.8f,
-                1.15f, true);
+                new[] { new WFMiningBeamOreEntry("iron ore", 0.4f, Color.Brown) }, 0.2f, 0.4f, 0.6f, 0.5f, 0.3f, 0f, 0.9f,
+                0.8f, 1.25f, true);
             gunnery.WfUpdateMining(new WFMiningBeamGunneryState(1, 0.7f, 0f, rock));
             Assert.That(panel.Visible, Is.True);
 

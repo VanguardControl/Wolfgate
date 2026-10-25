@@ -52,6 +52,16 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
         if (!TryComp<SpriteComponent>(ent, out var sprite))
             return;
 
+        // A look swaps every layer to an RSI with the same states and silhouettes.
+        if (ent.Comp.Look != ent.Comp.AppliedLook && ent.Comp.Look is { } look && ent.Comp.Looks.TryGetValue(look, out var swap))
+        {
+            ent.Comp.AppliedLook = look;
+            foreach (var layer in new[] { WFAsteroidVisualLayers.Rock, WFAsteroidVisualLayers.Veins, WFAsteroidVisualLayers.Heat })
+            {
+                _sprite.LayerSetRsi((ent, sprite), layer, swap);
+            }
+        }
+
         var variant = ent.Comp.Variant;
         _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Rock, $"rock{variant}");
         _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Veins, $"veins{variant}");

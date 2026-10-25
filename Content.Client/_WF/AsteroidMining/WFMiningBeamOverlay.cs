@@ -70,21 +70,22 @@ public sealed class WFMiningBeamOverlay : Overlay
 
             var heat = Math.Clamp(beam.Charge, 0f, 1.3f);
             var power = Math.Clamp(beam.Power, 0f, 1f);
-            var color = Color.InterpolateBetween(beam.BeamColor, Overheat, Math.Clamp((heat - 0.85f) / 0.3f, 0f, 1f));
-            var flicker = heat >= 1f ? 0.75f + 0.25f * MathF.Sin(time * 31f) : 1f;
-            var width = (0.55f + 0.45f * power) * flicker;
+            var line = WFAsteroidHeat.OverchargeLine;
+            var color = Color.InterpolateBetween(beam.BeamColor, Overheat, Math.Clamp((heat - line + 0.2f) / 0.3f, 0f, 1f));
+            var flicker = heat >= line ? 0.75f + 0.25f * MathF.Sin(time * 31f) : 1f;
+            var width = (0.55f + 0.45f * power) * flicker * beam.BeamWidth;
             var normal = new Vector2(-direction.Y, direction.X);
             var phase = (float) (uid.Id % 97) * 0.37f;
 
             // Wide soft glow, a tighter body, then a near-white core.
             Ribbon(handle, muzzle, direction, normal, length, 0.42f * width, color.WithAlpha(0.22f), time, phase, 0.12f);
             Ribbon(handle, muzzle, direction, normal, length, 0.16f * width, color.WithAlpha(0.55f), time, phase, 0.2f);
-            Ribbon(handle, muzzle, direction, normal, length, 0.05f + 0.03f * power,
+            Ribbon(handle, muzzle, direction, normal, length, (0.05f + 0.03f * power) * beam.BeamWidth,
                 Color.InterpolateBetween(color, Color.White, 0.75f).WithAlpha(0.95f), time, phase, 0.05f);
 
             DrawStrands(handle, muzzle, direction, normal, length, width, color, time);
             DrawPulses(handle, muzzle, direction, length, width, color, time, phase);
-            DrawImpact(handle, end, direction, normal, width, heat, color, time, phase, beam.InWindow);
+            DrawImpact(handle, end, direction, normal, width, heat, color, time, phase, beam.InWindow, beam.Hot);
             Glow(handle, muzzle, 0.35f * width + 0.1f, color.WithAlpha(0.6f));
         }
 
@@ -165,10 +166,10 @@ public sealed class WFMiningBeamOverlay : Overlay
 
     /// <summary>
     /// A flare on the rock's surface with sparks spraying back toward the gun. Inside the cracking window the flare
-    /// brightens and the spray doubles, so a gunner can feather the beam by eye.
+    /// brightens and the spray doubles, so a gunner can feather the beam by eye; past it the spray turns red.
     /// </summary>
     private void DrawImpact(DrawingHandleWorld handle, Vector2 end, Vector2 direction, Vector2 normal, float width,
-        float heat, Color color, float time, float phase, bool inWindow)
+        float heat, Color color, float time, float phase, bool inWindow, bool hot)
     {
         var throb = 0.85f + 0.15f * MathF.Sin(time * (inWindow ? 26f : 17f) + phase);
         var flare = inWindow ? 1.45f : 1f;
@@ -177,7 +178,7 @@ public sealed class WFMiningBeamOverlay : Overlay
 
         var count = 0;
         var tick = MathF.Floor(time * 20f);
-        var sparks = inWindow ? Sparks * 2 : Sparks;
+        var sparks = inWindow || hot ? Sparks * 2 : Sparks;
         for (var i = 0; i < sparks; i++)
         {
             // A new spray every 50 ms, hashed so each spark keeps its path for that frame.
@@ -187,7 +188,7 @@ public sealed class WFMiningBeamOverlay : Overlay
             var sparkDirection = -direction * MathF.Cos(spread) + normal * MathF.Sin(spread);
             var reach = (0.25f + 0.85f * life) * (0.6f + 0.6f * heat) * (inWindow ? 1.5f : 1f);
             var from = end + sparkDirection * (0.15f * life);
-            var sparkColor = Color.InterpolateBetween(color, Color.White, 0.5f);
+            var sparkColor = hot ? Color.InterpolateBetween(color, Overheat, 0.6f) : Color.InterpolateBetween(color, Color.White, 0.5f);
             _lines[count++] = new DrawVertexUV2DColor(from, sparkColor.WithAlpha(0.9f));
             _lines[count++] = new DrawVertexUV2DColor(from + sparkDirection * reach, sparkColor.WithAlpha(0f));
         }

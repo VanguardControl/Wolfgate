@@ -16,6 +16,7 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Physics.Collision.Shapes;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
@@ -49,6 +50,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     [Dependency] private DebrisFeaturePlacerSystem _debris = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private MetaDataSystem _meta = default!;
+    [Dependency] private FixtureSystem _fixtures = default!;
 
     private static readonly EntProtoId CrackEffect = "WFAsteroidCrackEffect";
 
@@ -67,6 +69,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<WFAsteroidGridComponent, MapInitEvent>(OnGridMapInit);
+        SubscribeLocalEvent<WFAsteroidComponent, MapInitEvent>(OnRockMapInit);
         SubscribeLocalEvent<WFAsteroidComponent, DamageChangedEvent>(OnDamaged);
         SubscribeLocalEvent<WFAsteroidComponent, ExaminedEvent>(OnExamined);
         SubscribeLocalEvent<WFAsteroidComponent, GatheredEvent>(OnGathered);
@@ -116,7 +119,9 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             return;
         }
 
-        // Tile centres within the radius of the rock, which sits on the centre of tile (0, 0).
+        // Tile centres within the rock's silhouette, a disc or its irregular outline; the rock sits on tile (0, 0).
+        var variant = _random.Next(Math.Max(1, rockProto.Variants));
+        rockProto.Shapes.TryGetValue(variant, out var shape);
         var tile = new Tile(_tileDefs[ent.Comp.Tile].TileId);
         var radius = rockProto.Radius;
         var bound = (int) MathF.Ceiling(radius);
@@ -125,7 +130,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         {
             for (var y = -bound; y <= bound; y++)
             {
-                if (x * x + y * y <= radius * radius)
+                if (shape?.Contains(new Vector2(x, y)) ?? x * x + y * y <= radius * radius)
                     tiles.Add((new Vector2i(x, y), tile));
             }
         }
@@ -140,8 +145,43 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
         var rock = SpawnAttachedTo(ent.Comp.Rock, new EntityCoordinates(ent, 0.5f, 0.5f));
         ent.Comp.RockUid = rock;
+        if (TryComp<WFAsteroidComponent>(rock, out var rockComp))
+        {
+            rockComp.Variant = variant;
+            if (shape != null)
+            {
+                rockComp.MassScale = shape.MassScale;
+                SetHull(rock, shape);
+            }
+
+            Dirty(rock, rockComp);
+        }
+
         if (ent.Comp.Composition is { } composition)
             Roll(rock, composition);
+    }
+
+    /// <summary>A loose rock, such as a boulder, picks its sprite; a grid's rock is given its grid's instead.</summary>
+    private void OnRockMapInit(Entity<WFAsteroidComponent> ent, ref MapInitEvent args)
+    {
+        ent.Comp.Variant = _random.Next(Math.Max(1, ent.Comp.Variants));
+        Dirty(ent);
+    }
+
+    /// <summary>Swaps the rock's round fixture for its silhouette's hull, keeping its collision settings.</summary>
+    private void SetHull(EntityUid rock, WFAsteroidShape shape)
+    {
+        const string id = "fix1";
+        if (shape.Hull.Count < 3 || _fixtures.GetFixtureOrNull(rock, id) is not { } old)
+            return;
+
+        var hull = new PolygonShape();
+        if (!hull.Set(shape.Hull))
+            return;
+
+        var (density, hard, layer, mask) = (old.Density, old.Hard, old.CollisionLayer, old.CollisionMask);
+        _fixtures.DestroyFixture(rock, id, old);
+        _fixtures.TryCreateFixture(rock, hull, id, density, hard, layer, mask);
     }
 
     /// <summary>Rolls a rock's mass, ores, resistance and cracking window from a composition.</summary>
@@ -151,7 +191,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             return;
 
         comp.CompositionId = id;
-        comp.Mass = _random.NextFloat(comp.MinMass, comp.MaxMass);
+        comp.Mass = _random.NextFloat(comp.MinMass, comp.MaxMass) * comp.MassScale;
         var inert = _random.NextFloat(proto.MinInert, proto.MaxInert);
         var pool = proto.Ores.ToList();
         var count = Math.Clamp(_random.Next(proto.MinOres, proto.MaxOres + 1), 1, Math.Max(1, pool.Count));
@@ -183,6 +223,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     private void ApplyKind(EntityUid rock, WFAsteroidComponent comp, WFAsteroidCompositionPrototype proto)
     {
         comp.RockColor = proto.RockColor;
+        comp.Look = proto.Look;
         if (proto.Name is { } name)
             _meta.SetEntityName(rock, Loc.GetString(name, ("name", MetaData(rock).EntityPrototype?.Name ?? Name(rock))));
     }
@@ -202,14 +243,13 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
     private void RollWindow(WFAsteroidComponent comp)
     {
-        comp.WindowCenter = _random.NextFloat(0.4f, 0.6f);
-        comp.WindowHalfWidth = 0.14f * (1f - 0.5f * comp.Instability);
+        comp.WindowCenter = _random.NextFloat(0.35f, 0.55f);
+        comp.WindowHalfWidth = 0.09f * (1f - 0.4f * comp.Instability);
         comp.NoiseSeed = _random.NextFloat(0f, 100f);
-        comp.Variant = _random.Next(Math.Max(1, comp.Variants));
         comp.VeinColor = comp.Ores.Count > 0 ? comp.Ores[0].Color : Color.Gray;
     }
 
-    /// <summary>Gives a fragment its parent's ores and stability with a new mass and window.</summary>
+    /// <summary>Gives a fragment its parent's ores, stability and heat with a new mass and window.</summary>
     private void Inherit(WFAsteroidComponent parent, EntityUid child, float mass)
     {
         if (!TryComp<WFAsteroidComponent>(child, out var comp))
@@ -223,6 +263,12 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         RollWindow(comp);
         if (_proto.TryIndex(parent.CompositionId, out var proto))
             ApplyKind(child, comp, proto);
+
+        // Fragments come off hot, so the laser can carry straight on to the next one.
+        comp.BaseCharge = parent.BaseCharge;
+        comp.Charge = parent.Charge;
+        if (comp.BaseCharge > 0f)
+            EntityManager.System<WFMiningBeamSystem>().Track(child);
         Dirty(child, comp);
     }
 
@@ -291,7 +337,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         var ores = comp.Ores;
         var yield = kind switch
         {
-            WFAsteroidCrack.Clean => 1f,
+            WFAsteroidCrack.Clean => WFAsteroidHeat.Yield(comp.Progress, comp.HotProgress),
             WFAsteroidCrack.Overcharge => comp.OverchargeYield,
             _ => comp.ShatterYield,
         };

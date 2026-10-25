@@ -16,7 +16,13 @@ public sealed partial class WFMiningBeamEmitterComponent : Component
     [DataField] public float MaxRange = 60f;
 
     /// <summary>Heat delivered at full power, before the rock's resistance.</summary>
-    [DataField] public float Strength = 1.15f;
+    [DataField] public float Strength = 1.25f;
+
+    /// <summary>How fast the beam cracks a rock held in its window; the beams on one rock add up.</summary>
+    [DataField] public float CrackRate = 1f;
+
+    /// <summary>Scales the drawn beam's width and impact.</summary>
+    [DataField] public float BeamWidth = 1f;
 
     /// <summary>Scales the width of every rock's cracking window.</summary>
     [DataField] public float WindowScale = 1f;
@@ -46,9 +52,11 @@ public sealed partial class WFMiningBeamEmitterComponent : Component
     [AutoNetworkedField] public float BeamLength;
     /// <summary>The rock under the beam is inside its cracking window.</summary>
     [AutoNetworkedField] public bool InWindow;
+    /// <summary>The rock under the beam is past its window, cracking fast but losing ore.</summary>
+    [AutoNetworkedField] public bool Hot;
 
-    /// <summary>Power setting from zero to one. The default settles below the overcharge line on every rock.</summary>
-    [AutoNetworkedField] public float Power = 0.7f;
+    /// <summary>Power setting from zero to one, set from the gunnery console.</summary>
+    [AutoNetworkedField] public float Power = 0.5f;
 
     /// <summary>Target heat for the beam's colour and impact glow.</summary>
     [AutoNetworkedField] public float Charge;

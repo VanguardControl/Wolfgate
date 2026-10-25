@@ -340,12 +340,12 @@
     volatility: 0.5
 
 # Metallic: the rare rich kind, rolled by a few rocks in any cluster. Little plain rock, mostly iron, silver and gold
-# with a chance of diamond, and tough: crack it at high power or with two lasers.
+# with a chance of diamond, and tough: crack it at high power or with two lasers. Drawn in blue steel with bare plates.
 - type: wfAsteroidComposition
   id: WFAsteroidMetallic
   name: wf-asteroid-name-metallic
   examine: wf-asteroid-examine-metallic
-  rockColor: "#b4c0d4"
+  look: metallic
   minOres: 2
   maxOres: 3
   minInert: 0.12

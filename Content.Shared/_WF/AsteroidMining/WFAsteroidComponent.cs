@@ -2,6 +2,7 @@ using Content.Shared.Mining;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
+using Robust.Shared.Utility;
 
 namespace Content.Shared._WF.AsteroidMining;
 
@@ -33,17 +34,17 @@ public sealed partial class WFAsteroidComponent : Component
     [DataField] public int MaxBoulders = 6;
 
     /// <summary>Weapon damage that shatters the rock without a beam.</summary>
-    [DataField] public float ShatterDamage = 900f;
+    [DataField] public float ShatterDamage = 18000f;
 
     /// <summary>Share of the mass a weapon shatter keeps as ore.</summary>
-    [DataField] public float ShatterYield = 0.4f;
+    [DataField] public float ShatterYield = 0.1f;
 
     /// <summary>Share of the mass an overcharge blast keeps as ore and fragments.</summary>
-    [DataField] public float OverchargeYield = 0.5f;
+    [DataField] public float OverchargeYield = 0.35f;
 
     /// <summary>Seconds in the window to crack a massless rock, plus <see cref="CrackTimePerMass"/> per unit.</summary>
-    [DataField] public float CrackTimeBase = 4f;
-    [DataField] public float CrackTimePerMass = 0.1f;
+    [DataField] public float CrackTimeBase = 1.5f;
+    [DataField] public float CrackTimePerMass = 0.035f;
 
     /// <summary>Added to the composition's resistance; bigger rocks resist more.</summary>
     [DataField] public float ResistanceBonus;
@@ -51,13 +52,22 @@ public sealed partial class WFAsteroidComponent : Component
     /// <summary>Number of sprite variants in the rock's RSI.</summary>
     [DataField] public int Variants = 3;
 
+    /// <summary>Irregular silhouettes by sprite variant; the rest are round.</summary>
+    [DataField] public Dictionary<int, WFAsteroidShape> Shapes = new();
+
+    /// <summary>Alternative RSIs by look, such as metallic, with the same states and silhouettes.</summary>
+    [DataField] public Dictionary<string, ResPath> Looks = new();
+
     [AutoNetworkedField] public int Variant;
+
+    /// <summary>The composition's look, picking an RSI from <see cref="Looks"/>.</summary>
+    [AutoNetworkedField] public string? Look;
     [AutoNetworkedField] public Color VeinColor = Color.White;
 
     /// <summary>Tint of the rock body, from its composition.</summary>
     [AutoNetworkedField] public Color RockColor = Color.White;
 
-    /// <summary>Displayed heat, where 1 is the overcharge line.</summary>
+    /// <summary>Displayed heat; <see cref="WFAsteroidHeat.OverchargeLine"/> is where it starts to overcharge.</summary>
     [AutoNetworkedField] public float Charge;
     [AutoNetworkedField] public bool Overcharging;
 
@@ -66,6 +76,9 @@ public sealed partial class WFAsteroidComponent : Component
 
     /// <summary>Client-side heat, eased toward <see cref="Charge"/>.</summary>
     public float DisplayCharge;
+
+    /// <summary>The look the client last swapped the sprite to.</summary>
+    public string? AppliedLook;
 
     /// <summary>Ore veins this rock holds, inert rock included.</summary>
     public float Mass;
@@ -78,8 +91,14 @@ public sealed partial class WFAsteroidComponent : Component
     public float BaseCharge;
     /// <summary>The progress last sent to clients, so it is only resent as it moves.</summary>
     public float SentProgress;
+    /// <summary>The part of <see cref="Progress"/> made in the hot band, which costs ore.</summary>
+    public float HotProgress;
     public float OverchargeTime;
     public float IncomingPower;
+    /// <summary>Summed crack rate of the beams on the rock this tick.</summary>
+    public float CrackRate;
+    /// <summary>Rolled mass scale of the rock's silhouette.</summary>
+    public float MassScale = 1f;
     /// <summary>Widest window scale among the beams on the rock this tick.</summary>
     public float WindowScale = 1f;
     public float NoiseSeed;

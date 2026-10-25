@@ -17,6 +17,15 @@
       "name": "rock2"
     },
     {
+      "name": "rock3"
+    },
+    {
+      "name": "rock4"
+    },
+    {
+      "name": "rock5"
+    },
+    {
       "name": "veins0"
     },
     {
@@ -26,6 +35,15 @@
       "name": "veins2"
     },
     {
+      "name": "veins3"
+    },
+    {
+      "name": "veins4"
+    },
+    {
+      "name": "veins5"
+    },
+    {
       "name": "heat0"
     },
     {
@@ -33,6 +51,15 @@
     },
     {
       "name": "heat2"
+    },
+    {
+      "name": "heat3"
+    },
+    {
+      "name": "heat4"
+    },
+    {
+      "name": "heat5"
     }
   ]
 }

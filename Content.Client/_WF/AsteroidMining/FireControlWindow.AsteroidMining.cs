@@ -20,6 +20,7 @@ public sealed partial class FireControlWindow
     private BoxContainer _wfMiningOres = default!;
     private Label _wfMiningResistance = default!;
     private Label _wfMiningHeat = default!;
+    private Label _wfMiningYield = default!;
     private WFMiningChargeMeter _wfMiningMeter = default!;
     private ProgressBar _wfMiningProgress = default!;
     private Label _wfMiningOvercharge = default!;
@@ -63,6 +64,10 @@ public sealed partial class FireControlWindow
         _wfMiningResistance = Label("wf-mining-gunnery-idle", Muted);
         _wfMiningHeat = Label("wf-mining-gunnery-idle", Cream);
         _wfMiningHeat.ClipText = true;
+        _wfMiningYield = Label("wf-mining-gunnery-idle", Green);
+        _wfMiningYield.ClipText = true;
+        _wfMiningYield.ToolTip = Loc.GetString("wf-mining-gunnery-yield-help");
+        _wfMiningYield.MouseFilter = MouseFilterMode.Pass;
         _wfMiningMeter = new WFMiningChargeMeter { ToolTip = Loc.GetString("wf-mining-gunnery-meter-help") };
         _wfMiningProgress = new ProgressBar { MinValue = 0, MaxValue = 1, MinHeight = 12, HorizontalExpand = true };
         _wfMiningOvercharge = Label("wf-mining-gunnery-overcharge", Red);
@@ -71,7 +76,7 @@ public sealed partial class FireControlWindow
         _wfMiningOvercharge.MouseFilter = MouseFilterMode.Pass;
         _wfMiningOvercharge.Visible = false;
         var scan = Column(_wfMiningRock, _wfMiningOres, _wfMiningResistance, _wfMiningHeat, _wfMiningMeter,
-            Label("wf-mining-gunnery-progress", Muted), _wfMiningProgress, _wfMiningOvercharge);
+            Label("wf-mining-gunnery-progress", Muted), _wfMiningProgress, _wfMiningYield, _wfMiningOvercharge);
         scan.SeparationOverride = 2;
         scan.Visible = false;
         _wfMiningScan = scan;
@@ -150,6 +155,8 @@ public sealed partial class FireControlWindow
         var others = rock.Firing ? MathF.Max(0f, rock.IncomingPower - state.Power * rock.ShipStrength) : rock.IncomingPower;
         _wfMiningMeter.Predicted = (others + power * rock.ShipStrength) * (1f - rock.Resistance);
         _wfMiningProgress.Value = rock.Progress;
+        _wfMiningYield.Text = Loc.GetString("wf-mining-gunnery-yield", ("percent", (int) MathF.Round(rock.Yield * 100)));
+        _wfMiningYield.FontColorOverride = rock.Yield >= 0.995f ? Green : Accent;
         _wfMiningOvercharge.Visible = rock.Overcharge > 0f;
     }
 }

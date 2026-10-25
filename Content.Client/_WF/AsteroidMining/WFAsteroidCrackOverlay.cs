@@ -23,7 +23,7 @@ public sealed class WFAsteroidCrackOverlay : Overlay
     private static readonly Color BlastFlash = new(1f, 0.5f, 0.2f);
     private const int RingSides = 48;
     private const int FanSides = 20;
-    private const int MaxChips = 48;
+    private const int MaxChips = 90;
     private const int DustPuffs = 7;
 
     private readonly IEntityManager _entities;
@@ -34,7 +34,7 @@ public sealed class WFAsteroidCrackOverlay : Overlay
     // Managed buffers avoid per-frame allocations; the client sandbox forbids stackalloc.
     private readonly DrawVertexUV2DColor[] _ring = new DrawVertexUV2DColor[(RingSides + 1) * 2];
     private readonly DrawVertexUV2DColor[] _fan = new DrawVertexUV2DColor[FanSides * 3];
-    private readonly DrawVertexUV2DColor[] _chips = new DrawVertexUV2DColor[MaxChips * 6];
+    private readonly DrawVertexUV2DColor[] _chips = new DrawVertexUV2DColor[MaxChips * 3];
     private readonly List<(Vector2 Center, WFAsteroidCrackEffectComponent Effect, float T, int Seed)> _visible = new();
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
@@ -125,12 +125,15 @@ public sealed class WFAsteroidCrackOverlay : Overlay
             new ReadOnlySpan<DrawVertexUV2DColor>(_ring, 0, count));
     }
 
-    /// <summary>Rock chips thrown outward and slowing, tumbling as they go, some flecked with the rock's ore.</summary>
+    /// <summary>
+    /// Small rock shards thrown outward and slowing, tumbling as they go. They stay a few centimetres across whatever the
+    /// rock's size, so a big rock throws more of them rather than bigger ones, and only a few catch its ore's colour.
+    /// </summary>
     private void DrawChips(DrawingHandleWorld handle, Vector2 center, WFAsteroidCrackEffectComponent effect, float t, int seed)
     {
         var radius = effect.Radius;
-        var chips = Math.Clamp((int) (14 + radius * 5f), 6, MaxChips);
-        var fade = 1f - Math.Clamp((t - 0.55f) / 0.45f, 0f, 1f);
+        var chips = Math.Clamp((int) (12 + radius * 11f), 6, MaxChips);
+        var fade = 1f - Math.Clamp((t - 0.35f) / 0.5f, 0f, 1f);
         var travel = t * (1f - 0.45f * t);
         var count = 0;
         for (var i = 0; i < chips; i++)
@@ -139,27 +142,22 @@ public sealed class WFAsteroidCrackOverlay : Overlay
             var b = Hash(seed + i * 7.7f + 1.3f);
             var c = Hash(seed + i * 11.9f + 2.9f);
             var angle = a * MathF.Tau;
-            var speed = (1.5f + 3.5f * b) * (effect.Violent ? 1.6f : 1f) * MathF.Sqrt(radius);
-            var start = radius * 0.6f * c;
+            var speed = (1.2f + 3.8f * b * b) * (effect.Violent ? 1.6f : 1f) * MathF.Sqrt(radius);
+            var start = radius * 0.8f * MathF.Sqrt(c);
             var dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
             var pos = center + dir * (start + speed * travel * effect.Duration);
-            var size = (0.07f + 0.16f * c) * MathF.Min(1.6f, 0.6f + radius * 0.2f);
+            var size = 0.035f + 0.07f * c * c;
             var spin = (b - 0.5f) * 14f * t + a * 6f;
-            var color = (c > 0.75f ? effect.VeinColor : b > 0.5f ? Rock : DarkRock).WithAlpha(fade);
+            var tone = c > 0.92f ? Color.InterpolateBetween(DarkRock, effect.VeinColor, 0.55f) : b > 0.5f ? Rock : DarkRock;
+            // Shards dim as they cool and drift off, and the farthest go first.
+            var color = tone.WithAlpha(fade * (1f - 0.4f * b));
             var sin = MathF.Sin(spin);
             var cos = MathF.Cos(spin);
             var u = new Vector2(cos, sin) * size;
-            var v = new Vector2(-sin, cos) * size * 0.7f;
-            var p0 = pos - u - v;
-            var p1 = pos + u - v;
-            var p2 = pos + u + v;
-            var p3 = pos - u + v;
-            _chips[count++] = new DrawVertexUV2DColor(p0, color);
-            _chips[count++] = new DrawVertexUV2DColor(p1, color);
-            _chips[count++] = new DrawVertexUV2DColor(p2, color);
-            _chips[count++] = new DrawVertexUV2DColor(p0, color);
-            _chips[count++] = new DrawVertexUV2DColor(p2, color);
-            _chips[count++] = new DrawVertexUV2DColor(p3, color);
+            var v = new Vector2(-sin, cos) * size;
+            _chips[count++] = new DrawVertexUV2DColor(pos + u * 1.3f, color);
+            _chips[count++] = new DrawVertexUV2DColor(pos - u * 0.6f + v * 0.8f, color);
+            _chips[count++] = new DrawVertexUV2DColor(pos - u * 0.4f - v * (0.5f + 0.5f * b), color);
         }
 
         handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, Texture.White,
