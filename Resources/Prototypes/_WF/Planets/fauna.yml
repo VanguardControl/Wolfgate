@@ -43,17 +43,7 @@
   - type: WFPlanetFaunaSpawner
     table: WFFaunaFervidus
 
-- type: entityTable
-  id: WFFaunaAerumna
-  table: !type:GroupSelector
-    children:
-    - id: MobArgocyteSlurva
-      weight: 6
-    - id: MobXenoRunner
-      weight: 1
-    - id: MobXenoDrone
-      weight: 1
-
+# The table is in Life/aerumna.yml, with the other regions'.
 - type: entity
   id: WFFaunaAerumna
   parent: MarkerBase

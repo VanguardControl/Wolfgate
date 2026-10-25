@@ -148,7 +148,7 @@ public sealed class AerumnaBiomeTest
                 if (feature == "DoorXenoResin") hiveDoors++;
                 if (feature == "WFXenoEggWild") hiveEggs++;
                 if (feature == "WFFaunaAerumnaHive") hiveFauna++;
-                if (feature == "WFFaunaAerumna") wildFauna++;
+                if (feature is "WFFaunaAerumna" or "WFFaunaAerumnaForest" or "WFFaunaAerumnaBoulders" or "WFFaunaAerumnaSpires") wildFauna++;
                 if (!onHive && feature != null && (HiveStructures.Contains(feature) || feature is "WFXenoWeedsWild" or "WFFaunaAerumnaHive"))
                     offHive.Add($"{feature} on {def.ID}");
                 if (feature == "MonoPlanetmapOreChromite") ore++;

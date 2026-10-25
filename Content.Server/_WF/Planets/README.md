@@ -289,6 +289,7 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 - [`Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/BiomeNoiseCacheTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/BiomeNoiseCacheTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/AerumnaBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/AerumnaBiomeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/AerumnaLifeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/AerumnaLifeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/CarcinomaBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/CarcinomaBiomeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/FervidusBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/FervidusBiomeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/MerakBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/MerakBiomeTest.cs)
@@ -366,6 +367,7 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 - [`Resources/Prototypes/_WF/Planets/jetpack.yml`](../../../Resources/Prototypes/_WF/Planets/jetpack.yml)
 - [`Resources/Prototypes/_WF/Planets/kyphrus_planets.yml`](../../../Resources/Prototypes/_WF/Planets/kyphrus_planets.yml)
 - [`Resources/Prototypes/_WF/Planets/lathe_recipes.yml`](../../../Resources/Prototypes/_WF/Planets/lathe_recipes.yml)
+- [`Resources/Prototypes/_WF/Planets/Life/aerumna.yml`](../../../Resources/Prototypes/_WF/Planets/Life/aerumna.yml)
 - [`Resources/Prototypes/_WF/Planets/open_biomes.yml`](../../../Resources/Prototypes/_WF/Planets/open_biomes.yml)
 - [`Resources/Prototypes/_WF/Planets/parachute.yml`](../../../Resources/Prototypes/_WF/Planets/parachute.yml)
 - [`Resources/Prototypes/_WF/Planets/planet_ambience.yml`](../../../Resources/Prototypes/_WF/Planets/planet_ambience.yml)
@@ -376,6 +378,7 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 
 ### Localization
 
+- [`Resources/Locale/en-US/_WF/Planets/aerumna_life.ftl`](../../../Resources/Locale/en-US/_WF/Planets/aerumna_life.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/carcinoma.ftl`](../../../Resources/Locale/en-US/_WF/Planets/carcinoma.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/flight.ftl`](../../../Resources/Locale/en-US/_WF/Planets/flight.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/guidebook.ftl`](../../../Resources/Locale/en-US/_WF/Planets/guidebook.ftl)
