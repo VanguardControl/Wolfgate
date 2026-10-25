@@ -124,6 +124,13 @@ public sealed class WFMappingExportUIController : UIController, IOnStateExited<G
             return;
         }
 
+        // A second save would be refused by the server's save throttle and read as the export failing.
+        if (_pendingSave != null)
+        {
+            _window.SetStatus(Loc.GetString("wf-mapping-export-package-saving"), true);
+            return;
+        }
+
         if (_window.InSession && _window.Version == null && _mapping.Session is { Dirty: true })
         {
             var versions = 0;

@@ -146,4 +146,12 @@ public sealed class WFMappingModeCVars
     /// <summary>Seconds after a session's live test ends before it may start another.</summary>
     public static readonly CVarDef<float> TestCooldown =
         CVarDef.Create("wf.mapping_mode.test_cooldown", 10f, CVar.SERVERONLY);
+
+    /// <summary>Seconds after any live test starts before the server builds another; a build copies and loads a session.</summary>
+    public static readonly CVarDef<float> TestGlobalCooldown =
+        CVarDef.Create("wf.mapping_mode.test_global_cooldown", 5f, CVar.SERVERONLY);
+
+    /// <summary>Live tests that may run at once across every session.</summary>
+    public static readonly CVarDef<int> TestMaxRunning =
+        CVarDef.Create("wf.mapping_mode.test_max_running", 8, CVar.SERVERONLY);
 }

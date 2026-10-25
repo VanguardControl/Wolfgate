@@ -181,8 +181,7 @@ public sealed partial class WFMappingClientSystem
                     Active = true,
                     SaveTo = DownloadSaveTo,
                     Ship = _requestedShip,
-                    Zip = _requestedZip || WFMappingLibraryNames.IsZipFile(ev.FileName) ||
-                          ev.FileName == WFMappingLibraryNames.DownloadGridFile(ev.MapName),
+                    Zip = _requestedZip || WFMappingLibraryNames.IsZipFile(ev.FileName),
                 };
             }
 

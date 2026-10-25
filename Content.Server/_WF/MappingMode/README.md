@@ -44,6 +44,8 @@ the lobby and blocks late join. The other cvars are server only unless noted, al
 | `test_range` | `/Maps/_NF/POI/cargodepot.yml` | Grid file placed 60 tiles off the ship in a live test, to fly and dock at; empty is space only |
 | `test_max_minutes` | 30 | Minutes a live test runs before everyone is sent back to mapping |
 | `test_cooldown` | 10 | Seconds after a session's test ends before the next may start |
+| `test_global_cooldown` | 5 | Seconds after any test starts before the server builds another |
+| `test_max_running` | 8 | Tests that may run at once across every session |
 
 Players see a mapping panel in the lobby instead of the ready button. New map takes a name and makes a session with a
 fresh map and a six character join code. Join takes a code. Your sessions lists the ones you can rejoin after a
@@ -118,8 +120,8 @@ death (3 s later), a disconnect, leaving or closing the session, the owner endin
 in them, and the scratch folder right after the load, so nothing of a test is kept. One test per session: another
 member's Test map joins it at the same spot, the button's tooltip names the testers and the Session tab shows who is
 testing and the time left. A test is refused while the session is over 60% of `max_entities` (the copy counts against
-it, so the limits line shows the doubled count), during `test_cooldown`, and while an export or download is still
-coming in. Test maps are never session maps: saves, autosaves and the export skip them. A tester's own save, check,
+it, so the limits line shows the doubled count), during `test_cooldown` or the server-wide `test_global_cooldown`,
+while `test_max_running` tests already run, and while an export or download is still coming in. Test maps are never session maps: saves, autosaves and the export skip them. A tester's own save, check,
 Go to and export are refused because they act on the live levels the tester has left; the autosave and the other
 members' saves keep running, since they read only the live levels and never the copy. The copy is kept from reaching
 past the test: its ships can't FTL (`wf-mapping-test-no-ftl`; FTL space is shared and other maps may take arrivals),

@@ -67,7 +67,11 @@ public sealed partial class WFMappingTestSystem : EntitySystem
     /// <summary>The session each tester is testing.</summary>
     private readonly Dictionary<NetUserId, int> _testing = new();
 
+    /// <summary>One start per three seconds per player; stopping is never throttled, so Back to mapping always works.</summary>
     private readonly WFMappingThrottle<NetUserId> _throttle = new(1 / 3.0, 1);
+
+    /// <summary>When the next test may be built on this server, after <c>test_global_cooldown</c> since the last.</summary>
+    private TimeSpan _globalCooldownUntil;
 
     public override void Initialize()
     {
@@ -138,7 +142,7 @@ public sealed partial class WFMappingTestSystem : EntitySystem
     private void OnStopRequest(WFMappingTestStopRequest ev, EntitySessionEventArgs args)
     {
         var player = args.SenderSession;
-        if (!_mapping.Enabled || !_throttle.TryTake(player.UserId, _timing.CurTime))
+        if (!_mapping.Enabled)
             return;
 
         if (ev.All)
@@ -191,7 +195,10 @@ public sealed partial class WFMappingTestSystem : EntitySystem
         return false;
     }
 
-    /// <summary>Snapshots the session and opens its test stack; refused past the cooldown and the entity share.</summary>
+    /// <summary>
+    /// Snapshots the session and opens its test stack; refused past the session's and the server's cooldowns, the
+    /// running tests cap and the entity share.
+    /// </summary>
     private bool TryBuild(ICommonSession player, WFMappingSession session)
     {
         var now = _timing.CurTime;
@@ -199,6 +206,21 @@ public sealed partial class WFMappingTestSystem : EntitySystem
         {
             _mapping.Notify(player, false, "wf-mapping-test-cooldown",
                 ("seconds", (int) Math.Ceiling((session.TestCooldownUntil - now).TotalSeconds)));
+            return false;
+        }
+
+        if (now < _globalCooldownUntil)
+        {
+            _mapping.Notify(player, false, "wf-mapping-test-global-cooldown",
+                ("seconds", (int) Math.Ceiling((_globalCooldownUntil - now).TotalSeconds)));
+            return false;
+        }
+
+        var maxRunning = _cfg.GetCVar(WFMappingModeCVars.TestMaxRunning);
+        var running = _mapping.Sessions.Count(s => s.Test != null);
+        if (running >= maxRunning)
+        {
+            _mapping.Notify(player, false, "wf-mapping-test-max-running", ("max", maxRunning));
             return false;
         }
 
@@ -245,6 +267,7 @@ public sealed partial class WFMappingTestSystem : EntitySystem
 
         var minutes = Math.Max(1, _cfg.GetCVar(WFMappingModeCVars.TestMaxMinutes));
         session.Test = new WFMappingTest(maps, groundMap, ship, spawn, now, now + TimeSpan.FromMinutes(minutes));
+        _globalCooldownUntil = now + TimeSpan.FromSeconds(Math.Max(0f, _cfg.GetCVar(WFMappingModeCVars.TestGlobalCooldown)));
         _adminLog.Add(LogType.Action, LogImpact.Low,
             $"{player:player} started a live test of mapping session {session.Code} on {maps.Count} levels");
         return true;
@@ -460,7 +483,9 @@ public sealed partial class WFMappingTestSystem : EntitySystem
 
         if (TerminatingOrDeleted(test.Ground) || !test.Spawn.IsValid(EntityManager))
         {
+            // The ending test tells its testers; the player joining it isn't one yet.
             EndTest(session, "wf-mapping-test-failed");
+            _mapping.Notify(player, false, "wf-mapping-test-failed");
             return false;
         }
 
@@ -524,10 +549,11 @@ public sealed partial class WFMappingTestSystem : EntitySystem
         _players.TryGetSessionById(user, out var player);
         var observer = tester.Observer;
         var observerAlive = !TerminatingOrDeleted(observer);
-        if (observerAlive)
+
+        // A session losing its root map is closing; its observers go with it, so there is nowhere to put this one back.
+        if (observerAlive && !TerminatingOrDeleted(session.RootMap))
         {
-            var at = !TerminatingOrDeleted(session.RootMap) && _map.TryGetMap(tester.ObserverAt.MapId, out var atMap) &&
-                     _mapping.IsSessionMap(atMap.Value, session)
+            var at = _map.TryGetMap(tester.ObserverAt.MapId, out var atMap) && _mapping.IsSessionMap(atMap.Value, session)
                 ? tester.ObserverAt
                 : new MapCoordinates(Vector2.Zero, Comp<MapComponent>(session.RootMap).MapId);
             _transform.SetMapCoordinates(observer, at);
@@ -589,6 +615,7 @@ public sealed partial class WFMappingTestSystem : EntitySystem
     {
         _testing.Clear();
         _throttle.Clear();
+        _globalCooldownUntil = TimeSpan.Zero;
     }
 
     private void OnMobState(Entity<WFMappingTesterComponent> ent, ref MobStateChangedEvent args)

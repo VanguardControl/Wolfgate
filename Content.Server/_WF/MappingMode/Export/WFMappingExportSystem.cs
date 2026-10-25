@@ -115,13 +115,15 @@ public sealed class WFMappingExportSystem : EntitySystem
     }
 
     /// <summary>
-    /// The session the export can be checked against: the one the player is present in, when it goes by the map's
-    /// name and the version is the map's newest with nothing changed since, so its live grids are the version's.
+    /// The session the export can be checked against: the one the player owns and is present in, when it goes by the
+    /// map's name and the version is the map's newest with nothing changed since, so its live grids are the version's.
+    /// Only the owner's saves clear <see cref="WFMappingSession.Dirty"/>, so a member's library says nothing about it.
     /// </summary>
     private WFMappingSession? SessionOf(ICommonSession player, WFMappingLibrarySystem.LibraryMap map,
         WFMappingLibrarySystem.LibraryVersion version)
     {
         return _mapping.TryGetPresent(player, out var session) &&
+               session.Owner == player.UserId &&
                string.Equals(session.Name, map.Name, StringComparison.OrdinalIgnoreCase) &&
                !session.Dirty &&
                map.Versions.LastOrDefault(v => v.Levels.ContainsKey(0))?.Name.Folder == version.Name.Folder
@@ -141,7 +143,7 @@ public sealed class WFMappingExportSystem : EntitySystem
             case WFMappingExportKind.Grid:
                 return TryReadGrid(player, map, version);
             default:
-                return BuildMap(map, version, SessionOf(player, map, version));
+                return BuildMap(player, map, version, SessionOf(player, map, version));
         }
     }
 
@@ -235,8 +237,8 @@ public sealed class WFMappingExportSystem : EntitySystem
         });
     }
 
-    private byte[]? BuildMap(WFMappingLibrarySystem.LibraryMap map, WFMappingLibrarySystem.LibraryVersion version,
-        WFMappingSession? session)
+    private byte[]? BuildMap(ICommonSession player, WFMappingLibrarySystem.LibraryMap map,
+        WFMappingLibrarySystem.LibraryVersion version, WFMappingSession? session)
     {
         var fileName = WFMappingVesselYaml.FileName(map.Name);
         var depths = version.Levels.Keys.ToList();
@@ -247,7 +249,11 @@ public sealed class WFMappingExportSystem : EntitySystem
         {
             var data = ReadFile(path);
             if (data == null)
+            {
+                _mapping.Notify(player, false, "wf-mapping-mode-download-too-large",
+                    ("max", WFMappingDownloadAssembler.MaxFileBytes / (1024 * 1024)));
                 return null;
+            }
 
             var entry = WFMappingExportPackage.MapLevelEntry(fileName, depth, single);
             entries.Add(new WFMappingExportEntry(entry, data));

@@ -441,7 +441,8 @@ public sealed class WFMappingExportTest
         // One grid on one level: the export is that grid file, under the ship grid's name, not a zip.
         var version = await SaveAndWait(pair, GridName, 1);
         Assert.That(version.ShipDepth, Is.EqualTo(0));
-        await server.WaitPost(() => RaiseAs(entMan, player, new WFMappingExportRequest(GridName, null, WFMappingExportKind.Grid, null)));
+        // Through the client, as the wizard does: a grid file isn't told from a plain download by its name.
+        await client.WaitPost(() => clientSys.RequestExport(GridName, null, WFMappingExportKind.Grid, null));
         var file = await WaitExport(pair, GridName, version.Name.Folder, "export_grid.yml");
         byte[] stored = default!;
         await server.WaitPost(() => stored = Read(serverRes, version.Grids[0]));

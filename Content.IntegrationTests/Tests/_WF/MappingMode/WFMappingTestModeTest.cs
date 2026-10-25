@@ -347,10 +347,11 @@ public sealed class WFMappingTestModeTest
             mapSys.SetTile(grid, grid.Comp, new Vector2i(0, 0), new Tile(tileDefs["Plating"].TileId));
         });
 
-        // Started from the server, so the stop request below still has the start/stop throttle's one token.
+        // Started and stopped from the client as a player would, a second apart: Back to mapping isn't throttled.
         await pair.RunTicksSync(5);
-        await server.WaitAssertion(() => Assert.That(testing.TryStart(player), Is.True, "The test should start."));
+        await client.WaitPost(() => clientSys.Send(new WFMappingTestStartRequest()));
         await pair.RunTicksSync(30);
+        await server.WaitAssertion(() => Assert.That(session.Test, Is.Not.Null, "The test should start."));
 
         await client.WaitAssertion(() =>
         {
@@ -381,6 +382,68 @@ public sealed class WFMappingTestModeTest
         });
 
         await server.WaitPost(() => mapping.CloseSession(session, autosave: false));
+        await pair.RunTicksSync(5);
+        await Disable(pair);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// Server-wide limits: no more than <c>test_max_running</c> tests at once, and <c>test_global_cooldown</c> after
+    /// any test starts before another is built. A session's own cooldown doesn't stand in for either.
+    /// </summary>
+    [Test]
+    public async Task GlobalCapAndCooldownRefuseBuilds()
+    {
+        await using var pair = await PoolManager.GetServerClient(Settings);
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var mapping = entMan.System<WFMappingModeSystem>();
+        var testing = entMan.System<WFMappingTestSystem>();
+        var mapSys = entMan.System<MapSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        await Enable(pair);
+        var mappers = await AddMappers(pair, 2);
+        var a = mappers[0];
+        var b = mappers[1];
+
+        WFMappingSession sessionA = default!;
+        WFMappingSession sessionB = default!;
+        await server.WaitAssertion(() =>
+        {
+            server.CfgMan.SetCVar(WFMappingModeCVars.TestRange, string.Empty);
+            server.CfgMan.SetCVar(WFMappingModeCVars.TestCooldown, 0f);
+            server.CfgMan.SetCVar(WFMappingModeCVars.TestGlobalCooldown, 0f);
+            server.CfgMan.SetCVar(WFMappingModeCVars.TestMaxRunning, 1);
+            Assert.That(mapping.TryCreateSession(a, MapName + " A", out var createdA), Is.True);
+            Assert.That(mapping.TryCreateSession(b, MapName + " B", out var createdB), Is.True);
+            sessionA = createdA!;
+            sessionB = createdB!;
+            foreach (var session in new[] { sessionA, sessionB })
+            {
+                var grid = mapSys.CreateGridEntity(entMan.GetComponent<MapComponent>(session.RootMap).MapId);
+                mapSys.SetTile(grid, grid.Comp, new Vector2i(0, 0), new Tile(tileDefs["Plating"].TileId));
+            }
+
+            // One test may run: the second session's is refused by the cap.
+            Assert.That(testing.TryStart(a), Is.True);
+            Assert.That(testing.TryStart(b), Is.False, "The cap refuses a second running test.");
+            Assert.That(sessionB.Test, Is.Null);
+            Assert.That(mapping.IsTesting(b), Is.False);
+
+            // Room for more, but a build starts the server-wide cooldown: the next build waits on it.
+            server.CfgMan.SetCVar(WFMappingModeCVars.TestMaxRunning, 8);
+            server.CfgMan.SetCVar(WFMappingModeCVars.TestGlobalCooldown, 100f);
+            Assert.That(testing.TryStart(b), Is.True, "Under the cap and past the cooldown, the test starts.");
+            testing.EndTest(a.UserId);
+            Assert.That(sessionA.Test, Is.Null);
+            Assert.That(testing.TryStart(a), Is.False, "The global cooldown refuses the next build.");
+            Assert.That(sessionA.Test, Is.Null);
+            Assert.That(mapping.IsTesting(a), Is.False);
+
+            mapping.CloseSession(sessionA, autosave: false);
+            mapping.CloseSession(sessionB, autosave: false);
+        });
+
         await pair.RunTicksSync(5);
         await Disable(pair);
         await pair.CleanReturnAsync();
