@@ -593,6 +593,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryListingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLibraryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLimitsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLimitsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLinksLayerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingLinksLayerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeBarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeBarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeTestUtil.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingModeTestUtil.cs)
 - [`Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPermissionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MappingMode/WFMappingPermissionTest.cs)
