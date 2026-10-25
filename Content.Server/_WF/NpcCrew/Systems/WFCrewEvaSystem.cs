@@ -72,13 +72,13 @@ public sealed class WFCrewEvaSystem : EntitySystem
     }
 
     /// <summary>
-    /// Swaps a loose suit helmet in the head slot for the worn suit's own. Gear names the helmet on its own, but a suit
-    /// helmet is no item: knocked off with the head, it lay on the floor and couldn't be picked up or pulled.
+    /// Puts the worn suit's own helmet on, in place of a loose suit helmet or on a bare head. Gear names the helmet on
+    /// its own, but a suit helmet is no item: knocked off with the head, it lay on the floor and couldn't be picked up.
     /// </summary>
     public void FitSuitHelmet(EntityUid mob)
     {
-        if (!_inventory.TryGetSlotEntity(mob, "head", out var loose)
-            || HasComp<ItemComponent>(loose) || HasComp<AttachedClothingComponent>(loose)
+        _inventory.TryGetSlotEntity(mob, "head", out var loose);
+        if (loose != null && (HasComp<ItemComponent>(loose) || HasComp<AttachedClothingComponent>(loose))
             || !_inventory.TryGetSlotEntity(mob, "outerClothing", out var suit)
             || !TryComp<ToggleableClothingComponent>(suit, out var toggleable))
             return;
@@ -92,9 +92,12 @@ public sealed class WFCrewEvaSystem : EntitySystem
         {
             if (slot != "head" || !container.Contains(piece))
                 continue;
-            if (!_inventory.TryUnequip(mob, "head", silent: true, force: true))
-                return;
-            QueueDel(loose);
+            if (loose != null)
+            {
+                if (!_inventory.TryUnequip(mob, "head", silent: true, force: true))
+                    return;
+                QueueDel(loose);
+            }
             _inventory.TryEquip(mob, piece, "head", silent: true, force: true);
             return;
         }

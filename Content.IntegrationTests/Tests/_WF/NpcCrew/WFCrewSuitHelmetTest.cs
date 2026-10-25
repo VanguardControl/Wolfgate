@@ -54,4 +54,30 @@ public sealed class WFCrewSuitHelmetTest
 
         await pair.CleanReturnAsync();
     }
+
+    [Test]
+    public async Task BareHeadGetsSuitHelmet()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entities = server.EntMan;
+
+        await server.WaitAssertion(() =>
+        {
+            var inventory = entities.System<InventorySystem>();
+            entities.System<SharedMapSystem>().CreateMap(out var mapId);
+            var coords = new MapCoordinates(0, 0, mapId);
+            var mob = entities.SpawnEntity("MobHuman", coords);
+            var suit = entities.SpawnEntity("ClothingOuterHardsuitSpatio", coords);
+            Assert.That(inventory.TryEquip(mob, suit, "outerClothing", silent: true, force: true));
+
+            entities.System<WFCrewEvaSystem>().FitSuitHelmet(mob);
+
+            Assert.That(inventory.TryGetSlotEntity(mob, "head", out var head)
+                && entities.TryGetComponent<AttachedClothingComponent>(head, out var attached) && attached.AttachedUid == suit,
+                "a bare-headed crewman should get his suit's helmet");
+        });
+
+        await pair.CleanReturnAsync();
+    }
 }
