@@ -17,7 +17,7 @@
     elongation: 1.6
     roughness: 0.35
     cellSize: 96
-    groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow]
+    groundTiles: [FloorPlanetGrass, FloorPlanetDirt, FloorSnow, WFFloorVerdaMeadowGrass, WFFloorVerdaForestGrass, WFFloorVerdaSnowRough]
     avoid: [MonoFloorWaterEntity, MonoPlanetmapOreBase, MonoPlanetmapOreSnow]
     landingTile: WFCavernFloorPoolbed
     landingEntity: MonoFloorWaterEntity
