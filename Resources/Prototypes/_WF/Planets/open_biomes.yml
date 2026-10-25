@@ -112,6 +112,11 @@
     template: WFAerumnaCrystalSpires
     threshold: 0.82
     noise: { seed: 83, noiseType: OpenSimplex2, frequency: 0.010 }
+  # The xenonid hive, last so its ground wins where regions overlap.
+  - !type:BiomeMetaLayer
+    template: WFAerumnaHive
+    threshold: 0.6
+    noise: { seed: 131, noiseType: OpenSimplex2, frequency: 0.012, fractalType: FBm, octaves: 2 }
   # Lone stones scattered over the flats.
   - !type:BiomeEntityLayer
     allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock]
@@ -130,7 +135,7 @@
     noise: { seed: 19, noiseType: OpenSimplex2, frequency: 0.025 }
   # Pools in the clearings, a dozen tiles or so across.
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaShroud, WFFloorAerumnaCrystalBed]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaShroud, WFFloorAerumnaCrystalBed, WFFloorAerumnaHive]
     entities: [MonoFloorWaterEntity]
     threshold: 0.75
     noise: { seed: 41, noiseType: OpenSimplex2, frequency: 0.016, fractalType: FBm, octaves: 2 }

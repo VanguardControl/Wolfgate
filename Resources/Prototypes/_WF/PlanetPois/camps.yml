@@ -74,3 +74,35 @@
   home: WFStrangerCampHome
   minResidents: 2
   maxResidents: 4
+
+# A small xenonid hive, Aerumna's: a hive core in a broken ring of resin with a few doors, a nest of dormant eggs round
+# it and a few drones and runners about. No ship and no guards; the core spreads its own weeds once the ground exists.
+- type: wfPlanetCamp
+  id: WFCampXenoHive
+  name: wf-poi-xeno-hive
+  roadside: false
+  props:
+  - ids: [ HiveCoreXeno ]
+    min: 1
+    max: 1
+    distance: 0
+  - ids: [ WFXenoEggWild ]
+    min: 3
+    max: 4
+    distance: 2
+  - ids: [ WFXenoEggWild ]
+    min: 2
+    max: 3
+    distance: 3
+  - ids: [ WallXenoResin, WallXenoResin, WallXenoResinThick ]
+    min: 16
+    max: 22
+    distance: 5
+  - ids: [ DoorXenoResin ]
+    min: 2
+    max: 3
+    distance: 5
+  residents: !type:NestedSelector
+    tableId: WFFaunaAerumnaHive
+  minResidents: 2
+  maxResidents: 4
