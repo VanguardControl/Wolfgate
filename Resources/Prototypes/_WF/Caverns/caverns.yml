@@ -127,7 +127,7 @@
     - WFFloorThrasciasFrozenDirt
     - WFFloorThrasciasPackIce
     - WFFloorThrasciasRoughIce
-    - WFFloorThrasciasDarkIce
+    - WFFloorThrasciasClearIce
     avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow, CMRockIce, BayCrystal, ChompQuartz]
     landingTile: WFCavernFloorSnowdrift
     shade: WFCavernShadeThrascias

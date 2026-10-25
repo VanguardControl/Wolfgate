@@ -74,8 +74,9 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 Thrascias is a frozen world, and its ground (`Resources/Prototypes/_WF/Planets/Biomes/thrascias.yml`) is built from the
 imported Decor Import and RMC tiles through weather child tiles, so snow falls on all of it. Plain snow is broken by
 rough and calm snow and bare frozen dirt, with ice grass, frostbelles, snow shrubs and snow rocks. Where the old ice
-patches were there is pack ice (cracked, rough and dark ice) with black frozen lakes in the middle, ice rocks and
-short runs of ice cliff; the lakes and the smooth dark ice are slippery as the old ice was. Pine pockets are a small
+patches were there is pack ice (cracked, rough and clear ice) with clear frozen lakes in the middle, ice rocks and
+short runs of ice cliff; the clear ice is slightly see-through, so the layer below shows through it, and the lakes and
+the smooth clear ice are slippery as the old ice was. Pine pockets are a small
 share of the snow. Every liquid plasma pool sits in a crystal field of frozen plasma, with crystal rocks and trees and a
 few small crystal wall clusters. The planet is still dry: its lakes are tiles, not water entities. `ThrasciasBiomeTest`
 samples the whole surface.
@@ -381,6 +382,8 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 
 ### Textures
 
+- [`Resources/Textures/_WF/Planets/BloodWater/blood-lake.rsi/`](../../../Resources/Textures/_WF/Planets/BloodWater/blood-lake.rsi/)
+- [`Resources/Textures/_WF/Planets/BloodWater/blood-river.rsi/`](../../../Resources/Textures/_WF/Planets/BloodWater/blood-river.rsi/)
 - [`Resources/Textures/_WF/Planets/Effects/parachute_canopy.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/parachute_canopy.rsi/)
 - [`Resources/Textures/_WF/Planets/Effects/thunderbolt.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/thunderbolt.rsi/)
 - [`Resources/Textures/_WF/Planets/Effects/weather_tg.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/weather_tg.rsi/)
@@ -459,6 +462,7 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 
 ### Tools
 
+- [`Tools/_WF/Planets/gen_blood_water.py`](../../../Tools/_WF/Planets/gen_blood_water.py)
 - [`Tools/_WF/Planets/gen_flight_placeholders.py`](../../../Tools/_WF/Planets/gen_flight_placeholders.py)
 
 ### Docs

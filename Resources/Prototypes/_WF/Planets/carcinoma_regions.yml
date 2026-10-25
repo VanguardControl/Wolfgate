@@ -65,8 +65,11 @@
   name: blood lake
   description: A still lake of dark blood laps against the living shore.
   components:
+  # Recoloured art: a tint only multiplies, and the water sprite is dark blue, so tinting it red read as black.
   - type: Sprite
-    color: "#b81e24"
+    sprite: _WF/Planets/BloodWater/blood-lake.rsi
+  - type: Icon
+    sprite: _WF/Planets/BloodWater/blood-lake.rsi
   - type: SolutionContainerManager
     solutions:
       pool:

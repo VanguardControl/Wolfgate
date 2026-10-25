@@ -218,8 +218,9 @@
   name: blood river
   description: A slow current of dark blood runs through the planet's flesh.
   components:
+  # Recoloured art, as the blood lake's: a red tint over the blue water sprite read as near black.
   - type: Sprite
-    color: "#b81e24"
+    sprite: _WF/Planets/BloodWater/blood-river.rsi
   - type: SolutionContainerManager
     solutions:
       pool:
