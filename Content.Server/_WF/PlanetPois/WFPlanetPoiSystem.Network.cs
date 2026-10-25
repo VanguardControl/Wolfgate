@@ -202,6 +202,16 @@ public sealed partial class WFPlanetPoiSystem
                     foreach (var socket in site.Sockets)
                         if (site.AccessPaths.TryGetValue(socket, out var access))
                             plan.RoadTiles.UnionWith(access.Where(tile => _maps.GetTileRef(ground, grid, tile).Tile.IsEmpty));
+                    // An access path the site has already floored over leaves only its loose ends as road; those
+                    // no longer touch the network, so they go, and the road graph stays one piece.
+                    var pieces = WFPlanetRoadPlanner.Components(plan.RoadTiles);
+                    if (pieces.Count > 1)
+                    {
+                        var main = pieces.MaxBy(piece => piece.Count)!;
+                        foreach (var piece in pieces)
+                            if (!ReferenceEquals(piece, main))
+                                plan.RoadTiles.ExceptWith(piece);
+                    }
                     changed.UnionWith(plan.ShoulderTiles);
                     changed.UnionWith(plan.RoadTiles);
                     PaintRoad(ground, grid, biome, plan.ShoulderTiles, roads.ShoulderTile ?? roads.Tile);
