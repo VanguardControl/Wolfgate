@@ -300,6 +300,46 @@ public sealed class BloodTrailTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// Mopping a small blood puddle on a printed tile: the floor drinks all the mop's water, and the emptied puddle
+    /// must still go rather than stay as an unmoppable 0u puddle.
+    /// </summary>
+    [Test]
+    public async Task MopEmptiesPuddleOnPrintedTile()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entMan = server.EntMan;
+        var decals = entMan.System<DecalSystem>();
+        var interaction = entMan.System<SharedInteractionSystem>();
+        var solutions = entMan.System<SharedSolutionContainerSystem>();
+
+        var puddle = EntityUid.Invalid;
+        await server.WaitAssertion(() =>
+        {
+            var human = SpawnOnFloor(entMan, map);
+            var print = new FootPrintsComponent().LeftBareDecal;
+            for (var i = 0; i < 4; i++)
+                Assert.That(decals.TryAddDecal(print,new EntityCoordinates(map.Grid, 2.1f + i * 0.1f, 0.1f), out _, cleanable: true), Is.True);
+
+            Assert.That(entMan.System<PuddleSystem>().TrySpillAt(new EntityCoordinates(map.Grid, 2.5f, 0.5f),
+                new Solution("Blood", FixedPoint2.New(0.5f)), out puddle, sound: false), Is.True);
+
+            var mop = entMan.SpawnEntity(Mop, new EntityCoordinates(map.Grid, 1.5f, 0.5f));
+            entMan.RemoveComponent<UseDelayComponent>(mop);
+            Assert.That(solutions.TryGetSolution(mop, AbsorbentComponent.SolutionName, out var soln, out _), Is.True);
+            Assert.That(solutions.TryAddReagent(soln!.Value, Water, 20), Is.True);
+
+            interaction.InteractDoAfter(human, mop, puddle, entMan.GetComponent<TransformComponent>(puddle).Coordinates, true);
+        });
+
+        await pair.RunTicksSync(5);
+        await server.WaitAssertion(() => Assert.That(entMan.Deleted(puddle), Is.True, "The emptied puddle stayed."));
+
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task PrintsStopPilingUp()
     {

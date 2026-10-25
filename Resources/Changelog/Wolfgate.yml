@@ -3003,3 +3003,102 @@ Entries:
   id: 100214
   time: '2026-10-24T06:47:55.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/339
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Added a global search bar to settings.
+  id: 100215
+  time: '2026-10-24T21:51:08.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/340
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Delayroundend now actually works.
+  id: 100216
+  time: '2026-10-24T21:52:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/341
+- author: TheSlapper
+  changes:
+    - type: Add
+      message: Adds new clown/mime items.
+    - type: Add
+      message: Adds new and existing clown/mime items to the vagrant loadout.
+    - type: Add
+      message: Adds clown/mime clothing to the autodrobe.
+    - type: Fix
+      message: Corrects the unicycles movement to how it was intended to be.
+    - type: Add
+      message: >-
+        Re-adds the clown waddle. Now featured on the kinds of shoes you'd
+        imagine.
+    - type: Fix
+      message: >-
+        Corrects some hood/helmet items to properly hid player hair, such as the
+        jester hat.
+  id: 100217
+  time: '2026-10-25T00:29:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/343
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Killing Reaver and pirate crew now pays the kill bounty, including kills
+        with lasers and kills while boarding.
+    - type: Add
+      message: >-
+        Downed Reaver and pirate crew drop thalers. Higher threat tiers drop
+        more.
+    - type: Fix
+      message: Pirates hunting or extorting your ship lose track of you once you cloak.
+    - type: Tweak
+      message: ADS encounters have their own drone icon on the sector map and radar.
+  id: 100218
+  time: '2026-10-25T01:28:18.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/346
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Avali have their own deathgasp.
+    - type: Add
+      message: The shuttle console's map screen has a search box for FTL destinations.
+    - type: Tweak
+      message: >-
+        The destination list scrolls instead of stretching the window, and long
+        names are cut off instead of running out of the list.
+    - type: Tweak
+      message: FTL jumps still knock you down but no longer throw you off the ship.
+    - type: Fix
+      message: >-
+        Mopping a small blood puddle on a footprinted tile no longer leaves an
+        empty puddle you can't mop.
+    - type: Fix
+      message: >-
+        Synthetic survival boxes no longer say cable "doesn't go in there" when
+        you put it back.
+    - type: Fix
+      message: >-
+        Emptying a beaker into the ChemMaster buffer no longer freezes your
+        game.
+    - type: Fix
+      message: Ships bought with an Agent ID can now be sold to the used ship dealer.
+    - type: Fix
+      message: >-
+        NPC crew in hardsuits no longer leave stuck helmets on the floor when
+        decapitated.
+    - type: Fix
+      message: >-
+        The R-300 howitzer now reloads from a linked ammo loader after each
+        shot.
+    - type: Fix
+      message: Tools taken out of a safety deposit box are no longer stuck on cooldown.
+    - type: Fix
+      message: Pressing E (or Z in hand) on a PDA opens it again.
+    - type: Fix
+      message: >-
+        Deploying a modsuit over a hardsuit's helmet now works, and hats under
+        either helmet come back afterwards.
+    - type: Add
+      message: A jukebox volume slider!
+  id: 100219
+  time: '2026-10-25T02:03:54.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/345

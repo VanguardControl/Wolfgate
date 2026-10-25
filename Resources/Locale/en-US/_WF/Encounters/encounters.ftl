@@ -40,7 +40,7 @@ wf-encounter-name-boarders = Pirate boarders {$designation}
 wf-encounter-name-trader = Wandering trader {$designation}
 wf-encounter-name-backup = TSF patrol {$designation} under attack
 wf-encounter-announce-backup = Any vessel, any vessel, this is {$name}. We are engaged by pirate raiders and outgunned. Requesting immediate backup. The Federation pays its debts.
-wf-encounter-kill-bounty-paid = {$amount} spesos paid into your account for killing one of the {$company}.
+wf-encounter-kill-bounty-paid = {$amount} thalers paid into your account for killing one of the {$company}.
 wf-encounter-reward-paid = For your help with {$name}, {$amount} { $amount ->
         [one] thaler has
        *[other] thalers have
