@@ -287,6 +287,10 @@ public sealed partial class ToggleableClothingSystem : EntitySystem
         if (toggleableComp.LifeStage > ComponentLifeStage.Running)
             return;
 
+        // WOLFGATE: a suit deleted along with its wearer can't take the piece back
+        if (TerminatingOrDeleted(comp.AttachedUid))
+            return;
+
         // As unequipped gets called in the middle of container removal, we cannot call a container-insert without causing issues.
         // So we delay it and process it during a system update:
         if (!toggleableComp.ClothingUids.ContainsKey(attached.Owner))
