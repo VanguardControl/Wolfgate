@@ -117,6 +117,15 @@ lives in `Resources/Prototypes/_WF/Planets/Biomes/fervidus.yml` (the weather chi
 template) and `WFOpenBasalt`, and `FervidusBiomeTest` samples it. The pools are plain tiles and cosmetic: roads and
 sites treat them as dry ground, and the cavern mouths never land on them.
 
+Fervidus has living regions (`Resources/Prototypes/_WF/Planets/Life/fervidus.yml`, strings in `life_fervidus.ftl`, sampled by
+`FervidusLifeTest`). Black basalt keeps the argocytes (`WFFaunaFervidus`). The ashfields add ashen laser raptors and slow ash
+golems (`WFFaunaFervidusAshfields`). The lava crust, a band laid on the lava noise by the `WFFervidusLavaCrust` meta layer, adds
+cinder slimes that set what they hit alight, a very rare lava hellspawn (`WFFaunaFervidusCrust`) and ember flowers that spit a
+burning ember at anyone within five metres. All of them take the Xeno faction so the natives don't fight each other, and ignore
+the heat and the lack of air. Plants are `LivingWorld` children of the old decor flora: fire-blossoms (burn whoever steps on
+them; the bloom is an ingredient for blossom fizz), ash caps and ash leaves (mildly toxic raw, safe once cooked into ash mushroom
+soup), cool cacti (a water pod) and ash lungs (a short weak toxin cloud when someone passes).
+
 Verda's ground (`Resources/Prototypes/_WF/Planets/Biomes/verda.yml`, `biomes.yml`, `open_biomes.yml`) is built from the
 imported Decor Import and RMC floors and flora, each through a `weather: true` child tile. Plains run to wildflower
 meadow and dark forest floor, with oak, hardwood and pine woods; every lake and pond sits in a ring of marsh, mud and
@@ -291,6 +300,7 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/AerumnaBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/AerumnaBiomeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/CarcinomaBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/CarcinomaBiomeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/FervidusBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/FervidusBiomeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/FervidusLifeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/FervidusLifeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/MerakBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/MerakBiomeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/ThrasciasBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/ThrasciasBiomeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/VerdaBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/VerdaBiomeTest.cs)
@@ -366,6 +376,7 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 - [`Resources/Prototypes/_WF/Planets/jetpack.yml`](../../../Resources/Prototypes/_WF/Planets/jetpack.yml)
 - [`Resources/Prototypes/_WF/Planets/kyphrus_planets.yml`](../../../Resources/Prototypes/_WF/Planets/kyphrus_planets.yml)
 - [`Resources/Prototypes/_WF/Planets/lathe_recipes.yml`](../../../Resources/Prototypes/_WF/Planets/lathe_recipes.yml)
+- [`Resources/Prototypes/_WF/Planets/Life/fervidus.yml`](../../../Resources/Prototypes/_WF/Planets/Life/fervidus.yml)
 - [`Resources/Prototypes/_WF/Planets/open_biomes.yml`](../../../Resources/Prototypes/_WF/Planets/open_biomes.yml)
 - [`Resources/Prototypes/_WF/Planets/parachute.yml`](../../../Resources/Prototypes/_WF/Planets/parachute.yml)
 - [`Resources/Prototypes/_WF/Planets/planet_ambience.yml`](../../../Resources/Prototypes/_WF/Planets/planet_ambience.yml)
@@ -382,6 +393,7 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 - [`Resources/Locale/en-US/_WF/Planets/infestation.ftl`](../../../Resources/Locale/en-US/_WF/Planets/infestation.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/jetpack.ftl`](../../../Resources/Locale/en-US/_WF/Planets/jetpack.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/kyphrus.ftl`](../../../Resources/Locale/en-US/_WF/Planets/kyphrus.ftl)
+- [`Resources/Locale/en-US/_WF/Planets/life_fervidus.ftl`](../../../Resources/Locale/en-US/_WF/Planets/life_fervidus.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/liftoff.ftl`](../../../Resources/Locale/en-US/_WF/Planets/liftoff.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/parachute.ftl`](../../../Resources/Locale/en-US/_WF/Planets/parachute.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/planets.ftl`](../../../Resources/Locale/en-US/_WF/Planets/planets.ftl)
