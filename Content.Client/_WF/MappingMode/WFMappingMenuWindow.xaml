@@ -26,6 +26,7 @@
                                                     TooltipDelay="0" />
                         </BoxContainer>
                         <Label Name="StatusLabel" Access="Public" StyleClasses="LabelSubText" ClipText="True" />
+                        <Label Name="TestLabel" Access="Public" StyleClasses="LabelSubText" ClipText="True" Visible="False" />
 
                         <Label Text="{Loc 'wf-mapping-mode-menu-members'}" StyleClasses="LabelHeading" Margin="0 6 0 0" />
                         <BoxContainer Name="MemberList" Access="Public" Orientation="Vertical" SeparationOverride="2" />

@@ -122,3 +122,7 @@ wf-mapping-export-readme-severity-error = Errors:
 wf-mapping-export-readme-severity-warning = Warnings:
 wf-mapping-export-readme-severity-note = Notes:
 wf-mapping-export-proto-header = Made in Wolfgate mapping mode from "{$name}", version {$version}. Check every field before it goes in the game.
+
+# The mapping screen's menu bar button, and the guard the check, the save, Go to and the export share
+wf-mapping-screen-bar-export = Export: check the map, fill in the ship details and download one zip
+wf-mapping-export-while-testing = Nothing can be checked, saved or exported while testing. Go back to mapping first.

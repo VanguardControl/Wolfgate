@@ -25,3 +25,4 @@ wf-mapping-test-banner-back-key = Back to mapping ({$key})
 wf-mapping-test-banner-time = Time left {$time}
 
 cmd-wf_mappingmode_list-testing = {"    "}testing for {$minutes} min: {$testers}
+wf-mapping-screen-bar-test-downloading = Test map waits until the download finishes

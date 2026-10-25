@@ -63,6 +63,7 @@ public sealed class WFMappingTestModeTest
         var zLevels = entMan.System<MappingZLevelsSystem>();
         var protection = entMan.System<MappingProtectionSystem>();
         var mapSys = entMan.System<MapSystem>();
+        var library = entMan.System<WFMappingLibrarySystem>();
         var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
         var res = server.ResolveDependency<IResourceManager>();
         await Enable(pair);
@@ -148,8 +149,10 @@ public sealed class WFMappingTestModeTest
                 }), Is.False, "Engine placement is refused.");
             });
 
-            // A save during the test holds only the session's own level.
+            // A tester's own save is refused; the autosave still runs and holds only the session's own level.
             RaiseAs(entMan, a, new WFMappingSaveRequest(string.Empty));
+            Assert.That(Versions(res, a.UserId, MapName), Is.Empty, "A save request from a tester writes nothing.");
+            Assert.That(library.Autosave(session), Is.True);
             var versions = Versions(res, a.UserId, MapName);
             Assert.That(versions, Has.Count.EqualTo(1));
             var folder = WFMappingLibraryNames.VersionFolder(a.UserId, MapName, versions[0]);

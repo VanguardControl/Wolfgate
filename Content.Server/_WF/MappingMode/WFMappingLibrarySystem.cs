@@ -426,6 +426,12 @@ public sealed class WFMappingLibrarySystem : EntitySystem
             return;
         }
 
+        if (_mapping.IsTesting(player))
+        {
+            _mapping.Notify(player, false, "wf-mapping-export-while-testing");
+            return;
+        }
+
         var name = session.Name;
         if (!string.IsNullOrWhiteSpace(ev.Name) && !WFMappingLibraryNames.TryNormalizeMapName(ev.Name, out name))
         {

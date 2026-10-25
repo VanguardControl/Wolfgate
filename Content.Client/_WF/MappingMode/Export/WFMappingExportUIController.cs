@@ -1,3 +1,4 @@
+using Content.Client._WF.MappingMode.Test;
 using Content.Client.Gameplay;
 using Content.Client.Lobby;
 using Content.Shared._WF.MappingMode;
@@ -19,6 +20,7 @@ public sealed class WFMappingExportUIController : UIController, IOnStateExited<G
     [Dependency] private IGameTiming _timing = default!;
 
     [UISystemDependency] private readonly WFMappingClientSystem _mapping = default!;
+    [UISystemDependency] private readonly WFMappingTestClientSystem? _test = default;
 
     /// <summary>How long the Package step waits for the save it asked for before giving up.</summary>
     private static readonly TimeSpan SaveTimeout = TimeSpan.FromSeconds(20);
@@ -61,6 +63,7 @@ public sealed class WFMappingExportUIController : UIController, IOnStateExited<G
     public override void FrameUpdate(FrameEventArgs args)
     {
         base.FrameUpdate(args);
+        _window?.SetTesting(_test is { Testing: true });
         if (_pendingSave is not { } pending || _timing.RealTime < pending.Deadline)
             return;
 
@@ -100,6 +103,7 @@ public sealed class WFMappingExportUIController : UIController, IOnStateExited<G
         _window.Open(mapName, version, inSession, shipPossible, _mapping.ShipDetailsOf(mapName));
         _window.SetSessionDirty(fromSaveTab && _mapping.Session is { Dirty: true });
         _window.SetDownload(_mapping.Download, _mapping.DownloadBusy);
+        _window.SetTesting(_test is { Testing: true });
         _window.OpenCentered();
         _window.MoveToFront();
     }
@@ -109,6 +113,12 @@ public sealed class WFMappingExportUIController : UIController, IOnStateExited<G
     {
         if (_window == null)
             return;
+
+        if (_test is { Testing: true })
+        {
+            _window.SetStatus(Loc.GetString("wf-mapping-export-while-testing"), false);
+            return;
+        }
 
         if (_window.InSession && _window.Version == null && _mapping.Session is { Dirty: true })
         {

@@ -39,6 +39,7 @@ public sealed partial class WFMappingExportWizard : FancyWindow
     private bool _shipPossible = true;
     private bool _dirty;
     private bool _busy;
+    private bool _testing;
 
     /// <summary>The library map the wizard exports, and its version folder; null is the newest.</summary>
     public string MapName { get; private set; } = string.Empty;
@@ -169,7 +170,26 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         if (progress is { Zip: true, Active: false, Asking: null } && PackageStatus.Text == Loc.GetString("wf-mapping-export-package-requested"))
             SetStatus(Loc.GetString("wf-mapping-export-package-done"), true);
 
-        PackageButton.Disabled = busy;
+        PackageButton.Disabled = busy || _testing;
+    }
+
+    /// <summary>
+    /// While the mapper walks a live test nothing can be checked, saved or exported: Check again, Go to and the
+    /// package button wait, and the status says why.
+    /// </summary>
+    public void SetTesting(bool testing)
+    {
+        if (_testing == testing)
+            return;
+
+        _testing = testing;
+        if (testing)
+            SetStatus(Loc.GetString("wf-mapping-export-while-testing"), false);
+        else if (PackageStatus.Text == Loc.GetString("wf-mapping-export-while-testing"))
+            PackageStatus.Text = string.Empty;
+
+        RenderIssues();
+        Refresh();
     }
 
     public void SetStatus(string text, bool ok)
@@ -215,7 +235,7 @@ public sealed partial class WFMappingExportWizard : FancyWindow
 
     private void Check()
     {
-        if (!InSession)
+        if (!InSession || _testing)
         {
             _issues = null;
             RenderIssues();
@@ -245,6 +265,12 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         if (_busy)
             return;
 
+        if (_testing)
+        {
+            SetStatus(Loc.GetString("wf-mapping-export-while-testing"), false);
+            return;
+        }
+
         if (_kind == WFMappingExportKind.Ship && !TryReadPrice(out _))
         {
             SetStatus(Loc.GetString("wf-mapping-export-details-price-bad", ("max", WFMappingExportLimits.MaxPrice)), false);
@@ -271,7 +297,8 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         ShipKindButton.Pressed = _kind == WFMappingExportKind.Ship;
         MapKindButton.Pressed = _kind == WFMappingExportKind.Map;
         ShipKindButton.Disabled = !_shipPossible || ShipErrors;
-        RecheckButton.Disabled = !InSession || _checking;
+        RecheckButton.Disabled = !InSession || _checking || _testing;
+        PackageButton.Disabled = _busy || _testing;
         BackButton.Disabled = _step == 1;
         NextButton.Visible = _step < 3;
         NextButton.Disabled = _step == 1 && _kind == WFMappingExportKind.Ship && (ShipErrors || _checking);
@@ -287,6 +314,14 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         {
             CheckSummary.Text = string.Empty;
             IssueList.AddChild(SubLabel(Loc.GetString("wf-mapping-export-check-no-session")));
+            CheckHint.SetMessage(string.Empty);
+            return;
+        }
+
+        if (_testing && _issues == null)
+        {
+            CheckSummary.Text = string.Empty;
+            IssueList.AddChild(SubLabel(Loc.GetString("wf-mapping-export-while-testing")));
             CheckHint.SetMessage(string.Empty);
             return;
         }
@@ -348,7 +383,13 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         row.AddChild(text);
         if (issue.Entity != null || issue.Where != null)
         {
-            var goTo = new Button { Text = Loc.GetString("wf-mapping-export-issue-goto"), VerticalAlignment = VAlignment.Top };
+            var goTo = new Button
+            {
+                Text = Loc.GetString("wf-mapping-export-issue-goto"),
+                VerticalAlignment = VAlignment.Top,
+                Disabled = _testing,
+                ToolTip = _testing ? Loc.GetString("wf-mapping-export-while-testing") : null,
+            };
             goTo.OnPressed += _ => GoToRequested?.Invoke(issue);
             row.AddChild(goTo);
         }

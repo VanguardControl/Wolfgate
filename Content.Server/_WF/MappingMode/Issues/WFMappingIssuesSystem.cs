@@ -46,6 +46,13 @@ public sealed partial class WFMappingIssuesSystem : EntitySystem
             return;
         }
 
+        // The check reads the live levels, which a tester can neither see nor fix right now.
+        if (_mapping.IsTesting(player))
+        {
+            _mapping.Notify(player, false, "wf-mapping-export-while-testing");
+            return;
+        }
+
         var issues = Check(session, ev.Scope, out var summary);
         RaiseNetworkEvent(new WFMappingIssuesEvent(ev.Scope, issues, summary), player);
     }

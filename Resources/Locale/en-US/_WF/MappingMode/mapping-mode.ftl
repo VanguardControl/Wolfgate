@@ -221,6 +221,7 @@ wf-mapping-mode-menu-copied = Copied the join code.
 wf-mapping-mode-menu-new-code = New code
 wf-mapping-mode-menu-new-code-tooltip = Replace the join code. The old one stops working; members stay in.
 wf-mapping-mode-menu-status = Grids {$grids}/{$maxGrids} · Entities {$entities}/{$maxEntities} · Area {$size} × {$size}
+wf-mapping-mode-menu-testing = Testing: {$testers} ({$minutes} min left)
 wf-mapping-mode-menu-members = Members
 wf-mapping-mode-menu-member = {$name}{$owner ->
     [yes] {" "}(owner)

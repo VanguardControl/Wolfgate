@@ -69,6 +69,12 @@ public sealed class WFMappingExportSystem : EntitySystem
             return;
         }
 
+        if (_mapping.IsTesting(player))
+        {
+            _mapping.Notify(player, false, "wf-mapping-export-while-testing");
+            return;
+        }
+
         WFMappingLibrarySystem.LibraryMap? map;
         WFMappingLibrarySystem.LibraryVersion? version;
         try
@@ -317,6 +323,13 @@ public sealed class WFMappingExportSystem : EntitySystem
             !_goToThrottle.TryTake(player.UserId, _timing.CurTime) ||
             player.AttachedEntity is not { } observer)
         {
+            return;
+        }
+
+        // A tester is on their character, not the observer, so there is nothing to move.
+        if (_mapping.IsTesting(player))
+        {
+            _mapping.Notify(player, false, "wf-mapping-export-while-testing");
             return;
         }
 
