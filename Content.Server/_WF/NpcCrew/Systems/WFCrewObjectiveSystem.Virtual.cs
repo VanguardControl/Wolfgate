@@ -103,8 +103,9 @@ public sealed partial class WFCrewObjectiveSystem
 
         var item = state.Items[0];
         var target = item.Target is { } net && TryGetEntity(net, out var resolved) ? resolved.Value : EntityUid.Invalid;
-        // An attack is over once its target is gone.
-        if (item.Kind == WFCrewObjectiveKind.Attack && (!target.IsValid() || TerminatingOrDeleted(target)))
+        // An attack is over once its target is gone or has cloaked.
+        if (item.Kind == WFCrewObjectiveKind.Attack && (!target.IsValid() || TerminatingOrDeleted(target)
+                || EntityManager.System<WFCrewStealthSystem>().ShipUnseen(target)))
         {
             Finish(state);
             return;

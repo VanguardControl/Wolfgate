@@ -83,7 +83,7 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
 
         // A laser names the gun and not its holder, so a kill can come with no player behind it; the crewman's last
         // player attacker takes it then.
-        var primary = args.Primary is KillPlayerSource ? args.Primary : LastPlayerAttacker(member) ?? args.Primary;
+        var primary = args.Primary is KillEnvironmentSource ? LastPlayerAttacker(member) ?? args.Primary : args.Primary;
         WFEncounterComponent? found = null;
         var query = EntityQueryEnumerator<WFEncounterComponent>();
         while (query.MoveNext(out _, out var encounter))
