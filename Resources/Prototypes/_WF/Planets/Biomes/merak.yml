@@ -28,7 +28,7 @@
 
 - type: tile
   id: WFFloorMerakPaleSand
-  parent: GoonFloorSand
+  parent: FloorLowDesert
   weather: true
   isSubfloor: true
   indestructible: true
@@ -72,7 +72,7 @@
 # Wind-scoured dark flats between the red rock.
 - type: tile
   id: WFFloorMerakDarkSand
-  parent: RMCPlanetSandVaradero
+  parent: FloorAsteroidSand
   weather: true
   baseTurf: Space
   deconstructTools: [ Digging ]
@@ -96,7 +96,7 @@
 
 - type: tile
   id: WFFloorMerakDesertSandrock
-  parent: ChompFloorOutdoorsDesertPlanetSandrock
+  parent: FloorDesertPlanet
   weather: true
   isSubfloor: true
   indestructible: true
@@ -222,6 +222,8 @@
     - WFFloorMerakDarkSand
     - WFFloorMerakRedDesertSand
     - WFFloorMerakDesertGravel
+    - WFFloorMerakDesertSandrock
+    - WFFloorMerakDesertCracked
     threshold: 0.15
     noise:
       seed: 0
@@ -240,13 +242,13 @@
     threshold: -1
     tile: WFFloorMerakDuneSand
   - !type:BiomeTileLayer
-    threshold: 0.0
+    threshold: 0.1
     tile: WFFloorMerakGoldSand
-    noise: { seed: 5, noiseType: OpenSimplex2, frequency: 0.012, fractalType: FBm, octaves: 2 }
+    noise: { seed: 5, noiseType: OpenSimplex2, frequency: 0.005 }
   - !type:BiomeTileLayer
-    threshold: 0.45
+    threshold: 0.5
     tile: WFFloorMerakPaleSand
-    noise: { seed: 6, noiseType: OpenSimplex2, frequency: 0.02, fractalType: FBm, octaves: 2 }
+    noise: { seed: 6, noiseType: OpenSimplex2, frequency: 0.006 }
   - !type:BiomeMetaLayer
     threshold: 0.3
     template: WFMerakBadlands
@@ -304,17 +306,17 @@
     threshold: -1
     tile: WFFloorMerakRedDesertSand
   - !type:BiomeTileLayer
-    threshold: 0.1
+    threshold: 0.15
     tile: WFFloorMerakRedDesertRock
-    noise: { seed: 15, noiseType: OpenSimplex2, frequency: 0.03, fractalType: FBm, octaves: 2 }
+    noise: { seed: 15, noiseType: OpenSimplex2, frequency: 0.012 }
   - !type:BiomeTileLayer
-    threshold: 0.45
+    threshold: 0.5
     tile: WFFloorMerakRedDesertRockCracked
-    noise: { seed: 16, noiseType: OpenSimplex2, frequency: 0.04, fractalType: FBm, octaves: 2 }
+    noise: { seed: 16, noiseType: OpenSimplex2, frequency: 0.015 }
   - !type:BiomeTileLayer
-    threshold: 0.6
+    threshold: 0.62
     tile: WFFloorMerakDarkSand
-    noise: { seed: 17, noiseType: OpenSimplex2, frequency: 0.02, fractalType: FBm, octaves: 2 }
+    noise: { seed: 17, noiseType: OpenSimplex2, frequency: 0.012 }
 
 - type: biomeTemplate
   id: WFMerakGravelFlats
@@ -349,13 +351,13 @@
     threshold: -1
     tile: WFFloorMerakDesertGravel
   - !type:BiomeTileLayer
-    threshold: -0.15
+    threshold: 0.25
     tile: WFFloorMerakDesertSandrock
-    noise: { seed: 40, noiseType: Cellular, frequency: 0.05, fractalType: FBm, octaves: 2, cellularDistanceFunction: Euclidean, cellularReturnType: Distance2 }
+    noise: { seed: 40, noiseType: OpenSimplex2, frequency: 0.012 }
   - !type:BiomeTileLayer
-    threshold: 0.35
+    threshold: 0.45
     tile: WFFloorMerakDesertCracked
-    noise: { seed: 42, noiseType: OpenSimplex2, frequency: 0.03, fractalType: FBm, octaves: 2 }
+    noise: { seed: 42, noiseType: OpenSimplex2, frequency: 0.012 }
 
 - type: biomeTemplate
   id: WFMerakCactusFields

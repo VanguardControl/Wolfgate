@@ -5,7 +5,7 @@
 
 - type: tile
   id: WFFloorVerdaMeadowGrass
-  parent: NebulaFloorGrassWild
+  parent: FloorGrassLight
   weather: true
   isSubfloor: true
   indestructible: true
@@ -14,7 +14,7 @@
 
 - type: tile
   id: WFFloorVerdaForestGrass
-  parent: AuroraFloorExoplanetKonyang
+  parent: FloorGrassDark
   weather: true
   isSubfloor: true
   indestructible: true
@@ -80,7 +80,7 @@
 
 - type: tile
   id: WFFloorVerdaScarWiltedGrass
-  parent: AuroraFloorExoplanetKonyangWilting
+  parent: FloorPlanetGrassCrocus
   weather: true
   isSubfloor: true
   indestructible: true
@@ -216,15 +216,15 @@
   - !type:BiomeTileLayer
     tile: WFFloorVerdaScarWiltedGrass
     threshold: 0.25
-    noise: { seed: 84, noiseType: OpenSimplex2, frequency: 0.04 }
+    noise: { seed: 84, noiseType: OpenSimplex2, frequency: 0.02 }
   - !type:BiomeTileLayer
     tile: WFFloorVerdaScarAshDirt
     threshold: 0.45
-    noise: { seed: 86, noiseType: OpenSimplex2, frequency: 0.03 }
+    noise: { seed: 86, noiseType: OpenSimplex2, frequency: 0.015 }
   - !type:BiomeTileLayer
     tile: WFFloorVerdaScarDirtPatch
-    threshold: 0.5
-    noise: { seed: 85, noiseType: OpenSimplex2, frequency: 0.09 }
+    threshold: 0.55
+    noise: { seed: 85, noiseType: OpenSimplex2, frequency: 0.04 }
   # Mutants and vermin (Planets/Life/verda_mobs.yml).
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorVerdaScarDirt, WFFloorVerdaScarWiltedGrass, WFFloorVerdaScarAshDirt, WFFloorVerdaScarDirtPatch]

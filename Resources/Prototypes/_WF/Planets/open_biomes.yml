@@ -165,16 +165,16 @@
   # Meadow patches in a livelier green, a darker floor under the woodland, dirt, and a mud ring round each pond.
   - !type:BiomeTileLayer
     tile: WFFloorVerdaMeadowGrass
-    threshold: 0.45
-    noise: { seed: 61, noiseType: OpenSimplex2, frequency: 0.01, fractalType: FBm, octaves: 2 }
+    threshold: 0.35
+    noise: { seed: 61, noiseType: OpenSimplex2, frequency: 0.005 }
   - !type:BiomeTileLayer
     tile: WFFloorVerdaForestGrass
-    threshold: 0.45
-    noise: { seed: 17, noiseType: OpenSimplex2, frequency: 0.012 }
+    threshold: 0.25
+    noise: { seed: 17, noiseType: OpenSimplex2, frequency: 0.005 }
   - !type:BiomeTileLayer
     tile: FloorPlanetDirt
-    threshold: 0.65
-    noise: { seed: 6, noiseType: OpenSimplex2, frequency: 0.025 }
+    threshold: 0.72
+    noise: { seed: 6, noiseType: OpenSimplex2, frequency: 0.01 }
   - !type:BiomeTileLayer
     tile: WFFloorVerdaPondMud
     threshold: 0.76
@@ -245,8 +245,8 @@
     noise: { seed: 206, noiseType: OpenSimplex2, frequency: 5 }
   - !type:BiomeMetaLayer
     template: WFTemperateWoodland
-    threshold: 0.35
-    noise: { seed: 17, noiseType: OpenSimplex2, frequency: 0.012 }
+    threshold: 0.2
+    noise: { seed: 17, noiseType: OpenSimplex2, frequency: 0.005 }
   - !type:BiomeEntityLayer
     allowedTiles: [FloorPlanetGrass, FloorPlanetDirt, WFFloorVerdaMeadowGrass, WFFloorVerdaForestGrass]
     entities: [MonoPlanetmapOreBase]
@@ -369,8 +369,8 @@
     threshold: -1
   - !type:BiomeTileLayer
     tile: WFFloorVerdaSnowRough
-    threshold: 0.3
-    noise: { seed: 65, noiseType: OpenSimplex2, frequency: 0.03, fractalType: FBm, octaves: 2 }
+    threshold: 0.35
+    noise: { seed: 65, noiseType: OpenSimplex2, frequency: 0.01 }
   - !type:BiomeDecalLayer
     allowedTiles: [FloorSnow, WFFloorVerdaSnowRough]
     decals: [AuroraDecalFloorDecalSnowdrift]

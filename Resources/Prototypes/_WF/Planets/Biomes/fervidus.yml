@@ -52,25 +52,26 @@
 - type: biomeTemplate
   id: WFFervidusAshFields
   layers:
-  - !type:BiomeTileLayer
-    tile: WFFloorFervidusAshDust
-    threshold: -1
+  # Cooled rock at the field's edge, fine dust inside it (the field's own noise, a little higher), then bare ash dirt.
   - !type:BiomeTileLayer
     tile: WFFloorFervidusAshRock
-    threshold: 0.38
-    noise: { seed: 52, noiseType: OpenSimplex2, frequency: 0.045, fractalType: FBm, octaves: 2 }
+    threshold: -1
+  - !type:BiomeTileLayer
+    tile: WFFloorFervidusAshDust
+    threshold: 0.3
+    noise: { seed: 51, noiseType: OpenSimplex2, frequency: 0.007, fractalType: FBm, octaves: 2 }
   - !type:BiomeTileLayer
     tile: WFFloorFervidusAshDirt
-    threshold: 0.32
-    noise: { seed: 53, noiseType: OpenSimplex2, frequency: 0.03, fractalType: FBm, octaves: 2 }
+    threshold: 0.42
+    noise: { seed: 53, noiseType: OpenSimplex2, frequency: 0.012 }
   - !type:BiomeTileLayer
     tile: WFFloorFervidusTarPool
     threshold: 0.95
-    noise: { seed: 54, noiseType: OpenSimplex2, frequency: 0.09 }
+    noise: { seed: 54, noiseType: OpenSimplex2, frequency: 0.05 }
   - !type:BiomeTileLayer
     tile: WFFloorFervidusSulfurPool
     threshold: 0.96
-    noise: { seed: 55, noiseType: OpenSimplex2, frequency: 0.09 }
+    noise: { seed: 55, noiseType: OpenSimplex2, frequency: 0.05 }
   # Ashfield wildlife: laser raptors and ash golems.
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFervidusAshDust, WFFloorFervidusAshDirt]
