@@ -76,7 +76,7 @@ public sealed partial class WFPlanetPoiSystem
             var ship = loaded.Value;
             var hull = ship.Comp.LocalAABB;
             var reach = hull.Size.Length() / 2f;
-            if (!TryWreckSpot((ground, biome), grid, centre, radius, table, reach, out var spot))
+            if (!TryWreckSpot((ground, biome), grid, centre, radius, table, reach, out var spot, wrecks.EdgeMargin))
                 return false;
 
             WreckHull(ship, theme, wrecks.Breach);
@@ -147,13 +147,16 @@ public sealed partial class WFPlanetPoiSystem
         }
     }
 
-    /// <summary>Somewhere off the roads, clear of the sites and the landing zone, with nothing pinned under the hull.</summary>
+    /// <summary>
+    /// Somewhere off the roads, clear of the sites and the landing zone, with nothing pinned under the hull; between the
+    /// landing zone and <paramref name="edgeMargin"/> (the table's when null) of the edge.
+    /// </summary>
     private bool TryWreckSpot(Entity<BiomeComponent> ground, MapGridComponent grid, Vector2 centre, float radius, WFPlanetPoiTablePrototype table,
-        float reach, out Vector2 spot)
+        float reach, out Vector2 spot, int? edgeMargin = null)
     {
         spot = default;
         var inner = table.CentreClear + reach + WreckClearance;
-        var outer = radius - table.EdgeMargin - reach;
+        var outer = radius - (edgeMargin ?? table.EdgeMargin) - reach;
         if (outer <= inner)
             return false;
 

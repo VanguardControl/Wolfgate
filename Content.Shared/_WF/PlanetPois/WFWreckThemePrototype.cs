@@ -68,6 +68,10 @@ public sealed partial class WFPlanetWrecks
     [DataField]
     public int MaxCount = 2;
 
+    /// <summary>How close to the world's edge a wreck may lie, in tiles; the table's edgeMargin when unset.</summary>
+    [DataField]
+    public int? EdgeMargin;
+
     /// <summary>Which shipyard sizes crash; large ships don't fit between the sites.</summary>
     [DataField]
     public List<VesselSize> Sizes = new() { VesselSize.Small, VesselSize.Medium };

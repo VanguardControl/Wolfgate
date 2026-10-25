@@ -472,6 +472,8 @@
     theme: WFWreckThemeCarcinoma
     minCount: 2
     maxCount: 3
+    # The world is small and its sites keep far from the edge; the wrecks need not.
+    edgeMargin: 24
   difficulty: Extreme
   roads:
     tile: FloorDirt

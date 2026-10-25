@@ -186,12 +186,12 @@ public static class PlanetFixture
     public static async Task Teardown(TestPair pair, List<EntityUid> layers)
     {
         var server = pair.Server;
+        // Usually called from a finally: after a failed assertion the instance is not known to be idle, and resolving
+        // anything on it would throw and hide the assertion.
+        await server.WaitIdleAsync();
         var entMan = server.EntMan;
         var networks = server.System<WFPlanetNetworkSystem>();
 
-        // Usually called from a finally: after a failed assertion the instance is not known to be idle, and posting
-        // to it would throw and hide the assertion.
-        await server.WaitIdleAsync();
         await server.WaitPost(() =>
         {
             if (entMan.TryGetComponent(layers[0], out CEZMapComponent? zMap) && zMap.NetworkUid is { } network)
