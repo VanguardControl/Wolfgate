@@ -3,16 +3,18 @@
 Oddballs found on planets: in the wilderness, living in houses, and round the fires of crazy camps. Most notice a player in sight, walk up and hail them; the hail pops up for the player with Talk and Ignore,
 and talking opens a Fallout-style conversation of the stranger's lines and the player's answers. A conversation can
 end in a sale (paid from cash in hand, else the bank), a hand-out, a mugging or a temper, after which the stranger's
-own brain takes over and he fights. Ignoring some of them is taken badly. Anyone can also start a conversation with
+own brain takes over and he fights. Only a provocation does that (an insult, a threat, refusing a mugger who has made
+his): a polite no, being broke or ignoring a hail ends the talk with a grumble at most. Anyone can also start a conversation with
 the Talk verb, and a stranger fights whoever hurts him, gun or vehicle included, and his housemates join in. He goes
 for the vehicle his enemy sits in and climbs in after them if it's unlocked (`WFVehicleBoarder`, in `_WF/Vehicles`).
 With nobody left to fight for thirty seconds he calms down, but remembers: there's no more talking to someone in his
 bad books, and he goes for them again on sight.
 
-Roamers wander the world a leg at a time. A stranger who spawns in a home (`WFStrangerHome`) keeps to it, but visitors
+Roamers wander the world a leg at a time, lingering half a minute to three minutes where each leg ends. A stranger who spawns in a home (`WFStrangerHome`) keeps to it, but visitors
 aren't unwelcome: when one sees a player (in sight, within twice `warnRadius` of home) he says a greeting, walks out,
 hails and talks like a roamer would. Only the nearest free resident goes, one at a time; the rest carry on about the
-camp. Afterwards he walks back and potters near home. Walking into a camp isn't hostile; a talk gone wrong, damage or a
+camp. Afterwards he walks back and potters near home. Someone who leads a resident past his leash is left be for a minute and
+a half, so he goes home instead of turning round at its edge. Walking into a camp isn't hostile; a talk gone wrong, damage or a
 grudge is, and then the whole home joins in. The stalker of a house follows within the leash and doesn't board ships.
 The dealer, the conspiracist and the stalker live in houses (`dwelling` sites on the POI table, `WFStrangerHouseSpawner`); the mugger, the preacher and the
 beggar at crazy camps (`WFStrangersCamp`). The squatter (`Squat`) holes up in a parked vehicle with its key and goes for

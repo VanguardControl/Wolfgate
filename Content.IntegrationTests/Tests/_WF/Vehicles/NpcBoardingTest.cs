@@ -90,6 +90,42 @@ public sealed class NpcBoardingTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>Inside, he stays awake and fights; once the player gets out, he climbs out after them.</summary>
+    [Test]
+    public async Task HeFightsInTheCabinAndFollowsYouOut()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var (vehicle, player, mugger) = await Rig(pair, locked: false);
+        await Strangers.StrangerTest.RunUntil(pair, () => entMan.HasComponent<VehicleInteriorOccupantComponent>(mugger), 40);
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.HasComponent<VehicleInteriorOccupantComponent>(mugger), Is.True, "He should have climbed in after the player."));
+
+        // Long enough for the NPC pause check, which runs every two seconds, to have looked at him in there.
+        await pair.RunSeconds(5);
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.HasComponent<ActiveNPCComponent>(mugger), Is.True, "In the cabin he should stay awake."));
+        await Strangers.StrangerTest.RunUntil(pair, () => entMan.GetComponent<DamageableComponent>(player).TotalDamage > 0, 20);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.HasComponent<ActiveNPCComponent>(mugger), Is.True, "In the cabin he should stay awake.");
+            Assert.That(entMan.GetComponent<Content.Server.NPC.HTN.HTNComponent>(mugger).Enabled, Is.True, "...with his own brain fighting.");
+            Assert.That(entMan.GetComponent<DamageableComponent>(player).TotalDamage, Is.GreaterThan(Content.Shared.FixedPoint.FixedPoint2.Zero),
+                "He should be hitting the player in the cabin.");
+            Assert.That(server.System<VehicleInteriorSystem>().TryExitVehicle(vehicle, player), Is.True, "The player couldn't get out.");
+        });
+
+        await Strangers.StrangerTest.RunUntil(pair, () => !entMan.HasComponent<VehicleInteriorOccupantComponent>(mugger), 20);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.HasComponent<VehicleInteriorOccupantComponent>(mugger), Is.False, "With the player gone, he should climb out.");
+            Assert.That(entMan.GetComponent<TransformComponent>(mugger).MapID, Is.EqualTo(entMan.GetComponent<TransformComponent>(vehicle).MapID),
+                "He should be back outside by the vehicle.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task ALockedVehicleKeepsHimOut()
     {

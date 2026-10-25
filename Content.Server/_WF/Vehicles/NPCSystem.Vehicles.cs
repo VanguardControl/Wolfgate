@@ -6,8 +6,8 @@ namespace Content.Server.NPC.Systems;
 public sealed partial class NPCSystem
 {
     /// <summary>
-    /// Where a player counts as being for waking NPCs: inside a vehicle's cabin he is wherever the vehicle is, not on
-    /// the cabin's own map, so a tank rolling up wakes what's outside.
+    /// Where a player or an NPC counts as being for waking NPCs: inside a vehicle's cabin he is wherever the vehicle is,
+    /// not on the cabin's own map, so a tank rolling up wakes what's outside and an NPC who climbs in stays awake.
     /// </summary>
     private EntityCoordinates WfPlayerPresence(EntityUid player)
     {

@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server.NPC.Components;
 using Content.Server.Shuttles.Components;
 using Content.Shared.Chat;
 using Robust.Shared.Map;
@@ -15,6 +16,12 @@ public sealed partial class WFStrangerSystem
 {
     /// <summary>How far past <see cref="WFStrangerHomeComponent.WarnRadius"/> a resident goes after anyone, in multiples of it.</summary>
     private const float LeashFactor = 2f;
+
+    /// <summary>How long a wander leg may take before he gives it up and lingers where he got to.</summary>
+    private static readonly TimeSpan WanderPatience = TimeSpan.FromSeconds(60);
+
+    /// <summary>How long a resident leaves someone be after they've led him past his leash.</summary>
+    private static readonly TimeSpan LeashCooldown = TimeSpan.FromSeconds(90);
 
     /// <summary>The home he spawned in, if any.</summary>
     private EntityUid? FindHome(EntityUid uid)
@@ -38,6 +45,7 @@ public sealed partial class WFStrangerSystem
     {
         ent.Comp.Home = home;
         ent.Comp.NextWander = _timing.CurTime;
+        StopWandering(ent.Comp);
     }
 
     /// <summary>His home, if he has one that still exists.</summary>
@@ -100,19 +108,28 @@ public sealed partial class WFStrangerSystem
     }
 
     /// <summary>
-    /// Every so often he sets off for somewhere else: anywhere open within <paramref name="range"/> of himself, or of
-    /// his home if he has one. Now and then he just stands about, unless he's strayed from home and heads back.
+    /// Walks a leg at a time: off to somewhere open within <paramref name="range"/> of himself, or of his home if he has
+    /// one, then he lingers there a good while before the next. Strayed from home, he heads straight back.
     /// </summary>
     private void Wander(Entity<WFStrangerComponent> ent, TransformComponent xform, TimeSpan now, EntityUid? home, float range)
     {
-        if (now < ent.Comp.NextWander)
+        if (ent.Comp.WanderUntil is { } until)
+        {
+            // Still on his way: leave the leg be until he gets there, or gives up on it.
+            if (now < until && TryComp(ent, out NPCSteeringComponent? steering) && steering.Status == SteeringStatus.Moving)
+                return;
+            ent.Comp.WanderUntil = null;
+            _steering.Unregister(ent);
+            ent.Comp.NextWander = now + Linger(ent.Comp);
             return;
-        ent.Comp.NextWander = now + TimeSpan.FromSeconds(_random.NextFloat(8f, 20f));
-        _steering.Unregister(ent);
+        }
 
         var straying = home is { } place
                        && Vector2.Distance(_transform.GetWorldPosition(place), _transform.GetWorldPosition(xform)) > range + 1f;
-        if (!straying && _random.Prob(0.25f) || xform.GridUid is not { } grid || !TryComp(grid, out MapGridComponent? gridComp))
+        if (now < ent.Comp.NextWander && !straying)
+            return;
+        ent.Comp.NextWander = now + Linger(ent.Comp);
+        if (xform.GridUid is not { } grid || !TryComp(grid, out MapGridComponent? gridComp))
             return;
 
         var origin = home is { } centre ? _transform.GetWorldPosition(centre) : _transform.GetWorldPosition(xform);
@@ -130,7 +147,23 @@ public sealed partial class WFStrangerSystem
             if (_maps.GetTileRef(grid, gridComp, tile).Tile.IsEmpty || _maps.GetAnchoredEntitiesEnumerator(grid, gridComp, tile).MoveNext(out _))
                 continue;
             Walk(ent, new EntityCoordinates(grid, (Vector2) tile + new Vector2(0.5f)));
+            ent.Comp.WanderUntil = now + WanderPatience;
             return;
         }
+    }
+
+    /// <summary>How long he stands about between legs: mostly half a minute to a minute and a half, now and then longer.</summary>
+    private TimeSpan Linger(WFStrangerComponent stranger)
+    {
+        var seconds = _random.NextFloat((float) stranger.LingerMin.TotalSeconds, (float) stranger.LingerMax.TotalSeconds);
+        if (_random.Prob(0.2f))
+            seconds *= 2f;
+        return TimeSpan.FromSeconds(seconds);
+    }
+
+    /// <summary>Drops the wander leg he was on, for when someone has his attention or he's done with them.</summary>
+    private void StopWandering(WFStrangerComponent stranger)
+    {
+        stranger.WanderUntil = null;
     }
 }

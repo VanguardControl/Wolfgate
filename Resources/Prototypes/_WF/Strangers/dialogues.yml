@@ -1,11 +1,13 @@
 # What the strangers say (strangers.yml). A node's line is spoken aloud; an option with a cost takes cash in hand, else
 # the bank, and goes to `broke` when the player can't pay; a node with no options ends the talk.
+# Only a provocation (an insult, a threat, refusing a mugger once he has made his) turns a stranger hostile. A polite
+# no, being broke or ignoring a hail ends the talk with a grumble at most.
 
 - type: wfStrangerDialogue
   id: WFStrangerDialogueDealer
   hail: wf-stranger-dealer-hail
   start: pitch
-  ignored: snubbed
+  ignored: shrug
   nodes:
     pitch:
       line: wf-stranger-dealer-pitch
@@ -13,7 +15,7 @@
       - text: wf-stranger-dealer-ask
         next: menu
       - text: wf-stranger-dealer-no
-        next: snubbed
+        next: shrug
       - text: wf-stranger-dealer-threaten
         next: snubbed
     menu:
@@ -25,13 +27,16 @@
         next: sold
         broke: broke
       - text: wf-stranger-dealer-pass
-        next: snubbed
+        next: shrug
     sold:
       line: wf-stranger-dealer-sold
       action: Leave
     broke:
       line: wf-stranger-dealer-broke
-      action: Hostile
+      action: Leave
+    shrug:
+      line: wf-stranger-dealer-shrug
+      action: Leave
     snubbed:
       line: wf-stranger-dealer-snubbed
       action: Hostile
@@ -40,7 +45,7 @@
   id: WFStrangerDialogueMugger
   hail: wf-stranger-mugger-hail
   start: demand
-  ignored: refused
+  ignored: waved
   nodes:
     demand:
       line: wf-stranger-mugger-demand
@@ -68,6 +73,9 @@
     refused:
       line: wf-stranger-mugger-refused
       action: Hostile
+    waved:
+      line: wf-stranger-mugger-waved
+      action: Leave
 
 - type: wfStrangerDialogue
   id: WFStrangerDialoguePreacher
