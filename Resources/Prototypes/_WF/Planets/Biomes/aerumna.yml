@@ -36,6 +36,12 @@
   - !type:BiomeTileLayer
     tile: WFFloorAerumnaShroud
     threshold: -1
+  # Glowing slugs and shadow cats; only here, never in the open.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    entities: [WFFaunaAerumnaForest]
+    threshold: 0.95
+    noise: { seed: 153, noiseType: OpenSimplex2, frequency: 3 }
   # Small shrooms carpet the floor.
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorAerumnaShroud]
@@ -80,11 +86,47 @@
     - NovaStumpMushroomReverse
     threshold: 0.74
     noise: { seed: 77, noiseType: OpenSimplex2, frequency: 1.5 }
+  # Plants that do something: caps to pick and carry as lights, sap pods to drink, and the odd spore pod that blinds.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    entities: [WFAerumnaGlowshroom]
+    threshold: 0.92
+    noise: { seed: 150, noiseType: OpenSimplex2, frequency: 4 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    entities: [WFAerumnaSapPlant]
+    threshold: 0.93
+    noise: { seed: 151, noiseType: OpenSimplex2, frequency: 4 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    entities: [WFAerumnaSporePod]
+    threshold: 0.975
+    noise: { seed: 152, noiseType: OpenSimplex2, frequency: 4 }
+  # The forest's core, where the mind-fog mushrooms grow. Its noise is the forest's own, at a higher threshold.
+  - !type:BiomeMetaLayer
+    template: WFAerumnaMindFogGrove
+    threshold: 0.55
+    noise: { seed: 71, noiseType: OpenSimplex2, frequency: 0.009, fractalType: FBm, octaves: 2 }
+
+- type: biomeTemplate
+  id: WFAerumnaMindFogGrove
+  layers:
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    entities: [WFAerumnaMindFogMushroom]
+    threshold: 0.85
+    noise: { seed: 154, noiseType: OpenSimplex2, frequency: 4 }
 
 # Boulders the gravity brought down, thick in a field and thin elsewhere.
 - type: biomeTemplate
   id: WFAerumnaBoulderField
   layers:
+  # Gravity crabs; listed first so a boulder wins a shared tile.
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock]
+    entities: [WFFaunaAerumnaBoulders]
+    threshold: 0.95
+    noise: { seed: 155, noiseType: OpenSimplex2, frequency: 3 }
   - !type:BiomeEntityLayer
     allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock]
     entities:
@@ -110,6 +152,12 @@
   - !type:BiomeTileLayer
     tile: WFFloorAerumnaCrystalBed
     threshold: -1
+  # The light that lives in the spires.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaCrystalBed]
+    entities: [WFFaunaAerumnaSpires]
+    threshold: 0.95
+    noise: { seed: 156, noiseType: OpenSimplex2, frequency: 3 }
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorAerumnaCrystalBed]
     entities:
@@ -135,6 +183,12 @@
     entities: [GoonSetpiecesRootwall]
     threshold: 0.86
     noise: { seed: 99, noiseType: OpenSimplex2, frequency: 3 }
+  # A few of the vines are alive: they tend xenonids and lash everyone else.
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaShroud]
+    entities: [WFAerumnaLuceVine]
+    threshold: 0.8
+    noise: { seed: 157, noiseType: OpenSimplex2, frequency: 2.5 }
 
 # The xenonid homeworld's hive: dark crust under wild weeds, with small resin chambers, resin doors and eggs in them.
 # A minority region (WFShadowClearings pulls it in last, so its ground wins where it overlaps the others). Everything it
