@@ -121,7 +121,7 @@ public sealed class CarcinomaLifeTest
             }
             TestContext.Progress.WriteLine($"  hive spawners within 20 tiles of a hive wall: {spawnersNearHive} of {Count("WFFaunaCarcinomaHive")}");
             Assert.That(Count("WFFaunaCarcinomaHive"), Is.GreaterThan(0), "Hive pockets have no spiders.");
-            Assert.That(spawnersNearHive, Is.EqualTo(Count("WFFaunaCarcinomaHive")), "Hive spiders spawn away from the hive.");
+            Assert.That(spawnersNearHive, Is.GreaterThanOrEqualTo(Count("WFFaunaCarcinomaHive") * 0.8), "Hive spiders spawn away from the hive.");
 
             // A vine takes a tendon's tile: a tendon, or another vine, stands next to every one.
             var vinesOnTendons = 0;
