@@ -367,7 +367,6 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs)
-- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLoadProfileTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLoadProfileTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPopulationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPopulationTest.cs)
