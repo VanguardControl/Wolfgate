@@ -144,31 +144,7 @@
     threshold: 0.65
     noise: { seed: 5, noiseType: OpenSimplex2, frequency: 1 }
 
-- type: biomeTemplate
-  id: WFOpenSnow
-  layers:
-  - !type:BiomeTileLayer
-    tile: FloorSnow
-    threshold: -1
-  - !type:BiomeTileLayer
-    tile: FloorIce
-    threshold: 0.4
-    noise: { seed: 4, noiseType: OpenSimplex2, frequency: 0.018 }
-  - !type:BiomeEntityLayer
-    allowedTiles: [FloorSnow, FloorIce]
-    entities: [WFFaunaThrascias]
-    threshold: 0.95
-    noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
-  - !type:BiomeEntityLayer
-    allowedTiles: [FloorSnow]
-    entities: [MonoPlanetmapOreSnow]
-    threshold: 0.72
-    noise: { seed: 23, noiseType: OpenSimplex2, frequency: 0.012 }
-  - !type:BiomeEntityLayer
-    allowedTiles: [FloorSnow, FloorIce]
-    entities: [FloorLiquidPlasmaEntity]
-    threshold: 0.95
-    noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.004, fractalType: Ridged, octaves: 1 }
+# WFOpenSnow (Thrascias) moved to Biomes/thrascias.yml as WFThrasciasTerrain.
 
 - type: biomeTemplate
   id: WFTemperatePlains

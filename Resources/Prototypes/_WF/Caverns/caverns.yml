@@ -120,8 +120,15 @@
     elongation: 1.5
     roughness: 0.3
     cellSize: 96
-    groundTiles: [FloorSnow, FloorIce]
-    avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow]
+    groundTiles:
+    - FloorSnow
+    - WFFloorThrasciasSnowRough
+    - WFFloorThrasciasSnowCalm
+    - WFFloorThrasciasFrozenDirt
+    - WFFloorThrasciasPackIce
+    - WFFloorThrasciasRoughIce
+    - WFFloorThrasciasDarkIce
+    avoid: [FloorLiquidPlasmaEntity, MonoPlanetmapOreSnow, CMRockIce, BayCrystal, ChompQuartz]
     landingTile: WFCavernFloorSnowdrift
     shade: WFCavernShadeThrascias
     climbPoint: WFCavernClimbThrascias
