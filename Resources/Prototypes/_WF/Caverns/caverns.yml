@@ -77,7 +77,7 @@
     roughness: 0.1
     cellSize: 96
     groundTiles: [WFFloorMerakDuneSand, WFFloorMerakGoldSand, WFFloorMerakPaleSand, WFFloorMerakDarkSand, WFFloorMerakRedDesertSand, WFFloorMerakDesertGravel]
-    avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich, CMRockOrange]
+    avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich, CMRockOrange, WFMerakSpittingCactus]
     landingTile: WFCavernFloorSandDrift
     shade: WFCavernShadeMerak
     climbPoint: WFCavernClimbMerak
