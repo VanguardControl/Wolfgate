@@ -74,15 +74,20 @@
   - type: WFPlanetFaunaSpawner
     table: WFFaunaAerumnaHive
 
+# The planet-wide mix wrecks use; the biome places the per-region spawners in Life/thrascias.yml.
 - type: entityTable
   id: WFFaunaThrascias
   table: !type:GroupSelector
     children:
     - id: MobArgocyteSlurva
-      weight: 7
+      weight: 4
+    - id: WFMobThrasciasPenguin
+      weight: 3
+    - id: WFMobThrasciasSnowFox
+      weight: 2
     - id: MobArgocyteBarrier
       weight: 2
-    - id: MobBearSpace
+    - id: WFMobThrasciasFrostBear
       weight: 1
 
 - type: entity
