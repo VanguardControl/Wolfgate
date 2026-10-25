@@ -215,7 +215,11 @@ public sealed partial class WFPlanetPoiSystem
 
         if (theme.FloorTile is { } floorId && _tiles.TryGetDefinition(floorId, out var floor))
         {
-            var creep = tiles.Where(t => !occupied.Contains(t) && _random.Prob(theme.FloorChance)).Select(t => (t, new Tile(floor.TileId))).ToList();
+            var open = tiles.Where(t => !occupied.Contains(t)).ToList();
+            var creep = open.Where(_ => _random.Prob(theme.FloorChance)).Select(t => (t, new Tile(floor.TileId))).ToList();
+            // However the rolls fall, the world has got in somewhere.
+            if (creep.Count == 0 && (open.Count > 0 ? open : tiles.ToList()) is { Count: > 0 } any)
+                creep.Add((_random.Pick(any), new Tile(floor.TileId)));
             _maps.SetTiles(ship.Owner, ship.Comp, creep);
         }
 

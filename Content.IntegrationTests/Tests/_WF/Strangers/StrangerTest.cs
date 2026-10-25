@@ -51,7 +51,7 @@ public sealed class StrangerTest
     /// Runs the pair until <paramref name="done"/> holds or <paramref name="seconds"/> pass. Ticks run as fast as the box allows,
     /// but the pathfinder answers on a worker thread in real time, so each poll also yields a little wall-clock time to it.
     /// </summary>
-    internal static async Task RunUntil(TestPair pair, Func<bool> done, float seconds)
+    internal static async Task RunUntil(TestPair pair, Func<bool> done, float seconds, int delayMs = 25)
     {
         for (var waited = 0f; waited < seconds; waited += 0.5f)
         {
@@ -60,7 +60,7 @@ public sealed class StrangerTest
             if (finished)
                 return;
             await pair.RunSeconds(0.5f);
-            await Task.Delay(25);
+            await Task.Delay(delayMs);
         }
     }
 
@@ -310,7 +310,7 @@ public sealed class StrangerTest
             server.System<SharedTransformSystem>().SetCoordinates(player, new EntityCoordinates(map.Grid.Owner, -25.5f, 0.5f));
             roamer = entMan.SpawnEntity("WFStrangerBeggar", new EntityCoordinates(map.Grid.Owner, 0.5f, 0.5f));
         });
-        await RunUntil(pair, () => Vector2.Distance(entMan.GetComponent<TransformComponent>(roamer).LocalPosition, new Vector2(0.5f, 0.5f)) > 2f, 120);
+        await RunUntil(pair, () => Vector2.Distance(entMan.GetComponent<TransformComponent>(roamer).LocalPosition, new Vector2(0.5f, 0.5f)) > 2f, 120, delayMs: 100);
         await server.WaitAssertion(() =>
         {
             var position = entMan.GetComponent<TransformComponent>(roamer).LocalPosition;
