@@ -78,12 +78,12 @@
     threshold: -1
     tile: WFFloorFlesh
   - !type:BiomeEntityLayer
-    allowedTiles: [WFFloorFlesh, FloorFlesh]
+    allowedTiles: [WFFloorFlesh, FloorFlesh, WFFloorFleshScab, WFFloorFleshBoneMeaty, WFFloorFleshBoneSpine, WFFloorFleshBoneStraight, WFFloorFleshCrust, WFFloorFleshMarshMud, WFFloorFleshMarshDirt]
     entities: [WFFaunaCarcinoma]
     threshold: 0.97
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
   - !type:BiomeEntityLayer
-    allowedTiles: [WFFloorFlesh, FloorFlesh]
+    allowedTiles: [WFFloorFlesh, FloorFlesh, WFFloorFleshScab, WFFloorFleshBoneMeaty, WFFloorFleshBoneSpine, WFFloorFleshBoneStraight, WFFloorFleshCrust, WFFloorFleshMarshMud, WFFloorFleshMarshDirt]
     entities: [FleshBlocker]
     threshold: 0.98
     noise: { seed: 2, noiseType: OpenSimplex2, frequency: 1 }
@@ -92,6 +92,11 @@
     entities: [WallMeat]
     threshold: 0.72
     noise: { seed: 11, noiseType: OpenSimplex2, frequency: 0.025 }
+  # Dried crust ring just outside each grove; the grove layer after it wins inside.
+  - !type:BiomeMetaLayer
+    template: WFCarcinomaScabEdge
+    threshold: 0.3
+    noise: { seed: 16, noiseType: OpenSimplex2, frequency: 0.018 }
   - !type:BiomeMetaLayer
     template: WFCarcinomaGrove
     threshold: 0.4
@@ -100,14 +105,22 @@
     template: WFCarcinomaTendonForest
     threshold: 0.45
     noise: { seed: 51, noiseType: OpenSimplex2, frequency: 0.012 }
+  - !type:BiomeMetaLayer
+    template: WFCarcinomaBoneField
+    threshold: 0.84
+    noise: { seed: 89, noiseType: OpenSimplex2, frequency: 0.012 }
+  - !type:BiomeMetaLayer
+    template: WFCarcinomaMarsh
+    threshold: 0.8
+    noise: { seed: 87, noiseType: OpenSimplex2, frequency: 0.014 }
   - !type:BiomeEntityLayer
-    allowedTiles: [WFFloorFlesh, FloorFlesh]
+    allowedTiles: [WFFloorFlesh, FloorFlesh, WFFloorFleshScab, WFFloorFleshBoneMeaty, WFFloorFleshBoneSpine, WFFloorFleshBoneStraight, WFFloorFleshCrust, WFFloorFleshMarshMud, WFFloorFleshMarshDirt]
     entities: [WFCarcinomaAssimilationSack]
     threshold: 0.985
     noise: { seed: 57, noiseType: OpenSimplex2, frequency: 0.6 }
   # One-shot nests stay sparse. The later river layer wins on overlapping cells, keeping them out of blood channels.
   - !type:BiomeEntityLayer
-    allowedTiles: [WFFloorFlesh, FloorFlesh]
+    allowedTiles: [WFFloorFlesh, FloorFlesh, WFFloorFleshScab, WFFloorFleshBoneMeaty, WFFloorFleshBoneSpine, WFFloorFleshBoneStraight, WFFloorFleshCrust, WFFloorFleshMarshMud, WFFloorFleshMarshDirt]
     entities: [WFFleshPustule]
     threshold: 0.985
     noise: { seed: 43, noiseType: OpenSimplex2, frequency: 0.35 }
@@ -118,6 +131,12 @@
     threshold: 0.8
     noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.03, fractalType: FBm, octaves: 2 }
 
+  # Scabbed band round each lake: the lake's own noise, a lower threshold.
+  - !type:BiomeMetaLayer
+    template: WFCarcinomaScabShore
+    threshold: 0.6
+    noise: { seed: 61, frequency: 0.012, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, lacunarity: 2 }
+
   # Blood lakes override all terrestrial features, as Asclepiu's lakes do.
   - !type:BiomeMetaLayer
     template: WFCarcinomaBloodOcean
@@ -127,6 +146,10 @@
 - type: biomeTemplate
   id: WFCarcinomaGrove
   layers:
+  # The ground inside a grove stays plain flesh, so the crust ring only shows outside it.
+  - !type:BiomeTileLayer
+    tile: WFFloorFlesh
+    threshold: -1
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFlesh, FloorFlesh]
     entities: [WFFleshTree]

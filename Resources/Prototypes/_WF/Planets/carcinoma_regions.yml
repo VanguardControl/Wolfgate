@@ -41,6 +41,11 @@
     entities: [WFCarcinomaTendons]
     threshold: 0.1
     noise: { seed: 53, noiseType: OpenSimplex2, frequency: 0.6 }
+  # Rare pockets of resin and hive wall; they win over the tendons where they stand.
+  - !type:BiomeMetaLayer
+    template: WFCarcinomaHivePocket
+    threshold: 0.9
+    noise: { seed: 83, noiseType: OpenSimplex2, frequency: 0.04 }
 
 - type: biomeTemplate
   id: WFCarcinomaBloodOcean
