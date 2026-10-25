@@ -42,7 +42,8 @@ public sealed partial class WFMappingIssuesSystem : EntitySystem
 
         if (!_throttle.TryTake(player.UserId, _timing.CurTime))
         {
-            Log.Debug($"Dropped an issues request from {player}: too many");
+            Log.Debug($"Refused an issues request from {player}: too many");
+            RaiseNetworkEvent(new WFMappingIssuesRefusedEvent(ev.Scope), player);
             return;
         }
 

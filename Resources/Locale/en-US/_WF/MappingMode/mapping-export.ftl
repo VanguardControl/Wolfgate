@@ -22,6 +22,8 @@ wf-mapping-export-kind-map = Map
 wf-mapping-export-kind-map-tooltip = Every level as a map file, with a gameMap or zMap prototype and README.
 wf-mapping-export-recheck = Check again
 wf-mapping-export-checking = Checking...
+wf-mapping-export-check-too-soon = The server runs one check every three seconds; checking again shortly...
+wf-mapping-export-check-timeout = The check didn't answer. Press Check again.
 wf-mapping-export-check-none = No issues found.
 wf-mapping-export-check-summary = {$errors ->
     [one] 1 error
@@ -73,6 +75,7 @@ wf-mapping-export-package-map = The zip holds {$levels ->
    *[other] {$levels} level files
 } under {$folder}, {$proto} and README.txt. Unzip it on the repository root.
 wf-mapping-export-package-save-first = The session has unsaved changes: a version is saved first, then exported.
+wf-mapping-export-package-save-to-hint = The save dialog doesn't add .zip: type the whole name, {$file}.
 wf-mapping-export-package-button = Download zip
 wf-mapping-export-package-button-save-to = Save zip to...
 wf-mapping-export-package-saving = Saving a version...

@@ -67,3 +67,13 @@ public sealed class WFMappingIssuesEvent(
     public readonly List<WFMappingIssue> Issues = issues;
     public readonly WFMappingIssuesSummary Summary = summary;
 }
+
+/// <summary>
+/// Server to client: a request was refused by the one-check-per-three-seconds throttle, so the client knows to try
+/// again rather than wait for a reply that isn't coming.
+/// </summary>
+[Serializable, NetSerializable]
+public sealed class WFMappingIssuesRefusedEvent(WFMappingIssueScope scope) : EntityEventArgs
+{
+    public readonly WFMappingIssueScope Scope = scope;
+}

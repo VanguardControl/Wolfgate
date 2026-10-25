@@ -43,6 +43,7 @@ public sealed class WFMappingExportUIController : UIController, IOnStateExited<G
     public void OnSystemLoaded(WFMappingClientSystem system)
     {
         system.IssuesReceived += OnIssues;
+        system.IssuesRefused += OnIssuesRefused;
         system.LibraryUpdated += OnLibrary;
         system.DownloadUpdated += OnDownload;
         system.SessionUpdated += OnSession;
@@ -53,6 +54,7 @@ public sealed class WFMappingExportUIController : UIController, IOnStateExited<G
     public void OnSystemUnloaded(WFMappingClientSystem system)
     {
         system.IssuesReceived -= OnIssues;
+        system.IssuesRefused -= OnIssuesRefused;
         system.LibraryUpdated -= OnLibrary;
         system.DownloadUpdated -= OnDownload;
         system.SessionUpdated -= OnSession;
@@ -88,9 +90,11 @@ public sealed class WFMappingExportUIController : UIController, IOnStateExited<G
                     _window = null;
 
                 _pendingSave = null;
+                _mapping.CancelIssuesRequest();
             };
 
             window.CheckRequested += scope => _mapping.RequestIssues(scope);
+            window.CheckTimedOut += () => _mapping.CancelIssuesRequest();
             window.GoToRequested += issue => _mapping.GoToIssue(issue);
             window.ExportRequested += Export;
             window.DownloadRow.CancelPressed += () => _mapping.CancelDownload();
@@ -178,6 +182,11 @@ public sealed class WFMappingExportUIController : UIController, IOnStateExited<G
     private void OnIssues(WFMappingIssuesEvent ev)
     {
         _window?.SetIssues(ev);
+    }
+
+    private void OnIssuesRefused(WFMappingIssueScope scope)
+    {
+        _window?.SetCheckRefused(scope);
     }
 
     private void OnDownload()

@@ -65,8 +65,11 @@ steps, with Back and Next:
 - Check runs the issues checker (`WFMappingIssuesSystem`, `WFMappingIssuesRequest`) on the session for the chosen kind,
   Ship or Map, and lists what it found with the severity, the title, the fix hint and Go to, which moves the observer
   to the entity or tile (`WFMappingGoToIssueRequest`). Export as ship is off while an error stands, and the hint says
-  to fix them or export as a map; Check again re-runs it (the server answers one check per three seconds). From a
-  library row outside the map's session nothing can be checked, and the wizard says so.
+  to fix them or export as a map; Check again re-runs it. The server answers one check per three seconds and says
+  so (`WFMappingIssuesRefusedEvent`) rather than staying silent; the client holds a check asked inside that gap
+  (`WFMappingIssuesScheduler`, the latest scope only) and sends it when the gap has passed, and a check with no
+  answer after six seconds gives up with Check again enabled. From a library row outside the map's session nothing
+  can be checked, and the wizard says so.
 - Details, for a ship, is the vessel form: name (empty uses the map name; the id and file names preview live), the
   description (up to 2000 characters), the price (empty takes the generated one; the hint shows the appraisal, the
   shipyard floor and the suggestion), size, shipyard group, classes (none ticked takes the scan's), engines (from the
@@ -125,7 +128,8 @@ use up from the real character.
 Downloads land in the client's `Mapping/<map>/<version>/` data folder, with an Open folder button. "Downloads go to"
 beside the library, in the Library tab and in the wizard's Package step switches to Save to..., which asks where to
 save each file through the game's save dialog, the row naming the file it asks for (an export is one zip, so one
-dialog). The choice is kept in the client cvar `wf.mapping_mode.download_save_to`. A folder can't be picked once for
+dialog). The dialog doesn't add the extension and the client can't see or fix the name it was given, so the row and
+the Package step's hint say to type the whole name, `.zip` or `.yml` included. The choice is kept in the client cvar `wf.mapping_mode.download_save_to`. A folder can't be picked once for
 every download: the client sandbox only writes outside its data folder through a stream the save dialog hands back,
 one file per dialog, and the engine's dialog takes no starting folder or file name. The plain Download of a map of one
 level arrives as `<map>.yml`: its grid file when the level holds exactly one grid, so it loads straight into the game
@@ -492,6 +496,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Client/_WF/MappingMode/Export/WFMappingExportUIController.cs`](../../../Content.Client/_WF/MappingMode/Export/WFMappingExportUIController.cs)
 - [`Content.Client/_WF/MappingMode/Export/WFMappingExportWizard.xaml`](../../../Content.Client/_WF/MappingMode/Export/WFMappingExportWizard.xaml)
 - [`Content.Client/_WF/MappingMode/Export/WFMappingExportWizard.xaml.cs`](../../../Content.Client/_WF/MappingMode/Export/WFMappingExportWizard.xaml.cs)
+- [`Content.Client/_WF/MappingMode/Export/WFMappingIssuesScheduler.cs`](../../../Content.Client/_WF/MappingMode/Export/WFMappingIssuesScheduler.cs)
 - [`Content.Client/_WF/MappingMode/Link/WFMappingAccessWindow.cs`](../../../Content.Client/_WF/MappingMode/Link/WFMappingAccessWindow.cs)
 - [`Content.Client/_WF/MappingMode/Link/WFMappingLinkOverlay.cs`](../../../Content.Client/_WF/MappingMode/Link/WFMappingLinkOverlay.cs)
 - [`Content.Client/_WF/MappingMode/Link/WFMappingLinkPortsWindow.cs`](../../../Content.Client/_WF/MappingMode/Link/WFMappingLinkPortsWindow.cs)
@@ -609,6 +614,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Content.Tests/_WF/MappingMode/WFMappingExportPackageTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingExportPackageTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingFootprintTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingFootprintTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingIssueCatalogTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingIssueCatalogTest.cs)
+- [`Content.Tests/_WF/MappingMode/WFMappingIssuesSchedulerTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingIssuesSchedulerTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingLibraryNamesTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingLibraryNamesTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingPruneTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingPruneTest.cs)
 - [`Content.Tests/_WF/MappingMode/WFMappingQuickSelectStoreTest.cs`](../../../Content.Tests/_WF/MappingMode/WFMappingQuickSelectStoreTest.cs)

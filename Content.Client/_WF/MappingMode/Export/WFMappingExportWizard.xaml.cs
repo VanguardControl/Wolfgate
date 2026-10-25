@@ -11,6 +11,7 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Configuration;
+using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 
 namespace Content.Client._WF.MappingMode.Export;
@@ -24,6 +25,10 @@ namespace Content.Client._WF.MappingMode.Export;
 public sealed partial class WFMappingExportWizard : FancyWindow
 {
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    /// <summary>How long a check waits for its reply before the wizard gives up and offers Check again.</summary>
+    private static readonly TimeSpan CheckTimeout = TimeSpan.FromSeconds(6);
 
     private static readonly Color ErrorColor = Color.FromHex("#ff7a7a");
     private static readonly Color WarningColor = Color.FromHex("#f0c060");
@@ -36,6 +41,8 @@ public sealed partial class WFMappingExportWizard : FancyWindow
     private WFMappingExportKind _kind = WFMappingExportKind.Ship;
     private WFMappingIssuesEvent? _issues;
     private bool _checking;
+    private TimeSpan? _checkDeadline;
+    private bool _saveTo;
     private bool _shipPossible = true;
     private bool _dirty;
     private bool _busy;
@@ -55,6 +62,9 @@ public sealed partial class WFMappingExportWizard : FancyWindow
 
     /// <summary>Raised to run the issues check for a scope.</summary>
     public event Action<WFMappingIssueScope>? CheckRequested;
+
+    /// <summary>Raised when a check got no reply in time, so a held request can be dropped.</summary>
+    public event Action? CheckTimedOut;
 
     public event Action<WFMappingIssue>? GoToRequested;
 
@@ -129,9 +139,32 @@ public sealed partial class WFMappingExportWizard : FancyWindow
 
     private void OnSaveToChanged(bool saveTo)
     {
+        _saveTo = saveTo;
         PackageButton.Text = Loc.GetString(saveTo
             ? "wf-mapping-export-package-button-save-to"
             : "wf-mapping-export-package-button");
+        UpdateSaveToHint();
+    }
+
+    /// <summary>The save dialog doesn't add the extension, so the hint names the whole file name to type.</summary>
+    private void UpdateSaveToHint()
+    {
+        SaveToHint.Visible = _saveTo;
+        SetText(SaveToHint, Loc.GetString("wf-mapping-export-package-save-to-hint",
+            ("file", WFMappingLibraryNames.DownloadZipFile(MapName))));
+    }
+
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+        if (!_checking || _checkDeadline is not { } deadline || _timing.RealTime < deadline)
+            return;
+
+        _checking = false;
+        _checkDeadline = null;
+        CheckSummary.Text = Loc.GetString("wf-mapping-export-check-timeout");
+        CheckTimedOut?.Invoke();
+        Refresh();
     }
 
     /// <summary>
@@ -146,12 +179,14 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         _shipPossible = shipPossible;
         _issues = null;
         _checking = false;
+        _checkDeadline = null;
         _kind = shipPossible ? WFMappingExportKind.Ship : WFMappingExportKind.Map;
         _step = 1;
         PackageStatus.Text = string.Empty;
         TargetLabel.Text = Loc.GetString("wf-mapping-export-target", ("name", mapName),
             ("version", version ?? Loc.GetString("wf-mapping-export-target-newest")));
         Fill(details ?? new WFMappingShipDetails());
+        UpdateSaveToHint();
         Check();
         Refresh();
     }
@@ -204,9 +239,20 @@ public sealed partial class WFMappingExportWizard : FancyWindow
 
         _issues = ev;
         _checking = false;
+        _checkDeadline = null;
         RenderIssues();
         UpdatePriceHint();
         Refresh();
+    }
+
+    /// <summary>The server refused the check as too soon; the client sends it again after the gap, so the wait goes on.</summary>
+    public void SetCheckRefused(WFMappingIssueScope scope)
+    {
+        if (!_checking || scope != ScopeOf(_kind))
+            return;
+
+        _checkDeadline = _timing.RealTime + CheckTimeout;
+        CheckSummary.Text = Loc.GetString("wf-mapping-export-check-too-soon");
     }
 
     /// <summary>Whether an error stands in the last ship check, which turns the ship export off.</summary>
@@ -243,6 +289,7 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         }
 
         _checking = true;
+        _checkDeadline = _timing.RealTime + CheckTimeout;
         RenderIssues();
         CheckRequested?.Invoke(ScopeOf(_kind));
     }
@@ -328,7 +375,7 @@ public sealed partial class WFMappingExportWizard : FancyWindow
 
         if (_checking || _issues == null)
         {
-            CheckSummary.Text = Loc.GetString("wf-mapping-export-checking");
+            CheckSummary.Text = Loc.GetString(_checking ? "wf-mapping-export-checking" : "wf-mapping-export-check-timeout");
             CheckHint.SetMessage(string.Empty);
             return;
         }
@@ -374,8 +421,8 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         });
 
         var text = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, HorizontalExpand = true };
-        var title = new Label { Text = Loc.GetString(issue.LocKey, issue.Args()), ClipText = true };
-        title.ToolTip = title.Text;
+        var title = new RichTextLabel { HorizontalExpand = true };
+        SetText(title, Loc.GetString(issue.LocKey, issue.Args()));
         text.AddChild(title);
         if (WFMappingIssueCatalog.TryGet(issue.RuleId, out var rule) && rule.Id != WFMappingIssueCatalog.More)
             text.AddChild(SubLabel(Loc.GetString(rule.HintKey)));
@@ -491,23 +538,21 @@ public sealed partial class WFMappingExportWizard : FancyWindow
     {
         if (!TryReadPrice(out _))
         {
-            PriceHint.Text = Loc.GetString("wf-mapping-export-details-price-bad", ("max", WFMappingExportLimits.MaxPrice));
-            PriceHint.FontColorOverride = ErrorColor;
+            SetText(PriceHint, Loc.GetString("wf-mapping-export-details-price-bad", ("max", WFMappingExportLimits.MaxPrice)), ErrorColor);
             return;
         }
 
-        PriceHint.FontColorOverride = null;
         if (_issues is not { Scope: WFMappingIssueScope.Ship } issues)
         {
-            PriceHint.Text = Loc.GetString("wf-mapping-export-details-price-hint-unknown");
+            SetText(PriceHint, Loc.GetString("wf-mapping-export-details-price-hint-unknown"));
             return;
         }
 
         var appraisal = issues.Summary.Appraisal;
-        PriceHint.Text = Loc.GetString("wf-mapping-export-details-price-hint",
+        SetText(PriceHint, Loc.GetString("wf-mapping-export-details-price-hint",
             ("appraisal", ((int) Math.Round(appraisal)).ToString("N0", CultureInfo.InvariantCulture)),
             ("floor", WFMappingShipNaming.PriceFloor(appraisal).ToString("N0", CultureInfo.InvariantCulture)),
-            ("suggested", WFMappingShipNaming.PriceFor(appraisal).ToString("N0", CultureInfo.InvariantCulture)));
+            ("suggested", WFMappingShipNaming.PriceFor(appraisal).ToString("N0", CultureInfo.InvariantCulture))));
     }
 
     private void UpdatePackageSummary()
@@ -530,8 +575,17 @@ public sealed partial class WFMappingExportWizard : FancyWindow
             ("proto", $"Resources/Prototypes/_WF/Community/{mapFile}.yml")));
     }
 
-    private static Label SubLabel(string text)
+    /// <summary>A wrapping hint line.</summary>
+    private static RichTextLabel SubLabel(string text)
     {
-        return new Label { Text = text, StyleClasses = { "LabelSubText" }, ClipText = true };
+        var label = new RichTextLabel { StyleClasses = { "LabelSubText" }, HorizontalExpand = true };
+        SetText(label, text);
+        return label;
+    }
+
+    /// <summary>Shows plain text, which may hold names typed by players, so it is never read as markup.</summary>
+    private static void SetText(RichTextLabel label, string text, Color? color = null)
+    {
+        label.SetMessage(FormattedMessage.FromUnformatted(text), color);
     }
 }

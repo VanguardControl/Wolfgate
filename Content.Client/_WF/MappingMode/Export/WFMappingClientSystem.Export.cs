@@ -1,19 +1,29 @@
+using Content.Client._WF.MappingMode.Export;
 using Content.Shared._WF.MappingMode;
 using Content.Shared._WF.MappingMode.Export;
 using Content.Shared._WF.MappingMode.Issues;
+using Robust.Shared.Timing;
 
 namespace Content.Client._WF.MappingMode;
 
 public sealed partial class WFMappingClientSystem
 {
+    [Dependency] private IGameTiming _timing = default!;
+
+    private readonly WFMappingIssuesScheduler _issuesScheduler = new();
+
     /// <summary>The last issues reply, for the export wizard.</summary>
     public WFMappingIssuesEvent? Issues { get; private set; }
 
     public event Action<WFMappingIssuesEvent>? IssuesReceived;
 
+    /// <summary>Raised when the server refused a check as too soon; the scheduler sends it again after the gap.</summary>
+    public event Action<WFMappingIssueScope>? IssuesRefused;
+
     private void InitializeExport()
     {
         SubscribeNetworkEvent<WFMappingIssuesEvent>(OnIssues);
+        SubscribeNetworkEvent<WFMappingIssuesRefusedEvent>(OnIssuesRefused);
     }
 
     private void OnIssues(WFMappingIssuesEvent ev)
@@ -22,10 +32,33 @@ public sealed partial class WFMappingClientSystem
         IssuesReceived?.Invoke(ev);
     }
 
-    /// <summary>Asks the server to check the session for a scope; the reply comes as <see cref="IssuesReceived"/>.</summary>
+    private void OnIssuesRefused(WFMappingIssuesRefusedEvent ev)
+    {
+        _issuesScheduler.Refused(ev.Scope, _timing.RealTime);
+        IssuesRefused?.Invoke(ev.Scope);
+    }
+
+    /// <summary>
+    /// Asks the server to check the session for a scope; the reply comes as <see cref="IssuesReceived"/>. A request
+    /// inside the server's three-second gap is held and sent from <see cref="UpdateIssues"/> once it has passed.
+    /// </summary>
     public void RequestIssues(WFMappingIssueScope scope)
     {
-        RaiseNetworkEvent(new WFMappingIssuesRequest(scope));
+        if (_issuesScheduler.TryRequest(scope, _timing.RealTime))
+            RaiseNetworkEvent(new WFMappingIssuesRequest(scope));
+    }
+
+    /// <summary>Drops a held check, after the wizard gave up on it or left the session.</summary>
+    public void CancelIssuesRequest()
+    {
+        _issuesScheduler.Clear();
+    }
+
+    /// <summary>Sends the held check once its gap has passed.</summary>
+    private void UpdateIssues()
+    {
+        if (_issuesScheduler.TryTakeDue(_timing.RealTime, out var scope))
+            RaiseNetworkEvent(new WFMappingIssuesRequest(scope));
     }
 
     /// <summary>Moves the observer to an issue's entity, or its coordinates.</summary>
