@@ -1,0 +1,137 @@
+# Aerumna: a dark 3 g world that went wrong. Chromite flats and shrouded clay under rain, a fungal forest, boulders
+# the gravity left where they fell, crystal spires and a few overgrown ruins. The pools, ore, fauna and the shadow
+# grove stay in WFShadowClearings (open_biomes.yml), which pulls these regions in.
+# The Decor Import tiles have no weather, so every tile placed outdoors is a weather child.
+
+- type: tile
+  id: WFFloorAerumnaShroud
+  parent: NebulaFloorShrouded
+  weather: true
+
+- type: tile
+  id: WFFloorAerumnaClay
+  parent: NebulaFloorClay
+  weather: true
+
+- type: tile
+  id: WFFloorAerumnaClayRock
+  parent: NebulaFloorRock
+  weather: true
+
+- type: tile
+  id: WFFloorAerumnaCrystalBed
+  parent: AuroraFloorExoplanetCrystal
+  weather: true
+
+# A region of giant mushrooms on shrouded ground; the fungus decal pales the floor between them.
+- type: biomeTemplate
+  id: WFAerumnaFungalForest
+  layers:
+  - !type:BiomeDecalLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    decals: [AuroraDecalFloorDecalFungus]
+    threshold: 0.45
+    divisions: 1
+    noise: { seed: 72, noiseType: OpenSimplex2, frequency: 0.5 }
+  - !type:BiomeTileLayer
+    tile: WFFloorAerumnaShroud
+    threshold: -1
+  # Small shrooms carpet the floor.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    entities:
+    - GoonMushrooms
+    - GoonMushroomsType1
+    - GoonMushroomsType2
+    - GoonMushroomsType3
+    - GoonMushroomsType4
+    - GoonMushroomsType5
+    - GoonMushroomsType6
+    - NovaFloraMushroom
+    - NovaFloraMushroomBlue
+    - NovaFloraMushroomGreen
+    threshold: 0.45
+    noise: { seed: 73, noiseType: OpenSimplex2, frequency: 4 }
+  # Taller caps between them.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    entities: [NovaTallShroomColoredBlue, NovaTallShroomColoredGreen, NovaCapShroomColoredBlue, NovaCapShroomColoredGreen]
+    threshold: 0.7
+    noise: { seed: 74, noiseType: OpenSimplex2, frequency: 3 }
+  # Bioluminescent plants, glowshrooms and lightshrooms light the dark.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    entities: [NovaFloraBiolumi, NovaFloraBiolumiFlower, NovaFloraBiolumiLamp, NovaFloraBiolumiMine]
+    threshold: 0.82
+    noise: { seed: 75, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    entities: [ShiptestFluffGlowshroom, NovaFloraAshLightshroom, NovaAshLightshroomBlue, NovaAshLightshroomGreen]
+    threshold: 0.78
+    noise: { seed: 76, noiseType: OpenSimplex2, frequency: 3 }
+  # Giant mushroom trees.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaShroud]
+    entities:
+    - NovaTreeMushroomReverse
+    - NovaMushroomBlueReverse
+    - NovaMushroomGreenReverse
+    - AuroraFloraTreeMushroom
+    - NovaStumpMushroomReverse
+    threshold: 0.74
+    noise: { seed: 77, noiseType: OpenSimplex2, frequency: 1.5 }
+
+# Boulders the gravity brought down, thick in a field and thin elsewhere.
+- type: biomeTemplate
+  id: WFAerumnaBoulderField
+  layers:
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock]
+    entities:
+    - CoyoteFloraChompBoulder
+    - CoyoteFloraChompLargeBoulder
+    - CoyoteFloraChompTallBoulder
+    - DarkPackFloraRockDarkpack
+    - DarkPackFloraRockDarkpackBig
+    - GoonStone2
+    - GoonStone3
+    - GoonStone4
+    - GoonStone5
+    - GoonStone6
+    - GoonStone7
+    - GoonStone8
+    threshold: 0.8
+    noise: { seed: 90, noiseType: OpenSimplex2, frequency: 2.5 }
+
+# Crystal spires on a pale bed, with the planet's pink crystal standing among them.
+- type: biomeTemplate
+  id: WFAerumnaCrystalSpires
+  layers:
+  - !type:BiomeTileLayer
+    tile: WFFloorAerumnaCrystalBed
+    threshold: -1
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaCrystalBed]
+    entities:
+    - ShiptestFloraRockCrystal
+    - VorePropRockCrystal
+    - VorePropRockCrystalDust
+    - AuroraFloraRockSpire
+    - CrystalPink
+    threshold: 0.72
+    noise: { seed: 84, noiseType: OpenSimplex2, frequency: 2 }
+
+# A small overgrown ruin: a few root walls in a tangle of luce-vine.
+- type: biomeTemplate
+  id: WFAerumnaRuinPocket
+  layers:
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaShroud]
+    entities: [AuroraAssunzioneBushLucevine]
+    threshold: 0.45
+    noise: { seed: 98, noiseType: OpenSimplex2, frequency: 2.5 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaShroud]
+    entities: [GoonSetpiecesRootwall]
+    threshold: 0.86
+    noise: { seed: 99, noiseType: OpenSimplex2, frequency: 3 }
