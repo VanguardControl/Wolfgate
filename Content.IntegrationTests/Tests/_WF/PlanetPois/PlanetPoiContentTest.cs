@@ -193,7 +193,13 @@ public sealed class PlanetPoiContentTest
                 }
                 Assert.That(record.RoadTiles, Is.Not.Empty);
                 var reached = Flood(record.RoadTiles.First(), record.RoadTiles.Contains);
-                Assert.That(reached.Count, Is.EqualTo(record.RoadTiles.Count), "The exterior road graph is disconnected.");
+                var stranded = record.RoadTiles.Where(tile => !reached.Contains(tile)).OrderBy(t => t.X).ThenBy(t => t.Y).ToList();
+                var tunnelTiles = record.Tunnels.SelectMany(tunnel => tunnel).ToHashSet();
+                string Describe(Vector2i tile) => $"{tile}" + (record.Centreline.Contains(tile) ? " centreline" : "")
+                    + (tunnelTiles.Contains(tile) ? " tunnel" : "")
+                    + (record.Sites.FirstOrDefault(site => site.Bounds.Contains(tile)) is { } inSite ? $" in {inSite.Name}" : "");
+                Assert.That(reached.Count, Is.EqualTo(record.RoadTiles.Count),
+                    $"The exterior road graph is disconnected: {stranded.Count} stranded road tiles: {string.Join(", ", stranded.Take(20).Select(Describe))}");
                 foreach (var site in record.Sites.Where(site => site.Connection != WFPlanetPoiConnection.Isolated))
                 foreach (var socket in site.Sockets)
                     Assert.That(reached, Does.Contain(socket.Position), site.MapPath);
