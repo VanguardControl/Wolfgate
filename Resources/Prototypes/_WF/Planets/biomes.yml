@@ -1,4 +1,4 @@
-# Asclepiu: temperate continents dotted with lakes, and polar snow.
+# Asclepiu (Verda): temperate meadow and woodland dotted with lakes and their shores, irradiated scars, and polar snow.
 
 - type: biomeTemplate
   id: WFBiomeAsclepiu
@@ -8,6 +8,28 @@
     threshold: -1
     noise:
       frequency: 0.001
+      noiseType: OpenSimplex2
+      fractalType: FBm
+      octaves: 2
+      lacunarity: 2
+  # Irradiated scars: dead ground and trees, a few per cent of the surface, under the lakes and the snow.
+  - !type:BiomeMetaLayer
+    template: WFVerdaScar
+    threshold: 0.7
+    noise:
+      seed: 83
+      frequency: 0.006
+      noiseType: OpenSimplex2
+      fractalType: FBm
+      octaves: 2
+      lacunarity: 2
+  # Lake shores: the lake's own noise a little under the water's threshold, so the ring follows the water.
+  - !type:BiomeMetaLayer
+    template: WFVerdaShore
+    threshold: 0.62
+    noise:
+      seed: 71
+      frequency: 0.012
       noiseType: OpenSimplex2
       fractalType: FBm
       octaves: 2
