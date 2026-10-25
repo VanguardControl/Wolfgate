@@ -27,6 +27,9 @@ public sealed partial class TestPair
     // WOLFGATE START: the pooled client keeps its windows across tests, and one left open intercepts the next test's clicks
     private async Task CloseClientWindows()
     {
+        // Let deleted entities reach the client first; their interfaces close their own windows, and closing one by
+        // hand while its entity is going reopens the interface on a dead entity.
+        await RunTicksSync(5);
         await Client.WaitPost(() =>
         {
             var root = Client.ResolveDependency<IUserInterfaceManager>().WindowRoot;

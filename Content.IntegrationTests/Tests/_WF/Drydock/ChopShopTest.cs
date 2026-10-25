@@ -142,6 +142,79 @@ public sealed class ChopShopTest
     }
 
     /// <summary>
+    /// A break that is stopped part way and started again pays only what is left: the hull as a whole never prints more
+    /// than 80% of its shipyard price.
+    /// </summary>
+    [Test]
+    public async Task RestartedBreakPaysOnlyTheRest()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var drydock = server.System<WFDrydockSystem>();
+        var xforms = server.System<SharedTransformSystem>();
+
+        EntityUid console = default, crane = default, ship = default, actor = default, yard = default;
+        var expected = 0;
+        var berthed = Vector2.Zero;
+        await server.WaitAssertion(() =>
+        {
+            (console, crane, ship) = SetUpChopShop(pair, map.MapId);
+            yard = em.GetComponent<TransformComponent>(console).GridUid!.Value;
+            em.AddComponent<VesselComponent>(ship).VesselId = "Guppy";
+            expected = (int) (server.ProtoMan.Index<VesselPrototype>("Guppy").Price * 0.8);
+            actor = em.SpawnEntity("MobHuman", new MapCoordinates(0, 0, map.MapId));
+            berthed = xforms.GetWorldPosition(ship);
+        });
+
+        await MobileDrydockTest.WaitForCranePower(pair, crane);
+        await server.WaitAssertion(() =>
+            Assert.That(drydock.TryStartBreak(console, em.GetComponent<WFDrydockConsoleComponent>(console), ship, actor), Is.True));
+
+        await DrydockTest.RunUntil(pair, 400, 5, () =>
+            !em.TryGetComponent(console, out WFDrydockJobComponent job) || job.Done >= HullSize * HullSize / 2);
+
+        // Taking the hull out of the berth stops the break.
+        var paidFirst = 0;
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.Deleted(ship), Is.False, "Half the hull should still stand.");
+            paidFirst = ThalersOn(pair, yard, out _);
+            Assert.That(paidFirst, Is.InRange(1, expected - 1), "The first break should have paid part of the hull.");
+            xforms.SetWorldPosition(ship, berthed + new Vector2(500f, 0f));
+        });
+        await DrydockTest.RunUntil(pair, 100, 10, () => !em.HasComponent<WFDrydockJobComponent>(console));
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.HasComponent<WFDrydockJobComponent>(console), Is.False, "Leaving the berth should stop the break.");
+            xforms.SetWorldPosition(ship, berthed);
+        });
+        await server.WaitRunTicks(5);
+
+        await server.WaitAssertion(() =>
+        {
+            var comp = em.GetComponent<WFDrydockConsoleComponent>(console);
+            drydock.UpdateUi(console, force: true);
+            Assert.That(server.System<SharedUserInterfaceSystem>().TryGetUiState<WFDrydockConsoleState>(console,
+                WFDrydockConsoleUiKey.Key, out var state), Is.True);
+            Assert.That(state!.BreakCash, Is.EqualTo(expected - ThalersOn(pair, yard, out _)), "The preview should quote only what is left.");
+            Assert.That(drydock.TryStartBreak(console, comp, ship, actor), Is.True, "The rest of the hull should break.");
+        });
+
+        await DrydockTest.RunUntil(pair, 400, 30, () => !em.HasComponent<WFDrydockJobComponent>(console));
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.Deleted(ship), Is.True, "The hull should be gone.");
+            Assert.That(ThalersOn(pair, yard, out _), Is.EqualTo(expected), "Both breaks together should print 80% of the shipyard price.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
     /// A deed in someone else's name and a live lawful encounter ship are lawful property; the breaker's own deed, an
     /// outlaw's encounter ship and a derelict are not.
     /// </summary>

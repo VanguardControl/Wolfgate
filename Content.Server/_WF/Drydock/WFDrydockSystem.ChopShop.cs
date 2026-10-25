@@ -27,7 +27,7 @@ public sealed partial class WFDrydockSystem
 
     /// <summary>
     /// What a ship is worth to a chop shop: its shipyard price, from its own record or its vessel station's, else what
-    /// the grid and everything on it appraise at.
+    /// the grid's fittings appraise at. Loose cargo is left out, since it drifts off when the hull goes.
     /// </summary>
     public int ChopValue(EntityUid ship)
     {
@@ -41,18 +41,23 @@ public sealed partial class WFDrydockSystem
         if (id != null && _prototype.TryIndex(id.Value, out var proto) && proto.Price > 0)
             return proto.Price;
 
-        return (int) Math.Min(_pricing.AppraiseGrid(ship), int.MaxValue);
+        return (int) Math.Min(_pricing.AppraiseGrid(ship, uid => Transform(uid).ParentUid != ship || Transform(uid).Anchored), int.MaxValue);
     }
 
-    /// <summary>What a chop shop pays for breaking a whole ship.</summary>
+    /// <summary>What a chop shop still pays for breaking the rest of a ship, less what earlier breaks of it printed.</summary>
     public int ChopPayout(WFDrydockChopShopComponent chop, EntityUid ship)
     {
+        if (TryComp<WFHulkComponent>(ship, out var hulk) && hulk.ChopTotal is { } total)
+            return Math.Max(0, total - hulk.ChopPaid);
+
         return (int) (ChopValue(ship) * (double) chop.ValueShare);
     }
 
     /// <summary>Fixes a chop-shop break's payout when it starts, to be printed as its tiles come off.</summary>
     private void SetUpChopPay(WFDrydockChopShopComponent chop, WFDrydockJobComponent job, List<WFDrydockWorkItem> items)
     {
+        var hulk = EnsureComp<WFHulkComponent>(job.Ship);
+        hulk.ChopTotal ??= (int) (ChopValue(job.Ship) * (double) chop.ValueShare);
         job.CashTotal = ChopPayout(chop, job.Ship);
         job.CashWeight = 0;
         foreach (var item in items)
@@ -76,6 +81,9 @@ public sealed partial class WFDrydockSystem
             return;
 
         job.CashPaid += amount;
+        if (TryComp<WFHulkComponent>(job.Ship, out var hulk))
+            hulk.ChopPaid += amount;
+
         var drop = DropSpot(console);
 
         // New bills go on the stack already at the console, until someone takes it.
