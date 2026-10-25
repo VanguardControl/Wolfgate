@@ -41,8 +41,21 @@
     elongation: 1.8
     roughness: 0.3
     cellSize: 96
-    groundTiles: [FloorBasalt]
-    avoid: [FloorLavaEntity, MonoPlanetmapOreBasalt]
+    groundTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
+    avoid:
+    - FloorLavaEntity
+    - MonoPlanetmapOreBasalt
+    - CoyoteFloraBurnedtree1
+    - CoyoteFloraBurnedtree2
+    - CoyoteFloraBurnedtree3
+    - CoyoteFloraBurnedtree5
+    - ShiptestTreeDeadHell
+    - GoonFakeobjectRockpile
+    - GoonFakeobjectRockpileBig
+    - CMRockBlackGroundDense
+    - CMRockBlackGroundDense3
+    - TgFloraRockVolcano
+    - TgFloraRockSideriteGrowth
     landingTile: WFCavernFloorAsh
     shade: WFCavernShadeFervidus
     climbPoint: WFCavernClimbFervidus

@@ -2,6 +2,7 @@
 # Entity layers resolve from bottom to top: hazards/scenery win over wildlife, so animals spawn in clearings.
 # Low-frequency rock masks form occasional outcrops instead of a continuous wall field.
 
+# Fervidus: black basalt flats, ashfields (WFFervidusAshFields, Biomes/fervidus.yml) and lava channels with a crust of cooled rock.
 - type: biomeTemplate
   id: WFOpenBasalt
   layers:
@@ -9,22 +10,63 @@
     tile: FloorBasalt
     threshold: -1
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorBasalt]
+    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
     entities: [WFFaunaFervidus]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
+  # Ashfields cover about a third of the surface: ash tiles, flora and small tar and sulfur pools.
+  - !type:BiomeMetaLayer
+    template: WFFervidusAshFields
+    threshold: 0.12
+    noise: { seed: 51, noiseType: OpenSimplex2, frequency: 0.007, fractalType: FBm, octaves: 2 }
+  # A crust of cooled rock round every lava channel: the lava noise at a lower threshold.
+  - !type:BiomeTileLayer
+    tile: WFFloorFervidusAshRock
+    threshold: 0.84
+    noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.008, fractalType: Ridged, octaves: 1 }
+  # Scattered volcanic rock, a layer for each kind; lit vents and siderite growths are the rarer sort.
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorBasalt]
+    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
+    entities: [GoonFakeobjectRockpile]
+    threshold: 0.985
+    noise: { seed: 71, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
+    entities: [GoonFakeobjectRockpileBig]
+    threshold: 0.985
+    noise: { seed: 72, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
+    entities: [CMRockBlackGroundDense]
+    threshold: 0.985
+    noise: { seed: 73, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
+    entities: [CMRockBlackGroundDense3]
+    threshold: 0.985
+    noise: { seed: 74, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
+    entities: [TgFloraRockVolcano]
+    threshold: 0.99
+    noise: { seed: 75, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
+    entities: [TgFloraRockSideriteGrowth]
+    threshold: 0.99
+    noise: { seed: 76, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
     entities: [BasaltOne, BasaltTwo, BasaltThree]
     threshold: 0.97
     noise: { seed: 2, noiseType: OpenSimplex2, frequency: 1 }
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorBasalt]
+    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
     entities: [MonoPlanetmapOreBasalt]
     threshold: 0.65
     noise: { seed: 11, noiseType: OpenSimplex2, frequency: 0.022 }
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorBasalt]
+    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
     entities: [FloorLavaEntity]
     threshold: 0.94
     noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.008, fractalType: Ridged, octaves: 1 }
