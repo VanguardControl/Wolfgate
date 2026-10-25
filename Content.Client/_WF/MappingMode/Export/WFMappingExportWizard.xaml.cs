@@ -18,8 +18,8 @@ namespace Content.Client._WF.MappingMode.Export;
 
 /// <summary>
 /// The export wizard: Check (the issues of the session, with Go to), Details (the vessel fields of a ship) and
-/// Package (save a version if needed, then download the zip). <see cref="WFMappingExportUIController"/> wires it to
-/// the client system.
+/// Package (save a version if needed, then download the zip, or the bare grid file for a grid export).
+/// <see cref="WFMappingExportUIController"/> wires it to the client system.
 /// </summary>
 [GenerateTypedNameReferences]
 public sealed partial class WFMappingExportWizard : FancyWindow
@@ -78,6 +78,7 @@ public sealed partial class WFMappingExportWizard : FancyWindow
 
         ShipKindButton.OnPressed += _ => SetKind(WFMappingExportKind.Ship);
         MapKindButton.OnPressed += _ => SetKind(WFMappingExportKind.Map);
+        GridKindButton.OnPressed += _ => SetKind(WFMappingExportKind.Grid);
         RecheckButton.OnPressed += _ => Check();
         BackButton.OnPressed += _ => Go(-1);
         NextButton.OnPressed += _ => Go(1);
@@ -140,19 +141,27 @@ public sealed partial class WFMappingExportWizard : FancyWindow
     private void OnSaveToChanged(bool saveTo)
     {
         _saveTo = saveTo;
-        PackageButton.Text = Loc.GetString(saveTo
-            ? "wf-mapping-export-package-button-save-to"
-            : "wf-mapping-export-package-button");
-        UpdateSaveToHint();
+        UpdatePackageTarget();
     }
 
-    /// <summary>The save dialog doesn't add the extension, so the hint names the whole file name to type.</summary>
-    private void UpdateSaveToHint()
+    /// <summary>
+    /// The package button and the Save to hint name what the kind downloads: the zip, or the grid file. The save dialog
+    /// doesn't add the extension, so the hint names the whole file name to type.
+    /// </summary>
+    private void UpdatePackageTarget()
     {
+        var grid = _kind == WFMappingExportKind.Grid;
+        PackageButton.Text = Loc.GetString(_saveTo
+            ? grid ? "wf-mapping-export-package-button-save-to-grid" : "wf-mapping-export-package-button-save-to"
+            : grid ? "wf-mapping-export-package-button-grid" : "wf-mapping-export-package-button");
         SaveToHint.Visible = _saveTo;
-        SetText(SaveToHint, Loc.GetString("wf-mapping-export-package-save-to-hint",
-            ("file", WFMappingLibraryNames.DownloadZipFile(MapName))));
+        SetText(SaveToHint, Loc.GetString(grid ? "wf-mapping-export-package-save-to-hint-grid" : "wf-mapping-export-package-save-to-hint",
+            ("file", WFMappingLibraryNames.ExportFile(MapName, _kind))));
     }
+
+    private string DoneText => Loc.GetString(_kind == WFMappingExportKind.Grid
+        ? "wf-mapping-export-package-done-grid"
+        : "wf-mapping-export-package-done");
 
     protected override void FrameUpdate(FrameEventArgs args)
     {
@@ -186,7 +195,7 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         TargetLabel.Text = Loc.GetString("wf-mapping-export-target", ("name", mapName),
             ("version", version ?? Loc.GetString("wf-mapping-export-target-newest")));
         Fill(details ?? new WFMappingShipDetails());
-        UpdateSaveToHint();
+        UpdatePackageTarget();
         Check();
         Refresh();
     }
@@ -203,7 +212,7 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         _busy = busy;
         DownloadRow.SetProgress(progress is { Zip: true } ? progress : null);
         if (progress is { Zip: true, Active: false, Asking: null } && PackageStatus.Text == Loc.GetString("wf-mapping-export-package-requested"))
-            SetStatus(Loc.GetString("wf-mapping-export-package-done"), true);
+            SetStatus(DoneText, true);
 
         PackageButton.Disabled = busy || _testing;
     }
@@ -271,9 +280,19 @@ public sealed partial class WFMappingExportWizard : FancyWindow
 
         if (kind != _kind)
         {
+            // Ship and Grid share nothing in the check, but Map and Grid both run the Map scope: keep that result.
+            var rescan = ScopeOf(kind) != ScopeOf(_kind);
             _kind = kind;
-            _issues = null;
-            Check();
+            UpdatePackageTarget();
+            if (rescan)
+            {
+                _issues = null;
+                Check();
+            }
+            else
+            {
+                RenderIssues();
+            }
         }
 
         Refresh();
@@ -297,7 +316,7 @@ public sealed partial class WFMappingExportWizard : FancyWindow
     private void Go(int direction)
     {
         var next = _step + direction;
-        if (_kind == WFMappingExportKind.Map && next == 2)
+        if (_kind != WFMappingExportKind.Ship && next == 2)
             next += direction;
 
         _step = Math.Clamp(next, 1, 3);
@@ -343,6 +362,7 @@ public sealed partial class WFMappingExportWizard : FancyWindow
 
         ShipKindButton.Pressed = _kind == WFMappingExportKind.Ship;
         MapKindButton.Pressed = _kind == WFMappingExportKind.Map;
+        GridKindButton.Pressed = _kind == WFMappingExportKind.Grid;
         ShipKindButton.Disabled = !_shipPossible || ShipErrors;
         RecheckButton.Disabled = !InSession || _checking || _testing;
         PackageButton.Disabled = _busy || _testing;
@@ -350,7 +370,7 @@ public sealed partial class WFMappingExportWizard : FancyWindow
         NextButton.Visible = _step < 3;
         NextButton.Disabled = _step == 1 && _kind == WFMappingExportKind.Ship && (ShipErrors || _checking);
         DetailsForm.Visible = _kind == WFMappingExportKind.Ship;
-        DetailsMapNote.Visible = _kind == WFMappingExportKind.Map;
+        DetailsMapNote.Visible = _kind != WFMappingExportKind.Ship;
         SaveFirstLabel.Visible = InSession && _dirty;
     }
 
@@ -397,9 +417,12 @@ public sealed partial class WFMappingExportWizard : FancyWindow
             IssueList.AddChild(IssueRow(issue));
         }
 
-        CheckHint.SetMessage(Loc.GetString(_kind == WFMappingExportKind.Ship
-            ? ShipErrors ? "wf-mapping-export-check-errors" : "wf-mapping-export-check-ok-ship"
-            : "wf-mapping-export-check-ok-map"));
+        CheckHint.SetMessage(Loc.GetString(_kind switch
+        {
+            WFMappingExportKind.Ship => ShipErrors ? "wf-mapping-export-check-errors" : "wf-mapping-export-check-ok-ship",
+            WFMappingExportKind.Grid => "wf-mapping-export-check-ok-grid",
+            _ => "wf-mapping-export-check-ok-map",
+        }));
     }
 
     private Control IssueRow(WFMappingIssue issue)
@@ -564,6 +587,13 @@ public sealed partial class WFMappingExportWizard : FancyWindow
             PackageSummary.SetMessage(Loc.GetString("wf-mapping-export-package-ship",
                 ("grid", $"Resources/SharedMaps/_WF/Community/{file}.yml"),
                 ("proto", $"Resources/Prototypes/_WF/Community/{file}.yml")));
+            return;
+        }
+
+        if (_kind == WFMappingExportKind.Grid)
+        {
+            PackageSummary.SetMessage(Loc.GetString("wf-mapping-export-package-grid",
+                ("file", WFMappingLibraryNames.DownloadGridFile(MapName))));
             return;
         }
 

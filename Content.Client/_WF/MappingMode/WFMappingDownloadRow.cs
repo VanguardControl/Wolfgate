@@ -84,7 +84,7 @@ public sealed class WFMappingDownloadRow : BoxContainer
         if (file == WFMappingLibraryNames.DownloadVesselFile(progress.MapName))
             return "wf-mapping-mode-download-kind-vessel";
 
-        if (progress.Ship)
+        if (progress.Ship || file == WFMappingLibraryNames.DownloadGridFile(progress.MapName))
             return "wf-mapping-mode-download-kind-grid";
 
         return file == WFMappingLibraryNames.DownloadMapFile(progress.MapName)

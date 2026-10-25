@@ -63,7 +63,7 @@ packages a library version as one zip laid out like the repository, so it is unz
 steps, with Back and Next:
 
 - Check runs the issues checker (`WFMappingIssuesSystem`, `WFMappingIssuesRequest`) on the session for the chosen kind,
-  Ship or Map, and lists what it found with the severity, the title, the fix hint and Go to, which moves the observer
+  Ship, Map or Grid (a grid runs the map check, which stops nothing), and lists what it found with the severity, the title, the fix hint and Go to, which moves the observer
   to the entity or tile (`WFMappingGoToIssueRequest`). Export as ship is off while an error stands, and the hint says
   to fix them or export as a map; Check again re-runs it. The server answers one check per three seconds and says
   so (`WFMappingIssuesRefusedEvent`) rather than staying silent; the client holds a check asked inside that gap
@@ -85,7 +85,9 @@ one level; refused otherwise, saying why) holds `Resources/SharedMaps/_WF/Commun
 the mapper's details over the generator's guesses, the header saying which is which) and `README.txt`. A map holds
 `Resources/Maps/_WF/Community/<file>.yml` for one level, or `Resources/Maps/_WF/Community/<file>/z<D>.yml` per level,
 a `gameMap` with a plain station or a `zMap` listing the levels bottom-up (the ground level's index in a comment), and
-the README. The README says what the package is, where to unzip it, what each file is, what to check (guessed fields,
+the README. A grid export (for POIs and other grids that aren't ships) is the version's one grid file as saved, sent
+bare as `<file>.yml` under the ship grid's name, with no prototype, README or zip, and refused for several grids or none
+the way a ship is. The README says what the package is, where to unzip it, what each file is, what to check (guessed fields,
 the price against the appraisal, an id already in the game) and the issues report at export time by severity, or that
 no check ran. A ship export in the map's session is refused while an error stands, the price in the details counted
 against the appraisal floor. The check only runs when the version is the map's newest and the session has no changes

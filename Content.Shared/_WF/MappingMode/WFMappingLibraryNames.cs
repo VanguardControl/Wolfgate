@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Content.Shared._WF.MappingMode.Export;
 using Robust.Shared.Network;
 using Robust.Shared.Serialization;
 using Robust.Shared.Utility;
@@ -261,10 +262,28 @@ public static class WFMappingLibraryNames
         return fileName.EndsWith(ZipSuffix, StringComparison.Ordinal);
     }
 
+    /// <summary>The grid export: the ship grid's file name, <c>&lt;file&gt;.yml</c> (<see cref="WFMappingShipNaming.FileName"/>).</summary>
+    public static string DownloadGridFile(string mapName)
+    {
+        return WFMappingShipNaming.FileName(mapName) + LevelSuffix;
+    }
+
+    /// <summary>The file an export of a kind arrives as: the zip, or the grid file for <see cref="WFMappingExportKind.Grid"/>.</summary>
+    public static string ExportFile(string mapName, WFMappingExportKind kind)
+    {
+        return kind == WFMappingExportKind.Grid ? DownloadGridFile(mapName) : DownloadZipFile(mapName);
+    }
+
     /// <summary>Whether a downloaded file name is one the server may send for <paramref name="mapName"/>.</summary>
     public static bool IsDownloadFile(string mapName, string fileName)
     {
-        if (!IsValidMapName(mapName) || !fileName.StartsWith(mapName, StringComparison.Ordinal))
+        if (!IsValidMapName(mapName))
+            return false;
+
+        if (fileName == DownloadGridFile(mapName))
+            return true;
+
+        if (!fileName.StartsWith(mapName, StringComparison.Ordinal))
             return false;
 
         if (fileName == DownloadMapFile(mapName) || fileName == DownloadVesselFile(mapName) ||

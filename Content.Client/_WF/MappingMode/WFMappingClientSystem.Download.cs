@@ -26,7 +26,7 @@ public sealed class WFMappingDownloadProgress
     /// <summary>A ship download: the grid file, then the vessel prototype.</summary>
     public bool Ship;
 
-    /// <summary>An export: one zip laid out like the repository.</summary>
+    /// <summary>An export from the wizard: one zip laid out like the repository, or the bare grid file of a grid export.</summary>
     public bool Zip;
 
     /// <summary>The file the save dialog is open for, while it is.</summary>
@@ -56,7 +56,7 @@ public sealed partial class WFMappingClientSystem
     /// <summary>Whether the last request was a ship download, for the progress of the download it starts.</summary>
     private bool _requestedShip;
 
-    /// <summary>Whether the last request was an export, whose download is one zip.</summary>
+    /// <summary>Whether the last request was an export, whose download is one file: a zip or a grid file.</summary>
     private bool _requestedZip;
 
     /// <summary>The running or last finished download, or null when there is none to show.</summary>
@@ -181,7 +181,8 @@ public sealed partial class WFMappingClientSystem
                     Active = true,
                     SaveTo = DownloadSaveTo,
                     Ship = _requestedShip,
-                    Zip = _requestedZip || WFMappingLibraryNames.IsZipFile(ev.FileName),
+                    Zip = _requestedZip || WFMappingLibraryNames.IsZipFile(ev.FileName) ||
+                          ev.FileName == WFMappingLibraryNames.DownloadGridFile(ev.MapName),
                 };
             }
 

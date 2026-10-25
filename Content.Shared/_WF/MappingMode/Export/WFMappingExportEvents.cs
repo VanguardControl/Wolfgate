@@ -6,12 +6,16 @@ using Robust.Shared.Serialization;
 
 namespace Content.Shared._WF.MappingMode.Export;
 
-/// <summary>What an export packages: a shipyard vessel (one level, one grid) or a map of any level count.</summary>
+/// <summary>
+/// What an export packages: a shipyard vessel (one level, one grid), a map of any level count, or just the one grid
+/// file with no prototype and no zip, for POIs and other grids that aren't ships.
+/// </summary>
 [Serializable, NetSerializable]
 public enum WFMappingExportKind : byte
 {
     Ship,
     Map,
+    Grid,
 }
 
 /// <summary>
@@ -155,8 +159,9 @@ public static class WFMappingExportLimits
 }
 
 /// <summary>
-/// Packages a library version as one zip and downloads it: the newest version when <see cref="Version"/> is null. A
-/// ship export stores <see cref="Details"/> as the map's ship details first.
+/// Packages a library version as one zip, or one grid file for <see cref="WFMappingExportKind.Grid"/>, and downloads
+/// it: the newest version when <see cref="Version"/> is null. A ship export stores <see cref="Details"/> as the map's
+/// ship details first.
 /// </summary>
 [Serializable, NetSerializable]
 public sealed class WFMappingExportRequest(string mapName, string? version, WFMappingExportKind kind,

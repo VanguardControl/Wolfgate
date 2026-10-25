@@ -16,6 +16,8 @@
                         ToolTip="{Loc 'wf-mapping-export-kind-ship-tooltip'}" TooltipDelay="0" />
                 <Button Name="MapKindButton" Access="Public" ToggleMode="True" Text="{Loc 'wf-mapping-export-kind-map'}"
                         ToolTip="{Loc 'wf-mapping-export-kind-map-tooltip'}" TooltipDelay="0" />
+                <Button Name="GridKindButton" Access="Public" ToggleMode="True" Text="{Loc 'wf-mapping-export-kind-grid'}"
+                        ToolTip="{Loc 'wf-mapping-export-kind-grid-tooltip'}" TooltipDelay="0" />
                 <Control HorizontalExpand="True" />
                 <Button Name="RecheckButton" Access="Public" Text="{Loc 'wf-mapping-export-recheck'}" />
             </BoxContainer>

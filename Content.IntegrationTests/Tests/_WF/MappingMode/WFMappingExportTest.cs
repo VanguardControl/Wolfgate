@@ -28,13 +28,15 @@ namespace Content.IntegrationTests.Tests._WF.MappingMode;
 /// The export wizard's server side: a ship session saved and exported arrives on the client as one zip holding the grid,
 /// the vessel prototype with the mapper's details and a README; the details persist in the version, ride into the next
 /// save and reach the library listing; an error in the check refuses the ship export; a map of two levels exports its
-/// level files and a zMap, one level a gameMap; Go to moves the observer.
+/// level files and a zMap, one level a gameMap; Go to moves the observer; a grid export is the bare grid file, refused
+/// for a version of two grids.
 /// </summary>
 [TestFixture]
 public sealed class WFMappingExportTest
 {
     private const string ShipName = "Export Ship";
     private const string LevelsName = "Export Levels";
+    private const string GridName = "Export Grid";
 
     /// <summary>The parts that clear every ship error, placed along the grid's middle row.</summary>
     private static readonly string[] Parts =
@@ -98,8 +100,8 @@ public sealed class WFMappingExportTest
         return version!;
     }
 
-    /// <summary>Waits for a zip download to finish on the client and reads it from the data folder.</summary>
-    private static async Task<List<WFMappingExportEntry>> WaitZip(TestPair pair, string mapName, string version)
+    /// <summary>Waits for an export download to finish on the client and reads its one file from the data folder.</summary>
+    private static async Task<byte[]> WaitExport(TestPair pair, string mapName, string version, string fileName)
     {
         var clientSys = pair.Client.EntMan.System<WFMappingClientSystem>();
         var clientRes = pair.Client.ResolveDependency<IResourceManager>();
@@ -108,18 +110,23 @@ public sealed class WFMappingExportTest
             await pair.RunTicksSync(1);
         }
 
-        var path = WFMappingLibraryNames.DownloadPath(mapName, version, WFMappingLibraryNames.DownloadZipFile(mapName));
-        byte[] zip = default!;
+        var path = WFMappingLibraryNames.DownloadPath(mapName, version, fileName);
+        byte[] data = default!;
         await pair.Client.WaitAssertion(() =>
         {
             Assert.That(clientSys.Download, Is.Not.Null, "The export should have finished.");
             Assert.That(clientSys.Download!.Zip, Is.True);
             Assert.That(clientSys.Download.FileCount, Is.EqualTo(1), "An export is one file.");
             Assert.That(clientRes.UserData.Exists(path), Is.True, $"{path} should be written.");
-            zip = Read(clientRes, path);
+            data = Read(clientRes, path);
         });
 
-        return WFMappingExportPackage.Unzip(zip);
+        return data;
+    }
+
+    private static async Task<List<WFMappingExportEntry>> WaitZip(TestPair pair, string mapName, string version)
+    {
+        return WFMappingExportPackage.Unzip(await WaitExport(pair, mapName, version, WFMappingLibraryNames.DownloadZipFile(mapName)));
     }
 
     [Test]
@@ -393,6 +400,82 @@ public sealed class WFMappingExportTest
             Assert.That(readme, Does.Contain("Resources/Prototypes/_WF/Community/export_levels.yml"));
             Assert.That(readme, Does.Contain("Issues report"));
         });
+
+        await Disable(pair);
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task GridExportsTheBareGridFile()
+    {
+        await using var pair = await PoolManager.GetServerClient(Settings);
+        var server = pair.Server;
+        var client = pair.Client;
+        var entMan = server.EntMan;
+        var mapping = entMan.System<WFMappingModeSystem>();
+        var library = entMan.System<WFMappingLibrarySystem>();
+        var export = entMan.System<WFMappingExportSystem>();
+        var mapSys = entMan.System<MapSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        var serverRes = server.ResolveDependency<IResourceManager>();
+        var clientSys = client.EntMan.System<WFMappingClientSystem>();
+        await Enable(pair);
+        var player = pair.Player!;
+
+        var results = new List<string>();
+        await client.WaitPost(() =>
+        {
+            clientSys.DownloadSaveTo = false;
+            clientSys.ResultReceived += result => results.Add(result.LocKey);
+        });
+
+        WFMappingSession session = default!;
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(mapping.TryCreateSession(player, GridName, out var created), Is.True);
+            session = created!;
+            MakeGrid(entMan, mapSys, tileDefs, session.RootMap, 4, 3);
+        });
+        await pair.RunTicksSync(10);
+
+        // One grid on one level: the export is that grid file, under the ship grid's name, not a zip.
+        var version = await SaveAndWait(pair, GridName, 1);
+        Assert.That(version.ShipDepth, Is.EqualTo(0));
+        await server.WaitPost(() => RaiseAs(entMan, player, new WFMappingExportRequest(GridName, null, WFMappingExportKind.Grid, null)));
+        var file = await WaitExport(pair, GridName, version.Name.Folder, "export_grid.yml");
+        byte[] stored = default!;
+        await server.WaitPost(() => stored = Read(serverRes, version.Grids[0]));
+        var zipPath = WFMappingLibraryNames.DownloadPath(GridName, version.Name.Folder, WFMappingLibraryNames.DownloadZipFile(GridName));
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(results.Where(r => r.Contains("fail") || r.Contains("bad") || r.Contains("error")), Is.Empty);
+            Assert.That(file, Is.EqualTo(stored), "The download is the stored grid file byte for byte.");
+            Assert.That(client.ResolveDependency<IResourceManager>().UserData.Exists(zipPath), Is.False, "No zip was written.");
+        });
+
+        // Two grids on the level: refused the way a ship is.
+        await server.WaitPost(() =>
+        {
+            var second = MakeGrid(entMan, mapSys, tileDefs, session.RootMap, 2, 2);
+            entMan.System<SharedTransformSystem>().SetLocalPosition(second, new Vector2(12, 0));
+        });
+        await pair.RunTicksSync(5);
+        results.Clear();
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(library.Autosave(session), Is.True);
+            Assert.That(library.TryFindVersion(player.UserId, GridName, null, out var map, out var two), Is.True);
+            Assert.That(two!.Name.Number, Is.EqualTo(2));
+            Assert.That(two.TotalGrids, Is.EqualTo(2));
+            Assert.That(export.TryBuild(player, map!, two, WFMappingExportKind.Grid, null), Is.Null, "Two grids aren't one grid file.");
+            Assert.That(export.TryBuild(player, map!, two, WFMappingExportKind.Map, null), Is.Not.Null, "The same version exports as a map.");
+        });
+        for (var i = 0; i < 50 && !results.Contains("wf-mapping-ship-several-grids"); i++)
+        {
+            await pair.RunTicksSync(1);
+        }
+
+        Assert.That(results, Does.Contain("wf-mapping-ship-several-grids"));
 
         await Disable(pair);
         await pair.CleanReturnAsync();

@@ -23,8 +23,8 @@ namespace Content.Server._WF.MappingMode.Export;
 
 /// <summary>
 /// Packages a library version as one zip laid out like the repository (a ship's grid and vessel prototype, or a map's
-/// levels and its <c>gameMap</c> or <c>zMap</c>, plus a README with the issues report) and streams it through
-/// <see cref="WFMappingDownloadSystem"/>. Also moves a mapper to an issue's place.
+/// levels and its <c>gameMap</c> or <c>zMap</c>, plus a README with the issues report), or sends a version's one grid
+/// file bare, and streams it through <see cref="WFMappingDownloadSystem"/>. Also moves a mapper to an issue's place.
 /// </summary>
 public sealed class WFMappingExportSystem : EntitySystem
 {
@@ -96,18 +96,16 @@ public sealed class WFMappingExportSystem : EntitySystem
 
         try
         {
-            var zip = TryBuild(player, map, version, ev.Kind, ev.Details);
-            if (zip == null)
+            var data = TryBuild(player, map, version, ev.Kind, ev.Details);
+            if (data == null)
                 return;
 
-            if (!_download.TryStartData(player, map.Name, version.Name.Folder,
-                    WFMappingLibraryNames.DownloadZipFile(map.Name), zip, $"export as {ev.Kind}"))
-            {
+            var fileName = WFMappingLibraryNames.ExportFile(map.Name, ev.Kind);
+            if (!_download.TryStartData(player, map.Name, version.Name.Folder, fileName, data, $"export as {ev.Kind}"))
                 return;
-            }
 
             _adminLog.Add(LogType.Action, LogImpact.Low,
-                $"{player:player} exported their library map \"{map.Name}\" {version.Name.Folder} as a {ev.Kind} ({zip.Length} bytes zipped)");
+                $"{player:player} exported their library map \"{map.Name}\" {version.Name.Folder} as a {ev.Kind}: {fileName} ({data.Length} bytes)");
         }
         catch (Exception e)
         {
@@ -131,14 +129,40 @@ public sealed class WFMappingExportSystem : EntitySystem
             : null;
     }
 
-    /// <summary>Builds the package, or tells the player why not and returns null.</summary>
+    /// <summary>Builds the package (the bare grid file for <see cref="WFMappingExportKind.Grid"/>), or tells the player why not and returns null.</summary>
     public byte[]? TryBuild(ICommonSession player, WFMappingLibrarySystem.LibraryMap map,
         WFMappingLibrarySystem.LibraryVersion version, WFMappingExportKind kind, WFMappingShipDetails? details)
     {
-        var session = SessionOf(player, map, version);
-        return kind == WFMappingExportKind.Ship
-            ? TryBuildShip(player, map, version, session, WFMappingExportLimits.Sanitize(details ?? new WFMappingShipDetails()))
-            : BuildMap(map, version, session);
+        switch (kind)
+        {
+            case WFMappingExportKind.Ship:
+                return TryBuildShip(player, map, version, SessionOf(player, map, version),
+                    WFMappingExportLimits.Sanitize(details ?? new WFMappingShipDetails()));
+            case WFMappingExportKind.Grid:
+                return TryReadGrid(player, map, version);
+            default:
+                return BuildMap(map, version, SessionOf(player, map, version));
+        }
+    }
+
+    /// <summary>The version's one grid file as saved, under the same one-grid rule as a ship; no check runs.</summary>
+    private byte[]? TryReadGrid(ICommonSession player, WFMappingLibrarySystem.LibraryMap map,
+        WFMappingLibrarySystem.LibraryVersion version)
+    {
+        if (!WFMappingDownloadSystem.TryGetFiles(map.Name, version, true, out _, out var error, out var errorArgs))
+        {
+            _mapping.Notify(player, false, error, errorArgs);
+            return null;
+        }
+
+        var data = ReadFile(version.Grids[version.ShipDepth!.Value]);
+        if (data == null)
+        {
+            _mapping.Notify(player, false, "wf-mapping-mode-download-too-large",
+                ("max", WFMappingDownloadAssembler.MaxFileBytes / (1024 * 1024)));
+        }
+
+        return data;
     }
 
     private byte[]? TryBuildShip(ICommonSession player, WFMappingLibrarySystem.LibraryMap map,
