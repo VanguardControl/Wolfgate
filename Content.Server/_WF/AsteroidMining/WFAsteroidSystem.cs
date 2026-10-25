@@ -224,7 +224,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         }
 
         comp.Ores.Sort((a, b) => b.Fraction.CompareTo(a.Fraction));
-        comp.Resistance = Math.Clamp(_random.NextFloat(proto.MinResistance, proto.MaxResistance) + comp.ResistanceBonus, 0f, 0.9f);
+        comp.Resistance = Math.Clamp(_random.NextFloat(proto.MinResistance, proto.MaxResistance) * comp.ResistanceScale + comp.ResistanceBonus, 0f, 0.9f);
         comp.Instability = _random.NextFloat(proto.MinInstability, proto.MaxInstability);
         RollWindow(comp);
         ApplyKind(rock, comp, proto);
@@ -257,6 +257,11 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     {
         comp.WindowCenter = _random.NextFloat(0.35f, 0.55f);
         comp.WindowHalfWidth = 0.09f * (1f - 0.4f * comp.Instability);
+        if (comp.FixedWindow is { } window)
+        {
+            comp.WindowCenter = (window.X + window.Y) / 2f;
+            comp.WindowHalfWidth = (window.Y - window.X) / 2f;
+        }
         comp.NoiseSeed = _random.NextFloat(0f, 100f);
         comp.VeinColor = comp.Ores.Count > 0 ? comp.Ores[0].Color : Color.Gray;
     }
@@ -270,7 +275,8 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         comp.CompositionId = parent.CompositionId;
         comp.Mass = mass;
         comp.Ores = new List<WFAsteroidOre>(parent.Ores);
-        comp.Resistance = Math.Clamp(parent.Resistance - parent.ResistanceBonus + comp.ResistanceBonus, 0f, 0.9f);
+        var baseResistance = parent.ResistanceScale > 0f ? (parent.Resistance - parent.ResistanceBonus) / parent.ResistanceScale : 0f;
+        comp.Resistance = Math.Clamp(baseResistance * comp.ResistanceScale + comp.ResistanceBonus, 0f, 0.9f);
         comp.Instability = parent.Instability;
         RollWindow(comp);
         if (_proto.TryIndex(parent.CompositionId, out var proto))

@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Shared.Mining;
 using Robust.Shared.GameStates;
 using Robust.Shared.Prototypes;
@@ -48,6 +49,12 @@ public sealed partial class WFAsteroidComponent : Component
 
     /// <summary>Added to the composition's resistance; bigger rocks resist more.</summary>
     [DataField] public float ResistanceBonus;
+
+    /// <summary>Scales the composition's resistance, before the bonus; boulders take none of it.</summary>
+    [DataField] public float ResistanceScale = 1f;
+
+    /// <summary>A fixed cracking window in place of a rolled one, for loose chunks any warm beam breaks.</summary>
+    [DataField] public Vector2? FixedWindow;
 
     /// <summary>Number of sprite variants in the rock's RSI.</summary>
     [DataField] public int Variants = 3;

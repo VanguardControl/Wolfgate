@@ -279,7 +279,10 @@
     minMass: 2
     maxMass: 4
     shatterDamage: 80
-    crackTimeBase: 0.8
+    # Easy to strip with any laser: no rock resistance, and anything from warm to nearly overcharged cracks it.
+    crackTimeBase: 0.5
+    resistanceScale: 0
+    fixedWindow: 0.15, 0.8
 # endregion
 
 # The burst where a rock breaks, drawn by WFAsteroidCrackOverlay.

@@ -759,4 +759,34 @@ public sealed class AsteroidMiningTest
 
         await pair.CleanReturnAsync();
     }
+
+    [Test]
+    public async Task LightLaserStripsAMetallicBoulder()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        EntityUid gun = default, boulder = default;
+        await server.WaitAssertion(() =>
+        {
+            var ship = DrydockTest.CreateShip(pair, map.MapId, ShipPos);
+            DrydockTest.SetFloor(pair, ship, 5);
+            gun = DrydockTest.SpawnAnchored(pair, ship, "WFWeaponTurretMiningLaserSmall", new Vector2i(2, 2));
+            var mapUid = server.System<SharedMapSystem>().GetMap(map.MapId);
+            boulder = em.SpawnEntity("WFAsteroidBoulder", new EntityCoordinates(mapUid, ShipPos + new Vector2(2f, 15f)));
+            // The toughest rock there is, at the default power.
+            server.System<WFAsteroidSystem>().Roll(boulder, "WFAsteroidMetallic");
+            Assert.That(em.GetComponent<WFAsteroidComponent>(boulder).Resistance, Is.EqualTo(0f),
+                "A boulder should take none of its rock's resistance.");
+        });
+
+        await HoldFire(pair, gun, boulder, 3f);
+
+        await server.WaitAssertion(() =>
+            Assert.That(em.Deleted(boulder), Is.True, "An M12 at default power should strip a boulder within a few seconds."));
+
+        await pair.CleanReturnAsync();
+    }
 }
