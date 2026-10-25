@@ -326,6 +326,7 @@ Marines Universe's AGPL-3.0; the art is CC-BY-SA-3.0 unless its `meta.json` says
 ### Tools
 
 - [`Tools/_WF/Streets/catalogue.py`](../../../Tools/_WF/Streets/catalogue.py)
+- [`Tools/_WF/Streets/lamp_mask.py`](../../../Tools/_WF/Streets/lamp_mask.py)
 - [`Tools/_WF/Streets/port.yml`](../../../Tools/_WF/Streets/port.yml)
 - [`Tools/_WF/Streets/port_streets.py`](../../../Tools/_WF/Streets/port_streets.py)
 

@@ -28,6 +28,7 @@ HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 sys.path.insert(0, str(HERE.parent / "Vehicles"))
 import source_paths  # noqa: E402
+import lamp_mask  # noqa: E402
 
 CONFIG = HERE / "port.yml"
 SOURCES = HERE.parent / "Vehicles" / "import_files.yml"
@@ -625,10 +626,12 @@ class Port:
                     self.problems.append(f"{origin} lists state {state['name']} but has no PNG for it")
                     continue
                 wanted[png.name] = png.read_bytes()
+            masked = self.mask_lamps(dest, meta, wanted)
             folder = REPO / dest
             for name, data in wanted.items():
                 target = folder / name
-                if not target.exists() or target.read_bytes() != data:
+                if not target.exists() or not (lamp_mask.same_pixels(target.read_bytes(), data) if name in masked
+                                               else target.read_bytes() == data):
                     if check:
                         stale.append(str(target.relative_to(REPO)))
                     else:
@@ -657,6 +660,24 @@ class Port:
         if stale:
             self.problems.append(f"{len(stale)} texture files differ from the sources, first {stale[0]}")
         return rows
+
+    def mask_lamps(self, dest: str, meta: dict, wanted: dict) -> set:
+        """Cuts the lit states port.yml names down to their lamps in `wanted`; returns the PNG names it changed."""
+        pairs = self.config.get("lamp_masks", {}).get(dest.removeprefix(TEXTURES + "/"))
+        if not pairs:
+            return set()
+        states = {state["name"]: state for state in meta["states"]}
+        cell = (meta["size"]["x"], meta["size"]["y"])
+        masked = set()
+        for unlit, lit in pairs:
+            state = states[lit]
+            frame_count = len(state["delays"][0]) if state.get("delays") else 1
+            wanted[f"{lit}.png"] = lamp_mask.mask(wanted[f"{unlit}.png"], wanted[f"{lit}.png"], cell,
+                                                  state.get("directions", 1), frame_count)
+            masked.add(f"{lit}.png")
+        wanted["meta.json"] = lamp_mask.noted_meta(wanted["meta.json"])
+        meta["copyright"] = json.loads(wanted["meta.json"].decode("utf-8"))["copyright"]
+        return masked
 
     def attributions(self, attributed: dict) -> None:
         """attributions.yml beside the loose textures, in the form the Vehicles port uses."""

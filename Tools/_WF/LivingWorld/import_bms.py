@@ -4,8 +4,13 @@ group's attributions.yml.
 Plant sounds play in the world, so they're mono. Ambience plays globally, like the supplied planet beds, so it stays
 stereo and is loudness-normalised to the same -20 LUFS, -2 dB true peak.
 
+The Black Mesa one-shots are mastered far hotter than ordinary SS14 sounds (the median sampled SS14 effect sits near
+-22 LUFS, the 75th percentile near -17), so every plant sound is turned down to its group's ceiling in LUFS. Sounds
+already under the ceiling are left alone, and a limiter holds the peak at -2 dB.
+
 Run from the repository root: python Tools/_WF/LivingWorld/import_bms.py [path to the Black Mesa sound folder]
 """
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -96,16 +101,45 @@ GROUPS = {
     ]),
 }
 
+# Integrated-loudness ceiling per plant group (LUFS). Hums, idles and other sounds that carry on get the quiet one.
+ONE_SHOT_CEILING = -18.0
+SUSTAINED_CEILING = -24.0
+CEILINGS = {
+    "heal": {"healingpool_hum01": SUSTAINED_CEILING},
+    "crystal": SUSTAINED_CEILING,
+    "pods": {"moldcyst_idle": SUSTAINED_CEILING},
+    "critters": SUSTAINED_CEILING,
+    "hackertree": {"retract_to_idle01": SUSTAINED_CEILING},
+}
+
 LICENSE = "Custom"
 SOURCE_URL = "https://www.crowbarcollective.com/games/black-mesa"
 
 
-def convert(src: Path, dst: Path, ambience: bool):
+def ceiling(group: str, name: str) -> float:
+    """The loudness ceiling for one plant sound."""
+    value = CEILINGS.get(group, ONE_SHOT_CEILING)
+    return value.get(Path(name).stem, ONE_SHOT_CEILING) if isinstance(value, dict) else value
+
+
+def loudness(src: Path) -> float:
+    """Integrated loudness of the mono mix in LUFS; falls back to the mean level for clips too short to gate."""
+    text = subprocess.run(["ffmpeg", "-nostats", "-hide_banner", "-i", str(src),
+                           "-af", "aformat=channel_layouts=mono,ebur128=peak=true,volumedetect", "-f", "null", "-"],
+                          capture_output=True, text=True).stderr
+    summary = text[text.rfind("Summary:"):]
+    match = re.search(r"I:\s+(-?[\d.]+) LUFS", summary) or re.search(r"mean_volume: (-?[\d.]+) dB", text)
+    return float(match.group(1)) if match else 0.0
+
+
+def convert(src: Path, dst: Path, ambience: bool, limit: float | None = None):
     args = ["ffmpeg", "-y", "-v", "error", "-i", str(src)]
     if ambience:
         args += ["-af", "loudnorm=I=-20:TP=-2:LRA=11", "-ar", "44100", "-ac", "2"]
     else:
-        args += ["-ac", "1"]
+        gain = min(0.0, limit - loudness(src)) if limit is not None else 0.0
+        # The downmix has to come first so the limiter sees the summed peak.
+        args += ["-af", f"aformat=channel_layouts=mono,volume={gain:.2f}dB,alimiter=limit=0.79:level=0"]
     args += ["-c:a", "libvorbis", "-q:a", "4", str(dst)]
     subprocess.run(args, check=True)
 
@@ -123,7 +157,7 @@ def main():
         lines = []
         for rel in files:
             name = Path(rel).stem.lower() + ".ogg"
-            convert(source / rel, folder / name, ambience)
+            convert(source / rel, folder / name, ambience, None if ambience else ceiling(group, name))
             lines += [
                 "- files:",
                 f"  - {name}",
