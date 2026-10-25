@@ -29,7 +29,13 @@ public sealed class AerumnaBiomeTest
         "WFFloorAerumnaClayRock",
         "WFFloorAerumnaShroud",
         "WFFloorAerumnaCrystalBed",
+        HiveTile,
     };
+
+    private const string HiveTile = "WFFloorAerumnaHive";
+
+    /// <summary>What the hive lays besides its weeds: resin and eggs, which only ever stand on hive ground.</summary>
+    private static readonly HashSet<string> HiveStructures = new() { "WallXenoResin", "DoorXenoResin", "WFXenoEggWild" };
 
     private static readonly HashSet<string> GiantMushrooms = new()
     {
@@ -93,6 +99,14 @@ public sealed class AerumnaBiomeTest
             var water = 0;
             var ore = 0;
             var fungusDecals = 0;
+            var hiveTiles = 0;
+            var hiveWeeds = 0;
+            var hiveWalls = 0;
+            var hiveDoors = 0;
+            var hiveEggs = 0;
+            var hiveFauna = 0;
+            var wildFauna = 0;
+            var offHive = new HashSet<string>();
             var offWeather = new HashSet<string>();
             var offSet = new HashSet<string>();
             Entity<MapGridComponent>? noGrid = null;
@@ -111,6 +125,9 @@ public sealed class AerumnaBiomeTest
                     offWeather.Add(def.ID);
                 if (!GroundTiles.Contains(def.ID))
                     offSet.Add(def.ID);
+                var onHive = def.ID == HiveTile;
+                if (onHive)
+                    hiveTiles++;
 
                 generator.TryGetEntity(pos, biome.Layers, tile.Value, biome.Seed, noGrid, out var feature);
                 if (feature == null)
@@ -126,6 +143,14 @@ public sealed class AerumnaBiomeTest
                 if (feature == "AuroraAssunzioneBushLucevine") vines++;
                 if (feature == "ShadowTree") shadow++;
                 if (feature != null && Water.Contains(feature)) water++;
+                if (feature == "WFXenoWeedsWild") hiveWeeds++;
+                if (feature == "WallXenoResin") hiveWalls++;
+                if (feature == "DoorXenoResin") hiveDoors++;
+                if (feature == "WFXenoEggWild") hiveEggs++;
+                if (feature == "WFFaunaAerumnaHive") hiveFauna++;
+                if (feature == "WFFaunaAerumna") wildFauna++;
+                if (!onHive && feature != null && (HiveStructures.Contains(feature) || feature is "WFXenoWeedsWild" or "WFFaunaAerumnaHive"))
+                    offHive.Add($"{feature} on {def.ID}");
                 if (feature == "MonoPlanetmapOreChromite") ore++;
                 if (def.ID == "WFFloorAerumnaShroud"
                     && generator.TryGetDecals(pos, biome.Layers, biome.Seed, noGrid, out var decals)
@@ -141,6 +166,9 @@ public sealed class AerumnaBiomeTest
             TestContext.Out.WriteLine($"  giant mushrooms {Pct(giants)}, glowing plants {Pct(glowing)}, boulders {Pct(boulders)}, "
                 + $"crystal spires {Pct(spires)}, pink crystal {Pct(pink)}, root walls {Pct(roots)}, luce-vine {Pct(vines)}, "
                 + $"shadow trees {Pct(shadow)}, water {Pct(water)}, ore {Pct(ore)}, fungus decals {Pct(fungusDecals)}");
+
+            TestContext.Out.WriteLine($"  hive ground {Pct(hiveTiles)} ({hiveTiles} tiles): weeds {hiveWeeds}, resin walls {hiveWalls}, "
+                + $"resin doors {hiveDoors}, eggs {hiveEggs}, hive fauna spawners {hiveFauna} (ordinary {wildFauna})");
 
             using (Assert.EnterMultipleScope())
             {
@@ -168,6 +196,20 @@ public sealed class AerumnaBiomeTest
                 Assert.That(vines, Is.GreaterThan(0), "No luce-vine.");
                 Assert.That(Share(tileCounts.GetValueOrDefault("WFFloorAerumnaCrystalBed")), Is.LessThan(0.1), "Crystal spires are meant to be rare.");
                 Assert.That(Share(roots), Is.LessThan(0.005), "Root walls must stay very sparse.");
+
+                // The hive: a minority region, with every wall, door, egg and weed on its own ground and the xenos thick there.
+                Assert.That(Share(hiveTiles), Is.InRange(0.04, 0.12), "The hive should cover a twentieth to a tenth of the surface.");
+                Assert.That(offHive, Is.Empty, "Hive structures off the hive ground.");
+                Assert.That(hiveWeeds, Is.GreaterThan(0), "The hive has no weeds.");
+                Assert.That(hiveWalls, Is.GreaterThan(0), "The hive has no resin chambers.");
+                Assert.That(hiveDoors, Is.GreaterThan(0), "The hive has no resin doors.");
+                Assert.That(hiveEggs, Is.GreaterThan(0), "The hive has no eggs.");
+                Assert.That(hiveFauna, Is.GreaterThan(0), "The hive has no xenos.");
+                Assert.That((double) hiveWeeds / hiveTiles, Is.GreaterThan(0.5), "The hive ground should be mostly weeds.");
+                Assert.That((double) (hiveWalls + hiveDoors) / hiveTiles, Is.LessThan(0.2), "The hive is too walled to walk through.");
+                Assert.That((double) hiveEggs / hiveTiles, Is.LessThan(0.03), "Eggs must stay sparse.");
+                Assert.That((double) hiveFauna / hiveTiles, Is.GreaterThan((double) wildFauna / (sampled - hiveTiles)),
+                    "The hive should have more xenos than the rest of the planet.");
 
                 // Walkability and the ecology budget.
                 Assert.That(Share(open), Is.GreaterThan(0.6), "Most of the surface should be open.");

@@ -102,6 +102,14 @@ boulder fields lie where the gravity dropped them; pale crystal spires and a few
 chromite ore and fauna are as before. Every Decor Import tile it lays is a `weather: true` child (`WFFloorAerumna*`), so rain falls on
 all of it, and `AerumnaBiomeTest` samples the whole surface for the tile set, each region and the walkable share.
 
+Aerumna is the xenonids' homeworld. About 8% of its surface is hive (`WFAerumnaHive`, laid last so its ground wins where regions
+overlap): dark crust under wild weeds, with small resin chambers (a ring of resin walls with gaps and doors round a floor of weeds and
+eggs), dormant eggs in clusters inside them, and thicker drone, runner and spitter wildlife than the rest of the planet
+(`WFFaunaAerumnaHive`). The wild weeds (`WFXenoWeedsWild`, `_WF/Xenonids/Wild`) never spread and any hive's own weeds replace them. A wild
+egg (`WFXenoEggWild`) comes grown and opens for whoever walks up to it, like any egg, so it is the real infection; it never turns fragile.
+A small hive site, a hive core in a broken ring of resin with eggs and drones about it, is one of Aerumna's
+camps (`WFCampXenoHive` in `WFPoisAerumna`). Mouths to the cavern may open on hive ground but never through a wall, door or egg.
+
 Fervidus is black basalt cut by lava channels. Lava has a crust of cooled ash rock round it (the lava noise at a lower
 threshold), and about a third of the surface is ashfields: ash flats, scrub ground, sparse ash flowers, shrooms, cacti,
 dead scrub and burnt trees, with rare tar and sulfur pools a few tiles across and scattered volcanic rock piles. It

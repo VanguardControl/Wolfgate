@@ -63,6 +63,27 @@
   - type: WFPlanetFaunaSpawner
     table: WFFaunaAerumna
 
+# The hive's own: nothing but xenos, thick on the hive ground.
+- type: entityTable
+  id: WFFaunaAerumnaHive
+  table: !type:GroupSelector
+    children:
+    - id: MobXenoRunner
+      weight: 5
+    - id: MobXenoDrone
+      weight: 4
+    - id: MobXenoSpitter
+      weight: 1
+
+- type: entity
+  id: WFFaunaAerumnaHive
+  parent: MarkerBase
+  name: aerumna hive spawner
+  categories: [HideSpawnMenu]
+  components:
+  - type: WFPlanetFaunaSpawner
+    table: WFFaunaAerumnaHive
+
 - type: entityTable
   id: WFFaunaThrascias
   table: !type:GroupSelector

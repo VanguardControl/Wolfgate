@@ -399,6 +399,9 @@
   - camp: WFCampCrazies
     minCount: 1
     maxCount: 2
+  - camp: WFCampXenoHive
+    minCount: 1
+    maxCount: 1
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4

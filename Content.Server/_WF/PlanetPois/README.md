@@ -101,6 +101,7 @@ station's fuel merchant sells usable fuel items through Traders; it does not ref
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetCampTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetCampTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetHiveCampTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetHiveCampTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiContentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiContentTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiLegacyNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiLegacyNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiNetworkTest.cs)

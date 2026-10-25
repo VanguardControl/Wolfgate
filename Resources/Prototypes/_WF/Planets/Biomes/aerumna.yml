@@ -1,6 +1,6 @@
-# Aerumna: a dark 3 g world that went wrong. Chromite flats and shrouded clay under rain, a fungal forest, boulders
-# the gravity left where they fell, crystal spires and a few overgrown ruins. The pools, ore, fauna and the shadow
-# grove stay in WFShadowClearings (open_biomes.yml), which pulls these regions in.
+# Aerumna: a dark 3 g world that went wrong, and the xenonids' homeworld. Chromite flats and shrouded clay under rain, a
+# fungal forest, boulders the gravity left where they fell, crystal spires, a few overgrown ruins and the hive. The pools,
+# ore, fauna and the shadow grove stay in WFShadowClearings (open_biomes.yml), which pulls these regions in.
 # The Decor Import tiles have no weather, so every tile placed outdoors is a weather child.
 
 - type: tile
@@ -135,3 +135,80 @@
     entities: [GoonSetpiecesRootwall]
     threshold: 0.86
     noise: { seed: 99, noiseType: OpenSimplex2, frequency: 3 }
+
+# The xenonid homeworld's hive: dark crust under wild weeds, with small resin chambers, resin doors and eggs in them.
+# A minority region (WFShadowClearings pulls it in last, so its ground wins where it overlaps the others). Everything it
+# lays stands on the hive ground only; the weeds never spread (WFXenoWeedsWild) and the eggs lie dormant until walked up to.
+- type: tile
+  id: WFFloorAerumnaHive
+  parent: ChompFloorOutdoorsRocksCetus
+  weather: true
+
+- type: biomeTemplate
+  id: WFAerumnaHive
+  layers:
+  - !type:BiomeTileLayer
+    tile: WFFloorAerumnaHive
+    threshold: -1
+  # Wild weeds over most of the ground, thinning out in patches.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaHive]
+    entities: [WFXenoWeedsWild]
+    threshold: -0.55
+    noise: { seed: 120, noiseType: OpenSimplex2, frequency: 0.6 }
+  # More of the hive's drones and runners than anywhere else on the planet.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaHive]
+    entities: [WFFaunaAerumnaHive]
+    threshold: 0.93
+    noise: { seed: 121, noiseType: OpenSimplex2, frequency: 3 }
+  # Small chambers: a ring of resin with gaps and doors round a floor of weeds and eggs.
+  - !type:BiomeMetaLayer
+    template: WFAerumnaHiveChambers
+    threshold: 0.22
+    noise: { seed: 122, noiseType: OpenSimplex2, frequency: 0.08 }
+
+# Every tile of a chamber blob is resin, except where a gap or a door is cut through it and where the blob's heart is a
+# floor. The heart's noise is the blob's own, at a higher threshold.
+- type: biomeTemplate
+  id: WFAerumnaHiveChambers
+  layers:
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaHive]
+    entities: [WallXenoResin]
+    threshold: -1
+    noise: { seed: 123, noiseType: OpenSimplex2, frequency: 1 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaHive]
+    entities: [DoorXenoResin]
+    threshold: 0.82
+    noise: { seed: 124, noiseType: OpenSimplex2, frequency: 0.5 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaHive]
+    entities: [WFXenoWeedsWild]
+    threshold: 0.82
+    noise: { seed: 125, noiseType: OpenSimplex2, frequency: 0.5 }
+  - !type:BiomeMetaLayer
+    template: WFAerumnaHiveInterior
+    threshold: 0.5
+    noise: { seed: 122, noiseType: OpenSimplex2, frequency: 0.08 }
+
+- type: biomeTemplate
+  id: WFAerumnaHiveInterior
+  layers:
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaHive]
+    entities: [WFXenoWeedsWild]
+    threshold: -1
+    noise: { seed: 126, noiseType: OpenSimplex2, frequency: 1 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaHive]
+    entities: [WFFaunaAerumnaHive]
+    threshold: 0.8
+    noise: { seed: 127, noiseType: OpenSimplex2, frequency: 2 }
+  # Egg clusters, one to three eggs together.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorAerumnaHive]
+    entities: [WFXenoEggWild]
+    threshold: 0.84
+    noise: { seed: 128, noiseType: OpenSimplex2, frequency: 0.8 }
