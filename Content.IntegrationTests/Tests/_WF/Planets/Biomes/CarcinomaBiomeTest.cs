@@ -59,6 +59,7 @@ public sealed class CarcinomaBiomeTest
     {
         "WFFaunaCarcinoma", "FleshBlocker", "WallMeat", "WFCarcinomaTendons", "WFCarcinomaAssimilationSack", "WFFleshPustule",
         "WFBloodRiver", "WFBloodOcean", "WFFleshTree", "WFFleshPustuleTree", "WFFleshPolyp", "GoonSetpiecesBloodwall",
+        "WFCarcinomaPimple",
     };
 
     [Test]
