@@ -128,8 +128,9 @@ public sealed class VesselShipyardTest
                 var query = entities.EntityQueryEnumerator<StrapComponent, TransformComponent>();
                 while (query.MoveNext(out var uid, out var strap, out var xform))
                 {
-                    // Folded and stored seats refuse a buckle by design.
-                    if (xform.GridUid == grid.Value.Owner && strap.Enabled && !containers.IsEntityInContainer(uid) &&
+                    // Folded and stored seats refuse a buckle by design. A loose chair (an office chair) can be shoved
+                    // off by the mob seated next to it, so only fixed seats are checked.
+                    if (xform.GridUid == grid.Value.Owner && strap.Enabled && xform.Anchored && !containers.IsEntityInContainer(uid) &&
                         !entities.HasComponent<ShipHarpoonTurretComponent>(uid))
                         straps.Add(uid);
                 }
