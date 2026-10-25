@@ -22,5 +22,8 @@
   components:
   - type: Transform
     anchored: true
+  # Anchored from the start, so it is static from the start too (the prototype checks want them to agree).
+  - type: Physics
+    bodyType: Static
   - type: XenoEgg
     planted: true
