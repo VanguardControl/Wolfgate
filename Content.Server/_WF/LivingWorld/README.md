@@ -15,6 +15,10 @@ builds its plants from them:
 - Carcinoma's `WFCarcinomaPimple` grows sparsely on the surface. When anyone outside the Chimera and aberrant flesh
   factions comes within 2 m it swells for 1.5 s, then bursts for 8 blunt and 7 slash within 1.5 m, leaving 20 u of
   blood and a 4 s tear gas spore cloud. Any hit bursts it at once, so shoot it from afar.
+- Carcinoma's regions have their own life (Resources/Prototypes/_WF/Planets/Life/carcinoma.yml): grasping tendon vines hold a
+  walker for 2 s in the tendon forest, weeping polyps on the scab shores mist blood and a thin toxin, vitae blisters in the
+  marsh give a bead of vitae to a blade, bone piles give bone shards by hand, and meat-fruit bushes in the groves heal and
+  seed a little mould. Bone burrowers, hive spiders, scab slurvas and marsh newborns join the usual flesh wildlife.
 - Black Mesa sounds (`Tools/_WF/LivingWorld/import_bms.py`): plant sounds as `WFFlora*` sound collections in
   `sounds.yml`, and Xen and Black Mesa beds and accents added to every world's ambience in
   `Resources/Prototypes/_WF/Planets/planet_ambience.yml`.

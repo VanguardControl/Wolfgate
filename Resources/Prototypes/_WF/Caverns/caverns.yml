@@ -150,7 +150,7 @@
     roughness: 0.45
     cellSize: 80
     groundTiles: [WFFloorFlesh]
-    avoid: [WFBloodRiver, WallMeat, GoonSetpiecesHive, ChompResin, PolarisResin, GoonSetpiecesBloodwall, CoyoteChompBonesLrock, CoyoteChompBonesLrock2, CoyoteChompBonesLrock4, WFCarcinomaPimple]
+    avoid: [WFBloodRiver, WallMeat, GoonSetpiecesHive, ChompResin, PolarisResin, GoonSetpiecesBloodwall, CoyoteChompBonesLrock, CoyoteChompBonesLrock2, CoyoteChompBonesLrock4, WFCarcinomaPimple, WFCarcinomaTendonVine, WFCarcinomaWeepingPolyp]
     landingTile: WFCavernFloorGut
     shade: WFCavernShadeCarcinoma
     climbPoint: WFCavernClimbCarcinoma
