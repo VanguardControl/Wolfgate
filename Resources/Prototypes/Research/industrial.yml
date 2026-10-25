@@ -246,6 +246,10 @@
   - OreBagOfHolding
   - MiningDrillDiamond
   - ShipDrillMachineCircuitboard
+  # WOLFGATE(AsteroidMining) START: mining laser and mining beam console boards
+  - WFWeaponTurretMiningBeamCircuitboard
+  - WFMiningBeamComputerCircuitboard
+  # WOLFGATE END
   - AdvancedMineralScannerEmpty
   - NFBlueprintOreBagOfHolding # Frontier
   - NFBlueprintMiningDrillDiamond # Frontier

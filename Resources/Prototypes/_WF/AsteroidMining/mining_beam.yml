@@ -1,0 +1,185 @@
+# A heavy energy ship gun in the family of the M25 and Apollo. The gunnery console aims and fires it; its pulses heat
+# asteroids instead of damaging them, at the power set on a mining beam console.
+- type: entity
+  id: WFWeaponTurretMiningBeam
+  name: M40 Prospector mining laser
+  parent:
+  - BallisticArtillery
+  - BallisticArtilleryTier2HP
+  - ConstructibleMachine
+  description: A focused mining laser with a spinning emitter fork. Hold it on an asteroid to heat the rock until it cracks; a mining beam console shows the rock's heat and sets the laser's power. It barely scratches anything else.
+  components:
+  - type: StaticPrice
+    price: 6000
+  - type: Sprite
+    sprite: _WF/AsteroidMining/Structures/mining_beam.rsi
+    layers:
+    - state: space_artillery
+      map: [ "enum.WFMiningBeamVisualLayers.Base" ]
+  - type: Appearance
+  - type: AmmoCounter
+  - type: Battery
+    maxCharge: 3000
+    startingCharge: 3000
+  - type: ExaminableBattery
+  - type: BatterySelfRecharger
+    autoRecharge: true
+    autoRechargeRate: 300
+  - type: WirelessNetworkConnection
+    range: 500
+  - type: FireControlRotate
+  - type: Gun
+    fireRate: 10
+    recoil: 0
+    minAngle: 0
+    maxAngle: 0
+    shootThermalSignature: 20000
+    soundGunshot: null
+    soundEmpty:
+      path: /Audio/Weapons/Guns/EmptyAlarm/smg_empty_alarm.ogg
+  - type: SpaceArtillery
+    powerChargeRate: 300
+    powerUsePassive: 500
+    powerUseActive: 0
+  - type: Actions
+  - type: HitscanBatteryAmmoProvider
+    proto: WFMiningBeamPulse
+    fireCost: 25
+  - type: Machine
+    board: WFWeaponTurretMiningBeamCircuitboard
+  - type: ContainerContainer
+    containers:
+      machine_board: !type:Container
+      machine_parts: !type:Container
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.75,-0.75,0.75,0.75"
+        density: 1500
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
+  - type: RadarBlip
+    radarColor: "#ffb347"
+    scale: 1.5
+    visibleFromOtherGrids: true
+    gridConfig:
+      color: "#ffb347"
+      shape: Square
+      respectZoom: true
+      rotate: true
+      bounds: "-1,-1,1,1"
+  - type: ShipGunType
+    shipType: Energy
+  - type: ShipGunClass
+    shipClass: Light
+  - type: ShipRepairable
+    repairTime: 15
+    repairCost: 40
+  - type: HardpointAnchorableOnly
+    class: Energy
+    size: Heavy
+  - type: WFMiningBeamEmitter
+
+# One pulse of the mining laser. It draws no flash of its own; the beam overlay draws the laser.
+- type: entity
+  id: WFMiningBeamPulse
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: HitscanAmmo
+  - type: HitscanBasicRaycast
+    maxDistance: 60
+  - type: HitscanRadarSignature
+    radarColor: "#ffb347"
+  # Enough to break boulders and tile rock through gathering; rocks it heats are taken out of the hit list first.
+  - type: HitscanBasicDamage
+    damage:
+      types:
+        Heat: 1
+        Structural: 1
+  - type: HitscanGathering
+  - type: WFMiningPulse
+
+- type: entity
+  id: WFWeaponTurretMiningBeamCircuitboard
+  parent: BaseMachineCircuitboard
+  name: M40 Prospector mining laser machine board
+  description: A machine printed circuit board for an M40 Prospector mining laser.
+  suffix: Machine Board
+  components:
+  - type: Sprite
+    state: supply
+  - type: MachineBoard
+    prototype: WFWeaponTurretMiningBeam
+    requirements:
+      MatterBin: 2
+      Manipulator: 4
+    stackRequirements:
+      Steel: 10
+      Plasma: 5
+      CableHV: 2
+    tagRequirements:
+      MicroprocessorEconomy1:
+        amount: 2
+        defaultPrototype: MicroprocessorEconomy1
+      MotorEconomy1:
+        amount: 1
+        defaultPrototype: MotorEconomy1
+
+- type: latheRecipe
+  parent: BaseGoldCircuitboardRecipe
+  id: WFWeaponTurretMiningBeamCircuitboard
+  result: WFWeaponTurretMiningBeamCircuitboard
+
+- type: entity
+  parent: BaseComputer
+  id: WFComputerMiningBeam
+  name: mining beam console
+  description: Scans nearby asteroids and sets the power of this vessel's mining lasers. The charge meter shows the rock's heat, its cracking window and where the laser's power will settle it.
+  components:
+  - type: WFMiningBeamConsole
+  - type: Computer
+    board: WFMiningBeamComputerCircuitboard
+  - type: ApcPowerReceiver
+    powerLoad: 200
+  - type: Sprite
+    layers:
+    - map: [ "computerLayerBody" ]
+      state: computer
+    - map: [ "computerLayerKeyboard" ]
+      state: generic_keyboard
+    - map: [ "computerLayerScreen" ]
+      state: mining
+    - map: [ "computerLayerKeys" ]
+      state: mining_key
+    - map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
+      state: generic_panel_open
+  - type: ActivatableUI
+    key: enum.WFMiningBeamUiKey.Key
+  - type: UserInterface
+    interfaces:
+      enum.WFMiningBeamUiKey.Key:
+        type: WFMiningBeamConsoleBoundUserInterface
+      enum.WiresUiKey.Key:
+        type: WiresBoundUserInterface
+  - type: PointLight
+    color: "#e6a23c"
+
+- type: entity
+  parent: BaseComputerCircuitboard
+  id: WFMiningBeamComputerCircuitboard
+  name: mining beam console board
+  description: A computer printed circuit board for a mining beam console.
+  components:
+  - type: Sprite
+    state: cpu_supply
+  - type: ComputerBoard
+    prototype: WFComputerMiningBeam
+
+- type: latheRecipe
+  parent: BaseCircuitboardRecipe
+  id: WFMiningBeamComputerCircuitboard
+  result: WFMiningBeamComputerCircuitboard

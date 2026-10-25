@@ -1,0 +1,333 @@
+# Each asteroid is a grid of invisible tiles, which gives it ship collisions, radar, FTL clearance and tractor beam
+# support, with one rock entity anchored at its centre that holds the sprite, the ore and the heat.
+# Rock mass is in ore veins, inert rock included; it matches the rock count of the tile asteroids it replaces.
+
+# region Rocks
+- type: entity
+  id: WFAsteroidRockBase
+  abstract: true
+  name: asteroid
+  description: A drifting rock. A mining beam console shows what it holds.
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Transform
+    anchored: true
+    noRot: false
+  - type: Clickable
+  - type: InteractionOutline
+  - type: Physics
+    bodyType: Static
+  - type: Damageable
+    damageContainer: Inorganic
+    damageModifierSet: Metallic
+  - type: RangedDamageSound
+    soundGroups:
+      Brute:
+        collection: WFBulletImpactConcrete
+  - type: PointLight
+    enabled: false
+    energy: 0
+    color: "#ff8a30"
+    castShadows: false
+  - type: Sprite
+    drawdepth: Walls
+    layers:
+    - state: rock0
+      map: [ "enum.WFAsteroidVisualLayers.Rock" ]
+    - state: veins0
+      map: [ "enum.WFAsteroidVisualLayers.Veins" ]
+    - state: heat0
+      map: [ "enum.WFAsteroidVisualLayers.Heat" ]
+      shader: WFAdditiveUnshaded
+      color: "#00000000"
+
+- type: entity
+  parent: WFAsteroidRockBase
+  id: WFAsteroidRockSmall
+  name: small asteroid
+  components:
+  - type: Sprite
+    sprite: _WF/AsteroidMining/Asteroids/asteroid_small.rsi
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 1.6
+        density: 2000
+        mask:
+        - FullTileMask
+        layer:
+        - WallLayer
+  - type: PointLight
+    radius: 4
+  - type: WFAsteroid
+    radius: 2
+    minMass: 12
+    maxMass: 18
+    boulderPrototype: WFAsteroidBoulder
+    shatterDamage: 400
+    crackTimeBase: 3
+
+- type: entity
+  parent: WFAsteroidRockBase
+  id: WFAsteroidRockMedium
+  name: medium asteroid
+  components:
+  - type: Sprite
+    sprite: _WF/AsteroidMining/Asteroids/asteroid_medium.rsi
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 2.4
+        density: 2000
+        mask:
+        - FullTileMask
+        layer:
+        - WallLayer
+  - type: PointLight
+    radius: 6
+  - type: WFAsteroid
+    radius: 3
+    minMass: 28
+    maxMass: 40
+    boulderPrototype: WFAsteroidBoulder
+    shatterDamage: 900
+    resistanceBonus: 0.03
+
+- type: entity
+  parent: WFAsteroidRockBase
+  id: WFAsteroidRockLarge
+  name: large asteroid
+  components:
+  - type: Sprite
+    sprite: _WF/AsteroidMining/Asteroids/asteroid_large.rsi
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 4
+        density: 2000
+        mask:
+        - FullTileMask
+        layer:
+        - WallLayer
+  - type: PointLight
+    radius: 9
+  - type: WFAsteroid
+    radius: 5
+    minMass: 65
+    maxMass: 90
+    fragmentPrototype: WFAsteroidMedium
+    fragmentCount: 2
+    fragmentShare: 0.5
+    boulderPrototype: WFAsteroidBoulder
+    shatterDamage: 2400
+    resistanceBonus: 0.07
+
+- type: entity
+  parent: WFAsteroidRockBase
+  id: WFAsteroidRockHuge
+  name: huge asteroid
+  components:
+  - type: Sprite
+    sprite: _WF/AsteroidMining/Asteroids/asteroid_huge.rsi
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 5.6
+        density: 2000
+        mask:
+        - FullTileMask
+        layer:
+        - WallLayer
+  - type: PointLight
+    radius: 12
+  - type: WFAsteroid
+    radius: 7
+    minMass: 130
+    maxMass: 180
+    fragmentPrototype: WFAsteroidLarge
+    fragmentCount: 2
+    fragmentShare: 0.6
+    boulderPrototype: WFAsteroidBoulder
+    shatterDamage: 5000
+    resistanceBonus: 0.12
+
+# A loose chunk for hand miners: pull it aboard, then break it with a pickaxe, drill or kinetic accelerator.
+- type: entity
+  parent: WFAsteroidRockBase
+  id: WFAsteroidBoulder
+  name: asteroid boulder
+  description: A chunk broken off an asteroid. Pull it aboard and break it open with a pickaxe or drill, or crack it with a mining beam.
+  placement:
+    mode: PlaceFree
+  components:
+  - type: Transform
+    anchored: false
+  - type: Physics
+    bodyType: Dynamic
+  - type: Fixtures
+    fixtures:
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.4
+        density: 150
+        mask:
+        - MachineMask
+        layer:
+        - MidImpassable
+        - LowImpassable
+  - type: Pullable
+  - type: Sprite
+    sprite: _WF/AsteroidMining/Asteroids/boulder.rsi
+    drawdepth: Objects
+  - type: PointLight
+    radius: 1.5
+  - type: SoundOnGather
+  - type: Gatherable
+    toolWhitelist:
+      tags:
+      - Pickaxe
+      components:
+      - MiningGatheringHard
+      - MiningGatheringSoft
+  - type: WFAsteroid
+    radius: 0.45
+    minMass: 2
+    maxMass: 4
+    shatterDamage: 80
+    crackTimeBase: 1.5
+# endregion
+
+# region Grids
+- type: entity
+  id: WFAsteroidGridBase
+  abstract: true
+  name: asteroid
+  components:
+  - type: MapGrid
+  - type: LinkedLifecycleGridParent
+  - type: GCAbleObject
+    queue: SpaceDebris
+  - type: ProtectedGrid
+    preventFloorRemoval: true
+    preventFloorPlacement: true
+    preventRCDUse: true
+    preventArtifactTriggers: true
+  - type: IFF
+    flags: HideLabel, HideLabelAlways, AlwaysShowColor
+    color: "#d67e27"
+  - type: DetectedAtRangeMultiplier
+    visualBias: 1024
+
+- type: entity
+  parent: WFAsteroidGridBase
+  id: WFAsteroidSmall
+  suffix: Small
+  components:
+  - type: WFAsteroidGrid
+    rock: WFAsteroidRockSmall
+
+- type: entity
+  parent: WFAsteroidGridBase
+  id: WFAsteroidMedium
+  suffix: Medium
+  components:
+  - type: WFAsteroidGrid
+    rock: WFAsteroidRockMedium
+
+- type: entity
+  parent: WFAsteroidGridBase
+  id: WFAsteroidLarge
+  suffix: Large
+  components:
+  - type: WFAsteroidGrid
+    rock: WFAsteroidRockLarge
+
+- type: entity
+  parent: WFAsteroidGridBase
+  id: WFAsteroidHuge
+  suffix: Huge
+  components:
+  - type: WFAsteroidGrid
+    rock: WFAsteroidRockHuge
+# endregion
+
+# region Clusters
+# Worldgen swaps each ore tile asteroid for one of these (see replacement.yml). It fills its mass budget with rocks
+# of its kind, biggest first, then removes itself. Spawned by hand it fills the default budget.
+- type: entity
+  id: WFAsteroidClusterBase
+  abstract: true
+  name: asteroid cluster
+  description: Fills itself with asteroids of its kind, then disappears.
+  placement:
+    mode: PlaceFree
+  components:
+  - type: Sprite
+    sprite: Markers/cross.rsi
+    state: green
+  - type: WFAsteroidCluster
+    composition: WFAsteroidRock
+    sizes:
+      WFAsteroidSmall: 2
+      WFAsteroidMedium: 3
+      WFAsteroidLarge: 3
+      WFAsteroidHuge: 1
+
+- type: entity
+  parent: WFAsteroidClusterBase
+  id: WFAsteroidClusterRock
+  suffix: Rock
+  components:
+  - type: WFAsteroidCluster
+    composition: WFAsteroidRock
+
+- type: entity
+  parent: WFAsteroidClusterBase
+  id: WFAsteroidClusterIce
+  suffix: Ice
+  components:
+  - type: WFAsteroidCluster
+    composition: WFAsteroidIce
+
+- type: entity
+  parent: WFAsteroidClusterBase
+  id: WFAsteroidClusterBasalt
+  suffix: Basalt
+  components:
+  - type: WFAsteroidCluster
+    composition: WFAsteroidBasalt
+
+- type: entity
+  parent: WFAsteroidClusterBase
+  id: WFAsteroidClusterSand
+  suffix: Sand
+  components:
+  - type: WFAsteroidCluster
+    composition: WFAsteroidSand
+
+- type: entity
+  parent: WFAsteroidClusterBase
+  id: WFAsteroidClusterChromite
+  suffix: Chromite
+  components:
+  - type: WFAsteroidCluster
+    composition: WFAsteroidChromite
+
+- type: entity
+  parent: WFAsteroidClusterBase
+  id: WFAsteroidClusterAndesite
+  suffix: Andesite
+  components:
+  - type: WFAsteroidCluster
+    composition: WFAsteroidAndesite
+# endregion
