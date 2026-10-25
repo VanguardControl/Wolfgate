@@ -11,6 +11,10 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - per-instance cache; a static one leaked entity ids between pooled test clients and tripped SetAuxiliary's assert
   - also rebuild a blank auxiliary that a client state reset deleted
   - a client state reset can delete cached entities without a round restart; rebuild those
+- [`Content.Client/_Mono/Blocking/BlockingVisualsSystem.cs`](../../Content.Client/_Mono/Blocking/BlockingVisualsSystem.cs)
+  - post-shader flags are set through SpriteSystem since engine 291
+  - engine 291 ignores the sprite-wide GetScreenTexture/RaiseShaderEvent; they are per post-shader now
+- [`Content.Client/_Mono/Tiles/TileEntityShaderSystem.cs`](../../Content.Client/_Mono/Tiles/TileEntityShaderSystem.cs): engine 291 ignores the sprite-wide RaiseShaderEvent; it is per post-shader now
 - [`Content.Client/CharacterInfo/CharacterInfoSystem.cs`](../../Content.Client/CharacterInfo/CharacterInfoSystem.cs)
   - replays skip the character info request
   - Replay spectators have a local entity but no server to answer this request.
@@ -19,6 +23,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - replays skip the guidebook data request
   - partial for the network dependency
   - replay playback starts these systems without a server connection
+- [`Content.Client/Holopad/HolopadSystem.cs`](../../Content.Client/Holopad/HolopadSystem.cs)
+  - post-shader flags are set through SpriteSystem since engine 291
+  - engine 291 ignores the sprite-wide RaiseShaderEvent; it is per post-shader now
 - [`Content.Client/Lobby/LobbyUIController.cs`](../../Content.Client/Lobby/LobbyUIController.cs): unknown species falls back to the default
 - [`Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs`](../../Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs)
   - logs characters that can't be previewed
@@ -26,6 +33,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs`](../../Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs)
   - v291 Box2 asserts on inverted corners in debug builds; order them
   - batch radar edges so huge grids don't overflow the game thread stack
+- [`Content.Client/Stealth/StealthSystem.cs`](../../Content.Client/Stealth/StealthSystem.cs)
+  - post-shader flags are set through SpriteSystem since engine 291
+  - engine 291 ignores the sprite-wide GetScreenTexture/RaiseShaderEvent; they are per post-shader now
 - [`Content.Client/UserInterface/Systems/Admin/AdminUIController.cs`](../../Content.Client/UserInterface/Systems/Admin/AdminUIController.cs): a HUD layout swap rebuilds the button visible
 - [`Content.Client/UserInterface/Systems/Chat/ChatUIController.cs`](../../Content.Client/UserInterface/Systems/Chat/ChatUIController.cs): an unlimited check warns when the eye lags a long teleport
 - [`Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs`](../../Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs): Replay seeks and filter changes rebuild the output from scratch.
