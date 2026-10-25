@@ -123,7 +123,7 @@ public sealed partial class WFMappingLinkOverlay : Overlay
         if (along.LengthSquared() > 0.0001f)
         {
             var side = Vector2.Normalize(new Vector2(-along.Y, along.X)) * (LineWidth / 2f);
-            Span<Vector2> quad = stackalloc Vector2[4] { a + side, b + side, a - side, b - side };
+            var quad = new[] { a + side, b + side, a - side, b - side };
             handle.DrawPrimitives(DrawPrimitiveTopology.TriangleStrip, quad, color);
         }
 
