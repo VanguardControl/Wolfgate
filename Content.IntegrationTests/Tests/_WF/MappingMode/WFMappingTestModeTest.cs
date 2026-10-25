@@ -1,6 +1,8 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
+using Content.Client._WF.MappingMode;
+using Content.Client._WF.MappingMode.Screen;
 using Content.Server._WF.MappingMode;
 using Content.Server._WF.MappingMode.Test;
 using Content.Server._WF.MappingTools;
@@ -13,6 +15,7 @@ using Content.Shared.Humanoid;
 using Content.Shared.Preferences;
 using Content.Shared.Radio;
 using Robust.Server.GameObjects;
+using Robust.Client.UserInterface;
 using Robust.Shared.ContentPack;
 using Robust.Shared.Enums;
 using Robust.Shared.GameObjects;
@@ -300,6 +303,85 @@ public sealed class WFMappingTestModeTest
             }
         });
 
+        await Disable(pair);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// The real client goes from the mapping observer to the test character and back: the mapping screen must leave
+    /// and return without the client reloading its screen inside the attach events, which double-loads the hands UI
+    /// and trips its assert.
+    /// </summary>
+    [Test]
+    public async Task ClientSwitchesScreens()
+    {
+        await using var pair = await PoolManager.GetServerClient(Settings);
+        var server = pair.Server;
+        var client = pair.Client;
+        var entMan = server.EntMan;
+        var mapping = entMan.System<WFMappingModeSystem>();
+        var testing = entMan.System<WFMappingTestSystem>();
+        var mapSys = entMan.System<MapSystem>();
+        var tileDefs = server.ResolveDependency<ITileDefinitionManager>();
+        var clientSys = client.EntMan.System<WFMappingClientSystem>();
+        var uiMan = client.ResolveDependency<IUserInterfaceManager>();
+        await Enable(pair);
+        var player = pair.Player!;
+
+        await client.WaitPost(() => clientSys.Send(new WFMappingCreateRequest(MapName)));
+        for (var i = 0; i < 100 && uiMan.ActiveScreen is not WFMappingScreen; i++)
+        {
+            await pair.RunTicksSync(1);
+        }
+
+        await pair.RunTicksSync(5);
+        Assert.That(uiMan.ActiveScreen, Is.TypeOf<WFMappingScreen>(), "The client sits on the mapping screen.");
+
+        WFMappingSession session = default!;
+        await server.WaitAssertion(() =>
+        {
+            server.CfgMan.SetCVar(WFMappingModeCVars.TestCooldown, 0f);
+            Assert.That(mapping.TryGetPresent(player, out var present), Is.True);
+            session = present!;
+            var grid = mapSys.CreateGridEntity(entMan.GetComponent<MapComponent>(session.RootMap).MapId);
+            mapSys.SetTile(grid, grid.Comp, new Vector2i(0, 0), new Tile(tileDefs["Plating"].TileId));
+        });
+
+        // Started from the server, so the stop request below still has the start/stop throttle's one token.
+        await pair.RunTicksSync(5);
+        await server.WaitAssertion(() => Assert.That(testing.TryStart(player), Is.True, "The test should start."));
+        await pair.RunTicksSync(30);
+
+        await client.WaitAssertion(() =>
+        {
+            var local = client.AttachedEntity;
+            Assert.That(local, Is.Not.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(client.EntMan.HasComponent<WFMappingTesterComponent>(local!.Value), "The client is on the tester.");
+                Assert.That(clientSys.SetUp, Is.False);
+                Assert.That(uiMan.ActiveScreen, Is.Not.TypeOf<WFMappingScreen>(), "The gameplay screen is up for the test.");
+            });
+        });
+
+        await server.WaitAssertion(() => Assert.That(mapping.IsTesting(player), Is.True));
+        await client.WaitPost(() => clientSys.Send(new WFMappingTestStopRequest(false)));
+        await pair.RunTicksSync(30);
+
+        await client.WaitAssertion(() =>
+        {
+            var local = client.AttachedEntity;
+            Assert.That(local, Is.Not.Null);
+            Assert.Multiple(() =>
+            {
+                Assert.That(client.EntMan.HasComponent<WFMappingObserverComponent>(local!.Value), "Back on the observer.");
+                Assert.That(clientSys.SetUp, Is.True);
+                Assert.That(uiMan.ActiveScreen, Is.TypeOf<WFMappingScreen>(), "The mapping screen is back.");
+            });
+        });
+
+        await server.WaitPost(() => mapping.CloseSession(session, autosave: false));
+        await pair.RunTicksSync(5);
         await Disable(pair);
         await pair.CleanReturnAsync();
     }
