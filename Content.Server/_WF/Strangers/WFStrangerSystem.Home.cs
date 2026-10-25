@@ -129,7 +129,7 @@ public sealed partial class WFStrangerSystem
             var tile = Vector2.Transform(spot, inverse).Floored();
             if (_maps.GetTileRef(grid, gridComp, tile).Tile.IsEmpty || _maps.GetAnchoredEntitiesEnumerator(grid, gridComp, tile).MoveNext(out _))
                 continue;
-            _steering.Register(ent, new EntityCoordinates(grid, (Vector2) tile + new Vector2(0.5f)));
+            Walk(ent, new EntityCoordinates(grid, (Vector2) tile + new Vector2(0.5f)));
             return;
         }
     }

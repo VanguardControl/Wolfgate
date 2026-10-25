@@ -4,6 +4,7 @@ using Content.Server._NF.Bank;
 using Content.Server._WF.Planets.Bounds;
 using Content.Server._WF.Vehicles.Npc;
 using Content.Server.Chat.Systems;
+using Content.Server.NPC.Components;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC.Systems;
 using Content.Server.Shuttles.Components;
@@ -217,7 +218,7 @@ public sealed partial class WFStrangerSystem : EntitySystem
 
         if (home is { } place2)
             Greet(ent, place2, mark, now);
-        _steering.Register(ent, Transform(mark).Coordinates);
+        Walk(ent, Transform(mark).Coordinates);
     }
 
     /// <summary>Somebody he hasn't finished with yet: alive, a player, in sight, and within a resident's leash.</summary>
@@ -252,6 +253,17 @@ public sealed partial class WFStrangerSystem : EntitySystem
             bestDistance = distance;
         }
         return best;
+    }
+
+    /// <summary>
+    /// Sets off for <paramref name="to"/>. Steering that has given up (no path, as when it asked before the grid's
+    /// pathfinding chunks were built) never retries the same coordinates, so it is dropped and asked again.
+    /// </summary>
+    private void Walk(EntityUid ent, EntityCoordinates to)
+    {
+        if (TryComp(ent, out NPCSteeringComponent? steering) && steering.Status == SteeringStatus.NoPath)
+            _steering.Unregister(ent, steering);
+        _steering.Register(ent, to);
     }
 
     private bool Near(EntityUid a, EntityUid b, float range)
@@ -553,9 +565,9 @@ public sealed partial class WFStrangerSystem : EntitySystem
         var there = _transform.GetWorldPosition(markXform);
         var distance = Vector2.Distance(here, there);
         if (distance > stranger.StalkFar)
-            _steering.Register(ent, markXform.Coordinates);
+            Walk(ent, markXform.Coordinates);
         else if (distance < stranger.StalkNear && distance > 0.01f)
-            _steering.Register(ent, new EntityCoordinates(xform.MapUid!.Value, here + (here - there) / distance * 2f));
+            Walk(ent, new EntityCoordinates(xform.MapUid!.Value, here + (here - there) / distance * 2f));
         else
             _steering.Unregister(ent);
 

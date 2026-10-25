@@ -64,6 +64,17 @@ public sealed class StrangerTest
         }
     }
 
+    /// <summary>Why a stranger may not have reached someone: his steering state and how far off he still is.</summary>
+    private static string Stuck(TestPair pair, EntityUid npc, EntityUid target)
+    {
+        var entMan = pair.Server.EntMan;
+        var xforms = pair.Server.System<SharedTransformSystem>();
+        var status = entMan.TryGetComponent(npc, out Content.Server.NPC.Components.NPCSteeringComponent? steering) ? steering.Status.ToString() : "unregistered";
+        var mover = entMan.TryGetComponent(npc, out Content.Shared.Movement.Components.InputMoverComponent? input) && input.CanMove;
+        return $"steering {status}, can move {mover}, awake {entMan.HasComponent<Content.Shared.NPC.ActiveNPCComponent>(npc)}, "
+               + $"{System.Numerics.Vector2.Distance(xforms.GetWorldPosition(npc), xforms.GetWorldPosition(target)):0.0} tiles off";
+    }
+
     [Test]
     public async Task TheDealerHailsAndTurnsOnYouWhenRefused()
     {
@@ -191,7 +202,7 @@ public sealed class StrangerTest
             var other = entMan.GetComponent<WFStrangerComponent>(beggar);
             Assert.That(stranger.Home, Is.Not.Null, "Spawned in the camp, it should be his home.");
             Assert.That(stranger.Target, Is.EqualTo(player), "The nearest camper should go out to meet the visitor.");
-            Assert.That(stranger.Hailed, Is.True, "He should walk up and hail them.");
+            Assert.That(stranger.Hailed, Is.True, $"He should walk up and hail them: {Stuck(pair, mugger, player)}.");
             Assert.That(stranger.Hostile, Is.False, "Meeting a visitor isn't a fight.");
             Assert.That(Greeted(stranger, player), Is.True, "He should greet them on his way over.");
             Assert.That(other.Target, Is.Null, "Only one camper takes a visitor at a time.");
@@ -237,7 +248,7 @@ public sealed class StrangerTest
         await server.WaitAssertion(() =>
         {
             var stranger = entMan.GetComponent<WFStrangerComponent>(talker);
-            Assert.That(stranger.Hailed, Is.True, "He never hailed the visitor.");
+            Assert.That(stranger.Hailed, Is.True, $"He never hailed the visitor: {Stuck(pair, talker, player)}.");
             Assert.That(entMan.GetComponent<WFStrangerComponent>(mate).Hostile, Is.False, "Not before the talk goes wrong.");
 
             strangers.StartConversation((talker, stranger), player);
@@ -269,7 +280,7 @@ public sealed class StrangerTest
         await server.WaitAssertion(() =>
         {
             var stranger = entMan.GetComponent<WFStrangerComponent>(beggar);
-            Assert.That(stranger.Hailed, Is.True, "He never hailed the visitor.");
+            Assert.That(stranger.Hailed, Is.True, $"He never hailed the visitor: {Stuck(pair, beggar, player)}.");
             radius = entMan.GetComponent<WFStrangerHomeComponent>(stranger.Home!.Value).Radius;
             Assert.That(Distance(), Is.GreaterThan(radius), "He should have come out of the camp to meet them.");
 
