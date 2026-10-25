@@ -12,6 +12,10 @@ public sealed partial class WFAsteroidClusterComponent : Component
 {
     [DataField(required: true)] public ProtoId<WFAsteroidCompositionPrototype> Composition;
 
+    /// <summary>A rich kind that each rock rolls instead, at <see cref="RareChance"/>.</summary>
+    [DataField] public ProtoId<WFAsteroidCompositionPrototype>? RareComposition;
+    [DataField] public float RareChance;
+
     /// <summary>Total rock mass to spawn, in ore veins including inert rock. Worldgen replaces it per swapped asteroid.</summary>
     [DataField] public float Mass = 300f;
 

@@ -22,6 +22,15 @@ public sealed partial class WFAsteroidCompositionPrototype : IPrototype
     [DataField] public float MaxResistance = 0.35f;
     [DataField] public float MinInstability = 0.1f;
     [DataField] public float MaxInstability = 0.5f;
+
+    /// <summary>Tint of the rock body, for kinds that should stand out from plain rock.</summary>
+    [DataField] public Color RockColor = Color.White;
+
+    /// <summary>Name for rocks of this kind, given the rock's own name as <c>$name</c>.</summary>
+    [DataField] public LocId? Name;
+
+    /// <summary>An extra examine line for rocks of this kind.</summary>
+    [DataField] public LocId? Examine;
 }
 
 [DataDefinition]

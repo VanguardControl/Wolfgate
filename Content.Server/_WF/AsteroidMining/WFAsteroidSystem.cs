@@ -48,6 +48,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     [Dependency] private ExplosionSystem _explosion = default!;
     [Dependency] private DebrisFeaturePlacerSystem _debris = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private MetaDataSystem _meta = default!;
 
     private static readonly EntProtoId CrackEffect = "WFAsteroidCrackEffect";
 
@@ -174,7 +175,16 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         comp.Resistance = Math.Clamp(_random.NextFloat(proto.MinResistance, proto.MaxResistance) + comp.ResistanceBonus, 0f, 0.9f);
         comp.Instability = _random.NextFloat(proto.MinInstability, proto.MaxInstability);
         RollWindow(comp);
+        ApplyKind(rock, comp, proto);
         Dirty(rock, comp);
+    }
+
+    /// <summary>Gives a rock its kind's tint and name.</summary>
+    private void ApplyKind(EntityUid rock, WFAsteroidComponent comp, WFAsteroidCompositionPrototype proto)
+    {
+        comp.RockColor = proto.RockColor;
+        if (proto.Name is { } name)
+            _meta.SetEntityName(rock, Loc.GetString(name, ("name", MetaData(rock).EntityPrototype?.Name ?? Name(rock))));
     }
 
     private WFAsteroidCompositionEntry PickWeighted(List<WFAsteroidCompositionEntry> pool)
@@ -211,6 +221,8 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         comp.Resistance = Math.Clamp(parent.Resistance - parent.ResistanceBonus + comp.ResistanceBonus, 0f, 0.9f);
         comp.Instability = parent.Instability;
         RollWindow(comp);
+        if (_proto.TryIndex(parent.CompositionId, out var proto))
+            ApplyKind(child, comp, proto);
         Dirty(child, comp);
     }
 
@@ -222,8 +234,12 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
     private void OnExamined(Entity<WFAsteroidComponent> ent, ref ExaminedEvent args)
     {
-        if (args.IsInDetailsRange)
-            args.PushMarkup(Loc.GetString("wf-asteroid-examine-scan"));
+        if (!args.IsInDetailsRange)
+            return;
+
+        if (_proto.TryIndex(ent.Comp.CompositionId, out var proto) && proto.Examine is { } examine)
+            args.PushMarkup(Loc.GetString(examine));
+        args.PushMarkup(Loc.GetString("wf-asteroid-examine-scan"));
     }
 
     /// <summary>The share of the window time a rock needs to crack.</summary>
@@ -493,7 +509,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         }
     }
 
-    /// <summary>Places the biggest rock the budget allows at the centre, then smaller ones around it until it runs out.</summary>
+    /// <summary>Scatters rocks by the cluster's size weights around its centre until the budget runs out.</summary>
     private void FillCluster(EntityUid marker, WFAsteroidClusterComponent cluster)
     {
         var xform = Transform(marker);
@@ -520,7 +536,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         var first = true;
         for (var attempt = 0; attempt < 60 && remaining >= smallest * 0.5f; attempt++)
         {
-            var size = first ? Largest(sizes, MathF.Max(budget * 0.5f, smallest)) : PickSize(sizes, remaining);
+            var size = PickSize(sizes, remaining);
             var position = first
                 ? center.Position
                 : center.Position + _random.NextAngle().ToVec() * spread * MathF.Sqrt(_random.NextFloat());
@@ -533,7 +549,10 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             if (TryComp<WFAsteroidGridComponent>(spawned, out var spawnedGrid) && spawnedGrid.RockUid is { } rock &&
                 TryComp<WFAsteroidComponent>(rock, out var rockComp))
             {
-                Roll(rock, cluster.Composition, rockComp);
+                var composition = cluster.RareComposition is { } rare && _random.Prob(cluster.RareChance)
+                    ? rare
+                    : cluster.Composition;
+                Roll(rock, composition, rockComp);
                 // The last rock takes what is left rather than overshooting the budget.
                 rockComp.Mass = MathF.Min(rockComp.Mass, MathF.Max(remaining, smallest * 0.5f));
                 remaining -= rockComp.Mass;
@@ -545,18 +564,6 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     }
 
     private readonly record struct ClusterSize(EntProtoId Grid, float Weight, float Mass, float Radius);
-
-    private static ClusterSize Largest(List<ClusterSize> sizes, float mass)
-    {
-        var best = sizes[0];
-        foreach (var size in sizes)
-        {
-            if (size.Mass <= mass)
-                best = size;
-        }
-
-        return best;
-    }
 
     private ClusterSize PickSize(List<ClusterSize> sizes, float remaining)
     {

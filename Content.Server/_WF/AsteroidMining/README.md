@@ -7,23 +7,29 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
 
 - **Worldgen:** `replacement.yml` maps each tile asteroid kind (rock, ice, basalt, sand, chromite, andesite) to a
   cluster marker. `WFAsteroidSystem` swaps it through `WFDebrisPlacingEvent` and gives the cluster the tile
-  asteroid's rock count as its mass budget. A tick later the marker places the biggest rock that fits at its centre,
-  scatters more around it, mostly large and huge so a cluster is a few radar contacts, until the budget runs out, hands them to its world chunk and removes itself.
-  Compositions mirror each kind's mineral table, ore weights and plain-rock share, so a zone's ore mix and amount stay
-  as they were (chromite is still where lithium comes from).
+  asteroid's rock count as its mass budget. A tick later the marker scatters rocks around its centre by its size
+  weights (small the most common, huge the rarest) until the budget runs out, hands them to its world chunk and
+  removes itself. Compositions mirror each kind's mineral table, ore weights and plain-rock share, so a zone's ore mix
+  and amount stay as they were (chromite is still where lithium comes from).
+- **Metallic rocks:** each cluster rock has a 3% chance to roll `WFAsteroidMetallic` instead of its cluster's kind: a
+  blue-grey rock that is mostly iron, silver and gold, sometimes diamond, with little plain rock. It resists heat
+  (45-60%), so it needs high power or two lasers. Fragments and boulders from it stay metallic.
+- **Radar:** asteroid grids carry no label on any scanner. `WFAdminRadarUnlabelled` keeps the admin scanner's true
+  IFF from adding one.
 - **Rocks:** each asteroid is one rock entity (`WFAsteroidRock*`) anchored at the centre of a small grid of invisible,
   indestructible `WFAsteroidCore` tiles (`WFAsteroid{Small,Medium,Large,Huge}`). The grid gives the rock ship
   collisions, a radar hull, FTL clearance and tractor beam support. Each rock rolls a mass (in ore veins, plain rock
   included), one to three ores from its `wfAsteroidComposition`, a resistance, an instability and a cracking window.
 - **Cracking:** the `WFWeaponTurretMiningBeam` (M40 Prospector) is a heavy energy ship gun in the M25/Apollo family,
   aimed and fired from a gunnery console. Its `WFMiningBeamPulse` hitscan pulses (10 a second) heat the asteroid they
-  hit instead of damaging it, and its fork spins while it fires. A `WFComputerMiningBeam` console plots nearby rocks,
-  shows a scan of the selected one (ores, inert rock, resistance, instability) and sets each laser's power in
-  1/5/10% steps (70% by default, which never overcharges). Heat settles at `power × strength × (1 − resistance)` and
+  hit instead of damaging it, and its fork spins while it fires. The gunnery console grows a mining laser panel
+  (`FireControlWindow.AsteroidMining`, under the shield control) once its ship has a mining laser: it sets the power
+  of every mining laser on the ship in 1/10% steps (70% by default, which never overcharges) and scans the rock they
+  are on, or were last on while it cools (ores, plain rock, resistance, heat and window, crack progress). Heat settles at `power × strength × (1 − resistance)` and
   unstable rocks drift around it. Holding the heat in the green window fills the crack bar (`4 s + 0.1 s` per vein).
-  The cyan notch on the meter shows where the current power will settle, so the power can be set without timing; a
-  gunner without the console feathers the trigger instead, since the impact flare brightens and its sparks double
-  while the rock is in its window. The beam is drawn along each pulse's shot, out to where it hit. Several lasers on
+  The cyan notch on the meter shows where the current power will settle, so the power can be set without timing;
+  the trigger can also be feathered by eye, since the impact flare brightens and its sparks double while the rock is
+  in its window. The beam is drawn along each pulse's shot, out to where it hit. Several lasers on
   one rock add their power, so tough rocks are a two-ship job.
 - **Outcomes:** a clean crack keeps all the mass. Large and huge rocks split into two smaller asteroids (half or
   three fifths of the mass); of the rest, a quarter comes out as boulders and the remainder as floating ore piles.
@@ -33,14 +39,15 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
   a shockwave, flying chips and a dust cloud, and fragments fly apart before the grids' damping settles them. Anything
   else on a cracked asteroid's grid, players included, is left floating where it was.
 - **Hand mining:** `WFAsteroidBoulder` is a pullable chunk of 2-4 veins. Pull it aboard and break it with a pickaxe,
-  drill, kinetic accelerator or the mining laser (it is `Gatherable`) for all of its ore.
+  drill or kinetic accelerator (it is `Gatherable`), or crack it in space with the mining laser like a small rock, for
+  all of its ore. It is opaque to the laser's ray and blocks bullets.
 - **Collection:** ore floats where the rock was; ore magnets, ore boxes and tractor beams pick it up as before.
-- **Getting one:** the laser and console boards are in the cargo board pack and unlock with Mass Excavation; the
-  laser mounts on a heavy energy hardpoint.
+- **Getting one:** the laser board is in the cargo board pack and unlocks with Mass Excavation; the laser mounts on
+  a heavy energy hardpoint.
 
 `WFAsteroidSystem` swaps worldgen debris, fills clusters, builds the grids, rolls compositions and runs queued cracks;
 `DebrisFeaturePlacerSystem.Asteroids` gives cluster rocks and fragments to their world chunk so they unload with it.
-`WFMiningBeamSystem` turns pulses into heat and runs the console. On the client, `WFAsteroidVisualsSystem` picks
+`WFMiningBeamSystem` turns pulses into heat and feeds the gunnery consoles' mining panel. On the client, `WFAsteroidVisualsSystem` picks
 sprite variants, tints the veins by the leading ore and lights the cracks with heat, `WFMiningBeamOverlay` draws the
 beams, `WFAsteroidCrackOverlay` draws rocks breaking and `WFMiningBeamVisualizerSystem` spins the fork.
 
@@ -59,7 +66,6 @@ and its fire rate and battery in `mining_beam.yml`.
 - [`Content.Server/_WF/AsteroidMining/WFAsteroidClusterComponent.cs`](WFAsteroidClusterComponent.cs)
 - [`Content.Server/_WF/AsteroidMining/WFAsteroidGridComponent.cs`](WFAsteroidGridComponent.cs)
 - [`Content.Server/_WF/AsteroidMining/WFAsteroidSystem.cs`](WFAsteroidSystem.cs)
-- [`Content.Server/_WF/AsteroidMining/WFMiningBeamConsoleComponent.cs`](WFMiningBeamConsoleComponent.cs)
 - [`Content.Server/_WF/AsteroidMining/WFMiningBeamSystem.cs`](WFMiningBeamSystem.cs)
 
 ### Shared
@@ -68,18 +74,16 @@ and its fire rate and battery in `mining_beam.yml`.
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidCompositionPrototype.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidCompositionPrototype.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidCrackEffectComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidCrackEffectComponent.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidReplacementPrototype.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidReplacementPrototype.cs)
-- [`Content.Shared/_WF/AsteroidMining/WFMiningBeamConsoleBoundUserInterfaceState.cs`](../../../Content.Shared/_WF/AsteroidMining/WFMiningBeamConsoleBoundUserInterfaceState.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFMiningBeamEmitterComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFMiningBeamEmitterComponent.cs)
+- [`Content.Shared/_WF/AsteroidMining/WFMiningBeamGunneryMessages.cs`](../../../Content.Shared/_WF/AsteroidMining/WFMiningBeamGunneryMessages.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFMiningPulseComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFMiningPulseComponent.cs)
 
 ### Client
 
+- [`Content.Client/_WF/AsteroidMining/FireControlWindow.AsteroidMining.cs`](../../../Content.Client/_WF/AsteroidMining/FireControlWindow.AsteroidMining.cs)
 - [`Content.Client/_WF/AsteroidMining/WFAsteroidCrackOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFAsteroidCrackOverlay.cs)
 - [`Content.Client/_WF/AsteroidMining/WFAsteroidVisualsSystem.cs`](../../../Content.Client/_WF/AsteroidMining/WFAsteroidVisualsSystem.cs)
-- [`Content.Client/_WF/AsteroidMining/WFMiningBeamConsoleBoundUserInterface.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamConsoleBoundUserInterface.cs)
-- [`Content.Client/_WF/AsteroidMining/WFMiningBeamConsoleWindow.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamConsoleWindow.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningBeamOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamOverlay.cs)
-- [`Content.Client/_WF/AsteroidMining/WFMiningBeamRadarControl.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamRadarControl.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningBeamVisualizerSystem.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamVisualizerSystem.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningChargeMeter.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningChargeMeter.cs)
 
@@ -112,8 +116,9 @@ and its fire rate and battery in `mining_beam.yml`.
 
 ## Non-modular edits
 
+- [`Content.Client/_Mono/FireControl/UI/FireControlConsoleBoundUserInterface.cs`](../../../Content.Client/_Mono/FireControl/UI/FireControlConsoleBoundUserInterface.cs): the mining laser panel's scan
 - [`Content.Server/Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs`](../../Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs): a placing handler may swap the debris
-- [`Resources/Prototypes/Recipes/Lathes/Packs/cargo.yml`](../../../Resources/Prototypes/Recipes/Lathes/Packs/cargo.yml): mining laser and mining beam console boards
-- [`Resources/Prototypes/Research/industrial.yml`](../../../Resources/Prototypes/Research/industrial.yml): mining laser and mining beam console boards
+- [`Resources/Prototypes/Recipes/Lathes/Packs/cargo.yml`](../../../Resources/Prototypes/Recipes/Lathes/Packs/cargo.yml): mining laser board
+- [`Resources/Prototypes/Research/industrial.yml`](../../../Resources/Prototypes/Research/industrial.yml): mining laser board
 
 <!-- WOLFGATE-GENERATED END -->

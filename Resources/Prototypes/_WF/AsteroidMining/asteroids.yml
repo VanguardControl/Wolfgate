@@ -7,7 +7,7 @@
   id: WFAsteroidRockBase
   abstract: true
   name: asteroid
-  description: A drifting rock. A mining beam console shows what it holds.
+  description: A drifting rock. A gunnery console scans what it holds once a mining laser is on it.
   placement:
     mode: SnapgridCenter
   components:
@@ -160,7 +160,8 @@
     shatterDamage: 5000
     resistanceBonus: 0.12
 
-# A loose chunk for hand miners: pull it aboard, then break it with a pickaxe, drill or kinetic accelerator.
+# A loose chunk for hand miners: pull it aboard and break it with a pickaxe, drill or kinetic accelerator, or crack
+# it in space with a mining laser.
 - type: entity
   parent: WFAsteroidRockBase
   id: WFAsteroidBoulder
@@ -182,9 +183,12 @@
         density: 150
         mask:
         - MachineMask
+        # Opaque so the mining laser's ray hits it; bullets stop on it too.
         layer:
         - MidImpassable
         - LowImpassable
+        - Opaque
+        - BulletImpassable
   - type: Pullable
   - type: Sprite
     sprite: _WF/AsteroidMining/Asteroids/boulder.rsi
@@ -234,6 +238,7 @@
   - type: IFF
     flags: HideLabel, HideLabelAlways, AlwaysShowColor
     color: "#d67e27"
+  - type: WFAdminRadarUnlabelled
   - type: DetectedAtRangeMultiplier
     visualBias: 1024
 
@@ -272,7 +277,7 @@
 
 # region Clusters
 # Worldgen swaps each ore tile asteroid for one of these (see replacement.yml). It fills its mass budget with rocks
-# of its kind, biggest first, then removes itself. Spawned by hand it fills the default budget.
+# of its kind, a few of them rare metallic ones, then removes itself. Spawned by hand it fills the default budget.
 - type: entity
   id: WFAsteroidClusterBase
   abstract: true
@@ -286,12 +291,14 @@
     state: green
   - type: WFAsteroidCluster
     composition: WFAsteroidRock
-    # Mostly big rocks, so a cluster is a few grids on radar; cracking them makes the small ones.
+    rareComposition: WFAsteroidMetallic
+    rareChance: 0.03
+    # By count: small rocks are the most common, huge ones the rarest.
     sizes:
-      WFAsteroidSmall: 0.5
-      WFAsteroidMedium: 1
-      WFAsteroidLarge: 3
-      WFAsteroidHuge: 2
+      WFAsteroidSmall: 8
+      WFAsteroidMedium: 5
+      WFAsteroidLarge: 2
+      WFAsteroidHuge: 1
 
 - type: entity
   parent: WFAsteroidClusterBase

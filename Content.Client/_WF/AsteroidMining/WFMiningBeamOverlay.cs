@@ -165,7 +165,7 @@ public sealed class WFMiningBeamOverlay : Overlay
 
     /// <summary>
     /// A flare on the rock's surface with sparks spraying back toward the gun. Inside the cracking window the flare
-    /// brightens and the spray doubles, so a gunner can feather the beam without the mining console.
+    /// brightens and the spray doubles, so a gunner can feather the beam by eye.
     /// </summary>
     private void DrawImpact(DrawingHandleWorld handle, Vector2 end, Vector2 direction, Vector2 normal, float width,
         float heat, Color color, float time, float phase, bool inWindow)

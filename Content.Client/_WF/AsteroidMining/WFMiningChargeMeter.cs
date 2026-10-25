@@ -27,7 +27,7 @@ public sealed class WFMiningChargeMeter : Control
 
     public WFMiningChargeMeter()
     {
-        MinSize = new Vector2(240, 30);
+        MinSize = new Vector2(120, 24);
         HorizontalExpand = true;
     }
 

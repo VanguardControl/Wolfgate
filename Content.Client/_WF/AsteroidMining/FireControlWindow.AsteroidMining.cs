@@ -1,0 +1,155 @@
+using System.Linq;
+using Content.Client._WF.AsteroidMining;
+using Content.Shared._WF.AsteroidMining;
+using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
+using static Content.Client._WF.CombatConsole.WFInstrumentTheme;
+
+namespace Content.Client._Mono.FireControl.UI;
+
+public sealed partial class FireControlWindow
+{
+    private static readonly float[] WfMiningSteps = { -0.1f, -0.01f, 0.01f, 0.1f };
+
+    private Control _wfMiningPanel = default!;
+    private Label _wfMiningPower = default!;
+    private Label _wfMiningStatus = default!;
+    private Label _wfMiningIdle = default!;
+    private Control _wfMiningScan = default!;
+    private Label _wfMiningRock = default!;
+    private BoxContainer _wfMiningOres = default!;
+    private Label _wfMiningResistance = default!;
+    private Label _wfMiningHeat = default!;
+    private WFMiningChargeMeter _wfMiningMeter = default!;
+    private ProgressBar _wfMiningProgress = default!;
+    private Label _wfMiningOvercharge = default!;
+    private WFMiningBeamGunneryState _wfMining;
+    private float? _wfMiningPending;
+
+    /// <summary>
+    /// Builds the gunner's mining laser panel: the ship's laser power and a scan of the rock under fire. It stays hidden
+    /// until the ship reports a mining laser.
+    /// </summary>
+    private Control WfCreateMiningPanel()
+    {
+        _wfMiningPower = Label("wf-mining-gunnery-power", Cream);
+        _wfMiningPower.ToolTip = Loc.GetString("wf-mining-gunnery-power-help");
+        _wfMiningPower.MouseFilter = MouseFilterMode.Pass;
+        var steps = Row();
+        steps.SeparationOverride = 2;
+        foreach (var step in WfMiningSteps)
+        {
+            var amount = (int) MathF.Round(MathF.Abs(step) * 100);
+            var button = new Button
+            {
+                Text = Loc.GetString(step > 0 ? "wf-mining-gunnery-power-up" : "wf-mining-gunnery-power-down", ("amount", amount)),
+                HorizontalExpand = true,
+            };
+            button.AddStyleClass("WfCompact");
+            button.OnPressed += _ => WfStepMiningPower(step);
+            steps.AddChild(button);
+        }
+
+        _wfMiningStatus = Label("wf-mining-gunnery-idle", Muted);
+        _wfMiningStatus.ClipText = true;
+        _wfMiningIdle = Label("wf-mining-gunnery-idle", Muted);
+        _wfMiningIdle.ClipText = true;
+        _wfMiningIdle.ToolTip = Loc.GetString("wf-mining-gunnery-idle-help");
+        _wfMiningIdle.MouseFilter = MouseFilterMode.Pass;
+
+        _wfMiningRock = Label("wf-mining-gunnery-idle", Cream);
+        _wfMiningRock.ClipText = true;
+        _wfMiningOres = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical };
+        _wfMiningResistance = Label("wf-mining-gunnery-idle", Muted);
+        _wfMiningHeat = Label("wf-mining-gunnery-idle", Cream);
+        _wfMiningHeat.ClipText = true;
+        _wfMiningMeter = new WFMiningChargeMeter { ToolTip = Loc.GetString("wf-mining-gunnery-meter-help") };
+        _wfMiningProgress = new ProgressBar { MinValue = 0, MaxValue = 1, MinHeight = 12, HorizontalExpand = true };
+        _wfMiningOvercharge = Label("wf-mining-gunnery-overcharge", Red);
+        _wfMiningOvercharge.ClipText = true;
+        _wfMiningOvercharge.ToolTip = Loc.GetString("wf-mining-gunnery-overcharge-help");
+        _wfMiningOvercharge.MouseFilter = MouseFilterMode.Pass;
+        _wfMiningOvercharge.Visible = false;
+        var scan = Column(_wfMiningRock, _wfMiningOres, _wfMiningResistance, _wfMiningHeat, _wfMiningMeter,
+            Label("wf-mining-gunnery-progress", Muted), _wfMiningProgress, _wfMiningOvercharge);
+        scan.SeparationOverride = 2;
+        scan.Visible = false;
+        _wfMiningScan = scan;
+
+        var body = Column(_wfMiningPower, steps, _wfMiningStatus, _wfMiningIdle, scan);
+        body.SeparationOverride = 4;
+        var panel = Panel("wf-mining-gunnery-title", body);
+        panel.Name = "WfGunneryMining";
+        panel.SetWidth = WfShieldPanelWidth;
+        panel.HorizontalExpand = false;
+        panel.Visible = false;
+        return _wfMiningPanel = panel;
+    }
+
+    private void WfStepMiningPower(float step)
+    {
+        if (_wfMining.Lasers == 0)
+            return;
+
+        var power = MathF.Round(Math.Clamp((_wfMiningPending ?? _wfMining.Power) + step, 0f, 1f), 2);
+        _wfMiningPending = power;
+        CombatMessage?.Invoke(new WFMiningBeamPowerMessage(power));
+        WfRefreshMining();
+    }
+
+    /// <summary>Refreshes the mining laser panel from the server's scan.</summary>
+    public void WfUpdateMining(WFMiningBeamGunneryState state)
+    {
+        _wfMining = state;
+        if (_wfMiningPending is { } pending && MathF.Abs(pending - state.Power) < 0.005f)
+            _wfMiningPending = null;
+        WfRefreshMining();
+    }
+
+    private void WfRefreshMining()
+    {
+        var state = _wfMining;
+        _wfMiningPanel.Visible = state.Lasers > 0;
+        if (state.Lasers == 0)
+            return;
+
+        var power = _wfMiningPending ?? state.Power;
+        _wfMiningPower.Text = Loc.GetString("wf-mining-gunnery-power", ("power", (int) MathF.Round(power * 100)));
+        _wfMiningStatus.Text = state.Cooldown > 0f
+            ? Loc.GetString("wf-mining-gunnery-cooldown", ("seconds", (int) MathF.Ceiling(state.Cooldown)))
+            : Loc.GetString("wf-mining-gunnery-lasers", ("count", state.Lasers));
+        _wfMiningStatus.FontColorOverride = state.Cooldown > 0f ? Red : Muted;
+
+        _wfMiningIdle.Visible = state.Target == null;
+        _wfMiningScan.Visible = state.Target != null;
+        if (state.Target is not { } rock)
+            return;
+
+        _wfMiningRock.Text = Loc.GetString("wf-mining-gunnery-rock", ("name", rock.Name), ("mass", (int) MathF.Round(rock.Mass)));
+        _wfMiningOres.RemoveAllChildren();
+        foreach (var ore in rock.Ores)
+        {
+            var label = Label("wf-mining-gunnery-idle", ore.Color);
+            label.Text = Loc.GetString("wf-mining-gunnery-ore", ("name", ore.Name), ("percent", (int) MathF.Round(ore.Fraction * 100)));
+            label.ClipText = true;
+            _wfMiningOres.AddChild(label);
+        }
+
+        var inert = Label("wf-mining-gunnery-idle", Muted);
+        inert.Text = Loc.GetString("wf-mining-gunnery-inert", ("percent", (int) MathF.Round((1f - rock.Ores.Sum(o => o.Fraction)) * 100)));
+        _wfMiningOres.AddChild(inert);
+        _wfMiningResistance.Text = Loc.GetString("wf-mining-gunnery-resistance", ("percent", (int) MathF.Round(rock.Resistance * 100)));
+
+        _wfMiningHeat.Text = Loc.GetString("wf-mining-gunnery-heat", ("charge", (int) MathF.Round(rock.Charge * 100)),
+            ("low", (int) MathF.Round(rock.WindowLow * 100)), ("high", (int) MathF.Round(rock.WindowHigh * 100)));
+        _wfMiningMeter.Charge = rock.Charge;
+        _wfMiningMeter.WindowLow = rock.WindowLow;
+        _wfMiningMeter.WindowHigh = rock.WindowHigh;
+        _wfMiningMeter.Overcharging = rock.Overcharge > 0f;
+        // Other ships' beams stay as they are; only this ship's lasers move to the new power.
+        var others = rock.Firing ? MathF.Max(0f, rock.IncomingPower - state.Power * rock.ShipStrength) : rock.IncomingPower;
+        _wfMiningMeter.Predicted = (others + power * rock.ShipStrength) * (1f - rock.Resistance);
+        _wfMiningProgress.Value = rock.Progress;
+        _wfMiningOvercharge.Visible = rock.Overcharge > 0f;
+    }
+}

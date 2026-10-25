@@ -1,21 +1,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Content.Client._Mono.FireControl.UI;
+using Content.Client._WF.Cockpit;
 using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Drydock;
 using Content.Server._WF.AsteroidMining;
 using Content.Server._WF.DroneRings;
 using Content.Server.Gatherable;
+using Content.Server.Power.Components;
+using Content.Shared._Mono.FireControl;
 using Content.Shared._WF.AsteroidMining;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
+using Content.Shared.Access.Components;
+using Content.Shared.Physics;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Hitscan.Events;
 using Content.Shared.Weapons.Ranged.Systems;
+using Robust.Client.UserInterface;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics;
+using Robust.Shared.Physics.Systems;
 using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests._WF.AsteroidMining;
@@ -65,6 +74,19 @@ public sealed class AsteroidMiningTest
         }
 
         return boulders;
+    }
+
+    private static List<string> MetallicNames(IEntityManager em)
+    {
+        var names = new List<string>();
+        var query = em.EntityQueryEnumerator<WFAsteroidComponent, MetaDataComponent>();
+        while (query.MoveNext(out _, out var comp, out var meta))
+        {
+            if (comp.CompositionId?.Id == "WFAsteroidMetallic")
+                names.Add(meta.EntityName);
+        }
+
+        return names;
     }
 
     private static int OreItems(IEntityManager em)
@@ -173,7 +195,9 @@ public sealed class AsteroidMiningTest
         {
             var mapUid = server.System<SharedMapSystem>().GetMap(map.MapId);
             marker = em.SpawnEntity("WFAsteroidClusterRock", new EntityCoordinates(mapUid, ShipPos));
-            budget = em.GetComponent<WFAsteroidClusterComponent>(marker).Mass;
+            var cluster = em.GetComponent<WFAsteroidClusterComponent>(marker);
+            cluster.RareChance = 0f;
+            budget = cluster.Mass;
         });
         await server.WaitRunTicks(3);
 
@@ -189,6 +213,69 @@ public sealed class AsteroidMiningTest
                 Assert.That(rocks.Sum(r => r.Mass), Is.InRange(budget * 0.7f, budget * 1.05f),
                     "The rocks should add up to about the cluster's budget.");
             });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task RareRollMakesMetallicRocks()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var mapUid = server.System<SharedMapSystem>().GetMap(map.MapId);
+            var marker = em.SpawnEntity("WFAsteroidClusterRock", new EntityCoordinates(mapUid, ShipPos));
+            em.GetComponent<WFAsteroidClusterComponent>(marker).RareChance = 1f;
+        });
+        await server.WaitRunTicks(3);
+
+        await server.WaitAssertion(() =>
+        {
+            var rocks = GridRocks(em);
+            Assert.Multiple(() =>
+            {
+                Assert.That(rocks, Is.Not.Empty, "The cluster should spawn rocks.");
+                Assert.That(rocks.All(r => r.CompositionId?.Id == "WFAsteroidMetallic"), Is.True,
+                    "A certain rare roll should make every rock metallic.");
+                Assert.That(rocks.All(r => r.RockColor != Color.White), Is.True, "Metallic rocks should be tinted.");
+                Assert.That(rocks.All(r => r.Resistance >= 0.45f), Is.True, "Metallic rocks should be tough.");
+                Assert.That(MetallicNames(em).All(n => n.StartsWith("metallic")), Is.True,
+                    "Metallic rocks should say so in their name.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task BeamRayHitsBoulderInSpace()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        EntityUid boulder = default;
+        await server.WaitAssertion(() =>
+        {
+            var mapUid = server.System<SharedMapSystem>().GetMap(map.MapId);
+            boulder = em.SpawnEntity("WFAsteroidBoulder", new EntityCoordinates(mapUid, ShipPos + new Vector2(0f, 10f)));
+            server.System<WFAsteroidSystem>().Roll(boulder, "WFAsteroidRock");
+        });
+        await server.WaitRunTicks(2);
+
+        await server.WaitAssertion(() =>
+        {
+            // The same ray the laser's pulse casts.
+            var ray = new CollisionRay(ShipPos, new Vector2(0f, 1f), (int) CollisionGroup.Opaque);
+            var hits = server.System<SharedPhysicsSystem>().IntersectRay(map.MapId, ray, 20f, returnOnFirstHit: true)
+                .Select(h => h.HitEntity).ToList();
+            Assert.That(hits, Does.Contain(boulder), "The mining laser's ray should hit a boulder rather than pass over it.");
         });
 
         await pair.CleanReturnAsync();
@@ -300,6 +387,16 @@ public sealed class AsteroidMiningTest
                 Assert.That(em.GetComponent<DamageableComponent>(rock).TotalDamage, Is.EqualTo(FixedPoint2.Zero),
                     "The rock should take no damage from the pulse.");
             });
+
+            var boulder = em.SpawnEntity("WFAsteroidBoulder", new MapCoordinates(ShipPos + new Vector2(-3f, 10f), map.MapId));
+            var boulderHits = new HashSet<EntityUid> { boulder };
+            var boulderFired = fired with { HitEntities = boulderHits };
+            em.EventBus.RaiseLocalEvent(pulse, ref boulderFired);
+            Assert.Multiple(() =>
+            {
+                Assert.That(boulderHits, Does.Not.Contain(boulder), "A boulder should be heated like a rock, not gathered.");
+                Assert.That(beam.Target, Is.EqualTo(boulder), "The beam should hold on the boulder it hit.");
+            });
         });
 
         await pair.CleanReturnAsync();
@@ -404,6 +501,85 @@ public sealed class AsteroidMiningTest
             });
         });
 
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task GunnerySetsThePowerOfTheShipsLasers()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var ship = DrydockTest.CreateShip(pair, map.MapId, ShipPos);
+            DrydockTest.SetFloor(pair, ship, 6);
+            var first = DrydockTest.SpawnAnchored(pair, ship, Gun, new Vector2i(1, 1));
+            var second = DrydockTest.SpawnAnchored(pair, ship, Gun, new Vector2i(4, 1));
+            var console = DrydockTest.SpawnAnchored(pair, ship, "ComputerGunneryConsole", new Vector2i(2, 4));
+            em.RemoveComponent<AccessReaderComponent>(console);
+            var power = em.GetComponent<ApcPowerReceiverComponent>(console);
+            power.Powered = true;
+            var actor = em.SpawnEntity("MobHuman", new EntityCoordinates(ship, 2.5f, 3.5f));
+            em.System<SharedUserInterfaceSystem>().OpenUi(console, FireControlConsoleUiKey.Key, actor);
+
+            Send(0.9f);
+            Assert.Multiple(() =>
+            {
+                Assert.That(em.GetComponent<WFMiningBeamEmitterComponent>(first).Power, Is.EqualTo(0.9f), "The gunner should set the laser's power.");
+                Assert.That(em.GetComponent<WFMiningBeamEmitterComponent>(second).Power, Is.EqualTo(0.9f), "Every laser on the ship takes it.");
+            });
+
+            power.Powered = false;
+            Send(0.2f);
+            Assert.That(em.GetComponent<WFMiningBeamEmitterComponent>(first).Power, Is.EqualTo(0.9f), "A dead console can't set the power.");
+
+            void Send(float value)
+            {
+                var message = new WFMiningBeamPowerMessage(value)
+                {
+                    Actor = actor,
+                    Entity = em.GetNetEntity(console),
+                    UiKey = FireControlConsoleUiKey.Key,
+                };
+                em.EventBus.RaiseLocalEvent(console, (object) message, true);
+            }
+        });
+        await pair.RunTicksSync(1);
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task MiningPanelShowsOnlyWithLasersAboard()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await pair.Client.WaitAssertion(() =>
+        {
+            using var gunnery = new FireControlWindow();
+            var panel = WFCockpitLease.Descendants(gunnery).Single(control => control.Name == "WfGunneryMining");
+            Assert.That(panel.Visible, Is.False, "A ship with no mining laser has no mining panel.");
+
+            var rock = new WFMiningBeamTargetEntry("medium asteroid", 34f,
+                new[] { new WFMiningBeamOreEntry("iron ore", 0.4f, Color.Brown) }, 0.2f, 0.4f, 0.6f, 0.5f, 0.3f, 0f, 0.8f,
+                1.15f, true);
+            gunnery.WfUpdateMining(new WFMiningBeamGunneryState(1, 0.7f, 0f, rock));
+            Assert.That(panel.Visible, Is.True);
+
+            var size = gunnery.MinSize;
+            gunnery.Measure(size);
+            gunnery.Arrange(UIBox2.FromDimensions(Vector2.Zero, size));
+            Assert.That(panel.Width, Is.EqualTo(FireControlWindow.WfShieldPanelWidth).Within(1f));
+            foreach (var child in WFCockpitLease.Descendants(panel).Where(control => control != panel && control.VisibleInTree))
+            {
+                Assert.That(child.GlobalPosition.X + child.Width, Is.LessThanOrEqualTo(panel.GlobalPosition.X + panel.Width + 1),
+                    $"{child.GetType().Name} sticks out of the mining panel.");
+            }
+
+            gunnery.WfUpdateMining(new WFMiningBeamGunneryState(0, 0f, 0f, null));
+            Assert.That(panel.Visible, Is.False, "Losing the lasers takes the panel away again.");
+        });
         await pair.CleanReturnAsync();
     }
 }

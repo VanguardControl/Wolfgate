@@ -1,5 +1,5 @@
 # A heavy energy ship gun in the family of the M25 and Apollo. The gunnery console aims and fires it; its pulses heat
-# asteroids instead of damaging them, at the power set on a mining beam console.
+# asteroids instead of damaging them, at the power set in the console's mining laser panel.
 - type: entity
   id: WFWeaponTurretMiningBeam
   name: M40 Prospector mining laser
@@ -7,7 +7,7 @@
   - BallisticArtillery
   - BallisticArtilleryTier2HP
   - ConstructibleMachine
-  description: A focused mining laser with a spinning emitter fork. Hold it on an asteroid to heat the rock until it cracks; a mining beam console shows the rock's heat and sets the laser's power. It barely scratches anything else.
+  description: A focused mining laser with a spinning emitter fork. Hold it on an asteroid to heat the rock until it cracks; the gunnery console shows the rock's heat and sets the laser's power. It barely scratches anything else.
   components:
   - type: StaticPrice
     price: 6000
@@ -94,7 +94,7 @@
     maxDistance: 60
   - type: HitscanRadarSignature
     radarColor: "#ffb347"
-  # Enough to break boulders and tile rock through gathering; rocks it heats are taken out of the hit list first.
+  # Enough to break tile rock through gathering; asteroids and boulders it heats are taken out of the hit list first.
   - type: HitscanBasicDamage
     damage:
       types:
@@ -133,53 +133,3 @@
   parent: BaseGoldCircuitboardRecipe
   id: WFWeaponTurretMiningBeamCircuitboard
   result: WFWeaponTurretMiningBeamCircuitboard
-
-- type: entity
-  parent: BaseComputer
-  id: WFComputerMiningBeam
-  name: mining beam console
-  description: Scans nearby asteroids and sets the power of this vessel's mining lasers. The charge meter shows the rock's heat, its cracking window and where the laser's power will settle it.
-  components:
-  - type: WFMiningBeamConsole
-  - type: Computer
-    board: WFMiningBeamComputerCircuitboard
-  - type: ApcPowerReceiver
-    powerLoad: 200
-  - type: Sprite
-    layers:
-    - map: [ "computerLayerBody" ]
-      state: computer
-    - map: [ "computerLayerKeyboard" ]
-      state: generic_keyboard
-    - map: [ "computerLayerScreen" ]
-      state: mining
-    - map: [ "computerLayerKeys" ]
-      state: mining_key
-    - map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
-      state: generic_panel_open
-  - type: ActivatableUI
-    key: enum.WFMiningBeamUiKey.Key
-  - type: UserInterface
-    interfaces:
-      enum.WFMiningBeamUiKey.Key:
-        type: WFMiningBeamConsoleBoundUserInterface
-      enum.WiresUiKey.Key:
-        type: WiresBoundUserInterface
-  - type: PointLight
-    color: "#e6a23c"
-
-- type: entity
-  parent: BaseComputerCircuitboard
-  id: WFMiningBeamComputerCircuitboard
-  name: mining beam console board
-  description: A computer printed circuit board for a mining beam console.
-  components:
-  - type: Sprite
-    state: cpu_supply
-  - type: ComputerBoard
-    prototype: WFComputerMiningBeam
-
-- type: latheRecipe
-  parent: BaseCircuitboardRecipe
-  id: WFMiningBeamComputerCircuitboard
-  result: WFMiningBeamComputerCircuitboard

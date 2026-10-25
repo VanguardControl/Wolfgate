@@ -56,6 +56,7 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
         _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Rock, $"rock{variant}");
         _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Veins, $"veins{variant}");
         _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Heat, $"heat{variant}");
+        _sprite.LayerSetColor((ent, sprite), WFAsteroidVisualLayers.Rock, ent.Comp.RockColor);
         _sprite.LayerSetColor((ent, sprite), WFAsteroidVisualLayers.Veins, ent.Comp.VeinColor);
         SetHeat((ent, ent.Comp, sprite), ent.Comp.DisplayCharge);
     }

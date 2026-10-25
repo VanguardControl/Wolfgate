@@ -54,6 +54,9 @@ public sealed partial class WFAsteroidComponent : Component
     [AutoNetworkedField] public int Variant;
     [AutoNetworkedField] public Color VeinColor = Color.White;
 
+    /// <summary>Tint of the rock body, from its composition.</summary>
+    [AutoNetworkedField] public Color RockColor = Color.White;
+
     /// <summary>Displayed heat, where 1 is the overcharge line.</summary>
     [AutoNetworkedField] public float Charge;
     [AutoNetworkedField] public bool Overcharging;

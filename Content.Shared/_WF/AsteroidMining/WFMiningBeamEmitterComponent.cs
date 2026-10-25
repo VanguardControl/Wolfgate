@@ -7,12 +7,12 @@ namespace Content.Shared._WF.AsteroidMining;
 
 /// <summary>
 /// A ship-mounted mining laser gun. Aimed and fired from a gunnery console; each pulse that hits an asteroid keeps it
-/// heating at the power set on a mining beam console.
+/// heating at the power set in the gunnery console's mining laser panel.
 /// </summary>
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class WFMiningBeamEmitterComponent : Component
 {
-    /// <summary>Reach of the beam, matching its pulse's raycast; shown on the mining console.</summary>
+    /// <summary>Reach of the beam, matching its pulse's raycast.</summary>
     [DataField] public float MaxRange = 60f;
 
     /// <summary>Heat delivered at full power, before the rock's resistance.</summary>

@@ -1,8 +1,9 @@
 using System.Linq;
 using System.Numerics;
-using Content.Server.Gatherable.Components;
-using Content.Server.Power.Components;
+using Content.Server.Power.EntitySystems;
+using Content.Shared._Mono.FireControl;
 using Content.Shared._WF.AsteroidMining;
+using Content.Shared.ActionBlocker;
 using Content.Shared.Mining;
 using Content.Shared.Weapons.Hitscan.Events;
 using Content.Shared.Weapons.Hitscan.Systems;
@@ -17,6 +18,7 @@ namespace Content.Server._WF.AsteroidMining;
 /// <summary>
 /// Runs ship mining lasers. Each pulse that hits an asteroid keeps the gun's power on it; a rock that stays inside its
 /// window long enough cracks cleanly, and one held over the overcharge line blows up and knocks its guns offline.
+/// Gunnery consoles set the lasers' power and get a scan of the rock they are working.
 /// </summary>
 public sealed partial class WFMiningBeamSystem : EntitySystem
 {
@@ -24,8 +26,8 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
-    [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private ActionBlockerSystem _blocker = default!;
     [Dependency] private WFAsteroidSystem _asteroids = default!;
 
     /// <summary>Seconds over the overcharge line before a rock blows up.</summary>
@@ -38,23 +40,22 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     private TimeSpan _nextUi;
     private readonly HashSet<EntityUid> _heated = new();
     private readonly List<EntityUid> _heatedList = new();
-    private readonly HashSet<Entity<WFAsteroidComponent>> _rocks = new();
+    /// <summary>The rock each open gunnery console last showed, kept while it cools, and whether it had lasers.</summary>
+    private readonly Dictionary<EntityUid, (EntityUid? Rock, bool Lasers)> _gunnery = new();
 
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<WFMiningBeamConsoleComponent, BoundUIOpenedEvent>(OnUiOpened);
-        SubscribeLocalEvent<WFMiningBeamConsoleComponent, WFMiningBeamPowerMessage>(OnPowerMessage);
+        // The gunnery console's own systems handle everything else on this interface; only laser power is taken here.
+        Subs.BuiEvents<FireControlConsoleComponent>(FireControlConsoleUiKey.Key, subs =>
+        {
+            subs.Event<WFMiningBeamPowerMessage>(OnPowerMessage);
+        });
         SubscribeLocalEvent<WFMiningBeamEmitterComponent, ComponentShutdown>(OnEmitterShutdown);
         SubscribeLocalEvent<WFMiningBeamEmitterComponent, AttemptShootEvent>(OnAttemptShoot);
         // After reflection, which may cancel the pulse, and before damage, so rocks are heated rather than chipped.
         SubscribeLocalEvent<WFMiningPulseComponent, HitscanRaycastFiredEvent>(OnPulse,
             after: new[] { typeof(HitscanReflectSystem) }, before: new[] { typeof(HitscanBasicDamageSystem) });
-    }
-
-    private void OnUiOpened(Entity<WFMiningBeamConsoleComponent> ent, ref BoundUIOpenedEvent args)
-    {
-        UpdateUi(ent);
     }
 
     private void OnEmitterShutdown(Entity<WFMiningBeamEmitterComponent> ent, ref ComponentShutdown args)
@@ -68,19 +69,40 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             args.Cancelled = true;
     }
 
-    private void OnPowerMessage(Entity<WFMiningBeamConsoleComponent> ent, ref WFMiningBeamPowerMessage args)
+    private void OnPowerMessage(Entity<FireControlConsoleComponent> ent, ref WFMiningBeamPowerMessage args)
     {
-        if (!_ui.IsUiOpen(ent.Owner, WFMiningBeamUiKey.Key, args.Actor) ||
-            !TryComp<ApcPowerReceiverComponent>(ent, out var power) || !power.Powered ||
-            Transform(ent).GridUid is not { } grid ||
-            !TryGetEntity(args.Emitter, out var uid) ||
-            !TryComp<WFMiningBeamEmitterComponent>(uid, out var beam) ||
-            Transform(uid.Value).GridUid != grid || !float.IsFinite(args.Power))
+        if (!float.IsFinite(args.Power) || GunneryGrid(ent) is not { } grid || !_blocker.CanInteract(args.Actor, ent))
             return;
 
-        beam.Power = MathF.Round(Math.Clamp(args.Power, 0f, 1f), 2);
-        Dirty(uid.Value, beam);
-        UpdateUi(ent);
+        var power = MathF.Round(Math.Clamp(args.Power, 0f, 1f), 2);
+        foreach (var (uid, beam) in ShipLasers(grid))
+        {
+            beam.Power = power;
+            Dirty(uid, beam);
+        }
+
+        UpdateGunnery(ent);
+    }
+
+    /// <summary>The ship a working gunnery console speaks for.</summary>
+    private EntityUid? GunneryGrid(EntityUid console)
+    {
+        var xform = Transform(console);
+        return xform.Anchored && this.IsPowered(console, EntityManager) ? xform.GridUid : null;
+    }
+
+    /// <summary>Every mining laser on a ship.</summary>
+    public List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> ShipLasers(EntityUid grid)
+    {
+        var lasers = new List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)>();
+        var query = EntityQueryEnumerator<WFMiningBeamEmitterComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var beam, out var xform))
+        {
+            if (xform.GridUid == grid)
+                lasers.Add((uid, beam));
+        }
+
+        return lasers;
     }
 
     /// <summary>Points the beam at whatever the pulse hit, and takes asteroids out of the hit list so they heat instead.</summary>
@@ -92,8 +114,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         EntityUid? rock = null;
         foreach (var hit in args.HitEntities)
         {
-            // Boulders stay in the list, so the pulse's gathering breaks them open.
-            if (TryComp<WFAsteroidComponent>(hit, out var asteroid) && !asteroid.Cracking && !HasComp<GatherableComponent>(hit))
+            if (TryComp<WFAsteroidComponent>(hit, out var asteroid) && !asteroid.Cracking)
             {
                 rock = hit;
                 break;
@@ -214,11 +235,20 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             return;
 
         _nextUi = now + UiInterval;
-        var consoles = EntityQueryEnumerator<WFMiningBeamConsoleComponent>();
-        while (consoles.MoveNext(out var uid, out var console))
+        var open = new HashSet<EntityUid>();
+        var consoles = EntityQueryEnumerator<FireControlConsoleComponent>();
+        while (consoles.MoveNext(out var uid, out _))
         {
-            if (_ui.IsUiOpen(uid, WFMiningBeamUiKey.Key))
-                UpdateUi((uid, console));
+            if (!_ui.IsUiOpen(uid, FireControlConsoleUiKey.Key))
+                continue;
+
+            open.Add(uid);
+            UpdateGunnery(uid);
+        }
+
+        foreach (var uid in _gunnery.Keys.Where(uid => !open.Contains(uid)).ToArray())
+        {
+            _gunnery.Remove(uid);
         }
     }
 
@@ -303,57 +333,44 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         }
     }
 
-    private void UpdateUi(Entity<WFMiningBeamConsoleComponent> console)
+    /// <summary>
+    /// Sends a gunnery console its ship's laser power and a scan of the rock its lasers are on, or were last on while
+    /// it cools. A ship without mining lasers is sent one empty state, which hides the panel.
+    /// </summary>
+    private void UpdateGunnery(EntityUid console)
     {
-        var xform = Transform(console);
-        var connected = TryComp<ApcPowerReceiverComponent>(console, out var power) && power.Powered &&
-                        xform.GridUid != null;
-        if (!connected || xform.GridUid is not { } grid)
+        var known = _gunnery.TryGetValue(console, out var last);
+        var lasers = GunneryGrid(console) is { } grid ? ShipLasers(grid) : new List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)>();
+        if (lasers.Count == 0)
         {
-            _ui.SetUiState(console.Owner, WFMiningBeamUiKey.Key,
-                new WFMiningBeamConsoleBoundUserInterfaceState(false, console.Comp.Range,
-                    Array.Empty<WFMiningBeamEmitterEntry>(), Array.Empty<WFMiningBeamTargetEntry>()));
+            if (!known || last.Lasers)
+                _ui.ServerSendUiMessage(console, FireControlConsoleUiKey.Key,
+                    new WFMiningBeamGunneryUpdateMessage(new WFMiningBeamGunneryState(0, 0f, 0f, null)));
+            _gunnery[console] = (null, false);
             return;
         }
 
-        var origin = _transform.GetWorldPosition(xform);
-        var toGrid = -_transform.GetWorldRotation(grid);
-
-        var emitters = new List<WFMiningBeamEmitterEntry>();
-        var query = EntityQueryEnumerator<WFMiningBeamEmitterComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var beam, out var beamXform))
+        var rock = lasers.Select(l => l.Beam.Target).FirstOrDefault(t => t != null) ?? last.Rock;
+        WFMiningBeamTargetEntry? target = null;
+        if (rock is { } uid && !TerminatingOrDeleted(uid) && TryComp<WFAsteroidComponent>(uid, out var comp) && !comp.Cracking)
         {
-            if (beamXform.GridUid != grid)
-                continue;
-
-            var (_, rotation, matrix) = _transform.GetWorldPositionRotationMatrix(uid);
-            var muzzle = Vector2.Transform(beam.MuzzleOffset, matrix);
-            var forward = rotation.RotateVec(beam.Forward);
-            var cooldown = MathF.Max(0f, (float) (beam.CooldownUntil - _timing.CurTime).TotalSeconds);
-            emitters.Add(new WFMiningBeamEmitterEntry(GetNetEntity(uid), Name(uid), GetNetEntity(beam.Target),
-                beam.Active, beam.Power, beam.Strength, beam.MaxRange, cooldown,
-                toGrid.RotateVec(muzzle - origin), toGrid.RotateVec(forward)));
+            var on = lasers.Where(l => l.Beam.Active && l.Beam.Target == uid).ToList();
+            var strength = (on.Count > 0 ? on : lasers).Sum(l => l.Beam.Strength);
+            var (low, high) = Window(comp);
+            var ores = comp.Ores.Select(o => new WFMiningBeamOreEntry(OreName(o.Ore), o.Fraction, o.Color)).ToArray();
+            target = new WFMiningBeamTargetEntry(Name(uid), comp.Mass, ores, comp.Resistance, low, high, comp.Charge,
+                Math.Clamp(comp.Progress, 0f, 1f), comp.OverchargeTime / OverchargeDuration, comp.IncomingPower,
+                strength, on.Count > 0);
+        }
+        else
+        {
+            rock = null;
         }
 
-        var targets = new List<WFMiningBeamTargetEntry>();
-        _rocks.Clear();
-        _lookup.GetEntitiesInRange(_transform.GetMapCoordinates(xform), console.Comp.Range, _rocks);
-        foreach (var (uid, rock) in _rocks)
-        {
-            if (rock.Cracking || rock.Mass <= 0f || Transform(uid).GridUid == grid)
-                continue;
-
-            var (low, high) = Window(rock);
-            var ores = rock.Ores.Select(o => new WFMiningBeamOreEntry(OreName(o.Ore), o.Fraction, o.Color)).ToArray();
-            targets.Add(new WFMiningBeamTargetEntry(GetNetEntity(uid), Name(uid),
-                toGrid.RotateVec(_transform.GetWorldPosition(uid) - origin), rock.Radius, rock.Mass, ores,
-                rock.Resistance, rock.Instability, low, high, rock.Charge, Math.Clamp(rock.Progress, 0f, 1f),
-                rock.OverchargeTime / OverchargeDuration, rock.IncomingPower, rock.VeinColor));
-        }
-
-        targets.Sort((a, b) => a.Position.LengthSquared().CompareTo(b.Position.LengthSquared()));
-        _ui.SetUiState(console.Owner, WFMiningBeamUiKey.Key,
-            new WFMiningBeamConsoleBoundUserInterfaceState(true, console.Comp.Range, emitters.ToArray(), targets.ToArray()));
+        var cooldown = lasers.Max(l => MathF.Max(0f, (float) (l.Beam.CooldownUntil - _timing.CurTime).TotalSeconds));
+        _gunnery[console] = (rock, true);
+        _ui.ServerSendUiMessage(console, FireControlConsoleUiKey.Key, new WFMiningBeamGunneryUpdateMessage(
+            new WFMiningBeamGunneryState(lasers.Count, lasers[0].Beam.Power, cooldown, target)));
     }
 
     private string OreName(ProtoId<OrePrototype> ore)
