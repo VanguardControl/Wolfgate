@@ -26,8 +26,8 @@ public sealed class ThrasciasBiomeTest
 
     private static readonly string[] IceTiles =
     {
-        "WFFloorThrasciasPackIce", "WFFloorThrasciasRoughIce", "WFFloorThrasciasDarkIce",
-        "WFFloorThrasciasDarkIceSmooth", "WFFloorThrasciasLakeIce",
+        "WFFloorThrasciasPackIce", "WFFloorThrasciasRoughIce", "WFFloorThrasciasClearIce",
+        "WFFloorThrasciasClearIceSmooth", "WFFloorThrasciasLakeIce",
     };
 
     private const string Dirt = "WFFloorThrasciasFrozenDirt";

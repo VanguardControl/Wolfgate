@@ -28,6 +28,7 @@
   isSubfloor: true
 
 # Pack ice and frozen lakes. Cracked ice grips; the smooth and lake ice is as slippery as the old FloorIce.
+# The clear, lake and smooth ice are FloorIce, whose sprite is slightly see-through, so the layer below shows through.
 - type: tile
   id: WFFloorThrasciasPackIce
   parent: RMCPlanetIce0
@@ -40,16 +41,19 @@
   indestructible: true
   isSubfloor: true
 
+# Clear ice that grips, where the dark ice did.
 - type: tile
-  id: WFFloorThrasciasDarkIce
-  parent: PolarisFloorOutdoorsIceDark
+  id: WFFloorThrasciasClearIce
+  parent: FloorIce
   weather: true
   indestructible: true
   isSubfloor: true
+  friction: 1
+  mobAcceleration: 1
 
 - type: tile
-  id: WFFloorThrasciasDarkIceSmooth
-  parent: PolarisFloorOutdoorsIceDarkSmooth
+  id: WFFloorThrasciasClearIceSmooth
+  parent: FloorIce
   weather: true
   indestructible: true
   isSubfloor: true
@@ -58,7 +62,7 @@
 
 - type: tile
   id: WFFloorThrasciasLakeIce
-  parent: GoonFloorAutoArcticLake
+  parent: FloorIce
   weather: true
   indestructible: true
   isSubfloor: true
@@ -125,7 +129,7 @@
     allowedTiles:
     - WFFloorThrasciasPackIce
     - WFFloorThrasciasRoughIce
-    - WFFloorThrasciasDarkIce
+    - WFFloorThrasciasClearIce
     threshold: 0.8
     divisions: 1
     noise: { seed: 203, noiseType: OpenSimplex2, frequency: 4 }
@@ -187,7 +191,7 @@
     allowedTiles:
     - WFFloorThrasciasPackIce
     - WFFloorThrasciasRoughIce
-    - WFFloorThrasciasDarkIce
+    - WFFloorThrasciasClearIce
     entities: [ShiptestFloraRockIcy, AuroraFloraRockIce]
     threshold: 0.8
     noise: { seed: 105, noiseType: OpenSimplex2, frequency: 2.5 }
@@ -195,7 +199,7 @@
     allowedTiles:
     - WFFloorThrasciasPackIce
     - WFFloorThrasciasRoughIce
-    - WFFloorThrasciasDarkIce
+    - WFFloorThrasciasClearIce
     entities: [ShiptestRockPileIcy]
     threshold: 0.9
     noise: { seed: 109, noiseType: OpenSimplex2, frequency: 3 }
@@ -233,8 +237,8 @@
     - WFFloorThrasciasFrozenDirt
     - WFFloorThrasciasPackIce
     - WFFloorThrasciasRoughIce
-    - WFFloorThrasciasDarkIce
-    - WFFloorThrasciasDarkIceSmooth
+    - WFFloorThrasciasClearIce
+    - WFFloorThrasciasClearIceSmooth
     - WFFloorThrasciasLakeIce
     - WFFloorThrasciasCrystalIce
     entities: [WFFaunaThrascias]
@@ -257,15 +261,15 @@
     - WFFloorThrasciasFrozenDirt
     - WFFloorThrasciasPackIce
     - WFFloorThrasciasRoughIce
-    - WFFloorThrasciasDarkIce
-    - WFFloorThrasciasDarkIceSmooth
+    - WFFloorThrasciasClearIce
+    - WFFloorThrasciasClearIceSmooth
     - WFFloorThrasciasLakeIce
     - WFFloorThrasciasCrystalIce
     entities: [FloorLiquidPlasmaEntity]
     threshold: 0.95
     noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.004, fractalType: Ridged, octaves: 1 }
 
-# Cracked pack ice, with rough and dark patches and black frozen lakes in the middle.
+# Cracked pack ice, with rough and clear patches and clear frozen lakes in the middle.
 - type: biomeTemplate
   id: WFThrasciasPackIce
   layers:
@@ -277,11 +281,11 @@
     threshold: 0.6
     noise: { seed: 71, noiseType: OpenSimplex2, frequency: 0.08 }
   - !type:BiomeTileLayer
-    tile: WFFloorThrasciasDarkIce
+    tile: WFFloorThrasciasClearIce
     threshold: 0.6
     noise: { seed: 72, noiseType: OpenSimplex2, frequency: 0.07 }
   - !type:BiomeTileLayer
-    tile: WFFloorThrasciasDarkIceSmooth
+    tile: WFFloorThrasciasClearIceSmooth
     threshold: 0.75
     noise: { seed: 73, noiseType: OpenSimplex2, frequency: 0.1 }
   - !type:BiomeTileLayer
@@ -325,7 +329,7 @@
     allowedTiles:
     - WFFloorThrasciasPackIce
     - WFFloorThrasciasRoughIce
-    - WFFloorThrasciasDarkIce
+    - WFFloorThrasciasClearIce
     entities: [CMRockIce]
     threshold: 0.9
     noise: { seed: 132, noiseType: OpenSimplex2, frequency: 0.07, fractalType: Ridged, octaves: 1 }
