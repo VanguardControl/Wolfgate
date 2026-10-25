@@ -77,6 +77,15 @@ To place it, add a `BiomeEntityLayer` to the planet's biome as `WFCarcinomaPimpl
 
 Entry points: `WFReactiveFloraSystem`, `WFRegrowingHarvestSystem`.
 
+## Merak
+
+Merak's regions each have their own wildlife and plants (`Resources/Prototypes/_WF/Planets/Life/merak.yml`; the sand
+maws stay in `_WF/SandMaw`). Dunes: desert tarantulas (a sand-coloured space spider, slower and harder-hitting) and
+tumbleweeds that rustle now and then. Badlands: lizards, cobras and spitting cacti that flick slow needles from 6 m.
+Cactus fields: kangaroos, sting-nettles among the grass (a sting and a 1 s stun), barrel cacti picked by hand for
+cactus water and agave cut for sugary sap. Gravel flats: ore crabs round the ore outcrops. Oases: goats and crabs, date
+palms with pickable dates and, very rarely, a mimic posing as a crate.
+
 ## Sounds
 
 The Black Mesa files come from the owner's copy of the mod's sounds, which the owner states are open source; the
