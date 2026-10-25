@@ -98,6 +98,17 @@ public sealed partial class WFStrangerComponent : Component
     [ViewVariables]
     public TimeSpan NextWander;
 
+    /// <summary>While he walks a leg of his wander: when he gives up getting there. Null when he isn't wandering.</summary>
+    [ViewVariables]
+    public TimeSpan? WanderUntil;
+
+    /// <summary>How long he lingers where a leg of his wander ends, before he sets off again.</summary>
+    [DataField]
+    public TimeSpan LingerMin = TimeSpan.FromSeconds(30);
+
+    [DataField]
+    public TimeSpan LingerMax = TimeSpan.FromSeconds(90);
+
     /// <summary>Visitors he has already greeted on his way over, and when.</summary>
     [ViewVariables]
     public Dictionary<EntityUid, TimeSpan> Greeted = new();

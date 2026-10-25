@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using System.Numerics;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared.Decals;
@@ -21,7 +22,7 @@ public sealed partial class WFPlanetPoiSystem
     private const int AttemptsPerPiece = 12;
 
     /// <summary>Lays a network's dressing over its painted tiles. Nothing goes inside a site's own bounds.</summary>
-    private void DressRoads(EntityUid ground, MapGridComponent grid, WFPlanetPoiComponent record, WFPlanetRoadNetwork roads,
+    private async Task DressRoadsAsync(EntityUid ground, MapGridComponent grid, WFPlanetPoiComponent record, WFPlanetRoadNetwork roads,
         WFPlanetRoadPlan plan, HashSet<EntityUid> created, List<uint> createdDecals)
     {
         if (roads.Dressing is not { } id)
@@ -53,6 +54,7 @@ public sealed partial class WFPlanetPoiSystem
         }
 
         _maps.SetTiles(ground, grid, kerbs);
+        await _preload.Breathe();
 
         // The line down the middle.
         EnsureComp<DecalGridComponent>(ground);
@@ -64,6 +66,7 @@ public sealed partial class WFPlanetPoiSystem
                 continue;
 
             AddDecal(ground, line.Value, tile, createdDecals);
+            await _preload.Breathe();
         }
 
         // Street lights, clear of the corners the signals take.
@@ -76,6 +79,9 @@ public sealed partial class WFPlanetPoiSystem
                     continue;
 
                 var broken = dressing.BrokenLight != null && random.NextDouble() < dressing.BrokenLightChance;
+                await _preload.Breathe();
+                if (TerminatingOrDeleted(ground))
+                    return;
                 Furnish(ground, record, broken ? dressing.BrokenLight!.Value : light, tile, Angle.Zero, created);
             }
         }
@@ -91,8 +97,12 @@ public sealed partial class WFPlanetPoiSystem
                 foreach (var corner in new[] { new Vector2i(half + 1, half + 1), new Vector2i(-half - 1, -half - 1) })
                 {
                     var spot = tile + corner;
-                    if (plan.ShoulderTiles.Contains(spot) && !InSite(spot) && occupied.Add(spot))
-                        Furnish(ground, record, signal, spot, Angle.Zero, created);
+                    if (!plan.ShoulderTiles.Contains(spot) || InSite(spot) || !occupied.Add(spot))
+                        continue;
+                    await _preload.Breathe();
+                    if (TerminatingOrDeleted(ground))
+                        return;
+                    Furnish(ground, record, signal, spot, Angle.Zero, created);
                 }
             }
         }
@@ -110,6 +120,9 @@ public sealed partial class WFPlanetPoiSystem
             var wanted = Count(rule.Per100, open.Count, random);
             for (var attempt = 0; attempt < wanted * AttemptsPerPiece && wanted > 0; attempt++)
             {
+                await _preload.Breathe();
+                if (TerminatingOrDeleted(ground))
+                    return;
                 var (centre, axis) = open[random.Next(open.Count)];
                 if (rule.Axis != WFRoadAxis.Any && rule.Axis != axis)
                     continue;
@@ -181,6 +194,9 @@ public sealed partial class WFPlanetPoiSystem
 
                 AddDecal(ground, rule.Decals[random.Next(rule.Decals.Count)], tile, createdDecals);
                 wanted--;
+                await _preload.Breathe();
+                if (TerminatingOrDeleted(ground))
+                    return;
             }
         }
     }

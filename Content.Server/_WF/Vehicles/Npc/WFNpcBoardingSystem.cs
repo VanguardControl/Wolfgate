@@ -14,7 +14,8 @@ namespace Content.Server._WF.Vehicles.Npc;
 
 /// <summary>
 /// An NPC that climbs into vehicles to get at whoever is inside: a hostile one near an occupied vehicle walks to its
-/// nearest door and, unlocked, climbs in and fights in the cabin. A locked vehicle it just attacks from outside.
+/// nearest door and, unlocked, climbs in and fights in the cabin, and climbs out again once nobody he's after is left
+/// inside. A locked vehicle it just attacks from outside.
 /// </summary>
 [RegisterComponent]
 public sealed partial class WFVehicleBoarderComponent : Component
@@ -38,6 +39,14 @@ public sealed partial class WFVehicleBoarderComponent : Component
     /// <summary>Until when he's climbing in, so the door isn't tried again mid-climb.</summary>
     [ViewVariables]
     public TimeSpan ClimbingUntil;
+
+    /// <summary>Whether he climbs back out once nobody he's after is left in the cabin; a squatter stays put.</summary>
+    [DataField]
+    public bool Leaves = true;
+
+    /// <summary>When he climbs out of a cabin with nobody left inside to fight.</summary>
+    [ViewVariables]
+    public TimeSpan? LeaveAt;
 }
 
 public sealed class WFNpcBoardingSystem : EntitySystem
@@ -56,10 +65,17 @@ public sealed class WFNpcBoardingSystem : EntitySystem
     /// <summary>Longer than any vehicle's climb-in do-after.</summary>
     private static readonly TimeSpan ClimbTime = TimeSpan.FromSeconds(4);
 
+    /// <summary>How long he waits in a cabin with nobody left to fight before he climbs out.</summary>
+    private static readonly TimeSpan LeaveDelay = TimeSpan.FromSeconds(3);
+
+    /// <summary>Further than any cabin is long.</summary>
+    private const float CabinRange = 32f;
+
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
         var now = _timing.CurTime;
+        UpdateInside(now);
         var query = EntityQueryEnumerator<WFVehicleBoarderComponent, ActiveNPCComponent, HTNComponent>();
         while (query.MoveNext(out var uid, out var boarder, out _, out var htn))
         {
@@ -121,6 +137,35 @@ public sealed class WFNpcBoardingSystem : EntitySystem
         _steering.Unregister(ent);
         if (now >= ent.Comp.ClimbingUntil && _interiors.TryNpcEnter(vehicle, ent))
             ent.Comp.ClimbingUntil = now + ClimbTime;
+    }
+
+    /// <summary>
+    /// A boarder in a cabin climbs out a few seconds after the last of his enemies inside is gone or dead, to go after
+    /// them outside or back to his business.
+    /// </summary>
+    private void UpdateInside(TimeSpan now)
+    {
+        var inside = EntityQueryEnumerator<WFVehicleBoarderComponent, VehicleInteriorOccupantComponent>();
+        while (inside.MoveNext(out var uid, out var boarder, out var occupant))
+        {
+            if (!boarder.Leaves || !_mobs.IsAlive(uid) || !TryComp(occupant.Vehicle, out VehicleInteriorComponent? interior))
+                continue;
+
+            // Whoever he'd fight, by grudge or by faction, still alive in here with him.
+            var passengers = interior.Passengers;
+            if (_factions.GetNearbyHostiles(uid, CabinRange).Any(hostile => passengers.Contains(hostile) && _mobs.IsAlive(hostile)))
+            {
+                boarder.LeaveAt = null;
+                continue;
+            }
+
+            boarder.LeaveAt ??= now + LeaveDelay;
+            if (now < boarder.LeaveAt)
+                continue;
+            boarder.LeaveAt = null;
+            _steering.Unregister(uid);
+            _interiors.TryExitVehicle(occupant.Vehicle, uid);
+        }
     }
 
     /// <summary>Back to fighting on his own, inside or out.</summary>

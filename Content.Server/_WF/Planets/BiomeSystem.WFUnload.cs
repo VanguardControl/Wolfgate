@@ -22,6 +22,7 @@ namespace Content.Server.Parallax;
 public sealed partial class BiomeSystem
 {
     [Dependency] private IGameTiming _wfTiming = default!;
+    [Dependency] private WFPlanetPreloadSystem _wfPreload = default!;
 
     /// <summary>How many chunks past the loaded area stay loaded, so its edge doesn't reload at every step back.</summary>
     public const int WfKeepRing = 2;
@@ -131,8 +132,8 @@ public sealed partial class BiomeSystem
         if (!_wfUnloadEnabled || !HasComp<WFPlanetLayerComponent>(map))
             return false;
 
-        // A preloaded ground keeps everything; there is nothing to scan for.
-        if (HasComp<WFPlanetPreloadedComponent>(map))
+        // A preloaded ground keeps everything, and so does one still generating; there is nothing to scan for.
+        if (HasComp<WFPlanetPreloadedComponent>(map) || _wfPreload.IsPreloading(map))
             return true;
 
         var layer = _wfLayers.GetOrNew(map);

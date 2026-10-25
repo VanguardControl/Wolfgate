@@ -106,6 +106,8 @@
     dialogue: WFStrangerDialogueSquatter
     behaviour: Squat
     sightRange: 9
+  - type: WFVehicleBoarder
+    leaves: false
   - type: Loadout
     prototypes: [ WFStrangerGearSquatter ]
 

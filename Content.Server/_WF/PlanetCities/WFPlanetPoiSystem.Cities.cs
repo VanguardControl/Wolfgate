@@ -45,7 +45,7 @@ public sealed partial class WFPlanetPoiSystem
     private sealed record CityPlan(WFFixedCityPrototype City, StationConfig Config, WFPlanetPoiEntry Entry, Box2i Footprint, Vector2i Origin, Box2i Reservation);
 
     /// <summary>Resumes on a later tick, so a city is built a level at a time rather than in one long tick.</summary>
-    private static Task NextTick() => Robust.Shared.Timing.Timer.Delay(1);
+    private Task NextTick() => _preload.NextTick();
 
     /// <summary>
     /// Places every fixed city of this world. Each one's spot is held at once, before the preload's other claims such
@@ -66,7 +66,8 @@ public sealed partial class WFPlanetPoiSystem
         HashSet<Vector2i> initialPins,
         HashSet<EntityUid> created,
         List<uint> createdDecals,
-        HashSet<Vector2i> changed)
+        HashSet<Vector2i> changed,
+        Task claimed)
     {
         if (!_cfg.GetCVar(PlanetCVars.FixedCities))
             return;
@@ -78,6 +79,8 @@ public sealed partial class WFPlanetPoiSystem
                 plans.Add(plan);
         }
 
+        // The footprints are held; what a city leaves of its footprint is let go only once the claims round it are in.
+        await claimed;
         foreach (var plan in plans)
         {
             var levels = new List<CityLevel>();
@@ -203,14 +206,15 @@ public sealed partial class WFPlanetPoiSystem
 
             // Under the street, a layer with terrain of its own grows the rock itself.
             var strip = depth < 0 && HasComp<BiomeComponent>(network.LowerLayers[-depth - 1]) ? city.Terrain : null;
-            if (LoadCityLevel(depth, path, strip) is not { } level)
+            if (await LoadCityLevelAsync(depth, path, strip) is not { } level)
             {
                 Log.Error($"{city.ID}: cannot load {path}.");
                 return false;
             }
 
             levels.Add(level);
-            PrepareCityLevel(city, level, plan.Footprint);
+            await NextTick();
+            await PrepareCityLevelAsync(city, level, plan.Footprint);
             await NextTick();
             if (TerminatingOrDeleted(network.GroundMap))
                 return false;
@@ -240,9 +244,9 @@ public sealed partial class WFPlanetPoiSystem
     /// Loads a level's map file onto a staging map as an ordinary grid, without map-initialising it. Entities of the
     /// <paramref name="strip"/> prototypes are left out, and so are the tiles they stood on.
     /// </summary>
-    private CityLevel? LoadCityLevel(int depth, ResPath path, HashSet<EntProtoId>? strip)
+    private async Task<CityLevel?> LoadCityLevelAsync(int depth, ResPath path, HashSet<EntProtoId>? strip)
     {
-        if (!_loader.TryReadFile(path, out var data))
+        if (await ReadMapAsync(path) is not { } data)
             return null;
 
         var stripped = new List<Vector2i>();
@@ -318,7 +322,7 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>Swaps or removes the prototypes the city lists, drops anything standing off the tiles and strips godmode.</summary>
-    private void PrepareCityLevel(WFFixedCityPrototype city, CityLevel level, Box2i footprint)
+    private async Task PrepareCityLevelAsync(WFFixedCityPrototype city, CityLevel level, Box2i footprint)
     {
         var grid = level.Grid;
         if (city.ReplaceTiles.Count > 0)
@@ -351,6 +355,10 @@ public sealed partial class WFPlanetPoiSystem
 
         foreach (var child in children)
         {
+            // The level is paused on its staging map, so it can wait a tick between pieces.
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(child))
+                continue;
             var xform = Transform(child);
             if (_maps.GetTileRef(grid.Owner, grid.Comp, xform.Coordinates).Tile.IsEmpty)
             {
@@ -467,7 +475,10 @@ public sealed partial class WFPlanetPoiSystem
             if (target == ground || TryComp<BiomeComponent>(target, out _))
                 ClearForCity(target, targetGrid, tiles);
 
-            MergeSite(target, targetGrid, level.Grid, origin, footprint, created, createdDecals);
+            await _preload.Breathe();
+            await MergeSiteAsync(target, targetGrid, level.Grid, origin, footprint, created, createdDecals);
+            if (TerminatingOrDeleted(ground) || TerminatingOrDeleted(target))
+                return new HashSet<Vector2i>();
             EnsureComp<RoofComponent>(target);
             foreach (var tile in tiles)
             {
@@ -546,7 +557,13 @@ public sealed partial class WFPlanetPoiSystem
 
         created.Add(station);
         EnsureComp<WFPlanetCitiesComponent>(ground).Stations.Add(station);
-        SpawnCityResidents(city, floors, created);
+        await NextTick();
+        if (TerminatingOrDeleted(ground))
+            return new HashSet<Vector2i>();
+        await SpawnCityResidentsAsync(city, floors, created);
+        await NextTick();
+        if (TerminatingOrDeleted(ground))
+            return new HashSet<Vector2i>();
         RollCityFate(city, floors, created);
         Log.Info($"Built {city.ID} on {ToPrettyString(ground)} at {origin}, {levels.Count} levels.");
         return siteTiles;

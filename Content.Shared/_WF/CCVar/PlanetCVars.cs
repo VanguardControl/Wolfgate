@@ -56,11 +56,29 @@ public sealed class PlanetCVars
         CVarDef.Create("wf.planet_preload_budget_lobby", 250f, CVar.SERVERONLY);
 
     /// <summary>
+    /// Milliseconds a tick world generation may spend on the rest: sites, cities, roads, camps, the boundary ring and
+    /// what is let loose once the ground exists. A step that can't be split, such as loading one site's map, can run past it.
+    /// </summary>
+    public static readonly CVarDef<float> GenerationBudget =
+        CVarDef.Create("wf.planet_generation_budget", 8f, CVar.SERVERONLY);
+
+    /// <summary>Milliseconds a tick world generation may spend on the rest while the round is still in the lobby.</summary>
+    public static readonly CVarDef<float> GenerationBudgetLobby =
+        CVarDef.Create("wf.planet_generation_budget_lobby", 200f, CVar.SERVERONLY);
+
+    /// <summary>
     /// Whether the round-start worlds of the lobby's preset are built, and preloaded, while the lobby is open; the
     /// sector bodies that spawn where they were built take them over at round start.
     /// </summary>
     public static readonly CVarDef<bool> Prebuild =
         CVarDef.Create("wf.planet_prebuild", true, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Seconds the round start may wait past the lobby countdown for round-start worlds still forming; after that the
+    /// round starts anyway, and the worlds still forming refuse descent until they are done.
+    /// </summary>
+    public static readonly CVarDef<float> RoundHoldMax =
+        CVarDef.Create("wf.planet_round_hold_max", 180f, CVar.SERVERONLY);
 
     /// <summary>Whether worlds get their fixed cities (wfFixedCity), such as Crocus on Asclepiu.</summary>
     public static readonly CVarDef<bool> FixedCities =

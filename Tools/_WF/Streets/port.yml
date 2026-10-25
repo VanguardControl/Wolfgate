@@ -67,6 +67,13 @@ rename_values:
 light_masks:
   /Textures/_WF/Streets/Effects/LightMasks/quad_cone.png: ConeQuad
 
+# Lit states drawn on an unshaded layer are full copies of the sprite. Each one is cut down to the pixels that differ from
+# its unlit state (the lamps), so the pole and housing stay shaded. RSI under the textures folder -> [unlit, lit] pairs.
+lamp_masks:
+  Objects/Misc/Lights/floodlightbig.rsi: [[bigflood, bigfloodon]]
+  Objects/Misc/Lights/streetlight.rsi: [[street_off, street_on]]
+  Objects/Misc/Lights/trafficlights.rsi: [[trafficlight, trafficlight_on], [trafficlight_alt, trafficlight_alt_on]]
+
 # Entities a destruction spawns that Wolfgate knows by another id.
 rename_entities:
   CMSheetMetal1: SheetSteel1

@@ -19,6 +19,11 @@ wf-orbit-not-in-orbit = This hull is not in planet orbit.
 wf-orbit-outside-bounds = Outside the world's edge; no ground to descend to here.
 wf-orbit-out-of-range = Too far from { $planet } for orbital insertion.
 wf-orbit-refused = Orbital insertion refused.
+wf-orbit-world-forming = { $planet } is still forming. Try again in a moment.
+
+## Round-start hold
+wf-planet-round-hold = Worlds are still forming. The round starts as soon as they are done.
+wf-planet-round-hold-expired = Worlds are still forming, but the round is starting anyway.
 
 ## wfplanet command
 cmd-wfplanet-desc = Build, inspect and tear down Wolfgate planet networks.

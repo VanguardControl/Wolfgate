@@ -66,8 +66,8 @@ public sealed class RoofRevealTest
         WFRoofReveal.Enclosed(Deck(), _ => false, RoomWall, roofed);
 
         Assert.That(roofed, Does.Contain(new Vector2i(5, 3)), "The room inside the walls is roofed.");
-        Assert.That(roofed, Does.Contain(new Vector2i(2, 3)), "...and so are its walls.");
-        Assert.That(roofed, Does.Contain(new Vector2i(5, 1)), "The door is part of the wall.");
+        Assert.That(roofed, Does.Not.Contain(new Vector2i(2, 3)), "Its walls stay uncovered, to be seen from outside.");
+        Assert.That(roofed, Does.Not.Contain(new Vector2i(5, 1)), "...and so does the door in them.");
         Assert.That(roofed, Does.Not.Contain(new Vector2i(0, 0)), "Open plating outside is left bare.");
         Assert.That(roofed, Does.Not.Contain(new Vector2i(9, 3)), "...even right against the wall.");
     }
@@ -78,6 +78,16 @@ public sealed class RoofRevealTest
         var roofed = new HashSet<Vector2i>();
         WFRoofReveal.Enclosed(Deck(), _ => false, tile => RoomWall(tile) && tile != new Vector2i(8, 3), roofed);
         Assert.That(roofed, Does.Not.Contain(new Vector2i(5, 3)), "A hole in the wall leaves the room open.");
+    }
+
+    [Test]
+    public void OnlyOpenFloorIsCovered()
+    {
+        Assert.That(WFRoofReveal.Covers(roofed: true, structure: false, lifted: false), Is.True, "Roofed floor is covered.");
+        Assert.That(WFRoofReveal.Covers(roofed: true, structure: true, lifted: false), Is.False,
+            "A wall, window or door under the roof is never covered.");
+        Assert.That(WFRoofReveal.Covers(roofed: true, structure: false, lifted: true), Is.False, "A lifted room is open.");
+        Assert.That(WFRoofReveal.Covers(roofed: false, structure: false, lifted: false), Is.False, "Open ground has no roof.");
     }
 
     [Test]

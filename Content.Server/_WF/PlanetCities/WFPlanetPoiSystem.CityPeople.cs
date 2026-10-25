@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Content.Server.Spawners.Components;
 using Content.Shared._WF.PlanetCities;
 using Robust.Shared.Map;
@@ -27,7 +28,7 @@ public sealed partial class WFPlanetPoiSystem
     /// Puts a city's residents on its roofed floor: one on every level that has room, the rest in proportion to each
     /// level's floor, on bare tiles clear of the spawn points and a few tiles apart.
     /// </summary>
-    private void SpawnCityResidents(WFFixedCityPrototype city, List<CityFloor> floors, HashSet<EntityUid> created)
+    private async Task SpawnCityResidentsAsync(WFFixedCityPrototype city, List<CityFloor> floors, HashSet<EntityUid> created)
     {
         if (city.Residents is not { } residents)
             return;
@@ -40,6 +41,7 @@ public sealed partial class WFPlanetPoiSystem
         }, floor => floor.Indoor);
         if (pools.Count == 0)
             return;
+        await _preload.Breathe();
 
         var total = _random.Next(residents.Min, residents.Max + 1);
         var firsts = pools.ToList();
@@ -55,6 +57,9 @@ public sealed partial class WFPlanetPoiSystem
                 continue;
 
             taken.Add(tile);
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(pool.Floor.Grid.Owner))
+                break;
             foreach (var id in _entityTables.GetSpawns(residents.Spawns))
             {
                 created.Add(Spawn(id, new EntityCoordinates(pool.Floor.Grid.Owner, (Vector2) tile + new Vector2(0.5f))));

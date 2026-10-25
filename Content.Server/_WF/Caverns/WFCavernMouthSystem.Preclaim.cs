@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Numerics;
+using System.Threading.Tasks;
 using Content.Server._WF.Planets.Bounds;
 
 namespace Content.Server._WF.Caverns;
@@ -10,6 +11,8 @@ namespace Content.Server._WF.Caverns;
 /// </summary>
 public sealed partial class WFCavernMouthSystem
 {
+    [Dependency] private WFPlanetPreloadSystem _preload = default!;
+
     private void InitializePreclaim()
     {
         SubscribeLocalEvent<WFPlanetPreloadStartingEvent>(OnPreloadStarting);
@@ -24,18 +27,30 @@ public sealed partial class WFCavernMouthSystem
         if (!TryGetContext(ground, out var context))
             return;
 
+        // A cell a step, over as many ticks as the generation budget takes; the sites wait for it.
+        var preclaim = PreclaimAsync(ground, context, args.Centre, args.Radius);
+        args.Holds.Add(preclaim);
+        args.Claims.Add(preclaim);
+    }
+
+    private async Task PreclaimAsync(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2 centre, float radius)
+    {
         var watch = Stopwatch.StartNew();
         var claimed = 0;
-        var min = CellOf(context.Spec, Floor(args.Centre - new Vector2(args.Radius)));
-        var max = CellOf(context.Spec, Floor(args.Centre + new Vector2(args.Radius)));
+        var min = CellOf(context.Spec, Floor(centre - new Vector2(radius)));
+        var max = CellOf(context.Spec, Floor(centre + new Vector2(radius)));
 
         for (var x = min.X; x <= max.X; x++)
         for (var y = min.Y; y <= max.Y; y++)
         {
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(ground))
+                return;
+
             if (ClaimCell(ground, context, new Vector2i(x, y), WFCavernMouthKind.Cell) == WFCavernClaim.Claimed)
                 claimed++;
         }
 
-        Log.Info($"Claimed {claimed} cavern mouths on {ToPrettyString(ground)} ahead of its preload in {watch.Elapsed.TotalMilliseconds:F0} ms.");
+        Log.Info($"Claimed {claimed} cavern mouths on {ToPrettyString(ground)} ahead of its preload over {watch.Elapsed.TotalMilliseconds:F0} ms.");
     }
 }

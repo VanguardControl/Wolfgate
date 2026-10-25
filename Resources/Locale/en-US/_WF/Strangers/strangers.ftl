@@ -13,9 +13,10 @@ wf-stranger-dealer-menu = Space dust, rainbow joints, the good stuff. Two hundre
 wf-stranger-dealer-buy = I'll take one.
 wf-stranger-dealer-pass = Too rich for me.
 wf-stranger-dealer-sold = Pleasure. You never saw me.
-wf-stranger-dealer-broke = You're broke? You wasted my time!
+wf-stranger-dealer-broke = You're broke? Don't waste my time. Beat it.
 wf-stranger-dealer-snubbed = Oh, you're too good for me, huh? HUH?!
 wf-stranger-dealer-threaten = Get lost before I call security.
+wf-stranger-dealer-shrug = Your loss. You know where to find me.
 
 wf-stranger-mugger-hail = Hey! Hold up a second, friend.
 wf-stranger-mugger-demand = Nice boots. Real nice. Hand over a hundred and fifty and you get to keep walking in them.
@@ -25,6 +26,7 @@ wf-stranger-mugger-bluff = My friends are right behind me.
 wf-stranger-mugger-paid = Smart. Off you go.
 wf-stranger-mugger-bluffed = Sure they are. Last chance.
 wf-stranger-mugger-refused = Wrong answer.
+wf-stranger-mugger-waved = Yeah, keep walking. Next time.
 
 wf-stranger-preacher-hail = Brother! Sister! Hear me!
 wf-stranger-preacher-sermon = The stars are going out one by one! The end is near, and it is coming for this rock first!

@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Content.Server._WF.Planets.Bounds;
 using Content.Shared.Parallax.Biomes;
 using Robust.Shared.Map;
@@ -15,16 +16,19 @@ public sealed partial class WFPlanetPoiSystem
     private const float RoamerClearance = 24f;
 
     /// <summary>Somebody living in some of the dwellings, such as houses: one each, on open floor under its roof.</summary>
-    private void SpawnResidents(EntityUid ground, MapGridComponent grid, WFPlanetPoiComponent record)
+    private async Task SpawnResidentsAsync(EntityUid ground, MapGridComponent grid, WFPlanetPoiComponent record)
     {
         if (record.PendingResidents is not { } resident)
             return;
         record.PendingResidents = null;
 
-        foreach (var site in record.Sites)
+        foreach (var site in record.Sites.ToList())
         {
             if (!site.Dwelling || !_random.Prob(record.ResidentChance))
                 continue;
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(ground))
+                return;
 
             var floor = new List<Vector2i>();
             for (var x = site.Bounds.Left; x < site.Bounds.Right; x++)
@@ -53,11 +57,23 @@ public sealed partial class WFPlanetPoiSystem
             || !TryComp<BiomeComponent>(ground, out var biome) || !TryComp<MapGridComponent>(ground, out var grid))
             return;
 
-        SpawnPendingCamps((ground, biome), grid, record);
-        SpawnResidents(ground, grid, record);
-        SpawnVehicles((ground, biome), grid, record);
-        SpawnRoadPatrols(ground, grid, record);
-        if (record.PendingRoamers.Count == 0)
+        args.Work.Add(PopulateAsync(ground, biome, grid, record));
+    }
+
+    /// <summary>Lets loose what waits for the ground: camp guards, residents, vehicles, patrols and roamers, a slice a tick.</summary>
+    private async Task PopulateAsync(EntityUid ground, BiomeComponent biome, MapGridComponent grid, WFPlanetPoiComponent record)
+    {
+        await SpawnPendingCampsAsync((ground, biome), grid, record);
+        if (TerminatingOrDeleted(ground))
+            return;
+        await SpawnResidentsAsync(ground, grid, record);
+        if (TerminatingOrDeleted(ground))
+            return;
+        await SpawnVehiclesAsync((ground, biome), grid, record);
+        if (TerminatingOrDeleted(ground))
+            return;
+        await SpawnRoadPatrolsAsync(ground, grid, record);
+        if (TerminatingOrDeleted(ground) || record.PendingRoamers.Count == 0)
             return;
 
         var inner = record.RoamerInner;
@@ -72,6 +88,9 @@ public sealed partial class WFPlanetPoiSystem
             var count = _random.Next(roamer.MinCount, roamer.MaxCount + 1);
             for (var i = 0; i < count; i++)
             {
+                await _preload.Breathe();
+                if (TerminatingOrDeleted(ground))
+                    return;
                 for (var attempt = 0; attempt < 64; attempt++)
                 {
                     var spot = record.RoamerCentre + _random.NextAngle().ToVec() * MathF.Sqrt(_random.NextFloat(inner * inner, outer * outer));

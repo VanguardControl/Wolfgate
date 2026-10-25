@@ -187,6 +187,7 @@ public sealed partial class WFStrangerSystem : EntitySystem
 
         if (stranger.Target is { } target && !Usable(ent, target, now, home))
         {
+            LetGo(ent, target, now, home);
             stranger.Target = null;
             stranger.Hailed = false;
             _steering.Unregister(ent);
@@ -216,9 +217,32 @@ public sealed partial class WFStrangerSystem : EntitySystem
             return;
         }
 
+        StopWandering(stranger);
         if (home is { } place2)
             Greet(ent, place2, mark, now);
-        Walk(ent, Transform(mark).Coordinates);
+        Follow(ent, mark);
+    }
+
+    /// <summary>
+    /// A resident who lost someone past his leash leaves them be for a while, so he walks home instead of turning
+    /// round at the edge of it and going out again.
+    /// </summary>
+    private void LetGo(Entity<WFStrangerComponent> ent, EntityUid target, TimeSpan now, Entity<WFStrangerHomeComponent>? home)
+    {
+        if (home is not { } place || TerminatingOrDeleted(target) || !_mobs.IsAlive(target))
+            return;
+        if (!WithinLeash(place, ent) || !WithinLeash(place, target) || !Reachable(ent, target))
+            ent.Comp.Done[target] = now + LeashCooldown;
+    }
+
+    /// <summary>Walks after someone, asking for a new path only once they've moved off from where he was headed.</summary>
+    private void Follow(EntityUid ent, EntityUid target, float slack = 1.5f)
+    {
+        var there = Transform(target).Coordinates;
+        if (TryComp(ent, out NPCSteeringComponent? steering) && steering.Status == SteeringStatus.Moving
+            && _transform.InRange(steering.Coordinates, there, slack))
+            return;
+        Walk(ent, there);
     }
 
     /// <summary>Somebody he hasn't finished with yet: alive, a player, in sight, and within a resident's leash.</summary>
@@ -432,6 +456,7 @@ public sealed partial class WFStrangerSystem : EntitySystem
     {
         ent.Comp.Done[user] = _timing.CurTime + Cooldown;
         ent.Comp.NextWander = _timing.CurTime;
+        StopWandering(ent.Comp);
         ent.Comp.Target = null;
         ent.Comp.Node = null;
         ent.Comp.Hailed = false;
@@ -482,6 +507,7 @@ public sealed partial class WFStrangerSystem : EntitySystem
         ent.Comp.Hostile = false;
         ent.Comp.CalmAt = null;
         ent.Comp.NextWander = now;
+        StopWandering(ent.Comp);
         if (TryComp(ent, out HTNComponent? htn))
             _htn.SetHTNEnabled((ent, htn), false);
         _steering.Unregister(ent);
@@ -533,7 +559,14 @@ public sealed partial class WFStrangerSystem : EntitySystem
         if (stranger.Target is not { } mark || TerminatingOrDeleted(mark) || !_mobs.IsAlive(mark) || !HasComp<ActorComponent>(mark)
             || home is { } leashed && (Transform(mark).MapID != xform.MapID || !WithinLeash(leashed, mark) || !Reachable(ent, mark)))
         {
+            if (stranger.Target is { } lost)
+            {
+                LetGo(ent, lost, now, home);
+                _steering.Unregister(ent);
+            }
             stranger.Target = Nearest(ent, xform, now, home);
+            if (stranger.Target != null)
+                StopWandering(stranger);
             stranger.MarkAboardSince = null;
             if (stranger.Target == null)
             {
@@ -561,14 +594,20 @@ public sealed partial class WFStrangerSystem : EntitySystem
         if (markXform.MapID != xform.MapID)
             return;
 
+        // He makes for the middle of his band only once he's out of it, and settles once he's well inside, so he
+        // doesn't dither back and forth on its edges.
         var here = _transform.GetWorldPosition(xform);
         var there = _transform.GetWorldPosition(markXform);
         var distance = Vector2.Distance(here, there);
-        if (distance > stranger.StalkFar)
-            Walk(ent, markXform.Coordinates);
-        else if (distance < stranger.StalkNear && distance > 0.01f)
-            Walk(ent, new EntityCoordinates(xform.MapUid!.Value, here + (here - there) / distance * 2f));
-        else
+        var middle = (stranger.StalkNear + stranger.StalkFar) / 2f;
+        if ((distance > stranger.StalkFar || distance < stranger.StalkNear - 1f) && distance > 0.01f)
+        {
+            var spot = new EntityCoordinates(xform.MapUid!.Value, there + (here - there) / distance * middle);
+            if (!TryComp(ent, out NPCSteeringComponent? steering) || steering.Status != SteeringStatus.Moving
+                || !_transform.InRange(steering.Coordinates, spot, 1.5f))
+                Walk(ent, spot);
+        }
+        else if (Math.Abs(distance - middle) < 1f)
             _steering.Unregister(ent);
 
         if (now >= stranger.NextMutter && stranger.Mutters.Count > 0)

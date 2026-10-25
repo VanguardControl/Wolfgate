@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Server.Shuttles.Components;
 using Content.Server.Station.Components;
@@ -35,7 +36,7 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Tiles kept between a wreck and anything pinned: sites, roads, cavern mouths.</summary>
     private const float WreckClearance = 3f;
 
-    private void PlaceWrecks(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
+    private async Task PlaceWrecksAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
         WFPlanetPoiTablePrototype table, WFPlanetPoiComponent record, HashSet<EntityUid> created)
     {
         if (table.Wrecks is not { } wrecks)
@@ -56,24 +57,24 @@ public sealed partial class WFPlanetPoiSystem
         var count = _random.Next(wrecks.MinCount, wrecks.MaxCount + 1);
         for (var i = 0; i < count; i++)
         {
+            await _preload.Breathe();
             if (TerminatingOrDeleted(ground))
                 return;
             var vessel = _random.Pick(pool);
-            if (!TryPlaceWreck(ground, grid, biome, orbit, centre, radius, table, record, wrecks, theme, vessel, created))
+            if (!await TryPlaceWreckAsync(ground, grid, biome, orbit, centre, radius, table, record, wrecks, theme, vessel, created))
                 Log.Warning($"No wreck of {vessel.ID} on {ToPrettyString(ground)}; it is skipped.");
         }
     }
 
-    private bool TryPlaceWreck(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
+    private async Task<bool> TryPlaceWreckAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
         WFPlanetPoiTablePrototype table, WFPlanetPoiComponent record, WFPlanetWrecks wrecks, WFWreckThemePrototype theme, VesselPrototype vessel,
         HashSet<EntityUid> created)
     {
         var stagingMap = _maps.CreateMap(out var stagingId, runMapInit: false);
         try
         {
-            if (!_loader.TryLoadGrid(stagingId, vessel.ShuttlePath, out var loaded))
+            if (await LoadGridAsync(stagingId, vessel.ShuttlePath) is not { } ship || TerminatingOrDeleted(ground))
                 return false;
-            var ship = loaded.Value;
             var hull = ship.Comp.LocalAABB;
             var reach = hull.Size.Length() / 2f;
             if (!TryWreckSpot((ground, biome), grid, centre, radius, table, reach, out var spot, wrecks.EdgeMargin))
@@ -88,7 +89,9 @@ public sealed partial class WFPlanetPoiSystem
             _transform.SetCoordinates(ship.Owner, new EntityCoordinates(targetMap, world));
             _transform.SetLocalRotation(ship.Owner, angle);
             created.Add(ship.Owner);
-            InitializeTransferred(ship.Owner, _maps.IsInitialized(targetMap), _maps.IsPaused(targetMap));
+            await InitializeTransferredAsync(ship.Owner, _maps.IsInitialized(targetMap), _maps.IsPaused(targetMap));
+            if (TerminatingOrDeleted(ground) || TerminatingOrDeleted(ship))
+                return false;
             SettleWreck(ship);
 
             // Clear and pin the ground under it, so nothing the biome grows comes up through the deck.
@@ -120,7 +123,12 @@ public sealed partial class WFPlanetPoiSystem
                 _maps.SetTiles(ground, grid, fill);
             _biome.WfPinTiles((ground, biome), under);
 
-            SpawnWreckFauna(ship, theme);
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(ground) || TerminatingOrDeleted(ship))
+                return false;
+            await SpawnWreckFaunaAsync(ship, theme);
+            if (TerminatingOrDeleted(ground) || TerminatingOrDeleted(ship))
+                return false;
 
             var origin = spot.Floored();
             var bounds = new Box2i((int) MathF.Floor(spot.X - reach), (int) MathF.Floor(spot.Y - reach),
@@ -269,7 +277,7 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>The wildlife that moved in, what's left in the hold and what's left of the crew.</summary>
-    private void SpawnWreckFauna(Entity<MapGridComponent> ship, WFWreckThemePrototype theme)
+    private async Task SpawnWreckFaunaAsync(Entity<MapGridComponent> ship, WFWreckThemePrototype theme)
     {
         if (theme.Fauna is not { } fauna)
             return;
@@ -282,7 +290,12 @@ public sealed partial class WFPlanetPoiSystem
         for (var i = 0; i < count; i++)
         {
             foreach (var id in _entityTables.GetSpawns(fauna))
+            {
+                await _preload.Breathe();
+                if (TerminatingOrDeleted(ship))
+                    return;
                 Spawn(id, new EntityCoordinates(ship.Owner, (Vector2) _random.Pick(open) + new Vector2(0.5f)));
+            }
         }
 
         if (theme.Loot is { } loot && _random.Prob(theme.LootChance))
@@ -297,7 +310,12 @@ public sealed partial class WFPlanetPoiSystem
         for (var i = 0; i < survivors; i++)
         {
             foreach (var id in _entityTables.GetSpawns(crew))
+            {
+                await _preload.Breathe();
+                if (TerminatingOrDeleted(ship))
+                    return;
                 Spawn(id, new EntityCoordinates(ship.Owner, (Vector2) _random.Pick(open) + new Vector2(0.5f)));
+            }
         }
     }
 }

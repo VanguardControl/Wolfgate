@@ -187,7 +187,10 @@ namespace Content.Server.NPC.Systems
                 if (_mobState.IsIncapacitated(npcUid))
                     continue;
 
-                var npcCoords = npcTransform.Coordinates;
+                // WOLFGATE(Vehicles) START: an NPC in a vehicle's cabin is where the vehicle is too, as players are, or he sleeps on boarding.
+                // var npcCoords = npcTransform.Coordinates;
+                var npcCoords = WfPlayerPresence(npcUid);
+                // WOLFGATE END
                 // WOLFGATE(NpcCrew): ship crews with something to do must work even without nearby player bodies.
                 // var hasNearbyPlayer = false;
                 var hasNearbyPlayer = EntityManager.System<Content.Server._WF.NpcCrew.Systems.WFCrewSleepSystem>().StaysAwake(npcUid);

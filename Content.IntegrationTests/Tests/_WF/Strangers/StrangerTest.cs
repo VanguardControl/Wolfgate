@@ -76,7 +76,7 @@ public sealed class StrangerTest
     }
 
     [Test]
-    public async Task TheDealerHailsAndTurnsOnYouWhenRefused()
+    public async Task TheDealerHailsAndTurnsOnYouWhenThreatened()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var server = pair.Server;
@@ -97,9 +97,9 @@ public sealed class StrangerTest
 
             strangers.StartConversation((dealer, stranger), player);
             Assert.That(stranger.Node, Is.EqualTo("pitch"));
-            // "Not interested."
-            strangers.Choose((dealer, stranger), player, 1);
-            Assert.That(entMan.GetComponent<FactionExceptionComponent>(dealer).Hostiles, Does.Contain(player), "Refused, he should go for you.");
+            // "Get lost before I call security."
+            strangers.Choose((dealer, stranger), player, 2);
+            Assert.That(entMan.GetComponent<FactionExceptionComponent>(dealer).Hostiles, Does.Contain(player), "Threatened, he should go for you.");
             Assert.That(entMan.GetComponent<HTNComponent>(dealer).Enabled, Is.True, "His own brain should take over to fight.");
         });
         await pair.CleanReturnAsync();
@@ -233,7 +233,7 @@ public sealed class StrangerTest
     }
 
     [TestCase("WFStrangerMugger", 1)]
-    [TestCase("WFStrangerDealer", 1)]
+    [TestCase("WFStrangerDealer", 2)]
     public async Task RefusingACamperTurnsTheWholeCampHostile(string proto, int refuse)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
@@ -391,6 +391,104 @@ public sealed class StrangerTest
             var xforms = server.System<SharedTransformSystem>();
             Assert.That(Vector2.Distance(xforms.GetWorldPosition(stalker), xforms.GetWorldPosition(player)), Is.GreaterThan(3f),
                 "...somewhere out of the way, not on top of his mark.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Saying no nicely, or being too broke to buy, isn't worth a fight.</summary>
+    [TestCase(new[] { 1 }, TestName = "APoliteNoLeavesTheDealerCalm(NotInterested)")]
+    [TestCase(new[] { 0, 1 }, TestName = "APoliteNoLeavesTheDealerCalm(TooRichForMe)")]
+    public async Task APoliteNoLeavesTheDealerCalm(int[] answers)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var (map, player) = await Rig(pair);
+        EntityUid dealer = default;
+        await server.WaitPost(() => dealer = entMan.SpawnEntity("WFStrangerDealer", new EntityCoordinates(map.Grid.Owner, 2.5f, 0.5f)));
+        await server.WaitRunTicks(2);
+        var strangers = server.System<WFStrangerSystem>();
+        await server.WaitAssertion(() =>
+        {
+            var stranger = entMan.GetComponent<WFStrangerComponent>(dealer);
+            strangers.StartConversation((dealer, stranger), player);
+            foreach (var answer in answers)
+                strangers.Choose((dealer, stranger), player, answer);
+            Assert.That(stranger.Node, Is.Null, "The talk should be over.");
+            Assert.That(stranger.Hostile, Is.False, "A polite no shouldn't turn him on you.");
+            Assert.That(strangers.HoldsGrudge((dealer, stranger), player), Is.False);
+            Assert.That(entMan.GetComponent<HTNComponent>(dealer).Enabled, Is.False, "He shouldn't be fighting.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task IgnoringTheDealerLeavesHimCalm()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var strangers = server.System<WFStrangerSystem>();
+        var (map, player) = await Rig(pair);
+        EntityUid dealer = default;
+        await server.WaitPost(() => dealer = entMan.SpawnEntity("WFStrangerDealer", new EntityCoordinates(map.Grid.Owner, 4.5f, 0.5f)));
+        await RunUntil(pair, () => entMan.GetComponent<WFStrangerComponent>(dealer).Hailed, 45);
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.GetComponent<WFStrangerComponent>(dealer).Hailed, Is.True, $"He never hailed: {Stuck(pair, dealer, player)}."));
+        // No answer: the hail times out as ignored.
+        await pair.RunSeconds(20);
+        await server.WaitAssertion(() =>
+        {
+            var stranger = entMan.GetComponent<WFStrangerComponent>(dealer);
+            Assert.That(stranger.Hailed, Is.False, "The hail should have timed out.");
+            Assert.That(stranger.Hostile, Is.False, "Being ignored shouldn't turn him on you.");
+            Assert.That(strangers.HoldsGrudge((dealer, stranger), player), Is.False);
+        });
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A roamer walks a leg, then stands about a good while before the next instead of turning straight round.</summary>
+    [Test]
+    public async Task ARoamerLingersBetweenLegs()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var (map, player) = await Rig(pair, 30);
+        EntityUid roamer = default;
+        await server.WaitPost(() =>
+        {
+            // Out of his sight, close enough to keep him awake.
+            server.System<SharedTransformSystem>().SetCoordinates(player, new EntityCoordinates(map.Grid.Owner, -25.5f, 0.5f));
+            roamer = entMan.SpawnEntity("WFStrangerBeggar", new EntityCoordinates(map.Grid.Owner, 0.5f, 0.5f));
+        });
+        WFStrangerComponent stranger = default!;
+        await server.WaitPost(() =>
+        {
+            stranger = entMan.GetComponent<WFStrangerComponent>(roamer);
+            // Short legs, so he never wanders into sight of the player and goes to talk instead.
+#pragma warning disable RA0002
+            stranger.WanderRange = 6f;
+#pragma warning restore RA0002
+        });
+        await RunUntil(pair, () => stranger.WanderUntil != null, 10);
+        await server.WaitAssertion(() => Assert.That(stranger.WanderUntil, Is.Not.Null, "He should set off on a leg."));
+        await RunUntil(pair, () => stranger.WanderUntil == null, 90, delayMs: 100);
+
+        Vector2 stopped = default;
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(stranger.WanderUntil, Is.Null, "The leg should end.");
+            Assert.That(stranger.NextWander - server.Timing.CurTime, Is.GreaterThanOrEqualTo(TimeSpan.FromSeconds(25)),
+                "He should linger at least half a minute where the leg ended.");
+            stopped = entMan.GetComponent<TransformComponent>(roamer).LocalPosition;
+        });
+        await pair.RunSeconds(20);
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(stranger.WanderUntil, Is.Null, "He set off again too soon.");
+            Assert.That(Vector2.Distance(entMan.GetComponent<TransformComponent>(roamer).LocalPosition, stopped), Is.LessThan(1f),
+                "Lingering, he should stay put.");
         });
         await pair.CleanReturnAsync();
     }
