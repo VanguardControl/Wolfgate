@@ -4,13 +4,19 @@ using System.Linq;
 using Content.Server._WF.MappingMode;
 using Content.Server._WF.MappingMode.Test;
 using Content.Server._WF.MappingTools;
+using Content.Server.Communications;
+using Content.Server.Radio;
+using Content.Server.Shuttles.Systems;
 using Content.Shared._WF.MappingMode;
 using Content.Shared._WF.MappingMode.Test;
 using Content.Shared.Humanoid;
+using Content.Shared.Preferences;
+using Content.Shared.Radio;
 using Robust.Server.GameObjects;
 using Robust.Shared.ContentPack;
 using Robust.Shared.Enums;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Localization;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
@@ -89,6 +95,10 @@ public sealed class WFMappingTestModeTest
             mapSys.SetTiles(grid, grid.Comp, new List<(Vector2i, Tile)> { (new Vector2i(0, 0), plating), (new Vector2i(0, 1), plating) });
             entMan.SpawnEntity("ComputerShuttle", new EntityCoordinates(grid, 0.5f, 1.5f));
 
+            // An ordinary comms console announces to the whole server; its running copy must not.
+            var liveComms = entMan.SpawnEntity("ComputerComms", new EntityCoordinates(grid, 0.5f, 1.5f));
+            Assert.That(entMan.GetComponent<CommunicationsConsoleComponent>(liveComms).Global, Is.True);
+
             Assert.That(testing.TryStart(a), Is.True, "The test should start.");
             Assert.That(session.Test, Is.Not.Null);
             Assert.That(mapping.IsTesting(a), Is.True);
@@ -129,6 +139,46 @@ public sealed class WFMappingTestModeTest
                 var local = entMan.GetComponent<TransformComponent>(mob).LocalPosition;
                 Assert.That((local - new System.Numerics.Vector2(0.5f, 0.5f)).Length(), Is.LessThan(0.01f),
                     "The tester lands on the tile in front of the console.");
+            });
+
+            // Nothing of the running copy reaches past the test: no global announcements, no FTL, no radio across.
+            var ship = session.Test!.Ship!.Value;
+            var shuttle = entMan.System<ShuttleSystem>();
+            var common = server.ProtoMan.Index<RadioChannelPrototype>("Common");
+            var outward = new RadioReceiveAttemptEvent(common, mob, ownGrid);
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref outward);
+            var inward = new RadioReceiveAttemptEvent(common, ownGrid, mob);
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref inward);
+            var within = new RadioReceiveAttemptEvent(common, mob, ship);
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref within);
+            Assert.Multiple(() =>
+            {
+                var copies = entMan.AllEntities<CommunicationsConsoleComponent>()
+                    .Where(c => entMan.GetComponent<TransformComponent>(c).MapUid == testMap)
+                    .ToList();
+                Assert.That(copies, Has.Count.EqualTo(1));
+                Assert.That(entMan.GetComponent<CommunicationsConsoleComponent>(copies[0]).Global, Is.False,
+                    "The copy's comms console announces to no one.");
+                Assert.That(entMan.GetComponent<CommunicationsConsoleComponent>(liveComms).Global, Is.True,
+                    "The live console is untouched.");
+                Assert.That(shuttle.CanFTL(ship, out var reason), Is.False, "A test ship can't FTL.");
+                Assert.That(reason, Is.EqualTo(server.ResolveDependency<ILocalizationManager>().GetString("wf-mapping-test-no-ftl")));
+                Assert.That(outward.Cancelled, "Radio doesn't leave the test.");
+                Assert.That(inward.Cancelled, "Radio doesn't reach into the test.");
+                Assert.That(within.Cancelled, Is.False, "Radio works inside the test.");
+            });
+
+            // The character carries no persistent items or components, which spawning would take off the real one.
+            var stored = HumanoidCharacterProfile.DefaultWithSpecies().WithPersistentData(new[] { "flag" },
+                new[] { new PersistentProfileComponent("component", false) },
+                new[] { new PersistentProfileItem("item", false) });
+            var forTest = WFMappingTestSystem.TestProfile(stored);
+            Assert.Multiple(() =>
+            {
+                Assert.That(forTest.Items, Is.Empty);
+                Assert.That(forTest.Components, Is.Empty);
+                Assert.That(forTest.Flags, Is.EqualTo(new[] { "flag" }));
+                Assert.That(stored.Items, Has.Count.EqualTo(1), "The stored profile keeps its items.");
             });
 
             // No edit of any kind while testing.

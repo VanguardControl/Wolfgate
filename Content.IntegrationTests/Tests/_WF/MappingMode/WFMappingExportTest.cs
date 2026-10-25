@@ -260,6 +260,13 @@ public sealed class WFMappingExportTest
             Assert.That(next!.Name.Number, Is.EqualTo(2));
             Assert.That(next.ShipDetails, Is.Not.Null, "The next version carries the details on.");
             Assert.That(serverRes.UserData.ReadAllText(next.Vessels[0]), Does.Contain("A fine ship."));
+
+            // An older version isn't what the session holds now, so it isn't checked against it: the price under the
+            // floor goes through and the README says no check ran.
+            Assert.That(library.TryFindVersion(player.UserId, ShipName, null, out map, out _), Is.True);
+            var old = export.TryBuild(player, map!, version, WFMappingExportKind.Ship, new WFMappingShipDetails { Price = 1 });
+            Assert.That(old, Is.Not.Null, "An older version exports unchecked.");
+            Assert.That(Text(WFMappingExportPackage.Unzip(old!), "README.txt"), Does.Contain("No check ran"));
         });
 
         await pair.RunTicksSync(5);

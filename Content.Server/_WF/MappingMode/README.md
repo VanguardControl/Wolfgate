@@ -81,7 +81,9 @@ a `gameMap` with a plain station or a `zMap` listing the levels bottom-up (the g
 the README. The README says what the package is, where to unzip it, what each file is, what to check (guessed fields,
 the price against the appraisal, an id already in the game) and the issues report at export time by severity, or that
 no check ran. A ship export in the map's session is refused while an error stands, the price in the details counted
-against the appraisal floor; outside the session nothing is checked and the README says so.
+against the appraisal floor. The check only runs when the version is the map's newest and the session has no changes
+since, so the live grids are the version's; outside the session, from an older version or with unsaved changes nothing
+is checked and the README says so.
 
 The details are kept as `ship.yml` in the version folder, sanitized (name alphabet, description length, price range,
 known enum values, lists deduplicated and capped at 8), sent with the library listing so the wizard pre-fills, copied
@@ -108,7 +110,13 @@ in them, and the scratch folder right after the load, so nothing of a test is ke
 member's Test map joins it at the same spot, the button's tooltip names the testers and the Session tab shows who is
 testing and the time left. A test is refused while the session is over 60% of `max_entities` (the copy counts against
 it, so the limits line shows the doubled count), during `test_cooldown`, and while an export or download is still
-coming in. Test maps are never session maps: saves, autosaves and the export skip them.
+coming in. Test maps are never session maps: saves, autosaves and the export skip them. A tester's own save, check,
+Go to and export are refused because they act on the live levels the tester has left; the autosave and the other
+members' saves keep running, since they read only the live levels and never the copy. The copy is kept from reaching
+past the test: its ships can't FTL (`wf-mapping-test-no-ftl`; FTL space is shared and other maps may take arrivals),
+radio doesn't cross between a test's levels and any other map, comms consoles lose their server-wide announcement,
+and the character is spawned without the profile's persistent items and components, which spawning would otherwise
+use up from the real character.
 
 Downloads land in the client's `Mapping/<map>/<version>/` data folder, with an Open folder button. "Downloads go to"
 beside the library, in the Library tab and in the wizard's Package step switches to Save to..., which asks where to
@@ -663,6 +671,7 @@ requests are handled in MappingTools (`MappingToolsSystem.Links.cs`). Cvars are 
 - [`Docs/_WF/MappingMode/R4-NOTES.md`](../../../Docs/_WF/MappingMode/R4-NOTES.md)
 - [`Docs/_WF/MappingMode/R5-NOTES.md`](../../../Docs/_WF/MappingMode/R5-NOTES.md)
 - [`Docs/_WF/MappingMode/REVIEW.md`](../../../Docs/_WF/MappingMode/REVIEW.md)
+- [`Docs/_WF/MappingMode/REVIEW3.md`](../../../Docs/_WF/MappingMode/REVIEW3.md)
 - [`Docs/_WF/MappingMode/S1-NOTES.md`](../../../Docs/_WF/MappingMode/S1-NOTES.md)
 - [`Docs/_WF/MappingMode/S1A-NOTES.md`](../../../Docs/_WF/MappingMode/S1A-NOTES.md)
 - [`Docs/_WF/MappingMode/S1B-NOTES.md`](../../../Docs/_WF/MappingMode/S1B-NOTES.md)

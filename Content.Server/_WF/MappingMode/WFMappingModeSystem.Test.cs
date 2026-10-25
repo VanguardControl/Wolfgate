@@ -30,6 +30,18 @@ public sealed partial class WFMappingModeSystem
                entry.SessionId == session.Id;
     }
 
+    /// <summary>Whether a map is a level of any session's live test.</summary>
+    public bool IsTestMap(EntityUid map)
+    {
+        return TestSessionOf(map) != null;
+    }
+
+    /// <summary>The id of the session whose live test a map is a level of, or null.</summary>
+    public int? TestSessionOf(EntityUid map)
+    {
+        return _registry.TryGetValue(map, out var entry) && entry.Kind == WFMappingMapKind.Test ? entry.SessionId : null;
+    }
+
     /// <summary>The live test levels of a session still registered.</summary>
     public List<EntityUid> TestMaps(int sessionId)
     {

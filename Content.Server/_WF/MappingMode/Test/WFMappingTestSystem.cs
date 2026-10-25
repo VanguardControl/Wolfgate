@@ -3,8 +3,11 @@ using System.Linq;
 using System.Numerics;
 using Content.Server._WF.MappingTools;
 using Content.Server.Administration.Logs;
+using Content.Server.Communications;
 using Content.Server.Preferences.Managers;
+using Content.Server.Radio;
 using Content.Server.Shuttles.Components;
+using Content.Server.Shuttles.Events;
 using Content.Server.Spawners.Components;
 using Content.Server.Station.Systems;
 using Content.Shared._WF.MappingMode;
@@ -74,6 +77,8 @@ public sealed partial class WFMappingTestSystem : EntitySystem
         SubscribeNetworkEvent<WFMappingTestStopRequest>(OnStopRequest);
         SubscribeLocalEvent<WFMappingTesterComponent, MobStateChangedEvent>(OnMobState);
         SubscribeLocalEvent<WFMappingTesterComponent, PlayerDetachedEvent>(OnTesterDetached);
+        SubscribeLocalEvent<ConsoleFTLAttemptEvent>(OnFTLAttempt);
+        SubscribeLocalEvent<RadioReceiveAttemptEvent>(OnRadioReceiveAttempt);
     }
 
     public override void Update(float frameTime)
@@ -175,7 +180,15 @@ public sealed partial class WFMappingTestSystem : EntitySystem
         if (session.Test == null && !TryBuild(player, session))
             return false;
 
-        return TryJoin(player, session, session.Test!);
+        var test = session.Test!;
+        if (TryJoin(player, session, test))
+            return true;
+
+        // A test nobody got into would run unseen until the session closes.
+        if (session.Test == test && test.Testers.Count == 0)
+            CloseTest(session, test);
+
+        return false;
     }
 
     /// <summary>Snapshots the session and opens its test stack; refused past the cooldown and the entity share.</summary>
@@ -278,6 +291,7 @@ public sealed partial class WFMappingTestSystem : EntitySystem
 
             // The same fix-up a saved map gets, on the copy: the live levels stay as they are.
             _library.FixAtmos(maps, session);
+            ScrubCopy(maps);
             return true;
         }
         catch (Exception e)
@@ -300,6 +314,20 @@ public sealed partial class WFMappingTestSystem : EntitySystem
             {
                 Log.Warning($"Couldn't delete the live test scratch folder {folder}: {e}");
             }
+        }
+    }
+
+    /// <summary>
+    /// Turns server-wide announcements on the copy into station ones, which reach nobody without a station: a
+    /// running comms console would otherwise announce to the whole server.
+    /// </summary>
+    private void ScrubCopy(List<EntityUid> maps)
+    {
+        var query = AllEntityQuery<CommunicationsConsoleComponent, TransformComponent>();
+        while (query.MoveNext(out _, out var comms, out var xform))
+        {
+            if (xform.MapUid is { } map && maps.Contains(map))
+                comms.Global = false;
         }
     }
 
@@ -441,7 +469,7 @@ public sealed partial class WFMappingTestSystem : EntitySystem
         {
             var profile = _prefs.GetPreferencesOrNull(user)?.SelectedCharacter as HumanoidCharacterProfile
                           ?? HumanoidCharacterProfile.DefaultWithSpecies();
-            mob = _spawning.SpawnPlayerMob(test.Spawn, job: null, profile, station: null, session: player);
+            mob = _spawning.SpawnPlayerMob(test.Spawn, job: null, TestProfile(profile), station: null, session: player);
         }
         catch (Exception e)
         {
@@ -468,6 +496,17 @@ public sealed partial class WFMappingTestSystem : EntitySystem
         _mapping.Notify(player, true, "wf-mapping-test-started", ("name", session.Name));
         _mapping.SendState(session);
         return true;
+    }
+
+    /// <summary>
+    /// The character a tester walks as: their profile without its persistent items and components. Spawning hands
+    /// those to the body and saves the profile without the ones used up, which a test character deleted afterwards
+    /// would take from the real character for good.
+    /// </summary>
+    public static HumanoidCharacterProfile TestProfile(HumanoidCharacterProfile profile)
+    {
+        return profile.WithPersistentData(profile.Flags, Array.Empty<PersistentProfileComponent>(),
+            Array.Empty<PersistentProfileItem>());
     }
 
     /// <summary>
@@ -569,6 +608,36 @@ public sealed partial class WFMappingTestSystem : EntitySystem
         {
             EndTest(user);
         }
+    }
+
+    /// <summary>
+    /// A ship on a test level stays there: FTL would carry it into the shared FTL space, past the end of the test, or
+    /// onto any other map that takes FTL arrivals, another session's included.
+    /// </summary>
+    private void OnFTLAttempt(ref ConsoleFTLAttemptEvent args)
+    {
+        if (args.Cancelled || Transform(args.Uid).MapUid is not { } map || !_mapping.IsTestMap(map))
+            return;
+
+        args.Cancelled = true;
+        args.Reason = Loc.GetString("wf-mapping-test-no-ftl");
+    }
+
+    /// <summary>Radio, which ignores maps, stays inside a test: nothing goes in or out of a test's levels.</summary>
+    private void OnRadioReceiveAttempt(ref RadioReceiveAttemptEvent args)
+    {
+        if (args.Cancelled || _testing.Count == 0)
+            return;
+
+        var source = Transform(args.RadioSource).MapUid;
+        var receiver = Transform(args.RadioReceiver).MapUid;
+        if (source == receiver)
+            return;
+
+        var from = source is { } sourceMap ? _mapping.TestSessionOf(sourceMap) : null;
+        var to = receiver is { } receiverMap ? _mapping.TestSessionOf(receiverMap) : null;
+        if (from != to)
+            args.Cancelled = true;
     }
 
     private bool TryGetTester(EntityUid mob, [NotNullWhen(true)] out WFMappingTester? tester)

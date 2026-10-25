@@ -3,11 +3,13 @@ using System.Linq;
 using Content.Server._WF.MappingMode.Issues;
 using Content.Server._WF.MappingTools;
 using Content.Server.Administration.Logs;
+using Content.Shared._CE.ZLevels.Mapping.Prototypes;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.MappingMode;
 using Content.Shared._WF.MappingMode.Export;
 using Content.Shared._WF.MappingMode.Issues;
 using Content.Shared.Database;
+using Content.Shared.Maps;
 using Robust.Shared.ContentPack;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -116,12 +118,15 @@ public sealed class WFMappingExportSystem : EntitySystem
 
     /// <summary>
     /// The session the export can be checked against: the one the player is present in, when it goes by the map's
-    /// name, so its live grids are the ones the version was saved from.
+    /// name and the version is the map's newest with nothing changed since, so its live grids are the version's.
     /// </summary>
-    private WFMappingSession? SessionOf(ICommonSession player, string mapName)
+    private WFMappingSession? SessionOf(ICommonSession player, WFMappingLibrarySystem.LibraryMap map,
+        WFMappingLibrarySystem.LibraryVersion version)
     {
         return _mapping.TryGetPresent(player, out var session) &&
-               string.Equals(session.Name, mapName, StringComparison.OrdinalIgnoreCase)
+               string.Equals(session.Name, map.Name, StringComparison.OrdinalIgnoreCase) &&
+               !session.Dirty &&
+               map.Versions.LastOrDefault(v => v.Levels.ContainsKey(0))?.Name.Folder == version.Name.Folder
             ? session
             : null;
     }
@@ -130,7 +135,7 @@ public sealed class WFMappingExportSystem : EntitySystem
     public byte[]? TryBuild(ICommonSession player, WFMappingLibrarySystem.LibraryMap map,
         WFMappingLibrarySystem.LibraryVersion version, WFMappingExportKind kind, WFMappingShipDetails? details)
     {
-        var session = SessionOf(player, map.Name);
+        var session = SessionOf(player, map, version);
         return kind == WFMappingExportKind.Ship
             ? TryBuildShip(player, map, version, session, WFMappingExportLimits.Sanitize(details ?? new WFMappingShipDetails()))
             : BuildMap(map, version, session);
@@ -243,7 +248,7 @@ public sealed class WFMappingExportSystem : EntitySystem
             Loc.GetString(single ? "wf-mapping-export-readme-check-station" : "wf-mapping-export-readme-check-zmap",
                 ("ground", depths.IndexOf(0))),
         };
-        if (_prototypes.HasIndex<EntityPrototype>(id))
+        if (single ? _prototypes.HasIndex<GameMapPrototype>(id) : _prototypes.HasIndex<CEZLevelMapPrototype>(id))
             checks.Add(Loc.GetString("wf-mapping-export-readme-check-taken", ("id", id)));
 
         var issues = session != null ? _issues.Check(session, WFMappingIssueScope.Map) : null;

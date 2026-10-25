@@ -116,7 +116,7 @@ wf-mapping-export-readme-issues = Issues report ({$scope} check, {$count ->
     [one] 1 issue
    *[other] {$count} issues
 }) at export time:
-wf-mapping-export-readme-unchecked = No check ran: the map was exported from the library outside its session.
+wf-mapping-export-readme-unchecked = No check ran: the export was made outside the map's session, or from a version older than what the session holds now.
 wf-mapping-export-readme-no-issues = No issues.
 wf-mapping-export-readme-severity-error = Errors:
 wf-mapping-export-readme-severity-warning = Warnings:

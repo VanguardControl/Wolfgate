@@ -13,6 +13,7 @@ wf-mapping-test-cooldown = The last test just ended; try again in {$seconds} sec
 wf-mapping-test-too-big = The session has {$count} entities; a test copies it, so it needs {$max} or fewer (entity limit {$limit}).
 wf-mapping-test-failed = The test couldn't be started.
 wf-mapping-test-end-not-owner = Only the owner ends the test for everyone.
+wf-mapping-test-no-ftl = No FTL in a test: fly the ship with its thrusters.
 
 # The mapping screen's menu bar button
 wf-mapping-screen-bar-test = Test map: walk a running copy of it as your character
