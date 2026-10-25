@@ -47,7 +47,8 @@ public sealed class RegrowingHarvestTest
             harvest.Harvest(ent, null);
             Assert.That(Mushrooms(), Is.EqualTo(1), "A bare plant yields nothing.");
         });
-        await pair.RunSeconds(3);
+        // Regrowth is checked once a second, so give it a couple of checks past the two-second regrow.
+        await pair.RunSeconds(5);
 
         await server.WaitAssertion(() =>
         {
