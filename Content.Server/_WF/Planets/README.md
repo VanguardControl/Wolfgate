@@ -17,7 +17,7 @@ Rideable vehicles use the same z-level physics as loose objects, so a hoverbike 
 descending ship move onto the planet layers before the temporary flight map is deleted.
 
 Worlds have day and night, phased weather with thunder, fauna, ambience, a map on the orbit radar (`PlanetMap`) and an approach
-cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down. Lower layers of a planet are drawn smaller
+cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down; its flesh ground has scabbed lake shores, bone fields, hive pockets in the tendon forest, a blood-pool meat marsh and dried crust with dead growth round the groves (`Resources/Prototypes/_WF/Planets/Biomes/carcinoma.yml`). Lower layers of a planet are drawn smaller
 (`WFPlanetView`, the perspective Monolith turned off for other z-levels). Over a world's layers the shuttle console's
 strategic plot shows the world itself, drawn by the sector's planet shader close enough to fill it, instead of space
 (`ShuttleMapControl.PlanetBackground`). A floor nobody built that breaks on a planet, pried up or blown apart, gives
@@ -242,6 +242,7 @@ the PlanetPois placement keeps sites, roads and camps out of it.
 - [`Content.IntegrationTests/Tests/_WF/Planets/AtmosphericJetpackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AtmosphericJetpackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/BiomeNoiseCacheTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/BiomeNoiseCacheTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/CarcinomaBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/CarcinomaBiomeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CarcinomaTendrilAttackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CarcinomaTendrilAttackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs)
@@ -295,6 +296,7 @@ the PlanetPois placement keeps sites, roads and camps out of it.
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/Planets/biomes.yml`](../../../Resources/Prototypes/_WF/Planets/biomes.yml)
+- [`Resources/Prototypes/_WF/Planets/Biomes/carcinoma.yml`](../../../Resources/Prototypes/_WF/Planets/Biomes/carcinoma.yml)
 - [`Resources/Prototypes/_WF/Planets/bounds.yml`](../../../Resources/Prototypes/_WF/Planets/bounds.yml)
 - [`Resources/Prototypes/_WF/Planets/carcinoma.yml`](../../../Resources/Prototypes/_WF/Planets/carcinoma.yml)
 - [`Resources/Prototypes/_WF/Planets/carcinoma_regions.yml`](../../../Resources/Prototypes/_WF/Planets/carcinoma_regions.yml)
