@@ -89,7 +89,7 @@ The safety deposit system preserves:
 A box takes ordinary items that fit its grid and its size limit: Small boxes hold Small items, Medium boxes hold up to Normal items and Large boxes hold up to Large items. Tools, clothing, ammunition, paperwork, food, parts and most other gear are fine.
 
 [color=#ff6600]The box refuses these outright:[/color]
-  <SafetyDepositRefused/>
+  <SafetyDepositRefusedEmbed/>
 <!-- WOLFGATE END -->
   - [bold]Monolithic Crystals[/bold]
 </Document>
