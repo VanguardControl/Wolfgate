@@ -36,6 +36,7 @@ public sealed partial class WFPlanetPoiSystem : EntitySystem
     [Dependency] private PopupSystem _popup = default!;
     [Dependency] private SharedRoofSystem _roof = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private WFPlanetPreloadSystem _preload = default!;
 
     /// <summary>The orbit-layer marker over a site.</summary>
     public const string SignalProto = "WFPoiSignal";
@@ -73,7 +74,7 @@ public sealed partial class WFPlanetPoiSystem : EntitySystem
             return;
         }
 
-        args.Holds.Add(PlaceAsync(args.Ground, comp, args.Centre, args.Radius, table));
+        args.Holds.Add(PlaceAsync(args.Ground, comp, args.Centre, args.Radius, table, args.Claims));
     }
 
     /// <summary>The marker on the orbit layer over a site, unidentified until someone on the ground reaches it.</summary>

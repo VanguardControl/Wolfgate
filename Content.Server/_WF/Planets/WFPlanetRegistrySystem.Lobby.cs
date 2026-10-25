@@ -37,6 +37,8 @@ public sealed partial class WFPlanetRegistrySystem
             // Next tick: the lobby's preset is settled after the run level changes.
             case GameRunLevel.PreRoundLobby:
                 _prebuildPending = true;
+                // A round restarted inside the grace would otherwise sweep the new lobby's worlds away.
+                _orphanSweep = null;
                 break;
             case GameRunLevel.InRound:
                 _prebuildPending = false;

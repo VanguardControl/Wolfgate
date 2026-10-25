@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared.Light.Components;
 using Content.Shared.Parallax.Biomes;
@@ -19,7 +20,7 @@ public sealed partial class WFPlanetPoiSystem
     /// edges and something waiting inside. A tunnel keeps off the sites, and a footpath that meets the road inside one
     /// leaves a gap in its wall.
     /// </summary>
-    private void DigTunnels(EntityUid ground, MapGridComponent grid, BiomeComponent biome, WFPlanetPoiComponent record,
+    private async Task DigTunnelsAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, WFPlanetPoiComponent record,
         WFPlanetRoadNetwork roads, WFPlanetRoadPlan plan, HashSet<EntityUid> created, HashSet<Vector2i> changed)
     {
         if (roads.Tunnels is not { } tunnels)
@@ -60,14 +61,20 @@ public sealed partial class WFPlanetPoiSystem
             if (road.Concat(rock).Any(cell => record.Sites.Any(site => Contains(site.Bounds, cell))))
                 continue;
 
-            Tunnel(ground, grid, biome, record, tunnels, road, rock, along, across, half, created, changed);
+            await TunnelAsync(ground, grid, biome, record, tunnels, road, rock, along, across, half, created, changed);
+            if (TerminatingOrDeleted(ground))
+                return;
         }
     }
 
-    private void Tunnel(EntityUid ground, MapGridComponent grid, BiomeComponent biome, WFPlanetPoiComponent record,
+    private async Task TunnelAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, WFPlanetPoiComponent record,
         WFRoadTunnels tunnels, HashSet<Vector2i> road, HashSet<Vector2i> rock, List<Vector2i> along, Vector2i across,
         int half, HashSet<EntityUid> created, HashSet<Vector2i> changed)
     {
+        await _preload.Breathe();
+        if (TerminatingOrDeleted(ground))
+            return;
+
         // Street furniture goes; nobody lit this stretch.
         for (var i = record.Furniture.Count - 1; i >= 0; i--)
         {
@@ -94,21 +101,32 @@ public sealed partial class WFPlanetPoiSystem
                 floor.Add((cell, natural.Value));
         }
         _maps.SetTiles(ground, grid, floor);
+        // Pinned first, so nothing grows on rock still waiting for its wall.
+        _biome.WfPinTiles((ground, biome), rock);
         foreach (var cell in rock)
+        {
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(ground))
+                return;
             created.Add(Spawn(tunnels.Wall, new EntityCoordinates(ground, cell + new Vector2(0.5f))));
+        }
 
         EnsureComp<RoofComponent>(ground);
         foreach (var cell in road.Concat(rock))
             _roof.SetRoof((ground, grid, null), cell, true);
-        _biome.WfPinTiles((ground, biome), rock);
         changed.UnionWith(rock);
+        await _preload.Breathe();
 
         // Clutter hugs the walls, leaving the middle of the road clear.
         var edges = along.SelectMany(tile => new[] { tile + across * half, tile - across * half }).ToList();
         foreach (var cell in edges)
         {
-            if (tunnels.Clutter.Count > 0 && _random.Prob(tunnels.ClutterChance))
-                created.Add(Spawn(_random.Pick(tunnels.Clutter), new EntityCoordinates(ground, cell + new Vector2(0.5f))));
+            if (tunnels.Clutter.Count == 0 || !_random.Prob(tunnels.ClutterChance))
+                continue;
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(ground))
+                return;
+            created.Add(Spawn(_random.Pick(tunnels.Clutter), new EntityCoordinates(ground, cell + new Vector2(0.5f))));
         }
 
         if (tunnels.Lurkers is { } lurkers)
@@ -118,7 +136,12 @@ public sealed partial class WFPlanetPoiSystem
             for (var i = 0; i < count; i++)
             {
                 foreach (var id in _entityTables.GetSpawns(lurkers))
+                {
+                    await _preload.Breathe();
+                    if (TerminatingOrDeleted(ground))
+                        return;
                     created.Add(Spawn(id, new EntityCoordinates(ground, (Vector2) _random.Pick(inside) + new Vector2(0.5f))));
+                }
             }
         }
 

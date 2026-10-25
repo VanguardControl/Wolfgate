@@ -31,7 +31,8 @@ public sealed partial class WFPlanetPoiSystem
     [Dependency] private DecalSystem _decals = default!;
 
     /// <summary>Builds and validates every site and route before releasing the terrain hold.</summary>
-    private async Task PlaceAsync(EntityUid ground, WFPlanetNetworkComponent network, Vector2 centre, float radius, WFPlanetPoiTablePrototype table)
+    private async Task PlaceAsync(EntityUid ground, WFPlanetNetworkComponent network, Vector2 centre, float radius, WFPlanetPoiTablePrototype table,
+        List<Task> claims)
     {
         var record = EnsureComp<WFPlanetPoiComponent>(ground);
         var created = new HashSet<EntityUid>();
@@ -40,6 +41,9 @@ public sealed partial class WFPlanetPoiSystem
         var originalTiles = new Dictionary<Vector2i, Tile>();
         var originalRoof = new HashSet<Vector2i>();
         var initialPins = new HashSet<Vector2i>();
+        // Every step waits for a later tick once this one's budget is spent.
+        _preload.GenerationSpent();
+        var claimsDone = ClaimsDone(claims);
         try
         {
             ValidateTable(table);
@@ -57,11 +61,13 @@ public sealed partial class WFPlanetPoiSystem
             var orbit = network.OrbitMap;
             var entries = SelectEntries(table);
             var reserved = new List<Box2i>();
-            await PlaceCitiesAsync(ground, grid, biome, network, orbit, centre, radius, table, record, reserved, initialPins, created, createdDecals, changed);
+            await PlaceCitiesAsync(ground, grid, biome, network, orbit, centre, radius, table, record, reserved, initialPins, created, createdDecals, changed, claimsDone);
+            await claimsDone;
             if (TerminatingOrDeleted(ground))
                 return;
             foreach (var listed in entries)
             {
+                await _preload.Breathe();
                 if (TerminatingOrDeleted(ground))
                     return;
                 var turns = listed.MapPath != null && listed.Rotate ? _random.Next(4) : 0;
@@ -80,7 +86,7 @@ public sealed partial class WFPlanetPoiSystem
                         continue;
                     }
                     reservation = Translate(footprint, origin);
-                    siteTiles = LoadSite(ground, grid, path, origin, listed.Footprint ?? footprint, turns, created, createdDecals, changed);
+                    siteTiles = await LoadSiteAsync(ground, grid, path, origin, listed.Footprint ?? footprint, turns, created, createdDecals, changed);
                 }
                 else
                 {
@@ -106,7 +112,7 @@ public sealed partial class WFPlanetPoiSystem
                         reservation = Translate(footprint, origin);
                         siteTiles = generated.Tiles.Select(tile => tile + origin).ToHashSet();
                         changed.UnionWith(siteTiles);
-                        MergeSite(ground, grid, generated.Grid, origin, footprint, created, createdDecals);
+                        await MergeSiteAsync(ground, grid, generated.Grid, origin, footprint, created, createdDecals);
                         EnsureComp<RoofComponent>(ground);
                         foreach (var tile in siteTiles) _roof.SetRoof((ground, grid, null), tile, true);
                     }
@@ -133,7 +139,7 @@ public sealed partial class WFPlanetPoiSystem
                     _maps.SetTiles(ground, grid, open);
                     _biome.WfPinTiles((ground, biome), claimed);
                     if (listed.Below is { } belowPath)
-                        shafts = LayBelow(ground, grid, network, belowPath, origin, listed.Footprint ?? footprint, turns, siteTiles, created, createdDecals);
+                        shafts = await LayBelowAsync(ground, grid, network, belowPath, origin, listed.Footprint ?? footprint, turns, siteTiles, created, createdDecals);
                 }
                 else _biome.WfPinTiles((ground, biome), siteTiles);
                 var site = new WFPlanetPoiSite
@@ -171,6 +177,7 @@ public sealed partial class WFPlanetPoiSystem
                 record.Sites.Add(site);
                 created.Add(site.Signal);
             }
+            await _preload.Breathe();
             if (table.Roads is { } roads && record.Sites.Any(site => site.Sockets.Count > 0))
             {
                 if (!float.IsFinite(radius) || radius <= 0 || radius > 4096)
@@ -193,7 +200,9 @@ public sealed partial class WFPlanetPoiSystem
                             blocked.Remove(tile);
                     }
                 }
+                await _preload.Breathe();
                 var plan = PlanRoads(ground, record, centre, radius, table, roads, blocked);
+                await _preload.Breathe();
                 if (!plan.Success)
                     Log.Warning($"No roads on {ToPrettyString(ground)}: {plan.Error ?? "routing failed"}. The sites stay.");
                 else
@@ -214,19 +223,19 @@ public sealed partial class WFPlanetPoiSystem
                     }
                     changed.UnionWith(plan.ShoulderTiles);
                     changed.UnionWith(plan.RoadTiles);
-                    PaintRoad(ground, grid, biome, plan.ShoulderTiles, roads.ShoulderTile ?? roads.Tile);
-                    PaintRoad(ground, grid, biome, plan.RoadTiles, roads.Tile);
+                    await PaintRoadAsync(ground, grid, biome, plan.ShoulderTiles, roads.ShoulderTile ?? roads.Tile);
+                    await PaintRoadAsync(ground, grid, biome, plan.RoadTiles, roads.Tile);
                     record.RoadTiles.UnionWith(plan.RoadTiles);
                     record.ShoulderTiles.UnionWith(plan.ShoulderTiles);
                     record.Centreline.UnionWith(plan.Centreline);
-                    DressRoads(ground, grid, record, roads, plan, created, createdDecals);
-                    LayTrails(ground, grid, biome, record, roads, centre, radius - 1, changed);
-                    DigTunnels(ground, grid, biome, record, roads, plan, created, changed);
+                    await DressRoadsAsync(ground, grid, record, roads, plan, created, createdDecals);
+                    await LayTrailsAsync(ground, grid, biome, record, roads, centre, radius - 1, changed);
+                    await DigTunnelsAsync(ground, grid, biome, record, roads, plan, created, changed);
                 }
             }
             // Wrecks last: they keep off the sites and roads, which are pinned by now.
-            PlaceWrecks(ground, grid, biome, orbit, centre, radius, table, record, created);
-            PlaceCamps(ground, grid, biome, orbit, centre, radius, table, record, created);
+            await PlaceWrecksAsync(ground, grid, biome, orbit, centre, radius, table, record, created);
+            await PlaceCampsAsync(ground, grid, biome, orbit, centre, radius, table, record, created);
             record.PendingRoamers = table.Roamers.ToList();
             record.PendingResidents = table.Residents;
             record.ResidentChance = table.ResidentChance;
@@ -262,6 +271,26 @@ public sealed partial class WFPlanetPoiSystem
             record.GenerationError = $"POI table {table.ID}: {error.Message}";
             Log.Error(record.GenerationError);
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Finishes once every claim on the ground, such as the cavern mouths, is in. It waits a tick first, for the claims
+    /// raised after this handler; a failed claim is the preload's to report.
+    /// </summary>
+    private async Task ClaimsDone(List<Task> claims)
+    {
+        await _preload.NextTick();
+        foreach (var claim in claims.ToList())
+        {
+            try
+            {
+                await claim;
+            }
+            catch (Exception)
+            {
+                // Logged with the holds.
+            }
         }
     }
 
@@ -519,7 +548,7 @@ public sealed partial class WFPlanetPoiSystem
     /// opens the site's floor over its stairs: a gap with floor all round it. With no level under the ground, there is
     /// no basement and the floor stays whole.
     /// </summary>
-    private HashSet<Vector2i> LayBelow(EntityUid ground, MapGridComponent grid, WFPlanetNetworkComponent network, string path, Vector2i origin,
+    private async Task<HashSet<Vector2i>> LayBelowAsync(EntityUid ground, MapGridComponent grid, WFPlanetNetworkComponent network, string path, Vector2i origin,
         Box2i footprint, int turns, HashSet<Vector2i> siteTiles, HashSet<EntityUid> created, List<uint> createdDecals)
     {
         var shafts = new HashSet<Vector2i>();
@@ -528,7 +557,7 @@ public sealed partial class WFPlanetPoiSystem
 
         var lower = network.LowerLayers[0];
         var lowerBiome = CompOrNull<BiomeComponent>(lower);
-        var tiles = LoadSite(lower, lowerGrid, path, origin, footprint, turns, created, createdDecals, new HashSet<Vector2i>(), clearFirst: lowerBiome != null);
+        var tiles = await LoadSiteAsync(lower, lowerGrid, path, origin, footprint, turns, created, createdDecals, new HashSet<Vector2i>(), clearFirst: lowerBiome != null);
         if (lowerBiome != null)
             _biome.WfPinTiles((lower, lowerBiome), tiles);
 
@@ -549,14 +578,15 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>Loads an authored grid in isolation and merges it with its explicit roofs.</summary>
-    private HashSet<Vector2i> LoadSite(EntityUid ground, MapGridComponent grid, string path, Vector2i origin, Box2i footprint, int turns, HashSet<EntityUid> created, List<uint> createdDecals, HashSet<Vector2i> changed, bool clearFirst = false)
+    private async Task<HashSet<Vector2i>> LoadSiteAsync(EntityUid ground, MapGridComponent grid, string path, Vector2i origin, Box2i footprint, int turns, HashSet<EntityUid> created, List<uint> createdDecals, HashSet<Vector2i> changed, bool clearFirst = false)
     {
         var stagingMap = _maps.CreateMap(out var stagingId, runMapInit: false);
         try
         {
-            if (!_loader.TryLoadGrid(stagingId, new ResPath(path), out var loaded))
+            if (await LoadGridAsync(stagingId, new ResPath(path)) is not { } source)
                 throw new InvalidOperationException($"Cannot load single-grid POI map {path}.");
-            var source = loaded.Value;
+            if (TerminatingOrDeleted(ground))
+                return new HashSet<Vector2i>();
             var result = new HashSet<Vector2i>();
             var roofs = new HashSet<Vector2i>();
             TryComp<RoofComponent>(source.Owner, out var roof);
@@ -572,7 +602,7 @@ public sealed partial class WFPlanetPoiSystem
             // A layer with terrain of its own, such as a cavern's rock, makes way for the site.
             if (clearFirst)
                 ClearForCity(ground, grid, result);
-            MergeSite(ground, grid, source, origin, footprint, created, createdDecals, turns);
+            await MergeSiteAsync(ground, grid, source, origin, footprint, created, createdDecals, turns);
             EnsureComp<RoofComponent>(ground);
             foreach (var tile in result) _roof.SetRoof((ground, grid, null), tile, roofs.Contains(tile));
             return result;
@@ -581,7 +611,7 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>Merges tiles, source entities and decals while preserving their local offsets.</summary>
-    private void MergeSite(EntityUid ground, MapGridComponent grid, Entity<MapGridComponent> source, Vector2i origin, Box2i footprint, HashSet<EntityUid> created, List<uint> createdDecals, int turns = 0)
+    private async Task MergeSiteAsync(EntityUid ground, MapGridComponent grid, Entity<MapGridComponent> source, Vector2i origin, Box2i footprint, HashSet<EntityUid> created, List<uint> createdDecals, int turns = 0)
     {
         var children = Transform(source.Owner).ChildEnumerator;
         while (children.MoveNext(out var child))
@@ -611,7 +641,7 @@ public sealed partial class WFPlanetPoiSystem
             foreach (var root in transferred)
             {
                 if (TerminatingOrDeleted(root)) continue;
-                InitializeTransferred(root, _maps.IsInitialized(targetMap), _maps.IsPaused(targetMap));
+                await InitializeTransferredAsync(root, _maps.IsInitialized(targetMap), _maps.IsPaused(targetMap));
             }
         }
         finally
@@ -621,6 +651,8 @@ public sealed partial class WFPlanetPoiSystem
             afterInit.ExceptWith(beforeInit);
             created.UnionWith(afterInit);
         }
+        if (TerminatingOrDeleted(ground))
+            return;
         EnsureComp<DecalGridComponent>(ground);
         foreach (var (_, decal) in decals)
         {
@@ -633,19 +665,27 @@ public sealed partial class WFPlanetPoiSystem
         }
     }
 
-    /// <summary>Runs destination map initialization and pause state through transferred descendants.</summary>
-    private void InitializeTransferred(EntityUid root, bool initialized, bool paused)
+    /// <summary>
+    /// Runs destination map initialization and pause state through transferred descendants, a slice a tick. They come
+    /// paused from their staging map and stay so until every one is initialised; then they are let go, the root last.
+    /// </summary>
+    private async Task InitializeTransferredAsync(EntityUid root, bool initialized, bool paused)
     {
         var pending = new List<EntityUid> { root };
         for (var i = 0; i < pending.Count; i++)
         {
+            await _preload.Breathe();
             var entity = pending[i];
             if (TerminatingOrDeleted(entity)) continue;
             var children = Transform(entity).ChildEnumerator;
             while (children.MoveNext(out var child)) pending.Add(child);
             var meta = MetaData(entity);
             if (initialized && meta.EntityLifeStage != EntityLifeStage.MapInitialized) EntityManager.RunMapInit(entity, meta);
-            if (!TerminatingOrDeleted(entity)) _meta.SetEntityPaused(entity, paused);
+        }
+        for (var i = pending.Count - 1; i >= 0; i--)
+        {
+            await _preload.Breathe();
+            if (!TerminatingOrDeleted(pending[i])) _meta.SetEntityPaused(pending[i], paused);
         }
     }
 
@@ -808,14 +848,20 @@ public sealed partial class WFPlanetPoiSystem
         _ => throw new InvalidOperationException("Invalid socket direction."),
     };
 
+    /// <summary>Tiles a road is laid in at a time, so a long one goes over a few ticks.</summary>
+    private const int PaintBatch = 512;
+
     /// <summary>Writes and pins the full road batch with open sky; whatever the biome grew on an unpinned tile goes first.</summary>
-    private void PaintRoad(EntityUid ground, MapGridComponent grid, BiomeComponent biome, IEnumerable<Vector2i> positions, string prototype)
+    private async Task PaintRoadAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, IEnumerable<Vector2i> positions, string prototype)
     {
         var tiles = positions.ToHashSet();
         var tile = new Tile(_tiles[prototype].TileId);
         var anchored = new List<EntityUid>();
         foreach (var position in tiles)
         {
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(ground))
+                return;
             if (_biome.WfIsPinned((ground, biome), position))
                 continue;
             anchored.Clear();
@@ -825,8 +871,15 @@ public sealed partial class WFPlanetPoiSystem
             foreach (var uid in anchored)
                 QueueDel(uid);
         }
-        _maps.SetTiles(ground, grid, tiles.Select(position => (position, tile)).ToList());
+        // Pinned first, so nothing grows on a stretch still waiting for its road.
         _biome.WfPinTiles((ground, biome), tiles);
-        foreach (var position in tiles) _roof.SetRoof((ground, grid, null), position, false);
+        foreach (var batch in tiles.Chunk(PaintBatch))
+        {
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(ground))
+                return;
+            _maps.SetTiles(ground, grid, batch.Select(position => (position, tile)).ToList());
+            foreach (var position in batch) _roof.SetRoof((ground, grid, null), position, false);
+        }
     }
 }

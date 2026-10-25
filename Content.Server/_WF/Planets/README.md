@@ -67,9 +67,22 @@ While the lobby is open, `WFPlanetRegistrySystem` builds the lobby preset's roun
 will put them (`wf.planet_prebuild`), so the preload runs at `wf.planet_preload_budget_lobby` before anyone is in the
 round; the body that spawns at a prebuilt centre under the same name takes that network over in `TryBuildNetwork`,
 and any network no body takes is deleted a few seconds into the round.
+The rest of a world's generation, its sites, cities, roads, wrecks and camps, the boundary ring and what is let loose
+once the ground exists, is spread over ticks the same way: it awaits `WFPlanetPreloadSystem.Breathe`, which carries on
+until `wf.planet_generation_budget` ms of the tick are spent (`wf.planet_generation_budget_lobby` in the lobby) and then
+resumes next tick. Map files for sites and cities are parsed off the main thread. What can't be split still takes its
+own tick: loading one map's entities, merging one site into the ground, one heavy spawn such as a crewed vehicle, and
+the road planner. `WFPlanetPreloadedEvent` handlers put that kind of work in its `Work` list, and the ground is only
+marked preloaded once it is done.
+When the lobby countdown runs out while a prebuilt world is still forming, `WFPlanetRoundHoldSystem` holds the start
+(a hook in `GameTicker.StartRound`, through `WFRoundStartHoldEvent`), tells the lobby the worlds are still forming and
+starts the round itself once they are done, or after `wf.planet_round_hold_max` seconds (180) regardless. An admin's
+start round waits the same way, under the same cap; a paused countdown calls a held start off. A world that is still
+forming once the round is under way, because the cap ran out or it was built mid-round, refuses descent from orbit
+with a popup until it is done (`WFOrbitEntrySystem.TryDropFromOrbit`).
 Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`,
 `wf.planet_terrain_load_budget`, `wf.planet_bounds`, `wf.planet_radius`, `wf.planet_preload`,
-`wf.planet_preload_budget`); ecology and
+`wf.planet_preload_budget`, `wf.planet_generation_budget`, `wf.planet_round_hold_max`); ecology and
 landing notes and the playtest checklist are in `Docs/_WF/Planets`. `WFBiomeNoiseCacheSystem` keeps one seeded copy
 of each biome layer's noise for `SharedBiomeSystem.GetNoise`, which copied it for every tile planets and caverns
 generate or sample.
@@ -172,6 +185,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/_WF/Planets/Bounds/BiomeSystem.WFBounds.cs`](Bounds/BiomeSystem.WFBounds.cs)
 - [`Content.Server/_WF/Planets/Bounds/WFPlanetBoundsSystem.cs`](Bounds/WFPlanetBoundsSystem.cs)
 - [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadEvents.cs`](Bounds/WFPlanetPreloadEvents.cs)
+- [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadSystem.Budget.cs`](Bounds/WFPlanetPreloadSystem.Budget.cs)
 - [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadSystem.cs`](Bounds/WFPlanetPreloadSystem.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.WFTerrain.cs`](CEZLevelsSystem.WFTerrain.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.Wolfgate.cs`](CEZLevelsSystem.Wolfgate.cs)
@@ -211,6 +225,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/_WF/Planets/Flight/WFPlanetDragSystem.cs`](Flight/WFPlanetDragSystem.cs)
 - [`Content.Server/_WF/Planets/Flight/WFSkidComponent.cs`](Flight/WFSkidComponent.cs)
 - [`Content.Server/_WF/Planets/Flight/WFThrustAmbienceSystem.cs`](Flight/WFThrustAmbienceSystem.cs)
+- [`Content.Server/_WF/Planets/GameTicker.WFRoundHold.cs`](GameTicker.WFRoundHold.cs)
 - [`Content.Server/_WF/Planets/Infestation/WFCarcinomaInfestationComponent.cs`](Infestation/WFCarcinomaInfestationComponent.cs)
 - [`Content.Server/_WF/Planets/Infestation/WFCarcinomaInfestationSystem.cs`](Infestation/WFCarcinomaInfestationSystem.cs)
 - [`Content.Server/_WF/Planets/Jetpack/WFAtmosphericJetpackFuelSystem.cs`](Jetpack/WFAtmosphericJetpackFuelSystem.cs)
@@ -236,6 +251,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/_WF/Planets/WFPlanetNetworkSystem.Prebuild.cs`](WFPlanetNetworkSystem.Prebuild.cs)
 - [`Content.Server/_WF/Planets/WFPlanetRegistrySystem.cs`](WFPlanetRegistrySystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetRegistrySystem.Lobby.cs`](WFPlanetRegistrySystem.Lobby.cs)
+- [`Content.Server/_WF/Planets/WFPlanetRoundHoldSystem.cs`](WFPlanetRoundHoldSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetTileBreakSystem.cs`](WFPlanetTileBreakSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetTimepieceSystem.cs`](WFPlanetTimepieceSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWeatherComponent.cs`](WFPlanetWeatherComponent.cs)
@@ -244,6 +260,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/_WF/Planets/WFPlanetWeatherSystem.Daylight.cs`](WFPlanetWeatherSystem.Daylight.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWeatherSystem.Storms.cs`](WFPlanetWeatherSystem.Storms.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWildlifeComponent.cs`](WFPlanetWildlifeComponent.cs)
+- [`Content.Server/_WF/Planets/WFRoundStartHoldEvent.cs`](WFRoundStartHoldEvent.cs)
 
 ### Shared
 
@@ -350,6 +367,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLoadProfileTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLoadProfileTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPopulationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPopulationTest.cs)
@@ -358,6 +376,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarDrawingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarDrawingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRoofFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRoofFallTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRoundHoldTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRoundHoldTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherRoofTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherRoofTest.cs)
@@ -615,6 +634,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
   - a silent blast still carves its crater, it just does not shake, push or sound.
   - upstream sound, re-indented under the silent guard above.
 - [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs`](../../Explosion/EntitySystems/ExplosionSystem.Processing.cs): silent flag, so a crash's storm of blasts makes one bang.
+- [`Content.Server/GameTicking/GameTicker.RoundFlow.cs`](../../GameTicking/GameTicker.RoundFlow.cs): round-start worlds still forming hold the start
 - [`Content.Server/Movement/Systems/JetpackSystem.cs`](../../Movement/Systems/JetpackSystem.cs)
   - an atmospheric pack burns welding fuel from a solution, not gas from a tank.
   - a wearer carried below orbit on a hull never changes parent, so the pack is cut here.

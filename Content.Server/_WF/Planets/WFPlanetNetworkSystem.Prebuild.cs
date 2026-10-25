@@ -25,6 +25,16 @@ public sealed partial class WFPlanetNetworkSystem
         return true;
     }
 
+    /// <summary>The ground of every prebuilt network no body has taken yet.</summary>
+    public IEnumerable<EntityUid> PrebuiltGrounds()
+    {
+        foreach (var entry in _prebuilt)
+        {
+            if (TryComp<WFPlanetNetworkComponent>(entry.Network, out var comp))
+                yield return comp.GroundMap;
+        }
+    }
+
     /// <summary>Deletes every prebuilt network no body has taken.</summary>
     public int ClearPrebuilt()
     {

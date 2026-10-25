@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -60,6 +61,7 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        ResumeWaiting();
 
         while (_queue.Count > 0)
         {
@@ -79,6 +81,7 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
             {
                 preload.Holds = new List<Task>();
                 var starting = new WFPlanetPreloadStartingEvent(preload.Ground, bounds.Centre, bounds.Radius, preload.Holds);
+                GenerationSpent();
                 RaiseLocalEvent(ref starting);
                 preload.Started = Stopwatch.GetTimestamp();
             }
@@ -94,7 +97,14 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
             if (preload.Next < preload.Chunks.Count)
                 return;
 
-            Finish(preload, (preload.Ground, biome, grid), bounds);
+            // The ring and whatever the other modules do once the ground exists go a slice a tick too.
+            preload.Finishing ??= FinishAsync(preload, (preload.Ground, biome, grid), bounds);
+            if (!preload.Finishing.IsCompleted)
+                return;
+
+            if (preload.Finishing.IsFaulted)
+                Log.Error($"Finishing the preload of {ToPrettyString(preload.Ground)} failed. {preload.Finishing.Exception}");
+
             _queue.RemoveAt(0);
         }
     }
@@ -129,38 +139,59 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
         }
     }
 
-    /// <summary>Lays the boundary ring on the ground and the layers below it, marks the ground preloaded and tells the other modules.</summary>
-    private void Finish(Preload preload, Entity<BiomeComponent, MapGridComponent> ground, WFPlanetBoundsComponent bounds)
+    /// <summary>
+    /// Lays the boundary ring on the ground and the layers below it, tells the other modules and waits for what they
+    /// start, then marks the ground preloaded.
+    /// </summary>
+    private async Task FinishAsync(Preload preload, Entity<BiomeComponent, MapGridComponent> ground, WFPlanetBoundsComponent bounds)
     {
-        var walls = LayRing(ground, bounds, preload.Wall);
-        EnsureComp<WFPlanetPreloadedComponent>(ground);
+        var walls = await LayRingAsync(ground, bounds, preload.Wall);
 
         // A cavern stays streamed, so its ring is laid onto bare ground and pinned: the loader fills in round it.
         if (TryComp<WFPlanetLayerComponent>(ground, out var layer)
             && TryGetEntity(layer.Network, out var network)
             && TryComp<WFPlanetNetworkComponent>(network, out var comp))
         {
-            foreach (var lower in comp.LowerLayers)
+            foreach (var lower in comp.LowerLayers.ToList())
             {
                 if (TryComp<BiomeComponent>(lower, out var lowerBiome)
                     && TryComp<MapGridComponent>(lower, out var lowerGrid)
                     && TryComp<WFPlanetBoundsComponent>(lower, out var lowerBounds))
-                    walls += LayRing((lower, lowerBiome, lowerGrid), lowerBounds, preload.Wall);
+                    walls += await LayRingAsync((lower, lowerBiome, lowerGrid), lowerBounds, preload.Wall);
             }
         }
 
+        if (TerminatingOrDeleted(ground))
+            return;
+
+        var work = new List<Task>();
+        var ev = new WFPlanetPreloadedEvent(ground, work);
+        RaiseLocalEvent(ref ev);
+        foreach (var task in work)
+        {
+            try
+            {
+                await task;
+            }
+            catch (Exception error)
+            {
+                Log.Error($"Work after the preload of {ToPrettyString(ground)} failed. {error}");
+            }
+        }
+
+        if (TerminatingOrDeleted(ground))
+            return;
+
+        EnsureComp<WFPlanetPreloadedComponent>(ground);
         var took = Stopwatch.GetElapsedTime(preload.Started).TotalSeconds;
         Log.Info($"Preloaded {preload.Chunks!.Count} chunks of {ToPrettyString(ground)} in {took:F1} s, with {walls} boundary walls.");
-
-        var ev = new WFPlanetPreloadedEvent(ground);
-        RaiseLocalEvent(ref ev);
     }
 
     /// <summary>
     /// Walls every tile inside the circle with a neighbour outside it: whatever the biome grew there goes, a tile not
     /// loaded yet is laid from the recipe, and the tile is pinned so nothing grows back or is ever unloaded.
     /// </summary>
-    private int LayRing(Entity<BiomeComponent, MapGridComponent> ground, WFPlanetBoundsComponent bounds, EntProtoId? wall)
+    private async Task<int> LayRingAsync(Entity<BiomeComponent, MapGridComponent> ground, WFPlanetBoundsComponent bounds, EntProtoId? wall)
     {
         if (wall == null)
             return 0;
@@ -184,11 +215,18 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
             ring.Add(tile);
         }
 
+        // Pinned first, so nothing grows back on a stretch still waiting for its wall.
+        _biome.WfPinTiles((ground.Owner, ground.Comp1), ring);
+
         var laid = 0;
         var anchored = new List<EntityUid>();
 
         foreach (var tile in ring)
         {
+            await Breathe();
+            if (TerminatingOrDeleted(ground))
+                return laid;
+
             // A ring tile the biome left empty, such as under water, is filled so the wall has something to stand on.
             if (!_map.TryGetTileRef(ground, ground.Comp2, tile, out var existing) || existing.Tile.IsEmpty)
             {
@@ -215,7 +253,6 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
             laid++;
         }
 
-        _biome.WfPinTiles((ground.Owner, ground.Comp1), ring);
         return laid;
     }
 
@@ -228,6 +265,7 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
         public readonly HashSet<Task> Faulted = new();
         public List<Vector2i>? Chunks;
         public int Next;
+        public Task? Finishing;
         public long Started;
 
         public Preload(EntityUid ground, EntProtoId? wall)
