@@ -141,9 +141,10 @@
     tile: WFFloorVerdaShoreSand
     threshold: 0.73
     noise: { seed: 71, noiseType: OpenSimplex2, frequency: 0.012, fractalType: FBm, octaves: 2, lacunarity: 2 }
+  # Frogs and crabs (Planets/Life/verda_mobs.yml).
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorVerdaMarshGrass, WFFloorVerdaMarshMud, WFFloorVerdaShoreSand]
-    entities: [WFFaunaAsclepiu]
+    entities: [WFFaunaVerdaShore]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
   # Marsh: tall grass and the odd bush and drowned tree.
@@ -188,6 +189,22 @@
     entities: [VoreFloraLily3, GoonFakeobjectLotus]
     threshold: 0.8
     noise: { seed: 227, noiseType: OpenSimplex2, frequency: 4 }
+  # Reeds to cut, a lotus to eat, shore sage to heal with (Planets/Life/verda.yml).
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaMarshMud, WFFloorVerdaShoreSand]
+    entities: [WFVerdaPlantReeds]
+    threshold: 0.9
+    noise: { seed: 301, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaMarshMud]
+    entities: [WFVerdaPlantLotus]
+    threshold: 0.91
+    noise: { seed: 302, noiseType: OpenSimplex2, frequency: 4 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaMarshMud, WFFloorVerdaShoreSand]
+    entities: [WFVerdaPlantShoreSage]
+    threshold: 0.91
+    noise: { seed: 303, noiseType: OpenSimplex2, frequency: 4 }
 
 # An irradiated scar: dead ground, dead trees and scrub, a few bones.
 - type: biomeTemplate
@@ -208,9 +225,10 @@
     tile: WFFloorVerdaScarDirtPatch
     threshold: 0.5
     noise: { seed: 85, noiseType: OpenSimplex2, frequency: 0.09 }
+  # Mutants and vermin (Planets/Life/verda_mobs.yml).
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorVerdaScarDirt, WFFloorVerdaScarWiltedGrass, WFFloorVerdaScarAshDirt, WFFloorVerdaScarDirtPatch]
-    entities: [WFFaunaAsclepiu]
+    entities: [WFFaunaVerdaScar]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
   - !type:BiomeEntityLayer
@@ -299,3 +317,14 @@
     entities: [YogTreeDeadJungle, CitFloraAshtree]
     threshold: 0.82
     noise: { seed: 245, noiseType: OpenSimplex2, frequency: 2 }
+  # A rat king's lair now and then, and a glowing weed that irradiates whoever gets close (Planets/Life).
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaScarDirt, WFFloorVerdaScarWiltedGrass, WFFloorVerdaScarAshDirt, WFFloorVerdaScarDirtPatch]
+    entities: [WFFaunaVerdaRatKing]
+    threshold: 0.95
+    noise: { seed: 311, noiseType: OpenSimplex2, frequency: 0.02 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaScarDirt, WFFloorVerdaScarWiltedGrass, WFFloorVerdaScarAshDirt, WFFloorVerdaScarDirtPatch]
+    entities: [WFVerdaPlantGlowroot]
+    threshold: 0.98
+    noise: { seed: 312, noiseType: OpenSimplex2, frequency: 4 }

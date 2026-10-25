@@ -180,9 +180,20 @@
     decals: [AuroraDecalFloorDecalKonyangFlowers]
     threshold: 0.75
     noise: { seed: 64, noiseType: OpenSimplex2, frequency: 4 }
+  # Wildlife by region (Planets/Life/verda_mobs.yml): meadow, woods and the pond shores.
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorPlanetGrass, FloorPlanetDirt, WFFloorVerdaMeadowGrass, WFFloorVerdaForestGrass, WFFloorVerdaPondMud]
-    entities: [WFFaunaAsclepiu]
+    allowedTiles: [FloorPlanetGrass, FloorPlanetDirt, WFFloorVerdaMeadowGrass]
+    entities: [WFFaunaVerdaMeadow]
+    threshold: 0.95
+    noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaForestGrass]
+    entities: [WFFaunaVerdaWoods]
+    threshold: 0.95
+    noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaPondMud]
+    entities: [WFFaunaVerdaShore]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
   # Wildflower meadows.
@@ -216,6 +227,17 @@
     entities: [CoyoteFloraTallgrass3, CoyoteFloraTallgrass5]
     threshold: 0.84
     noise: { seed: 206, noiseType: OpenSimplex2, frequency: 5 }
+  # Bees and snakes stand where a wildflower or a clump of tall grass would (same noise, a higher threshold, listed after).
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaMeadowGrass]
+    entities: [WFFaunaVerdaBees]
+    threshold: 0.97
+    noise: { seed: 201, noiseType: OpenSimplex2, frequency: 5 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaMeadowGrass]
+    entities: [WFFaunaVerdaGrass]
+    threshold: 0.97
+    noise: { seed: 206, noiseType: OpenSimplex2, frequency: 5 }
   - !type:BiomeMetaLayer
     template: WFTemperateWoodland
     threshold: 0.35
@@ -236,6 +258,22 @@
     entities: [AuroraAssunzioneGrassAlt, AuroraFloraBushKonyangReeds]
     threshold: 0.4
     noise: { seed: 229, noiseType: OpenSimplex2, frequency: 3 }
+  # Pond rings: reeds to cut, a lotus to eat, shore sage to heal with (Planets/Life/verda.yml).
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaPondMud]
+    entities: [WFVerdaPlantReeds]
+    threshold: 0.9
+    noise: { seed: 301, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaPondMud]
+    entities: [WFVerdaPlantLotus]
+    threshold: 0.91
+    noise: { seed: 302, noiseType: OpenSimplex2, frequency: 4 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaPondMud]
+    entities: [WFVerdaPlantShoreSage]
+    threshold: 0.91
+    noise: { seed: 303, noiseType: OpenSimplex2, frequency: 4 }
   # Ponds a few tiles across, between the lakes.
   - !type:BiomeEntityLayer
     allowedTiles: [FloorPlanetGrass, FloorPlanetDirt, WFFloorVerdaMeadowGrass, WFFloorVerdaForestGrass, WFFloorVerdaPondMud]
@@ -301,6 +339,22 @@
     entities: [CoyoteFloraTreeOakFour, CoyoteFloraTreeOakFive]
     threshold: 0.9
     noise: { seed: 216, noiseType: OpenSimplex2, frequency: 2 }
+  # Forage and a hazard under the trees (Planets/Life/verda.yml): mushrooms, berries and snapping brambles.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorVerdaForestGrass]
+    entities: [WFVerdaPlantMushroom]
+    threshold: 0.9
+    noise: { seed: 304, noiseType: OpenSimplex2, frequency: 4 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorPlanetGrass, WFFloorVerdaForestGrass]
+    entities: [WFVerdaPlantBerryBush]
+    threshold: 0.93
+    noise: { seed: 305, noiseType: OpenSimplex2, frequency: 4 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [FloorPlanetGrass, WFFloorVerdaForestGrass]
+    entities: [WFVerdaPlantBramble]
+    threshold: 0.98
+    noise: { seed: 306, noiseType: OpenSimplex2, frequency: 4 }
 # Highlands: rough snow in drifts, snow-capped rocks, snow shrubs and snowy pines.
 - type: biomeTemplate
   id: WFTemperateSnow
@@ -325,7 +379,7 @@
     noise: { seed: 97, noiseType: OpenSimplex2, frequency: 3 }
   - !type:BiomeEntityLayer
     allowedTiles: [FloorSnow, WFFloorVerdaSnowRough]
-    entities: [WFFaunaAsclepiu]
+    entities: [WFFaunaVerdaSnow]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
   - !type:BiomeEntityLayer
