@@ -207,6 +207,15 @@
     crackTimeBase: 1.5
 # endregion
 
+# The burst where a rock breaks, drawn by WFAsteroidCrackOverlay.
+- type: entity
+  id: WFAsteroidCrackEffect
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: WFAsteroidCrackEffect
+  - type: TimedDespawn
+    lifetime: 2.5
+
 # region Grids
 - type: entity
   id: WFAsteroidGridBase
@@ -277,11 +286,12 @@
     state: green
   - type: WFAsteroidCluster
     composition: WFAsteroidRock
+    # Mostly big rocks, so a cluster is a few grids on radar; cracking them makes the small ones.
     sizes:
-      WFAsteroidSmall: 2
-      WFAsteroidMedium: 3
+      WFAsteroidSmall: 0.5
+      WFAsteroidMedium: 1
       WFAsteroidLarge: 3
-      WFAsteroidHuge: 1
+      WFAsteroidHuge: 2
 
 - type: entity
   parent: WFAsteroidClusterBase

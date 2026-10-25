@@ -16,7 +16,9 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Random;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.AsteroidMining;
 
@@ -45,6 +47,9 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     [Dependency] private SpawnCountSystem _spawnCount = default!;
     [Dependency] private ExplosionSystem _explosion = default!;
     [Dependency] private DebrisFeaturePlacerSystem _debris = default!;
+    [Dependency] private IGameTiming _timing = default!;
+
+    private static readonly EntProtoId CrackEffect = "WFAsteroidCrackEffect";
 
     private static readonly SoundSpecifier CrackSound = new SoundPathSpecifier("/Audio/Effects/break_stone.ogg",
         AudioParams.Default.WithVolume(4f).WithMaxDistance(40f));
@@ -125,6 +130,13 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         }
 
         _map.SetTiles(ent, grid, tiles);
+        // Space has no friction, so damp the rock: a split, a ram or a tractor tug settles after a few metres.
+        if (TryComp<PhysicsComponent>(ent, out var body))
+        {
+            _physics.SetLinearDamping(ent, body, 0.6f);
+            _physics.SetAngularDamping(ent, body, 0.8f);
+        }
+
         var rock = SpawnAttachedTo(ent.Comp.Rock, new EntityCoordinates(ent, 0.5f, 0.5f));
         ent.Comp.RockUid = rock;
         if (ent.Comp.Composition is { } composition)
@@ -180,8 +192,8 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
     private void RollWindow(WFAsteroidComponent comp)
     {
-        comp.WindowCenter = _random.NextFloat(0.45f, 0.65f);
-        comp.WindowHalfWidth = 0.12f * (1f - 0.5f * comp.Instability);
+        comp.WindowCenter = _random.NextFloat(0.4f, 0.6f);
+        comp.WindowHalfWidth = 0.14f * (1f - 0.5f * comp.Instability);
         comp.NoiseSeed = _random.NextFloat(0f, 100f);
         comp.Variant = _random.Next(Math.Max(1, comp.Variants));
         comp.VeinColor = comp.Ores.Count > 0 ? comp.Ores[0].Color : Color.Gray;
@@ -282,6 +294,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             ReleasePassengers(asteroidGrid, rock, mapUid);
         Del(grid ?? rock);
         _audio.PlayPvs(CrackSound, new EntityCoordinates(mapUid, center.Position));
+        SpawnCrackEffect(center, mapUid, radius, comp.VeinColor, kind != WFAsteroidCrack.Clean);
 
         if (kind == WFAsteroidCrack.Overcharge)
         {
@@ -357,7 +370,22 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             return;
 
         comp.Cracking = true;
-        SpawnOre(comp.Ores, comp.Mass, _transform.GetMapCoordinates(uid), MathF.Max(comp.Radius, 0.3f));
+        var center = _transform.GetMapCoordinates(uid);
+        SpawnOre(comp.Ores, comp.Mass, center, MathF.Max(comp.Radius, 0.3f));
+        if (Transform(uid).MapUid is { } mapUid)
+            SpawnCrackEffect(center, mapUid, MathF.Max(comp.Radius, 0.5f), comp.VeinColor, false);
+    }
+
+    /// <summary>Spawns the flash, shockwave, chips and dust of a breaking rock.</summary>
+    private void SpawnCrackEffect(MapCoordinates center, EntityUid mapUid, float radius, Color veins, bool violent)
+    {
+        var effect = Spawn(CrackEffect, new EntityCoordinates(mapUid, center.Position));
+        var comp = EnsureComp<WFAsteroidCrackEffectComponent>(effect);
+        comp.Radius = radius;
+        comp.VeinColor = veins;
+        comp.Violent = violent;
+        comp.Start = _timing.CurTime;
+        Dirty(effect, comp);
     }
 
     /// <summary>Spawns fragments around the old centre and returns the mass of any that had no room.</summary>
@@ -390,8 +418,9 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         {
             var spawned = Spawn(fragment, new EntityCoordinates(mapUid, position));
             _transform.SetWorldRotation(spawned, rotation + _random.NextFloat(-0.5f, 0.5f));
-            _physics.SetLinearVelocity(spawned, velocity + direction * _random.NextFloat(0.3f, 0.7f));
-            _physics.SetAngularVelocity(spawned, _random.NextFloat(-0.15f, 0.15f));
+            // Thrown apart, then the grid's damping settles them a few metres out.
+            _physics.SetLinearVelocity(spawned, velocity + direction * _random.NextFloat(1.5f, 2.5f));
+            _physics.SetAngularVelocity(spawned, _random.NextFloat(-0.4f, 0.4f));
             if (TryComp<WFAsteroidGridComponent>(spawned, out var spawnedGrid) && spawnedGrid.RockUid is { } rock)
                 Inherit(parent, rock, each);
             if (controller is { } owner)

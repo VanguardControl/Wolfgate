@@ -58,6 +58,9 @@ public sealed partial class WFAsteroidComponent : Component
     [AutoNetworkedField] public float Charge;
     [AutoNetworkedField] public bool Overcharging;
 
+    /// <summary>Crack progress from zero to one, for the rock's shake as it nears breaking.</summary>
+    [AutoNetworkedField] public float Progress;
+
     /// <summary>Client-side heat, eased toward <see cref="Charge"/>.</summary>
     public float DisplayCharge;
 
@@ -70,7 +73,8 @@ public sealed partial class WFAsteroidComponent : Component
     public float WindowCenter = 0.55f;
     public float WindowHalfWidth = 0.1f;
     public float BaseCharge;
-    public float Progress;
+    /// <summary>The progress last sent to clients, so it is only resent as it moves.</summary>
+    public float SentProgress;
     public float OverchargeTime;
     public float IncomingPower;
     /// <summary>Widest window scale among the beams on the rock this tick.</summary>

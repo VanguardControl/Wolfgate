@@ -262,7 +262,7 @@ public sealed class AsteroidMiningTest
             {
                 var beam = em.GetComponent<WFMiningBeamEmitterComponent>(gun);
                 if (!em.Deleted(rock) && pair.Server.ResolveDependency<IGameTiming>().CurTime >= beam.CooldownUntil)
-                    beams.Pulse(gun, beam, rock, 17f);
+                    beams.Pulse(gun, beam, rock, 17f, new Vector2(0f, 1f));
             });
             await pair.Server.WaitRunTicks(1);
         }
@@ -335,6 +335,38 @@ public sealed class AsteroidMiningTest
                     "The beam should go out once the gun stops firing.");
             });
         });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task DefaultPowerCracksAHardMediumRock()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        EntityUid gun = default, rock = default;
+        await server.WaitAssertion(() =>
+        {
+            var ship = DrydockTest.CreateShip(pair, map.MapId, ShipPos);
+            DrydockTest.SetFloor(pair, ship, 5);
+            gun = DrydockTest.SpawnAnchored(pair, ship, Gun, new Vector2i(2, 2));
+            rock = SpawnAsteroid(pair, map.MapId, "WFAsteroidMedium", ShipPos + new Vector2(2f, 17f));
+            server.System<WFAsteroidSystem>().Roll(rock, "WFAsteroidRock");
+            // The worst a medium rock-type asteroid can roll: most resistant, most unstable, highest window.
+            var comp = em.GetComponent<WFAsteroidComponent>(rock);
+            comp.Resistance = 0.33f;
+            comp.Instability = 0.45f;
+            comp.WindowCenter = 0.6f;
+            comp.WindowHalfWidth = 0.14f * (1f - 0.5f * comp.Instability);
+        });
+
+        await HoldFire(pair, gun, rock, 60f);
+
+        await server.WaitAssertion(() =>
+            Assert.That(em.Deleted(rock), Is.True, "Holding fire at the default power should crack any medium rock-type asteroid."));
 
         await pair.CleanReturnAsync();
     }

@@ -8,7 +8,7 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
 - **Worldgen:** `replacement.yml` maps each tile asteroid kind (rock, ice, basalt, sand, chromite, andesite) to a
   cluster marker. `WFAsteroidSystem` swaps it through `WFDebrisPlacingEvent` and gives the cluster the tile
   asteroid's rock count as its mass budget. A tick later the marker places the biggest rock that fits at its centre,
-  scatters smaller ones around it until the budget runs out, hands them to its world chunk and removes itself.
+  scatters more around it, mostly large and huge so a cluster is a few radar contacts, until the budget runs out, hands them to its world chunk and removes itself.
   Compositions mirror each kind's mineral table, ore weights and plain-rock share, so a zone's ore mix and amount stay
   as they were (chromite is still where lithium comes from).
 - **Rocks:** each asteroid is one rock entity (`WFAsteroidRock*`) anchored at the centre of a small grid of invisible,
@@ -19,15 +19,19 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
   aimed and fired from a gunnery console. Its `WFMiningBeamPulse` hitscan pulses (10 a second) heat the asteroid they
   hit instead of damaging it, and its fork spins while it fires. A `WFComputerMiningBeam` console plots nearby rocks,
   shows a scan of the selected one (ores, inert rock, resistance, instability) and sets each laser's power in
-  1/5/10% steps. Heat settles at `power × strength × (1 − resistance)` and unstable rocks drift around it. Holding the
-  heat in the green window fills the crack bar (`4 s + 0.1 s` per vein). The cyan notch on the meter shows where the
-  current power will settle, so the power can be set without timing. Several lasers on one rock add their power, so
-  tough rocks are a two-ship job.
+  1/5/10% steps (70% by default, which never overcharges). Heat settles at `power × strength × (1 − resistance)` and
+  unstable rocks drift around it. Holding the heat in the green window fills the crack bar (`4 s + 0.1 s` per vein).
+  The cyan notch on the meter shows where the current power will settle, so the power can be set without timing; a
+  gunner without the console feathers the trigger instead, since the impact flare brightens and its sparks double
+  while the rock is in its window. The beam is drawn along each pulse's shot, out to where it hit. Several lasers on
+  one rock add their power, so tough rocks are a two-ship job.
 - **Outcomes:** a clean crack keeps all the mass. Large and huge rocks split into two smaller asteroids (half or
   three fifths of the mass); of the rest, a quarter comes out as boulders and the remainder as floating ore piles.
   Staying over the red line for 2.5 s blows the rock up: half the mass survives, the blast grows with plasma, and the
   lasers can't fire for 10 s. Weapons and explosions shatter a rock for 40% of its mass once it has taken its
-  `shatterDamage`. Anything else on a cracked asteroid's grid, players included, is left floating where it was.
+  `shatterDamage`. Past 60% crack progress the rock shakes; when it breaks, `WFAsteroidCrackEffect` draws a flash,
+  a shockwave, flying chips and a dust cloud, and fragments fly apart before the grids' damping settles them. Anything
+  else on a cracked asteroid's grid, players included, is left floating where it was.
 - **Hand mining:** `WFAsteroidBoulder` is a pullable chunk of 2-4 veins. Pull it aboard and break it with a pickaxe,
   drill, kinetic accelerator or the mining laser (it is `Gatherable`) for all of its ore.
 - **Collection:** ore floats where the rock was; ore magnets, ore boxes and tractor beams pick it up as before.
@@ -38,7 +42,7 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
 `DebrisFeaturePlacerSystem.Asteroids` gives cluster rocks and fragments to their world chunk so they unload with it.
 `WFMiningBeamSystem` turns pulses into heat and runs the console. On the client, `WFAsteroidVisualsSystem` picks
 sprite variants, tints the veins by the leading ore and lights the cracks with heat, `WFMiningBeamOverlay` draws the
-beams and `WFMiningBeamVisualizerSystem` spins the fork.
+beams, `WFAsteroidCrackOverlay` draws rocks breaking and `WFMiningBeamVisualizerSystem` spins the fork.
 
 Balance knobs: which kinds swap and the size budgets in `replacement.yml`, rock masses, fragment and boulder shares in
 `asteroids.yml`, ore weights and rock stats in `compositions.yml`, and laser strength on `WFMiningBeamEmitterComponent`
@@ -62,6 +66,7 @@ and its fire rate and battery in `mining_beam.yml`.
 
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidComponent.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidCompositionPrototype.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidCompositionPrototype.cs)
+- [`Content.Shared/_WF/AsteroidMining/WFAsteroidCrackEffectComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidCrackEffectComponent.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidReplacementPrototype.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidReplacementPrototype.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFMiningBeamConsoleBoundUserInterfaceState.cs`](../../../Content.Shared/_WF/AsteroidMining/WFMiningBeamConsoleBoundUserInterfaceState.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFMiningBeamEmitterComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFMiningBeamEmitterComponent.cs)
@@ -69,6 +74,7 @@ and its fire rate and battery in `mining_beam.yml`.
 
 ### Client
 
+- [`Content.Client/_WF/AsteroidMining/WFAsteroidCrackOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFAsteroidCrackOverlay.cs)
 - [`Content.Client/_WF/AsteroidMining/WFAsteroidVisualsSystem.cs`](../../../Content.Client/_WF/AsteroidMining/WFAsteroidVisualsSystem.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningBeamConsoleBoundUserInterface.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamConsoleBoundUserInterface.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningBeamConsoleWindow.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamConsoleWindow.cs)

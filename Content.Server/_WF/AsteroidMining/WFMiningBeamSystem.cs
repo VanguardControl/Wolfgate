@@ -103,31 +103,28 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         if (rock is { } target)
             args.HitEntities.Remove(target);
 
-        Pulse(args.Gun, beam, rock, args.DistanceTried);
+        var direction = args.ShotDirection.LengthSquared() > 0f ? Vector2.Normalize(args.ShotDirection) : beam.BeamDirection;
+        Pulse(args.Gun, beam, rock, args.DistanceTried, direction);
     }
 
-    /// <summary>Records a pulse: lights the beam and, on an asteroid, keeps the gun's power on it.</summary>
-    public void Pulse(EntityUid gun, WFMiningBeamEmitterComponent beam, EntityUid? rock, float distance)
+    /// <summary>
+    /// Records a pulse: lights the beam along the shot, which fire control aims at the cursor, and on an asteroid keeps
+    /// the gun's power on it.
+    /// </summary>
+    public void Pulse(EntityUid gun, WFMiningBeamEmitterComponent beam, EntityUid? rock, float distance, Vector2 direction)
     {
         beam.LastPulse = _timing.CurTime;
         var wasActive = beam.Active;
-        var changed = !beam.Active || beam.Target != rock;
+        // Resend only on a visible change: about a degree of swing or a third of a metre of length.
+        var changed = !beam.Active || beam.Target != rock ||
+                      Vector2.Dot(beam.BeamDirection, direction) < 0.9998f ||
+                      MathF.Abs(beam.BeamLength - distance) > 0.3f;
         beam.Active = true;
         beam.Target = rock;
-        if (rock is { } target && TryComp<WFAsteroidComponent>(target, out var asteroid))
-        {
-            var xform = Transform(target);
-            beam.TargetGrid = xform.GridUid ?? target;
-            beam.TargetCenter = xform.GridUid != null ? xform.LocalPosition : Vector2.Zero;
-            beam.TargetRadius = asteroid.Radius;
+        beam.BeamDirection = direction;
+        beam.BeamLength = distance;
+        if (rock is { } target)
             _heated.Add(target);
-        }
-        else
-        {
-            beam.TargetGrid = null;
-            changed |= MathF.Abs(beam.BeamLength - distance) > 0.5f;
-            beam.BeamLength = distance;
-        }
 
         if (changed)
             Dirty(gun, beam);
@@ -145,7 +142,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
 
         comp.Active = false;
         comp.Target = null;
-        comp.TargetGrid = null;
+        comp.InWindow = false;
         comp.Charge = 0f;
         if (!TerminatingOrDeleted(gun))
             Dirty(gun, comp);
@@ -181,6 +178,11 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
                 !TryComp<WFAsteroidComponent>(rock, out var asteroid) || asteroid.Cracking)
             {
                 beam.Contribution = 0f;
+                if (beam.InWindow)
+                {
+                    beam.InWindow = false;
+                    Dirty(uid, beam);
+                }
                 continue;
             }
 
@@ -189,9 +191,12 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             asteroid.WindowScale = MathF.Max(asteroid.WindowScale, beam.WindowScale);
             _heated.Add(rock);
 
-            if (MathF.Abs(beam.Charge - asteroid.Charge) > 0.03f)
+            var (low, high) = Window(asteroid);
+            var inWindow = asteroid.Charge >= low && asteroid.Charge <= high;
+            if (MathF.Abs(beam.Charge - asteroid.Charge) > 0.03f || beam.InWindow != inWindow)
             {
                 beam.Charge = asteroid.Charge;
+                beam.InWindow = inWindow;
                 Dirty(uid, beam);
             }
         }
@@ -252,10 +257,12 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             : MathF.Max(0f, comp.OverchargeTime - frameTime);
 
         var overcharging = comp.OverchargeTime > 0f;
-        if (MathF.Abs(charge - comp.Charge) > 0.02f || overcharging != comp.Overcharging)
+        if (MathF.Abs(charge - comp.Charge) > 0.02f || overcharging != comp.Overcharging ||
+            MathF.Abs(comp.Progress - comp.SentProgress) > 0.04f)
         {
             comp.Charge = charge;
             comp.Overcharging = overcharging;
+            comp.SentProgress = comp.Progress;
             Dirty(rock, comp);
         }
 

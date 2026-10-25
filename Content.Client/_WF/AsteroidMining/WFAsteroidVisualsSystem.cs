@@ -1,15 +1,23 @@
+using System.Numerics;
 using Content.Shared._WF.AsteroidMining;
 using Robust.Client.GameObjects;
+using Robust.Client.Graphics;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
 namespace Content.Client._WF.AsteroidMining;
 
-/// <summary>Picks each rock's sprite variant and vein tint, and makes its cracks glow with heat under a beam.</summary>
+/// <summary>
+/// Picks each rock's sprite variant and vein tint, makes its cracks glow with heat under a beam, shakes it as it nears
+/// cracking, and registers the overlay that draws it breaking.
+/// </summary>
 public sealed partial class WFAsteroidVisualsSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private SharedPointLightSystem _lights = default!;
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IOverlayManager _overlays = default!;
+    [Dependency] private IPrototypeManager _prototypes = default!;
 
     private static readonly Color Ember = new(0.55f, 0.04f, 0f);
     private static readonly Color Orange = new(1f, 0.42f, 0.05f);
@@ -20,6 +28,13 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WFAsteroidComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<WFAsteroidComponent, AfterAutoHandleStateEvent>(OnState);
+        _overlays.AddOverlay(new WFAsteroidCrackOverlay(EntityManager, _prototypes, _timing));
+    }
+
+    public override void Shutdown()
+    {
+        _overlays.RemoveOverlay<WFAsteroidCrackOverlay>();
+        base.Shutdown();
     }
 
     private void OnStartup(Entity<WFAsteroidComponent> ent, ref ComponentStartup args)
@@ -59,7 +74,25 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
             if (rock.Charge <= 0f && rock.DisplayCharge < 0.005f)
                 rock.DisplayCharge = 0f;
             SetHeat((uid, rock, sprite), rock.DisplayCharge);
+            Shake((uid, rock, sprite));
         }
+    }
+
+    /// <summary>Past 60% crack progress the rock trembles, harder the closer it is to breaking.</summary>
+    private void Shake(Entity<WFAsteroidComponent, SpriteComponent> ent)
+    {
+        var shake = Math.Clamp((ent.Comp1.Progress - 0.6f) / 0.4f, 0f, 1f);
+        if (shake <= 0f || ent.Comp1.Charge <= 0f)
+        {
+            if (ent.Comp2.Offset != Vector2.Zero)
+                _sprite.SetOffset((ent, ent.Comp2), Vector2.Zero);
+            return;
+        }
+
+        var time = (float) _timing.RealTime.TotalSeconds;
+        var amplitude = (0.02f + 0.06f * shake) * MathF.Min(1.5f, 0.5f + ent.Comp1.Radius * 0.2f);
+        var offset = new Vector2(MathF.Sin(time * 47f + ent.Owner.Id), MathF.Cos(time * 53f + ent.Owner.Id * 0.7f)) * amplitude;
+        _sprite.SetOffset((ent, ent.Comp2), offset);
     }
 
     private void SetHeat(Entity<WFAsteroidComponent, SpriteComponent> ent, float charge)
