@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Content.Server._WF.NpcCrew.Systems;
+using Content.Server._WF.RoundSetup;
+using Content.Server.Atmos.EntitySystems;
 using Content.Server.Shuttles.Components;
 using Content.Shared._Crescent.Hardpoints;
 using Content.Shared._NF.Shipyard.Prototypes;
@@ -9,10 +11,14 @@ using Content.Shared._WF.NpcCrew;
 using Content.Shared._WF.Tether.Harpoon;
 using Content.Shared.Buckle;
 using Content.Shared.Buckle.Components;
+using Content.Shared.Maps;
+using Content.Shared.Weapons.Ranged.Components;
 using Robust.Shared.Containers;
 using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
+using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Shipyard;
@@ -22,7 +28,9 @@ namespace Content.IntegrationTests.Tests._WF.Shipyard;
 [TestFixture]
 public sealed class VesselShipyardTest
 {
-    /// <summary>Every vessel loads as a shuttle, every hardpoint-only gun on it mounts on a hardpoint, and the crew planner posts the pilot by a square helm.</summary>
+    private const int CrewStartPicks = 10;
+
+    /// <summary>Every vessel loads as a shuttle, every hardpoint-only gun on it mounts on a hardpoint, and the crew planner posts the pilot by a square helm, and crew starts land inside the hull.</summary>
     [Test]
     public async Task VesselsLoadAsShuttlesWithMountedGuns()
     {
@@ -33,6 +41,10 @@ public sealed class VesselShipyardTest
         var loader = entities.System<MapLoaderSystem>();
         var maps = entities.System<SharedMapSystem>();
         var planner = entities.System<WFCrewPlannerSystem>();
+        var safeSpawn = entities.System<WFSafeSpawnSystem>();
+        var atmos = entities.System<AtmosphereSystem>();
+        var turf = entities.System<TurfSystem>();
+        var crewStarts = 0;
         var failures = new List<string>();
         var guns = 0;
         var helmShips = 0;
@@ -86,12 +98,36 @@ public sealed class VesselShipyardTest
                         failures.Add($"{vessel.ID}: the pilot is posted beside a turned console, not the square one.");
                 }
 
+                // Crew starts never land outside the hull or on a gun. Drones and hull attachments have no console and take no crew.
+                if (squares.Count + others.Count > 0)
+                {
+                    crewStarts++;
+                    var consoleTiles = squares.Concat(others)
+                        .Select(pos => maps.TileIndicesFor(grid.Value, new Robust.Shared.Map.EntityCoordinates(grid.Value, pos)))
+                        .ToList();
+                    for (var i = 0; i < CrewStartPicks; i++)
+                    {
+                        if (!safeSpawn.TryFindSafeFloor(grid.Value, out var start))
+                        {
+                            failures.Add($"{vessel.ID}: no safe crew start.");
+                            break;
+                        }
+                        var index = maps.TileIndicesFor(grid.Value, start);
+                        if (CrewStartProblem(entities, maps, atmos, turf, grid.Value, index, consoleTiles) is { } problem)
+                        {
+                            failures.Add($"{vessel.ID}: crew start {index} {problem}.");
+                            break;
+                        }
+                    }
+                }
+
                 maps.DeleteMap(mapId);
             }
         });
 
         Assert.That(guns, Is.Positive, "No hardpoint-only guns were found on any vessel.");
         Assert.That(helmShips, Is.Positive, "No vessel with a square console was planned.");
+        Assert.That(crewStarts, Is.Positive, "No vessel took a crew start.");
         Assert.That(failures, Is.Empty, string.Join("\n", failures));
         await pair.CleanReturnAsync();
     }
@@ -164,5 +200,33 @@ public sealed class VesselShipyardTest
         Assert.That(seats, Is.Positive, "No vessel seat was buckled into.");
         Assert.That(failures, Is.Empty, string.Join("\n", failures));
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Describes why a crew start tile is unsafe, or null: it must hold no gun and be breathable, enclosed or in the cockpit.</summary>
+    private static string CrewStartProblem(IEntityManager entities, SharedMapSystem maps, AtmosphereSystem atmos,
+        TurfSystem turf, Entity<MapGridComponent> grid, Vector2i index, List<Vector2i> consoles)
+    {
+        var anchored = maps.GetAnchoredEntities(grid, grid.Comp, index);
+        while (anchored.MoveNext(out var ent))
+        {
+            if (entities.HasComponent<GunComponent>(ent.Value))
+                return $"is under {entities.ToPrettyString(ent.Value)}";
+        }
+
+        var map = entities.GetComponent<TransformComponent>(grid).MapUid;
+        if (!atmos.IsTileSpace(grid.Owner, map, index) && atmos.GetTileMixture(grid.Owner, map, index) is { Pressure: >= 80f and <= 160f })
+            return null;
+        var enclosed = true;
+        for (var x = -1; x <= 1; x++)
+        {
+            for (var y = -1; y <= 1; y++)
+            {
+                if (!maps.TryGetTileRef(grid, grid.Comp, index + new Vector2i(x, y), out var tile) || tile.Tile.IsEmpty || turf.IsSpace(tile))
+                    enclosed = false;
+            }
+        }
+        if (enclosed || consoles.Any(c => Math.Abs(c.X - index.X) <= 1 && Math.Abs(c.Y - index.Y) <= 1))
+            return null;
+        return "is exterior";
     }
 }
