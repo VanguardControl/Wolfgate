@@ -8,6 +8,13 @@ room, or whose entrances can't be reached, is skipped or left off the roads with
 that can't be laid costs the world its roads, never its sites; roads clear whatever the biome had grown
 on unpinned ground, as the boundary ring does.
 
+The whole placement is spread over ticks: every site, road batch, piece of dressing, tunnel, wreck, camp, guard and
+roamer awaits `WFPlanetPreloadSystem.Breathe`, so each tick does at most `wf.planet_generation_budget` ms of it (more in
+the lobby), and site, wreck and camp maps are read and parsed on the thread pool (`WFPlanetPoiSystem.Loading`). Merged
+entities stay paused until every one of them is map-initialised. The draws on the random stream come in the same order
+as before; only the ticks they fall in differ. What waits for the ground, camp guards outside the hull, residents,
+vehicles, patrols and roamers, goes out the same way after the preload, and the ground is marked preloaded once it has.
+
 The roads are a network, not a string of paths (`WFPlanetRoadPlanner`). On a world with room for it, an arterial
 network goes down first: an inner ring road round the landing zone, an outer ring short of the world's edge and
 straight trunks between them (one a side, two on a wide world), each ring an octagon of long straight sides with 45°
@@ -79,6 +86,7 @@ station's fuel merchant sells usable fuel items through Traders; it does not ref
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Camps.cs`](WFPlanetPoiSystem.Camps.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.cs`](WFPlanetPoiSystem.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Dressing.cs`](WFPlanetPoiSystem.Dressing.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Loading.cs`](WFPlanetPoiSystem.Loading.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Network.cs`](WFPlanetPoiSystem.Network.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Roamers.cs`](WFPlanetPoiSystem.Roamers.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Rotation.cs`](WFPlanetPoiSystem.Rotation.cs)

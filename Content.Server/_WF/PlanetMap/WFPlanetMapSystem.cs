@@ -28,6 +28,7 @@ public sealed class WFPlanetMapSystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private ITileDefinitionManager _tiles = default!;
     [Dependency] private SharedBiomeSystem _biome = default!;
+    [Dependency] private WFPlanetPreloadSystem _preload = default!;
 
     /// <summary>The most polyline points a world's roads, footpaths and tunnels may take in all.</summary>
     public const int MaxPoints = 4000;
@@ -42,6 +43,9 @@ public sealed class WFPlanetMapSystem : EntitySystem
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(1);
     private TimeSpan _next;
     private readonly Dictionary<int, WFPlanetMapGround> _tileGrounds = new();
+
+    /// <summary>Terrain samples under way, by orbit layer: a world's whole map takes a few ticks to sample.</summary>
+    private readonly Dictionary<EntityUid, TerrainSampling> _sampling = new();
 
     public override void Initialize()
     {
@@ -63,9 +67,17 @@ public sealed class WFPlanetMapSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        if (_timing.CurTime < _next)
+        // A terrain sample under way carries on every tick.
+        if (_timing.CurTime < _next && _sampling.Count == 0)
             return;
-        _next = _timing.CurTime + Interval;
+        if (_timing.CurTime >= _next)
+            _next = _timing.CurTime + Interval;
+
+        foreach (var orbit in _sampling.Keys.ToList())
+        {
+            if (TerminatingOrDeleted(orbit))
+                _sampling.Remove(orbit);
+        }
 
         var query = EntityQueryEnumerator<WFPlanetNetworkComponent>();
         while (query.MoveNext(out _, out var network))
@@ -84,10 +96,19 @@ public sealed class WFPlanetMapSystem : EntitySystem
         var map = EnsureComp<WFPlanetMapComponent>(orbitUid);
         if (!MathHelper.CloseTo(map.TerrainRadius, orbit.BoundsRadius))
         {
-            map.Centre = orbit.BoundsRadius > 0f ? orbit.BoundsCentre : network.Centre;
+            var centre = orbit.BoundsRadius > 0f ? orbit.BoundsCentre : network.Centre;
+            if (!_sampling.TryGetValue(orbitUid, out var sampling) || !MathHelper.CloseTo(sampling.Radius, orbit.BoundsRadius))
+                _sampling[orbitUid] = sampling = BeginSample(orbit, centre, orbit.BoundsRadius > 0f ? orbit.BoundsRadius : UnboundedExtent, orbit.BoundsRadius);
+
+            // Sampled within the world-generation budget; the rest waits for the next tick.
+            if (!SampleRows(sampling, () => _preload.GenerationSpent()))
+                return;
+
+            _sampling.Remove(orbitUid);
+            map.Centre = centre;
             map.Radius = orbit.BoundsRadius;
             map.LandingRadius = LandingRadius(network);
-            map.Terrain = SampleTerrain(orbit, map.Centre, map.Radius > 0f ? map.Radius : UnboundedExtent);
+            map.Terrain = EndSample(sampling);
             map.TerrainRadius = orbit.BoundsRadius;
             Dirty(orbitUid, map);
         }
@@ -198,22 +219,45 @@ public sealed class WFPlanetMapSystem : EntitySystem
     /// <summary>The world's terrain recipe sampled once a cell, never loading or reading ground chunks.</summary>
     public WFPlanetMapTerrain SampleTerrain(WFOrbitLayerComponent orbit, Vector2 centre, float extent)
     {
+        var sampling = BeginSample(orbit, centre, extent, extent);
+        SampleRows(sampling, () => false);
+        return EndSample(sampling);
+    }
+
+    private TerrainSampling BeginSample(WFOrbitLayerComponent orbit, Vector2 centre, float extent, float radius)
+    {
         var side = (int) MathF.Ceiling(extent * 2f);
         var cell = Math.Max(MinCell, (int) MathF.Ceiling(side / 128f));
         var size = Math.Min(128, (int) MathF.Ceiling(side / (float) cell) + 1);
         var origin = new Vector2i((int) MathF.Floor(centre.X - size * cell / 2f), (int) MathF.Floor(centre.Y - size * cell / 2f));
-        var cells = new byte[size * size];
-        var counts = new int[Enum.GetValues<WFPlanetMapGround>().Length];
+        return new TerrainSampling(orbit, centre, extent, radius, cell, size, origin, new byte[size * size],
+            new int[Enum.GetValues<WFPlanetMapGround>().Length]);
+    }
 
-        for (var y = 0; y < size; y++)
-        for (var x = 0; x < size; x++)
+    /// <summary>Samples rows until <paramref name="spent"/> says stop, at least one; true once every row is done.</summary>
+    private bool SampleRows(TerrainSampling s, Func<bool> spent)
+    {
+        while (s.Row < s.Size)
         {
-            var world = new Vector2(origin.X + (x + 0.5f) * cell, origin.Y + (y + 0.5f) * cell);
-            var ground = Classify(orbit, world, centre, extent);
-            cells[y * size + x] = (byte) ground;
-            counts[(int) ground]++;
+            var y = s.Row++;
+            for (var x = 0; x < s.Size; x++)
+            {
+                var world = new Vector2(s.Origin.X + (x + 0.5f) * s.Cell, s.Origin.Y + (y + 0.5f) * s.Cell);
+                var ground = Classify(s.Orbit, world, s.Centre, s.Extent);
+                s.Cells[y * s.Size + x] = (byte) ground;
+                s.Counts[(int) ground]++;
+            }
+
+            if (s.Row < s.Size && spent())
+                return false;
         }
 
+        return true;
+    }
+
+    private static WFPlanetMapTerrain EndSample(TerrainSampling s)
+    {
+        var (origin, cell, size, cells, counts) = (s.Origin, s.Cell, s.Size, s.Cells, s.Counts);
         var dominant = WFPlanetMapGround.Grass;
         for (var i = (int) WFPlanetMapGround.Void; i < counts.Length; i++)
         {
@@ -290,5 +334,12 @@ public sealed class WFPlanetMapSystem : EntitySystem
             : WFPlanetMapGround.Rock;
         _tileGrounds[tile] = ground;
         return ground;
+    }
+
+    /// <summary>A terrain sample part way through: the grid it fills and the next row to sample.</summary>
+    private sealed record TerrainSampling(WFOrbitLayerComponent Orbit, Vector2 Centre, float Extent, float Radius, int Cell, int Size,
+        Vector2i Origin, byte[] Cells, int[] Counts)
+    {
+        public int Row;
     }
 }

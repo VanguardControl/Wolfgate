@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Content.Server._WF.NpcVehicleCrew;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared._WF.Vehicles.Core;
@@ -37,7 +38,7 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>The longest stretch of road a patrol drives before it turns round.</summary>
     private const int PatrolRouteLength = 420;
 
-    private void SpawnVehicles(Entity<BiomeComponent> ground, MapGridComponent grid, WFPlanetPoiComponent record)
+    private async Task SpawnVehiclesAsync(Entity<BiomeComponent> ground, MapGridComponent grid, WFPlanetPoiComponent record)
     {
         if (record.PendingVehicles is not { } vehicles)
             return;
@@ -47,6 +48,9 @@ public sealed partial class WFPlanetPoiSystem
         var count = _random.Next(vehicles.MinCount, vehicles.MaxCount + 1);
         for (var i = 0; i < count; i++)
         {
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(ground))
+                return;
             var byRoad = roadside.Count > 0 && _random.Prob(vehicles.Roadside);
             if (FindParking(ground, grid, record, byRoad ? roadside : null) is not { } spot)
                 continue;
@@ -133,7 +137,7 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>Sends each patrol up and down a stretch of the roads, from a start well off the landing zone.</summary>
-    private void SpawnRoadPatrols(EntityUid ground, MapGridComponent grid, WFPlanetPoiComponent record)
+    private async Task SpawnRoadPatrolsAsync(EntityUid ground, MapGridComponent grid, WFPlanetPoiComponent record)
     {
         var patrols = record.PendingRoadPatrols.ToList();
         record.PendingRoadPatrols.Clear();
@@ -150,6 +154,9 @@ public sealed partial class WFPlanetPoiSystem
             var count = _random.Next(patrol.MinCount, patrol.MaxCount + 1);
             for (var i = 0; i < count; i++)
             {
+                await _preload.Breathe();
+                if (TerminatingOrDeleted(ground))
+                    return;
                 var route = PatrolRoute(record.Centreline, starts);
                 if (route.Count < MinPatrolRoute)
                     continue;

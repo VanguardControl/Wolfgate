@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using System.Numerics;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared.Parallax.Biomes;
@@ -16,15 +17,18 @@ public sealed partial class WFPlanetPoiSystem
     /// Wears a footpath from each off-road site with a trail to the nearest road or earlier footpath, through open ground
     /// and its own yard but never another site. A site too far from any road goes without.
     /// </summary>
-    private void LayTrails(EntityUid ground, MapGridComponent grid, BiomeComponent biome, WFPlanetPoiComponent record,
+    private async Task LayTrailsAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, WFPlanetPoiComponent record,
         WFPlanetRoadNetwork roads, Vector2 centre, float radius, HashSet<Vector2i> changed)
     {
         var targets = new HashSet<Vector2i>(record.RoadTiles);
         targets.UnionWith(record.ShoulderTiles);
-        foreach (var site in record.Sites)
+        foreach (var site in record.Sites.ToList())
         {
             if (site.TrailStart is not { } start)
                 continue;
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(ground))
+                return;
 
             bool Passable(Vector2i tile)
             {
@@ -52,7 +56,7 @@ public sealed partial class WFPlanetPoiSystem
             }
 
             changed.UnionWith(worn);
-            PaintRoad(ground, grid, biome, worn, roads.TrailTile);
+            await PaintRoadAsync(ground, grid, biome, worn, roads.TrailTile);
             record.TrailTiles.UnionWith(worn);
             site.TrailLaid = true;
             targets.UnionWith(worn);

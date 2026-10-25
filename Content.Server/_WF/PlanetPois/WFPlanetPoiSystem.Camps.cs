@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using System.Threading.Tasks;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server._WF.Strangers;
@@ -45,7 +46,7 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Stretches of road tried for a roadside camp before it goes out in the open instead.</summary>
     private const int RoadsideAttempts = 64;
 
-    private void PlaceCamps(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
+    private async Task PlaceCampsAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
         WFPlanetPoiTablePrototype table, WFPlanetPoiComponent record, HashSet<EntityUid> created)
     {
         foreach (var entry in table.Camps)
@@ -59,15 +60,16 @@ public sealed partial class WFPlanetPoiSystem
             var count = _random.Next(entry.MinCount, entry.MaxCount + 1);
             for (var i = 0; i < count; i++)
             {
+                await _preload.Breathe();
                 if (TerminatingOrDeleted(ground))
                     return;
-                if (!TryPlaceCamp(ground, grid, biome, orbit, centre, radius, table, record, camp, created))
+                if (!await TryPlaceCampAsync(ground, grid, biome, orbit, centre, radius, table, record, camp, created))
                     Log.Warning($"No {camp.ID} on {ToPrettyString(ground)}; it is skipped.");
             }
         }
     }
 
-    private bool TryPlaceCamp(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
+    private async Task<bool> TryPlaceCampAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
         WFPlanetPoiTablePrototype table, WFPlanetPoiComponent record, WFPlanetCampPrototype camp, HashSet<EntityUid> created)
     {
         if (camp.Vessels.Count == 0)
@@ -78,9 +80,8 @@ public sealed partial class WFPlanetPoiSystem
         var stagingMap = _maps.CreateMap(out var stagingId, runMapInit: false);
         try
         {
-            if (!_loader.TryLoadGrid(stagingId, vessel.ShuttlePath, out var loaded))
+            if (await LoadGridAsync(stagingId, vessel.ShuttlePath) is not { } ship || TerminatingOrDeleted(ground))
                 return false;
-            var ship = loaded.Value;
             var hull = ship.Comp.LocalAABB;
             // Room round the hull for the guards and their cover.
             var reach = hull.Size.Length() / 2f;
@@ -99,7 +100,9 @@ public sealed partial class WFPlanetPoiSystem
             _transform.SetLocalRotation(ship.Owner, angle);
             ship.Comp.CanSplit = false;
             created.Add(ship.Owner);
-            InitializeTransferred(ship.Owner, _maps.IsInitialized(targetMap), _maps.IsPaused(targetMap));
+            await InitializeTransferredAsync(ship.Owner, _maps.IsInitialized(targetMap), _maps.IsPaused(targetMap));
+            if (TerminatingOrDeleted(ground) || TerminatingOrDeleted(ship))
+                return false;
             SettleWreck(ship);
             EnsureComp<WFPlanetCampComponent>(ship).Camp = camp.ID;
 
@@ -111,7 +114,12 @@ public sealed partial class WFPlanetPoiSystem
             {
                 var guards = camp.Profile == null ? 0 : _random.Next(camp.MinDeckGuards, camp.MaxDeckGuards + 1);
                 for (var i = 0; i < guards; i++)
+                {
+                    await _preload.Breathe();
+                    if (TerminatingOrDeleted(ship))
+                        return false;
                     SpawnCampGuard(camp, new EntityCoordinates(ship.Owner, (Vector2) _random.Pick(deck) + new Vector2(0.5f)), group);
+                }
 
                 if (camp.Loot is { } loot)
                 {
@@ -252,12 +260,15 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>Once the ground exists: the guards outside, in a loose ring round the hull, and their cover.</summary>
-    private void SpawnPendingCamps(Entity<BiomeComponent> ground, MapGridComponent grid, WFPlanetPoiComponent record)
+    private async Task SpawnPendingCampsAsync(Entity<BiomeComponent> ground, MapGridComponent grid, WFPlanetPoiComponent record)
     {
         var camps = record.PendingCamps.ToList();
         record.PendingCamps.Clear();
         foreach (var pending in camps)
         {
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(ground))
+                return;
             if (!_proto.TryIndex(pending.Camp, out var camp))
                 continue;
 
@@ -297,6 +308,9 @@ public sealed partial class WFPlanetPoiSystem
             var guards = camp.Profile == null ? 0 : _random.Next(camp.MinGroundGuards, camp.MaxGroundGuards + 1);
             for (var i = 0; i < guards; i++)
             {
+                await _preload.Breathe();
+                if (TerminatingOrDeleted(ground))
+                    return;
                 if (RingTile(pending.Reach + _random.NextFloat(1.5f, 2.5f)) is { } tile)
                     SpawnCampGuard(camp, new EntityCoordinates(ground, (Vector2) tile + new Vector2(0.5f)), pending.Group);
             }
