@@ -27,6 +27,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - v291 Box2 asserts on inverted corners in debug builds; order them
   - batch radar edges so huge grids don't overflow the game thread stack
 - [`Content.Client/UserInterface/Systems/Admin/AdminUIController.cs`](../../Content.Client/UserInterface/Systems/Admin/AdminUIController.cs): a HUD layout swap rebuilds the button visible
+- [`Content.Client/UserInterface/Systems/Chat/ChatUIController.cs`](../../Content.Client/UserInterface/Systems/Chat/ChatUIController.cs): an unlimited check warns when the eye lags a long teleport
 - [`Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs`](../../Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs): Replay seeks and filter changes rebuild the output from scratch.
 - [`Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs`](../../Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs): a HUD layout swap rebuilds the button visible
 - [`Content.Client/VendingMachines/VendingMachineBoundUserInterface.cs`](../../Content.Client/VendingMachines/VendingMachineBoundUserInterface.cs): skip updates queued before Open(), _uiSystem is still null and the NRE crashes state handling
@@ -42,6 +43,11 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - AsyncLocal for the returned-pair guard
   - dispose skips a pair the test already returned
   - a returned pair can be borrowed by another test before this test's `await using` disposes it
+- [`Content.IntegrationTests/Pair/TestPair.Recycle.cs`](../../Content.IntegrationTests/Pair/TestPair.Recycle.cs)
+  - pooled client windows are closed on return
+  - a window left open covers the next test's UI
+  - the pooled client keeps its windows across tests, and one left open intercepts the next test's clicks
+- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../Content.IntegrationTests/PoolManager.Cvars.cs): a round-restart vote throws on a dummy session's join
 - [`Content.IntegrationTests/Tests/_NF/ShipyardTests.cs`](../../Content.IntegrationTests/Tests/_NF/ShipyardTests.cs)
   - expected-value appraisal
   - seeded so the appraisal is reproducible
