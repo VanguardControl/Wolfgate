@@ -6,8 +6,8 @@ public static class WFRoofReveal
     private static readonly Vector2i[] Neighbours = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
 
     /// <summary>
-    /// The roofed part of a vessel: floor that the open outside can't reach without passing a wall, window or door, and
-    /// the walls round it. Anything open to space or the sky, such as exterior plating, catwalks and lattice, stays bare.
+    /// The roofed part of a vessel: floor that the open outside can't reach without passing a wall, window or door. The
+    /// walls themselves and anything open to space or the sky, such as exterior plating, catwalks and lattice, stay bare.
     /// </summary>
     public static void Enclosed(HashSet<Vector2i> floor, Func<Vector2i, bool> open, Func<Vector2i, bool> solid, HashSet<Vector2i> into)
     {
@@ -48,18 +48,15 @@ public static class WFRoofReveal
             if (!walls.Contains(tile) && !outside.Contains(tile))
                 into.Add(tile);
         }
-        foreach (var wall in walls)
-        {
-            foreach (var step in Neighbours)
-            {
-                var next = wall + step;
-                if (!walls.Contains(next) && floor.Contains(next) && !outside.Contains(next))
-                {
-                    into.Add(wall);
-                    break;
-                }
-            }
-        }
+    }
+
+    /// <summary>
+    /// Whether a roof is drawn over a tile: it is roofed, nothing structural stands on it and it isn't lifted. Walls,
+    /// windows and doors are never covered, so a building shows its walls and doors with roof only over its floors.
+    /// </summary>
+    public static bool Covers(bool roofed, bool structure, bool lifted)
+    {
+        return roofed && !structure && !lifted;
     }
 
     /// <summary>

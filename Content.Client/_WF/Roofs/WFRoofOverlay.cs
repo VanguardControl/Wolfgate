@@ -1,5 +1,4 @@
 using System.Numerics;
-using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared.Light.Components;
 using Content.Shared.Maps;
 using Robust.Client.Graphics;
@@ -11,8 +10,9 @@ using Robust.Shared.Map.Components;
 namespace Content.Client._WF.Roofs;
 
 /// <summary>
-/// Draws a solid roof over roofed tiles, so nobody sees into a building or a ship they aren't in: a vessel's enclosed
-/// rooms as hull plating, a building's roofed tiles as roofing, shaded at the eaves and lit by the map's daylight.
+/// Draws a solid roof over the floor of roofed tiles, so nobody sees into a building or a ship they aren't in: a
+/// vessel's enclosed rooms as hull plating, a building's roofed floor as roofing, shaded at the eaves and lit by the
+/// map's daylight. Walls, windows and doors are left uncovered, so they draw and light as normal.
 /// The roof over whatever the local player is in lifts (<see cref="WFRoofSystem"/>). Drawn over the world after
 /// lighting, so it isn't darkened as the sunless indoors below it is.
 /// </summary>
@@ -25,7 +25,6 @@ public sealed class WFRoofOverlay : Overlay
     private readonly SharedMapSystem _maps;
     private readonly SharedTransformSystem _transform;
     private readonly WFRoofSystem _roofs;
-    private readonly CESharedZLevelsSystem _zLevels;
     private readonly Texture _hull;
     private readonly Texture _roofing;
     private List<Entity<MapGridComponent>> _grids = new();
@@ -47,7 +46,6 @@ public sealed class WFRoofOverlay : Overlay
         _maps = _entities.System<SharedMapSystem>();
         _transform = _entities.System<SharedTransformSystem>();
         _roofs = _entities.System<WFRoofSystem>();
-        _zLevels = _entities.System<CESharedZLevelsSystem>();
         _hull = _resources.GetResource<TextureResource>("/Textures/Tiles/hull.png").Texture;
         _roofing = _resources.GetResource<TextureResource>("/Textures/Tiles/plating.png").Texture;
         ZIndex = -10;
@@ -55,7 +53,8 @@ public sealed class WFRoofOverlay : Overlay
 
     protected override bool BeforeDraw(in OverlayDrawArgs args)
     {
-        return _roofs.Enabled;
+        // The ship previewer draws maps the client made itself, to be seen inside.
+        return _roofs.Enabled && args.MapUid.IsValid() && !_entities.IsClientSide(args.MapUid);
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -69,7 +68,7 @@ public sealed class WFRoofOverlay : Overlay
         {
             var implicitRoof = _entities.HasComponent<ImplicitRoofComponent>(grid);
             _entities.TryGetComponent(grid.Owner, out RoofComponent? roof);
-            if (!implicitRoof && (roof == null || Underground(grid)))
+            if (!implicitRoof && (roof == null || _roofs.Underground(grid)))
                 continue;
 
             var own = _roofs.Grid == grid.Owner;
@@ -77,12 +76,7 @@ public sealed class WFRoofOverlay : Overlay
                 continue;
 
             var enclosed = implicitRoof ? _roofs.Enclosed(grid) : null;
-            bool Covered(Vector2i index)
-            {
-                if (own && _roofs.Revealed.Contains(index))
-                    return false;
-                return enclosed?.Contains(index) ?? WFRoofSystem.IsRoofed(roof!, index);
-            }
+            bool Covered(Vector2i index) => _roofs.Covers(grid, roof, enclosed, own, index);
 
             handle.SetTransform(_transform.GetWorldMatrix(grid));
             var texture = implicitRoof ? _hull : _roofing;
@@ -119,12 +113,5 @@ public sealed class WFRoofOverlay : Overlay
             return Unlit;
         var ambient = mapLight.AmbientLightColor;
         return new Color(MathF.Max(ambient.R, MinLight), MathF.Max(ambient.G, MinLight), MathF.Max(ambient.B, MinLight));
-    }
-
-    /// <summary>A layer under another world layer, such as a cavern: roofed all over by the ground above, not by buildings.</summary>
-    private bool Underground(EntityUid grid)
-    {
-        return _entities.HasComponent<MapComponent>(grid) && _zLevels.TryMapUp(grid, out var above)
-               && _entities.HasComponent<MapGridComponent>(above.Owner);
     }
 }
