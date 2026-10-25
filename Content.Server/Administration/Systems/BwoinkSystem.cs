@@ -13,6 +13,7 @@ using Content.Server.Discord.DiscordLink;
 using Content.Server.GameTicking;
 using Content.Server.Players.RateLimiting;
 using Content.Server.Preferences.Managers;
+using Content.Shared._WF.AHelpResolve; // WOLFGATE(AHelpResolve)
 using Content.Shared._WF.EventStaff; // WOLFGATE(EventStaff)
 using Content.Shared.Administration;
 using Content.Shared.CCVar;
@@ -113,11 +114,13 @@ namespace Content.Server.Administration.Systems
 
             SubscribeLocalEvent<GameRunLevelChangedEvent>(OnGameRunLevelChanged);
             SubscribeNetworkEvent<BwoinkClientTypingUpdated>(OnClientTypingUpdated);
+            SubscribeNetworkEvent<AHelpResolveMessage>(OnAHelpResolve); // WOLFGATE(AHelpResolve): resolve button
             // WOLFGATE(EventStaff) START: ahelp categories reset with the round
             SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
             {
                 _activeConversations.Clear();
                 _ahelpCategories.Clear();
+                _claimedAHelps.Clear(); // WOLFGATE(AHelpResolve): claims reset with the round
             });
             // SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _activeConversations.Clear());
             // WOLFGATE END
@@ -776,7 +779,11 @@ namespace Content.Server.Administration.Systems
 
             var senderAHelpAdmin = senderAdmin?.HasFlag(AdminFlags.Adminhelp) ?? false;
             // If it's not an admin / admin chooses to keep the sound and message is not an admin only message, then play it.
-            var playSound = (!senderAHelpAdmin || message.PlaySound) && !message.AdminOnly;
+            // WOLFGATE(AHelpResolve) START: every staff reply honours the play sound box; answered ahelps stop bwoinking staff
+            // var playSound = (!senderAHelpAdmin || message.PlaySound) && !message.AdminOnly;
+            var playSound = (senderId == message.UserId || message.PlaySound) && !message.AdminOnly;
+            var adminMsg = new BwoinkTextMessage(message.UserId, senderId, bwoinkText, playSound: AHelpStaffSound(message.UserId, senderId, playSound), adminOnly: message.AdminOnly, category: category);
+            // WOLFGATE END
             var msg = new BwoinkTextMessage(message.UserId, senderId, bwoinkText, playSound: playSound, adminOnly: message.AdminOnly, category: category); // WOLFGATE(EventStaff)
 
             LogBwoink(msg);
@@ -788,7 +795,7 @@ namespace Content.Server.Administration.Systems
             {
                 foreach (var channel in admins)
                 {
-                    RaiseNetworkEvent(msg, channel);
+                    RaiseNetworkEvent(adminMsg, channel); // WOLFGATE(AHelpResolve): staff get their own sound flag
                 }
             }
 
