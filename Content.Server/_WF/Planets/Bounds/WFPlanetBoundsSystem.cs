@@ -22,6 +22,9 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
     /// <summary>Tiles a hull must keep between its edge and the circle to descend, or be pushed back to.</summary>
     public const float HullMargin = 4f;
 
+    /// <summary>How far inside the edge a clamped hull is put, so rounding never reads it as still outside.</summary>
+    private const float ClampInset = 0.05f;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -150,6 +153,8 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
 
         if (distance <= allowed || distance <= 0f)
             return;
+
+        allowed = Math.Max(allowed - ClampInset, 0f);
 
         _transform.SetWorldPosition(grid, centre + offset * (allowed / distance));
     }
