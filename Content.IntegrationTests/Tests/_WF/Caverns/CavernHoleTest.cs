@@ -44,7 +44,7 @@ namespace Content.IntegrationTests.Tests._WF.Caverns;
 public sealed class CavernHoleTest
 {
     /// <summary>Merak ground a shovel empties in one dig.</summary>
-    private static readonly string[] MerakSand = { "FloorAsteroidSandPlanet", "FloorAsteroidSandUnvariantizedPlanet" };
+    private static readonly string[] MerakSand = { "WFFloorMerakDuneSand", "WFFloorMerakGoldSand", "WFFloorMerakPaleSand" };
 
     /// <summary>Where the tests look for ground: east of the planet centre, clear of the gate.</summary>
     private static readonly Vector2i SearchFrom = new(150, -120);

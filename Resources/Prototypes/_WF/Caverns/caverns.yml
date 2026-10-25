@@ -76,8 +76,8 @@
     elongation: 1.25
     roughness: 0.1
     cellSize: 96
-    groundTiles: [FloorAsteroidSandPlanet, FloorDesertPlanet, FloorAsteroidSandUnvariantizedPlanet]
-    avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich]
+    groundTiles: [WFFloorMerakDuneSand, WFFloorMerakGoldSand, WFFloorMerakPaleSand, WFFloorMerakDarkSand, WFFloorMerakRedDesertSand, WFFloorMerakDesertGravel]
+    avoid: [MonoFloorWaterEntity, MonoPlanetmapOreSandRich, CMRockOrange]
     landingTile: WFCavernFloorSandDrift
     shade: WFCavernShadeMerak
     climbPoint: WFCavernClimbMerak
