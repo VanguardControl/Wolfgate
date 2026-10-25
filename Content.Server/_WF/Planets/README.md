@@ -28,6 +28,15 @@ floor: bare ground counts as outdoors and keeps the planet's air. Players use la
 planet timepiece. Admins get the Planet Control panel in the Wolfgate admin tab (`planetcontrol`) for sanction, time
 of day, weather and gravity, and `wfplanet` to build a star system's worlds.
 
+Verda has wildlife and forage of its own (`Prototypes/_WF/Planets/Life/verda.yml` and `verda_mobs.yml`). Each region's
+biome layer places its own `WFFaunaVerda*` spawner: meadows and woods get mutated deer herds that bolt from anyone close
+(one deer in ten charges), foxes, and bees and snakes where the wildflowers and tall grass grow; lake and pond shores
+frogs and crabs; the irradiated scars a two-headed deer, irradiated rats and now and then a rat king's pack; the
+highlands penguins and frost bears. LivingWorld plants grow in the same regions: forest mushrooms (with a soup of their
+own), berry bushes, lake reeds for plant fibre, shore sage and pond lotus to heal with, snapping brambles that lash and
+give thorns to a knife, and glowroot that irradiates whoever comes close. The recoloured frost bear and two-headed deer
+sprites are made by `Tools/_WF/Planets/gen_verda_life_art.py`.
+
 Entry points: `WFPlanetNetworkSystem` and `WFPlanetRegistrySystem` (the z-level stack per world), `WFOrbitEntrySystem`
 (hops in and out of orbit), `WFFlightSystem` with the `CEZLevelsSystem.WF*` partials (flight, liftoff, landing and
 crashes), `WFOrbitDecaySystem`, `WFGravityWellSystem`, `WFPlanetWeatherSystem`, `WFParachuteSystem` and
@@ -305,6 +314,7 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/MerakLifeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/MerakLifeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/ThrasciasBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/ThrasciasBiomeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/VerdaBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/VerdaBiomeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/VerdaLifeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/VerdaLifeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CarcinomaTendrilAttackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CarcinomaTendrilAttackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs)
@@ -379,6 +389,8 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 - [`Resources/Prototypes/_WF/Planets/lathe_recipes.yml`](../../../Resources/Prototypes/_WF/Planets/lathe_recipes.yml)
 - [`Resources/Prototypes/_WF/Planets/Life/fervidus.yml`](../../../Resources/Prototypes/_WF/Planets/Life/fervidus.yml)
 - [`Resources/Prototypes/_WF/Planets/Life/merak.yml`](../../../Resources/Prototypes/_WF/Planets/Life/merak.yml)
+- [`Resources/Prototypes/_WF/Planets/Life/verda.yml`](../../../Resources/Prototypes/_WF/Planets/Life/verda.yml)
+- [`Resources/Prototypes/_WF/Planets/Life/verda_mobs.yml`](../../../Resources/Prototypes/_WF/Planets/Life/verda_mobs.yml)
 - [`Resources/Prototypes/_WF/Planets/open_biomes.yml`](../../../Resources/Prototypes/_WF/Planets/open_biomes.yml)
 - [`Resources/Prototypes/_WF/Planets/parachute.yml`](../../../Resources/Prototypes/_WF/Planets/parachute.yml)
 - [`Resources/Prototypes/_WF/Planets/planet_ambience.yml`](../../../Resources/Prototypes/_WF/Planets/planet_ambience.yml)
@@ -397,6 +409,7 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 - [`Resources/Locale/en-US/_WF/Planets/kyphrus.ftl`](../../../Resources/Locale/en-US/_WF/Planets/kyphrus.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/life_fervidus.ftl`](../../../Resources/Locale/en-US/_WF/Planets/life_fervidus.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/life_merak.ftl`](../../../Resources/Locale/en-US/_WF/Planets/life_merak.ftl)
+- [`Resources/Locale/en-US/_WF/Planets/life_verda.ftl`](../../../Resources/Locale/en-US/_WF/Planets/life_verda.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/liftoff.ftl`](../../../Resources/Locale/en-US/_WF/Planets/liftoff.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/parachute.ftl`](../../../Resources/Locale/en-US/_WF/Planets/parachute.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/planets.ftl`](../../../Resources/Locale/en-US/_WF/Planets/planets.ftl)
@@ -411,6 +424,8 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 - [`Resources/Textures/_WF/Planets/Effects/thunderbolt.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/thunderbolt.rsi/)
 - [`Resources/Textures/_WF/Planets/Effects/weather_tg.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/weather_tg.rsi/)
 - [`Resources/Textures/_WF/Planets/Life/merak/tarantula.rsi/`](../../../Resources/Textures/_WF/Planets/Life/merak/tarantula.rsi/)
+- [`Resources/Textures/_WF/Planets/Life/verda/frost_bear.rsi/`](../../../Resources/Textures/_WF/Planets/Life/verda/frost_bear.rsi/)
+- [`Resources/Textures/_WF/Planets/Life/verda/mutant_deer_buck.rsi/`](../../../Resources/Textures/_WF/Planets/Life/verda/mutant_deer_buck.rsi/)
 - [`Resources/Textures/_WF/Planets/Objects/jetpack_atmospheric.rsi/`](../../../Resources/Textures/_WF/Planets/Objects/jetpack_atmospheric.rsi/)
 - [`Resources/Textures/_WF/Planets/Objects/parachute.rsi/`](../../../Resources/Textures/_WF/Planets/Objects/parachute.rsi/)
 - [`Resources/Textures/_WF/Planets/Structures/flesh_trees.rsi/`](../../../Resources/Textures/_WF/Planets/Structures/flesh_trees.rsi/)
@@ -488,6 +503,7 @@ the soft ones still dig through to the cavern. Ore, boulders and fauna are uncha
 
 - [`Tools/_WF/Planets/gen_blood_water.py`](../../../Tools/_WF/Planets/gen_blood_water.py)
 - [`Tools/_WF/Planets/gen_flight_placeholders.py`](../../../Tools/_WF/Planets/gen_flight_placeholders.py)
+- [`Tools/_WF/Planets/gen_verda_life_art.py`](../../../Tools/_WF/Planets/gen_verda_life_art.py)
 
 ### Docs
 
