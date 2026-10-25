@@ -109,10 +109,10 @@
   # A guaranteed floor below the borrowed template prevents incidental noise gaps.
   - !type:BiomeTileLayer
     threshold: -1
-    tile: FloorAsteroidSandPlanet
+    tile: WFFloorMerakDuneSand
   - !type:BiomeMetaLayer
     threshold: -1
-    template: WFOpenDesert
+    template: WFMerakDesert
 
 - type: wfPlanetSurface
   id: WFSurfaceAerumna
