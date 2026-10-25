@@ -248,6 +248,7 @@ public sealed partial class WFPlanetPoiSystem
         site.Signal = SpawnSignal(ground, orbit, origin, new WFPlanetPoiEntry { Name = camp.Name }, table);
         created.Add(site.Signal);
         record.Sites.Add(site);
+        ClearFurnitureInside(record, site.Bounds);
     }
 
     /// <summary>Once the ground exists: the guards outside, in a loose ring round the hull, and their cover.</summary>

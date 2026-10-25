@@ -204,6 +204,28 @@ public sealed partial class WFPlanetPoiSystem
         record.Furniture.Add(uid);
     }
 
+    /// <summary>
+    /// Clears the road furniture inside a site laid after the roads were dressed (a wreck, a camp): nothing of the
+    /// roads' stands inside a site's bounds.
+    /// </summary>
+    private void ClearFurnitureInside(WFPlanetPoiComponent record, Box2i bounds)
+    {
+        for (var i = record.Furniture.Count - 1; i >= 0; i--)
+        {
+            var uid = record.Furniture[i];
+            if (TerminatingOrDeleted(uid))
+            {
+                record.Furniture.RemoveAt(i);
+                continue;
+            }
+            var tile = Transform(uid).LocalPosition.Floored();
+            if (!Contains(bounds, tile))
+                continue;
+            QueueDel(uid);
+            record.Furniture.RemoveAt(i);
+        }
+    }
+
     private void AddDecal(EntityUid ground, ProtoId<DecalPrototype> decal, Vector2i tile, List<uint> createdDecals)
     {
         if (_decals.TryAddDecal(decal.Id, new EntityCoordinates(ground, tile), out var id))

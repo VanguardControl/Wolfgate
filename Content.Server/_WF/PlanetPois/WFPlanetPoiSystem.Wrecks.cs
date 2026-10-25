@@ -138,6 +138,7 @@ public sealed partial class WFPlanetPoiSystem
             site.Signal = SpawnSignal(ground, orbit, origin, new WFPlanetPoiEntry { Name = WreckName }, table);
             created.Add(site.Signal);
             record.Sites.Add(site);
+            ClearFurnitureInside(record, bounds);
             return true;
         }
         finally
