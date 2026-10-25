@@ -53,6 +53,7 @@ ticket table, the feedback table or any of the endpoints change.
 
 - [`Content.Client/Launcher/LauncherConnectingGui.Symphony.cs`](../../Content.Client/Launcher/LauncherConnectingGui.Symphony.cs)
 - [`Content.Client/Launcher/LauncherFlourish.Symphony.cs`](../../Content.Client/Launcher/LauncherFlourish.Symphony.cs)
+- [`Content.Client/Lobby/SymphonyWait.Symphony.cs`](../../Content.Client/Lobby/SymphonyWait.Symphony.cs)
 - [`Content.Client/Lobby/UI/LobbyNotice.Symphony.cs`](../../Content.Client/Lobby/UI/LobbyNotice.Symphony.cs)
 
 ### Localization
@@ -72,7 +73,7 @@ ticket table, the feedback table or any of the endpoints change.
   - Symphony, show or hide the Link Discord buttons
 - [`Content.Client/Lobby/LobbyState.cs`](../../Content.Client/Lobby/LobbyState.cs)
   - a background the panel uploaded can arrive just after the status naming it
-  - shown once the uploaded file is here, tried twice a second for ten seconds
+  - shown once the uploaded file is here. A big picture over a slow link can take
 - [`Content.Client/Lobby/UI/LobbyGui.xaml`](../../Content.Client/Lobby/UI/LobbyGui.xaml): the notice staff set from the SSymphony panel; hidden when there is none
 - [`Content.Server/Audio/ContentAudioSystem.cs`](../Audio/ContentAudioSystem.cs): a playlist the SSymphony panel set plays in its own order, round after round
 - [`Content.Server/Connection/ConnectionManager.cs`](../Connection/ConnectionManager.cs)

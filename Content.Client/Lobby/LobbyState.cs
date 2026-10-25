@@ -271,7 +271,8 @@ namespace Content.Client.Lobby
 
         }
 
-        // WOLFGATE(Symphony) START: shown once the uploaded file is here, tried twice a second for ten seconds
+        // WOLFGATE(Symphony) START: shown once the uploaded file is here. A big picture over a slow link can take
+        // a while, so it is looked for quickly at first, then every few seconds, for as long as five minutes.
         private void WaitForLobbyBackground(string path, int attempt)
         {
             if (Lobby == null || _gameTicker.LobbyBackground != path)
@@ -281,8 +282,8 @@ namespace Content.Client.Lobby
                 Lobby.Background.Texture = texture;
                 return;
             }
-            if (attempt < 20)
-                Timer.Spawn(500, () => WaitForLobbyBackground(path, attempt + 1));
+            if (attempt < SymphonyWait.Attempts)
+                Timer.Spawn(SymphonyWait.DelayMs(attempt), () => WaitForLobbyBackground(path, attempt + 1));
         }
         // WOLFGATE END
 
