@@ -1,14 +1,13 @@
-using System.Numerics;
+using Content.Shared._WF.LandingGuide;
 using Content.Shared.Shuttles.Components;
-using Content.Shared.Physics;
-using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
-using Robust.Shared.Physics;
 
 namespace Content.Server._CE.ZLevels.Core;
 
 public sealed partial class CEZLevelsSystem
 {
+    [Dependency] private WFLandingSurveySystem _wfLandingSurvey = default!;
+
     /// <summary>How long a clear or blocked landing spot is trusted before it is looked at again.</summary>
     private static readonly TimeSpan WFLandingCheckInterval = TimeSpan.FromSeconds(0.5);
 
@@ -53,28 +52,7 @@ public sealed partial class CEZLevelsSystem
     /// <summary>Whether anything hard and anchored on the ground below stands under one of the hull's real tiles.</summary>
     public bool WfObstacleUnder(EntityUid hull, EntityUid ground)
     {
-        if (!TryComp<MapGridComponent>(hull, out var hullGrid) || !TryComp<MapGridComponent>(ground, out var groundGrid))
-            return false;
-
-        var bounds = _transform.GetWorldMatrix(hull).TransformBox(hullGrid.LocalAABB);
-        foreach (var obstacle in _map.GetAnchoredEntities(ground, groundGrid, new Box2Rotated(bounds, Angle.Zero)))
-        {
-            if (TerminatingOrDeleted(obstacle) || !TryComp<FixturesComponent>(obstacle, out var fixtures))
-                continue;
-            var solid = false;
-            foreach (var fixture in fixtures.Fixtures.Values)
-                solid |= fixture.Hard && (fixture.CollisionLayer & (int) CollisionGroup.Impassable) != 0;
-            if (!solid)
-                continue;
-
-            var pos = _transform.GetWorldPosition(obstacle);
-            var half = new Vector2(groundGrid.TileSize * 0.45f);
-            foreach (var tile in _map.GetTilesIntersecting(hull, hullGrid, new Box2(pos - half, pos + half)))
-            {
-                if (!tile.Tile.IsEmpty)
-                    return true;
-            }
-        }
-        return false;
+        return TryComp<MapGridComponent>(hull, out var hullGrid) && TryComp<MapGridComponent>(ground, out var groundGrid)
+            && _wfLandingSurvey.ObstacleUnder((hull, hullGrid), (ground, groundGrid));
     }
 }
