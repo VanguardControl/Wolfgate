@@ -1,4 +1,3 @@
-using Content.Shared.Doors.Components;
 using Content.Shared.Maps;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -6,8 +5,8 @@ using Robust.Shared.Map.Components;
 namespace Content.Client._WF.Roofs;
 
 /// <summary>
-/// Where a vessel or station is roofed: its enclosed rooms and their walls, worked out again whenever a tile changes
-/// or something is anchored or unanchored on it, so building, deconstructing and breaches show at once.
+/// Where a vessel or station is roofed: the floor of its enclosed rooms, worked out again whenever a tile changes or
+/// something is anchored or unanchored on it, so building, deconstructing and breaches show at once.
 /// </summary>
 public sealed partial class WFRoofSystem
 {
@@ -29,12 +28,19 @@ public sealed partial class WFRoofSystem
     private void OnTileChanged(ref TileChangedEvent args)
     {
         _stale.Add(args.Entity);
+        foreach (var change in args.Changes)
+        {
+            ForgetStructure(args.Entity, change.GridIndices);
+        }
     }
 
     private void OnAnchorChanged(ref AnchorStateChangedEvent args)
     {
-        if (args.Transform.GridUid is { } grid)
-            _stale.Add(grid);
+        if (args.Transform.GridUid is not { } grid)
+            return;
+        _stale.Add(grid);
+        if (TryComp(grid, out MapGridComponent? gridComp))
+            ForgetStructure(grid, _maps.LocalToTile(grid, gridComp, args.Transform.Coordinates));
     }
 
     private void UpdateVessels(float frameTime)
@@ -48,11 +54,19 @@ public sealed partial class WFRoofSystem
             if (TerminatingOrDeleted(grid))
                 _stale.Add(grid);
         }
-        foreach (var grid in _stale)
+        foreach (var grid in _structures.Keys)
         {
             if (TerminatingOrDeleted(grid))
-                _enclosed.Remove(grid);
+                _stale.Add(grid);
         }
+        foreach (var grid in _stale)
+        {
+            if (!TerminatingOrDeleted(grid))
+                continue;
+            _enclosed.Remove(grid);
+            _structures.Remove(grid);
+        }
+        _stale.RemoveWhere(grid => TerminatingOrDeleted(grid));
     }
 
     /// <summary>The roofed tiles of a vessel or station grid, worked out afresh if it has changed since last asked.</summary>
@@ -73,22 +87,8 @@ public sealed partial class WFRoofSystem
         WFRoofReveal.Enclosed(floor,
             index => _maps.TryGetTileRef(grid, grid.Comp, index, out var tile)
                      && _tileDefs[tile.Tile.TypeId] is ContentTileDefinition { MapAtmosphere: true },
-            index => Encloses(grid, grid.Comp, index),
+            index => IsStructure(grid, grid.Comp, index),
             roofed);
         return roofed;
-    }
-
-    /// <summary>A wall, window or door, open or shut: what bounds a room.</summary>
-    private bool Encloses(EntityUid grid, MapGridComponent gridComp, Vector2i index)
-    {
-        if (IsSolid(grid, gridComp, index))
-            return true;
-        var anchored = _maps.GetAnchoredEntitiesEnumerator(grid, gridComp, index);
-        while (anchored.MoveNext(out var uid))
-        {
-            if (HasComp<DoorComponent>(uid))
-                return true;
-        }
-        return false;
     }
 }
