@@ -78,6 +78,9 @@ public sealed class WFMappingDownloadRow : BoxContainer
     /// <summary>What a downloaded file is, so the player can tell a ship's grid from its vessel prototype.</summary>
     private static string KindKey(WFMappingDownloadProgress progress, string file)
     {
+        if (WFMappingLibraryNames.IsZipFile(file))
+            return "wf-mapping-mode-download-kind-zip";
+
         if (file == WFMappingLibraryNames.DownloadVesselFile(progress.MapName))
             return "wf-mapping-mode-download-kind-vessel";
 
