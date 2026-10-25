@@ -10,7 +10,7 @@
     tile: FloorBasalt
     threshold: -1
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorBasalt, WFFloorFervidusAshDust, WFFloorFervidusAshRock, WFFloorFervidusAshDirt]
+    allowedTiles: [FloorBasalt]
     entities: [WFFaunaFervidus]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
@@ -22,6 +22,11 @@
   # A crust of cooled rock round every lava channel: the lava noise at a lower threshold.
   - !type:BiomeTileLayer
     tile: WFFloorFervidusAshRock
+    threshold: 0.84
+    noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.008, fractalType: Ridged, octaves: 1 }
+  # Wildlife and spitting flowers of that crust: the same noise, so they stay in the band round the lava.
+  - !type:BiomeMetaLayer
+    template: WFFervidusLavaCrust
     threshold: 0.84
     noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.008, fractalType: Ridged, octaves: 1 }
   # Scattered volcanic rock, a layer for each kind; lit vents and siderite growths are the rarer sort.

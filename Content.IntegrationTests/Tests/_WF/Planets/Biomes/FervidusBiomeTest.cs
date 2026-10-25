@@ -30,9 +30,10 @@ public sealed class FervidusBiomeTest
 
     private static readonly string[] AshFlora =
     {
-        "TgFloraAshPlasmaFlower", "TgFloraAshFireblossom", "TgFloraAshPodsneyzka", "TgFloraAshVahrezjia",
+        "TgFloraAshPlasmaFlower", "TgFloraAshPodsneyzka",
         "NovaAshCapShroomColored", "NovaAshLeafShroomColored", "NovaAshTallShroomColored",
-        "TgFloraAshCapShroom", "TgFloraAshLeafShroom", "ShiptestFloraAshCacti",
+        // The living ones (Planets/Life/fervidus.yml) stand where the decor fire-blossom, ash caps, ash cacti and vahrezjia did.
+        "WFFloraFireBlossom", "WFFloraAshLung", "WFFloraAshCapShroom", "WFFloraAshLeafShroom", "WFFloraCoolCactus",
         "CMGrassTallgrassDesert", "ShiptestFloraGrassBrown", "CoyoteFloraBurnedbush3", "CoyoteFloraBurnedbush5",
         "GoonShrubDead", "CoyoteFloraBurnedtree1", "CoyoteFloraBurnedtree2", "CoyoteFloraBurnedtree3",
         "CoyoteFloraBurnedtree5", "ShiptestTreeDeadHell",
