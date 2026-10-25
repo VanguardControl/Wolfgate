@@ -71,6 +71,15 @@ Other modules build on it through `WFDetachedTerrainComponent` (a grid that is g
 `CEZLevelsSystem.WfClosedToHulls` keeps every hull out of and where an orbital faller is maimed as on the ground) and
 `WFOrbitLayerComponent.RadarScars`.
 
+Thrascias is a frozen world, and its ground (`Resources/Prototypes/_WF/Planets/Biomes/thrascias.yml`) is built from the
+imported Decor Import and RMC tiles through weather child tiles, so snow falls on all of it. Plain snow is broken by
+rough and calm snow and bare frozen dirt, with ice grass, frostbelles, snow shrubs and snow rocks. Where the old ice
+patches were there is pack ice (cracked, rough and dark ice) with black frozen lakes in the middle, ice rocks and
+short runs of ice cliff; the lakes and the smooth dark ice are slippery as the old ice was. Pine pockets are a small
+share of the snow. Every liquid plasma pool sits in a crystal field of frozen plasma, with crystal rocks and trees and a
+few small crystal wall clusters. The planet is still dry: its lakes are tiles, not water entities. `ThrasciasBiomeTest`
+samples the whole surface.
+
 Jetpacks in the atmosphere: a gas jetpack refuses below a world's orbit layer and cuts out if carried down. The
 atmospheric jetpack (`WFJetpackAtmospheric`, `WFAtmosphericJetpackComponent`) is the reverse: it burns welding fuel,
 flies on the ground and air layers, climbs and descends half a layer a second on the jetpack's ascend and descend
@@ -242,6 +251,7 @@ the PlanetPois placement keeps sites, roads and camps out of it.
 - [`Content.IntegrationTests/Tests/_WF/Planets/AtmosphericJetpackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AtmosphericJetpackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/BiomeNoiseCacheTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/BiomeNoiseCacheTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/Biomes/ThrasciasBiomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/Biomes/ThrasciasBiomeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CarcinomaInfestationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CarcinomaTendrilAttackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CarcinomaTendrilAttackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/CrashApcFaultTest.cs)
@@ -295,6 +305,7 @@ the PlanetPois placement keeps sites, roads and camps out of it.
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/Planets/biomes.yml`](../../../Resources/Prototypes/_WF/Planets/biomes.yml)
+- [`Resources/Prototypes/_WF/Planets/Biomes/thrascias.yml`](../../../Resources/Prototypes/_WF/Planets/Biomes/thrascias.yml)
 - [`Resources/Prototypes/_WF/Planets/bounds.yml`](../../../Resources/Prototypes/_WF/Planets/bounds.yml)
 - [`Resources/Prototypes/_WF/Planets/carcinoma.yml`](../../../Resources/Prototypes/_WF/Planets/carcinoma.yml)
 - [`Resources/Prototypes/_WF/Planets/carcinoma_regions.yml`](../../../Resources/Prototypes/_WF/Planets/carcinoma_regions.yml)

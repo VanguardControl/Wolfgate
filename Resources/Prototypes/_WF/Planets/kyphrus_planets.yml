@@ -224,4 +224,4 @@
     tile: FloorIce
   - !type:BiomeMetaLayer
     threshold: -1
-    template: WFOpenSnow
+    template: WFThrasciasTerrain
