@@ -5,6 +5,7 @@ using Content.Server._WF.Planets;
 using Content.Server.Parallax;
 using Content.Server.Body.Components;
 using Content.Server.Temperature.Components;
+using Content.Shared._Shitmed.Body.Components;
 using Content.Shared._WF.Planets;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
@@ -129,7 +130,8 @@ public sealed class PlanetEcologyTest
                 Assert.That(xform.Anchored, Is.False, "Biome wildlife must be able to roam.");
                 Assert.That(mob.CurrentState, Is.EqualTo(MobState.Alive));
                 if (name is "Fervidus" or "Aerumna" or "Thrascias")
-                    Assert.That(em.HasComponent<RespiratorComponent>(uid), Is.False,
+                    // An air-breathing mob keeps its Respirator but may be immune to needing air.
+                    Assert.That(!em.HasComponent<RespiratorComponent>(uid) || em.HasComponent<BreathingImmunityComponent>(uid), Is.True,
                         "Low-oxygen planets need wildlife that does not suffocate in its native atmosphere.");
                 if (em.TryGetComponent<TemperatureComponent>(uid, out var temperature))
                 {

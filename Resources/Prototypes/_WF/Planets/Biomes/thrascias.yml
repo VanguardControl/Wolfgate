@@ -135,6 +135,15 @@
     noise: { seed: 203, noiseType: OpenSimplex2, frequency: 4 }
     decals:
     - CMDecalRocksIceIce1
+  # Frozen fungus shows only inside the snowdrifts: the same noise as the drift decals, at a higher threshold.
+  - !type:BiomeEntityLayer
+    allowedTiles:
+    - FloorSnow
+    - WFFloorThrasciasSnowRough
+    - WFFloorThrasciasSnowCalm
+    entities: [WFFloraFrozenFungus]
+    threshold: 0.86
+    noise: { seed: 201, noiseType: OpenSimplex2, frequency: 4 }
   # Tundra growth.
   - !type:BiomeEntityLayer
     allowedTiles:
@@ -150,7 +159,7 @@
     - WFFloorThrasciasSnowRough
     - WFFloorThrasciasSnowCalm
     - WFFloorThrasciasFrozenDirt
-    entities: [PolarisFloraSifFrostbelle]
+    entities: [WFFloraFrostbelle]
     threshold: 0.88
     noise: { seed: 102, noiseType: OpenSimplex2, frequency: 3 }
   - !type:BiomeEntityLayer
@@ -203,6 +212,15 @@
     entities: [ShiptestRockPileIcy]
     threshold: 0.9
     noise: { seed: 109, noiseType: OpenSimplex2, frequency: 3 }
+  # Ice crystals to chip, on the pack ice.
+  - !type:BiomeEntityLayer
+    allowedTiles:
+    - WFFloorThrasciasPackIce
+    - WFFloorThrasciasRoughIce
+    - WFFloorThrasciasClearIce
+    entities: [WFFloraIceCrystal]
+    threshold: 0.93
+    noise: { seed: 111, noiseType: OpenSimplex2, frequency: 3 }
   # Boreal pine pockets, a minority of the surface.
   - !type:BiomeMetaLayer
     template: WFThrasciasBorealPocket
@@ -229,19 +247,40 @@
     entities: [BayCrystal, ChompQuartz]
     threshold: 0.9
     noise: { seed: 153, noiseType: OpenSimplex2, frequency: 2.5 }
+  # Crystal field plants: glowing blooms to pick, and frost pods that burst on whoever comes near.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorThrasciasCrystalIce]
+    entities: [WFFloraCrystalBloom]
+    threshold: 0.88
+    noise: { seed: 122, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorThrasciasCrystalIce]
+    entities: [WFFloraFrostPod]
+    threshold: 0.94
+    noise: { seed: 121, noiseType: OpenSimplex2, frequency: 3 }
+  # Wildlife by region, on the same noise the one planet-wide spawner used.
   - !type:BiomeEntityLayer
     allowedTiles:
     - FloorSnow
     - WFFloorThrasciasSnowRough
     - WFFloorThrasciasSnowCalm
     - WFFloorThrasciasFrozenDirt
+    entities: [WFFaunaThrasciasTundra]
+    threshold: 0.95
+    noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles:
     - WFFloorThrasciasPackIce
     - WFFloorThrasciasRoughIce
     - WFFloorThrasciasClearIce
     - WFFloorThrasciasClearIceSmooth
     - WFFloorThrasciasLakeIce
-    - WFFloorThrasciasCrystalIce
-    entities: [WFFaunaThrascias]
+    entities: [WFFaunaThrasciasIce]
+    threshold: 0.95
+    noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorThrasciasCrystalIce]
+    entities: [WFFaunaThrasciasCrystal]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
   - !type:BiomeEntityLayer
@@ -297,12 +336,29 @@
 - type: biomeTemplate
   id: WFThrasciasBorealPocket
   layers:
+  # Whipvines and snow spiders sit under the pines and shrubs: a later layer wins a tile.
   - !type:BiomeEntityLayer
     allowedTiles:
     - FloorSnow
     - WFFloorThrasciasSnowRough
     - WFFloorThrasciasSnowCalm
-    entities: [GoonShrubSnow, GoonShrubSnow2, PolarisFloraSifFrostbelle]
+    entities: [WFFaunaThrasciasBoreal]
+    threshold: 0.93
+    noise: { seed: 39, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles:
+    - FloorSnow
+    - WFFloorThrasciasSnowRough
+    - WFFloorThrasciasSnowCalm
+    entities: [WFFloraWhipvine]
+    threshold: 0.95
+    noise: { seed: 123, noiseType: OpenSimplex2, frequency: 3 }
+  - !type:BiomeEntityLayer
+    allowedTiles:
+    - FloorSnow
+    - WFFloorThrasciasSnowRough
+    - WFFloorThrasciasSnowCalm
+    entities: [GoonShrubSnow, GoonShrubSnow2, WFFloraFrostbelle]
     threshold: 0.5
     noise: { seed: 143, noiseType: OpenSimplex2, frequency: 0.7 }
   - !type:BiomeEntityLayer
