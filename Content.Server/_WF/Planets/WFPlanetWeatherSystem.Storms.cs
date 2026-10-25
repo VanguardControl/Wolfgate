@@ -27,7 +27,7 @@ public sealed partial class WFPlanetWeatherSystem
 
     /// <summary>Thunder at the strike, sent to the whole map and left to fall off with distance.</summary>
     public static readonly SoundSpecifier ThunderSound = new SoundCollectionSpecifier("WFThunder",
-        AudioParams.Default.WithMaxDistance(120f).WithRolloffFactor(0.4f).WithVariation(0.05f));
+        AudioParams.Default.WithVolume(-4f).WithMaxDistance(120f).WithRolloffFactor(0.4f).WithVariation(0.05f));
 
     // Seconds between bolts in a thunderstorm's main phase.
     private const float ThunderMinSeconds = 6f;
