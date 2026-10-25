@@ -108,7 +108,10 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - a switched-off or folded shield blocks nothing
   - the attempt repeats every tick while the trigger is held
 - [`Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs`](../../Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs): a client that first saw the wearer already dressed never got the equip for this item (the
-- [`Content.Shared/Clothing/EntitySystems/ToggleableClothingSystem.cs`](../../Content.Shared/Clothing/EntitySystems/ToggleableClothingSystem.cs): a suit deleted along with its wearer can't take the piece back
+- [`Content.Shared/Clothing/EntitySystems/ToggleableClothingSystem.cs`](../../Content.Shared/Clothing/EntitySystems/ToggleableClothingSystem.cs)
+  - whatever the piece replaced goes back on, instead of staying shut inside the piece
+  - a suit deleted along with its wearer can't take the piece back
+  - another suit's piece goes back to its suit, and what it covered is kept under this one
 - [`Content.Shared/Gibbing/Systems/GibbingSystem.cs`](../../Content.Shared/Gibbing/Systems/GibbingSystem.cs)
   - bodiless giblets are skipped when flung.
   - bodiless dropped contents are skipped instead of flung.
