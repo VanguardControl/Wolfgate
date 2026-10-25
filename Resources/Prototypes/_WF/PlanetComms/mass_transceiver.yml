@@ -34,6 +34,8 @@
   - type: Construction
     graph: WFMassTransceiverGraph
     node: working
+    # Repairable, never taken apart: the graph has no start node to deconstruct to.
+    deconstructionTarget: null
   - type: GuideHelp
     guides:
     - WFPlanetComms
@@ -96,3 +98,5 @@
   - type: Construction
     graph: WFMassTransceiverGraph
     node: broken
+    # Repairable, never taken apart: the graph has no start node to deconstruct to.
+    deconstructionTarget: null
