@@ -5,6 +5,7 @@ using Content.Server._Mono.Spawning;
 using Content.Server._WF.DroneRings;
 using Content.Server.Explosion.EntitySystems;
 using Content.Server.Gatherable;
+using Content.Server.Shuttles.Systems;
 using Content.Server.Worldgen.Systems.Debris;
 using Content.Shared._WF.AsteroidMining;
 using Content.Shared.Damage;
@@ -69,6 +70,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<WFAsteroidGridComponent, MapInitEvent>(OnGridMapInit);
+        SubscribeLocalEvent<WFAsteroidGridComponent, GridFixtureChangeEvent>(OnGridFixtures, after: new[] { typeof(ShuttleSystem) });
         SubscribeLocalEvent<WFAsteroidComponent, MapInitEvent>(OnRockMapInit);
         SubscribeLocalEvent<WFAsteroidComponent, DamageChangedEvent>(OnDamaged);
         SubscribeLocalEvent<WFAsteroidComponent, ExaminedEvent>(OnExamined);
@@ -161,6 +163,15 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             Roll(rock, composition);
     }
 
+    /// <summary>Makes the grid's tiles as heavy as solid rock, after the shuttle system has set them to hull density.</summary>
+    private void OnGridFixtures(EntityUid uid, WFAsteroidGridComponent comp, GridFixtureChangeEvent args)
+    {
+        foreach (var (id, fixture) in args.NewFixtures)
+        {
+            _physics.SetDensity(uid, id, fixture, ShuttleSystem.TileDensityMultiplier * comp.DensityScale, false);
+        }
+    }
+
     /// <summary>A loose rock, such as a boulder, picks its sprite; a grid's rock is given its grid's instead.</summary>
     private void OnRockMapInit(Entity<WFAsteroidComponent> ent, ref MapInitEvent args)
     {
@@ -180,7 +191,8 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             return;
 
         var (density, hard, layer, mask) = (old.Density, old.Hard, old.CollisionLayer, old.CollisionMask);
-        _fixtures.DestroyFixture(rock, id, old);
+        // Without updates, so the body never drops to no fixtures and stops colliding before the hull replaces it.
+        _fixtures.DestroyFixture(rock, id, old, updates: false);
         _fixtures.TryCreateFixture(rock, hull, id, density, hard, layer, mask);
     }
 

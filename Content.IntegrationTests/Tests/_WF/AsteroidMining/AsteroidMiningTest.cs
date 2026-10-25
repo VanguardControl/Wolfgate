@@ -9,6 +9,10 @@ using Content.Server._WF.AsteroidMining;
 using Content.Server._WF.DroneRings;
 using Content.Server.Gatherable;
 using Content.Server.Power.Components;
+using Content.Server._WF.Shuttles.Systems;
+using Content.Server.Shuttles.Components;
+using Content.Shared._WF.CCVar;
+using Content.Shared._WF.Shuttles;
 using Content.Shared._Mono.FireControl;
 using Content.Shared._WF.AsteroidMining;
 using Content.Shared.Damage;
@@ -23,6 +27,7 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
+using Robust.Shared.Configuration;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Timing;
@@ -653,8 +658,7 @@ public sealed class AsteroidMiningTest
             Assert.That(panel.Visible, Is.False, "A ship with no mining laser has no mining panel.");
 
             var rock = new WFMiningBeamTargetEntry("medium asteroid", 34f,
-                new[] { new WFMiningBeamOreEntry("iron ore", 0.4f, Color.Brown) }, 0.2f, 0.4f, 0.6f, 0.5f, 0.3f, 0f, 0.9f,
-                0.8f, 1.25f, true);
+                new[] { new WFMiningBeamOreEntry("iron ore", 0.4f, Color.Brown) }, 0.2f, 0.4f, 0.6f, 0.5f, 0.3f, 0f, 0.9f);
             gunnery.WfUpdateMining(new WFMiningBeamGunneryState(1, 0.7f, 0f, rock));
             Assert.That(panel.Visible, Is.True);
 
@@ -671,6 +675,88 @@ public sealed class AsteroidMiningTest
             gunnery.WfUpdateMining(new WFMiningBeamGunneryState(0, 0f, 0f, null));
             Assert.That(panel.Visible, Is.False, "Losing the lasers takes the panel away again.");
         });
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task LaserRayHitsEveryRockShape()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        var rocks = new List<(EntityUid Rock, Vector2 Centre, bool Irregular)>();
+        await server.WaitAssertion(() =>
+        {
+            for (var i = 0; i < 16; i++)
+            {
+                var size = i % 2 == 0 ? "WFAsteroidMedium" : "WFAsteroidLarge";
+                var centre = ShipPos + new Vector2(i * 30f, 0f);
+                var rock = SpawnAsteroid(pair, map.MapId, size, centre);
+                var comp = em.GetComponent<WFAsteroidComponent>(rock);
+                rocks.Add((rock, centre, comp.Shapes.ContainsKey(comp.Variant)));
+            }
+        });
+        await server.WaitRunTicks(2);
+
+        await server.WaitAssertion(() =>
+        {
+            var physics = server.System<SharedPhysicsSystem>();
+            Assert.That(rocks.Any(r => r.Irregular), Is.True, "Some rocks should come out irregular.");
+            Assert.Multiple(() =>
+            {
+            foreach (var (rock, centre, irregular) in rocks)
+            {
+                // The same ray the laser's pulse casts, straight down onto the rock's centre from 20 m above it.
+                var ray = new CollisionRay(centre + new Vector2(0f, 20f), new Vector2(0f, -1f), (int) CollisionGroup.Opaque);
+                var hits = physics.IntersectRay(map.MapId, ray, 25f, returnOnFirstHit: false).Select(h => h.HitEntity).ToList();
+                Assert.That(hits, Does.Contain(rock), $"The laser's ray should hit a {(irregular ? "irregular" : "round")} rock.");
+            }
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ShipClosingOnAnAsteroidIsWarned()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var cfg = server.ResolveDependency<IConfigurationManager>();
+
+        EntityUid ship = default, grid = default;
+        await server.WaitAssertion(() =>
+        {
+            cfg.SetCVar(CollisionWarningCVars.Hysteresis, 0f);
+            ship = DrydockTest.CreateShip(pair, map.MapId, ShipPos);
+            DrydockTest.SetFloor(pair, ship, 10);
+            em.EnsureComponent<ShuttleComponent>(ship);
+            em.SpawnEntity("ComputerShuttle", new EntityCoordinates(ship, new Vector2(0.5f, 0.5f)));
+            var rock = SpawnAsteroid(pair, map.MapId, "WFAsteroidMedium", ShipPos + new Vector2(150f, 5f));
+            grid = em.GetComponent<TransformComponent>(rock).GridUid!.Value;
+        });
+        await server.WaitRunTicks(1);
+
+        await server.WaitAssertion(() =>
+        {
+            var physics = server.System<SharedPhysicsSystem>();
+            var tiles = server.System<SharedMapSystem>().GetAllTiles(grid, em.GetComponent<MapGridComponent>(grid)).Count();
+            Assert.That(em.GetComponent<Robust.Shared.Physics.Components.PhysicsComponent>(grid).FixturesMass, Is.GreaterThan(tiles * 2f),
+                "An asteroid should be far denser than a hull of the same footprint.");
+
+            physics.SetBodyType(ship, BodyType.Dynamic);
+            // Fast enough for a crash into a ship of that size to hurt, but no faster than old tile asteroids warned at.
+            physics.SetLinearVelocity(ship, new Vector2(40f, 0f));
+            server.System<CollisionWarningSystem>().Sweep();
+            Assert.That(em.TryGetComponent<CollisionWarningComponent>(ship, out var warning), Is.True,
+                "A ship closing on an asteroid at speed should be warned.");
+            Assert.That(warning!.Threat, Is.EqualTo(grid), "The warning should name the asteroid.");
+        });
+
         await pair.CleanReturnAsync();
     }
 }

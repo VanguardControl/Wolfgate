@@ -32,10 +32,12 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
   while it cools (ores, plain rock, resistance, heat and window, crack progress, yield). Heat settles at
   `power × strength × (1 − resistance)` and unstable rocks drift around it. In the green window the crack bar fills at
   the beams' summed crack rate (`1.5 s + 0.035 s` per vein, divided by 1.6 for an M40 and 0.6 for an M12). The yellow band past it fills the bar half as
-  fast again but each second there costs ore, down to half the rock for a crack made all in yellow. The cyan notch on
-  the meter shows where the current power will settle; the impact flare brightens in the window and its sparks turn
-  red in the yellow band, so the trigger can also be feathered by eye. Several lasers on one rock add their power and
+  fast again but each second there costs ore, down to half the rock for a crack made all in yellow. The meter only
+  shows the heat now, not where a power setting will settle it, so finding the right power takes some feel; the impact
+  flare brightens in the window and its sparks turn red in the yellow band, so the trigger can also be feathered by eye. Several lasers on one rock add their power and
   crack rate.
+- **Mass:** asteroid grids are `DensityScale` (8) times as dense as a hull of the same footprint, so collision
+  warnings, autopilot avoidance and impacts treat them as solid rock.
 - **Outcomes:** a clean crack keeps the mass its yield allows. Large and huge rocks split into two smaller asteroids
   (two fifths or half of the mass), which come off as hot as their parent; of the rest, a quarter comes out as boulders and the remainder as floating ore
   piles. Holding the rock past the red line (heat 85%) for 2 s blows it up: 35% of the mass survives, the blast grows

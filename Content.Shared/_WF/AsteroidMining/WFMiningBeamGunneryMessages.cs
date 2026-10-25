@@ -40,10 +40,4 @@ public readonly record struct WFMiningBeamTargetEntry(
     // Overcharge time as a share of the time it takes to blow up.
     float Overcharge,
     // Share of the mass a crack would keep now, after time spent in the hot band.
-    float Yield,
-    // Heat all beams on the rock deliver, before resistance.
-    float IncomingPower,
-    // Full-power heat of this ship's lasers on the rock, or of all of them while none is on it.
-    float ShipStrength,
-    // This ship's lasers are on the rock now.
-    bool Firing);
+    float Yield);

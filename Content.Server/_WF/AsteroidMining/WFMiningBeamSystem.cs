@@ -376,14 +376,11 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         WFMiningBeamTargetEntry? target = null;
         if (rock is { } uid && !TerminatingOrDeleted(uid) && TryComp<WFAsteroidComponent>(uid, out var comp) && !comp.Cracking)
         {
-            var on = lasers.Where(l => l.Beam.Active && l.Beam.Target == uid).ToList();
-            var strength = (on.Count > 0 ? on : lasers).Sum(l => l.Beam.Strength);
             var (low, high) = Window(comp);
             var ores = comp.Ores.Select(o => new WFMiningBeamOreEntry(OreName(o.Ore), o.Fraction, o.Color)).ToArray();
             target = new WFMiningBeamTargetEntry(Name(uid), comp.Mass, ores, comp.Resistance, low, high, comp.Charge,
                 Math.Clamp(comp.Progress, 0f, 1f), comp.OverchargeTime / OverchargeDuration,
-                WFAsteroidHeat.Yield(comp.Progress, comp.HotProgress), comp.IncomingPower,
-                strength, on.Count > 0);
+                WFAsteroidHeat.Yield(comp.Progress, comp.HotProgress));
         }
         else
         {

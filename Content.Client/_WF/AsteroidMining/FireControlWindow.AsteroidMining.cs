@@ -151,9 +151,6 @@ public sealed partial class FireControlWindow
         _wfMiningMeter.WindowLow = rock.WindowLow;
         _wfMiningMeter.WindowHigh = rock.WindowHigh;
         _wfMiningMeter.Overcharging = rock.Overcharge > 0f;
-        // Other ships' beams stay as they are; only this ship's lasers move to the new power.
-        var others = rock.Firing ? MathF.Max(0f, rock.IncomingPower - state.Power * rock.ShipStrength) : rock.IncomingPower;
-        _wfMiningMeter.Predicted = (others + power * rock.ShipStrength) * (1f - rock.Resistance);
         _wfMiningProgress.Value = rock.Progress;
         _wfMiningYield.Text = Loc.GetString("wf-mining-gunnery-yield", ("percent", (int) MathF.Round(rock.Yield * 100)));
         _wfMiningYield.FontColorOverride = rock.Yield >= 0.995f ? Green : Accent;
