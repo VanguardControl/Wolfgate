@@ -134,10 +134,7 @@
   components:
   - type: Sprite
     sprite: Structures/Storage/Crates/generic.rsi
-    state: crate
-  - type: Icon
-    sprite: Structures/Storage/Crates/generic.rsi
-    state: crate
+    state: icon
   - type: HTN
     rootTask:
       task: SimpleHostileCompound
