@@ -12,6 +12,15 @@ lines its tunnels and chambers as the main light below ground. The Gut also pool
 digests whoever wades in, air or not, but spares its own creatures and anyone on a catwalk (`WFDigestiveAcidSystem`);
 whoever it burns hisses with a looping sizzle until they leave it or die (`WFDigestiveAcidHissSystem`),
 and chokes some throats with tendons that slow you (`Entities/gut.yml`).
+The Rime Galleries, Umbral Deeps and Gut are laid out as big halls of their own, each a family of floor tiles (`Tiles/<world>.yml`), life
+(`Entities/Life/<world>.yml`, `Locale/en-US/_WF/Caverns/life_<world>.ftl`, spawner tables `WFCavernFauna<World><Hall>`) and soundscape
+(`Ambience/<world>.yml`, named by the cavern's `ambience`): the Rime Galleries' snowdrift hollows (rime bats, frost weavers, rime caps,
+hearth lichen), frozen falls of cyan, blue and dark ice (ice slimes, crystal crabs, frost bulbs, hanging icicles that fall in shards) and
+dark-shored plasma galleries (plasma crabs, plasma blooms); the Umbral Deeps' chromite crawls and bedrock galleries, shadow groves of
+blue-black floor (deep bats, shadow cats, umbral caps), geode chambers (geode crabs, pickable geode clusters, bursting geodes, radiant
+crystal, acid spitters) and a deep xenonid nest of hive floor, wild weeds, resin walls and eggs; the Gut's stomachs (bile slugs, gastric
+moss, acid polyps), nerve tangles (antibodies, nerve whips that shock), an ossuary of calcified bone (bone burrowers, marrow caps, bone piles)
+and clotted blood banks with leeches. Harvestables are common and hazards rare; every hall keeps the world's open share and tunnels connected.
 Caverns are behind `wf.caverns` (`CavernCVars`), which
 is off by default and on in development builds, and apply to networks built after it is set. Ships never go below
 ground, and nobody on or above the ground loads the cavern under them except near a mouth, where it shows through the
@@ -160,6 +169,7 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernGutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernGutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernHoleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernHoleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernHullTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernHullTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernLifeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernLifeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernOrbitalFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernOrbitalFallTest.cs)
@@ -178,6 +188,9 @@ and leaves anything airborne to the server. The design, including what is still 
 
 ### Prototypes
 
+- [`Resources/Prototypes/_WF/Caverns/Ambience/aerumna.yml`](../../../Resources/Prototypes/_WF/Caverns/Ambience/aerumna.yml)
+- [`Resources/Prototypes/_WF/Caverns/Ambience/carcinoma.yml`](../../../Resources/Prototypes/_WF/Caverns/Ambience/carcinoma.yml)
+- [`Resources/Prototypes/_WF/Caverns/Ambience/thrascias.yml`](../../../Resources/Prototypes/_WF/Caverns/Ambience/thrascias.yml)
 - [`Resources/Prototypes/_WF/Caverns/Biomes/aerumna.yml`](../../../Resources/Prototypes/_WF/Caverns/Biomes/aerumna.yml)
 - [`Resources/Prototypes/_WF/Caverns/Biomes/asclepiu.yml`](../../../Resources/Prototypes/_WF/Caverns/Biomes/asclepiu.yml)
 - [`Resources/Prototypes/_WF/Caverns/Biomes/carcinoma.yml`](../../../Resources/Prototypes/_WF/Caverns/Biomes/carcinoma.yml)
@@ -189,22 +202,36 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Resources/Prototypes/_WF/Caverns/Entities/fauna.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/fauna.yml)
 - [`Resources/Prototypes/_WF/Caverns/Entities/flora.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/flora.yml)
 - [`Resources/Prototypes/_WF/Caverns/Entities/gut.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/gut.yml)
+- [`Resources/Prototypes/_WF/Caverns/Entities/Life/aerumna.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/Life/aerumna.yml)
+- [`Resources/Prototypes/_WF/Caverns/Entities/Life/carcinoma.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/Life/carcinoma.yml)
+- [`Resources/Prototypes/_WF/Caverns/Entities/Life/thrascias.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/Life/thrascias.yml)
 - [`Resources/Prototypes/_WF/Caverns/Entities/mouths.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/mouths.yml)
 - [`Resources/Prototypes/_WF/Caverns/Entities/stairs.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/stairs.yml)
 - [`Resources/Prototypes/_WF/Caverns/levels.yml`](../../../Resources/Prototypes/_WF/Caverns/levels.yml)
 - [`Resources/Prototypes/_WF/Caverns/Recipes/stairs.yml`](../../../Resources/Prototypes/_WF/Caverns/Recipes/stairs.yml)
 - [`Resources/Prototypes/_WF/Caverns/tiles.yml`](../../../Resources/Prototypes/_WF/Caverns/tiles.yml)
+- [`Resources/Prototypes/_WF/Caverns/Tiles/aerumna.yml`](../../../Resources/Prototypes/_WF/Caverns/Tiles/aerumna.yml)
+- [`Resources/Prototypes/_WF/Caverns/Tiles/carcinoma.yml`](../../../Resources/Prototypes/_WF/Caverns/Tiles/carcinoma.yml)
+- [`Resources/Prototypes/_WF/Caverns/Tiles/thrascias.yml`](../../../Resources/Prototypes/_WF/Caverns/Tiles/thrascias.yml)
 
 ### Localization
 
 - [`Resources/Locale/en-US/_WF/Caverns/caverns.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/caverns.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/commands.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/commands.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/entities.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/entities.ftl)
+- [`Resources/Locale/en-US/_WF/Caverns/life_aerumna.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/life_aerumna.ftl)
+- [`Resources/Locale/en-US/_WF/Caverns/life_carcinoma.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/life_carcinoma.ftl)
+- [`Resources/Locale/en-US/_WF/Caverns/life_thrascias.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/life_thrascias.ftl)
 
 ### Textures
 
 - [`Resources/Textures/_WF/Caverns/digestive_acid.rsi/`](../../../Resources/Textures/_WF/Caverns/digestive_acid.rsi/)
 - [`Resources/Textures/_WF/Caverns/glow_flora.rsi/`](../../../Resources/Textures/_WF/Caverns/glow_flora.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/antibody.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/antibody.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/bile_slug.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/bile_slug.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/deep_bat.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/deep_bat.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/rime_bat.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/rime_bat.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/rime_slime.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/rime_slime.rsi/)
 - [`Resources/Textures/_WF/Caverns/Mouths/aerumna_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/aerumna_pit.rsi/)
 - [`Resources/Textures/_WF/Caverns/Mouths/asclepiu_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/asclepiu_pit.rsi/)
 - [`Resources/Textures/_WF/Caverns/Mouths/carcinoma_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/carcinoma_pit.rsi/)
@@ -216,6 +243,7 @@ and leaves anything airborne to the server. The design, including what is still 
 ### Tools
 
 - [`Tools/_WF/Caverns/gen_flavour.py`](../../../Tools/_WF/Caverns/gen_flavour.py)
+- [`Tools/_WF/Caverns/gen_life.py`](../../../Tools/_WF/Caverns/gen_life.py)
 - [`Tools/_WF/Caverns/gen_pits.py`](../../../Tools/_WF/Caverns/gen_pits.py)
 - [`Tools/_WF/Caverns/gen_stairs.py`](../../../Tools/_WF/Caverns/gen_stairs.py)
 
