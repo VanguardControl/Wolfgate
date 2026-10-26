@@ -11,6 +11,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - per-instance cache; a static one leaked entity ids between pooled test clients and tripped SetAuxiliary's assert
   - also rebuild a blank auxiliary that a client state reset deleted
   - a client state reset can delete cached entities without a round restart; rebuild those
+- [`Content.Client/Atmos/EntitySystems/FireVisualizerSystem.cs`](../../Content.Client/Atmos/EntitySystems/FireVisualizerSystem.cs): a mob that arrives burning would get its light child before it is initialised itself; the appearance update queued at startup lays it.
 - [`Content.Client/CharacterInfo/CharacterInfoSystem.cs`](../../Content.Client/CharacterInfo/CharacterInfoSystem.cs)
   - replays skip the character info request
   - Replay spectators have a local entity but no server to answer this request.
@@ -19,6 +20,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - replays skip the guidebook data request
   - partial for the network dependency
   - replay playback starts these systems without a server connection
+- [`Content.Client/Light/EntitySystems/SunShadowSystem.cs`](../../Content.Client/Light/EntitySystems/SunShadowSystem.cs): at round start the time can be negative or sit exactly on the first entry, which fell through to the throw; wrap it into the last span instead.
 - [`Content.Client/Lobby/LobbyUIController.cs`](../../Content.Client/Lobby/LobbyUIController.cs): unknown species falls back to the default
 - [`Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs`](../../Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs)
   - logs characters that can't be previewed
