@@ -29,6 +29,10 @@ lava and liquid plasma are not water and roads still cross them.
 
 The houses and the hideout are `dwelling` sites, where a stranger may live.
 
+A site with `rotate: true` is put down at a random quarter turn, and everything on it turns with it except what never
+rotates (`noRot`) and walls, fences and the like whose `IconSmooth` mode is `CardinalFlags` or `Bitmask`: their
+sprites only join up square to the grid, so they are set back to no rotation.
+
 ### A level below
 
 A site can have a basement: map it on the z-level under the site in mapping mode, with stairs down to it under a gap in
