@@ -71,6 +71,7 @@ Entry points: `WFRoundSetupSystem`, `GameTicker.RoundSetup`, `WFCrashScenarioSys
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Signals.cs`](WFRoundSetupSystem.Signals.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Spawning.cs`](WFRoundSetupSystem.Spawning.cs)
 - [`Content.Server/_WF/RoundSetup/WFRoundSetupSystem.Titles.cs`](WFRoundSetupSystem.Titles.cs)
+- [`Content.Server/_WF/RoundSetup/WFSafeSpawnSystem.cs`](WFSafeSpawnSystem.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioComponent.cs`](WFShipScenarioComponent.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioSystem.Assignment.cs`](WFShipScenarioSystem.Assignment.cs)
 - [`Content.Server/_WF/RoundSetup/WFShipScenarioSystem.Catalog.cs`](WFShipScenarioSystem.Catalog.cs)

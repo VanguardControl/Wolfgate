@@ -1,68 +1,101 @@
+using Content.Server._NF.Station.Components;
 using Content.Server._WF.Encounters.Components;
-using Content.Server._WF.Encounters.Systems;
+using Content.Server.Stack;
+using Content.Shared._Mono.Ships.Components;
 using Content.Shared._NF.Shipyard.Components;
+using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.Drydock;
-using Content.Shared.Materials;
-using Robust.Server.Player;
+using Content.Shared.Stacks;
+using Content.Shared.Station.Components;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
 
 namespace Content.Server._WF.Drydock;
 
 /// <summary>
-/// Chop-shop consoles: a break hands over a share of the yield as sheets at the console and pays the rest in cash, and
+/// Chop-shop consoles: a break pays a share of the ship's value in thalers, printed by the console tile by tile, and
 /// breaking lawful property posts a warrant on the breaker.
 /// </summary>
 public sealed partial class WFDrydockSystem
 {
     [Dependency] private WFShipbreakerWarrantSystem _warrants = default!;
-    [Dependency] private WFEncounterBountySystem _bounties = default!;
-    [Dependency] private IPlayerManager _players = default!;
+    [Dependency] private StackSystem _stacks = default!;
 
-    /// <summary>Splits a break yield into the sheets a chop shop hands over and the cash it pays for the rest.</summary>
-    private (Dictionary<string, int> Sheets, int Cash) SplitChopYield(WFDrydockChopShopComponent chop,
-        Dictionary<string, int> yield, int tiles)
+    /// <summary>Stack the chop shop prints its pay in.</summary>
+    private static readonly ProtoId<StackPrototype> Thalers = "Credit";
+
+    /// <summary>
+    /// What a ship is worth to a chop shop: its shipyard price, from its own record or its vessel station's, else what
+    /// the grid's fittings appraise at. Loose cargo is left out, since it drifts off when the hull goes.
+    /// </summary>
+    public int ChopValue(EntityUid ship)
     {
-        var sheets = new Dictionary<string, int>();
-        var cash = (double) chop.TileCash * tiles;
-        foreach (var (id, units) in yield)
-        {
-            var kept = (int) (units * chop.MaterialShare);
-            if (kept > 0)
-                sheets[id] = kept;
+        ProtoId<VesselPrototype>? id = null;
+        if (TryComp<VesselComponent>(ship, out var vessel))
+            id = vessel.VesselId;
+        else if (TryComp<StationMemberComponent>(ship, out var member) &&
+                 TryComp<ExtraShuttleInformationComponent>(member.Station, out var info))
+            id = info.Vessel;
 
-            if (_prototype.TryIndex<MaterialPrototype>(id, out var material))
-                cash += (units - kept) * material.Price * chop.CashRate;
-        }
+        if (id != null && _prototype.TryIndex(id.Value, out var proto) && proto.Price > 0)
+            return proto.Price;
 
-        return (sheets, (int) cash);
+        return (int) Math.Min(_pricing.AppraiseGrid(ship, uid => Transform(uid).ParentUid != ship || Transform(uid).Anchored), int.MaxValue);
     }
 
-    /// <summary>Hands over a finished or aborted chop-shop break's sheets at the console and pays its cash to the breaker.</summary>
-    private (Dictionary<string, int> Sheets, int Cash) PayChopShop(EntityUid console, WFDrydockChopShopComponent chop,
-        WFDrydockJobComponent job)
+    /// <summary>What a chop shop still pays for breaking the rest of a ship, less what earlier breaks of it printed.</summary>
+    public int ChopPayout(WFDrydockChopShopComponent chop, EntityUid ship)
     {
-        job.Settled = true;
-        var (sheets, cash) = SplitChopYield(chop, job.Yield, job.Done - job.Skipped);
+        if (TryComp<WFHulkComponent>(ship, out var hulk) && hulk.ChopTotal is { } total)
+            return Math.Max(0, total - hulk.ChopPaid);
+
+        return (int) (ChopValue(ship) * (double) chop.ValueShare);
+    }
+
+    /// <summary>Fixes a chop-shop break's payout when it starts, to be printed as its tiles come off.</summary>
+    private void SetUpChopPay(WFDrydockChopShopComponent chop, WFDrydockJobComponent job, List<WFDrydockWorkItem> items)
+    {
+        var hulk = EnsureComp<WFHulkComponent>(job.Ship);
+        hulk.ChopTotal ??= (int) (ChopValue(job.Ship) * (double) chop.ValueShare);
+        job.CashTotal = ChopPayout(chop, job.Ship);
+        job.CashWeight = 0;
+        foreach (var item in items)
+        {
+            job.CashWeight += item.WorkTime;
+        }
+    }
+
+    /// <summary>
+    /// Prints a broken tile's share of the payout by the console, weighted by what was stripped off it; the last tile
+    /// of the hull prints whatever is left.
+    /// </summary>
+    private void PrintChopCash(EntityUid console, WFDrydockJobComponent job, WFDrydockWorkItem item)
+    {
+        job.CashWeightDone += item.WorkTime;
+        var due = job.HullGone || job.CashWeight <= 0
+            ? job.CashTotal
+            : (int) (job.CashTotal * Math.Min(1.0, job.CashWeightDone / job.CashWeight));
+        var amount = due - job.CashPaid;
+        if (amount <= 0)
+            return;
+
+        job.CashPaid += amount;
+        if (TryComp<WFHulkComponent>(job.Ship, out var hulk))
+            hulk.ChopPaid += amount;
+
         var drop = DropSpot(console);
-        foreach (var (id, amount) in sheets)
+
+        // New bills go on the stack already at the console, until someone takes it.
+        if (job.CashStack is { } stack && !TerminatingOrDeleted(stack) && !_container.IsEntityInContainer(stack) &&
+            TryComp<StackComponent>(stack, out var stackComp) &&
+            _transform.InRange(Transform(stack).Coordinates, drop, 1f))
         {
-            _sheets.SpawnMultipleFromMaterial(amount, id, drop);
+            _stacks.SetCount(stack, stackComp.Count + amount, stackComp);
+            return;
         }
 
-        if (cash > 0 && !DepositChopCash(job, cash))
-            Log.Warning($"Could not pay {cash} for a chop-shop break at {ToPrettyString(console)} to {ToPrettyString(job.Payer)}.");
-
-        return (sheets, cash);
-    }
-
-    /// <summary>Pays a breaker's cash into their body's account, else, as a ghost, their character's.</summary>
-    private bool DepositChopCash(WFDrydockJobComponent job, int cash)
-    {
-        if (job.Payer is { } payer && !TerminatingOrDeleted(payer) && _bank.TryBankDeposit(payer, cash, false))
-            return true;
-
-        return job.BreakerUser is { } user && _players.TryGetSessionById(user, out var session) && _bounties.Deposit(session, cash);
+        job.CashStack = _stacks.Spawn(amount, Thalers, drop);
     }
 
     /// <summary>Hull tiles a grid has.</summary>

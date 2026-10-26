@@ -106,6 +106,14 @@ public sealed partial class WFMappingMenuWindow : FancyWindow
             ("maxEntities", limits.MaxEntities.ToString("N0", CultureInfo.InvariantCulture)),
             ("size", limits.MapSize));
 
+        TestLabel.Visible = session.Test != null;
+        if (session.Test is { } test)
+        {
+            TestLabel.Text = Loc.GetString("wf-mapping-mode-menu-testing",
+                ("testers", string.Join(", ", test.Testers)),
+                ("minutes", Math.Max(0, (int) Math.Ceiling((test.Ends - _timing.CurTime).TotalMinutes))));
+        }
+
         MemberList.RemoveAllChildren();
         foreach (var member in session.Members)
         {

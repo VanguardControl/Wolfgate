@@ -38,6 +38,7 @@ public sealed partial class WolfgateExtraTab : Control
         Control.AddOptionPercentSlider(WolfmedCVars.SyntheticHudScale, SyntheticHudScaleSlider, 0.6f, 2.5f);
 
         Control.AddOptionPercentSlider(InternetSoundCVars.Volume, InternetSoundVolumeSlider);
+        Control.AddOptionPercentSlider(JukeboxVolumeCVars.Volume, JukeboxVolumeSlider);
         Control.AddOptionCheckBox(SoundtrackMuteCVars.Enabled, SoundtrackMuteCheckBox);
 
         // The one setting of the Delta-V tab this one replaces.

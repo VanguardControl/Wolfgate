@@ -2,6 +2,9 @@
   id: UndergroundCodespeak
   isVisibleLanguage: true
   chatPrefix: cds
+  # WOLFGATE: codespeak gets its own chat colour so speakers can tell it from Common
+  speech:
+    color: "#c9a45c"
   obfuscation:
     !type:PhraseObfuscation
     minPhrases: 1

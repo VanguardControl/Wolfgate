@@ -42,6 +42,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
     private readonly List<WFMappingRejoinInfo> _rejoinable = new();
     private bool _setUp;
     private bool _shuttingDown;
+    private bool _reloadScreen;
 
     /// <summary>Whether the in-session setup has run, so the mapping screen is in use.</summary>
     public bool SetUp => _setUp;
@@ -116,6 +117,15 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         else if (_setUp && !inSession)
             Teardown();
 
+        // The screen reload happens here, never inside the attach events that trigger a teardown: reloading there
+        // loads the new entity's hands before its attach event does, and the hands UI asserts on the double load.
+        if (_reloadScreen)
+        {
+            _reloadScreen = false;
+            ReloadScreen();
+        }
+
+        UpdateIssues();
         if (_setUp)
         {
             UpdateTilePlacement();
@@ -190,7 +200,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
         _tools.PickDecals = true;
         _overlays.AddOverlay(new WFMappingBoundsOverlay(this));
         _overlays.AddOverlay(new WFMappingDeletePreviewOverlay(this));
-        ReloadScreen();
+        _reloadScreen = true;
         _tools.SetEnabled(true);
         _modes.SetActive(true);
         RaiseNetworkEvent(new WFMappingSpawnerIndexRequest());
@@ -203,6 +213,7 @@ public sealed partial class WFMappingClientSystem : EntitySystem
             return;
 
         _setUp = false;
+        _issuesScheduler.Clear();
         _modes.SetActive(false);
         ResetLayers(false);
         _tools.SetEnabled(false);
@@ -220,12 +231,15 @@ public sealed partial class WFMappingClientSystem : EntitySystem
             NewGridChanged?.Invoke();
         }
         if (!_shuttingDown)
-            ReloadScreen();
+            _reloadScreen = true;
 
         SessionEnded?.Invoke();
     }
 
-    /// <summary>Loads the mapping screen after setup, or the chosen layout after teardown, if it isn't up already.</summary>
+    /// <summary>
+    /// Loads the mapping screen after setup, or the chosen layout after teardown, if it isn't up already. Only
+    /// <see cref="FrameUpdate"/> calls this, so no attach or detach event is in progress.
+    /// </summary>
     private void ReloadScreen()
     {
         if (_state.CurrentState is not GameplayState gameplay)

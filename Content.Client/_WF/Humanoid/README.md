@@ -29,6 +29,7 @@ Entry points: `WolfgateSpeciesPicker` (species cards with previews and guidebook
 
 - [`Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingIconTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingIconTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingPickerChassisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingPickerChassisTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingPickerLayoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingPickerLayoutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingTileTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingTileTest.cs)
 
 ### Localization

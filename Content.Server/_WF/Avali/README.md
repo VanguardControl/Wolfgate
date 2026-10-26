@@ -82,6 +82,8 @@ or gun accuracy changes removed before the upstream PR was merged.
 
 ## Non-modular edits
 
+- [`Content.Server/Wagging/WaggingSystem.cs`](../../Wagging/WaggingSystem.cs): the flight toggle also wagged the tail
+- [`Content.Shared/_CE/ZLevels/Flight/CESharedZFlightSystem.Controllable.cs`](../../../Content.Shared/_CE/ZLevels/Flight/CESharedZFlightSystem.Controllable.cs): the tail-wag toggle also started flight
 - [`Resources/Locale/en-US/_Starlight/Avali/stasis.ftl`](../../../Resources/Locale/en-US/_Starlight/Avali/stasis.ftl): stasis is a short hold now, not an open-ended heal
 - [`Resources/migration.yml`](../../../Resources/migration.yml): WF prefix on the Avali brain and bio-synthetic limbs
 - [`Resources/Prototypes/_DV/Body/Prototypes/avali.yml`](../../../Resources/Prototypes/_DV/Body/Prototypes/avali.yml): Avali brain sprite

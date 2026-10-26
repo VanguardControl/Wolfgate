@@ -27,15 +27,16 @@ public sealed class CarcinomaBiomeTest
     {
         "WFFloorFlesh", "WFBloodOceanSeabed", "WFFloorFleshScab", "WFFloorFleshBoneMeaty", "WFFloorFleshBoneSpine",
         "WFFloorFleshBoneStraight", "WFFloorFleshCrust", "WFFloorFleshMarshMud", "WFFloorFleshMarshDirt",
+        "WFFloorFleshRiverBank",
     };
 
     private static readonly HashSet<string> HiveWalls = new() { "GoonSetpiecesHive", "ChompResin", "PolarisResin" };
 
     private static readonly HashSet<string> BoneProps = new()
     {
-        "CoyoteChompBonesLbone", "CoyoteChompBonesLribs", "CoyoteChompBonesLribs1", "CoyoteChompBonesLskullW",
-        "CoyoteChompBonesLrock", "CoyoteChompBonesLrock2", "CoyoteChompBonesLrock4", "TgStatueBoneRib", "TgStatueBoneRib2",
-        "NovaStatueBoneRib", "TgStatueBoneSkull", "TgBoneSkullHalf", "TgBoneSkullHalf2", "NovaStatueBoneSkull",
+        "WFCarcinomaBoneLong", "WFCarcinomaBoneRibs", "WFCarcinomaBoneRibsTall", "WFCarcinomaBoneSkullGreat",
+        "WFCarcinomaBoneLumpOne", "WFCarcinomaBoneLumpTwo", "WFCarcinomaBoneLumpThree", "WFCarcinomaBoneHorn",
+        "WFCarcinomaBoneHornTurned", "WFCarcinomaBoneSkull", "WFCarcinomaBoneSkullHalf", "WFCarcinomaBoneSkullHalfTurned",
     };
 
     private static readonly HashSet<string> DeadGrowth = new()
@@ -49,8 +50,8 @@ public sealed class CarcinomaBiomeTest
     private static readonly HashSet<string> Solid = new(HiveWalls)
     {
         "GoonSetpiecesBloodwall", "WallMeat", "FleshBlocker", "WFFleshPolyp", "WFFleshTree", "WFFleshPustuleTree",
-        "CoyoteChompBonesLrock", "CoyoteChompBonesLrock2", "CoyoteChompBonesLrock4", "TgStatueBoneRib", "TgStatueBoneRib2",
-        "NovaStatueBoneRib", "TgStatueBoneSkull", "TgBoneSkullHalf", "TgBoneSkullHalf2", "NovaStatueBoneSkull",
+        "WFCarcinomaBoneLumpOne", "WFCarcinomaBoneLumpTwo", "WFCarcinomaBoneLumpThree", "WFCarcinomaBoneHorn",
+        "WFCarcinomaBoneHornTurned", "WFCarcinomaBoneSkull", "WFCarcinomaBoneSkullHalf", "WFCarcinomaBoneSkullHalfTurned",
         "WFFleshSnagMahogany", "WFFleshSnagYew", "WFFleshSnagWalnut", "WFFleshSnagBarren", "WFFleshSnagBurnedOne",
         "WFFleshSnagBurnedThree",
     };
@@ -88,6 +89,7 @@ public sealed class CarcinomaBiomeTest
             var hive = new HashSet<Vector2i>();
             var blocked = new HashSet<Vector2i>();
             var open = new List<Vector2i>();
+            var river = new HashSet<Vector2i>();
             var sampled = 0;
             for (var x = -radius; x < radius; x++)
             for (var y = -radius; y < radius; y++)
@@ -111,6 +113,8 @@ public sealed class CarcinomaBiomeTest
                     featuresByTile[(def.ID, feature)] = featuresByTile.GetValueOrDefault((def.ID, feature)) + 1;
                     if (HiveWalls.Contains(feature))
                         hive.Add(pos);
+                    if (feature == "WFBloodRiver" && def.ID == "WFFloorFleshRiverBank")
+                        river.Add(pos);
                 }
                 if (feature == null || (!Solid.Contains(feature) && feature != "WFBloodRiver" && feature != "WFBloodOcean"))
                     open.Add(pos);
@@ -166,6 +170,17 @@ public sealed class CarcinomaBiomeTest
             TestContext.Out.WriteLine($"  hive: {hive.Count} wall tiles, largest pocket {largest}");
             Assert.That(largest, Is.LessThanOrEqualTo(50), "A hive pocket grew past a few tiles.");
             Assert.That(100.0 * hive.Count / sampled, Is.LessThan(0.5), "Hive walls are too common.");
+
+            // Blood rivers run long, with a clotted bank of their own, not as pockets.
+            var reach = LargestGroup(river, true);
+            TestContext.Out.WriteLine($"  rivers: {river.Count} tiles, longest reach {reach} tiles");
+            Assert.That(reach, Is.GreaterThanOrEqualTo(80), "The blood rivers are pockets, not rivers.");
+            Assert.That(tileCounts.GetValueOrDefault("WFFloorFleshRiverBank"), Is.GreaterThan(river.Count), "Rivers have no bank.");
+            foreach (var ((tile, feature), _) in featuresByTile)
+            {
+                if (tile == "WFFloorFleshRiverBank")
+                    Assert.That(feature, Is.EqualTo("WFBloodRiver"), $"{feature} grows on the river bank.");
+            }
 
             // The marsh is wetter than ordinary ground.
             var marshPools = featuresByTile.Where(f => MarshTiles.Contains(f.Key.Tile) && f.Key.Feature == "WFBloodRiver").Sum(f => f.Value);
