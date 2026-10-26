@@ -34,6 +34,6 @@ holds one, so these four are mutually exclusive.
 
 ## Non-modular edits
 
-None.
+- [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs): drop a trait that excludes one already taken, in either direction
 
 <!-- WOLFGATE-GENERATED END -->
