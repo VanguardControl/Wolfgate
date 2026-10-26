@@ -429,6 +429,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMechanicalWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMedicalPatchTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMedicalPatchTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMissingFootTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMissingFootTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMultiToolSurgeryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedMultiToolSurgeryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNecrosisSurgeryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNecrosisSurgeryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNpcAimTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedNpcAimTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs)
@@ -1689,6 +1690,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/OuterClothing/armour.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/OuterClothing/armour.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/_Goobstation/Entities/Objects/Misc/Crafting/ghetto_stuff.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Objects/Misc/Crafting/ghetto_stuff.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
+- [`Resources/Prototypes/_Goobstation/Entities/Objects/Tools/tools.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Objects/Tools/tools.yml): a multi-mode tool does the surgery its modes stand in for (feedback #136)
 - [`Resources/Prototypes/_Goobstation/Entities/Objects/Weapons/Melee/hammer.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Objects/Weapons/Melee/hammer.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/_Goobstation/Reagents/medicine.yml`](../../../Resources/Prototypes/_Goobstation/Reagents/medicine.yml): PROTO H: Onyx's Stasizium fracture block, from _Onyx/Reagents/Medicine/first_aid.yml.
 - [`Resources/Prototypes/_HL/Body/Organs/skrell.yml`](../../../Resources/Prototypes/_HL/Body/Organs/skrell.yml)
@@ -1992,6 +1994,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Entities/Clothing/Neck/base_clothingneck.yml`](../../../Resources/Prototypes/Entities/Clothing/Neck/base_clothingneck.yml): a scarf keeps its wearer warm, enough for a reptilian in station air
 - [`Resources/Prototypes/Entities/Clothing/OuterClothing/armor.yml`](../../../Resources/Prototypes/Entities/Clothing/OuterClothing/armor.yml): P6, P3-D6: locational armour coverage
 - [`Resources/Prototypes/Entities/Clothing/OuterClothing/vests.yml`](../../../Resources/Prototypes/Entities/Clothing/OuterClothing/vests.yml): P6, P3-D6: locational armour coverage
+- [`Resources/Prototypes/Entities/Debugging/spanisharmyknife.yml`](../../../Resources/Prototypes/Entities/Debugging/spanisharmyknife.yml): a multi-mode tool does the surgery its modes stand in for (feedback #136)
 - [`Resources/Prototypes/Entities/Markers/Spawners/Random/Department/medical.yml`](../../../Resources/Prototypes/Entities/Markers/Spawners/Random/Department/medical.yml): playtest 5: sutures found in more places.
 - [`Resources/Prototypes/Entities/Mobs/Cyborgs/borg_chassis.yml`](../../../Resources/Prototypes/Entities/Mobs/Cyborgs/borg_chassis.yml)
   - playtest 3: the IPC's container, so its bar shows
@@ -2034,7 +2037,9 @@ Skipped ("dirty-disposed").
   - playtest 4, Bob's crowbar hits over the thud on flesh
   - a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/Entities/Objects/Tools/flashlights.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/flashlights.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
-- [`Resources/Prototypes/Entities/Objects/Tools/jaws_of_life.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/jaws_of_life.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
+- [`Resources/Prototypes/Entities/Objects/Tools/jaws_of_life.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/jaws_of_life.yml)
+  - a multi-mode tool does the surgery its modes stand in for (feedback #136)
+  - a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/Entities/Objects/Tools/toolbox.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/toolbox.yml): a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
 - [`Resources/Prototypes/Entities/Objects/Tools/tools.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/tools.yml)
   - a blunt weapon can execute, with bludgeoning lines in place of the throat-slitting ones
@@ -2042,6 +2047,7 @@ Skipped ("dirty-disposed").
   - EVISC: the surgery step that seats a torn chassis panel
   - V124: the ratchet plays when the pass starts; this is the panel going back into shape.
   - M2: OD10, the core repair step that re-flashes a positronic core
+  - a multi-mode tool does the surgery its modes stand in for (feedback #136)
 - [`Resources/Prototypes/Entities/Objects/Tools/welders.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/welders.yml)
   - EVISC: the surgery step that welds a chassis breach shut
   - P5-D5, PROTO S: MobIPC moves to the WFSiliconWolfmed container in WP13-2;
