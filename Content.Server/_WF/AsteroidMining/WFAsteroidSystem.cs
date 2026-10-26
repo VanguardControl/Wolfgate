@@ -167,7 +167,23 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             }
 
             Dirty(rock, rockComp);
+            SyncGridVisuals(rock, rockComp);
         }
+    }
+
+    /// <summary>Copies a grid rock's look onto its grid, for clients the rock itself is too far away to reach.</summary>
+    private void SyncGridVisuals(EntityUid rock, WFAsteroidComponent comp)
+    {
+        var grid = Transform(rock).ParentUid;
+        if (!TryComp<WFAsteroidGridVisualsComponent>(grid, out var visuals))
+            return;
+
+        visuals.Rock = MetaData(rock).EntityPrototype?.ID;
+        visuals.Variant = comp.Variant;
+        visuals.Look = comp.Look;
+        visuals.RockColor = comp.RockColor;
+        visuals.VeinColor = comp.VeinColor;
+        Dirty(grid, visuals);
     }
 
     /// <summary>Makes the grid's tiles as heavy as solid rock, after the shuttle system has set them to hull density.</summary>
@@ -240,6 +256,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         RollWindow(comp);
         ApplyKind(rock, comp, proto);
         Dirty(rock, comp);
+        SyncGridVisuals(rock, comp);
     }
 
     /// <summary>Gives a rock its kind's tint and name.</summary>
@@ -310,6 +327,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         if (comp.BaseCharge > 0f)
             _beams.Track(child);
         Dirty(child, comp);
+        SyncGridVisuals(child, comp);
     }
 
     private void OnDamaged(Entity<WFAsteroidComponent> ent, ref DamageChangedEvent args)

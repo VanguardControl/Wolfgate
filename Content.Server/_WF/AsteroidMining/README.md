@@ -69,6 +69,11 @@ bands. On the client, `WFAsteroidVisualsSystem` picks sprite variants and looks,
 and lights the cracks with heat, `WFMiningBeamOverlay` draws the beams, `WFAsteroidCrackOverlay` draws rocks breaking
 and `WFMiningBeamVisualizerSystem` spins the fork.
 
+Grids reach every client but a rock only reaches those within view range, and an asteroid's tiles are invisible, so a
+zoomed-out camera would see rocks pop in and out. Each asteroid grid carries a copy of its rock's look
+(`WFAsteroidGridVisuals`, kept in step by `WFAsteroidSystem`), and `WFAsteroidFarOverlay` draws the rock from it
+whenever the rock itself hasn't been sent.
+
 Balance knobs: which kinds swap and the size budgets in `replacement.yml`, rock masses, shatter damage, fragment and
 boulder shares in `asteroids.yml`, ore weights and rock stats in `compositions.yml`, the bands in `WFAsteroidHeat`,
 and each laser's strength, crack rate, range, fire rate and battery in `mining_beam.yml`.
@@ -96,6 +101,7 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidComponent.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidCompositionPrototype.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidCompositionPrototype.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidCrackEffectComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidCrackEffectComponent.cs)
+- [`Content.Shared/_WF/AsteroidMining/WFAsteroidGridVisualsComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidGridVisualsComponent.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidHeat.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidHeat.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidReplacementPrototype.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidReplacementPrototype.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFAsteroidShape.cs`](../../../Content.Shared/_WF/AsteroidMining/WFAsteroidShape.cs)
@@ -108,6 +114,7 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 
 - [`Content.Client/_WF/AsteroidMining/FireControlWindow.AsteroidMining.cs`](../../../Content.Client/_WF/AsteroidMining/FireControlWindow.AsteroidMining.cs)
 - [`Content.Client/_WF/AsteroidMining/WFAsteroidCrackOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFAsteroidCrackOverlay.cs)
+- [`Content.Client/_WF/AsteroidMining/WFAsteroidFarOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFAsteroidFarOverlay.cs)
 - [`Content.Client/_WF/AsteroidMining/WFAsteroidVisualsSystem.cs`](../../../Content.Client/_WF/AsteroidMining/WFAsteroidVisualsSystem.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningBeamOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamOverlay.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningBeamVisualizerSystem.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamVisualizerSystem.cs)

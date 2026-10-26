@@ -172,6 +172,53 @@ public sealed class AsteroidMiningTest
     }
 
     [Test]
+    public async Task GridCarriesItsRocksLookForFarClients()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var asteroids = server.System<WFAsteroidSystem>();
+
+        // Whether every asteroid grid's copy matches the rock that clients out of view range draw it from.
+        bool AllMatch()
+        {
+            var query = em.EntityQueryEnumerator<WFAsteroidGridComponent, WFAsteroidGridVisualsComponent>();
+            while (query.MoveNext(out _, out var grid, out var visuals))
+            {
+                var rock = em.GetComponent<WFAsteroidComponent>(grid.RockUid!.Value);
+                if (visuals.Rock != em.GetComponent<MetaDataComponent>(grid.RockUid.Value).EntityPrototype!.ID ||
+                    visuals.Variant != rock.Variant || visuals.Look != rock.Look ||
+                    visuals.RockColor != rock.RockColor || visuals.VeinColor != rock.VeinColor)
+                    return false;
+            }
+
+            return true;
+        }
+
+        await server.WaitAssertion(() =>
+        {
+            var rock = SpawnAsteroid(pair, map.MapId, "WFAsteroidLarge", ShipPos);
+            asteroids.Roll(rock, "WFAsteroidMetallic");
+            Assert.That(AllMatch(), Is.True, "A rolled rock's grid should carry its look.");
+            asteroids.QueueCrack(rock, WFAsteroidCrack.Clean);
+        });
+
+        await server.WaitRunTicks(2);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(GridRocks(em), Has.Count.EqualTo(2), "The rock should split into two fragments.");
+                Assert.That(AllMatch(), Is.True, "Each fragment's grid should carry the look it inherited.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
     public async Task WorldgenSwapsOreAsteroidsButKeepsScrap()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });

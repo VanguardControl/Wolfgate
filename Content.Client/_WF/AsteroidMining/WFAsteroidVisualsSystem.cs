@@ -2,14 +2,17 @@ using System.Numerics;
 using Content.Shared._WF.AsteroidMining;
 using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
+using Robust.Client.ResourceManagement;
+using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Serialization.TypeSerializers.Implementations;
 using Robust.Shared.Timing;
 
 namespace Content.Client._WF.AsteroidMining;
 
 /// <summary>
 /// Picks each rock's sprite variant and vein tint, makes its cracks glow with heat under a beam, shakes it as it nears
-/// cracking, and registers the overlay that draws it breaking.
+/// cracking, and registers the overlays that draw it breaking and draw it from its grid while it is out of view range.
 /// </summary>
 public sealed partial class WFAsteroidVisualsSystem : EntitySystem
 {
@@ -18,6 +21,7 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;
+    [Dependency] private IResourceCache _resources = default!;
 
     private static readonly Color Ember = new(0.55f, 0.04f, 0f);
     private static readonly Color Orange = new(1f, 0.42f, 0.05f);
@@ -25,17 +29,28 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
     private static readonly WFAsteroidVisualLayers[] Layers =
         { WFAsteroidVisualLayers.Rock, WFAsteroidVisualLayers.Veins, WFAsteroidVisualLayers.Heat };
 
+    /// <summary>Rocks with heat to show or still cooling off, the only ones the frame update touches.</summary>
+    private readonly HashSet<EntityUid> _hot = new();
+    private readonly List<EntityUid> _cooled = new();
+
+    /// <summary>The RSI each rock prototype and look draws from out of view range; null if it has none.</summary>
+    private readonly Dictionary<(EntProtoId Rock, string? Look), RSI?> _farRsis = new();
+    private readonly HashSet<(EntProtoId Rock, string? Look)> _pendingRsis = new();
+
     public override void Initialize()
     {
         base.Initialize();
         SubscribeLocalEvent<WFAsteroidComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<WFAsteroidComponent, AfterAutoHandleStateEvent>(OnState);
+        SubscribeLocalEvent<WFAsteroidGridVisualsComponent, AfterAutoHandleStateEvent>(OnGridState);
         _overlays.AddOverlay(new WFAsteroidCrackOverlay(EntityManager, _prototypes, _timing));
+        _overlays.AddOverlay(new WFAsteroidFarOverlay(EntityManager, this));
     }
 
     public override void Shutdown()
     {
         _overlays.RemoveOverlay<WFAsteroidCrackOverlay>();
+        _overlays.RemoveOverlay<WFAsteroidFarOverlay>();
         base.Shutdown();
     }
 
@@ -49,8 +64,23 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
         Apply(ent);
     }
 
+    private void OnGridState(Entity<WFAsteroidGridVisualsComponent> ent, ref AfterAutoHandleStateEvent args)
+    {
+        if (ent.Comp.Rock is { } rock && !_farRsis.ContainsKey((rock, ent.Comp.Look)))
+            _pendingRsis.Add((rock, ent.Comp.Look));
+    }
+
+    /// <summary>The RSI to draw a grid's rock from while the rock is out of view range, once it has been loaded.</summary>
+    public RSI? FarRsi(WFAsteroidGridVisualsComponent visuals)
+    {
+        return visuals.Rock is { } rock && _farRsis.TryGetValue((rock, visuals.Look), out var rsi) ? rsi : null;
+    }
+
     private void Apply(Entity<WFAsteroidComponent> ent)
     {
+        if (ent.Comp.Charge > 0f)
+            _hot.Add(ent);
+
         if (!TryComp<SpriteComponent>(ent, out var sprite))
             return;
 
@@ -83,11 +113,16 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
     public override void FrameUpdate(float frameTime)
     {
         base.FrameUpdate(frameTime);
-        var query = EntityQueryEnumerator<WFAsteroidComponent, SpriteComponent>();
-        while (query.MoveNext(out var uid, out var rock, out var sprite))
+        LoadPendingRsis();
+
+        _cooled.Clear();
+        foreach (var uid in _hot)
         {
-            if (rock.Charge <= 0f && rock.DisplayCharge <= 0f)
+            if (!TryComp<WFAsteroidComponent>(uid, out var rock) || !TryComp<SpriteComponent>(uid, out var sprite))
+            {
+                _cooled.Add(uid);
                 continue;
+            }
 
             // Ease toward the server's heat so 50 ms state steps don't show.
             rock.DisplayCharge += (rock.Charge - rock.DisplayCharge) * MathF.Min(1f, frameTime * 6f);
@@ -95,7 +130,50 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
                 rock.DisplayCharge = 0f;
             SetHeat((uid, rock, sprite), rock.DisplayCharge);
             Shake((uid, rock, sprite));
+            if (rock.Charge <= 0f && rock.DisplayCharge <= 0f)
+                _cooled.Add(uid);
         }
+
+        foreach (var uid in _cooled)
+        {
+            _hot.Remove(uid);
+        }
+    }
+
+    /// <summary>
+    /// Loads the RSIs newly seen asteroid grids need. A look names its RSI; otherwise a sprite's RSI only loads on a spawned
+    /// entity, so one is made in nullspace to read it, as the engine's own icon helpers do.
+    /// </summary>
+    private void LoadPendingRsis()
+    {
+        foreach (var key in _pendingRsis)
+        {
+            if (_farRsis.ContainsKey(key))
+                continue;
+
+            if (!_prototypes.TryIndex(key.Rock, out var proto) ||
+                !proto.TryComp<WFAsteroidComponent>(out var rockProto, EntityManager.ComponentFactory))
+            {
+                _farRsis[key] = null;
+                continue;
+            }
+
+            RSI? rsi;
+            if (key.Look is { } look && rockProto.Looks.TryGetValue(look, out var path))
+            {
+                rsi = _resources.GetResource<RSIResource>(SpriteSpecifierSerializer.TextureRoot / path).RSI;
+            }
+            else
+            {
+                var dummy = Spawn(key.Rock, MapCoordinates.Nullspace);
+                rsi = CompOrNull<SpriteComponent>(dummy)?.BaseRSI;
+                Del(dummy);
+            }
+
+            _farRsis[key] = rsi;
+        }
+
+        _pendingRsis.Clear();
     }
 
     /// <summary>Past 60% crack progress the rock trembles, harder the closer it is to breaking.</summary>

@@ -36,6 +36,8 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     /// <summary>Each ship's mining lasers, grouped once per gunnery refresh rather than once per console.</summary>
     private readonly Dictionary<EntityUid, List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)>> _shipLasers = new();
     private static readonly List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> NoLasers = new();
+    /// <summary>Emptied lists from earlier groupings, reused rather than reallocated four times a second.</summary>
+    private readonly Stack<List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)>> _spareLasers = new();
     /// <summary>
     /// Each open gunnery console's last rock, kept until it breaks or the console closes, and what was last sent and to
     /// which viewers, so an unchanged scan isn't resent.
@@ -94,6 +96,12 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     /// <summary>Sorts every mining laser by the ship it sits on.</summary>
     private void GroupShipLasers()
     {
+        foreach (var spare in _shipLasers.Values)
+        {
+            spare.Clear();
+            _spareLasers.Push(spare);
+        }
+
         _shipLasers.Clear();
         var query = EntityQueryEnumerator<WFMiningBeamEmitterComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var beam, out var xform))
@@ -102,7 +110,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
                 continue;
 
             if (!_shipLasers.TryGetValue(grid, out var lasers))
-                _shipLasers[grid] = lasers = new List<(EntityUid, WFMiningBeamEmitterComponent)>();
+                _shipLasers[grid] = lasers = _spareLasers.TryPop(out var spare) ? spare : new();
             lasers.Add((uid, beam));
         }
     }

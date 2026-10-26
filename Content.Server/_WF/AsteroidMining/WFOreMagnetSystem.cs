@@ -30,7 +30,9 @@ public sealed partial class WFOreMagnetSystem : EntitySystem
     [Dependency] private SharedContainerSystem _container = default!;
 
     private readonly List<EntityUid> _done = new();
-    private readonly HashSet<EntityUid> _nearby = new();
+    private readonly HashSet<Entity<ItemComponent>> _nearby = new();
+    /// <summary>Stack types the scanning magnet holds a stack of with room left.</summary>
+    private readonly HashSet<string> _openStacks = new();
 
     public override void Initialize()
     {
@@ -121,42 +123,47 @@ public sealed partial class WFOreMagnetSystem : EntitySystem
     /// <summary>Locks onto loose ore in range and in sight, as far as free locks and storage space allow.</summary>
     private void Scan(Entity<WFOreMagnetComponent, StorageComponent, TransformComponent> ent, TimeSpan now)
     {
-        var (uid, magnet, storage, _) = ent;
+        var (uid, magnet, storage, xform) = ent;
         if (magnet.Pulling.Count >= magnet.MaxPulls)
             return;
+
+        _openStacks.Clear();
+        foreach (var stored in storage.Container.ContainedEntities)
+        {
+            if (TryComp<StackComponent>(stored, out var storedStack) && _stack.GetAvailableSpace(storedStack) > 0)
+                _openStacks.Add(storedStack.StackTypeId);
+        }
 
         // Room left, less what the ore already locked on will take. Ore that tops up a stored stack takes none.
         var free = storage.Grid.GetArea() - _storage.GetCumulativeItemAreas((uid, storage));
         foreach (var locked in magnet.Pulling)
         {
-            if (TryComp<ItemComponent>(locked, out var lockedItem) && !TopsUpStack(locked, storage))
+            if (TryComp<ItemComponent>(locked, out var lockedItem) && !TopsUpStack(locked))
                 free -= _item.GetItemShape((locked, lockedItem)).GetArea();
         }
 
-        var origin = _transform.GetMapCoordinates(uid);
+        // A full magnet can only top up its stacks, so it skips the lookup when it has none with room.
+        if (free <= 0 && _openStacks.Count == 0)
+            return;
+
+        var origin = _transform.GetMapCoordinates(uid, xform);
         _nearby.Clear();
-        _lookup.GetEntitiesInRange(uid, magnet.Range, _nearby, LookupFlags.Dynamic | LookupFlags.Sundries);
-        foreach (var ore in _nearby)
+        _lookup.GetEntitiesInRange(xform.Coordinates, magnet.Range, _nearby, LookupFlags.Dynamic | LookupFlags.Sundries);
+        foreach (var (ore, item) in _nearby)
         {
             if (magnet.Pulling.Count >= magnet.MaxPulls)
                 break;
 
             if (HasComp<WFOreMagnetPulledComponent>(ore) ||
-                !TryComp<PhysicsComponent>(ore, out var physics) || physics.BodyStatus != BodyStatus.OnGround ||
-                !TryComp<ItemComponent>(ore, out var item) ||
-                !_storage.CanInsert(uid, ore, out _, storage, item) ||
-                !CanSee(uid, magnet, ore))
+                !TryComp<PhysicsComponent>(ore, out var physics) || physics.BodyStatus != BodyStatus.OnGround)
                 continue;
 
-            if (!TopsUpStack(ore, storage))
-            {
-                var size = _item.GetItemShape((ore, item)).GetArea();
-                if (size > free)
-                    continue;
+            // Cheapest first: the space it needs, then whether storage takes it, then the sight raycast.
+            var size = TopsUpStack(ore) ? 0 : _item.GetItemShape((ore, item)).GetArea();
+            if (size > free || !_storage.CanInsert(uid, ore, out _, storage, item) || !CanSee(uid, magnet, ore))
+                continue;
 
-                free -= size;
-            }
-
+            free -= size;
             var distance = (_transform.GetMapCoordinates(ore).Position - origin.Position).Length();
             var pulled = EnsureComp<WFOreMagnetPulledComponent>(ore);
             pulled.Magnet = uid;
@@ -175,19 +182,9 @@ public sealed partial class WFOreMagnetSystem : EntitySystem
     }
 
     /// <summary>Whether a stack of the same kind in storage has room for more, so the ore needs no new slot.</summary>
-    private bool TopsUpStack(EntityUid ore, StorageComponent storage)
+    private bool TopsUpStack(EntityUid ore)
     {
-        if (!TryComp<StackComponent>(ore, out var stack))
-            return false;
-
-        foreach (var stored in storage.Container.ContainedEntities)
-        {
-            if (TryComp<StackComponent>(stored, out var storedStack) && storedStack.StackTypeId == stack.StackTypeId &&
-                _stack.GetAvailableSpace(storedStack) > 0)
-                return true;
-        }
-
-        return false;
+        return TryComp<StackComponent>(ore, out var stack) && _openStacks.Contains(stack.StackTypeId);
     }
 
     private void ReleaseAll(WFOreMagnetComponent magnet)

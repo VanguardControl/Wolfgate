@@ -313,6 +313,7 @@
     flags: HideLabel, HideLabelAlways, AlwaysShowColor
     color: "#d67e27"
   - type: WFAdminRadarUnlabelled
+  - type: WFAsteroidGridVisuals
   - type: DetectedAtRangeMultiplier
     visualBias: 1024
 
