@@ -40,10 +40,12 @@
       map: [ "enum.WFAsteroidVisualLayers.Rock" ]
     - state: veins0
       map: [ "enum.WFAsteroidVisualLayers.Veins" ]
+    # Hidden while cold: a layer with its own shader breaks the sprite batch even when it is clear.
     - state: heat0
       map: [ "enum.WFAsteroidVisualLayers.Heat" ]
       shader: WFAdditiveUnshaded
       color: "#00000000"
+      visible: false
   # Each vein drops more than a vein rock, and few go to boulders, since cracking rocks one at a time is slower than
   # chewing through tile asteroids was.
   - type: WFAsteroid

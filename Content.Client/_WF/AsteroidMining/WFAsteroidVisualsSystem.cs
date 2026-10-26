@@ -207,6 +207,8 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
         }
 
         _sprite.LayerSetColor((ent, ent.Comp2), WFAsteroidVisualLayers.Heat, color.WithAlpha(alpha));
+        // Its shader breaks the sprite batch, so the layer is only drawn while it shows.
+        _sprite.LayerSetVisible((ent, ent.Comp2), WFAsteroidVisualLayers.Heat, alpha > 0f);
         if (!TryComp<PointLightComponent>(ent, out var light))
             return;
 

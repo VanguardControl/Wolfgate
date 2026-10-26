@@ -147,6 +147,8 @@ public sealed partial class WFOreMagnetSystem : EntitySystem
             return;
 
         var origin = _transform.GetMapCoordinates(uid, xform);
+        // The smallest ore that found no slot this scan; ore as big skips the storage grid search, which is costly.
+        var noRoom = int.MaxValue;
         _nearby.Clear();
         _lookup.GetEntitiesInRange(xform.Coordinates, magnet.Range, _nearby, LookupFlags.Dynamic | LookupFlags.Sundries);
         foreach (var (ore, item) in _nearby)
@@ -160,7 +162,17 @@ public sealed partial class WFOreMagnetSystem : EntitySystem
 
             // Cheapest first: the space it needs, then whether storage takes it, then the sight raycast.
             var size = TopsUpStack(ore) ? 0 : _item.GetItemShape((ore, item)).GetArea();
-            if (size > free || !_storage.CanInsert(uid, ore, out _, storage, item) || !CanSee(uid, magnet, ore))
+            if (size > free || (size > 0 && size >= noRoom))
+                continue;
+
+            if (!_storage.CanInsert(uid, ore, out var reason, storage, item))
+            {
+                if (size > 0 && reason == "comp-storage-insufficient-capacity")
+                    noRoom = size;
+                continue;
+            }
+
+            if (!CanSee(uid, magnet, ore))
                 continue;
 
             free -= size;
