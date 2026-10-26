@@ -128,8 +128,7 @@ public sealed class WFCockpitGunneryTest
             foreach (var entity in new[] { helm, gun, server })
                 em.RemoveComponent<ApcPowerReceiverComponent>(entity);
             groupedWeapon = em.SpawnEntity(null, map.GridCoords);
-            em.AddComponent<FireControllableComponent>(groupedWeapon).ControllingServer = server;
-            em.GetComponent<FireControlServerComponent>(server).Controlled.Add(groupedWeapon);
+            Control(em, server, groupedWeapon);
             em.System<FireControlSystem>().WfRefreshConsole(gun);
             gunNet = em.GetNetEntity(gun);
             weaponNet = em.GetNetEntity(groupedWeapon);
@@ -313,17 +312,15 @@ public sealed class WFCockpitGunneryTest
             var finiteMagazine = em.SpawnEntity("Magazine20mmAS", map.GridCoords);
             Assert.That(slots.TryInsert(weapon, "gun_magazine", finiteMagazine, null), Is.True,
                 "Use the compatible finite loader so a real shot measurably consumes ammunition.");
+            Control(em, serverUid, weapon);
             var fireControl = em.GetComponent<FireControllableComponent>(weapon);
-            fireControl.ControllingServer = serverUid;
-            server.Controlled.Add(weapon);
             var foreign = em.SpawnEntity(null, map.GridCoords);
             var foreignControl = em.AddComponent<FireControllableComponent>(foreign);
             var flare = em.SpawnEntity("WeaponTurretFlare", new EntityCoordinates(map.Grid.Owner, new Vector2(2.5f, 0.5f)));
+            Control(em, serverUid, flare);
             var flareControl = em.GetComponent<FireControllableComponent>(flare);
-            flareControl.ControllingServer = serverUid;
             // Sight is not what keeps it from firing, so only the tunnel's launcher filter can.
             flareControl.IgnoreLos = true;
-            server.Controlled.Add(flare);
             // Owned by this server and able to fire, but mounted on a second grid.
             var otherGrid = pair.Server.System<SharedMapSystem>().CreateGridEntity(map.MapId);
             transforms.SetLocalPosition(otherGrid.Owner, new Vector2(40, 0));
@@ -530,12 +527,10 @@ public sealed class WFCockpitGunneryTest
             em.GetComponent<FireControlConsoleComponent>(gun).ConnectedServer = serverUid;
             em.GetComponent<ApcPowerReceiverComponent>(gun).Powered = true;
             var weapon = em.SpawnEntity(null, map.GridCoords);
-            em.AddComponent<FireControllableComponent>(weapon).ControllingServer = serverUid;
-            server.Controlled.Add(weapon);
+            Control(em, serverUid, weapon);
             var flare = em.SpawnEntity("WeaponTurretFlare", new EntityCoordinates(map.Grid.Owner, new Vector2(1.5f, 0.5f)));
+            Control(em, serverUid, flare);
             var flareControl = em.GetComponent<FireControllableComponent>(flare);
-            flareControl.ControllingServer = serverUid;
-            server.Controlled.Add(flare);
 
             var key = FireControlConsoleUiKey.Key;
             var ui = em.System<SharedUserInterfaceSystem>();
@@ -610,11 +605,7 @@ public sealed class WFCockpitGunneryTest
             console.ConnectedServer = serverUid;
             em.AddComponent<WFCombatConsoleComponent>(consoleUid).Automatic = false;
             flareUid = em.SpawnEntity("WeaponTurretFlare", map.GridCoords);
-            // Registered the way the server registers it, so a refresh during the test keeps it: a hand-added launcher
-            // off a hardpoint was dropped by whichever refresh came first, and the burst never fired.
-            em.RemoveComponent<HardpointAnchorableOnlyComponent>(flareUid);
-            em.System<FireControlSystem>().RefreshControllables(map.Grid.Owner);
-            Assert.That(server.Controlled, Does.Contain(flareUid));
+            Control(em, serverUid, flareUid);
             missileUid = em.SpawnEntity(null, new EntityCoordinates(map.MapUid, new Vector2(10, 0)));
             em.AddComponent<ProjectileComponent>(missileUid);
             var seeker = em.AddComponent<TargetSeekingComponent>(missileUid);
@@ -744,5 +735,24 @@ public sealed class WFCockpitGunneryTest
             change(changed);
             Assert.That(WFCombatSnapshotEquality.Same(Snapshot(), changed), Is.False, $"A change to {name} must be republished.");
         }
+    }
+
+    /// <summary>
+    /// Hooks a weapon into a gunnery server so a refresh keeps it. A refresh rebuilds the server's weapons from the
+    /// anchored ones it may mount, so a weapon added by hand, off a hardpoint or unanchored, was dropped by whichever
+    /// refresh came first, and a test that then expected it to fire failed now and then.
+    /// </summary>
+    private static void Control(IEntityManager em, EntityUid server, EntityUid weapon)
+    {
+        em.RemoveComponent<HardpointAnchorableOnlyComponent>(weapon);
+        var xform = em.GetComponent<TransformComponent>(weapon);
+        if (!xform.Anchored)
+            em.System<SharedTransformSystem>().AnchorEntity(weapon, xform);
+
+        em.EnsureComponent<FireControllableComponent>(weapon).ControllingServer = server;
+        em.GetComponent<FireControlServerComponent>(server).Controlled.Add(weapon);
+        em.System<FireControlSystem>().RefreshControllables(em.GetComponent<FireControlServerComponent>(server).ConnectedGrid!.Value);
+        Assert.That(em.GetComponent<FireControlServerComponent>(server).Controlled, Does.Contain(weapon),
+            $"{em.ToPrettyString(weapon)} must stay hooked in through a refresh.");
     }
 }

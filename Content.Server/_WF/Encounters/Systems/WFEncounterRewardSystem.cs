@@ -92,6 +92,8 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
                 continue;
 
             found = encounter;
+            if (primary is KillPlayerSource || args.Assist is KillPlayerSource)
+                ship.LastFought = _timing.CurTime;
             if (encounter.Resolution != null)
                 break;
 
@@ -281,12 +283,14 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
     /// <summary>Counts a ship weapon hit by a player-crewed ship on an encounter ship as help for the other sides.</summary>
     public void RecordHit(EntityUid victim, EntityUid attacker)
     {
-        if (_alerts.IsExcused(victim, attacker))
+        if (!TryComp<WFEncounterGridComponent>(victim, out var marker) || HasComp<WFEncounterGridComponent>(attacker)
+            || !TryComp<WFEncounterComponent>(marker.Encounter, out var encounter)
+            || !encounter.Ships.TryGetValue(marker.Key, out var ship))
             return;
 
-        if (!TryComp<WFEncounterGridComponent>(victim, out var marker) || HasComp<WFEncounterGridComponent>(attacker)
-            || !TryComp<WFEncounterComponent>(marker.Encounter, out var encounter) || encounter.Resolution != null
-            || !encounter.Ships.TryGetValue(marker.Key, out var ship))
+        // Any hit is a fight that keeps the ship around, excused or after the encounter is over.
+        ship.LastFought = _timing.CurTime;
+        if (_alerts.IsExcused(victim, attacker) || encounter.Resolution != null)
             return;
 
         var crew = new List<NetUserId>();
