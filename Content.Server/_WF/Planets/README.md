@@ -22,7 +22,8 @@ cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils h
 strategic plot shows the world itself, drawn by the sector's planet shader close enough to fill it, instead of space
 (`ShuttleMapControl.PlanetBackground`). A floor nobody built that breaks on a planet, pried up or blown apart, gives
 the natural ground back instead of station plating and lattice (`WFPlanetTileBreakSystem`); a player's own floor over
-the ground breaks the station way, down to the ground they built on. Jetpacks only
+the ground breaks the station way, down to the ground they built on. A blast never leaves plating or lattice on the
+ground: natural ground holds or opens into the caverns, and a player's floor never breaks through. Jetpacks only
 work in orbit and lattice goes straight onto natural ground. A room built on a planet holds its own air once it has a
 floor: bare ground counts as outdoors and keeps the planet's air. Players use landing thruster kits, parachutes and the
 planet timepiece. Admins get the Planet Control panel in the Wolfgate admin tab (`planetcontrol`) for sanction, time
@@ -190,6 +191,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.WFTerrain.cs`](CEZLevelsSystem.WFTerrain.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.Wolfgate.cs`](CEZLevelsSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/Commands/WFPlanetCommand.cs`](Commands/WFPlanetCommand.cs)
+- [`Content.Server/_WF/Planets/ExplosionSystem.WFPlanets.cs`](ExplosionSystem.WFPlanets.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFFlight.cs`](Flight/CEZLevelsSystem.WFFlight.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFGravityCache.cs`](Flight/CEZLevelsSystem.WFGravityCache.cs)
 - [`Content.Server/_WF/Planets/Flight/CEZLevelsSystem.WFLandingClearance.cs`](Flight/CEZLevelsSystem.WFLandingClearance.cs)
@@ -366,6 +368,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetDroneBeltTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetDroneBeltTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyLifecycleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyLifecycleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetExplosionGroundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetExplosionGroundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs)
@@ -645,7 +648,9 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
   - carries the silent flag into the queued explosion.
   - a silent blast still carves its crater, it just does not shake, push or sound.
   - upstream sound, re-indented under the silent guard above.
-- [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs`](../../Explosion/EntitySystems/ExplosionSystem.Processing.cs): silent flag, so a crash's storm of blasts makes one bang.
+- [`Content.Server/Explosion/EntitySystems/ExplosionSystem.Processing.cs`](../../Explosion/EntitySystems/ExplosionSystem.Processing.cs)
+  - a blast leaves a planet's ground, not station plating, lattice or a hole under a player's floor.
+  - silent flag, so a crash's storm of blasts makes one bang.
 - [`Content.Server/GameTicking/GameTicker.RoundFlow.cs`](../../GameTicking/GameTicker.RoundFlow.cs): round-start worlds still forming hold the start
 - [`Content.Server/Movement/Systems/JetpackSystem.cs`](../../Movement/Systems/JetpackSystem.cs)
   - an atmospheric pack burns welding fuel from a solution, not gas from a tank.
