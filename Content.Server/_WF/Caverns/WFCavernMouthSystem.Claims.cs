@@ -648,8 +648,11 @@ public sealed partial class WFCavernMouthSystem
         }
     }
 
-    /// <summary>Spawns the shade over a hole tile unless it has one: the cavern, its air and the landing it reports.</summary>
-    private void SpawnShade(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i index, float landingMultiplier)
+    /// <summary>
+    /// Spawns the shade over a hole tile unless it has one: the cavern, its air and the landing it reports. A plain
+    /// shade, over stairs, draws no lip.
+    /// </summary>
+    private void SpawnShade(Entity<WFCavernGroundComponent> ground, MouthContext context, Vector2i index, float landingMultiplier, bool plain = false)
     {
         if (ground.Comp.Shades.ContainsKey(index))
             return;
@@ -659,6 +662,7 @@ public sealed partial class WFCavernMouthSystem
         shaft.Cavern = context.Cavern.ID;
         shaft.Air = WFCavernAirClassifier.Classify(_proto.Index(context.Cavern.Level).Atmosphere);
         shaft.LandingMultiplier = landingMultiplier;
+        shaft.Plain = plain;
         Dirty(shade, shaft);
         ground.Comp.Shades[index] = shade;
     }

@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using Content.Shared._WF.PlanetCities;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Planets;
+using Content.Server._WF.Caverns;
 using Content.Server._WF.PlanetCities;
 using Content.Server._WF.PlanetPois;
 using Content.Server._WF.Planets;
@@ -16,6 +18,7 @@ using Content.Server.Parallax;
 using Content.Server.Station.Systems;
 using Content.Shared.Parallax.Biomes;
 using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._WF.Caverns;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.PlanetPois;
 using Content.Shared._WF.Planets;
@@ -107,6 +110,15 @@ public sealed class FixedCityTest
             Assert.That(mapSystem.GetAnchoredEntities((below, belowGrid), ahead)
                 .Any(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID?.Contains("Wall") == true),
                 Is.True, "The basement stairs were turned apart from the house.");
+            // Over a cavern the stairwell is a plain opening: no sinkhole's lip and no climb point beside the stairs.
+            if (caverns)
+            {
+                var holes = entMan.GetComponent<WFCavernGroundComponent>(ground);
+                Assert.That(holes.Shades.TryGetValue(shaft, out var shade) && entMan.GetComponent<WFCavernShaftComponent>(shade).Plain,
+                    Is.True, "The stairwell is dressed as a sinkhole.");
+                Assert.That(holes.ClimbPoints.Keys.Any(climb => Math.Max(Math.Abs(climb.X - shaft.X), Math.Abs(climb.Y - shaft.Y)) <= 1),
+                    Is.False, "The stairwell was given a climb point.");
+            }
 
             // The off-road sites stand off the roads, each on a footpath that runs from its door to one.
             foreach (var offRoad in new[] { "verda_corner_house", "verda_small_house", "abandoned_bandit_hideout" })
