@@ -52,6 +52,7 @@ public sealed class WolfmedConsciousnessSystem : SharedWolfmedConsciousnessSyste
     [Dependency] private WolfmedToxinSystem _toxin = default!; // M5
     [Dependency] private WolfmedRadiationSystem _radiation = default!;
     [Dependency] private WolfmedBodyTemperatureSystem _temperature = default!;
+    [Dependency] private WolfmedBodyPainSystem _bodyPain = default!;
 
     /// <summary>
     /// How much of an external pressure is enough to put a body on the floor. 1 is unconscious, so anything

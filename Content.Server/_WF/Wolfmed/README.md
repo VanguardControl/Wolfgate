@@ -52,6 +52,7 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_WF/Wolfmed/Autodoc/AutodocSystem.Voice.cs`](Autodoc/AutodocSystem.Voice.cs)
 - [`Content.Server/_WF/Wolfmed/Body/WolfmedOpticsSystem.cs`](Body/WolfmedOpticsSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Body/WolfmedOrganConsequenceSystem.cs`](Body/WolfmedOrganConsequenceSystem.cs)
+- [`Content.Server/_WF/Wolfmed/Body/WolfmedOrganFailureSystem.cs`](Body/WolfmedOrganFailureSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Body/WolfmedOrganThresholdSystem.cs`](Body/WolfmedOrganThresholdSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Body/WolfmedPartCeilingSystem.cs`](Body/WolfmedPartCeilingSystem.cs)
 - [`Content.Server/_WF/Wolfmed/Commands/DamageCommand.Wolfmed.cs`](Commands/DamageCommand.Wolfmed.cs)
@@ -169,6 +170,7 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartComponent.cs`](../../../Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartComponent.cs)
 - [`Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartSystem.cs`](../../../Content.Shared/_WF/Wolfmed/Body/WolfmedBodyPartSystem.cs)
 - [`Content.Shared/_WF/Wolfmed/Body/WolfmedOrganComponent.cs`](../../../Content.Shared/_WF/Wolfmed/Body/WolfmedOrganComponent.cs)
+- [`Content.Shared/_WF/Wolfmed/Body/WolfmedPartOverflowComponent.cs`](../../../Content.Shared/_WF/Wolfmed/Body/WolfmedPartOverflowComponent.cs)
 - [`Content.Shared/_WF/Wolfmed/Body/WolfmedSpeciesExceptionPrototype.cs`](../../../Content.Shared/_WF/Wolfmed/Body/WolfmedSpeciesExceptionPrototype.cs)
 - [`Content.Shared/_WF/Wolfmed/Body/WolfmedWoundHostExclusionSystem.cs`](../../../Content.Shared/_WF/Wolfmed/Body/WolfmedWoundHostExclusionSystem.cs)
 - [`Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs`](../../../Content.Shared/_WF/Wolfmed/CCVar/WolfmedCVars.cs)
@@ -285,6 +287,8 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundCause.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundCause.cs)
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundDamageSyncSystem.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundDamageSyncSystem.cs)
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundEvents.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundEvents.cs)
+- [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundLadderPrototype.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundLadderPrototype.cs)
+- [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundLadderSystem.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundLadderSystem.cs)
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundRulePrototype.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundRulePrototype.cs)
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundRuleSystem.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundRuleSystem.cs)
 - [`Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundSfxComponent.cs`](../../../Content.Shared/_WF/Wolfmed/Wounds/WolfmedWoundSfxComponent.cs)
@@ -365,6 +369,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestTwoTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPlaytestTwoTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPodWeldsChassisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedPodWeldsChassisTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRemainingCausesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRemainingCausesTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalStopwatchTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalStopwatchTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedRevivalTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedScenario.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedScenario.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSepsisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/Scenarios/WolfmedSepsisTest.cs)
@@ -549,6 +554,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/_WF/Wolfmed/Wounds/cautery.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Wounds/cautery.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Wounds/evisceration.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Wounds/evisceration.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Wounds/infection.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Wounds/infection.yml)
+- [`Resources/Prototypes/_WF/Wolfmed/Wounds/ladders.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Wounds/ladders.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Wounds/look.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Wounds/look.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Wounds/mechanical.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Wounds/mechanical.yml)
 - [`Resources/Prototypes/_WF/Wolfmed/Wounds/sfx.yml`](../../../Resources/Prototypes/_WF/Wolfmed/Wounds/sfx.yml)
@@ -1057,8 +1063,10 @@ Skipped ("dirty-disposed").
   - Wolfgate keeps OrganComponent in Content.Shared.Body.Organ.
   - D8, organ health lives on WolfmedOrganComponent.
   - relocated from _Onyx/Body/FunctionalOrganComponent.cs; that file is Nubody glue and is not ported (D8).
+  - revival pass
   - organ health is on WolfmedOrganComponent, so the query pairs it with Wolfgate's OrganComponent.
   - P3-D23, DestroyOrgan detaches and wounds; RecursiveDeleteEntity reaches here while a
+  - revival pass, a failed organ stays in at 0 health for the heal surgery.
   - the owning body is on Wolfgate's OrganComponent, not on the health component.
   - Wolfgate's SharedBodySystem has no TryGetOrganInSlot/TryRemoveOrgan; RemoveOrgan locates the
   - P3-D23, never wound a part that is already terminating (see the Update guard).
@@ -1106,6 +1114,7 @@ Skipped ("dirty-disposed").
   - D26 lifted in phase 3 (WP11-1); order wounds -> fractures -> amputation -> bleeding is load-bearing.
   - M1b: Total
   - M3: a part with reach lines takes organ damage by the size of the whole hit (plan §8), and
+  - revival pass, the stored share weighs the organ damage
   - D8, organ health is on WolfmedOrganComponent; Wolfgate's OrganComponent carries none.
   - M1b: Total, once per hit
   - D8, the organ list carries WolfmedOrganComponent instead of Onyx's health-bearing OrganComponent.
@@ -1311,17 +1320,22 @@ Skipped ("dirty-disposed").
   - D12, GetAllDamage lives on the compat facade.
   - D8
   - Onyx's SharedBodySystem.TryDetachPart
+  - revival pass, a capped head never comes off from piled-up damage; its overflow is brain injury.
   - EVISC: D9 never severs a torso, so its overflow is offered to evisceration instead.
+  - revival pass, the sever thresholds count it
   - P3-D15
   - D8. The severity comes off the PARENT the stump is left on, not off the severed part.
   - D9
   - Shitmed's BodyPartComponent has no Parent field.
   - M3: P27, a blast never takes the head unless wolfmed.blast_dismember_head is on.
+  - revival pass, a capped part's overflow counts
+  - revival pass, a capped part's overflow keeps it severable
   - Shitmed has no BodyPartComponent.Parent.
   - compat shim
   - V124: the one damage-driven detach path, so the dismemberment feedback hangs here
   - D8/P3-D15
   - P3-D15 drops Onyx's BodyPartComponent parameter; the data it read is on WolfmedBodyPartComponent.
+  - revival pass, a capped part never reaches its stored thresholds, so its overflow
 - [`Content.Shared/_Onyx/Wounds/BodyPartFunctionalitySystem.cs`](../../../Content.Shared/_Onyx/Wounds/BodyPartFunctionalitySystem.cs): Wolfgate keeps CyberneticsComponent under _Shitmed.
 - [`Content.Shared/_Onyx/Wounds/FractureAlertSystem.cs`](../../../Content.Shared/_Onyx/Wounds/FractureAlertSystem.cs)
   - D8 keeps Onyx's part fields on WolfmedBodyPartComponent.
@@ -1431,6 +1445,7 @@ Skipped ("dirty-disposed").
   - M6: OD18
   - M1b: nothing stored, so nothing re-projected the body.
   - D8
+  - revival pass, room under the cap again
   - P4-D14: carry Mono's plate-protection flag into the routed pass.
   - Shitmed's BodyPartComponent has no Parent field.
   - D27
@@ -1461,12 +1476,15 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/_Onyx/Wounds/WoundStatusEffectSystem.cs`](../../../Content.Shared/_Onyx/Wounds/WoundStatusEffectSystem.cs): ported from Onyx for Wolfmed.
 - [`Content.Shared/_Onyx/Wounds/WoundSystem.cs`](../../../Content.Shared/_Onyx/Wounds/WoundSystem.cs)
   - W1: the wound rule extension point.
+  - revival pass
   - D17 - \<BodyComponent, RejuvenateEvent> is owned by _Mono/Body/Systems/BodyRejuvenateSystem.cs:28.
   - D13 puts OrganDamageSystem (the sole caller) in Content.Server, so internal no longer reaches it.
+  - revival pass, the wounds below are one injury to the ladders
   - W1: Wolfmed's wound rules answer here and may create a cause-specific wound
   - W1: rule-only wounds are created by WolfmedWoundRuleSystem, not by damage type.
   - D17 - was OnRejuvenate(Entity\<BodyComponent>, ref RejuvenateEvent); now a public entry point.
   - W5: a part healed on its own keeps its dead tissue and its tourniquet otherwise.
+  - revival pass, a wound ladder folds this into the part's wound of the same kind.
   - only a wound that just grew rolls, see LastSyncSeverity
   - the body or its gear may refuse a new bleed.
   - a grown wound gets its WoundChangedEvent next, and the bleeding system adds the growth

@@ -202,7 +202,7 @@ public sealed class WolfmedBreathingClockTest : WolfmedGameTest
             Assert.Multiple(() =>
             {
                 Assert.That(units, Is.EqualTo(0.35f * s.Pool(a) - 0.24f * s.Pool(a)).Within(1f));
-                Assert.That(safe, Is.EqualTo(0.5f * s.Pool(a) - 0.24f * s.Pool(a)).Within(1f));
+                Assert.That(safe, Is.EqualTo(s.Life.BrainSafeTarget * s.Pool(a) - 0.24f * s.Pool(a)).Within(1f));
                 Assert.That(text, Does.Contain($"{MathF.Ceiling(units)} u"), "the refusal does not name the units.");
                 Assert.That(text, Does.Not.Contain("will work"));
             });
