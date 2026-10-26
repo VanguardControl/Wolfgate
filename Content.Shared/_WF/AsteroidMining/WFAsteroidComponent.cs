@@ -92,16 +92,17 @@ public sealed partial class WFAsteroidComponent : Component
     public string? AppliedLook;
     public int AppliedVariant = -1;
 
+    // Composition, resistance and window are networked so the cockpit scanner can read a rock in view.
     /// <summary>Ore veins this rock holds, inert rock included.</summary>
-    [DataField] public float Mass;
+    [DataField, AutoNetworkedField] public float Mass;
     [DataField] public ProtoId<WFAsteroidCompositionPrototype>? CompositionId;
-    [DataField] public List<WFAsteroidOre> Ores = new();
-    [DataField] public float Resistance;
+    [DataField, AutoNetworkedField] public List<WFAsteroidOre> Ores = new();
+    [DataField, AutoNetworkedField] public float Resistance;
     /// <summary>The composition's rolled resistance, before this rock's scale and bonus; fragments inherit it.</summary>
     [DataField] public float BaseResistance;
-    [DataField] public float Instability;
-    [DataField] public float WindowCenter = 0.55f;
-    [DataField] public float WindowHalfWidth = 0.1f;
+    [DataField, AutoNetworkedField] public float Instability;
+    [DataField, AutoNetworkedField] public float WindowCenter = 0.55f;
+    [DataField, AutoNetworkedField] public float WindowHalfWidth = 0.1f;
     public float BaseCharge;
     /// <summary>The progress last sent to clients, so it is only resent as it moves.</summary>
     public float SentProgress;
@@ -118,7 +119,7 @@ public sealed partial class WFAsteroidComponent : Component
 }
 
 /// <summary>One ore in a rock and the share of its mass it makes up.</summary>
-[DataRecord]
+[DataRecord, Serializable, NetSerializable]
 public partial record struct WFAsteroidOre(ProtoId<OrePrototype> Ore, float Fraction, Color Color, float Volatility);
 
 [Serializable, NetSerializable]

@@ -27,3 +27,52 @@ wf-mining-gunnery-yield = Yield {$percent}%
 wf-mining-gunnery-yield-help = The share of the rock's ore a crack will keep. Cracking in the yellow band past the window is faster but loses ore.
 wf-mining-gunnery-overcharge = OVERCHARGING!
 wf-mining-gunnery-overcharge-help = The rock is past the red line. Lower the power or stop firing before it blows up.
+
+wf-cockpit-mining = MINING
+wf-cockpit-mining-short = MIN
+wf-mining-page-target = TARGET
+wf-mining-page-window = Window {$low}-{$high}%
+wf-mining-page-hint = Point at a rock on the ship cam or NAV to scan it.
+wf-mining-page-hint-help = The cockpit scanner reads any rock in view range. Farther rocks only give a signal until you close in.
+wf-mining-lever-caption = POWER
+wf-mining-lever-help = Drag the lever, or turn the mouse wheel over it, to set every mining laser on this ship. Hold the rock's heat in the green window: too little does nothing, the yellow band loses ore and red blows the rock up.
+wf-mining-dial-heat = HEAT
+wf-mining-dial-unit = %
+wf-mining-dial-empty = --
+wf-mining-dial-idle = NO TARGET
+wf-mining-dial-overcharge = OVERCHARGE
+wf-mining-dial-window = WINDOW {$low}-{$high}
+wf-mining-dial-crack = CRACK {$percent}%
+wf-mining-dial-yield = YIELD {$percent}%
+wf-mining-lamp-window = WINDOW
+wf-mining-lamp-hot = HOT
+wf-mining-lamp-overcharge = OVERCHARGE
+wf-mining-lamp-overload = OVERLOAD
+wf-mining-lamps-help = WINDOW: the rock is cracking cleanly. HOT: it cracks faster but loses ore. OVERCHARGE: it is past the red line and about to blow. OVERLOAD: the lasers are down after a blast.
+
+wf-mining-scan-tag = SCAN
+wf-mining-scan-tag-far = SIGNAL
+wf-mining-scan-range = Range {$range} m
+wf-mining-scan-size = Ø {$size} m
+wf-mining-scan-far = Out of scan range
+wf-mining-scan-veins = {$mass} veins
+wf-mining-scan-ore = {CAPITALIZE($name)}
+wf-mining-scan-inert = Plain rock
+wf-mining-scan-percent = {$percent}%
+wf-mining-scan-resistance = Resistance
+wf-mining-scan-window = Window
+wf-mining-scan-window-range = {$low}-{$high}%
+wf-mining-scan-stability = Heat drift
+wf-mining-scan-stability-band = {$band ->
+    [steady] Steady
+    [drifting] Drifting
+   *[erratic] Erratic
+}
+wf-mining-scan-blast = Overcharge blast
+wf-mining-scan-blast-band = {$band ->
+    [low] Low
+    [high] High
+   *[severe] Severe
+}
+wf-mining-scan-heat = Heat {$charge}% · crack {$progress}%
+wf-mining-scan-overcharge = OVERCHARGING

@@ -3,7 +3,6 @@ using Content.Server.Power.EntitySystems;
 using Content.Shared._Mono.FireControl;
 using Content.Shared._WF.AsteroidMining;
 using Content.Shared.ActionBlocker;
-using Content.Shared.Mining;
 using Content.Shared.Weapons.Hitscan.Events;
 using Content.Shared.Weapons.Hitscan.Systems;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -16,7 +15,7 @@ namespace Content.Server._WF.AsteroidMining;
 /// <summary>
 /// Runs ship mining lasers. Each pulse that hits an asteroid keeps the gun's power on it; a rock that stays inside its
 /// window long enough cracks cleanly, and one held over the overcharge line blows up and knocks its guns offline.
-/// Gunnery consoles set the lasers' power and get a scan of the rock they are working.
+/// Gunnery consoles, and cockpit pilots linked to one, set the lasers' power and get a scan of the rock they are working.
 /// </summary>
 public sealed partial class WFMiningBeamSystem : EntitySystem
 {
@@ -52,6 +51,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         {
             subs.Event<WFMiningBeamPowerMessage>(OnPowerMessage);
         });
+        InitializeCockpit();
         SubscribeLocalEvent<WFMiningBeamEmitterComponent, ComponentShutdown>(OnEmitterShutdown);
         SubscribeLocalEvent<WFMiningBeamEmitterComponent, AttemptShootEvent>(OnAttemptShoot);
         // After reflection, which may cancel the pulse, and before damage, so rocks are heated rather than chipped.
@@ -72,10 +72,17 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
 
     private void OnPowerMessage(Entity<FireControlConsoleComponent> ent, ref WFMiningBeamPowerMessage args)
     {
-        if (!float.IsFinite(args.Power) || GunneryGrid(ent) is not { } grid || !_blocker.CanInteract(args.Actor, ent))
+        if (_blocker.CanInteract(args.Actor, ent))
+            SetPower(ent, args.Power);
+    }
+
+    /// <summary>Sets every mining laser on a working gunnery console's ship, then refreshes whoever is watching them.</summary>
+    private void SetPower(EntityUid console, float power)
+    {
+        if (!float.IsFinite(power) || GunneryGrid(console) is not { } grid)
             return;
 
-        var power = MathF.Round(Math.Clamp(args.Power, 0f, 1f), 2);
+        power = MathF.Round(Math.Clamp(power, 0f, 1f), 2);
         GroupShipLasers();
         foreach (var (uid, beam) in ShipLasers(grid))
         {
@@ -83,7 +90,8 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             Dirty(uid, beam);
         }
 
-        UpdateGunnery(ent);
+        UpdateGunnery(console);
+        UpdateCockpits(true);
     }
 
     /// <summary>The ship a working gunnery console speaks for.</summary>
@@ -260,6 +268,8 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             UpdateGunnery(uid);
         }
 
+        UpdateCockpits(_openConsoles.Count > 0);
+
         _closedConsoles.Clear();
         foreach (var uid in _gunnery.Keys)
         {
@@ -374,49 +384,14 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     }
 
     /// <summary>
-    /// Sends a gunnery console its ship's laser power and a scan of the rock its lasers are on, or were last on. A ship
-    /// without mining lasers gets an empty state, which hides the panel. Nothing is sent if neither the state nor its
-    /// viewers changed. Lasers are read from the last <see cref="GroupShipLasers"/>.
+    /// Sends a gunnery console its ship's laser power and a scan of the rock its lasers are on, or were last on. Nothing
+    /// is sent if neither the state nor its viewers changed. Lasers are read from the last <see cref="GroupShipLasers"/>.
     /// </summary>
     private void UpdateGunnery(EntityUid console)
     {
         var known = _gunnery.TryGetValue(console, out var last);
-        var lasers = GunneryGrid(console) is { } grid ? ShipLasers(grid) : NoLasers;
-
-        EntityUid? rock = null;
-        var state = new WFMiningBeamGunneryState(0, 0f, 0f, null);
-        if (lasers.Count > 0)
-        {
-            var cooldown = 0f;
-            foreach (var (_, beam) in lasers)
-            {
-                rock ??= beam.Target;
-                cooldown = MathF.Max(cooldown, (float) (beam.CooldownUntil - _timing.CurTime).TotalSeconds);
-            }
-
-            rock ??= last.Rock;
-            WFMiningBeamTargetEntry? target = null;
-            if (rock is { } uid && !TerminatingOrDeleted(uid) && TryComp<WFAsteroidComponent>(uid, out var comp) && !comp.Cracking)
-            {
-                var (low, high) = Window(comp);
-                var ores = new WFMiningBeamOreEntry[comp.Ores.Count];
-                for (var i = 0; i < ores.Length; i++)
-                {
-                    var ore = comp.Ores[i];
-                    ores[i] = new WFMiningBeamOreEntry(OreName(ore.Ore), ore.Fraction, ore.Color);
-                }
-
-                target = new WFMiningBeamTargetEntry(Name(uid), comp.Mass, ores, comp.Resistance, low, high, comp.Charge,
-                    Math.Clamp(comp.Progress, 0f, 1f), comp.OverchargeTime / WFAsteroidHeat.OverchargeDuration,
-                    WFAsteroidHeat.Yield(comp.Progress, comp.HotProgress));
-            }
-            else
-            {
-                rock = null;
-            }
-
-            state = new WFMiningBeamGunneryState(lasers.Count, lasers[0].Beam.Power, cooldown, target);
-        }
+        var rock = last.Rock;
+        var state = GunneryState(GunneryGrid(console), ref rock);
 
         // A viewer who opens an already open console has missed the last send; summing the actors catches that.
         var viewers = 0;
@@ -431,6 +406,50 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             _ui.ServerSendUiMessage(console, FireControlConsoleUiKey.Key, new WFMiningBeamGunneryUpdateMessage(state));
     }
 
+    /// <summary>
+    /// A ship's laser power and a scan of the rock its lasers are on, or else of <paramref name="rock"/>, the rock they
+    /// were last on, which is then set to the rock scanned or null. A ship without mining lasers gets an empty state,
+    /// which hides the mining panels. Lasers are read from the last <see cref="GroupShipLasers"/>.
+    /// </summary>
+    private WFMiningBeamGunneryState GunneryState(EntityUid? grid, ref EntityUid? rock)
+    {
+        var lasers = grid is { } ship ? ShipLasers(ship) : NoLasers;
+        var last = rock;
+        rock = null;
+        if (lasers.Count == 0)
+            return new WFMiningBeamGunneryState(0, 0f, 0f, null);
+
+        var cooldown = 0f;
+        foreach (var (_, beam) in lasers)
+        {
+            rock ??= beam.Target;
+            cooldown = MathF.Max(cooldown, (float) (beam.CooldownUntil - _timing.CurTime).TotalSeconds);
+        }
+
+        rock ??= last;
+        WFMiningBeamTargetEntry? target = null;
+        if (rock is { } uid && !TerminatingOrDeleted(uid) && TryComp<WFAsteroidComponent>(uid, out var comp) && !comp.Cracking)
+        {
+            var (low, high) = Window(comp);
+            var ores = new WFMiningBeamOreEntry[comp.Ores.Count];
+            for (var i = 0; i < ores.Length; i++)
+            {
+                var ore = comp.Ores[i];
+                ores[i] = new WFMiningBeamOreEntry(WFAsteroidScan.OreName(_proto, ore.Ore), ore.Fraction, ore.Color);
+            }
+
+            target = new WFMiningBeamTargetEntry(Name(uid), comp.Mass, ores, comp.Resistance, low, high, comp.Charge,
+                Math.Clamp(comp.Progress, 0f, 1f), comp.OverchargeTime / WFAsteroidHeat.OverchargeDuration,
+                WFAsteroidHeat.Yield(comp.Progress, comp.HotProgress));
+        }
+        else
+        {
+            rock = null;
+        }
+
+        return new WFMiningBeamGunneryState(lasers.Count, lasers[0].Beam.Power, cooldown, target);
+    }
+
     private static bool SameState(WFMiningBeamGunneryState a, WFMiningBeamGunneryState b)
     {
         if (a with { Target = null } != b with { Target = null })
@@ -441,13 +460,5 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
 
         // The ore list is an array, which record equality compares by reference.
         return x with { Ores = y.Ores } == y && x.Ores.AsSpan().SequenceEqual(y.Ores);
-    }
-
-    private string OreName(ProtoId<OrePrototype> ore)
-    {
-        return _proto.TryIndex(ore, out var proto) && proto.OreEntity is { } entity &&
-               _proto.TryIndex(entity, out var entityProto)
-            ? entityProto.Name
-            : ore.Id;
     }
 }

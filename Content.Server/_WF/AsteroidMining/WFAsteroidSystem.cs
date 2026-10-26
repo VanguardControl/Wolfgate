@@ -416,7 +416,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             ? 0f
             : comp.Mass * yield * comp.FragmentShare;
         var oreMass = comp.Mass * yield - fragmentMass;
-        var volatility = ores.Sum(o => o.Fraction * o.Volatility);
+        var volatility = WFAsteroidScan.Volatility(ores);
         var radius = comp.Radius;
         var mass = comp.Mass;
 
@@ -432,7 +432,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         if (kind == WFAsteroidCrack.Overcharge)
         {
             // Reaches a little past the rock's surface; plasma-rich rocks reach much further.
-            _explosion.QueueExplosion(center, "Default", 150f + mass * 3f + volatility * 1500f, 1.2f, 6f, null,
+            _explosion.QueueExplosion(center, "Default", WFAsteroidScan.BlastIntensity(mass, volatility), 1.2f, 6f, null,
                 maxTileBreak: 0, canCreateVacuum: false);
         }
 
