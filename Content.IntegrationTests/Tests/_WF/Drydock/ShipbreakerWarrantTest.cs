@@ -15,6 +15,7 @@ using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.NPC.Components;
 using Content.Shared.NPC.Systems;
+using Content.Shared.Stacks;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
@@ -237,10 +238,13 @@ public sealed class ShipbreakerWarrantTest
         await server.WaitAssertion(() =>
         {
             Assert.That(em.HasComponent<WFDrydockJobComponent>(console), "The break should still be running.");
-            Assert.That(em.GetComponent<WFDrydockJobComponent>(console).Yield, Is.Not.Empty, "The break should have recovered something.");
+            var job = em.GetComponent<WFDrydockJobComponent>(console);
+            var printed = job.CashPaid;
+            var bills = job.CashStack;
+            Assert.That(printed, Is.GreaterThan(0), "The broken tiles should have printed thalers.");
             em.DeleteEntity(console);
-            Assert.That(bank.TryGetBalance(breaker, out var after), "The breaker should still have an account.");
-            Assert.That(after, Is.GreaterThan(before), "A break cut short by a destroyed console should still pay.");
+            Assert.That(em.GetComponent<StackComponent>(bills!.Value).Count, Is.EqualTo(printed),
+                "Thalers printed before the console was destroyed should stay.");
         });
 
         await pair.CleanReturnAsync();

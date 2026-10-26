@@ -183,7 +183,7 @@
     color: "#f1dfc4"
 
 - type: microwaveMealRecipe
-  id: RecipeWFMarrowCapSoup
+  id: RecipeWFOssuaryMarrowCapSoup
   name: marrow cap soup recipe
   result: FoodSoupMushroom
   time: 10

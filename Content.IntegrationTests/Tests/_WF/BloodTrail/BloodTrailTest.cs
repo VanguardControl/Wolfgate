@@ -244,8 +244,8 @@ public sealed class BloodTrailTest
     }
 
     /// <summary>
-    /// The prints lie where there is no puddle to mop, so a wet mop used on the bare floor takes them off. A dry
-    /// one does not, and other decals stay.
+    /// The prints lie where there is no puddle to mop, so a wet mop used on the bare floor takes them off, along
+    /// with any other cleanable decal. A dry one does not.
     /// </summary>
     [Test]
     public async Task MopWashesPrintsOffBareFloor()
@@ -291,7 +291,7 @@ public sealed class BloodTrailTest
             Assert.Multiple(() =>
             {
                 Assert.That(Prints(), Is.Zero);
-                Assert.That(Placed(), Does.Contain(Paint));
+                Assert.That(Placed(), Does.Not.Contain(Paint));
                 Assert.That(solution.Volume, Is.LessThan(FixedPoint2.New(20)).And.GreaterThan(FixedPoint2.New(15)),
                     "Washing should cost the mop a little water.");
             });

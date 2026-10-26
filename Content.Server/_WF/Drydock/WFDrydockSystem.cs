@@ -515,7 +515,7 @@ public sealed partial class WFDrydockSystem : EntitySystem
             $"{s.MissingTiles}/{s.MissingParts}/{s.DamagedParts}/{s.RepairPrice}",
             $"{s.Working}/{s.PowerRatio}/{s.CraneCount}/{s.BlockedCranes}/{s.Deploying}/{s.Progress}/{s.RemainingSeconds}",
             $"{s.Booking}/{s.BookedBerth}/{s.BookingSeconds}/{s.Notice}/{s.PaysWithMaterials}/{s.BerthLightsOn}",
-            $"{s.CanBreak}/{s.Breakable}/{s.Breaking}/{s.BreakOnly}/{s.BreakCash}/{s.BreakWarrant}",
+            $"{s.CanBreak}/{s.Breakable}/{s.Breaking}/{s.BreakOnly}/{s.BreakCash}/{s.BreakWarrant}/{s.BreakRefusal}",
             DictKey(s.BreakYield),
             $"{s.Station}/{s.BerthConsole}/{s.BerthLabel}/{s.BerthArea}/{s.Approach}/{s.Ship}/{s.Marks.Count}",
             DictKey(s.RepairMaterials),
@@ -600,14 +600,19 @@ public sealed partial class WFDrydockSystem : EntitySystem
         if (CanBreak(console, out var breaker))
         {
             state.CanBreak = true;
-            if (job == null && ship is { } target && BreakRefusal(console, comp, target) == null)
+            var refusal = job == null && ship is { } inBerth ? BreakRefusal(console, comp, inBerth) : null;
+            state.BreakRefusal = refusal;
+            if (job == null && ship is { } target && refusal == null)
             {
                 state.Breakable = true;
-                state.BreakYield = BreakPreview(target, breaker);
                 if (chop != null)
                 {
-                    (state.BreakYield, state.BreakCash) = SplitChopYield(chop, state.BreakYield, TileCount(target));
+                    state.BreakCash = ChopPayout(chop, target);
                     state.BreakWarrant = IsLawfulProperty(chop, target, null);
+                }
+                else
+                {
+                    state.BreakYield = BreakPreview(target, breaker);
                 }
             }
         }

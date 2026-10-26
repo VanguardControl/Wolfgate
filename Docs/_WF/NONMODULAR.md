@@ -11,6 +11,10 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - per-instance cache; a static one leaked entity ids between pooled test clients and tripped SetAuxiliary's assert
   - also rebuild a blank auxiliary that a client state reset deleted
   - a client state reset can delete cached entities without a round restart; rebuild those
+- [`Content.Client/_Mono/Blocking/BlockingVisualsSystem.cs`](../../Content.Client/_Mono/Blocking/BlockingVisualsSystem.cs)
+  - post-shader flags are set through SpriteSystem since engine 291
+  - engine 291 ignores the sprite-wide GetScreenTexture/RaiseShaderEvent; they are per post-shader now
+- [`Content.Client/_Mono/Tiles/TileEntityShaderSystem.cs`](../../Content.Client/_Mono/Tiles/TileEntityShaderSystem.cs): engine 291 ignores the sprite-wide RaiseShaderEvent; it is per post-shader now
 - [`Content.Client/Atmos/EntitySystems/FireVisualizerSystem.cs`](../../Content.Client/Atmos/EntitySystems/FireVisualizerSystem.cs): a mob that arrives burning would get its light child before it is initialised itself; the appearance update queued at startup lays it.
 - [`Content.Client/CharacterInfo/CharacterInfoSystem.cs`](../../Content.Client/CharacterInfo/CharacterInfoSystem.cs)
   - replays skip the character info request
@@ -20,6 +24,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - replays skip the guidebook data request
   - partial for the network dependency
   - replay playback starts these systems without a server connection
+- [`Content.Client/Holopad/HolopadSystem.cs`](../../Content.Client/Holopad/HolopadSystem.cs)
+  - post-shader flags are set through SpriteSystem since engine 291
+  - engine 291 ignores the sprite-wide RaiseShaderEvent; it is per post-shader now
 - [`Content.Client/Light/EntitySystems/SunShadowSystem.cs`](../../Content.Client/Light/EntitySystems/SunShadowSystem.cs): at round start the time can be negative or sit exactly on the first entry, which fell through to the throw; wrap it into the last span instead.
 - [`Content.Client/Lobby/LobbyUIController.cs`](../../Content.Client/Lobby/LobbyUIController.cs): unknown species falls back to the default
 - [`Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs`](../../Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs)
@@ -28,7 +35,11 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs`](../../Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs)
   - v291 Box2 asserts on inverted corners in debug builds; order them
   - batch radar edges so huge grids don't overflow the game thread stack
+- [`Content.Client/Stealth/StealthSystem.cs`](../../Content.Client/Stealth/StealthSystem.cs)
+  - post-shader flags are set through SpriteSystem since engine 291
+  - engine 291 ignores the sprite-wide GetScreenTexture/RaiseShaderEvent; they are per post-shader now
 - [`Content.Client/UserInterface/Systems/Admin/AdminUIController.cs`](../../Content.Client/UserInterface/Systems/Admin/AdminUIController.cs): a HUD layout swap rebuilds the button visible
+- [`Content.Client/UserInterface/Systems/Chat/ChatUIController.cs`](../../Content.Client/UserInterface/Systems/Chat/ChatUIController.cs): an unlimited check warns when the eye lags a long teleport
 - [`Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs`](../../Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs): Replay seeks and filter changes rebuild the output from scratch.
 - [`Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs`](../../Content.Client/UserInterface/Systems/Sandbox/SandboxUIController.cs): a HUD layout swap rebuilds the button visible
 - [`Content.Client/VendingMachines/VendingMachineBoundUserInterface.cs`](../../Content.Client/VendingMachines/VendingMachineBoundUserInterface.cs): skip updates queued before Open(), _uiSystem is still null and the NRE crashes state handling
@@ -44,6 +55,11 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - AsyncLocal for the returned-pair guard
   - dispose skips a pair the test already returned
   - a returned pair can be borrowed by another test before this test's `await using` disposes it
+- [`Content.IntegrationTests/Pair/TestPair.Recycle.cs`](../../Content.IntegrationTests/Pair/TestPair.Recycle.cs)
+  - pooled client windows are closed on return
+  - a window left open covers the next test's UI
+  - the pooled client keeps its windows across tests, and one left open intercepts the next test's clicks
+- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../Content.IntegrationTests/PoolManager.Cvars.cs): a round-restart vote throws on a dummy session's join
 - [`Content.IntegrationTests/Tests/_NF/ShipyardTests.cs`](../../Content.IntegrationTests/Tests/_NF/ShipyardTests.cs)
   - expected-value appraisal
   - seeded so the appraisal is reproducible
@@ -109,7 +125,10 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - only a gun the user carries is refused, not an innate ability or a mounted weapon
   - a switched-off or folded shield blocks nothing
   - the attempt repeats every tick while the trigger is held
-- [`Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs`](../../Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs): a client that first saw the wearer already dressed never got the equip for this item (the
+- [`Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs`](../../Content.Shared/Clothing/EntitySystems/HideLayerClothingSystem.cs)
+  - a modsuit seal adds and removes this on a worn helmet, which raises no equip events
+  - layers follow the component while the clothing is worn
+  - a client that first saw the wearer already dressed never got the equip for this item (the
 - [`Content.Shared/Clothing/EntitySystems/ToggleableClothingSystem.cs`](../../Content.Shared/Clothing/EntitySystems/ToggleableClothingSystem.cs)
   - whatever the piece replaced goes back on, instead of staying shut inside the piece
   - a suit deleted along with its wearer can't take the piece back
@@ -122,6 +141,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../Content.Shared/Preferences/HumanoidCharacterProfile.cs)
   - the company is passed through the constructor
   - copies keep the company
+  - count downsides first so a positive trait isn't dropped by set order
   - MemberwiseEquals - Equals(other) resolved to this override and recursed forever.
   - hash only what MemberwiseEquals compares by value
   - removed - Appearance hashed by reference, broke equal profiles hashing alike
@@ -138,9 +158,12 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Locale/en-US/_Mono/prototypes/access/accesses.ftl`](../../Resources/Locale/en-US/_Mono/prototypes/access/accesses.ftl): Monolith#4816 shipped the Underground access levels without names
 - [`Resources/Maps/_Mono/Bluespace/prefracture.yml`](../../Resources/Maps/_Mono/Bluespace/prefracture.yml): Hardpoints mapped under the Unidentified Vessel's Scythe, Sunder and Flayer guns so gunnery links them.
 - [`Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml`](../../Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml): Hardpoint mapped under the asteroid ship's AK570 so gunnery links it.
+- [`Resources/Maps/_Mono/POI/pdvhelios.yml`](../../Resources/Maps/_Mono/POI/pdvhelios.yml): Helios mapping fixes for lighting, wallmounts and small layout tweaks.
 - [`Resources/migration.yml`](../../Resources/migration.yml): Monolith#4816 renamed the WL-01 suit and helmet without a migration
+- [`Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml`](../../Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml): unsealing strips only the seal's own components, not the ones this helmet always has
 - [`Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/production_bounties.yml`](../../Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/production_bounties.yml): the camera bounty asked for optical sensors (OpticsEconomy1)
 - [`Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/value_bounties.yml`](../../Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/value_bounties.yml): MMC cash bounties pay 0.9x their value so cash-to-MIC-to-cash can't loop for profit
+- [`Resources/Prototypes/_Mono/Catalogs/Fills/Crates/materials.yml`](../../Resources/Prototypes/_Mono/Catalogs/Fills/Crates/materials.yml): copper and lithium as listed, not uranium and plasma
 - [`Resources/Prototypes/_Mono/Catalogs/pdv_uplink_catalog.yml`](../../Resources/Prototypes/_Mono/Catalogs/pdv_uplink_catalog.yml)
   - PDV pack, 650->500 (+50 tax over mat cost)
   - PDV pack, 1250->1000 (+100 tax over mat cost)
@@ -155,6 +178,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../Resources/Prototypes/_Mono/Guidebook/rules.yml)
   - erotic roleplay rule removed, PR #27
   - erotic roleplay rule entry removed, PR #27
+- [`Resources/Prototypes/_Mono/Language/underground.yml`](../../Resources/Prototypes/_Mono/Language/underground.yml): codespeak gets its own chat colour so speakers can tell it from Common
 - [`Resources/Prototypes/_Mono/Loadouts/MedicalDispatch/universal_groups.yml`](../../Resources/Prototypes/_Mono/Loadouts/MedicalDispatch/universal_groups.yml): the ER PDAs, was MedicalDoctorPDA and ContractorSeniorPhysicianPDA, whose ID resets to medical doctor access
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Factions/shipyard.yml`](../../Resources/Prototypes/_Mono/Recipes/Lathes/Factions/shipyard.yml)
   - PDV pack, composite cost 12000->9000

@@ -32,6 +32,9 @@ public sealed partial class WFMappingClientSystem
     [Dependency] private IClientNetManager _netManager = default!;
     [Dependency] private WFMappingLinkSystem _link = default!;
 
+    /// <summary>The link system, for the Layers panel's count of what the Links layer draws.</summary>
+    public WFMappingLinkSystem Links => _link;
+
     public static readonly WFMappingLayer[] Layers =
     {
         WFMappingLayer.Walls,
@@ -121,7 +124,7 @@ public sealed partial class WFMappingClientSystem
     /// <summary>Puts the perspective marker on every level while the layer is on, and takes it off otherwise.</summary>
     private void UpdatePerspective()
     {
-        var query = EntityQueryEnumerator<CEZMapComponent>();
+        var query = AllEntityQuery<CEZMapComponent>(); // All: session levels are paused
         while (query.MoveNext(out var uid, out _))
         {
             if (_perspective)

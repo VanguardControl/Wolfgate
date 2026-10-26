@@ -26,6 +26,20 @@ is off by default and on in development builds, and apply to networks built afte
 ground, and nobody on or above the ground loads the cavern under them except near a mouth, where it shows through the
 hole.
 
+The Underkarst, the Cinder Vaults and the Sandstone Galleries are split into zones, each a stretch of ground over a
+hundred tiles across picked by one low-frequency noise (halls by default, a second zone where it runs high, a third
+where it runs low). A zone opens its caverns wider than the default and floors them in its own tile inside a rim of
+the common chamber floor, and has its own plants (a harvestable and a rare hazard from the LivingWorld components),
+wildlife table and fauna marker (`WFCavernFauna<World><Zone>`), all in `Resources/Prototypes/_WF/Caverns/Life/`:
+the Underkarst's dripstone halls (flowstone, droplet lichen, grasping roots, pale bats and crabs), flooded grottos (wet
+rock, pools, reeds, acid pitchers, frogs and crabs) and mushroom hollows (cave soil, cave caps, spore puffballs, cave
+spiders); the Cinder Vaults' ash chambers (magma lakes, the argocytes), obsidian galleries (cinder shelves, fire pods,
+cinder spiders, ember vipers) and sulphur vents (sulphur blooms, vent caps, slag ticks, sulphur carp); the Sandstone
+Galleries' pillared halls (gallery aloe, sand snares, dust bats, crabs), fossil beds (marrow caps, brittle geodes,
+pallid sandvipers) and buried ruin quarter (gravebloom, dust pods, crypt ticks). Each of the three plays its own
+cavern soundscape (`ambience`) instead of the muffled surface one. The animals are recoloured by
+`Tools/_WF/Caverns/gen_life_karst_cinder_sandstone.py`.
+
 Every world has a gate mouth near its centre: a pinned hole in the ground, grown from its own seed to the world's shape
 and size (`WFCavernMouthShape`: a sinkhole, a skylight, a sand funnel, a rift, a moulin or a throat, never a plain
 rectangle), with a solid lip and rim decor in proportion to its size. Looking into a mouth you see the cavern below
@@ -169,6 +183,7 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernGutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernGutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernHoleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernHoleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernHullTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernHullTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernLifeKarstCinderSandstoneTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernLifeKarstCinderSandstoneTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernLifeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernLifeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs)
@@ -208,10 +223,17 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Resources/Prototypes/_WF/Caverns/Entities/mouths.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/mouths.yml)
 - [`Resources/Prototypes/_WF/Caverns/Entities/stairs.yml`](../../../Resources/Prototypes/_WF/Caverns/Entities/stairs.yml)
 - [`Resources/Prototypes/_WF/Caverns/levels.yml`](../../../Resources/Prototypes/_WF/Caverns/levels.yml)
+- [`Resources/Prototypes/_WF/Caverns/Life/ambience_karst_cinder_sandstone.yml`](../../../Resources/Prototypes/_WF/Caverns/Life/ambience_karst_cinder_sandstone.yml)
+- [`Resources/Prototypes/_WF/Caverns/Life/asclepiu.yml`](../../../Resources/Prototypes/_WF/Caverns/Life/asclepiu.yml)
+- [`Resources/Prototypes/_WF/Caverns/Life/fervidus.yml`](../../../Resources/Prototypes/_WF/Caverns/Life/fervidus.yml)
+- [`Resources/Prototypes/_WF/Caverns/Life/merak.yml`](../../../Resources/Prototypes/_WF/Caverns/Life/merak.yml)
 - [`Resources/Prototypes/_WF/Caverns/Recipes/stairs.yml`](../../../Resources/Prototypes/_WF/Caverns/Recipes/stairs.yml)
 - [`Resources/Prototypes/_WF/Caverns/tiles.yml`](../../../Resources/Prototypes/_WF/Caverns/tiles.yml)
 - [`Resources/Prototypes/_WF/Caverns/Tiles/aerumna.yml`](../../../Resources/Prototypes/_WF/Caverns/Tiles/aerumna.yml)
+- [`Resources/Prototypes/_WF/Caverns/Tiles/asclepiu.yml`](../../../Resources/Prototypes/_WF/Caverns/Tiles/asclepiu.yml)
 - [`Resources/Prototypes/_WF/Caverns/Tiles/carcinoma.yml`](../../../Resources/Prototypes/_WF/Caverns/Tiles/carcinoma.yml)
+- [`Resources/Prototypes/_WF/Caverns/Tiles/fervidus.yml`](../../../Resources/Prototypes/_WF/Caverns/Tiles/fervidus.yml)
+- [`Resources/Prototypes/_WF/Caverns/Tiles/merak.yml`](../../../Resources/Prototypes/_WF/Caverns/Tiles/merak.yml)
 - [`Resources/Prototypes/_WF/Caverns/Tiles/thrascias.yml`](../../../Resources/Prototypes/_WF/Caverns/Tiles/thrascias.yml)
 
 ### Localization
@@ -220,7 +242,10 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Resources/Locale/en-US/_WF/Caverns/commands.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/commands.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/entities.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/entities.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/life_aerumna.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/life_aerumna.ftl)
+- [`Resources/Locale/en-US/_WF/Caverns/life_asclepiu.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/life_asclepiu.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/life_carcinoma.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/life_carcinoma.ftl)
+- [`Resources/Locale/en-US/_WF/Caverns/life_fervidus.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/life_fervidus.ftl)
+- [`Resources/Locale/en-US/_WF/Caverns/life_merak.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/life_merak.ftl)
 - [`Resources/Locale/en-US/_WF/Caverns/life_thrascias.ftl`](../../../Resources/Locale/en-US/_WF/Caverns/life_thrascias.ftl)
 
 ### Textures
@@ -228,8 +253,20 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Resources/Textures/_WF/Caverns/digestive_acid.rsi/`](../../../Resources/Textures/_WF/Caverns/digestive_acid.rsi/)
 - [`Resources/Textures/_WF/Caverns/glow_flora.rsi/`](../../../Resources/Textures/_WF/Caverns/glow_flora.rsi/)
 - [`Resources/Textures/_WF/Caverns/Life/antibody.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/antibody.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/asclepiu/cave_crab.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/asclepiu/cave_crab.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/asclepiu/cave_frog.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/asclepiu/cave_frog.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/asclepiu/cave_spider.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/asclepiu/cave_spider.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/asclepiu/pale_bat.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/asclepiu/pale_bat.rsi/)
 - [`Resources/Textures/_WF/Caverns/Life/bile_slug.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/bile_slug.rsi/)
 - [`Resources/Textures/_WF/Caverns/Life/deep_bat.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/deep_bat.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/fervidus/cinder_spider.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/fervidus/cinder_spider.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/fervidus/ember_viper.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/fervidus/ember_viper.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/fervidus/slag_tick.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/fervidus/slag_tick.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/fervidus/sulphur_carp.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/fervidus/sulphur_carp.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/merak/crypt_tick.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/merak/crypt_tick.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/merak/dust_bat.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/merak/dust_bat.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/merak/gallery_crab.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/merak/gallery_crab.rsi/)
+- [`Resources/Textures/_WF/Caverns/Life/merak/pallid_viper.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/merak/pallid_viper.rsi/)
 - [`Resources/Textures/_WF/Caverns/Life/rime_bat.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/rime_bat.rsi/)
 - [`Resources/Textures/_WF/Caverns/Life/rime_slime.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/rime_slime.rsi/)
 - [`Resources/Textures/_WF/Caverns/Mouths/aerumna_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/aerumna_pit.rsi/)
@@ -244,6 +281,7 @@ and leaves anything airborne to the server. The design, including what is still 
 
 - [`Tools/_WF/Caverns/gen_flavour.py`](../../../Tools/_WF/Caverns/gen_flavour.py)
 - [`Tools/_WF/Caverns/gen_life.py`](../../../Tools/_WF/Caverns/gen_life.py)
+- [`Tools/_WF/Caverns/gen_life_karst_cinder_sandstone.py`](../../../Tools/_WF/Caverns/gen_life_karst_cinder_sandstone.py)
 - [`Tools/_WF/Caverns/gen_pits.py`](../../../Tools/_WF/Caverns/gen_pits.py)
 - [`Tools/_WF/Caverns/gen_stairs.py`](../../../Tools/_WF/Caverns/gen_stairs.py)
 

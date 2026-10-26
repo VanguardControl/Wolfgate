@@ -54,6 +54,9 @@ carry no markers; check them on an upstream merge:
 - [`Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleBoundUserInterface.cs`](../../../Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleBoundUserInterface.cs)
 - [`Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleWindow.xaml`](../../../Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleWindow.xaml)
 - [`Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleWindow.xaml.cs`](../../../Content.Client/_WF/SafetyDepositBox/SafetyDepositConsoleWindow.xaml.cs)
+- [`Content.Client/_WF/SafetyDepositBox/SafetyDepositPurchaseConfirmWindow.xaml`](../../../Content.Client/_WF/SafetyDepositBox/SafetyDepositPurchaseConfirmWindow.xaml)
+- [`Content.Client/_WF/SafetyDepositBox/SafetyDepositPurchaseConfirmWindow.xaml.cs`](../../../Content.Client/_WF/SafetyDepositBox/SafetyDepositPurchaseConfirmWindow.xaml.cs)
+- [`Content.Client/_WF/SafetyDepositBox/SafetyDepositRefusedEmbed.cs`](../../../Content.Client/_WF/SafetyDepositBox/SafetyDepositRefusedEmbed.cs)
 
 ### Integration tests
 
@@ -79,5 +82,6 @@ carry no markers; check them on an upstream merge:
 ## Non-modular edits
 
 - [`Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Pistols/pistol.yml`](../../../Resources/Prototypes/_Mono/Entities/Objects/Weapons/Guns/Pistols/pistol.yml): the Godfather's exclusive sidearm can't be banked
+- [`Resources/ServerInfo/_NF/Guidebook/SafetyDepositBox.xml`](../../../Resources/ServerInfo/_NF/Guidebook/SafetyDepositBox.xml): what a box refuses is read from the box prototype, not hand-listed
 
 <!-- WOLFGATE-GENERATED END -->
