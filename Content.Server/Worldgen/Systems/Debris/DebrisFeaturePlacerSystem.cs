@@ -86,6 +86,7 @@ public sealed partial class DebrisFeaturePlacerSystem : BaseWorldSystem
 
         newPlacer.OwnedDebris[_xformSys.GetWorldPosition(xform)] = uid; // Change our owner.
         component.OwningController = newChunk.Value;
+        component.LastKey = _xformSys.GetWorldPosition(xform); // WOLFGATE(AsteroidMining): drifting rocks left a stale key per move
     }
 
     /// <summary>

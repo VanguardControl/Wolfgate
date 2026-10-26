@@ -111,19 +111,7 @@ public sealed class WFAsteroidCrackOverlay : Overlay
         var eased = 1f - (1f - wave) * (1f - wave);
         var outer = radius * (0.8f + (effect.Violent ? 3.2f : 2.4f) * eased);
         var inner = outer - radius * 0.35f * (1f - wave) - 0.15f;
-        var ringColor = color.WithAlpha(0.55f * (1f - wave));
-        var clear = ringColor.WithAlpha(0f);
-        var count = 0;
-        for (var i = 0; i <= RingSides; i++)
-        {
-            var angle = MathF.Tau * i / RingSides;
-            var dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-            _ring[count++] = new DrawVertexUV2DColor(center + dir * outer, clear);
-            _ring[count++] = new DrawVertexUV2DColor(center + dir * MathF.Max(0f, inner), ringColor);
-        }
-
-        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleStrip, Texture.White,
-            new ReadOnlySpan<DrawVertexUV2DColor>(_ring, 0, count));
+        Ring(handle, _ring, center, MathF.Max(0f, inner), outer, color.WithAlpha(0.55f * (1f - wave)));
     }
 
     /// <summary>

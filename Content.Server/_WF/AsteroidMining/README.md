@@ -164,7 +164,9 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 ## Non-modular edits
 
 - [`Content.Client/_Mono/FireControl/UI/FireControlConsoleBoundUserInterface.cs`](../../../Content.Client/_Mono/FireControl/UI/FireControlConsoleBoundUserInterface.cs): the mining laser panel's scan
-- [`Content.Server/Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs`](../../Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs): a placing handler may swap the debris
+- [`Content.Server/Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs`](../../Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs)
+  - drifting rocks left a stale key per move
+  - a placing handler may swap the debris
 - [`Resources/Prototypes/_Mono/Entities/Structures/Machines/ore_magnet.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/Machines/ore_magnet.yml)
   - pulls only ore it can see, with an arc and aura, and a new sprite
   - the field's cyan, to match the new sprite and pull arc

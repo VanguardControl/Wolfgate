@@ -353,8 +353,7 @@ def check_bounds(rk, R):
     ys, xs = np.nonzero(m)
     c = rk["c"]
     far = np.max(np.hypot(np.maximum(np.abs(xs - c), np.abs(xs + 1 - c)), np.maximum(np.abs(ys - c), np.abs(ys + 1 - c))))
-    near_hole = (~m) & (d <= 0.80 * Rp + 0.71)
-    return far / Rp, near_hole.sum(), (~m & (d < np.min(d[rk["edge"]]) + 0.01)).sum(), np.min(d[rk["edge"]]) / Rp
+    return far / Rp, np.min(d[rk["edge"]]) / Rp
 
 
 METAL_A = [(36, 40, 48), (46, 52, 62), (58, 65, 77), (71, 79, 93), (85, 94, 110), (100, 110, 128), (117, 128, 147), (137, 149, 169)]
@@ -477,7 +476,7 @@ def main():
             if irregular:
                 shapes[name][v] = dict(outline=outline(rk["rfn"], 1.05), hull=hull8(outline(rk["rfn"], 0.92, 64)),
                                        area=round(float(rk["mask"].sum()) / (np.pi * (R * TILE) ** 2), 3))
-            far, holes, _, nearedge = check_bounds(rk, R)
+            far, nearedge = check_bounds(rk, R)
             report[f"{name}{v}"] = dict(maxR=round(far, 3), minEdgeR=round(nearedge, 3), vein_frac=round(float(frac), 3))
             states += [{"name": f"rock{v}"}, {"name": f"veins{v}"}, {"name": f"heat{v}"}]
         write_meta(rsi, R, states, "")

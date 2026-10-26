@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Numerics;
 using Content.Server.Power.EntitySystems;
 using Content.Shared._Mono.FireControl;
@@ -35,8 +34,11 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     private readonly HashSet<EntityUid> _openConsoles = new();
     private readonly List<EntityUid> _closedConsoles = new();
     private readonly List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> _lasers = new();
-    /// <summary>The rock each open gunnery console last showed, kept while it cools, and whether it had lasers.</summary>
-    private readonly Dictionary<EntityUid, (EntityUid? Rock, bool Lasers)> _gunnery = new();
+    /// <summary>
+    /// Each open gunnery console's last rock, kept until it breaks or the console closes, and what was last sent and to
+    /// which viewers, so an unchanged scan isn't resent.
+    /// </summary>
+    private readonly Dictionary<EntityUid, (EntityUid? Rock, int Viewers, WFMiningBeamGunneryState Sent)> _gunnery = new();
 
     public override void Initialize()
     {
@@ -348,8 +350,9 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     }
 
     /// <summary>
-    /// Sends a gunnery console its ship's laser power and a scan of the rock its lasers are on, or were last on while
-    /// it cools. A ship without mining lasers is sent one empty state, which hides the panel.
+    /// Sends a gunnery console its ship's laser power and a scan of the rock its lasers are on, or were last on. A ship
+    /// without mining lasers gets an empty state, which hides the panel. Nothing is sent if neither the state nor its
+    /// viewers changed.
     /// </summary>
     private void UpdateGunnery(EntityUid console)
     {
@@ -360,34 +363,64 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         else
             lasers.Clear();
 
-        if (lasers.Count == 0)
+        EntityUid? rock = null;
+        var state = new WFMiningBeamGunneryState(0, 0f, 0f, null);
+        if (lasers.Count > 0)
         {
-            if (!known || last.Lasers)
-                _ui.ServerSendUiMessage(console, FireControlConsoleUiKey.Key,
-                    new WFMiningBeamGunneryUpdateMessage(new WFMiningBeamGunneryState(0, 0f, 0f, null)));
-            _gunnery[console] = (null, false);
-            return;
+            var cooldown = 0f;
+            foreach (var (_, beam) in lasers)
+            {
+                rock ??= beam.Target;
+                cooldown = MathF.Max(cooldown, (float) (beam.CooldownUntil - _timing.CurTime).TotalSeconds);
+            }
+
+            rock ??= last.Rock;
+            WFMiningBeamTargetEntry? target = null;
+            if (rock is { } uid && !TerminatingOrDeleted(uid) && TryComp<WFAsteroidComponent>(uid, out var comp) && !comp.Cracking)
+            {
+                var (low, high) = Window(comp);
+                var ores = new WFMiningBeamOreEntry[comp.Ores.Count];
+                for (var i = 0; i < ores.Length; i++)
+                {
+                    var ore = comp.Ores[i];
+                    ores[i] = new WFMiningBeamOreEntry(OreName(ore.Ore), ore.Fraction, ore.Color);
+                }
+
+                target = new WFMiningBeamTargetEntry(Name(uid), comp.Mass, ores, comp.Resistance, low, high, comp.Charge,
+                    Math.Clamp(comp.Progress, 0f, 1f), comp.OverchargeTime / WFAsteroidHeat.OverchargeDuration,
+                    WFAsteroidHeat.Yield(comp.Progress, comp.HotProgress));
+            }
+            else
+            {
+                rock = null;
+            }
+
+            state = new WFMiningBeamGunneryState(lasers.Count, lasers[0].Beam.Power, cooldown, target);
         }
 
-        var rock = lasers.Select(l => l.Beam.Target).FirstOrDefault(t => t != null) ?? last.Rock;
-        WFMiningBeamTargetEntry? target = null;
-        if (rock is { } uid && !TerminatingOrDeleted(uid) && TryComp<WFAsteroidComponent>(uid, out var comp) && !comp.Cracking)
+        // A viewer who opens an already open console has missed the last send; summing the actors catches that.
+        var viewers = 0;
+        foreach (var actor in _ui.GetActors(console, FireControlConsoleUiKey.Key))
         {
-            var (low, high) = Window(comp);
-            var ores = comp.Ores.Select(o => new WFMiningBeamOreEntry(OreName(o.Ore), o.Fraction, o.Color)).ToArray();
-            target = new WFMiningBeamTargetEntry(Name(uid), comp.Mass, ores, comp.Resistance, low, high, comp.Charge,
-                Math.Clamp(comp.Progress, 0f, 1f), comp.OverchargeTime / WFAsteroidHeat.OverchargeDuration,
-                WFAsteroidHeat.Yield(comp.Progress, comp.HotProgress));
-        }
-        else
-        {
-            rock = null;
+            viewers += actor.Id;
         }
 
-        var cooldown = lasers.Max(l => MathF.Max(0f, (float) (l.Beam.CooldownUntil - _timing.CurTime).TotalSeconds));
-        _gunnery[console] = (rock, true);
-        _ui.ServerSendUiMessage(console, FireControlConsoleUiKey.Key, new WFMiningBeamGunneryUpdateMessage(
-            new WFMiningBeamGunneryState(lasers.Count, lasers[0].Beam.Power, cooldown, target)));
+        var unchanged = known && last.Viewers == viewers && SameState(last.Sent, state);
+        _gunnery[console] = (rock, viewers, state);
+        if (!unchanged)
+            _ui.ServerSendUiMessage(console, FireControlConsoleUiKey.Key, new WFMiningBeamGunneryUpdateMessage(state));
+    }
+
+    private static bool SameState(WFMiningBeamGunneryState a, WFMiningBeamGunneryState b)
+    {
+        if (a with { Target = null } != b with { Target = null })
+            return false;
+
+        if (a.Target is not { } x || b.Target is not { } y)
+            return a.Target == null && b.Target == null;
+
+        // The ore list is an array, which record equality compares by reference.
+        return x with { Ores = y.Ores } == y && x.Ores.AsSpan().SequenceEqual(y.Ores);
     }
 
     private string OreName(ProtoId<OrePrototype> ore)

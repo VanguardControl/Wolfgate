@@ -64,7 +64,9 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     private readonly List<(EntityUid Rock, WFAsteroidCrack Kind)> _cracks = new();
     private readonly List<(EntityUid Rock, WFAsteroidCrack Kind)> _cracking = new();
     private List<Entity<MapGridComponent>> _grids = new();
+    /// <summary>Cluster markers map-initialised since the last update.</summary>
     private readonly List<EntityUid> _clusters = new();
+    private readonly List<EntityUid> _filling = new();
     // Swapped debris: the mass budget for the cluster about to spawn at each point. Keyed by exact position, which
     // holds because worldgen spawns the marker straight onto the map at the point it raised the event with.
     private readonly Dictionary<MapCoordinates, float> _budgets = new();
@@ -79,9 +81,14 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         SubscribeLocalEvent<WFAsteroidComponent, DamageChangedEvent>(OnDamaged);
         SubscribeLocalEvent<WFAsteroidComponent, ExaminedEvent>(OnExamined);
         SubscribeLocalEvent<WFAsteroidComponent, GatheredEvent>(OnGathered);
+        SubscribeLocalEvent<WFAsteroidClusterComponent, MapInitEvent>((uid, _, _) => _clusters.Add(uid));
         SubscribeLocalEvent<WFDebrisPlacingEvent>(OnDebrisPlacing, after: new[] { typeof(WFDroneHeldSpaceSystem) });
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(_ => _replacements = null);
-        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _budgets.Clear());
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ =>
+        {
+            _budgets.Clear();
+            _clusters.Clear();
+        });
     }
 
     /// <summary>Swaps an ore tile asteroid for a cluster of single rocks with the same kind and amount of ore.</summary>
@@ -163,17 +170,14 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
             Dirty(rock, rockComp);
         }
-
-        if (ent.Comp.Composition is { } composition)
-            Roll(rock, composition);
     }
 
     /// <summary>Makes the grid's tiles as heavy as solid rock, after the shuttle system has set them to hull density.</summary>
-    private void OnGridFixtures(EntityUid uid, WFAsteroidGridComponent comp, GridFixtureChangeEvent args)
+    private void OnGridFixtures(Entity<WFAsteroidGridComponent> ent, ref GridFixtureChangeEvent args)
     {
         foreach (var (id, fixture) in args.NewFixtures)
         {
-            _physics.SetDensity(uid, id, fixture, ShuttleSystem.TileDensityMultiplier * comp.DensityScale, false);
+            _physics.SetDensity(ent, id, fixture, ShuttleSystem.TileDensityMultiplier * ent.Comp.DensityScale, false);
         }
     }
 
@@ -570,23 +574,22 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     /// <summary>Fills each new cluster marker's budget with asteroids once worldgen has handed it to a chunk.</summary>
     private void SpawnClusters()
     {
-        _clusters.Clear();
-        var query = EntityQueryEnumerator<WFAsteroidClusterComponent>();
-        while (query.MoveNext(out var uid, out _))
-        {
-            _clusters.Add(uid);
-        }
+        if (_clusters.Count == 0)
+            return;
 
-        foreach (var uid in _clusters)
+        _filling.Clear();
+        _filling.AddRange(_clusters);
+        _clusters.Clear();
+        foreach (var uid in _filling)
         {
-            if (TerminatingOrDeleted(uid))
+            if (TerminatingOrDeleted(uid) || !TryComp<WFAsteroidClusterComponent>(uid, out var cluster))
                 continue;
 
             // Hand the marker's chunk slot over before its first rock takes the same key, so deleting it doesn't
             // drop that rock from the chunk.
             var controller = _debris.GetDebrisOwner(uid);
             RemComp<OwnedDebrisComponent>(uid);
-            FillCluster(uid, Comp<WFAsteroidClusterComponent>(uid), controller);
+            FillCluster(uid, cluster, controller);
             RemComp<WFAsteroidClusterComponent>(uid);
             QueueDel(uid);
         }

@@ -65,14 +65,15 @@ public sealed partial class WFAsteroidComponent : Component
     /// <summary>Alternative RSIs by look, such as metallic, with the same states and silhouettes.</summary>
     [DataField] public Dictionary<string, ResPath> Looks = new();
 
-    [AutoNetworkedField] public int Variant;
+    // What the rock rolled is saved, so a boulder aboard a saved ship keeps its ore and look.
+    [DataField, AutoNetworkedField] public int Variant;
 
     /// <summary>The composition's look, picking an RSI from <see cref="Looks"/>.</summary>
-    [AutoNetworkedField] public string? Look;
-    [AutoNetworkedField] public Color VeinColor = Color.White;
+    [DataField, AutoNetworkedField] public string? Look;
+    [DataField, AutoNetworkedField] public Color VeinColor = Color.White;
 
     /// <summary>Tint of the rock body, from its composition.</summary>
-    [AutoNetworkedField] public Color RockColor = Color.White;
+    [DataField, AutoNetworkedField] public Color RockColor = Color.White;
 
     /// <summary>Displayed heat; <see cref="WFAsteroidHeat.OverchargeLine"/> is where it starts to overcharge.</summary>
     [AutoNetworkedField] public float Charge;
@@ -84,17 +85,18 @@ public sealed partial class WFAsteroidComponent : Component
     /// <summary>Client-side heat, eased toward <see cref="Charge"/>.</summary>
     public float DisplayCharge;
 
-    /// <summary>The look the client last swapped the sprite to.</summary>
+    /// <summary>The look and variant the client last set the sprite to.</summary>
     public string? AppliedLook;
+    public int AppliedVariant = -1;
 
     /// <summary>Ore veins this rock holds, inert rock included.</summary>
-    public float Mass;
-    public ProtoId<WFAsteroidCompositionPrototype>? CompositionId;
-    public List<WFAsteroidOre> Ores = new();
-    public float Resistance;
-    public float Instability;
-    public float WindowCenter = 0.55f;
-    public float WindowHalfWidth = 0.1f;
+    [DataField] public float Mass;
+    [DataField] public ProtoId<WFAsteroidCompositionPrototype>? CompositionId;
+    [DataField] public List<WFAsteroidOre> Ores = new();
+    [DataField] public float Resistance;
+    [DataField] public float Instability;
+    [DataField] public float WindowCenter = 0.55f;
+    [DataField] public float WindowHalfWidth = 0.1f;
     public float BaseCharge;
     /// <summary>The progress last sent to clients, so it is only resent as it moves.</summary>
     public float SentProgress;
@@ -105,13 +107,14 @@ public sealed partial class WFAsteroidComponent : Component
     /// <summary>Summed crack rate of the beams on the rock this tick.</summary>
     public float CrackRate;
     /// <summary>Rolled mass scale of the rock's silhouette.</summary>
-    public float MassScale = 1f;
-    public float NoiseSeed;
+    [DataField] public float MassScale = 1f;
+    [DataField] public float NoiseSeed;
     public bool Cracking;
 }
 
 /// <summary>One ore in a rock and the share of its mass it makes up.</summary>
-public record struct WFAsteroidOre(ProtoId<OrePrototype> Ore, float Fraction, Color Color, float Volatility);
+[DataRecord]
+public partial record struct WFAsteroidOre(ProtoId<OrePrototype> Ore, float Fraction, Color Color, float Volatility);
 
 [Serializable, NetSerializable]
 public enum WFAsteroidVisualLayers : byte

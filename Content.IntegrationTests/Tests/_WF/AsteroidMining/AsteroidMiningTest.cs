@@ -5,6 +5,7 @@ using Content.Client._Mono.FireControl.UI;
 using Content.Client._WF.Cockpit;
 using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Drydock;
+using Content.Server._NF.Shipyard.Systems;
 using Content.Server._WF.AsteroidMining;
 using Content.Server._WF.DroneRings;
 using Content.Server.Gatherable;
@@ -367,6 +368,53 @@ public sealed class AsteroidMiningTest
                 Assert.That(em.Deleted(beamed), Is.True, "Cracking should break the boulder.");
                 Assert.That(em.Deleted(ship), Is.False, "Breaking a boulder aboard must never delete the ship's grid.");
                 Assert.That(OreItems(em), Is.GreaterThan(0), "The boulders should drop their ore.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task BoulderKeepsItsOreThroughAShipSave()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var shipyard = server.System<ShipyardSystem>();
+
+        WFAsteroidComponent saved = default!;
+        string? data = null;
+        await server.WaitAssertion(() =>
+        {
+            var ship = DrydockTest.CreateShip(pair, map.MapId, ShipPos);
+            DrydockTest.SetFloor(pair, ship, 5);
+            var boulder = em.SpawnEntity("WFAsteroidBoulder", new EntityCoordinates(ship, 2.5f, 2.5f));
+            server.System<WFAsteroidSystem>().Roll(boulder, "WFAsteroidMetallic");
+            saved = em.GetComponent<WFAsteroidComponent>(boulder);
+            Assert.That(shipyard.TrySaveShip(ship, out data), Is.True, "The ship should save.");
+        });
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(shipyard.TryAddSavedShip(data!, out var loaded), Is.True, "The ship should load.");
+            WFAsteroidComponent? copy = null;
+            var query = em.EntityQueryEnumerator<WFAsteroidComponent, TransformComponent>();
+            while (query.MoveNext(out var comp, out var xform))
+            {
+                if (xform.GridUid == loaded)
+                    copy = comp;
+            }
+
+            Assert.That(copy, Is.Not.Null, "The boulder should come back with the ship.");
+            Assert.Multiple(() =>
+            {
+                Assert.That(copy!.Mass, Is.EqualTo(saved.Mass).Within(0.001f), "The boulder should keep its mass.");
+                Assert.That(copy.CompositionId, Is.EqualTo(saved.CompositionId));
+                Assert.That(copy.Ores.Select(o => o.Ore), Is.EqualTo(saved.Ores.Select(o => o.Ore)), "The boulder should keep its ores.");
+                Assert.That(copy.Ores.Sum(o => o.Fraction), Is.EqualTo(saved.Ores.Sum(o => o.Fraction)).Within(0.001f));
+                Assert.That(copy.Variant, Is.EqualTo(saved.Variant));
+                Assert.That(copy.Look, Is.EqualTo(saved.Look).And.Not.Null, "A metallic boulder should stay metallic.");
             });
         });
 

@@ -140,19 +140,6 @@ public sealed class WFOreMagnetOverlay : Overlay
         Glow(handle, _fan, ore, 0.5f, Field.WithAlpha(0.18f * fade * pulse));
 
         var radius = 0.55f - 0.2f * progress;
-        var inner = radius - 0.09f;
-        var color = Field.WithAlpha((0.35f + 0.3f * progress) * fade * pulse);
-        var clear = color.WithAlpha(0f);
-        var count = 0;
-        for (var i = 0; i <= RingSides; i++)
-        {
-            var angle = MathF.Tau * i / RingSides;
-            var dir = new Vector2(MathF.Cos(angle), MathF.Sin(angle));
-            _ring[count++] = new DrawVertexUV2DColor(ore + dir * radius, clear);
-            _ring[count++] = new DrawVertexUV2DColor(ore + dir * inner, color);
-        }
-
-        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleStrip, Texture.White,
-            new ReadOnlySpan<DrawVertexUV2DColor>(_ring, 0, count));
+        Ring(handle, _ring, ore, radius - 0.09f, radius, Field.WithAlpha((0.35f + 0.3f * progress) * fade * pulse));
     }
 }

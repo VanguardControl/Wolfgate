@@ -55,22 +55,29 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
             return;
 
         // A look swaps every layer to an RSI with the same states and silhouettes.
+        var swapped = false;
         if (ent.Comp.Look != ent.Comp.AppliedLook && ent.Comp.Look is { } look && ent.Comp.Looks.TryGetValue(look, out var swap))
         {
             ent.Comp.AppliedLook = look;
+            swapped = true;
             foreach (var layer in Layers)
             {
                 _sprite.LayerSetRsi((ent, sprite), layer, swap);
             }
         }
 
+        // States arrive many times a second while a beam heats the rock; only a new variant or look changes the states.
         var variant = ent.Comp.Variant;
-        _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Rock, $"rock{variant}");
-        _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Veins, $"veins{variant}");
-        _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Heat, $"heat{variant}");
+        if (swapped || variant != ent.Comp.AppliedVariant)
+        {
+            ent.Comp.AppliedVariant = variant;
+            _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Rock, $"rock{variant}");
+            _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Veins, $"veins{variant}");
+            _sprite.LayerSetRsiState((ent, sprite), WFAsteroidVisualLayers.Heat, $"heat{variant}");
+        }
+
         _sprite.LayerSetColor((ent, sprite), WFAsteroidVisualLayers.Rock, ent.Comp.RockColor);
         _sprite.LayerSetColor((ent, sprite), WFAsteroidVisualLayers.Veins, ent.Comp.VeinColor);
-        SetHeat((ent, ent.Comp, sprite), ent.Comp.DisplayCharge);
     }
 
     public override void FrameUpdate(float frameTime)

@@ -12,8 +12,8 @@ namespace Content.Client._WF.AsteroidMining;
 public sealed class WFMiningChargeMeter : Control
 {
     public float Charge;
-    public float WindowLow = 0.45f;
-    public float WindowHigh = 0.65f;
+    public float WindowLow;
+    public float WindowHigh;
     public bool Overcharging;
 
     private static readonly Color Cold = new(0.16f, 0.2f, 0.24f);
