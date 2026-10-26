@@ -28,7 +28,12 @@ public static class WFOverlayDraw
     /// <summary>A cheap repeatable pseudo-random value in [0, 1) for a seed.</summary>
     public static float Hash(float value)
     {
-        var x = MathF.Sin(value * 12.9898f) * 43758.5453f;
-        return x - MathF.Floor(x);
+        return Frac(MathF.Sin(value * 12.9898f) * 43758.5453f);
+    }
+
+    /// <summary>The fractional part of a value, in [0, 1) even for negatives.</summary>
+    public static float Frac(float value)
+    {
+        return value - MathF.Floor(value);
     }
 }

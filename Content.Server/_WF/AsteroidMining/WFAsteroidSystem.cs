@@ -11,6 +11,7 @@ using Content.Server.Worldgen.Systems.Debris;
 using Content.Shared._WF.AsteroidMining;
 using Content.Shared.Damage;
 using Content.Shared.Examine;
+using Content.Shared.GameTicking;
 using Content.Shared.Mining;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
@@ -80,6 +81,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         SubscribeLocalEvent<WFAsteroidComponent, GatheredEvent>(OnGathered);
         SubscribeLocalEvent<WFDebrisPlacingEvent>(OnDebrisPlacing, after: new[] { typeof(WFDroneHeldSpaceSystem) });
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(_ => _replacements = null);
+        SubscribeLocalEvent<RoundRestartCleanupEvent>(_ => _budgets.Clear());
     }
 
     /// <summary>Swaps an ore tile asteroid for a cluster of single rocks with the same kind and amount of ore.</summary>
@@ -178,6 +180,9 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     /// <summary>A loose rock, such as a boulder, picks its sprite; a grid's rock is given its grid's instead.</summary>
     private void OnRockMapInit(Entity<WFAsteroidComponent> ent, ref MapInitEvent args)
     {
+        if (HasComp<WFAsteroidGridComponent>(Transform(ent).ParentUid))
+            return;
+
         ent.Comp.Variant = _random.Next(Math.Max(1, ent.Comp.Variants));
         Dirty(ent);
     }
@@ -447,7 +452,10 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         }
     }
 
-    /// <summary>A pickaxe, drill or kinetic accelerator breaks a boulder into all of its ore.</summary>
+    /// <summary>
+    /// A pickaxe, drill or kinetic accelerator breaks a boulder into all of its ore. A ship drill takes the ore to
+    /// itself, as it does from vein rock.
+    /// </summary>
     private void OnGathered(EntityUid uid, WFAsteroidComponent comp, GatheredEvent args)
     {
         if (comp.Cracking)
@@ -455,7 +463,10 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
         comp.Cracking = true;
         var center = _transform.GetMapCoordinates(uid);
-        SpawnOre(comp.Ores, comp.Mass, center, MathF.Max(comp.Radius, 0.3f));
+        if (args.TeleportLootToGatherer && args.Gatherer is { } gatherer)
+            SpawnOre(comp.Ores, comp.Mass, _transform.GetMapCoordinates(gatherer), 0.2f);
+        else
+            SpawnOre(comp.Ores, comp.Mass, center, MathF.Max(comp.Radius, 0.3f));
         if (Transform(uid).MapUid is { } mapUid)
             SpawnCrackEffect(center, mapUid, MathF.Max(comp.Radius, 0.5f), comp.VeinColor, false);
     }
@@ -464,7 +475,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     private void SpawnCrackEffect(MapCoordinates center, EntityUid mapUid, float radius, Color veins, bool violent)
     {
         var effect = Spawn(CrackEffect, new EntityCoordinates(mapUid, center.Position));
-        var comp = EnsureComp<WFAsteroidCrackEffectComponent>(effect);
+        var comp = Comp<WFAsteroidCrackEffectComponent>(effect);
         comp.Radius = radius;
         comp.VeinColor = veins;
         comp.Violent = violent;
@@ -636,20 +647,29 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
     private readonly record struct ClusterSize(EntProtoId Grid, float Weight, float Mass, float Radius);
 
+    /// <summary>Picks a size by weight among those that fit the budget left, or the smallest if none does.</summary>
     private ClusterSize PickSize(List<ClusterSize> sizes, float remaining)
     {
-        var fitting = sizes.Where(s => s.Mass <= remaining * 1.2f).ToList();
-        if (fitting.Count == 0)
-            return sizes[0];
-
-        var roll = _random.NextFloat(fitting.Sum(s => s.Weight));
-        foreach (var size in fitting)
+        // Sizes are sorted by mass, so the ones that fit are a prefix of the list.
+        var limit = remaining * 1.2f;
+        var fitting = 0;
+        var total = 0f;
+        while (fitting < sizes.Count && sizes[fitting].Mass <= limit)
         {
-            roll -= size.Weight;
-            if (roll <= 0f)
-                return size;
+            total += sizes[fitting++].Weight;
         }
 
-        return fitting[^1];
+        if (fitting == 0)
+            return sizes[0];
+
+        var roll = _random.NextFloat(total);
+        for (var i = 0; i < fitting; i++)
+        {
+            roll -= sizes[i].Weight;
+            if (roll <= 0f)
+                return sizes[i];
+        }
+
+        return sizes[fitting - 1];
     }
 }

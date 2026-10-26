@@ -3,9 +3,9 @@ using Content.Shared._WF.AsteroidMining;
 using Content.Shared.Examine;
 using Content.Shared.Item;
 using Content.Shared.Item.ItemToggle;
+using Content.Shared.Stacks;
 using Content.Shared.Storage;
 using Content.Shared.Storage.EntitySystems;
-using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Timing;
@@ -25,7 +25,7 @@ public sealed partial class WFOreMagnetSystem : EntitySystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedStorageSystem _storage = default!;
     [Dependency] private SharedItemSystem _item = default!;
-    [Dependency] private EntityWhitelistSystem _whitelist = default!;
+    [Dependency] private SharedStackSystem _stack = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
     [Dependency] private SharedContainerSystem _container = default!;
 
@@ -125,16 +125,13 @@ public sealed partial class WFOreMagnetSystem : EntitySystem
         if (magnet.Pulling.Count >= magnet.MaxPulls)
             return;
 
-        // Room left, less what the ore already locked on will take.
+        // Room left, less what the ore already locked on will take. Ore that tops up a stored stack takes none.
         var free = storage.Grid.GetArea() - _storage.GetCumulativeItemAreas((uid, storage));
         foreach (var locked in magnet.Pulling)
         {
-            if (TryComp<ItemComponent>(locked, out var lockedItem))
+            if (TryComp<ItemComponent>(locked, out var lockedItem) && !TopsUpStack(locked, storage))
                 free -= _item.GetItemShape((locked, lockedItem)).GetArea();
         }
-
-        if (free <= 0)
-            return;
 
         var origin = _transform.GetMapCoordinates(uid);
         _nearby.Clear();
@@ -146,16 +143,20 @@ public sealed partial class WFOreMagnetSystem : EntitySystem
 
             if (HasComp<WFOreMagnetPulledComponent>(ore) ||
                 !TryComp<PhysicsComponent>(ore, out var physics) || physics.BodyStatus != BodyStatus.OnGround ||
-                _whitelist.IsWhitelistFail(storage.Whitelist, ore) ||
                 !TryComp<ItemComponent>(ore, out var item) ||
+                !_storage.CanInsert(uid, ore, out _, storage, item) ||
                 !CanSee(uid, magnet, ore))
                 continue;
 
-            var size = _item.GetItemShape((ore, item)).GetArea();
-            if (size > free)
-                continue;
+            if (!TopsUpStack(ore, storage))
+            {
+                var size = _item.GetItemShape((ore, item)).GetArea();
+                if (size > free)
+                    continue;
 
-            free -= size;
+                free -= size;
+            }
+
             var distance = (_transform.GetMapCoordinates(ore).Position - origin.Position).Length();
             var pulled = EnsureComp<WFOreMagnetPulledComponent>(ore);
             pulled.Magnet = uid;
@@ -171,6 +172,22 @@ public sealed partial class WFOreMagnetSystem : EntitySystem
     {
         return _examine.InRangeUnOccluded(_transform.GetMapCoordinates(magnet), _transform.GetMapCoordinates(ore), comp.Range,
             e => e == magnet || e == ore);
+    }
+
+    /// <summary>Whether a stack of the same kind in storage has room for more, so the ore needs no new slot.</summary>
+    private bool TopsUpStack(EntityUid ore, StorageComponent storage)
+    {
+        if (!TryComp<StackComponent>(ore, out var stack))
+            return false;
+
+        foreach (var stored in storage.Container.ContainedEntities)
+        {
+            if (TryComp<StackComponent>(stored, out var storedStack) && storedStack.StackTypeId == stack.StackTypeId &&
+                _stack.GetAvailableSpace(storedStack) > 0)
+                return true;
+        }
+
+        return false;
     }
 
     private void ReleaseAll(WFOreMagnetComponent magnet)

@@ -106,8 +106,6 @@ public sealed partial class WFAsteroidComponent : Component
     public float CrackRate;
     /// <summary>Rolled mass scale of the rock's silhouette.</summary>
     public float MassScale = 1f;
-    /// <summary>Widest window scale among the beams on the rock this tick.</summary>
-    public float WindowScale = 1f;
     public float NoiseSeed;
     public bool Cracking;
 }

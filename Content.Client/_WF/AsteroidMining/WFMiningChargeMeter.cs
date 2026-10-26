@@ -11,9 +11,6 @@ namespace Content.Client._WF.AsteroidMining;
 /// </summary>
 public sealed class WFMiningChargeMeter : Control
 {
-    /// <summary>Heat at the right-hand end of the bar.</summary>
-    public const float Scale = WFAsteroidHeat.MeterScale;
-
     public float Charge;
     public float WindowLow = 0.45f;
     public float WindowHigh = 0.65f;
@@ -40,15 +37,15 @@ public sealed class WFMiningChargeMeter : Control
         handle.DrawRect(new UIBox2(X(0f), top, X(WindowLow), bottom), Cold);
         handle.DrawRect(new UIBox2(X(WindowLow), top, X(WindowHigh), bottom), WindowColor);
         handle.DrawRect(new UIBox2(X(WindowHigh), top, X(WFAsteroidHeat.OverchargeLine), bottom), Hot.WithAlpha(0.8f));
-        handle.DrawRect(new UIBox2(X(WFAsteroidHeat.OverchargeLine), top, X(Scale), bottom), Danger.WithAlpha(Overcharging ? 1f : 0.7f));
+        handle.DrawRect(new UIBox2(X(WFAsteroidHeat.OverchargeLine), top, X(WFAsteroidHeat.MeterScale), bottom), Danger.WithAlpha(Overcharging ? 1f : 0.7f));
         handle.DrawRect(new UIBox2(0f, top, size.X, bottom), Color.White.WithAlpha(0.35f), false);
 
-        var needle = X(Math.Clamp(Charge, 0f, Scale));
+        var needle = X(Charge);
         handle.DrawRect(new UIBox2(needle - 1.5f * UIScale, 0f, needle + 1.5f * UIScale, size.Y), Color.White);
 
         float X(float value)
         {
-            return size.X * Math.Clamp(value / Scale, 0f, 1f);
+            return size.X * Math.Clamp(value / WFAsteroidHeat.MeterScale, 0f, 1f);
         }
     }
 }

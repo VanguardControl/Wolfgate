@@ -21,9 +21,6 @@ public sealed partial class WFMiningBeamEmitterComponent : Component
     /// <summary>Scales the drawn beam's width and impact.</summary>
     [DataField] public float BeamWidth = 1f;
 
-    /// <summary>Scales the width of every rock's cracking window.</summary>
-    [DataField] public float WindowScale = 1f;
-
     /// <summary>Seconds the gun can't fire after its target blows up.</summary>
     [DataField] public float OverloadCooldown = 10f;
 

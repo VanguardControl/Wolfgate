@@ -3,6 +3,7 @@ using Content.Client._WF.AsteroidMining;
 using Content.Shared._WF.AsteroidMining;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Shared.Timing;
 using static Content.Client._WF.CombatConsole.WFInstrumentTheme;
 
 namespace Content.Client._Mono.FireControl.UI;
@@ -10,6 +11,11 @@ namespace Content.Client._Mono.FireControl.UI;
 public sealed partial class FireControlWindow
 {
     private static readonly float[] WfMiningSteps = { -0.1f, -0.01f, 0.01f, 0.1f };
+
+    /// <summary>How long a power step shows before the server's value, in case the server never applies it.</summary>
+    private static readonly TimeSpan WfMiningPendingTimeout = TimeSpan.FromSeconds(1);
+
+    [Dependency] private IGameTiming _wfTiming = default!;
 
     private Control _wfMiningPanel = default!;
     private Label _wfMiningPower = default!;
@@ -28,6 +34,7 @@ public sealed partial class FireControlWindow
     private Label _wfMiningOvercharge = default!;
     private WFMiningBeamGunneryState _wfMining;
     private float? _wfMiningPending;
+    private TimeSpan _wfMiningPendingUntil;
 
     /// <summary>
     /// Builds the gunner's mining laser panel: the ship's laser power and a scan of the rock under fire. It stays hidden
@@ -101,6 +108,7 @@ public sealed partial class FireControlWindow
 
         var power = MathF.Round(Math.Clamp((_wfMiningPending ?? _wfMining.Power) + step, 0f, 1f), 2);
         _wfMiningPending = power;
+        _wfMiningPendingUntil = _wfTiming.RealTime + WfMiningPendingTimeout;
         CombatMessage?.Invoke(new WFMiningBeamPowerMessage(power));
         WfRefreshMining();
     }
@@ -109,7 +117,8 @@ public sealed partial class FireControlWindow
     public void WfUpdateMining(WFMiningBeamGunneryState state)
     {
         _wfMining = state;
-        if (_wfMiningPending is { } pending && MathF.Abs(pending - state.Power) < 0.005f)
+        if (_wfMiningPending is { } pending &&
+            (MathF.Abs(pending - state.Power) < 0.005f || _wfTiming.RealTime > _wfMiningPendingUntil))
             _wfMiningPending = null;
         WfRefreshMining();
     }

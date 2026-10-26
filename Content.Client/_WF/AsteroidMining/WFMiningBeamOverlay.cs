@@ -29,7 +29,8 @@ public sealed class WFMiningBeamOverlay : Overlay
     private readonly ShaderInstance _additive;
     // Managed buffers avoid per-frame allocations; the client sandbox forbids stackalloc.
     private readonly DrawVertexUV2DColor[] _strip = new DrawVertexUV2DColor[(Segments + 1) * 2];
-    private readonly DrawVertexUV2DColor[] _lines = new DrawVertexUV2DColor[Segments * Strands * 2 + Sparks * 4];
+    // Shared by the strands and the impact sparks (doubled in the window), which draw one after the other.
+    private readonly DrawVertexUV2DColor[] _lines = new DrawVertexUV2DColor[Math.Max(Segments * Strands * 2, Sparks * 2 * 2)];
     private readonly DrawVertexUV2DColor[] _fan = new DrawVertexUV2DColor[FanSides * 3];
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowFOV;
@@ -157,8 +158,7 @@ public sealed class WFMiningBeamOverlay : Overlay
         var speed = 14f / MathF.Max(length, 1f);
         for (var i = 0; i < Pulses; i++)
         {
-            var t = time * speed + (float) i / Pulses + phase;
-            t -= MathF.Floor(t);
+            var t = Frac(time * speed + (float) i / Pulses + phase);
             var fade = MathF.Sin(MathF.PI * t);
             Glow(handle, _fan, start + direction * (length * t), (0.12f + 0.06f * fade) * width,
                 Color.InterpolateBetween(color, Color.White, 0.6f).WithAlpha(0.55f * fade));

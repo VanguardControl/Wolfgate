@@ -155,9 +155,4 @@ public sealed class WFOreMagnetOverlay : Overlay
         handle.DrawPrimitives(DrawPrimitiveTopology.TriangleStrip, Texture.White,
             new ReadOnlySpan<DrawVertexUV2DColor>(_ring, 0, count));
     }
-
-    private static float Frac(float value)
-    {
-        return value - MathF.Floor(value);
-    }
 }

@@ -5,6 +5,7 @@ using Content.IntegrationTests.Tests._WF.Drydock;
 using Content.Server.Power.Components;
 using Content.Shared._WF.AsteroidMining;
 using Content.Shared.Item.ItemToggle;
+using Content.Shared.Storage.EntitySystems;
 using Robust.Server.GameObjects;
 using Robust.Shared.Containers;
 using Robust.Shared.GameObjects;
@@ -108,6 +109,45 @@ public sealed class OreMagnetTest
             Assert.That(em.GetComponent<TransformComponent>(ore).ParentUid, Is.EqualTo(holder),
                 "The magnet should not pull ore out of whatever picked it up.");
             Assert.That(em.HasComponent<WFOreMagnetPulledComponent>(ore), Is.False, "Picking the ore up should break the lock.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task FullMagnetStillTopsUpItsStacks()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        EntityUid magnet = default, ore = default;
+        await server.WaitAssertion(() =>
+        {
+            (magnet, ore) = SetUp(pair, map.MapId, wall: false);
+            var storage = server.System<SharedStorageSystem>();
+            var at = em.GetComponent<TransformComponent>(magnet).Coordinates;
+            Assert.That(storage.Insert(magnet, em.SpawnEntity("SteelOre1", at), out _, playSound: false), Is.True,
+                "The magnet should take a partial steel stack.");
+            // Fill every slot left with full stacks of another ore, so only the steel stack has room.
+            for (var i = 0; i < 100; i++)
+            {
+                var filler = em.SpawnEntity("GoldOre", at);
+                if (storage.Insert(magnet, filler, out _, playSound: false))
+                    continue;
+
+                em.DeleteEntity(filler);
+                break;
+            }
+        });
+        await LockOn(pair, ore);
+        await server.WaitRunTicks(90);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(Stored(em, magnet, ore), Is.True,
+                "Ore that tops up a stored stack should be pulled in, even with no free slot.");
         });
 
         await pair.CleanReturnAsync();

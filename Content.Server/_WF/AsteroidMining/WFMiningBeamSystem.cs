@@ -88,7 +88,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     }
 
     /// <summary>Fills the list with every mining laser on a ship.</summary>
-    public void ShipLasers(EntityUid grid, List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> lasers)
+    private void ShipLasers(EntityUid grid, List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> lasers)
     {
         lasers.Clear();
         var query = EntityQueryEnumerator<WFMiningBeamEmitterComponent, TransformComponent>();
@@ -169,16 +169,6 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     {
         base.Update(frameTime);
 
-        foreach (var rock in _heated)
-        {
-            if (TryComp<WFAsteroidComponent>(rock, out var comp))
-            {
-                comp.IncomingPower = 0f;
-                comp.CrackRate = 0f;
-                comp.WindowScale = 1f;
-            }
-        }
-
         var now = _timing.CurTime;
         var emitters = EntityQueryEnumerator<WFMiningBeamEmitterComponent>();
         while (emitters.MoveNext(out var uid, out var beam))
@@ -206,7 +196,6 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
 
             asteroid.IncomingPower += beam.Power * beam.Strength;
             asteroid.CrackRate += beam.CrackRate;
-            asteroid.WindowScale = MathF.Max(asteroid.WindowScale, beam.WindowScale);
             _heated.Add(rock);
 
             var (low, high) = Window(asteroid);
@@ -258,18 +247,23 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         }
     }
 
-    /// <summary>The window as shown, after the beams' window scale.</summary>
+    /// <summary>The heat band a rock cracks cleanly in.</summary>
     public static (float Low, float High) Window(WFAsteroidComponent comp)
     {
-        var half = comp.WindowHalfWidth * comp.WindowScale;
-        return (comp.WindowCenter - half, comp.WindowCenter + half);
+        return (comp.WindowCenter - comp.WindowHalfWidth, comp.WindowCenter + comp.WindowHalfWidth);
     }
 
     /// <summary>Advances a rock's heat by a tick. Returns false once it has cooled and no beam is on it.</summary>
     private bool Heat(EntityUid rock, WFAsteroidComponent comp, float frameTime)
     {
-        var heating = comp.IncomingPower > 0f;
-        var equilibrium = comp.IncomingPower * (1f - comp.Resistance);
+        // Take this tick's beam totals, so they start from zero next tick whether or not the rock stays tracked.
+        var power = comp.IncomingPower;
+        var crackRate = comp.CrackRate;
+        comp.IncomingPower = 0f;
+        comp.CrackRate = 0f;
+
+        var heating = power > 0f;
+        var equilibrium = power * (1f - comp.Resistance);
         // Heavier rocks heat and cool more slowly; with no beam they cool at half speed.
         var tau = (0.5f + comp.Mass * 0.004f) * (heating ? 1f : 2f);
         comp.BaseCharge += (equilibrium - comp.BaseCharge) * (1f - MathF.Exp(-frameTime / tau));
@@ -283,7 +277,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         var charge = MathF.Max(0f, comp.BaseCharge + wobble);
         var (low, high) = Window(comp);
 
-        var rate = comp.CrackRate / WFAsteroidSystem.CrackTime(comp);
+        var rate = crackRate / WFAsteroidSystem.CrackTime(comp);
         if (heating && charge >= low && charge <= high)
         {
             comp.Progress += frameTime * rate;
