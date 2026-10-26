@@ -59,8 +59,8 @@ Once the ground exists, a table's `vehicles` (`WFPlanetPoiSystem.Vehicles`, `veh
 trucks, vans and the odd humvee by the roads and out in the open, part-fuelled, with the key on the driver's seat; in
 about a third a squatter (`WFStrangerSquatter`) has holed up with the key in his hand, attacks whoever comes in and
 drops it when he dies. A table's `roadPatrols` send an NPC-crewed vehicle up and down a stretch of road, there and back
-along points traced down the centreline: every world has a Reaver APC (`WFVehicleCrewReaverRoadPatrol`) that leaves
-people be unless shot at.
+along points traced down the centreline: Verda (Asclepiu) and Merak each have a Reaver APC
+(`WFVehicleCrewReaverRoadPatrol`) that leaves people be unless shot at. They are the only worlds with APCs.
 
 An authored site's `below` is a level under it, such as a basement: it is laid on the world's level under the ground
 (the cavern, or the rock a city adds) in the site's frame and turn, clearing the rock there, and the site's floor is
@@ -124,6 +124,7 @@ station's fuel merchant sells usable fuel items through Traders; it does not ref
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadPlannerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadPlannerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetTrailPlannerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetTrailPlannerTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetVehicleSpawnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetVehicleSpawnTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetWreckTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetWreckTest.cs)
 
 ### Prototypes

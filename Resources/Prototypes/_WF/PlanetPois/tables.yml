@@ -1,6 +1,8 @@
 # Every world keeps its procedural dungeons beside the authored sites. On Verda they sit off the roads, which join the
 # house and the gas station; elsewhere the roads join the dungeons.
 # A site that finds no room is skipped, so the counts are ceilings.
+# Armour (the Reaver APC road patrols) drives only Verda's and Merak's roads; the other worlds keep their parked
+# civilian vehicles and nothing heavier.
 
 - type: wfPlanetPoiTable
   id: WFPoisAsclepiu
@@ -269,8 +271,6 @@
     minCount: 2
     maxCount: 4
     squatter: WFStrangerSquatter
-  roadPatrols:
-  - crew: WFVehicleCrewReaverRoadPatrol
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4
@@ -328,8 +328,6 @@
     minCount: 2
     maxCount: 4
     squatter: WFStrangerSquatter
-  roadPatrols:
-  - crew: WFVehicleCrewReaverRoadPatrol
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4
@@ -387,8 +385,6 @@
     minCount: 2
     maxCount: 4
     squatter: WFStrangerSquatter
-  roadPatrols:
-  - crew: WFVehicleCrewReaverRoadPatrol
   camps:
   - camp: WFCampReavers
     minCount: 1
@@ -455,8 +451,6 @@
     minCount: 2
     maxCount: 4
     squatter: WFStrangerSquatter
-  roadPatrols:
-  - crew: WFVehicleCrewReaverRoadPatrol
   roamers:
   - id: WFStrangerRandomSpawner
     minCount: 4
