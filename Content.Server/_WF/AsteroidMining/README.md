@@ -12,8 +12,10 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
   removes itself. Compositions start from each kind's mineral table and plain-rock share, tilted towards iron and coal
   (which steel and plasteel need) over malachite, quartz and salt; chromite is still where lithium comes from, at
   the same share.
-- **Metallic rocks:** each cluster rock has a 3% chance to roll `WFAsteroidMetallic` instead of its cluster's kind:
-  mostly iron, silver and gold, sometimes diamond, with little plain rock, drawn from the `metallic` look's RSIs
+- **Metallic rocks:** each cluster rock may roll `WFAsteroidMetallic` instead of its cluster's kind, at 1% by the stations
+  plus 0.35% per kilometre from the sector centre (about 4% on the 9 km ring, 8% Very Far):
+  mostly iron, silver and gold, sometimes diamond, with little plain rock, and each vein drops half again as much
+  ore (its composition's `oreYield`). Drawn from the `metallic` look's RSIs
   (blue steel with bare plates). It resists heat (45-60%), so it needs an M40 at high power or two M12s. Fragments and
   boulders from it stay metallic.
 - **Radar:** asteroid grids carry no label on any scanner. `WFAdminRadarUnlabelled` keeps the admin scanner's true

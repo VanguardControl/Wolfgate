@@ -348,6 +348,8 @@
   name: wf-asteroid-name-metallic
   examine: wf-asteroid-examine-metallic
   look: metallic
+  # Dense ore: each vein drops half again as much, on top of the rock's own yield.
+  oreYield: 1.5
   minOres: 2
   maxOres: 3
   minInert: 0.12

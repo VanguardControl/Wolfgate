@@ -22,6 +22,7 @@ using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
 using Content.Shared.Access.Components;
 using Content.Shared.Physics;
+using Content.Shared.Stacks;
 using Content.Shared.Tag;
 using Content.Shared.Weapons.Hitscan.Events;
 using Content.Shared.Weapons.Ranged.Systems;
@@ -166,6 +167,57 @@ public sealed class AsteroidMiningTest
                 Assert.That(boulders, Is.Not.Empty, "Part of the dropped ore should come out as boulders.");
                 Assert.That(OreItems(em), Is.GreaterThan(0), "The rest of the mass should drop as ore.");
             });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task MetallicRockDropsMoreOrePerVein()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var asteroids = server.System<WFAsteroidSystem>();
+        var offset = new Vector2(0f, 100f);
+
+        await server.WaitAssertion(() =>
+        {
+            // The same pure-iron rock twice, once of each kind, light enough to drop no boulders.
+            foreach (var (kind, position) in new[] { ("WFAsteroidRock", ShipPos), ("WFAsteroidMetallic", ShipPos + offset) })
+            {
+                var rock = SpawnAsteroid(pair, map.MapId, "WFAsteroidSmall", position);
+                asteroids.Roll(rock, kind);
+                var comp = em.GetComponent<WFAsteroidComponent>(rock);
+                comp.Mass = 18f;
+                comp.Ores = new List<WFAsteroidOre> { new("NFOreSteel", 1f, Color.Brown, 0f) };
+                asteroids.QueueCrack(rock, WFAsteroidCrack.Clean);
+            }
+        });
+
+        await server.WaitRunTicks(2);
+
+        await server.WaitAssertion(() =>
+        {
+            var tags = server.System<TagSystem>();
+            var xforms = server.System<SharedTransformSystem>();
+            int plain = 0, metallic = 0;
+            var query = em.EntityQueryEnumerator<StackComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out var stack, out var xform))
+            {
+                if (!tags.HasTag(uid, "Ore"))
+                    continue;
+
+                if (xforms.GetWorldPosition(xform).Y > ShipPos.Y + offset.Y / 2f)
+                    metallic += stack.Count;
+                else
+                    plain += stack.Count;
+            }
+
+            Assert.That(plain, Is.GreaterThan(0), "The plain rock should drop ore.");
+            // Half again as much, less the ±10% roll on each.
+            Assert.That(metallic, Is.GreaterThan(plain * 1.2f), "A metallic rock should drop more ore per vein.");
         });
 
         await pair.CleanReturnAsync();
@@ -379,6 +431,53 @@ public sealed class AsteroidMiningTest
                 Assert.That(rocks.All(r => r.Resistance >= 0.45f), Is.True, "Metallic rocks should be tough.");
                 Assert.That(MetallicNames(em).All(n => n.StartsWith("metallic")), Is.True,
                     "Metallic rocks should say so in their name.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task MetallicRocksGrowCommonerFurtherOut()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var far = new Vector2(3000f, 0f);
+
+        await server.WaitAssertion(() =>
+        {
+            var mapUid = server.System<SharedMapSystem>().GetMap(map.MapId);
+            foreach (var position in new[] { Vector2.Zero, far })
+            {
+                var marker = em.SpawnEntity("WFAsteroidClusterRock", new EntityCoordinates(mapUid, position));
+                var cluster = em.GetComponent<WFAsteroidClusterComponent>(marker);
+                cluster.RareChance = 0f;
+                cluster.RareChancePerKm = 0.4f;
+            }
+        });
+        await server.WaitRunTicks(3);
+
+        await server.WaitAssertion(() =>
+        {
+            var xforms = server.System<SharedTransformSystem>();
+            var near = new List<WFAsteroidComponent>();
+            var distant = new List<WFAsteroidComponent>();
+            var query = em.EntityQueryEnumerator<WFAsteroidComponent, TransformComponent>();
+            while (query.MoveNext(out _, out var comp, out var xform))
+            {
+                (xforms.GetWorldPosition(xform).X > far.X / 2f ? distant : near).Add(comp);
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(near, Is.Not.Empty, "The cluster at the centre should spawn rocks.");
+                Assert.That(distant, Is.Not.Empty, "The far cluster should spawn rocks.");
+                Assert.That(near.Any(r => r.CompositionId?.Id == "WFAsteroidMetallic"), Is.False,
+                    "No rock at the sector centre should roll metallic at a zero base chance.");
+                Assert.That(distant.All(r => r.CompositionId?.Id == "WFAsteroidMetallic"), Is.True,
+                    "Three kilometres out at 40% a kilometre, every rock should roll metallic.");
             });
         });
 

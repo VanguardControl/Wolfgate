@@ -430,7 +430,13 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         if (comp.BoulderPrototype is { } boulder)
             oreMass -= SpawnBoulders(comp, boulder, oreMass * comp.BoulderShare, center, mapUid);
 
-        SpawnOre(ores, oreMass * comp.OreYield, center, radius);
+        SpawnOre(ores, oreMass * OreYield(comp), center, radius);
+    }
+
+    /// <summary>Ore each vein of the rock drops: the rock's yield times its kind's.</summary>
+    private float OreYield(WFAsteroidComponent comp)
+    {
+        return comp.OreYield * (_proto.TryIndex(comp.CompositionId, out var proto) ? proto.OreYield : 1f);
     }
 
     /// <summary>Drops part of the ore as boulders for hand miners and returns the mass they took.</summary>
@@ -495,7 +501,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
         comp.Cracking = true;
         var center = _transform.GetMapCoordinates(uid);
-        var mass = comp.Mass * comp.OreYield;
+        var mass = comp.Mass * OreYield(comp);
         if (args.TeleportLootToGatherer && args.Gatherer is { } gatherer)
             SpawnOre(comp.Ores, mass, _transform.GetMapCoordinates(gatherer), 0.2f);
         else
@@ -647,6 +653,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         sizes.Sort((a, b) => a.Mass.CompareTo(b.Mass));
         var smallest = sizes[0].Mass;
         var spread = 10f + 2.6f * MathF.Sqrt(budget);
+        var rareChance = Math.Clamp(cluster.RareChance + cluster.RareChancePerKm * center.Position.Length() / 1000f, 0f, 1f);
         var remaining = budget;
         var first = true;
         for (var attempt = 0; attempt < 60 && remaining >= smallest * 0.5f; attempt++)
@@ -664,7 +671,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             if (TryComp<WFAsteroidGridComponent>(spawned, out var spawnedGrid) && spawnedGrid.RockUid is { } rock &&
                 TryComp<WFAsteroidComponent>(rock, out var rockComp))
             {
-                var composition = cluster.RareComposition is { } rare && _random.Prob(cluster.RareChance)
+                var composition = cluster.RareComposition is { } rare && _random.Prob(rareChance)
                     ? rare
                     : cluster.Composition;
                 Roll(rock, composition, rockComp);

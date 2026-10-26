@@ -18,6 +18,9 @@ public sealed partial class WFAsteroidCompositionPrototype : IPrototype
     [DataField] public float MinInert = 0.3f;
     [DataField] public float MaxInert = 0.6f;
 
+    /// <summary>Multiplies the ore each vein drops, on top of the rock's own yield.</summary>
+    [DataField] public float OreYield = 1f;
+
     [DataField] public float MinResistance = 0.05f;
     [DataField] public float MaxResistance = 0.35f;
     [DataField] public float MinInstability = 0.1f;

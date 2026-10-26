@@ -373,7 +373,9 @@
   - type: WFAsteroidCluster
     composition: WFAsteroidRock
     rareComposition: WFAsteroidMetallic
-    rareChance: 0.03
+    # Richer further out: 1% by the stations, about 4% on the 9 km ring, 5% in the Wilds, 8% Very Far.
+    rareChance: 0.01
+    rareChancePerKm: 0.0035
     # By count: small rocks are the most common, huge ones the rarest.
     sizes:
       WFAsteroidSmall: 8
