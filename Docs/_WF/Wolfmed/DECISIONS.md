@@ -5079,33 +5079,45 @@ timeline.
 What it found before any change: wound counts and damage totals were not what kept people down.
 - **Organs**: a magazine to the chest destroyed and deleted all five torso organs, so no hand medic could revive it.
   Organs at 0 now stay in place, failed and switched off, and the existing heal-organ surgeries bring them back
-  (`WolfmedOrganFailureSystem`; `wolfmed.organ_destruction_removes` restores Onyx's removal). The destruction wound
-  still lands once. Organ damage now counts only the share of a hit its part stored (`wolfmed.organ_overflow_factor`
-  0); the head's overflow still reaches the brain in full.
+  (`WolfmedOrganFailureSystem`; `wolfmed.organ_destruction_removes` restores Onyx's removal). A mechanical body
+  keeps the removal: a chassis's parts, like a burnt-out radiation collector, are swapped, not mended. The destruction wound
+  still lands once. `wolfmed.organ_overflow_factor` can make a full part spare its organs; it ships at 1 (unchanged),
+  since at 0 a chassis, which dies through its core and pump, stopped dying to chest fire once its torso was full,
+  and the rifle victim's organs failed within the stored hits anyway.
 - **Transfusion target**: the analyzer's brain-safe figure aimed at exactly 50%. A patient topped up to the line sat on
   it, the brain refill never started and they stayed out. It now aims at `wolfmed.transfuse_safe_margin` (0.1) above
   the line plus the loss over the grace, like the post-shock figure. A fire victim in arrest was not stuck: their
   arrest had simply started late, from fluid loss.
-- **Pain**: a body's pain was the sum of its parts, so ten light injuries held someone Downed like one mangled limb.
-  Parts now combine worst first, each further one weighted by another `wolfmed.pain_spread_falloff` (0.6), for
-  Downed. The faint line still reads the plain sum: pain everywhere at once can still knock someone out.
+- **Pain**: a body's pain is the sum of its parts, so ten light injuries hold someone Downed like one mangled limb.
+  `wolfmed.pain_spread_falloff` can weight each further part by another factor, worst first. It ships at 1 (the
+  plain sum): at 0.6 a body burning all over, which is pain on every part at once, stopped going down in a fire, and
+  the falloff cannot tell a fire from a blast. A Downed patient is a painkiller's job, not a revival blocker. The
+  faint line always reads the plain sum.
 - **Burns**: only the torso had a damage cap, and fire was capped at 0.8 of each part's destruction line, about 1900
   in all. Every part now has `maxDamage` (head 100, torso 200, arm and leg 100, hand and foot 60, IPC torso 200). Fire
-  stops at 0.8 of the cap; what it trims still grows the burn, now bounded by the burn ladder (one burn per part,
-  charring at most). Throwing the trimmed share away made fire nearly harmless. A full burn is now 752 in all.
+  stops at 0.8 of the cap; what it trims still grows the burn and its fluid loss, as before (throwing it away made
+  fire nearly harmless). A full burn is now 752 in all. A capped limb is never destroyed by damage any more: the
+  gib rungs (180 to 400) sit above every cap, so limbs come off by severing. A diona limb, which never severs, can
+  no longer be taken by damage at all. The admin part command passes the fire ceiling up to the part's cap.
 - **Severing**: a capped limb never reaches its stored thresholds. Each limb now keeps what it took past its cap by
   type (`WolfmedPartOverflowComponent`, cleared once it has room again), and the sever thresholds count it beside the
   stored damage, so a limb comes off at the same totals as before it had a cap. The threshold reset no longer clears
   a mark set by Onyx's own overflow route. The head's overflow is never counted: it tops out at critical and brain
-  injury, and is not decapitated by piled-up damage.
+  injury, and is not decapitated by piled-up damage; a blast still may where `wolfmed.blast_dismember_head` is on. Onyx's own rule (armed once the overflow reaches the cap) is off:
+  it armed a hand at 120 Piercing against its old 200, and would have armed a plant limb.
 - **Wound ladders** (`wolfmedWoundLadder`, `Wounds/ladders.yml`, `WolfmedWoundLadderSystem`): a part holds one wound
   each of Cut (slash, artery, avulsion), Puncture (graze, stab, gunshot, shrapnel, lodged round), Blunt (bruise,
-  crush), Burn (burn, charring; never severs) and internal bleeding. Tendon cuts and dislocations stay off the ladders:
-  what they switch off is their point, and a tendon cut replacing a bleeding slash lost the bleed. A worse rung takes
+  crush) and internal bleeding. Tendon cuts and dislocations stay off: what they switch off is their point, and a
+  tendon cut replacing a bleeding slash lost the bleed. Burns and charring stay off: the fire route's fluid loss is
+  tuned on the pair, folding them halved it and an untreated full-body burn no longer stopped the heart in ten
+  minutes; both are bounded by their own maximum. A worse rung takes
   the wound over; severity moves between rungs as a share of each rung's maximum. A full wound pushed further opens
   the next rung at `wolfmed.wound_ladder_entry` (0.5) of its maximum; past the top a limb is marked severable. Within
-  one hit a lesser wound adds only `wolfmed.wound_ladder_lower_share` (0.25) and a worse one takes the larger
-  severity, since one cut makes its slash and artery wounds together; later hits add in full. Lodged objects move
+  one hit a lesser wound adds `wolfmed.wound_ladder_lower_share` (0, nothing) and a worse one takes the larger
+  severity, since one cut makes its slash and artery wounds together; later hits add in full. At 0.25 the artery
+  carried a share of the slash at its own rate, eight times a slash's and never clotting, and an arterial arm cut
+  killed in 268 s against the 300 s floor. Every Slash of 22 or more opens an artery (unchanged), so on a ladder the
+  artery takes the cut over and it is tended through the artery's repair. Lodged objects move
   with the wound. `wolfmed.wound_ladders` off is the old stacking.
 
 Measured with the first ladder set (tendon and dislocation on, trimmed fire discarded; bill seconds, revive / full

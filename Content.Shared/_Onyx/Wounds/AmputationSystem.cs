@@ -40,8 +40,9 @@ public sealed partial class AmputationSystem : EntitySystem
             _wfPart.Get(part).MaxDamage <= FixedPoint2.Zero) // WOLFGATE(Wolfmed): D8
             return;
 
-        // WOLFGATE(Wolfmed): revival pass, a capped head never comes off from piled-up damage; its overflow is brain injury.
-        if (bodyPart.PartType == BodyPartType.Head)
+        // WOLFGATE(Wolfmed): revival pass, a capped head never comes off from piled-up damage; its overflow is brain
+        // injury. Only a blast may still take it, where wolfmed.blast_dismember_head allows.
+        if (bodyPart.PartType == BodyPartType.Head && !(args.IsExplosion && _wfPart.BlastMaySever(part)))
             return;
 
         // WOLFGATE(Wolfmed): EVISC: D9 never severs a torso, so its overflow is offered to evisceration instead.
@@ -59,10 +60,13 @@ public sealed partial class AmputationSystem : EntitySystem
 
         if (!part.Comp.Severable)
         {
-            if (part.Comp.AmputationOverflow >= _wfPart.Get(part).MaxDamage) // WOLFGATE(Wolfmed): D8
-            {
-                SetSeverable(part, true);
-            }
+            // WOLFGATE(Wolfmed) START: revival pass, a limb is armed by its thresholds with the overflow counted
+            // (HandlePartDamageApplied); one with none, like a plant limb, is never armed by overflow.
+            // if (part.Comp.AmputationOverflow >= _wfPart.Get(part).MaxDamage) // WOLFGATE(Wolfmed): D8
+            // {
+            //     SetSeverable(part, true);
+            // }
+            // WOLFGATE END
             return;
         }
 

@@ -220,7 +220,7 @@ public sealed class WolfmedMedicLinesTest : WolfmedGameTest
             s.SetBlood(arrest, 0.24f);
             var (units, safe) = s.Life.GetTransfusionGuidance(arrest);
             Assert.That(s.AnalyzerLines(arrest)[^1], Is.EqualTo(
-                $"Defib: refused: blood 24%, transfuse ≈ {MathF.Ceiling(units)} u first (≈ {MathF.Ceiling(safe)} u to 50%)"));
+                $"Defib: refused: blood 24%, transfuse ≈ {MathF.Ceiling(units)} u first (≈ {MathF.Ceiling(safe)} u to 60%)"));
             Assert.That(units, Is.EqualTo((0.35f - 0.24f) * s.Pool(arrest)).Within(1f), "N is the units to 35%.");
             Assert.That(string.Join(" ", s.AnalyzerLines(arrest)), Does.Not.Contain("will work"));
 

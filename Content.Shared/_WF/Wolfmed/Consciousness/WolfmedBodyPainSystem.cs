@@ -10,7 +10,7 @@ using Robust.Shared.Timing;
 namespace Content.Shared._WF.Wolfmed.Consciousness;
 
 /// <summary>The Wolfmed half of Onyx's <see cref="PainSystem"/>: one pain number per body.</summary>
-// A body's pain is min(soft cap, the parts summed with falloff), suppression is shared out once across the parts, and the pain shock reads
+// A body's pain is min(soft cap, the parts summed with wolfmed.pain_spread_falloff), suppression is shared out once across the parts, and the pain shock reads
 // its lines from CVars. Adrenaline does not lower pain; it speeds the crawl and lifts the Downed do-after penalty.
 public sealed class WolfmedBodyPainSystem : EntitySystem
 {

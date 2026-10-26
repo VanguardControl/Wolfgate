@@ -179,6 +179,9 @@ public sealed class WolfmedWoundLadderSystem : EntitySystem
             ? (held.Item, held.Count, held.MaxCount)
             : ((EntProtoId Item, int Count, int MaxCount)?) null;
 
+        var replacing = new WolfmedWoundLadderReplacingEvent(part.Owner, old.Owner);
+        RaiseLocalEvent(ref replacing);
+
         _wounds.RemoveWound(old.AsNullable());
         EntityUid? created;
         _creating = true;

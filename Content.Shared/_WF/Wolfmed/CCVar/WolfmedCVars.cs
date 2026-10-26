@@ -145,11 +145,11 @@ public sealed class WolfmedCVars
 
     /// <summary>
     /// The weight each further part's pain carries in the body's pain, worst part first: 1, this, this squared...
-    /// 1 is the plain sum, under which ten light injuries held a body Downed as hard as one mangled limb. The faint
-    /// line still reads the plain sum: pain everywhere at once can still knock someone out.
+    /// Ships at 1, the plain sum: at 0.6 a body burning all over, which is pain spread across every part, stopped
+    /// going down in a fire. A Downed patient is a painkiller's job. The faint line always reads the plain sum.
     /// </summary>
     public static readonly CVarDef<float> PainSpreadFalloff =
-        CVarDef.Create("wolfmed.pain_spread_falloff", 0.6f, CVar.SERVER | CVar.REPLICATED);
+        CVarDef.Create("wolfmed.pain_spread_falloff", 1f, CVar.SERVER | CVar.REPLICATED);
 
     /// <summary>Blood volume fraction at or below which a body goes Downed.</summary>
     public static readonly CVarDef<float> ConsciousnessBloodDown =
@@ -731,12 +731,13 @@ public sealed class WolfmedCVars
         CVarDef.Create("wolfmed.organ_hit_cap", 3f, CVar.SERVERONLY);
 
     /// <summary>
-    /// How much of a hit's organ damage the part's overflow carries, 0 to 1. The share of the hit the part stored
-    /// always counts. 0 (revival pass): a part at its cap no longer shreds what is inside it, so a body emptied of
-    /// rounds after it went down keeps organs a medic can mend. 1 is the M1b behaviour.
+    /// How much of a hit's organ damage the part's overflow carries, 0 to 1; the share the part stored always counts.
+    /// 1 is the M1b behaviour: a full torso still hands the organs the whole hit. Below 1 a full chest stops hurting
+    /// what is inside it, which leaves a chassis whose death runs through its core nearly unkillable by chest fire.
+    /// The head's overflow always counts in full.
     /// </summary>
     public static readonly CVarDef<float> OrganOverflowFactor =
-        CVarDef.Create("wolfmed.organ_overflow_factor", 0f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.organ_overflow_factor", 1f, CVar.SERVERONLY);
 
     /// <summary>
     /// Whether an organ at 0 health is torn out and deleted, Onyx's behaviour. Off (revival pass): it stays in at 0,
@@ -1224,5 +1225,5 @@ public sealed class WolfmedCVars
     /// One hit can make a cut, its tendon and its artery together; at 1 they summed into one far worse bleed.
     /// </summary>
     public static readonly CVarDef<float> WoundLadderLowerShare =
-        CVarDef.Create("wolfmed.wound_ladder_lower_share", 0.25f, CVar.SERVERONLY);
+        CVarDef.Create("wolfmed.wound_ladder_lower_share", 0f, CVar.SERVERONLY);
 }

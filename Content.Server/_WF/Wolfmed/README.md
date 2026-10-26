@@ -471,6 +471,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVisualsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVisualsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVitalLimitsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedVitalLimitsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWeldingRepairTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWeldingRepairTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundLadderTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundLadderTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundOverlayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundOverlayTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSfxTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSfxTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSurgeryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedWoundSurgeryTest.cs)
@@ -918,8 +919,10 @@ Skipped ("dirty-disposed").
   - SurgeryValidEvent, the HOOK 25 seam.
   - D12, GetAllDamage/SetDamage live on the compat facade.
   - Onyx's fixture is Nubody-shaped (`InitialBody`, `TransplantCompatibility`, a bespoke
+  - revival pass, no origin is ambient harm held at 0.8 of the cap
   - D12
   - D9
+  - revival pass
   - 50 comes from the fixture TORSO's amputationConsequenceSeverity, i.e. the
   - DismembermentSeverities[Head] = 200; also lands on the parent.
   - Onyx asserts `TryAttachPart Is.False` here. P4-D18 moves the block to the surgery
@@ -935,8 +938,7 @@ Skipped ("dirty-disposed").
   - D9, Onyx targets BodyPartType.Chest here.
   - Apply is called directly (PLAN4 §6.1 trap 9). The do-after and the
   - a check Onyx's own test never made. CanApply requires GetPartRate(part) > 0, so a
-  - HeadHuman inherits WFWolfmedBaseHead, so its Slash amputation threshold is 200
-  - post-hit 215 -> progress 1.075 >= SeverableResetRatio 0.8; damageBeforeHit is
+  - revival pass, a capped head is never armed by piled-up damage any more, so the head comes
   - the severed head is a live entity that left the body's container tree, not a
   - WoundHostComponent.DismembermentSeverities[Head] = 200.
   - WolfmedBodyPartComponent.AmputationConsequenceSeverity defaults to 35 and
@@ -1320,10 +1322,11 @@ Skipped ("dirty-disposed").
   - D12, GetAllDamage lives on the compat facade.
   - D8
   - Onyx's SharedBodySystem.TryDetachPart
-  - revival pass, a capped head never comes off from piled-up damage; its overflow is brain injury.
+  - revival pass, a capped head never comes off from piled-up damage; its overflow is brain
   - EVISC: D9 never severs a torso, so its overflow is offered to evisceration instead.
   - revival pass, the sever thresholds count it
   - P3-D15
+  - revival pass, a limb is armed by its thresholds with the overflow counted
   - D8. The severity comes off the PARENT the stump is left on, not off the severed part.
   - D9
   - Shitmed's BodyPartComponent has no Parent field.

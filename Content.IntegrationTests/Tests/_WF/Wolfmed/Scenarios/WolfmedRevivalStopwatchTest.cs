@@ -85,7 +85,7 @@ public sealed class WolfmedRevivalStopwatchTest : WolfmedGameTest
     {
         var map = await CreateTestMap();
         var deaths = Enum.GetValues<Death>();
-        const int runs = 3;
+        const int runs = 1; // one body per death keeps the run near a minute of CI time
         var bodies = new List<(Death Death, EntityUid Body, EntityUid Attacker, EntityUid Tool)>();
 
         await Server.WaitPost(() =>

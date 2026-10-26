@@ -4,7 +4,8 @@
 # top rung a limb is marked severable and the next finishing hit takes it. The torso and the head stay at the top.
 #
 # Wounds left off every ladder still stack beside them: tendon cuts and dislocations (what they switch off is their
-# point, not how bad the cut or bruise is), fractures, concussions, organ contusions, stumps, surgical incisions,
+# point, not how bad the cut or bruise is), burns and charring (the fire route's fluid loss is tuned on the pair, and
+# both are bounded by their own maximum), fractures, concussions, organ contusions, stumps, surgical incisions,
 # scars, evisceration, necrosis, frostbite, chemical and internal burns, and every mechanical wound.
 
 - type: wolfmedWoundLadder
@@ -30,14 +31,6 @@
   tiers:
   - BluntWound
   - WFWolfmedCrushInjuryWound
-
-# Fire never takes a limb: a burn at the top stays there (M1b).
-- type: wolfmedWoundLadder
-  id: WFWolfmedLadderBurn
-  dismembers: false
-  tiers:
-  - BurnWound
-  - WFWolfmedCharringWound
 
 # One bleed inside a part, however many organs failed in it.
 - type: wolfmedWoundLadder
