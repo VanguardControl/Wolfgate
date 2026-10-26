@@ -52,6 +52,18 @@
   minCount: 7
   maxCount: 11
   entries:
+  - mapPath: /Maps/_WF/PlanetComms/comms_outpost.yml
+    name: wf-poi-comms-outpost
+    expeditions: false
+    footprint: -4,-5,14,10
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 8,-5
+      direction: South
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/atalis_house.yml
     name: wf-poi-atalis-house
     expeditions: false
@@ -210,6 +222,18 @@
   minCount: 3
   maxCount: 5
   entries:
+  - mapPath: /Maps/_WF/PlanetComms/comms_outpost.yml
+    name: wf-poi-comms-outpost
+    expeditions: false
+    footprint: -4,-5,14,10
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 8,-5
+      direction: South
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/atalis_house.yml
     name: wf-poi-atalis-house
     expeditions: false
@@ -301,6 +325,18 @@
   minCount: 2
   maxCount: 3
   entries:
+  - mapPath: /Maps/_WF/PlanetComms/comms_outpost.yml
+    name: wf-poi-comms-outpost
+    expeditions: false
+    footprint: -4,-5,14,10
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 8,-5
+      direction: South
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
     name: wf-poi-planetary-vault
     expeditions: false
@@ -358,6 +394,18 @@
   minCount: 2
   maxCount: 3
   entries:
+  - mapPath: /Maps/_WF/PlanetComms/comms_outpost.yml
+    name: wf-poi-comms-outpost
+    expeditions: false
+    footprint: -4,-5,14,10
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 8,-5
+      direction: South
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
     name: wf-poi-planetary-vault
     expeditions: false
@@ -424,6 +472,18 @@
   edgeMargin: 72
   centreClear: 64
   entries:
+  - mapPath: /Maps/_WF/PlanetComms/comms_outpost.yml
+    name: wf-poi-comms-outpost
+    expeditions: false
+    footprint: -4,-5,14,10
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 8,-5
+      direction: South
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
     name: wf-poi-planetary-vault
     expeditions: false
@@ -486,6 +546,18 @@
   edgeMargin: 72
   centreClear: 64
   entries:
+  - mapPath: /Maps/_WF/PlanetComms/comms_outpost.yml
+    name: wf-poi-comms-outpost
+    expeditions: false
+    footprint: -4,-5,14,10
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 8,-5
+      direction: South
+    rotate: true
   - mapPath: /Maps/_WF/PlanetPois/planetary_vault.yml
     name: wf-poi-planetary-vault
     expeditions: false

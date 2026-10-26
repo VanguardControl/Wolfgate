@@ -12,3 +12,6 @@ wf-planet-comms-no-signal = No signal. This world's mass transceiver is down.
 wf-planet-comms-no-uplink = No uplink. This world's mass transceiver is down, so a global announcement can't leave it.
 
 guide-entry-wf-planet-comms = Planetary Comms
+
+# The outpost every world has, where its mass transceiver stands.
+wf-poi-comms-outpost = Comms outpost
