@@ -5,6 +5,7 @@ using Robust.Shared.Enums;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using static Content.Client._WF.AsteroidMining.WFOverlayDraw;
 
 namespace Content.Client._WF.AsteroidMining;
 
@@ -86,7 +87,7 @@ public sealed class WFMiningBeamOverlay : Overlay
             DrawStrands(handle, muzzle, direction, normal, length, width, color, time);
             DrawPulses(handle, muzzle, direction, length, width, color, time, phase);
             DrawImpact(handle, end, direction, normal, width, heat, color, time, phase, beam.InWindow, beam.Hot);
-            Glow(handle, muzzle, 0.35f * width + 0.1f, color.WithAlpha(0.6f));
+            Glow(handle, _fan, muzzle, 0.35f * width + 0.1f, color.WithAlpha(0.6f));
         }
 
         handle.UseShader(null);
@@ -159,7 +160,7 @@ public sealed class WFMiningBeamOverlay : Overlay
             var t = time * speed + (float) i / Pulses + phase;
             t -= MathF.Floor(t);
             var fade = MathF.Sin(MathF.PI * t);
-            Glow(handle, start + direction * (length * t), (0.12f + 0.06f * fade) * width,
+            Glow(handle, _fan, start + direction * (length * t), (0.12f + 0.06f * fade) * width,
                 Color.InterpolateBetween(color, Color.White, 0.6f).WithAlpha(0.55f * fade));
         }
     }
@@ -173,8 +174,8 @@ public sealed class WFMiningBeamOverlay : Overlay
     {
         var throb = 0.85f + 0.15f * MathF.Sin(time * (inWindow ? 26f : 17f) + phase);
         var flare = inWindow ? 1.45f : 1f;
-        Glow(handle, end, (0.9f + 0.5f * heat) * width * throb * flare, color.WithAlpha(inWindow ? 0.6f : 0.45f));
-        Glow(handle, end, 0.38f * width * throb * flare, Color.InterpolateBetween(color, Color.White, 0.8f).WithAlpha(0.9f));
+        Glow(handle, _fan, end, (0.9f + 0.5f * heat) * width * throb * flare, color.WithAlpha(inWindow ? 0.6f : 0.45f));
+        Glow(handle, _fan, end, 0.38f * width * throb * flare, Color.InterpolateBetween(color, Color.White, 0.8f).WithAlpha(0.9f));
 
         var count = 0;
         var tick = MathF.Floor(time * 20f);
@@ -195,29 +196,5 @@ public sealed class WFMiningBeamOverlay : Overlay
 
         handle.DrawPrimitives(DrawPrimitiveTopology.LineList, Texture.White,
             new ReadOnlySpan<DrawVertexUV2DColor>(_lines, 0, count));
-    }
-
-    /// <summary>A disc fading from its centre colour to clear at its rim.</summary>
-    private void Glow(DrawingHandleWorld handle, Vector2 center, float radius, Color color)
-    {
-        var clear = color.WithAlpha(0f);
-        var count = 0;
-        for (var i = 0; i < FanSides; i++)
-        {
-            var a = MathF.Tau * i / FanSides;
-            var b = MathF.Tau * (i + 1) / FanSides;
-            _fan[count++] = new DrawVertexUV2DColor(center, color);
-            _fan[count++] = new DrawVertexUV2DColor(center + new Vector2(MathF.Cos(a), MathF.Sin(a)) * radius, clear);
-            _fan[count++] = new DrawVertexUV2DColor(center + new Vector2(MathF.Cos(b), MathF.Sin(b)) * radius, clear);
-        }
-
-        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, Texture.White,
-            new ReadOnlySpan<DrawVertexUV2DColor>(_fan, 0, count));
-    }
-
-    private static float Hash(float value)
-    {
-        var x = MathF.Sin(value * 12.9898f) * 43758.5453f;
-        return x - MathF.Floor(x);
     }
 }

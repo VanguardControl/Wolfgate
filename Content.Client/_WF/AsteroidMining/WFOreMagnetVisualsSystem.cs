@@ -5,7 +5,7 @@ using Robust.Shared.Timing;
 namespace Content.Client._WF.AsteroidMining;
 
 /// <summary>Registers the overlay that draws ore magnets pulling ore.</summary>
-public sealed class WFOreMagnetVisualsSystem : EntitySystem
+public sealed partial class WFOreMagnetVisualsSystem : EntitySystem
 {
     [Dependency] private IOverlayManager _overlays = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;

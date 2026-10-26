@@ -6,6 +6,7 @@ using Content.Server._WF.DroneRings;
 using Content.Server.Explosion.EntitySystems;
 using Content.Server.Gatherable;
 using Content.Server.Shuttles.Systems;
+using Content.Server.Worldgen.Components.Debris;
 using Content.Server.Worldgen.Systems.Debris;
 using Content.Shared._WF.AsteroidMining;
 using Content.Shared.Damage;
@@ -52,6 +53,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private MetaDataSystem _meta = default!;
     [Dependency] private FixtureSystem _fixtures = default!;
+    [Dependency] private WFMiningBeamSystem _beams = default!;
 
     private static readonly EntProtoId CrackEffect = "WFAsteroidCrackEffect";
 
@@ -62,7 +64,8 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     private readonly List<(EntityUid Rock, WFAsteroidCrack Kind)> _cracking = new();
     private List<Entity<MapGridComponent>> _grids = new();
     private readonly List<EntityUid> _clusters = new();
-    // Swapped debris: the mass budget for the cluster about to spawn at each point.
+    // Swapped debris: the mass budget for the cluster about to spawn at each point. Keyed by exact position, which
+    // holds because worldgen spawns the marker straight onto the map at the point it raised the event with.
     private readonly Dictionary<MapCoordinates, float> _budgets = new();
     private Dictionary<string, (WFAsteroidReplacementKind Kind, float Mass)>? _replacements;
 
@@ -286,7 +289,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         comp.BaseCharge = parent.BaseCharge;
         comp.Charge = parent.Charge;
         if (comp.BaseCharge > 0f)
-            EntityManager.System<WFMiningBeamSystem>().Track(child);
+            _beams.Track(child);
         Dirty(child, comp);
     }
 
@@ -306,7 +309,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         args.PushMarkup(Loc.GetString("wf-asteroid-examine-scan"));
     }
 
-    /// <summary>The share of the window time a rock needs to crack.</summary>
+    /// <summary>Seconds in its window a rock needs to crack under one beam of crack rate 1.</summary>
     public static float CrackTime(WFAsteroidComponent comp)
     {
         return comp.CrackTimeBase + comp.Mass * comp.CrackTimePerMass;
@@ -369,7 +372,8 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         var mass = comp.Mass;
 
         // Remove the rock and its grid first, so nothing spawned below lands on a grid that is going away.
-        // Anyone or anything else on the grid stays behind in space.
+        // Anyone or anything else on the grid stays behind in space. comp is only read from here on, as the
+        // parent the fragments and boulders inherit from; its fields outlive the entity.
         if (grid is { } asteroidGrid)
             ReleasePassengers(asteroidGrid, rock, mapUid);
         Del(grid ?? rock);
@@ -567,14 +571,18 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             if (TerminatingOrDeleted(uid))
                 continue;
 
-            FillCluster(uid, Comp<WFAsteroidClusterComponent>(uid));
+            // Hand the marker's chunk slot over before its first rock takes the same key, so deleting it doesn't
+            // drop that rock from the chunk.
+            var controller = _debris.GetDebrisOwner(uid);
+            RemComp<OwnedDebrisComponent>(uid);
+            FillCluster(uid, Comp<WFAsteroidClusterComponent>(uid), controller);
             RemComp<WFAsteroidClusterComponent>(uid);
             QueueDel(uid);
         }
     }
 
     /// <summary>Scatters rocks by the cluster's size weights around its centre until the budget runs out.</summary>
-    private void FillCluster(EntityUid marker, WFAsteroidClusterComponent cluster)
+    private void FillCluster(EntityUid marker, WFAsteroidClusterComponent cluster, EntityUid? controller)
     {
         var xform = Transform(marker);
         if (xform.MapUid is not { } mapUid)
@@ -582,7 +590,6 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
         var center = _transform.GetMapCoordinates(xform);
         var budget = _budgets.Remove(center, out var swapped) ? swapped : cluster.Mass;
-        var controller = _debris.GetDebrisOwner(marker);
         var sizes = new List<ClusterSize>();
         foreach (var (grid, weight) in cluster.Sizes)
         {

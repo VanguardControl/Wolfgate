@@ -28,13 +28,13 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     [Dependency] private ActionBlockerSystem _blocker = default!;
     [Dependency] private WFAsteroidSystem _asteroids = default!;
 
-    public const float OverchargeDuration = WFAsteroidHeat.OverchargeDuration;
-    public const float OverchargeLine = WFAsteroidHeat.OverchargeLine;
-
     private static readonly TimeSpan UiInterval = TimeSpan.FromSeconds(0.25);
     private TimeSpan _nextUi;
     private readonly HashSet<EntityUid> _heated = new();
     private readonly List<EntityUid> _heatedList = new();
+    private readonly HashSet<EntityUid> _openConsoles = new();
+    private readonly List<EntityUid> _closedConsoles = new();
+    private readonly List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> _lasers = new();
     /// <summary>The rock each open gunnery console last showed, kept while it cools, and whether it had lasers.</summary>
     private readonly Dictionary<EntityUid, (EntityUid? Rock, bool Lasers)> _gunnery = new();
 
@@ -70,7 +70,8 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             return;
 
         var power = MathF.Round(Math.Clamp(args.Power, 0f, 1f), 2);
-        foreach (var (uid, beam) in ShipLasers(grid))
+        ShipLasers(grid, _lasers);
+        foreach (var (uid, beam) in _lasers)
         {
             beam.Power = power;
             Dirty(uid, beam);
@@ -86,18 +87,16 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         return xform.Anchored && this.IsPowered(console, EntityManager) ? xform.GridUid : null;
     }
 
-    /// <summary>Every mining laser on a ship.</summary>
-    public List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> ShipLasers(EntityUid grid)
+    /// <summary>Fills the list with every mining laser on a ship.</summary>
+    public void ShipLasers(EntityUid grid, List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> lasers)
     {
-        var lasers = new List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)>();
+        lasers.Clear();
         var query = EntityQueryEnumerator<WFMiningBeamEmitterComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var beam, out var xform))
         {
             if (xform.GridUid == grid)
                 lasers.Add((uid, beam));
         }
-
-        return lasers;
     }
 
     /// <summary>Points the beam at whatever the pulse hit, and takes asteroids out of the hit list so they heat instead.</summary>
@@ -154,13 +153,13 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     /// <summary>Puts a gun's beam out.</summary>
     public void Stop(EntityUid gun, WFMiningBeamEmitterComponent comp)
     {
-        comp.Contribution = 0f;
         if (!comp.Active && comp.Target == null)
             return;
 
         comp.Active = false;
         comp.Target = null;
         comp.InWindow = false;
+        comp.Hot = false;
         comp.Charge = 0f;
         if (!TerminatingOrDeleted(gun))
             Dirty(gun, comp);
@@ -196,7 +195,6 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             if (beam.Target is not { } rock || TerminatingOrDeleted(rock) ||
                 !TryComp<WFAsteroidComponent>(rock, out var asteroid) || asteroid.Cracking)
             {
-                beam.Contribution = 0f;
                 if (beam.InWindow || beam.Hot)
                 {
                     beam.InWindow = false;
@@ -206,15 +204,14 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
                 continue;
             }
 
-            beam.Contribution = beam.Power * beam.Strength;
-            asteroid.IncomingPower += beam.Contribution;
+            asteroid.IncomingPower += beam.Power * beam.Strength;
             asteroid.CrackRate += beam.CrackRate;
             asteroid.WindowScale = MathF.Max(asteroid.WindowScale, beam.WindowScale);
             _heated.Add(rock);
 
             var (low, high) = Window(asteroid);
             var inWindow = asteroid.Charge >= low && asteroid.Charge <= high;
-            var hot = asteroid.Charge > high && asteroid.Charge < OverchargeLine;
+            var hot = asteroid.Charge > high && asteroid.Charge < WFAsteroidHeat.OverchargeLine;
             if (MathF.Abs(beam.Charge - asteroid.Charge) > 0.03f || beam.InWindow != inWindow || beam.Hot != hot)
             {
                 beam.Charge = asteroid.Charge;
@@ -237,18 +234,25 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             return;
 
         _nextUi = now + UiInterval;
-        var open = new HashSet<EntityUid>();
+        _openConsoles.Clear();
         var consoles = EntityQueryEnumerator<FireControlConsoleComponent>();
         while (consoles.MoveNext(out var uid, out _))
         {
             if (!_ui.IsUiOpen(uid, FireControlConsoleUiKey.Key))
                 continue;
 
-            open.Add(uid);
+            _openConsoles.Add(uid);
             UpdateGunnery(uid);
         }
 
-        foreach (var uid in _gunnery.Keys.Where(uid => !open.Contains(uid)).ToArray())
+        _closedConsoles.Clear();
+        foreach (var uid in _gunnery.Keys)
+        {
+            if (!_openConsoles.Contains(uid))
+                _closedConsoles.Add(uid);
+        }
+
+        foreach (var uid in _closedConsoles)
         {
             _gunnery.Remove(uid);
         }
@@ -284,7 +288,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         {
             comp.Progress += frameTime * rate;
         }
-        else if (heating && charge > high && charge < OverchargeLine)
+        else if (heating && charge > high && charge < WFAsteroidHeat.OverchargeLine)
         {
             // Pushing past the window cracks faster, but the hot share of the crack costs ore.
             var step = frameTime * rate * WFAsteroidHeat.HotCrackSpeed;
@@ -298,7 +302,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             comp.HotProgress *= comp.Progress / before;
         }
 
-        comp.OverchargeTime = charge >= OverchargeLine
+        comp.OverchargeTime = charge >= WFAsteroidHeat.OverchargeLine
             ? comp.OverchargeTime + frameTime
             : MathF.Max(0f, comp.OverchargeTime - frameTime);
 
@@ -312,7 +316,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             Dirty(rock, comp);
         }
 
-        if (comp.OverchargeTime >= OverchargeDuration)
+        if (comp.OverchargeTime >= WFAsteroidHeat.OverchargeDuration)
         {
             Overload(rock);
             _asteroids.QueueCrack(rock, WFAsteroidCrack.Overcharge, comp);
@@ -356,7 +360,12 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     private void UpdateGunnery(EntityUid console)
     {
         var known = _gunnery.TryGetValue(console, out var last);
-        var lasers = GunneryGrid(console) is { } grid ? ShipLasers(grid) : new List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)>();
+        var lasers = _lasers;
+        if (GunneryGrid(console) is { } grid)
+            ShipLasers(grid, lasers);
+        else
+            lasers.Clear();
+
         if (lasers.Count == 0)
         {
             if (!known || last.Lasers)
@@ -373,7 +382,7 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             var (low, high) = Window(comp);
             var ores = comp.Ores.Select(o => new WFMiningBeamOreEntry(OreName(o.Ore), o.Fraction, o.Color)).ToArray();
             target = new WFMiningBeamTargetEntry(Name(uid), comp.Mass, ores, comp.Resistance, low, high, comp.Charge,
-                Math.Clamp(comp.Progress, 0f, 1f), comp.OverchargeTime / OverchargeDuration,
+                Math.Clamp(comp.Progress, 0f, 1f), comp.OverchargeTime / WFAsteroidHeat.OverchargeDuration,
                 WFAsteroidHeat.Yield(comp.Progress, comp.HotProgress));
         }
         else

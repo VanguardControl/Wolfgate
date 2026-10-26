@@ -22,6 +22,8 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
     private static readonly Color Ember = new(0.55f, 0.04f, 0f);
     private static readonly Color Orange = new(1f, 0.42f, 0.05f);
     private static readonly Color WhiteHot = new(1f, 0.92f, 0.7f);
+    private static readonly WFAsteroidVisualLayers[] Layers =
+        { WFAsteroidVisualLayers.Rock, WFAsteroidVisualLayers.Veins, WFAsteroidVisualLayers.Heat };
 
     public override void Initialize()
     {
@@ -56,7 +58,7 @@ public sealed partial class WFAsteroidVisualsSystem : EntitySystem
         if (ent.Comp.Look != ent.Comp.AppliedLook && ent.Comp.Look is { } look && ent.Comp.Looks.TryGetValue(look, out var swap))
         {
             ent.Comp.AppliedLook = look;
-            foreach (var layer in new[] { WFAsteroidVisualLayers.Rock, WFAsteroidVisualLayers.Veins, WFAsteroidVisualLayers.Heat })
+            foreach (var layer in Layers)
             {
                 _sprite.LayerSetRsi((ent, sprite), layer, swap);
             }

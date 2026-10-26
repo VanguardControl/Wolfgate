@@ -228,7 +228,6 @@
     class: Energy
     size: Light
   - type: WFMiningBeamEmitter
-    maxRange: 40
     strength: 0.6
     crackRate: 0.6
     loopSound:

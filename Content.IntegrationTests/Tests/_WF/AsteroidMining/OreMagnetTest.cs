@@ -6,6 +6,7 @@ using Content.Server.Power.Components;
 using Content.Shared._WF.AsteroidMining;
 using Content.Shared.Item.ItemToggle;
 using Robust.Server.GameObjects;
+using Robust.Shared.Containers;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
@@ -34,6 +35,15 @@ public sealed class OreMagnetTest
         return (magnet, ore);
     }
 
+    /// <summary>
+    /// Ticks until the magnet has locked onto the ore. The power net only updates every half second, so the magnet
+    /// may not count as powered for up to that long after it spawns.
+    /// </summary>
+    private static Task LockOn(TestPair pair, EntityUid ore)
+    {
+        return DrydockTest.RunUntil(pair, 40, 1, () => pair.Server.EntMan.HasComponent<WFOreMagnetPulledComponent>(ore));
+    }
+
     private static bool Stored(IEntityManager em, EntityUid magnet, EntityUid ore)
     {
         // Stacking onto ore already in storage deletes the original.
@@ -50,7 +60,7 @@ public sealed class OreMagnetTest
 
         EntityUid magnet = default, ore = default;
         await server.WaitAssertion(() => (magnet, ore) = SetUp(pair, map.MapId, wall: false));
-        await server.WaitRunTicks(10);
+        await LockOn(pair, ore);
 
         await server.WaitAssertion(() =>
         {
@@ -66,6 +76,38 @@ public sealed class OreMagnetTest
             Assert.That(Stored(em, magnet, ore), Is.True, "Once the lock holds, the ore should be pulled into storage.");
             Assert.That(em.HasComponent<WFOreMagnetPulledComponent>(ore) && !em.Deleted(ore), Is.False,
                 "Stored ore should no longer be marked as pulled.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task PickedUpOreBreaksTheLock()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        EntityUid magnet = default, ore = default, holder = default;
+        await server.WaitAssertion(() => (magnet, ore) = SetUp(pair, map.MapId, wall: false));
+        await LockOn(pair, ore);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.HasComponent<WFOreMagnetPulledComponent>(ore), Is.True, "The magnet should lock on first.");
+            // Stands in for a hand or ore bag picking the ore up mid-lock.
+            holder = em.SpawnEntity(null, em.GetComponent<TransformComponent>(ore).Coordinates);
+            var containers = server.System<SharedContainerSystem>();
+            Assert.That(containers.Insert(ore, containers.EnsureContainer<Container>(holder, "held")), Is.True);
+        });
+        await server.WaitRunTicks(90);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(em.GetComponent<TransformComponent>(ore).ParentUid, Is.EqualTo(holder),
+                "The magnet should not pull ore out of whatever picked it up.");
+            Assert.That(em.HasComponent<WFOreMagnetPulledComponent>(ore), Is.False, "Picking the ore up should break the lock.");
         });
 
         await pair.CleanReturnAsync();

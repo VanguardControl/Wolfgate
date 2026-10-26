@@ -11,6 +11,8 @@ using Content.Server.Gatherable;
 using Content.Server.Power.Components;
 using Content.Server._WF.Shuttles.Systems;
 using Content.Server.Shuttles.Components;
+using Content.Server.Worldgen.Components.Debris;
+using Content.Server.Worldgen.Systems.Debris;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Shuttles;
 using Content.Shared._Mono.FireControl;
@@ -223,6 +225,47 @@ public sealed class AsteroidMiningTest
                 Assert.That(rocks.Sum(r => r.Mass), Is.InRange(budget * 0.7f, budget * 1.05f),
                     "The rocks should add up to about the cluster's budget.");
             });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ClusterRocksStayOwnedByTheirChunk()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        DebrisFeaturePlacerControllerComponent placer = default!;
+        await server.WaitAssertion(() =>
+        {
+            // Stands in for a worldgen chunk, owning the marker as debris the way the placer does when it spawns one.
+            var mapUid = server.System<SharedMapSystem>().GetMap(map.MapId);
+            var chunk = em.SpawnEntity(null, new EntityCoordinates(mapUid, Vector2.Zero));
+            placer = em.AddComponent<DebrisFeaturePlacerControllerComponent>(chunk);
+            var marker = em.SpawnEntity("WFAsteroidClusterRock", new EntityCoordinates(mapUid, ShipPos));
+            em.GetComponent<WFAsteroidClusterComponent>(marker).RareChance = 0f;
+            server.System<DebrisFeaturePlacerSystem>().AdoptDebris(chunk, marker);
+            Assert.That(placer.OwnedDebris[ShipPos], Is.EqualTo(marker));
+        });
+        await server.WaitRunTicks(3);
+
+        await server.WaitAssertion(() =>
+        {
+            var grids = new List<EntityUid>();
+            var query = em.EntityQueryEnumerator<WFAsteroidGridComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out _, out var xform))
+            {
+                if (xform.MapID == map.MapId)
+                    grids.Add(uid);
+            }
+
+            var owned = placer.OwnedDebris.Values.OfType<EntityUid>().ToHashSet();
+            Assert.That(grids, Has.Count.GreaterThan(1), "The cluster should spawn several rocks.");
+            Assert.That(grids.Where(g => !owned.Contains(g)), Is.Empty,
+                "Every rock, the one on the marker's own spot included, should belong to the chunk so it unloads with it.");
         });
 
         await pair.CleanReturnAsync();

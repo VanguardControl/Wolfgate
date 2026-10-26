@@ -5,6 +5,7 @@ using Robust.Shared.Enums;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using static Content.Client._WF.AsteroidMining.WFOverlayDraw;
 
 namespace Content.Client._WF.AsteroidMining;
 
@@ -126,17 +127,17 @@ public sealed class WFOreMagnetOverlay : Overlay
             var index = Math.Clamp(t * Segments, 0f, Segments);
             var low = (int) MathF.Floor(index);
             var point = Vector2.Lerp(_curve[low], _curve[Math.Min(low + 1, Segments)], index - low);
-            Glow(handle, point, 0.12f, Field.WithAlpha(0.55f * fade * MathF.Sin(MathF.PI * t)));
+            Glow(handle, _fan, point, 0.12f, Field.WithAlpha(0.55f * fade * MathF.Sin(MathF.PI * t)));
         }
 
-        Glow(handle, magnet, 0.3f, Field.WithAlpha(0.35f * fade));
+        Glow(handle, _fan, magnet, 0.3f, Field.WithAlpha(0.35f * fade));
     }
 
     /// <summary>A shimmering ring round the ore that closes in as the lock comes due, over a faint halo.</summary>
     private void DrawAura(DrawingHandleWorld handle, Vector2 ore, float progress, float fade, float time, float phase)
     {
         var pulse = 0.85f + 0.15f * MathF.Sin(time * 9f + phase);
-        Glow(handle, ore, 0.5f, Field.WithAlpha(0.18f * fade * pulse));
+        Glow(handle, _fan, ore, 0.5f, Field.WithAlpha(0.18f * fade * pulse));
 
         var radius = 0.55f - 0.2f * progress;
         var inner = radius - 0.09f;
@@ -153,23 +154,6 @@ public sealed class WFOreMagnetOverlay : Overlay
 
         handle.DrawPrimitives(DrawPrimitiveTopology.TriangleStrip, Texture.White,
             new ReadOnlySpan<DrawVertexUV2DColor>(_ring, 0, count));
-    }
-
-    private void Glow(DrawingHandleWorld handle, Vector2 center, float radius, Color color)
-    {
-        var clear = color.WithAlpha(0f);
-        var count = 0;
-        for (var i = 0; i < FanSides; i++)
-        {
-            var a = MathF.Tau * i / FanSides;
-            var b = MathF.Tau * (i + 1) / FanSides;
-            _fan[count++] = new DrawVertexUV2DColor(center, color);
-            _fan[count++] = new DrawVertexUV2DColor(center + new Vector2(MathF.Cos(a), MathF.Sin(a)) * radius, clear);
-            _fan[count++] = new DrawVertexUV2DColor(center + new Vector2(MathF.Cos(b), MathF.Sin(b)) * radius, clear);
-        }
-
-        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, Texture.White,
-            new ReadOnlySpan<DrawVertexUV2DColor>(_fan, 0, count));
     }
 
     private static float Frac(float value)

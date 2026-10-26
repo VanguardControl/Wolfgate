@@ -12,9 +12,6 @@ namespace Content.Shared._WF.AsteroidMining;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class WFMiningBeamEmitterComponent : Component
 {
-    /// <summary>Reach of the beam, matching its pulse's raycast.</summary>
-    [DataField] public float MaxRange = 60f;
-
     /// <summary>Heat delivered at full power, before the rock's resistance.</summary>
     [DataField] public float Strength = 1.25f;
 
@@ -35,9 +32,6 @@ public sealed partial class WFMiningBeamEmitterComponent : Component
 
     /// <summary>Where the beam leaves the barrel, in the gun's local frame.</summary>
     [DataField] public Vector2 MuzzleOffset = new(0f, -1.31f);
-
-    /// <summary>The barrel's direction in the gun's local frame; Mono guns face south.</summary>
-    [DataField] public Vector2 Forward = new(0f, -1f);
 
     [DataField] public Color BeamColor = Color.FromHex("#ffb347");
 
@@ -72,7 +66,6 @@ public sealed partial class WFMiningBeamEmitterComponent : Component
     public EntityUid? AudioHot;
     public TimeSpan CooldownUntil;
     public TimeSpan LastPulse;
-    public float Contribution;
 }
 
 [Serializable, NetSerializable]

@@ -5,6 +5,7 @@ using Robust.Shared.Enums;
 using Robust.Shared.Map;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
+using static Content.Client._WF.AsteroidMining.WFOverlayDraw;
 
 namespace Content.Client._WF.AsteroidMining;
 
@@ -99,8 +100,8 @@ public sealed class WFAsteroidCrackOverlay : Overlay
         var flash = 1f - Math.Clamp(t / 0.16f, 0f, 1f);
         if (flash > 0f)
         {
-            Glow(handle, center, radius * (1.1f + 1.4f * (1f - flash)), color.WithAlpha(0.8f * flash));
-            Glow(handle, center, radius * 0.6f, Color.White.WithAlpha(flash));
+            Glow(handle, _fan, center, radius * (1.1f + 1.4f * (1f - flash)), color.WithAlpha(0.8f * flash));
+            Glow(handle, _fan, center, radius * 0.6f, Color.White.WithAlpha(flash));
         }
 
         var wave = Math.Clamp(t / 0.55f, 0f, 1f);
@@ -174,30 +175,7 @@ public sealed class WFAsteroidCrackOverlay : Overlay
             var angle = Hash(seed + i * 5.3f + 9f) * MathF.Tau;
             var drift = radius * (0.2f + 1.3f * Hash(seed + i * 2.7f + 4f)) * MathF.Sqrt(t);
             var pos = center + new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * drift;
-            Glow(handle, pos, radius * (0.55f + 0.9f * t), Dust.WithAlpha(alpha));
+            Glow(handle, _fan, pos, radius * (0.55f + 0.9f * t), Dust.WithAlpha(alpha));
         }
-    }
-
-    private void Glow(DrawingHandleWorld handle, Vector2 center, float radius, Color color)
-    {
-        var clear = color.WithAlpha(0f);
-        var count = 0;
-        for (var i = 0; i < FanSides; i++)
-        {
-            var a = MathF.Tau * i / FanSides;
-            var b = MathF.Tau * (i + 1) / FanSides;
-            _fan[count++] = new DrawVertexUV2DColor(center, color);
-            _fan[count++] = new DrawVertexUV2DColor(center + new Vector2(MathF.Cos(a), MathF.Sin(a)) * radius, clear);
-            _fan[count++] = new DrawVertexUV2DColor(center + new Vector2(MathF.Cos(b), MathF.Sin(b)) * radius, clear);
-        }
-
-        handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, Texture.White,
-            new ReadOnlySpan<DrawVertexUV2DColor>(_fan, 0, count));
-    }
-
-    private static float Hash(float value)
-    {
-        var x = MathF.Sin(value * 12.9898f) * 43758.5453f;
-        return x - MathF.Floor(x);
     }
 }

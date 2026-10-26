@@ -17,7 +17,6 @@ public sealed class WFMiningChargeMeter : Control
     public float Charge;
     public float WindowLow = 0.45f;
     public float WindowHigh = 0.65f;
-    public float OverchargeLine = WFAsteroidHeat.OverchargeLine;
     public bool Overcharging;
 
     private static readonly Color Cold = new(0.16f, 0.2f, 0.24f);
@@ -40,8 +39,8 @@ public sealed class WFMiningChargeMeter : Control
 
         handle.DrawRect(new UIBox2(X(0f), top, X(WindowLow), bottom), Cold);
         handle.DrawRect(new UIBox2(X(WindowLow), top, X(WindowHigh), bottom), WindowColor);
-        handle.DrawRect(new UIBox2(X(WindowHigh), top, X(OverchargeLine), bottom), Hot.WithAlpha(0.8f));
-        handle.DrawRect(new UIBox2(X(OverchargeLine), top, X(Scale), bottom), Danger.WithAlpha(Overcharging ? 1f : 0.7f));
+        handle.DrawRect(new UIBox2(X(WindowHigh), top, X(WFAsteroidHeat.OverchargeLine), bottom), Hot.WithAlpha(0.8f));
+        handle.DrawRect(new UIBox2(X(WFAsteroidHeat.OverchargeLine), top, X(Scale), bottom), Danger.WithAlpha(Overcharging ? 1f : 0.7f));
         handle.DrawRect(new UIBox2(0f, top, size.X, bottom), Color.White.WithAlpha(0.35f), false);
 
         var needle = X(Math.Clamp(Charge, 0f, Scale));

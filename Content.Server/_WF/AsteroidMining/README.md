@@ -114,6 +114,7 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 - [`Content.Client/_WF/AsteroidMining/WFMiningChargeMeter.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningChargeMeter.cs)
 - [`Content.Client/_WF/AsteroidMining/WFOreMagnetOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFOreMagnetOverlay.cs)
 - [`Content.Client/_WF/AsteroidMining/WFOreMagnetVisualsSystem.cs`](../../../Content.Client/_WF/AsteroidMining/WFOreMagnetVisualsSystem.cs)
+- [`Content.Client/_WF/AsteroidMining/WFOverlayDraw.cs`](../../../Content.Client/_WF/AsteroidMining/WFOverlayDraw.cs)
 
 ### Integration tests
 
@@ -158,7 +159,6 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 
 ### Tools
 
-- [`Tools/_WF/AsteroidMining/gen_laser_hum.py`](../../../Tools/_WF/AsteroidMining/gen_laser_hum.py)
 - [`Tools/_WF/AsteroidMining/gen_rocks.py`](../../../Tools/_WF/AsteroidMining/gen_rocks.py)
 
 ## Non-modular edits

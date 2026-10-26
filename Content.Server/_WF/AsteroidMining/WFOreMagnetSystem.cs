@@ -6,6 +6,7 @@ using Content.Shared.Item.ItemToggle;
 using Content.Shared.Storage;
 using Content.Shared.Storage.EntitySystems;
 using Content.Shared.Whitelist;
+using Robust.Shared.Containers;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Timing;
 
@@ -15,7 +16,7 @@ namespace Content.Server._WF.AsteroidMining;
 /// Runs ore magnets: finds loose ore in range and in sight, locks onto it, and pulls it into storage once the lock has
 /// held. A lock breaks if the ore drifts out of range or behind a wall, or the magnet loses power or is switched off.
 /// </summary>
-public sealed class WFOreMagnetSystem : EntitySystem
+public sealed partial class WFOreMagnetSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
@@ -26,6 +27,7 @@ public sealed class WFOreMagnetSystem : EntitySystem
     [Dependency] private SharedItemSystem _item = default!;
     [Dependency] private EntityWhitelistSystem _whitelist = default!;
     [Dependency] private SharedAppearanceSystem _appearance = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
 
     private readonly List<EntityUid> _done = new();
     private readonly HashSet<EntityUid> _nearby = new();
@@ -60,8 +62,9 @@ public sealed class WFOreMagnetSystem : EntitySystem
             if (!active)
                 continue;
 
-            UpdatePulls((uid, magnet, storage, xform), now);
-            if (now < magnet.NextScan)
+            var scan = now >= magnet.NextScan;
+            UpdatePulls((uid, magnet, storage, xform), now, scan);
+            if (!scan)
                 continue;
 
             magnet.NextScan = now + magnet.ScanInterval;
@@ -69,20 +72,33 @@ public sealed class WFOreMagnetSystem : EntitySystem
         }
     }
 
-    /// <summary>Pulls in the ore whose lock has held, and drops any it has lost.</summary>
-    private void UpdatePulls(Entity<WFOreMagnetComponent, StorageComponent, TransformComponent> ent, TimeSpan now)
+    /// <summary>
+    /// Pulls in the ore whose lock has held, and drops any it has lost. Sight is rechecked on scans and when a lock
+    /// comes due, rather than every tick.
+    /// </summary>
+    private void UpdatePulls(Entity<WFOreMagnetComponent, StorageComponent, TransformComponent> ent, TimeSpan now,
+        bool checkSight)
     {
         var (uid, magnet, storage, xform) = ent;
         _done.Clear();
         foreach (var ore in magnet.Pulling)
         {
-            if (TerminatingOrDeleted(ore) || !TryComp<WFOreMagnetPulledComponent>(ore, out var pulled) || !CanSee(uid, magnet, ore))
+            // Ore picked up into a hand or bag mid-lock is no longer loose, so the lock breaks.
+            if (TerminatingOrDeleted(ore) || !TryComp<WFOreMagnetPulledComponent>(ore, out var pulled) ||
+                _container.IsEntityInContainer(ore))
             {
                 _done.Add(ore);
                 continue;
             }
 
-            if (now < pulled.End)
+            var due = now >= pulled.End;
+            if ((due || checkSight) && !CanSee(uid, magnet, ore))
+            {
+                _done.Add(ore);
+                continue;
+            }
+
+            if (!due)
                 continue;
 
             _done.Add(ore);
