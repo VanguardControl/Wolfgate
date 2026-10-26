@@ -68,7 +68,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     // Swapped debris: the mass budget for the cluster about to spawn at each point. Keyed by exact position, which
     // holds because worldgen spawns the marker straight onto the map at the point it raised the event with.
     private readonly Dictionary<MapCoordinates, float> _budgets = new();
-    private Dictionary<string, (WFAsteroidReplacementKind Kind, float Mass)>? _replacements;
+    private Dictionary<string, (WFAsteroidReplacementKind Kind, float Mass, string? Barren)>? _replacements;
 
     public override void Initialize()
     {
@@ -89,32 +89,44 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         });
     }
 
-    /// <summary>Swaps an ore tile asteroid for a cluster of single rocks with the same kind and amount of ore.</summary>
+    /// <summary>
+    /// Swaps an ore tile asteroid for a cluster of single rocks with the same kind and amount of ore, or now and then
+    /// for a barren tile asteroid that keeps its gas deposits.
+    /// </summary>
     private void OnDebrisPlacing(ref WFDebrisPlacingEvent args)
     {
         if (args.Cancelled)
             return;
 
         _replacements ??= BuildReplacements();
-        if (!_replacements.TryGetValue(args.Proto, out var replacement) ||
-            replacement.Kind.KeepChance > 0f && _random.Prob(replacement.Kind.KeepChance))
+        if (!_replacements.TryGetValue(args.Proto, out var replacement))
             return;
+
+        if (replacement.Barren is { } barren && _random.Prob(replacement.Kind.BarrenChance))
+        {
+            args.Proto = barren;
+            return;
+        }
 
         args.Proto = replacement.Kind.Cluster;
         _budgets[args.At] = replacement.Mass;
     }
 
-    private Dictionary<string, (WFAsteroidReplacementKind, float)> BuildReplacements()
+    private Dictionary<string, (WFAsteroidReplacementKind, float, string?)> BuildReplacements()
     {
-        var map = new Dictionary<string, (WFAsteroidReplacementKind, float)>();
+        var map = new Dictionary<string, (WFAsteroidReplacementKind, float, string?)>();
         foreach (var proto in _proto.EnumeratePrototypes<WFAsteroidReplacementPrototype>())
         {
             foreach (var (prefix, kind) in proto.Kinds)
             {
                 foreach (var (size, mass) in proto.Sizes)
                 {
-                    if (_proto.HasIndex<EntityPrototype>(prefix + size))
-                        map[prefix + size] = (kind, mass);
+                    if (!_proto.HasIndex<EntityPrototype>(prefix + size))
+                        continue;
+
+                    // Only the sizes the barren kind defines, which are the ones that carry gas.
+                    var barren = kind.Barren + size;
+                    map[prefix + size] = (kind, mass, kind.Barren != null && _proto.HasIndex<EntityPrototype>(barren) ? barren : null);
                 }
             }
         }

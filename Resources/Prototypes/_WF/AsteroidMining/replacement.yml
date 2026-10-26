@@ -1,5 +1,6 @@
-# Worldgen swaps these tile asteroids for single-rock clusters of the same kind, in every zone. Scrap asteroids,
-# wrecks and the gas-bearing rock asteroids at half their rate stay as tiles, for scrap and gas mining.
+# Worldgen swaps these tile asteroids for single-rock clusters of the same kind, in every zone. Scrap asteroids and
+# wrecks stay as tiles. Half of the gas-bearing plain and rock asteroids (Enormous and up) become barren tile
+# asteroids instead (barren.yml): no ore, but the same gas deposits and anomalies, for gas mining.
 # Sizes are the average rock count of each tile asteroid size (BlobFloorPlanBuilder placements, simulated), which
 # becomes the cluster's mass budget, so each zone yields as much ore as before.
 - type: wfAsteroidReplacement
@@ -7,9 +8,12 @@
   kinds:
     NFAsteroidDebris:
       cluster: WFAsteroidClusterRock
+      barren: WFAsteroidBarrenDebris
+      barrenChance: 0.5
     NFAsteroidRockDebris:
       cluster: WFAsteroidClusterRock
-      keepChance: 0.5
+      barren: WFAsteroidBarrenRockDebris
+      barrenChance: 0.5
     NFAsteroidIceDebris:
       cluster: WFAsteroidClusterIce
     NFAsteroidBasaltDebris:

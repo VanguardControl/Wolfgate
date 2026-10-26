@@ -23,6 +23,10 @@ public sealed partial class WFAsteroidReplacementKind
 {
     [DataField(required: true)] public EntProtoId Cluster;
 
-    /// <summary>Chance to keep the tile asteroid, for kinds that carry something else such as gas deposits.</summary>
-    [DataField] public float KeepChance;
+    /// <summary>
+    /// Debris ID prefix of an ore-free tile asteroid, such as WFAsteroidBarrenDebris, that the debris becomes instead at
+    /// <see cref="BarrenChance"/>, for the sizes it has. It keeps gas deposits and anomalies for kinds that carry them.
+    /// </summary>
+    [DataField] public string? Barren;
+    [DataField] public float BarrenChance;
 }

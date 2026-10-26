@@ -2,8 +2,9 @@
 
 Belt asteroids as single rocks, cracked with a ship-mounted mining laser (Star Citizen-style rock cracking with EVE
 Online-style beams). Worldgen swaps every ore tile asteroid, in the Wilds, the 9 km ring, Cluster A and Very Far, for
-a cluster of single rocks of the same kind holding the same amount of ore. Scrap asteroids and wrecks stay as tiles,
-and so do half of the gas-bearing rock asteroids, which carry the gas deposits gas mining needs.
+a cluster of single rocks of the same kind holding the same amount of ore. Scrap asteroids (now scrap only, no ore
+veins) and wrecks stay as tiles. Half of the gas-bearing plain and rock asteroids (Enormous and up) become barren tile
+asteroids instead: plain rock with no ore, but the same gas deposits, anomaly rock and rooms, for gas mining.
 
 - **Worldgen:** `replacement.yml` maps each tile asteroid kind (rock, ice, basalt, sand, chromite, andesite) to a
   cluster marker. `WFAsteroidSystem` swaps it through `WFDebrisPlacingEvent` and gives the cluster the tile
@@ -11,7 +12,8 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
   weights (small the most common, huge the rarest) until the budget runs out, hands them to its world chunk and
   removes itself. Compositions start from each kind's mineral table and plain-rock share, tilted towards iron and coal
   (which steel and plasteel need) over malachite, quartz and salt; chromite is still where lithium comes from, at
-  the same share.
+  the same share. A kind's `barren` prefix and `barrenChance` swap the sizes that prefix defines (`barren.yml`)
+  for a barren tile asteroid instead of a cluster.
 - **Metallic rocks:** each cluster rock may roll `WFAsteroidMetallic` instead of its cluster's kind, at 1% by the stations
   plus 0.35% per kilometre from the sector centre (about 4% on the 9 km ring, 8% Very Far):
   mostly iron, silver and gold, sometimes diamond, with little plain rock, and each vein drops half again as much
@@ -135,6 +137,7 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/AsteroidMining/asteroids.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/asteroids.yml)
+- [`Resources/Prototypes/_WF/AsteroidMining/barren.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/barren.yml)
 - [`Resources/Prototypes/_WF/AsteroidMining/compositions.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/compositions.yml)
 - [`Resources/Prototypes/_WF/AsteroidMining/mining_beam.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/mining_beam.yml)
 - [`Resources/Prototypes/_WF/AsteroidMining/replacement.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/replacement.yml)
@@ -185,6 +188,7 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 - [`Resources/Prototypes/_Mono/Shipyard/Civilian/caracara.yml`](../../../Resources/Prototypes/_Mono/Shipyard/Civilian/caracara.yml): fitted with the M40 mining laser in place of the Apollo
 - [`Resources/Prototypes/_Mono/Shipyard/MMC/akasono.yml`](../../../Resources/Prototypes/_Mono/Shipyard/MMC/akasono.yml): an M12 mining laser in place of the pulser
 - [`Resources/Prototypes/_Mono/Shipyard/MMC/kami.yml`](../../../Resources/Prototypes/_Mono/Shipyard/MMC/kami.yml): M12 mining lasers in place of the mining pulsers
+- [`Resources/Prototypes/_NF/Entities/World/Debris/asteroids.yml`](../../../Resources/Prototypes/_NF/Entities/World/Debris/asteroids.yml): scrap asteroids hold only scrap, ore comes from the rock clusters
 - [`Resources/Prototypes/Recipes/Lathes/Packs/cargo.yml`](../../../Resources/Prototypes/Recipes/Lathes/Packs/cargo.yml): heavy and light mining laser boards
 - [`Resources/Prototypes/Research/industrial.yml`](../../../Resources/Prototypes/Research/industrial.yml)
   - light mining laser board

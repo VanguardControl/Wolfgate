@@ -21,6 +21,7 @@ using Content.Shared._WF.AsteroidMining;
 using Content.Shared.Damage;
 using Content.Shared.FixedPoint;
 using Content.Shared.Access.Components;
+using Content.Shared.Mining.Components;
 using Content.Shared.Physics;
 using Content.Shared.Stacks;
 using Content.Shared.Tag;
@@ -34,6 +35,7 @@ using Robust.Shared.Maths;
 using Robust.Shared.Configuration;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Systems;
+using Robust.Shared.Random;
 using Robust.Shared.Timing;
 
 namespace Content.IntegrationTests.Tests._WF.AsteroidMining;
@@ -287,6 +289,97 @@ public sealed class AsteroidMiningTest
             {
                 Assert.That(basalt.Proto, Is.EqualTo("WFAsteroidClusterBasalt"), "A basalt tile asteroid should become a basalt cluster.");
                 Assert.That(scrap.Proto, Is.EqualTo("NFAsteroidScrapDebrisMassive"), "Scrap asteroids should stay as tiles.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task GasAsteroidsSometimesStayAsBarrenTiles()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        // Away from ShipPos, so the budgets these swaps leave behind can't feed another test's cluster.
+        var at = new MapCoordinates(new Vector2(-4000f, -4000f), map.MapId);
+
+        await server.WaitAssertion(() =>
+        {
+            var outcomes = new Dictionary<string, HashSet<string>>();
+            foreach (var proto in new[] { "NFAsteroidDebrisMassive", "NFAsteroidRockDebrisGigantic", "NFAsteroidRockDebrisSmall" })
+            {
+                outcomes[proto] = new HashSet<string>();
+                for (var i = 0; i < 64; i++)
+                {
+                    var ev = new WFDebrisPlacingEvent(proto, at);
+                    server.EntMan.EventBus.RaiseEvent(EventSource.Local, ref ev);
+                    outcomes[proto].Add(ev.Proto);
+                }
+            }
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(outcomes["NFAsteroidDebrisMassive"],
+                    Is.EquivalentTo(new[] { "WFAsteroidClusterRock", "WFAsteroidBarrenDebrisMassive" }),
+                    "A gas-bearing plain asteroid should become either a cluster or a barren tile asteroid.");
+                Assert.That(outcomes["NFAsteroidRockDebrisGigantic"],
+                    Is.EquivalentTo(new[] { "WFAsteroidClusterRock", "WFAsteroidBarrenRockDebrisGigantic" }),
+                    "A gas-bearing rock asteroid should become either a cluster or a barren tile asteroid.");
+                Assert.That(outcomes["NFAsteroidRockDebrisSmall"], Is.EquivalentTo(new[] { "WFAsteroidClusterRock" }),
+                    "A rock asteroid too small for gas should always become a cluster.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task BarrenAndScrapAsteroidsHoldNoOre()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var protos = server.ProtoMan;
+        var factory = server.ResolveDependency<IComponentFactory>();
+        var random = server.ResolveDependency<IRobustRandom>();
+
+        await server.WaitAssertion(() =>
+        {
+            // Each kind of tile asteroid, and the only ore its walls may hold.
+            var allowed = new Dictionary<string, string>
+            {
+                ["WFAsteroidBarrenDebrisMassive"] = "OreAnomalySpawner",
+                ["WFAsteroidBarrenRockDebrisMassive"] = "OreAnomalySpawner",
+                ["NFAsteroidScrapDebrisMassive"] = "NFOreScrap",
+            };
+
+            Assert.Multiple(() =>
+            {
+                foreach (var (debris, ore) in allowed)
+                {
+                    Assert.That(protos.Index(debris).TryComp<SimpleFloorPlanPopulatorComponent>(out var populator, factory),
+                        Is.True, $"{debris} should populate its floor.");
+                    var spawns = new HashSet<string>();
+                    var rolled = new List<string?>();
+                    foreach (var cache in populator!.Caches.Values)
+                    {
+                        for (var i = 0; i < 20000; i++)
+                        {
+                            rolled.Clear();
+                            cache.GetSpawns(random, ref rolled);
+                            spawns.UnionWith(rolled.OfType<string>());
+                        }
+                    }
+
+                    foreach (var wall in spawns)
+                    {
+                        if (protos.Index(wall).TryComp<OreVeinComponent>(out var vein, factory))
+                        {
+                            Assert.That(vein.OreRarityPrototypeId, Is.Null, $"{wall} on {debris} should not roll random ore.");
+                            Assert.That(vein.CurrentOre?.Id ?? ore, Is.EqualTo(ore), $"{wall} on {debris} should hold no ore.");
+                        }
+                    }
+                }
             });
         });
 
