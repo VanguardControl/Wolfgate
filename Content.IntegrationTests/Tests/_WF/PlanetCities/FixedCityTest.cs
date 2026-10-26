@@ -319,7 +319,7 @@ public sealed class FixedCityTest
         await pair.CleanReturnAsync();
     }
     /// <summary>Builds Verda's layers and runs the preload to the end, so Crocus stands on them.</summary>
-    private static async Task<(List<EntityUid> Layers, List<EntityUid> Lower, List<Task> Holds)> BuildCrocus(TestPair pair, bool caverns, Action? beforePreload = null)
+    internal static async Task<(List<EntityUid> Layers, List<EntityUid> Lower, List<Task> Holds)> BuildCrocus(TestPair pair, bool caverns, Action? beforePreload = null)
     {
         var server = pair.Server;
         var entMan = server.EntMan;
@@ -359,10 +359,10 @@ public sealed class FixedCityTest
         _ => new Vector2i(-1, 0),
     };
 
-    private static List<EntityUid> Grids(IEntityManager entMan, EntityUid map) =>
+    internal static List<EntityUid> Grids(IEntityManager entMan, EntityUid map) =>
         Children(entMan, map).Where(entMan.HasComponent<MapGridComponent>).ToList();
 
-    private static List<EntityUid> Children(IEntityManager entMan, EntityUid parent)
+    internal static List<EntityUid> Children(IEntityManager entMan, EntityUid parent)
     {
         var result = new List<EntityUid>();
         var children = entMan.GetComponent<TransformComponent>(parent).ChildEnumerator;

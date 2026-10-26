@@ -7,7 +7,9 @@ Cities on planet surfaces, in two kinds.
 city's game map gives everything: its main map goes on the ground, its maps above (`CEStationZLevels`) on the
 world's flight layers as static grids held up like mapped islands, and its maps below on the cavern, or on empty
 layers this module adds when the world has no cavern. Each level is loaded as a plain grid and merged in by the POI
-site code, so Monolith's map files are used as they are. The game map's station is created over the city's grids
+site code, so Monolith's map files are used as they are; it loads whole, since a level's buildings don't touch and a grid
+free to split would lose all but one of them. The street's holes over stairs on the level below stay open and pinned, as
+stairwells, so the biome doesn't grow over them. The game map's station is created over the city's grids
 (the whole ground included), so it is joinable with the game map's jobs and spawn points. The prototype lists
 prototypes to swap on load (Crocus's indestructible rock and walls become ordinary ones, its observer spawns go)
 and road entrances cut from the city's streets to the edge of its footprint, where the world's roads join. A
@@ -94,6 +96,7 @@ wade) and catwalks where it turns.
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/PlanetCities/CityTemplateTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetCities/CityTemplateTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetCities/CrocusLevelsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetCities/CrocusLevelsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetCities/FixedCityTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetCities/FixedCityTest.cs)
 
 ### Prototypes

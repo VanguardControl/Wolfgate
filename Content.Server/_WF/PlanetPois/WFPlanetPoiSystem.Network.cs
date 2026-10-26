@@ -586,7 +586,7 @@ public sealed partial class WFPlanetPoiSystem
         var stagingMap = _maps.CreateMap(out var stagingId, runMapInit: false);
         try
         {
-            if (await LoadGridAsync(stagingId, new ResPath(path)) is not { } source)
+            if (await LoadGridAsync(stagingId, new ResPath(path), whole: true) is not { } source)
                 throw new InvalidOperationException($"Cannot load single-grid POI map {path}.");
             if (TerminatingOrDeleted(ground))
                 return new HashSet<Vector2i>();

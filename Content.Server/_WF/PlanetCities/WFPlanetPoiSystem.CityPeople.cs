@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Content.Server.Spawners.Components;
+using Content.Shared.Doors.Components;
 using Content.Shared._WF.PlanetCities;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -60,6 +61,9 @@ public sealed partial class WFPlanetPoiSystem
             await _preload.Breathe();
             if (TerminatingOrDeleted(pool.Floor.Grid.Owner))
                 break;
+            // The city has carried on since the pools were drawn up: a door may have shut on the tile.
+            if (CityTileBlocked(pool.Floor.Grid, tile))
+                continue;
             foreach (var id in _entityTables.GetSpawns(residents.Spawns))
             {
                 created.Add(Spawn(id, new EntityCoordinates(pool.Floor.Grid.Owner, (Vector2) tile + new Vector2(0.5f))));
@@ -127,7 +131,7 @@ public sealed partial class WFPlanetPoiSystem
         return pools[^1];
     }
 
-    /// <summary>Whether a tile is bare floor: it has a tile and nothing solid anchored on it.</summary>
+    /// <summary>Whether a tile isn't bare floor: it has no tile, or something solid or a door, open or not, is anchored on it.</summary>
     private bool CityTileBlocked(Entity<MapGridComponent> grid, Vector2i tile)
     {
         if (_maps.GetTileRef(grid.Owner, grid.Comp, tile).Tile.IsEmpty)
@@ -136,7 +140,7 @@ public sealed partial class WFPlanetPoiSystem
         var anchored = _maps.GetAnchoredEntitiesEnumerator(grid.Owner, grid.Comp, tile);
         while (anchored.MoveNext(out var uid))
         {
-            if (TryComp<PhysicsComponent>(uid, out var body) && body.Hard && body.CanCollide)
+            if (TryComp<PhysicsComponent>(uid, out var body) && body.Hard && body.CanCollide || HasComp<DoorComponent>(uid))
                 return true;
         }
 
