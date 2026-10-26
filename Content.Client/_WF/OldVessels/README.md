@@ -300,5 +300,6 @@ Sentinel; the hardpoints under the swapped guns shrank with them.
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/ussp.yml`](../../../Resources/Prototypes/_Mono/Recipes/Lathes/Packs/Factions/ussp.yml): classic ship LPCs
 - [`Resources/Prototypes/_Mono/Research/TSF/tsf_misc.yml`](../../../Resources/Prototypes/_Mono/Research/TSF/tsf_misc.yml): classic ship LPCs
 - [`Resources/Prototypes/_Mono/Research/USSP/ussp_ships.yml`](../../../Resources/Prototypes/_Mono/Research/USSP/ussp_ships.yml): classic ship LPCs
+- [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): Ravager drone LPCs
 
 <!-- WOLFGATE-GENERATED END -->

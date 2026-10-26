@@ -8,7 +8,7 @@ to the wearer's body and other markings, such as a tail or ears, and two pixels 
 
 A marking can be animated: up to 32 frames, each shown for a time of its own, played round or back and forth
 (ping-pong). The editor can move frames, reverse them, give them all one time, play them and show the frame before
-under the one being drawn (onion skin). And a marking can erase parts of the body under it, so that what is drawn
+faintly over the one being drawn (onion skin). And a marking can erase parts of the body under it, so that what is drawn
 takes the body's place instead of lying on top of it.
 
 The library shows each marking on the character from all four sides, as it will look, with its name, placement and

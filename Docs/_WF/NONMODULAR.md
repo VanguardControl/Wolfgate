@@ -18,13 +18,18 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Client/CharacterInfo/CharacterInfoSystem.cs`](../../Content.Client/CharacterInfo/CharacterInfoSystem.cs)
   - replays skip the character info request
   - Replay spectators have a local entity but no server to answer this request.
-- [`Content.Client/Chemistry/UI/ChemMasterWindow.xaml.cs`](../../Content.Client/Chemistry/UI/ChemMasterWindow.xaml.cs): a merge left the old guard nested over the new one, so an empty beaker with a full buffer threw
+- [`Content.Client/Chemistry/UI/ChemMasterWindow.xaml.cs`](../../Content.Client/Chemistry/UI/ChemMasterWindow.xaml.cs)
+  - last inputs the dosage defaults were built from
+  - keep typed pill and bottle amounts when an update changes nothing they depend on
+  - only reset on a change
+  - a merge left the old guard nested over the new one, so an empty beaker with a full buffer threw
 - [`Content.Client/Guidebook/GuidebookDataSystem.cs`](../../Content.Client/Guidebook/GuidebookDataSystem.cs)
   - replays skip the guidebook data request
   - partial for the network dependency
   - replay playback starts these systems without a server connection
 - [`Content.Client/Holopad/HolopadSystem.cs`](../../Content.Client/Holopad/HolopadSystem.cs)
   - post-shader flags are set through SpriteSystem since engine 291
+  - wizden#38042
   - engine 291 ignores the sprite-wide RaiseShaderEvent; it is per post-shader now
 - [`Content.Client/Lobby/LobbyUIController.cs`](../../Content.Client/Lobby/LobbyUIController.cs): unknown species falls back to the default
 - [`Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs`](../../Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs)
@@ -132,6 +137,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - whatever the piece replaced goes back on, instead of staying shut inside the piece
   - a suit deleted along with its wearer can't take the piece back
   - another suit's piece goes back to its suit, and what it covered is kept under this one
+- [`Content.Shared/DisplacementMap/DisplacementData.cs`](../../Content.Shared/DisplacementMap/DisplacementData.cs): wizden#38042, the stencil one draws nothing in UI sprite views
 - [`Content.Shared/Gibbing/Systems/GibbingSystem.cs`](../../Content.Shared/Gibbing/Systems/GibbingSystem.cs)
   - bodiless giblets are skipped when flung.
   - bodiless dropped contents are skipped instead of flung.
@@ -214,6 +220,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - pest events were crowding out the rest of the table (was 6)
   - each pest event at most once per 90 minutes
 - [`Resources/Prototypes/Nyanotrasen/Species/felinid.yml`](../../Resources/Prototypes/Nyanotrasen/Species/felinid.yml): mrrow
+- [`Resources/Prototypes/Shaders/displacement.yml`](../../Resources/Prototypes/Shaders/displacement.yml): wizden#38042, displacement without the stencil test, which hid displaced layers in UI sprite views
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml)
   - fixed broken link, was MonolithRuleRoleplayEightSafeZones
   - was color=blue, unreadable on the dark background
