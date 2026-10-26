@@ -84,7 +84,7 @@ public sealed partial class WFRoofSystem
         while (tiles.MoveNext(out var tile))
             floor.Add(tile.Value.GridIndices);
 
-        WFRoofReveal.Enclosed(floor,
+        WFRoofTiles.Enclosed(floor,
             index => _maps.TryGetTileRef(grid, grid.Comp, index, out var tile)
                      && _tileDefs[tile.Tile.TypeId] is ContentTileDefinition { MapAtmosphere: true },
             index => IsStructure(grid, grid.Comp, index),

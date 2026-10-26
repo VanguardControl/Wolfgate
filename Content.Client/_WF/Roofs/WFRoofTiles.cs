@@ -1,7 +1,7 @@
 namespace Content.Client._WF.Roofs;
 
-/// <summary>Which roofed tiles lift for someone standing under them: the room they're in, up to its walls.</summary>
-public static class WFRoofReveal
+/// <summary>Which tiles of a building or vessel a roof seen from above covers.</summary>
+public static class WFRoofTiles
 {
     private static readonly Vector2i[] Neighbours = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
 
@@ -51,39 +51,11 @@ public static class WFRoofReveal
     }
 
     /// <summary>
-    /// Whether a roof is drawn over a tile: it is roofed, nothing structural stands on it and it isn't lifted. Walls,
-    /// windows and doors are never covered, so a building shows its walls and doors with roof only over its floors.
+    /// Whether a roof is drawn over a tile: it is roofed and nothing structural stands on it. Walls, windows and doors
+    /// are never covered, so from above a building shows its walls and doors with roof only over its floors.
     /// </summary>
-    public static bool Covers(bool roofed, bool structure, bool lifted)
+    public static bool Covers(bool roofed, bool structure)
     {
-        return roofed && !structure && !lifted;
-    }
-
-    /// <summary>
-    /// Fills out from <paramref name="start"/> through roofed tiles that nothing solid stands on. The walls it meets
-    /// lift with the room so they show from inside; open ground and anything past a wall stay as they are.
-    /// </summary>
-    public static void Fill(Vector2i start, Func<Vector2i, bool> roofed, Func<Vector2i, bool> solid, int cap, HashSet<Vector2i> into)
-    {
-        into.Clear();
-        if (!roofed(start))
-            return;
-
-        var open = new Queue<Vector2i>();
-        open.Enqueue(start);
-        into.Add(start);
-        while (open.Count > 0 && into.Count < cap)
-        {
-            var tile = open.Dequeue();
-            foreach (var step in Neighbours)
-            {
-                var next = tile + step;
-                if (into.Contains(next) || !roofed(next))
-                    continue;
-                into.Add(next);
-                if (!solid(next))
-                    open.Enqueue(next);
-            }
-        }
+        return roofed && !structure;
     }
 }

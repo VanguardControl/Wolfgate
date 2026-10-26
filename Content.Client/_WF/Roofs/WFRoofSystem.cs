@@ -1,3 +1,4 @@
+using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared.Doors.Components;
 using Content.Shared.Ghost;
@@ -11,8 +12,9 @@ using Robust.Shared.Physics.Components;
 namespace Content.Client._WF.Roofs;
 
 /// <summary>
-/// Works out what the local player is under for <see cref="WFRoofOverlay"/>: aboard a ship its whole roof lifts, in a
-/// roofed building the room they're in does. Walls, windows and doors are never roofed over, and a ghost sees no roofs.
+/// Works out for <see cref="WFRoofOverlay"/> where roofs show: only on levels below the local player's own, looking down
+/// on them. Nobody sees a roof on their own level. Walls, windows and doors are never roofed over, and a ghost sees no
+/// roofs.
 /// </summary>
 public sealed partial class WFRoofSystem : EntitySystem
 {
@@ -21,32 +23,14 @@ public sealed partial class WFRoofSystem : EntitySystem
     [Dependency] private SharedMapSystem _maps = default!;
     [Dependency] private CESharedZLevelsSystem _zLevels = default!;
 
-    /// <summary>Most tiles a room fills out to; past it the rest of a huge roofed space stays covered.</summary>
-    private const int RoomCap = 4096;
-
-    /// <summary>How often the room is filled again while standing still, so a door opening shows the next room.</summary>
-    private const float Refresh = 0.25f;
-
     /// <summary>Collision layers that together make a structure full height, such as a diagonal wall.</summary>
     private const int FullHeight = (int) (CollisionGroup.HighImpassable | CollisionGroup.MidImpassable | CollisionGroup.LowImpassable);
 
-    /// <summary>Whether roofs are drawn at all for the local player.</summary>
+    /// <summary>Whether the local player sees roofs and roof shade at all: not as a ghost.</summary>
     public bool Enabled => SeesRoofs(_player.LocalEntity);
-
-    /// <summary>The grid the player stands on, whose revealed tiles lift.</summary>
-    public EntityUid? Grid { get; private set; }
-
-    /// <summary>Aboard a vessel: its whole roof lifts.</summary>
-    public bool WholeGrid { get; private set; }
-
-    /// <summary>The roofed tiles of <see cref="Grid"/> that lift.</summary>
-    public readonly HashSet<Vector2i> Revealed = new();
 
     /// <summary>Per grid, whether each tile asked about holds a wall, window or door.</summary>
     private readonly Dictionary<EntityUid, Dictionary<Vector2i, bool>> _structures = new();
-
-    private Vector2i? _lastTile;
-    private float _accumulator;
 
     public override void Initialize()
     {
@@ -68,50 +52,47 @@ public sealed partial class WFRoofSystem : EntitySystem
                && !HasComp<GhostComponent>(body) && !HasComp<SpectralComponent>(body);
     }
 
-    public override void FrameUpdate(float frameTime)
+    /// <summary>
+    /// Whether a map is a level below the local player's own in the same z-stack, the only place they see roofs. A
+    /// transit map counts by how far its ship has climbed; the player's own level is never below them.
+    /// </summary>
+    public bool BelowViewer(EntityUid map)
     {
-        base.FrameUpdate(frameTime);
-        _accumulator += frameTime;
-        UpdateVessels(frameTime);
-
-        var player = _player.LocalEntity;
-        if (player is not { } body || !SeesRoofs(body) || Transform(body).GridUid is not { } grid
-            || !TryComp(grid, out MapGridComponent? gridComp))
-        {
-            Clear();
-            return;
-        }
-
-        if (HasComp<ImplicitRoofComponent>(grid))
-        {
-            Clear();
-            Grid = grid;
-            WholeGrid = true;
-            return;
-        }
-
-        var tile = _maps.TileIndicesFor(grid, gridComp, Transform(body).Coordinates);
-        if (Grid == grid && !WholeGrid && _lastTile == tile && _accumulator < Refresh)
-            return;
-        _accumulator = 0f;
-        _lastTile = tile;
-        Grid = grid;
-        WholeGrid = false;
-
-        if (!TryComp(grid, out RoofComponent? roof))
-        {
-            Revealed.Clear();
-            return;
-        }
-        WFRoofReveal.Fill(tile, index => IsRoofed(roof, index), index => IsBarrier(grid, gridComp, index), RoomCap, Revealed);
+        if (_player.LocalEntity is not { } viewer || !SeesRoofs(viewer) || Transform(viewer).MapUid is not { } own
+            || own == map)
+            return false;
+        return TryLevel(map, out var network, out var level) && TryLevel(own, out var ownNetwork, out var ownLevel)
+               && network == ownNetwork && level < ownLevel;
     }
 
-    private void Clear()
+    /// <summary>A map's z-stack and the altitude of its floor in it; a transit map's lies between its two levels.</summary>
+    private bool TryLevel(EntityUid map, out EntityUid network, out float altitude)
     {
-        Grid = null;
-        WholeGrid = false;
-        _lastTile = null;
-        Revealed.Clear();
+        network = default;
+        altitude = 0f;
+        if (TryComp(map, out CEZMapComponent? zMap))
+        {
+            network = zMap.NetworkUid;
+            altitude = zMap.Depth;
+            return true;
+        }
+
+        if (!TryComp(map, out CEZTransitMapComponent? transit))
+            return false;
+        var progress = _zLevels.GetTransitProgress(transit);
+        if (transit.LowerMap is { } lower && TryComp(lower, out CEZMapComponent? lowerMap))
+        {
+            network = lowerMap.NetworkUid;
+            altitude = lowerMap.Depth + progress;
+            return true;
+        }
+        if (transit.UpperMap is { } upper && TryComp(upper, out CEZMapComponent? upperMap))
+        {
+            network = upperMap.NetworkUid;
+            altitude = upperMap.Depth - 1 + progress;
+            return true;
+        }
+        return false;
     }
 
     /// <summary>Whether a roof is drawn over a tile of a grid for the local player, as <see cref="WFRoofOverlay"/> draws it.</summary>
@@ -119,24 +100,25 @@ public sealed partial class WFRoofSystem : EntitySystem
     {
         var implicitRoof = HasComp<ImplicitRoofComponent>(grid);
         TryComp(grid, out RoofComponent? roof);
-        if (!Enabled || !implicitRoof && (roof == null || Underground(grid)))
+        if (!implicitRoof && (roof == null || Underground(grid)) || Transform(grid).MapUid is not { } map || !BelowViewer(map))
             return false;
-        var own = Grid == grid.Owner;
-        if (implicitRoof && own && WholeGrid)
-            return false;
-        return Covers(grid, roof, implicitRoof ? Enclosed(grid) : null, own, index);
+        return Covers(grid, roof, implicitRoof ? Enclosed(grid) : null, index);
     }
 
     /// <summary>
-    /// Whether a roof is drawn over a tile: roofed (by the grid's roof bits, or as part of a vessel's
-    /// <paramref name="enclosed"/> rooms), not lifted for the local player and not holding a wall, window or door.
+    /// Whether a roof is drawn over a tile seen from above: roofed (by the grid's roof bits, or as part of a vessel's
+    /// <paramref name="enclosed"/> rooms) and not holding a wall, window or door.
     /// </summary>
-    public bool Covers(Entity<MapGridComponent> grid, RoofComponent? roof, HashSet<Vector2i>? enclosed, bool own, Vector2i index)
+    public bool Covers(Entity<MapGridComponent> grid, RoofComponent? roof, HashSet<Vector2i>? enclosed, Vector2i index)
     {
         var roofed = enclosed?.Contains(index) ?? roof != null && IsRoofed(roof, index);
-        if (!roofed)
-            return false;
-        return WFRoofReveal.Covers(true, IsStructure(grid, grid.Comp, index), own && Revealed.Contains(index));
+        return WFRoofTiles.Covers(roofed, roofed && IsStructure(grid, grid.Comp, index));
+    }
+
+    public override void FrameUpdate(float frameTime)
+    {
+        base.FrameUpdate(frameTime);
+        UpdateVessels(frameTime);
     }
 
     /// <summary>Whether a tile's roof bit is set, without the per-tile entity lookup the roof system falls back on.</summary>
@@ -173,20 +155,6 @@ public sealed partial class WFRoofSystem : EntitySystem
         }
         tiles[index] = structure;
         return structure;
-    }
-
-    /// <summary>A structure nobody walks through: a wall, a window or a door that isn't open.</summary>
-    public bool IsBarrier(EntityUid grid, MapGridComponent gridComp, Vector2i index)
-    {
-        if (!IsStructure(grid, gridComp, index))
-            return false;
-        var anchored = _maps.GetAnchoredEntitiesEnumerator(grid, gridComp, index);
-        while (anchored.MoveNext(out var uid))
-        {
-            if (TryComp(uid, out DoorComponent? door) && door.State is DoorState.Open or DoorState.Opening)
-                return false;
-        }
-        return true;
     }
 
     /// <summary>A hard body on the wall or window layer, or one that blocks at every height.</summary>

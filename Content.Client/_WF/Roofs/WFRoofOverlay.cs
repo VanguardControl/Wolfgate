@@ -10,11 +10,12 @@ using Robust.Shared.Map.Components;
 namespace Content.Client._WF.Roofs;
 
 /// <summary>
-/// Draws a solid roof over the floor of roofed tiles, so nobody sees into a building or a ship they aren't in: a
-/// vessel's enclosed rooms as hull plating, a building's roofed floor as roofing, shaded at the eaves and lit by the
-/// map's daylight. Walls, windows and doors are left uncovered, so they draw and light as normal.
-/// The roof over whatever the local player is in lifts (<see cref="WFRoofSystem"/>). Drawn over the world after
-/// lighting, so it isn't darkened as the sunless indoors below it is.
+/// Draws a solid roof over the floor of roofed tiles on the levels below the local player, seen from above: a vessel's
+/// enclosed rooms as hull plating, a building's roofed floor as roofing, shaded at the eaves and lit by the level's
+/// daylight. Walls, windows and doors are left uncovered, so they draw and light as normal. Nothing is drawn on the
+/// player's own level (<see cref="WFRoofSystem.BelowViewer"/>). The z-level renderer draws each lower level through an
+/// eye of its own, offset and scaled for its depth, and this overlay with it, so the roof sits on that level's tiles.
+/// Drawn over the world after lighting, so it isn't darkened as the sunless indoors below it is.
 /// </summary>
 public sealed class WFRoofOverlay : Overlay
 {
@@ -54,7 +55,7 @@ public sealed class WFRoofOverlay : Overlay
     protected override bool BeforeDraw(in OverlayDrawArgs args)
     {
         // The ship previewer draws maps the client made itself, to be seen inside.
-        return _roofs.Enabled && args.MapUid.IsValid() && !_entities.IsClientSide(args.MapUid);
+        return args.MapUid.IsValid() && !_entities.IsClientSide(args.MapUid) && _roofs.BelowViewer(args.MapUid);
     }
 
     protected override void Draw(in OverlayDrawArgs args)
@@ -71,12 +72,8 @@ public sealed class WFRoofOverlay : Overlay
             if (!implicitRoof && (roof == null || _roofs.Underground(grid)))
                 continue;
 
-            var own = _roofs.Grid == grid.Owner;
-            if (implicitRoof && own && _roofs.WholeGrid)
-                continue;
-
             var enclosed = implicitRoof ? _roofs.Enclosed(grid) : null;
-            bool Covered(Vector2i index) => _roofs.Covers(grid, roof, enclosed, own, index);
+            bool Covered(Vector2i index) => _roofs.Covers(grid, roof, enclosed, index);
 
             handle.SetTransform(_transform.GetWorldMatrix(grid));
             var texture = implicitRoof ? _hull : _roofing;
