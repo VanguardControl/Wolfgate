@@ -49,6 +49,12 @@ public sealed class WolfgateColorPopupTest
                 Assert.That(Field(name).Text, Is.EqualTo(value.ToString()), $"{name} was rewritten while typing.");
             }
 
+            // Out of range while typing, then shown as the clamped value once entered.
+            Type(Field("_hField"), "500");
+            Assert.That(Field("_hField").Text, Is.EqualTo("500"));
+            Field("_hField").ForceSubmitText();
+            Assert.That(Field("_hField").Text, Is.EqualTo("360"));
+
             foreach (var hex in new[] { "#3A7BD5", "#010203", "#FEFDFC", "#808080" })
             {
                 Field("_hex").SetText(hex, true);

@@ -65,6 +65,13 @@ public sealed class WolfgateColorPopup : Popup
         _vField.OnTextChanged += _ => HsvEntered(_vField, 100, value => SetHsv(_h, _s, value, _vField));
         _hex.OnTextChanged += _ => HexEntered();
 
+        // Typed text is left alone while editing; once done, the field shows the value actually applied.
+        foreach (var field in new[] { _r, _g, _b, _hField, _sField, _vField, _hex })
+        {
+            field.OnFocusExit += _ => Refresh();
+            field.OnTextEntered += _ => Refresh();
+        }
+
         var fields = new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Horizontal,

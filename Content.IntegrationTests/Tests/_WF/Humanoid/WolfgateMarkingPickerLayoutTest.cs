@@ -79,16 +79,22 @@ public sealed class WolfgateMarkingPickerLayoutTest
         await pair.RunTicksSync(3);
         Assert.That(chest, Has.Count.EqualTo(2), "Need two single-sprite chest markings.");
 
+        var card = (Control) typeof(WolfgateMarkingPicker).GetField("_appliedCard", Flags)!.GetValue(picker)!;
+        await client.WaitAssertion(() => Assert.That(card.Visible, Is.False, "The card should start hidden."));
+
         // On, off (the card hides), then another on (the card shows again at the size it had before).
-        foreach (var marking in new[] { chest[0], chest[0], chest[1] })
+        var sequence = new[] { chest[0], chest[0], chest[1] };
+        for (var i = 0; i < sequence.Length; i++)
         {
+            var marking = sequence[i];
             await client.WaitPost(() => picker.Toggle(marking));
             await pair.RunTicksSync(3);
+            if (i == 1)
+                await client.WaitAssertion(() => Assert.That(card.Visible, Is.False, "The card should hide once nothing is applied."));
         }
 
         await client.WaitAssertion(() =>
         {
-            var card = (Control) typeof(WolfgateMarkingPicker).GetField("_appliedCard", Flags)!.GetValue(picker)!;
             Assert.That(card.Visible, Is.True);
             foreach (var control in Descend(card).Where(c => c.VisibleInTree && c is not ContainerButton))
             {
