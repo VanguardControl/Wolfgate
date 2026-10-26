@@ -229,7 +229,7 @@ public sealed partial class WFPlanetPoiSystem
                     record.ShoulderTiles.UnionWith(plan.ShoulderTiles);
                     record.Centreline.UnionWith(plan.Centreline);
                     await DressRoadsAsync(ground, grid, record, roads, plan, created, createdDecals);
-                    await LayTrailsAsync(ground, grid, biome, record, roads, centre, radius - 1, changed);
+                    await LayTrailsAsync(ground, grid, biome, record, roads, centre, radius - 1, table.CentreClear, changed);
                     await DigTunnelsAsync(ground, grid, biome, record, roads, plan, created, changed);
                 }
             }
@@ -363,11 +363,14 @@ public sealed partial class WFPlanetPoiSystem
         while (true)
         {
             var sites = record.Sites.Select(site => new WFPlanetRoadSite(site.Bounds, site.Connection, site.Sockets)).ToList();
+            // Off-road sites with a footpath: the roads come within reach of their doors.
+            var doors = record.Sites.Where(site => site.Connection == WFPlanetPoiConnection.Isolated && site.TrailStart != null)
+                .Select(site => site.TrailStart!.Position).ToList();
             var plan = WFPlanetRoadPlanner.Plan(centre, radius - 1, table.CentreClear, sites, blocked, roads.Width, roads.ShoulderWidth, seed,
-                water, roads.Backbone);
+                water, new WFPlanetRoadShape(roads.Gates, roads.Exits, roads.Loops, roads.Reach), doors);
             if (plan.Success || plan.FailedEntrance is not { } entrance)
             {
-                Log.Info($"Roads on {ToPrettyString(ground)} planned in {watch.ElapsedMilliseconds} ms: {plan.Centreline.Count} tiles of centreline, {plan.Backbone.Count} arterial.");
+                Log.Info($"Roads on {ToPrettyString(ground)} planned in {watch.ElapsedMilliseconds} ms: {plan.Centreline.Count} tiles of centreline, {plan.Backbone.Count} on gates, exits and links.");
                 return plan;
             }
 

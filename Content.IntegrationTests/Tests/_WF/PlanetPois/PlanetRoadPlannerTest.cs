@@ -196,15 +196,35 @@ public sealed class PlanetRoadPlannerTest
         return core;
     }
 
+    /// <summary>Whether the roads close round the landing zone: open ground from the centre can't get out past them.</summary>
+    private static bool Encircled(HashSet<Vector2i> roads, int radius)
+    {
+        var seen = new HashSet<Vector2i>();
+        var frontier = new Queue<Vector2i>();
+        frontier.Enqueue(Vector2i.Zero);
+        var steps = new[] { new Vector2i(1, 0), new Vector2i(-1, 0), new Vector2i(0, 1), new Vector2i(0, -1) };
+        while (frontier.TryDequeue(out var tile))
+        {
+            if (roads.Contains(tile) || !seen.Add(tile))
+                continue;
+            if (tile.X * tile.X + tile.Y * tile.Y >= radius * radius)
+                return false;
+            foreach (var step in steps)
+                frontier.Enqueue(tile + step);
+        }
+        return true;
+    }
+
     /// <summary>
-    /// A production-sized world gets its arterial network: one connected road net reaching every entrance and far out
-    /// across the world, mostly long straight runs, with loops, planned in good time.
+    /// A production-sized world gets one connected road net: out of the landing zone, to every entrance and on toward
+    /// the edge, branching like a tree with never a loop round the landing zone, mostly straight runs, planned in good
+    /// time.
     /// </summary>
     [TestCase(383, 96, 1977)]
     [TestCase(383, 96, 8231)]
     [TestCase(319, 96, 44119)]
     [TestCase(191, 64, 1977)]
-    public void ProductionWorldGetsAConnectedArterialNetwork(int radius, int clear, int seed)
+    public void ProductionWorldGetsAConnectedRoadNetwork(int radius, int clear, int seed)
     {
         var sites = Scattered(10, clear + 30, radius - 96, seed);
         var watch = System.Diagnostics.Stopwatch.StartNew();
@@ -215,30 +235,61 @@ public sealed class PlanetRoadPlannerTest
         var loops = Loops(plan.Centreline);
         var reach = plan.Centreline.Max(tile => new Vector2(tile.X, tile.Y).Length());
         TestContext.Out.WriteLine($"radius {radius}, seed {seed}: planned in {watch.ElapsedMilliseconds} ms; {plan.Centreline.Count} centreline tiles, "
-            + $"{plan.Backbone.Count} arterial, {100.0 * straight / plan.Centreline.Count:F1}% straight, {loops.Count} on loops, reaching {reach:F0}");
+            + $"{plan.Backbone.Count} on gates, exits and links, {100.0 * straight / plan.Centreline.Count:F1}% straight, {loops.Count} on loops, reaching {reach:F0}");
 
-        Assert.That(plan.Backbone, Is.Not.Empty, "A world this size should have its rings and trunks.");
+        Assert.That(plan.Backbone, Is.Not.Empty, "A world this size should have roads out of the landing zone and toward the edge.");
+        Assert.That(plan.Centreline.Any(tile => new Vector2(tile.X + .5f, tile.Y + .5f).Length() < clear + 12), Is.True,
+            "No road comes out of the landing zone.");
         Assert.That(WFPlanetRoadPlanner.Components(plan.Centreline), Has.Count.EqualTo(1), "The centreline is in pieces.");
         Assert.That(WFPlanetRoadPlanner.Components(plan.RoadTiles), Has.Count.EqualTo(1), "The paved roads are in pieces.");
         foreach (var site in sites)
         foreach (var socket in site.Sockets.Take(site.Connection == WFPlanetPoiConnection.Through ? 2 : 1))
             Assert.That(plan.RoadTiles, Does.Contain(socket.Position), "An entrance was left off the roads.");
-        Assert.That(loops.Count, Is.GreaterThan(4 * radius), "The roads should loop: two rings and the trunks between them.");
-        Assert.That((double) straight / plan.Centreline.Count, Is.GreaterThan(0.6), "The roads wander instead of running straight.");
-        Assert.That(reach, Is.GreaterThan(radius * 0.7f), "The roads stop short of the outer world.");
+        Assert.That(Encircled(plan.RoadTiles, radius), Is.False, "The roads make a ring round the landing zone.");
+        Assert.That((double) straight / plan.Centreline.Count, Is.GreaterThan(0.3), "The roads wander instead of running straight.");
+        Assert.That(reach, Is.GreaterThan(radius * 0.5f), "The roads stop short of the outer world.");
         Assert.That(watch.ElapsedMilliseconds, Is.LessThan(4000), "Planning the roads takes too long for the preload.");
     }
 
-    /// <summary>A world too small for the rings is joined site to site, as before.</summary>
+    /// <summary>A world too small for gates and exits is joined site to site.</summary>
     [Test]
-    public void SmallWorldHasNoArterialNetwork()
+    public void SmallWorldHasNoGatesOrExits()
     {
         var plan = Plan(new[] { Site(-20, -15), Site(20, 15) });
         Assert.That(plan.Success, Is.True, plan.Error);
         Assert.That(plan.Backbone, Is.Empty);
     }
 
-    /// <summary>A lake across the inner ring and another on a site's way in: the roads go round both, still in one piece.</summary>
+    /// <summary>With no gates, exits or links, a big world's roads only join its sites.</summary>
+    [Test]
+    public void ShapeTurnsOffGatesExitsAndLinks()
+    {
+        var sites = Scattered(6, 130, 280, 3);
+        var plan = WFPlanetRoadPlanner.Plan(Vector2.Zero, 383, 96, sites, new HashSet<Vector2i>(), 5, 1, 3, null, WFPlanetRoadShape.SitesOnly);
+        Assert.That(plan.Success, Is.True, plan.Error);
+        Assert.That(plan.Backbone, Is.Empty);
+        Assert.That(WFPlanetRoadPlanner.Components(plan.RoadTiles), Has.Count.EqualTo(1));
+    }
+
+    /// <summary>An off-road site far from the others gets a road out to within reach of its door, for its footpath.</summary>
+    [Test]
+    public void OffRoadSiteGetsARoadWithinReach()
+    {
+        var house = new WFPlanetRoadSite(new Box2i(-215, 40, -198, 53), WFPlanetPoiConnection.Isolated, new List<WFPlanetRoadSocket>());
+        var door = new Vector2i(-198, 45);
+        var sites = new[] { Site(200, 0), house };
+        var near = WFPlanetRoadPlanner.Plan(Vector2.Zero, 319, 96, sites, new HashSet<Vector2i>(), 5, 1, 3, null, null, new[] { door });
+        var alone = WFPlanetRoadPlanner.Plan(Vector2.Zero, 319, 96, sites, new HashSet<Vector2i>(), 5, 1, 3, null, new WFPlanetRoadShape(Exits: 0, Reach: 0), new[] { door });
+        Assert.That(near.Success, Is.True, near.Error);
+        Assert.That(alone.Success, Is.True, alone.Error);
+        float Nearest(WFPlanetRoadPlan plan) => plan.Centreline.Min(tile => new Vector2(tile.X - door.X, tile.Y - door.Y).Length());
+        Assert.That(Nearest(near), Is.LessThanOrEqualTo(64), "No road came out to the house.");
+        Assert.That(Nearest(alone), Is.GreaterThan(64), "A road came out to the house with no reach.");
+        Assert.That(WFPlanetRoadPlanner.Components(near.RoadTiles), Has.Count.EqualTo(1));
+        Assert.That(near.RoadTiles.Concat(near.ShoulderTiles).Any(tile => house.Bounds.Contains(tile)), Is.False, "The road runs into the house.");
+    }
+
+    /// <summary>A lake beside the landing zone and another on a site's way in: the roads go round both, still in one piece.</summary>
     [Test]
     public void LakesAreRoutedRound()
     {
@@ -251,7 +302,6 @@ public sealed class PlanetRoadPlannerTest
         Assert.That(WFPlanetRoadPlanner.Components(plan.RoadTiles), Has.Count.EqualTo(1));
         foreach (var site in sites)
             Assert.That(plan.RoadTiles, Does.Contain(site.Sockets[0].Position));
-        Assert.That(Loops(plan.Centreline).Count, Is.GreaterThan(1000), "The ring should close round the lake.");
     }
 
     /// <summary>A site wholly ringed by water can't be joined: the failure names its entrance, so it goes off the roads.</summary>
@@ -269,9 +319,9 @@ public sealed class PlanetRoadPlannerTest
         Assert.That(plan.FailedEntrance, Is.EqualTo(island.Sockets[0].Position));
     }
 
-    /// <summary>Pinned ground, such as a cavern mouth, across a trunk or ring is never paved.</summary>
+    /// <summary>Pinned ground, such as a cavern mouth, in the way of a road out of the landing zone is never paved.</summary>
     [Test]
-    public void ArterialNetworkKeepsOffPinnedGround()
+    public void RoadsKeepOffPinnedGround()
     {
         var blocked = new HashSet<Vector2i>();
         for (var x = -40; x <= 40; x++)

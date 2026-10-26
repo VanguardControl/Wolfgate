@@ -15,10 +15,10 @@ public sealed partial class WFPlanetPoiSystem
 
     /// <summary>
     /// Wears a footpath from each off-road site with a trail to the nearest road or earlier footpath, through open ground
-    /// and its own yard but never another site. A site too far from any road goes without.
+    /// and its own yard but never another site or the landing zone. A site too far from any road goes without.
     /// </summary>
     private async Task LayTrailsAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, WFPlanetPoiComponent record,
-        WFPlanetRoadNetwork roads, Vector2 centre, float radius, HashSet<Vector2i> changed)
+        WFPlanetRoadNetwork roads, Vector2 centre, float radius, float centreClear, HashSet<Vector2i> changed)
     {
         var targets = new HashSet<Vector2i>(record.RoadTiles);
         targets.UnionWith(record.ShoulderTiles);
@@ -35,7 +35,8 @@ public sealed partial class WFPlanetPoiSystem
                 // Through its own yard, or across its own floor where nothing stands in the way.
                 if (Contains(site.Bounds, tile))
                     return !site.Tiles.Contains(tile) || Unblocked(ground, grid, tile);
-                return !_biome.WfIsPinned((ground, biome), tile) && !_biome.WfIsWater((ground, biome), tile);
+                return !_biome.WfIsPinned((ground, biome), tile) && !_biome.WfIsWater((ground, biome), tile)
+                       && Vector2.DistanceSquared(new Vector2(tile.X + 0.5f, tile.Y + 0.5f), centre) >= centreClear * centreClear;
             }
 
             var path = WFPlanetTrailPlanner.Route(start.Position, targets, Passable, centre, radius, roads.TrailLength, _random.Next());
