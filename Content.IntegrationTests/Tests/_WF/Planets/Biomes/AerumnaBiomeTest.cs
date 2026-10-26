@@ -27,6 +27,7 @@ public sealed class AerumnaBiomeTest
         "FloorChromite",
         "WFFloorAerumnaClay",
         "WFFloorAerumnaClayRock",
+        "WFFloorAerumnaDusk",
         "WFFloorAerumnaShroud",
         "WFFloorAerumnaCrystalBed",
         HiveTile,

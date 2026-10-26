@@ -24,7 +24,7 @@ public sealed class ThrasciasBiomeTest
 {
     private static readonly string[] SnowTiles =
     {
-        "FloorSnow", "WFFloorThrasciasSnowRough", "WFFloorThrasciasSnowCalm",
+        "FloorSnow", "WFFloorThrasciasSnowRough", "WFFloorThrasciasSnowCalm", "WFFloorThrasciasSnowDug",
     };
 
     private static readonly string[] IceTiles =

@@ -36,7 +36,7 @@ public sealed class AerumnaLifeTest
     private const string Forest = "WFFloorAerumnaShroud";
     private const string Spires = "WFFloorAerumnaCrystalBed";
 
-    private static readonly HashSet<string> Flats = new() { "FloorChromite", "WFFloorAerumnaClay", "WFFloorAerumnaClayRock" };
+    private static readonly HashSet<string> Flats = new() { "FloorChromite", "WFFloorAerumnaClay", "WFFloorAerumnaClayRock", "WFFloorAerumnaDusk" };
 
     private static readonly HashSet<string> ForestPlants = new()
     {

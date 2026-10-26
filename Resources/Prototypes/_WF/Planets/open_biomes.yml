@@ -83,19 +83,23 @@
     tile: FloorChromite
     threshold: -1
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk]
     entities: [WFFaunaAerumna]
     threshold: 0.95
     noise: { seed: 37, noiseType: OpenSimplex2, frequency: 3 }
   # Shrouded clay flats between the groves, with patches of bare rock; chromite shows through elsewhere.
+  - !type:BiomeTileLayer
+    tile: WFFloorAerumnaDusk
+    threshold: -0.08
+    noise: { seed: 61, noiseType: OpenSimplex2, frequency: 0.011, fractalType: FBm, octaves: 2 }
   - !type:BiomeTileLayer
     tile: WFFloorAerumnaClay
     threshold: 0.1
     noise: { seed: 61, noiseType: OpenSimplex2, frequency: 0.011, fractalType: FBm, octaves: 2 }
   - !type:BiomeTileLayer
     tile: WFFloorAerumnaClayRock
-    threshold: 0.74
-    noise: { seed: 63, noiseType: OpenSimplex2, frequency: 0.035 }
+    threshold: 0.5
+    noise: { seed: 61, noiseType: OpenSimplex2, frequency: 0.011, fractalType: FBm, octaves: 2 }
   - !type:BiomeMetaLayer
     template: WFShadowGrove
     threshold: 0.35
@@ -113,34 +117,42 @@
     template: WFAerumnaRuinPocket
     threshold: 0.88
     noise: { seed: 97, noiseType: OpenSimplex2, frequency: 0.045 }
+  - !type:BiomeTileLayer
+    tile: WFFloorAerumnaDusk
+    threshold: 0.7
+    noise: { seed: 83, noiseType: OpenSimplex2, frequency: 0.010 }
   - !type:BiomeMetaLayer
     template: WFAerumnaCrystalSpires
     threshold: 0.82
     noise: { seed: 83, noiseType: OpenSimplex2, frequency: 0.010 }
-  # The xenonid hive, last so its ground wins where regions overlap.
+  # The xenonid hive, last so its ground wins where regions overlap; a dusk band rings it, on the hive's own noise.
+  - !type:BiomeTileLayer
+    tile: WFFloorAerumnaDusk
+    threshold: 0.48
+    noise: { seed: 131, noiseType: OpenSimplex2, frequency: 0.012, fractalType: FBm, octaves: 2 }
   - !type:BiomeMetaLayer
     template: WFAerumnaHive
     threshold: 0.6
     noise: { seed: 131, noiseType: OpenSimplex2, frequency: 0.012, fractalType: FBm, octaves: 2 }
   # Lone stones scattered over the flats.
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk]
     entities: [GoonStone2, GoonStone3, GoonStone4, GoonStone5, DarkPackFloraRockDarkpack]
     threshold: 0.965
     noise: { seed: 91, noiseType: OpenSimplex2, frequency: 4 }
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaCrystalBed]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk, WFFloorAerumnaCrystalBed]
     entities: [CrystalPink]
     threshold: 0.985
     noise: { seed: 2, noiseType: OpenSimplex2, frequency: 1 }
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk]
     entities: [MonoPlanetmapOreChromite]
     threshold: 0.72
     noise: { seed: 19, noiseType: OpenSimplex2, frequency: 0.025 }
   # Pools in the clearings, a dozen tiles or so across.
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaShroud, WFFloorAerumnaCrystalBed, WFFloorAerumnaHive]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk, WFFloorAerumnaShroud, WFFloorAerumnaCrystalBed, WFFloorAerumnaHive]
     entities: [MonoFloorWaterEntity]
     threshold: 0.75
     noise: { seed: 41, noiseType: OpenSimplex2, frequency: 0.016, fractalType: FBm, octaves: 2 }
@@ -149,7 +161,7 @@
   id: WFShadowGrove
   layers:
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk]
     entities: [ShadowTree, ShadowBasaltOne, ShadowBasaltTwo]
     threshold: 0.65
     noise: { seed: 5, noiseType: OpenSimplex2, frequency: 1 }

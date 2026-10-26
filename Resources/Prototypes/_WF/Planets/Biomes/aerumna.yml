@@ -15,7 +15,13 @@
 
 - type: tile
   id: WFFloorAerumnaClayRock
-  parent: NebulaFloorRock
+  parent: ChompFloorOutdoorsLavalandAshrock
+  weather: true
+
+# Grey ground between the dark chromite and the pale clay, round every clay flat, crystal bed and the hive.
+- type: tile
+  id: WFFloorAerumnaDusk
+  parent: FloorCave
   weather: true
 
 - type: tile
@@ -123,12 +129,12 @@
   layers:
   # Gravity crabs; listed first so a boulder wins a shared tile.
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk]
     entities: [WFFaunaAerumnaBoulders]
     threshold: 0.95
     noise: { seed: 155, noiseType: OpenSimplex2, frequency: 3 }
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk]
     entities:
     - CoyoteFloraChompBoulder
     - CoyoteFloraChompLargeBoulder
@@ -174,18 +180,18 @@
   id: WFAerumnaRuinPocket
   layers:
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaShroud]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk, WFFloorAerumnaShroud]
     entities: [AuroraAssunzioneBushLucevine]
     threshold: 0.45
     noise: { seed: 98, noiseType: OpenSimplex2, frequency: 2.5 }
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaShroud]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk, WFFloorAerumnaShroud]
     entities: [GoonSetpiecesRootwall]
     threshold: 0.86
     noise: { seed: 99, noiseType: OpenSimplex2, frequency: 3 }
   # A few of the vines are alive: they tend xenonids and lash everyone else.
   - !type:BiomeEntityLayer
-    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaShroud]
+    allowedTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk, WFFloorAerumnaShroud]
     entities: [WFAerumnaLuceVine]
     threshold: 0.8
     noise: { seed: 157, noiseType: OpenSimplex2, frequency: 2.5 }

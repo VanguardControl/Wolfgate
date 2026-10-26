@@ -98,7 +98,7 @@
     maxTiles: 22
     riftWidth: 2
     cellSize: 128
-    groundTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaShroud, WFFloorAerumnaHive]
+    groundTiles: [FloorChromite, WFFloorAerumnaClay, WFFloorAerumnaClayRock, WFFloorAerumnaDusk, WFFloorAerumnaShroud, WFFloorAerumnaHive]
     avoid: [MonoFloorWaterEntity, MonoPlanetmapOreChromite, GoonSetpiecesRootwall, WallXenoResin, DoorXenoResin, WFXenoEggWild]
     landingTile: WFCavernFloorChromiteScree
     shade: WFCavernShadeAerumna

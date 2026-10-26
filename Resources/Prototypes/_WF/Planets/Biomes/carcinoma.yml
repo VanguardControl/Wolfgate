@@ -33,7 +33,7 @@
 # Dark wet ground of the meat marsh.
 - type: tile
   id: WFFloorFleshMarshMud
-  parent: PolarisFloorOutdoorsMud
+  parent: FloorPlanetDirtCrocus
   weather: true
 
 - type: tile
@@ -106,11 +106,11 @@
   - !type:BiomeTileLayer
     tile: WFFloorFleshBoneSpine
     threshold: 0.45
-    noise: { seed: 94, noiseType: OpenSimplex2, frequency: 0.12 }
+    noise: { seed: 94, noiseType: OpenSimplex2, frequency: 0.05 }
   - !type:BiomeTileLayer
     tile: WFFloorFleshBoneStraight
     threshold: 0.55
-    noise: { seed: 95, noiseType: OpenSimplex2, frequency: 0.12 }
+    noise: { seed: 95, noiseType: OpenSimplex2, frequency: 0.05 }
   # Pullable bone piles and the field's burrowers (_WF/Planets/Life); the scenery layers below win where they overlap.
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFleshBoneMeaty, WFFloorFleshBoneSpine, WFFloorFleshBoneStraight]
@@ -166,7 +166,7 @@
   - !type:BiomeTileLayer
     tile: WFFloorFleshMarshDirt
     threshold: 0.4
-    noise: { seed: 101, noiseType: OpenSimplex2, frequency: 0.1 }
+    noise: { seed: 101, noiseType: OpenSimplex2, frequency: 0.04 }
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFleshMarshMud, WFFloorFleshMarshDirt]
     entities: [WFCarcinomaVitaeBlister]
@@ -212,7 +212,7 @@
   - !type:BiomeTileLayer
     tile: WFFloorFleshBoneMeaty
     threshold: 0.6
-    noise: { seed: 107, noiseType: OpenSimplex2, frequency: 0.25 }
+    noise: { seed: 107, noiseType: OpenSimplex2, frequency: 0.08 }
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFleshScab, WFFloorFleshBoneMeaty]
     entities: [WFFaunaCarcinomaShore]
