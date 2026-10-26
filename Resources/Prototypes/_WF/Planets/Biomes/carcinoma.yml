@@ -1,6 +1,6 @@
 # Carcinoma's surface regions built from the Decor Import assets: scab shores, bone fields, hive pockets, meat marsh
 # and dead crust at the grove edges. Every outdoor tile is a weather child; every id says "flesh" so the planet map
-# keeps colouring the ground as flesh.
+# keeps colouring the ground as flesh. The art is recoloured to the flesh palette (_WF/Planets/BoneField).
 
 # Scab crust where a blood lake meets the shore.
 - type: tile
@@ -8,37 +8,63 @@
   parent: NovaFloorMeatFresh
   weather: true
 
-# Bone-flecked flesh: scab flecks on the shores and the base of the bone fields.
+# The bone field's ground: calcified flesh at the base, bleached bone plates and cartilage patches on top. The ids keep
+# their old Meaty/Spine/Straight names, which the planet's layers and tests already use.
 - type: tile
   id: WFFloorFleshBoneMeaty
   parent: NovaFloorBoneMeaty
+  sprite: /Textures/_WF/Planets/BoneField/calcified_flesh.png
+  variants: 4
+  placementVariants: [1, 1, 1, 1]
   weather: true
 
 - type: tile
   id: WFFloorFleshBoneSpine
   parent: NovaFloorBoneSpine
+  sprite: /Textures/_WF/Planets/BoneField/bleached_bone.png
+  variants: 4
+  placementVariants: [1, 1, 1, 1]
   weather: true
 
 - type: tile
   id: WFFloorFleshBoneStraight
   parent: NovaFloorBoneStraight
+  sprite: /Textures/_WF/Planets/BoneField/cartilage.png
+  variants: 4
+  placementVariants: [1, 1, 1, 1]
   weather: true
 
-# Dried flesh around the groves.
+# Dried blood round the groves.
 - type: tile
   id: WFFloorFleshCrust
   parent: ChompFloorOutdoorsRocksCetus
+  sprite: /Textures/_WF/Planets/BoneField/dried_crust.png
+  variants: 4
+  placementVariants: [1, 1, 1, 1]
   weather: true
 
 # Dark wet ground of the meat marsh.
 - type: tile
   id: WFFloorFleshMarshMud
   parent: FloorPlanetDirtCrocus
+  sprite: /Textures/_WF/Planets/BoneField/marsh_mud.png
   weather: true
 
 - type: tile
   id: WFFloorFleshMarshDirt
   parent: PolarisFloorOutdoorsDirt
+  sprite: /Textures/_WF/Planets/BoneField/marsh_scab.png
+  variants: 4
+  placementVariants: [1, 1, 1, 1]
+  weather: true
+
+# The clotted bank of a blood river.
+- type: tile
+  id: WFFloorFleshRiverBank
+  parent: NovaFloorMeatFresh
+  sprite: /Textures/_WF/Planets/BoneField/clotted_blood.png
+  variants: 5
+  placementVariants: [1, 1, 1, 1, 1]
   weather: true
 
 # Dead growth gets flesh names so the planet map doesn't paint the grove edges as vegetation.
@@ -124,17 +150,17 @@
     noise: { seed: 110, noiseType: OpenSimplex2, frequency: 1 }
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFleshBoneMeaty, WFFloorFleshBoneSpine, WFFloorFleshBoneStraight]
-    entities: [CoyoteChompBonesLbone, CoyoteChompBonesLribs, CoyoteChompBonesLribs1, CoyoteChompBonesLskullW]
+    entities: [WFCarcinomaBoneLong, WFCarcinomaBoneRibs, WFCarcinomaBoneRibsTall, WFCarcinomaBoneSkullGreat]
     threshold: 0.9
     noise: { seed: 96, noiseType: OpenSimplex2, frequency: 1 }
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFleshBoneMeaty, WFFloorFleshBoneSpine, WFFloorFleshBoneStraight]
-    entities: [CoyoteChompBonesLrock, CoyoteChompBonesLrock2, CoyoteChompBonesLrock4]
+    entities: [WFCarcinomaBoneLumpOne, WFCarcinomaBoneLumpTwo, WFCarcinomaBoneLumpThree]
     threshold: 0.94
     noise: { seed: 97, noiseType: OpenSimplex2, frequency: 1 }
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFleshBoneMeaty, WFFloorFleshBoneSpine, WFFloorFleshBoneStraight]
-    entities: [TgStatueBoneRib, TgStatueBoneRib2, NovaStatueBoneRib, TgStatueBoneSkull, TgBoneSkullHalf, TgBoneSkullHalf2, NovaStatueBoneSkull]
+    entities: [WFCarcinomaBoneHorn, WFCarcinomaBoneHornTurned, WFCarcinomaBoneSkull, WFCarcinomaBoneSkullHalf, WFCarcinomaBoneSkullHalfTurned]
     threshold: 0.92
     noise: { seed: 98, noiseType: OpenSimplex2, frequency: 1 }
 
@@ -155,6 +181,22 @@
     entities: [GoonSetpiecesHive, ChompResin, PolarisResin]
     threshold: -0.2
     noise: { seed: 99, noiseType: OpenSimplex2, frequency: 0.5 }
+
+# A blood river: the ridge lines of one noise, long thin channels like Thrascias' plasma rivers, with a clotted bank
+# either side. The bank is its own tile, so no scenery grows on it and the channel is never cut by the ground under it.
+# The meta layer's slow noise leaves gaps in a river, fords, so a river never walls the roads off from half the surface.
+- type: biomeTemplate
+  id: WFCarcinomaRiver
+  layers:
+  - !type:BiomeTileLayer
+    tile: WFFloorFleshRiverBank
+    threshold: 0.83
+    noise: { seed: 8, noiseType: OpenSimplex2, frequency: 0.007, fractalType: Ridged, octaves: 1 }
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFFloorFleshRiverBank]
+    entities: [WFBloodRiver]
+    threshold: 0.915
+    noise: { seed: 8, noiseType: OpenSimplex2, frequency: 0.007, fractalType: Ridged, octaves: 1 }
 
 # Wet dark ground, dense with blood pools that have polyps and pustules round them.
 - type: biomeTemplate
@@ -228,3 +270,100 @@
     entities: [GoonSetpiecesBloodwall]
     threshold: 0.93
     noise: { seed: 108, noiseType: OpenSimplex2, frequency: 0.5 }
+
+# Bone field scenery: the same sprites as the imported bones, recoloured to bleached bone.
+- type: entity
+  id: WFCarcinomaBoneHorn
+  parent: TgStatueBoneRib
+  name: bone horn
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/bones.rsi
+
+- type: entity
+  id: WFCarcinomaBoneHornTurned
+  parent: TgStatueBoneRib2
+  name: bone horn
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/bones.rsi
+
+- type: entity
+  id: WFCarcinomaBoneSkull
+  parent: TgStatueBoneSkull
+  name: bone skull
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/bones.rsi
+
+- type: entity
+  id: WFCarcinomaBoneSkullHalf
+  parent: TgBoneSkullHalf
+  name: cracked skull
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/bones.rsi
+
+- type: entity
+  id: WFCarcinomaBoneSkullHalfTurned
+  parent: TgBoneSkullHalf2
+  name: cracked skull
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/bones.rsi
+
+- type: entity
+  id: WFCarcinomaBoneLong
+  parent: CoyoteChompBonesLbone
+  name: long bone
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/bones_64x64.rsi
+
+- type: entity
+  id: WFCarcinomaBoneRibs
+  parent: CoyoteChompBonesLribs
+  name: rib bones
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/bones_64x64.rsi
+
+- type: entity
+  id: WFCarcinomaBoneRibsTall
+  parent: CoyoteChompBonesLribs1
+  name: rib bones
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/bones_64x64.rsi
+
+- type: entity
+  id: WFCarcinomaBoneSkullGreat
+  parent: CoyoteChompBonesLskullW
+  name: great skull
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/bones_64x64.rsi
+
+- type: entity
+  id: WFCarcinomaBoneLumpOne
+  parent: CoyoteChompBonesLrock
+  name: calcified lump
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/lumps.rsi
+
+- type: entity
+  id: WFCarcinomaBoneLumpTwo
+  parent: CoyoteChompBonesLrock2
+  name: calcified lump
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/lumps.rsi
+
+- type: entity
+  id: WFCarcinomaBoneLumpThree
+  parent: CoyoteChompBonesLrock4
+  name: calcified lump
+  components:
+  - type: Sprite
+    sprite: _WF/Planets/BoneField/lumps.rsi

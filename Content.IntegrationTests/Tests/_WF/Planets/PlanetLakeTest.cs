@@ -7,12 +7,14 @@ using Content.Server.Parallax;
 using Content.Shared._WF.Planets;
 using Content.Shared.Parallax.Biomes;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Planets;
 
-/// <summary>Checks every world's standing water comes as lakes and ponds, never a sea, across the whole world.</summary>
+/// <summary>Checks every world's standing water comes as lakes and ponds, never a sea; rivers may run as long as they like.</summary>
 [TestFixture]
 [TestOf(typeof(BiomeSystem))]
 public sealed class PlanetLakeTest
@@ -43,6 +45,7 @@ public sealed class PlanetLakeTest
             var biomes = server.System<BiomeSystem>();
             var radius = surface.Radius;
             var water = new HashSet<Vector2i>();
+            var rivers = new HashSet<Vector2i>();
             var watch = System.Diagnostics.Stopwatch.StartNew();
             var sampled = 0;
             for (var x = -radius; x < radius; x++)
@@ -51,13 +54,20 @@ public sealed class PlanetLakeTest
                 if (x * x + y * y > radius * radius)
                     continue;
                 sampled++;
-                if (biomes.WfIsWater(biome, new Vector2i(x, y)))
-                    water.Add(new Vector2i(x, y));
+                var index = new Vector2i(x, y);
+                if (!biomes.WfIsWater(biome, index))
+                    continue;
+                water.Add(index);
+                if (biomes.TryGetBiomeTile(index, biome.Comp.Layers, biome.Comp.Seed, (Entity<MapGridComponent>?) null, out var tile)
+                    && biomes.TryGetEntity(index, biome.Comp.Layers, tile.Value, biome.Comp.Seed, (Entity<MapGridComponent>?) null, out var feature)
+                    && feature == "WFBloodRiver")
+                    rivers.Add(index);
             }
             watch.Stop();
 
             var lakes = new List<(int Tiles, int Extent)>();
             var unvisited = new HashSet<Vector2i>(water);
+            unvisited.ExceptWith(rivers);
             while (unvisited.Count > 0)
             {
                 var start = unvisited.First();
@@ -82,7 +92,7 @@ public sealed class PlanetLakeTest
             }
 
             var real = lakes.Where(lake => lake.Tiles >= 20).ToList();
-            TestContext.Out.WriteLine($"{surfaceId}: {water.Count}/{sampled} water tiles ({100.0 * water.Count / sampled:F2}%), "
+            TestContext.Out.WriteLine($"{surfaceId}: {water.Count}/{sampled} water tiles ({100.0 * water.Count / sampled:F2}%, {rivers.Count} of them river), "
                 + $"{lakes.Count} bodies, {real.Count} of 20+ tiles, widest {(lakes.Count == 0 ? 0 : lakes.Max(l => l.Extent))}, "
                 + $"extents {string.Join(",", real.Select(l => l.Extent).OrderByDescending(e => e).Take(12))}; sampled in {watch.ElapsedMilliseconds} ms");
 

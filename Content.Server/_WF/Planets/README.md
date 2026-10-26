@@ -17,7 +17,7 @@ Rideable vehicles use the same z-level physics as loose objects, so a hoverbike 
 descending ship move onto the planet layers before the temporary flight map is deleted.
 
 Worlds have day and night, phased weather with thunder, fauna, ambience, a map on the orbit radar (`PlanetMap`) and an approach
-cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down; its flesh ground has scabbed lake shores, bone fields, hive pockets in the tendon forest, a blood-pool meat marsh and dried crust with dead growth round the groves (`Resources/Prototypes/_WF/Planets/Biomes/carcinoma.yml`). Lower layers of a planet are drawn smaller
+cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down; its flesh ground has scabbed lake shores, long blood rivers with clotted banks, bone fields of bleached bone and calcified flesh, hive pockets in the tendon forest, a blood-pool meat marsh and dried crust with dead growth round the groves (`Resources/Prototypes/_WF/Planets/Biomes/carcinoma.yml`). Lower layers of a planet are drawn smaller
 (`WFPlanetView`, the perspective Monolith turned off for other z-levels). Over a world's layers the shuttle console's
 strategic plot shows the world itself, drawn by the sector's planet shader close enough to fill it, instead of space
 (`ShuttleMapControl.PlanetBackground`). A floor nobody built that breaks on a planet, pried up or blown apart, gives
@@ -450,6 +450,17 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 
 - [`Resources/Textures/_WF/Planets/BloodWater/blood-lake.rsi/`](../../../Resources/Textures/_WF/Planets/BloodWater/blood-lake.rsi/)
 - [`Resources/Textures/_WF/Planets/BloodWater/blood-river.rsi/`](../../../Resources/Textures/_WF/Planets/BloodWater/blood-river.rsi/)
+- [`Resources/Textures/_WF/Planets/BoneField/attributions.yml`](../../../Resources/Textures/_WF/Planets/BoneField/attributions.yml)
+- [`Resources/Textures/_WF/Planets/BoneField/bleached_bone.png`](../../../Resources/Textures/_WF/Planets/BoneField/bleached_bone.png)
+- [`Resources/Textures/_WF/Planets/BoneField/bones.rsi/`](../../../Resources/Textures/_WF/Planets/BoneField/bones.rsi/)
+- [`Resources/Textures/_WF/Planets/BoneField/bones_64x64.rsi/`](../../../Resources/Textures/_WF/Planets/BoneField/bones_64x64.rsi/)
+- [`Resources/Textures/_WF/Planets/BoneField/calcified_flesh.png`](../../../Resources/Textures/_WF/Planets/BoneField/calcified_flesh.png)
+- [`Resources/Textures/_WF/Planets/BoneField/cartilage.png`](../../../Resources/Textures/_WF/Planets/BoneField/cartilage.png)
+- [`Resources/Textures/_WF/Planets/BoneField/clotted_blood.png`](../../../Resources/Textures/_WF/Planets/BoneField/clotted_blood.png)
+- [`Resources/Textures/_WF/Planets/BoneField/dried_crust.png`](../../../Resources/Textures/_WF/Planets/BoneField/dried_crust.png)
+- [`Resources/Textures/_WF/Planets/BoneField/lumps.rsi/`](../../../Resources/Textures/_WF/Planets/BoneField/lumps.rsi/)
+- [`Resources/Textures/_WF/Planets/BoneField/marsh_mud.png`](../../../Resources/Textures/_WF/Planets/BoneField/marsh_mud.png)
+- [`Resources/Textures/_WF/Planets/BoneField/marsh_scab.png`](../../../Resources/Textures/_WF/Planets/BoneField/marsh_scab.png)
 - [`Resources/Textures/_WF/Planets/Effects/parachute_canopy.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/parachute_canopy.rsi/)
 - [`Resources/Textures/_WF/Planets/Effects/thunderbolt.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/thunderbolt.rsi/)
 - [`Resources/Textures/_WF/Planets/Effects/weather_tg.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/weather_tg.rsi/)
