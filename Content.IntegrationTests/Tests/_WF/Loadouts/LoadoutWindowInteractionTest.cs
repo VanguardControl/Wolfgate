@@ -2,16 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using Content.Client._WF.Gags;
 using Content.Client._WF.Loadouts;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Shared.Preferences;
 using Content.Shared.Preferences.Loadouts;
+using Robust.Client.Graphics;
 using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared;
 using Robust.Shared.Configuration;
 using Robust.Shared.IoC;
+using Robust.Shared.Maths;
 using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Loadouts;
@@ -385,6 +388,55 @@ public sealed class LoadoutWindowInteractionTest : InteractionTest
             config.SetCVar(CVars.DisplayUIScale, original);
         });
         await RunTicks(2);
+    }
+
+    /// <summary>A recolourable pick shows a swatch per colour, and colours set on the loadout show on them.</summary>
+    [Test]
+    public async Task RecolourablePickShowsItsColours()
+    {
+        await Open();
+
+        var collection = Client.ResolveDependency<IDependencyCollection>();
+        var session = Client.ResolveDependency<IPlayerManager>().LocalSession!;
+        var picked = Color.FromHex("#3A7BD5");
+        var gags = Client.EntMan.System<WFGagsSystem>();
+        LoadoutEntry entry = default!;
+
+        await Client.WaitPost(() =>
+        {
+            entry = _window.Catalog.Groups
+                .Where(g => g.Single)
+                .SelectMany(g => g.Entries)
+                .First(e => !e.Locked && !e.Selected && gags.ColorableItem(e.Proto) != null);
+            _window.OpenGroup(entry.Group);
+            _window.TrySelect(entry);
+        });
+        await RunTicks(4);
+
+        await Client.WaitAssertion(() =>
+        {
+            var row = Descendants(_window).OfType<WFGagsColorRow>().Single();
+            var colors = gags.DefaultColors(gags.ColorableItem(entry.Proto)!.Value)!;
+            Assert.That(row.Visible, Is.True, $"{entry.Id} is recolourable and picked");
+            Assert.That(Swatches(row), Has.Count.EqualTo(colors.Count), "one swatch per colour");
+
+            _loadout.SetWFGagsColors(entry.Group.Id, entry.Id, new List<Color> { picked });
+            _window.RefreshLoadouts(_loadout, session, collection);
+        });
+        await RunTicks(2);
+
+        await Client.WaitAssertion(() =>
+        {
+            var row = Descendants(_window).OfType<WFGagsColorRow>().Single();
+            var first = Swatches(row)[0];
+            Assert.That((first.PanelOverride as StyleBoxFlat)?.BackgroundColor, Is.EqualTo(picked), "the swatch shows the colour");
+            _window.Dispose();
+        });
+
+        List<PanelContainer> Swatches(WFGagsColorRow row)
+        {
+            return Descendants(row).OfType<PanelContainer>().Where(p => p.PanelOverride is StyleBoxFlat && p.ChildCount == 0).ToList();
+        }
     }
 
     private static IEnumerable<Control> Descendants(Control root)

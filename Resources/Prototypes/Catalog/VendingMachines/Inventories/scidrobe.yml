@@ -20,6 +20,39 @@
     # Frontier
     ClothingHeadHatHoodBioScientist: 1
     ClothingOuterBioScientist: 1
+    # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
+    WFMeridianClothingAccessoryArmbandScience: 2
+    WFMeridianClothingGlassesHudArAviatorScience: 2
+    WFMeridianClothingGlassesHudArProjectorScience: 2
+    WFMeridianClothingGlassesScienceNight: 2
+    WFMeridianClothingGlassesSciencePrescription: 2
+    WFMeridianClothingGlovesColorPlasmamanResearchDirector: 2
+    WFMeridianClothingHeadBeretScience: 2
+    WFMeridianClothingHeadBeretScienceFancy: 2
+    WFMeridianClothingHeadBeretScienceFancyRobo: 2
+    WFMeridianClothingHeadBeretScienceRd: 2
+    WFMeridianClothingHeadBeretScienceRdAlt: 2
+    WFMeridianClothingHeadHatsImperialRd: 2
+    WFMeridianClothingHeadHoodedWinterhoodScienceRd: 2
+    WFMeridianClothingHeadPlaybunnyearsRd: 2
+    WFMeridianClothingHeadPlaybunnyearsScientist: 2
+    WFMeridianClothingMaskBandanaStripedScience: 2
+    WFMeridianClothingNeckTieBunnytieScientist: 2
+    WFMeridianClothingUnderAkulaWetsuitJobScience: 2
+    WFMeridianClothingUnderImperialRd: 2
+    WFMeridianClothingUnderImperialskirtRd: 2
+    WFMeridianClothingUnderRankRndResearchDirector: 2
+    WFMeridianClothingUnderRankRndResearchDirectorAlt: 2
+    WFMeridianClothingUnderRankRndResearchDirectorAltSkirt: 2
+    WFMeridianClothingUnderRankRndResearchDirectorBunnysuit: 2
+    WFMeridianClothingUnderRankRndResearchDirectorSkirt: 2
+    WFMeridianClothingUnderRankRndResearchDirectorTurtleneckSkirt: 2
+    WFMeridianClothingUnderRankRndScientist: 2
+    WFMeridianClothingUnderRankRndScientistBunnysuit: 2
+    WFMeridianClothingUnderRankRndScientistNovaHlscience: 2
+    WFMeridianClothingUnderRankRndScientistNovaUtility: 2
+    WFMeridianClothingUnderRankRndScientistSkirt: 2
+    # WOLFGATE END
 # RoboDrobe:
     ClothingOuterCoatRobo: 2
     ClothingUniformJumpsuitRoboticist: 2

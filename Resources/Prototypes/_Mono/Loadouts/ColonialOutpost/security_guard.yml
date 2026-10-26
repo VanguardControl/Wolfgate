@@ -5,6 +5,35 @@
   minLimit: 1
   loadouts:
   - MonoSecurityGuardVestSlim
+  # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
+  - WFMeridianLoadoutClothingSuitFedcoatModernSec
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurity
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgag
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagBlue
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagBomber
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagBomberBlue
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagCargo
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacket
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketBlue
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketCargo
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketEngineering
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketMedical
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketScience
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketService
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagEngineering
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagMedical
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagScience
+  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagService
+  - WFMeridianLoadoutClothingSuitJacketHosBlue
+  - WFMeridianLoadoutClothingSuitJacketHosTan
+  - WFMeridianLoadoutClothingSuitJacketOfficerBlue
+  - WFMeridianLoadoutClothingSuitJacketOfficerTan
+  - WFMeridianLoadoutClothingSuitJacketWardenBlue
+  - WFMeridianLoadoutClothingSuitJacketWardenTan
+  - WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberSec
+  - WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberSecBlue
+  - WFMeridianLoadoutClothingSuitToggleLabcoatNovaSecurityMedicDoctorTailcoat
+  # WOLFGATE END
   fallbacks:
   - MonoSecurityGuardVestSlim
 
@@ -89,6 +118,9 @@
   minLimit: 1
   loadouts:
   - MonoSecurityGuardJackboots
+  # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
+  - WFMeridianLoadoutClothingShoesJackbootsPeacekeeper
+  # WOLFGATE END
   fallbacks:
   - MonoSecurityGuardJackboots
 
@@ -104,6 +136,84 @@
   loadouts:
   - MonoSecJumpsuitRed
   - MonoSecJumpsuitMaroon
+  # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
+  - WFMeridianLoadoutClothingUnderAkulaWetsuitJobSecurity
+  - WFMeridianLoadoutClothingUnderImperialskirtvestHos
+  - WFMeridianLoadoutClothingUnderImperialvestHos
+  - WFMeridianLoadoutClothingUnderRankSecurityArmadyne
+  - WFMeridianLoadoutClothingUnderRankSecurityArmadyneTactical
+  - WFMeridianLoadoutClothingUnderRankSecurityBrigPhysBunnysuit
+  - WFMeridianLoadoutClothingUnderRankSecurityConstable
+  - WFMeridianLoadoutClothingUnderRankSecurityCorrectionsOfficerSweater
+  - WFMeridianLoadoutClothingUnderRankSecurityCorrectionsOfficerSweaterSkirt
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaDepgagPantsuit
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaDepgagPantsuitBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaDress
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaDressBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaDressCargo
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaDressEngineering
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaDressMedical
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaDressScience
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaDressService
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaFormal
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaFormalBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaMiniskirt
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaMiniskirtBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaModskin
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaModskinBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirt
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtCargo
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtEngineering
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtMedical
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtScience
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtService
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaShorts
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaShortsBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaShortsCargo
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaShortsEngineering
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaShortsMedical
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaShortsScience
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaShortsService
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaSkirt
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtCargo
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtEngineering
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtMedical
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtScience
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtService
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaTrousers
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaTrousersBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneck
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckCargo
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckEngineering
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckMedical
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckScience
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckService
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaUniform
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaUniformBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityNovaUtility
+  - WFMeridianLoadoutClothingUnderRankSecurityOfficer
+  - WFMeridianLoadoutClothingUnderRankSecurityOfficerBeatcop
+  - WFMeridianLoadoutClothingUnderRankSecurityOfficerBlueshirtNovaBouncer
+  - WFMeridianLoadoutClothingUnderRankSecurityOfficerBlueshirtNovaCustomsAgent
+  - WFMeridianLoadoutClothingUnderRankSecurityOfficerBlueshirtNovaEngineeringGuard
+  - WFMeridianLoadoutClothingUnderRankSecurityOfficerBlueshirtNovaOrderly
+  - WFMeridianLoadoutClothingUnderRankSecurityOfficerSpacepol
+  - WFMeridianLoadoutClothingUnderRankSecurityPrisonerBunnysuit
+  - WFMeridianLoadoutClothingUnderRankSecuritySecurityAssistantBunnysuit
+  - WFMeridianLoadoutClothingUnderRankSecuritySecurityBunnysuit
+  - WFMeridianLoadoutClothingUnderRankSecurityWarden
+  - WFMeridianLoadoutClothingUnderRankSecurityWardenBunnysuit
+  - WFMeridianLoadoutClothingUnderRankSecurityWardenNova
+  - WFMeridianLoadoutClothingUnderRankSecurityWardenNovaBlue
+  - WFMeridianLoadoutClothingUnderRankSecurityWardenNovaSuit
+  - WFMeridianLoadoutClothingUnderRankSecurityWardenNovaSuitBlue
+  - WFMeridianLoadoutClothingUnderSolfedOfficer
+  - WFMeridianLoadoutClothingUnderSolfedOfficerLowrnk
+  - WFMeridianLoadoutClothingUnderTarkonSec
+  # WOLFGATE END
   fallbacks:
   - MonoSecJumpsuitRed
 

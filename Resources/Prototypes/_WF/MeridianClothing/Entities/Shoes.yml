@@ -1,0 +1,1983 @@
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesBalletHeels
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/ballet_heels.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#383840"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/ballet_heels.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#383840"
+  - type: WFGags
+    colors:
+    - "#383840"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesBalletHeelsDominaHeels
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/ballet_heels_domina_heels.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/ballet_heels_domina_heels.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesBhopRocket
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/bhop_rocket.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/bhop_rocket.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesBhopRocketJet
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/bhop_rocket_jet.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/bhop_rocket_jet.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesBoneGreaves
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/bone_greaves.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/bone_greaves.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesBronze
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/bronze.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/bronze.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesClownShoesBananaShoes
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_banana_shoes.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_banana_shoes.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesClownShoesHeeled
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_heeled.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_heeled.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesClownShoesJester
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_jester.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#E10000"
+    - state: icon-2-c2
+      color: "#E1E100"
+    - state: icon-3
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_jester.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#E10000"
+      - state: equipped-FEET-2-c2
+        color: "#E1E100"
+      - state: equipped-FEET-3
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1
+      right:
+      - state: inhand-right-1
+  - type: WFGags
+    colors:
+    - "#E10000"
+    - "#E1E100"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesClownShoesMeownShoes
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_meown_shoes.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_meown_shoes.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesClownShoesMoffers
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_moffers.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_moffers.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesClownShoesPink
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_pink.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/clown_shoes_pink.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesColorableLaceups
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/colorable_laceups.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#383631"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/colorable_laceups.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#383631"
+  - type: WFGags
+    colors:
+    - "#383631"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesColorableSandals
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/colorable_sandals.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#383631"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/colorable_sandals.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#383631"
+  - type: WFGags
+    colors:
+    - "#383631"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesCombatColdres
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/combat_coldres.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/combat_coldres.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesCombatExpeditionaryCorps
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/combat_expeditionary_corps.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/combat_expeditionary_corps.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesCombatStormtrooper
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/combat_stormtrooper.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/combat_stormtrooper.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesCookflops
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/cookflops.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/cookflops.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesCowboyLacedRecolorable
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/cowboy_laced_recolorable.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#412E22"
+    - state: icon-2-c2
+      color: "#DAEEEE"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/cowboy_laced_recolorable.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#412E22"
+      - state: equipped-FEET-2-c2
+        color: "#DAEEEE"
+  - type: WFGags
+    colors:
+    - "#412E22"
+    - "#DAEEEE"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesCowboyLizard
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/cowboy_lizard.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#859333"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/cowboy_lizard.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#859333"
+      - state: equipped-FEET-2
+  - type: WFGags
+    colors:
+    - "#859333"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesCowboyLizardMasterwork
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/cowboy_lizard_masterwork.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#3E76A7"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/cowboy_lizard_masterwork.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#3E76A7"
+      - state: equipped-FEET-2
+  - type: WFGags
+    colors:
+    - "#3E76A7"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesCult
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/cult.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/cult.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesDiscoshoes
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/discoshoes.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/discoshoes.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesDivineArcher
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/divine_archer.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/divine_archer.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeels
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#FFFFFF"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsBeige
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_beige.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#A69E9A"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_beige.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#A69E9A"
+  - type: WFGags
+    colors:
+    - "#A69E9A"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsBlack
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_black.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#39393F"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_black.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#39393F"
+  - type: WFGags
+    colors:
+    - "#39393F"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsBlue
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_blue.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#41579A"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_blue.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#41579A"
+  - type: WFGags
+    colors:
+    - "#41579A"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsBrown
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_brown.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#784F44"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_brown.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#784F44"
+  - type: WFGags
+    colors:
+    - "#784F44"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsCc
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_cc.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#316E4A"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_cc.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#316E4A"
+  - type: WFGags
+    colors:
+    - "#316E4A"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsDarkblue
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_darkblue.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#364660"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_darkblue.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#364660"
+  - type: WFGags
+    colors:
+    - "#364660"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsDarkgreen
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_darkgreen.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#47853A"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_darkgreen.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#47853A"
+  - type: WFGags
+    colors:
+    - "#47853A"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsDarkgrey
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_darkgrey.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#46464D"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_darkgrey.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#46464D"
+  - type: WFGags
+    colors:
+    - "#46464D"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsGreen
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_green.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#50D967"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_green.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#50D967"
+  - type: WFGags
+    colors:
+    - "#50D967"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsGrey
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_grey.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#918F8C"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_grey.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#918F8C"
+  - type: WFGags
+    colors:
+    - "#918F8C"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsLightblue
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_lightblue.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#3E6588"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_lightblue.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#3E6588"
+  - type: WFGags
+    colors:
+    - "#3E6588"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsLightgrey
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_lightgrey.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#D0D7DA"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_lightgrey.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#D0D7DA"
+  - type: WFGags
+    colors:
+    - "#D0D7DA"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsMutedblack
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_mutedblack.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#2F3038"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_mutedblack.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#2F3038"
+  - type: WFGags
+    colors:
+    - "#2F3038"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsMutedblue
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_mutedblue.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#1165C5"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_mutedblue.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#1165C5"
+  - type: WFGags
+    colors:
+    - "#1165C5"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsNavyblue
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_navyblue.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#362F68"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_navyblue.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#362F68"
+  - type: WFGags
+    colors:
+    - "#362F68"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsOrange
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_orange.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#FF8D1E"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_orange.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#FF8D1E"
+  - type: WFGags
+    colors:
+    - "#FF8D1E"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsPurple
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_purple.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#7E1980"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_purple.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#7E1980"
+  - type: WFGags
+    colors:
+    - "#7E1980"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsRed
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_red.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#A52F29"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_red.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#A52F29"
+  - type: WFGags
+    colors:
+    - "#A52F29"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsSandals
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_sandals.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#252525"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_sandals.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#252525"
+  - type: WFGags
+    colors:
+    - "#252525"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsSyndi
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_syndi.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#18191E"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_syndi.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#18191E"
+  - type: WFGags
+    colors:
+    - "#18191E"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsTeal
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_teal.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#5CBFAA"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_teal.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#5CBFAA"
+  - type: WFGags
+    colors:
+    - "#5CBFAA"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesFancyHeelsWizard
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_wizard.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#291A69"
+    - state: icon-2
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/fancy_heels_wizard.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#291A69"
+  - type: WFGags
+    colors:
+    - "#291A69"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesForgingPlateBoots
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/forging_plate_boots.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/forging_plate_boots.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesGaloshesDry
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/galoshes_dry.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/galoshes_dry.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesGaloshesHeeled
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/galoshes_heeled.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/galoshes_heeled.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesGlow
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/glow.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#4A3A40"
+    - state: icon-2-c2
+      color: "#8EEEEE"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/glow.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#4A3A40"
+      - state: equipped-FEET-2-c2
+        color: "#8EEEEE"
+  - type: WFGags
+    colors:
+    - "#4A3A40"
+    - "#8EEEEE"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesGreavesOfTheProphet
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/greaves_of_the_prophet.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/greaves_of_the_prophet.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesGriffin
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/griffin.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/griffin.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesHighHeels
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/high_heels.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/high_heels.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsArmadyne
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_armadyne.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_armadyne.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsAshwalker
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_ashwalker.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_ashwalker.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsAshwalkerLegate
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_ashwalker_legate.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_ashwalker_legate.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsBlack
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_black.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_black.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsDuckboots
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_duckboots.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_duckboots.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsFloortile
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_floortile.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_floortile.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsFrontierColonist
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_frontier_colonist.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_frontier_colonist.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsGogoBoots
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_gogo_boots.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_gogo_boots.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsKim
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_kim.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_kim.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsKnee
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_knee.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_knee.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsKneeRecolorable
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_knee_recolorable.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#2D2D30"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_knee_recolorable.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#2D2D30"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1
+      right:
+      - state: inhand-right-1
+  - type: WFGags
+    colors:
+    - "#2D2D30"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsPeacekeeper
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_peacekeeper.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_peacekeeper.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsRecolorable
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_recolorable.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#383631"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_recolorable.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#383631"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1
+      right:
+      - state: inhand-right-1
+  - type: WFGags
+    colors:
+    - "#383631"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsTimbs
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_timbs.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_timbs.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbootsToeless
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackboots_toeless.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackboots_toeless.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJackbros
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jackbros.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jackbros.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJesterShoes
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jester_shoes.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#00FF00"
+    - state: icon-2-c2
+      color: "#FF0000"
+    - state: icon-3
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jester_shoes.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#00FF00"
+      - state: equipped-FEET-2-c2
+        color: "#FF0000"
+      - state: equipped-FEET-3
+  - type: WFGags
+    colors:
+    - "#00FF00"
+    - "#FF0000"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesJungleboots
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/jungleboots.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/jungleboots.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesKindleKicks
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/kindle_kicks.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/kindle_kicks.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesLatexSocks
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/latex_socks.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#383840"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/latex_socks.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#383840"
+  - type: WFGags
+    colors:
+    - "#383840"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesPlate
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/plate.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/plate.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesPlateBlue
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/plate_blue.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/plate_blue.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesRoman
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/roman.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/roman.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesRussian
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/russian.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/russian.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSaints
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/saints.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/saints.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSandalAlt
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sandal_alt.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sandal_alt.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesShibariLegs
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/shibari_legs.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#BD8FCF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/shibari_legs.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#BD8FCF"
+  - type: WFGags
+    colors:
+    - "#BD8FCF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSingerb
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/singerb.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/singerb.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSingerr
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/singerr.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/singerr.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSingery
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/singery.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/singery.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersBlackRogue
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_black_rogue.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#2D2D33"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_black_rogue.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#2D2D33"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#2D2D33"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#2D2D33"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#2D2D33"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersBlue
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_blue.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#4F88DF"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_blue.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#4F88DF"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#4F88DF"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#4F88DF"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#4F88DF"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersBrown
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_brown.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#472C21"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_brown.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#472C21"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#472C21"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#472C21"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#472C21"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersCrimson
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_crimson.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#992300"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_crimson.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#992300"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#992300"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#992300"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#992300"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersCyborg
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_cyborg.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#4E4E4E"
+    - state: icon-2-c2
+      color: "#4E4E4E"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_cyborg.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#4E4E4E"
+      - state: equipped-FEET-2-c2
+        color: "#4E4E4E"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#4E4E4E"
+      - state: inhand-left-2-c2
+        color: "#4E4E4E"
+      right:
+      - state: inhand-right-1-c1
+        color: "#4E4E4E"
+      - state: inhand-right-2-c2
+        color: "#4E4E4E"
+  - type: WFGags
+    colors:
+    - "#4E4E4E"
+    - "#4E4E4E"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersGreen
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_green.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#3BCA5A"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_green.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#3BCA5A"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#3BCA5A"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#3BCA5A"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#3BCA5A"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersMarisa
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_marisa.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#2D2D33"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+    - state: icon-3
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_marisa.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#2D2D33"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+      - state: equipped-FEET-3
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#2D2D33"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#2D2D33"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#2D2D33"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersOrange
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_orange.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#D15B1B"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_orange.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#D15B1B"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#D15B1B"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#D15B1B"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#D15B1B"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersPurple
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_purple.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#7E1980"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_purple.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#7E1980"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#7E1980"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#7E1980"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#7E1980"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersRainbow
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_rainbow.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_rainbow.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersRed
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_red.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#A52F29"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_red.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#A52F29"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#A52F29"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#A52F29"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#A52F29"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersWhite
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_white.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#FFFFFF"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_white.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#FFFFFF"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#FFFFFF"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#FFFFFF"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#FFFFFF"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSneakersYellow
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sneakers_yellow.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#DEB63D"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sneakers_yellow.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#DEB63D"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#DEB63D"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#DEB63D"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#DEB63D"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSportBoots
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sport_boots.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#292929"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+    - state: icon-3-c3
+      color: "#FF9900"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sport_boots.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#292929"
+      - state: equipped-FEET-2-c2
+        color: "#FFFFFF"
+      - state: equipped-FEET-3-c3
+        color: "#FF9900"
+  - type: WFGags
+    colors:
+    - "#292929"
+    - "#FFFFFF"
+    - "#FF9900"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSports
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/sports.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/sports.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesSwagshoes
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/swagshoes.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/swagshoes.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWheelys
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wheelys.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#545454"
+    - state: icon-2-c2
+      color: "#FFFFFF"
+    - state: icon-3
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wheelys.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1
+  - type: Item
+    inhandVisuals:
+      left:
+      - state: inhand-left-1-c1
+        color: "#545454"
+      - state: inhand-left-2-c2
+        color: "#FFFFFF"
+      right:
+      - state: inhand-right-1-c1
+        color: "#545454"
+      - state: inhand-right-2-c2
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#545454"
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWheelysSkishoes
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wheelys_skishoes.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wheelys_skishoes.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWinterbootsChristmas
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/winterboots_christmas.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#CC0F0F"
+    - state: icon-2-c2
+      color: "#C4C2C2"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/winterboots_christmas.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#CC0F0F"
+      - state: equipped-FEET-2-c2
+        color: "#C4C2C2"
+  - type: WFGags
+    colors:
+    - "#CC0F0F"
+    - "#C4C2C2"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWinterbootsIceBoots
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/winterboots_ice_boots.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/winterboots_ice_boots.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWinterbootsIceBootsEva
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/winterboots_ice_boots_eva.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/winterboots_ice_boots_eva.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWinterbootsIceBootsPrimitiveCatgirlBoots
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/winterboots_ice_boots_primitive_catgirl_boots.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#594032"
+    - state: icon-2-c2
+      color: "#CEC8BF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/winterboots_ice_boots_primitive_catgirl_boots.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#594032"
+      - state: equipped-FEET-2-c2
+        color: "#CEC8BF"
+  - type: WFGags
+    colors:
+    - "#594032"
+    - "#CEC8BF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWorkbootsBlack
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/workboots_black.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/workboots_black.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWorkbootsMiningHeeled
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/workboots_mining_heeled.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/workboots_mining_heeled.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWorkbootsToeless
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/workboots_toeless.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/workboots_toeless.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWraps
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wraps.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wraps.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWrapsAshwalker
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wraps_ashwalker.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wraps_ashwalker.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWrapsAshwalkerMundanewraps
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wraps_ashwalker_mundanewraps.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wraps_ashwalker_mundanewraps.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWrapsAshwalkerTribalwraps
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wraps_ashwalker_tribalwraps.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wraps_ashwalker_tribalwraps.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWrapsBlue
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wraps_blue.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wraps_blue.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWrapsCloth
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wraps_cloth.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wraps_cloth.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWrapsColourable
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wraps_colourable.rsi
+    layers:
+    - state: icon-1-c1
+      color: "#FFFFFF"
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wraps_colourable.rsi
+    clothingVisuals:
+      shoes:
+      - state: equipped-FEET-1-c1
+        color: "#FFFFFF"
+  - type: WFGags
+    colors:
+    - "#FFFFFF"
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWrapsRed
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wraps_red.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wraps_red.rsi
+
+- type: entity
+  parent: ClothingShoesBase
+  id: WFMeridianClothingShoesWrapsSilver
+  components:
+  - type: Sprite
+    sprite: _WF/MeridianClothing/Shoes/wraps_silver.rsi
+    state: icon
+  - type: Clothing
+    sprite: _WF/MeridianClothing/Shoes/wraps_silver.rsi

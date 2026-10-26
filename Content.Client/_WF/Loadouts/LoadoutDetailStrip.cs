@@ -1,4 +1,5 @@
 using System.Linq;
+using Content.Client._WF.Gags;
 using Content.Client._WF.Stylesheets;
 using Content.Client.Stylesheets;
 using Content.Shared._NF.Bank;
@@ -30,7 +31,9 @@ public sealed class LoadoutDetailStrip : PanelContainer
     private readonly Label _price;
     private readonly Button _remove;
     private readonly RichTextLabel _text;
+    private readonly WFGagsColorRow _colors;
     private LoadoutEntry? _described;
+    private LoadoutEntry? _colored;
 
     private readonly Label _message;
     private readonly GridContainer _cards;
@@ -39,6 +42,12 @@ public sealed class LoadoutDetailStrip : PanelContainer
 
     /// <summary>Raised when a pick's remove button is pressed.</summary>
     public event Action<LoadoutEntry>? OnRemove;
+
+    /// <summary>Raised when the colours of a recolourable pick change; null resets them to the item's own.</summary>
+    public event Action<LoadoutEntry, List<Color>?>? OnColorsChanged;
+
+    /// <summary>A pick's colours and its item's defaults, or null when its item isn't recolourable.</summary>
+    public Func<LoadoutEntry, (List<Color> Current, List<Color> Defaults)?>? ColorsOf;
 
     public LoadoutDetailStrip(LoadoutIconCache icons)
     {
@@ -63,6 +72,12 @@ public sealed class LoadoutDetailStrip : PanelContainer
                 OnRemove?.Invoke(_described);
         };
         _text = new RichTextLabel { HorizontalExpand = true, VerticalAlignment = VAlignment.Top };
+        _colors = new WFGagsColorRow { Visible = false };
+        _colors.OnColorsChanged += colors =>
+        {
+            if (_colored != null)
+                OnColorsChanged?.Invoke(_colored, colors);
+        };
 
         _entryBox = new BoxContainer
         {
@@ -85,6 +100,7 @@ public sealed class LoadoutDetailStrip : PanelContainer
                             SeparationOverride = 8,
                             Children = { _name, _status, _price, _remove },
                         },
+                        _colors,
                         _text,
                     },
                 },
@@ -174,6 +190,13 @@ public sealed class LoadoutDetailStrip : PanelContainer
             ? BankSystemExtensions.ToSpesoString(entry.Price)
             : Loc.GetString("wf-loadout-free");
         _remove.Visible = removable;
+
+        // Only a pick is recoloured; a hovered item shows what it is, not what it would be.
+        var colors = entry.Selected ? ColorsOf?.Invoke(entry) : null;
+        _colors.Visible = colors != null;
+        _colored = colors != null ? entry : null;
+        if (colors is { } pick)
+            _colors.Set(entry.Id.Id, pick.Current, pick.Defaults);
         _remove.ToolTip = Loc.GetString("wf-loadout-detail-remove", ("name", entry.Name));
 
         var message = new FormattedMessage();

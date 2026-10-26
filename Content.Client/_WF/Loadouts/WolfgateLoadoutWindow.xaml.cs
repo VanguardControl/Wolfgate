@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Numerics;
 using Content.Client._Mono.MonoCoins;
+using Content.Client._WF.Gags;
 using Content.Client._WF.Stylesheets;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._NF.Bank;
@@ -43,11 +44,15 @@ public sealed partial class WolfgateLoadoutWindow : FancyWindow
     public event Action<ProtoId<LoadoutGroupPrototype>, ProtoId<LoadoutPrototype>>? OnLoadoutPressed;
     public event Action<ProtoId<LoadoutGroupPrototype>, ProtoId<LoadoutPrototype>>? OnLoadoutUnpressed;
 
+    /// <summary>Raised when the colours of a recolourable pick change; null resets them to the item's own.</summary>
+    public event Action<ProtoId<LoadoutGroupPrototype>, ProtoId<LoadoutPrototype>, List<Color>?>? OnLoadoutColorsChanged;
+
     public HumanoidCharacterProfile Profile;
 
     private readonly RoleLoadoutPrototype _role;
     private readonly LoadoutIconCache _icons;
     private readonly LoadoutDetailStrip _detail;
+    private readonly WFGagsSystem _gags;
     private readonly List<LoadoutRailRow> _rows = new();
     private readonly List<LoadoutTile> _tiles = new();
 
@@ -99,6 +104,9 @@ public sealed partial class WolfgateLoadoutWindow : FancyWindow
 
         _detail = new LoadoutDetailStrip(_icons);
         _detail.OnRemove += entry => TrySelect(entry);
+        _gags = collection.Resolve<IEntityManager>().System<WFGagsSystem>();
+        _detail.ColorsOf = ColorsOf;
+        _detail.OnColorsChanged += (entry, colors) => OnLoadoutColorsChanged?.Invoke(entry.Group.Id, entry.Id, colors);
         Locker.AddChild(_detail);
 
         SetupName(loadout, proto);
@@ -274,6 +282,25 @@ public sealed partial class WolfgateLoadoutWindow : FancyWindow
         _hint = null;
         OnLoadoutPressed?.Invoke(group.Id, entry.Id);
         return true;
+    }
+
+    /// <summary>A pick's colours and its item's defaults, or null when its item isn't recolourable.</summary>
+    private (List<Color> Current, List<Color> Defaults)? ColorsOf(LoadoutEntry entry)
+    {
+        if (_gags.ColorableItem(entry.Proto) is not { } item || _gags.DefaultColors(item) is not { } defaults)
+            return null;
+
+        var picked = _loadout.SelectedLoadouts.TryGetValue(entry.Group.Id, out var held)
+            ? held.FirstOrDefault(l => l.Prototype == entry.Id)?.WFGagsColors
+            : null;
+
+        var current = defaults.ToList();
+        for (var i = 0; picked != null && i < picked.Count && i < current.Count; i++)
+        {
+            current[i] = picked[i];
+        }
+
+        return (current, defaults);
     }
 
     private bool CanRemove(LoadoutEntry entry)

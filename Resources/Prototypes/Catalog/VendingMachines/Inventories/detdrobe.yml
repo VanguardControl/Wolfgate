@@ -16,5 +16,24 @@
     ClothingHandsGlovesLatex: 2
     ClothingHeadsetSecurityCommon: 2 # Frontier: Security<SecurityCommon - Ask SR or Sheriff for keys
     trayScanner: 2 # Frontier
+    # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
+    WFMeridianClothingAccessoryBadgeHoloDetective: 2
+    WFMeridianClothingHeadFedoraDetHat: 2
+    WFMeridianClothingHeadFedoraDetHatCybergoggles: 2
+    WFMeridianClothingHeadPlaybunnyearsDetective: 2
+    WFMeridianClothingHeadPlaybunnyearsDetectiveNoir: 2
+    WFMeridianClothingNeckTieBunnytieDetective: 2
+    WFMeridianClothingNeckTieDetective: 2
+    WFMeridianClothingSuitJacketDetSuit: 2
+    WFMeridianClothingSuitJacketDetSuitNoir: 2
+    WFMeridianClothingSuitJacketDetSuitTailcoat: 2
+    WFMeridianClothingSuitJacketDetSuitTailcoatNoir: 2
+    WFMeridianClothingUnderRankSecurityDetectiveBunnysuit: 2
+    WFMeridianClothingUnderRankSecurityDetectiveBunnysuitNoir: 2
+    WFMeridianClothingUnderRankSecurityDetectiveCowboy: 2
+    WFMeridianClothingUnderRankSecurityDetectiveDisco: 2
+    WFMeridianClothingUnderRankSecurityDetectiveKim: 2
+    WFMeridianClothingUnderRankSecurityDetectiveRunner: 2
+    # WOLFGATE END
   contrabandInventory:
     ToyFigurineDetective: 1
