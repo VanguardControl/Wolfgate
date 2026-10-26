@@ -19,8 +19,8 @@ namespace Content.Client._WF.Loadouts;
 
 /// <summary>
 /// Loadout picker of the character creator, opened in place of the stock one-tab-per-group window. A rail on
-/// the left lists every group under a few categories with what is picked there; the right side shows the open
-/// group as a grid of tiles, or search results from all groups. Selecting only re-reads state: the rail and
+/// the left lists every group under a few categories with what is picked there; the middle shows the open
+/// group as a grid of tiles, or search results from all groups, and a column on the right lists its picks. Selecting only re-reads state: the rail and
 /// the grid are not rebuilt, so nothing scrolls or jumps.
 /// </summary>
 [GenerateTypedNameReferences]
@@ -51,7 +51,7 @@ public sealed partial class WolfgateLoadoutWindow : FancyWindow
 
     private readonly RoleLoadoutPrototype _role;
     private readonly LoadoutIconCache _icons;
-    private readonly LoadoutDetailStrip _detail;
+    private readonly LoadoutSelectedPanel _detail;
     private readonly WFGagsSystem _gags;
     private readonly List<LoadoutRailRow> _rows = new();
     private readonly List<LoadoutTile> _tiles = new();
@@ -102,12 +102,12 @@ public sealed partial class WolfgateLoadoutWindow : FancyWindow
         _icons = new LoadoutIconCache(collection.Resolve<IEntityManager>());
         Catalog = new LoadoutCatalog(profile, loadout, proto, session, collection);
 
-        _detail = new LoadoutDetailStrip(_icons);
+        _detail = new LoadoutSelectedPanel(_icons);
         _detail.OnRemove += entry => TrySelect(entry);
         _gags = collection.Resolve<IEntityManager>().System<WFGagsSystem>();
         _detail.ColorsOf = ColorsOf;
         _detail.OnColorsChanged += (entry, colors) => OnLoadoutColorsChanged?.Invoke(entry.Group.Id, entry.Id, colors);
-        Locker.AddChild(_detail);
+        Body.AddChild(_detail);
 
         SetupName(loadout, proto);
 

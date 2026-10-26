@@ -68,6 +68,8 @@ wf-loadout-detail-remove = Remove {$name}
 wf-loadout-detail-idle = Hover an item for details.
 wf-loadout-detail-locked = Locked
 wf-loadout-detail-unaffordable = Can't afford
+wf-loadout-selected-heading = Selected
+wf-loadout-selected-hovered = Item
 wf-loadout-dropped = You can't afford this, so it will not be issued.
 wf-loadout-dropped-fallback = You can't afford this, so {$item} is issued instead.
 

@@ -2,23 +2,31 @@ using System.Linq;
 using System.Numerics;
 using Content.Client._WF.Stylesheets;
 using Content.Client._WF.UserInterface.Controls;
+using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Client._WF.Gags;
 
 /// <summary>
-/// One swatch per colour of a recolourable item and a reset button. A swatch opens the colour popup; changes are
+/// One swatch per colour of a recolourable item, under a heading with a reset button. A swatch opens the colour popup; changes are
 /// reported once the player stops dragging for a moment, as each one re-dresses the character preview.
 /// </summary>
 public sealed class WFGagsColorRow : BoxContainer
 {
+    /// <summary>Swatches on one line before the next starts.</summary>
+    private const int SwatchColumns = 8;
+
+    private static readonly SpriteSpecifier Palette =
+        new SpriteSpecifier.Rsi(new ResPath("/Textures/_WF/Gags/palette.rsi"), "palette");
+
     /// <summary>How long the colours must hold still before they are reported, in seconds.</summary>
     private const float SettleTime = 0.2f;
 
-    private readonly BoxContainer _swatches;
+    private readonly GridContainer _swatches;
     private readonly Button _reset;
     private readonly List<PanelContainer> _chips = new();
     private WolfgateColorPopup? _popup;
@@ -34,19 +42,10 @@ public sealed class WFGagsColorRow : BoxContainer
 
     public WFGagsColorRow()
     {
-        Orientation = LayoutOrientation.Horizontal;
-        SeparationOverride = 4;
+        Orientation = LayoutOrientation.Vertical;
+        SeparationOverride = 2;
 
-        AddChild(new Label
-        {
-            Text = Loc.GetString("wf-gags-colors"),
-            VerticalAlignment = VAlignment.Center,
-            StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel },
-        });
-
-        _swatches = new BoxContainer { Orientation = LayoutOrientation.Horizontal, SeparationOverride = 2 };
-        AddChild(_swatches);
-
+        _swatches = new GridContainer { Columns = SwatchColumns, HSeparationOverride = 2, VSeparationOverride = 2 };
         _reset = new Button
         {
             Text = Loc.GetString("wf-gags-reset"),
@@ -60,7 +59,30 @@ public sealed class WFGagsColorRow : BoxContainer
             _pending = -1;
             OnColorsChanged?.Invoke(null);
         };
-        AddChild(_reset);
+        AddChild(new BoxContainer
+        {
+            Orientation = LayoutOrientation.Horizontal,
+            SeparationOverride = 4,
+            Children =
+            {
+                new TextureRect { Texture = PaletteIcon(), VerticalAlignment = VAlignment.Center },
+                new Label
+                {
+                    Text = Loc.GetString("wf-gags-colors"),
+                    HorizontalExpand = true,
+                    VerticalAlignment = VAlignment.Center,
+                    StyleClasses = { StyleWolfgate.StyleClassCreatorFieldLabel },
+                },
+                _reset,
+            },
+        });
+        AddChild(_swatches);
+    }
+
+    /// <summary>The palette that marks a recolourable item.</summary>
+    public static Texture PaletteIcon()
+    {
+        return IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<SpriteSystem>().Frame0(Palette);
     }
 
     /// <summary>Shows an item's colours. The swatches are only remade when the item or its colour count changed.</summary>

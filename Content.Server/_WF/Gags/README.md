@@ -47,6 +47,10 @@ MeridianClothing module is where the recolourable items come from.
 
 - [`Resources/Locale/en-US/_WF/Gags/gags.ftl`](../../../Resources/Locale/en-US/_WF/Gags/gags.ftl)
 
+### Textures
+
+- [`Resources/Textures/_WF/Gags/palette.rsi/`](../../../Resources/Textures/_WF/Gags/palette.rsi/)
+
 ## Non-modular edits
 
 - [`Content.Client/Lobby/LobbyUIController.cs`](../../../Content.Client/Lobby/LobbyUIController.cs): picked colours on the preview
