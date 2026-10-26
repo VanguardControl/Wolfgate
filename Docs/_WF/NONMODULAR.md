@@ -36,6 +36,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Client/Stealth/StealthSystem.cs`](../../Content.Client/Stealth/StealthSystem.cs)
   - post-shader flags are set through SpriteSystem since engine 291
   - engine 291 ignores the sprite-wide GetScreenTexture/RaiseShaderEvent; they are per post-shader now
+- [`Content.Client/UserInterface/Controls/ListContainer.cs`](../../Content.Client/UserInterface/Controls/ListContainer.cs): rejoin the group, engine v291 drops it when a button leaves the tree
 - [`Content.Client/UserInterface/Systems/Admin/AdminUIController.cs`](../../Content.Client/UserInterface/Systems/Admin/AdminUIController.cs): a HUD layout swap rebuilds the button visible
 - [`Content.Client/UserInterface/Systems/Chat/ChatUIController.cs`](../../Content.Client/UserInterface/Systems/Chat/ChatUIController.cs): an unlimited check warns when the eye lags a long teleport
 - [`Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs`](../../Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs): Replay seeks and filter changes rebuild the output from scratch.

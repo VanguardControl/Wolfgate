@@ -30,6 +30,7 @@ Entry points: the `BwoinkSystem` partials (`AHelpStaffSound`, `OnAHelpResolve`, 
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/AHelpResolve/AHelpChannelSelectTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AHelpResolve/AHelpChannelSelectTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AHelpResolve/AHelpLayoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AHelpResolve/AHelpLayoutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AHelpResolve/AHelpResolveTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AHelpResolve/AHelpResolveTest.cs)
 
