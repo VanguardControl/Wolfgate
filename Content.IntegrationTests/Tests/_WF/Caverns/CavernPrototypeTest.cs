@@ -24,7 +24,7 @@ namespace Content.IntegrationTests.Tests._WF.Caverns;
 [TestOf(typeof(WFCavernPrototype))]
 public sealed class CavernPrototypeTest
 {
-    /// <summary>The self-deleting markers a cavern template may place: loot, and fauna through the planet caps.</summary>
+    /// <summary>The self-deleting markers a cavern template may place: loot, and fauna through the planet caps (every <c>WFCavernFauna*</c> marker).</summary>
     private static readonly HashSet<string> AllowedSpawners = new()
     {
         "WFCavernFaunaAsclepiu",

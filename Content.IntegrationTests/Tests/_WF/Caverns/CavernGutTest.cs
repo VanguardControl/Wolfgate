@@ -31,7 +31,15 @@ public sealed class CavernGutTest
     private const string Floor = "WFCavernFloorGut";
 
     /// <summary>What spawns the Gut's own creatures: its wildlife markers and its assimilation sacks.</summary>
-    private static readonly string[] NativeSpawners = { "WFCavernFaunaCarcinoma", "WFCarcinomaAssimilationSack" };
+    private static readonly string[] NativeSpawners =
+    {
+        "WFCavernFaunaCarcinoma",
+        "WFCavernFaunaCarcinomaStomach",
+        "WFCavernFaunaCarcinomaNerve",
+        "WFCavernFaunaCarcinomaOssuary",
+        "WFCavernFaunaCarcinomaBlood",
+        "WFCarcinomaAssimilationSack",
+    };
 
     /// <summary>Seconds the mobs stand still before they are checked.</summary>
     private const float StandSeconds = 3f;

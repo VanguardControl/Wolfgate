@@ -94,6 +94,7 @@
   level: WFCavernAerumnaLevel
   seedOffset: 7933
   roofColor: "#050408"
+  ambience: WFPlanetAmbienceAerumnaCavern
   shaftLight: 0.3
   mouths:
     style: Rift
@@ -115,6 +116,7 @@
   level: WFCavernThrasciasLevel
   seedOffset: 7937
   roofColor: "#060c12"
+  ambience: WFPlanetAmbienceThrasciasCavern
   shaftLight: 0.5
   mouths:
     style: Round
@@ -144,6 +146,7 @@
   level: WFCavernCarcinomaLevel
   seedOffset: 7949
   roofColor: "#140306"
+  ambience: WFPlanetAmbienceCarcinomaCavern
   shaftLight: 0.4
   mouths:
     style: Blob
