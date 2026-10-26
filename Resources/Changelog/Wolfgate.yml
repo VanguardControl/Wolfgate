@@ -3472,3 +3472,12 @@ Entries:
   id: 100245
   time: '2026-10-26T09:57:40.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/373
+- author: IrkallaEpsilon
+  changes:
+    - type: Remove
+      message: >-
+        Arbitrary eye-color restriction holdover from SL Shadekin port is now
+        removed. V value on HSV can be maximzied to Shadekin players wish.
+  id: 100246
+  time: '2026-10-26T19:53:53.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/377

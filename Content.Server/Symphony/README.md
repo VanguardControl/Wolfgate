@@ -79,6 +79,7 @@ ticket table, the feedback table or any of the endpoints change.
 - [`Content.Client/Lobby/UI/LobbyGui.xaml`](../../Content.Client/Lobby/UI/LobbyGui.xaml)
   - an animated background the SSymphony panel made from a GIF, shown over the still one
   - the notice staff set from the SSymphony panel; hidden when there is none
+- [`Content.Client/Lobby/UI/LobbyGui.xaml.cs`](../../Content.Client/Lobby/UI/LobbyGui.xaml.cs): the GIF background covers the screen as the still one does
 - [`Content.Server/Audio/ContentAudioSystem.cs`](../Audio/ContentAudioSystem.cs): a playlist the SSymphony panel set plays in its own order, round after round
 - [`Content.Server/Connection/ConnectionManager.cs`](../Connection/ConnectionManager.cs)
   - Symphony, the Discord link as a property so the client can offer a button
