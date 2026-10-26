@@ -231,6 +231,12 @@
     maxRange: 40
     strength: 0.6
     crackRate: 0.6
+    loopSound:
+      path: /Audio/_WF/AsteroidMining/mining_laser_light.ogg
+      params:
+        volume: -7
+        loop: true
+        maxDistance: 18
     beamWidth: 0.55
     muzzleOffset: 0, -0.34
 

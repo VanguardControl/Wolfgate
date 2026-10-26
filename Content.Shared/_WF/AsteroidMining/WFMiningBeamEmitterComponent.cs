@@ -41,8 +41,12 @@ public sealed partial class WFMiningBeamEmitterComponent : Component
 
     [DataField] public Color BeamColor = Color.FromHex("#ffb347");
 
-    [DataField] public SoundSpecifier? LoopSound = new SoundPathSpecifier("/Audio/Ambience/Objects/gravity_gen_hum.ogg",
-        AudioParams.Default.WithVolume(-2f).WithLoop(true).WithMaxDistance(20f));
+    /// <summary>The hum each client loops while the beam is lit; its pitch climbs with the rock's heat.</summary>
+    [DataField] public SoundSpecifier? LoopSound = new SoundPathSpecifier("/Audio/_WF/AsteroidMining/mining_laser_heavy.ogg",
+        AudioParams.Default.WithVolume(-4f).WithLoop(true).WithMaxDistance(24f));
+
+    /// <summary>Pitch of the hum's hot copy, which takes over as the rock nears the overcharge line.</summary>
+    [DataField] public float HeatPitch = 1.2f;
 
     /// <summary>The gun is firing along <see cref="BeamDirection"/>, to what its last pulse hit <see cref="BeamLength"/> out.</summary>
     [AutoNetworkedField] public bool Active;
@@ -63,7 +67,9 @@ public sealed partial class WFMiningBeamEmitterComponent : Component
 
     // Runtime state, never saved into maps.
     public EntityUid? Target;
+    /// <summary>Client-side: the hum playing for this beam, and its higher-pitched copy for heat.</summary>
     public EntityUid? Audio;
+    public EntityUid? AudioHot;
     public TimeSpan CooldownUntil;
     public TimeSpan LastPulse;
     public float Contribution;

@@ -9,7 +9,6 @@ using Content.Shared.Weapons.Hitscan.Events;
 using Content.Shared.Weapons.Hitscan.Systems;
 using Content.Shared.Weapons.Ranged.Systems;
 using Robust.Server.GameObjects;
-using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Timing;
 
@@ -26,7 +25,6 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private UserInterfaceSystem _ui = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
-    [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private ActionBlockerSystem _blocker = default!;
     [Dependency] private WFAsteroidSystem _asteroids = default!;
 
@@ -132,7 +130,6 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     public void Pulse(EntityUid gun, WFMiningBeamEmitterComponent beam, EntityUid? rock, float distance, Vector2 direction)
     {
         beam.LastPulse = _timing.CurTime;
-        var wasActive = beam.Active;
         // Resend only on a visible change: about a degree of swing or a third of a metre of length.
         var changed = !beam.Active || beam.Target != rock ||
                       Vector2.Dot(beam.BeamDirection, direction) < 0.9998f ||
@@ -146,8 +143,6 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
 
         if (changed)
             Dirty(gun, beam);
-        if (!wasActive)
-            beam.Audio = _audio.PlayPvs(beam.LoopSound, gun)?.Entity;
     }
 
     /// <summary>Keeps a rock's heat running though no beam is on it yet, such as a fragment born hot.</summary>
@@ -159,7 +154,6 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     /// <summary>Puts a gun's beam out.</summary>
     public void Stop(EntityUid gun, WFMiningBeamEmitterComponent comp)
     {
-        comp.Audio = _audio.Stop(comp.Audio);
         comp.Contribution = 0f;
         if (!comp.Active && comp.Target == null)
             return;

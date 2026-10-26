@@ -49,7 +49,15 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
 - **Hand mining:** `WFAsteroidBoulder` is a pullable chunk of 2-4 veins. Pull it aboard and break it with a pickaxe,
   drill or kinetic accelerator (it is `Gatherable`), or crack it in space with the mining laser like a small rock, for
   all of its ore. It is opaque to the laser's ray and blocks bullets.
-- **Collection:** ore floats where the rock was; ore magnets, ore boxes and tractor beams pick it up as before.
+- **Collection:** ore floats where the rock was; ore boxes and tractor beams pick it up as before. The ore magnet
+  (`MachineOreMagnet`) runs on `WFOreMagnetSystem` instead of the generic magnet pickup: switched on and powered, it
+  locks onto loose ore within 30 m that it can see (walls block it, windows don't), up to six at once. Each locked ore
+  gets `WFOreMagnetPulledComponent`, which `WFOreMagnetOverlay` draws as a faint cyan arc from the magnet with sparks
+  running inward and an aura round the ore that tightens; after 0.4 s plus 0.03 s per metre it flies into storage.
+  Its sprite has `off`, `on` and an unshaded `glow` state, switched by `WFOreMagnetVisuals.Active`.
+- **Sound:** each laser loops a hum while it fires (`mining_laser_heavy.ogg`, `mining_laser_light.ogg`, synthesised by
+  `Tools/_WF/AsteroidMining/gen_laser_hum.py`): a deep rumbling drone for the M40, a higher, lighter one for the M12.
+  It plays on each client, and its pitch climbs with the rock's heat so the window can be found by ear.
 - **Getting one:** cargo sells both as flatpacks under Shuttle (M12 2,500, M40 7,500). Their boards are in the cargo
   board pack and cost real materials; the M12 unlocks with Salvage Equipment, next to the M25, and mounts on a light
   energy hardpoint; the M40 unlocks with Mass Excavation and needs a heavy one.
@@ -80,6 +88,8 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 - [`Content.Server/_WF/AsteroidMining/WFAsteroidGridComponent.cs`](WFAsteroidGridComponent.cs)
 - [`Content.Server/_WF/AsteroidMining/WFAsteroidSystem.cs`](WFAsteroidSystem.cs)
 - [`Content.Server/_WF/AsteroidMining/WFMiningBeamSystem.cs`](WFMiningBeamSystem.cs)
+- [`Content.Server/_WF/AsteroidMining/WFOreMagnetComponent.cs`](WFOreMagnetComponent.cs)
+- [`Content.Server/_WF/AsteroidMining/WFOreMagnetSystem.cs`](WFOreMagnetSystem.cs)
 
 ### Shared
 
@@ -92,6 +102,7 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 - [`Content.Shared/_WF/AsteroidMining/WFMiningBeamEmitterComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFMiningBeamEmitterComponent.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFMiningBeamGunneryMessages.cs`](../../../Content.Shared/_WF/AsteroidMining/WFMiningBeamGunneryMessages.cs)
 - [`Content.Shared/_WF/AsteroidMining/WFMiningPulseComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFMiningPulseComponent.cs)
+- [`Content.Shared/_WF/AsteroidMining/WFOreMagnetPulledComponent.cs`](../../../Content.Shared/_WF/AsteroidMining/WFOreMagnetPulledComponent.cs)
 
 ### Client
 
@@ -101,10 +112,13 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 - [`Content.Client/_WF/AsteroidMining/WFMiningBeamOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamOverlay.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningBeamVisualizerSystem.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamVisualizerSystem.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningChargeMeter.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningChargeMeter.cs)
+- [`Content.Client/_WF/AsteroidMining/WFOreMagnetOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFOreMagnetOverlay.cs)
+- [`Content.Client/_WF/AsteroidMining/WFOreMagnetVisualsSystem.cs`](../../../Content.Client/_WF/AsteroidMining/WFOreMagnetVisualsSystem.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/AsteroidMining/AsteroidMiningTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AsteroidMining/AsteroidMiningTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/AsteroidMining/OreMagnetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AsteroidMining/OreMagnetTest.cs)
 
 ### Prototypes
 
@@ -133,16 +147,28 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 - [`Resources/Textures/_WF/AsteroidMining/Asteroids/boulder_metallic.rsi/`](../../../Resources/Textures/_WF/AsteroidMining/Asteroids/boulder_metallic.rsi/)
 - [`Resources/Textures/_WF/AsteroidMining/Structures/mining_beam.rsi/`](../../../Resources/Textures/_WF/AsteroidMining/Structures/mining_beam.rsi/)
 - [`Resources/Textures/_WF/AsteroidMining/Structures/mining_laser_small.rsi/`](../../../Resources/Textures/_WF/AsteroidMining/Structures/mining_laser_small.rsi/)
+- [`Resources/Textures/_WF/AsteroidMining/Structures/ore_magnet.rsi/`](../../../Resources/Textures/_WF/AsteroidMining/Structures/ore_magnet.rsi/)
 - [`Resources/Textures/_WF/AsteroidMining/Tiles/asteroid_core.png`](../../../Resources/Textures/_WF/AsteroidMining/Tiles/asteroid_core.png)
+
+### Audio
+
+- [`Resources/Audio/_WF/AsteroidMining/attributions.yml`](../../../Resources/Audio/_WF/AsteroidMining/attributions.yml)
+- [`Resources/Audio/_WF/AsteroidMining/mining_laser_heavy.ogg`](../../../Resources/Audio/_WF/AsteroidMining/mining_laser_heavy.ogg)
+- [`Resources/Audio/_WF/AsteroidMining/mining_laser_light.ogg`](../../../Resources/Audio/_WF/AsteroidMining/mining_laser_light.ogg)
 
 ### Tools
 
+- [`Tools/_WF/AsteroidMining/gen_laser_hum.py`](../../../Tools/_WF/AsteroidMining/gen_laser_hum.py)
 - [`Tools/_WF/AsteroidMining/gen_rocks.py`](../../../Tools/_WF/AsteroidMining/gen_rocks.py)
 
 ## Non-modular edits
 
 - [`Content.Client/_Mono/FireControl/UI/FireControlConsoleBoundUserInterface.cs`](../../../Content.Client/_Mono/FireControl/UI/FireControlConsoleBoundUserInterface.cs): the mining laser panel's scan
 - [`Content.Server/Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs`](../../Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs): a placing handler may swap the debris
+- [`Resources/Prototypes/_Mono/Entities/Structures/Machines/ore_magnet.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/Machines/ore_magnet.yml)
+  - pulls only ore it can see, with an arc and aura, and a new sprite
+  - the field's cyan, to match the new sprite and pull arc
+  - on and off states while switched on and powered
 - [`Resources/Prototypes/_Mono/Shipyard/Civilian/caracara.yml`](../../../Resources/Prototypes/_Mono/Shipyard/Civilian/caracara.yml): fitted with the M40 mining laser in place of the Apollo
 - [`Resources/Prototypes/_Mono/Shipyard/MMC/akasono.yml`](../../../Resources/Prototypes/_Mono/Shipyard/MMC/akasono.yml): an M12 mining laser in place of the pulser
 - [`Resources/Prototypes/_Mono/Shipyard/MMC/kami.yml`](../../../Resources/Prototypes/_Mono/Shipyard/MMC/kami.yml): M12 mining lasers in place of the mining pulsers
