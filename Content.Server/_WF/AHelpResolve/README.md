@@ -30,6 +30,7 @@ Entry points: the `BwoinkSystem` partials (`AHelpStaffSound`, `OnAHelpResolve`, 
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/AHelpResolve/AHelpLayoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AHelpResolve/AHelpLayoutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AHelpResolve/AHelpResolveTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AHelpResolve/AHelpResolveTest.cs)
 
 ### Localization
@@ -38,7 +39,9 @@ Entry points: the `BwoinkSystem` partials (`AHelpStaffSound`, `OnAHelpResolve`, 
 
 ## Non-modular edits
 
-- [`Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml`](../../../Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml): resolve button
+- [`Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml`](../../../Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml)
+  - resolve button
+  - player actions on a row of their own, or the split leaves the player list 100 px wide
 - [`Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml.cs`](../../../Content.Client/Administration/UI/Bwoink/BwoinkControl.xaml.cs): resolve button
 - [`Content.Client/UserInterface/Systems/Bwoink/AHelpUIController.cs`](../../../Content.Client/UserInterface/Systems/Bwoink/AHelpUIController.cs): read the boxes from the control; Window is null while popped out
 - [`Content.Server/Administration/Systems/BwoinkSystem.cs`](../../Administration/Systems/BwoinkSystem.cs)
