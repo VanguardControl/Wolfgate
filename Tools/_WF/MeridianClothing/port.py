@@ -16,10 +16,13 @@ What the SS13 art becomes here:
                 WFGags component (Gags module) recolours them, and the loadout window lets players pick.
                 Blends the engine can't layer (multiply, add) are baked in the default colours.
     function    A type whose SS13 job is protection (armour, helmets, EVA suits, gas masks, HUDs, insulated
-                gloves, bio and radiation gear) takes the Wolfgate item with that job as its parent, so it
-                protects like it; the rest are clothing only. Protective items are not put in loadouts or
+                gloves, bio and radiation gear) takes the Wolfgate item with that job as its parent. On top of
+                that every item gets what its own SS13 stats give it, whatever its typepath: armour values,
+                insulation (siemens 0), internals (a mask that takes them), pressure, fire and cold protection,
+                flash protection, HUDs, no-slip and slowdown. Protective items are not put in loadouts or
                 vending machines: their price and balance are the server's call, so they are admin and
-                mapping spawns until someone places them.
+                mapping spawns until someone places them. SS13 traits with no counterpart here (fast cuffing,
+                quiet steps, the admin suit's immunities) are left out.
     duplicates  An item is already here when its worn sprite in its default colours matches a worn state of
                 any RSI here, or when a plain (single-colour) item shares the name of a clothing item here.
                 Meridian's own subtypes that share their sprites are one item.
@@ -232,6 +235,108 @@ HIDES = [
 ]
 SLOT_FLAG = {"head": "HEAD", "mask": "MASK", "outerClothing": "OUTERCLOTHING", "neck": "NECK", "eyes": "EYES"}
 
+# SS13 armour value (percent) at and above which an item counts as protective, and the most it may block here.
+ARMOR_PROTECTIVE = 20
+ARMOR_CAP = 70
+# HUD traits on glasses -> the Wolfgate HUD with that job.
+HUD_TRAITS = [("TRAIT_SECURITY_HUD", "ClothingEyesHudSecurity"), ("TRAIT_MEDICAL_HUD", "ClothingEyesHudMedical"),
+              ("TRAIT_DIAGNOSTIC_HUD", "ClothingEyesHudDiagnostic"), ("TRAIT_MESON_VISION", "ClothingEyesGlassesMeson")]
+FIRE_PROOF = 30000          # FIRE_SUIT_MAX_TEMP_PROTECT
+SPACE_COLD = 72             # SPACE_SUIT_MIN_TEMP_PROTECT_OFF and below: rated for deep cold
+
+
+class Mechanics:
+    """What an item's SS13 stats give it here: component lines, a parent with that job, and whether it protects."""
+
+    def __init__(self):
+        self.lines = []
+        self.parent = None
+        self.protective = False
+
+    def component(self, *lines):
+        self.lines += list(lines)
+
+
+def mechanics(src, t, item, parent):
+    m = Mechanics()
+    d = src.datums
+    raw = lambda var: d.raw(t, var) or ""
+    num = lambda var: d.value(t, var) if isinstance(d.value(t, var), (int, float)) else None
+    slot = item.slot
+
+    # Armour: melee is blunt and slash, bullets pierce, lasers and energy burn.
+    armor = d.value(t, "armor_type")
+    if isinstance(armor, str) and armor.startswith("/datum/armor"):
+        val = lambda k: d.value(armor, k) if isinstance(d.value(armor, k), (int, float)) else 0
+        melee, bullet, burn = val("melee"), val("bullet"), max(val("laser"), val("energy"))
+        if max(melee, bullet, burn) >= 10:
+            coef = lambda x: round(1 - min(max(x, 0), ARMOR_CAP) / 100, 2)
+            m.component("  - type: Armor", "    modifiers:", "      coefficients:",
+                        "        Blunt: %s" % coef(melee), "        Slash: %s" % coef(melee),
+                        "        Piercing: %s" % coef(bullet), "        Heat: %s" % coef(burn))
+            m.protective |= max(melee, bullet, burn) >= ARMOR_PROTECTIVE
+
+    flags = raw("clothing_flags")
+    traits = raw("clothing_traits")
+
+    if slot == "gloves" and num("siemens_coefficient") == 0:
+        m.component("  - type: Insulated")
+        m.protective = True
+
+    if slot == "mask" and "MASKINTERNALS" in flags:
+        m.component("  - type: BreathMask")
+        if "BLOCK_GAS_SMOKE_EFFECT" in flags:
+            m.component("  - type: IngestionBlocker")
+        m.protective = True
+
+    sealed = slot in ("outerClothing", "head") and "STOPSPRESSUREDAMAGE" in flags
+    if sealed:
+        m.component("  - type: PressureProtection", "    highPressureMultiplier: 0.6",
+                    "    lowPressureMultiplier: 1000")
+        m.protective = True
+
+    # SS13 protects each limb on its own; here every worn item's coefficient multiplies the rest, so only the
+    # suit and, more weakly, the helmet carry it, as the EVA gear here does.
+    if slot in ("outerClothing", "head"):
+        hot, cold = num("max_heat_protection_temperature"), num("min_cold_protection_temperature")
+        fire = hot is not None and hot >= FIRE_PROOF
+        # Sealed suits are EVA gear; unsealed ones rated for deep cold (winter coats, fire suits) keep warm like the
+        # coats here; the mild ratings SS13 gives every helmet and vest are left out.
+        warm = cold is not None and cold <= SPACE_COLD
+        if slot == "outerClothing":
+            heating = 0.005 if fire else 0.01 if sealed else 1
+            cooling = 0.01 if sealed else 0.1 if warm else 1
+        else:
+            heating = 0.2 if fire or sealed else 1
+            cooling = 0.2 if sealed else 1
+        if (heating, cooling) != (1, 1):
+            m.component("  - type: TemperatureProtection", "    heatingCoefficient: %s" % heating,
+                        "    coolingCoefficient: %s" % cooling)
+        if fire:
+            m.component("  - type: FireProtection", "    reduction: %s" % (0.65 if slot == "outerClothing" else 0.2))
+            m.protective = True
+
+    flash = d.value(t, "flash_protect")
+    if slot in ("eyes", "head", "mask") and isinstance(flash, int) and flash >= 1:
+        m.component("  - type: FlashImmunity", "  - type: EyeProtection")
+
+    if slot == "eyes" and parent == PARENTS["eyes"]:
+        hud = next((p for trait, p in HUD_TRAITS if trait in traits), None)
+        if hud:
+            m.parent = hud
+            m.protective = True
+
+    if slot == "shoes" and re.search(r"TRAIT_NO_SLIP_(WATER|ALL)", traits):
+        m.component("  - type: NoSlip")
+        m.protective = True
+
+    slowdown = num("slowdown")
+    if slowdown and slowdown > 0:
+        modifier = round(max(0.5, 1 - 0.2 * slowdown), 2)
+        m.component("  - type: ClothingSpeedModifier", "    walkModifier: %s" % modifier,
+                    "    sprintModifier: %s" % modifier)
+    return m
+
 
 def camel(text):
     return "".join(p[:1].upper() + p[1:] for p in re.split(r"[^A-Za-z0-9]+", text) if p)
@@ -268,6 +373,7 @@ class Planned:
         self.protective = protective
         self.states = {}            # set name -> [(state, colour slot or None)]
         self.size = (32, 32)
+        self.mechanics = []         # component lines from the item's SS13 stats
 
     @property
     def loadout(self):
@@ -340,7 +446,9 @@ class Port:
             taken.add(pid)
             rsi = "%s/%s" % (FOLDERS[slot], re.sub(r"[^a-z0-9]+", "_", tail.split("/", 1)[-1].lower()).strip("_"))
             theme = "adult" if ADULT_FILES.search(self.src.files.get(t, "")) else self._theme(t, item)
-            planned = Planned(item, pid, rsi, parent, theme, protective)
+            stats = mechanics(self.src, t, item, parent)
+            planned = Planned(item, pid, rsi, stats.parent or parent, theme, protective or stats.protective)
+            planned.mechanics = stats.lines
             self._plan_states(planned)
             self.planned.append(planned)
             self.outcomes[t] = ("ported", pid)
@@ -516,8 +624,9 @@ class Port:
         if hides:
             lines += ["  - type: HideLayerClothing", "    layers:"]
             lines += ["      %s: %s" % h for h in hides]
-        if item.flags_inv & source.FLAGS_INV["HIDEFACE"] and item.slot in ("head", "mask") and not p.protective:
+        if item.flags_inv & source.FLAGS_INV["HIDEFACE"] and item.slot in ("head", "mask"):
             lines.append("  - type: IdentityBlocker")
+        lines += p.mechanics
         if item.gags:
             lines += ["  - type: WFGags", "    colors:"]
             lines += ['    - "%s"' % c for c in item.colors]

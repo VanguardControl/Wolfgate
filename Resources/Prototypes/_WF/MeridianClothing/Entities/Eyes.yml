@@ -29,6 +29,8 @@
       - state: inhand-left-1
       right:
       - state: inhand-right-1
+  - type: FlashImmunity
+  - type: EyeProtection
   - type: WFGags
     colors:
     - "#FFFFFF"
@@ -58,6 +60,8 @@
       - state: inhand-left-1
       right:
       - state: inhand-right-1
+  - type: FlashImmunity
+  - type: EyeProtection
   - type: WFGags
     colors:
     - "#DC7EF4"
@@ -72,6 +76,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/blindfold_white.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesBase
@@ -82,6 +88,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/clockwork_judicial_visor.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesBase
@@ -154,7 +162,7 @@
     sprite: _WF/MeridianClothing/Eyes/geist_gazers.rsi
 
 - type: entity
-  parent: ClothingEyesBase
+  parent: ClothingEyesGlassesMeson
   id: WFMeridianClothingGlassesGodeye
   components:
   - type: Sprite
@@ -182,6 +190,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/hud_ar_aviator.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesHudDiagnostic
@@ -232,6 +242,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/hud_ar_aviator_security.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesHudSecurity
@@ -242,6 +254,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/hud_ar_aviator_securityblue.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesBase
@@ -332,6 +346,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/hud_diagnostic_sunglasses.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesGlassesMeson
@@ -422,6 +438,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/hud_security_sunglasses_armadyne.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesHudSecurity
@@ -432,6 +450,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/hud_security_sunglasses_blue.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesHudSecurity
@@ -442,6 +462,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/hud_security_sunglasses_eyepatch.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesHudSecurity
@@ -452,6 +474,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/hud_security_sunglasses_gars.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesHudSecurity
@@ -462,6 +486,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/hud_security_sunglasses_gars_giga.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesHudSecurity
@@ -472,6 +498,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/hud_security_sunglasses_peacekeeper.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesBase
@@ -608,7 +636,7 @@
     sprite: _WF/MeridianClothing/Eyes/osi.rsi
 
 - type: entity
-  parent: ClothingEyesBase
+  parent: ClothingEyesHudSecurity
   id: WFMeridianClothingGlassesOverwatch
   components:
   - type: Sprite
@@ -616,6 +644,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/overwatch.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesBase
@@ -746,6 +776,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/sunglasses_big.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesBase
@@ -756,6 +788,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/sunglasses_chemical.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesBase
@@ -766,6 +800,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/sunglasses_gar.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesBase
@@ -776,6 +812,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/sunglasses_gar_giga.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesBase
@@ -786,6 +824,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/sunglasses_oval.rsi
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingEyesBase
@@ -810,6 +850,8 @@
       - state: inhand-left-1
       right:
       - state: inhand-right-1
+  - type: FlashImmunity
+  - type: EyeProtection
   - type: WFGags
     colors:
     - "#EAEAEA"
@@ -843,3 +885,5 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Eyes/welding.rsi
+  - type: FlashImmunity
+  - type: EyeProtection

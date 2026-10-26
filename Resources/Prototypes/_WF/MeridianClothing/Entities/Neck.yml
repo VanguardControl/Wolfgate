@@ -3001,6 +3001,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Neck/mantle_solfed.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingNeckBase

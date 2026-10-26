@@ -7,6 +7,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/admin.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.3
+        Heat: 0.3
 
 - type: entity
   parent: ClothingUniformBase
@@ -17,6 +24,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/admin_subspace.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.3
+        Heat: 0.3
 
 - type: entity
   parent: ClothingUniformBase
@@ -47,6 +61,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/akula_wetsuit_job_command.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -87,6 +108,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/akula_wetsuit_job_security.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -158,6 +186,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/colonial_hc_police.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -168,6 +203,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/colonial_hc_police_skirt.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -580,6 +622,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/costume_gladiator_ash_walker_ash_robes.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.75
+        Heat: 0.85
 
 - type: entity
   parent: ClothingUniformBase
@@ -1178,6 +1227,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/costume_nri.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -1188,6 +1244,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/costume_nri_captain.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -1198,6 +1261,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/costume_nri_engineer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -1208,6 +1278,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/costume_nri_medic.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -1400,6 +1477,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/costume_russian_officer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -2849,6 +2933,13 @@
         color: "#BBBBBB"
       - state: equipped-INNERCLOTHING-7-c7
         color: "#BBBBBB"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.9
   - type: WFGags
     colors:
     - "#363740"
@@ -2902,6 +2993,13 @@
         color: "#BBBBBB"
       - state: equipped-INNERCLOTHING-8-c8
         color: "#BBBBBB"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.9
   - type: WFGags
     colors:
     - "#363740"
@@ -2986,6 +3084,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/misc_durathread.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -3582,6 +3687,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_blueshield.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -3592,6 +3704,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_blueshield_consult.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -3602,6 +3721,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_blueshield_consult_skirt.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -3612,6 +3738,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_blueshield_formal.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -3622,6 +3755,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_blueshield_russian.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -3632,6 +3772,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_blueshield_skirt.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -3642,6 +3789,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_blueshield_turtleneck.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -3652,6 +3806,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_blueshield_turtleneck_skirt.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -4072,6 +4233,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_centcom_military.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -4082,6 +4250,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_centcom_military_eng.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5276,6 +5451,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_armadyne.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5286,6 +5468,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_armadyne_tactical.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5296,6 +5485,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_brig_phys_bunnysuit.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5306,6 +5502,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_constable.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5316,6 +5519,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_corrections_officer_sweater.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5326,6 +5536,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_corrections_officer_sweater_skirt.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5336,6 +5553,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_detective_bunnysuit.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5346,6 +5570,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_detective_bunnysuit_noir.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5356,6 +5587,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_detective_cowboy.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5366,6 +5604,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_detective_disco.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5376,6 +5621,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_detective_kim.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5386,6 +5638,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_detective_runner.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5396,6 +5655,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_head_of_security.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5406,6 +5672,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_head_of_security_bunnysuit.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5416,6 +5689,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_head_of_security_nova.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5426,6 +5706,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_head_of_security_nova_alt_skirt.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5436,6 +5723,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_head_of_security_nova_blue.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5446,6 +5740,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_head_of_security_nova_formal.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5456,6 +5757,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_head_of_security_nova_formal_blue.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5466,6 +5774,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_head_of_security_nova_parade_female.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5496,6 +5811,13 @@
       - state: equipped-INNERCLOTHING-4-c4
         color: "#39393F"
       - state: equipped-INNERCLOTHING-5
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#A52F29"
@@ -5528,6 +5850,13 @@
       - state: equipped-INNERCLOTHING-3
       - state: equipped-INNERCLOTHING-4-c3
         color: "#BA832F"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#BA832F"
@@ -5561,6 +5890,13 @@
         color: "#A52F29"
       - state: equipped-INNERCLOTHING-4-c4
         color: "#39393F"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#39393F"
@@ -5589,6 +5925,13 @@
       - state: equipped-INNERCLOTHING-2-c2
         color: "#39393F"
       - state: equipped-INNERCLOTHING-3
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#A52F29"
@@ -5627,6 +5970,13 @@
       - state: equipped-INNERCLOTHING-5-c3
         color: "#BA832F"
       - state: equipped-INNERCLOTHING-6
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#39393F"
@@ -5651,6 +6001,13 @@
       - state: equipped-INNERCLOTHING-1-c1
         color: "#39393F"
       - state: equipped-INNERCLOTHING-2
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#39393F"
@@ -5684,6 +6041,13 @@
       - state: equipped-INNERCLOTHING-4-c4
         color: "#39393F"
       - state: equipped-INNERCLOTHING-5
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#39393F"
@@ -5708,6 +6072,13 @@
       - state: equipped-INNERCLOTHING-1-c1
         color: "#A52F29"
       - state: equipped-INNERCLOTHING-2
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#A52F29"
@@ -5737,6 +6108,13 @@
       - state: equipped-INNERCLOTHING-3-c3
         color: "#BA832F"
       - state: equipped-INNERCLOTHING-4
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#39393F"
@@ -5768,6 +6146,13 @@
       - state: equipped-INNERCLOTHING-3-c3
         color: "#39393F"
       - state: equipped-INNERCLOTHING-4
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#A52F29"
@@ -5783,6 +6168,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_nova_utility.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5793,6 +6185,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_officer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5803,6 +6202,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_officer_beatcop.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5813,6 +6219,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_officer_blueshirt_nova_bouncer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5823,6 +6236,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_officer_blueshirt_nova_customs_agent.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5833,6 +6253,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_officer_blueshirt_nova_engineering_guard.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5843,6 +6270,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_officer_blueshirt_nova_orderly.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5853,6 +6287,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_officer_spacepol.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5863,6 +6304,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_prisoner_bunnysuit.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5873,6 +6321,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_security_assistant_bunnysuit.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5883,6 +6338,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_security_bunnysuit.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5893,6 +6355,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_warden.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5903,6 +6372,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_warden_bunnysuit.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5913,6 +6389,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_warden_nova.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5923,6 +6406,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_warden_nova_blue.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5933,6 +6423,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_warden_nova_suit.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -5943,6 +6440,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/rank_security_warden_nova_suit_blue.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6163,6 +6667,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/sol_peacekeeper.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6173,6 +6684,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/solfed.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6193,6 +6711,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/solfed_emergencymed.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6203,6 +6728,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/solfed_officer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6213,6 +6745,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/solfed_officer_lowrnk.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6223,6 +6762,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/solfed_official_civil.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6233,6 +6779,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/solfed_official_social.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6732,6 +7285,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_bloodred.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingUniformBase
@@ -6742,6 +7302,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_camo.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6752,6 +7319,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_combat.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6762,6 +7336,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_cybersun.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6772,6 +7353,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_floortilecamo.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6782,6 +7370,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_ninja.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6792,6 +7387,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_nova_baseball.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6822,6 +7424,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_nova_interdyne.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6832,6 +7441,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_nova_interdyne_deckofficer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6937,6 +7553,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_scrubs.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6947,6 +7570,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_sniper.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6957,6 +7587,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_soviet.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -6967,6 +7604,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/syndicate_syndibunny.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase
@@ -7045,6 +7689,13 @@
       - state: equipped-INNERCLOTHING-1-c1
         color: "#B7793D"
       - state: equipped-INNERCLOTHING-2
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
   - type: WFGags
     colors:
     - "#B7793D"
@@ -7058,6 +7709,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Uniforms/tarkon_general.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingUniformBase

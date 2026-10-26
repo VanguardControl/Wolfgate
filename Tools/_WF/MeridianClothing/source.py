@@ -350,7 +350,8 @@ def merge_runs(layers):
 class Source:
     def __init__(self, root):
         self.root = root
-        self.datums = ss13.load_datums(root, ("/obj/item/clothing", "/datum/greyscale_config", "/obj/item\n"))
+        self.datums = ss13.load_datums(
+            root, ("/obj/item/clothing", "/datum/greyscale_config", "/datum/armor", "/obj/item\n"))
         self.gags = Gags(self)
         self.files = self._files()
 

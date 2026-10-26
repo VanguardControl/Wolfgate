@@ -40,7 +40,6 @@
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingShoesBhopRocket
   - WFMeridianLoadoutClothingShoesBhopRocketJet
-  - WFMeridianLoadoutClothingShoesBoneGreaves
   - WFMeridianLoadoutClothingShoesBronze
   - WFMeridianLoadoutClothingShoesColorableLaceups
   - WFMeridianLoadoutClothingShoesColorableSandals
@@ -48,11 +47,7 @@
   - WFMeridianLoadoutClothingShoesDivineArcher
   - WFMeridianLoadoutClothingShoesFancyHeels
   - WFMeridianLoadoutClothingShoesFancyHeelsSandals
-  - WFMeridianLoadoutClothingShoesForgingPlateBoots
-  - WFMeridianLoadoutClothingShoesGaloshesDry
-  - WFMeridianLoadoutClothingShoesGaloshesHeeled
   - WFMeridianLoadoutClothingShoesGlow
-  - WFMeridianLoadoutClothingShoesGreavesOfTheProphet
   - WFMeridianLoadoutClothingShoesGriffin
   - WFMeridianLoadoutClothingShoesHighHeels
   - WFMeridianLoadoutClothingShoesJackbootsArmadyne
@@ -72,8 +67,6 @@
   - WFMeridianLoadoutClothingShoesJackbros
   - WFMeridianLoadoutClothingShoesJungleboots
   - WFMeridianLoadoutClothingShoesKindleKicks
-  - WFMeridianLoadoutClothingShoesPlate
-  - WFMeridianLoadoutClothingShoesPlateBlue
   - WFMeridianLoadoutClothingShoesRoman
   - WFMeridianLoadoutClothingShoesRussian
   - WFMeridianLoadoutClothingShoesSaints
@@ -188,7 +181,6 @@
   - WFMeridianLoadoutClothingGlassesEyepatchWhite
   - WFMeridianLoadoutClothingGlassesEyepatchWrap
   - WFMeridianLoadoutClothingGlassesGeistGazers
-  - WFMeridianLoadoutClothingGlassesGodeye
   - WFMeridianLoadoutClothingGlassesHeat
   - WFMeridianLoadoutClothingGlassesHudArAviator
   - WFMeridianLoadoutClothingGlassesHudArProjector
@@ -200,7 +192,6 @@
   - WFMeridianLoadoutClothingGlassesNightmareVision
   - WFMeridianLoadoutClothingGlassesOrange
   - WFMeridianLoadoutClothingGlassesOsi
-  - WFMeridianLoadoutClothingGlassesOverwatch
   - WFMeridianLoadoutClothingGlassesPhantom
   - WFMeridianLoadoutClothingGlassesPrismGlasses
   - WFMeridianLoadoutClothingGlassesRed
