@@ -1,5 +1,9 @@
 using System.Numerics;
 using Content.Shared._WF.PlanetPois;
+using Robust.Shared.Prototypes;
+using Robust.Shared.Serialization.Markdown.Mapping;
+using Robust.Shared.Serialization.Markdown.Sequence;
+using Robust.Shared.Serialization.Markdown.Value;
 
 namespace Content.Server._WF.PlanetPois;
 
@@ -36,19 +40,67 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>
-    /// The grid merge turns every entity with the grid, even one that never rotates (noRot), and that one only breaks
-    /// when it is deleted. Puts those back to no rotation.
+    /// The grid merge turns every entity with the grid. Puts back to no rotation the ones that never rotate (noRot),
+    /// which only break when deleted, and the ones whose smoothed sprite is drawn square to the grid.
     /// </summary>
     internal void UnturnFixedRotation(IEnumerable<EntityUid> entities)
     {
         foreach (var uid in entities)
         {
-            if (TerminatingOrDeleted(uid) || Transform(uid) is not { NoLocalRotation: true } xform || xform.LocalRotation == Angle.Zero)
+            if (TerminatingOrDeleted(uid) || Transform(uid) is not { } xform || xform.LocalRotation == Angle.Zero)
                 continue;
-            // Rotation writes are ignored while the flag is up; raising it again zeroes the rotation.
-            _transform.SetNoLocalRotation((uid, xform), false);
-            _transform.SetNoLocalRotation((uid, xform), true);
+            if (xform.NoLocalRotation)
+            {
+                // Rotation writes are ignored while the flag is up; raising it again zeroes the rotation.
+                _transform.SetNoLocalRotation((uid, xform), false);
+                _transform.SetNoLocalRotation((uid, xform), true);
+            }
+            else if (GridAligned(MetaData(uid).EntityPrototype?.ID))
+                _transform.SetLocalRotation(uid, Angle.Zero, xform);
         }
+    }
+
+    /// <summary>
+    /// True for a prototype whose IconSmooth mode (CardinalFlags, Bitmask) picks its state from grid neighbours
+    /// without allowing for its own rotation, so its one-direction sprite only joins up at rotation zero.
+    /// </summary>
+    internal bool GridAligned(string? prototype) =>
+        prototype != null && SmoothingMode(prototype, 0) is "CardinalFlags" or "Bitmask";
+
+    /// <summary>
+    /// The IconSmooth mode a prototype sets or inherits, null if none does. Read from the YAML by hand: the server
+    /// ignores the component, so it never merges a parent's into the child. An earlier parent wins, as in the merge.
+    /// </summary>
+    private string? SmoothingMode(string prototype, int depth)
+    {
+        if (depth > 32 || !_proto.TryGetMapping(typeof(EntityPrototype), prototype, out var mapping))
+            return null;
+
+        if (mapping.TryGet<SequenceDataNode>("components", out var components))
+        {
+            foreach (var component in components)
+            {
+                if (component is MappingDataNode node
+                    && node.TryGet<ValueDataNode>("type", out var type) && type.Value == "IconSmooth"
+                    && node.TryGet<ValueDataNode>("mode", out var mode))
+                    return mode.Value;
+            }
+        }
+
+        if (!mapping.TryGet("parent", out var parents))
+            return null;
+        if (parents is ValueDataNode single)
+            return SmoothingMode(single.Value, depth + 1);
+        if (parents is SequenceDataNode sequence)
+        {
+            foreach (var parent in sequence)
+            {
+                if (parent is ValueDataNode value && SmoothingMode(value.Value, depth + 1) is { } inherited)
+                    return inherited;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>The entry as placed after a turn: its footprint and entrances turned with the map.</summary>

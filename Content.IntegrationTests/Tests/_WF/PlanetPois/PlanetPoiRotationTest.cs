@@ -1,6 +1,7 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
+using Content.Client.IconSmoothing;
 using Content.Server._WF.PlanetPois;
 using Content.Shared._WF.PlanetPois;
 using Robust.Server.Physics;
@@ -20,6 +21,7 @@ public sealed class PlanetPoiRotationTest
 {
     private const string Station = "/Maps/_WF/PlanetPois/verda_gas_station.yml";
     private const string House = "/Maps/_WF/PlanetPois/verda_house_1.yml";
+    private const string Outpost = "/Maps/_WF/PlanetComms/comms_outpost.yml";
 
     [TestCase(Station, 0)]
     [TestCase(Station, 1)]
@@ -81,6 +83,100 @@ public sealed class PlanetPoiRotationTest
 
             entMan.DeleteEntity(target);
             maps.DeleteMap(sourceMap);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A turned site's smoothed walls and fences, whose sprites only join square to the grid, end at rotation zero;
+    /// everything else that rotates keeps its turn.
+    /// </summary>
+    [TestCase(1)]
+    [TestCase(2)]
+    [TestCase(3)]
+    public async Task ATurnedSiteKeepsItsSmoothedWallsSquare(int turns)
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+
+        await server.WaitAssertion(() =>
+        {
+            var poi = server.System<WFPlanetPoiSystem>();
+            var maps = server.System<SharedMapSystem>();
+            maps.CreateMap(out var sourceMap, runMapInit: false);
+            Assert.That(server.System<MapLoaderSystem>().TryLoadGrid(sourceMap, new ResPath(Outpost), out var loaded), Is.True);
+            var source = loaded!.Value;
+            var before = new Dictionary<EntityUid, Angle>();
+            var sourceChildren = entMan.GetComponent<TransformComponent>(source.Owner).ChildEnumerator;
+            while (sourceChildren.MoveNext(out var child))
+                before[child] = entMan.GetComponent<TransformComponent>(child).LocalRotation;
+
+            var target = maps.CreateMap(out _, runMapInit: false);
+            var targetGrid = entMan.AddComponent<MapGridComponent>(target);
+            server.System<SharedTransformSystem>().SetCoordinates(source.Owner, new EntityCoordinates(target, System.Numerics.Vector2.Zero));
+            var turn = Angle.FromDegrees(90 * turns);
+            server.System<GridFixtureSystem>().Merge(target, source.Owner, Vector2i.Zero, turn, targetGrid, source.Comp);
+            poi.UnturnFixedRotation(before.Keys);
+
+            var square = new HashSet<string>();
+            var turned = new HashSet<string>();
+            foreach (var (uid, rotation) in before)
+            {
+                if (entMan.Deleted(uid))
+                    continue;
+                var xform = entMan.GetComponent<TransformComponent>(uid);
+                var id = entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID ?? "";
+                Assert.That(xform.ParentUid, Is.EqualTo(target), $"{entMan.ToPrettyString(uid)} should be on the merged grid.");
+                if (poi.GridAligned(id))
+                {
+                    Assert.That(xform.LocalRotation.EqualsApprox(Angle.Zero), $"{entMan.ToPrettyString(uid)} should be square to the grid, not {xform.LocalRotation}.");
+                    square.Add(id);
+                }
+                else if (!xform.NoLocalRotation)
+                {
+                    Assert.That(xform.LocalRotation.EqualsApprox(rotation + turn), $"{entMan.ToPrettyString(uid)} should keep its turn: {rotation + turn}, not {xform.LocalRotation}.");
+                    turned.Add(id);
+                }
+            }
+
+            Assert.That(square, Does.Contain("ShiptestConcreteReinforced").And.Contain("CMFence"));
+            Assert.That(turned, Does.Contain("HighSecDoor").And.Contain("ComputerRadar").And.Contain("ParaChairOfficeDark"));
+
+            entMan.DeleteEntity(target);
+            maps.DeleteMap(sourceMap);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The server's reading of which prototypes join square to the grid matches the client's smoothing modes.</summary>
+    [Test]
+    public async Task GridAlignedMatchesTheClientsSmoothing()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var client = pair.Client;
+        var server = pair.Server;
+        var squareOnClient = new Dictionary<string, bool>();
+
+        await client.WaitAssertion(() =>
+        {
+            var factory = client.ResolveDependency<IComponentFactory>();
+            foreach (var proto in client.ProtoMan.EnumeratePrototypes<EntityPrototype>())
+            {
+                squareOnClient[proto.ID] = proto.TryGetComponent<IconSmoothComponent>(out var smooth, factory)
+                                           && smooth.Mode is IconSmoothingMode.CardinalFlags or IconSmoothingMode.Bitmask;
+            }
+        });
+
+        await server.WaitAssertion(() =>
+        {
+            var poi = server.System<WFPlanetPoiSystem>();
+            var wrong = squareOnClient.Where(entry => poi.GridAligned(entry.Key) != entry.Value).Select(entry => entry.Key).ToList();
+            Assert.That(wrong, Is.Empty, "The server misreads these prototypes' smoothing.");
+            Assert.That(squareOnClient["ShiptestConcreteReinforced"] && squareOnClient["CMFence"], Is.True);
+            Assert.That(squareOnClient["WallConcrete"], Is.False, "Corner-smoothed walls allow for their own rotation.");
         });
 
         await pair.CleanReturnAsync();
