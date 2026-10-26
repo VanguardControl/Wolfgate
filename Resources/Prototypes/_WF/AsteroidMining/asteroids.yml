@@ -10,7 +10,7 @@
   id: WFAsteroidRockBase
   abstract: true
   name: asteroid
-  description: A drifting rock. Put a mining laser on it to see what it holds.
+  description: A drifting rock, pocked with old impacts. Who knows what is locked away inside.
   placement:
     mode: SnapgridCenter
   components:
@@ -241,7 +241,7 @@
   parent: WFAsteroidRockBase
   id: WFAsteroidBoulder
   name: asteroid boulder
-  description: A chunk of asteroid. Break it with a pickaxe or drill, or crack it with a mining laser.
+  description: A loose chunk of asteroid, small enough to break apart by hand.
   placement:
     mode: PlaceFree
   components:

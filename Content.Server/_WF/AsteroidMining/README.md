@@ -31,7 +31,8 @@ asteroids instead: plain rock with no ore, but the same gas deposits, anomaly ro
 - **Cracking:** the `WFWeaponTurretMiningBeam` (M40 Prospector, heavy) and `WFWeaponTurretMiningLaserSmall` (M12
   Prospector, light: 40 m, about half the heat and a quarter of the crack speed, too weak to overcharge a rock alone) are energy ship guns in the M25/Apollo family, aimed
   and fired from a gunnery console. Their hitscan pulses (10 a second) heat the asteroid or boulder they hit instead of
-  damaging it, and their forks spin while they fire. The gunnery console grows a mining laser panel
+  damaging it, and their forks spin while they fire. They are power-hungry: an M40 draws 5 kW from the grid while
+  firing (1 kW idle) and an M12 1.9 kW (0.4 kW idle), so a laser has to fit the ship's power budget. The gunnery console grows a mining laser panel
   (`FireControlWindow.AsteroidMining`, under the shield control) once its ship has a mining laser: it sets the power
   of every mining laser on the ship in 1/10% steps (50% by default) and scans the rock they are on, or were last on
   while it cools (ores, plain rock, resistance, heat and window, crack progress, yield). Heat settles at

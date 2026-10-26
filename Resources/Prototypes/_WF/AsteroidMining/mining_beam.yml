@@ -5,7 +5,7 @@
   - BallisticArtillery
   - BallisticArtilleryTier2HP
   - ConstructibleMachine
-  description: A heavy mining laser. Keep it on an asteroid until the rock cracks, and set its power from the gunnery console. Cracks metallic rock on its own, but can blow a rock apart at full power. Useless against anything else.
+  description: A heavy industrial mining laser. It pours heat into an asteroid until the gases trapped inside expand and split the rock apart from within. Push it too hard and the rock goes off all at once.
   components:
   - type: StaticPrice
     price: 6000
@@ -16,13 +16,14 @@
       map: [ "enum.WFMiningBeamVisualLayers.Base" ]
   - type: Appearance
   - type: AmmoCounter
+  # Draws 5 kW from the grid while firing and 1 kW idle; firing outpaces the recharge slightly, so a full battery covers a minute.
   - type: Battery
-    maxCharge: 3000
-    startingCharge: 3000
+    maxCharge: 30000
+    startingCharge: 30000
   - type: ExaminableBattery
   - type: BatterySelfRecharger
     autoRecharge: true
-    autoRechargeRate: 300
+    autoRechargeRate: 4000
   - type: WirelessNetworkConnection
     range: 500
   - type: FireControlRotate
@@ -36,13 +37,13 @@
     soundEmpty:
       path: /Audio/Weapons/Guns/EmptyAlarm/smg_empty_alarm.ogg
   - type: SpaceArtillery
-    powerChargeRate: 300
-    powerUsePassive: 500
+    powerChargeRate: 4000
+    powerUsePassive: 1000
     powerUseActive: 0
   - type: Actions
   - type: HitscanBatteryAmmoProvider
     proto: WFMiningBeamPulse
-    fireCost: 25
+    fireCost: 450
   - type: Machine
     board: WFWeaponTurretMiningBeamCircuitboard
   - type: ContainerContainer
@@ -150,7 +151,7 @@
   - BallisticArtillery
   - BallisticArtilleryTier1HP
   - ConstructibleMachine
-  description: A light mining laser. Much slower than the M40 and too weak to blow a rock apart. Metallic rock takes two of them.
+  description: A compact mining laser for smaller ships. It slowly heats an asteroid until the gases trapped inside expand and crack the rock open.
   components:
   - type: StaticPrice
     price: 2000
@@ -161,13 +162,14 @@
       map: [ "enum.WFMiningBeamVisualLayers.Base" ]
   - type: Appearance
   - type: AmmoCounter
+  # Draws 1.9 kW from the grid while firing and 0.4 kW idle; a full battery covers a minute of fire.
   - type: Battery
-    maxCharge: 1500
-    startingCharge: 1500
+    maxCharge: 6000
+    startingCharge: 6000
   - type: ExaminableBattery
   - type: BatterySelfRecharger
     autoRecharge: true
-    autoRechargeRate: 150
+    autoRechargeRate: 1500
   - type: WirelessNetworkConnection
     range: 500
   - type: FireControlRotate
@@ -181,13 +183,13 @@
     soundEmpty:
       path: /Audio/Weapons/Guns/EmptyAlarm/smg_empty_alarm.ogg
   - type: SpaceArtillery
-    powerChargeRate: 150
-    powerUsePassive: 250
+    powerChargeRate: 1500
+    powerUsePassive: 400
     powerUseActive: 0
   - type: Actions
   - type: HitscanBatteryAmmoProvider
     proto: WFMiningBeamPulseSmall
-    fireCost: 12
+    fireCost: 160
   - type: Machine
     board: WFWeaponTurretMiningLaserSmallCircuitboard
   - type: ContainerContainer
