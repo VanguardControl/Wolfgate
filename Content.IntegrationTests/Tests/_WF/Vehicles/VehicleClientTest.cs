@@ -139,6 +139,63 @@ public sealed class VehicleClientTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// A server delete (a round ending, a wreck cleared) parks the vehicle's local loops in nullspace before the
+    /// vehicle goes, while the audio system refuses to stop anything: left there, they idle over the lobby.
+    /// </summary>
+    [Test]
+    public async Task ADeletedVehicleLeavesNoLoopsForTheLobby()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var vehicle = EntityUid.Invalid;
+        await server.WaitPost(() =>
+        {
+            var body = server.EntMan.SpawnEntity("MobObserver", map.GridCoords);
+            server.PlayerMan.SetAttachedEntity(pair.Player!, body);
+            vehicle = server.EntMan.SpawnEntity("WFVehicleTestChassis", map.GridCoords.Offset(new System.Numerics.Vector2(3f, 0f)));
+            var engine = server.EntMan.EnsureComponent<WFVehicleEngineComponent>(vehicle);
+            engine.Electrics = engine.Running = true;
+            server.EntMan.Dirty(vehicle, engine);
+        });
+        await pair.RunTicksSync(10);
+
+        var netVehicle = server.EntMan.GetNetEntity(vehicle);
+        var streams = new List<EntityUid>();
+        await pair.Client.WaitAssertion(() =>
+        {
+            var em = pair.Client.EntMan;
+            Assert.That(em.TryGetEntity(netVehicle, out var seen), Is.True, "The client never saw the vehicle.");
+            var audio = em.EnsureComponent<WFVehicleEngineAudioComponent>(seen!.Value);
+            audio.IdleLoop = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/_WF/Vehicles/RCSM/engines/patria/idle.ogg");
+            audio.TracksLoop = new Robust.Shared.Audio.SoundPathSpecifier("/Audio/_WF/Vehicles/RCSM/wheels/road.ogg");
+            pair.Client.System<WFVehicleAudioSystem>().FrameUpdate(0.1f);
+            Assert.That(audio.IdleStream, Is.Not.Null, "A running engine in earshot should idle.");
+            streams.Add(audio.IdleStream!.Value);
+            streams.Add(audio.TracksStream!.Value);
+        });
+
+        // The round ends: the vehicle goes while still in view, then the player goes back to the lobby.
+        await server.WaitPost(() => server.EntMan.DeleteEntity(vehicle));
+        await pair.RunTicksSync(5);
+        await server.WaitPost(() => server.PlayerMan.SetAttachedEntity(pair.Player!, null));
+        await pair.RunTicksSync(5);
+
+        await pair.Client.WaitAssertion(() =>
+        {
+            var em = pair.Client.EntMan;
+            Assert.That(em.TryGetEntity(netVehicle, out _), Is.False, "The vehicle outlived its server delete.");
+            foreach (var stream in streams)
+                Assert.That(em.Deleted(stream), Is.True, "A vehicle loop survived its vehicle and plays on in nullspace.");
+            var playing = em.EntityQuery<Robust.Shared.Audio.Components.AudioComponent>()
+                .Select(audio => audio.FileName)
+                .Count(file => file.Contains("/_WF/Vehicles/"));
+            Assert.That(playing, Is.Zero, "Vehicle audio is still playing with no vehicle about.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
     private static IEnumerable<Control> Descendants(Control root)
     {
         foreach (var child in root.Children)

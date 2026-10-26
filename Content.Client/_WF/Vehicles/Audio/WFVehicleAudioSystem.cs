@@ -54,7 +54,7 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
 
     private void OnTurretShutdown(Entity<WFTurretTraverseAudioComponent> ent, ref ComponentShutdown args)
     {
-        ent.Comp.LoopStream = _audio.Stop(ent.Comp.LoopStream);
+        ent.Comp.LoopStream = Silence(ent.Comp.LoopStream);
     }
 
     public override void FrameUpdate(float frameTime)
@@ -75,7 +75,7 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
         while (turrets.MoveNext(out var uid, out var audio, out var turret, out var xform))
         {
             if (xform.MapID == MapId.Nullspace)
-                audio.LoopStream = _audio.Stop(audio.LoopStream);
+                audio.LoopStream = Silence(audio.LoopStream);
             else
                 UpdateTurret(uid, audio, turret, frameTime);
         }
@@ -256,7 +256,7 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
             if (audio.StillTime >= audio.StopGrace)
             {
                 audio.Turning = false;
-                audio.LoopStream = _audio.Stop(audio.LoopStream);
+                audio.LoopStream = Silence(audio.LoopStream);
                 PlayOnce(audio.StopSound, uid, audio.Params);
             }
         }
@@ -302,10 +302,21 @@ public sealed partial class WFVehicleAudioSystem : EntitySystem
 
     private void StopLoops(WFVehicleEngineAudioComponent engine)
     {
-        engine.IdleStream = _audio.Stop(engine.IdleStream);
-        engine.DriveStream = _audio.Stop(engine.DriveStream);
-        engine.TracksStream = _audio.Stop(engine.TracksStream);
-        engine.PivotStream = _audio.Stop(engine.PivotStream);
-        engine.HighStream = _audio.Stop(engine.HighStream);
+        engine.IdleStream = Silence(engine.IdleStream);
+        engine.DriveStream = Silence(engine.DriveStream);
+        engine.TracksStream = Silence(engine.TracksStream);
+        engine.PivotStream = Silence(engine.PivotStream);
+        engine.HighStream = Silence(engine.HighStream);
+    }
+
+    /// <summary>
+    /// Deletes a local loop outright. The audio system's Stop is refused while server states apply, and a
+    /// server delete of the vehicle first parks its loops in nullspace, where they would play on over the lobby.
+    /// </summary>
+    private EntityUid? Silence(EntityUid? stream)
+    {
+        if (stream is { } uid && !TerminatingOrDeleted(uid))
+            QueueDel(uid);
+        return null;
     }
 }
