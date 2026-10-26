@@ -6,6 +6,7 @@ using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Item;
 using Content.Shared.Popups;
+using Content.Shared.Tag;
 using Content.Shared.Tools.Systems;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Prototypes;
@@ -27,6 +28,7 @@ public sealed class WFRegrowingHarvestSystem : EntitySystem
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedToolSystem _tool = default!;
+    [Dependency] private TagSystem _tags = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
     private const float RegrowCheckSeconds = 1f;
@@ -54,12 +56,14 @@ public sealed class WFRegrowingHarvestSystem : EntitySystem
         if (args.Handled)
             return;
 
-        if (ent.Comp.Tool is { } tool)
+        if (ent.Comp.Tool != null || ent.Comp.ToolTags.Count > 0)
         {
             // Only tell them when there's something to pick.
             if (ent.Comp.Harvested)
                 return;
-            var toolName = Loc.GetString(_proto.Index(tool).ToolName);
+            var toolName = ent.Comp.ToolHint is { } hint ? Loc.GetString(hint)
+                : ent.Comp.Tool is { } tool ? Loc.GetString(_proto.Index(tool).ToolName)
+                : Loc.GetString("wf-harvest-tool-generic");
             _popup.PopupEntity(Loc.GetString("wf-harvest-needs-tool", ("tool", toolName)), ent, args.User);
             args.Handled = true;
             return;
@@ -70,7 +74,11 @@ public sealed class WFRegrowingHarvestSystem : EntitySystem
 
     private void OnInteractUsing(Entity<WFRegrowingHarvestComponent> ent, ref InteractUsingEvent args)
     {
-        if (args.Handled || ent.Comp.Tool is not { } tool || !_tool.HasQuality(args.Used, tool))
+        if (args.Handled)
+            return;
+
+        var byQuality = ent.Comp.Tool is { } tool && _tool.HasQuality(args.Used, tool);
+        if (!byQuality && !_tags.HasAnyTag(args.Used, ent.Comp.ToolTags))
             return;
 
         if (ent.Comp.Harvested)
@@ -80,8 +88,21 @@ public sealed class WFRegrowingHarvestSystem : EntitySystem
             return;
         }
 
-        args.Handled = _tool.UseTool(args.Used, args.User, ent, (float) ent.Comp.HarvestTime.TotalSeconds, tool.Id,
-            new WFHarvestDoAfterEvent());
+        if (byQuality)
+        {
+            args.Handled = _tool.UseTool(args.Used, args.User, ent, (float) ent.Comp.HarvestTime.TotalSeconds, ent.Comp.Tool!.Value.Id,
+                new WFHarvestDoAfterEvent());
+            return;
+        }
+
+        // A tagged tool such as a pickaxe has no quality to run the tool system with, so it's a plain do-after.
+        var doAfter = new DoAfterArgs(EntityManager, args.User, ent.Comp.HarvestTime, new WFHarvestDoAfterEvent(), ent, target: ent, used: args.Used)
+        {
+            BreakOnMove = true,
+            BreakOnDamage = true,
+            NeedHand = true,
+        };
+        args.Handled = _doAfter.TryStartDoAfter(doAfter);
     }
 
     /// <summary>Starts picking the plant by hand; false if there's nothing to pick.</summary>

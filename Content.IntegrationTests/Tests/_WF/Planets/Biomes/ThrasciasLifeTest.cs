@@ -179,6 +179,8 @@ public sealed class ThrasciasLifeTest
             Assert.That(needs?.Id, Is.EqualTo("Digging"), "Ice crystals are chipped with a digging tool.");
             var shovel = entMan.SpawnEntity("Shovel", new EntityCoordinates(grid, 2.5f, 0.5f));
             Assert.That(tools.HasQuality(shovel, needs!.Value.Id), Is.True, "A shovel should be able to chip an ice crystal.");
+            Assert.That(entMan.GetComponent<WFRegrowingHarvestComponent>(crystal).ToolTags.Select(tag => tag.Id), Does.Contain("Pickaxe"),
+                "A pickaxe should chip an ice crystal too.");
             Assert.That(entMan.HasComponent<WFRegrowingHarvestComponent>(
                 entMan.SpawnEntity("WFFloraIceCrystal", new EntityCoordinates(grid, 3.5f, 0.5f))), Is.True);
         });

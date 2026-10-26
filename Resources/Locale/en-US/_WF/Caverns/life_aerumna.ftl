@@ -22,7 +22,7 @@ ent-WFCavernPaleLichenPlant = pale lichen
     .desc = A crust of pale lichen on the bedrock. Cut it with a knife and it grows back.
 
 ent-WFCavernGeodeCluster = geode cluster
-    .desc = Pink crystal grown thick in a crack in the rock. A shovel chips shards off it, and it grows back.
+    .desc = Pink crystal grown thick in a crack in the rock. A pickaxe or shovel chips shards off it, and it grows back.
 
 ent-WFCavernGeodeBloom = geode bloom
     .desc = A pink geode that has grown too full. Walk up to it and it cracks, then bursts in sharp shards.

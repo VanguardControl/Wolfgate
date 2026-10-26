@@ -1,6 +1,7 @@
 using Content.Shared.DoAfter;
 using Content.Shared.EntityList;
 using Content.Shared.EntityTable.EntitySelectors;
+using Content.Shared.Tag;
 using Content.Shared.Tools;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
@@ -32,6 +33,14 @@ public sealed partial class WFRegrowingHarvestComponent : Component
     /// <summary>A tool quality needed to harvest, such as Slicing; none means bare hands.</summary>
     [DataField]
     public ProtoId<ToolQualityPrototype>? Tool;
+
+    /// <summary>Tools with any of these tags harvest it too, such as a pickaxe, which has no tool quality.</summary>
+    [DataField]
+    public List<ProtoId<TagPrototype>> ToolTags = new();
+
+    /// <summary>What the "needs a tool" popup names instead of the tool quality's name.</summary>
+    [DataField]
+    public LocId? ToolHint;
 
     [DataField]
     public SoundSpecifier? HarvestSound = new SoundPathSpecifier("/Audio/Effects/plant_rustle.ogg");

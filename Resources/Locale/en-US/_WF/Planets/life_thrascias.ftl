@@ -31,7 +31,7 @@ ent-WFFloraFrostbelle = frostbelle
     .desc = A hardy blue flower that grows in the snow. Pick the blooms and eat them to numb pain, though they leave you slow.
 
 ent-WFFloraIceCrystal = ice crystal
-    .desc = A cluster of clear crystal frozen into the ice. A shovel will chip shards off it, and it grows back.
+    .desc = A cluster of clear crystal frozen into the ice. A pickaxe or shovel will chip shards off it, and it grows back.
 
 ent-WFFloraCrystalBloom = crystal bloom
     .desc = A plant that grows glowing crystal fruit. You can pick a shard from it.

@@ -358,7 +358,7 @@
         amount: !type:RangeNumberSelector
           range: 1, 2
 
-# A frozen crystal cluster; chipped with a shovel (the only digging tool there is) for shards, and it regrows.
+# A frozen crystal cluster; chipped with a pickaxe or shovel for shards, and it regrows.
 - type: entity
   parent: BaseFlora
   id: WFFloraIceCrystal
@@ -400,6 +400,8 @@
         acts: [ "Destruction" ]
   - type: WFRegrowingHarvest
     tool: Digging
+    toolTags: [ Pickaxe ]
+    toolHint: wf-harvest-tool-pickaxe-or-shovel
     harvestTime: 3
     regrowTime: 720
     harvestSound:

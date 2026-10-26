@@ -5,6 +5,8 @@ wf-flora-struggle = You strain against the grip.
 wf-flora-released = The grip lets go.
 
 wf-harvest-needs-tool = You need a {$tool} to harvest this.
+wf-harvest-tool-generic = tool
+wf-harvest-tool-pickaxe-or-shovel = pickaxe or shovel
 wf-harvest-bare = {CAPITALIZE(THE($plant))} has nothing left to pick.
 wf-harvest-examine-ripe = It's ready to pick.
 wf-harvest-examine-bare = It's been picked clean. It'll grow back.

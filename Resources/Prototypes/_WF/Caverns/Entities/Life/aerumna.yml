@@ -223,7 +223,7 @@
         amount: !type:RangeNumberSelector
           range: 1, 2
 
-# A pink crystal cluster in the geodes; chipped with a shovel for shards, and it grows back.
+# A pink crystal cluster in the geodes; chipped with a pickaxe or shovel for shards, and it grows back.
 - type: entity
   parent: BaseFlora
   id: WFCavernGeodeCluster
@@ -245,6 +245,8 @@
           False: { scale: "1,1", color: "#ff9ad8" }
   - type: WFRegrowingHarvest
     tool: Digging
+    toolTags: [ Pickaxe ]
+    toolHint: wf-harvest-tool-pickaxe-or-shovel
     harvestTime: 3
     regrowTime: 720
     harvestSound:
