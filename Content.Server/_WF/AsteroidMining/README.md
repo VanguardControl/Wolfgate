@@ -118,6 +118,7 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 
 ### Client
 
+- [`Content.Client/_WF/AsteroidMining/BaseShuttleControl.GridBatch.cs`](../../../Content.Client/_WF/AsteroidMining/BaseShuttleControl.GridBatch.cs)
 - [`Content.Client/_WF/AsteroidMining/FireControlWindow.AsteroidMining.cs`](../../../Content.Client/_WF/AsteroidMining/FireControlWindow.AsteroidMining.cs)
 - [`Content.Client/_WF/AsteroidMining/WFAsteroidCrackOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFAsteroidCrackOverlay.cs)
 - [`Content.Client/_WF/AsteroidMining/WFAsteroidFarOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFAsteroidFarOverlay.cs)
@@ -178,6 +179,17 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 ## Non-modular edits
 
 - [`Content.Client/_Mono/FireControl/UI/FireControlConsoleBoundUserInterface.cs`](../../../Content.Client/_Mono/FireControl/UI/FireControlConsoleBoundUserInterface.cs): the mining laser panel's scan
+- [`Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs`](../../../Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs)
+  - queue lets the radar's grid loops batch every grid into one draw call
+  - queued grids are transformed and drawn with the rest of their loop
+  - small grids aren't worth a thread-pool round trip
+- [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs)
+  - batched with the other grids
+  - queued outlines go under this label, as before
+  - redrew every blip so far once per grid; drawn once after the loop
+  - drawn once per grid inside the loop; drawn once after it instead
+  - per-grid draws moved out of the loop, so its grids batch into one draw call
+  - docks draw over their grid's queued outline
 - [`Content.Server/Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs`](../../Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs)
   - drifting rocks left a stale key per move
   - a placing handler may swap the debris
