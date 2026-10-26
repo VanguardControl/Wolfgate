@@ -1,5 +1,5 @@
-# Blackanvil Chop-Shop: an illegal drydock on Anvilhold's layout. Its berths only break ships, hand back a quarter of
-# the yield as sheets at the console and pay cash for the rest. Breaking a registered ship or a lawful NPC ship posts
+# Blackanvil Chop-Shop: an illegal drydock on Anvilhold's layout. Its berths only break ships, and print 80% of the
+# ship's shipyard value in thalers by the console as its tiles come off. Breaking a registered ship or a lawful NPC ship posts
 # a warrant on the breaker. See the Drydock README.
 
 - type: entity
@@ -21,7 +21,7 @@
       state: blackmarket_key
   - type: WFDrydockConsole
     refits: []
-  # Same break yields as the mobile drydock; the chop shop then splits them into sheets and cash.
+  # Break yields only mark the console as one that breaks hulls; the chop shop pays in thalers instead.
   - type: WFDrydockMaterialPayment
     structureYield: 0.02
     breakDefaultYield: 0.5
@@ -33,8 +33,7 @@
     breakTileSalvage:
       RawScrap: 200
   - type: WFDrydockChopShop
-    materialShare: 0.25
-    cashRate: 0.75
+    valueShare: 0.8
     warrantReward: 15000
     outlawFactions:
     - PirateNF

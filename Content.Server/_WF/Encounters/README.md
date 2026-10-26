@@ -336,7 +336,9 @@ are always real), freight value and payouts, follow-up encounters, and a real FT
   - flag a ship held by docking clamps on the plot.
   - a clamped port's undock says so.
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs): Sector markers for visible encounters.
-- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs): tests spawn real ships unless they turn simulation on
+- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs)
+  - tests spawn real ships unless they turn simulation on
+  - a round-restart vote throws on a dummy session's join
 - [`Content.Server/Cargo/Systems/PricingSystem.cs`](../../Cargo/Systems/PricingSystem.cs): a claimed hulk is worth a fraction of its parts
 - [`Content.Server/Shuttles/Systems/DockingSystem.cs`](../../Shuttles/Systems/DockingSystem.cs): a raider's docking clamps hold the ship until released at its helm.
 - [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs): docking screens show clamped ports.

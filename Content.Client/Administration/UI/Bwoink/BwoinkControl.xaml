@@ -11,6 +11,8 @@
                     <Control HorizontalExpand="True" MinWidth="5" />
                     <CheckBox Name="PlaySound" Access="Public" Text="{Loc 'admin-bwoink-play-sound'}" Pressed="True" />
                     <Control HorizontalExpand="True" MinWidth="5" />
+                    <!-- WOLFGATE(AHelpResolve): resolve button -->
+                    <Button Name="Resolve" Text="{Loc 'wf-bwoink-resolve-button'}" ToolTip="{Loc 'wf-bwoink-resolve-tooltip'}" StyleClasses="OpenBoth" Disabled="True" />
                     <Button Visible="True" Name="PopOut" Access="Public" Text="{Loc 'admin-logs-pop-out'}" StyleClasses="OpenBoth" HorizontalAlignment="Left" />
                     <Control HorizontalExpand="True" />
                     <Button Visible="False" Name="Bans" Text="{Loc 'admin-player-actions-bans'}" StyleClasses="OpenRight" />

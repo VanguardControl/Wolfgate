@@ -3102,3 +3102,280 @@ Entries:
   id: 100219
   time: '2026-10-25T02:03:54.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/345
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Added a jukebox volume slider to the options menu.
+    - type: Tweak
+      message: >-
+        The chop-shop now pays 80% of a ship's shipyard value in thalers per
+        tile.
+    - type: Fix
+      message: >-
+        Ownerless spawned vessels can be broken at the chop-shop, and it now
+        tells you why it refuses a hull.
+    - type: Fix
+      message: >-
+        Auto get-up keeps working when a player enters or leaves a body
+        mid-knockdown.
+    - type: Fix
+      message: Ghost chat links no longer try to follow speakers in nullspace.
+  id: 100220
+  time: '2026-10-25T05:30:06.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/349
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Ship owners can add an ID card they're holding to their ship's access
+        list from the shuttle console's Access tab. The card's owner doesn't
+        need to be there.
+  id: 100221
+  time: '2026-10-25T05:33:05.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/350
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Buying a safety deposit box now asks you to confirm the size and price
+        first.
+    - type: Tweak
+      message: >-
+        The safety deposit box guide now lists everything a box refuses, and
+        updates itself when that list changes.
+  id: 100222
+  time: '2026-10-25T05:43:53.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/348
+- author: Balls2zawall
+  changes:
+    - type: Tweak
+      message: >-
+        Tweaked Helios to fit new mapping standards. Wallmounts on windows and
+        harsh lighting artifacts have been removed.
+  id: 100223
+  time: '2026-10-25T07:24:53.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/347
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Mops, cleanbots and space cleaner now clean up dirt decals, including
+        the grime already placed on maps.
+    - type: Fix
+      message: The Avali tail wag button no longer makes you start flying.
+  id: 100224
+  time: '2026-10-25T07:45:14.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/353
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Crew starts no longer spawn you outside the ship or on a gun. You start
+        inside, in breathable air, or in the cockpit on small pods.
+  id: 100225
+  time: '2026-10-25T07:45:23.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/352
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        The TSFMC Industrial Materials Crate now contains copper and lithium
+        instead of uranium and plasma.
+    - type: Fix
+      message: >-
+        The TSFMC Exotic Materials Crate description now says it contains 1
+        fissile uranium plate.
+  id: 100226
+  time: '2026-10-25T08:08:07.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/356
+- author: Balls2zawall
+  changes:
+    - type: Tweak
+      message: >-
+        Tweaked the Dredger's radar profile and cockpit layout, and put an
+        emergency light in the salvage bay.
+  id: 100227
+  time: '2026-10-25T08:35:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/355
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Platelet Factories and other positive traits no longer turn themselves
+        off when you join with downside traits.
+    - type: Fix
+      message: >-
+        The character creator now fits smaller windows and the in-round creator
+        window. The preview panel scrolls instead of stacking its buttons, and
+        the marking grids shrink to fit.
+    - type: Fix
+      message: >-
+        Cockpit flight dials now shrink only as much as needed instead of
+        dropping to a tiny size and leaving a gap above the fuel gauge.
+    - type: Fix
+      message: >-
+        The cockpit docking plot is a usable size again at mid resolutions such
+        as 1366x768.
+    - type: Fix
+      message: >-
+        The stealth suit, other stealth effects, shield outlines, holopad
+        holograms and tile shaders render properly again since the engine
+        update.
+  id: 100228
+  time: '2026-10-25T08:35:28.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/357
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Mapping mode: an Export wizard that checks your map for problems
+        (missing console, docks, thrusters, power, unsaveable mobs and more),
+        lets you fill in the ship details, and downloads one zip laid out for
+        the repo. Also exports multi-level maps, or just the bare grid file for
+        POIs.
+    - type: Add
+      message: >-
+        Mapping mode: Test map. One click loads a copy of your ship next to a
+        test station and spawns you on it as your character; Back to mapping
+        returns you to where you were.
+    - type: Fix
+      message: >-
+        Mapping mode saves a multi-level map as one package instead of one
+        prompt per level.
+  id: 100229
+  time: '2026-10-25T09:35:01.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/354
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        You can now offer items in your hand so other player can accept them,
+        default keybind is J
+    - type: Add
+      message: >-
+        If you point to an item currently in your hands or worn, you will
+        display it for others to see.
+  id: 100230
+  time: '2026-10-25T20:38:24.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/358
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Docked ships now count toward FTL mass, so a small docked drive pod no
+        longer makes a heavy ship spool up, travel and cool down faster.
+  id: 100231
+  time: '2026-10-25T20:38:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/359
+- author: DriftingSkies
+  changes:
+    - type: Fix
+      message: fixes markings being deleted with modsuit control modules
+  id: 100232
+  time: '2026-10-25T20:43:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/361
+- author: Balls2zawall
+  changes:
+    - type: Tweak
+      message: >-
+        Re-lit most of Flagship Halcyon and got rid of jarring dark corners,
+        bringing it up to current standards.
+  id: 100233
+  time: '2026-10-25T20:43:20.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/360
+- author: Balls2zawall
+  changes:
+    - type: Tweak
+      message: >-
+        Added a surgery room in the underground fugitive base, and took a quick
+        pass at lighting so there's not as many pitch black corners and doors
+        you can't see.
+  id: 100234
+  time: '2026-10-25T21:06:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/362
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Dead or shut-down synthetics can no longer use their own chassis panel.
+        Mechanics linked in with a multitool still can.
+    - type: Tweak
+      message: Chassis reboot now has a 2-minute cooldown.
+    - type: Fix
+      message: Synthetics now get cold on depressurised tiles, not just in open space.
+    - type: Fix
+      message: Oculine now heals injured eyes, not just flash damage.
+    - type: Fix
+      message: >-
+        The used ship dealer takes back voucher ships. You don't get paid for
+        them.
+    - type: Fix
+      message: >-
+        Cells and other items a deposit box refuses can't be smuggled inside a
+        device anymore. They get handed back when you deposit.
+  id: 100235
+  time: '2026-10-25T22:18:15.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/363
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Admins can mark an ahelp as resolved with the new Resolve button, and
+        the player is told it's resolved.
+    - type: Tweak
+      message: >-
+        Once a staff member answers an ahelp, the player's messages stop
+        bwoinking staff until it's resolved. Staff replies no longer bwoink
+        other staff.
+    - type: Fix
+      message: >-
+        The play sound box in the ahelp panel now works when the panel is popped
+        out and for event staff.
+    - type: Fix
+      message: >-
+        Admin-only ahelp messages no longer reach the player when the panel is
+        popped out.
+  id: 100236
+  time: '2026-10-25T23:55:06.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/364
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Typing or pasting a colour into the custom colour picker no longer
+        changes it to a different value.
+    - type: Fix
+      message: >-
+        Applied markings in the character creator no longer pile on top of each
+        other after adding and removing them.
+  id: 100237
+  time: '2026-10-26T01:56:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/365
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Fixed the client freezing and lagging with "Can't resolve
+        TransformComponent" error spam, mostly near ships changing Z-levels.
+  id: 100238
+  time: '2026-10-26T02:04:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/368
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Most species now get 8 leg and arm marking slots, plus 4 chest and 4
+        head slots.
+  id: 100239
+  time: '2026-10-26T03:47:42.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/370
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        The "no admins online" ahelp ping can now go to its own Discord channel
+        without the full ahelp relay. Set discord.on_call_webhook and leave
+        discord.ahelp_webhook empty.
+  id: 100240
+  time: '2026-10-26T03:53:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/369

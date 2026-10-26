@@ -268,6 +268,9 @@ unmarked:
   - path: Resources/Maps/_Mono/POI/underground.yml
     module: LockableButtons
     reason: The two blast door buttons take Underground access; the station's crew has no Pirate access.
+  - path: Resources/Maps/_Mono/POI/pdvhelios.yml
+    module: null
+    reason: Helios mapping fixes for lighting, wallmounts and small layout tweaks.
   - path: Resources/Textures/Tiles/exoborg.png
     module: Xenoborgs
     reason: Exoborg floor tile redrawn.

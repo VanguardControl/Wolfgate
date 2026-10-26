@@ -112,6 +112,10 @@ public sealed class GhostOrbitSystem : EntitySystem
         if (!Exists(target) || target == ghost)
             return;
 
+        // Hive announcements speak as the hive itself, which lives in nullspace; warping there loses the ghost.
+        if (Transform(target).MapUid == null)
+            return;
+
         var isAdmin = _admin.IsAdmin(ghost);
         // A site's signal hangs over it on the orbit layer; the ghost goes down to the site itself.
         if (TryComp<WFPoiSignalComponent>(target, out var signal))
