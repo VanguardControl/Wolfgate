@@ -245,12 +245,24 @@ public sealed partial class WFPlanetRoadNetwork
     [DataField]
     public int ShoulderWidth;
 
+    /// <summary>Roads out of the landing zone's edge, each toward a site; none on a world too small for them.</summary>
+    [DataField]
+    public int Gates = 2;
+
+    /// <summary>Roads run out toward the world's edge through its emptiest stretches; none on a world too small for them.</summary>
+    [DataField]
+    public int Exits = 1;
+
+    /// <summary>Extra links that close the longest detours between sites into loops.</summary>
+    [DataField]
+    public int Loops = 1;
+
     /// <summary>
-    /// Whether the roads start from an arterial network, rings round the landing zone and trunks between them, that the
-    /// sites join; off, or on a world too small for it, the roads only join site to site.
+    /// How near, in tiles, the roads come to an off-road site with a footpath; a road runs out to one further off. Zero
+    /// leaves them to their footpaths.
     /// </summary>
     [DataField]
-    public bool Backbone = true;
+    public int Reach = 64;
 
     /// <summary>Kerbs, lane lines, street lights and scattered traffic laid over the painted roads; none leaves them bare.</summary>
     [DataField]

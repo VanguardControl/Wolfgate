@@ -15,12 +15,15 @@ entities stay paused until every one of them is map-initialised. The draws on th
 as before; only the ticks they fall in differ. What waits for the ground, camp guards outside the hull, residents,
 vehicles, patrols and roamers, goes out the same way after the preload, and the ground is marked preloaded once it has.
 
-The roads are a network, not a string of paths (`WFPlanetRoadPlanner`). On a world with room for it, an arterial
-network goes down first: an inner ring road round the landing zone, an outer ring short of the world's edge and
-straight trunks between them (one a side, two on a wide world), each ring an octagon of long straight sides with 45°
-corners. Every site then joins the nearest road by a spur that runs straight and turns square. Whatever is in the way
-(a site, a cavern mouth, a lake) is routed round; a stretch that can't get round is cut and the rest stays joined up. A
-table can turn the arterial network off (`backbone: false`), and a small world gets just the spurs, site to site.
+The roads join places (`WFPlanetRoadPlanner`). On a world with room for them, one or two gate roads run straight out of
+the landing zone's edge, the first toward the site that matters most (a big one near), a second toward sites well round
+the other side. Every site entrance then joins the nearest road, nearest first, so the roads branch like a tree and
+meet at T and Y junctions, and an off-road site with a footpath gets a road out to within `reach` (64) tiles of its
+door. A road runs on toward the world's edge through its emptiest stretch (`exits`), and a link closes the longest
+detour between two sites (`loops`), but never into a ring round the landing zone. Roads run straight and bend 45° at a
+time, keep a little off the landing zone and away from one another, and go round whatever is in the way (a site, a
+cavern mouth, a lake). `gates`, `exits`, `loops` and `reach` are set on a table's `roads`; a small world gets just the
+sites joined to one another.
 
 No site, road, footpath, camp, wreck, parked vehicle or roamer is put down in standing water
 (`BiomeSystem.WfIsWater`, which reads the biome's recipe before the ground exists). A footprint over 48 tiles square may
