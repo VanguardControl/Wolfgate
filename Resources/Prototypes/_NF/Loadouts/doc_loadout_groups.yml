@@ -8,8 +8,6 @@
   - ChiefMedicalOfficerTurtleneckJumpskirt
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingUnderAkulaWetsuitJobMedical
-  - WFMeridianLoadoutClothingUnderImperialCmo
-  - WFMeridianLoadoutClothingUnderImperialskirtCmo
   - WFMeridianLoadoutClothingUnderMiscPsyche
   - WFMeridianLoadoutClothingUnderRankCivilianPsychologistBunnysuit
   - WFMeridianLoadoutClothingUnderRankMedicalChiefMedicalOfficerScrubs
@@ -68,11 +66,7 @@
   - CMOMedicalHeadMirror
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingHeadBeretMedical
-  - WFMeridianLoadoutClothingHeadBeretMedicalCmo
-  - WFMeridianLoadoutClothingHeadBeretMedicalCmoAlt
-  - WFMeridianLoadoutClothingHeadBeretMedicalParamedic
   - WFMeridianLoadoutClothingHeadCostumeNursehat
-  - WFMeridianLoadoutClothingHeadHatsImperialCmo
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodMedical
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodMedicalCmo
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodMedicalCoroner

@@ -210,7 +210,6 @@
     WFMeridianClothingHeadCostumeTmc: 2
     WFMeridianClothingHeadCostumeTvHead: 2
     WFMeridianClothingHeadCostumeUshanka: 2
-    WFMeridianClothingHeadCostumeUshankaPolar: 2
     WFMeridianClothingHeadCostumeWeddingveil: 2
     WFMeridianClothingHeadCostumeWhoopee: 2
     WFMeridianClothingHeadCostumeYuri: 2
@@ -218,9 +217,6 @@
     WFMeridianClothingHeadCowboyNovaCattlemanWide: 2
     WFMeridianClothingHeadCowboyNovaFlat: 2
     WFMeridianClothingHeadCowboyNovaFlatCowl: 2
-    WFMeridianClothingHeadCowboyNovaFlatCowlSheriff: 2
-    WFMeridianClothingHeadCowboyNovaFlatDeputy: 2
-    WFMeridianClothingHeadCowboyNovaFlatSheriff: 2
     WFMeridianClothingHeadCowboyNovaWide: 2
     WFMeridianClothingHeadCowboyNovaWideFeathered: 2
     WFMeridianClothingHeadPelt: 2
@@ -234,9 +230,7 @@
     WFMeridianClothingHeadPeltWolfWhite: 2
     WFMeridianClothingHeadPlaybunnyears: 2
     WFMeridianClothingHeadPlaybunnyearsBritish: 2
-    WFMeridianClothingHeadPlaybunnyearsClown: 2
     WFMeridianClothingHeadPlaybunnyearsCommunist: 2
-    WFMeridianClothingHeadPlaybunnyearsMime: 2
     WFMeridianClothingHeadPlaybunnyearsPathologist: 2
     WFMeridianClothingHeadPlaybunnyearsUsa: 2
     WFMeridianClothingHeadSoftMime: 2
@@ -260,7 +254,6 @@
     WFMeridianClothingShoesClownShoesPink: 2
     WFMeridianClothingShoesCowboyLacedRecolorable: 2
     WFMeridianClothingShoesCowboyLizard: 2
-    WFMeridianClothingShoesCowboyLizardMasterwork: 2
     WFMeridianClothingSuitCostumeBearSuit: 2
     WFMeridianClothingSuitCostumeBronze: 2
     WFMeridianClothingSuitCostumeBunnysuit: 2
@@ -308,10 +301,7 @@
     WFMeridianClothingSuitCowboyvest: 2
     WFMeridianClothingUnderCostumeButtondownShorts: 2
     WFMeridianClothingUnderCostumeButtondownSkirt: 2
-    WFMeridianClothingUnderCostumeButtondownSkirtService: 2
     WFMeridianClothingUnderCostumeButtondownSlacks: 2
-    WFMeridianClothingUnderCostumeButtondownSlacksRoroco: 2
-    WFMeridianClothingUnderCostumeButtondownSlacksService: 2
     WFMeridianClothingUnderCostumeCybersleek: 2
     WFMeridianClothingUnderCostumeCybersleekLong: 2
     WFMeridianClothingUnderCostumeDeckers: 2
@@ -373,9 +363,6 @@
     WFMeridianClothingUnderCostumeSailor: 2
     WFMeridianClothingUnderCostumeScarecrow: 2
     WFMeridianClothingUnderCostumeSeifuku: 2
-    WFMeridianClothingUnderCostumeSeifukuRed: 2
-    WFMeridianClothingUnderCostumeSeifukuTan: 2
-    WFMeridianClothingUnderCostumeSeifukuTeal: 2
     WFMeridianClothingUnderCostumeSingerBlue: 2
     WFMeridianClothingUnderCostumeSingerRed: 2
     WFMeridianClothingUnderCostumeSingerYellow: 2
@@ -390,7 +377,6 @@
     WFMeridianClothingUnderCostumeYukataWhite: 2
     WFMeridianClothingUnderCostumeYuri: 2
     WFMeridianClothingUnderRankCivilianClownBlue: 2
-    WFMeridianClothingUnderRankCivilianClownClownBunnysuit: 2
     WFMeridianClothingUnderRankCivilianClownGreen: 2
     WFMeridianClothingUnderRankCivilianClownJester: 2
     WFMeridianClothingUnderRankCivilianClownJesteralt: 2
@@ -401,8 +387,6 @@
     WFMeridianClothingUnderRankCivilianClownSexy: 2
     WFMeridianClothingUnderRankCivilianClownYellow: 2
     WFMeridianClothingUnderRankCivilianMime: 2
-    WFMeridianClothingUnderRankCivilianMimeBunnysuit: 2
-    WFMeridianClothingUnderRankCivilianMimeSexy: 2
     WFMeridianClothingUnderRankCivilianMimeSkirt: 2
     # WOLFGATE END
   contrabandInventory:

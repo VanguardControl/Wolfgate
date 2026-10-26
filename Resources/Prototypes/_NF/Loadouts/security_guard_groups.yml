@@ -9,14 +9,7 @@
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingGlovesColorBlackSecurity
   - WFMeridianLoadoutClothingGlovesColorBlackSecurityBlu
-  - WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgag
-  - WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagBlue
   - WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagCargo
-  - WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagEngineering
-  - WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagMedical
-  - WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagScience
-  - WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagService
-  - WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagWhite
   - WFMeridianLoadoutClothingGlovesKazaRukSec
   - WFMeridianLoadoutClothingGlovesKazaRukSecPeacekeeper
   - WFMeridianLoadoutClothingGlovesTacklerPeacekeeper
@@ -32,31 +25,15 @@
   - SecurityBeret
   - SecurityHelmet
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadBeretSec
   - WFMeridianLoadoutClothingHeadBeretSecArmadyne
-  - WFMeridianLoadoutClothingHeadBeretSecCargo
-  - WFMeridianLoadoutClothingHeadBeretSecDepgagBlue
-  - WFMeridianLoadoutClothingHeadBeretSecEngineering
-  - WFMeridianLoadoutClothingHeadBeretSecMedical
   - WFMeridianLoadoutClothingHeadBeretSecNavyofficer
   - WFMeridianLoadoutClothingHeadBeretSecNavywarden
-  - WFMeridianLoadoutClothingHeadBeretSecNavywardenNova
-  - WFMeridianLoadoutClothingHeadBeretSecScience
-  - WFMeridianLoadoutClothingHeadBeretSecService
   - WFMeridianLoadoutClothingHeadBlastwaveOfficer
   - WFMeridianLoadoutClothingHeadCollectableHos
   - WFMeridianLoadoutClothingHeadCollectablePolice
-  - WFMeridianLoadoutClothingHeadCostumeUshankaSec
-  - WFMeridianLoadoutClothingHeadCostumeUshankaSecBlue
-  - WFMeridianLoadoutClothingHeadCowboyNovaCattlemanSec
-  - WFMeridianLoadoutClothingHeadCowboyNovaCattlemanWideSec
-  - WFMeridianLoadoutClothingHeadHatsHosBeret
-  - WFMeridianLoadoutClothingHeadHatsHosBeretNavyhos
   - WFMeridianLoadoutClothingHeadHatsHosShako
-  - WFMeridianLoadoutClothingHeadHatsImperialHos
   - WFMeridianLoadoutClothingHeadHatsWardenDrill
   - WFMeridianLoadoutClothingHeadHatsWardenPolicePatrol
-  - WFMeridianLoadoutClothingHeadHatsWardenPolicePatrolBlue
   - WFMeridianLoadoutClothingHeadHatsWardenRed
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodSecurity
   - WFMeridianLoadoutClothingHeadPlaybunnyearsBrigPhys
@@ -64,15 +41,8 @@
   - WFMeridianLoadoutClothingHeadPlaybunnyearsSecurity
   - WFMeridianLoadoutClothingHeadPlaybunnyearsSecurityAssistant
   - WFMeridianLoadoutClothingHeadPlaybunnyearsWarden
-  - WFMeridianLoadoutClothingHeadSecurityCap
-  - WFMeridianLoadoutClothingHeadSecurityCapBlue
   - WFMeridianLoadoutClothingHeadSecurityCapCargo
-  - WFMeridianLoadoutClothingHeadSecurityCapEngineering
-  - WFMeridianLoadoutClothingHeadSecurityCapMedical
-  - WFMeridianLoadoutClothingHeadSecurityCapScience
-  - WFMeridianLoadoutClothingHeadSecurityCapService
   - WFMeridianLoadoutClothingHeadSecurityGarrison
-  - WFMeridianLoadoutClothingHeadSecurityGarrisonBlue
   - WFMeridianLoadoutClothingHeadUtilityBombHoodSecurity
   # WOLFGATE END
 

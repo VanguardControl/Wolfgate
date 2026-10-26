@@ -135,7 +135,6 @@
     WFMeridianClothingAccessoryMedalSilver: 2
     WFMeridianClothingAccessoryMedalSilverElderAtmosian: 2
     WFMeridianClothingAccessoryMedalSilverEmergencyServices: 2
-    WFMeridianClothingAccessoryNovaAccMedal: 2
     WFMeridianClothingAccessoryNovaAccMedalCircle: 2
     WFMeridianClothingAccessoryNovaAccMedalCircleBarRibbon: 2
     WFMeridianClothingAccessoryNovaAccMedalCircleHollow: 2
@@ -266,17 +265,7 @@
     WFMeridianClothingHeadAshHeaddress: 2
     WFMeridianClothingHeadAshHeaddressWinged: 2
     WFMeridianClothingHeadBeanie: 2
-    WFMeridianClothingHeadBeanieBlack: 2
-    WFMeridianClothingHeadBeanieChristmas: 2
-    WFMeridianClothingHeadBeanieDarkblue: 2
-    WFMeridianClothingHeadBeanieDurathread: 2
-    WFMeridianClothingHeadBeanieOrange: 2
-    WFMeridianClothingHeadBeanieRed: 2
-    WFMeridianClothingHeadBeanieYellow: 2
-    WFMeridianClothingHeadBeretBadge: 2
-    WFMeridianClothingHeadBeretDurathread: 2
     WFMeridianClothingHeadBeretEngi: 2
-    WFMeridianClothingHeadBeretMilitia: 2
     WFMeridianClothingHeadBlastwave: 2
     WFMeridianClothingHeadColourableFlatcap: 2
     WFMeridianClothingHeadConeOfShameBadDog: 2
@@ -298,7 +287,6 @@
     WFMeridianClothingHeadHatsIntern: 2
     WFMeridianClothingHeadHatsTophatBalloon: 2
     WFMeridianClothingHeadHenchmenHat: 2
-    WFMeridianClothingHeadHenchmenHatTraitor: 2
     WFMeridianClothingHeadHoodedAblative: 2
     WFMeridianClothingHeadHoodedBeeHood: 2
     WFMeridianClothingHeadHoodedBerserker: 2
@@ -338,7 +326,6 @@
     WFMeridianClothingHeadSoftYankee: 2
     WFMeridianClothingHeadSoftYankeeRimless: 2
     WFMeridianClothingHeadStandaloneHood: 2
-    WFMeridianClothingHeadStandaloneHoodPrimitiveCatgirlColors: 2
     WFMeridianClothingHeadUtilityBeekeeperHead: 2
     WFMeridianClothingHeadUtilityBombHood: 2
     WFMeridianClothingHeadUtilityBombHoodWhite: 2
@@ -354,17 +341,8 @@
     WFMeridianClothingMaskBalaclavaThreehole: 2
     WFMeridianClothingMaskBalaclavaThreeholeGreen: 2
     WFMeridianClothingMaskBandana: 2
-    WFMeridianClothingMaskBandanaBlue: 2
-    WFMeridianClothingMaskBandanaDurathread: 2
-    WFMeridianClothingMaskBandanaGold: 2
-    WFMeridianClothingMaskBandanaGreen: 2
-    WFMeridianClothingMaskBandanaOrange: 2
-    WFMeridianClothingMaskBandanaPurple: 2
-    WFMeridianClothingMaskBandanaRed: 2
     WFMeridianClothingMaskBandanaSkull: 2
     WFMeridianClothingMaskBandanaStriped: 2
-    WFMeridianClothingMaskBandanaWhite: 2
-    WFMeridianClothingMaskFacescarf: 2
     WFMeridianClothingMaskFacescarfRogue: 2
     WFMeridianClothingMaskFloortilebalaclava: 2
     WFMeridianClothingMaskGondola: 2
@@ -380,10 +358,6 @@
     WFMeridianClothingMaskMummy: 2
     WFMeridianClothingMaskMuzzleTape: 2
     WFMeridianClothingMaskMuzzleTapePointy: 2
-    WFMeridianClothingMaskMuzzleTapePointySuper: 2
-    WFMeridianClothingMaskMuzzleTapeSuper: 2
-    WFMeridianClothingMaskNeckGaiter: 2
-    WFMeridianClothingMaskNeckGaiterPrimitiveCatgirlGaiter: 2
     WFMeridianClothingMaskNobreath: 2
     WFMeridianClothingMaskPaper: 2
     WFMeridianClothingMaskRebellion: 2
@@ -414,12 +388,7 @@
     WFMeridianClothingNeckGreyscaledSeecloak: 2
     WFMeridianClothingNeckGreyscaledXylixcloak: 2
     WFMeridianClothingNeckInfinityScarf: 2
-    WFMeridianClothingNeckInfinityScarfPrimitiveCatgirlBlue: 2
     WFMeridianClothingNeckLargeScarf: 2
-    WFMeridianClothingNeckLargeScarfBlue: 2
-    WFMeridianClothingNeckLargeScarfGreen: 2
-    WFMeridianClothingNeckLargeScarfPrimitiveCatgirlOffWhite: 2
-    WFMeridianClothingNeckLargeScarfRed: 2
     WFMeridianClothingNeckLinkScryer: 2
     WFMeridianClothingNeckLongCape: 2
     WFMeridianClothingNeckMantleBsmantle: 2
@@ -430,7 +399,6 @@
     WFMeridianClothingNeckMantleHosmantle: 2
     WFMeridianClothingNeckMantleRdmantle: 2
     WFMeridianClothingNeckMantleRecolorable: 2
-    WFMeridianClothingNeckMantleRecolorablePrimitiveCatgirlOffWhite: 2
     WFMeridianClothingNeckMantleRegal: 2
     WFMeridianClothingNeckMoonAmulet: 2
     WFMeridianClothingNeckNecklaceMementoMori: 2
@@ -441,21 +409,8 @@
     WFMeridianClothingNeckPetcollarWearableCyber: 2
     WFMeridianClothingNeckPillowTag: 2
     WFMeridianClothingNeckRangerPoncho: 2
-    WFMeridianClothingNeckRangerPonchoPrimitiveCatgirlLeather: 2
     WFMeridianClothingNeckRobeCape: 2
     WFMeridianClothingNeckScarf: 2
-    WFMeridianClothingNeckScarfBlack: 2
-    WFMeridianClothingNeckScarfChristmas: 2
-    WFMeridianClothingNeckScarfCyan: 2
-    WFMeridianClothingNeckScarfDarkblue: 2
-    WFMeridianClothingNeckScarfGreen: 2
-    WFMeridianClothingNeckScarfOrange: 2
-    WFMeridianClothingNeckScarfPink: 2
-    WFMeridianClothingNeckScarfPrimitiveCatgirlScarf: 2
-    WFMeridianClothingNeckScarfPurple: 2
-    WFMeridianClothingNeckScarfRed: 2
-    WFMeridianClothingNeckScarfYellow: 2
-    WFMeridianClothingNeckScarfZebra: 2
     WFMeridianClothingNeckTesharianMantle: 2
     WFMeridianClothingNeckTie: 2
     WFMeridianClothingNeckTieDisco: 2
@@ -474,26 +429,7 @@
     WFMeridianClothingShoesDiscoshoes: 2
     WFMeridianClothingShoesDivineArcher: 2
     WFMeridianClothingShoesFancyHeels: 2
-    WFMeridianClothingShoesFancyHeelsBeige: 2
-    WFMeridianClothingShoesFancyHeelsBlack: 2
-    WFMeridianClothingShoesFancyHeelsBlue: 2
-    WFMeridianClothingShoesFancyHeelsBrown: 2
-    WFMeridianClothingShoesFancyHeelsCc: 2
-    WFMeridianClothingShoesFancyHeelsDarkblue: 2
-    WFMeridianClothingShoesFancyHeelsDarkgreen: 2
-    WFMeridianClothingShoesFancyHeelsDarkgrey: 2
-    WFMeridianClothingShoesFancyHeelsGreen: 2
-    WFMeridianClothingShoesFancyHeelsGrey: 2
-    WFMeridianClothingShoesFancyHeelsLightblue: 2
-    WFMeridianClothingShoesFancyHeelsLightgrey: 2
-    WFMeridianClothingShoesFancyHeelsMutedblack: 2
-    WFMeridianClothingShoesFancyHeelsMutedblue: 2
-    WFMeridianClothingShoesFancyHeelsNavyblue: 2
-    WFMeridianClothingShoesFancyHeelsOrange: 2
-    WFMeridianClothingShoesFancyHeelsPurple: 2
-    WFMeridianClothingShoesFancyHeelsRed: 2
     WFMeridianClothingShoesFancyHeelsSandals: 2
-    WFMeridianClothingShoesFancyHeelsTeal: 2
     WFMeridianClothingShoesForgingPlateBoots: 2
     WFMeridianClothingShoesGaloshesDry: 2
     WFMeridianClothingShoesGaloshesHeeled: 2
@@ -516,7 +452,6 @@
     WFMeridianClothingShoesJackbootsTimbs: 2
     WFMeridianClothingShoesJackbootsToeless: 2
     WFMeridianClothingShoesJackbros: 2
-    WFMeridianClothingShoesJesterShoes: 2
     WFMeridianClothingShoesJungleboots: 2
     WFMeridianClothingShoesKindleKicks: 2
     WFMeridianClothingShoesPlate: 2
@@ -529,18 +464,8 @@
     WFMeridianClothingShoesSingerr: 2
     WFMeridianClothingShoesSingery: 2
     WFMeridianClothingShoesSneakersBlackRogue: 2
-    WFMeridianClothingShoesSneakersBlue: 2
-    WFMeridianClothingShoesSneakersBrown: 2
-    WFMeridianClothingShoesSneakersCrimson: 2
-    WFMeridianClothingShoesSneakersCyborg: 2
-    WFMeridianClothingShoesSneakersGreen: 2
     WFMeridianClothingShoesSneakersMarisa: 2
-    WFMeridianClothingShoesSneakersOrange: 2
-    WFMeridianClothingShoesSneakersPurple: 2
     WFMeridianClothingShoesSneakersRainbow: 2
-    WFMeridianClothingShoesSneakersRed: 2
-    WFMeridianClothingShoesSneakersWhite: 2
-    WFMeridianClothingShoesSneakersYellow: 2
     WFMeridianClothingShoesSportBoots: 2
     WFMeridianClothingShoesSports: 2
     WFMeridianClothingShoesSwagshoes: 2
@@ -601,7 +526,6 @@
     WFMeridianClothingSuitHoodedCloakDrake: 2
     WFMeridianClothingSuitHoodedCloakGodslayer: 2
     WFMeridianClothingSuitHoodedEtherealRaincoat: 2
-    WFMeridianClothingSuitHoodedEtherealRaincoatTrailwarden: 2
     WFMeridianClothingSuitHoodedFlashsuit: 2
     WFMeridianClothingSuitHoodedHostileEnvironment: 2
     WFMeridianClothingSuitHoodedIanCostume: 2
@@ -618,7 +542,6 @@
     WFMeridianClothingSuitJacketFrontierColonistShort: 2
     WFMeridianClothingSuitJacketHaori: 2
     WFMeridianClothingSuitJacketHenchmenCoat: 2
-    WFMeridianClothingSuitJacketHenchmenCoatTraitor: 2
     WFMeridianClothingSuitJacketLeatherColourable: 2
     WFMeridianClothingSuitJacketLettermanSyndie: 2
     WFMeridianClothingSuitJacketLongRobe: 2
@@ -637,7 +560,6 @@
     WFMeridianClothingSuitKimjacket: 2
     WFMeridianClothingSuitKoreacoat: 2
     WFMeridianClothingSuitMothcoat: 2
-    WFMeridianClothingSuitMothcoatOriginal: 2
     WFMeridianClothingSuitMush: 2
     WFMeridianClothingSuitNovaFurredTrenchcoat: 2
     WFMeridianClothingSuitNovaOvercoat: 2
@@ -656,10 +578,6 @@
     WFMeridianClothingSuitToggleJacketCroptopBomberJacketStripe: 2
     WFMeridianClothingSuitToggleJacketNovaCardigan: 2
     WFMeridianClothingSuitToggleJacketNovaColorableBomber: 2
-    WFMeridianClothingSuitToggleJacketNovaColorableBomberEngi: 2
-    WFMeridianClothingSuitToggleJacketNovaColorableBomberInterdyne: 2
-    WFMeridianClothingSuitToggleJacketNovaColorableBomberMed: 2
-    WFMeridianClothingSuitToggleJacketNovaColorableBomberSci: 2
     WFMeridianClothingSuitToggleJacketNovaColorableBomberTcomm: 2
     WFMeridianClothingSuitToggleJacketNovaCorrectionsOfficer: 2
     WFMeridianClothingSuitToggleJacketNovaFlannel: 2
@@ -667,20 +585,13 @@
     WFMeridianClothingSuitToggleJacketNovaFlannelBrown: 2
     WFMeridianClothingSuitToggleJacketNovaFlannelGags: 2
     WFMeridianClothingSuitToggleJacketNovaHoodie: 2
-    WFMeridianClothingSuitToggleJacketNovaHoodieBlack: 2
-    WFMeridianClothingSuitToggleJacketNovaHoodieBlue: 2
     WFMeridianClothingSuitToggleJacketNovaHoodieBranded: 2
     WFMeridianClothingSuitToggleJacketNovaHoodieBrandedCti: 2
     WFMeridianClothingSuitToggleJacketNovaHoodieBrandedMu: 2
     WFMeridianClothingSuitToggleJacketNovaHoodieBrandedNrti: 2
     WFMeridianClothingSuitToggleJacketNovaHoodieBrandedSmw: 2
-    WFMeridianClothingSuitToggleJacketNovaHoodieGreen: 2
-    WFMeridianClothingSuitToggleJacketNovaHoodieOrange: 2
-    WFMeridianClothingSuitToggleJacketNovaHoodiePizza: 2
-    WFMeridianClothingSuitToggleJacketNovaHoodieRed: 2
     WFMeridianClothingSuitToggleJacketNovaHoodieTrim: 2
     WFMeridianClothingSuitToggleJacketNovaHoodieTrimAlt: 2
-    WFMeridianClothingSuitToggleJacketNovaHoodieYellow: 2
     WFMeridianClothingSuitToggleJacketSweater: 2
     WFMeridianClothingSuitToggleJacketTrenchcoat: 2
     WFMeridianClothingSuitToggleOwlwings: 2
@@ -705,38 +616,8 @@
     WFMeridianClothingUnderBlastwave: 2
     WFMeridianClothingUnderCamoGags: 2
     WFMeridianClothingUnderColor: 2
-    WFMeridianClothingUnderColorBlue: 2
-    WFMeridianClothingUnderColorBrown: 2
-    WFMeridianClothingUnderColorDarkblue: 2
-    WFMeridianClothingUnderColorDarkgreen: 2
-    WFMeridianClothingUnderColorGreen: 2
-    WFMeridianClothingUnderColorGrey: 2
     WFMeridianClothingUnderColorJumpskirt: 2
-    WFMeridianClothingUnderColorJumpskirtBlue: 2
-    WFMeridianClothingUnderColorJumpskirtBrown: 2
-    WFMeridianClothingUnderColorJumpskirtDarkblue: 2
-    WFMeridianClothingUnderColorJumpskirtDarkgreen: 2
-    WFMeridianClothingUnderColorJumpskirtGreen: 2
-    WFMeridianClothingUnderColorJumpskirtGrey: 2
-    WFMeridianClothingUnderColorJumpskirtLightbrown: 2
-    WFMeridianClothingUnderColorJumpskirtLightpurple: 2
-    WFMeridianClothingUnderColorJumpskirtMaroon: 2
-    WFMeridianClothingUnderColorJumpskirtOrange: 2
-    WFMeridianClothingUnderColorJumpskirtPink: 2
     WFMeridianClothingUnderColorJumpskirtRainbow: 2
-    WFMeridianClothingUnderColorJumpskirtRed: 2
-    WFMeridianClothingUnderColorJumpskirtTeal: 2
-    WFMeridianClothingUnderColorJumpskirtWhite: 2
-    WFMeridianClothingUnderColorJumpskirtYellow: 2
-    WFMeridianClothingUnderColorLightbrown: 2
-    WFMeridianClothingUnderColorLightpurple: 2
-    WFMeridianClothingUnderColorMaroon: 2
-    WFMeridianClothingUnderColorOrange: 2
-    WFMeridianClothingUnderColorPink: 2
-    WFMeridianClothingUnderColorRed: 2
-    WFMeridianClothingUnderColorTeal: 2
-    WFMeridianClothingUnderColorWhite: 2
-    WFMeridianClothingUnderColorYellow: 2
     WFMeridianClothingUnderDougDimmadome: 2
     WFMeridianClothingUnderDressEveninggown: 2
     WFMeridianClothingUnderDressNovaCountess: 2
@@ -779,7 +660,6 @@
     WFMeridianClothingUnderDressWeddingDress: 2
     WFMeridianClothingUnderDressWeddingDressRibbon: 2
     WFMeridianClothingUnderEtherealTunic: 2
-    WFMeridianClothingUnderEtherealTunicTrailwarden: 2
     WFMeridianClothingUnderFrontierColonist: 2
     WFMeridianClothingUnderGreyscaleGorkas: 2
     WFMeridianClothingUnderGreyscaleOveralls: 2
@@ -815,7 +695,6 @@
     WFMeridianClothingUnderPantsNovaVicvest: 2
     WFMeridianClothingUnderPantsNovaWideLeg: 2
     WFMeridianClothingUnderPantsNovaYoga: 2
-    WFMeridianClothingUnderPantsSlacks: 2
     WFMeridianClothingUnderPantsSlacksAltar: 2
     WFMeridianClothingUnderPantsTrack: 2
     WFMeridianClothingUnderPizza: 2
@@ -828,15 +707,9 @@
     WFMeridianClothingUnderRankExpeditionaryCorps: 2
     WFMeridianClothingUnderRankStationTraitHumanAi: 2
     WFMeridianClothingUnderShorts: 2
-    WFMeridianClothingUnderShortsBlack: 2
-    WFMeridianClothingUnderShortsBlue: 2
-    WFMeridianClothingUnderShortsGreen: 2
-    WFMeridianClothingUnderShortsGrey: 2
     WFMeridianClothingUnderShortsJeanshorts: 2
     WFMeridianClothingUnderShortsNovaShortershorts: 2
     WFMeridianClothingUnderShortsNovaShortsRipped: 2
-    WFMeridianClothingUnderShortsPurple: 2
-    WFMeridianClothingUnderShortsRed: 2
     WFMeridianClothingUnderSkinsuit: 2
     WFMeridianClothingUnderSolEmt: 2
     WFMeridianClothingUnderSolPeacekeeper: 2
@@ -855,14 +728,9 @@
     WFMeridianClothingUnderSuitNovaInfernoSkirt: 2
     WFMeridianClothingUnderSuitNovaPencil: 2
     WFMeridianClothingUnderSuitNovaPencilBlackReally: 2
-    WFMeridianClothingUnderSuitNovaPencilBurgundy: 2
-    WFMeridianClothingUnderSuitNovaPencilCharcoal: 2
     WFMeridianClothingUnderSuitNovaPencilCheckered: 2
     WFMeridianClothingUnderSuitNovaPencilCheckeredNoshirt: 2
-    WFMeridianClothingUnderSuitNovaPencilGreen: 2
-    WFMeridianClothingUnderSuitNovaPencilNavy: 2
     WFMeridianClothingUnderSuitNovaPencilNoshirt: 2
-    WFMeridianClothingUnderSuitNovaPencilTan: 2
     WFMeridianClothingUnderSuitNovaRecolorable: 2
     WFMeridianClothingUnderSuitNovaRecolorableCasual: 2
     WFMeridianClothingUnderSuitNovaRecolorableExecutive: 2

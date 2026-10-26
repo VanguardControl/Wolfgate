@@ -35,11 +35,7 @@
     WFMeridianClothingGlassesPsych: 2
     WFMeridianClothingGlovesLatexCoroner: 2
     WFMeridianClothingHeadBeretMedical: 2
-    WFMeridianClothingHeadBeretMedicalCmo: 2
-    WFMeridianClothingHeadBeretMedicalCmoAlt: 2
-    WFMeridianClothingHeadBeretMedicalParamedic: 2
     WFMeridianClothingHeadCostumeNursehat: 2
-    WFMeridianClothingHeadHatsImperialCmo: 2
     WFMeridianClothingHeadHoodedWinterhoodMedical: 2
     WFMeridianClothingHeadHoodedWinterhoodMedicalCmo: 2
     WFMeridianClothingHeadHoodedWinterhoodMedicalCoroner: 2
@@ -51,8 +47,6 @@
     WFMeridianClothingHeadPlaybunnyearsParamedic: 2
     WFMeridianClothingHeadPlaybunnyearsPsychologist: 2
     WFMeridianClothingHeadUtilitySurgerycapCmo: 2
-    WFMeridianClothingMaskBandanaStripedMedical: 2
-    WFMeridianClothingMaskMuzzleTapeSurgical: 2
     WFMeridianClothingMaskSurgicalGreyscale: 2
     WFMeridianClothingNeckTieBunnytieCmo: 2
     WFMeridianClothingNeckTieBunnytieCoroner: 2
@@ -64,18 +58,10 @@
     WFMeridianClothingSuitJacketTailcoatPsychologist: 2
     WFMeridianClothingSuitToggleLabcoat: 2
     WFMeridianClothingSuitToggleLabcoatCmoDoctorTailcoat: 2
-    WFMeridianClothingSuitToggleLabcoatCoroner: 2
     WFMeridianClothingSuitToggleLabcoatCoronerDoctorTailcoat: 2
     WFMeridianClothingSuitToggleLabcoatDoctorTailcoat: 2
-    WFMeridianClothingSuitToggleLabcoatInterdyne: 2
     WFMeridianClothingSuitToggleLabcoatMad: 2
-    WFMeridianClothingSuitToggleLabcoatNovaCustom: 2
     WFMeridianClothingSuitToggleLabcoatNovaFancy: 2
-    WFMeridianClothingSuitToggleLabcoatNovaFancyPharmacist: 2
-    WFMeridianClothingSuitToggleLabcoatNovaFancyRd: 2
-    WFMeridianClothingSuitToggleLabcoatNovaFancyRdDeckofficer: 2
-    WFMeridianClothingSuitToggleLabcoatNovaFancyRegular: 2
-    WFMeridianClothingSuitToggleLabcoatNovaFancyRoboticist: 2
     WFMeridianClothingSuitToggleLabcoatNovaHighvis: 2
     WFMeridianClothingSuitToggleLabcoatNovaInterdyneLabcoatBlack: 2
     WFMeridianClothingSuitToggleLabcoatNovaInterdyneLabcoatWhite: 2
@@ -86,14 +72,9 @@
     WFMeridianClothingSuitToggleLabcoatParamedicDoctorTailcoat: 2
     WFMeridianClothingSuitToggleLabcoatResearchDirector: 2
     WFMeridianClothingSuitToggleLabcoatResearchDirectorTailcoat: 2
-    WFMeridianClothingSuitToggleLabcoatRoboticist: 2
     WFMeridianClothingSuitToggleLabcoatRoboticistDoctorTailcoat: 2
-    WFMeridianClothingSuitToggleLabcoatRoroco: 2
-    WFMeridianClothingSuitToggleLabcoatScience: 2
     WFMeridianClothingSuitToggleLabcoatScienceDoctorTailcoat: 2
     WFMeridianClothingUnderAkulaWetsuitJobMedical: 2
-    WFMeridianClothingUnderImperialCmo: 2
-    WFMeridianClothingUnderImperialskirtCmo: 2
     WFMeridianClothingUnderMiscPsyche: 2
     WFMeridianClothingUnderRankCivilianPsychologistBunnysuit: 2
     WFMeridianClothingUnderRankMedicalChiefMedicalOfficerScrubs: 2

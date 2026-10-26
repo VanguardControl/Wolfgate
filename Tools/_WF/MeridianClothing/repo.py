@@ -92,12 +92,21 @@ class Repo:
         return max(sorted(counts), key=lambda s: counts[s])
 
     def entity_names(self):
-        """Lower-cased names of every clothing entity here, from its prototype."""
+        """Lower-cased names of every entity here, from its prototype or its Fluent name."""
         names = set()
         for doc in self.entities.values():
             name = doc.get("name")
             if isinstance(name, str):
                 names.add(name.strip().lower())
+        locale = os.path.join(ROOT, "Resources", "Locale", "en-US")
+        for path in glob.glob(os.path.join(locale, "**", "*.ftl"), recursive=True):
+            if os.sep + "_WF" + os.sep + MODULE + os.sep in path:
+                continue
+            with open(path, encoding="utf-8-sig", errors="replace") as f:
+                for line in f:
+                    m = re.match(r"^ent-(\S+)\s*=\s*(.+?)\s*$", line)
+                    if m and m.group(1) in self.entities:
+                        names.add(m.group(2).lower())
         return names
 
 

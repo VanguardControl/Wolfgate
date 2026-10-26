@@ -323,10 +323,14 @@ class Port:
                 continue
             seen[sig] = t
             here = self.index.match(dedupe.south(item.worn, item.colors))
-            if here:
+            if item.gags:
+                # Recolouring is what the item adds, so it stays, and says so when its name is taken here.
+                if here or item.name.lower() in names_here:
+                    item.name = "recolourable " + item.name
+            elif here:
                 self.outcomes[t] = ("already here", here)
                 continue
-            if not item.gags and item.name.lower() in names_here:
+            elif item.name.lower() in names_here:
                 self.outcomes[t] = ("already here", "name: " + item.name)
                 continue
             tail = t[len("/obj/item/clothing/"):]

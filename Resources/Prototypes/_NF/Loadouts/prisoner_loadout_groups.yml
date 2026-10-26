@@ -7,15 +7,7 @@
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingUnderRankPrisoner
   - WFMeridianLoadoutClothingUnderRankPrisonerClassic
-  - WFMeridianLoadoutClothingUnderRankPrisonerHighsec
-  - WFMeridianLoadoutClothingUnderRankPrisonerLowsec
-  - WFMeridianLoadoutClothingUnderRankPrisonerProtcust
   - WFMeridianLoadoutClothingUnderRankPrisonerSkirt
-  - WFMeridianLoadoutClothingUnderRankPrisonerSkirtHighsec
-  - WFMeridianLoadoutClothingUnderRankPrisonerSkirtLowsec
-  - WFMeridianLoadoutClothingUnderRankPrisonerSkirtProtcust
-  - WFMeridianLoadoutClothingUnderRankPrisonerSkirtSupermax
-  - WFMeridianLoadoutClothingUnderRankPrisonerSupermax
   # WOLFGATE END
   fallbacks:
   - PrisonerJumpsuit

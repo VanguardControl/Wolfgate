@@ -121,6 +121,10 @@ def south(layers, colors):
 
 
 def signature(item):
+    """
+    The item's art. Colours are left out: greyscale items that differ only in their default colours are one
+    item, as recolouring gives each of the others.
+    """
     h = hashlib.md5()
     for s in (item.icon, item.worn):
         for layer in s:
@@ -128,5 +132,4 @@ def signature(item):
                 for img in row:
                     h.update(normalize(img).tobytes())
             h.update(str(layer.color).encode())
-    h.update(str(item.colors).encode())
     return h.hexdigest()

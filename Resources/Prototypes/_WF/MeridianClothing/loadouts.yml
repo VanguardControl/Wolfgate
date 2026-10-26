@@ -215,28 +215,10 @@
     neck: WFMeridianClothingAccessoryMedalSilverEmergencyServicesMedical
 
 - type: loadout
-  id: WFMeridianLoadoutClothingAccessoryNovaAccMedal
-  price: 0
-  equipment:
-    neck: WFMeridianClothingAccessoryNovaAccMedal
-
-- type: loadout
-  id: WFMeridianLoadoutClothingAccessoryNovaAccMedalBar
-  price: 0
-  equipment:
-    neck: WFMeridianClothingAccessoryNovaAccMedalBar
-
-- type: loadout
   id: WFMeridianLoadoutClothingAccessoryNovaAccMedalBarBarRibbon
   price: 0
   equipment:
     neck: WFMeridianClothingAccessoryNovaAccMedalBarBarRibbon
-
-- type: loadout
-  id: WFMeridianLoadoutClothingAccessoryNovaAccMedalBarHollow
-  price: 0
-  equipment:
-    neck: WFMeridianClothingAccessoryNovaAccMedalBarHollow
 
 - type: loadout
   id: WFMeridianLoadoutClothingAccessoryNovaAccMedalCircle
@@ -357,12 +339,6 @@
   price: 0
   equipment:
     neck: WFMeridianClothingAccessoryNovaAccMedalNeckpinSolfed911
-
-- type: loadout
-  id: WFMeridianLoadoutClothingAccessoryNovaAccMedalNeckpinSolfedOfficial
-  price: 0
-  equipment:
-    neck: WFMeridianClothingAccessoryNovaAccMedalNeckpinSolfedOfficial
 
 - type: loadout
   id: WFMeridianLoadoutClothingAccessoryNovaAccMedalRankpin
@@ -893,30 +869,6 @@
     eyes: WFMeridianClothingGlassesSunglassesOval
 
 - type: loadout
-  id: WFMeridianLoadoutClothingGlassesSunglassesSolfed
-  price: 0
-  equipment:
-    eyes: WFMeridianClothingGlassesSunglassesSolfed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingGlassesSunglassesSolfedDesert
-  price: 0
-  equipment:
-    eyes: WFMeridianClothingGlassesSunglassesSolfedDesert
-
-- type: loadout
-  id: WFMeridianLoadoutClothingGlassesSunglassesSolfedForest
-  price: 0
-  equipment:
-    eyes: WFMeridianClothingGlassesSunglassesSolfedForest
-
-- type: loadout
-  id: WFMeridianLoadoutClothingGlassesSunglassesSolfedOcean
-  price: 0
-  equipment:
-    eyes: WFMeridianClothingGlassesSunglassesSolfedOcean
-
-- type: loadout
   id: WFMeridianLoadoutClothingGlassesSunglassesSolfedWinter
   price: 0
   equipment:
@@ -1037,52 +989,10 @@
     gloves: WFMeridianClothingGlovesColorBlackSecurityBlu
 
 - type: loadout
-  id: WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgag
-  price: 0
-  equipment:
-    gloves: WFMeridianClothingGlovesColorBlackSecurityDepgag
-
-- type: loadout
-  id: WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagBlue
-  price: 0
-  equipment:
-    gloves: WFMeridianClothingGlovesColorBlackSecurityDepgagBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagCargo
   price: 0
   equipment:
     gloves: WFMeridianClothingGlovesColorBlackSecurityDepgagCargo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagEngineering
-  price: 0
-  equipment:
-    gloves: WFMeridianClothingGlovesColorBlackSecurityDepgagEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagMedical
-  price: 0
-  equipment:
-    gloves: WFMeridianClothingGlovesColorBlackSecurityDepgagMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagScience
-  price: 0
-  equipment:
-    gloves: WFMeridianClothingGlovesColorBlackSecurityDepgagScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagService
-  price: 0
-  equipment:
-    gloves: WFMeridianClothingGlovesColorBlackSecurityDepgagService
-
-- type: loadout
-  id: WFMeridianLoadoutClothingGlovesColorBlackSecurityDepgagWhite
-  price: 0
-  equipment:
-    gloves: WFMeridianClothingGlovesColorBlackSecurityDepgagWhite
 
 - type: loadout
   id: WFMeridianLoadoutClothingGlovesColorPlasmaman
@@ -1433,94 +1343,10 @@
     head: WFMeridianClothingHeadBeanie
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadBeanieBlack
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeanieBlack
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeanieChristmas
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeanieChristmas
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeanieDarkblue
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeanieDarkblue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeanieDurathread
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeanieDurathread
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeanieOrange
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeanieOrange
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeanieRed
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeanieRed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeanieYellow
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeanieYellow
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretAtmos
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretAtmos
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretBadge
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretBadge
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadBeretBlueshield
   price: 0
   equipment:
     head: WFMeridianClothingHeadBeretBlueshield
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretBlueshieldNavy
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretBlueshieldNavy
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretBridgeofficer
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretBridgeofficer
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretCargo
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretCargo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretCargoQm
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretCargoQm
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretCargoQmAlt
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretCargoQmAlt
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadBeretClown
@@ -1529,22 +1355,10 @@
     head: WFMeridianClothingHeadBeretClown
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretDurathread
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretDurathread
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadBeretEngi
   price: 0
   equipment:
     head: WFMeridianClothingHeadBeretEngi
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretEngiCe
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretEngiCe
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadBeretMedical
@@ -1553,106 +1367,10 @@
     head: WFMeridianClothingHeadBeretMedical
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretMedicalChemist
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretMedicalChemist
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretMedicalCmo
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretMedicalCmo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretMedicalCmoAlt
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretMedicalCmoAlt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretMedicalParamedic
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretMedicalParamedic
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretMedicalVirologist
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretMedicalVirologist
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretMilitia
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretMilitia
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretScience
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretScienceFancy
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretScienceFancy
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretScienceFancyRobo
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretScienceFancyRobo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretScienceRd
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretScienceRd
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretScienceRdAlt
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretScienceRdAlt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretSec
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretSec
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadBeretSecArmadyne
   price: 0
   equipment:
     head: WFMeridianClothingHeadBeretSecArmadyne
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretSecCargo
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretSecCargo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretSecDepgagBlue
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretSecDepgagBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretSecEngineering
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretSecEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretSecMedical
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretSecMedical
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadBeretSecNavyofficer
@@ -1665,24 +1383,6 @@
   price: 0
   equipment:
     head: WFMeridianClothingHeadBeretSecNavywarden
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretSecNavywardenNova
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretSecNavywardenNova
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretSecScience
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretSecScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadBeretSecService
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadBeretSecService
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadBlastwave
@@ -1701,12 +1401,6 @@
   price: 0
   equipment:
     head: WFMeridianClothingHeadCaphatBeret
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadCaphatBeretNova
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadCaphatBeretNova
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadChaplainHabitVeil
@@ -2207,24 +1901,6 @@
     head: WFMeridianClothingHeadCostumeUshanka
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadCostumeUshankaPolar
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadCostumeUshankaPolar
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadCostumeUshankaSec
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadCostumeUshankaSec
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadCostumeUshankaSecBlue
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadCostumeUshankaSecBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadCostumeWeddingveil
   price: 0
   equipment:
@@ -2249,22 +1925,10 @@
     head: WFMeridianClothingHeadCowboyNovaCattleman
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadCowboyNovaCattlemanSec
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadCowboyNovaCattlemanSec
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadCowboyNovaCattlemanWide
   price: 0
   equipment:
     head: WFMeridianClothingHeadCowboyNovaCattlemanWide
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadCowboyNovaCattlemanWideSec
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadCowboyNovaCattlemanWideSec
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadCowboyNovaFlat
@@ -2277,24 +1941,6 @@
   price: 0
   equipment:
     head: WFMeridianClothingHeadCowboyNovaFlatCowl
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadCowboyNovaFlatCowlSheriff
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadCowboyNovaFlatCowlSheriff
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadCowboyNovaFlatDeputy
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadCowboyNovaFlatDeputy
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadCowboyNovaFlatSheriff
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadCowboyNovaFlatSheriff
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadCowboyNovaWide
@@ -2525,18 +2171,6 @@
     head: WFMeridianClothingHeadHatsFlakhelm
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsHosBeret
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsHosBeret
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsHosBeretNavyhos
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsHosBeretNavyhos
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadHatsHosShako
   price: 0
   equipment:
@@ -2547,66 +2181,6 @@
   price: 0
   equipment:
     head: WFMeridianClothingHeadHatsImperial
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsImperialBlueshield
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsImperialBlueshield
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsImperialBridgeOfficer
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsImperialBridgeOfficer
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsImperialCap
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsImperialCap
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsImperialCe
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsImperialCe
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsImperialCmo
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsImperialCmo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsImperialHop
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsImperialHop
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsImperialHos
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsImperialHos
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsImperialNanotrasenConsultant
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsImperialNanotrasenConsultant
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsImperialQm
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsImperialQm
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsImperialRd
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsImperialRd
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadHatsIntern
@@ -2633,12 +2207,6 @@
     head: WFMeridianClothingHeadHatsWardenPolicePatrol
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadHatsWardenPolicePatrolBlue
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHatsWardenPolicePatrolBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadHatsWardenRed
   price: 0
   equipment:
@@ -2649,12 +2217,6 @@
   price: 0
   equipment:
     head: WFMeridianClothingHeadHenchmenHat
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHenchmenHatTraitor
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHenchmenHatTraitor
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadHoodedAblative
@@ -2945,24 +2507,6 @@
     head: WFMeridianClothingHeadHoodedWolfCoatHoodie
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadHopcapBeret
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHopcapBeret
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHopcapBeretAlt
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHopcapBeretAlt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadHopcapBeretOlive
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadHopcapBeretOlive
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadLargeBow
   price: 0
   equipment:
@@ -3003,12 +2547,6 @@
   price: 0
   equipment:
     head: WFMeridianClothingHeadNanotrasenConsultant
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadNanotrasenConsultantBeret
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadNanotrasenConsultantBeret
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadPeaceflower
@@ -3149,12 +2687,6 @@
     head: WFMeridianClothingHeadPlaybunnyearsChemist
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadPlaybunnyearsClown
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadPlaybunnyearsClown
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadPlaybunnyearsCmo
   price: 0
   equipment:
@@ -3275,12 +2807,6 @@
     head: WFMeridianClothingHeadPlaybunnyearsMailman
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadPlaybunnyearsMime
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadPlaybunnyearsMime
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadPlaybunnyearsMiner
   price: 0
   equipment:
@@ -3371,58 +2897,16 @@
     head: WFMeridianClothingHeadRasta
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadSecurityCap
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadSecurityCap
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadSecurityCapBlue
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadSecurityCapBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadSecurityCapCargo
   price: 0
   equipment:
     head: WFMeridianClothingHeadSecurityCapCargo
 
 - type: loadout
-  id: WFMeridianLoadoutClothingHeadSecurityCapEngineering
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadSecurityCapEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadSecurityCapMedical
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadSecurityCapMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadSecurityCapScience
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadSecurityCapScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadSecurityCapService
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadSecurityCapService
-
-- type: loadout
   id: WFMeridianLoadoutClothingHeadSecurityGarrison
   price: 0
   equipment:
     head: WFMeridianClothingHeadSecurityGarrison
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadSecurityGarrisonBlue
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadSecurityGarrisonBlue
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadShamanash
@@ -3519,12 +3003,6 @@
   price: 0
   equipment:
     head: WFMeridianClothingHeadStandaloneHood
-
-- type: loadout
-  id: WFMeridianLoadoutClothingHeadStandaloneHoodPrimitiveCatgirlColors
-  price: 0
-  equipment:
-    head: WFMeridianClothingHeadStandaloneHoodPrimitiveCatgirlColors
 
 - type: loadout
   id: WFMeridianLoadoutClothingHeadUtilityBeekeeperHead
@@ -3713,48 +3191,6 @@
     mask: WFMeridianClothingMaskBandana
 
 - type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaBlue
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaDurathread
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaDurathread
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaGold
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaGold
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaGreen
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaGreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaOrange
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaOrange
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaPurple
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaPurple
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaRed
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaRed
-
-- type: loadout
   id: WFMeridianLoadoutClothingMaskBandanaSkull
   price: 0
   equipment:
@@ -3765,66 +3201,6 @@
   price: 0
   equipment:
     mask: WFMeridianClothingMaskBandanaStriped
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaStripedBotany
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaStripedBotany
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaStripedCargo
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaStripedCargo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaStripedEngineering
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaStripedEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaStripedMedical
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaStripedMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaStripedScience
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaStripedScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaStripedSecurity
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaStripedSecurity
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaStripedSecurityBlue
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaStripedSecurityBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaStripedSecurityRed
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaStripedSecurityRed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskBandanaWhite
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskBandanaWhite
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskFacescarf
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskFacescarf
 
 - type: loadout
   id: WFMeridianLoadoutClothingMaskFacescarfRogue
@@ -3915,36 +3291,6 @@
   price: 0
   equipment:
     mask: WFMeridianClothingMaskMuzzleTapePointy
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskMuzzleTapePointySuper
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskMuzzleTapePointySuper
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskMuzzleTapeSuper
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskMuzzleTapeSuper
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskMuzzleTapeSurgical
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskMuzzleTapeSurgical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskNeckGaiter
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskNeckGaiter
-
-- type: loadout
-  id: WFMeridianLoadoutClothingMaskNeckGaiterPrimitiveCatgirlGaiter
-  price: 0
-  equipment:
-    mask: WFMeridianClothingMaskNeckGaiterPrimitiveCatgirlGaiter
 
 - type: loadout
   id: WFMeridianLoadoutClothingMaskNobreath
@@ -4175,40 +3521,10 @@
     neck: WFMeridianClothingNeckInfinityScarf
 
 - type: loadout
-  id: WFMeridianLoadoutClothingNeckInfinityScarfPrimitiveCatgirlBlue
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckInfinityScarfPrimitiveCatgirlBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingNeckLargeScarf
   price: 0
   equipment:
     neck: WFMeridianClothingNeckLargeScarf
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckLargeScarfBlue
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckLargeScarfBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckLargeScarfGreen
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckLargeScarfGreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckLargeScarfPrimitiveCatgirlOffWhite
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckLargeScarfPrimitiveCatgirlOffWhite
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckLargeScarfRed
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckLargeScarfRed
 
 - type: loadout
   id: WFMeridianLoadoutClothingNeckLinkScryer
@@ -4281,12 +3597,6 @@
   price: 0
   equipment:
     neck: WFMeridianClothingNeckMantleRecolorable
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckMantleRecolorablePrimitiveCatgirlOffWhite
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckMantleRecolorablePrimitiveCatgirlOffWhite
 
 - type: loadout
   id: WFMeridianLoadoutClothingNeckMantleRegal
@@ -4367,12 +3677,6 @@
     neck: WFMeridianClothingNeckRangerPoncho
 
 - type: loadout
-  id: WFMeridianLoadoutClothingNeckRangerPonchoPrimitiveCatgirlLeather
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckRangerPonchoPrimitiveCatgirlLeather
-
-- type: loadout
   id: WFMeridianLoadoutClothingNeckRobeCape
   price: 0
   equipment:
@@ -4385,100 +3689,10 @@
     neck: WFMeridianClothingNeckScarf
 
 - type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfBlack
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfBlack
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfChristmas
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfChristmas
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfCyan
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfCyan
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfDarkblue
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfDarkblue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfGreen
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfGreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfOrange
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfOrange
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfPink
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfPink
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfPrimitiveCatgirlScarf
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfPrimitiveCatgirlScarf
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfPurple
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfPurple
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfRed
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfRed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfYellow
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfYellow
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckScarfZebra
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckScarfZebra
-
-- type: loadout
   id: WFMeridianLoadoutClothingNeckSecurityCapeArmplate
   price: 0
   equipment:
     neck: WFMeridianClothingNeckSecurityCapeArmplate
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckSecurityCapeArmplateCaped
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckSecurityCapeArmplateCaped
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckSecurityCapeArmplateCapedBlue
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckSecurityCapeArmplateCapedBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckSecurityCapeArmplateCapedCargo
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckSecurityCapeArmplateCapedCargo
 
 - type: loadout
   id: WFMeridianLoadoutClothingNeckSecurityCapeArmplateCapedEngineer
@@ -4487,34 +3701,10 @@
     neck: WFMeridianClothingNeckSecurityCapeArmplateCapedEngineer
 
 - type: loadout
-  id: WFMeridianLoadoutClothingNeckSecurityCapeArmplateCapedMedical
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckSecurityCapeArmplateCapedMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckSecurityCapeArmplateCapedScience
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckSecurityCapeArmplateCapedScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckSecurityCapeArmplateCapedService
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckSecurityCapeArmplateCapedService
-
-- type: loadout
   id: WFMeridianLoadoutClothingNeckSecurityCapeShoulder
   price: 0
   equipment:
     neck: WFMeridianClothingNeckSecurityCapeShoulder
-
-- type: loadout
-  id: WFMeridianLoadoutClothingNeckSecurityCapeShoulderBlue
-  price: 0
-  equipment:
-    neck: WFMeridianClothingNeckSecurityCapeShoulderBlue
 
 - type: loadout
   id: WFMeridianLoadoutClothingNeckSecurityCapeTarkon
@@ -4895,12 +4085,6 @@
     shoes: WFMeridianClothingShoesCowboyLizard
 
 - type: loadout
-  id: WFMeridianLoadoutClothingShoesCowboyLizardMasterwork
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesCowboyLizardMasterwork
-
-- type: loadout
   id: WFMeridianLoadoutClothingShoesDiscoshoes
   price: 0
   equipment:
@@ -4919,124 +4103,10 @@
     shoes: WFMeridianClothingShoesFancyHeels
 
 - type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsBeige
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsBeige
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsBlack
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsBlack
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsBlue
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsBrown
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsBrown
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsCc
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsCc
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsDarkblue
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsDarkblue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsDarkgreen
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsDarkgreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsDarkgrey
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsDarkgrey
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsGreen
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsGreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsGrey
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsGrey
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsLightblue
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsLightblue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsLightgrey
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsLightgrey
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsMutedblack
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsMutedblack
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsMutedblue
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsMutedblue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsNavyblue
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsNavyblue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsOrange
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsOrange
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsPurple
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsPurple
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsRed
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsRed
-
-- type: loadout
   id: WFMeridianLoadoutClothingShoesFancyHeelsSandals
   price: 0
   equipment:
     shoes: WFMeridianClothingShoesFancyHeelsSandals
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesFancyHeelsTeal
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesFancyHeelsTeal
 
 - type: loadout
   id: WFMeridianLoadoutClothingShoesForgingPlateBoots
@@ -5177,12 +4247,6 @@
     shoes: WFMeridianClothingShoesJackbros
 
 - type: loadout
-  id: WFMeridianLoadoutClothingShoesJesterShoes
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesJesterShoes
-
-- type: loadout
   id: WFMeridianLoadoutClothingShoesJungleboots
   price: 0
   equipment:
@@ -5255,76 +4319,16 @@
     shoes: WFMeridianClothingShoesSneakersBlackRogue
 
 - type: loadout
-  id: WFMeridianLoadoutClothingShoesSneakersBlue
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesSneakersBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesSneakersBrown
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesSneakersBrown
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesSneakersCrimson
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesSneakersCrimson
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesSneakersCyborg
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesSneakersCyborg
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesSneakersGreen
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesSneakersGreen
-
-- type: loadout
   id: WFMeridianLoadoutClothingShoesSneakersMarisa
   price: 0
   equipment:
     shoes: WFMeridianClothingShoesSneakersMarisa
 
 - type: loadout
-  id: WFMeridianLoadoutClothingShoesSneakersOrange
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesSneakersOrange
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesSneakersPurple
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesSneakersPurple
-
-- type: loadout
   id: WFMeridianLoadoutClothingShoesSneakersRainbow
   price: 0
   equipment:
     shoes: WFMeridianClothingShoesSneakersRainbow
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesSneakersRed
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesSneakersRed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesSneakersWhite
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesSneakersWhite
-
-- type: loadout
-  id: WFMeridianLoadoutClothingShoesSneakersYellow
-  price: 0
-  equipment:
-    shoes: WFMeridianClothingShoesSneakersYellow
 
 - type: loadout
   id: WFMeridianLoadoutClothingShoesSportBoots
@@ -5463,12 +4467,6 @@
   price: 0
   equipment:
     outerClothing: WFMeridianClothingSuitApronChefColorableApron
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitApronChefColorableApronPrimitiveCatgirlLeather
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitApronChefColorableApronPrimitiveCatgirlLeather
 
 - type: loadout
   id: WFMeridianLoadoutClothingSuitApronOveralls
@@ -6167,12 +5165,6 @@
     outerClothing: WFMeridianClothingSuitHoodedEtherealRaincoat
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedEtherealRaincoatTrailwarden
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedEtherealRaincoatTrailwarden
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitHoodedExplorer
   price: 0
   equipment:
@@ -6299,28 +5291,10 @@
     outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurity
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgag
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgag
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagBlue
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagBomber
   price: 0
   equipment:
     outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagBomber
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagBomberBlue
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagBomberBlue
 
 - type: loadout
   id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagCargo
@@ -6329,70 +5303,10 @@
     outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagCargo
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacket
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacket
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketBlue
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketCargo
   price: 0
   equipment:
     outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketCargo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketEngineering
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketMedical
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketScience
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketService
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketService
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagEngineering
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagMedical
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagScience
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagService
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitHoodedWintercoatSecurityDepgagService
 
 - type: loadout
   id: WFMeridianLoadoutClothingSuitHoodedWintercoatZipup
@@ -6489,12 +5403,6 @@
   price: 0
   equipment:
     outerClothing: WFMeridianClothingSuitJacketHenchmenCoat
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitJacketHenchmenCoatTraitor
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitJacketHenchmenCoatTraitor
 
 - type: loadout
   id: WFMeridianLoadoutClothingSuitJacketHosBlue
@@ -6761,12 +5669,6 @@
     outerClothing: WFMeridianClothingSuitMothcoat
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitMothcoatOriginal
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitMothcoatOriginal
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitMothcoatWinter
   price: 0
   equipment:
@@ -6899,60 +5801,6 @@
     outerClothing: WFMeridianClothingSuitToggleJacketNovaColorableBomber
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberBridgeOfficer
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaColorableBomberBridgeOfficer
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberEngi
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaColorableBomberEngi
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberInterdyne
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaColorableBomberInterdyne
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberMed
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaColorableBomberMed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberSci
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaColorableBomberSci
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberSec
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaColorableBomberSec
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberSecBlue
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaColorableBomberSecBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberSupply
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaColorableBomberSupply
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberSupplyHead
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaColorableBomberSupplyHead
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitToggleJacketNovaColorableBomberTcomm
   price: 0
   equipment:
@@ -6995,18 +5843,6 @@
     outerClothing: WFMeridianClothingSuitToggleJacketNovaHoodie
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaHoodieBlack
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaHoodieBlack
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaHoodieBlue
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaHoodieBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitToggleJacketNovaHoodieBranded
   price: 0
   equipment:
@@ -7037,30 +5873,6 @@
     outerClothing: WFMeridianClothingSuitToggleJacketNovaHoodieBrandedSmw
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaHoodieGreen
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaHoodieGreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaHoodieOrange
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaHoodieOrange
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaHoodiePizza
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaHoodiePizza
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaHoodieRed
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaHoodieRed
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitToggleJacketNovaHoodieTrim
   price: 0
   equipment:
@@ -7071,12 +5883,6 @@
   price: 0
   equipment:
     outerClothing: WFMeridianClothingSuitToggleJacketNovaHoodieTrimAlt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleJacketNovaHoodieYellow
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleJacketNovaHoodieYellow
 
 - type: loadout
   id: WFMeridianLoadoutClothingSuitToggleJacketSweater
@@ -7097,12 +5903,6 @@
     outerClothing: WFMeridianClothingSuitToggleLabcoat
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatChemist
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatChemist
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitToggleLabcoatChemistDoctorTailcoat
   price: 0
   equipment:
@@ -7113,12 +5913,6 @@
   price: 0
   equipment:
     outerClothing: WFMeridianClothingSuitToggleLabcoatCmoDoctorTailcoat
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatCoroner
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatCoroner
 
 - type: loadout
   id: WFMeridianLoadoutClothingSuitToggleLabcoatCoronerDoctorTailcoat
@@ -7145,64 +5939,16 @@
     outerClothing: WFMeridianClothingSuitToggleLabcoatGeneticsDoctorTailcoat
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatInterdyne
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatInterdyne
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitToggleLabcoatMad
   price: 0
   equipment:
     outerClothing: WFMeridianClothingSuitToggleLabcoatMad
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatNovaCustom
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatNovaCustom
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitToggleLabcoatNovaFancy
   price: 0
   equipment:
     outerClothing: WFMeridianClothingSuitToggleLabcoatNovaFancy
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatNovaFancyGeneticist
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatNovaFancyGeneticist
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatNovaFancyPharmacist
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatNovaFancyPharmacist
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatNovaFancyRd
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatNovaFancyRd
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatNovaFancyRdDeckofficer
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatNovaFancyRdDeckofficer
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatNovaFancyRegular
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatNovaFancyRegular
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatNovaFancyRoboticist
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatNovaFancyRoboticist
 
 - type: loadout
   id: WFMeridianLoadoutClothingSuitToggleLabcoatNovaHighvis
@@ -7271,40 +6017,16 @@
     outerClothing: WFMeridianClothingSuitToggleLabcoatResearchDirectorTailcoat
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatRoboticist
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatRoboticist
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitToggleLabcoatRoboticistDoctorTailcoat
   price: 0
   equipment:
     outerClothing: WFMeridianClothingSuitToggleLabcoatRoboticistDoctorTailcoat
 
 - type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatRoroco
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatRoroco
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatScience
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatScience
-
-- type: loadout
   id: WFMeridianLoadoutClothingSuitToggleLabcoatScienceDoctorTailcoat
   price: 0
   equipment:
     outerClothing: WFMeridianClothingSuitToggleLabcoatScienceDoctorTailcoat
-
-- type: loadout
-  id: WFMeridianLoadoutClothingSuitToggleLabcoatVirologist
-  price: 0
-  equipment:
-    outerClothing: WFMeridianClothingSuitToggleLabcoatVirologist
 
 - type: loadout
   id: WFMeridianLoadoutClothingSuitToggleLabcoatVirologistDoctorTailcoat
@@ -7547,196 +6269,16 @@
     jumpsuit: WFMeridianClothingUnderColor
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderColorBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorBrown
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorBrown
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorDarkblue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorDarkblue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorDarkgreen
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorDarkgreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorGreen
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorGreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorGrey
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorGrey
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderColorJumpskirt
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderColorJumpskirt
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtBrown
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtBrown
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtDarkblue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtDarkblue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtDarkgreen
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtDarkgreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtGreen
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtGreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtGrey
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtGrey
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtLightbrown
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtLightbrown
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtLightpurple
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtLightpurple
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtMaroon
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtMaroon
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtOrange
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtOrange
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtPink
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtPink
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderColorJumpskirtRainbow
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderColorJumpskirtRainbow
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtRed
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtRed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtTeal
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtTeal
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtWhite
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtWhite
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorJumpskirtYellow
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorJumpskirtYellow
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorLightbrown
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorLightbrown
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorLightpurple
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorLightpurple
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorMaroon
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorMaroon
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorOrange
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorOrange
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorPink
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorPink
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorRed
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorRed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorTeal
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorTeal
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorWhite
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorWhite
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderColorYellow
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderColorYellow
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderCostumeButtondownShorts
@@ -7751,28 +6293,10 @@
     jumpsuit: WFMeridianClothingUnderCostumeButtondownSkirt
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderCostumeButtondownSkirtService
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderCostumeButtondownSkirtService
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderCostumeButtondownSlacks
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderCostumeButtondownSlacks
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderCostumeButtondownSlacksRoroco
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderCostumeButtondownSlacksRoroco
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderCostumeButtondownSlacksService
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderCostumeButtondownSlacksService
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderCostumeCaptain
@@ -8213,24 +6737,6 @@
     jumpsuit: WFMeridianClothingUnderCostumeSeifuku
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderCostumeSeifukuRed
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderCostumeSeifukuRed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderCostumeSeifukuTan
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderCostumeSeifukuTan
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderCostumeSeifukuTeal
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderCostumeSeifukuTeal
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderCostumeSingerBlue
   price: 0
   equipment:
@@ -8561,12 +7067,6 @@
     jumpsuit: WFMeridianClothingUnderEtherealTunic
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderEtherealTunicTrailwarden
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderEtherealTunicTrailwarden
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderFrontierColonist
   price: 0
   equipment:
@@ -8609,106 +7109,10 @@
     jumpsuit: WFMeridianClothingUnderGreyscaleTurtleneckSkirt
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderImperial
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperial
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialBridgeOfficer
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialBridgeOfficer
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialCaptain
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialCaptain
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialCe
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialCe
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialCmo
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialCmo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialHop
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialHop
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialNanotrasenConsultant
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialNanotrasenConsultant
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderImperialQuartermaster
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderImperialQuartermaster
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialRd
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialRd
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialRed
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialRed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialskirt
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialskirt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialskirtBridgeOfficer
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialskirtBridgeOfficer
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialskirtCaptain
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialskirtCaptain
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialskirtCe
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialskirtCe
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialskirtCmo
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialskirtCmo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialskirtHop
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialskirtHop
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialskirtNanotrasenConsultant
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialskirtNanotrasenConsultant
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderImperialskirtQuartermaster
@@ -8717,34 +7121,16 @@
     jumpsuit: WFMeridianClothingUnderImperialskirtQuartermaster
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialskirtRd
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialskirtRd
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderImperialskirtvestBlueshield
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderImperialskirtvestBlueshield
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialskirtvestHos
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialskirtvestHos
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderImperialvestBlueshield
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderImperialvestBlueshield
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderImperialvestHos
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderImperialvestHos
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderMaidCostume
@@ -8931,12 +7317,6 @@
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderPantsNovaYoga
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderPantsSlacks
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderPantsSlacks
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderPantsSlacksAltar
@@ -9293,12 +7673,6 @@
     jumpsuit: WFMeridianClothingUnderRankCivilianClownBlue
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderRankCivilianClownClownBunnysuit
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankCivilianClownClownBunnysuit
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderRankCivilianClownGreen
   price: 0
   equipment:
@@ -9473,18 +7847,6 @@
     jumpsuit: WFMeridianClothingUnderRankCivilianLawyerBlueSkirt
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderRankCivilianLawyerBluesuit
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankCivilianLawyerBluesuit
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankCivilianLawyerBluesuitSkirt
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankCivilianLawyerBluesuitSkirt
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderRankCivilianLawyerBunnysuitBlack
   price: 0
   equipment:
@@ -9521,18 +7883,6 @@
     jumpsuit: WFMeridianClothingUnderRankCivilianLawyerGalaxySkirt
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderRankCivilianLawyerGreensuit
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankCivilianLawyerGreensuit
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankCivilianLawyerGreensuitSkirt
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankCivilianLawyerGreensuitSkirt
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderRankCivilianLawyerPurpsuit
   price: 0
   equipment:
@@ -9561,18 +7911,6 @@
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderRankCivilianMime
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankCivilianMimeBunnysuit
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankCivilianMimeBunnysuit
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankCivilianMimeSexy
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankCivilianMimeSexy
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderRankCivilianMimeSkirt
@@ -9815,58 +8153,10 @@
     jumpsuit: WFMeridianClothingUnderRankPrisonerClassic
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderRankPrisonerHighsec
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankPrisonerHighsec
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankPrisonerLowsec
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankPrisonerLowsec
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankPrisonerProtcust
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankPrisonerProtcust
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderRankPrisonerSkirt
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderRankPrisonerSkirt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankPrisonerSkirtHighsec
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankPrisonerSkirtHighsec
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankPrisonerSkirtLowsec
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankPrisonerSkirtLowsec
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankPrisonerSkirtProtcust
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankPrisonerSkirtProtcust
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankPrisonerSkirtSupermax
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankPrisonerSkirtSupermax
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankPrisonerSupermax
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankPrisonerSupermax
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderRankRndGeneticist
@@ -9891,18 +8181,6 @@
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderRankRndResearchDirector
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankRndResearchDirectorAlt
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankRndResearchDirectorAlt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankRndResearchDirectorAltSkirt
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankRndResearchDirectorAltSkirt
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderRankRndResearchDirectorBunnysuit
@@ -10097,52 +8375,10 @@
     jumpsuit: WFMeridianClothingUnderRankSecurityNovaDepgagPantsuit
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaDepgagPantsuitBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaDepgagPantsuitBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaDress
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaDress
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaDressBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaDressBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderRankSecurityNovaDressCargo
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderRankSecurityNovaDressCargo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaDressEngineering
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaDressEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaDressMedical
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaDressMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaDressScience
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaDressScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaDressService
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaDressService
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderRankSecurityNovaFormal
@@ -10151,46 +8387,10 @@
     jumpsuit: WFMeridianClothingUnderRankSecurityNovaFormal
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaFormalBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaFormalBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderRankSecurityNovaMiniskirt
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderRankSecurityNovaMiniskirt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaMiniskirtBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaMiniskirtBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaModskin
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaModskin
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaModskinBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaModskinBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirt
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaPlainskirt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaPlainskirtBlue
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtCargo
@@ -10199,82 +8399,10 @@
     jumpsuit: WFMeridianClothingUnderRankSecurityNovaPlainskirtCargo
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtEngineering
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaPlainskirtEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtMedical
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaPlainskirtMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtScience
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaPlainskirtScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaPlainskirtService
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaPlainskirtService
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaShorts
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaShorts
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaShortsBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaShortsBlue
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderRankSecurityNovaShortsCargo
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderRankSecurityNovaShortsCargo
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaShortsEngineering
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaShortsEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaShortsMedical
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaShortsMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaShortsScience
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaShortsScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaShortsService
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaShortsService
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaSkirt
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaSkirt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaSkirtBlue
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtCargo
@@ -10283,52 +8411,10 @@
     jumpsuit: WFMeridianClothingUnderRankSecurityNovaSkirtCargo
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtEngineering
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaSkirtEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtMedical
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaSkirtMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtScience
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaSkirtScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaSkirtService
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaSkirtService
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderRankSecurityNovaTrousers
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderRankSecurityNovaTrousers
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaTrousersBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaTrousersBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneck
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaTurtleneck
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaTurtleneckBlue
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckCargo
@@ -10337,40 +8423,10 @@
     jumpsuit: WFMeridianClothingUnderRankSecurityNovaTurtleneckCargo
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckEngineering
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaTurtleneckEngineering
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckMedical
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaTurtleneckMedical
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckScience
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaTurtleneckScience
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaTurtleneckService
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaTurtleneckService
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderRankSecurityNovaUniform
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderRankSecurityNovaUniform
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderRankSecurityNovaUniformBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderRankSecurityNovaUniformBlue
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderRankSecurityNovaUtility
@@ -10487,30 +8543,6 @@
     jumpsuit: WFMeridianClothingUnderShorts
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderShortsBlack
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderShortsBlack
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderShortsBlue
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderShortsBlue
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderShortsGreen
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderShortsGreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderShortsGrey
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderShortsGrey
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderShortsJeanshorts
   price: 0
   equipment:
@@ -10527,18 +8559,6 @@
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderShortsNovaShortsRipped
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderShortsPurple
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderShortsPurple
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderShortsRed
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderShortsRed
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderSkinsuit
@@ -10575,30 +8595,6 @@
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderSolfedEmergencymed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderSolfedMarinesDesert
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderSolfedMarinesDesert
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderSolfedMarinesForest
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderSolfedMarinesForest
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderSolfedMarinesOcean
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderSolfedMarinesOcean
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderSolfedMarinesWinter
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderSolfedMarinesWinter
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderSolfedOfficer
@@ -10715,18 +8711,6 @@
     jumpsuit: WFMeridianClothingUnderSuitNovaPencilBlackReally
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderSuitNovaPencilBurgundy
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderSuitNovaPencilBurgundy
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderSuitNovaPencilCharcoal
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderSuitNovaPencilCharcoal
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderSuitNovaPencilCheckered
   price: 0
   equipment:
@@ -10739,28 +8723,10 @@
     jumpsuit: WFMeridianClothingUnderSuitNovaPencilCheckeredNoshirt
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderSuitNovaPencilGreen
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderSuitNovaPencilGreen
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderSuitNovaPencilNavy
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderSuitNovaPencilNavy
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderSuitNovaPencilNoshirt
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderSuitNovaPencilNoshirt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderSuitNovaPencilTan
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderSuitNovaPencilTan
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderSuitNovaRecolorable
@@ -10865,40 +8831,10 @@
     jumpsuit: WFMeridianClothingUnderTarkon
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderTarkonCom
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTarkonCom
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderTarkonEng
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTarkonEng
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderTarkonGeneral
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderTarkonGeneral
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderTarkonMed
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTarkonMed
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderTarkonSci
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTarkonSci
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderTarkonSec
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTarkonSec
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderTexas
@@ -10937,46 +8873,10 @@
     jumpsuit: WFMeridianClothingUnderTrekEngsec
 
 - type: loadout
-  id: WFMeridianLoadoutClothingUnderTrekEngsecEnt
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTrekEngsecEnt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderTrekEngsecNext
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTrekEngsecNext
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderTrekEngsecVoy
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTrekEngsecVoy
-
-- type: loadout
   id: WFMeridianLoadoutClothingUnderTrekMedsci
   price: 0
   equipment:
     jumpsuit: WFMeridianClothingUnderTrekMedsci
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderTrekMedsciEnt
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTrekMedsciEnt
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderTrekMedsciNext
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTrekMedsciNext
-
-- type: loadout
-  id: WFMeridianLoadoutClothingUnderTrekMedsciVoy
-  price: 0
-  equipment:
-    jumpsuit: WFMeridianClothingUnderTrekMedsciVoy
 
 - type: loadout
   id: WFMeridianLoadoutClothingUnderTrekQ
