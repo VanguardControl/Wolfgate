@@ -140,6 +140,8 @@
         Slash: 0.9
         Piercing: 1.0
         Heat: 0.9
+  - type: StaticPrice # light armour must still sell for more than its recycled materials
+    price: 20
 
 - type: entity
   parent: ClothingOuterArmorBasic
