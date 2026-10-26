@@ -126,6 +126,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/bracer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.75
+        Heat: 0.85
 
 - type: entity
   parent: ClothingHandsBase
@@ -163,6 +170,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/captain.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -173,6 +181,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/captain_pilot.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -193,6 +202,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/chief_engineer.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -203,6 +213,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/chief_engineer_expeditionary_corps.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -213,6 +224,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/clockwork.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -365,6 +377,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/color_plasmaman_chief_engineer.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -385,6 +398,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/color_plasmaman_engineer.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -495,6 +509,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/color_yellow_sprayon.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsGlovesCombat
@@ -505,6 +520,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/combat_armadyne.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsGlovesCombat
@@ -515,6 +531,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/combat_floortile.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsGlovesCombat
@@ -525,6 +542,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/combat_maid.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsGlovesCombat
@@ -535,6 +553,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/combat_naval.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsGlovesCombat
@@ -545,6 +564,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/combat_naval_fleet_admiral.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsGlovesCombat
@@ -575,6 +595,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/combat_wizard.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -612,6 +633,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/divine_archer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.95
+        Heat: 0.95
 
 - type: entity
   parent: ClothingHandsBase
@@ -706,6 +734,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/fingerless_punch_mitts.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.95
+        Heat: 0.95
 
 - type: entity
   parent: ClothingHandsBase
@@ -726,6 +761,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/forging_plate_gloves.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.85
 
 - type: entity
   parent: ClothingHandsBase
@@ -746,6 +788,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/kaza_ruk_combatglovesplus.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -756,6 +799,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/kaza_ruk_combatglovesplus_maa.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -923,6 +967,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/plate.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -933,6 +978,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/plate_blue.rsi
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase
@@ -1081,6 +1127,14 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Hands/tackler_admin.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.3
+        Heat: 0.3
+  - type: Insulated
 
 - type: entity
   parent: ClothingHandsBase

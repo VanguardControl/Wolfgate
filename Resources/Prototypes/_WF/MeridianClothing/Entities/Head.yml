@@ -7,6 +7,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/ash_headdress.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.75
+        Heat: 0.85
 
 - type: entity
   parent: ClothingHeadBase
@@ -17,6 +24,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/ash_headdress_winged.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.75
+        Heat: 0.85
 
 - type: entity
   parent: ClothingHeadBase
@@ -61,6 +75,13 @@
         color: "#3A4E7D"
       - state: equipped-HELMET-2-c2
         color: "#DEB63D"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.75
+        Heat: 0.65
   - type: WFGags
     colors:
     - "#3A4E7D"
@@ -158,6 +179,13 @@
         color: "#5B2423"
       - state: equipped-HELMET-3-c3
         color: "#491716"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.75
+        Heat: 0.65
   - type: WFGags
     colors:
     - "#3F3C40"
@@ -183,6 +211,13 @@
         color: "#3C485A"
       - state: equipped-HELMET-2-c2
         color: "#FF0000"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.75
+        Heat: 0.65
   - type: WFGags
     colors:
     - "#3C485A"
@@ -211,6 +246,13 @@
         color: "#FF0000"
       - state: equipped-HELMET-3-c3
         color: "#00AEEF"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.7
+        Heat: 0.6
   - type: WFGags
     colors:
     - "#3C485A"
@@ -231,6 +273,7 @@
       Hair: HEAD
       FacialHair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
 
 - type: entity
   parent: ClothingHeadHatHoodBioGeneral
@@ -287,6 +330,13 @@
         color: "#0070B7"
       - state: equipped-HELMET-2-c2
         color: "#FFCE5B"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.65
   - type: WFGags
     colors:
     - "#0070B7"
@@ -607,6 +657,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/costume_constable.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -627,6 +684,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/costume_crown.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 1.0
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadBase
@@ -1792,6 +1856,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/fedora_det_hat.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.95
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -1802,6 +1873,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/fedora_det_hat_cybergoggles.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.95
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -1856,6 +1934,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/frontier_colonist_helmet.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.7
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadBase
@@ -1916,6 +2001,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_caphat_azulean.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -1926,6 +2018,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_caphat_azulean_upstart.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -1936,6 +2035,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_caphat_bicorne.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -1946,6 +2052,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_caphat_bunnyears_captain.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -1956,6 +2069,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_caphat_naval.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -2033,6 +2153,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_caphat_naval_fleet_admiral.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -2160,6 +2287,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_caphat_pilot.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -2170,6 +2304,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_centcom_cap.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.85
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -2180,6 +2321,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_centhat.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.85
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -2200,6 +2348,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_colonial_hc_police.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.75
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -2210,6 +2365,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_coordinator.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -2230,6 +2392,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_hos_shako.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.7
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -2274,6 +2443,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_syndicate_interdyne_deckofficer_black.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -2284,6 +2460,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_syndicate_interdyne_deckofficer_white.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -2304,6 +2487,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_warden_drill.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -2324,6 +2514,13 @@
         color: "#39393F"
       - state: equipped-HELMET-2-c2
         color: "#A52F29"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
   - type: WFGags
     colors:
     - "#39393F"
@@ -2338,6 +2535,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_warden_red.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -2348,6 +2552,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hats_warden_syndicate.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2361,6 +2572,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.4
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2376,6 +2594,14 @@
       Hair: HEAD
       FacialHair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2390,6 +2616,13 @@
     layers:
       Hair: HEAD
       Snout: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2403,6 +2636,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2416,6 +2656,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2430,6 +2677,14 @@
     layers:
       Hair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2444,6 +2699,14 @@
     layers:
       Hair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2458,6 +2721,14 @@
     layers:
       Hair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2471,6 +2742,14 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2498,6 +2777,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.6
+        Heat: 0.9
   - type: WFGags
     colors:
     - "#BBBBC9"
@@ -2514,6 +2800,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2524,6 +2817,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/helmet_durability_barrelmelon.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.8
+        Heat: 0.85
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2534,6 +2834,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/helmet_durability_holymelon.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2547,6 +2854,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.8
+        Slash: 0.8
+        Piercing: 0.9
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2561,6 +2875,14 @@
     layers:
       Hair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.8
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2574,6 +2896,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.8
+        Slash: 0.8
+        Piercing: 0.8
+        Heat: 0.8
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2584,6 +2913,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/helmet_forging_plate_helmet.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.8
+        Heat: 0.8
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2597,6 +2933,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2611,6 +2954,14 @@
     layers:
       Hair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2625,6 +2976,14 @@
     layers:
       Hair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2639,6 +2998,14 @@
     layers:
       Hair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2654,6 +3021,19 @@
       Hair: HEAD
       FacialHair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.4
+        Heat: 0.3
+  - type: FlashImmunity
+  - type: EyeProtection
+  - type: ClothingSpeedModifier
+    walkModifier: 0.96
+    sprintModifier: 0.96
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2668,6 +3048,14 @@
     layers:
       Hair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2681,6 +3069,19 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.7
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2694,6 +3095,19 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.7
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2707,6 +3121,19 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.7
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2720,6 +3147,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.4
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2733,6 +3167,19 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.7
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2746,6 +3193,16 @@
   - type: HideLayerClothing
     layers:
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.55
+        Slash: 0.55
+        Piercing: 0.75
+        Heat: 0.75
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2759,6 +3216,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2772,6 +3236,22 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.85
+        Heat: 0.4
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2785,6 +3265,22 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.3
+        Heat: 0.3
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2798,6 +3294,22 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.3
+        Heat: 0.3
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2811,6 +3323,14 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.5
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2824,6 +3344,14 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.5
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2837,6 +3365,14 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.4
+        Slash: 0.4
+        Piercing: 0.4
+        Heat: 0.4
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2850,6 +3386,14 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.4
+        Slash: 0.4
+        Piercing: 0.4
+        Heat: 0.4
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2863,6 +3407,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2876,6 +3427,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 1.0
+        Heat: 0.75
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2889,6 +3447,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 1.0
+        Heat: 0.75
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2902,6 +3467,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.7
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2915,6 +3487,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.8
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2925,6 +3504,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/helmet_sf_peacekeeper.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.5
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2935,6 +3521,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/helmet_sf_peacekeeper_debranded.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.5
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2945,6 +3538,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/helmet_sf_sacrificial.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.3
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2958,6 +3558,14 @@
   - type: HideLayerClothing
     layers:
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.9
+        Heat: 0.8
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2971,6 +3579,14 @@
   - type: HideLayerClothing
     layers:
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.9
+        Heat: 0.8
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -2996,6 +3612,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.5
   - type: WFGags
     colors:
     - "#1DD2FF"
@@ -3026,6 +3649,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.3
+        Heat: 0.3
   - type: WFGags
     colors:
     - "#1DD2FF"
@@ -3043,6 +3673,15 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3053,6 +3692,14 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/helmet_space_akula_wetsuit.rsi
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3067,6 +3714,15 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3081,6 +3737,15 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3096,6 +3761,15 @@
       Hair: HEAD
       FacialHair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3110,6 +3784,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3124,6 +3814,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3138,6 +3844,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3151,6 +3873,14 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3165,6 +3895,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3179,6 +3925,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3193,6 +3955,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3207,6 +3985,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3221,6 +4015,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3235,6 +4045,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3249,6 +4075,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3263,6 +4105,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3277,6 +4135,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3291,6 +4165,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3305,6 +4195,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetEVA
@@ -3319,6 +4225,22 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -3332,6 +4254,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -3345,6 +4274,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.9
+        Heat: 0.8
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -3358,6 +4294,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.9
+        Heat: 0.8
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -3371,6 +4314,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -3384,6 +4334,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -3394,6 +4351,14 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/helmet_toggleable_riot.rsi
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -3409,6 +4374,14 @@
       Hair: HEAD
       FacialHair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.5
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadHelmetBasic
@@ -3424,6 +4397,14 @@
       Hair: HEAD
       FacialHair: HEAD
       Snout: HEAD
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.5
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadBase
@@ -3456,6 +4437,13 @@
   - type: HideLayerClothing
     layers:
       Hair: HEAD
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.9
+        Heat: 0.4
 
 - type: entity
   parent: ClothingHeadBase
@@ -3484,6 +4472,18 @@
       Hair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.7
+        Heat: 0.8
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 1
+  - type: FireProtection
+    reduction: 0.2
 
 - type: entity
   parent: ClothingHeadBase
@@ -3500,6 +4500,18 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.6
+        Heat: 0.75
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 1
+  - type: FireProtection
+    reduction: 0.2
 
 - type: entity
   parent: ClothingHeadBase
@@ -3514,6 +4526,14 @@
     layers:
       Hair: HEAD
       FacialHair: HEAD
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3542,6 +4562,13 @@
     layers:
       Hair: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.95
+        Heat: 0.95
 
 - type: entity
   parent: ClothingHeadBase
@@ -3566,6 +4593,18 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_cloakhood_drake.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.35
+        Slash: 0.35
+        Piercing: 0.85
+        Heat: 0.6
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 1
+  - type: FireProtection
+    reduction: 0.2
 
 - type: entity
   parent: ClothingHeadBase
@@ -3576,6 +4615,23 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_cloakhood_godslayer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.5
+        Heat: 0.6
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FireProtection
+    reduction: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3606,6 +4662,15 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.5
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3622,6 +4687,15 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.4
+        Heat: 0.5
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3638,6 +4712,15 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.5
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3654,6 +4737,21 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.8
+        Slash: 0.8
+        Piercing: 0.7
+        Heat: 0.4
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3670,6 +4768,15 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.6
+        Heat: 0.7
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3680,6 +4787,15 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_cult_hoodie_eldritch_lock.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.6
+        Heat: 0.6
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3696,6 +4812,8 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3712,6 +4830,15 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.7
+        Heat: 0.7
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3728,6 +4855,15 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.6
+        Heat: 0.5
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -3738,6 +4874,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_cult_hoodie_void.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.7
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadBase
@@ -3766,6 +4909,13 @@
     layers:
       Hair: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.9
+        Heat: 0.8
 
 - type: entity
   parent: ClothingHeadBase
@@ -3780,6 +4930,13 @@
     layers:
       Hair: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.85
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -3826,6 +4983,18 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.6
+        Heat: 0.8
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 1
+  - type: FireProtection
+    reduction: 0.2
   - type: WFGags
     colors:
     - "#4D4D4D"
@@ -3881,6 +5050,13 @@
       Hair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.8
+        Slash: 0.8
+        Piercing: 0.9
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadBase
@@ -3927,6 +5103,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_winterhood_captain.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -3957,6 +5140,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_winterhood_centcom.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.6
+        Heat: 0.5
 
 - type: entity
   parent: ClothingHeadBase
@@ -3997,6 +5187,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_winterhood_eva.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadBase
@@ -4007,6 +5204,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_winterhood_hop.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.85
+        Heat: 0.75
 
 - type: entity
   parent: ClothingHeadBase
@@ -4087,6 +5291,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_winterhood_miner.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
 
 - type: entity
   parent: ClothingHeadBase
@@ -4107,6 +5318,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_winterhood_nova_blueshield.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -4157,6 +5375,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_winterhood_nova_syndicate.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -4206,6 +5431,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/hooded_winterhood_security.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -4364,6 +5596,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/nanotrasen_consultant.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.95
+        Heat: 0.75
 
 - type: entity
   parent: ClothingHeadBase
@@ -4696,6 +5935,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/playbunnyears_detective.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.95
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -4706,6 +5952,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/playbunnyears_detective_noir.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.95
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -4746,6 +5999,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/playbunnyears_hop.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -4756,6 +6016,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/playbunnyears_hos.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.7
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -4826,6 +6093,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/playbunnyears_miner.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.9
+        Heat: 0.8
 
 - type: entity
   parent: ClothingHeadBase
@@ -4916,6 +6190,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/playbunnyears_security.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -4926,6 +6207,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/playbunnyears_security_assistant.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -4936,6 +6224,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/playbunnyears_syndicate.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -4956,6 +6251,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/playbunnyears_warden.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
 
 - type: entity
   parent: ClothingHeadBase
@@ -5014,6 +6316,13 @@
         color: "#EBEBEB"
       - state: equipped-HELMET-3-c3
         color: "#39393F"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.75
+        Heat: 0.65
   - type: WFGags
     colors:
     - "#BA832F"
@@ -5035,6 +6344,13 @@
       head:
       - state: equipped-HELMET-1-c1
         color: "#39393F"
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.65
+        Slash: 0.65
+        Piercing: 0.7
+        Heat: 0.6
   - type: WFGags
     colors:
     - "#39393F"
@@ -5097,6 +6413,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/soft_blueshield.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.75
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -5117,6 +6440,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/soft_frontier_colonist.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 1.0
+        Slash: 1.0
+        Piercing: 1.0
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadBase
@@ -5127,6 +6457,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/soft_frontier_colonist_medic.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 1.0
+        Slash: 1.0
+        Piercing: 1.0
+        Heat: 0.9
 
 - type: entity
   parent: ClothingHeadBase
@@ -5137,6 +6474,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/soft_hc_police.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.75
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -5177,6 +6521,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/soft_sec_syndicate.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.75
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -5187,6 +6538,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/soft_veteran.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.75
+        Heat: 0.65
 
 - type: entity
   parent: ClothingHeadBase
@@ -5276,6 +6634,13 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.8
+        Slash: 0.8
+        Piercing: 1.0
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadBase
@@ -5292,6 +6657,13 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.8
+        Slash: 0.8
+        Piercing: 1.0
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadBase
@@ -5308,6 +6680,13 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.8
+        Slash: 0.8
+        Piercing: 1.0
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadBase
@@ -5328,6 +6707,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/utility_hardhat_dblue.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.95
+        Heat: 0.8
 
 - type: entity
   parent: ClothingHeadBase
@@ -5338,6 +6724,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/utility_hardhat_orange.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.95
+        Heat: 0.8
 
 - type: entity
   parent: ClothingHeadBase
@@ -5364,6 +6757,21 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/utility_hardhat_red.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.95
+        Heat: 0.8
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FireProtection
+    reduction: 0.2
 
 - type: entity
   parent: ClothingHeadBase
@@ -5374,6 +6782,21 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/utility_hardhat_red_upgraded.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.95
+        Heat: 0.8
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FireProtection
+    reduction: 0.2
 
 - type: entity
   parent: ClothingHeadBase
@@ -5400,6 +6823,23 @@
       FacialHair: HEAD
       Snout: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.95
+        Heat: 0.8
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FireProtection
+    reduction: 0.2
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -5410,6 +6850,21 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/utility_hardhat_white.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.95
+        Heat: 0.8
+  - type: PressureProtection
+    highPressureMultiplier: 0.6
+    lowPressureMultiplier: 1000
+  - type: TemperatureProtection
+    heatingCoefficient: 0.2
+    coolingCoefficient: 0.2
+  - type: FireProtection
+    reduction: 0.2
 
 - type: entity
   parent: ClothingHeadBase
@@ -5485,6 +6940,15 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/utility_welding_hat.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 1.0
+  - type: FlashImmunity
+  - type: EyeProtection
 
 - type: entity
   parent: ClothingHeadBase
@@ -5518,6 +6982,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/wizard_black.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.8
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadBase
@@ -5538,6 +7009,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/wizard_hood.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.8
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadBase
@@ -5568,6 +7046,13 @@
       - state: inhand-left-1
       right:
       - state: inhand-right-1
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.8
+        Heat: 0.7
   - type: WFGags
     colors:
     - "#343640"
@@ -5588,6 +7073,13 @@
       Hair: HEAD
       FacialHair: HEAD
   - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.8
+        Heat: 0.7
 
 - type: entity
   parent: ClothingHeadBase
@@ -5598,3 +7090,10 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Head/wizard_yellow.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.7
+        Slash: 0.7
+        Piercing: 0.8
+        Heat: 0.7

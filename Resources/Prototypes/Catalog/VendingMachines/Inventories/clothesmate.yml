@@ -189,7 +189,6 @@
     WFMeridianClothingGlassesEyepatchWhite: 2
     WFMeridianClothingGlassesEyepatchWrap: 2
     WFMeridianClothingGlassesGeistGazers: 2
-    WFMeridianClothingGlassesGodeye: 2
     WFMeridianClothingGlassesHeat: 2
     WFMeridianClothingGlassesHudArAviator: 2
     WFMeridianClothingGlassesHudArProjector: 2
@@ -201,7 +200,6 @@
     WFMeridianClothingGlassesNightmareVision: 2
     WFMeridianClothingGlassesOrange: 2
     WFMeridianClothingGlassesOsi: 2
-    WFMeridianClothingGlassesOverwatch: 2
     WFMeridianClothingGlassesPhantom: 2
     WFMeridianClothingGlassesPrismGlasses: 2
     WFMeridianClothingGlassesRed: 2
@@ -224,7 +222,6 @@
     WFMeridianClothingGlovesBoxingGolden: 2
     WFMeridianClothingGlovesBoxingGreen: 2
     WFMeridianClothingGlovesBoxingYellow: 2
-    WFMeridianClothingGlovesBracer: 2
     WFMeridianClothingGlovesBracerWraps: 2
     WFMeridianClothingGlovesColorBlackExpeditionaryCorps: 2
     WFMeridianClothingGlovesColorPlasmaman: 2
@@ -237,20 +234,15 @@
     WFMeridianClothingGlovesColorPlasmamanWhite: 2
     WFMeridianClothingGlovesColorRainbow: 2
     WFMeridianClothingGlovesDesigner: 2
-    WFMeridianClothingGlovesDivineArcher: 2
     WFMeridianClothingGlovesEvening: 2
     WFMeridianClothingGlovesFingerlessPrimitiveCatgirlArmwraps: 2
     WFMeridianClothingGlovesFingerlessPrimitiveCatgirlGauntlets: 2
-    WFMeridianClothingGlovesFingerlessPunchMitts: 2
     WFMeridianClothingGlovesFishing: 2
-    WFMeridianClothingGlovesForgingPlateGloves: 2
     WFMeridianClothingGlovesFrontierColonist: 2
     WFMeridianClothingGlovesKim: 2
     WFMeridianClothingGlovesLatexNitrileExpeditionaryCorps: 2
     WFMeridianClothingGlovesLatexNitrileLong: 2
     WFMeridianClothingGlovesLatexNitrileNtrauma: 2
-    WFMeridianClothingGlovesPlate: 2
-    WFMeridianClothingGlovesPlateBlue: 2
     WFMeridianClothingGlovesRadio: 2
     WFMeridianClothingGlovesRecolorableFingerless: 2
     WFMeridianClothingGlovesRecolorableFingerlessLong: 2
@@ -262,8 +254,6 @@
     WFMeridianClothingGlovesTacklerRocket: 2
     WFMeridianClothingGlovesTheSleepingCarp: 2
     WFMeridianClothingGlovesTinkerer: 2
-    WFMeridianClothingHeadAshHeaddress: 2
-    WFMeridianClothingHeadAshHeaddressWinged: 2
     WFMeridianClothingHeadBeanie: 2
     WFMeridianClothingHeadBeretEngi: 2
     WFMeridianClothingHeadBlastwave: 2
@@ -276,29 +266,18 @@
     WFMeridianClothingHeadFedoraGreyscale: 2
     WFMeridianClothingHeadFedoraHumanLeather: 2
     WFMeridianClothingHeadFedoraWhite: 2
-    WFMeridianClothingHeadFrontierColonistHelmet: 2
     WFMeridianClothingHeadHairTie: 2
     WFMeridianClothingHeadHairTiePlasticBeads: 2
     WFMeridianClothingHeadHairTieScrunchie: 2
     WFMeridianClothingHeadHatsBowler: 2
-    WFMeridianClothingHeadHatsCenthat: 2
-    WFMeridianClothingHeadHatsCoordinator: 2
     WFMeridianClothingHeadHatsFlakhelm: 2
     WFMeridianClothingHeadHatsIntern: 2
     WFMeridianClothingHeadHatsTophatBalloon: 2
     WFMeridianClothingHeadHenchmenHat: 2
-    WFMeridianClothingHeadHoodedAblative: 2
     WFMeridianClothingHeadHoodedBeeHood: 2
-    WFMeridianClothingHeadHoodedBerserker: 2
-    WFMeridianClothingHeadHoodedBerserkerGatsu: 2
-    WFMeridianClothingHeadHoodedCarpHoodSpaceproof: 2
-    WFMeridianClothingHeadHoodedCloakhoodDrake: 2
-    WFMeridianClothingHeadHoodedCloakhoodGodslayer: 2
     WFMeridianClothingHeadHoodedEtherealRainhood: 2
     WFMeridianClothingHeadHoodedFlashsuit: 2
-    WFMeridianClothingHeadHoodedHostileEnvironment: 2
     WFMeridianClothingHeadHoodedLeather: 2
-    WFMeridianClothingHeadHoodedSeva: 2
     WFMeridianClothingHeadHoodedSharkHood: 2
     WFMeridianClothingHeadHoodedShorkHood: 2
     WFMeridianClothingHeadHoodedWolfCoatHoodie: 2
@@ -319,16 +298,12 @@
     WFMeridianClothingHeadSoftFishingHat: 2
     WFMeridianClothingHeadSoftFrontierColonist: 2
     WFMeridianClothingHeadSoftFrontierColonistMedic: 2
-    WFMeridianClothingHeadSoftHcPolice: 2
     WFMeridianClothingHeadSoftPropellerHat: 2
     WFMeridianClothingHeadSoftRainbow: 2
-    WFMeridianClothingHeadSoftVeteran: 2
     WFMeridianClothingHeadSoftYankee: 2
     WFMeridianClothingHeadSoftYankeeRimless: 2
     WFMeridianClothingHeadStandaloneHood: 2
     WFMeridianClothingHeadUtilityBeekeeperHead: 2
-    WFMeridianClothingHeadUtilityBombHood: 2
-    WFMeridianClothingHeadUtilityBombHoodWhite: 2
     WFMeridianClothingHeadUtilitySurgerycap: 2
     WFMeridianClothingHeadUtilitySurgerycapBlack: 2
     WFMeridianClothingHeadUtilitySurgerycapGreen: 2
@@ -343,23 +318,16 @@
     WFMeridianClothingMaskBandana: 2
     WFMeridianClothingMaskBandanaSkull: 2
     WFMeridianClothingMaskBandanaStriped: 2
-    WFMeridianClothingMaskFacescarfRogue: 2
     WFMeridianClothingMaskFloortilebalaclava: 2
     WFMeridianClothingMaskGondola: 2
     WFMeridianClothingMaskKitsune: 2
     WFMeridianClothingMaskLuchador: 2
     WFMeridianClothingMaskLuchadorRudos: 2
     WFMeridianClothingMaskLuchadorTecnicos: 2
-    WFMeridianClothingMaskMadnessMask: 2
-    WFMeridianClothingMaskMasquerade: 2
-    WFMeridianClothingMaskMasqueradeFeathered: 2
-    WFMeridianClothingMaskMasqueradeTwoColors: 2
-    WFMeridianClothingMaskMasqueradeTwoColorsFeathered: 2
     WFMeridianClothingMaskMummy: 2
     WFMeridianClothingMaskMuzzleTape: 2
     WFMeridianClothingMaskMuzzleTapePointy: 2
     WFMeridianClothingMaskNobreath: 2
-    WFMeridianClothingMaskPaper: 2
     WFMeridianClothingMaskRebellion: 2
     WFMeridianClothingMaskRussianBalaclava: 2
     WFMeridianClothingMaskScarecrow: 2
@@ -422,7 +390,6 @@
     WFMeridianClothingNeckWreathMagmawing: 2
     WFMeridianClothingShoesBhopRocket: 2
     WFMeridianClothingShoesBhopRocketJet: 2
-    WFMeridianClothingShoesBoneGreaves: 2
     WFMeridianClothingShoesBronze: 2
     WFMeridianClothingShoesColorableLaceups: 2
     WFMeridianClothingShoesColorableSandals: 2
@@ -430,11 +397,7 @@
     WFMeridianClothingShoesDivineArcher: 2
     WFMeridianClothingShoesFancyHeels: 2
     WFMeridianClothingShoesFancyHeelsSandals: 2
-    WFMeridianClothingShoesForgingPlateBoots: 2
-    WFMeridianClothingShoesGaloshesDry: 2
-    WFMeridianClothingShoesGaloshesHeeled: 2
     WFMeridianClothingShoesGlow: 2
-    WFMeridianClothingShoesGreavesOfTheProphet: 2
     WFMeridianClothingShoesGriffin: 2
     WFMeridianClothingShoesHighHeels: 2
     WFMeridianClothingShoesJackbootsArmadyne: 2
@@ -454,8 +417,6 @@
     WFMeridianClothingShoesJackbros: 2
     WFMeridianClothingShoesJungleboots: 2
     WFMeridianClothingShoesKindleKicks: 2
-    WFMeridianClothingShoesPlate: 2
-    WFMeridianClothingShoesPlateBlue: 2
     WFMeridianClothingShoesRoman: 2
     WFMeridianClothingShoesRussian: 2
     WFMeridianClothingShoesSaints: 2
@@ -485,8 +446,6 @@
     WFMeridianClothingSuitApronOveralls: 2
     WFMeridianClothingSuitApronOverallsLoneskirt: 2
     WFMeridianClothingSuitApronWaders: 2
-    WFMeridianClothingSuitAshPlates: 2
-    WFMeridianClothingSuitAshPlatesDecorated: 2
     WFMeridianClothingSuitAshwalkermantle: 2
     WFMeridianClothingSuitAshwalkermantleCape: 2
     WFMeridianClothingSuitAutumn: 2
@@ -513,24 +472,14 @@
     WFMeridianClothingSuitFallsparka: 2
     WFMeridianClothingSuitFlakjack: 2
     WFMeridianClothingSuitFrenchtrench: 2
-    WFMeridianClothingSuitFrontierColonistFlak: 2
-    WFMeridianClothingSuitGautumn: 2
     WFMeridianClothingSuitHazardvest: 2
     WFMeridianClothingSuitHazardvestPress: 2
     WFMeridianClothingSuitHeartSweater: 2
-    WFMeridianClothingSuitHoodedAblative: 2
     WFMeridianClothingSuitHoodedBeeCostume: 2
-    WFMeridianClothingSuitHoodedBerserker: 2
-    WFMeridianClothingSuitHoodedBerserkerGatsu: 2
-    WFMeridianClothingSuitHoodedCarpCostumeSpaceproof: 2
-    WFMeridianClothingSuitHoodedCloakDrake: 2
-    WFMeridianClothingSuitHoodedCloakGodslayer: 2
     WFMeridianClothingSuitHoodedEtherealRaincoat: 2
     WFMeridianClothingSuitHoodedFlashsuit: 2
-    WFMeridianClothingSuitHoodedHostileEnvironment: 2
     WFMeridianClothingSuitHoodedIanCostume: 2
     WFMeridianClothingSuitHoodedLeather: 2
-    WFMeridianClothingSuitHoodedSeva: 2
     WFMeridianClothingSuitHoodedSharkCostume: 2
     WFMeridianClothingSuitHoodedShorkCostume: 2
     WFMeridianClothingSuitJacketBlazer: 2
@@ -571,7 +520,6 @@
     WFMeridianClothingSuitTailoredJacket: 2
     WFMeridianClothingSuitTailoredJacketShort: 2
     WFMeridianClothingSuitTexas: 2
-    WFMeridianClothingSuitToggleDeckard: 2
     WFMeridianClothingSuitToggleJacketCroptopBomberJacket: 2
     WFMeridianClothingSuitToggleJacketCroptopBomberJacketBadge: 2
     WFMeridianClothingSuitToggleJacketCroptopBomberJacketPlain: 2
@@ -603,10 +551,7 @@
     WFMeridianClothingSuitTrenchbrown: 2
     WFMeridianClothingSuitUrban: 2
     WFMeridianClothingSuitUtilityBeekeeperSuit: 2
-    WFMeridianClothingSuitUtilityFire: 2
     WFMeridianClothingSuitUtilityFireCeTailcoat: 2
-    WFMeridianClothingSuitUtilityFireFirefighter: 2
-    WFMeridianClothingSuitUtilityFireHeavy: 2
     WFMeridianClothingSuitVarsity: 2
     WFMeridianClothingSuitVictoriantailcoatbutler: 2
     WFMeridianClothingSuitWarmCoat: 2

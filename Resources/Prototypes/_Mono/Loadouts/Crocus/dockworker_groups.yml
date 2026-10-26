@@ -8,13 +8,11 @@
   - CrocusDockworkerCapAlt
   - CrocusDockworkerHardhat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadHoodedExplorer
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodCargo
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodCargoQm
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodMiner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsBitrunner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsCargo
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsMiner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsQuartermaster
   # WOLFGATE END
 
@@ -85,11 +83,9 @@
   - CrocusDockworkerOuterClothing
   - CrocusDockworkerOuterClothingWinterCoat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingSuitHoodedExplorer
   - WFMeridianLoadoutClothingSuitJacketQuartermaster
   - WFMeridianLoadoutClothingSuitJacketTailcoatBitrunner
   - WFMeridianLoadoutClothingSuitJacketTailcoatCargo
-  - WFMeridianLoadoutClothingSuitJacketTailcoatMiner
   - WFMeridianLoadoutClothingSuitJacketTailcoatQuartermaster
   - WFMeridianLoadoutClothingSuitToggleCargoTech
   # WOLFGATE END

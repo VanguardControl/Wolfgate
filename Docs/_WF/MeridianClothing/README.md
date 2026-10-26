@@ -43,6 +43,10 @@ Without `--write` it only reports what it would port; `--report <file>` lists wh
 
 ## Files
 
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/_WF/MeridianClothing/MeridianClothingStatsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MeridianClothing/MeridianClothingStatsTest.cs)
+
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/MeridianClothing/Entities/Ears.yml`](../../../Resources/Prototypes/_WF/MeridianClothing/Entities/Ears.yml)

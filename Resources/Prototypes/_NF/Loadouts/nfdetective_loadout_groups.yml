@@ -27,12 +27,6 @@
   - NFDetectiveClothingOuterCoatDetectiveLoadout
   - NFDetectiveClothingOuterCoatDetectiveLoadoutGrey
   - NFDetectiveClothingOuterCoatTrench
-  # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingSuitJacketDetSuit
-  - WFMeridianLoadoutClothingSuitJacketDetSuitNoir
-  - WFMeridianLoadoutClothingSuitJacketDetSuitTailcoat
-  - WFMeridianLoadoutClothingSuitJacketDetSuitTailcoatNoir
-  # WOLFGATE END
 
 - type: loadoutGroup
   id: NFDetectiveHead
@@ -41,12 +35,6 @@
   loadouts:
   - NFDetectiveClothingHeadHatFedoraBrown
   - NFDetectiveClothingHeadHatFedoraGrey
-  # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadFedoraDetHat
-  - WFMeridianLoadoutClothingHeadFedoraDetHatCybergoggles
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsDetective
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsDetectiveNoir
-  # WOLFGATE END
   
 - type: loadoutGroup
   id: NFDetectiveGloves

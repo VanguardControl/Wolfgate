@@ -68,7 +68,6 @@
   - WFMeridianLoadoutClothingGlassesEyepatchWhite
   - WFMeridianLoadoutClothingGlassesEyepatchWrap
   - WFMeridianLoadoutClothingGlassesGeistGazers
-  - WFMeridianLoadoutClothingGlassesGodeye
   - WFMeridianLoadoutClothingGlassesHeat
   - WFMeridianLoadoutClothingGlassesHudArAviator
   - WFMeridianLoadoutClothingGlassesHudArAviatorScience
@@ -82,7 +81,6 @@
   - WFMeridianLoadoutClothingGlassesNightmareVision
   - WFMeridianLoadoutClothingGlassesOrange
   - WFMeridianLoadoutClothingGlassesOsi
-  - WFMeridianLoadoutClothingGlassesOverwatch
   - WFMeridianLoadoutClothingGlassesPhantom
   - WFMeridianLoadoutClothingGlassesPrismGlasses
   - WFMeridianLoadoutClothingGlassesPsych
@@ -152,18 +150,10 @@
   - CaptainHead
   - CaptainCap
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadBeretBlueshield
-  - WFMeridianLoadoutClothingHeadCaphatBeret
   - WFMeridianLoadoutClothingHeadCollectableCaptain
   - WFMeridianLoadoutClothingHeadCollectableHop
-  - WFMeridianLoadoutClothingHeadHatsCaphatAzulean
-  - WFMeridianLoadoutClothingHeadHatsCaphatAzuleanUpstart
-  - WFMeridianLoadoutClothingHeadHatsCaphatBicorne
-  - WFMeridianLoadoutClothingHeadHatsCaphatBunnyearsCaptain
-  - WFMeridianLoadoutClothingHeadHatsCaphatNaval
   - WFMeridianLoadoutClothingHeadHatsCaphatNavalCustom
   - WFMeridianLoadoutClothingHeadHatsCaphatNavalCustomGold
-  - WFMeridianLoadoutClothingHeadHatsCaphatNavalFleetAdmiral
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcap
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcapBlack
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcapCustom
@@ -171,13 +161,6 @@
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcapEng
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcapMedsci
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcapSec
-  - WFMeridianLoadoutClothingHeadHatsCaphatPilot
-  - WFMeridianLoadoutClothingHeadHoodedWinterhoodCaptain
-  - WFMeridianLoadoutClothingHeadHoodedWinterhoodHop
-  - WFMeridianLoadoutClothingHeadHoodedWinterhoodNovaBlueshield
-  - WFMeridianLoadoutClothingHeadNanotrasenConsultant
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsHop
-  - WFMeridianLoadoutClothingHeadSoftBlueshield
   # WOLFGATE END
 
 - type: loadoutGroup
@@ -267,7 +250,6 @@
   - CaptainOuterClothing
   - CaptainWintercoat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatNovaBlueshield
   - WFMeridianLoadoutClothingSuitNovaBridgeOfficerGoth
   # WOLFGATE END
 
@@ -278,18 +260,10 @@
   loadouts:
   - HoPHead
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadBeretBlueshield
-  - WFMeridianLoadoutClothingHeadCaphatBeret
   - WFMeridianLoadoutClothingHeadCollectableCaptain
   - WFMeridianLoadoutClothingHeadCollectableHop
-  - WFMeridianLoadoutClothingHeadHatsCaphatAzulean
-  - WFMeridianLoadoutClothingHeadHatsCaphatAzuleanUpstart
-  - WFMeridianLoadoutClothingHeadHatsCaphatBicorne
-  - WFMeridianLoadoutClothingHeadHatsCaphatBunnyearsCaptain
-  - WFMeridianLoadoutClothingHeadHatsCaphatNaval
   - WFMeridianLoadoutClothingHeadHatsCaphatNavalCustom
   - WFMeridianLoadoutClothingHeadHatsCaphatNavalCustomGold
-  - WFMeridianLoadoutClothingHeadHatsCaphatNavalFleetAdmiral
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcap
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcapBlack
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcapCustom
@@ -297,13 +271,6 @@
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcapEng
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcapMedsci
   - WFMeridianLoadoutClothingHeadHatsCaphatParadeFedcapSec
-  - WFMeridianLoadoutClothingHeadHatsCaphatPilot
-  - WFMeridianLoadoutClothingHeadHoodedWinterhoodCaptain
-  - WFMeridianLoadoutClothingHeadHoodedWinterhoodHop
-  - WFMeridianLoadoutClothingHeadHoodedWinterhoodNovaBlueshield
-  - WFMeridianLoadoutClothingHeadNanotrasenConsultant
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsHop
-  - WFMeridianLoadoutClothingHeadSoftBlueshield
   # WOLFGATE END
 
 - type: loadoutGroup
@@ -391,7 +358,6 @@
   loadouts:
   - HoPWintercoat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatNovaBlueshield
   - WFMeridianLoadoutClothingSuitNovaBridgeOfficerGoth
   # WOLFGATE END
 
@@ -555,23 +521,16 @@
   - WFMeridianLoadoutClothingMaskBandana
   - WFMeridianLoadoutClothingMaskBandanaSkull
   - WFMeridianLoadoutClothingMaskBandanaStriped
-  - WFMeridianLoadoutClothingMaskFacescarfRogue
   - WFMeridianLoadoutClothingMaskFloortilebalaclava
   - WFMeridianLoadoutClothingMaskGondola
   - WFMeridianLoadoutClothingMaskKitsune
   - WFMeridianLoadoutClothingMaskLuchador
   - WFMeridianLoadoutClothingMaskLuchadorRudos
   - WFMeridianLoadoutClothingMaskLuchadorTecnicos
-  - WFMeridianLoadoutClothingMaskMadnessMask
-  - WFMeridianLoadoutClothingMaskMasquerade
-  - WFMeridianLoadoutClothingMaskMasqueradeFeathered
-  - WFMeridianLoadoutClothingMaskMasqueradeTwoColors
-  - WFMeridianLoadoutClothingMaskMasqueradeTwoColorsFeathered
   - WFMeridianLoadoutClothingMaskMummy
   - WFMeridianLoadoutClothingMaskMuzzleTape
   - WFMeridianLoadoutClothingMaskMuzzleTapePointy
   - WFMeridianLoadoutClothingMaskNobreath
-  - WFMeridianLoadoutClothingMaskPaper
   - WFMeridianLoadoutClothingMaskRebellion
   - WFMeridianLoadoutClothingMaskRussianBalaclava
   - WFMeridianLoadoutClothingMaskScarecrow
@@ -590,7 +549,6 @@
   - WFMeridianLoadoutClothingGlovesBoxingGolden
   - WFMeridianLoadoutClothingGlovesBoxingGreen
   - WFMeridianLoadoutClothingGlovesBoxingYellow
-  - WFMeridianLoadoutClothingGlovesBracer
   - WFMeridianLoadoutClothingGlovesBracerWraps
   - WFMeridianLoadoutClothingGlovesColorBlackExpeditionaryCorps
   - WFMeridianLoadoutClothingGlovesColorPlasmaman
@@ -603,20 +561,15 @@
   - WFMeridianLoadoutClothingGlovesColorPlasmamanWhite
   - WFMeridianLoadoutClothingGlovesColorRainbow
   - WFMeridianLoadoutClothingGlovesDesigner
-  - WFMeridianLoadoutClothingGlovesDivineArcher
   - WFMeridianLoadoutClothingGlovesEvening
   - WFMeridianLoadoutClothingGlovesFingerlessPrimitiveCatgirlArmwraps
   - WFMeridianLoadoutClothingGlovesFingerlessPrimitiveCatgirlGauntlets
-  - WFMeridianLoadoutClothingGlovesFingerlessPunchMitts
   - WFMeridianLoadoutClothingGlovesFishing
-  - WFMeridianLoadoutClothingGlovesForgingPlateGloves
   - WFMeridianLoadoutClothingGlovesFrontierColonist
   - WFMeridianLoadoutClothingGlovesKim
   - WFMeridianLoadoutClothingGlovesLatexNitrileExpeditionaryCorps
   - WFMeridianLoadoutClothingGlovesLatexNitrileLong
   - WFMeridianLoadoutClothingGlovesLatexNitrileNtrauma
-  - WFMeridianLoadoutClothingGlovesPlate
-  - WFMeridianLoadoutClothingGlovesPlateBlue
   - WFMeridianLoadoutClothingGlovesRadio
   - WFMeridianLoadoutClothingGlovesRecolorableFingerless
   - WFMeridianLoadoutClothingGlovesRecolorableFingerlessLong
@@ -786,8 +739,6 @@
   - WFMeridianLoadoutClothingSuitApronOveralls
   - WFMeridianLoadoutClothingSuitApronOverallsLoneskirt
   - WFMeridianLoadoutClothingSuitApronWaders
-  - WFMeridianLoadoutClothingSuitAshPlates
-  - WFMeridianLoadoutClothingSuitAshPlatesDecorated
   - WFMeridianLoadoutClothingSuitAshwalkermantle
   - WFMeridianLoadoutClothingSuitAshwalkermantleCape
   - WFMeridianLoadoutClothingSuitAutumn
@@ -814,24 +765,14 @@
   - WFMeridianLoadoutClothingSuitFallsparka
   - WFMeridianLoadoutClothingSuitFlakjack
   - WFMeridianLoadoutClothingSuitFrenchtrench
-  - WFMeridianLoadoutClothingSuitFrontierColonistFlak
-  - WFMeridianLoadoutClothingSuitGautumn
   - WFMeridianLoadoutClothingSuitHazardvest
   - WFMeridianLoadoutClothingSuitHazardvestPress
   - WFMeridianLoadoutClothingSuitHeartSweater
-  - WFMeridianLoadoutClothingSuitHoodedAblative
   - WFMeridianLoadoutClothingSuitHoodedBeeCostume
-  - WFMeridianLoadoutClothingSuitHoodedBerserker
-  - WFMeridianLoadoutClothingSuitHoodedBerserkerGatsu
-  - WFMeridianLoadoutClothingSuitHoodedCarpCostumeSpaceproof
-  - WFMeridianLoadoutClothingSuitHoodedCloakDrake
-  - WFMeridianLoadoutClothingSuitHoodedCloakGodslayer
   - WFMeridianLoadoutClothingSuitHoodedEtherealRaincoat
   - WFMeridianLoadoutClothingSuitHoodedFlashsuit
-  - WFMeridianLoadoutClothingSuitHoodedHostileEnvironment
   - WFMeridianLoadoutClothingSuitHoodedIanCostume
   - WFMeridianLoadoutClothingSuitHoodedLeather
-  - WFMeridianLoadoutClothingSuitHoodedSeva
   - WFMeridianLoadoutClothingSuitHoodedSharkCostume
   - WFMeridianLoadoutClothingSuitHoodedShorkCostume
   - WFMeridianLoadoutClothingSuitHoodedWintercoatCustom
@@ -883,7 +824,6 @@
   - WFMeridianLoadoutClothingSuitTailoredJacket
   - WFMeridianLoadoutClothingSuitTailoredJacketShort
   - WFMeridianLoadoutClothingSuitTexas
-  - WFMeridianLoadoutClothingSuitToggleDeckard
   - WFMeridianLoadoutClothingSuitToggleJacketCroptopBomberJacket
   - WFMeridianLoadoutClothingSuitToggleJacketCroptopBomberJacketBadge
   - WFMeridianLoadoutClothingSuitToggleJacketCroptopBomberJacketPlain
@@ -915,10 +855,7 @@
   - WFMeridianLoadoutClothingSuitTrenchbrown
   - WFMeridianLoadoutClothingSuitUrban
   - WFMeridianLoadoutClothingSuitUtilityBeekeeperSuit
-  - WFMeridianLoadoutClothingSuitUtilityFire
   - WFMeridianLoadoutClothingSuitUtilityFireCeTailcoat
-  - WFMeridianLoadoutClothingSuitUtilityFireFirefighter
-  - WFMeridianLoadoutClothingSuitUtilityFireHeavy
   - WFMeridianLoadoutClothingSuitVarsity
   - WFMeridianLoadoutClothingSuitVictoriantailcoatbutler
   - WFMeridianLoadoutClothingSuitWarmCoat
@@ -936,7 +873,6 @@
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingShoesBhopRocket
   - WFMeridianLoadoutClothingShoesBhopRocketJet
-  - WFMeridianLoadoutClothingShoesBoneGreaves
   - WFMeridianLoadoutClothingShoesBronze
   - WFMeridianLoadoutClothingShoesColorableLaceups
   - WFMeridianLoadoutClothingShoesColorableSandals
@@ -944,11 +880,7 @@
   - WFMeridianLoadoutClothingShoesDivineArcher
   - WFMeridianLoadoutClothingShoesFancyHeels
   - WFMeridianLoadoutClothingShoesFancyHeelsSandals
-  - WFMeridianLoadoutClothingShoesForgingPlateBoots
-  - WFMeridianLoadoutClothingShoesGaloshesDry
-  - WFMeridianLoadoutClothingShoesGaloshesHeeled
   - WFMeridianLoadoutClothingShoesGlow
-  - WFMeridianLoadoutClothingShoesGreavesOfTheProphet
   - WFMeridianLoadoutClothingShoesGriffin
   - WFMeridianLoadoutClothingShoesHighHeels
   - WFMeridianLoadoutClothingShoesJackbootsArmadyne
@@ -968,8 +900,6 @@
   - WFMeridianLoadoutClothingShoesJackbros
   - WFMeridianLoadoutClothingShoesJungleboots
   - WFMeridianLoadoutClothingShoesKindleKicks
-  - WFMeridianLoadoutClothingShoesPlate
-  - WFMeridianLoadoutClothingShoesPlateBlue
   - WFMeridianLoadoutClothingShoesRoman
   - WFMeridianLoadoutClothingShoesRussian
   - WFMeridianLoadoutClothingShoesSaints
@@ -1037,7 +967,6 @@
   - BartenderWintercoat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingSuitHoodedWintercoatNovaBartender
-  - WFMeridianLoadoutClothingSuitJacketTailcoatBartender
   # WOLFGATE END
 
 - type: loadoutGroup
@@ -1161,7 +1090,6 @@
   - WFMeridianLoadoutClothingHeadChaplainTaqiyahRed
   - WFMeridianLoadoutClothingHeadChaplainTaqiyahWhite
   - WFMeridianLoadoutClothingHeadHoodedChaplainHood
-  - WFMeridianLoadoutClothingHeadHoodedChaplainHoodDivineArcher
   - WFMeridianLoadoutClothingHeadHoodedChaplainHoodLeader
   - WFMeridianLoadoutClothingHeadHoodedMonkhabit
   - WFMeridianLoadoutClothingHeadPlaybunnyearsChaplain
@@ -1197,19 +1125,11 @@
   - ChaplainBlackHoodie
   - ChaplainHoodie
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingSuitChaplainsuitArmorAdept
-  - WFMeridianLoadoutClothingSuitChaplainsuitArmorAncient
-  - WFMeridianLoadoutClothingSuitChaplainsuitArmorClock
-  - WFMeridianLoadoutClothingSuitChaplainsuitArmorCrusaderBlue
-  - WFMeridianLoadoutClothingSuitChaplainsuitArmorStudentuni
-  - WFMeridianLoadoutClothingSuitChaplainsuitArmorTemplar
-  - WFMeridianLoadoutClothingSuitChaplainsuitArmorTemplarGeneric
   - WFMeridianLoadoutClothingSuitChaplainsuitHabit
   - WFMeridianLoadoutClothingSuitChaplainsuitHolidaypriest
   - WFMeridianLoadoutClothingSuitChaplainsuitMonkrobeeast
   - WFMeridianLoadoutClothingSuitChaplainsuitShrinehand
   - WFMeridianLoadoutClothingSuitHoodedChaplainHoodie
-  - WFMeridianLoadoutClothingSuitHoodedChaplainHoodieDivineArcher
   - WFMeridianLoadoutClothingSuitHoodedChaplainHoodieLeader
   - WFMeridianLoadoutClothingSuitHoodedChaplainsuitMonkhabit
   - WFMeridianLoadoutClothingSuitJacketTailcoatChaplain
@@ -1634,8 +1554,6 @@
   - WFMeridianLoadoutClothingSuitApronOveralls
   - WFMeridianLoadoutClothingSuitApronOverallsLoneskirt
   - WFMeridianLoadoutClothingSuitApronWaders
-  - WFMeridianLoadoutClothingSuitAshPlates
-  - WFMeridianLoadoutClothingSuitAshPlatesDecorated
   - WFMeridianLoadoutClothingSuitAshwalkermantle
   - WFMeridianLoadoutClothingSuitAshwalkermantleCape
   - WFMeridianLoadoutClothingSuitAutumn
@@ -1662,24 +1580,14 @@
   - WFMeridianLoadoutClothingSuitFallsparka
   - WFMeridianLoadoutClothingSuitFlakjack
   - WFMeridianLoadoutClothingSuitFrenchtrench
-  - WFMeridianLoadoutClothingSuitFrontierColonistFlak
-  - WFMeridianLoadoutClothingSuitGautumn
   - WFMeridianLoadoutClothingSuitHazardvest
   - WFMeridianLoadoutClothingSuitHazardvestPress
   - WFMeridianLoadoutClothingSuitHeartSweater
-  - WFMeridianLoadoutClothingSuitHoodedAblative
   - WFMeridianLoadoutClothingSuitHoodedBeeCostume
-  - WFMeridianLoadoutClothingSuitHoodedBerserker
-  - WFMeridianLoadoutClothingSuitHoodedBerserkerGatsu
-  - WFMeridianLoadoutClothingSuitHoodedCarpCostumeSpaceproof
-  - WFMeridianLoadoutClothingSuitHoodedCloakDrake
-  - WFMeridianLoadoutClothingSuitHoodedCloakGodslayer
   - WFMeridianLoadoutClothingSuitHoodedEtherealRaincoat
   - WFMeridianLoadoutClothingSuitHoodedFlashsuit
-  - WFMeridianLoadoutClothingSuitHoodedHostileEnvironment
   - WFMeridianLoadoutClothingSuitHoodedIanCostume
   - WFMeridianLoadoutClothingSuitHoodedLeather
-  - WFMeridianLoadoutClothingSuitHoodedSeva
   - WFMeridianLoadoutClothingSuitHoodedSharkCostume
   - WFMeridianLoadoutClothingSuitHoodedShorkCostume
   - WFMeridianLoadoutClothingSuitHoodedWintercoatCustom
@@ -1731,7 +1639,6 @@
   - WFMeridianLoadoutClothingSuitTailoredJacket
   - WFMeridianLoadoutClothingSuitTailoredJacketShort
   - WFMeridianLoadoutClothingSuitTexas
-  - WFMeridianLoadoutClothingSuitToggleDeckard
   - WFMeridianLoadoutClothingSuitToggleJacketCroptopBomberJacket
   - WFMeridianLoadoutClothingSuitToggleJacketCroptopBomberJacketBadge
   - WFMeridianLoadoutClothingSuitToggleJacketCroptopBomberJacketPlain
@@ -1763,10 +1670,7 @@
   - WFMeridianLoadoutClothingSuitTrenchbrown
   - WFMeridianLoadoutClothingSuitUrban
   - WFMeridianLoadoutClothingSuitUtilityBeekeeperSuit
-  - WFMeridianLoadoutClothingSuitUtilityFire
   - WFMeridianLoadoutClothingSuitUtilityFireCeTailcoat
-  - WFMeridianLoadoutClothingSuitUtilityFireFirefighter
-  - WFMeridianLoadoutClothingSuitUtilityFireHeavy
   - WFMeridianLoadoutClothingSuitVarsity
   - WFMeridianLoadoutClothingSuitVictoriantailcoatbutler
   - WFMeridianLoadoutClothingSuitWarmCoat
@@ -1819,13 +1723,11 @@
   - QuartermasterHead
   - QuartermasterBeret
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadHoodedExplorer
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodCargo
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodCargoQm
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodMiner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsBitrunner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsCargo
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsMiner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsQuartermaster
   # WOLFGATE END
 
@@ -1892,11 +1794,9 @@
   loadouts:
   - QuartermasterWintercoat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingSuitHoodedExplorer
   - WFMeridianLoadoutClothingSuitJacketQuartermaster
   - WFMeridianLoadoutClothingSuitJacketTailcoatBitrunner
   - WFMeridianLoadoutClothingSuitJacketTailcoatCargo
-  - WFMeridianLoadoutClothingSuitJacketTailcoatMiner
   - WFMeridianLoadoutClothingSuitJacketTailcoatQuartermaster
   - WFMeridianLoadoutClothingSuitToggleCargoTech
   # WOLFGATE END
@@ -1918,13 +1818,11 @@
   loadouts:
   - CargoTechnicianHead
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadHoodedExplorer
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodCargo
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodCargoQm
   - WFMeridianLoadoutClothingHeadHoodedWinterhoodMiner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsBitrunner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsCargo
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsMiner
   - WFMeridianLoadoutClothingHeadPlaybunnyearsQuartermaster
   # WOLFGATE END
 
@@ -1981,11 +1879,9 @@
   loadouts:
   - CargoTechnicianWintercoat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingSuitHoodedExplorer
   - WFMeridianLoadoutClothingSuitJacketQuartermaster
   - WFMeridianLoadoutClothingSuitJacketTailcoatBitrunner
   - WFMeridianLoadoutClothingSuitJacketTailcoatCargo
-  - WFMeridianLoadoutClothingSuitJacketTailcoatMiner
   - WFMeridianLoadoutClothingSuitJacketTailcoatQuartermaster
   - WFMeridianLoadoutClothingSuitToggleCargoTech
   # WOLFGATE END
@@ -2015,11 +1911,9 @@
   loadouts:
   - SalvageSpecialistWintercoat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingSuitHoodedExplorer
   - WFMeridianLoadoutClothingSuitJacketQuartermaster
   - WFMeridianLoadoutClothingSuitJacketTailcoatBitrunner
   - WFMeridianLoadoutClothingSuitJacketTailcoatCargo
-  - WFMeridianLoadoutClothingSuitJacketTailcoatMiner
   - WFMeridianLoadoutClothingSuitJacketTailcoatQuartermaster
   - WFMeridianLoadoutClothingSuitToggleCargoTech
   # WOLFGATE END
@@ -2049,13 +1943,8 @@
   - WFMeridianLoadoutClothingHeadPlaybunnyearsCe
   - WFMeridianLoadoutClothingHeadPlaybunnyearsEngineer
   - WFMeridianLoadoutClothingHeadUtilityHardhatCakehatEnergycake
-  - WFMeridianLoadoutClothingHeadUtilityHardhatDblue
-  - WFMeridianLoadoutClothingHeadUtilityHardhatOrange
   - WFMeridianLoadoutClothingHeadUtilityHardhatPumpkinheadBlumpkin
-  - WFMeridianLoadoutClothingHeadUtilityHardhatRed
-  - WFMeridianLoadoutClothingHeadUtilityHardhatRedUpgraded
   - WFMeridianLoadoutClothingHeadUtilityHardhatReindeer
-  - WFMeridianLoadoutClothingHeadUtilityHardhatWhite
   # WOLFGATE END
 
 - type: loadoutGroup
@@ -2147,13 +2036,8 @@
   - WFMeridianLoadoutClothingHeadPlaybunnyearsCe
   - WFMeridianLoadoutClothingHeadPlaybunnyearsEngineer
   - WFMeridianLoadoutClothingHeadUtilityHardhatCakehatEnergycake
-  - WFMeridianLoadoutClothingHeadUtilityHardhatDblue
-  - WFMeridianLoadoutClothingHeadUtilityHardhatOrange
   - WFMeridianLoadoutClothingHeadUtilityHardhatPumpkinheadBlumpkin
-  - WFMeridianLoadoutClothingHeadUtilityHardhatRed
-  - WFMeridianLoadoutClothingHeadUtilityHardhatRedUpgraded
   - WFMeridianLoadoutClothingHeadUtilityHardhatReindeer
-  - WFMeridianLoadoutClothingHeadUtilityHardhatWhite
   # WOLFGATE END
 
 - type: loadoutGroup
@@ -2244,7 +2128,6 @@
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingSuitAtmosOveralls
   - WFMeridianLoadoutClothingSuitJacketTailcoatEngineer
-  - WFMeridianLoadoutClothingSuitUtilityFireAtmos
   - WFMeridianLoadoutClothingSuitUtilityFireAtmosTechTailcoat
   # WOLFGATE END
 
@@ -2463,25 +2346,10 @@
   - HeadofSecurityHead
   - HeadofSecurityBeret
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadBeretSecArmadyne
-  - WFMeridianLoadoutClothingHeadBeretSecNavyofficer
-  - WFMeridianLoadoutClothingHeadBeretSecNavywarden
   - WFMeridianLoadoutClothingHeadBlastwaveOfficer
   - WFMeridianLoadoutClothingHeadCollectableHos
   - WFMeridianLoadoutClothingHeadCollectablePolice
-  - WFMeridianLoadoutClothingHeadHatsHosShako
-  - WFMeridianLoadoutClothingHeadHatsWardenDrill
-  - WFMeridianLoadoutClothingHeadHatsWardenPolicePatrol
-  - WFMeridianLoadoutClothingHeadHatsWardenRed
-  - WFMeridianLoadoutClothingHeadHoodedWinterhoodSecurity
   - WFMeridianLoadoutClothingHeadPlaybunnyearsBrigPhys
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsHos
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsSecurity
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsSecurityAssistant
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsWarden
-  - WFMeridianLoadoutClothingHeadSecurityCapCargo
-  - WFMeridianLoadoutClothingHeadSecurityGarrison
-  - WFMeridianLoadoutClothingHeadUtilityBombHoodSecurity
   # WOLFGATE END
 
 - type: loadoutGroup
@@ -2559,10 +2427,6 @@
   - HeadofSecurityWinterCoat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingSuitFedcoatModernSec
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurity
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagBomber
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagCargo
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketCargo
   - WFMeridianLoadoutClothingSuitJacketHosBlue
   - WFMeridianLoadoutClothingSuitJacketHosTan
   - WFMeridianLoadoutClothingSuitJacketOfficerBlue
@@ -2580,25 +2444,10 @@
   - WardenHead
   - WardenBeret
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadBeretSecArmadyne
-  - WFMeridianLoadoutClothingHeadBeretSecNavyofficer
-  - WFMeridianLoadoutClothingHeadBeretSecNavywarden
   - WFMeridianLoadoutClothingHeadBlastwaveOfficer
   - WFMeridianLoadoutClothingHeadCollectableHos
   - WFMeridianLoadoutClothingHeadCollectablePolice
-  - WFMeridianLoadoutClothingHeadHatsHosShako
-  - WFMeridianLoadoutClothingHeadHatsWardenDrill
-  - WFMeridianLoadoutClothingHeadHatsWardenPolicePatrol
-  - WFMeridianLoadoutClothingHeadHatsWardenRed
-  - WFMeridianLoadoutClothingHeadHoodedWinterhoodSecurity
   - WFMeridianLoadoutClothingHeadPlaybunnyearsBrigPhys
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsHos
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsSecurity
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsSecurityAssistant
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsWarden
-  - WFMeridianLoadoutClothingHeadSecurityCapCargo
-  - WFMeridianLoadoutClothingHeadSecurityGarrison
-  - WFMeridianLoadoutClothingHeadUtilityBombHoodSecurity
   # WOLFGATE END
 
 - type: loadoutGroup
@@ -2654,10 +2503,6 @@
   - WardenArmoredWinterCoat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingSuitFedcoatModernSec
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurity
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagBomber
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagCargo
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketCargo
   - WFMeridianLoadoutClothingSuitJacketHosBlue
   - WFMeridianLoadoutClothingSuitJacketHosTan
   - WFMeridianLoadoutClothingSuitJacketOfficerBlue
@@ -2677,25 +2522,10 @@
   - SecurityHat
   - TrooperHat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadBeretSecArmadyne
-  - WFMeridianLoadoutClothingHeadBeretSecNavyofficer
-  - WFMeridianLoadoutClothingHeadBeretSecNavywarden
   - WFMeridianLoadoutClothingHeadBlastwaveOfficer
   - WFMeridianLoadoutClothingHeadCollectableHos
   - WFMeridianLoadoutClothingHeadCollectablePolice
-  - WFMeridianLoadoutClothingHeadHatsHosShako
-  - WFMeridianLoadoutClothingHeadHatsWardenDrill
-  - WFMeridianLoadoutClothingHeadHatsWardenPolicePatrol
-  - WFMeridianLoadoutClothingHeadHatsWardenRed
-  - WFMeridianLoadoutClothingHeadHoodedWinterhoodSecurity
   - WFMeridianLoadoutClothingHeadPlaybunnyearsBrigPhys
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsHos
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsSecurity
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsSecurityAssistant
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsWarden
-  - WFMeridianLoadoutClothingHeadSecurityCapCargo
-  - WFMeridianLoadoutClothingHeadSecurityGarrison
-  - WFMeridianLoadoutClothingHeadUtilityBombHoodSecurity
   # WOLFGATE END
 
 - type: loadoutGroup
@@ -2772,10 +2602,6 @@
   - SecurityOfficerWintercoat
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
   - WFMeridianLoadoutClothingSuitFedcoatModernSec
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurity
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagBomber
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagCargo
-  - WFMeridianLoadoutClothingSuitHoodedWintercoatSecurityDepgagDepgagVestedJacketCargo
   - WFMeridianLoadoutClothingSuitJacketHosBlue
   - WFMeridianLoadoutClothingSuitJacketHosTan
   - WFMeridianLoadoutClothingSuitJacketOfficerBlue
@@ -2809,12 +2635,6 @@
   loadouts:
   - DetectiveFedora
   - DetectiveFedoraGrey
-  # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadFedoraDetHat
-  - WFMeridianLoadoutClothingHeadFedoraDetHatCybergoggles
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsDetective
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsDetectiveNoir
-  # WOLFGATE END
 
 - type: loadoutGroup
   id: DetectiveNeck
@@ -2852,12 +2672,6 @@
   - DetectiveArmorVest
   - DetectiveCoat
   - DetectiveCoatGrey
-  # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingSuitJacketDetSuit
-  - WFMeridianLoadoutClothingSuitJacketDetSuitNoir
-  - WFMeridianLoadoutClothingSuitJacketDetSuitTailcoat
-  - WFMeridianLoadoutClothingSuitJacketDetSuitTailcoatNoir
-  # WOLFGATE END
 
 - type: loadoutGroup
   id: SecurityCadetJumpsuit
@@ -3711,7 +3525,6 @@
   - WFMeridianLoadoutClothingGlovesBoxingGolden
   - WFMeridianLoadoutClothingGlovesBoxingGreen
   - WFMeridianLoadoutClothingGlovesBoxingYellow
-  - WFMeridianLoadoutClothingGlovesBracer
   - WFMeridianLoadoutClothingGlovesBracerWraps
   - WFMeridianLoadoutClothingGlovesColorBlackExpeditionaryCorps
   - WFMeridianLoadoutClothingGlovesColorPlasmaman
@@ -3724,20 +3537,15 @@
   - WFMeridianLoadoutClothingGlovesColorPlasmamanWhite
   - WFMeridianLoadoutClothingGlovesColorRainbow
   - WFMeridianLoadoutClothingGlovesDesigner
-  - WFMeridianLoadoutClothingGlovesDivineArcher
   - WFMeridianLoadoutClothingGlovesEvening
   - WFMeridianLoadoutClothingGlovesFingerlessPrimitiveCatgirlArmwraps
   - WFMeridianLoadoutClothingGlovesFingerlessPrimitiveCatgirlGauntlets
-  - WFMeridianLoadoutClothingGlovesFingerlessPunchMitts
   - WFMeridianLoadoutClothingGlovesFishing
-  - WFMeridianLoadoutClothingGlovesForgingPlateGloves
   - WFMeridianLoadoutClothingGlovesFrontierColonist
   - WFMeridianLoadoutClothingGlovesKim
   - WFMeridianLoadoutClothingGlovesLatexNitrileExpeditionaryCorps
   - WFMeridianLoadoutClothingGlovesLatexNitrileLong
   - WFMeridianLoadoutClothingGlovesLatexNitrileNtrauma
-  - WFMeridianLoadoutClothingGlovesPlate
-  - WFMeridianLoadoutClothingGlovesPlateBlue
   - WFMeridianLoadoutClothingGlovesRadio
   - WFMeridianLoadoutClothingGlovesRecolorableFingerless
   - WFMeridianLoadoutClothingGlovesRecolorableFingerlessLong

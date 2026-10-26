@@ -25,25 +25,10 @@
   - SecurityBeret
   - SecurityHelmet
   # WOLFGATE(MeridianClothing) START: Meridian Rift clothing, written by Tools/_WF/MeridianClothing/port.py
-  - WFMeridianLoadoutClothingHeadBeretSecArmadyne
-  - WFMeridianLoadoutClothingHeadBeretSecNavyofficer
-  - WFMeridianLoadoutClothingHeadBeretSecNavywarden
   - WFMeridianLoadoutClothingHeadBlastwaveOfficer
   - WFMeridianLoadoutClothingHeadCollectableHos
   - WFMeridianLoadoutClothingHeadCollectablePolice
-  - WFMeridianLoadoutClothingHeadHatsHosShako
-  - WFMeridianLoadoutClothingHeadHatsWardenDrill
-  - WFMeridianLoadoutClothingHeadHatsWardenPolicePatrol
-  - WFMeridianLoadoutClothingHeadHatsWardenRed
-  - WFMeridianLoadoutClothingHeadHoodedWinterhoodSecurity
   - WFMeridianLoadoutClothingHeadPlaybunnyearsBrigPhys
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsHos
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsSecurity
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsSecurityAssistant
-  - WFMeridianLoadoutClothingHeadPlaybunnyearsWarden
-  - WFMeridianLoadoutClothingHeadSecurityCapCargo
-  - WFMeridianLoadoutClothingHeadSecurityGarrison
-  - WFMeridianLoadoutClothingHeadUtilityBombHoodSecurity
   # WOLFGATE END
 
 - type: loadoutGroup

@@ -261,6 +261,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Masks/breath_muzzle.rsi
+  - type: BreathMask
 
 - type: entity
   parent: ClothingMaskBase
@@ -290,6 +291,8 @@
       FacialHair: MASK
       Snout: MASK
   - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
   - type: WFGags
     colors:
     - "#292929"
@@ -324,6 +327,16 @@
       Hair: MASK
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.3
+        Heat: 0.3
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -339,6 +352,16 @@
       Hair: MASK
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.3
+        Heat: 0.3
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -353,6 +376,9 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -383,6 +409,8 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: BreathMask
+  - type: IngestionBlocker
   - type: WFGags
     colors:
     - "#383840"
@@ -401,6 +429,8 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
 
 - type: entity
   parent: ClothingMaskGas
@@ -439,6 +469,8 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
   - type: WFGags
     colors:
     - "#FFFFFF"
@@ -459,6 +491,8 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
 
 - type: entity
   parent: ClothingMaskGas
@@ -473,6 +507,9 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -486,6 +523,8 @@
   - type: HideLayerClothing
     layers:
       FacialHair: MASK
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -501,6 +540,9 @@
       Hair: MASK
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -527,6 +569,8 @@
       - state: inhand-left-1
       right:
       - state: inhand-right-1
+  - type: BreathMask
+  - type: IngestionBlocker
   - type: WFGags
     colors:
     - "#333333"
@@ -541,6 +585,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Masks/gas_glass.rsi
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -555,6 +601,9 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -569,6 +618,9 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -584,6 +636,9 @@
       Hair: MASK
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -598,6 +653,8 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
 
 - type: entity
   parent: ClothingMaskGas
@@ -612,6 +669,8 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
 
 - type: entity
   parent: ClothingMaskGas
@@ -626,6 +685,8 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
 
 - type: entity
   parent: ClothingMaskGas
@@ -639,6 +700,7 @@
   - type: HideLayerClothing
     layers:
       Hair: MASK
+  - type: BreathMask
 
 - type: entity
   parent: ClothingMaskGas
@@ -653,6 +715,7 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -679,6 +742,8 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: BreathMask
+  - type: IngestionBlocker
   - type: WFGags
     colors:
     - "#2E3333"
@@ -696,6 +761,9 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -711,6 +779,9 @@
       Hair: MASK
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -726,6 +797,9 @@
       Hair: MASK
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -740,6 +814,8 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
 
 - type: entity
   parent: ClothingMaskGas
@@ -754,6 +830,9 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -767,6 +846,9 @@
   - type: HideLayerClothing
     layers:
       FacialHair: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -781,6 +863,9 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskGas
@@ -795,6 +880,9 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskBase
@@ -909,6 +997,8 @@
       FacialHair: MASK
       Snout: MASK
   - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
 
 - type: entity
   parent: ClothingMaskBase
@@ -925,6 +1015,7 @@
       mask:
       - state: equipped-MASK-1-c1
         color: "#ECECEC"
+  - type: BreathMask
   - type: WFGags
     colors:
     - "#ECECEC"
@@ -948,6 +1039,7 @@
         color: "#ECECEC"
       - state: equipped-MASK-2-c2
         color: "#9B1E1E"
+  - type: BreathMask
   - type: WFGags
     colors:
     - "#ECECEC"
@@ -972,6 +1064,7 @@
         color: "#ECECEC"
       - state: equipped-MASK-2-c2
         color: "#333333"
+  - type: BreathMask
   - type: WFGags
     colors:
     - "#ECECEC"
@@ -1000,6 +1093,7 @@
         color: "#333333"
       - state: equipped-MASK-3-c3
         color: "#9B1E1E"
+  - type: BreathMask
   - type: WFGags
     colors:
     - "#ECECEC"
@@ -1161,6 +1255,8 @@
       FacialHair: MASK
       Snout: MASK
   - type: IdentityBlocker
+  - type: BreathMask
+  - type: IngestionBlocker
   - type: WFGags
     colors:
     - "#2C2C2E"
@@ -1188,6 +1284,7 @@
     layers:
       FacialHair: MASK
       Snout: MASK
+  - type: BreathMask
 
 - type: entity
   parent: ClothingMaskBase

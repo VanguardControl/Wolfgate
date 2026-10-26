@@ -56,6 +56,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/bone_greaves.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.85
+        Slash: 0.85
+        Piercing: 0.75
+        Heat: 0.85
 
 - type: entity
   parent: ClothingShoesBase
@@ -196,6 +203,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/combat_coldres.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.75
+        Heat: 0.75
 
 - type: entity
   parent: ClothingShoesBase
@@ -206,6 +220,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/combat_expeditionary_corps.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.75
+        Heat: 0.75
 
 - type: entity
   parent: ClothingShoesBase
@@ -301,6 +322,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/divine_archer.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 0.95
+        Heat: 0.95
 
 - type: entity
   parent: ClothingShoesBase
@@ -350,6 +378,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/forging_plate_boots.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.75
+        Slash: 0.75
+        Piercing: 0.85
+        Heat: 0.85
 
 - type: entity
   parent: ClothingShoesBase
@@ -360,6 +395,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/galoshes_dry.rsi
+  - type: NoSlip
 
 - type: entity
   parent: ClothingShoesBase
@@ -370,6 +406,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/galoshes_heeled.rsi
+  - type: NoSlip
 
 - type: entity
   parent: ClothingShoesBase
@@ -404,6 +441,7 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/greaves_of_the_prophet.rsi
+  - type: NoSlip
 
 - type: entity
   parent: ClothingShoesBase
@@ -503,6 +541,13 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/jackboots_frontier_colonist.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 1.0
+        Slash: 1.0
+        Piercing: 1.0
+        Heat: 0.9
 
 - type: entity
   parent: ClothingShoesBase
@@ -672,6 +717,14 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/plate.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.5
+  - type: NoSlip
 
 - type: entity
   parent: ClothingShoesBase
@@ -682,6 +735,14 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/plate_blue.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Heat: 0.5
+  - type: NoSlip
 
 - type: entity
   parent: ClothingShoesBase
@@ -738,6 +799,9 @@
       shoes:
       - state: equipped-FEET-1-c1
         color: "#BD8FCF"
+  - type: ClothingSpeedModifier
+    walkModifier: 0.5
+    sprintModifier: 0.5
   - type: WFGags
     colors:
     - "#BD8FCF"
@@ -992,6 +1056,16 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/Shoes/winterboots_ice_boots_eva.rsi
+  - type: Armor
+    modifiers:
+      coefficients:
+        Blunt: 0.9
+        Slash: 0.9
+        Piercing: 1.0
+        Heat: 0.9
+  - type: ClothingSpeedModifier
+    walkModifier: 0.95
+    sprintModifier: 0.95
 
 - type: entity
   parent: ClothingShoesBase
