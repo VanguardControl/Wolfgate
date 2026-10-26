@@ -31,16 +31,25 @@ public sealed partial class ExamineCardSystem : SharedExamineCardSystem
     public void SendCard(EntityUid target, EntityUid examiner, ICommonSession session, bool detailed = true)
     {
         var card = BuildCard(target, examiner, detailed);
-
-        // The adult description follows the anatomy rules, and like the normal one needs the face to show.
-        if (detailed
-            && TryComp<NsfwDescriptionComponent>(target, out var nsfw)
-            && Identity.Name(target, EntityManager) == Name(target)
-            && _genitalConsent.CanExamine(examiner, target))
-            card.NsfwText = nsfw.Text;
+        if (detailed)
+            card.NsfwText = NsfwTextFor(target, examiner);
 
         RaiseNetworkEvent(card, session);
         NotifyExamined(target, examiner, detailed);
+    }
+
+    /// <summary>
+    /// The target's adult description if the examiner may read it: the anatomy rules apply, and like the normal
+    /// description it needs the face to show. Null otherwise.
+    /// </summary>
+    public string? NsfwTextFor(EntityUid target, EntityUid examiner)
+    {
+        if (!TryComp<NsfwDescriptionComponent>(target, out var nsfw)
+            || Identity.Name(target, EntityManager) != Name(target)
+            || !_genitalConsent.CanExamine(examiner, target))
+            return null;
+
+        return nsfw.Text;
     }
 
     /// <summary>Tells a player, in chat, that someone looked them over or glanced at them.</summary>

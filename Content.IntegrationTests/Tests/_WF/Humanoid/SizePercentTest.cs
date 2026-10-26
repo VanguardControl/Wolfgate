@@ -54,6 +54,15 @@ public sealed class SizePercentTest
             Assert.That(slider.Value, Is.EqualTo(slider.MaxValue).Within(0.001f), "out of range clamps");
             Assert.That(percent.Text, Is.EqualTo(MathF.Round(slider.MaxValue * 100).ToString()));
 
+            Enter(percent, "95.5");
+            Assert.That(slider.Value, Is.EqualTo(0.96f).Within(0.001f), "a fraction rounds to a whole percent");
+            Assert.That(percent.Text, Is.EqualTo("96"), "so the box shows what was stored");
+
+            Enter(percent, "NaN");
+            Assert.That(float.IsFinite(slider.Value), Is.True, "NaN is refused");
+            Assert.That(percent.Text, Is.EqualTo("96"));
+
+            Enter(percent, "500");
             Enter(percent, "tall");
             Assert.That(percent.Text, Is.EqualTo(MathF.Round(slider.MaxValue * 100).ToString()), "junk is put back");
 

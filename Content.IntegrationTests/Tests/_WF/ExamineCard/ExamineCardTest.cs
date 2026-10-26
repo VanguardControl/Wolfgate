@@ -78,8 +78,6 @@ public sealed class ExamineCardTest
             card = cards.BuildCard(mob, mob);
             Assert.That(card.Name, Is.EqualTo(name), "you always know your own face");
 
-            // Built by the server path with an adult description on the body but no consent anywhere: withheld.
-            entMan.EnsureComponent<Server._WF.Genitals.NsfwDescriptionComponent>(mob).Text = "Private.";
             var validated = Shared._WF.Genitals.Profile.GenitalProfileValidator.ValidateOrgans(
                 Shared._WF.Genitals.Profile.GenitalProfile.Empty.WithNsfwText(new string('x', 5000)), server.ProtoMan);
             Assert.That(validated.NsfwText, Has.Length.EqualTo(Shared._WF.Genitals.Profile.GenitalProfile.MaxNsfwTextLength),
@@ -97,6 +95,48 @@ public sealed class ExamineCardTest
                 Assert.That(card.Worn.Select(w => w.Slot), Is.All.StartsWith("hand-").And.Not.Empty,
                     "from afar only held items show");
             });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The adult description is withheld without consent and sent once both sides opt in and the owner is present.</summary>
+    [Test]
+    public async Task NsfwConsentTest()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entMan = server.EntMan;
+        EntityUid mob = default;
+        EntityUid viewer = default;
+
+        await server.WaitPost(() =>
+        {
+            mob = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            viewer = entMan.SpawnEntity("MobHuman", map.GridCoords);
+            entMan.EnsureComponent<Server._WF.Genitals.NsfwDescriptionComponent>(mob).Text = "Private.";
+        });
+        // Identity names are filled in on a later tick.
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            var cards = entMan.System<Server._WF.ExamineCard.ExamineCardSystem>();
+            var consent = entMan.System<Shared._WF.Genitals.Systems.GenitalConsentSystem>();
+            Assert.That(Shared.IdentityManagement.Identity.Name(mob, entMan), Is.EqualTo(entMan.GetComponent<MetaDataComponent>(mob).EntityName),
+                "the face shows");
+            Assert.That(cards.NsfwTextFor(mob, viewer), Is.Null, "no consent, no adult description");
+
+            var master = Shared._WF.Genitals.Profile.GenitalProfileValidator.GetSettings(server.ProtoMan).MasterConsent;
+            foreach (var body in new[] { mob, viewer })
+                entMan.EnsureComponent<Content.Shared._Common.Consent.ConsentComponent>(body).ConsentSettings.Toggles[master] = "on";
+            Assert.That(consent.ExaminerMayRead(viewer), Is.True, "an adult viewer with adult content on may read");
+            Assert.That(cards.NsfwTextFor(mob, viewer), Is.Null, "an owner who isn't present shows nothing");
+
+            entMan.EnsureComponent<Content.Shared.SSDIndicator.SSDIndicatorComponent>(mob).IsSSD = false;
+            Assert.That(consent.TargetConsents(mob), Is.True, "the owner consents and is present");
+            Assert.That(cards.NsfwTextFor(mob, viewer), Is.EqualTo("Private."), "both opted in and present: sent");
         });
 
         await pair.CleanReturnAsync();

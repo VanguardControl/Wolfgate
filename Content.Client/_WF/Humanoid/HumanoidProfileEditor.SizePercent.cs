@@ -20,12 +20,15 @@ public sealed partial class HumanoidProfileEditor
         edit.OnFocusExit += _ => Apply(slider, edit);
     }
 
-    /// <summary>Sets the slider from typed text, clamped to its range; text that isn't a number is put back.</summary>
+    /// <summary>
+    /// Sets the slider from typed text, rounded to a whole percent and clamped to its range; text that isn't a finite
+    /// number is put back.
+    /// </summary>
     private static void Apply(Slider slider, LineEdit edit)
     {
         var text = edit.Text.Trim().TrimEnd('%').Trim();
-        if (float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var percent))
-            slider.Value = Math.Clamp(percent / 100f, slider.MinValue, slider.MaxValue);
+        if (float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var percent) && float.IsFinite(percent))
+            slider.Value = Math.Clamp(MathF.Round(percent) / 100f, slider.MinValue, slider.MaxValue);
 
         edit.Text = Percent(slider.Value);
     }

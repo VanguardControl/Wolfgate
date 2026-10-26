@@ -1,5 +1,6 @@
 using Content.Shared._WF.Genitals.Profile;
 using Content.Shared.Preferences;
+using Robust.Shared.Utility;
 
 namespace Content.Server._WF.Genitals;
 
@@ -17,7 +18,8 @@ public sealed partial class GenitalOrganSystem
             return;
         }
 
-        var text = profile.Genitals.NsfwText.Trim();
+        // Crafted network data can deliver no anatomy at all. Markup is stripped: the card shows it as plain text.
+        var text = FormattedMessage.RemoveMarkupPermissive(profile.Genitals?.NsfwText ?? string.Empty).Trim();
         if (text.Length == 0)
             return;
 

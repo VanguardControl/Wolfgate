@@ -211,9 +211,9 @@ public sealed partial class ExamineCardSystem : SharedExamineCardSystem
         });
 
         if (data.Description != null)
-            FillDescription(description, data.Description, "wf-examine-card-description-title");
+            FillDescription(description, FormattedMessage.FromMarkupPermissive(data.Description), "wf-examine-card-description-title");
         if (data.NsfwText != null)
-            FillDescription(nsfw, data.NsfwText, "wf-examine-card-nsfw-title");
+            FillDescription(nsfw, FormattedMessage.FromUnformatted(data.NsfwText), "wf-examine-card-nsfw-title");
 
         if (data.Description != null || data.NsfwText != null)
         {
@@ -251,10 +251,10 @@ public sealed partial class ExamineCardSystem : SharedExamineCardSystem
     }
 
     /// <summary>The whole description, scrolling if it runs long.</summary>
-    private void FillDescription(PanelContainer panel, string markup, string title)
+    private void FillDescription(PanelContainer panel, FormattedMessage text, string title)
     {
         var label = new RichTextLabel { MaxWidth = 380 };
-        label.SetMessage(FormattedMessage.FromMarkupPermissive(markup));
+        label.SetMessage(text);
         panel.AddChild(new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
