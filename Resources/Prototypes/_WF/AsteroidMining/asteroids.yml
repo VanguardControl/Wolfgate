@@ -10,7 +10,7 @@
   id: WFAsteroidRockBase
   abstract: true
   name: asteroid
-  description: A drifting rock. A gunnery console scans what it holds once a mining laser is on it.
+  description: A drifting rock. Put a mining laser on it to see what it holds.
   placement:
     mode: SnapgridCenter
   components:
@@ -241,7 +241,7 @@
   parent: WFAsteroidRockBase
   id: WFAsteroidBoulder
   name: asteroid boulder
-  description: A chunk broken off an asteroid. Pull it aboard and break it open with a pickaxe or drill, or crack it with a mining beam.
+  description: A chunk of asteroid. Break it with a pickaxe or drill, or crack it with a mining laser.
   placement:
     mode: PlaceFree
   components:

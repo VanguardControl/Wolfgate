@@ -183,11 +183,19 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         }
     }
 
+    /// <summary>The asteroid grid built for this rock, not a ship or another rock's grid that a boulder sits on.</summary>
+    private EntityUid? OwnGrid(EntityUid rock, TransformComponent? xform = null)
+    {
+        return Resolve(rock, ref xform) && xform.GridUid is { } grid &&
+               TryComp<WFAsteroidGridComponent>(grid, out var builder) && builder.RockUid == rock
+            ? grid
+            : null;
+    }
+
     /// <summary>Copies a grid rock's look onto its grid, for clients the rock itself is too far away to reach.</summary>
     private void SyncGridVisuals(EntityUid rock, WFAsteroidComponent comp)
     {
-        var grid = Transform(rock).ParentUid;
-        if (!TryComp<WFAsteroidGridVisualsComponent>(grid, out var visuals))
+        if (OwnGrid(rock) is not { } grid || !TryComp<WFAsteroidGridVisualsComponent>(grid, out var visuals))
             return;
 
         visuals.Rock = MetaData(rock).EntityPrototype?.ID;
@@ -207,12 +215,9 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         }
     }
 
-    /// <summary>A loose rock, such as a boulder, picks its sprite; a grid's rock is given its grid's instead.</summary>
+    /// <summary>Picks the rock's sprite; a grid then sets its own rock's to match its tiles.</summary>
     private void OnRockMapInit(Entity<WFAsteroidComponent> ent, ref MapInitEvent args)
     {
-        if (HasComp<WFAsteroidGridComponent>(Transform(ent).ParentUid))
-            return;
-
         ent.Comp.Variant = _random.Next(Math.Max(1, ent.Comp.Variants));
         Dirty(ent);
     }
@@ -400,8 +405,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
         var center = _transform.GetMapCoordinates(rock, xform);
         var rotation = _transform.GetWorldRotation(xform);
-        // A boulder hauled onto a ship sits on the ship's grid; only ever delete a grid built for the rock.
-        var grid = xform.GridUid is { } onGrid && HasComp<WFAsteroidGridComponent>(onGrid) ? onGrid : (EntityUid?) null;
+        var grid = OwnGrid(rock, xform);
         var velocity = _physics.GetMapLinearVelocity(grid ?? rock);
         var controller = grid is { } owner ? _debris.GetDebrisOwner(owner) : null;
         var ores = comp.Ores;
@@ -420,9 +424,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         var radius = comp.Radius;
         var mass = comp.Mass;
 
-        // Remove the rock and its grid first, so nothing spawned below lands on a grid that is going away.
-        // Anyone or anything else on the grid stays behind in space. comp is only read from here on, as the
-        // parent the fragments and boulders inherit from; its fields outlive the entity.
+        // Removed first so nothing spawned below lands on a grid that is going away; comp stays readable after.
         if (grid is { } asteroidGrid)
             ReleasePassengers(asteroidGrid, rock, mapUid);
         Del(grid ?? rock);
@@ -431,7 +433,6 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
         if (kind == WFAsteroidCrack.Overcharge)
         {
-            // Reaches a little past the rock's surface; plasma-rich rocks reach much further.
             _explosion.QueueExplosion(center, "Default", WFAsteroidScan.BlastIntensity(mass, volatility), 1.2f, 6f, null,
                 maxTileBreak: 0, canCreateVacuum: false);
         }

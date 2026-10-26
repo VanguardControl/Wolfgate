@@ -255,7 +255,6 @@ public sealed partial class WFAsteroidScanner : Control
         var box = UIBox2.FromDimensions(new Vector2(left, top), new Vector2(width, height));
         var alpha = _fade;
 
-        // The leader leaves a bracket's upper corner, runs out level with the title, then into the callout.
         var corner = center + new Vector2(right ? half : -half, -half) * 0.72f;
         var elbow = new Vector2(right ? box.Left - 6f * scale : box.Right + 6f * scale, box.Top + 10f * scale);
         var leader = skin.Accent.WithAlpha(0.7f * alpha);

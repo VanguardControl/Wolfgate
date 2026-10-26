@@ -46,7 +46,6 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
-        // The gunnery console's own systems handle everything else on this interface; only laser power is taken here.
         Subs.BuiEvents<FireControlConsoleComponent>(FireControlConsoleUiKey.Key, subs =>
         {
             subs.Event<WFMiningBeamPowerMessage>(OnPowerMessage);

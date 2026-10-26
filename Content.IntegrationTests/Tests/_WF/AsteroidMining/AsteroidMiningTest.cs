@@ -646,6 +646,46 @@ public sealed class AsteroidMiningTest
     }
 
     [Test]
+    public async Task BoulderOnAnotherRocksGridLeavesThatRockAlone()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var asteroids = server.System<WFAsteroidSystem>();
+
+        EntityUid rock = default, grid = default, boulder = default;
+        await server.WaitAssertion(() =>
+        {
+            rock = SpawnAsteroid(pair, map.MapId, "WFAsteroidLarge", ShipPos);
+            grid = em.GetComponent<TransformComponent>(rock).GridUid!.Value;
+            // Where a crack's boulders land when every open spot near it is taken by its fragments.
+            boulder = em.SpawnEntity("WFAsteroidBoulder", new EntityCoordinates(grid, 1.5f, 0.5f));
+            Assert.That(em.GetComponent<TransformComponent>(boulder).GridUid, Is.EqualTo(grid),
+                "The boulder should sit on the asteroid's grid.");
+
+            asteroids.Roll(boulder, "WFAsteroidRock");
+            Assert.That(em.GetComponent<WFAsteroidGridVisualsComponent>(grid).Rock?.Id, Is.EqualTo("WFAsteroidRockLarge"),
+                "A boulder must not overwrite the look of the asteroid it sits on.");
+            asteroids.QueueCrack(boulder, WFAsteroidCrack.Clean);
+        });
+        await server.WaitRunTicks(2);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(em.Deleted(boulder), Is.True, "Cracking should break the boulder.");
+                Assert.That(em.Deleted(grid), Is.False, "Breaking a boulder must never delete another rock's grid.");
+                Assert.That(em.GetComponent<TransformComponent>(rock).ParentUid, Is.EqualTo(grid),
+                    "The asteroid's own rock should stay on its grid.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
     public async Task BoulderKeepsItsOreThroughAShipSave()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });

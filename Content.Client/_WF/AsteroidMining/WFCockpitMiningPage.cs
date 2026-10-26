@@ -19,8 +19,6 @@ public sealed partial class WFCockpitMiningPage : BoxContainer, IWFCockpitOption
 {
     [Dependency] private IGameTiming _timing = default!;
 
-    private static readonly float[] Steps = { -0.1f, -0.01f, 0.01f, 0.1f };
-
     /// <summary>How long a new power shows before the server's value, in case the server never applies it.</summary>
     private static readonly TimeSpan PendingTimeout = TimeSpan.FromSeconds(1);
 
@@ -72,20 +70,8 @@ public sealed partial class WFCockpitMiningPage : BoxContainer, IWFCockpitOption
         instruments.SeparationOverride = 6;
         instruments.MinHeight = 190;
 
-        var steps = Row();
-        steps.SeparationOverride = 2;
-        foreach (var step in Steps)
-        {
-            var amount = (int) MathF.Round(MathF.Abs(step) * 100);
-            var button = new Button
-            {
-                Text = Loc.GetString(step > 0 ? "wf-mining-gunnery-power-up" : "wf-mining-gunnery-power-down", ("amount", amount)),
-                HorizontalExpand = true,
-            };
-            button.AddStyleClass("WfCompact");
-            button.OnPressed += _ => SetPower(MathF.Round(Math.Clamp((_pending ?? _state.Power) + step, 0f, 1f), 2));
-            steps.AddChild(button);
-        }
+        var steps = WFMiningGauges.PowerStepButtons(step =>
+            SetPower(MathF.Round(Math.Clamp((_pending ?? _state.Power) + step, 0f, 1f), 2)));
 
         _rock = Label("wf-mining-gunnery-idle", Cream);
         _rock.ClipText = true;
@@ -181,28 +167,7 @@ public sealed partial class WFCockpitMiningPage : BoxContainer, IWFCockpitOption
             rock.Charge > rock.WindowHigh && rock.Charge < WFAsteroidHeat.OverchargeLine, rock.Overcharge > 0f, overloaded);
         _rock.Text = Loc.GetString("wf-mining-gunnery-rock", ("name", rock.Name), ("mass", (int) MathF.Round(rock.Mass)));
         _bar.Ores = rock.Ores;
-        // Reuse the ore lines between scans, adding only when a rock has more ores than any before it.
-        for (var i = _oreLabels.Count; i < rock.Ores.Length; i++)
-        {
-            var label = Label("wf-mining-gunnery-idle");
-            label.ClipText = true;
-            label.HorizontalExpand = true;
-            _ores.AddChild(label);
-            _oreLabels.Add(label);
-        }
-
-        for (var i = 0; i < _oreLabels.Count; i++)
-        {
-            var label = _oreLabels[i];
-            label.Visible = i < rock.Ores.Length;
-            if (!label.Visible)
-                continue;
-
-            var ore = rock.Ores[i];
-            label.FontColorOverride = ore.Color;
-            label.Text = Loc.GetString("wf-mining-gunnery-ore", ("name", ore.Name), ("percent", (int) MathF.Round(ore.Fraction * 100)));
-        }
-
+        WFMiningGauges.ShowOres(_ores, _oreLabels, rock.Ores);
         _inert.Text = Loc.GetString("wf-mining-gunnery-inert", ("percent", (int) MathF.Round((1f - rock.Ores.Sum(o => o.Fraction)) * 100)));
         _resistance.Text = Loc.GetString("wf-mining-gunnery-resistance", ("percent", (int) MathF.Round(rock.Resistance * 100)));
         _window.Text = Loc.GetString("wf-mining-page-window", ("low", (int) MathF.Round(rock.WindowLow * 100)),

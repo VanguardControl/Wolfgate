@@ -10,8 +10,6 @@ namespace Content.Client._Mono.FireControl.UI;
 
 public sealed partial class FireControlWindow
 {
-    private static readonly float[] WfMiningSteps = { -0.1f, -0.01f, 0.01f, 0.1f };
-
     /// <summary>How long a power step shows before the server's value, in case the server never applies it.</summary>
     private static readonly TimeSpan WfMiningPendingTimeout = TimeSpan.FromSeconds(1);
 
@@ -45,20 +43,7 @@ public sealed partial class FireControlWindow
         _wfMiningPower = Label("wf-mining-gunnery-power", Cream);
         _wfMiningPower.ToolTip = Loc.GetString("wf-mining-gunnery-power-help");
         _wfMiningPower.MouseFilter = MouseFilterMode.Pass;
-        var steps = Row();
-        steps.SeparationOverride = 2;
-        foreach (var step in WfMiningSteps)
-        {
-            var amount = (int) MathF.Round(MathF.Abs(step) * 100);
-            var button = new Button
-            {
-                Text = Loc.GetString(step > 0 ? "wf-mining-gunnery-power-up" : "wf-mining-gunnery-power-down", ("amount", amount)),
-                HorizontalExpand = true,
-            };
-            button.AddStyleClass("WfCompact");
-            button.OnPressed += _ => WfStepMiningPower(step);
-            steps.AddChild(button);
-        }
+        var steps = WFMiningGauges.PowerStepButtons(WfStepMiningPower);
 
         _wfMiningStatus = Label("wf-mining-gunnery-idle", Muted);
         _wfMiningStatus.ClipText = true;
@@ -143,27 +128,7 @@ public sealed partial class FireControlWindow
             return;
 
         _wfMiningRock.Text = Loc.GetString("wf-mining-gunnery-rock", ("name", rock.Name), ("mass", (int) MathF.Round(rock.Mass)));
-        // Reuse the ore lines between scans, adding only when a rock has more ores than any before it.
-        for (var i = _wfMiningOreLabels.Count; i < rock.Ores.Length; i++)
-        {
-            var label = Label("wf-mining-gunnery-idle");
-            label.ClipText = true;
-            _wfMiningOres.AddChild(label);
-            _wfMiningOreLabels.Add(label);
-        }
-
-        for (var i = 0; i < _wfMiningOreLabels.Count; i++)
-        {
-            var label = _wfMiningOreLabels[i];
-            label.Visible = i < rock.Ores.Length;
-            if (!label.Visible)
-                continue;
-
-            var ore = rock.Ores[i];
-            label.FontColorOverride = ore.Color;
-            label.Text = Loc.GetString("wf-mining-gunnery-ore", ("name", ore.Name), ("percent", (int) MathF.Round(ore.Fraction * 100)));
-        }
-
+        WFMiningGauges.ShowOres(_wfMiningOres, _wfMiningOreLabels, rock.Ores);
         _wfMiningInert.Text = Loc.GetString("wf-mining-gunnery-inert", ("percent", (int) MathF.Round((1f - rock.Ores.Sum(o => o.Fraction)) * 100)));
         _wfMiningResistance.Text = Loc.GetString("wf-mining-gunnery-resistance", ("percent", (int) MathF.Round(rock.Resistance * 100)));
 

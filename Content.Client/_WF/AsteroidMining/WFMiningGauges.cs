@@ -3,12 +3,61 @@ using Content.Client._WF.CombatConsole;
 using Content.Shared._WF.AsteroidMining;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
+using Robust.Client.UserInterface.Controls;
 
 namespace Content.Client._WF.AsteroidMining;
 
-/// <summary>Drawing shared by the cockpit's mining instruments and its asteroid scanner, so heat and make-up read alike.</summary>
+/// <summary>Drawing and controls shared by the mining laser panel, the cockpit's mining page and its asteroid scanner.</summary>
 public static class WFMiningGauges
 {
+    private static readonly float[] PowerSteps = { -0.1f, -0.01f, 0.01f, 0.1f };
+
+    /// <summary>A row of buttons that step the laser power down or up by ten and by one percent.</summary>
+    public static BoxContainer PowerStepButtons(Action<float> step)
+    {
+        var row = WFInstrumentTheme.Row();
+        row.SeparationOverride = 2;
+        foreach (var amount in PowerSteps)
+        {
+            var button = new Button
+            {
+                Text = Loc.GetString(amount > 0 ? "wf-mining-gunnery-power-up" : "wf-mining-gunnery-power-down",
+                    ("amount", (int) MathF.Round(MathF.Abs(amount) * 100))),
+                HorizontalExpand = true,
+            };
+            button.AddStyleClass("WfCompact");
+            button.OnPressed += _ => step(amount);
+            row.AddChild(button);
+        }
+
+        return row;
+    }
+
+    /// <summary>Writes a rock's ores onto reused labels, adding one only when a rock has more ores than any before it.</summary>
+    public static void ShowOres(Control parent, List<Label> labels, WFMiningBeamOreEntry[] ores)
+    {
+        for (var i = labels.Count; i < ores.Length; i++)
+        {
+            var label = WFInstrumentTheme.Label("wf-mining-gunnery-idle");
+            label.ClipText = true;
+            label.HorizontalExpand = true;
+            parent.AddChild(label);
+            labels.Add(label);
+        }
+
+        for (var i = 0; i < labels.Count; i++)
+        {
+            var label = labels[i];
+            label.Visible = i < ores.Length;
+            if (!label.Visible)
+                continue;
+
+            var ore = ores[i];
+            label.FontColorOverride = ore.Color;
+            label.Text = Loc.GetString("wf-mining-gunnery-ore", ("name", ore.Name), ("percent", (int) MathF.Round(ore.Fraction * 100)));
+        }
+    }
+
     /// <summary>The colour of the heat scale at a heat: cold, the cracking window, the hot band past it, then overcharge.</summary>
     public static Color Band(float heat, float low, float high)
     {

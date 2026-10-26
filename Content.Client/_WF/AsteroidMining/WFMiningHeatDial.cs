@@ -26,6 +26,7 @@ public sealed class WFMiningHeatDial : Control
     private readonly string _empty = Loc.GetString("wf-mining-dial-empty");
     private readonly string _unit = Loc.GetString("wf-mining-dial-unit");
     private DrawVertexUV2DColor[] _vertices = Array.Empty<DrawVertexUV2DColor>();
+    private readonly Vector2[] _needleShape = new Vector2[3];
     private WFMiningBeamTargetEntry? _target;
     private float? _needle;
     private float _progress;
@@ -158,15 +159,15 @@ public sealed class WFMiningHeatDial : Control
                 var side = new Vector2(-direction.Y, direction.X);
                 handle.DrawLine(center + new Vector2(2 * UIScale) - direction * face * 0.14f,
                     center + new Vector2(2 * UIScale) + direction * face * 0.86f, Color.Black);
-                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList,
-                    new[] { center - direction * face * 0.16f + side * 2f * UIScale, center + direction * face * 0.9f,
-                        center - direction * face * 0.16f - side * 2f * UIScale }, color);
+                _needleShape[0] = center - direction * face * 0.16f + side * 2f * UIScale;
+                _needleShape[1] = center + direction * face * 0.9f;
+                _needleShape[2] = center - direction * face * 0.16f - side * 2f * UIScale;
+                handle.DrawPrimitives(DrawPrimitiveTopology.TriangleList, _needleShape, color);
                 handle.DrawCircle(center, 5 * UIScale, skin.TextMuted);
                 handle.DrawCircle(center, 3 * UIScale, skin.Edge);
             }
         }
 
-        // The caption sits above the hub, the figures below it and in the gap at the bottom of the scale.
         var line = face * 0.2f;
         Fitted(_small, _caption, center.Y - face * 0.5f, face * 0.8f, line * 0.8f, skin.Text);
         var readout = UIBox2.FromDimensions(new Vector2(center.X - face * 0.5f, center.Y + face * 0.08f),

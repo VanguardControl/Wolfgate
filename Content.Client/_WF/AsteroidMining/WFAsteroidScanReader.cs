@@ -9,8 +9,6 @@ namespace Content.Client._WF.AsteroidMining;
 /// <summary>What the cockpit scanner reads off one asteroid. A rock out of view range gives only its signal.</summary>
 public sealed class WFAsteroidScanReading
 {
-    /// <summary>The asteroid's grid, or the rock itself for a loose one; it stays the same as the rock comes into range.</summary>
-    public EntityUid Key;
     public bool Resolved;
     public MapId Map;
     public Vector2 Center;
@@ -107,7 +105,6 @@ public sealed class WFAsteroidScanReader
         if (!_xforms.TryComp(key, out var keyXform))
             return false;
 
-        reading.Key = key;
         reading.Map = keyXform.MapID;
         var rockUid = _rocks.HasComp(key) ? key : RockOn(key);
         if (rockUid is { } uid && _rocks.TryComp(uid, out var rock))
