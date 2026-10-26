@@ -9488,6 +9488,8 @@ entities:
     - type: Transform
       pos: 9.5,12.5
       parent: 1
+    - type: OreSiloClient
+      silo: 1441
 - proto: ExtinguisherCabinetFilled
   entities:
   - uid: 1740
@@ -16707,6 +16709,7 @@ entities:
       - 1442
       - 1443
       - 1444
+      - 3557
 - proto: MachineOutpostCore
   entities:
   - uid: 807
