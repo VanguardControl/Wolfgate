@@ -10,7 +10,7 @@ using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Maths;
 
-namespace Content.IntegrationTests.Tests._WF.UserInterface;
+namespace Content.IntegrationTests.Tests._WF.Humanoid;
 
 /// <summary>
 /// The creator's hair and facial hair pickers share their card evenly, and neither's tiles reach past its half, at any

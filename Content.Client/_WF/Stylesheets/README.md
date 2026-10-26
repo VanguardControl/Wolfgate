@@ -235,7 +235,7 @@ who never picked a style does not get the Retro skin with the Futurist HUD; a HU
   - no divider beside the slot card
 - [`Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs`](../../Lobby/UI/CharacterSetupGui.xaml.cs): skinned backdrop for the creator shell
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../Lobby/UI/HumanoidProfileEditor.xaml)
-  - creator rebuilt as cards with a preview column (also covers the root tag above, which cannot hold a comment: wfh/wfg/wfui xmlns and SeparationOverride added, cc/ui xmlns dropped). Control names and tab order are unchanged because the code-behind binds to them (tabs: Species, Appearance, Jobs, Traits, Company, Markings, then Description).
+  - creator rebuilt as cards with a preview column (also covers the root tag above, which cannot hold a comment: wfh/wfg xmlns and SeparationOverride added, cc/ui xmlns dropped). Control names and tab order are unchanged because the code-behind binds to them (tabs: Species, Appearance, Jobs, Traits, Company, Markings, then Description).
   - sex moved out of its own row and into the heading, as icon boxes.
   - scrolls when the window is too short, instead of stacking the bottom buttons on each other
   - fixed box. SpriteView sizes itself from the sprite's rotated bounding box, so a species whose required marking uses a wide RSI (Shadekin's 64x32 tail) blew the whole pane out. Fit shrinks those to the box instead.

@@ -2,7 +2,7 @@ using System.Numerics;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 
-namespace Content.Client._WF.UserInterface.Controls;
+namespace Content.Client._WF.Humanoid;
 
 /// <summary>
 /// Lays its visible children side by side in equal shares of its width, measuring each against the share it will be

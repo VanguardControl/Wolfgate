@@ -3,11 +3,10 @@
          xmlns:humanoid="clr-namespace:Content.Client.Humanoid"
          xmlns:wfh="clr-namespace:Content.Client._WF.Humanoid"
          xmlns:wfg="clr-namespace:Content.Client._WF.Genitals.UI"
-         xmlns:wfui="clr-namespace:Content.Client._WF.UserInterface.Controls"
          HorizontalExpand="True"
          SeparationOverride="0">
     <!-- WOLFGATE(Stylesheets) START: creator rebuilt as cards with a preview column (also covers the root tag above, which
-         cannot hold a comment: wfh/wfg/wfui xmlns and SeparationOverride added, cc/ui xmlns dropped). Control names and
+         cannot hold a comment: wfh/wfg xmlns and SeparationOverride added, cc/ui xmlns dropped). Control names and
          tab order are unchanged because the code-behind binds to them (tabs: Species, Appearance, Jobs, Traits,
          Company, Markings, then Description). -->
     <!-- upstream original, kept for merges ("- -" stands for a double hyphen):
@@ -317,14 +316,14 @@
                         <PanelContainer Name="HairCard" StyleClasses="CreatorCard" HorizontalExpand="True">
                             <BoxContainer Orientation="Vertical" SeparationOverride="6">
                                 <Label Text="{Loc 'wf-creator-hair'}" StyleClasses="CreatorHeading" />
-                                <!-- WOLFGATE(UserInterface): an even row, not a Box or Grid. Both measure each picker against the
+                                <!-- WOLFGATE(Humanoid): an even row, not a Box or Grid. Both measure each picker against the
                                      whole width, and a picker picks its tile columns from the width it is measured with, so
                                      hair took far too many columns: its tiles were cut off, or facial hair was pushed out of
                                      the card on a wide screen. The row measures each picker against its own half. -->
-                                <wfui:WolfgateEvenRow Separation="16" HorizontalExpand="True">
+                                <wfh:WolfgateEvenRow Separation="16" HorizontalExpand="True">
                                     <wfh:WolfgateSlotMarkingPicker Name="HairStylePicker" Category="Hair" HorizontalExpand="True" />
                                     <wfh:WolfgateSlotMarkingPicker Name="FacialHairPicker" Category="FacialHair" HorizontalExpand="True" />
-                                </wfui:WolfgateEvenRow>
+                                </wfh:WolfgateEvenRow>
                             </BoxContainer>
                         </PanelContainer>
                         <!-- Eyes -->
