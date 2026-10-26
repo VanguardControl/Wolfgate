@@ -153,13 +153,16 @@ public sealed class WFPlanetMapSystem : EntitySystem
         map.Lines = lines;
     }
 
-    /// <summary>The map's markers for a ground's sites, in the record's order.</summary>
-    private List<WFPlanetMapSite> Sites(WFPlanetPoiComponent record)
+    /// <summary>
+    /// The map's markers for a ground's sites, in the record's order. <paramref name="all"/> names every one, identified
+    /// or not, for an admin's True IFF.
+    /// </summary>
+    public List<WFPlanetMapSite> Sites(WFPlanetPoiComponent record, bool all = false)
     {
         var sites = new List<WFPlanetMapSite>(record.Sites.Count);
         foreach (var site in record.Sites)
         {
-            var revealed = TryComp<WFPoiSignalComponent>(site.Signal, out var signal) && signal.Revealed;
+            var revealed = TryComp<WFPoiSignalComponent>(site.Signal, out var signal) && signal.Revealed || all;
             var kind = KindOf(site);
             var position = signal?.Origin ?? site.Origin;
             if (!revealed)
