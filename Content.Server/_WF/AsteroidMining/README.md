@@ -143,6 +143,7 @@ rewrites the RSIs and the irregular variants' `shapes`, which must then be copie
 - [`Content.Client/_WF/AsteroidMining/WFMiningBeamOverlay.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamOverlay.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningBeamVisualizerSystem.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningBeamVisualizerSystem.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningChargeMeter.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningChargeMeter.cs)
+- [`Content.Client/_WF/AsteroidMining/WFMiningFigures.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningFigures.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningGauges.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningGauges.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningHeatDial.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningHeatDial.cs)
 - [`Content.Client/_WF/AsteroidMining/WFMiningPowerLever.cs`](../../../Content.Client/_WF/AsteroidMining/WFMiningPowerLever.cs)

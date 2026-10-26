@@ -172,14 +172,15 @@ public static class WFMiningGauges
             handle.DrawString(font, topLeft, text, fitted, color);
     }
 
-    /// <summary>Draws text right-aligned against <paramref name="right"/>, shrunk to fit the width if it must be.</summary>
-    public static void TextRight(DrawingHandleScreen handle, Font font, string text, float right, float top, float width,
+    /// <summary>Draws text right-aligned against <paramref name="right"/>, shrunk to fit the width if it must be, and returns its width.</summary>
+    public static float TextRight(DrawingHandleScreen handle, Font font, string text, float right, float top, float width,
         float scale, Color color)
     {
         var fitted = WFInstrumentText.FitScale(handle, font, text, scale, width);
         if (fitted <= 0)
-            return;
+            return 0f;
         var drawn = handle.GetDimensions(font, text, fitted).X;
         handle.DrawString(font, new Vector2(right - drawn, top), text, fitted, color);
+        return drawn;
     }
 }

@@ -10,7 +10,7 @@ namespace Content.Client._WF.AsteroidMining;
 
 /// <summary>
 /// The rock under the mining lasers on a dial: a needle on its heat against the cold, window, hot and overcharge bands,
-/// crack progress round the rim, and the heat, window, progress and yield in figures. With no rock it shows a bare scale.
+/// crack progress round the rim, and the heat in figures. With no rock it shows a bare scale.
 /// </summary>
 public sealed class WFMiningHeatDial : Control
 {
@@ -32,36 +32,24 @@ public sealed class WFMiningHeatDial : Control
     private float _progress;
     private float _time;
     private string _heat = string.Empty;
-    private string _window = string.Empty;
-    private string _crack = string.Empty;
-    private string _yield = string.Empty;
 
     public WFMiningHeatDial()
     {
         MinSize = new Vector2(150, 170);
         HorizontalExpand = true;
+        MouseFilter = MouseFilterMode.Pass;
         ToolTip = Loc.GetString("wf-mining-gunnery-meter-help");
         var cache = IoCManager.Resolve<IResourceCache>();
         _small = new VectorFont(cache.GetResource<FontResource>("/Fonts/RobotoMono/RobotoMono-Regular.ttf"), 10);
         _digits = new VectorFont(cache.GetResource<FontResource>("/Fonts/RobotoMono/RobotoMono-Bold.ttf"), 24);
     }
 
-    /// <summary>Shows a rock's scan, or the bare scale for none; figures are formatted here rather than every frame.</summary>
+    /// <summary>Shows a rock's scan, or the bare scale for none; the figure is formatted here rather than every frame.</summary>
     public void SetTarget(WFMiningBeamTargetEntry? target)
     {
         _target = target;
-        if (target is not { } rock)
-            return;
-
-        _heat = Percent(rock.Charge).ToString();
-        _window = Loc.GetString("wf-mining-dial-window", ("low", Percent(rock.WindowLow)), ("high", Percent(rock.WindowHigh)));
-        _crack = Loc.GetString("wf-mining-dial-crack", ("percent", Percent(rock.Progress)));
-        _yield = Loc.GetString("wf-mining-dial-yield", ("percent", Percent(rock.Yield)));
-    }
-
-    private static int Percent(float value)
-    {
-        return (int) MathF.Round(value * 100);
+        if (target is { } rock)
+            _heat = ((int) MathF.Round(rock.Charge * 100)).ToString();
     }
 
     protected override void FrameUpdate(FrameEventArgs args)
@@ -168,30 +156,22 @@ public sealed class WFMiningHeatDial : Control
             }
         }
 
-        var line = face * 0.2f;
-        Fitted(_small, _caption, center.Y - face * 0.5f, face * 0.8f, line * 0.8f, skin.Text);
-        var readout = UIBox2.FromDimensions(new Vector2(center.X - face * 0.5f, center.Y + face * 0.08f),
-            new Vector2(face, line * 1.35f));
+        // The figure sits under the hub, narrow enough to clear the 0 and 100 numerals, and the caption in the gap at the
+        // bottom of the scale; the window, crack and yield figures are in the strip under the dial.
+        var readout = UIBox2.FromDimensions(new Vector2(center.X - face * 0.32f, center.Y + face * 0.12f),
+            new Vector2(face * 0.64f, face * 0.28f));
         var inner = new UIBox2(readout.TopLeft + new Vector2(UIScale), readout.BottomRight - new Vector2(UIScale));
         if (!digital)
             handle.DrawRect(readout, skin.Ink);
         if (rock is { } target)
-        {
-            var color = WFMiningGauges.Band(target.Charge, target.WindowLow, target.WindowHigh);
-            WFInstrumentText.DrawReading(handle, _digits, _heat, _unit, inner, UIScale, color, skin.TextMuted);
-            if (overcharging)
-                Fitted(_small, _overcharge, readout.Bottom + line * 0.2f, face * 1.2f, line, flash ? skin.Danger : skin.Danger.WithAlpha(0.4f));
-            else
-                Fitted(_small, _window, readout.Bottom + line * 0.2f, face * 1.2f, line, skin.Good);
-            Fitted(_small, _crack, center.Y + face * 0.66f, face * 1.1f, line * 0.9f, skin.Accent);
-            Fitted(_small, _yield, center.Y + face * 0.84f, face * 1.1f, line * 0.9f,
-                target.Yield >= 0.995f ? skin.Good : skin.Caution);
-        }
+            WFInstrumentText.DrawReading(handle, _digits, _heat, _unit, inner, UIScale,
+                WFMiningGauges.Band(target.Charge, target.WindowLow, target.WindowHigh), skin.TextMuted);
         else
-        {
             WFInstrumentText.DrawFitted(handle, _digits, _empty, inner, UIScale, skin.TextMuted);
-            Fitted(_small, _idle, center.Y + face * 0.7f, face * 1.2f, line, skin.TextMuted);
-        }
+
+        var caption = overcharging ? _overcharge : rock == null ? _idle : _caption;
+        var captionColor = overcharging ? skin.Danger.WithAlpha(flash ? 1f : 0.4f) : rock == null ? skin.TextMuted : skin.Text;
+        Fitted(_small, caption, center.Y + face * 0.68f, face * 0.9f, face * 0.17f, captionColor);
 
         if (!digital)
         {

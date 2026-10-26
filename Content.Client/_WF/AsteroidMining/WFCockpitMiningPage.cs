@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Numerics;
 using Content.Client._WF.Cockpit;
+using Content.Client._WF.CombatConsole;
+using Content.Client._WF.ShipAccess;
 using Content.Shared._WF.AsteroidMining;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
@@ -12,7 +14,7 @@ namespace Content.Client._WF.AsteroidMining;
 
 /// <summary>
 /// The cockpit's mining page: the ship's mining laser power on a lever, the rock under the lasers on a heat dial with
-/// lamps for its bands, and what the rock holds. It shows the same scan as the gunnery console's mining panel, through
+/// lamps for its bands and figures for its window, crack and yield, and what the rock holds. It shows the same scan as the gunnery console's mining panel, through
 /// the helm's gunnery link, and its selector only shows while the linked ship has mining lasers.
 /// </summary>
 public sealed partial class WFCockpitMiningPage : BoxContainer, IWFCockpitOptionalPage
@@ -29,15 +31,15 @@ public sealed partial class WFCockpitMiningPage : BoxContainer, IWFCockpitOption
     private readonly WFMiningAnnunciator _lamps;
     private readonly WFMiningPowerLever _lever;
     private readonly WFMiningHeatDial _dial;
+    private readonly WFMiningFigures _figures;
     private readonly Control _scan;
     private readonly Label _rock;
+    private readonly Label _veins;
     private readonly WFMiningCompositionBar _bar;
-    private readonly GridContainer _ores;
-    private readonly List<Label> _oreLabels = new();
-    private readonly Label _inert;
-    private readonly Label _resistance;
-    private readonly Label _window;
-    private readonly Label _yield;
+    private readonly BoxContainer _ores;
+    private readonly List<TargetLine> _oreLines = new();
+    private readonly TargetLine _inert;
+    private readonly TargetLine _resistance;
     private readonly Label _idle;
     private WFMiningBeamGunneryState _state;
     private float? _pending;
@@ -69,34 +71,43 @@ public sealed partial class WFCockpitMiningPage : BoxContainer, IWFCockpitOption
         var instruments = Row(_lever, _dial);
         instruments.SeparationOverride = 6;
         instruments.MinHeight = 190;
+        _figures = new WFMiningFigures();
 
         var steps = WFMiningGauges.PowerStepButtons(step =>
             SetPower(MathF.Round(Math.Clamp((_pending ?? _state.Power) + step, 0f, 1f), 2)));
 
         _rock = Label("wf-mining-gunnery-idle", Cream);
         _rock.ClipText = true;
+        _rock.HorizontalExpand = true;
+        _veins = Label("wf-mining-gunnery-idle", Muted);
         _bar = new WFMiningCompositionBar();
-        _ores = new GridContainer { Columns = 2, HorizontalExpand = true };
-        _inert = Label("wf-mining-gunnery-idle", Muted);
-        _resistance = Label("wf-mining-gunnery-idle", Muted);
-        _window = Label("wf-mining-gunnery-idle", Muted);
-        _yield = Label("wf-mining-gunnery-idle", Green);
-        _yield.ToolTip = Loc.GetString("wf-mining-gunnery-yield-help");
-        _yield.MouseFilter = MouseFilterMode.Pass;
-        var stats = Row(_resistance, _window);
-        stats.SeparationOverride = 12;
-        var scan = Column(_rock, _bar, _ores, _inert, stats, _yield);
-        scan.SeparationOverride = 3;
+        _ores = Column();
+        _ores.SeparationOverride = 0;
+        _inert = new TargetLine(true);
+        _inert.Name.Text = Loc.GetString("wf-mining-scan-inert");
+        _resistance = new TargetLine(false);
+        _resistance.Name.Text = Loc.GetString("wf-mining-scan-resistance");
+        var table = Column(_ores, _inert.Row, _resistance.Row);
+        table.SeparationOverride = 0;
+        var scan = Column(Row(_rock, _veins), _bar, table);
+        scan.SeparationOverride = 2;
         _scan = Panel("wf-mining-page-target", scan);
         _scan.Visible = false;
         _idle = Label("wf-mining-gunnery-idle", Muted);
         _idle.ToolTip = Loc.GetString("wf-mining-gunnery-idle-help");
         _idle.MouseFilter = MouseFilterMode.Pass;
-        var hint = Label("wf-mining-page-hint", Muted);
-        hint.ToolTip = Loc.GetString("wf-mining-page-hint-help");
-        hint.MouseFilter = MouseFilterMode.Pass;
+        var hint = new WFWrappedLabel
+        {
+            Text = Loc.GetString("wf-mining-page-hint"),
+            FontOverride = _idle.FontOverride,
+            FontColorOverride = Muted,
+            Margin = _idle.Margin,
+            HorizontalExpand = true,
+            ToolTip = Loc.GetString("wf-mining-page-hint-help"),
+            MouseFilter = MouseFilterMode.Pass,
+        };
 
-        var body = Column(Row(caption, _status), _lamps, instruments, steps, _scan, _idle, hint);
+        var body = Column(Row(caption, _status), _lamps, instruments, _figures, steps, _scan, _idle, hint);
         body.SeparationOverride = 6;
         AddChild(Scroll(body));
     }
@@ -155,6 +166,7 @@ public sealed partial class WFCockpitMiningPage : BoxContainer, IWFCockpitOption
 
         var target = state.Target;
         _dial.SetTarget(target);
+        _figures.SetTarget(target);
         _idle.Visible = target == null;
         _scan.Visible = target != null;
         if (target is not { } rock)
@@ -165,15 +177,73 @@ public sealed partial class WFCockpitMiningPage : BoxContainer, IWFCockpitOption
 
         _lamps.Set(rock.Charge >= rock.WindowLow && rock.Charge <= rock.WindowHigh,
             rock.Charge > rock.WindowHigh && rock.Charge < WFAsteroidHeat.OverchargeLine, rock.Overcharge > 0f, overloaded);
-        _rock.Text = Loc.GetString("wf-mining-gunnery-rock", ("name", rock.Name), ("mass", (int) MathF.Round(rock.Mass)));
+        _rock.Text = Loc.GetString("wf-mining-page-rock", ("name", rock.Name));
+        _veins.Text = Loc.GetString("wf-mining-scan-veins", ("mass", (int) MathF.Round(rock.Mass)));
         _bar.Ores = rock.Ores;
-        WFMiningGauges.ShowOres(_ores, _oreLabels, rock.Ores);
-        _inert.Text = Loc.GetString("wf-mining-gunnery-inert", ("percent", (int) MathF.Round((1f - rock.Ores.Sum(o => o.Fraction)) * 100)));
-        _resistance.Text = Loc.GetString("wf-mining-gunnery-resistance", ("percent", (int) MathF.Round(rock.Resistance * 100)));
-        _window.Text = Loc.GetString("wf-mining-page-window", ("low", (int) MathF.Round(rock.WindowLow * 100)),
-            ("high", (int) MathF.Round(rock.WindowHigh * 100)));
-        _yield.Text = Loc.GetString("wf-mining-gunnery-yield", ("percent", (int) MathF.Round(rock.Yield * 100)));
-        _yield.FontColorOverride = rock.Yield >= 0.995f ? Green : Accent;
+        // Reuse the ore lines between scans, adding only when a rock has more ores than any before it.
+        for (var i = _oreLines.Count; i < rock.Ores.Length; i++)
+        {
+            var line = new TargetLine(true);
+            _ores.AddChild(line.Row);
+            _oreLines.Add(line);
+        }
+
+        for (var i = 0; i < _oreLines.Count; i++)
+        {
+            var line = _oreLines[i];
+            line.Row.Visible = i < rock.Ores.Length;
+            if (!line.Row.Visible)
+                continue;
+
+            var ore = rock.Ores[i];
+            line.Name.Text = Loc.GetString("wf-mining-scan-ore", ("name", ore.Name));
+            line.Show(ore.Fraction, ore.Color, Cream);
+        }
+
+        _inert.Show(1f - rock.Ores.Sum(o => o.Fraction), Muted, Muted);
+        _resistance.Show(rock.Resistance, Cream, Muted);
+    }
+
+    /// <summary>One line of the target table: a colour swatch for ores, a name, and a percentage against the right edge.</summary>
+    private sealed class TargetLine
+    {
+        public readonly BoxContainer Row;
+        public readonly Label Name;
+        private readonly StyleBoxFlat? _swatch;
+        private readonly Label _value;
+
+        public TargetLine(bool swatch)
+        {
+            Name = Label("wf-mining-gunnery-idle");
+            Name.ClipText = true;
+            Name.HorizontalExpand = true;
+            _value = Label("wf-mining-gunnery-idle");
+            Row = WFInstrumentTheme.Row();
+            if (swatch)
+            {
+                _swatch = new StyleBoxFlat();
+                Row.AddChild(new PanelContainer
+                {
+                    PanelOverride = _swatch,
+                    SetSize = new Vector2(8, 8),
+                    Margin = new Thickness(2, 0, 0, 0),
+                    VerticalAlignment = VAlignment.Center,
+                });
+            }
+
+            Row.AddChild(Name);
+            Row.AddChild(_value);
+        }
+
+        /// <summary>Shows a fraction as a percentage in <paramref name="color"/>, which also fills the swatch.</summary>
+        public void Show(float fraction, Color color, Color nameColor)
+        {
+            Name.FontColorOverride = nameColor;
+            _value.Text = Loc.GetString("wf-mining-scan-percent", ("percent", (int) MathF.Round(fraction * 100)));
+            _value.FontColorOverride = color;
+            if (_swatch != null)
+                _swatch.BackgroundColor = color;
+        }
     }
 }
 

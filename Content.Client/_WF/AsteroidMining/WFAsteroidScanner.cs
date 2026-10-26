@@ -59,6 +59,7 @@ public sealed partial class WFAsteroidScanner : Control
         Ore,
         Pair,
         Warning,
+        Divider,
     }
 
     /// <summary>One line of the callout; <see cref="Right"/> is drawn against the right edge.</summary>
@@ -162,6 +163,7 @@ public sealed partial class WFAsteroidScanner : Control
 
         _lines.Add(new Line(LineKind.Ore, Loc.GetString("wf-mining-scan-inert"), Percent(reading.Inert),
             WFInstrumentTheme.Skin.TextMuted));
+        _lines.Add(new Line(LineKind.Divider, string.Empty));
         _lines.Add(new Line(LineKind.Pair, Loc.GetString("wf-mining-scan-resistance"), Percent(reading.Resistance)));
         _lines.Add(new Line(LineKind.Pair, Loc.GetString("wf-mining-scan-window"),
             Loc.GetString("wf-mining-scan-window-range", ("low", Whole(reading.WindowLow)), ("high", Whole(reading.WindowHigh))),
@@ -172,12 +174,20 @@ public sealed partial class WFAsteroidScanner : Control
         _lines.Add(new Line(LineKind.Pair, Loc.GetString("wf-mining-scan-blast"),
             Loc.GetString("wf-mining-scan-blast-band", ("band", reading.Blast)),
             reading.Blast == "low" ? null : reading.Blast == "high" ? WFInstrumentTheme.Skin.Caution : WFInstrumentTheme.Skin.Danger));
+        if (!reading.Overcharging && reading.Charge <= 0.01f && reading.Progress <= 0.001f)
+            return;
+
+        _lines.Add(new Line(LineKind.Divider, string.Empty));
         if (reading.Overcharging)
+        {
             _lines.Add(new Line(LineKind.Warning, Loc.GetString("wf-mining-scan-overcharge"), Color: WFInstrumentTheme.Skin.Danger));
-        else if (reading.Charge > 0.01f || reading.Progress > 0.001f)
-            _lines.Add(new Line(LineKind.Pair, Loc.GetString("wf-mining-scan-heat",
-                    ("charge", Whole(reading.Charge)), ("progress", Whole(reading.Progress))), string.Empty,
-                WFMiningGauges.Band(reading.Charge, reading.WindowLow, reading.WindowHigh)));
+            return;
+        }
+
+        _lines.Add(new Line(LineKind.Pair, Loc.GetString("wf-mining-scan-heat"), Percent(reading.Charge),
+            WFMiningGauges.Band(reading.Charge, reading.WindowLow, reading.WindowHigh)));
+        _lines.Add(new Line(LineKind.Pair, Loc.GetString("wf-mining-scan-crack"), Percent(reading.Progress),
+            WFInstrumentTheme.Skin.Accent));
     }
 
     private static int Whole(float fraction)
@@ -255,7 +265,8 @@ public sealed partial class WFAsteroidScanner : Control
         var box = UIBox2.FromDimensions(new Vector2(left, top), new Vector2(width, height));
         var alpha = _fade;
 
-        var corner = center + new Vector2(right ? half : -half, -half) * 0.72f;
+        // The leader leaves the tip of a bracket's upper corner, outside the heat ring, then runs level into the callout.
+        var corner = center + new Vector2(right ? half : -half, -half);
         var elbow = new Vector2(right ? box.Left - 6f * scale : box.Right + 6f * scale, box.Top + 10f * scale);
         var leader = skin.Accent.WithAlpha(0.7f * alpha);
         handle.DrawLine(corner, elbow, leader);
@@ -271,6 +282,8 @@ public sealed partial class WFAsteroidScanner : Control
 
         var x = box.Left + Padding * scale;
         var inner = width - Padding * 2f * scale;
+        var edge = box.Right - Padding * scale;
+        var spacing = 6f * scale;
         var y = box.Top + Padding * scale;
         for (var i = 0; i < shown; i++)
         {
@@ -281,36 +294,32 @@ public sealed partial class WFAsteroidScanner : Control
             {
                 case LineKind.Title:
                     WFMiningGauges.TextLeft(handle, _title, line.Left, new Vector2(x, y), inner * 0.74f, scale, skin.Accent.WithAlpha(alpha));
-                    WFMiningGauges.TextRight(handle, _text, line.Right, box.Right - Padding * scale, y + scale, inner * 0.24f, scale,
+                    WFMiningGauges.TextRight(handle, _text, line.Right, edge, y + scale, inner * 0.24f, scale,
                         (_reading.Resolved ? skin.Good : skin.TextMuted).WithAlpha(alpha));
-                    handle.DrawLine(new Vector2(x, y + lineHeight - 3f * scale), new Vector2(box.Right - Padding * scale, y + lineHeight - 3f * scale),
+                    handle.DrawLine(new Vector2(x, y + lineHeight - 3f * scale), new Vector2(edge, y + lineHeight - 3f * scale),
                         skin.EdgeSoft.WithAlpha(alpha));
                     break;
                 case LineKind.Composition:
-                    WFMiningGauges.Composition(handle, UIBox2.FromDimensions(new Vector2(x, y + 2f * scale), new Vector2(inner, lineHeight - 5f * scale)),
+                    WFMiningGauges.Composition(handle, UIBox2.FromDimensions(new Vector2(x, y + 4f * scale), new Vector2(inner, lineHeight - 8f * scale)),
                         _reading.Ores, scale, alpha);
                     break;
-                case LineKind.Ore:
-                    handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, y + 3f * scale), new Vector2(7f * scale, 7f * scale)), color);
-                    WFMiningGauges.TextLeft(handle, _text, line.Left, new Vector2(x + 11f * scale, y), inner * 0.7f, scale, skin.Text.WithAlpha(alpha));
-                    WFMiningGauges.TextRight(handle, _text, line.Right, box.Right - Padding * scale, y, inner * 0.28f, scale, color);
-                    break;
-                case LineKind.Pair:
-                    WFMiningGauges.TextLeft(handle, _text, line.Left, new Vector2(x, y), inner * 0.55f, scale,
-                        (line.Right.Length == 0 ? color : skin.TextMuted.WithAlpha(alpha)));
-                    if (line.Right.Length > 0)
-                        WFMiningGauges.TextRight(handle, _text, line.Right, box.Right - Padding * scale, y, inner * 0.44f, scale, color);
+                case LineKind.Divider:
+                    handle.DrawLine(new Vector2(x, y + lineHeight / 2f), new Vector2(edge, y + lineHeight / 2f), skin.EdgeSoft.WithAlpha(alpha));
                     break;
                 case LineKind.Warning:
                     var lit = line.Color != skin.Danger || _time * 4f % 1f < 0.6f;
                     WFMiningGauges.TextLeft(handle, _title, line.Left, new Vector2(x, y), inner, scale, lit ? color : color.WithAlpha(0.3f * alpha));
                     break;
                 default:
-                    WFMiningGauges.TextLeft(handle, _text, line.Left, new Vector2(x, y), inner * (line.Right.Length > 0 ? 0.55f : 1f), scale,
-                        skin.TextMuted.WithAlpha(alpha));
-                    if (line.Right.Length > 0)
-                        WFMiningGauges.TextRight(handle, _text, line.Right, box.Right - Padding * scale, y, inner * 0.44f, scale,
-                            skin.TextMuted.WithAlpha(alpha));
+                    // The figure is drawn first, so the name gets whatever width it leaves.
+                    var muted = skin.TextMuted.WithAlpha(alpha);
+                    var figure = WFMiningGauges.TextRight(handle, _text, line.Right, edge, y, inner * 0.5f, scale,
+                        line.Kind == LineKind.Text ? muted : color);
+                    var indent = line.Kind == LineKind.Ore ? 11f * scale : 0f;
+                    if (line.Kind == LineKind.Ore)
+                        handle.DrawRect(UIBox2.FromDimensions(new Vector2(x, y + 3f * scale), new Vector2(7f * scale, 7f * scale)), color);
+                    WFMiningGauges.TextLeft(handle, _text, line.Left, new Vector2(x + indent, y),
+                        inner - indent - (figure > 0f ? figure + spacing : 0f), scale, line.Kind == LineKind.Ore ? skin.Text.WithAlpha(alpha) : muted);
                     break;
             }
 
@@ -329,7 +338,8 @@ public sealed partial class WFAsteroidScanner : Control
         return kind switch
         {
             LineKind.Title => LineHeight + 5f,
-            LineKind.Composition => LineHeight - 2f,
+            LineKind.Composition => LineHeight + 2f,
+            LineKind.Divider => 7f,
             _ => LineHeight,
         };
     }

@@ -28,6 +28,7 @@ public sealed class WFMiningAnnunciator : Control
     {
         MinSize = new Vector2(0, 24);
         HorizontalExpand = true;
+        MouseFilter = MouseFilterMode.Pass;
         ToolTip = Loc.GetString("wf-mining-lamps-help");
         _font = new VectorFont(IoCManager.Resolve<IResourceCache>()
             .GetResource<FontResource>("/Fonts/RobotoMono/RobotoMono-Bold.ttf"), 9);

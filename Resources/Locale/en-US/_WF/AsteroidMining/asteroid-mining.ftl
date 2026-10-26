@@ -31,7 +31,7 @@ wf-mining-gunnery-overcharge-help = Too hot. Lower the power or stop firing befo
 wf-cockpit-mining = MINING
 wf-cockpit-mining-short = MIN
 wf-mining-page-target = TARGET
-wf-mining-page-window = Window {$low}-{$high}%
+wf-mining-page-rock = {CAPITALIZE($name)}
 wf-mining-page-hint = Point at a rock on the ship cam or NAV to scan it.
 wf-mining-page-hint-help = Rocks in view range scan fully. Farther ones only show a signal until you get closer.
 wf-mining-lever-caption = POWER
@@ -41,9 +41,11 @@ wf-mining-dial-unit = %
 wf-mining-dial-empty = --
 wf-mining-dial-idle = NO TARGET
 wf-mining-dial-overcharge = OVERCHARGE
-wf-mining-dial-window = WINDOW {$low}-{$high}
-wf-mining-dial-crack = CRACK {$percent}%
-wf-mining-dial-yield = YIELD {$percent}%
+wf-mining-figure-window = WINDOW
+wf-mining-figure-window-range = {$low}-{$high}
+wf-mining-figure-crack = CRACK
+wf-mining-figure-yield = YIELD
+wf-mining-figures-help = WINDOW: the heat that cracks the rock cleanly. CRACK: how far the rock is to breaking apart. YIELD: how much of its ore you get when it cracks.
 wf-mining-lamp-window = WINDOW
 wf-mining-lamp-hot = HOT
 wf-mining-lamp-overcharge = OVERCHARGE
@@ -74,5 +76,6 @@ wf-mining-scan-blast-band = {$band ->
     [high] High
    *[severe] Severe
 }
-wf-mining-scan-heat = Heat {$charge}% · crack {$progress}%
+wf-mining-scan-heat = Heat
+wf-mining-scan-crack = Crack
 wf-mining-scan-overcharge = OVERCHARGING
