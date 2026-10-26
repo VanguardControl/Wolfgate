@@ -228,8 +228,9 @@ public sealed class WoundBleedingTest : GameTest
             var torso = parts.Single(part => part.Component.PartType == BodyPartType.Torso).Id;
             var bloodstream = entityManager.GetComponent<BloodstreamComponent>(body);
 
-            // WOLFGATE(Wolfmed): revival pass, a capped head is never armed by piled-up damage any more, so the head comes
-            // off the way a blast or an execution takes it: the traumatic amputation itself, with all its consequences.
+            // WOLFGATE(Wolfmed): revival pass, a capped head is no longer armed by piled-up damage
+            // It comes off the way a blast or an execution takes it: the traumatic amputation itself, with all its
+            // consequences.
             Assert.That(entityManager.System<AmputationSystem>().TryAmputate(body, head));
 
             var torsoWounds = wounds.GetWounds((torso, entityManager.GetComponent<WoundableComponent>(torso)))

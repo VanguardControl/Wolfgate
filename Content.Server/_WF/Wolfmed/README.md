@@ -938,7 +938,7 @@ Skipped ("dirty-disposed").
   - D9, Onyx targets BodyPartType.Chest here.
   - Apply is called directly (PLAN4 §6.1 trap 9). The do-after and the
   - a check Onyx's own test never made. CanApply requires GetPartRate(part) > 0, so a
-  - revival pass, a capped head is never armed by piled-up damage any more, so the head comes
+  - revival pass, a capped head is no longer armed by piled-up damage
   - the severed head is a live entity that left the body's container tree, not a
   - WoundHostComponent.DismembermentSeverities[Head] = 200.
   - WolfmedBodyPartComponent.AmputationConsequenceSeverity defaults to 35 and
@@ -1322,15 +1322,17 @@ Skipped ("dirty-disposed").
   - D12, GetAllDamage lives on the compat facade.
   - D8
   - Onyx's SharedBodySystem.TryDetachPart
-  - revival pass, a capped head never comes off from piled-up damage; its overflow is brain
+  - revival pass, a capped head never comes off from piled-up damage
   - EVISC: D9 never severs a torso, so its overflow is offered to evisceration instead.
   - revival pass, the sever thresholds count it
+  - revival pass, the blast roll reads the part's whole total as the threshold path does
   - P3-D15
   - revival pass, a limb is armed by its thresholds with the overflow counted
   - D8. The severity comes off the PARENT the stump is left on, not off the severed part.
   - D9
   - Shitmed's BodyPartComponent has no Parent field.
   - M3: P27, a blast never takes the head unless wolfmed.blast_dismember_head is on.
+  - revival pass, healing a capped part back under its cap clears its overflow
   - revival pass, a capped part's overflow counts
   - revival pass, a capped part's overflow keeps it severable
   - Shitmed has no BodyPartComponent.Parent.
@@ -1338,6 +1340,7 @@ Skipped ("dirty-disposed").
   - V124: the one damage-driven detach path, so the dismemberment feedback hangs here
   - D8/P3-D15
   - P3-D15 drops Onyx's BodyPartComponent parameter; the data it read is on WolfmedBodyPartComponent.
+  - revival pass, an overflowing hit's whole effect on a capped part, for the blast roll.
   - revival pass, a capped part never reaches its stored thresholds, so its overflow
 - [`Content.Shared/_Onyx/Wounds/BodyPartFunctionalitySystem.cs`](../../../Content.Shared/_Onyx/Wounds/BodyPartFunctionalitySystem.cs): Wolfgate keeps CyberneticsComponent under _Shitmed.
 - [`Content.Shared/_Onyx/Wounds/FractureAlertSystem.cs`](../../../Content.Shared/_Onyx/Wounds/FractureAlertSystem.cs)

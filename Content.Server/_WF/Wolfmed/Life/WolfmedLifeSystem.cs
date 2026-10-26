@@ -947,7 +947,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
 
     /// <summary>The blood fraction the brain-safe transfusion figure aims for: the brain's line plus the margin.</summary>
     public float BrainSafeTarget =>
-        _cfg.GetCVar(WolfmedCVars.BrainBloodStart) + MathF.Max(0f, _cfg.GetCVar(WolfmedCVars.TransfuseSafeMargin));
+        MathF.Min(1f, _cfg.GetCVar(WolfmedCVars.BrainBloodStart) + MathF.Max(0f, _cfg.GetCVar(WolfmedCVars.TransfuseSafeMargin)));
 
     /// <summary>
     /// The two transfusion numbers (plan §7.1): units to <see cref="WolfmedCVars.PostShockBloodTarget"/> plus

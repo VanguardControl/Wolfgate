@@ -132,7 +132,8 @@ public sealed class WolfmedWoundLadderTest : WolfmedGameTest
 
     /// <summary>
     /// A capped arm stores 100 of a 130 Slash hit and counts the 30 over toward its Slash threshold of 130, so it is
-    /// armed exactly as an uncapped arm was; a capped head counts none and is never armed.
+    /// armed exactly as an uncapped arm was; a capped head counts none and is never armed; healing the arm back under
+    /// its cap clears the count.
     /// </summary>
     [Test]
     public async Task CappedLimbSeversAtItsOldTotalsTest()
@@ -162,6 +163,15 @@ public sealed class WolfmedWoundLadderTest : WolfmedGameTest
                     Is.EqualTo(FixedPoint2.New(30)));
                 Assert.That(SEntMan.GetComponent<WoundableComponent>(arm).Severable, Is.True, "130 Slash did not arm the arm.");
                 Assert.That(SEntMan.GetComponent<WoundableComponent>(head).Severable, Is.False, "piled-up damage armed the head.");
+            });
+
+            // Healed back under its cap, the arm forgets what it took past it and is no longer armed.
+            routing.TryApplyPartDamage(body, arm, Slash(-50), attacker, ignoreResistances: true);
+            Assert.Multiple(() =>
+            {
+                Assert.That(SEntMan.HasComponent<WolfmedPartOverflowComponent>(arm), Is.False, "healing kept the overflow.");
+                Assert.That(SEntMan.GetComponent<WoundableComponent>(arm).AmputationOverflow, Is.EqualTo(FixedPoint2.Zero));
+                Assert.That(SEntMan.GetComponent<WoundableComponent>(arm).Severable, Is.False, "a healed arm stayed armed.");
             });
         });
     }
