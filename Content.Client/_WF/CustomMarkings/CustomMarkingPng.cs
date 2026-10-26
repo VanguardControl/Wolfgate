@@ -9,8 +9,8 @@ namespace Content.Client._WF.CustomMarkings;
 /// <summary>Reads marking art from PNG: sheets the server sends, and files a player imports.</summary>
 public static class CustomMarkingPng
 {
-    /// <summary>Largest file the importer will try to read.</summary>
-    public const int MaxFileBytes = 256 * 1024;
+    /// <summary>Largest file the importer will try to read: room for a sheet of every frame, however noisy.</summary>
+    public const int MaxFileBytes = 1024 * 1024;
 
     /// <summary>Art from a PNG of a whole sheet or of one facing; null for anything else.</summary>
     public static CustomMarkingArt? Read(byte[] png)

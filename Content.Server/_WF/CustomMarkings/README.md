@@ -3,11 +3,13 @@
 Markings players draw themselves. The Custom markings card on the creator's Markings tab opens the player's
 library: draw a new marking in the pixel editor or import a PNG, then wear up to four on a character. A marking is
 four 32x32 facings and a placement, which sets its depth: behind the body, on the skin, on the hands and feet, over
-the hair and ears or over everything. It only ever shows on the wearer's body and other markings, such as a tail or
-ears, and two pixels around them.
+the hair and ears or over everything. It draws anywhere in its frame, unless `wf.custom_markings.body_reach` holds it
+to the wearer's body and other markings, such as a tail or ears, and two pixels around them.
 
-A marking can be animated: up to eight frames, each shown for a time of its own. And it can erase parts of the body
-under it, so that what is drawn takes the body's place instead of lying on top of it.
+A marking can be animated: up to 32 frames, each shown for a time of its own, played round or back and forth
+(ping-pong). The editor can move frames, reverse them, give them all one time, play them and show the frame before
+under the one being drawn (onion skin). And a marking can erase parts of the body under it, so that what is drawn
+takes the body's place instead of lying on top of it.
 
 The library shows each marking on the character from all four sides, as it will look, with its name, placement and
 icon actions. The editor keeps the drawing tools beside the canvas, the operations on the shown facing under them,
@@ -33,7 +35,8 @@ them off a live character. The Block custom markings verb, or `custommarkingbloc
 art itself: it comes off every body, is no longer sent to anyone and can't be saved again. A client that was told
 art is blocked only asks for it again after reconnecting, so a lifted block shows from then. CVars:
 `wf.custom_markings.enabled`, `wf.custom_markings.max_worn`, `wf.custom_markings.library_limit`,
-`wf.custom_markings.max_frames` (1 allows only still markings), `wf.custom_markings.erase_body` (off, masks are
+`wf.custom_markings.max_frames` (1 allows only still markings), `wf.custom_markings.body_reach` (off by default;
+on, markings are cut to the wearer's outline), `wf.custom_markings.erase_body` (off, masks are
 dropped from what is saved and those already saved are not applied), `wf.custom_markings.daily_art_limit` (most
 new drawings a player may store in a day, 0 for no limit) and `wf.custom_markings.unused_art_days` (how long art
 nothing uses is kept, 0 to keep it forever).
@@ -49,8 +52,8 @@ nothing uses is kept, 0 to keep it forever).
   and a PNG, and loads through the resource cache like a shipped sprite. The layers are rebuilt after every
   humanoid marking rebuild (`HumanoidMarkingsAppliedEvent`), each just under the first layer that draws over its
   placement.
-- A marking only shows on the wearer's body, on the sprites of the markings the body shows (a tail, ears, hair)
-  and on a two-pixel margin around them. Each of its pixels belongs to what it lies on, the margin to the nearest
+- With `body_reach` on, a marking only shows on the wearer's body, on the sprites of the markings the body shows
+  (a tail, ears, hair) and on a two-pixel margin around them. Off, it shows everywhere except on hidden parts. Each of its pixels belongs to what it lies on, the margin to the nearest
   of them (`CustomMarkingSections`); a pixel on the body belongs to the body part, whatever else is drawn there.
   Every client cuts the art to the wearer's own outline as it draws (`CustomMarkingSystem.Limbs.cs`), so the limit
   holds whatever a player uploads. A hidden body part, such as a lost limb, takes its pixels along, and a marking
@@ -59,8 +62,10 @@ nothing uses is kept, 0 to keep it forever).
   A severed limb doesn't carry the art, and neither does a transplant.
 - An animated marking is one RSI state with a delay for each frame: its sheet holds every frame, laid out as an
   RSI lays them (`CustomMarkingArt.ToPng`), and the sprite layer runs through them like any animated sprite. A
-  frame shows for 0.1 to 10 seconds; the floor keeps a marking from strobing. The times are stored beside the
-  sheet, as an exported PNG can't hold them, and neither can it hold the erase mask.
+  frame shows for 0.02 to 10 seconds. The times are stored beside the sheet, as an exported PNG can't hold them,
+  and neither can it hold the erase mask. Ping-pong is the top bit of the last stored time; an RSI can only start
+  over, so the client stores a second sheet with the way back drawn out (`CustomMarkingArt.Played`) for the sprite
+  and keeps the drawn one for the editor.
 - Erasing never changes the body's own sprites. Each layer the mask touches is drawn through a shader that drops
   the masked pixels (`erase.swsl`), fed by a layer that holds the mask and isn't drawn itself, the way clothing is
   fitted to a species with a displacement map (`CustomMarkingSystem.Erase.cs`). It applies to the body's parts, its
@@ -140,12 +145,14 @@ nothing uses is kept, 0 to keep it forever).
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingHairTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingHairTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLibraryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLibraryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLimbsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingLimbsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingPingPongTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingPingPongTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingSpeciesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingSpeciesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingVisualsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingVisualsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingWindowsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/CustomMarkings/CustomMarkingWindowsTest.cs)
 
 ### Unit tests
 
+- [`Content.Tests/_WF/CustomMarkings/CustomMarkingAnimationTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingAnimationTest.cs)
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingArtTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingArtTest.cs)
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingEraseTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingEraseTest.cs)
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingRulesTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingRulesTest.cs)

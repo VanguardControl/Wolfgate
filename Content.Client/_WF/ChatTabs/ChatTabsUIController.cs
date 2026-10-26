@@ -67,7 +67,7 @@ public sealed partial class ChatTabsUIController : UIController
         {
             _tabs.Add(new ChatTab(Loc.GetString("wf-chat-tabs-default-all"), ChatTab.AllChannels));
             _tabs.Add(new ChatTab(Loc.GetString("wf-chat-tabs-default-local"),
-                ChatChannel.Local | ChatChannel.Whisper | ChatChannel.Emotes));
+                ChatChannel.Local | ChatChannel.Whisper | ChatChannel.Emotes | ChatChannel.Subtle));
             _tabs.Add(new ChatTab(Loc.GetString("wf-chat-tabs-default-radio"), ChatChannel.Radio));
             _tabs.Add(new ChatTab(Loc.GetString("wf-chat-tabs-default-ooc"), ChatChannel.OOC | ChatChannel.LOOC));
         }
