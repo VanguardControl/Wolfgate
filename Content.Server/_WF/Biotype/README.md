@@ -109,6 +109,7 @@ markings) stays keyed on the species.
   - no Thirst, see Hunger above
   - refills itself as a Synthetic biotype body does, with no hunger to pay SynthBloodstream
   - its self-repair is paid for in hunger, which a synthetic no longer has
+  - halved healing went with the hunger-paid self-repair above; a synthetic heals as an IPC does
 - [`Resources/Prototypes/_HL/Species/synth.yml`](../../../Resources/Prototypes/_HL/Species/synth.yml): a machine by default
 - [`Resources/Prototypes/_Mono/Traits/physical.yml`](../../../Resources/Prototypes/_Mono/Traits/physical.yml): synthetic bodies can't take this, whatever the species
 - [`Resources/Prototypes/_NF/Loadouts/loadout_effects.yml`](../../../Resources/Prototypes/_NF/Loadouts/loadout_effects.yml): the box is for flesh bodies, whatever the species

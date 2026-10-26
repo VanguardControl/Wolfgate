@@ -230,8 +230,10 @@
   - type: BatteryAlert
     batteryAlert: BorgBattery
     noBatteryAlert: BorgBatteryNone
-  - type: UniversalHealModifier
-    modifier: 0.5 # reduces the effectiveness of most healing sources by 50%
+  # WOLFGATE(Biotype) START: halved healing went with the hunger-paid self-repair above; a synthetic heals as an IPC does
+  # - type: UniversalHealModifier
+  #   modifier: 0.5 # reduces the effectiveness of most healing sources by 50%
+  # WOLFGATE END
   - type: ThermalRegulator
     metabolismHeat: 500
     radiatedHeat: 150
