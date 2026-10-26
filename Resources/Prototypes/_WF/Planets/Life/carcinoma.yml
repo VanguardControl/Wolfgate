@@ -238,7 +238,7 @@
 
 # Bone fields: a pile with marrow-stained shards, loose enough to pull by hand.
 - type: entity
-  parent: CoyoteChompBonesLbone
+  parent: WFCarcinomaBoneLong
   id: WFCarcinomaBonePile
   components:
   - type: Sprite
