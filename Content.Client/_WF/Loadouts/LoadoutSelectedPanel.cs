@@ -11,8 +11,7 @@ namespace Content.Client._WF.Loadouts;
 
 /// <summary>
 /// Column to the right of the tile grid. It lists what the open group holds, one card per pick with its price, a
-/// button to drop it and, for a recolourable item, its colours. While a tile is hovered it shows that item instead:
-/// its name, price and why it is locked or can't be paid for.
+/// button to drop it, why it can't be paid for and, for a recolourable item, its colours. Only picking changes it.
 /// </summary>
 public sealed class LoadoutSelectedPanel : PanelContainer
 {
@@ -26,7 +25,6 @@ public sealed class LoadoutSelectedPanel : PanelContainer
     private readonly List<LoadoutIconView> _cardIcons = new();
     private readonly Dictionary<LoadoutEntry, WFGagsColorRow> _rows = new();
     private string? _shown;
-    private LoadoutEntry? _hovered;
 
     /// <summary>Raised when a pick's remove button is pressed.</summary>
     public event Action<LoadoutEntry>? OnRemove;
@@ -71,27 +69,11 @@ public sealed class LoadoutSelectedPanel : PanelContainer
         });
     }
 
-    /// <summary>Shows the loadout under the pointer.</summary>
-    public void ShowEntry(LoadoutEntry entry)
-    {
-        _heading.Text = Loc.GetString("wf-loadout-selected-hovered");
-        _message.Visible = false;
-
-        if (_hovered == entry && _shown == null)
-            return;
-
-        _hovered = entry;
-        _shown = null;
-        ClearCards();
-        _cards.AddChild(Card(entry, false, true));
-    }
-
     /// <summary>Lists what a group holds, or a plain message when there is no group or nothing is picked.</summary>
     /// <param name="canRemove">Whether a pick may be dropped; a required pick can only be replaced.</param>
     public void ShowPicks(LoadoutGroupView? group, string? message, Func<LoadoutEntry, bool> canRemove)
     {
         _heading.Text = Loc.GetString("wf-loadout-selected-heading");
-        _hovered = null;
 
         var picks = group?.Picks.Count ?? 0;
         _message.Visible = picks == 0;
@@ -112,7 +94,7 @@ public sealed class LoadoutSelectedPanel : PanelContainer
             ClearCards();
             foreach (var pick in group.Picks)
             {
-                _cards.AddChild(Card(pick, canRemove(pick), false));
+                _cards.AddChild(Card(pick, canRemove(pick)));
             }
         }
 
@@ -123,8 +105,8 @@ public sealed class LoadoutSelectedPanel : PanelContainer
         }
     }
 
-    /// <summary>One item: icon, name, price and status, then why it is locked, a remove button or its colours.</summary>
-    private Control Card(LoadoutEntry entry, bool removable, bool hovered)
+    /// <summary>One pick: icon, name, price and status, a remove button, why it is locked or can't be paid for, and its colours.</summary>
+    private Control Card(LoadoutEntry entry, bool removable)
     {
         var icon = new LoadoutIconView(_icons, 48, 1) { VerticalAlignment = VAlignment.Top };
         icon.SetPrototype(entry.Icon);
@@ -153,10 +135,6 @@ public sealed class LoadoutSelectedPanel : PanelContainer
             reason.AddText(entry.Group.Replacement is { } replacement
                 ? Loc.GetString("wf-loadout-dropped-fallback", ("item", replacement))
                 : Loc.GetString("wf-loadout-dropped"));
-        }
-        else if (hovered && entry.Selected)
-        {
-            chips.AddChild(Status(Loc.GetString("wf-loadout-detail-selected"), LoadoutTone.Good));
         }
 
         var top = new BoxContainer
@@ -201,8 +179,7 @@ public sealed class LoadoutSelectedPanel : PanelContainer
             body.AddChild(text);
         }
 
-        // Only a pick is recoloured; a hovered item shows what it is, not what it would be.
-        if (!hovered && ColorsOf?.Invoke(entry) is { } colors)
+        if (ColorsOf?.Invoke(entry) is { } colors)
         {
             var row = new WFGagsColorRow();
             row.Set(entry.Id.Id, colors.Current, colors.Defaults);

@@ -130,6 +130,7 @@ public sealed class LoadoutTile : ContainerButton
         _price.Visible = false;
         _badge.Visible = false;
         _palette.Visible = false;
+        ToolTip = null;
     }
 
     /// <summary>Shows a loadout.</summary>
@@ -163,6 +164,9 @@ public sealed class LoadoutTile : ContainerButton
 
         _badge.Visible = entry.Locked;
         _palette.Visible = entry.Colorable;
+
+        // The selected panel only shows picks, so the whole name and why a tile is locked are on hover here.
+        ToolTip = entry.Locked && entry.Reason != null ? $"{entry.Name}\n{entry.Reason}" : entry.Name;
     }
 
     private void SetName(string text)

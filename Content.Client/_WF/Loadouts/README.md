@@ -5,8 +5,8 @@ per group. A rail on the left lists every group of the role under a few categori
 weapons, tools, extras, rank) with what is picked there and a chip for anything that needs attention. The middle
 shows the open group as a grid of tiles, or matches from every group while the search box holds two or more
 characters; a tile whose item can be recoloured carries a palette. A column on the right lists what the open group
-holds, one card per pick, with colour swatches under a recolourable one, and shows the hovered item instead while
-the pointer is on a tile. The header shows what the kit costs against the balance the server will pay from, and links to the first
+holds, one card per pick, with colour swatches under a recolourable one; only picking changes it, and a tile's tooltip
+gives its whole name and why it is locked. The header shows what the kit costs against the balance the server will pay from, and links to the first
 group that still needs a pick or holds something the character can't afford.
 
 Entry points: `WolfgateLoadoutWindow` (same constructor, events and `RefreshLoadouts` as the stock `LoadoutWindow`, so

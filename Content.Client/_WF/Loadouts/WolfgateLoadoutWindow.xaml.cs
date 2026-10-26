@@ -63,7 +63,6 @@ public sealed partial class WolfgateLoadoutWindow : FancyWindow
 
     private RoleLoadout _loadout;
     private LoadoutGroupView? _group;
-    private LoadoutTile? _hovered;
     private string _query = string.Empty;
     private string? _hint;
     private bool _updating;
@@ -465,14 +464,6 @@ public sealed partial class WolfgateLoadoutWindow : FancyWindow
 
         if (_revealFrames > 0 && --_revealFrames == 0)
             RevealRow();
-
-        // Hover ends here rather than when the pointer leaves a tile: the gaps between tiles are not tiles, and
-        // the strip would flicker back to the picks on every crossing.
-        if (_hovered != null && UserInterfaceManager.CurrentlyHovered is not LoadoutTile && UserInterfaceManager.CurrentlyHovered != GridScroll)
-        {
-            _hovered = null;
-            UpdateDetail();
-        }
     }
 
     /// <summary>Scrolls the rail so the open group's row is on screen.</summary>
@@ -649,11 +640,6 @@ public sealed partial class WolfgateLoadoutWindow : FancyWindow
             {
                 var tile = new LoadoutTile(_icons);
                 tile.OnPressed += _ => OnTilePressed(tile);
-                tile.OnMouseEntered += _ =>
-                {
-                    _hovered = tile;
-                    UpdateDetail();
-                };
                 _tiles.Add(tile);
                 Grid.AddChild(tile);
             }
@@ -673,10 +659,6 @@ public sealed partial class WolfgateLoadoutWindow : FancyWindow
                 else
                     tile.Bind(entry, Searching ? entry.Group.Label : null, Full(entry));
             }
-
-            // The tile under the pointer may show another item now.
-            if (_hovered != null)
-                UpdateDetail();
         }
         finally
         {
@@ -691,18 +673,10 @@ public sealed partial class WolfgateLoadoutWindow : FancyWindow
         return !group.Single && !entry.Selected && !entry.Locked && group.Picks.Count + group.Stale >= group.Max;
     }
 
+    /// <summary>The selected panel follows picks only: hovering a tile never changes it, and a search keeps the open group's.</summary>
     private void UpdateDetail()
     {
-        if (_hovered is { Visible: true, Entry: { } entry })
-        {
-            _detail.ShowEntry(entry);
-            return;
-        }
-
-        if (Searching)
-            _detail.ShowPicks(null, Loc.GetString("wf-loadout-detail-idle"), CanRemove);
-        else
-            _detail.ShowPicks(_group, null, CanRemove);
+        _detail.ShowPicks(_group, null, CanRemove);
     }
 
     #endregion
