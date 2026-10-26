@@ -69,7 +69,7 @@ public sealed class WolfgateMarkingPickerLayoutTest
 
             var buttons = (Dictionary<HumanoidVisualLayers, Button>) typeof(WolfgateMarkingPicker).GetField("_partButtons", Flags)!.GetValue(picker)!;
             var pressed = (System.Delegate) typeof(BaseButton).GetField(nameof(BaseButton.OnPressed), Flags)!.GetValue(buttons[HumanoidVisualLayers.Chest])!;
-            pressed.DynamicInvoke(new object?[] { null });
+            pressed.DynamicInvoke(new object[] { null });
 
             chest.AddRange(Descend(picker).OfType<WolfgateMarkingTile>()
                 .Select(t => markings.Markings[t.MarkingId!])
