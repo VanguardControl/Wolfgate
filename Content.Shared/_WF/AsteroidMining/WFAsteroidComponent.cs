@@ -94,6 +94,8 @@ public sealed partial class WFAsteroidComponent : Component
     [DataField] public ProtoId<WFAsteroidCompositionPrototype>? CompositionId;
     [DataField] public List<WFAsteroidOre> Ores = new();
     [DataField] public float Resistance;
+    /// <summary>The composition's rolled resistance, before this rock's scale and bonus; fragments inherit it.</summary>
+    [DataField] public float BaseResistance;
     [DataField] public float Instability;
     [DataField] public float WindowCenter = 0.55f;
     [DataField] public float WindowHalfWidth = 0.1f;

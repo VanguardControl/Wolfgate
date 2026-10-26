@@ -49,7 +49,6 @@ public sealed class WFMiningBeamOverlay : Overlay
             return;
 
         var handle = args.WorldHandle;
-        var transforms = _entities.GetEntityQuery<TransformComponent>();
         var time = (float) (_timing.RealTime.TotalSeconds % 1000);
         var query = _entities.EntityQueryEnumerator<WFMiningBeamEmitterComponent, TransformComponent>();
 
@@ -63,7 +62,7 @@ public sealed class WFMiningBeamOverlay : Overlay
             // from the barrel's reach out to where the pulse hit.
             var direction = beam.BeamDirection.LengthSquared() > 0.5f ? Vector2.Normalize(beam.BeamDirection) : -Vector2.UnitY;
             var reach = beam.MuzzleOffset.Length();
-            var muzzle = _transform.GetWorldPosition(xform, transforms) + direction * reach;
+            var muzzle = _transform.GetWorldPosition(xform) + direction * reach;
             var length = MathF.Max(0.3f, beam.BeamLength - reach);
             var end = muzzle + direction * length;
             var bounds = new Box2(Vector2.Min(muzzle, end), Vector2.Max(muzzle, end)).Enlarged(1.5f);

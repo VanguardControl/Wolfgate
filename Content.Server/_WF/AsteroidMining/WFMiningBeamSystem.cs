@@ -33,7 +33,9 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     private readonly List<EntityUid> _heatedList = new();
     private readonly HashSet<EntityUid> _openConsoles = new();
     private readonly List<EntityUid> _closedConsoles = new();
-    private readonly List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> _lasers = new();
+    /// <summary>Each ship's mining lasers, grouped once per gunnery refresh rather than once per console.</summary>
+    private readonly Dictionary<EntityUid, List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)>> _shipLasers = new();
+    private static readonly List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> NoLasers = new();
     /// <summary>
     /// Each open gunnery console's last rock, kept until it breaks or the console closes, and what was last sent and to
     /// which viewers, so an unchanged scan isn't resent.
@@ -72,8 +74,8 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
             return;
 
         var power = MathF.Round(Math.Clamp(args.Power, 0f, 1f), 2);
-        ShipLasers(grid, _lasers);
-        foreach (var (uid, beam) in _lasers)
+        GroupShipLasers();
+        foreach (var (uid, beam) in ShipLasers(grid))
         {
             beam.Power = power;
             Dirty(uid, beam);
@@ -89,16 +91,26 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         return xform.Anchored && this.IsPowered(console, EntityManager) ? xform.GridUid : null;
     }
 
-    /// <summary>Fills the list with every mining laser on a ship.</summary>
-    private void ShipLasers(EntityUid grid, List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> lasers)
+    /// <summary>Sorts every mining laser by the ship it sits on.</summary>
+    private void GroupShipLasers()
     {
-        lasers.Clear();
+        _shipLasers.Clear();
         var query = EntityQueryEnumerator<WFMiningBeamEmitterComponent, TransformComponent>();
         while (query.MoveNext(out var uid, out var beam, out var xform))
         {
-            if (xform.GridUid == grid)
-                lasers.Add((uid, beam));
+            if (xform.GridUid is not { } grid)
+                continue;
+
+            if (!_shipLasers.TryGetValue(grid, out var lasers))
+                _shipLasers[grid] = lasers = new List<(EntityUid, WFMiningBeamEmitterComponent)>();
+            lasers.Add((uid, beam));
         }
+    }
+
+    /// <summary>A ship's mining lasers as of the last <see cref="GroupShipLasers"/>.</summary>
+    private List<(EntityUid Uid, WFMiningBeamEmitterComponent Beam)> ShipLasers(EntityUid grid)
+    {
+        return _shipLasers.TryGetValue(grid, out var lasers) ? lasers : NoLasers;
     }
 
     /// <summary>Points the beam at whatever the pulse hit, and takes asteroids out of the hit list so they heat instead.</summary>
@@ -229,10 +241,14 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
         var consoles = EntityQueryEnumerator<FireControlConsoleComponent>();
         while (consoles.MoveNext(out var uid, out _))
         {
-            if (!_ui.IsUiOpen(uid, FireControlConsoleUiKey.Key))
-                continue;
+            if (_ui.IsUiOpen(uid, FireControlConsoleUiKey.Key))
+                _openConsoles.Add(uid);
+        }
 
-            _openConsoles.Add(uid);
+        if (_openConsoles.Count > 0)
+            GroupShipLasers();
+        foreach (var uid in _openConsoles)
+        {
             UpdateGunnery(uid);
         }
 
@@ -352,16 +368,12 @@ public sealed partial class WFMiningBeamSystem : EntitySystem
     /// <summary>
     /// Sends a gunnery console its ship's laser power and a scan of the rock its lasers are on, or were last on. A ship
     /// without mining lasers gets an empty state, which hides the panel. Nothing is sent if neither the state nor its
-    /// viewers changed.
+    /// viewers changed. Lasers are read from the last <see cref="GroupShipLasers"/>.
     /// </summary>
     private void UpdateGunnery(EntityUid console)
     {
         var known = _gunnery.TryGetValue(console, out var last);
-        var lasers = _lasers;
-        if (GunneryGrid(console) is { } grid)
-            ShipLasers(grid, lasers);
-        else
-            lasers.Clear();
+        var lasers = GunneryGrid(console) is { } grid ? ShipLasers(grid) : NoLasers;
 
         EntityUid? rock = null;
         var state = new WFMiningBeamGunneryState(0, 0f, 0f, null);

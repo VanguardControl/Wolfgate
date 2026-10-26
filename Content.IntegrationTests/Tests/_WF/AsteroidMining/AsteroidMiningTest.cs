@@ -273,6 +273,38 @@ public sealed class AsteroidMiningTest
     }
 
     [Test]
+    public async Task BlockedClusterCentreLeavesNoEmptyChunkSlot()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        DebrisFeaturePlacerControllerComponent placer = default!;
+        await server.WaitAssertion(() =>
+        {
+            // A rock already on the marker's spot, such as one from a neighbouring cluster, keeps the first rock off it.
+            SpawnAsteroid(pair, map.MapId, "WFAsteroidMedium", ShipPos);
+            var mapUid = server.System<SharedMapSystem>().GetMap(map.MapId);
+            var chunk = em.SpawnEntity(null, new EntityCoordinates(mapUid, Vector2.Zero));
+            placer = em.AddComponent<DebrisFeaturePlacerControllerComponent>(chunk);
+            var marker = em.SpawnEntity("WFAsteroidClusterRock", new EntityCoordinates(mapUid, ShipPos));
+            server.System<DebrisFeaturePlacerSystem>().AdoptDebris(chunk, marker);
+        });
+        await server.WaitRunTicks(3);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(placer.OwnedDebris, Has.Count.GreaterThan(0), "The cluster should still spawn rocks around its spot.");
+            // A null slot survives the chunk unloading, and a chunk with any slots left never places debris again.
+            Assert.That(placer.OwnedDebris.Where(kv => kv.Value == null).Select(kv => kv.Key), Is.Empty,
+                "The marker's slot should be dropped when no rock takes it.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
     public async Task RareRollMakesMetallicRocks()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });

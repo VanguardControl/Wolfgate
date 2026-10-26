@@ -6,13 +6,11 @@ using Content.Server._WF.DroneRings;
 using Content.Server.Explosion.EntitySystems;
 using Content.Server.Gatherable;
 using Content.Server.Shuttles.Systems;
-using Content.Server.Worldgen.Components.Debris;
 using Content.Server.Worldgen.Systems.Debris;
 using Content.Shared._WF.AsteroidMining;
 using Content.Shared.Damage;
 using Content.Shared.Examine;
 using Content.Shared.GameTicking;
-using Content.Shared.Mining;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Systems;
 using Robust.Shared.Map;
@@ -236,7 +234,8 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         }
 
         comp.Ores.Sort((a, b) => b.Fraction.CompareTo(a.Fraction));
-        comp.Resistance = Math.Clamp(_random.NextFloat(proto.MinResistance, proto.MaxResistance) * comp.ResistanceScale + comp.ResistanceBonus, 0f, 0.9f);
+        comp.BaseResistance = _random.NextFloat(proto.MinResistance, proto.MaxResistance);
+        ApplyResistance(comp);
         comp.Instability = _random.NextFloat(proto.MinInstability, proto.MaxInstability);
         RollWindow(comp);
         ApplyKind(rock, comp, proto);
@@ -265,15 +264,26 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         return pool[^1];
     }
 
+    /// <summary>The composition's resistance for this size of rock.</summary>
+    private static void ApplyResistance(WFAsteroidComponent comp)
+    {
+        comp.Resistance = Math.Clamp(comp.BaseResistance * comp.ResistanceScale + comp.ResistanceBonus, 0f, 0.9f);
+    }
+
+    /// <summary>Rolls the rock's cracking window and heat drift, and tints its veins by its leading ore.</summary>
     private void RollWindow(WFAsteroidComponent comp)
     {
-        comp.WindowCenter = _random.NextFloat(0.35f, 0.55f);
-        comp.WindowHalfWidth = 0.09f * (1f - 0.4f * comp.Instability);
         if (comp.FixedWindow is { } window)
         {
             comp.WindowCenter = (window.X + window.Y) / 2f;
             comp.WindowHalfWidth = (window.Y - window.X) / 2f;
         }
+        else
+        {
+            comp.WindowCenter = _random.NextFloat(0.35f, 0.55f);
+            comp.WindowHalfWidth = 0.09f * (1f - 0.4f * comp.Instability);
+        }
+
         comp.NoiseSeed = _random.NextFloat(0f, 100f);
         comp.VeinColor = comp.Ores.Count > 0 ? comp.Ores[0].Color : Color.Gray;
     }
@@ -287,8 +297,8 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         comp.CompositionId = parent.CompositionId;
         comp.Mass = mass;
         comp.Ores = new List<WFAsteroidOre>(parent.Ores);
-        var baseResistance = parent.ResistanceScale > 0f ? (parent.Resistance - parent.ResistanceBonus) / parent.ResistanceScale : 0f;
-        comp.Resistance = Math.Clamp(baseResistance * comp.ResistanceScale + comp.ResistanceBonus, 0f, 0.9f);
+        comp.BaseResistance = parent.BaseResistance;
+        ApplyResistance(comp);
         comp.Instability = parent.Instability;
         RollWindow(comp);
         if (_proto.TryIndex(parent.CompositionId, out var proto))
@@ -585,10 +595,10 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             if (TerminatingOrDeleted(uid) || !TryComp<WFAsteroidClusterComponent>(uid, out var cluster))
                 continue;
 
-            // Hand the marker's chunk slot over before its first rock takes the same key, so deleting it doesn't
-            // drop that rock from the chunk.
+            // Free the marker's chunk slot before its first rock takes the same key, so deleting it doesn't drop that
+            // rock from the chunk.
             var controller = _debris.GetDebrisOwner(uid);
-            RemComp<OwnedDebrisComponent>(uid);
+            _debris.ReleaseDebris(uid);
             FillCluster(uid, cluster, controller);
             RemComp<WFAsteroidClusterComponent>(uid);
             QueueDel(uid);

@@ -175,7 +175,6 @@
     minMass: 65
     maxMass: 90
     fragmentPrototype: WFAsteroidMedium
-    fragmentCount: 2
     fragmentShare: 0.4
     boulderPrototype: WFAsteroidBoulder
     shatterDamage: 40000
@@ -223,7 +222,6 @@
     minMass: 130
     maxMass: 180
     fragmentPrototype: WFAsteroidLarge
-    fragmentCount: 2
     fragmentShare: 0.5
     boulderPrototype: WFAsteroidBoulder
     shatterDamage: 80000
@@ -291,6 +289,8 @@
   categories: [ HideSpawnMenu ]
   components:
   - type: WFAsteroidCrackEffect
+    duration: 2.2
+  # A little past the effect's duration, so a late state still has time to draw it out.
   - type: TimedDespawn
     lifetime: 2.5
 

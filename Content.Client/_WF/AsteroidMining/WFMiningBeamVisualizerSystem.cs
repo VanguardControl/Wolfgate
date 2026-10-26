@@ -48,6 +48,9 @@ public sealed partial class WFMiningBeamVisualizerSystem : EntitySystem
         {
             if (!beam.Active || beam.LoopSound == null)
             {
+                if (beam.Audio == null && beam.AudioHot == null)
+                    continue;
+
                 beam.Audio = _audio.Stop(beam.Audio);
                 beam.AudioHot = _audio.Stop(beam.AudioHot);
                 continue;

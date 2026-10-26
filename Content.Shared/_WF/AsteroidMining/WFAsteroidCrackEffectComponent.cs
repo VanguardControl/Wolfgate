@@ -16,5 +16,6 @@ public sealed partial class WFAsteroidCrackEffectComponent : Component
 
     [DataField, AutoNetworkedField] public TimeSpan Start;
 
+    /// <summary>Seconds the burst draws for; the prototype's despawn lifetime should be a little longer.</summary>
     [DataField] public float Duration = 2.2f;
 }
