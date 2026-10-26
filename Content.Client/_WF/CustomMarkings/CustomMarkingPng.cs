@@ -1,4 +1,5 @@
 using System.IO;
+using System.Numerics;
 using Content.Shared._WF.CustomMarkings;
 using Robust.Client.Utility;
 using SixLabors.ImageSharp;
@@ -20,6 +21,9 @@ public static class CustomMarkingPng
 
         try
         {
+            if (CustomMarkingColorSpace.Read(png) is { } space)
+                return ReadConverted(png, space);
+
             using var image = Image.Load<Rgba32>(new MemoryStream(png, false));
             return CustomMarkingArt.FromImage(image.Width, image.Height, image.GetPixelSpan());
         }
@@ -27,6 +31,27 @@ public static class CustomMarkingPng
         {
             // Not an image ImageSharp can read.
             return null;
+        }
+    }
+
+    /// <summary>Reads a PNG saved in another colour space at full depth and brings its pixels to sRGB.</summary>
+    private static CustomMarkingArt? ReadConverted(byte[] png, CustomMarkingColorSpace space)
+    {
+        using var image = Image.Load<Rgba64>(new MemoryStream(png, false));
+        var stored = image.GetPixelSpan();
+        var pixels = new Rgba32[stored.Length];
+        for (var i = 0; i < stored.Length; i++)
+        {
+            var pixel = stored[i];
+            var srgb = space.ToSrgb(new Vector3(pixel.R, pixel.G, pixel.B) / ushort.MaxValue);
+            pixels[i] = new Rgba32(Channel(srgb.X), Channel(srgb.Y), Channel(srgb.Z), (byte) (pixel.A >> 8));
+        }
+
+        return CustomMarkingArt.FromImage(image.Width, image.Height, pixels);
+
+        static byte Channel(float value)
+        {
+            return (byte) Math.Clamp(MathF.Round(value * byte.MaxValue), byte.MinValue, byte.MaxValue);
         }
     }
 }

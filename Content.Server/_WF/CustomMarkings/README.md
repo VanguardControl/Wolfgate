@@ -46,6 +46,9 @@ nothing uses is kept, 0 to keep it forever).
 - Clients upload raw pixels, never an image file, so the server parses nothing a player made. It checks the size,
   hashes the pixels and encodes the PNG itself. Frame times and the erase mask come as plain numbers and bits,
   checked the same way.
+- An imported PNG saved in another colour space is brought to sRGB as it is read (`CustomMarkingColorSpace`): an
+  HDR or wide-gamut cICP tag, a matrix-shaper ICC profile (Display P3, Adobe RGB, Rec. 2020, linear) or a gamma.
+  ImageSharp ignores all three, so such art used to look washed out. Profiles built on lookup tables are read as is.
 - The worn list rides on `HumanoidAppearanceComponent`, so anything that copies an appearance (cloning, polymorphs)
   copies the markings. Blocked art isn't filtered there; it is simply never sent.
 - The client can't build an RSI in memory, so art is written into a mounted `MemoryContentRoot` as a `meta.json`
@@ -120,6 +123,7 @@ nothing uses is kept, 0 to keep it forever).
 
 ### Client
 
+- [`Content.Client/_WF/CustomMarkings/CustomMarkingColorSpace.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingColorSpace.cs)
 - [`Content.Client/_WF/CustomMarkings/CustomMarkingPng.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingPng.cs)
 - [`Content.Client/_WF/CustomMarkings/CustomMarkingResources.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingResources.cs)
 - [`Content.Client/_WF/CustomMarkings/CustomMarkingSketch.cs`](../../../Content.Client/_WF/CustomMarkings/CustomMarkingSketch.cs)
@@ -154,6 +158,7 @@ nothing uses is kept, 0 to keep it forever).
 
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingAnimationTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingAnimationTest.cs)
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingArtTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingArtTest.cs)
+- [`Content.Tests/_WF/CustomMarkings/CustomMarkingColorSpaceTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingColorSpaceTest.cs)
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingEraseTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingEraseTest.cs)
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingRulesTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingRulesTest.cs)
 - [`Content.Tests/_WF/CustomMarkings/CustomMarkingSamplingTest.cs`](../../../Content.Tests/_WF/CustomMarkings/CustomMarkingSamplingTest.cs)
