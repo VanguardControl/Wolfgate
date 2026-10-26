@@ -155,8 +155,8 @@ wet sand with reeds and lilies at the waterline; a few per cent of the surface i
 bones; the snow highlands have rough snow, drifts, snow-capped rocks and shrubs. `VerdaBiomeTest` samples the whole world
 for each region.
 
-Merak's ground (`Resources/Prototypes/_WF/Planets/Biomes/merak.yml`, `MerakBiomeTest`) is dune seas of golden, tan and pale sand
-with drifts and sand sheets, over which noise lays red-rock badlands (red desert sand and rock, dark flats, black boulders,
+Merak's ground (`Resources/Prototypes/_WF/Planets/Biomes/merak.yml`, `MerakBiomeTest`) is dune seas of golden, tan and pale sand,
+over which noise lays red-rock badlands (red desert sand and rock, dark flats, black boulders,
 a few short orange mesa clusters), cactus fields (barrel cacti, agave, yucca, mesquite, desert grass), and quake-cracked
 gravel flats (gravel, sandrock, cracked mud, rock spires, bones). Oases are rare, a handful on the whole world: each is a
 pond of the old water layer ringed by dirt and grass with palms and reeds. Every tile is a `weather: true` child so dust storms draw;

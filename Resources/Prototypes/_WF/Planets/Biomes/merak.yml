@@ -186,19 +186,6 @@
     divisions: 1
     noise: { seed: 1, frequency: 5 }
     decals: [Basalt1, Basalt2, Basalt3, Basalt4, Basalt5, Basalt6, Basalt7, Basalt8, Basalt9]
-  # Dune drifts and sand sheets
-  - !type:BiomeDecalLayer
-    allowedTiles: [WFFloorMerakDuneSand, WFFloorMerakGoldSand, WFFloorMerakPaleSand]
-    threshold: 0.8
-    divisions: 1
-    noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.12 }
-    decals: [AuroraDecalFloorDecalDune]
-  - !type:BiomeDecalLayer
-    allowedTiles: [WFFloorMerakDuneSand, WFFloorMerakGoldSand, WFFloorMerakPaleSand, WFFloorMerakRedDesertSand]
-    threshold: 0.85
-    divisions: 1
-    noise: { seed: 4, noiseType: OpenSimplex2, frequency: 0.2 }
-    decals: [CMDecalSandOverlaySand1, CMDecalSandOverlaySand2]
   # Ore crab sites in a band round the outcrops; the outcrops below win where the noise is higher.
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorMerakDesertGravel, WFFloorMerakDesertSandrock, WFFloorMerakDesertCracked]
