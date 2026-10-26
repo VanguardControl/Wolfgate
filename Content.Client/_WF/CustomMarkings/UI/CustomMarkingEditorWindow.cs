@@ -542,10 +542,12 @@ public sealed partial class CustomMarkingEditorWindow : CustomMarkingWindow
         });
 
         _system.SaveAnswered += OnSaveAnswered;
+        _cfg.OnValueChanged(CustomMarkingCVars.BodyReach, OnBodyReachChanged);
         OnClose += () =>
         {
             _closePrompt?.Close();
             _system.SaveAnswered -= OnSaveAnswered;
+            _cfg.UnsubValueChanged(CustomMarkingCVars.BodyReach, OnBodyReachChanged);
             DeleteBody();
             _sampler.Orphan();
         };
@@ -936,6 +938,12 @@ public sealed partial class CustomMarkingEditorWindow : CustomMarkingWindow
             _frameLabel.Text = Loc.GetString("wf-custom-marking-editor-frame-count", ("frame", _frame + 1), ("frames", Art.Frames));
             FillFrameTime();
         }
+    }
+
+    /// <summary>The server turned the reach limit on or off while the editor is open.</summary>
+    private void OnBodyReachChanged(bool _)
+    {
+        UpdatePlacement();
     }
 
     private void UpdatePlacement()

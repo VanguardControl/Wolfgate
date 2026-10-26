@@ -2,6 +2,8 @@ using Content.Shared._WF.MarkingToggles;
 using Content.Shared.ActionBlocker;
 using Content.Shared.Humanoid;
 using Content.Shared.Popups;
+using Robust.Server.Player;
+using Robust.Shared.Enums;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 
@@ -14,6 +16,7 @@ namespace Content.Server._WF.MarkingToggles;
 public sealed class MarkingToggleSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPlayerManager _player = default!;
     [Dependency] private ActionBlockerSystem _actionBlocker = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
 
@@ -30,6 +33,19 @@ public sealed class MarkingToggleSystem : EntitySystem
 
         SubscribeNetworkEvent<MarkingToggleRequestEvent>(OnToggle);
         SubscribeNetworkEvent<CustomMarkingToggleRequestEvent>(OnCustomToggle);
+        _player.PlayerStatusChanged += OnPlayerStatusChanged;
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+        _player.PlayerStatusChanged -= OnPlayerStatusChanged;
+    }
+
+    private void OnPlayerStatusChanged(object? sender, SessionStatusEventArgs args)
+    {
+        if (args.NewStatus == SessionStatus.Disconnected)
+            _spent.Remove(args.Session);
     }
 
     private void OnToggle(MarkingToggleRequestEvent msg, EntitySessionEventArgs args)

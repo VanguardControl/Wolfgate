@@ -16,6 +16,7 @@ using Content.Server.Power.Components;
 using Content.Server.Shuttles.Components;
 using Content.Server.Shuttles.Systems;
 using Content.Server.Weapons.Ranged.Systems;
+using Content.Shared._Crescent.Hardpoints;
 using Content.Shared._Mono.FireControl;
 using Content.Shared._NF.Shuttles.Events;
 using Content.Shared._Mono.ShipGuns;
@@ -609,8 +610,11 @@ public sealed class WFCockpitGunneryTest
             console.ConnectedServer = serverUid;
             em.AddComponent<WFCombatConsoleComponent>(consoleUid).Automatic = false;
             flareUid = em.SpawnEntity("WeaponTurretFlare", map.GridCoords);
-            em.GetComponent<FireControllableComponent>(flareUid).ControllingServer = serverUid;
-            server.Controlled.Add(flareUid);
+            // Registered the way the server registers it, so a refresh during the test keeps it: a hand-added launcher
+            // off a hardpoint was dropped by whichever refresh came first, and the burst never fired.
+            em.RemoveComponent<HardpointAnchorableOnlyComponent>(flareUid);
+            em.System<FireControlSystem>().RefreshControllables(map.Grid.Owner);
+            Assert.That(server.Controlled, Does.Contain(flareUid));
             missileUid = em.SpawnEntity(null, new EntityCoordinates(map.MapUid, new Vector2(10, 0)));
             em.AddComponent<ProjectileComponent>(missileUid);
             var seeker = em.AddComponent<TargetSeekingComponent>(missileUid);
@@ -618,7 +622,9 @@ public sealed class WFCockpitGunneryTest
             seeker.DetectionRange = 0; // Isolate alert filtering from countermeasure reacquisition.
             seeker.Launched = true;
         });
-        await pair.RunTicksSync(20);
+        // Automatic defense polls every quarter second; a full second covers several polls whatever their phase.
+        var poll = pair.SecondsToTicks(1f);
+        await pair.RunTicksSync(poll);
         await pair.Server.WaitAssertion(() =>
         {
             Assert.That(em.GetComponent<WFFlareLauncherComponent>(flareUid).NextBurst, Is.EqualTo(TimeSpan.Zero),
@@ -627,7 +633,7 @@ public sealed class WFCockpitGunneryTest
             em.GetComponent<WFCombatConsoleComponent>(consoleUid).Automatic = true;
             em.System<SharedTransformSystem>().SetCoordinates(missileUid, new EntityCoordinates(map.MapUid, new Vector2(600, 0)));
         });
-        await pair.RunTicksSync(20);
+        await pair.RunTicksSync(poll);
         await pair.Server.WaitAssertion(() =>
         {
             Assert.That(em.GetComponent<WFCombatConsoleComponent>(consoleUid).Threats, Is.Zero,
@@ -635,7 +641,12 @@ public sealed class WFCockpitGunneryTest
             Assert.That(em.GetComponent<WFFlareLauncherComponent>(flareUid).NextBurst, Is.EqualTo(TimeSpan.Zero));
             em.GetComponent<TargetSeekingComponent>(missileUid).MaxSpeed = 300;
         });
-        await pair.RunTicksSync(20);
+        // The burst is queued on the poll that sees the threat and shot on a later gun tick, so wait for it.
+        for (var i = 0; i < poll * 3 && em.GetComponent<WFFlareLauncherComponent>(flareUid).NextBurst == TimeSpan.Zero; i++)
+        {
+            await pair.RunTicksSync(1);
+        }
+
         await pair.Server.WaitAssertion(() =>
         {
             Assert.That(em.GetComponent<WFCombatConsoleComponent>(consoleUid).Threats, Is.EqualTo(1),

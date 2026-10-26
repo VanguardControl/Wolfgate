@@ -63,6 +63,14 @@ public sealed partial class ChatTabsUIController : UIController
         _tabs.Clear();
         _tabs.AddRange(ChatTab.Parse(saved));
 
+        // The default Local tab as saved before subtle emotes had a channel of their own.
+        const ChatChannel oldLocal = ChatChannel.Local | ChatChannel.Whisper | ChatChannel.Emotes;
+        foreach (var tab in _tabs)
+        {
+            if (tab.Channels == oldLocal)
+                tab.Channels |= ChatChannel.Subtle;
+        }
+
         if (_tabs.Count == 0)
         {
             _tabs.Add(new ChatTab(Loc.GetString("wf-chat-tabs-default-all"), ChatTab.AllChannels));

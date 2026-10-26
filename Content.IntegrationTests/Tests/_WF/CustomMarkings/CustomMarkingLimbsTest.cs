@@ -269,6 +269,7 @@ public sealed class CustomMarkingLimbsTest
 
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var client = pair.Client;
+        await SetReach(pair, true);
 
         await client.WaitAssertion(() =>
         {
@@ -392,6 +393,7 @@ public sealed class CustomMarkingLimbsTest
             }
         });
 
+        await SetReach(pair, false);
         await pair.CleanReturnAsync();
     }
 
