@@ -7,6 +7,8 @@ using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Serialization.Markdown;
 using Robust.Shared.Serialization.Markdown.Mapping;
+using Robust.Shared.Serialization.Markdown.Sequence;
+using Robust.Shared.Serialization.Markdown.Value;
 using Robust.Shared.Utility;
 
 namespace Content.Server._WF.PlanetPois;
@@ -38,14 +40,20 @@ public sealed partial class WFPlanetPoiSystem
         });
     }
 
-    /// <summary>Loads a single-grid map file onto a map, as the loader's own TryLoadGrid does, with the parsing off the main thread.</summary>
-    private async Task<Entity<MapGridComponent>?> LoadGridAsync(MapId map, ResPath path)
+    /// <summary>
+    /// Loads a single-grid map file onto a map, as the loader's own TryLoadGrid does, with the parsing off the main thread.
+    /// A <paramref name="whole"/> grid is kept in one piece however many islands it has.
+    /// </summary>
+    private async Task<Entity<MapGridComponent>?> LoadGridAsync(MapId map, ResPath path, bool whole = false)
     {
         if (await ReadMapAsync(path) is not { } data)
         {
             Log.Error($"Cannot read map file {path}.");
             return null;
         }
+
+        if (whole)
+            KeepWhole(data);
 
         var options = new MapLoadOptions { MergeMap = map, ExpectedCategory = FileCategory.Grid };
         if (!_loader.TryLoadGeneric(data, path.ToString(), out var result, options))
@@ -56,5 +64,37 @@ public sealed partial class WFPlanetPoiSystem
 
         _loader.Delete(result);
         return null;
+    }
+
+    /// <summary>
+    /// Stops every grid in a map file splitting as it loads. With grid splitting on, as it is outside a dev build, a grid
+    /// loads in pieces wherever its tiles don't touch, and only the piece that keeps the grid would be merged.
+    /// </summary>
+    private static void KeepWhole(MappingDataNode data)
+    {
+        if (!data.TryGet<SequenceDataNode>("entities", out var groups))
+            return;
+
+        foreach (var group in groups)
+        {
+            if (!((MappingDataNode) group).TryGet<SequenceDataNode>("entities", out var entities))
+                continue;
+
+            foreach (var entity in entities)
+            {
+                if (!((MappingDataNode) entity).TryGet<SequenceDataNode>("components", out var components))
+                    continue;
+
+                foreach (var component in components)
+                {
+                    var node = (MappingDataNode) component;
+                    if (node.Get<ValueDataNode>("type").Value != "MapGrid")
+                        continue;
+
+                    node.Remove("canSplit");
+                    node.Add("canSplit", new ValueDataNode("false"));
+                }
+            }
+        }
     }
 }

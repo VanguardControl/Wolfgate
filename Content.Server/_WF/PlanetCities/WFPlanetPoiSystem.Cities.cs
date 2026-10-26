@@ -2,6 +2,7 @@ using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Content.Server._CE.ZLevels.Core.Components;
+using Content.Server._WF.Caverns;
 using Content.Server._WF.PlanetCities;
 using Content.Server._WF.Planets;
 using Content.Server.Station.Systems;
@@ -306,6 +307,8 @@ public sealed partial class WFPlanetPoiSystem
             }
         }
 
+        // A level's buildings stand apart from each other; loaded as a grid that may split, all but one would be lost.
+        KeepWhole(data);
         var staging = _maps.CreateMap(out var stagingId, runMapInit: false);
         var options = new MapLoadOptions { MergeMap = stagingId, ExpectedCategory = FileCategory.Grid };
         if (!_loader.TryLoadGeneric(data, path.ToString(), out var result, options) || result.Grids.Count != 1)
@@ -498,6 +501,7 @@ public sealed partial class WFPlanetPoiSystem
         if (TerminatingOrDeleted(ground))
             return new HashSet<Vector2i>();
 
+        var stairwells = OpenStairwells(ground, grid, floors);
         var site = new WFPlanetPoiSite
         {
             MapPath = entry.MapPath,
@@ -508,6 +512,7 @@ public sealed partial class WFPlanetPoiSystem
             Connection = entry.Connection,
             Expeditions = false,
             Difficulty = table.Difficulty,
+            Shafts = stairwells,
         };
 
         if (table.Roads != null && entry.Connection != WFPlanetPoiConnection.Isolated)
@@ -566,7 +571,49 @@ public sealed partial class WFPlanetPoiSystem
             return new HashSet<Vector2i>();
         RollCityFate(city, floors, created);
         Log.Info($"Built {city.ID} on {ToPrettyString(ground)} at {origin}, {levels.Count} levels.");
-        return siteTiles;
+        return siteTiles.Union(stairwells).ToHashSet();
+    }
+
+    /// <summary>
+    /// Keeps open the street's holes over stairs on the level below: pinned empty, or the biome would grow its ground
+    /// over them once their chunk loads and close the way down. A cavern under them fits them out as stairwells.
+    /// </summary>
+    private HashSet<Vector2i> OpenStairwells(EntityUid ground, MapGridComponent grid, List<CityFloor> floors)
+    {
+        var stairwells = new HashSet<Vector2i>();
+        if (floors.FirstOrDefault(floor => floor.Depth == 0) is not { } street
+            || floors.FirstOrDefault(floor => floor.Depth == -1) is not { } under)
+            return stairwells;
+
+        foreach (var tile in under.Tiles)
+        {
+            if (street.Tiles.Contains(tile))
+                continue;
+
+            var anchored = _maps.GetAnchoredEntitiesEnumerator(under.Grid.Owner, under.Grid.Comp, tile);
+            while (anchored.MoveNext(out var uid))
+            {
+                if (!HasComp<CEZLevelHighGroundComponent>(uid))
+                    continue;
+
+                stairwells.Add(tile);
+                break;
+            }
+        }
+
+        if (stairwells.Count == 0)
+            return stairwells;
+
+        ClearForCity(ground, grid, stairwells);
+        _maps.SetTiles(ground, grid, stairwells.Select(tile => (tile, Tile.Empty)).ToList());
+        if (TryComp<BiomeComponent>(ground, out var biome))
+            _biome.WfPinTiles((ground, biome), stairwells);
+
+        // Holes that were never ground raise no tile change, so the cavern hears of them here.
+        if (TryComp<WFCavernGroundComponent>(ground, out var cavern))
+            cavern.Opened.UnionWith(stairwells);
+
+        return stairwells;
     }
 
     /// <summary>A static grid at the world's origin on a layer with no ground of its own, held up like a mapped island.</summary>
