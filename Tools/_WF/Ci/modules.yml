@@ -2287,6 +2287,15 @@ unmarked:
   - path: Resources/SharedMaps/_Mono/Shuttles/MMC/kami.yml
     module: AsteroidMining
     reason: Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
+  - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/noble.yml
+    module: AsteroidMining
+    reason: Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
+  - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/peregrine.yml
+    module: AsteroidMining
+    reason: Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
+  - path: Resources/SharedMaps/_Mono/Shuttles/CivilianExp/pelican.yml
+    module: AsteroidMining
+    reason: Its M25 mining pulsar is swapped for the M12 Prospector, the light asteroid mining laser.
   - path: Resources/Maps/_Mono/Bluespace/prefracture.yml
     module: null
     reason: Hardpoints mapped under the Unidentified Vessel's Scythe, Sunder and Flayer guns so gunnery links them.

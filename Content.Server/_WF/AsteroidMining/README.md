@@ -214,6 +214,8 @@ and each laser's strength, crack rate, range, fire rate and battery in `mining_b
   - the field's cyan, to match the new sprite and pull arc
   - on and off states while switched on and powered
 - [`Resources/Prototypes/_Mono/Shipyard/Civilian/caracara.yml`](../../../Resources/Prototypes/_Mono/Shipyard/Civilian/caracara.yml): fitted with the M40 mining laser in place of the Apollo
+- [`Resources/Prototypes/_Mono/Shipyard/Civilian/noble.yml`](../../../Resources/Prototypes/_Mono/Shipyard/Civilian/noble.yml): M12 mining lasers in place of the mining pulsers
+- [`Resources/Prototypes/_Mono/Shipyard/Civilian/peregrine.yml`](../../../Resources/Prototypes/_Mono/Shipyard/Civilian/peregrine.yml): M12 mining lasers in place of the mining autopulsers
 - [`Resources/Prototypes/_Mono/Shipyard/MMC/akasono.yml`](../../../Resources/Prototypes/_Mono/Shipyard/MMC/akasono.yml): an M12 mining laser in place of the pulser
 - [`Resources/Prototypes/_Mono/Shipyard/MMC/kami.yml`](../../../Resources/Prototypes/_Mono/Shipyard/MMC/kami.yml): M12 mining lasers in place of the mining pulsers
 - [`Resources/Prototypes/_NF/Entities/World/Debris/asteroids.yml`](../../../Resources/Prototypes/_NF/Entities/World/Debris/asteroids.yml): scrap asteroids hold only scrap, ore comes from the rock clusters
@@ -222,6 +224,9 @@ and each laser's strength, crack rate, range, fire rate and battery in `mining_b
   - light mining laser board
   - mining laser board
 - [`Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml`](../../../Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml): Its Apollo mining laser is swapped for the M40 Prospector, the heavy asteroid mining laser.
+- [`Resources/SharedMaps/_Mono/Shuttles/Civilian/noble.yml`](../../../Resources/SharedMaps/_Mono/Shuttles/Civilian/noble.yml): Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
+- [`Resources/SharedMaps/_Mono/Shuttles/Civilian/peregrine.yml`](../../../Resources/SharedMaps/_Mono/Shuttles/Civilian/peregrine.yml): Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
+- [`Resources/SharedMaps/_Mono/Shuttles/CivilianExp/pelican.yml`](../../../Resources/SharedMaps/_Mono/Shuttles/CivilianExp/pelican.yml): Its M25 mining pulsar is swapped for the M12 Prospector, the light asteroid mining laser.
 - [`Resources/SharedMaps/_Mono/Shuttles/MMC/akasono.yml`](../../../Resources/SharedMaps/_Mono/Shuttles/MMC/akasono.yml): Its M25 mining pulsar is swapped for the M12 Prospector, the light asteroid mining laser.
 - [`Resources/SharedMaps/_Mono/Shuttles/MMC/kami.yml`](../../../Resources/SharedMaps/_Mono/Shuttles/MMC/kami.yml): Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
 - [`Resources/SharedMaps/_Mono/Shuttles/TSF/shiv.yml`](../../../Resources/SharedMaps/_Mono/Shuttles/TSF/shiv.yml): Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
