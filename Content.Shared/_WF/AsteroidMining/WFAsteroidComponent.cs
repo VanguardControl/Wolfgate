@@ -43,6 +43,9 @@ public sealed partial class WFAsteroidComponent : Component
     /// <summary>Share of the mass an overcharge blast keeps as ore and fragments.</summary>
     [DataField] public float OverchargeYield = 0.35f;
 
+    /// <summary>Ore each vein of the rock drops, relative to a vein rock of the same ore.</summary>
+    [DataField] public float OreYield = 1f;
+
     /// <summary>Seconds in the window to crack a massless rock, plus <see cref="CrackTimePerMass"/> per unit.</summary>
     [DataField] public float CrackTimeBase = 1.5f;
     [DataField] public float CrackTimePerMass = 0.035f;

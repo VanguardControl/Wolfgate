@@ -9,11 +9,12 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
   cluster marker. `WFAsteroidSystem` swaps it through `WFDebrisPlacingEvent` and gives the cluster the tile
   asteroid's rock count as its mass budget. A tick later the marker scatters rocks around its centre by its size
   weights (small the most common, huge the rarest) until the budget runs out, hands them to its world chunk and
-  removes itself. Compositions mirror each kind's mineral table, ore weights and plain-rock share, so a zone's ore mix
-  and amount stay as they were (chromite is still where lithium comes from).
+  removes itself. Compositions start from each kind's mineral table and plain-rock share, tilted towards iron and coal
+  (which steel and plasteel need) over malachite, quartz and salt; chromite is still where lithium comes from, at
+  the same share.
 - **Metallic rocks:** each cluster rock has a 3% chance to roll `WFAsteroidMetallic` instead of its cluster's kind:
   mostly iron, silver and gold, sometimes diamond, with little plain rock, drawn from the `metallic` look's RSIs
-  (blue steel with bare plates). It resists heat (45-60%), so it needs high power or two lasers. Fragments and
+  (blue steel with bare plates). It resists heat (45-60%), so it needs an M40 at high power or two M12s. Fragments and
   boulders from it stay metallic.
 - **Radar:** asteroid grids carry no label on any scanner. `WFAdminRadarUnlabelled` keeps the admin scanner's true
   IFF from adding one.
@@ -24,14 +25,14 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
   Sprite variants 0-2 are round; 3-5 are elongated, lobed or bitten, and their `shapes` (from the sprite generator)
   give the tiles' outline, a convex hull fixture and a smaller mass.
 - **Cracking:** the `WFWeaponTurretMiningBeam` (M40 Prospector, heavy) and `WFWeaponTurretMiningLaserSmall` (M12
-  Prospector, light: 40 m, about half the heat and crack speed) are energy ship guns in the M25/Apollo family, aimed
+  Prospector, light: 40 m, about half the heat and a quarter of the crack speed, too weak to overcharge a rock alone) are energy ship guns in the M25/Apollo family, aimed
   and fired from a gunnery console. Their hitscan pulses (10 a second) heat the asteroid or boulder they hit instead of
   damaging it, and their forks spin while they fire. The gunnery console grows a mining laser panel
   (`FireControlWindow.AsteroidMining`, under the shield control) once its ship has a mining laser: it sets the power
   of every mining laser on the ship in 1/10% steps (50% by default) and scans the rock they are on, or were last on
   while it cools (ores, plain rock, resistance, heat and window, crack progress, yield). Heat settles at
   `power × strength × (1 − resistance)` and unstable rocks drift around it. In the green window the crack bar fills at
-  the beams' summed crack rate (`1.5 s + 0.035 s` per vein, divided by 1.6 for an M40 and 0.6 for an M12). The yellow band past it fills the bar half as
+  the beams' summed crack rate (`1.5 s + 0.035 s` per vein, divided by 2 for an M40 and 0.5 for an M12). The yellow band past it fills the bar half as
   fast again but each second there costs ore, down to half the rock for a crack made all in yellow. The meter only
   shows the heat now, not where a power setting will settle it, so finding the right power takes some feel; the impact
   flare brightens in the window and its sparks turn red in the yellow band, so the trigger can also be feathered by eye. Several lasers on one rock add their power and
@@ -39,8 +40,9 @@ and so do half of the gas-bearing rock asteroids, which carry the gas deposits g
 - **Mass:** asteroid grids are `DensityScale` (8) times as dense as a hull of the same footprint, so collision
   warnings, autopilot avoidance and impacts treat them as solid rock.
 - **Outcomes:** a clean crack keeps the mass its yield allows. Large and huge rocks split into two smaller asteroids
-  (two fifths or half of the mass), which come off as hot as their parent; of the rest, a quarter comes out as boulders and the remainder as floating ore
-  piles. Holding the rock past the red line (heat 85%) for 2 s blows it up: 35% of the mass survives, the blast grows
+  (two fifths or half of the mass), which come off as hot as their parent; of the rest, 15% comes out as boulders and the remainder as floating ore piles
+  scattered evenly over where the rock was. Each vein drops `oreYield` (1.35) times a vein rock's ore, since cracking
+  rocks one by one is slower than chewing through tile asteroids was. Holding the rock past the red line (heat 85%) for 2 s blows it up: 35% of the mass survives, the blast grows
   with plasma, and the lasers can't fire for 10 s. Weapons and explosions shatter a rock for a tenth of its mass once
   it has taken its `shatterDamage` (about 530 per vein), so an Apollo or M25 can break a rock in a pinch, but slowly and for
   far less ore than a mining laser. Past 60% crack progress the rock shakes; when it breaks, `WFAsteroidCrackEffect` draws a

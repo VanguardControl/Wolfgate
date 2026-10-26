@@ -430,7 +430,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         if (comp.BoulderPrototype is { } boulder)
             oreMass -= SpawnBoulders(comp, boulder, oreMass * comp.BoulderShare, center, mapUid);
 
-        SpawnOre(ores, oreMass, center, radius);
+        SpawnOre(ores, oreMass * comp.OreYield, center, radius);
     }
 
     /// <summary>Drops part of the ore as boulders for hand miners and returns the mass they took.</summary>
@@ -495,10 +495,11 @@ public sealed partial class WFAsteroidSystem : EntitySystem
 
         comp.Cracking = true;
         var center = _transform.GetMapCoordinates(uid);
+        var mass = comp.Mass * comp.OreYield;
         if (args.TeleportLootToGatherer && args.Gatherer is { } gatherer)
-            SpawnOre(comp.Ores, comp.Mass, _transform.GetMapCoordinates(gatherer), 0.2f);
+            SpawnOre(comp.Ores, mass, _transform.GetMapCoordinates(gatherer), 0.2f);
         else
-            SpawnOre(comp.Ores, comp.Mass, center, MathF.Max(comp.Radius, 0.3f));
+            SpawnOre(comp.Ores, mass, center, MathF.Max(comp.Radius, 0.3f));
         if (Transform(uid).MapUid is { } mapUid)
             SpawnCrackEffect(center, mapUid, MathF.Max(comp.Radius, 0.5f), comp.VeinColor, false);
     }
@@ -574,7 +575,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         return _grids.Count > 0;
     }
 
-    /// <summary>Drops each ore as a few piles across where the rock was. Each unit of mass is one vein.</summary>
+    /// <summary>Scatters each ore in piles evenly over where the rock was. Each unit of mass is one vein.</summary>
     private void SpawnOre(List<WFAsteroidOre> ores, float mass, MapCoordinates center, float radius)
     {
         foreach (var ore in ores)
@@ -588,11 +589,12 @@ public sealed partial class WFAsteroidSystem : EntitySystem
             if (total <= 0)
                 continue;
 
-            var piles = Math.Clamp((int) MathF.Ceiling(veins / 4f), 1, Math.Min(6, total));
+            var piles = Math.Clamp((int) MathF.Ceiling(veins / 2f), 1, Math.Min(12, total));
             for (var i = 0; i < piles; i++)
             {
                 var amount = total / piles + (i < total % piles ? 1 : 0);
-                var offset = _random.NextVector2(radius * 0.7f);
+                // Uniform over the rock's disc, not bunched at its centre.
+                var offset = _random.NextAngle().ToVec() * radius * 0.85f * MathF.Sqrt(_random.NextFloat());
                 var coords = _transform.ToCoordinates(new MapCoordinates(center.Position + offset, center.MapId));
                 _spawnCount.SpawnCount(entity, coords, amount);
             }

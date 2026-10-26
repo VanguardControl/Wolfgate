@@ -1,6 +1,7 @@
 # Each asteroid is a grid of invisible tiles, which gives it ship collisions, radar, FTL clearance and tractor beam
 # support, with one rock entity anchored at its centre that holds the sprite, the ore and the heat.
-# Rock mass is in ore veins, inert rock included; it matches the rock count of the tile asteroids it replaces.
+# Rock mass is in ore veins, inert rock included; it matches the rock count of the tile asteroids it replaces, and
+# each vein drops oreYield times a vein rock's ore.
 # Weapons shatter a rock for a tenth of its ore after about 530 damage per vein of mass: an Apollo or M25 can break
 # one in a pinch, but slowly and for far less ore than a mining laser.
 
@@ -43,6 +44,11 @@
       map: [ "enum.WFAsteroidVisualLayers.Heat" ]
       shader: WFAdditiveUnshaded
       color: "#00000000"
+  # Each vein drops more than a vein rock, and few go to boulders, since cracking rocks one at a time is slower than
+  # chewing through tile asteroids was.
+  - type: WFAsteroid
+    oreYield: 1.35
+    boulderShare: 0.15
 
 - type: entity
   parent: WFAsteroidRockBase

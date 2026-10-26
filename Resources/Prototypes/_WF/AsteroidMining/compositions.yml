@@ -1,7 +1,9 @@
 # What each kind of asteroid holds. Every unit of rock mass is one vein of the picked ore, so yields follow the ore
-# prototypes that vein rocks use. Ore weights and the inert share mirror each kind's soft mineral table
-# (Resources/Prototypes/_NF/Entities/Markers/Spawners/Random/Salvage/minerals.yml), so a swapped zone keeps its mix;
-# lithium, the economy's main tuning knob, comes mostly from chromite as before. Volatility feeds the overcharge blast.
+# prototypes that vein rocks use. Ore weights and the inert share start from each kind's soft mineral table
+# (Resources/Prototypes/_NF/Entities/Markers/Spawners/Random/Salvage/minerals.yml), tilted towards iron and coal, which
+# steel and plasteel need, at the expense of malachite, quartz and salt; each kind keeps its signature ores. Lithium,
+# the economy's main tuning knob, keeps its share and comes mostly from chromite as before. Volatility feeds the
+# overcharge blast.
 
 # Plain and gas-bearing rock asteroids (NFRockMineralSoft): about 38% plain rock.
 - type: wfAsteroidComposition
@@ -14,23 +16,23 @@
   maxInstability: 0.45
   ores:
   - ore: NFOreSteel
-    weight: 16
+    weight: 20
     color: "#c98a6b"
   - ore: NFOreCoal
-    weight: 10
+    weight: 12
     color: "#5a5652"
   - ore: NFOrePlasma
     weight: 7
     color: "#b04cff"
     volatility: 1
   - ore: NFOreSpaceQuartz
-    weight: 6
+    weight: 5
     color: "#e6f2ff"
   - ore: NFOreSalt
-    weight: 6
+    weight: 4
     color: "#f4f1ea"
   - ore: CopperOre
-    weight: 6
+    weight: 4
     color: "#3fb58a"
   - ore: NFOreSilver
     weight: 4
@@ -70,20 +72,20 @@
   maxInstability: 0.7
   ores:
   - ore: CopperOre
-    weight: 5
+    weight: 3
     color: "#3fb58a"
   - ore: NFOrePlasma
-    weight: 5
+    weight: 4
     color: "#b04cff"
     volatility: 1
   - ore: NFOreSteel
-    weight: 4
+    weight: 7
     color: "#c98a6b"
   - ore: OreArtifactFragment
-    weight: 4
+    weight: 3
     color: "#c88cff"
   - ore: NFOreCoal
-    weight: 2
+    weight: 4
     color: "#5a5652"
   - ore: NFOreGold
     weight: 2
@@ -130,20 +132,20 @@
     color: "#b04cff"
     volatility: 1
   - ore: NFOreSteel
-    weight: 5
+    weight: 7
     color: "#c98a6b"
   - ore: NFOreUranium
-    weight: 5
+    weight: 4
     color: "#5fe04a"
     volatility: 0.3
   - ore: NFOreSilver
     weight: 3
     color: "#d8dde3"
   - ore: CopperOre
-    weight: 3
+    weight: 2
     color: "#3fb58a"
   - ore: NFOreCoal
-    weight: 2
+    weight: 4
     color: "#5a5652"
   - ore: NFOreSpaceQuartz
     weight: 1
@@ -182,13 +184,13 @@
   maxInstability: 0.5
   ores:
   - ore: NFOreSpaceQuartz
-    weight: 12
+    weight: 10
     color: "#e6f2ff"
   - ore: NFOreSilver
-    weight: 8
+    weight: 7
     color: "#d8dde3"
   - ore: CopperOre
-    weight: 8
+    weight: 5
     color: "#3fb58a"
   - ore: NFOreGold
     weight: 7
@@ -197,10 +199,10 @@
     weight: 2
     color: "#f2a8d8"
   - ore: NFOreSteel
-    weight: 1.5
+    weight: 6
     color: "#c98a6b"
   - ore: NFOreCoal
-    weight: 1
+    weight: 3.5
     color: "#5a5652"
   - ore: NFOreSalt
     weight: 1
@@ -245,20 +247,20 @@
     color: "#5fe04a"
     volatility: 0.3
   - ore: NFOreSalt
-    weight: 4
+    weight: 2.5
     color: "#f4f1ea"
   - ore: NFOrePlasma
     weight: 4
     color: "#b04cff"
     volatility: 1
   - ore: NFOreSteel
-    weight: 3
+    weight: 5
     color: "#c98a6b"
   - ore: NFOreBananium
-    weight: 1.5
+    weight: 1
     color: "#ffe94a"
   - ore: NFOreCoal
-    weight: 1
+    weight: 3
     color: "#5a5652"
   - ore: NFOreSpaceQuartz
     weight: 1
@@ -270,7 +272,7 @@
     weight: 1
     color: "#d8dde3"
   - ore: CopperOre
-    weight: 1
+    weight: 0.5
     color: "#3fb58a"
   - ore: OreArtifactFragment
     weight: 1
@@ -300,13 +302,13 @@
     weight: 6
     color: "#f2a8d8"
   - ore: NFOreSpaceQuartz
-    weight: 5
+    weight: 4
     color: "#e6f2ff"
   - ore: NFOreCoal
-    weight: 4
+    weight: 5
     color: "#5a5652"
   - ore: CopperOre
-    weight: 2
+    weight: 1.5
     color: "#3fb58a"
   - ore: NFOreSalt
     weight: 1

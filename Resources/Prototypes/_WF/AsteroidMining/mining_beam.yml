@@ -7,7 +7,7 @@
   - BallisticArtillery
   - BallisticArtilleryTier2HP
   - ConstructibleMachine
-  description: A focused mining laser with a spinning emitter fork. Hold it on an asteroid to heat the rock until it cracks; the gunnery console shows the rock's heat and sets the laser's power. Strong enough to overcharge most rocks at full power. It barely scratches anything else.
+  description: A focused mining laser with a spinning emitter fork. Hold it on an asteroid to heat the rock until it cracks; the gunnery console shows the rock's heat and sets the laser's power. Strong enough to crack tough metallic rock alone, and to overcharge most rocks at full power. It barely scratches anything else.
   components:
   - type: StaticPrice
     price: 6000
@@ -83,7 +83,8 @@
     class: Energy
     size: Heavy
   - type: WFMiningBeamEmitter
-    crackRate: 1.6
+    strength: 1.5
+    crackRate: 2
 
 # One pulse of the mining laser. It draws no flash of its own; the beam overlay draws the laser.
 - type: entity
@@ -143,8 +144,9 @@
     Silver: 400
     Plasma: 800
 
-# The light sibling for light energy hardpoints: 40 m reach, about half the heat and crack speed. It cracks plain rock
-# at high power but needs a second laser for tough metallic rock.
+# The light sibling for light energy hardpoints: 40 m reach, about half the heat and a quarter of the crack speed. It
+# cracks plain rock at high power but can't overcharge a rock on its own; tough metallic rock needs a second laser,
+# and a pair works at half an M40's pace.
 - type: entity
   id: WFWeaponTurretMiningLaserSmall
   name: M12 Prospector mining laser
@@ -152,7 +154,7 @@
   - BallisticArtillery
   - BallisticArtilleryTier1HP
   - ConstructibleMachine
-  description: A compact mining laser for light hardpoints. It heats asteroids more gently and cracks them more slowly than the M40, and tough rocks need two of them. The gunnery console shows the rock's heat and sets the laser's power.
+  description: A compact mining laser for light hardpoints. It heats asteroids more gently and cracks them far more slowly than the M40, too gently to overcharge one on its own, and tough rocks need two of them. The gunnery console shows the rock's heat and sets the laser's power.
   components:
   - type: StaticPrice
     price: 2000
@@ -228,8 +230,8 @@
     class: Energy
     size: Light
   - type: WFMiningBeamEmitter
-    strength: 0.6
-    crackRate: 0.6
+    strength: 0.7
+    crackRate: 0.5
     loopSound:
       path: /Audio/_WF/AsteroidMining/mining_laser_light.ogg
       params:
