@@ -2,6 +2,7 @@ wf-round-setup-member-alive = Alive
 wf-round-setup-member-critical = Critical
 wf-round-setup-member-dead = Dead
 wf-round-setup-member-missing = Missing
+wf-round-setup-member-disconnected-status = { $status }, disconnected
 wf-round-setup-crew-alive = { $living } of { $deployed } crew alive
 wf-round-setup-row-alive = { $living }/{ $deployed } alive
 wf-round-setup-row-alive-tooltip = { $living } of { $deployed } crew alive · Ship: { $ship }

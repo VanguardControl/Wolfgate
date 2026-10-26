@@ -80,7 +80,8 @@ public sealed partial class WFRoundSetupSystem
                     largest = Math.Max(largest, _statusMap.GetFilledTileCount((grid, comp)));
             }
             health.Baseline = Math.Max(health.Baseline, largest);
-            var condition = WFCrewStatusPolicy.Condition(largest, health.Baseline);
+            // A crew that never had a ship has no condition; a ship seen once and then lost is gone.
+            var condition = health.Grids.Count == 0 ? WFCrewShipCondition.None : WFCrewStatusPolicy.Condition(largest, health.Baseline);
             changed |= condition != health.Condition;
             health.Condition = condition;
         }

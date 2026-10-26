@@ -393,10 +393,12 @@ public sealed partial class WFRoundSetupWindow
             _body.AddChild(CrewHealthSummary(lobby));
         foreach (var player in lobby.Members)
         {
-            var status = !player.Connected ? "member-disconnected" : MemberStatusKey(player.Spawned, player.Ready, player.Status);
+            var status = !player.Connected && !player.Spawned ? Text("member-disconnected")
+                : !player.Connected ? Text("member-disconnected-status", ("status", Text(MemberStatusKey(true, player.Ready, player.Status))))
+                : Text(MemberStatusKey(player.Spawned, player.Ready, player.Status));
             var content = Column(6);
             content.AddChild(Row(WFRoundSetupCrewRow.JobIcon(player.Job), PlainDescription(player.UserId == lobby.Host && lobby.Portrait != null ? lobby.Portrait.Name : player.Name)));
-            content.AddChild(PlainDescription(Text("member-info", ("job", MemberRoleName(lobby, player)), ("status", Text(status)))));
+            content.AddChild(PlainDescription(Text("member-info", ("job", MemberRoleName(lobby, player)), ("status", status))));
             if (host && player.UserId != lobby.Host)
             {
                 var actions = FlowRow(Button("transfer", () => SendTarget(WFRoundSetupAction.TransferHost, lobby.Id, player.UserId)));
