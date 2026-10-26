@@ -44,7 +44,12 @@ Entry points: the `BwoinkSystem` partials (`AHelpStaffSound`, `OnAHelpResolve`, 
 - [`Content.Server/Administration/Systems/BwoinkSystem.cs`](../../Administration/Systems/BwoinkSystem.cs)
   - resolve button
   - claims reset with the round
+  - quoted in an on-call-only ping
+  - the on-call ping works without the ahelp webhook
+  - no ahelp embed to link, so quote the messages
   - every staff reply honours the play sound box; answered ahelps stop bwoinking staff
   - staff get their own sound flag
+  - queue for an on-call-only relay
+- [`Content.Shared/CCVar/CCVars.Discord.cs`](../../../Content.Shared/CCVar/CCVars.Discord.cs): works without discord.ahelp_webhook; the ping then quotes the messages
 
 <!-- WOLFGATE-GENERATED END -->
