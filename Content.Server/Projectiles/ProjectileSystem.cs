@@ -70,6 +70,7 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
             // mono end
 
             component.ProjectileSpent = true;
+            Dirty(uid, component); // WOLFGATE(Weapons): a handled hit returns before the shared Dirty, so network the spent flag here
             if (component.DeleteOnCollide)
                 QueueDel(uid);
             return null;
@@ -167,6 +168,13 @@ public sealed partial class ProjectileSystem : SharedProjectileSystem
             var rayDirection = currentVelocity / velLen;
             // Ensure rayDistance is not zero to prevent issues with IntersectRay if frametime or velocity is zero.
             var rayDistance = velLen * frameTime;
+            // WOLFGATE(Weapons) START: a held hit velocity is restored even when the projectile has no relative speed
+            if (rayDistance <= 0f && projectileComp.RaycastResetVelocity != null)
+            {
+                _physics.SetLinearVelocity(uid, currentVelocity, body: physicsComp);
+                projectileComp.RaycastResetVelocity = null;
+            }
+            // WOLFGATE END
             if (rayDistance <= 0f)
                 continue;
 
