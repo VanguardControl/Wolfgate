@@ -263,7 +263,7 @@ public sealed class CustomMarkingColorSpace
                 return v => MathF.Pow(v, exponent);
             }
 
-            if (entries < 2 || data.Length < 4 + entries * 2)
+            if (entries < 2 || data.Length < 4 + entries * 2L)
                 return null;
 
             var table = new float[entries];

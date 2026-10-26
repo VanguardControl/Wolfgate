@@ -21,6 +21,7 @@ Client controls other Wolfgate UI is built from.
 - [`Content.Client/_WF/UserInterface/Alerts/WFAlertsWrapUIController.cs`](Alerts/WFAlertsWrapUIController.cs)
 - [`Content.Client/_WF/UserInterface/Controls/WolfgateColorPicker.cs`](Controls/WolfgateColorPicker.cs)
 - [`Content.Client/_WF/UserInterface/Controls/WolfgateColorPopup.cs`](Controls/WolfgateColorPopup.cs)
+- [`Content.Client/_WF/UserInterface/Controls/WolfgateEvenRow.cs`](Controls/WolfgateEvenRow.cs)
 - [`Content.Client/_WF/UserInterface/Controls/WolfgateNestedScrollContainer.cs`](Controls/WolfgateNestedScrollContainer.cs)
 - [`Content.Client/_WF/UserInterface/WindowPopout/WindowPopoutUIController.cs`](WindowPopout/WindowPopoutUIController.cs)
 - [`Content.Client/_WF/UserInterface/WindowPopout/WolfgatePopoutButton.cs`](WindowPopout/WolfgatePopoutButton.cs)
@@ -29,6 +30,7 @@ Client controls other Wolfgate UI is built from.
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/UserInterface/WolfgateColorPopupTest.cs`](../../../Content.IntegrationTests/Tests/_WF/UserInterface/WolfgateColorPopupTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/UserInterface/WolfgateEvenRowTest.cs`](../../../Content.IntegrationTests/Tests/_WF/UserInterface/WolfgateEvenRowTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/UserInterface/WolfgateNestedScrollContainerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/UserInterface/WolfgateNestedScrollContainerTest.cs)
 
 ### Localization
@@ -47,6 +49,7 @@ Client controls other Wolfgate UI is built from.
 - [`Content.Client/Humanoid/EyeColorPicker.cs`](../../Humanoid/EyeColorPicker.cs): swatches + sliders
 - [`Content.Client/Humanoid/MarkingPicker.xaml.cs`](../../Humanoid/MarkingPicker.xaml.cs): swatches + sliders
 - [`Content.Client/Humanoid/SingleMarkingPicker.xaml.cs`](../../Humanoid/SingleMarkingPicker.xaml.cs): swatches + sliders
+- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../Lobby/UI/HumanoidProfileEditor.xaml): an even row, not a Box or Grid. Both measure each picker against the whole width, and a picker picks its tile columns from the width it is measured with, so hair took far too many columns: its tiles were cut off, or facial hair was pushed out of the card on a wide screen. The row measures each picker against its own half.
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../Lobby/UI/HumanoidProfileEditor.xaml.cs): swatches + sliders
 
 <!-- WOLFGATE-GENERATED END -->

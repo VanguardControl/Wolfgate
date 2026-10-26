@@ -63,12 +63,24 @@ public sealed partial class ChatTabsUIController : UIController
         _tabs.Clear();
         _tabs.AddRange(ChatTab.Parse(saved));
 
-        // The default Local tab as saved before subtle emotes had a channel of their own.
-        const ChatChannel oldLocal = ChatChannel.Local | ChatChannel.Whisper | ChatChannel.Emotes;
-        foreach (var tab in _tabs)
+        // The default Local tab as saved before subtle emotes had a channel of their own, once: a player who then
+        // takes Subtle off it keeps it off.
+        if (!_cfg.GetCVar(WolfgateCVars.ChatTabsSubtleAdded))
         {
-            if (tab.Channels == oldLocal)
+            const ChatChannel oldLocal = ChatChannel.Local | ChatChannel.Whisper | ChatChannel.Emotes;
+            var added = false;
+            foreach (var tab in _tabs)
+            {
+                if (tab.Channels != oldLocal)
+                    continue;
+
                 tab.Channels |= ChatChannel.Subtle;
+                added = true;
+            }
+
+            _cfg.SetCVar(WolfgateCVars.ChatTabsSubtleAdded, true);
+            if (added)
+                _cfg.SetCVar(WolfgateCVars.ChatTabs, ChatTab.Format(_tabs));
         }
 
         if (_tabs.Count == 0)

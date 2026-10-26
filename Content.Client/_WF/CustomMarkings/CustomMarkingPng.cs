@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.IO;
 using System.Numerics;
 using Content.Shared._WF.CustomMarkings;
@@ -16,7 +17,7 @@ public static class CustomMarkingPng
     /// <summary>Art from a PNG of a whole sheet or of one facing; null for anything else.</summary>
     public static CustomMarkingArt? Read(byte[] png)
     {
-        if (png.Length > MaxFileBytes)
+        if (png.Length > MaxFileBytes || !HasArtSize(png))
             return null;
 
         try
@@ -32,6 +33,25 @@ public static class CustomMarkingPng
             // Not an image ImageSharp can read.
             return null;
         }
+    }
+
+    /// <summary>
+    /// Whether the PNG's header gives the size of one facing or of a sheet of frames, read before decoding so an
+    /// image of any other size never gets its pixels allocated.
+    /// </summary>
+    private static bool HasArtSize(byte[] png)
+    {
+        // The signature, then IHDR's length and type, then its width and height.
+        if (png.Length < 24 || png[12] != 'I' || png[13] != 'H' || png[14] != 'D' || png[15] != 'R')
+            return false;
+
+        var width = BinaryPrimitives.ReadUInt32BigEndian(png.AsSpan(16));
+        var height = BinaryPrimitives.ReadUInt32BigEndian(png.AsSpan(20));
+        if (width == CustomMarkingRules.FrameSize && height == CustomMarkingRules.FrameSize)
+            return true;
+
+        return width == CustomMarkingRules.SheetSize && height > 0 && height % CustomMarkingRules.SheetSize == 0
+               && height / CustomMarkingRules.SheetSize <= CustomMarkingRules.MaxFrames;
     }
 
     /// <summary>Reads a PNG saved in another colour space at full depth and brings its pixels to sRGB.</summary>

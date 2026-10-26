@@ -288,11 +288,6 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
             || !encounter.Ships.TryGetValue(marker.Key, out var ship))
             return;
 
-        // Any hit is a fight that keeps the ship around, excused or after the encounter is over.
-        ship.LastFought = _timing.CurTime;
-        if (_alerts.IsExcused(victim, attacker) || encounter.Resolution != null)
-            return;
-
         var crew = new List<NetUserId>();
         var players = EntityQueryEnumerator<ActorComponent, TransformComponent>();
         while (players.MoveNext(out var uid, out var actor, out var xform))
@@ -302,6 +297,11 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
         }
 
         if (crew.Count == 0)
+            return;
+
+        // A hit from a crewed ship is a fight that keeps the ship around, excused or after the encounter is over.
+        ship.LastFought = _timing.CurTime;
+        if (_alerts.IsExcused(victim, attacker) || encounter.Resolution != null)
             return;
 
         foreach (var player in crew)

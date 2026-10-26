@@ -77,6 +77,26 @@ public sealed class CustomMarkingColorSpaceTest
     }
 
     [Test]
+    public void HugeCurveTableIsRefused()
+    {
+        // A curve claiming 2^30 entries overflowed an int length check and asked for gigabytes.
+        var profile = Profile(P3Primaries, 2.2f);
+        var at = profile.Length - 14;
+        Assert.That(Encoding.ASCII.GetString(profile, at, 4), Is.EqualTo("curv"));
+        BinaryPrimitives.WriteInt32BigEndian(profile.AsSpan(at + 8), 0x40000000);
+        Assert.That(CustomMarkingColorSpace.FromIcc(profile), Is.Null);
+    }
+
+    [Test]
+    public void WrongSizeIsRefusedBeforeDecoding()
+    {
+        using var image = new Image<Rgba32>(Frame * 4, Frame * 4);
+        using var stream = new MemoryStream();
+        image.SaveAsPng(stream);
+        Assert.That(CustomMarkingPng.Read(stream.ToArray()), Is.Null);
+    }
+
+    [Test]
     public void BrokenProfileIsIgnored()
     {
         var png = WithChunk(Png(new Rgba32(10, 20, 30, 255)), "iCCP", new byte[] { (byte) 'x', 0, 0, 1, 2, 3 });

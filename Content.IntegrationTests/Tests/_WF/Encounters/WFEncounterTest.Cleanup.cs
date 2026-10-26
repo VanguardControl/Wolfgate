@@ -66,6 +66,7 @@ public sealed partial class WFEncounterTest
     public async Task FoughtShipStaysThroughTheCombatGrace()
     {
         EntityUid encounter = default, ship = default, attacker = default;
+        EntityCoordinates playerWas = default;
         var config = Server.ResolveDependency<IConfigurationManager>();
         var timing = Server.ResolveDependency<IGameTiming>();
         await Server.WaitAssertion(() =>
@@ -76,7 +77,14 @@ public sealed partial class WFEncounterTest
             ship = comp.Ships["lead"].Grid;
             attacker = Server.System<SharedMapSystem>().CreateGridEntity(MapData.MapId).Owner;
 
-            Server.System<WFEncounterRewardSystem>().RecordHit(ship, attacker);
+            var rewards = Server.System<WFEncounterRewardSystem>();
+            rewards.RecordHit(ship, attacker);
+            Assert.That(comp.Ships["lead"].LastFought, Is.Null, "A hit from a ship with no player aboard is no fight with players.");
+
+            var player = SEntMan.GetEntity(Player);
+            playerWas = SEntMan.GetComponent<TransformComponent>(player).Coordinates;
+            Server.System<SharedTransformSystem>().SetCoordinates(player, new EntityCoordinates(attacker, Vector2.Zero));
+            rewards.RecordHit(ship, attacker);
             Assert.That(comp.Ships["lead"].LastFought, Is.EqualTo(timing.CurTime), "A player ship's hit is a fight.");
             comp.Expires = timing.CurTime;
         });
@@ -101,6 +109,7 @@ public sealed partial class WFEncounterTest
             Assert.That(!SEntMan.EntityExists(ship) || SEntMan.IsQueuedForDeletion(ship), Is.True, "Past the grace it jumps out.");
             if (SEntMan.EntityExists(encounter))
                 Server.System<WFEncounterSystem>().End(encounter);
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), playerWas);
             SEntMan.DeleteEntity(attacker);
             config.SetCVar(EncountersCVars.CombatGrace, EncountersCVars.CombatGrace.DefaultValue);
         });

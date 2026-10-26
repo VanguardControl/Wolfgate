@@ -1342,14 +1342,6 @@ public sealed partial class WFEncounterSystem : EntitySystem
                 continue;
             }
 
-            // A ship players have just fought stays, jump or linger: they may still be at it, or about to strip the wreck.
-            if (FoughtLately(ship))
-            {
-                ship.Quiet = null;
-                remaining = true;
-                continue;
-            }
-
             // A ship docked with a player's ship, or left by its last visitor only a short while ago, stays: no hull
             // vanishes the moment a player steps off it to fetch tools or loot.
             var visited = PlayersAboard(ship.Grid) || DockedWithPlayerShip(ship.Grid);
@@ -1357,6 +1349,14 @@ public sealed partial class WFEncounterSystem : EntitySystem
                 ship.LastVisited = now;
             else if (ship.LastVisited is { } visit && now - visit < _cleanupGrace)
                 visited = true;
+
+            // A ship players have just fought stays, jump or linger: they may still be at it, or about to strip the wreck.
+            if (FoughtLately(ship))
+            {
+                ship.Quiet = null;
+                remaining = true;
+                continue;
+            }
 
             if (encounter.JumpAt is { } jump)
             {

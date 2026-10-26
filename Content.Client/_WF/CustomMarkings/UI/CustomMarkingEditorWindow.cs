@@ -307,7 +307,12 @@ public sealed partial class CustomMarkingEditorWindow : CustomMarkingWindow
             Pressed = art.PingPong,
         };
         _pingPongButton.AddStyleClass(StyleWolfgate.StyleClassCreatorToggle);
-        _pingPongButton.OnToggled += args => Change(edited => edited.PingPong = args.Pressed);
+        _pingPongButton.OnToggled += args =>
+        {
+            // The play order changes under a running playback.
+            StopPlaying();
+            Change(edited => edited.PingPong = args.Pressed);
+        };
         _onionSkin = new CheckBox
         {
             Text = Loc.GetString("wf-custom-marking-editor-onion-skin"),
@@ -935,8 +940,7 @@ public sealed partial class CustomMarkingEditorWindow : CustomMarkingWindow
             _playTime -= shown;
             _playStep = (_playStep + 1) % order.Length;
             ShowFrame(order[_playStep]);
-            _frameLabel.Text = Loc.GetString("wf-custom-marking-editor-frame-count", ("frame", _frame + 1), ("frames", Art.Frames));
-            FillFrameTime();
+            UpdateButtons();
         }
     }
 
