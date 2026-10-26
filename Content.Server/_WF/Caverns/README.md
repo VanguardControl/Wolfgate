@@ -56,8 +56,9 @@ under a hole, so a mob walks them up and down with one level change and no fall,
 level with it. The recipe is refused, with the reason, under laid floor, under something built or a parked ship, and
 where the tile at their top is a hole or built on. Opening takes what the biome grew on the hole and the tile at the
 top and pins both, on ground that isn't loaded too, and stairs that could not open, such as under a ship that landed
-while they were built, try again every 5 s. The hole queue gives a hole over stairs no landing and no climb point, and
-both once the stairs are gone.
+while they were built, try again every 5 s. The hole queue gives a hole over stairs, these or a map's own stairway (any CE high ground), no landing and no
+climb point, and a plain shade that draws no lip: a stairwell, not a sinkhole. Once built stairs are gone the hole
+gets both, and the lip.
 
 Entry points: `WFCavernSystem` adds the cavern map through the Planets `WFPlanetLowerLayersEvent`, then fits it out on
 `WFPlanetNetworkBuiltEvent` (its own atmosphere, no day cycle, sun shadows or parallax, the roof colour), links the

@@ -44,6 +44,9 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
     private readonly Dictionary<EntityUid, Dictionary<Vector2i, EntityUid>> _pits = new();
     private readonly Dictionary<EntityUid, (EntityUid Grid, Vector2i Tile)> _placed = new();
 
+    /// <summary>Plain shades by grid tile: stairwells, which draw no lip and give none to the pits beside them.</summary>
+    private readonly Dictionary<EntityUid, Dictionary<Vector2i, EntityUid>> _plain = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -59,25 +62,35 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
             return;
 
         var tile = _map.CoordinatesToTile(grid, gridComp, xform.Coordinates);
-        if (!_pits.TryGetValue(grid, out var pits))
-            _pits[grid] = pits = new Dictionary<Vector2i, EntityUid>();
+        var tracked = ent.Comp.Plain ? _plain : _pits;
+        if (!tracked.TryGetValue(grid, out var pits))
+            tracked[grid] = pits = new Dictionary<Vector2i, EntityUid>();
 
         pits[tile] = ent.Owner;
         _placed[ent.Owner] = (grid, tile);
+
+        if (ent.Comp.Plain)
+        {
+            if (TryComp<SpriteComponent>(ent, out var sprite))
+                _sprite.LayerSetVisible((ent.Owner, sprite), 0, false);
+            return;
+        }
+
         RefreshAround(grid, tile);
     }
 
     private void OnShutdown(Entity<WFCavernShaftComponent> ent, ref ComponentShutdown args)
     {
-        if (!_placed.Remove(ent.Owner, out var placed) || !_pits.TryGetValue(placed.Grid, out var pits))
+        var tracked = ent.Comp.Plain ? _plain : _pits;
+        if (!_placed.Remove(ent.Owner, out var placed) || !tracked.TryGetValue(placed.Grid, out var pits))
             return;
 
         if (pits.TryGetValue(placed.Tile, out var there) && there == ent.Owner)
             pits.Remove(placed.Tile);
 
         if (pits.Count == 0)
-            _pits.Remove(placed.Grid);
-        else
+            tracked.Remove(placed.Grid);
+        else if (!ent.Comp.Plain)
             RefreshAround(placed.Grid, placed.Tile);
     }
 
@@ -205,11 +218,16 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
         }
     }
 
-    /// <summary>Whether a grid has a pit tile inside a world box.</summary>
+    /// <summary>Whether a grid has a pit tile, plain or not, inside a world box.</summary>
     // Pits only lie on a planet's ground, whose grid is its own map, so its tiles are world tiles.
     public bool AnyPitWithin(EntityUid grid, Box2 worldBox)
     {
-        if (!_pits.TryGetValue(grid, out var pits))
+        return AnyWithin(_pits, grid, worldBox) || AnyWithin(_plain, grid, worldBox);
+    }
+
+    private static bool AnyWithin(Dictionary<EntityUid, Dictionary<Vector2i, EntityUid>> tracked, EntityUid grid, Box2 worldBox)
+    {
+        if (!tracked.TryGetValue(grid, out var pits))
             return false;
 
         foreach (var tile in pits.Keys)

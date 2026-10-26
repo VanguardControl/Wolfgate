@@ -18,7 +18,7 @@ descending ship move onto the planet layers before the temporary flight map is d
 
 Worlds have day and night, phased weather with thunder, fauna, ambience, a map on the orbit radar (`PlanetMap`) and an approach
 cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down; its flesh ground has scabbed lake shores, bone fields, hive pockets in the tendon forest, a blood-pool meat marsh and dried crust with dead growth round the groves (`Resources/Prototypes/_WF/Planets/Biomes/carcinoma.yml`). Lower layers of a planet are drawn smaller
-(`WFPlanetView`, the perspective Monolith turned off for other z-levels). Over a world's layers the shuttle console's
+(`WFPlanetView`, the perspective Monolith turned off for other z-levels), except to someone inside a building, under a roof on the ground or a city's level, who sees the floors below full size. Over a world's layers the shuttle console's
 strategic plot shows the world itself, drawn by the sector's planet shader close enough to fill it, instead of space
 (`ShuttleMapControl.PlanetBackground`). A floor nobody built that breaks on a planet, pried up or blown apart, gives
 the natural ground back instead of station plating and lattice (`WFPlanetTileBreakSystem`); a player's own floor over
@@ -265,6 +265,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 ### Shared
 
 - [`Content.Shared/_WF/Planets/Administration/PlanetControlEvents.cs`](../../../Content.Shared/_WF/Planets/Administration/PlanetControlEvents.cs)
+- [`Content.Shared/_WF/Planets/CESharedZLevelsSystem.Ghosts.cs`](../../../Content.Shared/_WF/Planets/CESharedZLevelsSystem.Ghosts.cs)
 - [`Content.Shared/_WF/Planets/CESharedZLevelsSystem.Roofs.cs`](../../../Content.Shared/_WF/Planets/CESharedZLevelsSystem.Roofs.cs)
 - [`Content.Shared/_WF/Planets/CESharedZLevelsSystem.Terrain.cs`](../../../Content.Shared/_WF/Planets/CESharedZLevelsSystem.Terrain.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFApcRepairDoAfterEvent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFApcRepairDoAfterEvent.cs)
@@ -378,6 +379,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRoundHoldTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRoundHoldTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetViewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetViewTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherRoofTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherRoofTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/SectorBodyPinTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/SectorBodyPinTest.cs)
@@ -664,6 +666,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
   - planet terrain that isn't loaded is still ground
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs)
   - z-motion carried off the z-network is cleared, not kept for the next planet.
+  - a ghost never sticks to stairs or stays between levels
   - a thrown body stays InAir until the throw lands, or friction eats a jump at once.
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs): retain the contacted obstacle for crash ploughing.
 - [`Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs`](../../../Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs): a throw only has an arc where there are levels to arc through.
