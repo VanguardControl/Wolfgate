@@ -15,6 +15,8 @@ public sealed partial class WFRoundSetupLobbyTest
         var state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Create) { Scenario = WFRoundScenario.Ship });
         var id = OwnLobby(state).Id;
         await pair.RunTicksSync(pair.SecondsToTicks(1));
+        // A late preference load can still replace the host's profile once; let that settle before counting.
+        await CountSnapshots(pair, 2);
         var count = await CountSnapshots(pair, 7);
         Assert.That(count, Is.Zero, "Nothing changed, so no snapshot should be sent.");
         state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Configure) { LobbyId = id, Title = "Quiet" });
