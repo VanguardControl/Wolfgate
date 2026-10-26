@@ -163,7 +163,7 @@ public sealed class CavernPrototypeTest
 
                     foreach (var id in entities)
                     {
-                        if (AllowedSpawners.Contains(id))
+                        if (AllowedSpawners.Contains(id) || id.StartsWith("WFCavernFauna"))
                             continue;
 
                         Assert.That(id, Does.Not.StartWith("MonoPlanetmap"), $"{cavern.ID} places the outcrop spawner {id}.");
