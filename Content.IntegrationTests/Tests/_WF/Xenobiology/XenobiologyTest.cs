@@ -141,7 +141,8 @@ public sealed class XenobiologyTest
         await server.WaitPost(() =>
         {
             grinder = entities.SpawnEntity("SlimeGrinder", map.GridCoords);
-            entities.System<SharedPowerReceiverSystem>().SetNeedsPower(grinder, false);
+            // No power net on the test map; a grinder without a receiver always runs.
+            entities.RemoveComponent<Content.Server.Power.Components.ApcPowerReceiverComponent>(grinder);
         });
 
         await server.WaitRunTicks(5);
@@ -154,8 +155,6 @@ public sealed class XenobiologyTest
             entities.System<DamageableSystem>().TryChangeDamage(slime, damage, true);
 
             Assert.That(entities.System<Content.Shared.Mobs.Systems.MobStateSystem>().IsDead(slime), Is.True, "The slime is dead.");
-            Assert.That(entities.GetComponent<Content.Server.Power.Components.ApcPowerReceiverComponent>(grinder).Powered, Is.True,
-                "The grinder runs without a power net.");
             var ev = new ClimbedOnEvent(slime, slime);
             entities.EventBus.RaiseLocalEvent(grinder, ref ev);
             Assert.That(entities.IsQueuedForDeletion(slime) || entities.Deleted(slime), Is.True, "The grinder takes the slime.");

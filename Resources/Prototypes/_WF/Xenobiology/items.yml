@@ -150,6 +150,7 @@
   name: random hostile mob spawner
   id: RHostileMobSpawner
   parent: MarkerBase
+  categories: [ HideSpawnMenu ] # extract spawns, not mapping spawners
   components:
   - type: TimedDespawn
     lifetime: 3
@@ -160,6 +161,7 @@
   parent: MarkerBase
   id: RandomHostileMobSpawner
   name: random hostile mob spawner
+  categories: [ HideSpawnMenu ] # extract spawns, not mapping spawners
   components:
   - type: RandomSpawner
     prototypes:
@@ -193,6 +195,7 @@
   name: random neutral mob spawner
   id: RNeutralMobSpawner
   parent: MarkerBase
+  categories: [ HideSpawnMenu ] # extract spawns, not mapping spawners
   components:
   - type: TimedDespawn
     lifetime: 3
@@ -203,6 +206,7 @@
   parent: MarkerBase
   id: RandomNeutralMobSpawner
   name: random neutral mob spawner
+  categories: [ HideSpawnMenu ] # extract spawns, not mapping spawners
   components:
   - type: RandomSpawner
     prototypes:
@@ -228,6 +232,7 @@
   name: random passive mob spawner
   id: RPassiveMobSpawner
   parent: MarkerBase
+  categories: [ HideSpawnMenu ] # extract spawns, not mapping spawners
   components:
   - type: TimedDespawn
     lifetime: 3
@@ -238,6 +243,7 @@
   parent: MarkerBase
   id: RandomPassiveMobSpawner
   name: random passive mob spawner
+  categories: [ HideSpawnMenu ] # extract spawns, not mapping spawners
   components:
   - type: RandomSpawner
     prototypes:
