@@ -135,7 +135,8 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
 
         while (preload.Next < preload.Chunks!.Count)
         {
-            _biome.WfLoadChunk(ground, preload.Chunks[preload.Next++]);
+            // Not held: once formed, what nobody is near is stashed (BiomeSystem.WFStash).
+            _biome.WfLoadChunk(ground, preload.Chunks[preload.Next++], hold: false);
 
             if (_watch.Elapsed.TotalMilliseconds >= budget)
                 break;
@@ -193,9 +194,36 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
         if (TerminatingOrDeleted(ground))
             return;
 
+        var stashed = await StashAsync(preload, ground);
+        if (TerminatingOrDeleted(ground))
+            return;
+
         EnsureComp<WFPlanetPreloadedComponent>(ground);
         var took = Stopwatch.GetElapsedTime(preload.Started).TotalSeconds;
-        Log.Info($"Preloaded {preload.Chunks!.Count} chunks of {ToPrettyString(ground)} in {took:F1} s, with {walls} boundary walls.");
+        Log.Info($"Preloaded {preload.Chunks!.Count} chunks of {ToPrettyString(ground)} in {took:F1} s, with {walls} boundary walls; {stashed} chunks stashed.");
+    }
+
+    /// <summary>
+    /// Puts away the biome entities of every chunk nobody is near, once whatever needed them in place has been
+    /// placed; they come back as someone does.
+    /// </summary>
+    private async Task<int> StashAsync(Preload preload, Entity<BiomeComponent, MapGridComponent> ground)
+    {
+        if (!_biome.WfStashEnabled)
+            return 0;
+
+        var stashed = 0;
+        foreach (var chunk in preload.Chunks!)
+        {
+            await Breathe();
+            if (TerminatingOrDeleted(ground))
+                return stashed;
+
+            if (_biome.WfStashIfIdle(ground, chunk))
+                stashed++;
+        }
+
+        return stashed;
     }
 
     /// <summary>

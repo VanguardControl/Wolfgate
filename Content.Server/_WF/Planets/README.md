@@ -63,7 +63,15 @@ below it, the radar draws nothing past it, a hull can't enter the atmosphere unl
 there is pulled back to the edge before it falls, and one flying out in the air is turned back (`WFPlanetDragSystem`).
 `WFPlanetPreloadSystem` then generates the whole circle, nearest the centre first and `wf.planet_preload_budget` ms a
 tick, one world at a time, and walls the outermost ring of tiles with the surface's `boundaryWall`; a preloaded ground
-(`WFPlanetPreloadedComponent`) never streams or unloads again. `WFPlanetPreloadStartingEvent` goes out the tick before,
+(`WFPlanetPreloadedComponent`) keeps its tiles and decals for good. Its trees, rocks and plants are stashed instead
+(`BiomeSystem.WFStash`, `wf.planet_terrain_stash`): once everything that needed them in place has been placed, the
+preload puts away the untouched biome entities of every chunk nobody is near, the loader lays them again from the
+recipe as someone comes within its load area, and the unloader puts them away again once the chunk has been idle for
+`wf.planet_terrain_unload_idle`. A touched one stays and pins its tile, as when terrain unloads, and a tile someone
+stands on is left bare when the rest comes back. A planet layer's navmesh is built only within
+`wf.planet_pathfinding_range` of players and awake NPCs, `wf.planet_pathfinding_chunk_budget` chunks an update
+(`PathfindingSystem.WFPlanetLazy`); upstream built a whole world's in one tick and kept it.
+`WFPlanetPreloadStartingEvent` goes out the tick before,
 for whatever must be placed while the ground is still unloaded, such as cavern mouths, and `WFPlanetPreloadedEvent`
 once the ring is laid. Caverns stay streamed, inside the same circle, with their own ring laid onto bare pinned ground.
 While the lobby is open, `WFPlanetRegistrySystem` builds the lobby preset's round-start worlds where its star system
@@ -88,6 +96,8 @@ starts the round itself once they are done, or after `wf.planet_round_hold_max` 
 start round waits the same way, under the same cap; a paused countdown calls a held start off. A world that is still
 forming once the round is under way, because the cap ran out or it was built mid-round, refuses descent from orbit
 with a popup until it is done (`WFOrbitEntrySystem.TryDropFromOrbit`).
+`PlanetEntityCensusTest.Census` (run by hand) prints what a formed world holds by source and prototype, and
+`PlanetFirstMinuteTest` times the minute after all six of Kyphrus's worlds form, with what each slow tick spent.
 Settings are in `PlanetCVars` (`wf.planet_networks`, `wf.planet_terrain_atmos`, `wf.planet_terrain_unload`,
 `wf.planet_terrain_load_budget`, `wf.planet_bounds`, `wf.planet_radius`, `wf.planet_preload`,
 `wf.planet_preload_budget`, `wf.planet_generation_budget`, `wf.planet_round_hold_max`); ecology and
@@ -187,6 +197,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/_WF/Planets/Atmosphere/WFTerrainOpenTilesEvent.cs`](Atmosphere/WFTerrainOpenTilesEvent.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.WFLoad.cs`](BiomeSystem.WFLoad.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.WFRoll.cs`](BiomeSystem.WFRoll.cs)
+- [`Content.Server/_WF/Planets/BiomeSystem.WFStash.cs`](BiomeSystem.WFStash.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.WFUnload.cs`](BiomeSystem.WFUnload.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.WFWater.cs`](BiomeSystem.WFWater.cs)
 - [`Content.Server/_WF/Planets/BiomeSystem.Wolfgate.cs`](BiomeSystem.Wolfgate.cs)
@@ -239,6 +250,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/_WF/Planets/Infestation/WFCarcinomaInfestationComponent.cs`](Infestation/WFCarcinomaInfestationComponent.cs)
 - [`Content.Server/_WF/Planets/Infestation/WFCarcinomaInfestationSystem.cs`](Infestation/WFCarcinomaInfestationSystem.cs)
 - [`Content.Server/_WF/Planets/Jetpack/WFAtmosphericJetpackFuelSystem.cs`](Jetpack/WFAtmosphericJetpackFuelSystem.cs)
+- [`Content.Server/_WF/Planets/PathfindingSystem.WFPlanetLazy.cs`](PathfindingSystem.WFPlanetLazy.cs)
 - [`Content.Server/_WF/Planets/ShuttleSystem.WFOrbit.cs`](ShuttleSystem.WFOrbit.cs)
 - [`Content.Server/_WF/Planets/StarSystemMapSystem.Wolfgate.cs`](StarSystemMapSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/WFBiomeGrownComponent.cs`](WFBiomeGrownComponent.cs)
@@ -384,7 +396,9 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetDroneBeltTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetDroneBeltTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyLifecycleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyLifecycleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetEcologyTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetEntityCensusTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetEntityCensusTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetExplosionGroundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetExplosionGroundTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetFirstMinuteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetFirstMinuteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs)
@@ -396,6 +410,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRoofFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRoofFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRoundHoldTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRoundHoldTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetStashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetStashTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetViewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetViewTest.cs)
@@ -675,6 +690,9 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/Movement/Systems/JetpackSystem.cs`](../../Movement/Systems/JetpackSystem.cs)
   - an atmospheric pack burns welding fuel from a solution, not gas from a tank.
   - a wearer carried below orbit on a hull never changes parent, so the pack is cut here.
+- [`Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs`](../../NPC/Pathfinding/PathfindingSystem.Grid.cs)
+  - a planet layer builds only the dirty chunks near someone, a slice an update
+  - what wasn't built this update stays dirty
 - [`Content.Server/Parallax/BiomeSystem.ChunkLoader.cs`](../../Parallax/BiomeSystem.ChunkLoader.cs): a planet's rock spawner is rolled here from its tile, so the rock unloads and comes back the same
 - [`Content.Server/Parallax/BiomeSystem.ConfigManager.cs`](../../Parallax/BiomeSystem.ConfigManager.cs): the loader's spawner rolls follow reloaded entity prototypes
 - [`Content.Server/Parallax/BiomeSystem.cs`](../../Parallax/BiomeSystem.cs)

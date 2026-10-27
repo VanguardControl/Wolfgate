@@ -42,14 +42,19 @@ public sealed partial class BiomeSystem
 
     /// <summary>
     /// Loads one biome chunk by hand and holds it: the planet unloader leaves it until <see cref="WfUnloadChunk"/>.
-    /// Claims LoadedChunks first, as LoadChunk throws on a repeat.
+    /// Claims LoadedChunks first, as LoadChunk throws on a repeat. Not held, it goes by the unloader's rules.
     /// </summary>
-    public bool WfLoadChunk(Entity<BiomeComponent, MapGridComponent> biome, Vector2i chunkOrigin)
+    public bool WfLoadChunk(Entity<BiomeComponent, MapGridComponent> biome, Vector2i chunkOrigin, bool hold = true)
     {
-        _wfLayers.GetOrNew(biome.Owner).Held.Add(chunkOrigin);
+        if (hold)
+            _wfLayers.GetOrNew(biome.Owner).Held.Add(chunkOrigin);
 
         if (!biome.Comp1.LoadedChunks.Add(chunkOrigin))
+        {
+            // Loaded but stashed: its entities are laid again.
+            WfRestoreChunk(biome.Comp1, biome.Owner, biome.Comp2, chunkOrigin);
             return false;
+        }
 
         LoadChunk(biome.Comp1, biome.Owner, biome.Comp2, chunkOrigin, biome.Comp1.Seed);
         return true;

@@ -121,4 +121,26 @@ public sealed class PlanetCVars
     /// </summary>
     public static readonly CVarDef<float> TerrainUnloadBudget =
         CVarDef.Create("wf.planet_terrain_unload_budget", 3f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether a preloaded ground puts away the untouched trees, rocks and plants nobody is near, keeping its tiles,
+    /// and lays them again from the recipe when someone comes back. Off, the whole world's are kept all round.
+    /// </summary>
+    public static readonly CVarDef<bool> TerrainStash =
+        CVarDef.Create("wf.planet_terrain_stash", true, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether a planet layer's navmesh is built only round players and awake NPCs, a slice an update. Off, every
+    /// changed chunk of the world is built in the next update, as upstream does.
+    /// </summary>
+    public static readonly CVarDef<bool> PathfindingLazy =
+        CVarDef.Create("wf.planet_pathfinding_lazy", true, CVar.SERVERONLY);
+
+    /// <summary>Tiles round a player or an awake NPC within which a planet layer's navmesh is built.</summary>
+    public static readonly CVarDef<float> PathfindingRange =
+        CVarDef.Create("wf.planet_pathfinding_range", 96f, CVar.SERVERONLY);
+
+    /// <summary>Navmesh chunks of one planet layer built in one pathfinding update, nearest first.</summary>
+    public static readonly CVarDef<int> PathfindingChunkBudget =
+        CVarDef.Create("wf.planet_pathfinding_chunk_budget", 96, CVar.SERVERONLY);
 }
