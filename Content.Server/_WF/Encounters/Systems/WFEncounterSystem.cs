@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._WF.Administration.Systems;
+using Content.Server._WF.BattleLoad;
 using Content.Server._WF.Drydock;
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.NpcCrew;
@@ -63,6 +64,7 @@ public sealed partial class WFEncounterSystem : EntitySystem
     [Dependency] private NPCRetaliationSystem _retaliation = default!;
     [Dependency] private NpcFactionSystem _factions = default!;
     [Dependency] private WFPirateRetrofitSystem _retrofit = default!;
+    [Dependency] private WFBattleHeatSystem _battleHeat = default!;
 
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
 
@@ -323,6 +325,13 @@ public sealed partial class WFEncounterSystem : EntitySystem
         encounter = default;
         if (origin.MapId == MapId.Nullspace || prototype.Ships.Count == 0 || !_mapSystem.TryGetMap(origin.MapId, out var map))
             return false;
+
+        // Nothing new flies into a big fight on its own; an admin's or a pinned one still does.
+        if (spawner == null && !pinned && _battleHeat.IsHot(origin, prototype.StartRadius))
+        {
+            Log.Info($"Encounter {prototype.ID} not started: a battle is raging near {origin}.");
+            return false;
+        }
 
         // On the map itself: parented to a grid under the origin, it would go with that grid and orphan its ships.
         // Out of grid traversal too, or a ship loaded on top of it would pick it up as it flies off.

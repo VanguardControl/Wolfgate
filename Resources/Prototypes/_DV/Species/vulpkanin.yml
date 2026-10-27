@@ -51,7 +51,7 @@
       required: false
     Tail:
       points: 1
-      required: true
+      required: false # WOLFGATE(Species): tails are optional so players can go without one
       defaultMarkings: [ FoxTail ] # WOLFGATE(Species): was VulpTail; Starlight's tail for Starlight's body
     Head:
       points: 4 # WOLFGATE(Species): was 3, more marking slots

@@ -198,8 +198,10 @@ public sealed partial class CEZLevelsSystem
                 if (prevDelta * curDelta > 0f)
                     continue;
 
-                if (!TryGetGridSetAabb(a.Primary, out var setA, out var aabbA) ||
-                    !TryGetGridSetAabb(b.Primary, out var setB, out var aabbB) ||
+                // WOLFGATE(BattleLoad) START: each set is collected once per tick, not once per pair
+                if (!WFTryGetCachedGridSetAabb(a.Primary, out var setA, out var aabbA) ||
+                    !WFTryGetCachedGridSetAabb(b.Primary, out var setB, out var aabbB) ||
+                // WOLFGATE END
                     !aabbA.Intersects(aabbB))
                 {
                     continue;
