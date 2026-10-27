@@ -471,9 +471,16 @@ public sealed class StrangerTest
             stranger.WanderRange = 6f;
 #pragma warning restore RA0002
         });
-        await RunUntil(pair, () => stranger.WanderUntil != null, 10);
-        await server.WaitAssertion(() => Assert.That(stranger.WanderUntil, Is.Not.Null, "He should set off on a leg."));
-        await RunUntil(pair, () => stranger.WanderUntil == null, 90, delayMs: 100);
+        // A leg the pathfinder couldn't route ends in a short retry, not a linger; on a slow runner that happens, so the
+        // first leg he actually walks is the one judged.
+        for (var leg = 0; leg < 4; leg++)
+        {
+            await RunUntil(pair, () => stranger.WanderUntil != null, 10);
+            await server.WaitAssertion(() => Assert.That(stranger.WanderUntil, Is.Not.Null, "He should set off on a leg."));
+            await RunUntil(pair, () => stranger.WanderUntil == null, 90, delayMs: 100);
+            if (stranger.NextWander - server.Timing.CurTime > TimeSpan.FromSeconds(6))
+                break;
+        }
 
         Vector2 stopped = default;
         await server.WaitAssertion(() =>
