@@ -23,16 +23,14 @@ public sealed partial class WFShipAccessServerSystem
         UpdateAiKey(ent);
     }
 
-    /// <summary>An anchored core carries its grid's AI key; a loose one carries none.</summary>
+    /// <summary>An anchored core carries its grid's AI key in the key storage its prototype gives it; a loose one carries none.</summary>
     private void UpdateAiKey(Entity<StationAiCoreComponent> ent)
     {
-        var xform = Transform(ent);
-        StationRecordKey? key = xform.Anchored && xform.GridUid is { } grid ? WFShipAiAccessSystem.AiKey(grid) : null;
-
-        if (key == null && !HasComp<StationRecordKeyStorageComponent>(ent))
+        if (!TryComp<StationRecordKeyStorageComponent>(ent, out var storage))
             return;
 
-        var storage = EnsureComp<StationRecordKeyStorageComponent>(ent);
+        var xform = Transform(ent);
+        StationRecordKey? key = xform.Anchored && xform.GridUid is { } grid ? WFShipAiAccessSystem.AiKey(grid) : null;
         if (storage.Key.Equals(key))
             return;
 

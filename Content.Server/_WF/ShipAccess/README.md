@@ -216,5 +216,6 @@ and `ShipAccessKeypadWindow` (the keypad). The `WFShipLocked` access level is in
   - the access tab and door prediction read it on the client
 - [`Content.Shared/Access/Systems/AccessReaderSystem.cs`](../../../Content.Shared/Access/Systems/AccessReaderSystem.cs): dirty the reader whose lists were cleared (a door's electronics), or clients keep predicting its old access
 - [`Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/admin_ghost.yml): admin ghosts open locked ship doors, as they open every other airlock
+- [`Resources/Prototypes/Entities/Mobs/Player/silicon.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/silicon.yml): holds the ship key of the grid the core is anchored on
 
 <!-- WOLFGATE-GENERATED END -->
