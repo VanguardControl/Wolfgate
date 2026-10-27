@@ -1,0 +1,85 @@
+# Ported from Starlight (_Starlight/Reagents/xenobiology.yml, _Starlight/Recipes/Reactions/xenobiology.yml). The
+# unstable and imperfect mutation toxins are left out: Wolfgate has no species change effect.
+
+- type: reagent
+  id: OrangeSmokeCauser
+  name: reagent-name-orange-smoke-causer
+  group: Special
+  desc: reagent-desc-orange-smoke-causer
+  physicalDesc: reagent-physical-desc-powdery
+  flavor: metallic
+  color: "#F07A26FF"
+
+- type: reagent
+  id: BlueFoamCauser
+  name: reagent-name-blue-foam-causer
+  group: Special
+  desc: reagent-desc-blue-foam-causer
+  physicalDesc: reagent-physical-desc-powdery
+  flavor: metallic
+  color: "#34CFEBFF"
+
+- type: reagent
+  id: RegenerativeJelly
+  name: reagent-name-regenerative-jelly
+  group: Medicine
+  desc: reagent-desc-regenerative-jelly
+  physicalDesc: reagent-physical-desc-soothing
+  flavor: medicine
+  color: "#a579b5"
+  metabolisms:
+    Medicine:
+      effects:
+      - !type:EvenHealthChange
+        damage:
+          Burn: -2
+          Toxin: -2
+          Airloss: -2
+          Brute: -2
+
+- type: reagent
+  id: AdvancedMutationToxin
+  name: reagent-name-advanced-mutation-toxin
+  group: Toxins
+  desc: reagent-desc-advanced-mutation-toxin
+  physicalDesc: reagent-physical-desc-soothing
+  flavor: medicine
+  color: "#50d977"
+  metabolisms:
+    Poison:
+      effects:
+      - !type:MutateIntoEntity
+        entity: XenobiologySlimeGray
+        conditions:
+        - !type:ReagentThreshold
+          min: 5
+
+- type: reaction
+  id: OrangeSmoke
+  priority: 10
+  impact: High
+  conserveEnergy: false
+  reactants:
+    OrangeSmokeCauser:
+      amount: 1
+  effects:
+  - !type:AreaReactionEffect
+    duration: 10
+    prototypeId: Smoke
+    sound:
+      path: /Audio/Effects/smoke.ogg
+
+- type: reaction
+  id: BlueFoam
+  priority: 10
+  impact: High
+  conserveEnergy: false
+  reactants:
+    BlueFoamCauser:
+      amount: 1
+  effects:
+  - !type:AreaReactionEffect
+    duration: 10
+    prototypeId: Foam
+    sound:
+      path: /Audio/Effects/extinguish.ogg

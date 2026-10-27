@@ -1,0 +1,119 @@
+# Ported from Starlight (xenobiology_console.yml, slime_processor.yml). The console's eye is Wolfgate's: it spawns
+# at the console and stays within its leash instead of following a camera network.
+
+- type: entity
+  parent: BaseComputer
+  id: XenobiologyConsole
+  name: xenobiology console
+  description: Sends out a remote eye to move slimes, drop monkeys from stored cubes and apply stored potions. Feed it monkey cubes and mutation or stabilizer potions.
+  components:
+  - type: XenobiologyConsole
+    monkeyTag: WFSlimeFood
+    monkeyCubeTag: MonkeyCube
+    monkeyProtoId: MobMonkey
+    eyeProto: WFXenobiologyConsoleEye
+    actions:
+    - WFActionXenobiologyConsoleExit
+    - WFActionXenobiologyConsoleScanSlime
+    - WFActionXenobiologyConsoleGrabSlime
+    - WFActionXenobiologyConsolePlaceSlime
+    - WFActionXenobiologyConsolePlaceMonkey
+    - WFActionXenobiologyConsoleRecycleMonkey
+    - WFActionXenobiologyConsoleMutationPotion
+    - WFActionXenobiologyConsoleStabilizerPotion
+  - type: Computer
+    board: XenobiologyConsoleCircuitboard
+  - type: Sprite
+    layers:
+    - map: [ "computerLayerBody" ]
+      state: computer
+    - map: [ "computerLayerKeyboard" ]
+      state: generic_keyboard
+    - map: [ "computerLayerScreen" ]
+      sprite: _WF/Xenobiology/slime_computer.rsi
+      state: slime
+    - map: [ "computerLayerKeys" ]
+      sprite: _WF/Xenobiology/slime_computer.rsi
+      state: slime_key
+    - map: [ "enum.WiresVisualLayers.MaintenancePanel" ]
+      state: generic_panel_open
+  - type: PointLight
+    radius: 2.5
+    energy: 1.5
+    color: "#c24fa1"
+  - type: ContainerContainer
+    containers:
+      slimes: !type:ContainerSlot
+      board: !type:Container
+
+- type: entity
+  parent:
+  - Incorporeal
+  - BaseMob
+  id: WFXenobiologyConsoleEye
+  name: xenobiology console eye
+  description: The eye, or perhaps the claw, of a xenobiology console.
+  categories: [ HideSpawnMenu, DoNotMap ]
+  components:
+  - type: Eye
+    pvsScale: 1.5
+  - type: Sprite
+    sprite: Mobs/Silicon/station_ai.rsi
+    layers:
+    - state: ai_camera
+      shader: unshaded
+      color: "#c24fa1"
+  - type: NoFTL
+  - type: MovementSpeedModifier
+    baseWalkSpeed: 4
+    baseSprintSpeed: 6
+
+- type: entity
+  parent: [ BaseMachinePowered, ConstructibleMachine ]
+  id: SlimeProcessor
+  name: slime processor
+  description: Pulls in dead slimes next to it and turns them into extracts. Try freezing them first!
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Sprite
+    sprite: _WF/Xenobiology/slime_processor.rsi
+    state: slime_processor_icon
+    snapCardinals: true
+  - type: SlimeProcessor
+    processingTime: 5s
+    yieldMultiplier: 4
+    slimeAcquireCooldown: 1s
+  - type: CollectingSlimeProcessor
+  - type: Machine
+    board: SlimeProcessorMachineCircuitboard
+  - type: ContainerContainer
+    containers:
+      slimes: !type:Container
+      machine_board: !type:Container
+      machine_parts: !type:Container
+
+- type: entity
+  parent: BaseComputerCircuitboard
+  id: XenobiologyConsoleCircuitboard
+  name: xenobiology console board
+  description: A computer printed circuit board for a xenobiology console.
+  components:
+  - type: Sprite
+    state: cpu_science
+  - type: ComputerBoard
+    prototype: XenobiologyConsole
+
+- type: entity
+  parent: BaseMachineCircuitboard
+  id: SlimeProcessorMachineCircuitboard
+  name: slime processor machine board
+  description: A machine printed circuit board for a slime processor.
+  components:
+  - type: Sprite
+    state: science
+  - type: MachineBoard
+    prototype: SlimeProcessor
+    requirements:
+      MatterBin: 2
+      Manipulator: 1

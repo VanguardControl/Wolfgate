@@ -1,0 +1,135 @@
+# Ported from Starlight (_Starlight/Entities/Objects/Specific/Xenobiology/potions.yml).
+
+- type: entity
+  parent: BaseItem
+  id: BaseSlimePotion
+  abstract: true
+  components:
+  - type: Sprite
+    sprite: _WF/Xenobiology/slime_potion.rsi
+    state: slime_potion
+  - type: Item
+    size: Small
+  - type: StaticPrice
+    price: 50
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeSteroidPotion
+  name: slime steroid potion
+  description: Use on a slime to get one more extract from it when it is processed.
+  components:
+  - type: SlimeSteroidPotion
+  - type: Sprite
+    color: "#501466ff"
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeStabilizerPotion
+  name: slime stabilizer potion
+  description: Use on a slime to lower its chance of mutating.
+  components:
+  - type: SlimeMutationPotion
+    amount: -0.15
+  - type: Sprite
+    color: "#34cfebff"
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeMutationPotion
+  name: slime mutation potion
+  description: Use on a slime to raise its chance of mutating.
+  components:
+  - type: SlimeMutationPotion
+    amount: 0.12
+  - type: Sprite
+    color: "#fc4e4eff"
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeFireproofPotion
+  name: slime fireproof potion
+  description: Use on clothing to make it fireproof and heatproof. Three uses.
+  components:
+  - type: SlimeFireproofPotion
+  - type: Sprite
+    color: "#132b6eff"
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeBluespaceRadioPotion
+  name: slime bluespace radio potion
+  description: Use on a creature that can talk to let it use the common radio without a headset.
+  components:
+  - type: SlimeBluespaceRadioPotion
+    channels:
+    - Common
+  - type: Sprite
+    color: "#ffffffff"
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeExtractEnhancerPotion
+  name: slime extract enhancer potion
+  description: Use on a slime extract to give it one more reaction.
+  components:
+  - type: SlimeExtractEnhancerPotion
+  - type: Sprite
+    color: "#5998b3ff"
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeSpeedPotion
+  name: slime speed potion
+  description: Use on clothing to halve how much it slows you down.
+  components:
+  - type: SlimeSpeedPotion
+  - type: Sprite
+    color: "#fc4e4eff"
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeGenderChangePotion
+  name: slime gender change potion
+  description: Pick a gender with a verb, then use it on someone to change theirs.
+  components:
+  - type: SlimeGenderChangePotion
+  - type: Sprite
+    color: "#fc86cfff"
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeNameChangePotion
+  name: slime name change potion
+  description: Write a name into it, then use it on someone to rename them.
+  components:
+  - type: SlimeNameChangePotion
+  - type: ActivatableUI
+    key: enum.SlimeNameChangePotionUiKey.Key
+    inHandsOnly: true
+  - type: UserInterface
+    interfaces:
+      enum.SlimeNameChangePotionUiKey.Key:
+        type: SlimeNameChangePotionBoundUserInterface
+  - type: Sprite
+    color: "#ff94d1ff"
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeSentiencePotion
+  name: slime sentience potion
+  description: Use on a mindless creature to wake it up.
+  components:
+  - type: SlimeSentiencePotion
+  - type: Sprite
+    color: "#ff94d1ff"
+
+- type: entity
+  parent: BaseSlimePotion
+  id: SlimeMindTransferencePotion
+  name: slime mind transference potion
+  description: Use on a mindless body to move your mind into it.
+  components:
+  - type: SlimeMindTransferencePotion
+  - type: Sprite
+    color: "#300636ff"

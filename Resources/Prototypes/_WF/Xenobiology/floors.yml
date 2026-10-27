@@ -1,0 +1,156 @@
+# Ported from Starlight (_Starlight/Entities/Objects/Specific/Xenobiology/floors.yml).
+# Pads laid on top of a floor: bluespace speeds walkers up, sepia slows them down.
+
+- type: entity
+  id: BaseXenobiologyFloorPad
+  abstract: true
+  placement:
+    mode: SnapgridCenter
+  components:
+  - type: Clickable
+  - type: Sprite
+    drawdepth: FloorTiles
+  - type: Transform
+    anchored: true
+  - type: Tag
+    tags:
+    - Catwalk
+  - type: Damageable
+    damageContainer: Inorganic
+    damageModifierSet: Metallic
+  - type: Physics
+    bodyType: Static
+  - type: Fixtures
+    fixtures:
+      fix1:
+        hard: false
+        density: 1
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.5,-0.5,0.5,0.5"
+        layer:
+        - MidImpassable
+
+- type: entity
+  parent: BaseXenobiologyFloorPad
+  id: FloorBluespaceEntity
+  name: bluespace floor
+  description: Walking on it feels like skipping ahead.
+  components:
+  - type: Sprite
+    sprite: _WF/Xenobiology/bluespace_tile.rsi
+    state: bluespace
+  - type: SpeedModifierContacts
+    walkSpeedModifier: 2.0
+    sprintSpeedModifier: 2.0
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 10
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          FloorTileItemBluespace1:
+            min: 1
+            max: 1
+
+- type: entity
+  parent: BaseXenobiologyFloorPad
+  id: FloorSepiaXenobiologyEntity
+  name: sepia floor
+  description: Time drags on it.
+  components:
+  - type: Sprite
+    sprite: _WF/Xenobiology/sepia_tile.rsi
+    state: sepia
+  - type: SpeedModifierContacts
+    walkSpeedModifier: 0.5
+    sprintSpeedModifier: 0.5
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 10
+      behaviors:
+      - !type:DoActsBehavior
+        acts: [ "Destruction" ]
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          FloorTileItemSepiaXenobiology1:
+            min: 1
+            max: 1
+
+- type: entity
+  name: bluespace tile
+  parent: FloorTileItemBase
+  id: FloorTileItemBluespace
+  components:
+  - type: Sprite
+    sprite: _WF/Xenobiology/bluespace_tile.rsi
+    state: bluespace
+  - type: Stack
+    stackType: FloorTileBluespace
+  - type: SpawnAfterInteract
+    prototype: FloorBluespaceEntity
+    removeOnInteract: true
+
+- type: stack
+  id: FloorTileBluespace
+  name: bluespace tile
+  spawn: FloorTileItemBluespace
+  maxCount: 30
+
+- type: entity
+  parent: FloorTileItemBluespace
+  id: FloorTileItemBluespace1
+  suffix: Single
+  components:
+  - type: Stack
+    count: 1
+
+- type: entity
+  parent: FloorTileItemBluespace
+  id: FloorTileItemBluespace25
+  suffix: 25
+  components:
+  - type: Stack
+    count: 25
+
+- type: entity
+  name: sepia tile
+  parent: FloorTileItemBase
+  id: FloorTileItemSepiaXenobiology
+  components:
+  - type: Sprite
+    sprite: _WF/Xenobiology/sepia_tile.rsi
+    state: sepia
+  - type: Stack
+    stackType: FloorTileSepiaXenobiology
+  - type: SpawnAfterInteract
+    prototype: FloorSepiaXenobiologyEntity
+    removeOnInteract: true
+
+- type: stack
+  id: FloorTileSepiaXenobiology
+  name: sepia tile
+  spawn: FloorTileItemSepiaXenobiology
+  maxCount: 30
+
+- type: entity
+  parent: FloorTileItemSepiaXenobiology
+  id: FloorTileItemSepiaXenobiology1
+  suffix: Single
+  components:
+  - type: Stack
+    count: 1
+
+- type: entity
+  parent: FloorTileItemSepiaXenobiology
+  id: FloorTileItemSepiaXenobiology25
+  suffix: 25
+  components:
+  - type: Stack
+    count: 25

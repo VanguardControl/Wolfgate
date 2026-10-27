@@ -1,0 +1,83 @@
+# How players get into xenobiology: the research tech unlocks the machine boards and tools, and cargo sells the
+# first slimes.
+
+- type: technology
+  id: WFXenobiology
+  name: research-technology-wf-xenobiology
+  entityIcon: XenobiologySlimeGray
+  discipline: Experimental
+  tier: 1
+  cost: 15000
+  recipeUnlocks:
+  - XenobiologyConsoleCircuitboard
+  - SlimeProcessorMachineCircuitboard
+  - HandheldSlimeScanner
+  - SlimeExtractBag
+  technologyPrerequisites:
+  - BasicParts
+  position: 2, -5
+
+- type: latheRecipe
+  parent: BaseCircuitboardRecipe
+  id: XenobiologyConsoleCircuitboard
+  result: XenobiologyConsoleCircuitboard
+
+- type: latheRecipe
+  parent: BaseCircuitboardRecipe
+  id: SlimeProcessorMachineCircuitboard
+  result: SlimeProcessorMachineCircuitboard
+
+- type: latheRecipe
+  id: HandheldSlimeScanner
+  result: HandheldSlimeScanner
+  categories:
+  - Tools
+  completetime: 4
+  materials:
+    Glass: 500
+    Steel: 500
+
+- type: latheRecipe
+  id: SlimeExtractBag
+  result: SlimeExtractBag
+  categories:
+  - Tools
+  completetime: 4
+  materials:
+    Cloth: 200
+    Plastic: 200
+
+- type: latheRecipePack
+  id: WFXenobiologyBoards
+  recipes:
+  - XenobiologyConsoleCircuitboard
+  - SlimeProcessorMachineCircuitboard
+
+- type: latheRecipePack
+  id: WFXenobiologyTools
+  recipes:
+  - HandheldSlimeScanner
+  - SlimeExtractBag
+
+- type: entity
+  id: WFCrateXenobiologyStarter
+  parent: CrateScience
+  name: xenobiology starter crate
+  description: Two gray slimes, a slime scanner and an extract bag. Keep the slimes away from the monkeys until you're ready.
+  components:
+  - type: StorageFill
+    contents:
+    - id: XenobiologySlimeGray
+      amount: 2
+    - id: HandheldSlimeScanner
+    - id: SlimeExtractBag
+
+- type: cargoProduct
+  id: WFXenobiologyStarter
+  icon:
+    sprite: _WF/Xenobiology/slimes.rsi
+    state: base1
+  product: WFCrateXenobiologyStarter
+  cost: 3000
+  category: cargoproduct-category-name-science
+  group: market

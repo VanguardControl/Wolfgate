@@ -1,0 +1,45 @@
+# Ported from Starlight (_Starlight/Entities/Objects/Specific/Xenobiology/tools.yml).
+
+- type: entity
+  name: slime extract bag
+  id: SlimeExtractBag
+  parent: BaseStorageItem
+  description: A bag for greedy xenobiologists to store unreasonable amounts of extracts.
+  components:
+  - type: Sprite
+    sprite: Objects/Specific/Hydroponics/Equipment/plant_bag.rsi
+    state: icon
+    color: "#c9a0dc"
+  - type: Item
+    storedRotation: -90
+  - type: Clothing
+    quickEquip: false
+    slots:
+    - belt
+  - type: Storage
+    grid:
+    - 0,0,10,10
+    maxItemSize: Tiny
+    quickInsert: true
+    areaInsert: true
+    whitelist:
+      components:
+      - SlimeExtract
+  - type: Dumpable
+  - type: StaticPrice
+    price: 40
+
+- type: entity
+  name: handheld slime scanner
+  id: HandheldSlimeScanner
+  parent: BaseItem
+  description: A hand-held scanner that reads a slime's hunger and mutation chance.
+  components:
+  - type: Sprite
+    sprite: _WF/Xenobiology/slime_scanner.rsi
+    state: icon
+  - type: Item
+    size: Small
+  - type: SlimeScanner
+  - type: StaticPrice
+    price: 40

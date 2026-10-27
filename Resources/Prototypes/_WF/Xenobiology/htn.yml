@@ -1,0 +1,66 @@
+# Ported from Starlight (_Starlight/NPCs/xeno_slimes.yml).
+
+# Well fed slimes wait a moment and split; hungry ones go for nearby monkeys; otherwise they idle.
+- type: htnCompound
+  id: WFSlimeMainCompound
+  branches:
+  - tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:RandomOperator
+        targetKey: IdleTime
+        minKey: MinimumIdleTime
+        maxKey: MaximumIdleTime
+      preconditions:
+      - !type:SlimeNotHungryPrecondition
+        minHungerState: Okay
+    - !type:HTNPrimitiveTask
+      operator: !type:WaitOperator
+        key: IdleTime
+      preconditions:
+      - !type:KeyExistsPrecondition
+        key: IdleTime
+    - !type:HTNPrimitiveTask
+      operator: !type:SlimeSplitOperator
+        splitAmount: 4
+  - tasks:
+    - !type:HTNCompoundTask
+      task: WFSlimeEatCompound
+  - tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:SlimeFindEdibleTargetOperator
+        targetFoodTag: WFSlimeFood
+  - tasks:
+    - !type:HTNCompoundTask
+      task: IdleCompound
+
+- type: htnCompound
+  id: WFSlimeEatCompound
+  branches:
+  - tasks:
+    - !type:HTNPrimitiveTask
+      operator: !type:SlimeTargetKnownEdibleTargetOperator
+        targetKey: EatTarget
+        targetMoveKey: TargetCoordinates
+      preconditions:
+      - !type:HungryPrecondition
+        minHungerState: Okay
+    - !type:HTNPrimitiveTask
+      operator: !type:SetFloatOperator
+        targetKey: MovementRange
+        amount: 0.5
+    - !type:HTNPrimitiveTask
+      operator: !type:MoveToOperator
+        pathfindInPlanning: false
+    - !type:HTNPrimitiveTask
+      operator: !type:SlimeEatOperator
+        targetKey: EatTarget
+    - !type:HTNPrimitiveTask
+      operator: !type:SetFloatOperator
+        targetKey: IdleTime
+        amount: 1
+    - !type:HTNPrimitiveTask
+      operator: !type:WaitOperator
+        key: IdleTime
+      preconditions:
+      - !type:KeyExistsPrecondition
+        key: IdleTime

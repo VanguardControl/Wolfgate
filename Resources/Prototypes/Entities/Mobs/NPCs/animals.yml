@@ -1514,6 +1514,7 @@
     - DoorBumpOpener
     - AnomalyHost
     - CanPilot # Mono
+    - WFSlimeFood # WOLFGATE(Xenobiology): xenobiology slimes and consoles feed on monkeys and kobolds
   - type: Reactive
     groups:
       Flammable: [ Touch ]

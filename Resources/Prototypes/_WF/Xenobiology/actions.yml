@@ -1,0 +1,114 @@
+# Ported from Starlight (_Starlight/Actions/xenobiology.yml).
+
+- type: entity
+  id: WFBaseActionXenobiologyConsole
+  abstract: true
+  components:
+  - type: InstantAction
+    itemIconStyle: BigAction
+    checkCanInteract: false
+    checkConsciousness: false
+
+- type: entity
+  parent: WFBaseActionXenobiologyConsole
+  id: WFActionXenobiologyConsoleExit
+  name: Close Console
+  description: Stop looking through the xenobiology console.
+  components:
+  - type: InstantAction
+    priority: -12
+    icon:
+      sprite: Interface/Actions/actions_ai.rsi
+      state: ai_core
+    event: !type:XenobioConsoleExitEvent
+
+- type: entity
+  parent: WFBaseActionXenobiologyConsole
+  id: WFActionXenobiologyConsoleScanSlime
+  name: Scan Slime
+  description: Read the slime under the eye.
+  components:
+  - type: InstantAction
+    priority: -11
+    icon:
+      sprite: _WF/Xenobiology/slime_scanner.rsi
+      state: icon
+    event: !type:XenobioConsoleScanSlimeEvent
+
+- type: entity
+  parent: WFBaseActionXenobiologyConsole
+  id: WFActionXenobiologyConsoleGrabSlime
+  name: Grab Slime
+  description: Store the slime under the eye in the console. It holds one.
+  components:
+  - type: InstantAction
+    priority: -10
+    icon:
+      sprite: _WF/Xenobiology/slimes.rsi
+      state: base1
+    event: !type:XenobioConsoleGrabSlimeEvent
+
+- type: entity
+  parent: WFBaseActionXenobiologyConsole
+  id: WFActionXenobiologyConsolePlaceSlime
+  name: Place Slime
+  description: Put the stored slime down under the eye.
+  components:
+  - type: InstantAction
+    priority: -9
+    icon:
+      sprite: _WF/Xenobiology/slimes.rsi
+      state: base2
+    event: !type:XenobioConsolePlaceSlimeEvent
+
+- type: entity
+  parent: WFBaseActionXenobiologyConsole
+  id: WFActionXenobiologyConsolePlaceMonkey
+  name: Place Monkey
+  description: Turn a stored monkey cube into a monkey under the eye.
+  components:
+  - type: InstantAction
+    priority: -8
+    icon:
+      sprite: Objects/Misc/monkeycube.rsi
+      state: cube
+    event: !type:XenobioConsolePlaceMonkeyEvent
+
+- type: entity
+  parent: WFBaseActionXenobiologyConsole
+  id: WFActionXenobiologyConsoleRecycleMonkey
+  name: Recycle Monkey
+  description: Turn an eaten monkey under the eye back into half a monkey cube.
+  components:
+  - type: InstantAction
+    priority: -7
+    icon:
+      sprite: Interface/Actions/actions_mecha.rsi
+      state: mech_cycle_equip_on
+    event: !type:XenobioConsoleRecycleMonkeyEvent
+
+- type: entity
+  parent: WFBaseActionXenobiologyConsole
+  id: WFActionXenobiologyConsoleMutationPotion
+  name: Apply Mutation Potion
+  description: Raise the mutation chance of the slime under the eye with a stored mutation potion.
+  components:
+  - type: InstantAction
+    priority: -6
+    icon:
+      sprite: Interface/Actions/actions_mecha.rsi
+      state: mech_overload_off
+    event: !type:XenobioConsoleMutationPotionEvent
+
+- type: entity
+  parent: WFBaseActionXenobiologyConsole
+  id: WFActionXenobiologyConsoleStabilizerPotion
+  name: Apply Stabilizer Potion
+  description: Lower the mutation chance of the slime under the eye with a stored stabilizer potion.
+  components:
+  - type: InstantAction
+    priority: -5
+    icon:
+      sprite: Interface/Actions/actions_mecha.rsi
+      state: mech_defense_mode_off
+    event: !type:XenobioConsoleStabilizerPotionEvent
