@@ -342,6 +342,15 @@
     layers:
     - state: lvcluster_1
       map: ["vine"]
+  # The parent picks its look on `base` and `glow` layers this sprite doesn't have.
+  - type: RandomSprite
+    available:
+    - vine:
+        lvcluster_1: ""
+    - vine:
+        lvcluster_2: ""
+    - vine:
+        lvcluster_3: ""
   - type: Appearance
   - type: GenericVisualizer
     visuals:

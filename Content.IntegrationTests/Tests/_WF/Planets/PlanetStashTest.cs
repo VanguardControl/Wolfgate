@@ -115,8 +115,13 @@ public sealed class PlanetStashTest
             });
             Assert.That(occupied, Is.Not.Null, "No solid biome entity near the viewer was put away to stand in place of.");
 
-            // Back again: the same comes back, round whoever stands in the way.
-            await server.WaitPost(() => xforms.SetCoordinates(viewer, new EntityCoordinates(ground, Here)));
+            // Back again: the same comes back, round whoever stands in the way. The occupant is set back on its tile
+            // first, as the trees round it can shove it off while it waits.
+            await server.WaitPost(() =>
+            {
+                xforms.SetCoordinates(occupant, new EntityCoordinates(ground, (Vector2) occupied!.Value + new Vector2(0.5f)));
+                xforms.SetCoordinates(viewer, new EntityCoordinates(ground, Here));
+            });
             await pair.RunTicksSync(10);
             var second = await Snapshot(pair, ground, chunk);
             Assert.That(second.Except(first), Is.Empty, "Something new came back.");
@@ -124,7 +129,8 @@ public sealed class PlanetStashTest
 
             await server.WaitPost(() =>
             {
-                Assert.That(Solid(occupied!.Value), Is.False, "Someone standing on a stashed tile was walled in.");
+                var standing = maps.LocalToTile(ground, entMan.GetComponent<MapGridComponent>(ground), entMan.GetComponent<TransformComponent>(occupant).Coordinates);
+                Assert.That(Solid(standing), Is.False, "Someone standing on a stashed tile was walled in.");
                 Assert.That(entMan.EntityExists(occupant), Is.True);
             });
         }

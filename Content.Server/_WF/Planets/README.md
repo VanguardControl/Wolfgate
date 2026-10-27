@@ -693,7 +693,9 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs`](../../NPC/Pathfinding/PathfindingSystem.Grid.cs)
   - a planet layer builds only the dirty chunks near someone, a slice an update
   - what wasn't built this update stays dirty
-- [`Content.Server/Parallax/BiomeSystem.ChunkLoader.cs`](../../Parallax/BiomeSystem.ChunkLoader.cs): a planet's rock spawner is rolled here from its tile, so the rock unloads and comes back the same
+- [`Content.Server/Parallax/BiomeSystem.ChunkLoader.cs`](../../Parallax/BiomeSystem.ChunkLoader.cs)
+  - nobody standing in a chunk as it loads is walled in
+  - a planet's rock spawner is rolled here from its tile, so the rock unloads and comes back the same
 - [`Content.Server/Parallax/BiomeSystem.ConfigManager.cs`](../../Parallax/BiomeSystem.ConfigManager.cs): the loader's spawner rolls follow reloaded entity prototypes
 - [`Content.Server/Parallax/BiomeSystem.cs`](../../Parallax/BiomeSystem.cs)
   - a chunk's own entities need no bookkeeping as its unload deletes them

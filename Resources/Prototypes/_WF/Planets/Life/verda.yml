@@ -331,6 +331,12 @@
       map: [ "plant" ]
       color: "#9dff8a"
       shader: unshaded
+  # The parent picks its look on a `base` layer this sprite doesn't have.
+  - type: RandomSprite
+    available:
+    - plant:
+        chilly_pepper1: ""
+        chilly_pepper2: ""
   - type: PointLight
     radius: 2
     energy: 1
