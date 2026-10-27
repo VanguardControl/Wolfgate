@@ -4,7 +4,7 @@
 # Weeds that came with the ground. They never spread, grow level 0 so any hive's weeds replace them, and slow outsiders
 # less than a hive's own would, so the region can be crossed on foot.
 - type: entity
-  parent: XenoWeeds
+  parent: WFXenoWeedsBase
   id: WFXenoWeedsWild
   components:
   - type: XenoWeeds
@@ -12,8 +12,6 @@
     level: 0
     speedMultiplierOutsider: 0.7
     speedMultiplierOutsiderArmor: 0.75
-  - type: XenoWeedsSpreading
-    spreadDelay: 1000000000
 
 # An egg that was never planted by anyone: grown, dormant, and opens for whatever walks up to it, as any egg does.
 - type: entity

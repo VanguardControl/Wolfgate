@@ -17,6 +17,8 @@ public sealed class WFVehicleElectricalSystem : EntitySystem
     private readonly Dictionary<EntityUid, FeedState> _feeds = new();
     private readonly HashSet<EntityUid> _connected = new();
     private readonly List<EntityUid> _disconnected = new();
+    private readonly List<(EntityUid, ApcPowerReceiverComponent)> _cabinReceivers = new();
+    private EntityQuery<ApcPowerReceiverComponent> _receiverQuery;
 
     private sealed class FeedState(bool needsPower, bool disabled)
     {
@@ -25,6 +27,12 @@ public sealed class WFVehicleElectricalSystem : EntitySystem
         public bool Offline;
     }
     private float _elapsed;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        _receiverQuery = GetEntityQuery<ApcPowerReceiverComponent>();
+    }
 
     public override void Update(float frameTime)
     {
@@ -35,28 +43,53 @@ public sealed class WFVehicleElectricalSystem : EntitySystem
         _elapsed = 0f;
         _loads.Clear();
         _connected.Clear();
-        var receivers = EntityQueryEnumerator<ApcPowerReceiverComponent>();
-        while (receivers.MoveNext(out var uid, out var receiver))
+        // Only cabin maps: walking every receiver in the world cost the most where there are no vehicles at all.
+        var cabins = EntityQueryEnumerator<VehicleInteriorLinkComponent>();
+        while (cabins.MoveNext(out var map, out var link))
         {
-            if (Transform(uid).MapUid is not { } map ||
-                !TryComp(map, out VehicleInteriorLinkComponent? link) ||
-                !TryComp(link.Vehicle, out WFVehicleEngineComponent? engine))
+            if (!TryComp(link.Vehicle, out WFVehicleEngineComponent? engine))
                 continue;
 
-            _connected.Add(uid);
-            if (!_feeds.TryGetValue(uid, out var feed))
-                _feeds.Add(uid, feed = new FeedState(receiver.NeedsPower, receiver.PowerDisabled));
-            if (!feed.Offline)
-                feed.Disabled = receiver.PowerDisabled;
-            _power.SetNeedsPower(uid, false, receiver);
-            _power.SetPowerDisabled(uid, !engine.Powered || feed.Disabled, receiver);
-            feed.Offline = !engine.Powered;
-
-            if (!receiver.PowerDisabled)
-                _loads[link.Vehicle] = _loads.GetValueOrDefault(link.Vehicle) + MathF.Max(0f, receiver.Load);
+            _cabinReceivers.Clear();
+            CollectReceivers(map);
+            foreach (var (uid, receiver) in _cabinReceivers)
+                Feed(uid, receiver, link, engine);
         }
 
-        // Portable consumers return to their original supply when taken out of the cabin.
+        UpdateDisconnected();
+        UpdateEngines(elapsed);
+    }
+
+    /// <summary>Every power receiver under an entity in the transform tree, contained ones included.</summary>
+    private void CollectReceivers(EntityUid parent)
+    {
+        var children = Transform(parent).ChildEnumerator;
+        while (children.MoveNext(out var child))
+        {
+            if (_receiverQuery.TryComp(child, out var receiver))
+                _cabinReceivers.Add((child, receiver));
+            CollectReceivers(child);
+        }
+    }
+
+    private void Feed(EntityUid uid, ApcPowerReceiverComponent receiver, VehicleInteriorLinkComponent link, WFVehicleEngineComponent engine)
+    {
+        _connected.Add(uid);
+        if (!_feeds.TryGetValue(uid, out var feed))
+            _feeds.Add(uid, feed = new FeedState(receiver.NeedsPower, receiver.PowerDisabled));
+        if (!feed.Offline)
+            feed.Disabled = receiver.PowerDisabled;
+        _power.SetNeedsPower(uid, false, receiver);
+        _power.SetPowerDisabled(uid, !engine.Powered || feed.Disabled, receiver);
+        feed.Offline = !engine.Powered;
+
+        if (!receiver.PowerDisabled)
+            _loads[link.Vehicle] = _loads.GetValueOrDefault(link.Vehicle) + MathF.Max(0f, receiver.Load);
+    }
+
+    /// <summary>Portable consumers return to their original supply when taken out of the cabin.</summary>
+    private void UpdateDisconnected()
+    {
         _disconnected.Clear();
         foreach (var (uid, feed) in _feeds)
         {
@@ -72,7 +105,10 @@ public sealed class WFVehicleElectricalSystem : EntitySystem
         }
         foreach (var uid in _disconnected)
             _feeds.Remove(uid);
+    }
 
+    private void UpdateEngines(float elapsed)
+    {
         var query = EntityQueryEnumerator<WFVehicleEngineComponent>();
         while (query.MoveNext(out var uid, out var engine))
         {
