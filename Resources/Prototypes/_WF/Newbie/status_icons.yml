@@ -1,0 +1,8 @@
+# The learner plate over a new player's head. It sits on the right so it never covers the SSD indicator.
+- type: ssdIcon
+  id: WFNewbieIcon
+  icon:
+    sprite: /Textures/_WF/Newbie/newbie_mark.rsi
+    state: mark
+  locationPreference: Right
+  priority: -1
