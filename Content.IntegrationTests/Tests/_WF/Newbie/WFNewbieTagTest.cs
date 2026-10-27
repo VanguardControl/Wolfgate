@@ -12,6 +12,7 @@ using Content.Shared.Examine;
 using Content.Shared.Mind;
 using Content.Shared.Players;
 using Content.Shared.Shuttles.Systems;
+using Content.Shared.StatusIcon;
 using NUnit.Framework;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
@@ -108,7 +109,7 @@ public sealed class WFNewbieTagTest : GameTest
 
         // Passing the threshold clears it.
         await Server.WaitPost(() => Server.ResolveDependency<PlayTimeTrackingManager>()
-            .AddTimeToOverallPlaytime(ServerSession!, TimeSpan.FromHours(16)));
+            .AddTimeToOverallPlaytime(ServerSession!, TimeSpan.FromHours(9)));
         var veteran = await Refresh();
 
         Assert.Multiple(() =>
@@ -117,6 +118,42 @@ public sealed class WFNewbieTagTest : GameTest
             Assert.That(shown, Is.EqualTo((true, true)), "the tag did not come back when turned on again.");
             Assert.That(left, Is.False, "a body kept the tag after its player left it.");
             Assert.That(veteran, Is.EqualTo((false, false)), "a player past the threshold is still tagged.");
+        });
+    }
+
+    /// <summary>
+    /// The mark is a Mod icon drawn before every other right-hand icon, so it sits above that column instead of
+    /// taking a HUD slot and pushing the last job, security or health icon off the sprite.
+    /// </summary>
+    [Test]
+    public async Task MarkTakesNoHudSlotTest()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var protos = Server.ProtoMan;
+            var mark = protos.Index<SsdIconPrototype>("WFNewbieIcon");
+            Assert.That(mark.Layer, Is.EqualTo(StatusIconLayer.Mod), "the mark takes a slot in the icon column.");
+
+            foreach (var kind in protos.EnumeratePrototypeKinds())
+            {
+                if (!typeof(StatusIconPrototype).IsAssignableFrom(kind))
+                    continue;
+
+                foreach (var proto in protos.EnumeratePrototypes(kind))
+                {
+                    if (proto is not StatusIconPrototype icon || icon == mark)
+                        continue;
+
+                    if (icon.Layer != StatusIconLayer.Base ||
+                        icon.LocationPreference == StatusIconLocationPreference.Left)
+                    {
+                        continue;
+                    }
+
+                    Assert.That(icon.Priority, Is.GreaterThan(mark.Priority),
+                        $"{icon.ID} draws before the mark, so the mark lands on top of it.");
+                }
+            }
         });
     }
 }

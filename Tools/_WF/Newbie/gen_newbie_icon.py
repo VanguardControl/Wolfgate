@@ -7,29 +7,32 @@ from PIL import Image
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 OUT = ROOT / "Resources/Textures/_WF/Newbie/newbie_mark.rsi"
 
-EDGE = (40, 40, 40, 255)
-PLATE = (245, 245, 240, 255)
-LETTER = (210, 30, 30, 255)
+COLOURS = {
+    ".": (0, 0, 0, 0),
+    "s": (0, 0, 0, 90),
+    "r": (150, 146, 138, 255),
+    "w": (250, 247, 238, 255),
+    "L": (214, 52, 48, 255),
+}
 
-# A white plate with a dark rim and a red L, read top row first.
+# A rounded cream plate with a soft rim, a red L and a faint drop shadow, read top row first.
 ROWS = [
-    "########",
-    "#......#",
-    "#.L....#",
-    "#.L....#",
-    "#.L....#",
-    "#.LLLL.#",
-    "#......#",
-    "########",
+    ".rrrrr..",
+    "rwwwwwr.",
+    "rwLwwwrs",
+    "rwLwwwrs",
+    "rwLLLwrs",
+    "rwwwwwrs",
+    ".rrrrrss",
+    "..sssss.",
 ]
 
 
 def main():
     img = Image.new("RGBA", (8, 8))
-    colours = {"#": EDGE, ".": PLATE, "L": LETTER}
     for y, row in enumerate(ROWS):
         for x, cell in enumerate(row):
-            img.putpixel((x, y), colours[cell])
+            img.putpixel((x, y), COLOURS[cell])
 
     OUT.mkdir(parents=True, exist_ok=True)
     img.save(OUT / "mark.png")

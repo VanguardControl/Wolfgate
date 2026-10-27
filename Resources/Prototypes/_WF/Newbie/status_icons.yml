@@ -1,4 +1,5 @@
-# The learner plate over a new player's head. It sits on the right so it never covers the SSD indicator.
+# The learner plate over a new player's head. As a Mod icon sorted first it sits just above the right-hand icon
+# column, so it never takes or pushes a job, security or health HUD slot.
 - type: ssdIcon
   id: WFNewbieIcon
   icon:
@@ -6,3 +7,5 @@
     state: mark
   locationPreference: Right
   priority: -1
+  layer: Mod
+  isShaded: true

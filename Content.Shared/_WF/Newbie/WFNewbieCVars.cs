@@ -12,7 +12,7 @@ public sealed class WFNewbieCVars
     /// Total playtime in hours under which a player is tagged as new. 0 turns the tag off for everyone.
     /// </summary>
     public static readonly CVarDef<float> Hours =
-        CVarDef.Create("wf.newbie.hours", 15f, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
+        CVarDef.Create("wf.newbie.hours", 8f, CVar.SERVER | CVar.REPLICATED | CVar.ARCHIVE);
 
     /// <summary>
     /// Whether this player shows their own newbie tag. Turning it off also drops the newbie rules' protection.

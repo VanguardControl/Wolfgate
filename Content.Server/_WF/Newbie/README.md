@@ -1,11 +1,11 @@
 # Newbie
 
-Marks new players so others can go easy on them. A player whose total playtime is under `wf.newbie.hours` (15 by
+Marks new players so others can go easy on them. A player whose total playtime is under `wf.newbie.hours` (8 by
 default, 0 turns it off) gets a learner plate over their head and the examine line "They are new around here." on
 whatever body they control. A ship whose owner (`ShipOwnershipComponent`) is new has "(L)" after its name on radar
 and in the hail list and screen. A ship hiding its label shows no tag.
 
-Players can hide their own tag with "Show my newbie tag" in Options > Misc (`wf.newbie.show_tag`, a replicated client
+Players can hide their own tag with "Show my newbie tag" in Options > Extra (`wf.newbie.show_tag`, a replicated client
 cvar). A hidden tag means the newbie rules don't cover them. The tag clears by itself once they pass the threshold.
 Admins still see the ⏲ mark in the ahelp list, which uses the separate `admin.new_player_threshold`.
 
@@ -63,8 +63,6 @@ the icon. `Tools/_WF/Newbie/gen_newbie_icon.py` draws the plate.
 
 ## Non-modular edits
 
-- [`Content.Client/Options/UI/Tabs/MiscTab.xaml`](../../../Content.Client/Options/UI/Tabs/MiscTab.xaml): newbie tag opt-out
-- [`Content.Client/Options/UI/Tabs/MiscTab.xaml.cs`](../../../Content.Client/Options/UI/Tabs/MiscTab.xaml.cs): newbie tag opt-out
 - [`Content.Shared/Shuttles/Systems/SharedShuttleSystem.IFF.cs`](../../../Content.Shared/Shuttles/Systems/SharedShuttleSystem.IFF.cs): tag a new player's ship
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../../Resources/Prototypes/_Mono/Guidebook/rules.yml)
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml): the new player rule
