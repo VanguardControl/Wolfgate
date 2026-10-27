@@ -28,7 +28,8 @@ public sealed class ShipGridLockSplitTest
             ship = maps.CreateGridEntity(map.MapId).Owner;
             var grid = entMan.GetComponent<MapGridComponent>(ship);
             var plating = server.ResolveDependency<ITileDefinitionManager>()["Plating"].TileId;
-            for (var x = 0; x < 5; x++)
+            // Long enough that each piece outlasts the battle-load cleanup of tiny empty fragments.
+            for (var x = 0; x < 11; x++)
                 maps.SetTile(ship, grid, new Vector2i(x, 0), new Tile(plating));
             var source = new ShipGridLockComponent();
 #pragma warning disable RA0002 // The test sets the ship's lock state directly.
@@ -38,7 +39,7 @@ public sealed class ShipGridLockSplitTest
             entMan.AddComponent(ship, source);
 
             // Breaking the middle tile splits the ship in two.
-            maps.SetTile(ship, grid, new Vector2i(2, 0), Tile.Empty);
+            maps.SetTile(ship, grid, new Vector2i(5, 0), Tile.Empty);
         });
         await pair.RunTicksSync(5);
 
