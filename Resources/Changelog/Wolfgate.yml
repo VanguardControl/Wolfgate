@@ -3561,3 +3561,91 @@ Entries:
   id: 100252
   time: '2026-10-27T00:56:04.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/386
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Examining someone shows an ID card with their photo, ID check, status,
+        wounds, worn items and description instead of spamming chat.
+    - type: Add
+      message: >-
+        Characters can write an adult description in the Anatomy tab, shown
+        behind a heart on the examine card to consenting adults.
+    - type: Add
+      message: You are told in chat when someone looks you over.
+    - type: Add
+      message: Height and width in the character editor can be typed as a percentage.
+    - type: Fix
+      message: The headshot link window no longer stretches with long links.
+  id: 100253
+  time: '2026-10-27T01:31:26.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/380
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Organs that get shot or burned to nothing now stay in the body as failed
+        organs. Open the ribcage and heal them in place, no spare needed.
+    - type: Tweak
+      message: Body parts now have a damage cap. No more 1800 burn on one person!
+    - type: Tweak
+      message: >-
+        Cuts, stabs, gunshots and bruises no longer pile up on a part. They get
+        worse instead, and a limb torn up badly enough comes off.
+    - type: Tweak
+      message: Heads no longer come off from piled-up damage.
+    - type: Tweak
+      message: >-
+        The analyzer's transfusion amount now gets the patient comfortably past
+        the line where they wake up, instead of leaving them stuck right on it.
+    - type: Fix
+      message: >-
+        Surgery steps no longer show their raw text key (like
+        surgery-popup-step-...) in chat.
+    - type: Fix
+      message: >-
+        The power drill, jaws of life, omnitool and sonic screwdriver now work
+        for surgery, like the tools they stand in for.
+  id: 100254
+  time: '2026-10-27T02:15:58.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/366
+- author: DriftingSkies
+  changes:
+    - type: Fix
+      message: Imported bunny ears sit on top of the head instead of over the face.
+    - type: Fix
+      message: >-
+        Several imported hats and neckwear drawn too low now sit at the right
+        height, including the constable helmet, fishing hat, propeller hat,
+        prophet helmets, tape wizard hat, pumpkin head, wolf pelts, akula
+        wetsuit helmet and wreaths.
+    - type: Fix
+      message: >-
+        Bare feet no longer show through uniforms. Long dresses and robes cover
+        the feet.
+    - type: Tweak
+      message: >-
+        Skirts, dresses, gowns, robes and baggy trousers hang over your shoes
+        instead of being covered by them. Fitted trousers stay tucked under.
+    - type: Fix
+      message: >-
+        Dresses and other uniforms no longer poke out from under hardsuits, EVA
+        suits, or bomb, fire, radiation and bio suits.
+    - type: Add
+      message: >-
+        Imported clothing hides what it covers. Long robes and coats hide your
+        shoes, full helmets hide your mask, glasses and headset, and masks hide
+        your glasses. Pull a mask down or open a coat to show them again.
+    - type: Add
+      message: >-
+        Imported clothing layers the way it did in its original game. Balaclavas
+        sit under glasses and headsets, some masks sit under the hair, the
+        tactical gaiter sits under the uniform collar, and welding goggles, gar
+        glasses and masquerade masks sit over hats.
+    - type: Fix
+      message: Pulling down an imported gas mask shows your hair and snout again.
+    - type: Fix
+      message: A mask or hat in your pocket no longer hides anything you're wearing.
+  id: 100255
+  time: '2026-10-27T02:29:13.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/383

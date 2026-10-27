@@ -275,11 +275,17 @@
                                     <BoxContainer HorizontalExpand="True" SeparationOverride="6">
                                         <Label Text="{Loc 'humanoid-profile-editor-height-label'}" StyleClasses="CreatorFieldLabel" VAlign="Center" MinWidth="60" />
                                         <Slider Name="HeightSlider" MinValue="0.8" MaxValue="1.2" Value="1.0" HorizontalExpand="True" VerticalAlignment="Center" />
+                                        <!-- typed percentage beside the slider (HumanoidProfileEditor.SizePercent.cs) -->
+                                        <LineEdit Name="HeightPercent" MinWidth="44" VerticalAlignment="Center" />
+                                        <Label Text="%" VAlign="Center" />
                                         <Button Name="HeightResetButton" Text="{Loc 'humanoid-profile-editor-reset-button'}" StyleClasses="LinkButton" />
                                     </BoxContainer>
                                     <BoxContainer HorizontalExpand="True" SeparationOverride="6">
                                         <Label Text="{Loc 'humanoid-profile-editor-width-label'}" StyleClasses="CreatorFieldLabel" VAlign="Center" MinWidth="60" />
                                         <Slider Name="WidthSlider" MinValue="0.8" MaxValue="1.2" Value="1.0" HorizontalExpand="True" VerticalAlignment="Center" />
+                                        <!-- typed percentage beside the slider (HumanoidProfileEditor.SizePercent.cs) -->
+                                        <LineEdit Name="WidthPercent" MinWidth="44" VerticalAlignment="Center" />
+                                        <Label Text="%" VAlign="Center" />
                                         <Button Name="WidthResetButton" Text="{Loc 'humanoid-profile-editor-reset-button'}" StyleClasses="LinkButton" />
                                     </BoxContainer>
                                     <Label Text="{Loc 'humanoid-profile-editor-skin-color-label'}" StyleClasses="CreatorFieldLabel" Margin="0 6 0 0" />
