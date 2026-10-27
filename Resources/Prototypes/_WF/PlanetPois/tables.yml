@@ -90,6 +90,31 @@
     - offset: -5,-5
       direction: West
     rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/greenhouse.yml
+    name: wf-poi-greenhouse
+    expeditions: false
+    footprint: -8,-12,2,2
+    minCount: 1
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -4,-12
+      direction: South
+    rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/ancient_temple.yml
+    name: wf-poi-ancient-temple
+    expeditions: false
+    footprint: -15,-1,14,31
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 2,-1
+      direction: South
+    rotate: true
+    below: /Maps/_WF/PlanetPois/ancient_temple_below.yml
   - mapPath: /Maps/_WF/PlanetPois/verda_house_1.yml
     name: wf-poi-verda-house-1
     expeditions: false
@@ -260,6 +285,31 @@
     - offset: -5,-5
       direction: West
     rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/greenhouse.yml
+    name: wf-poi-greenhouse
+    expeditions: false
+    footprint: -8,-12,2,2
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: -4,-12
+      direction: South
+    rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/ancient_temple.yml
+    name: wf-poi-ancient-temple
+    expeditions: false
+    footprint: -15,-1,14,31
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 2,-1
+      direction: South
+    rotate: true
+    below: /Maps/_WF/PlanetPois/ancient_temple_below.yml
   - mapPath: /Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml
     name: wf-poi-abandoned-bandit-hideout
     expeditions: false
@@ -349,6 +399,19 @@
     - offset: -5,-5
       direction: West
     rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/ancient_temple.yml
+    name: wf-poi-ancient-temple
+    expeditions: false
+    footprint: -15,-1,14,31
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 2,-1
+      direction: South
+    rotate: true
+    below: /Maps/_WF/PlanetPois/ancient_temple_below.yml
   - dungeon: WFPoiFervidusBrig
     name: wf-poi-fervidus-brig
   - dungeon: WFPoiFervidusCamp
@@ -418,6 +481,19 @@
     - offset: -5,-5
       direction: West
     rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/ancient_temple.yml
+    name: wf-poi-ancient-temple
+    expeditions: false
+    footprint: -15,-1,14,31
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 2,-1
+      direction: South
+    rotate: true
+    below: /Maps/_WF/PlanetPois/ancient_temple_below.yml
   - dungeon: WFPoiThrasciasLabs
     name: wf-poi-thrascias-labs
   - dungeon: WFPoiThrasciasVirology
@@ -496,6 +572,19 @@
     - offset: -5,-5
       direction: West
     rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/ancient_temple.yml
+    name: wf-poi-ancient-temple
+    expeditions: false
+    footprint: -15,-1,14,31
+    minCount: 0
+    maxCount: 1
+    connection: Isolated
+    trail: true
+    sockets:
+    - offset: 2,-1
+      direction: South
+    rotate: true
+    below: /Maps/_WF/PlanetPois/ancient_temple_below.yml
   - dungeon: WFPoiAerumnaFactory
     name: wf-poi-aerumna-factory
   - dungeon: WFPoiAerumnaMine

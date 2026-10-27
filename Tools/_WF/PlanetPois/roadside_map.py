@@ -29,7 +29,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[3]
 ROAD, SHOULDER, WIDTH = "RMCPlanetHybrisaAsphalt", "RMCPlanetHybrisaSidewalk", 5
 KEEP = {"MetaData", "Transform", "MapGrid", "DecalGrid"}
-BLOCKS = re.compile(r"^((N14|CE|RMC|WF)?Wall(?!mount)|Window|Grille|Airlock|.*Door|.*Window|.*Barricade|.*Girder)")
+BLOCKS = re.compile(r"^((N14|CE|RMC|WF)?Wall(?!mount)|CMAncientTemple|Window|Grille|Airlock|.*Door|.*Window|.*Barricade|.*Girder)")
 SIDES = (((0, -1), "South"), ((0, 1), "North"), ((-1, 0), "West"), ((1, 0), "East"))
 
 

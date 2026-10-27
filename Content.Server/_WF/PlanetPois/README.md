@@ -74,7 +74,9 @@ any road goes without. `Tools/_WF/PlanetPois/roadside_map.py <map> <name> --trai
 Players discover orbit signals by approaching sites on the ground. Content authors add maps, entry
 limits and road sockets through the table prototypes; see [MapperGuide](../../../Docs/_WF/PlanetPois/MapperGuide.md)
 for the map contract and content roadmap. The authored maps are the mappers' own: Verda's houses,
-gas station and bandit hideout, and Carcinoma's shrine, alongside the expedition dungeons. The gas
+gas station and bandit hideout, the greenhouse on Verda and Merak, the ancient temple (a shrine over stairs down to
+halls in the cavern, guarded by skeletons with swords and holding relics, `temple.yml`) on every world but Carcinoma,
+and Carcinoma's shrine, alongside the expedition dungeons. The gas
 station's fuel merchant sells usable fuel items through Traders; it does not refuel docked ships.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -111,6 +113,8 @@ station's fuel merchant sells usable fuel items through Traders; it does not ref
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/PlanetPois/AncientTempleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/AncientTempleTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetPois/GreenhouseTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/GreenhouseTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetCampTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetCampTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetHiveCampTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetHiveCampTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiContentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiContentTest.cs)
@@ -135,6 +139,7 @@ station's fuel merchant sells usable fuel items through Traders; it does not ref
 - [`Resources/Prototypes/_WF/PlanetPois/road_dressing.yml`](../../../Resources/Prototypes/_WF/PlanetPois/road_dressing.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/road_props.yml`](../../../Resources/Prototypes/_WF/PlanetPois/road_props.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/tables.yml`](../../../Resources/Prototypes/_WF/PlanetPois/tables.yml)
+- [`Resources/Prototypes/_WF/PlanetPois/temple.yml`](../../../Resources/Prototypes/_WF/PlanetPois/temple.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/traders.yml`](../../../Resources/Prototypes/_WF/PlanetPois/traders.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/tunnels.yml`](../../../Resources/Prototypes/_WF/PlanetPois/tunnels.yml)
 - [`Resources/Prototypes/_WF/PlanetPois/vehicles.yml`](../../../Resources/Prototypes/_WF/PlanetPois/vehicles.yml)
@@ -150,9 +155,12 @@ station's fuel merchant sells usable fuel items through Traders; it does not ref
 ### Maps
 
 - [`Resources/Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml`](../../../Resources/Maps/_WF/PlanetPois/abandoned_bandit_hideout.yml)
+- [`Resources/Maps/_WF/PlanetPois/ancient_temple.yml`](../../../Resources/Maps/_WF/PlanetPois/ancient_temple.yml)
+- [`Resources/Maps/_WF/PlanetPois/ancient_temple_below.yml`](../../../Resources/Maps/_WF/PlanetPois/ancient_temple_below.yml)
 - [`Resources/Maps/_WF/PlanetPois/atalis_house.yml`](../../../Resources/Maps/_WF/PlanetPois/atalis_house.yml)
 - [`Resources/Maps/_WF/PlanetPois/atalis_house_below.yml`](../../../Resources/Maps/_WF/PlanetPois/atalis_house_below.yml)
 - [`Resources/Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml`](../../../Resources/Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml)
+- [`Resources/Maps/_WF/PlanetPois/greenhouse.yml`](../../../Resources/Maps/_WF/PlanetPois/greenhouse.yml)
 - [`Resources/Maps/_WF/PlanetPois/planetary_vault.yml`](../../../Resources/Maps/_WF/PlanetPois/planetary_vault.yml)
 - [`Resources/Maps/_WF/PlanetPois/Tests/through_service.yml`](../../../Resources/Maps/_WF/PlanetPois/Tests/through_service.yml)
 - [`Resources/Maps/_WF/PlanetPois/verda_corner_house.yml`](../../../Resources/Maps/_WF/PlanetPois/verda_corner_house.yml)
