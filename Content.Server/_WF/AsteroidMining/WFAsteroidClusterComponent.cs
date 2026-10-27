@@ -25,4 +25,7 @@ public sealed partial class WFAsteroidClusterComponent : Component
 
     /// <summary>Asteroid grids to fill the budget with, by weight.</summary>
     [DataField(required: true)] public Dictionary<EntProtoId, float> Sizes = new();
+
+    /// <summary>Rocks per cluster at most. Each rock is its own grid, which every player is sent.</summary>
+    [DataField] public int MaxRocks = 12;
 }

@@ -405,7 +405,7 @@ public sealed class AsteroidMiningTest
             cluster.RareChance = 0f;
             budget = cluster.Mass;
         });
-        await server.WaitRunTicks(3);
+        await server.WaitRunTicks(10); // Rocks spawn a few per tick.
 
         await server.WaitAssertion(() =>
         {
@@ -484,7 +484,7 @@ public sealed class AsteroidMiningTest
             var marker = em.SpawnEntity("WFAsteroidClusterRock", new EntityCoordinates(mapUid, ShipPos));
             server.System<DebrisFeaturePlacerSystem>().AdoptDebris(chunk, marker);
         });
-        await server.WaitRunTicks(3);
+        await server.WaitRunTicks(10); // Rocks spawn a few per tick.
 
         await server.WaitAssertion(() =>
         {
@@ -551,7 +551,7 @@ public sealed class AsteroidMiningTest
                 cluster.RareChancePerKm = 0.4f;
             }
         });
-        await server.WaitRunTicks(3);
+        await server.WaitRunTicks(10); // Rocks spawn a few per tick.
 
         await server.WaitAssertion(() =>
         {

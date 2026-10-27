@@ -65,6 +65,11 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     /// <summary>Cluster markers map-initialised since the last update.</summary>
     private readonly List<EntityUid> _clusters = new();
     private readonly List<EntityUid> _filling = new();
+    /// <summary>Planned rocks not yet spawned, drained a few per tick so a loading field doesn't freeze the server.</summary>
+    private readonly Queue<PendingRock> _pendingRocks = new();
+
+    /// <summary>Asteroid grids spawned per tick at most. Every grid is sent to every player, so bursts flood the network.</summary>
+    public const int RocksPerTick = 4;
     // Swapped debris: the mass budget for the cluster about to spawn at each point. Keyed by exact position, which
     // holds because worldgen spawns the marker straight onto the map at the point it raised the event with.
     private readonly Dictionary<MapCoordinates, float> _budgets = new();
@@ -86,6 +91,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         {
             _budgets.Clear();
             _clusters.Clear();
+            _pendingRocks.Clear();
         });
     }
 
@@ -383,6 +389,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
     {
         base.Update(frameTime);
         SpawnClusters();
+        SpawnPendingRocks();
 
         if (_cracks.Count == 0)
             return;
@@ -644,7 +651,7 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         }
     }
 
-    /// <summary>Scatters rocks by the cluster's size weights around its centre until the budget runs out.</summary>
+    /// <summary>Plans rocks by the cluster's size weights around its centre until the budget runs out.</summary>
     private void FillCluster(EntityUid marker, WFAsteroidClusterComponent cluster, EntityUid? controller)
     {
         var xform = Transform(marker);
@@ -668,35 +675,57 @@ public sealed partial class WFAsteroidSystem : EntitySystem
         var spread = 10f + 2.6f * MathF.Sqrt(budget);
         var rareChance = Math.Clamp(cluster.RareChance + cluster.RareChancePerKm * center.Position.Length() / 1000f, 0f, 1f);
         var remaining = budget;
-        var first = true;
-        for (var attempt = 0; attempt < 60 && remaining >= smallest * 0.5f; attempt++)
+        var planned = new List<(Vector2 Position, float Radius)>();
+        for (var attempt = 0; attempt < 60 && planned.Count < cluster.MaxRocks && remaining >= smallest * 0.5f; attempt++)
         {
             var size = PickSize(sizes, remaining);
-            var position = first
+            var position = attempt == 0
                 ? center.Position
                 : center.Position + _random.NextAngle().ToVec() * spread * MathF.Sqrt(_random.NextFloat());
-            first = false;
-            if (Blocked(center.MapId, position, size.Radius + 1.5f))
+            if (Blocked(center.MapId, position, size.Radius + 1.5f) ||
+                planned.Any(p => (p.Position - position).Length() < p.Radius + size.Radius + 1.5f))
                 continue;
 
-            var spawned = Spawn(size.Grid, new EntityCoordinates(mapUid, position));
+            var composition = cluster.RareComposition is { } rare && _random.Prob(rareChance)
+                ? rare
+                : cluster.Composition;
+            // The last rock takes what is left rather than overshooting the budget.
+            var mass = MathF.Max(MathF.Min(size.Mass, remaining), smallest * 0.5f);
+            remaining -= mass;
+            planned.Add((position, size.Radius));
+            _pendingRocks.Enqueue(new PendingRock(size.Grid, mapUid, position, composition, mass, controller));
+        }
+    }
+
+    /// <summary>Spawns up to <see cref="RocksPerTick"/> planned rocks.</summary>
+    private void SpawnPendingRocks()
+    {
+        for (var i = 0; i < RocksPerTick && _pendingRocks.TryDequeue(out var pending); i++)
+        {
+            // The chunk unloaded before its turn came; nobody is near, so skip it.
+            if (TerminatingOrDeleted(pending.Map) ||
+                pending.Controller is { } controller && TerminatingOrDeleted(controller))
+            {
+                i--;
+                continue;
+            }
+
+            var spawned = Spawn(pending.Grid, new EntityCoordinates(pending.Map, pending.Position));
             _transform.SetWorldRotation(spawned, _random.NextAngle());
             if (TryComp<WFAsteroidGridComponent>(spawned, out var spawnedGrid) && spawnedGrid.RockUid is { } rock &&
                 TryComp<WFAsteroidComponent>(rock, out var rockComp))
             {
-                var composition = cluster.RareComposition is { } rare && _random.Prob(rareChance)
-                    ? rare
-                    : cluster.Composition;
-                Roll(rock, composition, rockComp);
-                // The last rock takes what is left rather than overshooting the budget.
-                rockComp.Mass = MathF.Min(rockComp.Mass, MathF.Max(remaining, smallest * 0.5f));
-                remaining -= rockComp.Mass;
+                Roll(rock, pending.Composition, rockComp);
+                rockComp.Mass = pending.Mass;
             }
 
-            if (controller is { } owner)
+            if (pending.Controller is { } owner)
                 _debris.AdoptDebris(owner, spawned);
         }
     }
+
+    private readonly record struct PendingRock(EntProtoId Grid, EntityUid Map, Vector2 Position,
+        ProtoId<WFAsteroidCompositionPrototype> Composition, float Mass, EntityUid? Controller);
 
     private readonly record struct ClusterSize(EntProtoId Grid, float Weight, float Mass, float Radius);
 

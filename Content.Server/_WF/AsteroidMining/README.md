@@ -206,6 +206,7 @@ and each laser's strength, crack rate, range, fire rate and battery in `mining_b
   - drawn once per grid inside the loop; drawn once after it instead
   - per-grid draws moved out of the loop, so its grids batch into one draw call
   - docks draw over their grid's queued outline
+- [`Content.Server/Atmos/EntitySystems/AutomaticAtmosSystem.cs`](../../Atmos/EntitySystems/AutomaticAtmosSystem.cs): asteroid rocks are airless; atmos per rock grid is wasted work
 - [`Content.Server/Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs`](../../Worldgen/Systems/Debris/DebrisFeaturePlacerSystem.cs)
   - drifting rocks left a stale key per move
   - a placing handler may swap the debris

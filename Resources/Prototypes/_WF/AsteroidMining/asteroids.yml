@@ -378,11 +378,11 @@
     # Richer further out: 1% by the stations, about 4% on the 9 km ring, 5% in the Wilds, 8% Very Far.
     rareChance: 0.01
     rareChancePerKm: 0.0035
-    # By count: small rocks are the most common, huge ones the rarest.
+    # By count: medium and large rocks lead, so a cluster is a few big grids rather than many small ones.
     sizes:
-      WFAsteroidSmall: 8
-      WFAsteroidMedium: 5
-      WFAsteroidLarge: 2
+      WFAsteroidSmall: 2
+      WFAsteroidMedium: 4
+      WFAsteroidLarge: 3
       WFAsteroidHuge: 1
 
 - type: entity
