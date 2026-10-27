@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 using Content.Server._WF.Planets.Bounds;
+using Content.Shared._WF.Planets;
 
 namespace Content.Server._WF.Caverns;
 
@@ -39,10 +40,14 @@ public sealed partial class WFCavernMouthSystem
         var claimed = 0;
         var min = CellOf(context.Spec, Floor(centre - new Vector2(radius)));
         var max = CellOf(context.Spec, Floor(centre + new Vector2(radius)));
+        var cells = (max.X - min.X + 1) * (max.Y - min.Y + 1);
+        var done = 0;
+        _preload.ReportProgress(ground, "caverns", WFWorldFormingStage.Caverns, 0f);
 
         for (var x = min.X; x <= max.X; x++)
         for (var y = min.Y; y <= max.Y; y++)
         {
+            _preload.ReportProgress(ground, "caverns", WFWorldFormingStage.Caverns, (float) done++ / Math.Max(1, cells));
             await _preload.Breathe();
             if (TerminatingOrDeleted(ground))
                 return;
@@ -51,6 +56,7 @@ public sealed partial class WFCavernMouthSystem
                 claimed++;
         }
 
+        _preload.ReportProgress(ground, "caverns", WFWorldFormingStage.Caverns, 1f);
         Log.Info($"Claimed {claimed} cavern mouths on {ToPrettyString(ground)} ahead of its preload over {watch.Elapsed.TotalMilliseconds:F0} ms.");
     }
 }

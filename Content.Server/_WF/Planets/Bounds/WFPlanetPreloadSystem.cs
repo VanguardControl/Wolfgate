@@ -80,6 +80,7 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
             if (preload.Holds == null)
             {
                 preload.Holds = new List<Task>();
+                preload.Phase = PreloadPhase.Holds;
                 var starting = new WFPlanetPreloadStartingEvent(preload.Ground, bounds.Centre, bounds.Radius, preload.Holds);
                 GenerationSpent();
                 RaiseLocalEvent(ref starting);
@@ -90,6 +91,8 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
             if (!HoldsDone(preload))
                 return;
 
+            if (preload.Phase == PreloadPhase.Holds)
+                preload.Phase = PreloadPhase.Terrain;
             preload.Chunks ??= _biome.WfChunksInBounds(bounds);
 
             Load(preload, (preload.Ground, biome, grid));
@@ -145,21 +148,27 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
     /// </summary>
     private async Task FinishAsync(Preload preload, Entity<BiomeComponent, MapGridComponent> ground, WFPlanetBoundsComponent bounds)
     {
-        var walls = await LayRingAsync(ground, bounds, preload.Wall);
+        preload.Phase = PreloadPhase.Boundary;
+        var lowers = TryComp<WFPlanetLayerComponent>(ground, out var layer)
+                     && TryGetEntity(layer.Network, out var network)
+                     && TryComp<WFPlanetNetworkComponent>(network, out var comp)
+            ? comp.LowerLayers.ToList()
+            : new List<EntityUid>();
+        preload.Rings = 1 + lowers.Count;
+
+        var walls = await LayRingAsync(ground, bounds, preload);
 
         // A cavern stays streamed, so its ring is laid onto bare ground and pinned: the loader fills in round it.
-        if (TryComp<WFPlanetLayerComponent>(ground, out var layer)
-            && TryGetEntity(layer.Network, out var network)
-            && TryComp<WFPlanetNetworkComponent>(network, out var comp))
+        foreach (var lower in lowers)
         {
-            foreach (var lower in comp.LowerLayers.ToList())
-            {
-                if (TryComp<BiomeComponent>(lower, out var lowerBiome)
-                    && TryComp<MapGridComponent>(lower, out var lowerGrid)
-                    && TryComp<WFPlanetBoundsComponent>(lower, out var lowerBounds))
-                    walls += await LayRingAsync((lower, lowerBiome, lowerGrid), lowerBounds, preload.Wall);
-            }
+            preload.RingsLaid++;
+            if (TryComp<BiomeComponent>(lower, out var lowerBiome)
+                && TryComp<MapGridComponent>(lower, out var lowerGrid)
+                && TryComp<WFPlanetBoundsComponent>(lower, out var lowerBounds))
+                walls += await LayRingAsync((lower, lowerBiome, lowerGrid), lowerBounds, preload);
         }
+
+        preload.Phase = PreloadPhase.Wildlife;
 
         if (TerminatingOrDeleted(ground))
             return;
@@ -167,11 +176,13 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
         var work = new List<Task>();
         var ev = new WFPlanetPreloadedEvent(ground, work);
         RaiseLocalEvent(ref ev);
+        preload.Work = work.Count;
         foreach (var task in work)
         {
             try
             {
                 await task;
+                preload.WorkDone++;
             }
             catch (Exception error)
             {
@@ -191,9 +202,9 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
     /// Walls every tile inside the circle with a neighbour outside it: whatever the biome grew there goes, a tile not
     /// loaded yet is laid from the recipe, and the tile is pinned so nothing grows back or is ever unloaded.
     /// </summary>
-    private async Task<int> LayRingAsync(Entity<BiomeComponent, MapGridComponent> ground, WFPlanetBoundsComponent bounds, EntProtoId? wall)
+    private async Task<int> LayRingAsync(Entity<BiomeComponent, MapGridComponent> ground, WFPlanetBoundsComponent bounds, Preload preload)
     {
-        if (wall == null)
+        if (preload.Wall is not { } wall)
             return 0;
 
         var ring = new List<Vector2i>();
@@ -220,9 +231,12 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
 
         var laid = 0;
         var anchored = new List<EntityUid>();
+        preload.RingTiles = ring.Count;
+        preload.RingTile = 0;
 
         foreach (var tile in ring)
         {
+            preload.RingTile++;
             await Breathe();
             if (TerminatingOrDeleted(ground))
                 return laid;
@@ -267,6 +281,20 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
         public int Next;
         public Task? Finishing;
         public long Started;
+        public PreloadPhase Phase;
+
+        /// <summary>The latest stage and fraction each hold reported, by who reported it.</summary>
+        public readonly Dictionary<string, (WFWorldFormingStage Stage, float Fraction)> Reports = new();
+
+        public int Rings = 1;
+        public int RingsLaid;
+        public int RingTiles;
+        public int RingTile;
+        public int Work;
+        public int WorkDone;
+
+        /// <summary>The furthest progress shown so far, so the bar never steps back.</summary>
+        public float Shown;
 
         public Preload(EntityUid ground, EntProtoId? wall)
         {

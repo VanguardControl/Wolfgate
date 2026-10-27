@@ -3,6 +3,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using Content.Server._WF.Planets;
 using Content.Shared._WF.PlanetPois;
+using Content.Shared._WF.Planets;
 using Content.Shared.Doors.Components;
 using Content.Shared.Decals;
 using Content.Server.Decals;
@@ -43,6 +44,7 @@ public sealed partial class WFPlanetPoiSystem
         var initialPins = new HashSet<Vector2i>();
         // Every step waits for a later tick once this one's budget is spent.
         _preload.GenerationSpent();
+        Report(ground, WFWorldFormingStage.Cities, 0f);
         var claimsDone = ClaimsDone(claims);
         try
         {
@@ -62,11 +64,14 @@ public sealed partial class WFPlanetPoiSystem
             var entries = SelectEntries(table);
             var reserved = new List<Box2i>();
             await PlaceCitiesAsync(ground, grid, biome, network, orbit, centre, radius, table, record, reserved, initialPins, created, createdDecals, changed, claimsDone);
+            Report(ground, WFWorldFormingStage.Sites, 0.1f);
             await claimsDone;
             if (TerminatingOrDeleted(ground))
                 return;
+            var placed = 0;
             foreach (var listed in entries)
             {
+                Report(ground, WFWorldFormingStage.Sites, 0.1f + 0.5f * placed++ / Math.Max(1, entries.Count));
                 await _preload.Breathe();
                 if (TerminatingOrDeleted(ground))
                     return;
@@ -177,6 +182,7 @@ public sealed partial class WFPlanetPoiSystem
                 record.Sites.Add(site);
                 created.Add(site.Signal);
             }
+            Report(ground, WFWorldFormingStage.Roads, 0.6f);
             await _preload.Breathe();
             if (table.Roads is { } roads && record.Sites.Any(site => site.Sockets.Count > 0))
             {
@@ -223,19 +229,27 @@ public sealed partial class WFPlanetPoiSystem
                     }
                     changed.UnionWith(plan.ShoulderTiles);
                     changed.UnionWith(plan.RoadTiles);
+                    Report(ground, WFWorldFormingStage.Roads, 0.65f);
                     await PaintRoadAsync(ground, grid, biome, plan.ShoulderTiles, roads.ShoulderTile ?? roads.Tile);
+                    Report(ground, WFWorldFormingStage.Roads, 0.72f);
                     await PaintRoadAsync(ground, grid, biome, plan.RoadTiles, roads.Tile);
                     record.RoadTiles.UnionWith(plan.RoadTiles);
                     record.ShoulderTiles.UnionWith(plan.ShoulderTiles);
                     record.Centreline.UnionWith(plan.Centreline);
+                    Report(ground, WFWorldFormingStage.Roads, 0.78f);
                     await DressRoadsAsync(ground, grid, record, roads, plan, created, createdDecals);
+                    Report(ground, WFWorldFormingStage.Roads, 0.84f);
                     await LayTrailsAsync(ground, grid, biome, record, roads, centre, radius - 1, table.CentreClear, changed);
+                    Report(ground, WFWorldFormingStage.Roads, 0.88f);
                     await DigTunnelsAsync(ground, grid, biome, record, roads, plan, created, changed);
                 }
             }
             // Wrecks last: they keep off the sites and roads, which are pinned by now.
+            Report(ground, WFWorldFormingStage.Wrecks, 0.9f);
             await PlaceWrecksAsync(ground, grid, biome, orbit, centre, radius, table, record, created);
+            Report(ground, WFWorldFormingStage.Wrecks, 0.95f);
             await PlaceCampsAsync(ground, grid, biome, orbit, centre, radius, table, record, created);
+            Report(ground, WFWorldFormingStage.Wrecks, 1f);
             record.PendingRoamers = table.Roamers.ToList();
             record.PendingResidents = table.Residents;
             record.ResidentChance = table.ResidentChance;
@@ -272,6 +286,12 @@ public sealed partial class WFPlanetPoiSystem
             Log.Error(record.GenerationError);
             throw;
         }
+    }
+
+    /// <summary>Tells the world-forming bar how far the sites and roads have got.</summary>
+    private void Report(EntityUid ground, WFWorldFormingStage stage, float fraction)
+    {
+        _preload.ReportProgress(ground, "sites", stage, fraction);
     }
 
     /// <summary>

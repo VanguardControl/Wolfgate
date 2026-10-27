@@ -75,6 +75,11 @@ resumes next tick. Map files for sites and cities are parsed off the main thread
 own tick: loading one map's entities, merging one site into the ground, one heavy spawn such as a crewed vehicle, and
 the road planner. `WFPlanetPreloadedEvent` handlers put that kind of work in its `Work` list, and the ground is only
 marked preloaded once it is done.
+`WFWorldFormingSystem` sends every client how far each forming world has got, four times a second: the holds (sites,
+roads, cavern mouths) report through `WFPlanetPreloadSystem.ReportProgress`, then the chunks, the ring and the work
+after it fill the rest. The lobby shows it as a bar under the start time; a player on or over a world still forming
+gets a small bar at the top of the screen. Weather loops follow the ambience slider and stop when the player has no
+body (`WFWeatherAudioSystem`), since the weather system left them looping in the lobby after a respawn.
 When the lobby countdown runs out while a prebuilt world is still forming, `WFPlanetRoundHoldSystem` holds the start
 (a hook in `GameTicker.StartRound`, through `WFRoundStartHoldEvent`), tells the lobby the worlds are still forming and
 starts the round itself once they are done, or after `wf.planet_round_hold_max` seconds (180) regardless. An admin's
@@ -188,6 +193,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadEvents.cs`](Bounds/WFPlanetPreloadEvents.cs)
 - [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadSystem.Budget.cs`](Bounds/WFPlanetPreloadSystem.Budget.cs)
 - [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadSystem.cs`](Bounds/WFPlanetPreloadSystem.cs)
+- [`Content.Server/_WF/Planets/Bounds/WFPlanetPreloadSystem.Progress.cs`](Bounds/WFPlanetPreloadSystem.Progress.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.WFTerrain.cs`](CEZLevelsSystem.WFTerrain.cs)
 - [`Content.Server/_WF/Planets/CEZLevelsSystem.Wolfgate.cs`](CEZLevelsSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/Commands/WFPlanetCommand.cs`](Commands/WFPlanetCommand.cs)
@@ -265,6 +271,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/_WF/Planets/WFPlanetWeatherSystem.Storms.cs`](WFPlanetWeatherSystem.Storms.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWildlifeComponent.cs`](WFPlanetWildlifeComponent.cs)
 - [`Content.Server/_WF/Planets/WFRoundStartHoldEvent.cs`](WFRoundStartHoldEvent.cs)
+- [`Content.Server/_WF/Planets/WFWorldFormingSystem.cs`](WFWorldFormingSystem.cs)
 
 ### Shared
 
@@ -302,6 +309,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Shared/_WF/Planets/WFPlanetView.cs`](../../../Content.Shared/_WF/Planets/WFPlanetView.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetWeatherPrototype.cs`](../../../Content.Shared/_WF/Planets/WFPlanetWeatherPrototype.cs)
 - [`Content.Shared/_WF/Planets/WFSectorPlanetComponent.cs`](../../../Content.Shared/_WF/Planets/WFSectorPlanetComponent.cs)
+- [`Content.Shared/_WF/Planets/WFWorldFormingEvents.cs`](../../../Content.Shared/_WF/Planets/WFWorldFormingEvents.cs)
 
 ### Client
 
@@ -323,6 +331,9 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Client/_WF/Planets/WFPlanetTimepieceHudSystem.cs`](../../../Content.Client/_WF/Planets/WFPlanetTimepieceHudSystem.cs)
 - [`Content.Client/_WF/Planets/WFUnsanctionedOrbitConfirmWindow.xaml`](../../../Content.Client/_WF/Planets/WFUnsanctionedOrbitConfirmWindow.xaml)
 - [`Content.Client/_WF/Planets/WFUnsanctionedOrbitConfirmWindow.xaml.cs`](../../../Content.Client/_WF/Planets/WFUnsanctionedOrbitConfirmWindow.xaml.cs)
+- [`Content.Client/_WF/Planets/WFWeatherAudioSystem.cs`](../../../Content.Client/_WF/Planets/WFWeatherAudioSystem.cs)
+- [`Content.Client/_WF/Planets/WFWorldFormingBar.cs`](../../../Content.Client/_WF/Planets/WFWorldFormingBar.cs)
+- [`Content.Client/_WF/Planets/WFWorldFormingClientSystem.cs`](../../../Content.Client/_WF/Planets/WFWorldFormingClientSystem.cs)
 
 ### Integration tests
 
@@ -394,6 +405,8 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.IntegrationTests/Tests/_WF/Planets/TerrainLoadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainLoadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/TerrainUnloadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/TerrainUnloadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/ThrustAmbienceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/ThrustAmbienceTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/WeatherAudioTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/WeatherAudioTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/WorldFormingProgressTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/WorldFormingProgressTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/ZLevelJumpTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/ZLevelJumpTest.cs)
 
 ### Prototypes
@@ -452,6 +465,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Resources/Locale/en-US/_WF/Planets/planets.ftl`](../../../Resources/Locale/en-US/_WF/Planets/planets.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/timepiece.ftl`](../../../Resources/Locale/en-US/_WF/Planets/timepiece.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/weather.ftl`](../../../Resources/Locale/en-US/_WF/Planets/weather.ftl)
+- [`Resources/Locale/en-US/_WF/Planets/world_forming.ftl`](../../../Resources/Locale/en-US/_WF/Planets/world_forming.ftl)
 
 ### Textures
 
