@@ -3499,3 +3499,58 @@ Entries:
   id: 100248
   time: '2026-10-26T21:16:44.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/374
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: The ASF Lantern Post has been redesigned.
+    - type: Tweak
+      message: The ASFN Guardian has been improved
+    - type: Tweak
+      message: >-
+        The ASF Type-12 Hummingbird fires every 0.8 seconds instead of every
+        2.5.
+    - type: Tweak
+      message: ASF modsuits have new sprites, night vision helmets and voidboots.
+  id: 100249
+  time: '2026-10-26T22:16:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/381
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Energy guns work as a cautery again while they have charge.
+    - type: Remove
+      message: ASF roles no longer offer armor plates in their loadouts.
+    - type: Fix
+      message: >-
+        The chemmaster no longer resets the pill count and dose while you set
+        them.
+    - type: Tweak
+      message: >-
+        Onion skin in the marking editor now shows the last frame over the one
+        you are drawing.
+    - type: Tweak
+      message: >-
+        The Ravager drone LPC buys any of its three drones and can be printed at
+        a security techfab.
+    - type: Fix
+      message: >-
+        Leg and foot markings now follow digitigrade legs and stay on their own
+        leg.
+    - type: Fix
+      message: >-
+        The character preview shows clothing and markings on digitigrade legs
+        again.
+  id: 100250
+  time: '2026-10-26T22:21:41.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/382
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Guns rebuilt at a drydock work on their hardpoints again.
+    - type: Tweak
+      message: Tranexamic acid and other coagulants slow bleeding much more.
+    - type: Fix
+      message: ADS crews no longer freeze to death on their own ships.
+  id: 100251
+  time: '2026-10-27T00:27:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/384

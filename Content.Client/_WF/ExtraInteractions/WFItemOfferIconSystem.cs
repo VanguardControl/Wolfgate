@@ -43,7 +43,7 @@ public sealed class WFItemOfferIconSystem : EntitySystem
 
     private bool OnUse(ICommonSession? session, EntityCoordinates coords, EntityUid uid)
     {
-        if (session?.AttachedEntity is not { } user || _combat.IsInCombatMode(user))
+        if (session?.AttachedEntity is not { } user || _combat.IsInCombatMode(user) || !coords.IsValid(EntityManager))
             return false;
 
         var click = _transform.ToMapCoordinates(coords);
