@@ -8,18 +8,16 @@ namespace Content.Server._CE.ZLevels.Core;
 /// </summary>
 public sealed partial class CEZLevelsSystem
 {
-    [Dependency] private IGameTiming _wfTiming = default!;
-
     private readonly Dictionary<EntityUid, (bool Found, HashSet<EntityUid> Set, Box2 Aabb)> _wfGridSetCache = new();
     private GameTick _wfGridSetCacheTick;
 
     /// <summary><see cref="TryGetGridSetAabb"/>, kept for the rest of the tick.</summary>
     private bool WFTryGetCachedGridSetAabb(EntityUid primary, out HashSet<EntityUid> set, out Box2 aabb)
     {
-        if (_wfGridSetCacheTick != _wfTiming.CurTick)
+        if (_wfGridSetCacheTick != _timing.CurTick)
         {
             _wfGridSetCache.Clear();
-            _wfGridSetCacheTick = _wfTiming.CurTick;
+            _wfGridSetCacheTick = _timing.CurTick;
         }
 
         if (!_wfGridSetCache.TryGetValue(primary, out var cached))

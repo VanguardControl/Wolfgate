@@ -4,6 +4,7 @@ using System.Numerics;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.Encounters.Systems;
+using Content.Server._WF.BattleLoad;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Client._WF.Encounters;
@@ -596,6 +597,29 @@ public sealed partial class WFEncounterTest : InteractionTest
             Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
             Server.System<WFEncounterSystem>().End(encounter);
             config.SetCVar(EncountersCVars.Simulate, EncountersCVars.Simulate.DefaultValue);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>No encounter starts by itself next to a hot battle; a pinned one still does.</summary>
+    [Test]
+    public async Task HotBattleHoldsBackUnpinnedSpawns()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var origin = new MapCoordinates(new Vector2(40000, 40000), MapData.MapId);
+            var heat = Server.System<WFBattleHeatSystem>();
+            var hot = Server.ResolveDependency<IConfigurationManager>().GetCVar(BattleLoadCVars.HotExplosions);
+            for (var i = 0; i < hot; i++)
+            {
+                heat.Record(origin);
+            }
+
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterConvoy");
+            var encounters = Server.System<WFEncounterSystem>();
+            Assert.That(encounters.TrySpawn(prototype, origin, out _), Is.False, "An unpinned spawn waits out the battle.");
+            Assert.That(encounters.TrySpawn(prototype, origin, out var pinned, pinned: true), Is.True, "A pinned spawn still goes.");
+            encounters.End(pinned);
         });
         await RunTicks(10);
     }

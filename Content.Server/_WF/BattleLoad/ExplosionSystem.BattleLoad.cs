@@ -22,6 +22,7 @@ public sealed partial class ExplosionSystem
     };
 
     private readonly List<WFMicroExplosion> _wfMicroQueue = new();
+    private readonly List<WFMicroExplosion> _wfMicroBatch = new();
     private readonly HashSet<EntityUid> _wfMicroProcessed = new();
     private readonly List<(Vector2i GridIndices, Tile Tile)> _wfMicroTiles = new();
 
@@ -68,12 +69,20 @@ public sealed partial class ExplosionSystem
         if (_wfMicroQueue.Count == 0)
             return;
 
-        foreach (var micro in _wfMicroQueue)
-        {
-            WFApplyMicroExplosion(micro);
-        }
-
+        // A blast set off by one of these, a fuel tank say, waits for the next tick.
+        _wfMicroBatch.AddRange(_wfMicroQueue);
         _wfMicroQueue.Clear();
+        try
+        {
+            foreach (var micro in _wfMicroBatch)
+            {
+                WFApplyMicroExplosion(micro);
+            }
+        }
+        finally
+        {
+            _wfMicroBatch.Clear();
+        }
     }
 
     /// <summary>
@@ -94,7 +103,9 @@ public sealed partial class ExplosionSystem
 
         var mapPos = _transformSystem.ToMapCoordinates(micro.Epicenter);
         var center = _map.LocalToTile(gridUid, grid, micro.Epicenter);
-        var centerIntensity = MathF.Min(micro.MaxTileIntensity, micro.TotalIntensity);
+        // A shell bursting just off the hull puts its whole blast into the tiles around it.
+        var centerExists = _map.TryGetTileRef(gridUid, grid, center, out var centerRef) && !centerRef.Tile.IsEmpty;
+        var centerIntensity = centerExists ? MathF.Min(micro.MaxTileIntensity, micro.TotalIntensity) : 0f;
         var ringIntensity = MathF.Min(micro.MaxTileIntensity, (micro.TotalIntensity - centerIntensity) / 4f);
         var damageModifier = _damageableSystem.UniversalExplosionDamageModifier * _damageableSystem.UniversalAllDamageModifier;
 
@@ -104,7 +115,7 @@ public sealed partial class ExplosionSystem
         {
             var intensity = i == 0 ? centerIntensity : ringIntensity;
             if (intensity <= 0f)
-                break;
+                continue;
 
             var tile = center + WFMicroOffsets[i];
             if (!_map.TryGetTileRef(gridUid, grid, tile, out var tileRef) || tileRef.Tile.IsEmpty)

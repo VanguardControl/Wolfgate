@@ -1,5 +1,6 @@
 using Content.Shared._WF.CCVar;
 using Content.Shared.Mind.Components;
+using Content.Shared.Mobs.Components;
 using Robust.Server.Physics;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map.Components;
@@ -7,7 +8,7 @@ using Robust.Shared.Player;
 
 namespace Content.Server._WF.BattleLoad;
 
-/// <summary>Deletes the tiny grids a hull sheds as it breaks up, unless someone is aboard.</summary>
+/// <summary>Deletes the tiny grids a hull sheds as it breaks up, unless a player or a mob is aboard.</summary>
 public sealed class WFFragmentCleanupSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -68,7 +69,10 @@ public sealed class WFFragmentCleanupSystem : EntitySystem
 
     private bool HasSomeoneAboard(EntityUid uid)
     {
-        if (HasComp<ActorComponent>(uid) || TryComp<MindContainerComponent>(uid, out var mind) && mind.HasMind)
+        // Any mob counts: NPC crew have no mind, and a corpse may yet be revived.
+        if (HasComp<ActorComponent>(uid)
+            || HasComp<MobStateComponent>(uid)
+            || TryComp<MindContainerComponent>(uid, out var mind) && mind.HasMind)
             return true;
 
         var children = Transform(uid).ChildEnumerator;
