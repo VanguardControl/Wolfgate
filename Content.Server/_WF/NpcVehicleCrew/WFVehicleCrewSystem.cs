@@ -1,3 +1,4 @@
+using Content.Server._WF.Dormancy;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server._WF.Vehicles.Core;
@@ -55,8 +56,12 @@ public sealed partial class WFVehicleCrewSystem : EntitySystem
     [Dependency] private ExamineSystemShared _examine = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private PathfindingSystem _pathfinding = default!;
+    [Dependency] private WFDormancySystem _dormancy = default!;
 
     private static readonly TimeSpan ThinkInterval = TimeSpan.FromSeconds(0.2);
+
+    /// <summary>How often a parked crew with no player near looks again whether one has come.</summary>
+    private static readonly TimeSpan DormantThinkInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan ReseatDelay = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan AttackerMemory = TimeSpan.FromSeconds(60);
 
@@ -109,8 +114,28 @@ public sealed partial class WFVehicleCrewSystem : EntitySystem
             if (!_prototypes.TryIndex(crew.Prototype, out var proto))
                 continue;
 
+            // On a planet with no player near, the crew stops where it is until one comes, instead of driving unseen.
+            if (!_dormancy.IsActive(uid))
+            {
+                crew.NextThink = now + DormantThinkInterval;
+                Park(uid, crew);
+                continue;
+            }
+
             Think((uid, crew), proto, now);
         }
+    }
+
+    /// <summary>Takes the crew's hands off the controls and forgets how long it has been stuck.</summary>
+    private void Park(EntityUid uid, WFVehicleCrewComponent crew)
+    {
+        crew.StuckSince = null;
+        if (!TryComp<WFVehicleAutopilotComponent>(uid, out var autopilot))
+            return;
+
+        autopilot.Throttle = 0f;
+        autopilot.Steering = 0f;
+        autopilot.Direction = Vector2i.Zero;
     }
 
     private void OnSpawnerMapInit(Entity<WFVehicleCrewSpawnerComponent> ent, ref MapInitEvent args)

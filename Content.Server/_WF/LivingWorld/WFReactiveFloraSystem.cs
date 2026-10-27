@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Numerics;
+using Content.Server._WF.Dormancy;
 using Content.Server.Body.Systems;
 using Content.Server.Explosion.EntitySystems;
 using Content.Server.Fluids.EntitySystems;
@@ -35,6 +36,7 @@ public sealed class WFReactiveFloraSystem : EntitySystem
     [Dependency] private SharedAppearanceSystem _appearance = default!;
     [Dependency] private BloodstreamSystem _bloodstream = default!;
     [Dependency] private DamageableSystem _damage = default!;
+    [Dependency] private WFDormancySystem _dormancy = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private ExplosionSystem _explosion = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -55,6 +57,9 @@ public sealed class WFReactiveFloraSystem : EntitySystem
     [Dependency] private SpreaderSystem _spreader = default!;
     [Dependency] private ThrowingSystem _throwing = default!;
     [Dependency] private TurfSystem _turf = default!;
+
+    /// <summary>How often a plant with no player near looks again whether one has come.</summary>
+    private static readonly TimeSpan DormantCheck = TimeSpan.FromSeconds(2);
 
     private readonly HashSet<Entity<MobStateComponent>> _near = new();
     private readonly List<(EntityUid Uid, float Distance)> _targets = new();
@@ -152,6 +157,12 @@ public sealed class WFReactiveFloraSystem : EntitySystem
 
             if (now < flora.NextCheck)
                 continue;
+
+            if (!_dormancy.IsActive(uid, xform))
+            {
+                flora.NextCheck = now + DormantCheck;
+                continue;
+            }
 
             flora.NextCheck = now + (React(ent, xform) ? flora.Cooldown : flora.CheckInterval);
         }
