@@ -5,7 +5,6 @@ using Content.Shared.Audio;
 using Content.Shared.Climbing.Events;
 using Content.Shared.Construction.Components;
 using Content.Shared.Jittering;
-using Content.Shared.Medical;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Power;
@@ -67,7 +66,6 @@ public sealed partial class SlimeGrinderSystem : EntitySystem
         SubscribeLocalEvent<ActiveSlimeGrinderComponent, UnanchorAttemptEvent>(OnUnanchorAttempt);
         SubscribeLocalEvent<SlimeGrinderComponent, ClimbedOnEvent>(OnClimbedOn);
         SubscribeLocalEvent<SlimeGrinderComponent, PowerChangedEvent>(OnPowerChanged);
-        SubscribeLocalEvent<SlimeGrinderComponent, ReclaimerDoAfterEvent>(OnDoAfter);
     }
 
     public override void Update(float frameTime)
@@ -134,15 +132,6 @@ public sealed partial class SlimeGrinderSystem : EntitySystem
     {
         if (CanGrind(ent, args.Climber))
             QueueProcess(args.Climber, ent);
-    }
-
-    private void OnDoAfter(Entity<SlimeGrinderComponent> ent, ref ReclaimerDoAfterEvent args)
-    {
-        if (args.Handled || args.Cancelled || args.Args.Used is not { } used || !CanGrind(ent, used))
-            return;
-
-        args.Handled = true;
-        QueueProcess(used, ent);
     }
 
     private void QueueProcess(EntityUid uid, Entity<SlimeGrinderComponent> grinder)

@@ -41,6 +41,7 @@ public sealed partial class XenobiologySystem : EntitySystem
     public const float StartingHunger = 40f;
 
     private readonly List<Entity<SlimeComponent>> _splitting = new();
+    private readonly List<Entity<PendingSlimeSpawnComponent>> _pending = new();
 
     public override void Initialize()
     {
@@ -96,7 +97,17 @@ public sealed partial class XenobiologySystem : EntitySystem
 
     private void OnPendingMapInit(Entity<PendingSlimeSpawnComponent> ent, ref MapInitEvent args)
     {
-        if (_net.IsClient)
+        // Wait a tick: a marker filled into a crate starts up before it is inserted, and the slime should land inside.
+        if (_net.IsServer)
+            _pending.Add(ent);
+    }
+
+    /// <summary>
+    /// Replaces a pending marker with its slime, inside whatever container holds the marker.
+    /// </summary>
+    public void SpawnPending(Entity<PendingSlimeSpawnComponent> ent)
+    {
+        if (TerminatingOrDeleted(ent) || EntityManager.IsQueuedForDeletion(ent))
             return;
 
         if (SpawnSlime(ent, ent.Comp.BasePrototype, ent.Comp.Breed) is { } slime)
@@ -118,6 +129,13 @@ public sealed partial class XenobiologySystem : EntitySystem
         base.Update(frameTime);
         if (_net.IsClient)
             return;
+
+        foreach (var pending in _pending)
+        {
+            SpawnPending(pending);
+        }
+
+        _pending.Clear();
 
         var now = _timing.CurTime;
         _splitting.Clear();

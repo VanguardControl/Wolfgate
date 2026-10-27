@@ -63,12 +63,17 @@ public sealed partial class SlimeLatchSystem : EntitySystem
         var query = EntityQueryEnumerator<SlimeDamageOvertimeComponent>();
         while (query.MoveNext(out var uid, out var comp))
         {
-            if (_mobState.IsDead(uid)
-                || comp.SourceEntityUid is not { } source
+            if (comp.SourceEntityUid is not { } source
                 || !TryComp<SlimeComponent>(source, out var slime)
                 || slime.LatchedTarget != uid)
             {
                 RemCompDeferred(uid, comp);
+                continue;
+            }
+
+            if (_mobState.IsDead(uid))
+            {
+                Unlatch((source, slime));
                 continue;
             }
 
@@ -137,7 +142,7 @@ public sealed partial class SlimeLatchSystem : EntitySystem
         if (args.Target is not { } target)
             return;
 
-        if (args.Handled || args.Cancelled)
+        if (args.Handled || args.Cancelled || !CanLatch(ent, target))
         {
             RemCompDeferred<BeingLatchedComponent>(target);
             return;
@@ -163,8 +168,11 @@ public sealed partial class SlimeLatchSystem : EntitySystem
             BreakOnMove = true,
         };
 
+        if (!_doAfter.TryStartDoAfter(doAfter))
+            return false;
+
         EnsureComp<BeingLatchedComponent>(target);
-        return _doAfter.TryStartDoAfter(doAfter);
+        return true;
     }
 
     public bool IsLatched(Entity<SlimeComponent> ent)

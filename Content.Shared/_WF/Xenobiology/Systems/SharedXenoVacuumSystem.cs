@@ -103,7 +103,10 @@ public abstract partial class SharedXenoVacuumSystem : EntitySystem
 
     private void OnTankDestroyed(Entity<XenoVacuumTankComponent> ent, ref DestructionEventArgs args)
     {
-        _container.EmptyContainer(ent.Comp.StorageTank);
+        foreach (var freed in _container.EmptyContainer(ent.Comp.StorageTank))
+        {
+            SetHTNEnabled(freed, true, 2f);
+        }
     }
 
     private void OnEquippedHand(Entity<XenoVacuumComponent> ent, ref GotEquippedHandEvent args)

@@ -4,6 +4,7 @@ using Content.Shared._WF.JigglePhysics;
 using Content.Shared.Camera;
 using Content.Shared.DisplacementMap;
 using Robust.Client.GameObjects;
+using Robust.Client.Graphics;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Reflection;
 
@@ -35,6 +36,12 @@ public sealed partial class JigglePhysicsVisualsComponent : Component
     /// </summary>
     [ViewVariables]
     public List<string> DisplacementKeys = new();
+
+    /// <summary>
+    /// Shaders the wobbling layers had before the displacement shader replaced them, by their jiggle key.
+    /// </summary>
+    [ViewVariables]
+    public Dictionary<string, (ShaderInstance? Shader, string? Prototype, bool Unshaded)> OldShaders = new();
 }
 
 /// <summary>
@@ -86,6 +93,9 @@ public sealed partial class JigglePhysicsSystem : EntitySystem
             // The displacement shader finds its layer by a string key, so give enum-keyed layers one.
             var key = KeyPrefix + vis.DisplacementKeys.Count;
             _sprite.LayerMapSet((ent, sprite), key, index);
+            if (_sprite.TryGetLayer((ent, sprite), index, out var source, false))
+                vis.OldShaders[key] = (source.Shader, source.ShaderPrototype?.Id, source.ShaderPrototype == SpriteSystem.UnshadedId);
+
             if (_displacement.TryAddDisplacement(data, sprite, index, key, revealed))
                 vis.DisplacementKeys.Add($"{key}-displacement");
         }
@@ -102,6 +112,17 @@ public sealed partial class JigglePhysicsSystem : EntitySystem
             {
                 if (_sprite.LayerMapTryGet((ent, sprite), key, out var index, false))
                     _sprite.RemoveLayer((ent, sprite), index);
+            }
+
+            foreach (var (key, (shader, prototype, unshaded)) in vis.OldShaders)
+            {
+                if (!_sprite.LayerMapTryGet((ent, sprite), key, out var index, false))
+                    continue;
+
+                if (unshaded)
+                    sprite.LayerSetShader(index, SpriteSystem.UnshadedId.Id);
+                else
+                    sprite.LayerSetShader(index, shader, prototype);
             }
         }
 

@@ -31,7 +31,8 @@ public sealed class XenobiologyTest
     private static EntityUid SpawnGrey(IEntityManager entities, Robust.Shared.Map.EntityCoordinates coords)
     {
         var before = entities.EntityQuery<SlimeComponent>().Select(s => s.Owner).ToHashSet();
-        entities.SpawnEntity(GreyPending, coords);
+        var marker = entities.SpawnEntity(GreyPending, coords);
+        entities.System<XenobiologySystem>().SpawnPending((marker, entities.GetComponent<PendingSlimeSpawnComponent>(marker)));
         return entities.EntityQuery<SlimeComponent>().Select(s => s.Owner).Single(uid => !before.Contains(uid));
     }
 
@@ -59,7 +60,7 @@ public sealed class XenobiologyTest
             entities.System<HungerSystem>().SetHunger(slime, 100f);
         });
 
-        await server.WaitRunTicks(60);
+        await server.WaitRunTicks(120);
         await server.WaitAssertion(() =>
         {
             var growth = entities.GetComponent<MobGrowthComponent>(slime);
@@ -149,7 +150,7 @@ public sealed class XenobiologyTest
         await server.WaitPost(() =>
         {
             Assert.That(entities.GetComponent<TransformComponent>(grinder).Anchored, Is.True);
-            var slime = SpawnGrey(entities, map.GridCoords.Offset(new Vector2(1, 0)));
+            var slime = SpawnGrey(entities, map.GridCoords);
             produced = entities.GetComponent<SlimeComponent>(slime).ExtractsProduced;
             var damage = new DamageSpecifier { DamageDict = { { "Blunt", 200 } } };
             entities.System<DamageableSystem>().TryChangeDamage(slime, damage, true);
@@ -251,11 +252,31 @@ public sealed class XenobiologyTest
             Assert.That(stock.StartingInventory.ContainsKey("MobSlimeXenobioBabyGrey"), Is.True);
 
             // A vendor spawns the stocked prototype next to itself; that has to leave a live grey slime.
-            var before = entities.EntityQuery<SlimeComponent>().Count();
-            entities.SpawnEntity("MobSlimeXenobioBabyGrey", map.GridCoords);
-            var slimes = entities.EntityQuery<SlimeComponent>().ToList();
-            Assert.That(slimes, Has.Count.EqualTo(before + 1));
-            Assert.That(slimes.Last().Breed.Id, Is.EqualTo("GreyMutation"));
+            var slime = SpawnGrey(entities, map.GridCoords);
+            Assert.That(entities.GetComponent<SlimeComponent>(slime).Breed.Id, Is.EqualTo("GreyMutation"));
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task StarterCrateHoldsItsSlimes()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entities = server.ResolveDependency<IEntityManager>();
+
+        EntityUid crate = default;
+        await server.WaitPost(() => crate = entities.SpawnEntity("WFCrateXenobiologyStarter", map.GridCoords));
+        await server.WaitRunTicks(5);
+        await server.WaitAssertion(() =>
+        {
+            var containers = entities.System<Robust.Shared.Containers.SharedContainerSystem>();
+            var slimes = entities.EntityQuery<SlimeComponent>().Select(s => s.Owner).ToList();
+            Assert.That(slimes, Has.Count.EqualTo(2));
+            Assert.That(slimes.All(s => containers.TryGetContainingContainer((s, null), out var c) && c.Owner == crate), Is.True,
+                "The starter slimes stay in the crate until it is opened.");
         });
 
         await pair.CleanReturnAsync();

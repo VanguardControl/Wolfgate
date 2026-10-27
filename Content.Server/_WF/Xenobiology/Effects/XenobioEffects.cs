@@ -82,7 +82,7 @@ public static class XenobioEffectHelpers
     public static EntityCoordinates RandomNear(IEntityManager entMan, EntityUid target, float offset)
     {
         var random = IoCManager.Resolve<IRobustRandom>();
-        var coords = entMan.GetComponent<TransformComponent>(target).Coordinates;
+        var coords = entMan.System<SharedTransformSystem>().GetMoverCoordinates(target);
         return coords.Offset(new Vector2(random.NextFloat(-offset, offset), random.NextFloat(-offset, offset)));
     }
 }
