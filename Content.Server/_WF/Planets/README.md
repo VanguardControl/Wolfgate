@@ -45,7 +45,9 @@ crashes), `WFOrbitDecaySystem`, `WFGravityWellSystem`, `WFPlanetWeatherSystem`, 
 `ThrusterSystem.WF*`, `ShuttleSystem.WFOrbit`). `WFTerrainAtmosphereSystem` gives every layer with ground a grid
 atmosphere that `AtmosphereSystem.WFTerrain` keeps sparse: tiles the layer's biome lays (and what digging turns them
 into) are bare ground, treated like tiles off the grid and never tracked until something is built beside them, so
-loading terrain costs atmos nothing; `WFTerrainOpenTilesEvent` lets a module name more ground.
+loading terrain costs atmos nothing; `WFTerrainOpenTilesEvent` lets a module name more ground. A tile newly built
+on any other grid on a planet layer, such as a city's upper level when it gets its atmosphere, starts with that
+layer's air instead of a vacuum; orbit's air is space, so tiles there still start empty.
 `BiomeSystem.WFUnload` unloads planet terrain nobody is near, in place of upstream's unloader, which let go of
 almost none of it: untouched biome entities go with their chunk, and the ground under a hull, beside a build or
 loaded by hand stays. Ground that is only unloaded still holds up whatever was left on it. `BiomeSystem.WFRoll`
@@ -337,6 +339,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Planets/AirLayerAtmosphereTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AirLayerAtmosphereTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/AtmosphereThrusterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AtmosphereThrusterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/AtmosphericJetpackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AtmosphericJetpackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/AudioExhaustionTest.cs)

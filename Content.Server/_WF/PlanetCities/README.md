@@ -96,6 +96,7 @@ wade) and catwalks where it turns.
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/PlanetCities/CityTemplateTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetCities/CityTemplateTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetCities/CrocusAirTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetCities/CrocusAirTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetCities/CrocusLevelsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetCities/CrocusLevelsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetCities/FixedCityTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetCities/FixedCityTest.cs)
 
