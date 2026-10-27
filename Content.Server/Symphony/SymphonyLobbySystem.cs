@@ -67,7 +67,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
 
     public const int MaxImageBytes = 8_000_000;
     public const int MaxTrackBytes = 16_000_000;
-    private const int MaxTracks = 30;
+    private const int MaxTracks = 60;
     private const int MaxPool = 30;
 
     private static readonly ResPath UploadDir = new("Symphony/Lobby");
@@ -170,6 +170,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
             {
                 Playlist = _audio.LobbyPlaylist.ToList(),
                 Override = _audio.LobbyPlaylistOverride?.ToList(),
+                Shuffle = _audio.LobbyPlaylistShuffled,
                 Collection = _audio.LobbyCollection.ToList(),
             },
             Uploads = _uploads.Select(kv => new UploadState { Path = kv.Key, Size = kv.Value }).ToList(),
@@ -429,7 +430,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
             if (unknown != null)
                 return (ApplyResponse?) null;
             var lobby = LobbySessions();
-            _audio.SetLobbyPlaylistOverride(body.Tracks?.ToArray(), lobby);
+            _audio.SetLobbyPlaylistOverride(body.Tracks?.ToArray(), lobby, body.Shuffle == true);
             Prune("music", body.Tracks ?? []);
             WriteState();
             return new ApplyResponse
@@ -504,6 +505,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
                 Background = _ticker.LobbyBackgroundOverride,
                 Pool = _ticker.LobbyBackgroundPool.Count > 0 ? _ticker.LobbyBackgroundPool.ToList() : null,
                 Playlist = _audio.LobbyPlaylistOverride?.ToList(),
+                Shuffle = _audio.LobbyPlaylistShuffled ? true : null,
                 Notice = _notice.IsEmpty ? null : new NoticeBody { Title = _notice.Title, Body = _notice.Body, Style = _notice.Style },
             }));
         }
@@ -566,7 +568,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
             _ticker.SetLobbyBackgroundPool(pool, announce: false);
         var tracks = state.Playlist?.Where(Available).ToArray();
         if (tracks is { Length: > 0 })
-            _audio.SetLobbyPlaylistOverride(tracks, null);
+            _audio.SetLobbyPlaylistOverride(tracks, null, state.Shuffle == true);
     }
 
     /// <summary>The extension a picture's own bytes say it is, or null when they say it is no picture the game shows.</summary>
@@ -650,6 +652,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     {
         [JsonPropertyName("playlist")] public List<string> Playlist { get; set; } = [];
         [JsonPropertyName("override")] public List<string>? Override { get; set; }
+        [JsonPropertyName("shuffle")] public bool Shuffle { get; set; }
         [JsonPropertyName("collection")] public List<string> Collection { get; set; } = [];
     }
 
@@ -689,6 +692,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     private sealed class MusicBody
     {
         [JsonPropertyName("tracks")] public List<string>? Tracks { get; set; }
+        [JsonPropertyName("shuffle")] public bool? Shuffle { get; set; }
         [JsonPropertyName("actor")] public string? Actor { get; set; }
     }
 
@@ -697,6 +701,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
         [JsonPropertyName("background")] public string? Background { get; set; }
         [JsonPropertyName("pool")] public List<string>? Pool { get; set; }
         [JsonPropertyName("playlist")] public List<string>? Playlist { get; set; }
+        [JsonPropertyName("shuffle")] public bool? Shuffle { get; set; }
         [JsonPropertyName("notice")] public NoticeBody? Notice { get; set; }
     }
 

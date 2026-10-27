@@ -3649,3 +3649,58 @@ Entries:
   id: 100255
   time: '2026-10-27T02:29:13.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/383
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Players under 8 hours get a learner plate over their head and a line
+        when examined.
+    - type: Add
+      message: Ships owned by new players show (L) after their name on radar and hails.
+    - type: Add
+      message: New players can hide their tag in Options > Extra.
+    - type: Add
+      message: 'Conflict Rule 6: go easy on new players.'
+    - type: Add
+      message: >-
+        New players get a welcome popup on join, and first-hour players are told
+        to join a crew first.
+  id: 100256
+  time: '2026-10-27T02:38:47.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/385
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Halcyon and Caelestinus cargo chutes now buy exactly what their
+        manifests list.
+    - type: Fix
+      message: Hidden markings stay hidden for players who meet you later.
+    - type: Tweak
+      message: >-
+        Vagrants can use service job names and Mercenary as their custom job
+        title.
+    - type: Tweak
+      message: Custom chat fonts are now about the same size.
+  id: 100257
+  time: '2026-10-27T04:21:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/389
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Big ship battles should lag the server less: small shell blasts are
+        cheaper, nearby blasts merge and tiny hull scraps are removed.
+    - type: Tweak
+      message: NPC ships hold off from joining while a big battle is raging nearby.
+    - type: Fix
+      message: >-
+        Fleet battles spawned by admins wait for a player to come near before
+        the sides open fire.
+    - type: Fix
+      message: >-
+        Asteroids and wrecks no longer get pulled into planet orbit and fall
+        onto planets.
+  id: 100258
+  time: '2026-10-27T04:22:03.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/387

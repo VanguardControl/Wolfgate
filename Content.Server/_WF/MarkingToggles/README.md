@@ -32,6 +32,7 @@ Entry points: the server `MarkingToggleSystem` (checks and applies the requests)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/MarkingToggles/MarkingTogglePvsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MarkingToggles/MarkingTogglePvsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/MarkingToggles/MarkingToggleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/MarkingToggles/MarkingToggleTest.cs)
 
 ### Localization
@@ -40,6 +41,9 @@ Entry points: the server `MarkingToggleSystem` (checks and applies the requests)
 
 ## Non-modular edits
 
+- [`Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.PartAppearance.cs`](../../../Content.Shared/_Shitmed/Body/Systems/SharedBodySystem.PartAppearance.cs)
+  - the server's humanoid state already has the part's markings
+  - a limb leaving PVS isn't dropped; the server's humanoid state covers real drops
 - [`Content.Shared/Humanoid/SharedHumanoidAppearanceSystem.cs`](../../../Content.Shared/Humanoid/SharedHumanoidAppearanceSystem.cs): a loaded character shows all its markings
 
 <!-- WOLFGATE-GENERATED END -->

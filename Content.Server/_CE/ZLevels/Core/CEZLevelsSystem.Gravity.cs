@@ -198,14 +198,15 @@ public sealed partial class CEZLevelsSystem
                 if (prevDelta * curDelta > 0f)
                     continue;
 
-                // WOLFGATE(Planets) START: sets level with each other met on an earlier tick; each set is walked once a tick
+                // WOLFGATE(Planets): sets level with each other met on an earlier tick.
                 if (prevDelta == 0f && curDelta == 0f)
                     continue;
 
-                if (!TryGetCachedGridSetAabb(a.Primary, out var setA, out var aabbA) ||
-                    !TryGetCachedGridSetAabb(b.Primary, out var setB, out var aabbB) ||
-                    !aabbA.Intersects(aabbB))
+                // WOLFGATE(BattleLoad) START: each set is collected once per tick, not once per pair
+                if (!WFTryGetCachedGridSetAabb(a.Primary, out var setA, out var aabbA) ||
+                    !WFTryGetCachedGridSetAabb(b.Primary, out var setB, out var aabbB) ||
                 // WOLFGATE END
+                    !aabbA.Intersects(aabbB))
                 {
                     continue;
                 }
@@ -223,38 +224,12 @@ public sealed partial class CEZLevelsSystem
             }
         }
 
-        _transitSetCache.Clear(); // WOLFGATE(Planets)
         _transitLastProgress.Clear();
         foreach (var entry in _transitCollisionScan)
         {
             _transitLastProgress[entry.Map] = entry.Progress;
         }
     }
-
-    // WOLFGATE(Planets) START: transit sets cached per collision check, so the dock walk runs once per set a tick
-    private readonly Dictionary<EntityUid, (HashSet<EntityUid> Set, Box2 Aabb, bool Ok)> _transitSetCache = new();
-
-    private bool TryGetCachedGridSetAabb(EntityUid primary, out HashSet<EntityUid> set, out Box2 aabb)
-    {
-        // A set crushed earlier this tick is gone.
-        if (TerminatingOrDeleted(primary))
-        {
-            set = new HashSet<EntityUid>();
-            aabb = default;
-            return false;
-        }
-
-        if (!_transitSetCache.TryGetValue(primary, out var cached))
-        {
-            cached.Ok = TryGetGridSetAabb(primary, out cached.Set, out cached.Aabb);
-            _transitSetCache[primary] = cached;
-        }
-
-        set = cached.Set;
-        aabb = cached.Aabb;
-        return cached.Ok;
-    }
-    // WOLFGATE END
 
     /// <summary>
     /// Collects a transit set and the union of its members' world AABBs.
