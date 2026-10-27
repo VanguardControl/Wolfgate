@@ -22,7 +22,6 @@ public sealed partial class WFOrbitDecaySystem : EntitySystem
     [Dependency] private ShipPaSystem _pa = default!;
     [Dependency] private WFOrbitEntrySystem _orbitEntry = default!;
     [Dependency] private WFPlanetBoundsSystem _bounds = default!;
-
     [Dependency] private WFLooseDebrisSystem _debris = default!;
 
     /// <summary>Situation code for a decaying hull; not pilot-selectable.</summary>

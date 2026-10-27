@@ -128,9 +128,6 @@
   parent: ClothingOuterArmorBasic
   id: WFMeridianClothingSuitArmorBalloonVest
   components:
-  # Its weaker armour priced it below its own materials, so scrapping it paid; this lifts the inherited 30.
-  - type: StaticPrice
-    price: 45
   - type: Sprite
     sprite: _WF/MeridianClothing/OuterClothing/armor_balloon_vest.rsi
     state: icon
