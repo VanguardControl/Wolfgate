@@ -617,6 +617,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
   - over a planet only landing thrusters lift.
   - landing thrusters are the planet-side lift.
   - grids parked on a planet orbit layer never fall.
+  - sets level with each other met on an earlier tick.
   - partial landing-thruster lift slows the sink, and this is where lift lost begins.
   - the sink uses the lift-adjusted gravity.
   - no setting down on walls or rock.
