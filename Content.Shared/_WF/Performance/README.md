@@ -6,6 +6,8 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   atmos and mover lookups don't keep paying for one huge pile of items.
 - `SharedGravitySystem.WFRefresh` batches weightlessness refreshes for half a second after a grid's gravity changes and
   walks only that grid's entities, instead of every gravity-affected entity on the server per change.
+- `PathfindingSystem` skips mining rock grids (`WFAsteroidGridComponent`). Building their nav chunks cost about 2.6 ms
+  per new rock grid, nearly all the cost of a field loading in, and no NPC walks on one.
 - The marked upstream edits skip idle-shuttle thruster work, avoid `Enum.GetValues` and nullable boxing on per-tick
   paths, stop `FlammableSystem` from crashing when igniting queues new fire events, and stop networking a thrown
   item's shooter (it outlived the shooter and sent a deleted entity every state).
@@ -60,6 +62,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/Explosion/EntitySystems/ProjectileGrenadeSystem.cs`](../../../Content.Server/Explosion/EntitySystems/ProjectileGrenadeSystem.cs): wizden#36641, the grenade is deleted so it can't be the gun; was uid, null
 - [`Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs`](../../../Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs): wizden#41390, was IsTileAirBlocked
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs`](../../../Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs)
+  - no NPC walks a mining rock, and building its nav chunks cost ~2.6 ms per new rock grid
   - wizden#44340, tile entities carry their fixtures
   - wizden#44340, resolve transforms and hard fixtures once per tile
   - wizden#44340, iterate the cached hard fixtures
