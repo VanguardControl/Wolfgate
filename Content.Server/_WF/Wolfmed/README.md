@@ -437,6 +437,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOrganTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOverheatTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedOverheatTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPainTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPainTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPlateletWoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPlateletWoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPlaytestFixesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPlaytestFixesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPodLeftoversTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPodLeftoversTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPodReagentSafetyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedPodReagentSafetyTest.cs)
@@ -1059,6 +1060,9 @@ Skipped ("dirty-disposed").
 - [`Content.Server/_Mono/Traits/Physical/HemophiliaSystem.cs`](../../_Mono/Traits/Physical/HemophiliaSystem.cs)
   - Wolfmed wound hosts own their own bleeding.
   - GUARD E4, wound hosts bleed through WoundBleedingSystem; re-express hemophilia as a
+- [`Content.Server/_Mono/Traits/Physical/PlateletFactoriesSystem.cs`](../../_Mono/Traits/Physical/PlateletFactoriesSystem.cs)
+  - open wounds outlast the damage; checked below
+  - removed damage barely closes a wound, so the trait mends wounds like a healing chem.
 - [`Content.Server/_NF/Medical/MedicalBountySystem.cs`](../../_NF/Medical/MedicalBountySystem.cs)
   - a wound host's bounty injuries
   - only a bounty whose injuries this body can take

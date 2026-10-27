@@ -144,6 +144,7 @@ and `ShipAccessKeypadWindow` (the keypad). The `WFShipLocked` access level is in
 ### Server
 
 - [`Content.Server/_WF/ShipAccess/WFShipAccessCodeComponent.cs`](WFShipAccessCodeComponent.cs)
+- [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Ai.cs`](WFShipAccessServerSystem.Ai.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Codes.cs`](WFShipAccessServerSystem.Codes.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Console.cs`](WFShipAccessServerSystem.Console.cs)
 - [`Content.Server/_WF/ShipAccess/WFShipAccessServerSystem.Crew.cs`](WFShipAccessServerSystem.Crew.cs)
@@ -159,6 +160,7 @@ and `ShipAccessKeypadWindow` (the keypad). The `WFShipLocked` access level is in
 - [`Content.Shared/_WF/ShipAccess/WFShipAccessComponent.cs`](../../../Content.Shared/_WF/ShipAccess/WFShipAccessComponent.cs)
 - [`Content.Shared/_WF/ShipAccess/WFShipAccessEvents.cs`](../../../Content.Shared/_WF/ShipAccess/WFShipAccessEvents.cs)
 - [`Content.Shared/_WF/ShipAccess/WFShipAccessSystem.cs`](../../../Content.Shared/_WF/ShipAccess/WFShipAccessSystem.cs)
+- [`Content.Shared/_WF/ShipAccess/WFShipAiAccessSystem.cs`](../../../Content.Shared/_WF/ShipAccess/WFShipAiAccessSystem.cs)
 
 ### Client
 
@@ -174,6 +176,7 @@ and `ShipAccessKeypadWindow` (the keypad). The `WFShipLocked` access level is in
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/ShipAccess/ShipAccessAiTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ShipAccess/ShipAccessAiTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ShipAccess/ShipAccessCodeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ShipAccess/ShipAccessCodeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ShipAccess/ShipAccessCrewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ShipAccess/ShipAccessCrewTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/ShipAccess/ShipAccessDoorRuleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/ShipAccess/ShipAccessDoorRuleTest.cs)
