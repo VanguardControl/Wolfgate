@@ -75,6 +75,9 @@ public sealed partial class BiomeSystem
         /// <summary>Chunks whose unload threw; they are left alone.</summary>
         public readonly HashSet<Vector2i> Broken = new();
 
+        /// <summary>Chunks of a preloaded ground whose biome entities are put away (BiomeSystem.WFStash).</summary>
+        public readonly HashSet<Vector2i> Stashed = new();
+
         /// <summary>What this layer's spawner rolls are salted with, drawn the first time one is made.</summary>
         public int? RollSalt;
     }
@@ -132,8 +135,12 @@ public sealed partial class BiomeSystem
         if (!_wfUnloadEnabled || !HasComp<WFPlanetLayerComponent>(map))
             return false;
 
-        // A preloaded ground keeps everything, and so does one still generating; there is nothing to scan for.
-        if (HasComp<WFPlanetPreloadedComponent>(map) || _wfPreload.IsPreloading(map))
+        // One still generating keeps everything. A preloaded ground keeps its tiles and only stashes its entities.
+        if (_wfPreload.IsPreloading(map))
+            return true;
+
+        var preloaded = HasComp<WFPlanetPreloadedComponent>(map);
+        if (preloaded && !WfStashEnabled)
             return true;
 
         var layer = _wfLayers.GetOrNew(map);
@@ -148,7 +155,7 @@ public sealed partial class BiomeSystem
             }
 
             if (map == _wfTurnLayer)
-                WfUnloadDue(biome, map, grid, layer);
+                WfUnloadDue(biome, map, grid, layer, preloaded);
         }
         catch (Exception e)
         {
@@ -181,6 +188,10 @@ public sealed partial class BiomeSystem
 
         foreach (var chunk in loaded)
         {
+            // Already put away: there is nothing more to let go of.
+            if (layer.Stashed.Contains(chunk))
+                continue;
+
             if (_wfKeep.Contains(chunk) || layer.Broken.Contains(chunk))
             {
                 // Out of the queue as well: its entry there is skipped when its turn comes.
@@ -200,7 +211,7 @@ public sealed partial class BiomeSystem
         }
 
         // Chunks something else unloaded leave their clocks behind.
-        if (layer.IdleSince.Count <= loaded.Count)
+        if (layer.IdleSince.Count <= loaded.Count - layer.Stashed.Count)
             return;
 
         _wfStale.Clear();
@@ -258,7 +269,7 @@ public sealed partial class BiomeSystem
     }
 
     /// <summary>Unloads a layer's due chunks, oldest first, until the pass's time is spent; one always goes.</summary>
-    private void WfUnloadDue(BiomeComponent biome, EntityUid map, MapGridComponent grid, WfLayerUnload layer)
+    private void WfUnloadDue(BiomeComponent biome, EntityUid map, MapGridComponent grid, WfLayerUnload layer, bool stash)
     {
         var active = _activeChunks[biome];
         _wfWatch.Restart();
@@ -289,7 +300,10 @@ public sealed partial class BiomeSystem
 
             try
             {
-                WfUnloadChunkPristine(biome, map, grid, chunk);
+                if (stash)
+                    WfStashChunk(biome, map, grid, chunk);
+                else
+                    WfUnloadChunkPristine(biome, map, grid, chunk);
             }
             catch (Exception e)
             {
@@ -329,6 +343,8 @@ public sealed partial class BiomeSystem
         // Not loaded from here on, whatever is reached: z-physics reads each tile as it empties, and one emptied on a
         // loaded chunk is a hole.
         biome.LoadedChunks.Remove(chunk);
+        if (_wfLayers.TryGetValue(map, out var state))
+            state.Stashed.Remove(chunk);
 
         try
         {

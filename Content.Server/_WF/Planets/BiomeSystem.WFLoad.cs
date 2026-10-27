@@ -84,7 +84,14 @@ public sealed partial class BiomeSystem
         if (!ReferenceEquals(_wfLoadFor, biome))
             WfBeginLoad(biome, map);
 
-        if (_wfLoadLoaders == null || biome.LoadedChunks.Contains(chunk))
+        // A stashed chunk's tiles are there; its entities are laid again after the pass's loads.
+        if (biome.LoadedChunks.Contains(chunk))
+        {
+            WfNoteRestore(biome, map, chunk);
+            return false;
+        }
+
+        if (_wfLoadLoaders == null)
             return false;
 
         var block = WfBlockOf(chunk);
@@ -151,6 +158,8 @@ public sealed partial class BiomeSystem
     /// <summary>Loads what a layer put off this pass, nearest block first, until the pass's time is spent; one block always loads.</summary>
     private void WfLoadDeferred(BiomeComponent biome, EntityUid map, MapGridComponent grid, int seed)
     {
+        WfRestoreStashed(biome, map, grid);
+
         if (!ReferenceEquals(_wfLoadFor, biome) || _wfLoadLoaders == null)
             return;
 
