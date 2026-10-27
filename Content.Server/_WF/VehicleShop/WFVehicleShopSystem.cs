@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Numerics;
 using Content.Server.Administration.Logs;
 using Content.Server.Cargo.Systems;
@@ -180,16 +181,25 @@ public sealed class WFVehicleShopSystem : EntitySystem
         }
 
         // Anything solid where the biggest vehicle on sale would stand keeps the pad shut.
-        var footprint = Footprint(ent.Comp.Catalog).Translated(coords.Position);
+        var footprint = Footprint(_proto.Index(ent.Comp.Catalog).Vehicles.Select(listing => listing.Vehicle));
         // The vehicle is delivered square to the deck, whichever way the pad itself was turned.
-        var area = new Box2Rotated(footprint, _transform.GetWorldRotation(Transform(padUid).ParentUid), coords.Position);
-        foreach (var other in _lookup.GetEntitiesIntersecting(coords.MapId, area, LookupFlags.Dynamic | LookupFlags.Static))
-        {
-            if (Blocks(other, padUid))
-                return (pad, WFVehicleShopPad.Blocked, other);
-        }
+        if (FindBlocker(coords, _transform.GetWorldRotation(Transform(padUid).ParentUid), footprint, padUid) is { } blocker)
+            return (pad, WFVehicleShopPad.Blocked, blocker);
 
         return (pad, WFVehicleShopPad.Clear, null);
+    }
+
+    /// <summary>The first solid thing inside a vehicle's room about a spot, turned with the deck it stands on.</summary>
+    public EntityUid? FindBlocker(MapCoordinates coords, Angle deckRotation, Box2 footprint, EntityUid ignore)
+    {
+        var area = new Box2Rotated(footprint.Translated(coords.Position), deckRotation, coords.Position);
+        foreach (var other in _lookup.GetEntitiesIntersecting(coords.MapId, area, LookupFlags.Dynamic | LookupFlags.Static))
+        {
+            if (Blocks(other, ignore))
+                return other;
+        }
+
+        return null;
     }
 
     /// <summary>Whether something would be in a delivered vehicle's way: solid, and neither loose items nor what lies under the floor.</summary>
@@ -205,13 +215,13 @@ public sealed class WFVehicleShopSystem : EntitySystem
         return TryComp<PhysicsComponent>(other, out var body) && body.CanCollide && body.Hard;
     }
 
-    /// <summary>The room the biggest vehicle of a catalogue takes up, about the pad, from the hard fixtures of each.</summary>
-    private Box2 Footprint(ProtoId<WFVehicleCatalogPrototype> catalog)
+    /// <summary>The room the biggest of some vehicles takes up, about its centre, from the hard fixtures of each.</summary>
+    public Box2 Footprint(IEnumerable<EntProtoId> vehicles)
     {
         Box2? bounds = null;
-        foreach (var listing in _proto.Index(catalog).Vehicles)
+        foreach (var vehicle in vehicles)
         {
-            if (!_proto.Index(listing.Vehicle).TryGetComponent<Robust.Shared.Physics.FixturesComponent>(out var fixtures, EntityManager.ComponentFactory))
+            if (!_proto.Index(vehicle).TryGetComponent<Robust.Shared.Physics.FixturesComponent>(out var fixtures, EntityManager.ComponentFactory))
                 continue;
 
             foreach (var fixture in fixtures.Fixtures.Values)

@@ -13,3 +13,12 @@ wf-vehicle-shop-no-funds = Not enough money in your account.
 wf-vehicle-shop-delivered = { $vehicle } delivered to the pad.
 wf-vehicle-shop-sold = { $vehicle } sold for { $price }.
 wf-vehicle-shop-occupied = Empty the vehicle first.
+
+wf-vehicle-beacon-armed = Beacon set. It opens in { $seconds } seconds. Stand back.
+wf-vehicle-beacon-countdown = { $seconds }...
+wf-vehicle-beacon-no-ground = The beacon needs solid ground to open on.
+wf-vehicle-beacon-blocked = The beacon can't open: { THE($thing) } is in the way.
+wf-vehicle-beacon-opened = The beacon unfolds into { THE($vehicle) }.
+wf-vehicle-repair-kit-intact = { CAPITALIZE(THE($vehicle)) } doesn't need fixing.
+wf-vehicle-repair-kit-too-big = This kit is for civilian vehicles. { CAPITALIZE(THE($vehicle)) } needs a real workshop.
+wf-vehicle-repair-kit-done = { CAPITALIZE(THE($vehicle)) } is as good as new.
