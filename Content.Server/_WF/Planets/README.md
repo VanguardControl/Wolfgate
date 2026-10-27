@@ -408,6 +408,8 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
   - over a planet only landing thrusters lift.
   - landing thrusters are the planet-side lift.
   - grids parked on a planet orbit layer never fall.
+  - sets level with each other met on an earlier tick; each set is walked once a tick
+  - transit sets cached per collision check, so the dock walk runs once per set a tick
   - partial landing-thruster lift slows the sink, and this is where lift lost begins.
   - the sink uses the lift-adjusted gravity.
   - planetary landings can clear, land hard, break up or skid instead of only crashing.
