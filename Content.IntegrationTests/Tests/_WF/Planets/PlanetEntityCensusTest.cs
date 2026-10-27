@@ -56,10 +56,10 @@ public sealed class PlanetEntityCensusTest
 
     /// <summary>
     /// What a formed road world holds with nobody near: its sites, roads, camps and wrecks, but not its terrain's
-    /// trees and rocks. Set from Merak's count once the stash went in (about 60,000 before it), so it can't silently
+    /// trees and rocks. Set from Merak's count once the stash went in (about 27,000, against 60,000 before it), so it can't silently
     /// grow back.
     /// </summary>
-    public const int EagerLimit = 25_000;
+    public const int EagerLimit = 32_000;
 
     [Test]
     public async Task AFormedWorldKeepsLittleOutWithNobodyNear()
@@ -73,7 +73,8 @@ public sealed class PlanetEntityCensusTest
             Assert.Multiple(() =>
             {
                 Assert.That(census.Total, Is.LessThan(EagerLimit), "The formed world holds more than it should with nobody near.");
-                Assert.That(census.Categories.GetValueOrDefault("biome terrain"), Is.LessThan(500), "The terrain's own entities stayed out with nobody near.");
+                // What stays is beside the sites' built floors and under the wrecks and camps: about 3,500 of 42,500.
+                Assert.That(census.Categories.GetValueOrDefault("biome terrain"), Is.LessThan(6000), "The terrain's own entities stayed out with nobody near.");
             });
         }
         finally

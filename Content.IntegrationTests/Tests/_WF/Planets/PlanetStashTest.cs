@@ -85,16 +85,15 @@ public sealed class PlanetStashTest
             // One is touched, and someone stands where a solid one stood.
             EntityUid touched = default;
             EntityUid occupant = default;
-            Vector2i occupied = default;
+            Vector2i? occupied = null;
+            var solid = new List<Vector2i>();
             await server.WaitPost(() =>
             {
                 var biome = entMan.GetComponent<BiomeComponent>(ground);
                 var all = biome.LoadedEntities.Values.SelectMany(e => e).ToList();
                 touched = all.First().Key;
                 entMan.DirtyEntity(touched);
-                occupied = all.Skip(1).Select(p => p.Value).FirstOrDefault(tile => tile != all[0].Value
-                    && maps.GetAnchoredEntities(ground, entMan.GetComponent<MapGridComponent>(ground), tile)
-                        .Any(e => entMan.TryGetComponent<PhysicsComponent>(e, out var body) && body.Hard));
+                solid.AddRange(all.Skip(1).Select(p => p.Value).Where(tile => tile != all[0].Value && Solid(tile)));
             });
 
             // They leave: it is put away again, all but the touched one.
@@ -107,13 +106,14 @@ public sealed class PlanetStashTest
             });
             Assert.That(await Near(pair, ground, Here, 24), Has.Count.LessThan(near.Count), "Nothing round the old spot was put away.");
 
-            if (occupied != default)
+            // Someone stands where a solid one stood and was put away.
+            await server.WaitPost(() =>
             {
-                await server.WaitPost(() =>
-                {
-                    occupant = entMan.SpawnEntity(PlanetFixture.ViewerProto, new EntityCoordinates(ground, (Vector2) occupied + new Vector2(0.5f)));
-                });
-            }
+                occupied = solid.Where(tile => !Solid(tile)).Select(tile => (Vector2i?) tile).FirstOrDefault();
+                if (occupied is { } tile)
+                    occupant = entMan.SpawnEntity(PlanetFixture.ViewerProto, new EntityCoordinates(ground, (Vector2) tile + new Vector2(0.5f)));
+            });
+            Assert.That(occupied, Is.Not.Null, "No solid biome entity near the viewer was put away to stand in place of.");
 
             // Back again: the same comes back, round whoever stands in the way.
             await server.WaitPost(() => xforms.SetCoordinates(viewer, new EntityCoordinates(ground, Here)));
@@ -122,20 +122,22 @@ public sealed class PlanetStashTest
             Assert.That(second.Except(first), Is.Empty, "Something new came back.");
             Assert.That(first.Count - second.Count, Is.LessThanOrEqualTo(2), "Less came back than went.");
 
-            if (occupied != default)
+            await server.WaitPost(() =>
             {
-                await server.WaitPost(() =>
-                {
-                    var walled = maps.GetAnchoredEntities(ground, entMan.GetComponent<MapGridComponent>(ground), occupied)
-                        .Any(e => entMan.TryGetComponent<PhysicsComponent>(e, out var body) && body.Hard);
-                    Assert.That(walled, Is.False, "Someone standing on a stashed tile was walled in.");
-                    Assert.That(entMan.EntityExists(occupant), Is.True);
-                });
-            }
+                Assert.That(Solid(occupied!.Value), Is.False, "Someone standing on a stashed tile was walled in.");
+                Assert.That(entMan.EntityExists(occupant), Is.True);
+            });
         }
         finally
         {
             await PlanetFixture.Teardown(pair, layers);
+        }
+
+        // Whether something hard is anchored on a ground tile.
+        bool Solid(Vector2i tile)
+        {
+            return maps.GetAnchoredEntities(ground, entMan.GetComponent<MapGridComponent>(ground), tile)
+                .Any(e => entMan.TryGetComponent<PhysicsComponent>(e, out var body) && body.Hard);
         }
 
         await pair.CleanReturnAsync();

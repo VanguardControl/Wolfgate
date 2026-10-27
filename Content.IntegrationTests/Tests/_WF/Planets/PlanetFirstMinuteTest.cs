@@ -23,11 +23,14 @@ namespace Content.IntegrationTests.Tests._WF.Planets;
 [TestOf(typeof(WFPlanetPreloadSystem))]
 public sealed class PlanetFirstMinuteTest
 {
-    /// <param name="cuts">Off, the stash and the lazy navmesh are turned off, as before them.</param>
+    /// <param name="stash">Whether idle terrain is stashed (BiomeSystem.WFStash).</param>
+    /// <param name="lazy">Whether planet navmeshes are built only near someone (PathfindingSystem.WFPlanetLazy).</param>
     [Explicit]
-    [TestCase(false)]
-    [TestCase(true)]
-    public async Task FirstMinuteAfterTheWorldsForm(bool cuts)
+    [TestCase(false, false)]
+    [TestCase(true, false)]
+    [TestCase(false, true)]
+    [TestCase(true, true)]
+    public async Task FirstMinuteAfterTheWorldsForm(bool stash, bool lazy)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
         var server = pair.Server;
@@ -54,8 +57,8 @@ public sealed class PlanetFirstMinuteTest
             server.CfgMan.SetCVar(PlanetCVars.Preload, true);
             server.CfgMan.SetCVar(PlanetCVars.FixedCities, true);
             server.CfgMan.SetCVar(PlanetCVars.Prebuild, false);
-            server.CfgMan.SetCVar(PlanetCVars.TerrainStash, cuts);
-            server.CfgMan.SetCVar(PlanetCVars.PathfindingLazy, cuts);
+            server.CfgMan.SetCVar(PlanetCVars.TerrainStash, stash);
+            server.CfgMan.SetCVar(PlanetCVars.PathfindingLazy, lazy);
             // Formed at the lobby's pace, as a real round's are.
             server.CfgMan.SetCVar(PlanetCVars.PreloadBudget, server.CfgMan.GetCVar(PlanetCVars.PreloadBudgetLobby));
             server.CfgMan.SetCVar(PlanetCVars.GenerationBudget, server.CfgMan.GetCVar(PlanetCVars.GenerationBudgetLobby));
@@ -165,7 +168,7 @@ public sealed class PlanetFirstMinuteTest
         });
 
         var sb = new StringBuilder();
-        sb.AppendLine($"Cuts {(cuts ? "on" : "off")}. After the minute: {entitiesAfter} entities, managed memory {memoryAfter / 1048576} MB.");
+        sb.AppendLine($"Stash {(stash ? "on" : "off")}, lazy navmesh {(lazy ? "on" : "off")}. After the minute: {entitiesAfter} entities, managed memory {memoryAfter / 1048576} MB.");
         sb.AppendLine($"Six worlds formed in {formed:F1} s (worst forming tick {worstForming:F0} ms). Entities: {entitiesBefore} before, {entitiesFormed} formed. Managed memory {memoryBefore / 1048576} MB before, {memory / 1048576} MB formed.");
         foreach (var (ms, top) in slowForming.OrderByDescending(s => s.Ms).Take(8))
             sb.AppendLine($"  forming tick {ms:F0} ms ({top})");
