@@ -124,6 +124,8 @@ ground overhead is a ceiling (the Caverns `WfSealedAbove`). `WFAtmosphericJetpac
 - [`Content.Server/_WF/Planets/WFBiomeGrownComponent.cs`](WFBiomeGrownComponent.cs)
 - [`Content.Server/_WF/Planets/WFGravityWellSystem.cs`](WFGravityWellSystem.cs)
 - [`Content.Server/_WF/Planets/WFGridAudienceSystem.cs`](WFGridAudienceSystem.cs)
+- [`Content.Server/_WF/Planets/WFLooseDebrisComponent.cs`](WFLooseDebrisComponent.cs)
+- [`Content.Server/_WF/Planets/WFLooseDebrisSystem.cs`](WFLooseDebrisSystem.cs)
 - [`Content.Server/_WF/Planets/WFOrbitDecayComponent.cs`](WFOrbitDecayComponent.cs)
 - [`Content.Server/_WF/Planets/WFOrbitDecaySystem.cs`](WFOrbitDecaySystem.cs)
 - [`Content.Server/_WF/Planets/WFOrbitEntrySystem.Approach.cs`](WFOrbitEntrySystem.Approach.cs)

@@ -132,6 +132,24 @@ public sealed partial class WFEncounterTest : InteractionTest
     side: bad
 
 - type: wfEncounter
+  id: WFTestEncounterWaitingSkirmish
+  name: wf-encounter-name-convoy
+  start: Manual
+  startRadius: 300
+  ships:
+  - key: friend
+    vessel: WFDredger
+    side: good
+    warnRange: 600
+    attackRange: 600
+  - key: foe
+    vessel: WFDredger
+    offset: 400, 0
+    side: bad
+    warnRange: 600
+    attackRange: 600
+
+- type: wfEncounter
   id: WFTestEncounterWarZone
   name: wf-encounter-name-convoy
   start: Manual
@@ -539,6 +557,45 @@ public sealed partial class WFEncounterTest : InteractionTest
                 Is.EqualTo(WFCrewObjectiveKind.Hold));
             Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
             Server.System<WFEncounterSystem>().End(encounter);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>The two sides of a battle that waits for a player hold their fire on each other until it begins.</summary>
+    [Test]
+    public async Task WaitingBattleSidesHoldFireUntilItBegins()
+    {
+        var config = Server.ResolveDependency<IConfigurationManager>();
+        EntityUid encounter = default;
+        await Server.WaitAssertion(() =>
+        {
+            config.SetCVar(EncountersCVars.Simulate, false);
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterWaitingSkirmish");
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(13000, 13000), MapData.MapId), out encounter), Is.True);
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
+            var friend = comp.Ships["friend"];
+            Assert.That(comp.Begun, Is.False, "Nobody is near yet.");
+            Assert.That(friend.Virtual, Is.False);
+            Assert.That(Server.System<WFCrewAlertSystem>().GetHostileShips(friend.Grid, friend.Group), Is.Empty,
+                "The sides wait for the battle to begin.");
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player),
+                new EntityCoordinates(MapData.MapUid, new Vector2(13100, 13000)));
+        });
+        await WaitUntilServer(() => SEntMan.GetComponent<WFEncounterComponent>(encounter).Begun, 900);
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
+            var friend = comp.Ships["friend"];
+            Assert.That(Server.System<WFCrewAlertSystem>().GetHostileShips(friend.Grid, friend.Group), Does.Contain(comp.Ships["foe"].Grid),
+                "Once begun, the sides fight.");
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+            config.SetCVar(EncountersCVars.Simulate, EncountersCVars.Simulate.DefaultValue);
         });
         await RunTicks(10);
     }

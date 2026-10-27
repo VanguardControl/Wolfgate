@@ -1,6 +1,7 @@
 # BattleLoad
 
-Keeps big ship fights cheap for the server. Settings are the `wf.battle_load.*` cvars in `BattleLoadCVars`.
+Keeps big ship fights and mass grid events cheap for the server. Settings are the `wf.battle_load.*` cvars in
+`BattleLoadCVars`.
 
 - Bullet-sized explosions (total intensity up to 10, tile intensity up to 2, on a grid) skip the explosion queue.
   The next update damages the epicentre tile and its four neighbours through the same per-tile code as a full
@@ -9,6 +10,9 @@ Keeps big ship fights cheap for the server. Settings are the `wf.battle_load.*` 
 - Grids that split off with 4 tiles or fewer and nobody aboard are deleted on the next tick.
 - `WFBattleHeatSystem` counts explosions. While 150 or more have gone off within 2 km in the last minute, encounters
   don't start there unless an admin started or pinned them, and simulated encounter ships nearby stay simulated.
+- Planet transit collision checks collect each falling grid's docked set once per tick, not once per pair
+  (`CEZLevelsSystem.BattleLoad.cs`), and vertical power cables are refloaded in one batched scan per tick for every
+  grid that changed level (`CEZCableVerticalSystem.BattleLoad.cs`).
 
 Entry points: `ExplosionSystem.BattleLoad.cs` (partial of the upstream explosion system), `WFBattleHeatSystem.IsHot`
 and `WFFragmentCleanupSystem`.
@@ -20,6 +24,8 @@ and `WFFragmentCleanupSystem`.
 
 ### Server
 
+- [`Content.Server/_WF/BattleLoad/CEZCableVerticalSystem.BattleLoad.cs`](CEZCableVerticalSystem.BattleLoad.cs)
+- [`Content.Server/_WF/BattleLoad/CEZLevelsSystem.BattleLoad.cs`](CEZLevelsSystem.BattleLoad.cs)
 - [`Content.Server/_WF/BattleLoad/ExplosionSystem.BattleLoad.cs`](ExplosionSystem.BattleLoad.cs)
 - [`Content.Server/_WF/BattleLoad/WFBattleHeatSystem.cs`](WFBattleHeatSystem.cs)
 - [`Content.Server/_WF/BattleLoad/WFFragmentCleanupSystem.cs`](WFFragmentCleanupSystem.cs)
@@ -30,6 +36,8 @@ and `WFFragmentCleanupSystem`.
 
 ## Non-modular edits
 
+- [`Content.Server/_CE/Power/CEZCableVerticalSystem.cs`](../../_CE/Power/CEZCableVerticalSystem.cs): batched into one scan per tick, see CEZCableVerticalSystem.BattleLoad.cs
+- [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.Gravity.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.Gravity.cs): each set is collected once per tick, not once per pair
 - [`Content.Server/Explosion/EntitySystems/ExplosionSystem.cs`](../../Explosion/EntitySystems/ExplosionSystem.cs)
   - bullet-sized blasts on a grid skip the queue, see ExplosionSystem.BattleLoad.cs
   - counts towards battle heat
