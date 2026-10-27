@@ -3730,3 +3730,40 @@ Entries:
   id: 100261
   time: '2026-10-27T21:09:13.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/391
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Ore asteroids are now clusters of single rocks that you crack with a
+        ship mining laser. Keep a rock's heat in
+    - type: Add
+      message: >-
+        Added the M40 Prospector (heavy) and M12 Prospector (light) mining
+        lasers. Cargo sells them as flatpacks, and
+    - type: Add
+      message: >-
+        The gunnery console has a mining laser panel, and the cockpit MFD has a
+        MIN page with a power lever, heat dial
+    - type: Add
+      message: >-
+        Rare metallic asteroids, rich in precious ores, appear more often the
+        farther you are from the stations.
+    - type: Add
+      message: Boulders can be pulled aboard and broken by hand.
+    - type: Tweak
+      message: >-
+        The ore magnet now pulls in only the ore it can see, with a visible arc,
+        and has a new sprite.
+    - type: Tweak
+      message: >-
+        Mining ships now come with mining lasers instead of mining pulsers:
+        Caracara, Carabela, Akasono, Kami, Shiv,
+    - type: Tweak
+      message: >-
+        Scrap asteroids now hold only scrap. Some large gas asteroids are now
+        barren rock.
+    - type: Fix
+      message: The radar no longer lags when many grids are in view.
+  id: 100262
+  time: '2026-10-27T23:13:23.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/378

@@ -2290,6 +2290,24 @@ unmarked:
   - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml
     module: null
     reason: PDV pack, top-left thruster was mapped disabled.
+  - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml
+    module: AsteroidMining
+    reason: Its Apollo mining laser is swapped for the M40 Prospector, the heavy asteroid mining laser.
+  - path: Resources/SharedMaps/_Mono/Shuttles/MMC/akasono.yml
+    module: AsteroidMining
+    reason: Its M25 mining pulsar is swapped for the M12 Prospector, the light asteroid mining laser.
+  - path: Resources/SharedMaps/_Mono/Shuttles/MMC/kami.yml
+    module: AsteroidMining
+    reason: Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
+  - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/noble.yml
+    module: AsteroidMining
+    reason: Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
+  - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/peregrine.yml
+    module: AsteroidMining
+    reason: Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
+  - path: Resources/SharedMaps/_Mono/Shuttles/CivilianExp/pelican.yml
+    module: AsteroidMining
+    reason: Its M25 mining pulsar is swapped for the M12 Prospector, the light asteroid mining laser.
   - path: Resources/Maps/_Mono/Bluespace/prefracture.yml
     module: null
     reason: Hardpoints mapped under the Unidentified Vessel's Scythe, Sunder and Flayer guns so gunnery links them.
@@ -2338,6 +2356,9 @@ unmarked:
   - path: Resources/SharedMaps/_Mono/Shuttles/TSF/shiv.yml
     module: ArmorBalance
     reason: Reverts Monolith#4845, putting the mapped M82b and M82c suit storage back in place of the M86.
+  - path: Resources/SharedMaps/_Mono/Shuttles/TSF/shiv.yml
+    module: AsteroidMining
+    reason: Its M25 mining pulsars are swapped for M12 Prospectors, the light asteroid mining laser.
   - path: Resources/SharedMaps/_Mono/Shuttles/TSF/spekter.yml
     module: ArmorBalance
     reason: Reverts Monolith#4845, putting the mapped M82b and M82c suit storage back in place of the M86.
