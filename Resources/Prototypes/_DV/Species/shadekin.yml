@@ -55,7 +55,7 @@
       required: false
     Tail:
       points: 1
-      required: true
+      required: false # WOLFGATE(Species): tails are optional so players can go without one
       defaultMarkings: [TailShadekin]
     HeadTop:
       points: 1
