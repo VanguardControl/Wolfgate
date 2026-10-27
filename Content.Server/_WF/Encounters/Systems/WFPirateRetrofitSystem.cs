@@ -166,11 +166,12 @@ public sealed partial class WFPirateRetrofitSystem : EntitySystem
         if (retrofit.WallSwaps.Count == 0 || retrofit.WallChance <= 0f)
             return;
 
+        // Anchored walls are direct children of the grid, so only walk those rather than every tagged entity in the world.
         var swaps = new List<(EntityUid Wall, EntProtoId Rusted)>();
-        var query = EntityQueryEnumerator<TagComponent, TransformComponent, MetaDataComponent>();
-        while (query.MoveNext(out var uid, out _, out var xform, out var meta))
+        var children = Transform(grid).ChildEnumerator;
+        while (children.MoveNext(out var uid))
         {
-            if (xform.GridUid == grid.Owner && xform.Anchored && meta.EntityPrototype is { } proto
+            if (Transform(uid).Anchored && MetaData(uid).EntityPrototype is { } proto
                 && retrofit.WallSwaps.TryGetValue(proto.ID, out var rusted))
             {
                 swaps.Add((uid, rusted));

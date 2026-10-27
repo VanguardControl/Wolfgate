@@ -26,6 +26,7 @@ using Robust.Shared.Timing;
 using Robust.Shared.Utility;
 using PullableComponent = Content.Shared.Movement.Pulling.Components.PullableComponent;
 using Content.Shared.StepTrigger.Components; // Delta V-NoShoesSilentFootstepsComponent
+using Content.Shared._WF.Performance; // WOLFGATE(Performance)
 
 namespace Content.Shared.Movement.Systems;
 
@@ -475,8 +476,10 @@ public abstract partial class SharedMoverController : VirtualController
         var (uid, collider, mover, transform) = entity;
         var enlargedAABB = _lookup.GetWorldAABB(entity.Owner, transform).Enlarged(mover.GrabRange);
 
-        _aroundColliderSet.Clear();
-        lookupSystem.GetEntitiesIntersecting(transform.MapID, enlargedAABB, _aroundColliderSet);
+        // WOLFGATE(Performance) START: only static bodies count below, so skip the rest of the lookup and keep the set small
+        _aroundColliderSet.ClearAndTrim();
+        lookupSystem.GetEntitiesIntersecting(transform.MapID, enlargedAABB, _aroundColliderSet, LookupFlags.Static);
+        // WOLFGATE END
         foreach (var otherEntity in _aroundColliderSet)
         {
             if (otherEntity == uid)
