@@ -11,10 +11,16 @@ Admins still see the ⏲ mark in the ahelp list, which uses the separate `admin.
 
 The rules that go with the tag are Conflict Rule 6 (`WFRuleConflictSixNewPlayers`), linked from the Monolith ruleset.
 
+Once per join, a new player gets a welcome popup: a short introduction, a button to the rule and "Don't show this
+again" (`wf.newbie.show_welcome`, client only). A player under `wf.newbie.fresh_hours` (1 by default) then gets a
+second popup telling them to join a crew before buying a ship. It can't be turned off and stops after that hour.
+`wf.newbie.welcome` turns both off server-wide, and the test pool keeps it off.
+
 Entry points: the server `WFNewbieTagSystem` adds and removes `WFNewbieComponent` (bodies) and
 `WFNewbieShipComponent` (ships) when a player attaches and every two seconds after that. Bodies detached from a
 player lose the tag, while ships keep theirs while the owner is offline. The shared `WFNewbieSystem` writes the
-examine line and `TagShipName`, which the IFF label and `HailingSystem` call. The client `WFNewbieIconSystem` draws
+examine line and `TagShipName`, which the IFF label and `HailingSystem` call. The server `WFNewbieWelcomeSystem` sends
+`WFNewbieWelcomeEvent` and the client one of the same name opens the popups. The client `WFNewbieIconSystem` draws
 the icon. `Tools/_WF/Newbie/gen_newbie_icon.py` draws the plate.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -25,20 +31,28 @@ the icon. `Tools/_WF/Newbie/gen_newbie_icon.py` draws the plate.
 ### Server
 
 - [`Content.Server/_WF/Newbie/WFNewbieTagSystem.cs`](WFNewbieTagSystem.cs)
+- [`Content.Server/_WF/Newbie/WFNewbieWelcomeSystem.cs`](WFNewbieWelcomeSystem.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/Newbie/WFNewbieComponent.cs`](../../../Content.Shared/_WF/Newbie/WFNewbieComponent.cs)
 - [`Content.Shared/_WF/Newbie/WFNewbieCVars.cs`](../../../Content.Shared/_WF/Newbie/WFNewbieCVars.cs)
 - [`Content.Shared/_WF/Newbie/WFNewbieSystem.cs`](../../../Content.Shared/_WF/Newbie/WFNewbieSystem.cs)
+- [`Content.Shared/_WF/Newbie/WFNewbieWelcomeEvent.cs`](../../../Content.Shared/_WF/Newbie/WFNewbieWelcomeEvent.cs)
 
 ### Client
 
+- [`Content.Client/_WF/Newbie/WFNewbieCrewWindow.xaml`](../../../Content.Client/_WF/Newbie/WFNewbieCrewWindow.xaml)
+- [`Content.Client/_WF/Newbie/WFNewbieCrewWindow.xaml.cs`](../../../Content.Client/_WF/Newbie/WFNewbieCrewWindow.xaml.cs)
 - [`Content.Client/_WF/Newbie/WFNewbieIconSystem.cs`](../../../Content.Client/_WF/Newbie/WFNewbieIconSystem.cs)
+- [`Content.Client/_WF/Newbie/WFNewbieWelcomeSystem.cs`](../../../Content.Client/_WF/Newbie/WFNewbieWelcomeSystem.cs)
+- [`Content.Client/_WF/Newbie/WFNewbieWelcomeWindow.xaml`](../../../Content.Client/_WF/Newbie/WFNewbieWelcomeWindow.xaml)
+- [`Content.Client/_WF/Newbie/WFNewbieWelcomeWindow.xaml.cs`](../../../Content.Client/_WF/Newbie/WFNewbieWelcomeWindow.xaml.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Newbie/WFNewbieTagTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Newbie/WFNewbieTagTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Newbie/WFNewbieWelcomeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Newbie/WFNewbieWelcomeTest.cs)
 
 ### Prototypes
 
@@ -63,6 +77,7 @@ the icon. `Tools/_WF/Newbie/gen_newbie_icon.py` draws the plate.
 
 ## Non-modular edits
 
+- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs): welcome popups would open over other tests' windows
 - [`Content.Shared/Shuttles/Systems/SharedShuttleSystem.IFF.cs`](../../../Content.Shared/Shuttles/Systems/SharedShuttleSystem.IFF.cs): tag a new player's ship
 - [`Resources/Prototypes/_Mono/Guidebook/rules.yml`](../../../Resources/Prototypes/_Mono/Guidebook/rules.yml)
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/MonolithRuleset.xml): the new player rule

@@ -19,4 +19,22 @@ public sealed class WFNewbieCVars
     /// </summary>
     public static readonly CVarDef<bool> ShowTag =
         CVarDef.Create("wf.newbie.show_tag", true, CVar.CLIENT | CVar.REPLICATED | CVar.ARCHIVE);
+
+    /// <summary>
+    /// Total playtime in hours under which a joining player is also told to find a crew first.
+    /// </summary>
+    public static readonly CVarDef<float> FreshHours =
+        CVarDef.Create("wf.newbie.fresh_hours", 1f, CVar.SERVERONLY | CVar.ARCHIVE);
+
+    /// <summary>
+    /// Whether new players get the welcome popups when they join.
+    /// </summary>
+    public static readonly CVarDef<bool> Welcome =
+        CVarDef.Create("wf.newbie.welcome", true, CVar.SERVERONLY | CVar.ARCHIVE);
+
+    /// <summary>
+    /// Whether this player still wants the welcome popup. The crew popup ignores it.
+    /// </summary>
+    public static readonly CVarDef<bool> ShowWelcome =
+        CVarDef.Create("wf.newbie.show_welcome", true, CVar.CLIENTONLY | CVar.ARCHIVE);
 }

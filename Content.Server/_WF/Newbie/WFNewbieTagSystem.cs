@@ -75,13 +75,23 @@ public sealed partial class WFNewbieTagSystem : EntitySystem
             return false;
 
         // Playtime loads from the database after connecting; until then nobody is tagged.
-        if (!_playTime.TryGetTrackerTimes(session, out var times))
-            return false;
-
-        if (times.GetValueOrDefault(PlayTimeTrackingShared.TrackerOverall) >= TimeSpan.FromHours(hours))
+        if (!TryGetPlaytime(session, out var playtime) || playtime >= TimeSpan.FromHours(hours))
             return false;
 
         return _netCfg.GetClientCVar(session.Channel, WFNewbieCVars.ShowTag);
+    }
+
+    /// <summary>
+    /// A player's total playtime, once it has loaded from the database.
+    /// </summary>
+    public bool TryGetPlaytime(ICommonSession session, out TimeSpan playtime)
+    {
+        playtime = TimeSpan.Zero;
+        if (!_playTime.TryGetTrackerTimes(session, out var times))
+            return false;
+
+        playtime = times.GetValueOrDefault(PlayTimeTrackingShared.TrackerOverall);
+        return true;
     }
 
     private void OnAttached(PlayerAttachedEvent args)
