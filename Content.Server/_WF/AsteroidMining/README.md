@@ -160,6 +160,7 @@ and each laser's strength, crack rate, range, fire rate and battery in `mining_b
 - [`Resources/Prototypes/_WF/AsteroidMining/asteroids.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/asteroids.yml)
 - [`Resources/Prototypes/_WF/AsteroidMining/barren.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/barren.yml)
 - [`Resources/Prototypes/_WF/AsteroidMining/compositions.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/compositions.yml)
+- [`Resources/Prototypes/_WF/AsteroidMining/gc.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/gc.yml)
 - [`Resources/Prototypes/_WF/AsteroidMining/mining_beam.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/mining_beam.yml)
 - [`Resources/Prototypes/_WF/AsteroidMining/replacement.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/replacement.yml)
 - [`Resources/Prototypes/_WF/AsteroidMining/shaders.yml`](../../../Resources/Prototypes/_WF/AsteroidMining/shaders.yml)

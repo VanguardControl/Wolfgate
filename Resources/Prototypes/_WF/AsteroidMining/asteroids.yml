@@ -311,7 +311,7 @@
   - type: MapGrid
   - type: LinkedLifecycleGridParent
   - type: GCAbleObject
-    queue: SpaceDebris
+    queue: WFAsteroids
   - type: ProtectedGrid
     preventFloorRemoval: true
     preventFloorPlacement: true
