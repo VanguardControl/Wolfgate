@@ -90,6 +90,8 @@ public sealed partial class WFNewbieTagSystem : EntitySystem
         if (!_playTime.TryGetTrackerTimes(session, out var times))
             return false;
 
+        // Stored times lag behind the session until flushed, which would keep a player tagged past the threshold.
+        _playTime.FlushTracker(session);
         playtime = times.GetValueOrDefault(PlayTimeTrackingShared.TrackerOverall);
         return true;
     }

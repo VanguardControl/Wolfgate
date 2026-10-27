@@ -4,7 +4,7 @@ wf-newbie-option-show-tag = Show my newbie tag (new players only; turning it off
 guide-entry-wf-rule-conflict-six-new-players = Conflict Rule 6 - New Players
 
 wf-newbie-welcome-title = Welcome to Wolfgate
-wf-newbie-welcome-text = You're new here. Until you've played {$hours} hours you have a learner plate over your head and [bold](L)[/bold] after your ship's name, and other players are told to go easy on you.
+wf-newbie-welcome-text = You're new here. Until you've played {$hours} hours, your newbie tag puts a learner plate over your head and [bold](L)[/bold] after your ship's name, and other players are told to go easy on you while it shows.
 
     - [bold]Ahelp[/bold] (F1) to ask an admin anything. Nobody minds questions.
     - The [bold]guidebook[/bold] (Numpad 0) explains jobs, ships and the rules.
