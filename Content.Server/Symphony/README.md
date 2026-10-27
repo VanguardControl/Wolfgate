@@ -7,6 +7,8 @@ The hooks for the SSymphony panel. It is the one module outside `_WF`: its files
   `/symphony/players` lists who is connected with their character and job, `/symphony/roles` and
   `/symphony/roles/refresh` list the whitelisted roles to map and re-read a player's rows after the panel writes them,
   and `/symphony/cvars` lists every CVar and sets one while the server runs (confidential ones are never shown or set).
+  `/symphony/commands` lists every console, Toolshed and client command with its description, help and the admin
+  flags it needs, read the way the admin manager reads them, for the panel's staff handbook.
 - Player feedback: the panel reads bug reports and suggestions straight from `wolfgate_feedback_report`.
   `/symphony/feedback/status` sets a report's status and message and tells its player in game;
   `/symphony/feedback/refresh` does the telling after the panel wrote the row itself. The table, the context JSON and
@@ -32,6 +34,7 @@ ticket table, the feedback table or any of the endpoints change.
 - [`Content.Server/Connection/ConnectionManager.Symphony.cs`](../Connection/ConnectionManager.Symphony.cs)
 - [`Content.Server/GameTicking/GameTicker.Symphony.cs`](../GameTicking/GameTicker.Symphony.cs)
 - [`Content.Server/Symphony/SymphonyApi.cs`](SymphonyApi.cs)
+- [`Content.Server/Symphony/SymphonyCommandsSystem.cs`](SymphonyCommandsSystem.cs)
 - [`Content.Server/Symphony/SymphonyCVarsSystem.cs`](SymphonyCVarsSystem.cs)
 - [`Content.Server/Symphony/SymphonyFeedbackSystem.cs`](SymphonyFeedbackSystem.cs)
 - [`Content.Server/Symphony/SymphonyHubSystem.cs`](SymphonyHubSystem.cs)
