@@ -15,6 +15,12 @@ public sealed class PlanetCVars
         CVarDef.Create("wf.planet_networks", false, CVar.SERVERONLY);
 
     /// <summary>
+    /// Whether planets run their weather and storms. Off keeps every world clear; the day cycle runs either way.
+    /// </summary>
+    public static readonly CVarDef<bool> PlanetWeather =
+        CVarDef.Create("wf.planet_weather", false, CVar.SERVERONLY);
+
+    /// <summary>
     /// Whether planet ground gets an atmosphere, so rooms built on it hold their own air. Bare ground keeps the
     /// planet's air either way. Applies to networks built after it is set.
     /// </summary>

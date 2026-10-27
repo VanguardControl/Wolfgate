@@ -1,7 +1,9 @@
 using System.Globalization;
 using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Content.Shared.Weather;
+using Robust.Shared.Configuration;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
@@ -12,6 +14,7 @@ namespace Content.Server._WF.Planets;
 /// <summary>Bounded planet-wide weather cycles. Orbit remains dry; the timepiece reports surface conditions.</summary>
 public sealed partial class WFPlanetWeatherSystem : EntitySystem
 {
+    [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -45,7 +48,14 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
         {
             if (MetaData(uid).EntityPaused || !_proto.TryIndex(state.Profile, out var profile))
                 continue;
-            if (_timing.CurTime >= state.NextChange)
+            if (!_cfg.GetCVar(PlanetCVars.PlanetWeather))
+            {
+                // Held clear: anything already falling stops, and nothing new is scheduled.
+                state.Current = null;
+                state.Phase = WFStormPhase.None;
+                state.NextChange = _timing.CurTime + TimeSpan.FromSeconds(profile.ClearMinSeconds);
+            }
+            else if (_timing.CurTime >= state.NextChange)
             {
                 if (profile.Storms.Count > 0 || state.Phase != WFStormPhase.None)
                 {

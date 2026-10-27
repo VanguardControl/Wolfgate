@@ -16,7 +16,7 @@ gravity a vessel lifts off in (`ShipPreviewLift`). The guidebook page is Planet 
 Rideable vehicles use the same z-level physics as loose objects, so a hoverbike and its buckled rider leaving a
 descending ship move onto the planet layers before the temporary flight map is deleted.
 
-Worlds have day and night, phased weather with thunder, fauna, ambience, a map on the orbit radar (`PlanetMap`) and an approach
+Worlds have day and night, phased weather with thunder (off until `wf.planet_weather` is set; admins can still force it), fauna, ambience, a map on the orbit radar (`PlanetMap`) and an approach
 cinematic on the hop in; Carcinoma is a quarantined flesh world whose tendrils hold landed hulls down; its flesh ground has scabbed lake shores, long blood rivers with clotted banks, bone fields of bleached bone and calcified flesh, hive pockets in the tendon forest, a blood-pool meat marsh and dried crust with dead growth round the groves (`Resources/Prototypes/_WF/Planets/Biomes/carcinoma.yml`). Lower layers of a planet are drawn smaller
 (`WFPlanetView`, the perspective Monolith turned off for other z-levels), except to someone inside a building, under a roof on the ground or a city's level, who sees the floors below full size. Over a world's layers the shuttle console's
 strategic plot shows the world itself, drawn by the sector's planet shader close enough to fill it, instead of space

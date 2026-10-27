@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.IntegrationTests.Pair;
 using Content.Shared.Light.Components;
 using Content.Shared.Light.EntitySystems;
 using Content.Server.Parallax;
@@ -7,6 +8,7 @@ using Robust.Shared.GameObjects;
 using System.Linq;
 using Content.Server._WF.Planets;
 using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Content.Shared.Weather;
 using Content.Shared.Maps;
@@ -26,6 +28,7 @@ public sealed class PlanetWeatherTest
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         await EnableFeature(pair);
+        await SetWeather(pair, true);
         var server = pair.Server;
         var client = pair.Client;
         var worlds = new System.Collections.Generic.List<(string Name, System.Collections.Generic.List<EntityUid> Layers)>();
@@ -124,6 +127,7 @@ public sealed class PlanetWeatherTest
             }
         }
         foreach (var (_, layers) in worlds) await Teardown(pair, layers);
+        await SetWeather(pair, false);
         await pair.CleanReturnAsync();
     }
 
@@ -167,6 +171,7 @@ public sealed class PlanetWeatherTest
     {
         await using var pair = await PoolManager.GetServerClient();
         await EnableFeature(pair);
+        await SetWeather(pair, true);
         var layers = await BuildStandalone(pair);
         var server = pair.Server;
         var transit = await pair.CreateTestMap();
@@ -236,6 +241,7 @@ public sealed class PlanetWeatherTest
             server.EntMan.DeleteEntity(transit.MapUid);
         });
         await Teardown(pair, layers);
+        await SetWeather(pair, false);
         await pair.CleanReturnAsync();
     }
 
@@ -274,5 +280,35 @@ public sealed class PlanetWeatherTest
         });
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task WeatherOffKeepsEveryWorldClear()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        await EnableFeature(pair);
+        var layers = await BuildStandalone(pair);
+        var server = pair.Server;
+        await server.WaitPost(() =>
+        {
+            var network = server.EntMan.GetComponent<CEZMapComponent>(layers[0]).NetworkUid;
+            server.EntMan.GetComponent<WFPlanetWeatherComponent>(network).NextChange = TimeSpan.Zero;
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(3f));
+        await server.WaitAssertion(() =>
+        {
+            var em = server.EntMan;
+            var network = em.GetComponent<CEZMapComponent>(layers[0]).NetworkUid;
+            Assert.That(em.GetComponent<WFPlanetWeatherComponent>(network).Current, Is.Null, "Weather came while it is switched off.");
+            Assert.That(em.TryGetComponent<WeatherComponent>(layers[0], out var ground) && ground.Weather.Count > 0, Is.False);
+        });
+        await Teardown(pair, layers);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Turns planet weather on or off; it is off by default.</summary>
+    private static async Task SetWeather(TestPair pair, bool on)
+    {
+        await pair.Server.WaitPost(() => pair.Server.CfgMan.SetCVar(PlanetCVars.PlanetWeather, on));
     }
 }
