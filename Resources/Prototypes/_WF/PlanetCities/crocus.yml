@@ -22,21 +22,16 @@
     BiomeSourceFallbackJianghuiCity: null
     BiomeSourceFallbackJianghuiIndustrial: null
     BiomeSourceFallbackJianghuiPort: null
-    # The ground war's: time-lock seals, base turrets, objectives and the factions' free gear.
+    # The ground war's time-lock seals and objectives.
     WindowTimedSeal10Minutes: null
-    SpawnMobWeaponTurretLaserPDVCrocus: null
-    SpawnMobWeaponTurretLaserTSFMCCrocus: null
-    SpawnMobWeaponTurretPDV: null
-    WeaponTurretHeavyTSFMC: null
-    PDVOverwatchComputer: null
-    TSFOverwatchComputer: null
     PDVThiefBeacon: null
     TSFThiefBeacon: null
     TSFNaniteCanisterLarge: null
     CrocusBeaconBroken: null
-    ColMarTechEquipmentPDV: null
-    ColMarTechEquipmentTSF: null
-    VendingMachinePDVGear: null
+    # The factions' base turrets stay, without Crocus's godmode; their vendors and overwatch consoles stay as mapped.
+    SpawnMobWeaponTurretLaserPDVCrocus: WFWeaponTurretLaserPDV
+    SpawnMobWeaponTurretLaserTSFMCCrocus: WeaponTurretLaserTSFMC
+    SpawnMobWeaponTurretPDV: WeaponTurretPDV
   # Crocus's streets get the world's road surface.
   replaceTiles:
     FloorAsphalt: RMCPlanetHybrisaAsphalt

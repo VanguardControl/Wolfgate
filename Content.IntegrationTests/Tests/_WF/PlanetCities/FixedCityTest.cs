@@ -184,6 +184,8 @@ public sealed class FixedCityTest
                 cityGrids.AddRange(Grids(entMan, layers[depth]).Where(entMan.HasComponent<WFPlanetCityGridComponent>));
             }
 
+            var turrets = 0;
+            var vendors = 0;
             foreach (var grid in cityGrids)
             foreach (var child in Children(entMan, grid))
             {
@@ -196,9 +198,17 @@ public sealed class FixedCityTest
                 Assert.That(id, Does.Not.Contain("Indestructible"), $"{id} is still indestructible.");
                 Assert.That(id, Is.Not.EqualTo("SpawnPointObserver"));
                 Assert.That(entMan.HasComponent<GodmodeComponent>(child), Is.False, $"{id} kept godmode.");
-                Assert.That(id, Does.Not.Contain("Timed").And.Not.Contain("Warp").And.Not.Contain("BiomeSource").And.Not.Contain("Turret"),
+                Assert.That(id, Does.Not.Contain("Timed").And.Not.Contain("Warp").And.Not.Contain("BiomeSource"),
                     $"{id} belongs to the ground war, not a city.");
+                if (id.Contains("Turret"))
+                    turrets++;
+                if (id.StartsWith("ColMarTechEquipment") || id == "VendingMachinePDVGear")
+                    vendors++;
             }
+
+            // The infantry jobs' bases keep their turrets and gear vendors.
+            Assert.That(turrets, Is.GreaterThan(0), "Crocus lost its base turrets.");
+            Assert.That(vendors, Is.GreaterThan(0), "Crocus lost its faction vendors.");
 
             // The station covers the city and offers its jobs.
             var station = entMan.GetComponent<WFPlanetCitiesComponent>(ground).Stations.Single();
@@ -274,7 +284,8 @@ public sealed class FixedCityTest
             var minds = entMan.EntityQueryEnumerator<HTNComponent, MobStateComponent, TransformComponent, MetaDataComponent>();
             while (minds.MoveNext(out var uid, out _, out _, out var xform, out var meta))
             {
-                if (xform.GridUid is not { } gridUid || !cityGrids.TryGetValue(gridUid, out var depth))
+                // The factions' base turrets think and can die too, but they're mapped, not placed.
+                if (xform.Anchored || xform.GridUid is not { } gridUid || !cityGrids.TryGetValue(gridUid, out var depth))
                     continue;
 
                 // Only Crocus's own footprint; the layers are shared with the rest of the world.

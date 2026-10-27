@@ -104,6 +104,7 @@ wade) and catwalks where it turns.
 - [`Resources/Prototypes/_WF/PlanetCities/crocus.yml`](../../../Resources/Prototypes/_WF/PlanetCities/crocus.yml)
 - [`Resources/Prototypes/_WF/PlanetCities/markers.yml`](../../../Resources/Prototypes/_WF/PlanetCities/markers.yml)
 - [`Resources/Prototypes/_WF/PlanetCities/residents.yml`](../../../Resources/Prototypes/_WF/PlanetCities/residents.yml)
+- [`Resources/Prototypes/_WF/PlanetCities/turrets.yml`](../../../Resources/Prototypes/_WF/PlanetCities/turrets.yml)
 
 ### Localization
 
