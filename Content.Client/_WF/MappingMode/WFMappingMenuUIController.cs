@@ -1,4 +1,5 @@
 using Content.Client.Administration.Managers;
+using Content.Client._WF.MappingMode.Export;
 using Content.Client._WF.MappingMode.Screen;
 using Content.Client.Gameplay;
 using Content.Shared._WF.MappingMode;
@@ -138,8 +139,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.GridsRefreshButton.OnPressed += _ => _mapping.RequestGrids();
         window.GridsWanted += () => _mapping.RequestGrids();
         window.ResetLayoutButton.OnPressed += _ => UIManager.GetUIController<WFMappingScreenUIController>().ResetLayout();
-        window.MapDownloadButton.OnPressed += _ => DownloadSaved(ship: false);
-        window.ShipDownloadButton.OnPressed += _ => DownloadSaved(ship: true);
+        window.ExportButton.OnPressed += _ => ExportSaved();
         window.ReferenceButton.OnToggled += args =>
         {
             if (args.Pressed)
@@ -151,7 +151,8 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         window.SaveNameEdit.OnTextEntered += _ => Save();
         window.LibraryRefreshButton.OnPressed += _ => _mapping.Send(new WFMappingLibraryRequest());
         window.LibraryList.DownloadRequested += (map, version) => _mapping.RequestDownload(map, version);
-        window.LibraryList.ShipRequested += (map, version) => _mapping.RequestShipDownload(map, version);
+        window.LibraryList.ExportRequested += (map, version) =>
+            UIManager.GetUIController<WFMappingExportUIController>().Open(map, version, fromSaveTab: false);
         window.LibraryList.DeleteRequested += (map, version) => _mapping.Send(new WFMappingDeleteRequest(map, version));
         window.DownloadRow.CancelPressed += () => _mapping.CancelDownload();
         window.DownloadRow.OpenFolderPressed += () => _mapping.OpenDownloadFolder();
@@ -176,8 +177,8 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
         _mapping.Send(new WFMappingLibraryRequest());
     }
 
-    /// <summary>Downloads the newest saved version of the map named in the Save tab, every level or as a ship.</summary>
-    private void DownloadSaved(bool ship)
+    /// <summary>Opens the export wizard on the map named in the Save tab; it saves a version first when the session is dirty.</summary>
+    private void ExportSaved()
     {
         if (_window == null || _mapping.Session is not { } session)
             return;
@@ -192,10 +193,7 @@ public sealed partial class WFMappingMenuUIController : UIController, IOnStateEx
             return;
         }
 
-        if (ship)
-            _mapping.RequestShipDownload(name, null);
-        else
-            _mapping.RequestDownload(name, null);
+        UIManager.GetUIController<WFMappingExportUIController>().Open(name, null, fromSaveTab: true);
     }
 
     private void CopyCode()

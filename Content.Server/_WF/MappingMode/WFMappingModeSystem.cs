@@ -7,6 +7,7 @@ using Content.Server.GameTicking;
 using Content.Server.Ghost;
 using Content.Server.Popups;
 using Content.Shared._WF.MappingMode;
+using Content.Shared._WF.MappingMode.Test;
 using Content.Shared.Administration;
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
@@ -179,9 +180,21 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         ClearState();
     }
 
+    /// <summary>
+    /// Mappers can't ghost, from their observer or a test character: the ghost lands on a paused or deleted map and
+    /// leaves them in nullspace. Mapping admins can.
+    /// </summary>
     private void OnGhostAttempt(GhostAttemptHandleEvent ev)
     {
-        if (ev.Handled || ev.Mind.CurrentEntity is not { } entity || !HasComp<WFMappingObserverComponent>(entity))
+        if (ev.Handled)
+            return;
+
+        var mapping = ev.Mind.CurrentEntity is { } entity &&
+                      (HasComp<WFMappingObserverComponent>(entity) || HasComp<WFMappingTesterComponent>(entity));
+        if (!mapping && (!Enabled || ev.Mind.UserId is not { } user || !TryGetMembership(user, out _)))
+            return;
+
+        if (ev.Mind.UserId is { } id && _players.TryGetSessionById(id, out var player) && IsAdminMapper(player))
             return;
 
         ev.Handled = true;
@@ -197,7 +210,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
     /// <summary>Whether a player may map at all: a present session member, or a Mapping admin.</summary>
     public bool CanMap(ICommonSession session)
     {
-        return IsAdminMapper(session) || Enabled && TryGetPresent(session, out _);
+        return IsAdminMapper(session) || Enabled && TryGetPresent(session, out _) && !IsTesting(session);
     }
 
     /// <summary>Whether a player may edit a map: a level of their session, or any map for a Mapping admin.</summary>
@@ -206,7 +219,7 @@ public sealed partial class WFMappingModeSystem : EntitySystem
         if (IsAdminMapper(session))
             return true;
 
-        return Enabled && TryGetPresent(session, out var mapping) && IsSessionMap(map, mapping);
+        return Enabled && TryGetPresent(session, out var mapping) && IsSessionMap(map, mapping) && !IsTesting(session);
     }
 
     private void OnCanUse(WFMappingCanUseEvent ev)
@@ -216,6 +229,15 @@ public sealed partial class WFMappingModeSystem : EntitySystem
 
         if (ev.Request && !TryThrottle(_toolsThrottle, ev.Session, "mapping tools"))
             return;
+
+        // A tester walks the map; nothing edits until they are back on the observer.
+        if (IsTesting(ev.Session))
+        {
+            if (ev.Request)
+                Refuse(ev.Session, "wf-mapping-test-no-edit");
+
+            return;
+        }
 
         ev.Allowed = true;
     }

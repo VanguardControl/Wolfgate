@@ -209,6 +209,7 @@ Skipped ("dirty-disposed").
 - [`Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedCleanWounds.cs`](../../../Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedCleanWounds.cs)
 - [`Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedCoolOverheating.cs`](../../../Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedCoolOverheating.cs)
 - [`Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedMendBrain.cs`](../../../Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedMendBrain.cs)
+- [`Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedMendEyes.cs`](../../../Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedMendEyes.cs)
 - [`Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedTreatInfection.cs`](../../../Content.Shared/_WF/Wolfmed/EntityEffects/WolfmedTreatInfection.cs)
 - [`Content.Shared/_WF/Wolfmed/Examine/WolfmedLookPrototypes.cs`](../../../Content.Shared/_WF/Wolfmed/Examine/WolfmedLookPrototypes.cs)
 - [`Content.Shared/_WF/Wolfmed/Examine/WolfmedLookReport.cs`](../../../Content.Shared/_WF/Wolfmed/Examine/WolfmedLookReport.cs)
@@ -413,6 +414,7 @@ Skipped ("dirty-disposed").
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedFixtureBaseTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedFixtureBaseTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedGameTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedGameTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedGoreTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedGoreTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedGunCauteryTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedGunCauteryTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedHealingTargetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedHealingTargetTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedInfectionSpreadTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedInfectionSpreadTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedInfectionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Wolfmed/WolfmedInfectionTest.cs)
@@ -1499,6 +1501,7 @@ Skipped ("dirty-disposed").
   - playtest 3 SAM: wounds with no damage left still close
   - AUTODOC4: HOOK 27 - close the part's own wounds too
   - AUTODOC4: HOOK 26, a wound host's tend step runs until the part's wounds are closed.
+- [`Content.Shared/_Shitmed/Surgery/Tools/SurgeryToolConditionsSystem.cs`](../../../Content.Shared/_Shitmed/Surgery/Tools/SurgeryToolConditionsSystem.cs): the take-ammo event was never raised, so every gun read as empty
 - [`Content.Shared/_Shitmed/Targeting/SharedTargetingSystem.cs`](../../../Content.Shared/_Shitmed/Targeting/SharedTargetingSystem.cs): Wolfmed snapshot/targeting needs a single-bit check; copied from Onyx's SharedTargetingSystem.
 - [`Content.Shared/Armor/SharedArmorSystem.cs`](../../../Content.Shared/Armor/SharedArmorSystem.cs): HOOK 10
 - [`Content.Shared/Bed/Sleep/SleepingSystem.cs`](../../../Content.Shared/Bed/Sleep/SleepingSystem.cs): playtest 5, a body that died asleep stayed stunned and knocked down once revived.
@@ -2045,6 +2048,7 @@ Skipped ("dirty-disposed").
 - [`Resources/Prototypes/Reagents/medicine.yml`](../../../Resources/Prototypes/Reagents/medicine.yml)
   - PROTO I: Onyx's \<Onyx-PartPain> block on Bicaridine. Group is Medicine, not Onyx's
   - CONSC: painkiller tier. Stimulant: this is what an emergency medipen already carries,
+  - mends eyes hurt by trauma, not only by flashes
   - restores a damaged brain that still works, as its description says
 - [`Resources/Prototypes/Reagents/narcotics.yml`](../../../Resources/Prototypes/Reagents/narcotics.yml)
   - PROTO J: Onyx's \<Onyx-PartPain> block on Desoxyephedrine. Group is Narcotic, not Onyx's

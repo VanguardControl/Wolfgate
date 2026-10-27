@@ -149,7 +149,7 @@ public sealed class WFMappingScreenTest
                     $"{when}: one template panel.");
                 Assert.That(Descendants(screen.PaletteHost).Any(), Is.True, $"{when}: the palette is docked.");
 
-                // The menu bar: the gameplay buttons hidden, the mapping ones shown, Mapping and Quicksave added.
+                // The menu bar: the gameplay buttons hidden, the mapping ones shown, Mapping, Quicksave, Test map and Export added.
                 var bar = screen.GetWidget<GameTopMenuBar>()!;
                 foreach (var name in WFMappingScreenUIController.GameplayButtonNames)
                 {
@@ -165,16 +165,25 @@ public sealed class WFMappingScreenTest
                 Assert.That(bar.FindControl<MenuButton>("SandboxButton").Visible, Is.False, $"{when}: no sandbox.");
                 var mappingButton = screenUi.MappingButton;
                 var quicksaveButton = screenUi.QuicksaveButton;
+                var testButton = screenUi.TestButton;
+                var exportButton = screenUi.ExportButton;
                 Assert.That(mappingButton?.Parent, Is.SameAs(bar), $"{when}: the Mapping button is on the bar.");
                 Assert.That(quicksaveButton?.Parent, Is.SameAs(bar), $"{when}: the Quicksave button is on the bar.");
+                Assert.That(testButton?.Parent, Is.SameAs(bar), $"{when}: the Test map button is on the bar.");
+                Assert.That(exportButton?.Parent, Is.SameAs(bar), $"{when}: the Export button is on the bar.");
                 Assert.That(mappingButton?.Visible, Is.True, when);
                 Assert.That(quicksaveButton?.Visible, Is.True, when);
-                Assert.That(bar.Children.Count(c => c.Name is "WFMappingButton" or "WFQuicksaveButton"), Is.EqualTo(2),
-                    $"{when}: one of each.");
+                Assert.That(testButton?.Visible, Is.True, when);
+                Assert.That(exportButton?.Visible, Is.True, when);
+                Assert.That(exportButton?.Disabled, Is.False, when);
+                Assert.That(bar.Children.Count(c => c.Name is "WFMappingButton" or "WFQuicksaveButton" or "WFTestButton" or "WFExportButton"),
+                    Is.EqualTo(4), $"{when}: one of each.");
                 var feedback = bar.FindControl<MenuButton>("FeedbackButton").GetPositionInParent();
-                Assert.That(mappingButton?.GetPositionInParent(), Is.EqualTo(feedback - 2), $"{when}: Mapping first.");
-                Assert.That(quicksaveButton?.GetPositionInParent(), Is.EqualTo(feedback - 1),
-                    $"{when}: Quicksave next, before the bug report button.");
+                Assert.That(mappingButton?.GetPositionInParent(), Is.EqualTo(feedback - 4), $"{when}: Mapping first.");
+                Assert.That(quicksaveButton?.GetPositionInParent(), Is.EqualTo(feedback - 3), $"{when}: Quicksave next.");
+                Assert.That(testButton?.GetPositionInParent(), Is.EqualTo(feedback - 2), $"{when}: Test map next.");
+                Assert.That(exportButton?.GetPositionInParent(), Is.EqualTo(feedback - 1),
+                    $"{when}: Export next, before the bug report button.");
 
                 foreach (var function in GameplayFunctions)
                 {
@@ -477,10 +486,12 @@ public sealed class WFMappingScreenTest
 
                 Assert.That(bar.FindControl<MenuButton>("ConsentButton").Visible,
                     Is.Not.EqualTo(bar.FindControl<MenuButton>("AnatomyButton").Visible), "One of consent or anatomy.");
-                Assert.That(bar.Children.Any(c => c.Name is "WFMappingButton" or "WFQuicksaveButton"), Is.False,
-                    "No Mapping or Quicksave button on the normal bar.");
+                Assert.That(bar.Children.Any(c => c.Name is "WFMappingButton" or "WFQuicksaveButton" or "WFTestButton" or "WFExportButton"), Is.False,
+                    "No Mapping, Quicksave, Test map or Export button on the normal bar.");
                 Assert.That(screenUi.MappingButton, Is.Null);
                 Assert.That(screenUi.QuicksaveButton, Is.Null);
+                Assert.That(screenUi.TestButton, Is.Null);
+                Assert.That(screenUi.ExportButton, Is.Null);
                 Assert.That(menu.IsOpen, Is.False);
 
                 var common = inputMan.Contexts.GetContext("common");
