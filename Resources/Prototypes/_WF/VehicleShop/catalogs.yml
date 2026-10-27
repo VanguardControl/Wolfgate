@@ -18,3 +18,18 @@
     price: 30000
   - vehicle: VehicleHumveeMedical
     price: 32000
+
+# The roadside mechanic's delivery beacons (beacons.yml): an ATV, small trucks and two vans.
+- type: wfVehicleCatalog
+  id: WFVehicleCatalogMechanic
+  vehicles:
+  - vehicle: VehicleATVNF
+    price: 1500
+  - vehicle: AU14VehicleCivCivTruck1
+    price: 12000
+  - vehicle: AU14VehicleCivTruck
+    price: 14500
+  - vehicle: AU14VehicleCivVan
+    price: 14500
+  - vehicle: VehicleVan
+    price: 18000

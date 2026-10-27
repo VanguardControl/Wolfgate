@@ -46,6 +46,11 @@ public sealed class TraderFleeSystem : EntitySystem
     /// </summary>
     private const float TravelWeight = 0.35f;
 
+    /// <summary>
+    /// How far, in tiles each way, he looks for somewhere to run.
+    /// </summary>
+    private const float FleeReach = 48f;
+
     private static readonly TimeSpan ThinkInterval = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan StuckTime = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan CalmDelay = TimeSpan.FromSeconds(20);
@@ -217,10 +222,13 @@ public sealed class TraderFleeSystem : EntitySystem
         TimeSpan now)
     {
         var scored = new List<(Vector2i Tile, float Score)>();
-        var tiles = _map.GetAllTilesEnumerator(grid, gridComp);
+        // Only the tiles round him: a planet's ground is one grid of hundreds of thousands of tiles.
+        var local = Transform(uid).LocalPosition;
+        var reach = new Box2(local - new Vector2(FleeReach), local + new Vector2(FleeReach));
+        var tiles = _map.GetLocalTilesIntersecting(grid, gridComp, reach);
         while (tiles.MoveNext(out var tile))
         {
-            var indices = tile.Value.GridIndices;
+            var indices = tile.GridIndices;
             if (flee.Rejected.Contains(indices))
                 continue;
 

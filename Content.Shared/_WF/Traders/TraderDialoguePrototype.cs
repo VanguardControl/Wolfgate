@@ -83,6 +83,7 @@ public enum TraderAction : byte
     UsedShips,
     UnassignDeed,
     RenameShip,
+    RepairVehicle,
 }
 
 /// <summary>

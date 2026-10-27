@@ -232,6 +232,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Shared/_WF/Vehicles/Hardpoint/HardpointSlotSystem.cs`](../../../Content.Shared/_WF/Vehicles/Hardpoint/HardpointSlotSystem.cs)
 - [`Content.Shared/_WF/Vehicles/Hardpoint/HardpointSlotTypePrototype.cs`](../../../Content.Shared/_WF/Vehicles/Hardpoint/HardpointSlotTypePrototype.cs)
 - [`Content.Shared/_WF/Vehicles/Hardpoint/HardpointSystem.cs`](../../../Content.Shared/_WF/Vehicles/Hardpoint/HardpointSystem.cs)
+- [`Content.Shared/_WF/Vehicles/Hardpoint/HardpointSystem.Restore.cs`](../../../Content.Shared/_WF/Vehicles/Hardpoint/HardpointSystem.Restore.cs)
 - [`Content.Shared/_WF/Vehicles/Hardpoint/HardpointSystem.Slots.cs`](../../../Content.Shared/_WF/Vehicles/Hardpoint/HardpointSystem.Slots.cs)
 - [`Content.Shared/_WF/Vehicles/Hardpoint/HardpointTypePrototype.cs`](../../../Content.Shared/_WF/Vehicles/Hardpoint/HardpointTypePrototype.cs)
 - [`Content.Shared/_WF/Vehicles/Hardpoint/HardpointUi.cs`](../../../Content.Shared/_WF/Vehicles/Hardpoint/HardpointUi.cs)
