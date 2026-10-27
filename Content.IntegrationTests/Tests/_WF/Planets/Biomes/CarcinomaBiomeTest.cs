@@ -49,7 +49,7 @@ public sealed class CarcinomaBiomeTest
     /// <summary>Things a person can't walk through.</summary>
     private static readonly HashSet<string> Solid = new(HiveWalls)
     {
-        "GoonSetpiecesBloodwall", "WallMeat", "FleshBlocker", "WFFleshPolyp", "WFFleshTree", "WFFleshPustuleTree",
+        "TauCetiMeatlandWall", "WallMeat", "FleshBlocker", "WFFleshPolyp", "WFFleshTree", "WFFleshPustuleTree",
         "WFCarcinomaBoneLumpOne", "WFCarcinomaBoneLumpTwo", "WFCarcinomaBoneLumpThree", "WFCarcinomaBoneHorn",
         "WFCarcinomaBoneHornTurned", "WFCarcinomaBoneSkull", "WFCarcinomaBoneSkullHalf", "WFCarcinomaBoneSkullHalfTurned",
         "WFFleshSnagMahogany", "WFFleshSnagYew", "WFFleshSnagWalnut", "WFFleshSnagBarren", "WFFleshSnagBurnedOne",
@@ -59,7 +59,7 @@ public sealed class CarcinomaBiomeTest
     private static readonly HashSet<string> Existing = new()
     {
         "WFFaunaCarcinoma", "FleshBlocker", "WallMeat", "WFCarcinomaTendons", "WFCarcinomaAssimilationSack", "WFFleshPustule",
-        "WFBloodRiver", "WFBloodOcean", "WFFleshTree", "WFFleshPustuleTree", "WFFleshPolyp", "GoonSetpiecesBloodwall",
+        "WFBloodRiver", "WFBloodOcean", "WFFleshTree", "WFFleshPustuleTree", "WFFleshPolyp", "TauCetiMeatlandWall",
         "WFCarcinomaPimple", "WFFaunaCarcinomaBone", "WFFaunaCarcinomaMarsh", "WFFaunaCarcinomaHive", "WFFaunaCarcinomaShore",
         "WFCarcinomaVitaeBlister", "WFCarcinomaBonePile", "WFCarcinomaMeatFruitBush", "WFCarcinomaTendonVine", "WFCarcinomaWeepingPolyp",
     };
@@ -149,7 +149,7 @@ public sealed class CarcinomaBiomeTest
                     Assert.That(BoneTiles.Contains(tile), Is.True, $"{feature} outside the bone fields, on {tile}.");
                 if (DeadGrowth.Contains(feature))
                     Assert.That(tile, Is.EqualTo("WFFloorFleshCrust"), $"{feature} outside the crust, on {tile}.");
-                if (feature == "GoonSetpiecesBloodwall")
+                if (feature == "TauCetiMeatlandWall")
                     Assert.That(tile, Does.StartWith("WFFloorFlesh"), "Blood walls belong on the scabbed shore.");
             }
             var fromRegions = new HashSet<string>(Existing);
@@ -162,7 +162,7 @@ public sealed class CarcinomaBiomeTest
             Assert.That(Count(HiveWalls), Is.GreaterThan(0), "No hive pockets.");
             Assert.That(Count(BoneProps), Is.GreaterThan(0), "Bone fields have no bones.");
             Assert.That(Count(DeadGrowth), Is.GreaterThan(0), "Crust edges have no dead growth.");
-            Assert.That(featureCounts.GetValueOrDefault("GoonSetpiecesBloodwall"), Is.GreaterThan(0), "No blood clots on the shore.");
+            Assert.That(featureCounts.GetValueOrDefault("TauCetiMeatlandWall"), Is.GreaterThan(0), "No blood clots on the shore.");
             Assert.That(featureCounts.GetValueOrDefault("WallMeat"), Is.GreaterThan(0), "Flesh walls vanished.");
 
             // Pockets stay a few tiles wide and sit in the tendon forest, not across the surface.
