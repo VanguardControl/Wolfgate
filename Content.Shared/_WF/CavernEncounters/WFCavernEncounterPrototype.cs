@@ -57,6 +57,10 @@ public sealed partial class WFCavernEncounterEntry
     /// <summary>Switches a handheld light on as it is laid out, such as a lantern left burning.</summary>
     [DataField]
     public bool Lit;
+
+    /// <summary>A table set on a free tile beside each one, which it turns to face: a trader's counter.</summary>
+    [DataField]
+    public EntProtoId? Table;
 }
 
 /// <summary>Which encounters a world's cavern holds and how many: picked by weight without repeats, spaced well apart.</summary>

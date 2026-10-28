@@ -1,15 +1,16 @@
 # Cavern encounters (WFCavernEncounterSystem): each is a room cleared of rock in the cavern's own floor, laid out as
 # listed. tables.yml says which worlds get which.
 
-# The Old Wise Miner's camp: a fire, his bedroll, a rack of picks and his ore sacks. He comes from the Minigames
-# module (lane G); until his prototype exists the camp is laid out without him.
+# The Old Wise Miner's camp: a fire, his bedroll, a rack of picks and his ore sacks. He plays for ore across a crate
+# (Minigames).
 - type: wfCavernEncounter
   id: WFCavernEncounterMinerCamp
   radius: 5
   entries:
   - ids: [ Bonfire ]
-  - pending: WFMobOldWiseMiner
+  - ids: [ WFMinigameOldMiner ]
     distance: 2
+    table: TableWood
   - ids: [ CMBedBedrollComfy ]
     distance: 3
   - ids: [ Rack ]

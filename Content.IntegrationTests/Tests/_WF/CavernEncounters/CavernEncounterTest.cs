@@ -20,6 +20,8 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Movement.Components;
 using Content.Shared.Parallax.Biomes;
 using Content.Shared.Stacks;
+using Content.Server._WF.Traders;
+using Content.Shared._WF.Traders;
 using Robust.Shared.Audio;
 using Robust.Shared.ContentPack;
 using Robust.Shared.GameObjects;
@@ -49,7 +51,7 @@ public sealed class CavernEncounterTest
     private const string Surface = "WFSurfaceAsclepiu";
 
     /// <summary>The Old Wise Miner, from the Minigames module.</summary>
-    private const string OldWiseMiner = "WFMobOldWiseMiner";
+    private const string OldWiseMiner = "WFMinigameOldMiner";
 
     private static readonly ProtoId<DamageTypePrototype> Blunt = "Blunt";
 
@@ -530,7 +532,6 @@ public sealed class CavernEncounterTest
 
     /// <summary>The miner's camp lays out the Old Wise Miner once the Minigames module provides him.</summary>
     [Test]
-    [Ignore("Waiting for WFMobOldWiseMiner from the Minigames lane; un-ignore when it is merged.")]
     public async Task MinerCampHasTheOldWiseMiner()
     {
         await using var pair = await PoolManager.GetServerClient();
@@ -555,6 +556,11 @@ public sealed class CavernEncounterTest
                 var spawned = system.SpawnEncounter(world.Cavern, camp, centre!.Value);
                 Assert.That(spawned.Select(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID), Does.Contain(OldWiseMiner),
                     "The camp has no Old Wise Miner.");
+
+                // He plays across the table set in front of him.
+                var miner = spawned.Single(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == OldWiseMiner);
+                server.System<TraderSystem>().RefreshTable((miner, entMan.GetComponent<TraderComponent>(miner)));
+                Assert.That(entMan.GetComponent<TraderComponent>(miner).Table, Is.Not.Null, "The Old Wise Miner has no table to play across.");
             });
         }
         finally

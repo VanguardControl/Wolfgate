@@ -356,6 +356,20 @@ public sealed partial class WFCavernEncounterSystem : EntitySystem
 
                 if (entry.Lit && TryComp<HandheldLightComponent>(uid, out var light))
                     _handheld.TurnOn(uid, (uid, light));
+
+                if (entry.Table is { } table)
+                {
+                    foreach (var dir in new[] { Direction.South, Direction.East, Direction.West, Direction.North })
+                    {
+                        var ahead = tile + dir.ToIntVec();
+                        if (!free.Remove(ahead))
+                            continue;
+
+                        spawned.Add(Spawn(table, _map.GridTileToLocal(cavern, grid, ahead)));
+                        _transform.SetLocalRotation(uid, dir.ToAngle());
+                        break;
+                    }
+                }
             }
         }
 
