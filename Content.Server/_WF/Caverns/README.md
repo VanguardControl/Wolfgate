@@ -46,7 +46,9 @@ rectangle), with a solid lip and rim decor in proportion to its size. Looking in
 through it, drawn by CE's z-level renderer: the landing floor or plunge pool, the climb point and whatever stands down
 there, lit where daylight falls in. A shade over each hole tile only frames that view: on the dual grid it draws the
 lip crumbling over the hole's own tiles, so the hole shows no square corner, and leaves their middle clear
-(`WFCavernShadeVisualsSystem`, art from `Tools/_WF/Caverns/gen_pits.py`). In the cavern a pinned, rock-free pad holds
+(`WFCavernShadeVisualsSystem`, art from `Tools/_WF/Caverns/gen_pits.py`). The art is the same on every world and has
+no ground of its own: the client lays the most common floor round each shade under its lip, so a hole cut in a road or a
+jelly patch keeps that floor at its edge. In the cavern a pinned, rock-free pad holds
 the world's landing tile under the hole and a climb point under the lip. Players walk in and take a small fall whose damage depends on the landing tile;
 examining a shade tells them where it goes, what the air below is like and how hard the landing is. *Climb down* on a
 shade (3 s) lowers them unhurt onto the pad instead, and *Climb up* on a climb point (verb or activate; 4 s, longer in
@@ -167,6 +169,7 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Content.Client/_WF/Caverns/ScalingViewport.Caverns.cs`](../../../Content.Client/_WF/Caverns/ScalingViewport.Caverns.cs)
 - [`Content.Client/_WF/Caverns/WFCavernClimbSystem.cs`](../../../Content.Client/_WF/Caverns/WFCavernClimbSystem.cs)
 - [`Content.Client/_WF/Caverns/WFCavernShadeVisualsSystem.cs`](../../../Content.Client/_WF/Caverns/WFCavernShadeVisualsSystem.cs)
+- [`Content.Client/_WF/Caverns/WFCavernShadeVisualsSystem.Floors.cs`](../../../Content.Client/_WF/Caverns/WFCavernShadeVisualsSystem.Floors.cs)
 - [`Content.Client/_WF/Caverns/WFCavernStairsSystem.cs`](../../../Content.Client/_WF/Caverns/WFCavernStairsSystem.cs)
 - [`Content.Client/_WF/Caverns/WFCavernViewSystem.cs`](../../../Content.Client/_WF/Caverns/WFCavernViewSystem.cs)
 
@@ -188,6 +191,7 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernMouthTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernOrbitalFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernOrbitalFallTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Caverns/CavernPitFloorTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernPitFloorTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernPreclaimTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernPreclaimTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernPrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernPrototypeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Caverns/CavernRampTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Caverns/CavernRampTest.cs)
@@ -269,12 +273,9 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Resources/Textures/_WF/Caverns/Life/merak/pallid_viper.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/merak/pallid_viper.rsi/)
 - [`Resources/Textures/_WF/Caverns/Life/rime_bat.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/rime_bat.rsi/)
 - [`Resources/Textures/_WF/Caverns/Life/rime_slime.rsi/`](../../../Resources/Textures/_WF/Caverns/Life/rime_slime.rsi/)
-- [`Resources/Textures/_WF/Caverns/Mouths/aerumna_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/aerumna_pit.rsi/)
-- [`Resources/Textures/_WF/Caverns/Mouths/asclepiu_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/asclepiu_pit.rsi/)
-- [`Resources/Textures/_WF/Caverns/Mouths/carcinoma_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/carcinoma_pit.rsi/)
-- [`Resources/Textures/_WF/Caverns/Mouths/fervidus_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/fervidus_pit.rsi/)
-- [`Resources/Textures/_WF/Caverns/Mouths/merak_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/merak_pit.rsi/)
-- [`Resources/Textures/_WF/Caverns/Mouths/thrascias_pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/thrascias_pit.rsi/)
+- [`Resources/Textures/_WF/Caverns/Mouths/attributions.yml`](../../../Resources/Textures/_WF/Caverns/Mouths/attributions.yml)
+- [`Resources/Textures/_WF/Caverns/Mouths/pit.rsi/`](../../../Resources/Textures/_WF/Caverns/Mouths/pit.rsi/)
+- [`Resources/Textures/_WF/Caverns/Mouths/pit_lips.png`](../../../Resources/Textures/_WF/Caverns/Mouths/pit_lips.png)
 - [`Resources/Textures/_WF/Caverns/Stairs/steel.rsi/`](../../../Resources/Textures/_WF/Caverns/Stairs/steel.rsi/)
 
 ### Tools

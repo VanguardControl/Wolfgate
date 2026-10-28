@@ -1025,8 +1025,9 @@ The tests below are the gates.
     does);
   - deep table `WFCavernDeep<World>` (F5), unstable rock `WFCavernUnstable<World>` (F5), vent wall
     `WFCavernVent<World>`, ore `WFCavernOreGas<World>` and smoke `WFCavernGasPocket<World>` (F5).
-- **Shades** (`WFCavernShadeBase`): unanchored, no physics and no `CEZPhysics`, so they never fall. They use the
-  world's `_WF/Caverns/Mouths/<world>_pit.rsi`, draw depth `LowFloors`, drawn lit so the ground's light falls on the
+- **Shades** (`WFCavernShadeBase`): unanchored, no physics and no `CEZPhysics`, so they never fall. They all use
+  `_WF/Caverns/Mouths/pit.rsi`, which has no ground of its own (each piece gets a layer of the most common floor among
+  the shade's eight neighbours under it, cut to the piece's lip mask in `pit_lips.png`), draw depth `LowFloors`, drawn lit so the ground's light falls on the
   lip, and have `Clickable` (bounds over the whole tile) and `WFCavernShaft`. A hole's tiles are empty, so the cavern
   pass (2.7) shows the cavern through them; a shade only frames that view, and paints only its hole's own tiles, since
   the lip tiles are solid ground the cavern never shows through. The client's `WFCavernShadeVisualsSystem` draws a
@@ -1349,6 +1350,7 @@ Tests live in `Content.IntegrationTests/Tests/_WF/Caverns` and, for pure logic, 
 | `CavernWildlifeTest.WildlifeThroughLoadedHoleIsKept` | A wildlife mob over a tile emptied on a loaded chunk falls into the cavern and is kept, resting on the landing (`LocalPosition` above −0.1); the hole queue has pinned the hole and shaded it (F2c: before it, the hole stayed unpinned and the loaded check decided) | F1, F2c |
 | `CavernMouthTest.GateExists` [6] | The gate is claimed at build. Its hole tiles are pinned and empty with a shade each. Its ring is pinned and solid. The pad is pinned, with the landing tile under the hole and no rock after its chunks load; the test loads them with `WfLoadChunk`, as a cavern viewer's loader would, rather than attaching a viewer. The climb point is anchored under the climb tile, with the section 3.6 delay. The hole is inside the world's size range, the climb tile is on the lip beside the hole, each rim spot has its decor and nothing stands on the climb tile | F2 |
 | `CavernMouthTest.ShapesStayInRange` | Over 400 seeds per world: the hole is inside its size range, holds the anchor, is joined edge to edge, has no tile hanging on by one edge (a rift may have its two ends), no two tiles touching only at a corner and no enclosed ground; the ring is every tile touching it; the climb tile is on the ring, beside a hole tile on `climbSide` and past the whole hole on that side; rim spots are on the ring, clear of the climb tile and no more than `rimCount` scaled by the hole's size; the same seed gives the same hole and rim. At most 5% of non-rift holes are plain rectangles and at most 5% fall back, the holes take at least half the sizes in range, and the seeds give at least 80 different holes. The specs are the worlds' prototypes, so it runs on a pair | F2 |
+| `CavernPitFloorTest.LipTakesTheFloorRoundIt` | On the client, a shade cut into asphalt lays asphalt under its lip on all four corners, and sand once the tiles round it are retiled to sand | F2, cavern view |
 | `CavernMouthTest.PitStatesExist` | On the client, every world's pit RSI holds every state `WFCavernShadeVisualsSystem.AllStates` lists (`pit` and the pieces for masks 1 to 14), and no other | F2, cavern view |
 | `CavernMouthTest.PinnedSiteIsEmpty` | Merak: with the cavern pinned under a whole cell, a cell that has a site claims Empty, and stays Empty | F2 |
 | `CavernMouthTest.PadKeepsPools` | Asclepiu: of admin mouths cut 3 tiles from a pool's edge, one whose pad crosses the pool holds exactly one `MonoFloorWaterEntity` on every pad tile off the hole where the cavern grows one; `GateExists` checks the same on every gate | F4 |
