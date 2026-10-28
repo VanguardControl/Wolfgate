@@ -483,7 +483,6 @@ public sealed partial class WFPlanetPoiSystem
             if (TerminatingOrDeleted(ground))
                 return new HashSet<Vector2i>();
 
-            var levelTimer = _preload.Time($"laying out {level.Path}");
             var tiles = LevelTiles(level.Grid).Select(tile => tile + origin).ToHashSet();
             var roofs = LevelRoofs(level.Grid);
             foreach (var (depth, higher) in tilesByDepth)
@@ -510,7 +509,6 @@ public sealed partial class WFPlanetPoiSystem
             if (target == ground || TryComp<BiomeComponent>(target, out _))
                 ClearForCity(target, targetGrid, tiles);
 
-            levelTimer.Dispose();
             await _preload.Breathe();
             await MergeSiteAsync(target, targetGrid, level.Grid, origin, footprint, created, createdDecals);
             if (TerminatingOrDeleted(ground) || TerminatingOrDeleted(target))
@@ -519,20 +517,14 @@ public sealed partial class WFPlanetPoiSystem
             if (TerminatingOrDeleted(ground) || TerminatingOrDeleted(target))
                 return new HashSet<Vector2i>();
             EnsureComp<RoofComponent>(target);
-            using (_preload.Time($"roofing {level.Path}"))
+            foreach (var tile in tiles)
             {
-                foreach (var tile in tiles)
-                {
-                    _roof.SetRoof((target, targetGrid, null), tile, roofs.Contains(tile));
-                }
+                _roof.SetRoof((target, targetGrid, null), tile, roofs.Contains(tile));
             }
 
             floors.Add(new CityFloor(level.Depth, (target, targetGrid), tiles, tiles.Where(roofs.Contains).ToHashSet()));
             if (TryComp<BiomeComponent>(target, out var targetBiome))
-            {
-                using (_preload.Time($"pinning {level.Path}"))
-                    _biome.WfPinTiles((target, targetBiome), tiles);
-            }
+                _biome.WfPinTiles((target, targetBiome), tiles);
 
             if (!stationGrids.Contains(target))
                 stationGrids.Add(target);
@@ -543,9 +535,7 @@ public sealed partial class WFPlanetPoiSystem
         if (TerminatingOrDeleted(ground))
             return new HashSet<Vector2i>();
 
-        HashSet<Vector2i> stairwells;
-        using (_preload.Time($"opening {city.ID}'s stairwells"))
-            stairwells = OpenStairwells(ground, grid, floors);
+        var stairwells = OpenStairwells(ground, grid, floors);
         var site = new WFPlanetPoiSite
         {
             MapPath = entry.MapPath,

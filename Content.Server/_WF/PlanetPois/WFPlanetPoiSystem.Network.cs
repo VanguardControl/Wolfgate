@@ -321,6 +321,7 @@ public sealed partial class WFPlanetPoiSystem
     internal async Task<StagedDungeon> GenerateAccessibleDungeonAsync(WFPlanetPoiEntry entry, WFPlanetRoadNetwork? roads, Box2i footprint, int seed)
     {
         var config = _proto.Index(entry.Dungeon!.Value);
+        await WarmAtlasesAsync(config);
         var retries = new Random(seed);
         var lastError = "Generated no usable exterior entrance.";
         for (var attempt = 0; attempt < 16; attempt++)
@@ -636,7 +637,6 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Merges tiles, source entities and decals while preserving their local offsets.</summary>
     private async Task MergeSiteAsync(EntityUid ground, MapGridComponent grid, Entity<MapGridComponent> source, Vector2i origin, Box2i footprint, HashSet<EntityUid> created, List<uint> createdDecals, int turns = 0)
     {
-        var check = _preload.Time($"checking {ToPrettyString(source.Owner)}");
         var children = Transform(source.Owner).ChildEnumerator;
         while (children.MoveNext(out var child))
         {
@@ -645,7 +645,6 @@ public sealed partial class WFPlanetPoiSystem
             if (!Contains(footprint, local) || _maps.GetTileRef(source.Owner, source.Comp, local).Tile.IsEmpty)
                 throw new InvalidOperationException($"POI entity {ToPrettyString(child)} is outside its footprint or stands without a source tile.");
         }
-        check.Dispose();
         var decals = _decals.GetDecalsIntersecting(source.Owner, source.Comp.LocalAABB.Enlarged(1f));
         var transferred = new HashSet<EntityUid>();
         CaptureChildren(source.Owner, transferred);
@@ -661,12 +660,9 @@ public sealed partial class WFPlanetPoiSystem
                 _fixtures.Merge(ground, source.Owner, origin, Turns(turns), grid, source.Comp);
         }
         finally { grid.CanSplit = canSplit; }
+        UnturnFixedRotation(transferred);
         var beforeInit = new HashSet<EntityUid>();
-        using (_preload.Time($"capturing {ToPrettyString(ground)}"))
-        {
-            UnturnFixedRotation(transferred);
-            CaptureChildren(ground, beforeInit);
-        }
+        CaptureChildren(ground, beforeInit);
         try
         {
             foreach (var root in transferred)
@@ -685,7 +681,6 @@ public sealed partial class WFPlanetPoiSystem
         if (TerminatingOrDeleted(ground))
             return;
         EnsureComp<DecalGridComponent>(ground);
-        using var decalTimer = _preload.Time($"{decals.Count} decals onto {ToPrettyString(ground)}");
         foreach (var (_, decal) in decals)
         {
             // A decal sits on its bottom-left corner, so it turns about its middle.
