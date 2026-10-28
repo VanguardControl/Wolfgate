@@ -84,6 +84,9 @@ public enum TraderAction : byte
     UnassignDeed,
     RenameShip,
     RepairVehicle,
+
+    /// <summary>Offers a game for a stake (<c>Content.Server._WF.Minigames</c>); the argument is the offer's index.</summary>
+    PlayMinigame,
 }
 
 /// <summary>
