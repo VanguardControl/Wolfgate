@@ -8,7 +8,11 @@ The Black Mesa one-shots are mastered far hotter than ordinary SS14 sounds (the 
 -22 LUFS, the 75th percentile near -17), so every plant sound is turned down to its group's ceiling in LUFS. Sounds
 already under the ceiling are left alone, and a limiter holds the peak at -2 dB.
 
-Run from the repository root: python Tools/_WF/LivingWorld/import_bms.py [path to the Black Mesa sound folder]
+Bird calls (_WF/Birds) go to Resources/Audio/_WF/Birds/<group>/ and follow the plant rules, with the flock chatter
+loops on the quiet ceiling.
+
+Run from the repository root: python Tools/_WF/LivingWorld/import_bms.py [path to the Black Mesa sound folder] [--birds]
+(--birds re-imports only the bird calls.)
 """
 import re
 import subprocess
@@ -17,6 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / "Resources/Audio/_WF/LivingWorld"
+BIRDS_OUT = ROOT / "Resources/Audio/_WF/Birds"
 DEFAULT_SOURCE = Path.home() / "Music/bms_sounds_misc_dir/sound"
 
 # Group folder: (stereo and normalised, source paths relative to the sound folder).
@@ -101,6 +106,39 @@ GROUPS = {
     ]),
 }
 
+# The birds' calls (Content.Server/_WF/Birds), in the same shape. Kept apart so the plant import keeps its own cap.
+BIRD_GROUPS = {
+    "songbird": (False, [
+        "npc/boid/boid_chirp01.wav",
+        "npc/boid/boid_chirp02.wav",
+        "xen/ambience/xen_bird1.wav",
+    ]),
+    "swift": (False, [
+        "npc/boid/boid_chirp03.wav",
+        "npc/boid/boid_chirp04.wav",
+        "xen/ambience/xen_bird2.wav",
+    ]),
+    "grouse": (False, [
+        "xen/ambience/xen_bird3.wav",
+    ]),
+    "hawk": (False, [
+        "bms_ambience/soundscape/hawk2.wav",
+        "bms_ambience/soundscape/hawk3.wav",
+        "bms_ambience/soundscape/eagle2.wav",
+    ]),
+    "carrion": (False, [
+        "npc/boid/boid_call01.wav",
+        "npc/boid/boid_call03.wav",
+    ]),
+    "flesh": (False, [
+        "npc/boid/boid_call04.wav",
+        "xen/object/boidcall2b.wav",
+    ]),
+    "gull": (False, [
+        "npc/boid/boid_call02.wav",
+    ]),
+}
+
 # Integrated-loudness ceiling per plant group (LUFS). Hums, idles and other sounds that carry on get the quiet one.
 ONE_SHOT_CEILING = -18.0
 SUSTAINED_CEILING = -24.0
@@ -110,6 +148,9 @@ CEILINGS = {
     "pods": {"moldcyst_idle": SUSTAINED_CEILING},
     "critters": SUSTAINED_CEILING,
     "hackertree": {"retract_to_idle01": SUSTAINED_CEILING},
+    "songbird": {"xen_bird1": SUSTAINED_CEILING},
+    "swift": {"xen_bird2": SUSTAINED_CEILING},
+    "grouse": SUSTAINED_CEILING,
 }
 
 LICENSE = "Custom"
@@ -145,14 +186,24 @@ def convert(src: Path, dst: Path, ambience: bool, limit: float | None = None):
 
 
 def main():
-    source = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_SOURCE
-    missing = [rel for _, files in GROUPS.values() for rel in files if not (source / rel).is_file()]
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    source = Path(args[0]) if args else DEFAULT_SOURCE
+    sets = [(BIRDS_OUT, BIRD_GROUPS)] if "--birds" in sys.argv else [(OUT, GROUPS), (BIRDS_OUT, BIRD_GROUPS)]
+    missing = [rel for _, groups in sets for _, files in groups.values() for rel in files if not (source / rel).is_file()]
     if missing:
         sys.exit("Missing source files:\n  " + "\n  ".join(missing))
 
     total = 0
-    for group, (ambience, files) in GROUPS.items():
-        folder = OUT / group
+    for out, groups in sets:
+        total += import_groups(source, out, groups)
+    print(f"Wrote {total} files")
+
+
+def import_groups(source: Path, out: Path, groups: dict) -> int:
+    """Converts one set of groups into out/<group>/ and returns the file count."""
+    total = 0
+    for group, (ambience, files) in groups.items():
+        folder = out / group
         folder.mkdir(parents=True, exist_ok=True)
         lines = []
         for rel in files:
@@ -168,7 +219,7 @@ def main():
             ]
             total += 1
         (folder / "attributions.yml").write_text("\n".join(lines), encoding="utf-8", newline="\n")
-    print(f"Wrote {total} files to {OUT.relative_to(ROOT)}")
+    return total
 
 
 if __name__ == "__main__":

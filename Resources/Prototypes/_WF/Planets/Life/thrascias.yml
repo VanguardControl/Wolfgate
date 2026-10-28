@@ -136,6 +136,9 @@
   id: WFFaunaThrasciasTundra
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdSnowGrouse
+      weight: 3
     - id: WFMobThrasciasPenguin
       weight: 4
     - id: WFMobThrasciasSnowFox
@@ -191,6 +194,9 @@
   id: WFFaunaThrasciasBoreal
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdSnowGrouse
+      weight: 2
     - id: WFMobThrasciasSnowSpider
       weight: 4
     - id: WFMobThrasciasSnowFox

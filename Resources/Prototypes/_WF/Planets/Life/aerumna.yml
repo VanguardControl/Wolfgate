@@ -10,6 +10,9 @@
   id: WFFaunaAerumna
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdCarrion
+      weight: 2
     - id: MobArgocyteSlurva
       weight: 3
     - id: MobIronGolem
@@ -22,6 +25,9 @@
   id: WFFaunaAerumnaForest
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdCarrion
+      weight: 2
     - id: WFMobGlowSlug
       weight: 5
     - id: WFMobShadowCat

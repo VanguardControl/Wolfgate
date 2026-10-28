@@ -64,7 +64,7 @@ public sealed class MerakLifeTest
     private static readonly string[] Mobs =
     {
         "WFMobDesertTarantula", "MobLizard", "MobCobraSpace", "MobKangarooPlanet", "MobIronCrab", "MobQuartzCrab", "MobGoat", "MobCrab",
-        "WFMobCrateMimic",
+        "WFMobCrateMimic", "WFMobBirdGlassSwift",
     };
 
     private static readonly string[] Plants =
