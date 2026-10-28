@@ -32,7 +32,8 @@ What uses it, and the other idle costs fixed here:
 
 `WFSiteStashSystem` puts a world's sites to sleep while nobody is near. Once a world has formed it is cut into
 regions: one per site, wreck and camp (the box the site reserved, on every ground-bearing layer, with the wreck's or
-camp's ship whole), one per tunnel, and Crocus in 16 m blocks, each level on its own. A region with nobody within
+camp's ship whole), one per tunnel, Crocus in 16 m blocks, each level on its own, and the open world in 64 m
+squares that hold only the mobs roaming them. A region with nobody within
 `wf.planet_site_stash_range` (96 m) for `wf.planet_site_stash_idle` (180 s), or at once when the world forms, is
 paused where it stands: everything in it and all it holds, mobs last, but not anchored walls, windows, doors and
 cables, which do nothing a tick anyway. A paused entity keeps all its state (an NPC's wounds, inventory, dialogue,
