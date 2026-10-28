@@ -489,7 +489,7 @@ public sealed partial class WFPlanetPoiSystem
         List<uint> createdDecals,
         HashSet<Vector2i> changed)
     {
-        var (city, config, entry, footprint, origin, reservation) = plan;
+        var (city, config, entry, footprint, origin, reservation, _) = plan;
         var stationGrids = new List<EntityUid>();
         var siteTiles = new HashSet<Vector2i>();
         // A floor is under cover wherever any level above it has a tile: the separate grids of the upper levels don't
