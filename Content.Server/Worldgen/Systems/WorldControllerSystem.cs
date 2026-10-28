@@ -48,6 +48,7 @@ public sealed partial class WorldControllerSystem : EntitySystem
     /// </summary>
     private void OnChunkShutdown(EntityUid uid, WorldChunkComponent component, ComponentShutdown args)
     {
+        _wfUnneededSince.Remove(uid); // WOLFGATE(Performance): drop a deleted chunk's unload grace timer
         if (!TryComp<WorldControllerComponent>(component.Map, out var controller))
             return;
 

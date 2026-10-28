@@ -14,8 +14,8 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   about 60 ms.
 - Worldgen churn: a space chunk stays loaded for `wf.worldgen.unload_grace` seconds (60) after nothing needs it
   (`WorldControllerSystem.WFUnloadGrace`), and a GC queue's `minAge` holds entities that long before deleting them
-  (`GCQueueSystem.WFMinAge`; `WFAsteroids` waits 60 s). Ships moving about a station no longer unload and respawn the
-  asteroid fields around it.
+  (`GCQueueSystem.WFMinAge`; `WFAsteroids` waits 60 s). A ship that comes back within the grace keeps the asteroid
+  fields around it instead of unloading and respawning them.
 - `WFAsteroidCullSystem` stops sending every worldgen rock grid to every player. A player is sent a rock grid once one
   of their views comes within `wf.asteroids.send_range` (128 m) and keeps it until the rock is deleted, since the
   client can't detach a grid. Each worldgen chunk with rocks gets a field entity (`WFAsteroidFieldComponent`), sent to
@@ -114,8 +114,10 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/Worldgen/Systems/GC/GCQueueSystem.cs`](../../Worldgen/Systems/GC/GCQueueSystem.cs)
   - queue minimum age
   - leave entities queued until the queue's minimum age has passed
+  - keep an age-protected entry's first time, and overflow such queues within the time limit
 - [`Content.Server/Worldgen/Systems/WorldControllerSystem.cs`](../../Worldgen/Systems/WorldControllerSystem.cs)
   - chunk unload grace
+  - drop a deleted chunk's unload grace timer
   - wait out the unload grace, so passing ships don't unload and respawn debris
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs)
   - List.Contains per MoveEvent went quadratic in battles

@@ -118,4 +118,32 @@ public sealed class WFWorldgenChurnTest
 
         await pair.CleanReturnAsync();
     }
+
+    /// <summary>Queuing an entity again keeps its first time, so it still goes once the minimum age from then has passed.</summary>
+    [Test]
+    public async Task RequeuedEntityKeepsItsFirstTime()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var gc = server.System<GCQueueSystem>();
+        EntityUid debris = default;
+
+        await server.WaitPost(() =>
+        {
+            // The queue only deletes past its minimum depth of one, so give it company.
+            debris = entMan.SpawnEntity("WFTestAgedDebris", MapCoordinates.Nullspace);
+            gc.TryGCEntity(debris);
+            for (var i = 0; i < 2; i++)
+                gc.TryGCEntity(entMan.SpawnEntity("WFTestAgedDebris", MapCoordinates.Nullspace));
+        });
+        await pair.RunTicksSync(30);
+        await server.WaitPost(() => gc.TryGCEntity(debris));
+        await pair.RunTicksSync(40);
+
+        await server.WaitAssertion(() =>
+            Assert.That(entMan.Deleted(debris), "Queuing it again pushed its deletion back."));
+
+        await pair.CleanReturnAsync();
+    }
 }

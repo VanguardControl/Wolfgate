@@ -465,8 +465,11 @@ namespace Content.Server.Atmos.EntitySystems
             // WOLFGATE(Performance) START: swap buffers so events raised while igniting wait for the next tick
             (_fireEvents, _processingFireEvents) = (_processingFireEvents, _fireEvents);
             foreach (var (flammable, deltaTemp) in _processingFireEvents)
-            // WOLFGATE END
             {
+                // Held over from last tick, so the entity may be gone by now.
+                if (flammable.Comp.Deleted || TerminatingOrDeleted(flammable.Owner))
+                    continue;
+            // WOLFGATE END
                 // 100 -> 1, 200 -> 2, 400 -> 3...
                 var fireStackMod = Math.Max(MathF.Log2(deltaTemp / 100) + 1, 0);
                 var fireStackDelta = fireStackMod - flammable.Comp.FireStacks;

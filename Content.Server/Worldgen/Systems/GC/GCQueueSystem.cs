@@ -98,7 +98,12 @@ public sealed partial class GCQueueSystem : EntitySystem
         }
 
         var proto = _proto.Index<GCQueuePrototype>(comp.Queue);
-        if (queue.Count > proto.Depth)
+        // WOLFGATE(Performance) START: keep an age-protected entry's first time, and overflow such queues within the time limit
+        if (WFAlreadyQueued(e, proto))
+            return;
+
+        if (queue.Count > proto.Depth && !WFCanOverflow(queue, proto))
+        // WOLFGATE END
         {
             QueueDel(e); // whelp, too full.
             return;

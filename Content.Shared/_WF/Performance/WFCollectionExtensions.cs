@@ -4,14 +4,15 @@ namespace Content.Shared._WF.Performance;
 public static class WFCollectionExtensions
 {
     /// <summary>
-    /// Clears a reused set and releases its storage if it was large. A hash set's clear wipes its whole capacity, so
-    /// one crowded query would otherwise slow every later clear for good.
+    /// Clears a reused set, and releases its storage once a small result follows a crowded one. A hash set's clear
+    /// wipes its whole capacity, so one crowded query would otherwise slow every later clear for good, while a run of
+    /// crowded queries keeps its storage instead of growing it again each time.
     /// </summary>
     public static void ClearAndTrim<T>(this HashSet<T> set, int trimAbove = 256)
     {
-        var large = set.Count > trimAbove;
+        var small = set.Count <= trimAbove;
         set.Clear();
-        if (large)
+        if (small && set.Capacity > trimAbove * 4)
             set.TrimExcess();
     }
 }
