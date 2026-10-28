@@ -11,8 +11,11 @@ already under the ceiling are left alone, and a limiter holds the peak at -2 dB.
 Bird calls (_WF/Birds) go to Resources/Audio/_WF/Birds/<group>/ and follow the plant rules, with the flock chatter
 loops on the quiet ceiling.
 
-Run from the repository root: python Tools/_WF/LivingWorld/import_bms.py [path to the Black Mesa sound folder] [--birds]
-(--birds re-imports only the bird calls.)
+Cavern encounter creatures (_WF/CavernEncounters) go to Resources/Audio/_WF/CavernEncounters/<group>/ on the same
+rules.
+
+Run from the repository root: python Tools/_WF/LivingWorld/import_bms.py [path to the Black Mesa sound folder]
+[--birds | --encounters] (each re-imports only its own set.)
 """
 import re
 import subprocess
@@ -22,6 +25,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / "Resources/Audio/_WF/LivingWorld"
 BIRDS_OUT = ROOT / "Resources/Audio/_WF/Birds"
+ENCOUNTERS_OUT = ROOT / "Resources/Audio/_WF/CavernEncounters"
 DEFAULT_SOURCE = Path.home() / "Music/bms_sounds_misc_dir/sound"
 
 # Group folder: (stereo and normalised, source paths relative to the sound folder).
@@ -139,6 +143,24 @@ BIRD_GROUPS = {
     ]),
 }
 
+# The cavern encounters' creatures (Content.Server/_WF/CavernEncounters), in the same shape, with their own cap.
+ENCOUNTER_GROUPS = {
+    "crawler": (False, [
+        "npc/headcrab/alert1.wav",
+        "npc/headcrab/attack1.wav",
+        "npc/headcrab/attack2.wav",
+    ]),
+    "lamplighter": (False, [
+        "npc/zombie/moan1.wav",
+        "npc/zombie/moan3.wav",
+        "npc/zombie/claw_strike1.wav",
+    ]),
+    "echo": (False, [
+        "npc/zombie/alert1.wav",
+        "npc/zombie/claw_strike2.wav",
+    ]),
+}
+
 # Integrated-loudness ceiling per plant group (LUFS). Hums, idles and other sounds that carry on get the quiet one.
 ONE_SHOT_CEILING = -18.0
 SUSTAINED_CEILING = -24.0
@@ -188,7 +210,12 @@ def convert(src: Path, dst: Path, ambience: bool, limit: float | None = None):
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     source = Path(args[0]) if args else DEFAULT_SOURCE
-    sets = [(BIRDS_OUT, BIRD_GROUPS)] if "--birds" in sys.argv else [(OUT, GROUPS), (BIRDS_OUT, BIRD_GROUPS)]
+    if "--birds" in sys.argv:
+        sets = [(BIRDS_OUT, BIRD_GROUPS)]
+    elif "--encounters" in sys.argv:
+        sets = [(ENCOUNTERS_OUT, ENCOUNTER_GROUPS)]
+    else:
+        sets = [(OUT, GROUPS), (BIRDS_OUT, BIRD_GROUPS), (ENCOUNTERS_OUT, ENCOUNTER_GROUPS)]
     missing = [rel for _, groups in sets for _, files in groups.values() for rel in files if not (source / rel).is_file()]
     if missing:
         sys.exit("Missing source files:\n  " + "\n  ".join(missing))
