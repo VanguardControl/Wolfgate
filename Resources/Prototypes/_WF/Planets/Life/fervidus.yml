@@ -219,6 +219,9 @@
   id: WFFaunaFervidusAshfields
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdAshHawk
+      weight: 2
     - id: WFMobLaserRaptorFervidus
       weight: 3
     - id: WFMobAshGolem

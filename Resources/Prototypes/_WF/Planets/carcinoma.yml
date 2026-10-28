@@ -255,6 +255,9 @@
   id: WFFaunaCarcinoma
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdFleshKite
+      weight: 4
     - !type:NestedSelector
       tableId: WFCarcinomaAberrantFlesh
       weight: 5

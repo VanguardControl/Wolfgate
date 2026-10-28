@@ -42,6 +42,9 @@
   id: WFFaunaMerakCactus
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdGlassSwift
+      weight: 1
     - id: MobKangarooPlanet
       weight: 1
 
@@ -76,6 +79,9 @@
   id: WFFaunaMerakOasis
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdGlassSwift
+      weight: 3
     - id: MobGoat
       weight: 3
     - id: MobCrab

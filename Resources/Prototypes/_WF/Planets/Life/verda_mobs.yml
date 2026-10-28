@@ -264,6 +264,9 @@
   id: WFFaunaVerdaMeadow
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdVerdaSongbird
+      weight: 3
     - !type:NestedSelector
       tableId: WFFaunaVerdaDeerHerd
       weight: 4
@@ -276,6 +279,9 @@
   id: WFFaunaVerdaWoods
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdVerdaSongbird
+      weight: 3
     - !type:NestedSelector
       tableId: WFFaunaVerdaDeerHerd
       weight: 4
@@ -304,6 +310,9 @@
   id: WFFaunaVerdaShore
   table: !type:GroupSelector
     children:
+    # A bird flock (_WF/Birds); the leader spawns the rest.
+    - id: WFMobBirdAsclepiuGull
+      weight: 3
     - id: MobFrog
       weight: 5
       rolls: !type:RangeNumberSelector
