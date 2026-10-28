@@ -10,7 +10,7 @@ using Content.Server._WF.Planets;
 using Content.Server._WF.Planets.Bounds;
 using Content.Server.NPC.HTN;
 using Content.Server.Parallax;
-using Content.Server.Xenoarchaeology.XenoArtifacts;
+using Content.Shared.Xenoarchaeology.Artifact.Components;
 using Content.Shared._WF.Caverns;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.PlanetPois;
@@ -205,7 +205,7 @@ public sealed class AncientTempleTest
                 // Every relic spawner has left an artifact.
                 var spawners = entMan.AllEntities<MetaDataComponent>().Count(uid => Proto(entMan, uid) == "WFTempleRelicSpawner");
                 Assert.That(spawners, Is.Zero, "A relic spawner never spawned.");
-                var artifacts = entMan.AllEntities<ArtifactComponent>()
+                var artifacts = entMan.AllEntities<XenoArtifactComponent>()
                     .Count(uid => entMan.GetComponent<TransformComponent>(uid).MapUid == below && Proto(entMan, uid).EndsWith("XenoArtifactItem"));
                 Assert.That(artifacts, Is.EqualTo(Relics), "The temple's relics are missing.");
             });
