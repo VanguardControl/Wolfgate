@@ -51,6 +51,13 @@
     template: WFCavernNestAerumna
     threshold: 0.70
     noise: { seed: 541, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, frequency: 0.007 }
+  # Slime geode chambers (_WF/WildSlimes) under the surface's pink crystal patches, over everything: the fungal forest
+  # and patch noises, their seeds less the cavern's seed offset of 7933, at lower thresholds so each chamber is a little
+  # wider than its patch.
+  - !type:BiomeMetaLayer
+    template: WFCavernSlimeZoneAerumna
+    threshold: 0.42
+    noise: { seed: -7862, noiseType: OpenSimplex2, frequency: 0.009, fractalType: FBm, octaves: 2 }
 
 - type: biomeTemplate
   id: WFCavernCrawlsAerumna

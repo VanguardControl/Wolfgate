@@ -57,6 +57,12 @@
   - !type:BiomeMetaLayer
     threshold: -1
     template: WFOpenBasalt
+  # Wild slime patches (_WF/WildSlimes): a few sparse zones, each with a patch or two. The Cinder Vaults' slime layer
+  # shares both noises.
+  - !type:BiomeMetaLayer
+    template: WFFervidusSlimeZone
+    threshold: 0.68
+    noise: { seed: 232, noiseType: OpenSimplex2, frequency: 0.005 }
 
 - type: wfPlanetSurface
   id: WFSurfaceMerak
@@ -169,6 +175,12 @@
   - !type:BiomeMetaLayer
     threshold: -1
     template: WFShadowClearings
+  # Wild slime patches (_WF/WildSlimes) in the fungal forest: the forest's own noise from WFShadowClearings, a little
+  # inside its edge. The Umbral Deeps' slime layer shares both noises.
+  - !type:BiomeMetaLayer
+    template: WFAerumnaSlimeZone
+    threshold: 0.45
+    noise: { seed: 71, noiseType: OpenSimplex2, frequency: 0.009, fractalType: FBm, octaves: 2 }
 
 - type: wfPlanetSurface
   id: WFSurfaceThrascias

@@ -30,6 +30,7 @@ public sealed class AerumnaBiomeTest
         "WFFloorAerumnaDusk",
         "WFFloorAerumnaShroud",
         "WFFloorAerumnaCrystalBed",
+        "WFFloorAerumnaPinkCrystal",
         HiveTile,
     };
 
