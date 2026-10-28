@@ -103,6 +103,62 @@ public sealed partial class WFEncounterTest
         await RunTicks(10);
     }
 
+    [TestPrototypes]
+    private const string UsspHubPrototypes = @"
+- type: wfEncounter
+  id: WFTestUsspHubLedokol
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  ships:
+  - key: lead
+    vessel: Ledokol
+    retrofit: WFPirateRetrofitHubLight
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot ]
+
+- type: wfEncounter
+  id: WFTestUsspHubBuran
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  ships:
+  - key: lead
+    vessel: Buran
+    retrofit: WFPirateRetrofitHubHeavy
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot ]
+";
+
+    /// <summary>The USSP hub hulls take the hub refit's fixed gun count and carry docking ports for reinforcements.</summary>
+    [TestCase("WFTestUsspHubLedokol", 4)]
+    [TestCase("WFTestUsspHubBuran", 6)]
+    public async Task UsspHubsTakeTheHubRefit(string id, int guns)
+    {
+        EntityUid hub = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(id);
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(-54000, -54000), MapData.MapId), out hub, pinned: true), Is.True);
+            var grid = SEntMan.GetComponent<WFEncounterComponent>(hub).Ships["lead"].Grid;
+            Assert.That(Guns(grid), Has.Count.EqualTo(guns), "The refit sets the gun count, whatever the hull was mapped with.");
+
+            var ports = 0;
+            var query = SEntMan.EntityQueryEnumerator<Content.Server.Shuttles.Components.DockingComponent, TransformComponent>();
+            while (query.MoveNext(out _, out _, out var xform))
+            {
+                if (xform.GridUid == grid)
+                    ports++;
+            }
+
+            Assert.That(ports, Is.GreaterThanOrEqualTo(4), "Room for reinforcements to dock.");
+            Server.System<WFEncounterSystem>().End(hub);
+        });
+        await RunTicks(10);
+    }
+
     /// <summary>The vessel of a list whose name the grid carries, or none.</summary>
     private string? VesselOf(EntityUid grid, List<ProtoId<VesselPrototype>> vessels)
     {
