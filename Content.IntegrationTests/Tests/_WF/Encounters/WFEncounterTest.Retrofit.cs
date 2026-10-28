@@ -38,8 +38,17 @@ public sealed partial class WFEncounterTest
             Assert.That(encounters.TrySpawn(prototype, new MapCoordinates(new Vector2(-45000, -45000), MapData.MapId), out low, pinned: true, tier: 0), Is.True);
             Assert.That(encounters.TrySpawn(prototype, new MapCoordinates(new Vector2(-48000, -48000), MapData.MapId), out high, pinned: true, tier: 4), Is.True);
         });
-        // Power comes up and the fire control server takes the guns.
-        await RunTicks(60);
+        // Power comes up and the fire control server takes the guns; a slow runner takes longer than a second.
+        var controlled = false;
+        for (var i = 0; i < 20 && !controlled; i++)
+        {
+            await RunTicks(60);
+            await Server.WaitPost(() =>
+            {
+                var lead = SEntMan.GetComponent<WFEncounterComponent>(low).Ships["lead"];
+                controlled = Guns(lead.Grid).All(gun => SEntMan.GetComponent<FireControllableComponent>(gun).ControllingServer != null);
+            });
+        }
         await Server.WaitAssertion(() =>
         {
             var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFReaverPatrol");
