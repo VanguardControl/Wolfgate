@@ -95,6 +95,35 @@ public sealed class MoproachPile
         }
     }
 
+    /// <summary>
+    /// Draws every body within <paramref name="reach"/> of <paramref name="at"/> in on a spiral, harder the closer it
+    /// is, and takes out those within <paramref name="swallow"/>, adding them to <paramref name="swallowed"/>. A held
+    /// body is safe.
+    /// </summary>
+    public void Pull(Vector2 at, float reach, float swallow, float strength, float dt, List<Body> swallowed)
+    {
+        foreach (var body in Bodies)
+        {
+            if (body == Held)
+                continue;
+            var d = at - body.Pos;
+            var dist = d.Length();
+            if (dist < swallow)
+            {
+                swallowed.Add(body);
+                continue;
+            }
+            if (dist >= reach)
+                continue;
+            var n = d / dist;
+            var force = strength * (1f - dist / reach);
+            body.Vel += (n + new Vector2(-n.Y, n.X) * 0.6f) * force * dt;
+            body.Spin += 10f * dt;
+        }
+        foreach (var body in swallowed)
+            Bodies.Remove(body);
+    }
+
     public void Remove(Body body)
     {
         Bodies.Remove(body);

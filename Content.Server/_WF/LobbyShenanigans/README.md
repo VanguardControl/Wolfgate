@@ -5,7 +5,8 @@ panel posts to `/symphony/lobby/shenanigans` (behind the admin API token), which
 The panel can also clear them all. The first is Moproach rain: moproaches tumble in from the top and pile up at the
 bottom with simple physics, and players can pick one up, drag it about to shove the rest, and throw it. Carp
 migration sends a school of rainbow space carp across the lobby; a click makes one bite and bolt, and they barge
-through any moproaches on the way (`ILobbyShovable`).
+through any moproaches on the way (`ILobbyShovable`). Singularity forms, wanders and grows for half a minute,
+pulling moproaches and carp in on a spiral and eating them (`ILobbyPullable`), then collapses; a click pokes it away.
 
 A new one is a subclass of `LobbyShenanigan` with its ID in `LobbyShenaniganIds` and Fluent strings for its name
 and description; `LobbyShenanigansLayer` finds it by reflection and the panel lists it.
@@ -31,6 +32,7 @@ and description; `LobbyShenanigansLayer` finds it by reflection and the panel li
 - [`Content.Client/_WF/LobbyShenanigans/LobbyShenanigansSystem.cs`](../../../Content.Client/_WF/LobbyShenanigans/LobbyShenanigansSystem.cs)
 - [`Content.Client/_WF/LobbyShenanigans/MoproachPile.cs`](../../../Content.Client/_WF/LobbyShenanigans/MoproachPile.cs)
 - [`Content.Client/_WF/LobbyShenanigans/MoproachRain.cs`](../../../Content.Client/_WF/LobbyShenanigans/MoproachRain.cs)
+- [`Content.Client/_WF/LobbyShenanigans/Singularity.cs`](../../../Content.Client/_WF/LobbyShenanigans/Singularity.cs)
 
 ### Unit tests
 

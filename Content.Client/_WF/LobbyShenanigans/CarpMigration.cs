@@ -4,19 +4,17 @@ using Content.Shared._WF.LobbyShenanigans;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Shared.Audio;
-using Robust.Shared.Audio.Systems;
 using Robust.Shared.Graphics.RSI;
 using Robust.Shared.IoC;
 using Robust.Shared.Maths;
-using Robust.Shared.Player;
 
 namespace Content.Client._WF.LobbyShenanigans;
 
 /// <summary>
 /// A school of rainbow space carp swims across the lobby. Click one and it bites and bolts; any moproaches in the way
-/// get barged aside.
+/// get barged aside, and a singularity can drag them off course and eat them.
 /// </summary>
-public sealed class CarpMigration : LobbyShenanigan
+public sealed class CarpMigration : LobbyShenanigan, ILobbyPullable
 {
     private const float Scale = 2f;
     private const int PerPress = 14;
@@ -156,9 +154,26 @@ public sealed class CarpMigration : LobbyShenanigan
             return false;
         carp.Bolting = true;
         carp.Pop = 1f;
-        if (IoCManager.Resolve<IEntitySystemManager>().TryGetEntitySystem<SharedAudioSystem>(out var audio))
-            audio.PlayGlobal(Bite, Filter.Local(), false, AudioParams.Default.WithVolume(-4f).WithVariation(0.15f));
+        PlaySound(Bite, -4f);
         return true;
+    }
+
+    public int Pull(Vector2 at, float reach, float swallow, float strength, float dt)
+    {
+        var before = _carp.Count;
+        foreach (var carp in _carp)
+        {
+            var d = at - carp.Pos;
+            var dist = d.Length();
+            if (dist >= reach || dist < 0.001f)
+                continue;
+            // Dragged sideways off its lane; the swim still carries it along, so it curls in.
+            var step = d / dist * strength * 0.12f * (1f - dist / reach) * dt;
+            carp.Pos.X += step.X;
+            carp.BaseY += step.Y;
+        }
+        _carp.RemoveAll(c => (c.Pos - at).Length() < swallow);
+        return before - _carp.Count;
     }
 
     /// <summary>Clearing sends the whole school bolting off the way it was going.</summary>

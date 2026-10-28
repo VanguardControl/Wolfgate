@@ -35,6 +35,7 @@ public sealed class LobbyShenanigansLayer : Control
         MouseFilter = MouseFilterMode.Stop;
         Shenanigans = _reflection.GetAllChildren<LobbyShenanigan>()
             .Select(t => _factory.CreateInstance<LobbyShenanigan>(t))
+            .OrderBy(s => s.DrawOrder)
             .ToList();
         foreach (var shenanigan in Shenanigans)
             shenanigan.All = Shenanigans;
