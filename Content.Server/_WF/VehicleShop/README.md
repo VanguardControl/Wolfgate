@@ -14,6 +14,11 @@ the box and pizza vans, the ambulance and the transport and medical humvees. Pri
 vehicle's appraisal, so nothing bought here sells for a profit, here or with a ship (`VehicleShopTest` checks every
 catalogue). Entry point: `WFVehicleShopSystem`; the client window is `WFVehicleShopWindow`.
 
+A terminal can list further catalogues after its own (`extraCatalogs`). A listing that is an item (a part, a beacon, a
+licence) is handed over the counter and needs no pad; a terminal that sells only items shows no pad line. A listing
+marked `licence: true` is refused to anyone not carrying a heavy vehicle licence (`WFVehicleShopLicenceCheckEvent`,
+answered by MilitaryVehicles), and everything sold raises `WFVehicleShopPurchasedEvent` on what was handed over.
+
 Delivery beacons (`WFVehicleBeaconSystem`, `beacons.yml`) are a vehicle bought to carry: used in hand, the beacon is set
 down and opens ten seconds later into its vehicle, square to the ground, if nothing solid is in its room (the pad's
 check), with the key handed to whoever set it off; blocked, it says what is in the way and can be set off again. A

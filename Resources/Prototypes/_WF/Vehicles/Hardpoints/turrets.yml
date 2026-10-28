@@ -8,6 +8,8 @@
   name: tank turret
   description: A tank turret hardpoint.
   components:
+  - type: StaticPrice
+    price: 10500
   - type: WFTurretTraverseAudio
     startSound:
       collection: WFRcsmElectricTurretStart

@@ -10,6 +10,10 @@ public sealed partial class WFVehicleShopComponent : Component
     [DataField(required: true)]
     public ProtoId<WFVehicleCatalogPrototype> Catalog;
 
+    /// <summary>Further catalogues listed after the first, in order.</summary>
+    [DataField]
+    public List<ProtoId<WFVehicleCatalogPrototype>> ExtraCatalogs = new();
+
     /// <summary>How far from the terminal its pad may be, on the same grid.</summary>
     [DataField]
     public float PadRange = 16f;
@@ -58,7 +62,8 @@ public sealed class WFVehicleShopState(
     WFVehicleShopPad pad,
     string? padVehicle,
     int sellPrice,
-    bool occupied) : BoundUserInterfaceState
+    bool occupied,
+    bool licensed = false) : BoundUserInterfaceState
 {
     public readonly List<WFVehicleListing> Listings = listings;
 
@@ -74,6 +79,9 @@ public sealed class WFVehicleShopState(
 
     /// <summary>Whether someone or something is still inside the vehicle on the pad.</summary>
     public readonly bool Occupied = occupied;
+
+    /// <summary>Whether the customer carries a heavy vehicle licence.</summary>
+    public readonly bool Licensed = licensed;
 }
 
 [Serializable, NetSerializable]
@@ -84,3 +92,11 @@ public sealed class WFVehicleShopBuyMessage(int index) : BoundUserInterfaceMessa
 
 [Serializable, NetSerializable]
 public sealed class WFVehicleShopSellMessage : BoundUserInterfaceMessage;
+
+/// <summary>Raised to ask whether someone carries a heavy vehicle licence.</summary>
+[ByRefEvent]
+public record struct WFVehicleShopLicenceCheckEvent(EntityUid User, bool Licensed = false);
+
+/// <summary>Raised on something a terminal sold, right after it was handed over.</summary>
+[ByRefEvent]
+public readonly record struct WFVehicleShopPurchasedEvent(EntityUid Buyer, EntityUid Terminal);

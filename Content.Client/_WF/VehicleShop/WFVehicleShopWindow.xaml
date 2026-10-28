@@ -7,7 +7,7 @@
         <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
             <BoxContainer Name="Listings" Orientation="Vertical" SeparationOverride="4" />
         </ScrollContainer>
-        <PanelContainer StyleClasses="AngleRect">
+        <PanelContainer Name="PadPanel" StyleClasses="AngleRect">
             <BoxContainer Orientation="Horizontal" Margin="8 6" SeparationOverride="8">
                 <Label Name="PadLabel" HorizontalExpand="True" ClipText="True" VerticalAlignment="Center" />
                 <Button Name="SellButton" StyleClasses="ButtonCaution" />

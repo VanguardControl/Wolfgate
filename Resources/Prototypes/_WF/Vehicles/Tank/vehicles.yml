@@ -9,6 +9,7 @@
   name: tank
   description: A heavy armored tank built for battlefield dominance.
   components:
+  - type: WFMilitaryVehicle
   - type: VehicleSound
     runningSound: null
     collisionSound:

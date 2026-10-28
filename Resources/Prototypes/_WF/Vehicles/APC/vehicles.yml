@@ -10,6 +10,7 @@
   name: armored personnel carrier
   description: A rugged armored personnel carrier outfitted for battlefield support.
   components:
+  - type: WFMilitaryVehicle
   - type: VehicleSound
     runningSound: null
     collisionSound:
