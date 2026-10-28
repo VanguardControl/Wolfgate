@@ -16,6 +16,13 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   (`WorldControllerSystem.WFUnloadGrace`), and a GC queue's `minAge` holds entities that long before deleting them
   (`GCQueueSystem.WFMinAge`; `WFAsteroids` waits 60 s). Ships moving about a station no longer unload and respawn the
   asteroid fields around it.
+- `WFAsteroidCullSystem` stops sending every worldgen rock grid to every player. A player is sent a rock grid once one
+  of their views comes within `wf.asteroids.send_range` (128 m) and keeps it until the rock is deleted, since the
+  client can't detach a grid. Each worldgen chunk with rocks gets a field entity (`WFAsteroidFieldComponent`), sent to
+  everyone, listing its rocks' position, rotation and look; on the client `WFAsteroidFieldSystem` reads it so radar
+  (`ShuttleNavControl.WFAsteroidFields`) and the far overlay draw rocks whose grids haven't been sent. Rocks no chunk
+  owns are sent to everyone as before, `ChunkingSystem` skips rock grids (they hold no decals or gas), and
+  `wf.asteroids.cull false` turns it all off live.
 - The marked upstream edits skip idle-shuttle thruster work, avoid `Enum.GetValues` and nullable boxing on per-tick
   paths, stop `FlammableSystem` from crashing when igniting queues new fire events, and stop networking a thrown
   item's shooter (it outlived the shooter and sent a deleted entity every state).
@@ -30,19 +37,31 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/_WF/Performance/DockingSystem.WFPlacement.cs`](DockingSystem.WFPlacement.cs)
 - [`Content.Server/_WF/Performance/GCQueuePrototype.WFMinAge.cs`](GCQueuePrototype.WFMinAge.cs)
 - [`Content.Server/_WF/Performance/GCQueueSystem.WFMinAge.cs`](GCQueueSystem.WFMinAge.cs)
+- [`Content.Server/_WF/Performance/WFAsteroidCullSystem.cs`](WFAsteroidCullSystem.cs)
 - [`Content.Server/_WF/Performance/WorldControllerSystem.WFUnloadGrace.cs`](WorldControllerSystem.WFUnloadGrace.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/Performance/SharedGravitySystem.WFRefresh.cs`](../../../Content.Shared/_WF/Performance/SharedGravitySystem.WFRefresh.cs)
+- [`Content.Shared/_WF/Performance/WFAsteroidFieldComponent.cs`](../../../Content.Shared/_WF/Performance/WFAsteroidFieldComponent.cs)
 - [`Content.Shared/_WF/Performance/WFCollectionExtensions.cs`](../../../Content.Shared/_WF/Performance/WFCollectionExtensions.cs)
 - [`Content.Shared/_WF/Performance/WFPerformanceCVars.cs`](../../../Content.Shared/_WF/Performance/WFPerformanceCVars.cs)
 
+### Client
+
+- [`Content.Client/_WF/Performance/ShuttleNavControl.WFAsteroidFields.cs`](../../../Content.Client/_WF/Performance/ShuttleNavControl.WFAsteroidFields.cs)
+- [`Content.Client/_WF/Performance/WFAsteroidFieldSystem.cs`](../../../Content.Client/_WF/Performance/WFAsteroidFieldSystem.cs)
+
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Performance/WFAsteroidCullTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFAsteroidCullTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs)
+
+### Localization
+
+- [`Resources/Locale/en-US/_WF/Performance/performance.ftl`](../../../Resources/Locale/en-US/_WF/Performance/performance.ftl)
 
 ### Docs
 
@@ -51,6 +70,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 ## Non-modular edits
 
 - [`Content.Client/Atmos/Consoles/AtmosMonitoringConsoleNavMapControl.cs`](../../../Content.Client/Atmos/Consoles/AtmosMonitoringConsoleNavMapControl.cs): wizden#38974, subnets carry a Color instead of a hex string
+- [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs): distant rocks from their field lists
 - [`Content.Client/Weapons/Ranged/Systems/GunSystem.cs`](../../../Content.Client/Weapons/Ranged/Systems/GunSystem.cs): wizden#36641, was EntityUid
 - [`Content.IntegrationTests/Tests/Gravity/WeightlessStatusTests.cs`](../../../Content.IntegrationTests/Tests/Gravity/WeightlessStatusTests.cs)
   - weightlessness now refreshes half a second after gravity changes
@@ -76,6 +96,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - clear the processed buffer
   - burning can destroy things and spawn flammable debris, which broke the live query
 - [`Content.Server/Atmos/EntitySystems/HeatExchangerSystem.cs`](../../Atmos/EntitySystems/HeatExchangerSystem.cs): wizden#41390, was IsTileAirBlocked
+- [`Content.Server/Chunking/ChunkingSystem.cs`](../../Chunking/ChunkingSystem.cs): mining rocks never hold decals or gas, and are only sent to players near them
 - [`Content.Server/Explosion/EntitySystems/ProjectileGrenadeSystem.cs`](../../Explosion/EntitySystems/ProjectileGrenadeSystem.cs): wizden#36641, the grenade is deleted so it can't be the gun; was uid, null
 - [`Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs`](../../GameTicking/Rules/GameRuleSystem.Utility.cs): wizden#41390, was IsTileAirBlocked
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs`](../../NPC/Pathfinding/PathfindingSystem.Grid.cs)
