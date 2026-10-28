@@ -66,7 +66,7 @@ public sealed partial class WFWildSlimeSystem : EntitySystem
         SubscribeLocalEvent<WFWildSlimeComponent, EntGotInsertedIntoContainerMessage>(OnInserted);
     }
 
-    private void OnInserted(Entity<WFWildSlimeComponent> ent, EntGotInsertedIntoContainerMessage args)
+    private void OnInserted(Entity<WFWildSlimeComponent> ent, ref EntGotInsertedIntoContainerMessage args)
     {
         Release(ent);
     }
@@ -277,11 +277,11 @@ public sealed partial class WFWildSlimeSystem : EntitySystem
                 _hunger.SetHunger(ent, XenobiologySystem.StartingHunger, hunger);
         }
 
-        if (TryComp<ThirstComponent>(ent, out var thirst)
-            && thirst.ThirstThresholds.TryGetValue(ThirstThreshold.Okay, out var okay)
-            && thirst.CurrentThirst < okay)
+        if (TryComp<ThirstComponent>(ent, out var thirst))
         {
-            _thirst.SetThirst(ent, thirst, okay + 25f);
+            var thresholds = thirst.ThirstThresholds;
+            if (thresholds.TryGetValue(ThirstThreshold.Okay, out var okay) && thirst.CurrentThirst < okay)
+                _thirst.SetThirst(ent, thirst, okay + 25f);
         }
     }
 }

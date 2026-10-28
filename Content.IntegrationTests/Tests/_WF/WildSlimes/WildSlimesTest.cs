@@ -5,8 +5,9 @@ using System.Numerics;
 using Content.IntegrationTests.Tests._WF.Caverns;
 using Content.Server._WF.Caverns;
 using Content.Server._WF.WildSlimes;
-using Content.Server._WF.Xenobiology;
+using Content.Server._WF.Xenobiology.Effects;
 using Content.Server.Atmos.EntitySystems;
+using Content.Server.NPC.HTN;
 using Content.Shared._WF.WildSlimes;
 using Content.Shared._WF.Xenobiology;
 using Content.Shared._WF.Xenobiology.Components;
@@ -39,6 +40,9 @@ public sealed class WildSlimesTest
     private const string Carcinoma = "WFCarcinomaMutation";
     private const string Metastatic = "WFMetastaticMutation";
     private static readonly string[] WildBreeds = { Carcinoma, Metastatic };
+    /// <summary>Most patches a world may have; they are meant to be a rare find.</summary>
+    private const int MaxPatches = 12;
+
     private static readonly string[] Extracts = { "WFCarcinomaSlimeExtract", "WFMetastaticSlimeExtract" };
 
     private static SlimeComponent SlimeOf(BreedPrototype breed)
@@ -145,6 +149,7 @@ public sealed class WildSlimesTest
             TestContext.Out.WriteLine($"{ground!.Patches.Count} patches: "
                 + string.Join(", ", ground.Patches.Select(p => $"{p.Tiles.Count} tiles at {p.Centre} (grotto {p.Grotto.Count})")));
             Assert.That(ground.Patches, Is.Not.Empty, "Carcinoma has no slime patches.");
+            Assert.That(ground.Patches, Has.Count.LessThanOrEqualTo(MaxPatches), "Slime patches should be a rare find.");
             Assert.That(ground.Cavern, Is.EqualTo(world.Cavern));
 
             var surfaceBiome = entMan.GetComponent<BiomeComponent>(world.Ground);
@@ -311,7 +316,7 @@ public sealed class WildSlimesTest
             Assert.That(entMan.HasComponent<WFWildSlimeComponent>(adult), Is.False, "A tamed slime stayed wild.");
             Assert.That(entMan.HasComponent<WFWildSlimeComponent>(caught), Is.False, "A caught slime stayed wild.");
             Assert.That(factions.IsMember(adult, "SimpleHostile"), Is.True);
-            Assert.That(factions.GetNearbyHostiles(adult, 5f), Does.Contain(human), "A tamed slime takes nobody for prey.");
+            Assert.That(entMan.GetComponent<HTNComponent>(adult).RootTask.Task, Is.EqualTo(habitat.TameRootTask), "A tamed slime still runs the wild HTN.");
 
             var slime = entMan.GetComponent<SlimeComponent>(adult);
             hunger.SetHunger(adult, slime.MitosisHunger + 10f);

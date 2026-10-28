@@ -1,7 +1,8 @@
 # Carcinoma's wild slimes: small patches of see-through jelly on the surface, each over a slime grotto in the Gut that
-# shows through it. The surface layer (in WFBiomeCarcinoma) and the cavern layer (in WFCavernBiomeCarcinoma) share one
-# noise: the cavern's seed is the surface's plus 7949, so its noise seed is 131 - 7949, and its lower threshold makes
-# each grotto a little wider than its patch.
+# shows through it. A sparse zone noise picks where they may be and a blob noise lays the patches. The surface layers
+# (from WFBiomeCarcinoma) and the cavern layers (from WFCavernBiomeCarcinoma) share both noises: the cavern's seed is
+# the surface's plus 7949, so each cavern noise seed is the surface one less 7949, and lower thresholds make each grotto
+# a little wider than its patch.
 
 - type: wfWildSlimeHabitat
   id: WFWildSlimesCarcinoma
@@ -10,10 +11,10 @@
   babyPrototype: WFMobSlimeTranslucentBaby
   adultPrototype: WFMobSlimeTranslucentAdult
   adultChance: 0.3
-  patchTemplate: WFCarcinomaSlimePatch
+  patchTemplate: WFCarcinomaSlimeZone
   patchTile: WFFloorFleshJelly
   grottoTile: WFCavernFloorFleshJelly
-  minPatchTiles: 12
+  minPatchTiles: 24
   surfaceSlimes: 3
   grottoSlimes: 2
   respawnDelay: 600
@@ -40,6 +41,22 @@
   indestructible: true
   deconstructTools: []
   baseTurf: ""
+
+- type: biomeTemplate
+  id: WFCarcinomaSlimeZone
+  layers:
+  - !type:BiomeMetaLayer
+    template: WFCarcinomaSlimePatch
+    threshold: 0.86
+    noise: { seed: 131, noiseType: OpenSimplex2, frequency: 0.03 }
+
+- type: biomeTemplate
+  id: WFCavernSlimeZoneCarcinoma
+  layers:
+  - !type:BiomeMetaLayer
+    template: WFCavernSlimeGrottoCarcinoma
+    threshold: 0.83
+    noise: { seed: -7818, noiseType: OpenSimplex2, frequency: 0.03 }
 
 - type: biomeTemplate
   id: WFCarcinomaSlimePatch

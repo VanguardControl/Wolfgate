@@ -38,7 +38,7 @@ public sealed partial class WFWildSlimeHabitatPrototype : IPrototype
     [DataField]
     public float AdultChance = 0.3f;
 
-    /// <summary>The template of the surface biome's meta layer that lays the patches.</summary>
+    /// <summary>The template of the surface biome's top-level meta layer that holds the patches; its noise is checked first.</summary>
     [DataField(required: true)]
     public ProtoId<BiomeTemplatePrototype> PatchTemplate;
 

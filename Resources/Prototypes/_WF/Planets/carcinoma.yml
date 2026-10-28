@@ -113,12 +113,12 @@
     template: WFCarcinomaMarsh
     threshold: 0.8
     noise: { seed: 87, noiseType: OpenSimplex2, frequency: 0.014 }
-  # Wild slime patches (_WF/WildSlimes) over the ground regions, under the shores, rivers and lakes. The Gut's grotto
-  # layer shares this noise.
+  # Wild slime patches (_WF/WildSlimes) over the ground regions, under the shores, rivers and lakes: a few sparse zones,
+  # each with a patch or two. The Gut's grotto layer shares both noises.
   - !type:BiomeMetaLayer
-    template: WFCarcinomaSlimePatch
-    threshold: 0.86
-    noise: { seed: 131, noiseType: OpenSimplex2, frequency: 0.03 }
+    template: WFCarcinomaSlimeZone
+    threshold: 0.55
+    noise: { seed: 132, noiseType: OpenSimplex2, frequency: 0.005 }
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFlesh, FloorFlesh, WFFloorFleshScab, WFFloorFleshBoneMeaty, WFFloorFleshBoneSpine, WFFloorFleshBoneStraight, WFFloorFleshCrust, WFFloorFleshMarshMud, WFFloorFleshMarshDirt]
     entities: [WFCarcinomaAssimilationSack]

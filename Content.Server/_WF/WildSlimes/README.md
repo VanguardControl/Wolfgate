@@ -21,10 +21,11 @@ idles. Its hunger and thirst are held steady, so it never starves, grows or spli
 All YAML, as `Resources/Prototypes/_WF/WildSlimes/carcinoma.yml` does:
 
 1. Two `breed`s in `breeds.yml` that only list each other in `potentialMutations`, their extracts in `extracts.yml`.
-2. A patch tile (`transparent: true`, an id the planet map colours right) and a `biomeTemplate` laying it, added as a
-   `BiomeMetaLayer` to the world's surface biome. For a grotto, a cavern tile and template added last to the world's
-   cavern biome with the same noise: its seed is the surface layer's minus the cavern's `seedOffset`, and a slightly
-   lower threshold makes the grotto wider than the patch.
+2. A patch tile (`transparent: true`, an id the planet map colours right) and a `biomeTemplate` laying it, reached
+   from a top-level `BiomeMetaLayer` of the world's surface biome (Carcinoma nests the patch noise in a sparse zone
+   noise so a world has only a handful). For a grotto, a cavern tile and the same nesting added last to the world's
+   cavern biome with the same noises: each seed is the surface one minus the cavern's `seedOffset`, and slightly lower
+   thresholds make the grotto wider than the patch.
 3. A `wfWildSlimeHabitat` naming the surface, breed, patch template and tiles, and the caps and respawn delay.
 
 Entry points: `WFWildSlimeSystem` (patches found on `WFPlanetNetworkBuiltEvent`, `Populate`, `MakeWild`, `Release`),
