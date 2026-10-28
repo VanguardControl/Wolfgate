@@ -208,7 +208,8 @@ public sealed class CavernLifeTest
                             TestContext.Out.WriteLine($"{surfaceId}: {found.Count} samples of {placement.Entity}.");
                             Assert.That(found, Is.Not.Empty, $"{surfaceId}: no {placement.Entity} in {SampleSize}² around the gate.");
 
-                            foreach (var i in found)
+                            // A wild slime grotto (_WF/WildSlimes) dresses its own floor with the world's decor.
+                            foreach (var i in found.Where(i => !CavernBiomeTest.WildSlimeGrottoTiles.Contains(sample.Tiles[i] ?? string.Empty)))
                             {
                                 Assert.That(placement.Tiles, Does.Contain(sample.Tiles[i]),
                                     $"{surfaceId}: {placement.Entity} at {sample.IndexOf(i)} stands on {sample.Tiles[i]}.");
