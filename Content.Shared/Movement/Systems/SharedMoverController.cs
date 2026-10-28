@@ -257,7 +257,7 @@ public abstract partial class SharedMoverController : VirtualController
 
             // If we're not on a grid, and not able to move in space check if we're close enough to a grid to touch.
             if (!touching && MobMoverQuery.TryComp(uid, out var mobMover))
-                touching |= IsAroundCollider(_lookup, (uid, physicsComponent, mobMover, xform));
+                touching |= WfIsAroundCollider(_lookup, (uid, physicsComponent, mobMover, xform)); // WOLFGATE(Performance): reuse a still mob's result for a few ticks
 
             // If we're touching then use the weightless values
             if (touching)

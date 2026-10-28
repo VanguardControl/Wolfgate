@@ -44,6 +44,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 ### Shared
 
 - [`Content.Shared/_WF/Performance/SharedGravitySystem.WFRefresh.cs`](../../../Content.Shared/_WF/Performance/SharedGravitySystem.WFRefresh.cs)
+- [`Content.Shared/_WF/Performance/SharedMoverController.WFAroundCollider.cs`](../../../Content.Shared/_WF/Performance/SharedMoverController.WFAroundCollider.cs)
 - [`Content.Shared/_WF/Performance/WFAsteroidFieldComponent.cs`](../../../Content.Shared/_WF/Performance/WFAsteroidFieldComponent.cs)
 - [`Content.Shared/_WF/Performance/WFCollectionExtensions.cs`](../../../Content.Shared/_WF/Performance/WFCollectionExtensions.cs)
 - [`Content.Shared/_WF/Performance/WFPerformanceCVars.cs`](../../../Content.Shared/_WF/Performance/WFPerformanceCVars.cs)
@@ -55,6 +56,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Performance/WFAroundColliderTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFAroundColliderTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFAsteroidCullTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFAsteroidCullTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs)
@@ -134,7 +136,9 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - batched weightlessness refresh
   - batch per grid and walk only its entities, not every gravity-affected entity
   - upstream loop kept for merges
-- [`Content.Shared/Movement/Systems/SharedMoverController.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.cs): only static bodies count below, so skip the rest of the lookup and keep the set small
+- [`Content.Shared/Movement/Systems/SharedMoverController.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.cs)
+  - reuse a still mob's result for a few ticks
+  - only static bodies count below, so skip the rest of the lookup and keep the set small
 - [`Content.Shared/Movement/Systems/SharedMoverController.Input.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.Input.cs): Equals(object) boxed the nullable every call
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs`](../../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs)
   - wizden#36641, gunUid was not nullable
