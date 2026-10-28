@@ -1,5 +1,6 @@
 using Content.Shared.Maps;
 using Robust.Client.Graphics;
+using Robust.Client.Utility;
 using Robust.Shared.ContentPack;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -142,19 +143,22 @@ public sealed partial class WFCavernShadeVisualsSystem
         var lipY = cell / LipColumns * PieceSize;
         var half = PieceSize / 2;
 
+        // The sandbox allows reading pixels only through spans.
+        var lipPixels = lips.GetPixelSpan();
+        var sourcePixels = source.GetPixelSpan();
         using var image = new Image<Rgba32>(PieceSize, PieceSize);
         for (var y = 0; y < PieceSize; y++)
         {
             for (var x = 0; x < PieceSize; x++)
             {
-                var mask = lips[lipX + x, lipY + y].A;
+                var mask = lipPixels[(lipY + y) * lips.Width + lipX + x].A;
                 if (mask == 0)
                     continue;
 
                 // A piece is centred on a tile corner, so its pixels lie half a tile off the floor's own.
                 var sx = (x + half) % PieceSize * size / PieceSize;
                 var sy = (y + half) % PieceSize * size / PieceSize;
-                var pixel = source[left + sx, sy];
+                var pixel = sourcePixels[sy * source.Width + left + sx];
                 pixel.A = (byte) (pixel.A * mask / 255);
                 image[x, y] = pixel;
             }
