@@ -8,7 +8,7 @@ namespace Content.Shared._WF.Xenobiology.Components;
 /// <summary>
 /// A xenobiology slime: its breed, what it can mutate into, its tamer and the target it is latched onto.
 /// </summary>
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class SlimeComponent : Component
 {
     /// <summary>

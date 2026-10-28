@@ -1,4 +1,5 @@
 using Content.Client.DamageState;
+using Content.Shared.DrawDepth;
 using Content.Shared._WF.Xenobiology.Components;
 using Content.Shared._WF.Xenobiology.Systems;
 using Robust.Client.GameObjects;
@@ -52,3 +53,26 @@ public sealed partial class XenoSlimeVisualizerSystem : VisualizerSystem<SlimeCo
 }
 
 public sealed partial class XenoVacuumSystem : SharedXenoVacuumSystem;
+
+/// <summary>
+/// Draws a latched slime over the mob it is feeding on.
+/// </summary>
+public sealed partial class SlimeLatchVisualsSystem : EntitySystem
+{
+    [Dependency] private SpriteSystem _sprite = default!;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+        SubscribeLocalEvent<SlimeComponent, AfterAutoHandleStateEvent>(OnState);
+    }
+
+    private void OnState(Entity<SlimeComponent> ent, ref AfterAutoHandleStateEvent args)
+    {
+        if (!TryComp<SpriteComponent>(ent, out var sprite))
+            return;
+
+        var depth = ent.Comp.LatchedTarget != null ? Content.Shared.DrawDepth.DrawDepth.OverMobs : Content.Shared.DrawDepth.DrawDepth.Mobs;
+        _sprite.SetDrawDepth((ent, sprite), (int) depth);
+    }
+}
