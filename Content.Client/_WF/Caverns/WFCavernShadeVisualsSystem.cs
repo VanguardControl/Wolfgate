@@ -53,6 +53,7 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
 
         SubscribeLocalEvent<WFCavernShaftComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<WFCavernShaftComponent, ComponentShutdown>(OnShutdown);
+        InitializeFloors();
     }
 
     private void OnStartup(Entity<WFCavernShaftComponent> ent, ref ComponentStartup args)
@@ -82,6 +83,7 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
     private void OnShutdown(Entity<WFCavernShaftComponent> ent, ref ComponentShutdown args)
     {
         var tracked = ent.Comp.Plain ? _plain : _pits;
+        _floors.Remove(ent.Owner);
         if (!_placed.Remove(ent.Owner, out var placed) || !tracked.TryGetValue(placed.Grid, out var pits))
             return;
 
@@ -96,7 +98,7 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
 
     private void RefreshAround(EntityUid grid, Vector2i centre)
     {
-        if (!_pits.TryGetValue(grid, out var pits))
+        if (!_pits.TryGetValue(grid, out var pits) || !TryComp<MapGridComponent>(grid, out var gridComp))
             return;
 
         for (var dx = -RefreshReach; dx <= RefreshReach; dx++)
@@ -105,12 +107,12 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
             {
                 var tile = centre + new Vector2i(dx, dy);
                 if (pits.TryGetValue(tile, out var pit))
-                    Refresh(pit, tile, pits);
+                    Refresh(pit, tile, pits, (grid, gridComp));
             }
         }
     }
 
-    private void Refresh(EntityUid uid, Vector2i tile, Dictionary<Vector2i, EntityUid> pits)
+    private void Refresh(EntityUid uid, Vector2i tile, Dictionary<Vector2i, EntityUid> pits, Entity<MapGridComponent> grid)
     {
         if (!TryComp<SpriteComponent>(uid, out var sprite))
             return;
@@ -120,21 +122,46 @@ public sealed partial class WFCavernShadeVisualsSystem : EntitySystem
         // The prototype's whole-tile layer is only the placement icon.
         _sprite.LayerSetVisible(ent, 0, false);
 
+        var floor = PickFloor(grid, grid.Comp, tile);
+        if (floor is { } picked)
+            _floors[uid] = picked;
+        else
+            _floors.Remove(uid);
+
+        // Floor layers first, so on a shade's first refresh they are made under the pieces.
+        foreach (var (key, _) in TileCorners)
+        {
+            _sprite.LayerMapReserve(ent, $"wf-pit-floor-{key}");
+        }
+
         foreach (var (key, offset) in TileCorners)
         {
             var corner = tile + offset;
+            var under = _sprite.LayerMapReserve(ent, $"wf-pit-floor-{key}");
             var piece = _sprite.LayerMapReserve(ent, $"wf-pit-{key}");
             var mask = Mask(pits, corner);
 
             if (mask == FullMask || Owner(pits, corner) != tile)
             {
+                _sprite.LayerSetVisible(ent, under, false);
                 _sprite.LayerSetVisible(ent, piece, false);
                 continue;
             }
 
-            _sprite.LayerSetRsiState(ent, piece, PieceState(corner, mask));
-            _sprite.LayerSetOffset(ent, piece, new Vector2(offset.X - 0.5f, offset.Y - 0.5f));
+            var state = PieceState(corner, mask);
+            var position = new Vector2(offset.X - 0.5f, offset.Y - 0.5f);
+            _sprite.LayerSetRsiState(ent, piece, state);
+            _sprite.LayerSetOffset(ent, piece, position);
             _sprite.LayerSetVisible(ent, piece, true);
+
+            var texture = floor is { } ground ? FloorPiece(ground, state) : null;
+            if (texture != null)
+            {
+                _sprite.LayerSetTexture(ent, under, texture);
+                _sprite.LayerSetOffset(ent, under, position);
+            }
+
+            _sprite.LayerSetVisible(ent, under, texture != null);
         }
     }
 
