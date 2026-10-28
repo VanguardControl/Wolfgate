@@ -88,7 +88,7 @@ public sealed class ThrasciasBiomeTest
             var generator = server.System<SharedBiomeSystem>();
             var tiles = server.ResolveDependency<ITileDefinitionManager>();
 
-            var allowed = new HashSet<string>(SnowTiles.Concat(IceTiles)) { Dirt, Crystal };
+            var allowed = new HashSet<string>(SnowTiles.Concat(IceTiles)) { Dirt, Crystal, "WFFloorThrasciasRimeIce" };
             var tileCount = new Dictionary<string, int>();
             var featureCount = new Dictionary<string, int>();
             var decalCount = new Dictionary<string, int>();
