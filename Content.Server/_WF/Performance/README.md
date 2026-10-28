@@ -34,6 +34,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Server
 
+- [`Content.Server/_WF/Performance/CEZLevelsSystem.WFGroundSample.cs`](CEZLevelsSystem.WFGroundSample.cs)
 - [`Content.Server/_WF/Performance/DockingSystem.WFPlacement.cs`](DockingSystem.WFPlacement.cs)
 - [`Content.Server/_WF/Performance/GCQueuePrototype.WFMinAge.cs`](GCQueuePrototype.WFMinAge.cs)
 - [`Content.Server/_WF/Performance/GCQueueSystem.WFMinAge.cs`](GCQueueSystem.WFMinAge.cs)
@@ -57,6 +58,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFAsteroidCullTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFAsteroidCullTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Performance/WFGroundSampleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGroundSampleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs)
 
 ### Localization
@@ -75,6 +77,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.IntegrationTests/Tests/Gravity/WeightlessStatusTests.cs`](../../../Content.IntegrationTests/Tests/Gravity/WeightlessStatusTests.cs)
   - weightlessness now refreshes half a second after gravity changes
   - batched weightlessness refresh
+- [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs): reuse a parked grid's sample instead of re-walking its hull every tick
 - [`Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs`](../../_NF/StationEvents/Events/BluespaceErrorRule.cs)
   - frontier#4800 extended, appraise at spawn only for the currency injection
   - frontier#4800, skip the end appraisal when nothing uses the value
@@ -122,6 +125,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs)
   - List.Contains per MoveEvent went quadratic in battles
   - set lookup instead of List.Contains
+  - release a battle's oversized set afterwards
 - [`Content.Shared/_Onyx/Targeting/TargetingSnapshotComponent.cs`](../../../Content.Shared/_Onyx/Targeting/TargetingSnapshotComponent.cs): not networked; a thrown item outlives its thrower and sent a deleted entity every state
 - [`Content.Shared/Atmos/Consoles/Components/AtmosMonitoringConsoleComponent.cs`](../../../Content.Shared/Atmos/Consoles/Components/AtmosMonitoringConsoleComponent.cs)
   - wizden#38974, subnets carry a Color

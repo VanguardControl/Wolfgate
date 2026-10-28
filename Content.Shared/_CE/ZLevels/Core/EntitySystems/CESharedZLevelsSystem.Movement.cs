@@ -5,6 +5,7 @@
 
 using System.Numerics;
 using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared._WF.Performance; // WOLFGATE(Performance)
 using Content.Shared.Chasm;
 using JetBrains.Annotations;
 using Robust.Shared.Audio;
@@ -523,7 +524,7 @@ public abstract partial class CESharedZLevelsSystem
         }
 
         _dirtyMovementBodies.Clear();
-        _wfDirtyMovementSet.Clear(); // WOLFGATE(Performance)
+        _wfDirtyMovementSet.ClearAndTrim(); // WOLFGATE(Performance): release a battle's oversized set afterwards
     }
 }
 
