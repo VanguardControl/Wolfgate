@@ -318,6 +318,7 @@ public sealed class WildSlimesTest
             Assert.That(factions.IsMember(adult, "SimpleHostile"), Is.True);
             Assert.That(entMan.GetComponent<HTNComponent>(adult).RootTask.Task, Is.EqualTo(habitat.TameRootTask), "A tamed slime still runs the wild HTN.");
 
+            // The test map is vacuum, far outside Carcinoma's warmth: a fed slime only splits once its climate allows it.
             var slime = entMan.GetComponent<SlimeComponent>(adult);
             hunger.SetHunger(adult, slime.MitosisHunger + 10f);
         });
@@ -326,7 +327,18 @@ public sealed class WildSlimesTest
 
         await server.WaitAssertion(() =>
         {
-            Assert.That(!entMan.EntityExists(adult) || entMan.IsQueuedForDeletion(adult), Is.True, "A tamed, well fed slime didn't split.");
+            Assert.That(entMan.EntityExists(adult) && !entMan.IsQueuedForDeletion(adult), Is.True, "A slime split outside its climate.");
+            Assert.That(server.System<WFSlimeClimateSystem>().InClimate((adult, entMan.GetComponent<WFSlimeClimateComponent>(adult))), Is.False);
+            entMan.GetComponent<WFSlimeClimateComponent>(adult).MinTemperature = 0f;
+            var slime = entMan.GetComponent<SlimeComponent>(adult);
+            hunger.SetHunger(adult, slime.MitosisHunger + 10f);
+        });
+
+        await pair.RunSeconds(3);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(!entMan.EntityExists(adult) || entMan.IsQueuedForDeletion(adult), Is.True, "A tamed, well fed slime in its climate didn't split.");
         });
 
         await pair.CleanReturnAsync();

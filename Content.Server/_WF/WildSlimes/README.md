@@ -40,6 +40,7 @@ Entry points: `WFWildSlimeSystem` (patches found on `WFPlanetNetworkBuiltEvent`,
 
 - [`Content.Server/_WF/WildSlimes/BiomeSystem.WildSlimes.cs`](BiomeSystem.WildSlimes.cs)
 - [`Content.Server/_WF/WildSlimes/WFReagentBathHealSystem.cs`](WFReagentBathHealSystem.cs)
+- [`Content.Server/_WF/WildSlimes/WFSlimeClimateSystem.cs`](WFSlimeClimateSystem.cs)
 - [`Content.Server/_WF/WildSlimes/WFWildSlimeComponent.cs`](WFWildSlimeComponent.cs)
 - [`Content.Server/_WF/WildSlimes/WFWildSlimeGroundComponent.cs`](WFWildSlimeGroundComponent.cs)
 - [`Content.Server/_WF/WildSlimes/WFWildSlimeHomeOperator.cs`](WFWildSlimeHomeOperator.cs)
@@ -49,6 +50,7 @@ Entry points: `WFWildSlimeSystem` (patches found on `WFPlanetNetworkBuiltEvent`,
 ### Shared
 
 - [`Content.Shared/_WF/WildSlimes/WFReagentBathHealComponent.cs`](../../../Content.Shared/_WF/WildSlimes/WFReagentBathHealComponent.cs)
+- [`Content.Shared/_WF/WildSlimes/WFSlimeClimateComponent.cs`](../../../Content.Shared/_WF/WildSlimes/WFSlimeClimateComponent.cs)
 - [`Content.Shared/_WF/WildSlimes/WFWildSlimeHabitatPrototype.cs`](../../../Content.Shared/_WF/WildSlimes/WFWildSlimeHabitatPrototype.cs)
 
 ### Integration tests

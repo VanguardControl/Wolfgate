@@ -159,7 +159,12 @@ public sealed partial class XenobiologySystem : EntitySystem
             if (value > slime.MitosisHunger - slime.JitterDifference)
                 _jitter.DoJitter(uid, TimeSpan.FromSeconds(1), true);
 
-            if (value >= slime.MitosisHunger)
+            if (value < slime.MitosisHunger)
+                continue;
+
+            var attempt = new SlimeGrowthAttemptEvent();
+            RaiseLocalEvent(uid, ref attempt);
+            if (!attempt.Cancelled)
                 _splitting.Add((uid, slime));
         }
 

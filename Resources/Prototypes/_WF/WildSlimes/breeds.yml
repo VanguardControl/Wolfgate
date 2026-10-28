@@ -14,6 +14,10 @@
     mutationChance: 0.1
     potentialMutations:
     - WFMetastaticMutation
+  # Grows and splits only in Carcinoma's body warmth.
+  - type: WFSlimeClimate
+    minTemperature: 300
+    maxTemperature: 330
   - type: Damageable
     damageModifierSet: WFCarcinomaSlime
     damageContainer: Biological
@@ -76,6 +80,10 @@
     mutationChance: 0.3
     potentialMutations:
     - WFCarcinomaMutation
+  # Grows and splits only in Carcinoma's body warmth.
+  - type: WFSlimeClimate
+    minTemperature: 300
+    maxTemperature: 330
   - type: Damageable
     damageModifierSet: WFCarcinomaSlime
     damageContainer: Biological
