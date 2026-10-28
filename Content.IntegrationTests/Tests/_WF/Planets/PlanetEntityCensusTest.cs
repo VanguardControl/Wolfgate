@@ -36,11 +36,12 @@ public sealed class PlanetEntityCensusTest
     [TestCase("WFSurfaceThrascias")]
     [TestCase("WFSurfaceAerumna")]
     [TestCase("WFSurfaceCarcinoma")]
-    public async Task Census(string surfaceId)
+    [TestCase("WFSurfaceAsclepiu", false)]
+    public async Task Census(string surfaceId, bool sites = true)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
         var server = pair.Server;
-        var census = await FormWorld(pair, surfaceId);
+        var census = await FormWorld(pair, surfaceId, sites: sites);
 
         try
         {
@@ -100,7 +101,8 @@ public sealed class PlanetEntityCensusTest
     /// Prebuilds a surface with every round-start feature on, ticks until its preload is done and a further minute
     /// has passed, and counts every entity it added.
     /// </summary>
-    public static async Task<WorldCensus> FormWorld(Pair.TestPair pair, string surfaceId, float settleSeconds = 60f)
+    /// <param name="sites">Whether sites nobody is near sleep (WFSiteStashSystem).</param>
+    public static async Task<WorldCensus> FormWorld(Pair.TestPair pair, string surfaceId, float settleSeconds = 60f, bool sites = false)
     {
         var server = pair.Server;
         var entMan = server.EntMan;
@@ -119,6 +121,7 @@ public sealed class PlanetEntityCensusTest
             server.CfgMan.SetCVar(PlanetCVars.Preload, true);
             server.CfgMan.SetCVar(PlanetCVars.FixedCities, true);
             server.CfgMan.SetCVar(PlanetCVars.Prebuild, false);
+            server.CfgMan.SetCVar(PlanetCVars.SiteStash, sites);
             // Formed at the lobby's pace, as a real round's are.
             server.CfgMan.SetCVar(PlanetCVars.PreloadBudget, server.CfgMan.GetCVar(PlanetCVars.PreloadBudgetLobby));
             server.CfgMan.SetCVar(PlanetCVars.GenerationBudget, server.CfgMan.GetCVar(PlanetCVars.GenerationBudgetLobby));
@@ -200,6 +203,7 @@ public sealed class PlanetEntityCensusTest
             var siteProtos = new Dictionary<string, Dictionary<string, int>>();
             var noProto = new Dictionary<string, int>();
             var offWorld = new Dictionary<string, int>();
+            var paused = new Dictionary<string, int>();
 
             void Bump(Dictionary<string, int> dict, string key) => dict[key] = dict.GetValueOrDefault(key) + 1;
 
@@ -313,6 +317,8 @@ public sealed class PlanetEntityCensusTest
                     census.Ground++;
 
                 Bump(census.Categories, category + inside);
+                if (meta.EntityPaused)
+                    Bump(paused, category);
             }
 
             var decals = 0;
@@ -328,6 +334,33 @@ public sealed class PlanetEntityCensusTest
             sb.AppendLine($"Formed in {formedIn:F1} s wall over {formingTicks.Count} ticks; worst forming tick {formingTicks.DefaultIfEmpty(0).Max():F0} ms, "
                           + $"ticks over 50 ms: {formingTicks.Count(t => t > 50)}, over 100 ms: {formingTicks.Count(t => t > 100)}.");
             sb.AppendLine($"Next {settleSeconds:F0} s idle: worst tick {settleTicks.DefaultIfEmpty(0).Max():F1} ms, mean {settleTicks.DefaultIfEmpty(0).Average():F2} ms.");
+            sb.AppendLine($"Sites asleep: {(sites ? "on" : "off")}; paused: {paused.Values.Sum()} ("
+                          + string.Join(", ", paused.OrderByDescending(p => p.Value).Take(8).Select(p => $"{p.Key} {p.Value}")) + ").");
+            var sleeper = server.System<Content.Server._WF.Dormancy.WFSiteStashSystem>();
+            sb.AppendLine($"Worst tick spent pausing and waking: {sleeper.WorstTickMs:F2} ms ({sleeper.WorstTickWork.Trim()}).");
+            // What the per-tick systems still walk: an entity of these paused costs its system nothing.
+            var walked = new List<string>();
+            foreach (var name in new[] { "Metabolizer", "Respirator", "Bloodstream", "Stomach", "HTN", "ActiveNPC", "ApcPowerReceiver", "Flammable", "SolutionRegeneration", "PointLight" })
+            {
+                if (!entMan.ComponentFactory.TryGetRegistration(name, out var registration))
+                    continue;
+
+                var all = 0;
+                var asleep = 0;
+                foreach (var (owner, _) in entMan.GetAllComponents(registration.Type, includePaused: true))
+                {
+                    if (before.Contains(owner) || entMan.GetComponent<TransformComponent>(owner).MapUid is not { } where || !layerSet.Contains(where))
+                        continue;
+
+                    all++;
+                    if (entMan.GetComponent<MetaDataComponent>(owner).EntityPaused)
+                        asleep++;
+                }
+
+                walked.Add($"{name} {all - asleep} of {all}");
+            }
+
+            sb.AppendLine("Awake on the world (of all): " + string.Join(", ", walked) + ".");
             sb.AppendLine();
             sb.AppendLine("| Category | Entities |");
             sb.AppendLine("|---|---|");

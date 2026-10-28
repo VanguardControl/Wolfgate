@@ -42,9 +42,13 @@ public sealed class PlanetIdleProfileTest
         "DamageOffWeeds", "WFReactiveFlora", "ApcPowerReceiver", "WFVehicleEngine", "GridPathfinding", "HTN", "ActiveNPC", "CEZGridFaller",
     };
 
+    /// <param name="sites">Whether sites nobody is near sleep (WFSiteStashSystem).</param>
     [TestCase(null)]
     [TestCase("WFSurfaceMerak")]
-    public async Task ProfileIdleWorlds(string? only)
+    [TestCase(null, true)]
+    [TestCase("WFSurfaceAsclepiu")]
+    [TestCase("WFSurfaceAsclepiu", true)]
+    public async Task ProfileIdleWorlds(string? only, bool sites = false)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var server = pair.Server;
@@ -65,6 +69,7 @@ public sealed class PlanetIdleProfileTest
             cfg.SetCVar(PlanetCVars.TerrainLoadBudget, 0f);
             cfg.SetCVar(PlanetCVars.FixedCities, true);
             cfg.SetCVar(CavernCVars.Caverns, true);
+            cfg.SetCVar(PlanetCVars.SiteStash, sites);
 
             var i = 0;
             foreach (var surface in proto.EnumeratePrototypes<WFPlanetSurfacePrototype>().Where(s => s.BuildAtRoundStart && (only == null || s.ID == only)).OrderBy(s => s.ID))

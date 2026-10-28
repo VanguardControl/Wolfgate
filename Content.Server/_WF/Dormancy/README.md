@@ -30,6 +30,26 @@ What uses it, and the other idle costs fixed here:
 - `WFVehicleElectricalSystem` (Vehicles) walks the receivers on vehicle cabin maps instead of every power receiver
   in the world.
 
+`WFSiteStashSystem` puts a world's sites to sleep while nobody is near. Once a world has formed it is cut into
+regions: one per site, wreck and camp (the box the site reserved, on every ground-bearing layer, with the wreck's or
+camp's ship whole), one per tunnel, Crocus in 16 m blocks, each level on its own, and the open world in 64 m
+squares that hold only the mobs roaming them. A region with nobody within
+`wf.planet_site_stash_range` (96 m) for `wf.planet_site_stash_idle` (180 s), or at once when the world forms, is
+paused where it stands: everything in it and all it holds, mobs last, but not anchored walls, windows, doors and
+cables, which do nothing a tick anyway. A paused entity keeps all its state (an NPC's wounds, inventory, dialogue,
+grudges, a trader's stock and cash; a looted chest stays looted, an open door open) and costs nothing a tick. When
+anyone comes within `wf.planet_site_restore_range` (64 m, past what PVS shows) it is woken, nearest first, within
+`wf.planet_site_stash_budget` (2 ms) a tick; a region someone is about to see is woken whole that tick. Viewers are
+`WFDormancySystem.Viewers`: bodies (a vehicle's, for someone in its cabin), ghosts and camera eyes, on any layer of
+the planet, so a pilot overhead wakes the ground below. A city block never sleeps within 16 m of a spawn point on its
+own level or the level above, which sees down into it. A player, a body with a mind and a vehicle with a cabin are never paused, nor anything they
+are in. A sleeping region is swept once a minute for anything that turned up since, such as an event's spawn.
+`NPCRetaliationSystem.WFPause` moves an NPC's attack memories on by however long it was paused, so a grudge outlasts
+the sleep. Pausing, not saving and deleting, was chosen: saving drops references held outside data fields (a
+stranger's home, a trader's counter), loading can't be spread over ticks without breaking links between the pieces,
+and taking walls away would disturb the air, power and navmesh round them. `wf.planet_site_stash` turns it off; tests
+run with it off unless they turn it on.
+
 `PlanetIdleProfileTest` (explicit) builds every round-start world as a round would, with nobody on them, and prints
 each system's update cost and what it walks; run it by hand when tuning.
 
@@ -42,18 +62,24 @@ each system's update cost and what it walks; run it by hand when tuning.
 
 - [`Content.Server/_WF/Dormancy/CEZLevelsSystem.WFGroundContact.cs`](CEZLevelsSystem.WFGroundContact.cs)
 - [`Content.Server/_WF/Dormancy/FlammableSystem.WFSweep.cs`](FlammableSystem.WFSweep.cs)
+- [`Content.Server/_WF/Dormancy/NPCRetaliationSystem.WFPause.cs`](NPCRetaliationSystem.WFPause.cs)
 - [`Content.Server/_WF/Dormancy/WFDormancySystem.cs`](WFDormancySystem.cs)
+- [`Content.Server/_WF/Dormancy/WFSiteStashSystem.cs`](WFSiteStashSystem.cs)
+- [`Content.Server/_WF/Dormancy/WFSiteStashSystem.Regions.cs`](WFSiteStashSystem.Regions.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Dormancy/DormancyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Dormancy/DormancyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Dormancy/PlanetIdleProfileTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Dormancy/PlanetIdleProfileTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Dormancy/SiteStashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Dormancy/SiteStashTest.cs)
 
 ## Non-modular edits
 
+- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs): tests look at a formed world's sites with nobody near
 - [`Content.Server/_CE/ZLevels/Core/CEZGroundFrictionController.cs`](../../_CE/ZLevels/Core/CEZGroundFrictionController.cs): a sleeping hull has no velocity or force to scrape, so skip sampling its grip.
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs): a resting hull's contact is sampled now and then, not every tick.
 - [`Content.Server/Atmos/EntitySystems/FlammableSystem.cs`](../../Atmos/EntitySystems/FlammableSystem.cs): the once-a-second sweep runs ten times a second, not every tick.
+- [`Content.Server/NPC/Systems/NPCRetaliationSystem.cs`](../../NPC/Systems/NPCRetaliationSystem.cs): a pause doesn't run down who it remembers attacking it
 - [`Resources/Prototypes/Entities/Tiles/water.yml`](../../../Resources/Prototypes/Entities/Tiles/water.yml): regenerated a "tank" solution the pool doesn't have, so it did nothing but cost every tick.
 
 <!-- WOLFGATE-GENERATED END -->

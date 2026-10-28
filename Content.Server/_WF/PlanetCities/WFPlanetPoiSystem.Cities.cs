@@ -513,6 +513,7 @@ public sealed partial class WFPlanetPoiSystem
             Expeditions = false,
             Difficulty = table.Difficulty,
             Shafts = stairwells,
+            City = true,
         };
 
         if (table.Roads != null && entry.Connection != WFPlanetPoiConnection.Isolated)
