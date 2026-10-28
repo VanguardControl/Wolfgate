@@ -3,8 +3,10 @@ using Content.Client._WF.PlanetSignals;
 using Content.Shared._FarHorizons.StarSystem;
 using Content.Shared._FarHorizons.StarSystem.Helpers;
 using Content.Shared._WF.Planets;
+using Content.Shared._WF.PlanetScan;
 using Content.Shared._WF.PlanetSignals;
 using Robust.Client.Graphics;
+using Robust.Shared.Prototypes;
 
 namespace Content.Client.Shuttles.UI;
 
@@ -200,10 +202,18 @@ public partial class ShuttleNavControl
         foreach (var planet in system.StarSystem.Planets)
         {
             if ((planet.Position - position).LengthSquared() < 1f)
-                return Planet.NAV_PIXEL_SIZE * planet.Radius * _wfViewScale;
+                return WFPlanetScanReader.ScopeRadius(planet, WfSurfaceOf(body)) * _wfViewScale;
         }
 
         return 0f;
+    }
+
+    private WFPlanetSurfacePrototype? WfSurfaceOf(EntityUid body)
+    {
+        return EntManager.TryGetComponent<WFSectorPlanetComponent>(body, out var sector) && sector.Surface is { } id &&
+            IoCManager.Resolve<IPrototypeManager>().TryIndex(id, out var surface)
+            ? surface
+            : null;
     }
 
     /// <summary>The ship this radar is on, as the signals name it.</summary>

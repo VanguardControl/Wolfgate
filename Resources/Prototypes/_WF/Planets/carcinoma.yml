@@ -35,6 +35,11 @@
   orbitRange: 2000
   buildAtRoundStart: true
   sanctioned: false
+  climate: wf-planet-scan-climate-carcinoma
+  hazards:
+  - wf-planet-scan-hazard-blood-storms
+  - wf-planet-scan-hazard-biohazard
+  - wf-planet-scan-hazard-wildlife
   gravity: 1
   radius: 192
   pois: WFPoisCarcinoma

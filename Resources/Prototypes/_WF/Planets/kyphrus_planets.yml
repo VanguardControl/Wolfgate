@@ -11,6 +11,11 @@
   orbitRange: 2000
   buildAtRoundStart: true
   sanctioned: true
+  climate: wf-planet-scan-climate-fervidus
+  hazards:
+  - wf-planet-scan-hazard-ash-storms
+  - wf-planet-scan-hazard-lava
+  - wf-planet-scan-hazard-wildlife
   gravity: 0.9
   radius: 256
   pois: WFPoisFervidus
@@ -73,6 +78,10 @@
   orbitRange: 2000
   buildAtRoundStart: true
   sanctioned: true
+  climate: wf-planet-scan-climate-merak
+  hazards:
+  - wf-planet-scan-hazard-dust-storms
+  - wf-planet-scan-hazard-wildlife
   gravity: 1.15
   radius: 320
   pois: WFPoisMerak
@@ -135,6 +144,9 @@
   orbitRange: 2000
   buildAtRoundStart: true
   sanctioned: true
+  climate: wf-planet-scan-climate-aerumna
+  hazards:
+  - wf-planet-scan-hazard-wildlife
   gravity: 3
   radius: 192
   pois: WFPoisAerumna
@@ -197,6 +209,11 @@
   orbitRange: 2000
   buildAtRoundStart: true
   sanctioned: true
+  climate: wf-planet-scan-climate-thrascias
+  hazards:
+  - wf-planet-scan-hazard-snowstorms
+  - wf-planet-scan-hazard-plasma
+  - wf-planet-scan-hazard-wildlife
   gravity: 1.25
   radius: 256
   pois: WFPoisThrascias
