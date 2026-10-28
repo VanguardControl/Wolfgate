@@ -27,7 +27,7 @@ public sealed class CarcinomaBiomeTest
     {
         "WFFloorFlesh", "WFBloodOceanSeabed", "WFFloorFleshScab", "WFFloorFleshBoneMeaty", "WFFloorFleshBoneSpine",
         "WFFloorFleshBoneStraight", "WFFloorFleshCrust", "WFFloorFleshMarshMud", "WFFloorFleshMarshDirt",
-        "WFFloorFleshRiverBank",
+        "WFFloorFleshRiverBank", "WFFloorFleshJelly",
     };
 
     private static readonly HashSet<string> HiveWalls = new() { "GoonSetpiecesHive", "ChompResin", "PolarisResin" };
@@ -62,6 +62,7 @@ public sealed class CarcinomaBiomeTest
         "WFBloodRiver", "WFBloodOcean", "WFFleshTree", "WFFleshPustuleTree", "WFFleshPolyp", "TauCetiMeatlandWall",
         "WFCarcinomaPimple", "WFFaunaCarcinomaBone", "WFFaunaCarcinomaMarsh", "WFFaunaCarcinomaHive", "WFFaunaCarcinomaShore",
         "WFCarcinomaVitaeBlister", "WFCarcinomaBonePile", "WFCarcinomaMeatFruitBush", "WFCarcinomaTendonVine", "WFCarcinomaWeepingPolyp",
+        "WFCarcinomaJellyMound", "WFCarcinomaJellyMoundSmall",
     };
 
     [Test]

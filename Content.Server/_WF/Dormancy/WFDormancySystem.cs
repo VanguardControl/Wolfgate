@@ -65,6 +65,16 @@ public sealed class WFDormancySystem : EntitySystem
             && _active.Contains((network, ChunkOf(_transform.GetWorldPosition(xform))));
     }
 
+    /// <summary>Whether a spot on a map should run: off-planet, or on a planet near a player.</summary>
+    public bool IsActiveAt(EntityUid map, Vector2 worldPosition)
+    {
+        if (NetworkOf(map) is not { } network)
+            return true;
+
+        Refresh();
+        return _activeNetworks.Contains(network) && _active.Contains((network, ChunkOf(worldPosition)));
+    }
+
     /// <summary>Whether any player is anywhere on the planet a map belongs to; true off-planet.</summary>
     public bool IsMapActive(EntityUid map)
     {
