@@ -61,6 +61,34 @@ public sealed partial class WFPlanetPreloadSystem
         GenerationSpent();
     }
 
+    /// <summary>A single generation step past this many milliseconds is logged, to find what a long forming tick spent.</summary>
+    private const double SlowStepMs = 100;
+
+    /// <summary>Times one generation step that can't be split; dispose it when the step is done.</summary>
+    public StepTimer Time(string step) => new(this, step);
+
+    /// <summary>Logs a generation step that ran long; see <see cref="Time"/>.</summary>
+    public readonly struct StepTimer : IDisposable
+    {
+        private readonly WFPlanetPreloadSystem _system;
+        private readonly string _step;
+        private readonly long _start;
+
+        public StepTimer(WFPlanetPreloadSystem system, string step)
+        {
+            _system = system;
+            _step = step;
+            _start = System.Diagnostics.Stopwatch.GetTimestamp();
+        }
+
+        public void Dispose()
+        {
+            var ms = System.Diagnostics.Stopwatch.GetElapsedTime(_start).TotalMilliseconds;
+            if (ms >= SlowStepMs)
+                _system.Log.Info($"Slow world generation step: {_step} took {ms:F0} ms.");
+        }
+    }
+
     /// <summary>Resumes whatever waited for this tick; what they wait for next goes to the tick after.</summary>
     private void ResumeWaiting()
     {

@@ -68,9 +68,13 @@ tick, one world at a time, and walls the outermost ring of tiles with the surfac
 preload puts away the untouched biome entities of every chunk nobody is near, the loader lays them again from the
 recipe as someone comes within its load area, and the unloader puts them away again once the chunk has been idle for
 `wf.planet_terrain_unload_idle`. A touched one stays and pins its tile, as when terrain unloads, and a tile someone
-stands on is left bare when the rest comes back. A planet layer's navmesh is built only within
-`wf.planet_pathfinding_range` of players and awake NPCs, `wf.planet_pathfinding_chunk_budget` chunks an update
-(`PathfindingSystem.WFPlanetLazy`); upstream built a whole world's in one tick and kept it.
+stands on is left bare when the rest comes back. A planet layer's navmesh, and that of any grid standing on one
+(a city's upper levels, wrecks), is built only within `wf.planet_pathfinding_range` of players and awake NPCs,
+`wf.planet_pathfinding_chunk_budget` chunks an update (`PathfindingSystem.WFPlanetLazy`); upstream built a whole
+world's in one tick and kept it. A path asked for across ground not built yet has the unbuilt chunks along its straight
+line built first, nearest its start first, and waits for them up to ten seconds instead of finding no way
+(`PathfindingSystem.WFPlanetPathWake`). Generation steps that can't be split and run past 100 ms are logged as
+`Slow world generation step` (`WFPlanetPreloadSystem.Time`).
 `WFPlanetPreloadStartingEvent` goes out the tick before,
 for whatever must be placed while the ground is still unloaded, such as cavern mouths, and `WFPlanetPreloadedEvent`
 once the ring is laid. Caverns stay streamed, inside the same circle, with their own ring laid onto bare pinned ground.
@@ -251,6 +255,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/_WF/Planets/Infestation/WFCarcinomaInfestationSystem.cs`](Infestation/WFCarcinomaInfestationSystem.cs)
 - [`Content.Server/_WF/Planets/Jetpack/WFAtmosphericJetpackFuelSystem.cs`](Jetpack/WFAtmosphericJetpackFuelSystem.cs)
 - [`Content.Server/_WF/Planets/PathfindingSystem.WFPlanetLazy.cs`](PathfindingSystem.WFPlanetLazy.cs)
+- [`Content.Server/_WF/Planets/PathfindingSystem.WFPlanetPathWake.cs`](PathfindingSystem.WFPlanetPathWake.cs)
 - [`Content.Server/_WF/Planets/ShuttleSystem.WFOrbit.cs`](ShuttleSystem.WFOrbit.cs)
 - [`Content.Server/_WF/Planets/StarSystemMapSystem.Wolfgate.cs`](StarSystemMapSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Planets/WFBiomeGrownComponent.cs`](WFBiomeGrownComponent.cs)
@@ -403,6 +408,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPathWakeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPathWakeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPopulationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPopulationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPrebuildTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPrebuildTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPrototypeTest.cs)
@@ -690,6 +696,9 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Server/Movement/Systems/JetpackSystem.cs`](../../Movement/Systems/JetpackSystem.cs)
   - an atmospheric pack burns welding fuel from a solution, not gas from a tank.
   - a wearer carried below orbit on a hull never changes parent, so the pack is cut here.
+- [`Content.Server/NPC/Pathfinding/PathfindingSystem.cs`](../../NPC/Pathfinding/PathfindingSystem.cs)
+  - requests across unbuilt planet ground wait for it
+  - held until the planet ground on its way is built
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs`](../../NPC/Pathfinding/PathfindingSystem.Grid.cs)
   - a planet layer builds only the dirty chunks near someone, a slice an update
   - what wasn't built this update stays dirty

@@ -216,7 +216,7 @@ public sealed class ReactiveFloraTest
             Assert.That(entMan.HasComponent<WFFloraGrabbedComponent>(victim), Is.False, "The hold should run out.");
             Assert.That(entMan.GetComponent<MovementSpeedModifierComponent>(victim).WalkSpeedModifier, Is.EqualTo(1f).Within(0.001f));
             // Let it look again straight away.
-            entMan.GetComponent<WFReactiveFloraComponent>(plant).NextCheck = TimeSpan.Zero;
+            server.System<WFReactiveFloraSystem>().CheckNow((plant, entMan.GetComponent<WFReactiveFloraComponent>(plant)));
         });
         await pair.RunSeconds(0.5f);
 

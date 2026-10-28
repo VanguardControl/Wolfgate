@@ -65,6 +65,12 @@ public sealed class WFReactiveFloraSystem : EntitySystem
     private readonly List<(EntityUid Uid, float Distance)> _targets = new();
     private readonly List<EntityUid> _friends = new();
 
+    // Idle plants wait on a timer queue; the 1,700 on a round's worlds are not walked every tick.
+    private readonly PriorityQueue<EntityUid, TimeSpan> _queue = new();
+    private readonly Dictionary<EntityUid, TimeSpan> _scheduled = new();
+    private readonly HashSet<EntityUid> _busy = new();
+    private readonly List<EntityUid> _busyNow = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -79,11 +85,14 @@ public sealed class WFReactiveFloraSystem : EntitySystem
     {
         ent.Comp.NextCheck = _timing.CurTime + ent.Comp.CheckInterval;
         SetState(ent, WFReactiveFloraState.Idle);
+        Schedule(ent, ent.Comp.NextCheck);
     }
 
     private void OnShutdown(Entity<WFReactiveFloraComponent> ent, ref ComponentShutdown args)
     {
         Release(ent, false);
+        _scheduled.Remove(ent);
+        _busy.Remove(ent);
     }
 
     private void OnDamaged(Entity<WFReactiveFloraComponent> ent, ref DamageChangedEvent args)
@@ -127,45 +136,107 @@ public sealed class WFReactiveFloraSystem : EntitySystem
         base.Update(frameTime);
         var now = _timing.CurTime;
 
-        var query = EntityQueryEnumerator<WFReactiveFloraComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var flora, out var xform))
+        // Plants mid-reaction run every tick until they are idle again.
+        if (_busy.Count > 0)
         {
-            var ent = (uid, flora);
-            switch (flora.State)
+            _busyNow.Clear();
+            _busyNow.AddRange(_busy);
+            foreach (var uid in _busyNow)
             {
-                case WFReactiveFloraState.Spent:
-                    if (now >= flora.StateEnd)
-                    {
-                        SetState(ent, WFReactiveFloraState.Idle);
-                        flora.NextCheck = now + flora.Cooldown;
-                    }
+                if (!TryComp(uid, out WFReactiveFloraComponent? flora) || TerminatingOrDeleted(uid))
+                {
+                    _busy.Remove(uid);
                     continue;
-                case WFReactiveFloraState.Armed when flora.Behaviour == WFReactiveFloraBehaviour.Explode:
-                    if (now >= flora.StateEnd)
-                        Burst(ent);
+                }
+
+                if (MetaData(uid).EntityPaused)
                     continue;
-                case WFReactiveFloraState.Armed when flora.Held == null && now >= flora.StateEnd:
-                    SetState(ent, WFReactiveFloraState.Idle);
-                    break;
+
+                Step((uid, flora), Transform(uid), now);
+                if (flora.State == WFReactiveFloraState.Idle && flora.Held == null)
+                {
+                    _busy.Remove(uid);
+                    Schedule(uid, flora.NextCheck);
+                }
             }
-
-            if (flora.Held is { } held)
-            {
-                UpdateHold(ent, xform, held, now);
-                continue;
-            }
-
-            if (now < flora.NextCheck)
-                continue;
-
-            if (!_dormancy.IsActive(uid, xform))
-            {
-                flora.NextCheck = now + DormantCheck;
-                continue;
-            }
-
-            flora.NextCheck = now + (React(ent, xform) ? flora.Cooldown : flora.CheckInterval);
         }
+
+        // Idle plants come off the queue only when their check is due.
+        while (_queue.TryPeek(out var uid, out var due) && due <= now)
+        {
+            _queue.Dequeue();
+            if (!_scheduled.TryGetValue(uid, out var at) || at != due)
+                continue;
+
+            _scheduled.Remove(uid);
+            if (!TryComp(uid, out WFReactiveFloraComponent? flora) || TerminatingOrDeleted(uid) || _busy.Contains(uid))
+                continue;
+
+            if (MetaData(uid).EntityPaused)
+            {
+                Schedule(uid, now + DormantCheck);
+                continue;
+            }
+
+            Step((uid, flora), Transform(uid), now);
+            if (!_busy.Contains(uid))
+                Schedule(uid, flora.NextCheck > now ? flora.NextCheck : now + flora.CheckInterval);
+        }
+    }
+
+    /// <summary>One plant's turn: runs out its armed or spent state, keeps its hold, or looks for mobs when due.</summary>
+    private void Step(Entity<WFReactiveFloraComponent> ent, TransformComponent xform, TimeSpan now)
+    {
+        var (uid, flora) = ent;
+        switch (flora.State)
+        {
+            case WFReactiveFloraState.Spent:
+                if (now >= flora.StateEnd)
+                {
+                    SetState(ent, WFReactiveFloraState.Idle);
+                    flora.NextCheck = now + flora.Cooldown;
+                }
+                return;
+            case WFReactiveFloraState.Armed when flora.Behaviour == WFReactiveFloraBehaviour.Explode:
+                if (now >= flora.StateEnd)
+                    Burst(ent);
+                return;
+            case WFReactiveFloraState.Armed when flora.Held == null && now >= flora.StateEnd:
+                SetState(ent, WFReactiveFloraState.Idle);
+                break;
+        }
+
+        if (flora.Held is { } held)
+        {
+            UpdateHold(ent, xform, held, now);
+            return;
+        }
+
+        if (now < flora.NextCheck)
+            return;
+
+        if (!_dormancy.IsActive(uid, xform))
+        {
+            flora.NextCheck = now + DormantCheck;
+            return;
+        }
+
+        flora.NextCheck = now + (React(ent, xform) ? flora.Cooldown : flora.CheckInterval);
+    }
+
+    /// <summary>Has an idle plant look for mobs on the next tick.</summary>
+    public void CheckNow(Entity<WFReactiveFloraComponent> ent)
+    {
+        ent.Comp.NextCheck = _timing.CurTime;
+        if (!_busy.Contains(ent))
+            Schedule(ent, ent.Comp.NextCheck);
+    }
+
+    /// <summary>Puts an idle plant on the queue for its next check; an earlier entry for it goes stale.</summary>
+    private void Schedule(EntityUid uid, TimeSpan due)
+    {
+        _scheduled[uid] = due;
+        _queue.Enqueue(uid, due);
     }
 
     /// <summary>Looks for mobs in range and reacts to them; true if it did anything.</summary>
@@ -460,6 +531,8 @@ public sealed class WFReactiveFloraSystem : EntitySystem
     private void SetState(Entity<WFReactiveFloraComponent> ent, WFReactiveFloraState state)
     {
         ent.Comp.State = state;
+        if (state != WFReactiveFloraState.Idle)
+            _busy.Add(ent);
         _appearance.SetData(ent, WFReactiveFloraVisuals.State, state);
     }
 }

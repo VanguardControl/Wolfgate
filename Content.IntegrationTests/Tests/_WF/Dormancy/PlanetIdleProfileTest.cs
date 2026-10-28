@@ -14,6 +14,8 @@ using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Content.Shared.Atmos.Components;
 using Robust.Shared.Physics.Components;
+using Robust.Shared.Physics.Systems;
+using Robust.UnitTesting;
 using Prometheus;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
@@ -92,9 +94,20 @@ public sealed class PlanetIdleProfileTest
         var names = systems.GetEntitySystemTypes().Select(t => t.Name).Distinct().ToList();
         var before = names.ToDictionary(n => n, n => histogram.WithLabels(n).Sum);
 
+        var physicsSystem = server.System<SharedPhysicsSystem>();
+        var metricsSetter = typeof(SharedPhysicsSystem).GetProperty("MetricsEnabled")!.GetSetMethod(true)!;
+        var controllerHistograms = new[] { SharedPhysicsSystem.TickUsageControllerBeforeSolveHistogram, SharedPhysicsSystem.TickUsageControllerAfterSolveHistogram };
+        Dictionary<string, double> ControllerSums() => controllerHistograms
+            .SelectMany(h => h.GetAllLabelValues().Select(l => (Name: l[0], Sum: h.WithLabels(l).Sum)))
+            .GroupBy(p => p.Name).ToDictionary(g => g.Key, g => g.Sum(p => p.Sum));
+        var controllersBefore = ControllerSums();
+
         systems.MetricsEnabled = true;
+        metricsSetter.Invoke(physicsSystem, new object[] { true });
         await server.WaitRunTicks(MeasureTicks);
         systems.MetricsEnabled = false;
+        metricsSetter.Invoke(physicsSystem, new object[] { false });
+        var controllersAfter = ControllerSums();
 
         var minutes = MeasureTicks / (double) server.Timing.TickRate / 60.0;
         var spent = names.ToDictionary(n => n, n => histogram.WithLabels(n).Sum - before[n]);
@@ -103,6 +116,14 @@ public sealed class PlanetIdleProfileTest
         {
             TestContext.Out.WriteLine($"  {name,-40} {seconds / MeasureTicks * 1000,8:F3} ms/tick {seconds / minutes,8:F3} s/min");
         }
+
+        TestContext.Out.WriteLine("Physics controllers:");
+        foreach (var (name, seconds) in controllersAfter.Select(p => (p.Key, p.Value - controllersBefore.GetValueOrDefault(p.Key))).OrderByDescending(p => p.Item2).Take(12))
+        {
+            TestContext.Out.WriteLine($"  {name,-40} {seconds / MeasureTicks * 1000,8:F3} ms/tick");
+        }
+
+        await ProfilePhysicsCore(server);
 
         TestContext.Out.WriteLine("Watched:");
         foreach (var name in Watched)
@@ -261,5 +282,80 @@ public sealed class PlanetIdleProfileTest
         });
 
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Times the physics step's own parts, a step at a time between real ticks, and counts what they walk.</summary>
+    private static async Task ProfilePhysicsCore(RobustIntegrationTest.ServerIntegrationInstance server)
+    {
+        var entMan = server.EntMan;
+        var physics = server.System<SharedPhysicsSystem>();
+        var broadphase = server.System<SharedBroadphaseSystem>();
+        const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
+        var find = typeof(SharedBroadphaseSystem).GetMethod("FindNewContacts", flags)!;
+        var collide = typeof(SharedPhysicsSystem).GetMethod("CollideContacts", flags)!;
+        var step = typeof(SharedPhysicsSystem).GetMethod("Step", flags, new[] { typeof(float), typeof(bool) })!;
+        var contactsField = typeof(SharedPhysicsSystem).GetField("_activeContacts", flags)!;
+        var moveBuffer = typeof(SharedPhysicsSystem).GetField("MoveBuffer", flags)!.GetValue(physics)!;
+        var moveBufferCount = moveBuffer.GetType().GetProperty("Count")!;
+        var movedGrids = (HashSet<EntityUid>) typeof(SharedPhysicsSystem).GetField("MovedGrids", flags)!.GetValue(physics)!;
+        var frame = 1f / server.Timing.TickRate;
+        double findMs = 0, collideMs = 0, stepMs = 0;
+        long moved = 0, grids = 0;
+        var movedGridNames = new Dictionary<string, int>();
+        const int samples = 60;
+
+        for (var i = 0; i < samples; i++)
+        {
+            await server.WaitPost(() =>
+            {
+                moved += (int) moveBufferCount.GetValue(moveBuffer)!;
+                grids += movedGrids.Count;
+                foreach (var grid in movedGrids)
+                {
+                    var name = entMan.GetComponentOrNull<MetaDataComponent>(grid)?.EntityName ?? "?";
+                    movedGridNames[name] = movedGridNames.GetValueOrDefault(name) + 1;
+                }
+
+                var watch = Stopwatch.StartNew();
+                find.Invoke(broadphase, null);
+                findMs += watch.Elapsed.TotalMilliseconds;
+                watch.Restart();
+                collide.Invoke(physics, null);
+                collideMs += watch.Elapsed.TotalMilliseconds;
+                watch.Restart();
+                step.Invoke(physics, new object[] { frame, false });
+                stepMs += watch.Elapsed.TotalMilliseconds;
+            });
+            await server.WaitRunTicks(1);
+        }
+
+        TestContext.Out.WriteLine($"Physics core per step: broadphase {findMs / samples:F3} ms, collide {collideMs / samples:F3} ms, solve {stepMs / samples:F3} ms; "
+            + $"moved proxies {moved / (double) samples:F1}, moved grids {grids / (double) samples:F1}, awake bodies {physics.AwakeBodies.Count}");
+        TestContext.Out.WriteLine("  Moved grids: " + string.Join(", ", movedGridNames.OrderByDescending(p => p.Value).Take(10).Select(p => $"{p.Key} {p.Value}")));
+
+        await server.WaitPost(() =>
+        {
+            var contacts = (System.Collections.IEnumerable) contactsField.GetValue(physics)!;
+            var pairs = new Dictionary<string, int>();
+            var total = 0;
+            var touching = 0;
+            var asleep = 0;
+            foreach (Robust.Shared.Physics.Dynamics.Contacts.Contact contact in contacts)
+            {
+                total++;
+                if (contact.IsTouching)
+                    touching++;
+                if (contact.BodyA is { Awake: false } && contact.BodyB is { Awake: false })
+                    asleep++;
+                string Name(EntityUid uid) => entMan.GetComponentOrNull<MetaDataComponent>(uid) is { } meta
+                    ? meta.EntityPrototype?.ID ?? (entMan.HasComponent<Robust.Shared.Map.Components.MapGridComponent>(uid) ? "grid" : "(none)")
+                    : "?";
+                var key = $"{Name(contact.EntityA)} / {Name(contact.EntityB)}";
+                pairs[key] = pairs.GetValueOrDefault(key) + 1;
+            }
+
+            TestContext.Out.WriteLine($"Contacts: {total}, touching {touching}, both asleep {asleep}: "
+                + string.Join(", ", pairs.OrderByDescending(p => p.Value).Take(12).Select(p => $"{p.Key} {p.Value}")));
+        });
     }
 }

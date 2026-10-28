@@ -10,7 +10,10 @@ on unpinned ground, as the boundary ring does.
 
 The whole placement is spread over ticks: every site, road batch, piece of dressing, tunnel, wreck, camp, guard and
 roamer awaits `WFPlanetPreloadSystem.Breathe`, so each tick does at most `wf.planet_generation_budget` ms of it (more in
-the lobby), and site, wreck and camp maps are read and parsed on the thread pool (`WFPlanetPoiSystem.Loading`). Merged
+the lobby), and site, wreck and camp maps are read and parsed on the thread pool (`WFPlanetPoiSystem.Loading`). A map's
+bare entities, saved with nothing but where they stand and named by nothing else (walls, rock, cables, water), are
+taken out of the load and spawned after it within the budget; a fixed city's are spawned straight onto the world once
+the rest of its level is merged, so neither the load nor the merge carries twenty thousand of them in one tick. Merged
 entities stay paused until every one of them is map-initialised. The draws on the random stream come in the same order
 as before; only the ticks they fall in differ. What waits for the ground, camp guards outside the hull, residents,
 vehicles, patrols and roamers, goes out the same way after the preload, and the ground is marked preloaded once it has.

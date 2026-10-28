@@ -40,7 +40,9 @@ public sealed partial class WFPlanetPoiSystem
     private static readonly HashSet<string> CityGridComponents = new() { "MetaData", "Transform", "MapGrid", "Broadphase", "DecalGrid", "Roof" };
 
     /// <summary>One level of a city, loaded on its own staging map.</summary>
-    private sealed record CityLevel(int Depth, ResPath Path, EntityUid Staging, Entity<MapGridComponent> Grid);
+    /// <param name="Deferred">The bare entities left out of the load, spawned straight onto the world once the rest is merged.</param>
+    /// <param name="Paved">Tiles of an entrance road, where nothing solid of <paramref name="Deferred"/> may stand.</param>
+    private sealed record CityLevel(int Depth, ResPath Path, EntityUid Staging, Entity<MapGridComponent> Grid, List<DeferredSpawn> Deferred, HashSet<Vector2i> Paved);
 
     /// <summary>A city with its spot on the world held: its station, its entry for placement and roads, and its footprint.</summary>
     private sealed record CityPlan(WFFixedCityPrototype City, StationConfig Config, WFPlanetPoiEntry Entry, Box2i Footprint, Vector2i Origin, Box2i Reservation);
@@ -226,7 +228,7 @@ public sealed partial class WFPlanetPoiSystem
 
         foreach (var entrance in city.Entrances)
         {
-            CutEntrance(groundLevel.Grid, plan.Footprint, entrance);
+            CutEntrance(groundLevel.Grid, plan.Footprint, entrance, groundLevel.Paved);
         }
 
         return true;
@@ -309,9 +311,18 @@ public sealed partial class WFPlanetPoiSystem
 
         // A level's buildings stand apart from each other; loaded as a grid that may split, all but one would be lost.
         KeepWhole(data);
+        // The bare walls, rock, cables and water are spawned after the load, within the budget, not in one tick with it.
+        var deferred = (data.TryGet<SequenceDataNode>("orphans", out var roots) && roots.Count == 1
+                || data.TryGet("grids", out roots) && roots.Count == 1)
+            ? await Task.Run(() => TakePlainEntities(data, ((ValueDataNode) roots[0]).Value))
+            : new List<DeferredSpawn>();
         var staging = _maps.CreateMap(out var stagingId, runMapInit: false);
         var options = new MapLoadOptions { MergeMap = stagingId, ExpectedCategory = FileCategory.Grid };
-        if (!_loader.TryLoadGeneric(data, path.ToString(), out var result, options) || result.Grids.Count != 1)
+        LoadResult? result;
+        bool loaded;
+        using (_preload.Time($"loading city level {path}, {deferred.Count} spawned after"))
+            loaded = _loader.TryLoadGeneric(data, path.ToString(), out result, options);
+        if (!loaded || result!.Grids.Count != 1)
         {
             QueueDel(staging);
             return null;
@@ -321,7 +332,7 @@ public sealed partial class WFPlanetPoiSystem
         if (stripped.Count > 0)
             _maps.SetTiles(grid.Owner, grid.Comp, stripped.Select(tile => (tile, Tile.Empty)).ToList());
 
-        return new CityLevel(depth, path, staging, grid);
+        return new CityLevel(depth, path, staging, grid, deferred, new HashSet<Vector2i>());
     }
 
     /// <summary>Swaps or removes the prototypes the city lists, drops anything standing off the tiles and strips godmode.</summary>
@@ -347,6 +358,25 @@ public sealed partial class WFPlanetPoiSystem
         {
             Log.Warning($"{city.ID}: {level.Path} has {outside.Count} tiles outside the city's footprint; they are left out.");
             _maps.SetTiles(grid.Owner, grid.Comp, outside.Select(tile => (tile, Tile.Empty)).ToList());
+        }
+
+        for (var i = level.Deferred.Count - 1; i >= 0; i--)
+        {
+            var spawn = level.Deferred[i];
+            var tile = spawn.Position.Floored();
+            if (!Contains(footprint, tile) || _maps.GetTileRef(grid.Owner, grid.Comp, tile).Tile.IsEmpty)
+            {
+                level.Deferred.RemoveAt(i);
+                continue;
+            }
+
+            if (city.Replace.TryGetValue(spawn.Proto, out var swap))
+            {
+                if (swap is { } replacement)
+                    level.Deferred[i] = spawn with { Proto = replacement };
+                else
+                    level.Deferred.RemoveAt(i);
+            }
         }
 
         var children = new List<EntityUid>();
@@ -386,7 +416,7 @@ public sealed partial class WFPlanetPoiSystem
     }
 
     /// <summary>Paves a straight road from the start tile to the footprint's edge, clearing what blocks it.</summary>
-    private void CutEntrance(Entity<MapGridComponent> grid, Box2i footprint, WFFixedCityEntrance entrance)
+    private void CutEntrance(Entity<MapGridComponent> grid, Box2i footprint, WFFixedCityEntrance entrance, HashSet<Vector2i> paved)
     {
         if (!Contains(footprint, entrance.Start) || entrance.Width < 1 || entrance.Width % 2 == 0)
         {
@@ -397,7 +427,7 @@ public sealed partial class WFPlanetPoiSystem
         var direction = Direction(entrance.Direction);
         var side = new Vector2i(-direction.Y, direction.X);
         var tile = new Tile(_tiles[entrance.Tile].TileId);
-        var paved = new List<(Vector2i, Tile)>();
+        var cells = new List<(Vector2i, Tile)>();
         var blockers = new List<EntityUid>();
         var position = entrance.Start;
         for (; Contains(footprint, position); position += direction)
@@ -405,7 +435,8 @@ public sealed partial class WFPlanetPoiSystem
             for (var offset = -entrance.Width / 2; offset <= entrance.Width / 2; offset++)
             {
                 var cell = position + side * offset;
-                paved.Add((cell, tile));
+                cells.Add((cell, tile));
+                paved.Add(cell);
                 var anchored = _maps.GetAnchoredEntitiesEnumerator(grid.Owner, grid.Comp, cell);
                 while (anchored.MoveNext(out var uid))
                 {
@@ -420,7 +451,7 @@ public sealed partial class WFPlanetPoiSystem
             Del(blocker);
         }
 
-        _maps.SetTiles(grid.Owner, grid.Comp, paved);
+        _maps.SetTiles(grid.Owner, grid.Comp, cells);
     }
 
     /// <summary>Stacks the staged levels onto the world's layers, registers the site and makes the station.</summary>
@@ -452,6 +483,7 @@ public sealed partial class WFPlanetPoiSystem
             if (TerminatingOrDeleted(ground))
                 return new HashSet<Vector2i>();
 
+            var levelTimer = _preload.Time($"laying out {level.Path}");
             var tiles = LevelTiles(level.Grid).Select(tile => tile + origin).ToHashSet();
             var roofs = LevelRoofs(level.Grid);
             foreach (var (depth, higher) in tilesByDepth)
@@ -478,19 +510,29 @@ public sealed partial class WFPlanetPoiSystem
             if (target == ground || TryComp<BiomeComponent>(target, out _))
                 ClearForCity(target, targetGrid, tiles);
 
+            levelTimer.Dispose();
             await _preload.Breathe();
             await MergeSiteAsync(target, targetGrid, level.Grid, origin, footprint, created, createdDecals);
             if (TerminatingOrDeleted(ground) || TerminatingOrDeleted(target))
                 return new HashSet<Vector2i>();
+            await SpawnCityDeferredAsync(city, level, target, origin, created);
+            if (TerminatingOrDeleted(ground) || TerminatingOrDeleted(target))
+                return new HashSet<Vector2i>();
             EnsureComp<RoofComponent>(target);
-            foreach (var tile in tiles)
+            using (_preload.Time($"roofing {level.Path}"))
             {
-                _roof.SetRoof((target, targetGrid, null), tile, roofs.Contains(tile));
+                foreach (var tile in tiles)
+                {
+                    _roof.SetRoof((target, targetGrid, null), tile, roofs.Contains(tile));
+                }
             }
 
             floors.Add(new CityFloor(level.Depth, (target, targetGrid), tiles, tiles.Where(roofs.Contains).ToHashSet()));
             if (TryComp<BiomeComponent>(target, out var targetBiome))
-                _biome.WfPinTiles((target, targetBiome), tiles);
+            {
+                using (_preload.Time($"pinning {level.Path}"))
+                    _biome.WfPinTiles((target, targetBiome), tiles);
+            }
 
             if (!stationGrids.Contains(target))
                 stationGrids.Add(target);
@@ -501,7 +543,9 @@ public sealed partial class WFPlanetPoiSystem
         if (TerminatingOrDeleted(ground))
             return new HashSet<Vector2i>();
 
-        var stairwells = OpenStairwells(ground, grid, floors);
+        HashSet<Vector2i> stairwells;
+        using (_preload.Time($"opening {city.ID}'s stairwells"))
+            stairwells = OpenStairwells(ground, grid, floors);
         var site = new WFPlanetPoiSite
         {
             MapPath = entry.MapPath,
@@ -554,7 +598,9 @@ public sealed partial class WFPlanetPoiSystem
         };
         // Station setup names its grids after the station; the world's layers keep their own names.
         var names = stationGrids.ToDictionary(uid => uid, uid => MetaData(uid).EntityName);
-        var station = _station.InitializeNewStation(stationConfig, stationGrids);
+        EntityUid station;
+        using (_preload.Time($"making {city.ID}'s station"))
+            station = _station.InitializeNewStation(stationConfig, stationGrids);
         foreach (var (uid, name) in names)
         {
             _meta.SetEntityName(uid, name);
@@ -569,7 +615,7 @@ public sealed partial class WFPlanetPoiSystem
         await NextTick();
         if (TerminatingOrDeleted(ground))
             return new HashSet<Vector2i>();
-        RollCityFate(city, floors, created);
+        await RollCityFateAsync(city, floors, created);
         Log.Info($"Built {city.ID} on {ToPrettyString(ground)} at {origin}, {levels.Count} levels.");
         return siteTiles.Union(stairwells).ToHashSet();
     }
@@ -626,6 +672,36 @@ public sealed partial class WFPlanetPoiSystem
         EnsureComp<WFPlanetCityGridComponent>(grid.Owner).City = city.ID;
         _physics.SetBodyType(grid.Owner, BodyType.Static);
         return grid.Owner;
+    }
+
+    /// <summary>
+    /// Spawns a level's bare walls, rock, cables and water where the merged level now stands, within the generation
+    /// budget: a few hundred a tick instead of all twenty thousand in the load. Nothing solid goes on an entrance road.
+    /// </summary>
+    private async Task SpawnCityDeferredAsync(WFFixedCityPrototype city, CityLevel level, EntityUid target, Vector2i origin, HashSet<EntityUid> created)
+    {
+        foreach (var (proto, position, rotation) in level.Deferred)
+        {
+            await _preload.Breathe();
+            if (TerminatingOrDeleted(target))
+                return;
+
+            var spawned = Spawn(proto, new EntityCoordinates(target, position + origin));
+            if (rotation != Angle.Zero)
+                _transform.SetLocalRotation(spawned, rotation);
+            if (level.Paved.Contains(position.Floored())
+                && TryComp<Robust.Shared.Physics.Components.PhysicsComponent>(spawned, out var body) && body.Hard && body.CanCollide)
+            {
+                Del(spawned);
+                continue;
+            }
+
+            if (city.StripGodmode)
+                RemComp<GodmodeComponent>(spawned);
+            created.Add(spawned);
+        }
+
+        level.Deferred.Clear();
     }
 
     /// <summary>Clears anything already standing where a level's tiles go on a layer with terrain of its own.</summary>
