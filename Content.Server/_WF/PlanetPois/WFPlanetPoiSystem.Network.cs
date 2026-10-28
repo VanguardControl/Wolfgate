@@ -413,7 +413,7 @@ public sealed partial class WFPlanetPoiSystem
         }
     }
 
-    /// <summary>The ground's water tiles within the world's circle, a row of tiles at a time within the generation budget.</summary>
+    /// <summary>The ground's water tiles within the world's circle, found within the generation budget.</summary>
     private async Task<HashSet<Vector2i>> WaterTilesAsync(EntityUid ground, Vector2 centre, float radius)
     {
         var water = new HashSet<Vector2i>();
@@ -421,16 +421,17 @@ public sealed partial class WFPlanetPoiSystem
         var middle = centre.Floored();
         for (var x = -r; x <= r; x++)
         {
-            await _preload.Breathe();
-            if (!TryComp<BiomeComponent>(ground, out var comp))
-                return water;
-
-            var biome = new Entity<BiomeComponent>(ground, comp);
             var half = (int) MathF.Ceiling(MathF.Sqrt(MathF.Max(0f, radius * radius - x * x)));
             for (var y = -half; y <= half; y++)
             {
+                // A tile past the cheap noise gates costs a full biome lookup, so the budget is checked often.
+                if (y % 32 == 0)
+                    await _preload.Breathe();
+                if (!TryComp<BiomeComponent>(ground, out var comp))
+                    return water;
+
                 var tile = middle + new Vector2i(x, y);
-                if (_biome.WfIsWater(biome, tile))
+                if (_biome.WfIsWater((ground, comp), tile))
                     water.Add(tile);
             }
         }
