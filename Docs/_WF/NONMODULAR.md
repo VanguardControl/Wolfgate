@@ -152,6 +152,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - removed - Appearance hashed by reference, broke equal profiles hashing alike
   - the company is part of the hash
 - [`Content.Shared/Projectiles/SharedProjectileSystem.cs`](../../Content.Shared/Projectiles/SharedProjectileSystem.cs): the client replays a thrown embed's collision in prediction, and the projectile is already in
+- [`Content.Shared/Temperature/Systems/SharedTemperatureSystem.cs`](../../Content.Shared/Temperature/Systems/SharedTemperatureSystem.cs): a band takes the slowdown of the lowest threshold above it; warming past a threshold gave it that threshold's heavier slowdown
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs`](../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs): C# % keeps the sign, index 0 gave -1 and crashed the server
 - [`README.md`](../../README.md): reworded for Wolfgate build differences
 - [`Resources/Audio/_Goobstation/RadioStation/`](../../Resources/Audio/_Goobstation/RadioStation/): Radio host tracks (Monolith#4833) re-encoded to mono Vorbis q0 to cut download size.
@@ -176,6 +177,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - PDV pack, 1250->1000 (+100 tax over mat cost)
 - [`Resources/Prototypes/_Mono/Catalogs/tsfmc_uplink_catalog.yml`](../../Resources/Prototypes/_Mono/Catalogs/tsfmc_uplink_catalog.yml): PDV pack, price 125->175
 - [`Resources/Prototypes/_Mono/Catalogs/VendingMachines/Inventories/ussp.yml`](../../Resources/Prototypes/_Mono/Catalogs/VendingMachines/Inventories/ussp.yml): the loaded magazine is class-3 contraband worth 10 FMC since Monolith#4816
+- [`Resources/Prototypes/_Mono/Claws/reptilian.yml`](../../Resources/Prototypes/_Mono/Claws/reptilian.yml): huge claws never stop a lizard shooting; they take the worst spread instead
 - [`Resources/Prototypes/_Mono/Entities/Objects/Economy/components.yml`](../../Resources/Prototypes/_Mono/Entities/Objects/Economy/components.yml): Monolith#4805 commented the price out with the flash, leaving 300 for a good made from 1800
 - [`Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/charon_launcher.yml`](../../Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/charon_launcher.yml): CHARON damage doubled, it fell behind the other heavy guns
 - [`Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/standardlarge_kinetic.yml`](../../Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/standardlarge_kinetic.yml): CYREXA 2->1, its shells one-shot any hardpoint or wall

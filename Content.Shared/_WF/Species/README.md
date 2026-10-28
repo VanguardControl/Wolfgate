@@ -82,6 +82,7 @@ and its own sprite.
 - [`Content.IntegrationTests/Tests/_WF/Species/MismatchedPartsBodyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/MismatchedPartsBodyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/MismatchedPartsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/MismatchedPartsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/OptionalDefaultMarkingsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/OptionalDefaultMarkingsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Species/ReptilianColdSlowdownTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/ReptilianColdSlowdownTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/ShadekinNightVisionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/ShadekinNightVisionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/SpeciesLoadoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/SpeciesLoadoutTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/WaggingTailLayersTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/WaggingTailLayersTest.cs)
