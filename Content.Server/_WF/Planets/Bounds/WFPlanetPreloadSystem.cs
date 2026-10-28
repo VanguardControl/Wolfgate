@@ -131,6 +131,8 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
     private void Load(Preload preload, Entity<BiomeComponent, MapGridComponent> ground)
     {
         var budget = _cfg.GetCVar(_ticker.RunLevel == GameRunLevel.PreRoundLobby ? PlanetCVars.PreloadBudgetLobby : PlanetCVars.PreloadBudget);
+        // Generation already done this tick counts against it, and what is loaded here against generation's.
+        var spent = TickWork();
         _watch.Restart();
 
         while (preload.Next < preload.Chunks!.Count)
@@ -138,7 +140,7 @@ public sealed partial class WFPlanetPreloadSystem : EntitySystem
             // Not held: once formed, what nobody is near is stashed (BiomeSystem.WFStash).
             _biome.WfLoadChunk(ground, preload.Chunks[preload.Next++], hold: false);
 
-            if (_watch.Elapsed.TotalMilliseconds >= budget)
+            if (spent + _watch.Elapsed.TotalMilliseconds >= budget)
                 break;
         }
     }

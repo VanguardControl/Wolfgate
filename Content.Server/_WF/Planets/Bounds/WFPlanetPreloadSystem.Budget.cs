@@ -32,6 +32,21 @@ public sealed partial class WFPlanetPreloadSystem
     public float GenerationBudget() =>
         _cfg.GetCVar(_ticker.RunLevel == GameRunLevel.PreRoundLobby ? PlanetCVars.GenerationBudgetLobby : PlanetCVars.GenerationBudget);
 
+    /// <summary>
+    /// Milliseconds of planet work, generation and chunk loading together, done so far this tick; the first ask in a tick
+    /// starts the clock. Each budget counts the other's share, so the two never stack up in one tick.
+    /// </summary>
+    private double TickWork()
+    {
+        if (_timing.CurTick != _sliceTick)
+        {
+            _sliceTick = _timing.CurTick;
+            _slice.Restart();
+        }
+
+        return _slice.Elapsed.TotalMilliseconds;
+    }
+
     /// <summary>Whether this tick's generation work has used up its budget; the first ask in a tick starts the clock.</summary>
     public bool GenerationSpent()
     {

@@ -423,6 +423,13 @@ public sealed class CavernClimbTest
             var mob = await SpawnSettled(pair, world.Cavern, Beside(gate));
             var delay = await DelayOf(pair, climb);
 
+            // A climber is someone: a mindless body far from any player skips its breathing (WFDormancySystem).
+            await server.WaitPost(() =>
+            {
+                var minds = server.System<Content.Shared.Mind.SharedMindSystem>();
+                minds.TransferTo(minds.CreateMind(null), mob);
+            });
+
             // Wait for the air to start hurting, so its damage ticks land during the climb.
             var hurtAt = FixedPoint2.Zero;
             for (var tick = 0; tick < pair.SecondsToTicks(HurtWithinSeconds) && hurtAt == FixedPoint2.Zero; tick++)

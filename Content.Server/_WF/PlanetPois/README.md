@@ -15,7 +15,8 @@ bare entities, saved with nothing but where they stand and named by nothing else
 taken out of the load and spawned after it within the budget; a fixed city's are spawned straight onto the world once
 the rest of its level is merged, so neither the load nor the merge carries twenty thousand of them in one tick. The
 room atlases a site's dungeon draws on are loaded the same way before its dungeon job runs, which would otherwise load
-each in one go (`WFPlanetPoiSystem.Atlases`). Merged
+each in one go (`WFPlanetPoiSystem.Atlases`). The road planner, seconds of work on a big world, runs on the thread pool
+once the world's water has been found a row at a time. Merged
 entities stay paused until every one of them is map-initialised. The draws on the random stream come in the same order
 as before; only the ticks they fall in differ. What waits for the ground, camp guards outside the hull, residents,
 vehicles, patrols and roamers, goes out the same way after the preload, and the ground is marked preloaded once it has.
