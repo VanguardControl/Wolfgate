@@ -222,6 +222,7 @@
   description: An unarmed engineering vehicle built on the chassis of a Longstreet Tank, fitted with a reinforced plow, built for hauling personnel/cargo and clearing enemy defenses without interrupting the flow of combat.
   suffix: Drivable, Tank, CMU, AEV, Unarmed
   components:
+  - type: WFMilitaryVehicle
   - type: VehicleSound
     runningSound: null
     collisionSound:

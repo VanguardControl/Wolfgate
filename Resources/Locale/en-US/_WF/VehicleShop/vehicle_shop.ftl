@@ -13,6 +13,9 @@ wf-vehicle-shop-no-funds = Not enough money in your account.
 wf-vehicle-shop-delivered = { $vehicle } delivered to the pad.
 wf-vehicle-shop-sold = { $vehicle } sold for { $price }.
 wf-vehicle-shop-occupied = Empty the vehicle first.
+wf-vehicle-shop-no-licence = You need a heavy vehicle licence on you to buy that.
+wf-vehicle-shop-licence-required = Heavy vehicle licence required
+wf-vehicle-shop-handed = Handed over: { $item }.
 
 wf-vehicle-beacon-armed = Beacon set. It opens in { $seconds } seconds. Stand back.
 wf-vehicle-beacon-countdown = { $seconds }...

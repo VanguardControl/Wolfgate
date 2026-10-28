@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 10/21/2026 06:42:38
-  entityCount: 10227
+  entityCount: 10228
 maps:
 - 10196
 grids:
@@ -69565,6 +69565,13 @@ entities:
     - type: Transform
       parent: 1
       pos: -40.46031,-25.05595
+- proto: WFComputerMilitaryCounter
+  entities:
+  - uid: 10234
+    components:
+    - type: Transform
+      parent: 1
+      pos: -54.5,-15.5
 - proto: WFPlushieMedMoth
   entities:
   - uid: 10194

@@ -353,6 +353,7 @@
   description: An SPP van fitted with a roof-mounted weapon.
   suffix: Drivable, Van, SPP, Armed
   components:
+  - type: WFMilitaryVehicle
   - type: Sprite
     layers:
     - map: [ base ]

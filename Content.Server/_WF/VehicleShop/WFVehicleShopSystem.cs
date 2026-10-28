@@ -10,6 +10,7 @@ using Content.Shared.Item;
 using Content.Shared.Mobs.Components;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Popups;
+using Content.Shared.Prototypes;
 using Content.Shared.SubFloor;
 using Content.Shared._Mono.Traits.Physical;
 using Content.Shared._WF.VehicleShop;
@@ -64,17 +65,32 @@ public sealed class WFVehicleShopSystem : EntitySystem
     private void OnBuy(Entity<WFVehicleShopComponent> ent, ref WFVehicleShopBuyMessage args)
     {
         var user = args.Actor;
-        var catalog = _proto.Index(ent.Comp.Catalog);
-        if (args.Index < 0 || args.Index >= catalog.Vehicles.Count)
+        var listings = Listings(ent);
+        if (args.Index < 0 || args.Index >= listings.Count)
             return;
 
-        var listing = catalog.Vehicles[args.Index];
-        var (pad, status, _) = InspectPad(ent);
-        if (pad is not { } padUid || status != WFVehicleShopPad.Clear)
+        var listing = listings[args.Index];
+        if (listing.Licence && !HasLicence(user))
         {
-            _popup.PopupEntity(Loc.GetString(status == WFVehicleShopPad.Missing ? "wf-vehicle-shop-no-pad" : "wf-vehicle-shop-pad-busy"), ent, user);
+            _popup.PopupEntity(Loc.GetString("wf-vehicle-shop-no-licence"), ent, user);
             UpdateUi(ent, user);
             return;
+        }
+
+        // Anything that can be carried is handed over the counter; only vehicles need the pad.
+        var carried = IsCarried(listing.Vehicle);
+        EntityUid? pad = null;
+        if (!carried)
+        {
+            var (found, status, _) = InspectPad(ent);
+            if (found is not { } padUid || status != WFVehicleShopPad.Clear)
+            {
+                _popup.PopupEntity(Loc.GetString(status == WFVehicleShopPad.Missing ? "wf-vehicle-shop-no-pad" : "wf-vehicle-shop-pad-busy"), ent, user);
+                UpdateUi(ent, user);
+                return;
+            }
+
+            pad = padUid;
         }
 
         if (!_bank.TryBankWithdraw(user, listing.Price))
@@ -84,13 +100,28 @@ public sealed class WFVehicleShopSystem : EntitySystem
             return;
         }
 
-        var vehicle = Spawn(listing.Vehicle, Transform(padUid).Coordinates);
+        if (pad is not { } deliverTo)
+        {
+            var item = Spawn(listing.Vehicle, Transform(user).Coordinates);
+            _hands.PickupOrDrop(user, item);
+            var handed = new WFVehicleShopPurchasedEvent(user, ent);
+            RaiseLocalEvent(item, ref handed);
+            _popup.PopupEntity(Loc.GetString("wf-vehicle-shop-handed", ("item", Name(item))), ent, user);
+            _adminLog.Add(LogType.ShipYardUsage, LogImpact.Low,
+                $"{ToPrettyString(user):actor} bought {ToPrettyString(item)} for {listing.Price} at {ToPrettyString(ent)}");
+            UpdateUi(ent, user);
+            return;
+        }
+
+        var vehicle = Spawn(listing.Vehicle, Transform(deliverTo).Coordinates);
         _transform.SetLocalRotation(vehicle, Angle.Zero);
 
         // The buyer gets the vehicle's key; without one it can't be started.
         var key = Spawn(VehicleKey, Transform(user).Coordinates);
         _locks.BindKey((key, EnsureComp<VehicleKeyComponent>(key)), _locks.EnsureVehicleKeyId(vehicle), vehicle);
         _hands.PickupOrDrop(user, key);
+        var delivered = new WFVehicleShopPurchasedEvent(user, ent);
+        RaiseLocalEvent(vehicle, ref delivered);
         _popup.PopupEntity(Loc.GetString("wf-vehicle-shop-delivered", ("vehicle", Name(vehicle))), ent, user);
         _adminLog.Add(LogType.ShipYardUsage, LogImpact.Low,
             $"{ToPrettyString(user):actor} bought {ToPrettyString(vehicle)} for {listing.Price} at {ToPrettyString(ent)}");
@@ -131,7 +162,6 @@ public sealed class WFVehicleShopSystem : EntitySystem
     /// <summary>Sends the catalogue, the customer's balance and what the pad holds.</summary>
     private void UpdateUi(Entity<WFVehicleShopComponent> ent, EntityUid user)
     {
-        var catalog = _proto.Index(ent.Comp.Catalog);
         var (_, status, thing) = InspectPad(ent);
         int? balance = _bank.TryGetBalance(user, out var funds) ? funds : null;
         var vehicle = status == WFVehicleShopPad.Vehicle ? thing : null;
@@ -140,7 +170,33 @@ public sealed class WFVehicleShopSystem : EntitySystem
         var occupied = vehicle is { } inside && IsOccupied(inside);
 
         _ui.SetUiState(ent.Owner, WFVehicleShopUiKey.Key,
-            new WFVehicleShopState(new List<WFVehicleListing>(catalog.Vehicles), balance, status, name, price, occupied));
+            new WFVehicleShopState(Listings(ent), balance, status, name, price, occupied, HasLicence(user)));
+    }
+
+    /// <summary>Everything a terminal sells: its catalogue, then each further catalogue in order.</summary>
+    public List<WFVehicleListing> Listings(Entity<WFVehicleShopComponent> ent)
+    {
+        var listings = new List<WFVehicleListing>(_proto.Index(ent.Comp.Catalog).Vehicles);
+        foreach (var extra in ent.Comp.ExtraCatalogs)
+        {
+            listings.AddRange(_proto.Index(extra).Vehicles);
+        }
+
+        return listings;
+    }
+
+    /// <summary>Whether a listing is handed over the counter rather than delivered to the pad.</summary>
+    public bool IsCarried(EntProtoId listed)
+    {
+        return _proto.Index(listed).HasComponent<ItemComponent>(EntityManager.ComponentFactory);
+    }
+
+    /// <summary>Whether someone carries a heavy vehicle licence.</summary>
+    public bool HasLicence(EntityUid user)
+    {
+        var ev = new WFVehicleShopLicenceCheckEvent(user);
+        RaiseLocalEvent(ref ev);
+        return ev.Licensed;
     }
 
     /// <summary>
@@ -181,7 +237,7 @@ public sealed class WFVehicleShopSystem : EntitySystem
         }
 
         // Anything solid where the biggest vehicle on sale would stand keeps the pad shut.
-        var footprint = Footprint(_proto.Index(ent.Comp.Catalog).Vehicles.Select(listing => listing.Vehicle));
+        var footprint = Footprint(Listings(ent).Where(listing => !IsCarried(listing.Vehicle)).Select(listing => listing.Vehicle));
         // The vehicle is delivered square to the deck, whichever way the pad itself was turned.
         if (FindBlocker(coords, _transform.GetWorldRotation(Transform(padUid).ParentUid), footprint, padUid) is { } blocker)
             return (pad, WFVehicleShopPad.Blocked, blocker);
@@ -250,7 +306,7 @@ public sealed class WFVehicleShopSystem : EntitySystem
     {
         var value = _pricing.GetPrice(vehicle);
         var id = MetaData(vehicle).EntityPrototype?.ID;
-        foreach (var listing in _proto.Index(ent.Comp.Catalog).Vehicles)
+        foreach (var listing in Listings(ent))
         {
             if (listing.Vehicle.Id == id)
                 value = Math.Min(value, listing.Price);

@@ -204,6 +204,7 @@
   id: VehicleHumvee
   suffix: Drivable, Humvee, Base, Tracked
   components:
+  - type: WFMilitaryVehicle
   - type: ItemSlots
     slots:
       turret:
@@ -354,6 +355,7 @@
   description: A humvee configured for ARC interior layout.
   suffix: Drivable, Humvee, Base, ARC, Tracked
   components:
+  - type: WFMilitaryVehicle
   - type: GridVehicleMover
     weightClass: Light
   - type: Damageable

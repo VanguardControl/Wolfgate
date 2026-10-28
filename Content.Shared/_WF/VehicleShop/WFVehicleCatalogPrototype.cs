@@ -24,4 +24,8 @@ public sealed partial class WFVehicleListing
 
     [DataField(required: true)]
     public int Price;
+
+    /// <summary>Whether only someone carrying a heavy vehicle licence may buy it.</summary>
+    [DataField]
+    public bool Licence;
 }
