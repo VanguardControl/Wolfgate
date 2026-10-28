@@ -3767,3 +3767,174 @@ Entries:
   id: 100262
   time: '2026-10-27T23:13:23.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/378
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Platelet Factories now closes wounds as it heals, so they no longer stay
+        open once you're healed.
+    - type: Fix
+      message: Lizards warmed back up after the cold no longer keep the cold slowdown.
+    - type: Fix
+      message: A ship's AI can open its own ship's locked doors.
+    - type: Fix
+      message: >-
+        Boarding a Reaver stronghold and knocking out its power now pays the
+        stronghold bounty.
+    - type: Tweak
+      message: >-
+        Huge lizard claws no longer stop you from shooting, but make your aim
+        worse.
+  id: 100263
+  time: '2026-10-27T23:28:16.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/396
+- author: DriftingSkies
+  changes:
+    - type: Add
+      message: >-
+        Armor specializations! Faction suits now change what wounds do to you,
+        not just how much damage gets through. Examine a suit to see its
+        specialization.
+    - type: Add
+      message: >-
+        Spall Liner (TSF M82c, PDV CV-32 and CV-280, USSP L-27, mercenary SCAF):
+        bullets can't lodge in your body or leave shrapnel behind.
+    - type: Add
+      message: >-
+        Sealed Layer (USSP L-10 and L-10-A, UNSA armored EVA): no chemical burns
+        or frostbite. The TSF M82b has a sealed spall liner that does both.
+    - type: Add
+      message: >-
+        Insulation (Ullman ENFORCER and engineering hardsuit): electric shocks
+        can't burn you internally, and synthetic wearers can't be
+        short-circuited. The engineering hardsuit is also crush-rated.
+    - type: Add
+      message: >-
+        Bone Plating (TSF M86 Mk.3): crushing blows need twice the usual force
+        to injure you, dislocate a joint or cause internal bleeding.
+    - type: Add
+      message: >-
+        Shock Absorbers (TSF M86 Mk.4, Ullman pilot voidsuit): blunt impacts
+        need twice the usual force to concuss you or bruise your organs.
+    - type: Add
+      message: >-
+        Concussion ward (TSF M92 colonel, USSP L-30 and UF-16 commissar suits):
+        you can't be concussed.
+    - type: Add
+      message: >-
+        Tendon Guards (VG RIPPER, MMC Kurogane): blades can't sever your
+        tendons.
+    - type: Add
+      message: >-
+        Trauma Gel (VG JACKAL, Armed Trauma T-53): you can't suffer arterial
+        bleeds.
+    - type: Add
+      message: >-
+        Commander's Weave (PDV CV-67 Vizier): you can't be concussed or suffer
+        arterial bleeds.
+    - type: Add
+      message: >-
+        Limb Lock: covered limbs can't be severed. Total on the PDV Juggernaut
+        and VG IMP; breaks against very heavy hits on the PDV CV-280 and the
+        Asakim exoskeleton.
+    - type: Add
+      message: >-
+        Pain Dampener (USSP M-10 and commissar suits, Underground Warlord):
+        dulls pain like a mild painkiller and stacks with real ones.
+    - type: Add
+      message: >-
+        Ablative Coat (PDV SCAF, Underground Godfather): absorbs half of
+        incoming burn damage until spent, then recovers after a few seconds
+        without being hit.
+    - type: Add
+      message: >-
+        Auto-Tourniquet (PDV CV-82, Armed Trauma T-23): automatically clamps an
+        untreated arterial bleed on a covered limb. It holds 2 charges, which
+        recover over time, and never overrides a medic's treatment.
+    - type: Add
+      message: >-
+        Ricochet Plating (PDV Juggernaut, Ullman VK-1): light rounds like 9mm,
+        .45 and 5.56 FMJ ricochet off and can hit anyone nearby. Rifle rounds
+        and armor-piercing rounds still get through.
+    - type: Add
+      message: >-
+        The stealth hardsuit helmet has a stealth toggle. Your cloak now fades
+        in and out, and while cloaked only the helmet's green visor glows
+        through.
+    - type: Add
+      message: The stealth hardsuit helmet now has night vision and a thermal pulse.
+    - type: Tweak
+      message: >-
+        The stealth suit makes you fully invisible again, and its piercing
+        protection is slightly better.
+    - type: Tweak
+      message: >-
+        The VG MEDUSA and Ullman ENFORCER MKII shields are now soft shields:
+        hits pass through dampened, and you can't bleed while the field is up.
+    - type: Tweak
+      message: The TSF M92-X is now much faster than walking unarmored.
+    - type: Tweak
+      message: >-
+        The TSF M92 colonel's armor is buffed to match the PDV CV-67 as
+        leadership armor.
+    - type: Tweak
+      message: >-
+        Hardsuit helmets now follow their suit's tier: T2 helmets block a little
+        less, T3 helmets a little more.
+    - type: Tweak
+      message: >-
+        PDV tacsuit prices at the pirate uplink are back to normal, since PDV
+        can print them again.
+    - type: Fix
+      message: >-
+        Holding a fast hardsuit in your hand no longer makes you faster, and
+        carrying several no longer stacks.
+    - type: Fix
+      message: >-
+        Stealth no longer shows the background of the level below you instead of
+        hiding you.
+    - type: Fix
+      message: >-
+        Soft shields now stop arterial bleeds and keep internal bleeding from
+        getting worse, as they were meant to.
+  id: 100264
+  time: '2026-10-27T23:31:09.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/351
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added SOOC, a subtle LOOC that only the people right next to you and
+        admins can see. Use the SOOC channel, start a line with &, or type
+        /sooc.
+  id: 100265
+  time: '2026-10-28T00:06:44.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/398
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added xenobiology: breed slimes through five tiers of mutations, grind
+        them into extracts and inject those for reagents, items and worse.
+    - type: Add
+      message: >-
+        Added the xenovac, the slime grinder, the slime scanner and the
+        xenobiological bounty console, which pays research points for extracts.
+    - type: Add
+      message: >-
+        Added the Xenobiology research, a xenobiology starter crate in cargo,
+        and slime gear and grey slimes at John Wolfgate and the Wolfgate vendor.
+    - type: Add
+      message: Slimes and amanita jelly now jiggle.
+  id: 100266
+  time: '2026-10-28T00:43:35.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/395
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        Trading crates delivered to Caelestinus Central or Zvezda now pay their
+        full destination value and express bonus.
+  id: 100267
+  time: '2026-10-28T01:13:15.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/399
