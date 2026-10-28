@@ -52,6 +52,10 @@ public sealed partial class WFSandMawComponent : Component
     [DataField]
     public float SwallowRadius = 0.7f;
 
+    /// <summary>Laid in the belly for whoever is swallowed if none is lying there already.</summary>
+    [DataField]
+    public EntProtoId EscapeTool = "Pickaxe";
+
     /// <summary>Floor radius of the belly, in tiles.</summary>
     [DataField]
     public int BellyRadius = 4;

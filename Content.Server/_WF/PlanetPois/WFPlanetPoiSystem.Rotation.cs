@@ -1,5 +1,9 @@
 using System.Numerics;
+using Content.Shared._WF.MappingTools;
 using Content.Shared._WF.PlanetPois;
+using Content.Shared.Maps;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Markdown.Mapping;
 using Robust.Shared.Serialization.Markdown.Sequence;
@@ -37,6 +41,31 @@ public sealed partial class WFPlanetPoiSystem
             : rounded.X < 0 ? WFPlanetPoiDirection.West
             : rounded.Y > 0 ? WFPlanetPoiDirection.North
             : WFPlanetPoiDirection.South;
+    }
+
+    /// <summary>
+    /// The grid merge moves tiles but not their drawn rotation: turns a rotatable tile's texture with its site, so road
+    /// lines and markings point the way they did on the map.
+    /// </summary>
+    private void TurnTileStates(EntityUid ground, MapGridComponent grid, List<Vector2i> sourceTiles, Vector2i origin, int turns)
+    {
+        if (turns == 0 || sourceTiles.Count == 0)
+            return;
+
+        var turned = new List<(Vector2i, Tile)>();
+        foreach (var index in sourceTiles)
+        {
+            var target = TurnTile(index, turns) + origin;
+            var tile = _maps.GetTileRef(ground, grid, target).Tile;
+            if (tile.IsEmpty || !((ContentTileDefinition) _tiles[tile.TypeId]).AllowRotationMirror)
+                continue;
+
+            // The site turns anticlockwise; the tile state helper counts clockwise turns.
+            turned.Add((target, new Tile(tile.TypeId, tile.Flags, tile.Variant, MappingToolsMath.RotateTileState(tile.RotationMirroring, -turns))));
+        }
+
+        if (turned.Count > 0)
+            _maps.SetTiles(ground, grid, turned);
     }
 
     /// <summary>

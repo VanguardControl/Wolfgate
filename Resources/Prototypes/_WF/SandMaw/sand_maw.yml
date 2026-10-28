@@ -38,8 +38,12 @@
   description: Wet, ridged muscle. It gives a little under a fist.
   categories: [ HideSpawnMenu ]
   components:
+  # Muscle, not a ship's bulkhead: no wall armour, so a pickaxe, a knife or fists get through it.
   - type: Damageable
     damageContainer: Biological
+    damageModifierSet: WFSandMawBelly
+  - type: ArmorThickness
+    thickness: 0
   - type: Destructible
     thresholds:
     - trigger:
@@ -219,3 +223,12 @@
       - id: SpawnDungeonLootGunT4
         weight: 0.3
       - id: SalvageSpawnerTreasureValuable
+
+# The belly's muscle takes blades and blows alike, and burns well.
+- type: damageModifierSet
+  id: WFSandMawBelly
+  coefficients:
+    Blunt: 1
+    Slash: 1.2
+    Piercing: 1
+    Heat: 1.5

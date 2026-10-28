@@ -718,6 +718,13 @@ public sealed partial class WFPlanetPoiSystem
                 throw new InvalidOperationException($"POI entity {ToPrettyString(child)} is outside its footprint or stands without a source tile.");
         }
         var decals = _decals.GetDecalsIntersecting(source.Owner, source.Comp.LocalAABB.Enlarged(1f));
+        var sourceTiles = new List<Vector2i>();
+        if (turns != 0)
+        {
+            var tiles = _maps.GetAllTilesEnumerator(source.Owner, source.Comp);
+            while (tiles.MoveNext(out var tile))
+                sourceTiles.Add(tile.Value.GridIndices);
+        }
         var transferred = new HashSet<EntityUid>();
         CaptureChildren(source.Owner, transferred);
         created.UnionWith(transferred);
@@ -732,6 +739,7 @@ public sealed partial class WFPlanetPoiSystem
                 _fixtures.Merge(ground, source.Owner, origin, Turns(turns), grid, source.Comp);
         }
         finally { grid.CanSplit = canSplit; }
+        TurnTileStates(ground, grid, sourceTiles, origin, turns);
         UnturnFixedRotation(transferred);
         var beforeInit = new HashSet<EntityUid>();
         CaptureChildren(ground, beforeInit);

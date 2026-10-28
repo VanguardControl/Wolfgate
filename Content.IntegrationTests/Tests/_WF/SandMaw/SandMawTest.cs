@@ -92,6 +92,61 @@ public sealed class SandMawTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// Swallowed only at the throat, and always with a way out: a pickaxe lies in the belly and its blows, resistances
+    /// and all, break a belly wall.
+    /// </summary>
+    [Test]
+    public async Task SwallowedAtTheThroatWithAPickaxeThatBreaksOut()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var xforms = server.System<SharedTransformSystem>();
+        var (maw, victim) = await Rig(pair, 4f);
+
+        // Reeled to just outside the old swallow distance, he is still on the rim.
+        var swallowRadius = 0f;
+        for (var i = 0; i < 200; i++)
+        {
+            await pair.RunTicksSync(3);
+            var near = false;
+            await server.WaitPost(() =>
+            {
+                swallowRadius = entMan.GetComponent<WFSandMawComponent>(maw).SwallowRadius;
+                var distance = Vector2.Distance(xforms.GetWorldPosition(victim), xforms.GetWorldPosition(maw));
+                near = entMan.GetComponent<WFSandMawComponent>(maw).Belly == null && distance < swallowRadius + 0.6f && distance > swallowRadius + 0.05f;
+            });
+            if (near)
+            {
+                await server.WaitAssertion(() =>
+                    Assert.That(entMan.GetComponent<TransformComponent>(victim).GridUid, Is.Not.EqualTo(entMan.GetComponent<WFSandMawComponent>(maw).Belly),
+                        "Swallowed on the funnel's rim, short of the throat."));
+                break;
+            }
+        }
+
+        await pair.RunSeconds(8);
+        await server.WaitAssertion(() =>
+        {
+            var comp = entMan.GetComponent<WFSandMawComponent>(maw);
+            Assert.That(comp.Belly, Is.Not.Null, "The human was never swallowed.");
+            var belly = comp.Belly!.Value;
+            var pickaxe = entMan.EntityQuery<MetaDataComponent>()
+                .FirstOrDefault(m => m.EntityPrototype?.ID == "Pickaxe" && entMan.GetComponent<TransformComponent>(m.Owner).GridUid == belly);
+            Assert.That(pickaxe, Is.Not.Null, "No pickaxe in the belly.");
+
+            var wall = entMan.EntityQuery<WFSandMawBellyWallComponent>().First(w => w.Maw == maw).Owner;
+            var blow = entMan.GetComponent<Content.Shared.Weapons.Melee.MeleeWeaponComponent>(pickaxe!.Owner).Damage;
+            var damageable = server.System<DamageableSystem>();
+            for (var hit = 0; hit < 20 && !entMan.Deleted(wall) && !entMan.IsQueuedForDeletion(wall); hit++)
+                damageable.TryChangeDamage(wall, blow, false, origin: victim);
+            Assert.That(entMan.Deleted(wall) || entMan.IsQueuedForDeletion(wall), Is.True, "Twenty pickaxe blows didn't break a belly wall.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task TheGripTightensAndHoldsOn()
     {

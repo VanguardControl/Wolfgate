@@ -62,6 +62,7 @@ public sealed class WFSandMawSystem : EntitySystem
 
     private float _accumulator;
     private readonly HashSet<EntityUid> _near = new();
+    private readonly HashSet<EntityUid> _bellyNear = new();
     private readonly List<EntityUid> _release = new();
 
     public override void Initialize()
@@ -194,7 +195,8 @@ public sealed class WFSandMawSystem : EntitySystem
             }
 
             var distance = Vector2.Distance(centre, _transform.GetWorldPosition(victim));
-            if (distance <= maw.Comp.SwallowRadius + 0.6f)
+            // Only at the throat itself, not anywhere on the funnel's rim.
+            if (distance <= maw.Comp.SwallowRadius)
             {
                 _release.Add(victim);
                 continue;
@@ -202,7 +204,7 @@ public sealed class WFSandMawSystem : EntitySystem
 
             var held = (float) (_timing.CurTime - grab.Since).TotalSeconds;
             var reel = MathF.Min(maw.Comp.MaxReelSpeed, maw.Comp.ReelSpeed * (1f + 0.25f * held));
-            grab.Length = MathF.Max(0.5f, MathF.Min(grab.Length, distance) - reel * dt);
+            grab.Length = MathF.Max(maw.Comp.SwallowRadius * 0.5f, MathF.Min(grab.Length, distance) - reel * dt);
             if (distance > grab.Length)
             {
                 var position = _transform.GetWorldPosition(victim);
@@ -320,7 +322,26 @@ public sealed class WFSandMawSystem : EntitySystem
 
         _audio.PlayPvs(maw.Comp.SwallowSound, maw.Owner);
         if (HasComp<MobStateComponent>(prey))
+        {
             _popup.PopupEntity(Loc.GetString("wf-sand-maw-swallowed"), prey, prey, PopupType.LargeCaution);
+            EnsureEscapeTool(maw, belly, spot);
+        }
+    }
+
+    /// <summary>Whoever is swallowed finds a way out lying in the belly, even if an earlier meal carried it off.</summary>
+    private void EnsureEscapeTool(Entity<WFSandMawComponent> maw, EntityUid belly, Vector2 spot)
+    {
+        var centre = (Vector2) maw.Comp.BellyCentre + new Vector2(0.5f);
+        // Its own set: a swallow can come from inside a loop over _near.
+        _bellyNear.Clear();
+        _lookup.GetEntitiesInRange(new EntityCoordinates(belly, centre), maw.Comp.BellyRadius + 1f, _bellyNear, LookupFlags.Dynamic | LookupFlags.Sundries);
+        foreach (var other in _bellyNear)
+        {
+            if (MetaData(other).EntityPrototype?.ID == maw.Comp.EscapeTool.Id)
+                return;
+        }
+
+        Spawn(maw.Comp.EscapeTool, new EntityCoordinates(belly, spot + new Vector2(0.5f, 0f)));
     }
 
     /// <summary>

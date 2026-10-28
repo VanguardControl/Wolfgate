@@ -135,6 +135,7 @@ payment, sells a few, and eats whoever is left dead in his inn.
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiRotationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiRotationTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiSiteFailureTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiSiteFailureTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiTileTurnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetPoiTileTurnTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingPlannerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingPlannerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadDressingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadPlannerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetRoadPlannerTest.cs)
