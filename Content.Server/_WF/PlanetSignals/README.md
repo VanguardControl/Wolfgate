@@ -2,8 +2,9 @@
 
 What is on a world, shown on radars. Every two seconds the server lists, on each sector body, the vessels on its
 world's orbit, air and ground layers, the sites on its ground and the people on it (`WFPlanetSignalsComponent`, networked; the body is
-in every client's view). Out in space a world's radar name carries a count of its vessels and sites, and "Your
-expedition is here" when the ship's expedition site is on it; clicking the world (its circle or its name) on a shuttle
+in every client's view). Out in space a world off the scope keeps its radar name with a count of its vessels and
+sites, and "Your expedition is here" when the ship's expedition site is on it; on the scope the planet scan
+(`PlanetScan`) shows them on hover instead. Clicking the world (its disc or its name) on a shuttle
 console or mass scanner opens the full list with coordinates. On the world's own layers the radar marks every site
 (unknown until identified, as before; while the planet map is on it marks them by kind instead, see `PlanetMap`) and the vessels on the other layers; the ship's own expedition site is green,
 with an arrow and distance at the rim while it is off the scope.

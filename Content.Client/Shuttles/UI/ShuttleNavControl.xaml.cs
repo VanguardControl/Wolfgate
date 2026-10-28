@@ -134,6 +134,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
         OnMouseEntered += HandleMouseEntered;
         OnMouseExited += HandleMouseExited;
         WfLoadDisplaySettings(); // WOLFGATE(Shuttles): start with the player's saved radar display choices.
+        WfAddPlanetScanner(); // WOLFGATE(PlanetScan): hovering a world opens its scan.
     }
 
     private void HandleMouseEntered(GUIMouseHoverEventArgs args)

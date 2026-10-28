@@ -12,6 +12,10 @@
   orbitRange: 2000
   buildAtRoundStart: true
   sanctioned: true
+  climate: wf-planet-scan-climate-verda
+  hazards:
+  - wf-planet-scan-hazard-thunderstorms
+  - wf-planet-scan-hazard-wildlife
   # Fixed biome seed, so terrain is the same every round.
   seed: 20260913
   # Stamped over every member and transit map, so only the shared atmosphere belongs here.

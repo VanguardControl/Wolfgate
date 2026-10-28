@@ -119,4 +119,12 @@ public sealed partial class WFPlanetSurfacePrototype : IPrototype
     /// <summary>Name given to the orbit layer's centre marker; a warp point and radar label, not an FTL beacon.</summary>
     [DataField]
     public LocId OrbitMarkerName = "wf-planet-orbit-marker-name";
+
+    /// <summary>The world's climate and ground in a few words, for the radar's planet scan.</summary>
+    [DataField]
+    public LocId? Climate;
+
+    /// <summary>Known dangers beyond what the air, heat and gravity give away, for the radar's planet scan.</summary>
+    [DataField]
+    public List<LocId> Hazards = new();
 }

@@ -26,6 +26,9 @@ public partial class ShuttleNavControl
 
         handle.DrawCircle(starPos, starRadius, starSystem.StarSystem.Star.Color.WithAlpha(0.5f));
 
+        // WOLFGATE(PlanetScan): worlds draw as their own planet sprite, at a size that reads as a world.
+        if (WfDrawScopePlanets(handle, starSystem.StarSystem, worldToView, mapUid)) return;
+
         foreach (var planet in starSystem.StarSystem.Planets)
         {
             var planetPos = Vector2.Transform(planet.Position, worldToView);
@@ -75,6 +78,9 @@ public partial class ShuttleNavControl
                     y: uiYCentre * uiYOffset / uiDistance * 0.95f + uiYCentre
                 );
             }
+
+            // WOLFGATE(PlanetScan): a world on the scope has its sprite and hover scan instead of a blip and label.
+            if (!isOutsideRadarCircle && WfIsScopePlanet(uid, uiPosition)) continue;
 
             NfAddBlipToList(_beaconBlips, isOutsideRadarCircle, uiPosition, uiXCentre, uiYCentre, color);
 

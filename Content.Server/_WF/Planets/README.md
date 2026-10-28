@@ -735,6 +735,7 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
   - a thrown body stays InAir until the throw lands, or friction eats a jump at once.
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.WallCollision.cs): retain the contacted obstacle for crash ploughing.
 - [`Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs`](../../../Content.Shared/_CE/ZLevels/Throwing/CEZLevelThrowingSystem.cs): a throw only has an arc where there are levels to arc through.
+- [`Content.Shared/_Mono/ForceParent/ForceParentSystem.cs`](../../../Content.Shared/_Mono/ForceParent/ForceParentSystem.cs): the pin isn't networked, so a client applying a body's state must not re-parent it to nothing.
 - [`Content.Shared/CCVar/CCVars.Game.cs`](../../../Content.Shared/CCVar/CCVars.Game.cs): defaults to MonoStandard (was nfpirate), whose round start spawns the star system.
 - [`Content.Shared/Maps/TileSystem.cs`](../../../Content.Shared/Maps/TileSystem.cs): lattice laid on a planet's ground gives the ground back, not a hole through the world.
 - [`Content.Shared/Movement/Systems/SharedJetpackSystem.cs`](../../../Content.Shared/Movement/Systems/SharedJetpackSystem.cs)
