@@ -28,7 +28,7 @@ public sealed class VerdaBiomeTest
         "WFFloorVerdaMeadowGrass", "WFFloorVerdaForestGrass", "WFFloorVerdaPondMud",
         "WFFloorVerdaMarshGrass", "WFFloorVerdaMarshMud", "WFFloorVerdaShoreSand",
         "WFFloorVerdaScarDirt", "WFFloorVerdaScarDirtPatch", "WFFloorVerdaScarWiltedGrass", "WFFloorVerdaScarAshDirt",
-        "WFFloorVerdaSnowRough",
+        "WFFloorVerdaSnowRough", "WFFloorVerdaWaterJelly",
     };
 
     private static readonly HashSet<string> Shore = new() { "WFFloorVerdaMarshGrass", "WFFloorVerdaMarshMud", "WFFloorVerdaShoreSand" };

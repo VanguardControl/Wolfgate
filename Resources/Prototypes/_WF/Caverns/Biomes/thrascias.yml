@@ -53,6 +53,12 @@
     template: WFCavernSignatureThrascias
     threshold: 0.65
     noise: { seed: 55, noiseType: OpenSimplex2, fractalType: Ridged, octaves: 1, frequency: 0.018 }
+  # Slime grottos (_WF/WildSlimes) under the surface's rime patches, over everything: the plasma pools' noise, its seed
+  # less the cavern's seed offset of 7937, at a lower threshold so each grotto is a little wider than its patch.
+  - !type:BiomeMetaLayer
+    template: WFCavernSlimeZoneThrascias
+    threshold: 0.81
+    noise: { seed: -7934, noiseType: OpenSimplex2, frequency: 0.004, fractalType: Ridged, octaves: 1 }
 
 - type: biomeTemplate
   id: WFCavernTunnelsThrascias

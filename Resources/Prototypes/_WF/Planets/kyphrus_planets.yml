@@ -119,6 +119,12 @@
   - !type:BiomeMetaLayer
     threshold: -1
     template: WFMerakDesert
+  # Wild slime patches (_WF/WildSlimes) round the oases, over the desert: the oasis noise below the oasis. The Sandstone
+  # Galleries' grotto layer shares both noises.
+  - !type:BiomeMetaLayer
+    template: WFMerakSlimeZone
+    threshold: 0.7
+    noise: { seed: 41, noiseType: OpenSimplex2, frequency: 0.0075, fractalType: FBm, octaves: 2 }
 
 - type: wfPlanetSurface
   id: WFSurfaceAerumna
@@ -237,3 +243,9 @@
   - !type:BiomeMetaLayer
     threshold: -1
     template: WFThrasciasTerrain
+  # Wild slime patches (_WF/WildSlimes) beside the crystal fields, over the terrain: the plasma pools' noise below the
+  # field. The Rime Galleries' grotto layer shares both noises.
+  - !type:BiomeMetaLayer
+    template: WFThrasciasSlimeZone
+    threshold: 0.84
+    noise: { seed: 3, noiseType: OpenSimplex2, frequency: 0.004, fractalType: Ridged, octaves: 1 }
