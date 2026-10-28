@@ -198,6 +198,16 @@ public sealed class SiteStashTest
             await pair.RunTicksSync(pair.SecondsToTicks(1f));
             Assert.That(region.State, Is.EqualTo(WFStashState.Stashed), "The shop woke for someone well out of range.");
 
+            // A mouse roams the open ground on the way; with nobody about it sleeps too.
+            var mouse = EntityUid.Invalid;
+            await server.WaitPost(() => mouse = entMan.SpawnEntity("WFTestStashGrudger", new EntityCoordinates(ground, start + heading * 20f)));
+            var away = await pair.CreateTestMap();
+            await server.WaitPost(() => xforms.SetCoordinates(viewer, new EntityCoordinates(away.MapUid, Vector2.Zero)));
+            await pair.RunTicksSync(pair.SecondsToTicks(3f));
+            await server.WaitPost(() => Assert.That(Paused(entMan, mouse), Is.True, "A mouse in the open stayed awake with nobody on the world."));
+            await server.WaitPost(() => xforms.SetCoordinates(viewer, new EntityCoordinates(ground, start)));
+            await pair.RunTicksSync(pair.SecondsToTicks(1f));
+
             await server.WaitPost(() => stash.WorstTickMs = 0);
             const float speed = 15f;
             var step = speed / pair.SecondsToTicks(1f);
@@ -210,7 +220,7 @@ public sealed class SiteStashTest
                 await server.WaitPost(() =>
                 {
                     xforms.SetCoordinates(viewer, new EntityCoordinates(ground, here));
-                    foreach (var uid in region.Paused)
+                    foreach (var uid in stash.Regions.SelectMany(r => r.Paused))
                     {
                         if (entMan.EntityExists(uid) && Paused(entMan, uid)
                             && Vector2.Distance(xforms.GetWorldPosition(uid), here) <= View)
@@ -222,7 +232,8 @@ public sealed class SiteStashTest
 
             Assert.That(seen, Is.Empty, $"Paused things came into view: {string.Join(", ", seen.Distinct().Take(8))}");
             Assert.That(region.State, Is.EqualTo(WFStashState.Awake));
-            TestContext.Out.WriteLine($"Worst stash tick on the way in: {stash.WorstTickMs:F2} ms");
+            await server.WaitPost(() => Assert.That(Paused(entMan, mouse), Is.False, "The mouse on the way slept on."));
+            TestContext.Out.WriteLine($"Worst stash tick on the way in: {stash.WorstTickMs:F2} ms ({stash.WorstTickWork.Trim()})");
             Assert.That(stash.WorstTickMs, Is.LessThan(8.0), "Waking the shop cost a tick too much.");
         }
         finally

@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Server.Atmos.Components;
 using Content.Server.Power.Components;
+using System.Linq;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Vehicles.Core;
 using Content.Shared.Mind.Components;
@@ -62,6 +63,11 @@ public sealed partial class WFSiteStashSystem : EntitySystem
     /// <summary>The worst time one tick spent pausing and waking, since it was last reset.</summary>
     public double WorstTickMs;
 
+    /// <summary>What the worst tick was doing: registering a world, waking, pausing or sweeping.</summary>
+    public string WorstTickWork = string.Empty;
+
+    private string _tickWork = string.Empty;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -108,6 +114,7 @@ public sealed partial class WFSiteStashSystem : EntitySystem
             return;
 
         _watch.Restart();
+        _tickWork = string.Empty;
         if (_timing.CurTime >= _nextEvaluate)
         {
             _nextEvaluate = _timing.CurTime + EvaluateEvery;
@@ -116,7 +123,11 @@ public sealed partial class WFSiteStashSystem : EntitySystem
         }
 
         DoWork();
-        WorstTickMs = Math.Max(WorstTickMs, _watch.Elapsed.TotalMilliseconds);
+        if (_watch.Elapsed.TotalMilliseconds > WorstTickMs)
+        {
+            WorstTickMs = _watch.Elapsed.TotalMilliseconds;
+            WorstTickWork = _tickWork;
+        }
     }
 
     /// <summary>Decides, from where everyone is, which regions to wake and which have been left alone long enough to pause.</summary>
@@ -183,6 +194,7 @@ public sealed partial class WFSiteStashSystem : EntitySystem
         var urgent = _pvsRange + BiomeChunk;
         foreach (var region in _work)
         {
+            _tickWork += $" wake {region.Label};";
             var now = region.Distance <= urgent;
             while (region.Cursor < region.Paused.Count)
             {
@@ -211,6 +223,7 @@ public sealed partial class WFSiteStashSystem : EntitySystem
             if (OverBudget())
                 return;
 
+            _tickWork += $" pause {region.Label};";
             if (!region.Gathered)
             {
                 Gather(region);
@@ -245,6 +258,7 @@ public sealed partial class WFSiteStashSystem : EntitySystem
                 return;
 
             region.NextSweep = _timing.CurTime + SweepEvery;
+            _tickWork += $" sweep {region.Label};";
             Gather(region);
             foreach (var uid in region.Pending)
             {
@@ -285,6 +299,26 @@ public sealed partial class WFSiteStashSystem : EntitySystem
         region.Pending.Clear();
         var mobs = new List<EntityUid>();
         var tops = new List<EntityUid>();
+
+        if (region.MobsOnly)
+        {
+            var query = EntityQueryEnumerator<MobStateComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out _, out var xform))
+            {
+                if (!xform.Anchored
+                    && region.Parents.Contains(xform.ParentUid)
+                    && region.Box.Contains(xform.LocalPosition)
+                    && !region.Claimed.Any(box => box.Contains(xform.LocalPosition)))
+                    mobs.Add(uid);
+            }
+
+            foreach (var mob in mobs)
+            {
+                AddTree(region, mob);
+            }
+
+            return;
+        }
 
         // Every parent sits at its map's origin unturned, a layer or a city level, so the box is its own coordinates.
         foreach (var parent in region.Parents)
@@ -425,6 +459,12 @@ public sealed class WFStashRegion
 
     /// <summary>Never paused: players spawn in or near it.</summary>
     public bool Protected;
+
+    /// <summary>Holds only the mobs in its box, and none inside <see cref="Claimed"/>: a square of open world.</summary>
+    public bool MobsOnly;
+
+    /// <summary>Boxes other regions look after, which a <see cref="MobsOnly"/> region leaves alone.</summary>
+    public List<Box2> Claimed = new();
 
     public WFStashState State;
 

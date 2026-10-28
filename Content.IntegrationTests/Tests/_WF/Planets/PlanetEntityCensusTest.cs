@@ -336,6 +336,31 @@ public sealed class PlanetEntityCensusTest
             sb.AppendLine($"Next {settleSeconds:F0} s idle: worst tick {settleTicks.DefaultIfEmpty(0).Max():F1} ms, mean {settleTicks.DefaultIfEmpty(0).Average():F2} ms.");
             sb.AppendLine($"Sites asleep: {(sites ? "on" : "off")}; paused: {paused.Values.Sum()} ("
                           + string.Join(", ", paused.OrderByDescending(p => p.Value).Take(8).Select(p => $"{p.Key} {p.Value}")) + ").");
+            var sleeper = server.System<Content.Server._WF.Dormancy.WFSiteStashSystem>();
+            sb.AppendLine($"Worst tick spent pausing and waking: {sleeper.WorstTickMs:F2} ms ({sleeper.WorstTickWork.Trim()}).");
+            // What the per-tick systems still walk: an entity of these paused costs its system nothing.
+            var walked = new List<string>();
+            foreach (var name in new[] { "Metabolizer", "Respirator", "Bloodstream", "Stomach", "HTN", "ActiveNPC", "ApcPowerReceiver", "Flammable", "SolutionRegeneration", "PointLight" })
+            {
+                if (!entMan.ComponentFactory.TryGetRegistration(name, out var registration))
+                    continue;
+
+                var all = 0;
+                var asleep = 0;
+                foreach (var (owner, _) in entMan.GetAllComponents(registration.Type, includePaused: true))
+                {
+                    if (before.Contains(owner) || entMan.GetComponent<TransformComponent>(owner).MapUid is not { } where || !layerSet.Contains(where))
+                        continue;
+
+                    all++;
+                    if (entMan.GetComponent<MetaDataComponent>(owner).EntityPaused)
+                        asleep++;
+                }
+
+                walked.Add($"{name} {all - asleep} of {all}");
+            }
+
+            sb.AppendLine("Awake on the world (of all): " + string.Join(", ", walked) + ".");
             sb.AppendLine();
             sb.AppendLine("| Category | Entities |");
             sb.AppendLine("|---|---|");

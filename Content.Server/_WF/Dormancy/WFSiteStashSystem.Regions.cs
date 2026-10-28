@@ -22,6 +22,9 @@ public sealed partial class WFSiteStashSystem
     /// </summary>
     public const float SpawnClearance = 16f;
 
+    /// <summary>Side of a square of open world, in metres, whose roaming mobs sleep together.</summary>
+    public const float WildCellSize = 64f;
+
     private readonly HashSet<EntityUid> _registered = new();
 
     private void InitializeRegions()
@@ -42,7 +45,10 @@ public sealed partial class WFSiteStashSystem
         while (query.MoveNext(out var uid, out var record, out _))
         {
             if (record.NetworkReady && !_registered.Contains(uid))
+            {
+                _tickWork += $" register {ToPrettyString(uid)};";
                 Register(uid);
+            }
         }
     }
 
@@ -125,6 +131,38 @@ public sealed partial class WFSiteStashSystem
         }
 
         AddTunnels(network, ground, record);
+        AddWild(network, ground, record, layers, spawns);
+    }
+
+    /// <summary>
+    /// The rest of the world in <see cref="WildCellSize"/> squares, for the mobs that roam it: only mobs, and none standing
+    /// in a site or the city, whose own regions look after them.
+    /// </summary>
+    private void AddWild(EntityUid network, EntityUid ground, WFPlanetPoiComponent record, List<EntityUid> layers, List<(Vector2 Position, int Depth)> spawns)
+    {
+        if (!TryComp<WFPlanetBoundsComponent>(ground, out var bounds) || !float.IsFinite(bounds.Radius) || bounds.Radius <= 0f)
+            return;
+
+        var claimed = record.Sites.Select(site => new Box2(site.Bounds.Left, site.Bounds.Bottom, site.Bounds.Right, site.Bounds.Top)).ToList();
+        var left = MathF.Floor((bounds.Centre.X - bounds.Radius) / WildCellSize) * WildCellSize;
+        var bottom = MathF.Floor((bounds.Centre.Y - bounds.Radius) / WildCellSize) * WildCellSize;
+        for (var x = left; x < bounds.Centre.X + bounds.Radius; x += WildCellSize)
+        for (var y = bottom; y < bounds.Centre.Y + bounds.Radius; y += WildCellSize)
+        {
+            var cell = new Box2(x, y, x + WildCellSize, y + WildCellSize);
+            var near = cell.Enlarged(SpawnClearance);
+            Add(new WFStashRegion
+            {
+                Network = network,
+                Ground = ground,
+                Label = $"wild ({x}, {y})",
+                Box = cell,
+                Parents = layers,
+                MobsOnly = true,
+                Claimed = claimed,
+                Protected = spawns.Any(spawn => near.Contains(spawn.Position) && !claimed.Any(box => box.Contains(spawn.Position))),
+            });
+        }
     }
 
     /// <summary>A region round each roofed stretch of road, for the lurkers in it.</summary>
