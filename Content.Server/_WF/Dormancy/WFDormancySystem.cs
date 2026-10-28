@@ -1,9 +1,12 @@
 using System.Numerics;
 using Content.Server._WF.Planets;
 using Content.Shared._CE.ZLevels.Core.Components;
+using Content.Shared.Body.Organ;
+using Content.Shared.Mind.Components;
 using Content.Shared._WF.Planets;
 using Content.Shared._WF.Vehicles.Core;
 using Robust.Shared.Enums;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
@@ -39,6 +42,9 @@ public sealed class WFDormancySystem : EntitySystem
     private EntityQuery<WFOrbitLayerComponent> _orbitQuery;
     private EntityQuery<TransformComponent> _xformQuery;
     private EntityQuery<VehicleInteriorOccupantComponent> _occupantQuery;
+    private EntityQuery<OrganComponent> _organQuery;
+    private EntityQuery<MindContainerComponent> _mindQuery;
+    private EntityQuery<PhysicsComponent> _physicsQuery;
 
     public override void Initialize()
     {
@@ -49,6 +55,9 @@ public sealed class WFDormancySystem : EntitySystem
         _orbitQuery = GetEntityQuery<WFOrbitLayerComponent>();
         _xformQuery = GetEntityQuery<TransformComponent>();
         _occupantQuery = GetEntityQuery<VehicleInteriorOccupantComponent>();
+        _organQuery = GetEntityQuery<OrganComponent>();
+        _mindQuery = GetEntityQuery<MindContainerComponent>();
+        _physicsQuery = GetEntityQuery<PhysicsComponent>();
 
         SubscribeLocalEvent<PlayerAttachedEvent>(_ => _nextRefresh = TimeSpan.Zero);
     }
@@ -73,6 +82,24 @@ public sealed class WFDormancySystem : EntitySystem
 
         Refresh();
         return _activeNetworks.Contains(network) && _active.Contains((network, ChunkOf(worldPosition)));
+    }
+
+    /// <summary>
+    /// Whether a body, or an organ in one, may skip its life upkeep (breath, blood, metabolism): an NPC on planet ground
+    /// no player is near. A body with a mind keeps going wherever it is.
+    /// </summary>
+    public bool BodySleeps(EntityUid uid)
+    {
+        if (_organQuery.TryComp(uid, out var organ) && organ.Body is { } body)
+            uid = body;
+
+        return !IsActive(uid) && !(_mindQuery.TryComp(uid, out var mind) && mind.HasMind);
+    }
+
+    /// <summary>Whether a mover's body is at rest on planet ground no player is near, so its movement needs no handling.</summary>
+    public bool MoverSleeps(EntityUid uid)
+    {
+        return _physicsQuery.TryComp(uid, out var body) && !body.Awake && !IsActive(uid);
     }
 
     /// <summary>Whether any player is anywhere on the planet a map belongs to; true off-planet.</summary>

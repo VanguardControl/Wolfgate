@@ -66,6 +66,7 @@ each system's update cost and what it walks; run it by hand when tuning.
 - [`Content.Server/_WF/Dormancy/WFDormancySystem.cs`](WFDormancySystem.cs)
 - [`Content.Server/_WF/Dormancy/WFSiteStashSystem.cs`](WFSiteStashSystem.cs)
 - [`Content.Server/_WF/Dormancy/WFSiteStashSystem.Regions.cs`](WFSiteStashSystem.Regions.cs)
+- [`Content.Server/_WF/Dormancy/WFTickWatchSystem.cs`](WFTickWatchSystem.cs)
 
 ### Integration tests
 
@@ -79,7 +80,25 @@ each system's update cost and what it walks; run it by hand when tuning.
 - [`Content.Server/_CE/ZLevels/Core/CEZGroundFrictionController.cs`](../../_CE/ZLevels/Core/CEZGroundFrictionController.cs): a sleeping hull has no velocity or force to scrape, so skip sampling its grip.
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs): a resting hull's contact is sampled now and then, not every tick.
 - [`Content.Server/Atmos/EntitySystems/FlammableSystem.cs`](../../Atmos/EntitySystems/FlammableSystem.cs): the once-a-second sweep runs ten times a second, not every tick.
+- [`Content.Server/Body/Systems/BloodstreamSystem.cs`](../../Body/Systems/BloodstreamSystem.cs)
+  - skips NPC bodies nobody is near
+  - an NPC body no player is near on a planet skips its upkeep
+- [`Content.Server/Body/Systems/MetabolizerSystem.cs`](../../Body/Systems/MetabolizerSystem.cs)
+  - skips NPC bodies nobody is near
+  - an NPC body no player is near on a planet skips its upkeep
+- [`Content.Server/Body/Systems/RespiratorSystem.cs`](../../Body/Systems/RespiratorSystem.cs)
+  - skips NPC bodies nobody is near
+  - an NPC body no player is near on a planet skips its upkeep
+- [`Content.Server/Body/Systems/StomachSystem.cs`](../../Body/Systems/StomachSystem.cs)
+  - skips NPC bodies nobody is near
+  - an NPC body no player is near on a planet skips its upkeep
+- [`Content.Server/Body/Systems/ThermalRegulatorSystem.cs`](../../Body/Systems/ThermalRegulatorSystem.cs)
+  - skips NPC bodies nobody is near
+  - an NPC body no player is near on a planet skips its upkeep
 - [`Content.Server/NPC/Systems/NPCRetaliationSystem.cs`](../../NPC/Systems/NPCRetaliationSystem.cs): a pause doesn't run down who it remembers attacking it
+- [`Content.Server/Physics/Controllers/MoverController.cs`](../../Physics/Controllers/MoverController.cs)
+  - skips movers at rest nobody is near
+  - an NPC at rest with no input on planet ground no player is near has nothing to move
 - [`Resources/Prototypes/Entities/Tiles/water.yml`](../../../Resources/Prototypes/Entities/Tiles/water.yml): regenerated a "tank" solution the pool doesn't have, so it did nothing but cost every tick.
 
 <!-- WOLFGATE-GENERATED END -->

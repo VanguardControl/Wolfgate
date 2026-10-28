@@ -10,7 +10,13 @@ on unpinned ground, as the boundary ring does.
 
 The whole placement is spread over ticks: every site, road batch, piece of dressing, tunnel, wreck, camp, guard and
 roamer awaits `WFPlanetPreloadSystem.Breathe`, so each tick does at most `wf.planet_generation_budget` ms of it (more in
-the lobby), and site, wreck and camp maps are read and parsed on the thread pool (`WFPlanetPoiSystem.Loading`). Merged
+the lobby), and site, wreck and camp maps are read and parsed on the thread pool (`WFPlanetPoiSystem.Loading`). A map's
+bare entities, saved with nothing but where they stand and named by nothing else (walls, rock, cables, water), are
+taken out of the load and spawned after it within the budget; a fixed city's are spawned straight onto the world once
+the rest of its level is merged, so neither the load nor the merge carries twenty thousand of them in one tick. The
+room atlases a site's dungeon draws on are loaded the same way before its dungeon job runs, which would otherwise load
+each in one go (`WFPlanetPoiSystem.Atlases`). The road planner, seconds of work on a big world, runs on the thread pool
+once the world's water has been found within the budget. Merged
 entities stay paused until every one of them is map-initialised. The draws on the random stream come in the same order
 as before; only the ticks they fall in differ. What waits for the ground, camp guards outside the hull, residents,
 vehicles, patrols and roamers, goes out the same way after the preload, and the ground is marked preloaded once it has.
@@ -91,6 +97,7 @@ payment, sells a few, and eats whoever is left dead in his inn.
 
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiComponent.cs`](WFPlanetPoiComponent.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiPlacementPlanner.cs`](WFPlanetPoiPlacementPlanner.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Atlases.cs`](WFPlanetPoiSystem.Atlases.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Camps.cs`](WFPlanetPoiSystem.Camps.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.cs`](WFPlanetPoiSystem.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Dressing.cs`](WFPlanetPoiSystem.Dressing.cs)

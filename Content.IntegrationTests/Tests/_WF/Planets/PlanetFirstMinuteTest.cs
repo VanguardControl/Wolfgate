@@ -27,13 +27,15 @@ public sealed class PlanetFirstMinuteTest
     /// <param name="stash">Whether idle terrain is stashed (BiomeSystem.WFStash).</param>
     /// <param name="lazy">Whether planet navmeshes are built only near someone (PathfindingSystem.WFPlanetLazy).</param>
     /// <param name="sites">Whether sites nobody is near sleep (WFSiteStashSystem).</param>
+    /// <param name="only">One world to form instead of all of them.</param>
     [Explicit]
     [TestCase(false, false)]
     [TestCase(true, false)]
     [TestCase(false, true)]
     [TestCase(true, true)]
     [TestCase(true, true, true)]
-    public async Task FirstMinuteAfterTheWorldsForm(bool stash, bool lazy, bool sites = false)
+    [TestCase(true, true, false, "WFSurfaceAsclepiu")]
+    public async Task FirstMinuteAfterTheWorldsForm(bool stash, bool lazy, bool sites = false, string? only = null)
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
         var server = pair.Server;
@@ -47,7 +49,19 @@ public sealed class PlanetFirstMinuteTest
         long memoryBefore = 0;
         var field = typeof(EntitySystemManager).GetField("_tickUsageHistogram", BindingFlags.NonPublic | BindingFlags.Static)!;
         var histogram = (Prometheus.Histogram) field.GetValue(null)!;
-        Dictionary<string, double> Sums() => histogram.GetAllLabelValues().ToDictionary(l => l[0], l => histogram.WithLabels(l).Sum);
+        // The engine's own areas too (async continuations, timers, queued deletions), where generation work outside a system lands.
+        var engine = (Prometheus.Histogram) typeof(Robust.Server.Physics.GridFixtureSystem).Assembly.GetType("Robust.Server.BaseServer")!
+            .GetField("TickUsage", BindingFlags.NonPublic | BindingFlags.Static)!.GetValue(null)!;
+        Dictionary<string, double> Sums()
+        {
+            var sums = histogram.GetAllLabelValues().ToDictionary(l => l[0], l => histogram.WithLabels(l).Sum);
+            foreach (var label in engine.GetAllLabelValues())
+            {
+                if (label[0] != "EntitySystems")
+                    sums["engine:" + label[0]] = engine.WithLabels(label).Sum;
+            }
+            return sums;
+        }
         string Top(Dictionary<string, double> now, Dictionary<string, double> then, int count) =>
             string.Join(", ", now.Select(p => (p.Key, Ms: (p.Value - then.GetValueOrDefault(p.Key)) * 1000))
                 .OrderByDescending(p => p.Ms).Take(count).Select(p => $"{p.Key} {p.Ms:F0}"));
@@ -73,7 +87,7 @@ public sealed class PlanetFirstMinuteTest
             var surfaces = proto.EnumeratePrototypes<WFPlanetSurfacePrototype>().ToDictionary(s => s.PlanetType.Id);
             foreach (var entry in proto.Index<StarSystemPrototype>("SystemKyphrus").Planets)
             {
-                if (!surfaces.TryGetValue(entry.Planet.Id, out var surface) || !surface.BuildAtRoundStart)
+                if (!surfaces.TryGetValue(entry.Planet.Id, out var surface) || !surface.BuildAtRoundStart || only != null && surface.ID != only)
                     continue;
                 var centre = new Vector2(MathF.Cos(entry.Angle), MathF.Sin(entry.Angle)) * entry.Distance;
                 Assert.That(networks.Prebuild(surface, centre, surface.ID), Is.True, surface.ID);
@@ -97,12 +111,15 @@ public sealed class PlanetFirstMinuteTest
             if (done)
                 break;
             var before = Sums();
+            var stages = string.Empty;
+            await server.WaitPost(() => stages = string.Join("; ", server.System<WFPlanetPreloadSystem>().Forming()
+                .Select(f => $"{entMan.GetComponentOrNull<MetaDataComponent>(f.Ground)?.EntityName} {f.Stage} {f.Progress:P0}")));
             tickWatch.Restart();
             await server.WaitRunTicks(1);
             var took = tickWatch.Elapsed.TotalMilliseconds;
             worstForming = Math.Max(worstForming, took);
-            if (took >= 1000)
-                slowForming.Add((took, Top(Sums(), before, 4)));
+            if (took >= 250)
+                slowForming.Add((took, Top(Sums(), before, 5) + " | " + stages));
         }
 
         var formed = formWatch.Elapsed.TotalSeconds;
@@ -181,7 +198,8 @@ public sealed class PlanetFirstMinuteTest
         sb.AppendLine($"Stash {(stash ? "on" : "off")}, lazy navmesh {(lazy ? "on" : "off")}, sites asleep {(sites ? "on" : "off")}. After the minute: {entitiesAfter} entities, managed memory {memoryAfter / 1048576} MB.");
         sb.AppendLine($"Sites: {asleep}.");
         sb.AppendLine($"Six worlds formed in {formed:F1} s (worst forming tick {worstForming:F0} ms). Entities: {entitiesBefore} before, {entitiesFormed} formed. Managed memory {memoryBefore / 1048576} MB before, {memory / 1048576} MB formed.");
-        foreach (var (ms, top) in slowForming.OrderByDescending(s => s.Ms).Take(8))
+        sb.AppendLine($"Forming ticks over 250 ms: {slowForming.Count}, over 1 s: {slowForming.Count(s => s.Ms >= 1000)}.");
+        foreach (var (ms, top) in slowForming.OrderByDescending(s => s.Ms).Take(12))
             sb.AppendLine($"  forming tick {ms:F0} ms ({top})");
         sb.AppendLine($"First minute: worst tick {ticks.Max():F0} ms, mean {ticks.Average():F1} ms, ticks over 50 ms: {ticks.Count(t => t >= 50)}, over 100 ms: {ticks.Count(t => t >= 100)}.");
         foreach (var (tick, ms, top) in slow.OrderByDescending(s => s.Ms).Take(15))

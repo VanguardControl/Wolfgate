@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Threading.Tasks;
 using System.Numerics;
 using Content.Shared._WF.PlanetCities;
 using Robust.Shared.Map;
@@ -12,7 +13,7 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Tiles a fate's groups and a city's residents keep from its spawn points, so nobody joins into a fight.</summary>
     private const float FateSpawnClearance = 16f;
 
-    private void RollCityFate(WFFixedCityPrototype city, List<CityFloor> floors, HashSet<EntityUid> created)
+    private async Task RollCityFateAsync(WFFixedCityPrototype city, List<CityFloor> floors, HashSet<EntityUid> created)
     {
         if (city.Fates.Count == 0 || floors.FirstOrDefault(floor => floor.Depth == 0) is not { } ground)
             return;
@@ -52,7 +53,12 @@ public sealed partial class WFPlanetPoiSystem
             if (!inside)
             {
                 foreach (var id in picked.Gathering)
+                {
+                    await _preload.Breathe();
+                    if (TerminatingOrDeleted(pool.Floor.Grid.Owner))
+                        return;
                     created.Add(Spawn(id, new EntityCoordinates(pool.Floor.Grid.Owner, (Vector2) centre + new Vector2(0.5f))));
+                }
             }
 
             var size = _random.Next(picked.MinGroupSize, picked.MaxGroupSize + 1);
@@ -62,7 +68,13 @@ public sealed partial class WFPlanetPoiSystem
                     .Select(_ => centre + new Vector2i(_random.Next(-3, 4), _random.Next(-3, 4)))
                     .FirstOrDefault(tile => tile != centre && pool.Set.Contains(tile), centre);
                 foreach (var id in _entityTables.GetSpawns(spawns))
+                {
+                    // A person is a body, organs and kit: one at a time, within the generation budget.
+                    await _preload.Breathe();
+                    if (TerminatingOrDeleted(pool.Floor.Grid.Owner))
+                        return;
                     created.Add(Spawn(id, new EntityCoordinates(pool.Floor.Grid.Owner, (Vector2) near + new Vector2(0.5f))));
+                }
             }
         }
     }

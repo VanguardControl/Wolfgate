@@ -207,7 +207,7 @@ public sealed partial class WFPlanetPoiSystem
                     }
                 }
                 await _preload.Breathe();
-                var plan = PlanRoads(ground, record, centre, radius, table, roads, blocked);
+                var plan = await PlanRoadsAsync(ground, record, centre, radius, table, roads, blocked);
                 await _preload.Breathe();
                 if (!plan.Success)
                     Log.Warning($"No roads on {ToPrettyString(ground)}: {plan.Error ?? "routing failed"}. The sites stay.");
@@ -321,6 +321,7 @@ public sealed partial class WFPlanetPoiSystem
     internal async Task<StagedDungeon> GenerateAccessibleDungeonAsync(WFPlanetPoiEntry entry, WFPlanetRoadNetwork? roads, Box2i footprint, int seed)
     {
         var config = _proto.Index(entry.Dungeon!.Value);
+        await WarmAtlasesAsync(config);
         var retries = new Random(seed);
         var lastError = "Generated no usable exterior entrance.";
         for (var attempt = 0; attempt < 16; attempt++)
@@ -371,14 +372,17 @@ public sealed partial class WFPlanetPoiSystem
 
     /// <summary>
     /// Plans the world's roads. A site whose own entrance can't be joined up, say one set down hard against the rock, is
-    /// left off the roads and the rest planned again, rather than the whole world going without.
+    /// left off the roads and the rest planned again, rather than the whole world going without. The water is found
+    /// first, a slice a tick, and the planner, which touches nothing else of the world, runs on the thread pool: on a big
+    /// world it takes seconds.
     /// </summary>
-    private WFPlanetRoadPlan PlanRoads(EntityUid ground, WFPlanetPoiComponent record, Vector2 centre, float radius,
+    private async Task<WFPlanetRoadPlan> PlanRoadsAsync(EntityUid ground, WFPlanetPoiComponent record, Vector2 centre, float radius,
         WFPlanetPoiTablePrototype table, WFPlanetRoadNetwork roads, HashSet<Vector2i> blocked)
     {
         var seed = _random.Next();
-        var biome = new Entity<BiomeComponent>(ground, Comp<BiomeComponent>(ground));
-        var water = new Func<Vector2i, bool>(tile => _biome.WfIsWater(biome, tile));
+        var waterTiles = await WaterTilesAsync(ground, centre, radius);
+        var water = new Func<Vector2i, bool>(waterTiles.Contains);
+        var walls = new HashSet<Vector2i>(blocked);
         var watch = System.Diagnostics.Stopwatch.StartNew();
         while (true)
         {
@@ -386,8 +390,11 @@ public sealed partial class WFPlanetPoiSystem
             // Off-road sites with a footpath: the roads come within reach of their doors.
             var doors = record.Sites.Where(site => site.Connection == WFPlanetPoiConnection.Isolated && site.TrailStart != null)
                 .Select(site => site.TrailStart!.Position).ToList();
-            var plan = WFPlanetRoadPlanner.Plan(centre, radius - 1, table.CentreClear, sites, blocked, roads.Width, roads.ShoulderWidth, seed,
-                water, new WFPlanetRoadShape(roads.Gates, roads.Exits, roads.Loops, roads.Reach), doors);
+            var shape = new WFPlanetRoadShape(roads.Gates, roads.Exits, roads.Loops, roads.Reach);
+            var plan = await Task.Run(() => WFPlanetRoadPlanner.Plan(centre, radius - 1, table.CentreClear, sites, walls, roads.Width,
+                roads.ShoulderWidth, seed, water, shape, doors));
+            if (TerminatingOrDeleted(ground))
+                return plan;
             if (plan.Success || plan.FailedEntrance is not { } entrance)
             {
                 Log.Info($"Roads on {ToPrettyString(ground)} planned in {watch.ElapsedMilliseconds} ms: {plan.Centreline.Count} tiles of centreline, {plan.Backbone.Count} on gates, exits and links.");
@@ -404,6 +411,32 @@ public sealed partial class WFPlanetPoiSystem
             failed.AccessPaths.Clear();
             failed.Connection = WFPlanetPoiConnection.Isolated;
         }
+    }
+
+    /// <summary>The ground's water tiles within the world's circle, found within the generation budget.</summary>
+    private async Task<HashSet<Vector2i>> WaterTilesAsync(EntityUid ground, Vector2 centre, float radius)
+    {
+        var water = new HashSet<Vector2i>();
+        var r = (int) MathF.Ceiling(radius);
+        var middle = centre.Floored();
+        for (var x = -r; x <= r; x++)
+        {
+            var half = (int) MathF.Ceiling(MathF.Sqrt(MathF.Max(0f, radius * radius - x * x)));
+            for (var y = -half; y <= half; y++)
+            {
+                // A tile past the cheap noise gates costs a full biome lookup, so the budget is checked often.
+                if (y % 32 == 0)
+                    await _preload.Breathe();
+                if (!TryComp<BiomeComponent>(ground, out var comp))
+                    return water;
+
+                var tile = middle + new Vector2i(x, y);
+                if (_biome.WfIsWater((ground, comp), tile))
+                    water.Add(tile);
+            }
+        }
+
+        return water;
     }
 
     /// <summary>Keeps the complete footprint within the boundary and outside arrivals.</summary>
@@ -653,7 +686,11 @@ public sealed partial class WFPlanetPoiSystem
         _transform.SetCoordinates(source.Owner, new EntityCoordinates(targetMap, targetMap == ground ? Vector2.Zero : _transform.GetWorldPosition(ground)));
         var canSplit = grid.CanSplit;
         grid.CanSplit = false;
-        try { _fixtures.Merge(ground, source.Owner, origin, Turns(turns), grid, source.Comp); }
+        try
+        {
+            using (_preload.Time($"merging {ToPrettyString(source.Owner)} into {ToPrettyString(ground)}"))
+                _fixtures.Merge(ground, source.Owner, origin, Turns(turns), grid, source.Comp);
+        }
         finally { grid.CanSplit = canSplit; }
         UnturnFixedRotation(transferred);
         var beforeInit = new HashSet<EntityUid>();
