@@ -40,3 +40,4 @@
     catalog: WFMilitaryCatalogCounter
     extraCatalogs:
     - WFMilitaryCatalogParts
+    - WFMilitaryCatalogDrops

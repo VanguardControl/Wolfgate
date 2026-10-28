@@ -9,10 +9,13 @@
   vehicles:
   - vehicle: WFOrbitalDropBeaconAPC
     price: 65000
+    licence: true
   - vehicle: WFOrbitalDropBeaconAev
     price: 100000
+    licence: true
   - vehicle: WFOrbitalDropBeaconTank
     price: 140000
+    licence: true
   - vehicle: WFMilitaryRepairKit
     price: 9000
 
@@ -50,7 +53,7 @@
   name: orbital drop beacon (tank)
   components:
   - type: WFOrbitalDropBeacon
-    vehicle: VehicleTank
+    vehicle: WFMilitaryChassisTank
     catalog: WFMilitaryCatalogDrops
 
 - type: entity
