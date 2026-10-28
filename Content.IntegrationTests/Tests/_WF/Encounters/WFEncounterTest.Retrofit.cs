@@ -130,11 +130,53 @@ public sealed partial class WFEncounterTest
     deckhands: 0
     captain: false
     roles: [ WFCrewPilot ]
+
+- type: wfEncounter
+  id: WFTestUsspHubLedokolHeavy
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  ships:
+  - key: lead
+    vessel: Ledokol
+    retrofit: WFPirateRetrofitHubHeavy
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot ]
+
+- type: wfEncounter
+  id: WFTestUsspHubLedokolSiege
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  ships:
+  - key: lead
+    vessel: Ledokol
+    retrofit: WFPirateRetrofitHubSiege
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot ]
+
+- type: wfEncounter
+  id: WFTestUsspHubBuranSiege
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  ships:
+  - key: lead
+    vessel: Buran
+    retrofit: WFPirateRetrofitHubSiege
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot ]
 ";
 
     /// <summary>The USSP hub hulls take the hub refit's fixed gun count and carry docking ports for reinforcements.</summary>
     [TestCase("WFTestUsspHubLedokol", 4)]
     [TestCase("WFTestUsspHubBuran", 6)]
+    [TestCase("WFTestUsspHubLedokolHeavy", 6)]
+    [TestCase("WFTestUsspHubLedokolSiege", 6)]
+    [TestCase("WFTestUsspHubBuranSiege", 6)]
     public async Task UsspHubsTakeTheHubRefit(string id, int guns)
     {
         EntityUid hub = default;

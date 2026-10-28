@@ -120,7 +120,8 @@ both are maxed by 30. Each campaign now has `population` brackets keyed on the l
 peak of the last ten minutes, so a dip at shift change does not weaken a hub being founded). A bracket adds gear tiers
 (hull, refit and skill only; the threat score and its announcements stay honest), batteries, level cap, patrols,
 intercepts, strongholds, a shorter reinforcement interval and a bigger bounty, since the bounty is split among more
-ships. Standing hubs never lose what a higher bracket gave them.
+ships. Standing hubs never lose what a higher bracket gave them. Standard and Dangerous list a fifth convoy so the
+bracket's extra level still counts at their top tier.
 
 The first stronghold, a regrouped one and the citadel are fortified with fixed gun batteries (gunboats with
 `platform: true`) at `batteryRange`. They hold station rather than orbit: it reads as a fortress, costs the pilot AI

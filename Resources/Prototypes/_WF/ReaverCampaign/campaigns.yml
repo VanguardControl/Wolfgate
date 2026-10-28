@@ -45,6 +45,8 @@
   # What more living players on the sector map add; the highest bracket reached applies. Gear raises the tier
   # ships are picked by, not the threat. Batteries ring the first stronghold, a regrouped one and the citadel.
   population:
+  - minPlayers: 0
+    batteries: 1
   - minPlayers: 25
     batteries: 2
     bountyScale: 1.15
@@ -115,7 +117,7 @@
   reinforcementInterval: 12m
   maxLevelByTier: [ 0, 1, 2, 2, 3, 4 ]
   levelBountyScale: 0.5
-  reinforcements: [ WFReaverReinforcementGunship, WFReaverReinforcementGunship, WFReaverReinforcementHeavy, WFReaverReinforcementHeavy ]
+  reinforcements: [ WFReaverReinforcementGunship, WFReaverReinforcementGunship, WFReaverReinforcementHeavy, WFReaverReinforcementHeavy, WFReaverReinforcementHeavy ]
   # The citadel: sets out once the campaign has stood at tier 5 for the delay, claims more rings, grows past the
   # level cap, pays a scaled bounty, and leaves a lull of no founding, convoy or raid when it falls.
   citadel: WFReaverCitadel
@@ -201,7 +203,7 @@
   reinforcementInterval: 8m
   maxLevelByTier: [ 0, 1, 2, 3, 4, 4 ]
   levelBountyScale: 0.5
-  reinforcements: [ WFReaverReinforcementGunship, WFReaverReinforcementGunship, WFReaverReinforcementHeavy, WFReaverReinforcementHeavy ]
+  reinforcements: [ WFReaverReinforcementGunship, WFReaverReinforcementGunship, WFReaverReinforcementHeavy, WFReaverReinforcementHeavy, WFReaverReinforcementHeavy ]
   # The citadel: sets out once the campaign has stood at tier 5 for the delay, claims more rings, grows past the
   # level cap, pays a scaled bounty, and leaves a lull of no founding, convoy or raid when it falls.
   citadel: WFReaverCitadel

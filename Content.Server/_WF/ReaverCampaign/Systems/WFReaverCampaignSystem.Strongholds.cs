@@ -108,6 +108,7 @@ public sealed partial class WFReaverCampaignSystem
             || !WFSectorHex.InSector(_territory.CellOf(at), _territory.CellSize))
             return false;
 
+        SamplePopulation(state);
         // The first stronghold and a regrouped one stand alone far out, so they are ringed with batteries.
         var alone = Strongholds().Count == 0;
         var regroup = state.Founded > 0 && alone;
