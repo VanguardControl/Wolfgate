@@ -45,7 +45,7 @@ public sealed partial class WFPlanetPoiSystem
     private sealed record CityLevel(int Depth, ResPath Path, EntityUid Staging, Entity<MapGridComponent> Grid, List<DeferredSpawn> Deferred, HashSet<Vector2i> Paved);
 
     /// <summary>A city with its spot on the world held: its station, its entry for placement and roads, and its footprint.</summary>
-    private sealed record CityPlan(WFFixedCityPrototype City, StationConfig Config, WFPlanetPoiEntry Entry, Box2i Footprint, Vector2i Origin, Box2i Reservation);
+    private sealed record CityPlan(WFFixedCityPrototype City, StationConfig Config, WFPlanetPoiEntry Entry, Box2i Footprint, Vector2i Origin, Box2i Reservation, List<Vector2i> Approaches);
 
     /// <summary>Resumes on a later tick, so a city is built a level at a time rather than in one long tick.</summary>
     private Task NextTick() => _preload.NextTick();
@@ -106,7 +106,7 @@ public sealed partial class WFPlanetPoiSystem
 
                 // The biome grows its own terrain on the footprint tiles the city left empty.
                 if (!TerminatingOrDeleted(ground))
-                    _biome.WfUnpinTiles((ground, biome), Tiles(plan.Reservation).Where(tile => !built.Contains(tile) && !initialPins.Contains(tile)));
+                    _biome.WfUnpinTiles((ground, biome), Tiles(plan.Reservation).Concat(plan.Approaches).Where(tile => !built.Contains(tile) && !initialPins.Contains(tile)));
             }
 
             if (built.Count == 0)
@@ -174,8 +174,26 @@ public sealed partial class WFPlanetPoiSystem
 
         var reservation = Translate(footprint, origin);
         reserved.Add(PlacementBounds(reservation, entry, table.Roads));
-        _biome.WfPinTiles((ground, biome), Tiles(reservation).ToList());
-        return new CityPlan(city, config, entry, footprint, origin, reservation);
+        // The road out of each entrance is held too, so a cavern mouth can't open across it before the roads are laid.
+        var approaches = new List<Vector2i>();
+        if (table.Roads is { } roads)
+        {
+            var clearance = roads.Width / 2 + roads.ShoulderWidth + 1;
+            foreach (var socket in sockets)
+            {
+                var direction = Direction(socket.Direction);
+                for (var step = 1; step <= clearance * 2 + 1; step++)
+                for (var side = -clearance; side <= clearance; side++)
+                {
+                    var tile = origin + socket.Offset + direction * step + new Vector2i(-direction.Y, direction.X) * side;
+                    if (!Contains(reservation, tile))
+                        approaches.Add(tile);
+                }
+            }
+        }
+
+        _biome.WfPinTiles((ground, biome), Tiles(reservation).Concat(approaches).ToList());
+        return new CityPlan(city, config, entry, footprint, origin, reservation, approaches);
     }
 
     /// <summary>Loads every level the world has a layer for, swaps and clears what the city asks and cuts its entrances.</summary>
