@@ -12,6 +12,10 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   the ship somewhere else are ruled out before the tile check rather than after it, and the tile check skips the
   station's empty chunks. It picks the same dock as before; a six-dock ship at a 77-dock station went from seconds to
   about 60 ms.
+- Worldgen churn: a space chunk stays loaded for `wf.worldgen.unload_grace` seconds (60) after nothing needs it
+  (`WorldControllerSystem.WFUnloadGrace`), and a GC queue's `minAge` holds entities that long before deleting them
+  (`GCQueueSystem.WFMinAge`; `WFAsteroids` waits 60 s). Ships moving about a station no longer unload and respawn the
+  asteroid fields around it.
 - The marked upstream edits skip idle-shuttle thruster work, avoid `Enum.GetValues` and nullable boxing on per-tick
   paths, stop `FlammableSystem` from crashing when igniting queues new fire events, and stop networking a thrown
   item's shooter (it outlived the shooter and sent a deleted entity every state).
@@ -24,16 +28,21 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 ### Server
 
 - [`Content.Server/_WF/Performance/DockingSystem.WFPlacement.cs`](DockingSystem.WFPlacement.cs)
+- [`Content.Server/_WF/Performance/GCQueuePrototype.WFMinAge.cs`](GCQueuePrototype.WFMinAge.cs)
+- [`Content.Server/_WF/Performance/GCQueueSystem.WFMinAge.cs`](GCQueueSystem.WFMinAge.cs)
+- [`Content.Server/_WF/Performance/WorldControllerSystem.WFUnloadGrace.cs`](WorldControllerSystem.WFUnloadGrace.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/Performance/SharedGravitySystem.WFRefresh.cs`](../../../Content.Shared/_WF/Performance/SharedGravitySystem.WFRefresh.cs)
 - [`Content.Shared/_WF/Performance/WFCollectionExtensions.cs`](../../../Content.Shared/_WF/Performance/WFCollectionExtensions.cs)
+- [`Content.Shared/_WF/Performance/WFPerformanceCVars.cs`](../../../Content.Shared/_WF/Performance/WFPerformanceCVars.cs)
 
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs)
 
 ### Docs
 
@@ -81,6 +90,12 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/Shuttles/Systems/ThrusterSystem.cs`](../../Shuttles/Systems/ThrusterSystem.cs)
   - fixed list instead of Enum.GetValues on every call
   - idle shuttles call this every tick with everything already off
+- [`Content.Server/Worldgen/Systems/GC/GCQueueSystem.cs`](../../Worldgen/Systems/GC/GCQueueSystem.cs)
+  - queue minimum age
+  - leave entities queued until the queue's minimum age has passed
+- [`Content.Server/Worldgen/Systems/WorldControllerSystem.cs`](../../Worldgen/Systems/WorldControllerSystem.cs)
+  - chunk unload grace
+  - wait out the unload grace, so passing ships don't unload and respawn debris
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Movement.cs)
   - List.Contains per MoveEvent went quadratic in battles
   - set lookup instead of List.Contains

@@ -40,6 +40,7 @@ public sealed partial class WorldControllerSystem : EntitySystem
         SubscribeLocalEvent<LoadedChunkComponent, ComponentStartup>(OnChunkLoadedCore);
         SubscribeLocalEvent<LoadedChunkComponent, ComponentShutdown>(OnChunkUnloadedCore);
         SubscribeLocalEvent<WorldChunkComponent, ComponentShutdown>(OnChunkShutdown);
+        WFInitializeUnloadGrace(); // WOLFGATE(Performance): chunk unload grace
     }
 
     /// <summary>
@@ -160,7 +161,9 @@ public sealed partial class WorldControllerSystem : EntitySystem
         {
             var coords = chunk.Coordinates;
 
-            if (!_chunksToLoad[chunk.Map].ContainsKey(coords))
+            // WOLFGATE(Performance): wait out the unload grace, so passing ships don't unload and respawn debris
+            // if (!_chunksToLoad[chunk.Map].ContainsKey(coords))
+            if (WFShouldUnload(uid, _chunksToLoad[chunk.Map].ContainsKey(coords)))
             {
                 RemCompDeferred<LoadedChunkComponent>(uid);
                 chunksUnloaded++;
