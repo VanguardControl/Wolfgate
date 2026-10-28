@@ -1,0 +1,31 @@
+- type: soundCollection
+  id: WFCavernEncounterCrawlerAlert
+  files:
+  - /Audio/_WF/CavernEncounters/crawler/alert1.ogg
+
+- type: soundCollection
+  id: WFCavernEncounterCrawlerBite
+  files:
+  - /Audio/_WF/CavernEncounters/crawler/attack1.ogg
+  - /Audio/_WF/CavernEncounters/crawler/attack2.ogg
+
+- type: soundCollection
+  id: WFCavernEncounterLamplighterDouse
+  files:
+  - /Audio/_WF/CavernEncounters/lamplighter/moan1.ogg
+  - /Audio/_WF/CavernEncounters/lamplighter/moan3.ogg
+
+- type: soundCollection
+  id: WFCavernEncounterLamplighterStrike
+  files:
+  - /Audio/_WF/CavernEncounters/lamplighter/claw_strike1.ogg
+
+- type: soundCollection
+  id: WFCavernEncounterEchoLunge
+  files:
+  - /Audio/_WF/CavernEncounters/echo/alert1.ogg
+
+- type: soundCollection
+  id: WFCavernEncounterEchoStrike
+  files:
+  - /Audio/_WF/CavernEncounters/echo/claw_strike2.ogg

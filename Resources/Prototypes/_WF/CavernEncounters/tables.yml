@@ -1,0 +1,78 @@
+# Which encounters each world's cavern holds: `count` of them, picked by weight without repeats. The Old Wise Miner
+# weighs most, so nearly every world has his camp.
+
+# The Underkarst: wet limestone, the busiest mining world.
+- type: wfCavernEncounterTable
+  id: WFCavernEncountersAsclepiu
+  surface: WFSurfaceAsclepiu
+  count: 5
+  encounters:
+    WFCavernEncounterMinerCamp: 4
+    WFCavernEncounterRaiders: 2
+    WFCavernEncounterSurveyor: 1.5
+    WFCavernEncounterTrappedMiner: 1.5
+    WFCavernEncounterCrawlers: 1
+    WFCavernEncounterEcho: 1
+    WFCavernEncounterLamplighter: 0.7
+
+# The Cinder Vaults: lava tubes, raiders and collapses.
+- type: wfCavernEncounterTable
+  id: WFCavernEncountersFervidus
+  surface: WFSurfaceFervidus
+  count: 4
+  encounters:
+    WFCavernEncounterMinerCamp: 4
+    WFCavernEncounterRaiders: 2
+    WFCavernEncounterTrappedMiner: 1.5
+    WFCavernEncounterCrawlers: 1.5
+    WFCavernEncounterLamplighter: 1
+    WFCavernEncounterEcho: 0.6
+
+# The Sandstone Galleries: long pillared halls that carry a voice.
+- type: wfCavernEncounterTable
+  id: WFCavernEncountersMerak
+  surface: WFSurfaceMerak
+  count: 4
+  encounters:
+    WFCavernEncounterMinerCamp: 4
+    WFCavernEncounterRaiders: 2
+    WFCavernEncounterSurveyor: 1.5
+    WFCavernEncounterEcho: 1.5
+    WFCavernEncounterCrawlers: 1
+    WFCavernEncounterLamplighter: 0.6
+
+# The Umbral Deeps: the darkest caverns, the Lamplighter's.
+- type: wfCavernEncounterTable
+  id: WFCavernEncountersAerumna
+  surface: WFSurfaceAerumna
+  count: 4
+  encounters:
+    WFCavernEncounterMinerCamp: 3
+    WFCavernEncounterLamplighter: 2
+    WFCavernEncounterCrawlers: 1.5
+    WFCavernEncounterEcho: 1.5
+    WFCavernEncounterSurveyor: 1
+
+# The Rime Galleries: ice falls bury miners.
+- type: wfCavernEncounterTable
+  id: WFCavernEncountersThrascias
+  surface: WFSurfaceThrascias
+  count: 4
+  encounters:
+    WFCavernEncounterMinerCamp: 4
+    WFCavernEncounterTrappedMiner: 2
+    WFCavernEncounterSurveyor: 1.5
+    WFCavernEncounterLamplighter: 1
+    WFCavernEncounterEcho: 1
+
+# The Gut: few people go down, and fewer come back.
+- type: wfCavernEncounterTable
+  id: WFCavernEncountersCarcinoma
+  surface: WFSurfaceCarcinoma
+  count: 4
+  encounters:
+    WFCavernEncounterCrawlers: 2
+    WFCavernEncounterEcho: 2
+    WFCavernEncounterLamplighter: 1
+    WFCavernEncounterMinerCamp: 1
+    WFCavernEncounterRaiders: 0.5
