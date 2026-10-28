@@ -100,6 +100,9 @@ public sealed class WFWorldgenChurnTest
                 debris.Add(uid);
                 server.System<GCQueueSystem>().TryGCEntity(uid);
             }
+
+            // The queue keeps its last entry, so a sentinel lets all five go.
+            server.System<GCQueueSystem>().TryGCEntity(entMan.SpawnEntity("WFTestAgedDebris", MapCoordinates.Nullspace));
         });
         await pair.RunTicksSync(30);
 
