@@ -22,8 +22,8 @@ def lighten(colour, amount):
 
 
 def jelly_tile(src, colour, seed, alpha, dark):
-    rng = random.Random(seed)
-    grey = src.convert("L").filter(ImageFilter.GaussianBlur(1.2))
+    """The grain tile's own detail, tinted: no drawn glints, which read as marks on the floor."""
+    grey = src.convert("L").filter(ImageFilter.GaussianBlur(0.4))
     out = Image.new("RGBA", src.size)
     px = out.load()
     g = grey.load()
@@ -31,19 +31,9 @@ def jelly_tile(src, colour, seed, alpha, dark):
     for y in range(h):
         for x in range(w):
             v = g[x, y] / 255.0
-            shade = (0.6 + 0.55 * v) * dark
+            shade = (0.55 + 0.75 * v) * dark
             r, gg, b = (min(255, int(c * shade)) for c in colour)
             px[x, y] = (r, gg, b, min(255, int(255 * alpha * (0.85 + 0.3 * (1 - v)))))
-    draw = ImageDraw.Draw(out)
-    shine = lighten(colour, 0.55)
-    glint = lighten(colour, 0.85)
-    for _ in range(rng.choice([1, 2])):
-        cx, cy = rng.randrange(3, w - 3), rng.randrange(3, h - 3)
-        rad = rng.choice([0, 1, 1])
-        draw.ellipse((cx - rad, cy - rad, cx + rad, cy + rad), fill=shine + (int(255 * min(1, alpha + 0.15)),))
-    for _ in range(2):
-        cx, cy = rng.randrange(4, w - 4), rng.randrange(4, h - 4)
-        draw.line((cx, cy, cx + rng.randrange(2, 5), cy - 1), fill=glint + (int(255 * min(1, alpha + 0.3)),))
     return out
 
 
@@ -89,7 +79,7 @@ def main():
         folder = f"{OUT}/{world}"
         os.makedirs(f"{folder}/Tiles", exist_ok=True)
         strip(grain, colour, alpha, 1.0, 31 + seed * 10).save(f"{folder}/Tiles/{stem}.png")
-        strip(grain, colour, 1.0, 0.75, 41 + seed * 10).save(f"{folder}/Tiles/{stem}_cavern.png")
+        strip(grain, colour, 1.0, 0.9, 41 + seed * 10).save(f"{folder}/Tiles/{stem}_cavern.png")
         rsi = f"{folder}/{decor}.rsi"
         os.makedirs(rsi, exist_ok=True)
         blob(colour, 1.0, 5 + seed).save(f"{rsi}/mound.png")

@@ -55,7 +55,7 @@ public sealed class ThrasciasBiomeTest
 
     private static readonly HashSet<string> Tundra = new()
     {
-        "CMGrassTallgrassIce", "WFFloraFrostbelle", "GoonShrubSnow", "GoonShrubSnow2",
+        "WFFloraFrostbelle", "GoonShrubSnow", "GoonShrubSnow2",
         "GoonStoneSnow", "GoonStoneSnow2", "GoonStoneSnow3", "GoonStoneSnow4", "AuroraFloraRockSnow",
     };
 
@@ -205,7 +205,6 @@ public sealed class ThrasciasBiomeTest
             Assert.That(featureCount.Keys.Any(id => id.Contains("Water")), Is.False, "Thrascias is dry; its lakes are frozen tiles.");
 
             Assert.That(Features(Tundra), Is.GreaterThan(0), "No tundra growth.");
-            Assert.That(featureCount.GetValueOrDefault("CMGrassTallgrassIce"), Is.GreaterThan(0), "No ice grass.");
             Assert.That(featureCount.GetValueOrDefault("WFFloraFrostbelle"), Is.GreaterThan(0), "No frostbelles.");
             Assert.That(featureCount.GetValueOrDefault("GoonShrubSnow") + featureCount.GetValueOrDefault("GoonShrubSnow2"), Is.GreaterThan(0), "No snow shrubs.");
             foreach (var rock in IceRocks.Concat(CrystalGrowth))

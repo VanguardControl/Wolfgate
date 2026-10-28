@@ -87,14 +87,8 @@
   id: WFTempleRelics
   table: !type:AllSelector
     children:
-    - !type:GroupSelector
-      children:
-      - id: SimpleXenoArtifactItem
-        weight: 4
-      - id: MediumXenoArtifactItem
-        weight: 2
-      - id: ComplexXenoArtifactItem
-        weight: 1
+    # The xenoarch rework (#394) leaves only the complex artifact; the simple and medium ones are migrated to it.
+    - id: ComplexXenoArtifactItem
     - !type:NestedSelector
       tableId: TreasureCoinPileRare
       rolls: !type:RangeNumberSelector

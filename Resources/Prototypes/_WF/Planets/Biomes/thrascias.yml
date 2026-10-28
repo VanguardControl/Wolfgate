@@ -154,6 +154,26 @@
     noise: { seed: 203, noiseType: OpenSimplex2, frequency: 4 }
     decals:
     - CMDecalRocksIceIce1
+  # Tundra growth: tufts of frosted grass poking through the snow.
+  - !type:BiomeDecalLayer
+    allowedTiles:
+    - FloorSnow
+    - WFFloorThrasciasSnowRough
+    - WFFloorThrasciasFrozenDirt
+    - WFFloorThrasciasSnowDug
+    threshold: 0.7
+    divisions: 1
+    noise: { seed: 101, noiseType: OpenSimplex2, frequency: 3 }
+    decals:
+    - grasssnowa1
+    - grasssnowa2
+    - grasssnowa3
+    - grasssnowb1
+    - grasssnowb2
+    - grasssnowb3
+    - grasssnowc1
+    - grasssnowc2
+    - grasssnowc3
   # Frozen fungus shows only inside the snowdrifts: the same noise as the drift decals, at a higher threshold.
   - !type:BiomeEntityLayer
     allowedTiles:
@@ -163,16 +183,6 @@
     entities: [WFFloraFrozenFungus]
     threshold: 0.86
     noise: { seed: 201, noiseType: OpenSimplex2, frequency: 4 }
-  # Tundra growth.
-  - !type:BiomeEntityLayer
-    allowedTiles:
-    - FloorSnow
-    - WFFloorThrasciasSnowRough
-    - WFFloorThrasciasFrozenDirt
-    - WFFloorThrasciasSnowDug
-    entities: [CMGrassTallgrassIce]
-    threshold: 0.7
-    noise: { seed: 101, noiseType: OpenSimplex2, frequency: 3 }
   - !type:BiomeEntityLayer
     allowedTiles:
     - FloorSnow
