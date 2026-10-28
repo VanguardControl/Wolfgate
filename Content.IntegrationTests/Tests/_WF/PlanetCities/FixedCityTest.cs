@@ -271,6 +271,8 @@ public sealed class FixedCityTest
 
             var maps = server.System<SharedMapSystem>();
             var roofs = server.System<SharedRoofSystem>();
+            var lookup = server.System<EntityLookupSystem>();
+            var xforms = server.System<SharedTransformSystem>();
             var spawnPoints = new List<(EntityUid Grid, Vector2 Position)>();
             var points = entMan.EntityQueryEnumerator<SpawnPointComponent, TransformComponent>();
             while (points.MoveNext(out _, out var pointXform))
@@ -297,9 +299,12 @@ public sealed class FixedCityTest
                 var isZombie = meta.EntityPrototype?.ID == zombie;
                 var what = $"{meta.EntityPrototype?.ID} on level {depth} at {tile}";
                 Assert.That(maps.GetTileRef(gridUid, grid, tile).Tile.IsEmpty, Is.False, $"{what} stands on no floor.");
-                Assert.That(maps.GetAnchoredEntities((gridUid, grid), tile).Any(blocker =>
-                    entMan.TryGetComponent<PhysicsComponent>(blocker, out var body) && body.Hard && body.CanCollide), Is.False,
-                    $"{what} stands inside a solid.");
+                // Overlapping something solid, not just sharing its tile: a railing or a thin window can stand at a tile's edge.
+                var solids = lookup.GetEntitiesIntersecting(xforms.GetMapCoordinates(uid, xform), LookupFlags.Static)
+                    .Where(blocker => entMan.TryGetComponent<PhysicsComponent>(blocker, out var body) && body.Hard && body.CanCollide)
+                    .Select(blocker => entMan.GetComponent<MetaDataComponent>(blocker).EntityPrototype?.ID)
+                    .ToList();
+                Assert.That(solids, Is.Empty, $"{what} stands inside a solid.");
                 Assert.That(entMan.TryGetComponent<RoofComponent>(gridUid, out var roof) && roofs.IsRooved((gridUid, grid, roof), tile), Is.True,
                     $"{what} is not indoors.");
                 // The mob stands mid-tile, a half tile off the tile corner the clearance is measured from.
