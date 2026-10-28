@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Content.Server.Spawners.Components;
 using Content.Shared.Doors.Components;
 using Content.Shared._WF.PlanetCities;
+using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Components;
@@ -14,6 +15,10 @@ namespace Content.Server._WF.PlanetPois;
 /// <summary>The people of a fixed city: residents indoors on every level, and where its fate's groups settle.</summary>
 public sealed partial class WFPlanetPoiSystem
 {
+    [Dependency] private EntityLookupSystem _lookup = default!;
+
+    private readonly HashSet<EntityUid> _overhang = new();
+
     /// <summary>One level of a built city as it stands on its world: its grid, every floor tile and the roofed ones.</summary>
     private sealed record CityFloor(int Depth, Entity<MapGridComponent> Grid, HashSet<Vector2i> Tiles, HashSet<Vector2i> Indoor);
 
@@ -131,7 +136,10 @@ public sealed partial class WFPlanetPoiSystem
         return pools[^1];
     }
 
-    /// <summary>Whether a tile isn't bare floor: it has no tile, or something solid or a door, open or not, is anchored on it.</summary>
+    /// <summary>
+    /// Whether a tile isn't bare floor: it has no tile, something solid or a door, open or not, is anchored on it, or a
+    /// solid anchored next door (a cargo container, a big machine) reaches over its middle.
+    /// </summary>
     private bool CityTileBlocked(Entity<MapGridComponent> grid, Vector2i tile)
     {
         if (_maps.GetTileRef(grid.Owner, grid.Comp, tile).Tile.IsEmpty)
@@ -141,6 +149,15 @@ public sealed partial class WFPlanetPoiSystem
         while (anchored.MoveNext(out var uid))
         {
             if (TryComp<PhysicsComponent>(uid, out var body) && body.Hard && body.CanCollide || HasComp<DoorComponent>(uid))
+                return true;
+        }
+
+        var middle = Box2.CenteredAround((Vector2) tile + new Vector2(0.5f), new Vector2(0.6f));
+        _overhang.Clear();
+        _lookup.GetLocalEntitiesIntersecting(grid.Owner, middle, _overhang, LookupFlags.Static);
+        foreach (var uid in _overhang)
+        {
+            if (TryComp<PhysicsComponent>(uid, out var body) && body.Hard && body.CanCollide)
                 return true;
         }
 
