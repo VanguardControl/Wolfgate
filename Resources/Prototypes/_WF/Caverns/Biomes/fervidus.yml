@@ -57,6 +57,12 @@
     template: WFCavernSignatureFervidus
     threshold: 0.86
     noise: { seed: 55, noiseType: OpenSimplex2, fractalType: Ridged, octaves: 1, frequency: 0.009 }
+  # Slime vaults (_WF/WildSlimes) under the surface's obsidian glass patches, over everything: the patch noise, its seed
+  # less the cavern's seed offset of 7919, at a lower threshold so each vault is a little wider than its patch.
+  - !type:BiomeMetaLayer
+    template: WFCavernSlimeZoneFervidus
+    threshold: 0.65
+    noise: { seed: -7687, noiseType: OpenSimplex2, frequency: 0.005 }
 
 - type: biomeTemplate
   id: WFCavernRockFervidus

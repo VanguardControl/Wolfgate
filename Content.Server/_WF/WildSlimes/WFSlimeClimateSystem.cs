@@ -16,6 +16,9 @@ public sealed class WFSlimeClimateSystem : EntitySystem
     [Dependency] private SharedPhysicsSystem _physics = default!;
     [Dependency] private SharedSolutionContainerSystem _solutions = default!;
 
+    /// <summary>Less gas than this round a slime counts as vacuum.</summary>
+    public const float MinMoles = 1f;
+
     private readonly HashSet<EntityUid> _contacts = new();
 
     public override void Initialize()
@@ -40,7 +43,9 @@ public sealed class WFSlimeClimateSystem : EntitySystem
     /// <summary>Whether the slime's air is in its range and, if it needs one, it touches its pool.</summary>
     public bool InClimate(Entity<WFSlimeClimateComponent> ent)
     {
-        var temperature = _atmos.GetContainingMixture(ent.Owner)?.Temperature ?? Atmospherics.TCMB;
+        // A tile emptied to vacuum keeps its old temperature with no gas in it, so count near-empty air as space.
+        var air = _atmos.GetContainingMixture(ent.Owner);
+        var temperature = air is { TotalMoles: >= MinMoles } ? air.Temperature : Atmospherics.TCMB;
         if (temperature < ent.Comp.MinTemperature || temperature > ent.Comp.MaxTemperature)
             return false;
 

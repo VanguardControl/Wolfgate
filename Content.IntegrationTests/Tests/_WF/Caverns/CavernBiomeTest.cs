@@ -189,6 +189,12 @@ public sealed class CavernBiomeTest
         }
     }
 
+    /// <summary>Wild slime grottos (_WF/WildSlimes) are laid over everything, signatures included.</summary>
+    private static readonly HashSet<string> SlimeGrottoTiles = new()
+    {
+        "WFCavernFloorFleshJelly", "WFCavernFloorFervidusObsidianGlass", "WFCavernFloorAerumnaPinkCrystal",
+    };
+
     /// <summary>Each world's signature feature turns up in 512² around its gate, placed by its own template where one is named.</summary>
     [Test]
     public async Task SignaturePresent()
@@ -214,7 +220,7 @@ public sealed class CavernBiomeTest
 
                     var alone = world.Templates[template];
                     var placed = Enumerable.Range(0, alone.Count).Where(i => signature.Matches(alone, i)).ToList();
-                    var missing = placed.Where(i => !signature.Matches(sample, i)).ToList();
+                    var missing = placed.Where(i => !signature.Matches(sample, i) && !SlimeGrottoTiles.Contains(sample.Tiles[i] ?? string.Empty)).ToList();
                     TestContext.Out.WriteLine($"{world.Surface}: {placed.Count} samples of {signature.What} from {template}, {missing.Count} missing in the cavern.");
 
                     Assert.That(placed, Is.Not.Empty, $"{world.Surface}: {template} places no {signature.What} in {SignatureSize}² around the gate.");

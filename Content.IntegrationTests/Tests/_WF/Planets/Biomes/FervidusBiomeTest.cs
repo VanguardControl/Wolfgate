@@ -26,7 +26,9 @@ public sealed class FervidusBiomeTest
     private const string Tar = "WFFloorFervidusTarPool";
     private const string Sulfur = "WFFloorFervidusSulfurPool";
 
-    private static readonly string[] Ground = { Basalt, Ash, AshRock, AshDirt, Tar, Sulfur };
+    private const string SlimeGlass = "WFFloorFervidusObsidianGlass";
+
+    private static readonly string[] Ground = { Basalt, Ash, AshRock, AshDirt, Tar, Sulfur, SlimeGlass };
 
     private static readonly string[] AshFlora =
     {
