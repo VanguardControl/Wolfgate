@@ -59,6 +59,12 @@
     template: WFCavernSignatureCarcinoma
     threshold: 0.94
     noise: { seed: 55, noiseType: OpenSimplex2, fractalType: Ridged, octaves: 1, frequency: 0.012 }
+  # Slime grottos (_WF/WildSlimes) under the surface's jelly patches, over everything: the patch noise, its seed less
+  # the cavern's seed offset of 7949, at a lower threshold so each grotto is a little wider than its patch.
+  - !type:BiomeMetaLayer
+    template: WFCavernSlimeGrottoCarcinoma
+    threshold: 0.83
+    noise: { seed: -7818, noiseType: OpenSimplex2, frequency: 0.03 }
 
 - type: biomeTemplate
   id: WFCavernRockCarcinoma
