@@ -65,7 +65,7 @@ threat tier. State is on `WFReaverStrongholdComponent` (`Level`, `NextReinforcem
 | level | reinforcement | ship |
 |---|---|---|
 | 1, 2 | `WFReaverReinforcementGunship` | Kalisto, Metis or Bastion: pilot, gunner, captain, 2 hands |
-| 3, 4 | `WFReaverReinforcementHeavy` | Saintie, Vulture or Ganymede: 3 hands, 2 guards, a full crew |
+| 3, 4, 5 (5: Standard and Dangerous) | `WFReaverReinforcementHeavy` | Saintie, Vulture or Ganymede: 3 hands, 2 guards, a full crew |
 
 All are `start: Manual`, `lifetime: Persistent`, off budget, `evades: false` and fly the hub's company and faction.
 
