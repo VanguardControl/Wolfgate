@@ -126,7 +126,12 @@ public sealed class WFNpcBoardingSystem : EntitySystem
             // A rocking hull moves its door a little; re-planning the path for that would keep him from ever arriving.
             if (TryComp(ent, out NPCSteeringComponent? steering)
                 && (_transform.ToMapCoordinates(steering.Coordinates).Position - door.Position).Length() < 0.3f)
-                return;
+            {
+                // A path that came back empty stays that way for the same target: ask again from scratch.
+                if (steering.Status != SteeringStatus.NoPath)
+                    return;
+                _steering.Unregister(ent);
+            }
             if (Transform(ent).GridUid is { } grid)
                 _steering.Register(ent, _transform.ToCoordinates(grid, door));
             else if (Transform(ent).MapUid is { } map)

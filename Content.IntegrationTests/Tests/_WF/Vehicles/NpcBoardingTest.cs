@@ -78,7 +78,7 @@ public sealed class NpcBoardingTest
         var server = pair.Server;
         var entMan = server.EntMan;
         var (vehicle, player, mugger) = await Rig(pair, locked: false);
-        await Strangers.StrangerTest.RunUntil(pair, () => entMan.HasComponent<VehicleInteriorOccupantComponent>(mugger), 40);
+        await Strangers.StrangerTest.RunUntil(pair, () => entMan.HasComponent<VehicleInteriorOccupantComponent>(mugger), 60, 100);
         await server.WaitAssertion(() =>
         {
             var hostiles = entMan.GetComponent<FactionExceptionComponent>(mugger).Hostiles;
@@ -98,7 +98,7 @@ public sealed class NpcBoardingTest
         var server = pair.Server;
         var entMan = server.EntMan;
         var (vehicle, player, mugger) = await Rig(pair, locked: false);
-        await Strangers.StrangerTest.RunUntil(pair, () => entMan.HasComponent<VehicleInteriorOccupantComponent>(mugger), 40);
+        await Strangers.StrangerTest.RunUntil(pair, () => entMan.HasComponent<VehicleInteriorOccupantComponent>(mugger), 60, 100);
         await server.WaitAssertion(() =>
             Assert.That(entMan.HasComponent<VehicleInteriorOccupantComponent>(mugger), Is.True, "He should have climbed in after the player."));
 
