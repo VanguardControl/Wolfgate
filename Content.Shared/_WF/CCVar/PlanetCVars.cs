@@ -143,4 +143,30 @@ public sealed class PlanetCVars
     /// <summary>Navmesh chunks of one planet layer built in one pathfinding update, nearest first.</summary>
     public static readonly CVarDef<int> PathfindingChunkBudget =
         CVarDef.Create("wf.planet_pathfinding_chunk_budget", 96, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Whether a world's sites, wrecks, camps and city blocks nobody is near are paused where they stand, and woken as
+    /// someone comes. Off, everything on a world runs all round.
+    /// </summary>
+    public static readonly CVarDef<bool> SiteStash =
+        CVarDef.Create("wf.planet_site_stash", true, CVar.SERVERONLY);
+
+    /// <summary>Seconds a site must have nobody within <see cref="SiteStashRange"/> before it is paused again.</summary>
+    public static readonly CVarDef<float> SiteStashIdle =
+        CVarDef.Create("wf.planet_site_stash_idle", 180f, CVar.SERVERONLY);
+
+    /// <summary>Metres from a site's edge within which a player wakes it; past what a player can see.</summary>
+    public static readonly CVarDef<float> SiteRestoreRange =
+        CVarDef.Create("wf.planet_site_restore_range", 64f, CVar.SERVERONLY);
+
+    /// <summary>Metres from a site's edge beyond which it may be paused once idle.</summary>
+    public static readonly CVarDef<float> SiteStashRange =
+        CVarDef.Create("wf.planet_site_stash_range", 96f, CVar.SERVERONLY);
+
+    /// <summary>
+    /// Milliseconds a tick may spend pausing and waking sites. A site a player is about to see is woken whole that
+    /// tick regardless.
+    /// </summary>
+    public static readonly CVarDef<float> SiteStashBudget =
+        CVarDef.Create("wf.planet_site_stash_budget", 2f, CVar.SERVERONLY);
 }

@@ -6,6 +6,7 @@ using Content.Shared._WF.Vehicles.Core;
 using Robust.Shared.Enums;
 using Robust.Shared.Player;
 using Robust.Shared.Timing;
+using Robust.Shared.Utility;
 
 namespace Content.Server._WF.Dormancy;
 
@@ -29,6 +30,7 @@ public sealed class WFDormancySystem : EntitySystem
 
     private readonly HashSet<(EntityUid Network, Vector2i Chunk)> _active = new();
     private readonly HashSet<EntityUid> _activeNetworks = new();
+    private readonly Dictionary<EntityUid, List<Vector2>> _viewers = new();
     private readonly Dictionary<EntityUid, EntityUid?> _networkOf = new();
     private TimeSpan _nextRefresh;
 
@@ -73,6 +75,22 @@ public sealed class WFDormancySystem : EntitySystem
         return _activeNetworks.Contains(network);
     }
 
+    /// <summary>
+    /// Where on a planet anyone can see from: players' bodies (a vehicle, for someone in its cabin) and the eyes they
+    /// watch through. Positions are shared by every layer of the planet.
+    /// </summary>
+    public IReadOnlyList<Vector2> Viewers(EntityUid network)
+    {
+        Refresh();
+        return _viewers.TryGetValue(network, out var viewers) ? viewers : Array.Empty<Vector2>();
+    }
+
+    /// <summary>The planet a map is a layer of, or null off-planet and on an orbit layer.</summary>
+    public EntityUid? PlanetOf(EntityUid map)
+    {
+        return NetworkOf(map);
+    }
+
     /// <summary>Drops the cached player positions, so the next question sees where everyone is now.</summary>
     public void Invalidate()
     {
@@ -105,12 +123,18 @@ public sealed class WFDormancySystem : EntitySystem
         _active.Clear();
         _activeNetworks.Clear();
         _networkOf.Clear();
+        foreach (var viewers in _viewers.Values)
+        {
+            viewers.Clear();
+        }
 
         var reach = (int) MathF.Ceiling(Range / ChunkSize);
         foreach (var session in _players.Sessions)
         {
             if (session.Status != SessionStatus.InGame || session.AttachedEntity is not { } body)
                 continue;
+
+            AddEyes(session);
 
             // In a vehicle's cabin a player is wherever the vehicle is.
             if (_occupantQuery.TryComp(body, out var occupant) && Exists(occupant.Vehicle))
@@ -120,12 +144,24 @@ public sealed class WFDormancySystem : EntitySystem
                 continue;
 
             _activeNetworks.Add(network);
-            var centre = ChunkOf(_transform.GetWorldPosition(xform));
+            var position = _transform.GetWorldPosition(xform);
+            _viewers.GetOrNew(network).Add(position);
+            var centre = ChunkOf(position);
             for (var x = -reach; x <= reach; x++)
             for (var y = -reach; y <= reach; y++)
             {
                 _active.Add((network, centre + new Vector2i(x, y)));
             }
+        }
+    }
+
+    /// <summary>Notes the eyes a player watches through, such as a camera, as viewers of their planet.</summary>
+    private void AddEyes(ICommonSession session)
+    {
+        foreach (var eye in session.ViewSubscriptions)
+        {
+            if (_xformQuery.TryComp(eye, out var xform) && xform.MapUid is { } map && NetworkOf(map) is { } network)
+                _viewers.GetOrNew(network).Add(_transform.GetWorldPosition(xform));
         }
     }
 

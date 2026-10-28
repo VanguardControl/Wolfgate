@@ -103,6 +103,9 @@ public sealed class WFPlanetPoiSite
     /// <summary>Whether someone may live here (see <see cref="WFPlanetPoiEntry.Dwelling"/>).</summary>
     public bool Dwelling;
 
+    /// <summary>Whether this is a fixed city, whose levels span the world's layers.</summary>
+    public bool City;
+
     /// <summary>Openings in the site's floor down to the level under it, over its stairs.</summary>
     public HashSet<Vector2i> Shafts = new();
 
