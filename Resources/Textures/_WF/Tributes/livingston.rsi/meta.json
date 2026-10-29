@@ -1,7 +1,7 @@
 {
   "version": 1,
   "license": "CC-BY-SA-3.0",
-  "copyright": "Aquarium and fish sprites from Meridian Rift (tgstation lineage), https://github.com/tgstation/tgstation; lionfish recolour and swim frames by Wolfgate, made with Tools/_WF/Tributes/livingston.py",
+  "copyright": "Aquarium and fish sprites from Meridian Rift (tgstation lineage), https://github.com/tgstation/tgstation; lionfish recolour and swim frames by Wolfgate",
   "size": {
     "x": 32,
     "y": 32
