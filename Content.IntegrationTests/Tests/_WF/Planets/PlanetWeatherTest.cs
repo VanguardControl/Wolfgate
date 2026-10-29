@@ -10,6 +10,7 @@ using Content.Server._WF.Planets;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
+using Content.Shared._WF.WolfWeather;
 using Content.Shared.Weather;
 using Content.Shared.Maps;
 using Robust.Shared.Map;
@@ -301,6 +302,42 @@ public sealed class PlanetWeatherTest
             var network = em.GetComponent<CEZMapComponent>(layers[0]).NetworkUid;
             Assert.That(em.GetComponent<WFPlanetWeatherComponent>(network).Current, Is.Null, "Weather came while it is switched off.");
             Assert.That(em.TryGetComponent<WeatherComponent>(layers[0], out var ground) && ground.Weather.Count > 0, Is.False);
+        });
+        await Teardown(pair, layers);
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>An admin's weather shows and holds for its time while the cycle is off, then the world goes clear.</summary>
+    [Test]
+    public async Task AdminWeatherHoldsWhileTheCycleIsOff()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        await EnableFeature(pair);
+        var layers = await BuildStandalone(pair);
+        var server = pair.Server;
+        var weathers = server.System<WFPlanetWeatherSystem>();
+        EntityUid network = default;
+        ProtoId<WeatherPrototype> rain = default;
+        await server.WaitPost(() =>
+        {
+            network = server.EntMan.GetComponent<CEZMapComponent>(layers[0]).NetworkUid;
+            var state = server.EntMan.GetComponent<WFPlanetWeatherComponent>(network);
+            rain = server.ResolveDependency<IPrototypeManager>().Index(state.Profile).Storms[0].Main;
+            Assert.That(weathers.SetWeather(network, rain, TimeSpan.FromSeconds(5)), Is.True);
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(2f));
+        await server.WaitAssertion(() =>
+        {
+            var state = server.EntMan.GetComponent<WFPlanetWeatherComponent>(network);
+            Assert.That(state.Current, Is.EqualTo(rain), "The cycle being off cleared an admin's weather.");
+            Assert.That(server.EntMan.TryGetComponent<WolfWeatherMapComponent>(layers[0], out var wolf)
+                && SharedWolfWeatherSystem.GetCurrent(wolf)?.Weather == weathers.ResolveWolfWeather(state.Profile, rain), Is.True,
+                "The admin's weather isn't shown on the ground.");
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(5f));
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(server.EntMan.GetComponent<WFPlanetWeatherComponent>(network).Current, Is.Null, "The admin's weather outlasted its time.");
         });
         await Teardown(pair, layers);
         await pair.CleanReturnAsync();

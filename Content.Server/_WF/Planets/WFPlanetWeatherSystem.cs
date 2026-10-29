@@ -51,7 +51,10 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
         {
             if (MetaData(uid).EntityPaused || !_proto.TryIndex(state.Profile, out var profile))
                 continue;
-            if (!_cfg.GetCVar(PlanetCVars.PlanetWeather))
+            if (state.AdminHeld && _timing.CurTime >= state.NextChange)
+                state.AdminHeld = false;
+            // An admin's weather holds even while the cycle is off, until its time is up.
+            if (!_cfg.GetCVar(PlanetCVars.PlanetWeather) && !state.AdminHeld)
             {
                 // Held clear: anything already falling stops, and nothing new is scheduled.
                 state.Current = null;

@@ -20,6 +20,8 @@ public sealed partial class WFPlanetWeatherComponent : Component
 
     /// <summary>Where a phased storm has got to; <see cref="WFStormPhase.None"/> under clear skies.</summary>
     [DataField] public WFStormPhase Phase;
+    /// <summary>An admin set this weather; it holds until <see cref="NextChange"/> even while planet weather is off.</summary>
+    [DataField] public bool AdminHeld;
 
     /// <summary>Index into the profile's storms of the one running.</summary>
     [DataField] public int Storm;
