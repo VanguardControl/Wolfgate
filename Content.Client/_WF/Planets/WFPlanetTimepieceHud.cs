@@ -10,19 +10,22 @@ namespace Content.Client._WF.Planets;
 public sealed class WFPlanetTimepieceHud : PanelContainer
 {
     public const float PanelWidth = 164f;
+    public const float PanelHeight = 84f;
 
     private readonly Label _planet;
     private readonly Label _time;
     private readonly Label _weather;
+    private readonly Label _climate;
 
     public string PlanetText => _planet.Text ?? string.Empty;
     public string TimeText => _time.Text ?? string.Empty;
     public string WeatherText => _weather.Text ?? string.Empty;
+    public string ClimateText => _climate.Text ?? string.Empty;
 
     public WFPlanetTimepieceHud(IResourceCache resources)
     {
         SetWidth = PanelWidth;
-        MinSize = new Vector2(PanelWidth, 72);
+        MinSize = new Vector2(PanelWidth, PanelHeight);
         MouseFilter = Control.MouseFilterMode.Ignore;
 
         var panel = new StyleBoxFlat
@@ -53,14 +56,19 @@ public sealed class WFPlanetTimepieceHud : PanelContainer
         _planet = MakeLabel(regular, Color.FromHex("#A8C8BE"));
         _time = MakeLabel(clock, Color.FromHex("#D8FFF2"));
         _weather = MakeLabel(regular, Color.FromHex("#78AA9B"));
+        _climate = MakeLabel(regular, Color.FromHex("#A8C8BE"));
 
         column.AddChild(_planet);
         column.AddChild(_time);
         column.AddChild(_weather);
+        column.AddChild(_climate);
     }
 
-    public void SetReadout(string planet, string time, string weather)
+    public void SetReadout(string planet, string time, string weather, string climate = "", Color? climateColor = null)
     {
+        if (_climate.Text != climate)
+            _climate.Text = climate;
+        _climate.FontColorOverride = climateColor ?? Color.FromHex("#A8C8BE");
         if (_planet.Text != planet)
             _planet.Text = planet;
         if (_time.Text != time)

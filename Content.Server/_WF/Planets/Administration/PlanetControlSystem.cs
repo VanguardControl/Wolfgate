@@ -22,6 +22,7 @@ public sealed partial class PlanetControlSystem : EntitySystem
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WFPlanetWeatherSystem _weather = default!;
+    [Dependency] private WFPlanetClimateSystem _climate = default!;
     [Dependency] private CEZLevelsSystem _zLevels = default!;
 
     /// <summary>Gravity an admin may set, in gees; zero would divide every lift ratio by nothing.</summary>
@@ -81,6 +82,23 @@ public sealed partial class PlanetControlSystem : EntitySystem
 
                 if (TryComp<WFPlanetLayerComponent>(network.GroundMap, out var ground))
                     info.Gravity = ground.Gravity;
+
+                if (TryComp<WFPlanetWeatherComponent>(world, out var state) && _proto.TryIndex(state.Profile, out var profile))
+                {
+                    foreach (var season in profile.Seasons)
+                    {
+                        info.SeasonIds.Add(season.Id);
+                        info.SeasonNames.Add(season.Name);
+                    }
+
+                    if (_weather.GetSeasonIndex(state, profile, _timing.CurTime, out var left) is { } index)
+                    {
+                        info.Season = profile.Seasons[index].Id;
+                        info.SeasonSecondsLeft = left;
+                    }
+                }
+
+                info.Temperature = _climate.GetOutsideTemperature(world.Value) ?? float.NaN;
             }
 
             list.Add(info);
@@ -122,6 +140,9 @@ public sealed partial class PlanetControlSystem : EntitySystem
                 if (_weather.SetWeather(world.Value, weather, TimeSpan.FromSeconds(seconds)))
                     changes.Add($"weather={(weather?.Id ?? "clear")} for {seconds:F0}s");
             }
+
+            if (!string.IsNullOrEmpty(ev.Season) && _weather.SetSeason(world.Value, ev.Season))
+                changes.Add($"season={ev.Season}");
 
             if (ev.Gravity is { } gravity)
             {

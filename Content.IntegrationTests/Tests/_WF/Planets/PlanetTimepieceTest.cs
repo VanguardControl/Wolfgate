@@ -59,11 +59,11 @@ public sealed class PlanetTimepieceTest
         await client.WaitAssertion(() =>
         {
             var panel = new WFPlanetTimepieceHud(client.ResolveDependency<IResourceCache>());
-            panel.SetReadout("Asclepiu", "08:00", "Clear");
+            panel.SetReadout("Asclepiu", "08:00", "Clear", "Spring · 14°C");
             panel.Measure(new Vector2(164, 90));
             panel.Arrange(UIBox2.FromDimensions(Vector2.Zero, new Vector2(164, 90)));
             var labels = panel.Children.Single().Children.OfType<Label>().ToArray();
-            Assert.That(labels.Length, Is.EqualTo(3));
+            Assert.That(labels.Length, Is.EqualTo(4));
             Assert.That(labels.All(label => label.Width > 100 && label.Height > 0), Is.True,
                 "Clipped labels must receive real layout width, not just contain text.");
         });

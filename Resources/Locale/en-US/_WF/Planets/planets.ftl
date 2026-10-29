@@ -67,6 +67,9 @@ wf-planet-control-refresh = Refresh
 wf-planet-control-none = No worlds in this sector
 wf-planet-control-not-built = Not built yet: nobody has visited. Only the sanction can be set.
 wf-planet-control-status = { $time } local, { $weather } shown as { $wolf } ({ $seconds } s to next change), { $gravity } g
+wf-planet-control-climate = { $season }, { $temperature } outside ({ $left } min of the season left)
+wf-planet-control-climate-none = No seasons, { $temperature } outside
+wf-planet-control-season = Season
 wf-planet-control-time = Time
 wf-planet-control-set = Set
 wf-planet-control-dawn = Dawn
@@ -78,11 +81,12 @@ wf-planet-control-weather-clear = Clear
 wf-planet-control-weather-seconds = Seconds the weather holds before the planet's own cycle resumes
 wf-planet-control-gravity = Gravity
 wf-planet-control-sanctioned = Sanctioned world
-cmd-planetcontrol-desc = Lists the sector's worlds, or sets one's time, weather, gravity or sanction.
-cmd-planetcontrol-help = Usage: planetcontrol [<planet> time <HH:MM> | weather <id|clear> [seconds] | gravity <g> | sanctioned <true|false>]
+cmd-planetcontrol-desc = Lists the sector's worlds, or sets one's time, weather, season, gravity or sanction.
+cmd-planetcontrol-help = Usage: planetcontrol [<planet> time <HH:MM> | weather <id|clear> [seconds] | season <id> | gravity <g> | sanctioned <true|false>]
 cmd-planetcontrol-invalid-args = Unknown planet, field or value.
 cmd-planetcontrol-no-change = Nothing changed.
-cmd-planetcontrol-row = { $planet }: { $time }, { $weather } shown as { $wolf }, { $gravity }g, sanctioned={ $sanctioned }
+cmd-planetcontrol-row = { $planet }: { $time }, { $weather } shown as { $wolf }, season { $season }, { $temperature }, { $gravity }g, sanctioned={ $sanctioned }
+cmd-planetcontrol-season-none = none
 cmd-planetcontrol-row-unbuilt = { $planet }: not built, sanctioned={ $sanctioned }
 cmd-planetcontrol-weather-clear = clear
 cmd-planetcontrol-applied = { $planet }: { $changes }

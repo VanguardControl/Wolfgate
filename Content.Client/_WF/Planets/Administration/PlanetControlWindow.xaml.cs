@@ -22,6 +22,7 @@ public sealed partial class PlanetControlWindow : DefaultWindow
 
     private List<PlanetControlInfo> _list = new();
     private readonly List<string> _weatherIds = new();
+    private readonly List<string> _seasonIds = new();
     private NetEntity? _selected;
 
     /// <summary>True while the controls are being filled in, so the checkbox does not answer its own update.</summary>
@@ -51,6 +52,8 @@ public sealed partial class PlanetControlWindow : DefaultWindow
         }
 
         WeatherOption.OnItemSelected += args => WeatherOption.SelectId(args.Id);
+        SeasonOption.OnItemSelected += args => SeasonOption.SelectId(args.Id);
+        SeasonButton.OnPressed += _ => SendSeason();
         PlanetList.OnItemSelected += args =>
         {
             _selected = (NetEntity?) PlanetList[args.ItemIndex].Metadata;
@@ -124,6 +127,8 @@ public sealed partial class PlanetControlWindow : DefaultWindow
                     ("seconds", info.WeatherSeconds.ToString("F0")),
                     ("gravity", info.Gravity.ToString("F2")))
                 : Loc.GetString("wf-planet-control-not-built");
+        ClimateLabel.Text = info is not { Built: true } ? string.Empty : ClimateText(info);
+        FillSeasons(info);
 
         foreach (var control in new Control[] { TimeEdit, TimeButton, DawnButton, NoonButton, DuskButton, MidnightButton, WeatherButton, GravityButton })
         {
@@ -154,6 +159,50 @@ public sealed partial class PlanetControlWindow : DefaultWindow
         }
 
         _filling = false;
+    }
+
+    private static string ClimateText(PlanetControlInfo info)
+    {
+        var temperature = float.IsNaN(info.Temperature)
+            ? "-"
+            : Loc.GetString("wf-planet-temperature", ("celsius", MathF.Round(info.Temperature - 273.15f)));
+        var index = info.SeasonIds.IndexOf(info.Season);
+        if (index < 0)
+            return Loc.GetString("wf-planet-control-climate-none", ("temperature", temperature));
+        return Loc.GetString("wf-planet-control-climate",
+            ("season", Loc.GetString(info.SeasonNames[index])),
+            ("temperature", temperature),
+            ("left", MathF.Ceiling(info.SeasonSecondsLeft / 60f)));
+    }
+
+    /// <summary>Lists the selected world's seasons, keeping the admin's pick while it is still one of them.</summary>
+    private void FillSeasons(PlanetControlInfo? info)
+    {
+        var ids = info?.SeasonIds ?? new List<string>();
+        if (!ids.SequenceEqual(_seasonIds))
+        {
+            SeasonOption.Clear();
+            _seasonIds.Clear();
+            for (var i = 0; i < ids.Count; i++)
+            {
+                SeasonOption.AddItem(Loc.GetString(info!.SeasonNames[i]), i);
+                _seasonIds.Add(ids[i]);
+            }
+
+            var current = _seasonIds.IndexOf(info?.Season ?? string.Empty);
+            if (current >= 0)
+                SeasonOption.SelectId(current);
+        }
+
+        var usable = info is { Built: true } && _seasonIds.Count > 1;
+        SeasonOption.Disabled = !usable;
+        SeasonButton.Disabled = !usable;
+    }
+
+    private void SendSeason()
+    {
+        if (_selected is { } planet && SeasonOption.SelectedId >= 0 && SeasonOption.SelectedId < _seasonIds.Count)
+            _planets.Send(new PlanetControlSetEvent { Planet = planet, Season = _seasonIds[SeasonOption.SelectedId] });
     }
 
     private void SendTime(string text)

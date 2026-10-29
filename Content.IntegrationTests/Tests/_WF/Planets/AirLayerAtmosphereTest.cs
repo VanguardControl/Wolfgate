@@ -40,6 +40,8 @@ public sealed class AirLayerAtmosphereTest
 
         await EnableFeature(pair);
         var layers = await BuildStandalone(pair);
+        // The climate sets the world's outdoor air on its first pass; a room sealed before then keeps the old air.
+        await server.WaitRunTicks(pair.SecondsToTicks(2.5f));
         var orbit = layers[^1];
         var room = Area(new Vector2i(1, 1), new Vector2i(3, 3)).ToList();
         var deck = Area(new Vector2i(6, 0), new Vector2i(8, 4)).ToList();
