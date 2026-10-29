@@ -9,6 +9,7 @@ using Content.Server.Atmos.EntitySystems;
 using Content.Server.Chat.Systems;
 using Content.Server.Light.EntitySystems;
 using Content.Shared._WF.CavernEncounters;
+using Content.Shared._WF.Planets;
 using Content.Shared.Atmos;
 using Content.Shared.Chat;
 using Content.Shared.Damage;
@@ -57,7 +58,10 @@ public sealed class CavernEncounterTest
 
     private static readonly ProtoId<WFCavernEncounterPrototype> MinerCamp = "WFCavernEncounterMinerCamp";
 
-    /// <summary>Every world plans its count of encounters on its cavern alone, no two alike, spaced apart and clear of the centre.</summary>
+    /// <summary>
+    /// Every world plans its area's count of encounters on its cavern alone, no kind past its limit, the first ones near
+    /// the gate, spaced apart and clear of the centre; bigger worlds plan more.
+    /// </summary>
     [Test]
     public async Task EveryCavernPlansSpacedEncounters()
     {
@@ -69,6 +73,7 @@ public sealed class CavernEncounterTest
 
         await EnableCaverns(pair);
         await DisableClaims(pair);
+        var counts = new List<(int Radius, int Count)>();
 
         foreach (var surface in Surfaces)
         {
@@ -81,8 +86,27 @@ public sealed class CavernEncounterTest
                     var sites = system.GetSites(world.Cavern);
                     var centre = entMan.GetComponent<WFCavernGroundComponent>(world.Ground).Centre;
 
-                    Assert.That(sites, Has.Count.EqualTo(Math.Min(table.Count, table.Encounters.Count)), $"{surface} planned the wrong number.");
-                    Assert.That(sites.Select(s => s.Encounter).Distinct().Count(), Is.EqualTo(sites.Count), $"{surface} repeats an encounter.");
+                    var radius = proto.Index<WFPlanetSurfacePrototype>(surface).Radius;
+                    var planned = WFCavernEncounterSystem.PlannedCount(table, radius);
+                    TestContext.Out.WriteLine($"{surface}: radius {radius}, {sites.Count} encounters planned " +
+                        $"({string.Join(", ", sites.GroupBy(s => s.Encounter.Id).Select(g => $"{g.Key.Replace("WFCavernEncounter", string.Empty)} {g.Count()}"))})");
+                    counts.Add((radius, sites.Count));
+
+                    Assert.That(sites, Has.Count.EqualTo(planned), $"{surface} planned the wrong number.");
+                    Assert.That(planned, Is.EqualTo((int) MathF.Round(WFCavernEncounterSystem.RingArea(radius) / WFCavernEncounterSystem.AreaUnit * table.PerArea)),
+                        $"{surface}'s count isn't its area's.");
+                    foreach (var (kind, limit) in table.Limits)
+                    {
+                        Assert.That(sites.Count(s => s.Encounter == kind), Is.LessThanOrEqualTo(limit), $"{surface} has too many {kind}.");
+                    }
+
+                    for (var i = 0; i < Math.Min(table.NearGate, sites.Count); i++)
+                    {
+                        Assert.That(Vector2.Distance(Middle(sites[i].Planned), centre),
+                            Is.LessThanOrEqualTo(WFCavernEncounterSystem.CentreClearance + WFCavernEncounterSystem.NearGateReach + 1f),
+                            $"{surface}: the gate's encounter {sites[i].Encounter} is far from the gate.");
+                    }
+
                     Assert.That(entMan.HasComponent<WFCavernEncounterLayerComponent>(world.Ground), Is.False, "The ground has encounters.");
 
                     for (var i = 0; i < sites.Count; i++)
@@ -102,6 +126,14 @@ public sealed class CavernEncounterTest
             finally
             {
                 await Teardown(pair, world);
+            }
+        }
+
+        foreach (var bigger in counts)
+        {
+            foreach (var smaller in counts.Where(c => c.Radius < bigger.Radius))
+            {
+                Assert.That(bigger.Count, Is.GreaterThan(smaller.Count), $"A world of radius {bigger.Radius} plans no more than one of {smaller.Radius}.");
             }
         }
 
@@ -523,7 +555,7 @@ public sealed class CavernEncounterTest
 
             var imported = resources.ContentFindFiles(new ResPath(AudioRoot)).Where(p => p.Extension == "ogg").Select(p => p.ToString()).ToList();
             Assert.That(imported, Is.Not.Empty);
-            Assert.That(imported.Count, Is.LessThanOrEqualTo(12), "Keep the encounter import curated.");
+            Assert.That(imported.Count, Is.LessThanOrEqualTo(16), "Keep the encounter import curated.");
             Assert.That(imported.Where(p => !used.Contains(p)), Is.Empty, "An imported encounter sound is used by no collection.");
         });
 

@@ -43,6 +43,11 @@
     loot:
     - ScrapSteel
     - PartRodMetal1
+  - type: WFCavernTelegraph
+    sound:
+      collection: WFCavernEncounterRaiderChatter
+    minInterval: 15
+    maxInterval: 35
 
 - type: entity
   parent: WFMobTunnelRaiderBase
