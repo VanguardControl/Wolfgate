@@ -5,6 +5,9 @@ Paces the material economy so the faction voucher ladder takes about 150 minutes
 - Ores: gold, silver, plasma and uranium veins drop single ores, about two thirds of upstream. Lithium drops 1-2 per
   vein and is the main tuning knob. Sand and chromite rocks spawn in the 9 km ring at half their old weight and in
   the Wilds; andesite leaves the ring.
+- Smelting: steel, glass, gold, silver, plasma, uranium, bananium, plasteel and the glass blends are worth 1.5 times
+  the ore (and coal) their lathe recipe uses, so smelting pays better than selling raw ore. `SmeltingValueTest` keeps
+  every ore-smelting recipe at least 1.2 times its input value.
 - Scrap: the scrap processor smelts strategic sheets at 250 raw scrap (lithium 1,000) with the upgrade discount, and
   diamond and bluespace at 16,000 without it. Lathe upgrade kits don't fit ore processors, except the hyper-convection kit. Plastitanium is uncommon
   in scrap rolls and drone loot, and the crystallizer makes five plastitanium (`WFSheetPlastitanium5`) per batch from
@@ -36,6 +39,7 @@ networked audio entity per cluster instead of one per rock. `GatherSoundThrottle
 - [`Content.IntegrationTests/Tests/_WF/Mining/GasSaleConsoleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Mining/GasSaleConsoleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Mining/GatherSoundThrottleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Mining/GatherSoundThrottleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Mining/OreProcessorUpgradeKitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Mining/OreProcessorUpgradeKitTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Mining/SmeltingValueTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Mining/SmeltingValueTest.cs)
 
 ### Prototypes
 
@@ -116,5 +120,16 @@ networked audio entity per cluster instead of one per rock. `GatherSoundThrottle
 - [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml)
   - lathe upgrade kits don't fit ore processors; Structure repeats BaseStructure's tag
   - smaller matter-bin bonus on the industrial processor, 0.92 -> 0.97
+- [`Resources/Prototypes/Reagents/Materials/glass.yml`](../../../Resources/Prototypes/Reagents/Materials/glass.yml)
+  - was 0.075; 1.5x the raw materials its recipe smelts
+  - was 0.0836; 1.5x the raw materials its recipe smelts
+  - was 0.22; 1.5x the raw materials its recipe smelts
+  - was 0.2436; 1.5x the raw materials its recipe smelts
+- [`Resources/Prototypes/Reagents/Materials/materials.yml`](../../../Resources/Prototypes/Reagents/Materials/materials.yml): was 0.2; 1.5x the raw materials its recipe smelts
+- [`Resources/Prototypes/Reagents/Materials/metals.yml`](../../../Resources/Prototypes/Reagents/Materials/metals.yml)
+  - was 0.059; 1.5x the raw materials its recipe smelts
+  - was 0.2; 1.5x the raw materials its recipe smelts
+  - was 0.15; 1.5x the raw materials its recipe smelts
+  - was 0.2544; 1.5x the raw materials its recipe smelts
 
 <!-- WOLFGATE-GENERATED END -->

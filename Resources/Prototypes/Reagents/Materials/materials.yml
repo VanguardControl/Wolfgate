@@ -73,7 +73,7 @@
   name: materials-plasma
   icon: { sprite: Objects/Materials/Sheets/other.rsi, state: plasma }
   color: "#7e009e"
-  price: 0.2 # $35 for 1 unit # Frontier: 0.35<0.2 TODO - materials rebalance
+  price: 0.3 # WOLFGATE(Mining): was 0.2; 1.5x the raw materials its recipe smelts
   properties: # FH edit
     electrical: 5
     thermal: 3
@@ -117,7 +117,7 @@
   name: materials-uranium
   icon: { sprite: Objects/Materials/Sheets/other.rsi, state: uranium }
   color: "#32a852"
-  price: 0.2 # $85 for 1 unit # Frontier: 0.85<0.2 TODO - materials rebalance
+  price: 0.3 # WOLFGATE(Mining): was 0.2; 1.5x the raw materials its recipe smelts
   properties: # FH edit
     electrical: 4
     thermal: 3
@@ -134,7 +134,7 @@
   unit: materials-unit-bunch
   icon: { sprite: Objects/Materials/materials.rsi, state: bananium }
   color: "#32a852"
-  price: 0.2 # $100 for 1 unit # Frontier: 1.0<0.2 TODO - materials rebalance
+  price: 0.3 # WOLFGATE(Mining): was 0.2; 1.5x the raw materials its recipe smelts
   # Interpolated properties, 50/50 biomass/uranium
   properties: # FH edit
     electrical: 4
