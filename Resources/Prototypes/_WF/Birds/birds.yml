@@ -39,6 +39,14 @@
         - SmallMobMask
         layer:
         - SmallMobLayer
+      # Where a flying bird is drawn, above its shadow: shots take it there. No layer until it takes off.
+      flight:
+        shape:
+          !type:PhysShapeCircle
+          position: 0, 0.5
+          radius: 0.35
+        density: 1
+        hard: true # rays only see hard fixtures; with no mask it pushes nothing
   - type: MobThresholds
     thresholds:
       0: Alive

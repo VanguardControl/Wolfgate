@@ -159,6 +159,35 @@ public sealed class BirdTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A shot aimed where a flying bird is drawn hits it, hitscan and lasers included.</summary>
+    [Test]
+    public async Task HitscanHitsAFlyingBird()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await Rig(pair, wall: false);
+        var bird = await SpawnLoneBird(pair, map, "WFMobBirdAsclepiuGull", new Vector2(4.5f, 0.5f));
+        await pair.RunSeconds(0.5f);
+
+        await server.WaitAssertion(() =>
+        {
+            var comp = entMan.GetComponent<WFBirdComponent>(bird);
+            comp.CircleTime = Vector2.Zero;
+            server.System<WFBirdSystem>().TakeOff(bird, comp, new Vector2(4.5f, 30.5f));
+            Assert.That(comp.State, Is.Not.EqualTo(WFBirdState.Perched));
+
+            var physics = server.System<SharedPhysicsSystem>();
+            var at = server.System<SharedTransformSystem>().GetMapCoordinates(bird);
+            // Level with the drawn bird, half a tile above its shadow, as the hitscan raycast does.
+            var from = at.Position + new Vector2(-4f, 0.5f);
+            var ray = new CollisionRay(from, Vector2.UnitX, (int) Content.Shared.Physics.CollisionGroup.Opaque);
+            var hits = physics.IntersectRay(at.MapId, ray, 8f, returnOnFirstHit: false).Select(hit => hit.HitEntity);
+            Assert.That(hits, Does.Contain(bird), "A hitscan shot at the drawn bird missed it.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task FlyingBirdPassesOverAWall()
     {

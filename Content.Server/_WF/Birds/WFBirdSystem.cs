@@ -662,7 +662,8 @@ public sealed class WFBirdSystem : EntitySystem
             {
                 bird.SavedFixtures[id] = (fixture.CollisionLayer, fixture.CollisionMask);
                 _physics.SetCollisionMask(uid, id, fixture, 0, fixtures);
-                _physics.SetCollisionLayer(uid, id, fixture, (int) CollisionGroup.BulletImpassable, fixtures);
+                // Bullets, lasers and hitscan still find it; walls and mobs don't.
+                _physics.SetCollisionLayer(uid, id, fixture, (int) CollisionGroup.SmallMobLayer, fixtures);
             }
             return;
         }
