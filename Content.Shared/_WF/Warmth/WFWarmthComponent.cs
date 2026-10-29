@@ -11,7 +11,8 @@ namespace Content.Shared._WF.Warmth;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true)]
 public sealed partial class WFWarmthComponent : Component
 {
-    public override bool SendOnlyToOwner => true;
+    // Not owner-only: dirtying an owner-only component leaves every other viewer an empty entity state, which PVS
+    // reports as an error. Only players' bodies are dirtied (WFWarmthSystem), so other mobs send nothing.
 
     /// <summary>The air temperature on the body's own tile in whole degrees Celsius; null in vacuum.</summary>
     [DataField, AutoNetworkedField]

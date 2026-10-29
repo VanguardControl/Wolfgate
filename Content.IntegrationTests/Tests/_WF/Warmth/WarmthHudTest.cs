@@ -79,7 +79,8 @@ public sealed class WarmthHudTest
             insideHere = indoors.HereCelsius!.Value;
             TestContext.Out.WriteLine($"planet air {planetKelvin - 273.15f:F1} °C, heated room {roomKelvin - 273.15f:F1} °C");
 
-            Assert.That(outsideHere, Is.EqualTo((int) MathF.Round(planetKelvin - 273.15f)),
+            // The climate keeps moving the planet's air, so the reading may be a step behind it.
+            Assert.That(outsideHere, Is.EqualTo((int) MathF.Round(planetKelvin - 273.15f)).Within(1),
                 "The reading outdoors is not the planet's air.");
             Assert.That(insideHere, Is.EqualTo((int) MathF.Round(roomKelvin - 273.15f)),
                 "The reading indoors is not the room's air.");

@@ -89,7 +89,14 @@ public sealed partial class WFWarmthSystem : SharedWFWarmthSystem
         base.Initialize();
         SubscribeLocalEvent<WFWarmthComponent, ModifyChangedTemperatureEvent>(OnModifyTemperature);
         SubscribeLocalEvent<WFWarmthComponent, ExaminedEvent>(OnExamined);
+        SubscribeLocalEvent<WFWarmthComponent, PlayerAttachedEvent>(OnPlayerAttached);
         InitializeClothing();
+    }
+
+    /// <summary>A player taking over a body gets its warmth as it stands, since an unplayed body sends none.</summary>
+    private void OnPlayerAttached(Entity<WFWarmthComponent> ent, ref PlayerAttachedEvent args)
+    {
+        Dirty(ent);
     }
 
     public override void Update(float frameTime)
@@ -145,7 +152,8 @@ public sealed partial class WFWarmthSystem : SharedWFWarmthSystem
         dirty |= UpdateWetness(body, comp, xform, open, wetting, seconds);
         dirty |= UpdateFeel(body, comp, temperature);
 
-        if (dirty)
+        // Only a player's client reads this; an NPC's stays on the server.
+        if (dirty && HasComp<ActorComponent>(body))
             Dirty(body, comp);
     }
 
