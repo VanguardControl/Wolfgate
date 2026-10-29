@@ -1,0 +1,53 @@
+# Example schedule:
+#
+# - type: weatherSchedule
+#   id: MySchedule
+#   gap:
+#     min: 6m
+#     max: 15m
+#   weathers:
+#   - weather: RainLight
+#     weight: 2
+#     duration:
+#       min: 4m
+#       max: 10m
+#   - weather: RainHeavy
+#     weight: 1
+#     duration:
+#       min: 2m
+#       max: 5m
+#     windAngle: # Overrides the weather's wind direction. Degrees, 0 is east.
+#       min: 150
+#       max: 210
+
+- type: weatherSchedule
+  id: Carcinoma
+  gap:
+    min: 1m
+    max: 3m
+  weathers:
+  - weather: BloodHaze
+    weight: 2
+    duration:
+      min: 1m
+      max: 3m
+  - weather: BloodFog
+    weight: 1
+    duration:
+      min: 1m
+      max: 3m
+  - weather: BloodRainLight
+    weight: 2
+    duration:
+      min: 1m
+      max: 3m
+  - weather: BloodRain
+    weight: 1
+    duration:
+      min: 1m
+      max: 3m
+  - weather: BloodRainHeavy
+    weight: 1
+    duration:
+      min: 1m
+      max: 2m

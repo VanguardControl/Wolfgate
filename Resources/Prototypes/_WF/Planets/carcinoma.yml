@@ -55,6 +55,8 @@
   groundComponents:
   - type: CEZLevelRoof
   - type: CEZGroundLayer
+  - type: WeatherSchedule
+    schedule: Carcinoma
   airComponents:
   - type: MapLight
     ambientLightColor: "#b47c78"
