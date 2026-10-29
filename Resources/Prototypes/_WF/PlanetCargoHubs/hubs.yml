@@ -1,0 +1,46 @@
+# Planetside cargo hubs: depots A and B built on a world's ground some rounds. Maps are written by
+# Tools/_WF/PlanetCargoHubs/hubs.py, which prints each map's footprint and socket.
+
+- type: wfPlanetCargoHub
+  id: WFCargoHubTriple
+  site:
+    mapPath: /Maps/_WF/PlanetCargoHubs/cargo_hub_triple.yml
+    name: wf-planet-cargo-hub-a
+    footprint: -40,-29,40,29
+    connection: Roadside
+    sockets:
+    - offset: -14,-29
+      direction: South
+  surfaces:
+  - WFSurfaceAsclepiu
+  - WFSurfaceMerak
+  - WFSurfaceFervidus
+  - WFSurfaceThrascias
+  - WFSurfaceAerumna
+
+- type: wfPlanetCargoHub
+  id: WFCargoHubTwin
+  site:
+    mapPath: /Maps/_WF/PlanetCargoHubs/cargo_hub_twin.yml
+    name: wf-planet-cargo-hub-b
+    footprint: -27,-29,27,29
+    connection: Roadside
+    sockets:
+    - offset: 0,-29
+      direction: South
+  surfaces:
+  - WFSurfaceAsclepiu
+  - WFSurfaceMerak
+  - WFSurfaceFervidus
+  - WFSurfaceThrascias
+  - WFSurfaceAerumna
+
+- type: entity
+  id: WFCargoHubBerth
+  name: landing berth
+  description: Marks the corner of a cargo hub's landing berth.
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Transform
+    anchored: true
+  - type: WFCargoHubBerth

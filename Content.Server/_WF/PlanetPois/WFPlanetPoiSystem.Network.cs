@@ -62,6 +62,9 @@ public sealed partial class WFPlanetPoiSystem
             }
             var orbit = network.OrbitMap;
             var entries = SelectEntries(table);
+            var extra = new WFPlanetPoiExtraSitesEvent(ground, network.Surface, new List<WFPlanetPoiEntry>());
+            RaiseLocalEvent(ref extra);
+            entries.InsertRange(0, extra.Sites);
             var reserved = new List<Box2i>();
             await PlaceCitiesAsync(ground, grid, biome, network, orbit, centre, radius, table, record, reserved, initialPins, created, createdDecals, changed, claimsDone);
             Report(ground, WFWorldFormingStage.Sites, 0.1f);
