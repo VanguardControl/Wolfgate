@@ -74,6 +74,18 @@ public sealed class GroundCoverOverlayTest
             cfg.SetCVar(WolfWeatherCVars.WeatherQuality, 2);
         });
 
+        // The look's tuning is set on the server and reaches the client, which draws with it.
+        var serverCfg = server.ResolveDependency<IConfigurationManager>();
+        await server.WaitPost(() => serverCfg.SetCVar(WFGroundCoverCVars.PuddleCoverage, 0.5f));
+        await pair.RunTicksSync(10);
+        await client.WaitAssertion(() =>
+        {
+            Assert.That(cfg.GetCVar(WFGroundCoverCVars.PuddleCoverage), Is.EqualTo(0.5f),
+                "The puddle coverage cvar didn't reach the client.");
+        });
+        await server.WaitPost(() => serverCfg.SetCVar(WFGroundCoverCVars.PuddleCoverage, 1f));
+        await pair.RunTicksSync(10);
+
         await server.WaitPost(() => server.PlayerMan.SetAttachedEntity(pair.Player!, null));
         await pair.CleanReturnAsync();
     }

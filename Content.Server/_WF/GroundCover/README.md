@@ -1,9 +1,11 @@
 # GroundCover
 
-Weather that stays on the ground. Rain wets open ground: the floor darkens and saturates with a faint sheen and
-twinkling glints, and puddles fill the low spots of a warped noise field, growing and merging with the rain and drying
-over minutes after it stops. Puddles are dark mirrors: they reflect the sky (the light there, so they stay dark at
-night) and anything standing a tile above them, upside down, and raindrops ring their surface while it rains. Snow
+Weather that stays on the ground. Rain wets open ground: the floor darkens a little and keeps its colour, with faint
+gloss streaks and twinkling glints, and puddles fill the low spots of a warped noise field: a few small ones in light
+rain, merging into larger pools only in heavy rain, and drying over minutes after it stops. Puddles are clear water:
+the ground shows through, slightly darker and cooler, and they reflect the sky (the light there, so they stay dark at
+night) and anything standing a tile above them mostly at their rims and towards the view's edges. Single-pixel glints
+and specks twinkle on them, and raindrop rings catch the light as bright crescents while it rains. Snow
 weather lays snow cover on open tiles, up to three levels deep; over one level it slows walking, a shovel or spade
 clears a tile, and it melts once no snow falls and the tile's air is above 0 C. On cover (half a level or more) steps
 crunch with the snow tiles' sound and leave footprints. Roofed and indoor tiles stay dry and clear, by WolfWeather's
@@ -35,6 +37,15 @@ detail option (`wf.wolf_weather.quality`) picks Full (everything), Reduced (wet 
 ripples or drop flecks) or Off (no wet ground). Snow always draws, as it slows walking. Only the view's own z-level
 draws it.
 
+The look can be tuned live with server cvars, replicated to every client (`cvar <name> <value>` on the server, or
+`sudo cvar ...` from an admin client):
+
+- `wf.ground_cover.puddle_opacity` (0.5): how much puddle water tints and darkens the ground under it, 0 clear to 1.
+- `wf.ground_cover.puddle_coverage` (1): scales the water level; below 1 fewer and smaller puddles, about 1.35 floods.
+- `wf.ground_cover.reflection` (1): scales the reflections of the sky and what stands above.
+- `wf.ground_cover.sparkle` (1): scales glints, twinkling specks, rim highlights and ripple crests.
+- `wf.ground_cover.wet_darkening` (1): scales how much rain darkens and saturates open ground.
+
 Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDepth`, `GetSentDepth`, `GetTileWetness`
 (server), `SharedWFSnowSlowSystem.GetSpeed`, the client `WFGroundCoverOverlay` (`UpdateWeather`, `DrawReflections`),
 `WFSnowPrintsSystem` and `ground_cover.swsl`.
@@ -56,6 +67,7 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 ### Shared
 
 - [`Content.Shared/_WF/GroundCover/SharedWFSnowSlowSystem.cs`](../../../Content.Shared/_WF/GroundCover/SharedWFSnowSlowSystem.cs)
+- [`Content.Shared/_WF/GroundCover/WFGroundCoverCVars.cs`](../../../Content.Shared/_WF/GroundCover/WFGroundCoverCVars.cs)
 - [`Content.Shared/_WF/GroundCover/WFGroundWeatherComponent.cs`](../../../Content.Shared/_WF/GroundCover/WFGroundWeatherComponent.cs)
 - [`Content.Shared/_WF/GroundCover/WFSnowCover.cs`](../../../Content.Shared/_WF/GroundCover/WFSnowCover.cs)
 - [`Content.Shared/_WF/GroundCover/WFSnowFootstepEvent.cs`](../../../Content.Shared/_WF/GroundCover/WFSnowFootstepEvent.cs)

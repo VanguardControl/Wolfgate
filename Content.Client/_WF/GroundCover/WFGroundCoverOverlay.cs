@@ -7,6 +7,7 @@ using Content.Shared._WF.GroundCover;
 using Content.Shared._WF.WolfWeather;
 using Content.Shared.Light.Components;
 using Robust.Client.Graphics;
+using Robust.Shared.Configuration;
 using Robust.Shared.Enums;
 using Robust.Shared.Graphics;
 using Robust.Shared.Map;
@@ -49,6 +50,7 @@ public sealed partial class WFGroundCoverOverlay : Overlay
     private static readonly Color ClearColor = new(0f, 0f, 0f, 0f);
 
     [Dependency] private IClyde _clyde = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IEntityManager _entManager = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -275,8 +277,9 @@ public sealed partial class WFGroundCoverOverlay : Overlay
 
     private void CopyFloor()
     {
+        // The target's pixel space runs top-down, so the copy is flipped back to line up with the screen texture.
         _copyHandle.UseShader(_unshaded);
-        _copyHandle.SetTransform(Matrix3x2.Identity);
+        _copyHandle.SetTransform(Matrix3x2.CreateScale(1f, -1f) * Matrix3x2.CreateTranslation(0f, _copySize.Y));
         _copyHandle.DrawTextureRect(_copySource, new Box2(0f, 0f, _copySize.X, _copySize.Y));
         _copyHandle.UseShader(null);
     }
@@ -314,6 +317,11 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         shader.SetParameter("pixel", scale > 0f ? 1f / scale : 1f / EyeManager.PixelsPerMeter);
         shader.SetParameter("uvDx", ToUv(viewport, centre + Vector2.UnitX) - uv);
         shader.SetParameter("uvDy", ToUv(viewport, centre + Vector2.UnitY) - uv);
+        shader.SetParameter("puddleOpacity", Math.Clamp(_cfg.GetCVar(WFGroundCoverCVars.PuddleOpacity), 0f, 1f));
+        shader.SetParameter("puddleCoverage", MathF.Max(_cfg.GetCVar(WFGroundCoverCVars.PuddleCoverage), 0f));
+        shader.SetParameter("reflection", MathF.Max(_cfg.GetCVar(WFGroundCoverCVars.Reflection), 0f));
+        shader.SetParameter("sparkle", MathF.Max(_cfg.GetCVar(WFGroundCoverCVars.Sparkle), 0f));
+        shader.SetParameter("wetDarkening", MathF.Max(_cfg.GetCVar(WFGroundCoverCVars.WetDarkening), 0f));
     }
 
     /// <summary>A world position's UV on the viewport's screen texture, which is bottom-up.</summary>
