@@ -36,23 +36,59 @@ public sealed partial class WFPirateRetrofitSystem : EntitySystem
     /// <summary>The run's random source: seeded, so the same hull with the same seed gets the same refit.</summary>
     private System.Random _rng = new();
 
-    /// <summary>Retrofits a hull. True if it mounted guns of its pool, false if it only dirtied the decks.</summary>
+    /// <summary>Retrofits a hull in one go. True if it mounted guns of its pool, false if it only dirtied the decks.</summary>
     public bool Apply(EntityUid grid, WFPirateRetrofitPrototype retrofit, int seed)
     {
-        if (!TryComp<MapGridComponent>(grid, out var gridComp))
-            return false;
+        var run = Begin(seed);
+        while (!Step(grid, retrofit, run))
+        {
+        }
 
-        _rng = new System.Random(seed);
+        return run.Armed;
+    }
 
+    /// <summary>Starts a retrofit to run a step at a time with <see cref="Step"/>.</summary>
+    public WFPirateRetrofitRun Begin(int seed)
+    {
+        return new WFPirateRetrofitRun(new System.Random(seed));
+    }
+
+    /// <summary>Runs a retrofit's next step: guns, rust, worn tiles, grime, cobwebs, then lights. True once it is done.</summary>
+    public bool Step(EntityUid grid, WFPirateRetrofitPrototype retrofit, WFPirateRetrofitRun run)
+    {
+        if (run.Done || !TryComp<MapGridComponent>(grid, out var gridComp))
+        {
+            run.Step = WFPirateRetrofitRun.Steps;
+            return true;
+        }
+
+        _rng = run.Rng;
         var ent = new Entity<MapGridComponent>(grid, gridComp);
-        var armed = retrofit.Guns.Count > 0 && Arm(ent, retrofit);
-        Rust(ent, retrofit);
-        var floors = Floors(ent);
-        SwapTiles(ent, retrofit, floors);
-        Dirty(ent, retrofit, floors);
-        Cobwebs(ent, retrofit, floors);
-        LightsOut(grid, retrofit);
-        return armed;
+        switch (run.Step)
+        {
+            case 0:
+                run.Armed = retrofit.Guns.Count > 0 && Arm(ent, retrofit);
+                break;
+            case 1:
+                Rust(ent, retrofit);
+                break;
+            case 2:
+                run.Floors = Floors(ent);
+                SwapTiles(ent, retrofit, run.Floors);
+                break;
+            case 3:
+                Dirty(ent, retrofit, run.Floors!);
+                break;
+            case 4:
+                Cobwebs(ent, retrofit, run.Floors!);
+                break;
+            default:
+                LightsOut(grid, retrofit);
+                break;
+        }
+
+        run.Step++;
+        return run.Done;
     }
 
     /// <summary>
@@ -62,10 +98,10 @@ public sealed partial class WFPirateRetrofitSystem : EntitySystem
     private bool Arm(Entity<MapGridComponent> grid, WFPirateRetrofitPrototype retrofit)
     {
         var hardpoints = new List<(EntityUid Uid, HardpointComponent Comp)>();
-        var query = EntityQueryEnumerator<HardpointComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var hardpoint, out var xform))
+        var children = Transform(grid).ChildEnumerator;
+        while (children.MoveNext(out var uid))
         {
-            if (xform.GridUid == grid.Owner && xform.Anchored)
+            if (TryComp<HardpointComponent>(uid, out var hardpoint) && Transform(uid).Anchored)
                 hardpoints.Add((uid, hardpoint));
         }
 
@@ -130,10 +166,10 @@ public sealed partial class WFPirateRetrofitSystem : EntitySystem
     /// </summary>
     private void ChargeServers(EntityUid grid)
     {
-        var query = EntityQueryEnumerator<FireControlServerComponent, BatteryComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out var battery, out var xform))
+        var children = Transform(grid).ChildEnumerator;
+        while (children.MoveNext(out var uid))
         {
-            if (xform.GridUid == grid)
+            if (HasComp<FireControlServerComponent>(uid) && TryComp<BatteryComponent>(uid, out var battery))
                 _battery.SetCharge(uid, battery.MaxCharge, battery);
         }
     }
@@ -169,10 +205,10 @@ public sealed partial class WFPirateRetrofitSystem : EntitySystem
     private int ProcessingPower(EntityUid grid)
     {
         var best = -1;
-        var query = EntityQueryEnumerator<FireControlServerComponent, TransformComponent>();
-        while (query.MoveNext(out _, out var server, out var xform))
+        var children = Transform(grid).ChildEnumerator;
+        while (children.MoveNext(out var uid))
         {
-            if (xform.GridUid == grid)
+            if (TryComp<FireControlServerComponent>(uid, out var server))
                 best = Math.Max(best, server.ProcessingPower);
         }
 
@@ -352,10 +388,10 @@ public sealed partial class WFPirateRetrofitSystem : EntitySystem
             return;
 
         var fixtures = new List<EntityUid>();
-        var query = EntityQueryEnumerator<PoweredLightComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out var xform))
+        var children = Transform(grid).ChildEnumerator;
+        while (children.MoveNext(out var uid))
         {
-            if (xform.GridUid == grid)
+            if (HasComp<PoweredLightComponent>(uid))
                 fixtures.Add(uid);
         }
 
@@ -408,5 +444,25 @@ public sealed partial class WFPirateRetrofitSystem : EntitySystem
             var j = _rng.Next(i + 1);
             (list[i], list[j]) = (list[j], list[i]);
         }
+    }
+}
+
+/// <summary>A retrofit run a step at a time: its random source, how far it has got and what it found.</summary>
+public sealed class WFPirateRetrofitRun
+{
+    public const int Steps = 6;
+
+    internal readonly System.Random Rng;
+    internal int Step;
+    internal List<TileRef>? Floors;
+
+    /// <summary>Whether it mounted guns of its pool.</summary>
+    public bool Armed { get; internal set; }
+
+    public bool Done => Step >= Steps;
+
+    internal WFPirateRetrofitRun(System.Random rng)
+    {
+        Rng = rng;
     }
 }

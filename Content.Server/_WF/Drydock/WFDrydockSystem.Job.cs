@@ -88,6 +88,9 @@ public sealed partial class WFDrydockSystem
         if (job.Lifting.Count > 0 && curTime >= job.LiftAt)
             LiftTiles(job);
 
+        job.LiftCheckBudget = LiftCheckBudget;
+        job.LiftChecksDeferred = false;
+
         if (curTime >= job.NextBerthCheck)
         {
             job.NextBerthCheck = curTime + BerthCheckInterval;
@@ -141,7 +144,7 @@ public sealed partial class WFDrydockSystem
                 StartSlot(comp, job, slot, curTime);
             }
 
-            if (job.Slots.All(s => s.Item == null))
+            if (job.Slots.All(s => s.Item == null) && !job.LiftChecksDeferred)
                 LeaveStanding(job);
             changed = true;
         }
@@ -332,8 +335,9 @@ public sealed partial class WFDrydockSystem
         var item = TakeNearest(comp, job, slot);
         if (item == null)
         {
-            // What's left is another crane's; scanning the queue every tick costs a large ship dearly.
-            slot.NextTake = curTime + IdleRetry;
+            // What's left is another crane's; scanning the queue every tick costs a large ship dearly. Checks cut short
+            // by the tick's budget pick up again next tick.
+            slot.NextTake = job.LiftChecksDeferred ? curTime : curTime + IdleRetry;
             return;
         }
 
@@ -361,6 +365,7 @@ public sealed partial class WFDrydockSystem
 
         slot.Item = null;
         slot.Unreachable = false;
+        job.Unliftable.Clear();
 
         var all = JobReach(job);
         for (var i = job.Pending.Count - 1; i >= 0; i--)

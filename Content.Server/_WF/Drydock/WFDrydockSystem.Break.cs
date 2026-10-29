@@ -58,6 +58,9 @@ public sealed partial class WFDrydockSystem
     /// <summary>How long a broken tile waits for others to lift with it.</summary>
     private static readonly TimeSpan LiftBatch = TimeSpan.FromSeconds(2);
 
+    /// <summary>Tile lookups a job's connectivity checks may make a tick; a hull that would split checks over several.</summary>
+    private const int LiftCheckBudget = 4096;
+
     private void InitializeBreak()
     {
         SubscribeLocalEvent<WFDrydockConsoleComponent, WFDrydockBreakMessage>(OnBreak);
@@ -247,13 +250,27 @@ public sealed partial class WFDrydockSystem
             }
         }
 
-        // Only the nearest few usually need the costlier connectivity check.
+        // Only the nearest few usually need the costlier connectivity check. Tiles found to split the hull are skipped
+        // until another tile comes off, and once this tick's checks are spent the rest wait for the next.
         reach.Sort((a, b) => a.Distance.CompareTo(b.Distance));
         var best = stranded;
         foreach (var (index, _) in reach)
         {
-            if (!Liftable(job, slot, job.Pending[index].TileIndex))
+            var tile = job.Pending[index].TileIndex;
+            if (job.Unliftable.Contains(tile))
                 continue;
+
+            if (job.LiftCheckBudget <= 0)
+            {
+                job.LiftChecksDeferred = true;
+                return null;
+            }
+
+            if (!Liftable(job, slot, tile))
+            {
+                job.Unliftable.Add(tile);
+                continue;
+            }
 
             best = index;
             break;
@@ -265,6 +282,7 @@ public sealed partial class WFDrydockSystem
         var item = job.Pending[best];
         job.Pending[best] = job.Pending[^1];
         job.Pending.RemoveAt(job.Pending.Count - 1);
+        job.Unliftable.Clear();
         return item;
     }
 
@@ -284,8 +302,12 @@ public sealed partial class WFDrydockSystem
                 lifting.Add(item.TileIndex);
         }
 
-        bool Present(Vector2i index) => !lifting.Contains(index) && !job.Lifting.Contains(index) &&
-                                        !_map.GetTileRef(job.Ship, grid, index).Tile.IsEmpty;
+        bool Present(Vector2i index)
+        {
+            job.LiftCheckBudget--;
+            return !lifting.Contains(index) && !job.Lifting.Contains(index) &&
+                   !_map.GetTileRef(job.Ship, grid, index).Tile.IsEmpty;
+        }
 
         var neighbours = new List<Vector2i>();
         foreach (var step in Neighbours)

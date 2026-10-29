@@ -11,6 +11,7 @@ using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._Mono.ShipGuns;
 using Content.Shared._WF.Encounters;
 using Content.Shared._WF.NpcCrew;
+using Content.Shared.Decals;
 using Content.Shared.Maps;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -138,6 +139,78 @@ public sealed partial class WFEncounterTest
             SEntMan.DeleteEntity(grid);
         });
         await RunTicks(5);
+    }
+
+    /// <summary>A retrofit run a step a tick leaves the hull just as one run in one go with the same seed.</summary>
+    [Test]
+    public async Task SteppedRetrofitMatchesOneGo()
+    {
+        var prototypes = Server.ResolveDependency<IPrototypeManager>();
+        var retrofit = prototypes.Index<WFPirateRetrofitPrototype>("WFPirateRetrofitLight");
+        var path = prototypes.Index<VesselPrototype>("Victoria").ShuttlePath;
+        var system = Server.System<WFPirateRetrofitSystem>();
+        EntityUid whole = default, stepped = default;
+        WFPirateRetrofitRun run = default!;
+        await Server.WaitAssertion(() =>
+        {
+            var loader = SEntMan.System<MapLoaderSystem>();
+            Assert.That(loader.TryLoadGrid(MapData.MapId, path, out var a, offset: new Vector2(-57000, -57000)), Is.True);
+            Assert.That(loader.TryLoadGrid(MapData.MapId, path, out var b, offset: new Vector2(-57000, -56000)), Is.True);
+            whole = a!.Value.Owner;
+            stepped = b!.Value.Owner;
+            system.Apply(whole, retrofit, 7);
+            run = system.Begin(7);
+        });
+
+        var steps = 0;
+        var done = false;
+        while (!done)
+        {
+            await Server.WaitPost(() => done = system.Step(stepped, retrofit, run));
+            await RunTicks(1);
+            steps++;
+        }
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(steps, Is.EqualTo(WFPirateRetrofitRun.Steps), "Each part of the retrofit should take its own step.");
+            Assert.That(Signature(stepped, retrofit), Is.EqualTo(Signature(whole, retrofit)), "The stepped retrofit came out different.");
+            SEntMan.DeleteEntity(whole);
+            SEntMan.DeleteEntity(stepped);
+        });
+        await RunTicks(5);
+    }
+
+    /// <summary>
+    /// What a hull is made of: its tiles, its decals and the prototypes anchored or standing on it, counted. Loose litter
+    /// is left out, since it can be knocked about or eaten by a machine between ticks.
+    /// </summary>
+    private List<string> Signature(EntityUid grid, WFPirateRetrofitPrototype retrofit)
+    {
+        var parts = new List<string>();
+        var gridComp = SEntMan.GetComponent<MapGridComponent>(grid);
+        var tiles = SEntMan.System<SharedMapSystem>().GetAllTilesEnumerator(grid, gridComp);
+        while (tiles.MoveNext(out var tile))
+        {
+            parts.Add($"tile {tile.Value.GridIndices} {tile.Value.Tile.TypeId}");
+        }
+
+        var children = SEntMan.GetComponent<TransformComponent>(grid).ChildEnumerator;
+        var protos = new Dictionary<string, int>();
+        while (children.MoveNext(out var child))
+        {
+            var id = SEntMan.GetComponent<MetaDataComponent>(child).EntityPrototype?.ID ?? "?";
+            if (retrofit.Litter.Contains(id))
+                continue;
+
+            protos[id] = protos.GetValueOrDefault(id) + 1;
+        }
+
+        parts.AddRange(protos.Select(p => $"{p.Key} x{p.Value}"));
+        var decals = SEntMan.GetComponent<DecalGridComponent>(grid).ChunkCollection.ChunkCollection.Values;
+        parts.AddRange(decals.SelectMany(chunk => chunk.Decals.Values).Select(decal => $"decal {decal.Id} {decal.Coordinates}"));
+        parts.Sort(string.CompareOrdinal);
+        return parts;
     }
 
     /// <summary>The vessel of a list whose name the grid carries, or none.</summary>
