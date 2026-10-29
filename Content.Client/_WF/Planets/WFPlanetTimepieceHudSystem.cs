@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Client._Shitmed.UserInterface.Systems.Targeting.Widgets;
 using Content.Client._WF.Cockpit;
+using Content.Shared._WF.Warmth;
 using Content.Shared.GameTicking;
 using Content.Shared._WF.Planets;
 using Robust.Client.Player;
@@ -29,6 +30,8 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
     public string DisplayedTime => _hud.TimeText;
     public string DisplayedWeather => _hud.WeatherText;
     public string DisplayedClimate => _hud.ClimateText;
+    public string DisplayedHere => _hud.HereText;
+    public string DisplayedFeel => _hud.FeelText;
     public float HudWidth => WFPlanetTimepieceHud.PanelWidth;
 
     public override void Initialize()
@@ -170,7 +173,18 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
             !TryComp<WFPlanetEnvironmentComponent>(map, out var environment))
         {
             _hud.SetReadout(Loc.GetString("wf-planet-timepiece-no-signal"), "--:--", string.Empty);
+            _hud.SetThermal(string.Empty, string.Empty, Color.White);
             return;
+        }
+
+        if (TryComp(player, out WFWarmthComponent? warmth))
+        {
+            _hud.SetThermal(SharedWFWarmthSystem.HereText(warmth),
+                Loc.GetString(SharedWFWarmthSystem.FeelLoc(warmth.Feel)), SharedWFWarmthSystem.FeelColor(warmth.Feel));
+        }
+        else
+        {
+            _hud.SetThermal(string.Empty, string.Empty, Color.White);
         }
 
         var hours = environment.MinuteOfDay / 60;
@@ -183,7 +197,7 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
     public string ClimateText(WFPlanetEnvironmentComponent environment)
     {
         var temperature = environment.TemperatureCelsius is { } celsius
-            ? Loc.GetString("wf-planet-temperature", ("celsius", celsius))
+            ? Loc.GetString("wf-planet-temperature-outside", ("celsius", celsius))
             : null;
         var season = environment.Season is { } name ? Loc.GetString(name) : null;
         if (season != null && temperature != null)

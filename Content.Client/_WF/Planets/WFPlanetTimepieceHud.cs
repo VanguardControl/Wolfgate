@@ -10,17 +10,21 @@ namespace Content.Client._WF.Planets;
 public sealed class WFPlanetTimepieceHud : PanelContainer
 {
     public const float PanelWidth = 164f;
-    public const float PanelHeight = 84f;
+    public const float PanelHeight = 98f;
 
     private readonly Label _planet;
     private readonly Label _time;
     private readonly Label _weather;
     private readonly Label _climate;
+    private readonly Label _here;
+    private readonly Label _feel;
 
     public string PlanetText => _planet.Text ?? string.Empty;
     public string TimeText => _time.Text ?? string.Empty;
     public string WeatherText => _weather.Text ?? string.Empty;
     public string ClimateText => _climate.Text ?? string.Empty;
+    public string HereText => _here.Text ?? string.Empty;
+    public string FeelText => _feel.Text ?? string.Empty;
 
     public WFPlanetTimepieceHud(IResourceCache resources)
     {
@@ -62,6 +66,34 @@ public sealed class WFPlanetTimepieceHud : PanelContainer
         column.AddChild(_time);
         column.AddChild(_weather);
         column.AddChild(_climate);
+
+        // The air on the wearer's own tile and how warm their body feels, the word coloured by danger.
+        _here = MakeLabel(regular, Color.FromHex("#A8C8BE"));
+        _here.HorizontalAlignment = HAlignment.Right;
+        _here.HorizontalExpand = true;
+        _feel = MakeLabel(regular, Color.FromHex("#8FD694"));
+        _feel.HorizontalAlignment = HAlignment.Left;
+        _feel.HorizontalExpand = true;
+        var thermal = new BoxContainer
+        {
+            Orientation = BoxContainer.LayoutOrientation.Horizontal,
+            SeparationOverride = 6,
+            MouseFilter = Control.MouseFilterMode.Ignore,
+        };
+        thermal.AddChild(_here);
+        thermal.AddChild(_feel);
+        column.AddChild(thermal);
+    }
+
+    /// <summary>The thermal row: the tile's air temperature and the body feel word in its danger colour.</summary>
+    public void SetThermal(string here, string feel, Color feelColor)
+    {
+        if (_here.Text != here)
+            _here.Text = here;
+        if (_feel.Text != feel)
+            _feel.Text = feel;
+        _feel.FontColorOverride = feelColor;
+        _feel.Visible = feel.Length > 0;
     }
 
     public void SetReadout(string planet, string time, string weather, string climate = "", Color? climateColor = null)

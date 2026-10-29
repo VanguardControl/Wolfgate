@@ -11,6 +11,7 @@ wf-planet-weather-WFFogMist = Mist
 wf-planet-weather-WFFog = Fog
 
 wf-planet-temperature = { $celsius }°C
+wf-planet-temperature-outside = Outside { $celsius }°C
 wf-planet-timepiece-climate = { $season } · { $temperature }
 
 wf-forecast-console-title = Weather forecast

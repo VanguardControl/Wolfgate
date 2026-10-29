@@ -428,7 +428,7 @@ public sealed class PlanetSeasonsTest
             Assert.That(environment.Season?.Id, Is.EqualTo("wf-planet-season-winter"));
             Assert.That(environment.TemperatureCelsius, Is.EqualTo(celsius));
             var hud = client.System<WFPlanetTimepieceHudSystem>();
-            Assert.That(hud.DisplayedClimate, Is.EqualTo($"Winter · {celsius}°C"));
+            Assert.That(hud.DisplayedClimate, Is.EqualTo($"Winter · Outside {celsius}°C"));
         });
 
         await Teardown(pair, layers);
