@@ -200,6 +200,36 @@ public sealed class GroundCoverTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A fire melts the snow round it even in frost, and leaves the snow beyond its warmth alone.</summary>
+    [Test]
+    public async Task AFireMeltsTheSnowRoundIt()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var near = new Vector2i(-2, -1);
+        var far = new Vector2i(-7, -7);
+
+        await server.WaitPost(() =>
+        {
+            LayOpenGround(pair, map.Grid);
+            server.System<AtmosphereSystem>().SetMapAtmosphere(map.MapUid, false, Air(250f));
+            var cover = server.System<WFGroundCoverSystem>();
+            cover.SetDepth(map.Grid, near, WFSnowCover.MaxDepth);
+            cover.SetDepth(map.Grid, far, WFSnowCover.MaxDepth);
+            server.EntMan.SpawnEntity("Bonfire", new EntityCoordinates(map.Grid, new Vector2(-2.5f, -0.5f)));
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(30));
+        await server.WaitAssertion(() =>
+        {
+            var cover = server.System<WFGroundCoverSystem>();
+            Assert.That(cover.GetDepth(map.Grid, near), Is.LessThan(WFSnowCover.MaxDepth / 2), "The fire left the snow beside it.");
+            Assert.That(cover.GetDepth(map.Grid, far), Is.EqualTo(WFSnowCover.MaxDepth), "Snow out of the fire's reach melted in frost.");
+        });
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task SnowAndWetnessReachTheClient()
     {

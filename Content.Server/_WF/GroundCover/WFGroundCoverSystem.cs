@@ -73,6 +73,7 @@ public sealed partial class WFGroundCoverSystem : EntitySystem
         }
 
         UpdateSnow(now);
+        UpdateHeat(now);
         UpdateIce(now);
         UpdateNetwork(now);
     }

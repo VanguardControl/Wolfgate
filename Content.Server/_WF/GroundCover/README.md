@@ -75,6 +75,7 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 ### Server
 
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.cs`](WFGroundCoverSystem.cs)
+- [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Heat.cs`](WFGroundCoverSystem.Heat.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Ice.cs`](WFGroundCoverSystem.Ice.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.IceBreak.cs`](WFGroundCoverSystem.IceBreak.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Network.cs`](WFGroundCoverSystem.Network.cs)
