@@ -2,12 +2,14 @@ using System.Linq;
 using System.Numerics;
 using Content.Server._Mono.FireControl;
 using Content.Server.Decals;
+using Content.Server.Power.EntitySystems;
 using Content.Shared._Crescent.Hardpoints;
 using Content.Shared._Mono.ShipGuns;
 using Content.Shared._WF.Encounters;
 using Content.Shared.Light.Components;
 using Content.Shared.Light.EntitySystems;
 using Content.Shared.Maps;
+using Content.Shared.Power.Components;
 using Content.Shared.Tag;
 using Robust.Shared.Containers;
 using Robust.Shared.Map;
@@ -27,6 +29,7 @@ public sealed partial class WFPirateRetrofitSystem : EntitySystem
     [Dependency] private DecalSystem _decals = default!;
     [Dependency] private TagSystem _tags = default!;
     [Dependency] private FireControlSystem _fireControl = default!;
+    [Dependency] private BatterySystem _battery = default!;
 
     private static readonly ProtoId<TagPrototype> WallTag = "Wall";
 
@@ -113,10 +116,26 @@ public sealed partial class WFPirateRetrofitSystem : EntitySystem
             used += Cost(pick);
         }
 
+        ChargeServers(grid.Owner);
+
         // A server not yet connected takes the guns itself once the ship has power.
         if (TryComp<FireControlGridComponent>(grid.Owner, out var control))
             _fireControl.RefreshControllables(grid.Owner, control);
         return true;
+    }
+
+    /// <summary>
+    /// Fills the fire control servers' batteries. Hulls are saved with them empty, and an empty one only comes up once
+    /// its APC has ramped up to its recharge draw, which left a fresh raider's guns dead for its first seconds.
+    /// </summary>
+    private void ChargeServers(EntityUid grid)
+    {
+        var query = EntityQueryEnumerator<FireControlServerComponent, BatteryComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out _, out var battery, out var xform))
+        {
+            if (xform.GridUid == grid)
+                _battery.SetCharge(uid, battery.MaxCharge, battery);
+        }
     }
 
     /// <summary>Whether a gun's class and size suit a hardpoint.</summary>

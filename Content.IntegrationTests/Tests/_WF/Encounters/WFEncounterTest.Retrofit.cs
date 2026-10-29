@@ -15,6 +15,7 @@ using Content.Shared.Maps;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.EntitySerialization.Systems;
 using Robust.Shared.Prototypes;
 
 namespace Content.IntegrationTests.Tests._WF.Encounters;
@@ -101,6 +102,42 @@ public sealed partial class WFEncounterTest
             Server.System<WFEncounterSystem>().End(hub);
         });
         await RunTicks(10);
+    }
+
+    /// <summary>
+    /// A hull saved with an empty fire control server still has its retrofitted guns taken at once, rather than once the
+    /// server's battery has charged off the ship's power.
+    /// </summary>
+    [Test]
+    public async Task RetrofitTakesGunsOnAHullSavedWithAnEmptyServer()
+    {
+        var prototypes = Server.ResolveDependency<IPrototypeManager>();
+        EntityUid grid = default;
+        await Server.WaitAssertion(() =>
+        {
+            var patrol = prototypes.Index<WFEncounterPrototype>("WFReaverPatrol");
+            var band = WFEncounterSystem.BandFor(patrol.Ships.First(ship => ship.Key == "lead"), 0)!;
+            Assert.That(band.Retrofit, Is.Not.Null);
+            var path = prototypes.Index<VesselPrototype>("Victoria").ShuttlePath;
+            Assert.That(SEntMan.System<MapLoaderSystem>().TryLoadGrid(MapData.MapId, path, out var loaded,
+                offset: new Vector2(-54000, -54000)), Is.True);
+            grid = loaded!.Value.Owner;
+            Server.System<WFPirateRetrofitSystem>().Apply(grid, prototypes.Index(band.Retrofit!.Value), 1);
+        });
+        await RunTicks(10);
+        await Server.WaitAssertion(() =>
+        {
+            var guns = Guns(grid);
+            Assert.That(guns, Is.Not.Empty);
+            foreach (var gun in guns)
+            {
+                Assert.That(SEntMan.GetComponent<FireControllableComponent>(gun).ControllingServer, Is.Not.Null,
+                    $"{SEntMan.ToPrettyString(gun)} was left to an uncharged server.");
+            }
+
+            SEntMan.DeleteEntity(grid);
+        });
+        await RunTicks(5);
     }
 
     /// <summary>The vessel of a list whose name the grid carries, or none.</summary>
