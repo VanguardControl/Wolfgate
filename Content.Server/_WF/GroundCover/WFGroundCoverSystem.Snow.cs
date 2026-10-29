@@ -1,5 +1,6 @@
 using Content.Shared._WF.GroundCover;
 using Content.Shared._WF.WolfWeather;
+using Content.Shared.Atmos;
 using Content.Shared.Light.Components;
 using Content.Shared.Weather;
 using Robust.Shared.Map;
@@ -119,6 +120,7 @@ public sealed partial class WFGroundCoverSystem
     private bool Apply(Entity<MapGridComponent, RoofComponent?> grid, EntityUid map, Vector2i index, WFSnowChunk chunk, float fall, float meltSeconds)
     {
         var changed = false;
+        var planet = _weather.WfPlanetExposure(grid.Owner) == true;
         for (var i = 0; i < WFSnowCover.ChunkArea; i++)
         {
             var tile = WFSnowCover.TileAt(index, i);
@@ -131,16 +133,18 @@ public sealed partial class WFGroundCoverSystem
             }
             else if (fall > 0f || meltSeconds > 0f && depth > 0)
             {
-                var temperature = TileTemperature(grid.Owner, map, tile);
-                if (fall > 0f && temperature <= Freezing + SettleLimit)
-                {
-                    var flags = _wolfWeather.Classify(grid, tileRef);
-                    if ((flags & WolfWeatherTile.Exposed) != 0 && (flags & WolfWeatherTile.Blocker) == 0)
-                        depth = Math.Min(WFSnowCover.MaxDepth, depth + (int) MathF.Round(fall * WFSnowCover.Drift(tile)));
-                }
+                var flags = _wolfWeather.Classify(grid, tileRef);
+                var open = (flags & WolfWeatherTile.Exposed) != 0 && (flags & WolfWeatherTile.Blocker) == 0;
+                var temperature = TileTemperature(grid.Owner, map, tile, open && planet);
+                if (fall > 0f && open && temperature <= Freezing + SettleLimit)
+                    depth = Math.Min(WFSnowCover.MaxDepth, depth + (int) MathF.Round(fall * WFSnowCover.Drift(tile)));
 
                 if (meltSeconds > 0f && depth > 0 && temperature > Freezing)
                     depth = Math.Max(0, depth - (int) MathF.Ceiling(MeltRate(temperature) * meltSeconds / 60f * WFSnowCover.UnitsPerLevel));
+
+                // Snow falling on open water melts into it.
+                if (depth > 0 && IsOpenWater(grid.Owner, tile))
+                    depth = 0;
             }
 
             if (depth == chunk.Depths[i])
@@ -154,13 +158,25 @@ public sealed partial class WFGroundCoverSystem
     }
 
     /// <summary>The air temperature over a tile; a tile with no air of its own takes the map's.</summary>
-    public float TileTemperature(EntityUid grid, EntityUid map, Vector2i tile)
+    public float TileTemperature(EntityUid grid, EntityUid map, Vector2i tile, bool outdoors = false)
     {
+        return AirOver(grid, map, tile, outdoors)?.Temperature ?? 0f;
+    }
+
+    /// <summary>
+    /// The air over a tile. Open sky on a planet takes the planet's air, as built ground such as a city street keeps
+    /// its own air from when it was laid while the climate only moves the map's.
+    /// </summary>
+    private GasMixture? AirOver(EntityUid grid, EntityUid map, Vector2i tile, bool outdoors)
+    {
+        if (outdoors && _atmos.GetTileMixture(null, map, tile) is { TotalMoles: >= 1f } outside)
+            return outside;
+
         var air = _atmos.GetTileMixture((grid, null, null), map, tile);
         if (air == null || air.TotalMoles < 1f)
             air = _atmos.GetTileMixture(null, map, tile);
 
-        return air?.Temperature ?? 0f;
+        return air;
     }
 
     /// <summary>Snow depth on a tile, in units of which <see cref="WFSnowCover.UnitsPerLevel"/> make a level.</summary>
@@ -220,11 +236,11 @@ public sealed partial class WFGroundCoverSystem
         return (flags & WolfWeatherTile.Exposed) != 0 && (flags & WolfWeatherTile.Blocker) == 0;
     }
 
-    /// <summary>The snow chunks of grids near a session's body, on maps that have had weather.</summary>
-    private void CollectView(Robust.Shared.Player.ICommonSession session, List<(EntityUid Grid, Vector2i Chunk)> into)
+    /// <summary>The snow chunks of grids near a session's body, by default only on maps that have had weather.</summary>
+    private void CollectView(Robust.Shared.Player.ICommonSession session, List<(EntityUid Grid, Vector2i Chunk)> into, bool weatherOnly = true)
     {
         if (session.AttachedEntity is not { } ent || !TryComp(ent, out TransformComponent? xform) || xform.MapUid is not { } map
-            || !HasComp<WFGroundWeatherComponent>(map))
+            || weatherOnly && !HasComp<WFGroundWeatherComponent>(map))
             return;
 
         var position = _transform.GetWorldPosition(xform);

@@ -1,6 +1,7 @@
 using Content.Server._WF.Planets;
 using Content.Server._WF.Planets.Bounds;
 using Content.Shared._WF.CCVar;
+using Content.Shared._WF.GroundCover;
 using Content.Shared._WF.Planets;
 using Content.Shared.Chemistry.Components.SolutionManager;
 using Content.Shared.Parallax.Biomes;
@@ -433,7 +434,7 @@ public sealed partial class BiomeSystem
         if (HasComp<WFBiomeKeepComponent>(uid) || WfIsStandingSpawner(uid))
             return false;
 
-        if (!WfIsUntouched(uid))
+        if (!WfIsUntouched(uid) && !WfOnlyFroze(uid))
             return false;
 
         // Water keeps its pool as an entity inside it; drawing from the pool marks the pool, not the water.
@@ -460,6 +461,13 @@ public sealed partial class BiomeSystem
         }
 
         return true;
+    }
+
+    /// <summary>Water whose last change was freezing or thawing, which its next load takes again from the lake's ice.</summary>
+    private bool WfOnlyFroze(EntityUid uid)
+    {
+        return TryComp<WFFreezableWaterComponent>(uid, out var water)
+               && MetaData(uid).EntityLastModifiedTick.Value <= water.IceTick.Value + WfPristineSlack;
     }
 
     /// <summary>Whether nothing has marked an entity changed since the tick it spawned in, or the one after.</summary>
