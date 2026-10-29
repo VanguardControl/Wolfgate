@@ -258,7 +258,8 @@ def run(config: dict, sources: dict, wps: set[int] | None, list_only: bool, over
                     attributions.setdefault(att_file, []).append({"file": rel, **entry})
             written += count
             problems += issues
-    for att_file, rows in attributions.items():
+    # A --wp run sees only some groups, so writing would drop the other groups' entries.
+    for att_file, rows in attributions.items() if wps is None else []:
         grouped: list[dict] = []
         for row in rows:
             if "license" not in row:
