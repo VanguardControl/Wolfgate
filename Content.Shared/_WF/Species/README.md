@@ -78,6 +78,7 @@ and its own sprite.
 - [`Content.IntegrationTests/Tests/_WF/Species/AvaliClothingTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/AvaliClothingTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/ChassisMarkingsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/ChassisMarkingsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/EyeMarkingsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/EyeMarkingsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Species/FeroxiThirstTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/FeroxiThirstTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/HairColourTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/HairColourTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/MismatchedPartsBodyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/MismatchedPartsBodyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Species/MismatchedPartsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Species/MismatchedPartsTest.cs)
@@ -441,6 +442,7 @@ and its own sprite.
   - ported from HardLight
   - Wolfgate species in the list
 - [`Resources/Prototypes/_DV/Entities/Mobs/Customization/Markings/vulpkanin.yml`](../../../Resources/Prototypes/_DV/Entities/Mobs/Customization/Markings/vulpkanin.yml)
+- [`Resources/Prototypes/_DV/Entities/Mobs/Species/feroxi.yml`](../../../Resources/Prototypes/_DV/Entities/Mobs/Species/feroxi.yml): was 0.2; Feroxi never get thirsty, so they never dry out either
 - [`Resources/Prototypes/_DV/Entities/Mobs/Species/rodentia.yml`](../../../Resources/Prototypes/_DV/Entities/Mobs/Species/rodentia.yml): HardLight balance, squeeze instead of walking under tables
 - [`Resources/Prototypes/_DV/Entities/Mobs/Species/skrell.yml`](../../../Resources/Prototypes/_DV/Entities/Mobs/Species/skrell.yml)
   - psionic components (InnatePsionicPowers, PsionicBonusChance) dropped - Wolfgate has no psionics system.
@@ -766,6 +768,7 @@ and its own sprite.
 - [`Resources/ServerInfo/_HL/Guidebook/Mobs/Synth.xml`](../../../Resources/ServerInfo/_HL/Guidebook/Mobs/Synth.xml): ported from HardLight
 - [`Resources/ServerInfo/_Impstation/Guidebook/Mobs/Thaven.xml`](../../../Resources/ServerInfo/_Impstation/Guidebook/Mobs/Thaven.xml): ported from HardLight
 - [`Resources/ServerInfo/_StarLight/Guidebook/Mobs/Felionoid.xml`](../../../Resources/ServerInfo/_StarLight/Guidebook/Mobs/Felionoid.xml): ported from HardLight
+- [`Resources/ServerInfo/Guidebook/Mobs/_DV/Feroxi.xml`](../../../Resources/ServerInfo/Guidebook/Mobs/_DV/Feroxi.xml): Feroxi never get thirsty; removed the thirst, "Parched" suffocation and saline drawbacks
 - [`Resources/ServerInfo/Guidebook/Mobs/Shadekin.xml`](../../../Resources/ServerInfo/Guidebook/Mobs/Shadekin.xml): ported from HardLight
 - [`Resources/ServerInfo/Guidebook/Mobs/Skrell.xml`](../../../Resources/ServerInfo/Guidebook/Mobs/Skrell.xml): ported from HardLight
 - [`Resources/Textures/_Bubber/`](../../../Resources/Textures/_Bubber/): Bubberstation species and marking sprites, ported in
