@@ -224,6 +224,7 @@ and its own sprite.
   - ported from HardLight
   - dying during the wind-up also cancels it
   - a dead body left the shell invisible for good
+  - the wind-up was cancelled; a revival before this fired re-entered stasis with no exit action
   - crit or death and the wind-up timer both exit; the second swapped actions twice
 - [`Content.Server/_Starlight/NullSpace/BluespacePulseOnTriggerComponent.cs`](../../../Content.Server/_Starlight/NullSpace/BluespacePulseOnTriggerComponent.cs): ported from HardLight
 - [`Content.Server/_Starlight/NullSpace/BluespacePulseOnTriggerSystem.cs`](../../../Content.Server/_Starlight/NullSpace/BluespacePulseOnTriggerSystem.cs): ported from HardLight

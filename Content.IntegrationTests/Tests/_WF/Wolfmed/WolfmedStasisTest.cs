@@ -238,7 +238,10 @@ public sealed class WolfmedStasisTest : WolfmedGameTest
         {
             body = Avali(map.GridCoords);
             SEntMan.EventBus.RaiseLocalEvent(body, new PrepareStasisActionEvent());
-            SEntMan.System<Content.Shared.Mobs.Systems.MobStateSystem>().ChangeMobState(body, Content.Shared.Mobs.MobState.Dead);
+            var mobs = SEntMan.System<Content.Shared.Mobs.Systems.MobStateSystem>();
+            mobs.ChangeMobState(body, Content.Shared.Mobs.MobState.Dead);
+            // Revived before the wind-up ends: the cancelled wind-up must not still put the body in stasis.
+            mobs.ChangeMobState(body, Content.Shared.Mobs.MobState.Alive);
         });
 
         await RunSeconds(3);

@@ -67,20 +67,31 @@ public sealed partial class WFDrydockSystem
         return issued;
     }
 
-    /// <summary>The deeded ship a mob's player owns, or else the deeded ship the mob is aboard.</summary>
+    /// <summary>
+    /// The deeded ship a mob is aboard if their player owns it, else their only other owned deeded ship, else the deeded
+    /// ship they are aboard. A player with several ships elsewhere gets the aboard ship, so the pick never rests on
+    /// query order.
+    /// </summary>
     private EntityUid? VoucherShip(EntityUid mob)
     {
-        if (TryComp<ActorComponent>(mob, out var actor))
+        var aboard = Transform(mob).GridUid is { } grid && HasComp<ShuttleDeedComponent>(grid) ? grid : (EntityUid?) null;
+        if (aboard is { } here && OwnsShip(mob, here) || !TryComp<ActorComponent>(mob, out var actor))
+            return aboard;
+
+        EntityUid? owned = null;
+        var query = EntityQueryEnumerator<ShipOwnershipComponent, ShuttleDeedComponent>();
+        while (query.MoveNext(out var ship, out var ownership, out _))
         {
-            var owned = EntityQueryEnumerator<ShipOwnershipComponent, ShuttleDeedComponent>();
-            while (owned.MoveNext(out var ship, out var ownership, out _))
-            {
-                if (ownership.OwnerUserId == actor.PlayerSession.UserId)
-                    return ship;
-            }
+            if (ownership.OwnerUserId != actor.PlayerSession.UserId)
+                continue;
+
+            if (owned != null)
+                return aboard;
+
+            owned = ship;
         }
 
-        return Transform(mob).GridUid is { } grid && HasComp<ShuttleDeedComponent>(grid) ? grid : null;
+        return owned ?? aboard;
     }
 
     private bool OwnsShip(EntityUid mob, EntityUid ship)
@@ -104,6 +115,15 @@ public sealed partial class WFDrydockSystem
                 : Loc.GetString("drydock-voucher-issued-crew", ("ship", shipName), ("holder", Identity.Name(holder, EntityManager)));
             _popup.PopupEntity(Loc.GetString("drydock-voucher-issued-popup"), uid, uid, PopupType.Large);
             _chat.ChatMessageToOne(ChatChannel.Server, message, message, EntityUid.Invalid, false, actor.PlayerSession.Channel,
+                Color.Gold, audioPath: VoucherSound, audioVolume: 2f);
+        }
+
+        // An owner away from their ship still holds its voucher, and may have had it dropped at their feet.
+        if (Transform(holder).GridUid != ship && TryComp<ActorComponent>(holder, out var away))
+        {
+            var message = Loc.GetString("drydock-voucher-issued-holder", ("ship", shipName));
+            _popup.PopupEntity(Loc.GetString("drydock-voucher-issued-popup"), holder, holder, PopupType.Large);
+            _chat.ChatMessageToOne(ChatChannel.Server, message, message, EntityUid.Invalid, false, away.PlayerSession.Channel,
                 Color.Gold, audioPath: VoucherSound, audioVolume: 2f);
         }
     }

@@ -136,8 +136,23 @@ public sealed class WolfmedWoundLadderTest : WolfmedGameTest
             Create(arm, "WFWolfmedShrapnelWound", 30);
             var climbed = SEntMan.System<WolfmedEmbeddedObjectSystem>().GetEmbeddedWound(arm);
 
+            // A full gunshot on a limb held back from the object rungs is not the top of the ladder, so it arms nothing.
+            var leg = Part(body, BodyPartType.Leg);
+            Create(leg, "WFWolfmedGunshotWound", 190);
+            Create(leg, "WFWolfmedGunshotWound", 50);
+
+            // A fragment hit onto a nearly full gunshot overflows the shrapnel it makes; the fragment comes with it.
+            var otherArm = SEntMan.System<SharedBodySystem>().GetBodyChildren(body)
+                .First(p => p.Component.PartType == BodyPartType.Arm && p.Id != arm).Id;
+            Create(otherArm, "WFWolfmedGunshotWound", 190);
+            Create(otherArm, "WFWolfmedShrapnelWound", 140);
+
             Assert.Multiple(() =>
             {
+                Assert.That(SEntMan.GetComponent<WoundableComponent>(leg).Severable, Is.False,
+                    "a gunshot kept from the object rungs armed the limb as if it topped the ladder.");
+                Assert.That(Wounds(otherArm).Select(w => w.Id), Is.EqualTo(new[] { "WFWolfmedLodgedRoundWound" }),
+                    "a fragment hit that overflowed its shrapnel wound did not climb.");
                 Assert.That(Wounds(torso).Select(w => w.Id), Is.EqualTo(new[] { "WFWolfmedGunshotWound" }),
                     "a worsening gunshot became a wound that holds an object it doesn't have.");
                 Assert.That(Wounds(arm).Select(w => w.Id), Is.EqualTo(new[] { "WFWolfmedLodgedRoundWound" }),

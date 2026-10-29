@@ -855,6 +855,9 @@ namespace Content.Client.Lobby.UI
                             tooltipParts.Add(biotypeTooltip);
                         // WOLFGATE END
 
+                        if (trait.NewbieBlocked) // WOLFGATE(Newbie): say why a newbie's saved pick won't apply
+                            tooltipParts.Add(Loc.GetString("wf-newbie-trait-blocked"));
+
                         if (tooltipParts.Count > 0)
                             selector.SetTooltip(string.Join("\n", tooltipParts));
                     }

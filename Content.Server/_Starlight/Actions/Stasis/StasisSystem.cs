@@ -93,6 +93,9 @@ public sealed class StasisSystem : SharedStasisSystem
             if (!TryComp<StasisComponent>(uid, out _)) // HardLight: var stasisComp>_
                 return;
 
+            if (!HasComp<StasisFrozenComponent>(uid)) // WOLFGATE(Species): the wind-up was cancelled; a revival before this fired re-entered stasis with no exit action
+                return;
+
             // HardLight start
             if (_mobState.IsIncapacitated(uid)) // WOLFGATE(Species): a dead body left the shell invisible for good
             {

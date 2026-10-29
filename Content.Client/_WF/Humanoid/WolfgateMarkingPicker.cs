@@ -643,7 +643,12 @@ public sealed class WolfgateMarkingPicker : BoxContainer
             for (var i = 0; i < stack.Count; i++)
             {
                 any = true;
-                _applied.AddChild(BuildAppliedCard(stack[i].marking, stack[i].proto, i == 0, i == stack.Count - 1));
+                // Draw order only changes among markings on one layer, so the move buttons stop at that layer's ends;
+                // the Special tab lists markings that borrow several.
+                var part = stack[i].proto.BodyPart;
+                var first = !stack.Take(i).Any(s => s.proto.BodyPart == part);
+                var last = !stack.Skip(i + 1).Any(s => s.proto.BodyPart == part);
+                _applied.AddChild(BuildAppliedCard(stack[i].marking, stack[i].proto, first, last));
             }
         }
 
@@ -741,7 +746,7 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         var target = -1;
         for (var i = index + step; i >= 0 && i < list.Count; i += step)
         {
-            if (_markingManager.TryGetMarking(list[i], out var other) && Tab(other) == _part)
+            if (_markingManager.TryGetMarking(list[i], out var other) && Tab(other) == _part && other.BodyPart == proto.BodyPart)
             {
                 target = i;
                 break;

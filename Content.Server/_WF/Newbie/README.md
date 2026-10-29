@@ -82,7 +82,9 @@ the icon. `Tools/_WF/Newbie/gen_newbie_icon.py` draws the plate.
 
 ## Non-modular edits
 
-- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs): new players can't take kill-target traits
+- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
+  - say why a newbie's saved pick won't apply
+  - new players can't take kill-target traits
 - [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs): welcome popups would open over other tests' windows
 - [`Content.Server/Traits/TraitSystem.cs`](../../Traits/TraitSystem.cs): new players can't spawn with a kill-target trait
 - [`Content.Shared/Shuttles/Systems/SharedShuttleSystem.IFF.cs`](../../../Content.Shared/Shuttles/Systems/SharedShuttleSystem.IFF.cs): tag a new player's ship
