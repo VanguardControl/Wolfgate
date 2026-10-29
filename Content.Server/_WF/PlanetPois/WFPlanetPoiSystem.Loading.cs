@@ -101,9 +101,20 @@ public sealed partial class WFPlanetPoiSystem
         {
             foreach (var entity in ((MappingDataNode) group).Get<SequenceDataNode>("entities"))
             {
-                if (!((MappingDataNode) entity).TryGet<SequenceDataNode>("components", out var components)
-                    || ((MappingDataNode) entity).TryGet<ValueDataNode>("uid", out var self) && self.Value == root)
+                if (!((MappingDataNode) entity).TryGet<SequenceDataNode>("components", out var components))
                     continue;
+
+                if (((MappingDataNode) entity).TryGet<ValueDataNode>("uid", out var self) && self.Value == root)
+                {
+                    // A saved ship's repair blueprint names its parts; on the ground it repairs nothing and its names
+                    // would point at entities taken out below.
+                    for (var c = components.Count - 1; c >= 0; c--)
+                    {
+                        if (((MappingDataNode) components[c]).Get<ValueDataNode>("type").Value == "ShipRepairData")
+                            components.RemoveAt(c);
+                    }
+                    continue;
+                }
 
                 foreach (var component in components)
                 {
