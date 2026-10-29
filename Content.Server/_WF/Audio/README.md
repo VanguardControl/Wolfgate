@@ -7,6 +7,9 @@ play the same tracks (see ShipPa). Station, ambient and lobby music pause while 
 play (the admin window's Stealth Play button, or the commands' `stealth` flag) names nobody on the radio or in other
 admins' windows; only the admin logs record who played it.
 
+`WFToggleLoopStopSystem` (client) stops a toggled item's humming loop once the item is off. The loop is local to
+the client that turned it on, so when someone else turned it off the holder kept hearing it.
+
 Entry points: `InternetSoundSystem` (server fetch and playback; client mounting and the radio),
 `InternetSoundDownloader` (yt-dlp and ffmpeg, off the main thread), `InternetSoundDownloadProxy` (a per-download
 SOCKS5 tunnel that only connects to checked addresses), `InternetSoundReplaySystem` (keeps the audio in replays) and
@@ -50,6 +53,7 @@ nullspace, such as a loop on something out of view, which the lobby's listener w
 - [`Content.Client/_WF/Audio/WFAudioBudgetSystem.cs`](../../../Content.Client/_WF/Audio/WFAudioBudgetSystem.cs)
 - [`Content.Client/_WF/Audio/WFDetachedAudioSystem.cs`](../../../Content.Client/_WF/Audio/WFDetachedAudioSystem.cs)
 - [`Content.Client/_WF/Audio/WFLoopDopplerSystem.cs`](../../../Content.Client/_WF/Audio/WFLoopDopplerSystem.cs)
+- [`Content.Client/_WF/Audio/WFToggleLoopStopSystem.cs`](../../../Content.Client/_WF/Audio/WFToggleLoopStopSystem.cs)
 
 ### Integration tests
 

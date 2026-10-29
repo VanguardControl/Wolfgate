@@ -76,4 +76,10 @@ public sealed partial class DispenserSystem
         QueueDel(used);
         return true;
     }
+
+    /// <summary>Tells the user this chute doesn't buy what they offered; its manifest lists what it does.</summary>
+    private void RefuseUnwantedGoods(EntityUid uid, EntityUid user)
+    {
+        _popup.PopupEntity(Loc.GetString("wf-trade-chute-not-bought"), uid, user);
+    }
 }

@@ -80,6 +80,7 @@ public sealed partial class DispenserSystem : SharedDispenserSystem
         else
         {
             _audioSystem.PlayPvs(component.DenySound, uid);
+            RefuseUnwantedGoods(uid, args.User); // WOLFGATE(TradeGoods): say the chute doesn't buy it instead of only buzzing
         }
     }
 

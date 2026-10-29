@@ -16,6 +16,7 @@ Underground's godfathers and fugitives) are sent them, along with alerts naming 
 full state goes to the viewers alone (`WFMarketPrivateStateEvent`, kept by the client `WFMarketSystem`). Radio lines
 naming a hidden market go only to the underground companies (`WFTradeMarketSystem.Announce`), and a low sale's "best now"
 hint never names one.
+A chute offered something it doesn't buy says so instead of only buzzing.
 
 Buy prices move too (`WFTradeMarketSystem.Buy`). Station trade vendors (`WFTradeVendorComponent`, on
 `VendingMachineTraderBaikal` and its children) charge each trade good's base price times its scarcity there: every crate
@@ -164,6 +165,7 @@ it nears its floor of 1000; printing it costs about 260 in materials and a 3 km 
 - [`Content.Server/_Crescent/Dispenser/DispenserSystem.cs`](../../_Crescent/Dispenser/DispenserSystem.cs)
   - chutes refuse goods not hauled away from where they were made, and quote the rest live
   - chutes also take consignments they don't list
+  - say the chute doesn't buy it instead of only buzzing
   - pay the live quote, print live prices
 - [`Content.Server/VendingMachines/VendingMachineSystem.cs`](../../VendingMachines/VendingMachineSystem.cs): trade vendors charge the station's live price
 - [`Resources/Maps/_Mono/POI/underground.yml`](../../../Resources/Maps/_Mono/POI/underground.yml): The fence chute and the smuggling-crate vendor in the cargo bay, beside the sell pallets.

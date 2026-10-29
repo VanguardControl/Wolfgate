@@ -4083,3 +4083,54 @@ Entries:
   id: 100274
   time: '2026-10-29T06:19:00.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/402
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: New players can no longer pick the Heretic trait.
+    - type: Fix
+      message: Bodies that die while SSD keep their SSD icon.
+    - type: Fix
+      message: >-
+        Drydock vouchers go to your own ship instead of whatever ship you were
+        standing on.
+    - type: Fix
+      message: The plant analyzer no longer fails to scan when you move slightly.
+    - type: Fix
+      message: Species visor markings show under a Special tab instead of Right Foot.
+    - type: Tweak
+      message: Cargo chutes tell you when they don't buy something.
+    - type: Tweak
+      message: Smelted ore is worth more than raw ore, so running a smeltery pays.
+    - type: Fix
+      message: >-
+        Lodged rounds no longer appear in gunshot wounds with nothing inside to
+        pull out.
+    - type: Tweak
+      message: >-
+        Space no longer toggles camera focus by default. You can still bind it
+        in the controls menu.
+    - type: Fix
+      message: >-
+        Deaf characters now only catch a few letters of nearby speech, and no
+        whispers.
+    - type: Fix
+      message: Nanite Repair Drones now repair chassis wounds.
+    - type: Fix
+      message: Avali who die while entering stasis no longer lie there invisible.
+    - type: Fix
+      message: The ChemMaster no longer drops clicks.
+    - type: Fix
+      message: Unanswered ahelps now ping staff on Discord.
+    - type: Fix
+      message: >-
+        A toggled item's hum stops for its holder when someone else turns it
+        off.
+    - type: Fix
+      message: Ship guns rebuilt at a drydock link back to the gunnery consoles.
+    - type: Remove
+      message: Removed the TRACTOR TEST vessel.
+    - type: Tweak
+      message: Feroxi no longer need to drink water.
+  id: 100275
+  time: '2026-10-29T06:58:29.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/407
