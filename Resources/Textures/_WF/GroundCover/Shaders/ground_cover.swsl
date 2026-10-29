@@ -1,0 +1,79 @@
+uniform sampler2D mask;
+uniform highp vec2 maskOffset;
+uniform highp vec2 maskSize;
+uniform highp vec2 size;
+uniform highp vec2 origin;
+uniform highp float wetness;
+uniform highp float puddles;
+uniform highp float time;
+
+// Lattice hash, repeating every 256 cells. Noise scales are multiples of 0.25, so wrapping world coordinates every
+// 1024 tiles never shifts the pattern.
+highp float hash(highp vec2 p) {
+    p = mod(p, 256.0);
+    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+}
+
+highp float vnoise(highp vec2 x) {
+    highp vec2 i = floor(x);
+    highp vec2 f = fract(x);
+    f = f * f * (3.0 - 2.0 * f);
+    highp float a = hash(i);
+    highp float b = hash(i + vec2(1.0, 0.0));
+    highp float c = hash(i + vec2(0.0, 1.0));
+    highp float d = hash(i + vec2(1.0, 1.0));
+    return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+
+// Puts colour b with alpha bA over colour a with alpha aA.
+highp vec4 over(highp vec4 a, highp vec3 b, highp float bA) {
+    highp float outA = bA + a.a * (1.0 - bA);
+    if (outA <= 0.0)
+        return vec4(0.0);
+
+    return vec4((b * bA + a.rgb * a.a * (1.0 - bA)) / outA, outA);
+}
+
+void fragment() {
+    highp vec2 local = UV2 * size;
+    highp vec2 world = local + origin;
+    // Snapped to the 32 pixels of a tile, so the cover reads as pixel art.
+    highp vec2 p = (floor(world * 32.0) + 0.5) / 32.0;
+    highp vec3 m = texture(mask, (local + maskOffset) / maskSize).rgb;
+    highp vec4 col = vec4(0.0);
+
+    // Red is open ground. Wet ground darkens with a faint cool sheen.
+    highp float open = m.r;
+    if (wetness > 0.0 && open > 0.0) {
+        highp float wet = open * wetness;
+        highp float grain = vnoise(p * 3.0);
+        col = vec4(0.02, 0.03, 0.05, wet * (0.22 + 0.08 * grain));
+
+        if (puddles > 0.0) {
+            highp float n = 0.65 * vnoise(p * 0.5) + 0.35 * vnoise(p * 1.25 + vec2(7.0, 3.0));
+            highp float edge = 1.0 - puddles * 0.48;
+            highp float puddle = smoothstep(edge, edge + 0.035, n) * open;
+            if (puddle > 0.0) {
+                highp float sheen = 0.5 + 0.5 * sin(p.x * 1.9 + p.y * 3.1 + time * 0.7 + n * 14.0);
+                highp float rim = smoothstep(edge + 0.06, edge + 0.035, n);
+                highp vec3 water = mix(vec3(0.07, 0.09, 0.13), vec3(0.42, 0.50, 0.62), sheen * 0.3 + rim * 0.35);
+                col = over(col, water, puddle * (0.5 + 0.15 * rim));
+            }
+        }
+    }
+
+    // Green is snow depth. Thin cover lies in patches, deep cover is unbroken.
+    highp float depth = m.g;
+    if (depth > 0.004) {
+        highp float n = 0.6 * vnoise(p * 0.75) + 0.4 * vnoise(p * 3.0 + vec2(11.0, 5.0));
+        highp float cover = smoothstep(0.0, 0.18, depth * 1.6 - n * 0.35);
+        highp float shade = vnoise(p * 1.5 + vec2(3.0, 17.0));
+        highp vec3 snow = mix(vec3(0.80, 0.85, 0.92), vec3(0.97, 0.98, 1.0), shade * 0.7 + depth * 0.3);
+        col = over(col, snow, cover * (0.55 + 0.42 * clamp(depth * 1.5, 0.0, 1.0)));
+    }
+
+    if (col.a <= 0.004)
+        discard;
+
+    COLOR = col;
+}

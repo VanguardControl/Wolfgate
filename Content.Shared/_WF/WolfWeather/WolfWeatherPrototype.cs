@@ -59,6 +59,14 @@ public sealed partial class WolfWeatherPrototype : IPrototype, IInheritingProtot
     [DataField]
     public WolfWeatherLightning? Lightning;
 
+    /// <summary>How wet open ground gets at full strength, from 0 to 1. Above 0.3 puddles form too.</summary>
+    [DataField]
+    public float GroundWetness;
+
+    /// <summary>Snow laid on open ground at full strength, in cover levels a minute.</summary>
+    [DataField]
+    public float Snowfall;
+
     private List<WolfWeatherLayer> BuildFinalLayers()
     {
         if (LayerOverrides.Count == 0)
