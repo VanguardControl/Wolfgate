@@ -28,6 +28,12 @@
     entities: [WFCavernFaunaCarcinoma]
     threshold: 0.985
     noise: { seed: 38, noiseType: OpenSimplex2, frequency: 3 }
+  # Breathing vents (_WF/PlanetVents) along the throats.
+  - !type:BiomeEntityLayer
+    allowedTiles: [WFCavernFloorFlesh]
+    entities: [WFCarcinomaVent]
+    threshold: 0.95
+    noise: { seed: 143, noiseType: OpenSimplex2, frequency: 0.6 }
   # Flesh wherever ridged noise is at most the throat threshold; a weak second octave makes the throats wiggle
   # without breaking them.
   - !type:BiomeMetaLayer

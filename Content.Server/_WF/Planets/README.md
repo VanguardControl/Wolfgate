@@ -26,7 +26,10 @@ the natural ground back instead of station plating and lattice (`WFPlanetTileBre
 the ground breaks the station way, down to the ground they built on. A blast never leaves plating or lattice on the
 ground: natural ground holds or opens into the caverns, and a player's floor never breaks through. Jetpacks only
 work in orbit and lattice goes straight onto natural ground. A room built on a planet holds its own air once it has a
-floor: bare ground counts as outdoors and keeps the planet's air. Players use landing thruster kits, parachutes and the
+floor: bare ground counts as outdoors and keeps the planet's air. A world whose air its own life couldn't breathe lists
+that life in `WFPlanetNatives` on its network (wildlife tables, entities, slime breeds), and `WFPlanetNativesSystem`
+gives each `BreathingImmunity` while it is there; Carcinoma's carbon dioxide (`_WF/PlanetVents`) is the one so far.
+Players use landing thruster kits, parachutes and the
 planet timepiece. Admins get the Planet Control panel in the Wolfgate admin tab (`planetcontrol`) for sanction, time
 of day, weather and gravity, and `wfplanet` to build a star system's worlds.
 
@@ -276,6 +279,8 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/_WF/Planets/Infestation/WFCarcinomaInfestationComponent.cs`](Infestation/WFCarcinomaInfestationComponent.cs)
 - [`Content.Server/_WF/Planets/Infestation/WFCarcinomaInfestationSystem.cs`](Infestation/WFCarcinomaInfestationSystem.cs)
 - [`Content.Server/_WF/Planets/Jetpack/WFAtmosphericJetpackFuelSystem.cs`](Jetpack/WFAtmosphericJetpackFuelSystem.cs)
+- [`Content.Server/_WF/Planets/Natives/WFPlanetNativesComponent.cs`](Natives/WFPlanetNativesComponent.cs)
+- [`Content.Server/_WF/Planets/Natives/WFPlanetNativesSystem.cs`](Natives/WFPlanetNativesSystem.cs)
 - [`Content.Server/_WF/Planets/PathfindingSystem.WFPlanetLazy.cs`](PathfindingSystem.WFPlanetLazy.cs)
 - [`Content.Server/_WF/Planets/PathfindingSystem.WFPlanetPathWake.cs`](PathfindingSystem.WFPlanetPathWake.cs)
 - [`Content.Server/_WF/Planets/ShuttleSystem.WFOrbit.cs`](ShuttleSystem.WFOrbit.cs)

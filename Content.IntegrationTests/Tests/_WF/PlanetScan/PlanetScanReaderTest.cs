@@ -128,6 +128,9 @@ public sealed class PlanetScanReaderTest
             Assert.That(reader.TryRead(carcinoma, null, reading), Is.True);
             Assert.That(reading.Sanctioned, Is.False);
             Assert.That(reading.Hazards, Does.Contain(new LocId("wf-planet-scan-hazard-unsanctioned")));
+            // Its air is mostly carbon dioxide (_WF/PlanetVents).
+            Assert.That(reading.Breathable, Is.False, "Carcinoma's carbon dioxide reads as breathable.");
+            Assert.That(reading.Hazards, Does.Contain(new LocId("wf-planet-scan-hazard-air")));
         });
 
         // The client reads the same from what it was sent.

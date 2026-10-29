@@ -31,7 +31,8 @@ public sealed class PlanetNpcGearTest
     [TestCase("WFSurfaceFervidus", true)]
     [TestCase("WFSurfaceThrascias", true)]
     [TestCase("WFSurfaceAerumna", true)]
-    [TestCase("WFSurfaceCarcinoma", false)]
+    // Carcinoma's carbon dioxide (_WF/PlanetVents).
+    [TestCase("WFSurfaceCarcinoma", true)]
     [TestCase("WFSurfaceMerak", false)]
     [TestCase("WFSurfaceAsclepiu", false)]
     public async Task StrangersLiveThroughTheAir(string surface, bool unsafeAir)
