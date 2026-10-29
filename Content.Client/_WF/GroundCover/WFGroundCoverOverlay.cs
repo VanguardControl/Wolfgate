@@ -2,6 +2,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using Content.Client._WF.WolfWeather;
 using Content.Client.Graphics;
+using Content.Client.Viewport;
 using Content.Shared._WF.GroundCover;
 using Content.Shared._WF.WolfWeather;
 using Content.Shared.Light.Components;
@@ -15,8 +16,11 @@ using Robust.Shared.Timing;
 
 namespace Content.Client._WF.GroundCover;
 
-/// <summary>Darkens wet open ground, spreads puddles on it and lays snow cover, over the floor and under everything else.</summary>
-public sealed class WFGroundCoverOverlay : Overlay
+/// <summary>
+/// Draws wet open ground from the floor under it, puddles that mirror the scene with raindrop ripples, and snow cover,
+/// over the floor and under everything else.
+/// </summary>
+public sealed partial class WFGroundCoverOverlay : Overlay
 {
     private static readonly ProtoId<ShaderPrototype> Shader = "WFGroundCover";
     private static readonly ProtoId<ShaderPrototype> UnshadedShader = "unshaded";
@@ -36,8 +40,12 @@ public sealed class WFGroundCoverOverlay : Overlay
     /// <summary>Wetness below this draws nothing.</summary>
     private const float MinWetness = 0.01f;
 
+    /// <summary>Quality that draws ripples, splashes and reflections.</summary>
+    private const int FullQuality = 2;
+
     private static readonly TimeSpan MaskRefresh = TimeSpan.FromSeconds(1);
     private static readonly TimeSpan MaskMinAge = TimeSpan.FromSeconds(0.25);
+
     private static readonly Color ClearColor = new(0f, 0f, 0f, 0f);
 
     [Dependency] private IClyde _clyde = default!;
@@ -51,13 +59,18 @@ public sealed class WFGroundCoverOverlay : Overlay
     private readonly SharedMapSystem _map;
     private readonly SharedTransformSystem _xform;
     private readonly EntityQuery<WFGroundWeatherComponent> _groundQuery;
+    private readonly EntityQuery<WolfWeatherMapComponent> _weatherQuery;
+    private readonly EntityQuery<MapLightComponent> _lightQuery;
     private readonly EntityQuery<RoofComponent> _roofQuery;
     private readonly OverlayResourceCache<MaskTarget> _masks = new();
+    private readonly OverlayResourceCache<FloorTarget> _floors = new();
     private readonly List<WorldRect> _rects = new();
     private List<Entity<MapGridComponent>> _grids = new();
     private readonly ShaderInstance _shader;
+    private readonly ShaderInstance _reflectShader;
     private readonly ShaderInstance _unshaded;
     private readonly Action _drawMask;
+    private readonly Action _copyFloor;
 
     private DrawingHandleWorld _maskHandle = default!;
     private Matrix3x2 _maskMatrix;
@@ -65,7 +78,26 @@ public sealed class WFGroundCoverOverlay : Overlay
     private Box2 _maskRect;
     private bool _maskWet;
 
+    private DrawingHandleWorld _copyHandle = default!;
+    private Texture _copySource = default!;
+    private Vector2i _copySize;
+
+    private float _wetness;
+    private float _puddles;
+    private float _rain;
+    private bool _wet;
+    private bool _detail;
+
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowEntities;
+
+    /// <summary>The wet ground is drawn from the floor under it, so the floor is copied first, only while wet.</summary>
+    public override bool RequestScreenTexture => _wet;
+
+    /// <summary>How many times the ground shader drew, for tests.</summary>
+    public int Draws { get; private set; }
+
+    /// <summary>How many times the reflection shader drew, for tests.</summary>
+    public int ReflectionDraws { get; private set; }
 
     public WFGroundCoverOverlay()
     {
@@ -77,56 +109,227 @@ public sealed class WFGroundCoverOverlay : Overlay
         _map = _entManager.System<SharedMapSystem>();
         _xform = _entManager.System<SharedTransformSystem>();
         _groundQuery = _entManager.GetEntityQuery<WFGroundWeatherComponent>();
+        _weatherQuery = _entManager.GetEntityQuery<WolfWeatherMapComponent>();
+        _lightQuery = _entManager.GetEntityQuery<MapLightComponent>();
         _roofQuery = _entManager.GetEntityQuery<RoofComponent>();
         _shader = _proto.Index(Shader).InstanceUnique();
+        _reflectShader = _proto.Index(Shader).InstanceUnique();
         _unshaded = _proto.Index(UnshadedShader).Instance();
         _drawMask = DrawMask;
+        _copyFloor = CopyFloor;
     }
 
     protected override void DisposeBehavior()
     {
         _masks.Dispose();
+        _floors.Dispose();
         _shader.Dispose();
+        _reflectShader.Dispose();
         base.DisposeBehavior();
+    }
+
+    protected override bool BeforeDraw(in OverlayDrawArgs args)
+    {
+        GetFloor(args.Viewport).Ready = false;
+
+        // Only the view's own level: z-levels drawn under or over it would stack a second layer of wet ground.
+        if (args.MapId == MapId.Nullspace || args.Viewport.Eye is ScalingViewport.ZEye { Primary: false })
+        {
+            _wet = false;
+            return false;
+        }
+
+        return UpdateWeather(args.MapId) || AnySnowInView(args);
+    }
+
+    /// <summary>Reads a map's wetness, puddles and rain at the current quality; true if wet ground draws.</summary>
+    public bool UpdateWeather(MapId mapId)
+    {
+        var quality = _wolfWeather.Quality;
+        var mapUid = _map.GetMapOrInvalid(mapId);
+        _wetness = 0f;
+        _puddles = 0f;
+        _rain = 0f;
+        if (quality > 0 && _groundQuery.TryComp(mapUid, out var ground))
+        {
+            _wetness = ground.Wetness;
+            _puddles = ground.Puddles;
+            _rain = GetRain(mapUid);
+        }
+
+        _detail = quality >= FullQuality;
+        _wet = _wetness >= MinWetness;
+        return _wet;
+    }
+
+    /// <summary>Rain read by the last <see cref="UpdateWeather"/>, which drives the ripples and splashes.</summary>
+    public float Rain => _rain;
+
+    /// <summary>Whether the last <see cref="UpdateWeather"/> found Full quality, with ripples, splashes and reflections.</summary>
+    public bool Detail => _detail;
+
+    /// <summary>Rain falling on a map now, as ground wetness at full strength summed over its weathers.</summary>
+    public float GetRain(EntityUid map)
+    {
+        if (!_weatherQuery.TryComp(map, out var weather))
+            return 0f;
+
+        var now = _timing.CurTime;
+        var rain = 0f;
+        foreach (var entry in weather.Weathers)
+        {
+            if (_proto.TryIndex(entry.Weather, out var proto))
+                rain += SharedWolfWeatherSystem.GetStrength(entry, proto, now) * proto.GroundWetness;
+        }
+
+        return Math.Clamp(rain, 0f, 1f);
     }
 
     protected override void Draw(in OverlayDrawArgs args)
     {
-        if (args.MapId == MapId.Nullspace)
+        if (_wet && ScreenTexture == null)
             return;
 
-        var quality = _wolfWeather.Quality;
-        var mapUid = _map.GetMapOrInvalid(args.MapId);
-        var wetness = 0f;
-        var puddles = 0f;
-        if (quality > 0 && _groundQuery.TryComp(mapUid, out var ground))
+        var mask = GetMask(args, _wet);
+        var maskTexture = mask.Target!.Texture;
+        var floor = GetFloor(args.Viewport);
+
+        // Full quality keeps the bare floor, so the reflection pass after entities can find the water nothing covers.
+        if (_wet && _detail && _puddles > 0f && CopyFloor(args, floor))
         {
-            wetness = ground.Wetness;
-            puddles = quality >= 2 ? ground.Puddles : 0f;
+            floor.Ready = true;
+            floor.MapId = args.MapId;
         }
 
-        var wet = wetness >= MinWetness;
-        if (!wet && !AnySnowInView(args))
-            return;
-
-        var mask = GetMask(args, wet);
-        var bounds = args.WorldAABB;
-        var origin = new Vector2(Wrap(bounds.Left), Wrap(bounds.Bottom));
-
-        _shader.SetParameter("mask", mask.Target!.Texture);
-        _shader.SetParameter("maskOffset", bounds.BottomLeft - mask.Rect.BottomLeft);
-        _shader.SetParameter("maskSize", mask.Rect.Size);
-        _shader.SetParameter("size", bounds.Size);
-        _shader.SetParameter("origin", origin);
-        _shader.SetParameter("wetness", wetness);
-        _shader.SetParameter("puddles", puddles);
-        _shader.SetParameter("time", (float) (_timing.RealTime.TotalSeconds % TimePeriod));
+        SetCommon(_shader, args, mask);
+        _shader.SetParameter("pass", 0f);
+        _shader.SetParameter("SCREEN_TEXTURE", _wet ? ScreenTexture! : maskTexture);
+        _shader.SetParameter("floorTex", maskTexture);
 
         var handle = args.WorldHandle;
         handle.SetTransform(Matrix3x2.Identity);
         handle.UseShader(_shader);
-        handle.DrawRect(bounds, Color.White);
+        handle.DrawRect(args.WorldAABB, Color.White);
         handle.UseShader(null);
+        Draws++;
+    }
+
+    /// <summary>Whether this viewport kept its floor this frame, so puddle reflections can be drawn on it.</summary>
+    public bool WantsReflections(in OverlayDrawArgs args)
+    {
+        var floor = GetFloor(args.Viewport);
+        return floor.Ready && floor.MapId == args.MapId;
+    }
+
+    /// <summary>
+    /// Mirrors what stands above each puddle into it, on water nothing has been drawn over. Runs after entities, with
+    /// the whole scene as the screen texture.
+    /// </summary>
+    public void DrawReflections(in OverlayDrawArgs args, Texture scene)
+    {
+        var floor = GetFloor(args.Viewport);
+        var mask = _masks.GetForViewport(args.Viewport, static _ => new MaskTarget());
+        if (!floor.Ready || floor.Target == null || mask.Target == null)
+            return;
+
+        SetCommon(_reflectShader, args, mask);
+        _reflectShader.SetParameter("pass", 1f);
+        _reflectShader.SetParameter("SCREEN_TEXTURE", scene);
+        _reflectShader.SetParameter("floorTex", floor.Target.Texture);
+
+        var handle = args.WorldHandle;
+        handle.SetTransform(Matrix3x2.Identity);
+        handle.UseShader(_reflectShader);
+        handle.DrawRect(args.WorldAABB, Color.White);
+        handle.UseShader(null);
+        ReflectionDraws++;
+    }
+
+    private FloorTarget GetFloor(IClydeViewport viewport)
+    {
+        return _floors.GetForViewport(viewport, static _ => new FloorTarget());
+    }
+
+    /// <summary>Copies the floor the screen texture holds into the viewport's own target.</summary>
+    private bool CopyFloor(in OverlayDrawArgs args, FloorTarget floor)
+    {
+        var size = args.Viewport.Size;
+        if (size.X <= 0 || size.Y <= 0)
+            return false;
+
+        if (floor.Target == null || floor.Target.Texture.Size != size)
+        {
+            floor.Target?.Dispose();
+            floor.Target = _clyde.CreateRenderTarget(size,
+                new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba8Srgb),
+                new TextureSampleParameters { Filter = false },
+                "wf-ground-cover-floor");
+        }
+
+        _copyHandle = args.WorldHandle;
+        _copySource = ScreenTexture!;
+        _copySize = size;
+        args.WorldHandle.RenderInRenderTarget(floor.Target, _copyFloor, null);
+        return true;
+    }
+
+    private void CopyFloor()
+    {
+        _copyHandle.UseShader(_unshaded);
+        _copyHandle.SetTransform(Matrix3x2.Identity);
+        _copyHandle.DrawTextureRect(_copySource, new Box2(0f, 0f, _copySize.X, _copySize.Y));
+        _copyHandle.UseShader(null);
+    }
+
+    /// <summary>Parameters both passes share, so the reflection pass can redo the ground pass exactly.</summary>
+    private void SetCommon(ShaderInstance shader, in OverlayDrawArgs args, MaskTarget mask)
+    {
+        var bounds = args.WorldAABB;
+        var corner = bounds.BottomLeft;
+        var viewport = args.Viewport;
+        var eye = viewport.Eye;
+        var eyePos = eye?.Position.Position ?? bounds.Center;
+        var scale = EyeManager.PixelsPerMeter * viewport.RenderScale.X * (eye?.Scale.X ?? 1f);
+        var down = _wolfWeather.Down;
+        var up = MathF.Abs(down.X) > MathF.Abs(down.Y)
+            ? new Vector2(-MathF.Sign(down.X), 0f)
+            : new Vector2(0f, down.Y > 0f ? -1f : 1f);
+        var centre = bounds.Center;
+        var uv = ToUv(viewport, centre);
+
+        shader.SetParameter("mask", mask.Target!.Texture);
+        shader.SetParameter("maskOffset", corner - mask.Rect.BottomLeft);
+        shader.SetParameter("maskSize", mask.Rect.Size);
+        shader.SetParameter("size", bounds.Size);
+        shader.SetParameter("origin", new Vector2(Wrap(corner.X), Wrap(corner.Y)));
+        shader.SetParameter("wetness", _wetness);
+        shader.SetParameter("puddles", _puddles);
+        shader.SetParameter("rain", _rain);
+        shader.SetParameter("detail", _detail ? 1f : 0f);
+        shader.SetParameter("time", (float) (_timing.RealTime.TotalSeconds % TimePeriod));
+        shader.SetParameter("ambient", GetAmbient(args.MapUid));
+        shader.SetParameter("eye", eyePos - corner);
+        shader.SetParameter("halfView", Vector2.Max(bounds.Size * 0.5f, Vector2.One));
+        shader.SetParameter("up", up);
+        shader.SetParameter("pixel", scale > 0f ? 1f / scale : 1f / EyeManager.PixelsPerMeter);
+        shader.SetParameter("uvDx", ToUv(viewport, centre + Vector2.UnitX) - uv);
+        shader.SetParameter("uvDy", ToUv(viewport, centre + Vector2.UnitY) - uv);
+    }
+
+    /// <summary>A world position's UV on the viewport's screen texture, which is bottom-up.</summary>
+    private static Vector2 ToUv(IClydeViewport viewport, Vector2 world)
+    {
+        var local = viewport.WorldToLocal(world);
+        return new Vector2(local.X / viewport.Size.X, 1f - local.Y / viewport.Size.Y);
+    }
+
+    private Vector3 GetAmbient(EntityUid map)
+    {
+        if (!_lightQuery.TryComp(map, out var light))
+            return Vector3.One;
+
+        var color = light.AmbientLightColor;
+        return new Vector3(color.R, color.G, color.B);
     }
 
     private static float Wrap(float value)
@@ -238,6 +441,19 @@ public sealed class WFGroundCoverOverlay : Overlay
         }
 
         handle.UseShader(null);
+    }
+
+    /// <summary>One viewport's copy of the bare floor from this frame's ground pass.</summary>
+    private sealed class FloorTarget : IDisposable
+    {
+        public IRenderTexture? Target;
+        public MapId MapId;
+        public bool Ready;
+
+        public void Dispose()
+        {
+            Target?.Dispose();
+        }
     }
 
     private sealed class MaskTarget : IDisposable

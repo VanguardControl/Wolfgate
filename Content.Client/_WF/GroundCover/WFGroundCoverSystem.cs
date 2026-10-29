@@ -26,13 +26,16 @@ public sealed class WFGroundCoverSystem : EntitySystem
     {
         base.Initialize();
         SubscribeNetworkEvent<WFSnowCoverChunksMessage>(OnChunks);
-        _overlay.AddOverlay(new WFGroundCoverOverlay());
+        var ground = new WFGroundCoverOverlay();
+        _overlay.AddOverlay(ground);
+        _overlay.AddOverlay(new WFGroundReflectionOverlay(ground));
     }
 
     public override void Shutdown()
     {
         base.Shutdown();
         _overlay.RemoveOverlay<WFGroundCoverOverlay>();
+        _overlay.RemoveOverlay<WFGroundReflectionOverlay>();
         _snow.Clear();
     }
 
