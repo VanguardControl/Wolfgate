@@ -41,7 +41,7 @@ public sealed class StasisSystem : SharedStasisSystem
                 return;
             }
 
-            if (args.NewMobState == MobState.Dead && comp.IsInStasis)
+            if (args.NewMobState == MobState.Dead && (comp.IsInStasis || HasComp<StasisFrozenComponent>(args.Target))) // WOLFGATE(Species): dying during the wind-up also cancels it
             {
                 RaiseLocalEvent(args.Target, new ExitStasisActionEvent());
             }
@@ -66,7 +66,7 @@ public sealed class StasisSystem : SharedStasisSystem
         PrepareStasisActionEvent args)
     {
         // HardLight start
-        if (_mobState.IsCritical(uid))
+        if (_mobState.IsIncapacitated(uid)) // WOLFGATE(Species): a dead body left the shell invisible for good
         {
             args.Handled = true;
             return;
@@ -94,7 +94,7 @@ public sealed class StasisSystem : SharedStasisSystem
                 return;
 
             // HardLight start
-            if (_mobState.IsCritical(uid))
+            if (_mobState.IsIncapacitated(uid)) // WOLFGATE(Species): a dead body left the shell invisible for good
             {
                 var exitEv = new ExitStasisActionEvent();
                 RaiseLocalEvent(uid, exitEv);
@@ -111,7 +111,7 @@ public sealed class StasisSystem : SharedStasisSystem
         EnterStasisActionEvent args)
     {
         // HardLight start
-        if (_mobState.IsCritical(uid))
+        if (_mobState.IsIncapacitated(uid)) // WOLFGATE(Species): a dead body left the shell invisible for good
         {
             args.Handled = true;
 
@@ -141,6 +141,9 @@ public sealed class StasisSystem : SharedStasisSystem
 
     protected override void OnExitStasisStart(EntityUid uid, StasisComponent comp, ExitStasisActionEvent args)
     {
+        if (!comp.IsInStasis && !HasComp<StasisFrozenComponent>(uid)) // WOLFGATE(Species): crit or death and the wind-up timer both exit; the second swapped actions twice
+            return;
+
         comp.IsInStasis = false;
         comp.IsVisible = true; // Entity becomes visible when exiting stasis
 

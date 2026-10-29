@@ -393,6 +393,60 @@ public sealed class DrydockTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>
+    /// A rebuilt gun rejoins the ship's fire control. A queued grid with no fire control (here a station with a fresh
+    /// wall) used to stop the hardpoint refresh for good, so guns rebuilt at the drydock never linked to the consoles.
+    /// </summary>
+    [Test]
+    public async Task RebuiltGunRejoinsFireControl()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var station = await pair.CreateTestMap();
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid;
+        var drydock = server.System<WFDrydockSystem>();
+        var console = new WFDrydockConsoleComponent { Berth = "T" };
+        EntityUid hardpoint = default, serverUid = default;
+
+        await server.WaitAssertion(() =>
+        {
+            SetFloor(pair, station.Grid, 2);
+            SpawnAnchored(pair, station.Grid, "WallSolid", new Vector2i(1, 1));
+
+            SetFloor(pair, grid, 5);
+            serverUid = em.SpawnEntity(null, map.GridCoords);
+            var fireServer = em.AddComponent<Content.Server._Mono.FireControl.FireControlServerComponent>(serverUid);
+            fireServer.ConnectedGrid = grid;
+            fireServer.ProcessingPower = 100;
+            em.EnsureComponent<Content.Server._Mono.FireControl.FireControlGridComponent>(grid).ControllingServer = serverUid;
+
+            hardpoint = SpawnAnchored(pair, grid, "HardpointEnergyHeavy", new Vector2i(2, 2));
+            var gun = SpawnAnchored(pair, grid, "WeaponTurretSunder", new Vector2i(2, 2));
+            server.System<ShipRepairSystem>().GenerateRepairData(grid);
+
+            em.DeleteEntity(gun);
+            foreach (var item in drydock.BuildRepairItems(grid, console))
+            {
+                drydock.ApplyItem(grid, item);
+            }
+        });
+
+        // The hardpoint system refreshes queued grids once a minute.
+        await server.WaitRunTicks(server.Timing.TickRate * 65);
+
+        await server.WaitAssertion(() =>
+        {
+            var rebuilt = em.GetComponent<HardpointComponent>(hardpoint).anchoring;
+            Assert.That(rebuilt, Is.Not.Null, "The gun was not rebuilt.");
+            Assert.That(em.GetComponent<Content.Server._Mono.FireControl.FireControllableComponent>(rebuilt!.Value).ControllingServer,
+                Is.EqualTo(serverUid), "The rebuilt gun did not rejoin the ship's fire control.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Spawns and anchors a prototype on a grid tile.</summary>
     internal static EntityUid SpawnAnchored(TestPair pair, EntityUid grid, string proto, Vector2i tile)
     {

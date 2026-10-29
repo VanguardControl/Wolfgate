@@ -220,7 +220,11 @@ and its own sprite.
 - [`Content.Server/_Impstation/Thaven/ThavenMoodsEui.cs`](../../../Content.Server/_Impstation/Thaven/ThavenMoodsEui.cs): ported from HardLight
 - [`Content.Server/_Impstation/Thaven/ThavenMoodSystem.cs`](../../../Content.Server/_Impstation/Thaven/ThavenMoodSystem.cs): ported from HardLight
 - [`Content.Server/_Starlight/Actions/Stasis/StasisFrozenSystem.cs`](../../../Content.Server/_Starlight/Actions/Stasis/StasisFrozenSystem.cs): ported from HardLight
-- [`Content.Server/_Starlight/Actions/Stasis/StasisSystem.cs`](../../../Content.Server/_Starlight/Actions/Stasis/StasisSystem.cs): ported from HardLight
+- [`Content.Server/_Starlight/Actions/Stasis/StasisSystem.cs`](../../../Content.Server/_Starlight/Actions/Stasis/StasisSystem.cs)
+  - ported from HardLight
+  - dying during the wind-up also cancels it
+  - a dead body left the shell invisible for good
+  - crit or death and the wind-up timer both exit; the second swapped actions twice
 - [`Content.Server/_Starlight/NullSpace/BluespacePulseOnTriggerComponent.cs`](../../../Content.Server/_Starlight/NullSpace/BluespacePulseOnTriggerComponent.cs): ported from HardLight
 - [`Content.Server/_Starlight/NullSpace/BluespacePulseOnTriggerSystem.cs`](../../../Content.Server/_Starlight/NullSpace/BluespacePulseOnTriggerSystem.cs): ported from HardLight
 - [`Content.Server/_Starlight/NullSpace/NullPhaseSystem.cs`](../../../Content.Server/_Starlight/NullSpace/NullPhaseSystem.cs): ported from HardLight

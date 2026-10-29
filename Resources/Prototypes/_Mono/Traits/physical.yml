@@ -444,6 +444,8 @@
       groups:
         Brute: -1.5
         Burn: -2
+    # WOLFGATE(Wolfmed): the drones repair a chassis too; flesh-only mending left every chassis wound open
+    mendCapabilities: [ Biological, Mechanical, Electrical ]
 
 - type: trait
   id: Helmsmanship

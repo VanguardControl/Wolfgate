@@ -24,6 +24,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - keep typed pill and bottle amounts when an update changes nothing they depend on
   - only reset on a change
   - a merge left the old guard nested over the new one, so an empty beaker with a full buffer threw
+  - fire on mouse down; every update rebuilds these buttons, so one between press and release ate the click
 - [`Content.Client/Guidebook/GuidebookDataSystem.cs`](../../Content.Client/Guidebook/GuidebookDataSystem.cs)
   - replays skip the guidebook data request
   - partial for the network dependency
@@ -83,6 +84,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - an instant do-after has already ended, so nothing would ever delete the effect
 - [`Content.Server/_Mono/Botany/PlantAnalyzer/PlantAnalyzerSystem.cs`](../../Content.Server/_Mono/Botany/PlantAnalyzer/PlantAnalyzerSystem.cs): was 0.01, so the slightest drift silently cancelled the scan
 - [`Content.Server/_NF/PublicTransit/PublicTransitSystem.cs`](../../Content.Server/_NF/PublicTransit/PublicTransitSystem.cs): announce the departure, as FTLToDock now flies and OnShuttleArrival announces the stop
+- [`Content.Server/Administration/Systems/BwoinkSystem.cs`](../../Content.Server/Administration/Systems/BwoinkSystem.cs)
+  - a mention in an embed never pings; it goes in the content below
+  - only message content pings, and the payload suppresses every mention unless roles are allowed
 - [`Content.Server/Anomaly/Effects/ProjectileAnomalySystem.cs`](../../Content.Server/Anomaly/Effects/ProjectileAnomalySystem.cs): with nothing in range Pick threw, so a supercritical never ended and retried every tick
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs`](../../Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs)
   - Vector2 for the space-wind NaN guard
@@ -159,6 +163,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`README.md`](../../README.md): reworded for Wolfgate build differences
 - [`Resources/Audio/_Goobstation/RadioStation/`](../../Resources/Audio/_Goobstation/RadioStation/): Radio host tracks (Monolith#4833) re-encoded to mono Vorbis q0 to cut download size.
 - [`Resources/Audio/_Mono/RadioStation/`](../../Resources/Audio/_Mono/RadioStation/): Nulb vinyl tracks (Monolith#4835) re-encoded to mono Vorbis q0 to cut download size.
+- [`Resources/keybinds.yml`](../../Resources/keybinds.yml): camera focus toggle unbound by default; players hit it with Space by accident
 - [`Resources/Locale/en-US/_Mono/guidebook/guides.ftl`](../../Resources/Locale/en-US/_Mono/guidebook/guides.ftl): was Monolith Rules
 - [`Resources/Locale/en-US/_Mono/poi/stations.ftl`](../../Resources/Locale/en-US/_Mono/poi/stations.ftl)
   - keeps [bold]; upstream's [color=bold] tag is unbalanced
