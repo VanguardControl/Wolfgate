@@ -77,6 +77,9 @@ routed by `WFPlanetTrailPlanner`): a wandering track of the network's `trailTile
 outside its first socket (a door) to the nearest road or earlier footpath. A site more than `trailLength` (240) steps from
 any road goes without. `Tools/_WF/PlanetPois/roadside_map.py <map> <name> --trail` turns a mapper's grid into one.
 
+Other modules add sites of their own for a round through `WFPlanetPoiExtraSitesEvent`, raised as a world draws its
+sites; theirs are placed first (the planetside cargo hubs, `PlanetCargoHubs`).
+
 Players discover orbit signals by approaching sites on the ground. Content authors add maps, entry
 limits and road sockets through the table prototypes; see [MapperGuide](../../../Docs/_WF/PlanetPois/MapperGuide.md)
 for the map contract and content roadmap. The authored maps are the mappers' own: Verda's houses,
@@ -96,6 +99,7 @@ payment, sells a few, and eats whoever is left dead in his inn.
 ### Server
 
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiComponent.cs`](WFPlanetPoiComponent.cs)
+- [`Content.Server/_WF/PlanetPois/WFPlanetPoiExtraSitesEvent.cs`](WFPlanetPoiExtraSitesEvent.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiPlacementPlanner.cs`](WFPlanetPoiPlacementPlanner.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Atlases.cs`](WFPlanetPoiSystem.Atlases.cs)
 - [`Content.Server/_WF/PlanetPois/WFPlanetPoiSystem.Camps.cs`](WFPlanetPoiSystem.Camps.cs)
