@@ -33,6 +33,9 @@ public sealed partial class PlanetControlCommand : LocalizedEntityCommands
                         ("weather", info.Weather.Length == 0
                             ? Loc.GetString("cmd-planetcontrol-weather-clear")
                             : info.Weather),
+                        ("wolf", info.WolfWeather.Length == 0
+                            ? Loc.GetString("cmd-planetcontrol-weather-clear")
+                            : info.WolfWeather),
                         ("gravity", $"{info.Gravity:F2}"),
                         ("sanctioned", info.Sanctioned.ToString()))
                     : Loc.GetString("cmd-planetcontrol-row-unbuilt",

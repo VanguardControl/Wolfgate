@@ -18,6 +18,9 @@ public sealed class PlanetControlInfo
     /// <summary>The scheduled weather prototype, or empty for clear skies.</summary>
     public string Weather = string.Empty;
 
+    /// <summary>The WolfWeather shown on the ground, or empty for none.</summary>
+    public string WolfWeather = string.Empty;
+
     /// <summary>Seconds until the scheduler next changes the weather.</summary>
     public float WeatherSeconds;
 

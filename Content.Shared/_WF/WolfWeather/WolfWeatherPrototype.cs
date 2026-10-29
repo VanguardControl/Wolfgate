@@ -1,4 +1,5 @@
 using System.Numerics;
+using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.Array;
@@ -83,8 +84,12 @@ public sealed partial class WolfWeatherPrototype : IPrototype, IInheritingProtot
 [DataDefinition]
 public sealed partial class WolfWeatherSound
 {
-    [DataField(required: true)]
+    [DataField]
     public List<ResPath> Files = new();
+
+    /// <summary>Picks from this sound collection's files as well as <see cref="Files"/>.</summary>
+    [DataField]
+    public ProtoId<SoundCollectionPrototype>? Collection;
 
     /// <summary>Volume as a share of normal. 1 is normal, 0.25 is a quarter.</summary>
     [DataField]

@@ -1,17 +1,17 @@
-# Example schedule:
+# Schedules are for maps that aren't planets, such as an event map; a planet's weather follows its wfPlanetWeather.
 #
 # - type: weatherSchedule
-#   id: MySchedule
+#   id: WFMySchedule
 #   gap:
 #     min: 6m
 #     max: 15m
 #   weathers:
-#   - weather: RainLight
+#   - weather: WFRainLight
 #     weight: 2
 #     duration:
 #       min: 4m
 #       max: 10m
-#   - weather: RainHeavy
+#   - weather: WFRainHeavy
 #     weight: 1
 #     duration:
 #       min: 2m
@@ -21,33 +21,36 @@
 #       max: 210
 
 - type: weatherSchedule
-  id: Carcinoma
+  id: WFTemperate
   gap:
-    min: 1m
-    max: 3m
+    min: 6m
+    max: 15m
   weathers:
-  - weather: BloodHaze
+  - weather: WFRainLight
+    weight: 3
+    duration:
+      min: 4m
+      max: 10m
+  - weather: WFRainModerate
     weight: 2
     duration:
-      min: 1m
-      max: 3m
-  - weather: BloodFog
-    weight: 1
-    duration:
-      min: 1m
-      max: 3m
-  - weather: BloodRainLight
+      min: 3m
+      max: 8m
+  - weather: WFFogWisps
     weight: 2
     duration:
-      min: 1m
-      max: 3m
-  - weather: BloodRain
+      min: 3m
+      max: 8m
+  - weather: WFRainHeavy
     weight: 1
     duration:
-      min: 1m
-      max: 3m
-  - weather: BloodRainHeavy
+      min: 2m
+      max: 5m
+    windAngle:
+      min: 150
+      max: 210
+  - weather: WFStorm
     weight: 1
     duration:
-      min: 1m
-      max: 2m
+      min: 2m
+      max: 4m

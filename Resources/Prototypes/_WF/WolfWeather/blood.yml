@@ -1,7 +1,7 @@
 # Red weathers for Carcinoma, as variants of the normal rain and fog.
 - type: wolfWeather
-  parent: RainLight
-  id: BloodRainLight
+  parent: WFRainLight
+  id: WFBloodRainLight
   ambientTint: "#f0c8c8"
   layerOverrides:
   - index: 0
@@ -10,8 +10,8 @@
     color: "#e0202ab3"
 
 - type: wolfWeather
-  parent: RainModerate
-  id: BloodRain
+  parent: WFRainModerate
+  id: WFBloodRainModerate
   ambientTint: "#e0b0b0"
   layerOverrides:
   - index: 0
@@ -22,14 +22,14 @@
     color: "#e0202acc"
 
 - type: wolfWeather
-  parent: RainHeavy
-  id: BloodRainHeavy
+  parent: WFRainHeavy
+  id: WFBloodRainHeavy
   ambientTint: "#c89090"
   lightning:
     interval: 30, 90
     flashColor: "#ffd0c8"
     farSound:
-      collection: WolfThunderFar
+      collection: WFWolfThunderFar
       params:
         volume: -8
         variation: 0.05
@@ -44,8 +44,8 @@
     color: "#e0202ad9"
 
 - type: wolfWeather
-  parent: FogBank
-  id: BloodFog
+  parent: WFFogBank
+  id: WFBloodFog
   ambientTint: "#d8a8a8ff"
   layerOverrides:
   - index: 0
@@ -54,8 +54,8 @@
     color: "#c4141e80"
 
 - type: wolfWeather
-  parent: FogHaze
-  id: BloodHaze
+  parent: WFFogHaze
+  id: WFBloodHaze
   ambientTint: "#e8c4c4ff"
   layerOverrides:
   - index: 0

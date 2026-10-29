@@ -18,10 +18,14 @@ public abstract partial class SharedWolfWeatherSystem : EntitySystem
     [Dependency] private ITileDefinitionManager _tileDefs = default!;
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private TagSystem _tag = default!;
+    [Dependency] private SharedWeatherSystem _weather = default!;
     [Dependency] private EntityQuery<BlockWeatherComponent> _blockQuery = default!;
     [Dependency] private EntityQuery<IsRoofComponent> _isRoofQuery = default!;
 
     public static readonly ProtoId<TagPrototype> DiagonalTag = "Diagonal";
+
+    /// <summary>Most a weather command or schedule may set a weather for: a week.</summary>
+    public static readonly TimeSpan MaxDuration = TimeSpan.FromDays(7);
 
     public override void Initialize()
     {
@@ -133,7 +137,10 @@ public abstract partial class SharedWolfWeatherSystem : EntitySystem
         if (tile.Tile.IsEmpty)
             return WolfWeatherTile.Exposed | WolfWeatherTile.ExposedPastDiagonals;
 
-        var covered = !((ContentTileDefinition) _tileDefs[tile.Tile.TypeId]).Weather
+        // On a planet roofs decide rather than the tile, and a vessel is under cover throughout, as for stock weather.
+        var planet = _weather.WfPlanetExposure(grid.Owner);
+        var covered = planet == false
+                      || planet == null && !((ContentTileDefinition) _tileDefs[tile.Tile.TypeId]).Weather
                       || grid.Comp2 != null && InRoofMask(grid.Comp2, tile.GridIndices);
         var coveredPastDiagonals = covered;
         var result = WolfWeatherTile.None;

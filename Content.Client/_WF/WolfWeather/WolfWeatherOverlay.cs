@@ -19,8 +19,8 @@ namespace Content.Client._WF.WolfWeather;
 /// <summary>Draws weather layers over exposed tiles, masked off roofed and indoor tiles.</summary>
 public sealed partial class WolfWeatherOverlay : Overlay
 {
-    private static readonly ProtoId<ShaderPrototype> WeatherShader = "WolfWeather";
-    private static readonly ProtoId<ShaderPrototype> BlurShader = "WolfWeatherBlur";
+    private static readonly ProtoId<ShaderPrototype> WeatherShader = "WFWolfWeather";
+    private static readonly ProtoId<ShaderPrototype> BlurShader = "WFWolfWeatherBlur";
     private static readonly ProtoId<ShaderPrototype> UnshadedShader = "unshaded";
     private static readonly Vector2i[] Cardinals = { new(0, 1), new(1, 0), new(0, -1), new(-1, 0) };
 
@@ -37,7 +37,7 @@ public sealed partial class WolfWeatherOverlay : Overlay
     /// <summary>Mask texels per tile, lowered when zoomed far out so the mask stays under MaxMaskSize.</summary>
     private const float MaskTexelsPerTile = 16f;
 
-    private const int MaxMaskSize = 2048;
+    private const int MaxMaskSize = 1024;
 
     /// <summary>Tiles drawn into the mask past the view's edge, snapped so small camera moves keep the mask.</summary>
     private const float MaskMargin = 4f;
@@ -46,6 +46,9 @@ public sealed partial class WolfWeatherOverlay : Overlay
 
     /// <summary>How often the mask is redrawn anyway, to catch walls and roofs built or removed.</summary>
     private static readonly TimeSpan MaskRefresh = TimeSpan.FromSeconds(1);
+
+    /// <summary>Soonest the mask is redrawn for changed tiles, as terrain streaming in changes tiles every tick.</summary>
+    private static readonly TimeSpan MaskMinAge = TimeSpan.FromSeconds(0.25);
 
     private static readonly Color Soft = new(1f, 0f, 0f);
     private static readonly Color Hard = new(0f, 1f, 0f);
@@ -275,7 +278,7 @@ public sealed partial class WolfWeatherOverlay : Overlay
             && mask.MapId == args.MapId
             && mask.Rect.Contains(view.BottomLeft)
             && mask.Rect.Contains(view.TopRight)
-            && mask.Version == _wolfWeather.MaskVersion
+            && (mask.Version == _wolfWeather.MaskVersion || real < mask.BuiltAt + MaskMinAge)
             && real < mask.BuiltAt + MaskRefresh)
             return mask;
 

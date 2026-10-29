@@ -1,4 +1,5 @@
 using Content.Shared._FarHorizons.StarSystem.Prototypes;
+using Content.Shared._WF.WolfWeather;
 using Content.Shared.Weather;
 using Robust.Shared.Prototypes;
 
@@ -14,6 +15,8 @@ public sealed partial class WFPlanetWeatherPrototype : IPrototype
     [DataField] public List<ProtoId<WeatherPrototype>> Weather = new();
     /// <summary>Phased storms, SS13 style: a light telegraph, the storm itself, then a wind-down.</summary>
     [DataField] public List<WFPlanetStorm> Storms = new();
+    /// <summary>How each weather looks, sounds, blows and strikes on this world; a weather left out takes another world's, else shows nothing.</summary>
+    [DataField] public Dictionary<ProtoId<WeatherPrototype>, ProtoId<WolfWeatherPrototype>> WolfWeathers = new();
     [DataField] public float ClearMinSeconds = 180f;
     [DataField] public float ClearMaxSeconds = 420f;
     [DataField] public float WeatherMinSeconds = 120f;
@@ -34,6 +37,4 @@ public sealed partial class WFPlanetStorm
     [DataField] public ProtoId<WeatherPrototype>? End;
     [DataField] public float TelegraphSeconds = 30f;
     [DataField] public float EndSeconds = 30f;
-    /// <summary>Whether lightning strikes open ground near visitors while the main phase runs.</summary>
-    [DataField] public bool Thunder;
 }

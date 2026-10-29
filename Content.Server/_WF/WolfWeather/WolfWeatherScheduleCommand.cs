@@ -53,7 +53,12 @@ public sealed partial class WolfWeatherScheduleCommand : LocalizedEntityCommands
             return;
         }
 
-        _schedule.SetSchedule(map, args[1]);
+        if (!_schedule.SetSchedule(map, args[1]))
+        {
+            shell.WriteError(Loc.GetString("wolf-weather-schedule-command-planet"));
+            return;
+        }
+
         shell.WriteLine(Loc.GetString("wolf-weather-schedule-command-set", ("schedule", args[1])));
     }
 

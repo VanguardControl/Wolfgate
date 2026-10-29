@@ -4,11 +4,13 @@ using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Shared._WF.Planets.Administration;
 using Content.Shared._WF.Planets;
+using Content.Shared._WF.WolfWeather;
 using Content.Shared.Administration;
 using Content.Shared.Database;
 using Content.Shared.Weather;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Server._WF.Planets.Administration;
 
@@ -18,6 +20,7 @@ public sealed partial class PlanetControlSystem : EntitySystem
     [Dependency] private IAdminManager _adminManager = default!;
     [Dependency] private IAdminLogManager _adminLogger = default!;
     [Dependency] private IPrototypeManager _proto = default!;
+    [Dependency] private IGameTiming _timing = default!;
     [Dependency] private WFPlanetWeatherSystem _weather = default!;
     [Dependency] private CEZLevelsSystem _zLevels = default!;
 
@@ -70,6 +73,11 @@ public sealed partial class PlanetControlSystem : EntitySystem
             {
                 info.Built = true;
                 _weather.TryGetState(world.Value, out info.MinuteOfDay, out info.DaySeconds, out info.Weather, out info.WeatherSeconds);
+
+                // What WolfWeather is showing on the ground, which an admin's wolfweather command may have changed.
+                if (TryComp<WolfWeatherMapComponent>(network.GroundMap, out var wolf) && SharedWolfWeatherSystem.GetCurrent(wolf) is { } shown
+                    && (shown.End is not { } end || end > _timing.CurTime))
+                    info.WolfWeather = shown.Weather.Id;
 
                 if (TryComp<WFPlanetLayerComponent>(network.GroundMap, out var ground))
                     info.Gravity = ground.Gravity;

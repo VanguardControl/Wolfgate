@@ -1,7 +1,9 @@
 using System.Globalization;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.CCVar;
+using Content.Server._WF.WolfWeather;
 using Content.Shared._WF.Planets;
+using Content.Shared._WF.WolfWeather;
 using Content.Shared.Weather;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map.Components;
@@ -19,6 +21,7 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private SharedWeatherSystem _weather = default!;
+    [Dependency] private WolfWeatherSystem _wolfWeather = default!;
     private TimeSpan _nextUpdate;
 
     public void Configure(EntityUid network, WFPlanetSurfacePrototype surface, string name)
@@ -71,7 +74,6 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
                     state.NextChange = _timing.CurTime + TimeSpan.FromSeconds(seconds);
                 }
             }
-            UpdateThunder(network, state, profile);
             foreach (var layer in network.Layers)
             {
                 if (layer != network.OrbitMap && !TerminatingOrDeleted(layer))
@@ -147,14 +149,36 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
         if (!TryComp<MapComponent>(map, out var mapComp) || HasComp<WFOrbitLayerComponent>(map))
             return;
         var applied = EnsureComp<WFPlanetWeatherAppliedComponent>(map);
-        if (applied.Current == state.Current && applied.EndTime == state.NextChange)
+        var wolf = ResolveWolfWeather(state.Profile, state.Current);
+        var hasWolf = HasComp<WolfWeatherMapComponent>(map);
+        if (applied.Current == state.Current && applied.EndTime == state.NextChange && applied.WolfWeather == wolf && hasWolf)
             return;
         // Clear on a virgin map needs no WeatherComponent or network update.
         if (state.Current != null || applied.Current != null)
             _weather.SetWeather(mapComp.MapId, state.Current is { } id ? _proto.Index(id) : null,
                 state.Current != null ? state.NextChange : null);
+        // WolfWeather draws, sounds, blows and strikes for the stock weather; its state on a layer, even clear, keeps the
+        // stock overlay and loop off there. Open-ended, so each phase cross-fades into the next when the scheduler moves.
+        if (applied.WolfWeather != wolf || !hasWolf)
+            _wolfWeather.SetWeather(map, wolf, null);
         applied.Current = state.Current;
         applied.EndTime = state.NextChange;
+        applied.WolfWeather = wolf;
+    }
+
+    /// <summary>The WolfWeather that shows a stock weather on a world: its own table's, else any world's, else none.</summary>
+    public ProtoId<WolfWeatherPrototype>? ResolveWolfWeather(ProtoId<WFPlanetWeatherPrototype> profile, ProtoId<WeatherPrototype>? weather)
+    {
+        if (weather is not { } id)
+            return null;
+        if (_proto.TryIndex(profile, out var own) && own.WolfWeathers.TryGetValue(id, out var wolf))
+            return wolf;
+        foreach (var other in _proto.EnumeratePrototypes<WFPlanetWeatherPrototype>())
+        {
+            if (other.WolfWeathers.TryGetValue(id, out wolf))
+                return wolf;
+        }
+        return null;
     }
 
     private bool TryGetWorld(EntityUid map, out EntityUid world)

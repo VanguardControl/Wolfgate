@@ -19,7 +19,7 @@ public sealed partial class WolfWeatherMapComponent : Component
     public Vector2 Wind;
 
     [DataField, AutoNetworkedField]
-    public ProtoId<WolfWeatherSettingsPrototype> Settings = "Default";
+    public ProtoId<WolfWeatherSettingsPrototype> Settings = "WFDefault";
 }
 
 /// <summary>One weather on a map, with when it started, when it ends and its random seed.</summary>

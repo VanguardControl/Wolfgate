@@ -1,5 +1,7 @@
 using System.Globalization;
 using Content.Server.Administration;
+using System.Linq;
+using Content.Shared._WF.Planets;
 using Content.Shared._WF.WolfWeather;
 using Content.Shared.Administration;
 using Robust.Shared.Console;
@@ -43,9 +45,11 @@ public sealed partial class WolfWeatherCommand : LocalizedEntityCommands
         TimeSpan? duration = null;
         if (args.Length == 3)
         {
-            if (!float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var seconds) || seconds <= 0f)
+            if (!float.TryParse(args[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var seconds) || !float.IsFinite(seconds)
+                || seconds <= 0f
+                || seconds > SharedWolfWeatherSystem.MaxDuration.TotalSeconds)
             {
-                shell.WriteError(Loc.GetString("cmd-wolfweather-help"));
+                shell.WriteError(Loc.GetString("wolf-weather-command-bad-seconds"));
                 return;
             }
 
@@ -54,6 +58,8 @@ public sealed partial class WolfWeatherCommand : LocalizedEntityCommands
 
         _wolfWeather.SetWeather(mapUid, weather, duration);
         shell.WriteLine(Loc.GetString("wolf-weather-command-set", ("weather", args[1])));
+        if (EntityManager.HasComponent<WFPlanetLayerComponent>(mapUid))
+            shell.WriteLine(Loc.GetString("wolf-weather-command-planet"));
     }
 
     public override CompletionResult GetCompletion(IConsoleShell shell, string[] args)
@@ -61,7 +67,9 @@ public sealed partial class WolfWeatherCommand : LocalizedEntityCommands
         return args.Length switch
         {
             1 => WolfWeatherCommandHelpers.MapCompletion(EntityManager),
-            2 => CompletionResult.FromHintOptions(CompletionHelper.PrototypeIDs<WolfWeatherPrototype>(), Loc.GetString("wolf-weather-command-hint-weather")),
+            2 => CompletionResult.FromHintOptions(
+                CompletionHelper.PrototypeIDs<WolfWeatherPrototype>().Append(new CompletionOption("clear")),
+                Loc.GetString("wolf-weather-command-hint-weather")),
             3 => CompletionResult.FromHint(Loc.GetString("wolf-weather-command-hint-seconds")),
             _ => CompletionResult.Empty,
         };

@@ -51,12 +51,14 @@ public sealed partial class WolfWeatherSoundSystem : EntitySystem
     private readonly Dictionary<(ProtoId<WolfWeatherPrototype>, int), Loop> _loops = new();
     private readonly Dictionary<(ProtoId<WolfWeatherPrototype>, int), float> _targets = new();
     private readonly List<(ProtoId<WolfWeatherPrototype>, int)> _finished = new();
+    private readonly List<ResPath> _files = new();
 
     public override void Initialize()
     {
         base.Initialize();
         SubscribeNetworkEvent<WolfLightningEvent>(OnLightning);
-        Subs.CVar(_cfg, CCVars.AmbienceVolume, v => _ambienceGain = v, true);
+        // Relative to the slider's default, so weather at the default setting plays at its own volume.
+        Subs.CVar(_cfg, CCVars.AmbienceVolume, v => _ambienceGain = v / CCVars.AmbienceVolume.DefaultValue, true);
     }
 
     public override void Shutdown()
@@ -200,10 +202,15 @@ public sealed partial class WolfWeatherSoundSystem : EntitySystem
                 continue;
 
             var sound = proto.Sounds[key.Item2];
-            if (sound.Files.Count == 0)
+            _files.Clear();
+            _files.AddRange(sound.Files);
+            if (sound.Collection is { } collection && _proto.TryIndex(collection, out var files))
+                _files.AddRange(files.PickFiles);
+
+            if (_files.Count == 0)
                 continue;
 
-            var loop = new Loop { Stream = StartLoop(_random.Pick(sound.Files)) };
+            var loop = new Loop { Stream = StartLoop(_random.Pick(_files)) };
             _loops[key] = loop;
             SetGain(loop, sound.Volume);
         }

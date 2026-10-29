@@ -50,4 +50,8 @@ public sealed partial class WolfWeatherSettingsPrototype : IPrototype
 
     [DataField]
     public float PushStrength = 0.3f;
+
+    /// <summary>Most items one push pass may move, across every map.</summary>
+    [DataField]
+    public int PushMaxPerTick = 64;
 }

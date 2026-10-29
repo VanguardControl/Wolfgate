@@ -1,3 +1,4 @@
+using Content.Shared._WF.Planets;
 using Content.Shared._WF.WolfWeather;
 using Content.Shared.Random.Helpers;
 using Robust.Shared.Configuration;
@@ -69,27 +70,39 @@ public sealed partial class WeatherScheduleSystem : EntitySystem
         }
     }
 
-    public void SetSchedule(Entity<WeatherScheduleComponent?> map, ProtoId<WeatherSchedulePrototype>? schedule)
+    /// <summary>Whether a schedule may run on a map. A planet's layers follow its own weather instead.</summary>
+    public bool CanSchedule(EntityUid map)
+    {
+        return !HasComp<WFPlanetLayerComponent>(map);
+    }
+
+    /// <summary>Sets or clears a map's schedule. False, and nothing changed, on a map that can't have one.</summary>
+    public bool SetSchedule(Entity<WeatherScheduleComponent?> map, ProtoId<WeatherSchedulePrototype>? schedule)
     {
         if (schedule == null)
         {
             if (!Resolve(map, ref map.Comp, false))
-                return;
+                return true;
 
             Reset((map.Owner, map.Comp));
             map.Comp.Schedule = null;
-            return;
+            return true;
         }
+
+        if (!CanSchedule(map))
+            return false;
 
         map.Comp ??= EnsureComp<WeatherScheduleComponent>(map);
         Reset((map.Owner, map.Comp));
         map.Comp.Schedule = schedule;
         StartGap((map.Owner, map.Comp));
+        return true;
     }
 
     public bool RollNow(Entity<WeatherScheduleComponent?> map)
     {
         if (!Resolve(map, ref map.Comp, false)
+            || !CanSchedule(map)
             || !_proto.TryIndex(map.Comp.Schedule, out var schedule))
             return false;
 
@@ -107,7 +120,7 @@ public sealed partial class WeatherScheduleSystem : EntitySystem
 
     private void Tick(Entity<WeatherScheduleComponent> ent, TimeSpan now)
     {
-        if (!_proto.TryIndex(ent.Comp.Schedule, out var schedule))
+        if (!CanSchedule(ent) || !_proto.TryIndex(ent.Comp.Schedule, out var schedule))
             return;
 
         TryComp(ent, out WolfWeatherMapComponent? mapWeather);

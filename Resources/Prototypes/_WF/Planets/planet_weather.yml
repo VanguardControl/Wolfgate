@@ -1,5 +1,7 @@
 # Each world alternates phased storms with 3-7 minutes of clear skies. A storm telegraphs with a light overlay, runs,
-# and winds down through a light overlay again, after /tg/station's weather; thunder drops real bolts on open ground.
+# and winds down through a light overlay again, after /tg/station's weather. The scheduler picks these stock weathers,
+# which say what the weather is; wolfWeathers says how each looks, sounds and blows on this world (_WF/WolfWeather),
+# and a wolfWeather with lightning drops real bolts on open ground.
 - type: wfPlanetWeather
   id: WFPlanetWeatherAsclepiu
   planetType: PlanetAsclepiu
@@ -11,7 +13,11 @@
   - telegraph: WFRainLow
     main: WFRainHigh
     end: WFRainEnd
-    thunder: true
+  wolfWeathers:
+    WFRainLow: WFRainLight
+    WFRainEnd: WFRainLight
+    WFRainMed: WFRainModerate
+    WFRainHigh: WFThunderstorm
   initialHour: 8
 
 - type: wfPlanetWeather
@@ -22,6 +28,9 @@
   - telegraph: WFAshLight
     main: WFAshStorm
     end: WFAshLight
+  wolfWeathers:
+    WFAshLight: WFAshfall
+    WFAshStorm: WFAshStorm
   initialHour: 12
 
 - type: wfPlanetWeather
@@ -34,6 +43,10 @@
   - telegraph: WFDustLow
     main: WFDustHigh
     end: WFDustLow
+  wolfWeathers:
+    WFDustLow: WFDustLight
+    WFDustMed: WFSandstorm
+    WFDustHigh: WFSandstormHeavy
   initialHour: 15
   clearMinSeconds: 300
   clearMaxSeconds: 600
@@ -46,6 +59,10 @@
   - telegraph: WFRainLow
     main: WFRainMed
     end: WFRainEnd
+  wolfWeathers:
+    WFRainLow: WFRainLight
+    WFRainEnd: WFRainLight
+    WFRainMed: WFRainHeavy
   initialHour: 18
 
 - type: wfPlanetWeather
@@ -56,17 +73,29 @@
   - telegraph: WFSnowLight
     main: WFSnowStorm
     end: WFSnowLight
+  wolfWeathers:
+    WFSnowLight: WFSnow
+    WFSnowStorm: WFBlizzard
   initialHour: 6
 
+# Carcinoma's red haze and fog came from WolfWeather's first schedule.
 - type: wfPlanetWeather
   id: WFPlanetWeatherCarcinoma
   planetType: WFPlanetCarcinoma
   storms:
   - main: WFBloodRain
+  - main: WFBloodHaze
+  - telegraph: WFBloodHaze
+    main: WFBloodFog
+    end: WFBloodHaze
   - telegraph: WFBloodRain
     main: WFBloodStorm
     end: WFBloodRain
-    thunder: true
+  wolfWeathers:
+    WFBloodRain: WFBloodRainModerate
+    WFBloodStorm: WFBloodStorm
+    WFBloodHaze: WFBloodHaze
+    WFBloodFog: WFBloodFog
   initialHour: 21
 
 # Overlays and rain loops from /tg/station (weather_effects.dmi, sound/ambience/weather/rain).
@@ -215,6 +244,21 @@
     params:
       loop: true
       volume: -2
+
+# Red murk for Carcinoma; on a planet WolfWeather draws it, this sprite only shows where a stock overlay is used.
+- type: weather
+  id: WFBloodHaze
+  sprite:
+    sprite: /Textures/_WF/Planets/Effects/weather_tg.rsi
+    state: dust_low
+  color: "#b83c46"
+
+- type: weather
+  id: WFBloodFog
+  sprite:
+    sprite: /Textures/_WF/Planets/Effects/weather_tg.rsi
+    state: dust_med
+  color: "#b83c46"
 
 # A thunderbolt: one flash, one crack, gone.
 - type: entity

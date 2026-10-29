@@ -10,7 +10,7 @@ public abstract partial class SharedWeatherSystem
     /// True for the ground of a planet layer and a fixed city's levels, which go by their roofs alone; false for any other
     /// grid on a planet layer, a vessel, which is never rained on inside; null off a planet, for the upstream rule.
     /// </summary>
-    private bool? WfPlanetExposure(EntityUid grid)
+    public bool? WfPlanetExposure(EntityUid grid)
     {
         if (!TryComp(grid, out TransformComponent? xform) || xform.MapUid is not { } map || !HasComp<WFPlanetLayerComponent>(map))
             return null;

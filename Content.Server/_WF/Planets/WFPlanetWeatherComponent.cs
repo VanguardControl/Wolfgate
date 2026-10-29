@@ -1,4 +1,5 @@
 using Content.Shared._WF.Planets;
+using Content.Shared._WF.WolfWeather;
 using Content.Shared.Weather;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
@@ -22,9 +23,6 @@ public sealed partial class WFPlanetWeatherComponent : Component
 
     /// <summary>Index into the profile's storms of the one running.</summary>
     [DataField] public int Storm;
-
-    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
-    public TimeSpan NextThunder;
 }
 
 /// <summary>Phases of a scheduled storm.</summary>
@@ -42,4 +40,7 @@ public sealed partial class WFPlanetWeatherAppliedComponent : Component
 {
     public ProtoId<WeatherPrototype>? Current;
     public TimeSpan EndTime;
+
+    /// <summary>The WolfWeather last set on the map for <see cref="Current"/>.</summary>
+    public ProtoId<WolfWeatherPrototype>? WolfWeather;
 }

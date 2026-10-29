@@ -1,5 +1,5 @@
 - type: wolfWeather
-  id: FogWisps
+  id: WFFogWisps
   wind: 0.35, 0.1
   gust: 0.1
   gustPeriod: 30
@@ -22,7 +22,7 @@
     minQuality: 2
 
 - type: wolfWeather
-  id: FogBank
+  id: WFFogBank
   wind: 0.3, 0.1
   gust: 0.1
   gustPeriod: 30
@@ -45,7 +45,7 @@
     minQuality: 2
 
 - type: wolfWeather
-  id: FogHaze
+  id: WFFogHaze
   wind: 0.2, 0.05
   gust: 0.05
   gustPeriod: 30
