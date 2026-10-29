@@ -1,8 +1,6 @@
 using Content.Shared._WF.GroundCover;
 using Content.Shared._WF.WolfWeather;
 using Content.Shared.Light.Components;
-using Content.Shared.Mobs.Components;
-using Content.Shared.Movement.Components;
 using Content.Shared.Weather;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -15,7 +13,6 @@ public sealed partial class WFGroundCoverSystem
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private SharedWeatherSystem _weather = default!;
     [Dependency] private SharedWolfWeatherSystem _wolfWeather = default!;
-    [Dependency] private WFSnowSlowSystem _slow = default!;
 
     /// <summary>Chunks updated a tick at most.</summary>
     public const int ChunksPerTick = 8;
@@ -30,13 +27,11 @@ public sealed partial class WFGroundCoverSystem
     private const float SettleLimit = 2f;
 
     private static readonly TimeSpan ScanInterval = TimeSpan.FromSeconds(1);
-    private static readonly TimeSpan SlowInterval = TimeSpan.FromSeconds(0.5);
 
     private readonly Queue<(EntityUid Grid, Vector2i Chunk)> _queue = new();
     private readonly HashSet<(EntityUid Grid, Vector2i Chunk)> _queued = new();
     private readonly List<(EntityUid Grid, Vector2i Chunk)> _view = new();
     private TimeSpan _nextScan;
-    private TimeSpan _nextSlow;
 
     private void UpdateSnow(TimeSpan now)
     {
@@ -59,12 +54,6 @@ public sealed partial class WFGroundCoverSystem
         {
             _queued.Remove(key);
             UpdateChunk(key.Grid, key.Chunk);
-        }
-
-        if (now >= _nextSlow)
-        {
-            _nextSlow = now + SlowInterval;
-            UpdateSlowdowns();
         }
     }
 
@@ -229,27 +218,6 @@ public sealed partial class WFGroundCoverSystem
         var roofed = new Entity<MapGridComponent, RoofComponent?>(grid, gridComp, CompOrNull<RoofComponent>(grid));
         var flags = _wolfWeather.Classify(roofed, tileRef);
         return (flags & WolfWeatherTile.Exposed) != 0 && (flags & WolfWeatherTile.Blocker) == 0;
-    }
-
-    /// <summary>Slows living mobs standing in deep snow, and frees those that left it.</summary>
-    private void UpdateSlowdowns()
-    {
-        var query = EntityQueryEnumerator<InputMoverComponent, MobStateComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out _, out var xform))
-        {
-            var speed = 1f;
-            if (xform.GridUid is { } grid
-                && xform.ParentUid == grid
-                && HasComp<WFSnowCoverComponent>(grid)
-                && TryComp<MapGridComponent>(grid, out var gridComp))
-            {
-                var tile = _map.TileIndicesFor(grid, gridComp, xform.Coordinates);
-                speed = WFSnowCover.SpeedAt(GetDepth(grid, tile));
-            }
-
-            if (speed < 1f || HasComp<WFSnowSlowedComponent>(uid))
-                _slow.SetSpeed(uid, speed);
-        }
     }
 
     /// <summary>The snow chunks of grids near a session's body, on maps that have had weather.</summary>

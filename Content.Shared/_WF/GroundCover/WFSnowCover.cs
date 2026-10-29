@@ -22,6 +22,12 @@ public static class WFSnowCover
     /// <summary>Walking speed share in the deepest snow.</summary>
     public const float DeepestSpeed = 0.75f;
 
+    /// <summary>Speed steps between no slowdown and the deepest, so patchy snow doesn't change speed every tile.</summary>
+    public const int SpeedSteps = 3;
+
+    /// <summary>Depth from which a tile counts as snow covered: footsteps crunch and leave prints.</summary>
+    public const int CoverFrom = UnitsPerLevel / 2;
+
     public static Vector2i ChunkOf(Vector2i tile)
     {
         return new Vector2i((int) MathF.Floor(tile.X / (float) ChunkSize), (int) MathF.Floor(tile.Y / (float) ChunkSize));
@@ -41,14 +47,35 @@ public static class WFSnowCover
         return new Vector2i(chunk.X * ChunkSize + index % ChunkSize, chunk.Y * ChunkSize + index / ChunkSize);
     }
 
-    /// <summary>Walking speed share on snow of a depth, rounded to twentieths.</summary>
+    /// <summary>Walking speed share on snow of a depth, in <see cref="SpeedSteps"/> steps.</summary>
     public static float SpeedAt(int depth)
     {
         if (depth <= SlowFrom)
             return 1f;
 
         var deep = Math.Clamp((depth - SlowFrom) / (float) (MaxDepth - SlowFrom), 0f, 1f);
-        return MathF.Round((1f - (1f - DeepestSpeed) * deep) * 20f) / 20f;
+        var step = (int) MathF.Ceiling(deep * SpeedSteps);
+        return 1f - (1f - DeepestSpeed) * step / SpeedSteps;
+    }
+
+    /// <summary>
+    /// The depth that slows a mob on a tile: the tile's own, or the average of it and its eight neighbours if that's
+    /// less, so a lone deep drift or a shoveled path decides less than the snow around it.
+    /// </summary>
+    public static int MoveDepth(Vector2i tile, Func<Vector2i, int> depthAt)
+    {
+        var center = depthAt(tile);
+        if (center <= SlowFrom)
+            return center;
+
+        var sum = 0;
+        for (var x = -1; x <= 1; x++)
+        {
+            for (var y = -1; y <= 1; y++)
+                sum += x == 0 && y == 0 ? center : depthAt(tile + new Vector2i(x, y));
+        }
+
+        return Math.Min(center, sum / 9);
     }
 
     /// <summary>A steady 0.75 to 1.25 per tile, so snow lies in drifts rather than evenly.</summary>

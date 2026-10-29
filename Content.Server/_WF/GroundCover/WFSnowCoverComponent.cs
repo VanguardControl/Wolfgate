@@ -24,6 +24,15 @@ public sealed class WFSnowChunk
     /// <summary>Goes up on every change, so clients are only sent what changed.</summary>
     public uint Version = 1;
 
+    /// <summary>
+    /// The depths as last sent to clients, which walking reads so both sides slow mobs alike. A new array each send,
+    /// never changed after.
+    /// </summary>
+    public byte[]? Sent;
+
+    /// <summary>The <see cref="Version"/> <see cref="Sent"/> was taken at.</summary>
+    public uint SentVersion;
+
     public bool IsEmpty()
     {
         foreach (var depth in Depths)

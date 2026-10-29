@@ -12,6 +12,7 @@ using Content.Shared.Interaction;
 using Content.Shared.Light.Components;
 using Content.Shared.Light.EntitySystems;
 using Content.Shared.Maps;
+using Content.Shared.Movement.Components;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
@@ -133,8 +134,10 @@ public sealed class GroundCoverTest
         await server.WaitRunTicks(pair.SecondsToTicks(1));
         await server.WaitAssertion(() =>
         {
-            Assert.That(entMan.TryGetComponent<WFSnowSlowedComponent>(mob, out var slowed), Is.True, "Deep snow didn't slow a walker.");
-            Assert.That(slowed!.Speed, Is.LessThan(1f).And.GreaterThanOrEqualTo(WFSnowCover.DeepestSpeed));
+            var speed = server.System<WFSnowSlowSystem>().GetSpeed(mob);
+            Assert.That(speed, Is.LessThan(1f).And.GreaterThanOrEqualTo(WFSnowCover.DeepestSpeed), "Deep snow didn't slow a walker.");
+            Assert.That(entMan.GetComponent<MovementSpeedModifierComponent>(mob).WalkSpeedModifier, Is.EqualTo(speed).Within(0.001f),
+                "The walker's speed doesn't have the snow in it.");
         });
 
         // A shovel clears the tile it's used on.
@@ -155,7 +158,8 @@ public sealed class GroundCoverTest
 
         await server.WaitRunTicks(pair.SecondsToTicks(1));
         await server.WaitAssertion(() =>
-            Assert.That(entMan.HasComponent<WFSnowSlowedComponent>(mob), Is.False, "Cleared ground still slowed the mob."));
+            Assert.That(entMan.GetComponent<MovementSpeedModifierComponent>(mob).WalkSpeedModifier, Is.EqualTo(1f).Within(0.001f),
+                "Cleared ground still slowed the mob."));
 
         // Without snow but below freezing it stays; above freezing it melts.
         await server.WaitPost(() => server.System<SharedWolfWeatherSystem>().SetWeather(map.MapUid, null, null, 0));
@@ -243,7 +247,7 @@ public sealed class GroundCoverTest
         await pair.CleanReturnAsync();
     }
 
-    private static GasMixture Air(float temperature)
+    internal static GasMixture Air(float temperature)
     {
         var air = new GasMixture(Atmospherics.CellVolume) { Temperature = temperature };
         air.AdjustMoles(Gas.Oxygen, Atmospherics.OxygenMolesStandard);
@@ -252,7 +256,7 @@ public sealed class GroundCoverTest
     }
 
     /// <summary>Lays open weather ground on a test grid around its origin, with one roofed tile.</summary>
-    private static void LayOpenGround(TestPair pair, Entity<MapGridComponent> grid)
+    internal static void LayOpenGround(TestPair pair, Entity<MapGridComponent> grid)
     {
         var maps = pair.Server.System<SharedMapSystem>();
         var tile = new Tile(pair.Server.ResolveDependency<ITileDefinitionManager>()[OpenTile].TileId);

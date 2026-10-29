@@ -48,6 +48,7 @@ public sealed partial class WFGroundCoverSystem
             return;
 
         _nextSend = now + SendInterval;
+        Publish();
         var prune = now >= _nextPrune;
         if (prune)
             _nextPrune = now + PruneInterval;
@@ -72,6 +73,47 @@ public sealed partial class WFGroundCoverSystem
         }
     }
 
+    /// <summary>Goes up whenever the depths sent to clients change.</summary>
+    public int SentStamp { get; private set; }
+
+    /// <summary>Takes the depths of every changed chunk as the ones sent from now on.</summary>
+    private void Publish()
+    {
+        var query = EntityQueryEnumerator<WFSnowCoverComponent>();
+        while (query.MoveNext(out var cover))
+        {
+            foreach (var chunk in cover.Chunks.Values)
+            {
+                if (chunk.Sent != null && chunk.SentVersion == chunk.Version)
+                    continue;
+
+                chunk.Sent = (byte[]) chunk.Depths.Clone();
+                chunk.SentVersion = chunk.Version;
+                SentStamp++;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Snow depth on a tile as clients were last sent it. With a session, as that session was sent it: 0 until it has
+    /// the chunk, as its client would read.
+    /// </summary>
+    public int GetSentDepth(EntityUid grid, Vector2i tile, ICommonSession? session = null)
+    {
+        var index = WFSnowCover.ChunkOf(tile);
+        if (!TryComp<WFSnowCoverComponent>(grid, out var cover)
+            || !cover.Chunks.TryGetValue(index, out var chunk)
+            || chunk.Sent is not { } depths)
+            return 0;
+
+        if (session != null && (!_sent.TryGetValue(session, out var sent)
+                                || !sent.TryGetValue((grid, index), out var version)
+                                || version != chunk.SentVersion))
+            return 0;
+
+        return depths[WFSnowCover.IndexIn(tile)];
+    }
+
     /// <summary>Sends a session the chunks in its view that changed since it was last sent them.</summary>
     private void SendView(ICommonSession session, Dictionary<(EntityUid Grid, Vector2i Chunk), uint> sent)
     {
@@ -94,11 +136,11 @@ public sealed partial class WFGroundCoverSystem
             }
             else
             {
-                if (had && version == chunk.Version)
+                if (chunk.Sent == null || had && version == chunk.SentVersion)
                     continue;
 
-                sent[key] = chunk.Version;
-                depths = (byte[]) chunk.Depths.Clone();
+                sent[key] = chunk.SentVersion;
+                depths = chunk.Sent;
             }
 
             if (!_messages.TryGetValue(key.Grid, out var message))
