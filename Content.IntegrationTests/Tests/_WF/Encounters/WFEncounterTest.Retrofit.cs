@@ -232,7 +232,14 @@ public sealed partial class WFEncounterTest
             grid = loaded!.Value.Owner;
             Server.System<WFPirateRetrofitSystem>().Apply(grid, prototypes.Index(band.Retrofit!.Value), 1);
         });
-        await RunTicks(10);
+        // A slow runner can take a few more ticks to hand the guns over.
+        var controlled = false;
+        for (var i = 0; i < 20 && !controlled; i++)
+        {
+            await RunTicks(10);
+            await Server.WaitPost(() => controlled = Guns(grid).Count > 0
+                && Guns(grid).All(gun => SEntMan.GetComponent<FireControllableComponent>(gun).ControllingServer != null));
+        }
         await Server.WaitAssertion(() =>
         {
             var guns = Guns(grid);
