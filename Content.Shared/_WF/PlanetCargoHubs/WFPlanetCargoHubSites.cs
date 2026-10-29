@@ -10,7 +10,7 @@ public static class WFPlanetCargoHubSites
     public static readonly Color Colour = Color.FromHex("#37C837");
 
     /// <summary>The site name of depot <paramref name="index"/>'s hub: 0 for A, 1 for B.</summary>
-    public static string SiteName(int index) => SiteNamePrefix + (char) ('a' + index);
+    public static string SiteName(int index) => SiteNamePrefix + "abcdefghijklmnopqrstuvwxyz".Substring(index, 1);
 
     /// <summary>The depot index a site name belongs to, or false when it isn't a hub's.</summary>
     public static bool TryIndex(string name, out int index)
@@ -19,7 +19,7 @@ public static class WFPlanetCargoHubSites
         if (!name.StartsWith(SiteNamePrefix, StringComparison.Ordinal) || name.Length != SiteNamePrefix.Length + 1)
             return false;
 
-        index = name[^1] - 'a';
+        index = name[name.Length - 1] - 'a';
         return index is >= 0 and < 26;
     }
 
