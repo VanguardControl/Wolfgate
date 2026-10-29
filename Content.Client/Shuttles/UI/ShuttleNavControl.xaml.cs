@@ -1094,6 +1094,7 @@ public partial class ShuttleNavControl : BaseShuttleControl // Mono
             // WOLFGATE END
         }
 
+        WfQueueFieldRocks(handle, worldToView, mapPos.MapId, viewAABB, renderFill); // WOLFGATE(Performance): distant rocks from their field lists
         // WOLFGATE(AsteroidMining) START: per-grid draws moved out of the loop, so its grids batch into one draw call
         WfFlushGrids(handle);
         if (!renderFill)

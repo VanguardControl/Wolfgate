@@ -28,7 +28,7 @@
         reagents:
         - ReagentId: Water
           Quantity: 9999999
-  # WOLFGATE(Dormancy) START: regenerated a "tank" solution the pool doesn't have, so it did nothing but cost every tick.
+  # WOLFGATE(Performance) START: bottomless pools never need refilling, and each tile cost a check every tick
   # - type: SolutionRegeneration
   #   solution: tank
   #   generated:
@@ -104,7 +104,7 @@
         reagents:
         - ReagentId: Water
           Quantity: 9999999
-  # WOLFGATE(Dormancy) START: regenerated a "tank" solution the pool doesn't have, so it did nothing but cost every tick.
+  # WOLFGATE(Performance) START: bottomless pools never need refilling, and each tile cost a check every tick
   # - type: SolutionRegeneration
   #   solution: tank
   #   generated:

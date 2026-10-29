@@ -40,8 +40,7 @@
         reagents:
         - ReagentId: Water
           Quantity: 9999999
-  # WOLFGATE(Planets) START: no refill on water tiles; every planet lake is thousands of them, walked every tick for nothing.
-  # The pool is already bottomless.
+  # WOLFGATE(Performance) START: bottomless pools never need refilling, and each tile cost a check every tick
   # - type: SolutionRegeneration
   #   solution: pool
   #   generated:

@@ -760,7 +760,6 @@ Thrascias is alive by region (`Resources/Prototypes/_WF/Planets/Life/thrascias.y
 - [`Content.Shared/Weather/SharedWeatherSystem.cs`](../../../Content.Shared/Weather/SharedWeatherSystem.cs): on a planet, roofs decide rather than the tile, and a vessel is always under cover.
 - [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): planet networks are on in development builds.
 - [`Resources/Locale/en-US/_Mono/guidebook/planets.ftl`](../../../Resources/Locale/en-US/_Mono/guidebook/planets.ftl): Asclepiu is called Verda
-- [`Resources/Prototypes/_CE/Entities/Structures/water.yml`](../../../Resources/Prototypes/_CE/Entities/Structures/water.yml): no refill on water tiles; every planet lake is thousands of them, walked every tick for nothing.
 - [`Resources/Prototypes/_DV/Entities/Mobs/Species/harpy.yml`](../../../Resources/Prototypes/_DV/Entities/Mobs/Species/harpy.yml): z-level flight is back on, which Monolith#4812 turned off
 - [`Resources/Prototypes/_FarHorizons/Space/planets.yml`](../../../Resources/Prototypes/_FarHorizons/Space/planets.yml): Asclepiu is called Verda
 - [`Resources/Prototypes/_FarHorizons/Space/systems.yml`](../../../Resources/Prototypes/_FarHorizons/Space/systems.yml)

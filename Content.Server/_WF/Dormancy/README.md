@@ -99,6 +99,5 @@ each system's update cost and what it walks; run it by hand when tuning.
 - [`Content.Server/Physics/Controllers/MoverController.cs`](../../Physics/Controllers/MoverController.cs)
   - skips movers at rest nobody is near
   - an NPC at rest with no input on planet ground no player is near has nothing to move
-- [`Resources/Prototypes/Entities/Tiles/water.yml`](../../../Resources/Prototypes/Entities/Tiles/water.yml): regenerated a "tank" solution the pool doesn't have, so it did nothing but cost every tick.
 
 <!-- WOLFGATE-GENERATED END -->
