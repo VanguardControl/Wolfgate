@@ -215,6 +215,10 @@ public sealed class WildSlimesTest
             var query = entMan.EntityQueryEnumerator<WFWildSlimeComponent, SlimeComponent, TransformComponent>();
             while (query.MoveNext(out _, out var wild, out var slime, out var xform))
             {
+                // The pooled server may hold slimes from other tests; only this world's count.
+                if (xform.MapUid != world.Ground && xform.MapUid != world.Cavern)
+                    continue;
+
                 Assert.That(slime.Breed.Id, Is.EqualTo(Carcinoma));
                 if (xform.MapUid == world.Ground)
                     onPatch++;
