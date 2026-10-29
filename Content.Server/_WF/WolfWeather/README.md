@@ -17,7 +17,9 @@ Elsewhere admins use `wolfweather <map> <weather|clear> [seconds]` and `wolfweat
 planet, such as an event map; it refuses planet layers, which follow their own weather.
 
 Lightning strikes only near a living player who isn't in a container, on an open tile of that player's own grid,
-never a station's grid or a vessel, and shocks only mobs standing in the open on it. Wind pushes only loose light items
+never a station's grid or a vessel, and shocks only mobs standing in the open on it. Every bolt draws the weather's
+`bolt` (`WFThunderbolt`): a strike spawns it where it lands, and for a far flash each client draws `WFThunderboltFar`
+on open ground somewhere in its own view (`WolfThunderboltSystem`). Wind pushes only loose light items
 that are out in the open, not creatures, buckled or stowed, and only where its own grid goes on downwind, at most
 `pushMaxPerTick` items a pass.
 
@@ -56,12 +58,14 @@ Entry points: `SharedWolfWeatherSystem.SetWeather`, `WFPlanetWeatherSystem.Resol
 ### Client
 
 - [`Content.Client/_WF/WolfWeather/GraphicsTab.WolfWeather.cs`](../../../Content.Client/_WF/WolfWeather/GraphicsTab.WolfWeather.cs)
+- [`Content.Client/_WF/WolfWeather/WolfThunderboltSystem.cs`](../../../Content.Client/_WF/WolfWeather/WolfThunderboltSystem.cs)
 - [`Content.Client/_WF/WolfWeather/WolfWeatherOverlay.cs`](../../../Content.Client/_WF/WolfWeather/WolfWeatherOverlay.cs)
 - [`Content.Client/_WF/WolfWeather/WolfWeatherSoundSystem.cs`](../../../Content.Client/_WF/WolfWeather/WolfWeatherSoundSystem.cs)
 - [`Content.Client/_WF/WolfWeather/WolfWeatherSystem.cs`](../../../Content.Client/_WF/WolfWeather/WolfWeatherSystem.cs)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/WolfWeather/ThunderboltTest.cs`](../../../Content.IntegrationTests/Tests/_WF/WolfWeather/ThunderboltTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/WolfWeather/WolfWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/WolfWeather/WolfWeatherTest.cs)
 
 ### Prototypes

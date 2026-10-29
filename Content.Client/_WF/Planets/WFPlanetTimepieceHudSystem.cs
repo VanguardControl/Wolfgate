@@ -28,6 +28,7 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
     public string DisplayedPlanet => _hud.PlanetText;
     public string DisplayedTime => _hud.TimeText;
     public string DisplayedWeather => _hud.WeatherText;
+    public string DisplayedClimate => _hud.ClimateText;
     public float HudWidth => WFPlanetTimepieceHud.PanelWidth;
 
     public override void Initialize()
@@ -157,7 +158,7 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
         }
         LayoutContainer.SetPosition(_hud, new Vector2(
             MathF.Max(0, right - WFPlanetTimepieceHud.PanelWidth),
-            MathF.Max(0, bottom - MathF.Max(72, _hud.Height))));
+            MathF.Max(0, bottom - MathF.Max(WFPlanetTimepieceHud.PanelHeight, _hud.Height))));
     }
 
     private void RefreshReadout()
@@ -174,6 +175,19 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
 
         var hours = environment.MinuteOfDay / 60;
         var minutes = environment.MinuteOfDay % 60;
-        _hud.SetReadout(environment.PlanetName, $"{hours:00}:{minutes:00}", environment.Weather);
+        _hud.SetReadout(environment.PlanetName, $"{hours:00}:{minutes:00}", environment.Weather,
+            ClimateText(environment), environment.Season != null ? environment.SeasonColor : null);
+    }
+
+    /// <summary>The season and outdoor temperature line; either half is left out when the world has none.</summary>
+    public string ClimateText(WFPlanetEnvironmentComponent environment)
+    {
+        var temperature = environment.TemperatureCelsius is { } celsius
+            ? Loc.GetString("wf-planet-temperature", ("celsius", celsius))
+            : null;
+        var season = environment.Season is { } name ? Loc.GetString(name) : null;
+        if (season != null && temperature != null)
+            return Loc.GetString("wf-planet-timepiece-climate", ("season", season), ("temperature", temperature));
+        return season ?? temperature ?? string.Empty;
     }
 }

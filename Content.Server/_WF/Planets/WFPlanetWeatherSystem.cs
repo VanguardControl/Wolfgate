@@ -34,7 +34,11 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
             comp.Profile = profile.ID;
             comp.PlanetName = name;
             comp.Epoch = _timing.CurTime;
-            comp.NextChange = _timing.CurTime + TimeSpan.FromSeconds(_random.NextFloat(profile.ClearMinSeconds, profile.ClearMaxSeconds));
+            // A world with seasons starts each round in a random one.
+            StartSeason(comp, profile, profile.Seasons.Count > 1 ? _random.Next(profile.Seasons.Count) : 0);
+            var clearScale = GetSeason(comp, profile, _timing.CurTime)?.ClearScale ?? 1f;
+            comp.NextChange = _timing.CurTime + TimeSpan.FromSeconds(
+                _random.NextFloat(profile.ClearMinSeconds, profile.ClearMaxSeconds) * clearScale);
             PublishNetwork(Comp<WFPlanetNetworkComponent>(network), comp, profile);
             return;
         }
@@ -60,22 +64,15 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
                 state.Current = null;
                 state.Phase = WFStormPhase.None;
                 state.NextChange = _timing.CurTime + TimeSpan.FromSeconds(profile.ClearMinSeconds);
+                state.Upcoming.Clear();
             }
             else if (_timing.CurTime >= state.NextChange)
             {
-                if (profile.Storms.Count > 0 || state.Phase != WFStormPhase.None)
-                {
-                    AdvanceStorm(state, profile);
-                }
-                else
-                {
-                    state.Current = state.Current == null && profile.Weather.Count > 0
-                        ? (ProtoId<WeatherPrototype>?) _random.Pick(profile.Weather) : null;
-                    var seconds = state.Current == null
-                        ? _random.NextFloat(profile.ClearMinSeconds, profile.ClearMaxSeconds)
-                        : _random.NextFloat(profile.WeatherMinSeconds, profile.WeatherMaxSeconds);
-                    state.NextChange = _timing.CurTime + TimeSpan.FromSeconds(seconds);
-                }
+                Advance(state, profile);
+            }
+            else
+            {
+                Fill(state, profile);
             }
             foreach (var layer in network.Layers)
             {
@@ -113,9 +110,10 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
         }
     }
 
-    private int GetMinuteOfDay(WFPlanetWeatherComponent state, WFPlanetWeatherPrototype profile)
+    /// <summary>The world's local minute of the day now, or at a given time.</summary>
+    public int GetMinuteOfDay(WFPlanetWeatherComponent state, WFPlanetWeatherPrototype profile, TimeSpan? at = null)
     {
-        var elapsed = (_timing.CurTime - state.Epoch).TotalSeconds;
+        var elapsed = ((at ?? _timing.CurTime) - state.Epoch).TotalSeconds;
         var minutes = Math.Floor(profile.InitialHour * 60 + elapsed * 1440 / Math.Max(1, profile.DaySeconds));
         return (int) ((minutes % 1440 + 1440) % 1440);
     }
@@ -184,9 +182,12 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
         return null;
     }
 
-    private bool TryGetWorld(EntityUid map, out EntityUid world)
+    /// <summary>The world entity a planet layer, or a transit map between two, belongs to.</summary>
+    public bool TryGetWorld(EntityUid map, out EntityUid world)
     {
         world = default;
+        if (TryComp<CEZTransitMapComponent>(map, out var transit) && transit.LowerMap is { } lower)
+            map = lower;
         if (TryComp<WFPlanetLayerComponent>(map, out var layer) && layer.Network is { } net &&
             TryGetEntity(net, out var resolved) && resolved is { } uid && HasComp<WFPlanetNetworkComponent>(uid))
         {

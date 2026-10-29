@@ -277,6 +277,9 @@ unmarked:
   - path: Resources/Maps/_Mono/Outpost/caelestinus_central.yml
     module: Minigames
     reason: Two game hosts, the dealer and the riddle sage, seated at the bar lounge tables.
+  - path: Resources/Maps/_Mono/Outpost/caelestinus_central.yml
+    module: Planets
+    reason: A weather forecast computer beside the station radar console.
   - path: Resources/Maps/_Mono/POI/underground.yml
     module: LockableButtons
     reason: The two blast door buttons take Underground access; the station's crew has no Pirate access.

@@ -30,6 +30,21 @@ floor: bare ground counts as outdoors and keeps the planet's air. Players use la
 planet timepiece. Admins get the Planet Control panel in the Wolfgate admin tab (`planetcontrol`) for sanction, time
 of day, weather and gravity, and `wfplanet` to build a star system's worlds.
 
+Seasons and climate: a world's `wfPlanetWeather` lists `seasons`, looped in order from a random one each round (one
+season is perpetual, none means no seasons). Asclepiu runs spring, summer, autumn and winter, 90 minutes each (a year is
+six local days; winter snows and fogs, summer storms); Merak dry and dust seasons, Aerumna dry and monsoon, Thrascias a
+perpetual deep winter, Fervidus and Carcinoma none. A season weights the world's storms or brings its own, stretches
+clear spells and shifts the temperature. `WFPlanetWeatherSystem` rolls each world's weather three hours ahead
+(`WFPlanetWeatherComponent.Upcoming`, `TryGetSchedule`), rolled again when an admin sets the weather or the season,
+so the forecast is what happens. `WFPlanetClimateSystem` sets the outdoor air: the ground's air temperature plus the
+season, the weather (`weatherTemperature`) and the hour (`dayTemperatureSwing` either side, warmest at 15:00, coldest
+at 05:00), moving at most 0.05 K a second into the map air of the ground and air layers, which bare ground shares;
+rooms keep their own air. Other code reads it with `WFPlanetClimateSystem.GetOutsideTemperature(map, at)` and
+`GetSeason(map, at)`. The timepiece HUD shows the season and outside temperature, Planet Control shows and sets the
+season (`planetcontrol <world> season <id>`), and the weather forecast computer (`WFComputerWeatherForecast`, its
+board from the circuit imprinter; one on Caelestinus Central) lists a world's weather and temperature for the next
+three hours, exact for the next change and vaguer further out.
+
 Verda has wildlife and forage of its own (`Prototypes/_WF/Planets/Life/verda.yml` and `verda_mobs.yml`). Each region's
 biome layer places its own `WFFaunaVerda*` spawner: meadows and woods get mutated deer herds that bolt from anyone close
 (one deer in ten charges), foxes, and bees and snakes where the wildflowers and tall grass grow; lake and pond shores
@@ -256,6 +271,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/_WF/Planets/Flight/WFPlanetDragSystem.cs`](Flight/WFPlanetDragSystem.cs)
 - [`Content.Server/_WF/Planets/Flight/WFSkidComponent.cs`](Flight/WFSkidComponent.cs)
 - [`Content.Server/_WF/Planets/Flight/WFThrustAmbienceSystem.cs`](Flight/WFThrustAmbienceSystem.cs)
+- [`Content.Server/_WF/Planets/Forecast/WFWeatherForecastConsoleSystem.cs`](Forecast/WFWeatherForecastConsoleSystem.cs)
 - [`Content.Server/_WF/Planets/GameTicker.WFRoundHold.cs`](GameTicker.WFRoundHold.cs)
 - [`Content.Server/_WF/Planets/Infestation/WFCarcinomaInfestationComponent.cs`](Infestation/WFCarcinomaInfestationComponent.cs)
 - [`Content.Server/_WF/Planets/Infestation/WFCarcinomaInfestationSystem.cs`](Infestation/WFCarcinomaInfestationSystem.cs)
@@ -276,6 +292,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/_WF/Planets/WFOrbitEntrySystem.cs`](WFOrbitEntrySystem.cs)
 - [`Content.Server/_WF/Planets/WFOrbitEntrySystem.Liftoff.cs`](WFOrbitEntrySystem.Liftoff.cs)
 - [`Content.Server/_WF/Planets/WFPlanetBiomassSystem.cs`](WFPlanetBiomassSystem.cs)
+- [`Content.Server/_WF/Planets/WFPlanetClimateSystem.cs`](WFPlanetClimateSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetFaunaSpawnerComponent.cs`](WFPlanetFaunaSpawnerComponent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetFaunaSystem.cs`](WFPlanetFaunaSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetGroundSpawnedEvent.cs`](WFPlanetGroundSpawnedEvent.cs)
@@ -293,6 +310,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/_WF/Planets/WFPlanetWeatherSystem.Admin.cs`](WFPlanetWeatherSystem.Admin.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWeatherSystem.cs`](WFPlanetWeatherSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWeatherSystem.Daylight.cs`](WFPlanetWeatherSystem.Daylight.cs)
+- [`Content.Server/_WF/Planets/WFPlanetWeatherSystem.Seasons.cs`](WFPlanetWeatherSystem.Seasons.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWeatherSystem.Storms.cs`](WFPlanetWeatherSystem.Storms.cs)
 - [`Content.Server/_WF/Planets/WFPlanetWildlifeComponent.cs`](WFPlanetWildlifeComponent.cs)
 - [`Content.Server/_WF/Planets/WFRoundStartHoldEvent.cs`](WFRoundStartHoldEvent.cs)
@@ -309,6 +327,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Shared/_WF/Planets/Flight/WFLandingThrusterComponent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLandingThrusterComponent.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFLiftLostComponent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLiftLostComponent.cs)
 - [`Content.Shared/_WF/Planets/Flight/WFLiftoffAttemptEvent.cs`](../../../Content.Shared/_WF/Planets/Flight/WFLiftoffAttemptEvent.cs)
+- [`Content.Shared/_WF/Planets/Forecast/WFWeatherForecast.cs`](../../../Content.Shared/_WF/Planets/Forecast/WFWeatherForecast.cs)
 - [`Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackComponent.cs`](../../../Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackComponent.cs)
 - [`Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackSystem.cs`](../../../Content.Shared/_WF/Planets/Jetpack/WFAtmosphericJetpackSystem.cs)
 - [`Content.Shared/_WF/Planets/Parachute/WFParachuteComponents.cs`](../../../Content.Shared/_WF/Planets/Parachute/WFParachuteComponents.cs)
@@ -344,6 +363,8 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Client/_WF/Planets/ContentAudioSystem.Planets.cs`](../../../Content.Client/_WF/Planets/ContentAudioSystem.Planets.cs)
 - [`Content.Client/_WF/Planets/Flight/WFEnterAtmosphereConfirmWindow.xaml`](../../../Content.Client/_WF/Planets/Flight/WFEnterAtmosphereConfirmWindow.xaml)
 - [`Content.Client/_WF/Planets/Flight/WFEnterAtmosphereConfirmWindow.xaml.cs`](../../../Content.Client/_WF/Planets/Flight/WFEnterAtmosphereConfirmWindow.xaml.cs)
+- [`Content.Client/_WF/Planets/Forecast/WFWeatherForecastBoundUserInterface.cs`](../../../Content.Client/_WF/Planets/Forecast/WFWeatherForecastBoundUserInterface.cs)
+- [`Content.Client/_WF/Planets/Forecast/WFWeatherForecastWindow.cs`](../../../Content.Client/_WF/Planets/Forecast/WFWeatherForecastWindow.cs)
 - [`Content.Client/_WF/Planets/Parachute/WFParachuteVisualsSystem.cs`](../../../Content.Client/_WF/Planets/Parachute/WFParachuteVisualsSystem.cs)
 - [`Content.Client/_WF/Planets/ShuttleMapControl.PlanetBackground.cs`](../../../Content.Client/_WF/Planets/ShuttleMapControl.PlanetBackground.cs)
 - [`Content.Client/_WF/Planets/ShuttleNavControl.Terrain.cs`](../../../Content.Client/_WF/Planets/ShuttleNavControl.Terrain.cs)
@@ -422,6 +443,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRadarTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRoofFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRoofFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetRoundHoldTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetRoundHoldTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetSeasonsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetSeasonsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetStashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetStashTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTileBreakTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetTimepieceTest.cs)
@@ -456,6 +478,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Resources/Prototypes/_WF/Planets/fauna.yml`](../../../Resources/Prototypes/_WF/Planets/fauna.yml)
 - [`Resources/Prototypes/_WF/Planets/flight.yml`](../../../Resources/Prototypes/_WF/Planets/flight.yml)
 - [`Resources/Prototypes/_WF/Planets/flight_alerts.yml`](../../../Resources/Prototypes/_WF/Planets/flight_alerts.yml)
+- [`Resources/Prototypes/_WF/Planets/forecast_console.yml`](../../../Resources/Prototypes/_WF/Planets/forecast_console.yml)
 - [`Resources/Prototypes/_WF/Planets/guidebook.yml`](../../../Resources/Prototypes/_WF/Planets/guidebook.yml)
 - [`Resources/Prototypes/_WF/Planets/infestation.yml`](../../../Resources/Prototypes/_WF/Planets/infestation.yml)
 - [`Resources/Prototypes/_WF/Planets/jetpack.yml`](../../../Resources/Prototypes/_WF/Planets/jetpack.yml)
@@ -481,6 +504,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Resources/Locale/en-US/_WF/Planets/aerumna_life.ftl`](../../../Resources/Locale/en-US/_WF/Planets/aerumna_life.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/carcinoma.ftl`](../../../Resources/Locale/en-US/_WF/Planets/carcinoma.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/carcinoma_life.ftl`](../../../Resources/Locale/en-US/_WF/Planets/carcinoma_life.ftl)
+- [`Resources/Locale/en-US/_WF/Planets/climate.ftl`](../../../Resources/Locale/en-US/_WF/Planets/climate.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/flight.ftl`](../../../Resources/Locale/en-US/_WF/Planets/flight.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/guidebook.ftl`](../../../Resources/Locale/en-US/_WF/Planets/guidebook.ftl)
 - [`Resources/Locale/en-US/_WF/Planets/infestation.ftl`](../../../Resources/Locale/en-US/_WF/Planets/infestation.ftl)
@@ -765,6 +789,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Shared/Weather/SharedWeatherSystem.cs`](../../../Content.Shared/Weather/SharedWeatherSystem.cs): on a planet, roofs decide rather than the tile, and a vessel is always under cover.
 - [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): planet networks are on in development builds.
 - [`Resources/Locale/en-US/_Mono/guidebook/planets.ftl`](../../../Resources/Locale/en-US/_Mono/guidebook/planets.ftl): Asclepiu is called Verda
+- [`Resources/Maps/_Mono/Outpost/caelestinus_central.yml`](../../../Resources/Maps/_Mono/Outpost/caelestinus_central.yml): A weather forecast computer beside the station radar console.
 - [`Resources/Prototypes/_DV/Entities/Mobs/Species/harpy.yml`](../../../Resources/Prototypes/_DV/Entities/Mobs/Species/harpy.yml): z-level flight is back on, which Monolith#4812 turned off
 - [`Resources/Prototypes/_FarHorizons/Space/planets.yml`](../../../Resources/Prototypes/_FarHorizons/Space/planets.yml): Asclepiu is called Verda
 - [`Resources/Prototypes/_FarHorizons/Space/systems.yml`](../../../Resources/Prototypes/_FarHorizons/Space/systems.yml)
@@ -777,6 +802,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Resources/Prototypes/Entities/Mobs/Species/moth.yml`](../../../Resources/Prototypes/Entities/Mobs/Species/moth.yml): z-level flight is back on, which Monolith#4812 turned off
 - [`Resources/Prototypes/Entities/Objects/Vehicles/buckleable.yml`](../../../Resources/Prototypes/Entities/Objects/Vehicles/buckleable.yml): vehicles and their riders leave temporary flight maps through normal z-level physics.
 - [`Resources/Prototypes/Entities/Structures/Machines/lathe.yml`](../../../Resources/Prototypes/Entities/Structures/Machines/lathe.yml): landing thruster kits and parachutes.
+- [`Resources/Prototypes/Recipes/Lathes/Packs/engineering.yml`](../../../Resources/Prototypes/Recipes/Lathes/Packs/engineering.yml): weather forecast console board
 - [`Resources/ServerInfo/_Mono/Guidebook/StarSystem/Asclepiu.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/StarSystem/Asclepiu.xml): Asclepiu is called Verda
 - [`Resources/ServerInfo/_Mono/Guidebook/StarSystem/Kyphrus.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/StarSystem/Kyphrus.xml): Asclepiu is called Verda
 

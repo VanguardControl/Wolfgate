@@ -152,8 +152,11 @@ public sealed class PlanetNetworkTest
             var ground = Mixture(atmos, stack.Ground);
             Assert.That(ground, Is.Not.Null, "The ground layer has no map mixture.");
 
-            // The mixtures differ only in temperature, which shows the fixup ran.
-            Assert.That(ground!.Temperature, Is.EqualTo(GroundTemperature).Within(0.01f),
+            // The mixtures differ only in temperature, which shows the fixup ran. Once the climate has read it, the
+            // ground's own air is the world's base temperature and the climate moves the air from there.
+            var climate = server.EntMan.GetComponent<WFPlanetWeatherComponent>(stack.Network);
+            Assert.That(float.IsNaN(climate.BaseTemperature) ? ground!.Temperature : climate.BaseTemperature,
+                Is.EqualTo(GroundTemperature).Within(0.01f),
                 $"The ground layer kept the network registry's {RegistryTemperature} K air instead of its own surface mixture.");
         });
 

@@ -25,6 +25,29 @@ public sealed partial class WFPlanetWeatherComponent : Component
 
     /// <summary>Index into the profile's storms of the one running.</summary>
     [DataField] public int Storm;
+
+    /// <summary>The phases rolled to follow the current one, in order; the first starts at <see cref="NextChange"/>.</summary>
+    [DataField] public List<WFWeatherPhase> Upcoming = new();
+
+    /// <summary>When the first season of the profile's cycle last began.</summary>
+    [DataField(customTypeSerializer: typeof(TimeOffsetSerializer)), AutoPausedField]
+    public TimeSpan SeasonEpoch;
+
+    /// <summary>The world's outdoor air temperature before seasons, weather and the hour, in kelvin.</summary>
+    [DataField] public float BaseTemperature = float.NaN;
+    /// <summary>The outdoor air temperature the world's layers hold now, in kelvin; NaN until first set.</summary>
+    [DataField] public float Temperature = float.NaN;
+    /// <summary>The temperature last written to the layers' air.</summary>
+    [DataField] public float AppliedTemperature = float.NaN;
+}
+
+/// <summary>One scheduled weather phase: what falls, as which storm phase, for how long.</summary>
+[DataDefinition]
+public sealed partial class WFWeatherPhase
+{
+    [DataField] public ProtoId<WeatherPrototype>? Weather;
+    [DataField] public WFStormPhase Phase;
+    [DataField] public float Seconds;
 }
 
 /// <summary>Phases of a scheduled storm.</summary>
