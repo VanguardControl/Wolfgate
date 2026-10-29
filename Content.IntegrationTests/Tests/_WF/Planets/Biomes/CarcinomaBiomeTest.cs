@@ -62,7 +62,7 @@ public sealed class CarcinomaBiomeTest
         "WFBloodRiver", "WFBloodOcean", "WFFleshTree", "WFFleshPustuleTree", "WFFleshPolyp", "TauCetiMeatlandWall",
         "WFCarcinomaPimple", "WFFaunaCarcinomaBone", "WFFaunaCarcinomaMarsh", "WFFaunaCarcinomaHive", "WFFaunaCarcinomaShore",
         "WFCarcinomaVitaeBlister", "WFCarcinomaBonePile", "WFCarcinomaMeatFruitBush", "WFCarcinomaTendonVine", "WFCarcinomaWeepingPolyp",
-        "WFCarcinomaJellyMound", "WFCarcinomaJellyMoundSmall",
+        "WFCarcinomaJellyMound", "WFCarcinomaJellyMoundSmall", "WFCarcinomaVent",
     };
 
     [Test]

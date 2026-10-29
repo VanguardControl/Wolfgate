@@ -45,13 +45,29 @@
   pois: WFPoisCarcinoma
   seed: 20260918
   networkComponents:
+  # The planet breathes out carbon dioxide (_WF/PlanetVents): 3 kPa oxygen, 12 kPa nitrogen and 90 kPa carbon dioxide at
+  # 37 °C, 105 kPa in all. Nobody breathes it without internals but the world's own life.
   - type: MapAtmosphere
     space: false
     mixture:
       volume: 2500
       immutable: true
       temperature: 310.15
-      moles: [21.824879, 82.10312]
+      moles: [2.908408, 11.633631, 87.252232]
+  - type: WFPlanetNatives
+    tables:
+    - WFFaunaCarcinoma
+    - WFFaunaCarcinomaBone
+    - WFFaunaCarcinomaMarsh
+    - WFFaunaCarcinomaHive
+    - WFFaunaCarcinomaShore
+    - WFCavernFaunaCarcinoma
+    - WFCavernFaunaCarcinomaStomach
+    - WFCavernFaunaCarcinomaNerve
+    - WFCavernFaunaCarcinomaOssuary
+    - WFCavernFaunaCarcinomaBlood
+    - WFTunnelLurkersCarcinoma
+    breeds: [WFCarcinomaMutation, WFMetastaticMutation]
   groundComponents:
   - type: CEZLevelRoof
   - type: CEZGroundLayer
@@ -74,7 +90,7 @@
     volume: 2500
     immutable: true
     temperature: 310.15
-    moles: [21.824879, 82.10312]
+    moles: [2.908408, 11.633631, 87.252232]
 
 - type: biomeTemplate
   id: WFBiomeCarcinoma
@@ -141,6 +157,11 @@
     entities: [WFCarcinomaPimple]
     threshold: 0.985
     noise: { seed: 97, noiseType: OpenSimplex2, frequency: 0.5 }
+  # Breathing vents (_WF/PlanetVents) in wide fields over a share of the ground, under the rivers and lakes.
+  - !type:BiomeMetaLayer
+    template: WFCarcinomaVentField
+    threshold: 0.3
+    noise: { seed: 141, noiseType: OpenSimplex2, frequency: 0.008 }
   # Scabbed band round each lake: the lake's own noise, a lower threshold.
   - !type:BiomeMetaLayer
     template: WFCarcinomaScabShore
