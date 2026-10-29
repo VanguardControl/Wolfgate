@@ -160,7 +160,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Shared/Projectiles/SharedProjectileSystem.cs`](../../Content.Shared/Projectiles/SharedProjectileSystem.cs): the client replays a thrown embed's collision in prediction, and the projectile is already in
 - [`Content.Shared/Temperature/Systems/SharedTemperatureSystem.cs`](../../Content.Shared/Temperature/Systems/SharedTemperatureSystem.cs): a band takes the slowdown of the lowest threshold above it; warming past a threshold gave it that threshold's heavier slowdown
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs`](../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs): C# % keeps the sign, index 0 gave -1 and crashed the server
-- [`LEGAL.md`](../../LEGAL.md): credit the Starlight licence and the Goonstation-derived reactor
+- [`LEGAL.md`](../../LEGAL.md)
+  - licence files live in LICENSES/
+  - credit the Starlight licence and the Goonstation-derived reactor
 - [`LICENSES/LicenseRef-Starlight.txt`](../../LICENSES/LicenseRef-Starlight.txt): Starlight licence text, required by the Starlight-licensed code under _Starlight and _FarHorizons.
 - [`README.md`](../../README.md)
   - reworded for Wolfgate build differences
