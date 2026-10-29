@@ -23,6 +23,11 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   (`ShuttleNavControl.WFAsteroidFields`) and the far overlay draw rocks whose grids haven't been sent. Rocks no chunk
   owns are sent to everyone as before, `ChunkingSystem` skips rock grids (they hold no decals or gas), and
   `wf.asteroids.cull false` turns it all off live.
+- Roofs network as chunk deltas (`SharedRoofSystem.WFDelta`). Maps go to every player, and a cavern map's full roof
+  is tens of kilobytes; each tile change on the surface above resent all of it, which emptied clients' state buffers.
+  A delta carries only the chunks changed since the client's last ack.
+- A drydock break lifts its finished tiles together every 2 s (`WFDrydockJobComponent.Lifting`) instead of one at a
+  time, since each lift resends every fixture of the hull (about 9 KB on a derelict) to every player.
 - The marked upstream edits skip idle-shuttle thruster work, avoid `Enum.GetValues` and nullable boxing on per-tick
   paths, stop `FlammableSystem` from crashing when igniting queues new fire events, and stop networking a thrown
   item's shooter (it outlived the shooter and sent a deleted entity every state).
@@ -43,8 +48,10 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Shared
 
+- [`Content.Shared/_WF/Performance/RoofComponent.WFDelta.cs`](../../../Content.Shared/_WF/Performance/RoofComponent.WFDelta.cs)
 - [`Content.Shared/_WF/Performance/SharedGravitySystem.WFRefresh.cs`](../../../Content.Shared/_WF/Performance/SharedGravitySystem.WFRefresh.cs)
 - [`Content.Shared/_WF/Performance/SharedMoverController.WFAroundCollider.cs`](../../../Content.Shared/_WF/Performance/SharedMoverController.WFAroundCollider.cs)
+- [`Content.Shared/_WF/Performance/SharedRoofSystem.WFDelta.cs`](../../../Content.Shared/_WF/Performance/SharedRoofSystem.WFDelta.cs)
 - [`Content.Shared/_WF/Performance/WFAsteroidFieldComponent.cs`](../../../Content.Shared/_WF/Performance/WFAsteroidFieldComponent.cs)
 - [`Content.Shared/_WF/Performance/WFCollectionExtensions.cs`](../../../Content.Shared/_WF/Performance/WFCollectionExtensions.cs)
 - [`Content.Shared/_WF/Performance/WFPerformanceCVars.cs`](../../../Content.Shared/_WF/Performance/WFPerformanceCVars.cs)
@@ -62,6 +69,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFGroundSampleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGroundSampleTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Performance/WFRoofDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFRoofDeltaTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs)
 
 ### Localization
@@ -137,6 +145,8 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - batched weightlessness refresh
   - batch per grid and walk only its entities, not every gravity-affected entity
   - upstream loop kept for merges
+- [`Content.Shared/Light/Components/RoofComponent.cs`](../../../Content.Shared/Light/Components/RoofComponent.cs): networked by SharedRoofSystem.WFDelta, which sends only changed chunks
+- [`Content.Shared/Light/EntitySystems/SharedRoofSystem.cs`](../../../Content.Shared/Light/EntitySystems/SharedRoofSystem.cs): delta state sends only changed chunks
 - [`Content.Shared/Movement/Systems/SharedMoverController.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.cs)
   - reuse a still mob's result for a few ticks
   - only static bodies count below, so skip the rest of the lookup and keep the set small

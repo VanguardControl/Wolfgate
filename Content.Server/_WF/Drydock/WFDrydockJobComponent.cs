@@ -173,4 +173,14 @@ public sealed partial class WFDrydockJobComponent : Component
     /// <summary>Whether a break job lifted the ship's last tile.</summary>
     [ViewVariables]
     public bool HullGone;
+
+    /// <summary>
+    /// Tiles a break has finished but not yet lifted. They come off together, since each lift resends every fixture
+    /// of the hull to every player.
+    /// </summary>
+    [ViewVariables]
+    public HashSet<Vector2i> Lifting = new();
+
+    /// <summary>Time the tiles in <see cref="Lifting"/> come off.</summary>
+    public TimeSpan LiftAt;
 }

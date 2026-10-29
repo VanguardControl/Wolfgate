@@ -85,6 +85,9 @@ public sealed partial class WFDrydockSystem
         if (TerminatingOrDeleted(job.Ship))
             return job.HullGone ? JobEnd.Finished : JobEnd.Aborted;
 
+        if (job.Lifting.Count > 0 && curTime >= job.LiftAt)
+            LiftTiles(job);
+
         if (curTime >= job.NextBerthCheck)
         {
             job.NextBerthCheck = curTime + BerthCheckInterval;
@@ -726,6 +729,7 @@ public sealed partial class WFDrydockSystem
     /// </summary>
     private void EndJob(EntityUid console, WFDrydockConsoleComponent comp, WFDrydockJobComponent job, JobEnd end)
     {
+        LiftTiles(job);
         if (job.Break)
             EndBreak(console, comp, job, end);
         else if (end == JobEnd.Finished)

@@ -55,6 +55,9 @@ public sealed partial class WFDrydockSystem
 
     private static readonly Vector2i[] Neighbours = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
 
+    /// <summary>How long a broken tile waits for others to lift with it.</summary>
+    private static readonly TimeSpan LiftBatch = TimeSpan.FromSeconds(2);
+
     private void InitializeBreak()
     {
         SubscribeLocalEvent<WFDrydockConsoleComponent, WFDrydockBreakMessage>(OnBreak);
@@ -281,7 +284,8 @@ public sealed partial class WFDrydockSystem
                 lifting.Add(item.TileIndex);
         }
 
-        bool Present(Vector2i index) => !lifting.Contains(index) && !_map.GetTileRef(job.Ship, grid, index).Tile.IsEmpty;
+        bool Present(Vector2i index) => !lifting.Contains(index) && !job.Lifting.Contains(index) &&
+                                        !_map.GetTileRef(job.Ship, grid, index).Tile.IsEmpty;
 
         var neighbours = new List<Vector2i>();
         foreach (var step in Neighbours)
@@ -418,7 +422,7 @@ public sealed partial class WFDrydockSystem
     {
         var ship = job.Ship;
         if (TerminatingOrDeleted(ship) || !TryComp<MapGridComponent>(ship, out var grid) ||
-            _map.GetTileRef(ship, grid, item.TileIndex).Tile.IsEmpty)
+            job.Lifting.Contains(item.TileIndex) || _map.GetTileRef(ship, grid, item.TileIndex).Tile.IsEmpty)
             return;
 
         var pay = CompOrNull<WFDrydockMaterialPaymentComponent>(console);
@@ -467,7 +471,7 @@ public sealed partial class WFDrydockSystem
 
         _crewAlert.ReportBreaking(ship, job.Attacker, job.Breaker);
 
-        var last = IsLastTile(ship, grid);
+        var last = IsLastTile(job, grid);
         if (last)
         {
             job.HullGone = true;
@@ -478,19 +482,46 @@ public sealed partial class WFDrydockSystem
             PrintChopCash(console, job, item);
 
         // Lifting a tile casts off whoever stands on it; lifting the last one deletes the grid.
-        _map.SetTile(ship, grid, item.TileIndex, Tile.Empty);
-        if (last && !TerminatingOrDeleted(ship))
+        if (job.Lifting.Count == 0)
+            job.LiftAt = _timing.CurTime + LiftBatch;
+        job.Lifting.Add(item.TileIndex);
+        if (!last)
+            return;
+
+        LiftTiles(job);
+        if (!TerminatingOrDeleted(ship))
             QueueDel(ship);
     }
 
-    /// <summary>Whether a grid has one tile left, or none.</summary>
-    private bool IsLastTile(EntityUid ship, MapGridComponent grid)
+    /// <summary>Lifts a break's finished tiles in one change.</summary>
+    private void LiftTiles(WFDrydockJobComponent job)
     {
-        var tiles = _map.GetAllTilesEnumerator(ship, grid);
-        var count = 0;
-        while (count < 2 && tiles.MoveNext(out _))
+        if (job.Lifting.Count == 0)
+            return;
+
+        if (!TerminatingOrDeleted(job.Ship) && TryComp<MapGridComponent>(job.Ship, out var grid))
         {
-            count++;
+            var tiles = new List<(Vector2i, Tile)>(job.Lifting.Count);
+            foreach (var index in job.Lifting)
+            {
+                tiles.Add((index, Tile.Empty));
+            }
+
+            _map.SetTiles(job.Ship, grid, tiles);
+        }
+
+        job.Lifting.Clear();
+    }
+
+    /// <summary>Whether a grid has one tile left, or none, not counting tiles waiting to lift.</summary>
+    private bool IsLastTile(WFDrydockJobComponent job, MapGridComponent grid)
+    {
+        var tiles = _map.GetAllTilesEnumerator(job.Ship, grid);
+        var count = 0;
+        while (count < 2 && tiles.MoveNext(out var tile))
+        {
+            if (!job.Lifting.Contains(tile.Value.GridIndices))
+                count++;
         }
 
         return count <= 1;
