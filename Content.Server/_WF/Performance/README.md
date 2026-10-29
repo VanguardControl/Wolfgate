@@ -53,6 +53,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 - [`Content.Client/_WF/Performance/ShuttleNavControl.WFAsteroidFields.cs`](../../../Content.Client/_WF/Performance/ShuttleNavControl.WFAsteroidFields.cs)
 - [`Content.Client/_WF/Performance/WFAsteroidFieldSystem.cs`](../../../Content.Client/_WF/Performance/WFAsteroidFieldSystem.cs)
+- [`Content.Client/_WF/Performance/WFNetBufferSystem.cs`](../../../Content.Client/_WF/Performance/WFNetBufferSystem.cs)
 
 ### Integration tests
 
