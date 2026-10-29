@@ -24,6 +24,7 @@
                 <CheckBox Name="EventMusicCheckBox" Text="{Loc 'ui-options-event-music'}" />
                 <CheckBox Name="AdminSoundsCheckBox" Text="{Loc 'ui-options-admin-sounds'}" />
                 <CheckBox Name="BwoinkSoundCheckBox" Text="{Loc 'ui-options-bwoink-sound'}" />
+                <CheckBox Name="SpeechVoicesCheckBox" Text="{Loc 'ui-options-speech-voices'}" /> <!-- WOLFGATE(Voice): toggle for character voices -->
             </BoxContainer>
         </BoxContainer>
         <ui:OptionsTabControlRow Name="Control" Access="Public" />

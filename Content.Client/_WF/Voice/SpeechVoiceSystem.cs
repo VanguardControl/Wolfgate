@@ -1,0 +1,226 @@
+using System.Threading.Tasks;
+using Content.Shared._WF.Voice;
+using Content.Shared.Speech;
+using Robust.Client.Audio;
+using Robust.Shared.Audio;
+using Robust.Shared.Audio.Components;
+using Robust.Shared.Configuration;
+using Robust.Shared.Player;
+using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
+using Robust.Shared.Timing;
+
+namespace Content.Client._WF.Voice;
+
+/// <summary>Plays voices at the speaker or over the radio, and the creator's Test button locally.</summary>
+public sealed partial class SpeechVoiceSystem : EntitySystem
+{
+    [Dependency] private IAudioManager _audioManager = default!;
+    [Dependency] private AudioSystem _audio = default!;
+    [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IGameTiming _timing = default!;
+    [Dependency] private IPrototypeManager _prototype = default!;
+    [Dependency] private IRobustRandom _random = default!;
+
+    private static readonly TimeSpan DisposeMargin = TimeSpan.FromSeconds(0.5);
+
+    /// <summary>How much quieter a voice is over the radio than in person, in dB.</summary>
+    private const float RadioVolume = -4f;
+
+    /// <summary>How much quieter a whisper is, in dB.</summary>
+    private const float WhisperVolume = -6f;
+
+    /// <summary>Voices rendering or playing at once. Past this, new lines are skipped.</summary>
+    private const int MaxPlaying = 8;
+
+    /// <summary>Lines rendering on a worker thread, so a long line never stalls a frame.</summary>
+    private readonly List<(Task<short[]> Render, EntityUid? Source, bool Whisper, bool Radio)> _rendering = new();
+
+    /// <summary>Streams still playing, disposed once they end so a long round doesn't pile up buffers.</summary>
+    private readonly List<(EntityUid? Audio, AudioStream Stream, TimeSpan End)> _playing = new();
+
+    /// <summary>When each speaker's chatter last played, for the same cooldown upstream uses.</summary>
+    private readonly Dictionary<EntityUid, TimeSpan> _lastChatter = new();
+
+    private bool _enabled;
+
+    public override void Initialize()
+    {
+        base.Initialize();
+
+        SubscribeNetworkEvent<SpeechVoiceSpokeEvent>(OnSpoke);
+        SubscribeNetworkEvent<SpeechVoiceRadioEvent>(OnRadio);
+
+        Subs.CVar(_cfg, SpeechVoiceCVars.Enabled, value => _enabled = value, true);
+    }
+
+    public override void Shutdown()
+    {
+        base.Shutdown();
+
+        foreach (var (audio, stream, _) in _playing)
+        {
+            Release(audio, stream);
+        }
+
+        _playing.Clear();
+        _rendering.Clear();
+        _lastChatter.Clear();
+    }
+
+    public override void FrameUpdate(float frameTime)
+    {
+        for (var i = _rendering.Count - 1; i >= 0; i--)
+        {
+            var (render, source, whisper, radio) = _rendering[i];
+            if (!render.IsCompleted)
+                continue;
+
+            _rendering.RemoveAt(i);
+            if (!render.IsCompletedSuccessfully || source != null && !Exists(source))
+                continue;
+
+            // The task has finished, so Result returns at once.
+#pragma warning disable RA0004
+            Play(render.Result, source, whisper, radio);
+#pragma warning restore RA0004
+        }
+
+        for (var i = _playing.Count - 1; i >= 0; i--)
+        {
+            var (audio, stream, end) = _playing[i];
+            if (_timing.RealTime < end)
+                continue;
+
+            Release(audio, stream);
+            _playing.RemoveAt(i);
+        }
+    }
+
+    /// <summary>Plays a voice to the local player only, whether or not voices are switched off.</summary>
+    public void Preview(string text, SpeechVoice voice)
+    {
+        Queue(text, voice.Clamped(), null, false, false);
+    }
+
+    private void OnSpoke(SpeechVoiceSpokeEvent ev)
+    {
+        var source = GetEntity(ev.Source);
+        if (!TryComp<SpeechVoiceComponent>(source, out var comp))
+            return;
+
+        if (!_enabled)
+        {
+            PlayMessageSound(source, ev.Message);
+            return;
+        }
+
+        var voice = ev.Voice ?? comp.Voice.Clone();
+        Queue(ev.Message, voice, source, ev.Whisper, false);
+    }
+
+    /// <summary>The speaker's chatter sound in place of the voice, picked as upstream does.</summary>
+    private void PlayMessageSound(EntityUid source, string message)
+    {
+        if (!TryComp<SpeechComponent>(source, out var speech)
+            || speech.SpeechSounds is not { } id
+            || !_prototype.TryIndex(id, out var sounds))
+        {
+            return;
+        }
+
+        var now = _timing.CurTime;
+        var cooldown = TimeSpan.FromSeconds(speech.SoundCooldownTime);
+        if (_lastChatter.TryGetValue(source, out var last) && now - last < cooldown)
+            return;
+
+        _lastChatter[source] = now;
+
+        var upper = 0;
+        foreach (var c in message)
+        {
+            if (char.IsUpper(c))
+                upper++;
+        }
+
+        var sound = upper > message.Length / 2
+            ? sounds.ExclaimSound
+            : message[^1] switch
+            {
+                '?' => sounds.AskSound,
+                '!' => sounds.ExclaimSound,
+                _ => sounds.SaySound,
+            };
+
+        _audio.PlayEntity(sound, Filter.Local(), source, false,
+            speech.AudioParams.WithPitchScale((float) _random.NextGaussian(1, sounds.Variation)));
+    }
+
+    private void OnRadio(SpeechVoiceRadioEvent ev)
+    {
+        if (!_enabled)
+            return;
+
+        EntityUid? speaker = null;
+        if (ev.Speaker.IsValid())
+        {
+            speaker = GetEntity(ev.Speaker);
+            if (!Exists(speaker))
+                return;
+        }
+
+        Queue(ev.Message, ev.Voice, speaker, false, true);
+    }
+
+    /// <summary>Deletes the audio entity, which frees its OpenAL source, before freeing the buffer it plays.</summary>
+    private void Release(EntityUid? audio, AudioStream stream)
+    {
+        if (audio is { } entity && !TerminatingOrDeleted(entity))
+        {
+            if (TryComp(entity, out AudioComponent? component))
+                component.StopPlaying();
+
+            Del(entity);
+        }
+
+        stream.Dispose();
+    }
+
+    private void Queue(string text, SpeechVoice voice, EntityUid? source, bool whisper, bool radio)
+    {
+        if (_playing.Count + _rendering.Count >= MaxPlaying)
+            return;
+
+        // Caught inside the task, since a faulted task's exception type is not allowed by the sandbox.
+        var render = Task.Run(() =>
+        {
+            try
+            {
+                return new SpeechVoiceSynth().Render(text, voice, radio);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Voice render failed: {e}");
+                return Array.Empty<short>();
+            }
+        });
+        _rendering.Add((render, source, whisper, radio));
+    }
+
+    private void Play(short[] samples, EntityUid? source, bool whisper, bool radio)
+    {
+        if (samples.Length == 0)
+            return;
+
+        var stream = _audioManager.LoadAudioRaw(samples, 1, SpeechVoiceSynth.SampleRate);
+        var audioParams = AudioParams.Default
+            .WithMaxDistance(whisper ? SpeechVoice.WhisperRange : SpeechVoice.VoiceRange)
+            .WithVolume(radio ? RadioVolume : whisper ? WhisperVolume : 0f);
+
+        var playing = source is { } entity
+            ? _audio.PlayEntity(stream, entity, null, audioParams)
+            : _audio.PlayGlobal(stream, null, audioParams);
+
+        _playing.Add((playing?.Entity, stream, _timing.RealTime + stream.Length + DisposeMargin));
+    }
+}

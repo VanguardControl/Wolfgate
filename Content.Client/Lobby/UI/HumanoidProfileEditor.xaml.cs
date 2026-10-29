@@ -260,6 +260,7 @@ namespace Content.Client.Lobby.UI
             // WOLFGATE END
 
             InitializeEmoteVoices(); // WOLFGATE(EmoteVoices)
+            InitializeSpeechVoice(); // WOLFGATE(Voice)
             InitializeSizePercent(); // WOLFGATE(Humanoid): typed percentages for height and width
             InitializeBloodColour(); // WOLFGATE(BloodColour)
 
@@ -1351,6 +1352,7 @@ namespace Content.Client.Lobby.UI
             UpdateAgeEdit();
             UpdateEyePickers();
             UpdateEmoteVoiceControls(); // WOLFGATE(EmoteVoices)
+            UpdateSpeechVoiceControls(); // WOLFGATE(Voice)
             UpdateBloodColour(); // WOLFGATE(BloodColour)
             UpdateSaveButton();
             UpdateMarkings();
