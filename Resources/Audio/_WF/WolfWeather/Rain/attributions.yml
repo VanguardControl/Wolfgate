@@ -1,7 +1,7 @@
 - files: ["rain_heavy_mixkit1262_1.ogg", "rain_heavy_mixkit1262_2.ogg"]
   license: "Custom"
-  copyright: '"Heavy rain ambience" from Mixkit (Mixkit Sound Effects Free License: free for commercial use including games, no attribution required, no standalone redistribution).'
-  source: "https://mixkit.co/free-sound-effects/ (asset 1262)"
+  copyright: '"Heavy rain ambience" from Mixkit (Mixkit Sound Effects Free License: free for commercial use including games, no attribution required, no standalone redistribution). Mixkit asset 1262.'
+  source: "https://mixkit.co/free-sound-effects/"
 
 - files: ["rain_designed_light_1_1.ogg"]
   license: "CC-BY-4.0"
@@ -50,8 +50,8 @@
 
 - files: ["rain_layer_mixkit2474.ogg"]
   license: "Custom"
-  copyright: '"Light rain atmosphere" from Mixkit (Mixkit Sound Effects Free License: free for commercial use including games, no attribution required, no standalone redistribution).'
-  source: "https://mixkit.co/free-sound-effects/ (asset 2474)"
+  copyright: '"Light rain atmosphere" from Mixkit (Mixkit Sound Effects Free License: free for commercial use including games, no attribution required, no standalone redistribution). Mixkit asset 2474.'
+  source: "https://mixkit.co/free-sound-effects/"
 
 - files: ["rain_heavy_helton_3.ogg"]
   license: "CC-BY-4.0"

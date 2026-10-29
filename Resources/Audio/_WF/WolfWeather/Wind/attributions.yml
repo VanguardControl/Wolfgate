@@ -5,8 +5,8 @@
 
 - files: ["wind_light_mixkit2658.ogg"]
   license: "Custom"
-  copyright: '"Wind blowing ambience" from Mixkit (Mixkit Sound Effects Free License: free for commercial use including games, no attribution required, no standalone redistribution).'
-  source: "https://mixkit.co/free-sound-effects/ (asset 2658)"
+  copyright: '"Wind blowing ambience" from Mixkit (Mixkit Sound Effects Free License: free for commercial use including games, no attribution required, no standalone redistribution). Mixkit asset 2658.'
+  source: "https://mixkit.co/free-sound-effects/"
 
 - files: ["wind_moderate_helton_8.ogg"]
   license: "CC-BY-4.0"

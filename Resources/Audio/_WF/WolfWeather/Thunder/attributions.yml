@@ -5,8 +5,8 @@
 
 - files: ["thunder_near_mixkit1300.ogg"]
   license: "Custom"
-  copyright: '"Strong close thunder explosion" from Mixkit (Mixkit Sound Effects Free License: free for commercial use including games, no attribution required, no standalone redistribution).'
-  source: "https://mixkit.co/free-sound-effects/ (asset 1300)"
+  copyright: '"Strong close thunder explosion" from Mixkit (Mixkit Sound Effects Free License: free for commercial use including games, no attribution required, no standalone redistribution). Mixkit asset 1300.'
+  source: "https://mixkit.co/free-sound-effects/"
 
 - files: ["thunder_near_soundrangers_clap_4.ogg"]
   license: "Custom"
@@ -25,8 +25,8 @@
 
 - files: ["thunder_far_mixkit1278.ogg"]
   license: "Custom"
-  copyright: '"Distant thunder explosion" from Mixkit (Mixkit Sound Effects Free License: free for commercial use including games, no attribution required, no standalone redistribution).'
-  source: "https://mixkit.co/free-sound-effects/ (asset 1278)"
+  copyright: '"Distant thunder explosion" from Mixkit (Mixkit Sound Effects Free License: free for commercial use including games, no attribution required, no standalone redistribution). Mixkit asset 1278.'
+  source: "https://mixkit.co/free-sound-effects/"
 
 - files: ["thunder_far_soundopolis_3.ogg"]
   license: "Custom"
