@@ -1,5 +1,7 @@
 #nullable enable
 using System.Collections.Generic;
+using Content.Shared.FixedPoint;
+using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Tests._WF.Wolfmed;
 using Content.IntegrationTests.Tests._WF.Wolfmed.Scenarios;
@@ -231,7 +233,13 @@ public sealed class WarmthTest : WolfmedGameTest
     {
         var map = await Outdoors(345f, null);
         EntityUid body = default;
-        await Server.WaitPost(() => body = Spawn(map, 0.5f, 0.5f));
+        var start = FixedPoint2.Zero;
+        await Server.WaitPost(() =>
+        {
+            body = Spawn(map, 0.5f, 0.5f);
+            // Whatever the spawn itself costs (a landing knock, a first contact with the air) isn't the heat burning.
+            start = SEntMan.GetComponent<DamageableComponent>(body).Damage.DamageDict.GetValueOrDefault("Heat");
+        });
 
         int? warned = null, burned = null;
         for (var t = 1; t <= 120 && burned == null; t++)
@@ -243,7 +251,7 @@ public sealed class WarmthTest : WolfmedGameTest
                 if (warned == null && WarmthOf(body)?.Strain == WFWarmthStrain.Hot)
                     warned = now;
                 if (burned == null && SEntMan.GetComponent<DamageableComponent>(body).Damage.DamageDict
-                        .TryGetValue("Heat", out var heat) && heat > 0)
+                        .TryGetValue("Heat", out var heat) && heat > start + 1)
                     burned = now;
             });
         }
