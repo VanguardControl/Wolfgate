@@ -35,7 +35,24 @@ detail option (`wf.wolf_weather.quality`) picks Full (everything), Reduced (wet 
 ripples or drop flecks) or Off (no wet ground). Snow always draws, as it slows walking. Only the view's own z-level
 draws it.
 
-Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDepth`, `GetSentDepth`, `GetTileWetness`
+Snow and frost go by the air over a tile, and on a planet open sky takes the planet's air: built ground such as a
+city street holds its own air from when it was laid, which the climate never moves, so Crocus kept its build-day
+temperature and never took snow.
+
+Lakes and ponds freeze (`WFFreezableWater` on `MonoFloorWaterEntity`). Once a chunk's air has held at or below -2 C for
+three minutes, ice spreads in from the shore two tiles a minute; above 0 C for three minutes it thaws the same way,
+shore first. Ice is walkable and a little slippery: the water's wading slowdown is set to none, its floor occlusion
+(the waist-deep look) and splash trigger are off and it gets friction contacts, and steps sound of ice, or crunch under
+snow. Snow lies on ice and melts into open water. A pickaxe or crowbar breaks a hole (four seconds), which freezes over
+again five minutes later. Water first seen in frost is frozen already, so Thrascias stays frozen and Asclepiu's lakes
+freeze in winter and thaw in spring; warm worlds never freeze. It is worked with the snow, by the same chunks and only
+near players (`WFIceCoverComponent` on the grid: each water tile's distance to the shore and how far the ice has spread
+or thawed, caught up on from the time passed when someone comes back). Freezing toggles state on the water entity
+rather than swapping it, so biome chunks still unload it (the unloader counts a freeze or thaw as no change) and it
+comes back with its chunk's ice. The client draws ice with `lake_ice.rsi`, the water's own shore shapes in ice, and
+hides it under snow cover so the snow shows (`WFFrozenWaterVisualsSystem`).
+
+Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDepth`, `GetSentDepth`, `GetTileWetness`, `UpdateIceChunk`, `SetFrozen`, `BreakHole`
 (server), `SharedWFSnowSlowSystem.GetSpeed`, the client `WFGroundCoverOverlay` (`UpdateWeather`, `DrawReflections`),
 `WFSnowPrintsSystem` and `ground_cover.swsl`.
 
@@ -47,15 +64,20 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 ### Server
 
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.cs`](WFGroundCoverSystem.cs)
+- [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Ice.cs`](WFGroundCoverSystem.Ice.cs)
+- [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.IceBreak.cs`](WFGroundCoverSystem.IceBreak.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Network.cs`](WFGroundCoverSystem.Network.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Shovel.cs`](WFGroundCoverSystem.Shovel.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Snow.cs`](WFGroundCoverSystem.Snow.cs)
+- [`Content.Server/_WF/GroundCover/WFIceCoverComponent.cs`](WFIceCoverComponent.cs)
 - [`Content.Server/_WF/GroundCover/WFSnowCoverComponent.cs`](WFSnowCoverComponent.cs)
 - [`Content.Server/_WF/GroundCover/WFSnowSlowSystem.cs`](WFSnowSlowSystem.cs)
 
 ### Shared
 
 - [`Content.Shared/_WF/GroundCover/SharedWFSnowSlowSystem.cs`](../../../Content.Shared/_WF/GroundCover/SharedWFSnowSlowSystem.cs)
+- [`Content.Shared/_WF/GroundCover/WFFreezableWaterComponent.cs`](../../../Content.Shared/_WF/GroundCover/WFFreezableWaterComponent.cs)
+- [`Content.Shared/_WF/GroundCover/WFFrozenWaterSystem.cs`](../../../Content.Shared/_WF/GroundCover/WFFrozenWaterSystem.cs)
 - [`Content.Shared/_WF/GroundCover/WFGroundWeatherComponent.cs`](../../../Content.Shared/_WF/GroundCover/WFGroundWeatherComponent.cs)
 - [`Content.Shared/_WF/GroundCover/WFSnowCover.cs`](../../../Content.Shared/_WF/GroundCover/WFSnowCover.cs)
 - [`Content.Shared/_WF/GroundCover/WFSnowFootstepEvent.cs`](../../../Content.Shared/_WF/GroundCover/WFSnowFootstepEvent.cs)
@@ -63,6 +85,7 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 
 ### Client
 
+- [`Content.Client/_WF/GroundCover/WFFrozenWaterVisualsSystem.cs`](../../../Content.Client/_WF/GroundCover/WFFrozenWaterVisualsSystem.cs)
 - [`Content.Client/_WF/GroundCover/WFGroundCoverOverlay.cs`](../../../Content.Client/_WF/GroundCover/WFGroundCoverOverlay.cs)
 - [`Content.Client/_WF/GroundCover/WFGroundCoverSystem.cs`](../../../Content.Client/_WF/GroundCover/WFGroundCoverSystem.cs)
 - [`Content.Client/_WF/GroundCover/WFGroundReflectionOverlay.cs`](../../../Content.Client/_WF/GroundCover/WFGroundReflectionOverlay.cs)
@@ -72,6 +95,8 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/GroundCover/CrocusWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/CrocusWeatherTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/GroundCover/FrozenWaterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/FrozenWaterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverOverlayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverOverlayTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/SnowWalkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/SnowWalkTest.cs)
@@ -86,6 +111,7 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 
 ### Textures
 
+- [`Resources/Textures/_WF/GroundCover/lake_ice.rsi/`](../../../Resources/Textures/_WF/GroundCover/lake_ice.rsi/)
 - [`Resources/Textures/_WF/GroundCover/Shaders/ground_cover.swsl`](../../../Resources/Textures/_WF/GroundCover/Shaders/ground_cover.swsl)
 
 ## Non-modular edits
@@ -93,5 +119,6 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 - [`Content.Shared/Movement/Systems/SharedMoverController.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.cs): snow cover crunches underfoot over the floor's own sound
 - [`Resources/Prototypes/Entities/Objects/Specific/Hydroponics/tools.yml`](../../../Resources/Prototypes/Entities/Objects/Specific/Hydroponics/tools.yml): clears snow cover
 - [`Resources/Prototypes/Entities/Objects/Tools/tools.yml`](../../../Resources/Prototypes/Entities/Objects/Tools/tools.yml): clears snow cover
+- [`Resources/Prototypes/Entities/Tiles/water.yml`](../../../Resources/Prototypes/Entities/Tiles/water.yml): lakes and ponds freeze over in cold air
 
 <!-- WOLFGATE-GENERATED END -->
