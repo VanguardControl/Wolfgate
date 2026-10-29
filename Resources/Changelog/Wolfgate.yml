@@ -4160,3 +4160,17 @@ Entries:
   id: 100277
   time: '2026-10-29T18:27:55.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/411
+- author: vinylspiders
+  changes:
+    - type: Add
+      message: >-
+        Adds Mrs. Luvvit's Pie & Mash, the best locally sourced pies in the
+        sector! Find one in the trade hall at Caelestinus Central, or buy the
+        flatpack. Mrs. Luvvit accepts no liability for scalded tongues.
+    - type: Add
+      message: Adds 12 new cookable British dishes.
+    - type: Add
+      message: Adds Irn-Bru and dandelion & burdock cans.
+  id: 100278
+  time: '2026-10-29T18:36:19.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/410
