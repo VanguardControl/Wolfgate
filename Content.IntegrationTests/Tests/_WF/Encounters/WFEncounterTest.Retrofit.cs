@@ -232,11 +232,11 @@ public sealed partial class WFEncounterTest
             grid = loaded!.Value.Owner;
             Server.System<WFPirateRetrofitSystem>().Apply(grid, prototypes.Index(band.Retrofit!.Value), 1);
         });
-        // A slow runner can take a few more ticks to hand the guns over.
+        // The power net updates receivers every half second, and a slow runner can take a few intervals.
         var controlled = false;
         for (var i = 0; i < 20 && !controlled; i++)
         {
-            await RunTicks(10);
+            await RunTicks(20);
             await Server.WaitPost(() => controlled = Guns(grid).Count > 0
                 && Guns(grid).All(gun => SEntMan.GetComponent<FireControllableComponent>(gun).ControllingServer != null));
         }
