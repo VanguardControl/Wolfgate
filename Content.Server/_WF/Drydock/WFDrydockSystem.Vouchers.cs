@@ -32,30 +32,61 @@ public sealed partial class WFDrydockSystem
     }
 
     /// <summary>
-    /// Gives one voucher to each player ship that some of <paramref name="mobs"/> are aboard, bound to that ship and
-    /// handed to the first of them there. A ship that still holds an unused voucher gets none. Returns how many.
+    /// Gives one voucher to each player ship of <paramref name="mobs"/>, bound to that ship. A mob's ship is the deeded
+    /// ship their player owns, or else the one they are aboard. The ship's owner holds it if among them, else the first
+    /// of them. A ship that still holds an unused voucher gets none. Returns how many.
     /// </summary>
     public int IssueShipVouchers(EntProtoId? voucher, IEnumerable<EntityUid> mobs)
     {
         if (voucher == null)
             return 0;
 
-        var issued = 0;
-        var done = new HashSet<EntityUid>();
+        var holders = new Dictionary<EntityUid, EntityUid>();
         foreach (var mob in mobs)
         {
-            if (TerminatingOrDeleted(mob) || Transform(mob).GridUid is not { } ship || !done.Add(ship)
-                || !HasComp<ShuttleDeedComponent>(ship) || HasVoucher(ship))
+            if (TerminatingOrDeleted(mob) || VoucherShip(mob) is not { } ship)
                 continue;
 
-            var item = Spawn(voucher.Value, Transform(mob).Coordinates);
+            if (!holders.ContainsKey(ship) || OwnsShip(mob, ship))
+                holders[ship] = mob;
+        }
+
+        var issued = 0;
+        foreach (var (ship, holder) in holders)
+        {
+            if (HasVoucher(ship))
+                continue;
+
+            var item = Spawn(voucher.Value, Transform(holder).Coordinates);
             Bind(item, ship);
-            _hands.PickupOrDrop(mob, item);
-            AnnounceVoucher(ship, mob);
+            _hands.PickupOrDrop(holder, item);
+            AnnounceVoucher(ship, holder);
             issued++;
         }
 
         return issued;
+    }
+
+    /// <summary>The deeded ship a mob's player owns, or else the deeded ship the mob is aboard.</summary>
+    private EntityUid? VoucherShip(EntityUid mob)
+    {
+        if (TryComp<ActorComponent>(mob, out var actor))
+        {
+            var owned = EntityQueryEnumerator<ShipOwnershipComponent, ShuttleDeedComponent>();
+            while (owned.MoveNext(out var ship, out var ownership, out _))
+            {
+                if (ownership.OwnerUserId == actor.PlayerSession.UserId)
+                    return ship;
+            }
+        }
+
+        return Transform(mob).GridUid is { } grid && HasComp<ShuttleDeedComponent>(grid) ? grid : null;
+    }
+
+    private bool OwnsShip(EntityUid mob, EntityUid ship)
+    {
+        return TryComp<ActorComponent>(mob, out var actor) && TryComp<ShipOwnershipComponent>(ship, out var ownership)
+            && ownership.OwnerUserId == actor.PlayerSession.UserId;
     }
 
     /// <summary>Tells everyone aboard a ship, loudly, that it earned a free repair and who holds the voucher.</summary>

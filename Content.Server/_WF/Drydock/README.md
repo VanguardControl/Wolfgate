@@ -6,7 +6,8 @@ dockmaster from their helm (Hailing module) and books a berth. Any ship can also
 materials instead of credits. A `WFDrydockRepairVoucher` on the payer, in hand or a worn slot, pays for one whole
 repair at a console that takes credits; it is used up when the work starts and handed back if the job aborts
 (`WFDrydockSystem.Vouchers.cs`). `IssueShipVouchers` (used by Reaver bounties) binds one to each helping ship, which it
-alone can repair, and skips a ship that still holds an unused one.
+alone can repair, and skips a ship that still holds an unused one. A helper's ship is the deeded ship their player
+owns, or else the one they are aboard, and its owner holds the voucher when they are among the helpers.
 
 Entry points: `WFDrydockSystem` (berths, quotes, payment; `.Job.cs` for jobs and cranes, `.Booking.cs` for the hail
 service, bookings and guides, `.Materials.cs` for material bills), `WFShipRefitSystem` and `WFPartRefitSystem` (refit

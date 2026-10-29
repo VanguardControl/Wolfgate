@@ -1101,6 +1101,9 @@ namespace Content.Client.Lobby.UI
                 if (!hide && Profile != null && WFBiotypeGates.TraitBlocked(thisProto, Profile, _prototypeManager))
                     hide = true;
 
+                if (!hide && WfNewbieTraitBlocked(thisProto)) // WOLFGATE(Newbie): new players can't take kill-target traits
+                    hide = true;
+
                 if (!hide)
                 {
                     foreach (var sel in selected)

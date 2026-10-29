@@ -1646,4 +1646,44 @@ public sealed class DrydockTest
 
         await pair.CleanReturnAsync();
     }
+
+    /// <summary>A player's voucher goes to the ship they own, not the one they happen to be aboard, and the owner holds it.</summary>
+    [Test]
+    public async Task ShipVouchersGoToTheOwnersShip()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var drydock = server.System<WFDrydockSystem>();
+
+        await server.WaitAssertion(() =>
+        {
+            var owned = CreateShip(pair, map.MapId);
+            var visited = CreateShip(pair, map.MapId, new Vector2(200f, 0f));
+            SetFloor(pair, owned, 2);
+            SetFloor(pair, visited, 2);
+            em.EnsureComponent<Content.Shared._NF.Shipyard.Components.ShuttleDeedComponent>(owned);
+            em.EnsureComponent<Content.Shared._NF.Shipyard.Components.ShuttleDeedComponent>(visited);
+            em.EnsureComponent<Content.Shared._NF.Shipyard.Components.ShipOwnershipComponent>(owned).OwnerUserId = pair.Player!.UserId;
+
+            var aboardOwned = em.SpawnEntity("MobHuman", new EntityCoordinates(owned, new Vector2(0.5f)));
+            var guest = em.SpawnEntity("MobHuman", new EntityCoordinates(visited, new Vector2(0.5f)));
+            var owner = em.SpawnEntity("MobHuman", new EntityCoordinates(visited, new Vector2(0.5f)));
+            server.PlayerMan.SetAttachedEntity(pair.Player, owner);
+
+            Assert.That(drydock.IssueShipVouchers("WFDrydockRepairVoucher", new List<EntityUid> { aboardOwned, guest, owner }), Is.EqualTo(2));
+            var vouchers = em.EntityQuery<WFDrydockRepairVoucherComponent>().ToDictionary(v => v.Ship!.Value, v => em.GetComponent<TransformComponent>(v.Owner).ParentUid);
+            Assert.Multiple(() =>
+            {
+                Assert.That(vouchers.Keys, Is.EquivalentTo(new[] { owned, visited }), "Each ship gets one voucher.");
+                Assert.That(vouchers[owned], Is.EqualTo(owner), "The owner holds their own ship's voucher, though aboard another.");
+                Assert.That(vouchers[visited], Is.EqualTo(guest), "The visited ship's voucher goes to the crew aboard, not the visiting owner.");
+            });
+
+            server.PlayerMan.SetAttachedEntity(pair.Player, null);
+        });
+
+        await pair.CleanReturnAsync();
+    }
 }

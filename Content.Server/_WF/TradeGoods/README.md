@@ -3,7 +3,8 @@
 Rules for Monolith's trade-goods crates. A cargo turn-in chute refuses a crate bought from a vendor on its own grid, so
 a crate only pays once it has been hauled somewhere else. Caelestinus Central maps the depot trade vendor next to the
 CC and expedition chutes, which pay several times what the vendor charges. Trade vendors also have no free-eject
-charges, so pulsing their eject wire or wrecking them gives out nothing.
+charges, so pulsing their eject wire or wrecking them gives out nothing. A chute that doesn't buy what it is offered
+says so instead of only buzzing.
 
 Entry points: `DispenserSystem.RefuseLocalGoods`, a partial hooked into the Crescent `DispenserSystem`. The purchase
 grid comes from Mono's `VendingMachinePurchaseComponent`, which vending machines and NPC traders stamp on what they sell.
@@ -29,7 +30,9 @@ The free-eject charges are zeroed on `VendingMachineTraderBaikal`, the parent of
 
 ## Non-modular edits
 
-- [`Content.Server/_Crescent/Dispenser/DispenserSystem.cs`](../../_Crescent/Dispenser/DispenserSystem.cs): chutes refuse goods bought on their own grid
+- [`Content.Server/_Crescent/Dispenser/DispenserSystem.cs`](../../_Crescent/Dispenser/DispenserSystem.cs)
+  - chutes refuse goods bought on their own grid
+  - say the chute doesn't buy it instead of only buzzing
 - [`Resources/Prototypes/_Mono/Entities/Structures/dispensers.yml`](../../../Resources/Prototypes/_Mono/Entities/Structures/dispensers.yml)
   - match the CC manifest, which lists no ship components and metals at 5000
   - match the Halcyon manifest, which buys fertilizer and no components

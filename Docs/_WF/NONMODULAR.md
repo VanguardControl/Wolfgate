@@ -14,6 +14,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Client/_Mono/Blocking/BlockingVisualsSystem.cs`](../../Content.Client/_Mono/Blocking/BlockingVisualsSystem.cs)
   - post-shader flags are set through SpriteSystem since engine 291
   - engine 291 ignores the sprite-wide GetScreenTexture/RaiseShaderEvent; they are per post-shader now
+- [`Content.Client/_Mono/PlantAnalyzer/PlantAnalyzerPredictionSystem.cs`](../../Content.Client/_Mono/PlantAnalyzer/PlantAnalyzerPredictionSystem.cs): was 0.01, so the slightest drift silently cancelled the scan
 - [`Content.Client/_Mono/Tiles/TileEntityShaderSystem.cs`](../../Content.Client/_Mono/Tiles/TileEntityShaderSystem.cs): engine 291 ignores the sprite-wide RaiseShaderEvent; it is per post-shader now
 - [`Content.Client/CharacterInfo/CharacterInfoSystem.cs`](../../Content.Client/CharacterInfo/CharacterInfoSystem.cs)
   - replays skip the character info request
@@ -80,6 +81,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/_Goobstation/Tools/WeldingSparksSystem.cs`](../../Content.Server/_Goobstation/Tools/WeldingSparksSystem.cs)
   - tells an instant do-after from a running one
   - an instant do-after has already ended, so nothing would ever delete the effect
+- [`Content.Server/_Mono/Botany/PlantAnalyzer/PlantAnalyzerSystem.cs`](../../Content.Server/_Mono/Botany/PlantAnalyzer/PlantAnalyzerSystem.cs): was 0.01, so the slightest drift silently cancelled the scan
 - [`Content.Server/_NF/PublicTransit/PublicTransitSystem.cs`](../../Content.Server/_NF/PublicTransit/PublicTransitSystem.cs): announce the departure, as FTLToDock now flies and OnShuttleArrival announces the stop
 - [`Content.Server/Anomaly/Effects/ProjectileAnomalySystem.cs`](../../Content.Server/Anomaly/Effects/ProjectileAnomalySystem.cs): with nothing in range Pick threw, so a supercritical never ended and retried every tick
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs`](../../Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs)
