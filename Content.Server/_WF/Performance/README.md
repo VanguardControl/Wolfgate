@@ -28,6 +28,9 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   A delta carries only the chunks changed since the client's last ack.
 - A drydock break lifts its finished tiles together every 2 s (`WFDrydockJobComponent.Lifting`) instead of one at a
   time, since each lift resends every fixture of the hull (about 9 KB on a derelict) to every player.
+- The client Z-level sprite passes (`CEClientZLevelsPreAnimSystem`, `CEClientZLevelsPostAnimSystem`) skip entities at
+  height 0 with no height offset left from last frame (`CEZPhysicsComponent.WFHeightOffset`). They ran over every
+  item, mob and structure in view each frame, about 13% of a live client's game thread.
 - The marked upstream edits skip idle-shuttle thruster work, avoid `Enum.GetValues` and nullable boxing on per-tick
   paths, stop `FlammableSystem` from crashing when igniting queues new fire events, and stop networking a thrown
   item's shooter (it outlived the shooter and sent a deleted entity every state).
@@ -48,6 +51,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ### Shared
 
+- [`Content.Shared/_WF/Performance/CEZPhysicsComponent.WFOffset.cs`](../../../Content.Shared/_WF/Performance/CEZPhysicsComponent.WFOffset.cs)
 - [`Content.Shared/_WF/Performance/RoofComponent.WFDelta.cs`](../../../Content.Shared/_WF/Performance/RoofComponent.WFDelta.cs)
 - [`Content.Shared/_WF/Performance/SharedGravitySystem.WFRefresh.cs`](../../../Content.Shared/_WF/Performance/SharedGravitySystem.WFRefresh.cs)
 - [`Content.Shared/_WF/Performance/SharedMoverController.WFAroundCollider.cs`](../../../Content.Shared/_WF/Performance/SharedMoverController.WFAroundCollider.cs)
@@ -72,6 +76,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFGroundSampleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGroundSampleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFRoofDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFRoofDeltaTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Performance/WFZLevelOffsetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFZLevelOffsetTest.cs)
 
 ### Localization
 
@@ -83,6 +88,9 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 
 ## Non-modular edits
 
+- [`Content.Client/_CE/ZLevels/Core/CEClientZLevelsSystem.cs`](../../../Content.Client/_CE/ZLevels/Core/CEClientZLevelsSystem.cs)
+  - nothing to strip at height 0
+  - height 0 adds nothing, so skip the world rotation and the offset write
 - [`Content.Client/Atmos/Consoles/AtmosMonitoringConsoleNavMapControl.cs`](../../../Content.Client/Atmos/Consoles/AtmosMonitoringConsoleNavMapControl.cs): wizden#38974, subnets carry a Color instead of a hex string
 - [`Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs`](../../../Content.Client/Shuttles/UI/ShuttleNavControl.xaml.cs): distant rocks from their field lists
 - [`Content.Client/Weapons/Ranged/Systems/GunSystem.cs`](../../../Content.Client/Weapons/Ranged/Systems/GunSystem.cs): wizden#36641, was EntityUid
