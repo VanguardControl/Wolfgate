@@ -10,6 +10,10 @@ public sealed class SmeltingValueTest
 {
     private const double MinimumGain = 1.2;
 
+    /// <summary>Whether a material is mined ore (or coal, which smelting also burns): the raw ores and Mono's copper and lithium.</summary>
+    private static bool IsOre(Robust.Shared.Prototypes.ProtoId<MaterialPrototype> material)
+        => material.Id.StartsWith("Raw") || material.Id.EndsWith("Ore") || material.Id == "Coal";
+
     [Test]
     public async Task SmeltedMaterialsAreWorthMoreThanTheirOre()
     {
@@ -27,7 +31,7 @@ public sealed class SmeltingValueTest
                 foreach (var recipe in protos.EnumeratePrototypes<LatheRecipePrototype>())
                 {
                     if (recipe.MaterialResult.Count == 0 || recipe.Materials.Count == 0
-                        || !recipe.Materials.Keys.All(m => m.Id.StartsWith("Raw") || m.Id == "Coal")
+                        || !recipe.Materials.Keys.All(IsOre)
                         || recipe.MaterialResult.Keys.Any(m => m.Id.StartsWith("Raw")))
                         continue; // only ore smelted into a refined material; salt into iron ore is a conversion
 
