@@ -87,7 +87,7 @@ public sealed partial class WFLamplighterSystem : EntitySystem
         _movement.RefreshMovementSpeedModifiers(ent);
     }
 
-    /// <summary>Whether a switched-on handheld light shines on it: in its radius, with nothing solid between.</summary>
+    /// <summary>Whether a switched-on handheld light, not one of its omens, shines on it: in its radius, with nothing solid between.</summary>
     public bool IsLit(EntityUid uid)
     {
         var position = _transform.GetMapCoordinates(uid);
@@ -95,7 +95,7 @@ public sealed partial class WFLamplighterSystem : EntitySystem
         var lights = EntityQueryEnumerator<HandheldLightComponent>();
         while (lights.MoveNext(out var light, out var handheld))
         {
-            if (!handheld.Activated || !_lights.TryGetLight(light, out var point) || !point.Enabled)
+            if (!handheld.Activated || HasComp<WFCavernOmenLightComponent>(light) || !_lights.TryGetLight(light, out var point) || !point.Enabled)
                 continue;
 
             var source = _transform.GetMapCoordinates(light);
@@ -119,7 +119,8 @@ public sealed partial class WFLamplighterSystem : EntitySystem
         var lights = EntityQueryEnumerator<HandheldLightComponent>();
         while (lights.MoveNext(out var light, out var handheld))
         {
-            if (!handheld.Activated)
+            // Its own omen lights die for the players, not for it.
+            if (!handheld.Activated || HasComp<WFCavernOmenLightComponent>(light))
                 continue;
 
             var source = _transform.GetMapCoordinates(light);

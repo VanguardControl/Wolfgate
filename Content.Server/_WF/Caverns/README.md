@@ -21,8 +21,9 @@ blue-black floor (deep bats, shadow cats, umbral caps), geode chambers (geode cr
 crystal, acid spitters) and a deep xenonid nest of hive floor, wild weeds, resin walls and eggs; the Gut's stomachs (bile slugs, gastric
 moss, acid polyps), nerve tangles (antibodies, nerve whips that shock), an ossuary of calcified bone (bone burrowers, marrow caps, bone piles)
 and clotted blood banks with leeches. Harvestables are common and hazards rare; every hall keeps the world's open share and tunnels connected.
-Caverns are behind `wf.caverns` (`CavernCVars`), which
-is off by default and on in development builds, and apply to networks built after it is set. Ships never go below
+Caverns come with planets: `wf.caverns` (`CavernCVars`) is on by default, so every network built while
+`wf.planet_networks` is on gets one; set it false to build worlds without them (it applies to networks built after it
+is set). Integration tests run with it off unless they turn it on. Ships never go below
 ground, and nobody on or above the ground loads the cavern under them except near a mouth, where it shows through the
 hole.
 
@@ -294,6 +295,7 @@ and leaves anything airborne to the server. The design, including what is still 
 
 - [`Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs`](../../../Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs): the cavern shows through the ground's holes.
 - [`Content.Client/Parallax/ParallaxOverlay.cs`](../../../Content.Client/Parallax/ParallaxOverlay.cs): no sky in a cavern or through a cavern mouth.
+- [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs): tests that want a cavern turn caverns on themselves
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.View.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.View.cs)
   - the level above the next eye, for the ground cap below.
   - under a ground layer, eyes only on its cavern and only while a hole is in view.
@@ -302,7 +304,6 @@ and leaves anything airborne to the server. The design, including what is still 
 - [`Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs`](../../../Content.Shared/_CE/ZLevels/Core/EntitySystems/CESharedZLevelsSystem.Update.cs)
   - stepping down onto stairs is not a fall
   - ground over a cavern is a ceiling even where it isn't loaded
-- [`Resources/ConfigPresets/Build/development.toml`](../../../Resources/ConfigPresets/Build/development.toml): caverns are on in development builds.
 - [`Resources/Prototypes/Recipes/Lathes/Packs/engineering.yml`](../../../Resources/Prototypes/Recipes/Lathes/Packs/engineering.yml): shovels dig cavern shafts on planets
 
 <!-- WOLFGATE-GENERATED END -->

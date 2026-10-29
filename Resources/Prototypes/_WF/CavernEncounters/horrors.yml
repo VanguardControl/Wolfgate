@@ -67,6 +67,11 @@
   - type: WFCavernCrawler
     alertSound:
       collection: WFCavernEncounterCrawlerAlert
+  - type: WFCavernTelegraph
+    sound:
+      collection: WFCavernEncounterCrawlerClick
+    minInterval: 6
+    maxInterval: 14
 
 # The Lamplighter (WFLamplighter): it puts your lights out one by one and can't move or strike while one is on it.
 - type: entity
@@ -146,3 +151,9 @@
   - type: WFCavernEcho
     lungeSound:
       collection: WFCavernEncounterEchoLunge
+  - type: WFCavernTelegraph
+    sound:
+      collection: WFCavernEncounterEchoWhisper
+    minInterval: 20
+    maxInterval: 30
+    volume: -2

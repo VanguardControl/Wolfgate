@@ -7,7 +7,7 @@
   id: WFCavernEncounterMinerCamp
   radius: 5
   entries:
-  - ids: [ Bonfire ]
+  - ids: [ WFCavernCampfire ]
   - ids: [ WFMinigameOldMiner ]
     distance: 2
     table: TableWood
@@ -32,7 +32,7 @@
   id: WFCavernEncounterRaiders
   radius: 6
   entries:
-  - ids: [ Bonfire ]
+  - ids: [ WFCavernCampfire ]
   - ids: [ RMCBarricadeWood ]
     min: 2
     max: 3
@@ -85,16 +85,22 @@
     max: 3
     distance: 5
 
-# The Lamplighter among the dead lanterns of those it caught.
+# The Lamplighter among the dead lanterns of those it caught, and a ring of lit ones that go out as you come.
 - type: wfCavernEncounter
   id: WFCavernEncounterLamplighter
-  radius: 5
+  radius: 7
   entries:
   - ids: [ WFMobLamplighter ]
   - ids: [ LanternFlash, FlashlightLantern ]
     min: 2
     max: 3
     distance: 4
+  - ids: [ WFCavernOmenLantern ]
+    min: 3
+    max: 4
+    distance: 6
+    minDistance: 5
+    lit: true
 
 # The Echo, waiting in the dark with what's left of its last listeners.
 - type: wfCavernEncounter
@@ -106,3 +112,21 @@
     min: 1
     max: 2
     distance: 4
+
+# A camp someone left in a hurry: a bedroll, a lantern still burning, and what they couldn't carry.
+- type: wfCavernEncounter
+  id: WFCavernEncounterAbandonedCamp
+  radius: 4
+  entries:
+  - ids: [ GoonLantern ]
+    lit: true
+  - ids: [ CMBedBedrollComfy ]
+    distance: 3
+  - ids: [ OreBag, Pickaxe, ClothingBackpackDuffel, ClothingHeadHatHardhatYellow ]
+    min: 2
+    max: 3
+    distance: 3
+  - ids: [ ScrapSteel ]
+    min: 1
+    max: 2
+    distance: 3

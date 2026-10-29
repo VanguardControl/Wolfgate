@@ -39,7 +39,16 @@ public sealed partial class WFCavernEncounterSystem : EntitySystem
     public const float ActivateRange = 48f;
 
     /// <summary>The least distance between two spots of one cavern.</summary>
-    public const float MinSpacing = 80f;
+    public const float MinSpacing = 45f;
+
+    /// <summary>The ring area, in square tiles, a table's <see cref="WFCavernEncounterTablePrototype.PerArea"/> counts per.</summary>
+    public const float AreaUnit = 10000f;
+
+    /// <summary>How far past the centre's clearance the spots near the gate go.</summary>
+    public const float NearGateReach = 70f;
+
+    /// <summary>Tries at a free spot for each planned encounter before it is dropped.</summary>
+    private const int SpotAttempts = 64;
 
     /// <summary>No spot within this of the planet centre, where the gate mouth comes down.</summary>
     public const float CentreClearance = 40f;
@@ -96,8 +105,9 @@ public sealed partial class WFCavernEncounterSystem : EntitySystem
     }
 
     /// <summary>
-    /// Picks the cavern's encounters by weight without repeats and a spot for each from the cavern's seed: in the ring
-    /// between the centre's clearance and the world's edge, each <see cref="MinSpacing"/> from the rest.
+    /// Picks the cavern's encounters by weight, each kind up to its limit, and a spot for each from the cavern's seed:
+    /// the first few just past the centre's clearance, where the gate comes down, the rest anywhere in the ring between
+    /// the clearance and the world's edge, each <see cref="MinSpacing"/> from the rest. The count follows the ring's area.
     /// </summary>
     public void Plan(EntityUid cavern, WFCavernEncounterTablePrototype table, Vector2 centre, int surfaceRadius)
     {
@@ -107,44 +117,89 @@ public sealed partial class WFCavernEncounterSystem : EntitySystem
         var seed = CompOrNull<BiomeComponent>(cavern)?.Seed ?? 0;
         var random = new System.Random(unchecked(seed * 31 + 0x5ca7e));
 
-        var radius = _bounds.TryGetBounds(cavern, out var boundsCentre, out var boundsRadius)
-            ? boundsRadius
-            : surfaceRadius > 0 ? surfaceRadius : 256f;
-        if (boundsRadius > 0f)
-            centre = boundsCentre;
-
+        var radius = PlanRadius(cavern, surfaceRadius, ref centre);
         var outer = radius - EdgeMargin;
         if (outer <= CentreClearance)
             return;
 
-        var pool = table.Encounters.Where(e => e.Value > 0f).ToList();
+        var target = PlannedCount(table, radius);
+        var limits = new Dictionary<ProtoId<WFCavernEncounterPrototype>, int>(table.Limits);
+        var pool = table.Encounters.Where(e => e.Value > 0f && limits.GetValueOrDefault(e.Key, 1) > 0).ToList();
         var placed = new List<Vector2>();
 
-        for (var i = 0; i < table.Count && pool.Count > 0; i++)
+        for (var tries = 0; layer.Sites.Count < target && pool.Count > 0 && tries < target * 2; tries++)
         {
+            // The first spots ring the gate; the rest spread over the whole cavern.
+            var near = layer.Sites.Count < table.NearGate;
+            var ringOuter = near ? MathF.Min(outer, CentreClearance + NearGateReach) : outer;
+            if (!TryPickSpot(random, centre, ringOuter, placed, out var spot))
+                continue;
+
             var pick = PickWeighted(random, pool);
-            pool.RemoveAll(e => e.Key == pick);
-
-            for (var attempt = 0; attempt < 64; attempt++)
+            if (limits.TryGetValue(pick, out var left))
             {
-                var angle = random.NextDouble() * Math.PI * 2;
-                // Uniform over the ring's area.
-                var inner2 = CentreClearance * CentreClearance;
-                var distance = MathF.Sqrt((float) (inner2 + random.NextDouble() * (outer * outer - inner2)));
-                var spot = centre + new Vector2(MathF.Cos((float) angle), MathF.Sin((float) angle)) * distance;
-
-                if (placed.Any(other => Vector2.Distance(other, spot) < MinSpacing))
-                    continue;
-
-                placed.Add(spot);
-                layer.Sites.Add(new WFCavernEncounterSite
-                {
-                    Encounter = pick,
-                    Planned = new Vector2i((int) MathF.Floor(spot.X), (int) MathF.Floor(spot.Y)),
-                });
-                break;
+                limits[pick] = left - 1;
+                if (left <= 1)
+                    pool.RemoveAll(e => e.Key == pick);
             }
+
+            placed.Add(spot);
+            layer.Sites.Add(new WFCavernEncounterSite
+            {
+                Encounter = pick,
+                Planned = new Vector2i((int) MathF.Floor(spot.X), (int) MathF.Floor(spot.Y)),
+            });
         }
+    }
+
+    /// <summary>The radius encounters are planned within: the world's bounds, else its surface's; moves the centre onto the bounds'.</summary>
+    private float PlanRadius(EntityUid cavern, int surfaceRadius, ref Vector2 centre)
+    {
+        if (_bounds.TryGetBounds(cavern, out var boundsCentre, out var boundsRadius) && boundsRadius > 0f)
+        {
+            centre = boundsCentre;
+            return boundsRadius;
+        }
+
+        return surfaceRadius > 0 ? surfaceRadius : 256f;
+    }
+
+    /// <summary>The area in square tiles of the ring encounters are planned in, for a world of this radius.</summary>
+    public static float RingArea(float radius)
+    {
+        var outer = radius - EdgeMargin;
+        return outer <= CentreClearance ? 0f : MathF.PI * (outer * outer - CentreClearance * CentreClearance);
+    }
+
+    /// <summary>How many encounters a table plans for a world of this radius: its rate times the ring's area, clamped.</summary>
+    public static int PlannedCount(WFCavernEncounterTablePrototype table, float radius)
+    {
+        var area = RingArea(radius);
+        if (area <= 0f)
+            return 0;
+
+        var count = (int) MathF.Round(area / AreaUnit * table.PerArea);
+        return Math.Clamp(count, table.MinCount, table.MaxCount);
+    }
+
+    /// <summary>A spot uniform over the ring between the centre's clearance and an outer radius, clear of every placed spot.</summary>
+    private static bool TryPickSpot(System.Random random, Vector2 centre, float outer, List<Vector2> placed, out Vector2 spot)
+    {
+        var inner2 = CentreClearance * CentreClearance;
+        for (var attempt = 0; attempt < SpotAttempts; attempt++)
+        {
+            var angle = random.NextDouble() * Math.PI * 2;
+            var distance = MathF.Sqrt((float) (inner2 + random.NextDouble() * (outer * outer - inner2)));
+            var candidate = centre + new Vector2(MathF.Cos((float) angle), MathF.Sin((float) angle)) * distance;
+            if (placed.Any(other => Vector2.Distance(other, candidate) < MinSpacing))
+                continue;
+
+            spot = candidate;
+            return true;
+        }
+
+        spot = default;
+        return false;
     }
 
     private static ProtoId<WFCavernEncounterPrototype> PickWeighted(System.Random random, List<KeyValuePair<ProtoId<WFCavernEncounterPrototype>, float>> pool)
@@ -347,7 +402,7 @@ public sealed partial class WFCavernEncounterSystem : EntitySystem
                 else if (entry.Ids.Count > 0)
                     id = entry.Ids[random.Next(entry.Ids.Count)];
 
-                if (id == null || !TryPickTile(random, centre, entry.Distance, free, out var tile))
+                if (id == null || !TryPickTile(random, centre, entry.Distance, entry.MinDistance, free, out var tile))
                     continue;
 
                 free.Remove(tile);
@@ -388,8 +443,11 @@ public sealed partial class WFCavernEncounterSystem : EntitySystem
         return spawned;
     }
 
-    /// <summary>Finds a free tile for an entry: the centre itself for a distance of 0, else any free tile within the distance.</summary>
-    private static bool TryPickTile(System.Random random, Vector2i centre, float distance, HashSet<Vector2i> free, out Vector2i tile)
+    /// <summary>
+    /// Finds a free tile for an entry: the centre itself for a distance of 0, else any free tile between the least
+    /// distance and the distance.
+    /// </summary>
+    private static bool TryPickTile(System.Random random, Vector2i centre, float distance, float minDistance, HashSet<Vector2i> free, out Vector2i tile)
     {
         if (distance <= 0f && free.Contains(centre))
         {
@@ -397,7 +455,7 @@ public sealed partial class WFCavernEncounterSystem : EntitySystem
             return true;
         }
 
-        var candidates = free.Where(t => t != centre && (t - centre).Length <= Math.Max(distance, 1.5f)).ToList();
+        var candidates = free.Where(t => t != centre && (t - centre).Length <= Math.Max(distance, 1.5f) && (t - centre).Length >= minDistance).ToList();
         if (candidates.Count == 0)
             candidates = free.ToList();
 

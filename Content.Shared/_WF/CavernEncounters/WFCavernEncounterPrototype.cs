@@ -54,6 +54,10 @@ public sealed partial class WFCavernEncounterEntry
     [DataField]
     public float Distance;
 
+    /// <summary>The nearest to the centre, in tiles, a thing may go, such as lights at the room's edge.</summary>
+    [DataField]
+    public float MinDistance;
+
     /// <summary>Switches a handheld light on as it is laid out, such as a lantern left burning.</summary>
     [DataField]
     public bool Lit;
@@ -63,7 +67,10 @@ public sealed partial class WFCavernEncounterEntry
     public EntProtoId? Table;
 }
 
-/// <summary>Which encounters a world's cavern holds and how many: picked by weight without repeats, spaced well apart.</summary>
+/// <summary>
+/// Which encounters a world's cavern holds and how many: a count that grows with the cavern's area, picked by weight,
+/// each kind up to its limit.
+/// </summary>
 [Prototype("wfCavernEncounterTable")]
 public sealed partial class WFCavernEncounterTablePrototype : IPrototype
 {
@@ -75,11 +82,27 @@ public sealed partial class WFCavernEncounterTablePrototype : IPrototype
     [DataField(required: true)]
     public ProtoId<WFPlanetSurfacePrototype> Surface;
 
-    /// <summary>How many encounters the cavern gets.</summary>
+    /// <summary>Encounters per 10,000 square tiles of the ring they are planned in.</summary>
     [DataField]
-    public int Count = 4;
+    public float PerArea = 1.4f;
+
+    /// <summary>The fewest encounters the cavern gets, however small.</summary>
+    [DataField]
+    public int MinCount = 3;
+
+    /// <summary>The most encounters the cavern gets, however big.</summary>
+    [DataField]
+    public int MaxCount = 64;
+
+    /// <summary>How many of the first spots go near the gate, where most players come down.</summary>
+    [DataField]
+    public int NearGate = 2;
 
     /// <summary>The encounters and their weights.</summary>
     [DataField(required: true)]
     public Dictionary<ProtoId<WFCavernEncounterPrototype>, float> Encounters = new();
+
+    /// <summary>The most of one encounter a cavern holds; kinds not listed have no limit.</summary>
+    [DataField]
+    public Dictionary<ProtoId<WFCavernEncounterPrototype>, int> Limits = new();
 }

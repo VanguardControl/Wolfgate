@@ -149,6 +149,9 @@ ENCOUNTER_GROUPS = {
         "npc/headcrab/alert1.wav",
         "npc/headcrab/attack1.wav",
         "npc/headcrab/attack2.wav",
+        "npc/headcrab/idle1.wav",
+        "npc/headcrab/idle2.wav",
+        "npc/headcrab/idle3.wav",
     ]),
     "lamplighter": (False, [
         "npc/zombie/moan1.wav",
@@ -158,6 +161,15 @@ ENCOUNTER_GROUPS = {
     "echo": (False, [
         "npc/zombie/alert1.wav",
         "npc/zombie/claw_strike2.wav",
+        "bms_scripted/test_chamber/tc_breathing.wav",
+    ]),
+    # Telegraphs heard before an encounter is in sight: a camp's fire and the Lamplighter's lights dying.
+    "camp": (False, [
+        "bms_ambience/room_ambience/r_ambience_fire1.wav",
+    ]),
+    "omen": (False, [
+        "bms_objects/sparks/elec_spark1.wav",
+        "bms_objects/sparks/elec_spark2.wav",
     ]),
 }
 
@@ -173,6 +185,8 @@ CEILINGS = {
     "songbird": {"xen_bird1": SUSTAINED_CEILING},
     "swift": {"xen_bird2": SUSTAINED_CEILING},
     "grouse": SUSTAINED_CEILING,
+    "camp": SUSTAINED_CEILING,
+    "echo": {"tc_breathing": SUSTAINED_CEILING},
 }
 
 LICENSE = "Custom"
