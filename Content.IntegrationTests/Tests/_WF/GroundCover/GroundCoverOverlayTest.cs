@@ -16,7 +16,8 @@ namespace Content.IntegrationTests.Tests._WF.GroundCover;
 [TestOf(typeof(WFGroundCoverOverlay))]
 public sealed class GroundCoverOverlayTest
 {
-    private static readonly ProtoId<ShaderPrototype> Shader = "WFGroundCover";
+    // A plain string: the server-side linter checks ProtoId fields and has no client shader prototypes.
+    private const string Shader = "WFGroundCover";
 
     [Test]
     public async Task OverlayLoadsItsShaderAndDrawsInRain()
@@ -51,7 +52,7 @@ public sealed class GroundCoverOverlayTest
             Assert.That(overlays.HasOverlay<WFGroundReflectionOverlay>(), Is.True, "The reflection overlay isn't registered.");
 
             // Indexing and instancing the shader parses its source, which throws on a broken shader.
-            var proto = client.ResolveDependency<IPrototypeManager>().Index(Shader);
+            var proto = client.ResolveDependency<IPrototypeManager>().Index<ShaderPrototype>(Shader);
             Assert.DoesNotThrow(() => proto.InstanceUnique().Dispose());
 
             var overlay = overlays.GetOverlay<WFGroundCoverOverlay>();
