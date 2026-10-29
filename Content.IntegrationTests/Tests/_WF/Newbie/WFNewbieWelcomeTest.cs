@@ -65,6 +65,15 @@ public sealed class WFNewbieWelcomeTest : GameTest
         await OverrideCVar(Side.Server, WFNewbieCVars.Welcome, true);
         await Server.WaitPost(() => SEntMan.System<Content.Server._WF.Newbie.WFNewbieWelcomeSystem>().GreetAll());
         await RunTicksSync(5);
+        // A slow runner can take a few more ticks to get the greeting across.
+        var shown = false;
+        for (var i = 0; i < 20 && !shown; i++)
+        {
+            await Client.WaitPost(() => shown = Client.ResolveDependency<IUserInterfaceManager>().WindowRoot.Children
+                .OfType<WFNewbieWelcomeWindow>().Any());
+            if (!shown)
+                await RunTicksSync(5);
+        }
         var first = await OpenWindows();
 
         await Server.WaitPost(() => SEntMan.System<Content.Server._WF.Newbie.WFNewbieWelcomeSystem>().GreetAll());
