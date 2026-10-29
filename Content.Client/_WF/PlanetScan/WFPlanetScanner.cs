@@ -1,6 +1,7 @@
 using System.Numerics;
 using Content.Client._WF.AsteroidMining;
 using Content.Client._WF.CombatConsole;
+using Content.Shared._WF.PlanetCargoHubs;
 using Content.Shared._WF.PlanetMap;
 using Content.Shared._WF.PlanetScan;
 using Robust.Client.Graphics;
@@ -146,6 +147,11 @@ public sealed class WFPlanetScanner : Control
             : reading.Sanctioned ? "wf-planet-scan-tag" : "wf-planet-scan-tag-unsanctioned")));
         if (reading.Range is { } range)
             _lines.Add(new Line(LineKind.Pair, Loc.GetString("wf-planet-scan-range"), Distance(range)));
+        foreach (var depot in reading.Depots)
+        {
+            _lines.Add(new Line(LineKind.Warning, Loc.GetString("wf-planet-scan-depot", ("depot", Loc.GetString(depot))),
+                Color: WFPlanetCargoHubSites.Colour));
+        }
 
         if (!reading.Surface)
         {

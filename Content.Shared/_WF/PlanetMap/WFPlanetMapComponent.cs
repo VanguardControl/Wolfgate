@@ -89,10 +89,11 @@ public readonly record struct WFPlanetMapLine(WFPlanetMapLineKind Kind, Vector2i
 public enum WFPlanetMapLineKind : byte { Road, Trail, Tunnel }
 
 /// <summary>
-/// One site on the map. Its kind and name are hidden until the site is identified, except a city's kind, which shows
-/// from orbit. <paramref name="Name"/> is a Fluent id.
+/// One site on the map. Its kind and name are hidden until the site is identified, except a city's or a cargo depot's
+/// kind, which shows from orbit. <paramref name="Name"/> is a Fluent id.
 /// </summary>
 [Serializable, NetSerializable]
 public readonly record struct WFPlanetMapSite(WFPlanetMapSiteKind Kind, Vector2i Position, Box2i Bounds, string Name);
 
-public enum WFPlanetMapSiteKind : byte { Unknown, Building, House, Fuel, Vault, Facility, City, Camp, Wreck }
+/// <summary>What a site is; <see cref="Depot"/> is a cargo depot built on the planet.</summary>
+public enum WFPlanetMapSiteKind : byte { Unknown, Building, House, Fuel, Vault, Facility, City, Camp, Wreck, Depot }

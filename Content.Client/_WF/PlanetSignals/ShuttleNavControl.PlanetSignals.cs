@@ -2,6 +2,7 @@ using System.Numerics;
 using Content.Client._WF.PlanetSignals;
 using Content.Shared._FarHorizons.StarSystem;
 using Content.Shared._FarHorizons.StarSystem.Helpers;
+using Content.Shared._WF.PlanetCargoHubs;
 using Content.Shared._WF.Planets;
 using Content.Shared._WF.PlanetScan;
 using Content.Shared._WF.PlanetSignals;
@@ -20,6 +21,9 @@ public partial class ShuttleNavControl
 
     /// <summary>Where each world was drawn this frame, in pixels: its blip, the circle round it and its name.</summary>
     private readonly List<(EntityUid Body, Vector2 Centre, float Radius, UIBox2 Label)> _wfPlanetHits = new();
+
+    /// <summary>The cargo depots on the world whose tag is being drawn, by site name.</summary>
+    private readonly List<string> _wfDepots = new();
 
     private float _wfViewScale = 1f;
     private Vector2? _wfPressedAt;
@@ -77,7 +81,7 @@ public partial class ShuttleNavControl
 
             var color = mine ? WfExpeditionColor : signal.Kind switch
             {
-                WFPlanetSignalKind.Site => WfSiteColor,
+                WFPlanetSignalKind.Site => WFPlanetCargoHubSites.IsHub(signal.Name) ? WFPlanetCargoHubSites.Colour : WfSiteColor,
                 WFPlanetSignalKind.Person => signal.Condition == WFPlanetSignalCondition.Alive ? WfPersonColor : WfPersonHurtColor,
                 _ => WfVesselColor,
             };
@@ -125,12 +129,17 @@ public partial class ShuttleNavControl
         int vessels = 0, sites = 0;
         var ours = WfOurGrid();
         var mine = false;
+        _wfDepots.Clear();
         foreach (var signal in signals.Signals)
         {
             if (signal.Kind == WFPlanetSignalKind.Vessel)
                 vessels++;
             else if (signal.Kind == WFPlanetSignalKind.Site)
+            {
                 sites++;
+                if (WFPlanetCargoHubSites.IsHub(signal.Name))
+                    _wfDepots.Add(signal.Name);
+            }
             mine |= ours != null && signal.Expedition == ours;
         }
 
@@ -142,6 +151,14 @@ public partial class ShuttleNavControl
         var tag = Loc.GetString("wf-planet-signals-tag", ("vessels", vessels), ("sites", sites), ("people", signals.People));
         at.Y -= handle.GetDimensions(Font, tag, UIScale * 0.7f).Y;
         handle.DrawString(Font, at, tag, UIScale * 0.7f, WfSiteColor);
+
+        // A cargo depot on the world is named over it, in the depots' colour.
+        foreach (var depot in _wfDepots)
+        {
+            var line = Loc.GetString("wf-planet-signals-tag-depot", ("depot", Loc.GetString(depot)));
+            at.Y -= handle.GetDimensions(Font, line, UIScale * 0.8f).Y;
+            handle.DrawString(Font, at, line, UIScale * 0.8f, WFPlanetCargoHubSites.Colour);
+        }
 
         if (!mine)
             return;

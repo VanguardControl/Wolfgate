@@ -4,6 +4,7 @@ using Content.Server._WF.PlanetPois;
 using Content.Server._WF.Planets;
 using Content.Server._WF.Planets.Bounds;
 using Content.Shared._WF.CCVar;
+using Content.Shared._WF.PlanetCargoHubs;
 using Content.Shared._WF.PlanetCities;
 using Content.Shared._WF.PlanetMap;
 using Content.Shared._WF.PlanetPois;
@@ -167,8 +168,8 @@ public sealed class WFPlanetMapSystem : EntitySystem
             var position = signal?.Origin ?? site.Origin;
             if (!revealed)
             {
-                // A city shows from orbit; anything else is just a signal until someone gets there.
-                sites.Add(new WFPlanetMapSite(kind == WFPlanetMapSiteKind.City ? kind : WFPlanetMapSiteKind.Unknown,
+                // A city or a cargo depot shows from orbit; anything else is just a signal until someone gets there.
+                sites.Add(new WFPlanetMapSite(kind is WFPlanetMapSiteKind.City or WFPlanetMapSiteKind.Depot ? kind : WFPlanetMapSiteKind.Unknown,
                     position, site.Bounds, string.Empty));
                 continue;
             }
@@ -185,6 +186,8 @@ public sealed class WFPlanetMapSystem : EntitySystem
         var name = site.Name.Id;
         if (name == WreckName)
             return WFPlanetMapSiteKind.Wreck;
+        if (WFPlanetCargoHubSites.IsHub(name))
+            return WFPlanetMapSiteKind.Depot;
         foreach (var city in _proto.EnumeratePrototypes<WFFixedCityPrototype>())
         {
             if (city.Name == site.Name)

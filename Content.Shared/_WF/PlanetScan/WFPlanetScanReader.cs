@@ -39,6 +39,8 @@ public sealed class WFPlanetScanReading
     public int Sites;
     /// <summary>Known sites by kind, indexed by <see cref="WFPlanetMapSiteKind"/>.</summary>
     public readonly int[] SiteKinds = new int[WFPlanetScanReader.SiteKindCount];
+    /// <summary>The Fluent names of the cargo depots built on the world.</summary>
+    public readonly List<LocId> Depots = new();
     /// <summary>Radius of the clear ground round the world's centre, in metres; zero when none is kept.</summary>
     public float LandingRadius;
     public int Vessels;
@@ -57,7 +59,7 @@ public sealed class WFPlanetScanReader
     /// <summary>Largest scope radius of a body without a Wolfgate surface, in metres.</summary>
     public const float MaxRadius = 1500f;
 
-    public const int SiteKindCount = (int) WFPlanetMapSiteKind.Wreck + 1;
+    public const int SiteKindCount = (int) WFPlanetMapSiteKind.Depot + 1;
 
     /// <summary>Partial pressures that make air unbreathable or toxic, in kPa.</summary>
     private const float MinOxygen = 16f;
@@ -186,6 +188,7 @@ public sealed class WFPlanetScanReader
         {
             reading.SiteKinds[i] = 0;
         }
+        reading.Depots.Clear();
         reading.LandingRadius = 0f;
         reading.Vessels = 0;
         reading.People = 0;
@@ -219,6 +222,8 @@ public sealed class WFPlanetScanReader
                 var kind = (int) site.Kind;
                 if (kind >= 0 && kind < SiteKindCount)
                     reading.SiteKinds[kind]++;
+                if (site.Kind == WFPlanetMapSiteKind.Depot && site.Name.Length > 0)
+                    reading.Depots.Add(site.Name);
             }
         }
 

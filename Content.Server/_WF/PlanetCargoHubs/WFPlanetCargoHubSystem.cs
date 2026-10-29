@@ -23,7 +23,7 @@ namespace Content.Server._WF.PlanetCargoHubs;
 /// site to that world's sites, makes the depot's station over the ground once it is built, and tells the space depot
 /// spawner to skip that letter.
 /// </summary>
-public sealed class WFPlanetCargoHubSystem : EntitySystem
+public sealed partial class WFPlanetCargoHubSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -37,8 +37,6 @@ public sealed class WFPlanetCargoHubSystem : EntitySystem
 
     /// <summary>The space depot's game map and station, whose station config the hub's station copies.</summary>
     private const string DepotGameMap = "CargoDepot";
-
-    private const string SiteNamePrefix = "wf-planet-cargo-hub-";
 
     /// <summary>This round's planetside depots by index: the world and the hub layout.</summary>
     private readonly Dictionary<int, (ProtoId<WFPlanetSurfacePrototype> Surface, ProtoId<WFPlanetCargoHubPrototype> Hub)> _plan = new();
@@ -55,6 +53,7 @@ public sealed class WFPlanetCargoHubSystem : EntitySystem
         SubscribeLocalEvent<WFPlanetPreloadedEvent>(OnPreloaded);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
         SubscribeLocalEvent<WFPlanetCargoHubsComponent, ComponentShutdown>(OnShutdown);
+        InitializeNotice();
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev) => ResetPlan();
@@ -104,7 +103,7 @@ public sealed class WFPlanetCargoHubSystem : EntitySystem
     public IReadOnlyDictionary<int, (ProtoId<WFPlanetSurfacePrototype> Surface, ProtoId<WFPlanetCargoHubPrototype> Hub)> Plan => _plan;
 
     /// <summary>The site name of depot <paramref name="index"/>'s hub.</summary>
-    public static LocId SiteName(int index) => SiteNamePrefix + (char) ('a' + index);
+    public static LocId SiteName(int index) => WFPlanetCargoHubSites.SiteName(index);
 
     /// <summary>
     /// Rolls each depot's chance to go planetside and picks it a world among those built so far: one that allows the
@@ -207,13 +206,7 @@ public sealed class WFPlanetCargoHubSystem : EntitySystem
 
     private static bool TryIndex(LocId name, out int index)
     {
-        index = -1;
-        var id = name.Id;
-        if (!id.StartsWith(SiteNamePrefix) || id.Length != SiteNamePrefix.Length + 1)
-            return false;
-
-        index = id[^1] - 'a';
-        return index is >= 0 and < MaxHubs;
+        return WFPlanetCargoHubSites.TryIndex(name.Id, out index) && index < MaxHubs;
     }
 
     private void MakeStation(EntityUid ground, WFPlanetPoiSite site, int index)
@@ -239,6 +232,7 @@ public sealed class WFPlanetCargoHubSystem : EntitySystem
         hub.Index = index;
         hub.Ground = ground;
         hub.Origin = site.Origin;
+        hub.World = groundName;
         EnsureComp<WFPlanetCargoHubsComponent>(ground).Stations.Add(station);
 
         // A depot is somewhere people are meant to find: it shows from orbit like a city.
@@ -246,5 +240,6 @@ public sealed class WFPlanetCargoHubSystem : EntitySystem
             _pois.Reveal((site.Signal, signal), null);
 
         Log.Info($"Cargo depot {letter} stands on {ToPrettyString(ground)} at {site.Origin}.");
+        OnHubMade((station, hub));
     }
 }

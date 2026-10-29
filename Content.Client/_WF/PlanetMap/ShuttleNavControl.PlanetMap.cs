@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Client._WF.PlanetMap;
+using Content.Shared._WF.PlanetCargoHubs;
 using Content.Shared._WF.PlanetMap;
 using Robust.Client.Graphics;
 
@@ -206,7 +207,8 @@ public partial class ShuttleNavControl
         {
             var point = Vector2.Transform(new Vector2(site.Position.X + 0.5f, site.Position.Y + 0.5f), worldToView);
             var known = site.Name.Length > 0;
-            var colour = known ? WfMapSiteColour : WfMapUnknownColour;
+            var depot = site.Kind == WFPlanetMapSiteKind.Depot;
+            var colour = depot ? WFPlanetCargoHubSites.Colour : known ? WfMapSiteColour : WfMapUnknownColour;
 
             if (site.Kind == WFPlanetMapSiteKind.City)
             {
@@ -228,7 +230,8 @@ public partial class ShuttleNavControl
 
             if (!known)
                 continue;
-            if (site.Kind != WFPlanetMapSiteKind.City && scale < WfMapLabelScale)
+            // A city's or a cargo depot's name shows at any zoom.
+            if (site.Kind != WFPlanetMapSiteKind.City && !depot && scale < WfMapLabelScale)
                 continue;
 
             var label = Loc.GetString(site.Name);
@@ -274,6 +277,13 @@ public partial class ShuttleNavControl
                 handle.DrawLine(point + new Vector2(-size * 1.2f, size), point + new Vector2(0f, -size * 1.2f), colour);
                 handle.DrawLine(point + new Vector2(0f, -size * 1.2f), point + new Vector2(size * 1.2f, size), colour);
                 handle.DrawLine(point + new Vector2(size * 1.2f, size), point + new Vector2(-size * 1.2f, size), colour);
+                break;
+            case WFPlanetMapSiteKind.Depot:
+                // A crate in a ring, bigger than any other glyph.
+                handle.DrawCircle(point, size * 2.2f, colour, false);
+                handle.DrawRect(UIBox2.FromDimensions(point - new Vector2(size * 1.1f), new Vector2(size * 2.2f)), colour, false);
+                handle.DrawLine(point + new Vector2(-size * 1.1f, -size * 0.35f), point + new Vector2(size * 1.1f, -size * 0.35f), colour);
+                handle.DrawLine(point + new Vector2(-size * 1.1f, size * 0.35f), point + new Vector2(size * 1.1f, size * 0.35f), colour);
                 break;
             case WFPlanetMapSiteKind.Wreck:
                 handle.DrawLine(point - new Vector2(size), point + new Vector2(size), colour);

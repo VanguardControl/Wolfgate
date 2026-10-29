@@ -77,6 +77,8 @@ public sealed class CargoHubMapsTest
                 Assert.That(Count("CargoPalletSell"), Is.GreaterThanOrEqualTo(berths * 4), "Every berth needs sell pallets.");
                 Assert.That(Count("CargoChuteDepot") + Count("CargoChuteDepotAlt"), Is.EqualTo(1), "The hub needs a turn-in chute.");
                 Assert.That(Count("VendingMachineTraderDepot") + Count("VendingMachineTraderDepotAlt"), Is.EqualTo(1), "The hub needs the depot vendor.");
+                Assert.That(Count("WFCargoHubBeacon"), Is.EqualTo(1), "The hub needs its beacon mast.");
+                Assert.That(Count("WFCargoHubBerthStrobe"), Is.EqualTo(berths * 2), "Every berth needs a strobe at each corner of its mouth.");
             }
         });
 

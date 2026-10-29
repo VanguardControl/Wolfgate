@@ -70,7 +70,7 @@ public sealed class PlanetScanReaderTest
             Assert.That(fervidus, Is.Not.EqualTo(EntityUid.Invalid), "The sector has no Fervidus body.");
             Assert.That(carcinoma, Is.Not.EqualTo(EntityUid.Invalid), "The sector has no Carcinoma body.");
 
-            // Verda's orbit layer has been mapped: a city, a house and a site nobody has identified.
+            // Verda's orbit layer has been mapped: a city, a house, a site nobody has identified and a cargo depot.
             var orbit = server.System<SharedMapSystem>().CreateMap(out _);
             var map = entMan.EnsureComponent<WFPlanetMapComponent>(orbit);
             map.LandingRadius = 24f;
@@ -79,6 +79,7 @@ public sealed class PlanetScanReaderTest
                 new(WFPlanetMapSiteKind.City, new Vector2i(10, 10), new Box2i(0, 0, 20, 20), "wf-test-city"),
                 new(WFPlanetMapSiteKind.House, new Vector2i(-40, 5), new Box2i(-44, 0, -36, 10), "wf-test-house"),
                 new(WFPlanetMapSiteKind.Unknown, new Vector2i(60, -30), new Box2i(56, -34, 64, -26), string.Empty),
+                new(WFPlanetMapSiteKind.Depot, new Vector2i(-80, -60), new Box2i(-120, -90, -40, -30), "wf-planet-cargo-hub-a"),
             };
             entMan.Dirty(orbit, map);
 
@@ -168,10 +169,12 @@ public sealed class PlanetScanReaderTest
             Assert.That(reading.Hazards, Does.Contain(new LocId("wf-planet-scan-hazard-thunderstorms")));
             Assert.That(reading.Hazards, Does.Not.Contain(new LocId("wf-planet-scan-hazard-air")));
             Assert.That(reading.Surveyed, Is.True);
-            Assert.That(reading.Sites, Is.EqualTo(3));
+            Assert.That(reading.Sites, Is.EqualTo(4));
             Assert.That(reading.SiteKinds[(int) WFPlanetMapSiteKind.City], Is.EqualTo(1));
             Assert.That(reading.SiteKinds[(int) WFPlanetMapSiteKind.House], Is.EqualTo(1));
             Assert.That(reading.SiteKinds[(int) WFPlanetMapSiteKind.Unknown], Is.EqualTo(1));
+            Assert.That(reading.SiteKinds[(int) WFPlanetMapSiteKind.Depot], Is.EqualTo(1));
+            Assert.That(reading.Depots, Is.EquivalentTo(new[] { new LocId("wf-planet-cargo-hub-a") }), "The scan doesn't name the cargo depot.");
             Assert.That(reading.LandingRadius, Is.EqualTo(24f));
         });
     }

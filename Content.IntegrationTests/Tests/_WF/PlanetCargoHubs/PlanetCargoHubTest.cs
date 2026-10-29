@@ -7,6 +7,10 @@ using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._NF.GameRule;
 using Content.Server._NF.Trade;
 using Content.Server._WF.PlanetCargoHubs;
+using Content.Server._WF.PlanetMap;
+using Content.Server.Shuttles.Components;
+using Content.Shared._WF.PlanetMap;
+using Content.Shared._WF.PlanetSignals;
 using Content.Server._WF.PlanetPois;
 using Content.Server._WF.Planets;
 using Content.Server._WF.Planets.Bounds;
@@ -45,6 +49,7 @@ public sealed class PlanetCargoHubTest
 {
     private const string Surface = "WFSurfaceMerak";
     private const int Radius = 320;
+    private static readonly Vector2 BodyPosition = new(4000f, 0f);
 
     [Test]
     public async Task DepotMovesOntoTheWorld()
@@ -56,6 +61,8 @@ public sealed class PlanetCargoHubTest
         var hubs = server.System<WFPlanetCargoHubSystem>();
         var layers = new List<EntityUid>();
         var holds = new List<Task>();
+        EntityUid sectorMap = default;
+        EntityUid body = default;
 
         await server.WaitPost(() =>
         {
@@ -64,8 +71,15 @@ public sealed class PlanetCargoHubTest
             server.CfgMan.SetCVar(PlanetCargoHubCVars.Chance, 1f);
             server.CfgMan.SetCVar(NFCCVars.CargoDepots, 2);
             hubs.ResetPlan();
+
+            // The world's sector body, for its signals and the depot's FTL beacon.
+            sectorMap = server.System<SharedMapSystem>().CreateMap(out _);
+            body = entMan.SpawnEntity(null, new EntityCoordinates(sectorMap, BodyPosition));
+            server.System<MetaDataSystem>().SetEntityName(body, "Merak");
+            entMan.AddComponent<WFSectorPlanetComponent>(body).Surface = Surface;
+
             var surface = server.ProtoMan.Index<WFPlanetSurfacePrototype>(Surface);
-            var network = server.System<WFPlanetNetworkSystem>().BuildNetwork(surface, Vector2.Zero, "Merak", null);
+            var network = server.System<WFPlanetNetworkSystem>().BuildNetwork(surface, Vector2.Zero, "Merak", body);
             Assert.That(network, Is.Not.Null);
             layers.AddRange(entMan.GetComponent<WFPlanetNetworkComponent>(network!.Value).Layers);
             var preload = new WFPlanetPreloadStartingEvent(layers[0], Vector2.Zero, Radius, holds);
@@ -113,6 +127,30 @@ public sealed class PlanetCargoHubTest
             Assert.That(entMan.GetComponent<MetaDataComponent>(station).EntityName, Is.EqualTo("Cargo Depot A"));
             Assert.That(entMan.GetComponent<MetaDataComponent>(ground).EntityName, Is.Not.EqualTo("Cargo Depot A"), "The world took the depot's name.");
 
+            // The round is told once, naming the world and the letter; trade crates for it say the same.
+            var hub = entMan.GetComponent<WFPlanetCargoHubComponent>(station);
+            Assert.That(hub.World, Is.EqualTo("Merak"));
+            hubs.AnnounceHubs();
+            Assert.That(hub.Announced, Is.True, "The depot was never announced.");
+            Assert.That(hubs.AnnounceHubs(), Is.EqualTo(0), "The depot was announced twice.");
+            Assert.That(hubs.Notice(hub), Is.EqualTo("Cargo Depot A has set down on Merak; land on its berths."));
+            Assert.That(hubs.CrateNote(station), Is.EqualTo(hubs.Notice(hub)));
+
+            // The planet map marks it as a depot, by name, from orbit.
+            var marker = server.System<WFPlanetMapSystem>().Sites(record).Single(found => found.Name == "wf-planet-cargo-hub-a");
+            Assert.That(marker.Kind, Is.EqualTo(WFPlanetMapSiteKind.Depot));
+
+            // The sector map has an FTL beacon by the world, named after the depot.
+            Assert.That(hub.Beacon, Is.Not.Null, "The depot has no FTL beacon.");
+            var beacons = entMan.EntityQuery<FTLBeaconComponent, TransformComponent>()
+                .Where(found => found.Item2.MapUid == sectorMap)
+                .Select(found => found.Item1.Owner)
+                .Where(uid => entMan.GetComponent<MetaDataComponent>(uid).EntityName == "Cargo Depot A (Merak)")
+                .ToList();
+            Assert.That(beacons, Is.EquivalentTo(new[] { hub.Beacon!.Value }), "The FTL beacon list doesn't have the depot.");
+            var beaconAt = server.System<SharedTransformSystem>().GetWorldPosition(hub.Beacon.Value);
+            Assert.That(Vector2.Distance(beaconAt, BodyPosition), Is.InRange(1f, 2000f), "The beacon isn't by the world.");
+
             // Three berths, each a clear, unroofed pad of floor big enough for a medium ship.
             var grid = entMan.GetComponent<MapGridComponent>(ground);
             var roof = entMan.GetComponent<RoofComponent>(ground);
@@ -141,6 +179,24 @@ public sealed class PlanetCargoHubTest
                 }
             }
         });
+
+        // The world's signal list names the depot, so its orbit marker and radar tag show it.
+        bool SignalNamed()
+        {
+            return entMan.TryGetComponent<WFPlanetSignalsComponent>(body, out var signals)
+                   && signals.Signals.Any(signal => signal.Kind == WFPlanetSignalKind.Site
+                                                     && signal.Name == "wf-planet-cargo-hub-a"
+                                                     && WFPlanetCargoHubSites.IsHub(signal.Name));
+        }
+
+        var named = false;
+        for (var attempt = 0; attempt < 40 && !named; attempt++)
+        {
+            await pair.RunTicksSync(10);
+            await server.WaitPost(() => named = SignalNamed());
+        }
+
+        await server.WaitAssertion(() => Assert.That(SignalNamed(), Is.True, "The world's signals don't name the depot."));
 
         // A trade crate for depot A, put on a sell pallet by the hub's console, sells at its destination price.
         EntityUid crate = default;
@@ -206,6 +262,7 @@ public sealed class PlanetCargoHubTest
         });
 
         await PlanetFixture.Teardown(pair, layers);
+        await server.WaitPost(() => entMan.DeleteEntity(sectorMap));
         await pair.CleanReturnAsync();
     }
 }

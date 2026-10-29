@@ -25,8 +25,10 @@ wf-planet-scan-site-kind = {$kind ->
     [City] Cities
     [Camp] Camps
     [Wreck] Wrecks
+    [Depot] Cargo depots
    *[other] Unidentified
 }
+wf-planet-scan-depot = {$depot}: land on its berths
 wf-planet-scan-site-kind-count = {$count}
 wf-planet-scan-landing = Landing zone
 wf-planet-scan-landing-clear = {$radius} m clear at centre

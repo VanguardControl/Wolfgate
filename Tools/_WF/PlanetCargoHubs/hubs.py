@@ -49,6 +49,9 @@ def hub(slug: str, berths: int, gap: int, chute: str, vendor: str) -> tuple[PoiM
         for y in (APRON_S, APRON_S + BERTH_D // 2, pad_top - 1):
             m.entity("RMCSmallFloodlight", x0 - 1, y)
             m.entity("RMCSmallFloodlight", x0 + BERTH_W, y)
+        # Blinking strobes beside the floodlights at the berth's open end, where ships come in.
+        m.entity("WFCargoHubBerthStrobe", x0 - 1, APRON_S + 1)
+        m.entity("WFCargoHubBerthStrobe", x0 + BERTH_W, APRON_S + 1)
         m.entity(WALL, x0 + 1, pad_top)
         m.entity(NUMBERS[k], x0 + 1, pad_top)
         m.entity(WALL, x0 + BERTH_W - 2, pad_top)
@@ -120,6 +123,8 @@ def hub(slug: str, berths: int, gap: int, chute: str, vendor: str) -> tuple[PoiM
 
     socket_x = xs[0] + BERTH_W + gap // 2
     m.socket(socket_x, 0, "South")
+    # The depot's beacon mast stands between the first two berths' heads, over the loading apron.
+    m.entity("WFCargoHubBeacon", socket_x, pad_top + 2)
     ox, oy = width // 2, height // 2
     entry = {"footprint": f"{-ox},{-oy},{width - ox},{height - oy}", "socket": f"{socket_x - ox},{-oy}"}
     return m, entry

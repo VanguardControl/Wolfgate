@@ -9,6 +9,7 @@ wf-planet-signals-tag = { $vessels } { $vessels ->
        *[other] people
     }
 wf-planet-signals-tag-expedition = Your expedition is here
+wf-planet-signals-tag-depot = {$depot}: land on its berths
 wf-planet-signals-title = Signals from { $planet }
 wf-planet-signals-expedition = Your expedition: { $site } at { $x }, { $y }
 wf-planet-signals-vessels = Vessels
