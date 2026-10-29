@@ -45,6 +45,7 @@
 
 - type: wolfWeather
   id: WFRainLight
+  groundWetness: 0.5
   wind: 0.4, 0
   sounds:
   - files:
@@ -69,6 +70,7 @@
 
 - type: wolfWeather
   id: WFRainModerate
+  groundWetness: 0.8
   wind: 0.6, 0
   sounds:
   - files:
@@ -103,6 +105,7 @@
 
 - type: wolfWeather
   id: WFRainHeavy
+  groundWetness: 1
   wind: 1, 0
   sounds:
   - collection: WFWolfRainHeavy
@@ -149,6 +152,7 @@
 
 - type: wolfWeather
   id: WFStorm
+  groundWetness: 1
   wind: 2.5, 0
   gust: 0.25
   gustPeriod: 15
@@ -204,6 +208,7 @@
 
 - type: wolfWeather
   id: WFSnow
+  snowfall: 0.5
   wind: 0.4, 0
   sounds:
   - files:
@@ -231,6 +236,7 @@
 
 - type: wolfWeather
   id: WFBlizzard
+  snowfall: 1.5
   wind: 6, -0.5
   gust: 0.3
   gustPeriod: 12
