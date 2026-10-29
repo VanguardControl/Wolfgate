@@ -105,6 +105,104 @@ public sealed partial class WFEncounterTest
         await RunTicks(10);
     }
 
+    [TestPrototypes]
+    private const string UsspHubPrototypes = @"
+- type: wfEncounter
+  id: WFTestUsspHubLedokol
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  ships:
+  - key: lead
+    vessel: Ledokol
+    retrofit: WFPirateRetrofitHubLight
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot ]
+
+- type: wfEncounter
+  id: WFTestUsspHubBuran
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  ships:
+  - key: lead
+    vessel: Buran
+    retrofit: WFPirateRetrofitHubHeavy
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot ]
+
+- type: wfEncounter
+  id: WFTestUsspHubLedokolHeavy
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  ships:
+  - key: lead
+    vessel: Ledokol
+    retrofit: WFPirateRetrofitHubHeavy
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot ]
+
+- type: wfEncounter
+  id: WFTestUsspHubLedokolSiege
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  ships:
+  - key: lead
+    vessel: Ledokol
+    retrofit: WFPirateRetrofitHubSiege
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot ]
+
+- type: wfEncounter
+  id: WFTestUsspHubBuranSiege
+  name: wf-reaver-name-stronghold
+  start: Manual
+  lifetime: Persistent
+  ships:
+  - key: lead
+    vessel: Buran
+    retrofit: WFPirateRetrofitHubSiege
+    deckhands: 0
+    captain: false
+    roles: [ WFCrewPilot ]
+";
+
+    /// <summary>The USSP hub hulls take the hub refit's fixed gun count and carry docking ports for reinforcements.</summary>
+    [TestCase("WFTestUsspHubLedokol", 4)]
+    [TestCase("WFTestUsspHubBuran", 6)]
+    [TestCase("WFTestUsspHubLedokolHeavy", 6)]
+    [TestCase("WFTestUsspHubLedokolSiege", 6)]
+    [TestCase("WFTestUsspHubBuranSiege", 6)]
+    public async Task UsspHubsTakeTheHubRefit(string id, int guns)
+    {
+        EntityUid hub = default;
+        await Server.WaitAssertion(() =>
+        {
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(id);
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(-54000, -54000), MapData.MapId), out hub, pinned: true), Is.True);
+            var grid = SEntMan.GetComponent<WFEncounterComponent>(hub).Ships["lead"].Grid;
+            Assert.That(Guns(grid), Has.Count.EqualTo(guns), "The refit sets the gun count, whatever the hull was mapped with.");
+
+            var ports = 0;
+            var query = SEntMan.EntityQueryEnumerator<Content.Server.Shuttles.Components.DockingComponent, TransformComponent>();
+            while (query.MoveNext(out _, out _, out var xform))
+            {
+                if (xform.GridUid == grid)
+                    ports++;
+            }
+
+            Assert.That(ports, Is.GreaterThanOrEqualTo(4), "Room for reinforcements to dock.");
+            Server.System<WFEncounterSystem>().End(hub);
+        });
+        await RunTicks(10);
+    }
+
     /// <summary>
     /// A hull saved with an empty fire control server still has its retrofitted guns taken at once, rather than once the
     /// server's battery has charged off the ship's power.
@@ -121,7 +219,7 @@ public sealed partial class WFEncounterTest
             Assert.That(band.Retrofit, Is.Not.Null);
             var path = prototypes.Index<VesselPrototype>("Victoria").ShuttlePath;
             Assert.That(SEntMan.System<MapLoaderSystem>().TryLoadGrid(MapData.MapId, path, out var loaded,
-                offset: new Vector2(-54000, -54000)), Is.True);
+                offset: new Vector2(-60000, -60000)), Is.True);
             grid = loaded!.Value.Owner;
             Server.System<WFPirateRetrofitSystem>().Apply(grid, prototypes.Index(band.Retrofit!.Value), 1);
         });

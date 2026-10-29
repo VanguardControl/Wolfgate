@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server.Storage.Components;
+using Content.Shared._FarHorizons.Power.Generation.FissionGenerator;
 using Content.Shared._Mono.Shipyard;
 using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WF.ShipAccess;
@@ -264,13 +265,19 @@ public sealed partial class WFShipAccessServerSystem
     /// <summary>Doors (not firelocks), lockers and lockable buttons: what ship access covers.</summary>
     private bool IsShipReader(EntityUid uid)
     {
-        return IsRuledDoor(uid) || HasComp<EntityStorageComponent>(uid) || IsLockableSwitch(uid);
+        return IsRuledDoor(uid) || HasComp<EntityStorageComponent>(uid) || IsLockableSwitch(uid) || IsLockedReactor(uid);
     }
 
     /// <summary>A door that can take a rule of its own. Firelocks answer to the atmosphere, not the owner.</summary>
     private bool IsRuledDoor(EntityUid uid)
     {
         return HasComp<DoorComponent>(uid) && !HasComp<FirelockComponent>(uid);
+    }
+
+    /// <summary>A nuclear reactor with a lock, so the ship's owner and crew can unlock its controls.</summary>
+    private bool IsLockedReactor(EntityUid uid)
+    {
+        return HasComp<NuclearReactorComponent>(uid) && HasComp<LockComponent>(uid);
     }
 
     /// <summary>A button or switch with a lock, whose reader decides who may unlock it.</summary>
