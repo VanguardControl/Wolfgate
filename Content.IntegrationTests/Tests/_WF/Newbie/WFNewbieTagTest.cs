@@ -113,6 +113,10 @@ public sealed class WFNewbieTagTest : GameTest
             .AddTimeToOverallPlaytime(ServerSession!, TimeSpan.FromHours(9)));
         var veteran = await Refresh();
 
+        // The pooled session goes to later tests; give the hours back.
+        await Server.WaitPost(() => Server.ResolveDependency<PlayTimeTrackingManager>()
+            .AddTimeToOverallPlaytime(ServerSession!, -TimeSpan.FromHours(9)));
+
         Assert.Multiple(() =>
         {
             Assert.That(hidden, Is.EqualTo((false, false)), "the tag stayed after the player turned it off.");
