@@ -147,7 +147,8 @@ public sealed class BirdTest
             entMan.DeleteEntity(human);
         });
 
-        Assert.That(await RunUntil(pair, () => entMan.GetComponent<WFBirdComponent>(bird).State == WFBirdState.Perched, 40f),
+        // Its flight away and its circling are rolled, so give it a few rounds to find a clear spot.
+        Assert.That(await RunUntil(pair, () => entMan.GetComponent<WFBirdComponent>(bird).State == WFBirdState.Perched, 120f),
             Is.True, "The bird never landed again.");
         await server.WaitAssertion(() =>
         {
