@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Shared._WF.Warmth;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
@@ -9,19 +10,22 @@ namespace Content.Client._WF.Warmth;
 /// <summary>A small mouse-transparent panel off a planet: the air here and the body feel word.</summary>
 public sealed class WFWarmthHud : PanelContainer
 {
+    /// <summary>Narrowest the panel gets; it widens to fit its longest line, up to <see cref="MaxPanelWidth"/>.</summary>
     public const float PanelWidth = 120f;
+    public const float MaxPanelWidth = 220f;
     public const float PanelHeight = 36f;
 
     private readonly Label _here;
     private readonly Label _feel;
+    private readonly WFWarmthGauge _gauge;
 
     public string HereText => _here.Text ?? string.Empty;
     public string FeelText => _feel.Text ?? string.Empty;
 
     public WFWarmthHud(IResourceCache resources)
     {
-        SetWidth = PanelWidth;
         MinSize = new Vector2(PanelWidth, PanelHeight);
+        MaxWidth = MaxPanelWidth;
         MouseFilter = MouseFilterMode.Ignore;
 
         var panel = new StyleBoxFlat
@@ -47,6 +51,14 @@ public sealed class WFWarmthHud : PanelContainer
         _feel = MakeLabel(font, Color.FromHex("#8FD694"));
         column.AddChild(_here);
         column.AddChild(_feel);
+
+        _gauge = new WFWarmthGauge(font);
+        column.AddChild(_gauge);
+    }
+
+    public void SetGauge(int gauge, WFWarmthTrend trend, bool nearWarmth)
+    {
+        _gauge.Set(gauge, trend, nearWarmth);
     }
 
     public void SetReadout(string here, string feel, Color feelColor)
@@ -66,7 +78,6 @@ public sealed class WFWarmthHud : PanelContainer
             FontColorOverride = color,
             HorizontalAlignment = HAlignment.Stretch,
             Align = Label.AlignMode.Center,
-            ClipText = true,
             MouseFilter = MouseFilterMode.Ignore,
         };
     }

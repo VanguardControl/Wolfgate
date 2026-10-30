@@ -31,7 +31,7 @@
     farSound:
       collection: WFWolfThunderFar
       params:
-        volume: -8
+        volume: 0
         variation: 0.05
   layerOverrides:
   - index: 0

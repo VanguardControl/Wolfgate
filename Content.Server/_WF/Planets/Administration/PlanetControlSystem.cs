@@ -144,6 +144,10 @@ public sealed partial class PlanetControlSystem : EntitySystem
             if (!string.IsNullOrEmpty(ev.Season) && _weather.SetSeason(world.Value, ev.Season))
                 changes.Add($"season={ev.Season}");
 
+            // The air follows an admin's change at once; left to ease it would stay warm for minutes after a blizzard.
+            if (ev.MinuteOfDay != null || ev.SetWeather || !string.IsNullOrEmpty(ev.Season))
+                _climate.Snap(world.Value);
+
             if (ev.Gravity is { } gravity)
             {
                 gravity = Math.Clamp(gravity, MinGravity, MaxGravity);

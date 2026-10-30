@@ -19,7 +19,9 @@ planet, such as an event map; it refuses planet layers, which follow their own w
 Lightning strikes only near a living player who isn't in a container, on an open tile of that player's own grid,
 never a station's grid or a vessel, and shocks only mobs standing in the open on it. Every bolt draws the weather's
 `bolt` (`WFThunderbolt`): a strike spawns it where it lands, and for a far flash each client draws `WFThunderboltFar`
-on open ground somewhere in its own view (`WolfThunderboltSystem`). Wind pushes only loose light items
+on open ground somewhere in its own view (`WolfThunderboltSystem`). Someone inside a vehicle's interior is under the sky
+of the map the hull is on (`SharedWolfWeatherSystem.GetSkyMap`): they hear its weather loops and thunder, always as from
+indoors, and are sent the snow around the hull. Wind pushes only loose light items
 that are out in the open, not creatures, buckled or stowed, and only where its own grid goes on downwind, at most
 `pushMaxPerTick` items a pass.
 
@@ -45,6 +47,7 @@ Entry points: `SharedWolfWeatherSystem.SetWeather`, `WFPlanetWeatherSystem.Resol
 ### Shared
 
 - [`Content.Shared/_WF/WolfWeather/SharedWolfWeatherSystem.cs`](../../../Content.Shared/_WF/WolfWeather/SharedWolfWeatherSystem.cs)
+- [`Content.Shared/_WF/WolfWeather/SharedWolfWeatherSystem.Interiors.cs`](../../../Content.Shared/_WF/WolfWeather/SharedWolfWeatherSystem.Interiors.cs)
 - [`Content.Shared/_WF/WolfWeather/WeatherScheduleComponent.cs`](../../../Content.Shared/_WF/WolfWeather/WeatherScheduleComponent.cs)
 - [`Content.Shared/_WF/WolfWeather/WeatherSchedulePrototype.cs`](../../../Content.Shared/_WF/WolfWeather/WeatherSchedulePrototype.cs)
 - [`Content.Shared/_WF/WolfWeather/WindPushableComponent.cs`](../../../Content.Shared/_WF/WolfWeather/WindPushableComponent.cs)
@@ -66,6 +69,7 @@ Entry points: `SharedWolfWeatherSystem.SetWeather`, `WFPlanetWeatherSystem.Resol
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/WolfWeather/ThunderboltTest.cs`](../../../Content.IntegrationTests/Tests/_WF/WolfWeather/ThunderboltTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/WolfWeather/ThunderSoundTest.cs`](../../../Content.IntegrationTests/Tests/_WF/WolfWeather/ThunderSoundTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/WolfWeather/WolfWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/WolfWeather/WolfWeatherTest.cs)
 
 ### Prototypes

@@ -239,7 +239,14 @@ public sealed partial class WFGroundCoverSystem
     /// <summary>The snow chunks of grids near a session's body, by default only on maps that have had weather.</summary>
     private void CollectView(Robust.Shared.Player.ICommonSession session, List<(EntityUid Grid, Vector2i Chunk)> into, bool weatherOnly = true)
     {
-        if (session.AttachedEntity is not { } ent || !TryComp(ent, out TransformComponent? xform) || xform.MapUid is not { } map
+        if (session.AttachedEntity is not { } ent)
+            return;
+
+        // Inside a vehicle the view out is of the world around its hull.
+        if (_wolfWeather.TryGetHull(ent, out var hull))
+            ent = hull;
+
+        if (!TryComp(ent, out TransformComponent? xform) || xform.MapUid is not { } map
             || weatherOnly && !HasComp<WFGroundWeatherComponent>(map))
             return;
 

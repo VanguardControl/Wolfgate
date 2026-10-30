@@ -151,6 +151,7 @@ public sealed partial class WFWarmthSystem : SharedWFWarmthSystem
 
         dirty |= UpdateWetness(body, comp, xform, open, wetting, seconds);
         dirty |= UpdateFeel(body, comp, temperature);
+        dirty |= UpdateGauge(body, comp, xform, seconds);
 
         // Only a player's client reads this; an NPC's stays on the server.
         if (dirty && HasComp<ActorComponent>(body))
@@ -269,6 +270,9 @@ public sealed partial class WFWarmthSystem : SharedWFWarmthSystem
             cold = MathF.Max(cold, warn);
         if (heatLine > normal)
             heat = MathF.Max(heat, (surface - normal) / (heatLine - normal));
+
+        comp.ColdShare = cold;
+        comp.HeatShare = heat;
 
         var feel = WFBodyFeel.Comfortable;
         if (cold >= SevereShare)

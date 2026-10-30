@@ -397,6 +397,64 @@ public sealed class PlanetSeasonsTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>An admin's winter blizzard is cold at once, not minutes later once the air has eased down to it.</summary>
+    [Test]
+    public async Task AdminBlizzardIsColdAtOnce()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        await EnableFeature(pair);
+        var (layers, body, bodyMap) = await BuildOwnedStack(pair);
+        var server = pair.Server;
+        var network = EntityUid.Invalid;
+
+        // A warm start: the world has already settled on its air.
+        await server.WaitPost(() =>
+        {
+            network = server.EntMan.GetComponent<CEZMapComponent>(layers[0]).NetworkUid;
+            server.System<WFPlanetWeatherSystem>().SetSeason(network, "Summer");
+            server.EntMan.GetComponent<WFPlanetWeatherComponent>(network).Temperature = float.NaN;
+        });
+        await server.WaitRunTicks(pair.SecondsToTicks(3f));
+
+        var warm = 0f;
+        await server.WaitAssertion(() =>
+        {
+            var em = server.EntMan;
+            warm = em.GetComponent<WFPlanetWeatherComponent>(network).Temperature;
+            Assert.That(warm, Is.GreaterThan(Atmospherics.T0C + 5f), "Precondition: a summer world starts warm.");
+
+            var summary = server.System<PlanetControlSystem>().Apply(body, new PlanetControlSetEvent
+            {
+                Planet = em.GetNetEntity(body),
+                Season = "Winter",
+                SetWeather = true,
+                Weather = "WFSnowStorm",
+            }, null);
+            Assert.That(summary, Does.Contain("season=Winter"));
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(3f));
+        await server.WaitAssertion(() =>
+        {
+            var em = server.EntMan;
+            var state = em.GetComponent<WFPlanetWeatherComponent>(network);
+            var climate = server.System<WFPlanetClimateSystem>();
+            var target = climate.GetTarget(state, server.ResolveDependency<IPrototypeManager>().Index(state.Profile),
+                server.ResolveDependency<IGameTiming>().CurTime, "WFSnowStorm");
+
+            Assert.That(state.Temperature, Is.EqualTo(target).Within(WFPlanetClimateSystem.ApplyThreshold),
+                "The air did not jump to the blizzard's target.");
+            Assert.That(state.Temperature, Is.LessThan(Atmospherics.T0C), "A winter blizzard should be below freezing.");
+            Assert.That(em.GetComponent<MapAtmosphereComponent>(layers[0]).Mixture.Temperature, Is.LessThan(Atmospherics.T0C),
+                "The ground's air is still warm, so the snow would melt.");
+            Assert.That(em.GetComponent<WFPlanetEnvironmentComponent>(layers[0]).TemperatureCelsius, Is.LessThan(0));
+        });
+
+        await Teardown(pair, layers);
+        await server.WaitPost(() => server.EntMan.DeleteEntity(bodyMap));
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task HudShowsTheSeasonAndTemperature()
     {

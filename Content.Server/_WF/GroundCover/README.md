@@ -37,6 +37,13 @@ detail option (`wf.wolf_weather.quality`) picks Full (everything), Reduced (wet 
 ripples or drop flecks) or Off (no wet ground). Snow always draws, as it slows walking. Only the view's own z-level
 draws it.
 
+To keep it cheap the overlay draws only the part of the view that holds wet or snowy tiles (and nothing, with no screen
+copy, where none is in view), bakes the puddle height field into a texture once for each mask rect instead of redoing the
+noise at every pixel, and checks only the two nearest raindrop cells. Snow depth goes into the mask sharp, then is blurred
+(`WFWolfWeatherBlur`, a little over half a tile) into a depth and a share of ground under snow; the shader cuts the share's
+0.5 contour, rippled by noise, so edges, melt holes round a fire and shoveled tiles are soft and round instead of tile
+squares.
+
 The look can be tuned live with server cvars, replicated to every client (`cvar <name> <value>` on the server, or
 `sudo cvar ...` from an admin client):
 
@@ -114,6 +121,7 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/FrozenWaterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/FrozenWaterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverOverlayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverOverlayTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverVehicleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverVehicleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/SnowWalkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/SnowWalkTest.cs)
 
 ### Prototypes

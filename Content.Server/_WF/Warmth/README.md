@@ -5,7 +5,12 @@ every awake body: the air temperature on its own tile, how its body feels (Freez
 Hot, Overheating, from Wolfmed's core temperature against its hypothermia and heat exhaustion lines), how wet it is, and
 the wind on an open tile. The planet timepiece panel shows "Here" and "Outside" temperatures and the feel word; off a
 planet a small readout appears while the air or the body is worth a look (vacuum, under 10 °C or over 35 °C, or any feel
-but Comfortable).
+but Comfortable, or a fire reaches the body).
+
+Both panels carry a temperature gauge: a bar from freezing to hot (the cold harm line to the heat harm line, from the
+same shares the feel word reads) with a marker where the body sits, an arrow for whether it is warming or cooling, and
+a "Near warmth" line while a lit fire or radiant heater reaches it. `WFWarmthSystem.UpdateGauge` sets it for players'
+bodies only.
 
 Halfway from normal to the line where Wolfmed harms the body (`wf.warmth.warning_share`), the warning signs start:
 shivering or sweating messages, a visible shiver emote or sweat popup, a 10% (cold) or 5% (heat) slowdown and a frost
@@ -34,6 +39,7 @@ Entry points: `WFWarmthSystem.Tick`, `WFWarmthComponent`, `EntityRadiusHeaterSys
 
 - [`Content.Server/_WF/Warmth/WFWarmthSystem.Clothing.cs`](WFWarmthSystem.Clothing.cs)
 - [`Content.Server/_WF/Warmth/WFWarmthSystem.cs`](WFWarmthSystem.cs)
+- [`Content.Server/_WF/Warmth/WFWarmthSystem.Gauge.cs`](WFWarmthSystem.Gauge.cs)
 
 ### Shared
 
@@ -43,12 +49,15 @@ Entry points: `WFWarmthSystem.Tick`, `WFWarmthComponent`, `EntityRadiusHeaterSys
 
 ### Client
 
+- [`Content.Client/_WF/Warmth/WFWarmthGauge.cs`](../../../Content.Client/_WF/Warmth/WFWarmthGauge.cs)
 - [`Content.Client/_WF/Warmth/WFWarmthHud.cs`](../../../Content.Client/_WF/Warmth/WFWarmthHud.cs)
 - [`Content.Client/_WF/Warmth/WFWarmthOverlay.cs`](../../../Content.Client/_WF/Warmth/WFWarmthOverlay.cs)
 - [`Content.Client/_WF/Warmth/WFWarmthSystem.cs`](../../../Content.Client/_WF/Warmth/WFWarmthSystem.cs)
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Warmth/ClimateHudLayoutTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Warmth/ClimateHudLayoutTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Warmth/WarmthGaugeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Warmth/WarmthGaugeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Warmth/WarmthHudTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Warmth/WarmthHudTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Warmth/WarmthTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Warmth/WarmthTest.cs)
 

@@ -1,5 +1,6 @@
 wf-warmth-here = Here { $celsius }°C
 wf-warmth-here-vacuum = Here: vacuum
+wf-warmth-near = Near warmth
 
 wf-warmth-feel-freezing = Freezing
 wf-warmth-feel-cold = Cold

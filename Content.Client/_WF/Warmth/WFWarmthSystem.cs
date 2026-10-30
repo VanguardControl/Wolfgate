@@ -1,5 +1,4 @@
 using System.Numerics;
-using Content.Client._Shitmed.UserInterface.Systems.Targeting.Widgets;
 using Content.Client._WF.Cockpit;
 using Content.Client._WF.Planets;
 using Content.Shared._WF.Warmth;
@@ -80,31 +79,23 @@ public sealed class WFWarmthSystem : SharedWFWarmthSystem
 
         var show = !_planetHud.HudVisible &&
                    !_ui.GetUIController<WFCockpitUIController>().Active &&
-                   (warmth.Feel != WFBodyFeel.Comfortable ||
+                   (warmth.Feel != WFBodyFeel.Comfortable || warmth.NearWarmth ||
                     warmth.HereCelsius is not { } here || here <= MildLow || here >= MildHigh);
         _hud.Visible = show;
         if (!show)
             return;
 
         _hud.SetReadout(HereText(warmth), Loc.GetString(FeelLoc(warmth.Feel)), FeelColor(warmth.Feel));
+        _hud.SetGauge(warmth.Gauge, warmth.Trend, warmth.NearWarmth);
         PositionHud();
     }
 
     /// <summary>Where the planet panel would sit: above the targeting doll, at the screen's right.</summary>
     private void PositionHud()
     {
-        var target = _ui.GetActiveUIWidgetOrNull<TargetingControl>();
-        var right = _ui.PopupRoot.Width - 12;
-        var bottom = _ui.PopupRoot.Height - 150;
-        if (target is { Visible: true } && target.Width > 0)
-        {
-            var position = target.GlobalPosition - _ui.PopupRoot.GlobalPosition;
-            right = position.X + target.Width;
-            bottom = position.Y - 8;
-        }
-
-        LayoutContainer.SetPosition(_hud, new Vector2(
-            MathF.Max(0, right - WFWarmthHud.PanelWidth),
-            MathF.Max(0, bottom - MathF.Max(WFWarmthHud.PanelHeight, _hud.Height))));
+        var size = new Vector2(
+            MathF.Max(_hud.Width, WFWarmthHud.PanelWidth),
+            MathF.Max(_hud.Height, WFWarmthHud.PanelHeight));
+        LayoutContainer.SetPosition(_hud, WFHudPlacement.Place(_ui, size));
     }
 }

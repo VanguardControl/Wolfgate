@@ -128,8 +128,10 @@ public sealed partial class WolfWeatherSoundSystem : EntitySystem
             return;
         }
 
+        // Inside a vehicle the weather is the world around its hull, heard from indoors.
         var xform = Transform(player);
-        if (xform.MapUid is not { } mapUid
+        var inVehicle = _wolfWeather.TryGetHull(player, out var hull);
+        if ((inVehicle ? Transform(hull).MapUid : xform.MapUid) is not { } mapUid
             || !_weatherQuery.TryComp(mapUid, out var weather)
             || !_proto.TryIndex(weather.Settings, out var settings))
         {
@@ -141,7 +143,7 @@ public sealed partial class WolfWeatherSoundSystem : EntitySystem
         if (!_hasIndoor || real >= _nextSearch)
         {
             _nextSearch = real + SearchInterval;
-            _indoorTarget = FindIndoor(xform, settings);
+            _indoorTarget = inVehicle ? 1f : FindIndoor(xform, settings);
             if (!_hasIndoor)
                 _indoor = _indoorTarget;
 
