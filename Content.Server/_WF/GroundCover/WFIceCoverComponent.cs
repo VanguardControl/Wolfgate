@@ -25,6 +25,9 @@ public sealed class WFIceChunk
     /// <summary>Frozen tiles this far from the shore or nearer have thawed again.</summary>
     public float Thaw;
 
+    /// <summary>How thick the ice has grown, in degree-minutes of frost; warmth must melt it before the shore thaws.</summary>
+    public float Thickness;
+
     /// <summary>Seconds the air has held below freezing, and above thawing.</summary>
     public float Cold;
 

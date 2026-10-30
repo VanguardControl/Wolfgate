@@ -403,8 +403,8 @@ public sealed class CavernClimbTest
     }
 
     /// <summary>An unequipped human already hurt by a hostile cavern's air, heat or cold still climbs out: ambient damage never breaks the climb.</summary>
-    // Carcinoma is left out: its ammonia did not hurt an unequipped human within HurtWithinSeconds, so nothing there can break the climb.
     [TestCase("WFSurfaceAerumna")]
+    [TestCase("WFSurfaceCarcinoma")]
     [TestCase("WFSurfaceFervidus")]
     [TestCase("WFSurfaceThrascias")]
     public async Task UnequippedClimberEscapesHostileAir(string surfaceId)

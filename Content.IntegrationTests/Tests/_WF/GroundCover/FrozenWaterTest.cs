@@ -6,6 +6,7 @@ using Content.IntegrationTests.Pair;
 using Content.Server._WF.GroundCover;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._WF.GroundCover;
+using Content.Shared.Atmos;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Interaction;
 using Content.Shared.Movement.Components;
@@ -111,11 +112,15 @@ public sealed class FrozenWaterTest
             Advance(cover, map.Grid, WFGroundCoverSystem.HoleTime);
             Assert.That(Frozen(entMan, waters[Centre]), Is.True, "The hole never froze over.");
 
-            // Above freezing, the shore thaws first after the delay.
+            // Above freezing, the warmth melts the ice's thickness, then the shore thaws first.
+            var thickness = cover.GetIceChunk(map.Grid, Centre)!.Thickness;
+            Assert.That(thickness, Is.GreaterThan(60f), "The ice didn't thicken in twenty minutes of frost.");
+            var melt = TimeSpan.FromMinutes(thickness / (Warm - Atmospherics.T0C));
             SetAir(pair, map, Warm);
             Advance(cover, map.Grid, WFGroundCoverSystem.IceDelay);
-            Assert.That(Frozen(entMan, waters[Edge]), Is.True, "Ice thawed before the warmth had held a few minutes.");
-            Advance(cover, map.Grid, TimeSpan.FromMinutes(1));
+            Advance(cover, map.Grid, melt - TimeSpan.FromMinutes(1));
+            Assert.That(Frozen(entMan, waters[Edge]), Is.True, "Ice thawed before the warmth had melted its thickness.");
+            Advance(cover, map.Grid, TimeSpan.FromMinutes(2));
             Assert.That(Frozen(entMan, waters[Edge]), Is.False, "The shore didn't thaw.");
             Assert.That(Frozen(entMan, waters[Centre]), Is.True, "The middle thawed as soon as the shore.");
 
@@ -128,6 +133,53 @@ public sealed class FrozenWaterTest
         await server.WaitAssertion(() =>
             Assert.That(entMan.GetComponent<MovementSpeedModifierComponent>(mob).WalkSpeedModifier, Is.EqualTo(0.5f).Within(0.01f),
                 "Thawed water didn't slow its wader again."));
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A lake frozen over a winter night holds through a mild afternoon and thaws in a warm spring.</summary>
+    [Test]
+    public async Task WinterIceOutlastsAMildSpellAndThawsInSpring()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var waters = new Dictionary<Vector2i, EntityUid>();
+
+        await server.WaitPost(() =>
+        {
+            GroundCoverTest.LayOpenGround(pair, map.Grid);
+            waters = LayPond(pair, map.Grid);
+            SetAir(pair, map, Warm);
+        });
+
+        await server.WaitRunTicks(pair.SecondsToTicks(1));
+        await server.WaitAssertion(() =>
+        {
+            var cover = server.System<WFGroundCoverSystem>();
+            cover.UpdateIceChunk(map.Grid, Chunk);
+            Assert.That(Frozen(entMan, waters[Centre]), Is.False, "Precondition: warm water froze.");
+
+            // A winter night at -8 C, worked a few minutes at a time as players would see it.
+            SetAir(pair, map, Cold);
+            AdvanceBy(cover, map.Grid, TimeSpan.FromMinutes(30), TimeSpan.FromMinutes(2));
+            Assert.That(Frozen(entMan, waters[Centre]), Is.True, "The lake didn't freeze over in a winter night.");
+
+            // A quarter hour at 5 C barely dents it.
+            SetAir(pair, map, Atmospherics.T0C + 5f);
+            AdvanceBy(cover, map.Grid, TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(2));
+            Assert.That(Frozen(entMan, waters[Edge]), Is.True, "A mild winter afternoon thawed the shore.");
+            Assert.That(Frozen(entMan, waters[Centre]), Is.True, "A mild winter afternoon thawed the lake.");
+            Assert.That(cover.GetIceChunk(map.Grid, Centre)!.Thickness, Is.GreaterThan(WFGroundCoverSystem.IceMaxThickness / 4f),
+                "A mild afternoon melted most of the ice.");
+
+            // A sustained 12 C spring melts it through, shore first.
+            SetAir(pair, map, Atmospherics.T0C + 12f);
+            AdvanceBy(cover, map.Grid, TimeSpan.FromMinutes(60), TimeSpan.FromMinutes(2));
+            Assert.That(Frozen(entMan, waters[Edge]), Is.False, "A warm spring didn't thaw the shore.");
+            Assert.That(Frozen(entMan, waters[Centre]), Is.False, "A warm spring didn't thaw the lake.");
+        });
 
         await pair.CleanReturnAsync();
     }
@@ -225,6 +277,15 @@ public sealed class FrozenWaterTest
         var chunk = cover.GetIceChunk(grid, Centre)!;
         chunk.Updated -= time;
         cover.UpdateIceChunk(grid, Chunk);
+    }
+
+    /// <summary>Works the pond's chunk through some time in steps.</summary>
+    private static void AdvanceBy(WFGroundCoverSystem cover, EntityUid grid, TimeSpan time, TimeSpan step)
+    {
+        for (var passed = TimeSpan.Zero; passed < time; passed += step)
+        {
+            Advance(cover, grid, step);
+        }
     }
 
     private static bool Frozen(IEntityManager entMan, EntityUid water)

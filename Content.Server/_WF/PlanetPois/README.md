@@ -7,6 +7,9 @@ and Merak use paved roads; the other worlds use routes suited to their terrain. 
 room, or whose entrances can't be reached, is skipped or left off the roads with a warning, and a route
 that can't be laid costs the world its roads, never its sites; roads clear whatever the biome had grown
 on unpinned ground, as the boundary ring does.
+A priority site (`priority: true`; cargo hubs and fixed cities always) is routed first with a larger search; if it
+still misses the roads the plan is retried with new seeds, then with its other entrances first, then with the nearest
+ordinary sites left off the roads, before it is ever left off them itself.
 
 The whole placement is spread over ticks: every site, road batch, piece of dressing, tunnel, wreck, camp, guard and
 roamer awaits `WFPlanetPreloadSystem.Breathe`, so each tick does at most `wf.planet_generation_budget` ms of it (more in

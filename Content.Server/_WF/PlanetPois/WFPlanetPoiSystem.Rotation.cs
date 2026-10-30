@@ -161,6 +161,7 @@ public sealed partial class WFPlanetPoiSystem
             Rotate = entry.Rotate,
             Trail = entry.Trail,
             Dwelling = entry.Dwelling,
+            Priority = entry.Priority,
             Below = entry.Below,
         };
     }

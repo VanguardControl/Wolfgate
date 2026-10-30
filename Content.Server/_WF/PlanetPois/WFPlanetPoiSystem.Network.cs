@@ -163,6 +163,7 @@ public sealed partial class WFPlanetPoiSystem
                         TileCount = siteTiles.Count, Connection = entry.Connection,
                         Expeditions = entry.Expeditions, Difficulty = entry.Difficulty ?? table.Difficulty,
                         Dwelling = entry.Dwelling,
+                        Priority = entry.Priority,
                         Shafts = shafts,
                     };
                     if (entry.Trail && entry.Sockets.Count > 0)
@@ -415,9 +416,10 @@ public sealed partial class WFPlanetPoiSystem
 
     /// <summary>
     /// Plans the world's roads. A site whose own entrance can't be joined up, say one set down hard against the rock, is
-    /// left off the roads and the rest planned again, rather than the whole world going without. The water is found
-    /// first, a slice a tick, and the planner, which touches nothing else of the world, runs on the thread pool: on a big
-    /// world it takes seconds.
+    /// left off the roads and the rest planned again, rather than the whole world going without. A priority site, a
+    /// cargo hub or a city, is routed first; when it still fails the plan is tried again with other seeds, then with its
+    /// other entrances first, and only the sites in its way are left off. The water is found first, a slice a tick, and
+    /// the planner, which touches nothing else of the world, runs on the thread pool: on a big world it takes seconds.
     /// </summary>
     private async Task<WFPlanetRoadPlan> PlanRoadsAsync(EntityUid ground, WFPlanetPoiComponent record, Vector2 centre, float radius,
         WFPlanetPoiTablePrototype table, WFPlanetRoadNetwork roads, HashSet<Vector2i> blocked)
@@ -427,9 +429,10 @@ public sealed partial class WFPlanetPoiSystem
         var water = new Func<Vector2i, bool>(waterTiles.Contains);
         var walls = new HashSet<Vector2i>(blocked);
         var watch = System.Diagnostics.Stopwatch.StartNew();
+        var retries = 0;
         while (true)
         {
-            var sites = record.Sites.Select(site => new WFPlanetRoadSite(site.Bounds, site.Connection, site.Sockets)).ToList();
+            var sites = record.Sites.Select(site => new WFPlanetRoadSite(site.Bounds, site.Connection, site.Sockets, site.Priority)).ToList();
             // Off-road sites with a footpath: the roads come within reach of their doors.
             var doors = record.Sites.Where(site => site.Connection == WFPlanetPoiConnection.Isolated && site.TrailStart != null)
                 .Select(site => site.TrailStart!.Position).ToList();
@@ -449,11 +452,62 @@ public sealed partial class WFPlanetPoiSystem
             if (failed == null)
                 return plan;
 
+            if (failed.Priority)
+            {
+                Log.Info($"{Loc.GetString(failed.Name)} on {ToPrettyString(ground)} missed the roads, try {retries + 1}: {plan.Error}");
+                if (NextPriorityTry(record, failed, ref retries, ref seed))
+                    continue;
+
+                Log.Error($"{Loc.GetString(failed.Name)} on {ToPrettyString(ground)} can't reach the roads after {retries} tries; it stays off them.");
+            }
+
             Log.Warning($"{Loc.GetString(failed.Name)} on {ToPrettyString(ground)} stays off the roads: {plan.Error}");
             failed.Sockets = new List<WFPlanetRoadSocket>();
             failed.AccessPaths.Clear();
             failed.Connection = WFPlanetPoiConnection.Isolated;
         }
+    }
+
+    /// <summary>Seeds a priority site's failed plan gets before its other entrances are tried first.</summary>
+    private const int PrioritySeedTries = 4;
+
+    /// <summary>
+    /// Sets up the next try for a priority site that missed the roads: a new seed a few times, then each of its other
+    /// entrances first in turn, then each nearest other site left off the roads. False once nothing is left to try.
+    /// </summary>
+    private bool NextPriorityTry(WFPlanetPoiComponent record, WFPlanetPoiSite failed, ref int retries, ref int seed)
+    {
+        retries++;
+        if (retries < PrioritySeedTries)
+        {
+            seed = _random.Next();
+            return true;
+        }
+
+        // A roadside site uses only its first entrance; another may face open ground.
+        var turn = retries - PrioritySeedTries + 1;
+        if (turn < failed.Sockets.Count)
+        {
+            failed.Sockets.Add(failed.Sockets[0]);
+            failed.Sockets.RemoveAt(0);
+            seed = _random.Next();
+            return true;
+        }
+
+        // The ordinary site nearest its first entrance may be the one in its way.
+        var at = failed.Sockets[0].Position;
+        var blocker = record.Sites
+            .Where(site => !site.Priority && site.Connection != WFPlanetPoiConnection.Isolated)
+            .OrderBy(site => (new Vector2((site.Bounds.Left + site.Bounds.Right) / 2f, (site.Bounds.Bottom + site.Bounds.Top) / 2f) - new Vector2(at.X, at.Y)).LengthSquared())
+            .FirstOrDefault();
+        if (blocker == null || retries > PrioritySeedTries + failed.Sockets.Count + 4)
+            return false;
+
+        Log.Warning($"{Loc.GetString(blocker.Name)} stays off the roads to make way for {Loc.GetString(failed.Name)}.");
+        blocker.Sockets = new List<WFPlanetRoadSocket>();
+        blocker.AccessPaths.Clear();
+        blocker.Connection = WFPlanetPoiConnection.Isolated;
+        return true;
     }
 
     /// <summary>The ground's water tiles within the world's circle, found within the generation budget.</summary>

@@ -566,6 +566,7 @@ public sealed partial class WFPlanetPoiSystem
             Difficulty = table.Difficulty,
             Shafts = stairwells,
             City = true,
+            Priority = true,
         };
 
         if (table.Roads != null && entry.Connection != WFPlanetPoiConnection.Isolated)

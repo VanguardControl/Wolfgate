@@ -36,7 +36,7 @@ public sealed class CavernMouthTest
         { "WFSurfaceMerak", WFCavernAir.Breathable },
         { "WFSurfaceAerumna", WFCavernAir.Toxic },
         { "WFSurfaceThrascias", WFCavernAir.Freezing },
-        { "WFSurfaceCarcinoma", WFCavernAir.Foul },
+        { "WFSurfaceCarcinoma", WFCavernAir.Toxic },
     };
 
     /// <summary>Section 3.5: each world's landing tile fall multiplier.</summary>

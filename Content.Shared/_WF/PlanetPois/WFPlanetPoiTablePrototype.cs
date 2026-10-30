@@ -198,6 +198,10 @@ public sealed partial class WFPlanetPoiEntry
     [DataField]
     public bool Dwelling;
 
+    /// <summary>A site that must be on the roads, such as a cargo hub: routed first, retried, never left off them.</summary>
+    [DataField]
+    public bool Priority;
+
     /// <summary>
     /// The level under the site, such as a basement, in the site's own frame; it goes on the level under the ground,
     /// where the world has one, and the floor is opened over its stairs.
