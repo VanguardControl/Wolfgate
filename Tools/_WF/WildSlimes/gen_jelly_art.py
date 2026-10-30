@@ -11,7 +11,7 @@ JELLY = (214, 78, 96)
 ALPHA = 0.62
 
 
-def jelly_tile(src: Image.Image, seed: int, alpha: float, dark: float) -> Image.Image:
+def jelly_tile(src: Image.Image, seed: int, alpha: float, dark: float, glints: bool = True) -> Image.Image:
     rng = random.Random(seed)
     grey = src.convert("L").filter(ImageFilter.GaussianBlur(1.2))
     out = Image.new("RGBA", src.size)
@@ -24,6 +24,8 @@ def jelly_tile(src: Image.Image, seed: int, alpha: float, dark: float) -> Image.
             shade = (0.55 + 0.6 * v) * dark
             r, gg, b = (min(255, int(c * shade)) for c in JELLY)
             px[x, y] = (r, gg, b, min(255, int(255 * alpha * (0.85 + 0.3 * (1 - v)))))
+    if not glints:
+        return out
     draw = ImageDraw.Draw(out)
     # Glossy highlights and a few bubbles.
     for _ in range(rng.choice([1, 2])):
@@ -36,12 +38,12 @@ def jelly_tile(src: Image.Image, seed: int, alpha: float, dark: float) -> Image.
     return out
 
 
-def strip(alpha: float, dark: float, seed: int) -> Image.Image:
+def strip(alpha: float, dark: float, seed: int, glints: bool = True) -> Image.Image:
     flesh = Image.open(FLESH).convert("RGBA")
     n = flesh.width // 32
     out = Image.new("RGBA", (32 * n, 32))
     for i in range(n):
-        out.paste(jelly_tile(flesh.crop((32 * i, 0, 32 * i + 32, 32)), seed + i, alpha, dark), (32 * i, 0))
+        out.paste(jelly_tile(flesh.crop((32 * i, 0, 32 * i + 32, 32)), seed + i, alpha, dark, glints), (32 * i, 0))
     return out
 
 
@@ -69,8 +71,9 @@ def blob(size: float, seed: int) -> Image.Image:
 
 
 def main() -> None:
-    strip(ALPHA, 1.0, 11).save(f"{OUT}/Tiles/flesh_jelly.png")
-    strip(1.0, 0.8, 21).save(f"{OUT}/Tiles/flesh_jelly_cavern.png")
+    # No glints on the ground tiles: bright dashes and plus signs tile into a visible grid.
+    strip(ALPHA, 0.88, 11, False).save(f"{OUT}/Tiles/flesh_jelly.png")
+    strip(1.0, 0.8, 21, False).save(f"{OUT}/Tiles/flesh_jelly_cavern.png")
     rsi = f"{OUT}/jelly_mound.rsi"
     blob(1.0, 3).save(f"{rsi}/mound.png")
     blob(0.6, 4).save(f"{rsi}/blob.png")

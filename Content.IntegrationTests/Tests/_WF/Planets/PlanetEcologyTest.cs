@@ -71,7 +71,7 @@ public sealed class PlanetEcologyTest
                 Assert.That(tile.HasValue && !tile.Value.IsEmpty, Is.True, "Natural terrain has a hole.");
                 generator.TryGetEntity(pos, biome.Layers, tile!.Value, biome.Seed,
                     (Entity<MapGridComponent>?) null, out var feature);
-                if (feature is "FloorLavaEntity" or "FloorLiquidPlasmaEntity" or "MonoFloorWaterEntity" or "WFBloodRiver")
+                if (feature is "FloorLavaEntity" or "FloorLiquidPlasmaEntity" or "MonoFloorWaterEntity" or "WFBloodOcean")
                     rivers++;
                 if (feature is "WFFleshTree" or "WFFleshPustuleTree" or "WFFleshPolyp")
                     fleshFlora++;

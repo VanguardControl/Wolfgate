@@ -543,6 +543,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Resources/Textures/_WF/Planets/BoneField/lumps.rsi/`](../../../Resources/Textures/_WF/Planets/BoneField/lumps.rsi/)
 - [`Resources/Textures/_WF/Planets/BoneField/marsh_mud.png`](../../../Resources/Textures/_WF/Planets/BoneField/marsh_mud.png)
 - [`Resources/Textures/_WF/Planets/BoneField/marsh_scab.png`](../../../Resources/Textures/_WF/Planets/BoneField/marsh_scab.png)
+- [`Resources/Textures/_WF/Planets/BoneField/scab_shore.png`](../../../Resources/Textures/_WF/Planets/BoneField/scab_shore.png)
 - [`Resources/Textures/_WF/Planets/Effects/parachute_canopy.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/parachute_canopy.rsi/)
 - [`Resources/Textures/_WF/Planets/Effects/thunderbolt.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/thunderbolt.rsi/)
 - [`Resources/Textures/_WF/Planets/Effects/weather_tg.rsi/`](../../../Resources/Textures/_WF/Planets/Effects/weather_tg.rsi/)
@@ -630,6 +631,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 ### Tools
 
 - [`Tools/_WF/Planets/gen_blood_water.py`](../../../Tools/_WF/Planets/gen_blood_water.py)
+- [`Tools/_WF/Planets/gen_carcinoma_scab.py`](../../../Tools/_WF/Planets/gen_carcinoma_scab.py)
 - [`Tools/_WF/Planets/gen_flight_placeholders.py`](../../../Tools/_WF/Planets/gen_flight_placeholders.py)
 - [`Tools/_WF/Planets/gen_verda_life_art.py`](../../../Tools/_WF/Planets/gen_verda_life_art.py)
 - [`Tools/_WF/Planets/recolor_thrascias_life.py`](../../../Tools/_WF/Planets/recolor_thrascias_life.py)
