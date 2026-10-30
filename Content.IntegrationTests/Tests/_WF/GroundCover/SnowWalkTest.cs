@@ -17,6 +17,7 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 using Robust.Shared.Timing;
 using ClientGroundCoverSystem = Content.Client._WF.GroundCover.WFGroundCoverSystem;
+using ClientSnowSlowSystem = Content.Client._WF.GroundCover.WFSnowSlowSystem;
 using ClientInputSystem = Robust.Client.GameObjects.InputSystem;
 using ClientSnowPrintsSystem = Content.Client._WF.GroundCover.WFSnowPrintsSystem;
 
@@ -123,19 +124,20 @@ public sealed class SnowWalkTest
 
         await pair.RunTicksSync(pair.SecondsToTicks(2));
         var cMob = client.EntMan.GetEntity(sEntMan.GetNetEntity(mob));
+        // The snow's own share: the cold map may add the warmth system's slowdown on top of it.
         await server.WaitAssertion(() =>
-            Assert.That(Sample(sEntMan, mob).Speed, Is.EqualTo(WFSnowCover.DeepestSpeed).Within(0.001f), "Deep snow didn't slow the walker."));
+            Assert.That(server.System<WFSnowSlowSystem>().GetSpeed(mob), Is.EqualTo(WFSnowCover.DeepestSpeed).Within(0.001f), "Deep snow didn't slow the walker."));
         await client.WaitAssertion(() =>
-            Assert.That(Sample(client.EntMan, cMob).Speed, Is.EqualTo(WFSnowCover.DeepestSpeed).Within(0.001f),
+            Assert.That(client.System<ClientSnowSlowSystem>().GetSpeed(cMob), Is.EqualTo(WFSnowCover.DeepestSpeed).Within(0.001f),
                 "The client didn't predict the slowdown."));
 
         // Melt or a shovel: the tile goes bare.
         await server.WaitPost(() => server.System<WFGroundCoverSystem>().SetDepth(map.Grid, tile, 0));
         await pair.RunTicksSync(pair.SecondsToTicks(2));
         await server.WaitAssertion(() =>
-            Assert.That(Sample(sEntMan, mob).Speed, Is.EqualTo(1f).Within(0.001f), "The bare tile still slowed the walker."));
+            Assert.That(server.System<WFSnowSlowSystem>().GetSpeed(mob), Is.EqualTo(1f).Within(0.001f), "The bare tile still slowed the walker."));
         await client.WaitAssertion(() =>
-            Assert.That(Sample(client.EntMan, cMob).Speed, Is.EqualTo(1f).Within(0.001f), "The client still slowed the walker."));
+            Assert.That(client.System<ClientSnowSlowSystem>().GetSpeed(cMob), Is.EqualTo(1f).Within(0.001f), "The client still slowed the walker."));
 
         await server.WaitPost(() => server.PlayerMan.SetAttachedEntity(pair.Player!, null));
         await pair.CleanReturnAsync();
