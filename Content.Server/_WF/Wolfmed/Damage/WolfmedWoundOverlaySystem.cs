@@ -1,5 +1,6 @@
 using Content.Server._WF.Wolfmed.Gore;
 using Content.Shared._Onyx.Wounds;
+using Content.Shared._WF.Performance;
 using Content.Shared._WF.Wolfmed.CCVar;
 using Content.Shared._WF.Wolfmed.Damage;
 using Content.Shared._WF.Wolfmed.Wounds;
@@ -40,7 +41,6 @@ public sealed class WolfmedWoundOverlaySystem : EntitySystem
     private readonly Dictionary<WolfmedArterySite, WolfmedArteryOverlay> _arteryScratch = new();
     private readonly Dictionary<WolfmedArterySite, WolfmedWoundOverlay> _stumpScratch = new();
     private readonly HashSet<(BodyPartType, BodyPartSymmetry)> _presentScratch = new();
-    private TimeSpan _nextSweep;
 
     /// <inheritdoc/>
     public override void Initialize()
@@ -88,12 +88,13 @@ public sealed class WolfmedWoundOverlaySystem : EntitySystem
     /// <inheritdoc/>
     public override void Update(float frameTime)
     {
-        var now = _timing.CurTime;
-        if (now >= _nextSweep)
+        // Each body takes its own tick of the sweep, so a full server doesn't refresh them all on one.
+        var period = WFTickSpread.Period(_timing, MathF.Max(0.1f, _cfg.GetCVar(WolfmedCVars.OverlayRefreshSeconds)));
+        var tick = _timing.CurTick;
+        var hosts = EntityQueryEnumerator<WoundHostComponent, PartDamageVisualsComponent>();
+        while (hosts.MoveNext(out var uid, out _, out _))
         {
-            _nextSweep = now + TimeSpan.FromSeconds(MathF.Max(0.1f, _cfg.GetCVar(WolfmedCVars.OverlayRefreshSeconds)));
-            var hosts = EntityQueryEnumerator<WoundHostComponent, PartDamageVisualsComponent>();
-            while (hosts.MoveNext(out var uid, out _, out _))
+            if (WFTickSpread.Due(uid, tick, period))
                 _pending.Add(uid);
         }
 

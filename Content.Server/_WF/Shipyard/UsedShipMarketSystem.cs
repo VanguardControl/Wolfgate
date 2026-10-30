@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using Content.Server._NF.Shipyard.Systems;
 using Content.Server.Shuttles.Systems;
 using Content.Server.Station.Systems;
@@ -51,9 +52,20 @@ public sealed class UsedShipListing
     public TimeSpan AvailableAt;
 
     /// <summary>
-    /// The grid, exactly as it was when it was bought.
+    /// The grid's YAML being written on a worker, done long before the listing can be bought.
     /// </summary>
-    public string Data = string.Empty;
+    public Task<string?>? Writing;
+
+    private string? _data;
+
+    /// <summary>
+    /// The grid, exactly as it was when it was bought. Empty if writing it failed.
+    /// </summary>
+    public string Data
+    {
+        get => _data ??= Writing?.GetAwaiter().GetResult() ?? string.Empty;
+        set => _data = value;
+    }
 
     /// <summary>
     /// Whether the lot has already been told about it.
@@ -206,7 +218,7 @@ public sealed class UsedShipMarketSystem : EntitySystem
         // dangling reference makes the whole load fail. The hull is about to be deleted regardless.
         _docking.UndockDocks(shuttle);
 
-        if (!_shipyard.TrySaveShip(shuttle, carry, out var data))
+        if (!_shipyard.TrySaveShipDeferred(shuttle, carry, out var writing))
         {
             Log.Error($"Could not copy {shipName} for the used lot; it is lost.");
             return false;
@@ -226,7 +238,7 @@ public sealed class UsedShipMarketSystem : EntitySystem
             Price = (int) Math.Ceiling(saleValue * (1f + Math.Max(0f, markup))),
             SoldAt = now,
             AvailableAt = now + relistDelay,
-            Data = data,
+            Writing = writing,
         };
 
         _listings.Add(listing);
