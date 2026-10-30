@@ -28,6 +28,12 @@ public sealed partial class WFGroundCoverSystem
     /// <summary>How fast ice spreads in from the shore, or thaws back from it, in tiles a minute.</summary>
     public const float IceTilesPerMinute = 2f;
 
+    /// <summary>
+    /// Thickest ice grows, in degree-minutes: a minute at -8 C adds 8, a minute at 5 C melts 5. A winter night's ice
+    /// outlasts a mild afternoon; a warm spring day melts it through.
+    /// </summary>
+    public const float IceMaxThickness = 480f;
+
     /// <summary>Farthest a tile counts from the shore; water deeper in freezes with the tiles this far out.</summary>
     public const int MaxShore = 8;
 
@@ -133,6 +139,7 @@ public sealed partial class WFGroundCoverSystem
             {
                 chunk.Front = MaxShore;
                 chunk.Cold = (float) IceDelay.TotalSeconds;
+                chunk.Thickness = MathF.Min(IceMaxThickness, (Atmospherics.T0C - start) * 60f);
             }
 
             chunk.Updated = now;
@@ -183,22 +190,40 @@ public sealed partial class WFGroundCoverSystem
         if (temperature <= IceFreezeAt)
         {
             chunk.Warm = 0f;
+            var cold = MathF.Min(seconds, chunk.Cold + seconds - delay);
             chunk.Cold = MathF.Min(chunk.Cold + seconds, delay * 2f);
-            var spread = MathF.Min(seconds, chunk.Cold - delay) * IceTilesPerMinute / 60f;
-            if (spread <= 0f)
+            if (cold <= 0f)
                 return;
 
+            var spread = cold * IceTilesPerMinute / 60f;
             chunk.Thaw = MathF.Max(0f, chunk.Thaw - spread);
             chunk.Front = MathF.Min(MaxShore, chunk.Front + spread);
+            chunk.Thickness = MathF.Min(IceMaxThickness, chunk.Thickness + cold / 60f * (Atmospherics.T0C - temperature));
         }
         else if (temperature > IceThawAt)
         {
             chunk.Cold = 0f;
+            var warm = MathF.Min(seconds, chunk.Warm + seconds - delay);
             chunk.Warm = MathF.Min(chunk.Warm + seconds, delay * 2f);
-            var spread = MathF.Min(seconds, chunk.Warm - delay) * IceTilesPerMinute / 60f;
-            if (spread <= 0f || chunk.Front <= 0f)
+            if (warm <= 0f || chunk.Front <= 0f)
                 return;
 
+            // Warmth melts the ice's thickness first, faster the warmer it is; only then does the shore open.
+            if (chunk.Thickness > 0f)
+            {
+                var melt = (temperature - Atmospherics.T0C) / 60f;
+                var needed = chunk.Thickness / melt;
+                if (warm <= needed)
+                {
+                    chunk.Thickness -= warm * melt;
+                    return;
+                }
+
+                chunk.Thickness = 0f;
+                warm -= needed;
+            }
+
+            var spread = warm * IceTilesPerMinute / 60f;
             chunk.Thaw = MathF.Min(chunk.Front, chunk.Thaw + spread);
             if (chunk.Thaw >= chunk.Front)
             {
@@ -397,6 +422,7 @@ public sealed partial class WFGroundCoverSystem
         {
             chunk.Front = old.Front;
             chunk.Thaw = old.Thaw;
+            chunk.Thickness = old.Thickness;
             chunk.Cold = old.Cold;
             chunk.Warm = old.Warm;
             chunk.Updated = old.Updated;

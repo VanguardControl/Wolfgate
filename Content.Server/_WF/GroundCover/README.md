@@ -51,8 +51,10 @@ city street holds its own air from when it was laid, which the climate never mov
 temperature and never took snow.
 
 Lakes and ponds freeze (`WFFreezableWater` on `MonoFloorWaterEntity`). Once a chunk's air has held at or below -2 C for
-three minutes, ice spreads in from the shore two tiles a minute; above 0 C for three minutes it thaws the same way,
-shore first. Ice is walkable and a little slippery: the water's wading slowdown is set to none, its floor occlusion
+three minutes, ice spreads in from the shore two tiles a minute and thickens by a degree-minute for each degree of
+frost (up to 480). Above 0 C for three minutes warmth melts that thickness first, faster the warmer it is, and only
+then thaws the ice from the shore the same way: a winter night's ice holds through a mild afternoon, and a warm
+spring day melts it through. Ice is walkable and a little slippery: the water's wading slowdown is set to none, its floor occlusion
 (the waist-deep look) and splash trigger are off and it gets friction contacts, and steps sound of ice, or crunch under
 snow. Snow lies on ice and melts into open water. A pickaxe or crowbar breaks a hole (four seconds), which freezes over
 again five minutes later. Water first seen in frost is frozen already, so Thrascias stays frozen and Asclepiu's lakes
