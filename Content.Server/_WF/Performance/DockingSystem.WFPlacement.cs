@@ -1,4 +1,5 @@
 using System.Numerics;
+using Content.Server._WF.Performance;
 using Content.Server.Shuttles.Components;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.Map.Components;
@@ -7,6 +8,8 @@ namespace Content.Server.Shuttles.Systems;
 
 public sealed partial class DockingSystem
 {
+    [Dependency] private WFDockIndexSystem _wfDockIndex = default!;
+
     /// <summary>
     /// <see cref="CanDock"/> without its tile check: where pairing two docks would put the shuttle, or false if they
     /// can't pair at all. Lets the dock search rule a pair out cheaply before walking tiles.

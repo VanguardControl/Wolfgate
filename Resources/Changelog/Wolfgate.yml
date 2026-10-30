@@ -4243,3 +4243,34 @@ Entries:
   id: 100284
   time: '2026-10-30T00:56:57.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/418
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        All Caelestinus Central turn-in chutes now buy the same goods at the
+        same prices.
+    - type: Fix
+      message: >-
+        The Market app's Caelestinus Central prices now match what its chutes
+        pay.
+  id: 100285
+  time: '2026-10-30T19:50:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/421
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: The server should lag less during busy rounds.
+  id: 100286
+  time: '2026-10-30T20:20:48.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/420
+- author: Balls2zawall
+  changes:
+    - type: Tweak
+      message: Updated the Ample's mining pulsers to prospecting lasers
+    - type: Tweak
+      message: >-
+        Lengthened the MClass mining shuttle carrier by 2 tiles, so it can now
+        hold 2 Antlions if so desired
+  id: 100287
+  time: '2026-10-30T20:20:56.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/423

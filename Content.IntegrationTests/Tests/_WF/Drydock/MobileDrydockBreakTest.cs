@@ -8,6 +8,7 @@ using Content.Shared._NF.Shipyard.Components;
 using Content.Shared._WF.Lathe;
 using Content.Shared.Construction.Components;
 using Content.Shared._WF.Drydock;
+using Content.Shared.Maps;
 using Content.Shared.Materials;
 using Content.Shared.Station.Components;
 using Robust.Shared.GameObjects;
@@ -238,6 +239,88 @@ public sealed class MobileDrydockBreakTest
                     Assert.That(drydock.CanReach(comp, ship, crane, centre), Is.False,
                         $"Tile {tile.GridIndices} is in reach and should have been lifted.");
                 }
+            });
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>
+    /// A hull of one-tile-wide loops and a solid corner breaks to nothing without ever splitting into a second grid:
+    /// loop tiles whose sides only meet the long way round, and bridge tiles that would cut the hull, wait their turn.
+    /// </summary>
+    [Test]
+    public async Task BreakNeverSplitsHull()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var drydock = server.System<WFDrydockSystem>();
+        var maps = server.System<SharedMapSystem>();
+        const int size = 5;
+
+        int GridCount()
+        {
+            var count = 0;
+            var query = em.EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+            while (query.MoveNext(out _, out _, out var xform))
+            {
+                if (xform.MapID == map.MapId)
+                    count++;
+            }
+
+            return count;
+        }
+
+        EntityUid console = default, crane = default, ship = default;
+        var grids = 0;
+        await server.WaitAssertion(() =>
+        {
+            var yard = MobileDrydockTest.SpawnMobileYard(pair, map.MapId);
+            (console, crane) = (yard.Console, yard.Crane);
+            var comp = em.GetComponent<WFDrydockConsoleComponent>(console);
+            Assert.That(drydock.TryGetBerth(console, comp, out var berth), "The crane should make a berth.");
+
+            // A 5x5 ring with a cross bar through its middle and a filled 2x2 corner.
+            ship = DrydockTest.CreateShip(pair, map.MapId);
+            var plating = new Tile(server.ProtoMan.Index<ContentTileDefinition>("Plating").TileId);
+            var tiles = new List<(Vector2i, Tile)>();
+            for (var x = 0; x < size; x++)
+            for (var y = 0; y < size; y++)
+            {
+                if (x == 0 || y == 0 || x == size - 1 || y == size - 1 || y == size / 2 || x < 2 && y < 2)
+                    tiles.Add((new Vector2i(x, y), plating));
+            }
+
+            maps.SetTiles(ship, em.GetComponent<MapGridComponent>(ship), tiles);
+            DrydockTest.PlaceOver(pair, ship, yard.Grid, berth.Area.Center);
+            grids = GridCount();
+        });
+
+        await MobileDrydockTest.WaitForCranePower(pair, crane);
+
+        await server.WaitAssertion(() =>
+        {
+            var comp = em.GetComponent<WFDrydockConsoleComponent>(console);
+            var actor = em.SpawnEntity("MobHuman", new MapCoordinates(0, 0, map.MapId));
+            Assert.That(drydock.TryStartBreak(console, comp, ship, actor), Is.True, "The break should start.");
+        });
+
+        var most = 0;
+        for (var i = 0; i < 400 && em.HasComponent<WFDrydockJobComponent>(console); i++)
+        {
+            await server.WaitRunTicks(30);
+            await server.WaitPost(() => most = Math.Max(most, GridCount()));
+        }
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(em.HasComponent<WFDrydockJobComponent>(console), Is.False, "The break should end.");
+                Assert.That(most, Is.LessThanOrEqualTo(grids), "The hull should never split into another grid.");
+                Assert.That(em.Deleted(ship), Is.True, "The whole hull should be broken.");
             });
         });
 
