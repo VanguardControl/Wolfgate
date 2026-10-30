@@ -22,6 +22,40 @@ public sealed class WarmthGaugeTest
     private const float WinterNight = 257.15f;
     private const int Half = 12;
 
+    /// <summary>
+    /// A core a hair over normal used to sit there for good in the cold: its recovery step was under a float step, so it
+    /// never reached normal and the cooling branch never ran. Whether a body spawned that way depended on timing.
+    /// </summary>
+    [Test]
+    public async Task CoreAHairOverNormalStillCools()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+        EntityUid mob = default;
+
+        await server.WaitPost(() => mob = entMan.SpawnEntity("MobHuman", new EntityCoordinates(map.Grid.Owner, 0.5f, 0.5f)));
+        await pair.RunTicksSync(pair.SecondsToTicks(2f));
+
+        await server.WaitAssertion(() =>
+        {
+            var system = server.System<Content.Server._WF.Wolfmed.Life.WolfmedBodyTemperatureSystem>();
+            var temperature = entMan.GetComponent<Content.Server.Temperature.Components.TemperatureComponent>(mob);
+            var normal = system.GetLines(mob)!.Value.Normal;
+            system.SetCore(mob, normal + 0.0009f);
+            temperature.CurrentTemperature = 250f;
+            for (var i = 0; i < 300; i++)
+            {
+                system.Tick(mob, 1f);
+            }
+
+            Assert.That(system.GetCore(mob), Is.LessThan(normal - 1f), "A core just over normal never began to cool.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task GaugeFollowsTheColdAndAFire()
     {
