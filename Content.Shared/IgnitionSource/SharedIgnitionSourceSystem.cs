@@ -42,6 +42,12 @@ public abstract partial class SharedIgnitionSourceSystem : EntitySystem
             return;
 
         ent.Comp.Ignited = ignited;
+        WFIgnitedChanged(ent, ignited); // WOLFGATE(Performance): the server walks only lit sources
         Dirty(ent, ent.Comp);
+    }
+
+    // WOLFGATE(Performance): overridden on the server, which keeps the list of lit sources
+    protected virtual void WFIgnitedChanged(EntityUid uid, bool ignited)
+    {
     }
 }

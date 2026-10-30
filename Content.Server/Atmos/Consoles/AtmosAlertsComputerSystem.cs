@@ -41,7 +41,7 @@ public sealed partial class AtmosAlertsComputerSystem : SharedAtmosAlertsCompute
     private const float UpdateTime = 1.0f;
 
     // Note: this data does not need to be saved
-    private float _updateTimer = 1.0f;
+    private float _updateTimer = 0.37f; // WOLFGATE(Performance): off the tick other one-second systems start on
 
     public override void Initialize()
     {

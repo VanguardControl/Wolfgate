@@ -3,8 +3,10 @@ using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Temperature.Components;
 using Content.Server.Temperature.Systems;
+using Content.Shared._WF.Performance; // WOLFGATE(Performance)
 using Content.Shared.IgnitionSource;
 using Content.Shared.Item.ItemToggle.Components;
+using Robust.Shared.Timing; // WOLFGATE(Performance)
 
 namespace Content.Server._Mono.Temperature.Systems;
 
@@ -16,21 +18,30 @@ public sealed partial class EntityRadiusHeaterSystem : EntitySystem
     [Dependency] private TemperatureSystem _temp = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
 
+    // WOLFGATE(Performance) START: each heater takes its own tick of the second, not all on one
+    [Dependency] private IGameTiming _timing = default!;
+
     private float _updateCooldown = 1f;
-    private TimeSpan _updateTimer = TimeSpan.Zero;
+    // private TimeSpan _updateTimer = TimeSpan.Zero;
 
     public override void Update(float frameTime)
     {
-        if (_updateTimer < TimeSpan.FromSeconds(_updateCooldown))
-        {
-            _updateTimer += TimeSpan.FromSeconds(frameTime);
-            return;
-        }
+        // if (_updateTimer < TimeSpan.FromSeconds(_updateCooldown))
+        // {
+        //     _updateTimer += TimeSpan.FromSeconds(frameTime);
+        //     return;
+        // }
+        var period = WFTickSpread.Period(_timing, _updateCooldown);
+        var tick = _timing.CurTick;
 
         var eqe = EntityQueryEnumerator<EntityRadiusHeaterComponent>();
 
         while (eqe.MoveNext(out var uid, out var comp))
         {
+            if (!WFTickSpread.Due(uid, tick, period))
+                continue;
+            // WOLFGATE END
+
             if (comp.RequireActivation && TryComp<IgnitionSourceComponent>(uid, out var ignite)
                                        && !ignite.Ignited)
                 continue;
@@ -51,7 +62,7 @@ public sealed partial class EntityRadiusHeaterSystem : EntitySystem
         }
 
 
-        _updateTimer = TimeSpan.Zero;
+        // _updateTimer = TimeSpan.Zero; // WOLFGATE(Performance): each heater takes its own tick
     }
 
     public float CalculateThermalEnergy(Entity<TemperatureComponent> ent,
