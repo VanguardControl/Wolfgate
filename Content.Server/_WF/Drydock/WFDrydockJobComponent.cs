@@ -45,6 +45,9 @@ public sealed class WFDrydockJobSlot
 
     /// <summary>Time an idle slot that found nothing to take looks through the queue again.</summary>
     public TimeSpan NextTake;
+
+    /// <summary>Time the slot last looked through the queue.</summary>
+    public TimeSpan TriedAt = TimeSpan.MinValue;
 }
 
 /// <summary>

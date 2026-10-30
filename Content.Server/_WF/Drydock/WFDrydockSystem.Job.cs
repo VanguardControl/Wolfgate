@@ -141,7 +141,9 @@ public sealed partial class WFDrydockSystem
         {
             foreach (var slot in job.Slots)
             {
-                StartSlot(comp, job, slot, curTime);
+                // A slot that already scanned this tick would find the same nothing.
+                if (slot.TriedAt != curTime)
+                    StartSlot(comp, job, slot, curTime);
             }
 
             if (job.Slots.All(s => s.Item == null) && !job.LiftChecksDeferred)
@@ -332,6 +334,7 @@ public sealed partial class WFDrydockSystem
     /// <summary>Takes the nearest pending item into an idle slot and sends the slot's crane to it.</summary>
     private void StartSlot(WFDrydockConsoleComponent comp, WFDrydockJobComponent job, WFDrydockJobSlot slot, TimeSpan curTime)
     {
+        slot.TriedAt = curTime;
         var item = TakeNearest(comp, job, slot);
         if (item == null)
         {
@@ -574,6 +577,16 @@ public sealed partial class WFDrydockSystem
     private List<CraneReach?> JobReach(WFDrydockJobComponent job)
     {
         return job.Slots.Select(s => ReachOf(job.Ship, s.Crane)).ToList();
+    }
+
+    /// <summary>Fills a list with the reach of every slot's crane in a job.</summary>
+    private void JobReach(WFDrydockJobComponent job, List<CraneReach?> reaches)
+    {
+        reaches.Clear();
+        foreach (var slot in job.Slots)
+        {
+            reaches.Add(ReachOf(job.Ship, slot.Crane));
+        }
     }
 
     /// <summary>Whether a resolved crane reach covers a ship-local point.</summary>

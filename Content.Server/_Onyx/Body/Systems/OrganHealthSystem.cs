@@ -10,6 +10,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared._Onyx.Wounds;
 using Content.Shared.Mobs;
 using Robust.Shared.Network;
+using Robust.Shared.Timing; // WOLFGATE(Performance)
 
 namespace Content.Shared._Onyx.Body
 {
@@ -30,11 +31,22 @@ namespace Content.Shared._Onyx.Body.Systems
         [Dependency] private WoundSystem _wounds = default!;
         [Dependency] private MobStateSystem _mobState = default!;
         [Dependency] private Content.Server._WF.Wolfmed.Body.WolfmedOrganFailureSystem _wfFailure = default!; // WOLFGATE(Wolfmed): revival pass
+        // WOLFGATE(Performance) START: the failed-organ scan runs four times a second, not every tick
+        [Dependency] private IGameTiming _wfTiming = default!;
+        private static readonly TimeSpan WFScanInterval = TimeSpan.FromSeconds(0.25);
+        private TimeSpan _wfNextScan;
+        // WOLFGATE END
 
         public override void Update(float frameTime)
         {
             if (!_net.IsServer)
                 return;
+
+            // WOLFGATE(Performance) START: the failed-organ scan runs four times a second, not every tick
+            if (_wfTiming.CurTime < _wfNextScan)
+                return;
+            _wfNextScan = _wfTiming.CurTime + WFScanInterval;
+            // WOLFGATE END
 
             // WOLFGATE(Wolfmed): organ health is on WolfmedOrganComponent, so the query pairs it with Wolfgate's OrganComponent.
             var query = EntityQueryEnumerator<WolfmedOrganComponent, OrganComponent>();

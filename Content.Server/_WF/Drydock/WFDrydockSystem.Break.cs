@@ -59,7 +59,21 @@ public sealed partial class WFDrydockSystem
     private static readonly TimeSpan LiftBatch = TimeSpan.FromSeconds(2);
 
     /// <summary>Tile lookups a job's connectivity checks may make a tick; a hull that would split checks over several.</summary>
-    private const int LiftCheckBudget = 4096;
+    private const int LiftCheckBudget = 1024;
+
+    /// <summary>The eight tiles around a tile in ring order; even entries are its sides.</summary>
+    private static readonly Vector2i[] Ring =
+    {
+        new(1, 0), new(1, 1), new(0, 1), new(-1, 1), new(-1, 0), new(-1, -1), new(0, -1), new(1, -1),
+    };
+
+    // Scratch collections for the connectivity checks, reused so a busy break allocates nothing per check.
+    private readonly HashSet<Vector2i> _liftExcluded = new();
+    private readonly List<Vector2i> _liftNeighbours = new();
+    private readonly Dictionary<Vector2i, int> _liftOwner = new();
+    private readonly Queue<Vector2i>[] _liftQueues = { new(), new(), new(), new() };
+    private readonly List<(int Index, float Distance)> _breakReach = new();
+    private readonly List<CraneReach?> _breakJobReach = new();
 
     private void InitializeBreak()
     {
@@ -233,8 +247,10 @@ public sealed partial class WFDrydockSystem
     private WFDrydockWorkItem? TakeBreakTile(WFDrydockConsoleComponent comp, WFDrydockJobComponent job, WFDrydockJobSlot slot)
     {
         var own = ReachOf(job.Ship, slot.Crane);
-        var all = JobReach(job);
-        var reach = new List<(int Index, float Distance)>();
+        var all = _breakJobReach;
+        JobReach(job, all);
+        var reach = _breakReach;
+        reach.Clear();
         var stranded = -1;
         var strandedDistance = float.MaxValue;
         for (var i = 0; i < job.Pending.Count; i++)
@@ -295,24 +311,20 @@ public sealed partial class WFDrydockSystem
         if (!TryComp<MapGridComponent>(job.Ship, out var grid))
             return true;
 
-        var lifting = new HashSet<Vector2i> { tile };
+        var lifting = _liftExcluded;
+        lifting.Clear();
+        lifting.Add(tile);
         foreach (var other in job.Slots)
         {
             if (other != slot && other.Item is { Kind: WFDrydockWorkKind.Break } item)
                 lifting.Add(item.TileIndex);
         }
 
-        bool Present(Vector2i index)
-        {
-            job.LiftCheckBudget--;
-            return !lifting.Contains(index) && !job.Lifting.Contains(index) &&
-                   !_map.GetTileRef(job.Ship, grid, index).Tile.IsEmpty;
-        }
-
-        var neighbours = new List<Vector2i>();
+        var neighbours = _liftNeighbours;
+        neighbours.Clear();
         foreach (var step in Neighbours)
         {
-            if (Present(tile + step))
+            if (LiftPresent(job, grid, tile + step))
                 neighbours.Add(tile + step);
         }
 
@@ -322,27 +334,128 @@ public sealed partial class WFDrydockSystem
         if (neighbours.Count <= 1)
             return true;
 
-        // Its neighbours must still reach each other around it.
-        var unfound = new HashSet<Vector2i>(neighbours.Skip(1));
-        var seen = new HashSet<Vector2i> { neighbours[0] };
-        var queue = new Queue<Vector2i>();
-        queue.Enqueue(neighbours[0]);
-        while (queue.TryDequeue(out var at))
+        // Most edge tiles have their neighbours joined through the ring of eight around them.
+        if (RingJoins(job, grid, tile))
+            return true;
+
+        return NeighboursJoin(job, grid, neighbours);
+    }
+
+    /// <summary>Whether a tile is still standing for a connectivity check, spending one of the job's lookups.</summary>
+    private bool LiftPresent(WFDrydockJobComponent job, MapGridComponent grid, Vector2i index)
+    {
+        job.LiftCheckBudget--;
+        return !_liftExcluded.Contains(index) && !job.Lifting.Contains(index) &&
+               !_map.GetTileRef(job.Ship, grid, index).Tile.IsEmpty;
+    }
+
+    /// <summary>Whether a tile's present side neighbours lie on one unbroken arc of its eight surrounding tiles.</summary>
+    private bool RingJoins(WFDrydockJobComponent job, MapGridComponent grid, Vector2i tile)
+    {
+        Span<bool> ring = stackalloc bool[Ring.Length];
+        var start = -1;
+        for (var i = 0; i < Ring.Length; i++)
         {
-            foreach (var step in Neighbours)
-            {
-                var next = at + step;
-                if (!Present(next) || !seen.Add(next))
-                    continue;
-
-                if (unfound.Remove(next) && unfound.Count == 0)
-                    return true;
-
-                queue.Enqueue(next);
-            }
+            ring[i] = LiftPresent(job, grid, tile + Ring[i]);
+            if (!ring[i] && i % 2 == 0)
+                start = i;
         }
 
-        return false;
+        // Walks the ring from an empty side, counting arcs that hold a side neighbour.
+        var arcs = 0;
+        var inArc = false;
+        var arcHasSide = false;
+        for (var n = 1; n <= Ring.Length; n++)
+        {
+            var i = (start + n) % Ring.Length;
+            if (ring[i])
+            {
+                inArc = true;
+                arcHasSide |= i % 2 == 0;
+                continue;
+            }
+
+            if (inArc && arcHasSide)
+                arcs++;
+            inArc = false;
+            arcHasSide = false;
+        }
+
+        return arcs <= 1;
+    }
+
+    /// <summary>
+    /// Whether the given tiles still reach each other. Floods from each in turn and stops as soon as one flood closes
+    /// without meeting the rest, so a split costs the smaller piece rather than the whole hull.
+    /// </summary>
+    private bool NeighboursJoin(WFDrydockJobComponent job, MapGridComponent grid, List<Vector2i> starts)
+    {
+        var owner = _liftOwner;
+        owner.Clear();
+        Span<int> parent = stackalloc int[Neighbours.Length];
+        for (var i = 0; i < starts.Count; i++)
+        {
+            parent[i] = i;
+            owner[starts[i]] = i;
+            _liftQueues[i].Clear();
+            _liftQueues[i].Enqueue(starts[i]);
+        }
+
+        int Find(Span<int> p, int i)
+        {
+            while (p[i] != i)
+                i = p[i];
+            return i;
+        }
+
+        var groups = starts.Count;
+        Span<bool> open = stackalloc bool[Neighbours.Length];
+        while (true)
+        {
+            for (var i = 0; i < starts.Count; i++)
+            {
+                if (!_liftQueues[i].TryDequeue(out var at))
+                    continue;
+
+                foreach (var step in Neighbours)
+                {
+                    var next = at + step;
+                    if (owner.TryGetValue(next, out var other))
+                    {
+                        var a = Find(parent, i);
+                        var b = Find(parent, other);
+                        if (a != b)
+                        {
+                            parent[b] = a;
+                            if (--groups == 1)
+                                return true;
+                        }
+
+                        continue;
+                    }
+
+                    if (!LiftPresent(job, grid, next))
+                        continue;
+
+                    owner[next] = i;
+                    _liftQueues[i].Enqueue(next);
+                }
+            }
+
+            // A joined group whose floods have all run dry is cut off from the others.
+            open.Clear();
+            for (var i = 0; i < starts.Count; i++)
+            {
+                if (_liftQueues[i].Count > 0)
+                    open[Find(parent, i)] = true;
+            }
+
+            for (var i = 0; i < starts.Count; i++)
+            {
+                if (Find(parent, i) == i && !open[i])
+                    return false;
+            }
+        }
     }
 
     /// <summary>Gives up a break's tiles that no crane can lift without splitting the hull, leaving them standing.</summary>
