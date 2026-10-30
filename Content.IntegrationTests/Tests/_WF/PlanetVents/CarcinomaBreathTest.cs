@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Pair;
+using Content.IntegrationTests.Tests._WF.Caverns;
 using Content.Server._WF.Dormancy;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Server._WF.PlanetPois;
@@ -22,6 +23,7 @@ using Content.Shared._WF.Planets;
 using Content.Shared._WF.Xenobiology.Components;
 using Content.Shared.Atmos;
 using Content.Shared.Damage;
+using Content.Shared.EntityTable;
 using Content.Shared.Inventory;
 using Content.Shared.Maps;
 using Content.Shared.Mobs.Components;
@@ -183,6 +185,80 @@ public sealed class CarcinomaBreathTest
 
         await pair.CleanReturnAsync();
     }
+
+    /// <summary>The Gut below breathes the same carbon dioxide, and the life born down there lives in it too.</summary>
+    [Test]
+    public async Task CavernAirIsCarbonDioxideAndItsNativesLiveInIt()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        await CavernFixture.EnableCaverns(pair);
+        var world = await CavernFixture.BuildWorld(pair, Surface);
+        var natives = new List<EntityUid>();
+
+        try
+        {
+            Assert.That(world.Cavern, Is.Not.EqualTo(EntityUid.Invalid), "Carcinoma was built without its cavern.");
+            var gate = await CavernFixture.Gate(pair, world);
+
+            await server.WaitPost(() =>
+            {
+                var air = MapAir(entMan, world.Cavern);
+                Assert.That(air.GetMoles(Gas.CarbonDioxide) / air.TotalMoles, Is.GreaterThan(0.8f), "The cavern is not mostly carbon dioxide.");
+                Assert.That(air.GetMoles(Gas.Ammonia), Is.Zero, "The cavern still holds ammonia.");
+                Assert.That(air.Pressure * air.GetMoles(Gas.Oxygen) / air.TotalMoles, Is.LessThan(16f), "The cavern has enough oxygen to breathe.");
+
+                // Each cavern fauna table's mobs are natives on the cavern map; those with lungs are spawned there.
+                var comp = entMan.GetComponent<WFPlanetNativesComponent>(world.Cavern);
+                var known = server.System<WFPlanetNativesSystem>().NativePrototypes(comp);
+                var context = new EntityTableContext();
+                var spot = CavernFixture.TileCentre(CavernFixture.ClimbTile(gate) + new Vector2i(0, -1));
+                foreach (var tableId in CavernTables)
+                {
+                    var table = server.ProtoMan.Index<EntityTablePrototype>(tableId);
+                    foreach (var (id, _) in table.Table.ListSpawns(entMan, server.ProtoMan, context))
+                    {
+                        Assert.That(known, Does.Contain(id), $"{id} from {tableId} isn't a native of the cavern.");
+                        if (!server.ProtoMan.Index<EntityPrototype>(id).Components.ContainsKey("Respirator") || natives.Count >= 4)
+                            continue;
+
+                        var mob = entMan.SpawnEntity(id, new EntityCoordinates(world.Cavern, spot));
+                        entMan.RemoveComponent<HTNComponent>(mob);
+                        natives.Add(mob);
+                    }
+                }
+
+                Assert.That(natives, Is.Not.Empty, "No cavern native has lungs to test.");
+            });
+
+            await server.WaitRunTicks(pair.SecondsToTicks(2f));
+            await server.WaitAssertion(() =>
+            {
+                foreach (var native in natives)
+                {
+                    var name = entMan.GetComponent<MetaDataComponent>(native).EntityPrototype!.ID;
+                    Assert.That(entMan.HasComponent<BreathingImmunityComponent>(native), Is.True, $"{name} has to breathe in its own cavern.");
+                }
+            });
+        }
+        finally
+        {
+            await CavernFixture.Teardown(pair, world);
+        }
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>The fauna tables the Gut's cavern spawns from.</summary>
+    private static readonly string[] CavernTables =
+    {
+        "WFCavernFaunaCarcinoma",
+        "WFCavernFaunaCarcinomaStomach",
+        "WFCavernFaunaCarcinomaNerve",
+        "WFCavernFaunaCarcinomaOssuary",
+        "WFCavernFaunaCarcinomaBlood",
+    };
 
     /// <summary>
     /// A vent walled into a room breathes in and out on its cycle and fills the room with warm carbon dioxide; one out on
