@@ -25,11 +25,23 @@ public sealed partial class WFGroundCoverOverlay : Overlay
 {
     private static readonly ProtoId<ShaderPrototype> Shader = "WFGroundCover";
     private static readonly ProtoId<ShaderPrototype> UnshadedShader = "unshaded";
+    private static readonly ProtoId<ShaderPrototype> BlurShader = "WFWolfWeatherBlur";
 
     /// <summary>Mask texels per tile; the linear filter between them softens edges by about a quarter tile.</summary>
     private const float TexelsPerTile = 4f;
 
     private const int MaxMaskSize = 512;
+
+    /// <summary>Texels per tile of the baked puddle heights, which edge the puddles and want more than the mask.</summary>
+    private const float HeightTexelsPerTile = 8f;
+
+    private const int MaxHeightSize = 768;
+
+    /// <summary>How far snow edges are softened, in tiles: the blur that rounds tile corners into soft, organic edges.</summary>
+    private const float SnowSoftTiles = 0.6f;
+
+    /// <summary>Tiles drawn past the wet and snowy ones, for the soft edge of snow.</summary>
+    private const float ContentMargin = 1f;
     private const float MaskMargin = 4f;
     private const float MaskSnap = 4f;
 
@@ -71,7 +83,11 @@ public sealed partial class WFGroundCoverOverlay : Overlay
     private readonly ShaderInstance _shader;
     private readonly ShaderInstance _reflectShader;
     private readonly ShaderInstance _unshaded;
+    private readonly ShaderInstance _bake;
+    private readonly ShaderInstance _blurH;
+    private readonly ShaderInstance _blurV;
     private readonly Action _drawMask;
+    private readonly Action _drawHeights;
     private readonly Action _copyFloor;
 
     private DrawingHandleWorld _maskHandle = default!;
@@ -79,6 +95,13 @@ public sealed partial class WFGroundCoverOverlay : Overlay
     private MapId _maskMapId;
     private Box2 _maskRect;
     private bool _maskWet;
+    private bool _anySnow;
+    private Box2 _content;
+    private bool _hasContent;
+
+    private DrawingHandleWorld _heightHandle = default!;
+    private Matrix3x2 _heightMatrix;
+    private Box2 _heightRect;
 
     private DrawingHandleWorld _copyHandle = default!;
     private Texture _copySource = default!;
@@ -117,7 +140,11 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         _shader = _proto.Index(Shader).InstanceUnique();
         _reflectShader = _proto.Index(Shader).InstanceUnique();
         _unshaded = _proto.Index(UnshadedShader).Instance();
+        _bake = _proto.Index(Shader).InstanceUnique();
+        _blurH = _proto.Index(BlurShader).InstanceUnique();
+        _blurV = _proto.Index(BlurShader).InstanceUnique();
         _drawMask = DrawMask;
+        _drawHeights = DrawHeights;
         _copyFloor = CopyFloor;
     }
 
@@ -127,6 +154,9 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         _floors.Dispose();
         _shader.Dispose();
         _reflectShader.Dispose();
+        _bake.Dispose();
+        _blurH.Dispose();
+        _blurV.Dispose();
         base.DisposeBehavior();
     }
 
@@ -141,7 +171,14 @@ public sealed partial class WFGroundCoverOverlay : Overlay
             return false;
         }
 
-        return UpdateWeather(args.MapId) || AnySnowInView(args);
+        var wet = UpdateWeather(args.MapId);
+        _anySnow = AnySnowInView(args);
+        if (!wet && !_anySnow)
+            return false;
+
+        // A fresh mask with nothing wet or snowy in view needs no pass and no copy of the screen.
+        var mask = _masks.GetForViewport(args.Viewport, static _ => new MaskTarget());
+        return !MaskFresh(mask, args, _wet) || mask.HasContent;
     }
 
     /// <summary>Reads a map's wetness, puddles and rain at the current quality; true if wet ground draws.</summary>
@@ -196,6 +233,12 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         var maskTexture = mask.Target!.Texture;
         var floor = GetFloor(args.Viewport);
 
+        // Only the part of the view that has wet ground or snow in it is drawn.
+        if (!mask.HasContent || !TryGetArea(args, mask, out var area))
+            return;
+
+        EnsureHeights(args, mask);
+
         // Full quality keeps the bare floor, so the reflection pass after entities can find the water nothing covers.
         if (_wet && _detail && _puddles > 0f && CopyFloor(args, floor))
         {
@@ -203,7 +246,7 @@ public sealed partial class WFGroundCoverOverlay : Overlay
             floor.MapId = args.MapId;
         }
 
-        SetCommon(_shader, args, mask);
+        SetCommon(_shader, args, mask, area);
         _shader.SetParameter("pass", 0f);
         _shader.SetParameter("SCREEN_TEXTURE", _wet ? ScreenTexture! : maskTexture);
         _shader.SetParameter("floorTex", maskTexture);
@@ -211,7 +254,7 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         var handle = args.WorldHandle;
         handle.SetTransform(Matrix3x2.Identity);
         handle.UseShader(_shader);
-        handle.DrawRect(args.WorldAABB, Color.White);
+        handle.DrawRect(area, Color.White);
         handle.UseShader(null);
         Draws++;
     }
@@ -231,10 +274,11 @@ public sealed partial class WFGroundCoverOverlay : Overlay
     {
         var floor = GetFloor(args.Viewport);
         var mask = _masks.GetForViewport(args.Viewport, static _ => new MaskTarget());
-        if (!floor.Ready || floor.Target == null || mask.Target == null)
+        if (!floor.Ready || floor.Target == null || mask.Target == null || !mask.HasContent
+            || !TryGetArea(args, mask, out var area))
             return;
 
-        SetCommon(_reflectShader, args, mask);
+        SetCommon(_reflectShader, args, mask, area);
         _reflectShader.SetParameter("pass", 1f);
         _reflectShader.SetParameter("SCREEN_TEXTURE", scene);
         _reflectShader.SetParameter("floorTex", floor.Target.Texture);
@@ -242,7 +286,7 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         var handle = args.WorldHandle;
         handle.SetTransform(Matrix3x2.Identity);
         handle.UseShader(_reflectShader);
-        handle.DrawRect(args.WorldAABB, Color.White);
+        handle.DrawRect(area, Color.White);
         handle.UseShader(null);
         ReflectionDraws++;
     }
@@ -285,9 +329,8 @@ public sealed partial class WFGroundCoverOverlay : Overlay
     }
 
     /// <summary>Parameters both passes share, so the reflection pass can redo the ground pass exactly.</summary>
-    private void SetCommon(ShaderInstance shader, in OverlayDrawArgs args, MaskTarget mask)
+    private void SetCommon(ShaderInstance shader, in OverlayDrawArgs args, MaskTarget mask, Box2 bounds)
     {
-        var bounds = args.WorldAABB;
         var corner = bounds.BottomLeft;
         var viewport = args.Viewport;
         var eye = viewport.Eye;
@@ -301,6 +344,8 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         var uv = ToUv(viewport, centre);
 
         shader.SetParameter("mask", mask.Target!.Texture);
+        shader.SetParameter("heights", (mask.HeightsReady ? mask.Heights : mask.Target)!.Texture);
+        shader.SetParameter("useHeights", mask.HeightsReady ? 1f : 0f);
         shader.SetParameter("maskOffset", corner - mask.Rect.BottomLeft);
         shader.SetParameter("maskSize", mask.Rect.Size);
         shader.SetParameter("size", bounds.Size);
@@ -312,7 +357,7 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         shader.SetParameter("time", (float) (_timing.RealTime.TotalSeconds % TimePeriod));
         shader.SetParameter("ambient", GetAmbient(args.MapUid));
         shader.SetParameter("eye", eyePos - corner);
-        shader.SetParameter("halfView", Vector2.Max(bounds.Size * 0.5f, Vector2.One));
+        shader.SetParameter("halfView", Vector2.Max(args.WorldAABB.Size * 0.5f, Vector2.One));
         shader.SetParameter("up", up);
         shader.SetParameter("pixel", scale > 0f ? 1f / scale : 1f / EyeManager.PixelsPerMeter);
         shader.SetParameter("uvDx", ToUv(viewport, centre + Vector2.UnitX) - uv);
@@ -358,23 +403,38 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         return false;
     }
 
-    /// <summary>The viewport's mask of open ground and snow depth, redrawn when the view leaves it, things change or it ages.</summary>
-    private MaskTarget GetMask(in OverlayDrawArgs args, bool wet)
+    /// <summary>Whether the viewport's mask still holds for this view, so it needn't be redrawn.</summary>
+    private bool MaskFresh(MaskTarget mask, in OverlayDrawArgs args, bool wet)
     {
-        var mask = _masks.GetForViewport(args.Viewport, static _ => new MaskTarget());
         var view = args.WorldAABB.Enlarged(MaskMargin * 0.5f);
         var real = _timing.RealTime;
         var version = _wolfWeather.MaskVersion * 31 + _cover.Version;
 
-        if (mask.Target != null
-            && mask.MapId == args.MapId
-            && mask.Wet == wet
-            && mask.Rect.Contains(view.BottomLeft)
-            && mask.Rect.Contains(view.TopRight)
-            && (mask.Version == version || real < mask.BuiltAt + MaskMinAge)
-            && real < mask.BuiltAt + MaskRefresh)
+        return mask.Target != null
+               && mask.MapId == args.MapId
+               && mask.Wet == wet
+               && mask.Rect.Contains(view.BottomLeft)
+               && mask.Rect.Contains(view.TopRight)
+               && (mask.Version == version || real < mask.BuiltAt + MaskMinAge)
+               && real < mask.BuiltAt + MaskRefresh;
+    }
+
+    /// <summary>The part of the view with wet ground or snow in it, which is all that draws.</summary>
+    private static bool TryGetArea(in OverlayDrawArgs args, MaskTarget mask, out Box2 area)
+    {
+        area = args.WorldAABB.Intersect(mask.Content);
+        return area.Width > 0f && area.Height > 0f;
+    }
+
+    /// <summary>The viewport's mask of open ground and snow depth, redrawn when the view leaves it, things change or it ages.</summary>
+    private MaskTarget GetMask(in OverlayDrawArgs args, bool wet)
+    {
+        var mask = _masks.GetForViewport(args.Viewport, static _ => new MaskTarget());
+        if (MaskFresh(mask, args, wet))
             return mask;
 
+        var real = _timing.RealTime;
+        var version = _wolfWeather.MaskVersion * 31 + _cover.Version;
         var outer = args.WorldAABB.Enlarged(MaskMargin);
         var rect = new Box2(
             MathF.Floor(outer.Left / MaskSnap) * MaskSnap,
@@ -384,13 +444,11 @@ public sealed partial class WFGroundCoverOverlay : Overlay
 
         var texels = MathF.Min(TexelsPerTile, MaxMaskSize / MathF.Max(rect.Width, rect.Height));
         var size = new Vector2i((int) MathF.Ceiling(rect.Width * texels), (int) MathF.Ceiling(rect.Height * texels));
-        if (mask.Target == null || mask.Target.Texture.Size != size)
+        EnsureTarget(ref mask.Target, size, "wf-ground-cover-mask");
+        if (_anySnow)
         {
-            mask.Target?.Dispose();
-            mask.Target = _clyde.CreateRenderTarget(size,
-                new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba8Srgb),
-                new TextureSampleParameters { Filter = true },
-                "wf-ground-cover-mask");
+            EnsureTarget(ref mask.Raw, size, "wf-ground-cover-mask-raw");
+            EnsureTarget(ref mask.Across, size, "wf-ground-cover-mask-across");
         }
 
         mask.MapId = args.MapId;
@@ -403,12 +461,93 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         _maskMapId = args.MapId;
         _maskRect = rect;
         _maskWet = wet;
+        _hasContent = false;
         _maskMatrix = Matrix3x2.CreateTranslation(-rect.Left, -rect.Top) * Matrix3x2.CreateScale(texels, -texels);
-        args.WorldHandle.RenderInRenderTarget(mask.Target, _drawMask, ClearColor);
+
+        // Snow is drawn sharp, then blurred so its edges round off; with none in view the mask is drawn as it is.
+        args.WorldHandle.RenderInRenderTarget(_anySnow ? mask.Raw! : mask.Target!, _drawMask, ClearColor);
+        if (_anySnow)
+        {
+            var radius = new Vector3(0f, 1f, 1f) * MathF.Max(1f, SnowSoftTiles * texels);
+            Blur(args.WorldHandle, mask.Raw!, mask.Across!, _blurH, new Vector2(1f / size.X, 0f), radius);
+            Blur(args.WorldHandle, mask.Across!, mask.Target!, _blurV, new Vector2(0f, 1f / size.Y), radius);
+        }
+
+        mask.HasContent = _hasContent;
+        mask.Content = _hasContent ? _content.Enlarged(ContentMargin) : default;
         return mask;
     }
 
-    /// <summary>Draws the mask: red where weather reaches the ground, green for snow depth.</summary>
+    private void EnsureTarget(ref IRenderTexture? target, Vector2i size, string name)
+    {
+        if (target != null && target.Texture.Size == size)
+            return;
+
+        target?.Dispose();
+        target = _clyde.CreateRenderTarget(size,
+            new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba8Srgb),
+            new TextureSampleParameters { Filter = true },
+            name);
+    }
+
+    private static void Blur(DrawingHandleWorld handle, IRenderTexture from, IRenderTexture to, ShaderInstance shader, Vector2 step, Vector3 radius)
+    {
+        shader.SetParameter("texelStep", step);
+        shader.SetParameter("radius", radius);
+        handle.RenderInRenderTarget(to,
+            () =>
+            {
+                handle.SetTransform(Matrix3x2.Identity);
+                handle.UseShader(shader);
+                handle.DrawTextureRect(from.Texture, Box2.FromDimensions(Vector2.Zero, (Vector2) to.Size));
+                handle.UseShader(null);
+            },
+            ClearColor);
+    }
+
+    /// <summary>Bakes the puddle height field over the mask's rect, once for each rect, when puddles are drawn.</summary>
+    private void EnsureHeights(in OverlayDrawArgs args, MaskTarget mask)
+    {
+        if (!_wet || _puddles <= 0f)
+            return;
+
+        var rect = mask.Rect;
+        if (mask.HeightsReady && mask.HeightRect == rect)
+            return;
+
+        var texels = MathF.Min(HeightTexelsPerTile, MaxHeightSize / MathF.Max(rect.Width, rect.Height));
+        var size = new Vector2i((int) MathF.Ceiling(rect.Width * texels), (int) MathF.Ceiling(rect.Height * texels));
+        if (mask.Heights == null || mask.Heights.Texture.Size != size)
+        {
+            mask.Heights?.Dispose();
+            mask.Heights = _clyde.CreateRenderTarget(size,
+                new RenderTargetFormatParameters(RenderTargetColorFormat.Rgba16F),
+                new TextureSampleParameters { Filter = true },
+                "wf-ground-cover-heights");
+        }
+
+        _bake.SetParameter("pass", 2f);
+        _bake.SetParameter("size", rect.Size);
+        _bake.SetParameter("origin", new Vector2(Wrap(rect.Left), Wrap(rect.Bottom)));
+
+        _heightHandle = args.WorldHandle;
+        _heightRect = rect;
+        _heightMatrix = Matrix3x2.CreateTranslation(-rect.Left, -rect.Top) * Matrix3x2.CreateScale(texels, -texels);
+        args.WorldHandle.RenderInRenderTarget(mask.Heights, _drawHeights, ClearColor);
+        mask.HeightRect = rect;
+        mask.HeightsReady = true;
+    }
+
+    private void DrawHeights()
+    {
+        var handle = _heightHandle;
+        handle.SetTransform(_heightMatrix);
+        handle.UseShader(_bake);
+        handle.DrawRect(_heightRect, Color.White);
+        handle.UseShader(null);
+    }
+
+    /// <summary>Draws the mask: red where weather reaches the ground, green for snow depth, blue where snow lies.</summary>
     private void DrawMask()
     {
         var handle = _maskHandle;
@@ -426,6 +565,8 @@ public sealed partial class WFGroundCoverOverlay : Overlay
             _roofQuery.TryComp(grid.Owner, out var roof);
             var roofed = new Entity<MapGridComponent, RoofComponent?>(grid.Owner, grid.Comp, roof);
             _rects.Clear();
+            var any = false;
+            var local = default(Box2);
 
             var tiles = _map.GetTilesIntersecting(grid.Owner, grid, _maskRect);
             while (tiles.MoveNext(out var tile))
@@ -442,13 +583,25 @@ public sealed partial class WFGroundCoverOverlay : Overlay
                 if (open <= 0f && depth <= 0f)
                     continue;
 
-                _rects.Add(new WorldRect(_lookup.GetLocalBounds(tile, grid.Comp.TileSize), new Color(open, depth, 0f)));
+                var bounds = _lookup.GetLocalBounds(tile, grid.Comp.TileSize);
+                _rects.Add(new WorldRect(bounds, new Color(open, depth, depth > 0f ? 1f : 0f)));
+                local = any ? local.Union(bounds) : bounds;
+                any = true;
             }
 
             handle.DrawRectsUnmodulated(CollectionsMarshal.AsSpan(_rects));
+            if (any)
+                GrowContent(_xform.GetWorldMatrix(grid.Owner).TransformBox(local));
         }
 
         handle.UseShader(null);
+    }
+
+    /// <summary>Grows the box of wet and snowy ground, in world space.</summary>
+    private void GrowContent(Box2 world)
+    {
+        _content = _hasContent ? _content.Union(world) : world;
+        _hasContent = true;
     }
 
     /// <summary>One viewport's copy of the bare floor from this frame's ground pass.</summary>
@@ -467,8 +620,15 @@ public sealed partial class WFGroundCoverOverlay : Overlay
     private sealed class MaskTarget : IDisposable
     {
         public IRenderTexture? Target;
+        public IRenderTexture? Raw;
+        public IRenderTexture? Across;
+        public IRenderTexture? Heights;
         public MapId MapId;
         public Box2 Rect;
+        public Box2 HeightRect;
+        public bool HeightsReady;
+        public Box2 Content;
+        public bool HasContent;
         public int Version;
         public TimeSpan BuiltAt;
         public bool Wet;
@@ -476,6 +636,9 @@ public sealed partial class WFGroundCoverOverlay : Overlay
         public void Dispose()
         {
             Target?.Dispose();
+            Raw?.Dispose();
+            Across?.Dispose();
+            Heights?.Dispose();
         }
     }
 }

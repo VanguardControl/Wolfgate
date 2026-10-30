@@ -23,7 +23,7 @@ public sealed partial class WFPlanetClimateSystem : EntitySystem
     private const float UpdateSeconds = 2f;
 
     /// <summary>Kelvin the outdoor air may move in a second.</summary>
-    public const float MaxRate = 0.05f;
+    public const float MaxRate = 0.1f;
 
     /// <summary>The smallest change written to the layers' air.</summary>
     public const float ApplyThreshold = 0.25f;
@@ -73,6 +73,16 @@ public sealed partial class WFPlanetClimateSystem : EntitySystem
             if (transit.LowerMap is { } lower && TryComp<WFPlanetEnvironmentComponent>(lower, out var source))
                 SetClimate((uid, environment), source.Season, source.SeasonColor, source.TemperatureCelsius);
         }
+    }
+
+    /// <summary>Moves a world's outdoor air to its target now, as an admin changing the hour, weather or season expects.</summary>
+    public void Snap(EntityUid world)
+    {
+        if (!TryComp<WFPlanetWeatherComponent>(world, out var state))
+            return;
+
+        state.Temperature = float.NaN;
+        _nextUpdate = TimeSpan.Zero;
     }
 
     /// <summary>

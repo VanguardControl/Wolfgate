@@ -1,5 +1,4 @@
 using System.Numerics;
-using Content.Client._Shitmed.UserInterface.Systems.Targeting.Widgets;
 using Content.Client._WF.Cockpit;
 using Content.Shared._WF.Warmth;
 using Content.Shared.GameTicking;
@@ -32,7 +31,8 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
     public string DisplayedClimate => _hud.ClimateText;
     public string DisplayedHere => _hud.HereText;
     public string DisplayedFeel => _hud.FeelText;
-    public float HudWidth => WFPlanetTimepieceHud.PanelWidth;
+    public float HudWidth => MathF.Max(_hud.Width, WFPlanetTimepieceHud.PanelWidth);
+    public Control Hud => _hud;
 
     public override void Initialize()
     {
@@ -150,18 +150,10 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
 
     private void PositionHud()
     {
-        var target = _ui.GetActiveUIWidgetOrNull<TargetingControl>();
-        var right = _ui.PopupRoot.Width - 12;
-        var bottom = _ui.PopupRoot.Height - 150;
-        if (target is { Visible: true } && target.Width > 0)
-        {
-            var position = target.GlobalPosition - _ui.PopupRoot.GlobalPosition;
-            right = position.X + target.Width;
-            bottom = position.Y - 8;
-        }
-        LayoutContainer.SetPosition(_hud, new Vector2(
-            MathF.Max(0, right - WFPlanetTimepieceHud.PanelWidth),
-            MathF.Max(0, bottom - MathF.Max(WFPlanetTimepieceHud.PanelHeight, _hud.Height))));
+        var size = new Vector2(
+            MathF.Max(_hud.Width, WFPlanetTimepieceHud.PanelWidth),
+            MathF.Max(_hud.Height, WFPlanetTimepieceHud.PanelHeight));
+        LayoutContainer.SetPosition(_hud, WFHudPlacement.Place(_ui, size));
     }
 
     private void RefreshReadout()
@@ -174,6 +166,7 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
         {
             _hud.SetReadout(Loc.GetString("wf-planet-timepiece-no-signal"), "--:--", string.Empty);
             _hud.SetThermal(string.Empty, string.Empty, Color.White);
+            _hud.SetGauge(false, 50, WFWarmthTrend.Steady, false);
             return;
         }
 
@@ -181,10 +174,12 @@ public sealed partial class WFPlanetTimepieceHudSystem : EntitySystem
         {
             _hud.SetThermal(SharedWFWarmthSystem.HereText(warmth),
                 Loc.GetString(SharedWFWarmthSystem.FeelLoc(warmth.Feel)), SharedWFWarmthSystem.FeelColor(warmth.Feel));
+            _hud.SetGauge(true, warmth.Gauge, warmth.Trend, warmth.NearWarmth);
         }
         else
         {
             _hud.SetThermal(string.Empty, string.Empty, Color.White);
+            _hud.SetGauge(false, 50, WFWarmthTrend.Steady, false);
         }
 
         var hours = environment.MinuteOfDay / 60;

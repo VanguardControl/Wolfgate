@@ -41,8 +41,9 @@ clear spells and shifts the temperature. `WFPlanetWeatherSystem` rolls each worl
 (`WFPlanetWeatherComponent.Upcoming`, `TryGetSchedule`), rolled again when an admin sets the weather or the season,
 so the forecast is what happens. `WFPlanetClimateSystem` sets the outdoor air: the ground's air temperature plus the
 season, the weather (`weatherTemperature`) and the hour (`dayTemperatureSwing` either side, warmest at 15:00, coldest
-at 05:00), moving at most 0.05 K a second into the map air of the ground and air layers, which bare ground shares;
-rooms keep their own air. Other code reads it with `WFPlanetClimateSystem.GetOutsideTemperature(map, at)` and
+at 05:00), moving at most 0.1 K a second into the map air of the ground and air layers, which bare ground shares
+(Planet Control snaps it to the target at once when an admin sets the hour, weather or season, so a set blizzard is cold
+straight away); rooms keep their own air. Other code reads it with `WFPlanetClimateSystem.GetOutsideTemperature(map, at)` and
 `GetSeason(map, at)`. The timepiece HUD shows the season and outside temperature, Planet Control shows and sets the
 season (`planetcontrol <world> season <id>`), and the weather forecast computer (`WFComputerWeatherForecast`, its
 board from the circuit imprinter; one on Caelestinus Central) lists a world's weather and temperature for the next
@@ -374,6 +375,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Client/_WF/Planets/ShuttleMapControl.PlanetBackground.cs`](../../../Content.Client/_WF/Planets/ShuttleMapControl.PlanetBackground.cs)
 - [`Content.Client/_WF/Planets/ShuttleNavControl.Terrain.cs`](../../../Content.Client/_WF/Planets/ShuttleNavControl.Terrain.cs)
 - [`Content.Client/_WF/Planets/StencilOverlay.Planets.cs`](../../../Content.Client/_WF/Planets/StencilOverlay.Planets.cs)
+- [`Content.Client/_WF/Planets/WFHudPlacement.cs`](../../../Content.Client/_WF/Planets/WFHudPlacement.cs)
 - [`Content.Client/_WF/Planets/WFOrbitButton.cs`](../../../Content.Client/_WF/Planets/WFOrbitButton.cs)
 - [`Content.Client/_WF/Planets/WFPlanetAmbienceSystem.cs`](../../../Content.Client/_WF/Planets/WFPlanetAmbienceSystem.cs)
 - [`Content.Client/_WF/Planets/WFPlanetApproachOverlay.cs`](../../../Content.Client/_WF/Planets/WFPlanetApproachOverlay.cs)

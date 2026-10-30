@@ -35,9 +35,9 @@ public sealed partial class WolfWeatherOverlay : Overlay
     private const float HardFeather = Feather * 0.2f;
 
     /// <summary>Mask texels per tile, lowered when zoomed far out so the mask stays under MaxMaskSize.</summary>
-    private const float MaskTexelsPerTile = 16f;
+    private const float MaskTexelsPerTile = 8f;
 
-    private const int MaxMaskSize = 1024;
+    private const int MaxMaskSize = 768;
 
     /// <summary>Tiles drawn into the mask past the view's edge, snapped so small camera moves keep the mask.</summary>
     private const float MaskMargin = 4f;

@@ -11,12 +11,13 @@
       collection: WFWolfThunderNear
       params:
         maxDistance: 120
-        rolloffFactor: 0.4
+        referenceDistance: 10
+        rolloffFactor: 0.3
         variation: 0.05
     farSound:
       collection: WFWolfThunderFar
       params:
-        volume: -8
+        volume: 0
         variation: 0.05
 
 - type: wolfWeather
@@ -193,10 +194,11 @@
       collection: WFWolfThunderNear
       params:
         maxDistance: 120
-        rolloffFactor: 0.4
+        referenceDistance: 10
+        rolloffFactor: 0.3
         variation: 0.05
     farSound:
       collection: WFWolfThunderFar
       params:
-        volume: -8
+        volume: 0
         variation: 0.05

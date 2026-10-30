@@ -33,6 +33,33 @@ public sealed partial class WFWarmthComponent : Component
     [DataField, AutoNetworkedField]
     public float Wetness;
 
+    /// <summary>Where the body sits between the cold harm line (0) and the heat harm line (100), in 5% steps.</summary>
+    [DataField, AutoNetworkedField]
+    public byte Gauge = 50;
+
+    /// <summary>Whether the body is warming or cooling, for the HUD gauge's arrow.</summary>
+    [DataField, AutoNetworkedField]
+    public WFWarmthTrend Trend;
+
+    /// <summary>Whether a lit fire or another active radiant heater reaches the body.</summary>
+    [DataField, AutoNetworkedField]
+    public bool NearWarmth;
+
+    /// <summary>The share of the way to harm from the cold, as the last body feel read it.</summary>
+    [ViewVariables]
+    public float ColdShare;
+
+    /// <summary>The share of the way to harm from the heat, as the last body feel read it.</summary>
+    [ViewVariables]
+    public float HeatShare;
+
+    /// <summary>The gauge's raw value last second and its smoothed change per second.</summary>
+    [ViewVariables]
+    public float LastGauge = float.NaN;
+
+    [ViewVariables]
+    public float GaugeRate;
+
     /// <summary>The extra heat the wind takes off the body on an open tile, as a multiplier; 1 out of the wind.</summary>
     [ViewVariables]
     public float WindChill = 1f;
@@ -57,6 +84,15 @@ public enum WFBodyFeel : byte
     Warm,
     Hot,
     Overheating,
+}
+
+/// <summary>Which way a body's temperature is heading.</summary>
+[Serializable, NetSerializable]
+public enum WFWarmthTrend : byte
+{
+    Steady,
+    Warming,
+    Cooling,
 }
 
 /// <summary>Which warning signs a body shows before the cold or heat harms it.</summary>

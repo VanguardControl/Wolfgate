@@ -1,4 +1,6 @@
 using System.Numerics;
+using Content.Client._WF.Warmth;
+using Content.Shared._WF.Warmth;
 using Robust.Client.Graphics;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
@@ -9,7 +11,9 @@ namespace Content.Client._WF.Planets;
 /// <summary>A compact, mouse-transparent readout created once and updated only when its text changes.</summary>
 public sealed class WFPlanetTimepieceHud : PanelContainer
 {
+    /// <summary>Narrowest the panel gets; it widens to fit its longest line, up to <see cref="MaxPanelWidth"/>.</summary>
     public const float PanelWidth = 164f;
+    public const float MaxPanelWidth = 240f;
     public const float PanelHeight = 98f;
 
     private readonly Label _planet;
@@ -18,7 +22,9 @@ public sealed class WFPlanetTimepieceHud : PanelContainer
     private readonly Label _climate;
     private readonly Label _here;
     private readonly Label _feel;
+    private readonly WFWarmthGauge _gauge;
 
+    public bool GaugeVisible => _gauge.Visible;
     public string PlanetText => _planet.Text ?? string.Empty;
     public string TimeText => _time.Text ?? string.Empty;
     public string WeatherText => _weather.Text ?? string.Empty;
@@ -28,8 +34,8 @@ public sealed class WFPlanetTimepieceHud : PanelContainer
 
     public WFPlanetTimepieceHud(IResourceCache resources)
     {
-        SetWidth = PanelWidth;
         MinSize = new Vector2(PanelWidth, PanelHeight);
+        MaxWidth = MaxPanelWidth;
         MouseFilter = Control.MouseFilterMode.Ignore;
 
         var panel = new StyleBoxFlat
@@ -83,6 +89,17 @@ public sealed class WFPlanetTimepieceHud : PanelContainer
         thermal.AddChild(_here);
         thermal.AddChild(_feel);
         column.AddChild(thermal);
+
+        _gauge = new WFWarmthGauge(regular) { Visible = false };
+        column.AddChild(_gauge);
+    }
+
+    /// <summary>The body temperature gauge under the thermal row; hidden while the body has no reading.</summary>
+    public void SetGauge(bool show, int gauge, WFWarmthTrend trend, bool nearWarmth)
+    {
+        _gauge.Visible = show;
+        if (show)
+            _gauge.Set(gauge, trend, nearWarmth);
     }
 
     /// <summary>The thermal row: the tile's air temperature and the body feel word in its danger colour.</summary>
@@ -117,7 +134,6 @@ public sealed class WFPlanetTimepieceHud : PanelContainer
             FontColorOverride = color,
             HorizontalAlignment = HAlignment.Stretch,
             Align = Label.AlignMode.Center,
-            ClipText = true,
             MouseFilter = Control.MouseFilterMode.Ignore,
         };
     }

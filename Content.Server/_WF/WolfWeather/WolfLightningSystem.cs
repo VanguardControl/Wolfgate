@@ -108,10 +108,10 @@ public sealed partial class WolfLightningSystem : EntitySystem
         return best;
     }
 
-    /// <summary>Strikes near a player if the roll and open ground allow, otherwise flashes far off.</summary>
+    /// <summary>Strikes near a player if the roll and open ground allow, otherwise flashes far off. Anyone under the map's sky hears it, vehicle interiors included.</summary>
     private void Bolt(EntityUid map, WolfWeatherPrototype weather, WolfWeatherLightning lightning)
     {
-        var filter = Filter.BroadcastMap(Transform(map).MapID);
+        var filter = Filter.Empty().AddWhereAttachedEntity(body => _wolfWeather.GetSkyMap(body) == map);
         var strike = _random.Prob(lightning.StrikeChance) && TryStrike(map, lightning, filter);
         RaiseNetworkEvent(new WolfLightningEvent { Map = GetNetEntity(map), Weather = weather.ID, Strike = strike }, filter);
     }
