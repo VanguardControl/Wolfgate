@@ -1,13 +1,11 @@
 using Content.Server.Atmos.Components;
 using Content.Server.Chat.Managers;
-using Robust.Shared.Timing;
 
 namespace Content.Server.Atmos.EntitySystems;
 
 public sealed partial class AtmosphereSystem
 {
     [Dependency] private IChatManager _wfChat = default!;
-    [Dependency] private IGameTiming _wfTiming = default!;
 
     /// <summary>A gap this long between two depressurizations from one tile ends its run.</summary>
     private static readonly TimeSpan WFBreachGap = TimeSpan.FromSeconds(5);
@@ -37,7 +35,7 @@ public sealed partial class AtmosphereSystem
     /// </summary>
     public bool WFBreachLooping(EntityUid grid, TileAtmosphere tile)
     {
-        var now = _wfTiming.CurTime;
+        var now = _gameTiming.CurTime;
         WFPruneBreachRuns(now);
 
         var key = (grid, tile.GridIndices);
