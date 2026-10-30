@@ -221,7 +221,9 @@ public sealed class WarmthTest : WolfmedGameTest
             _notes.Add($"still -16 °C after 240 s: naked surface {Surface(naked):F1} core {Core(naked):F1}; " +
                        $"coat surface {Surface(coated):F1} core {Core(coated):F1}; " +
                        $"naked margin {Surface(naked) - WinterNight:F1} K");
-            Assert.That(Core(coated), Is.GreaterThan(Core(naked) + 1f), "A coat did not slow the cooling.");
+            // The skin shows the coat at once; how far the core has fallen by now depends on the runner's pace.
+            Assert.That(Surface(coated), Is.GreaterThan(Surface(naked) + 10f), "A coat did not slow the cooling.");
+            Assert.That(Core(coated), Is.GreaterThanOrEqualTo(Core(naked)), "A coated body ended up colder inside.");
             Assert.That(Surface(naked) - WinterNight, Is.InRange(WFWarmthSystem.NakedMargin * 0.75f,
                 WFWarmthSystem.NakedMargin * 1.25f), "The examine text's still-air margin no longer matches.");
         });

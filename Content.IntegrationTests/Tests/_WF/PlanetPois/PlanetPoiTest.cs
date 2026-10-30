@@ -58,6 +58,8 @@ public sealed class PlanetPoiTest
         var proto = server.ResolveDependency<IPrototypeManager>();
         var loc = server.ResolveDependency<ILocalizationManager>();
         var networks = server.System<WFPlanetNetworkSystem>();
+        // The site's mobs are counted where they were stamped; awake, one can wander into ground that unloads.
+        await server.WaitPost(() => server.CfgMan.SetCVar(Shared.CCVar.CCVars.NPCEnabled, false));
         var biomes = server.System<BiomeSystem>();
         var maps = server.System<SharedMapSystem>();
         var roofs = server.System<SharedRoofSystem>();
