@@ -32,6 +32,23 @@ public sealed class WFNewbieWelcomeTest : GameTest
         return result;
     }
 
+    /// <summary>
+    /// Ticks until a welcome window is open or about ten seconds of game time and three of real time pass. The greeting waits for the player's
+    /// playtime, which loads from the database in its own time on a busy runner.
+    /// </summary>
+    private async Task<(int Welcome, int Crew)> WaitForWelcome()
+    {
+        var open = await OpenWindows();
+        for (var i = 0; i < 60 && open.Welcome == 0; i++)
+        {
+            await RunTicksSync(5);
+            await Task.Delay(50);
+            open = await OpenWindows();
+        }
+
+        return open;
+    }
+
     private async Task CloseAll()
     {
         await Client.WaitPost(() =>
@@ -65,7 +82,7 @@ public sealed class WFNewbieWelcomeTest : GameTest
         await OverrideCVar(Side.Server, WFNewbieCVars.Welcome, true);
         await Server.WaitPost(() => SEntMan.System<Content.Server._WF.Newbie.WFNewbieWelcomeSystem>().GreetAll());
         await RunTicksSync(5);
-        var first = await OpenWindows();
+        var first = await WaitForWelcome();
 
         await Server.WaitPost(() => SEntMan.System<Content.Server._WF.Newbie.WFNewbieWelcomeSystem>().GreetAll());
         await RunTicksSync(5);
