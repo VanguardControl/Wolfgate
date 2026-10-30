@@ -456,6 +456,7 @@ namespace Content.Server.Database
         [Dependency] private ILogManager _logMgr = default!;
 
         private ServerDbBase _db = default!;
+        private readonly Content.Server._WF.ProfileSaves.WFUserWriteQueue _wfProfileWrites = new(); // WOLFGATE(ProfileSaves)
         private LoggingProvider _msLogProvider = default!;
         private ILoggerFactory _msLoggerFactory = default!;
 
@@ -522,13 +523,15 @@ namespace Content.Server.Database
         public Task SaveCharacterSlotAsync(NetUserId userId, ICharacterProfile? profile, int slot)
         {
             DbWriteOpsMetric.Inc();
-            return RunDbCommand(() => _db.SaveCharacterSlotAsync(userId, profile, slot));
+            // WOLFGATE(ProfileSaves): overlapping saves of one player collide on the unique trait index
+            return _wfProfileWrites.Run(userId, () => RunDbCommand(() => _db.SaveCharacterSlotAsync(userId, profile, slot)));
         }
 
         public Task DeleteSlotAndSetSelectedIndex(NetUserId userId, int deleteSlot, int newSlot)
         {
             DbWriteOpsMetric.Inc();
-            return RunDbCommand(() => _db.DeleteSlotAndSetSelectedIndex(userId, deleteSlot, newSlot));
+            // WOLFGATE(ProfileSaves): a deletion waits its turn behind the player's saves
+            return _wfProfileWrites.Run(userId, () => RunDbCommand(() => _db.DeleteSlotAndSetSelectedIndex(userId, deleteSlot, newSlot)));
         }
 
         public Task SaveAdminOOCColorAsync(NetUserId userId, Color color)
