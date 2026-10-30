@@ -34,9 +34,6 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   server state, prediction or `SetZPosition`, so raise an entity through those rather than writing `LocalPosition`.
 - Nav map deltas (`NavMapComponent.WFDelta`) name the chunks removed since the client's ack instead of listing every
   chunk on the grid, which cost about 30 KB per update on a planet map.
-- The client Z-level sprite passes (`CEClientZLevelsPreAnimSystem`, `CEClientZLevelsPostAnimSystem`) skip entities at
-  height 0 with no height offset left from last frame (`CEZPhysicsComponent.WFHeightOffset`). They ran over every
-  item, mob and structure in view each frame, about 13% of a live client's game thread.
 - A ship sale serialises the hull on the main thread as before, but writes its YAML text on a worker
   (`ShipyardSystem.TrySaveShipDeferred`). That takes about a quarter off the hitch of each sale; serialising is the rest.
 - One-second jobs take a tick each instead of landing together (`WFTickSpread`): radius heaters, drains and wound
