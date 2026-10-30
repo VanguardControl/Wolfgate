@@ -5,6 +5,7 @@ using Content.Server.Temperature.Components;
 using Content.Server.Temperature.Systems;
 using Content.Shared.IgnitionSource;
 using Content.Shared.Item.ItemToggle.Components;
+using Content.Server._WF.Bonfires; // WOLFGATE(Bonfires)
 using Content.Server.Atmos.Portable; // WOLFGATE(Warmth)
 using Content.Shared.Atmos.Components; // WOLFGATE(Warmth)
 using Content.Shared.Atmos.Piping.Portable.Components; // WOLFGATE(Warmth)
@@ -70,6 +71,10 @@ public sealed partial class EntityRadiusHeaterSystem : EntitySystem
             return false;
 
         if (TryComp<SpaceHeaterComponent>(uid, out var spaceHeater) && spaceHeater.Mode == SpaceHeaterMode.Cool)
+            return false;
+
+        // WOLFGATE(Bonfires): a fire that has burnt out gives no warmth
+        if (TryComp<WFBonfireFuelComponent>(uid, out var fuel) && !fuel.Lit)
             return false;
 
         return this.IsPowered(uid, EntityManager);
