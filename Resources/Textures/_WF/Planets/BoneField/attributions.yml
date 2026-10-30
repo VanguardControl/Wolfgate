@@ -29,3 +29,8 @@
   license: CC-BY-SA-3.0
   copyright: "Recoloured for Wolfgate from https://github.com/CHOMPStation2/CHOMPStation2/blob/ca24d940aa4a6eb0d58d32b85ddc830f44459264/icons/turf/outdoors.dmi (state rock_brown)."
   source: "https://github.com/CHOMPStation2/CHOMPStation2"
+
+- files: [ scab_shore.png ]
+  license: CC0-1.0
+  copyright: "Recoloured for Wolfgate from the flesh floor, _WF/Resprites/Wizden/Tiles/meat.png, by AftrLite (GitHub), by Tools/_WF/Planets/gen_carcinoma_scab.py."
+  source: "https://github.com/space-wizards/space-station-14"

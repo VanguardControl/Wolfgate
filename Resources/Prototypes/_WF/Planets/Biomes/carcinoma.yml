@@ -6,6 +6,9 @@
 - type: tile
   id: WFFloorFleshScab
   parent: NovaFloorMeatFresh
+  sprite: /Textures/_WF/Planets/BoneField/scab_shore.png
+  variants: 4
+  placementVariants: [1, 1, 1, 1]
   weather: true
 
 # The bone field's ground: calcified flesh at the base, bleached bone plates and cartilage patches on top. The ids keep
@@ -58,7 +61,7 @@
   placementVariants: [1, 1, 1, 1]
   weather: true
 
-# The clotted bank of a blood river.
+# Clotted blood; the surface no longer uses it (its rivers are lakes now), but the Gut's clot floor is built on it.
 - type: tile
   id: WFFloorFleshRiverBank
   parent: NovaFloorMeatFresh
@@ -182,22 +185,6 @@
     threshold: -0.2
     noise: { seed: 99, noiseType: OpenSimplex2, frequency: 0.5 }
 
-# A blood river: the ridge lines of one noise, long thin channels like Thrascias' plasma rivers, with a clotted bank
-# either side. The bank is its own tile, so no scenery grows on it and the channel is never cut by the ground under it.
-# The meta layer's slow noise leaves gaps in a river, fords, so a river never walls the roads off from half the surface.
-- type: biomeTemplate
-  id: WFCarcinomaRiver
-  layers:
-  - !type:BiomeTileLayer
-    tile: WFFloorFleshRiverBank
-    threshold: 0.83
-    noise: { seed: 8, noiseType: OpenSimplex2, frequency: 0.007, fractalType: Ridged, octaves: 1 }
-  - !type:BiomeEntityLayer
-    allowedTiles: [WFFloorFleshRiverBank]
-    entities: [WFBloodRiver]
-    threshold: 0.915
-    noise: { seed: 8, noiseType: OpenSimplex2, frequency: 0.007, fractalType: Ridged, octaves: 1 }
-
 # Wet dark ground, dense with blood pools that have polyps and pustules round them.
 - type: biomeTemplate
   id: WFCarcinomaMarsh
@@ -220,7 +207,7 @@
     noise: { seed: 103, noiseType: OpenSimplex2, frequency: 0.06, fractalType: FBm, octaves: 2 }
   - !type:BiomeEntityLayer
     allowedTiles: [WFFloorFleshMarshMud, WFFloorFleshMarshDirt]
-    entities: [WFBloodRiver]
+    entities: [WFBloodOcean]
     threshold: 0.4
     noise: { seed: 103, noiseType: OpenSimplex2, frequency: 0.06, fractalType: FBm, octaves: 2 }
 
@@ -248,9 +235,19 @@
 - type: biomeTemplate
   id: WFCarcinomaScabShore
   layers:
+  # Plain flesh at the outer edge, scab flecked in over it, then solid by the water (the lake's own noise), so the
+  # band frays into the ground instead of ending on a straight line of tiles.
+  - !type:BiomeTileLayer
+    tile: WFFloorFlesh
+    threshold: -1
   - !type:BiomeTileLayer
     tile: WFFloorFleshScab
-    threshold: -1
+    threshold: 0.3
+    noise: { seed: 107, noiseType: OpenSimplex2, frequency: 0.45 }
+  - !type:BiomeTileLayer
+    tile: WFFloorFleshScab
+    threshold: 0.66
+    noise: { seed: 61, frequency: 0.012, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, lacunarity: 2 }
   - !type:BiomeTileLayer
     tile: WFFloorFleshBoneMeaty
     threshold: 0.6

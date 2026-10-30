@@ -165,20 +165,14 @@
   # Scabbed band round each lake: the lake's own noise, a lower threshold.
   - !type:BiomeMetaLayer
     template: WFCarcinomaScabShore
-    threshold: 0.6
+    threshold: 0.58
     noise: { seed: 61, frequency: 0.012, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, lacunarity: 2 }
 
-  # Blood rivers win over the ground and its scenery, but not the lakes after them; they are static water effects,
-  # not spreading reagent puddles.
-  - !type:BiomeMetaLayer
-    template: WFCarcinomaRiver
-    threshold: -0.35
-    noise: { seed: 9, noiseType: OpenSimplex2, frequency: 0.012 }
-
-  # Blood lakes override all terrestrial features, as Asclepiu's lakes do.
+  # Blood lakes override all terrestrial features, as Asclepiu's lakes do. They took over from the old rivers: still
+  # water laid like every other world's, not square channels.
   - !type:BiomeMetaLayer
     template: WFCarcinomaBloodOcean
-    threshold: 0.75
+    threshold: 0.72
     noise: { seed: 61, frequency: 0.012, noiseType: OpenSimplex2, fractalType: FBm, octaves: 2, lacunarity: 2 }
 
 - type: biomeTemplate
