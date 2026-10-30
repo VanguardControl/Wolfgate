@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
+using Content.IntegrationTests.Pair;
 using Content.IntegrationTests.Tests._WF.Planets;
 using Content.Server._NF.GameRule;
 using Content.Server._NF.Trade;
@@ -36,6 +37,7 @@ using Robust.Shared.Map.Components;
 using Robust.Shared.Maths;
 using Robust.Shared.Physics;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Random;
 
 namespace Content.IntegrationTests.Tests._WF.PlanetCargoHubs;
 
@@ -57,53 +59,9 @@ public sealed class PlanetCargoHubTest
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
         var server = pair.Server;
         var entMan = server.EntMan;
-        await PlanetFixture.EnableFeature(pair);
         var hubs = server.System<WFPlanetCargoHubSystem>();
-        var layers = new List<EntityUid>();
-        var holds = new List<Task>();
-        EntityUid sectorMap = default;
-        EntityUid body = default;
-
-        await server.WaitPost(() =>
-        {
-            server.CfgMan.SetCVar(CCVars.NPCEnabled, false);
-            server.CfgMan.SetCVar(PlanetCVars.Bounds, true);
-            server.CfgMan.SetCVar(PlanetCargoHubCVars.Chance, 1f);
-            server.CfgMan.SetCVar(NFCCVars.CargoDepots, 2);
-            hubs.ResetPlan();
-
-            // The world's sector body, for its signals and the depot's FTL beacon.
-            sectorMap = server.System<SharedMapSystem>().CreateMap(out _);
-            body = entMan.SpawnEntity(null, new EntityCoordinates(sectorMap, BodyPosition));
-            server.System<MetaDataSystem>().SetEntityName(body, "Merak");
-            entMan.AddComponent<WFSectorPlanetComponent>(body).Surface = Surface;
-
-            var surface = server.ProtoMan.Index<WFPlanetSurfacePrototype>(Surface);
-            var network = server.System<WFPlanetNetworkSystem>().BuildNetwork(surface, Vector2.Zero, "Merak", body);
-            Assert.That(network, Is.Not.Null);
-            layers.AddRange(entMan.GetComponent<WFPlanetNetworkComponent>(network!.Value).Layers);
-            var preload = new WFPlanetPreloadStartingEvent(layers[0], Vector2.Zero, Radius, holds);
-            entMan.EventBus.RaiseEvent(EventSource.Local, ref preload);
-        });
-
-        for (var attempt = 0; attempt < 900 && holds.Any(hold => !hold.IsCompleted); attempt++)
-        {
-            await pair.RunTicksSync(10);
-        }
-
+        var (layers, sectorMap, body) = await BuildHubWorld(pair, null);
         var ground = layers[0];
-        var work = new List<Task>();
-        await server.WaitPost(() =>
-        {
-            Assert.That(holds.All(hold => hold.IsCompletedSuccessfully), Is.True, "The world's sites failed to place.");
-            var preloaded = new WFPlanetPreloadedEvent(ground, work);
-            entMan.EventBus.RaiseEvent(EventSource.Local, ref preloaded);
-        });
-
-        for (var attempt = 0; attempt < 300 && work.Any(task => !task.IsCompleted); attempt++)
-        {
-            await pair.RunTicksSync(10);
-        }
 
         EntityUid station = default;
         WFPlanetPoiSite site = default!;
@@ -117,8 +75,7 @@ public sealed class PlanetCargoHubTest
             Assert.That(record.GenerationError, Is.Null);
             site = record.Sites.Single(placed => placed.Name == WFPlanetCargoHubSystem.SiteName(0));
             Assert.That(site.MapPath, Is.EqualTo("/Maps/_WF/PlanetCargoHubs/cargo_hub_triple.yml"));
-            // Ships come in on the berths; a road is a bonus the planner can miss within its routing budget.
-            TestContext.Out.WriteLine(site.Sockets.Count > 0 ? "The hub is on the roads." : "The hub stays off the roads this seed.");
+            Assert.That(site.Sockets, Is.Not.Empty, "The hub is off the roads.");
             Assert.That(entMan.GetComponent<WFPoiSignalComponent>(site.Signal).Revealed, Is.True, "The hub doesn't show from orbit.");
 
             Assert.That(hubs.HubStation(0), Is.Not.Null, "Depot A's hub has no station.");
@@ -265,5 +222,93 @@ public sealed class PlanetCargoHubTest
         await PlanetFixture.Teardown(pair, layers);
         await server.WaitPost(() => entMan.DeleteEntity(sectorMap));
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Whatever the round's dice, the hub is on the roads: the planner routes it first and never leaves it off.</summary>
+    [TestCase(1)]
+    [TestCase(7)]
+    [TestCase(23)]
+    [TestCase(4242)]
+    public async Task HubIsAlwaysOnTheRoads(int seed)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var hubs = server.System<WFPlanetCargoHubSystem>();
+        var (layers, sectorMap, _) = await BuildHubWorld(pair, seed);
+
+        await server.WaitAssertion(() =>
+        {
+            var record = entMan.GetComponent<WFPlanetPoiComponent>(layers[0]);
+            var site = record.Sites.Single(placed => placed.Name == WFPlanetCargoHubSystem.SiteName(0));
+            Assert.That(site.Connection, Is.Not.EqualTo(WFPlanetPoiConnection.Isolated), $"Seed {seed}: the hub was left off the roads.");
+            Assert.That(site.Sockets, Is.Not.Empty, $"Seed {seed}: the hub has no entrance on the roads.");
+            Assert.That(record.RoadTiles, Is.Not.Empty, $"Seed {seed}: the world has no roads.");
+            var socket = site.Sockets[0].Position + WFPlanetRoadPlanner.Direction(site.Sockets[0].Direction);
+            Assert.That(record.RoadTiles, Does.Contain(socket), $"Seed {seed}: no road leaves the hub's entrance.");
+            hubs.ResetPlan();
+        });
+
+        await PlanetFixture.Teardown(pair, layers);
+        await server.WaitPost(() => entMan.DeleteEntity(sectorMap));
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Builds Merak with depot A's hub on it, its sites placed and preloaded; a seed fixes the round's dice.</summary>
+    private static async Task<(List<EntityUid> Layers, EntityUid SectorMap, EntityUid Body)> BuildHubWorld(TestPair pair, int? seed)
+    {
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        await PlanetFixture.EnableFeature(pair);
+        var hubs = server.System<WFPlanetCargoHubSystem>();
+        var layers = new List<EntityUid>();
+        var holds = new List<Task>();
+        EntityUid sectorMap = default;
+        EntityUid body = default;
+
+        await server.WaitPost(() =>
+        {
+            if (seed is { } fixedSeed)
+                server.ResolveDependency<IRobustRandom>().SetSeed(fixedSeed);
+            server.CfgMan.SetCVar(CCVars.NPCEnabled, false);
+            server.CfgMan.SetCVar(PlanetCVars.Bounds, true);
+            server.CfgMan.SetCVar(PlanetCargoHubCVars.Chance, 1f);
+            server.CfgMan.SetCVar(NFCCVars.CargoDepots, 2);
+            hubs.ResetPlan();
+
+            // The world's sector body, for its signals and the depot's FTL beacon.
+            sectorMap = server.System<SharedMapSystem>().CreateMap(out _);
+            body = entMan.SpawnEntity(null, new EntityCoordinates(sectorMap, BodyPosition));
+            server.System<MetaDataSystem>().SetEntityName(body, "Merak");
+            entMan.AddComponent<WFSectorPlanetComponent>(body).Surface = Surface;
+
+            var surface = server.ProtoMan.Index<WFPlanetSurfacePrototype>(Surface);
+            var network = server.System<WFPlanetNetworkSystem>().BuildNetwork(surface, Vector2.Zero, "Merak", body);
+            Assert.That(network, Is.Not.Null);
+            layers.AddRange(entMan.GetComponent<WFPlanetNetworkComponent>(network!.Value).Layers);
+            var preload = new WFPlanetPreloadStartingEvent(layers[0], Vector2.Zero, Radius, holds);
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref preload);
+        });
+
+        for (var attempt = 0; attempt < 900 && holds.Any(hold => !hold.IsCompleted); attempt++)
+        {
+            await pair.RunTicksSync(10);
+        }
+
+        var ground = layers[0];
+        var work = new List<Task>();
+        await server.WaitPost(() =>
+        {
+            Assert.That(holds.All(hold => hold.IsCompletedSuccessfully), Is.True, "The world's sites failed to place.");
+            var preloaded = new WFPlanetPreloadedEvent(ground, work);
+            entMan.EventBus.RaiseEvent(EventSource.Local, ref preloaded);
+        });
+
+        for (var attempt = 0; attempt < 300 && work.Any(task => !task.IsCompleted); attempt++)
+        {
+            await pair.RunTicksSync(10);
+        }
+
+        return (layers, sectorMap, body);
     }
 }

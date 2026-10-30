@@ -7,8 +7,12 @@ using Robust.Shared.Maths;
 
 namespace Content.Server._WF.PlanetPois;
 
-/// <summary>A reserved site and its absolute road entrances.</summary>
-public sealed record WFPlanetRoadSite(Box2i Bounds, WFPlanetPoiConnection Connection, IReadOnlyList<WFPlanetRoadSocket> Sockets);
+/// <summary>
+/// A reserved site and its absolute road entrances. A priority site, such as a cargo hub or a city, is routed first
+/// and with a larger search.
+/// </summary>
+public sealed record WFPlanetRoadSite(Box2i Bounds, WFPlanetPoiConnection Connection, IReadOnlyList<WFPlanetRoadSocket> Sockets,
+    bool Priority = false);
 
 /// <summary>An absolute entrance tile with an outward direction.</summary>
 public sealed record WFPlanetRoadSocket(Vector2i Position, WFPlanetPoiDirection Direction);
@@ -55,6 +59,9 @@ public static class WFPlanetRoadPlanner
 
     /// <summary>A* expansions the whole plan may use.</summary>
     private const int TotalSearchLimit = 2500000;
+
+    /// <summary>How many times more a priority site's route may search, from a budget of its own.</summary>
+    private const int PrioritySearchScale = 4;
 
     /// <summary>What a straight step costs.</summary>
     private const int StepCost = 10;
@@ -131,7 +138,7 @@ public static class WFPlanetRoadPlanner
     /// A place a road must reach: a site entrance's road end, or with <see cref="Near"/> an off-road site's door the
     /// road need only come within reach of.
     /// </summary>
-    private sealed record Node(Vector2i Start, int Heading, int Site, Vector2i? Socket, bool Near = false);
+    private sealed record Node(Vector2i Start, int Heading, int Site, Vector2i? Socket, bool Near = false, bool Priority = false);
 
     /// <summary>The owner of the roads out to off-road sites.</summary>
     private const int NearbyOwner = -2;
@@ -238,7 +245,7 @@ public static class WFPlanetRoadPlanner
             }
             if (!Allowed(start))
                 return Fail($"The entrance at {socket.Position} lacks road clearance at {start}.", socket.Position);
-            nodes.Add(new Node(start, (int) socket.Direction, site, socket.Position));
+            nodes.Add(new Node(start, (int) socket.Direction, site, socket.Position, Priority: sites[site].Priority));
         }
         if (shape.Reach > 0 && nodes.Count > 0 && nearby != null)
         {
@@ -309,6 +316,7 @@ public static class WFPlanetRoadPlanner
             (directions[i], directions[j]) = (directions[j], directions[i]);
         }
         var budget = TotalSearchLimit;
+        var priorityBudget = TotalSearchLimit * PrioritySearchScale;
         var network = new HashSet<Vector2i>();
         var backbone = new HashSet<Vector2i>();
         // Which site's own road a tile was laid for: -1 for the gates, exits and links, -2 for the roads out to off-road sites.
@@ -349,7 +357,7 @@ public static class WFPlanetRoadPlanner
             float Angle(Vector2i tile) => MathF.Atan2(tile.Y + 0.5f - centre.Y, tile.X + 0.5f - centre.X);
             var first = doors
                 .Select(node => (Node: node, Score: MathF.Sqrt(Area(sites[node.Site].Bounds)) / MathF.Max(1f, Vector2.Distance(Middle(node.Start), centre))))
-                .OrderByDescending(pair => pair.Score).ThenBy(pair => pair.Node.Start.X).ThenBy(pair => pair.Node.Start.Y).First().Node;
+                .OrderByDescending(pair => pair.Node.Priority).ThenByDescending(pair => pair.Score).ThenBy(pair => pair.Node.Start.X).ThenBy(pair => pair.Node.Start.Y).First().Node;
             angles.Add(Angle(first.Start));
             while (angles.Count < shape.Gates)
             {
@@ -384,7 +392,7 @@ public static class WFPlanetRoadPlanner
         var pending = new List<Node>(entrances);
         if (network.Count == 0 && pending.Count > 0)
         {
-            var first = pending.First(node => !node.Near);
+            var first = pending.Where(node => !node.Near).OrderByDescending(node => node.Priority).First();
             Join(new[] { first.Start }, first.Site);
             pending.Remove(first);
         }
@@ -393,11 +401,13 @@ public static class WFPlanetRoadPlanner
             Node? next = null;
             var nextDistance = float.MaxValue;
             var nextAim = default(Vector2i);
-            // The off-road sites wait for the entrances, whose roads may pass near enough already.
+            // Priority entrances go first, then the rest; the off-road sites wait for the entrances, whose roads may
+            // pass near enough already.
+            var priorityLeft = pending.Any(node => node.Priority);
             var doorsLeft = pending.Any(node => !node.Near);
             foreach (var node in pending)
             {
-                if (node.Near && doorsLeft)
+                if (node.Near && doorsLeft || priorityLeft && !node.Priority)
                     continue;
                 var aim = node.Near ? Nearest(network, node.Start, pad, out var distance)
                     : Nearest(network.Where(tile => Joins(node, tile)), node.Start, pad, out distance);
@@ -439,13 +449,15 @@ public static class WFPlanetRoadPlanner
                 Join(new[] { chosen.Start }, chosen.Site);
                 continue;
             }
+            var limit = chosen.Priority ? SearchLimit * PrioritySearchScale : SearchLimit;
+            ref var spend = ref chosen.Priority ? ref priorityBudget : ref budget;
             var spur = Route(new[] { (chosen.Start, chosen.Heading) }, tile => network.Contains(tile) && Joins(chosen, tile),
-                nextAim, allowed, Hug, directions, SearchLimit, ref budget, pad);
+                nextAim, allowed, Hug, directions, limit, ref spend, pad);
             // Its own road near the site will do when nothing else can be reached.
             if (spur == null && owner.ContainsValue(chosen.Site))
             {
                 spur = Route(new[] { (chosen.Start, chosen.Heading) }, network.Contains, Nearest(network, chosen.Start, pad, out _),
-                    allowed, Hug, directions, SearchLimit, ref budget, pad);
+                    allowed, Hug, directions, limit, ref spend, pad);
             }
             if (spur == null)
                 return new(false, $"The entrance at {chosen.Socket} cannot reach the road network within the routing budget.", new(), new())

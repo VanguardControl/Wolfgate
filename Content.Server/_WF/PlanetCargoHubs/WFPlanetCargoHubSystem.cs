@@ -179,6 +179,7 @@ public sealed partial class WFPlanetCargoHubSystem : EntitySystem
                 Difficulty = site.Difficulty,
                 MinCount = 1,
                 MaxCount = 1,
+                Priority = true,
             });
         }
     }

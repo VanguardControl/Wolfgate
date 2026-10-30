@@ -106,6 +106,9 @@ public sealed class WFPlanetPoiSite
     /// <summary>Whether this is a fixed city, whose levels span the world's layers.</summary>
     public bool City;
 
+    /// <summary>Whether the roads must reach it (see <see cref="WFPlanetPoiEntry.Priority"/>).</summary>
+    public bool Priority;
+
     /// <summary>Openings in the site's floor down to the level under it, over its stairs.</summary>
     public HashSet<Vector2i> Shafts = new();
 
