@@ -104,45 +104,22 @@ public sealed partial class WFCrewWeaponSystem
     }
 
     /// <summary>
-    /// Hostiles within normal vision, plus the crew's shared targets and radio contacts. The same set the faction
-    /// lookup gives for the vision part, without its allocations.
+    /// Hostiles within normal vision: the set the faction lookup gives, without its allocations. The crew's explicit,
+    /// shared and radio targets are walked by <see cref="PickTarget"/> itself.
     /// </summary>
-    private void Candidates(EntityUid uid, List<EntityUid> candidates)
+    private void NearbyHostiles(EntityUid uid, NpcFactionMemberComponent member, List<EntityUid> candidates)
     {
-        TryComp<NpcFactionMemberComponent>(uid, out var member);
-        if (member != null)
+        var range = TryComp<HTNComponent>(uid, out var htn)
+            && htn.Blackboard.TryGetValue<float>("VisionRadius", out var vision, EntityManager) ? vision : LookupRange;
+        // Alert-widened vision would turn the faction lookup into a scan of every faction member on the map.
+        var hostileFactions = member.HostileFactions;
+        _nearbyMembers.Clear();
+        _lookup.GetEntitiesInRange(_xformSystem.GetMapCoordinates(uid), Math.Min(range, LookupRange), _nearbyMembers);
+        foreach (var near in _nearbyMembers)
         {
-            var range = TryComp<HTNComponent>(uid, out var htn)
-                && htn.Blackboard.TryGetValue<float>("VisionRadius", out var vision, EntityManager) ? vision : LookupRange;
-            // Alert-widened vision would turn the faction lookup into a scan of every faction member on the map.
-            var hostileFactions = member.HostileFactions;
-            _nearbyMembers.Clear();
-            _lookup.GetEntitiesInRange(_xformSystem.GetMapCoordinates(uid), Math.Min(range, LookupRange), _nearbyMembers);
-            foreach (var near in _nearbyMembers)
-            {
-                if (near.Owner != uid && hostileFactions.Overlaps(near.Comp.Factions)
-                    && !_factions.IsEntityFriendly((uid, member), (near.Owner, near.Comp)) && !_factions.IsIgnored(uid, near.Owner))
-                    candidates.Add(near.Owner);
-            }
-
-            foreach (var target in _factions.GetHostiles(uid))
-            {
-                if (!_factions.IsIgnored(uid, target) && !candidates.Contains(target))
-                    candidates.Add(target);
-            }
-        }
-
-        if (!TryComp<WFCrewComponent>(uid, out var crew) || Transform(uid).GridUid is not { } grid)
-            return;
-        foreach (var target in EntityManager.System<WFCrewAlertSystem>().GetSharedHostiles(grid, crew.Group))
-        {
-            if (IsHostile(uid, member, target))
-                candidates.Add(target);
-        }
-        foreach (var target in crew.RadioSightings.Keys)
-        {
-            if (IsHostile(uid, member, target))
-                candidates.Add(target);
+            if (near.Owner != uid && hostileFactions.Overlaps(near.Comp.Factions)
+                && !_factions.IsEntityFriendly((uid, member), (near.Owner, near.Comp)) && !_factions.IsIgnored(uid, near.Owner))
+                candidates.Add(near.Owner);
         }
     }
 
@@ -337,22 +314,46 @@ public sealed partial class WFCrewWeaponSystem
     /// <summary>Chooses a living hostile aboard the crewman's own ship.</summary>
     public EntityUid? PickTarget(EntityUid uid)
     {
-        var candidates = _candidateLists.TryPop(out var spare) ? spare : new List<EntityUid>();
-        try
+        TryComp<NpcFactionMemberComponent>(uid, out var member);
+        if (member != null)
         {
-            Candidates(uid, candidates);
-            foreach (var target in candidates)
+            // The lookup's set is shared, so its hits are copied out before any check can run another lookup.
+            var nearby = _candidateLists.TryPop(out var spare) ? spare : new List<EntityUid>();
+            try
             {
-                if (CanEngage(uid, target))
+                NearbyHostiles(uid, member, nearby);
+                foreach (var target in nearby)
+                {
+                    if (CanEngage(uid, target))
+                        return target;
+                }
+            }
+            finally
+            {
+                nearby.Clear();
+                _candidateLists.Push(nearby);
+            }
+
+            foreach (var target in _factions.GetHostiles(uid))
+            {
+                if (!_factions.IsIgnored(uid, target) && CanEngage(uid, target))
                     return target;
             }
+        }
+
+        if (!TryComp<WFCrewComponent>(uid, out var crew) || Transform(uid).GridUid is not { } grid)
             return null;
-        }
-        finally
+        foreach (var target in EntityManager.System<WFCrewAlertSystem>().GetSharedHostiles(grid, crew.Group))
         {
-            candidates.Clear();
-            _candidateLists.Push(candidates);
+            if (IsHostile(uid, member, target) && CanEngage(uid, target))
+                return target;
         }
+        foreach (var target in crew.RadioSightings.Keys)
+        {
+            if (IsHostile(uid, member, target) && CanEngage(uid, target))
+                return target;
+        }
+        return null;
     }
 
     /// <summary>Racks a loaded gun only when its chamber is empty or its bolt is open.</summary>

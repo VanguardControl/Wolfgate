@@ -86,6 +86,10 @@ namespace Content.Shared._Onyx.Body.Systems
             Dirty(organ);
 
             var functional = organ.Comp.Health > FixedPoint2.Zero;
+            // WOLFGATE(Performance) START: an organ that just failed is handled next tick, not at the next timed scan
+            if (wasFunctional && !functional)
+                _wfNextScan = TimeSpan.Zero;
+            // WOLFGATE END
             // WOLFGATE(Wolfmed): the owning body is on Wolfgate's OrganComponent, not on the health component.
             if (wasFunctional == functional || CompOrNull<OrganComponent>(organ)?.Body is not { } body)
                 return;

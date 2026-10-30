@@ -102,7 +102,9 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs`](../../_NF/StationEvents/Events/BluespaceErrorRule.cs)
   - frontier#4800 extended, appraise at spawn only for the currency injection
   - frontier#4800, skip the end appraisal when nothing uses the value
-- [`Content.Server/_Onyx/Body/Systems/OrganHealthSystem.cs`](../../_Onyx/Body/Systems/OrganHealthSystem.cs): the failed-organ scan runs four times a second, not every tick
+- [`Content.Server/_Onyx/Body/Systems/OrganHealthSystem.cs`](../../_Onyx/Body/Systems/OrganHealthSystem.cs)
+  - the failed-organ scan runs four times a second, not every tick
+  - an organ that just failed is handled next tick, not at the next timed scan
 - [`Content.Server/_Onyx/Wounds/WoundBleedingSystem.cs`](../../_Onyx/Wounds/WoundBleedingSystem.cs): clotting deadlines are checked four times a second, not every tick
 - [`Content.Server/Anomaly/AnomalySystem.Generator.cs`](../../Anomaly/AnomalySystem.Generator.cs): wizden#41390, was IsTileAirBlocked
 - [`Content.Server/Atmos/Consoles/AtmosMonitoringConsoleSystem.cs`](../../Atmos/Consoles/AtmosMonitoringConsoleSystem.cs)
