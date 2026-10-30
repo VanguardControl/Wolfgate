@@ -2215,6 +2215,9 @@ unmarked:
   - path: Resources/Audio/_Mono/RadioStation/
     module: null
     reason: Nulb vinyl tracks (Monolith#4835) re-encoded to mono Vorbis q0 to cut download size.
+  - path: Resources/SharedMaps/_Mono/Shuttles/Civilian/guppy.yml
+    module: Shipyard
+    reason: Saved with its air filled in; the starter ship spawned as vacuum.
   - path: Resources/SharedMaps/_Mono/Shuttles/PDV/MotleyAnne/inertia.yml
     module: ShipArmor
     reason: PDV hull refit from plastitanium to adamantite walls.
