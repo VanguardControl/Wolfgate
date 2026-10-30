@@ -224,6 +224,31 @@ public sealed class PlanetCargoHubTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A depot always goes down when a world can take it, however low the chance; a chance of 0 keeps both in space.</summary>
+    [TestCase(0.0001f, 1)]
+    [TestCase(0f, 0)]
+    public async Task OneDepotAlwaysGoesDown(float chance, int expected)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var hubs = server.System<WFPlanetCargoHubSystem>();
+        var (layers, sectorMap, _) = await BuildHubWorld(pair, 11, chance);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(hubs.Plan, Has.Count.EqualTo(expected));
+            var record = entMan.GetComponent<WFPlanetPoiComponent>(layers[0]);
+            Assert.That(record.Sites.Count(placed => placed.Name == WFPlanetCargoHubSystem.SiteName(0)
+                                                     || placed.Name == WFPlanetCargoHubSystem.SiteName(1)), Is.EqualTo(expected));
+            hubs.ResetPlan();
+        });
+
+        await PlanetFixture.Teardown(pair, layers);
+        await server.WaitPost(() => entMan.DeleteEntity(sectorMap));
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Whatever the round's dice, the hub is on the roads: the planner routes it first and never leaves it off.</summary>
     [TestCase(1)]
     [TestCase(7)]
@@ -255,7 +280,7 @@ public sealed class PlanetCargoHubTest
     }
 
     /// <summary>Builds Merak with depot A's hub on it, its sites placed and preloaded; a seed fixes the round's dice.</summary>
-    private static async Task<(List<EntityUid> Layers, EntityUid SectorMap, EntityUid Body)> BuildHubWorld(TestPair pair, int? seed)
+    private static async Task<(List<EntityUid> Layers, EntityUid SectorMap, EntityUid Body)> BuildHubWorld(TestPair pair, int? seed, float chance = 1f)
     {
         var server = pair.Server;
         var entMan = server.EntMan;
@@ -272,7 +297,7 @@ public sealed class PlanetCargoHubTest
                 server.ResolveDependency<IRobustRandom>().SetSeed(fixedSeed);
             server.CfgMan.SetCVar(CCVars.NPCEnabled, false);
             server.CfgMan.SetCVar(PlanetCVars.Bounds, true);
-            server.CfgMan.SetCVar(PlanetCargoHubCVars.Chance, 1f);
+            server.CfgMan.SetCVar(PlanetCargoHubCVars.Chance, chance);
             server.CfgMan.SetCVar(NFCCVars.CargoDepots, 2);
             hubs.ResetPlan();
 

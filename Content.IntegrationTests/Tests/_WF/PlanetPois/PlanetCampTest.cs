@@ -8,9 +8,11 @@ using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.PlanetPois;
 using Content.Server._WF.Planets;
 using Content.Shared._WF.CCVar;
+using Content.Shared._WF.PlanetPois;
 using Content.Shared._WF.Planets;
 using Content.Shared.NPC.Components;
 using Robust.Shared.GameObjects;
+using Robust.Shared.Maths;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Prototypes;
@@ -86,6 +88,31 @@ public sealed class PlanetCampTest
                 .Count(meta => meta.EntityPrototype?.ID == id && entities.GetComponent<TransformComponent>(meta.Owner).MapID == map);
             Assert.That(Count("Bonfire"), Is.GreaterThanOrEqualTo(1), "The Reavers have no campfire.");
             Assert.That(Count("AU14TallFloodlight"), Is.GreaterThanOrEqualTo(3), "The camps aren't lit.");
+
+            // No two tents, fires or other footprinted props of a camp lie on each other.
+            var footprints = prototypes.EnumeratePrototypes<WFPlanetCampPrototype>()
+                .SelectMany(camp => camp.Props)
+                .SelectMany(prop => prop.Ids.Select(id => (id.Id, Box: prop.Footprint ?? new Box2(-0.5f, -0.5f, 0.5f, 0.5f))))
+                .GroupBy(pair => pair.Id)
+                .ToDictionary(group => group.Key, group => group.First().Box);
+            var placed = entities.EntityQuery<MetaDataComponent>()
+                .Where(meta => meta.EntityPrototype is { } proto && footprints.ContainsKey(proto.ID)
+                               && entities.GetComponent<TransformComponent>(meta.Owner).ParentUid == layers[0])
+                .Select(meta => (Id: meta.EntityPrototype!.ID, Position: entities.GetComponent<TransformComponent>(meta.Owner).LocalPosition))
+                .ToList();
+            var tents = placed.Count(pair => pair.Id.StartsWith("AU14PropTent"));
+            TestContext.Out.WriteLine($"{tents} tents on Merak");
+            Assert.That(tents, Is.GreaterThanOrEqualTo(2), "Merak's camps have no tents to check.");
+            for (var i = 0; i < placed.Count; i++)
+            for (var j = i + 1; j < placed.Count; j++)
+            {
+                if (!placed[i].Id.StartsWith("AU14PropTent") && !placed[j].Id.StartsWith("AU14PropTent"))
+                    continue;
+                var a = footprints[placed[i].Id].Translated(placed[i].Position).Enlarged(-0.01f);
+                var b = footprints[placed[j].Id].Translated(placed[j].Position).Enlarged(-0.01f);
+                Assert.That(a.Intersects(b), Is.False,
+                    $"{placed[i].Id} at {placed[i].Position} overlaps {placed[j].Id} at {placed[j].Position}.");
+            }
 
             // Crazy camps: a fire with tents, and strangers round it; more strangers roam the open ground.
             Assert.That(record.Sites.Count(site => site.Name == "wf-poi-crazy-camp"), Is.InRange(1, 2), "Merak has no crazy camp.");

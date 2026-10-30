@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Numerics;
 using Content.Server._NF.Bank;
+using Content.Server._WF.Cowardice;
 using Content.Server._WF.Planets.Bounds;
 using Content.Server._WF.Vehicles.Npc;
 using Content.Server.Chat.Systems;
@@ -101,6 +102,8 @@ public sealed partial class WFStrangerSystem : EntitySystem
     /// </summary>
     private void OnDamaged(Entity<WFStrangerComponent> ent, ref BeforeDamageChangedEvent args)
     {
+        if (TryComp(ent, out WFCowardiceComponent? coward) && coward.State != WFCowardState.None)
+            return;
         if (!args.Damage.AnyPositive() || args.Origin is not { } origin || Culprit(origin) is not { } attacker || attacker == ent.Owner
             || !_mobs.IsAlive(ent))
             return;
@@ -157,6 +160,9 @@ public sealed partial class WFStrangerSystem : EntitySystem
         while (query.MoveNext(out var uid, out var stranger, out var xform))
         {
             if (!_mobs.IsAlive(uid) || xform.MapUid is not { } map || Paused(map))
+                continue;
+            // Frightened, he is left to the cowardice system until he calms down.
+            if (TryComp(uid, out WFCowardiceComponent? scared) && scared.State != WFCowardState.None)
                 continue;
             if (stranger.Hostile)
                 CalmDown((uid, stranger), now);
@@ -490,6 +496,20 @@ public sealed partial class WFStrangerSystem : EntitySystem
                 && !_factions.GetHostiles(mate).Contains(user))
                 TurnOn((mate, stranger), user, rally: false);
         }
+    }
+
+    /// <summary>He loses his nerve: no more fighting, hailing or wandering, and he drops the quarrel with whoever scared him.</summary>
+    public void Frighten(Entity<WFStrangerComponent> ent, EntityUid threat)
+    {
+        if (ent.Comp.Target == threat && ent.Comp.Node != null)
+            EndConversation(ent, leave: false);
+        Finish(ent, threat);
+        ent.Comp.Hostile = false;
+        ent.Comp.CalmAt = null;
+        _factions.DeAggroEntity(ent.Owner, threat);
+        if (TryComp(ent, out HTNComponent? htn))
+            _htn.SetHTNEnabled((ent, htn), false);
+        _steering.Unregister(ent);
     }
 
     /// <summary>With nobody left to fight for a while he calms down and goes back to his business, grudges kept.</summary>

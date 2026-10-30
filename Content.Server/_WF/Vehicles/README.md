@@ -57,7 +57,10 @@ map, refuses to leave the floor unless a handler of `VehicleOpenTileAttemptEvent
 smash through `TryGetSmashable`; crushing rules for Wolfgate's own tables, lockers and the like (`VehicleSmashRuleSystem`,
 `VehicleCrushingSystem`); falling through z-levels (`SharedVehicleFallSystem`, `VehicleFallSystem`); hardpoints, wheels,
 integrity and repair (`HardpointSystem`); interiors on private maps with doorways, exit markers, locks and keys, driver and
-weapon seats and the outside view (`VehicleInteriorSystem`); the horn, spotlight, overcharge, demolition and crash effect;
+weapon seats and the outside view (`VehicleInteriorSystem`); the horn, spotlight, overcharge, demolition and crash effect; crash damage (`WFVehicleImpactDamageSystem`: a hit
+at top speed costs a light vehicle's frame 18% of its integrity, scaled by speed and weight class, plus its wheels, and
+the vehicle it hit too; a ship's hull impact deals a vehicle 3 times what it deals other things there;
+`wf.vehicle_impact_frame_fraction`, `wf.vehicle_hull_impact_multiplier`);
 turrets and weapon seats with their gun hooks (`VehicleTurretSystem`, `VehicleWeaponsSystem`); hardpoint ammo, bullet
 boxes, the ammo loader and port guns (`VehicleHardpointAmmoSystem`, `VehicleAmmoLoaderSystem`, `VehiclePortGunSystem`);
 the Bison's remote control, cargo bay and self-destruct (`CMUCargoVehicleSystem`); and `VehicleSafetySystem` (server),
@@ -134,11 +137,13 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Server/_WF/Vehicles/Bison/CMUCargoVehicleSystem.Control.cs`](Bison/CMUCargoVehicleSystem.Control.cs)
 - [`Content.Server/_WF/Vehicles/Bison/CMUCargoVehicleSystem.cs`](Bison/CMUCargoVehicleSystem.cs)
 - [`Content.Server/_WF/Vehicles/Bison/CMUCargoVehicleSystem.Destruct.cs`](Bison/CMUCargoVehicleSystem.Destruct.cs)
+- [`Content.Server/_WF/Vehicles/Core/ShuttleSystem.VehicleImpact.cs`](Core/ShuttleSystem.VehicleImpact.cs)
 - [`Content.Server/_WF/Vehicles/Core/VehicleChatRelaySystem.cs`](Core/VehicleChatRelaySystem.cs)
 - [`Content.Server/_WF/Vehicles/Core/VehicleEntranceItemSystem.cs`](Core/VehicleEntranceItemSystem.cs)
 - [`Content.Server/_WF/Vehicles/Core/VehicleRunoverScreamSystem.cs`](Core/VehicleRunoverScreamSystem.cs)
 - [`Content.Server/_WF/Vehicles/Core/WFVehicleElectricalSystem.cs`](Core/WFVehicleElectricalSystem.cs)
 - [`Content.Server/_WF/Vehicles/Core/WFVehicleEngineSystem.cs`](Core/WFVehicleEngineSystem.cs)
+- [`Content.Server/_WF/Vehicles/Core/WFVehicleImpactDamageSystem.cs`](Core/WFVehicleImpactDamageSystem.cs)
 - [`Content.Server/_WF/Vehicles/Core/WFVehicleTrackSystem.cs`](Core/WFVehicleTrackSystem.cs)
 - [`Content.Server/_WF/Vehicles/Crushing/VehicleCrushingSystem.cs`](Crushing/VehicleCrushingSystem.cs)
 - [`Content.Server/_WF/Vehicles/Falling/VehicleFallSystem.cs`](Falling/VehicleFallSystem.cs)
@@ -179,6 +184,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Shared/_WF/Vehicles/Core/VehicleExitSpotSystem.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleExitSpotSystem.cs)
 - [`Content.Shared/_WF/Vehicles/Core/VehicleFrameDamageVisuals.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleFrameDamageVisuals.cs)
 - [`Content.Shared/_WF/Vehicles/Core/VehicleHornSystem.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleHornSystem.cs)
+- [`Content.Shared/_WF/Vehicles/Core/VehicleImpactCVars.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleImpactCVars.cs)
 - [`Content.Shared/_WF/Vehicles/Core/VehicleInteriorComponents.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleInteriorComponents.cs)
 - [`Content.Shared/_WF/Vehicles/Core/VehicleInteriorEvents.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleInteriorEvents.cs)
 - [`Content.Shared/_WF/Vehicles/Core/VehicleInteriorRoofComponent.cs`](../../../Content.Shared/_WF/Vehicles/Core/VehicleInteriorRoofComponent.cs)
@@ -1020,6 +1026,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
   - a player in a vehicle's cabin is where the vehicle is.
 - [`Content.Server/NPC/Systems/NPCUtilitySystem.cs`](../../NPC/Systems/NPCUtilitySystem.cs): an occupied vehicle is a live target.
 - [`Content.Server/Shuttles/Systems/RadarConsoleSystem.cs`](../../Shuttles/Systems/RadarConsoleSystem.cs): a vehicle's scanner looks out from the vehicle, not from the seat inside it.
+- [`Content.Server/Shuttles/Systems/ShuttleSystem.Impact.cs`](../../Shuttles/Systems/ShuttleSystem.Impact.cs): a hull hitting a vehicle hurts it more
 - [`Content.Shared/Physics/CollisionGroup.cs`](../../../Content.Shared/Physics/CollisionGroup.cs): ground vehicle fixtures and vehicle blockers
 - [`Content.Shared/Vehicle/SharedVehicleSystem.cs`](../../../Content.Shared/Vehicle/SharedVehicleSystem.cs)
   - only check for a free hand; a later attempt handler (folded) can still cancel

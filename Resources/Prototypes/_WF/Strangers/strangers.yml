@@ -52,6 +52,8 @@
   components:
   - type: WFStranger
     dialogue: WFStrangerDialoguePreacher
+  - type: WFCowardice
+    cowardice: 0.5
   - type: Loadout
     prototypes: [ WFStrangerGearPreacher ]
 
@@ -63,6 +65,9 @@
   components:
   - type: WFStranger
     dialogue: WFStrangerDialogueConspiracist
+  - type: WFCowardice
+    cowardice: 0.7
+    flee: 0.6
   - type: Loadout
     prototypes: [ WFStrangerGearConspiracist ]
 
@@ -74,6 +79,9 @@
   components:
   - type: WFStranger
     dialogue: WFStrangerDialogueBeggar
+  - type: WFCowardice
+    cowardice: 0.85
+    hits: 2
   - type: Loadout
     prototypes: [ WFStrangerGearBeggar ]
 

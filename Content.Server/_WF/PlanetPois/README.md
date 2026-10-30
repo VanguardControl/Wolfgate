@@ -61,7 +61,8 @@ A table's `camps` (`WFPlanetPoiSystem.Camps`, `camps.yml`) set a ship down intac
 road, just off the shoulder of a straight stretch and nose to it, where whoever drives by sees it (out in the open
 instead when no stretch has room, or for a camp with `roadside: false`), with an armed crew from an NpcCrew profile
 guarding it: two or three on the deck at once, more round the hull behind a
-ring of cover once the ground there exists. Dwelling sites (`dwelling: true`, such as the houses) may get a resident. Every world has a Reaver encampment (Ashfall Reaver raiders) and an ADS
+ring of cover once the ground there exists. Every prop claims the ground it covers (`footprint` on a camp prop, a single
+tile when unset; a tent is 3 by 4 tiles), so tents, fires, cover and guards never lie on each other. Dwelling sites (`dwelling: true`, such as the houses) may get a resident. Every world has a Reaver encampment (Ashfall Reaver raiders) and an ADS
 control site (ADS automatons); the hold has loot of the same kind as the wrecks'.
 
 Once the ground exists, a table's `vehicles` (`WFPlanetPoiSystem.Vehicles`, `vehicles.yml`) park a few working

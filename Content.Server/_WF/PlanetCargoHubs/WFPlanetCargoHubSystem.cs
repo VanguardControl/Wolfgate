@@ -132,15 +132,34 @@ public sealed partial class WFPlanetCargoHubSystem : EntitySystem
             if (!_random.Prob(Math.Clamp(chance, 0f, 1f)))
                 continue;
 
-            var hub = hubs[index % hubs.Count];
-            var candidates = worlds.Where(world => hub.Surfaces.Contains(world) && _plan.Values.All(planned => planned.Surface != world)).ToList();
-            if (candidates.Count == 0)
-                continue;
-
-            var world = _random.Pick(candidates);
-            _plan[index] = (world, hub.ID);
-            Log.Info($"Cargo depot {(char) ('A' + index)} is built on {world} this round ({hub.ID}).");
+            TryPlan(index, hubs, worlds);
         }
+
+        // At least one depot goes down whenever a world can take it; a chance of 0 turns hubs off.
+        if (_plan.Count == 0 && chance > 0f && count > 0)
+        {
+            var order = Enumerable.Range(0, count).ToList();
+            _random.Shuffle(order);
+            foreach (var index in order)
+            {
+                if (TryPlan(index, hubs, worlds))
+                    break;
+            }
+        }
+    }
+
+    /// <summary>Plans depot <paramref name="index"/> on a random world that suits its hub and has no other hub.</summary>
+    private bool TryPlan(int index, List<WFPlanetCargoHubPrototype> hubs, List<ProtoId<WFPlanetSurfacePrototype>> worlds)
+    {
+        var hub = hubs[index % hubs.Count];
+        var candidates = worlds.Where(world => hub.Surfaces.Contains(world) && _plan.Values.All(planned => planned.Surface != world)).ToList();
+        if (candidates.Count == 0)
+            return false;
+
+        var world = _random.Pick(candidates);
+        _plan[index] = (world, hub.ID);
+        Log.Info($"Cargo depot {(char) ('A' + index)} is built on {world} this round ({hub.ID}).");
+        return true;
     }
 
     /// <summary>A world with roads, whose ground no fixed city's station already holds.</summary>

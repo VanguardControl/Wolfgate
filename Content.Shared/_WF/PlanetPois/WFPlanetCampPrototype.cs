@@ -108,6 +108,10 @@ public sealed partial class WFPlanetCampProp
     /// <summary>Tiles out from the hull's edge.</summary>
     [DataField]
     public float Distance = 4f;
+
+    /// <summary>The ground it covers round where it's put, as left, bottom, right, top; a single tile when unset.</summary>
+    [DataField]
+    public Box2? Footprint;
 }
 
 /// <summary>How many camps of one kind a world gets.</summary>

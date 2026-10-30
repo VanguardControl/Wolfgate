@@ -275,13 +275,21 @@ public sealed partial class WFPlanetPoiSystem
             bool Open(Vector2i tile) => !_maps.GetTileRef(ground, grid, tile).Tile.IsEmpty
                                         && !_maps.GetAnchoredEntitiesEnumerator(ground, grid, tile).MoveNext(out _);
 
-            Vector2i? RingTile(float distance)
+            // What the camp has claimed so far: a prop's footprint (a tile unless it says more) is kept clear of the rest.
+            var reserved = new List<Box2>();
+            var limit = pending.Reach + CampRing;
+
+            Vector2i? RingTile(float distance, Box2? footprint = null)
             {
-                for (var attempt = 0; attempt < 24; attempt++)
+                var local = footprint ?? new Box2(-0.5f, -0.5f, 0.5f, 0.5f);
+                for (var attempt = 0; attempt < 48; attempt++)
                 {
                     var tile = (pending.Centre + _random.NextAngle().ToVec() * distance).Floored();
-                    if (Open(tile))
-                        return tile;
+                    var box = local.Translated((Vector2) tile + new Vector2(0.5f));
+                    if (!Open(tile) || !FitsCamp(box, pending.Centre, limit, reserved, Open))
+                        continue;
+                    reserved.Add(box);
+                    return tile;
                 }
                 return null;
             }
@@ -293,7 +301,7 @@ public sealed partial class WFPlanetPoiSystem
                 var props = _random.Next(prop.Min, prop.Max + 1);
                 for (var i = 0; i < props; i++)
                 {
-                    if (RingTile(pending.Reach + MathF.Min(prop.Distance, CampRing - 1f)) is { } tile)
+                    if (RingTile(pending.Reach + MathF.Min(prop.Distance, CampRing - 1f), prop.Footprint) is { } tile)
                         Spawn(_random.Pick(prop.Ids), new EntityCoordinates(ground, (Vector2) tile + new Vector2(0.5f)));
                 }
             }
@@ -331,6 +339,36 @@ public sealed partial class WFPlanetPoiSystem
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Whether a prop's footprint lies inside the camp's cleared ring, over open ground, and clear of what the camp has
+    /// already claimed.
+    /// </summary>
+    public static bool FitsCamp(Box2 box, Vector2 centre, float limit, List<Box2> reserved, Func<Vector2i, bool> open)
+    {
+        foreach (var corner in new[] { box.BottomLeft, box.BottomRight, box.TopLeft, box.TopRight })
+        {
+            if (Vector2.Distance(corner, centre) > limit)
+                return false;
+        }
+
+        // Boxes that only touch don't overlap.
+        var inner = box.Enlarged(-0.01f);
+        foreach (var claimed in reserved)
+        {
+            if (claimed.Intersects(inner))
+                return false;
+        }
+
+        for (var x = (int) MathF.Floor(inner.Left); x <= (int) MathF.Floor(inner.Right); x++)
+        for (var y = (int) MathF.Floor(inner.Bottom); y <= (int) MathF.Floor(inner.Top); y++)
+        {
+            if (!open(new Vector2i(x, y)))
+                return false;
+        }
+
+        return true;
     }
 
     /// <summary>Marks a camp or house as somewhere strangers live, so whoever lives there guards it.</summary>

@@ -1,7 +1,8 @@
 # PlanetCargoHubs
 
 Some rounds a cargo depot is built on a planet instead of in space. Each of depots A and B has a
-`wf.planet_cargo_hub_chance` (default 0.35) to go down. The first world to place its sites in a round rolls for
+`wf.planet_cargo_hub_chance` (default 0.35) to go down, and if neither rolls, one is picked anyway: at least one depot
+is on a planet every round that has a world to take it (a chance of 0 turns hubs off). The first world to place its sites in a round rolls for
 both and picks each a world among those built so far: one its `wfPlanetCargoHub` prototype lists, with roads and no
 fixed city on it (the city's station already holds that ground), and no other hub. With caverns, cities and prebuild
 as they are, that is Merak, Fervidus, Thrascias or Aerumna (Asclepiu too when fixed cities are off; never Carcinoma).

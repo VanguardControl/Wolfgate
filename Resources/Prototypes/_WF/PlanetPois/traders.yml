@@ -81,6 +81,7 @@
   - type: Trader
     dialogue: WFPoiMechanicDialogue
     killable: true
+  - type: WFCowardice
   - type: TraderShop
     vendors: [ WFTraderStockMechanic ]
   - type: TraderVehicleRepair
@@ -172,6 +173,8 @@
   - type: Trader
     dialogue: WFPoiInnkeeperDialogue
     killable: true
+  - type: WFCowardice
+    cowardice: 0.4
   - type: TraderShop
     vendors: [ WFTraderStockInn ]
   # Organs, never a brain (it carries a mind).

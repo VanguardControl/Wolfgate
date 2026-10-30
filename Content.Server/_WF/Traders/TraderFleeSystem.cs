@@ -89,9 +89,19 @@ public sealed class TraderFleeSystem : EntitySystem
         if (attacker == ent.Owner || TerminatingOrDeleted(attacker))
             return;
 
+        Spook(ent, attacker, true);
+    }
+
+    /// <summary>
+    /// Sends him running from <paramref name="threat"/>. One who <paramref name="hurt"/> him is never traded with again;
+    /// one who only frightened him is.
+    /// </summary>
+    public void Spook(Entity<TraderComponent> ent, EntityUid threat, bool hurt)
+    {
         var flee = EnsureComp<TraderFleeComponent>(ent);
-        flee.Attackers.Add(attacker);
-        flee.Threat = attacker;
+        if (hurt)
+            flee.Attackers.Add(threat);
+        flee.Threat = threat;
         flee.HurtAt = _timing.CurTime;
         flee.CalmAt = null;
         flee.NextThink = TimeSpan.Zero;
