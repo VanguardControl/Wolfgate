@@ -521,7 +521,13 @@ public sealed class CavernEncounterTest
 
             server.System<SharedTransformSystem>().SetCoordinates(speaker, new EntityCoordinates(map.Grid.Owner, 2.5f, 0.5f));
         });
-        await server.WaitRunTicks(pair.SecondsToTicks(1));
+        // The Echo looks round on its own timer; a slow runner may need a few of them.
+        var caught = false;
+        for (var i = 0; i < 10 && !caught; i++)
+        {
+            await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
+            await server.WaitPost(() => caught = entMan.GetComponent<WFCavernEchoComponent>(echo).Prey.Contains(speaker));
+        }
 
         await server.WaitAssertion(() =>
         {
