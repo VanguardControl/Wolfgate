@@ -166,7 +166,17 @@ public abstract partial class SharedNavMapSystem : EntitySystem
             chunks.Add(origin, chunk.TileData);
         }
 
-        args.State = new NavMapDeltaState(chunks, component.Beacons, component.RegionProperties, new(component.Chunks.Keys));
+        // WOLFGATE(Performance) START: name only the removals since the client's ack, not every chunk on the grid
+        // args.State = new NavMapDeltaState(chunks, component.Beacons, component.RegionProperties, new(component.Chunks.Keys));
+        var removed = new HashSet<Vector2i>();
+        foreach (var (origin, tick) in component.WFRemovedChunks)
+        {
+            if (tick >= args.FromTick)
+                removed.Add(origin);
+        }
+
+        args.State = new NavMapDeltaState(chunks, component.Beacons, component.RegionProperties, removed);
+        // WOLFGATE END
     }
 
     #endregion
@@ -190,21 +200,27 @@ public abstract partial class SharedNavMapSystem : EntitySystem
         Dictionary<Vector2i, int[]> modifiedChunks,
         Dictionary<NetEntity, NavMapBeacon> beacons,
         Dictionary<NetEntity, NavMapRegionProperties> regions,
-        HashSet<Vector2i> allChunks)
+        HashSet<Vector2i> removedChunks) // WOLFGATE(Performance): was allChunks, every chunk on the grid
         : ComponentState, IComponentDeltaState<NavMapState>
     {
         public Dictionary<Vector2i, int[]> ModifiedChunks = modifiedChunks;
         public Dictionary<NetEntity, NavMapBeacon> Beacons = beacons;
         public Dictionary<NetEntity, NavMapRegionProperties> Regions = regions;
-        public HashSet<Vector2i> AllChunks = allChunks;
+        public HashSet<Vector2i> RemovedChunks = removedChunks; // WOLFGATE(Performance): replaces AllChunks
 
         public void ApplyToFullState(NavMapState state)
         {
-            foreach (var key in state.Chunks.Keys)
+            // WOLFGATE(Performance) START: removals are named directly
+            // foreach (var key in state.Chunks.Keys)
+            // {
+            //     if (!AllChunks!.Contains(key))
+            //         state.Chunks.Remove(key);
+            // }
+            foreach (var key in RemovedChunks)
             {
-                if (!AllChunks!.Contains(key))
-                    state.Chunks.Remove(key);
+                state.Chunks.Remove(key);
             }
+            // WOLFGATE END
 
             foreach (var (index, data) in ModifiedChunks)
             {
@@ -231,18 +247,34 @@ public abstract partial class SharedNavMapSystem : EntitySystem
         {
             var chunks = new Dictionary<Vector2i, int[]>(state.Chunks.Count);
 
+            // WOLFGATE(Performance) START: removals are named directly; copies now fill the new data and new chunks count
+            // foreach (var (index, data) in state.Chunks)
+            // {
+            //     if (!AllChunks!.Contains(index))
+            //         continue;
+            //
+            //     var newData = chunks[index] = new int[ArraySize];
+            //
+            //     if (ModifiedChunks.TryGetValue(index, out var updatedData))
+            //         Array.Copy(newData, updatedData, ArraySize);
+            //     else
+            //         Array.Copy(newData, data, ArraySize);
+            // }
             foreach (var (index, data) in state.Chunks)
             {
-                if (!AllChunks!.Contains(index))
+                if (RemovedChunks.Contains(index) || ModifiedChunks.ContainsKey(index))
                     continue;
 
                 var newData = chunks[index] = new int[ArraySize];
-
-                if (ModifiedChunks.TryGetValue(index, out var updatedData))
-                    Array.Copy(newData, updatedData, ArraySize);
-                else
-                    Array.Copy(newData, data, ArraySize);
+                Array.Copy(data, newData, ArraySize);
             }
+
+            foreach (var (index, data) in ModifiedChunks)
+            {
+                var newData = chunks[index] = new int[ArraySize];
+                Array.Copy(data, newData, ArraySize);
+            }
+            // WOLFGATE END
 
             return new NavMapState(chunks, new(Beacons), new(Regions));
         }

@@ -92,6 +92,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
         {
             chunk = new(origin);
             component.Chunks[origin] = chunk;
+            component.WFRemovedChunks.Remove(origin); // WOLFGATE(Performance): back in use, so no longer a removal
         }
 
         return chunk;
@@ -239,6 +240,12 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
     private void RefreshGrid(EntityUid uid, NavMapComponent component, MapGridComponent mapGrid)
     {
         // Clear stale data
+        // WOLFGATE(Performance) START: deltas name removed chunks; the rebuild below takes back any still in use
+        foreach (var origin in component.Chunks.Keys)
+        {
+            component.WFRemovedChunks[origin] = _gameTiming.CurTick;
+        }
+        // WOLFGATE END
         component.Chunks.Clear();
         component.Beacons.Clear();
 
@@ -322,6 +329,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
         }
 
         entity.Comp.Chunks.Remove(chunk.Origin);
+        entity.Comp.WFRemovedChunks[chunk.Origin] = _gameTiming.CurTick; // WOLFGATE(Performance): deltas name removed chunks
         Dirty(entity);
         return true;
     }
