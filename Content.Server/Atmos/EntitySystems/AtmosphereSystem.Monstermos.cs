@@ -96,6 +96,8 @@ namespace Content.Server.Atmos.EntitySystems
                         // WOLFGATE(Performance) START: a room refilling into a hole vents from the same tile forever; let it leak quietly
                         if (!WFBreachLooping(ent.Owner, tile))
                             ExplosivelyDepressurize(ent, tile, cycleNum);
+                        else
+                            WFMarkEqualized(tileCount, cycleNum);
                         // WOLFGATE END
                         return;
                     }

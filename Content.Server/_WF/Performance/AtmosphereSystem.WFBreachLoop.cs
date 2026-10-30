@@ -69,6 +69,19 @@ public sealed partial class AtmosphereSystem
         return true;
     }
 
+    /// <summary>
+    /// Marks the tiles a quieted zone search reached as done this cycle, so the room's other active tiles don't repeat
+    /// the search. Gas sharing between them is untouched.
+    /// </summary>
+    private void WFMarkEqualized(int tileCount, int cycleNum)
+    {
+        for (var i = 0; i < tileCount; i++)
+        {
+            if (_equalizeTiles[i] is { } tile)
+                tile.MonstermosInfo.LastCycle = cycleNum;
+        }
+    }
+
     /// <summary>Drops runs that ended and are no longer quieted, once a minute.</summary>
     private void WFPruneBreachRuns(TimeSpan now)
     {
