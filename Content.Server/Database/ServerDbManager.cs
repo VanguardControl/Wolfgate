@@ -517,7 +517,8 @@ namespace Content.Server.Database
         public Task SaveSelectedCharacterIndexAsync(NetUserId userId, int index)
         {
             DbWriteOpsMetric.Inc();
-            return RunDbCommand(() => _db.SaveSelectedCharacterIndexAsync(userId, index));
+            // WOLFGATE(ProfileSaves): a selection stays in order with a slot deletion, which also writes the selection
+            return _wfProfileWrites.Run(userId, () => RunDbCommand(() => _db.SaveSelectedCharacterIndexAsync(userId, index)));
         }
 
         public Task SaveCharacterSlotAsync(NetUserId userId, ICharacterProfile? profile, int slot)

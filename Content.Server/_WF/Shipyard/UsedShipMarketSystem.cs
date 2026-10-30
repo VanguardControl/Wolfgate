@@ -59,6 +59,16 @@ public sealed class UsedShipListing
     private string? _data;
 
     /// <summary>
+    /// Whether the grid's YAML is written and the listing can go on the lot.
+    /// </summary>
+    public bool Ready => Writing == null || Writing.IsCompletedSuccessfully && Writing.GetAwaiter().GetResult() != null;
+
+    /// <summary>
+    /// Whether writing the grid's YAML failed, which loses the ship.
+    /// </summary>
+    public bool WriteFailed => Writing is { IsCompleted: true } && !Ready;
+
+    /// <summary>
     /// The grid, exactly as it was when it was bought. Empty if writing it failed.
     /// </summary>
     public string Data
@@ -127,7 +137,7 @@ public sealed class UsedShipMarketSystem : EntitySystem
     public List<UsedShipListing> GetAvailable()
     {
         var now = _timing.CurTime;
-        return _listings.Where(l => l.AvailableAt <= now).OrderBy(l => l.Price).ToList();
+        return _listings.Where(l => l.AvailableAt <= now && l.Ready).OrderBy(l => l.Price).ToList();
     }
 
     /// <summary>
@@ -135,7 +145,7 @@ public sealed class UsedShipMarketSystem : EntitySystem
     /// </summary>
     public bool TryGetAvailableListing(int id, [NotNullWhen(true)] out UsedShipListing? listing)
     {
-        listing = _listings.FirstOrDefault(l => l.Id == id && l.AvailableAt <= _timing.CurTime);
+        listing = _listings.FirstOrDefault(l => l.Id == id && l.AvailableAt <= _timing.CurTime && l.Ready);
         return listing != null;
     }
 
@@ -344,10 +354,19 @@ public sealed class UsedShipMarketSystem : EntitySystem
         if (_listings.Count == 0)
             return;
 
+        for (var i = _listings.Count - 1; i >= 0; i--)
+        {
+            if (!_listings[i].WriteFailed)
+                continue;
+
+            Log.Error($"Could not copy {_listings[i].ShipName} for the used lot; it is lost.");
+            _listings.RemoveAt(i);
+        }
+
         var now = _timing.CurTime;
         foreach (var listing in _listings)
         {
-            if (listing.Announced || listing.AvailableAt > now)
+            if (listing.Announced || listing.AvailableAt > now || !listing.Ready)
                 continue;
 
             listing.Announced = true;

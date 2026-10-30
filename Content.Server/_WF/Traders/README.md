@@ -74,6 +74,7 @@ while they stay near and calms down once they are far off or gone.
 - [`Content.IntegrationTests/Tests/_WF/Traders/TraderShipTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/TraderShipTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/TraderStockTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/TraderStockTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/TraderTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/TraderTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Traders/UsedShipListingReadyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/UsedShipListingReadyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/UsedShipRetaliationSaveTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/UsedShipRetaliationSaveTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/UsedShipSaveTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/UsedShipSaveTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/VendingCashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/VendingCashTest.cs)

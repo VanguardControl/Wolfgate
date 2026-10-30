@@ -272,6 +272,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
             RefreshTileEntityContents(uid, component, mapGrid, chunkOrigin, tile, setFloor: true);
         }
 
+        WFTrimRemovedChunks(component); // WOLFGATE(Performance): the history of removed chunks stays bounded
         Dirty(uid, component);
     }
 
@@ -329,7 +330,9 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
         }
 
         entity.Comp.Chunks.Remove(chunk.Origin);
-        entity.Comp.WFRemovedChunks[chunk.Origin] = _gameTiming.CurTick; // WOLFGATE(Performance): deltas name removed chunks
+        // WOLFGATE(Performance): deltas name removed chunks, and the history of them stays bounded
+        entity.Comp.WFRemovedChunks[chunk.Origin] = _gameTiming.CurTick;
+        WFTrimRemovedChunks(entity.Comp);
         Dirty(entity);
         return true;
     }

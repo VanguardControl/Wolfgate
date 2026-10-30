@@ -10,4 +10,11 @@ public sealed partial class NavMapComponent
     /// </summary>
     [ViewVariables]
     public Dictionary<Vector2i, GameTick> WFRemovedChunks = new();
+
+    /// <summary>
+    /// Server: newest removal dropped from <see cref="WFRemovedChunks"/>. A client that hasn't seen past it needs a full
+    /// state, since no delta can name what it missed.
+    /// </summary>
+    [ViewVariables]
+    public GameTick WFRemovedTrimmedTo;
 }

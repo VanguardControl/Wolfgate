@@ -144,7 +144,8 @@ public abstract partial class SharedNavMapSystem : EntitySystem
         Dictionary<Vector2i, int[]> chunks;
 
         // Should this be a full component state or a delta-state?
-        if (args.FromTick <= component.CreationTick)
+        // WOLFGATE(Performance): a client behind the trimmed removal history gets a full state
+        if (args.FromTick <= component.CreationTick || args.FromTick <= component.WFRemovedTrimmedTo)
         {
             // Full state
             chunks = new(component.Chunks.Count);

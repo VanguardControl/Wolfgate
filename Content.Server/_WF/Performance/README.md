@@ -33,7 +33,8 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   The full walk over about 52,000 entities took 38% of a live client's game thread. A height joins the list from
   server state, prediction or `SetZPosition`, so raise an entity through those rather than writing `LocalPosition`.
 - Nav map deltas (`NavMapComponent.WFDelta`) name the chunks removed since the client's ack instead of listing every
-  chunk on the grid, which cost about 30 KB per update on a planet map.
+  chunk on the grid, which cost about 30 KB per update on a planet map. The history keeps the newest removals
+  (`NavMapSystem.WFRemoved`), and a client behind what it dropped gets a full state.
 - A ship sale serialises the hull on the main thread as before, but writes its YAML text on a worker
   (`ShipyardSystem.TrySaveShipDeferred`). That takes about a quarter off the hitch of each sale; serialising is the rest.
 - One-second jobs take a tick each instead of landing together (`WFTickSpread`): radius heaters, drains and wound
@@ -56,6 +57,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/_WF/Performance/GCQueuePrototype.WFMinAge.cs`](GCQueuePrototype.WFMinAge.cs)
 - [`Content.Server/_WF/Performance/GCQueueSystem.WFMinAge.cs`](GCQueueSystem.WFMinAge.cs)
 - [`Content.Server/_WF/Performance/IgnitionSourceSystem.WFLit.cs`](IgnitionSourceSystem.WFLit.cs)
+- [`Content.Server/_WF/Performance/NavMapSystem.WFRemoved.cs`](NavMapSystem.WFRemoved.cs)
 - [`Content.Server/_WF/Performance/WFAsteroidCullSystem.cs`](WFAsteroidCullSystem.cs)
 - [`Content.Server/_WF/Performance/WFDockIndexSystem.cs`](WFDockIndexSystem.cs)
 - [`Content.Server/_WF/Performance/WorldControllerSystem.WFUnloadGrace.cs`](WorldControllerSystem.WFUnloadGrace.cs)
@@ -90,6 +92,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFGroundSampleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGroundSampleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFIgnitionLitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFIgnitionLitTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFNavMapDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFNavMapDeltaTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Performance/WFNavMapTrimTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFNavMapTrimTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFRoofDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFRoofDeltaTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFZLevelOffsetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFZLevelOffsetTest.cs)
@@ -170,7 +173,8 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/Pinpointer/NavMapSystem.cs`](../../Pinpointer/NavMapSystem.cs)
   - back in use, so no longer a removal
   - deltas name removed chunks; the rebuild below takes back any still in use
-  - deltas name removed chunks
+  - the history of removed chunks stays bounded
+  - deltas name removed chunks, and the history of them stays bounded
 - [`Content.Server/Shuttles/Systems/DockingSystem.Shuttle.cs`](../../Shuttles/Systems/DockingSystem.Shuttle.cs)
   - rule out pairs that land elsewhere before the tile walk, not after
   - chunk-first walk, same result; this ran per dock pair for every fixture
@@ -213,6 +217,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - only static bodies count below, so skip the rest of the lookup and keep the set small
 - [`Content.Shared/Movement/Systems/SharedMoverController.Input.cs`](../../../Content.Shared/Movement/Systems/SharedMoverController.Input.cs): Equals(object) boxed the nullable every call
 - [`Content.Shared/Pinpointer/SharedNavMapSystem.cs`](../../../Content.Shared/Pinpointer/SharedNavMapSystem.cs)
+  - a client behind the trimmed removal history gets a full state
   - name only the removals since the client's ack, not every chunk on the grid
   - was allChunks, every chunk on the grid
   - replaces AllChunks
