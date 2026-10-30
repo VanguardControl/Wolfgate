@@ -10,6 +10,8 @@
     radius: 8
     energy: 3
     color: "#FFC90C"
+  - type: WFBonfireFuel
+    infinite: true
   - type: WFCavernTelegraph
     sound:
       collection: WFCavernEncounterCampFire

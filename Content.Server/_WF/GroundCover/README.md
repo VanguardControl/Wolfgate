@@ -26,7 +26,28 @@ send), and for a player's mob only once that player was sent the chunk; the clie
 own mob only and works its slowdown out again after each game state, as the server's speed for a tick can lag its tile.
 Footprints are client-side only (`WFSnowPrintsSystem`, `WFSnowPrintsOverlay`): each client lays them from the humanoids
 it sees walk on cover, up to 6 a tile and 1500 in all, and they fade over four minutes, fill in under a third of a level
-of fresh snow, and go when their tile is shoveled or melts below cover. They use the BloodTrail footprint sprites.
+of fresh snow, fade as the snow under them melts thin (full while it is a level deep or as deep as when they were
+laid, none when bare), and go when their tile is shoveled or melts bare. They use the BloodTrail footprint sprites.
+
+Fire and heat melt snow. A lit radiant heater (fireplaces, torches, braziers, bonfires) melts the snow within its
+warmth radius, falling off with distance. Anything on fire (`FlammableComponent.OnFire`: a burning mob or item) is
+given a temporary radiant heater (radius 1.5, up to body heat; `WFBurnWarmthComponent` marks it) every two seconds
+and loses it when the fire is out, so the same pass melts round it and nearby bodies and the warmth HUD feel it. An
+atmos hotspot melts 12 levels a minute on its tile and half that on the eight round it (`MeltHotspots`).
+
+Liquids on snow: a new puddle that is warm (its solution at 303 K or more, or holding blood, taken as 310 K) melts 1.5
+depth units for each unit of it, up to 20 units, on its tile, once (`WFPuddleMeltComponent`). Blood and other coloured
+puddles also stain the snow, drawn client-side (`WFSnowStainSystem`, `WFSnowStainOverlay`): the client reads each
+puddle on snow from its appearance data (colour and volume), keeps a soft blot of that colour per tile, which stays
+after the puddle is gone for ten minutes and fades with the snow over it as footprints do. Clear water doesn't stain.
+
+Vehicle tracks: when a moving vehicle lays its tread marks (`WFVehicleTrackSystem`), it raises
+`WFVehicleTreadsEvent` with the two tread points, and the snow under each is pressed down a level
+(`TrackCompression`), once for each tile a tread enters. Each client also draws two tread lines along every vehicle's
+path over snow (`WFSnowTracksSystem`, `WFSnowTracksOverlay`, up to 800 marks, five minutes), which fill in under fresh
+snow and go when the tile is pressed bare, shoveled or melted.
+
+Bonfires burn down and need fuel: see `_WF/Bonfires`.
 
 The client draws it all with one shader in two passes. `WFGroundCoverOverlay` runs over the floor, under entities: it
 takes the floor as the screen texture and draws the wet floor, puddles and snow from it, lighting them by hand. At Full
@@ -83,14 +104,19 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 
 ### Server
 
+- [`Content.Server/_WF/GroundCover/WFBurnWarmthComponent.cs`](WFBurnWarmthComponent.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.cs`](WFGroundCoverSystem.cs)
+- [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Fire.cs`](WFGroundCoverSystem.Fire.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Heat.cs`](WFGroundCoverSystem.Heat.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Ice.cs`](WFGroundCoverSystem.Ice.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.IceBreak.cs`](WFGroundCoverSystem.IceBreak.cs)
+- [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Liquids.cs`](WFGroundCoverSystem.Liquids.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Network.cs`](WFGroundCoverSystem.Network.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Shovel.cs`](WFGroundCoverSystem.Shovel.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Snow.cs`](WFGroundCoverSystem.Snow.cs)
+- [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Tracks.cs`](WFGroundCoverSystem.Tracks.cs)
 - [`Content.Server/_WF/GroundCover/WFIceCoverComponent.cs`](WFIceCoverComponent.cs)
+- [`Content.Server/_WF/GroundCover/WFPuddleMeltComponent.cs`](WFPuddleMeltComponent.cs)
 - [`Content.Server/_WF/GroundCover/WFSnowCoverComponent.cs`](WFSnowCoverComponent.cs)
 - [`Content.Server/_WF/GroundCover/WFSnowSlowSystem.cs`](WFSnowSlowSystem.cs)
 
@@ -114,6 +140,10 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 - [`Content.Client/_WF/GroundCover/WFSnowPrintsOverlay.cs`](../../../Content.Client/_WF/GroundCover/WFSnowPrintsOverlay.cs)
 - [`Content.Client/_WF/GroundCover/WFSnowPrintsSystem.cs`](../../../Content.Client/_WF/GroundCover/WFSnowPrintsSystem.cs)
 - [`Content.Client/_WF/GroundCover/WFSnowSlowSystem.cs`](../../../Content.Client/_WF/GroundCover/WFSnowSlowSystem.cs)
+- [`Content.Client/_WF/GroundCover/WFSnowStainOverlay.cs`](../../../Content.Client/_WF/GroundCover/WFSnowStainOverlay.cs)
+- [`Content.Client/_WF/GroundCover/WFSnowStainSystem.cs`](../../../Content.Client/_WF/GroundCover/WFSnowStainSystem.cs)
+- [`Content.Client/_WF/GroundCover/WFSnowTracksOverlay.cs`](../../../Content.Client/_WF/GroundCover/WFSnowTracksOverlay.cs)
+- [`Content.Client/_WF/GroundCover/WFSnowTracksSystem.cs`](../../../Content.Client/_WF/GroundCover/WFSnowTracksSystem.cs)
 
 ### Integration tests
 
@@ -122,6 +152,8 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverOverlayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverOverlayTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverVehicleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverVehicleTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/GroundCover/SnowInteractionsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/SnowInteractionsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/GroundCover/SnowMarksTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/SnowMarksTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/SnowWalkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/SnowWalkTest.cs)
 
 ### Prototypes

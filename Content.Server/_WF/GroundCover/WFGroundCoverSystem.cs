@@ -36,6 +36,7 @@ public sealed partial class WFGroundCoverSystem : EntitySystem
         InitializeShovel();
         InitializeIce();
         InitializeIceBreak();
+        InitializeTracks();
     }
 
     public override void Shutdown()
@@ -74,6 +75,8 @@ public sealed partial class WFGroundCoverSystem : EntitySystem
 
         UpdateSnow(now);
         UpdateHeat(now);
+        UpdateFire(now);
+        UpdateLiquids(now);
         UpdateIce(now);
         UpdateNetwork(now);
     }

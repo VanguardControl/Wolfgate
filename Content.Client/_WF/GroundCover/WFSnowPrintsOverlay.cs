@@ -29,8 +29,8 @@ public sealed class WFSnowPrintsOverlay : Overlay
         _prints = prints;
         _sprite = _entMan.System<SpriteSystem>();
         _transform = _entMan.System<SharedTransformSystem>();
-        // Over the snow cover the ground cover overlay draws at 10.
-        ZIndex = 11;
+        // Over the snow cover the ground cover overlay draws at 10 and the stains at 11.
+        ZIndex = 12;
         _textures = new[]
         {
             _sprite.Frame0(new SpriteSpecifier.Rsi(Rsi, "footprint-left-bare-human")),

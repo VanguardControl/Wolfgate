@@ -11,7 +11,8 @@ namespace Content.Client._WF.GroundCover;
 
 /// <summary>
 /// Footprints in snow cover, laid on this client from the mobs it sees walk, so nothing is networked. They fade with
-/// time, fill in as fresh snow lands on them, and go when their tile is shoveled or melts bare.
+/// time, with the snow under them as it thins, fill in as fresh snow lands on them, and go when their tile is shoveled
+/// or melts bare.
 /// </summary>
 public sealed class WFSnowPrintsSystem : EntitySystem
 {
@@ -33,6 +34,9 @@ public sealed class WFSnowPrintsSystem : EntitySystem
 
     /// <summary>Depth units of fresh snow that fill a print in.</summary>
     public const int FillUnits = WFSnowCover.UnitsPerLevel / 3;
+
+    /// <summary>Depth a print needs to show in full: under it, a print fades as the snow thins, to nothing when bare.</summary>
+    public const int FullDepth = WFSnowCover.UnitsPerLevel;
 
     public static readonly TimeSpan Lifetime = TimeSpan.FromMinutes(4);
 
@@ -79,7 +83,13 @@ public sealed class WFSnowPrintsSystem : EntitySystem
     public float Visibility(WFSnowPrint print)
     {
         var age = (float) ((_timing.CurTime - print.Laid) / Lifetime);
-        return Math.Clamp(1f - age, 0f, 1f) * (1f - print.Filled);
+        return Math.Clamp(1f - age, 0f, 1f) * (1f - print.Filled) * print.Thickness;
+    }
+
+    /// <summary>How much of a print's snow is left, 1 while the snow is as deep as it was or past <see cref="FullDepth"/>, 0 when bare.</summary>
+    public static float Thickness(int laid, int depth)
+    {
+        return Math.Clamp(depth / (float) Math.Min(laid, FullDepth), 0f, 1f);
     }
 
     public override void FrameUpdate(float frameTime)
@@ -160,7 +170,7 @@ public sealed class WFSnowPrintsSystem : EntitySystem
     }
 
     /// <summary>Lays one print on a tile, making room on it if it's full.</summary>
-    public void Lay(EntityUid grid, Vector2i tile, Vector2 position, Angle rotation, WFSnowPrintKind kind, int depth)
+    public WFSnowPrint Lay(EntityUid grid, Vector2i tile, Vector2 position, Angle rotation, WFSnowPrintKind kind, int depth)
     {
         if (!_prints.TryGetValue(grid, out var tiles))
         {
@@ -185,6 +195,7 @@ public sealed class WFSnowPrintsSystem : EntitySystem
         list.Add(print);
         _order.Enqueue(print);
         Count++;
+        return print;
     }
 
     /// <summary>Drops prints whose snow is gone or has been filled in, after a snow update.</summary>
@@ -207,7 +218,8 @@ public sealed class WFSnowPrintsSystem : EntitySystem
                 {
                     var print = list[i];
                     print.Filled = Math.Clamp((depth - print.Depth) / (float) FillUnits, 0f, 1f);
-                    if (depth >= WFSnowCover.CoverFrom && print.Filled < 1f)
+                    print.Thickness = Thickness(print.Depth, depth);
+                    if (depth > 0 && print.Filled < 1f)
                         continue;
 
                     print.Gone = true;
@@ -283,6 +295,9 @@ public sealed class WFSnowPrint(EntityUid grid, Vector2i tile, Vector2 position,
 
     /// <summary>How far fresh snow has filled it, 0 to 1.</summary>
     public float Filled;
+
+    /// <summary>How much of its snow is left, 1 to 0, as melt thins the cover.</summary>
+    public float Thickness = 1f;
 
     public bool Gone;
 }

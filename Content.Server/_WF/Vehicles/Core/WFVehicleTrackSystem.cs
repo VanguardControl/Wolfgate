@@ -85,6 +85,9 @@ public sealed class WFVehicleTrackSystem : EntitySystem
                         Color.FromHex("#35302688"), mover.Heading, cleanable: true))
                     _marks.Enqueue((grid, id, _timing.CurTime + TimeSpan.FromMinutes(3)));
             }
+
+            var treads = new WFVehicleTreadsEvent(uid, grid, middle + side, middle - side);
+            RaiseLocalEvent(ref treads);
         }
     }
 
