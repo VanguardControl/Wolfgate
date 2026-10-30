@@ -74,6 +74,7 @@ while they stay near and calms down once they are far off or gone.
 - [`Content.IntegrationTests/Tests/_WF/Traders/TraderShipTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/TraderShipTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/TraderStockTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/TraderStockTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/TraderTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/TraderTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Traders/UsedShipRetaliationSaveTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/UsedShipRetaliationSaveTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/UsedShipSaveTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/UsedShipSaveTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traders/VendingCashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traders/VendingCashTest.cs)
 
@@ -122,6 +123,7 @@ while they stay near and calms down once they are far off or gone.
   - a trader hosting this console has no ActivatableUI, so fall back to whichever shipyard key is open on it.
   - shipyard key lookup for trader-hosted consoles
   - a trader hosting this console may refuse to touch an existing deed.
+- [`Content.Server/NPC/Components/NPCRetaliationComponent.cs`](../../NPC/Components/NPCRetaliationComponent.cs): not saved; missing attackers collide as "invalid" keys and fail the ship copy
 - [`Content.Server/NPC/HTN/HTNSystem.cs`](../../NPC/HTN/HTNSystem.cs)
   - log and drop this NPC's brain instead of rethrowing, which ended the loop for every NPC.
   - one broken NPC must not take the whole update loop down with it.
