@@ -159,7 +159,7 @@ public sealed partial class WFCompanySystem : EntitySystem
                 break;
             }
             // A synchronous database refuses overlapping requests, such as another system's write still finishing; retry.
-            catch (InvalidOperationException) when (attempt < 10)
+            catch (InvalidOperationException) when (attempt < 60)
             {
                 await Task.Delay(50);
             }
@@ -282,7 +282,7 @@ public sealed partial class WFCompanySystem : EntitySystem
     private void OnPlayerStatus(object? sender, SessionStatusEventArgs args)
     {
         if (args.NewStatus == SessionStatus.InGame)
-            _ = RefreshProfileIds(args.Session.UserId);
+            Track(RefreshProfileIds(args.Session.UserId));
         else if (args.NewStatus == SessionStatus.Disconnected)
         {
             foreach (var member in _unsavedTime.Where(member => member.User == args.Session.UserId).ToArray())
@@ -298,13 +298,22 @@ public sealed partial class WFCompanySystem : EntitySystem
 
     private async Task RefreshProfileIds(NetUserId user)
     {
-        try
+        for (var attempt = 0; ; attempt++)
         {
-            _profileIds[user] = await _db.GetProfileIdsAsync(user.UserId);
-        }
-        catch (Exception e)
-        {
-            _log.Error($"Could not read profile ids for {user}: {e}");
+            try
+            {
+                _profileIds[user] = await _db.GetProfileIdsAsync(user.UserId);
+                return;
+            }
+            catch (InvalidOperationException) when (attempt < 60)
+            {
+                await Task.Delay(50);
+            }
+            catch (Exception e)
+            {
+                _log.Error($"Could not read profile ids for {user}: {e}");
+                return;
+            }
         }
     }
 
@@ -314,7 +323,7 @@ public sealed partial class WFCompanySystem : EntitySystem
         if (_nextProfileRefresh.TryGetValue(user, out var next) && next > _timing.CurTime)
             return;
         _nextProfileRefresh[user] = _timing.CurTime + TimeSpan.FromSeconds(10);
-        _ = RefreshProfileIds(user);
+        Track(RefreshProfileIds(user));
     }
 
     /// <summary>The acting character, rereading profile ids once when a new slot isn't known yet.</summary>

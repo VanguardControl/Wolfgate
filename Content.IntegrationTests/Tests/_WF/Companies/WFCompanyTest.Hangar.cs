@@ -131,6 +131,8 @@ public sealed partial class WFCompanyTest
             await pair.RunTicksSync(pair.SecondsToTicks(0.5f));
             await Crew(new(WFRoundSetupAction.Leave) { LobbyId = switched.OwnLobby!.Value });
 
+            // Starting a round reads the database off the main thread, which the synchronous test database refuses mid-request.
+            await Run(() => companies.Flush());
             await server.WaitPost(() =>
             {
                 ticker.SetGamePreset("Sandbox");

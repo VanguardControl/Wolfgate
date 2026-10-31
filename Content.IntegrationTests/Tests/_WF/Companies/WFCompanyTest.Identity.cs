@@ -74,6 +74,8 @@ public sealed partial class WFCompanyTest
             id = state.Own!.Id;
             Assert.That(state.CanJoinRound, Is.False, "Joining as a rank needs a running round.");
 
+            // Starting a round reads the database off the main thread, which the synchronous test database refuses mid-request.
+            await FlushCompanies();
             await server.WaitPost(() =>
             {
                 ticker.SetGamePreset("Sandbox");
