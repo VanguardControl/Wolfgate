@@ -359,7 +359,7 @@ public sealed class UsedShipMarketSystem : EntitySystem
             if (!_listings[i].WriteFailed)
                 continue;
 
-            Log.Error($"Could not copy {_listings[i].ShipName} for the used lot; it is lost.");
+            Log.Warning($"Dropped {_listings[i].ShipName} from the used lot; its copy could not be written.");
             _listings.RemoveAt(i);
         }
 
