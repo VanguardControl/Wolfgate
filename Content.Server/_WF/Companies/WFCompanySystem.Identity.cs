@@ -45,6 +45,8 @@ public sealed partial class WFCompanySystem
 
     /// <summary>Rank titles waiting for a member who chose Join as rank to finish spawning.</summary>
     private readonly Dictionary<NetUserId, string> _rankJoins = new();
+    /// <summary>Records made since the last spawn finished.</summary>
+    private readonly List<(StationRecordKey Key, GeneralStationRecord Record, HumanoidCharacterProfile Profile)> _newRecords = new();
     /// <summary>Company id by the body of each member playing their member character.</summary>
     private readonly Dictionary<EntityUid, int> _companyBodies = new();
     private TimeSpan _nextRadioSync;
@@ -68,11 +70,26 @@ public sealed partial class WFCompanySystem
         });
     }
 
+    /// <summary>The slot of a character being spawned. Buying a paid loadout replaces the stored profile mid-spawn, so the
+    /// spawned copy may no longer be in the preferences; spawns always use the selected character.</summary>
+    private static int? SpawnedSlot(PlayerPreferences prefs, HumanoidCharacterProfile profile)
+    {
+        if (prefs.IndexOfCharacter(profile) is >= 0 and var slot)
+            return slot;
+        return prefs.SelectedCharacter.Name == profile.Name ? prefs.SelectedCharacterIndex : null;
+    }
+
     /// <summary>The rank title a character shows in this job: only in their rank's own job or the overflow job, which says nothing else about them.</summary>
     public string? RankTitleFor(ICommonSession session, HumanoidCharacterProfile profile, string? job)
     {
-        if (_preferences.GetPreferencesOrNull(session.UserId) is not { } prefs || prefs.IndexOfCharacter(profile) is not (>= 0 and var slot) ||
-            !_profileIds.TryGetValue(session.UserId, out var ids) || !ids.TryGetValue(slot, out var id) || CompanyOf(id) is not { } company)
+        if (_preferences.GetPreferencesOrNull(session.UserId) is not { } prefs || SpawnedSlot(prefs, profile) is not { } slot)
+            return null;
+        return RankTitleFor(session.UserId, slot, job);
+    }
+
+    private string? RankTitleFor(NetUserId user, int slot, string? job)
+    {
+        if (!_profileIds.TryGetValue(user, out var ids) || !ids.TryGetValue(slot, out var id) || CompanyOf(id) is not { } company)
             return null;
         var member = company.Members[id];
         if (job != BaseJob(company, member) && job != WFCompanyPolicy.OverflowJob)
@@ -80,28 +97,13 @@ public sealed partial class WFCompanySystem
         return TitleOf(company, member) is { Length: > 0 } title ? title : null;
     }
 
-    /// <summary>Puts the rank title on a member's records as they're made, the sector-wide one included.</summary>
-    private void OnRecordCreated(AfterGeneralRecordCreatedEvent args)
-    {
-        if (args.Profile is not { } profile)
-            return;
-        foreach (var session in _players.Sessions)
-        {
-            if (_preferences.GetPreferencesOrNull(session.UserId)?.IndexOfCharacter(profile) is not >= 0)
-                continue;
-            if (RankTitleFor(session, profile, args.Record.JobPrototype) is { } title)
-            {
-                args.Record.JobTitle = title;
-                _records.Synchronize(args.Key);
-            }
-            return;
-        }
-    }
+    /// <summary>Holds records made during a spawn, the sector-wide one included, until the spawn finishes and the rank title is known.</summary>
+    private void OnRecordCreated(AfterGeneralRecordCreatedEvent args) => _newRecords.Add((args.Key, args.Record, args.Profile));
 
     /// <summary>Marks the member's ID with their company and shows their rank in place of the job's title.</summary>
-    private void ApplyMemberIdentity(ICommonSession session, EntityUid body, int slot, HumanoidCharacterProfile spawned, string? job)
+    private void ApplyMemberIdentity(ICommonSession session, EntityUid body, int slot, string? job, (StationRecordKey Key, GeneralStationRecord Record)[] records)
     {
-        var title = (_rankJoins.Remove(session.UserId, out var joined) ? joined : null) ?? RankTitleFor(session, spawned, job);
+        var title = (_rankJoins.Remove(session.UserId, out var joined) ? joined : null) ?? RankTitleFor(session.UserId, slot, job);
         if (!_profileIds.TryGetValue(session.UserId, out var ids) || !ids.TryGetValue(slot, out var profile) ||
             CompanyOf(profile) is not { } company)
             return;
@@ -111,6 +113,7 @@ public sealed partial class WFCompanySystem
             return;
         CaptureMemberKey(profile, card);
         var marker = EnsureComp<WFCompanyIdComponent>(card);
+        marker.CompanyId = company.Id;
         marker.Company = company.Name;
         marker.Tag = company.Tag;
         marker.Rank = rank;
@@ -131,9 +134,11 @@ public sealed partial class WFCompanySystem
         }
         _idCards.TryChangeJobTitle(card, title);
         marker.Title = card.Comp.LocalizedJobTitle ?? title;
-        if (TryComp<StationRecordKeyStorageComponent>(card, out var storage) && storage.Key is { } key &&
-            _records.TryGetRecord<GeneralStationRecord>(key, out var record))
+        // A false sector record names a fake job, so it keeps that job's title.
+        foreach (var (key, record) in records)
         {
+            if (record.JobPrototype != shownJob)
+                continue;
             record.JobTitle = title;
             _records.Synchronize(key);
         }

@@ -133,7 +133,6 @@ tables via `ServerDbBase.Companies`); it reloads at each round restart once pend
 - [`Content.Server/_WF/Companies/WFCompanySystem.Admin.cs`](WFCompanySystem.Admin.cs)
 - [`Content.Server/_WF/Companies/WFCompanySystem.cs`](WFCompanySystem.cs)
 - [`Content.Server/_WF/Companies/WFCompanySystem.Hangar.cs`](WFCompanySystem.Hangar.cs)
-- [`Content.Server/_WF/Companies/WFCompanySystem.IconPresets.cs`](WFCompanySystem.IconPresets.cs)
 - [`Content.Server/_WF/Companies/WFCompanySystem.Identity.cs`](WFCompanySystem.Identity.cs)
 - [`Content.Server/_WF/Companies/WFCompanySystem.Loadouts.cs`](WFCompanySystem.Loadouts.cs)
 - [`Content.Server/_WF/Companies/WFCompanySystem.Payroll.cs`](WFCompanySystem.Payroll.cs)
@@ -211,6 +210,7 @@ tables via `ServerDbBase.Companies`); it reloads at each round restart once pend
   - player-run companies, their ranks, members and ledger
   - names and tags are unique; a character's membership goes with the character
 - [`Content.Server/_Mono/Company/CompanySystem.cs`](../../_Mono/Company/CompanySystem.cs): player companies replace the profile company; jobs still set factions
+- [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs): a member's ship flies under their company
 - [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.cs): company hangar ships belong to the company and can't be sold
 - [`Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs`](../../Cargo/Systems/CargoSystem.Shuttle.cs): the seller's company takes its cut
 - [`Content.Server/CrewManifest/CrewManifestSystem.cs`](../../CrewManifest/CrewManifestSystem.cs)

@@ -31,11 +31,6 @@ public sealed partial class WFCompanySystem
                 RaiseNetworkEvent(new WFCompanyRankIconEvent(found.Id, found.IconVersion, found.Icon), session.Channel);
             return;
         }
-        if (msg.Action == WFCompanyAction.RequestIconPreset)
-        {
-            SendIconPreset(session, msg.Name);
-            return;
-        }
         if (msg.Action == WFCompanyAction.RequestLogo)
         {
             if (Loaded && _companies.TryGetValue(msg.CompanyId, out var shown))

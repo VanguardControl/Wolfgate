@@ -1,5 +1,6 @@
 using System.Linq;
 using Content.Server._WF.ShipAccess;
+using Content.Shared._Mono.Company;
 using Content.Shared._WF.Companies;
 using Content.Shared._WF.ShipAccess;
 using Content.Shared.Access.Components;
@@ -90,20 +91,62 @@ public sealed partial class WFCompanySystem
             else
                 _shipAccess.SetCompany((uid, access), null, null, Array.Empty<WFShipAccessKey>());
         }
+        var disbanded = new List<EntityUid>();
         var flown = EntityQueryEnumerator<WFCompanyShipComponent, IFFComponent>();
         while (flown.MoveNext(out var uid, out var ship, out var iff))
         {
+            if (!_companies.TryGetValue(ship.CompanyId, out var company))
+            {
+                disbanded.Add(uid);
+                continue;
+            }
+            if (ship.Name != company.Name || ship.Tag != company.Tag || ship.Colour != company.Colour)
+            {
+                ship.Name = company.Name;
+                ship.Tag = company.Tag;
+                ship.Colour = company.Colour;
+                Dirty(uid, ship);
+            }
+            // The faction company on a ship overrides the colour of its radar label.
+            if (TryComp<CompanyComponent>(uid, out var faction) && !string.IsNullOrEmpty(faction.CompanyName))
+            {
+                ship.PreviousFaction ??= faction.CompanyName;
+                faction.CompanyName = string.Empty;
+                Dirty(uid, faction);
+            }
             if (iff.Color == ship.Colour)
                 continue;
             ship.PreviousIffColour ??= iff.Color;
             _shuttles.SetIFFColor(uid, ship.Colour, iff);
         }
+        foreach (var uid in disbanded)
+            RemComp<WFCompanyShipComponent>(uid);
+    }
+
+    /// <summary>Flies a ship bought with a member's ID under their company.</summary>
+    public void MarkBoughtShip(EntityUid ship, EntityUid card)
+    {
+        if (!TryComp<WFCompanyIdComponent>(card, out var marker) || !_companies.TryGetValue(marker.CompanyId, out var company))
+            return;
+        var flown = EnsureComp<WFCompanyShipComponent>(ship);
+        flown.CompanyId = company.Id;
+        flown.Name = company.Name;
+        flown.Tag = company.Tag;
+        flown.Colour = company.Colour;
+        Dirty(ship, flown);
     }
 
     /// <summary>A ship that stops flying for a company gets its own IFF colour back.</summary>
     private void OnCompanyShipRemoved(Entity<WFCompanyShipComponent> ship, ref ComponentShutdown args)
     {
-        if (ship.Comp.PreviousIffColour is { } colour && !TerminatingOrDeleted(ship))
+        if (TerminatingOrDeleted(ship))
+            return;
+        if (ship.Comp.PreviousIffColour is { } colour)
             _shuttles.SetIFFColor(ship, colour);
+        if (ship.Comp.PreviousFaction is { } previous && TryComp<CompanyComponent>(ship, out var faction))
+        {
+            faction.CompanyName = previous;
+            Dirty(ship, faction);
+        }
     }
 }

@@ -194,10 +194,9 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
             state.OwnLobby == null && (state.CanJoin || live) && lobby.Access is not (WFLobbyAccess.Invite or WFLobbyAccess.Closed) &&
             (lobby.Access != WFLobbyAccess.CompanyOnly || companyMember))
         {
-            var asRank = Button("join-as-rank", () => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.Join)
-                { LobbyId = lobby.Id, AsRank = true, Code = _enteredCodes.GetValueOrDefault(lobby.Id) }));
-            asRank.Text = Text("join-as-rank", ("rank", state.CompanyRank));
-            asRank.AddStyleClass("ButtonAccept");
+            var asRank = new Button { Text = Text("join-as-rank", ("rank", state.CompanyRank)), MinHeight = 40, HorizontalExpand = true, StyleClasses = { "ButtonAccept" } };
+            asRank.OnPressed += _ => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.Join)
+                { LobbyId = lobby.Id, AsRank = true, Code = _enteredCodes.GetValueOrDefault(lobby.Id) });
             content.AddChild(asRank);
         }
         if (invitation)

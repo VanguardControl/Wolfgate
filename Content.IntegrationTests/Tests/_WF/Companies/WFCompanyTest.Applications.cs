@@ -193,15 +193,10 @@ public sealed partial class WFCompanyTest
             state = await Request(new(WFCompanyAction.Refresh));
             Assert.That(state.Own!.Ledger[0].Kind, Is.EqualTo(WFCompanyLedgerKind.Loadout));
 
-            // The server reads job icon images for the rank icon editor.
+            // The client reads job icons for the rank icon editor, from textures a packaged build still has.
             var icon = prototypes.EnumeratePrototypes<JobIconPrototype>().First(entry => entry.Icon is SpriteSpecifier.Rsi);
             byte[] preset = null;
-            await pair.Client.WaitPost(() =>
-            {
-                client.IconPresetReceived += (name, pixels) => preset = name == icon.ID ? pixels : preset;
-                client.RequestIconPreset(icon.ID);
-            });
-            await pair.RunTicksSync(pair.SecondsToTicks(0.5f));
+            await pair.Client.WaitPost(() => preset = client.ReadIconPreset(icon.Icon));
             Assert.That(preset, Has.Length.EqualTo(WFCompanyPolicy.IconBytes));
         }
         finally

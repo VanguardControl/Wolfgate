@@ -5,6 +5,9 @@ namespace Content.Server._WF.Companies;
 public sealed partial class WFCompanyIdComponent : Component
 {
     [DataField]
+    public int CompanyId;
+
+    [DataField]
     public string Company = string.Empty;
 
     [DataField]

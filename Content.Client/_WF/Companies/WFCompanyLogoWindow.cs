@@ -104,10 +104,6 @@ public sealed class WFCompanyLogoWindow : DefaultWindow
         layout.AddChild(_canvas);
         layout.AddChild(tools);
         Contents.AddChild(layout);
-
-        var companies = _entities.System<WFCompanyClientSystem>();
-        companies.IconPresetReceived += OnPreset;
-        OnClose += () => companies.IconPresetReceived -= OnPreset;
     }
 
     /// <summary>Every job icon of the right size, to start a rank icon from.</summary>
@@ -124,7 +120,7 @@ public sealed class WFCompanyLogoWindow : DefaultWindow
             var button = new Button { MinSize = new Vector2(30, 30), ToolTip = icon.ID };
             button.AddChild(new TextureRect { Texture = sprites.Frame0(icon.Icon), Stretch = TextureRect.StretchMode.KeepAspectCentered,
                 TextureScale = new Vector2(2, 2), MouseFilter = MouseFilterMode.Ignore });
-            button.OnPressed += _ => _entities.System<WFCompanyClientSystem>().RequestIconPreset(icon.ID);
+            button.OnPressed += _ => OnPreset(_entities.System<WFCompanyClientSystem>().ReadIconPreset(icon.Icon));
             grid.AddChild(button);
         }
         box.AddChild(new ScrollContainer { HScrollEnabled = false, VerticalExpand = true, MinHeight = 140, Children = { grid } });
@@ -132,7 +128,7 @@ public sealed class WFCompanyLogoWindow : DefaultWindow
     }
 
     /// <summary>Copies a job icon the server read onto the canvas.</summary>
-    private void OnPreset(string icon, byte[]? pixels)
+    private void OnPreset(byte[]? pixels)
     {
         if (pixels?.Length != _size * _size * 4)
         {

@@ -44,9 +44,8 @@ public sealed partial class WFCompanyWindow
             identity.AddChild(Paragraph(own.Description));
         if (state.CanJoinRound)
         {
-            var join = Button("join-as-rank", () => Send(WFCompanyAction.JoinAsRank, own.Id));
-            join.Text = Text("join-as-rank", ("rank", RankTitle(own, own.YourProfile, own.YourRank)));
-            join.AddStyleClass("ButtonAccept");
+            var join = new Button { Text = Text("join-as-rank", ("rank", RankTitle(own, own.YourProfile, own.YourRank))), StyleClasses = { "ButtonAccept" } };
+            join.OnPressed += _ => Send(WFCompanyAction.JoinAsRank, own.Id);
             identity.AddChild(join);
         }
         page.AddChild(Card(Row(Logo(own.Id, own.LogoVersion, 96), identity)));

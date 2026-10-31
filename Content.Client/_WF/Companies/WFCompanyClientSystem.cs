@@ -1,4 +1,5 @@
 using Content.Shared._WF.Companies;
+using Robust.Client.GameObjects;
 using Robust.Client.Graphics;
 using Robust.Shared.Graphics;
 using System.IO;
@@ -15,6 +16,7 @@ public sealed class WFCompanyClientSystem : EntitySystem
 {
     [Dependency] private IClyde _clyde = default!;
     [Dependency] private IResourceManager _resources = default!;
+    [Dependency] private SpriteSystem _sprites = default!;
     [Dependency] private IResourceCache _cache = default!;
 
     /// <summary>The latest snapshot for this connection.</summary>
@@ -27,9 +29,6 @@ public sealed class WFCompanyClientSystem : EntitySystem
 
     /// <summary>Raised with a company profile the player asked to see.</summary>
     public event Action<WFCompanyProfileEvent>? ProfileReceived;
-
-    /// <summary>Raised with a job icon's pixels, or null when the server couldn't read it.</summary>
-    public event Action<string, byte[]?>? IconPresetReceived;
 
     private WFCompanyWindow? _window;
     private readonly Dictionary<int, (int Version, Texture? Texture, byte[]? Pixels)> _logos = new();
@@ -44,7 +43,6 @@ public sealed class WFCompanyClientSystem : EntitySystem
         SubscribeNetworkEvent<WFCompanyLogoEvent>(OnLogo);
         SubscribeNetworkEvent<WFCompanyRankIconEvent>(OnRankIcon);
         SubscribeNetworkEvent<WFCompanyProfileEvent>(args => ProfileReceived?.Invoke(args));
-        SubscribeNetworkEvent<WFCompanyIconPresetEvent>(args => IconPresetReceived?.Invoke(args.Icon, args.Pixels));
     }
 
     public override void Shutdown()
@@ -139,8 +137,29 @@ public sealed class WFCompanyClientSystem : EntitySystem
 
     public void Send(WFCompanyRequest request) => RaiseNetworkEvent(request);
 
-    /// <summary>Asks the server for a job icon's pixels; packaged clients can't read RSI images.</summary>
-    public void RequestIconPreset(string icon) => RaiseNetworkEvent(new WFCompanyRequest(WFCompanyAction.RequestIconPreset) { Name = icon });
+    /// <summary>A job icon's top-left icon-sized corner as raw RGBA, or null if it's too small. Read from the loaded texture:
+    /// packaged clients pack RSIs into one file and packaged servers don't have textures at all.</summary>
+    public byte[]? ReadIconPreset(SpriteSpecifier icon)
+    {
+        var texture = _sprites.Frame0(icon);
+        var size = WFCompanyPolicy.IconSize;
+        if (texture.Width < size || texture.Height < size)
+            return null;
+        var pixels = new byte[WFCompanyPolicy.IconBytes];
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var pixel = texture.GetPixel(x, y);
+                var i = (y * size + x) * 4;
+                pixels[i] = pixel.RByte;
+                pixels[i + 1] = pixel.GByte;
+                pixels[i + 2] = pixel.BByte;
+                pixels[i + 3] = pixel.AByte;
+            }
+        }
+        return pixels;
+    }
 
     /// <summary>Opens the Company window, or brings it forward.</summary>
     /// <param name="create">Opens on the Create tab if the player's character can use it.</param>

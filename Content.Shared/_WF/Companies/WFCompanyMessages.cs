@@ -10,7 +10,7 @@ public enum WFCompanyAction : byte
     Refresh, Create, Invite, AcceptInvite, DeclineInvite, Apply, CancelApplication, AcceptApplication, RejectApplication,
     Leave, Kick, SetMemberRank, UpsertRank, RemoveRank, MoveRank, EditDetails, Rename, SetCut, Transfer, Disband,
     Deposit, Withdraw, JoinAsRank, SetLogo, RequestLogo, SetRankIcon, RequestRankIcon, BuyLicence, SellLicence, Launch, SetLaunchFee, Pay,
-    SetRankLoadout, RequestIconPreset, SetOpenRank, JoinOpen, SetPrivate, RequestProfile, SetLicenceName,
+    SetRankLoadout, SetOpenRank, JoinOpen, SetPrivate, RequestProfile, SetLicenceName,
 }
 
 /// <summary>A request from the Company window.</summary>
@@ -162,14 +162,6 @@ public sealed class WFCompanyProfileEvent(int companyId, bool hidden, WFCompanyP
     public bool Hidden = hidden;
     public WFCompanyProfileMember[] Members = members;
     public WFCompanyProfileShip[] Ships = ships;
-}
-
-/// <summary>A job icon's pixels, read by the server because packaged clients can't read RSI images.</summary>
-[Serializable, NetSerializable]
-public sealed class WFCompanyIconPresetEvent(string icon, byte[]? pixels) : EntityEventArgs
-{
-    public string Icon = icon;
-    public byte[]? Pixels = pixels;
 }
 
 /// <summary>A personal snapshot of the company service for the sender's current character.</summary>

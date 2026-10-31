@@ -252,6 +252,7 @@ public sealed partial class WFCompanySystem : EntitySystem
         SavePlayedTime();
         _spawnedSlots.Clear();
         _rankJoins.Clear();
+        _newRecords.Clear();
         _companyBodies.Clear();
         _roundStats.Clear();
         _memberKeys.Clear();
@@ -265,14 +266,16 @@ public sealed partial class WFCompanySystem : EntitySystem
 
     private void OnSpawned(PlayerSpawnCompleteEvent args)
     {
-        if (_preferences.GetPreferencesOrNull(args.Player.UserId) is not { } prefs || prefs.IndexOfCharacter(args.Profile) is not (>= 0 and var slot))
+        var records = _newRecords.Where(entry => ReferenceEquals(entry.Profile, args.Profile)).Select(entry => (entry.Key, entry.Record)).ToArray();
+        _newRecords.Clear();
+        if (_preferences.GetPreferencesOrNull(args.Player.UserId) is not { } prefs || SpawnedSlot(prefs, args.Profile) is not { } slot)
         {
             _rankJoins.Remove(args.Player.UserId);
             return;
         }
         _spawnedSlots[args.Player.UserId] = slot;
         EnsureComp<WFCompanyRankHudComponent>(args.Mob);
-        ApplyMemberIdentity(args.Player, args.Mob, slot, args.Profile, args.JobId);
+        ApplyMemberIdentity(args.Player, args.Mob, slot, args.JobId, records);
         IssueRankLoadout(args.Player, args.Mob, slot);
     }
 

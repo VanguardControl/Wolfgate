@@ -21,4 +21,8 @@ public sealed partial class WFCompanyShipComponent : Component
     /// <summary>The IFF colour before the company's was applied, restored when the ship stops flying for it.</summary>
     [DataField]
     public Color? PreviousIffColour;
+
+    /// <summary>The faction company the ship carried, whose colour would otherwise replace the company's on radar labels.</summary>
+    [DataField]
+    public string? PreviousFaction;
 }

@@ -42,6 +42,8 @@ public sealed partial class WFCompanyTest
         var original = (HumanoidCharacterProfile) preferences.GetPreferences(owner.UserId).SelectedCharacter;
         var slot = preferences.GetPreferences(owner.UserId).SelectedCharacterIndex;
         int? id = null;
+        var paidLoadouts = 0;
+        var boughtShip = EntityUid.Invalid;
         try
         {
             await server.WaitPost(() =>
@@ -50,7 +52,21 @@ public sealed partial class WFCompanyTest
                 server.CfgMan.SetCVar(CCVars.GameRoleTimers, false);
                 foreach (var vote in server.ResolveDependency<IVoteManager>().ActiveVotes.ToArray())
                     vote.Cancel();
-                preferences.SetProfile(owner.UserId, slot, original.WithName("Ada Owner")).Wait();
+                // A bought loadout replaces the stored profile mid-spawn, which must not lose the character's company.
+                var prototypes = server.ResolveDependency<Robust.Shared.Prototypes.IPrototypeManager>();
+                var role = prototypes.Index<Content.Shared.Preferences.Loadouts.RoleLoadoutPrototype>("JobContractor");
+                var loadout = new Content.Shared.Preferences.Loadouts.RoleLoadout(role.ID);
+                var named = original.WithName("Ada Owner").WithBankBalance(100000);
+                loadout.SetDefault(named, owner, prototypes);
+                foreach (var group in role.Groups)
+                {
+                    var paid = prototypes.Index(group).Loadouts.Select(entry => prototypes.Index(entry)).FirstOrDefault(entry => entry.Price > 0);
+                    if (paid != null && loadout.AddLoadout(group, paid.ID, prototypes))
+                        break;
+                }
+                paidLoadouts = loadout.SelectedLoadouts.Values.SelectMany(picked => picked)
+                    .Sum(picked => prototypes.Index(picked.Prototype).Price);
+                preferences.SetProfile(owner.UserId, slot, named.WithLoadout(loadout)).Wait();
             });
             for (var i = 0; i < 300 && !companies.Loaded; i++)
                 await pair.RunTicksSync(1);
@@ -91,6 +107,9 @@ public sealed partial class WFCompanyTest
             await server.WaitAssertion(() =>
             {
                 Assert.That(ticker.UserHasJoinedGame(owner), Is.True);
+                Assert.That(paidLoadouts, Is.GreaterThan(0), "The character spawns with a paid loadout.");
+                Assert.That(((HumanoidCharacterProfile) preferences.GetPreferences(owner.UserId).SelectedCharacter).BankBalance, Is.LessThan(100000),
+                    "The paid loadout was bought.");
                 var body = owner.AttachedEntity!.Value;
                 Assert.That(server.System<SharedIdCardSystem>().TryFindIdCard(body, out var card), Is.True);
                 Assert.That(card.Comp.LocalizedJobTitle, Is.EqualTo("Captain"), "The rank title replaces the job title on the ID.");
@@ -136,7 +155,23 @@ public sealed partial class WFCompanyTest
                 Assert.That(server.System<Content.Server.StationRecords.Systems.StationRecordsSystem>()
                     .TryGetRecord<Content.Shared.StationRecords.GeneralStationRecord>(key!.Value, out var record), Is.True);
                 Assert.That(record!.WFCompanyRank, Is.EqualTo(topRank));
+
+                // A ship bought with the member's ID flies under the company, name and colour included.
+                var bought = em.SpawnEntity(null, Robust.Shared.Map.MapCoordinates.Nullspace);
+                em.AddComponent<Content.Shared.Shuttles.Components.IFFComponent>(bought);
+                em.EnsureComponent<Content.Shared._Mono.Company.CompanyComponent>(bought);
+                companies.MarkBoughtShip(bought, card);
+                boughtShip = bought;
+                Assert.That(em.GetComponent<Content.Shared._WF.Companies.WFCompanyShipComponent>(bought).Tag, Is.EqualTo("RANK"));
                 Assert.That(record.JobTitle, Is.EqualTo("Captain"), "The manifest shows the rank, not the job.");
+            });
+            await pair.RunTicksSync(pair.SecondsToTicks(2.5f));
+            await server.WaitAssertion(() =>
+            {
+                Assert.That(string.IsNullOrEmpty(em.GetComponent<Content.Shared._Mono.Company.CompanyComponent>(boughtShip).CompanyName), Is.True,
+                    "The faction company can't override the company's colour on radar labels.");
+                Assert.That(em.GetComponent<Content.Shared.Shuttles.Components.IFFComponent>(boughtShip).Color,
+                    Is.EqualTo(em.GetComponent<Content.Shared._WF.Companies.WFCompanyShipComponent>(boughtShip).Colour));
             });
             await pair.Client.WaitAssertion(() => Assert.That(Content.Client._WF.Companies.WFCompanyRankIcons.Get(topRank), Is.Not.Null,
                 "Screens that draw job icons get the rank icon."));
