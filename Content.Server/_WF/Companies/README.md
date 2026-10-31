@@ -126,7 +126,6 @@ tables via `ServerDbBase.Companies`); it reloads at each round restart once pend
 - [`Content.Server/_WF/Companies/ServerDbManager.Companies.cs`](ServerDbManager.Companies.cs)
 - [`Content.Server/_WF/Companies/WFCompanyCommands.cs`](WFCompanyCommands.cs)
 - [`Content.Server/_WF/Companies/WFCompanyHangarShipComponent.cs`](WFCompanyHangarShipComponent.cs)
-- [`Content.Server/_WF/Companies/WFCompanyIdComponent.cs`](WFCompanyIdComponent.cs)
 - [`Content.Server/_WF/Companies/WFCompanyPropertyComponent.cs`](WFCompanyPropertyComponent.cs)
 - [`Content.Server/_WF/Companies/WFCompanyRadioComponent.cs`](WFCompanyRadioComponent.cs)
 - [`Content.Server/_WF/Companies/WFCompanySystem.Access.cs`](WFCompanySystem.Access.cs)
@@ -143,6 +142,7 @@ tables via `ServerDbBase.Companies`); it reloads at each round restart once pend
 ### Shared
 
 - [`Content.Shared/_WF/Companies/WFCompanyCVars.cs`](../../../Content.Shared/_WF/Companies/WFCompanyCVars.cs)
+- [`Content.Shared/_WF/Companies/WFCompanyIdComponent.cs`](../../../Content.Shared/_WF/Companies/WFCompanyIdComponent.cs)
 - [`Content.Shared/_WF/Companies/WFCompanyLoadouts.cs`](../../../Content.Shared/_WF/Companies/WFCompanyLoadouts.cs)
 - [`Content.Shared/_WF/Companies/WFCompanyMessages.cs`](../../../Content.Shared/_WF/Companies/WFCompanyMessages.cs)
 - [`Content.Shared/_WF/Companies/WFCompanyPolicy.cs`](../../../Content.Shared/_WF/Companies/WFCompanyPolicy.cs)

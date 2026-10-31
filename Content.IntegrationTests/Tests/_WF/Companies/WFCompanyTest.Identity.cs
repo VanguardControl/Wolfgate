@@ -145,6 +145,15 @@ public sealed partial class WFCompanyTest
                 Assert.That(em.GetComponent<ActiveRadioComponent>(body).Channels, Does.Contain(WFCompanySystem.CompanyChannel));
                 Assert.That(companies.CompanyRadioName(body), Is.EqualTo("Company · RANK"));
             });
+            // The client's instant card already names the company and rank, so the basic job doesn't flash first.
+            await pair.Client.WaitAssertion(() =>
+            {
+                var clientBody = pair.Client.EntMan.GetEntity(em.GetNetEntity(owner.AttachedEntity!.Value));
+                var predicted = pair.Client.System<Content.Client._WF.ExamineCard.ExamineCardSystem>().BuildCard(clientBody, clientBody, true, predicted: true);
+                Assert.That(predicted.Company, Is.EqualTo("[RANK] Rankline"));
+                Assert.That(predicted.CompanyRank, Is.EqualTo("Captain"));
+                Assert.That(predicted.CompanyRankId, Is.EqualTo(topRank));
+            });
             // The station record carries the rank, so the crew manifest and records show its icon.
             await pair.RunTicksSync(pair.SecondsToTicks(2.5f));
             await server.WaitAssertion(() =>

@@ -100,7 +100,7 @@ public sealed class ExamineCardEvent : EntityEventArgs
 
     public ProtoId<JobIconPrototype>? JobIcon;
 
-    /// <summary>The player company on their ID, as "[TAG] Name"; only the server fills it.</summary>
+    /// <summary>The player company on their ID, as "[TAG] Name".</summary>
     public string? Company;
 
     public string? CompanyRank;
@@ -112,6 +112,7 @@ public sealed class ExamineCardEvent : EntityEventArgs
     /// <summary>The rank whose job icon their ID carries, or 0.</summary>
     public int CompanyRankId;
 
+    /// <summary>The rank icon's version; only the server fills it.</summary>
     public int CompanyIconVersion;
 
     public ExamineCardStamp Stamp;

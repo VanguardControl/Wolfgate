@@ -117,6 +117,7 @@ public sealed partial class WFCompanySystem
         marker.Company = company.Name;
         marker.Tag = company.Tag;
         marker.Rank = rank;
+        Dirty(card, marker);
         if (IconRankOf(company, member) is { } iconRank)
         {
             var icon = EnsureComp<WFCompanyRankIconComponent>(card);
@@ -134,6 +135,7 @@ public sealed partial class WFCompanySystem
         }
         _idCards.TryChangeJobTitle(card, title);
         marker.Title = card.Comp.LocalizedJobTitle ?? title;
+        Dirty(card, marker);
         // A false sector record names a fake job, so it keeps that job's title.
         foreach (var (key, record) in records)
         {
