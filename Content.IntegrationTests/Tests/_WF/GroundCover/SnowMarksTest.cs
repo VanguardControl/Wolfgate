@@ -12,13 +12,12 @@ using Robust.Shared.Map;
 using Robust.Shared.Maths;
 using ClientGroundCoverSystem = Content.Client._WF.GroundCover.WFGroundCoverSystem;
 using ClientSnowPrintsSystem = Content.Client._WF.GroundCover.WFSnowPrintsSystem;
-using ClientSnowStainSystem = Content.Client._WF.GroundCover.WFSnowStainSystem;
 using ClientSnowTracksSystem = Content.Client._WF.GroundCover.WFSnowTracksSystem;
 using ClientPrintKind = Content.Client._WF.GroundCover.WFSnowPrintKind;
 
 namespace Content.IntegrationTests.Tests._WF.GroundCover;
 
-/// <summary>Marks drawn in snow cover that follow the snow: footprints, liquid stains and tread marks.</summary>
+/// <summary>Marks drawn in snow cover that follow the snow: footprints and tread marks.</summary>
 [TestFixture]
 public sealed class SnowMarksTest
 {
@@ -63,48 +62,6 @@ public sealed class SnowMarksTest
         await client.WaitAssertion(() =>
             Assert.That(client.System<ClientSnowPrintsSystem>().Prints.TryGetValue(cGrid, out var tiles) && tiles.ContainsKey(tile), Is.False,
                 "A print outlived the snow."));
-
-        await server.WaitPost(() => server.PlayerMan.SetAttachedEntity(pair.Player!, null));
-        await pair.CleanReturnAsync();
-    }
-
-    /// <summary>Blood on snow stains it, clear water doesn't, and the stain goes with the snow.</summary>
-    [Test]
-    public async Task BloodStainsSnow()
-    {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
-        var server = pair.Server;
-        var client = pair.Client;
-        var map = await pair.CreateTestMap();
-        var blood = new Vector2i(-2, 0);
-        var water = new Vector2i(2, 0);
-        await SetUp(pair, map.Grid, blood, Deep);
-        await SetUp(pair, map.Grid, water, Deep);
-
-        await server.WaitPost(() =>
-        {
-            var puddles = server.System<PuddleSystem>();
-            puddles.TrySpillAt(new EntityCoordinates(map.Grid, new Vector2(-1.5f, 0.5f)), new Solution("Blood", FixedPoint2.New(10)), out _, false);
-            puddles.TrySpillAt(new EntityCoordinates(map.Grid, new Vector2(2.5f, 0.5f)), new Solution("Water", FixedPoint2.New(10)), out _, false);
-        });
-
-        await pair.RunTicksSync(pair.SecondsToTicks(3));
-        var cGrid = client.EntMan.GetEntity(server.EntMan.GetNetEntity(map.Grid.Owner));
-        await client.WaitAssertion(() =>
-        {
-            var stains = client.System<ClientSnowStainSystem>();
-            Assert.That(stains.Stains.TryGetValue(cGrid, out var tiles), Is.True, "Blood on snow left no stain.");
-            Assert.That(tiles!.TryGetValue(blood, out var stain), Is.True, "The blood's tile wasn't stained.");
-            Assert.That(stain!.Color.R, Is.GreaterThan(stain.Color.G), "The stain wasn't blood red.");
-            Assert.That(stains.Visibility(stain), Is.GreaterThan(0.5f));
-            Assert.That(tiles.ContainsKey(water), Is.False, "Clear water stained the snow.");
-        });
-
-        await server.WaitPost(() => server.System<WFGroundCoverSystem>().SetDepth(map.Grid, blood, 0));
-        await pair.RunTicksSync(pair.SecondsToTicks(2));
-        await client.WaitAssertion(() =>
-            Assert.That(client.System<ClientSnowStainSystem>().Stains.TryGetValue(cGrid, out var tiles) && tiles.ContainsKey(blood), Is.False,
-                "A stain outlived the snow."));
 
         await server.WaitPost(() => server.PlayerMan.SetAttachedEntity(pair.Player!, null));
         await pair.CleanReturnAsync();

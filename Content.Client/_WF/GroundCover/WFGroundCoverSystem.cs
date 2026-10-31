@@ -34,13 +34,16 @@ public sealed class WFGroundCoverSystem : EntitySystem
     {
         base.Initialize();
         SubscribeNetworkEvent<WFSnowCoverChunksMessage>(OnChunks);
-        _overlay.AddOverlay(new WFGroundCoverOverlay());
+        var ground = new WFGroundCoverOverlay();
+        _overlay.AddOverlay(ground);
+        _overlay.AddOverlay(new WFGroundReflectionOverlay(ground));
     }
 
     public override void Shutdown()
     {
         base.Shutdown();
         _overlay.RemoveOverlay<WFGroundCoverOverlay>();
+        _overlay.RemoveOverlay<WFGroundReflectionOverlay>();
         _snow.Clear();
     }
 
@@ -67,7 +70,7 @@ public sealed class WFGroundCoverSystem : EntitySystem
     }
 
     /// <summary>
-    /// Whether a point lies over a tile of a vessel, which keeps snow, footprints, tracks and stains off the ground
+    /// Whether a point lies over a tile of a vessel, which keeps snow, footprints and tracks off the ground
     /// beneath it. Marks on the ground under a ship stay in memory and show again once it lifts.
     /// </summary>
     public bool IsUnderVessel(MapId map, Vector2 world)
