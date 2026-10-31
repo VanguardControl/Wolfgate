@@ -4317,3 +4317,13 @@ Entries:
   id: 100290
   time: '2026-10-31T14:30:00.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/424
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Stations now post bulk orders for 25 to 45 crates of a goods group, open
+        for 45 to 60 minutes. They pay a small premium at a flat price that
+        doesn't drop as crates are sold.
+  id: 100291
+  time: '2026-10-31T23:08:59.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/430
