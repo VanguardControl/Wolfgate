@@ -41,6 +41,11 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   overlay refreshes take a share per tick, and fixture damage and the atmos alerts console start on their own offsets.
   Radius heaters also look only for loose things to warm, not anchored or stored ones.
 - `IgnitionSourceSystem` walks only lit sources (`WFLit`), and a ship's shield follows it with one transform call.
+- More one-second jobs stop landing on one tick: Wolfmed body ticks are spread with `WFTickSpread`, and encounter
+  zones, ship status, crew ship status, cargo load and thermal signatures each start on their own part of the second.
+- AI ship steering works every other tick and holds its input between (`ShipSteeringSystem`), and `FlammableSystem`
+  looks for what's due every third tick.
+- `WFGridDeleteWatchSystem` logs any grid that takes over 50 ms to delete, by name and entity count.
 - The marked upstream edits skip idle-shuttle thruster work, avoid `Enum.GetValues` and nullable boxing on per-tick
   paths, stop `FlammableSystem` from crashing when igniting queues new fire events, and stop networking a thrown
   item's shooter (it outlived the shooter and sent a deleted entity every state).
@@ -60,8 +65,10 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/_WF/Performance/GCQueueSystem.WFMinAge.cs`](GCQueueSystem.WFMinAge.cs)
 - [`Content.Server/_WF/Performance/IgnitionSourceSystem.WFLit.cs`](IgnitionSourceSystem.WFLit.cs)
 - [`Content.Server/_WF/Performance/NavMapSystem.WFRemoved.cs`](NavMapSystem.WFRemoved.cs)
+- [`Content.Server/_WF/Performance/ShipSteererComponent.WFStagger.cs`](ShipSteererComponent.WFStagger.cs)
 - [`Content.Server/_WF/Performance/WFAsteroidCullSystem.cs`](WFAsteroidCullSystem.cs)
 - [`Content.Server/_WF/Performance/WFDockIndexSystem.cs`](WFDockIndexSystem.cs)
+- [`Content.Server/_WF/Performance/WFGridDeleteWatchSystem.cs`](WFGridDeleteWatchSystem.cs)
 - [`Content.Server/_WF/Performance/WorldControllerSystem.WFUnloadGrace.cs`](WorldControllerSystem.WFUnloadGrace.cs)
 
 ### Shared
@@ -91,6 +98,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFBreachLoopTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFBreachLoopTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFFlammableDebrisTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGravityRefreshTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Performance/WFGridDeleteWatchTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGridDeleteWatchTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFGroundSampleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFGroundSampleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFIgnitionLitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFIgnitionLitTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFNavMapDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFNavMapDeltaTest.cs)
@@ -130,6 +138,12 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - weightlessness now refreshes half a second after gravity changes
   - batched weightlessness refresh
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs): reuse a parked grid's sample instead of re-walking its hull every tick
+- [`Content.Server/_Mono/Detection/ThermalSignatureSystem.cs`](../../_Mono/Detection/ThermalSignatureSystem.cs): off the tick other one-second systems run on
+- [`Content.Server/_Mono/NPC/HTN/ShipSteeringSystem.cs`](../../_Mono/NPC/HTN/ShipSteeringSystem.cs)
+  - how often steering works out a new input
+  - steering works every other tick and holds its input between, saving its scans
+  - this input holds for the whole turn
+  - held until the next turn
 - [`Content.Server/_Mono/Temperature/Systems/EntityRadiusHeaterSystem.cs`](../../_Mono/Temperature/Systems/EntityRadiusHeaterSystem.cs)
   - each heater takes its own tick of the second, not all on one
   - what a fire warms is loose; skipping anchored and stored things skips the trees round a planet's fires
@@ -184,6 +198,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - rule out pairs that land elsewhere before the tile walk, not after
   - chunk-first walk, same result; this ran per dock pair for every fixture
   - read the dock index instead of walking every entity on the grid
+- [`Content.Server/Shuttles/Systems/GridDeletionContainerSystem.cs`](../../Shuttles/Systems/GridDeletionContainerSystem.cs): logs grids that take long to delete
 - [`Content.Server/Shuttles/Systems/ThrusterSystem.cs`](../../Shuttles/Systems/ThrusterSystem.cs)
   - fixed list instead of Enum.GetValues on every call
   - idle shuttles call this every tick with everything already off
