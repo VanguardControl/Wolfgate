@@ -178,6 +178,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - back in use, so no longer a removal
   - deltas name removed chunks; the rebuild below takes back any still in use
   - the history of removed chunks stays bounded
+  - a chunk that was never sent changes nothing for clients
   - deltas name removed chunks, and the history of them stays bounded
 - [`Content.Server/Shuttles/Systems/DockingSystem.Shuttle.cs`](../../Shuttles/Systems/DockingSystem.Shuttle.cs)
   - rule out pairs that land elsewhere before the tile walk, not after

@@ -92,7 +92,6 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
         {
             chunk = new(origin);
             component.Chunks[origin] = chunk;
-            component.WFRemovedChunks.Remove(origin); // WOLFGATE(Performance): back in use, so no longer a removal
         }
 
         return chunk;
@@ -134,6 +133,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
 
     private void DirtyChunk(Entity<NavMapComponent> entity, NavMapChunk chunk)
     {
+        entity.Comp.WFRemovedChunks.Remove(chunk.Origin); // WOLFGATE(Performance): back in use, so no longer a removal
         if (chunk.LastUpdate == _gameTiming.CurTick)
             return;
 
@@ -268,6 +268,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
             var chunkOrigin = SharedMapSystem.GetChunkIndices(tile, ChunkSize);
 
             var chunk = EnsureChunk(component, chunkOrigin);
+            component.WFRemovedChunks.Remove(chunkOrigin); // WOLFGATE(Performance): back in use, so no longer a removal
             chunk.LastUpdate = _gameTiming.CurTick;
             RefreshTileEntityContents(uid, component, mapGrid, chunkOrigin, tile, setFloor: true);
         }
@@ -330,6 +331,13 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
         }
 
         entity.Comp.Chunks.Remove(chunk.Origin);
+
+        // WOLFGATE(Performance) START: a chunk that was never sent changes nothing for clients
+        // A moving airtight entity makes one of these on every move, which sent the whole beacon and region list each time.
+        if (chunk.LastUpdate == default)
+            return true;
+        // WOLFGATE END
+
         // WOLFGATE(Performance): deltas name removed chunks, and the history of them stays bounded
         entity.Comp.WFRemovedChunks[chunk.Origin] = _gameTiming.CurTick;
         WFTrimRemovedChunks(entity.Comp);

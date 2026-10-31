@@ -1,3 +1,5 @@
+using Content.Server.Atmos.Components;
+using Content.Server.Atmos.EntitySystems;
 using Content.Server.Pinpointer;
 using Content.Shared.Pinpointer;
 using Robust.Shared.GameObjects;
@@ -16,6 +18,55 @@ public sealed class WFNavMapTrimTest
 {
     private const int Spacing = 16;
     private const int Side = 20;
+
+    [TestPrototypes]
+    private const string Prototypes = @"
+- type: entity
+  id: WFNavMapTrimAirtight
+  components:
+  - type: Airtight
+";
+
+    /// <summary>A moving airtight entity reports a spot with no chunk; that must not resend the nav map each time.</summary>
+    [Test]
+    public async Task EmptyChunkNeverSentDoesNotDirty()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+        var testMap = await pair.CreateTestMap();
+
+        Entity<MapGridComponent> grid = default;
+        await server.WaitPost(() =>
+        {
+            grid = maps.CreateGridEntity(testMap.MapId);
+            maps.SetTile(grid.Owner, grid.Comp, Vector2i.Zero, testMap.Tile.Tile);
+            server.System<NavMapSystem>().EnsureGridNavMap(grid.Owner);
+        });
+
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            var nav = entMan.GetComponent<NavMapComponent>(grid.Owner);
+            var modified = nav.LastModifiedTick;
+            var chunks = nav.Chunks.Count;
+            var mover = entMan.SpawnEntity("WFNavMapTrimAirtight", testMap.MapCoords);
+            var airtight = entMan.GetComponent<AirtightComponent>(mover);
+
+            var ev = new AirtightChanged(mover, airtight, false, (grid.Owner, new Vector2i(Spacing * 3, 0)));
+            entMan.EventBus.RaiseLocalEvent(mover, ref ev, true);
+
+            Assert.That(nav.Chunks, Has.Count.EqualTo(chunks), "The empty chunk should not stay.");
+            Assert.That(nav.WFRemovedChunks, Is.Empty, "Clients never had it, so there is no removal to send.");
+            Assert.That(nav.LastModifiedTick, Is.EqualTo(modified), "Nothing changed, so nothing should be resent.");
+
+            entMan.DeleteEntity(mover);
+        });
+
+        await pair.CleanReturnAsync();
+    }
 
     [Test]
     public async Task ClientBehindTrimmedHistoryGetsFullState()
