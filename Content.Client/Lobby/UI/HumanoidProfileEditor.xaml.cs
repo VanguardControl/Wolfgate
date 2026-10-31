@@ -1078,10 +1078,12 @@ namespace Content.Client.Lobby.UI
             foreach (var (traitId, selector) in allSelectors)
             {
                 var hide = false;
+                var greyOut = false; // WOLFGATE(Traits)
 
                 if (selected.Contains(traitId))
                 {
                     selector.Visible = true;
+                    selector.SetExcluded(false); // WOLFGATE(Traits)
                     continue;
                 }
 
@@ -1116,6 +1118,14 @@ namespace Content.Client.Lobby.UI
 
                         if (selProto.MutuallyExclusiveTraits.Contains(traitId) || thisProto.MutuallyExclusiveTraits.Contains(sel))
                         {
+                            // WOLFGATE(Traits) START: opted-in traits stay visible and are greyed out
+                            if (thisProto.GreyOutWhenExcluded)
+                            {
+                                greyOut = true;
+                                break;
+                            }
+                            // WOLFGATE END
+
                             hide = true;
                             break;
                         }
@@ -1123,6 +1133,7 @@ namespace Content.Client.Lobby.UI
                 }
 
                 selector.Visible = !hide;
+                selector.SetExcluded(greyOut); // WOLFGATE(Traits)
             }
         }
 

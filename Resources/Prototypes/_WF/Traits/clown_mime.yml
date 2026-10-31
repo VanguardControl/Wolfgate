@@ -1,0 +1,31 @@
+﻿- type: trait
+  id: Clown
+  name: trait-clown-name
+  description: trait-clown-desc
+  category: Physical
+  cost: 2
+  mutuallyExclusiveTraits:
+  - Mime
+  greyOutWhenExcluded: true
+  components:
+  - type: Clown
+  - type: Juggling
+  - type: WFChatFont
+    font: ComicNeue
+
+- type: trait
+  id: Mime
+  name: trait-mime-name
+  description: trait-mime-desc
+  category: Physical
+  cost: 2
+  mutuallyExclusiveTraits:
+  - Clown
+  greyOutWhenExcluded: true
+  components:
+  - type: MimePowers
+    vowAlert: VowOfSilenceUnbreakable
+  - type: MimeAbilities
+    actions:
+    - ActionMimeInvisibleBox
+    - ActionMimeFingerGun
