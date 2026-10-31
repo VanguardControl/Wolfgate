@@ -8,12 +8,13 @@
   - [color=#9B4DFF]Nodes[/color] are Nebula hulls holding a cell as gun platforms. They never leave their cell. Each is crewed by bare automatons, no suits or armour, and carries ADS repair tools and energy weapons worth boarding for.
   - [color=#9B4DFF]Sentinels[/color] circle their node. [color=#9B4DFF]Sweeps[/color] fly fixed routes through ADS space. Both give up once they are out of it.
   - [color=#9B4DFF]Interdictors[/color] close on a crewed ship that lingers in ADS space to query it, or sail out to contest a cell another faction holds.
-  - The ADS is at war with the TSF, the Vanguard and the Ashfall Reavers. Their warships fight it on sight. A player ship is fired on only if it declares itself a threat or fires on the ADS.
+  - The ADS is at war with the TSF, the Vanguard and the Ashfall Reavers. Their warships fight it on sight. A player ship is fired on only if it declares itself a threat, fires on the ADS or keeps mining ADS asteroids after a warning.
 
   ## The directives
 
   - [bold]Disarmament.[/bold] The ADS disables, it does not kill. Its ships stop firing once yours is combat-ineffective. Nobody is hunted, boarded or chased across the sector.
   - [bold]Asset preservation.[/bold] The ADS never claims, contests or blockades a cell that holds a station. Every station stays a safe harbour.
+  - [bold]Resource protection.[/bold] Asteroids in ADS space are protected. Mine one and you are warned. Stop and you are left alone. Keep mining and you are logged as a threat, whatever you told a query, and an interdictor comes for you.
 
   ## How to deal with it
 
