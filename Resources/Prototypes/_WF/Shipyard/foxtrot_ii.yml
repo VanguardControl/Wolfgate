@@ -22,7 +22,7 @@
 
 - type: gameMap
   id: WFFoxtrotII
-  mapName: 'Foxtrot_II'
+  mapName: 'Foxtrot-II'
   mapPath: /SharedMaps/_WF/Shipyard/Shuttles/foxtrot_ii.yml
   minPlayers: 0
   stations:
@@ -30,7 +30,7 @@
       stationProto: StandardFrontierVessel
       components:
       - type: StationNameSetup
-        mapNameTemplate: 'Foxtrot_II {1}'
+        mapNameTemplate: 'Foxtrot-II PDV{1}'
         nameGenerator:
           !type:NanotrasenNameGenerator
           prefixCreator: '14'
