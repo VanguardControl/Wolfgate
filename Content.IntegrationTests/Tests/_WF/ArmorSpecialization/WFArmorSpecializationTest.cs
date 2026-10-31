@@ -541,6 +541,148 @@ public sealed class WFArmorSpecializationTest
     }
 
     [Test]
+    public async Task AntiSlipTreadsWorkOnSuits()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entities = server.ResolveDependency<IEntityManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            entities.System<SharedMapSystem>().CreateMap(out var mapId);
+            var coords = new MapCoordinates(0, 0, mapId);
+
+            foreach (var suit in new[] { "ClothingOuterHardsuitClown", "ClothingOuterHardsuitERTJanitor" })
+            {
+                var treaded = new Content.Shared.Slippery.SlipAttemptEvent();
+                entities.EventBus.RaiseLocalEvent(Wear(entities, coords, suit), treaded);
+                Assert.That(treaded.NoSlip, Is.True, suit);
+            }
+
+            var bare = new Content.Shared.Slippery.SlipAttemptEvent();
+            entities.EventBus.RaiseLocalEvent(entities.SpawnEntity("MobHuman", coords), bare);
+            Assert.That(bare.NoSlip, Is.False);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task BlastLinerKeepsExplosionsOffOrgans()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entities = server.ResolveDependency<IEntityManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            entities.System<SharedMapSystem>().CreateMap(out var mapId);
+            var coords = new MapCoordinates(0, 0, mapId);
+            var routing = entities.System<WoundDamageRoutingSystem>();
+            var body = entities.System<SharedBodySystem>();
+
+            FixedPoint2 OrganHealth(EntityUid human)
+            {
+                var health = FixedPoint2.Zero;
+                foreach (var (organ, _) in body.GetPartOrgans(Part(entities, human, BodyPartType.Torso)))
+                {
+                    if (entities.TryGetComponent<Content.Shared._WF.Wolfmed.Body.WolfmedOrganComponent>(organ, out var data))
+                        health += data.Health;
+                }
+
+                return health;
+            }
+
+            FixedPoint2 OrganLoss(EntityUid human, bool explosion)
+            {
+                var before = OrganHealth(human);
+                var blast = new DamageSpecifier { DamageDict = { ["Blunt"] = FixedPoint2.New(120) } };
+                routing.TryRouteDistributedDamage(human, blast, TargetBodyPart.Torso,
+                    Content.Shared._Onyx.Targeting.DamageDistribution.SplitEvenly, ignoreResistances: true,
+                    variation: 0f, isExplosion: explosion);
+                return before - OrganHealth(human);
+            }
+
+            Assert.That(OrganLoss(entities.SpawnEntity("MobHuman", coords), true), Is.GreaterThan(FixedPoint2.Zero),
+                "A blast reaches a bare body's organs.");
+            Assert.That(OrganLoss(Wear(entities, coords, "ClothingOuterHardsuitMaxim"), true), Is.EqualTo(FixedPoint2.Zero),
+                "A blast liner keeps it off the organs.");
+            Assert.That(OrganLoss(Wear(entities, coords, "ClothingOuterHardsuitMaxim"), false), Is.GreaterThan(FixedPoint2.Zero),
+                "It doesn't stop an ordinary blow.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task ServoAssistSpeedsPrying()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entities = server.ResolveDependency<IEntityManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            entities.System<SharedMapSystem>().CreateMap(out var mapId);
+
+            // Each user gets a door of their own, a step away so it can't obstruct them. An unpowered door otherwise pries
+            // instantly, leaving no do-after to measure.
+            double PryDelay(EntityUid user, float y)
+            {
+                var crowbar = entities.SpawnEntity("Crowbar", new MapCoordinates(0, y, mapId));
+                Assert.That(entities.System<Content.Shared.Hands.EntitySystems.SharedHandsSystem>().TryPickupAnyHand(user, crowbar), Is.True);
+                var door = entities.SpawnEntity("Airlock", new MapCoordinates(0.8f, y, mapId));
+                entities.GetComponent<Content.Shared.Prying.Components.PryingComponent>(crowbar).InstaPry = false;
+                Assert.That(entities.System<Content.Shared.Prying.Systems.PryingSystem>().TryPry(door, user, out _, crowbar), Is.True);
+                var doAfters = entities.GetComponent<Content.Shared.DoAfter.DoAfterComponent>(user).DoAfters;
+                Assert.That(doAfters, Is.Not.Empty, "The pry started.");
+                return doAfters.Values.First().Args.Delay.TotalSeconds;
+            }
+
+            var plain = PryDelay(entities.SpawnEntity("MobHuman", new MapCoordinates(0, 0, mapId)), 0f);
+            var servo = PryDelay(Wear(entities, new MapCoordinates(0, 5, mapId), "ClothingOuterHardsuitEngineering"), 5f);
+            Assert.That(servo, Is.EqualTo(plain / 1.25).Within(0.01), "Servo assist speeds prying like other tool work.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task EmptyPlasmaReserveTakesTheLineOut()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entities = server.ResolveDependency<IEntityManager>();
+        var reserves = entities.System<Content.Server._WF.ArmorSpecialization.WFPlasmaReserveSystem>();
+        EntityUid patient = default, suit = default;
+
+        await server.WaitAssertion(() =>
+        {
+            entities.System<SharedMapSystem>().CreateMap(out var mapId);
+            var medic = Wear(entities, new MapCoordinates(0, 0, mapId), "ClothingOuterHardsuitVoidParamed");
+            patient = entities.SpawnEntity("MobHuman", new MapCoordinates(0.5f, 0, mapId));
+            Assert.That(entities.System<InventorySystem>().TryGetSlotEntity(medic, "outerClothing", out var worn), Is.True);
+            suit = worn!.Value;
+
+            entities.System<Content.Server.Body.Systems.BloodstreamSystem>().TryModifyBloodLevel(patient, FixedPoint2.New(-150));
+            var reserve = entities.GetComponent<WFPlasmaReserveComponent>(suit);
+            reserve.Reserve = 1f;
+            reserves.Connect((suit, reserve), patient, medic);
+        });
+
+        await server.WaitRunTicks(90); // 3 seconds at the pool's 30 tick/s rate.
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entities.GetComponent<WFPlasmaReserveComponent>(suit).Patient, Is.Null, "An empty reserve drops the line.");
+            Assert.That(entities.HasComponent<Content.Shared.Physics.JointVisualsComponent>(suit), Is.False);
+            Assert.That(entities.HasComponent<Content.Server._WF.Wolfmed.Medical.WolfmedIvLinedComponent>(patient), Is.False);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
     public async Task HaulFrameAndThrusters()
     {
         await using var pair = await PoolManager.GetServerClient();

@@ -63,6 +63,7 @@ public sealed class WFCivilianSpecializationSystem : EntitySystem
 
         SubscribeLocalEvent<WFBlastLinerComponent, InventoryRelayedEvent<WolfmedSeverAttemptEvent>>(OnBlastSever);
         SubscribeLocalEvent<WFBlastLinerComponent, InventoryRelayedEvent<WolfmedWoundRuleAttemptEvent>>(OnBlastWound);
+        SubscribeLocalEvent<WFBlastLinerComponent, InventoryRelayedEvent<WolfmedOrganBlastAttemptEvent>>(OnBlastOrgans);
         SubscribeLocalEvent<WFBlastLinerComponent, ExaminedEvent>(OnBlastExamined);
 
         SubscribeLocalEvent<WFVowOfSilenceComponent, InventoryRelayedEvent<WolfmedPainNoiseAttemptEvent>>(OnPainNoise);
@@ -201,6 +202,12 @@ public sealed class WFCivilianSpecializationSystem : EntitySystem
     {
         if ((args.Args.Cause & WolfmedWoundCause.Explosion) != 0 && ent.Comp.Blocks.Contains(args.Args.Wound) &&
             WolfmedArmorCoverage.Covers(EntityManager, ent.Owner, args.Args.Part))
+            args.Args.Cancelled = true;
+    }
+
+    private void OnBlastOrgans(Entity<WFBlastLinerComponent> ent, ref InventoryRelayedEvent<WolfmedOrganBlastAttemptEvent> args)
+    {
+        if (WolfmedArmorCoverage.Covers(EntityManager, ent.Owner, args.Args.Part))
             args.Args.Cancelled = true;
     }
 

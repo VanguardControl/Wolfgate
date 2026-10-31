@@ -71,7 +71,8 @@ The relayed events in use:
 | `DamageModifyEvent` | `DamageableSystem` | Rad sink, wildlife padding, the honk, the ablative coat on non-wound hosts |
 | `PartDamageModifyEvent` | `WoundDamageRoutingSystem`, per body part | The ablative coat on wound hosts |
 | `RefreshMovementSpeedModifiersEvent` | `MovementSpeedModifierSystem` | Haul frame |
-| `WFToolSpeedEvent` | `SharedToolSystem.UseTool` | Servo assist |
+| `WolfmedOrganBlastAttemptEvent` | `OrganDamageSystem`, before an explosion damages a part's organs | Blast liner |
+| `WFToolSpeedEvent` | `SharedToolSystem.UseTool`, `PryingSystem.StartPry` | Servo assist |
 
 Two traps:
 
@@ -99,6 +100,9 @@ When the moment belongs to an upstream system with no event, add the smallest ho
 | Upstream file | Hook | Asks |
 |---|---|---|
 | `Content.Shared/Tools/Systems/SharedToolSystem.cs` | Raises `WFToolSpeedEvent` on the user before a tool do-after | Servo assist |
+| `Content.Shared/Prying/Systems/PryingSystem.cs` | Raises `WFToolSpeedEvent` on the user before prying with a tool | Servo assist |
+| `Content.Shared/Slippery/SlipperySystem.cs` | Relays `SlipAttemptEvent` to the outer clothing slot as well as the feet | Anti-slip treads |
+| `Content.Server/_Onyx/Wounds/OrganDamageSystem.cs` | Raises `WolfmedOrganBlastAttemptEvent` before an explosion damages organs | Blast liner |
 | `Content.Shared/Emp/SharedEmpSystem.cs` | `TryEmpEffects` returns early | `WFCivilianSpecializationSystem.ShieldsFromEmp` |
 | `Content.Shared/Chemistry/ReactiveSystem.cs` | Touch reactions return early | `WFCivilianSpecializationSystem.BlocksTouch` |
 | `Content.Shared/_Onyx/Wounds/AmputationSystem.cs` | Passes `IsExplosion` to `WolfmedSeverAttemptEvent` | Blast liner |

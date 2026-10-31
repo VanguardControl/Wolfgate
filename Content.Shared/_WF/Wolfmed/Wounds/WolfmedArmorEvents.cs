@@ -39,6 +39,14 @@ public record struct WolfmedSeverAttemptEvent(EntityUid Part, FixedPoint2 HitDam
     public SlotFlags TargetSlots => SlotFlags.WITHOUT_POCKET;
 }
 
+/// <summary>Raised on a body, and relayed to its worn items, before an explosion damages the organs in a part.</summary>
+[ByRefEvent]
+public record struct WolfmedOrganBlastAttemptEvent(EntityUid Part) : IInventoryRelayEvent
+{
+    public bool Cancelled;
+    public SlotFlags TargetSlots => SlotFlags.WITHOUT_POCKET;
+}
+
 /// <summary>Raised on a body, and relayed to its worn items, to total the pain relief they give.</summary>
 [ByRefEvent]
 public record struct WolfmedArmorPainReliefEvent : IInventoryRelayEvent

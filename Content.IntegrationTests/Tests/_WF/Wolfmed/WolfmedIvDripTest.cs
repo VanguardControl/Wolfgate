@@ -235,6 +235,25 @@ public sealed class WolfmedIvDripTest : WolfmedGameTest
         });
     }
 
+    /// <summary>A patient deleted mid-drip leaves no line on the stand and logs no error.</summary>
+    [Test]
+    public async Task DeletedPatientDropsTheLineTest()
+    {
+        var (_, drip, patient, _) = await Setup("WolfmedIvTestHuman", "Bloodpack", packs: 5);
+
+        await Server.WaitAssertion(() => Iv.Attach(drip, patient));
+        await RunSeconds(1);
+        await Server.WaitPost(() => SEntMan.DeleteEntity(patient));
+        await RunSeconds(2);
+
+        await Server.WaitAssertion(() =>
+        {
+            Assert.That(drip.Comp.Patient, Is.Null, "the drip kept a deleted patient.");
+            Assert.That(SEntMan.HasComponent<Content.Shared.Physics.JointVisualsComponent>(drip), Is.False,
+                "the line outlived the patient.");
+        });
+    }
+
     /// <summary>
     /// (3) The patient moved two tiles off rips the needle out: detached, and a new puncture on an arm. Put in a pod
     /// instead, the patient is detached with nothing torn.

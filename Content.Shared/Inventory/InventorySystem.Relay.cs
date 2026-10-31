@@ -67,6 +67,7 @@ public partial class InventorySystem
         SubscribeLocalEvent<InventoryComponent, Content.Shared._WF.Wolfmed.Wounds.WolfmedSteadyHandsEvent>(RefRelayInventoryEvent);
         SubscribeLocalEvent<InventoryComponent, Content.Shared._WF.Wolfmed.Wounds.WolfmedSterileEvent>(RefRelayInventoryEvent);
         SubscribeLocalEvent<InventoryComponent, Content.Shared._WF.Wolfmed.Wounds.WolfmedPainNoiseAttemptEvent>(RefRelayInventoryEvent);
+        SubscribeLocalEvent<InventoryComponent, Content.Shared._WF.Wolfmed.Wounds.WolfmedOrganBlastAttemptEvent>(RefRelayInventoryEvent);
         SubscribeLocalEvent<InventoryComponent, Content.Shared._WF.ArmorSpecialization.WFToolSpeedEvent>(RefRelayInventoryEvent); // WOLFGATE(ArmorSpecialization): worn gear may speed tool work.
         SubscribeLocalEvent<InventoryComponent, IsWeightlessEvent>(RefRelayInventoryEvent);
         SubscribeLocalEvent<InventoryComponent, GetSpeedModifierContactCapEvent>(RefRelayInventoryEvent);

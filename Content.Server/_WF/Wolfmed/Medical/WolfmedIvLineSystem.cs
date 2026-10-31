@@ -47,7 +47,9 @@ public sealed class WolfmedIvLineSystem : EntitySystem
     /// <summary>Takes the line from <paramref name="source"/> out of the patient; the alert goes with the last one.</summary>
     public void Hide(EntityUid source, EntityUid patient)
     {
-        if (TryComp(source, out JointVisualsComponent? visuals) && visuals.Target == GetNetEntity(patient))
+        // The target no longer resolves once the patient is deleted, and the line goes then too.
+        if (TryComp(source, out JointVisualsComponent? visuals) &&
+            (!TryGetEntity(visuals.Target, out var target) || target == patient))
             RemComp<JointVisualsComponent>(source);
 
         if (TerminatingOrDeleted(patient) || !TryComp(patient, out WolfmedIvLinedComponent? lined))

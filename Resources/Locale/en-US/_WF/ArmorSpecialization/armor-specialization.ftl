@@ -34,6 +34,7 @@ wf-armor-spec-plasma-disconnected = The plasma line is taken out of {THE($target
 wf-armor-spec-plasma-line-pulled = The plasma line pulls free of {THE($target)}!
 wf-armor-spec-plasma-cannot = You can't run a line to {THE($target)} from here.
 wf-armor-spec-plasma-empty = Your suit's plasma reserve is empty.
+wf-armor-spec-plasma-ran-dry = Your suit's plasma reserve runs dry and the line comes out.
 wf-armor-spec-plasma-full = The plasma reserve is already full.
 wf-armor-spec-plasma-refilled = You empty the blood pack into the plasma reserve ({$units}/{$max}u).
 

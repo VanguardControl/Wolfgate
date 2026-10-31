@@ -83,10 +83,13 @@ in a fight and not only on paper. Each is one component on the suit, and each re
 ## Non-modular edits
 
 - [`Content.Server/_Onyx/Chat/EmoteOnDamageSystem.PainSounds.cs`](../../_Onyx/Chat/EmoteOnDamageSystem.PainSounds.cs): worn gear may silence pain noises (the mime's vow).
+- [`Content.Server/_Onyx/Wounds/OrganDamageSystem.cs`](../../_Onyx/Wounds/OrganDamageSystem.cs): a blast liner keeps an explosion from reaching the organs it covers.
 - [`Content.Shared/_Onyx/Wounds/PainSystem.cs`](../../../Content.Shared/_Onyx/Wounds/PainSystem.cs): worn gear may silence the pain-shock scream (the mime's vow).
 - [`Content.Shared/Chemistry/ReactiveSystem.cs`](../../../Content.Shared/Chemistry/ReactiveSystem.cs): a decon coating keeps splashed, sprayed and spilled chemicals off the wearer.
 - [`Content.Shared/Emp/SharedEmpSystem.cs`](../../../Content.Shared/Emp/SharedEmpSystem.cs): an EMP-hardened suit shields its wearer and what they carry.
 - [`Content.Shared/Inventory/InventorySystem.Relay.cs`](../../../Content.Shared/Inventory/InventorySystem.Relay.cs): worn gear may speed tool work.
+- [`Content.Shared/Prying/Systems/PryingSystem.cs`](../../../Content.Shared/Prying/Systems/PryingSystem.cs): worn gear (servo assist) speeds prying with a tool, like other tool work.
+- [`Content.Shared/Slippery/SlipperySystem.cs`](../../../Content.Shared/Slippery/SlipperySystem.cs): anti-slip treads can also be built into an outer suit.
 - [`Content.Shared/Tools/Systems/SharedToolSystem.cs`](../../../Content.Shared/Tools/Systems/SharedToolSystem.cs): worn gear (servo assist) may speed the user's tool work.
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/OuterClothing/modsuit.yml`](../../../Resources/Prototypes/_Goobstation/Entities/Clothing/OuterClothing/modsuit.yml)
   - cold seal.

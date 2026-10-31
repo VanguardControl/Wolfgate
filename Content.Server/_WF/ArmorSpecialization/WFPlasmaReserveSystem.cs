@@ -77,8 +77,15 @@ public sealed class WFPlasmaReserveSystem : EntitySystem
                 continue;
             }
 
-            if (reserve.Patient is { } patient && LineHolds(ent, wearer, patient))
-                Give(ent, patient, reserve.LineRate * seconds);
+            if (reserve.Patient is not { } patient || !LineHolds(ent, wearer, patient))
+                continue;
+
+            Give(ent, patient, reserve.LineRate * seconds);
+            if (reserve.Reserve > 0.005f)
+                continue;
+
+            ClearLine(ent);
+            _popup.PopupEntity(Loc.GetString("wf-armor-spec-plasma-ran-dry"), wearer, wearer, PopupType.SmallCaution);
         }
     }
 
