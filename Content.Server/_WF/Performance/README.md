@@ -37,8 +37,9 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   (`NavMapSystem.WFRemoved`), and a client behind what it dropped gets a full state.
 - A ship sale serialises the hull on the main thread as before, but writes its YAML text on a worker
   (`ShipyardSystem.TrySaveShipDeferred`). That takes about a quarter off the hitch of each sale; serialising is the rest.
-- One-second jobs take a tick each instead of landing together (`WFTickSpread`): radius heaters, drains and wound
-  overlay refreshes. Fixture damage and the atmos alerts console start on their own offsets.
+- One-second jobs take a tick each instead of landing together (`WFTickSpread`): radius heaters and drains. Wound
+  overlay refreshes take a share per tick, and fixture damage and the atmos alerts console start on their own offsets.
+  Radius heaters also look only for loose things to warm, not anchored or stored ones.
 - `IgnitionSourceSystem` walks only lit sources (`WFLit`), and a ship's shield follows it with one transform call.
 - The marked upstream edits skip idle-shuttle thruster work, avoid `Enum.GetValues` and nullable boxing on per-tick
   paths, stop `FlammableSystem` from crashing when igniting queues new fire events, and stop networking a thrown
@@ -54,6 +55,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/_WF/Performance/AtmosphereSystem.WFBreachLoop.cs`](AtmosphereSystem.WFBreachLoop.cs)
 - [`Content.Server/_WF/Performance/CEZLevelsSystem.WFGroundSample.cs`](CEZLevelsSystem.WFGroundSample.cs)
 - [`Content.Server/_WF/Performance/DockingSystem.WFPlacement.cs`](DockingSystem.WFPlacement.cs)
+- [`Content.Server/_WF/Performance/EntityRadiusHeaterSystem.WFSpread.cs`](EntityRadiusHeaterSystem.WFSpread.cs)
 - [`Content.Server/_WF/Performance/GCQueuePrototype.WFMinAge.cs`](GCQueuePrototype.WFMinAge.cs)
 - [`Content.Server/_WF/Performance/GCQueueSystem.WFMinAge.cs`](GCQueueSystem.WFMinAge.cs)
 - [`Content.Server/_WF/Performance/IgnitionSourceSystem.WFLit.cs`](IgnitionSourceSystem.WFLit.cs)
@@ -93,6 +95,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFIgnitionLitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFIgnitionLitTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFNavMapDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFNavMapDeltaTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFNavMapTrimTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFNavMapTrimTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Performance/WFRadiusHeaterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFRadiusHeaterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFRoofDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFRoofDeltaTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFZLevelOffsetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFZLevelOffsetTest.cs)
@@ -129,6 +132,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs`](../../_CE/ZLevels/Core/CEZLevelsSystem.GroundFriction.cs): reuse a parked grid's sample instead of re-walking its hull every tick
 - [`Content.Server/_Mono/Temperature/Systems/EntityRadiusHeaterSystem.cs`](../../_Mono/Temperature/Systems/EntityRadiusHeaterSystem.cs)
   - each heater takes its own tick of the second, not all on one
+  - what a fire warms is loose; skipping anchored and stored things skips the trees round a planet's fires
   - each heater takes its own tick
 - [`Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs`](../../_NF/StationEvents/Events/BluespaceErrorRule.cs)
   - frontier#4800 extended, appraise at spawn only for the currency injection

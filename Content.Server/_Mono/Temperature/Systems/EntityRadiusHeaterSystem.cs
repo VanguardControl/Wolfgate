@@ -1,3 +1,4 @@
+using Robust.Shared.Timing; // WOLFGATE(Performance)
 using Content.Server._Mono.Temperature.Components;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
@@ -6,7 +7,6 @@ using Content.Server.Temperature.Systems;
 using Content.Shared._WF.Performance; // WOLFGATE(Performance)
 using Content.Shared.IgnitionSource;
 using Content.Shared.Item.ItemToggle.Components;
-using Robust.Shared.Timing; // WOLFGATE(Performance)
 
 namespace Content.Server._Mono.Temperature.Systems;
 
@@ -36,12 +36,10 @@ public sealed partial class EntityRadiusHeaterSystem : EntitySystem
 
         var eqe = EntityQueryEnumerator<EntityRadiusHeaterComponent>();
 
-        while (eqe.MoveNext(out var uid, out var comp))
+        // while (eqe.MoveNext(out var uid, out var comp))
+        while (WFNextDue(ref eqe, tick, period, out var uid, out var comp))
+        // WOLFGATE END
         {
-            if (!WFTickSpread.Due(uid, tick, period))
-                continue;
-            // WOLFGATE END
-
             if (comp.RequireActivation && TryComp<IgnitionSourceComponent>(uid, out var ignite)
                                        && !ignite.Ignited)
                 continue;
@@ -53,7 +51,10 @@ public sealed partial class EntityRadiusHeaterSystem : EntitySystem
             if (!this.IsPowered(uid, EntityManager))
                 continue;
 
-            var nearby = _lookup.GetEntitiesInRange<TemperatureComponent>(Transform(uid).Coordinates, comp.Radius);
+            // WOLFGATE(Performance) START: what a fire warms is loose; skipping anchored and stored things skips the trees round a planet's fires
+            // var nearby = _lookup.GetEntitiesInRange<TemperatureComponent>(Transform(uid).Coordinates, comp.Radius);
+            var nearby = _lookup.GetEntitiesInRange<TemperatureComponent>(Transform(uid).Coordinates, comp.Radius, LookupFlags.Dynamic | LookupFlags.Sundries);
+            // WOLFGATE END
             var xform = Transform(uid);
             foreach (var ent in nearby)
             {

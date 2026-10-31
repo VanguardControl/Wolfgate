@@ -27,6 +27,9 @@ public sealed class WolfmedWoundOverlaySystem : EntitySystem
     /// <summary>What a wound is tinted when its body has no blood reagent to read.</summary>
     private static readonly Color FallbackBlood = Color.FromHex("#800000");
 
+    /// <summary>Bodies refreshed each tick at least, so a body that was just hurt doesn't wait long.</summary>
+    private const int MinRefreshesPerTick = 16;
+
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private SharedBodySystem _body = default!;
@@ -36,6 +39,8 @@ public sealed class WolfmedWoundOverlaySystem : EntitySystem
     [Dependency] private WoundSystem _wounds = default!;
 
     private readonly HashSet<EntityUid> _pending = new();
+    private readonly List<EntityUid> _refreshing = new();
+    private TimeSpan _nextSweep;
     private readonly Dictionary<HumanoidVisualLayers, WolfmedWoundOverlay> _woundScratch = new();
     private readonly HashSet<HumanoidVisualLayers> _rotScratch = new();
     private readonly Dictionary<WolfmedArterySite, WolfmedArteryOverlay> _arteryScratch = new();
@@ -88,23 +93,34 @@ public sealed class WolfmedWoundOverlaySystem : EntitySystem
     /// <inheritdoc/>
     public override void Update(float frameTime)
     {
-        // Each body takes its own tick of the sweep, so a full server doesn't refresh them all on one.
-        var period = WFTickSpread.Period(_timing, MathF.Max(0.1f, _cfg.GetCVar(WolfmedCVars.OverlayRefreshSeconds)));
-        var tick = _timing.CurTick;
-        var hosts = EntityQueryEnumerator<WoundHostComponent, PartDamageVisualsComponent>();
-        while (hosts.MoveNext(out var uid, out _, out _))
+        var now = _timing.CurTime;
+        if (now >= _nextSweep)
         {
-            if (WFTickSpread.Due(uid, tick, period))
+            _nextSweep = now + TimeSpan.FromSeconds(MathF.Max(0.1f, _cfg.GetCVar(WolfmedCVars.OverlayRefreshSeconds)));
+            var hosts = EntityQueryEnumerator<WoundHostComponent, PartDamageVisualsComponent>();
+            while (hosts.MoveNext(out var uid, out _, out _))
                 _pending.Add(uid);
         }
 
         if (_pending.Count == 0)
             return;
 
+        // Each tick takes its share of the sweep, so a full server doesn't refresh every body on one.
+        var period = WFTickSpread.Period(_timing, MathF.Max(0.1f, _cfg.GetCVar(WolfmedCVars.OverlayRefreshSeconds)));
+        var share = Math.Max(MinRefreshesPerTick, _pending.Count / period + 1);
+        _refreshing.Clear();
         foreach (var body in _pending)
-            Refresh(body);
+        {
+            _refreshing.Add(body);
+            if (_refreshing.Count >= share)
+                break;
+        }
 
-        _pending.Clear();
+        foreach (var body in _refreshing)
+        {
+            _pending.Remove(body);
+            Refresh(body);
+        }
     }
 
     /// <summary>Recomputes a body's wound and rot overlays and networks them when they changed. Public for tests.</summary>
