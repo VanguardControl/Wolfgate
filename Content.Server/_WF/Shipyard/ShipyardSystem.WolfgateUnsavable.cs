@@ -6,7 +6,6 @@ namespace Content.Server._NF.Shipyard.Systems;
 public sealed partial class ShipyardSystem
 {
     [Dependency] private IDependencyCollection _wfDependencies = default!;
-    [Dependency] private IComponentFactory _wfFactory = default!;
 
     /// <summary>
     /// Takes off any component aboard a sold hull that won't save, so one bad component doesn't lose the whole copy. The
@@ -41,7 +40,7 @@ public sealed partial class ShipyardSystem
                 {
                     var name = serializer.CurrentComponent;
                     serializer = new EntitySerializer(_wfDependencies, probeOptions);
-                    if (name == null || !_wfFactory.TryGetRegistration(name, out var registration) ||
+                    if (name == null || !_wfComponentFactory.TryGetRegistration(name, out var registration) ||
                         !EntityManager.TryGetComponent(uid, registration.Type, out var bad))
                     {
                         Log.Warning($"Could not tell what stops {ToPrettyString(uid)} saving: {e.Message}");
