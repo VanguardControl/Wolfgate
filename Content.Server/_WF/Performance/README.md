@@ -45,7 +45,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   zones, ship status, crew ship status, cargo load and thermal signatures each start on their own part of the second.
 - AI ship steering works every other tick and holds its input between (`ShipSteeringSystem`), and `FlammableSystem`
   looks for what's due every third tick.
-- `WFGridDeleteWatchSystem` logs any grid that takes over 50 ms to delete, by name and entity count.
+- `WFGridDeleteWatchSystem` logs any grid that takes at least 50 ms to delete, by name and entity count.
 - The marked upstream edits skip idle-shuttle thruster work, avoid `Enum.GetValues` and nullable boxing on per-tick
   paths, stop `FlammableSystem` from crashing when igniting queues new fire events, and stop networking a thrown
   item's shooter (it outlived the shooter and sent a deleted entity every state).
