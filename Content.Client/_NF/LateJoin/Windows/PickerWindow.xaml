@@ -36,7 +36,7 @@
             </PanelContainer>
         </PanelContainer>
         <!-- WOLFGATE(Companies): company members can join the round as their rank -->
-        <companies:WFCompanyJoinAsRankBar />
+        <companies:WFCompanyQuickJoin Margin="6 0 6 6" />
         <PanelContainer VerticalExpand="True" HorizontalExpand="True">
             <PanelContainer Name="ContentContainer" VerticalExpand="True" HorizontalExpand="True">
                 <PanelContainer.PanelOverride>

@@ -330,6 +330,8 @@ public sealed partial class WFCompanySystem
                 company.LaunchFee = msg.Amount;
                 Track(_db.SetCompanyLaunchFeeAsync(company.Id, company.LaunchFee));
                 return null;
+            case WFCompanyAction.SetLicenceName when Has(company, you, WFCompanyPermissions.Launch):
+                return SetLicenceName(company, msg.LicenceId, msg.Name);
             case WFCompanyAction.Launch when Has(company, you, WFCompanyPermissions.Launch) && _players.TryGetSessionById(character.User, out var launcher):
                 return LaunchLicence(company, launcher, msg.LicenceId, out success);
             case WFCompanyAction.JoinAsRank when _players.TryGetSessionById(character.User, out var joiner):
@@ -475,7 +477,7 @@ public sealed partial class WFCompanySystem
     private WFCompanyProfileEvent Profile(Company company, bool member)
     {
         if (company.Private && !member)
-            return new WFCompanyProfileEvent(company.Id, true, Array.Empty<WFCompanyProfileMember>());
+            return new WFCompanyProfileEvent(company.Id, true, Array.Empty<WFCompanyProfileMember>(), ProfileShips(company));
         var members = company.Members.Values.OrderBy(entry => RankOrder(company, entry) ?? -1).ThenBy(entry => entry.Name)
             .Select(entry =>
             {
@@ -483,7 +485,7 @@ public sealed partial class WFCompanySystem
                 return new WFCompanyProfileMember(entry.Name, TitleOf(company, entry), rank?.Id ?? 0,
                     rank?.Icon == null ? 0 : rank.IconVersion, BaseJob(company, entry));
             }).ToArray();
-        return new WFCompanyProfileEvent(company.Id, false, members);
+        return new WFCompanyProfileEvent(company.Id, false, members, ProfileShips(company));
     }
 
     /// <summary>Whether one of the player's characters is already a member; a player has one character per company.</summary>

@@ -136,6 +136,7 @@ public sealed partial class WFCompanyTest
                 Assert.That(server.System<Content.Server.StationRecords.Systems.StationRecordsSystem>()
                     .TryGetRecord<Content.Shared.StationRecords.GeneralStationRecord>(key!.Value, out var record), Is.True);
                 Assert.That(record!.WFCompanyRank, Is.EqualTo(topRank));
+                Assert.That(record.JobTitle, Is.EqualTo("Captain"), "The manifest shows the rank, not the job.");
             });
             await pair.Client.WaitAssertion(() => Assert.That(Content.Client._WF.Companies.WFCompanyRankIcons.Get(topRank), Is.Not.Null,
                 "Screens that draw job icons get the rank icon."));

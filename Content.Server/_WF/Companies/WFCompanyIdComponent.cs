@@ -12,4 +12,8 @@ public sealed partial class WFCompanyIdComponent : Component
 
     [DataField]
     public string Rank = string.Empty;
+
+    /// <summary>The rank title put on the card at spawn, empty when it kept its job's title.</summary>
+    [DataField]
+    public string Title = string.Empty;
 }

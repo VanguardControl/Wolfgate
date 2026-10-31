@@ -86,6 +86,22 @@ public sealed partial class WFCompanyTest
             var licence = state.Own!.Licences.Single().Id;
             Assert.That(licence, Is.Not.Zero);
 
+            // The ship's name is kept with the licence and used for every launch.
+            state = await Send(new(WFCompanyAction.SetLicenceName) { CompanyId = id.Value, LicenceId = licence, Name = "Long Haul" });
+            Assert.That(state.Own!.Licences.Single().ShipName, Is.EqualTo("Long Haul"), state.Message);
+
+            // The quick join card offers the ship by that name, in one click.
+            await Crew(new(WFRoundSetupAction.Refresh));
+            await pair.Client.WaitAssertion(() =>
+            {
+                var card = new WFCompanyQuickJoin(true);
+                var root = pair.Client.ResolveDependency<Robust.Client.UserInterface.IUserInterfaceManager>().WindowRoot;
+                root.AddChild(card);
+                var buttons = card.GetChild(0).GetChild(0).Children.OfType<Robust.Client.UserInterface.Controls.Button>().Select(button => button.Text).ToArray();
+                root.RemoveChild(card);
+                Assert.That(buttons, Does.Contain("Launch Long Haul"));
+            });
+
             await server.WaitPost(() =>
             {
                 ticker.SetGamePreset("Sandbox");
@@ -102,10 +118,12 @@ public sealed partial class WFCompanyTest
                 Assert.That(crew.Hangar, Is.True);
                 Assert.That(crew.Vessel, Is.EqualTo("Guppy"));
                 Assert.That(crew.CompanyTag, Is.EqualTo("HNGR"));
+                Assert.That(crew.ShipName, Is.EqualTo("Long Haul"));
+                Assert.That(crew.Access, Is.EqualTo(WFLobbyAccess.CompanyFirst));
                 Assert.That(crewState.Payment, Is.Null, "The crew pays nothing for a hangar ship.");
             });
             // A company member joins the company crew as their rank: no opening, the rank's job and title.
-            await Crew(new(WFRoundSetupAction.Configure) { LobbyId = crew.Id, Access = WFLobbyAccess.Public, AllowLateJoin = true });
+            await Crew(new(WFRoundSetupAction.Configure) { LobbyId = crew.Id, Access = WFLobbyAccess.CompanyOnly, AllowLateJoin = true });
             await pair.RunTicksSync(pair.SecondsToTicks(0.25f));
             await server.WaitPost(() => onRequest.Invoke(roundSetup, new object[]
                 { new WFRoundSetupRequest(WFRoundSetupAction.Join) { LobbyId = crew.Id, AsRank = true }, new EntitySessionEventArgs(hands[0]) }));
@@ -118,6 +136,15 @@ public sealed partial class WFCompanyTest
                 Assert.That(hand0.Job, Is.EqualTo("Contractor"));
             });
             await Crew(new(WFRoundSetupAction.SelectJob) { LobbyId = crew.Id, Job = "Contractor" });
+            var ownerRank = state.Own!.OwnerRank!.Title;
+            WFCompanyProfileEvent profile = null;
+            await pair.Client.WaitPost(() =>
+            {
+                client.ProfileReceived += received => profile = received;
+                client.Send(new WFCompanyRequest(WFCompanyAction.RequestProfile) { CompanyId = id.Value });
+            });
+            await pair.RunTicksSync(pair.SecondsToTicks(0.5f));
+            Assert.That(profile?.Ships.Single().Name, Is.EqualTo("Long Haul"), "The profile lists what's in the hangar.");
             crewState = await Crew(new(WFRoundSetupAction.ConfirmJoin) { LobbyId = crew.Id });
             Assert.That(crewState.Lobbies.Single(lobby => lobby.Id == crew.Id).Started, Is.True, crewState.Message);
             await pair.RunTicksSync(pair.SecondsToTicks(2.5f));
@@ -129,6 +156,8 @@ public sealed partial class WFCompanyTest
                 var grid = em.GetComponent<TransformComponent>(owner.AttachedEntity!.Value).GridUid!.Value;
                 Assert.That(em.GetComponent<WFCompanyHangarShipComponent>(grid).CompanyId, Is.EqualTo(id.Value));
                 Assert.That(em.GetComponent<WFCompanyShipComponent>(grid).Tag, Is.EqualTo("HNGR"));
+                Assert.That(server.System<Content.Shared.Access.Systems.SharedIdCardSystem>().TryFindIdCard(owner.AttachedEntity!.Value, out var ownerCard), Is.True);
+                Assert.That(ownerCard.Comp.LocalizedJobTitle, Is.EqualTo(ownerRank), "A member in the overflow job shows their rank, not Vagrant.");
 
                 // Breaking it or stripping it for sale pays nothing.
                 var console = em.SpawnEntity(null, MapCoordinates.Nullspace);

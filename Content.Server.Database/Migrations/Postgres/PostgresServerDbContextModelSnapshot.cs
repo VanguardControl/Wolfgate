@@ -2026,6 +2026,12 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("bigint")
                         .HasColumnName("price_paid");
 
+                    b.Property<string>("ShipName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .HasColumnName("ship_name");
+
                     b.Property<string>("Vessel")
                         .IsRequired()
                         .HasMaxLength(64)

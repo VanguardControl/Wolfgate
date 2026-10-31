@@ -143,14 +143,19 @@ public sealed class WFCompanyClientSystem : EntitySystem
     public void RequestIconPreset(string icon) => RaiseNetworkEvent(new WFCompanyRequest(WFCompanyAction.RequestIconPreset) { Name = icon });
 
     /// <summary>Opens the Company window, or brings it forward.</summary>
-    public void OpenWindow()
+    /// <param name="create">Opens on the Create tab if the player's character can use it.</param>
+    public void OpenWindow(bool create = false)
     {
         if (_window is { IsOpen: true })
         {
+            if (create)
+                _window.ShowCreate();
             _window.MoveToFront();
             return;
         }
         var window = new WFCompanyWindow();
+        if (create)
+            window.ShowCreate();
         _window = window;
         window.OnClose += () =>
         {

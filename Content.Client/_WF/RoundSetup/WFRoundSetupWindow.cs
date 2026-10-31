@@ -189,12 +189,14 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
             lobby.Started && !lobby.AllowLateJoin ? "latejoin-closed" : "no-roles";
         if (available && NeedsJoinWarning(lobby))
             content.AddChild(JoinWarning());
+        var companyMember = lobby.CompanyId != null && lobby.CompanyId == state.OwnCompany;
         if (!invitation && lobby.CanJoinAsRank && state.CompanyRank != null &&
-            state.OwnLobby == null && (state.CanJoin || live) && lobby.Access is not (WFLobbyAccess.Invite or WFLobbyAccess.Closed))
+            state.OwnLobby == null && (state.CanJoin || live) && lobby.Access is not (WFLobbyAccess.Invite or WFLobbyAccess.Closed) &&
+            (lobby.Access != WFLobbyAccess.CompanyOnly || companyMember))
         {
             var asRank = Button("join-as-rank", () => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.Join)
-                { LobbyId = lobby.Id, AsRank = true, Code = _enteredCodes.GetValueOrDefault(lobby.Id) }),
-                text: Text("join-as-rank", ("rank", state.CompanyRank)));
+                { LobbyId = lobby.Id, AsRank = true, Code = _enteredCodes.GetValueOrDefault(lobby.Id) }));
+            asRank.Text = Text("join-as-rank", ("rank", state.CompanyRank));
             asRank.AddStyleClass("ButtonAccept");
             content.AddChild(asRank);
         }
@@ -221,13 +223,19 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
                 RoleId = _browsedRoles.GetValueOrDefault(lobby.Id),
             }), !available, disabledReason)));
         }
-        else if (lobby.Access is WFLobbyAccess.Public or WFLobbyAccess.Requests)
+        else if (lobby.Access is WFLobbyAccess.Public or WFLobbyAccess.Requests or WFLobbyAccess.CompanyFirst || lobby.Access == WFLobbyAccess.CompanyOnly && companyMember)
         {
-            content.AddChild(JoinButton(lobby, lobby.Access == WFLobbyAccess.Requests ? "request-join" : "join",
+            var asks = lobby.Access == WFLobbyAccess.Requests || lobby.Access == WFLobbyAccess.CompanyFirst && !companyMember;
+            content.AddChild(JoinButton(lobby, asks ? "request-join" : "join",
                 () => JoinLobby(WFRoundSetupAction.Join, lobby.Id), !available, disabledReason));
         }
         else
-            content.AddChild(Description(lobby.Access == WFLobbyAccess.Invite ? "invite-only" : "closed-help"));
+            content.AddChild(Description(lobby.Access switch
+            {
+                WFLobbyAccess.Invite => "invite-only",
+                WFLobbyAccess.CompanyOnly => "company-only-help",
+                _ => "closed-help",
+            }));
 
         if (lobby.Started && !lobby.AllowLateJoin)
             content.AddChild(Description("latejoin-closed"));
@@ -258,7 +266,9 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         settings.AddChild(DescriptionEditor(_draftDescription, value => { _draftDescription = value; _settingsDirty = true; }));
         settings.AddChild(Heading("admission"));
         var access = new WFRoundSetupOptionButton { HorizontalExpand = true };
-        foreach (var option in Enum.GetValues<WFLobbyAccess>())
+        if (lobby.CompanyId == null && WFRoundSetupPolicy.IsCompanyAccess(_draftAccess))
+            _draftAccess = WFLobbyAccess.Requests;
+        foreach (var option in Enum.GetValues<WFLobbyAccess>().Where(option => lobby.CompanyId != null || !WFRoundSetupPolicy.IsCompanyAccess(option)))
             access.AddItem(AccessName(option), (int) option);
         access.SelectId((int) _draftAccess);
         access.OnItemSelected += args =>
@@ -457,9 +467,9 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         return label;
     }
 
-    private static Button Button(string key, Action pressed, bool disabled = false, string? disabledReason = null, string? text = null)
+    private static Button Button(string key, Action pressed, bool disabled = false, string? disabledReason = null)
     {
-        var button = new Button { Text = text ?? Text(key), Disabled = disabled, MinHeight = 40, HorizontalExpand = true,
+        var button = new Button { Text = Text(key), Disabled = disabled, MinHeight = 40, HorizontalExpand = true,
             ToolTip = disabled ? Text(disabledReason ?? "disabled-join") : null };
         if (key == "leave")
             button.AddStyleClass("ButtonColorRed");

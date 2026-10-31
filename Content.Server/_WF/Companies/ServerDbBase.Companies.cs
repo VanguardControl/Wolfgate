@@ -190,6 +190,16 @@ public abstract partial class ServerDbBase
         await db.DbContext.SaveChangesAsync(cancel);
     }
 
+    public async Task SetCompanyLicenceNameAsync(int id, string name, CancellationToken cancel = default)
+    {
+        await using var db = await GetDb(cancel);
+        var licence = await db.DbContext.WolfgateCompanyLicence.SingleOrDefaultAsync(l => l.Id == id, cancel);
+        if (licence == null)
+            return;
+        licence.ShipName = name;
+        await db.DbContext.SaveChangesAsync(cancel);
+    }
+
     public async Task SetCompanyLaunchFeeAsync(int id, int fee, CancellationToken cancel = default)
     {
         await using var db = await GetDb(cancel);

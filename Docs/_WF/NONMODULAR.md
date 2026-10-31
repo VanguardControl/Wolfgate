@@ -273,11 +273,20 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/ServerInfo/_NF/Guidebook/Rules/Zero_Tolerance.xml`](../../Resources/ServerInfo/_NF/Guidebook/Rules/Zero_Tolerance.xml)
   - was 16, Monolith Station
   - erotic roleplay rule removed before this one (#27)
-- [`Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC0.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC0.xml): was 16
+- [`Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC0.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC0.xml)
+  - ERP is allowed, rule 4 only covers shock content
+  - was 16
 - [`Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC12MinAge.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC12MinAge.xml): was 16
-- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenCoreOnlyRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenCoreOnlyRules.xml): was 16
-- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenLRPRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenLRPRules.xml): was 16
-- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenMRPRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenMRPRules.xml): was 16
+- [`Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC4NoERP.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC4NoERP.xml): ERP is allowed, rule 4 only covers shock content
+- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenCoreOnlyRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenCoreOnlyRules.xml)
+  - ERP is allowed, rule 4 only covers shock content
+  - was 16
+- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenLRPRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenLRPRules.xml)
+  - ERP is allowed, rule 4 only covers shock content
+  - was 16
+- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenMRPRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenMRPRules.xml)
+  - ERP is allowed, rule 4 only covers shock content
+  - was 16
 - [`Resources/ServerInfo/Rules.txt`](../../Resources/ServerInfo/Rules.txt): Monolith renamed to Wolfgate in the intro and section headings (#19); the file is unused (server.rules_file is MonolithRuleset).
 - [`Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml`](../../Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml): PDV pack, top-left thruster was mapped disabled.
 - [`Resources/Textures/_FarHorizons/Structures/Power/Generation/FissionGenerator/nuclear_reactor.rsi/`](../../Resources/Textures/_FarHorizons/Structures/Power/Generation/FissionGenerator/nuclear_reactor.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.

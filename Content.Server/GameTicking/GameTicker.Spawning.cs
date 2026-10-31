@@ -263,6 +263,7 @@ namespace Content.Server.GameTicking
             _roles.MindAddJobRole(newMind, silent: silent, jobPrototype:jobId);
             var jobName = _jobs.MindTryGetJobName(newMind);
             var customJobTitle = CustomJobTitleRules.GetTitle(character, jobId, _prototypeManager); // WOLFGATE(Roles)
+            customJobTitle = EntityManager.System<Content.Server._WF.Companies.WFCompanySystem>().RankTitleFor(player, character, jobId) ?? customJobTitle; // WOLFGATE(Companies): arrival announcement uses the rank, not Vagrant
             _admin.UpdatePlayerList(player);
 
             if (lateJoin && !silent)

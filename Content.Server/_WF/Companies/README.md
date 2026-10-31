@@ -9,7 +9,7 @@ commands, and company identity in the round.
 Members whose character is in the lobby during a round get **Join the round as <rank>** in the Company window: they
 spawn at the first standard station with a free slot for the rank's base job (the owner uses the top rank's), with the
 rank title on their ID, mind and station record. Any member who spawns as their member character gets the company on
-their ID's examine text and the company radio channel (`:4`), named after the company tag; membership is checked on
+their ID's examine text and the company radio channel (`:h`), named after the company tag; membership is checked on
 every send and receive, as for crew radio. A Crew Setup host whose rank has Field crews can fly the crew under the
 company: its tag shows on crew rows, details and postings, members of the company see its crews first, and its ship
 carries `WFCompanyShipComponent`, which the IFF label shows as `[TAG] Name`.
@@ -58,6 +58,11 @@ creating a crew and on the crew's front page.
 The rank icon editor can start from any existing job icon. The round end summary lists every company that played or
 moved money that round: members who played and hours, new members, crews fielded, wages, cuts, deposits, withdrawals
 and the account's start and end.
+
+**Quick join.** `WFCompanyQuickJoin` is one card with every way a member can get into the round: their company's crews,
+hangar ships ready to launch, and joining as their rank. It shows on the lobby menu, the crew browser, the late-join
+window and the Companies tab. A player whose selected character isn't in a company but who has one that is gets a button
+to switch to it.
 
 **Hangar.** The owner buys fleet licences (up to 3) for civilian designs any character may fly, or for the company-only
 Mercenary and Mieyo designs, at 200x the shipyard
@@ -147,15 +152,17 @@ tables via `ServerDbBase.Companies`); it reloads at each round restart once pend
 
 ### Client
 
+- [`Content.Client/_WF/Companies/CharacterPickerButton.Companies.cs`](../../../Content.Client/_WF/Companies/CharacterPickerButton.Companies.cs)
 - [`Content.Client/_WF/Companies/HumanoidProfileEditor.Companies.cs`](../../../Content.Client/_WF/Companies/HumanoidProfileEditor.Companies.cs)
 - [`Content.Client/_WF/Companies/WFCompanyApplyWindow.cs`](../../../Content.Client/_WF/Companies/WFCompanyApplyWindow.cs)
 - [`Content.Client/_WF/Companies/WFCompanyClientSystem.cs`](../../../Content.Client/_WF/Companies/WFCompanyClientSystem.cs)
 - [`Content.Client/_WF/Companies/WFCompanyIconResources.cs`](../../../Content.Client/_WF/Companies/WFCompanyIconResources.cs)
-- [`Content.Client/_WF/Companies/WFCompanyJoinAsRankBar.cs`](../../../Content.Client/_WF/Companies/WFCompanyJoinAsRankBar.cs)
+- [`Content.Client/_WF/Companies/WFCompanyJoinActions.cs`](../../../Content.Client/_WF/Companies/WFCompanyJoinActions.cs)
 - [`Content.Client/_WF/Companies/WFCompanyLoadoutWindow.cs`](../../../Content.Client/_WF/Companies/WFCompanyLoadoutWindow.cs)
 - [`Content.Client/_WF/Companies/WFCompanyLogoCanvas.cs`](../../../Content.Client/_WF/Companies/WFCompanyLogoCanvas.cs)
 - [`Content.Client/_WF/Companies/WFCompanyLogoWindow.cs`](../../../Content.Client/_WF/Companies/WFCompanyLogoWindow.cs)
 - [`Content.Client/_WF/Companies/WFCompanyProfileWindow.cs`](../../../Content.Client/_WF/Companies/WFCompanyProfileWindow.cs)
+- [`Content.Client/_WF/Companies/WFCompanyQuickJoin.cs`](../../../Content.Client/_WF/Companies/WFCompanyQuickJoin.cs)
 - [`Content.Client/_WF/Companies/WFCompanyRankHudSystem.cs`](../../../Content.Client/_WF/Companies/WFCompanyRankHudSystem.cs)
 - [`Content.Client/_WF/Companies/WFCompanyRankIcons.cs`](../../../Content.Client/_WF/Companies/WFCompanyRankIcons.cs)
 - [`Content.Client/_WF/Companies/WFCompanyWindow.cs`](../../../Content.Client/_WF/Companies/WFCompanyWindow.cs)
@@ -194,6 +201,7 @@ tables via `ServerDbBase.Companies`); it reloads at each round restart once pend
   - company members can join the round as their rank
 - [`Content.Client/CrewManifest/UI/CrewManifestSection.cs`](../../../Content.Client/CrewManifest/UI/CrewManifestSection.cs): rank icon
 - [`Content.Client/CriminalRecords/CriminalRecordsConsoleWindow.xaml.cs`](../../../Content.Client/CriminalRecords/CriminalRecordsConsoleWindow.xaml.cs): rank icon
+- [`Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs`](../../../Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs): the character list names their company
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
 - [`Content.Client/Medical/CrewMonitoring/CrewMonitoringWindow.xaml.cs`](../../../Content.Client/Medical/CrewMonitoring/CrewMonitoringWindow.xaml.cs): rank icon
 - [`Content.IntegrationTests/PoolManager.Cvars.cs`](../../../Content.IntegrationTests/PoolManager.Cvars.cs)
@@ -206,6 +214,7 @@ tables via `ServerDbBase.Companies`); it reloads at each round restart once pend
 - [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.cs): company hangar ships belong to the company and can't be sold
 - [`Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs`](../../Cargo/Systems/CargoSystem.Shuttle.cs): the seller's company takes its cut
 - [`Content.Server/CrewManifest/CrewManifestSystem.cs`](../../CrewManifest/CrewManifestSystem.cs)
+- [`Content.Server/GameTicking/GameTicker.Spawning.cs`](../../GameTicking/GameTicker.Spawning.cs): arrival announcement uses the rank, not Vagrant
 - [`Content.Server/Medical/SuitSensors/SuitSensorSystem.cs`](../../Medical/SuitSensors/SuitSensorSystem.cs): the company rank on the ID, for its custom job icon
 - [`Content.Shared/CrewManifest/SharedCrewManifestSystem.cs`](../../../Content.Shared/CrewManifest/SharedCrewManifestSystem.cs): rank whose custom icon replaces JobIcon
 - [`Content.Shared/Medical/SuitSensor/SharedSuitSensor.cs`](../../../Content.Shared/Medical/SuitSensor/SharedSuitSensor.cs): rank whose custom icon replaces JobIcon

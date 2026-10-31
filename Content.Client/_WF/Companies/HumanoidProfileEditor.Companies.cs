@@ -14,6 +14,7 @@ public sealed partial class HumanoidProfileEditor
     private TextureRect? _companyLogo;
     private TextureRect? _companyRankIcon;
     private BoxContainer? _companyRoster;
+    private Button? _companyCreate;
 
     private void InitializeCompanyCard()
     {
@@ -41,7 +42,12 @@ public sealed partial class HumanoidProfileEditor
         body.AddChild(help);
         var open = new Button { Text = Loc.GetString("wf-company-creator-open"), HorizontalAlignment = HAlignment.Left };
         open.OnPressed += _ => companies.OpenWindow();
-        body.AddChild(open);
+        _companyCreate = new Button { Text = Loc.GetString("wf-company-creator-create"), StyleClasses = { "ButtonAccept" } };
+        _companyCreate.OnPressed += _ => companies.OpenWindow(true);
+        var buttons = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 6 };
+        buttons.AddChild(_companyCreate);
+        buttons.AddChild(open);
+        body.AddChild(buttons);
         var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 10 };
         row.AddChild(_companyLogo);
         row.AddChild(body);
@@ -84,6 +90,8 @@ public sealed partial class HumanoidProfileEditor
         _companyLogo.Visible = _companyLogo.Texture != null;
         _companyRankIcon.Texture = membership == null ? null : companies.GetRankIcon(membership.RankId, membership.IconVersion);
         _companyRankIcon.Visible = _companyRankIcon.Texture != null;
+        if (_companyCreate != null)
+            _companyCreate.Visible = membership == null;
         if (_companyRoster == null)
             return;
         _companyRoster.RemoveAllChildren();
@@ -92,16 +100,18 @@ public sealed partial class HumanoidProfileEditor
             _companyRoster.AddChild(new Label { Text = Loc.GetString("wf-company-directory-empty") });
         foreach (var company in directory)
         {
-            var line = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 6 };
+            var line = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 6, Margin = new Thickness(6, 4) };
             line.AddChild(new TextureRect { SetSize = new Vector2(24, 24), Stretch = TextureRect.StretchMode.Scale,
                 Texture = companies.GetLogo(company.Id, company.LogoVersion) });
-            line.AddChild(new Label { Text = $"[{company.Tag}] {company.Name}", FontColorOverride = company.Colour, HorizontalExpand = true,
-                ToolTip = company.Description.Length > 0 ? company.Description : null });
+            line.AddChild(new Label { Text = $"[{company.Tag}] {company.Name}", FontColorOverride = company.Colour, HorizontalExpand = true, ClipText = true });
             line.AddChild(new Label { Text = Loc.GetString("wf-company-directory-headline", ("count", company.Members),
                 ("value", Loc.GetString("wf-company-credits", ("amount", company.Value)))) });
             if (company.Recruiting)
                 line.AddChild(new Label { Text = Loc.GetString("wf-company-recruiting"), FontColorOverride = Color.FromHex("#7FD3C4") });
-            _companyRoster.AddChild(line);
+            var entry = new ContainerButton { HorizontalExpand = true, StyleClasses = { "CreatorSlot", ContainerButton.StyleClassButton },
+                ToolTip = Loc.GetString("wf-company-profile-open"), Children = { line } };
+            entry.OnPressed += _ => new WFCompanyProfileWindow(company, () => WFCompanyJoinActions.Build(companies, companies.State, company)).OpenCentered();
+            _companyRoster.AddChild(entry);
         }
     }
 }

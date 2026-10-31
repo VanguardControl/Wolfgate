@@ -1,6 +1,7 @@
 using Content.Client._WF.RoundSetup;
 using Content.Client.UserInterface.Controls;
 using Content.Shared._WF.Companies;
+using Content.Shared._WF.RoundSetup;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 
@@ -26,7 +27,8 @@ public sealed partial class WFCompanyWindow
         {
             var registry = WFCompanyPolicy.RegistryFee(licence.ShipyardPrice, own.LaunchedThisRound);
             var info = Column(2);
-            info.AddChild(new Label { Text = licence.Name, StyleClasses = { "LabelHeading" } });
+            info.AddChild(new Label { Text = licence.ShipName.Length > 0 ? Text("profile-ship", ("name", licence.ShipName), ("design", licence.Name)) : licence.Name,
+                StyleClasses = { "LabelHeading" } });
             info.AddChild(new Label { Text = licence.Launched ? Text("hangar-out") : Text("hangar-ready", ("registry", Credits(registry)),
                 ("fee", Credits(own.LaunchFee))) });
             var row = Row(info);
@@ -43,7 +45,17 @@ public sealed partial class WFCompanyWindow
             }
             if (IsOwner(own) && !licence.Launched)
                 row.AddChild(Confirm("hangar-sell", () => Send(new WFCompanyRequest(WFCompanyAction.SellLicence) { CompanyId = own.Id, LicenceId = licence.Id })));
-            fleet.AddChild(Card(row));
+            var entry = Column(6);
+            entry.AddChild(row);
+            if (canLaunch)
+            {
+                var name = new LineEdit { Text = licence.ShipName, PlaceHolder = Text("hangar-ship-name"), HorizontalExpand = true,
+                    ToolTip = Text("hangar-ship-name-help"), IsValid = value => WFRoundSetupPolicy.TryNormalizeTitle(value, out _) };
+                void SaveName() => Send(new WFCompanyRequest(WFCompanyAction.SetLicenceName) { CompanyId = own.Id, LicenceId = licence.Id, Name = name.Text });
+                name.OnTextEntered += _ => SaveName();
+                entry.AddChild(Row(name, Button("save", SaveName)));
+            }
+            fleet.AddChild(Card(entry));
         }
         page.AddChild(Card(fleet));
         if (!IsOwner(own))

@@ -143,7 +143,7 @@ public sealed class WFCrewHudSystem : EntitySystem
         var role = own.Roles.FirstOrDefault(r => r.Id == next.RoleId);
         // A request with role -1 is a company member joining as their rank, which takes no opening.
         var asRank = next.RoleId == -1;
-        var canAccept = own.Access == WFLobbyAccess.Requests && own.MemberCount < WFRoundSetupPolicy.MaximumMembers &&
+        var canAccept = WFRoundSetupPolicy.TakesRequests(own.Access) && own.MemberCount < WFRoundSetupPolicy.MaximumMembers &&
             (!own.Started || own.AllowLateJoin) && (asRank || role != null && role.Occupied < role.Capacity);
         if (_shownRequest == key)
         {

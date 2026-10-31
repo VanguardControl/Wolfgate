@@ -2,6 +2,7 @@ using System.Linq;
 using Content.Server._WF.Companies;
 using Content.Shared._WF.Companies;
 using Content.Shared._WF.RoundSetup;
+using Robust.Shared.Network;
 using Robust.Shared.Player;
 
 namespace Content.Server._WF.RoundSetup;
@@ -19,6 +20,8 @@ public sealed partial class WFRoundSetupSystem
         if (companyId is { } id && !_companies.CanFieldCrew(host, id))
             return false;
         lobby.CompanyId = companyId;
+        if (companyId == null && WFRoundSetupPolicy.IsCompanyAccess(lobby.Access))
+            lobby.Access = WFLobbyAccess.Requests;
         SyncCompanyShips();
         return true;
     }
@@ -31,6 +34,8 @@ public sealed partial class WFRoundSetupSystem
         if (_companies.CompanyIdentity(id) is { } identity)
             return identity;
         lobby.CompanyId = null;
+        if (WFRoundSetupPolicy.IsCompanyAccess(lobby.Access))
+            lobby.Access = WFLobbyAccess.Requests;
         return null;
     }
 
@@ -45,6 +50,21 @@ public sealed partial class WFRoundSetupSystem
             _companies.CompanyIdentity(id) is not { } identity)
             return Array.Empty<WFRoundSetupCompany>();
         return new[] { new WFRoundSetupCompany(id, identity.Name, identity.Tag) };
+    }
+
+    /// <summary>Whether the session's character belongs to the company this crew flies under.</summary>
+    private bool InCrewCompany(Lobby lobby, ICommonSession session) =>
+        lobby.CompanyId != null && _companies.CompanyIdOf(session) == lobby.CompanyId;
+
+    /// <summary>A crewmate's shown title: their own, their opening's, or their company rank if their job says nothing else.</summary>
+    private string RosterTitle(Lobby lobby, NetUserId user, Member member)
+    {
+        if (member.Title.Length > 0)
+            return member.Title;
+        if (member.RoleId is { } roleId && lobby.Roles.TryGetValue(roleId, out var role) && role.Name.Length > 0)
+            return role.Name;
+        return lobby.Scenario != WFRoundScenario.FactionShip && _players.TryGetSessionById(user, out var session) &&
+            _companies.RankFor(session) is { } rank && (member.Job == rank.Job || member.Job == WFCompanyPolicy.OverflowJob) ? rank.Title : string.Empty;
     }
 
     /// <summary>The request and membership role id of a member who joined as their company rank.</summary>

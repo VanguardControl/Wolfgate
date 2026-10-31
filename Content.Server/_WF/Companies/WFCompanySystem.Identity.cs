@@ -18,6 +18,7 @@ using Content.Shared.Ghost;
 using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Preferences;
 using Content.Shared.Radio.Components;
 using Content.Shared.Roles;
 using Content.Shared.StationRecords;
@@ -51,6 +52,7 @@ public sealed partial class WFCompanySystem
     private void InitializeIdentity()
     {
         SubscribeLocalEvent<RadioSendAttemptEvent>(OnRadioSend);
+        SubscribeLocalEvent<AfterGeneralRecordCreatedEvent>(OnRecordCreated, after: new[] { typeof(Content.Server._WF.Roles.CustomJobTitleSystem) });
         SubscribeLocalEvent<RadioReceiveAttemptEvent>(OnRadioReceive);
         SubscribeLocalEvent<WFCompanyIdComponent, ExaminedEvent>(OnIdExamined);
         // After every other price handler, so nothing adds value back on top.
@@ -66,10 +68,40 @@ public sealed partial class WFCompanySystem
         });
     }
 
-    /// <summary>Marks the member's ID with their company and applies a Join as rank title.</summary>
-    private void ApplyMemberIdentity(ICommonSession session, EntityUid body, int slot)
+    /// <summary>The rank title a character shows in this job: only in their rank's own job or the overflow job, which says nothing else about them.</summary>
+    public string? RankTitleFor(ICommonSession session, HumanoidCharacterProfile profile, string? job)
     {
-        var title = _rankJoins.Remove(session.UserId, out var joined) ? joined : null;
+        if (_preferences.GetPreferencesOrNull(session.UserId) is not { } prefs || prefs.IndexOfCharacter(profile) is not (>= 0 and var slot) ||
+            !_profileIds.TryGetValue(session.UserId, out var ids) || !ids.TryGetValue(slot, out var id) || CompanyOf(id) is not { } company)
+            return null;
+        var member = company.Members[id];
+        if (job != BaseJob(company, member) && job != WFCompanyPolicy.OverflowJob)
+            return null;
+        return TitleOf(company, member) is { Length: > 0 } title ? title : null;
+    }
+
+    /// <summary>Puts the rank title on a member's records as they're made, the sector-wide one included.</summary>
+    private void OnRecordCreated(AfterGeneralRecordCreatedEvent args)
+    {
+        if (args.Profile is not { } profile)
+            return;
+        foreach (var session in _players.Sessions)
+        {
+            if (_preferences.GetPreferencesOrNull(session.UserId)?.IndexOfCharacter(profile) is not >= 0)
+                continue;
+            if (RankTitleFor(session, profile, args.Record.JobPrototype) is { } title)
+            {
+                args.Record.JobTitle = title;
+                _records.Synchronize(args.Key);
+            }
+            return;
+        }
+    }
+
+    /// <summary>Marks the member's ID with their company and shows their rank in place of the job's title.</summary>
+    private void ApplyMemberIdentity(ICommonSession session, EntityUid body, int slot, HumanoidCharacterProfile spawned, string? job)
+    {
+        var title = (_rankJoins.Remove(session.UserId, out var joined) ? joined : null) ?? RankTitleFor(session, spawned, job);
         if (!_profileIds.TryGetValue(session.UserId, out var ids) || !ids.TryGetValue(slot, out var profile) ||
             CompanyOf(profile) is not { } company)
             return;
@@ -90,13 +122,15 @@ public sealed partial class WFCompanySystem
         }
         if (title == null)
             return;
-        if (_minds.TryGetMind(body, out var mind, out _) && _prototypes.TryIndex<JobPrototype>(BaseJob(company, member), out _))
+        var shownJob = job ?? BaseJob(company, member);
+        if (_minds.TryGetMind(body, out var mind, out _) && _prototypes.TryIndex<JobPrototype>(shownJob, out _))
         {
             var custom = EnsureComp<CustomJobTitleComponent>(mind);
-            custom.Job = BaseJob(company, member);
+            custom.Job = shownJob;
             custom.Title = title;
         }
         _idCards.TryChangeJobTitle(card, title);
+        marker.Title = card.Comp.LocalizedJobTitle ?? title;
         if (TryComp<StationRecordKeyStorageComponent>(card, out var storage) && storage.Key is { } key &&
             _records.TryGetRecord<GeneralStationRecord>(key, out var record))
         {

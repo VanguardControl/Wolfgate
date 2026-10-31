@@ -29,6 +29,7 @@ public sealed partial class WFCompanyWindow
             open.AddStyleClass("ButtonAccept");
             mine.AddChild(open);
             page.AddChild(Card(Row(Logo(own.Id, own.LogoVersion, 64), mine)));
+            page.AddChild(new WFCompanyQuickJoin(true));
         }
         if (state.CharacterName == null)
             page.AddChild(Paragraph(Text("no-character-help")));
@@ -68,37 +69,15 @@ public sealed partial class WFCompanyWindow
             details.AddChild(new Label { Text = Text("owned-by", ("name", company.OwnerName)) });
             if (company.Description.Length > 0)
                 details.AddChild(Paragraph(company.Description));
-            if (JoinActions(state, company) is { } actions)
+            if (WFCompanyJoinActions.Build(_system, state, company) is { } actions)
                 details.AddChild(actions);
             // The whole entry opens the company's profile; its own buttons still work as before.
             var entry = new ContainerButton { HorizontalExpand = true, ToolTip = Text("profile-open"),
                 Children = { Card(Row(Logo(company.Id, company.LogoVersion, 64), details)) } };
-            entry.OnPressed += _ => new WFCompanyProfileWindow(company, () => JoinActions(state, company) ?? new Control()).OpenCentered();
+            entry.OnPressed += _ => new WFCompanyProfileWindow(company, () => WFCompanyJoinActions.Build(_system, state, company)).OpenCentered();
             page.AddChild(entry);
         }
         return page;
-    }
-
-    /// <summary>Apply, cancel or join buttons for a company the character isn't in, or a note when they can't use them.</summary>
-    private Control? JoinActions(WFCompanyState state, WFCompanyListing company)
-    {
-        // A player has one character per company, so another character's company can't be joined.
-        if (state.Characters.Any(character => character.CompanyId == company.Id))
-            return new Label { Text = Text("same-player"), FontColorOverride = Color.FromHex("#C8C8C8") };
-        if (state.Own != null || state.CharacterName == null)
-            return null;
-        var actions = Row();
-        if (company.Ranks?.FirstOrDefault(rank => rank.Id == company.OpenRankId) is { } openRank)
-        {
-            var join = new Button { Text = Text("join-open", ("rank", openRank.Title)), Disabled = !state.CanJoin };
-            join.AddStyleClass("ButtonAccept");
-            join.OnPressed += _ => Send(WFCompanyAction.JoinOpen, company.Id);
-            actions.AddChild(join);
-        }
-        actions.AddChild(state.Applications.Contains(company.Id)
-            ? Button("apply-cancel", () => Send(WFCompanyAction.CancelApplication, company.Id))
-            : Button("apply", () => new WFCompanyApplyWindow(company, Send).OpenCentered(), !state.CanJoin));
-        return actions;
     }
 
     private Control BuildCreate(WFCompanyState state)

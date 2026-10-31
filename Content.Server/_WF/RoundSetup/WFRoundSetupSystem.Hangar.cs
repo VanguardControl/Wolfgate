@@ -8,7 +8,7 @@ namespace Content.Server._WF.RoundSetup;
 public sealed partial class WFRoundSetupSystem
 {
     /// <summary>Starts a ship crew for a company hangar licence: the design is fixed and the company pays instead of the crew.</summary>
-    public bool CreateHangarCrew(ICommonSession session, int companyId, int licenceId, string vessel, out string error)
+    public bool CreateHangarCrew(ICommonSession session, int companyId, int licenceId, string vessel, string shipName, out string error)
     {
         error = "wf-company-error-in-crew";
         if (FindLobby(session.UserId) != null)
@@ -20,8 +20,9 @@ public sealed partial class WFRoundSetupSystem
         var lobby = new Lobby
         {
             Id = ++_nextId, Host = session.UserId, Scenario = WFRoundScenario.Ship, Vessel = vessel, CompanyId = companyId,
-            HangarLicence = licenceId, Code = NewCode(),
-            Title = WFRoundSetupPolicy.TryNormalizeTitle(name, out var title) ? title : string.Empty,
+            // Company members walk on; anyone else asks the host.
+            HangarLicence = licenceId, Code = NewCode(), Access = WFLobbyAccess.CompanyFirst, ShipName = shipName,
+            Title = WFRoundSetupPolicy.TryNormalizeTitle(shipName.Length > 0 ? shipName : name, out var title) ? title : string.Empty,
         };
         _lobbies.Add(lobby.Id, lobby);
         RegisterMember(lobby, session, new Member { Name = session.Name });

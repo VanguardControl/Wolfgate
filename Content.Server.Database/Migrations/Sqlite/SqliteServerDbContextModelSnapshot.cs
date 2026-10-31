@@ -1928,6 +1928,12 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("INTEGER")
                         .HasColumnName("price_paid");
 
+                    b.Property<string>("ShipName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("ship_name");
+
                     b.Property<string>("Vessel")
                         .IsRequired()
                         .HasMaxLength(64)

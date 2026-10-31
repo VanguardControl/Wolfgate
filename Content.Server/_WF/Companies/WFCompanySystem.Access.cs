@@ -2,6 +2,7 @@ using System.Linq;
 using Content.Server._WF.ShipAccess;
 using Content.Shared._WF.Companies;
 using Content.Shared._WF.ShipAccess;
+using Content.Shared.Access.Components;
 using Content.Shared.Shuttles.Components;
 using Content.Shared.Shuttles.Systems;
 using Content.Shared.StationRecords;
@@ -32,16 +33,22 @@ public sealed partial class WFCompanySystem
             _memberKeys[profile] = key;
     }
 
-    /// <summary>Copies the rank on a member's ID into their station record, for screens that show its job icon.</summary>
+    /// <summary>Copies the rank on a member's ID into their station record, for screens that show its job icon and title.</summary>
     private void SyncRecordRank(EntityUid card)
     {
+        if (!TryComp<StationRecordKeyStorageComponent>(card, out var storage) || storage.Key is not { } key ||
+            !_records.TryGetRecord<GeneralStationRecord>(key, out var record))
+            return;
         var rank = CompOrNull<WFCompanyRankIconComponent>(card)?.RankId ?? 0;
-        if (TryComp<StationRecordKeyStorageComponent>(card, out var storage) && storage.Key is { } key &&
-            _records.TryGetRecord<GeneralStationRecord>(key, out var record) && record.WFCompanyRank != rank)
-        {
-            record.WFCompanyRank = rank;
-            _records.Synchronize(key);
-        }
+        // A card retitled since spawning, by an ID console or a crew role, keeps that title.
+        var title = CompOrNull<WFCompanyIdComponent>(card)?.Title;
+        var retitled = !string.IsNullOrEmpty(title) && CompOrNull<IdCardComponent>(card)?.LocalizedJobTitle == title && record.JobTitle != title;
+        if (record.WFCompanyRank == rank && !retitled)
+            return;
+        record.WFCompanyRank = rank;
+        if (retitled)
+            record.JobTitle = title!;
+        _records.Synchronize(key);
     }
 
     /// <summary>Links a ship to the company of the player setting Company access.</summary>

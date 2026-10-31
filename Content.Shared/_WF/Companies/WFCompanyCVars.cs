@@ -10,7 +10,7 @@ public sealed class WFCompanyCVars
     public static readonly CVarDef<int> CreateHours =
         CVarDef.Create("wf.companies.create_hours", 25, CVar.SERVERONLY);
 
-    /// <summary>Spesos taken from the founder's bank to create a company; the fee leaves the economy.</summary>
+    /// <summary>Thalers taken from the founder's bank to create a company; the fee leaves the economy.</summary>
     public static readonly CVarDef<int> CreateFee =
         CVarDef.Create("wf.companies.create_fee", 100_000, CVar.SERVERONLY);
 }

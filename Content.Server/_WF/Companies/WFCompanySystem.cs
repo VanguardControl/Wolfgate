@@ -114,7 +114,9 @@ public sealed partial class WFCompanySystem : EntitySystem
         base.Initialize();
         _log = Logger.GetSawmill("wf.companies");
         SubscribeNetworkEvent<WFCompanyRequest>(OnRequest);
-        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawned);
+        // After the record and any custom job title exist, so the rank title lands on top of them.
+        SubscribeLocalEvent<PlayerSpawnCompleteEvent>(OnSpawned,
+            after: new[] { typeof(Content.Server._WF.Roles.CustomJobTitleSystem), typeof(Content.Server.StationRecords.Systems.StationRecordsSystem) });
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRestart);
         _players.PlayerStatusChanged += OnPlayerStatus;
         InitializeIdentity();
@@ -206,7 +208,7 @@ public sealed partial class WFCompanySystem : EntitySystem
             }
             company.Ledger.AddRange(entry.Ledger);
             foreach (var licence in entry.Licences)
-                company.Licences.Add(new Licence { Id = licence.Id, Vessel = licence.Vessel });
+                company.Licences.Add(new Licence { Id = licence.Id, Vessel = licence.Vessel, ShipName = licence.ShipName });
             foreach (var application in entry.Applications)
             {
                 company.Applications[application.ProfileId] = new Applicant(new NetUserId(application.UserId), application.CharacterName,
@@ -270,7 +272,7 @@ public sealed partial class WFCompanySystem : EntitySystem
         }
         _spawnedSlots[args.Player.UserId] = slot;
         EnsureComp<WFCompanyRankHudComponent>(args.Mob);
-        ApplyMemberIdentity(args.Player, args.Mob, slot);
+        ApplyMemberIdentity(args.Player, args.Mob, slot, args.Profile, args.JobId);
         IssueRankLoadout(args.Player, args.Mob, slot);
     }
 

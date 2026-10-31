@@ -90,7 +90,9 @@ public sealed class CollisionWarningSystem : EntitySystem
 
     /// <summary>Reused per ship so a quiet sweep allocates nothing.</summary>
     private List<Entity<MapGridComponent>> _candidates = new();
-    private readonly HashSet<EntityUid> _docked = new();
+
+    /// <summary>Union-find links between docked ships, rebuilt once per sweep from every docking port.</summary>
+    private readonly Dictionary<EntityUid, EntityUid> _dockGroups = new();
     private readonly List<EntityUid> _stale = new();
 
     /// <summary>Hull bounds worked out this pass, so a grid seen by several ships is only measured once.</summary>
@@ -162,6 +164,7 @@ public sealed class CollisionWarningSystem : EntitySystem
 
         _bounds.Clear();
         CollectPilotedGrids();
+        CollectDockGroups();
 
         // Every warning starts the pass unrenewed, and only a threat found below renews it. A ship that
         // drops out of the sweep entirely - console destroyed, system switched off - therefore cannot
@@ -192,6 +195,36 @@ public sealed class CollisionWarningSystem : EntitySystem
         }
 
         ExpireHeldWarnings();
+    }
+
+    /// <summary>Links every pair of ships joined by a docked port, so a sweep checks docked chains without walking them.</summary>
+    private void CollectDockGroups()
+    {
+        _dockGroups.Clear();
+        var docks = EntityQueryEnumerator<DockingComponent, TransformComponent>();
+        while (docks.MoveNext(out var dock, out var xform))
+        {
+            if (!dock.Docked || dock.DockedWith is not { } with || !_xformQuery.TryComp(with, out var withXform))
+                continue;
+
+            var a = xform.ParentUid;
+            var b = withXform.ParentUid;
+            if (a == b || !HasComp<ShuttleComponent>(a) || !HasComp<ShuttleComponent>(b))
+                continue;
+
+            var rootA = DockGroup(a);
+            var rootB = DockGroup(b);
+            if (rootA != rootB)
+                _dockGroups[rootB] = rootA;
+        }
+    }
+
+    /// <summary>The ship a docked chain is filed under; a ship docked to nothing is its own.</summary>
+    private EntityUid DockGroup(EntityUid ship)
+    {
+        while (_dockGroups.TryGetValue(ship, out var next))
+            ship = next;
+        return ship;
     }
 
     /// <summary>
@@ -225,8 +258,7 @@ public sealed class CollisionWarningSystem : EntitySystem
             return null;
 
         // Docking is not a collision, and neither is a ship already tied to ours.
-        _docked.Clear();
-        _shuttle.GetAllDockedShuttles(uid, _docked);
+        var ourGroup = DockGroup(uid);
 
         var ourCentre = ourBounds.Center;
         Threat? best = null;
@@ -235,7 +267,7 @@ public sealed class CollisionWarningSystem : EntitySystem
         {
             var other = candidate.Owner;
 
-            if (other == uid || _docked.Contains(other))
+            if (other == uid || DockGroup(other) == ourGroup)
                 continue;
 
             if (!_xformQuery.TryComp(other, out var otherXform))

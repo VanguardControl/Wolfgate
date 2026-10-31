@@ -10,7 +10,7 @@ public enum WFCompanyAction : byte
     Refresh, Create, Invite, AcceptInvite, DeclineInvite, Apply, CancelApplication, AcceptApplication, RejectApplication,
     Leave, Kick, SetMemberRank, UpsertRank, RemoveRank, MoveRank, EditDetails, Rename, SetCut, Transfer, Disband,
     Deposit, Withdraw, JoinAsRank, SetLogo, RequestLogo, SetRankIcon, RequestRankIcon, BuyLicence, SellLicence, Launch, SetLaunchFee, Pay,
-    SetRankLoadout, RequestIconPreset, SetOpenRank, JoinOpen, SetPrivate, RequestProfile,
+    SetRankLoadout, RequestIconPreset, SetOpenRank, JoinOpen, SetPrivate, RequestProfile, SetLicenceName,
 }
 
 /// <summary>A request from the Company window.</summary>
@@ -76,7 +76,7 @@ public sealed record WFCompanyCharacter(int Slot, string Company, string Tag, st
 
 /// <summary>A fleet licence and whether it has been launched this round.</summary>
 [Serializable, NetSerializable]
-public sealed record WFCompanyLicence(int Id, string Vessel, string Name, int ShipyardPrice, bool Launched);
+public sealed record WFCompanyLicence(int Id, string Vessel, string Name, int ShipyardPrice, bool Launched, string ShipName = "");
 
 /// <summary>A design the owner can license, with what the licence costs.</summary>
 [Serializable, NetSerializable]
@@ -150,13 +150,18 @@ public sealed class WFCompanyRankIconEvent(int rankId, int version, byte[]? icon
 [Serializable, NetSerializable]
 public sealed record WFCompanyProfileMember(string Name, string Rank, int RankId, int IconVersion, string BaseJob);
 
+/// <summary>A ship in a company's hangar, as anyone can see it.</summary>
+[Serializable, NetSerializable]
+public sealed record WFCompanyProfileShip(string Design, string Name, bool Launched);
+
 /// <summary>A company's public profile; members are left out when the company is private and the viewer isn't in it.</summary>
 [Serializable, NetSerializable]
-public sealed class WFCompanyProfileEvent(int companyId, bool hidden, WFCompanyProfileMember[] members) : EntityEventArgs
+public sealed class WFCompanyProfileEvent(int companyId, bool hidden, WFCompanyProfileMember[] members, WFCompanyProfileShip[] ships) : EntityEventArgs
 {
     public int CompanyId = companyId;
     public bool Hidden = hidden;
     public WFCompanyProfileMember[] Members = members;
+    public WFCompanyProfileShip[] Ships = ships;
 }
 
 /// <summary>A job icon's pixels, read by the server because packaged clients can't read RSI images.</summary>

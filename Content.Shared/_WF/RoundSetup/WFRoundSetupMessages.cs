@@ -19,7 +19,7 @@ public enum WFShipStartLocation : byte { RandomSpace, CentralDock, FactionBase }
 
 /// <summary>How a player can enter a scenario lobby.</summary>
 [Serializable, NetSerializable]
-public enum WFLobbyAccess : byte { Public, Requests, Closed, Code, Invite }
+public enum WFLobbyAccess : byte { Public, Requests, Closed, Code, Invite, CompanyOnly, CompanyFirst }
 
 /// <summary>Authenticated operations on the round setup service.</summary>
 [Serializable, NetSerializable]

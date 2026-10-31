@@ -218,6 +218,7 @@ public sealed partial class WFRoundSetupWindow
         else
         {
             _focusedLobby = null;
+            _body.AddChild(new Companies.WFCompanyQuickJoin(true));
             _body.AddChild(Description(lobbies.Length == 0 ? "empty" : "browse-help"));
             foreach (var lobby in lobbies)
                 _body.AddChild(LobbyListing(lobby, state.Invitations.Any(invitation => invitation.Id == lobby.Id)));

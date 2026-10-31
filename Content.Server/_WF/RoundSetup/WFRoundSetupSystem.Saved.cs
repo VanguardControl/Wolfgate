@@ -141,7 +141,7 @@ public sealed partial class WFRoundSetupSystem
         var lobby = new Lobby
         {
             Id = ++_nextId, Host = host.UserId, Title = saved.Title, Description = saved.Description, Scenario = saved.Scenario, Faction = saved.Faction, ShipName = saved.ShipName, ShipStart = saved.ShipStart,
-            Vessel = saved.Vessel, Access = saved.Access, AllowLateJoin = saved.AllowLateJoin, Code = NewCode(),
+            Vessel = saved.Vessel, Access = WFRoundSetupPolicy.IsCompanyAccess(saved.Access) ? WFLobbyAccess.Requests : saved.Access, AllowLateJoin = saved.AllowLateJoin, Code = NewCode(),
         };
         foreach (var entry in saved.Roles)
         {

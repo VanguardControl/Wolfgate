@@ -21,6 +21,7 @@ public sealed partial class WFCompanyWindow : DefaultWindow
     private readonly TabContainer _tabs = new() { VerticalExpand = true, HorizontalExpand = true };
     private WFCompanyState? _state;
     private bool _deferred;
+    private bool _wantCreate;
 
     public WFCompanyWindow()
     {
@@ -45,6 +46,13 @@ public sealed partial class WFCompanyWindow : DefaultWindow
         if (_system.State is { } state)
             Receive(state);
         Send(new WFCompanyRequest(WFCompanyAction.Refresh));
+    }
+
+    /// <summary>Switches to the Create tab, now or once the state arrives.</summary>
+    public void ShowCreate()
+    {
+        _wantCreate = true;
+        Render();
     }
 
     private void Receive(WFCompanyState state)
@@ -117,6 +125,12 @@ public sealed partial class WFCompanyWindow : DefaultWindow
             AddTab("tab-create", BuildCreate(state));
         if (_tabs.ChildCount == previousCount && tab < _tabs.ChildCount)
             _tabs.CurrentTab = tab;
+        if (_wantCreate)
+        {
+            _wantCreate = false;
+            if (state.Own == null && state.CharacterName != null)
+                _tabs.CurrentTab = 1;
+        }
     }
 
     private void AddTab(string key, Control content)

@@ -15,9 +15,10 @@ public sealed class WFCompanyProfileWindow : DefaultWindow
     private readonly WFCompanyClientSystem _system;
     private readonly WFCompanyListing _company;
     private readonly BoxContainer _members = new() { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 4 };
+    private readonly BoxContainer _ships = new() { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 4 };
 
     /// <param name="actions">Builds the Apply or Join buttons the viewer can use, if any.</param>
-    public WFCompanyProfileWindow(WFCompanyListing company, Func<Control>? actions)
+    public WFCompanyProfileWindow(WFCompanyListing company, Func<Control?>? actions)
     {
         _company = company;
         _system = IoCManager.Resolve<IEntityManager>().System<WFCompanyClientSystem>();
@@ -44,14 +45,17 @@ public sealed class WFCompanyProfileWindow : DefaultWindow
         page.AddChild(top);
         if (company.Description.Length > 0)
             page.AddChild(Paragraph(company.Description));
-        if (actions != null)
-            page.AddChild(actions());
+        if (actions?.Invoke() is { } buttons)
+            page.AddChild(buttons);
 
         if (company.Ranks is { Length: > 0 } ranks)
         {
             page.AddChild(new Label { Text = Loc.GetString("wf-company-profile-ranks"), StyleClasses = { "LabelHeading" } });
             page.AddChild(Paragraph(string.Join(" · ", ranks.Select(rank => rank.Title))));
         }
+        page.AddChild(new Label { Text = Loc.GetString("wf-company-profile-hangar"), StyleClasses = { "LabelHeading" } });
+        _ships.AddChild(new Label { Text = Loc.GetString("wf-company-profile-loading"), FontColorOverride = Color.Gray });
+        page.AddChild(_ships);
         page.AddChild(new Label { Text = Loc.GetString("wf-company-profile-members"), StyleClasses = { "LabelHeading" } });
         _members.AddChild(new Label { Text = Loc.GetString("wf-company-profile-loading"), FontColorOverride = Color.Gray });
         page.AddChild(_members);
@@ -66,6 +70,18 @@ public sealed class WFCompanyProfileWindow : DefaultWindow
     {
         if (profile.CompanyId != _company.Id)
             return;
+        _ships.RemoveAllChildren();
+        if (profile.Ships.Length == 0)
+            _ships.AddChild(new Label { Text = Loc.GetString("wf-company-profile-hangar-empty"), FontColorOverride = Color.Gray });
+        foreach (var ship in profile.Ships)
+        {
+            var line = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 6 };
+            line.AddChild(new Label { HorizontalExpand = true, ClipText = true, Text = ship.Name.Length > 0
+                ? Loc.GetString("wf-company-profile-ship", ("name", ship.Name), ("design", ship.Design)) : ship.Design });
+            if (ship.Launched)
+                line.AddChild(new Label { Text = Loc.GetString("wf-company-profile-ship-out"), FontColorOverride = Color.FromHex("#E3B65C") });
+            _ships.AddChild(line);
+        }
         _members.RemoveAllChildren();
         if (profile.Hidden)
         {

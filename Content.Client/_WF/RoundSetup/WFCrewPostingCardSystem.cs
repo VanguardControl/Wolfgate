@@ -136,7 +136,7 @@ public sealed class WFCrewPostingCardSystem : EntitySystem
         column.AddChild(message);
         var buttons = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, SeparationOverride = 6 };
         var view = new Button { Text = Loc.GetString("wf-round-setup-posting-card-view"), HorizontalExpand = true,
-            ToolTip = Loc.GetString(next.Access == WFLobbyAccess.Requests ? "wf-round-setup-posting-card-request-help" : "wf-round-setup-posting-card-join-help") };
+            ToolTip = Loc.GetString(WFRoundSetupPolicy.TakesRequests(next.Access) ? "wf-round-setup-posting-card-request-help" : "wf-round-setup-posting-card-join-help") };
         view.AddStyleClass("ButtonAccept");
         var lobbyId = next.LobbyId;
         view.OnPressed += _ =>

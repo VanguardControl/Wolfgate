@@ -67,6 +67,9 @@ public static class WFCompanyPolicy
     /// <summary>Ship access tags whose designs only companies can license, on top of the civilian shipyard.</summary>
     public static readonly string[] CompanyVesselAccess = { "Mercenary", "Mieyo", "MieyoSecurity" };
 
+    /// <summary>The job with no role of its own, shown as Vagrant; a member spawning in it shows their rank instead.</summary>
+    public const string OverflowJob = "Contractor";
+
     /// <summary>The most fleet licences a company may hold.</summary>
     public const int MaximumLicences = 3;
 

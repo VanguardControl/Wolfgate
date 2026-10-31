@@ -2069,6 +2069,10 @@ namespace Content.Server.Database
         public long PricePaid { get; set; }
 
         public DateTime BoughtAt { get; set; }
+
+        /// <summary>The name this ship launches under, kept between rounds.</summary>
+        [Required, MaxLength(64)]
+        public string ShipName { get; set; } = string.Empty;
     }
 
     /// <summary>A character's request to join a company, with the rank they want and why.</summary>

@@ -5,6 +5,7 @@ using Content.Server.Database;
 using Content.Server._WF.RoundSetup;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared._WF.Companies;
+using Content.Shared._WF.RoundSetup;
 using Content.Shared.Preferences;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
@@ -21,6 +22,8 @@ public sealed partial class WFCompanySystem
     {
         public int Id;
         public string Vessel = string.Empty;
+        /// <summary>The name this ship launches under, kept between rounds.</summary>
+        public string ShipName = string.Empty;
     }
 
     /// <summary>What a launch charged, so a failed spawn can give it back.</summary>
@@ -73,9 +76,40 @@ public sealed partial class WFCompanySystem
     private WFCompanyLicence[] SnapshotLicences(Company company) => company.Licences.Select(licence =>
         new WFCompanyLicence(licence.Id, licence.Vessel,
             _prototypes.TryIndex<VesselPrototype>(licence.Vessel, out var vessel) ? vessel.Name : licence.Vessel, ShipyardPrice(licence.Vessel),
-            _launched.ContainsKey(licence.Id) || _reserved.ContainsKey(licence.Id))).ToArray();
+            _launched.ContainsKey(licence.Id) || _reserved.ContainsKey(licence.Id), licence.ShipName)).ToArray();
 
-    /// <summary>Civilian designs any character may fly, that the company doesn't hold yet.</summary>
+    /// <summary>What's in the hangar, which anyone may see even when the member list is private.</summary>
+    private WFCompanyProfileShip[] ProfileShips(Company company) => company.Licences.Select(licence =>
+        new WFCompanyProfileShip(_prototypes.TryIndex<VesselPrototype>(licence.Vessel, out var vessel) ? vessel.Name : licence.Vessel,
+            licence.ShipName, _launched.ContainsKey(licence.Id))).ToArray();
+
+    /// <summary>Names a licence's ship; every later launch uses the name.</summary>
+    private string? SetLicenceName(Company company, int licenceId, string? name)
+    {
+        if (company.Licences.FirstOrDefault(licence => licence.Id == licenceId && licence.Id != 0) is not { } licence)
+            return "wf-company-error-licence";
+        if (!WFRoundSetupPolicy.TryNormalizeTitle(name, out var shipName))
+            return "wf-company-error-ship-name";
+        RememberName(company, licence, shipName);
+        return null;
+    }
+
+    /// <summary>Keeps a name given to a hangar ship in its crew's setup.</summary>
+    public void RememberShipName(int licenceId, string name)
+    {
+        if (_companies.Values.FirstOrDefault(entry => entry.Licences.Any(licence => licence.Id == licenceId)) is { } company)
+            RememberName(company, company.Licences.First(licence => licence.Id == licenceId), name);
+    }
+
+    private void RememberName(Company company, Licence licence, string name)
+    {
+        if (licence.ShipName == name)
+            return;
+        licence.ShipName = name;
+        Track(_db.SetCompanyLicenceNameAsync(licence.Id, name));
+        Touch(company);
+    }
+
     /// <summary>Civilian designs plus the company-only Mercenary and Mieyo designs, cheapest first.</summary>
     private WFCompanyLicenceOffer[] LicenceOffers(Company company)
     {
@@ -140,7 +174,7 @@ public sealed partial class WFCompanySystem
             return "wf-company-error-licence-out";
         if (PlayerCount(company) < WFCompanyPolicy.MinimumFleetMembers)
             return "wf-company-error-fleet-members";
-        if (!_roundSetup.CreateHangarCrew(session, company.Id, licence.Id, licence.Vessel, out var error))
+        if (!_roundSetup.CreateHangarCrew(session, company.Id, licence.Id, licence.Vessel, licence.ShipName, out var error))
             return error;
         _reserved[licenceId] = session.UserId;
         success = "wf-company-launch-ready";
