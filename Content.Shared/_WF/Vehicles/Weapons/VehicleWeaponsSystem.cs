@@ -359,9 +359,37 @@ public sealed partial class VehicleWeaponsSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Gives an NPC gunner strapped into a weapons seat this mounted gun; true once it is his selection.</summary>
+    public bool TrySelectHardpointForNpc(EntityUid vehicle, EntityUid gunner, EntityUid weapon)
+    {
+        if (_net.IsClient ||
+            !TryComp(gunner, out BuckleComponent? buckle) ||
+            buckle.BuckledTo is not { } seat ||
+            !TryComp(seat, out VehicleWeaponsSeatComponent? seatComp))
+        {
+            return false;
+        }
+
+        if (TryComp(vehicle, out VehicleWeaponsComponent? weapons) &&
+            weapons.OperatorSelections.TryGetValue(gunner, out var current) &&
+            current == weapon)
+        {
+            return true;
+        }
+
+        // Picking the gun already picked would put it down again, so that case returned above.
+        if (!TrySelectHardpoint(seat, gunner, weapon, fromUi: !seatComp.AllowHotbarSelection))
+            return false;
+
+        return TryComp(vehicle, out weapons) &&
+               weapons.OperatorSelections.TryGetValue(gunner, out current) &&
+               current == weapon;
+    }
+
     private void OnHardpointSlotsChanged(Entity<VehicleWeaponsComponent> ent, ref HardpointSlotsChangedEvent args)
     {
-        if (_net.IsClient)
+        // A vehicle being deleted empties its slots on the way out; there's nobody left to refresh for.
+        if (_net.IsClient || TerminatingOrDeleted(ent))
             return;
 
         var vehicle = ent.Owner;

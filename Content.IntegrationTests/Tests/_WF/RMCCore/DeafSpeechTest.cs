@@ -50,37 +50,39 @@ public sealed class DeafSpeechTest
         });
         await pair.RunTicksSync(5);
 
+        // A pooled client keeps the chat of earlier tests; only what arrives from here on counts.
+        var before = chat.History.Count;
         await server.WaitPost(() =>
         {
             chatSys.TrySendInGameICMessage(speaker, Whispered, InGameICChatType.Whisper, false);
             chatSys.TrySendInGameICMessage(speaker, Said, InGameICChatType.Speak, false);
         });
-        var garbled = await WaitForLocal(pair, chat, 1, "a deaf listener to get anything of nearby speech");
+        var garbled = await WaitForLocal(pair, chat, before, 1, "a deaf listener to get anything of nearby speech");
 
         await server.WaitPost(() =>
         {
             entMan.RemoveComponent<DeafComponent>(listener);
             chatSys.TrySendInGameICMessage(speaker, Heard, InGameICChatType.Speak, false);
         });
-        var clear = await WaitForLocal(pair, chat, 2, "a hearing listener to get nearby speech");
+        var clear = await WaitForLocal(pair, chat, before, 2, "a hearing listener to get nearby speech");
 
         Assert.Multiple(() =>
         {
             Assert.That(garbled, Is.Not.EqualTo(SaidSent), "a deaf listener heard nearby speech word for word.");
             Assert.That(garbled.Length, Is.EqualTo(SaidSent.Length), "the garbled speech is not the speaker's words with letters missing.");
-            Assert.That(chat.History.Any(h => h.Msg.Channel == ChatChannel.Whisper), Is.False, "a deaf listener heard a whisper.");
+            Assert.That(chat.History.Skip(before).Any(h => h.Msg.Channel == ChatChannel.Whisper), Is.False, "a deaf listener heard a whisper.");
             Assert.That(clear, Is.EqualTo(HeardSent), "a listener who can hear again still got garbled speech.");
         });
 
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Waits for the <paramref name="count"/>th Local message and returns its text.</summary>
-    private static async Task<string> WaitForLocal(TestPair pair, ChatUIController chat, int count, string what)
+    /// <summary>Waits for the <paramref name="count"/>th Local message after the first <paramref name="skip"/> and returns its text.</summary>
+    private static async Task<string> WaitForLocal(TestPair pair, ChatUIController chat, int skip, int count, string what)
     {
         for (var i = 0; i < MaxWaitTicks; i++)
         {
-            var local = chat.History.Where(h => h.Msg.Channel == ChatChannel.Local).ToList();
+            var local = chat.History.Skip(skip).Where(h => h.Msg.Channel == ChatChannel.Local).ToList();
             if (local.Count >= count)
                 return local[count - 1].Msg.Message;
 

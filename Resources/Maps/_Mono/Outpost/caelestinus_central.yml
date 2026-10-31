@@ -5,7 +5,7 @@ meta:
   forkId: ""
   forkVersion: ""
   time: 10/21/2026 06:42:38
-  entityCount: 10226
+  entityCount: 10230
 maps:
 - 10196
 grids:
@@ -30543,6 +30543,13 @@ entities:
     - type: Transform
       parent: 1
       pos: -21.5,13.5
+- proto: WFComputerWeatherForecast
+  entities:
+  - uid: 10237
+    components:
+    - type: Transform
+      parent: 1
+      pos: -8.5,6.5
 - proto: filingCabinetDrawerRandom
   entities:
   - uid: 4174
@@ -69558,6 +69565,29 @@ entities:
     - type: Transform
       parent: 1
       pos: -40.46031,-25.05595
+- proto: WFComputerMilitaryCounter
+  entities:
+  - uid: 10238
+    components:
+    - type: Transform
+      parent: 1
+      pos: -54.5,-15.5
+- proto: WFMinigameDealer
+  entities:
+  - uid: 10235
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      parent: 1
+      pos: 9.5,26.5
+- proto: WFMinigameSage
+  entities:
+  - uid: 10236
+    components:
+    - type: Transform
+      rot: -1.5707963267948966 rad
+      parent: 1
+      pos: 12.5,22.5
 - proto: WFPlushieMedMoth
   entities:
   - uid: 10194

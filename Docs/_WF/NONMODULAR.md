@@ -16,6 +16,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - engine 291 ignores the sprite-wide GetScreenTexture/RaiseShaderEvent; they are per post-shader now
 - [`Content.Client/_Mono/PlantAnalyzer/PlantAnalyzerPredictionSystem.cs`](../../Content.Client/_Mono/PlantAnalyzer/PlantAnalyzerPredictionSystem.cs): was 0.01, so the slightest drift silently cancelled the scan
 - [`Content.Client/_Mono/Tiles/TileEntityShaderSystem.cs`](../../Content.Client/_Mono/Tiles/TileEntityShaderSystem.cs): engine 291 ignores the sprite-wide RaiseShaderEvent; it is per post-shader now
+- [`Content.Client/Atmos/EntitySystems/FireVisualizerSystem.cs`](../../Content.Client/Atmos/EntitySystems/FireVisualizerSystem.cs): a mob that arrives burning would get its light child before it is initialised itself; the appearance update queued at startup lays it.
 - [`Content.Client/CharacterInfo/CharacterInfoSystem.cs`](../../Content.Client/CharacterInfo/CharacterInfoSystem.cs)
   - replays skip the character info request
   - Replay spectators have a local entity but no server to answer this request.
@@ -33,6 +34,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - post-shader flags are set through SpriteSystem since engine 291
   - wizden#38042
   - engine 291 ignores the sprite-wide RaiseShaderEvent; it is per post-shader now
+- [`Content.Client/Light/EntitySystems/SunShadowSystem.cs`](../../Content.Client/Light/EntitySystems/SunShadowSystem.cs): at round start the time can be negative or sit exactly on the first entry, which fell through to the throw; wrap it into the last span instead.
 - [`Content.Client/Lobby/LobbyUIController.cs`](../../Content.Client/Lobby/LobbyUIController.cs): unknown species falls back to the default
 - [`Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs`](../../Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs)
   - logs characters that can't be previewed

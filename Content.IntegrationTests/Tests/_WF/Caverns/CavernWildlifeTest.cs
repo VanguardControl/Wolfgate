@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Numerics;
 using Content.IntegrationTests.Pair;
 using Content.Server._CE.ZLevels.Core;
@@ -190,6 +191,26 @@ public sealed class CavernWildlifeTest
 
         await server.WaitPost(() =>
         {
+            // Bare ground: a tree or stone the biome grew here would shove the mob off its tile.
+            var maps = server.System<SharedMapSystem>();
+            var grid = entMan.GetComponent<MapGridComponent>(world.Ground);
+            var anchored = new List<EntityUid>();
+            for (var x = -1; x <= 1; x++)
+            for (var y = -1; y <= 1; y++)
+            {
+                var enumerator = maps.GetAnchoredEntitiesEnumerator(world.Ground, grid, tile + new Vector2i(x, y));
+                while (enumerator.MoveNext(out var uid))
+                    anchored.Add(uid.Value);
+            }
+            foreach (var uid in anchored)
+                entMan.DeleteEntity(uid);
+            // Deleting what the biome grew pins its tile; these must still unload like any other ground.
+            var cleared = new List<Vector2i>();
+            for (var x = -1; x <= 1; x++)
+            for (var y = -1; y <= 1; y++)
+                cleared.Add(tile + new Vector2i(x, y));
+            server.System<BiomeSystem>().WfUnpinTiles((world.Ground, entMan.GetComponent<BiomeComponent>(world.Ground)), cleared);
+
             mob = entMan.SpawnEntity(MobProto, new EntityCoordinates(world.Ground, new Vector2(tile.X + 0.5f, tile.Y + 0.5f)));
 
             if (!wildlife)
