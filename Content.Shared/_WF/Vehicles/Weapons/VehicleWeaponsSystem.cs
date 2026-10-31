@@ -63,6 +63,7 @@ public sealed partial class VehicleWeaponsSystem : EntitySystem
         SubscribeLocalEvent<VehicleWeaponsComponent, VehicleHardpointsRefreshEvent>(OnHardpointsRefresh);
 
         SubscribeLocalEvent<VehicleTurretComponent, GunShotEvent>(OnTurretGunShot);
+        SubscribeLocalEvent<VehicleAmmoChangedEvent>(OnAmmoChanged);
 
         SubscribeLocalEvent<VehicleWeaponsComponent, AfterAutoHandleStateEvent>(OnWeaponsAfterState);
     }
@@ -520,6 +521,13 @@ public sealed partial class VehicleWeaponsSystem : EntitySystem
             return;
 
         UpdateWeaponsUiForAllOperators(vehicle, weapons);
+    }
+
+    /// <summary>Loading, unloading and chambering change the numbers without a shot.</summary>
+    private void OnAmmoChanged(VehicleAmmoChangedEvent args)
+    {
+        if (_net.IsServer && TryGetContainingVehicle(args.AmmoProvider, out var vehicle))
+            RefreshVehicleWeaponsUi(vehicle);
     }
 
     private void OnWeaponsAfterState(Entity<VehicleWeaponsComponent> vehicleEnt, ref AfterAutoHandleStateEvent args)

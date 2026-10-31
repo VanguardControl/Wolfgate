@@ -67,6 +67,19 @@ public sealed partial class WFVehicleHudSystem
         {
             child.Visible = child == panel && show;
         }
+
+        if (show)
+            InvalidateArrangeTree(panel);
+    }
+
+    /// <summary>Children rebuilt while a panel was hidden keep a zero-height arrange unless it is redone on showing.</summary>
+    private static void InvalidateArrangeTree(Control control)
+    {
+        control.InvalidateArrange();
+        foreach (var child in control.Children)
+        {
+            InvalidateArrangeTree(child);
+        }
     }
 
     /// <summary>Hosts the existing authorized equipment UI in the tray, opened from a round tab on the cluster.</summary>

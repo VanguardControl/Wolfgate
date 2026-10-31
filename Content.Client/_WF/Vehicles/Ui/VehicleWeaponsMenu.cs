@@ -347,7 +347,8 @@ public sealed partial class VehicleWeaponsMenu : FancyWindow
         if (_selectedMountedEntity != null && TryGetEntry(_selectedMountedEntity, out selected))
             return true;
 
-        var fallback = _hardpoints.FirstOrDefault(h => h.Selected) ?? _hardpoints.FirstOrDefault();
+        // No gun picked shows nothing, not the first gun's numbers.
+        var fallback = _hardpoints.FirstOrDefault(h => h.Selected);
         if (fallback == null)
             return false;
 

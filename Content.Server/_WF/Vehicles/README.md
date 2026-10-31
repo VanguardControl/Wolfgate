@@ -156,6 +156,7 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
 - [`Content.Server/_WF/Vehicles/NPCSystem.Vehicles.cs`](NPCSystem.Vehicles.cs)
 - [`Content.Server/_WF/Vehicles/Safety/ShipyardOrganicsSearchEvent.cs`](Safety/ShipyardOrganicsSearchEvent.cs)
 - [`Content.Server/_WF/Vehicles/Safety/VehicleSafetySystem.cs`](Safety/VehicleSafetySystem.cs)
+- [`Content.Server/_WF/Vehicles/Scanner/RadarConsoleSystem.Vehicles.cs`](Scanner/RadarConsoleSystem.Vehicles.cs)
 - [`Content.Server/_WF/Vehicles/Viewport/VehicleViewportSystem.cs`](Viewport/VehicleViewportSystem.cs)
 - [`Content.Server/_WF/Vehicles/Weapons/VehicleTriggerSystem.cs`](Weapons/VehicleTriggerSystem.cs)
 - [`Content.Server/_WF/Vehicles/Weapons/WFTurretStabilizeSystem.cs`](Weapons/WFTurretStabilizeSystem.cs)
@@ -1026,7 +1027,10 @@ The seat HUD also hosts hull and component health, vehicle switches, weapon sele
   - an NPC in a vehicle's cabin is where the vehicle is too, as players are, or he sleeps on boarding.
   - a player in a vehicle's cabin is where the vehicle is.
 - [`Content.Server/NPC/Systems/NPCUtilitySystem.cs`](../../NPC/Systems/NPCUtilitySystem.cs): an occupied vehicle is a live target.
-- [`Content.Server/Shuttles/Systems/RadarConsoleSystem.cs`](../../Shuttles/Systems/RadarConsoleSystem.cs): a vehicle's scanner looks out from the vehicle, not from the seat inside it.
+- [`Content.Server/Shuttles/Systems/RadarConsoleSystem.cs`](../../Shuttles/Systems/RadarConsoleSystem.cs)
+  - carried in or out of a vehicle.
+  - needed for MapUidChangedEvent.
+  - a vehicle's scanner looks out from the vehicle, not from the seat inside it.
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.Impact.cs`](../../Shuttles/Systems/ShuttleSystem.Impact.cs): a hull hitting a vehicle hurts it more
 - [`Content.Shared/Physics/CollisionGroup.cs`](../../../Content.Shared/Physics/CollisionGroup.cs): ground vehicle fixtures and vehicle blockers
 - [`Content.Shared/Vehicle/SharedVehicleSystem.cs`](../../../Content.Shared/Vehicle/SharedVehicleSystem.cs)

@@ -2,6 +2,7 @@ using Content.Shared._WF.Vehicles.Core;
 using Content.Shared.Actions;
 using Content.Shared.Buckle.Components;
 using Content.Shared.Shuttles.BUIStates;
+using Content.Shared.Shuttles.Components;
 using Robust.Shared.Network;
 
 namespace Content.Shared._WF.Vehicles.Scanner;
@@ -20,7 +21,7 @@ public sealed class WFVehicleScannerSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WFVehicleScannerComponent, StrappedEvent>(OnStrapped);
         SubscribeLocalEvent<WFVehicleScannerComponent, UnstrappedEvent>(OnUnstrapped);
-        SubscribeLocalEvent<WFVehicleScannerComponent, WFRadarOriginEvent>(OnRadarOrigin);
+        SubscribeLocalEvent<RadarConsoleComponent, WFRadarOriginEvent>(OnRadarOrigin);
         SubscribeLocalEvent<BuckleComponent, WFVehicleScannerActionEvent>(OnScannerAction);
     }
 
@@ -67,8 +68,8 @@ public sealed class WFVehicleScannerSystem : EntitySystem
         }
     }
 
-    /// <summary>The scanner looks out from the vehicle the seat is in.</summary>
-    private void OnRadarOrigin(Entity<WFVehicleScannerComponent> ent, ref WFRadarOriginEvent args)
+    /// <summary>Any scanner inside a vehicle, seat or handheld, looks out from the vehicle.</summary>
+    private void OnRadarOrigin(Entity<RadarConsoleComponent> ent, ref WFRadarOriginEvent args)
     {
         if (_interiors.TryGetVehicleFromInterior(ent.Owner, out var vehicle))
             args.Origin = vehicle;

@@ -24,10 +24,12 @@ public sealed partial class RadarConsoleSystem : SharedRadarConsoleSystem
         base.Initialize();
         SubscribeLocalEvent<RadarConsoleComponent, ComponentStartup>(OnRadarStartup);
         SubscribeLocalEvent<RadarConsoleComponent, BoundUIOpenedEvent>(OnUIOpened); // Frontier
+        SubscribeLocalEvent<RadarConsoleComponent, MapUidChangedEvent>(OnWfMapChanged); // WOLFGATE(Vehicles): carried in or out of a vehicle.
     }
 
     private void OnRadarStartup(EntityUid uid, RadarConsoleComponent component, ComponentStartup args)
     {
+        _wfMeta.AddFlag(uid, MetaDataFlags.ExtraTransformEvents); // WOLFGATE(Vehicles): needed for MapUidChangedEvent.
         UpdateState(uid, component);
     }
 
