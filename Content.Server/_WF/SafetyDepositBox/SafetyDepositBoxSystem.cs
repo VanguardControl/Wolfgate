@@ -224,6 +224,8 @@ public sealed partial class SafetyDepositBoxSystem : EntitySystem
             return;
         }
 
+        _bankSystem.RefreshBalance(player);
+
         var characterIndex = prefs.SelectedCharacterIndex;
         var characterName = MetaData(player).EntityName;
 

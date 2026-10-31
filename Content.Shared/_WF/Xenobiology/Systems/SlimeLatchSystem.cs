@@ -30,6 +30,7 @@ public sealed partial class SlimeLatchSystem : EntitySystem
     [Dependency] private HungerSystem _hunger = default!;
     [Dependency] private MobStateSystem _mobState = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
+    [Dependency] private SharedContainerSystem _container = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
@@ -188,6 +189,7 @@ public sealed partial class SlimeLatchSystem : EntitySystem
     public bool CanLatch(Entity<SlimeComponent> ent, EntityUid target)
     {
         return !IsLatched(ent)
+            && !_container.IsEntityInContainer(ent)
             && HasComp<MobStateComponent>(target)
             && !_mobState.IsDead(target)
             && _actionBlocker.CanInteract(ent, target);
@@ -228,7 +230,8 @@ public sealed partial class SlimeLatchSystem : EntitySystem
 
         RemCompDeferred<BeingLatchedComponent>(target);
         RemCompDeferred<SlimeDamageOvertimeComponent>(target);
-        if (!TerminatingOrDeleted(target) && !TerminatingOrDeleted(ent))
+        // In a container the slime already has its parent; moving it out leaves it on the tile, held and unreachable.
+        if (!TerminatingOrDeleted(target) && !TerminatingOrDeleted(ent) && !_container.IsEntityInContainer(ent))
             _xform.SetParent(ent, _xform.GetParentUid(target));
 
         ent.Comp.LatchedTarget = null;
