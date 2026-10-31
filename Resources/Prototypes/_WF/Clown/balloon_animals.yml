@@ -128,4 +128,4 @@
   - type: StorageFill
     contents:
     - id: BalloonEmpty
-      amount: 10
+      amount: 9
