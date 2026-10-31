@@ -75,7 +75,7 @@ makes a planet's rock spawner rolls in the loader, seeded from the tile, so surf
 rock comes back. `BiomeSystem.WFLoad` puts off the far part of a planet load area and loads it nearest first over
 the next passes, so an arrival or a flight does not load it all in one tick. A hull that sets down flattens what is
 under it as an FTL arrival does, breaks the trees and rock it would rest against (`WfClearLandingObstacles`), and
-hurts a mob under it and shoves it clear instead of gibbing it (`ShuttleSystem.WFSetDown`).
+hurts a mob under it and shoves it clear instead of gibbing it (`ShuttleSystem.WFSetDown`). Only walls, windows and doors hold a landing off; trees, rocks, furniture, machines, tables and grilles under the footprint are flattened (`WFLandingSurveySystem.IsCrushable`). A hull is kept inside a world's circle by the middle of its bounds, not its origin, and one that jumps onto a bounded layer is clamped on arrival. Every layer of a network has a name (`WFPlanetLayerNameSystem`) and the shuttle map labels sector space, surfaces and levels (`WFMapLabelSystem`).
 Every world is a circle (`radius` on its `wfPlanetSurface`, 256 tiles unless the prototype or `wf.planet_radius` says
 otherwise): `WFPlanetBoundsSystem` marks each layer with `WFPlanetBoundsComponent` when the network is built, the loader
 never generates a chunk outside it (`BiomeSystem.WFBounds`), an impassable boundary rings the ground and the layers
@@ -302,6 +302,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/_WF/Planets/WFPlanetFaunaSpawnerComponent.cs`](WFPlanetFaunaSpawnerComponent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetFaunaSystem.cs`](WFPlanetFaunaSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetGroundSpawnedEvent.cs`](WFPlanetGroundSpawnedEvent.cs)
+- [`Content.Server/_WF/Planets/WFPlanetLayerNameSystem.cs`](WFPlanetLayerNameSystem.cs)
 - [`Content.Server/_WF/Planets/WFPlanetLowerLayersEvent.cs`](WFPlanetLowerLayersEvent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetNetworkBuiltEvent.cs`](WFPlanetNetworkBuiltEvent.cs)
 - [`Content.Server/_WF/Planets/WFPlanetNetworkComponent.cs`](WFPlanetNetworkComponent.cs)
@@ -345,6 +346,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Shared/_WF/Planets/WFBiomeNoiseCacheSystem.cs`](../../../Content.Shared/_WF/Planets/WFBiomeNoiseCacheSystem.cs)
 - [`Content.Shared/_WF/Planets/WFConsoleOrbitTargetComponent.cs`](../../../Content.Shared/_WF/Planets/WFConsoleOrbitTargetComponent.cs)
 - [`Content.Shared/_WF/Planets/WFDetachedTerrainComponent.cs`](../../../Content.Shared/_WF/Planets/WFDetachedTerrainComponent.cs)
+- [`Content.Shared/_WF/Planets/WFMapLabelSystem.cs`](../../../Content.Shared/_WF/Planets/WFMapLabelSystem.cs)
 - [`Content.Shared/_WF/Planets/WFOrbitLayerComponent.cs`](../../../Content.Shared/_WF/Planets/WFOrbitLayerComponent.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetAmbiencePrototype.cs`](../../../Content.Shared/_WF/Planets/WFPlanetAmbiencePrototype.cs)
 - [`Content.Shared/_WF/Planets/WFPlanetApproachComponent.cs`](../../../Content.Shared/_WF/Planets/WFPlanetApproachComponent.cs)
@@ -421,6 +423,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.IntegrationTests/Tests/_WF/Planets/FlightTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/FlightTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/GroundContactTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/GroundContactTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/KyphrusPlanetsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/KyphrusPlanetsTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/LandingCrushTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/LandingCrushTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/LiftoffTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/LiftoffTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/OrbitalMobFallTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/OrbitalMobFallTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/OrbitArrivalTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/OrbitArrivalTest.cs)
@@ -430,6 +433,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.IntegrationTests/Tests/_WF/Planets/ParachuteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/ParachuteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePlaybackTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePlaybackTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePrototypeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetAmbiencePrototypeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetArrivalTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetArrivalTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetBoundsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetBoundsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetDragTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetDragTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetDroneBeltTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetDroneBeltTest.cs)
@@ -440,6 +444,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetFirstMinuteTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetFirstMinuteTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetFixture.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLakeTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PlanetLayerNamesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetLayerNamesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetNetworkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetOreMarkerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetPathWakeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetPathWakeTest.cs)
@@ -659,6 +664,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
   - open grating is no roof.
 - [`Content.Client/Movement/Systems/FloorOcclusionSystem.cs`](../../../Content.Client/Movement/Systems/FloorOcclusionSystem.cs): a new entity's state lands before its sprite initialises; startup sets the shader.
 - [`Content.Client/Overlays/StencilOverlay.Weather.cs`](../../../Content.Client/Overlays/StencilOverlay.Weather.cs): no rain down a stairwell onto an indoor floor
+- [`Content.Client/Shuttles/UI/MapScreen.xaml.cs`](../../../Content.Client/Shuttles/UI/MapScreen.xaml.cs): sector space, surfaces and levels say what they are
 - [`Content.Client/Shuttles/UI/NavScreen.xaml`](../../../Content.Client/Shuttles/UI/NavScreen.xaml): enter/leave planet orbit, which needs no FTL drive (xmlns:wf above).
 - [`Content.Client/Shuttles/UI/NavScreen.xaml.cs`](../../../Content.Client/Shuttles/UI/NavScreen.xaml.cs)
   - the orbit button reads its state off the console entity.

@@ -2,6 +2,13 @@
 wf-planet-orbit-map-name = { $planet } orbit
 wf-planet-orbit-marker-name = { $planet } orbital marker
 wf-planet-network-name = { $planet } planet network
+wf-planet-air-map-name = { $planet } airspace { $level }
+wf-planet-cloud-map-name = { $planet } cloud deck
+wf-planet-lower-map-name = { $planet } lower level { $level }
+wf-shuttle-map-surface = { $name } (surface)
+wf-shuttle-map-sector = { $name } (sector space)
+wf-shuttle-map-transit = Between levels
+wf-shuttle-map-level = Level { $level }
 wf-planet-asclepiu-surface = Verda
 
 ## FTL

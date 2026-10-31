@@ -1,5 +1,6 @@
 using System.Numerics;
 using Content.Server.Salvage;
+using Content.Server.Shuttles.Events;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
@@ -30,6 +31,7 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<WFPlanetNetworkBuiltEvent>(OnNetworkBuilt);
+        SubscribeLocalEvent<FTLCompletedEvent>(OnFtlCompleted);
     }
 
     /// <summary>The radius a surface gets this round, or zero for unbounded.</summary>
@@ -79,6 +81,15 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
         }
     }
 
+    /// <summary>A hull that jumps onto a bounded layer other than orbit, where a ship may arrive anywhere, comes out inside the circle.</summary>
+    private void OnFtlCompleted(ref FTLCompletedEvent args)
+    {
+        if (HasComp<WFOrbitLayerComponent>(args.MapUid))
+            return;
+
+        ClampHull(args.Entity);
+    }
+
     private void Mark(EntityUid layer, Vector2 centre, int radius)
     {
         var bounds = EnsureComp<WFPlanetBoundsComponent>(layer);
@@ -120,10 +131,23 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
         return false;
     }
 
-    /// <summary>How far a hull reaches from its origin: the half-diagonal of its bounds.</summary>
+    /// <summary>How far a hull reaches from the middle of its bounds: the half-diagonal.</summary>
     public float HullReach(EntityUid grid)
     {
         return TryComp<MapGridComponent>(grid, out var comp) ? comp.LocalAABB.Size.Length() / 2f : 0f;
+    }
+
+    /// <summary>
+    /// The middle of a hull's bounds in the world. A hull's origin is wherever its mapper put it, often a corner, so
+    /// the circle of <see cref="HullReach"/> is round this point and not round the origin.
+    /// </summary>
+    public Vector2 HullCentre(EntityUid grid)
+    {
+        var xform = Transform(grid);
+
+        return TryComp<MapGridComponent>(grid, out var comp)
+            ? Vector2.Transform(comp.LocalAABB.Center, _transform.GetWorldMatrix(xform))
+            : _transform.GetWorldPosition(xform);
     }
 
     /// <summary>Whether a hull, with its margin, lies wholly inside its map's circle; true on an unbounded map.</summary>
@@ -135,7 +159,7 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
             return true;
 
         var reach = HullReach(grid) + HullMargin;
-        return Vector2.Distance(_transform.GetWorldPosition(xform), centre) + reach <= radius;
+        return Vector2.Distance(HullCentre(grid), centre) + reach <= radius;
     }
 
     /// <summary>Moves a hull to the nearest spot where it lies wholly inside its map's circle, if it is outside.</summary>
@@ -147,8 +171,8 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
             return;
 
         var reach = HullReach(grid) + HullMargin;
-        var position = _transform.GetWorldPosition(xform);
-        var offset = position - centre;
+        var middle = HullCentre(grid);
+        var offset = middle - centre;
         var distance = offset.Length();
         var allowed = Math.Max(radius - reach, 0f);
 
@@ -157,6 +181,7 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
 
         allowed = Math.Max(allowed - ClampInset, 0f);
 
-        _transform.SetWorldPosition(grid, centre + offset * (allowed / distance));
+        var target = centre + offset * (allowed / distance);
+        _transform.SetWorldPosition(grid, _transform.GetWorldPosition(xform) + (target - middle));
     }
 }

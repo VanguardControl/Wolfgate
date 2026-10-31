@@ -67,7 +67,7 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
             return;
 
         var reach = _bounds.HullReach(grid) + WFPlanetBoundsSystem.HullMargin;
-        var offset = _transform.GetWorldPosition(xform) - centre;
+        var offset = _bounds.HullCentre(grid) - centre;
         var distance = offset.Length();
 
         if (distance <= 0f || distance + reach <= radius)

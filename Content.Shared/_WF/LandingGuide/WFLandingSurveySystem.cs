@@ -3,10 +3,14 @@ using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._CE.ZLevels.Core.EntitySystems;
 using Content.Shared._WF.Caverns;
 using Content.Shared._WF.Planets;
+using Content.Shared.Doors.Components;
 using Content.Shared.Physics;
+using Content.Shared.Shuttles.Components;
+using Content.Shared.Tag;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.LandingGuide;
 
@@ -19,10 +23,17 @@ public sealed partial class WFLandingSurveySystem : EntitySystem
     [Dependency] private SharedMapSystem _map = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
     [Dependency] private CESharedZLevelsSystem _zLevels = default!;
+    [Dependency] private TagSystem _tags = default!;
+
+    private static readonly ProtoId<TagPrototype> WallTag = "Wall";
+    private static readonly ProtoId<TagPrototype> WindowTag = "Window";
+    private static readonly ProtoId<TagPrototype> DiagonalTag = "Diagonal";
 
     /// <summary>Half the side, in tiles, of the box round an obstacle that counts as under a hull: just inside its own tile.</summary>
     public const float ObstacleHalfExtent = 0.45f;
 
+    private EntityQuery<DoorComponent> _doorQuery;
+    private EntityQuery<FTLSmashImmuneComponent> _immuneQuery;
     private EntityQuery<FixturesComponent> _fixturesQuery;
     private EntityQuery<MapGridComponent> _gridQuery;
     private List<Entity<MapGridComponent>> _otherGrids = new();
@@ -30,6 +41,8 @@ public sealed partial class WFLandingSurveySystem : EntitySystem
     public override void Initialize()
     {
         base.Initialize();
+        _doorQuery = GetEntityQuery<DoorComponent>();
+        _immuneQuery = GetEntityQuery<FTLSmashImmuneComponent>();
         _fixturesQuery = GetEntityQuery<FixturesComponent>();
         _gridQuery = GetEntityQuery<MapGridComponent>();
     }
@@ -46,10 +59,21 @@ public sealed partial class WFLandingSurveySystem : EntitySystem
         return false;
     }
 
-    /// <summary>Whether an entity is still there and solid.</summary>
-    public bool IsSolidObstacle(EntityUid uid)
+    /// <summary>
+    /// Whether a solid thing is one a landing hull flattens, as an FTL arrival does: trees, rocks, furniture, machines,
+    /// tables and grilles. Walls, windows, doors and what is immune to the smash are not.
+    /// </summary>
+    public bool IsCrushable(EntityUid uid)
     {
-        return !TerminatingOrDeleted(uid) && _fixturesQuery.TryComp(uid, out var fixtures) && IsSolid(fixtures);
+        return !_immuneQuery.HasComp(uid) && !_doorQuery.HasComp(uid)
+               && !_tags.HasAnyTag(uid, WallTag, WindowTag, DiagonalTag);
+    }
+
+    /// <summary>Whether an entity is still there, solid and not something a landing hull crushes: it holds a hull off.</summary>
+    public bool IsBlockingObstacle(EntityUid uid)
+    {
+        return !TerminatingOrDeleted(uid) && _fixturesQuery.TryComp(uid, out var fixtures) && IsSolid(fixtures)
+               && !IsCrushable(uid);
     }
 
     /// <summary>Whether a map is a planet's ground layer.</summary>
@@ -108,7 +132,7 @@ public sealed partial class WFLandingSurveySystem : EntitySystem
         var bounds = _transform.GetWorldMatrix(hull).TransformBox(hull.Comp.LocalAABB);
         foreach (var obstacle in _map.GetAnchoredEntities(ground, ground.Comp, new Box2Rotated(bounds, Angle.Zero)))
         {
-            if (!IsSolidObstacle(obstacle))
+            if (!IsBlockingObstacle(obstacle))
                 continue;
 
             if (UnderHull(hull, _transform.GetWorldPosition(obstacle), ground.Comp.TileSize))
@@ -150,7 +174,7 @@ public sealed partial class WFLandingSurveySystem : EntitySystem
         var anchored = _map.GetAnchoredEntities(ground, ground.Comp, index);
         while (anchored.MoveNext(out var uid))
         {
-            if (IsSolidObstacle(uid.Value))
+            if (IsBlockingObstacle(uid.Value))
                 return WFLandingTile.Blocked;
         }
 
