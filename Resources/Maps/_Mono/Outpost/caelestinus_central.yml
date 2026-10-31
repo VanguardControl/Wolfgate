@@ -32045,8 +32045,6 @@ entities:
     - type: DeviceNetwork
       deviceLists:
       - 8
-      configurators:
-      - invalid
   - uid: 141
     components:
     - type: Transform
@@ -44483,8 +44481,6 @@ entities:
     - type: DeviceNetwork
       deviceLists:
       - 22
-      configurators:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
   - uid: 5566
@@ -44825,10 +44821,7 @@ entities:
       pos: 19.5,34.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 9252
-      configurators:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
   - uid: 5926
@@ -44838,10 +44831,7 @@ entities:
       pos: 15.5,39.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 9252
-      configurators:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
   - uid: 6254
@@ -44862,10 +44852,7 @@ entities:
       pos: 20.5,39.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 9252
-      configurators:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
   - uid: 6540
@@ -44876,10 +44863,7 @@ entities:
       pos: 23.5,34.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 9252
-      configurators:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
   - uid: 6600
@@ -44900,8 +44884,6 @@ entities:
       rot: 1.5707963267948966 rad
       pos: -41.5,-19.5
     - type: DeviceNetwork
-      deviceLists:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
   - uid: 7549
@@ -44911,8 +44893,6 @@ entities:
       rot: -3.141592653589793 rad
       pos: -41.5,-17.5
     - type: DeviceNetwork
-      deviceLists:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
   - uid: 7798
@@ -44955,10 +44935,7 @@ entities:
       pos: 27.5,32.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 10833
-      configurators:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
   - uid: 10778
@@ -44969,10 +44946,7 @@ entities:
       pos: 21.5,-2.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 10310
-      configurators:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
   - uid: 10875
@@ -44983,10 +44957,7 @@ entities:
       pos: 23.5,5.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 22
-      configurators:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
 - proto: GasVentPumpFreezer
@@ -44998,8 +44969,6 @@ entities:
       rot: -3.141592653589793 rad
       pos: 20.5,18.5
     - type: DeviceNetwork
-      deviceLists:
-      - invalid
     - type: AtmosPipeColor
       color: '#0055CCFF'
 - proto: GasVentScrubber
@@ -45052,8 +45021,6 @@ entities:
     - type: DeviceNetwork
       deviceLists:
       - 22
-      configurators:
-      - invalid
     - type: AtmosPipeLayers
       pipeLayer: Secondary
     - type: AtmosPipeColor
@@ -45614,10 +45581,7 @@ entities:
       pos: 25.5,5.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 22
-      configurators:
-      - invalid
     - type: AtmosPipeLayers
       pipeLayer: Secondary
     - type: AtmosPipeColor
@@ -45630,7 +45594,6 @@ entities:
       pos: 28.5,31.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 10833
     - type: AtmosPipeLayers
       pipeLayer: Secondary
@@ -45644,7 +45607,6 @@ entities:
       pos: 19.5,38.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 9252
     - type: AtmosPipeLayers
       pipeLayer: Secondary
@@ -45657,7 +45619,6 @@ entities:
       pos: 14.5,39.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 9252
     - type: AtmosPipeLayers
       pipeLayer: Secondary
@@ -45671,7 +45632,6 @@ entities:
       pos: 23.5,35.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 9252
     - type: AtmosPipeLayers
       pipeLayer: Secondary
@@ -45685,7 +45645,6 @@ entities:
       pos: 15.5,35.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 9252
     - type: AtmosPipeLayers
       pipeLayer: Secondary
@@ -45725,7 +45684,6 @@ entities:
       pos: 26.5,-2.5
     - type: DeviceNetwork
       deviceLists:
-      - invalid
       - 10310
     - type: AtmosPipeLayers
       pipeLayer: Secondary
@@ -45740,8 +45698,6 @@ entities:
       rot: -3.141592653589793 rad
       pos: 21.5,18.5
     - type: DeviceNetwork
-      deviceLists:
-      - invalid
     - type: AtmosPipeLayers
       pipeLayer: Secondary
     - type: AtmosPipeColor
