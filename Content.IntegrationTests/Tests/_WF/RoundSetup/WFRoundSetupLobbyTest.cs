@@ -98,7 +98,7 @@ public sealed partial class WFRoundSetupLobbyTest
             Assert.That(lobby.Host, Is.EqualTo(player));
             Assert.That(lobby.Scenario, Is.EqualTo(WFRoundScenario.Crashlanded));
             Assert.That(lobby.Access, Is.EqualTo(WFLobbyAccess.Requests));
-            Assert.That(lobby.AllowLateJoin, Is.False);
+            Assert.That(lobby.AllowLateJoin, Is.True, "Mid-round joining starts on.");
             Assert.That(lobby.Started, Is.False);
             Assert.That(lobby.Code, Is.Null);
             Assert.That(lobby.MemberCount, Is.EqualTo(1));
@@ -124,10 +124,10 @@ public sealed partial class WFRoundSetupLobbyTest
         {
             LobbyId = lobbyId,
             Access = (WFLobbyAccess) byte.MaxValue,
-            AllowLateJoin = true,
+            AllowLateJoin = false,
         });
         Assert.That(OwnLobby(state).Access, Is.EqualTo(WFLobbyAccess.Requests));
-        Assert.That(OwnLobby(state).AllowLateJoin, Is.False, "Malformed configuration must apply no fields.");
+        Assert.That(OwnLobby(state).AllowLateJoin, Is.True, "Malformed configuration must apply no fields.");
 
         state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Configure)
         {

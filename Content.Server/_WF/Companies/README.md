@@ -59,6 +59,10 @@ The rank icon editor can start from any existing job icon. The round end summary
 moved money that round: members who played and hours, new members, crews fielded, wages, cuts, deposits, withdrawals
 and the account's start and end.
 
+**Crews under a company.** A company's members in its crew always play their company rank: job, title and icon. They
+can't pick another job, and a character outside the company picks from the openings as usual. A host who switches to a
+character who can't field the company drops it from the crew.
+
 **Quick join.** `WFCompanyQuickJoin` is one card with every way a member can get into the round: their company's crews,
 hangar ships ready to launch, and joining as their rank. It shows on the lobby menu, the crew browser, the late-join
 window and the Companies tab. A player whose selected character isn't in a company but who has one that is gets a button

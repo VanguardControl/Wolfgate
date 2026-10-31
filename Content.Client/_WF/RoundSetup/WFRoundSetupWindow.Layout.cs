@@ -412,7 +412,7 @@ public sealed partial class WFRoundSetupWindow
                 : !player.Connected ? Text("member-disconnected-status", ("status", Text(MemberStatusKey(true, player.Ready, player.Status))))
                 : Text(MemberStatusKey(player.Spawned, player.Ready, player.Status));
             var content = Column(6);
-            content.AddChild(Row(WFRoundSetupCrewRow.JobIcon(player.Job), PlainDescription(player.UserId == lobby.Host && lobby.Portrait != null ? lobby.Portrait.Name : player.Name)));
+            content.AddChild(Row(WFRoundSetupCrewRow.JobIcon(player.Job, player.RankId), PlainDescription(player.UserId == lobby.Host && lobby.Portrait != null ? lobby.Portrait.Name : player.Name)));
             content.AddChild(PlainDescription(Text("member-info", ("job", MemberRoleName(lobby, player)), ("status", status))));
             if (host && player.UserId != lobby.Host)
             {

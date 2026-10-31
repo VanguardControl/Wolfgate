@@ -309,6 +309,11 @@ public sealed partial class WFCompanySystem
         return (TitleOf(company, member), BaseJob(company, member));
     }
 
+    /// <summary>The session's current character's rank in this company, or 0 if they aren't in it.</summary>
+    public int RankIdFor(ICommonSession session, int companyId) =>
+        CurrentCharacter(session) is { } character && CompanyOf(character.ProfileId) is { } company && company.Id == companyId &&
+        IconRankOf(company, company.Members[character.ProfileId]) is { } rank ? rank.Id : 0;
+
     /// <summary>Adds the company on the target's ID to their examine card.</summary>
     public void FillExamineCard(EntityUid target, Content.Shared._WF.ExamineCard.ExamineCardEvent card)
     {

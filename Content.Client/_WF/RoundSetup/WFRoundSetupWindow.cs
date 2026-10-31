@@ -167,7 +167,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         {
             var status = MemberStatusKey(crewmate.Spawned, crewmate.Ready, crewmate.Status);
             var role = string.IsNullOrEmpty(crewmate.Title) ? JobName(crewmate.Job) : crewmate.Title;
-            content.AddChild(Row(WFRoundSetupCrewRow.JobIcon(crewmate.Job),
+            content.AddChild(Row(WFRoundSetupCrewRow.JobIcon(crewmate.Job, crewmate.RankId),
                 PlainDescription(Text("public-member", ("name", crewmate.Name), ("role", role), ("status", Text(status))))));
         }
         content.AddChild(WFScenarioDifficultyLabel.Create(lobby.Scenario));
@@ -181,7 +181,10 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         var live = !state.CanJoin && state.CanJoinLive && lobby.LiveJoin;
         var available = (state.CanJoin || live) && state.OwnLobby == null && lobby.MemberCount < WFRoundSetupPolicy.MaximumMembers &&
                         (!lobby.Started || lobby.AllowLateJoin);
-        available &= BuildBrowseRoles(content, lobby, available);
+        // Members of the crew's company join as their rank, so openings aren't theirs to pick.
+        var joinsAsRank = lobby.CanJoinAsRank && lobby.CompanyId != null && lobby.CompanyId == state.OwnCompany && lobby.Scenario != WFRoundScenario.FactionShip;
+        var hasRoles = BuildBrowseRoles(content, lobby, available && !joinsAsRank);
+        available &= hasRoles || joinsAsRank;
         if (available && live)
             content.AddChild(Description("live-join-help"));
         var disabledReason = !state.CanJoin && !live ? state.CanJoinLive ? "live-unavailable" : "disabled-join" : state.OwnLobby != null ? "disabled-own-crew" :
@@ -203,6 +206,10 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         {
             content.AddChild(FlowRow(JoinButton(lobby, "accept-invite", () => JoinLobby(WFRoundSetupAction.AcceptInvite, lobby.Id), !available, disabledReason),
                 Button("decline", () => Send(WFRoundSetupAction.DeclineInvite, lobby.Id))));
+        }
+        else if (joinsAsRank && lobby.Access is not (WFLobbyAccess.Code or WFLobbyAccess.Invite or WFLobbyAccess.Closed))
+        {
+            // The join as rank button above is the way in.
         }
         else if (lobby.Access == WFLobbyAccess.Code)
         {
@@ -345,11 +352,26 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
                 characters.SelectId(args.Id);
                 _preferences.SelectCharacter(args.Id);
                 SetReady(lobby.Id, false);
+                // After the rate limit and the server's handling of the switch, so both states describe the new character.
+                Robust.Shared.Timing.Timer.Spawn(300, () =>
+                {
+                    Send(WFRoundSetupAction.Refresh);
+                    _entities.System<Companies.WFCompanyClientSystem>().Send(new Shared._WF.Companies.WFCompanyRequest(Shared._WF.Companies.WFCompanyAction.Refresh));
+                });
                 UserInterfaceManager.GetUIController<LobbyUIController>().ReloadCharacterSetup();
             };
             _body.AddChild(characters);
         }
 
+        if (member.RankLocked)
+        {
+            // Their job is their company rank; a half-typed personal title no longer applies.
+            _personalTitleDirty = false;
+            _body.AddChild(Heading("personal-job"));
+            _body.AddChild(Row(WFRoundSetupCrewRow.JobIcon(member.Job, member.RankId), PlainDescription(Text("company-rank-locked", ("rank", member.Title), ("job", JobName(member.Job))))));
+            BuildJobLoadout(lobby, member);
+            return;
+        }
         if (lobby.Host == member.UserId || member.RoleId == null)
             BuildPersonalJobSetup(state, lobby, member);
         else if (lobby.Host != member.UserId)
@@ -376,7 +398,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
 
     private static bool SameLobby(WFRoundSetupLobby first, WFRoundSetupLobby second)
     {
-        return first.Id == second.Id && first.Host == second.Host && first.HostJob == second.HostJob && Equals(first.Portrait, second.Portrait) && first.HostName == second.HostName && first.Title == second.Title && first.Description == second.Description &&
+        return first.Id == second.Id && first.Host == second.Host && first.HostJob == second.HostJob && first.HostRankId == second.HostRankId && first.HostTitle == second.HostTitle && Equals(first.Portrait, second.Portrait) && first.HostName == second.HostName && first.Title == second.Title && first.Description == second.Description &&
                first.Scenario == second.Scenario && first.Faction == second.Faction && first.ShipName == second.ShipName && first.ShipStart == second.ShipStart && first.Access == second.Access && first.AllowLateJoin == second.AllowLateJoin &&
                first.Started == second.Started && first.MemberCount == second.MemberCount && first.Code == second.Code &&
                first.Recruiting == second.Recruiting && first.RecruitingOn == second.RecruitingOn && first.CompanyId == second.CompanyId &&

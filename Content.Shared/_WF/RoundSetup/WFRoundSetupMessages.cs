@@ -75,11 +75,11 @@ public sealed record WFRoundSetupPlayer(NetUserId UserId, string Name, int? Role
 
 /// <summary>A member's own job and readiness, with no character profile data.</summary>
 [Serializable, NetSerializable]
-public sealed record WFRoundSetupMember(NetUserId UserId, string Name, string? Job, NetEntity? Station, bool Ready, bool Spawned, bool Connected, int? RoleId = null, string Title = "", int Contribution = 0, WFCrewMemberStatus Status = WFCrewMemberStatus.Waiting, bool Live = false);
+public sealed record WFRoundSetupMember(NetUserId UserId, string Name, string? Job, NetEntity? Station, bool Ready, bool Spawned, bool Connected, int? RoleId = null, string Title = "", int Contribution = 0, WFCrewMemberStatus Status = WFCrewMemberStatus.Waiting, bool Live = false, int RankId = 0, bool RankLocked = false);
 
 /// <summary>A public crew roster entry containing only character identity and readiness.</summary>
 [Serializable, NetSerializable]
-public sealed record WFRoundSetupCrewmate(string Name, string? Job, string Title, bool Ready, bool Spawned, WFCrewMemberStatus Status = WFCrewMemberStatus.Waiting);
+public sealed record WFRoundSetupCrewmate(string Name, string? Job, string Title, bool Ready, bool Spawned, WFCrewMemberStatus Status = WFCrewMemberStatus.Waiting, int RankId = 0);
 
 /// <summary>The recipient's exact purchase quote; bank balances remain private.</summary>
 [Serializable, NetSerializable]
@@ -121,6 +121,10 @@ public sealed class WFRoundSetupLobby
     public NetUserId Host;
     public string HostName = string.Empty;
     public string? HostJob;
+    /// <summary>The host's shown title, when their job isn't the whole story.</summary>
+    public string HostTitle = string.Empty;
+    /// <summary>The host's company rank, whose icon stands in for their job's while the crew flies under that company.</summary>
+    public int HostRankId;
     public WFCrewPortrait? Portrait;
     public string Title = string.Empty;
     public string Description = string.Empty;

@@ -55,6 +55,10 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
         public WFShipAccessKey? AccessKey;
         /// <summary>Joined with a character already in the round instead of spawning through the crew.</summary>
         public bool Live;
+        /// <summary>Their company rank in the crew's company, kept for when they disconnect.</summary>
+        public int RankId;
+        /// <summary>Playing their company rank because the crew flies under their company, so they can't pick another job.</summary>
+        public bool RankLocked;
     }
 
     /// <summary>Round-scoped lobby state; private admission data never enters public snapshots.</summary>
@@ -67,7 +71,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
         public string ShipName = string.Empty;
         public WFShipStartLocation ShipStart;
         public WFLobbyAccess Access = WFLobbyAccess.Requests;
-        public bool AllowLateJoin;
+        public bool AllowLateJoin = true;
         public bool Started;
         public ShipChange? PendingShip;
         public string Code = string.Empty;
@@ -113,8 +117,9 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             var pruned = PrunePendingAdmissions();
             UpdateDemo();
             SyncCrewShips();
+            var locks = SyncCompanyLocks();
             SyncCompanyShips();
-            BroadcastIfChanged(pruned | UpdateCrewStatus());
+            BroadcastIfChanged(pruned | locks | UpdateCrewStatus());
         }
         if (!_broadcastPending || now < _nextBroadcast)
             return;
@@ -187,6 +192,9 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             return;
         if (msg.Action == WFRoundSetupAction.Refresh)
         {
+            // A refresh follows a change of character, which can change the crew's company and everyone's job.
+            if (SyncCompanyLocks())
+                Broadcast();
             SendState(session);
             return;
         }
@@ -280,7 +288,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
                     break;
                 }
                 // A company member may join as their company rank instead of taking an opening.
-                var asRank = msg.AsRank && JoinsAsRank(target, session);
+                var asRank = msg.AsRank && JoinsAsRank(target, session) || LockedRank(target, session) != null;
                 LobbyRole requestedRole = default!;
                 if (!asRank && (CanEnter(session) ? !TryGetRole(target, session, msg.RoleId, out requestedRole) : !TryGetLiveRole(target, msg.RoleId, out requestedRole)))
                 {
@@ -373,6 +381,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             SendState(session, error);
         else
         {
+            SyncCompanyLocks();
             SendState(session, joinConfirmed: msg.Action is WFRoundSetupAction.ConfirmJoin or WFRoundSetupAction.Launch);
             Broadcast();
         }
@@ -566,7 +575,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
     /// <summary>Grants membership and clears competing requests and invitations.</summary>
     private bool AddMember(Lobby lobby, ICommonSession session, int? roleId)
     {
-        if (roleId == RankRole)
+        if (roleId == RankRole || LockedRank(lobby, session) != null)
             return AddRankMember(lobby, session);
         if (!CanEnter(session))
             return AddLiveMember(lobby, session, roleId);
@@ -649,7 +658,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             lobby.Scenario == WFRoundScenario.FactionShip && title.Length != 0)
             return false;
         var member = lobby.Members[user];
-        if (member.Title == title)
+        if (member.Title == title || member.RankLocked)
             return true;
         member.Title = title;
         UnreadyMember(user, member);
@@ -685,12 +694,13 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
         {
             Id = lobby.Id, Host = lobby.Host, HostName = lobby.Members[lobby.Host].Name, Title = lobby.Title, Description = lobby.Description,
             HostJob = lobby.Members[lobby.Host].Job, Portrait = lobby.Members[lobby.Host].Portrait,
+            HostTitle = RosterTitle(lobby, lobby.Host, lobby.Members[lobby.Host]), HostRankId = CrewRankId(lobby, lobby.Host, lobby.Members[lobby.Host]),
             Scenario = lobby.Scenario, Faction = lobby.Faction, ShipName = lobby.ShipName, Access = lobby.Access, AllowLateJoin = lobby.AllowLateJoin,
             CurrentShip = lobby.Started ? CurrentShip(lobby) : null, ShipCondition = ShipCondition(lobby),
             Started = lobby.Started, MemberCount = lobby.Members.Count, Vessel = lobby.Vessel, ShipStart = lobby.ShipStart,
             Roster = lobby.Members.Select(pair => new WFRoundSetupCrewmate(pair.Value.Name, pair.Value.Job,
                 RosterTitle(lobby, pair.Key, pair.Value),
-                IsReadyForLobby(lobby, pair.Key, pair.Value), pair.Value.Spawned, MemberStatus(pair.Value))).ToArray(),
+                IsReadyForLobby(lobby, pair.Key, pair.Value), pair.Value.Spawned, MemberStatus(pair.Value), CrewRankId(lobby, pair.Key, pair.Value))).ToArray(),
             Roles = SnapshotRoles(lobby, user, canEnter && (!WFRoundSetupPolicy.IsFormed(lobby.Scenario) || _ships.HasAssignedShip(lobby.Id)), canJoinLive && WFRoundSetupPolicy.AllowsLiveMembers(lobby.Scenario, lobby.Started), jobs),
             Recruiting = ShowsRecruiting(lobby),
             LiveJoin = WFRoundSetupPolicy.AllowsLiveMembers(lobby.Scenario, lobby.Started),
@@ -704,7 +714,7 @@ public sealed partial class WFRoundSetupSystem : EntitySystem
             Code = host && lobby.Access == WFLobbyAccess.Code ? lobby.Code : null,
             Members = member ? lobby.Members.Select(pair => new WFRoundSetupMember(pair.Key, pair.Value.Name,
                 pair.Value.Job, pair.Value.Station, IsReadyForLobby(lobby, pair.Key, pair.Value), pair.Value.Spawned,
-                _players.TryGetSessionById(pair.Key, out _), pair.Value.RoleId, pair.Value.Title, pair.Value.Contribution, MemberStatus(pair.Value), pair.Value.Live)).ToArray() : Array.Empty<WFRoundSetupMember>(),
+                _players.TryGetSessionById(pair.Key, out _), pair.Value.RoleId, pair.Value.Title, pair.Value.Contribution, MemberStatus(pair.Value), pair.Value.Live, CrewRankId(lobby, pair.Key, pair.Value), pair.Value.RankLocked)).ToArray() : Array.Empty<WFRoundSetupMember>(),
             Requests = host ? lobby.Requests.Keys.Where(id => _players.TryGetSessionById(id, out _))
                 .Select(id => new WFRoundSetupPlayer(id, CharacterName(id), lobby.Requests[id])).ToArray() : Array.Empty<WFRoundSetupPlayer>(),
         };

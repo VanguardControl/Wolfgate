@@ -80,6 +80,8 @@ public sealed partial class WFRoundSetupSystem
     /// <summary>Updates a member's own reservation without changing anybody else's selected role.</summary>
     private bool SelectRole(Lobby lobby, ICommonSession session, int? roleId)
     {
+        if (LockedRank(lobby, session) != null)
+            return false;
         if (roleId == null && lobby.Host == session.UserId && lobby.Members.TryGetValue(session.UserId, out var host) && !host.Spawned)
         {
             host.RoleId = null;
@@ -102,7 +104,7 @@ public sealed partial class WFRoundSetupSystem
     /// <summary>Validates personal host choices while keeping crew selections within advertised openings.</summary>
     private bool SelectRoleByJob(Lobby lobby, ICommonSession session, string? job, NetEntity? station)
     {
-        if (!lobby.Members.TryGetValue(session.UserId, out var member) || member.Spawned || !CanEnter(session))
+        if (!lobby.Members.TryGetValue(session.UserId, out var member) || member.Spawned || !CanEnter(session) || LockedRank(lobby, session) != null)
             return false;
         if (lobby.Host == session.UserId || member.RoleId == null)
         {

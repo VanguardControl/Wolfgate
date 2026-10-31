@@ -102,6 +102,35 @@ public sealed partial class WFCompanyTest
                 Assert.That(buttons, Does.Contain("Launch Long Haul"));
             });
 
+            // A crew flying under the host's company drops it when the host switches to a character outside it.
+            var clientPrefs = pair.Client.ResolveDependency<Content.Client.Lobby.IClientPreferencesManager>();
+            var created = await Crew(new(WFRoundSetupAction.Create) { Scenario = WFRoundScenario.Ship, CompanyId = id.Value, Title = "Switchers" });
+            var switcher = created.Lobbies.Single(lobby => lobby.Id == created.OwnLobby);
+            Assert.That(switcher.CompanyId, Is.EqualTo(id.Value), created.Message);
+            Assert.That(switcher.Members.Single().RankLocked, Is.True);
+            await pair.Client.WaitPost(() =>
+            {
+                clientPrefs.UpdateCharacter(original.WithName("Bo Outsider"), slot + 1);
+                clientPrefs.SelectCharacter(slot + 1);
+            });
+            await pair.RunTicksSync(pair.SecondsToTicks(0.5f));
+            var switched = await Crew(new(WFRoundSetupAction.Refresh));
+            var dropped = switched.Lobbies.Single(lobby => lobby.Id == switched.OwnLobby);
+            Assert.Multiple(() =>
+            {
+                Assert.That(switched.OwnCompany, Is.Null);
+                Assert.That(dropped.CompanyId, Is.Null);
+                Assert.That(dropped.Members.Single().RankLocked, Is.False);
+                Assert.That(dropped.Members.Single().Job, Is.Null);
+            });
+            await pair.Client.WaitPost(() =>
+            {
+                clientPrefs.SelectCharacter(slot);
+                clientPrefs.DeleteCharacter(slot + 1);
+            });
+            await pair.RunTicksSync(pair.SecondsToTicks(0.5f));
+            await Crew(new(WFRoundSetupAction.Leave) { LobbyId = switched.OwnLobby!.Value });
+
             await server.WaitPost(() =>
             {
                 ticker.SetGamePreset("Sandbox");
@@ -135,8 +164,20 @@ public sealed partial class WFCompanyTest
                 Assert.That(hand0.Title, Is.EqualTo("Recruit"));
                 Assert.That(hand0.Job, Is.EqualTo("Contractor"));
             });
-            await Crew(new(WFRoundSetupAction.SelectJob) { LobbyId = crew.Id, Job = "Contractor" });
+            // Everyone from the company in a company crew plays their rank, and can't pick another job.
             var ownerRank = state.Own!.OwnerRank!.Title;
+            crewState = await Crew(new(WFRoundSetupAction.SelectJob) { LobbyId = crew.Id, Job = "Pilot" });
+            var lockedCrew = crewState.Lobbies.Single(lobby => lobby.Id == crew.Id);
+            var lockedHost = lockedCrew.Members.Single(member => member.UserId == owner.UserId);
+            Assert.Multiple(() =>
+            {
+                Assert.That(lockedHost.RankLocked, Is.True);
+                Assert.That(lockedHost.Job, Is.EqualTo("Contractor"));
+                Assert.That(lockedHost.Title, Is.EqualTo(ownerRank));
+                Assert.That(lockedHost.RankId, Is.Not.Zero, "The crew list draws the rank's icon.");
+                Assert.That(lockedCrew.HostRankId, Is.Not.Zero);
+                Assert.That(lockedCrew.Members.Single(member => member.UserId == hands[0].UserId).RankId, Is.Not.Zero);
+            });
             WFCompanyProfileEvent profile = null;
             await pair.Client.WaitPost(() =>
             {

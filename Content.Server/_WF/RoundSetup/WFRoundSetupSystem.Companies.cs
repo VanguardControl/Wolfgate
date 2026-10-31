@@ -56,6 +56,63 @@ public sealed partial class WFRoundSetupSystem
     private bool InCrewCompany(Lobby lobby, ICommonSession session) =>
         lobby.CompanyId != null && _companies.CompanyIdOf(session) == lobby.CompanyId;
 
+    /// <summary>The rank a member must play in this crew: a crew under a company fields its members as their ranks. Faction crews keep faction ranks.</summary>
+    private (string Title, string Job)? LockedRank(Lobby lobby, ICommonSession session) =>
+        lobby.Scenario != WFRoundScenario.FactionShip && InCrewCompany(lobby, session) && JoinsAsRank(lobby, session) ? _companies.RankFor(session) : null;
+
+    /// <summary>The member's rank in the crew's company, for the icon that stands in for their job's.</summary>
+    private int CrewRankId(Lobby lobby, NetUserId user, Member member)
+    {
+        if (_players.TryGetSessionById(user, out var session))
+            member.RankId = lobby.CompanyId is { } id ? _companies.RankIdFor(session, id) : 0;
+        return member.RankId;
+    }
+
+    /// <summary>Keeps unspawned crews in step with their company: a host who can't field it drops it, members in it play
+    /// their ranks, and anyone no longer in it goes back to choosing a job. True when anything changed.</summary>
+    private bool SyncCompanyLocks()
+    {
+        var changed = false;
+        foreach (var lobby in _lobbies.Values)
+        {
+            if (lobby.Started)
+                continue;
+            if (lobby.HangarLicence == null && lobby.CompanyId is { } id && _players.TryGetSessionById(lobby.Host, out var host) && !_companies.CanFieldCrew(host, id))
+            {
+                SetCrewCompany(lobby, host, null);
+                changed = true;
+            }
+            foreach (var (user, member) in lobby.Members)
+            {
+                if (member.Spawned || !_players.TryGetSessionById(user, out var session))
+                    continue;
+                if (LockedRank(lobby, session) is { } rank)
+                {
+                    if (member.RankLocked && member.Job == rank.Job && member.Title == rank.Title && member.RoleId == null)
+                        continue;
+                    if (member.Job != rank.Job)
+                        UnreadyMember(user, member);
+                    member.RankLocked = true;
+                    member.RoleId = null;
+                    member.Job = rank.Job;
+                    member.Station = null;
+                    member.Title = rank.Title;
+                    changed = true;
+                }
+                else if (member.RankLocked)
+                {
+                    UnreadyMember(user, member);
+                    member.RankLocked = false;
+                    member.Job = null;
+                    member.Station = null;
+                    member.Title = string.Empty;
+                    changed = true;
+                }
+            }
+        }
+        return changed;
+    }
+
     /// <summary>A crewmate's shown title: their own, their opening's, or their company rank if their job says nothing else.</summary>
     private string RosterTitle(Lobby lobby, NetUserId user, Member member)
     {
@@ -92,7 +149,8 @@ public sealed partial class WFRoundSetupSystem
             RegisterLiveMember(lobby, session, null);
         }
         else
-            RegisterMember(lobby, session, new Member { Name = session.Name, Job = rank.Job, Title = rank.Title });
+            RegisterMember(lobby, session, new Member { Name = session.Name, Job = rank.Job, Title = rank.Title,
+                RankLocked = lobby.Scenario != WFRoundScenario.FactionShip && InCrewCompany(lobby, session) });
         NotifyCrewJoined(lobby, session.UserId);
         return true;
     }

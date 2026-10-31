@@ -188,6 +188,11 @@ public sealed partial class WFCompanySystem
         var company = _companies.Values.FirstOrDefault(entry => entry.Licences.Any(licence => licence.Id == licenceId));
         if (company == null || _launched.ContainsKey(licenceId))
             return false;
+        // The host may have switched to a character who can't launch for this company.
+        error = "wf-company-error-denied";
+        if (CurrentCharacter(host) is not { } launcher || CompanyOf(launcher.ProfileId) != company ||
+            !Has(company, company.Members[launcher.ProfileId], WFCompanyPermissions.Launch))
+            return false;
         var vessel = company.Licences.First(licence => licence.Id == licenceId).Vessel;
         var registry = WFCompanyPolicy.RegistryFee(ShipyardPrice(vessel), LaunchedCount(company));
         var fee = company.LaunchFee;

@@ -26,6 +26,7 @@ public sealed partial class WFRoundSetupSystem
         };
         _lobbies.Add(lobby.Id, lobby);
         RegisterMember(lobby, session, new Member { Name = session.Name });
+        SyncCompanyLocks();
         SendState(session);
         Broadcast();
         return true;

@@ -6,6 +6,7 @@ using Content.Shared.StatusIcon;
 using Robust.Client.GameObjects;
 using Robust.Client.UserInterface.Controls;
 using Robust.Shared.Prototypes;
+using Robust.Shared.Timing;
 
 namespace Content.Client._WF.RoundSetup;
 
@@ -34,7 +35,7 @@ public sealed class WFRoundSetupCrewRow : Button
                 ("ship", Loc.GetString("wf-round-setup-ship-condition-short-" + lobby.ShipCondition.ToString().ToLowerInvariant())));
         Label.Visible = false;
         var row = new BoxContainer { SeparationOverride = 8, HorizontalExpand = true, MouseFilter = MouseFilterMode.Ignore };
-        row.AddChild(JobIcon(lobby.HostJob ?? (WFRoundSetupPolicy.IsShip(lobby.Scenario) ? "Pilot" : "Contractor")));
+        row.AddChild(JobIcon(lobby.HostJob ?? (WFRoundSetupPolicy.IsShip(lobby.Scenario) ? "Pilot" : "Contractor"), lobby.HostRankId));
         if (lobby.CompanyTag.Length > 0)
             row.AddChild(new Label { Text = $"[{lobby.CompanyTag}]", FontColorOverride = lobby.CompanyColour, MouseFilter = MouseFilterMode.Ignore,
                 ToolTip = lobby.CompanyName });
@@ -69,10 +70,29 @@ public sealed class WFRoundSetupCrewRow : Button
         OnPressed += _ => open();
     }
 
-    /// <summary>Uses the job's existing status sprite for roles and crew identities.</summary>
-    public static TextureRect JobIcon(string? job)
+    /// <summary>A job icon that becomes its company rank's icon as soon as the client has it.</summary>
+    private sealed class RankedJobIcon(int rankId) : TextureRect
     {
-        var icon = new TextureRect { SetSize = new Vector2(24), Stretch = TextureRect.StretchMode.Scale, VerticalAlignment = VAlignment.Center, MouseFilter = MouseFilterMode.Ignore };
+        private bool _waiting = true;
+
+        protected override void FrameUpdate(FrameEventArgs args)
+        {
+            base.FrameUpdate(args);
+            if (!_waiting || Companies.WFCompanyRankIcons.Get(rankId) is not { } rank)
+                return;
+            Texture = rank;
+            _waiting = false;
+        }
+    }
+
+    /// <summary>Uses the job's existing status sprite for roles and crew identities, or the company rank's icon if it has one.</summary>
+    public static TextureRect JobIcon(string? job, int rankId = 0)
+    {
+        var icon = rankId != 0 ? new RankedJobIcon(rankId) : new TextureRect();
+        icon.SetSize = new Vector2(24);
+        icon.Stretch = TextureRect.StretchMode.Scale;
+        icon.VerticalAlignment = VAlignment.Center;
+        icon.MouseFilter = MouseFilterMode.Ignore;
         var prototypes = IoCManager.Resolve<IPrototypeManager>();
         if (prototypes.TryIndex<JobPrototype>(job ?? "Contractor", out var prototype) && prototypes.TryIndex<JobIconPrototype>(prototype.Icon, out var status))
             icon.Texture = IoCManager.Resolve<IEntityManager>().System<SpriteSystem>().Frame0(status.Icon);
@@ -83,7 +103,7 @@ public sealed class WFRoundSetupCrewRow : Button
 
     /// <summary>Avoids rebuilding rows for unrelated readiness and admission changes.</summary>
     public static bool SameListing(WFRoundSetupLobby first, WFRoundSetupLobby second) =>
-        first.Id == second.Id && first.Scenario == second.Scenario && first.Title == second.Title && first.HostName == second.HostName && first.Portrait?.Name == second.Portrait?.Name && first.HostJob == second.HostJob &&
+        first.Id == second.Id && first.Scenario == second.Scenario && first.Title == second.Title && first.HostName == second.HostName && first.Portrait?.Name == second.Portrait?.Name && first.HostJob == second.HostJob && first.HostRankId == second.HostRankId &&
         first.MemberCount == second.MemberCount && first.Started == second.Started && Openings(first) == Openings(second) && first.Recruiting == second.Recruiting && first.CompanyTag == second.CompanyTag && first.CompanyColour == second.CompanyColour &&
         first.ShipCondition == second.ShipCondition && first.Roster.Select(mate => mate.Status).SequenceEqual(second.Roster.Select(mate => mate.Status));
 }

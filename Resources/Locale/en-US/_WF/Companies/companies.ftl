@@ -5,6 +5,7 @@ wf-round-setup-company-crew-heading = Company
 wf-round-setup-company-crew-help = Fly this crew under your company. Its tag shows on the crew list and postings, and its ship carries the company IFF.
 wf-round-setup-company-crew-none = No company
 wf-round-setup-join-as-rank = Join as { $rank }
+wf-round-setup-company-rank-locked = { $rank } ({ $job }). This crew flies under your company, so you serve at your company rank.
 wf-round-setup-access-companyonly = Company only
 wf-round-setup-access-companyfirst = Company joins, others ask the host
 wf-round-setup-company-only-help = Only members of this crew's company can join.
