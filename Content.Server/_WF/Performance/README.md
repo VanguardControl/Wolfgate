@@ -26,8 +26,8 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - Roofs network as chunk deltas (`SharedRoofSystem.WFDelta`). Maps go to every player, and a cavern map's full roof
   is tens of kilobytes; each tile change on the surface above resent all of it, which emptied clients' state buffers.
   A delta carries only the chunks changed since the client's last ack.
-- A drydock break lifts its finished tiles together every 2 s (`WFDrydockJobComponent.Lifting`) instead of one at a
-  time, since each lift resends every fixture of the hull (about 9 KB on a derelict) to every player.
+- A drydock break lifts its finished tiles together every 10 s (`WFDrydockJobComponent.Lifting`) instead of one at a
+  time, since each lift resends every fixture of the hull (about 9 KB on a derelict, 50 KB on a big ship) to every player.
 - The client Z-level sprite passes (`CEClientZLevelsPreAnimSystem`, `CEClientZLevelsPostAnimSystem`) walk only
   entities off the ground or just landed (`CESharedZLevelsSystem.WFRaised`), instead of every entity with Z physics.
   The full walk over about 52,000 entities took 38% of a live client's game thread. A height joins the list from
