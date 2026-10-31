@@ -50,6 +50,34 @@ public sealed partial class AtmosphereSystem
         return false;
     }
 
+    /// <summary>
+    /// Takes the smoke, the missing oxygen and the heat a fire left out of a tracked tile on a planet layer, back to the
+    /// map's air. Bare ground shares that air already.
+    /// </summary>
+    public void WfRestoreBurntAir(EntityUid grid, Vector2i index)
+    {
+        if (!WfIsTerrain(grid) || !_atmosQuery.TryComp(grid, out var atmos)
+            || !atmos.Tiles.TryGetValue(index, out var tile) || tile.Air is not { Immutable: false } air
+            || !TryComp<MapAtmosphereComponent>(Transform(grid).MapUid, out var map) || map.Space
+            || map.Mixture.Volume <= 0f)
+        {
+            return;
+        }
+
+        var scale = air.Volume / map.Mixture.Volume;
+        var oxygen = map.Mixture.GetMoles(Gas.Oxygen) * scale;
+
+        if (air.GetMoles(Gas.Oxygen) < oxygen)
+            air.SetMoles(Gas.Oxygen, oxygen);
+
+        air.SetMoles(Gas.Smoke, MathF.Min(air.GetMoles(Gas.Smoke), map.Mixture.GetMoles(Gas.Smoke) * scale));
+
+        if (air.Temperature > map.Mixture.Temperature)
+            air.Temperature = map.Mixture.Temperature;
+
+        tile.Hotspot = new Hotspot();
+    }
+
     /// <summary>Whether the grid is a planet layer's ground.</summary>
     private bool WfIsTerrain(EntityUid grid)
     {

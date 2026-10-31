@@ -1,5 +1,6 @@
 # What's left of a crashed ship's crew (a wreck theme's `crew`): spacers dressed for the world they came down on, risen
-# as zombies (WFZombifyOnSpawn) and hostile to anyone who comes poking through the hull.
+# as inert zombies (WFZombifyOnSpawn: bite only, no infection, no rising dead) and hostile to anyone who comes poking
+# through the hull.
 
 - type: entity
   abstract: true
@@ -12,6 +13,9 @@
   - type: RandomHumanoidAppearance
     randomizeName: false
   - type: WFZombifyOnSpawn
+  # Zombies from any other source are friends, so the crew never goes for one.
+  - type: NpcFactionMember
+    addFriendlyFactions: [ Zombie ]
   - type: InputMover
   - type: MobMover
   - type: WFVehicleBoarder
