@@ -22,7 +22,8 @@ card. Being examined tells the character in chat ("X looks you over", or "glance
 per examiner every 20 seconds, never for ghosts; `wf.examine_card.notice` turns it off.
 
 The stamp compares the face with the ID: ID MATCH, MISMATCH, UNVERIFIED when the face is covered (the name field
-then reads "face covered"), or NO ID. Both strings are already visible on the card, so it reveals nothing new.
+then reads "face covered"), or NO ID. Both strings are already visible on the card, so it reveals nothing new. Your
+own card follows the same rule, so you see the disguise everyone else sees.
 
 Chips: `ExamineChipRules` lists examine lines by Fluent id. The server renders each one for this character (as the
 body and as its identity, held items left as wildcards) and sends the results as patterns; the client folds every

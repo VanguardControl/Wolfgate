@@ -55,13 +55,10 @@ public abstract partial class SharedExamineCardSystem : EntitySystem
             State = CompOrNull<MobStateComponent>(target)?.CurrentState ?? MobState.Alive,
         };
 
-        var faceVisible = examiner == target;
-        if (!faceVisible)
-        {
-            var see = new SeeIdentityAttemptEvent();
-            RaiseLocalEvent(target, see);
-            faceVisible = !see.Cancelled;
-        }
+        // Your own card too, so you see the disguise everyone else sees.
+        var see = new SeeIdentityAttemptEvent();
+        RaiseLocalEvent(target, see);
+        var faceVisible = !see.Cancelled;
 
         var trueName = Name(target);
         if (faceVisible)
