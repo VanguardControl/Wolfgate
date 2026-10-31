@@ -1,11 +1,12 @@
 # GroundCover
 
-Weather that stays on the ground. Rain wets open ground: the floor darkens a little and keeps its colour, with faint
-gloss streaks and twinkling glints, and puddles fill the low spots of a warped noise field: a few small ones in light
-rain, merging into larger pools only in heavy rain, and drying over minutes after it stops. Puddles are clear water:
-the ground shows through, slightly darker and cooler, and they reflect the sky (the light there, so they stay dark at
-night) and anything standing a tile above them mostly at their rims and towards the view's edges. Single-pixel glints
-and specks twinkle on them, and raindrop rings catch the light as bright crescents while it rains. Snow
+Weather that stays on the ground, and only on a surface: levels below one (caverns, cellars), the air above a planet and
+its orbit have none (`SharedWolfWeatherSystem.IsSurface`). Rain wets open ground: the floor darkens a little and
+puddles fill the low spots of a noise field, merging in heavy rain and drying over minutes after it stops. Wet floor
+and puddles take their colour from the weather (`groundTint` on a `wolfWeather`, plain water when unset; blood rain
+is blood red), eased in on the map (`WFGroundWeatherComponent.Tint`) and kept while the puddles dry. Rain also washes
+decals flagged cleanable off open tiles near players, a couple of chunks a second and gradually
+(`WashDecals`); street paint and other uncleanable decals stay, and so does anything under a roof or a vessel. Snow
 weather lays snow cover on open tiles, up to three levels deep; over one level it slows walking, a shovel or spade
 clears a tile, and it melts once no snow falls and the tile's air is above 0 C. On cover (half a level or more) steps
 crunch with the snow tiles' sound and leave footprints. Roofed and indoor tiles stay dry and clear, by WolfWeather's
@@ -49,30 +50,19 @@ snow and go when the tile is pressed bare, shoveled or melted.
 
 Bonfires burn down and need fuel: see `_WF/Bonfires`.
 
-The client draws it all with one shader in two passes. `WFGroundCoverOverlay` runs over the floor, under entities: it
-takes the floor as the screen texture and draws the wet floor, puddles and snow from it, lighting them by hand. At Full
-quality it also keeps a copy of the bare floor, and `WFGroundReflectionOverlay` runs after entities (before weather and
-FOV): it redoes the first pass to find water pixels nothing was drawn over, and mirrors what stands above into them.
-Ripple strength follows the rain falling now (each weather's `groundWetness` at its current strength). The Weather
-detail option (`wf.wolf_weather.quality`) picks Full (everything), Reduced (wet ground and puddles, no reflections,
-ripples or drop flecks) or Off (no wet ground). Snow always draws, as it slows walking. Only the view's own z-level
-draws it.
+The client draws it all with one shader. `WFGroundCoverOverlay` runs over the floor, under entities, and draws the wet
+floor, puddles and snow from a mask of the view. The Weather detail option (`wf.wolf_weather.quality`) picks Full
+(with puddles), Reduced (wet ground, no puddles) or Off (no wet ground). Snow always draws, as it slows walking. Only
+the view's own z-level draws it.
 
-To keep it cheap the overlay draws only the part of the view that holds wet or snowy tiles (and nothing, with no screen
-copy, where none is in view), bakes the puddle height field into a texture once for each mask rect instead of redoing the
-noise at every pixel, and checks only the two nearest raindrop cells. Snow depth goes into the mask sharp, then is blurred
-(`WFWolfWeatherBlur`, a little over half a tile) into a depth and a share of ground under snow; the shader cuts the share's
-0.5 contour, rippled by noise, so edges, melt holes round a fire and shoveled tiles are soft and round instead of tile
-squares.
+To keep it cheap the overlay draws only the part of the view that holds wet or snowy tiles. Snow depth goes into the
+mask sharp, then is blurred (`WFWolfWeatherBlur`, a little over half a tile) into a depth and a share of ground under
+snow; the shader cuts the share's 0.5 contour, rippled by noise, so edges, melt holes round a fire and shoveled tiles
+are soft and round instead of tile squares.
 
-The look can be tuned live with server cvars, replicated to every client (`cvar <name> <value>` on the server, or
-`sudo cvar ...` from an admin client):
-
-- `wf.ground_cover.puddle_opacity` (0.5): how much puddle water tints and darkens the ground under it, 0 clear to 1.
-- `wf.ground_cover.puddle_coverage` (1): scales the water level; below 1 fewer and smaller puddles, about 1.35 floods.
-- `wf.ground_cover.reflection` (1): scales the reflections of the sky and what stands above.
-- `wf.ground_cover.sparkle` (1): scales glints, twinkling specks, rim highlights and ripple crests.
-- `wf.ground_cover.wet_darkening` (1): scales how much rain darkens and saturates open ground.
+Tiles of a vessel are blanked from the mask after the blur, so a ship sitting on the ground has no snow, wet floor or
+puddles under or in it, and footprints, tracks and stains of the ground below are skipped under it
+(`WFGroundCoverSystem.IsUnderVessel`). A vessel never holds snow cover on the server either (`CanHoldCover`).
 
 Snow and frost go by the air over a tile, and on a planet open sky takes the planet's air: built ground such as a
 city street holds its own air from when it was laid, which the climate never moves, so Crocus kept its build-day
@@ -94,7 +84,7 @@ comes back with its chunk's ice. The client draws ice with `lake_ice.rsi`, the w
 hides it under snow cover so the snow shows (`WFFrozenWaterVisualsSystem`).
 
 Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDepth`, `GetSentDepth`, `GetTileWetness`, `UpdateIceChunk`, `SetFrozen`, `BreakHole`
-(server), `SharedWFSnowSlowSystem.GetSpeed`, the client `WFGroundCoverOverlay` (`UpdateWeather`, `DrawReflections`),
+(server), `SharedWFSnowSlowSystem.GetSpeed`, the client `WFGroundCoverOverlay` (`UpdateWeather`),
 `WFSnowPrintsSystem` and `ground_cover.swsl`.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -106,6 +96,7 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 
 - [`Content.Server/_WF/GroundCover/WFBurnWarmthComponent.cs`](WFBurnWarmthComponent.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.cs`](WFGroundCoverSystem.cs)
+- [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Decals.cs`](WFGroundCoverSystem.Decals.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Fire.cs`](WFGroundCoverSystem.Fire.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Heat.cs`](WFGroundCoverSystem.Heat.cs)
 - [`Content.Server/_WF/GroundCover/WFGroundCoverSystem.Ice.cs`](WFGroundCoverSystem.Ice.cs)
@@ -125,7 +116,6 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 - [`Content.Shared/_WF/GroundCover/SharedWFSnowSlowSystem.cs`](../../../Content.Shared/_WF/GroundCover/SharedWFSnowSlowSystem.cs)
 - [`Content.Shared/_WF/GroundCover/WFFreezableWaterComponent.cs`](../../../Content.Shared/_WF/GroundCover/WFFreezableWaterComponent.cs)
 - [`Content.Shared/_WF/GroundCover/WFFrozenWaterSystem.cs`](../../../Content.Shared/_WF/GroundCover/WFFrozenWaterSystem.cs)
-- [`Content.Shared/_WF/GroundCover/WFGroundCoverCVars.cs`](../../../Content.Shared/_WF/GroundCover/WFGroundCoverCVars.cs)
 - [`Content.Shared/_WF/GroundCover/WFGroundWeatherComponent.cs`](../../../Content.Shared/_WF/GroundCover/WFGroundWeatherComponent.cs)
 - [`Content.Shared/_WF/GroundCover/WFSnowCover.cs`](../../../Content.Shared/_WF/GroundCover/WFSnowCover.cs)
 - [`Content.Shared/_WF/GroundCover/WFSnowFootstepEvent.cs`](../../../Content.Shared/_WF/GroundCover/WFSnowFootstepEvent.cs)
@@ -136,7 +126,6 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 - [`Content.Client/_WF/GroundCover/WFFrozenWaterVisualsSystem.cs`](../../../Content.Client/_WF/GroundCover/WFFrozenWaterVisualsSystem.cs)
 - [`Content.Client/_WF/GroundCover/WFGroundCoverOverlay.cs`](../../../Content.Client/_WF/GroundCover/WFGroundCoverOverlay.cs)
 - [`Content.Client/_WF/GroundCover/WFGroundCoverSystem.cs`](../../../Content.Client/_WF/GroundCover/WFGroundCoverSystem.cs)
-- [`Content.Client/_WF/GroundCover/WFGroundReflectionOverlay.cs`](../../../Content.Client/_WF/GroundCover/WFGroundReflectionOverlay.cs)
 - [`Content.Client/_WF/GroundCover/WFSnowPrintsOverlay.cs`](../../../Content.Client/_WF/GroundCover/WFSnowPrintsOverlay.cs)
 - [`Content.Client/_WF/GroundCover/WFSnowPrintsSystem.cs`](../../../Content.Client/_WF/GroundCover/WFSnowPrintsSystem.cs)
 - [`Content.Client/_WF/GroundCover/WFSnowSlowSystem.cs`](../../../Content.Client/_WF/GroundCover/WFSnowSlowSystem.cs)
@@ -150,6 +139,7 @@ Entry points: `WFGroundCoverSystem.StepMap`, `UpdateChunk`, `GetDepth`, `SetDept
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/CrocusWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/CrocusWeatherTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/FrozenWaterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/FrozenWaterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverOverlayTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverOverlayTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverRound12Test.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverRound12Test.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverVehicleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/GroundCoverVehicleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/GroundCover/SnowInteractionsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/GroundCover/SnowInteractionsTest.cs)

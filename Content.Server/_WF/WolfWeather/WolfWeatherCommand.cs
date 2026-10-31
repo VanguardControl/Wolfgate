@@ -42,6 +42,12 @@ public sealed partial class WolfWeatherCommand : LocalizedEntityCommands
             weather = args[1];
         }
 
+        if (weather != null && !_wolfWeather.IsSurface(mapUid))
+        {
+            shell.WriteError(Loc.GetString("wolf-weather-command-not-surface"));
+            return;
+        }
+
         TimeSpan? duration = null;
         if (args.Length == 3)
         {

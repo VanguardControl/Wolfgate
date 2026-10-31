@@ -7,9 +7,10 @@ do. Players set the detail under Options, Graphics, Weather detail (`wf.wolf_wea
 
 Planets: WolfWeather is how planet weather looks, sounds, blows and strikes. `WFPlanetWeatherSystem` still schedules
 the stock `weather` prototypes, which name the weather for the timepiece, reports and admin panel; each world's
-`wfPlanetWeather` maps them to wolfWeathers with `wolfWeathers`, and every surface, air and transit layer gets that
-state, open-ended so each storm phase cross-fades into the next. A map with WolfWeather state never draws the stock
-overlay or plays its loop. Caverns and orbit get none. On a planet roofs decide what is open, and a vessel is under
+`wfPlanetWeather` maps them to wolfWeathers with `wolfWeathers`, and the ground layer gets that state, open-ended so
+each storm phase cross-fades into the next. A map with WolfWeather state never draws the stock overlay or plays its
+loop. Weather falls on a surface only (`IsSurface`): caverns, cellars, the air above and the orbit get none, and
+`SetWeather` refuses them. A viewer below the ground sees none even with the ground drawn above them. On a planet roofs decide what is open, and a vessel is under
 cover throughout, as for stock weather.
 
 Elsewhere admins use `wolfweather <map> <weather|clear> [seconds]` and `wolfweather_schedule` (Fun flag). A schedule
@@ -48,6 +49,7 @@ Entry points: `SharedWolfWeatherSystem.SetWeather`, `WFPlanetWeatherSystem.Resol
 
 - [`Content.Shared/_WF/WolfWeather/SharedWolfWeatherSystem.cs`](../../../Content.Shared/_WF/WolfWeather/SharedWolfWeatherSystem.cs)
 - [`Content.Shared/_WF/WolfWeather/SharedWolfWeatherSystem.Interiors.cs`](../../../Content.Shared/_WF/WolfWeather/SharedWolfWeatherSystem.Interiors.cs)
+- [`Content.Shared/_WF/WolfWeather/SharedWolfWeatherSystem.Surface.cs`](../../../Content.Shared/_WF/WolfWeather/SharedWolfWeatherSystem.Surface.cs)
 - [`Content.Shared/_WF/WolfWeather/WeatherScheduleComponent.cs`](../../../Content.Shared/_WF/WolfWeather/WeatherScheduleComponent.cs)
 - [`Content.Shared/_WF/WolfWeather/WeatherSchedulePrototype.cs`](../../../Content.Shared/_WF/WolfWeather/WeatherSchedulePrototype.cs)
 - [`Content.Shared/_WF/WolfWeather/WindPushableComponent.cs`](../../../Content.Shared/_WF/WolfWeather/WindPushableComponent.cs)
@@ -154,5 +156,6 @@ Entry points: `SharedWolfWeatherSystem.SetWeather`, `WFPlanetWeatherSystem.Resol
 - [`Content.Client/Options/UI/Tabs/GraphicsTab.xaml.cs`](../../../Content.Client/Options/UI/Tabs/GraphicsTab.xaml.cs)
 - [`Content.Client/Overlays/StencilOverlay.cs`](../../../Content.Client/Overlays/StencilOverlay.cs): a map with WolfWeather state is drawn by WolfWeatherOverlay instead, never both.
 - [`Content.Client/Weather/WeatherSystem.cs`](../../../Content.Client/Weather/WeatherSystem.cs): a map with WolfWeather state plays WolfWeather's loops instead, never both.
+- [`Content.Shared/_CE/ZLevels/Weather/CEWeatherSystem.cs`](../../../Content.Shared/_CE/ZLevels/Weather/CEWeatherSystem.cs): weather falls on a surface only, never on a level below or above one.
 
 <!-- WOLFGATE-GENERATED END -->

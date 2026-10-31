@@ -74,11 +74,9 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
             {
                 Fill(state, profile);
             }
-            foreach (var layer in network.Layers)
-            {
-                if (layer != network.OrbitMap && !TerminatingOrDeleted(layer))
-                    Apply(layer, state);
-            }
+            // Weather falls on the surface only; the air above, the orbit and the levels below stay clear.
+            if (!TerminatingOrDeleted(network.GroundMap))
+                Apply(network.GroundMap, state);
             PublishNetwork(network, state, profile);
         }
         // Transit maps are created on demand while a ship changes altitude.
@@ -88,7 +86,6 @@ public sealed partial class WFPlanetWeatherSystem : EntitySystem
             if (transit.LowerMap is { } lower && TryGetWorld(lower, out var world) &&
                 TryComp<WFPlanetWeatherComponent>(world, out var state) && !MetaData(world).EntityPaused)
             {
-                Apply(uid, state);
                 if (_proto.TryIndex(state.Profile, out var profile) && TryGetReport(lower, out var name, out _, out var weather))
                 {
                     PublishMap(uid, name, GetMinuteOfDay(state, profile), weather);

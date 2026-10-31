@@ -6,6 +6,17 @@ namespace Content.Shared._WF.GroundCover;
 [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
 public sealed partial class WFGroundWeatherComponent : Component
 {
+    /// <summary>The tint of plain water, which the ground shader's puddles are drawn in unless the rain says otherwise.</summary>
+    public static readonly Color Water = new(0.42f, 0.5f, 0.62f);
+
+    /// <summary>The colour of the map's wet floor and puddles, as sent to clients in thirty-seconds of each channel.</summary>
+    [DataField, AutoNetworkedField]
+    public Color Tint = Water;
+
+    /// <summary>The tint to the last step. It eases toward the rain falling and holds while the puddles dry.</summary>
+    [DataField]
+    public Color TintExact = Water;
+
     /// <summary>Darkening and sheen of open ground, from 0 to 1, as sent to clients.</summary>
     [DataField, AutoNetworkedField]
     public float Wetness;

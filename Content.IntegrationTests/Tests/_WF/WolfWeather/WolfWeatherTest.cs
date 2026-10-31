@@ -111,7 +111,14 @@ public sealed class WolfWeatherTest
                 var expected = planets.ResolveWolfWeather(state.Profile, state.Current);
                 Assert.That(expected == null, Is.EqualTo(state.Current == null));
 
-                foreach (var layer in worlds[0].Take(worlds[0].Count - 1))
+                // Weather falls on the ground only; the air above and the orbit stay clear.
+                foreach (var layer in worlds[0].Skip(1))
+                {
+                    Assert.That(!entMan.TryGetComponent<WolfWeatherMapComponent>(layer, out var above)
+                                || above.Weathers.Count == 0, Is.True, "Weather fell above the surface.");
+                }
+
+                foreach (var layer in worlds[0].Take(1))
                 {
                     var wolf = entMan.GetComponent<WolfWeatherMapComponent>(layer);
                     var shown = SharedWolfWeatherSystem.GetCurrent(wolf);
@@ -125,8 +132,6 @@ public sealed class WolfWeatherTest
                     Assert.That(shown?.End, Is.Null, "A planet's WolfWeather should hold until the scheduler moves.");
                 }
 
-                Assert.That(entMan.HasComponent<WolfWeatherMapComponent>(worlds[0].Last()), Is.False,
-                    "Orbit got weather.");
 
                 foreach (var layer in worlds[1])
                 {

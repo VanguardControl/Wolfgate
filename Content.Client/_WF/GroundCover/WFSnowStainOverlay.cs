@@ -10,6 +10,7 @@ public sealed class WFSnowStainOverlay : Overlay
     [Dependency] private IEntityManager _entMan = default!;
 
     private readonly WFSnowStainSystem _stains;
+    private readonly WFGroundCoverSystem _cover;
     private readonly SharedTransformSystem _transform;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowEntities;
@@ -18,6 +19,7 @@ public sealed class WFSnowStainOverlay : Overlay
     {
         IoCManager.InjectDependencies(this);
         _stains = stains;
+        _cover = _entMan.System<WFGroundCoverSystem>();
         _transform = _entMan.System<SharedTransformSystem>();
         // Over the snow cover the ground cover overlay draws at 10, under the footprints at 12.
         ZIndex = 11;
@@ -41,7 +43,8 @@ public sealed class WFSnowStainOverlay : Overlay
             handle.SetTransform(matrix);
             foreach (var (tile, stain) in tiles)
             {
-                if (!bounds.Contains(tile + new Vector2(0.5f, 0.5f)))
+                if (!bounds.Contains(tile + new Vector2(0.5f, 0.5f))
+                    || _cover.IsUnderVessel(args.MapId, Vector2.Transform(tile + new Vector2(0.5f, 0.5f), matrix)))
                     continue;
 
                 var alpha = _stains.Visibility(stain) * WFSnowStainSystem.Opacity;

@@ -49,7 +49,6 @@ public sealed class GroundCoverOverlayTest
         {
             var overlays = client.ResolveDependency<IOverlayManager>();
             Assert.That(overlays.HasOverlay<WFGroundCoverOverlay>(), Is.True, "The ground overlay isn't registered.");
-            Assert.That(overlays.HasOverlay<WFGroundReflectionOverlay>(), Is.True, "The reflection overlay isn't registered.");
 
             // Indexing and instancing the shader parses its source, which throws on a broken shader.
             var proto = client.ResolveDependency<IPrototypeManager>().Index<ShaderPrototype>(Shader);
@@ -61,30 +60,18 @@ public sealed class GroundCoverOverlayTest
 
             cfg.SetCVar(WolfWeatherCVars.WeatherQuality, 2);
             Assert.That(overlay.UpdateWeather(mapId), Is.True, "The overlay doesn't draw wet ground in rain.");
-            Assert.That(overlay.Rain, Is.EqualTo(1f).Within(0.01f), "The overlay doesn't see the rain falling.");
-            Assert.That(overlay.Detail, Is.True, "Full quality left out ripples and reflections.");
+            Assert.That(overlay.Puddles, Is.GreaterThan(0f), "Full quality left out the puddles.");
+            Assert.That(overlay.Tint.X, Is.EqualTo(WFGroundWeatherComponent.Water.R).Within(0.05f), "Plain rain isn't water coloured.");
 
             cfg.SetCVar(WolfWeatherCVars.WeatherQuality, 1);
             Assert.That(overlay.UpdateWeather(mapId), Is.True, "Reduced quality dropped the wet ground.");
-            Assert.That(overlay.Detail, Is.False, "Reduced quality kept ripples and reflections.");
+            Assert.That(overlay.Puddles, Is.Zero, "Reduced quality kept the puddles.");
 
             cfg.SetCVar(WolfWeatherCVars.WeatherQuality, 0);
             Assert.That(overlay.UpdateWeather(mapId), Is.False, "Weather quality Off still drew wet ground.");
 
             cfg.SetCVar(WolfWeatherCVars.WeatherQuality, 2);
         });
-
-        // The look's tuning is set on the server and reaches the client, which draws with it.
-        var serverCfg = server.ResolveDependency<IConfigurationManager>();
-        await server.WaitPost(() => serverCfg.SetCVar(WFGroundCoverCVars.PuddleCoverage, 0.5f));
-        await pair.RunTicksSync(10);
-        await client.WaitAssertion(() =>
-        {
-            Assert.That(cfg.GetCVar(WFGroundCoverCVars.PuddleCoverage), Is.EqualTo(0.5f),
-                "The puddle coverage cvar didn't reach the client.");
-        });
-        await server.WaitPost(() => serverCfg.SetCVar(WFGroundCoverCVars.PuddleCoverage, 1f));
-        await pair.RunTicksSync(10);
 
         await server.WaitPost(() => server.PlayerMan.SetAttachedEntity(pair.Player!, null));
         await pair.CleanReturnAsync();

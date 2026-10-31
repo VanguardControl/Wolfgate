@@ -17,6 +17,7 @@ public sealed class WFSnowPrintsOverlay : Overlay
     private static readonly Color Tint = new(0.48f, 0.55f, 0.68f, 0.55f);
 
     private readonly WFSnowPrintsSystem _prints;
+    private readonly WFGroundCoverSystem _cover;
     private readonly SpriteSystem _sprite;
     private readonly SharedTransformSystem _transform;
     private readonly Texture[] _textures;
@@ -27,6 +28,7 @@ public sealed class WFSnowPrintsOverlay : Overlay
     {
         IoCManager.InjectDependencies(this);
         _prints = prints;
+        _cover = _entMan.System<WFGroundCoverSystem>();
         _sprite = _entMan.System<SpriteSystem>();
         _transform = _entMan.System<SharedTransformSystem>();
         // Over the snow cover the ground cover overlay draws at 10 and the stains at 11.
@@ -57,7 +59,8 @@ public sealed class WFSnowPrintsOverlay : Overlay
             handle.SetTransform(matrix);
             foreach (var (tile, list) in tiles)
             {
-                if (!bounds.Contains(tile + new Vector2(0.5f, 0.5f)))
+                if (!bounds.Contains(tile + new Vector2(0.5f, 0.5f))
+                    || _cover.IsUnderVessel(args.MapId, Vector2.Transform(tile + new Vector2(0.5f, 0.5f), matrix)))
                     continue;
 
                 foreach (var print in list)
