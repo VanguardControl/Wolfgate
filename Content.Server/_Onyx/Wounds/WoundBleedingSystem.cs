@@ -35,6 +35,10 @@ public sealed partial class WoundBleedingSystem : EntitySystem
     [Dependency] private SharedPopupSystem _popup = default!;
     [Dependency] private WoundSystem _wounds = default!;
     [Dependency] private Content.Shared._WF.Wolfmed.Wounds.WolfmedBleedGateSystem _wfBleedGate = default!; // WOLFGATE(Wolfmed)
+    // WOLFGATE(Performance) START: clotting deadlines are checked four times a second, not every tick
+    private static readonly TimeSpan WFClotScanInterval = TimeSpan.FromSeconds(0.25);
+    private TimeSpan _wfNextClotScan;
+    // WOLFGATE END
 
     public override void Initialize()
     {
@@ -141,6 +145,12 @@ public sealed partial class WoundBleedingSystem : EntitySystem
         base.Update(frameTime);
         if (!_net.IsServer)
             return;
+
+        // WOLFGATE(Performance) START: clotting deadlines are checked four times a second, not every tick
+        if (_timing.CurTime < _wfNextClotScan)
+            return;
+        _wfNextClotScan = _timing.CurTime + WFClotScanInterval;
+        // WOLFGATE END
 
         var query = EntityQueryEnumerator<WoundBleedingComponent, WoundComponent>();
         while (query.MoveNext(out var uid, out var bleeding, out var wound))

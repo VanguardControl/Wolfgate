@@ -3938,3 +3938,392 @@ Entries:
   id: 100267
   time: '2026-10-28T01:13:15.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/399
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Xenoarchaeology rework: artifacts are now node graphs. Perform the
+        listed triggers to unlock nodes, then read and extract research points
+        from the analysis console.
+    - type: Add
+      message: >-
+        New artifact triggers (microwave, offerings, shock, exhaustion,
+        particles, lasers) and effects (lamps, plus BZ, healium, nitrium and
+        pluoxium gas).
+    - type: Add
+      message: >-
+        Artifact glue, made from space glue and artifexium, restores artifact
+        node durability.
+    - type: Add
+      message: >-
+        New guidebook pages for xenoarchaeology, the analysis console and
+        unlocking nodes.
+    - type: Remove
+      message: The traversal distorter and printed artifact reports.
+    - type: Tweak
+      message: Artifexium now starts unlocking an artifact instead of activating it.
+  id: 100268
+  time: '2026-10-28T08:01:15.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/394
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Consent Off and On buttons work again after reopening Game Options.
+  id: 100269
+  time: '2026-10-28T21:57:38.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/403
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        The Arribane and Phaeron now come with M12 Prospector mining lasers, and
+        the Rosetta with an M40 Prospector.
+    - type: Fix
+      message: The Carabela's drydock bay now has a light.
+  id: 100270
+  time: '2026-10-28T22:33:33.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/401
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: Fixed the hammerhead's autoloader not being linked.
+    - type: Fix
+      message: fixed the hammerhead not having a manufacturer name in the shipyard.
+  id: 100271
+  time: '2026-10-29T02:16:08.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/405
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        Reavers get stronger the more players are on: better ships, more
+        patrols, faster reinforcements and bigger bounties.
+    - type: Add
+      message: >-
+        The first Reaver stronghold is guarded by gun batteries that strengthen
+        its shield and are rebuilt over time.
+    - type: Add
+      message: Reavers now fly USSP ships, including the Ledokol as a stronghold.
+  id: 100272
+  time: '2026-10-29T05:35:50.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/400
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Fires no longer stop burning for a moment when something burns to
+        pieces.
+    - type: Fix
+      message: >-
+        Pirate ships no longer spawn with their guns offline for the first few
+        seconds.
+    - type: Tweak
+      message: >-
+        Reduced server lag from pirate ship refits, gravity changes, space wind
+        and shuttle movement.
+    - type: Tweak
+      message: >-
+        Reduced lag from asteroid fields, mining and ore magnets. Far-off
+        asteroids still show on radar.
+    - type: Tweak
+      message: >-
+        Reduced lag from buying ships, drydock shipbreaking, ships landed on
+        planets and planet water.
+    - type: Tweak
+      message: >-
+        The client now buffers a little more network state by default, so server
+        hitches are smoother.
+  id: 100273
+  time: '2026-10-29T06:05:50.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/397
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Trade-good prices now change during the round. Selling lowers a
+        station's price for a while, and shortages, booms, blockades, war
+        demand, raids and rush orders raise it.
+    - type: Add
+      message: >-
+        Every PDA has a Market app showing sell and buy prices for every
+        station, with alerts for market events. The best price for each good is
+        starred.
+    - type: Add
+      message: >-
+        Priority deliveries: a crate to carry from one station to another within
+        a deadline.
+    - type: Add
+      message: >-
+        NPC freighters carry sealed freight. Fences pay full price for it,
+        lawful chutes pay 60%.
+    - type: Add
+      message: >-
+        The Underground has a fence chute and sells smuggling crates. Open
+        chutes pay well for them, but customs may issue a warrant.
+    - type: Add
+      message: A wandering merchant encounter buys a few goods at a premium.
+    - type: Add
+      message: >-
+        Cargo has weight. A loaded ship loses thrust, lift and gravgen support,
+        and spools FTL slower. The helm shows a CARGO gauge.
+    - type: Tweak
+      message: >-
+        Trade crates must be hauled at least 3 km from where they were made
+        before a chute takes them.
+    - type: Tweak
+      message: >-
+        Station trade vendors charge more for goods that are scarce at that
+        station.
+    - type: Tweak
+      message: Cargo-console trading crates pay according to the destination's demand.
+    - type: Tweak
+      message: >-
+        Raiders and extorters go after ships with valuable cargo, and extortion
+        tolls grow with the cargo's value.
+  id: 100274
+  time: '2026-10-29T06:19:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/402
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: New players can no longer pick the Heretic trait.
+    - type: Fix
+      message: Bodies that die while SSD keep their SSD icon.
+    - type: Fix
+      message: >-
+        Drydock vouchers go to your own ship instead of whatever ship you were
+        standing on.
+    - type: Fix
+      message: The plant analyzer no longer fails to scan when you move slightly.
+    - type: Fix
+      message: Species visor markings show under a Special tab instead of Right Foot.
+    - type: Tweak
+      message: Cargo chutes tell you when they don't buy something.
+    - type: Tweak
+      message: Smelted ore is worth more than raw ore, so running a smeltery pays.
+    - type: Fix
+      message: >-
+        Lodged rounds no longer appear in gunshot wounds with nothing inside to
+        pull out.
+    - type: Tweak
+      message: >-
+        Space no longer toggles camera focus by default. You can still bind it
+        in the controls menu.
+    - type: Fix
+      message: >-
+        Deaf characters now only catch a few letters of nearby speech, and no
+        whispers.
+    - type: Fix
+      message: Nanite Repair Drones now repair chassis wounds.
+    - type: Fix
+      message: Avali who die while entering stasis no longer lie there invisible.
+    - type: Fix
+      message: The ChemMaster no longer drops clicks.
+    - type: Fix
+      message: Unanswered ahelps now ping staff on Discord.
+    - type: Fix
+      message: >-
+        A toggled item's hum stops for its holder when someone else turns it
+        off.
+    - type: Fix
+      message: Ship guns rebuilt at a drydock link back to the gunnery consoles.
+    - type: Remove
+      message: Removed the TRACTOR TEST vessel.
+    - type: Tweak
+      message: Feroxi no longer need to drink water.
+  id: 100275
+  time: '2026-10-29T06:58:29.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/407
+- author: Balls2zawall
+  changes:
+    - type: Add
+      message: >-
+        A hot new shuttle has entered the shipyards of the Underground. The
+        affectionately named UBM Excelsior is perfect for transporting personnel
+        in both style and safety.
+  id: 100276
+  time: '2026-10-29T18:08:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/409
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: Ore, ingots and sheets now weigh half as much in a ship's hold.
+    - type: Tweak
+      message: >-
+        Trade prices fall about half as fast per crate sold and take about twice
+        as long to recover, so one big haul no longer crashes a market.
+    - type: Add
+      message: >-
+        Selling smuggling crates or fencing stolen freight at the Underground
+        now funds the Ashfall Reavers: their strongholds reinforce and spread
+        faster.
+  id: 100277
+  time: '2026-10-29T18:27:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/411
+- author: vinylspiders
+  changes:
+    - type: Add
+      message: >-
+        Adds Mrs. Luvvit's Pie & Mash, the best locally sourced pies in the
+        sector! Find one in the trade hall at Caelestinus Central, or buy the
+        flatpack. Mrs. Luvvit accepts no liability for scalded tongues.
+    - type: Add
+      message: Adds 12 new cookable British dishes.
+    - type: Add
+      message: Adds Irn-Bru and dandelion & burdock cans.
+  id: 100278
+  time: '2026-10-29T18:36:19.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/410
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Fixed licence credits on a number of sprites and sounds.
+  id: 100279
+  time: '2026-10-29T22:55:54.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/413
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: Earl Grey tea, served hot from the hot drinks vendor.
+    - type: Add
+      message: Pilots very rarely say "Engage." when they start an FTL jump.
+    - type: Add
+      message: Livingston's aquarium, home of a lionfish named Livingston.
+  id: 100280
+  time: '2026-10-29T22:56:26.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/415
+- author: Happyowl93
+  changes:
+    - type: Fix
+      message: >-
+        The drydock now rebuilds thrusters and guns that floated away after the
+        floor under them was destroyed.
+  id: 100281
+  time: '2026-10-30T00:02:43.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/416
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        Trade crates can be sold at any chute, including on the station or ship
+        where they were made. Crates bought from a station's own vendor still
+        can't be sold back there.
+  id: 100282
+  time: '2026-10-30T00:37:17.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/419
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Buying a Hammerhead now links it to your ID and gives you the deed
+        instead of charging you for a ship you can't use.
+    - type: Fix
+      message: The Guppy and Dredger now spawn with air inside.
+    - type: Fix
+      message: >-
+        The precision assembler accepts crafted screws and lathe-printed
+        crowbars.
+    - type: Fix
+      message: >-
+        The SRD no longer rebuilds a machine on top of one anchored in its
+        place.
+    - type: Fix
+      message: Ships docked to an FTLing shuttle no longer arrive inside other grids.
+    - type: Fix
+      message: >-
+        Fixed a crash during ship impacts that could leave a ship stuck in
+        mid-air over a planet.
+  id: 100283
+  time: '2026-10-30T00:42:21.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/417
+- author: Balls2zawall
+  changes:
+    - type: Fix
+      message: Fixed the distro and docking port on the UBM Excelsior
+  id: 100284
+  time: '2026-10-30T00:56:57.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/418
+- author: Happyowl93
+  changes:
+    - type: Tweak
+      message: >-
+        All Caelestinus Central turn-in chutes now buy the same goods at the
+        same prices.
+    - type: Fix
+      message: >-
+        The Market app's Caelestinus Central prices now match what its chutes
+        pay.
+  id: 100285
+  time: '2026-10-30T19:50:49.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/421
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: The server should lag less during busy rounds.
+  id: 100286
+  time: '2026-10-30T20:20:48.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/420
+- author: Balls2zawall
+  changes:
+    - type: Tweak
+      message: Updated the Ample's mining pulsers to prospecting lasers
+    - type: Tweak
+      message: >-
+        Lengthened the MClass mining shuttle carrier by 2 tiles, so it can now
+        hold 2 Antlions if so desired
+  id: 100287
+  time: '2026-10-30T20:20:56.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/423
+- author: antanananat
+  changes:
+    - type: Tweak
+      message: >-
+        UBM Excelsior's cost has been adjusted to its correct value. Due to
+        budget cuts at Excelsior Astrodynamics, the 2526 model of the Excelsior
+        now features a downgraded FTL drive. We're sincerely sorry for any
+        inconvenience caused.
+  id: 100288
+  time: '2026-10-31T13:45:37.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/426
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Ship turrets now turn toward their target at a rate set by their size
+        and only fire once lined up.
+    - type: Tweak
+      message: >-
+        Shield shunting is much weaker: a fully concentrated 30° arc gives about
+        2.3× protection instead of 12×, and shunted shields no longer regenerate
+        faster.
+    - type: Tweak
+      message: Shield arcs turn and shift power more slowly.
+    - type: Tweak
+      message: The Cyrexa's armour-piercing shell does half as much structural damage.
+    - type: Tweak
+      message: >-
+        Adamantite walls are weaker, and PDV ships with a shield generator are
+        back on plastitanium walls.
+  id: 100289
+  time: '2026-10-31T13:45:56.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/414
+- author: antanananat
+  changes:
+    - type: Tweak
+      message: >-
+        Dead space carp carcasses found stuck in some of the thrusters on the
+        Hammerhead-class Corvette were removed, improving the manoeuvrability
+        slightly.
+  id: 100290
+  time: '2026-10-31T14:30:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/424
+- author: Happyowl93
+  changes:
+    - type: Add
+      message: >-
+        Stations now post bulk orders for 25 to 45 crates of a goods group, open
+        for 45 to 60 minutes. They pay a small premium at a flat price that
+        doesn't drop as crates are sold.
+  id: 100291
+  time: '2026-10-31T23:08:59.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/430
