@@ -155,6 +155,15 @@
 
 - type: latheRecipe
   parent: BaseVoucherRecipe
+  id: ShipVoucherFoxtrotIIRecipe
+  result: ShipVoucherFoxtrotII
+  completetime: 240
+  materialDiscountScale: 0.2
+  materials:
+    PdvComposite: 9000 # WOLFGATE: PDV pack, composite cost 12000->9000
+
+- type: latheRecipe
+  parent: BaseVoucherRecipe
   id: MockVoucherRogue
   result: ShipVoucherMock
   materials:

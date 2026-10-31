@@ -3,7 +3,7 @@
 - type: vessel
   id: WFFoxtrotII
   parent: BaseVessel
-  name: 'Foxtrot_II'
+  name: 'Foxtrot-II'
   description: 'The Foxtrot-II is a surprisingly advanced PDV AShM carrying stealth ship. It is armed with 4 x SS-N-40 SARH missile launchers, although its secondary armament and PD is lacking for its size. Its best recommended for sneaky hit and run attacks against lone targets.'
   price: 800560 # appraised at 400280 #200% appraisal because silly stealth T4
   purchasable: false # voucher only - T4
