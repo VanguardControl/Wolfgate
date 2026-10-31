@@ -374,8 +374,18 @@
   parent: WFFloorFervidusAshRock
   name: tiles-wf-fervidus-obsidian-glass
   sprite: /Textures/_WF/WildSlimes/Fervidus/obsidian_glass.png
-  variants: 4
-  placementVariants: [1, 1, 1, 1]
+  variants: 8
+  placementVariants: [1, 1, 1, 1, 1, 1, 1, 1]
+  edgeSpritePriority: 5
+  edgeSprites:
+    South: /Textures/_WF/WildSlimes/Fervidus/obsidian_glass_edge_south.png
+    North: /Textures/_WF/WildSlimes/Fervidus/obsidian_glass_edge_north.png
+    East: /Textures/_WF/WildSlimes/Fervidus/obsidian_glass_edge_east.png
+    West: /Textures/_WF/WildSlimes/Fervidus/obsidian_glass_edge_west.png
+    SouthEast: /Textures/_WF/WildSlimes/Fervidus/obsidian_glass_edge_southeast.png
+    SouthWest: /Textures/_WF/WildSlimes/Fervidus/obsidian_glass_edge_southwest.png
+    NorthEast: /Textures/_WF/WildSlimes/Fervidus/obsidian_glass_edge_northeast.png
+    NorthWest: /Textures/_WF/WildSlimes/Fervidus/obsidian_glass_edge_northwest.png
   weather: true
   transparent: true
 

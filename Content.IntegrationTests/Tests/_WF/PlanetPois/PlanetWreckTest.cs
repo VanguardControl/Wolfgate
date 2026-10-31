@@ -57,6 +57,67 @@ public sealed class PlanetWreckTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>Wrecked crew only bite: no infection, no rising dead, and a zombie of any other source is a friend.</summary>
+    [Test]
+    public async Task WreckedCrewAreInert()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entities = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var mobStates = server.System<Content.Shared.Mobs.Systems.MobStateSystem>();
+        var zombies = server.System<Content.Server.Zombies.ZombieSystem>();
+        var factions = server.System<Content.Shared.NPC.Systems.NpcFactionSystem>();
+        EntityUid wreck = default, plain = default, victim = default, kill = default, control = default, controlKill = default, controlVictim = default;
+
+        await server.WaitPost(() =>
+        {
+            wreck = entities.SpawnEntity("WFWreckZombieThrascias", map.GridCoords);
+            plain = entities.SpawnEntity("MobHuman", map.GridCoords);
+            victim = entities.SpawnEntity("MobHuman", map.GridCoords);
+            kill = entities.SpawnEntity("MobHuman", map.GridCoords);
+            control = entities.SpawnEntity("MobHuman", map.GridCoords);
+            controlKill = entities.SpawnEntity("MobHuman", map.GridCoords);
+            controlVictim = entities.SpawnEntity("MobHuman", map.GridCoords);
+        });
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            zombies.ZombifyEntity(plain);
+            zombies.ZombifyEntity(control);
+            mobStates.ChangeMobState(kill, Content.Shared.Mobs.MobState.Critical);
+            mobStates.ChangeMobState(controlKill, Content.Shared.Mobs.MobState.Critical);
+
+            void Bite(EntityUid user, EntityUid target)
+            {
+                var hit = new Content.Shared.Weapons.Melee.Events.MeleeHitEvent(
+                    new List<EntityUid> { target }, user, user, new Content.Shared.Damage.DamageSpecifier(), null);
+                entities.EventBus.RaiseLocalEvent(user, hit);
+            }
+
+            for (var i = 0; i < 100; i++)
+            {
+                Bite(wreck, victim);
+                Bite(control, controlVictim);
+            }
+
+            Bite(wreck, kill);
+            Bite(control, controlKill);
+
+            Assert.That(entities.HasComponent<PendingZombieComponent>(victim), Is.False, "A wrecked crewmember infected someone.");
+            Assert.That(entities.HasComponent<PendingZombieComponent>(controlVictim), Is.True,
+                "An ordinary zombie no longer infects, so this test proves nothing.");
+            Assert.That(entities.HasComponent<ZombieComponent>(kill), Is.False, "A body a wrecked crewmember downed rose.");
+            Assert.That(entities.HasComponent<ZombieComponent>(controlKill), Is.True,
+                "An ordinary zombie no longer raises what it downs, so this test proves nothing.");
+            Assert.That(factions.IsEntityFriendly(wreck, plain), Is.True,
+                "A wrecked crewmember would go for a zombie of any other source.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     [TestCase(1977)]
     [TestCase(8231)]
     public async Task CarcinomaHasOvergrownWrecks(int seed)

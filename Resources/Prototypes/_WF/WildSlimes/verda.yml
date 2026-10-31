@@ -291,8 +291,18 @@
   parent: WFFloorVerdaPondMud
   name: tiles-wf-verda-water-jelly
   sprite: /Textures/_WF/WildSlimes/Verda/Tiles/water_jelly.png
-  variants: 4
-  placementVariants: [1, 1, 1, 1]
+  variants: 8
+  placementVariants: [1, 1, 1, 1, 1, 1, 1, 1]
+  edgeSpritePriority: 5
+  edgeSprites:
+    South: /Textures/_WF/WildSlimes/Verda/Tiles/water_jelly_edge_south.png
+    North: /Textures/_WF/WildSlimes/Verda/Tiles/water_jelly_edge_north.png
+    East: /Textures/_WF/WildSlimes/Verda/Tiles/water_jelly_edge_east.png
+    West: /Textures/_WF/WildSlimes/Verda/Tiles/water_jelly_edge_west.png
+    SouthEast: /Textures/_WF/WildSlimes/Verda/Tiles/water_jelly_edge_southeast.png
+    SouthWest: /Textures/_WF/WildSlimes/Verda/Tiles/water_jelly_edge_southwest.png
+    NorthEast: /Textures/_WF/WildSlimes/Verda/Tiles/water_jelly_edge_northeast.png
+    NorthWest: /Textures/_WF/WildSlimes/Verda/Tiles/water_jelly_edge_northwest.png
   weather: true
   transparent: true
   footstepSounds:
