@@ -52,9 +52,21 @@ public sealed class WFRoundSetupPolicyTest
         }
     }
 
+    /// <summary>Company settings let members walk on; outsiders ask or are turned away.</summary>
+    [TestCase(WFLobbyAccess.CompanyOnly, true, false, WFLobbyJoinDecision.Join)]
+    [TestCase(WFLobbyAccess.CompanyOnly, false, false, WFLobbyJoinDecision.Denied)]
+    [TestCase(WFLobbyAccess.CompanyOnly, false, true, WFLobbyJoinDecision.Join)]
+    [TestCase(WFLobbyAccess.CompanyFirst, true, false, WFLobbyJoinDecision.Join)]
+    [TestCase(WFLobbyAccess.CompanyFirst, false, false, WFLobbyJoinDecision.Request)]
+    [TestCase(WFLobbyAccess.CompanyFirst, false, true, WFLobbyJoinDecision.Join)]
+    public void CompanyAccess(WFLobbyAccess access, bool companyMember, bool invited, WFLobbyJoinDecision expected)
+    {
+        Assert.That(WFRoundSetupPolicy.EvaluateJoin(access, false, false, false, invited, false, companyMember), Is.EqualTo(expected));
+    }
+
     /// <summary>Malformed access values fail closed even with both credentials.</summary>
     [Test]
-    public void UnknownAccessNeverGrantsEntry([Range(5, 255)] int value)
+    public void UnknownAccessNeverGrantsEntry([Range(7, 255)] int value)
     {
         Assert.That(
             WFRoundSetupPolicy.EvaluateJoin((WFLobbyAccess) value, false, true, false, true, true),

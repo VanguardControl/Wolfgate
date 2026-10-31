@@ -25,6 +25,7 @@ public sealed partial class WFRoundSetupLobbyPanel : PanelContainer
         HorizontalExpand = true;
         var content = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Vertical, SeparationOverride = 4 };
         AddChild(content);
+        content.AddChild(new Companies.WFCompanyQuickJoin());
         content.AddChild(new Label { Text = Text("title"), StyleClasses = { "LabelSubText" } });
         _empty = Wrapped(Text("loading"));
         _empty.ToolTip = Text("empty-help");
@@ -92,7 +93,8 @@ public sealed partial class WFRoundSetupLobbyPanel : PanelContainer
     private void Receive(WFRoundSetupState state)
     {
         var listings = state.Lobbies.OrderByDescending(lobby => lobby.Id == state.OwnLobby)
-            .ThenBy(lobby => lobby.Started).ThenBy(lobby => lobby.Id).ToArray();
+            .ThenByDescending(lobby => state.OwnCompany != null && lobby.CompanyId == state.OwnCompany)
+            .ThenByDescending(lobby => lobby.Recruiting).ThenBy(lobby => lobby.Started).ThenBy(lobby => lobby.Id).ToArray();
         var invitations = state.Invitations.Select(lobby => lobby.Id).ToArray();
         _empty.SetMessage(FormattedMessage.FromUnformatted(Text("empty")));
         _empty.Visible = listings.Length == 0;

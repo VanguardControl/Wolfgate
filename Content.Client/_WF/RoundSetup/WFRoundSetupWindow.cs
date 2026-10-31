@@ -153,6 +153,8 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
     {
         var content = Column(12);
         content.AddChild(CrewIdentity(lobby));
+        if (lobby.CompanyTag.Length > 0)
+            content.AddChild(PlainDescription(Text("company-crew", ("tag", lobby.CompanyTag), ("company", lobby.CompanyName))));
         if (!string.IsNullOrEmpty(lobby.Description))
             content.AddChild(PlainDescription(lobby.Description));
         content.AddChild(PlainDescription(Text("lobby-info", ("count", lobby.MemberCount), ("access", AccessName(lobby.Access)),
@@ -165,7 +167,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         {
             var status = MemberStatusKey(crewmate.Spawned, crewmate.Ready, crewmate.Status);
             var role = string.IsNullOrEmpty(crewmate.Title) ? JobName(crewmate.Job) : crewmate.Title;
-            content.AddChild(Row(WFRoundSetupCrewRow.JobIcon(crewmate.Job),
+            content.AddChild(Row(WFRoundSetupCrewRow.JobIcon(crewmate.Job, crewmate.RankId),
                 PlainDescription(Text("public-member", ("name", crewmate.Name), ("role", role), ("status", Text(status))))));
         }
         content.AddChild(WFScenarioDifficultyLabel.Create(lobby.Scenario));
@@ -176,18 +178,38 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
             if (!lobby.Started)
                 content.AddChild(Description(ShipStartKey(lobby.ShipStart)));
         }
-        var available = state.CanJoin && state.OwnLobby == null && lobby.MemberCount < WFRoundSetupPolicy.MaximumMembers &&
+        var live = !state.CanJoin && state.CanJoinLive && lobby.LiveJoin;
+        var available = (state.CanJoin || live) && state.OwnLobby == null && lobby.MemberCount < WFRoundSetupPolicy.MaximumMembers &&
                         (!lobby.Started || lobby.AllowLateJoin);
-        available &= BuildBrowseRoles(content, lobby, available);
-        var disabledReason = !state.CanJoin ? "disabled-join" : state.OwnLobby != null ? "disabled-own-crew" :
+        // Members of the crew's company join as their rank, so openings aren't theirs to pick.
+        var joinsAsRank = lobby.CanJoinAsRank && lobby.CompanyId != null && lobby.CompanyId == state.OwnCompany && lobby.Scenario != WFRoundScenario.FactionShip;
+        var hasRoles = BuildBrowseRoles(content, lobby, available && !joinsAsRank);
+        available &= hasRoles || joinsAsRank;
+        if (available && live)
+            content.AddChild(Description("live-join-help"));
+        var disabledReason = !state.CanJoin && !live ? state.CanJoinLive ? "live-unavailable" : "disabled-join" : state.OwnLobby != null ? "disabled-own-crew" :
             lobby.MemberCount >= WFRoundSetupPolicy.MaximumMembers ? "disabled-full" :
             lobby.Started && !lobby.AllowLateJoin ? "latejoin-closed" : "no-roles";
         if (available && NeedsJoinWarning(lobby))
             content.AddChild(JoinWarning());
+        var companyMember = lobby.CompanyId != null && lobby.CompanyId == state.OwnCompany;
+        if (!invitation && lobby.CanJoinAsRank && state.CompanyRank != null &&
+            state.OwnLobby == null && (state.CanJoin || live) && lobby.Access is not (WFLobbyAccess.Invite or WFLobbyAccess.Closed) &&
+            (lobby.Access != WFLobbyAccess.CompanyOnly || companyMember))
+        {
+            var asRank = new Button { Text = Text("join-as-rank", ("rank", state.CompanyRank)), MinHeight = 40, HorizontalExpand = true, StyleClasses = { "ButtonAccept" } };
+            asRank.OnPressed += _ => SendRequest(new WFRoundSetupRequest(WFRoundSetupAction.Join)
+                { LobbyId = lobby.Id, AsRank = true, Code = _enteredCodes.GetValueOrDefault(lobby.Id) });
+            content.AddChild(asRank);
+        }
         if (invitation)
         {
             content.AddChild(FlowRow(JoinButton(lobby, "accept-invite", () => JoinLobby(WFRoundSetupAction.AcceptInvite, lobby.Id), !available, disabledReason),
                 Button("decline", () => Send(WFRoundSetupAction.DeclineInvite, lobby.Id))));
+        }
+        else if (joinsAsRank && lobby.Access is not (WFLobbyAccess.Code or WFLobbyAccess.Invite or WFLobbyAccess.Closed))
+        {
+            // The join as rank button above is the way in.
         }
         else if (lobby.Access == WFLobbyAccess.Code)
         {
@@ -207,13 +229,19 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
                 RoleId = _browsedRoles.GetValueOrDefault(lobby.Id),
             }), !available, disabledReason)));
         }
-        else if (lobby.Access is WFLobbyAccess.Public or WFLobbyAccess.Requests)
+        else if (lobby.Access is WFLobbyAccess.Public or WFLobbyAccess.Requests or WFLobbyAccess.CompanyFirst || lobby.Access == WFLobbyAccess.CompanyOnly && companyMember)
         {
-            content.AddChild(JoinButton(lobby, lobby.Access == WFLobbyAccess.Requests ? "request-join" : "join",
+            var asks = lobby.Access == WFLobbyAccess.Requests || lobby.Access == WFLobbyAccess.CompanyFirst && !companyMember;
+            content.AddChild(JoinButton(lobby, asks ? "request-join" : "join",
                 () => JoinLobby(WFRoundSetupAction.Join, lobby.Id), !available, disabledReason));
         }
         else
-            content.AddChild(Description(lobby.Access == WFLobbyAccess.Invite ? "invite-only" : "closed-help"));
+            content.AddChild(Description(lobby.Access switch
+            {
+                WFLobbyAccess.Invite => "invite-only",
+                WFLobbyAccess.CompanyOnly => "company-only-help",
+                _ => "closed-help",
+            }));
 
         if (lobby.Started && !lobby.AllowLateJoin)
             content.AddChild(Description("latejoin-closed"));
@@ -233,6 +261,8 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
             _draftDescription = lobby.Description;
         }
         BuildInvitations(lobby, state);
+        BuildRecruiting(lobby);
+        BuildCrewCompany(lobby, state);
         var settings = Column(6);
         settings.AddChild(Heading("crew-title"));
         var title = new LineEdit { Text = _draftTitle, PlaceHolder = Text("crew-title-placeholder"), HorizontalExpand = true };
@@ -242,7 +272,9 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         settings.AddChild(DescriptionEditor(_draftDescription, value => { _draftDescription = value; _settingsDirty = true; }));
         settings.AddChild(Heading("admission"));
         var access = new WFRoundSetupOptionButton { HorizontalExpand = true };
-        foreach (var option in Enum.GetValues<WFLobbyAccess>())
+        if (lobby.CompanyId == null && WFRoundSetupPolicy.IsCompanyAccess(_draftAccess))
+            _draftAccess = WFLobbyAccess.Requests;
+        foreach (var option in Enum.GetValues<WFLobbyAccess>().Where(option => lobby.CompanyId != null || !WFRoundSetupPolicy.IsCompanyAccess(option)))
             access.AddItem(AccessName(option), (int) option);
         access.SelectId((int) _draftAccess);
         access.OnItemSelected += args =>
@@ -286,7 +318,8 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
                 Button("rotate-code", () => Send(WFRoundSetupAction.RegenerateCode, lobby.Id))));
         }
         _body.AddChild(Panel(settings));
-        BuildSaveSetup(lobby, state);
+        if (!WFRoundSetupPolicy.IsFormed(lobby.Scenario))
+            BuildSaveSetup(lobby, state);
 
         if (lobby.Requests.Length > 0)
         {
@@ -319,11 +352,26 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
                 characters.SelectId(args.Id);
                 _preferences.SelectCharacter(args.Id);
                 SetReady(lobby.Id, false);
+                // After the rate limit and the server's handling of the switch, so both states describe the new character.
+                Robust.Shared.Timing.Timer.Spawn(300, () =>
+                {
+                    Send(WFRoundSetupAction.Refresh);
+                    _entities.System<Companies.WFCompanyClientSystem>().Send(new Shared._WF.Companies.WFCompanyRequest(Shared._WF.Companies.WFCompanyAction.Refresh));
+                });
                 UserInterfaceManager.GetUIController<LobbyUIController>().ReloadCharacterSetup();
             };
             _body.AddChild(characters);
         }
 
+        if (member.RankLocked)
+        {
+            // Their job is their company rank; a half-typed personal title no longer applies.
+            _personalTitleDirty = false;
+            _body.AddChild(Heading("personal-job"));
+            _body.AddChild(Row(WFRoundSetupCrewRow.JobIcon(member.Job, member.RankId), PlainDescription(Text("company-rank-locked", ("rank", member.Title), ("job", JobName(member.Job))))));
+            BuildJobLoadout(lobby, member);
+            return;
+        }
         if (lobby.Host == member.UserId || member.RoleId == null)
             BuildPersonalJobSetup(state, lobby, member);
         else if (lobby.Host != member.UserId)
@@ -337,7 +385,9 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
     private static bool SameState(WFRoundSetupState first, WFRoundSetupState second)
     {
         return first.Payment == second.Payment && first.CrewShips.SequenceEqual(second.CrewShips) && first.PendingShip == second.PendingShip &&
-               first.InRound == second.InRound && first.CanJoin == second.CanJoin && first.OwnLobby == second.OwnLobby &&
+               first.InRound == second.InRound && first.CanJoin == second.CanJoin && first.CanJoinLive == second.CanJoinLive && first.OwnLobby == second.OwnLobby &&
+               first.RecruitingStations.SequenceEqual(second.RecruitingStations) && first.OwnCompany == second.OwnCompany &&
+               first.FieldCompanies.SequenceEqual(second.FieldCompanies) && first.CompanyRank == second.CompanyRank &&
                first.CrashlandedAvailable == second.CrashlandedAvailable && first.DoomedAvailable == second.DoomedAvailable && first.Factions.SequenceEqual(second.Factions) && first.HostBalance == second.HostBalance &&
                SameSavedSetups(first.SavedSetups, second.SavedSetups) && first.Vessels.SequenceEqual(second.Vessels) &&
                first.Jobs.SequenceEqual(second.Jobs) && first.RoleJobs.SequenceEqual(second.RoleJobs) && first.InviteTargets.SequenceEqual(second.InviteTargets) &&
@@ -348,9 +398,11 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
 
     private static bool SameLobby(WFRoundSetupLobby first, WFRoundSetupLobby second)
     {
-        return first.Id == second.Id && first.Host == second.Host && first.HostJob == second.HostJob && Equals(first.Portrait, second.Portrait) && first.HostName == second.HostName && first.Title == second.Title && first.Description == second.Description &&
+        return first.Id == second.Id && first.Host == second.Host && first.HostJob == second.HostJob && first.HostRankId == second.HostRankId && first.HostTitle == second.HostTitle && Equals(first.Portrait, second.Portrait) && first.HostName == second.HostName && first.Title == second.Title && first.Description == second.Description &&
                first.Scenario == second.Scenario && first.Faction == second.Faction && first.ShipName == second.ShipName && first.ShipStart == second.ShipStart && first.Access == second.Access && first.AllowLateJoin == second.AllowLateJoin &&
                first.Started == second.Started && first.MemberCount == second.MemberCount && first.Code == second.Code &&
+               first.Recruiting == second.Recruiting && first.RecruitingOn == second.RecruitingOn && first.CompanyId == second.CompanyId &&
+               first.CompanyName == second.CompanyName && first.CompanyTag == second.CompanyTag && first.CompanyColour == second.CompanyColour && first.LiveJoin == second.LiveJoin && first.NextPosting == second.NextPosting && first.CanJoinAsRank == second.CanJoinAsRank &&
                first.CurrentShip == second.CurrentShip && first.ShipCondition == second.ShipCondition && first.Vessel == second.Vessel && first.Roles.SequenceEqual(second.Roles) &&
                first.Roster.SequenceEqual(second.Roster) && first.Members.SequenceEqual(second.Members) && first.Requests.SequenceEqual(second.Requests);
     }
@@ -392,6 +444,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         WFRoundScenario.Ship => "scenario-ship",
         WFRoundScenario.FactionShip => "scenario-faction",
         WFRoundScenario.Doomed => "scenario-doomed",
+        WFRoundScenario.Formed => "scenario-formed",
         _ => "scenario-normal",
     });
 
@@ -401,6 +454,7 @@ public sealed partial class WFRoundSetupWindow : DefaultWindow
         WFRoundScenario.Ship => "ship-description",
         WFRoundScenario.FactionShip => "faction-description",
         WFRoundScenario.Doomed => "doomed-description",
+        WFRoundScenario.Formed => "formed-description",
         _ => "normal-description",
     };
 
