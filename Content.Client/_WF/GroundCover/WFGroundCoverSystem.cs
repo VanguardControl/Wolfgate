@@ -1,5 +1,9 @@
+using System.Numerics;
+using Content.Client._WF.WolfWeather;
 using Content.Shared._WF.GroundCover;
 using Robust.Client.Graphics;
+using Robust.Shared.Map;
+using Robust.Shared.Map.Components;
 using Robust.Shared.Timing;
 
 namespace Content.Client._WF.GroundCover;
@@ -9,6 +13,9 @@ public sealed class WFGroundCoverSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IOverlayManager _overlay = default!;
+    [Dependency] private SharedMapSystem _map = default!;
+    [Dependency] private SharedTransformSystem _xform = default!;
+    [Dependency] private WolfWeatherSystem _wolfWeather = default!;
 
     private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(10);
 
@@ -17,6 +24,7 @@ public sealed class WFGroundCoverSystem : EntitySystem
 
     private readonly HashSet<NetEntity> _missing = new();
     private readonly List<NetEntity> _gone = new();
+    private List<Entity<MapGridComponent>> _covers = new();
     private TimeSpan _nextSweep;
 
     /// <summary>Goes up whenever snow cover changes, so the overlay knows to redraw its mask.</summary>
@@ -26,16 +34,13 @@ public sealed class WFGroundCoverSystem : EntitySystem
     {
         base.Initialize();
         SubscribeNetworkEvent<WFSnowCoverChunksMessage>(OnChunks);
-        var ground = new WFGroundCoverOverlay();
-        _overlay.AddOverlay(ground);
-        _overlay.AddOverlay(new WFGroundReflectionOverlay(ground));
+        _overlay.AddOverlay(new WFGroundCoverOverlay());
     }
 
     public override void Shutdown()
     {
         base.Shutdown();
         _overlay.RemoveOverlay<WFGroundCoverOverlay>();
-        _overlay.RemoveOverlay<WFGroundReflectionOverlay>();
         _snow.Clear();
     }
 
@@ -59,6 +64,29 @@ public sealed class WFGroundCoverSystem : EntitySystem
             _snow.Remove(message.Grid);
 
         Version++;
+    }
+
+    /// <summary>
+    /// Whether a point lies over a tile of a vessel, which keeps snow, footprints, tracks and stains off the ground
+    /// beneath it. Marks on the ground under a ship stay in memory and show again once it lifts.
+    /// </summary>
+    public bool IsUnderVessel(MapId map, Vector2 world)
+    {
+        _covers.Clear();
+        _map.FindGridsIntersecting(map, Box2.CenteredAround(world, new Vector2(0.1f)), ref _covers);
+        foreach (var grid in _covers)
+        {
+            if (!_wolfWeather.IsCoverGrid(grid.Owner))
+                continue;
+
+            var local = Vector2.Transform(world, _xform.GetInvWorldMatrix(grid.Owner));
+            var size = grid.Comp.TileSize;
+            var index = new Vector2i((int) MathF.Floor(local.X / size), (int) MathF.Floor(local.Y / size));
+            if (_map.TryGetTileRef(grid.Owner, grid.Comp, index, out var tile) && !tile.Tile.IsEmpty)
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>Whether any snow cover is known on a grid.</summary>

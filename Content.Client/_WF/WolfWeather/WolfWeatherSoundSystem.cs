@@ -132,6 +132,7 @@ public sealed partial class WolfWeatherSoundSystem : EntitySystem
         var xform = Transform(player);
         var inVehicle = _wolfWeather.TryGetHull(player, out var hull);
         if ((inVehicle ? Transform(hull).MapUid : xform.MapUid) is not { } mapUid
+            || !_wolfWeather.IsSurface(mapUid)
             || !_weatherQuery.TryComp(mapUid, out var weather)
             || !_proto.TryIndex(weather.Settings, out var settings))
         {

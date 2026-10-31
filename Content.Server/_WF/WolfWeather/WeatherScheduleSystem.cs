@@ -73,7 +73,7 @@ public sealed partial class WeatherScheduleSystem : EntitySystem
     /// <summary>Whether a schedule may run on a map. A planet's layers follow its own weather instead.</summary>
     public bool CanSchedule(EntityUid map)
     {
-        return !HasComp<WFPlanetLayerComponent>(map);
+        return !HasComp<WFPlanetLayerComponent>(map) && _wolfWeather.IsSurface(map);
     }
 
     /// <summary>Sets or clears a map's schedule. False, and nothing changed, on a map that can't have one.</summary>

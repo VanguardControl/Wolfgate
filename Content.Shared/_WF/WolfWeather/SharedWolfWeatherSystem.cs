@@ -50,6 +50,19 @@ public abstract partial class SharedWolfWeatherSystem : EntitySystem
     /// <summary>Starts a weather, or clears with null. Weathers already there fade out from their current strength.</summary>
     public void SetWeather(EntityUid map, ProtoId<WolfWeatherPrototype>? weather, TimeSpan? duration, int seed)
     {
+        // Only a surface has weather; a level below or above one stays clear.
+        if (!IsSurface(map))
+        {
+            if (TryComp<WolfWeatherMapComponent>(map, out var stale) && (stale.Weathers.Count > 0 || stale.Wind != Vector2.Zero))
+            {
+                stale.Weathers.Clear();
+                stale.Wind = Vector2.Zero;
+                Dirty(map, stale);
+            }
+
+            return;
+        }
+
         var comp = EnsureComp<WolfWeatherMapComponent>(map);
         var now = Timing.CurTime;
 

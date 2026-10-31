@@ -5,6 +5,7 @@ wolf-weather-command-bad-weather = Unknown weather. Press tab to see the list.
 wolf-weather-command-set = Weather set to {$weather}.
 wolf-weather-command-bad-seconds = Seconds must be a number above 0 and at most a week (604800).
 wolf-weather-command-planet = This is a planet layer: its own weather replaces this at its next change.
+wolf-weather-command-not-surface = That map is not a surface: weather falls only on open ground, not on levels below or above it.
 wolf-weather-command-hint-map = map id
 wolf-weather-command-hint-weather = weather
 wolf-weather-command-hint-seconds = seconds (optional)

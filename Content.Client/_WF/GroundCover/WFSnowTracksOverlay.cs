@@ -16,6 +16,7 @@ public sealed class WFSnowTracksOverlay : Overlay
     private static readonly Vector2 Size = new(0.45f, 0.8f);
 
     private readonly WFSnowTracksSystem _tracks;
+    private readonly WFGroundCoverSystem _cover;
     private readonly SharedTransformSystem _transform;
 
     public override OverlaySpace Space => OverlaySpace.WorldSpaceBelowEntities;
@@ -24,6 +25,7 @@ public sealed class WFSnowTracksOverlay : Overlay
     {
         IoCManager.InjectDependencies(this);
         _tracks = tracks;
+        _cover = _entMan.System<WFGroundCoverSystem>();
         _transform = _entMan.System<SharedTransformSystem>();
         // Over the snow cover (10) and stains (11), under footprints (12).
         ZIndex = 11;
@@ -47,7 +49,8 @@ public sealed class WFSnowTracksOverlay : Overlay
             handle.SetTransform(matrix);
             foreach (var (tile, list) in tiles)
             {
-                if (!bounds.Contains(tile + new Vector2(0.5f, 0.5f)))
+                if (!bounds.Contains(tile + new Vector2(0.5f, 0.5f))
+                    || _cover.IsUnderVessel(args.MapId, Vector2.Transform(tile + new Vector2(0.5f, 0.5f), matrix)))
                     continue;
 
                 foreach (var mark in list)

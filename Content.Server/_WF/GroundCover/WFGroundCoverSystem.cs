@@ -1,3 +1,4 @@
+using System.Numerics;
 using Content.Server.Atmos.EntitySystems;
 using Content.Shared._WF.GroundCover;
 using Content.Shared._WF.WolfWeather;
@@ -24,6 +25,9 @@ public sealed partial class WFGroundCoverSystem : EntitySystem
 
     /// <summary>Rain below this wets the ground but fills no puddles.</summary>
     public const float PuddleRain = 0.3f;
+
+    /// <summary>Seconds the puddles' tint takes to ease most of the way to the rain now falling.</summary>
+    private const float TintSeconds = 20f;
 
     private static readonly TimeSpan MapInterval = TimeSpan.FromSeconds(1);
 
@@ -77,6 +81,7 @@ public sealed partial class WFGroundCoverSystem : EntitySystem
         UpdateHeat(now);
         UpdateFire(now);
         UpdateLiquids(now);
+        UpdateDecals(now);
         UpdateIce(now);
         UpdateNetwork(now);
     }
@@ -103,6 +108,29 @@ public sealed partial class WFGroundCoverSystem : EntitySystem
         return (MathF.Min(rain, 1f), snow);
     }
 
+    /// <summary>The tint of the rain falling on a map, its weathers' tints weighted by how hard each rains; null when none does.</summary>
+    public Color? GetRainTint(EntityUid map)
+    {
+        if (!TryComp<WolfWeatherMapComponent>(map, out var weather))
+            return null;
+
+        var now = _timing.CurTime;
+        var sum = Vector3.Zero;
+        var total = 0f;
+        foreach (var entry in weather.Weathers)
+        {
+            if (!_proto.TryIndex(entry.Weather, out var proto) || proto.GroundWetness <= 0f)
+                continue;
+
+            var weight = SharedWolfWeatherSystem.GetStrength(entry, proto, now) * proto.GroundWetness;
+            var tint = proto.GroundTint ?? WFGroundWeatherComponent.Water;
+            sum += new Vector3(tint.R, tint.G, tint.B) * weight;
+            total += weight;
+        }
+
+        return total > 0.001f ? new Color(sum.X / total, sum.Y / total, sum.Z / total) : null;
+    }
+
     /// <summary>Moves a map's wetness, puddles and snow totals on by some seconds of its current weather.</summary>
     public void StepMap(Entity<WFGroundWeatherComponent> map, float seconds)
     {
@@ -126,14 +154,24 @@ public sealed partial class WFGroundCoverSystem : EntitySystem
                 comp.BaseDepth = MathF.Max(0f, comp.BaseDepth - MeltRate(temperature) * seconds / 60f);
         }
 
-        // Clients get wetness in fiftieths, so a slow drying doesn't send the map every second.
+        // The puddles keep the colour of the last rain while they dry.
+        if (GetRainTint(map) is { } target)
+        {
+            var ease = MathF.Min(1f, seconds / TintSeconds);
+            comp.TintExact = Color.InterpolateBetween(comp.TintExact, target, ease);
+        }
+
+        // Clients get wetness in fiftieths and the tint in thirty-seconds, so a slow change doesn't send the map every second.
         var wetness = MathF.Round(comp.WetnessExact * 50f) / 50f;
         var shown = MathF.Round(comp.PuddlesExact * 50f) / 50f;
-        if (wetness == comp.Wetness && shown == comp.Puddles)
+        var tint = new Color(MathF.Round(comp.TintExact.R * 32f) / 32f, MathF.Round(comp.TintExact.G * 32f) / 32f,
+            MathF.Round(comp.TintExact.B * 32f) / 32f);
+        if (wetness == comp.Wetness && shown == comp.Puddles && tint == comp.Tint)
             return;
 
         comp.Wetness = wetness;
         comp.Puddles = shown;
+        comp.Tint = tint;
         Dirty(map);
     }
 

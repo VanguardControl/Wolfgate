@@ -168,7 +168,7 @@ public sealed class PlanetWeatherTest
     }
 
     [Test]
-    public async Task CyclesReachAirAndTransitButNotOrbitAndReturnToClear()
+    public async Task CyclesReachTheGroundOnlyAndReturnToClear()
     {
         await using var pair = await PoolManager.GetServerClient();
         await EnableFeature(pair);
@@ -192,9 +192,16 @@ public sealed class PlanetWeatherTest
         {
             var em = server.EntMan;
             var expected = em.GetComponent<WeatherComponent>(layers[0]).Weather.Keys.Single();
+            foreach (var layer in layers.Skip(1).Append(transit.MapUid))
+            {
+                Assert.That(em.TryGetComponent<WeatherComponent>(layer, out var above) && above.Weather.Count > 0, Is.False,
+                    "Weather fell above the surface.");
+                Assert.That(em.HasComponent<WolfWeatherMapComponent>(layer), Is.False, "Weather state sits above the surface.");
+            }
             foreach (var layer in layers.Take(layers.Count - 1).Append(transit.MapUid))
             {
-                Assert.That(em.GetComponent<WeatherComponent>(layer).Weather.ContainsKey(expected), Is.True);
+                if (layer == layers[0])
+                    Assert.That(em.GetComponent<WeatherComponent>(layer).Weather.ContainsKey(expected), Is.True);
                 var environment = em.GetComponent<WFPlanetEnvironmentComponent>(layer);
                 Assert.That(environment.PlanetName, Is.EqualTo("Asclepiu"));
                 Assert.That(environment.Weather, Is.Not.EqualTo("Clear"));
@@ -237,8 +244,7 @@ public sealed class PlanetWeatherTest
         await server.WaitRunTicks(pair.SecondsToTicks(17f));
         await server.WaitAssertion(() =>
         {
-            foreach (var layer in layers.Take(layers.Count - 1).Append(transit.MapUid))
-                Assert.That(server.EntMan.GetComponent<WeatherComponent>(layer).Weather, Is.Empty);
+            Assert.That(server.EntMan.GetComponent<WeatherComponent>(layers[0]).Weather, Is.Empty);
             server.EntMan.DeleteEntity(transit.MapUid);
         });
         await Teardown(pair, layers);

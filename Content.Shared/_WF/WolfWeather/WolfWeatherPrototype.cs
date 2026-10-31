@@ -67,6 +67,13 @@ public sealed partial class WolfWeatherPrototype : IPrototype, IInheritingProtot
     [DataField]
     public float Snowfall;
 
+    /// <summary>
+    /// The colour of the puddles and wet floor this weather leaves, as the ground shader takes it; null is plain water
+    /// (<see cref="Content.Shared._WF.GroundCover.WFGroundWeatherComponent.Water"/>). Blood rain sets a blood red.
+    /// </summary>
+    [DataField]
+    public Color? GroundTint;
+
     private List<WolfWeatherLayer> BuildFinalLayers()
     {
         if (LayerOverrides.Count == 0)

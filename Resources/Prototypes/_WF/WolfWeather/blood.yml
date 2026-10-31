@@ -2,6 +2,7 @@
 - type: wolfWeather
   parent: WFRainLight
   id: WFBloodRainLight
+  groundTint: "#8c0a0d"
   ambientTint: "#f0c8c8"
   layerOverrides:
   - index: 0
@@ -12,6 +13,7 @@
 - type: wolfWeather
   parent: WFRainModerate
   id: WFBloodRainModerate
+  groundTint: "#8c0a0d"
   ambientTint: "#e0b0b0"
   layerOverrides:
   - index: 0
@@ -24,6 +26,7 @@
 - type: wolfWeather
   parent: WFRainHeavy
   id: WFBloodRainHeavy
+  groundTint: "#8c0a0d"
   ambientTint: "#c89090"
   lightning:
     interval: 30, 90

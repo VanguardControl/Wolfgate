@@ -1,6 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Content.Client.Graphics;
+using Content.Client.Viewport;
 using Content.Client.Parallax;
 using Content.Shared._WF.WolfWeather;
 using Content.Shared.Light.Components;
@@ -124,11 +125,13 @@ public sealed partial class WolfWeatherOverlay : Overlay
 
     protected override void Draw(in OverlayDrawArgs args)
     {
-        if (_wolfWeather.Quality <= 0 || args.MapId == MapId.Nullspace)
+        // Only the view's own level: the ground seen from a cavern below it is drawn in a pass of its own, with no rain.
+        if (_wolfWeather.Quality <= 0 || args.MapId == MapId.Nullspace || args.Viewport.Eye is ScalingViewport.ZEye { Primary: false })
             return;
 
         var mapUid = _map.GetMapOrInvalid(args.MapId);
-        if (!_weatherQuery.TryComp(mapUid, out var weather)
+        if (!_wolfWeather.IsSurface(mapUid)
+            || !_weatherQuery.TryComp(mapUid, out var weather)
             || weather.Weathers.Count == 0
             || !_wolfWeather.TryGetState(mapUid, out var state))
             return;
@@ -349,24 +352,36 @@ public sealed partial class WolfWeatherOverlay : Overlay
         _grids.Clear();
         _map.FindGridsIntersecting(_maskMapId, _maskRect, ref _grids);
 
-        foreach (var grid in _grids)
+        // Grids that are always under cover, such as a landed vessel, go last so their tiles win over the ground beneath.
+        for (var pass = 0; pass < 2; pass++)
         {
-            handle.SetTransform(Matrix3x2.Multiply(_xform.GetWorldMatrix(grid.Owner), _maskMatrix));
-            _roofQuery.TryComp(grid.Owner, out var roof);
-            var roofed = new Entity<MapGridComponent, RoofComponent?>(grid.Owner, grid.Comp, roof);
-            _rects.Clear();
-            _diagonalTiles.Clear();
-
-            var tiles = _map.GetTilesIntersecting(grid.Owner, grid, _maskRect);
-            while (tiles.MoveNext(out var tile))
+            foreach (var grid in _grids)
             {
-                if (MaskColor(roofed, tile) is { } color)
-                    _rects.Add(new WorldRect(_lookup.GetLocalBounds(tile, grid.Comp.TileSize), color));
-            }
+                if (_wolfWeather.IsCoverGrid(grid.Owner) == (pass == 0))
+                    continue;
 
-            handle.DrawRectsUnmodulated(CollectionsMarshal.AsSpan(_rects));
-            MaskDiagonals(handle, grid);
+                DrawMaskGrid(handle, grid);
+            }
         }
+    }
+
+    private void DrawMaskGrid(DrawingHandleWorld handle, Entity<MapGridComponent> grid)
+    {
+        handle.SetTransform(Matrix3x2.Multiply(_xform.GetWorldMatrix(grid.Owner), _maskMatrix));
+        _roofQuery.TryComp(grid.Owner, out var roof);
+        var roofed = new Entity<MapGridComponent, RoofComponent?>(grid.Owner, grid.Comp, roof);
+        _rects.Clear();
+        _diagonalTiles.Clear();
+
+        var tiles = _map.GetTilesIntersecting(grid.Owner, grid, _maskRect);
+        while (tiles.MoveNext(out var tile))
+        {
+            if (MaskColor(roofed, tile) is { } color)
+                _rects.Add(new WorldRect(_lookup.GetLocalBounds(tile, grid.Comp.TileSize), color));
+        }
+
+        handle.DrawRectsUnmodulated(CollectionsMarshal.AsSpan(_rects));
+        MaskDiagonals(handle, grid);
     }
 
     /// <summary>Open ground in blue, walls in green, other cover in red. Diagonal edge tiles are left for MaskDiagonals.</summary>

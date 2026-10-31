@@ -58,13 +58,22 @@ public sealed partial class WFGroundCoverSystem
         }
     }
 
+    /// <summary>
+    /// Whether a grid may hold snow cover. A vessel never does, on a planet or off one, however its tiles are roofed;
+    /// nor does any other grid on a planet layer but its ground and city streets.
+    /// </summary>
+    public bool CanHoldCover(EntityUid grid)
+    {
+        return _weather.WfPlanetExposure(grid) != false;
+    }
+
     /// <summary>Lays, melts or starts the snow of one chunk from its map's totals. False if the chunk didn't change.</summary>
     public bool UpdateChunk(EntityUid gridUid, Vector2i index)
     {
         if (!TryComp<MapGridComponent>(gridUid, out var grid)
             || !TryComp(gridUid, out TransformComponent? xform)
             || !TryComp<WFGroundWeatherComponent>(xform.MapUid, out var ground)
-            || _weather.WfPlanetExposure(gridUid) == false)
+            || !CanHoldCover(gridUid))
             return false;
 
         TryComp<WFSnowCoverComponent>(gridUid, out var cover);
@@ -193,6 +202,9 @@ public sealed partial class WFGroundCoverSystem
     public void SetDepth(EntityUid grid, Vector2i tile, int depth)
     {
         depth = Math.Clamp(depth, 0, WFSnowCover.MaxDepth);
+        if (depth > 0 && !CanHoldCover(grid))
+            return;
+
         var index = WFSnowCover.ChunkOf(tile);
         if (!TryComp<WFSnowCoverComponent>(grid, out var cover))
         {
@@ -236,6 +248,20 @@ public sealed partial class WFGroundCoverSystem
         return (flags & WolfWeatherTile.Exposed) != 0 && (flags & WolfWeatherTile.Blocker) == 0;
     }
 
+    /// <summary>Strips snow a grid shouldn't hold, listing its chunks so the clients that were sent them are told it's gone.</summary>
+    private void PurgeCover(EntityUid grid, List<(EntityUid Grid, Vector2i Chunk)> into)
+    {
+        if (!TryComp<WFSnowCoverComponent>(grid, out var cover))
+            return;
+
+        foreach (var index in cover.Chunks.Keys)
+        {
+            into.Add((grid, index));
+        }
+
+        RemComp<WFSnowCoverComponent>(grid);
+    }
+
     /// <summary>The snow chunks of grids near a session's body, by default only on maps that have had weather.</summary>
     private void CollectView(Robust.Shared.Player.ICommonSession session, List<(EntityUid Grid, Vector2i Chunk)> into, bool weatherOnly = true)
     {
@@ -256,8 +282,11 @@ public sealed partial class WFGroundCoverSystem
         _map.FindGridsIntersecting(xform.MapID, box, ref _grids);
         foreach (var grid in _grids)
         {
-            if (_weather.WfPlanetExposure(grid) == false)
+            if (!CanHoldCover(grid))
+            {
+                PurgeCover(grid.Owner, into);
                 continue;
+            }
 
             var local = _transform.GetInvWorldMatrix(grid).TransformBox(box);
             var min = WFSnowCover.ChunkOf(new Vector2i((int) MathF.Floor(local.Left), (int) MathF.Floor(local.Bottom)));
