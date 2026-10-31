@@ -1138,9 +1138,15 @@ public sealed partial class ChatSystem : SharedChatSystem
             wrapId = wrapOverride;
 
         var speech = GetSpeechVerb(source, message);
-        var verbId = language.SpeechOverride.SpeechVerbOverrides is { } verbsOverride
+        // WOLFGATE START: a voice mask's speech style wins, as it did before the language port dropped it here
+        var nameEv = new TransformSpeakerNameEvent(source, entityName);
+        RaiseLocalEvent(source, nameEv);
+        var masked = nameEv.SpeechVerb != null && _prototypeManager.TryIndex(nameEv.SpeechVerb, out speech);
+        speech ??= GetSpeechVerb(source, message);
+        var verbId = !masked && language.SpeechOverride.SpeechVerbOverrides is { } verbsOverride
             ? _random.Pick(verbsOverride).ToString()
             : _random.Pick(speech.SpeechVerbStrings);
+        // WOLFGATE END
         var color = DefaultSpeakColor;
         if (language.SpeechOverride.Color is { } colorOverride)
             color = Color.InterpolateBetween(color, colorOverride, colorOverride.A);

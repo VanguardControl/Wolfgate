@@ -418,6 +418,56 @@ public sealed class HullSectionTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A window comes back over the grille it was built on; a grille anchored in a bare window's place since still stops it.</summary>
+    [Test]
+    public async Task TheSrdRebuildsOverWhatTheShipHadButNotOverStrangers()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var maps = server.System<SharedMapSystem>();
+        var map = await pair.CreateTestMap();
+        var windowSpot = new Vector2i(3, 3);
+        var strangerSpot = new Vector2i(5, 3);
+        var window = EntityUid.Invalid;
+        var bare = EntityUid.Invalid;
+        var (hull, section) = await BuildSplitHull(pair, map.MapId, built =>
+        {
+            em.SpawnEntity("Grille", TileCentre(built, windowSpot));
+            window = em.SpawnEntity("Window", TileCentre(built, windowSpot));
+            bare = em.SpawnEntity("Window", TileCentre(built, strangerSpot));
+        });
+        var debris = await BuildDebris(pair, map.MapId, 3, new Vector2(-40f, -40f));
+
+        await server.WaitPost(() => Hold(pair, hull, section, debris));
+        var (user, tool) = await Worker(pair, () => new EntityCoordinates(hull, new Vector2(5.5f, 5.5f)));
+
+        bool Has(Vector2i index, string proto)
+        {
+            return maps.GetAnchoredEntities(hull, em.GetComponent<MapGridComponent>(hull), index)
+                .Any(uid => em.GetComponent<MetaDataComponent>(uid).EntityPrototype?.ID == proto);
+        }
+
+        await server.WaitPost(() =>
+        {
+            em.DeleteEntity(window);
+            em.DeleteEntity(bare);
+            em.SpawnEntity("Grille", TileCentre(hull, strangerSpot));
+        });
+        await server.WaitPost(() => Click(em, user, tool, TileCentre(hull, windowSpot)));
+        await server.WaitRunTicks(pair.SecondsToTicks(1f));
+        await server.WaitPost(() => Click(em, user, tool, TileCentre(hull, strangerSpot)));
+        await server.WaitRunTicks(pair.SecondsToTicks(1f));
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(Has(windowSpot, "Window"), Is.True, "The SRD wouldn't rebuild a window over its own grille.");
+            Assert.That(Has(strangerSpot, "Window"), Is.False, "The SRD rebuilt a window onto something anchored there since.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>With grid splitting on, the SRD won't lay a tile that no hull tile joins, so a hole fills from its edge.</summary>
     [Test]
     public async Task RebuildStartsFromTheHullsEdge()
