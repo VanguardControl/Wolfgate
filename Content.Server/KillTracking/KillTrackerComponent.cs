@@ -19,7 +19,8 @@ public sealed partial class KillTrackerComponent : Component
     /// <summary>
     /// A dictionary of sources and how much damage they've done to this entity over time.
     /// </summary>
-    [DataField("lifetimeDamage")]
+    // [DataField("lifetimeDamage")] // WOLFGATE(Traders): not saved; its class keys can't be YAML keys, so it failed the ship copy
+    [ViewVariables]
     public Dictionary<KillSource, FixedPoint2> LifetimeDamage = new();
 }
 

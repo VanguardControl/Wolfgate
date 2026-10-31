@@ -371,7 +371,18 @@ public sealed partial class ShipyardSystem
         try
         {
             FileCategory category;
-            (node, category) = _mapLoader.SerializeEntitiesRecursive([grid], options);
+            try
+            {
+                (node, category) = _mapLoader.SerializeEntitiesRecursive([grid], options);
+            }
+            catch (Exception e)
+            {
+                // One bad component shouldn't lose the ship: take off what won't save and try once more.
+                Log.Warning($"Copying {ToPrettyString(grid)} for resale failed, so looking for what won't save: {e.Message}");
+                WFStripUnsavable(grid, options);
+                (node, category) = _mapLoader.SerializeEntitiesRecursive([grid], options);
+            }
+
             if (category != FileCategory.Grid)
             {
                 Log.Error($"Failed to copy {ToPrettyString(grid)} for resale as a grid. Output: {category}");

@@ -9,6 +9,9 @@ responder ship voucher, the MMC Dredger (`WFDredger`), a salvage ship sold at th
 (`WFCarabela`), a salvage frigate with a mobile drydock sold at the civilian shipyard beside the Caracara, and the
 Reach (`WFReach`), a crewed civilian capital ship with a full set of departments.
 
+If a sold ship's copy fails to save, `ShipyardSystem.WFStripUnsavable` takes off the components that won't save and
+tries once more, so one bad entity aboard doesn't lose the ship. The seller is paid either way.
+
 `VesselShipyardTest` holds the checks that apply to every vessel grid, so ship tests belong there rather than in
 tests for one ship: each vessel must load as a shuttle with every hardpoint-only gun mounted on a hardpoint.
 
@@ -27,6 +30,7 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 - [`Content.Server/_WF/Shipyard/PowerChargeSystem.Wolfgate.cs`](PowerChargeSystem.Wolfgate.cs)
 - [`Content.Server/_WF/Shipyard/ShipyardSystem.WolfgateDeed.cs`](ShipyardSystem.WolfgateDeed.cs)
 - [`Content.Server/_WF/Shipyard/ShipyardSystem.WolfgateTrader.cs`](ShipyardSystem.WolfgateTrader.cs)
+- [`Content.Server/_WF/Shipyard/ShipyardSystem.WolfgateUnsavable.cs`](ShipyardSystem.WolfgateUnsavable.cs)
 - [`Content.Server/_WF/Shipyard/ShipyardWolfgateEvents.cs`](ShipyardWolfgateEvents.cs)
 - [`Content.Server/_WF/Shipyard/UsedShipMarketComponent.cs`](UsedShipMarketComponent.cs)
 - [`Content.Server/_WF/Shipyard/UsedShipMarketSystem.cs`](UsedShipMarketSystem.cs)
