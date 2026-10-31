@@ -2,9 +2,13 @@ using System.Linq;
 using System.Numerics;
 using Content.Shared._Shitmed.Body.Part;
 using Content.Shared._WF.Augments;
+using Content.Shared._WF.Wolfmed.Body;
 using Content.Shared.Body.Components;
 using Content.Shared.Body.Part;
 using Content.Shared.Body.Systems;
+using Content.Shared.Cloning;
+using Content.Shared.Damage.Prototypes;
+using Content.Shared.FixedPoint;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Humanoid;
 using Robust.Shared.Containers;
@@ -28,12 +32,15 @@ public sealed partial class WFAugmentSystem : EntitySystem
     {
         base.Initialize();
         SubscribeLocalEvent<BodyComponent, WFApplyAugmentsEvent>(OnApplyAugments);
+        SubscribeLocalEvent<HumanoidAppearanceComponent, CloningEvent>(OnCloning);
     }
 
     private void OnApplyAugments(Entity<BodyComponent> ent, ref WFApplyAugmentsEvent args)
     {
         if (LifeStage(ent) < EntityLifeStage.MapInitialized || TerminatingOrDeleted(ent))
             return;
+
+        ForgetReplacedLimbs(ent);
 
         var digitigrade = WFAugmentRules.Digitigrade(args.Profile, _proto);
         foreach (var (slot, choice) in args.Profile.Augments)
@@ -56,6 +63,88 @@ public sealed partial class WFAugmentSystem : EntitySystem
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// CloneAppearance copied the augments' look onto a new body with flesh limbs, so the clone gets the limbs under
+    /// that look. Organs and missing limbs aren't carried over.
+    /// </summary>
+    private void OnCloning(Entity<HumanoidAppearanceComponent> ent, ref CloningEvent args)
+    {
+        if (!TryComp(ent, out BodyComponent? sourceBody)
+            || !TryComp(args.Target, out BodyComponent? targetBody)
+            || !TryComp(args.Target, out HumanoidAppearanceComponent? target)
+            || LifeStage(args.Target) < EntityLifeStage.MapInitialized)
+            return;
+
+        foreach (var (layer, info) in ent.Comp.AugmentLayers)
+        {
+            if (HoldsAugment((ent, sourceBody), layer, info))
+                target.AugmentLayers[layer] = info;
+            else if (target.CustomBaseLayers.TryGetValue(layer, out var copied) && copied.Equals(info))
+                target.CustomBaseLayers.Remove(layer);
+        }
+
+        foreach (var slot in new[] { WFAugmentSlot.LeftArm, WFAugmentSlot.RightArm, WFAugmentSlot.LeftLeg, WFAugmentSlot.RightLeg })
+        {
+            if (!target.AugmentLayers.ContainsKey(WFAugmentRules.Layers(slot)[0])
+                || FindLimb((ent, sourceBody), slot) is not { } source
+                || MetaData(source.Id).EntityPrototype is not { } proto
+                || ReplaceLimb((args.Target, targetBody), slot, proto.ID) is not { } limb)
+                continue;
+
+            foreach (var (part, comp) in _body.GetBodyPartChildren(limb))
+            {
+                if (comp.ToHumanoidLayers() is not { } layer || !target.AugmentLayers.TryGetValue(layer, out var info))
+                    continue;
+
+                var appearance = EnsureComp<BodyPartAppearanceComponent>(part);
+                appearance.Type = layer;
+                appearance.ID = info.Id;
+                appearance.Color = null;
+                Dirty(part, appearance);
+            }
+        }
+
+        // Attaching a limb draws its stock sprite.
+        foreach (var (layer, info) in target.AugmentLayers)
+        {
+            target.CustomBaseLayers[layer] = info;
+        }
+
+        Dirty(args.Target, target);
+    }
+
+    /// <summary>Stops redrawing an augment whose limb has since been lost or replaced; the body keeps what it has now.</summary>
+    private void ForgetReplacedLimbs(Entity<BodyComponent> body)
+    {
+        if (!TryComp(body, out HumanoidAppearanceComponent? humanoid))
+            return;
+
+        foreach (var (layer, info) in humanoid.AugmentLayers.ToList())
+        {
+            if (HoldsAugment(body, layer, info))
+                continue;
+
+            humanoid.AugmentLayers.Remove(layer);
+            if (humanoid.CustomBaseLayers.TryGetValue(layer, out var current) && current.Equals(info))
+                humanoid.CustomBaseLayers.Remove(layer);
+        }
+    }
+
+    /// <summary>Whether the part on a layer still wears the augment's sprite. Plating isn't a part of its own, so it always does.</summary>
+    private bool HoldsAugment(Entity<BodyComponent> body, HumanoidVisualLayers layer, CustomBaseLayerInfo info)
+    {
+        if (layer is HumanoidVisualLayers.Head or HumanoidVisualLayers.Chest)
+            return true;
+
+        foreach (var (part, comp) in _body.GetBodyChildren(body, body.Comp))
+        {
+            if (comp.ToHumanoidLayers() == layer)
+                return TryComp(part, out BodyPartAppearanceComponent? appearance) && appearance.ID == info.Id;
+        }
+
+        return false;
     }
 
     private (EntityUid Id, BodyPartComponent Component)? FindLimb(Entity<BodyComponent> body, WFAugmentSlot slot)
@@ -81,10 +170,17 @@ public sealed partial class WFAugmentSystem : EntitySystem
     {
         var slotId = WFAugmentRules.PartSlot(slot);
         EntityUid? parent;
+        var thresholds = new Dictionary<BodyPartType, Dictionary<ProtoId<DamageTypePrototype>, FixedPoint2>>();
         if (FindLimb(body, slot) is { } old)
         {
             if (MetaData(old.Id).EntityPrototype?.ID == proto.Id)
                 return old.Id;
+
+            foreach (var (part, comp) in _body.GetBodyPartChildren(old.Id, old.Component))
+            {
+                if (TryComp(part, out WolfmedBodyPartComponent? wolfmed))
+                    thresholds[comp.PartType] = wolfmed.AmputationThresholds;
+            }
 
             parent = _body.GetParentPartOrNull(old.Id);
             slotId = old.Component.ParentSlot?.Id ?? slotId;
@@ -104,6 +200,13 @@ public sealed partial class WFAugmentSystem : EntitySystem
         {
             Del(limb);
             return null;
+        }
+
+        // A chassis limb comes off far sooner than flesh; the augment holds on no better than what it replaced.
+        foreach (var (part, comp) in _body.GetBodyPartChildren(limb, limbPart))
+        {
+            if (thresholds.TryGetValue(comp.PartType, out var kept) && TryComp(part, out WolfmedBodyPartComponent? wolfmed))
+                wolfmed.AmputationThresholds = new(kept);
         }
 
         return limb;

@@ -69,7 +69,8 @@ public sealed class AugmentSpeciesTest
                 }
 
                 var augmented = bodies.GetBodyChildren(mob)
-                    .Count(p => entities.GetComponent<MetaDataComponent>(p.Id).EntityPrototype?.ID.StartsWith("WFAugment") == true);
+                    .Count(p => p.Component.PartType is BodyPartType.Arm or BodyPartType.Leg
+                        && entities.GetComponent<MetaDataComponent>(p.Id).EntityPrototype?.ID.StartsWith("WFAugment") == true);
                 Assert.That(augmented, Is.EqualTo(choices.Count), $"{species.ID} didn't get every cybernetic limb.");
                 Assert.That(entities.GetComponent<DamageableComponent>(mob).TotalDamage, Is.LessThanOrEqualTo(before),
                     $"{species.ID} was hurt by the swap.");

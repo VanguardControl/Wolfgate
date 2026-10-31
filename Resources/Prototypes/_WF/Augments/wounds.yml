@@ -1,0 +1,30 @@
+# CyberneticBodyPartProfile with pain and a full bleed: free limbs give no combat edge over flesh. Priced
+# augments can use the stock profile. Keep the wound lists in step with it.
+
+- type: bodyPartProfile
+  id: WFAugmentBodyPartProfile
+  treatmentCapabilities: [Mechanical, Electrical]
+  passiveRecoveryMultiplier: 0
+  bedRecoveryMultiplier: 0
+  bleedingMultiplier: 1.0
+  scarrable: false
+  acceptedDamageTypes:
+    - Blunt
+    - Slash
+    - Piercing
+    - Heat
+    - Cold
+    - Shock
+    - Caustic
+  supportedWounds:
+    - CyberneticMechanicalDamageWound
+    - ElectricalWound
+    - CyberneticFrameFractureWound
+    - SurgicalIncisionWound
+    - DismembermentWound
+    - AmputationConsequenceWound
+    - WFWolfmedDentWound
+    - WFWolfmedBreachWound
+    - WFWolfmedShortCircuitWound
+    - WFWolfmedServoDamageWound
+    - WFWolfmedOverheatingWound

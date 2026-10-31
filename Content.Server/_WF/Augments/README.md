@@ -4,10 +4,12 @@ Cybernetic limbs picked in the character creator, after the augments panel on Me
 creator's Augments tab lists the arms and legs the species has, each Natural or a cybernetic limb in a style, shown
 on the preview doll as it is picked. A slot left Natural keeps the species' own part.
 
-The limbs are real Shitmed cybernetic parts (`WFAugmentLeftArm` and the rest, `parts.yml`): they take EMPs, repair
-with a welder and cable, and come off and go back on like any chassis limb. Markings from the Markings tab are
-drawn for flesh and stay off an augmented layer (its base sprites set `allowsMarkings: false`); custom markings draw
-over augments like anywhere else, so players decorate them that way.
+The limbs are real Shitmed cybernetic parts (`WFAugmentLeftArm` and the rest, `parts.yml`): they take EMPs and repair
+with a welder and cable. A severed one goes back on by surgery, or by hand on a synthetic body. They are free, so
+they stay level with flesh: `WFAugmentBodyPartProfile` (`wounds.yml`) feels pain and bleeds in full, and a new limb
+keeps the amputation thresholds of the one it replaced, so a chassis limb gets no sturdier. Markings from the Markings
+tab are drawn for flesh and stay off an augmented layer (its base sprites set `allowsMarkings: false`); custom markings
+draw over augments like anywhere else, so players decorate them that way.
 
 Only these base limbs ship. The system also handles head and chest plating, missing limbs and organs (`kind`), and
 priced augments: a `price` is taken once from the character's bank the first time it is saved with the augment
@@ -85,6 +87,7 @@ scratch, so an unpicked augment comes off it.
 
 - [`Content.IntegrationTests/Tests/_WF/Augments/AugmentBodyTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Augments/AugmentBodyTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Augments/AugmentClothedTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Augments/AugmentClothedTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Augments/AugmentFairnessTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Augments/AugmentFairnessTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Augments/AugmentPreviewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Augments/AugmentPreviewTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Augments/AugmentPurchaseTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Augments/AugmentPurchaseTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Augments/AugmentRulesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Augments/AugmentRulesTest.cs)
@@ -98,6 +101,7 @@ scratch, so an unpicked augment comes off it.
 - [`Resources/Prototypes/_WF/Augments/shapes.yml`](../../../Resources/Prototypes/_WF/Augments/shapes.yml)
 - [`Resources/Prototypes/_WF/Augments/styles.yml`](../../../Resources/Prototypes/_WF/Augments/styles.yml)
 - [`Resources/Prototypes/_WF/Augments/trait_slots.yml`](../../../Resources/Prototypes/_WF/Augments/trait_slots.yml)
+- [`Resources/Prototypes/_WF/Augments/wounds.yml`](../../../Resources/Prototypes/_WF/Augments/wounds.yml)
 
 ### Localization
 
