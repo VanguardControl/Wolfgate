@@ -17,7 +17,6 @@ public sealed partial class SpeechVoiceSynth
         public float Shimmer;
         public float Growl;
         public float Wobble;
-        public float Release;
         public float SlotScale;
         public float FricationBoost;
 
@@ -71,7 +70,6 @@ public sealed partial class SpeechVoiceSynth
             Breath = 0.05f,
             Jitter = 0.005f,
             Shimmer = 0.03f,
-            Release = 0.6f,
             SlotScale = 1f,
             FricationBoost = 1f,
             PitchSpread = 1f,
@@ -95,7 +93,6 @@ public sealed partial class SpeechVoiceSynth
                     target.Shimmer = 0.08f;
                     target.Growl = 0.25f;
                     target.Subharmonic = 0.35f;
-                    target.Release = 0.3f;
                     target.SlotScale = 0.9f;
                     target.VowelPull = 0.45f;
                     target.VowelTarget = Uh;
@@ -114,7 +111,6 @@ public sealed partial class SpeechVoiceSynth
                     target.Tilt = 2.2f;
                     target.Breath = 0.02f;
                     target.Jitter = 0.002f;
-                    target.Release = 0.45f;
                     target.SlotScale = 0.85f;
                     target.PitchSpread = 2f;
                     target.VowelPull = 0.4f;
@@ -138,7 +134,6 @@ public sealed partial class SpeechVoiceSynth
                     target.FormantScale = 1.6f;
                     target.Tilt = 1.2f;
                     target.Breath = 0.02f;
-                    target.Release = 0.35f;
                     target.SlotScale = 0.65f;
                     break;
                 case SpeechVoiceFilter.Slime:
@@ -176,7 +171,6 @@ public sealed partial class SpeechVoiceSynth
                 Shimmer = MathHelper.Lerp(Neutral.Shimmer, target.Shimmer, strength),
                 Growl = MathHelper.Lerp(Neutral.Growl, target.Growl, strength),
                 Wobble = MathHelper.Lerp(Neutral.Wobble, target.Wobble, strength),
-                Release = MathHelper.Lerp(Neutral.Release, target.Release, strength),
                 SlotScale = MathHelper.Lerp(Neutral.SlotScale, target.SlotScale, strength),
                 FricationBoost = MathHelper.Lerp(Neutral.FricationBoost, target.FricationBoost, strength),
                 Subharmonic = MathHelper.Lerp(Neutral.Subharmonic, target.Subharmonic, strength),
@@ -225,7 +219,7 @@ public sealed partial class SpeechVoiceSynth
 
     /// <summary>A species' pitch and formant bend at one point of a word.</summary>
     /// <param name="s">The filter strength, 0 to 1.</param>
-    /// <param name="t">Position in the syllable, 0 to 1.</param>
+    /// <param name="t">Position in the letter, 0 to 1.</param>
     /// <param name="wordT">Position in the word, 0 to 1.</param>
     private static Shape ShapeFor(SpeechVoiceFilter filter, float s, float t, float wordT)
     {

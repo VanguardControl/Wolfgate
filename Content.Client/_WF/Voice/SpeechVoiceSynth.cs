@@ -3,7 +3,7 @@ using Content.Shared._WF.Voice;
 
 namespace Content.Client._WF.Voice;
 
-/// <summary>Builds a line of babble from code alone, each word as short consonant-plus-vowel syllables.</summary>
+/// <summary>Builds a line of babble from code alone, one short blip per letter.</summary>
 // Voiced sound is a sum of harmonics shaped by formant curves over an LF glottal spectrum. Hiss and bursts are
 // filtered noise.
 public sealed partial class SpeechVoiceSynth
@@ -11,7 +11,7 @@ public sealed partial class SpeechVoiceSynth
     /// <summary>Output samples per second.</summary>
     public const int SampleRate = 32000;
 
-    private const int MaxBlips = 48;
+    private const int MaxBlips = 64;
     private const float MaxSeconds = 4f;
     private const float BaseF0 = 220f;
     private const float BaseFormantScale = 1.35f;
@@ -23,11 +23,8 @@ public sealed partial class SpeechVoiceSynth
     private const float PhraseDeclination = 0.08f;
     private const float Coarticulation = 0.4f;
 
-    /// <summary>How far the envelope dips between syllables of one word, so a word flows as one stream.</summary>
-    private const float Legato = 0.8f;
-
-    /// <summary>Loudness of the closed-mouth hum between words.</summary>
-    private const float HumLevel = 0.3f;
+    /// <summary>Letter slot against the Speed setting, so letters run short and chopped.</summary>
+    private const float LetterScale = 0.5f;
 
     /// <summary>Loudness of a pop against the voiced part.</summary>
     private const float PopLevel = 0.25f;
@@ -92,7 +89,7 @@ public sealed partial class SpeechVoiceSynth
             }
         }
 
-        var slot = (int) (voice.Speed * style.SlotScale * SampleRate);
+        var slot = (int) (voice.Speed * style.SlotScale * LetterScale * SampleRate);
         var starts = new int[blips.Count + 1];
         for (var i = 0; i < blips.Count; i++)
         {
@@ -147,7 +144,7 @@ public sealed partial class SpeechVoiceSynth
         return ToPcm(buffer);
     }
 
-    /// <summary>Renders every syllable into the buffer.</summary>
+    /// <summary>Renders every letter into the buffer, each its own blip.</summary>
     private void Speak(float[] buffer,
         int length,
         List<Blip> blips,
@@ -172,10 +169,11 @@ public sealed partial class SpeechVoiceSynth
         var ampTo = new float[MaxHarmonics + 1];
         var harmonics = 0;
 
-        var f0Glide = Smoothing(0.03f);
+        var f0Glide = Smoothing(0.008f);
         var gainGlide = Smoothing(0.0015f);
         var formantGlide = 1f - MathF.Exp(-Block / (0.008f * SampleRate));
-        var attack = 0.004f * SampleRate;
+        var attack = 0.003f * SampleRate;
+        var fade = 0.004f * SampleRate;
 
         var formants = Eh * formantScale;
         var f0 = BaseF0 * pitch;
@@ -194,8 +192,6 @@ public sealed partial class SpeechVoiceSynth
         var vibrato = 0f;
         var vibratoStep = MathF.Tau * voice.VibratoRate / SampleRate;
         var wobblePhase = 0f;
-        var floor = 0f;
-        var currentWord = -1;
 
         var words = 0;
         foreach (var blip in blips)
@@ -215,14 +211,13 @@ public sealed partial class SpeechVoiceSynth
                 wordFrom[w] = starts[b];
             wordTo[w] = starts[b + 1];
         }
-        var wordPitch = 1f;
+        var letterPitch = 1f;
         var popStart = new int[MaxPops];
         var popFrequency = new float[MaxPops];
         var popDecay = new float[MaxPops];
         var popEnd = new int[MaxPops];
         var popFade = new float[MaxPops];
         var popAmp = new float[MaxPops];
-        var lastF0 = BaseF0 * pitch;
 
         // A slow pitch and loudness swing, each cycle 0.33 to 0.47 s long.
         var swingPhase = 0f;
@@ -239,39 +234,21 @@ public sealed partial class SpeechVoiceSynth
             var slotLength = starts[b + 1] - start;
             var end = Math.Min(starts[b + 1], length);
 
-            if (blip.Gap && !blip.Hum)
+            if (blip.Gap)
             {
                 voiceGain = fricationGain = aspirationGain = 0f;
-                floor = 0f;
                 continue;
             }
 
-            // A gap between words is a short "m" hum at the last word's pitch.
-            var hum = blip.Gap;
-            if (hum)
-            {
-                var humLength = blip.Length;
-                blip = Syllable(M, Closed);
-                blip.Length = humLength;
-                blip.Gain = HumLevel;
-            }
-
-            var startFloor = floor;
-            var endFloor = b + 1 < blips.Count && (!blips[b + 1].Gap || blips[b + 1].Hum) ? Legato : 0f;
-            floor = endFloor;
             var blipTilt = blip.Shout ? shoutTilt : tilt;
 
-            // One pitch per word, kept a step away from the last one, with a little movement inside the word.
-            if (!hum && blip.Word != currentWord)
-            {
-                currentWord = blip.Word;
-                var spread = voice.PitchVariance * style.PitchSpread;
-                var next = 1f + spread * _noise.Next();
-                var step = 0.02f * style.PitchSpread;
-                if (MathF.Abs(next - wordPitch) < step)
-                    next = wordPitch + (next >= wordPitch ? step : -step);
-                wordPitch = next;
-            }
+            // Each letter gets its own note, kept a step away from the last one.
+            var spread = 0.7f * voice.PitchVariance * style.PitchSpread;
+            var note = 1f + spread * _noise.Next();
+            var step = 0.02f * style.PitchSpread;
+            if (MathF.Abs(note - letterPitch) < step)
+                note = letterPitch + (note >= letterPitch ? step : -step);
+            letterPitch = note;
 
             var blipGain = blip.Gain;
             var lastLift = 1f;
@@ -280,26 +257,24 @@ public sealed partial class SpeechVoiceSynth
             if (blip.Last && blip.Ending == '!')
                 blipGain *= 1.25f;
 
-            var blipF0 = hum
-                ? lastF0
-                : BaseF0 * pitch * wordPitch * (1f + 0.015f * _noise.Next())
-                  * Contour(blip, voice.Intonation) * blip.Lift * lastLift;
-            lastF0 = blipF0;
+            var blipF0 = BaseF0 * pitch * letterPitch * Contour(blip, voice.Intonation) * blip.Lift * lastLift;
             var blipFormants = 1f + 0.03f * _noise.Next();
             var slotSeconds = slotLength / (float) SampleRate;
 
             // Micro-prosody: pitch starts a little high after a voiceless consonant, a little low after a voiced one.
             var bump = blip.Onset.Kind == SoundKind.None ? 0f : blip.Onset.Voiced ? -0.03f : 0.05f;
-            var onsetEnd = blip.ConsonantOnly ? 0.8f : OnsetLength(blip.Onset.Kind);
+            var onsetEnd = blip.ConsonantOnly ? 0.8f
+                : blip.OnsetShare > 0f ? blip.OnsetShare
+                : OnsetLength(blip.Onset.Kind);
             if (blip.Onset.Kind is SoundKind.Fricative or SoundKind.Affricate && !blip.ConsonantOnly)
                 onsetEnd = MathF.Min(0.7f, onsetEnd * style.FricativeStretch);
             var trilled = blip.Onset.Kind == SoundKind.Liquid || blip.Coda.Kind == SoundKind.Liquid;
-            var wordStart = hum ? start : wordFrom[blip.Word];
-            var wordLength = hum ? 1f : MathF.Max(1f, wordTo[blip.Word] - wordFrom[blip.Word]);
+            var wordStart = wordFrom[blip.Word];
+            var wordLength = MathF.Max(1f, wordTo[blip.Word] - wordFrom[blip.Word]);
             var hasCoda = blip.Coda.Kind != SoundKind.None;
             var codaStart = hasCoda ? 0.5f : 1f;
-            var release = hasCoda ? 0.85f : blip.ConsonantOnly ? 0.8f : style.Release;
             var noiseInCoda = false;
+            var snap = true;
             wobblePhase = MathF.Tau * (0.5f + 0.5f * _noise.Next());
 
             if (blip.Onset.NoiseGain > 0f)
@@ -307,7 +282,7 @@ public sealed partial class SpeechVoiceSynth
 
             // Small bubble pops on the vowel: damped sines that rise as they fade (van den Doel 2005).
             var popCount = 0;
-            if (style.Pops > 0f && !hum && !blip.ConsonantOnly)
+            if (style.Pops > 0f && !blip.ConsonantOnly)
             {
                 popCount = Math.Clamp(3 + (int) MathF.Round(_noise.Next()), 2, MaxPops);
                 for (var k = 0; k < popCount; k++)
@@ -358,12 +333,8 @@ public sealed partial class SpeechVoiceSynth
                     }
                 }
 
-                var envelope = startFloor + (1f - startFloor) * MathF.Min(1f, (i - start) / attack);
-                if (t > release)
-                {
-                    var r = (t - release) / (1f - release);
-                    envelope *= endFloor + (1f - endFloor) * (1f - r) * (1f - r);
-                }
+                // Cut off at the end of the slot with a short fade, so letters run back to back.
+                var envelope = MathF.Min(1f, MathF.Min((i - start) / attack, (start + slotLength - i) / fade));
 
                 envelope *= blipGain;
 
@@ -383,7 +354,9 @@ public sealed partial class SpeechVoiceSynth
                     mouth.X *= shape.F1;
                     mouth.Y *= shape.F2;
 
-                    formants += (mouth - formants) * formantGlide;
+                    // A new letter starts on its own mouth shape, so neighbours don't blur.
+                    formants = snap ? mouth : formants + (mouth - formants) * formantGlide;
+                    snap = false;
                     Array.Copy(ampTo, ampFrom, ampTo.Length);
                     harmonics = Harmonics(ampTo, blipTilt, f0, formants, formantScale);
                     breath.Tune(MathF.Min(formants.Z, MaxFrequency), 3000f * formantScale, SampleRate);
@@ -469,7 +442,7 @@ public sealed partial class SpeechVoiceSynth
                 if (style.Growl > 0f)
                     sample *= 1f - 0.35f * style.Growl * (0.5f + 0.5f * growl);
 
-                // Runs across word gaps, so a short syllable still gets whole purr cycles.
+                // Runs across word gaps, so a short letter still gets whole purr cycles.
                 if (style.Purr > 0f)
                     sample *= 1f - 0.3f * style.Purr * (0.5f + 0.5f * MathF.Sin(MathF.Tau * 25f * i / SampleRate));
 

@@ -28,12 +28,12 @@ public sealed partial class SpeechVoiceSynth
         public bool Voiced;
     }
 
-    /// <summary>One syllable: an onset, a vowel that may glide, a coda. A gap is a pause instead.</summary>
+    /// <summary>One letter or digit: an onset, a vowel that may glide, a coda. A gap is a pause instead.</summary>
     private struct Blip
     {
         public bool Gap;
 
-        /// <summary>Length in syllable slots.</summary>
+        /// <summary>Length in letter slots.</summary>
         public float Length;
 
         public Consonant Onset;
@@ -47,7 +47,7 @@ public sealed partial class SpeechVoiceSynth
         /// <summary>The punctuation that ends its phrase: '.', '?', '!', ',' or '…'.</summary>
         public char Ending;
 
-        /// <summary>Loudness against other syllables, up for shouts, down as an ellipsis trails off.</summary>
+        /// <summary>Loudness against other letters, up for shouts, down as an ellipsis trails off.</summary>
         public float Gain;
 
         /// <summary>Pitch multiplier, raised for shouted words.</summary>
@@ -59,14 +59,14 @@ public sealed partial class SpeechVoiceSynth
         /// <summary>Index of its word, so pitch steps once per word.</summary>
         public int Word;
 
-        /// <summary>The last syllable of its phrase, where ? lifts the pitch and ! the loudness.</summary>
+        /// <summary>The last letter of its phrase, where ? lifts the pitch and ! the loudness.</summary>
         public bool Last;
 
-        /// <summary>A consonant with no vowel of its own, such as the t at the end of "cat".</summary>
+        /// <summary>A consonant on its own with no vowel, such as a trailing hiss.</summary>
         public bool ConsonantOnly;
 
-        /// <summary>A gap between words, hummed with a closed mouth instead of silent.</summary>
-        public bool Hum;
+        /// <summary>Share of the slot the onset takes, or 0 for the default of its kind.</summary>
+        public float OnsetShare;
     }
 
     // Vowel formants in Hz, F1 to F3, from Peterson and Barney 1952.
@@ -87,10 +87,8 @@ public sealed partial class SpeechVoiceSynth
     private static readonly Consonant G = Make(SoundKind.Plosive, 300, 2000, 2600, 2200, 1000, 1f, true);
     private static readonly Consonant K = Make(SoundKind.Plosive, 300, 2000, 2600, 2200, 1000, 1.6f);
     private static readonly Consonant J = Make(SoundKind.Affricate, 300, 2000, 2700, 2800, 1500, 0.35f, true);
-    private static readonly Consonant Ch = Make(SoundKind.Affricate, 300, 2000, 2700, 2800, 1500, 0.45f);
     private static readonly Consonant S = Make(SoundKind.Fricative, 300, 1700, 2600, 6000, 2000, 0.6f);
     private static readonly Consonant Z = Make(SoundKind.Fricative, 300, 1700, 2600, 6000, 2000, 0.3f, true);
-    private static readonly Consonant Sh = Make(SoundKind.Fricative, 300, 2000, 2700, 2800, 1500, 0.6f);
     private static readonly Consonant F = Make(SoundKind.Fricative, 400, 1100, 2400, 7000, 4000, 0.2f);
     private static readonly Consonant V = Make(SoundKind.Fricative, 400, 1100, 2400, 7000, 4000, 0.12f, true);
     private static readonly Consonant Th = Make(SoundKind.Fricative, 400, 1400, 2600, 5000, 4000, 0.4f);
@@ -103,105 +101,84 @@ public sealed partial class SpeechVoiceSynth
     private static readonly Consonant Y = Make(SoundKind.Liquid, 290, 2400, 3000);
     private static readonly Consonant Silent = default;
 
-    /// <summary>The mouth shape of a closed-mouth hum between words, an "m".</summary>
-    private static readonly Vector3 Closed = new(250, 1000, 2300);
+    /// <summary>Burst noise raised for a stop said alone, so b and d don't vanish.</summary>
+    private const float LetterBurst = 1.8f;
 
-    /// <summary>Single vowel letters as their short sounds. A y after a consonant counts as i.</summary>
-    private static readonly Dictionary<char, (Vector3 Start, Vector3 End)> Vowels = new()
+    /// <summary>The blip for one lower-case letter, said by its sound. A y opening a word is a consonant.</summary>
+    private static Blip Letter(char c, bool wordStart)
     {
-        ['a'] = (Ah, Ah),
-        ['e'] = (Eh, Eh),
-        ['i'] = (Ih, Ih),
-        ['o'] = (Oh, Oh),
-        ['u'] = (Uh, Uh),
-        ['y'] = (Ih, Ih),
-    };
+        return c switch
+        {
+            'a' => Syllable(Silent, Ah),
+            'e' => Syllable(Silent, Eh),
+            'i' => Syllable(Silent, Ee),
+            'o' => Syllable(Silent, Oh),
+            'u' => Syllable(Silent, Oo),
+            'y' => wordStart ? Glide(Y) : Syllable(Silent, Ih),
+            's' => Held(S),
+            'z' => Held(Z),
+            'f' => Held(F),
+            'v' => Held(V),
+            'm' => Held(M),
+            'n' => Held(N),
+            'l' => Glide(L),
+            'r' => Glide(R),
+            'w' => Glide(W),
+            'h' => Glide(H),
+            'b' => Stop(B),
+            'p' => Stop(P),
+            'd' => Stop(D),
+            't' => Stop(T),
+            'g' => Stop(G),
+            'j' => Stop(J),
+            'x' => Syllable(Loud(K), Uh, Uh, S),
+            _ => Stop(K),
+        };
+    }
 
-    /// <summary>Vowel pairs that make one sound, some gliding from one vowel to another.</summary>
-    private static readonly Dictionary<string, (Vector3 Start, Vector3 End)> VowelPairs = new()
+    /// <summary>A consonant for most of the blip and a short "uh" to the cut, such as "s-" or "m-".</summary>
+    private static Blip Held(Consonant consonant)
     {
-        ["ee"] = (Ee, Ee),
-        ["ea"] = (Ee, Ee),
-        ["ie"] = (Ee, Ee),
-        ["oo"] = (Oo, Oo),
-        ["ou"] = (Oo, Oo),
-        ["ai"] = (Eh, Ih),
-        ["ay"] = (Eh, Ih),
-        ["ei"] = (Eh, Ih),
-        ["oa"] = (Oh, Uu),
-        ["ow"] = (Oh, Uu),
-        ["au"] = (Oh, Oh),
-        ["aw"] = (Oh, Oh),
-    };
+        var blip = Syllable(consonant, Uh);
+        blip.OnsetShare = 0.6f;
+        return blip;
+    }
 
-    /// <summary>Consonant letters. c and x are handled where the next letter decides them.</summary>
-    private static readonly Dictionary<char, Consonant> Consonants = new()
+    /// <summary>A long consonant with a short "uh" after it, for sounds that need a vowel to be heard.</summary>
+    private static Blip Glide(Consonant consonant)
     {
-        ['b'] = B,
-        ['d'] = D,
-        ['f'] = F,
-        ['g'] = G,
-        ['h'] = H,
-        ['j'] = J,
-        ['k'] = K,
-        ['l'] = L,
-        ['m'] = M,
-        ['n'] = N,
-        ['p'] = P,
-        ['q'] = K,
-        ['r'] = R,
-        ['s'] = S,
-        ['t'] = T,
-        ['v'] = V,
-        ['w'] = W,
-        ['y'] = Y,
-        ['z'] = Z,
-    };
+        var blip = Syllable(consonant, Uh);
+        blip.OnsetShare = 0.45f;
+        return blip;
+    }
 
-    /// <summary>Consonant pairs that make one sound.</summary>
-    private static readonly Dictionary<string, Consonant> ConsonantPairs = new()
+    /// <summary>A loud burst and a clipped "uh".</summary>
+    private static Blip Stop(Consonant consonant)
     {
-        ["sh"] = Sh,
-        ["ch"] = Ch,
-        ["th"] = Th,
-        ["ph"] = F,
-        ["ck"] = K,
-        ["wh"] = W,
-    };
+        var blip = Syllable(Loud(consonant), Uh);
+        blip.OnsetShare = 0.35f;
+        return blip;
+    }
 
-    /// <summary>Number words as syllables, so numbers are said in full.</summary>
-    private static readonly Dictionary<string, Blip[]> NumberWords = new()
+    private static Consonant Loud(Consonant consonant)
     {
-        ["zero"] = new[] { Syllable(Z, Ee), Syllable(R, Oh, Uu) },
-        ["one"] = new[] { Syllable(W, Uh, Uh, N) },
-        ["two"] = new[] { Syllable(T, Oo) },
-        ["three"] = new[] { Syllable(Th, Ee) },
-        ["four"] = new[] { Syllable(F, Oh, Oh, R) },
-        ["five"] = new[] { Syllable(F, Ah, Ih, V) },
-        ["six"] = new[] { Syllable(S, Ih, Ih, S) },
-        ["seven"] = new[] { Syllable(S, Eh, Eh, V), Syllable(Silent, Uh, Uh, N) },
-        ["eight"] = new[] { Syllable(Silent, Eh, Ih, T) },
-        ["nine"] = new[] { Syllable(N, Ah, Ih, N) },
-        ["ten"] = new[] { Syllable(T, Eh, Eh, N) },
-        ["eleven"] = new[] { Syllable(Silent, Ih), Syllable(L, Eh, Eh, V), Syllable(Silent, Uh, Uh, N) },
-        ["twelve"] = new[] { Syllable(T, Eh, Eh, L) },
-        ["thirteen"] = new[] { Syllable(Th, Uh, Uh, R), Syllable(T, Ee, Ee, N) },
-        ["fourteen"] = new[] { Syllable(F, Oh, Oh, R), Syllable(T, Ee, Ee, N) },
-        ["fifteen"] = new[] { Syllable(F, Ih, Ih, F), Syllable(T, Ee, Ee, N) },
-        ["sixteen"] = new[] { Syllable(S, Ih, Ih, S), Syllable(T, Ee, Ee, N) },
-        ["seventeen"] = new[] { Syllable(S, Eh, Eh, V), Syllable(Silent, Uh, Uh, N), Syllable(T, Ee, Ee, N) },
-        ["eighteen"] = new[] { Syllable(Silent, Eh, Ih), Syllable(T, Ee, Ee, N) },
-        ["nineteen"] = new[] { Syllable(N, Ah, Ih, N), Syllable(T, Ee, Ee, N) },
-        ["twenty"] = new[] { Syllable(T, Eh, Eh, N), Syllable(T, Ee) },
-        ["thirty"] = new[] { Syllable(Th, Uh, Uh, R), Syllable(T, Ee) },
-        ["forty"] = new[] { Syllable(F, Oh, Oh, R), Syllable(T, Ee) },
-        ["fifty"] = new[] { Syllable(F, Ih, Ih, F), Syllable(T, Ee) },
-        ["sixty"] = new[] { Syllable(S, Ih, Ih, S), Syllable(T, Ee) },
-        ["seventy"] = new[] { Syllable(S, Eh, Eh, V), Syllable(Silent, Uh, Uh, N), Syllable(T, Ee) },
-        ["eighty"] = new[] { Syllable(Silent, Eh, Ih), Syllable(T, Ee) },
-        ["ninety"] = new[] { Syllable(N, Ah, Ih, N), Syllable(T, Ee) },
-        ["hundred"] = new[] { Syllable(H, Uh, Uh, N), Syllable(D, Uh, Uh, D) },
-        ["thousand"] = new[] { Syllable(Th, Ah, Uu), Syllable(Z, Uh, Uh, N) },
+        consonant.NoiseGain *= LetterBurst;
+        return consonant;
+    }
+
+    /// <summary>Each digit as one blip: its number word squeezed into a syllable.</summary>
+    private static readonly Blip[] Digits =
+    {
+        Syllable(Z, Ee, Oh),
+        Syllable(W, Uh, Uh, N),
+        Syllable(T, Oo),
+        Syllable(Th, Ee),
+        Syllable(F, Oh, Oh, R),
+        Syllable(F, Ah, Ih, V),
+        Syllable(S, Ih, Ih, S),
+        Syllable(S, Eh, Eh, V),
+        Syllable(Silent, Eh, Ih, T),
+        Syllable(N, Ah, Ih, N),
     };
 
     private static Consonant Make(SoundKind kind,
