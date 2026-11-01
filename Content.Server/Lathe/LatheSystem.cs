@@ -129,7 +129,7 @@ namespace Content.Server.Lathe
                 {
                     FinishProducing(uid, lathe); // WOLFGATE(Lathe): a lathe saved mid-print loads with no recipe and would never start again
                     continue;
-                }
+                } // WOLFGATE(Lathe): a lathe saved mid-print loads with no recipe and would never start again
 
                 if (_timing.CurTime - comp.StartTime >= comp.ProductionLength)
                     FinishProducing(uid, lathe);
