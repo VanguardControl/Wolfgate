@@ -36,6 +36,9 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Tiles kept between a wreck and anything pinned: sites, roads, cavern mouths.</summary>
     private const float WreckClearance = 3f;
 
+    /// <summary>Tiles between the spots tried when random tries find nowhere for a wreck or camp.</summary>
+    private const int WreckSweepStep = 6;
+
     private async Task PlaceWrecksAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
         WFPlanetPoiTablePrototype table, WFPlanetPoiComponent record, HashSet<EntityUid> created)
     {
@@ -170,20 +173,45 @@ public sealed partial class WFPlanetPoiSystem
             return false;
 
         var clear = reach + WreckClearance;
+        bool Free(Vector2 candidate)
+        {
+            for (var x = (int) MathF.Floor(candidate.X - clear); x <= (int) MathF.Ceiling(candidate.X + clear); x++)
+            for (var y = (int) MathF.Floor(candidate.Y - clear); y <= (int) MathF.Ceiling(candidate.Y + clear); y++)
+            {
+                if (Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), candidate) <= clear
+                    && (_biome.WfIsPinned(ground, new Vector2i(x, y)) || _biome.WfIsWater(ground, new Vector2i(x, y))))
+                    return false;
+            }
+
+            return true;
+        }
+
         for (var attempt = 0; attempt < WreckAttempts; attempt++)
         {
             spot = centre + _random.NextAngle().ToVec() * MathF.Sqrt(_random.NextFloat(inner * inner, outer * outer));
-            var free = true;
-            for (var x = (int) MathF.Floor(spot.X - clear); x <= (int) MathF.Ceiling(spot.X + clear) && free; x++)
-            for (var y = (int) MathF.Floor(spot.Y - clear); y <= (int) MathF.Ceiling(spot.Y + clear) && free; y++)
-            {
-                if (Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), spot) <= clear
-                    && (_biome.WfIsPinned(ground, new Vector2i(x, y)) || _biome.WfIsWater(ground, new Vector2i(x, y))))
-                    free = false;
-            }
-            if (free)
+            if (Free(spot))
                 return true;
         }
+
+        // Lakes and roads can leave only a few gaps big enough, which random tries miss: sweep the whole ring.
+        var sweep = new List<Vector2>();
+        for (var x = -outer; x <= outer; x += WreckSweepStep)
+        for (var y = -outer; y <= outer; y += WreckSweepStep)
+        {
+            var offset = new Vector2(x, y);
+            if (offset.LengthSquared() is var distance && distance >= inner * inner && distance <= outer * outer)
+                sweep.Add(centre + offset);
+        }
+
+        _random.Shuffle(sweep);
+        foreach (var candidate in sweep)
+        {
+            if (!Free(candidate))
+                continue;
+            spot = candidate;
+            return true;
+        }
+
         return false;
     }
 

@@ -46,6 +46,9 @@ public sealed partial class WFPlanetPoiSystem
     /// <summary>Stretches of road tried for a roadside camp before it goes out in the open instead.</summary>
     private const int RoadsideAttempts = 64;
 
+    /// <summary>Hulls picked for a camp before it is left out.</summary>
+    private const int CampAttempts = 4;
+
     private async Task PlaceCampsAsync(EntityUid ground, MapGridComponent grid, BiomeComponent biome, EntityUid orbit, Vector2 centre, float radius,
         WFPlanetPoiTablePrototype table, WFPlanetPoiComponent record, HashSet<EntityUid> created)
     {
@@ -63,7 +66,11 @@ public sealed partial class WFPlanetPoiSystem
                 await _preload.Breathe();
                 if (TerminatingOrDeleted(ground))
                     return;
-                if (!await TryPlaceCampAsync(ground, grid, biome, orbit, centre, radius, table, record, camp, created))
+                // A smaller hull of the camp's may fit where the one picked did not.
+                var placed = false;
+                for (var attempt = 0; attempt < CampAttempts && !placed; attempt++)
+                    placed = await TryPlaceCampAsync(ground, grid, biome, orbit, centre, radius, table, record, camp, created);
+                if (!placed)
                     Log.Warning($"No {camp.ID} on {ToPrettyString(ground)}; it is skipped.");
             }
         }
@@ -89,7 +96,7 @@ public sealed partial class WFPlanetPoiSystem
             var spot = Vector2.Zero;
             var toRoad = Vector2i.Zero;
             var roadside = camp.Roadside && TryRoadsideSpot((ground, biome), centre, radius, table, record, camped, out spot, out toRoad);
-            if (!roadside && !TryWreckSpot((ground, biome), grid, centre, radius, table, camped, out spot))
+            if (!roadside && !TryWreckSpot((ground, biome), grid, centre, radius, table, camped, out spot, table.Wrecks?.EdgeMargin))
                 return false;
 
             // Set down square to the world, the right way up; beside a road, nose to it.
@@ -148,7 +155,7 @@ public sealed partial class WFPlanetPoiSystem
         var camped = reach + CampRing;
         var spot = Vector2.Zero;
         if (!(camp.Roadside && TryRoadsideSpot((ground, biome), centre, radius, table, record, camped, out spot, out _))
-            && !TryWreckSpot((ground, biome), grid, centre, radius, table, camped, out spot))
+            && !TryWreckSpot((ground, biome), grid, centre, radius, table, camped, out spot, table.Wrecks?.EdgeMargin))
             return false;
         var under = ClearCampGround(ground, grid, biome, spot, camped);
         record.PendingCamps.Add(new WFPendingCamp(camp.ID, spot, reach, $"{camp.ID}-{++_campCount}"));

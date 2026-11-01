@@ -685,8 +685,9 @@
       clutter: [ WFFleshPolyp, MaterialBones1 ]
   minCount: 3
   maxCount: 3
-  spacing: 96
-  edgeMargin: 72
+  # The smallest world, and wet: at 96 and 72 a site could find no dry room between centreClear and edgeMargin.
+  spacing: 64
+  edgeMargin: 48
   centreClear: 64
   entries:
   - mapPath: /Maps/_WF/PlanetComms/comms_outpost.yml

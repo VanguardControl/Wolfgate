@@ -462,6 +462,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetViewTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetViewTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherRoofTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherRoofTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PlanetWeatherTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Planets/PullPointerTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/PullPointerTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/SectorBodyPinTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/SectorBodyPinTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/SetDownTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/SetDownTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Planets/StructuralCrashTest.cs)
@@ -741,6 +742,7 @@ cargo weight into lift and gravgen support. The flight panel shows a cargo row w
 - [`Content.Server/Movement/Systems/JetpackSystem.cs`](../../Movement/Systems/JetpackSystem.cs)
   - an atmospheric pack burns welding fuel from a solution, not gas from a tank.
   - a wearer carried below orbit on a hull never changes parent, so the pack is cut here.
+- [`Content.Server/Movement/Systems/PullController.cs`](../../Movement/Systems/PullController.cs): a pointer on another map has no distance to cap; capping it made a NaN position.
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.cs`](../../NPC/Pathfinding/PathfindingSystem.cs)
   - requests across unbuilt planet ground wait for it
   - held until the planet ground on its way is built

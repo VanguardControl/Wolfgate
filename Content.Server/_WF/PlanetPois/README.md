@@ -132,6 +132,7 @@ payment, sells a few, and eats whoever is left dead in his inn.
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/AncientTempleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/AncientTempleTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/PlanetPois/CarcinomaPoiTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/CarcinomaPoiTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/GreenhouseTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/GreenhouseTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetCampTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetCampTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetHiveCampTest.cs`](../../../Content.IntegrationTests/Tests/_WF/PlanetPois/PlanetHiveCampTest.cs)
