@@ -4605,3 +4605,22 @@ Entries:
   id: 100301
   time: '2026-11-01T05:38:29.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/433
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: >-
+        The connecting screen now shows each join step, how long it takes and a
+        download bar.
+    - type: Add
+      message: >-
+        If the connection gets stuck, the connecting screen tells you to check
+        your firewall or antivirus and gives you a Reconnect button.
+    - type: Add
+      message: >-
+        Copy Details on the connecting screen copies your join timings for bug
+        reports.
+    - type: Tweak
+      message: The Link Discord button is now green.
+  id: 100302
+  time: '2026-11-01T06:31:00.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/439
