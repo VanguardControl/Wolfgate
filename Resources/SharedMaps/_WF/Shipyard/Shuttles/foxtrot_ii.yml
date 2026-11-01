@@ -4,15 +4,15 @@ meta:
   engineVersion: 291.0.0
   forkId: wolfgate-mapping
   forkVersion: 20261101-064204-8e89069-tm231-98b87804
-  time: 11/01/2026 12:51:11
-  entityCount: 1418
+  time: 11/01/2026 13:11:32
+  entityCount: 1420
 maps: []
 grids:
 - 1
 orphans:
 - 1
 nullspace:
-- 945
+- 1390
 tilemap:
   3: Space
   19: FloorDark
@@ -480,7 +480,7 @@ entities:
       color: '#FFFFFFFF'
       address: ' 355F-2771'
     - type: StationMember
-      station: 945
+      station: 1390
     - type: ShipShieldDisabledGrid
   - uid: 4
     mapInit: true
@@ -2897,25 +2897,25 @@ entities:
     - type: Transform
       parent: 1
       pos: 0.5,-3.5
-  - uid: 462
+  - uid: 463
     components:
     - type: Transform
       parent: 1
       pos: 1.5,-3.5
 - proto: AirlockTsfEngineering
   entities:
-  - uid: 463
-    components:
-    - type: Transform
-      parent: 1
-      rot: -1.5707963267948966 rad
-      pos: 7.5,1.5
   - uid: 464
     components:
     - type: Transform
       parent: 1
       rot: -1.5707963267948966 rad
       pos: -6.5,1.5
+  - uid: 668
+    components:
+    - type: Transform
+      parent: 1
+      rot: -1.5707963267948966 rad
+      pos: 7.5,1.5
 - proto: APCBasic
   entities:
   - uid: 465
@@ -13586,6 +13586,14 @@ entities:
       pos: 9.5,3.5
     - type: FuelGenerator
       targetPower: 13000
+  - uid: 945
+    components:
+    - type: Transform
+      parent: 1
+      rot: 3.141592653589793 rad
+      pos: 8.5,3.5
+    - type: FuelGenerator
+      targetPower: 13000
   - uid: 946
     components:
     - type: Transform
@@ -15697,6 +15705,11 @@ entities:
       startingCharge: 0
 - proto: PortableGeneratorSuperPacmanShuttle
   entities:
+  - uid: 461
+    components:
+    - type: Transform
+      parent: 1
+      pos: 10.5,3.5
   - uid: 1014
     components:
     - type: Transform
@@ -16502,18 +16515,12 @@ entities:
       canCollide: False
 - proto: PoweredDimSmallLight
   entities:
-  - uid: 461
+  - uid: 462
     components:
     - type: Transform
       parent: 1
       rot: 1.5707963267948966 rad
       pos: 8.5,3.5
-  - uid: 668
-    components:
-    - type: Transform
-      parent: 1
-      rot: -1.5707963267948966 rad
-      pos: -7.5,3.5
   - uid: 768
     mapInit: true
     paused: true
@@ -16948,6 +16955,12 @@ entities:
     - type: DeviceNetwork
       receiveFrequency: 1173
       address: 1978-F5D2
+  - uid: 1013
+    components:
+    - type: Transform
+      parent: 1
+      rot: -1.5707963267948966 rad
+      pos: -7.5,3.5
 - proto: PoweredWarmSmallLight
   entities:
   - uid: 1015
@@ -19125,7 +19138,7 @@ entities:
       pos: 0.5,-1.5
 - proto: StandardFrontierVessel
   entities:
-  - uid: 945
+  - uid: 1390
     mapInit: true
     components:
     - type: MetaData
