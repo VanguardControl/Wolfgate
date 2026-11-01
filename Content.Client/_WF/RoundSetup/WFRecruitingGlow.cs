@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Numerics;
 using Robust.Client.Graphics;
 using Robust.Client.UserInterface;
@@ -23,10 +22,6 @@ public sealed class WFRecruitingGlow : Control
         HorizontalExpand = true;
         VerticalExpand = true;
     }
-
-    /// <summary>Whether the latest crew snapshot lists this station's crew as recruiting.</summary>
-    public static bool IsRecruitingStation(NetEntity station) =>
-        IoCManager.Resolve<IEntityManager>().System<WFRoundSetupClientSystem>().State?.RecruitingStations.Contains(station) == true;
 
     protected override void Draw(DrawingHandleScreen handle)
     {
