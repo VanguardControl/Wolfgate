@@ -128,6 +128,9 @@ public sealed class PlanetBoundsTest
 
             var orbitId = await MapIdOf(pair, orbitMap);
             var adrift = await PlanetFixture.BuildHull(pair, orbitId, new Vector2(Radius + 40, 0));
+
+            // No ticks between this and the descent, or the edge would put it back first.
+            await server.WaitPost(() => server.System<SharedTransformSystem>().SetWorldPosition(adrift, new Vector2(Radius + 40, 0)));
             var reason = await PlanetFixture.EnterAtmosphere(pair, adrift, settle: 0f);
 
             Assert.That(reason, Is.EqualTo(loc.GetString("wf-orbit-outside-bounds")), "A hull outside the circle was allowed to descend.");
@@ -183,6 +186,47 @@ public sealed class PlanetBoundsTest
 
         await PlanetFixture.Teardown(pair, layers);
 
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>No hull is past the circle on orbit or in the air at any tick, flying full tilt or dropped far outside it.</summary>
+    [TestCase(1)]
+    [TestCase(-1)]
+    public async Task NoHullEverGetsPastTheRing(int layerIndex)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var xforms = server.System<SharedTransformSystem>();
+        var bounds = server.System<WFPlanetBoundsSystem>();
+        var physics = server.System<Robust.Shared.Physics.Systems.SharedPhysicsSystem>();
+
+        await EnableBounded(pair);
+        var layers = await PlanetFixture.BuildStandalone(pair);
+        var layer = layerIndex < 0 ? layers[^1] : layers[layerIndex];
+        var mapId = await MapIdOf(pair, layer);
+        var flyer = await PlanetFixture.BuildHull(pair, mapId, new Vector2(Radius - 30, 0));
+        var dropped = await PlanetFixture.BuildHull(pair, mapId, new Vector2(-30, 0));
+
+        await server.WaitPost(() => xforms.SetWorldPosition(dropped, new Vector2(-Radius - 500, 0)));
+        await pair.RunTicksSync(2);
+
+        for (var tick = 0; tick < 120; tick++)
+        {
+            await server.WaitPost(() => physics.SetLinearVelocity(flyer, new Vector2(40, 0)));
+            await pair.RunTicksSync(1);
+
+            await server.WaitAssertion(() =>
+            {
+                foreach (var hull in new[] { flyer, dropped })
+                {
+                    var edge = (bounds.HullCentre(hull)).Length() + bounds.HullReach(hull);
+                    Assert.That(edge, Is.LessThanOrEqualTo(Radius + 2f), $"{entMan.ToPrettyString(hull)} is past the ring at tick {tick}.");
+                }
+            });
+        }
+
+        await PlanetFixture.Teardown(pair, layers);
         await pair.CleanReturnAsync();
     }
 

@@ -239,7 +239,7 @@ public sealed partial class WFOrbitDecaySystem : EntitySystem
         // Restore first so lift-lost remembers the ship's own code, not this warning.
         Restore(grid, comp);
 
-        // A hull adrift past the world's edge falls onto the edge, not into nothing.
+        // A hull in the margin at the world's edge may not be far enough in to descend.
         _bounds.ClampHull(grid);
 
         if (!_orbitEntry.TryDropFromOrbit(grid, out _))

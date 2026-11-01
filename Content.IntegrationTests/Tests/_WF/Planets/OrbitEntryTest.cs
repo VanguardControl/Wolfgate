@@ -253,6 +253,64 @@ public sealed class OrbitEntryTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A ship parked over the edge doesn't scatter an arrival past the ring: it comes out further in and clear.</summary>
+    [Test]
+    public async Task EntersOrbitInsideTheRingWhenTheEdgeIsTaken()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var orbits = server.System<WFOrbitEntrySystem>();
+        var bounds = server.System<WFPlanetBoundsSystem>();
+        var transform = server.System<SharedTransformSystem>();
+
+        var site = await BuildSite(pair, BoundedRadius);
+        var centre = Vector2.Zero;
+        var orbitId = MapId.Nullspace;
+
+        await server.WaitPost(() =>
+        {
+            centre = transform.GetWorldPosition(site.Body);
+            orbitId = entMan.GetComponent<MapComponent>(site.Orbit).MapId;
+        });
+
+        var parked = await BuildHull(pair, orbitId, centre + new Vector2(BoundedRadius - 24f, -6f));
+        await MoveTo(pair, site.Hull, site.SectorMap, centre + new Vector2(OrbitRange - 100f, 0f));
+
+        await server.WaitAssertion(() =>
+            Assert.That(orbits.TryEnterOrbit(site.Console, site.Body, out var reason), Is.True, $"Refused orbit: {reason}"));
+
+        var arrived = false;
+        for (var i = 0; i < HopTimeout * 2 && !arrived; i++)
+        {
+            await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
+            await server.WaitPost(() =>
+                arrived = entMan.GetComponent<TransformComponent>(site.Hull).MapUid == site.Orbit
+                    && !entMan.HasComponent<FTLComponent>(site.Hull));
+        }
+
+        await server.WaitAssertion(() =>
+        {
+            var hullBox = transform.GetWorldMatrix(site.Hull).TransformBox(entMan.GetComponent<MapGridComponent>(site.Hull).LocalAABB);
+            var parkedBox = transform.GetWorldMatrix(parked).TransformBox(entMan.GetComponent<MapGridComponent>(parked).LocalAABB);
+
+            using (Assert.EnterMultipleScope())
+            {
+                Assert.That(arrived, Is.True, "The hull never finished the hop into orbit.");
+                Assert.That(bounds.IsHullInside(site.Hull), Is.True, "The hull came out past the ring.");
+                Assert.That(hullBox.Intersects(parkedBox), Is.False, "The hull came out on top of the parked ship.");
+            }
+        });
+
+        await Teardown(pair, site);
+        await server.WaitPost(() =>
+        {
+            server.CfgMan.SetCVar(PlanetCVars.Bounds, false);
+            server.CfgMan.SetCVar(PlanetCVars.Radius, 0);
+        });
+        await pair.CleanReturnAsync();
+    }
+
     /// <summary>Crew on the deck ride the hop unharmed, without being thrown or dropped a level.</summary>
     [Test]
     public async Task CrewRideTheHopIntoOrbitUnharmed()

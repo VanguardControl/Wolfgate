@@ -281,7 +281,7 @@ public sealed partial class WFOrbitEntrySystem : EntitySystem
         if (!_shuttle.CanFTL(hull.Value.Owner, out reason))
             return false;
 
-        if (!_shuttle.WfFTLToLayer(hull.Value, orbitUid.Value, _bounds.InsideCircle(hull.Value.Owner, orbitUid.Value, worldPos)))
+        if (!_shuttle.WfFTLToLayer(hull.Value, orbitUid.Value, worldPos))
         {
             reason = Loc.GetString("wf-orbit-refused");
             return false;

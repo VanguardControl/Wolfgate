@@ -25,9 +25,6 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
     /// <summary>Metres a second a hull past the world's edge is pushed back towards its centre.</summary>
     public const float PushBackSpeed = 2f;
 
-    /// <summary>Metres past the edge a hull may get, through the push back, before it is put back inside outright.</summary>
-    public const float HardEdgeSlack = 12f;
-
     private readonly List<EntityUid> _leaving = new();
 
     /// <inheritdoc/>
@@ -87,8 +84,8 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
     }
 
     /// <summary>
-    /// A hull flying out past a bounded world's circle loses its outward speed and is pushed back in: a soft wall,
-    /// where the ground below has its hard one. Below orbit, one that still gets well past it is put back inside.
+    /// A hull flying into the margin inside a bounded world's circle loses its outward speed and is pushed back in. One
+    /// whose hull reaches the circle itself is put back inside outright, on every layer, so no hull is ever past it.
     /// </summary>
     private void TurnBack(EntityUid grid, PhysicsComponent body, TransformComponent xform)
     {
@@ -104,10 +101,9 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
         if (distance <= 0f || distance + reach <= radius)
             return;
 
-        // Orbit is where ships arrive from FTL, anywhere; there the push back alone brings them in. On the ground
-        // friction eats the push, so the edge is hard there.
+        // On the ground friction eats the push, so the margin is hard there too.
         var grounded = HasComp<CEZGroundLayerComponent>(map) || TryComp<CEZMapComponent>(map, out var zMap) && zMap.Depth == 0;
-        if ((grounded || distance + reach > radius + HardEdgeSlack) && !HasComp<WFOrbitLayerComponent>(map))
+        if (grounded || distance + reach > radius + WFPlanetBoundsSystem.HullMargin)
         {
             _bounds.ClampHull(grid);
             _physics.SetLinearVelocity(grid, Vector2.Zero, body: body);

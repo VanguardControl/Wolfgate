@@ -1,12 +1,16 @@
 using System.Numerics;
+using Content.Server._NF.Shuttles.Components;
 using Content.Server.Salvage;
 using Content.Server.Shuttles.Events;
+using Content.Server.Shuttles.Systems;
 using Content.Shared._CE.ZLevels.Core.Components;
 using Content.Shared._WF.CCVar;
 using Content.Shared._WF.Planets;
 using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
+using Robust.Shared.Physics;
+using Robust.Shared.Physics.Components;
 
 namespace Content.Server._WF.Planets.Bounds;
 
@@ -19,6 +23,9 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private RestrictedRangeSystem _restricted = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
+    [Dependency] private ShuttleSystem _shuttle = default!;
+
+    private readonly HashSet<EntityUid> _docked = new();
 
     /// <summary>Tiles a hull must keep between its edge and the circle to descend, or be pushed back to.</summary>
     public const float HullMargin = 4f;
@@ -81,12 +88,9 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
         }
     }
 
-    /// <summary>A hull that jumps onto a bounded layer other than orbit, where a ship may arrive anywhere, comes out inside the circle.</summary>
+    /// <summary>A hull that jumps onto a bounded layer comes out inside the circle.</summary>
     private void OnFtlCompleted(ref FTLCompletedEvent args)
     {
-        if (HasComp<WFOrbitLayerComponent>(args.MapUid))
-            return;
-
         ClampHull(args.Entity);
     }
 
@@ -162,7 +166,7 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
         return Vector2.Distance(HullCentre(grid), centre) + reach <= radius;
     }
 
-    /// <summary>Moves a hull to the nearest spot where it lies wholly inside its map's circle, if it is outside.</summary>
+    /// <summary>Moves a hull and whatever is docked to it to the nearest spot where the hull lies wholly inside its map's circle, if it is outside.</summary>
     public void ClampHull(EntityUid grid)
     {
         if (Transform(grid).MapUid is not { } map)
@@ -171,8 +175,22 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
         var position = _transform.GetWorldPosition(grid);
         var inside = InsideCircle(grid, map, position);
 
-        if (inside != position)
-            _transform.SetWorldPosition(grid, inside);
+        if (inside == position)
+            return;
+
+        _docked.Clear();
+        _shuttle.GetAllDockedShuttles(grid, _docked);
+        _docked.Add(grid);
+
+        foreach (var hull in _docked)
+        {
+            // A dock to something fixed doesn't drag it along.
+            if (hull != grid && (HasComp<ForceAnchorComponent>(hull)
+                || !TryComp<PhysicsComponent>(hull, out var body) || body.BodyType != BodyType.Dynamic))
+                continue;
+
+            _transform.SetWorldPosition(hull, _transform.GetWorldPosition(hull) + inside - position);
+        }
     }
 
     /// <summary>The nearest spot to <paramref name="position"/> for a hull's origin where it lies wholly inside a map's circle.</summary>
