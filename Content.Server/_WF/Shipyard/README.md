@@ -40,6 +40,7 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 ### Integration tests
 
 - [`Content.IntegrationTests/Tests/_WF/Shipyard/IronmanShipPurchaseTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/IronmanShipPurchaseTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Shipyard/ShipPurchaseTitleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/ShipPurchaseTitleTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shipyard/UsedShipContainedUnsavableTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/UsedShipContainedUnsavableTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shipyard/UsedShipReinitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/UsedShipReinitTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shipyard/VesselShipyardTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shipyard/VesselShipyardTest.cs)
