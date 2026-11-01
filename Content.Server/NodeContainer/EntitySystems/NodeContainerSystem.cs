@@ -26,7 +26,9 @@ namespace Content.Server.NodeContainer.EntitySystems
             SubscribeLocalEvent<NodeContainerComponent, ComponentStartup>(OnStartupEvent);
             SubscribeLocalEvent<NodeContainerComponent, ComponentShutdown>(OnShutdownEvent);
             SubscribeLocalEvent<NodeContainerComponent, AnchorStateChangedEvent>(OnAnchorStateChanged);
-            SubscribeLocalEvent<NodeContainerComponent, ReAnchorEvent>(OnReAnchor);
+            // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+            // SubscribeLocalEvent<NodeContainerComponent, ReAnchorEvent>(OnReAnchor);
+            // WOLFGATE END
             SubscribeLocalEvent<NodeContainerComponent, MoveEvent>(OnMoveEvent);
             SubscribeLocalEvent<NodeContainerComponent, ExaminedEvent>(OnExamine);
 
@@ -167,14 +169,16 @@ namespace Content.Server.NodeContainer.EntitySystems
             }
         }
 
-        private void OnReAnchor(EntityUid uid, NodeContainerComponent component, ref ReAnchorEvent args)
-        {
-            foreach (var node in component.Nodes.Values)
-            {
-                _nodeGroupSystem.QueueNodeRemove(node);
-                _nodeGroupSystem.QueueReflood(node);
-            }
-        }
+        // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+        // private void OnReAnchor(EntityUid uid, NodeContainerComponent component, ref ReAnchorEvent args)
+        // {
+        //     foreach (var node in component.Nodes.Values)
+        //     {
+        //         _nodeGroupSystem.QueueNodeRemove(node);
+        //         _nodeGroupSystem.QueueReflood(node);
+        //     }
+        // }
+        // WOLFGATE END
 
         private void OnMoveEvent(EntityUid uid, NodeContainerComponent container, ref MoveEvent ev)
         {

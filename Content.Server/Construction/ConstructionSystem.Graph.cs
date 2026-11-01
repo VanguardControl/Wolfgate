@@ -366,7 +366,7 @@ namespace Content.Server.Construction
             var newTransform = Transform(newUid);
             TransformSystem.AttachToGridOrMap(newUid, newTransform); // in case in hands or a container
             newTransform.LocalRotation = transform.LocalRotation;
-            newTransform.Anchored = transform.Anchored;
+            TransformSystem.TryAnchor((newUid, newTransform, null), transform.Anchored); // WOLFGATE(EngineCompat): engine 292 removed the Anchored setter
 
             // Container transferring.
             if (containerManager != null)

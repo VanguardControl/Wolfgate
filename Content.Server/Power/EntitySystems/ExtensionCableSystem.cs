@@ -22,10 +22,14 @@ namespace Content.Server.Power.EntitySystems
 
             //Anchoring
             SubscribeLocalEvent<ExtensionCableReceiverComponent, AnchorStateChangedEvent>(OnReceiverAnchorStateChanged);
-            SubscribeLocalEvent<ExtensionCableReceiverComponent, ReAnchorEvent>(OnReceiverReAnchor);
+            // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+            // SubscribeLocalEvent<ExtensionCableReceiverComponent, ReAnchorEvent>(OnReceiverReAnchor);
+            // WOLFGATE END
 
             SubscribeLocalEvent<ExtensionCableProviderComponent, AnchorStateChangedEvent>(OnProviderAnchorStateChanged);
-            SubscribeLocalEvent<ExtensionCableProviderComponent, ReAnchorEvent>(OnProviderReAnchor);
+            // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+            // SubscribeLocalEvent<ExtensionCableProviderComponent, ReAnchorEvent>(OnProviderReAnchor);
+            // WOLFGATE END
         }
 
         #region Provider
@@ -87,11 +91,13 @@ namespace Content.Server.Power.EntitySystems
             ResetReceivers(provider);
         }
 
-        private void OnProviderReAnchor(Entity<ExtensionCableProviderComponent> provider, ref ReAnchorEvent args)
-        {
-            Disconnect(provider);
-            Connect(provider);
-        }
+        // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+        // private void OnProviderReAnchor(Entity<ExtensionCableProviderComponent> provider, ref ReAnchorEvent args)
+        // {
+        //     Disconnect(provider);
+        //     Connect(provider);
+        // }
+        // WOLFGATE END
 
         private void ResetReceivers(Entity<ExtensionCableProviderComponent> provider)
         {
@@ -202,11 +208,13 @@ namespace Content.Server.Power.EntitySystems
             }
         }
 
-        private void OnReceiverReAnchor(Entity<ExtensionCableReceiverComponent> receiver, ref ReAnchorEvent args)
-        {
-            Disconnect(receiver);
-            Connect(receiver);
-        }
+        // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+        // private void OnReceiverReAnchor(Entity<ExtensionCableReceiverComponent> receiver, ref ReAnchorEvent args)
+        // {
+        //     Disconnect(receiver);
+        //     Connect(receiver);
+        // }
+        // WOLFGATE END
 
         private void Connect(Entity<ExtensionCableReceiverComponent> receiver)
         {

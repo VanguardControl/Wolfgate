@@ -138,19 +138,11 @@ public sealed partial class MappingToolsSystem
         {
             var oldCell = _map.LocalToTile(pose.Parent, grid, xform.Coordinates);
             var newCell = _map.LocalToTile(pose.Parent, grid, new EntityCoordinates(pose.Parent, pose.Position));
-            if (oldCell != newCell)
+            if (oldCell == newCell)
             {
-                // Already anchored, so re-anchoring at the new cell raises no anchor change.
-                _map.RemoveFromSnapGridCell(pose.Parent, grid, oldCell, uid);
-                _transform.AnchorEntity((uid, xform), (pose.Parent, grid), newCell);
+                _transform.SetLocalRotation(uid, pose.Rotation, xform);
+                return;
             }
-
-            _transform.SetLocalRotation(uid, pose.Rotation, xform);
-
-            // Lets node networks, airtightness and the like drop the old cell and pick up the new one.
-            var ev = new ReAnchorEvent(uid, pose.Parent, pose.Parent, newCell, xform);
-            RaiseLocalEvent(uid, ref ev);
-            return;
         }
 
         if (xform.Anchored)

@@ -13,7 +13,9 @@ public partial class RadiationSystem
         SubscribeLocalEvent<RadiationBlockerComponent, ComponentInit>(OnInit);
         SubscribeLocalEvent<RadiationBlockerComponent, ComponentShutdown>(OnShutdown);
         SubscribeLocalEvent<RadiationBlockerComponent, AnchorStateChangedEvent>(OnAnchorChanged);
-        SubscribeLocalEvent<RadiationBlockerComponent, ReAnchorEvent>(OnReAnchor);
+        // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+        // SubscribeLocalEvent<RadiationBlockerComponent, ReAnchorEvent>(OnReAnchor);
+        // WOLFGATE END
 
         SubscribeLocalEvent<RadiationBlockerComponent, DoorStateChangedEvent>(OnDoorChanged);
 
@@ -46,14 +48,16 @@ public partial class RadiationSystem
         }
     }
 
-    private void OnReAnchor(EntityUid uid, RadiationBlockerComponent component, ref ReAnchorEvent args)
-    {
-        // probably grid was split
-        // we need to remove entity from old resistance map
-        RemoveTile(uid, component);
-        // and move it to the new one
-        AddTile(uid, component);
-    }
+    // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+    // private void OnReAnchor(EntityUid uid, RadiationBlockerComponent component, ref ReAnchorEvent args)
+    // {
+    //     // probably grid was split
+    //     // we need to remove entity from old resistance map
+    //     RemoveTile(uid, component);
+    //     // and move it to the new one
+    //     AddTile(uid, component);
+    // }
+    // WOLFGATE END
 
     private void OnDoorChanged(EntityUid uid, RadiationBlockerComponent component, DoorStateChangedEvent args)
     {

@@ -48,7 +48,9 @@ namespace Content.Server.Shuttles.Systems
             SubscribeLocalEvent<DockingComponent, ComponentStartup>(OnStartup);
             SubscribeLocalEvent<DockingComponent, ComponentShutdown>(OnShutdown);
             SubscribeLocalEvent<DockingComponent, AnchorStateChangedEvent>(OnAnchorChange);
-            SubscribeLocalEvent<DockingComponent, ReAnchorEvent>(OnDockingReAnchor);
+            // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+            // SubscribeLocalEvent<DockingComponent, ReAnchorEvent>(OnDockingReAnchor);
+            // WOLFGATE END
 
             SubscribeLocalEvent<DockingComponent, BeforeDoorAutoCloseEvent>(OnAutoClose);
 
@@ -200,21 +202,23 @@ namespace Content.Server.Shuttles.Systems
             }
         }
 
-        private void OnDockingReAnchor(Entity<DockingComponent> entity, ref ReAnchorEvent args)
-        {
-            var uid = entity.Owner;
-            var component = entity.Comp;
+        // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+        // private void OnDockingReAnchor(Entity<DockingComponent> entity, ref ReAnchorEvent args)
+        // {
+        //     var uid = entity.Owner;
+        //     var component = entity.Comp;
 
-            if (!component.Docked)
-                return;
+        //     if (!component.Docked)
+        //         return;
 
-            var otherDock = component.DockedWith;
-            var other = Comp<DockingComponent>(otherDock!.Value);
+        //     var otherDock = component.DockedWith;
+        //     var other = Comp<DockingComponent>(otherDock!.Value);
 
-            Undock(entity);
-            Dock((uid, component), (otherDock.Value, other));
-            _console.RefreshShuttleConsoles();
-        }
+        //     Undock(entity);
+        //     Dock((uid, component), (otherDock.Value, other));
+        //     _console.RefreshShuttleConsoles();
+        // }
+        // WOLFGATE END
 
         /// <summary>
         /// Docks 2 ports together and assumes it is valid.
