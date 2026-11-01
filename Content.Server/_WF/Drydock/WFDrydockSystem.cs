@@ -316,7 +316,7 @@ public sealed partial class WFDrydockSystem : EntitySystem
         {
             foreach (var (specId, spec) in chunk.Entities)
             {
-                if (!IsMissing(ship, spec))
+                if (!IsMissing(ship, spec) || IsSpotTaken(ship, data, chunk, spec))
                     continue;
 
                 var proto = _prototype.Index<EntityPrototype>(data.EntityPalette[spec.ProtoIndex].Id);
@@ -424,7 +424,8 @@ public sealed partial class WFDrydockSystem : EntitySystem
         if (!TryComp<ShipRepairDataComponent>(ship, out var data) ||
             !data.Chunks.TryGetValue(item.ChunkPos, out var chunk) ||
             !chunk.Entities.TryGetValue(item.SpecId, out var spec) ||
-            !IsMissing(ship, spec))
+            !IsMissing(ship, spec) ||
+            IsSpotTaken(ship, data, chunk, spec))
             return;
 
         // Only a drifting or debris original can still be here; remove it before rebuilding.
@@ -965,6 +966,13 @@ public sealed partial class WFDrydockSystem : EntitySystem
         // A part whose floor was blown out is deparented into space; it is lost, as the repair tool treats it.
         var grid = Transform(original).GridUid;
         return grid == null || grid != ship && _hull.IsDebrisOf(grid, ship);
+    }
+
+    /// <summary>Whether something anchored since holds a snapshot entity's spot, such as a gun swapped onto its hardpoint.</summary>
+    private bool IsSpotTaken(EntityUid ship, ShipRepairDataComponent data, ShipRepairChunk chunk, ShipRepairEntitySpecifier spec)
+    {
+        return TryComp<MapGridComponent>(ship, out var grid) &&
+            _hull.IsSpotTaken((ship, grid), data.EntityPalette[spec.ProtoIndex], _hull.TileOf(ship, spec.LocalPosition), data, chunk);
     }
 
     /// <summary>Resolves a spec's recorded original entity, or false if it no longer exists.</summary>

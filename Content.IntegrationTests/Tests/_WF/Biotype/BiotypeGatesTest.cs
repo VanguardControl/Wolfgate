@@ -171,6 +171,7 @@ public sealed class BiotypeGatesTest
         {
             // Breather boxes only: prisoners and tank-only roles get a bare tank, which a synthetic doesn't need.
             var breathers = Breathers(proto, "OxygenBreatherNF").Concat(Breathers(proto, "NitrogenBreatherNF"))
+                .Concat(Breathers(proto, "WaterBreather"))
                 .Where(id => proto.Index(id).Storage.Count > 0)
                 .ToHashSet();
             var synthetic = Breathers(proto, "WFSyntheticBody");
@@ -183,7 +184,7 @@ public sealed class BiotypeGatesTest
                     if (Picks(proto, role.ID, Profile("Human", WFBiotype.Default)).Any(breathers.Contains) != true)
                         continue;
 
-                    foreach (var species in new[] { "Human", "Vulpkanin", "Vox", "IPC" })
+                    foreach (var species in new[] { "Human", "Vulpkanin", "Vox", "Feroxi", "IPC" })
                     {
                         var picks = Picks(proto, role.ID, Profile(species, WFBiotype.Synthetic));
                         Assert.That(picks.Any(synthetic.Contains), $"{role.ID}: a synthetic {species} gets no synthetic box");
