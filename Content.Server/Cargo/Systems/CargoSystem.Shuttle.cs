@@ -95,6 +95,11 @@ public sealed partial class CargoSystem
         amount += noModAmount;
         // End Frontier
 
+        // WOLFGATE(CargoSales) START: a pallet that would be refused pays nothing, so it shows nothing
+        if (WfRefuseOverLimit(uid, WfWithContents(toSell)))
+            amount = 0;
+        // WOLFGATE END
+
         // Monolith: display multiplier
         var station = _station.GetOwningStation(uid);
         var tradeCrateMultiplier = 1D;
@@ -304,8 +309,9 @@ public sealed partial class CargoSystem
         if (toSell.Count == 0)
             return false;
 
-        var ev = new EntitySoldEvent(toSell, gridUid); // Frontier: add gridUid
-        RaiseLocalEvent(ref ev);
+        // Mono comment out to move above sold event
+        //var ev = new EntitySoldEvent(toSell, gridUid); // Frontier: add gridUid
+        //RaiseLocalEvent(ref ev);
 
         // Collect all container entities and their contained entities recursively
         var allEntsToDelete = new HashSet<EntityUid>(toSell);
@@ -322,7 +328,15 @@ public sealed partial class CargoSystem
             }
         }
 
+        // WOLFGATE(CargoSales) START: the MaxPerSale check runs apart from the alert
+        if (WfRefuseOverLimit(consoleUid, allEntsToDelete))
+            return false;
+        // WOLFGATE END
+
         SendSoldAlert(consoleUid, allEntsToDelete); // Mono: sell snitching
+
+        var ev = new EntitySoldEvent(toSell, gridUid); // Mono: moved here so refused sales dont count as sold
+        RaiseLocalEvent(ref ev);
 
         foreach (var ent in allEntsToDelete)
         {
@@ -531,7 +545,10 @@ public sealed partial class CargoSystem
                 {
                     injectionCompany = injection.Company;
                     if (currencyInjections == null)
-                        currencyInjections = injection.Amount;
+                        // WOLFGATE(CargoSales) START: adding to the component's own dictionary raised that item's payout on every appraisal
+                        currencyInjections = new Dictionary<string, FixedPoint2>(injection.Amount);
+                        // currencyInjections = injection.Amount;
+                        // WOLFGATE END
                     else
                     {
                         foreach (var key in injection.Amount.Keys)

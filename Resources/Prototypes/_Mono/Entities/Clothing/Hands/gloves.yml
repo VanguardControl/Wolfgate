@@ -186,6 +186,8 @@
     state: icon
   - type: Clothing
     sprite: _Mono/Clothing/Hands/Gloves/concussive_gauntlets.rsi
+  - type: Insulated # Unusable in an insul meta otherwise
+    coefficient: 0.5
   - type: MeleeWeapon
     autoAttack: true
     attackRate: 2.5
@@ -195,6 +197,8 @@
         Structural: 50
     soundHit:
       collection: ExplosionSmall
+    animation: WeaponArcFist
+    mustBeEquippedToUse: true
     heavyStaminaCost: 0
   - type: Tag
     tags:
