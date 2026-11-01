@@ -4624,3 +4624,14 @@ Entries:
   id: 100302
   time: '2026-11-01T06:31:00.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/439
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Synthetic Feroxi now start with the synthetic survival box.
+    - type: Fix
+      message: MMC arrivals are now announced on the MMC radio.
+    - type: Fix
+      message: Drydocks no longer build a ship's old guns over guns you swapped in.
+  id: 100303
+  time: '2026-11-01T06:31:11.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/438
