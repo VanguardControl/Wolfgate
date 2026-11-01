@@ -84,6 +84,7 @@ the same level through `declaredWar` in `wfStanding` and `requiresWar` on its en
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml)
   - the announcement is the war level going HOT
   - mobile bases are still covered by the ceasefire
+  - a rescue does not lift the ceasefire
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/One_RandomDeathmatch.xml): faction conflict follows the war level; was "allowed at all times, due to the RP reason of active war"
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml`](../../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Three_FairPlay.xml)
   - the factions give each other the same time while the war level is COLD

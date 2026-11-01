@@ -16,6 +16,9 @@ external:
 # Edits outside _WF that can't hold a WOLFGATE marker: JSON, images, audio, rich-text .txt and map files.
 # Each entry has a path (a file, a folder or a glob), the module it serves (null for a standalone edit) and a reason.
 unmarked:
+  - path: Resources/Fonts/ComicNeue
+    module: Clown
+    reason: Comic Neue font and its OFL licence for the Clown trait speech.
   - path: .config/dotnet-tools.json
     module: null
     reason: dotnet-ef local tool manifest (pinned 10.0.12) for generating EF migrations.
@@ -2262,10 +2265,10 @@ unmarked:
     reason: PDV hull refit from plastitanium to adamantite walls.
   - path: Resources/SharedMaps/_Mono/Shuttles/PDV/layak.yml
     module: ShipArmor
-    reason: PDV hull refit from plastitanium to adamantite walls.
+    reason: PDV hull with a shield generator, kept on plastitanium instead of adamantite.
   - path: Resources/SharedMaps/_Mono/Shuttles/PDV/motleyanne.yml
     module: ShipArmor
-    reason: PDV hull refit from plastitanium to adamantite walls.
+    reason: PDV hull with a shield generator, kept on plastitanium instead of adamantite.
   - path: Resources/SharedMaps/_Mono/Shuttles/PDV/neptune.yml
     module: ShipArmor
     reason: PDV hull refit from plastitanium to adamantite walls.
@@ -2277,7 +2280,7 @@ unmarked:
     reason: PDV hull refit from plastitanium to adamantite walls.
   - path: Resources/SharedMaps/_Mono/Shuttles/PDV/saturn.yml
     module: ShipArmor
-    reason: PDV hull refit from plastitanium to adamantite walls.
+    reason: PDV hull with a shield generator, kept on plastitanium instead of adamantite.
   - path: Resources/SharedMaps/_Mono/Shuttles/PDV/scorpion.yml
     module: ShipArmor
     reason: PDV hull refit from plastitanium to adamantite walls.

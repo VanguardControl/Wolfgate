@@ -1,0 +1,5 @@
+- type: alert
+  id: VowOfSilenceUnbreakable
+  icons: [ /Textures/Interface/Alerts/Abilities/silenced.png ]
+  name: alerts-vow-silence-name
+  description: alerts-vow-silence-unbreakable-desc

@@ -26394,3 +26394,64 @@ Entries:
   id: 2852
   time: '2026-10-27T17:36:03.0000000+00:00'
   url: https://github.com/Monolith-Station/Monolith/pull/4876
+- author: tonotom1
+  changes:
+    - type: Tweak
+      message: >-
+        Concussive gauntlets now require wearing to use, but no longer stunlock
+        you when you get shocked. You still take some shock damage.
+    - type: Tweak
+      message: >-
+        Gloves of the north star damage 8 >> 11. Received partial shockproofing
+        as well.
+  id: 2856
+  time: '2026-10-29T01:55:23.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4926
+- author: EckoAurum
+  changes:
+    - type: Tweak
+      message: Fentanyl now alerts for every sale.
+    - type: Tweak
+      message: Selling an abundance of contraband at once will now reject the sale.
+  id: 2857
+  time: '2026-10-29T04:30:23.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4931
+- author: EckoAurum
+  changes:
+    - type: Fix
+      message: Sushi now slices into the correct food.
+  id: 2859
+  time: '2026-10-30T01:27:33.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4935
+- author: mikusssssss
+  changes:
+    - type: Remove
+      message: Removed Hew juice from borers.
+  id: 2860
+  time: '2026-10-30T01:50:05.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4933
+- author: AthrunZala33092
+  changes:
+    - type: Add
+      message: 'Crocus: more sidearm options for TSF, melee options for both sides'
+  id: 2861
+  time: '2026-10-31T17:43:35.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4887
+- author: DoubleHypercube
+  changes:
+    - type: Add
+      message: The Anubis is now in the TSF uplink.
+  id: 2862
+  time: '2026-10-31T17:53:18.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4908
+- author: Mrrpip
+  changes:
+    - type: Tweak
+      message: >-
+        Tweaks the Skalpel to have rechargers, 2 at the entrances, 1 below the
+        surgical duffelbag.
+    - type: Tweak
+      message: Gives the Luda directional fans.
+  id: 2865
+  time: '2026-10-31T18:14:09.0000000+00:00'
+  url: https://github.com/Monolith-Station/Monolith/pull/4940
