@@ -27,7 +27,6 @@ using Content.Shared._Mono.Company;
 using Content.Server._Mono.Store; // Mono
 using Content.Server._Mono.Cargo; // Mono
 using Content.Server.Radio.EntitySystems; // Mono
-using Content.Shared.Popups; // Mono
 
 
 namespace Content.Server.Cargo.Systems;
@@ -95,6 +94,11 @@ public sealed partial class CargoSystem
 
         amount += noModAmount;
         // End Frontier
+
+        // WOLFGATE(CargoSales) START: a pallet that would be refused pays nothing, so it shows nothing
+        if (WfRefuseOverLimit(uid, WfWithContents(toSell)))
+            amount = 0;
+        // WOLFGATE END
 
         // Monolith: display multiplier
         var station = _station.GetOwningStation(uid);
@@ -324,8 +328,12 @@ public sealed partial class CargoSystem
             }
         }
 
-        if (!SendSoldAlert(consoleUid, allEntsToDelete)) // Mono: sell snitching
+        // WOLFGATE(CargoSales) START: the MaxPerSale check runs apart from the alert
+        if (WfRefuseOverLimit(consoleUid, allEntsToDelete))
             return false;
+        // WOLFGATE END
+
+        SendSoldAlert(consoleUid, allEntsToDelete); // Mono: sell snitching
 
         var ev = new EntitySoldEvent(toSell, gridUid); // Mono: moved here so refused sales dont count as sold
         RaiseLocalEvent(ref ev);
@@ -339,9 +347,9 @@ public sealed partial class CargoSystem
     }
     /// <summary>
     /// Mono: Sold stuff that have <see cref="SoldAlertComponent"/> sends a radio
-    /// message if it meets its Threshold. Sends nothing if over MaxPerSale.
+    /// message if it meets its Threshold.
     /// </summary>
-    private bool SendSoldAlert(EntityUid console, HashSet<EntityUid> sold)
+    private void SendSoldAlert(EntityUid console, HashSet<EntityUid> sold)
     {
         Dictionary<string, (int Count, SoldAlertComponent Alert, string Name)>? groups = null;
 
@@ -366,16 +374,7 @@ public sealed partial class CargoSystem
         }
 
         if (groups == null)
-            return true;
-
-        foreach (var (count, alert, _) in groups.Values)
-        {
-            if (alert.MaxPerSale > 0 && count > alert.MaxPerSale)
-            {
-                _popup.PopupEntity(Loc.GetString("cargo-sold-alert-console"), console, PopupType.MediumCaution);
-                return false;
-            }
-        }
+            return;
 
         string? location = null;
 
@@ -393,8 +392,6 @@ public sealed partial class CargoSystem
                 _radio.SendRadioMessage(speaker, message, channel, console);
             }
         }
-
-        return true;
     }
 
     /// <summary>
@@ -548,7 +545,10 @@ public sealed partial class CargoSystem
                 {
                     injectionCompany = injection.Company;
                     if (currencyInjections == null)
-                        currencyInjections = injection.Amount;
+                        // WOLFGATE(CargoSales) START: adding to the component's own dictionary raised that item's payout on every appraisal
+                        currencyInjections = new Dictionary<string, FixedPoint2>(injection.Amount);
+                        // currencyInjections = injection.Amount;
+                        // WOLFGATE END
                     else
                     {
                         foreach (var key in injection.Amount.Keys)

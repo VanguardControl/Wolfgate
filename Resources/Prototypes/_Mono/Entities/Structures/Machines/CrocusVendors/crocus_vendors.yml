@@ -134,7 +134,7 @@
         name: breaching hammer
         points: 1
       - id: CaptainSabre
-        name: captain sabre
+        name: captain's sabre # WOLFGATE: label matches the item's name
         points: 1
       - id: WeaponShotgunHelepolis
         name: UW12-B Helepolis breaching shotgun
