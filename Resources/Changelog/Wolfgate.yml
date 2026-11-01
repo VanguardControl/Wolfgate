@@ -4327,3 +4327,16 @@ Entries:
   id: 100291
   time: '2026-10-31T23:08:59.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/430
+- author: Kepteyn
+  changes:
+    - type: Add
+      message: >-
+        Extra areas to CC, including bunkbeds and a communal living area,
+        bathrooms, a garden, and a lounge, for verisimilitude.
+    - type: Tweak
+      message: >-
+        A few additions to CC, such as a freezer and some maints rooms, to make
+        certain elements feel less barebones.
+  id: 100292
+  time: '2026-11-01T00:50:31.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/427
