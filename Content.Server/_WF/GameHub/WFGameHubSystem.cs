@@ -2,6 +2,7 @@ using Content.Server.CartridgeLoader;
 using Content.Server.Database;
 using Content.Server.Popups;
 using Content.Shared._WF.GameHub;
+using Content.Shared.CartridgeLoader;
 using Content.Shared.GameTicking;
 using Content.Shared.PDA;
 using Robust.Server.GameObjects;
@@ -120,7 +121,8 @@ public sealed class WFGameHubSystem : EntitySystem
 
     private void OnInstallerMapInit(Entity<WFGameHubInstallerComponent> ent, ref MapInitEvent args)
     {
-        _cartridges.InstallProgram(ent, ent.Comp.Program, deinstallable: false);
+        if (TryComp<CartridgeLoaderComponent>(ent, out var loader))
+            _cartridges.InstallProgram(ent, ent.Comp.Program, deinstallable: false, loader: loader);
     }
 
     private void OnRoundRestart(RoundRestartCleanupEvent ev)
