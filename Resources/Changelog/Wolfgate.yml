@@ -4475,3 +4475,20 @@ Entries:
   id: 100297
   time: '2026-11-01T03:35:40.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/434
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Join Round now offers Crew and Station Roles.
+    - type: Add
+      message: >-
+        Station roles now pay an hourly salary automatically while you work
+        them, with no leader needed.
+    - type: Remove
+      message: Removed the Crew tab from the join window.
+    - type: Remove
+      message: >-
+        Ships can no longer open crew slots or post adverts on the records
+        computer. Recruit through Crew Setup.
+  id: 100298
+  time: '2026-11-01T03:49:04.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/435
