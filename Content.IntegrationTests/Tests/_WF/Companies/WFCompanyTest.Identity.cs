@@ -15,6 +15,9 @@ using Content.Shared.Access.Components;
 using Content.Shared.Access.Systems;
 using Content.Shared.CCVar;
 using Content.Shared.Preferences;
+using Content.Server.Chat.Systems;
+using Content.Shared.Chat;
+using Content.Shared.Radio;
 using Content.Shared.Radio.Components;
 using Content.Shared.StatusIcon;
 using Content.Shared.StatusIcon.Components;
@@ -146,6 +149,10 @@ public sealed partial class WFCompanyTest
                 var body = owner.AttachedEntity!.Value;
                 Assert.That(em.GetComponent<ActiveRadioComponent>(body).Channels, Does.Contain(WFCompanySystem.CompanyChannel));
                 Assert.That(companies.CompanyRadioName(body), Is.EqualTo("Company · RANK"));
+                // The channel's key has to reach it; `:h` is taken by the headset default and never would.
+                var radio = server.ProtoMan.Index<RadioChannelPrototype>(WFCompanySystem.CompanyChannel);
+                server.System<ChatSystem>().TryProccessRadioMessage(body, $"{SharedChatSystem.RadioChannelPrefix}{radio.KeyCode} hello", out _, out var typed, quiet: true);
+                Assert.That(typed?.ID, Is.EqualTo(WFCompanySystem.CompanyChannel));
             });
             // The client's instant card already names the company and rank, so the basic job doesn't flash first.
             await pair.Client.WaitAssertion(() =>
