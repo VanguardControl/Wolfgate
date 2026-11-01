@@ -327,7 +327,7 @@ public sealed partial class WFDrydockSystem : EntitySystem
                     SpecId = specId,
                     Cost = RebuildPrice(comp, proto),
                     Prototype = proto.ID,
-                    Mounted = proto.TryGetComponent<HardpointAnchorableOnlyComponent>(out _, Factory),
+                    Mounted = proto.TryComp<HardpointAnchorableOnlyComponent>(out _, Factory),
                     LocalPos = spec.LocalPosition,
                 });
             }
@@ -940,7 +940,7 @@ public sealed partial class WFDrydockSystem : EntitySystem
         if (!TryComp<MapGridComponent>(ship, out var grid))
             return;
 
-        var tiles = _map.GetAllTilesEnumerator(ship, grid);
+        var tiles = _map.GetAllTiles(ship, grid);
         while (job.SparkTiles.Count < MaxSparkTiles && tiles.MoveNext(out var tile))
         {
             var indices = tile!.Value.GridIndices;

@@ -16,7 +16,7 @@ namespace Content.Server._WF.TradeGoods.Systems;
 /// freighter docking at a stop supplies that station, and a run lost to attack leaves its remaining stops short. Sealed
 /// crates pay less at lawful chutes, full price at a fence, and a bonus at their own destination.
 /// </summary>
-public sealed class WFTradeFreightSystem : EntitySystem
+public sealed partial class WFTradeFreightSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IRobustRandom _random = default!;

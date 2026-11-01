@@ -26,7 +26,7 @@ namespace Content.Server._WF.ArmorSpecialization;
 /// Runs a worn <see cref="WFPlasmaReserveComponent"/>: feeds the patient on its line and refills from blood packs used on
 /// the suit. It never feeds the wearer: a medic suit treats others, it doesn't keep its own wearer alive.
 /// </summary>
-public sealed class WFPlasmaReserveSystem : EntitySystem
+public sealed partial class WFPlasmaReserveSystem : EntitySystem
 {
     private static readonly ProtoId<TagPrototype> PackTag = "Bloodpack";
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);

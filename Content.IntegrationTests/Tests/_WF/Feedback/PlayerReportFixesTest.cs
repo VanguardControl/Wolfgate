@@ -35,6 +35,8 @@ namespace Content.IntegrationTests.Tests._WF.Feedback;
 [TestFixture]
 public sealed class PlayerReportFixesTest
 {
+    private static readonly ProtoId<SpeciesPrototype> ReptilianProto = "Reptilian";
+
     /// <summary>The bounty pays for an executed heretic; any other corpse stays off the books.</summary>
     [Test]
     public async Task DeadHereticSellsAndOtherCorpsesDoNot()
@@ -168,7 +170,7 @@ public sealed class PlayerReportFixesTest
         {
             lizard = entMan.SpawnEntity("MobReptilian", map.GridCoords);
             var biotypes = entMan.System<WFBiotypeSystem>();
-            biotypes.Apply(lizard, biotype, protos.Index<SpeciesPrototype>("Reptilian"));
+            biotypes.Apply(lizard, biotype, protos.Index<SpeciesPrototype>(ReptilianProto));
             Assert.That(biotypes.GetBiotype(lizard), Is.EqualTo(biotype), "The lizard didn't become this biotype.");
         });
         await pair.RunTicksSync(5);

@@ -26,6 +26,9 @@ namespace Content.IntegrationTests.Tests._WF.StationRoles;
 [TestFixture]
 public sealed class WFStationSalaryTest
 {
+    private static ProtoId<WFStationSalaryPrototype> ContractorProto => "Contractor";
+    private static ProtoId<WFStationSalaryPrototype> DeputyProto => "Deputy";
+
     /// <summary>Every salary belongs to a real job, and free agents stay unpaid.</summary>
     [Test]
     public async Task SalariesNameRealJobs()
@@ -40,7 +43,7 @@ public sealed class WFStationSalaryTest
                 Assert.That(prototypes.HasIndex<JobPrototype>(salary.ID), Is.True, $"{salary.ID} is not a job.");
                 Assert.That(salary.Wage, Is.GreaterThan(0), salary.ID);
             }
-            Assert.That(prototypes.HasIndex<WFStationSalaryPrototype>("Contractor"), Is.False);
+            Assert.That(prototypes.HasIndex<WFStationSalaryPrototype>(ContractorProto), Is.False);
         });
         await pair.CleanReturnAsync();
     }
@@ -103,7 +106,7 @@ public sealed class WFStationSalaryTest
         var wage = 0;
         await server.WaitPost(() =>
         {
-            wage = prototypes.Index<WFStationSalaryPrototype>("Deputy").Wage / 4;
+            wage = prototypes.Index<WFStationSalaryPrototype>(DeputyProto).Wage / 4;
             ticker.PlayerJoinGame(worker, silent: true);
             body = em.SpawnEntity("MobHuman", map.GridCoords);
             var minds = server.System<SharedMindSystem>();

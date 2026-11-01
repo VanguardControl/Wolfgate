@@ -11,7 +11,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Client._WF.Augments.UI;
 
 /// <summary>The creator's Augments tab: an augment and a style per body slot, with what the priced ones cost.</summary>
-public sealed class WFAugmentEditor : BoxContainer
+public sealed partial class WFAugmentEditor : BoxContainer
 {
     [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private IComponentFactory _factory = default!;

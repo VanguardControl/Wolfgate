@@ -22,7 +22,7 @@ namespace Content.Server._WF.Wolfmed.Stasis;
 /// wolfmed.stasis_damage_factor of itself before it becomes a wound. It never touches a fracture: a broken bone is
 /// surgery's (owner's rule). It ends by itself after wolfmed.stasis_max_seconds.
 /// </summary>
-public sealed class WolfmedStasisSystem : EntitySystem
+public sealed partial class WolfmedStasisSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;

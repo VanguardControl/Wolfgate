@@ -1,3 +1,4 @@
+using Content.IntegrationTests.Tests._WF.EngineCompat;
 using Content.Client.Changelog;
 using System.Collections.Generic;
 using System.Linq;
@@ -540,7 +541,7 @@ public sealed partial class RoundSetupUiTest
             Assert.That(vote.VisibleInTree, Is.True, "Votes remain visible alongside chat.");
             Assert.That(vote.GlobalPosition.X + vote.Width, Is.LessThanOrEqualTo(width + 1), "Votes fit the communication dock.");
             screen.VoteContainer.RemoveChild(vote);
-            vote.Dispose();
+            vote.Teardown();
             if (screen.VoteContainer.ChildCount == 0)
                 Assert.That(screen.Chat.VisibleInTree, Is.True, "Chat returns when the last vote ends.");
 

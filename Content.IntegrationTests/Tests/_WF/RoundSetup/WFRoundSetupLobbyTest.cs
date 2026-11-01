@@ -44,6 +44,8 @@ namespace Content.IntegrationTests.Tests._WF.RoundSetup;
 [TestOf(typeof(WFRoundSetupSystem))]
 public sealed partial class WFRoundSetupLobbyTest
 {
+    private static readonly EntProtoId WFShipScenarioStationProto = "WFShipScenarioStation";
+
     [TestPrototypes]
     private const string Prototypes = @"
 - type: entity
@@ -918,8 +920,8 @@ public sealed partial class WFRoundSetupLobbyTest
         Assert.That(OwnLobby(state).Portrait, Is.Not.Null);
         await pair.Server.WaitAssertion(() =>
         {
-            var prototype = pair.Server.ProtoMan.Index<EntityPrototype>("WFShipScenarioStation");
-            Assert.That(prototype.TryGetComponent<StationJobsComponent>(out var jobs, pair.Server.EntMan.ComponentFactory), Is.True);
+            var prototype = pair.Server.ProtoMan.Index(WFShipScenarioStationProto);
+            Assert.That(prototype.TryComp<StationJobsComponent>(out var jobs, pair.Server.EntMan.ComponentFactory), Is.True);
             Assert.That(jobs!.SetupAvailableJobs.Keys.Select(job => job.Id), Is.EquivalentTo(WFShipCrewJobs.Jobs));
         });
         state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.ApplyRoster) { LobbyId = id, Roster = WFCrewRoster.Medical });

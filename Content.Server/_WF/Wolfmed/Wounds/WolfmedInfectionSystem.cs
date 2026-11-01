@@ -37,7 +37,7 @@ namespace Content.Server._WF.Wolfmed.Wounds;
 // Poison; the toxin load is its own route. Playtest 5: septic shock is a consciousness pressure (the patient is out,
 // not dying) and the organ damage past wolfmed.sepsis_organ_damage_from is the only death in it: the lungs fail and
 // the brain starves.
-public sealed class WolfmedInfectionSystem : EntitySystem
+public sealed partial class WolfmedInfectionSystem : EntitySystem
 {
     /// <summary>The shipped profile. A downstream server retunes the prototype, not this file.</summary>
     public const string DefaultProfile = "WFWolfmedDefaultInfection";

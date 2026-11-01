@@ -21,6 +21,9 @@ namespace Content.IntegrationTests.Tests._WF.ArmorSpecialization;
 [TestFixture]
 public sealed class WFArmorSpecializationTest
 {
+    private static ProtoId<Content.Shared.Chemistry.Reagent.ReagentPrototype> SulfuricAcidProto => "SulfuricAcid";
+    private static ProtoId<Content.Shared.Chemistry.Reagent.ReagentPrototype> WaterProto => "Water";
+
     private static EntityUid Part(IEntityManager entities, EntityUid body, BodyPartType type,
         BodyPartSymmetry symmetry = BodyPartSymmetry.None)
     {
@@ -450,8 +453,8 @@ public sealed class WFArmorSpecializationTest
 
             var janitor = Wear(entities, coords, "ClothingOuterEVASuitJanitor");
             var prototypes = server.ResolveDependency<IPrototypeManager>();
-            var acid = prototypes.Index<Content.Shared.Chemistry.Reagent.ReagentPrototype>("SulfuricAcid");
-            var water = prototypes.Index<Content.Shared.Chemistry.Reagent.ReagentPrototype>("Water");
+            var acid = prototypes.Index<Content.Shared.Chemistry.Reagent.ReagentPrototype>(SulfuricAcidProto);
+            var water = prototypes.Index<Content.Shared.Chemistry.Reagent.ReagentPrototype>(WaterProto);
             Assert.That(specs.BlocksTouch(janitor, acid), Is.True, "Decon coating keeps splashes off.");
             Assert.That(specs.BlocksTouch(janitor, water), Is.False, "Water still puts the wearer out.");
             Assert.That(specs.BlocksTouch(bare, acid), Is.False);

@@ -93,7 +93,7 @@ public record struct UsedShipListedEvent(UsedShipListing Listing);
 /// Keeps the round's used ship lot: copies every ship sold on a marked station, and hands the
 /// copies back out when someone buys one. In memory only, cleared on round restart.
 /// </summary>
-public sealed class UsedShipMarketSystem : EntitySystem
+public sealed partial class UsedShipMarketSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private DockingSystem _docking = default!;

@@ -39,16 +39,17 @@ public sealed class AugmentClothedTest : InteractionTest
 
         await Client.WaitAssertion(() =>
         {
+            var sprites = CEntMan.System<SpriteSystem>();
             var sprite = CEntMan.GetComponent<SpriteComponent>(CPlayer);
             // Vulpkanin draw their hands before their feet; the uniform must still stay under the hands.
             var suitTop = CEntMan.GetComponent<InventorySlotsComponent>(CPlayer).VisualLayerKeys["jumpsuit"]
-                .Max(key => sprite.LayerMapGet(key));
+                .Max(key => sprites.LayerMapGet((CPlayer, sprite), key));
             foreach (var hand in new[] { HumanoidVisualLayers.LHand, HumanoidVisualLayers.RHand })
-                Assert.That(sprite.LayerMapGet(hand), Is.GreaterThan(suitTop), $"The jumpsuit draws over the {hand}.");
+                Assert.That(sprites.LayerMapGet((CPlayer, sprite), hand), Is.GreaterThan(suitTop), $"The jumpsuit draws over the {hand}.");
 
             foreach (var layer in new[] { HumanoidVisualLayers.LArm, HumanoidVisualLayers.RArm, HumanoidVisualLayers.LHand, HumanoidVisualLayers.RHand })
             {
-                var spriteLayer = (SpriteComponent.Layer) sprite[sprite.LayerMapGet(layer)];
+                var spriteLayer = (SpriteComponent.Layer) sprite[sprites.LayerMapGet((CPlayer, sprite), layer)];
                 Assert.That(spriteLayer.Visible, $"{layer} is hidden under the clothes.");
                 Assert.That(spriteLayer.ActualRsi?.Path.ToString(), Does.Contain("_WF/Augments/xion2.rsi"), $"{layer} draws flesh.");
             }
