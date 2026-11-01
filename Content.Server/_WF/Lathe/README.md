@@ -100,6 +100,7 @@ use, editing queued totals), `FabricationSiloMenu` and `LatheMenu.Wolfgate`.
   - moved above
 - [`Content.Client/Materials/UI/OreSiloMenu.xaml.cs`](../../../Content.Client/Materials/UI/OreSiloMenu.xaml.cs): list filling is static so fabrication silo windows share it; the parameter keeps the field's name so the body is unchanged
 - [`Content.Server/Lathe/LatheSystem.cs`](../../Lathe/LatheSystem.cs)
+  - a lathe saved mid-print loads with no recipe and would never start again
   - cap the batch size
   - queued jobs wait for supplies; batch size and queue length are capped
   - skip blocked batches without dropping them
@@ -109,6 +110,7 @@ use, editing queued totals), `FabricationSiloMenu` and `LatheMenu.Wolfgate`.
   - a queued batch waiting for supplies is not being fabricated
   - add the printing batch and recipe readiness
   - count parts in the linked parts silo
+- [`Content.Shared/Lathe/LatheComponent.cs`](../../../Content.Shared/Lathe/LatheComponent.cs): the queue isn't saved, since a batch can't serialize and a queued lathe made ship copies throw
 - [`Content.Shared/Lathe/LatheMessages.cs`](../../../Content.Shared/Lathe/LatheMessages.cs): partial for silo state
 - [`Content.Shared/Lathe/SharedLatheSystem.cs`](../../../Content.Shared/Lathe/SharedLatheSystem.cs): count the linked chemical silo
 - [`Resources/Locale/en-US/lathe/ui/lathe-menu.ftl`](../../../Resources/Locale/en-US/lathe/ui/lathe-menu.ftl)

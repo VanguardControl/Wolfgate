@@ -26,7 +26,9 @@ namespace Content.Shared.Lathe
         /// <summary>
         /// The lathe's construction queue
         /// </summary>
-        [DataField]
+        // WOLFGATE(Lathe): the queue isn't saved, since a batch can't serialize and a queued lathe made ship copies throw
+        // [DataField]
+        [ViewVariables]
         public List<LatheRecipeBatch> Queue = new(); // Frontier: LatheRecipePrototype<LatheRecipeBatch
 
         /// <summary>
