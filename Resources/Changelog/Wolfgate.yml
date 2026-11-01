@@ -4358,3 +4358,42 @@ Entries:
   id: 100293
   time: '2026-11-01T00:51:32.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/432
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Buying a safety deposit box now updates your bank balance right away.
+    - type: Fix
+      message: Mercenary hardsuit helmets no longer show as an error on Vulpkanin.
+    - type: Fix
+      message: Slimes sucked up while latching stay in the xenovac tank.
+    - type: Fix
+      message: The SRD can rebuild windows on their grilles again.
+    - type: Fix
+      message: Voice mask speech styles work in local chat.
+    - type: Fix
+      message: Executed heretics can be sold on the data exchange pallet.
+    - type: Fix
+      message: Diona no longer fall over when a ship jumps to FTL.
+    - type: Fix
+      message: Face-covering masks now hide your name when you examine yourself.
+    - type: Fix
+      message: Cable coils can now open the surgery that replaces damaged IPC servos.
+    - type: Fix
+      message: Selling a ship with a lathe queue running no longer loses the ship.
+    - type: Tweak
+      message: Reaver combat and void hardsuits now match the M86.
+    - type: Add
+      message: >-
+        The ADS now protects asteroids in its space. Mine one and you get a
+        warning. Keep mining and it treats you as a threat.
+    - type: Fix
+      message: >-
+        Footprints and drag trails now use up the puddle, and small puddles
+        leave fainter prints.
+    - type: Fix
+      message: The Reavers keep attacking the SY Reach after its crew leaves.
+    - type: Fix
+      message: Holoflares that land in a wall still give light.
+  id: 100294
+  time: '2026-11-01T01:13:43.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/428
