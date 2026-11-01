@@ -66,6 +66,7 @@ The warning makes the hang visible; it doesn't remove it. That takes a fallback 
   - follow the join stages
   - this screen closing is the end of the join
 - [`Content.Client/Launcher/LauncherConnectingGui.xaml`](../../../Content.Client/Launcher/LauncherConnectingGui.xaml)
+  - name the box and title so the join console can size and restyle them
   - console rows on every page; the join console also names the box, title and header here
   - stuck warning and join buttons
 - [`Content.Client/Launcher/LauncherConnectingGui.xaml.cs`](../../../Content.Client/Launcher/LauncherConnectingGui.xaml.cs)

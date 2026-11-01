@@ -6,6 +6,7 @@
     <parallax:ParallaxControl />
     <Control HorizontalAlignment="Center" VerticalAlignment="Center">
         <PanelContainer StyleClasses="AngleRect" />
+        <!-- WOLFGATE(JoinProgress): name the box and title so the join console can size and restyle them -->
         <BoxContainer Name="JoinConsoleBox" Orientation="Vertical" MinSize="300 200">
             <BoxContainer Orientation="Horizontal">
                 <Label Name="JoinConsoleTitle" Margin="8 0 0 0" Text="{Loc 'connecting-title'}"
