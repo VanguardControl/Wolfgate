@@ -1,4 +1,6 @@
 #nullable enable
+using Content.IntegrationTests.Fixtures.Attributes;
+using Content.Shared._WF.Wolfmed.CCVar;
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
@@ -41,6 +43,8 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 [TestOf(typeof(WolfmedConcussionSystem))]
 public sealed class WolfmedBluntWoundTest : WolfmedGameTest
 {
+    private static readonly ProtoId<WoundPrototype> WFWolfmedDislocationWoundProto = "WFWolfmedDislocationWound";
+
     // M6: WFWolfmedFractureProfile with every grade's creation chance at 1, so FractureGradeTest is not a roll.
     [TestPrototypes]
     private const string TestProtos = @"
@@ -318,6 +322,8 @@ public sealed class WolfmedBluntWoundTest : WolfmedGameTest
     [Test]
     public async Task DislocationIsSetByHandTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
@@ -370,7 +376,7 @@ public sealed class WolfmedBluntWoundTest : WolfmedGameTest
             });
 
             // Doing it to yourself is the same procedure, slower and twice as painful.
-            var prototype = prototypes.Index<WoundPrototype>("WFWolfmedDislocationWound");
+            var prototype = prototypes.Index<WoundPrototype>(WFWolfmedDislocationWoundProto);
             Assert.That(prototype.TryGetBehavior(FixedPoint2.New(10), out WolfmedDislocationBehavior behavior));
             Assert.Multiple(() =>
             {

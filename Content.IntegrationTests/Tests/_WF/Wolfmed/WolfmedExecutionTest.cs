@@ -57,6 +57,8 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 [TestOf(typeof(WolfmedExecutionSystem))]
 public sealed class WolfmedExecutionTest : WolfmedGameTest
 {
+    private static readonly EntProtoId Shellshotgun12GaugeflechetteProto = "ShellShotgun12_gaugeFlechette";
+
     private const string Artery = "WFWolfmedArterialBleedWound";
     private const string Gunshot = "WFWolfmedGunshotWound";
     private const string Stump = "DismembermentWound";
@@ -163,7 +165,7 @@ public sealed class WolfmedExecutionTest : WolfmedGameTest
             foamClub = SEntMan.SpawnEntity("CavemanClubCursed", map.GridCoords);
             foreach (var prototype in SProtoMan.EnumeratePrototypes<EntityPrototype>())
             {
-                if (!prototype.Abstract && prototype.TryGetComponent(out ExecutionComponent? _, factory))
+                if (!prototype.Abstract && prototype.TryComp(out ExecutionComponent? _, factory))
                     carriers[prototype.ID] = SEntMan.SpawnEntity(prototype.ID, map.GridCoords);
             }
 
@@ -229,7 +231,7 @@ public sealed class WolfmedExecutionTest : WolfmedGameTest
 
             // The flechette shell is what pins "a spread is heavy whatever it sums to": buckshot reaches the line anyway.
             var flechette = execution.MeasureRound((weapons["WeaponPistolViper"], pistol),
-                SProtoMan.Index<EntityPrototype>("ShellShotgun12_gaugeFlechette"));
+                SProtoMan.Index(Shellshotgun12GaugeflechetteProto));
             Assert.Multiple(() =>
             {
                 Assert.That(flechette.Pellets, Is.EqualTo(6));
@@ -341,6 +343,8 @@ public sealed class WolfmedExecutionTest : WolfmedGameTest
     [Test]
     public async Task BluntTiersTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         await Pin();
         var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
@@ -796,6 +800,8 @@ public sealed class WolfmedExecutionTest : WolfmedGameTest
     [Test]
     public async Task BladeTiersTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         await Pin();
         var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);

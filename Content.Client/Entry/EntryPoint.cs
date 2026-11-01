@@ -177,6 +177,7 @@ namespace Content.Client.Entry
             _chatManager.Initialize();
             _clientPreferencesManager.Initialize();
             _clientConsentManager.Initialize(); // WOLFGATE(Genitals): consent system
+            IoCManager.Resolve<_WF.JoinProgress.JoinProgressManager>().Initialize(); // WOLFGATE(JoinProgress): register the download size message
             _euiManager.Initialize();
             _voteManager.Initialize();
             _userInterfaceManager.SetDefaultTheme("WFTheme"); // WOLFGATE(Stylesheets): Wolfgate HUD theme by default

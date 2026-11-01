@@ -1,4 +1,6 @@
 #nullable enable
+using Content.IntegrationTests.Fixtures.Attributes;
+using Content.Shared._WF.Wolfmed.CCVar;
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
@@ -32,7 +34,7 @@ using Robust.Shared.Prototypes;
 namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 
 /// <summary>
-/// EVISC: a torso opened by a hit its 250 cap could not absorb. The torso is the one part D9 never severs,
+/// EVISC: a torso opened by a hit its 200 cap could not absorb. The torso is the one part D9 never severs,
 /// so the overflow that would take a limb off buys disembowelment instead.
 /// </summary>
 /// <remarks>
@@ -45,8 +47,13 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 [TestOf(typeof(WolfmedEviscerationSystem))]
 public sealed class WolfmedEviscerationTest : WolfmedGameTest
 {
+    private static readonly ProtoId<WolfmedDegradationProfilePrototype> WFWolfmedDegradationDefaultProto = "WFWolfmedDegradationDefault";
+    private static readonly EntProtoId WFSurgeryCloseEviscerationProto = "WFSurgeryCloseEvisceration";
+    private static readonly EntProtoId WFSurgeryWeldChassisBreachProto = "WFSurgeryWeldChassisBreach";
+    private static readonly ProtoId<WolfmedEviscerationProfilePrototype> WFWolfmedEviscerationDefaultProto = "WFWolfmedEviscerationDefault";
+
     /// <summary>The torso's structural cap (Body/parts.yml). One hit of this puts it exactly at the line.</summary>
-    private const int Cap = 250;
+    private const int Cap = 200; // revival pass: 250 -> 200
 
     /// <summary>Past the profile's 35 Slash bar, so the hit after the cap tears the belly open.</summary>
     private const int BigSlash = 50;
@@ -120,7 +127,7 @@ public sealed class WolfmedEviscerationTest : WolfmedGameTest
 
             // V3: the torso shows its worst degradation while the wound is there, and nothing whittles it down.
             var degradation = entities.System<WolfmedDegradationVisualsSystem>();
-            var visuals = prototypes.Index<WolfmedDegradationProfilePrototype>("WFWolfmedDegradationDefault");
+            var visuals = prototypes.Index<WolfmedDegradationProfilePrototype>(WFWolfmedDegradationDefaultProto);
             Assert.That(degradation.GetStage(torso, visuals), Is.EqualTo(WolfmedPartDegradation.Bone),
                 "severity 70 is past the degradation profile's stage 2, so the overlay sits at its worst.");
         });
@@ -300,6 +307,8 @@ public sealed class WolfmedEviscerationTest : WolfmedGameTest
     [Test]
     public async Task ItemsSlowItAndOnlySurgeryClosesItTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
@@ -497,6 +506,8 @@ public sealed class WolfmedEviscerationTest : WolfmedGameTest
     [Test]
     public async Task NamesAndSurgeriesExistTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var locale = server.ResolveDependency<ILocalizationManager>();
@@ -510,9 +521,9 @@ public sealed class WolfmedEviscerationTest : WolfmedGameTest
                 Assert.That(locale.HasString("wolfmed-wound-name-chassis-breach"));
                 Assert.That(locale.HasString("wolfmed-evisceration-popup"));
                 Assert.That(locale.HasString("wolfmed-chassis-breach-popup"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryCloseEvisceration"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryWeldChassisBreach"));
-                Assert.That(prototypes.HasIndex<WolfmedEviscerationProfilePrototype>("WFWolfmedEviscerationDefault"));
+                Assert.That(prototypes.HasIndex(WFSurgeryCloseEviscerationProto));
+                Assert.That(prototypes.HasIndex(WFSurgeryWeldChassisBreachProto));
+                Assert.That(prototypes.HasIndex<WolfmedEviscerationProfilePrototype>(WFWolfmedEviscerationDefaultProto));
             });
         });
     }

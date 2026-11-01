@@ -48,7 +48,8 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     private static readonly ProtoId<RadioChannelPrototype> Channel = "Traffic";
     private const int WarnLines = 3;
 
-    private TimeSpan _next;
+    /// <summary>Starts part way through the second, off the tick other one-second systems run on.</summary>
+    private TimeSpan _next = TimeSpan.FromSeconds(0.2);
     private readonly Dictionary<EntityUid, Crewed> _crewed = new();
     private readonly List<EntityUid> _stale = new();
     private readonly List<(EntityUid Encounter, WFEncounterShipState Ship)> _fleet = new();
@@ -155,6 +156,10 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
                 // Its own side and its formation are not intruders, nor are ships of its own company.
                 if (rival.Grid == ship.Grid || other == uid && rival.Side == ship.Side
                     || _escorts.AreInFormation(ship.Grid, rival.Grid))
+                    continue;
+
+                // The sides of an encounter that hasn't begun hold their fire on each other until a player comes near.
+                if (other == uid && !Comp<WFEncounterComponent>(uid).Begun)
                     continue;
 
                 var theirs = Company(rival.Grid);
@@ -642,8 +647,10 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     /// <summary>Whether a grid is another ship of the same encounter on the same side.</summary>
     private bool SameSide(WFEncounterComponent encounter, WFEncounterShipState ship, EntityUid grid)
     {
+#pragma warning disable CS0618 // The caller only has the component here.
         return TryComp<WFEncounterGridComponent>(grid, out var marker) && marker.Encounter == encounter.Owner
             && encounter.Ships.TryGetValue(marker.Key, out var other) && other.Side == ship.Side;
+#pragma warning restore CS0618
     }
 
     /// <summary>Whether a ship flies only civilian flags: a faction's civilian arm, or no company at all.</summary>

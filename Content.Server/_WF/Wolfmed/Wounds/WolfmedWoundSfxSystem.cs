@@ -25,7 +25,7 @@ namespace Content.Server._WF.Wolfmed.Wounds;
 /// so a blunt hit that opens a bleed sprays and a cut that clots on contact does not. A chassis has no
 /// bleeding to read, so its sparks still come straight off the wound.
 /// </remarks>
-public sealed class WolfmedWoundSfxSystem : EntitySystem
+public sealed partial class WolfmedWoundSfxSystem : EntitySystem
 {
     /// <summary>The shipped profile. Retuning the feedback layer is an edit to that prototype.</summary>
     public const string DefaultProfile = "WFWolfmedSfxDefault";
@@ -50,6 +50,7 @@ public sealed class WolfmedWoundSfxSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<WolfmedPartDamageEvent>(OnPartDamage);
         SubscribeLocalEvent<WolfmedWoundLifecycleEvent>(OnWoundLifecycle);
+        SubscribeLocalEvent<WolfmedWoundLadderReplacingEvent>(OnLadderReplacing);
     }
 
     /// <summary>Server time, so a system sharing the throttle stamps it the same way this one does.</summary>
@@ -132,6 +133,22 @@ public sealed class WolfmedWoundSfxSystem : EntitySystem
         }
 
         return total;
+    }
+
+    /// <summary>
+    /// Revival pass: a ladder swapping a cut for an artery rescales its severity to the new rung, so the bleeding sum can
+    /// fall while the bleed gets far worse. The swapped-out wound leaves the hit's baseline, and the new rung's
+    /// bleeding all reads as what this hit added.
+    /// </summary>
+    private void OnLadderReplacing(ref WolfmedWoundLadderReplacingEvent args)
+    {
+        if (CompOrNull<BodyPartComponent>(args.Part)?.Body is not { } body ||
+            !_pendingBleed.Contains(body) ||
+            !TryComp(body, out WolfmedWoundSfxComponent? state) ||
+            !TryComp(args.Old, out WoundBleedingComponent? old))
+            return;
+
+        state.BleedBefore = FixedPoint2.Max(FixedPoint2.Zero, state.BleedBefore - old.BleedingSeverity);
     }
 
     private void OnWoundLifecycle(ref WolfmedWoundLifecycleEvent args)

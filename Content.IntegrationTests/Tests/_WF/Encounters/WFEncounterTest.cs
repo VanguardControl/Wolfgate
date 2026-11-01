@@ -1,9 +1,11 @@
 #nullable enable
+using Content.IntegrationTests.Tests._WF.EngineCompat;
 using System.Linq;
 using System.Numerics;
 using Content.IntegrationTests.Tests.Interaction;
 using Content.Server._WF.Encounters.Components;
 using Content.Server._WF.Encounters.Systems;
+using Content.Server._WF.BattleLoad;
 using Content.Server._WF.NpcCrew.Components;
 using Content.Server._WF.NpcCrew.Systems;
 using Content.Client._WF.Encounters;
@@ -30,6 +32,13 @@ namespace Content.IntegrationTests.Tests._WF.Encounters;
 [TestOf(typeof(WFEncounterSystem))]
 public sealed partial class WFEncounterTest : InteractionTest
 {
+    private static ProtoId<WFEncounterPrototype> WFTestEncounterCheapProto => "WFTestEncounterCheap";
+    private static ProtoId<WFEncounterPrototype> WFTestEncounterZonedProto => "WFTestEncounterZoned";
+    private static ProtoId<WFEncounterPrototype> WFTestEncounterWaitingProto => "WFTestEncounterWaiting";
+    private static ProtoId<WFEncounterPrototype> WFTestEncounterWaitingSkirmishProto => "WFTestEncounterWaitingSkirmish";
+    private static ProtoId<WFEncounterPrototype> WFTestEncounterConvoyProto => "WFTestEncounterConvoy";
+    private static ProtoId<WFEncounterPrototype> WFTestEncounterWarZoneProto => "WFTestEncounterWarZone";
+
     private const string Convoy = "WFTestEncounterConvoy";
 
     // Spawned ships play sounds, and the client's room echo asserts on audio whose parent changes mid-setup.
@@ -130,6 +139,24 @@ public sealed partial class WFEncounterTest : InteractionTest
     vessel: WFDredger
     offset: 400, 0
     side: bad
+
+- type: wfEncounter
+  id: WFTestEncounterWaitingSkirmish
+  name: wf-encounter-name-convoy
+  start: Manual
+  startRadius: 300
+  ships:
+  - key: friend
+    vessel: WFDredger
+    side: good
+    warnRange: 600
+    attackRange: 600
+  - key: foe
+    vessel: WFDredger
+    offset: 400, 0
+    side: bad
+    warnRange: 600
+    attackRange: 600
 
 - type: wfEncounter
   id: WFTestEncounterWarZone
@@ -346,12 +373,12 @@ public sealed partial class WFEncounterTest : InteractionTest
                     Is.EqualTo(1), "One of a kind at a time.");
             }
 
-            foreach (var uid in SEntMan.EntityQuery<WFEncounterComponent>().Select(running => running.Owner).ToList())
+            foreach (var uid in SEntMan.EntityQuery<WFEncounterComponent>().Select(running => running.Uid()).ToList())
             {
                 system.End(uid);
             }
 
-            var cheap = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterCheap");
+            var cheap = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(WFTestEncounterCheapProto);
             Assert.That(system.TrySpawn(cheap, new MapCoordinates(new Vector2(13000, 13000), MapData.MapId), out encounter), Is.True);
             var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
             Assert.That(comp.Hidden, Is.True);
@@ -375,7 +402,7 @@ public sealed partial class WFEncounterTest : InteractionTest
         EntityUid encounter = default, ship = default, intruder = default;
         await Server.WaitAssertion(() =>
         {
-            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterZoned");
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(WFTestEncounterZonedProto);
             Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(5000, 5000), MapData.MapId), out encounter), Is.True);
             ship = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["guarded"].Grid;
 
@@ -487,7 +514,7 @@ public sealed partial class WFEncounterTest : InteractionTest
             transform.SetCoordinates(prey, new EntityCoordinates(MapData.MapUid, new Vector2(8400, 8000)));
             transform.SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(prey, new Vector2(2.5f)));
 
-            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterHunter");
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(WFTestEncounterHunterProto);
             Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(8000, 8000), MapData.MapId), out encounter), Is.True);
             hunter = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["hunter"].Grid;
         });
@@ -518,7 +545,7 @@ public sealed partial class WFEncounterTest : InteractionTest
         EntityUid encounter = default;
         await Server.WaitAssertion(() =>
         {
-            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterWaiting");
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(WFTestEncounterWaitingProto);
             Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(11000, 11000), MapData.MapId), out encounter), Is.True);
         });
         await RunTicks(400);
@@ -539,6 +566,68 @@ public sealed partial class WFEncounterTest : InteractionTest
                 Is.EqualTo(WFCrewObjectiveKind.Hold));
             Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
             Server.System<WFEncounterSystem>().End(encounter);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>The two sides of a battle that waits for a player hold their fire on each other until it begins.</summary>
+    [Test]
+    public async Task WaitingBattleSidesHoldFireUntilItBegins()
+    {
+        var config = Server.ResolveDependency<IConfigurationManager>();
+        EntityUid encounter = default;
+        await Server.WaitAssertion(() =>
+        {
+            config.SetCVar(EncountersCVars.Simulate, false);
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(WFTestEncounterWaitingSkirmishProto);
+            Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(13000, 13000), MapData.MapId), out encounter), Is.True);
+        });
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
+            var friend = comp.Ships["friend"];
+            Assert.That(comp.Begun, Is.False, "Nobody is near yet.");
+            Assert.That(friend.Virtual, Is.False);
+            Assert.That(Server.System<WFCrewAlertSystem>().GetHostileShips(friend.Grid, friend.Group), Is.Empty,
+                "The sides wait for the battle to begin.");
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player),
+                new EntityCoordinates(MapData.MapUid, new Vector2(13100, 13000)));
+        });
+        await WaitUntilServer(() => SEntMan.GetComponent<WFEncounterComponent>(encounter).Begun, 900);
+        await RunTicks(150);
+        await Server.WaitAssertion(() =>
+        {
+            var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
+            var friend = comp.Ships["friend"];
+            Assert.That(Server.System<WFCrewAlertSystem>().GetHostileShips(friend.Grid, friend.Group), Does.Contain(comp.Ships["foe"].Grid),
+                "Once begun, the sides fight.");
+            Server.System<SharedTransformSystem>().SetCoordinates(SEntMan.GetEntity(Player), new EntityCoordinates(MapData.MapUid, Vector2.Zero));
+            Server.System<WFEncounterSystem>().End(encounter);
+            config.SetCVar(EncountersCVars.Simulate, EncountersCVars.Simulate.DefaultValue);
+        });
+        await RunTicks(10);
+    }
+
+    /// <summary>No encounter starts by itself next to a hot battle; a pinned one still does.</summary>
+    [Test]
+    public async Task HotBattleHoldsBackUnpinnedSpawns()
+    {
+        await Server.WaitAssertion(() =>
+        {
+            var origin = new MapCoordinates(new Vector2(40000, 40000), MapData.MapId);
+            var heat = Server.System<WFBattleHeatSystem>();
+            var hot = Server.ResolveDependency<IConfigurationManager>().GetCVar(BattleLoadCVars.HotExplosions);
+            for (var i = 0; i < hot; i++)
+            {
+                heat.Record(origin);
+            }
+
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(WFTestEncounterConvoyProto);
+            var encounters = Server.System<WFEncounterSystem>();
+            Assert.That(encounters.TrySpawn(prototype, origin, out _), Is.False, "An unpinned spawn waits out the battle.");
+            Assert.That(encounters.TrySpawn(prototype, origin, out var pinned, pinned: true), Is.True, "A pinned spawn still goes.");
+            encounters.End(pinned);
         });
         await RunTicks(10);
     }
@@ -583,7 +672,7 @@ public sealed partial class WFEncounterTest : InteractionTest
     {
         await Server.WaitAssertion(() =>
         {
-            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterSkirmish");
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(WFTestEncounterSkirmishProto);
             Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(15000, 15000), MapData.MapId), out var encounter), Is.True);
             var comp = SEntMan.GetComponent<WFEncounterComponent>(encounter);
             var friend = comp.Ships["friend"].Grid;
@@ -641,7 +730,7 @@ public sealed partial class WFEncounterTest : InteractionTest
             Assert.That(zones.AtWar("TSF", "USSP"), Is.False);
             Assert.That(zones.AtWar("TSF", string.Empty), Is.False, "The unaffiliated are nobody's enemy.");
 
-            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterWarZone");
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(WFTestEncounterWarZoneProto);
             Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(17000, 17000), MapData.MapId), out encounter), Is.True);
             patrol = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"].Grid;
 
@@ -738,7 +827,7 @@ public sealed partial class WFEncounterTest : InteractionTest
         EntityUid encounter = default;
         await Server.WaitAssertion(() =>
         {
-            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>("WFTestEncounterWarZone");
+            var prototype = Server.ResolveDependency<IPrototypeManager>().Index<WFEncounterPrototype>(WFTestEncounterWarZoneProto);
             Assert.That(Server.System<WFEncounterSystem>().TrySpawn(prototype, new MapCoordinates(new Vector2(19000, 19000), MapData.MapId), out encounter), Is.True);
             var state = SEntMan.GetComponent<WFEncounterComponent>(encounter).Ships["patrol"];
             var crew = new List<EntityUid>();

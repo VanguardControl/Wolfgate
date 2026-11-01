@@ -45,6 +45,9 @@ public sealed partial class TraitSystem : EntitySystem
                 _whitelistSystem.IsBlacklistPass(traitPrototype.Blacklist, args.Mob))
                 continue;
 
+            if (_wfNewbie.TraitBlocked(traitPrototype, args.Player)) // WOLFGATE(Newbie): new players can't spawn with a kill-target trait
+                continue;
+
             // WOLFGATE(Traits) START: a condition-gated trait is only applied when its conditions hold for this spawn
             if (!WfTraitConditionsMet(args.Mob, args.JobId, traitPrototype))
                 continue;

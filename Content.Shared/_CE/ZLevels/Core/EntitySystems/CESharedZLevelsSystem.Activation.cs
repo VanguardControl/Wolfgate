@@ -45,6 +45,7 @@ public abstract partial class CESharedZLevelsSystem
 
     private void OnShutdown(Entity<CEZPhysicsComponent> entity, ref ComponentShutdown args)
     {
+        WFRaised.Remove(entity); // WOLFGATE(Performance): a deleted entity leaves the sprite passes
         SleepBody((entity, entity));
     }
 

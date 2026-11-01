@@ -1,4 +1,6 @@
 #nullable enable
+using Content.IntegrationTests.Fixtures.Attributes;
+using Content.Shared._WF.Wolfmed.CCVar;
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
@@ -36,6 +38,11 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 [TestOf(typeof(WolfmedCauterySystem))]
 public sealed class WolfmedBurnWoundTest : WolfmedGameTest
 {
+    private static readonly EntProtoId WFWolfmedSkinGraftProto = "WFWolfmedSkinGraft";
+    private static readonly EntProtoId WFSurgeryStepGraftSkinProto = "WFSurgeryStepGraftSkin";
+    private static readonly EntProtoId WFSurgeryGraftSkinProto = "WFSurgeryGraftSkin";
+    private static readonly ProtoId<WoundPrototype> WFWolfmedCharringWoundProto = "WFWolfmedCharringWound";
+
     /// <summary>
     /// A burn that reaches its critical stage leaves charred tissue, which nothing in a medkit reaches and
     /// which the graft surgery is the only exit from.
@@ -43,6 +50,8 @@ public sealed class WolfmedBurnWoundTest : WolfmedGameTest
     [Test]
     public async Task CharringComesOffTheBurnsTopStageTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
@@ -87,10 +96,10 @@ public sealed class WolfmedBurnWoundTest : WolfmedGameTest
             // The graft step treats it outright, which is the whole of the surgery's effect.
             Assert.Multiple(() =>
             {
-                Assert.That(prototypes.HasIndex<EntityPrototype>("WFWolfmedSkinGraft"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryStepGraftSkin"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryGraftSkin"));
-                Assert.That(prototypes.Index<WoundPrototype>("WFWolfmedCharringWound").DamageTypes, Is.Empty);
+                Assert.That(prototypes.HasIndex(WFWolfmedSkinGraftProto));
+                Assert.That(prototypes.HasIndex(WFSurgeryStepGraftSkinProto));
+                Assert.That(prototypes.HasIndex(WFSurgeryGraftSkinProto));
+                Assert.That(prototypes.Index<WoundPrototype>(WFWolfmedCharringWoundProto).DamageTypes, Is.Empty);
             });
 
             wounds.TreatWound(charring, FixedPoint2.MaxValue);
@@ -105,6 +114,8 @@ public sealed class WolfmedBurnWoundTest : WolfmedGameTest
     [Test]
     public async Task BurnAtItsCapEscalatesIntoCharringTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
@@ -143,6 +154,8 @@ public sealed class WolfmedBurnWoundTest : WolfmedGameTest
     [Test]
     public async Task HeatSealsBleedingWoundsTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();

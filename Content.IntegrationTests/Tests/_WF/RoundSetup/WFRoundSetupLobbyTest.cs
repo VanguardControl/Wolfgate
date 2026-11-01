@@ -44,6 +44,8 @@ namespace Content.IntegrationTests.Tests._WF.RoundSetup;
 [TestOf(typeof(WFRoundSetupSystem))]
 public sealed partial class WFRoundSetupLobbyTest
 {
+    private static readonly EntProtoId WFShipScenarioStationProto = "WFShipScenarioStation";
+
     [TestPrototypes]
     private const string Prototypes = @"
 - type: entity
@@ -98,7 +100,7 @@ public sealed partial class WFRoundSetupLobbyTest
             Assert.That(lobby.Host, Is.EqualTo(player));
             Assert.That(lobby.Scenario, Is.EqualTo(WFRoundScenario.Crashlanded));
             Assert.That(lobby.Access, Is.EqualTo(WFLobbyAccess.Requests));
-            Assert.That(lobby.AllowLateJoin, Is.False);
+            Assert.That(lobby.AllowLateJoin, Is.True, "Mid-round joining starts on.");
             Assert.That(lobby.Started, Is.False);
             Assert.That(lobby.Code, Is.Null);
             Assert.That(lobby.MemberCount, Is.EqualTo(1));
@@ -124,10 +126,10 @@ public sealed partial class WFRoundSetupLobbyTest
         {
             LobbyId = lobbyId,
             Access = (WFLobbyAccess) byte.MaxValue,
-            AllowLateJoin = true,
+            AllowLateJoin = false,
         });
         Assert.That(OwnLobby(state).Access, Is.EqualTo(WFLobbyAccess.Requests));
-        Assert.That(OwnLobby(state).AllowLateJoin, Is.False, "Malformed configuration must apply no fields.");
+        Assert.That(OwnLobby(state).AllowLateJoin, Is.True, "Malformed configuration must apply no fields.");
 
         state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.Configure)
         {
@@ -918,8 +920,8 @@ public sealed partial class WFRoundSetupLobbyTest
         Assert.That(OwnLobby(state).Portrait, Is.Not.Null);
         await pair.Server.WaitAssertion(() =>
         {
-            var prototype = pair.Server.ProtoMan.Index<EntityPrototype>("WFShipScenarioStation");
-            Assert.That(prototype.TryGetComponent<StationJobsComponent>(out var jobs, pair.Server.EntMan.ComponentFactory), Is.True);
+            var prototype = pair.Server.ProtoMan.Index(WFShipScenarioStationProto);
+            Assert.That(prototype.TryComp<StationJobsComponent>(out var jobs, pair.Server.EntMan.ComponentFactory), Is.True);
             Assert.That(jobs!.SetupAvailableJobs.Keys.Select(job => job.Id), Is.EquivalentTo(WFShipCrewJobs.Jobs));
         });
         state = await Request(pair, new WFRoundSetupRequest(WFRoundSetupAction.ApplyRoster) { LobbyId = id, Roster = WFCrewRoster.Medical });
@@ -989,7 +991,7 @@ public sealed partial class WFRoundSetupLobbyTest
                 var portrait = member.GetType().GetField("Portrait")!;
                 var before = portrait.GetValue(member);
                 typeof(WFRoundSetupSystem).GetMethod("Snapshot", BindingFlags.Instance | BindingFlags.NonPublic)!
-                    .Invoke(system, new object[] { lobby, pair.Player!.UserId, true, System.Array.Empty<WFRoundSetupJob>() });
+                    .Invoke(system, new object[] { lobby, pair.Player!.UserId, true, false, System.Array.Empty<WFRoundSetupJob>() });
                 Assert.That(portrait.GetValue(member), Is.SameAs(before), "Serialization must not refresh or clone a portrait.");
                 recorder.Calls.Clear();
                 recorder.DenyContractor = true;
@@ -1179,9 +1181,9 @@ public sealed partial class WFRoundSetupLobbyTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>Player ships keep ordinary late-join recruitment; only private scenario stations are hidden.</summary>
+    /// <summary>Ordinary joining neither lists nor spawns onto player ships or private scenario stations.</summary>
     [Test]
-    public async Task PlayerShipRecruitmentStaysOpen()
+    public async Task OrdinaryJoiningSkipsPlayerShips()
     {
         await using var pair = await PoolManager.GetServerClient(new PoolSettings { InLobby = true });
         var server = pair.Server;
@@ -1195,7 +1197,7 @@ public sealed partial class WFRoundSetupLobbyTest
             scenario = server.EntMan.SpawnEntity("WFRoundSetupQuotaTestStation", MapCoordinates.Nullspace);
             server.EntMan.AddComponent<WFShipScenarioStationComponent>(scenario);
             var setup = server.System<WFRoundSetupSystem>();
-            Assert.That(setup.CanSpawnOnStation(pair.Player!, ship), Is.True);
+            Assert.That(setup.CanSpawnOnStation(pair.Player!, ship), Is.False);
             Assert.That(setup.CanSpawnOnStation(pair.Player!, scenario), Is.False);
             server.System<StationJobsSystem>().UpdateJobsAvailable();
         });
@@ -1206,7 +1208,7 @@ public sealed partial class WFRoundSetupLobbyTest
         await pair.Client.WaitAssertion(() =>
         {
             var jobs = pair.Client.System<ClientGameTicker>().StationJobInformationList;
-            Assert.That(jobs.ContainsKey(shipNet), Is.True, "Player ships must still advertise crew jobs.");
+            Assert.That(jobs.ContainsKey(shipNet), Is.False, "Player ships take crew through Crew Setup only.");
             Assert.That(jobs.ContainsKey(scenarioNet), Is.False);
         });
         await server.WaitPost(() => server.System<GameTicker>().RestartRound());

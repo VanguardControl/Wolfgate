@@ -1920,7 +1920,8 @@
         orGroup: Mask
       - id: ClothingMaskScaredMime
         orGroup: Mask
-      - id: MimePowersImplanter
+      # WOLFGATE(Mime): the mime vow costs trait points now
+      # - id: MimePowersImplanter
 
 # Base Nyano mail
 

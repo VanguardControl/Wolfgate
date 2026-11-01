@@ -96,6 +96,13 @@ public class SharedHardpointSystem : EntitySystem
     {
         if (args.Anchored || comp.anchoring is null || TerminatingOrDeleted(target))
             return;
+        // WOLFGATE(Shuttles) START: a gun destroyed in the same impact is already gone; unanchoring it threw mid-crash
+        if (TerminatingOrDeleted(comp.anchoring.Value))
+        {
+            comp.anchoring = null;
+            return;
+        }
+        // WOLFGATE END
         _transformSystem.Unanchor(comp.anchoring.Value);
     }
 
@@ -174,7 +181,8 @@ public class SharedHardpointSystem : EntitySystem
         {
             if (!TryComp<HardpointComponent>(entity, out var hardComp))
                 continue;
-            if (hardComp.anchoring is not null)
+            // WOLFGATE(Drydock): a destroyed gun leaves a dead entry behind, which blocked rebuilt guns
+            if (hardComp.anchoring is { } held && !TerminatingOrDeleted(held))
                 continue;
             if ((hardComp.CompatibleTypes & component.CompatibleTypes) == 0)
                 continue;

@@ -261,6 +261,7 @@ namespace Content.Client.Lobby.UI
             // WOLFGATE END
 
             InitializeEmoteVoices(); // WOLFGATE(EmoteVoices)
+            InitializeSizePercent(); // WOLFGATE(Humanoid): typed percentages for height and width
             InitializeBloodColour(); // WOLFGATE(BloodColour)
 
             #endregion Sex
@@ -626,11 +627,13 @@ namespace Content.Client.Lobby.UI
             RefreshFlavorText();
             InitializeHeadshot(); // WOLFGATE(Headshot)
             InitializeCustomMarkings(); // WOLFGATE(CustomMarkings)
+            InitializeCompanyCard(); // WOLFGATE(Companies)
             InitializeMismatchedParts(); // WOLFGATE(Species)
             InitializeBiotype(); // WOLFGATE(Biotype)
             InitializeChatFont(); // WOLFGATE(ChatFont)
             InitializeTypingBubble(); // WOLFGATE(TypingBubble)
             InitializeLegStyle(); // WOLFGATE(LegStyle)
+            InitializeAugments(); // WOLFGATE(Augments)
 
             #region Dummy
 
@@ -871,6 +874,9 @@ namespace Content.Client.Lobby.UI
                         TraitConditionUi.AddTooltipLines(trait, _prototypeManager, tooltipParts);
                         // WOLFGATE END
 
+                        if (trait.NewbieBlocked) // WOLFGATE(Newbie): say why a newbie's saved pick won't apply
+                            tooltipParts.Add(Loc.GetString("wf-newbie-trait-blocked"));
+
                         if (tooltipParts.Count > 0)
                             selector.SetTooltip(string.Join("\n", tooltipParts));
                     }
@@ -920,6 +926,7 @@ namespace Content.Client.Lobby.UI
                         }
 
                         SetDirty();
+                        UpdateAugments(); // WOLFGATE(Augments): a trait with its own limbs takes those slots
 
                         UpdateTraitIncompatibilityVisibility(allSelectors);
 
@@ -1109,10 +1116,12 @@ namespace Content.Client.Lobby.UI
             foreach (var (traitId, selector) in allSelectors)
             {
                 var hide = false;
+                var greyOut = false; // WOLFGATE(Traits)
 
                 if (selected.Contains(traitId))
                 {
                     selector.Visible = true;
+                    selector.SetExcluded(false); // WOLFGATE(Traits)
                     continue;
                 }
 
@@ -1135,6 +1144,9 @@ namespace Content.Client.Lobby.UI
                 if (!hide && Profile != null && WFBiotypeGates.TraitBlocked(thisProto, Profile, _prototypeManager))
                     hide = true;
 
+                if (!hide && WfNewbieTraitBlocked(thisProto)) // WOLFGATE(Newbie): new players can't take kill-target traits
+                    hide = true;
+
                 if (!hide)
                 {
                     foreach (var sel in selected)
@@ -1144,6 +1156,14 @@ namespace Content.Client.Lobby.UI
 
                         if (selProto.MutuallyExclusiveTraits.Contains(traitId) || thisProto.MutuallyExclusiveTraits.Contains(sel))
                         {
+                            // WOLFGATE(Traits) START: opted-in traits stay visible and are greyed out
+                            if (thisProto.GreyOutWhenExcluded)
+                            {
+                                greyOut = true;
+                                break;
+                            }
+                            // WOLFGATE END
+
                             hide = true;
                             break;
                         }
@@ -1151,6 +1171,7 @@ namespace Content.Client.Lobby.UI
                 }
 
                 selector.Visible = !hide;
+                selector.SetExcluded(greyOut); // WOLFGATE(Traits)
             }
         }
 
@@ -1365,9 +1386,11 @@ namespace Content.Client.Lobby.UI
             UpdateFlavorTextEdit();
             UpdateHeadshot(); // WOLFGATE(Headshot)
             UpdateCustomMarkings(); // WOLFGATE(CustomMarkings)
+            UpdateCompanyCard(); // WOLFGATE(Companies)
             UpdateMismatchedParts(); // WOLFGATE(Species)
             UpdateBiotype(); // WOLFGATE(Biotype)
             UpdateLegStyle(); // WOLFGATE(LegStyle)
+            UpdateAugments(); // WOLFGATE(Augments)
             UpdateChatFont(); // WOLFGATE(ChatFont)
             UpdateTypingBubble(); // WOLFGATE(TypingBubble)
             UpdateSexControls();
@@ -2059,6 +2082,7 @@ namespace Content.Client.Lobby.UI
             Profile = Profile?.WithBiotype(WFBiotype.Default); // WOLFGATE(Biotype): a new species starts on its own biotype
             UpdateBiotype(); // WOLFGATE(Biotype)
             UpdateLegStyle(); // WOLFGATE(LegStyle): legs the new species lacks fall back to its own
+            UpdateAugments(); // WOLFGATE(Augments): augments the new species can't take are dropped
             UpdateTypingBubble(); // WOLFGATE(TypingBubble): the species' own bubble changes with it
             // WOLFGATE(Humanoid) START: keep the species picker and dropdown in step, drop hair the new species lacks
             EnforceSpeciesHair();

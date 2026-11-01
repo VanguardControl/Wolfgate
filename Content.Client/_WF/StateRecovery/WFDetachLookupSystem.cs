@@ -10,7 +10,7 @@ namespace Content.Client._WF.StateRecovery;
 /// parent's recursive removal, but the child is already in null-space by then. Its entry stays in the grid's sundries
 /// tree after it is deleted, and every lookup there logs an unresolvable transform.
 /// </remarks>
-public sealed class WFDetachLookupSystem : EntitySystem
+public sealed partial class WFDetachLookupSystem : EntitySystem
 {
     [Dependency] private EntityLookupSystem _lookup = default!;
 

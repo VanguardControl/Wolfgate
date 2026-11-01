@@ -9,7 +9,7 @@ using Robust.Shared.Utility;
 namespace Content.Client._WF.Headshot;
 
 /// <summary>Edits a profile's headshot URL, with a preview the server fetches exactly as examiners will see it.</summary>
-public sealed class HeadshotWindow : DefaultWindow
+public sealed partial class HeadshotWindow : DefaultWindow
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IEntityManager _entMan = default!;
@@ -69,7 +69,8 @@ public sealed class HeadshotWindow : DefaultWindow
         Contents.AddChild(new BoxContainer
         {
             Orientation = BoxContainer.LayoutOrientation.Vertical,
-            HorizontalExpand = true,
+            // Fixed, so a long URL scrolls inside the box instead of widening the window to fit it.
+            SetWidth = 460,
             Margin = new Thickness(8),
             SeparationOverride = 6,
             Children =

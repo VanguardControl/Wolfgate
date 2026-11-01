@@ -33,6 +33,7 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
 
         SubscribeLocalEvent<CEZPhysicsComponent, ComponentStartup>(OnStartup);
         SubscribeLocalEvent<CEZPhysicsComponent, GetEyeOffsetEvent>(OnEyeOffset);
+        SubscribeLocalEvent<CEZPhysicsComponent, AfterAutoHandleStateEvent>((uid, comp, _) => WFNoteHeight(uid, comp.LocalPosition)); // WOLFGATE(Performance): a height from the server joins the sprite passes
     }
 
     private void OnEyeOffset(Entity<CEZPhysicsComponent> ent, ref GetEyeOffsetEvent args)
@@ -50,6 +51,7 @@ public sealed partial class CEClientZLevelsSystem : CESharedZLevelsSystem
 
         ent.Comp.DrawDepthDefault = sprite.DrawDepth;
         ent.Comp.SpriteOffsetDefault = sprite.Offset;
+        WFNoteHeight(ent, ent.Comp.LocalPosition); // WOLFGATE(Performance): spawned off the ground
     }
 
     public override void Shutdown()
@@ -72,6 +74,9 @@ internal sealed partial class CEClientZLevelsPreAnimSystem : EntitySystem
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private EntityQuery<MapGridComponent> _mapGridQuery = default!;
     [Dependency] private EntityQuery<CEZPhysicsComponent> _zPhysQuery = default!;
+    // WOLFGATE(Performance): the raised list and the lookup that replace the all-entity query
+    [Dependency] private CEClientZLevelsSystem _zLevels = default!;
+    [Dependency] private EntityQuery<SpriteComponent> _spriteQuery = default!;
 
     public override void Initialize()
     {
@@ -83,9 +88,15 @@ internal sealed partial class CEClientZLevelsPreAnimSystem : EntitySystem
     {
         // Phase 1 (per render frame): strip any Z left from last frame so the animation player
         // always starts from a Z-free base, and Phase 2 can add exactly one Z contribution.
-        var query = EntityQueryEnumerator<CEZPhysicsComponent, SpriteComponent>();
-        while (query.MoveNext(out var uid, out var zPhys, out var sprite))
+        // WOLFGATE(Performance) START: walk only raised entities; nothing else has a height to strip
+        // var query = EntityQueryEnumerator<CEZPhysicsComponent, SpriteComponent>();
+        // while (query.MoveNext(out var uid, out var zPhys, out var sprite))
+        foreach (var uid in _zLevels.WFRaised)
         {
+            if (!_zPhysQuery.TryComp(uid, out var zPhys) || !_spriteQuery.TryComp(uid, out var sprite))
+                continue;
+            // WOLFGATE END
+
             var localPosition = zPhys.LocalPosition;
             _sprite.SetOffset((uid, sprite), zPhys.SpriteOffsetDefault);
 
@@ -135,6 +146,13 @@ internal sealed partial class CEClientZLevelsPostAnimSystem : EntitySystem
 {
     [Dependency] private SpriteSystem _sprite = default!;
     [Dependency] private SharedTransformSystem _xform = default!;
+    // WOLFGATE(Performance) START: the raised list and the lookups that replace the all-entity query
+    [Dependency] private CEClientZLevelsSystem _zLevels = default!;
+    [Dependency] private EntityQuery<CEZPhysicsComponent> _zPhysQuery = default!;
+    [Dependency] private EntityQuery<SpriteComponent> _spriteQuery = default!;
+    [Dependency] private EntityQuery<TransformComponent> _xformQuery = default!;
+    private readonly List<EntityUid> _landed = new();
+    // WOLFGATE END
 
     public override void Initialize()
     {
@@ -148,9 +166,20 @@ internal sealed partial class CEClientZLevelsPostAnimSystem : EntitySystem
         // At this point sprite.Offset == animationValue (or SpriteOffsetDefault if no anim ran).
         // The offset is counter-rotated by the entity's world angle so it always points world-up,
         // preventing it from orbiting the pivot when the entity has angular velocity (e.g. shurikens).
-        var query = EntityQueryEnumerator<CEZPhysicsComponent, SpriteComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var zPhys, out var sprite, out var xform))
+        // WOLFGATE(Performance) START: walk only raised entities; one that has landed leaves the list
+        // var query = EntityQueryEnumerator<CEZPhysicsComponent, SpriteComponent, TransformComponent>();
+        // while (query.MoveNext(out var uid, out var zPhys, out var sprite, out var xform))
+        _landed.Clear();
+        foreach (var uid in _zLevels.WFRaised)
         {
+            if (!_zPhysQuery.TryComp(uid, out var zPhys) || !_spriteQuery.TryComp(uid, out var sprite) ||
+                !_xformQuery.TryComp(uid, out var xform) || zPhys.LocalPosition == 0)
+            {
+                _landed.Add(uid);
+                continue;
+            }
+            // WOLFGATE END
+
             var rawZ = new Vector2(0, zPhys.LocalPosition * CESharedZLevelsSystem.ZLevelOffset);
             Vector2 zOffset;
             if (sprite.NoRotation)
@@ -159,5 +188,12 @@ internal sealed partial class CEClientZLevelsPostAnimSystem : EntitySystem
                 zOffset = new Angle(-_xform.GetWorldRotation(xform)).RotateVec(rawZ);
             _sprite.SetOffset((uid, sprite), sprite.Offset + zOffset);
         }
+
+        // WOLFGATE(Performance) START: removed after the walk, which can't change the set it enumerates
+        foreach (var uid in _landed)
+        {
+            _zLevels.WFRaised.Remove(uid);
+        }
+        // WOLFGATE END
     }
 }

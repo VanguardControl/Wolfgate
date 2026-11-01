@@ -29,6 +29,7 @@ using Robust.Shared.GameObjects;
 using Robust.Shared.IoC;
 using Robust.Shared.Map;
 using Robust.Shared.Maths;
+using Robust.Shared.Physics.Components;
 using Robust.Shared.Network;
 using Robust.Shared.Physics.Systems;
 using Robust.Shared.Prototypes;
@@ -80,7 +81,7 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
 ";
 
     /// <summary>Notes where a round reached the end of its fixed distance.</summary>
-    public sealed class FixedStopProbeSystem : EntitySystem
+    public sealed partial class FixedStopProbeSystem : EntitySystem
     {
         [Dependency] private SharedTransformSystem _transform = default!;
 
@@ -112,7 +113,7 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
     }
 
     /// <summary>Notes the rounds whose trigger-on-collide went off.</summary>
-    public sealed class CollideTriggerProbeSystem : EntitySystem
+    public sealed partial class CollideTriggerProbeSystem : EntitySystem
     {
         [Dependency] private INetManager _net = default!;
         [Dependency] private SharedTransformSystem _transform = default!;
@@ -172,8 +173,8 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
             {
                 if (proto.Abstract ||
                     proto.ID.Contains("Test") ||
-                    !proto.TryGetComponent<HardpointItemComponent>(out _, factory) ||
-                    !proto.TryGetComponent<GunComponent>(out _, factory))
+                    !proto.TryComp<HardpointItemComponent>(out _, factory) ||
+                    !proto.TryComp<GunComponent>(out _, factory))
                 {
                     continue;
                 }
@@ -210,16 +211,16 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
         var factory = SEntMan.ComponentFactory;
         var item = Comp<HardpointItemComponent>(gun);
         var vehicles = ProtoMan.EnumeratePrototypes<EntityPrototype>()
-            .Where(p => !p.Abstract && IsRosterVehicle(p) && p.TryGetComponent<VehicleWeaponsComponent>(out _, factory))
+            .Where(p => !p.Abstract && IsRosterVehicle(p) && p.TryComp<VehicleWeaponsComponent>(out _, factory))
             .OrderBy(p => p.ID.StartsWith("WF") ? 1 : 0)
             .ThenBy(p => p.ID);
 
         foreach (var vehicle in vehicles)
         {
-            if (!vehicle.TryGetComponent<HardpointSlotsComponent>(out var slots, factory))
+            if (!vehicle.TryComp<HardpointSlotsComponent>(out var slots, factory))
                 continue;
 
-            vehicle.TryGetComponent<ItemSlotsComponent>(out var itemSlots, factory);
+            vehicle.TryComp<ItemSlotsComponent>(out var itemSlots, factory);
             var itemSlotMap = itemSlots?.Slots;
 
             foreach (var slot in slots.Slots)
@@ -235,7 +236,7 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
                     !itemSlotMap!.TryGetValue(slot.Id, out var itemSlot) ||
                     itemSlot.StartingItem is not { } turretId ||
                     !ProtoMan.TryIndex<EntityPrototype>(turretId, out var turret) ||
-                    !turret.TryGetComponent<HardpointSlotsComponent>(out var turretSlots, factory))
+                    !turret.TryComp<HardpointSlotsComponent>(out var turretSlots, factory))
                 {
                     continue;
                 }
@@ -258,8 +259,8 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
     private bool IsRosterVehicle(EntityPrototype proto)
     {
         var factory = SEntMan.ComponentFactory;
-        if (!proto.TryGetComponent<RMCVehicleComponent>(out _, factory) ||
-            !proto.TryGetComponent<VehicleEnterComponent>(out var enter, factory))
+        if (!proto.TryComp<RMCVehicleComponent>(out _, factory) ||
+            !proto.TryComp<VehicleEnterComponent>(out var enter, factory))
         {
             return false;
         }
@@ -289,7 +290,7 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
 
     private T Comp<T>(EntityPrototype proto) where T : IComponent, new()
     {
-        if (!proto.TryGetComponent<T>(out var found, SEntMan.ComponentFactory))
+        if (!proto.TryComp<T>(out var found, SEntMan.ComponentFactory))
             throw new InvalidOperationException($"{proto.ID} has no {typeof(T).Name}.");
 
         return found;
@@ -323,16 +324,31 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
     }
 
     /// <summary>Puts <paramref name="user"/> at the vehicle's first doorway, uses the vehicle and waits out the do-after.</summary>
+    /// <summary>
+    /// Walks the user in through the first doorway. Entering is a do-after that breaks on movement, so the user is
+    /// stopped at the doorway first, and a try that a stray nudge or a stale doorway hold cancelled is tried again.
+    /// </summary>
     private async Task<bool> Enter(EntityUid vehicle, EntityUid user)
     {
         var doorway = SEntMan.GetComponent<VehicleEnterComponent>(vehicle).EntryPoints[0].Offset;
-        await Server.WaitPost(() => Transform.SetCoordinates(user, new EntityCoordinates(MapData.Grid.Owner, VehicleSpot + doorway)));
-        await RunTicks(2);
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            await Server.WaitPost(() =>
+            {
+                Transform.SetCoordinates(user, new EntityCoordinates(MapData.Grid.Owner, VehicleSpot + doorway));
+                if (SEntMan.TryGetComponent<PhysicsComponent>(user, out var body))
+                    SEntMan.System<SharedPhysicsSystem>().SetLinearVelocity(user, Vector2.Zero, body: body);
+            });
+            await RunTicks(2);
 
-        await Server.WaitPost(() => SEntMan.System<SharedInteractionSystem>().InteractionActivate(user, vehicle));
-        await RunTicks(120);
+            await Server.WaitPost(() => SEntMan.System<SharedInteractionSystem>().InteractionActivate(user, vehicle));
+            await RunTicks(120);
 
-        return SEntMan.HasComponent<VehicleInteriorOccupantComponent>(user);
+            if (SEntMan.HasComponent<VehicleInteriorOccupantComponent>(user))
+                return true;
+        }
+
+        return false;
     }
 
     private static void ResetGun(GunComponent gun)
@@ -373,20 +389,20 @@ public sealed partial class VehicleArmedWeaponsTest : InteractionTest
         var cartridge = ProtoMan.Index<EntityPrototype>(ammo.Proto!.Value);
         var bullet = ProtoMan.Index<EntityPrototype>(Comp<CartridgeAmmoComponent>(cartridge).Prototype);
 
-        gun.TryGetComponent<ShootAtFixedPointComponent>(out var fixedPoint, factory);
-        gun.TryGetComponent<OnShootTriggerAmmoTimerComponent>(out var timer, factory);
-        gun.TryGetComponent<VehicleHardpointAmmoComponent>(out var hardpointAmmo, factory);
-        bullet.TryGetComponent<ProjectileMaxFixedRangeComponent>(out var roundCap, factory);
+        gun.TryComp<ShootAtFixedPointComponent>(out var fixedPoint, factory);
+        gun.TryComp<OnShootTriggerAmmoTimerComponent>(out var timer, factory);
+        gun.TryComp<VehicleHardpointAmmoComponent>(out var hardpointAmmo, factory);
+        bullet.TryComp<ProjectileMaxFixedRangeComponent>(out var roundCap, factory);
 
         return new GunData
         {
             Item = Comp<HardpointItemComponent>(gun),
-            Pellets = bullet.TryGetComponent<ProjectileSpreadComponent>(out var spread, factory) ? spread.Count : 1,
+            Pellets = bullet.TryComp<ProjectileSpreadComponent>(out var spread, factory) ? spread.Count : 1,
             Fixed = fixedPoint,
             Timer = timer,
             HardpointAmmo = hardpointAmmo,
             RoundCap = roundCap,
-            TriggersAtStop = bullet.TryGetComponent<TriggerOnFixedDistanceStopComponent>(out _, factory),
+            TriggersAtStop = bullet.TryComp<TriggerOnFixedDistanceStopComponent>(out _, factory),
             Bullet = bullet.ID,
             Speed = Comp<GunComponent>(gun).ProjectileSpeed,
         };

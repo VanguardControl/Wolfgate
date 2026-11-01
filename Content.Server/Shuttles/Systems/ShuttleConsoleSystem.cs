@@ -122,11 +122,13 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
 
     private void OnDock(DockEvent ev)
     {
+        WFForgetDocks(); // WOLFGATE(Performance): consoles should see a new dock at once
         RefreshShuttleConsoles();
     }
 
     private void OnUndock(UndockEvent ev)
     {
+        WFForgetDocks(); // WOLFGATE(Performance): consoles should see an undock at once
         RefreshShuttleConsoles();
     }
 
@@ -354,6 +356,10 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
     public Dictionary<NetEntity, List<DockingPortState>> GetAllDocks()
     {
         // TODO: NEED TO MAKE SURE THIS UPDATES ON ANCHORING CHANGES!
+        // WOLFGATE(Performance) START: every open console asks for this, so share one walk of the docks
+        if (WFTryGetCachedDocks(out var wfCached))
+            return wfCached;
+        // WOLFGATE END
         var result = new Dictionary<NetEntity, List<DockingPortState>>();
         var query = AllEntityQuery<DockingComponent, TransformComponent, MetaDataComponent>();
 
@@ -390,6 +396,7 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
             gridDocks.Add(state);
         }
 
+        WFCacheDocks(result); // WOLFGATE(Performance)
         return result;
     }
 

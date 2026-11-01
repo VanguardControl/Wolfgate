@@ -34,6 +34,7 @@ public sealed partial class FootPrintsSystem : EntitySystem
     /// <summary>Prints one spot holds before new ones are skipped, so a busy corridor can't pile decals up.</summary>
     public const int MaxPrintsNearby = 8;
 
+    private const float MinAlpha = 0.01f;
     private const float NearbyRange = 0.5f;
     private const string ShoesSlot = "shoes";
     private const string SuitSlot = "outerClothing";
@@ -129,7 +130,9 @@ public sealed partial class FootPrintsSystem : EntitySystem
             Place(comp, grid, step, position + side.RotateVec(comp.OffsetPrint), rotation + StepRotationOffset);
         }
 
-        comp.PrintsColor = comp.PrintsColor.WithAlpha(MathF.Max(0f, comp.PrintsColor.A - comp.ColorReduceAlpha));
+        // Rounding can leave a sliver of alpha, which would place one more print nobody can see.
+        var alpha = comp.PrintsColor.A - comp.ColorReduceAlpha;
+        comp.PrintsColor = comp.PrintsColor.WithAlpha(alpha < MinAlpha ? 0f : alpha);
     }
 
     /// <summary>The footprint a walking mob leaves, or null for one with no feet to speak of.</summary>

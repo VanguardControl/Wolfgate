@@ -3,6 +3,7 @@ using System.Numerics;
 using Content.Shared._Mono.ShipRepair.Components;
 using Content.Shared.Charges.Components;
 using Content.Shared.Charges.Systems;
+using Content.Shared.Construction.Components;
 using Content.Shared.DoAfter;
 using Content.Shared.Popups;
 using Content.Shared.Whitelist;
@@ -12,6 +13,9 @@ using Robust.Shared.Configuration;
 using Robust.Shared.Map;
 using Robust.Shared.Map.Components;
 using Robust.Shared.Network;
+using Robust.Shared.Physics;
+using Robust.Shared.Physics.Components;
+using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.ShipRepair;
 
@@ -19,7 +23,9 @@ namespace Content.Shared._WF.ShipRepair;
 public sealed partial class WFHullSectionSystem : EntitySystem
 {
     [Dependency] private EntityWhitelistSystem _whitelist = default!;
+    [Dependency] private IComponentFactory _factory = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
+    [Dependency] private IPrototypeManager _proto = default!;
     [Dependency] private INetManager _net = default!;
     [Dependency] private SharedAudioSystem _audio = default!;
     [Dependency] private SharedChargesSystem _charges = default!;
@@ -167,6 +173,74 @@ public sealed partial class WFHullSectionSystem : EntitySystem
         return true;
     }
 
+    /// <summary>Whether the SRD may rebuild an entity here: <see cref="CanRebuildAt"/>, and nothing anchored in its way.</summary>
+    public bool CanRebuildEntityAt(EntityUid tool, EntityUid user, EntityUid hull, EntProtoId proto, Vector2i index, ShipRepairDataComponent data, ShipRepairChunk chunk)
+    {
+        if (!CanRebuildAt(tool, user, hull, index))
+            return false;
+
+        return !IsSpotTaken((hull, Comp<MapGridComponent>(hull)), proto, index, data, chunk) || Refuse(tool, user, "wf-ship-repair-occupied");
+    }
+
+    /// <summary>
+    /// Whether something anchored on the tile since would stop a wrench anchoring an entity of this prototype there.
+    /// Only wrenchable entities are checked. What the snapshot holds on this tile was built to share it, such as a
+    /// window and its grille, so only something else blocks.
+    /// </summary>
+    public bool IsSpotTaken(Entity<MapGridComponent> hull, EntProtoId proto, Vector2i index, ShipRepairDataComponent data, ShipRepairChunk chunk)
+    {
+        if (!_proto.TryIndex(proto, out var entProto) ||
+            !entProto.TryComp<AnchorableComponent>(out _, _factory) ||
+            !entProto.TryComp<FixturesComponent>(out var fixtures, _factory))
+            return false;
+
+        var layer = 0;
+        var mask = 0;
+        foreach (var fixture in fixtures.Fixtures.Values)
+        {
+            if (!fixture.Hard)
+                continue;
+            layer |= fixture.CollisionLayer;
+            mask |= fixture.CollisionMask;
+        }
+
+        if ((layer | mask) == 0)
+            return false;
+
+        var anchored = _map.GetAnchoredEntities(hull, hull.Comp, index);
+        while (anchored.MoveNext(out var uid))
+        {
+            if (!TryComp<PhysicsComponent>(uid, out var body) || !body.CanCollide || !body.Hard)
+                continue;
+
+            if ((body.CollisionMask & layer) == 0 && (body.CollisionLayer & mask) == 0)
+                continue;
+
+            if (Prototype(uid.Value)?.ID is { } other && other != proto.Id && InSnapshot(hull, data, chunk, uid.Value, other, index))
+                continue;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Whether the snapshot has this entity on the tile, or one of its prototype: a grille built by hand where the
+    /// ship's own stood still belongs under its window. The palette may hold a repair prototype, so identity counts too.
+    /// </summary>
+    private bool InSnapshot(EntityUid hull, ShipRepairDataComponent data, ShipRepairChunk chunk, EntityUid entity, string proto, Vector2i index)
+    {
+        var net = GetNetEntity(entity);
+        foreach (var spec in chunk.Entities.Values)
+        {
+            if ((spec.OriginalEntity == net || data.EntityPalette[spec.ProtoIndex].Id == proto) && TileOf(hull, spec.LocalPosition) == index)
+                return true;
+        }
+
+        return false;
+    }
+
     /// <summary>Whether the SRD may lay this hull tile: <see cref="CanRebuildAt"/>, and joined to the hull.</summary>
     public bool CanRebuildTileAt(EntityUid tool, EntityUid user, EntityUid hull, Vector2i index)
     {
@@ -272,7 +346,7 @@ public sealed partial class WFHullSectionSystem : EntitySystem
         _map.FindGridsIntersecting(xform.MapID, home, ref grids, true, false);
         var crowded = grids.Any(grid => grid.Owner != hull.Owner && grid.Owner != section.Owner && !IsGround(grid));
 
-        var tiles = _map.GetAllTilesEnumerator(section, section.Comp);
+        var tiles = _map.GetAllTiles(section, section.Comp);
         while (tiles.MoveNext(out var tile))
         {
             var index = tile.Value.GridIndices + offset;
@@ -290,7 +364,7 @@ public sealed partial class WFHullSectionSystem : EntitySystem
     public bool TouchesHull(Entity<MapGridComponent> hull, Entity<MapGridComponent> section)
     {
         var home = OffsetOf(section);
-        var tiles = _map.GetAllTilesEnumerator(section, section.Comp);
+        var tiles = _map.GetAllTiles(section, section.Comp);
         while (tiles.MoveNext(out var tile))
         {
             foreach (var offset in EdgeNeighbours)
@@ -313,7 +387,7 @@ public sealed partial class WFHullSectionSystem : EntitySystem
     public int CountTiles(Entity<MapGridComponent> grid)
     {
         var count = 0;
-        var tiles = _map.GetAllTilesEnumerator(grid, grid.Comp);
+        var tiles = _map.GetAllTiles(grid, grid.Comp);
         while (tiles.MoveNext(out _))
         {
             count++;

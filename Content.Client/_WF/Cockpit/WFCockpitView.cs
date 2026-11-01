@@ -133,10 +133,12 @@ public sealed partial class WFCockpitView : Control
             button.Group = group;
             button.OnPressed += _ =>
             {
+                _awaitedPage = null;
                 SelectPage(key);
                 SaveLayout();
             };
             button.Pressed = key == DefaultPage;
+            button.Visible = content is not IWFCockpitOptionalPage;
             selectors.AddChild(button);
             _selectors.Add(key, button);
             content.HorizontalExpand = content.VerticalExpand = true;
@@ -190,6 +192,7 @@ public sealed partial class WFCockpitView : Control
         AddChild(_camera);
         AddChild(_shields);
         InitializeGunnery(viewport);
+        InitializeScanner(viewport);
         LayoutContainer.SetAnchorPreset(this, LayoutContainer.LayoutPreset.Wide);
         screen.AddChild(this);
         LoadLayout();
@@ -225,7 +228,9 @@ public sealed partial class WFCockpitView : Control
         {
             _lease.Restore();
             _console.WfSetCockpitActive(false);
+#pragma warning disable CS0618 // Dispose is still how the engine tears a control down, and this cleanup depends on it.
             Dispose();
+#pragma warning restore CS0618
         }
     }
 
@@ -350,5 +355,6 @@ public sealed partial class WFCockpitView : Control
     {
         base.FrameUpdate(args);
         _console.WfCockpitRefresh();
+        SyncOptionalPages();
     }
 }

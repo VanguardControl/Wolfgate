@@ -53,6 +53,7 @@ public partial class ShuttleNavControl
             WfAttachRadarControls(layers);
     }
 
+#pragma warning disable CS0672, CS0618 // Dispose is still how the engine tears a control down, and this cleanup depends on it.
     protected override void Dispose(bool disposing)
     {
         if (disposing && _wfInstrumentRadar)
@@ -62,6 +63,7 @@ public partial class ShuttleNavControl
         }
         base.Dispose(disposing);
     }
+#pragma warning restore CS0672, CS0618
 
     private static void WfStyleMode(RadarModeButton button, string name, Func<bool> active)
     {

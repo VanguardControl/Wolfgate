@@ -28,7 +28,7 @@ using Robust.Shared.Random;
 namespace Content.Server._WF.RoundSetup;
 
 /// <summary>Down With Ye' Ship!: the SY Reach in drone space, ringed by three Reaver warships.</summary>
-public sealed class WFDoomedScenarioSystem : EntitySystem
+public sealed partial class WFDoomedScenarioSystem : EntitySystem
 {
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IRobustRandom _random = default!;
@@ -142,6 +142,8 @@ public sealed class WFDoomedScenarioSystem : EntitySystem
         EnsureComp<WFDoomedScenarioStationComponent>(station).LobbyId = lobbyId;
         _ships.AddVesselExpeditions(station, vessel);
         EnsureComp<WFDoomedScenarioComponent>(hull).LobbyId = lobbyId;
+        // Taking to the pods is no way out: the ambush goes on until the hull is gone.
+        EnsureComp<WFCrewHuntedHullComponent>(hull);
         // Registered to nobody: no deed to sell, and crew access opens it for the crew.
         _access.SetupRegisteredShip(hull, vessel.Name, Array.Empty<NetUserId>());
         var scenario = new Scenario(station);

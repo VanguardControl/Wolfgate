@@ -83,6 +83,10 @@ public sealed partial class MaterialStorageMagnetPickupSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        // WOLFGATE(Performance): finding what's due walks every magnet; NextScan keeps the rate
+        if (_timing.CurTick.Value % 3 != 0)
+            return;
+
         var query = EntityQueryEnumerator<MaterialStorageMagnetPickupComponent, MaterialStorageComponent, TransformComponent>();
         var currentTime = _timing.CurTime;
 

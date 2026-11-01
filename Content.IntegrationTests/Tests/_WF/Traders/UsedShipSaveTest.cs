@@ -5,6 +5,9 @@ using Content.Server._NF.Shipyard.Systems;
 using Content.Server._WF.Shipyard;
 using Content.Server.NPC.HTN;
 using Content.Server.NPC;
+using Content.Server.Lathe.Components;
+using Content.Shared.Lathe;
+using Content.Shared.Research.Prototypes;
 using Content.Server.Spreader;
 using Content.Shared._NF.Shipyard.Prototypes;
 using Content.Shared.Damage;
@@ -25,6 +28,10 @@ namespace Content.IntegrationTests.Tests._WF.Traders;
 [TestFixture]
 public sealed class UsedShipSaveTest
 {
+    private static readonly ProtoId<VesselPrototype> ArribaneProto = "Arribane";
+    private static readonly ProtoId<DamageTypePrototype> BluntProto = "Blunt";
+    private static readonly ProtoId<DamageTypePrototype> HeatProto = "Heat";
+
     [Test]
     public async Task DamagedShipWithVendorRoundTrips()
     {
@@ -43,7 +50,7 @@ public sealed class UsedShipSaveTest
 
         await server.WaitAssertion(() =>
         {
-            var vessel = protoMan.Index<VesselPrototype>("Arribane");
+            var vessel = protoMan.Index<VesselPrototype>(ArribaneProto);
             Assert.That(mapLoader.TryLoadGrid(map.MapId, vessel.ShuttlePath, out var grid), Is.True);
             shuttle = grid!.Value.Owner;
         });
@@ -52,8 +59,8 @@ public sealed class UsedShipSaveTest
 
         await server.WaitAssertion(() =>
         {
-            var blunt = protoMan.Index<DamageTypePrototype>("Blunt");
-            var heat = protoMan.Index<DamageTypePrototype>("Heat");
+            var blunt = protoMan.Index<DamageTypePrototype>(BluntProto);
+            var heat = protoMan.Index<DamageTypePrototype>(HeatProto);
             var children = new System.Collections.Generic.List<EntityUid>();
             var xforms = entMan.GetComponent<TransformComponent>(shuttle).ChildEnumerator;
             while (xforms.MoveNext(out var c)) children.Add(c);
@@ -119,7 +126,7 @@ public sealed class UsedShipSaveTest
         var shuttle = EntityUid.Invalid;
         await server.WaitAssertion(() =>
         {
-            var vessel = protoMan.Index<VesselPrototype>("Arribane");
+            var vessel = protoMan.Index<VesselPrototype>(ArribaneProto);
             Assert.That(mapLoader.TryLoadGrid(map.MapId, vessel.ShuttlePath, out var grid), Is.True);
             shuttle = grid!.Value.Owner;
         });
@@ -147,6 +154,64 @@ public sealed class UsedShipSaveTest
             shipyard.SetupShipyardIfNeeded();
             Assert.That(shipyard.TrySaveShip(shuttle, out var data), Is.True, "Save failed.");
             Assert.That(shipyard.TryAddSavedShip(data!, out _), Is.True, "Load failed.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A lathe printing with a queue used to make the copy throw, losing the whole ship.</summary>
+    [Test]
+    public async Task PrintingLatheRoundTrips()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false, Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entMan = server.EntMan;
+        var protoMan = server.ResolveDependency<IPrototypeManager>();
+        var shipyard = entMan.System<ShipyardSystem>();
+        var copy = EntityUid.Invalid;
+
+        await server.WaitAssertion(() =>
+        {
+            var vessel = protoMan.Index<VesselPrototype>(ArribaneProto);
+            Assert.That(entMan.System<MapLoaderSystem>().TryLoadGrid(map.MapId, vessel.ShuttlePath, out var grid), Is.True);
+            var shuttle = grid!.Value.Owner;
+
+            var children = entMan.GetComponent<TransformComponent>(shuttle).ChildEnumerator;
+            Assert.That(children.MoveNext(out var child), Is.True);
+            var lathe = entMan.SpawnAtPosition("Autolathe", entMan.GetComponent<TransformComponent>(child).Coordinates);
+            var comp = entMan.GetComponent<LatheComponent>(lathe);
+            var recipe = protoMan.EnumeratePrototypes<LatheRecipePrototype>().First();
+            comp.Queue.Add(new LatheRecipeBatch(recipe, 0, 2, null));
+            comp.CurrentRecipe = recipe;
+            entMan.EnsureComponent<LatheProducingComponent>(lathe);
+
+            shipyard.SetupShipyardIfNeeded();
+            Assert.That(shipyard.TrySaveShip(shuttle, out var data), Is.True, "Save failed.");
+            Assert.That(shipyard.TryAddSavedShip(data!, out var loaded), Is.True, "Load failed.");
+            copy = loaded!.Value;
+        });
+
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            var found = 0;
+            var query = entMan.EntityQueryEnumerator<LatheComponent, MetaDataComponent, TransformComponent>();
+            while (query.MoveNext(out var uid, out var lathe, out var meta, out var xform))
+            {
+                if (xform.GridUid != copy || meta.EntityPrototype?.ID != "Autolathe")
+                    continue;
+
+                found++;
+                Assert.Multiple(() =>
+                {
+                    Assert.That(lathe.Queue, Is.Empty);
+                    Assert.That(entMan.HasComponent<LatheProducingComponent>(uid), Is.False, "The copied lathe is stuck printing nothing.");
+                });
+            }
+
+            Assert.That(found, Is.GreaterThan(0), "The lathe did not come with the ship.");
         });
 
         await pair.CleanReturnAsync();

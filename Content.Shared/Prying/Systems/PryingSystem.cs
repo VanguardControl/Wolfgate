@@ -9,6 +9,7 @@ using Content.Shared.Prying.Components;
 using Content.Shared.Timing;
 using Content.Shared.Verbs;
 using Robust.Shared.Audio.Systems;
+using Robust.Shared.Player; // WOLFGATE(NpcPry)
 using Robust.Shared.Serialization;
 using PryUnpoweredComponent = Content.Shared.Prying.Components.PryUnpoweredComponent;
 
@@ -150,6 +151,15 @@ public sealed partial class PryingSystem : EntitySystem
         RaiseLocalEvent(user, ref modEv);
         // End DeltaV additions
 
+        // WOLFGATE(ArmorSpecialization) START: worn gear (servo assist) speeds prying with a tool, like other tool work.
+        if (tool != null && tool != user)
+        {
+            var wfSpeed = new Content.Shared._WF.ArmorSpecialization.WFToolSpeedEvent();
+            RaiseLocalEvent(user, ref wfSpeed);
+            toolModifier *= MathF.Max(wfSpeed.Multiplier, 0.1f);
+        }
+        // WOLFGATE END
+
         var doAfterArgs = new DoAfterArgs(EntityManager, user, TimeSpan.FromSeconds(modEv.BaseTime * modEv.PryTimeModifier / toolModifier), new DoorPryDoAfterEvent(), target, target, tool)
         {
             BreakOnDamage = true,
@@ -157,6 +167,12 @@ public sealed partial class PryingSystem : EntitySystem
             NeedHand = tool != user,
         };
 
+        // WOLFGATE(NpcPry) START: NPCs retry doors often; only log pries by players
+        if (!HasComp<ActorComponent>(user))
+        {
+        }
+        else
+        // WOLFGATE END
         if (tool != user && tool != null)
         {
             _adminLog.Add(LogType.Action, LogImpact.Low, $"{ToPrettyString(user)} is using {ToPrettyString(tool.Value)} to pry {ToPrettyString(target)}");

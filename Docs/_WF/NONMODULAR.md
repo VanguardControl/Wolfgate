@@ -14,28 +14,37 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Client/_Mono/Blocking/BlockingVisualsSystem.cs`](../../Content.Client/_Mono/Blocking/BlockingVisualsSystem.cs)
   - post-shader flags are set through SpriteSystem since engine 291
   - engine 291 ignores the sprite-wide GetScreenTexture/RaiseShaderEvent; they are per post-shader now
+- [`Content.Client/_Mono/PlantAnalyzer/PlantAnalyzerPredictionSystem.cs`](../../Content.Client/_Mono/PlantAnalyzer/PlantAnalyzerPredictionSystem.cs): was 0.01, so the slightest drift silently cancelled the scan
 - [`Content.Client/_Mono/Tiles/TileEntityShaderSystem.cs`](../../Content.Client/_Mono/Tiles/TileEntityShaderSystem.cs): engine 291 ignores the sprite-wide RaiseShaderEvent; it is per post-shader now
 - [`Content.Client/CharacterInfo/CharacterInfoSystem.cs`](../../Content.Client/CharacterInfo/CharacterInfoSystem.cs)
   - replays skip the character info request
   - Replay spectators have a local entity but no server to answer this request.
-- [`Content.Client/Chemistry/UI/ChemMasterWindow.xaml.cs`](../../Content.Client/Chemistry/UI/ChemMasterWindow.xaml.cs): a merge left the old guard nested over the new one, so an empty beaker with a full buffer threw
+- [`Content.Client/Chemistry/UI/ChemMasterWindow.xaml.cs`](../../Content.Client/Chemistry/UI/ChemMasterWindow.xaml.cs)
+  - last inputs the dosage defaults were built from
+  - keep typed pill and bottle amounts when an update changes nothing they depend on
+  - only reset on a change
+  - a merge left the old guard nested over the new one, so an empty beaker with a full buffer threw
+  - fire on mouse down; every update rebuilds these buttons, so one between press and release ate the click
 - [`Content.Client/Guidebook/GuidebookDataSystem.cs`](../../Content.Client/Guidebook/GuidebookDataSystem.cs)
   - replays skip the guidebook data request
   - partial for the network dependency
   - replay playback starts these systems without a server connection
 - [`Content.Client/Holopad/HolopadSystem.cs`](../../Content.Client/Holopad/HolopadSystem.cs)
   - post-shader flags are set through SpriteSystem since engine 291
+  - wizden#38042
   - engine 291 ignores the sprite-wide RaiseShaderEvent; it is per post-shader now
 - [`Content.Client/Lobby/LobbyUIController.cs`](../../Content.Client/Lobby/LobbyUIController.cs): unknown species falls back to the default
 - [`Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs`](../../Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs)
   - logs characters that can't be previewed
   - a character this build cannot preview is skipped instead of aborting the loop
+- [`Content.Client/Parallax/ParallaxSystem.cs`](../../Content.Client/Parallax/ParallaxSystem.cs): a map without a Parallax component falls back to this name, so load it or space is black
 - [`Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs`](../../Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs)
   - v291 Box2 asserts on inverted corners in debug builds; order them
   - batch radar edges so huge grids don't overflow the game thread stack
 - [`Content.Client/Stealth/StealthSystem.cs`](../../Content.Client/Stealth/StealthSystem.cs)
   - post-shader flags are set through SpriteSystem since engine 291
   - engine 291 ignores the sprite-wide GetScreenTexture/RaiseShaderEvent; they are per post-shader now
+- [`Content.Client/UserInterface/Controls/ListContainer.cs`](../../Content.Client/UserInterface/Controls/ListContainer.cs): rejoin the group, engine v291 drops it when a button leaves the tree
 - [`Content.Client/UserInterface/Systems/Admin/AdminUIController.cs`](../../Content.Client/UserInterface/Systems/Admin/AdminUIController.cs): a HUD layout swap rebuilds the button visible
 - [`Content.Client/UserInterface/Systems/Chat/ChatUIController.cs`](../../Content.Client/UserInterface/Systems/Chat/ChatUIController.cs): an unlimited check warns when the eye lags a long teleport
 - [`Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs`](../../Content.Client/UserInterface/Systems/Chat/Widgets/ChatBox.xaml.cs): Replay seeks and filter changes rebuild the output from scratch.
@@ -74,7 +83,12 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/_Goobstation/Tools/WeldingSparksSystem.cs`](../../Content.Server/_Goobstation/Tools/WeldingSparksSystem.cs)
   - tells an instant do-after from a running one
   - an instant do-after has already ended, so nothing would ever delete the effect
+- [`Content.Server/_Mono/Botany/PlantAnalyzer/PlantAnalyzerSystem.cs`](../../Content.Server/_Mono/Botany/PlantAnalyzer/PlantAnalyzerSystem.cs): was 0.01, so the slightest drift silently cancelled the scan
+- [`Content.Server/_NF/Contraband/Systems/ContrabandTurnInSystem.cs`](../../Content.Server/_NF/Contraband/Systems/ContrabandTurnInSystem.cs): an executed heretic's body is what the Sultanate pays for
 - [`Content.Server/_NF/PublicTransit/PublicTransitSystem.cs`](../../Content.Server/_NF/PublicTransit/PublicTransitSystem.cs): announce the departure, as FTLToDock now flies and OnShuttleArrival announces the stop
+- [`Content.Server/Administration/Systems/BwoinkSystem.cs`](../../Content.Server/Administration/Systems/BwoinkSystem.cs)
+  - a mention in an embed never pings; it goes in the content below
+  - only message content pings, and the payload suppresses every mention unless roles are allowed
 - [`Content.Server/Anomaly/Effects/ProjectileAnomalySystem.cs`](../../Content.Server/Anomaly/Effects/ProjectileAnomalySystem.cs): with nothing in range Pick threw, so a supercritical never ended and retried every tick
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs`](../../Content.Server/Atmos/EntitySystems/AtmosphereSystem.HighPressureDelta.cs)
   - Vector2 for the space-wind NaN guard
@@ -83,6 +97,13 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs`](../../Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs)
   - sums the bounty hand-in value
   - items handed in to a bounty are paid by its reward, not sold
+- [`Content.Server/Chat/Systems/ChatSystem.cs`](../../Content.Server/Chat/Systems/ChatSystem.cs)
+  - a voice mask's speech style
+  - a voice mask's speech style, for the wraps below
+  - speech style
+  - the speech style reaches a deaf listener's wrap too
+  - a speech style decides the bold too
+  - a voice mask's speech style wins, as it did before the language port dropped it here
 - [`Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs`](../../Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs)
   - a freed tile is never scheduled earlier than the current iteration.
   - a blocker never clears earlier than the current iteration.
@@ -103,6 +124,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs`](../../Content.Server/Shuttles/Systems/ShuttleSystem.FasterThanLight.cs)
   - start a real jump, as an ensured FTLComponent stayed Available and was removed
   - pick the dock without teleporting the shuttle there before the jump
+  - FTLKnockdownImmune, dropped by Monolith#3414, stops the knockdown again
   - the jump knocks crew down but never throws them off the grid; only leaving it strands you
 - [`Content.Server/Solar/EntitySystems/PowerSolarControlConsoleSystem.cs`](../../Content.Server/Solar/EntitySystems/PowerSolarControlConsoleSystem.cs)
   - closed UIs skip updates, so refresh on open
@@ -131,6 +153,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - whatever the piece replaced goes back on, instead of staying shut inside the piece
   - a suit deleted along with its wearer can't take the piece back
   - another suit's piece goes back to its suit, and what it covered is kept under this one
+- [`Content.Shared/DisplacementMap/DisplacementData.cs`](../../Content.Shared/DisplacementMap/DisplacementData.cs): wizden#38042, the stencil one draws nothing in UI sprite views
 - [`Content.Shared/Gibbing/Systems/GibbingSystem.cs`](../../Content.Shared/Gibbing/Systems/GibbingSystem.cs)
   - bodiless giblets are skipped when flung.
   - bodiless dropped contents are skipped instead of flung.
@@ -145,10 +168,23 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - removed - Appearance hashed by reference, broke equal profiles hashing alike
   - the company is part of the hash
 - [`Content.Shared/Projectiles/SharedProjectileSystem.cs`](../../Content.Shared/Projectiles/SharedProjectileSystem.cs): the client replays a thrown embed's collision in prediction, and the projectile is already in
+- [`Content.Shared/Temperature/Systems/SharedTemperatureSystem.cs`](../../Content.Shared/Temperature/Systems/SharedTemperatureSystem.cs): a band takes the slowdown of the lowest threshold above it; warming past a threshold gave it that threshold's heavier slowdown
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs`](../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.Revolver.cs): C# % keeps the sign, index 0 gave -1 and crashed the server
-- [`README.md`](../../README.md): reworded for Wolfgate build differences
+- [`LEGAL.md`](../../LEGAL.md)
+  - licence files live in LICENSES/
+  - credit the Starlight licence and the Goonstation-derived reactor
+- [`LICENSES/LicenseRef-Starlight.txt`](../../LICENSES/LicenseRef-Starlight.txt): Starlight licence text, required by the Starlight-licensed code under _Starlight and _FarHorizons.
+- [`README.md`](../../README.md)
+  - reworded for Wolfgate build differences
+  - credit the Starlight licence and the Goonstation-derived reactor
+- [`Resources/Audio/_Goobstation/Flock/attributions.yml`](../../Resources/Audio/_Goobstation/Flock/attributions.yml): Goon-sourced audio is CC-BY-NC-SA-3.0, not the label it was imported with
 - [`Resources/Audio/_Goobstation/RadioStation/`](../../Resources/Audio/_Goobstation/RadioStation/): Radio host tracks (Monolith#4833) re-encoded to mono Vorbis q0 to cut download size.
+- [`Resources/Audio/_Goobstation/RadioStation/ads/attributions.yml`](../../Resources/Audio/_Goobstation/RadioStation/ads/attributions.yml): Goon-sourced audio is CC-BY-NC-SA-3.0, not the label it was imported with
+- [`Resources/Audio/_Goobstation/RadioStation/misc/attributions.yml`](../../Resources/Audio/_Goobstation/RadioStation/misc/attributions.yml): Goon-sourced audio is CC-BY-NC-SA-3.0, not the label it was imported with
+- [`Resources/Audio/_Goobstation/RadioStation/music/goonstation/attributions.yml`](../../Resources/Audio/_Goobstation/RadioStation/music/goonstation/attributions.yml): Goon-sourced audio is CC-BY-NC-SA-3.0, not the label it was imported with
 - [`Resources/Audio/_Mono/RadioStation/`](../../Resources/Audio/_Mono/RadioStation/): Nulb vinyl tracks (Monolith#4835) re-encoded to mono Vorbis q0 to cut download size.
+- [`Resources/Audio/Effects/Gasp/attributions.yml`](../../Resources/Audio/Effects/Gasp/attributions.yml): Goon-sourced audio is CC-BY-NC-SA-3.0, not the label it was imported with
+- [`Resources/keybinds.yml`](../../Resources/keybinds.yml): camera focus toggle unbound by default; players hit it with Space by accident
 - [`Resources/Locale/en-US/_Mono/guidebook/guides.ftl`](../../Resources/Locale/en-US/_Mono/guidebook/guides.ftl): was Monolith Rules
 - [`Resources/Locale/en-US/_Mono/poi/stations.ftl`](../../Resources/Locale/en-US/_Mono/poi/stations.ftl)
   - keeps [bold]; upstream's [color=bold] tag is unbalanced
@@ -156,7 +192,10 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Locale/en-US/_Mono/prototypes/access/accesses.ftl`](../../Resources/Locale/en-US/_Mono/prototypes/access/accesses.ftl): Monolith#4816 shipped the Underground access levels without names
 - [`Resources/Maps/_Mono/Bluespace/prefracture.yml`](../../Resources/Maps/_Mono/Bluespace/prefracture.yml): Hardpoints mapped under the Unidentified Vessel's Scythe, Sunder and Flayer guns so gunnery links them.
 - [`Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml`](../../Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml): Hardpoint mapped under the asteroid ship's AK570 so gunnery links it.
+- [`Resources/Maps/_Mono/Outpost/caelestinus_central.yml`](../../Resources/Maps/_Mono/Outpost/caelestinus_central.yml): Sector map entity gets its Parallax component and Colossus Sector name back after the
+- [`Resources/Maps/_Mono/POI/Dungeons/zvezda.yml`](../../Resources/Maps/_Mono/POI/Dungeons/zvezda.yml): Zvezda lighting re-work and power generation.
 - [`Resources/Maps/_Mono/POI/pdvhelios.yml`](../../Resources/Maps/_Mono/POI/pdvhelios.yml): Helios mapping fixes for lighting, wallmounts and small layout tweaks.
+- [`Resources/Maps/_Mono/POI/tsfmc_industry.yml`](../../Resources/Maps/_Mono/POI/tsfmc_industry.yml): Stellar Blessing lighting, colour-coded distro, fire suit lockers and extinguishers.
 - [`Resources/migration.yml`](../../Resources/migration.yml): Monolith#4816 renamed the WL-01 suit and helmet without a migration
 - [`Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml`](../../Resources/Prototypes/_Goobstation/Entities/Clothing/Head/modsuit.yml): unsealing strips only the seal's own components, not the ones this helmet always has
 - [`Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/production_bounties.yml`](../../Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/production_bounties.yml): the camera bounty asked for optical sensors (OpticsEconomy1)
@@ -167,9 +206,12 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - PDV pack, 1250->1000 (+100 tax over mat cost)
 - [`Resources/Prototypes/_Mono/Catalogs/tsfmc_uplink_catalog.yml`](../../Resources/Prototypes/_Mono/Catalogs/tsfmc_uplink_catalog.yml): PDV pack, price 125->175
 - [`Resources/Prototypes/_Mono/Catalogs/VendingMachines/Inventories/ussp.yml`](../../Resources/Prototypes/_Mono/Catalogs/VendingMachines/Inventories/ussp.yml): the loaded magazine is class-3 contraband worth 10 FMC since Monolith#4816
+- [`Resources/Prototypes/_Mono/Claws/reptilian.yml`](../../Resources/Prototypes/_Mono/Claws/reptilian.yml): huge claws never stop a lizard shooting; they take the worst spread instead
 - [`Resources/Prototypes/_Mono/Entities/Objects/Economy/components.yml`](../../Resources/Prototypes/_Mono/Entities/Objects/Economy/components.yml): Monolith#4805 commented the price out with the flash, leaving 300 for a good made from 1800
 - [`Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/charon_launcher.yml`](../../Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/charon_launcher.yml): CHARON damage doubled, it fell behind the other heavy guns
+- [`Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/projectiles.yml`](../../Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/projectiles.yml): CYREXA APHE 12000->6000, its wall DPS at range outclassed every other medium gun
 - [`Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/standardlarge_kinetic.yml`](../../Resources/Prototypes/_Mono/Entities/SpaceArtillery/SpaceArtillery/Kinetic/standardlarge_kinetic.yml): CYREXA 2->1, its shells one-shot any hardpoint or wall
+- [`Resources/Prototypes/_Mono/Entities/Structures/Machines/CrocusVendors/crocus_vendors.yml`](../../Resources/Prototypes/_Mono/Entities/Structures/Machines/CrocusVendors/crocus_vendors.yml): label matches the item's name
 - [`Resources/Prototypes/_Mono/Entities/Structures/Shuttles/capital_thrusters.yml`](../../Resources/Prototypes/_Mono/Entities/Structures/Shuttles/capital_thrusters.yml): PDV pack, capital thruster 400->600
 - [`Resources/Prototypes/_Mono/Entities/Structures/Shuttles/thrusters_nfsd.yml`](../../Resources/Prototypes/_Mono/Entities/Structures/Shuttles/thrusters_nfsd.yml): PDV pack, 0.33x of the 150 default; cant be upgraded with parts
 - [`Resources/Prototypes/_Mono/Entities/Structures/Shuttles/thrusters_rogue.yml`](../../Resources/Prototypes/_Mono/Entities/Structures/Shuttles/thrusters_rogue.yml): PDV pack, 0.33x of the 150 default; cant be upgraded with parts
@@ -178,11 +220,18 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - erotic roleplay rule entry removed, PR #27
 - [`Resources/Prototypes/_Mono/Language/underground.yml`](../../Resources/Prototypes/_Mono/Language/underground.yml): codespeak gets its own chat colour so speakers can tell it from Common
 - [`Resources/Prototypes/_Mono/Loadouts/MedicalDispatch/universal_groups.yml`](../../Resources/Prototypes/_Mono/Loadouts/MedicalDispatch/universal_groups.yml): the ER PDAs, was MedicalDoctorPDA and ContractorSeniorPhysicianPDA, whose ID resets to medical doctor access
+- [`Resources/Prototypes/_Mono/Outpost/caelestinus.yml`](../../Resources/Prototypes/_Mono/Outpost/caelestinus.yml)
+  - trade crate destinations must be on the station entity, not the grid
+  - moved from gridComponents so crates sold here count as delivered
+- [`Resources/Prototypes/_Mono/PointsOfInterest/Dungeon/zvezda.yml`](../../Resources/Prototypes/_Mono/PointsOfInterest/Dungeon/zvezda.yml)
+  - trade crate destinations must be on the station entity, not the grid
+  - moved from gridComponents so crates sold here count as delivered
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Factions/shipyard.yml`](../../Resources/Prototypes/_Mono/Recipes/Lathes/Factions/shipyard.yml)
   - PDV pack, composite cost 12000->9000
   - PDV pack, composite cost 23000->18000
 - [`Resources/Prototypes/_Mono/Roles/Jobs/Medical/medic.yml`](../../Resources/Prototypes/_Mono/Roles/Jobs/Medical/medic.yml): responders start with advanced jaws of life
 - [`Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/engivend.yml`](../../Resources/Prototypes/_NF/Catalog/VendingMachines/Inventories/engivend.yml): radiation suits buyable from the EngiVend
+- [`Resources/Prototypes/_NF/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/misc.yml`](../../Resources/Prototypes/_NF/Entities/Objects/Weapons/Guns/Ammunition/Projectiles/misc.yml): a flare that lands inside a wall still lights the room
 - [`Resources/Prototypes/_NF/Entities/Objects/Weapons/Guns/expedition_guns.yml`](../../Resources/Prototypes/_NF/Entities/Objects/Weapons/Guns/expedition_guns.yml): was WeaponSubMachineGunTypewriter, class-3 contraband since Monolith#4816
 - [`Resources/Prototypes/_NF/Entities/Structures/Machines/Computers/computers_tabletop.yml`](../../Resources/Prototypes/_NF/Entities/Structures/Machines/Computers/computers_tabletop.yml): Medical Dispatch staff are Colonial since Monolith#4807
 - [`Resources/Prototypes/_NF/Events/events.yml`](../../Resources/Prototypes/_NF/Events/events.yml)
@@ -212,6 +261,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - pest events were crowding out the rest of the table (was 6)
   - each pest event at most once per 90 minutes
 - [`Resources/Prototypes/Nyanotrasen/Species/felinid.yml`](../../Resources/Prototypes/Nyanotrasen/Species/felinid.yml): mrrow
+- [`Resources/Prototypes/Shaders/displacement.yml`](../../Resources/Prototypes/Shaders/displacement.yml): wizden#38042, displacement without the stencil test, which hid displaced layers in UI sprite views
 - [`Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml`](../../Resources/ServerInfo/_Mono/Guidebook/Rules/Conflict/Four_PortStriking.xml)
   - fixed broken link, was MonolithRuleRoleplayEightSafeZones
   - was color=blue, unreadable on the dark background
@@ -237,10 +287,37 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/ServerInfo/_NF/Guidebook/Rules/Zero_Tolerance.xml`](../../Resources/ServerInfo/_NF/Guidebook/Rules/Zero_Tolerance.xml)
   - was 16, Monolith Station
   - erotic roleplay rule removed before this one (#27)
-- [`Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC0.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC0.xml): was 16
+- [`Resources/ServerInfo/Guidebook/Mobs/Diona.xml`](../../Resources/ServerInfo/Guidebook/Mobs/Diona.xml): Monolith gave Diona a shoe slot, and FTL knockdown immunity is back
+- [`Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC0.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC0.xml)
+  - ERP is allowed, rule 4 only covers shock content
+  - was 16
 - [`Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC12MinAge.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC12MinAge.xml): was 16
-- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenCoreOnlyRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenCoreOnlyRules.xml): was 16
-- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenLRPRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenLRPRules.xml): was 16
-- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenMRPRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenMRPRules.xml): was 16
+- [`Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC4NoERP.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/CoreRules/RuleC4NoERP.xml): ERP is allowed, rule 4 only covers shock content
+- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenCoreOnlyRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenCoreOnlyRules.xml)
+  - ERP is allowed, rule 4 only covers shock content
+  - was 16
+- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenLRPRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenLRPRules.xml)
+  - ERP is allowed, rule 4 only covers shock content
+  - was 16
+- [`Resources/ServerInfo/Guidebook/ServerRules/WizDenMRPRules.xml`](../../Resources/ServerInfo/Guidebook/ServerRules/WizDenMRPRules.xml)
+  - ERP is allowed, rule 4 only covers shock content
+  - was 16
 - [`Resources/ServerInfo/Rules.txt`](../../Resources/ServerInfo/Rules.txt): Monolith renamed to Wolfgate in the intro and section headings (#19); the file is unused (server.rules_file is MonolithRuleset).
 - [`Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml`](../../Resources/SharedMaps/_Mono/Shuttles/Civilian/caracara.yml): PDV pack, top-left thruster was mapped disabled.
+- [`Resources/Textures/_FarHorizons/Structures/Power/Generation/FissionGenerator/nuclear_reactor.rsi/`](../../Resources/Textures/_FarHorizons/Structures/Power/Generation/FissionGenerator/nuclear_reactor.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_FarHorizons/Structures/Power/Generation/FissionGenerator/reactor_component_cap.rsi/`](../../Resources/Textures/_FarHorizons/Structures/Power/Generation/FissionGenerator/reactor_component_cap.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_FarHorizons/Structures/Power/Generation/FissionGenerator/reactor_parts.rsi/`](../../Resources/Textures/_FarHorizons/Structures/Power/Generation/FissionGenerator/reactor_parts.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_FarHorizons/Structures/Power/Generation/FissionGenerator/turbine.rsi/`](../../Resources/Textures/_FarHorizons/Structures/Power/Generation/FissionGenerator/turbine.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_Goobstation/Objects/Misc/RadioStation/vinyls.rsi/`](../../Resources/Textures/_Goobstation/Objects/Misc/RadioStation/vinyls.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_Goobstation/Objects/Misc/RadioStation/vinylsleeves.rsi/`](../../Resources/Textures/_Goobstation/Objects/Misc/RadioStation/vinylsleeves.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_Goobstation/Objects/Weapons/Guns/Battery/lawbringer.rsi/`](../../Resources/Textures/_Goobstation/Objects/Weapons/Guns/Battery/lawbringer.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_Goobstation/Structures/Machines/StationRadio/radiostationrig.rsi/`](../../Resources/Textures/_Goobstation/Structures/Machines/StationRadio/radiostationrig.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_Goobstation/Structures/Machines/StationRadio/stationradioserver.rsi/`](../../Resources/Textures/_Goobstation/Structures/Machines/StationRadio/stationradioserver.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_Goobstation/Structures/Machines/StationRadio/tapedeck.rsi/`](../../Resources/Textures/_Goobstation/Structures/Machines/StationRadio/tapedeck.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_Goobstation/Structures/Machines/StationRadio/vinylplayer.rsi/`](../../Resources/Textures/_Goobstation/Structures/Machines/StationRadio/vinylplayer.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_NF/Effects/mobspawn.rsi/`](../../Resources/Textures/_NF/Effects/mobspawn.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/_NF/Structures/Machines/scrap_processor.rsi/`](../../Resources/Textures/_NF/Structures/Machines/scrap_processor.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/Objects/Fun/rubber_hammer.rsi/`](../../Resources/Textures/Objects/Fun/rubber_hammer.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/Objects/Misc/chopstick.rsi/`](../../Resources/Textures/Objects/Misc/chopstick.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/Structures/Power/cell_recharger.rsi/`](../../Resources/Textures/Structures/Power/cell_recharger.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.
+- [`Resources/Textures/Structures/Power/Generation/Singularity/collector.rsi/`](../../Resources/Textures/Structures/Power/Generation/Singularity/collector.rsi/): Licence corrected to CC-BY-NC-SA-3.0, as the sprite is taken from Goonstation, whose assets are BY-NC-SA.

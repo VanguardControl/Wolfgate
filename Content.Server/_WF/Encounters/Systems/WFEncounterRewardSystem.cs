@@ -47,6 +47,7 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
     [Dependency] private WFCrewShipStatusSystem _status = default!;
     [Dependency] private WFCrewAlertSystem _alerts = default!;
     [Dependency] private BankSystem _bank = default!;
+    [Dependency] private Content.Server._WF.Companies.WFCompanySystem _companies = default!;
     [Dependency] private StackSystem _stack = default!;
     [Dependency] private SharedHandsSystem _hands = default!;
     [Dependency] private MobStateSystem _mobs = default!;
@@ -180,11 +181,13 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
             return;
 
         // A deposit that fails, with no bank account or deposits off, pays nothing and keeps the allowance.
-        if (!_bank.TryBankDeposit(mob, paid, false))
+        var cut = _companies.CutFor(session, paid);
+        if (!_bank.TryBankDeposit(mob, paid - cut, false))
         {
             Refund(session.UserId, paid);
             return;
         }
+        _companies.PayCut(session, cut, "bounty");
 
         _chat.DispatchServerMessage(session, Loc.GetString("wf-encounter-kill-bounty-paid", ("amount", paid), ("company", company)));
         _adminLog.Add(LogType.Action, LogImpact.Medium,
@@ -278,6 +281,17 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
         }
 
         args.Friendly = onEnemies >= FriendlyFireRatio * (onUs + 1);
+    }
+
+    /// <summary>Credits a player who boarded an encounter ship and put it out of the fight as having hit its side <see cref="MinimumHits"/> times.</summary>
+    public void RecordBoarding(WFEncounterComponent encounter, NetUserId player, string side)
+    {
+        if (encounter.Resolution != null)
+            return;
+
+        if (!encounter.Hits.TryGetValue(player, out var bySide))
+            encounter.Hits[player] = bySide = new Dictionary<string, int>();
+        bySide[side] = Math.Max(bySide.GetValueOrDefault(side), MinimumHits);
     }
 
     /// <summary>Counts a ship weapon hit by a player-crewed ship on an encounter ship as help for the other sides.</summary>
@@ -605,11 +619,14 @@ public sealed partial class WFEncounterRewardSystem : EntitySystem
             var (session, mob) = helpers[i];
             var paid = Capped(session.UserId, shares?[i] ?? reward.Spesos / helpers.Count, cap);
             // A deposit that fails, with no bank account or deposits off, pays nothing and keeps the allowance.
-            if (paid > 0 && !_bank.TryBankDeposit(mob, paid, false))
+            var cut = _companies.CutFor(session, paid);
+            if (paid > 0 && !_bank.TryBankDeposit(mob, paid - cut, false))
             {
                 Refund(session.UserId, paid);
                 paid = 0;
             }
+            else
+                _companies.PayCut(session, cut, "reward");
 
             var credits = GiveCredits(reward, mob);
             if (extraCredits != null)

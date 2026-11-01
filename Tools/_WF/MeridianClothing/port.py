@@ -8,9 +8,10 @@ loadouts and vending stock under the MeridianClothing module.
 What the SS13 art becomes here:
 
     sprites     Each item gets one RSI: its icon, its worn sprite as the slot's equipped state and its in-hand
-                sprites. Art of different sizes is centred on the largest. Species get the human sprite through
-                their displacement maps (Vox, Resomi, Avali, the LegStyle legs), never the SS13 species sheets,
-                which were drawn for bodies the species here don't have.
+                sprites. Frames take the largest art's size; icons are centred, and worn and in-hand art sits
+                where BYOND draws it (from the tile's corner, centred by its declared size). Species get the
+                human sprite through their displacement maps (Vox, Resomi, Avali, the LegStyle legs), never the
+                SS13 species sheets, which were drawn for bodies the species here don't have.
     greyscale   A GAGS item is drawn from its configs as one layer per colour, adjacent layers of one colour
                 merged. A layer's state ends in -c<N> for colour slot N and starts at the SS13 default; the
                 WFGags component (Gags module) recolours them, and the loadout window lets players pick.
@@ -80,6 +81,32 @@ PARENTS = {
     "mask": "ClothingMaskBase", "shoes": "ClothingShoesBase", "gloves": "ClothingHandsBase",
     "eyes": "ClothingEyesBase", "neck": "ClothingNeckBase", "ears": "Clothing",
 }
+
+# Frame sizes an RSI grows to when its art reaches past the cells it came in.
+FRAME_SIZES = (32, 48, 64, 96, 128)
+
+# Parents whose Mask component lets the wearer pull the mask down.
+PULLABLE = {"ClothingMaskGas", "ClothingMaskBreath"}
+
+# (slot, SS13 alternate_worn_layer) -> (wearer layer to draw beside, below it) for WFClothingLayer. Knee boots
+# under the uniform are left out: the feet draw over the jumpsuit here, so they would draw over the boots.
+WORN_LAYERS = {
+    ("jumpsuit", "ABOVE_SHOES_LAYER"): ("shoes", False),
+    ("jumpsuit", "UNDER_SUIT_LAYER"): ("outerClothing", True),
+    ("jumpsuit", "LOW_FACEMASK_LAYER"): ("shoes", False),
+    ("mask", "LOW_FACEMASK_LAYER"): ("ears", True),
+    ("mask", "BENEATH_HAIR_LAYER"): ("enum.HumanoidVisualLayers.FacialHair", True),
+    ("mask", "UNDER_UNIFORM_LAYER"): ("jumpsuit", True),
+    ("mask", "ABOVE_BODY_FRONT_HEAD_LAYER"): ("head", False),
+    ("eyes", "ABOVE_BODY_FRONT_HEAD_LAYER"): ("head", False),
+}
+# SS13 flags_inv -> the inventory slots whose clothing it hides, for WFHideClothingSlots.
+SLOT_HIDES = [
+    ("HIDESHOES", ["shoes"]), ("HIDEJUMPSUIT", ["jumpsuit"]), ("HIDEGLOVES", ["gloves"]),
+    ("HIDEMASK", ["mask", "balaclava"]), ("HIDENECK", ["neck", "neck2", "neck3"]), ("HIDEEARS", ["ears"]),
+    ("HIDEEYES", ["eyes"]), ("HIDEBELT", ["belt"]), ("HIDESUITSTORAGE", ["suitstorage"]),
+    ("HIDEHEADGEAR", ["head", "helmetcover", "helmetattachment"]),
+]
 
 # Outer clothing with pockets.
 POCKETED = re.compile(r"jacket|coat|hoodie|labcoat|/toggle/|vest|duster|parka|blazer|cardigan|poncho")
@@ -363,6 +390,37 @@ def _write_text(path, text):
         f.write(text)
 
 
+def _anchor(item, base):
+    """BYOND's offset of a state's art from the tile's corner; None for the item icon, which is centred."""
+    if base == "icon":
+        return None
+    return item.worn_offset if base == source.EQUIPPED[item.slot] else item.inhand_offset
+
+
+def _fit(size, before, after):
+    """A frame size whose margins around the centred tile hold art reaching this far past either edge."""
+    margin = (size - source.TILE) // 2
+    if margin >= before and size - source.TILE - margin >= after:
+        return size
+    # Past the largest size the art is cropped, which _frame reports and falls back from.
+    return next((s for s in FRAME_SIZES if s >= size and (s - source.TILE) // 2 >= max(before, after)),
+                max(size, FRAME_SIZES[-1]))
+
+
+def _frame(cell, size, offset):
+    """A cell on a frame centred on the mob's tile: centred itself, or from the tile's corner plus a BYOND offset.
+    None when that would crop opaque art."""
+    if offset is None:
+        dx, dy = (size[0] - cell.size[0]) // 2, (size[1] - cell.size[1]) // 2
+    else:
+        dx = (size[0] - source.TILE) // 2 + offset[0]
+        dy = (size[1] + source.TILE) // 2 - cell.size[1] - offset[1]
+    frame = source.blank(size)
+    frame.alpha_composite(cell, (max(dx, 0), max(dy, 0)), (max(-dx, 0), max(-dy, 0)))
+    opaque = lambda image: image.getchannel("A").point(lambda a: 255 if a else 0).histogram()[255]
+    return frame if opaque(frame) == opaque(cell) else None
+
+
 class Planned:
     def __init__(self, item, pid, rsi, parent, theme, protective):
         self.item = item
@@ -491,11 +549,21 @@ class Port:
         sets = [("icon", item.icon), (equipped, item.worn),
                 ("inhand-left", item.inhand_left), ("inhand-right", item.inhand_right)]
         width = height = 32
-        for _, layers in sets:
+        over = [0, 0, 0, 0]     # how far the art reaches past the tile's left, right, top and bottom edges
+        for base, layers in sets:
+            anchor = _anchor(item, base)
             for layer in layers:
                 w, h = layer.frames[0][0].size
                 width, height = max(width, w), max(height, h)
-        p.size = (width, height)
+                if anchor is None:
+                    continue
+                for cell in (cell for row in layer.frames for cell in row):
+                    box = cell.getchannel("A").getbbox()
+                    if box:
+                        x, y = anchor[0], source.TILE - cell.size[1] - anchor[1]
+                        reach = (-(x + box[0]), x + box[2] - source.TILE, -(y + box[1]), y + box[3] - source.TILE)
+                        over = [max(o, r) for o, r in zip(over, reach)]
+        p.size = (_fit(width, over[0], over[1]), _fit(height, over[2], over[3]))
         for base, layers in sets:
             if not layers:
                 continue
@@ -544,6 +612,8 @@ class Port:
                 "inhand-left": item.inhand_left, "inhand-right": item.inhand_right}
         for base, names in p.states.items():
             layers = sets[base]
+            # BYOND draws mob overlays from the tile's corner; only the item icon is centred.
+            anchor = _anchor(item, base)
             if not item.gags:
                 layers = [source.composite(layers, [])]
             for (name, _), layer in zip(names, layers):
@@ -556,10 +626,11 @@ class Port:
                 for d in range(dirs):
                     for f in range(count):
                         index = d * count + f
-                        cell = frames[f][d]
-                        x = (index % columns) * size[0] + (size[0] - cell.size[0]) // 2
-                        y = (index // columns) * size[1] + (size[1] - cell.size[1]) // 2
-                        sheet.alpha_composite(cell, (x, y))
+                        frame = _frame(frames[f][d], size, anchor)
+                        if frame is None:
+                            print("%s: %s art falls outside its %dx%d frame" % (item.typepath, name, *size))
+                            frame = _frame(frames[f][d], size, None)
+                        sheet.alpha_composite(frame, ((index % columns) * size[0], (index // columns) * size[1]))
                 sheet.save(os.path.join(folder, name + ".png"), optimize=True)
                 state = {"name": name}
                 if dirs != 1:
@@ -624,8 +695,22 @@ class Port:
         if hides:
             lines += ["  - type: HideLayerClothing", "    layers:"]
             lines += ["      %s: %s" % h for h in hides]
+            if p.parent in PULLABLE:
+                # Replacing the parent's component would keep hiding them while the mask is pulled down.
+                lines.append("    hideOnToggle: true")
         if item.flags_inv & source.FLAGS_INV["HIDEFACE"] and item.slot in ("head", "mask"):
             lines.append("  - type: IdentityBlocker")
+        # Uniforms over the feet, draping uniforms over the shoes and suits hiding the uniform are measured from
+        # the art by Tools/_WF/ClothingLayer/shapes.py; only what SS13 sets on the item itself goes here.
+        layer = WORN_LAYERS.get((item.slot, item.worn_layer))
+        if layer:
+            lines += ["  - type: WFClothingLayer", "    layer: %s" % layer[0]]
+            if layer[1]:
+                lines.append("    below: true")
+        covered = [s for flag, slots in SLOT_HIDES if item.flags_inv & source.FLAGS_INV[flag]
+                   for s in slots if s != item.slot]
+        if covered:
+            lines += ["  - type: WFHideClothingSlots", "    slots: [%s]" % ", ".join(covered)]
         lines += p.mechanics
         if item.gags:
             lines += ["  - type: WFGags", "    colors:"]

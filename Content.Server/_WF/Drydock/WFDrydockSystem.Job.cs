@@ -85,6 +85,12 @@ public sealed partial class WFDrydockSystem
         if (TerminatingOrDeleted(job.Ship))
             return job.HullGone ? JobEnd.Finished : JobEnd.Aborted;
 
+        if (job.Lifting.Count > 0 && curTime >= job.LiftAt)
+            LiftTiles(job);
+
+        job.LiftCheckBudget = LiftCheckBudget;
+        job.LiftChecksDeferred = false;
+
         if (curTime >= job.NextBerthCheck)
         {
             job.NextBerthCheck = curTime + BerthCheckInterval;
@@ -135,10 +141,12 @@ public sealed partial class WFDrydockSystem
         {
             foreach (var slot in job.Slots)
             {
-                StartSlot(comp, job, slot, curTime);
+                // A slot that already scanned this tick would find the same nothing.
+                if (slot.TriedAt != curTime)
+                    StartSlot(comp, job, slot, curTime);
             }
 
-            if (job.Slots.All(s => s.Item == null))
+            if (job.Slots.All(s => s.Item == null) && !job.LiftChecksDeferred)
                 LeaveStanding(job);
             changed = true;
         }
@@ -326,11 +334,13 @@ public sealed partial class WFDrydockSystem
     /// <summary>Takes the nearest pending item into an idle slot and sends the slot's crane to it.</summary>
     private void StartSlot(WFDrydockConsoleComponent comp, WFDrydockJobComponent job, WFDrydockJobSlot slot, TimeSpan curTime)
     {
+        slot.TriedAt = curTime;
         var item = TakeNearest(comp, job, slot);
         if (item == null)
         {
-            // What's left is another crane's; scanning the queue every tick costs a large ship dearly.
-            slot.NextTake = curTime + IdleRetry;
+            // What's left is another crane's; scanning the queue every tick costs a large ship dearly. Checks cut short
+            // by the tick's budget pick up again next tick.
+            slot.NextTake = job.LiftChecksDeferred ? curTime : curTime + IdleRetry;
             return;
         }
 
@@ -358,6 +368,7 @@ public sealed partial class WFDrydockSystem
 
         slot.Item = null;
         slot.Unreachable = false;
+        job.Unliftable.Clear();
 
         var all = JobReach(job);
         for (var i = job.Pending.Count - 1; i >= 0; i--)
@@ -568,6 +579,16 @@ public sealed partial class WFDrydockSystem
         return job.Slots.Select(s => ReachOf(job.Ship, s.Crane)).ToList();
     }
 
+    /// <summary>Fills a list with the reach of every slot's crane in a job.</summary>
+    private void JobReach(WFDrydockJobComponent job, List<CraneReach?> reaches)
+    {
+        reaches.Clear();
+        foreach (var slot in job.Slots)
+        {
+            reaches.Add(ReachOf(job.Ship, slot.Crane));
+        }
+    }
+
     /// <summary>Whether a resolved crane reach covers a ship-local point.</summary>
     private bool Reaches(WFDrydockConsoleComponent comp, CraneReach? reach, Vector2 shipLocal)
     {
@@ -726,6 +747,7 @@ public sealed partial class WFDrydockSystem
     /// </summary>
     private void EndJob(EntityUid console, WFDrydockConsoleComponent comp, WFDrydockJobComponent job, JobEnd end)
     {
+        LiftTiles(job);
         if (job.Break)
             EndBreak(console, comp, job, end);
         else if (end == JobEnd.Finished)

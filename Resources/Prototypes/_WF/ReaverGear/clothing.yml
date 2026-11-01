@@ -10,6 +10,12 @@
   name: reaver combat hardsuit
   description: A TSF M86 that never made it back to its locker. Stripped, patched and painted in Ashfall orange.
   components:
+  - type: WFWoundWard
+    examine: wf-armor-spec-bone-plating-examine
+    hardens:
+      InternalBleedingWound: 2
+      WFWolfmedCrushInjuryWound: 2
+      WFWolfmedDislocationWound: 2
   - type: Sprite
     sprite: _WF/ReaverGear/OuterClothing/combat_hardsuit.rsi
   - type: Clothing
@@ -22,25 +28,25 @@
       outerClothing-vox:
       - state: equipped-OUTERCLOTHING-vox
   - type: PressureProtection
-    highPressureMultiplier: 0.05
+    highPressureMultiplier: 0.03
     lowPressureMultiplier: 1000
   - type: ExplosionResistance
-    damageCoefficient: 0.5
+    damageCoefficient: 0.4
   - type: StaminaDamageResistance
     coefficient: 0.2
   - type: Armor
     modifiers:
       coefficients:
-        Blunt: 0.4
-        Slash: 0.4
-        Piercing: 0.3
-        Heat: 0.5
-        Radiation: 0.25
-        Caustic: 0.4
-        Cold: 0.8
+        Blunt: 0.5
+        Slash: 0.5
+        Piercing: 0.5
+        Shock: 0.8
+        Heat: 0.6
+        Radiation: 0.4
+        Caustic: 0.6
   - type: ClothingSpeedModifier
-    walkModifier: 1
-    sprintModifier: 1
+    walkModifier: 0.9
+    sprintModifier: 0.9
   - type: HeldSpeedModifier
   - type: ToggleableClothing
     requiredSlot: outerclothing

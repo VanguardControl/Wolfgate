@@ -1,3 +1,4 @@
+using Content.Shared._WF.Performance;
 using System.Linq;
 using Content.Server.Body.Components;
 using Content.Server._WF.Wolfmed.Consciousness;
@@ -38,7 +39,7 @@ namespace Content.Server._WF.Wolfmed.Life;
 /// </remarks>
 // The heart either beats or it does not, and the brain either has oxygen or is running out of it. Death is the brain
 // organ being destroyed, which is ordinary MobState.Dead with nothing permanent attached.
-public sealed class WolfmedLifeSystem : EntitySystem
+public sealed partial class WolfmedLifeSystem : EntitySystem
 {
     /// <summary>Pressure key for a stopped heart. Full, so an arrested body is always unconscious.</summary>
     public const string ArrestPressure = "arrest";
@@ -89,7 +90,6 @@ public sealed class WolfmedLifeSystem : EntitySystem
     [Dependency] private Content.Shared.Popups.SharedPopupSystem _popup = default!; // Playtest 5
 
     private readonly List<EntityUid> _due = new();
-    private TimeSpan _nextTick;
 
     public override void Initialize()
     {
@@ -247,16 +247,18 @@ public sealed class WolfmedLifeSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        if (_timing.CurTime < _nextTick)
-            return;
-
-        _nextTick = _timing.CurTime + TickInterval;
+        // Each body takes its own tick of the interval, so a full server doesn't tick every body at once.
+        var period = WFTickSpread.Period(_timing, (float) TickInterval.TotalSeconds);
+        var curTick = _timing.CurTick;
 
         // Buffered: a tick can destroy an organ, which removes entities while the query is open.
         _due.Clear();
         var query = EntityQueryEnumerator<WolfmedConsciousnessComponent>();
         while (query.MoveNext(out var uid, out _))
-            _due.Add(uid);
+        {
+            if (WFTickSpread.Due(uid, curTick, period))
+                _due.Add(uid);
+        }
 
         foreach (var body in _due)
         {
@@ -384,7 +386,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
         !InArrest(body) && !_mobState.IsDead(body) &&
         TryComp(body, out WolfmedConsciousnessComponent? consciousness) &&
         consciousness.State == WolfmedConsciousness.Up &&
-        GetTransfusionGuidance(body).ToBrainSafe <= 0f;
+        GetBlood(body) >= _cfg.GetCVar(WolfmedCVars.BrainBloodStart);
 
     /// <summary>The worst of the four inputs drains; nothing draining at all refills, slowly.</summary>
     private void UpdateOxygenation(EntityUid body, Entity<WolfmedBrainComponent> brain, float seconds)
@@ -945,6 +947,10 @@ public sealed class WolfmedLifeSystem : EntitySystem
     public float GetVolumeLossRate(EntityUid body) =>
         GetBleedRate(body) + _fluidLoss.GetRate(body) + _radiation.GetMarrowLossRate(body); // M5: the marrow too
 
+    /// <summary>The blood fraction the brain-safe transfusion figure aims for: the brain's line plus the margin.</summary>
+    public float BrainSafeTarget =>
+        MathF.Min(1f, _cfg.GetCVar(WolfmedCVars.BrainBloodStart) + MathF.Max(0f, _cfg.GetCVar(WolfmedCVars.TransfuseSafeMargin)));
+
     /// <summary>
     /// The two transfusion numbers (plan §7.1): units to <see cref="WolfmedCVars.PostShockBloodTarget"/> plus
     /// what the current bleed takes over the grace, which keeps the heart going; and units to the line where
@@ -962,10 +968,12 @@ public sealed class WolfmedLifeSystem : EntitySystem
 
         var volume = GetBlood(body) * pool;
         var target = _cfg.GetCVar(WolfmedCVars.PostShockBloodTarget) * pool;
-        var safe = _cfg.GetCVar(WolfmedCVars.BrainBloodStart) * pool;
+        var safe = BrainSafeTarget * pool;
         var bleed = GetVolumeLossRate(body) * MathF.Max(0f, _cfg.GetCVar(WolfmedCVars.PostShockGraceSeconds)); // M1b: burns too
 
-        return (MathF.Max(0f, target - volume) + bleed, MathF.Max(0f, safe - volume));
+        // Revival pass: the brain-safe figure carries the same loss and a margin, or a patient topped up to exactly
+        // the line sits on it, the brain refill never starts and they stay out.
+        return (MathF.Max(0f, target - volume) + bleed, MathF.Max(0f, safe - volume) + (safe > volume ? bleed : 0f));
     }
 
     /// <summary>
@@ -983,7 +991,7 @@ public sealed class WolfmedLifeSystem : EntitySystem
             return null;
 
         return new WolfmedPostShockAdvice(units, safe, GetPostShockGraceSeconds(body),
-            _cfg.GetCVar(WolfmedCVars.BrainBloodStart) * 100f);
+            BrainSafeTarget * 100f);
     }
 
     #endregion

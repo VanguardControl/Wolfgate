@@ -19,6 +19,7 @@ public sealed partial class NPCRetaliationComponent : Component
     /// A dictionary that stores an entity and the time at which they will no longer be considered hostile.
     /// </summary>
     /// todo: this needs to support timeoffsetserializer at some point
-    [DataField("attackMemories")]
+    // [DataField("attackMemories")] // WOLFGATE(Traders): not saved; missing attackers collide as "invalid" keys and fail the ship copy
+    [ViewVariables]
     public Dictionary<EntityUid, TimeSpan> AttackMemories = new();
 }

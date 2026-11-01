@@ -10,9 +10,11 @@ using System.Text.RegularExpressions;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Web;
+using Content.Server._WF.LobbyShenanigans;
 using Content.Server.Audio;
 using Content.Server.Chat.Managers;
 using Content.Server.GameTicking;
+using Content.Shared._WF.LobbyShenanigans;
 using Content.Shared.GameTicking;
 using Content.Shared.Symphony;
 using Robust.Server.Player;
@@ -60,6 +62,9 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     /// <summary>POST {"message", "color"}: a server announcement in everyone's chat, as the update notice is sent.</summary>
     public const string AnnouncePath = "/symphony/announce";
 
+    /// <summary>POST {"trigger": id} sets a lobby shenanigan off for every client, the only way one is; {"clear": true} takes them all away.</summary>
+    public const string ShenanigansPath = "/symphony/lobby/shenanigans";
+
     private const int MaxNoticeTitle = 120;
     private const int MaxNoticeBody = 1500;
     private const int MaxAnnouncement = 1000;
@@ -67,7 +72,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
 
     public const int MaxImageBytes = 8_000_000;
     public const int MaxTrackBytes = 16_000_000;
-    private const int MaxTracks = 30;
+    private const int MaxTracks = 60;
     private const int MaxPool = 30;
 
     private static readonly ResPath UploadDir = new("Symphony/Lobby");
@@ -84,6 +89,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     [Dependency] private GameTicker _ticker = default!;
     [Dependency] private ContentAudioSystem _audio = default!;
     [Dependency] private IChatManager _chat = default!;
+    [Dependency] private LobbyShenanigansSystem _shenanigans = default!;
 
     /// <summary>The lobby notice now, or an empty one.</summary>
     private SymphonyLobbyNoticeEvent _notice = new(null, null, "info");
@@ -109,7 +115,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     private async Task<bool> HandleAsync(IStatusHandlerContext context)
     {
         var path = context.Url.AbsolutePath;
-        if (path != StatePath && path != FilePath && path != UploadPath && path != BackgroundPath && path != MusicPath && path != NoticePath && path != AnnouncePath)
+        if (path != StatePath && path != FilePath && path != UploadPath && path != BackgroundPath && path != MusicPath && path != NoticePath && path != AnnouncePath && path != ShenanigansPath)
             return false;
         if (!await SymphonyApi.AuthorisedAsync(_cfg, context))
             return true;
@@ -141,6 +147,9 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
             case AnnouncePath:
                 await RespondAnnounce(context);
                 break;
+            case ShenanigansPath:
+                await RespondShenanigan(context);
+                break;
             default:
                 await RespondMusic(context);
                 break;
@@ -170,11 +179,51 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
             {
                 Playlist = _audio.LobbyPlaylist.ToList(),
                 Override = _audio.LobbyPlaylistOverride?.ToList(),
+                Shuffle = _audio.LobbyPlaylistShuffled,
                 Collection = _audio.LobbyCollection.ToList(),
             },
             Uploads = _uploads.Select(kv => new UploadState { Path = kv.Key, Size = kv.Value }).ToList(),
             Notice = _notice.IsEmpty ? null : new NoticeBody { Title = _notice.Title, Body = _notice.Body, Style = _notice.Style },
+            Shenanigans = LobbyShenaniganIds.All.Select(id => new ShenaniganChoice
+            {
+                Id = id,
+                Name = Loc.GetString(LobbyShenaniganIds.Name(id)),
+                Description = Loc.GetString($"{LobbyShenaniganIds.Name(id)}-tooltip"),
+            }).ToList(),
         };
+    }
+
+    private async Task RespondShenanigan(IStatusHandlerContext context)
+    {
+        ShenaniganBody? body;
+        try
+        {
+            body = await context.RequestBodyJsonAsync<ShenaniganBody>();
+        }
+        catch (Exception)
+        {
+            body = null;
+        }
+        var clear = body?.Clear == true;
+        var id = body?.Trigger;
+        if (body == null || clear == (id != null) || (id != null && !LobbyShenaniganIds.All.Contains(id)))
+        {
+            await context.RespondAsync($"expected {{\"trigger\": \"{string.Join("|", LobbyShenaniganIds.All)}\"}} or {{\"clear\": true}}", HttpStatusCode.BadRequest);
+            return;
+        }
+        var outcome = await _tasks.OnMainThread(() =>
+        {
+            var inLobby = 0;
+            if (clear)
+                inLobby = _shenanigans.Clear();
+            else
+                _shenanigans.Trigger(id!, out inLobby);
+            return new ApplyResponse { SymphonyModule = SharedSymphony.ModuleVersion, Players = _players.PlayerCount, InLobby = inLobby };
+        });
+        Log.Info(clear
+            ? $"{body.Actor ?? "The panel"} cleared the lobby shenanigans ({outcome.InLobby} in the lobby)"
+            : $"{body.Actor ?? "The panel"} set off {id} for everyone ({outcome.InLobby} in the lobby)");
+        await context.RespondJsonAsync(outcome);
     }
 
     private async Task RespondNotice(IStatusHandlerContext context)
@@ -429,7 +478,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
             if (unknown != null)
                 return (ApplyResponse?) null;
             var lobby = LobbySessions();
-            _audio.SetLobbyPlaylistOverride(body.Tracks?.ToArray(), lobby);
+            _audio.SetLobbyPlaylistOverride(body.Tracks?.ToArray(), lobby, body.Shuffle == true);
             Prune("music", body.Tracks ?? []);
             WriteState();
             return new ApplyResponse
@@ -504,6 +553,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
                 Background = _ticker.LobbyBackgroundOverride,
                 Pool = _ticker.LobbyBackgroundPool.Count > 0 ? _ticker.LobbyBackgroundPool.ToList() : null,
                 Playlist = _audio.LobbyPlaylistOverride?.ToList(),
+                Shuffle = _audio.LobbyPlaylistShuffled ? true : null,
                 Notice = _notice.IsEmpty ? null : new NoticeBody { Title = _notice.Title, Body = _notice.Body, Style = _notice.Style },
             }));
         }
@@ -566,7 +616,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
             _ticker.SetLobbyBackgroundPool(pool, announce: false);
         var tracks = state.Playlist?.Where(Available).ToArray();
         if (tracks is { Length: > 0 })
-            _audio.SetLobbyPlaylistOverride(tracks, null);
+            _audio.SetLobbyPlaylistOverride(tracks, null, state.Shuffle == true);
     }
 
     /// <summary>The extension a picture's own bytes say it is, or null when they say it is no picture the game shows.</summary>
@@ -621,6 +671,21 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
         [JsonPropertyName("music")] public MusicState Music { get; set; } = new();
         [JsonPropertyName("uploads")] public List<UploadState> Uploads { get; set; } = [];
         [JsonPropertyName("notice")] public NoticeBody? Notice { get; set; }
+        [JsonPropertyName("shenanigans")] public List<ShenaniganChoice> Shenanigans { get; set; } = [];
+    }
+
+    private sealed class ShenaniganChoice
+    {
+        [JsonPropertyName("id")] public string Id { get; set; } = "";
+        [JsonPropertyName("name")] public string Name { get; set; } = "";
+        [JsonPropertyName("description")] public string Description { get; set; } = "";
+    }
+
+    private sealed class ShenaniganBody
+    {
+        [JsonPropertyName("trigger")] public string? Trigger { get; set; }
+        [JsonPropertyName("clear")] public bool? Clear { get; set; }
+        [JsonPropertyName("actor")] public string? Actor { get; set; }
     }
 
     private sealed class NoticeBody
@@ -650,6 +715,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     {
         [JsonPropertyName("playlist")] public List<string> Playlist { get; set; } = [];
         [JsonPropertyName("override")] public List<string>? Override { get; set; }
+        [JsonPropertyName("shuffle")] public bool Shuffle { get; set; }
         [JsonPropertyName("collection")] public List<string> Collection { get; set; } = [];
     }
 
@@ -689,6 +755,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
     private sealed class MusicBody
     {
         [JsonPropertyName("tracks")] public List<string>? Tracks { get; set; }
+        [JsonPropertyName("shuffle")] public bool? Shuffle { get; set; }
         [JsonPropertyName("actor")] public string? Actor { get; set; }
     }
 
@@ -697,6 +764,7 @@ public sealed partial class SymphonyLobbySystem : EntitySystem
         [JsonPropertyName("background")] public string? Background { get; set; }
         [JsonPropertyName("pool")] public List<string>? Pool { get; set; }
         [JsonPropertyName("playlist")] public List<string>? Playlist { get; set; }
+        [JsonPropertyName("shuffle")] public bool? Shuffle { get; set; }
         [JsonPropertyName("notice")] public NoticeBody? Notice { get; set; }
     }
 

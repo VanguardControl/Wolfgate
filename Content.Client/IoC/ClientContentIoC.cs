@@ -68,6 +68,7 @@ namespace Content.Client.IoC
             collection.Register<CompanyManager>(); // Mono
             collection.Register<MonoCoinsManager>(); // Mono
             collection.Register<MidiFileCollectionManager>(); // WOLFGATE(Instruments): wizden#44469 MIDI file collection.
+            collection.Register<_WF.JoinProgress.JoinProgressManager>(); // WOLFGATE(JoinProgress): holds the server's download size
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Content.Shared._WF.RoundSetup;
 
 /// <summary>The crew starting conditions; Normal is reserved and cannot create a scenario lobby.</summary>
 [Serializable, NetSerializable]
-public enum WFRoundScenario : byte { Normal, Crashlanded, Ship, FactionShip, Doomed }
+public enum WFRoundScenario : byte { Normal, Crashlanded, Ship, FactionShip, Doomed, Formed }
 
 /// <summary>How hard a scenario is to survive, shown on its card.</summary>
 [Serializable, NetSerializable]
@@ -19,7 +19,7 @@ public enum WFShipStartLocation : byte { RandomSpace, CentralDock, FactionBase }
 
 /// <summary>How a player can enter a scenario lobby.</summary>
 [Serializable, NetSerializable]
-public enum WFLobbyAccess : byte { Public, Requests, Closed, Code, Invite }
+public enum WFLobbyAccess : byte { Public, Requests, Closed, Code, Invite, CompanyOnly, CompanyFirst }
 
 /// <summary>Authenticated operations on the round setup service.</summary>
 [Serializable, NetSerializable]
@@ -27,7 +27,7 @@ public enum WFRoundSetupAction : byte
 {
     Refresh, Create, Configure, Join, Leave, AcceptRequest, RejectRequest,
     Invite, AcceptInvite, DeclineInvite, SelectJob, SetReady, Launch, RegenerateCode, Kick, TransferHost,
-    SelectVessel, UpsertRole, RemoveRole, SelectRole, ConfirmJoin, ChangeScenario, SelectShipStart, ApplyRoster, SetTitle, SaveSetup, LoadSetup, DeleteSetup, SetShipName, AssignShip, ApproveShip, CancelShip, SetContribution, Watch,
+    SelectVessel, UpsertRole, RemoveRole, SelectRole, ConfirmJoin, ChangeScenario, SelectShipStart, ApplyRoster, SetTitle, SaveSetup, LoadSetup, DeleteSetup, SetShipName, AssignShip, ApproveShip, CancelShip, SetContribution, Watch, SetRecruiting, Post, SetCompany,
 }
 
 /// <summary>A request whose actor is always taken from its network session.</summary>
@@ -60,6 +60,11 @@ public sealed class WFRoundSetupRequest : EntityEventArgs
     public WFCrewRoster Roster;
     public int SavedId;
     public string? SaveName;
+    public bool Recruiting;
+    public string? Posting;
+    public int? CompanyId;
+    /// <summary>Join: a company member joins their company's crew as their company rank instead of an opening.</summary>
+    public bool AsRank;
 
     public WFRoundSetupRequest(WFRoundSetupAction action) { Action = action; }
 }
@@ -70,11 +75,11 @@ public sealed record WFRoundSetupPlayer(NetUserId UserId, string Name, int? Role
 
 /// <summary>A member's own job and readiness, with no character profile data.</summary>
 [Serializable, NetSerializable]
-public sealed record WFRoundSetupMember(NetUserId UserId, string Name, string? Job, NetEntity? Station, bool Ready, bool Spawned, bool Connected, int? RoleId = null, string Title = "", int Contribution = 0, WFCrewMemberStatus Status = WFCrewMemberStatus.Waiting);
+public sealed record WFRoundSetupMember(NetUserId UserId, string Name, string? Job, NetEntity? Station, bool Ready, bool Spawned, bool Connected, int? RoleId = null, string Title = "", int Contribution = 0, WFCrewMemberStatus Status = WFCrewMemberStatus.Waiting, bool Live = false, int RankId = 0, bool RankLocked = false);
 
 /// <summary>A public crew roster entry containing only character identity and readiness.</summary>
 [Serializable, NetSerializable]
-public sealed record WFRoundSetupCrewmate(string Name, string? Job, string Title, bool Ready, bool Spawned, WFCrewMemberStatus Status = WFCrewMemberStatus.Waiting);
+public sealed record WFRoundSetupCrewmate(string Name, string? Job, string Title, bool Ready, bool Spawned, WFCrewMemberStatus Status = WFCrewMemberStatus.Waiting, int RankId = 0);
 
 /// <summary>The recipient's exact purchase quote; bank balances remain private.</summary>
 [Serializable, NetSerializable]
@@ -89,6 +94,10 @@ public sealed record WFRoundSetupJob(string Id, NetEntity? Station, string Stati
 public sealed record WFRoundSetupRole(int Id, string Name, string Job, NetEntity? Station, int Capacity, int Occupied, bool CanSelect);
 
 /// <summary>A ship offered for purchase when the host launches their crew.</summary>
+/// <summary>A player company a host may run their crew under.</summary>
+[Serializable, NetSerializable]
+public sealed record WFRoundSetupCompany(int Id, string Name, string Tag);
+
 [Serializable, NetSerializable]
 public sealed record WFRoundSetupVessel(string Id, string Name, string Description, int Price);
 
@@ -112,6 +121,10 @@ public sealed class WFRoundSetupLobby
     public NetUserId Host;
     public string HostName = string.Empty;
     public string? HostJob;
+    /// <summary>The host's shown title, when their job isn't the whole story.</summary>
+    public string HostTitle = string.Empty;
+    /// <summary>The host's company rank, whose icon stands in for their job's while the crew flies under that company.</summary>
+    public int HostRankId;
     public WFCrewPortrait? Portrait;
     public string Title = string.Empty;
     public string Description = string.Empty;
@@ -131,6 +144,23 @@ public sealed class WFRoundSetupLobby
     public string? Code;
     public string? Vessel;
     public WFRoundSetupRole[] Roles = Array.Empty<WFRoundSetupRole>();
+    /// <summary>Shown at the top of crew lists with a pulsing border.</summary>
+    public bool Recruiting;
+    /// <summary>Whether players already in the round can join with their current character.</summary>
+    public bool LiveJoin;
+    /// <summary>Host only: the host's recruiting switch, which shows only while an opening is available.</summary>
+    public bool RecruitingOn;
+    /// <summary>Host only: when the next posting is allowed.</summary>
+    public TimeSpan? NextPosting;
+    /// <summary>The player company this crew flies under, if any.</summary>
+    public int? CompanyId;
+    public string CompanyName = string.Empty;
+    public string CompanyTag = string.Empty;
+    public Color CompanyColour = Color.White;
+    /// <summary>A company hangar launch: the design is fixed and the company pays.</summary>
+    public bool Hangar;
+    /// <summary>Recipient only: their company rank's job is one this crew can field, so they may join as it.</summary>
+    public bool CanJoinAsRank;
 }
 
 /// <summary>A per-recipient snapshot of the round setup browser and their membership.</summary>
@@ -140,6 +170,14 @@ public sealed class WFRoundSetupState : EntityEventArgs
     public bool InRound;
     public bool JoinConfirmed;
     public bool CanJoin;
+    /// <summary>The recipient is playing a living character and belongs to no crew.</summary>
+    public bool CanJoinLive;
+    /// <summary>The recipient's own player company, so its crews sort first.</summary>
+    public int? OwnCompany;
+    /// <summary>The recipient's company rank title, for joining their company's crews as it.</summary>
+    public string? CompanyRank;
+    /// <summary>Host only: companies the crew may fly under.</summary>
+    public WFRoundSetupCompany[] FieldCompanies = Array.Empty<WFRoundSetupCompany>();
     public bool CrashlandedAvailable;
     public bool DoomedAvailable;
     public WFCrewFaction[] Factions = Array.Empty<WFCrewFaction>();

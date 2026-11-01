@@ -1,4 +1,6 @@
 #nullable enable
+using Content.IntegrationTests.Fixtures.Attributes;
+using Content.Shared._WF.Wolfmed.CCVar;
 using System.Collections.Generic;
 using System.Linq;
 using Content.IntegrationTests.Fixtures;
@@ -35,6 +37,9 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 [TestOf(typeof(WolfmedWoundTraitSystem))]
 public sealed class WolfmedSlashBiteWoundTest : WolfmedGameTest
 {
+    private static readonly EntProtoId WFSurgeryRepairArteryProto = "WFSurgeryRepairArtery";
+    private static readonly EntProtoId WFSurgeryRepairTendonProto = "WFSurgeryRepairTendon";
+
     /// <summary>
     /// A deep cut to a limb opens an artery and severs a tendon on top of the cut itself; a shallow one
     /// does neither, and a torso cut has no tendon to sever.
@@ -42,6 +47,8 @@ public sealed class WolfmedSlashBiteWoundTest : WolfmedGameTest
     [Test]
     public async Task DeepCutOpensArteryAndTendonTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
@@ -145,6 +152,8 @@ public sealed class WolfmedSlashBiteWoundTest : WolfmedGameTest
     [Test]
     public async Task TorsoArteryCannotBeTourniquetedTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
@@ -192,6 +201,8 @@ public sealed class WolfmedSlashBiteWoundTest : WolfmedGameTest
     [Test]
     public async Task TendonCutPenaltiesApplyAndClearTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
@@ -254,6 +265,8 @@ public sealed class WolfmedSlashBiteWoundTest : WolfmedGameTest
     [Test]
     public async Task TendonCutIgnoresTopicalsTest()
     {
+        // Revival pass: this pins one wound's own behaviour, not what the wound ladders fold together.
+        await OverrideCVar(Side.Server, WolfmedCVars.WoundLadders, false);
         var server = Pair.Server;
         await server.WaitIdleAsync();
         var entities = server.ResolveDependency<IEntityManager>();
@@ -358,8 +371,8 @@ public sealed class WolfmedSlashBiteWoundTest : WolfmedGameTest
                 Assert.That(locale.HasString("wolfmed-wound-name-tendon-cut"));
                 Assert.That(locale.HasString("wolfmed-wound-name-avulsion"));
                 Assert.That(locale.HasString("wolfmed-tourniquet-nowhere-to-tie"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryRepairArtery"));
-                Assert.That(prototypes.HasIndex<EntityPrototype>("WFSurgeryRepairTendon"));
+                Assert.That(prototypes.HasIndex(WFSurgeryRepairArteryProto));
+                Assert.That(prototypes.HasIndex(WFSurgeryRepairTendonProto));
             });
         });
     }

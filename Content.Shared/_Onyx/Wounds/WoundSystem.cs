@@ -23,6 +23,7 @@ public sealed partial class WoundSystem : EntitySystem
     [Dependency] private IPrototypeManager _prototypes = default!;
     [Dependency] private IRobustRandom _random = default!;
     [Dependency] private Content.Shared._WF.Wolfmed.Wounds.WolfmedBleedGateSystem _wfBleedGate = default!; // WOLFGATE(Wolfmed)
+    [Dependency] private Content.Shared._WF.Wolfmed.Wounds.WolfmedWoundLadderSystem _wfLadder = default!; // WOLFGATE(Wolfmed): revival pass
 
     private readonly Dictionary<ProtoId<DamageTypePrototype>, List<(WoundPrototype Wound, WoundDamageTypeSettings Settings)>>
         _woundsByDamageType = new();
@@ -70,6 +71,8 @@ public sealed partial class WoundSystem : EntitySystem
         if (!_net.IsServer)
             return;
 
+        _wfLadder.BeginHit(part.Owner); // WOLFGATE(Wolfmed): revival pass, the wounds below are one injury to the ladders
+
         foreach (var (type, amount) in args.Damage.DamageDict)
         {
             if (amount == FixedPoint2.Zero || !_woundsByDamageType.TryGetValue(type, out var wounds))
@@ -110,6 +113,8 @@ public sealed partial class WoundSystem : EntitySystem
                     HealWounds(part, prototype, -severity);
             }
         }
+
+        _wfLadder.EndHit(); // WOLFGATE(Wolfmed): revival pass
     }
 
     public bool CanBleed(Entity<WoundableComponent?> part)
@@ -200,6 +205,10 @@ public sealed partial class WoundSystem : EntitySystem
             !_prototypes.TryIndex(prototypeId, out var prototype))
             return null;
 
+        // WOLFGATE(Wolfmed): revival pass, a wound ladder folds this into the part's wound of the same kind.
+        if (_wfLadder.TryFold((part.Owner, part.Comp), prototype, severity, reopen, out var folded))
+            return folded;
+
         if (prototype.MergeMode == WoundMergeMode.MergeByPrototype)
         {
             foreach (var wound in GetWounds(part))
@@ -276,14 +285,24 @@ public sealed partial class WoundSystem : EntitySystem
                     internalBleeding = AddComp<WoundInternalBleedingComponent>(wound);
             }
 
-            if (internalBleeding != null)
+            // WOLFGATE(Wolfmed) START: a refused bleed doesn't deepen an internal one either; it may still ease off.
+            // if (internalBleeding != null)
+            // {
+            //     internalBleeding.Rate = internalBehavior.Rate;
+            //     internalBleeding.Severity = wound.Comp.State == WoundState.Open
+            //         ? wound.Comp.Severity
+            //         : FixedPoint2.Zero;
+            //     Dirty(wound, internalBleeding);
+            // }
+            var internalTarget = wound.Comp.State == WoundState.Open ? wound.Comp.Severity : FixedPoint2.Zero;
+            if (internalBleeding != null &&
+                (internalTarget <= internalBleeding.Severity || _wfBleedGate.PartCanStartBleeding(wound.Comp.HoldingPart)))
             {
                 internalBleeding.Rate = internalBehavior.Rate;
-                internalBleeding.Severity = wound.Comp.State == WoundState.Open
-                    ? wound.Comp.Severity
-                    : FixedPoint2.Zero;
+                internalBleeding.Severity = internalTarget;
                 Dirty(wound, internalBleeding);
             }
+            // WOLFGATE END
         }
         else
             RemComp<WoundInternalBleedingComponent>(wound);

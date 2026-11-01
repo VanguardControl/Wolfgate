@@ -21,7 +21,7 @@ namespace Content.Client._WF.Humanoid;
 /// their body part rather than their points category, so left and right limbs, snout, tail and so on each get their
 /// own view while points are still tracked per category. Same surface as MarkingPicker.
 /// </summary>
-public sealed class WolfgateMarkingPicker : BoxContainer
+public sealed partial class WolfgateMarkingPicker : BoxContainer
 {
     [Dependency] private MarkingManager _markingManager = default!;
     [Dependency] private IPrototypeManager _prototypeManager = default!;
@@ -359,7 +359,13 @@ public sealed class WolfgateMarkingPicker : BoxContainer
 
     private IEnumerable<MarkingPrototype> PartMarkings(HumanoidVisualLayers part)
     {
-        return ValidMarkings().Where(m => m.BodyPart == part);
+        return ValidMarkings().Where(m => Tab(m) == part);
+    }
+
+    /// <summary>The tab a marking is listed under: its body part, or Special for markings that only borrow a part's layer.</summary>
+    private static HumanoidVisualLayers Tab(MarkingPrototype marking)
+    {
+        return marking.MarkingCategory == MarkingCategories.Special ? HumanoidVisualLayers.Special : marking.BodyPart;
     }
 
     private static int PartRank(HumanoidVisualLayers part)
@@ -370,18 +376,18 @@ public sealed class WolfgateMarkingPicker : BoxContainer
 
     private static string PartName(HumanoidVisualLayers part)
     {
-        return Loc.TryGetString($"wf-bodypart-{part}", out var name) ? name : part.ToString();
+        return IoCManager.Resolve<ILocalizationManager>().TryGetString($"wf-bodypart-{part}", out var name) ? name : part.ToString();
     }
 
     /// <summary>One toggle per body part that has markings; only rebuilt when that list changes.</summary>
     private void SetupPartButtons()
     {
-        var valid = ValidMarkings().Select(m => m.BodyPart).Distinct().OrderBy(PartRank).ToList();
+        var valid = ValidMarkings().Select(Tab).Distinct().OrderBy(PartRank).ToList();
         if (!valid.Contains(_part))
             _part = valid.Count > 0 ? valid[0] : HumanoidVisualLayers.Chest;
         if (!valid.SequenceEqual(_partButtons.Keys))
         {
-            _parts.DisposeAllChildren();
+            _parts.RemoveAllChildren();
             _partButtons.Clear();
             foreach (var part in valid)
             {
@@ -414,18 +420,18 @@ public sealed class WolfgateMarkingPicker : BoxContainer
     {
         SetClearConfirmVisible(false);
         SetupPartButtons();
-        _grid.DisposeAllChildren();
+        _grid.RemoveAllChildren();
 
         var sorted = PartMarkings(_part).Where(m =>
                 m.ID.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
-                Name(m).Contains(filter, StringComparison.OrdinalIgnoreCase))
+                LocName(m).Contains(filter, StringComparison.OrdinalIgnoreCase))
             .OrderBy(m => m.MarkingCategory != MarkingCategories.Chassis)
-            .ThenBy(Name);
+            .ThenBy(LocName);
 
         foreach (var proto in sorted)
         {
             var applied = _current.TryGetMarking(proto.MarkingCategory, proto.ID, out var marking);
-            var tile = new WolfgateMarkingTile(proto.ID, Name(proto), proto.Sprites, _direction)
+            var tile = new WolfgateMarkingTile(proto.ID, LocName(proto), proto.Sprites, _direction)
             {
                 Pressed = applied,
             };
@@ -616,7 +622,7 @@ public sealed class WolfgateMarkingPicker : BoxContainer
     /// <summary>One card per applied marking on the selected body part; within a category the top card draws on top.</summary>
     public void PopulateUsed()
     {
-        _applied.DisposeAllChildren();
+        _applied.RemoveAllChildren();
         _appliedIcons.Clear();
         if (!IgnoreSpecies)
             _current.EnsureSpecies(_species, null, MismatchedParts, _markingManager);
@@ -630,14 +636,19 @@ public sealed class WolfgateMarkingPicker : BoxContainer
             var stack = new List<(Marking marking, MarkingPrototype proto)>();
             foreach (var marking in _current.GetReverseEnumerator(category))
             {
-                if (_markingManager.TryGetMarking(marking, out var proto) && proto.BodyPart == _part)
+                if (_markingManager.TryGetMarking(marking, out var proto) && Tab(proto) == _part)
                     stack.Add((marking, proto));
             }
 
             for (var i = 0; i < stack.Count; i++)
             {
                 any = true;
-                _applied.AddChild(BuildAppliedCard(stack[i].marking, stack[i].proto, i == 0, i == stack.Count - 1));
+                // Draw order only changes among markings on one layer, so the move buttons stop at that layer's ends;
+                // the Special tab lists markings that borrow several.
+                var part = stack[i].proto.BodyPart;
+                var first = !stack.Take(i).Any(s => s.proto.BodyPart == part);
+                var last = !stack.Skip(i + 1).Any(s => s.proto.BodyPart == part);
+                _applied.AddChild(BuildAppliedCard(stack[i].marking, stack[i].proto, first, last));
             }
         }
 
@@ -666,7 +677,7 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         var name = new Label
         {
             Text = Loc.GetString(marking.Forced ? "marking-used-forced" : "marking-used",
-                ("marking-name", Name(proto)), ("marking-category", Loc.GetString($"markings-category-{proto.MarkingCategory}"))),
+                ("marking-name", LocName(proto)), ("marking-category", Loc.GetString($"markings-category-{proto.MarkingCategory}"))),
             HorizontalExpand = true,
             VerticalAlignment = VAlignment.Center,
         };
@@ -735,7 +746,7 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         var target = -1;
         for (var i = index + step; i >= 0 && i < list.Count; i += step)
         {
-            if (_markingManager.TryGetMarking(list[i], out var other) && other.BodyPart == _part)
+            if (_markingManager.TryGetMarking(list[i], out var other) && Tab(other) == _part && other.BodyPart == proto.BodyPart)
             {
                 target = i;
                 break;
@@ -782,7 +793,7 @@ public sealed class WolfgateMarkingPicker : BoxContainer
         OnMarkingColorChange?.Invoke(_current);
     }
 
-    private static string Name(MarkingPrototype proto) => Loc.GetString($"marking-{proto.ID}");
+    private static string LocName(MarkingPrototype proto) => Loc.GetString($"marking-{proto.ID}");
 
     /// <summary>
     /// Display name per sprite layer. Most markings have no per-layer string - only about two thirds are

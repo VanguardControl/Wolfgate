@@ -37,6 +37,9 @@ namespace Content.IntegrationTests.Tests._WF.Wolfmed;
 [TestOf(typeof(WolfmedStasisSystem))]
 public sealed class WolfmedStasisTest : WolfmedGameTest
 {
+    private static readonly ProtoId<DamageTypePrototype> SlashProto = "Slash";
+    private static readonly ProtoId<DamageTypePrototype> BluntProto = "Blunt";
+
     [Test]
     public async Task StasisHoldsBleedsClosesWoundsScalesHitsAndLeavesBonesTest()
     {
@@ -54,8 +57,8 @@ public sealed class WolfmedStasisTest : WolfmedGameTest
             var control = Avali(map.GridCoords);
             var routing = SEntMan.System<WoundDamageRoutingSystem>();
             var fractures = SEntMan.System<WoundFractureSystem>();
-            var slash = SProtoMan.Index<DamageTypePrototype>("Slash");
-            var blunt = SProtoMan.Index<DamageTypePrototype>("Blunt");
+            var slash = SProtoMan.Index<DamageTypePrototype>(SlashProto);
+            var blunt = SProtoMan.Index<DamageTypePrototype>(BluntProto);
             leftArm = Arm(body, BodyPartSymmetry.Left);
             rightArm = Arm(body, BodyPartSymmetry.Right);
 
@@ -93,7 +96,7 @@ public sealed class WolfmedStasisTest : WolfmedGameTest
 
             // The same hit in stasis makes the factor's share of the control's wound.
             var factor = Server.CfgMan.GetCVar(WolfmedCVars.StasisDamageFactor);
-            var slash = SProtoMan.Index<DamageTypePrototype>("Slash");
+            var slash = SProtoMan.Index<DamageTypePrototype>(SlashProto);
             Assert.That(SEntMan.System<WoundDamageRoutingSystem>()
                 .TryApplyPartDamage(body, rightArm, new DamageSpecifier(slash, 15), ignoreResistances: true), Is.True);
             Assert.That(SlashSeverity(rightArm).Float(), Is.EqualTo(controlCut.Float() * factor).Within(0.6f),
@@ -147,7 +150,7 @@ public sealed class WolfmedStasisTest : WolfmedGameTest
         {
             body = Avali(map.GridCoords);
             var control = Avali(map.GridCoords);
-            var slash = SProtoMan.Index<DamageTypePrototype>("Slash");
+            var slash = SProtoMan.Index<DamageTypePrototype>(SlashProto);
             var controlArm = Arm(control, BodyPartSymmetry.Right);
             Assert.That(SEntMan.System<WoundDamageRoutingSystem>()
                 .TryApplyPartDamage(control, controlArm, new DamageSpecifier(slash, 15), ignoreResistances: true), Is.True);
@@ -168,7 +171,7 @@ public sealed class WolfmedStasisTest : WolfmedGameTest
 
         await Server.WaitAssertion(() =>
         {
-            var slash = SProtoMan.Index<DamageTypePrototype>("Slash");
+            var slash = SProtoMan.Index<DamageTypePrototype>(SlashProto);
             arm = Arm(body, BodyPartSymmetry.Right);
             Assert.That(SEntMan.System<WoundDamageRoutingSystem>()
                 .TryApplyPartDamage(body, arm, new DamageSpecifier(slash, 15), ignoreResistances: true), Is.True);
@@ -222,5 +225,39 @@ public sealed class WolfmedStasisTest : WolfmedGameTest
         }
 
         return total;
+    }
+
+    /// <summary>
+    /// Bug report: an Avali that died during the wind-up still entered stasis, so the body lay invisible inside a shell.
+    /// Dying cancels it the way going critical does.
+    /// </summary>
+    [Test]
+    public async Task DyingDuringWindUpCancelsStasisTest()
+    {
+        var map = await CreateTestMap();
+        EntityUid body = default;
+
+        await Server.WaitAssertion(() =>
+        {
+            body = Avali(map.GridCoords);
+            SEntMan.EventBus.RaiseLocalEvent(body, new PrepareStasisActionEvent());
+            var mobs = SEntMan.System<Content.Shared.Mobs.Systems.MobStateSystem>();
+            mobs.ChangeMobState(body, Content.Shared.Mobs.MobState.Dead);
+            // Revived before the wind-up ends: the cancelled wind-up must not still put the body in stasis.
+            mobs.ChangeMobState(body, Content.Shared.Mobs.MobState.Alive);
+        });
+
+        await RunSeconds(3);
+
+        await Server.WaitAssertion(() =>
+        {
+            var stasis = SEntMan.GetComponent<StasisComponent>(body);
+            Assert.Multiple(() =>
+            {
+                Assert.That(stasis.IsInStasis, Is.False, "a dead Avali entered stasis.");
+                Assert.That(stasis.IsVisible, Is.True, "a dead Avali was left invisible.");
+                Assert.That(SEntMan.HasComponent<StasisFrozenComponent>(body), Is.False, "a dead Avali stayed frozen.");
+            });
+        });
     }
 }

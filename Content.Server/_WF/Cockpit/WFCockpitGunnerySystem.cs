@@ -6,6 +6,7 @@ using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
 using Content.Shared._Mono.FireControl;
 using Content.Shared._WF.Cockpit;
+using Content.Shared._WF.ShipCombat;
 using Content.Shared.Access.Components;
 using Content.Shared.Access.Systems;
 using Content.Shared.ActionBlocker;
@@ -94,6 +95,20 @@ public sealed partial class WFCockpitGunnerySystem : EntitySystem
         CanUseHelm(actor, session.Helm) && CanUseConsole(actor, session.Helm, console)
             ? console : null;
 
+    /// <summary>Returns the console linked through this helm only while the complete authorization still holds.</summary>
+    public EntityUid? GetConsole(EntityUid actor, EntityUid helm) =>
+        _sessions.TryGetValue(actor, out var session) && session.Helm == helm ? GetConsole(actor) : null;
+
+    /// <summary>Every pilot's helm and linked console, for telemetry sent through the helm without repeating authorization.</summary>
+    public IEnumerable<(EntityUid Actor, EntityUid Helm, EntityUid Console)> Links()
+    {
+        foreach (var (actor, session) in _sessions)
+        {
+            if (session.Console is { } console)
+                yield return (actor, session.Helm, console);
+        }
+    }
+
     /// <summary>Rechecks the seat, live helm subscription, reach, access and server ownership for every command.</summary>
     public bool CanOperate(EntityUid actor, EntityUid console) =>
         _sessions.TryGetValue(actor, out var session) && session.Console == console && session.Controlling &&
@@ -120,7 +135,7 @@ public sealed partial class WFCockpitGunnerySystem : EntitySystem
             return false;
         if (!_fireControl.WfCockpitCommand(console, actor, command))
             return false;
-        if (command is not FireControlConsoleFireMessage)
+        if (command is not (FireControlConsoleFireMessage or WFTurretAimMessage))
             SendState(actor, session, false);
         return true;
     }
@@ -142,7 +157,7 @@ public sealed partial class WFCockpitGunnerySystem : EntitySystem
     private bool CanAccessConsole(EntityUid actor, EntityUid helm, EntityUid console)
     {
         if (TerminatingOrDeleted(console) || !HasComp<FireControlConsoleComponent>(console) ||
-            !TryComp<TransformComponent>(helm, out var helmTransform) || helmTransform.GridUid is not { } grid ||
+            !TryComp(helm, out TransformComponent? helmTransform) || helmTransform.GridUid is not { } grid ||
             Transform(actor).GridUid != grid || Transform(console).GridUid != grid ||
             !Transform(console).Anchored || !_power.IsPowered(console) ||
             !_ui.HasUi(console, FireControlConsoleUiKey.Key) || !_blocker.CanInteract(actor, console) ||

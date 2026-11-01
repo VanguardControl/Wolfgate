@@ -4,9 +4,15 @@ The hooks for the SSymphony panel. It is the one module outside `_WF`: its files
 `*.Symphony.cs` and `Resources/Locale/en-US/symphony/`, as listed in `Tools/_WF/Ci/modules.yml`.
 
 - Status host endpoints, behind the admin API token: `/symphony/hub` switches hub advertising while the server runs,
-  `/symphony/players` lists who is connected with their character and job, `/symphony/roles` and
-  `/symphony/roles/refresh` list the whitelisted roles to map and re-read a player's rows after the panel writes them,
+  `/symphony/players` lists who is connected with their character and job, and which admins are stealthed;
+  `/symphony/roles` and `/symphony/roles/refresh` list the whitelisted roles to map and re-read a player's rows after
+  the panel writes them,
   and `/symphony/cvars` lists every CVar and sets one while the server runs (confidential ones are never shown or set).
+  `/symphony/commands` lists every console, Toolshed and client command with its description, help and the admin
+  flags it needs, read the way the admin manager reads them, for the panel's staff handbook.
+  `/symphony/lobby/shenanigans` sets a lobby shenanigan off for every client, the only way one is set off, or clears
+  them all (the
+  [LobbyShenanigans module](../_WF/LobbyShenanigans/README.md)).
 - Player feedback: the panel reads bug reports and suggestions straight from `wolfgate_feedback_report`.
   `/symphony/feedback/status` sets a report's status and message and tells its player in game;
   `/symphony/feedback/refresh` does the telling after the panel wrote the row itself. The table, the context JSON and
@@ -32,6 +38,7 @@ ticket table, the feedback table or any of the endpoints change.
 - [`Content.Server/Connection/ConnectionManager.Symphony.cs`](../Connection/ConnectionManager.Symphony.cs)
 - [`Content.Server/GameTicking/GameTicker.Symphony.cs`](../GameTicking/GameTicker.Symphony.cs)
 - [`Content.Server/Symphony/SymphonyApi.cs`](SymphonyApi.cs)
+- [`Content.Server/Symphony/SymphonyCommandsSystem.cs`](SymphonyCommandsSystem.cs)
 - [`Content.Server/Symphony/SymphonyCVarsSystem.cs`](SymphonyCVarsSystem.cs)
 - [`Content.Server/Symphony/SymphonyFeedbackSystem.cs`](SymphonyFeedbackSystem.cs)
 - [`Content.Server/Symphony/SymphonyHubSystem.cs`](SymphonyHubSystem.cs)
@@ -80,7 +87,7 @@ ticket table, the feedback table or any of the endpoints change.
   - an animated background the SSymphony panel made from a GIF, shown over the still one
   - the notice staff set from the SSymphony panel; hidden when there is none
 - [`Content.Client/Lobby/UI/LobbyGui.xaml.cs`](../../Content.Client/Lobby/UI/LobbyGui.xaml.cs): the GIF background covers the screen as the still one does
-- [`Content.Server/Audio/ContentAudioSystem.cs`](../Audio/ContentAudioSystem.cs): a playlist the SSymphony panel set plays in its own order, round after round
+- [`Content.Server/Audio/ContentAudioSystem.cs`](../Audio/ContentAudioSystem.cs): a playlist the SSymphony panel set plays in its own order, or reshuffled each round
 - [`Content.Server/Connection/ConnectionManager.cs`](../Connection/ConnectionManager.cs)
   - Symphony, the Discord link as a property so the client can offer a button
   - Symphony, not one who passed a running whitelist, so a revoke holds

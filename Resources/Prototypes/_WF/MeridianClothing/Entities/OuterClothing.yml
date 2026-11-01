@@ -140,6 +140,8 @@
         Slash: 0.9
         Piercing: 1.0
         Heat: 0.9
+  - type: StaticPrice # light armour must still sell for more than its recycled materials
+    price: 40
 
 - type: entity
   parent: ClothingOuterArmorBasic
@@ -1918,6 +1920,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [jumpsuit, gloves]
   - type: ClothingSpeedModifier
     walkModifier: 0.94
     sprintModifier: 0.94
@@ -2216,6 +2220,8 @@
       - state: inhand-left-1
       right:
       - state: inhand-right-1
+  - type: WFHideClothingSlots
+    slots: [jumpsuit, belt]
   - type: WFGags
     colors:
     - "#373548"
@@ -2231,6 +2237,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/chaplainsuit_holidaypriest.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit, belt]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2257,6 +2265,8 @@
         color: "#A52F29"
       - state: equipped-OUTERCLOTHING-4-c4
         color: "#212026"
+  - type: WFHideClothingSlots
+    slots: [jumpsuit, belt]
   - type: WFGags
     colors:
     - "#EADB83"
@@ -2273,6 +2283,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/chaplainsuit_shrinehand.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit, belt]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2353,6 +2365,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_bear_suit.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2373,6 +2387,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_bunnysuit.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2426,6 +2442,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2487,6 +2505,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_gothcoat.rsi
+  - type: WFHideClothingSlots
+    slots: [belt]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2497,6 +2517,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_hastur.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2531,6 +2553,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_imperium_monk.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, belt]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2571,6 +2595,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_justice.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -2642,6 +2668,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_poncho_green.rsi
+  - type: WFHideClothingSlots
+    slots: [belt]
 
 - type: entity
   parent: ClothingOuterStorageBase
@@ -2652,6 +2680,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_poncho_ponchoshame.rsi
+  - type: WFHideClothingSlots
+    slots: [belt]
 
 - type: entity
   parent: ClothingOuterStorageBase
@@ -2662,6 +2692,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_poncho_red.rsi
+  - type: WFHideClothingSlots
+    slots: [belt]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2682,6 +2714,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_snowman.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2977,6 +3011,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_whitedress.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, belt]
 
 - type: entity
   parent: ClothingOuterBase
@@ -2987,6 +3023,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/costume_xenos.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves, belt]
 
 - type: entity
   parent: ClothingOuterBase
@@ -3497,6 +3535,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: PressureProtection
     highPressureMultiplier: 0.6
     lowPressureMultiplier: 1000
@@ -3627,6 +3667,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/hooded_cultrobes_alt.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -3644,6 +3686,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/hooded_cultrobes_eldritch_ash.rsi
+  - type: WFHideClothingSlots
+    slots: [belt]
   - type: Armor
     modifiers:
       coefficients:
@@ -3666,6 +3710,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/hooded_cultrobes_eldritch_blade.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, belt]
   - type: Armor
     modifiers:
       coefficients:
@@ -3686,6 +3732,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/hooded_cultrobes_eldritch_cosmic.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, belt]
   - type: Armor
     modifiers:
       coefficients:
@@ -3709,6 +3757,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/hooded_cultrobes_eldritch_flesh.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, belt]
   - type: Armor
     modifiers:
       coefficients:
@@ -3749,6 +3799,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/hooded_cultrobes_eldritch_moon.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit]
   - type: TemperatureProtection
     heatingCoefficient: 1
     coolingCoefficient: 0.1
@@ -3762,6 +3814,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/hooded_cultrobes_eldritch_rust.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, belt]
   - type: Armor
     modifiers:
       coefficients:
@@ -3782,6 +3836,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/hooded_cultrobes_eldritch_void.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, belt]
   - type: Armor
     modifiers:
       coefficients:
@@ -3932,6 +3988,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -4968,6 +5026,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/jacket_straight_jacket.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: TemperatureProtection
     heatingCoefficient: 1
     coolingCoefficient: 0.1
@@ -5482,6 +5542,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/mush.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: ClothingSpeedModifier
     walkModifier: 0.8
     sprintModifier: 0.8
@@ -5647,6 +5709,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: PressureProtection
     highPressureMultiplier: 0.6
     lowPressureMultiplier: 1000
@@ -5666,6 +5730,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: PressureProtection
     highPressureMultiplier: 0.6
     lowPressureMultiplier: 1000
@@ -5688,6 +5754,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: PressureProtection
     highPressureMultiplier: 0.6
     lowPressureMultiplier: 1000
@@ -5710,6 +5778,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -5738,6 +5808,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -5767,6 +5839,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -5821,6 +5895,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -5847,6 +5923,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -5873,6 +5951,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -5902,6 +5982,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -5931,6 +6013,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -5960,6 +6044,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -5989,6 +6075,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -6018,6 +6106,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -6047,6 +6137,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -6076,6 +6168,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -6105,6 +6199,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -6134,6 +6230,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -6163,6 +6261,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -6192,6 +6292,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -6221,6 +6323,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -6250,6 +6354,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
 
 - type: entity
   parent: ClothingOuterStorageBase
@@ -6977,6 +7083,8 @@
       outerClothing:
       - state: equipped-OUTERCLOTHING-1-c1
         color: "#414344"
+  - type: WFHideClothingSlots
+    slots: [belt]
   - type: TemperatureProtection
     heatingCoefficient: 1
     coolingCoefficient: 0.1
@@ -7450,6 +7558,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -7481,6 +7591,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7543,6 +7655,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/utility_fire_firefighter.rsi
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7574,6 +7688,8 @@
   - type: HideLayerClothing
     layers:
       Tail: OUTERCLOTHING
+  - type: WFHideClothingSlots
+    slots: [shoes, jumpsuit, gloves]
   - type: Armor
     modifiers:
       coefficients:
@@ -7685,6 +7801,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_black.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7702,6 +7820,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_durathread.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7719,6 +7839,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_durathread_earth.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7736,6 +7858,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_durathread_electric.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7753,6 +7877,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_durathread_fire.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7770,6 +7896,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_durathread_ice.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7787,6 +7915,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_durathread_necro.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7804,6 +7934,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_fake.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
 
 - type: entity
   parent: ClothingOuterBase
@@ -7814,6 +7946,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_marisa.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7831,6 +7965,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_paper.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7848,6 +7984,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_tape.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:
@@ -7865,6 +8003,8 @@
     state: icon
   - type: Clothing
     sprite: _WF/MeridianClothing/OuterClothing/wizrobe_yellow.rsi
+  - type: WFHideClothingSlots
+    slots: [jumpsuit]
   - type: Armor
     modifiers:
       coefficients:

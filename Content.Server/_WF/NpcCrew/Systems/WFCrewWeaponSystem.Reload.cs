@@ -29,11 +29,20 @@ public sealed partial class WFCrewWeaponSystem
     [Dependency] private WFCrewEvaSystem _eva = default!;
     [Dependency] private WFCrewStealthSystem _stealth = default!;
     [Dependency] private Robust.Shared.Timing.IGameTiming _timing = default!;
+    [Dependency] private EntityLookupSystem _lookup = default!;
+    [Dependency] private SharedTransformSystem _xformSystem = default!;
+    [Dependency] private Robust.Shared.Random.IRobustRandom _random = default!;
 
     private const string MagazineSlot = "gun_magazine";
     private const float LookupRange = 10f;
     private static readonly TimeSpan ThreatCacheTime = TimeSpan.FromSeconds(0.5);
     private readonly Dictionary<EntityUid, (TimeSpan Until, bool Threat)> _threats = new();
+
+    /// <summary>Faction members found by one lookup, reused so a threat check allocates no set.</summary>
+    private readonly HashSet<Entity<NpcFactionMemberComponent>> _nearbyMembers = new();
+
+    /// <summary>Spare candidate lists; a target check may run another crewman's, so each check rents its own.</summary>
+    private readonly Stack<List<EntityUid>> _candidateLists = new();
     private float _reloadTimer;
 
     public override void Update(float frameTime)
@@ -89,30 +98,28 @@ public sealed partial class WFCrewWeaponSystem
         if (_threats.TryGetValue(uid, out var cached) && now < cached.Until)
             return cached.Threat;
         var threat = PickTarget(uid) != null;
-        _threats[uid] = (now + ThreatCacheTime, threat);
+        // Spread over a second, so the crew's checks don't all fall due on the same tick.
+        _threats[uid] = (now + ThreatCacheTime * (1 + _random.NextFloat()), threat);
         return threat;
     }
 
-    /// <summary>Hostiles within normal vision, plus the crew's shared targets and radio contacts.</summary>
-    private IEnumerable<EntityUid> Candidates(EntityUid uid)
+    /// <summary>
+    /// Hostiles within normal vision: the set the faction lookup gives, without its allocations. The crew's explicit,
+    /// shared and radio targets are walked by <see cref="PickTarget"/> itself.
+    /// </summary>
+    private void NearbyHostiles(EntityUid uid, NpcFactionMemberComponent member, List<EntityUid> candidates)
     {
         var range = TryComp<HTNComponent>(uid, out var htn)
             && htn.Blackboard.TryGetValue<float>("VisionRadius", out var vision, EntityManager) ? vision : LookupRange;
         // Alert-widened vision would turn the faction lookup into a scan of every faction member on the map.
-        foreach (var target in _factions.GetNearbyHostiles(uid, Math.Min(range, LookupRange)))
-            yield return target;
-        if (!TryComp<WFCrewComponent>(uid, out var crew) || Transform(uid).GridUid is not { } grid)
-            yield break;
-        TryComp<NpcFactionMemberComponent>(uid, out var member);
-        foreach (var target in EntityManager.System<WFCrewAlertSystem>().GetSharedHostiles(grid, crew.Group))
+        var hostileFactions = member.HostileFactions;
+        _nearbyMembers.Clear();
+        _lookup.GetEntitiesInRange(_xformSystem.GetMapCoordinates(uid), Math.Min(range, LookupRange), _nearbyMembers);
+        foreach (var near in _nearbyMembers)
         {
-            if (IsHostile(uid, member, target))
-                yield return target;
-        }
-        foreach (var target in crew.RadioSightings.Keys)
-        {
-            if (IsHostile(uid, member, target))
-                yield return target;
+            if (near.Owner != uid && hostileFactions.Overlaps(near.Comp.Factions)
+                && !_factions.IsEntityFriendly((uid, member), (near.Owner, near.Comp)) && !_factions.IsIgnored(uid, near.Owner))
+                candidates.Add(near.Owner);
         }
     }
 
@@ -307,9 +314,43 @@ public sealed partial class WFCrewWeaponSystem
     /// <summary>Chooses a living hostile aboard the crewman's own ship.</summary>
     public EntityUid? PickTarget(EntityUid uid)
     {
-        foreach (var target in Candidates(uid))
+        TryComp<NpcFactionMemberComponent>(uid, out var member);
+        if (member != null)
         {
-            if (CanEngage(uid, target))
+            // The lookup's set is shared, so its hits are copied out before any check can run another lookup.
+            var nearby = _candidateLists.TryPop(out var spare) ? spare : new List<EntityUid>();
+            try
+            {
+                NearbyHostiles(uid, member, nearby);
+                foreach (var target in nearby)
+                {
+                    if (CanEngage(uid, target))
+                        return target;
+                }
+            }
+            finally
+            {
+                nearby.Clear();
+                _candidateLists.Push(nearby);
+            }
+
+            foreach (var target in _factions.GetHostiles(uid))
+            {
+                if (!_factions.IsIgnored(uid, target) && CanEngage(uid, target))
+                    return target;
+            }
+        }
+
+        if (!TryComp<WFCrewComponent>(uid, out var crew) || Transform(uid).GridUid is not { } grid)
+            return null;
+        foreach (var target in EntityManager.System<WFCrewAlertSystem>().GetSharedHostiles(grid, crew.Group))
+        {
+            if (IsHostile(uid, member, target) && CanEngage(uid, target))
+                return target;
+        }
+        foreach (var target in crew.RadioSightings.Keys)
+        {
+            if (IsHostile(uid, member, target) && CanEngage(uid, target))
                 return target;
         }
         return null;

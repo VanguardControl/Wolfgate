@@ -346,7 +346,7 @@ public sealed partial class TraderUsedShipsSystem : EntitySystem
     private void GrantConsolePerks(Entity<TraderUsedShipsComponent> ent, EntityUid idCard, EntityUid buyer)
     {
         if (!_proto.TryIndex(ent.Comp.Console, out var consoleProto)
-            || !consoleProto.TryGetComponent<ShipyardConsoleComponent>(out var console, EntityManager.ComponentFactory))
+            || !consoleProto.TryComp<ShipyardConsoleComponent>(out var console, EntityManager.ComponentFactory))
         {
             return;
         }
@@ -367,7 +367,10 @@ public sealed partial class TraderUsedShipsSystem : EntitySystem
     /// </summary>
     public bool AssignDeed(EntityUid shuttle, EntityUid idCard, ICommonSession buyer, UsedShipListing listing)
     {
-        return _shipyard.TryAssignDeed(shuttle, idCard, buyer, _market.GetDesign(listing), listing.ShipName);
+        if (!_shipyard.TryAssignDeed(shuttle, idCard, buyer, _market.GetDesign(listing), listing.ShipName))
+            return false;
+        EntityManager.System<Content.Server._WF.Companies.WFCompanySystem>().MarkBoughtShip(shuttle, idCard);
+        return true;
     }
 
     private void UpdateState(Entity<TraderUsedShipsComponent> ent, Entity<TraderComponent> trader, EntityUid customer)

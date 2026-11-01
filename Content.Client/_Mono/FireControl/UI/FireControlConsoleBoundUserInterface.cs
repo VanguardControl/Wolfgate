@@ -2,7 +2,9 @@
 // All rights reserved. Relicensed under AGPL with permission
 
 using Content.Shared._Mono.FireControl;
+using Content.Shared._WF.ShipCombat; // WOLFGATE(ShipCombat)
 using Content.Shared._WF.ShipShields; // WOLFGATE(ShipShields)
+using Content.Shared._WF.AsteroidMining; // WOLFGATE(AsteroidMining)
 using JetBrains.Annotations;
 using Robust.Client.UserInterface;
 using Robust.Shared.Map;
@@ -90,6 +92,21 @@ public sealed class FireControlConsoleBoundUserInterface : BoundUserInterface
     {
         // Send an empty weapon list to indicate this is just a cursor update, not a firing action
         SendMessage(new FireControlConsoleFireMessage(new List<NetEntity>(), coordinates));
+
+        // WOLFGATE(ShipCombat) START: selected guns with a turn rate follow the cursor before firing.
+        if (_window == null)
+            return;
+
+        var selected = new List<NetEntity>();
+        foreach (var (weapon, button) in _window.WeaponsList)
+        {
+            if (button.Pressed)
+                selected.Add(weapon);
+        }
+
+        if (selected.Count > 0)
+            SendMessage(new WFTurretAimMessage(selected, coordinates));
+        // WOLFGATE END
     }
 
     // WOLFGATE(ShipShields) START: shield state for the gunner's shield control
@@ -99,6 +116,8 @@ public sealed class FireControlConsoleBoundUserInterface : BoundUserInterface
 
         if (message is WFShipShieldHelmUpdateMessage update)
             _window?.WfUpdateShields(update.ShieldShunt);
+        if (message is WFMiningBeamGunneryUpdateMessage mining) // WOLFGATE(AsteroidMining): the mining laser panel's scan
+            _window?.WfUpdateMining(mining.State);
     }
     // WOLFGATE END
 

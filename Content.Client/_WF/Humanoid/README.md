@@ -15,6 +15,7 @@ Entry points: `WolfgateSpeciesPicker` (species cards with previews and guidebook
 
 ### Client
 
+- [`Content.Client/_WF/Humanoid/HumanoidProfileEditor.SizePercent.cs`](HumanoidProfileEditor.SizePercent.cs)
 - [`Content.Client/_WF/Humanoid/WolfgateDescriptionWindow.cs`](WolfgateDescriptionWindow.cs)
 - [`Content.Client/_WF/Humanoid/WolfgateEvenRow.cs`](WolfgateEvenRow.cs)
 - [`Content.Client/_WF/Humanoid/WolfgateMarkingIcon.cs`](WolfgateMarkingIcon.cs)
@@ -28,6 +29,7 @@ Entry points: `WolfgateSpeciesPicker` (species cards with previews and guidebook
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Humanoid/SizePercentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Humanoid/SizePercentTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateEvenRowTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateEvenRowTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingIconTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingIconTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingPickerChassisTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Humanoid/WolfgateMarkingPickerChassisTest.cs)
@@ -72,6 +74,7 @@ Entry points: `WolfgateSpeciesPicker` (species cards with previews and guidebook
   - sex icon selector replaces the dropdown
   - species name override; blank falls back to the species' own name
   - description box under the preview, plus a full-size editor for longer text
+  - typed percentages for height and width
   - the description lives under the preview now, so this only shows or hides that box.
   - populate the species picker and sync its selection
   - body split out so the species tab's per-card info buttons can reach it

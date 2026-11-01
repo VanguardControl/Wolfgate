@@ -18,7 +18,7 @@ namespace Content.Shared._WF.Wolfmed.Reagents;
 /// Painkillers: what is in a body, how much pain it discounts, which states its tier may lift, and what
 /// taking too much of it costs. None of it treats a wound, which is the whole point of the tiers.
 /// </summary>
-public sealed class WolfmedPainReliefSystem : EntitySystem
+public sealed partial class WolfmedPainReliefSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IGameTiming _timing = default!;
@@ -51,7 +51,9 @@ public sealed class WolfmedPainReliefSystem : EntitySystem
     /// <summary>Pain units discounted from the Downed test. Every tier counts here.</summary>
     public float GetRelief(Entity<WolfmedPainReliefComponent?> body)
     {
-        return Resolve(body, ref body.Comp, false) ? body.Comp.Relief : 0f;
+        var armor = new Content.Shared._WF.Wolfmed.Wounds.WolfmedArmorPainReliefEvent();
+        RaiseLocalEvent(body, ref armor);
+        return (Resolve(body, ref body.Comp, false) ? body.Comp.Relief : 0f) + armor.Relief;
     }
 
     /// <summary>Pain units discounted from the Unconscious test. A weak painkiller never reaches this.</summary>

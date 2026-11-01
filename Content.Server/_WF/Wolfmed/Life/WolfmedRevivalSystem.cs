@@ -35,7 +35,7 @@ namespace Content.Server._WF.Wolfmed.Life;
 /// other content's <see cref="UnrevivableComponent"/> are the only hard stops, and neither is this system's.
 /// A shock succeeds on a roll, so no line here ever promises one will work.
 /// </remarks>
-public sealed class WolfmedRevivalSystem : EntitySystem
+public sealed partial class WolfmedRevivalSystem : EntitySystem
 {
     [Dependency] private IComponentFactory _factory = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
@@ -164,7 +164,7 @@ public sealed class WolfmedRevivalSystem : EntitySystem
             ("units", MathF.Ceiling(toTarget)),
             ("safe", MathF.Ceiling(toSafe)),
             ("target", MathF.Round(_cfg.GetCVar(WolfmedCVars.PostShockBloodTarget) * 100f)),
-            ("line", MathF.Round(_cfg.GetCVar(WolfmedCVars.BrainBloodStart) * 100f)),
+            ("line", MathF.Round(_life.BrainSafeTarget * 100f)),
             // M5: the cold refusal's core temperature and the line to rewarm past.
             ("kelvin", MathF.Round(_temperature.GetCore(body) ?? 0f)),
             ("rewarm", MathF.Ceiling(_temperature.GetLines(body)?.ColdArrest ?? 0f)));
