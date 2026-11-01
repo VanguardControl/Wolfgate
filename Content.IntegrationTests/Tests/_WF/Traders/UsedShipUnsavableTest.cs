@@ -1,5 +1,4 @@
 #nullable enable
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -89,8 +88,9 @@ public sealed class UsedShipUnsavableTest
                     bad.Add($"{name.Name}.{member.Name}: saved as \"type\", the key the save uses for the component itself");
 
                 var type = member is FieldInfo field ? field.FieldType : ((PropertyInfo) member).PropertyType;
-                if (typeof(IDictionary).IsAssignableFrom(type) && type.IsGenericType
-                    && type.GetGenericArguments()[0] is { IsClass: true } key && key != typeof(string) && key != typeof(Enum))
+                var dictionary = type.GetInterfaces().Append(type).FirstOrDefault(i => i.IsGenericType
+                    && (i.GetGenericTypeDefinition() == typeof(IDictionary<,>) || i.GetGenericTypeDefinition() == typeof(IReadOnlyDictionary<,>)));
+                if (dictionary?.GetGenericArguments()[0] is { IsClass: true } key && key != typeof(string) && key != typeof(Enum))
                 {
                     bad.Add($"{name.Name}.{member.Name}: keyed on {key.Name}, which can't be a YAML key");
                 }
