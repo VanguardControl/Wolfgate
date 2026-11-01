@@ -27,6 +27,7 @@ editor, with `TraitConditionUi` supplying condition checks and tooltip lines.
 
 ### Shared
 
+- [`Content.Shared/_WF/Traits/ClownComponent.cs`](../../../Content.Shared/_WF/Traits/ClownComponent.cs)
 - [`Content.Shared/_WF/Traits/Conditions/BaseTraitCondition.cs`](../../../Content.Shared/_WF/Traits/Conditions/BaseTraitCondition.cs)
 - [`Content.Shared/_WF/Traits/Conditions/HasCompCondition.cs`](../../../Content.Shared/_WF/Traits/Conditions/HasCompCondition.cs)
 - [`Content.Shared/_WF/Traits/Conditions/HasJobCondition.cs`](../../../Content.Shared/_WF/Traits/Conditions/HasJobCondition.cs)
@@ -37,7 +38,9 @@ editor, with `TraitConditionUi` supplying condition checks and tooltip lines.
 - [`Content.Shared/_WF/Traits/Effects/OverrideCompsEffect.cs`](../../../Content.Shared/_WF/Traits/Effects/OverrideCompsEffect.cs)
 - [`Content.Shared/_WF/Traits/Effects/RemCompsEffect.cs`](../../../Content.Shared/_WF/Traits/Effects/RemCompsEffect.cs)
 - [`Content.Shared/_WF/Traits/Effects/SpawnItemInHandEffect.cs`](../../../Content.Shared/_WF/Traits/Effects/SpawnItemInHandEffect.cs)
+- [`Content.Shared/_WF/Traits/README.md`](../../../Content.Shared/_WF/Traits/README.md)
 - [`Content.Shared/_WF/Traits/TraitConditionEvaluator.cs`](../../../Content.Shared/_WF/Traits/TraitConditionEvaluator.cs)
+- [`Content.Shared/_WF/Traits/TraitPrototype.Exclusion.cs`](../../../Content.Shared/_WF/Traits/TraitPrototype.Exclusion.cs)
 - [`Content.Shared/_WF/Traits/TraitPrototype.WF.cs`](../../../Content.Shared/_WF/Traits/TraitPrototype.WF.cs)
 
 ### Client
@@ -52,11 +55,17 @@ editor, with `TraitConditionUi` supplying condition checks and tooltip lines.
 
 ### Integration tests
 
+- [`Content.IntegrationTests/Tests/_WF/Traits/ClownMimeTraitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traits/ClownMimeTraitTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traits/TraitsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traits/TraitsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Traits/TraitsUiTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traits/TraitsUiTest.cs)
 
+### Prototypes
+
+- [`Resources/Prototypes/_WF/Traits/clown_mime.yml`](../../../Resources/Prototypes/_WF/Traits/clown_mime.yml)
+
 ### Localization
 
+- [`Resources/Locale/en-US/_WF/Traits/clown_mime.ftl`](../../../Resources/Locale/en-US/_WF/Traits/clown_mime.ftl)
 - [`Resources/Locale/en-US/_WF/Traits/traits.ftl`](../../../Resources/Locale/en-US/_WF/Traits/traits.ftl)
 
 ## Non-modular edits
@@ -69,11 +78,15 @@ editor, with `TraitConditionUi` supplying condition checks and tooltip lines.
   - keep the card-based editor in step with the profile
   - show what the trait's conditions require
   - a trait the character's species cannot take is shown but disabled
+  - opted-in traits stay visible and are greyed out
   - a saved trait the character's conditions no longer allow is dropped
 - [`Content.Client/Lobby/UI/Roles/TraitPreferenceSelector.xaml.cs`](../../../Content.Client/Lobby/UI/Roles/TraitPreferenceSelector.xaml.cs)
   - a trait whose conditions the character does not meet stays disabled
+  - greyed out while an exclusive trait is selected
   - the button is disabled, but never let a blocked trait through
   - an unmet condition survives point-limit recolouring
+  - an excluded trait stays grey
+  - a trait blocked by an exclusive pick stays disabled
 - [`Content.Server/Traits/TraitSystem.cs`](../../Traits/TraitSystem.cs)
   - a condition-gated trait is only applied when its conditions hold for this spawn
   - effect-only traits have no components list

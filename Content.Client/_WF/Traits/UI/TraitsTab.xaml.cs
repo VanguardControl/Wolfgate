@@ -255,6 +255,10 @@ public sealed partial class TraitsTab : BoxContainer
             blocked = true;
         }
 
+        // The server decides whether this player has the newbie tag, so this is a warning rather than a block.
+        if (trait.NewbieBlocked)
+            notes.Add(Loc.GetString("wf-newbie-trait-blocked"));
+
         var conflicts = new List<string>();
         foreach (var selectedId in _selected)
         {

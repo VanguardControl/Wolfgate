@@ -144,6 +144,11 @@ public sealed class TraitsUiTest
             Assert.That(blindness.FindControl<CheckBox>("TraitCheckbox")!.Disabled, Is.False,
                 "A met body whitelist should leave the trait selectable.");
 
+            var heretic = entries.First(entry => entry.Trait.ID == "Heretic");
+            var hereticTip = heretic.TooltipSupplier?.Invoke(heretic) as Tooltip;
+            Assert.That(hereticTip?.Text, Does.Contain("New players can't take this"),
+                "The popup should carry the newbie warning.");
+
             var pacifist = entries.First(entry => entry.Trait.ID == "Pacifist");
             var checkbox = pacifist.FindControl<CheckBox>("TraitCheckbox");
             Assert.That(checkbox, Is.Not.Null);

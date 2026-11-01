@@ -145,7 +145,9 @@ scratch, so an unpicked augment comes off it.
 - [`Content.Client/Humanoid/HumanoidAppearanceSystem.cs`](../../../Content.Client/Humanoid/HumanoidAppearanceSystem.cs)
   - the doll shows the picked augments, client-side only
   - an augment's layer takes no markings
-- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): augments tab (xmlns:wfa), after anatomy so earlier tabs keep their indices
+- [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml)
+  - the wfa xmlns on the root tag below is for the augment editor.
+  - augments tab (xmlns:wfa), after anatomy so earlier tabs keep their indices
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
   - a trait with its own limbs takes those slots
   - augments the new species can't take are dropped
