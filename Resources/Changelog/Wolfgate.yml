@@ -4667,3 +4667,20 @@ Entries:
   id: 100307
   time: '2026-11-01T21:55:25.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/444
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Added the Freedoom arcade cabinet, sold as a flatpack by John Wolfgate
+        and the Wolfgate vendor.
+    - type: Add
+      message: Added the Gamehub program to PDAs, for downloading and playing games.
+    - type: Add
+      message: Added game leaderboards, viewable from cabinets and PDAs.
+    - type: Add
+      message: Freedoom cabinets now pay prize tickets for finished levels.
+    - type: Add
+      message: Players nearby can hear games being played on cabinets and PDAs.
+  id: 100308
+  time: '2026-11-01T23:11:52.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/445
