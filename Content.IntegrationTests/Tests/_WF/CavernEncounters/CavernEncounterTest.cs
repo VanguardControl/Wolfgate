@@ -518,13 +518,16 @@ public sealed class CavernEncounterTest
             var comp = entMan.GetComponent<WFCavernEchoComponent>(echo);
             Assert.That(comp.LastSpoken, Does.Contain("shaft"), "The Echo didn't say the line back.");
             Assert.That(comp.Prey, Is.Empty, "The Echo went for someone far off.");
-
-            server.System<SharedTransformSystem>().SetCoordinates(speaker, new EntityCoordinates(map.Grid.Owner, 2.5f, 0.5f));
         });
-        // The Echo looks round on its own timer; a slow runner may need a few of them.
+        // The Echo looks round on its own timer and may have wandered off, so the speaker keeps walking up to it.
         var caught = false;
         for (var i = 0; i < 10 && !caught; i++)
         {
+            await server.WaitPost(() =>
+            {
+                var near = entMan.GetComponent<TransformComponent>(echo).Coordinates.Offset(new Vector2(2f, 0f));
+                server.System<SharedTransformSystem>().SetCoordinates(speaker, near);
+            });
             await server.WaitRunTicks(pair.SecondsToTicks(0.5f));
             await server.WaitPost(() => caught = entMan.GetComponent<WFCavernEchoComponent>(echo).Prey.Contains(speaker));
         }
