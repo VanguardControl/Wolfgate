@@ -1,6 +1,5 @@
-"""Paints the wild slime ground tiles of every world: eight variants each, an organic pattern kept off the tile
-borders so any two variants sit side by side, and the ragged edge sprites that let a patch spill onto the ground
-beside it.
+"""Paints the Fervidus obsidian glass: eight variants, an organic pattern kept off the tile borders so any two
+variants sit side by side.
 
 Run from the repo root: python Tools/_WF/WildSlimes/gen_slime_tiles.py [contact_sheet.png]
 Needs numpy and Pillow.
@@ -18,7 +17,6 @@ SIZE = 32
 VARIANTS = 8
 
 # The ground a patch is drawn over shows through, so the surface tiles are semi-transparent; caverns are solid.
-EDGES = ["South", "North", "East", "West", "SouthEast", "SouthWest", "NorthEast", "NorthWest"]
 
 
 def clamp(v, lo=0.0, hi=255.0):
@@ -144,58 +142,6 @@ def lumps(c, n, rmin, rmax, col, a, soft=0.35):
         c.lump(*c.pos(), c.rng.uniform(rmin, rmax), col, a, soft)
 
 
-def paint_verda(c):
-    rng = c.rng
-    lumps(c, 4, 4, 8, (36, 108, 106), 0.26)
-    lumps(c, 4, 3, 7, (150, 228, 198), 0.2)
-    for _ in range(rng.randint(5, 8)):
-        x, y = c.pos()
-        c.walk(x, y, rng.uniform(-1.0, -0.1), rng.randint(4, 9), (176, 240, 216), 0.36, wobble=0.3)
-    for _ in range(rng.randint(3, 5)):
-        r = rng.uniform(1.5, 3.6)
-        x, y = c.pos()
-        c.ring(x, y, r, (206, 248, 232), 0.5)
-        c.lump(x, y, r * 0.8, (120, 214, 190), 0.18)
-        c.put(x - r * 0.5, y - r * 0.5, (255, 255, 255), 0.8)
-    for _ in range(rng.randint(5, 9)):
-        x, y = c.pos()
-        c.put(x, y, (34, 92, 92), 0.45)
-
-
-def paint_flesh(c):
-    rng = c.rng
-    lumps(c, 4, 4, 8, (92, 26, 40), 0.32)
-    lumps(c, 4, 3, 7, (186, 88, 98), 0.26)
-    for _ in range(rng.randint(3, 4)):
-        x, y = c.pos()
-        c.walk(x, y, rng.uniform(0, math.tau), rng.randint(9, 15), (70, 16, 30), 0.6, wobble=0.55, branch=0.18, thick=2)
-    for _ in range(rng.randint(5, 8)):
-        x, y = c.pos()
-        c.walk(x, y, rng.uniform(-0.9, -0.1), rng.randint(2, 5), (232, 146, 152), 0.5, wobble=0.2)
-    for _ in range(rng.randint(3, 6)):
-        x, y = c.pos()
-        c.lump(x, y, rng.uniform(1.0, 2.0), (46, 10, 20), 0.75, 0.3)
-
-
-def paint_pink(c):
-    rng = c.rng
-    lumps(c, 4, 4, 8, (250, 160, 228), 0.22)
-    lumps(c, 3, 3, 7, (140, 52, 122), 0.24)
-    for _ in range(rng.randint(3, 5)):
-        x, y = c.pos()
-        light = rng.random() < 0.6
-        c.facet(x, y, rng.uniform(3, 6), (255, 208, 242) if light else (150, 62, 132), 0.3,
-                (255, 232, 250) if light else (110, 36, 98), 0.28)
-    for _ in range(rng.randint(1, 3)):
-        x, y = c.pos()
-        c.line(x, y, x + rng.uniform(-4, 4), y + rng.uniform(-4, 4), (255, 236, 250), 0.55)
-    if rng.random() < 0.6:
-        x, y = c.pos()
-        c.put(x, y, (255, 255, 255), 0.95)
-        for ox, oy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            c.put(x + ox, y + oy, (255, 226, 248), 0.55)
-
-
 def paint_obsidian(c):
     rng = c.rng
     lumps(c, 4, 4, 9, (10, 5, 16), 0.4)
@@ -223,47 +169,9 @@ def paint_obsidian(c):
         c.line(x, y, x + 3, y - 1, (222, 204, 240), 0.55)
 
 
-def paint_sand(c):
-    rng = c.rng
-    lumps(c, 5, 4, 9, (238, 216, 152), 0.22)
-    lumps(c, 4, 3, 8, (146, 108, 60), 0.2)
-    for _ in range(rng.randint(2, 3)):
-        r = rng.uniform(3.5, 7)
-        x, y = c.pos()
-        c.lump(x, y, r, (170, 130, 78), 0.5, 0.15)
-        c.lump(x + 0.4, y + 0.4, r * 0.86, (242, 228, 178), 0.65, 0.4)
-        c.put(x - r * 0.35, y - r * 0.35, (255, 252, 236), 0.85)
-    for _ in range(rng.randint(6, 9)):
-        x, y = c.pos()
-        c.walk(x, y, rng.uniform(0.2, 0.8), rng.randint(4, 9), (186, 146, 90), 0.34, wobble=0.25)
-    for _ in range(rng.randint(3, 6)):
-        x, y = c.pos()
-        c.put(x, y, (255, 250, 226), 0.75)
-
-
-def paint_rime(c):
-    rng = c.rng
-    lumps(c, 4, 4, 9, (228, 244, 253), 0.2)
-    lumps(c, 4, 3, 7, (66, 100, 140), 0.22)
-    for _ in range(rng.randint(2, 4)):
-        x, y = c.pos()
-        c.facet(x, y, rng.uniform(4, 8), (236, 248, 255), 0.14, (206, 232, 250), 0.18)
-    for _ in range(rng.randint(1, 2)):
-        x, y = c.pos()
-        c.walk(x, y, rng.uniform(0, math.tau), rng.randint(7, 12), (222, 242, 252), 0.55, wobble=0.18, branch=0.3, fade=True, thick=2)
-    for _ in range(rng.randint(5, 9)):
-        x, y = c.pos()
-        c.put(x, y, (255, 255, 255), 0.8)
-
-
-# surface rgb, cavern multiplier, surface alpha, painter, seed, shade range, base noise cells, edge priority
+# surface rgb, cavern multiplier, surface alpha, painter, seed, shade range
 TILES = {
-    "Verda/Tiles/water_jelly": ((72, 169, 152), 0.9, 130, paint_verda, 11, 0.10),
-    "Tiles/flesh_jelly": ((127, 46, 57), 0.9, 171, paint_flesh, 12, 0.10),
-    "Aerumna/pink_crystal": ((226, 102, 188), 0.7, 166, paint_pink, 13, 0.08),
     "Fervidus/obsidian_glass": ((42, 28, 48), 0.72, 137, paint_obsidian, 14, 0.12),
-    "Merak/Tiles/glass_sand": ((209, 171, 107), 0.9, 146, paint_sand, 15, 0.08),
-    "Thrascias/Tiles/rime_ice": ((93, 134, 172), 0.9, 137, paint_rime, 16, 0.08),
 }
 
 
@@ -285,49 +193,6 @@ def save_strip(path, variants, alpha, mult):
         strip[:, i * SIZE:(i + 1) * SIZE, :3] = clamp(rgb * mult).astype(np.uint8)
         strip[:, i * SIZE:(i + 1) * SIZE, 3] = alpha
     Image.fromarray(strip, "RGBA").save(path)
-
-
-def ragged(rng_seed):
-    """A band depth for each pixel along an edge that wraps, so edge sprites of neighbours line up."""
-    n = periodic_noise(np.random.default_rng(rng_seed), 4, 2)
-    return 3.5 + n[0] * 6.0
-
-
-def save_edges(prefix, base, alpha, seed):
-    depth = ragged(seed + 500)
-    noise = periodic_noise(np.random.default_rng(seed + 501), 4, 2)
-    base = np.array(base, dtype=float)
-
-    def pixel(x, y, inside, rim):
-        if inside <= 0:
-            return (0, 0, 0, 0)
-        shade = 1.0 + (noise[y, x] - 0.5) * 0.12
-        col = base * shade
-        if rim:
-            col = col * 0.82
-        a = alpha if inside >= 1 else int(alpha * 0.55)
-        return (*[int(clamp(c)) for c in col], a)
-
-    for edge in EDGES:
-        img = np.zeros((SIZE, SIZE, 4), dtype=np.uint8)
-        for y in range(SIZE):
-            for x in range(SIZE):
-                if edge in ("South", "North"):
-                    d = depth[x]
-                    dist = (d - y) if edge == "South" else (d - (SIZE - 1 - y))
-                elif edge in ("East", "West"):
-                    d = depth[y]
-                    dist = (d - x) if edge == "East" else (d - (SIZE - 1 - x))
-                else:
-                    # SouthEast draws in the top left corner, SouthWest top right, NorthEast bottom left, NorthWest bottom right
-                    cx = 0 if edge.endswith("East") else SIZE - 1
-                    cy = 0 if edge.startswith("South") else SIZE - 1
-                    r = 4.5 + (noise[y, x] - 0.5) * 2.5
-                    dist = r - math.hypot(x - cx, y - cy)
-                inside = 0 if dist <= 0 else (0.5 if dist < 1 else 1)
-                rim = 0 < dist < 2.2
-                img[y, x] = pixel(x, y, inside, rim)
-        Image.fromarray(img, "RGBA").save(f"{prefix}_edge_{edge.lower()}.png")
 
 
 def sheet(path):
@@ -355,7 +220,6 @@ def main():
         variants = build_variants(name, base, painter, seed, shade)
         save_strip(ROOT / f"{name}.png", variants, alpha, 1.0)
         save_strip(ROOT / f"{name}_cavern.png", variants, 255, mult)
-        save_edges(str(ROOT / name), base, alpha, seed)
         print("wrote", name)
     if len(sys.argv) > 1:
         sheet(sys.argv[1])
