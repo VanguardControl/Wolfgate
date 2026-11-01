@@ -11,7 +11,8 @@ namespace Content.Shared._CE.ZLevels.Core.Components;
 /// <summary>
 /// Allows an entity to move up and down the z-levels by gravity or jumping
 /// </summary>
-[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(fieldDeltas: true)]
+// WOLFGATE(Performance): raises AfterAutoHandleState so the client notes a height from the server
+[RegisterComponent, NetworkedComponent, AutoGenerateComponentState(true, fieldDeltas: true)]
 public sealed partial class CEZPhysicsComponent : Component
 {
     /// <summary>

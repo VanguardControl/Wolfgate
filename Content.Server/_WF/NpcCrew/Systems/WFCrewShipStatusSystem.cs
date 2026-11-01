@@ -53,7 +53,8 @@ public sealed partial class WFCrewShipStatusSystem : EntitySystem
     private readonly Dictionary<(EntityUid Grid, Condition Condition), (TimeSpan Since, TimeSpan Last)> _spells = new();
     private readonly Dictionary<EntityUid, (WFCrewDisengage Rule, float Range)> _policies = new();
 
-    private TimeSpan _nextWatch;
+    /// <summary>Starts part way through the second, off the tick other one-second systems run on.</summary>
+    private TimeSpan _nextWatch = TimeSpan.FromSeconds(0.6);
     private readonly HashSet<EntityUid> _watch = new();
     private readonly HashSet<EntityUid> _armedNow = new();
     private readonly HashSet<EntityUid> _crewedNow = new();

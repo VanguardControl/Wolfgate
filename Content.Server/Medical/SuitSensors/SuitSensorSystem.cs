@@ -72,6 +72,10 @@ public sealed partial class SuitSensorSystem : EntitySystem
     {
         base.Update(frameTime);
 
+        // WOLFGATE(Performance): finding what's due walks every sensor; NextUpdate keeps the rate
+        if (_gameTiming.CurTick.Value % 3 != 1)
+            return;
+
         var curTime = _gameTiming.CurTime;
         //var sensors = EntityManager.EntityQueryEnumerator<SuitSensorComponent, DeviceNetworkComponent>(); // Frontier modification
         var sensors = EntityQueryEnumerator<SuitSensorComponent, DeviceNetworkComponent, TransformComponent>(); // Frontier modification

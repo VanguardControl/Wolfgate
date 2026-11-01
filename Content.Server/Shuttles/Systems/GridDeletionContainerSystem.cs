@@ -20,6 +20,8 @@ public sealed partial class GridDeletionContainerSystem : EntitySystem
     // Track grids currently being processed to prevent re-entrancy issues.
     private readonly HashSet<EntityUid> _gridsBeingDeleted = new();
 
+    [Dependency] private Content.Server._WF.Performance.WFGridDeleteWatchSystem _wfDeleteWatch = default!; // WOLFGATE(Performance)
+
     public override void Initialize()
     {
         base.Initialize();
@@ -32,6 +34,8 @@ public sealed partial class GridDeletionContainerSystem : EntitySystem
         // Prevent re-entrancy. If we are already processing this grid, stop.
         if (!_gridsBeingDeleted.Add(uid))
             return;
+
+        _wfDeleteWatch.Started(uid); // WOLFGATE(Performance): logs grids that take long to delete
 
         try
         {

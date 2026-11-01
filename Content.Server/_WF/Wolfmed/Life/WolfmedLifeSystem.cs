@@ -1,3 +1,4 @@
+using Content.Shared._WF.Performance;
 using System.Linq;
 using Content.Server.Body.Components;
 using Content.Server._WF.Wolfmed.Consciousness;
@@ -89,7 +90,6 @@ public sealed class WolfmedLifeSystem : EntitySystem
     [Dependency] private Content.Shared.Popups.SharedPopupSystem _popup = default!; // Playtest 5
 
     private readonly List<EntityUid> _due = new();
-    private TimeSpan _nextTick;
 
     public override void Initialize()
     {
@@ -247,16 +247,18 @@ public sealed class WolfmedLifeSystem : EntitySystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
-        if (_timing.CurTime < _nextTick)
-            return;
-
-        _nextTick = _timing.CurTime + TickInterval;
+        // Each body takes its own tick of the interval, so a full server doesn't tick every body at once.
+        var period = WFTickSpread.Period(_timing, (float) TickInterval.TotalSeconds);
+        var curTick = _timing.CurTick;
 
         // Buffered: a tick can destroy an organ, which removes entities while the query is open.
         _due.Clear();
         var query = EntityQueryEnumerator<WolfmedConsciousnessComponent>();
         while (query.MoveNext(out var uid, out _))
-            _due.Add(uid);
+        {
+            if (WFTickSpread.Due(uid, curTick, period))
+                _due.Add(uid);
+        }
 
         foreach (var body in _due)
         {

@@ -133,6 +133,7 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
 
     private void DirtyChunk(Entity<NavMapComponent> entity, NavMapChunk chunk)
     {
+        entity.Comp.WFRemovedChunks.Remove(chunk.Origin); // WOLFGATE(Performance): back in use, so no longer a removal
         if (chunk.LastUpdate == _gameTiming.CurTick)
             return;
 
@@ -239,6 +240,12 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
     private void RefreshGrid(EntityUid uid, NavMapComponent component, MapGridComponent mapGrid)
     {
         // Clear stale data
+        // WOLFGATE(Performance) START: deltas name removed chunks; the rebuild below takes back any still in use
+        foreach (var origin in component.Chunks.Keys)
+        {
+            component.WFRemovedChunks[origin] = _gameTiming.CurTick;
+        }
+        // WOLFGATE END
         component.Chunks.Clear();
         component.Beacons.Clear();
 
@@ -261,10 +268,12 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
             var chunkOrigin = SharedMapSystem.GetChunkIndices(tile, ChunkSize);
 
             var chunk = EnsureChunk(component, chunkOrigin);
+            component.WFRemovedChunks.Remove(chunkOrigin); // WOLFGATE(Performance): back in use, so no longer a removal
             chunk.LastUpdate = _gameTiming.CurTick;
             RefreshTileEntityContents(uid, component, mapGrid, chunkOrigin, tile, setFloor: true);
         }
 
+        WFTrimRemovedChunks(component); // WOLFGATE(Performance): the history of removed chunks stays bounded
         Dirty(uid, component);
     }
 
@@ -322,6 +331,16 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
         }
 
         entity.Comp.Chunks.Remove(chunk.Origin);
+
+        // WOLFGATE(Performance) START: a chunk that was never sent changes nothing for clients
+        // A moving airtight entity makes one of these on every move, which sent the whole beacon and region list each time.
+        if (chunk.LastUpdate == default)
+            return true;
+        // WOLFGATE END
+
+        // WOLFGATE(Performance): deltas name removed chunks, and the history of them stays bounded
+        entity.Comp.WFRemovedChunks[chunk.Origin] = _gameTiming.CurTick;
+        WFTrimRemovedChunks(entity.Comp);
         Dirty(entity);
         return true;
     }

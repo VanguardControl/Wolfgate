@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 using Content.Server._NF.Shipyard.Systems;
 using Content.Server.Shuttles.Systems;
 using Content.Server.Station.Systems;
@@ -51,9 +52,30 @@ public sealed class UsedShipListing
     public TimeSpan AvailableAt;
 
     /// <summary>
-    /// The grid, exactly as it was when it was bought.
+    /// The grid's YAML being written on a worker, done long before the listing can be bought.
     /// </summary>
-    public string Data = string.Empty;
+    public Task<string?>? Writing;
+
+    private string? _data;
+
+    /// <summary>
+    /// Whether the grid's YAML is written and the listing can go on the lot.
+    /// </summary>
+    public bool Ready => Writing == null || Writing.IsCompletedSuccessfully && Writing.GetAwaiter().GetResult() != null;
+
+    /// <summary>
+    /// Whether writing the grid's YAML failed, which loses the ship.
+    /// </summary>
+    public bool WriteFailed => Writing is { IsCompleted: true } && !Ready;
+
+    /// <summary>
+    /// The grid, exactly as it was when it was bought. Empty if writing it failed.
+    /// </summary>
+    public string Data
+    {
+        get => _data ??= Writing?.GetAwaiter().GetResult() ?? string.Empty;
+        set => _data = value;
+    }
 
     /// <summary>
     /// Whether the lot has already been told about it.
@@ -115,7 +137,7 @@ public sealed class UsedShipMarketSystem : EntitySystem
     public List<UsedShipListing> GetAvailable()
     {
         var now = _timing.CurTime;
-        return _listings.Where(l => l.AvailableAt <= now).OrderBy(l => l.Price).ToList();
+        return _listings.Where(l => l.AvailableAt <= now && l.Ready).OrderBy(l => l.Price).ToList();
     }
 
     /// <summary>
@@ -123,7 +145,7 @@ public sealed class UsedShipMarketSystem : EntitySystem
     /// </summary>
     public bool TryGetAvailableListing(int id, [NotNullWhen(true)] out UsedShipListing? listing)
     {
-        listing = _listings.FirstOrDefault(l => l.Id == id && l.AvailableAt <= _timing.CurTime);
+        listing = _listings.FirstOrDefault(l => l.Id == id && l.AvailableAt <= _timing.CurTime && l.Ready);
         return listing != null;
     }
 
@@ -206,7 +228,7 @@ public sealed class UsedShipMarketSystem : EntitySystem
         // dangling reference makes the whole load fail. The hull is about to be deleted regardless.
         _docking.UndockDocks(shuttle);
 
-        if (!_shipyard.TrySaveShip(shuttle, carry, out var data))
+        if (!_shipyard.TrySaveShipDeferred(shuttle, carry, out var writing))
         {
             Log.Error($"Could not copy {shipName} for the used lot; it is lost.");
             return false;
@@ -226,7 +248,7 @@ public sealed class UsedShipMarketSystem : EntitySystem
             Price = (int) Math.Ceiling(saleValue * (1f + Math.Max(0f, markup))),
             SoldAt = now,
             AvailableAt = now + relistDelay,
-            Data = data,
+            Writing = writing,
         };
 
         _listings.Add(listing);
@@ -332,10 +354,19 @@ public sealed class UsedShipMarketSystem : EntitySystem
         if (_listings.Count == 0)
             return;
 
+        for (var i = _listings.Count - 1; i >= 0; i--)
+        {
+            if (!_listings[i].WriteFailed)
+                continue;
+
+            Log.Warning($"Dropped {_listings[i].ShipName} from the used lot; its copy could not be written.");
+            _listings.RemoveAt(i);
+        }
+
         var now = _timing.CurTime;
         foreach (var listing in _listings)
         {
-            if (listing.Announced || listing.AvailableAt > now)
+            if (listing.Announced || listing.AvailableAt > now || !listing.Ready)
                 continue;
 
             listing.Announced = true;

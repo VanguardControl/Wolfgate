@@ -34,7 +34,8 @@ public sealed class WFCargoLoadSystem : EntitySystem
     public static readonly ProtoId<WFCargoLoadPrototype> DefaultProfile = "WFCargoLoadDefault";
     private static readonly TimeSpan SweepInterval = TimeSpan.FromSeconds(1);
 
-    private TimeSpan _nextSweep;
+    /// <summary>Starts part way through the second, off the tick other one-second systems run on.</summary>
+    private TimeSpan _nextSweep = TimeSpan.FromSeconds(0.1);
     private readonly Dictionary<EntityUid, float> _loads = new();
     private readonly Dictionary<EntityUid, float> _stored = new();
     private readonly HashSet<EntityUid> _touched = new();
