@@ -23,7 +23,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        # Pinned: on ubuntu-26.04 the cockpit and console label-width tests fail with the same code.
+        os: [ubuntu-24.04]
         shard: [ wf-heavy, wf-rest, core ]
         include:
         - shard: wf-heavy
