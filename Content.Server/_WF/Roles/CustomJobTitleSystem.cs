@@ -26,6 +26,10 @@ public sealed partial class CustomJobTitleSystem : EntitySystem
         SubscribeLocalEvent<AfterGeneralRecordCreatedEvent>(OnGeneralRecordCreated);
     }
 
+    /// <summary>Whether this body's mind carries a chosen title, such as a company rank, that a ship purchase must not replace.</summary>
+    public bool HasCustomTitle(EntityUid body) =>
+        _mind.TryGetMind(body, out var mindId, out _) && HasComp<CustomJobTitleComponent>(mindId);
+
     private void OnPlayerSpawnComplete(PlayerSpawnCompleteEvent ev)
     {
         if (CustomJobTitleRules.GetTitle(ev.Profile, ev.JobId, _prototype) is not { } title)
