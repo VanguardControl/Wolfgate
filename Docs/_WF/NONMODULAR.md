@@ -37,6 +37,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs`](../../Content.Client/Lobby/UI/CharacterSetupGui.xaml.cs)
   - logs characters that can't be previewed
   - a character this build cannot preview is skipped instead of aborting the loop
+- [`Content.Client/Parallax/ParallaxSystem.cs`](../../Content.Client/Parallax/ParallaxSystem.cs): a map without a Parallax component falls back to this name, so load it or space is black
 - [`Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs`](../../Content.Client/Shuttles/UI/BaseShuttleControl.xaml.cs)
   - v291 Box2 asserts on inverted corners in debug builds; order them
   - batch radar edges so huge grids don't overflow the game thread stack
@@ -191,6 +192,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Locale/en-US/_Mono/prototypes/access/accesses.ftl`](../../Resources/Locale/en-US/_Mono/prototypes/access/accesses.ftl): Monolith#4816 shipped the Underground access levels without names
 - [`Resources/Maps/_Mono/Bluespace/prefracture.yml`](../../Resources/Maps/_Mono/Bluespace/prefracture.yml): Hardpoints mapped under the Unidentified Vessel's Scythe, Sunder and Flayer guns so gunnery links them.
 - [`Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml`](../../Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml): Hardpoint mapped under the asteroid ship's AK570 so gunnery links it.
+- [`Resources/Maps/_Mono/Outpost/caelestinus_central.yml`](../../Resources/Maps/_Mono/Outpost/caelestinus_central.yml): Sector map entity gets its Parallax component and Colossus Sector name back after the
 - [`Resources/Maps/_Mono/POI/Dungeons/zvezda.yml`](../../Resources/Maps/_Mono/POI/Dungeons/zvezda.yml): Zvezda lighting re-work and power generation.
 - [`Resources/Maps/_Mono/POI/pdvhelios.yml`](../../Resources/Maps/_Mono/POI/pdvhelios.yml): Helios mapping fixes for lighting, wallmounts and small layout tweaks.
 - [`Resources/Maps/_Mono/POI/tsfmc_industry.yml`](../../Resources/Maps/_Mono/POI/tsfmc_industry.yml): Stellar Blessing lighting, colour-coded distro, fire suit lockers and extinguishers.
