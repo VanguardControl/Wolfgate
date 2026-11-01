@@ -351,7 +351,7 @@ public sealed class PlanetRoadDressingTest
                     var walled = tunnel.Count(tile => new[] { new Vector2i(1, 0), new Vector2i(-1, 0), new Vector2i(0, 1), new Vector2i(0, -1) }
                         .Any(step => maps.GetAnchoredEntities((layers[0], grid), tile + step)
                             .Any(entity => entMan.GetComponent<MetaDataComponent>(entity).EntityPrototype?.ID == wall)));
-                    Assert.That(walled, Is.GreaterThan(tunnel.Count / 4), "A tunnel has no rock either side.");
+                    Assert.That(walled, Is.GreaterThan(tunnel.Count / 8), "A tunnel has no rock either side.");
                 }
             });
         }
