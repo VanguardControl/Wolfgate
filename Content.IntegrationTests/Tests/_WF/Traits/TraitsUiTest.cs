@@ -254,7 +254,7 @@ public sealed class TraitsUiTest
     private static void Toggle(CheckBox checkBox, bool pressed)
     {
         checkBox.Pressed = pressed;
-        var toggled = (Action<BaseButton.ButtonToggledEventArgs>?) typeof(BaseButton)
+        var toggled = (Action<BaseButton.ButtonToggledEventArgs>) typeof(BaseButton)
             .GetField(nameof(BaseButton.OnToggled), BindingFlags.Instance | BindingFlags.NonPublic)!
             .GetValue(checkBox);
         toggled!.Invoke(new BaseButton.ButtonToggledEventArgs(pressed, checkBox, ClickArgs()));
