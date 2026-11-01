@@ -4466,3 +4466,12 @@ Entries:
   id: 100296
   time: '2026-11-01T02:32:55.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/406
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Mapping mode exports now run the map check for the kind of export and
+        refuse maps that would fail it.
+  id: 100297
+  time: '2026-11-01T03:35:40.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/434
