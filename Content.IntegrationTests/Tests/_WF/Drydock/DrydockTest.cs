@@ -443,6 +443,58 @@ public sealed class DrydockTest
         await pair.CleanReturnAsync();
     }
 
+    /// <summary>A gun swapped in over the snapshot's stops the stock one being quoted or built under it, even mid-job.</summary>
+    [Test]
+    public async Task SwappedGunIsNotBuiltOver()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var em = server.EntMan;
+        var map = await pair.CreateTestMap();
+        var grid = map.Grid;
+        var drydock = server.System<WFDrydockSystem>();
+        var console = new WFDrydockConsoleComponent { Berth = "T" };
+
+        await server.WaitAssertion(() =>
+        {
+            SetFloor(pair, grid, 5);
+            var hardpoint = SpawnAnchored(pair, grid, "HardpointEnergyHeavy", new Vector2i(2, 2));
+            var stock = SpawnAnchored(pair, grid, "WeaponTurretSunder", new Vector2i(2, 2));
+            server.System<ShipRepairSystem>().GenerateRepairData(grid);
+
+            em.DeleteEntity(stock);
+            var queued = drydock.BuildRepairItems(grid, console).Single(i => i.Kind == WFDrydockWorkKind.Entity);
+
+            // Not this hardpoint's class, as a salvaged gun may be: it holds the tile without mounting.
+            var swapped = SpawnAnchored(pair, grid, "WeaponTurretBofors", new Vector2i(2, 2));
+            drydock.ApplyItem(grid, queued);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(GunsOnTile(pair, grid, new Vector2i(2, 2)), Is.EqualTo(new[] { swapped }), "A gun was built over the swapped one.");
+                Assert.That(drydock.BuildRepairItems(grid, console).Where(i => i.Kind == WFDrydockWorkKind.Entity), Is.Empty,
+                    "The swapped-out gun was still quoted.");
+            });
+
+            // With the swapped gun gone the spot is free and the ship's own gun comes back.
+            em.DeleteEntity(swapped);
+            var rebuild = drydock.BuildRepairItems(grid, console).Single(i => i.Kind == WFDrydockWorkKind.Entity);
+            drydock.ApplyItem(grid, rebuild);
+            Assert.That(em.GetComponent<HardpointComponent>(hardpoint).anchoring, Is.Not.Null, "The stock gun did not come back.");
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    private static List<EntityUid> GunsOnTile(TestPair pair, EntityUid grid, Vector2i tile)
+    {
+        var em = pair.Server.EntMan;
+        return pair.Server.System<SharedMapSystem>()
+            .GetAnchoredEntities(grid, em.GetComponent<MapGridComponent>(grid), tile)
+            .Where(em.HasComponent<HardpointAnchorableOnlyComponent>)
+            .ToList();
+    }
+
     /// <summary>
     /// A rebuilt gun rejoins the ship's fire control. A queued grid with no fire control (here a station with a fresh
     /// wall) used to stop the hardpoint refresh for good, so guns rebuilt at the drydock never linked to the consoles.

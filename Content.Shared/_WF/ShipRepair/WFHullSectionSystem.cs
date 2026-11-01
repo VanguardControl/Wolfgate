@@ -187,7 +187,7 @@ public sealed partial class WFHullSectionSystem : EntitySystem
     /// Only wrenchable entities are checked. What the snapshot holds on this tile was built to share it, such as a
     /// window and its grille, so only something else blocks.
     /// </summary>
-    private bool IsSpotTaken(Entity<MapGridComponent> hull, EntProtoId proto, Vector2i index, ShipRepairDataComponent data, ShipRepairChunk chunk)
+    public bool IsSpotTaken(Entity<MapGridComponent> hull, EntProtoId proto, Vector2i index, ShipRepairDataComponent data, ShipRepairChunk chunk)
     {
         if (!_proto.TryIndex(proto, out var entProto) ||
             !entProto.TryGetComponent<AnchorableComponent>(out _, _factory) ||
