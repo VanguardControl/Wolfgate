@@ -11,6 +11,8 @@ using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Migration; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
 using Content.Shared._WF.LegStyle; // WOLFGATE(LegStyle)
+using Content.Shared._WF.Traits; // WOLFGATE(Traits)
+using Content.Shared._WF.Traits.Conditions; // WOLFGATE(Traits)
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Humanoid;
@@ -910,6 +912,7 @@ namespace Content.Shared.Preferences
             // Track points count for each group.
             var groups = new Dictionary<string, int>();
             var result = new List<ProtoId<TraitPrototype>>();
+            var conditionCtx = new TraitConditionContext { SpeciesId = Species.Id, Proto = protoManager }; // WOLFGATE(Traits)
 
             // WOLFGATE START: count downsides first so a positive trait isn't dropped by set order
             var ordered = traits
@@ -924,6 +927,11 @@ namespace Content.Shared.Preferences
 
                 if (WFBiotypeGates.TraitBlocked(traitProto, this, protoManager)) // WOLFGATE(Biotype): a trait the effective biotype can't take is dropped
                     continue;
+
+                // WOLFGATE(Traits) START: drop a trait whose known conditions the character does not meet
+                if (!TraitConditionEvaluator.AllMet(traitProto.Conditions, conditionCtx))
+                    continue;
+                // WOLFGATE END
 
                 // WOLFGATE(MeridianTraits) START: drop a trait that excludes one already taken, in either direction
                 if (result.Any(taken => traitProto.MutuallyExclusiveTraits.Contains(taken)

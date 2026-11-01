@@ -45,8 +45,18 @@ public sealed partial class TraitSystem : EntitySystem
                 _whitelistSystem.IsBlacklistPass(traitPrototype.Blacklist, args.Mob))
                 continue;
 
+            // WOLFGATE(Traits) START: a condition-gated trait is only applied when its conditions hold for this spawn
+            if (!WfTraitConditionsMet(args.Mob, args.JobId, traitPrototype))
+                continue;
+            // WOLFGATE END
+
             // Add all components required by the prototype
-            EntityManager.AddComponents(args.Mob, traitPrototype.Components, false);
+            // WOLFGATE(Traits) START: effect-only traits have no components list
+            if (traitPrototype.Components != null)
+                EntityManager.AddComponents(args.Mob, traitPrototype.Components, false);
+
+            WfApplyTraitEffects(args.Mob, traitPrototype);
+            // WOLFGATE END
 
             // Einstein Engines - Language begin (remove this if trait system refactor)
             // Remove/Add Languages required by the prototype

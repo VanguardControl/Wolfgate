@@ -5,6 +5,7 @@ using Content.Client.Humanoid;
 using Content.Client._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Client._WF.Genitals.UI; // WOLFGATE(Genitals)
 using Content.Client._WF.Humanoid; // WOLFGATE(Humanoid)
+using Content.Client._WF.Traits; // WOLFGATE(Traits)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
 using Content.Shared._WF.Biotype; // WOLFGATE(Biotype)
@@ -523,6 +524,14 @@ namespace Content.Client.Lobby.UI
 
             RefreshTraits();
 
+            // WOLFGATE(Traits) START: the card-based editor owns trait selection
+            TraitsTab.OnProfileChanged += profile =>
+            {
+                Profile = profile;
+                SetDirty();
+            };
+            // WOLFGATE END
+
             #region Company
 
             TabContainer.SetTabTitle(4, Loc.GetString("humanoid-profile-editor-company-tab")); // WOLFGATE(Humanoid): shifted by the species tab
@@ -696,6 +705,10 @@ namespace Content.Client.Lobby.UI
 
             EnforceSpeciesTraitRestrictions();
 
+            // WOLFGATE(Traits) START: keep the card-based editor in step with the profile
+            TraitsTab.SetProfile(Profile);
+            // WOLFGATE END
+
             var traits = _prototypeManager.EnumeratePrototypes<TraitPrototype>().OrderBy(t => Loc.GetString(t.Name)).ToList();
             TabContainer.SetTabTitle(3, Loc.GetString("humanoid-profile-editor-traits-tab")); // WOLFGATE(Humanoid): shifted by the species tab
 
@@ -852,6 +865,10 @@ namespace Content.Client.Lobby.UI
                         // WOLFGATE(Biotype) START: the biotypes a trait can't be taken by
                         if (BiotypeBlacklistTooltip(trait) is { } biotypeTooltip)
                             tooltipParts.Add(biotypeTooltip);
+                        // WOLFGATE END
+
+                        // WOLFGATE(Traits) START: show what the trait's conditions require
+                        TraitConditionUi.AddTooltipLines(trait, _prototypeManager, tooltipParts);
                         // WOLFGATE END
 
                         if (tooltipParts.Count > 0)
@@ -1035,6 +1052,24 @@ namespace Content.Client.Lobby.UI
 
                     categoryButton.AddTrait(selector);
                 }
+
+                // WOLFGATE(Traits) START: a trait the character's species cannot take is shown but disabled
+                if (Profile != null)
+                {
+                    foreach (var traitProto in categoryTraits)
+                    {
+                        if (!allSelectors.TryGetValue(traitProto, out var selector))
+                            continue;
+
+                        var trait = _prototypeManager.Index<TraitPrototype>(traitProto);
+                        if (TraitConditionUi.AllMet(trait, Profile.Species.Id, _prototypeManager))
+                            continue;
+
+                        selector.ConditionsMet = false;
+                        selector.SetUnavailable(true);
+                    }
+                }
+                // WOLFGATE END
 
                 UpdateTraitIncompatibilityVisibility(allSelectors);
             }
@@ -2100,6 +2135,10 @@ namespace Content.Client.Lobby.UI
 
                 if (trait.SpeciesBlacklist.Contains(species) || WFBiotypeGates.TraitBlocked(trait, Profile, _prototypeManager)) // WOLFGATE(Biotype): a listed biotype drops the trait like a listed species
                     toRemove.Add(traitId);
+                // WOLFGATE(Traits) START: a saved trait the character's conditions no longer allow is dropped
+                else if (!TraitConditionUi.AllMet(trait, species.Id, _prototypeManager))
+                    toRemove.Add(traitId);
+                // WOLFGATE END
             }
 
             foreach (var traitId in toRemove)
