@@ -16,6 +16,10 @@ public sealed partial class EmitSoundSystem : SharedEmitSoundSystem
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
+        // WOLFGATE(Performance): finding what's due walks every spammer; NextSound keeps the rate
+        if (_timing.CurTick.Value % 3 != 1)
+            return;
+
         var query = EntityQueryEnumerator<SpamEmitSoundComponent>();
 
         while (query.MoveNext(out var uid, out var soundSpammer))

@@ -26,6 +26,11 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - Roofs network as chunk deltas (`SharedRoofSystem.WFDelta`). Maps go to every player, and a cavern map's full roof
   is tens of kilobytes; each tile change on the surface above resent all of it, which emptied clients' state buffers.
   A delta carries only the chunks changed since the client's last ack.
+- Radar requests share one walk of the blips per map per tick (`RadarBlipSystem.WFCache`), and console nav states share
+  one walk of the docks for up to half a second, or until something docks or undocks (`ShuttleConsoleSystem.WFDocks`).
+- `WFPlanetDragSystem` walks the children of planet layers instead of every grid. Suit sensors, APCs, sound spammers and
+  pickup magnets look for due work every third tick, locality loaders check twice a second, and a dry auto-drain
+  searches for puddles every 5 s.
 - A drydock break lifts its finished tiles together every 10 s (`WFDrydockJobComponent.Lifting`) instead of one at a
   time, since each lift resends every fixture of the hull (about 9 KB on a derelict, 50 KB on a big ship) to every player.
 - The client Z-level sprite passes (`CEClientZLevelsPreAnimSystem`, `CEClientZLevelsPostAnimSystem`) walk only
@@ -65,7 +70,9 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/_WF/Performance/GCQueueSystem.WFMinAge.cs`](GCQueueSystem.WFMinAge.cs)
 - [`Content.Server/_WF/Performance/IgnitionSourceSystem.WFLit.cs`](IgnitionSourceSystem.WFLit.cs)
 - [`Content.Server/_WF/Performance/NavMapSystem.WFRemoved.cs`](NavMapSystem.WFRemoved.cs)
+- [`Content.Server/_WF/Performance/RadarBlipSystem.WFCache.cs`](RadarBlipSystem.WFCache.cs)
 - [`Content.Server/_WF/Performance/ShipSteererComponent.WFStagger.cs`](ShipSteererComponent.WFStagger.cs)
+- [`Content.Server/_WF/Performance/ShuttleConsoleSystem.WFDocks.cs`](ShuttleConsoleSystem.WFDocks.cs)
 - [`Content.Server/_WF/Performance/WFAsteroidCullSystem.cs`](WFAsteroidCullSystem.cs)
 - [`Content.Server/_WF/Performance/WFDockIndexSystem.cs`](WFDockIndexSystem.cs)
 - [`Content.Server/_WF/Performance/WFGridDeleteWatchSystem.cs`](WFGridDeleteWatchSystem.cs)
@@ -105,6 +112,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFNavMapTrimTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFNavMapTrimTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFRadiusHeaterTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFRadiusHeaterTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFRoofDeltaTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFRoofDeltaTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Performance/WFSharedWalkTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFSharedWalkTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFWorldgenChurnTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Performance/WFZLevelOffsetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Performance/WFZLevelOffsetTest.cs)
 
@@ -144,6 +152,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - steering works every other tick and holds its input between, saving its scans
   - this input holds for the whole turn
   - held until the next turn
+- [`Content.Server/_Mono/Radar/RadarBlipSystem.cs`](../../_Mono/Radar/RadarBlipSystem.cs): every radar on a map shares one walk of the blips per tick
 - [`Content.Server/_Mono/Temperature/Systems/EntityRadiusHeaterSystem.cs`](../../_Mono/Temperature/Systems/EntityRadiusHeaterSystem.cs)
   - each heater takes its own tick of the second, not all on one
   - what a fire warms is loose; skipping anchored and stored things skips the trees round a planet's fires
@@ -180,8 +189,10 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Server/Fluids/EntitySystems/DrainSystem.cs`](../../Fluids/EntitySystems/DrainSystem.cs)
   - each drain takes its own tick
   - each drain takes its own tick of the second, not all on one
+  - a dry drain searches less often
 - [`Content.Server/GameTicking/Rules/GameRuleSystem.Utility.cs`](../../GameTicking/Rules/GameRuleSystem.Utility.cs): wizden#41390, was IsTileAirBlocked
 - [`Content.Server/IgnitionSource/IgnitionSourceSystem.cs`](../../IgnitionSource/IgnitionSourceSystem.cs): walk a copy of the lit list; a fire this starts can light another source
+- [`Content.Server/Medical/SuitSensors/SuitSensorSystem.cs`](../../Medical/SuitSensors/SuitSensorSystem.cs): finding what's due walks every sensor; NextUpdate keeps the rate
 - [`Content.Server/NPC/Pathfinding/PathfindingSystem.Grid.cs`](../../NPC/Pathfinding/PathfindingSystem.Grid.cs)
   - no NPC walks a mining rock, and building its nav chunks cost ~2.6 ms per new rock grid
   - wizden#44340, tile entities carry their fixtures
@@ -194,18 +205,27 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - the history of removed chunks stays bounded
   - a chunk that was never sent changes nothing for clients
   - deltas name removed chunks, and the history of them stays bounded
+- [`Content.Server/Power/EntitySystems/ApcSystem.cs`](../../Power/EntitySystems/ApcSystem.cs): every APC is walked for a UI refresh or a deferred state update that can wait a tick or two
 - [`Content.Server/Shuttles/Systems/DockingSystem.Shuttle.cs`](../../Shuttles/Systems/DockingSystem.Shuttle.cs)
   - rule out pairs that land elsewhere before the tile walk, not after
   - chunk-first walk, same result; this ran per dock pair for every fixture
   - read the dock index instead of walking every entity on the grid
 - [`Content.Server/Shuttles/Systems/GridDeletionContainerSystem.cs`](../../Shuttles/Systems/GridDeletionContainerSystem.cs): logs grids that take long to delete
+- [`Content.Server/Shuttles/Systems/ShuttleConsoleSystem.cs`](../../Shuttles/Systems/ShuttleConsoleSystem.cs)
+  - consoles should see a new dock at once
+  - consoles should see an undock at once
+  - every open console asks for this, so share one walk of the docks
 - [`Content.Server/Shuttles/Systems/ThrusterSystem.cs`](../../Shuttles/Systems/ThrusterSystem.cs)
   - fixed list instead of Enum.GetValues on every call
   - idle shuttles call this every tick with everything already off
+- [`Content.Server/Sound/EmitSoundSystem.cs`](../../Sound/EmitSoundSystem.cs): finding what's due walks every spammer; NextSound keeps the rate
 - [`Content.Server/Worldgen/Systems/GC/GCQueueSystem.cs`](../../Worldgen/Systems/GC/GCQueueSystem.cs)
   - queue minimum age
   - leave entities queued until the queue's minimum age has passed
   - keep an age-protected entry's first time, and overflow such queues within the time limit
+- [`Content.Server/Worldgen/Systems/LocalityLoaderSystem.cs`](../../Worldgen/Systems/LocalityLoaderSystem.cs)
+  - each loader checks twice a second on its own tick; a player can't outrun that
+  - see above
 - [`Content.Server/Worldgen/Systems/WorldControllerSystem.cs`](../../Worldgen/Systems/WorldControllerSystem.cs)
   - chunk unload grace
   - drop a deleted chunk's unload grace timer
@@ -223,6 +243,7 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
 - [`Content.Shared/Atmos/Consoles/Components/AtmosMonitoringConsoleComponent.cs`](../../../Content.Shared/Atmos/Consoles/Components/AtmosMonitoringConsoleComponent.cs)
   - wizden#38974, subnets carry a Color
   - wizden#38974, was string HexCode
+- [`Content.Shared/Fluids/Components/DrainComponent.cs`](../../../Content.Shared/Fluids/Components/DrainComponent.cs): when a dry auto-drain next searches for puddles
 - [`Content.Shared/Gravity/SharedGravitySystem.cs`](../../../Content.Shared/Gravity/SharedGravitySystem.cs)
   - batched weightlessness refresh
   - batch per grid and walk only its entities, not every gravity-affected entity
@@ -243,6 +264,8 @@ Small fixes for hot spots found in live server profiles, kept as narrow hooks in
   - replaces AllChunks
   - removals are named directly
   - removals are named directly; copies now fill the new data and new chunks count
+- [`Content.Shared/Storage/EntitySystems/MagnetPickupSystem.cs`](../../../Content.Shared/Storage/EntitySystems/MagnetPickupSystem.cs): finding what's due walks every magnet; NextScan keeps the rate
+- [`Content.Shared/Storage/EntitySystems/MaterialStorageMagnetPickupSystem.cs`](../../../Content.Shared/Storage/EntitySystems/MaterialStorageMagnetPickupSystem.cs): finding what's due walks every magnet; NextScan keeps the rate
 - [`Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs`](../../../Content.Shared/Weapons/Ranged/Systems/SharedGunSystem.cs)
   - wizden#36641, gunUid was not nullable
   - wizden#36641, a projectile may have no shooter

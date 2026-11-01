@@ -137,7 +137,7 @@ public sealed partial class DrainSystem : SharedDrainSystem
         var query = EntityQueryEnumerator<DrainComponent>();
         while (query.MoveNext(out var uid, out var drain))
         {
-            if (!WFTickSpread.Due(uid, tick, period))
+            if (!WFTickSpread.Due(uid, tick, period) || _wfTiming.CurTime < drain.WFIdleUntil)
                 continue;
             // WOLFGATE END
 
@@ -167,6 +167,7 @@ public sealed partial class DrainSystem : SharedDrainSystem
 
                 if (_puddles.Count == 0 && drainSolution.Volume <= 0)
                 {
+                    drain.WFIdleUntil = _wfTiming.CurTime + TimeSpan.FromSeconds(5); // WOLFGATE(Performance): a dry drain searches less often
                     _ambientSoundSystem.SetAmbience(uid, false);
                     continue;
                 }
