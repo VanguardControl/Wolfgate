@@ -23,7 +23,9 @@ public sealed partial class SpeechVoiceSynth
     private const int Block = 32;
     private const int MaxHarmonics = 64;
     private const float MaxFrequency = 0.45f * SampleRate;
-    private const float TargetPeak = 0.8f;
+    private const float TargetPeak = 0.6f;
+    private const float RadioDrive = 1.5f;
+    private const float WordFadeSeconds = 0.012f;
     private const float PhraseDeclination = 0.08f;
     private const float Coarticulation = 0.4f;
 
@@ -284,6 +286,8 @@ public sealed partial class SpeechVoiceSynth
             var codaStart = hasCoda ? 0.5f : 1f;
             var noiseInCoda = false;
             var snap = true;
+            var endsWord = b + 1 >= blips.Count || blips[b + 1].Gap;
+            var wordFade = MathF.Min(WordFadeSeconds * SampleRate, 0.5f * slotLength);
             wobblePhase = MathF.Tau * (0.5f + 0.5f * _noise.Next());
 
             if (blip.Onset.NoiseGain > 0f)
@@ -344,6 +348,14 @@ public sealed partial class SpeechVoiceSynth
 
                 // Cut off at the end of the slot with a short fade, so letters run back to back.
                 var envelope = MathF.Min(1f, MathF.Min((i - start) / attack, (start + slotLength - i) / fade));
+
+                // The last letter of a word has silence after it, where a sharp cut clicks, so it eases out for longer.
+                if (endsWord)
+                {
+                    var ease = MathF.Min(1f, (start + slotLength - i) / wordFade);
+                    envelope = MathF.Min((i - start) / attack, ease * ease * (3f - 2f * ease));
+                    envelope = MathF.Min(1f, envelope);
+                }
 
                 envelope *= blipGain;
 

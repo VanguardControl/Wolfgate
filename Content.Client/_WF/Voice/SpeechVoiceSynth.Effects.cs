@@ -41,7 +41,7 @@ public sealed partial class SpeechVoiceSynth
         }
     }
 
-    /// <summary>A 300 Hz to 3 kHz band, a soft clip and a quiet hiss.</summary>
+    /// <summary>A 300 Hz to 3 kHz band, a soft clip and a quiet hiss that stops with the speech.</summary>
     private void Radio(Span<float> buffer)
     {
         var peak = 0f;
@@ -58,7 +58,9 @@ public sealed partial class SpeechVoiceSynth
         var presence = new NoiseBand();
         presence.Tune(1800f, 900f, SampleRate);
 
-        var clip = 1f / MathF.Tanh(2.5f);
+        var clip = 1f / MathF.Tanh(RadioDrive);
+        var hissRelease = Smoothing(0.008f);
+        var hissGate = 0f;
         var low = 0f;
         var lowA = 0f;
         var lowB = 0f;
@@ -73,8 +75,11 @@ public sealed partial class SpeechVoiceSynth
             lowB += (lowA - lowB) * lowPass;
             x = lowB + 0.6f * presence.Process(lowB);
 
-            x = MathF.Tanh(2.5f * x) * clip;
-            buffer[i] = x + 0.015f * _noise.Next();
+            x = MathF.Tanh(RadioDrive * x) * clip;
+
+            // The hiss follows the speech, so it can't sit in the gaps between words as static.
+            hissGate = MathF.Max(MathF.Abs(x), hissGate * (1f - hissRelease));
+            buffer[i] = x + 0.015f * MathF.Min(1f, 4f * hissGate) * _noise.Next();
         }
     }
 

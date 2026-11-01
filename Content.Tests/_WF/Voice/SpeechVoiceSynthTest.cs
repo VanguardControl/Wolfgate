@@ -48,6 +48,39 @@ public sealed class SpeechVoiceSynthTest
     }
 
     [Test]
+    public void GapsBetweenWordsAreSilent([Values] bool radio)
+    {
+        var buffers = new SpeechVoiceBuffers();
+        var voice = new SpeechVoice();
+        var slot = (int) (voice.Speed * 0.5f * SpeechVoiceSynth.SampleRate);
+
+        new SpeechVoiceSynth().Render("hello there", voice, radio, buffers);
+
+        // The last quarter of the one-letter gap after "hello".
+        var gapEnd = 6 * slot;
+        var loudest = buffers.Pcm.Skip(gapEnd - slot / 4).Take(slot / 4).Max(s => Math.Abs((int) s));
+        Assert.That(loudest, Is.LessThan(short.MaxValue / 1000), "no static may sit between words");
+    }
+
+    [Test]
+    public void WordsEaseOutInsteadOfCutting([Values] bool radio)
+    {
+        var buffers = new SpeechVoiceBuffers();
+        var voice = new SpeechVoice();
+        var slot = (int) (voice.Speed * 0.5f * SpeechVoiceSynth.SampleRate);
+
+        new SpeechVoiceSynth().Render("hello there", voice, radio, buffers);
+
+        // At full level until the last 12 ms, nearly gone by the last millisecond.
+        var wordEnd = 5 * slot;
+        var body = buffers.Pcm.Skip(wordEnd - slot).Take(slot / 2).Max(s => Math.Abs((int) s));
+        var lastMs = buffers.Pcm.Skip(wordEnd - SpeechVoiceSynth.SampleRate / 1000)
+            .Take(SpeechVoiceSynth.SampleRate / 1000)
+            .Max(s => Math.Abs((int) s));
+        Assert.That(lastMs, Is.LessThan(body / 10));
+    }
+
+    [Test]
     public void NoLettersRenderNothing()
     {
         Assert.That(new SpeechVoiceSynth().Render("... !?", new SpeechVoice(), false, new SpeechVoiceBuffers()),
