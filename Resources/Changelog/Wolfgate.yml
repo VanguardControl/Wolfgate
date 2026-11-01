@@ -4651,3 +4651,10 @@ Entries:
   id: 100305
   time: '2026-11-01T10:47:34.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/442
+- author: Gandalf2k15
+  changes:
+    - type: Tweak
+      message: Big ship battles put less load on the server.
+  id: 100306
+  time: '2026-11-01T10:47:46.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/441
