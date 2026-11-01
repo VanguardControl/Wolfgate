@@ -15,6 +15,9 @@ class License(Validator):
         "CC-BY-ND-4.0",
         "CC0-1.0",
         "MIT",
+        # WOLFGATE(EngineCompat): licenses of the engine fonts added in v294
+        "OFL-1.1",
+        "Apache-2.0",
         "Custom" # implies that the license is described in the copyright field.
         ]
 

@@ -51,6 +51,7 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 
 ## Non-modular edits
 
+- [`.github/Schemas/rga_validators.py`](../../../.github/Schemas/rga_validators.py): licenses of the engine fonts added in v294
 - [`Content.Client/_CE/ZLevels/Core/Overlays/CEZGridConnectorOverlay.cs`](../../../Content.Client/_CE/ZLevels/Core/Overlays/CEZGridConnectorOverlay.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Client/_CE/ZLevels/Core/Overlays/CEZLevelShadowOverlay.cs`](../../../Content.Client/_CE/ZLevels/Core/Overlays/CEZLevelShadowOverlay.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs`](../../../Content.Client/_CE/ZLevels/Core/ScalingViewport.CEZLevels.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
