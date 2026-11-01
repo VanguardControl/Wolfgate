@@ -21,14 +21,15 @@ namespace Content.Client.Launcher;
 public sealed partial class LauncherConnectingGui
 {
     private const float JoinUpdateSeconds = 0.1f;
-    private const float JoinConsoleWidth = 480f;
     private const float JoinConsoleMinHeight = 300f;
     private const int JoinRowColumns = 72;
+    private const float JoinRowMargins = 16f;
     private const int JoinBarWidth = 40;
     private const int JoinSegmentWidth = 12;
     private const int JoinLogRows = 3;
     private const double JoinCursorHz = 2;
-    private const int JoinTipColumns = 86;
+    private const int JoinFallbackAdvance = 7;
+    private const float JoinTipWidth = 578f;
     private const float JoinWatermarkAlpha = 0.06f;
     private const string JoinWatermarkPath = "/Textures/_WF/Branding/Logo/logo.png";
 
@@ -79,7 +80,6 @@ public sealed partial class LauncherConnectingGui
         JoinConsoleBox.AddChild(hazard);
         hazard.SetPositionInParent(2);
 
-        JoinConsoleBox.SetWidth = JoinConsoleWidth;
         JoinConsoleBox.MinHeight = JoinConsoleMinHeight;
         JoinConsoleTitle.Text = Loc.GetString("join-console-title");
 
@@ -131,6 +131,12 @@ public sealed partial class LauncherConnectingGui
         _joinCursorRow = AddJoinRow(_joinStyle.Active);
     }
 
+    /// <summary>Width of one console character in real pixels at the current UI scale.</summary>
+    private int JoinAdvance()
+    {
+        return _joinStyle.Font.GetCharMetrics(new Rune('#'), UIScale)?.Advance ?? JoinFallbackAdvance;
+    }
+
     private Label AddJoinRow(Color color)
     {
         var label = new Label { FontColorOverride = color };
@@ -149,7 +155,8 @@ public sealed partial class LauncherConnectingGui
             return;
 
         LoginTip.Visible = false;
-        foreach (var line in JoinConsoleText.Wrap(tip, JoinTipColumns))
+        var columns = JoinConsoleText.ColumnsIn(JoinTipWidth, JoinAdvance(), UIScale);
+        foreach (var line in JoinConsoleText.Wrap(tip, columns))
         {
             parent.AddChild(new Label { Text = line, Align = Label.AlignMode.Center, HorizontalExpand = true });
         }
@@ -184,6 +191,9 @@ public sealed partial class LauncherConnectingGui
             return;
 
         _joinUpdateTimer = JoinUpdateSeconds;
+
+        // Sized to its rows, as the columns take more UI width at low UI scales.
+        JoinConsoleBox.SetWidth = JoinConsoleText.WidthOf(JoinRowColumns, JoinAdvance(), UIScale) + JoinRowMargins;
 
         var tracker = _state.JoinTracker;
         var now = _state.JoinNow;
