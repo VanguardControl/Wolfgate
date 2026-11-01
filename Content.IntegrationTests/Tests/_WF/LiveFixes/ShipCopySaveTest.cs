@@ -1,4 +1,5 @@
 #nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Content.Server._NF.Shipyard.Systems;
@@ -49,12 +50,26 @@ public sealed class ShipCopySaveTest
 
             // Same store as CrateSyndicateSurplusBundle; its random contents aren't what's being tested.
             var store = entMan.SpawnEntity("Paper", coords);
-            entMan.EnsureComponent<StoreComponent>(store).AccountOwner = entMan.SpawnEntity(null, MapCoordinates.Nullspace);
+            entMan.EnsureComponent<StoreComponent>(store);
 
             Assert.That(shipyard.TrySaveShip(grid.Owner, out var data), Is.True);
-            Assert.That(entMan.HasComponent<LatheComponent>(lathe), "The lathe should keep its lathe component.");
             Assert.That(shipyard.TryAddSavedShip(data!, out var loaded), Is.True);
-            entMan.DeleteEntity(loaded!.Value);
+
+            var copy = new List<EntityUid>();
+            var children = entMan.GetComponent<TransformComponent>(loaded!.Value).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                copy.Add(child);
+            }
+
+            var loadedLathe = copy.Where(entMan.HasComponent<LatheComponent>).Single();
+            Assert.That(entMan.GetComponent<LatheComponent>(loadedLathe).Queue, Is.Empty);
+            Assert.That(copy.Count(entMan.HasComponent<GeneralStationRecordConsoleComponent>), Is.EqualTo(1));
+            Assert.That(copy.Count(entMan.HasComponent<StoreComponent>), Is.EqualTo(1));
+            var loadedRod = copy.Where(entMan.HasComponent<DamageOnInteractComponent>).Single();
+            Assert.That(entMan.GetComponent<DamageOnInteractComponent>(loadedRod).Damage, Is.Not.Null);
+
+            entMan.DeleteEntity(loaded.Value);
         });
 
         await pair.CleanReturnAsync();

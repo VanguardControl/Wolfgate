@@ -1,8 +1,10 @@
 #nullable enable
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Content.Server._NF.Shipyard.Systems;
 using Content.Server._WF.Shipyard;
+using Content.Shared.Mech.Components;
 using Robust.Shared.Containers;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Map;
@@ -29,9 +31,13 @@ public sealed class UsedShipContainedUnsavableTest
         {
             var grid = CreateGrid(entMan, map);
             entMan.SpawnEntity(Crate, new EntityCoordinates(grid, new Vector2(0.5f, 0.5f)));
+            var equipment = CountEquipment(entMan, MechsAboard(entMan, grid));
 
             var loaded = CopyAsSold(entMan, grid);
-            Assert.That(CountAboard(entMan, loaded, Mech), Is.EqualTo(1));
+            var mechs = MechsAboard(entMan, loaded);
+            Assert.That(mechs, Has.Count.EqualTo(1));
+            Assert.That(entMan.System<SharedContainerSystem>().IsEntityInContainer(mechs[0]), "The mech should still be in its crate.");
+            Assert.That(CountEquipment(entMan, mechs), Is.EqualTo(equipment));
             entMan.DeleteEntity(loaded);
         });
 
@@ -54,9 +60,13 @@ public sealed class UsedShipContainedUnsavableTest
             var mech = entMan.SpawnEntity(Mech, coords);
             var container = containers.EnsureContainer<Container>(mech, "wf_test");
             Assert.That(containers.Insert(entMan.SpawnEntity(Mech, coords), container));
+            var equipment = CountEquipment(entMan, MechsAboard(entMan, grid));
 
             var loaded = CopyAsSold(entMan, grid);
-            Assert.That(CountAboard(entMan, loaded, Mech), Is.EqualTo(2));
+            var mechs = MechsAboard(entMan, loaded);
+            Assert.That(mechs, Has.Count.EqualTo(2));
+            Assert.That(mechs.Count(m => containers.IsEntityInContainer(m)), Is.EqualTo(1), "The inner mech should still be inside the outer one.");
+            Assert.That(CountEquipment(entMan, mechs), Is.EqualTo(equipment));
             entMan.DeleteEntity(loaded);
         });
 
@@ -81,9 +91,14 @@ public sealed class UsedShipContainedUnsavableTest
         return loaded!.Value;
     }
 
-    private static int CountAboard(IEntityManager entMan, EntityUid grid, string proto)
+    private static int CountEquipment(IEntityManager entMan, List<EntityUid> mechs)
     {
-        var count = 0;
+        return mechs.Sum(m => entMan.GetComponent<MechComponent>(m).EquipmentContainer.ContainedEntities.Count);
+    }
+
+    private static List<EntityUid> MechsAboard(IEntityManager entMan, EntityUid grid)
+    {
+        var mechs = new List<EntityUid>();
         var pending = new Queue<EntityUid>();
         pending.Enqueue(grid);
         while (pending.TryDequeue(out var uid))
@@ -92,11 +107,11 @@ public sealed class UsedShipContainedUnsavableTest
             while (children.MoveNext(out var child))
             {
                 pending.Enqueue(child);
-                if (entMan.GetComponent<MetaDataComponent>(child).EntityPrototype?.ID == proto)
-                    count++;
+                if (entMan.GetComponent<MetaDataComponent>(child).EntityPrototype?.ID == Mech)
+                    mechs.Add(child);
             }
         }
 
-        return count;
+        return mechs;
     }
 }

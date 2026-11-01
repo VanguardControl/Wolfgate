@@ -1,12 +1,16 @@
 #nullable enable
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Content.Server._WF.LiveFixes;
 using Content.Server.Database;
 using Content.Shared.Preferences;
 using Content.Shared.Roles;
 using Content.Shared.Traits;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Robust.Shared.Configuration;
 using Robust.Shared.Log;
 using Robust.Shared.Network;
@@ -18,12 +22,15 @@ namespace Content.IntegrationTests.Tests._WF.LiveFixes;
 [TestFixture]
 public sealed class CharacterSaveTest
 {
-    private static ServerDbSqlite CreateDb(Pair.TestPair pair)
+    private static ServerDbSqlite CreateDb(Pair.TestPair pair, SaveChangesInterceptor? interceptor = null)
     {
         var builder = new DbContextOptionsBuilder<SqliteServerDbContext>();
         var conn = new SqliteConnection("Data Source=:memory:");
         conn.Open();
         builder.UseSqlite(conn);
+        if (interceptor != null)
+            builder.AddInterceptors(interceptor);
+
         return new ServerDbSqlite(() => builder.Options,
             true,
             pair.Server.ResolveDependency<IConfigurationManager>(),
@@ -60,25 +67,55 @@ public sealed class CharacterSaveTest
     }
 
     [Test]
-    public async Task TwoHighPriorityJobsSaveAsOne()
+    public void TwoHighPriorityJobsSaveAsOne()
+    {
+        // Straight to the rows, since WithJobPriorities would already have demoted the second one.
+        var rows = WFProfileRows.Jobs(new Dictionary<ProtoId<JobPrototype>, JobPriority>
+        {
+            { "WFTestJobA", JobPriority.High },
+            { "WFTestJobB", JobPriority.High },
+            { "WFTestJobC", JobPriority.Never },
+        });
+
+        Assert.That(rows, Has.Count.EqualTo(2));
+        Assert.That(rows.Count(r => r.Priority == DbJobPriority.High), Is.EqualTo(1));
+        Assert.That(rows.Count(r => r.Priority == DbJobPriority.Medium), Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task CollidingSaveRetries()
     {
         await using var pair = await PoolManager.GetServerClient();
-        var db = CreateDb(pair);
+        var collision = new FailOnce();
+        var db = CreateDb(pair, collision);
         var user = new NetUserId(Guid.NewGuid());
         await db.InitPrefsAsync(user, new HumanoidCharacterProfile());
 
-        var jobs = pair.Server.ProtoMan.EnumeratePrototypes<JobPrototype>().Take(2).Select(j => new ProtoId<JobPrototype>(j.ID)).ToArray();
-        var profile = new HumanoidCharacterProfile().WithJobPriorities(new Dictionary<ProtoId<JobPrototype>, JobPriority>
-        {
-            { jobs[0], JobPriority.High },
-            { jobs[1], JobPriority.High },
-        });
+        collision.Armed = true;
+        await db.SaveCharacterSlotAsync(user, new HumanoidCharacterProfile().WithBankBalance(1234), 0);
 
-        await db.SaveCharacterSlotAsync(user, profile, 0);
-
+        Assert.That(collision.Armed, Is.False, "The first save should have collided.");
         var loaded = (HumanoidCharacterProfile) (await db.GetPlayerPreferencesAsync(user))!.Characters[0];
-        Assert.That(loaded.JobPriorities.Values.Count(p => p == JobPriority.High), Is.EqualTo(1));
+        Assert.That(loaded.BankBalance, Is.EqualTo(1234));
         await pair.CleanReturnAsync();
+    }
+
+    /// <summary>Fails the next save the way a collision with another save would.</summary>
+    private sealed class FailOnce : SaveChangesInterceptor
+    {
+        public bool Armed;
+
+        public override ValueTask<InterceptionResult<int>> SavingChangesAsync(
+            DbContextEventData eventData,
+            InterceptionResult<int> result,
+            CancellationToken cancellationToken = default)
+        {
+            if (!Armed)
+                return base.SavingChangesAsync(eventData, result, cancellationToken);
+
+            Armed = false;
+            throw new DbUpdateException("Simulated collision");
+        }
     }
 
     [Test]

@@ -121,8 +121,43 @@ index 3e580f60c..9bde7f14e 100644
      }
  
      private record struct PvsSendJob(PvsSystem _pvs) : IParallelRobustJob
+diff --git a/Robust.Shared/Network/Transfer/BaseTransferImpl.cs b/Robust.Shared/Network/Transfer/BaseTransferImpl.cs
+index 35e0cb1f8..c8996680f 100644
+--- a/Robust.Shared/Network/Transfer/BaseTransferImpl.cs
++++ b/Robust.Shared/Network/Transfer/BaseTransferImpl.cs
+@@ -408,15 +408,28 @@ internal abstract class BaseTransferImpl(ISawmill sawmill, BaseTransferManager p
+         ~ChunkedSendStream()
+         {
+             // Have to do this so the stream isn't permanently hanging on the receiving side.
+-            FlushAsync(finish: true).AsTask().Wait();
++            try
++            {
++                FlushAsync(finish: true).AsTask().Wait();
++            }
++            catch (Exception)
++            {
++                // A throw from a finalizer would kill the process, and a dead connection has no receiving side.
++            }
+         }
+     }
+ 
+     public virtual void Dispose()
++    {
++        CompleteReceivingChannels();
++    }
++
++    /// <summary>Ends every incoming transfer, so nothing waits on data that can't arrive.</summary>
++    protected void CompleteReceivingChannels()
+     {
+         foreach (var channel in _receivingChannels.Values)
+         {
+-            channel.Complete();
++            channel.TryComplete();
+         }
+     }
+ 
 diff --git a/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs b/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs
-index ca43b5a34..e1e925430 100644
+index ca43b5a34..dd330f8df 100644
 --- a/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs
 +++ b/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs
 @@ -26,6 +26,9 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
@@ -140,25 +175,26 @@ index ca43b5a34..e1e925430 100644
              throw new InvalidOperationException("Player not connected yet");
  
 +        if (_socketLost)
-+            return Stream.Null;
++            throw new InvalidOperationException("Player's transfer socket was lost");
 +
          var id = Interlocked.Increment(ref OutgoingIdCounter);
  
          return new SendStream(this, id, startInfo.MessageKey);
-@@ -58,6 +64,12 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+@@ -58,6 +64,13 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
  
                  BaseTransferManager.ReceivedDataMetrics.Inc(receiveResult.Count);
  
 +                if (receiveResult.MessageType == WebSocketMessageType.Close)
 +                {
 +                    HandleSocketLost("closed by the other side");
++                    CompleteReceivingChannels();
 +                    return;
 +                }
 +
                  if (!receiveResult.EndOfMessage)
                      throw new ProtocolViolationException("Header did not fit in one receive");
  
-@@ -74,13 +86,43 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+@@ -74,13 +87,44 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
                  HandlePostData(flags, transferId, channel);
              }
          }
@@ -169,6 +205,7 @@ index ca43b5a34..e1e925430 100644
 +        catch (Exception e) when (e is WebSocketException or IOException or ObjectDisposedException)
 +        {
 +            HandleSocketLost(e.Message);
++            CompleteReceivingChannels();
 +        }
          catch (Exception e)
          {
@@ -203,14 +240,14 @@ index ca43b5a34..e1e925430 100644
      private sealed class SendStream : ChunkedSendStream
      {
          public SendStream(TransferImplWebSocket parent, long id, string key) : base(parent, id, key)
-@@ -89,16 +131,28 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+@@ -89,16 +133,28 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
  
          protected override async ValueTask SendChunkAsync(ArraySegment<byte> buffer, CancellationToken cancel)
          {
 -            var ws = ((TransferImplWebSocket)Parent).WebSocket!;
 +            var parent = (TransferImplWebSocket)Parent;
 +            if (parent._socketLost)
-+                return;
++                throw new IOException("Transfer socket was lost");
 +
 +            var ws = parent.WebSocket!;
  
@@ -233,13 +270,23 @@ index ca43b5a34..e1e925430 100644
 +            }
 +            catch (Exception e) when (e is WebSocketException or IOException or ObjectDisposedException)
 +            {
-+                // The send stream's finalizer flushes through here, and a throw there would kill the process.
 +                parent.HandleSocketLost(e.Message);
++                throw;
 +            }
          }
      }
  
-@@ -128,8 +182,9 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+@@ -114,6 +170,9 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+ 
+             BaseTransferManager.ReceivedDataMetrics.Inc(result.Count);
+ 
++            if (result.MessageType == WebSocketMessageType.Close)
++                throw new IOException("Closed by the other side during a transfer");
++
+             if (result.MessageType != WebSocketMessageType.Binary)
+                 throw new ProtocolViolationException("Data must be binary!");
+ 
+@@ -128,8 +187,9 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
      {
          base.Dispose();
  

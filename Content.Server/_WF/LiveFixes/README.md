@@ -4,7 +4,7 @@ Small fixes for errors reported from the live server, with their regression test
 
 A character save that collides with another one, on `IX_job_one_high_priority`, `IX_trait_profile_id_trait_name` or a
 row the other save removed, retries once against the rows that save left. `WFProfileRows` keeps one high priority job
-per character. Record console filters and a store's owner and starting map are no longer saved, so a ship
+per character. Record console filters and a store's starting map are no longer saved, so a ship
 copy doesn't fail or point at something outside the ship.
 
 `Docs/_WF/LiveFixes/engine-live-fixes.patch` holds the fixes for the `PendingAcks` race and transfer socket failures.
@@ -38,7 +38,8 @@ It applies to RobustToolbox `ce2461b5`, and isn't in use until the engine is for
 - [`Content.Server/_Mono/StationEvents/AutoExtendRuleSystem.cs`](../../_Mono/StationEvents/AutoExtendRuleSystem.cs): a watched grid can be deleted before the rule ends
 - [`Content.Server/_NF/StationEvents/Events/BluespaceCargoRule.cs`](../../_NF/StationEvents/Events/BluespaceCargoRule.cs)
   - with no free tile, the grid's own coordinates were on the map and could anchor to another grid
-  - skip the crate when no tile on this grid is free
+  - check every tile before skipping the crate, since random picks can miss a sparse grid
+  - the random search's tile checks, for the search of every tile
 - [`Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs`](../../_NF/StationEvents/Events/BluespaceErrorRule.cs): a grid destroyed in play is normal and must not stop the rest of the cleanup
 - [`Content.Server/_NF/StationEvents/EventSystems/LinkedLifecycleGridSystem.cs`](../../_NF/StationEvents/EventSystems/LinkedLifecycleGridSystem.cs): observers and other mobs that can't pull have no puller
 - [`Content.Server/Administration/Commands/PlayTimeCommands.cs`](../../Administration/Commands/PlayTimeCommands.cs): this async void command threw unobserved while the player's times were loading
@@ -57,9 +58,7 @@ It applies to RobustToolbox `ce2461b5`, and isn't in use until the engine is for
 - [`Content.Shared/MouseRotator/SharedMouseRotatorSystem.cs`](../../../Content.Shared/MouseRotator/SharedMouseRotatorSystem.cs): a request sent just before the player changed bodies arrives late, which isn't an error
 - [`Content.Shared/Species/Systems/GibActionSystem.cs`](../../../Content.Shared/Species/Systems/GibActionSystem.cs): a later state change tried to remove the old action again
 - [`Content.Shared/Station/SharedStationSpawningSystem.cs`](../../../Content.Shared/Station/SharedStationSpawningSystem.cs): a mob deleted during spawn can't take gear
-- [`Content.Shared/Store/Components/StoreComponent.cs`](../../../Content.Shared/Store/Components/StoreComponent.cs)
-  - not saved; the owner's mind is outside any ship or map being saved
-  - not saved; a ship copy can't reference the map it left, and a loaded copy has no refund map
+- [`Content.Shared/Store/Components/StoreComponent.cs`](../../../Content.Shared/Store/Components/StoreComponent.cs): not saved; a ship copy can't reference the map it left, and a loaded copy has no refund map
 - [`Resources/Maps/_Mono/POI/pdvhelios.yml`](../../../Resources/Maps/_Mono/POI/pdvhelios.yml): Removed saved configurator lists that held invalid entity references.
 - [`Resources/Prototypes/_NF/Procedural/dungeon_configs.yml`](../../../Resources/Prototypes/_NF/Procedural/dungeon_configs.yml): NFPlanetBase needs this key, and its junction step was skipped with an error
 - [`Resources/Prototypes/Entities/Mobs/Player/guardian.yml`](../../../Resources/Prototypes/Entities/Mobs/Player/guardian.yml): the holoclown has hands and tried actions it couldn't start

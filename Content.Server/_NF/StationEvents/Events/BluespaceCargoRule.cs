@@ -103,7 +103,19 @@ public sealed partial class BluespaceCargoRule : StationEventSystem<BluespaceCar
             break;
         }
 
-        // WOLFGATE(LiveFixes) START: skip the crate when no tile on this grid is free
+        // WOLFGATE(LiveFixes) START: check every tile before skipping the crate, since random picks can miss a sparse grid
+        if (targetCoords == null)
+        {
+            foreach (var tileRef in _map.GetAllTiles(grid, gridComp))
+            {
+                if (!WFIsFreeTile(grid, gridComp, xform.MapUid, tileRef.GridIndices, safeAtmosphere))
+                    continue;
+
+                targetCoords = _map.GridTileToLocal(grid, gridComp, tileRef.GridIndices);
+                break;
+            }
+        }
+
         if (targetCoords == null)
             return;
 
@@ -115,4 +127,26 @@ public sealed partial class BluespaceCargoRule : StationEventSystem<BluespaceCar
 
         Sawmill.Info($"Spawning random cargo at {targetCoords}");
     }
+
+    // WOLFGATE(LiveFixes) START: the random search's tile checks, for the search of every tile
+    private bool WFIsFreeTile(EntityUid grid, MapGridComponent gridComp, EntityUid? map, Vector2i tile, bool safeAtmosphere)
+    {
+        if (_atmosphere.IsTileSpace(grid, map, tile) || _atmosphere.IsTileAirBlocked(grid, tile, mapGridComp: gridComp))
+            return false;
+
+        var physQuery = GetEntityQuery<PhysicsComponent>();
+        foreach (var ent in _map.GetAnchoredEntities((grid, gridComp), tile))
+        {
+            if (physQuery.TryGetComponent(ent, out var body)
+                && body.BodyType == BodyType.Static
+                && body.Hard
+                && (body.CollisionLayer & (int) CollisionGroup.Impassable) != 0)
+            {
+                return false;
+            }
+        }
+
+        return !safeAtmosphere || _atmosphere.IsTileMixtureProbablySafe(grid, grid, tile);
+    }
+    // WOLFGATE END
 }
