@@ -27,6 +27,7 @@ public sealed partial class WFGravityWellSystem : EntitySystem
     [Dependency] private WFOrbitDecaySystem _decay = default!;
     [Dependency] private WFOrbitEntrySystem _orbitEntry = default!;
     [Dependency] private WFLooseDebrisSystem _debris = default!;
+    [Dependency] private Bounds.WFPlanetBoundsSystem _bounds = default!;
 
     /// <summary>Pull at the rim of the well and at the capture line, in m/s².</summary>
     public const float RimAcceleration = 0.15f;
@@ -177,13 +178,13 @@ public sealed partial class WFGravityWellSystem : EntitySystem
         }
     }
 
-    /// <summary>Moves a hull onto the orbit layer at its current spot, via the console's hop.</summary>
+    /// <summary>Moves a hull onto the orbit layer, inside the world's circle, via the console's hop.</summary>
     private bool TryCapture(EntityUid grid, EntityUid body, EntityUid orbit)
     {
         if (!TryComp<ShuttleComponent>(grid, out var shuttle) || !_shuttle.CanFTL(grid, out _))
             return false;
 
-        if (!_shuttle.WfFTLToLayer((grid, shuttle), orbit, _transform.GetWorldPosition(grid)))
+        if (!_shuttle.WfFTLToLayer((grid, shuttle), orbit, _bounds.InsideCircle(grid, orbit, _transform.GetWorldPosition(grid))))
             return false;
 
         _orbitEntry.MarkApproach(grid, body, true);

@@ -165,23 +165,33 @@ public sealed partial class WFPlanetBoundsSystem : EntitySystem
     /// <summary>Moves a hull to the nearest spot where it lies wholly inside its map's circle, if it is outside.</summary>
     public void ClampHull(EntityUid grid)
     {
-        var xform = Transform(grid);
-
-        if (xform.MapUid is not { } map || !TryGetBounds(map, out var centre, out var radius))
+        if (Transform(grid).MapUid is not { } map)
             return;
 
+        var position = _transform.GetWorldPosition(grid);
+        var inside = InsideCircle(grid, map, position);
+
+        if (inside != position)
+            _transform.SetWorldPosition(grid, inside);
+    }
+
+    /// <summary>The nearest spot to <paramref name="position"/> for a hull's origin where it lies wholly inside a map's circle.</summary>
+    public Vector2 InsideCircle(EntityUid grid, EntityUid map, Vector2 position)
+    {
+        if (!TryGetBounds(map, out var centre, out var radius))
+            return position;
+
         var reach = HullReach(grid) + HullMargin;
-        var middle = HullCentre(grid);
+        var middle = position + HullCentre(grid) - _transform.GetWorldPosition(grid);
         var offset = middle - centre;
         var distance = offset.Length();
         var allowed = Math.Max(radius - reach, 0f);
 
         if (distance <= allowed || distance <= 0f)
-            return;
+            return position;
 
         allowed = Math.Max(allowed - ClampInset, 0f);
 
-        var target = centre + offset * (allowed / distance);
-        _transform.SetWorldPosition(grid, _transform.GetWorldPosition(xform) + (target - middle));
+        return position + centre + offset * (allowed / distance) - middle;
     }
 }
