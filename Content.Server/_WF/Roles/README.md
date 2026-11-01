@@ -43,7 +43,6 @@ loadout id), `CustomJobTitleRules` (cleaning and checks shared by client and ser
 
 ## Non-modular edits
 
-- [`Content.Client/_NF/LateJoin/Controls/CrewPickerControl.xaml.cs`](../../../Content.Client/_NF/LateJoin/Controls/CrewPickerControl.xaml.cs): custom job title
 - [`Content.Client/_NF/LateJoin/Controls/StationPickerControl.xaml.cs`](../../../Content.Client/_NF/LateJoin/Controls/StationPickerControl.xaml.cs): custom job title
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
   - it edits the same role loadout
