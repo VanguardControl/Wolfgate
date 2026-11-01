@@ -12,7 +12,7 @@ namespace Content.Server._WF.Wolfmed.Medical;
 /// stomach's 20 s (playtest 1), so a pill or a swig does something the patient can feel within about ten seconds.
 /// The stomach asks through its one marked line; everything else it digests keeps its own delay.
 /// </summary>
-public sealed class WolfmedOralAbsorptionSystem : EntitySystem
+public sealed partial class WolfmedOralAbsorptionSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private IPrototypeManager _prototypes = default!;

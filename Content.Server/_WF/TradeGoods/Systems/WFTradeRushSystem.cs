@@ -32,7 +32,7 @@ public sealed class WFTradeRush
 /// worth of crates over a longer window at a flat price: posting one clears its goods' pressure at the station and
 /// their crates add none.
 /// </summary>
-public sealed class WFTradeRushSystem : EntitySystem
+public sealed partial class WFTradeRushSystem : EntitySystem
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IPrototypeManager _proto = default!;

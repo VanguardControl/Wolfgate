@@ -22,7 +22,7 @@ namespace Content.Server._WF.ArmorSpecialization;
 /// The civilian suit passives that work over time or need the server: the emergency stasis weave, the rad sink's
 /// shedding, living tissue and the clown's honk.
 /// </summary>
-public sealed class WFSuitUpkeepSystem : EntitySystem
+public sealed partial class WFSuitUpkeepSystem : EntitySystem
 {
     private const string Radiation = "Radiation";
     private static readonly TimeSpan TickInterval = TimeSpan.FromSeconds(1);

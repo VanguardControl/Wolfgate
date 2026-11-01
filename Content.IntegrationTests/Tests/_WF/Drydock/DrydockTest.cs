@@ -1,4 +1,5 @@
 #nullable enable
+using Content.IntegrationTests.Tests._WF.EngineCompat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,6 +49,8 @@ namespace Content.IntegrationTests.Tests._WF.Drydock;
 [TestOf(typeof(WFDrydockSystem))]
 public sealed class DrydockTest
 {
+    private static ProtoId<PointOfInterestPrototype> WFDrydockProto => "WFDrydock";
+
     /// <summary>Plating used for every hull tile in these tests.</summary>
     private const string FloorTile = "Plating";
 
@@ -999,7 +1002,7 @@ public sealed class DrydockTest
                 Assert.That(HailContactsOn(pair, station), Has.Count.EqualTo(1), "The drydock needs one dockmaster to answer hails.");
             });
 
-            var poi = protoMan.Index<PointOfInterestPrototype>("WFDrydock");
+            var poi = protoMan.Index<PointOfInterestPrototype>(WFDrydockProto);
             Assert.That(poi.GridPath, Is.EqualTo(new ResPath("/Maps/_WF/Drydock/drydock.yml")));
             Assert.That(poi.SpawnGroup, Is.EqualTo("Required"));
 
@@ -1796,7 +1799,7 @@ public sealed class DrydockTest
             Assert.That(voucher.Ship, Is.EqualTo(ship), "The voucher is bound to the ship.");
             Assert.That(drydock.IssueShipVouchers("WFDrydockRepairVoucher", crew), Is.EqualTo(0), "No second voucher while the first is unused.");
 
-            em.DeleteEntity(voucher.Owner);
+            em.DeleteEntity(voucher.Uid());
             Assert.That(drydock.IssueShipVouchers("WFDrydockRepairVoucher", crew), Is.EqualTo(1), "Once it is spent the ship can earn another.");
         });
 
@@ -1829,7 +1832,7 @@ public sealed class DrydockTest
             server.PlayerMan.SetAttachedEntity(pair.Player, owner);
 
             Assert.That(drydock.IssueShipVouchers("WFDrydockRepairVoucher", new List<EntityUid> { aboardOwned, guest, owner }), Is.EqualTo(2));
-            var vouchers = em.EntityQuery<WFDrydockRepairVoucherComponent>().ToDictionary(v => v.Ship!.Value, v => em.GetComponent<TransformComponent>(v.Owner).ParentUid);
+            var vouchers = em.EntityQuery<WFDrydockRepairVoucherComponent>().ToDictionary(v => v.Ship!.Value, v => em.GetComponent<TransformComponent>(v.Uid()).ParentUid);
             Assert.Multiple(() =>
             {
                 Assert.That(vouchers.Keys, Is.EquivalentTo(new[] { owned, visited }), "Each ship gets one voucher.");

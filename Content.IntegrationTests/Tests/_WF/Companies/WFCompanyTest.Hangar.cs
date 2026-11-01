@@ -24,6 +24,8 @@ namespace Content.IntegrationTests.Tests._WF.Companies;
 
 public sealed partial class WFCompanyTest
 {
+    private static readonly ProtoId<VesselPrototype> GuppyProto = "Guppy";
+
     /// <summary>A licence launches its ship through Crew Setup once per round, charging the registry and launch fees.</summary>
     [Test]
     public async Task HangarLicencesLaunchCompanyShips()
@@ -42,7 +44,7 @@ public sealed partial class WFCompanyTest
         var timers = server.CfgMan.GetCVar(CCVars.GameRoleTimers);
         var original = (HumanoidCharacterProfile) preferences.GetPreferences(owner.UserId).SelectedCharacter;
         var slot = preferences.GetPreferences(owner.UserId).SelectedCharacterIndex;
-        var guppy = server.ResolveDependency<IPrototypeManager>().Index<VesselPrototype>("Guppy").Price;
+        var guppy = server.ResolveDependency<IPrototypeManager>().Index<VesselPrototype>(GuppyProto).Price;
         int? id = null;
         var hands = await server.AddDummySessions(2);
         var roundSetup = server.System<WFRoundSetupSystem>();

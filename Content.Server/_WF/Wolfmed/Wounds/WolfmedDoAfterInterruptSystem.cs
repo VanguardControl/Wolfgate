@@ -16,7 +16,7 @@ namespace Content.Server._WF.Wolfmed.Wounds;
 // Measured after armour. Treatment and surgery break although upstream never breaks them on damage, and anything
 // that asks to break on damage breaks too. Ticks that pass interruptsDoAfters false (fire, bleeding, temperature,
 // the overheat pulse) and systemic damage never count.
-public sealed class WolfmedDoAfterInterruptSystem : EntitySystem
+public sealed partial class WolfmedDoAfterInterruptSystem : EntitySystem
 {
     [Dependency] private IConfigurationManager _config = default!;
     [Dependency] private SharedDoAfterSystem _doAfter = default!;

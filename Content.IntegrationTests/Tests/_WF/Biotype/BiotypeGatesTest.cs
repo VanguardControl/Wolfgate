@@ -21,6 +21,9 @@ namespace Content.IntegrationTests.Tests._WF.Biotype;
 [TestOf(typeof(WFBiotypeRequirement))]
 public sealed class BiotypeGatesTest
 {
+    private static readonly ProtoId<TraitPrototype> HemophiliaProto = "Hemophilia";
+    private static readonly ProtoId<TraitPrototype> VoraciousProto = "Voracious";
+
     private static HumanoidCharacterProfile Profile(string species, WFBiotype biotype) =>
         HumanoidCharacterProfile.DefaultWithSpecies(species).WithBiotype(biotype);
 
@@ -86,8 +89,8 @@ public sealed class BiotypeGatesTest
 
         await server.WaitAssertion(() =>
         {
-            var hemophilia = proto.Index<TraitPrototype>("Hemophilia");
-            var voracious = proto.Index<TraitPrototype>("Voracious");
+            var hemophilia = proto.Index<TraitPrototype>(HemophiliaProto);
+            var voracious = proto.Index<TraitPrototype>(VoraciousProto);
 
             Assert.Multiple(() =>
             {

@@ -11,7 +11,7 @@ namespace Content.Server._WF.Wolfmed.Medical;
 /// The visible IV line, as tgstation draws it: a silver line from whatever feeds the patient (a drip stand, a medic
 /// suit's plasma reserve) to the patient, and the IV Connected alert on the patient while any line is in.
 /// </summary>
-public sealed class WolfmedIvLineSystem : EntitySystem
+public sealed partial class WolfmedIvLineSystem : EntitySystem
 {
     public static readonly ProtoId<AlertPrototype> Alert = "WFWolfmedIvConnected";
 

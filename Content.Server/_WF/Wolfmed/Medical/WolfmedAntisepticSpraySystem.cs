@@ -20,7 +20,7 @@ namespace Content.Server._WF.Wolfmed.Medical;
 /// sprays the person clicked, or the user on a use in hand, straight onto their skin by the touch reaction the vapor
 /// would have used, and never pours down anyone's throat. A click on the world still sprays a cloud.
 /// </summary>
-public sealed class WolfmedAntisepticSpraySystem : EntitySystem
+public sealed partial class WolfmedAntisepticSpraySystem : EntitySystem
 {
     [Dependency] private ReactiveSystem _reactive = default!;
     [Dependency] private Content.Shared._WF.ArmorSpecialization.WFCivilianSpecializationSystem _wfSpecs = default!;

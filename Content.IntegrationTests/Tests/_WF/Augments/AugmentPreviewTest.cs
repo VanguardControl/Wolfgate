@@ -41,6 +41,7 @@ public sealed class AugmentPreviewTest
         await client.WaitAssertion(() =>
         {
             var doll = entities.SpawnEntity("MobHumanDummy", MapCoordinates.Nullspace);
+            var sprites = entities.System<SpriteSystem>();
             var sprite = entities.GetComponent<SpriteComponent>(doll);
 
             humanoids.LoadProfile(doll, augmented);
@@ -48,12 +49,12 @@ public sealed class AugmentPreviewTest
             Assert.That(humanoid.BaseLayers[HumanoidVisualLayers.RArm].ID, Is.EqualTo("WFMobAugmentEEZengHuRArm"),
                 "The doll draws the natural arm.");
             Assert.That(humanoid.BaseLayers[HumanoidVisualLayers.RHand].ID, Is.EqualTo("WFMobAugmentEEZengHuRHand"));
-            Assert.That(sprite[sprite.LayerMapGet(HumanoidVisualLayers.LArm)].Visible, Is.False, "The missing arm shows.");
+            Assert.That(sprite[sprites.LayerMapGet((doll, sprite), HumanoidVisualLayers.LArm)].Visible, Is.False, "The missing arm shows.");
 
             humanoids.LoadProfile(doll, plain);
             Assert.That(humanoid.BaseLayers[HumanoidVisualLayers.RArm].ID, Does.Not.Contain("Augment"),
                 "The augment stayed on the doll after it was unpicked.");
-            Assert.That(sprite[sprite.LayerMapGet(HumanoidVisualLayers.LArm)].Visible, Is.True);
+            Assert.That(sprite[sprites.LayerMapGet((doll, sprite), HumanoidVisualLayers.LArm)].Visible, Is.True);
             entities.DeleteEntity(doll);
         });
 

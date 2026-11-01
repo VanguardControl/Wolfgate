@@ -27,7 +27,7 @@ namespace Content.Server._WF.MappingMode.Export;
 /// file bare, and streams it through <see cref="WFMappingDownloadSystem"/>. Every kind runs the map lint for that kind
 /// on the saved files and is refused when it fails. Also moves a mapper to an issue's place.
 /// </summary>
-public sealed class WFMappingExportSystem : EntitySystem
+public sealed partial class WFMappingExportSystem : EntitySystem
 {
     [Dependency] private IAdminLogManager _adminLog = default!;
     [Dependency] private IGameTiming _timing = default!;
