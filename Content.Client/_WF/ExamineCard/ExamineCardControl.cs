@@ -1,3 +1,5 @@
+using System.Linq;
+using Robust.Shared.Timing;
 using System.Numerics;
 using Content.Client.Resources;
 using Content.Shared._WF.ExamineCard;
@@ -73,6 +75,25 @@ public sealed class ExamineCardControl : PanelContainer
     private readonly Font _regular;
     private readonly BoxContainer _footer;
     private readonly Font _small;
+    private readonly Content.Client._WF.Companies.WFCompanyClientSystem _companies;
+    private (TextureRect Rect, int Rank)? _waitingRankIcon;
+    private (TextureRect Rect, int Company, int Version)? _waitingLogo;
+
+    /// <summary>Fills in company art that was still downloading when the card was built.</summary>
+    protected override void FrameUpdate(FrameEventArgs args)
+    {
+        base.FrameUpdate(args);
+        if (_waitingRankIcon is { } rank && _companies.GetRankIconLatest(rank.Rank) is { } rankTexture)
+        {
+            rank.Rect.Texture = rankTexture;
+            _waitingRankIcon = null;
+        }
+        if (_waitingLogo is { } waiting && _companies.GetLogo(waiting.Company, waiting.Version) is { } logoTexture)
+        {
+            waiting.Rect.Texture = logoTexture;
+            _waitingLogo = null;
+        }
+    }
 
     public ExamineCardControl(ExamineCardEvent card, EntityUid target, IEntityManager entities,
         IResourceCache resources, IPrototypeManager prototypes)
@@ -175,7 +196,12 @@ public sealed class ExamineCardControl : PanelContainer
         fields.AddChild(Field("id-name", card.IdName, small, bold, regular, idBlank, wrap: true));
 
         var job = Field("occupation", card.IdJob, small, bold, regular, idBlank);
-        if (card.JobIcon is { } icon && prototypes.TryIndex<JobIconPrototype>(icon, out var jobIcon))
+        var companies = entities.System<Content.Client._WF.Companies.WFCompanyClientSystem>();
+        // A company rank's own icon is the job icon its ID shows.
+        _companies = companies;
+        var rankIcon = card.CompanyRankId == 0 ? null : card.CompanyIconVersion > 0
+            ? companies.GetRankIcon(card.CompanyRankId, card.CompanyIconVersion) : companies.GetRankIconLatest(card.CompanyRankId);
+        if (rankIcon != null || card.JobIcon is { } icon && prototypes.TryIndex<JobIconPrototype>(icon, out _))
         {
             var value = job.GetChild(1);
             job.RemoveChild(value);
@@ -185,17 +211,45 @@ public sealed class ExamineCardControl : PanelContainer
                 HorizontalExpand = true,
                 SeparationOverride = 4,
             };
-            row.AddChild(new TextureRect
+            var jobIcon = new TextureRect
             {
-                Texture = sprites.Frame0(jobIcon.Icon),
+                Texture = rankIcon ?? sprites.Frame0(prototypes.Index<JobIconPrototype>(card.JobIcon!.Value).Icon),
                 TextureScale = new Vector2(2, 2),
                 VerticalAlignment = VAlignment.Center,
-            });
+            };
+            row.AddChild(jobIcon);
+            // A rank icon this client hasn't fetched yet swaps in when it arrives.
+            if (rankIcon == null && card.CompanyRankId != 0)
+                _waitingRankIcon = (jobIcon, card.CompanyRankId);
             value.HorizontalExpand = true;
             row.AddChild(value);
             job.AddChild(row);
         }
         fields.AddChild(job);
+        if (card.Company != null && card.Range == ExamineCardRange.Detailed)
+        {
+            var company = Field("company", card.CompanyRank is { Length: > 0 } rank ? $"{card.Company} · {rank}" : card.Company,
+                small, bold, regular, null, wrap: true);
+            // A predicted card has no logo version; the company list usually knows it.
+            var logoVersion = card.CompanyLogoVersion != 0 ? card.CompanyLogoVersion
+                : companies.State?.Directory.FirstOrDefault(entry => entry.Id == card.CompanyId)?.LogoVersion ?? 0;
+            var logo = companies.GetLogo(card.CompanyId, logoVersion);
+            if (logoVersion != 0)
+            {
+                var value = company.GetChild(1);
+                company.RemoveChild(value);
+                var row = new BoxContainer { Orientation = BoxContainer.LayoutOrientation.Horizontal, HorizontalExpand = true, SeparationOverride = 6 };
+                var logoRect = new TextureRect { Texture = logo, SetSize = new Vector2(32, 32), Stretch = TextureRect.StretchMode.Scale,
+                    VerticalAlignment = VAlignment.Center };
+                row.AddChild(logoRect);
+                if (logo == null)
+                    _waitingLogo = (logoRect, card.CompanyId, logoVersion);
+                value.HorizontalExpand = true;
+                row.AddChild(value);
+                company.AddChild(row);
+            }
+            fields.AddChild(company);
+        }
         var fieldsHolder = new Control { HorizontalExpand = true, Children = { fields } };
         bodyRow.AddChild(fieldsHolder);
 

@@ -18,6 +18,52 @@ public static class WFRoundSetupPolicy
     public static bool IsCrewScenario(WFRoundScenario scenario) =>
         scenario is WFRoundScenario.Ship or WFRoundScenario.Crashlanded or WFRoundScenario.FactionShip or WFRoundScenario.Doomed;
 
+    /// <summary>Formed crews start in the round around characters already playing.</summary>
+    public static bool IsFormed(WFRoundScenario scenario) => scenario == WFRoundScenario.Formed;
+
+    /// <summary>Scenarios whose openings use the civilian ship crew jobs and rosters.</summary>
+    public static bool UsesShipRoles(WFRoundScenario scenario) => scenario is WFRoundScenario.Ship or WFRoundScenario.Formed;
+
+    /// <summary>Crews a character already in the round can join without respawning.</summary>
+    public static bool AllowsLiveMembers(WFRoundScenario scenario, bool started) =>
+        scenario == WFRoundScenario.Formed || scenario == WFRoundScenario.Ship && started;
+
+    /// <summary>Access settings that only mean something for a crew flying under a company.</summary>
+    public static bool IsCompanyAccess(WFLobbyAccess access) => access is WFLobbyAccess.CompanyOnly or WFLobbyAccess.CompanyFirst;
+
+    /// <summary>Access settings where the host approves requests.</summary>
+    public static bool TakesRequests(WFLobbyAccess access) => access is WFLobbyAccess.Requests or WFLobbyAccess.CompanyFirst;
+
+    /// <summary>The longest crew posting.</summary>
+    public const int MaximumPostingLength = 200;
+
+    /// <summary>How long a crew waits between postings.</summary>
+    public static readonly TimeSpan PostingCooldown = TimeSpan.FromMinutes(10);
+
+    /// <summary>A crew shows as recruiting only while an outsider could actually take one of its openings.</summary>
+    public static bool ShowsRecruiting(bool recruiting, WFLobbyAccess access, bool started, bool allowLateJoin, int members, int openings) =>
+        recruiting && access is WFLobbyAccess.Public or WFLobbyAccess.Requests or WFLobbyAccess.CompanyFirst && (!started || allowLateJoin) &&
+        members < MaximumMembers && openings > 0;
+
+    /// <summary>Accepts one bounded line of plain text for a crew posting.</summary>
+    public static bool TryNormalizePosting(string? input, out string posting)
+    {
+        posting = string.Empty;
+        if (input == null || input.Length > MaximumPostingLength * 2)
+            return false;
+        var normalized = string.Join(' ', input.Split((char[]?) null, StringSplitOptions.RemoveEmptyEntries));
+        if (normalized.Length is 0 or > MaximumPostingLength)
+            return false;
+        for (var index = 0; index < normalized.Length; index++)
+        {
+            if (char.IsControl(normalized[index]) ||
+                char.GetUnicodeCategory(normalized, index) == System.Globalization.UnicodeCategory.Format)
+                return false;
+        }
+        posting = normalized;
+        return true;
+    }
+
     /// <summary>The difficulty a scenario's card shows.</summary>
     public static WFScenarioDifficulty Difficulty(WFRoundScenario scenario) => scenario switch
     {
@@ -80,7 +126,8 @@ public static class WFRoundSetupPolicy
         bool allowLateJoin,
         bool full,
         bool invited,
-        bool validCode)
+        bool validCode,
+        bool companyMember = false)
     {
         if (full || started && !allowLateJoin)
             return WFLobbyJoinDecision.Denied;
@@ -92,6 +139,8 @@ public static class WFRoundSetupPolicy
             WFLobbyAccess.Closed => invited ? WFLobbyJoinDecision.Join : WFLobbyJoinDecision.Denied,
             WFLobbyAccess.Code => invited || validCode ? WFLobbyJoinDecision.Join : WFLobbyJoinDecision.Denied,
             WFLobbyAccess.Invite => invited ? WFLobbyJoinDecision.Join : WFLobbyJoinDecision.Denied,
+            WFLobbyAccess.CompanyOnly => invited || companyMember ? WFLobbyJoinDecision.Join : WFLobbyJoinDecision.Denied,
+            WFLobbyAccess.CompanyFirst => invited || companyMember ? WFLobbyJoinDecision.Join : WFLobbyJoinDecision.Request,
             _ => WFLobbyJoinDecision.Denied,
         };
     }
