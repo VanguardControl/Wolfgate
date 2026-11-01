@@ -1,13 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using Content.Shared.Shuttles.BUIStates;
-using Robust.Shared.Timing;
 
 namespace Content.Server.Shuttles.Systems;
 
 public sealed partial class ShuttleConsoleSystem
 {
-    [Dependency] private IGameTiming _wfTiming = default!;
-
     /// <summary>How long consoles share one walk of the docks. Anchoring changes raise nothing, so they wait this long.</summary>
     private static readonly TimeSpan WFDocksLifetime = TimeSpan.FromSeconds(0.5);
 
@@ -17,13 +14,13 @@ public sealed partial class ShuttleConsoleSystem
     private bool WFTryGetCachedDocks([NotNullWhen(true)] out Dictionary<NetEntity, List<DockingPortState>>? docks)
     {
         docks = _wfDocks;
-        return docks != null && _wfTiming.CurTime < _wfDocksUntil;
+        return docks != null && _wfCockpitTiming.CurTime < _wfDocksUntil;
     }
 
     private void WFCacheDocks(Dictionary<NetEntity, List<DockingPortState>> docks)
     {
         _wfDocks = docks;
-        _wfDocksUntil = _wfTiming.CurTime + WFDocksLifetime;
+        _wfDocksUntil = _wfCockpitTiming.CurTime + WFDocksLifetime;
     }
 
     /// <summary>Drops the shared walk when something consoles should show at once has changed.</summary>
