@@ -14,6 +14,7 @@ using Robust.Client.Player;
 using Robust.Client.ResourceManagement;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
+using Robust.Client.UserInterface.CustomControls;
 using Robust.Shared.Configuration;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Input;
@@ -28,6 +29,65 @@ namespace Content.IntegrationTests.Tests._WF.Traits;
 [TestFixture]
 public sealed class TraitsUiTest
 {
+    private const string ConditionPrototype = """
+                                              - type: traitCategory
+                                                id: WFUiTestCategory
+                                                name: trait-category-quirks
+
+                                              - type: trait
+                                                id: WFUiTestMothCondition
+                                                name: trait-pacifist-name
+                                                description: trait-pacifist-desc
+                                                category: WFUiTestCategory
+                                                conditions:
+                                                - !type:IsSpeciesCondition
+                                                  species: Moth
+                                              """;
+
+    [Test]
+    public async Task UnmetConditionsShowPopup()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var client = pair.Client;
+
+        await client.WaitPost(() =>
+        {
+            client.ProtoMan.LoadString(ConditionPrototype);
+            client.ProtoMan.ResolveResults();
+        });
+
+        await client.WaitAssertion(() =>
+        {
+            var editor = new HumanoidProfileEditor(
+                client.ResolveDependency<IClientPreferencesManager>(),
+                client.ResolveDependency<IConfigurationManager>(),
+                client.ResolveDependency<IEntityManager>(),
+                client.ResolveDependency<IFileDialogManager>(),
+                client.ResolveDependency<ILogManager>(),
+                client.ResolveDependency<IPlayerManager>(),
+                client.ResolveDependency<IPrototypeManager>(),
+                client.ResolveDependency<IResourceCache>(),
+                client.ResolveDependency<JobRequirementsManager>(),
+                client.ResolveDependency<MarkingManager>(),
+                client.ResolveDependency<CompanyManager>());
+
+            editor.SetProfile(HumanoidCharacterProfile.DefaultWithSpecies(), null);
+            var entry = Descend(editor.FindControl<TraitsTab>("TraitsTab")!)
+                .OfType<TraitEntry>()
+                .First(entry => entry.Trait.ID == "WFUiTestMothCondition");
+
+            Assert.That(entry.Visible, Is.True, "A trait with unmet conditions should still be listed.");
+            Assert.That(entry.FindControl<CheckBox>("TraitCheckbox")!.Disabled, Is.True,
+                "A trait with unmet conditions should be disabled.");
+
+            var tooltip = entry.TooltipSupplier?.Invoke(entry) as Tooltip;
+            Assert.That(tooltip?.Text, Does.Contain("Requirements not met"));
+            Assert.That(tooltip?.Text, Does.Contain("Moth"));
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     [Test]
     public async Task TraitsTabRendersAndToggles()
     {
@@ -62,6 +122,28 @@ public sealed class TraitsUiTest
             var entries = Descend(traitsTab).OfType<TraitEntry>().ToList();
             Assert.That(entries, Is.Not.Empty, "The new trait tab should list traits.");
 
+            // Existing traits keep their old restriction fields, and blocked ones stay visible with a reason.
+            var nanite = entries.First(entry => entry.Trait.ID == "NaniteRepairDrones");
+            Assert.That(nanite.Visible, Is.True, "A species-blacklisted trait should still be listed.");
+            Assert.That(nanite.FindControl<CheckBox>("TraitCheckbox")!.Disabled, Is.True,
+                "A species-blacklisted trait should be disabled.");
+            var naniteTip = nanite.TooltipSupplier?.Invoke(nanite) as Tooltip;
+            Assert.That(naniteTip?.Text, Does.Contain("You must not be"),
+                "The popup should explain the species restriction.");
+
+            var shadekin = entries.First(entry => entry.Trait.ID == "ShadekinRegeneration");
+            Assert.That(shadekin.Visible, Is.True, "A whitelist-blocked trait should still be listed.");
+            Assert.That(shadekin.FindControl<CheckBox>("TraitCheckbox")!.Disabled, Is.True,
+                "A whitelist-blocked trait should be disabled.");
+            var shadekinTip = shadekin.TooltipSupplier?.Invoke(shadekin) as Tooltip;
+            Assert.That(shadekinTip?.Text, Does.Contain("Shadekin"),
+                "The popup should explain the body requirement.");
+
+            // A whitelist the human body already meets must not block the trait.
+            var blindness = entries.First(entry => entry.Trait.ID == "Blindness");
+            Assert.That(blindness.FindControl<CheckBox>("TraitCheckbox")!.Disabled, Is.False,
+                "A met body whitelist should leave the trait selectable.");
+
             var pacifist = entries.First(entry => entry.Trait.ID == "Pacifist");
             var checkbox = pacifist.FindControl<CheckBox>("TraitCheckbox");
             Assert.That(checkbox, Is.Not.Null);
@@ -76,6 +158,91 @@ public sealed class TraitsUiTest
                 "Deselecting a trait in the new tab should update the profile.");
         });
 
+        await pair.CleanReturnAsync();
+    }
+
+    [Test]
+    public async Task TraitsTabLayoutSurvivesCloseAndReopen()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        var client = pair.Client;
+        var ui = client.ResolveDependency<IUserInterfaceManager>();
+        var profile = HumanoidCharacterProfile.DefaultWithSpecies();
+        LayoutContainer host = default!;
+
+        await client.WaitPost(() =>
+        {
+            var editor = new HumanoidProfileEditor(
+                client.ResolveDependency<IClientPreferencesManager>(),
+                client.ResolveDependency<IConfigurationManager>(),
+                client.ResolveDependency<IEntityManager>(),
+                client.ResolveDependency<IFileDialogManager>(),
+                client.ResolveDependency<ILogManager>(),
+                client.ResolveDependency<IPlayerManager>(),
+                client.ResolveDependency<IPrototypeManager>(),
+                client.ResolveDependency<IResourceCache>(),
+                client.ResolveDependency<JobRequirementsManager>(),
+                client.ResolveDependency<MarkingManager>(),
+                client.ResolveDependency<CompanyManager>());
+
+            host = new LayoutContainer { SetSize = new System.Numerics.Vector2(1366, 768) };
+            host.AddChild(editor);
+            ui.RootControl.AddChild(host);
+            editor.SetProfile(profile, null);
+
+            // A category opened and collapsed, then the creator closed and reopened, with Traits still selected.
+            var tabs = editor.FindControl<TabContainer>("TabContainer");
+            tabs.CurrentTab = 3;
+            var categories = Descend(editor.FindControl<TraitsTab>("TraitsTab")!).OfType<TraitCategory>().ToList();
+            Assert.That(categories, Is.Not.Empty);
+            categories[0].SetExpanded(false);
+            categories[0].SetExpanded(true);
+            editor.SetProfile(null, null);
+            editor.SetProfile(profile, null);
+            tabs.CurrentTab = 3;
+        });
+
+        await pair.RunTicksSync(3);
+
+        // Expanding a category after hiding and reopening the whole editor must lay its rows out again.
+        await client.WaitPost(() =>
+        {
+            host.Visible = false;
+            host.Visible = true;
+            var traitsTab = Descend(host).OfType<TraitsTab>().First();
+            var category = Descend(traitsTab).OfType<TraitCategory>().First();
+            category.SetExpanded(false);
+            category.SetExpanded(true);
+        });
+
+        await pair.RunTicksSync(3);
+
+        await client.WaitAssertion(() =>
+        {
+            var traitsTab = Descend(host).OfType<TraitsTab>().First();
+            Assert.That(traitsTab.Size.Y, Is.GreaterThan(0), "The trait tab should still have height after reopening.");
+            var categories = Descend(traitsTab).OfType<TraitCategory>().ToList();
+            Assert.That(categories, Is.Not.Empty);
+            Assert.Multiple(() =>
+            {
+                foreach (var category in categories)
+                {
+                    Assert.That(category.Size.Y, Is.GreaterThan(0),
+                        $"{category.CategoryId} should still have height after reopening.");
+
+                    foreach (var entry in category.Entries)
+                    {
+                        if (!entry.Visible)
+                            continue;
+
+                        Assert.That(entry.Size.Y, Is.GreaterThan(0),
+                            $"{entry.Trait.ID} should still have height after reopening.");
+                    }
+                }
+            });
+        });
+
+        await client.WaitPost(() => host.Orphan());
         await pair.CleanReturnAsync();
     }
 

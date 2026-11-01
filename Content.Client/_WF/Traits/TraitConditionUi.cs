@@ -31,11 +31,19 @@ public static class TraitConditionUi
     /// <summary>
     /// Appends a tooltip line for each condition that describes a requirement.
     /// </summary>
-    public static void AddTooltipLines(TraitPrototype trait, IPrototypeManager proto, List<string> lines)
+    public static void AddTooltipLines(TraitPrototype trait, IPrototypeManager proto, List<string> lines,
+        bool onlyUnmet = false, string? speciesId = null)
     {
         var loc = IoCManager.Resolve<ILocalizationManager>();
+        var ctx = speciesId == null
+            ? null
+            : new TraitConditionContext { SpeciesId = speciesId, Proto = proto };
+
         foreach (var condition in trait.Conditions)
         {
+            if (onlyUnmet && ctx != null && condition.Evaluate(ctx))
+                continue;
+
             var line = condition.GetTooltip(proto, loc);
             if (!string.IsNullOrEmpty(line))
                 lines.Add(line);

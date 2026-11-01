@@ -21,7 +21,7 @@
               HorizontalExpand="True"
               Margin="0 0 0 8" />
 
-    <ScrollContainer VerticalExpand="True" HScrollEnabled="False">
+    <ScrollContainer Name="TraitScroll" VerticalExpand="True" HScrollEnabled="False">
         <BoxContainer Name="CategoriesContainer"
                       Orientation="Vertical"
                       HorizontalExpand="True" />

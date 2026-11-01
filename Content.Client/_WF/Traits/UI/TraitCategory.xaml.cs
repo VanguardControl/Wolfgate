@@ -49,6 +49,8 @@ public sealed partial class TraitCategory : PanelContainer
         _expanded = expanded;
         TraitsContainer.Visible = expanded;
         ExpandIcon.Text = expanded ? "▾" : "▸";
+        InvalidateMeasure();
+        InvalidateArrange();
     }
 
     public void UpdateStats(int selected, int points, int? maxPoints = null)

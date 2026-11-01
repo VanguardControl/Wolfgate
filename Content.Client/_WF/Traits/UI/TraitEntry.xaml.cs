@@ -28,6 +28,7 @@ public sealed partial class TraitEntry : PanelContainer
         IoCManager.InjectDependencies(this);
 
         Trait = trait;
+        MouseFilter = MouseFilterMode.Pass;
         TraitNameLabel.Text = _loc.GetString(trait.Name);
 
         if (trait.Description is { } description)
