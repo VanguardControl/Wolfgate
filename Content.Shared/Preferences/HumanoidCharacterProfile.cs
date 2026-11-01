@@ -7,6 +7,7 @@ using Content.Shared._WF.ChatFont; // WOLFGATE(ChatFont)
 using Content.Shared._WF.TypingBubble; // WOLFGATE(TypingBubble)
 using Content.Shared._WF.BloodColour; // WOLFGATE(BloodColour)
 using Content.Shared._WF.EmoteVoices; // WOLFGATE(EmoteVoices)
+using Content.Shared._WF.Voice; // WOLFGATE(Voice)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Migration; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
@@ -262,6 +263,7 @@ namespace Content.Shared.Preferences
             TypingIndicator = other.TypingIndicator; // WOLFGATE(TypingBubble)
             BloodColor = other.BloodColor; // WOLFGATE(BloodColour)
             MessageSound = other.MessageSound; // WOLFGATE(EmoteVoices)
+            SpeechVoice = other.SpeechVoice; // WOLFGATE(Voice)
         }
 
         /// <summary>Copy constructor</summary>
@@ -303,6 +305,7 @@ namespace Content.Shared.Preferences
             TypingIndicator = other.TypingIndicator; // WOLFGATE(TypingBubble)
             BloodColor = other.BloodColor; // WOLFGATE(BloodColour)
             MessageSound = other.MessageSound; // WOLFGATE(EmoteVoices)
+            SpeechVoice = other.SpeechVoice; // WOLFGATE(Voice)
         }
 
         /// <summary>
@@ -651,6 +654,7 @@ namespace Content.Shared.Preferences
             if (BloodColor != other.BloodColor) return false; // WOLFGATE(BloodColour)
             if (ScreamVoice != other.ScreamVoice || LaughVoice != other.LaughVoice) return false; // WOLFGATE(EmoteVoices)
             if (MessageSound != other.MessageSound) return false; // WOLFGATE(EmoteVoices)
+            if (!Equals(SpeechVoice, other.SpeechVoice)) return false; // WOLFGATE(Voice)
             if (!Flags.SequenceEqual(other.Flags)) return false; // Mono
             if (!Components.SequenceEqual(other.Components)) return false; // Mono
             if (!Items.SequenceEqual(other.Items)) return false; // Mono
@@ -858,6 +862,7 @@ namespace Content.Shared.Preferences
             EnsureCustomMarkingsValid(configManager); // WOLFGATE(CustomMarkings)
             EnsureValidEmoteVoices(prototypeManager); // WOLFGATE(EmoteVoices)
             MessageSound = MessageSoundRules.Sanitize(MessageSound, prototypeManager); // WOLFGATE(EmoteVoices): an unknown message sound becomes the species' own
+            SpeechVoice = (SpeechVoice ?? new SpeechVoice()).Clamped(); // WOLFGATE(Voice): out-of-range sliders come back inside their range; crafted network data can deliver null
             LegStance = LegStyleRules.Validate(Species, LegStance, prototypeManager); // WOLFGATE(LegStyle): legs the species doesn't have fall back to its own
             Biotype = WFBiotypeRules.Resolve(Biotype, speciesPrototype); // WOLFGATE(Biotype): Default and unknown values become the species' own
             EnsureAugmentsValid(prototypeManager, collection.Resolve<IComponentFactory>()); // WOLFGATE(Augments): augments the species can't take are dropped
@@ -1027,6 +1032,7 @@ namespace Content.Shared.Preferences
             hashCode.Add(ScreamVoice); // WOLFGATE(EmoteVoices)
             hashCode.Add(LaughVoice); // WOLFGATE(EmoteVoices)
             hashCode.Add(MessageSound); // WOLFGATE(EmoteVoices)
+            hashCode.Add(SpeechVoice); // WOLFGATE(Voice)
             return hashCode.ToHashCode();
         }
 
