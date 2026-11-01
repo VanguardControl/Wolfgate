@@ -4492,3 +4492,18 @@ Entries:
   id: 100298
   time: '2026-11-01T03:49:04.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/435
+- author: DriftingSkies
+  changes:
+    - type: Add
+      message: >-
+        Added an Augments tab to the character creator: give your character
+        cybernetic arms and legs in 29 styles, previewed live and fitted to your
+        species, digitigrade legs included.
+    - type: Fix
+      message: >-
+        Hands no longer vanish under jumpsuits in side view on Vulpkanin,
+        Canine, Skrell, Moth and other species that draw their hands before
+        their feet.
+  id: 100299
+  time: '2026-11-01T03:51:50.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/412
