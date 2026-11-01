@@ -105,6 +105,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - a speech style decides the bold too
   - a voice mask's speech style wins, as it did before the language port dropped it here
 - [`Content.Server/DeviceNetwork/Systems/SingletonDeviceNetServerSystem.cs`](../../Content.Server/DeviceNetwork/Systems/SingletonDeviceNetServerSystem.cs)
+  - Active defaults to true, so every server built broadcast its list before it was ever chosen
   - one active server per server type, since a second map's broadcast overwrote every console's list
   - one active server per server type, from the asking map first
 - [`Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs`](../../Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs)
@@ -119,6 +120,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Research/Systems/ResearchSystem.Client.cs`](../../Content.Server/Research/Systems/ResearchSystem.Client.cs)
   - a machine moved off its server's grid stayed linked
   - shared with a client moved to a new grid
+- [`Content.Server/Research/Systems/ResearchSystem.Server.cs`](../../Content.Server/Research/Systems/ResearchSystem.Server.cs): a server's clients follow its grid
 - [`Content.Server/Sandbox/Commands/ColorNetworkCommand.cs`](../../Content.Server/Sandbox/Commands/ColorNetworkCommand.cs): missing return after the no-access error
 - [`Content.Server/Shuttles/Components/ShuttleComponent.cs`](../../Content.Server/Shuttles/Components/ShuttleComponent.cs): PDV pack, partial revert of Monolith speed cap (50->20)
 - [`Content.Server/Shuttles/Components/ThrusterComponent.cs`](../../Content.Server/Shuttles/Components/ThrusterComponent.cs): PDV pack, partial revert of Monolith thrust nerf (200->100)
@@ -199,6 +201,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - keeps [bold]; upstream's [color=bold] tag is unbalanced
   - the map has one UndergroundVend, not four
 - [`Resources/Locale/en-US/_Mono/prototypes/access/accesses.ftl`](../../Resources/Locale/en-US/_Mono/prototypes/access/accesses.ftl): Monolith#4816 shipped the Underground access levels without names
+- [`Resources/Locale/en-US/_Mono/store/pdv-uplink-catalog.ftl`](../../Resources/Locale/en-US/_Mono/store/pdv-uplink-catalog.ftl): the uplink had no 5.56 for the Vympel it sells
 - [`Resources/Maps/_Mono/Bluespace/prefracture.yml`](../../Resources/Maps/_Mono/Bluespace/prefracture.yml): Hardpoints mapped under the Unidentified Vessel's Scythe, Sunder and Flayer guns so gunnery links them.
 - [`Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml`](../../Resources/Maps/_Mono/Monolithic/monolithicasteroidsmallship.yml): Hardpoint mapped under the asteroid ship's AK570 so gunnery links it.
 - [`Resources/Maps/_Mono/Outpost/caelestinus_central.yml`](../../Resources/Maps/_Mono/Outpost/caelestinus_central.yml): Sector map entity gets its Parallax component and Colossus Sector name back after the

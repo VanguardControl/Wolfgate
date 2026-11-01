@@ -362,7 +362,7 @@ public sealed class ShipAccessTest
                 var turbineReader = entMan.GetComponent<AccessReaderComponent>(turbine);
                 Assert.That(ReaderLocked(entMan, turbine), Is.False);
                 Assert.That(turbineReader.AccessLists.Single(), Does.Contain(new ProtoId<AccessLevelPrototype>("Captain")));
-                Assert.That(turbineReader.AccessKeys, Is.Not.Empty, "The owner's card must open the turbine's lock.");
+                Assert.That(entMan.System<AccessReaderSystem>().IsAllowed(buyer, turbine), Is.True, "The owner's card must open the turbine's lock.");
             });
         });
 

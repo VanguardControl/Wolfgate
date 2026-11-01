@@ -17,6 +17,7 @@ using Content.Shared.Polymorph.Components;
 using Content.Shared.Polymorph.Systems;
 using Content.Shared.Research.Components;
 using NUnit.Framework;
+using Robust.Shared.Containers;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Physics;
 using Robust.Shared.Physics.Components;
@@ -72,10 +73,24 @@ public sealed class WFFeedbackBatch1101Test : WolfmedGameTest
         });
 
         var comp = SEntMan.GetComponent<StomachComponent>(stomach);
-        await RunSeconds((float) comp.DigestionDelay.TotalSeconds + 4f);
+        var chemicals = SEntMan.GetComponent<BloodstreamComponent>(body).ChemicalSolutionName;
+        await RunSeconds((float) comp.DigestionDelay.TotalSeconds - 1f);
+
+        // The blood starts using it straight away, so look on every tick around the transfer.
+        var delivered = false;
+        for (var tick = 0; tick < 150 && !delivered; tick++)
+        {
+            await Server.WaitRunTicks(1);
+            await Server.WaitPost(() =>
+            {
+                Assert.That(solutions.TryGetSolution(body, chemicals, out _, out var blood));
+                delivered = blood!.GetTotalPrototypeQuantity("Saline") > FixedPoint2.Zero;
+            });
+        }
 
         await Server.WaitAssertion(() =>
         {
+            Assert.That(delivered, "the saline never reached the blood.");
             Assert.That(solutions.TryGetSolution(stomach, StomachSystem.DefaultSolutionName, out _, out var contents));
             Assert.That(contents!.GetTotalPrototypeQuantity("Saline"), Is.EqualTo(FixedPoint2.Zero),
                 "the saline never left the stomach.");
@@ -177,6 +192,17 @@ public sealed class WFFeedbackBatch1101Test : WolfmedGameTest
             SEntMan.EventBus.RaiseLocalEvent(projector, ev);
             Assert.That(projectors.TryReveal(user));
             Assert.That(physics.BodyType, Is.EqualTo(BodyType.KinematicController), "revealing left a Dynamic mob.");
+
+            // Going into a container unanchors without touching the body, then reveals.
+            projectors.Disguise((projector, SEntMan.GetComponent<ChameleonProjectorComponent>(projector)), user, target);
+            ev = new DisguiseToggleAnchoredEvent();
+            SEntMan.EventBus.RaiseLocalEvent(projector, ev);
+            Assert.That(physics.BodyType, Is.EqualTo(BodyType.Static));
+            var containers = SEntMan.System<SharedContainerSystem>();
+            var holder = SEntMan.SpawnEntity(null, map.GridCoords);
+            Assert.That(containers.Insert(user, containers.EnsureContainer<Container>(holder, "wf-test")));
+            Assert.That(SEntMan.HasComponent<ChameleonDisguisedComponent>(user), Is.False);
+            Assert.That(physics.BodyType, Is.EqualTo(BodyType.KinematicController), "a container left the mob anchored in body.");
         });
     }
 
@@ -202,6 +228,12 @@ public sealed class WFFeedbackBatch1101Test : WolfmedGameTest
 
             xforms.SetCoordinates(client, away.GridCoords);
             Assert.That(comp.Server, Is.EqualTo(awayServer));
+
+            xforms.SetCoordinates(awayServer, plain.GridCoords);
+            Assert.That(comp.Server, Is.Null, "a server that left kept its client.");
+
+            var builtLater = SEntMan.SpawnAtPosition("ResearchAndDevelopmentServer", away.GridCoords);
+            Assert.That(comp.Server, Is.EqualTo(builtLater), "a server built on the grid did not take the unlinked client.");
         });
     }
 

@@ -13,6 +13,7 @@ using Content.Shared.Whitelist;
 using Robust.Shared.Containers;
 using Robust.Shared.Network;
 using Robust.Shared.Physics; // WOLFGATE: unanchoring left the mob a Dynamic body
+using Robust.Shared.Physics.Components; // WOLFGATE: unanchoring left the mob a Dynamic body
 using Robust.Shared.Physics.Systems; // WOLFGATE: unanchoring left the mob a Dynamic body
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.Manager;
@@ -266,14 +267,15 @@ public abstract partial class SharedChameleonProjectorSystem : EntitySystem
     }
 
     // WOLFGATE START: unanchoring left the mob a Dynamic body it could not walk
-    /// <summary>Unanchors the disguised user and gives a mob its walking body back.</summary>
+    /// <summary>
+    /// Unanchors the disguised user and gives a mob its walking body back. Going into a container unanchors
+    /// without touching the body, so this looks at the body and not the anchor.
+    /// </summary>
     private void WFUnanchorUser(EntityUid uid, TransformComponent xform)
     {
-        if (!xform.Anchored)
-            return;
-
         _xform.Unanchor(uid, xform, setPhysics: false);
-        _physics.TrySetBodyType(uid, HasComp<InputMoverComponent>(uid) ? BodyType.KinematicController : BodyType.Dynamic, xform: xform);
+        if (CompOrNull<PhysicsComponent>(uid)?.BodyType == BodyType.Static)
+            _physics.TrySetBodyType(uid, HasComp<InputMoverComponent>(uid) ? BodyType.KinematicController : BodyType.Dynamic, xform: xform);
     }
     // WOLFGATE END
 

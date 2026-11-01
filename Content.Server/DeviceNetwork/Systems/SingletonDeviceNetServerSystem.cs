@@ -28,7 +28,10 @@ public sealed partial class SingletonDeviceNetServerSystem : EntitySystem
     /// </summary>
     public bool IsActiveServer(EntityUid serverId, SingletonDeviceNetServerComponent? serverComponent = default)
     {
-        return Resolve(serverId, ref serverComponent) && serverComponent.Active;
+        // WOLFGATE START: Active defaults to true, so every server built broadcast its list before it was ever chosen
+        // return Resolve(serverId, ref serverComponent) && serverComponent.Active;
+        return Resolve(serverId, ref serverComponent) && serverComponent.Active && _deviceNetworkSystem.IsDeviceConnected(serverId, null);
+        // WOLFGATE END
     }
 
     /// <summary>
