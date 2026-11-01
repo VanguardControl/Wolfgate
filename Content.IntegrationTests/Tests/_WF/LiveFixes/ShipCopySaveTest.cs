@@ -74,4 +74,47 @@ public sealed class ShipCopySaveTest
 
         await pair.CleanReturnAsync();
     }
+
+    /// <summary>A store whose owner stays behind must not come back unowned, or the next person to open it could claim it.</summary>
+    [Test]
+    public async Task OwnedStoreStaysClosedAfterACopy()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false, Dirty = true });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entMan = server.EntMan;
+        var maps = entMan.System<SharedMapSystem>();
+        var shipyard = entMan.System<ShipyardSystem>();
+
+        await server.WaitAssertion(() =>
+        {
+            var grid = maps.CreateGridEntity(map.MapId);
+            maps.SetTile(grid.Owner, grid.Comp, Vector2i.Zero, map.Tile.Tile);
+            var store = entMan.SpawnEntity("Paper", new EntityCoordinates(grid.Owner, new Vector2(0.5f, 0.5f)));
+            entMan.EnsureComponent<StoreComponent>(store).AccountOwner = entMan.SpawnEntity(null, MapCoordinates.Nullspace);
+
+            // Loading logs the reference it can't resolve as an error, which is expected here.
+            var failureLevel = pair.ServerLogHandler.FailureLevel;
+            pair.ServerLogHandler.FailureLevel = null;
+            var saved = shipyard.TrySaveShip(grid.Owner, out var data);
+            EntityUid? loaded = null;
+            var added = saved && shipyard.TryAddSavedShip(data!, out loaded);
+            pair.ServerLogHandler.FailureLevel = failureLevel;
+
+            Assert.That(added, Is.True);
+            StoreComponent? copy = null;
+            var children = entMan.GetComponent<TransformComponent>(loaded!.Value).ChildEnumerator;
+            while (children.MoveNext(out var child))
+            {
+                if (entMan.TryGetComponent<StoreComponent>(child, out var comp))
+                    copy = comp;
+            }
+
+            Assert.That(copy, Is.Not.Null);
+            Assert.That(copy!.AccountOwner, Is.Not.Null, "A null owner would let the next opener claim the store.");
+            entMan.DeleteEntity(loaded.Value);
+        });
+
+        await pair.CleanReturnAsync();
+    }
 }

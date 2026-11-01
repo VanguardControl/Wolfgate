@@ -122,10 +122,10 @@ index 3e580f60c..9bde7f14e 100644
  
      private record struct PvsSendJob(PvsSystem _pvs) : IParallelRobustJob
 diff --git a/Robust.Shared/Network/Transfer/BaseTransferImpl.cs b/Robust.Shared/Network/Transfer/BaseTransferImpl.cs
-index 35e0cb1f8..c8996680f 100644
+index 35e0cb1f8..cc9cf2d21 100644
 --- a/Robust.Shared/Network/Transfer/BaseTransferImpl.cs
 +++ b/Robust.Shared/Network/Transfer/BaseTransferImpl.cs
-@@ -408,15 +408,28 @@ internal abstract class BaseTransferImpl(ISawmill sawmill, BaseTransferManager p
+@@ -408,15 +408,29 @@ internal abstract class BaseTransferImpl(ISawmill sawmill, BaseTransferManager p
          ~ChunkedSendStream()
          {
              // Have to do this so the stream isn't permanently hanging on the receiving side.
@@ -147,17 +147,18 @@ index 35e0cb1f8..c8996680f 100644
 +    }
 +
 +    /// <summary>Ends every incoming transfer, so nothing waits on data that can't arrive.</summary>
-+    protected void CompleteReceivingChannels()
++    /// <param name="error">Set when the transfers were cut short, so a reader can't take a partial file for a whole one.</param>
++    protected void CompleteReceivingChannels(Exception? error = null)
      {
          foreach (var channel in _receivingChannels.Values)
          {
 -            channel.Complete();
-+            channel.TryComplete();
++            channel.TryComplete(error);
          }
      }
  
 diff --git a/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs b/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs
-index ca43b5a34..dd330f8df 100644
+index ca43b5a34..59b69dbb9 100644
 --- a/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs
 +++ b/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs
 @@ -26,6 +26,9 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
@@ -187,7 +188,7 @@ index ca43b5a34..dd330f8df 100644
 +                if (receiveResult.MessageType == WebSocketMessageType.Close)
 +                {
 +                    HandleSocketLost("closed by the other side");
-+                    CompleteReceivingChannels();
++                    CompleteReceivingChannels(new IOException("Transfer socket was lost"));
 +                    return;
 +                }
 +
@@ -205,7 +206,7 @@ index ca43b5a34..dd330f8df 100644
 +        catch (Exception e) when (e is WebSocketException or IOException or ObjectDisposedException)
 +        {
 +            HandleSocketLost(e.Message);
-+            CompleteReceivingChannels();
++            CompleteReceivingChannels(new IOException("Transfer socket was lost"));
 +        }
          catch (Exception e)
          {

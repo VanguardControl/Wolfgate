@@ -38,6 +38,7 @@ It applies to RobustToolbox `ce2461b5`, and isn't in use until the engine is for
 - [`Content.Server/_Mono/StationEvents/AutoExtendRuleSystem.cs`](../../_Mono/StationEvents/AutoExtendRuleSystem.cs): a watched grid can be deleted before the rule ends
 - [`Content.Server/_NF/StationEvents/Events/BluespaceCargoRule.cs`](../../_NF/StationEvents/Events/BluespaceCargoRule.cs)
   - with no free tile, the grid's own coordinates were on the map and could anchor to another grid
+  - pass the map, since terrain with no tracked air reads its mixture from there
   - check every tile before skipping the crate, since random picks can miss a sparse grid
   - the random search's tile checks, for the search of every tile
 - [`Content.Server/_NF/StationEvents/Events/BluespaceErrorRule.cs`](../../_NF/StationEvents/Events/BluespaceErrorRule.cs): a grid destroyed in play is normal and must not stop the rest of the cleanup

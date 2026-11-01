@@ -78,8 +78,8 @@ public sealed class CharacterSaveTest
         });
 
         Assert.That(rows, Has.Count.EqualTo(2));
-        Assert.That(rows.Count(r => r.Priority == DbJobPriority.High), Is.EqualTo(1));
-        Assert.That(rows.Count(r => r.Priority == DbJobPriority.Medium), Is.EqualTo(1));
+        Assert.That(rows.Single(r => r.JobName == "WFTestJobA").Priority, Is.EqualTo(DbJobPriority.High));
+        Assert.That(rows.Single(r => r.JobName == "WFTestJobB").Priority, Is.EqualTo(DbJobPriority.Medium));
     }
 
     [Test]

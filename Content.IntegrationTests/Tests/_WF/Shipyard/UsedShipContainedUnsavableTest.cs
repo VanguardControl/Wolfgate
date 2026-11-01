@@ -59,7 +59,10 @@ public sealed class UsedShipContainedUnsavableTest
             var coords = new EntityCoordinates(grid, new Vector2(0.5f, 0.5f));
             var mech = entMan.SpawnEntity(Mech, coords);
             var container = containers.EnsureContainer<Container>(mech, "wf_test");
-            Assert.That(containers.Insert(entMan.SpawnEntity(Mech, coords), container));
+            var inner = entMan.SpawnEntity(Mech, coords);
+            Assert.That(containers.Insert(inner, container));
+            // Both share a prototype, so the copy alone wouldn't show the inner mech was found.
+            Assert.That(entMan.System<UsedShipMarketSystem>().GetUnsavableAboard(grid), Does.Contain(inner));
             var equipment = CountEquipment(entMan, MechsAboard(entMan, grid));
 
             var loaded = CopyAsSold(entMan, grid);

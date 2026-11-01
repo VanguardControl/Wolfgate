@@ -94,7 +94,10 @@ public sealed partial class BluespaceCargoRule : StationEventSystem<BluespaceCar
             if (!valid)
                 continue;
 
-            if (safeAtmosphere && !_atmosphere.IsTileMixtureProbablySafe(grid, grid, tile))
+            // WOLFGATE(LiveFixes) START: pass the map, since terrain with no tracked air reads its mixture from there
+            // if (safeAtmosphere && !_atmosphere.IsTileMixtureProbablySafe(grid, grid, tile))
+            if (safeAtmosphere && !_atmosphere.IsTileMixtureProbablySafe(grid, xform.MapUid ?? grid, tile))
+            // WOLFGATE END
             {
                 continue;
             }
@@ -146,7 +149,7 @@ public sealed partial class BluespaceCargoRule : StationEventSystem<BluespaceCar
             }
         }
 
-        return !safeAtmosphere || _atmosphere.IsTileMixtureProbablySafe(grid, grid, tile);
+        return !safeAtmosphere || _atmosphere.IsTileMixtureProbablySafe(grid, map ?? grid, tile);
     }
     // WOLFGATE END
 }
