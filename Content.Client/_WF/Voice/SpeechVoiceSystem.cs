@@ -33,16 +33,30 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
     /// <summary>Voices rendering or playing at once. Past this, new lines are skipped.</summary>
     private const int MaxPlaying = 8;
 
+    /// <summary>How many of those can be radio, so a busy channel leaves room for people nearby.</summary>
+    private const int MaxRadio = 4;
+
+    /// <summary>How many of those can come from one source, so one person can't take them all.</summary>
+    private const int MaxPerSource = 2;
+
     /// <summary>Lines rendering on a worker thread, so a long line never stalls a frame.</summary>
-    private readonly List<(Task<short[]> Render, EntityUid? Source, bool Whisper, bool Radio)> _rendering = new();
+    private readonly List<(Task<int> Render, SpeechVoiceBuffers Buffers, EntityUid? Source, bool Whisper, bool Radio)>
+        _rendering = new();
 
     /// <summary>Streams still playing, disposed once they end so a long round doesn't pile up buffers.</summary>
-    private readonly List<(EntityUid? Audio, AudioStream Stream, TimeSpan End)> _playing = new();
+    private readonly List<(EntityUid? Audio, AudioStream Stream, TimeSpan End, EntityUid? Source, bool Radio)>
+        _playing = new();
+
+    /// <summary>Buffers from finished renders. Only touched on the main thread.</summary>
+    private readonly Stack<SpeechVoiceBuffers> _freeBuffers = new();
 
     /// <summary>When each speaker's chatter last played, for the same cooldown upstream uses.</summary>
     private readonly Dictionary<EntityUid, TimeSpan> _lastChatter = new();
 
     private bool _enabled;
+
+    /// <summary>Lines rendering or playing right now.</summary>
+    public int ActiveLines => _rendering.Count + _playing.Count;
 
     public override void Initialize()
     {
@@ -50,6 +64,7 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 
         SubscribeNetworkEvent<SpeechVoiceSpokeEvent>(OnSpoke);
         SubscribeNetworkEvent<SpeechVoiceRadioEvent>(OnRadio);
+        SubscribeLocalEvent<SpeechVoiceComponent, ComponentShutdown>(OnComponentShutdown);
 
         Subs.CVar(_cfg, SpeechVoiceCVars.Enabled, value => _enabled = value, true);
     }
@@ -58,13 +73,14 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
     {
         base.Shutdown();
 
-        foreach (var (audio, stream, _) in _playing)
+        foreach (var (audio, stream, _, _, _) in _playing)
         {
             Release(audio, stream);
         }
 
         _playing.Clear();
         _rendering.Clear();
+        _freeBuffers.Clear();
         _lastChatter.Clear();
     }
 
@@ -72,23 +88,25 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
     {
         for (var i = _rendering.Count - 1; i >= 0; i--)
         {
-            var (render, source, whisper, radio) = _rendering[i];
+            var (render, buffers, source, whisper, radio) = _rendering[i];
             if (!render.IsCompleted)
                 continue;
 
             _rendering.RemoveAt(i);
-            if (!render.IsCompletedSuccessfully || source != null && !Exists(source))
-                continue;
-
-            // The task has finished, so Result returns at once.
+            if (render.IsCompletedSuccessfully && (source == null || Exists(source)))
+            {
+                // The task has finished, so Result returns at once.
 #pragma warning disable RA0004
-            Play(render.Result, source, whisper, radio);
+                Play(buffers.Pcm.AsSpan(0, render.Result), source, whisper, radio);
 #pragma warning restore RA0004
+            }
+
+            _freeBuffers.Push(buffers);
         }
 
         for (var i = _playing.Count - 1; i >= 0; i--)
         {
-            var (audio, stream, end) = _playing[i];
+            var (audio, stream, end, _, _) = _playing[i];
             if (_timing.RealTime < end)
                 continue;
 
@@ -101,6 +119,11 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
     public void Preview(string text, SpeechVoice voice)
     {
         Queue(text, voice.Clamped(), null, false, false);
+    }
+
+    private void OnComponentShutdown(Entity<SpeechVoiceComponent> ent, ref ComponentShutdown args)
+    {
+        _lastChatter.Remove(ent);
     }
 
     private void OnSpoke(SpeechVoiceSpokeEvent ev)
@@ -188,26 +211,61 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 
     private void Queue(string text, SpeechVoice voice, EntityUid? source, bool whisper, bool radio)
     {
-        if (_playing.Count + _rendering.Count >= MaxPlaying)
+        if (!CanQueue(source, radio))
             return;
+
+        var buffers = _freeBuffers.Count > 0 ? _freeBuffers.Pop() : new SpeechVoiceBuffers();
 
         // Caught inside the task, since a faulted task's exception type is not allowed by the sandbox.
         var render = Task.Run(() =>
         {
             try
             {
-                return new SpeechVoiceSynth().Render(text, voice, radio);
+                return new SpeechVoiceSynth().Render(text, voice, radio, buffers);
             }
             catch (Exception e)
             {
                 Log.Error($"Voice render failed: {e}");
-                return Array.Empty<short>();
+                return 0;
             }
         });
-        _rendering.Add((render, source, whisper, radio));
+        _rendering.Add((render, buffers, source, whisper, radio));
     }
 
-    private void Play(short[] samples, EntityUid? source, bool whisper, bool radio)
+    /// <summary>Whether a new line fits the limits. The creator's Test button only has the per-source one.</summary>
+    private bool CanQueue(EntityUid? source, bool radio)
+    {
+        var radioLines = 0;
+        var sameSource = 0;
+
+        foreach (var line in _rendering)
+        {
+            if (line.Radio)
+                radioLines++;
+            if (line.Source == source && line.Radio == radio)
+                sameSource++;
+        }
+
+        foreach (var line in _playing)
+        {
+            if (line.Radio)
+                radioLines++;
+            if (line.Source == source && line.Radio == radio)
+                sameSource++;
+        }
+
+        var preview = source == null && !radio;
+        if (!preview && ActiveLines >= MaxPlaying)
+            return false;
+
+        if (radio && radioLines >= MaxRadio)
+            return false;
+
+        // A line in the ear doesn't say who is talking, so only the radio limit applies to it.
+        return source == null && radio || sameSource < MaxPerSource;
+    }
+
+    private void Play(ReadOnlySpan<short> samples, EntityUid? source, bool whisper, bool radio)
     {
         if (samples.Length == 0)
             return;
@@ -221,6 +279,6 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
             ? _audio.PlayEntity(stream, entity, null, audioParams)
             : _audio.PlayGlobal(stream, null, audioParams);
 
-        _playing.Add((playing?.Entity, stream, _timing.RealTime + stream.Length + DisposeMargin));
+        _playing.Add((playing?.Entity, stream, _timing.RealTime + stream.Length + DisposeMargin, source, radio));
     }
 }

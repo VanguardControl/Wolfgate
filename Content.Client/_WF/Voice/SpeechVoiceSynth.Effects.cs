@@ -5,7 +5,10 @@ namespace Content.Client._WF.Voice;
 public sealed partial class SpeechVoiceSynth
 {
     /// <summary>Lays a post effect over the rendered line. Species filters are shaped in <see cref="Speak"/>.</summary>
-    private static void ApplyEffect(float[] buffer, SpeechVoiceFilter filter, float strength)
+    private static void ApplyEffect(Span<float> buffer,
+        SpeechVoiceFilter filter,
+        float strength,
+        SpeechVoiceBuffers buffers)
     {
         if (filter is not (SpeechVoiceFilter.Robot or SpeechVoiceFilter.Alien or SpeechVoiceFilter.Insect
             or SpeechVoiceFilter.Ghost))
@@ -13,8 +16,8 @@ public sealed partial class SpeechVoiceSynth
             return;
         }
 
-        var dry = new float[buffer.Length];
-        Array.Copy(buffer, dry, buffer.Length);
+        var dry = buffers.Dry.AsSpan(0, buffer.Length);
+        buffer.CopyTo(dry);
 
         switch (filter)
         {
@@ -39,7 +42,7 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>A 300 Hz to 3 kHz band, a soft clip and a quiet hiss.</summary>
-    private void Radio(float[] buffer)
+    private void Radio(Span<float> buffer)
     {
         var peak = 0f;
         foreach (var sample in buffer)
@@ -82,7 +85,7 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>Bit crush and sample hold, then a ring modulator.</summary>
-    private static void Robot(float[] buffer)
+    private static void Robot(Span<float> buffer)
     {
         const int hold = 2;
         const float levels = 16f;
@@ -98,7 +101,7 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>A wobbling chorus mixed with a high ring modulator.</summary>
-    private static void Alien(float[] buffer, float[] dry)
+    private static void Alien(Span<float> buffer, ReadOnlySpan<float> dry)
     {
         var depth = 0.004f * SampleRate;
 
@@ -112,7 +115,7 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>A brightened signal gated by a fast square buzz.</summary>
-    private static void Insect(float[] buffer)
+    private static void Insect(Span<float> buffer)
     {
         var previous = 0f;
 
@@ -128,7 +131,7 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>A slow pitch drift with an echo trail, softened by a low-pass.</summary>
-    private static void Ghost(float[] buffer, float[] dry)
+    private static void Ghost(Span<float> buffer, ReadOnlySpan<float> dry)
     {
         var drift = 0.006f * SampleRate;
         var echo = (int) (0.12f * SampleRate);
@@ -147,7 +150,7 @@ public sealed partial class SpeechVoiceSynth
         }
     }
 
-    private static float Read(float[] buffer, float position)
+    private static float Read(ReadOnlySpan<float> buffer, float position)
     {
         if (position < 0f)
             return 0f;

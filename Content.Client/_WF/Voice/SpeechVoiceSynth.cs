@@ -11,8 +11,12 @@ public sealed partial class SpeechVoiceSynth
     /// <summary>Output samples per second.</summary>
     public const int SampleRate = 32000;
 
+    /// <summary>The most samples a line can take: the four second cap and the Ghost filter's tail.</summary>
+    public const int MaxSamples = (int) (MaxSeconds * SampleRate) + GhostTail;
+
     private const int MaxBlips = 64;
     private const float MaxSeconds = 4f;
+    private const int GhostTail = SampleRate / 2;
     private const float BaseF0 = 220f;
     private const float BaseFormantScale = 1.35f;
     private const float TremoloRate = 7f;
@@ -38,13 +42,16 @@ public sealed partial class SpeechVoiceSynth
 
     private NoiseSource _noise;
 
-    /// <summary>The samples for a message, capped at four seconds. Empty when it has no letters or digits.</summary>
+    /// <summary>
+    /// Renders a message into <see cref="SpeechVoiceBuffers.Pcm"/>, capped at four seconds, and returns how many
+    /// samples it wrote. Zero when it has no letters or digits.
+    /// </summary>
     /// <param name="radio">Plays it as heard through a radio, on top of any filter.</param>
-    public short[] Render(string text, SpeechVoice voice, bool radio)
+    public int Render(string text, SpeechVoice voice, bool radio, SpeechVoiceBuffers buffers)
     {
         var blips = Blips(text);
         if (blips.Count == 0)
-            return Array.Empty<short>();
+            return 0;
 
         // Seeded from the text, so every listener renders the same line the same way.
         _noise = new NoiseSource((int) SpeechVoice.Hash(text));
@@ -96,9 +103,10 @@ public sealed partial class SpeechVoiceSynth
             starts[i + 1] = starts[i] + (int) (slot * blips[i].Length);
         }
 
-        var tail = voice.Filter == SpeechVoiceFilter.Ghost ? SampleRate / 2 : 0;
+        var tail = voice.Filter == SpeechVoiceFilter.Ghost ? GhostTail : 0;
         var length = Math.Min(starts[^1], (int) (MaxSeconds * SampleRate));
-        var buffer = new float[length + tail];
+        var buffer = buffers.Samples.AsSpan(0, length + tail);
+        buffer.Clear();
 
         Speak(buffer, length, blips, starts, voice, style);
 
@@ -136,16 +144,17 @@ public sealed partial class SpeechVoiceSynth
         }
 
         if (voice.FilterStrength > 0f)
-            ApplyEffect(buffer, voice.Filter, voice.FilterStrength);
+            ApplyEffect(buffer, voice.Filter, voice.FilterStrength, buffers);
 
         if (radio)
             Radio(buffer);
 
-        return ToPcm(buffer);
+        ToPcm(buffer, buffers.Pcm);
+        return buffer.Length;
     }
 
     /// <summary>Renders every letter into the buffer, each its own blip.</summary>
-    private void Speak(float[] buffer,
+    private void Speak(Span<float> buffer,
         int length,
         List<Blip> blips,
         int[] starts,
@@ -563,7 +572,7 @@ public sealed partial class SpeechVoiceSynth
     }
 
     /// <summary>16-bit samples, scaled so the loudest one sits at the same level for every voice.</summary>
-    private static short[] ToPcm(float[] buffer)
+    private static void ToPcm(ReadOnlySpan<float> buffer, short[] pcm)
     {
         var peak = 0f;
         foreach (var sample in buffer)
@@ -572,13 +581,10 @@ public sealed partial class SpeechVoiceSynth
         }
 
         var gain = peak > 0f ? TargetPeak / peak : 0f;
-        var pcm = new short[buffer.Length];
 
         for (var i = 0; i < buffer.Length; i++)
         {
             pcm[i] = (short) Math.Clamp(buffer[i] * gain * short.MaxValue, short.MinValue, short.MaxValue);
         }
-
-        return pcm;
     }
 }

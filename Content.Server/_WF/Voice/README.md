@@ -8,12 +8,12 @@ Slime, Plant, Robot, Alien, Insect and Ghost. Options, Audio, Play character voi
 and plays their species chatter instead.
 
 Range is 10 tiles, 5 for a whisper, muffled past 2. Radio lines play quieter with a radio filter. A voice mask uses
-the named character's voice. A listener who doesn't know the language hears the scrambled text. Only characters from
-the normal spawn and their clones get a voice.
+the named character's voice. A listener who doesn't know the language hears the scrambled text, and a deaf one hears
+nothing. Only characters from the normal spawn and their clones get a voice.
 
 Entry points: `SpeechVoice` (settings, saved in the profile as JSON in `speech_voice`), the server
 `SpeechVoiceSystem` (sets the voice and sends each listener the line), the client `SpeechVoiceSystem` (plays it, at
-most 8 at once) and `SpeechVoiceSynth` (renders the audio). No audio is sent over the network. CVar:
+most 8 at once, 4 of them radio and 2 from one source) and `SpeechVoiceSynth` (renders the audio). No audio is sent over the network. CVar:
 `wf.voice.enabled`.
 
 <!-- WOLFGATE-GENERATED START -->
@@ -38,6 +38,7 @@ most 8 at once) and `SpeechVoiceSynth` (renders the audio). No audio is sent ove
 ### Client
 
 - [`Content.Client/_WF/Voice/HumanoidProfileEditor.SpeechVoice.cs`](../../../Content.Client/_WF/Voice/HumanoidProfileEditor.SpeechVoice.cs)
+- [`Content.Client/_WF/Voice/SpeechVoiceBuffers.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceBuffers.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceDsp.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceDsp.cs)
 - [`Content.Client/_WF/Voice/SpeechVoicePicker.cs`](../../../Content.Client/_WF/Voice/SpeechVoicePicker.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.cs)
@@ -46,6 +47,14 @@ most 8 at once) and `SpeechVoiceSynth` (renders the audio). No audio is sent ove
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Species.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Species.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSynth.Text.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSynth.Text.cs)
 - [`Content.Client/_WF/Voice/SpeechVoiceSystem.cs`](../../../Content.Client/_WF/Voice/SpeechVoiceSystem.cs)
+
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/_WF/Voice/SpeechVoiceLinesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Voice/SpeechVoiceLinesTest.cs)
+
+### Unit tests
+
+- [`Content.Tests/_WF/Voice/SpeechVoiceSynthTest.cs`](../../../Content.Tests/_WF/Voice/SpeechVoiceSynthTest.cs)
 
 ### Localization
 

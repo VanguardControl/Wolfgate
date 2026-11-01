@@ -1,16 +1,20 @@
+using System.Numerics;
 using Content.Server._EinsteinEngines.Language;
 using Content.Server.Chat.Systems;
 using Content.Server.Radio;
 using Content.Shared._EinsteinEngines.Language;
 using Content.Shared._Shitmed.Humanoid.Events;
+using Content.Shared._WF.RMCCore.Deafness;
 using Content.Shared._WF.Voice;
 using Content.Shared.Chat;
 using Content.Shared.Cloning;
 using Content.Shared.GameTicking;
 using Content.Shared.Ghost;
+using Content.Shared.Power.EntitySystems;
 using Content.Shared.Preferences;
 using Content.Shared.Radio.Components;
 using Robust.Server.GameObjects;
+using Robust.Shared.Map;
 using Robust.Shared.Player;
 using Robust.Shared.Utility;
 
@@ -21,9 +25,12 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 {
     [Dependency] private ChatSystem _chat = default!;
     [Dependency] private LanguageSystem _language = default!;
+    [Dependency] private ISharedPlayerManager _player = default!;
+    [Dependency] private SharedPowerReceiverSystem _power = default!;
     [Dependency] private SharedTransformSystem _transform = default!;
 
     private EntityQuery<ActorComponent> _actorQuery;
+    private EntityQuery<DeafComponent> _deafQuery;
     private EntityQuery<GhostComponent> _ghostQuery;
     private EntityQuery<RadioSpeakerComponent> _speakerQuery;
 
@@ -34,6 +41,10 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
     private readonly Dictionary<(EntityUid Source, string Text), RadioLine> _radio = new();
 
     private readonly Dictionary<string, Filter> _groups = new();
+    private readonly Dictionary<string, Filter> _inEar = new();
+
+    /// <summary>Players a radio line could still reach through a loudspeaker. Shrinks as they are served.</summary>
+    private readonly List<(ICommonSession Session, MapId Map, Vector2 Position)> _listeners = new();
 
     public override void Initialize()
     {
@@ -46,6 +57,7 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         SubscribeLocalEvent<ActiveRadioComponent, RadioReceiveEvent>(OnRadioReceive);
 
         _actorQuery = GetEntityQuery<ActorComponent>();
+        _deafQuery = GetEntityQuery<DeafComponent>();
         _ghostQuery = GetEntityQuery<GhostComponent>();
         _speakerQuery = GetEntityQuery<RadioSpeakerComponent>();
     }
@@ -104,7 +116,7 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         _groups.Clear();
         foreach (var session in Filter.Empty().AddInRange(_transform.GetMapCoordinates(ent), range).Recipients)
         {
-            if (line.Served.Contains(session))
+            if (line.Served.Contains(session) || IsDeaf(session))
                 continue;
 
             var understands = Understands(session, args.Language);
@@ -140,6 +152,13 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         if (!HasComp<SpeechVoiceComponent>(args.MessageSource))
             return;
 
+        // The same loudspeakers RadioDeviceSystem keeps quiet.
+        if (_speakerQuery.TryComp(ent, out var speaker)
+            && (ent.Owner == args.RadioSource || speaker.PowerRequired && !_power.IsPowered(ent.Owner)))
+        {
+            return;
+        }
+
         var key = (args.MessageSource, args.OriginalChatMsg.Message);
         if (!_radio.TryGetValue(key, out var radio))
         {
@@ -158,7 +177,8 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 
         var line = LineFor(key);
         var voice = VoiceFor(key.Source, line) ?? comp.Voice;
-        var inEar = new Dictionary<string, Filter>();
+        var listenersFound = false;
+        _inEar.Clear();
 
         foreach (var receiver in radio.Receivers)
         {
@@ -168,34 +188,73 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 
             if (_speakerQuery.HasComp(receiver))
             {
-                _groups.Clear();
-                var near = Filter.Empty().AddInRange(_transform.GetMapCoordinates(receiver), SpeechVoice.VoiceRange);
-                foreach (var session in near.Recipients)
+                if (!listenersFound)
                 {
-                    if (line.Served.Add(session))
-                        AddTo(_groups, RadioText(session, key.Text, radio), session);
+                    FindListeners(line);
+                    listenersFound = true;
                 }
 
-                var speaker = GetNetEntity(receiver);
-                foreach (var (text, filter) in _groups)
-                {
-                    RaiseNetworkEvent(new SpeechVoiceRadioEvent(speaker, text, voice), filter);
-                }
-
+                SendFromSpeaker(receiver, key.Text, radio, line, voice);
                 continue;
             }
 
             if ((_actorQuery.TryComp(receiver, out var actor)
                  || _actorQuery.TryComp(Transform(receiver).ParentUid, out actor))
+                && !IsDeaf(actor.PlayerSession)
                 && line.Served.Add(actor.PlayerSession))
             {
-                AddTo(inEar, RadioText(actor.PlayerSession, key.Text, radio), actor.PlayerSession);
+                AddTo(_inEar, RadioText(actor.PlayerSession, key.Text, radio), actor.PlayerSession);
             }
         }
 
-        foreach (var (text, filter) in inEar)
+        foreach (var (text, filter) in _inEar)
         {
             RaiseNetworkEvent(new SpeechVoiceRadioEvent(NetEntity.Invalid, text, voice), filter);
+        }
+    }
+
+    /// <summary>Records where each player who could hear a loudspeaker stands, once per line.</summary>
+    private void FindListeners(Line line)
+    {
+        _listeners.Clear();
+        foreach (var session in _player.NetworkedSessions)
+        {
+            if (session.AttachedEntity is not { } entity
+                || line.Served.Contains(session)
+                || IsDeaf(session)
+                || !TryComp(entity, out TransformComponent? xform))
+            {
+                continue;
+            }
+
+            _listeners.Add((session, xform.MapID, _transform.GetWorldPosition(xform)));
+        }
+    }
+
+    /// <summary>Plays the line from a loudspeaker to the remaining listeners near it.</summary>
+    private void SendFromSpeaker(EntityUid speaker, string text, RadioLine radio, Line line, SpeechVoice voice)
+    {
+        if (_listeners.Count == 0)
+            return;
+
+        var coords = _transform.GetMapCoordinates(speaker);
+        _groups.Clear();
+
+        for (var i = _listeners.Count - 1; i >= 0; i--)
+        {
+            var (session, map, position) = _listeners[i];
+            if (map != coords.MapId || (position - coords.Position).Length() >= SpeechVoice.VoiceRange)
+                continue;
+
+            _listeners.RemoveSwap(i);
+            if (line.Served.Add(session))
+                AddTo(_groups, RadioText(session, text, radio), session);
+        }
+
+        var source = GetNetEntity(speaker);
+        foreach (var (message, filter) in _groups)
+        {
+            RaiseNetworkEvent(new SpeechVoiceRadioEvent(source, message, voice), filter);
         }
     }
 
@@ -250,6 +309,11 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         }
 
         return voice ?? SpeechVoice.FromName(ev.VoiceName);
+    }
+
+    private bool IsDeaf(ICommonSession session)
+    {
+        return session.AttachedEntity is { } listener && _deafQuery.HasComp(listener);
     }
 
     private bool Understands(ICommonSession session, LanguagePrototype language)
