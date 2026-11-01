@@ -12,6 +12,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
+// Modified for Wolfgate on 2026-11-01: moved into the game's client and adapted to its sandbox.
 
 
 

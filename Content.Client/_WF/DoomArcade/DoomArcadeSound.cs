@@ -12,6 +12,7 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
+// Modified for Wolfgate on 2026-11-01: based on ManagedDoom's SilkSound.
 
 using System.Numerics;
 using Content.Client._WF.DoomArcade.Engine;
