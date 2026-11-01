@@ -104,6 +104,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - the speech style reaches a deaf listener's wrap too
   - a speech style decides the bold too
   - a voice mask's speech style wins, as it did before the language port dropped it here
+- [`Content.Server/DeviceNetwork/Systems/SingletonDeviceNetServerSystem.cs`](../../Content.Server/DeviceNetwork/Systems/SingletonDeviceNetServerSystem.cs)
+  - one active server per server type, since a second map's broadcast overwrote every console's list
+  - one active server per server type, from the asking map first
 - [`Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs`](../../Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs)
   - a freed tile is never scheduled earlier than the current iteration.
   - a blocker never clears earlier than the current iteration.
@@ -113,6 +116,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - a failed save is logged with its slot
   - sanitized here like FinishLoad does on login
 - [`Content.Server/Radio/EntitySystems/RadioDeviceSystem.cs`](../../Content.Server/Radio/EntitySystems/RadioDeviceSystem.cs): keep the speaker's own output type and the admin-safe ghost range the radio host port dropped
+- [`Content.Server/Research/Systems/ResearchSystem.Client.cs`](../../Content.Server/Research/Systems/ResearchSystem.Client.cs)
+  - a machine moved off its server's grid stayed linked
+  - shared with a client moved to a new grid
 - [`Content.Server/Sandbox/Commands/ColorNetworkCommand.cs`](../../Content.Server/Sandbox/Commands/ColorNetworkCommand.cs): missing return after the no-access error
 - [`Content.Server/Shuttles/Components/ShuttleComponent.cs`](../../Content.Server/Shuttles/Components/ShuttleComponent.cs): PDV pack, partial revert of Monolith speed cap (50->20)
 - [`Content.Server/Shuttles/Components/ThrusterComponent.cs`](../../Content.Server/Shuttles/Components/ThrusterComponent.cs): PDV pack, partial revert of Monolith thrust nerf (200->100)
@@ -159,6 +165,9 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - bodiless dropped contents are skipped instead of flung.
 - [`Content.Shared/Maps/ContentTileDefinition.cs`](../../Content.Shared/Maps/ContentTileDefinition.cs): Monolith#4804 made this true, which draws weather inside ships and buildings
 - [`Content.Shared/Pinpointer/SharedNavMapSystem.cs`](../../Content.Shared/Pinpointer/SharedNavMapSystem.cs): compare region seeds by content; the reference compare dirtied every nav map each second
+- [`Content.Shared/Polymorph/Systems/SharedChameleonProjectorSystem.cs`](../../Content.Shared/Polymorph/Systems/SharedChameleonProjectorSystem.cs)
+  - unanchoring left the mob a Dynamic body
+  - unanchoring left the mob a Dynamic body it could not walk
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../Content.Shared/Preferences/HumanoidCharacterProfile.cs)
   - the company is passed through the constructor
   - copies keep the company
@@ -202,6 +211,7 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/value_bounties.yml`](../../Resources/Prototypes/_Mono/Catalogs/Bounties/MMC/value_bounties.yml): MMC cash bounties pay 0.9x their value so cash-to-MIC-to-cash can't loop for profit
 - [`Resources/Prototypes/_Mono/Catalogs/Fills/Crates/materials.yml`](../../Resources/Prototypes/_Mono/Catalogs/Fills/Crates/materials.yml): copper and lithium as listed, not uranium and plasma
 - [`Resources/Prototypes/_Mono/Catalogs/pdv_uplink_catalog.yml`](../../Resources/Prototypes/_Mono/Catalogs/pdv_uplink_catalog.yml)
+  - the uplink sells the Vympel but had no 5.56 for it; priced like the 6.35 magazine and big 7.62 box
   - PDV pack, 650->500 (+50 tax over mat cost)
   - PDV pack, 1250->1000 (+100 tax over mat cost)
 - [`Resources/Prototypes/_Mono/Catalogs/tsfmc_uplink_catalog.yml`](../../Resources/Prototypes/_Mono/Catalogs/tsfmc_uplink_catalog.yml): PDV pack, price 125->175
@@ -220,12 +230,14 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
   - erotic roleplay rule entry removed, PR #27
 - [`Resources/Prototypes/_Mono/Language/underground.yml`](../../Resources/Prototypes/_Mono/Language/underground.yml): codespeak gets its own chat colour so speakers can tell it from Common
 - [`Resources/Prototypes/_Mono/Loadouts/MedicalDispatch/universal_groups.yml`](../../Resources/Prototypes/_Mono/Loadouts/MedicalDispatch/universal_groups.yml): the ER PDAs, was MedicalDoctorPDA and ContractorSeniorPhysicianPDA, whose ID resets to medical doctor access
+- [`Resources/Prototypes/_Mono/Loadouts/PDV/role_loadouts_rogue.yml`](../../Resources/Prototypes/_Mono/Loadouts/PDV/role_loadouts_rogue.yml): PDV roles had no PDA cartridges
 - [`Resources/Prototypes/_Mono/Outpost/caelestinus.yml`](../../Resources/Prototypes/_Mono/Outpost/caelestinus.yml)
   - trade crate destinations must be on the station entity, not the grid
   - moved from gridComponents so crates sold here count as delivered
 - [`Resources/Prototypes/_Mono/PointsOfInterest/Dungeon/zvezda.yml`](../../Resources/Prototypes/_Mono/PointsOfInterest/Dungeon/zvezda.yml)
   - trade crate destinations must be on the station entity, not the grid
   - moved from gridComponents so crates sold here count as delivered
+- [`Resources/Prototypes/_Mono/PointsOfInterest/tsfmcindustry.yml`](../../Resources/Prototypes/_Mono/PointsOfInterest/tsfmcindustry.yml): its cargo request computer needs an order database or it opens blank
 - [`Resources/Prototypes/_Mono/Recipes/Lathes/Factions/shipyard.yml`](../../Resources/Prototypes/_Mono/Recipes/Lathes/Factions/shipyard.yml)
   - PDV pack, composite cost 12000->9000
   - PDV pack, composite cost 23000->18000
