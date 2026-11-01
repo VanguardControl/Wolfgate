@@ -4642,3 +4642,12 @@ Entries:
   id: 100304
   time: '2026-11-01T09:23:22.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/440
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: >-
+        Buying a ship no longer replaces your company rank or custom job title
+        with Captain.
+  id: 100305
+  time: '2026-11-01T10:47:34.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/442
