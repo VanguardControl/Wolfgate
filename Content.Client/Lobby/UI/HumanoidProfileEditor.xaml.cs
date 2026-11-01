@@ -530,6 +530,7 @@ namespace Content.Client.Lobby.UI
             {
                 Profile = profile;
                 SetDirty();
+                UpdateAugments(); // WOLFGATE(Augments): a trait with its own limbs claims those slots
             };
             // WOLFGATE END
 

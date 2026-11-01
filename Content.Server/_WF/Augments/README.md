@@ -149,6 +149,7 @@ scratch, so an unpicked augment comes off it.
   - the wfa xmlns on the root tag below is for the augment editor.
   - augments tab (xmlns:wfa), after anatomy so earlier tabs keep their indices
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
+  - a trait with its own limbs claims those slots
   - a trait with its own limbs takes those slots
   - augments the new species can't take are dropped
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs): augments picked per slot (slot:augment[:style] entries) and priced ones paid for.

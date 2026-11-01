@@ -47,7 +47,7 @@ public sealed class TraitsUiTest
     [Test]
     public async Task UnmetConditionsShowPopup()
     {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var client = pair.Client;
 
         await client.WaitPost(() =>
