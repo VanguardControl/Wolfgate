@@ -44,6 +44,7 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 - [`Resources/Prototypes/_WF/Shipyard/carabela.yml`](../../../Resources/Prototypes/_WF/Shipyard/carabela.yml)
 - [`Resources/Prototypes/_WF/Shipyard/dredger.yml`](../../../Resources/Prototypes/_WF/Shipyard/dredger.yml)
 - [`Resources/Prototypes/_WF/Shipyard/Entities/Objects/Devices/ship_vouchers.yml`](../../../Resources/Prototypes/_WF/Shipyard/Entities/Objects/Devices/ship_vouchers.yml)
+- [`Resources/Prototypes/_WF/Shipyard/foxtrot_ii.yml`](../../../Resources/Prototypes/_WF/Shipyard/foxtrot_ii.yml)
 - [`Resources/Prototypes/_WF/Shipyard/hammerhead.yml`](../../../Resources/Prototypes/_WF/Shipyard/hammerhead.yml)
 - [`Resources/Prototypes/_WF/Shipyard/reach.yml`](../../../Resources/Prototypes/_WF/Shipyard/reach.yml)
 - [`Resources/Prototypes/_WF/Shipyard/ubm_excelsior.yml`](../../../Resources/Prototypes/_WF/Shipyard/ubm_excelsior.yml)
@@ -60,6 +61,7 @@ share from its slot, or from the counter of a trader hosting it (`ShipyardHostCa
 
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/carabela.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/carabela.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/dredger.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/dredger.yml)
+- [`Resources/SharedMaps/_WF/Shipyard/Shuttles/foxtrot_ii.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/foxtrot_ii.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/hammerhead.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/hammerhead.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/reach.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/reach.yml)
 - [`Resources/SharedMaps/_WF/Shipyard/Shuttles/ubm_excelsior.yml`](../../../Resources/SharedMaps/_WF/Shipyard/Shuttles/ubm_excelsior.yml)
