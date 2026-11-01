@@ -3,6 +3,7 @@ using Content.Shared.Station.Components;
 using Content.Server.StationEvents.Components;
 using Content.Shared.Physics;
 using Content.Shared.Station.Components;
+using Robust.Shared.Map; // WOLFGATE(LiveFixes)
 using Robust.Shared.Map.Components;
 using Robust.Shared.Physics.Components;
 using Robust.Shared.Physics;
@@ -55,7 +56,10 @@ public sealed partial class BluespaceCargoRule : StationEventSystem<BluespaceCar
 
         var xform = Transform(grid);
 
-        var targetCoords = xform.Coordinates;
+        // WOLFGATE(LiveFixes) START: with no free tile, the grid's own coordinates were on the map and could anchor to another grid
+        // var targetCoords = xform.Coordinates;
+        EntityCoordinates? targetCoords = null;
+        // WOLFGATE END
         var gridBounds = gridComp.LocalAABB.Scale(_configuration.GetCVar(NFCCVars.CrateGenerationGridBoundsScale));
 
         for (var i = 0; i < 25; i++)
@@ -99,8 +103,15 @@ public sealed partial class BluespaceCargoRule : StationEventSystem<BluespaceCar
             break;
         }
 
-        Spawn(toSpawn, targetCoords);
-        Spawn(toSpawnFlash, targetCoords);
+        // WOLFGATE(LiveFixes) START: skip the crate when no tile on this grid is free
+        if (targetCoords == null)
+            return;
+
+        // Spawn(toSpawn, targetCoords);
+        // Spawn(toSpawnFlash, targetCoords);
+        Spawn(toSpawn, targetCoords.Value);
+        Spawn(toSpawnFlash, targetCoords.Value);
+        // WOLFGATE END
 
         Sawmill.Info($"Spawning random cargo at {targetCoords}");
     }

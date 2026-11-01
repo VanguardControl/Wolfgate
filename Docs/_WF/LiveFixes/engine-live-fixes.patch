@@ -1,0 +1,252 @@
+diff --git a/Robust.Server/GameStates/PvsSystem.Ack.cs b/Robust.Server/GameStates/PvsSystem.Ack.cs
+index 38f2dace9..c035c92b0 100644
+--- a/Robust.Server/GameStates/PvsSystem.Ack.cs
++++ b/Robust.Server/GameStates/PvsSystem.Ack.cs
+@@ -30,7 +30,10 @@ internal sealed partial class PvsSystem
+             return;
+ 
+         sessionData.LastReceivedAck = ackedTick;
+-        PendingAcks.Add(session);
++        lock (PendingAcks)
++        {
++            PendingAcks.Add(session);
++        }
+     }
+ 
+     /// <summary>
+@@ -39,18 +42,21 @@ internal sealed partial class PvsSystem
+     /// <param name="histogram"></param>
+     private WaitHandle? ProcessQueuedAcks()
+     {
+-        if (PendingAcks.Count == 0)
+-            return null;
++        lock (PendingAcks)
++        {
++            if (PendingAcks.Count == 0)
++                return null;
+ 
+-        _toAck.Clear();
++            _toAck.Clear();
+ 
+-        foreach (var session in PendingAcks)
+-        {
+-            if (session.Status != SessionStatus.Disconnected)
+-                _toAck.Add(GetOrNewPvsSession(session));
+-        }
++            foreach (var session in PendingAcks)
++            {
++                if (session.Status != SessionStatus.Disconnected)
++                    _toAck.Add(GetOrNewPvsSession(session));
++            }
+ 
+-        PendingAcks.Clear();
++            PendingAcks.Clear();
++        }
+ 
+         if (!_async)
+         {
+diff --git a/Robust.Server/GameStates/PvsSystem.Send.cs b/Robust.Server/GameStates/PvsSystem.Send.cs
+index 3e580f60c..9bde7f14e 100644
+--- a/Robust.Server/GameStates/PvsSystem.Send.cs
++++ b/Robust.Server/GameStates/PvsSystem.Send.cs
+@@ -31,42 +31,48 @@ internal sealed partial class PvsSystem
+ 
+     private void SendSessionState(PvsSession data, ZStdCompressionContext ctx, GameTick sendTick)
+     {
+-        // PVS benchmarks use dummy sessions.
+-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+-        if (data.Session.Channel is not DummyChannel)
++        try
+         {
+-            DebugTools.AssertNotEqual(data.StateStream, null);
+-            var msg = new MsgState
++            // PVS benchmarks use dummy sessions.
++            // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
++            if (data.Session.Channel is not DummyChannel)
+             {
+-                StateStream = data.StateStream,
+-                ForceSendReliably = data.ForceSendReliably,
+-                CompressionContext = ctx
+-            };
++                DebugTools.AssertNotEqual(data.StateStream, null);
++                var msg = new MsgState
++                {
++                    StateStream = data.StateStream,
++                    ForceSendReliably = data.ForceSendReliably,
++                    CompressionContext = ctx
++                };
+ 
+-            _netMan.ServerSendMessage(msg, data.Session.Channel);
+-            if (msg.ShouldSendReliably())
++                _netMan.ServerSendMessage(msg, data.Session.Channel);
++                if (msg.ShouldSendReliably())
++                {
++                    data.RequestedFull = false;
++                    data.LastReceivedAck = sendTick;
++                    lock (PendingAcks)
++                    {
++                        PendingAcks.Add(data.Session);
++                    }
++                }
++            }
++            else
+             {
+-                data.RequestedFull = false;
++                // Always "ack" dummy sessions.
+                 data.LastReceivedAck = sendTick;
++                data.RequestedFull = false;
+                 lock (PendingAcks)
+                 {
+                     PendingAcks.Add(data.Session);
+                 }
+             }
+         }
+-        else
++        finally
+         {
+-            // Always "ack" dummy sessions.
+-            data.LastReceivedAck = sendTick;
+-            data.RequestedFull = false;
+-            lock (PendingAcks)
+-            {
+-                PendingAcks.Add(data.Session);
+-            }
++            // A stream left undisposed after a throw kills the server from its finalizer.
++            data.StateStream?.Dispose();
++            data.StateStream = null;
+         }
+-
+-        data.StateStream?.Dispose();
+-        data.StateStream = null;
+     }
+ 
+     private record struct PvsSendJob(PvsSystem _pvs) : IParallelRobustJob
+diff --git a/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs b/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs
+index ca43b5a34..e1e925430 100644
+--- a/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs
++++ b/Robust.Shared/Network/Transfer/TransferImplWebSocket.cs
+@@ -26,6 +26,9 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+ 
+     public WebSocket? WebSocket;
+ 
++    // Set once the socket has died. The game connection carries on without large transfers.
++    private volatile bool _socketLost;
++
+     protected TransferImplWebSocket(ISawmill sawmill, BaseTransferManager parent, INetChannel channel)
+         : base(sawmill, parent, channel)
+     {
+@@ -38,6 +41,9 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+         if (WebSocket == null)
+             throw new InvalidOperationException("Player not connected yet");
+ 
++        if (_socketLost)
++            return Stream.Null;
++
+         var id = Interlocked.Increment(ref OutgoingIdCounter);
+ 
+         return new SendStream(this, id, startInfo.MessageKey);
+@@ -58,6 +64,12 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+ 
+                 BaseTransferManager.ReceivedDataMetrics.Inc(receiveResult.Count);
+ 
++                if (receiveResult.MessageType == WebSocketMessageType.Close)
++                {
++                    HandleSocketLost("closed by the other side");
++                    return;
++                }
++
+                 if (!receiveResult.EndOfMessage)
+                     throw new ProtocolViolationException("Header did not fit in one receive");
+ 
+@@ -74,13 +86,43 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+                 HandlePostData(flags, transferId, channel);
+             }
+         }
++        catch (Exception) when (_readCancel.IsCancellationRequested)
++        {
++            // We're being disposed, so the read failing is expected.
++        }
++        catch (Exception e) when (e is WebSocketException or IOException or ObjectDisposedException)
++        {
++            HandleSocketLost(e.Message);
++        }
+         catch (Exception e)
+         {
+-            Sawmill.Error($"Error reading transfer socket: {e}");
++            try
++            {
++                Sawmill.Error($"Error reading transfer socket: {e}");
++            }
++            catch (ObjectDisposedException)
++            {
++                // Logging has shut down. This runs in an async void, where a throw would kill the process.
++            }
++
+             Channel.Disconnect("Error in transfer socket");
+         }
+     }
+ 
++    private void HandleSocketLost(string reason)
++    {
++        _socketLost = true;
++
++        try
++        {
++            Sawmill.Warning($"Lost transfer socket for {Channel}: {reason}");
++        }
++        catch (ObjectDisposedException)
++        {
++            // Logging has shut down.
++        }
++    }
++
+     private sealed class SendStream : ChunkedSendStream
+     {
+         public SendStream(TransferImplWebSocket parent, long id, string key) : base(parent, id, key)
+@@ -89,16 +131,28 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+ 
+         protected override async ValueTask SendChunkAsync(ArraySegment<byte> buffer, CancellationToken cancel)
+         {
+-            var ws = ((TransferImplWebSocket)Parent).WebSocket!;
++            var parent = (TransferImplWebSocket)Parent;
++            if (parent._socketLost)
++                return;
++
++            var ws = parent.WebSocket!;
+ 
+             BaseTransferManager.SentDataMetrics.Inc(buffer.Count);
+ 
+-            await ws.SendAsync(
+-                    buffer,
+-                    WebSocketMessageType.Binary,
+-                    endOfMessage: true,
+-                    cancel)
+-                .ConfigureAwait(false);
++            try
++            {
++                await ws.SendAsync(
++                        buffer,
++                        WebSocketMessageType.Binary,
++                        endOfMessage: true,
++                        cancel)
++                    .ConfigureAwait(false);
++            }
++            catch (Exception e) when (e is WebSocketException or IOException or ObjectDisposedException)
++            {
++                // The send stream's finalizer flushes through here, and a throw there would kill the process.
++                parent.HandleSocketLost(e.Message);
++            }
+         }
+     }
+ 
+@@ -128,8 +182,9 @@ internal abstract class TransferImplWebSocket : BaseTransferImpl
+     {
+         base.Dispose();
+ 
+-        WebSocket?.Dispose();
++        // Cancel first, so the read loop knows the socket closing under it is expected.
+         _readCancel.Cancel();
++        WebSocket?.Dispose();
+ 
+         ArrayPool<byte>.Shared.Return(_headerBuffer);
+     }

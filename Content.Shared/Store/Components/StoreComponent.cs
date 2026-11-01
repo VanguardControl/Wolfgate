@@ -40,7 +40,8 @@ public sealed partial class StoreComponent : Component
     /// The person/mind who "owns" the store/account. Used if you want the listings to be fixed
     /// regardless of who activated it. I.E. role specific items for uplinks.
     /// </summary>
-    [DataField]
+    // [DataField] // WOLFGATE(LiveFixes): not saved; the owner's mind is outside any ship or map being saved
+    [ViewVariables]
     public EntityUid? AccountOwner = null;
 
     /// <summary>
@@ -83,7 +84,8 @@ public sealed partial class StoreComponent : Component
     /// <summary>
     ///     The map the store was originally from, used to block refunds if the map is changed
     /// </summary>
-    [DataField]
+    // [DataField] // WOLFGATE(LiveFixes): not saved; a ship copy can't reference the map it left, and a loaded copy has no refund map
+    [ViewVariables]
     public EntityUid? StartingMap;
 
     #region audio

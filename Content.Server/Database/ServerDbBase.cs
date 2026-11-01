@@ -106,7 +106,21 @@ namespace Content.Server.Database
             await db.DbContext.SaveChangesAsync();
         }
 
+        // WOLFGATE(LiveFixes) START: a save that collided with another one retries once on the rows that save left
         public async Task SaveCharacterSlotAsync(NetUserId userId, ICharacterProfile? profile, int slot)
+        {
+            try
+            {
+                await WFSaveCharacterSlotOnce(userId, profile, slot);
+            }
+            catch (DbUpdateException)
+            {
+                await WFSaveCharacterSlotOnce(userId, profile, slot);
+            }
+        }
+
+        private async Task WFSaveCharacterSlotOnce(NetUserId userId, ICharacterProfile? profile, int slot)
+        // WOLFGATE END
         {
             await using var db = await GetDb();
 
@@ -411,11 +425,14 @@ namespace Content.Server.Database
             // Mono end
 
             profile.Jobs.Clear();
-            profile.Jobs.AddRange(
-                humanoid.JobPriorities
-                    .Where(j => j.Value != JobPriority.Never)
-                    .Select(j => new Job {JobName = j.Key, Priority = (DbJobPriority) j.Value})
-            );
+            // WOLFGATE(LiveFixes) START: the unique index allows one high priority job, so extra ones save as medium
+            // profile.Jobs.AddRange(
+            //     humanoid.JobPriorities
+            //         .Where(j => j.Value != JobPriority.Never)
+            //         .Select(j => new Job {JobName = j.Key, Priority = (DbJobPriority) j.Value})
+            // );
+            profile.Jobs.AddRange(Content.Server._WF.LiveFixes.WFProfileRows.Jobs(humanoid.JobPriorities));
+            // WOLFGATE END
 
             profile.Antags.Clear();
             profile.Antags.AddRange(
@@ -426,6 +443,7 @@ namespace Content.Server.Database
             profile.Traits.Clear();
             profile.Traits.AddRange(
                 humanoid.TraitPreferences
+                        .Distinct() // WOLFGATE(LiveFixes): the unique index allows each trait once
                         .Select(t => new Trait {TraitName = t})
             );
 
