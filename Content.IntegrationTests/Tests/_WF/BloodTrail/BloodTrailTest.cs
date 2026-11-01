@@ -11,6 +11,7 @@ using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
 using Content.Shared.FixedPoint;
 using Content.Shared.Fluids;
+using Content.Shared.Fluids.Components;
 using Content.Shared.Gravity;
 using Content.Shared.Interaction;
 using Content.Shared.Mobs;
@@ -80,6 +81,48 @@ public sealed class BloodTrailTest
         {
             var alpha = entMan.TryGetComponent(human, out FootPrintsComponent? prints) ? prints.PrintsColor.A : 0f;
             Assert.That(alpha > 0f, Is.EqualTo(stained));
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A visit takes up to five units: a small puddle is used up for a faint stain, a big one lasts.</summary>
+    [TestCase(2, 0.4f, 0)]
+    [TestCase(20, 1f, 15)]
+    public async Task PuddleIsUsedUp(int volume, float alpha, int left)
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = false });
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entMan = server.EntMan;
+        var xformSys = entMan.System<SharedTransformSystem>();
+
+        var human = EntityUid.Invalid;
+        var puddle = EntityUid.Invalid;
+        await server.WaitAssertion(() =>
+        {
+            human = SpawnOnFloor(entMan, map);
+            Assert.That(entMan.System<PuddleSystem>().TrySpillAt(new EntityCoordinates(map.Grid, 2.5f, 0.5f),
+                new Solution("Blood", volume), out puddle, sound: false), Is.True);
+        });
+
+        await pair.RunTicksSync(2);
+        await server.WaitPost(() => xformSys.SetLocalPosition(human, new Vector2(2.5f, 0.5f)));
+        await pair.RunTicksSync(5);
+
+        await server.WaitAssertion(() =>
+        {
+            Assert.That(entMan.GetComponent<FootPrintsComponent>(human).PrintsColor.A, Is.EqualTo(alpha).Within(0.01f),
+                "The stain doesn't match what the puddle gave.");
+            if (left == 0)
+            {
+                Assert.That(entMan.Deleted(puddle), Is.True, "The small puddle wasn't used up.");
+                return;
+            }
+
+            var solutions = entMan.System<SharedSolutionContainerSystem>();
+            Assert.That(solutions.TryGetSolution(puddle, entMan.GetComponent<PuddleComponent>(puddle).SolutionName, out _, out var solution), Is.True);
+            Assert.That(solution!.Volume, Is.EqualTo(FixedPoint2.New(left)), "The visit took the wrong amount.");
         });
 
         await pair.CleanReturnAsync();
@@ -213,6 +256,7 @@ public sealed class BloodTrailTest
         {
             var human = SpawnOnFloor(entMan, map);
             entMan.System<FootPrintsSystem>().Stain(human, Color.Red);
+            entMan.GetComponent<FootPrintsComponent>(human).ColorReduceAlpha = 0f;
             for (var i = 1; i <= 4; i++)
                 xformSys.SetLocalPosition(human, new Vector2(0.5f + i * 0.75f, 0.5f));
 
@@ -263,6 +307,7 @@ public sealed class BloodTrailTest
         {
             var human = SpawnOnFloor(entMan, map);
             entMan.System<FootPrintsSystem>().Stain(human, Color.Red);
+            entMan.GetComponent<FootPrintsComponent>(human).ColorReduceAlpha = 0f;
             for (var i = 1; i <= 6; i++)
                 xformSys.SetLocalPosition(human, new Vector2(0.5f + i * 0.75f, 0.5f));
 

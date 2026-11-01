@@ -81,7 +81,7 @@ public sealed partial class WFCrewShipStatusSystem : EntitySystem
     {
         var (rule, distance) = _policies.TryGetValue(grid, out var policy) ? policy : (WFCrewDisengage.Disable, 0f);
         var reading = Read(target);
-        if (reading.Abandoned)
+        if (reading.Abandoned && !HasComp<WFCrewHuntedHullComponent>(target))
             return true;
         if (rule == WFCrewDisengage.Destroy)
             return false;
