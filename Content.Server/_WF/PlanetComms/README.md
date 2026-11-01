@@ -15,7 +15,8 @@ Players keep a world up by powering its transceiver (3 kW off an APC). An EMP kn
 300 damage wrecks it into `WFMassTransceiverBroken` through its construction graph (`WFMassTransceiverGraph`). A
 wreck comes back working with 5 steel sheets, a screwdriver, then a welder. Every world gets one comms outpost
 (`Resources/Maps/_WF/PlanetComms/comms_outpost.yml`, an entry in each PlanetPois table) at a random spot, a footpath from its gate to the roads, its
-transceiver broken and its RTGs on site, so a world is dark until someone repairs it.
+transceiver broken and its RTGs wired through a wall substation to the APC, so a world is dark until someone repairs
+it and needs nothing else to come back up.
 
 Entry points: `WFPlanetCommsSystem` (`IsCommsUp`, `CanReach`, `Reachable`/`TryNarrow` for announcement filters,
 `Ungated` for out-of-character lines that ride the announcement path, and the radio send and receive attempt

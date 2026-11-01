@@ -5,7 +5,7 @@ meta:
   forkId: wolfgate-mapping
   forkVersion: 20261025-205332-84bd22a-tm231-b001ee70
   time: 10/26/2026 05:02:51
-  entityCount: 157
+  entityCount: 160
 maps: []
 grids:
 - 1
@@ -254,13 +254,8 @@ entities:
     - type: Transform
       parent: 1
       pos: 4.5,0.5
-- proto: CableMV
+- proto: CableHV
   entities:
-  - uid: 108
-    components:
-    - type: Transform
-      parent: 1
-      pos: 8.5,5.5
   - uid: 109
     components:
     - type: Transform
@@ -270,7 +265,24 @@ entities:
     components:
     - type: Transform
       parent: 1
+      pos: 8.5,5.5
+  - uid: 158
+    components:
+    - type: Transform
+      parent: 1
       pos: 9.5,5.5
+  - uid: 159
+    components:
+    - type: Transform
+      parent: 1
+      pos: 9.5,6.5
+- proto: CableMV
+  entities:
+  - uid: 108
+    components:
+    - type: Transform
+      parent: 1
+      pos: 9.5,6.5
   - uid: 111
     components:
     - type: Transform
@@ -1004,6 +1016,13 @@ entities:
     - type: Transform
       parent: 1
       pos: 5.5,3.5
+- proto: SubstationWallBasic
+  entities:
+  - uid: 160
+    components:
+    - type: Transform
+      parent: 1
+      pos: 9.5,6.5
 - proto: WFMassTransceiverBroken
   entities:
   - uid: 2
