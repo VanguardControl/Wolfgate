@@ -96,7 +96,13 @@ Standalone edits outside `_WF` that serve no module: files with an untagged `WOL
 - [`Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs`](../../Content.Server/Cargo/Systems/CargoSystem.Shuttle.cs)
   - sums the bounty hand-in value
   - items handed in to a bounty are paid by its reward, not sold
-- [`Content.Server/Chat/Systems/ChatSystem.cs`](../../Content.Server/Chat/Systems/ChatSystem.cs): a voice mask's speech style wins, as it did before the language port dropped it here
+- [`Content.Server/Chat/Systems/ChatSystem.cs`](../../Content.Server/Chat/Systems/ChatSystem.cs)
+  - a voice mask's speech style
+  - a voice mask's speech style, for the wraps below
+  - speech style
+  - the speech style reaches a deaf listener's wrap too
+  - a speech style decides the bold too
+  - a voice mask's speech style wins, as it did before the language port dropped it here
 - [`Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs`](../../Content.Server/Explosion/EntitySystems/ExplosionGridTileFlood.cs)
   - a freed tile is never scheduled earlier than the current iteration.
   - a blocker never clears earlier than the current iteration.

@@ -216,7 +216,7 @@ public sealed partial class WFHullSectionSystem : EntitySystem
             if ((body.CollisionMask & layer) == 0 && (body.CollisionLayer & mask) == 0)
                 continue;
 
-            if (Prototype(uid.Value)?.ID is { } other && other != proto.Id && InSnapshot(hull, data, chunk, other, index))
+            if (Prototype(uid.Value)?.ID is { } other && other != proto.Id && InSnapshot(hull, data, chunk, uid.Value, other, index))
                 continue;
 
             return true;
@@ -225,12 +225,16 @@ public sealed partial class WFHullSectionSystem : EntitySystem
         return false;
     }
 
-    /// <summary>Whether the snapshot has an entity of this prototype on the tile.</summary>
-    private bool InSnapshot(EntityUid hull, ShipRepairDataComponent data, ShipRepairChunk chunk, string proto, Vector2i index)
+    /// <summary>
+    /// Whether the snapshot has this entity on the tile, or one of its prototype: a grille built by hand where the
+    /// ship's own stood still belongs under its window. The palette may hold a repair prototype, so identity counts too.
+    /// </summary>
+    private bool InSnapshot(EntityUid hull, ShipRepairDataComponent data, ShipRepairChunk chunk, EntityUid entity, string proto, Vector2i index)
     {
+        var net = GetNetEntity(entity);
         foreach (var spec in chunk.Entities.Values)
         {
-            if (data.EntityPalette[spec.ProtoIndex].Id == proto && TileOf(hull, spec.LocalPosition) == index)
+            if ((spec.OriginalEntity == net || data.EntityPalette[spec.ProtoIndex].Id == proto) && TileOf(hull, spec.LocalPosition) == index)
                 return true;
         }
 

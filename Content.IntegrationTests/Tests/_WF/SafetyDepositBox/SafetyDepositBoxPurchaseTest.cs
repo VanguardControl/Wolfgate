@@ -1,4 +1,5 @@
 #nullable enable
+using System.Linq;
 using System.Threading.Tasks;
 using Content.Server._Mono.MonoCoins;
 using Content.Server._WF.SafetyDepositBox;
@@ -42,6 +43,7 @@ public sealed class SafetyDepositBoxPurchaseTest
         var body = EntityUid.Invalid;
         var character = 0;
         Task setSavings = Task.CompletedTask;
+        Task setBank = Task.CompletedTask;
 
         await server.WaitPost(() =>
         {
@@ -54,10 +56,11 @@ public sealed class SafetyDepositBoxPurchaseTest
             var current = prefs.GetPreferences(player.UserId);
             character = current.SelectedCharacterIndex;
             var profile = (HumanoidCharacterProfile) current.SelectedCharacter;
-            _ = prefs.SetProfile(player.UserId, character, profile.WithBankBalance(bank));
+            setBank = prefs.SetProfile(player.UserId, character, profile.WithBankBalance(bank));
             entMan.System<BankSystem>().RefreshBalance(body);
             setSavings = coins.SetMonoCoinsBalanceAsync(player.UserId, savings);
         });
+        await setBank;
         await setSavings;
         await pair.RunTicksSync(2);
 
@@ -83,6 +86,17 @@ public sealed class SafetyDepositBoxPurchaseTest
         }
 
         Assert.That(boxSpawned, "The purchase didn't hand out a box.");
+
+        // Marking the record withdrawn is the purchase's last database call; it must be done before the record goes.
+        var finished = false;
+        for (var i = 0; i < 100 && !finished; i++)
+        {
+            await pair.RunTicksSync(1);
+            finished = (await db.GetPlayerSafetyDepositBoxes(player.UserId.UserId, character)).Any(record => record.LastWithdrawn != null);
+        }
+
+        Assert.That(finished, "The purchase never finished.");
+        await pair.RunTicksSync(2);
 
         await server.WaitAssertion(() =>
         {

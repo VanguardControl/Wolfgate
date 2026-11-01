@@ -115,6 +115,41 @@ public sealed class WFAdsMiningTest : WFAdsTestBase
         });
     }
 
+    /// <summary>A hold on the campaign holds the mining clocks too.</summary>
+    [Test]
+    public async Task HoldMovesTheMiningClocks()
+    {
+        await StartAds();
+        var (lastMined, grudge) = (TimeSpan.Zero, TimeSpan.Zero);
+        var ship = EntityUid.Invalid;
+        await Server.WaitAssertion(() =>
+        {
+            var ads = Server.System<WFAdsCampaignSystem>();
+            var (crewed, gun, _) = Scene();
+            ship = crewed;
+            Beam(gun, Rock(AdsHome));
+            ads.CheckMining(Tick);
+            Stop(gun);
+
+            var state = AdsState();
+            state.MiningGrudges[ship] = STiming.CurTime + TimeSpan.FromMinutes(15);
+            lastMined = state.Miners[ship].LastMined;
+            grudge = state.MiningGrudges[ship];
+            ads.Paused = true;
+        });
+
+        await RunTicks(150);
+
+        await Server.WaitAssertion(() =>
+        {
+            var state = AdsState();
+            Assert.That(state.Miners[ship].LastMined, Is.GreaterThan(lastMined), "The warning's clock ran through the hold.");
+            Assert.That(state.MiningGrudges[ship], Is.GreaterThan(grudge), "The grudge's clock ran through the hold.");
+            Server.System<WFAdsCampaignSystem>().Paused = false;
+            Disembark();
+        });
+    }
+
     /// <summary>Short bursts add up, so stopping now and then doesn't reset the warning.</summary>
     [Test]
     public async Task BurstsAddUp()

@@ -3,22 +3,26 @@ using System.Linq;
 using System.Reflection;
 using Content.Server._Mono.PDV.Components;
 using Content.Server._WF.Biotype;
+using Content.Client.UserInterface.Systems.Chat;
 using Content.Server.Chat.Systems;
 using Content.Server.Shuttles.Systems;
 using Content.Server.VoiceMask;
 using Content.Shared._Mono.Claws.Components;
 using Content.Shared._NF.Contraband.Events;
 using Content.Shared._WF.Biotype;
+using Content.Shared.Chat;
 using Content.Shared.Chat.Prototypes;
 using Content.Shared.Contraband;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.Humanoid.Prototypes;
 using Content.Shared.Interaction;
 using Content.Shared.Inventory;
+using Content.Shared.Mind;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Systems;
 using Content.Shared.Speech;
 using Content.Shared.Stunnable;
+using Robust.Client.UserInterface;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Localization;
 using Robust.Shared.Prototypes;
@@ -77,31 +81,42 @@ public sealed class PlayerReportFixesTest
         await pair.CleanReturnAsync();
     }
 
-    /// <summary>A voice mask's speech style replaces the wearer's own, and a language's verbs, in local chat.</summary>
-    [Test]
-    public async Task VoiceMaskSpeechStyleChangesTheVerb()
+    /// <summary>A voice mask's speech style replaces the wearer's own, and a language's verbs, in local chat; a name override keeps the mask out of it.</summary>
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task VoiceMaskSpeechStyleChangesTheVerb(bool nameOverride)
     {
         const string Style = "Reptilian";
 
-        await using var pair = await PoolManager.GetServerClient();
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
         var server = pair.Server;
         var entMan = server.EntMan;
         var map = await pair.CreateTestMap();
         var loc = server.ResolveDependency<ILocalizationManager>();
         var protos = server.ResolveDependency<IPrototypeManager>();
 
+        var body = EntityUid.Invalid;
         await server.WaitAssertion(() =>
         {
-            var chat = entMan.System<ChatSystem>();
-            var body = entMan.SpawnEntity("MobAvali", map.GridCoords);
+            var mindSys = entMan.System<SharedMindSystem>();
+            body = entMan.SpawnEntity("MobAvali", map.GridCoords);
+            mindSys.TransferTo(mindSys.CreateMind(pair.Player!.UserId).Owner, body);
             var mask = entMan.SpawnEntity("ClothingMaskGasVoiceChameleon", map.GridCoords);
             Assert.That(entMan.System<InventorySystem>().TryEquip(body, mask, "mask", silent: true, force: true));
             entMan.GetComponent<VoiceMaskComponent>(mask).VoiceMaskSpeechVerb = Style;
-
-            var verbs = protos.Index<SpeechVerbPrototype>(Style).SpeechVerbStrings.Select(id => loc.GetString(id)).ToList();
-            var wrapped = chat.WrapPublicMessage(body, "Unknown", "hello");
-            Assert.That(verbs.Any(wrapped.Contains), $"The speech style wasn't used: {wrapped}");
         });
+        await pair.RunTicksSync(10);
+
+        var history = pair.Client.ResolveDependency<IUserInterfaceManager>().GetUIController<ChatUIController>().History;
+        var seen = history.Count;
+        await server.WaitPost(() => entMan.System<ChatSystem>().TrySendInGameICMessage(body, "hello", InGameICChatType.Speak,
+            false, nameOverride: nameOverride ? "Announcer" : null, ignoreActionBlocker: true));
+        await pair.RunTicksSync(10);
+
+        var verbs = protos.Index<SpeechVerbPrototype>(Style).SpeechVerbStrings.Select(id => loc.GetString(id)).ToList();
+        var wrapped = history.Skip(seen).Select(entry => entry.Msg.WrappedMessage).LastOrDefault(line => line.Contains("ello"));
+        Assert.That(wrapped, Is.Not.Null, "The player never heard the line.");
+        Assert.That(verbs.Any(wrapped!.Contains), Is.EqualTo(!nameOverride), $"Wrong speech style use: {wrapped}");
 
         await pair.CleanReturnAsync();
     }
