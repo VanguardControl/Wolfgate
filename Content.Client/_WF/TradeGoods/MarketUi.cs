@@ -34,7 +34,7 @@ public sealed partial class MarketUi : UIFragment
 }
 
 /// <summary>A header and two tabs: prices by station as cards, and alerts tagged by kind; hidden markets get a third.</summary>
-public sealed class MarketUiFragment : BoxContainer
+public sealed partial class MarketUiFragment : BoxContainer
 {
     [Dependency] private IGameTiming _timing = default!;
     [Dependency] private IResourceCache _resources = default!;

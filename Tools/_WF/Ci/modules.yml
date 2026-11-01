@@ -16,6 +16,9 @@ external:
 # Edits outside _WF that can't hold a WOLFGATE marker: JSON, images, audio, rich-text .txt and map files.
 # Each entry has a path (a file, a folder or a glob), the module it serves (null for a standalone edit) and a reason.
 unmarked:
+  - path: Resources/Maps/_Mono/POI/pdvhelios.yml
+    module: LiveFixes
+    reason: Removed saved configurator lists that held invalid entity references.
   - path: Resources/Fonts/ComicNeue
     module: Clown
     reason: Comic Neue font and its OFL licence for the Clown trait speech.

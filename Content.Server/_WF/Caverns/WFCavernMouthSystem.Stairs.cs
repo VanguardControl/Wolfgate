@@ -156,7 +156,7 @@ public sealed partial class WFCavernMouthSystem
     /// <summary>Whether stairs stand on a cavern tile: any z-level high ground, built stairs or a mapped stairway.</summary>
     private bool HasStairs(Entity<MapGridComponent> level, Vector2i index)
     {
-        var anchored = _map.GetAnchoredEntitiesEnumerator(level, level.Comp, index);
+        var anchored = _map.GetAnchoredEntities(level, level.Comp, index);
 
         while (anchored.MoveNext(out var uid))
         {
@@ -178,7 +178,7 @@ public sealed partial class WFCavernMouthSystem
     /// <summary>Whether something the biome didn't grow is anchored on a tile and would stop a mob standing there.</summary>
     private bool HasBuilt(Entity<BiomeComponent, MapGridComponent> map, Vector2i index)
     {
-        var anchored = _map.GetAnchoredEntitiesEnumerator(map.Owner, map.Comp2, index);
+        var anchored = _map.GetAnchoredEntities(map.Owner, map.Comp2, index);
 
         while (anchored.MoveNext(out var uid))
         {

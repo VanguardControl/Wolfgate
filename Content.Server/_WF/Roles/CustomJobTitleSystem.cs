@@ -10,7 +10,7 @@ using Robust.Shared.Prototypes;
 namespace Content.Server._WF.Roles;
 
 /// <summary>Puts a player's custom job title on their ID card, mind and station records when they spawn.</summary>
-public sealed class CustomJobTitleSystem : EntitySystem
+public sealed partial class CustomJobTitleSystem : EntitySystem
 {
     [Dependency] private IAdminLogManager _adminLogger = default!;
     [Dependency] private IdCardSystem _idCard = default!;
