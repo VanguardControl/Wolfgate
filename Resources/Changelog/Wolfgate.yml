@@ -4658,3 +4658,12 @@ Entries:
   id: 100306
   time: '2026-11-01T10:47:46.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/441
+- author: antanananat
+  changes:
+    - type: Fix
+      message: >-
+        The docking airlock on the UBM Excelsior is actually and genuinely
+        facing the right way now for real this time.
+  id: 100307
+  time: '2026-11-01T21:55:25.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/444
