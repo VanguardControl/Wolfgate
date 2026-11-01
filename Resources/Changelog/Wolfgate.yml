@@ -4507,3 +4507,80 @@ Entries:
   id: 100299
   time: '2026-11-01T03:51:50.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/412
+- author: DriftingSkies
+  changes:
+    - type: Add
+      message: >-
+        Civilian, medical, ERT and novelty suits now have specializations too.
+        Examine a suit to see what it does.
+    - type: Add
+      message: >-
+        Plasma Reserve (every medic suit): carries 90u of synthetic plasma you
+        can transfuse into a patient with "Transfuse from suit". It can't be
+        used on yourself, and it refills from blood packs.
+    - type: Add
+      message: >-
+        Steady Hands (CMO, paramedic, brigmedic and faction medic suits): light
+        hits no longer interrupt your bandaging, splinting or suturing.
+    - type: Add
+      message: >-
+        Sterile Weave (medic EVA, TSF M82b): wounds under the suit don't get
+        infected, and wounds you treat start clean.
+    - type: Add
+      message: >-
+        Emergency Stasis Weave (CMO hardsuit, Sanitäter, Armed Trauma T-53):
+        going critical holds all your bleeding for 20 seconds. It recharges over
+        5 minutes.
+    - type: Add
+      message: 'Servo Assist (engineering suits): tool work is about 25% faster.'
+    - type: Add
+      message: >-
+        Rad Sink (engineering hardsuit): takes half of incoming radiation and
+        sheds what you've absorbed over time.
+    - type: Add
+      message: >-
+        EMP-Hardened (CE, research, Minerva and Magnate suits): EMPs don't
+        affect you or anything you carry.
+    - type: Add
+      message: >-
+        Decon Coating (scientist, janitor and CBURN suits): splashed, sprayed
+        and spilled chemicals don't soak in. Showers, extinguishers and
+        antiseptic still work.
+    - type: Add
+      message: >-
+        Blast Liner (Maxim, Bulwark, Centurion, mercenary modsuit, ERT
+        security): explosions can't take your limbs, bruise your organs or cause
+        internal bleeding.
+    - type: Add
+      message: >-
+        Wildlife Padding (Goliath hardsuit): carp, spiders and other creatures
+        deal half damage.
+    - type: Add
+      message: >-
+        Haul Frame (Goliath hardsuit): dragging bodies and crates doesn't slow
+        you down.
+    - type: Add
+      message: >-
+        Emergency Thrusters (pilot and spationaut hardsuits): a thruster burst
+        in zero-G in the direction you face, every 90 seconds.
+    - type: Add
+      message: 'Living Tissue (organic space suit): small bleeds close on their own.'
+    - type: Add
+      message: >-
+        The clown hardsuit honks when you hit it, and the mime hardsuit keeps
+        its wearer silent.
+    - type: Add
+      message: >-
+        IV drips and suit transfusions now show a line to the patient, and the
+        patient gets an "IV connected" alert.
+    - type: Tweak
+      message: >-
+        The mime hardsuit no longer shares the clown hardsuit's honk and
+        anti-slip treads, and its footsteps are muffled.
+    - type: Fix
+      message: >-
+        The Salvage, RD, VG MEDUSA and Ullman ENFORCER MKII suit descriptions
+        now match what the suits do.
+  id: 100300
+  time: '2026-11-01T03:56:08.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/408
