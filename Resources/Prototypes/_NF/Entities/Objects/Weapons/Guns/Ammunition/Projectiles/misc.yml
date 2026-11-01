@@ -32,6 +32,8 @@
         loop: true
   - type: PointLight
     enabled: true
+    # WOLFGATE: a flare that lands inside a wall still lights the room
+    castShadows: false
     color: "#c0e0f8"
     radius: 9.0
     energy: 3.0

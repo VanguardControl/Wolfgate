@@ -17,27 +17,44 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
     /// <summary>Speed cap multiplier for a hull that has lost lift and is gliding.</summary>
     public const float LiftLostAllowance = 1.5f;
 
+    private readonly List<EntityUid> _leaving = new();
+
     /// <inheritdoc/>
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        var query = EntityQueryEnumerator<MapGridComponent, PhysicsComponent, TransformComponent>();
-
-        while (query.MoveNext(out var uid, out _, out var body, out var xform))
+        // Only hulls directly on a planet layer can need dragging, which spares the walk of every grid in space.
+        var layers = EntityQueryEnumerator<WFPlanetLayerComponent, TransformComponent>();
+        while (layers.MoveNext(out _, out var layerXform))
         {
-            // A z-layer map is itself a grid: never drag the layer.
-            if (HasComp<MapComponent>(uid))
-                continue;
-
-            if (!TryGetLimits(uid, xform, out var maxSpeed, out var damping))
+            var children = layerXform.ChildEnumerator;
+            while (children.MoveNext(out var uid))
             {
-                Release(uid, body);
-                continue;
-            }
+                if (!HasComp<MapGridComponent>(uid) || !TryComp<PhysicsComponent>(uid, out var body))
+                    continue;
 
-            Hold(uid, body, damping);
-            Clamp(uid, body, maxSpeed);
+                if (!TryGetLimits(uid, Transform(uid), out var maxSpeed, out var damping))
+                    continue;
+
+                Hold(uid, body, damping);
+                Clamp(uid, body, maxSpeed);
+            }
+        }
+
+        // A hull that has left its layer gets its own damping back.
+        _leaving.Clear();
+        var dragged = EntityQueryEnumerator<WFPlanetDragComponent, TransformComponent>();
+        while (dragged.MoveNext(out var uid, out _, out var xform))
+        {
+            if (!TryGetLimits(uid, xform, out _, out _))
+                _leaving.Add(uid);
+        }
+
+        foreach (var uid in _leaving)
+        {
+            if (TryComp<PhysicsComponent>(uid, out var body))
+                Release(uid, body);
         }
     }
 

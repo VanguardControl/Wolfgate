@@ -128,14 +128,23 @@ public sealed partial class CustomMarkingSystem : EntitySystem
     private async Task SendLibrary(ICommonSession session)
     {
         List<WolfgateCustomMarking> rows;
-        try
+        for (var attempt = 0; ; attempt++)
         {
-            rows = await _db.GetCustomMarkingsAsync(session.UserId);
-        }
-        catch (Exception e)
-        {
-            Log.Error($"Reading the custom marking library of {session.Name} threw: {e}");
-            return;
+            try
+            {
+                rows = await _db.GetCustomMarkingsAsync(session.UserId);
+                break;
+            }
+            // A synchronous database refuses overlapping requests, such as another system's read at connect; retry.
+            catch (InvalidOperationException) when (attempt < 60)
+            {
+                await Task.Delay(50);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Reading the custom marking library of {session.Name} threw: {e}");
+                return;
+            }
         }
 
         if (session.Status != SessionStatus.Disconnected)

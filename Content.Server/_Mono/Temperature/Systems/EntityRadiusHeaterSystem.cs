@@ -1,8 +1,10 @@
+using Robust.Shared.Timing; // WOLFGATE(Performance)
 using Content.Server._Mono.Temperature.Components;
 using Content.Server.Power.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Temperature.Components;
 using Content.Server.Temperature.Systems;
+using Content.Shared._WF.Performance; // WOLFGATE(Performance)
 using Content.Shared.IgnitionSource;
 using Content.Shared.Item.ItemToggle.Components;
 
@@ -16,20 +18,27 @@ public sealed partial class EntityRadiusHeaterSystem : EntitySystem
     [Dependency] private TemperatureSystem _temp = default!;
     [Dependency] private EntityLookupSystem _lookup = default!;
 
+    // WOLFGATE(Performance) START: each heater takes its own tick of the second, not all on one
+    [Dependency] private IGameTiming _timing = default!;
+
     private float _updateCooldown = 1f;
-    private TimeSpan _updateTimer = TimeSpan.Zero;
+    // private TimeSpan _updateTimer = TimeSpan.Zero;
 
     public override void Update(float frameTime)
     {
-        if (_updateTimer < TimeSpan.FromSeconds(_updateCooldown))
-        {
-            _updateTimer += TimeSpan.FromSeconds(frameTime);
-            return;
-        }
+        // if (_updateTimer < TimeSpan.FromSeconds(_updateCooldown))
+        // {
+        //     _updateTimer += TimeSpan.FromSeconds(frameTime);
+        //     return;
+        // }
+        var period = WFTickSpread.Period(_timing, _updateCooldown);
+        var tick = _timing.CurTick;
 
         var eqe = EntityQueryEnumerator<EntityRadiusHeaterComponent>();
 
-        while (eqe.MoveNext(out var uid, out var comp))
+        // while (eqe.MoveNext(out var uid, out var comp))
+        while (WFNextDue(ref eqe, tick, period, out var uid, out var comp))
+        // WOLFGATE END
         {
             if (comp.RequireActivation && TryComp<IgnitionSourceComponent>(uid, out var ignite)
                                        && !ignite.Ignited)
@@ -42,7 +51,10 @@ public sealed partial class EntityRadiusHeaterSystem : EntitySystem
             if (!this.IsPowered(uid, EntityManager))
                 continue;
 
-            var nearby = _lookup.GetEntitiesInRange<TemperatureComponent>(Transform(uid).Coordinates, comp.Radius);
+            // WOLFGATE(Performance) START: what a fire warms is loose; skipping anchored and stored things skips the trees round a planet's fires
+            // var nearby = _lookup.GetEntitiesInRange<TemperatureComponent>(Transform(uid).Coordinates, comp.Radius);
+            var nearby = _lookup.GetEntitiesInRange<TemperatureComponent>(Transform(uid).Coordinates, comp.Radius, LookupFlags.Dynamic | LookupFlags.Sundries);
+            // WOLFGATE END
             var xform = Transform(uid);
             foreach (var ent in nearby)
             {
@@ -51,7 +63,7 @@ public sealed partial class EntityRadiusHeaterSystem : EntitySystem
         }
 
 
-        _updateTimer = TimeSpan.Zero;
+        // _updateTimer = TimeSpan.Zero; // WOLFGATE(Performance): each heater takes its own tick
     }
 
     public float CalculateThermalEnergy(Entity<TemperatureComponent> ent,

@@ -174,7 +174,7 @@ public abstract partial class SharedShipRepairSystem : EntitySystem
                 if (needsRepair && enough)
                 {
                     // WOLFGATE(ShipRepair): never rebuild under another grid, where a detached section belongs, or onto something anchored there since.
-                    if (!_wfSections.CanRebuildEntityAt(ent, args.User, targetGrid, repairData.EntityPalette[spec.ProtoIndex], _wfSections.TileOf(targetGrid, spec.LocalPosition)))
+                    if (!_wfSections.CanRebuildEntityAt(ent, args.User, targetGrid, repairData.EntityPalette[spec.ProtoIndex], _wfSections.TileOf(targetGrid, spec.LocalPosition), repairData, chunk))
                         return;
 
                     StartRepair(ent, args.User, targetGrid, gridIndices, delay, cost, id);
@@ -249,7 +249,7 @@ public abstract partial class SharedShipRepairSystem : EntitySystem
                 return;
 
             // WOLFGATE(ShipRepair): a grid, or something anchored, may have moved into the spot while the repair ran.
-            if (!_wfSections.CanRebuildEntityAt(ent, args.User, targetGrid, repairData.EntityPalette[spec.ProtoIndex], _wfSections.TileOf(targetGrid, spec.LocalPosition)))
+            if (!_wfSections.CanRebuildEntityAt(ent, args.User, targetGrid, repairData.EntityPalette[spec.ProtoIndex], _wfSections.TileOf(targetGrid, spec.LocalPosition), repairData, chunk))
                 return;
 
             // this is technically copypaste code but it's different each time

@@ -130,6 +130,7 @@ public sealed partial class WFDockingClampSystem : EntitySystem
     /// <summary>A raider's clamps take hold of the ship it has docked with, if they are shut and it has power.</summary>
     private void Bite(EntityUid raider, EntityUid prey, EntityUid port)
     {
+        _consoles.WFForgetDocks();
         if (!TryComp<WFDockingClampComponent>(raider, out var clamps) || HasComp<WFDockingClampComponent>(prey)
             || _timing.CurTime < clamps.OpenUntil || !HasHelm(raider) || !clamps.Held.Add(prey))
             return;
@@ -156,6 +157,7 @@ public sealed partial class WFDockingClampSystem : EntitySystem
 
     private void LetGo(EntityUid raider, EntityUid prey)
     {
+        _consoles.WFForgetDocks();
         if (TryComp<WFDockingClampComponent>(raider, out var clamps))
             clamps.Held.Remove(prey);
     }
@@ -250,6 +252,7 @@ public sealed partial class WFDockingClampSystem : EntitySystem
     /// <summary>Opens a raider's clamps. Released by hand they stay open a while; a power loss only frees what is held.</summary>
     public void Release(Entity<WFDockingClampComponent> raider, EntityUid? user)
     {
+        _consoles.WFForgetDocks();
         var held = raider.Comp.Held.Count > 0;
         foreach (var prey in raider.Comp.Held)
         {

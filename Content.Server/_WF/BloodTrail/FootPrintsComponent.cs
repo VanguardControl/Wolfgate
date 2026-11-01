@@ -44,7 +44,7 @@ public sealed partial class FootPrintsComponent : Component
 
     /// <summary>Alpha each print takes off <see cref="PrintsColor"/>.</summary>
     [DataField]
-    public float ColorReduceAlpha = 0.1f;
+    public float ColorReduceAlpha = 0.2f;
 
     /// <summary>How far a new stain pulls the hue of an old one towards its own.</summary>
     [DataField]

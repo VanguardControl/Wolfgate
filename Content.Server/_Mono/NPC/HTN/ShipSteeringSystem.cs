@@ -1,3 +1,4 @@
+using Content.Shared._WF.Performance; // WOLFGATE(Performance)
 using Content.Server._Mono.Projectiles.TargetSeeking;
 using Content.Server.Emp;
 using Content.Server.Physics.Controllers;
@@ -22,6 +23,10 @@ namespace Content.Server._Mono.NPC.HTN;
 
 public sealed partial class ShipSteeringSystem : EntitySystem
 {
+    // WOLFGATE(Performance): how often steering works out a new input
+    private const int WFSteeringPeriod = 2;
+    [Dependency] private Robust.Shared.Timing.IGameTiming _wfTiming = default!;
+
     [Dependency] private EntityLookupSystem _lookup = default!;
     [Dependency] private SharedMapSystem _mapMan = default!;
     [Dependency] private IPrototypeManager _proto = default!;
@@ -58,6 +63,17 @@ public sealed partial class ShipSteeringSystem : EntitySystem
 
     private void OnSteererGetInputs(Entity<ShipSteererComponent> ent, ref GetShuttleInputsEvent args)
     {
+        // WOLFGATE(Performance) START: steering works every other tick and holds its input between, saving its scans
+        if (ent.Comp.WFLastInput is { } held && !WFTickSpread.Due(ent, _wfTiming.CurTick, WFSteeringPeriod))
+        {
+            args.GotInput = true;
+            args.Input = held;
+            return;
+        }
+
+        ent.Comp.WFLastInput = null;
+        // WOLFGATE END
+
         var pilotXform = Transform(ent);
         var shipUid = pilotXform.GridUid;
 
@@ -154,10 +170,11 @@ public sealed partial class ShipSteeringSystem : EntitySystem
 
             RotationCompensation = ref ent.Comp.RotationCompensation,
 
-            FrameTime = args.FrameTime
+            FrameTime = args.FrameTime * WFSteeringPeriod // WOLFGATE(Performance): this input holds for the whole turn
         };
 
         args.Input = ProcessMovement(ref context, config);
+        ent.Comp.WFLastInput = args.Input; // WOLFGATE(Performance): held until the next turn
     }
 
     /// <summary>

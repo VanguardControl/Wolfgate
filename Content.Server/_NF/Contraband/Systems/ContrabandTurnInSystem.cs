@@ -174,7 +174,8 @@ public sealed partial class ContrabandTurnInSystem : SharedContrabandTurnInSyste
     {
         if (_mobQuery.HasComponent(uid))
         {
-            if (_mobQuery.GetComponent(uid).CurrentState == MobState.Dead) // Allow selling alive prisoners
+            // WOLFGATE: an executed heretic's body is what the Sultanate pays for
+            if (_mobQuery.GetComponent(uid).CurrentState == MobState.Dead && !HasComp<Content.Server._Mono.PDV.Components.HereticComponent>(uid)) // Allow selling alive prisoners
             {
                 return false;
             }

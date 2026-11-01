@@ -50,6 +50,14 @@ public sealed partial class WFAdsCampaignComponent : Component
     [ViewVariables]
     public Dictionary<EntityUid, TimeSpan> InterdictCooldowns = new();
 
+    /// <summary>Ships warned off mining in held space, and how long each has mined since.</summary>
+    [ViewVariables]
+    public Dictionary<EntityUid, WFAdsMinerWatch> Miners = new();
+
+    /// <summary>Ships declared a threat for mining on after their warning, and until when new ADS ships count them one.</summary>
+    [ViewVariables]
+    public Dictionary<EntityUid, TimeSpan> MiningGrudges = new();
+
     /// <summary>The entity the sector watch speaks on the radio from.</summary>
     [ViewVariables]
     public EntityUid? Watch;
@@ -110,4 +118,13 @@ public sealed partial class WFAdsCampaignComponent : Component
     /// <summary>Whether the dreadnought has been destroyed: the ADS founds, launches and sends nothing more this round, and what stands fights on until broken.</summary>
     [ViewVariables]
     public bool Finished;
+}
+
+/// <summary>A ship warned off mining in held space.</summary>
+public sealed class WFAdsMinerWatch
+{
+    /// <summary>How long it has mined since its warning.</summary>
+    public TimeSpan MinedFor;
+
+    public TimeSpan LastMined;
 }

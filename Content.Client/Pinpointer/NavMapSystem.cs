@@ -27,11 +27,17 @@ public sealed partial class NavMapSystem : SharedNavMapSystem
                 beacons = delta.Beacons;
                 regions = delta.Regions;
 
-                foreach (var index in component.Chunks.Keys)
+                // WOLFGATE(Performance) START: removals are named directly
+                // foreach (var index in component.Chunks.Keys)
+                // {
+                //     if (!delta.AllChunks!.Contains(index))
+                //         component.Chunks.Remove(index);
+                // }
+                foreach (var index in delta.RemovedChunks)
                 {
-                    if (!delta.AllChunks!.Contains(index))
-                        component.Chunks.Remove(index);
+                    component.Chunks.Remove(index);
                 }
+                // WOLFGATE END
 
                 break;
             }

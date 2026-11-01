@@ -32,8 +32,10 @@
       - state: equipped-HEAD
       head-vox:
       - state: equipped-HEAD-vox
-      head-vulpkanin:
-      - state: equipped-HEAD-vulpkanin
+      # WOLFGATE(Species) START: not every helmet has these states; the generic layer picks them up where it does
+      # head-vulpkanin:
+      # - state: equipped-HEAD-vulpkanin
+      # WOLFGATE END
   - type: SealableClothingVisuals
     spriteLayer: sealed
     clothingVisuals:
@@ -41,8 +43,10 @@
       - state: equipped-HEAD-sealed
       head-vox:
       - state: equipped-HEAD-sealed-vox
-      head-vulpkanin:
-      - state: equipped-HEAD-sealed-vulpkanin
+      # WOLFGATE(Species) START: not every helmet has these states; the generic layer picks them up where it does
+      # head-vulpkanin:
+      # - state: equipped-HEAD-sealed-vulpkanin
+      # WOLFGATE END
   - type: ComponentToggler
     components:
     - type: BreathMask
@@ -519,8 +523,10 @@
       - state: equipped-HEAD-sealed
       head-vox:
       - state: equipped-HEAD-sealed-vox
-      head-vulpkanin:
-      - state: equipped-HEAD-sealed-vulpkanin
+      # WOLFGATE(Species) START: not every helmet has these states; the generic layer picks them up where it does
+      # head-vulpkanin:
+      # - state: equipped-HEAD-sealed-vulpkanin
+      # WOLFGATE END
   - type: Armor
     coverage: [Head] # WOLFGATE(Wolfmed): P6, P3-D6: locational armour coverage
     modifiers:

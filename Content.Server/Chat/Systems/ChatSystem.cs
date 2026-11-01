@@ -30,6 +30,7 @@ using Content.Shared.Mobs.Systems;
 using Content.Shared.Players;
 using Content.Shared.Players.RateLimiting;
 using Content.Shared.Radio;
+using Content.Shared.Speech; // WOLFGATE: a voice mask's speech style
 using Content.Shared.Station.Components;
 using Content.Shared.Whitelist;
 using Robust.Server.Player;
@@ -563,6 +564,7 @@ public sealed partial class ChatSystem : SharedChatSystem
 
         // get the entity's apparent name (if no override provided).
         string name;
+        ProtoId<SpeechVerbPrototype>? speechVerb = null; // WOLFGATE: a voice mask's speech style, for the wraps below
         if (nameOverride != null)
         {
             name = nameOverride;
@@ -573,6 +575,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             nameEv.FromRadio = true; //Mono
             RaiseLocalEvent(source, nameEv);
             name = nameEv.VoiceName;
+            speechVerb = nameEv.SpeechVerb; // WOLFGATE: a voice mask's speech style, for the wraps below
             // Check for a speech verb override
             if (nameEv.SpeechVerb != null && _prototypeManager.TryIndex(nameEv.SpeechVerb, out var proto))
                 speech = proto;
@@ -590,16 +593,17 @@ public sealed partial class ChatSystem : SharedChatSystem
         // The chat message wrapped in a "x says y" string.
 
         // The chat message wrapped in a "x says y" string.
-        var wrappedMessage = WrapPublicMessage(source, name, message, language: language);
+        var wrappedMessage = WrapPublicMessage(source, name, message, language: language, speechVerb: speechVerb); // WOLFGATE: speech style
         // The chat message obfuscated via language obfuscation.
         var obfuscated = SanitizeInGameICMessage(source, _language.ObfuscateSpeech(message, language), out var emoteStr, true, _configurationManager.GetCVar(CCVars.ChatPunctuation),
             (!CultureInfo.CurrentCulture.IsNeutralCulture && CultureInfo.CurrentCulture.Parent.Name == "en")
             || (CultureInfo.CurrentCulture.IsNeutralCulture && CultureInfo.CurrentCulture.Name == "en"));
         // The language-obfuscated message wrapped in a "x says y" string.
-        var wrappedObfuscated = WrapPublicMessage(source, name, obfuscated, language: language);
+        var wrappedObfuscated = WrapPublicMessage(source, name, obfuscated, language: language, speechVerb: speechVerb); // WOLFGATE: speech style
         // Einstein Engines - Language end
 
-        SendInVoiceRange(ChatChannel.Local, name, message, wrappedMessage, obfuscated, wrappedObfuscated, source, range, languageOverride: language); // Einstein Engines - Language
+        // WOLFGATE: the speech style reaches a deaf listener's wrap too
+        SendInVoiceRange(ChatChannel.Local, name, message, wrappedMessage, obfuscated, wrappedObfuscated, source, range, languageOverride: language, speechVerb: speechVerb); // Einstein Engines - Language
 
         var ev = new EntitySpokeEvent(source, message, null, false, language); // Einstein Engines - Language
         RaiseLocalEvent(source, ev, true);
@@ -652,6 +656,7 @@ public sealed partial class ChatSystem : SharedChatSystem
         string nameIdentity = FormattedMessage.EscapeText(nameOverride ?? Identity.Name(source, EntityManager));
         // get the entity's name by voice (if no override provided).
         string name;
+        ProtoId<SpeechVerbPrototype>? speechVerb = null; // WOLFGATE: a voice mask's speech style, for the wraps below
         if (nameOverride != null)
         {
             name = nameOverride;
@@ -661,6 +666,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             var nameEv = new TransformSpeakerNameEvent(source, Name(source));
             RaiseLocalEvent(source, nameEv);
             name = nameEv.VoiceName;
+            speechVerb = nameEv.SpeechVerb; // WOLFGATE: a voice mask's speech style, for the wraps below
         }
         name = FormattedMessage.EscapeText(name);
 
@@ -692,25 +698,25 @@ public sealed partial class ChatSystem : SharedChatSystem
             {
                 // Scenario 1: the listener can clearly understand the message
                 result = perceivedMessage;
-                wrappedMessage = WrapWhisperMessage(source, "chat-manager-entity-whisper-wrap-message", name, result, language);
+                wrappedMessage = WrapWhisperMessage(source, "chat-manager-entity-whisper-wrap-message", name, result, language, speechVerb); // WOLFGATE: speech style
             }
             else if (_examineSystem.InRangeUnOccluded(source, listener, WhisperMuffledRange)) // UNEDIT FROM Einstein Engines - Language // They are out of date, this has been reverted to current ChatSystem
             {
                 // Scenario 2: if the listener is too far, they only hear fragments of the message
                 result = ObfuscateMessageReadability(perceivedMessage);
-                wrappedMessage = WrapWhisperMessage(source, "chat-manager-entity-whisper-wrap-message", nameIdentity, result, language);
+                wrappedMessage = WrapWhisperMessage(source, "chat-manager-entity-whisper-wrap-message", nameIdentity, result, language, speechVerb); // WOLFGATE: speech style
             }
             else
             {
                 // Scenario 3: If listener is too far and has no line of sight, they can't identify the whisperer's identity
                 result = ObfuscateMessageReadability(perceivedMessage);
-                wrappedMessage = WrapWhisperMessage(source, "chat-manager-entity-whisper-unknown-wrap-message", string.Empty, result, language);
+                wrappedMessage = WrapWhisperMessage(source, "chat-manager-entity-whisper-unknown-wrap-message", string.Empty, result, language, speechVerb); // WOLFGATE: speech style
             }
 
             _chatManager.ChatMessageToOne(ChatChannel.Whisper, result, wrappedMessage, source, false, session.Channel);
         }
 
-        var replayWrap = WrapWhisperMessage(source, "chat-manager-entity-whisper-wrap-message", name, message, language);
+        var replayWrap = WrapWhisperMessage(source, "chat-manager-entity-whisper-wrap-message", name, message, language, speechVerb); // WOLFGATE: speech style
         _replay.RecordServerMessage(new ChatMessage(ChatChannel.Whisper, message, replayWrap, GetNetEntity(source), null, MessageRangeHideChatForReplay(range)));
         // Einstein Engines - Languages end
 
@@ -750,6 +756,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             return;
 
         string name;
+        ProtoId<SpeechVerbPrototype>? speechVerb = null; // WOLFGATE: a voice mask's speech style, for the wraps below
         if (nameOverride != null)
         {
             name = nameOverride;
@@ -759,6 +766,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             var nameEv = new TransformSpeakerNameEvent(source, Name(source));
             RaiseLocalEvent(source, nameEv);
             name = nameEv.VoiceName;
+            speechVerb = nameEv.SpeechVerb; // WOLFGATE: a voice mask's speech style, for the wraps below
         }
         name = FormattedMessage.EscapeText(name);
 
@@ -782,7 +790,7 @@ public sealed partial class ChatSystem : SharedChatSystem
                 !HasComp<GhostComponent>(listener))
                 continue;
 
-            var wrappedMessage = WrapWhisperMessage(source, "chat-manager-entity-whisper-wrap-message", name, perceivedMessage, language);
+            var wrappedMessage = WrapWhisperMessage(source, "chat-manager-entity-whisper-wrap-message", name, perceivedMessage, language, speechVerb); // WOLFGATE: speech style
             _chatManager.ChatMessageToOne(ChatChannel.CollectiveMind, message, wrappedMessage, source, false, session.Channel);
         }
 
@@ -965,7 +973,8 @@ public sealed partial class ChatSystem : SharedChatSystem
     /// <summary>
     ///     Sends a chat message to the given players in range of the source entity.
     /// </summary>
-    private void SendInVoiceRange(ChatChannel channel, string name, string message, string wrappedMessage, string obfuscated, string obfuscatedWrappedMessage, EntityUid source, ChatTransmitRange range, NetUserId? author = null, LanguagePrototype? languageOverride = null) // Einstein Engines - Language
+    // WOLFGATE: the speech style reaches a deaf listener's wrap too
+    private void SendInVoiceRange(ChatChannel channel, string name, string message, string wrappedMessage, string obfuscated, string obfuscatedWrappedMessage, EntityUid source, ChatTransmitRange range, NetUserId? author = null, LanguagePrototype? languageOverride = null, ProtoId<SpeechVerbPrototype>? speechVerb = null) // Einstein Engines - Language
     {
         var language = languageOverride ?? _language.GetLanguage(source); // Einstein Engines - Language
 
@@ -985,7 +994,7 @@ public sealed partial class ChatSystem : SharedChatSystem
             // WOLFGATE(RMCCore) START: the deaf catch only a few letters of nearby speech
             if (channel == ChatChannel.Local && WfCantHear(listener, source, language))
             {
-                var deaf = WfDeafHeard(source, name, _language.CanUnderstand(listener, language.ID) ? message : obfuscated, language);
+                var deaf = WfDeafHeard(source, name, _language.CanUnderstand(listener, language.ID) ? message : obfuscated, language, speechVerb);
                 _chatManager.ChatMessageToOne(channel, deaf.Message, deaf.Wrapped, bubbleSource, entHideChat, session.Channel, author: author);
                 continue;
             }
@@ -1114,33 +1123,39 @@ public sealed partial class ChatSystem : SharedChatSystem
     /// <summary>
     ///     Wraps a message sent by the specified entity into an "x says y" string.
     /// </summary>
-    public string WrapPublicMessage(EntityUid source, string name, string message, LanguagePrototype? language = null)
+    public string WrapPublicMessage(EntityUid source, string name, string message, LanguagePrototype? language = null, ProtoId<SpeechVerbPrototype>? speechVerb = null) // WOLFGATE: speech style
     {
-        var wrapId = GetSpeechVerb(source, message).Bold ? "chat-manager-entity-say-bold-wrap-message" : "chat-manager-entity-say-wrap-message";
-        return WrapMessage(wrapId, InGameICChatType.Speak, source, name, message, language);
+        // WOLFGATE: a speech style decides the bold too
+        var wrapId = (_prototypeManager.TryIndex(speechVerb, out var style) ? style : GetSpeechVerb(source, message)).Bold ? "chat-manager-entity-say-bold-wrap-message" : "chat-manager-entity-say-wrap-message";
+        return WrapMessage(wrapId, InGameICChatType.Speak, source, name, message, language, speechVerb); // WOLFGATE: speech style
     }
 
     /// <summary>
     ///     Wraps a message whispered by the specified entity into an "x whispers y" string.
     /// </summary>
-    public string WrapWhisperMessage(EntityUid source, LocId defaultWrap, string entityName, string message, LanguagePrototype? language = null)
+    public string WrapWhisperMessage(EntityUid source, LocId defaultWrap, string entityName, string message, LanguagePrototype? language = null, ProtoId<SpeechVerbPrototype>? speechVerb = null) // WOLFGATE: speech style
     {
-        return WrapMessage(defaultWrap, InGameICChatType.Whisper, source, entityName, message, language);
+        return WrapMessage(defaultWrap, InGameICChatType.Whisper, source, entityName, message, language, speechVerb); // WOLFGATE: speech style
     }
 
     /// <summary>
     ///     Wraps a message sent by the specified entity into the specified wrap string.
     /// </summary>
-    public string WrapMessage(LocId wrapId, InGameICChatType chatType, EntityUid source, string entityName, string message, LanguagePrototype? language)
+    public string WrapMessage(LocId wrapId, InGameICChatType chatType, EntityUid source, string entityName, string message, LanguagePrototype? language, ProtoId<SpeechVerbPrototype>? speechVerb = null) // WOLFGATE: speech style
     {
         language ??= _language.GetLanguage(source);
         if (language.SpeechOverride.MessageWrapOverrides.TryGetValue(chatType, out var wrapOverride))
             wrapId = wrapOverride;
 
         var speech = GetSpeechVerb(source, message);
-        var verbId = language.SpeechOverride.SpeechVerbOverrides is { } verbsOverride
+        // WOLFGATE START: a voice mask's speech style wins, as it did before the language port dropped it here
+        var masked = _prototypeManager.TryIndex(speechVerb, out var style);
+        if (masked)
+            speech = style!;
+        var verbId = !masked && language.SpeechOverride.SpeechVerbOverrides is { } verbsOverride
             ? _random.Pick(verbsOverride).ToString()
             : _random.Pick(speech.SpeechVerbStrings);
+        // WOLFGATE END
         var color = DefaultSpeakColor;
         if (language.SpeechOverride.Color is { } colorOverride)
             color = Color.InterpolateBetween(color, colorOverride, colorOverride.A);

@@ -13,6 +13,7 @@ using Content.Server.Administration.Logs;
 using Content.Server.Administration.Managers;
 using Content.Shared._Common.Consent; // WOLFGATE(Genitals)
 using Content.Shared._Mono.Company;
+using Content.Shared._WF.Augments; // WOLFGATE(Augments)
 using Content.Shared._WF.Biotype; // WOLFGATE(Biotype)
 using Content.Shared._WF.BloodColour; // WOLFGATE(BloodColour)
 using Content.Shared._WF.ChatFont; // WOLFGATE(ChatFont)
@@ -107,7 +108,21 @@ namespace Content.Server.Database
             await db.DbContext.SaveChangesAsync();
         }
 
+        // WOLFGATE(LiveFixes) START: a save that collided with another one retries once on the rows that save left
         public async Task SaveCharacterSlotAsync(NetUserId userId, ICharacterProfile? profile, int slot)
+        {
+            try
+            {
+                await WFSaveCharacterSlotOnce(userId, profile, slot);
+            }
+            catch (DbUpdateException)
+            {
+                await WFSaveCharacterSlotOnce(userId, profile, slot);
+            }
+        }
+
+        private async Task WFSaveCharacterSlotOnce(NetUserId userId, ICharacterProfile? profile, int slot)
+        // WOLFGATE END
         {
             await using var db = await GetDb();
 
@@ -338,6 +353,8 @@ namespace Content.Server.Database
                 CustomMarkings = CustomMarkingRules.FromStored(profile.CustomMarkings), // WOLFGATE(CustomMarkings)
                 LegStance = (LegStance) profile.LegStance, // WOLFGATE(LegStyle)
                 Biotype = (WFBiotype) profile.Biotype, // WOLFGATE(Biotype)
+                Augments = WFAugmentRules.FromStored(profile.Augments), // WOLFGATE(Augments)
+                AugmentUnlocks = WFAugmentRules.UnlocksFromStored(profile.AugmentUnlocks), // WOLFGATE(Augments)
                 BloodColor = WFBloodColourRules.FromStored(profile.BloodColor), // WOLFGATE(BloodColour)
                 ChatFont = WFChatFontRules.FromStored(profile.ChatFont), // WOLFGATE(ChatFont)
                 TypingIndicator = WFTypingBubbleRules.FromStored(profile.TypingIndicator), // WOLFGATE(TypingBubble)
@@ -384,6 +401,8 @@ namespace Content.Server.Database
             profile.CustomMarkings = CustomMarkingRules.ToStored(humanoid.CustomMarkings); // WOLFGATE(CustomMarkings)
             profile.LegStance = (int) humanoid.LegStance; // WOLFGATE(LegStyle)
             profile.Biotype = (int) humanoid.Biotype; // WOLFGATE(Biotype)
+            profile.Augments = WFAugmentRules.ToStored(humanoid.Augments); // WOLFGATE(Augments)
+            profile.AugmentUnlocks = WFAugmentRules.ToStored(humanoid.AugmentUnlocks); // WOLFGATE(Augments)
             profile.BloodColor = WFBloodColourRules.ToStored(humanoid.BloodColor); // WOLFGATE(BloodColour)
             profile.ChatFont = WFChatFontRules.ToStored(humanoid.ChatFont); // WOLFGATE(ChatFont)
             profile.TypingIndicator = WFTypingBubbleRules.ToStored(humanoid.TypingIndicator); // WOLFGATE(TypingBubble)
@@ -414,11 +433,14 @@ namespace Content.Server.Database
             // Mono end
 
             profile.Jobs.Clear();
-            profile.Jobs.AddRange(
-                humanoid.JobPriorities
-                    .Where(j => j.Value != JobPriority.Never)
-                    .Select(j => new Job {JobName = j.Key, Priority = (DbJobPriority) j.Value})
-            );
+            // WOLFGATE(LiveFixes) START: the unique index allows one high priority job, so extra ones save as medium
+            // profile.Jobs.AddRange(
+            //     humanoid.JobPriorities
+            //         .Where(j => j.Value != JobPriority.Never)
+            //         .Select(j => new Job {JobName = j.Key, Priority = (DbJobPriority) j.Value})
+            // );
+            profile.Jobs.AddRange(Content.Server._WF.LiveFixes.WFProfileRows.Jobs(humanoid.JobPriorities));
+            // WOLFGATE END
 
             profile.Antags.Clear();
             profile.Antags.AddRange(
@@ -429,6 +451,7 @@ namespace Content.Server.Database
             profile.Traits.Clear();
             profile.Traits.AddRange(
                 humanoid.TraitPreferences
+                        .Distinct() // WOLFGATE(LiveFixes): the unique index allows each trait once
                         .Select(t => new Trait {TraitName = t})
             );
 

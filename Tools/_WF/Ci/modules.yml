@@ -16,6 +16,12 @@ external:
 # Edits outside _WF that can't hold a WOLFGATE marker: JSON, images, audio, rich-text .txt and map files.
 # Each entry has a path (a file, a folder or a glob), the module it serves (null for a standalone edit) and a reason.
 unmarked:
+  - path: Resources/Maps/_Mono/POI/pdvhelios.yml
+    module: LiveFixes
+    reason: Removed saved configurator lists that held invalid entity references.
+  - path: Resources/Fonts/ComicNeue
+    module: Clown
+    reason: Comic Neue font and its OFL licence for the Clown trait speech.
   - path: .config/dotnet-tools.json
     module: null
     reason: dotnet-ef local tool manifest (pinned 10.0.12) for generating EF migrations.
@@ -277,6 +283,9 @@ unmarked:
   - path: Resources/Maps/_Mono/Outpost/caelestinus_central.yml
     module: TradeGoods
     reason: Both Exped chutes become CC chutes, so every chute on the station pays from one table.
+  - path: Resources/Maps/_Mono/Outpost/caelestinus_central.yml
+    module: null
+    reason: Sector map entity gets its Parallax component and Colossus Sector name back after the #427 re-save dropped them.
   - path: Resources/Maps/_Mono/POI/underground.yml
     module: LockableButtons
     reason: The two blast door buttons take Underground access; the station's crew has no Pirate access.

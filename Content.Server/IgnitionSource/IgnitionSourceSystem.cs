@@ -11,9 +11,17 @@ public sealed partial class IgnitionSourceSystem : SharedIgnitionSourceSystem
     {
         base.Update(frameTime);
 
-        var query = EntityQueryEnumerator<IgnitionSourceComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out var comp, out var xform))
+        // WOLFGATE(Performance) START: walk a copy of the lit list; a fire this starts can light another source
+        // var query = EntityQueryEnumerator<IgnitionSourceComponent, TransformComponent>();
+        // while (query.MoveNext(out var uid, out var comp, out var xform))
+        _wfLitWalk.Clear();
+        _wfLitWalk.AddRange(WFLit);
+        foreach (var uid in _wfLitWalk)
         {
+            if (Paused(uid) || !TryComp(uid, out IgnitionSourceComponent? comp) || !TryComp(uid, out TransformComponent? xform))
+                continue;
+            // WOLFGATE END
+
             if (!comp.Ignited)
                 continue;
 

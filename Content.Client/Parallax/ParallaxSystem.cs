@@ -23,6 +23,7 @@ public sealed partial class ParallaxSystem : SharedParallaxSystem
         base.Initialize();
         _overlay.AddOverlay(new ParallaxOverlay());
         SubscribeLocalEvent<PrototypesReloadedEventArgs>(OnReload);
+        _parallax.LoadParallaxByName(Fallback); // WOLFGATE: a map without a Parallax component falls back to this name, so load it or space is black
         SubscribeLocalEvent<ParallaxComponent, AfterAutoHandleStateEvent>(OnAfterAutoHandleState);
     }
 
