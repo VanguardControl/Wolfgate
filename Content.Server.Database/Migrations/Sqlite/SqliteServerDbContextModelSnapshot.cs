@@ -2263,6 +2263,52 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.ToTable("wolfgate_feedback_report", (string)null);
                 });
 
+            modelBuilder.Entity("Content.Server.Database.WolfgateGameScore", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("wolfgate_game_score_id");
+
+                    b.Property<string>("Game")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("game");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("level");
+
+                    b.Property<string>("PlayerName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("player_name");
+
+                    b.Property<Guid>("PlayerUserId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("player_user_id");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("score");
+
+                    b.Property<DateTime>("Time")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("time");
+
+                    b.HasKey("Id")
+                        .HasName("PK_wolfgate_game_score");
+
+                    b.HasIndex("Game");
+
+                    b.HasIndex("PlayerUserId", "Game", "Level")
+                        .IsUnique();
+
+                    b.ToTable("wolfgate_game_score", (string)null);
+                });
+
             modelBuilder.Entity("PlayerRound", b =>
                 {
                     b.Property<int>("PlayersId")
