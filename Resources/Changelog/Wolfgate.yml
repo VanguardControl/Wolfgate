@@ -4404,3 +4404,65 @@ Entries:
   id: 100295
   time: '2026-11-01T02:10:44.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/425
+- author: Gandalf2k15
+  changes:
+    - type: Add
+      message: >-
+        Crews can mark themselves as recruiting. Recruiting crews go to the top
+        of the crew list with a pulsing border.
+    - type: Add
+      message: >-
+        Crew hosts can post an open invite that everyone not in a crew sees in
+        chat and as a card.
+    - type: Add
+      message: >-
+        Players already in the round can form a crew mid-round or join one with
+        their current character, without respawning.
+    - type: Add
+      message: >-
+        Player-run companies. Create one or join by invite or application, with
+        ranks, permissions and a shared bank account. Creating one needs 25
+        hours played and costs 100,000 spesos.
+    - type: Add
+      message: >-
+        Company applications have a form: pick the rank you want and say why you
+        want to join. Owners can also turn on open access so anyone can join
+        straight away at a rank they choose.
+    - type: Add
+      message: >-
+        Company rank loadouts. Owners pick kit for each rank, bought at every
+        spawn from the company account, or the member's bank if the company
+        can't cover it.
+    - type: Add
+      message: >-
+        Companies pay members hourly for time played and can take a cut of
+        members' earnings. Owners can also pay members directly.
+    - type: Add
+      message: >-
+        Company logos and rank job icons, drawn in-game, imported from a PNG or
+        started from an existing job icon. Rank icons show on HUDs and in
+        examine.
+    - type: Add
+      message: Join the round as your company rank, or join your company's crews as it.
+    - type: Add
+      message: >-
+        Company radio channel (:h), company colours on ship IFF, and a Company
+        ship access mode and door rule.
+    - type: Add
+      message: >-
+        Company hangar. Owners buy fleet licences that launch a company ship
+        each round. Companies need 3 members for licences, and hangar ships
+        can't be sold or broken down.
+    - type: Add
+      message: The round end summary lists what each company did that round.
+    - type: Tweak
+      message: >-
+        The character creator's Company tab shows your player company and every
+        company on the server instead of the old company picker.
+    - type: Remove
+      message: >-
+        Removed the flavour companies such as Drake Industries. Gameplay
+        factions are unchanged.
+  id: 100296
+  time: '2026-11-01T02:32:55.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/406
