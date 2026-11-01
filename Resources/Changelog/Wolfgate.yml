@@ -4684,3 +4684,10 @@ Entries:
   id: 100308
   time: '2026-11-01T23:11:52.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/445
+- author: Gandalf2k15
+  changes:
+    - type: Remove
+      message: Removed two jukebox tracks that had no valid license.
+  id: 100309
+  time: '2026-11-01T23:48:29.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/447
