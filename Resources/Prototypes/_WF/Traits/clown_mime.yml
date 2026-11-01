@@ -1,4 +1,4 @@
-﻿- type: trait
+- type: trait
   id: Clown
   name: trait-clown-name
   description: trait-clown-desc
@@ -10,8 +10,6 @@
   components:
   - type: Clown
   - type: Juggling
-  - type: WFChatFont
-    font: ComicNeue
 
 - type: trait
   id: Mime

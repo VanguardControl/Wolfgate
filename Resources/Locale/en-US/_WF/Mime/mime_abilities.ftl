@@ -1,4 +1,4 @@
-﻿mime-summon-hands-full = You need a free hand.
+mime-summon-hands-full = You need a free hand.
 alerts-vow-silence-unbreakable-desc = You have taken a vow forbidding verbal communication as part of initiation into the Mystiko Tagma Mimon.
 
 mime-finger-gun-draw-self = You draw your finger guns!

@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Content.Shared._WF.Clown;
 using Content.Shared.Actions;
 using Content.Shared.Hands;
@@ -36,6 +36,9 @@ public sealed partial class JugglingSystem : EntitySystem
     private const string NoGravityMsg = "juggling-no-gravity";
     private const int MaxJuggledItems = 3;
 
+    /// <summary>Items picked up while juggling, sent into the air on the next update.</summary>
+    private readonly List<(EntityUid Clown, EntityUid Item)> _caught = new();
+
     public override void Initialize()
     {
         base.Initialize();
@@ -55,9 +58,20 @@ public sealed partial class JugglingSystem : EntitySystem
         SubscribeLocalEvent<JugglingActiveComponent, DamageChangedEvent>(OnDamaged);
         SubscribeLocalEvent<JugglingActiveComponent, MobStateChangedEvent>(OnMobState);
         SubscribeLocalEvent<JugglingActiveComponent, DownedEvent>(OnDowned);
-        SubscribeLocalEvent<JugglingActiveComponent, EntParentChangedMessage>(OnParentChanged);
+        SubscribeLocalEvent<JugglingActiveComponent, WeightlessnessChangedEvent>(OnWeightlessChanged);
         SubscribeLocalEvent<JugglingActiveComponent, EntRemovedFromContainerMessage>(OnItemRemoved);
-        SubscribeLocalEvent<GravityChangedEvent>(OnGravityChanged);
+    }
+
+    public override void Update(float frameTime)
+    {
+        base.Update(frameTime);
+
+        for (var i = 0; i < _caught.Count; i++)
+        {
+            Catch(_caught[i].Clown, _caught[i].Item);
+        }
+
+        _caught.Clear();
     }
 
     private void OnMapInit(Entity<JugglingComponent> ent, ref MapInitEvent args)
@@ -157,29 +171,30 @@ public sealed partial class JugglingSystem : EntitySystem
             _mover.SetSprinting((ent.Owner, mover), 0, false);
     }
 
+    /// <summary>Waits for the pickup to finish, since its later events still expect the item in the hand.</summary>
     private void OnDidEquipHand(Entity<JugglingActiveComponent> ent, ref DidEquipHandEvent args)
     {
-        var item = args.Equipped;
-        if (!CanJuggle(item))
+        if (CanJuggle(args.Equipped))
+            _caught.Add((ent.Owner, args.Equipped));
+    }
+
+    private void Catch(EntityUid clown, EntityUid item)
+    {
+        if (!TryComp<JugglingActiveComponent>(clown, out var active)
+            || active.JuggledItems.Count >= MaxJuggledItems
+            || !_hands.IsHolding(clown, item)
+            || !CanJuggle(item))
             return;
 
-        var netItem = GetNetEntity(item);
-
-        if (ent.Comp.JuggledItems.Contains(netItem))
-            return;
-
-        if (ent.Comp.JuggledItems.Count >= MaxJuggledItems)
-            return;
-
-        var container = _containers.EnsureContainer<Container>(ent.Owner, JuggleContainerId);
+        var container = _containers.EnsureContainer<Container>(clown, JuggleContainerId);
 
         if (_containers.TryGetContainingContainer(item, out var handContainer))
             _containers.Remove(item, handContainer, force: true);
 
         if (_containers.Insert(item, container))
         {
-            ent.Comp.JuggledItems.Add(netItem);
-            Dirty(ent, ent.Comp);
+            active.JuggledItems.Add(GetNetEntity(item));
+            Dirty(clown, active);
         }
     }
 
@@ -199,33 +214,13 @@ public sealed partial class JugglingSystem : EntitySystem
     private void OnDowned(Entity<JugglingActiveComponent> ent, ref DownedEvent args)
         => StopJuggling(ent.Owner);
 
-    /// <summary>Shared by the two ways a juggling clown becomes weightless.</summary>
-    private void StopWeightless(EntityUid uid)
+    /// <summary>Covers walking off a gravity grid and the grid losing gravity; magboots keep a clown from going weightless.</summary>
+    private void OnWeightlessChanged(Entity<JugglingActiveComponent> ent, ref WeightlessnessChangedEvent args)
     {
-        _popup.PopupEntity(Loc.GetString(NoGravityMsg), uid, uid);
-        StopJuggling(uid);
-    }
-
-    /// <summary>Catches the case of a clown walking off a gravity grid mid-juggle.</summary>
-    private void OnParentChanged(Entity<JugglingActiveComponent> ent, ref EntParentChangedMessage args)
-    {
-        if (_gravity.IsWeightless(ent.Owner))
-            StopWeightless(ent.Owner);
-    }
-
-    /// <summary>Catches the case of grid gravity being lost while a clown stands on it.</summary>
-    private void OnGravityChanged(ref GravityChangedEvent ev)
-    {
-        if (ev.HasGravity)
+        if (!args.Weightless)
             return;
 
-        var query = EntityQueryEnumerator<JugglingActiveComponent, TransformComponent>();
-        while (query.MoveNext(out var uid, out _, out var xform))
-        {
-            if (xform.GridUid != ev.ChangedGridIndex)
-                continue;
-
-            StopWeightless(uid);
-        }
+        _popup.PopupEntity(Loc.GetString(NoGravityMsg), ent, ent);
+        StopJuggling(ent);
     }
 }

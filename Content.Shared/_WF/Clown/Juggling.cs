@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Content.Shared.Actions;
 using Robust.Shared.GameObjects;
 using Robust.Shared.GameStates;

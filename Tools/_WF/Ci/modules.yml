@@ -16,9 +16,9 @@ external:
 # Edits outside _WF that can't hold a WOLFGATE marker: JSON, images, audio, rich-text .txt and map files.
 # Each entry has a path (a file, a folder or a glob), the module it serves (null for a standalone edit) and a reason.
 unmarked:
-  - path: Resources/Fonts/ComicNeue-Bold.ttf
+  - path: Resources/Fonts/ComicNeue
     module: Clown
-    reason: Comic Neue font for the Clown trait speech.
+    reason: Comic Neue font and its OFL licence for the Clown trait speech.
   - path: .config/dotnet-tools.json
     module: null
     reason: dotnet-ef local tool manifest (pinned 10.0.12) for generating EF migrations.

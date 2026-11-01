@@ -49,5 +49,6 @@ Entry points: `MimeSummonSystem` (both summons and the box), `FingerGunSystem` a
 
 - [`Resources/Prototypes/_NF/Loadouts/contractor_loadout_groups.yml`](../../../Resources/Prototypes/_NF/Loadouts/contractor_loadout_groups.yml): the mime vow implanter leaves the loadout
 - [`Resources/Prototypes/_NF/Loadouts/Jobs/Contractor/tools.yml`](../../../Resources/Prototypes/_NF/Loadouts/Jobs/Contractor/tools.yml): the mime vow implanter leaves the loadout
+- [`Resources/Prototypes/_NF/Mail/mail.yml`](../../../Resources/Prototypes/_NF/Mail/mail.yml): the mime vow costs trait points now
 
 <!-- WOLFGATE-GENERATED END -->

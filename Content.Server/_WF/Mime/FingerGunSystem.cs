@@ -1,4 +1,4 @@
-﻿using Content.Shared._WF.Mime;
+using Content.Shared._WF.Mime;
 using Content.Shared.Effects;
 using Content.Shared.IdentityManagement;
 using Content.Shared.Mobs.Components;

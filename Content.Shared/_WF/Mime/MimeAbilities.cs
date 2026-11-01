@@ -1,9 +1,9 @@
-﻿using Content.Shared.Actions;
+using Content.Shared.Actions;
 using Robust.Shared.Prototypes;
 
 namespace Content.Shared._WF.Mime;
 
-/// <summary>Grants the mime's actions while the vow holds.</summary>
+/// <summary>Grants the mime's actions.</summary>
 [RegisterComponent]
 public sealed partial class MimeAbilitiesComponent : Component
 {
@@ -11,7 +11,7 @@ public sealed partial class MimeAbilitiesComponent : Component
     [DataField(required: true)]
     public List<EntProtoId> Actions = new();
 
-    /// <summary>Granted action entities, in the order of <see cref="Actions"/>.</summary>
+    /// <summary>Granted action entities.</summary>
     public List<EntityUid> Granted = new();
 }
 

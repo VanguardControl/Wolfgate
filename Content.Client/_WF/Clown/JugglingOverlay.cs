@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 using Content.Shared._WF.Clown;
 using Content.Shared.Movement.Components;
@@ -49,10 +49,14 @@ public sealed class JugglingOverlay : Overlay
         var eyeRot = args.Viewport.Eye?.Rotation ?? Angle.Zero;
         var screenUp = -eyeRot;
 
-        var enumerator = _entities.EntityQueryEnumerator<JugglingActiveComponent, TransformComponent>();
-        while (enumerator.MoveNext(out _, out var active, out var xform))
+        var enumerator = _entities.EntityQueryEnumerator<JugglingActiveComponent, TransformComponent, MetaDataComponent>();
+        while (enumerator.MoveNext(out _, out var active, out var xform, out var clownMeta))
         {
             if (xform.MapID != args.MapId || active.JuggledItems.Count == 0)
+                continue;
+
+            // A clown inside a locker or vehicle can't be seen, so neither can the items.
+            if ((clownMeta.Flags & MetaDataFlags.InContainer) != 0)
                 continue;
 
             var worldPos = xform.WorldPosition;

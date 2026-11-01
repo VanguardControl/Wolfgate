@@ -1,6 +1,4 @@
-﻿using Content.Server.Abilities.Mime;
 using Content.Shared._WF.Mime;
-using Content.Shared.Abilities.Mime;
 using Content.Shared.Actions;
 using Content.Shared.Hands.EntitySystems;
 using Content.Shared.IdentityManagement;
@@ -24,10 +22,6 @@ public sealed partial class MimeSummonSystem : EntitySystem
         base.Initialize();
         SubscribeLocalEvent<MimeAbilitiesComponent, MapInitEvent>(OnMapInit);
         SubscribeLocalEvent<MimeAbilitiesComponent, ComponentShutdown>(OnShutdown);
-        SubscribeLocalEvent<MimeAbilitiesComponent, BreakVowAlertEvent>(
-            OnBreakVow, after: [typeof(MimePowersSystem)]);
-        SubscribeLocalEvent<MimeAbilitiesComponent, RetakeVowAlertEvent>(
-            OnRetakeVow, after: [typeof(MimePowersSystem)]);
 
         SubscribeLocalEvent<MimeSummonActionComponent, MapInitEvent>(OnActionMapInit);
         SubscribeLocalEvent<MimeSummonActionComponent, MimeSummonActionEvent>(OnSummonAction);
@@ -36,43 +30,17 @@ public sealed partial class MimeSummonSystem : EntitySystem
         SubscribeLocalEvent<InvisibleBoxComponent, EntRemovedFromContainerMessage>(OnRemoved);
     }
 
-    private void OnMapInit(Entity<MimeAbilitiesComponent> ent, ref MapInitEvent args) => Grant(ent);
-
-    private void OnShutdown(Entity<MimeAbilitiesComponent> ent, ref ComponentShutdown args) => Revoke(ent);
-
-    private void OnBreakVow(Entity<MimeAbilitiesComponent> ent, ref BreakVowAlertEvent args)
+    private void OnMapInit(Entity<MimeAbilitiesComponent> ent, ref MapInitEvent args)
     {
-        if (!TryComp<MimePowersComponent>(ent, out var powers) || !powers.VowBroken)
-            return;
-
-        Revoke(ent);
-    }
-
-    private void OnRetakeVow(Entity<MimeAbilitiesComponent> ent, ref RetakeVowAlertEvent args)
-    {
-        // Retaking the vow does nothing while the mime is still on cooldown.
-        if (!TryComp<MimePowersComponent>(ent, out var powers) || powers.VowBroken)
-            return;
-
-        Grant(ent);
-    }
-
-    private void Grant(Entity<MimeAbilitiesComponent> ent)
-    {
-        for (var i = 0; i < ent.Comp.Actions.Count; i++)
+        foreach (var proto in ent.Comp.Actions)
         {
-            EntityUid? action = i < ent.Comp.Granted.Count ? ent.Comp.Granted[i] : null;
-            if (!_actions.AddAction(ent.Owner, ref action, ent.Comp.Actions[i]))
-                continue;
-
-            if (i < ent.Comp.Granted.Count)
-                ent.Comp.Granted[i] = action.Value;
-            else
+            EntityUid? action = null;
+            if (_actions.AddAction(ent.Owner, ref action, proto))
                 ent.Comp.Granted.Add(action.Value);
         }
     }
 
-    private void Revoke(Entity<MimeAbilitiesComponent> ent)
+    private void OnShutdown(Entity<MimeAbilitiesComponent> ent, ref ComponentShutdown args)
     {
         foreach (var action in ent.Comp.Granted)
         {

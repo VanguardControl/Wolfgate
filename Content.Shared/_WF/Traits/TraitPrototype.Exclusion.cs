@@ -1,4 +1,4 @@
-﻿namespace Content.Shared.Traits;
+namespace Content.Shared.Traits;
 
 public sealed partial class TraitPrototype
 {

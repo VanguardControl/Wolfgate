@@ -1,4 +1,4 @@
-﻿- type: entity
+- type: entity
   parent: BaseItem
   id: BalloonEmpty
   name: long balloon
@@ -10,8 +10,6 @@
   - type: Item
     size: Tiny
     sprite: _WF/Clown/Balloons/balloon_animals.rsi
-  - type: Damageable
-    damageContainer: Inorganic
   - type: Tag
     tags:
     - Balloon
@@ -29,8 +27,6 @@
   - type: Item
     size: Small
     sprite: _WF/Clown/Balloons/balloon_animals.rsi
-  - type: Damageable
-    damageContainer: Inorganic
   - type: Tag
     tags:
     - Balloon
@@ -48,8 +44,6 @@
   - type: Item
     size: Small
     sprite: _WF/Clown/Balloons/balloon_animals.rsi
-  - type: Damageable
-    damageContainer: Inorganic
   - type: Tag
     tags:
     - Balloon
@@ -67,8 +61,6 @@
   - type: Item
     size: Small
     sprite: _WF/Clown/Balloons/balloon_animals.rsi
-  - type: Damageable
-    damageContainer: Inorganic
   - type: Tag
     tags:
     - Balloon
@@ -86,8 +78,6 @@
   - type: Item
     size: Small
     sprite: _WF/Clown/Balloons/balloon_animals.rsi
-  - type: Damageable
-    damageContainer: Inorganic
   - type: Tag
     tags:
     - Balloon
@@ -105,8 +95,6 @@
   - type: Item
     size: Small
     sprite: _WF/Clown/Balloons/balloon_animals.rsi
-  - type: Damageable
-    damageContainer: Inorganic
   - type: Tag
     tags:
     - Balloon

@@ -1,4 +1,4 @@
-﻿using Content.Server.Popups;
+using Content.Server.Popups;
 using Content.Shared._WF.Clown;
 using Content.Shared._WF.Traits;
 using Content.Shared.DoAfter;

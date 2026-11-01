@@ -18,6 +18,10 @@ Entry points: `ClownComponent`, which marks the Clown trait, and `TraitPrototype
 - [`Content.Shared/_WF/Traits/ClownComponent.cs`](ClownComponent.cs)
 - [`Content.Shared/_WF/Traits/TraitPrototype.Exclusion.cs`](TraitPrototype.Exclusion.cs)
 
+### Integration tests
+
+- [`Content.IntegrationTests/Tests/_WF/Traits/ClownMimeTraitTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Traits/ClownMimeTraitTest.cs)
+
 ### Prototypes
 
 - [`Resources/Prototypes/_WF/Traits/clown_mime.yml`](../../../Resources/Prototypes/_WF/Traits/clown_mime.yml)

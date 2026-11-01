@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Content.Shared._WF.Clown;
@@ -80,6 +80,8 @@ public sealed class BalloonStringOverlay : Overlay
 
         var handle = args.WorldHandle;
         var curTime = _timing.CurTime;
+        var eyeRot = args.Viewport.Eye?.Rotation ?? Angle.Zero;
+        var screenUp = -eyeRot;
 
         // A long frame would fling the balloon past the string length, so cap the step.
         var dt = (float)Math.Clamp((curTime - _lastPhysicsTime).TotalSeconds, 0, 0.05);
@@ -94,14 +96,19 @@ public sealed class BalloonStringOverlay : Overlay
             if (!_metaQuery.TryGetComponent(balloonUid, out var meta) || meta.EntityPrototype == null)
                 continue;
 
+            // A carrier inside a locker or vehicle can't be seen, so neither can the balloon.
+            if (_metaQuery.TryGetComponent(info.Carrier, out var carrierMeta)
+                && (carrierMeta.Flags & MetaDataFlags.InContainer) != 0)
+                continue;
+
             var carrierPos = xform.WorldPosition;
-            var facing = xform.LocalRotation.GetCardinalDir();
+            var facing = (xform.WorldRotation + eyeRot).GetCardinalDir();
             var isLeftHand = info.Location == HandLocation.Left;
-            var handPos = carrierPos + GetHandOffset(facing, isLeftHand);
+            var handPos = carrierPos + screenUp.RotateVec(GetHandOffset(facing, isLeftHand));
 
-            var state = _system.GetOrInitState(balloonUid, handPos);
+            var state = _system.GetOrInitState(balloonUid, handPos + screenUp.RotateVec(new Vector2(0f, StringLength)));
 
-            var accel = new Vector2(0f, Buoyancy) - state.Vel * Drag;
+            var accel = screenUp.RotateVec(new Vector2(0f, Buoyancy)) - state.Vel * Drag;
             state.Vel += accel * dt;
             state.Pos += state.Vel * dt;
 
@@ -122,11 +129,11 @@ public sealed class BalloonStringOverlay : Overlay
 
             _system.SetState(balloonUid, state);
 
-            DrawString(handle, handPos, state.Pos, state.Vel);
+            DrawString(handle, handPos, state.Pos, state.Vel, screenUp);
 
             var texture = _sprites.Frame0(meta.EntityPrototype);
             var halfSize = texture.Size / (2f * EyeManager.PixelsPerMeter) * SpriteScale;
-            var tilt = new Angle(Math.Clamp(state.Vel.X * TiltFactor, -MaxTilt, MaxTilt));
+            var tilt = new Angle(Math.Clamp(eyeRot.RotateVec(state.Vel).X * TiltFactor, -MaxTilt, MaxTilt)) + screenUp;
             var box = new Box2(state.Pos.X - halfSize.X, state.Pos.Y - halfSize.Y,
                                state.Pos.X + halfSize.X, state.Pos.Y + halfSize.Y);
             handle.DrawTextureRect(texture, new Box2Rotated(box, tilt, state.Pos));
@@ -146,7 +153,7 @@ public sealed class BalloonStringOverlay : Overlay
     }
 
     /// <summary>Draws the string as a curved line from the hand to the balloon, shaped by one bend point.</summary>
-    private void DrawString(DrawingHandleWorld handle, Vector2 hand, Vector2 balloon, Vector2 balloonVel)
+    private void DrawString(DrawingHandleWorld handle, Vector2 hand, Vector2 balloon, Vector2 balloonVel, Angle screenUp)
     {
         var line = balloon - hand;
         var lineLen = line.Length();
@@ -158,7 +165,7 @@ public sealed class BalloonStringOverlay : Overlay
         var perpSpeed = Vector2.Dot(balloonVel, perpAxis);
 
         var control = (hand + balloon) * 0.5f
-                      + new Vector2(0f, -StringSagFactor * lineLen)
+                      + screenUp.RotateVec(new Vector2(0f, -StringSagFactor * lineLen))
                       - perpAxis * perpSpeed * StringTrailFactor;
 
         var halfW = StringWidth * 0.5f;
@@ -269,15 +276,15 @@ public sealed partial class BalloonStringSystem : EntitySystem
         _states.Remove(balloon);
     }
 
-    /// <summary>A balloon with no saved state starts at rest 0.9 tiles above the hand.</summary>
-    public BalloonPhysicsState GetOrInitState(EntityUid balloon, Vector2 handPos)
+    /// <summary>A balloon with no saved state starts at rest at the given position.</summary>
+    public BalloonPhysicsState GetOrInitState(EntityUid balloon, Vector2 startPos)
     {
         if (_states.TryGetValue(balloon, out var state))
             return state;
 
         state = new BalloonPhysicsState
         {
-            Pos = handPos + new Vector2(0f, 0.9f),
+            Pos = startPos,
             Vel = Vector2.Zero,
         };
         _states[balloon] = state;

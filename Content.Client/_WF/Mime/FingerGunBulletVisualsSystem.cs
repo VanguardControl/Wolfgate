@@ -1,4 +1,4 @@
-﻿using Content.Shared._WF.Mime;
+using Content.Shared._WF.Mime;
 using Robust.Client.GameObjects;
 
 namespace Content.Client._WF.Mime;

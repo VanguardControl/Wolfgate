@@ -1,4 +1,4 @@
-﻿juggling-action-popup = You start juggling!
+juggling-action-popup = You start juggling!
 juggling-no-gravity = You can't juggle without gravity!
 
 balloon-twist-verb-category = Twist into...

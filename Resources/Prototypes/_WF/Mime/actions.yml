@@ -1,4 +1,4 @@
-﻿- type: entity
+- type: entity
   id: ActionMimeInvisibleBox
   name: Invisible Box
   description: Summon an invisible box you can store things in. Press again to put it away. Your things stay inside.
