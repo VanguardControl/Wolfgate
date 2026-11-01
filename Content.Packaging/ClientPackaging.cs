@@ -78,7 +78,8 @@ public static class ClientPackaging
             new[] { "Content.Client", "Content.Shared", "Content.Shared.Database" },
             cancel: cancel);
 
-        await RobustClientPackaging.WriteClientResources(contentDir, inputPass, cancel);
+        // WOLFGATE(GameHub): game data under GameData reaches players through the in-game download
+        await RobustClientPackaging.WriteClientResources(contentDir, inputPass, new HashSet<string> { "GameData" }, cancel);
 
         inputPass.InjectFinished();
     }
