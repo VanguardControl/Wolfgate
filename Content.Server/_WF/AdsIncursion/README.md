@@ -25,6 +25,12 @@ player ship in a warning zone is hailed and asked whether it is a threat. Only a
 ADS is warned off and fired on; NO leaves it alone for 15 minutes, no answer for 3. The crews are bare IPC automatons,
 immune to vacuum, with their guns in the belt and back slots.
 
+Rocks in held space are protected (`.Mining`). A crewed ship with a mining beam on one is warned once; a ship that stops
+is left alone, but its mining time counts for `miningForget`, so short bursts don't reset it. Past `miningGrace` of
+mining it is on the declared list of every ADS ship, whatever it answered to a hail, and a sweep is sent after it if one is free or can launch. ADS
+ships launched in the next `miningGrudge` count it a threat too. The zones still do the firing, so a miner away from any
+ADS ship has only the sweep to worry about.
+
 From `challengeTier` the ADS contests other factions' space: every `challengeInterval` an interdictor flies from the
 nearest node to a cell another faction holds and the framework challenge on it is decided by presence at the deadline.
 Won, the interdictor stays as a picket holding the cell; lost, it withdraws; killed, it pays the interdictor bounty.
@@ -80,6 +86,7 @@ challenge [q r] | dreadnought | pause | resume | clear`, and see every campaign 
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Dreadnought.cs`](Systems/WFAdsCampaignSystem.Dreadnought.cs)
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Hold.cs`](Systems/WFAdsCampaignSystem.Hold.cs)
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Interdicts.cs`](Systems/WFAdsCampaignSystem.Interdicts.cs)
+- [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Mining.cs`](Systems/WFAdsCampaignSystem.Mining.cs)
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Nodes.cs`](Systems/WFAdsCampaignSystem.Nodes.cs)
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Retakes.cs`](Systems/WFAdsCampaignSystem.Retakes.cs)
 - [`Content.Server/_WF/AdsIncursion/Systems/WFAdsCampaignSystem.Rewards.cs`](Systems/WFAdsCampaignSystem.Rewards.cs)
@@ -100,6 +107,7 @@ challenge [q r] | dreadnought | pause | resume | clear`, and see every campaign 
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsContentTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsContentTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsDreadnoughtTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsDreadnoughtTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsInterrogationTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsInterrogationTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsMiningTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsMiningTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsNodeTest.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsNodeTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsTestBase.cs`](../../../Content.IntegrationTests/Tests/_WF/AdsIncursion/WFAdsTestBase.cs)
 

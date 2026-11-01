@@ -155,6 +155,7 @@ A jump's mass-scaled startup, travel and cooldown times use the mass of every gr
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleConsoleClearPilotsTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleConsoleClearPilotsTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleExternalCameraTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleExternalCameraTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleNavMapTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleNavMapTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleSoundPlacementTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/ShuttleSoundPlacementTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/WFFtlDriveTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/WFFtlDriveTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/Shuttles/WFFtlDriveWindowTest.cs`](../../../Content.IntegrationTests/Tests/_WF/Shuttles/WFFtlDriveWindowTest.cs)
 

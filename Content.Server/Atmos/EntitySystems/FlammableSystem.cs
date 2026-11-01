@@ -490,11 +490,15 @@ namespace Content.Server.Atmos.EntitySystems
             // TODO: This needs cleanup to take off the crust from TemperatureComponent and shit.
             // WOLFGATE(Performance) START: burning can destroy things and spawn flammable debris, which broke the live query
             _wfDueFlammables.Clear();
-            var query = EntityQueryEnumerator<FlammableComponent, TransformComponent>();
-            while (query.MoveNext(out var dueUid, out var dueFlammable, out _))
+            // Finding what's due walks every flammable entity, so only do it every third tick; NextUpdate keeps the rate.
+            if (_timing.CurTick.Value % 3 == 0)
             {
-                if (curTime >= dueFlammable.NextUpdate)
-                    _wfDueFlammables.Add((dueUid, dueFlammable));
+                var query = EntityQueryEnumerator<FlammableComponent, TransformComponent>();
+                while (query.MoveNext(out var dueUid, out var dueFlammable, out _))
+                {
+                    if (curTime >= dueFlammable.NextUpdate)
+                        _wfDueFlammables.Add((dueUid, dueFlammable));
+                }
             }
 
             foreach (var (uid, flammable) in _wfDueFlammables)

@@ -335,6 +335,7 @@ public abstract partial class CESharedZLevelsSystem
             return;
 
         ent.Comp.LocalPosition = newPosition;
+        WFNoteHeight(ent, newPosition); // WOLFGATE(Performance): raised entities join the sprite passes
         DirtyField(ent, ent.Comp, nameof(CEZPhysicsComponent.LocalPosition));
         WakeBody(ent);
     }

@@ -78,15 +78,14 @@ public sealed partial class RadarBlipSystem : EntitySystem
         var radarGrid = radarXform.GridUid;
         var radarMapId = radarXform.MapID;
 
-        var blipQuery = EntityQueryEnumerator<RadarBlipComponent, TransformComponent, PhysicsComponent>();
-
-        while (blipQuery.MoveNext(out var blipUid, out var blip, out var blipXform, out var blipPhysics))
+        // WOLFGATE(Performance) START: every radar on a map shares one walk of the blips per tick
+        // var blipQuery = EntityQueryEnumerator<RadarBlipComponent, TransformComponent, PhysicsComponent>();
+        WFNoteSources(sources);
+        foreach (var (blipUid, blip, blipXform, blipPhysics, blipPosition) in WFBlipsOnMap(radarMapId))
         {
-            if (!blip.Enabled
-                || blipXform.MapID != radarMapId
-                || !NearAnySources(_xform.GetWorldPosition(blipXform), sources, blip.MaxDistance)
-            )
+            if (blip.Deleted || !WFNearAnySource(blipPosition, blip.MaxDistance))
                 continue;
+        // WOLFGATE END
 
             var blipGrid = blipXform.GridUid;
 

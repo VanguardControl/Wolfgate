@@ -7642,12 +7642,13 @@ entities:
   - uid: 10888
     components:
     - type: MetaData
-      name: Map Entity
+      name: Colossus Sector
     - type: Transform
     - type: Map
       mapPaused: True
     - type: GridTree
     - type: Broadphase
+    - type: Parallax
     - type: ChunkContainer
       chunkEntities: []
     - type: OccluderTree

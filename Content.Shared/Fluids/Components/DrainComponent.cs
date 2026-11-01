@@ -16,6 +16,10 @@ namespace Content.Shared.Fluids.Components;
 [RegisterComponent, Access(typeof(SharedDrainSystem))]
 public sealed partial class DrainComponent : Component
 {
+    // WOLFGATE(Performance): when a dry auto-drain next searches for puddles
+    [ViewVariables]
+    public TimeSpan WFIdleUntil;
+
     [DataField]
     public string SolutionName = "drainBuffer"; // Monolith
 

@@ -91,6 +91,11 @@ public sealed partial class WFAdsCampaignSystem
         state.OverrunSince += span;
         Shift(state.InsideSince, span);
         Shift(state.InterdictCooldowns, span);
+        Shift(state.MiningGrudges, span);
+        foreach (var watch in state.Miners.Values)
+        {
+            watch.LastMined += span;
+        }
     }
 
     /// <summary>Moves every time in a table forward.</summary>

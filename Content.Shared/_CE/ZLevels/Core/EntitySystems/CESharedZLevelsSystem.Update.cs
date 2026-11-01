@@ -163,6 +163,8 @@ public abstract partial class CESharedZLevelsSystem
             }
         }
 
+        WFNoteHeight(entity, zPhysicsComponent.LocalPosition); // WOLFGATE(Performance): predicted height joins the sprite passes
+
         if (float.Abs(oldVelocity - zPhysicsComponent.Velocity) > 0.001f)
             DirtyField(entity, zPhysicsComponent, nameof(CEZPhysicsComponent.Velocity));
 

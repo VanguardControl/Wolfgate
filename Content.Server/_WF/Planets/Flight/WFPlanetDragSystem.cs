@@ -28,30 +28,61 @@ public sealed partial class WFPlanetDragSystem : EntitySystem
     /// <summary>Metres past the edge a hull may get, through the push back, before it is put back inside outright.</summary>
     public const float HardEdgeSlack = 12f;
 
+    private readonly List<EntityUid> _leaving = new();
+
     /// <inheritdoc/>
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        var query = EntityQueryEnumerator<MapGridComponent, PhysicsComponent, TransformComponent>();
-
-        while (query.MoveNext(out var uid, out _, out var body, out var xform))
+        // Only hulls directly on a planet layer can need dragging, which spares the walk of every grid in space.
+        var layers = EntityQueryEnumerator<WFPlanetLayerComponent, TransformComponent>();
+        while (layers.MoveNext(out _, out var layerXform))
         {
-            // A z-layer map is itself a grid: never drag the layer.
-            if (HasComp<MapComponent>(uid))
-                continue;
-
-            // Every layer of a bounded world turns hulls back at its edge, the gaps between layers and the ground too.
-            TurnBack(uid, body, xform);
-
-            if (!TryGetLimits(uid, xform, out var maxSpeed, out var damping))
+            var children = layerXform.ChildEnumerator;
+            while (children.MoveNext(out var uid))
             {
-                Release(uid, body);
-                continue;
-            }
+                if (!HasComp<MapGridComponent>(uid) || !TryComp<PhysicsComponent>(uid, out var body))
+                    continue;
 
-            Hold(uid, body, damping);
-            Clamp(uid, body, maxSpeed);
+                var xform = Transform(uid);
+
+                // Every layer of a bounded world turns hulls back at its edge, the ground too.
+                TurnBack(uid, body, xform);
+
+                if (!TryGetLimits(uid, xform, out var maxSpeed, out var damping))
+                    continue;
+
+                Hold(uid, body, damping);
+                Clamp(uid, body, maxSpeed);
+            }
+        }
+
+        // The gaps between layers have no layer marker, and turn hulls back as well.
+        var gaps = EntityQueryEnumerator<CEZTransitMapComponent, TransformComponent>();
+        while (gaps.MoveNext(out _, out var gapXform))
+        {
+            var children = gapXform.ChildEnumerator;
+            while (children.MoveNext(out var uid))
+            {
+                if (HasComp<MapGridComponent>(uid) && TryComp<PhysicsComponent>(uid, out var body))
+                    TurnBack(uid, body, Transform(uid));
+            }
+        }
+
+        // A hull that has left its layer gets its own damping back.
+        _leaving.Clear();
+        var dragged = EntityQueryEnumerator<WFPlanetDragComponent, TransformComponent>();
+        while (dragged.MoveNext(out var uid, out _, out var draggedXform))
+        {
+            if (!TryGetLimits(uid, draggedXform, out _, out _))
+                _leaving.Add(uid);
+        }
+
+        foreach (var uid in _leaving)
+        {
+            if (TryComp<PhysicsComponent>(uid, out var body))
+                Release(uid, body);
         }
     }
 

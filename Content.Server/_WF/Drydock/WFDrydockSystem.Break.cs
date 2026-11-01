@@ -56,7 +56,7 @@ public sealed partial class WFDrydockSystem
     private static readonly Vector2i[] Neighbours = { new(1, 0), new(-1, 0), new(0, 1), new(0, -1) };
 
     /// <summary>How long a broken tile waits for others to lift with it.</summary>
-    private static readonly TimeSpan LiftBatch = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan LiftBatch = TimeSpan.FromSeconds(10);
 
     /// <summary>Tile lookups a job's connectivity checks may make a tick; a hull that would split checks over several.</summary>
     private const int LiftCheckBudget = 1024;

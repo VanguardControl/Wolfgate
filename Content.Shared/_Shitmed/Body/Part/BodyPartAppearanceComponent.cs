@@ -12,7 +12,8 @@ public sealed partial class BodyPartAppearanceComponent : Component
     /// <summary>
     ///     HumanoidVisualLayer type for this body part.
     /// </summary>
-    [DataField, AutoNetworkedField]
+    // WOLFGATE(Traders): saved as layerType; "type" is the key the save uses for the component itself, so it failed
+    [DataField("layerType"), AutoNetworkedField]
     public HumanoidVisualLayers Type { get; set; }
 
     /// <summary>

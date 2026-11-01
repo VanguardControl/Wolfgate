@@ -15,6 +15,7 @@ using Content.Shared.FixedPoint;
 using Content.Shared.Nutrition.Components;
 using Content.Shared.Nutrition.EntitySystems;
 using Content.Shared.Power.EntitySystems;
+using Robust.Shared.Containers;
 using Robust.Shared.GameObjects;
 using Robust.Shared.Prototypes;
 
@@ -40,6 +41,41 @@ public sealed class XenobiologyTest
         var marker = entities.SpawnEntity(GreyPending, coords);
         entities.System<XenobiologySystem>().SpawnPending((marker, entities.GetComponent<PendingSlimeSpawnComponent>(marker)));
         return entities.EntityQuery<SlimeComponent>().Select(s => s.Owner).Single(uid => !before.Contains(uid));
+    }
+
+    /// <summary>A latched slime sucked into a xenovac tank stays in the tank, not stuck unreachable on the tile.</summary>
+    [Test]
+    public async Task LatchedSlimeStaysInTheTank()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var map = await pair.CreateTestMap();
+        var entities = server.ResolveDependency<IEntityManager>();
+
+        await server.WaitAssertion(() =>
+        {
+            var containers = entities.System<SharedContainerSystem>();
+            var latch = entities.System<SlimeLatchSystem>();
+            var slime = SpawnGrey(entities, map.GridCoords);
+            var victim = entities.SpawnEntity("MobHuman", map.GridCoords);
+            var tank = entities.SpawnEntity("ClothingBackpackXenoBioTank", map.GridCoords);
+            var ent = new Entity<SlimeComponent>(slime, entities.GetComponent<SlimeComponent>(slime));
+
+            latch.Latch(ent, victim);
+            Assert.That(latch.IsLatched(ent), "The slime didn't latch.");
+
+            Assert.That(containers.Insert(slime, entities.GetComponent<XenoVacuumTankComponent>(tank).StorageTank), "The tank refused the slime.");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(latch.IsLatched(ent), Is.False, "The slime stayed latched inside the tank.");
+                Assert.That(entities.GetComponent<TransformComponent>(slime).ParentUid, Is.EqualTo(tank), "Unlatching pulled the slime out of the tank.");
+                Assert.That(containers.IsEntityInContainer(slime), "The slime isn't in the tank.");
+                Assert.That(latch.CanLatch(ent, victim), Is.False, "A slime in a tank can still latch.");
+            });
+        });
+
+        await pair.CleanReturnAsync();
     }
 
     [Test]

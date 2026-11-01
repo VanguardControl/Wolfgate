@@ -143,14 +143,27 @@ public sealed class WolfmedFireHelplessnessTest : WolfmedGameTest
         await Pin();
         var map = await CreateTestMap();
         var s = new WolfmedScenario(SEntMan);
-        EntityUid body = default;
-
         await Server.WaitPost(() =>
         {
             s.SetAir(map.MapUid, true);
             s.KeepGrid(map.Grid);
-            body = SEntMan.SpawnEntity(WolfmedScenario.BurnPatient, map.GridCoords);
         });
+
+        // A rare run (seen in full test runs, cause not pinned) leaves the body out before it is ever
+        // sampled Downed, which tests nothing, so that body is logged and a fresh one burns instead.
+        const int attempts = 3;
+        for (var attempt = 1; attempt <= attempts; attempt++)
+        {
+            if (await BurnBody(map.GridCoords, attempt == attempts))
+                return;
+        }
+    }
+
+    /// <summary>One 120 s fire on a fresh body. False if it never went Downed and another attempt may follow.</summary>
+    private async Task<bool> BurnBody(Robust.Shared.Map.EntityCoordinates coordinates, bool last)
+    {
+        EntityUid body = default;
+        await Server.WaitPost(() => body = SEntMan.SpawnEntity(WolfmedScenario.BurnPatient, coordinates));
         await RunSeconds(2);
 
         var normalWalk = 0f;
@@ -201,6 +214,19 @@ public sealed class WolfmedFireHelplessnessTest : WolfmedGameTest
                                       $"{row.Hands} | {row.CanInteract} | {row.CallForHelp} | {row.Legs} | {row.Limbs}");
         }
 
+        if (!last && !samples.Any(r => r.State == WolfmedConsciousness.Downed))
+        {
+            await Server.WaitPost(() =>
+            {
+                var dead = SEntMan.System<Content.Shared.Mobs.Systems.MobStateSystem>().IsDead(body);
+                var organs = SEntMan.System<SharedBodySystem>().GetBodyOrgans(body)
+                    .Select(o => SEntMan.GetComponent<MetaDataComponent>(o.Id).EntityPrototype?.ID);
+                TestContext.Out.WriteLine($"Never Downed: dead {dead}; organs {string.Join(",", organs)}. Trying a fresh body.");
+                SEntMan.DeleteEntity(body);
+            });
+            return false;
+        }
+
         Assert.Multiple(() =>
         {
             foreach (var row in samples.Where(r => r.State == WolfmedConsciousness.Downed))
@@ -218,5 +244,6 @@ public sealed class WolfmedFireHelplessnessTest : WolfmedGameTest
             Assert.That(penPicked, Is.True, "the body could not pick up the pen at 60 s.");
             Assert.That(penTier, Is.Not.EqualTo(WolfmedPainReliefTier.None), "the pen did not inject its user at 60 s.");
         });
+        return true;
     }
 }

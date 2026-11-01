@@ -14,6 +14,8 @@ namespace Content.Client._WF.Shuttles.Systems;
 /// <summary>
 /// Keeps positional sound centred on the pilot's body while a ship camera view carries their eye away.
 /// The engine listens from the eye, so each sound is judged from the body and placed to match.
+/// Always takes over the engine's per-sound pass, which turns a sound up before checking its range or placing it: an
+/// unplaced source sits at the map origin, so anyone standing there heard blips of far-off sounds (CC is at the origin).
 /// </summary>
 public sealed class ShuttleCameraListenerSystem : EntitySystem
 {
@@ -43,12 +45,14 @@ public sealed class ShuttleCameraListenerSystem : EntitySystem
         _physicsQuery = GetEntityQuery<PhysicsComponent>();
         // The body's position has to be in hand before the audio system's parallel pass reads it.
         UpdatesBefore.Add(typeof(AudioSystem));
+        _audio.ProcessStreamOverride += Process;
     }
 
     public override void Shutdown()
     {
         base.Shutdown();
-        SetActive(false);
+        _audio.ProcessStreamOverride -= Process;
+        Active = false;
     }
 
     public override void FrameUpdate(float frameTime)
@@ -57,24 +61,13 @@ public sealed class ShuttleCameraListenerSystem : EntitySystem
             !TryComp<ShuttleCameraComponent>(pilot, out var camera) || camera.View == ShuttleCameraView.Helm ||
             !TryComp(pilot, out TransformComponent? xform) || xform.MapID == MapId.Nullspace)
         {
-            SetActive(false);
+            Active = false;
             return;
         }
 
         _body = _xform.GetMapCoordinates(pilot, xform);
         _shift = _eye.CurrentEye.Position.Position - _body.Position;
-        SetActive(true);
-    }
-
-    private void SetActive(bool active)
-    {
-        if (Active == active)
-            return;
-        Active = active;
-        if (active)
-            _audio.ProcessStreamOverride += Process;
-        else
-            _audio.ProcessStreamOverride -= Process;
+        Active = true;
     }
 
     /// <summary>
@@ -100,10 +93,11 @@ public sealed class ShuttleCameraListenerSystem : EntitySystem
         return true;
     }
 
-    /// <summary>The engine's own per-sound pass with the body as the listener. Runs on the audio job's threads.</summary>
+    /// <summary>The engine's own per-sound pass, heard from the listener and turned up last. Runs on the audio job's threads.</summary>
     private void Process(EntityUid entity, AudioComponent component, TransformComponent xform, MapCoordinates eye)
     {
-        var listener = _body;
+        var listener = Active ? _body : eye;
+        var shift = Active ? _shift : Vector2.Zero;
         if (!component.Started)
         {
             component.Started = true;
@@ -129,24 +123,26 @@ public sealed class ShuttleCameraListenerSystem : EntitySystem
         }
 
         var parent = xform.ParentUid;
-        component.Volume = component.Params.Volume;
         var source = (component.Flags & AudioFlags.GridAudio) != 0x0
             ? _maps.GetGridPosition(parent)
             : _xform.GetWorldPosition(entity);
 
-        if (!TryPlace(listener.Position, _shift, source, component.MaxDistance, _audio.ZOffset,
+        if (!TryPlace(listener.Position, shift, source, component.MaxDistance, _audio.ZOffset,
                 out var placed, out var delta, out var distance))
         {
             component.Gain = 0f;
             return;
         }
 
-        component.Occlusion = (component.Flags & AudioFlags.NoOcclusion) == AudioFlags.NoOcclusion
+        var occlusion = (component.Flags & AudioFlags.NoOcclusion) == AudioFlags.NoOcclusion
             ? 0f
             : _audio.GetOcclusion(listener, delta, distance, parent);
         component.Position = placed;
 
         if (_physicsQuery.TryGetComponent(parent, out var physics))
             component.Velocity = _physics.GetMapLinearVelocity(parent, physics);
+
+        component.Volume = component.Params.Volume;
+        component.Occlusion = occlusion;
     }
 }

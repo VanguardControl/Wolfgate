@@ -24,6 +24,7 @@
   # WOLFGATE(Wolfmed): W6: the surgery tool for the servo step. Servo damage carries no damage type, so the coil's
   # Healing block below cannot reach it; replacing the run is a procedure, and this is what it needs.
   - type: WolfmedServoKit
+  - type: SurgeryTool # a tool without it has no Surgery verb, so nobody could start the servo step with a coil
   - type: Clickable
   - type: StaticPrice
     price: 0

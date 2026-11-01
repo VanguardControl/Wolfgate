@@ -64,7 +64,8 @@ public sealed partial class ShipStatusSystem : EntitySystem
     /// </summary>
     private readonly Dictionary<EntityUid, Dictionary<Vector2i, ShipTileStatus>> _gridTiles = new();
 
-    private TimeSpan _nextUpdate;
+    /// <summary>Starts part way through the second, off the tick other one-second systems run on.</summary>
+    private TimeSpan _nextUpdate = TimeSpan.FromSeconds(0.4);
 
     public override void Initialize()
     {

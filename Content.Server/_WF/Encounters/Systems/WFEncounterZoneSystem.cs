@@ -48,7 +48,8 @@ public sealed partial class WFEncounterZoneSystem : EntitySystem
     private static readonly ProtoId<RadioChannelPrototype> Channel = "Traffic";
     private const int WarnLines = 3;
 
-    private TimeSpan _next;
+    /// <summary>Starts part way through the second, off the tick other one-second systems run on.</summary>
+    private TimeSpan _next = TimeSpan.FromSeconds(0.2);
     private readonly Dictionary<EntityUid, Crewed> _crewed = new();
     private readonly List<EntityUid> _stale = new();
     private readonly List<(EntityUid Encounter, WFEncounterShipState Ship)> _fleet = new();
