@@ -4635,3 +4635,10 @@ Entries:
   id: 100303
   time: '2026-11-01T06:31:11.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/438
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Colour picker popups now close when their list is rebuilt.
+  id: 100304
+  time: '2026-11-01T09:23:22.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/440
