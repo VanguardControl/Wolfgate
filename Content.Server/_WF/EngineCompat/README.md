@@ -43,6 +43,7 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 - [`Content.IntegrationTests/Tests/_WF/EngineCompat/AtmosSplitOffsetTest.cs`](../../../Content.IntegrationTests/Tests/_WF/EngineCompat/AtmosSplitOffsetTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/EngineCompat/EngineV291RegressionTest.cs`](../../../Content.IntegrationTests/Tests/_WF/EngineCompat/EngineV291RegressionTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/EngineCompat/ExpeditionConsoleTest.cs`](../../../Content.IntegrationTests/Tests/_WF/EngineCompat/ExpeditionConsoleTest.cs)
+- [`Content.IntegrationTests/Tests/_WF/EngineCompat/GridSplitKeepsAnchoredEntitiesTest.cs`](../../../Content.IntegrationTests/Tests/_WF/EngineCompat/GridSplitKeepsAnchoredEntitiesTest.cs)
 - [`Content.IntegrationTests/Tests/_WF/EngineCompat/ShuttleProximityTest.cs`](../../../Content.IntegrationTests/Tests/_WF/EngineCompat/ShuttleProximityTest.cs)
 
 ### Prototypes
