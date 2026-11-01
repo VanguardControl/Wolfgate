@@ -69,6 +69,6 @@ most 8 at once, 4 of them radio and 2 from one source) and `SpeechVoiceSynth` (r
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs): the voice settings as JSON, null in rows saved before voices existed.
 - [`Content.Server/Database/ServerDbBase.cs`](../../Database/ServerDbBase.cs)
 - [`Content.Server/Speech/SpeechNoiseSystem.cs`](../../Speech/SpeechNoiseSystem.cs): the voice plays instead
-- [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs): out-of-range sliders come back inside their range
+- [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs): out-of-range sliders come back inside their range; crafted network data can deliver null
 
 <!-- WOLFGATE-GENERATED END -->

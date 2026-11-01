@@ -81,17 +81,11 @@ public sealed partial class SpeechVoiceSynth
         for (var i = blips.Count - 1; i >= 0; i--)
         {
             var blip = blips[i];
-            if (blip.ConsonantOnly && blip.Onset.Kind == SoundKind.Fricative)
-            {
-                blip.Length *= style.FricativeStretch;
-                blips[i] = blip;
-            }
-
             if (style.HissTail >= 0.5f && blip.Last && blip.Ending != ',' && !blip.Gap && blips.Count < MaxBlips)
             {
                 var hiss = Syllable(S, Uh);
                 hiss.ConsonantOnly = true;
-                hiss.Length = 0.8f;
+                hiss.Length = 0.8f * style.FricativeStretch;
                 hiss.Word = blip.Word;
                 hiss.Gain = 0.7f * blip.Gain;
                 blips.Insert(i + 1, hiss);

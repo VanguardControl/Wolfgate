@@ -81,6 +81,17 @@ public sealed class SpeechVoiceSynthTest
     }
 
     [Test]
+    public void LizardHissTailIsStretched()
+    {
+        var voice = new SpeechVoice { Filter = SpeechVoiceFilter.Lizard };
+        var slot = (int) (voice.Speed * 1.15f * 0.5f * SpeechVoiceSynth.SampleRate);
+
+        var length = new SpeechVoiceSynth().Render("a", voice, false, new SpeechVoiceBuffers());
+
+        Assert.That(length, Is.EqualTo(slot + (int) (slot * 0.8f * 1.8f)));
+    }
+
+    [Test]
     public void NoLettersRenderNothing()
     {
         Assert.That(new SpeechVoiceSynth().Render("... !?", new SpeechVoice(), false, new SpeechVoiceBuffers()),
