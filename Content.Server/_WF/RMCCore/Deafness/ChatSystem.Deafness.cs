@@ -15,9 +15,9 @@ public sealed partial class ChatSystem
     }
 
     /// <summary>What a deaf listener makes of nearby speech: a few letters of it, and that wrapped with the speaker's name.</summary>
-    private (string Message, string Wrapped) WfDeafHeard(EntityUid source, string name, string perceived, LanguagePrototype language)
+    private (string Message, string Wrapped) WfDeafHeard(EntityUid source, string name, string perceived, LanguagePrototype language, Robust.Shared.Prototypes.ProtoId<Content.Shared.Speech.SpeechVerbPrototype>? speechVerb)
     {
         var heard = ObfuscateMessageReadability(perceived, WfDeafReadability);
-        return (heard, WrapPublicMessage(source, name, heard, language));
+        return (heard, WrapPublicMessage(source, name, heard, language, speechVerb));
     }
 }

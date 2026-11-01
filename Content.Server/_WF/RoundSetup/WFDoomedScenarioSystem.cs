@@ -142,6 +142,8 @@ public sealed class WFDoomedScenarioSystem : EntitySystem
         EnsureComp<WFDoomedScenarioStationComponent>(station).LobbyId = lobbyId;
         _ships.AddVesselExpeditions(station, vessel);
         EnsureComp<WFDoomedScenarioComponent>(hull).LobbyId = lobbyId;
+        // Taking to the pods is no way out: the ambush goes on until the hull is gone.
+        EnsureComp<WFCrewHuntedHullComponent>(hull);
         // Registered to nobody: no deed to sell, and crew access opens it for the crew.
         _access.SetupRegisteredShip(hull, vessel.Name, Array.Empty<NetUserId>());
         var scenario = new Scenario(station);

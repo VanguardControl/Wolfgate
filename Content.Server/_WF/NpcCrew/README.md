@@ -262,6 +262,7 @@ simulated counterpart of `WFPilotDockedEvent`.
 - [`Content.Server/_WF/NpcCrew/Components/WFCaptainComponent.cs`](Components/WFCaptainComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewComponent.cs`](Components/WFCrewComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewEngineerComponent.cs`](Components/WFCrewEngineerComponent.cs)
+- [`Content.Server/_WF/NpcCrew/Components/WFCrewHuntedHullComponent.cs`](Components/WFCrewHuntedHullComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewOnSightComponent.cs`](Components/WFCrewOnSightComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewPropertyComponent.cs`](Components/WFCrewPropertyComponent.cs)
 - [`Content.Server/_WF/NpcCrew/Components/WFCrewRadioComponent.cs`](Components/WFCrewRadioComponent.cs)
