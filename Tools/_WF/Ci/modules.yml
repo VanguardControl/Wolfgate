@@ -2764,6 +2764,24 @@ unmarked:
   - path: Resources/Maps/elkridge.yml
     module: Xenoarch
     reason: Removed the mapped artifact's BiasedArtifact component, which no longer exists.
+  - path: Resources/Textures/_NF/Clothing/Head/Hardsuits/nfsd.rsi/
+    module: null
+    reason: Licence and credit set as in HardLight 0fc067be74.
+  - path: Resources/Textures/_NF/Clothing/Head/Hardsuits/nfsd_combat.rsi/
+    module: null
+    reason: Licence and credit set as in HardLight 0fc067be74.
+  - path: Resources/Textures/_NF/Clothing/Head/Hardsuits/nfsd_command.rsi/
+    module: null
+    reason: Licence and credit set as in HardLight 0fc067be74.
+  - path: Resources/Textures/_NF/Clothing/Head/Hardsuits/nfsd_experimental.rsi/
+    module: null
+    reason: Licence and credit set as in HardLight 0fc067be74.
+  - path: Resources/Textures/_NF/Clothing/Head/Hardsuits/nfsd_sheriff.rsi/
+    module: null
+    reason: Licence and credit set as in HardLight 0fc067be74.
+  - path: LICENSES/MIT.txt
+    module: null
+    reason: Copyright lines for both holders of the MIT code, Space Wizards and New Frontiers.
   - path: LICENSES/LicenseRef-Starlight.txt
     module: null
     reason: Starlight licence text, required by the Starlight-licensed code under _Starlight and _FarHorizons.
