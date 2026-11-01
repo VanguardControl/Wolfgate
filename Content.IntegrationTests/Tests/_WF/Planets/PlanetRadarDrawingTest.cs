@@ -133,6 +133,6 @@ public sealed class PlanetRadarDrawingTest
             DrawPrimitives(DrawPrimitiveTopology.TriangleList, null!, quad);
         }
         public override void DrawTextureRectRegion(Texture texture, UIBox2 rect, UIBox2? subRegion = null, Color? modulate = null) { }
-        public override void DrawEntity(EntityUid entity, Vector2 position, Vector2 scale, Angle? worldRot, Angle eyeRotation = default, Direction? overrideDirection = null, SpriteComponent? sprite = null, TransformComponent? xform = null, SharedTransformSystem? xformSystem = null) { }
+        public override void DrawEntity(EntityUid entity, Vector2 position, Vector2 scale, Angle? worldRot, Angle eyeRotation = default, Direction? overrideDirection = null, SpriteComponent? sprite = null, TransformComponent? xform = null, SharedTransformSystem? xformSystem = null, IReadOnlyList<SpriteComponent.PostShaderEntry>? extraPostShaders = null) { }
     }
 }

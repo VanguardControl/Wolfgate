@@ -161,7 +161,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         SubscribeLocalEvent<GridVehicleMoverComponent, ComponentStartup>(OnMoverStartup);
         SubscribeLocalEvent<GridVehicleMoverComponent, ComponentShutdown>(OnMoverShutdown);
         SubscribeLocalEvent<GridVehicleMoverComponent, MoveEvent>(OnMoverMove);
-        SubscribeLocalEvent<GridVehicleMoverComponent, ReAnchorEvent>(OnMoverReAnchor);
         SubscribeLocalEvent<GridVehicleMoverComponent, PreventCollideEvent>(OnMoverPreventCollide);
         SubscribeLocalEvent<GridVehicleMoverComponent, ThrownEvent>(OnMoverThrown);
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundRestart);
@@ -219,11 +218,6 @@ public sealed partial class GridVehicleMoverSystem : EntitySystem
         if (!args.ParentChanged)
             return;
 
-        TrySyncMoverToCurrentGrid(ent, centerOnTile: false);
-    }
-
-    private void OnMoverReAnchor(Entity<GridVehicleMoverComponent> ent, ref ReAnchorEvent args)
-    {
         TrySyncMoverToCurrentGrid(ent, centerOnTile: false);
     }
 

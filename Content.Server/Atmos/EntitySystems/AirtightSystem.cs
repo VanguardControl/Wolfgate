@@ -19,7 +19,9 @@ namespace Content.Server.Atmos.EntitySystems
             SubscribeLocalEvent<AirtightComponent, ComponentInit>(OnAirtightInit);
             SubscribeLocalEvent<AirtightComponent, ComponentShutdown>(OnAirtightShutdown);
             SubscribeLocalEvent<AirtightComponent, AnchorStateChangedEvent>(OnAirtightPositionChanged);
-            SubscribeLocalEvent<AirtightComponent, ReAnchorEvent>(OnAirtightReAnchor);
+            // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+            // SubscribeLocalEvent<AirtightComponent, ReAnchorEvent>(OnAirtightReAnchor);
+            // WOLFGATE END
             SubscribeLocalEvent<AirtightComponent, MoveEvent>(OnAirtightMoved);
         }
 
@@ -68,18 +70,20 @@ namespace Content.Server.Atmos.EntitySystems
             RaiseLocalEvent(uid, ref airtightEv, true);
         }
 
-        private void OnAirtightReAnchor(EntityUid uid, AirtightComponent airtight, ref ReAnchorEvent args)
-        {
-            foreach (var gridId in new[] { args.OldGrid, args.Grid })
-            {
-                // Update and invalidate new position.
-                airtight.LastPosition = (gridId, args.TilePos);
-                InvalidatePosition(gridId, args.TilePos);
+        // WOLFGATE(EngineCompat) START: engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+        // private void OnAirtightReAnchor(EntityUid uid, AirtightComponent airtight, ref ReAnchorEvent args)
+        // {
+        //     foreach (var gridId in new[] { args.OldGrid, args.Grid })
+        //     {
+        //         // Update and invalidate new position.
+        //         airtight.LastPosition = (gridId, args.TilePos);
+        //         InvalidatePosition(gridId, args.TilePos);
 
-                var airtightEv = new AirtightChanged(uid, airtight, false, (gridId, args.TilePos));
-                RaiseLocalEvent(uid, ref airtightEv, true);
-            }
-        }
+        //         var airtightEv = new AirtightChanged(uid, airtight, false, (gridId, args.TilePos));
+        //         RaiseLocalEvent(uid, ref airtightEv, true);
+        //     }
+        // }
+        // WOLFGATE END
 
         private void OnAirtightMoved(Entity<AirtightComponent> ent, ref MoveEvent ev)
         {

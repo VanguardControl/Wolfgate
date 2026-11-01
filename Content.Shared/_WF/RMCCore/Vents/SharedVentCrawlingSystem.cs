@@ -54,7 +54,6 @@ public abstract partial class SharedVentCrawlingSystem : EntitySystem
         SubscribeLocalEvent<VentExitComponent, VentExitDoafterEvent>(OnVentExitDoafter);
 
         SubscribeLocalEvent<VentCrawlableComponent, MapInitEvent>(OnVentDuctInit);
-        SubscribeLocalEvent<VentCrawlableComponent, ReAnchorEvent>(OnVentReanchor);
         SubscribeLocalEvent<VentCrawlableComponent, MoveEvent>(OnVentDuctMove);
         SubscribeLocalEvent<VentCrawlableComponent, AnchorStateChangedEvent>(OnVentAnchorChanged);
         // WOLFGATE: RMC empties destroyed containers through RMCStorageSystem, which isn't ported; destruction empties the vent instead
@@ -102,18 +101,6 @@ public abstract partial class SharedVentCrawlingSystem : EntitySystem
         Dirty(vent);
     }
 
-    private void OnVentReanchor(Entity<VentCrawlableComponent> vent, ref ReAnchorEvent args)
-    {
-        if (_net.IsClient)
-            return;
-
-        if (vent.Comp.TravelDirection == PipeDirection.Fourway)
-            return;
-
-        vent.Comp.TravelDirection = vent.Comp.OriginalTravelDirection.RotatePipeDirection(Transform(vent).LocalRotation);
-        Dirty(vent);
-    }
-
     private void OnVentDuctMove(Entity<VentCrawlableComponent> vent, ref MoveEvent args)
     {
         if (vent.Comp.TravelDirection == PipeDirection.Fourway)
@@ -126,6 +113,16 @@ public abstract partial class SharedVentCrawlingSystem : EntitySystem
     private void OnVentAnchorChanged(Entity<VentCrawlableComponent> vent, ref AnchorStateChangedEvent args)
     {
         EmptyVent(vent);
+
+        // Before map init OriginalTravelDirection isn't set yet.
+        if (!args.Anchored || _net.IsClient || LifeStage(vent) < EntityLifeStage.MapInitialized)
+            return;
+
+        if (vent.Comp.TravelDirection == PipeDirection.Fourway)
+            return;
+
+        vent.Comp.TravelDirection = vent.Comp.OriginalTravelDirection.RotatePipeDirection(args.Transform.LocalRotation);
+        Dirty(vent);
     }
 
     private void OnVentDestroyed(EntityUid vent, VentCrawlableComponent comp, DestructionEventArgs args)

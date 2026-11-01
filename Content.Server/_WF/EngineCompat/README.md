@@ -210,6 +210,7 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 - [`Content.Server/Anomaly/Effects/ProjectileAnomalySystem.cs`](../../Anomaly/Effects/ProjectileAnomalySystem.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Arcade/SpaceVillainGame/SpaceVillainArcadeComponent.cs`](../../Arcade/SpaceVillainGame/SpaceVillainArcadeComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Atmos/Commands/SetMapAtmosCommand.cs`](../../Atmos/Commands/SetMapAtmosCommand.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
+- [`Content.Server/Atmos/EntitySystems/AirtightSystem.cs`](../../Atmos/EntitySystems/AirtightSystem.cs): engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
 - [`Content.Server/Atmos/EntitySystems/AtmosDebugOverlaySystem.cs`](../../Atmos/EntitySystems/AtmosDebugOverlaySystem.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.Commands.cs`](../../Atmos/EntitySystems/AtmosphereSystem.Commands.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Atmos/EntitySystems/AtmosphereSystem.cs`](../../Atmos/EntitySystems/AtmosphereSystem.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
@@ -254,6 +255,7 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 - [`Content.Server/Construction/Components/ConstructionComponent.cs`](../../Construction/Components/ConstructionComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Construction/Components/MachineFrameComponent.cs`](../../Construction/Components/MachineFrameComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Construction/Conditions/ComponentInTile.cs`](../../Construction/Conditions/ComponentInTile.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
+- [`Content.Server/Construction/ConstructionSystem.Graph.cs`](../../Construction/ConstructionSystem.Graph.cs): engine 292 removed the Anchored setter
 - [`Content.Server/Damage/Components/ExaminableDamageComponent.cs`](../../Damage/Components/ExaminableDamageComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Decals/DecalSystem.cs`](../../Decals/DecalSystem.cs): Engine v291 gives a split-off grid its own origin; decals move by the split offset.
 - [`Content.Server/Destructible/Thresholds/Behaviors/WeightedSpawnEntityBehavior.cs`](../../Destructible/Thresholds/Behaviors/WeightedSpawnEntityBehavior.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
@@ -320,6 +322,7 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 - [`Content.Server/Medical/VomitSystem.cs`](../../Medical/VomitSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Server/Mindshield/MindShieldSystem.cs`](../../Mindshield/MindShieldSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Server/Mobs/DeathgaspComponent.cs`](../../Mobs/DeathgaspComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
+- [`Content.Server/NodeContainer/EntitySystems/NodeContainerSystem.cs`](../../NodeContainer/EntitySystems/NodeContainerSystem.cs): engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
 - [`Content.Server/NPC/HTN/HTNCompoundTask.cs`](../../NPC/HTN/HTNCompoundTask.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/NPC/HTN/PrimitiveTasks/Operators/UtilityOperator.cs`](../../NPC/HTN/PrimitiveTasks/Operators/UtilityOperator.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/NPC/Queries/Curves/PresetCurve.cs`](../../NPC/Queries/Curves/PresetCurve.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
@@ -341,16 +344,19 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 - [`Content.Server/Polymorph/Systems/PolymorphSystem.Map.cs`](../../Polymorph/Systems/PolymorphSystem.Map.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Power/Components/CableComponent.cs`](../../Power/Components/CableComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Power/Components/CablePlacerComponent.cs`](../../Power/Components/CablePlacerComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
+- [`Content.Server/Power/EntitySystems/ExtensionCableSystem.cs`](../../Power/EntitySystems/ExtensionCableSystem.cs): engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
 - [`Content.Server/Power/Generator/ChemicalFuelGeneratorAdapterComponent.cs`](../../Power/Generator/ChemicalFuelGeneratorAdapterComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Power/Generator/SolidFuelGeneratorAdapterComponent.cs`](../../Power/Generator/SolidFuelGeneratorAdapterComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Procedural/DungeonSystem.cs`](../../Procedural/DungeonSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields. Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Procedural/DungeonSystem.Rooms.cs`](../../Procedural/DungeonSystem.Rooms.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
+- [`Content.Server/Radiation/Systems/RadiationSystem.Blockers.cs`](../../Radiation/Systems/RadiationSystem.Blockers.cs): engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
 - [`Content.Server/Radiation/Systems/RadiationSystem.cs`](../../Radiation/Systems/RadiationSystem.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Radiation/Systems/RadiationSystem.GridCast.cs`](../../Radiation/Systems/RadiationSystem.GridCast.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Research/TechnologyDisk/Components/DiskConsoleComponent.cs`](../../Research/TechnologyDisk/Components/DiskConsoleComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Resist/EscapeInventorySystem.cs`](../../Resist/EscapeInventorySystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Server/Revenant/EntitySystems/RevenantSystem.cs`](../../Revenant/EntitySystems/RevenantSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Server/Rotatable/FlippableComponent.cs`](../../Rotatable/FlippableComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
+- [`Content.Server/Rotatable/RotatableSystem.cs`](../../Rotatable/RotatableSystem.cs): engine 292 removed the Anchored setter
 - [`Content.Server/Salvage/Expeditions/SalvageExpeditionComponent.cs`](../../Salvage/Expeditions/SalvageExpeditionComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Salvage/SalvageRulerCommand.cs`](../../Salvage/SalvageRulerCommand.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Salvage/SalvageSystem.cs`](../../Salvage/SalvageSystem.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
@@ -363,7 +369,9 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 - [`Content.Server/Shuttles/Commands/FTLDiskCommand.cs`](../../Shuttles/Commands/FTLDiskCommand.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Server/Shuttles/Components/PriorityDockComponent.cs`](../../Shuttles/Components/PriorityDockComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Shuttles/Components/ThrusterComponent.cs`](../../Shuttles/Components/ThrusterComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
-- [`Content.Server/Shuttles/Systems/DockingSystem.cs`](../../Shuttles/Systems/DockingSystem.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
+- [`Content.Server/Shuttles/Systems/DockingSystem.cs`](../../Shuttles/Systems/DockingSystem.cs)
+  - engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+  - Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Shuttles/Systems/DockingSystem.Shuttle.cs`](../../Shuttles/Systems/DockingSystem.Shuttle.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Shuttles/Systems/EmergencyShuttleSystem.Console.cs`](../../Shuttles/Systems/EmergencyShuttleSystem.Console.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Server/Shuttles/Systems/EmergencyShuttleSystem.cs`](../../Shuttles/Systems/EmergencyShuttleSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
@@ -377,6 +385,9 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 - [`Content.Server/Silicons/Borgs/BorgSystem.cs`](../../Silicons/Borgs/BorgSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Server/Silicons/Laws/IonStormSystem.cs`](../../Silicons/Laws/IonStormSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Server/Silicons/Laws/SiliconLawSystem.cs`](../../Silicons/Laws/SiliconLawSystem.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
+- [`Content.Server/Singularity/EntitySystems/ContainmentFieldGeneratorSystem.cs`](../../Singularity/EntitySystems/ContainmentFieldGeneratorSystem.cs)
+  - engine 292 removed ReAnchorEvent, a grid split now raises the anchor events
+  - a grid split re-anchors through here now
 - [`Content.Server/Singularity/EntitySystems/EventHorizonSystem.cs`](../../Singularity/EntitySystems/EventHorizonSystem.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Server/Spawners/Components/SpawnOnDespawnComponent.cs`](../../Spawners/Components/SpawnOnDespawnComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Server/Speech/Components/AddAccentClothingComponent.cs`](../../Speech/Components/AddAccentClothingComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
@@ -532,7 +543,9 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 - [`Content.Shared/Humanoid/Prototypes/RandomHumanoidSettingsPrototype.cs`](../../../Content.Shared/Humanoid/Prototypes/RandomHumanoidSettingsPrototype.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Shared/Humanoid/Prototypes/SpeciesPrototype.cs`](../../../Content.Shared/Humanoid/Prototypes/SpeciesPrototype.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Shared/Humanoid/SharedHumanoidAppearanceSystem.cs`](../../../Content.Shared/Humanoid/SharedHumanoidAppearanceSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
-- [`Content.Shared/Interaction/SharedInteractionSystem.cs`](../../../Content.Shared/Interaction/SharedInteractionSystem.cs): Engine v280 removed IMapManager; uses SharedMapSystem.
+- [`Content.Shared/Interaction/SharedInteractionSystem.cs`](../../../Content.Shared/Interaction/SharedInteractionSystem.cs)
+  - engine 292 made this event by-ref
+  - Engine v280 removed IMapManager; uses SharedMapSystem.
 - [`Content.Shared/Inventory/InventoryComponent.cs`](../../../Content.Shared/Inventory/InventoryComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Shared/Inventory/InventorySystem.Equip.cs`](../../../Content.Shared/Inventory/InventorySystem.Equip.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Shared/Inventory/VirtualItem/SharedVirtualItemSystem.cs`](../../../Content.Shared/Inventory/VirtualItem/SharedVirtualItemSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
@@ -604,6 +617,7 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 - [`Content.Shared/Silicons/Borgs/SharedBorgSwitchableTypeSystem.cs`](../../../Content.Shared/Silicons/Borgs/SharedBorgSwitchableTypeSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Shared/Silicons/Laws/SiliconLawsetPrototype.cs`](../../../Content.Shared/Silicons/Laws/SiliconLawsetPrototype.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Shared/Silicons/StationAi/SharedStationAiSystem.cs`](../../../Content.Shared/Silicons/StationAi/SharedStationAiSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
+- [`Content.Shared/Silicons/StationAi/SharedStationAiSystem.Held.cs`](../../../Content.Shared/Silicons/StationAi/SharedStationAiSystem.Held.cs): engine 292 made this event by-ref
 - [`Content.Shared/Singularity/Components/ContainmentFieldGeneratorComponent.cs`](../../../Content.Shared/Singularity/Components/ContainmentFieldGeneratorComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Shared/Singularity/Components/SharedEmitterComponent.cs`](../../../Content.Shared/Singularity/Components/SharedEmitterComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Shared/Singularity/Components/SingularityGeneratorComponent.cs`](../../../Content.Shared/Singularity/Components/SingularityGeneratorComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
@@ -621,7 +635,9 @@ listed under `unmarked` in `Tools/_WF/Ci/modules.yml` with the engine change it 
 - [`Content.Shared/StationRecords/StationRecordKey.cs`](../../../Content.Shared/StationRecords/StationRecordKey.cs): Engine v282 requires data definitions for [DataField] types.
 - [`Content.Shared/StatusIcon/StatusIconPrototype.cs`](../../../Content.Shared/StatusIcon/StatusIconPrototype.cs): Engine v282 requires data definitions for [DataField] types.
 - [`Content.Shared/Storage/EntitySpawnEntry.cs`](../../../Content.Shared/Storage/EntitySpawnEntry.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
-- [`Content.Shared/Storage/EntitySystems/SharedStorageSystem.cs`](../../../Content.Shared/Storage/EntitySystems/SharedStorageSystem.cs): Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
+- [`Content.Shared/Storage/EntitySystems/SharedStorageSystem.cs`](../../../Content.Shared/Storage/EntitySystems/SharedStorageSystem.cs)
+  - engine 292 made this event by-ref
+  - Engine v289 removed [ValidatePrototypeId]; its constants became ProtoId fields.
 - [`Content.Shared/Store/CurrencyPrototype.cs`](../../../Content.Shared/Store/CurrencyPrototype.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Shared/Store/StorePresetPrototype.cs`](../../../Content.Shared/Store/StorePresetPrototype.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
 - [`Content.Shared/SurveillanceCamera/Components/SurveillanceCameraComponent.cs`](../../../Content.Shared/SurveillanceCamera/Components/SurveillanceCameraComponent.cs): Engine v289 removed the PrototypeId serializers; uses the EngineCompat copies.
