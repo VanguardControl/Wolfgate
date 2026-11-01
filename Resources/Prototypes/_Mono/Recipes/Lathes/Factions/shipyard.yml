@@ -155,8 +155,8 @@
 
 - type: latheRecipe
   parent: BaseVoucherRecipe
-  id: ShipVoucherFoxtrotIIRecipe
-  result: ShipVoucherFoxtrotII
+  id: ShipVoucherFoxtrot2Recipe
+  result: ShipVoucherFoxtrot2
   completetime: 240
   materialDiscountScale: 0.2
   materials:

@@ -23,7 +23,7 @@
 # PDV Voucher for Foxtrot-II
 - type: entity
   parent: BaseShipLPCRenewable
-  id: ShipVoucherFoxtrot-II
+  id: ShipVoucherFoxtrot2
   name: PDV Foxtrot-II LPC [T4]
   description: A small card that authorizes the procurement of a Foxtrot-II stealth ship.
   components:
