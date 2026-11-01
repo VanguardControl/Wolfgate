@@ -149,6 +149,29 @@ public sealed class SpeechVoiceLinesTest
         await pair.CleanReturnAsync();
     }
 
+    [Test]
+    public async Task VolumeAtZeroPlaysNothing()
+    {
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        var client = pair.Client;
+        var voices = client.EntMan.System<SpeechVoiceSystem>();
+
+        await client.WaitPost(() =>
+        {
+            var start = voices.ActiveLines;
+
+            client.CfgMan.SetCVar(SpeechVoiceCVars.Volume, 0f);
+            voices.Preview(LongLine, new SpeechVoice());
+            Assert.That(voices.ActiveLines, Is.EqualTo(start), "a muted voice isn't rendered");
+
+            client.CfgMan.SetCVar(SpeechVoiceCVars.Volume, SpeechVoiceCVars.Volume.DefaultValue);
+            voices.Preview(LongLine, new SpeechVoice());
+            Assert.That(voices.ActiveLines, Is.EqualTo(start + 1));
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
     private static async Task<EntityUid> SpawnListener(TestPair pair, EntityCoordinates coords)
     {
         var entMan = pair.Server.EntMan;

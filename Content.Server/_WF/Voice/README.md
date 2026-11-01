@@ -64,7 +64,9 @@ most 8 at once, 4 of them radio and 2 from one source) and `SpeechVoiceSynth` (r
 
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml): voice tab, filled in by HumanoidProfileEditor.SpeechVoice.cs
 - [`Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs`](../../../Content.Client/Lobby/UI/HumanoidProfileEditor.xaml.cs)
-- [`Content.Client/Options/UI/Tabs/AudioTab.xaml`](../../../Content.Client/Options/UI/Tabs/AudioTab.xaml): toggle for character voices
+- [`Content.Client/Options/UI/Tabs/AudioTab.xaml`](../../../Content.Client/Options/UI/Tabs/AudioTab.xaml)
+  - volume for character voices
+  - toggle for character voices
 - [`Content.Client/Options/UI/Tabs/AudioTab.xaml.cs`](../../../Content.Client/Options/UI/Tabs/AudioTab.xaml.cs)
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs): the voice settings as JSON, null in rows saved before voices existed.
 - [`Content.Server/Database/ServerDbBase.cs`](../../Database/ServerDbBase.cs)

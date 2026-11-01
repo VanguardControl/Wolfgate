@@ -25,3 +25,4 @@ speech-voice-filter-insect = Insect
 speech-voice-filter-ghost = Ghost
 
 ui-options-speech-voices = Play character voices
+ui-options-speech-voices-volume = Character voices

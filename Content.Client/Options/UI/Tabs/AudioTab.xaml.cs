@@ -55,6 +55,8 @@ public sealed partial class AudioTab : Control
             SliderVolumeInterface,
             scale: ContentAudioSystem.InterfaceMultiplier);
 
+        Control.AddOptionPercentSlider(SpeechVoiceCVars.Volume, SliderVolumeVoices, max: SpeechVoiceCVars.MaxVolume); // WOLFGATE(Voice)
+
         Control.AddOptionSlider(
             CCVars.MaxAmbientSources,
             SliderMaxAmbienceSounds,

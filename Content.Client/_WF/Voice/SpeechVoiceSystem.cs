@@ -4,6 +4,7 @@ using Content.Shared.Speech;
 using Robust.Client.Audio;
 using Robust.Shared.Audio;
 using Robust.Shared.Audio.Components;
+using Robust.Shared.Audio.Systems;
 using Robust.Shared.Configuration;
 using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
@@ -54,6 +55,7 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
     private readonly Dictionary<EntityUid, TimeSpan> _lastChatter = new();
 
     private bool _enabled;
+    private float _volume = 1f;
 
     /// <summary>Lines rendering or playing right now.</summary>
     public int ActiveLines => _rendering.Count + _playing.Count;
@@ -67,6 +69,7 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         SubscribeLocalEvent<SpeechVoiceComponent, ComponentShutdown>(OnComponentShutdown);
 
         Subs.CVar(_cfg, SpeechVoiceCVars.Enabled, value => _enabled = value, true);
+        Subs.CVar(_cfg, SpeechVoiceCVars.Volume, value => _volume = Math.Clamp(value, 0f, SpeechVoiceCVars.MaxVolume), true);
     }
 
     public override void Shutdown()
@@ -211,7 +214,8 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
 
     private void Queue(string text, SpeechVoice voice, EntityUid? source, bool whisper, bool radio)
     {
-        if (!CanQueue(source, radio))
+        // Turned all the way down, so don't spend the render.
+        if (_volume <= 0f || !CanQueue(source, radio))
             return;
 
         var buffers = _freeBuffers.Count > 0 ? _freeBuffers.Pop() : new SpeechVoiceBuffers();
@@ -273,7 +277,7 @@ public sealed partial class SpeechVoiceSystem : EntitySystem
         var stream = _audioManager.LoadAudioRaw(samples, 1, SpeechVoiceSynth.SampleRate);
         var audioParams = AudioParams.Default
             .WithMaxDistance(whisper ? SpeechVoice.WhisperRange : SpeechVoice.VoiceRange)
-            .WithVolume(radio ? RadioVolume : whisper ? WhisperVolume : 0f);
+            .WithVolume((radio ? RadioVolume : whisper ? WhisperVolume : 0f) + SharedAudioSystem.GainToVolume(_volume));
 
         var playing = source is { } entity
             ? _audio.PlayEntity(stream, entity, null, audioParams)
