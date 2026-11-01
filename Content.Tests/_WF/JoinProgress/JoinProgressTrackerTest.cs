@@ -168,6 +168,20 @@ public sealed class JoinProgressTrackerTest
         Assert.That(JoinConsoleText.Row("long enough text", "1 s", 5), Is.EqualTo("long enough text . 1 s"));
     }
 
+    [TestCase(72, 7, 1f, 504f)]
+    [TestCase(72, 10, 1.5f, 480f)]
+    public void ConsoleWidthFollowsTheRoundedAdvance(int columns, int advance, float scale, float expected)
+    {
+        Assert.That(JoinConsoleText.WidthOf(columns, advance, scale), Is.EqualTo(expected).Within(0.001f));
+    }
+
+    [TestCase(578f, 7, 1f, 82)]
+    [TestCase(578f, 10, 1.5f, 86)]
+    public void TipColumnsFitTheirWidth(float width, int advance, float scale, int expected)
+    {
+        Assert.That(JoinConsoleText.ColumnsIn(width, advance, scale), Is.EqualTo(expected));
+    }
+
     [Test]
     public void TipsWrapAtSpaces()
     {

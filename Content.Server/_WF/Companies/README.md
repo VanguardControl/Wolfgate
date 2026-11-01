@@ -213,6 +213,7 @@ tables via `ServerDbBase.Companies`); it reloads at each round restart once pend
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs)
   - player-run companies, their ranks, members and ledger
   - names and tags are unique; a character's membership goes with the character
+  - a company's ship licences
 - [`Content.Server/_Mono/Company/CompanySystem.cs`](../../_Mono/Company/CompanySystem.cs): player companies replace the profile company; jobs still set factions
 - [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs): a member's ship flies under their company
 - [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.cs): company hangar ships belong to the company and can't be sold

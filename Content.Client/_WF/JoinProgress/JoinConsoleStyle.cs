@@ -22,6 +22,7 @@ public sealed class JoinConsoleStyle
     public Color Warn { get; }
     public Color Fail { get; }
     public Color Tape { get; }
+    public Font Font { get; }
     public Stylesheet Sheet { get; }
 
     public JoinConsoleStyle(WolfgateSkin skin, IResourceCache cache)
@@ -34,6 +35,7 @@ public sealed class JoinConsoleStyle
         Tape = skin.AccentDim;
 
         var font = cache.GetFont(skin.MonoFonts, FontSize);
+        Font = font;
         var title = cache.GetFont(skin.DisplayFonts, TitleFontSize);
 
         var panel = new StyleBoxFlat

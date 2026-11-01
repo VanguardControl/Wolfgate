@@ -1,0 +1,42 @@
+- type: entity
+  parent: ArcadeBase
+  id: WFDoomArcade
+  name: freedoom arcade
+  description: An arcade cabinet running Freedoom.
+  components:
+  - type: ActivatableUI
+    key: enum.DoomArcadeUiKey.Key
+  - type: ActivatableUIRequiresPower
+  - type: UserInterface
+    interfaces:
+      enum.DoomArcadeUiKey.Key:
+        type: DoomArcadeBoundUserInterface
+      enum.WiresUiKey.Key:
+        type: WiresBoundUserInterface
+  - type: WFGameCabinet
+  - type: Computer
+    board: WFDoomArcadeComputerCircuitboard
+
+# Sold by John Wolfgate and the Wolfgate vendor.
+- type: entity
+  parent: BaseNFFlatpack
+  id: WFDoomArcadeFlatpack
+  name: freedoom arcade flatpack
+  description: A flatpack used for constructing a freedoom arcade cabinet.
+  components:
+  - type: Flatpack
+    entity: WFDoomArcade
+  - type: Sprite
+    layers:
+    - state: service_music
+  - type: StaticPrice
+    price: 1500
+
+- type: entity
+  parent: BaseComputerCircuitboard
+  id: WFDoomArcadeComputerCircuitboard
+  name: freedoom arcade board
+  description: A computer printed circuit board for a freedoom arcade cabinet.
+  components:
+  - type: ComputerBoard
+    prototype: WFDoomArcade

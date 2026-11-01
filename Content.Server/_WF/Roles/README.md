@@ -58,6 +58,7 @@ job's `AddComponentSpecial`, has `WFRadioOnJoinSystem` report the arrival on a r
   - it edits the same role loadout
   - close the custom job title window
 - [`Content.Server.Database/Model.cs`](../../../Content.Server.Database/Model.cs): custom job title
+- [`Content.Server/_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs`](../../_NF/Shipyard/Systems/ShipyardSystem.Consoles.cs): a company rank or custom title stays on the ID
 - [`Content.Server/Administration/Systems/AdminSystem.cs`](../../Administration/Systems/AdminSystem.cs): real job plus custom title
 - [`Content.Server/Database/ServerDbBase.cs`](../../Database/ServerDbBase.cs)
 - [`Content.Server/GameTicking/GameTicker.Spawning.cs`](../../GameTicking/GameTicker.Spawning.cs): custom title

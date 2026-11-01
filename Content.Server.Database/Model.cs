@@ -67,6 +67,8 @@ namespace Content.Server.Database
         public DbSet<WolfgateCompanyApplication> WolfgateCompanyApplication { get; set; } = null!;
         // WOLFGATE END
 
+        public DbSet<WolfgateGameScore> WolfgateGameScore { get; set; } = null!; // WOLFGATE(GameHub): best level scores
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Preference>()
@@ -485,6 +487,15 @@ namespace Content.Server.Database
 
             modelBuilder.Entity<WolfgateFeedbackReport>()
                 .HasIndex(r => r.Status);
+            // WOLFGATE END
+
+            // WOLFGATE(GameHub) START: one best score per player, game and level
+            modelBuilder.Entity<WolfgateGameScore>()
+                .HasIndex(s => new { s.PlayerUserId, s.Game, s.Level })
+                .IsUnique();
+
+            modelBuilder.Entity<WolfgateGameScore>()
+                .HasIndex(s => s.Game);
             // WOLFGATE END
 
             // WOLFGATE(Companies) START: names and tags are unique; a character's membership goes with the character
@@ -2059,6 +2070,31 @@ namespace Content.Server.Database
         public string Note { get; set; } = "";
     }
 
+    // WOLFGATE END
+
+    // WOLFGATE(GameHub) START: a player's best score on one level of a hub game
+    public class WolfgateGameScore
+    {
+        [Key]
+        public int Id { get; set; }
+
+        public Guid PlayerUserId { get; set; }
+
+        [Required, MaxLength(64)]
+        public string PlayerName { get; set; } = "";
+
+        [Required, MaxLength(64)]
+        public string Game { get; set; } = "";
+
+        public int Level { get; set; }
+
+        public int Score { get; set; }
+
+        public DateTime Time { get; set; }
+    }
+    // WOLFGATE END
+
+    // WOLFGATE(Companies) START: a company's ship licences
     /// <summary>A company's permanent right to launch one copy of a ship design each round.</summary>
     public class WolfgateCompanyLicence
     {

@@ -9,6 +9,18 @@ public static class JoinConsoleText
     private const int ScannerSize = 6;
     private const double ScannerCellsPerSecond = 14;
 
+    /// <summary>UI width of a number of columns. Glyph advances round to whole pixels, so this changes with UI scale.</summary>
+    public static float WidthOf(int columns, int advance, float scale)
+    {
+        return columns * advance / scale;
+    }
+
+    /// <summary>How many whole columns fit in a UI width.</summary>
+    public static int ColumnsIn(float width, int advance, float scale)
+    {
+        return (int) (width * scale / advance);
+    }
+
     /// <summary>A bar filled to a fraction: <c>[####......]</c>.</summary>
     public static string Bar(float fraction, int width)
     {

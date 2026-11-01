@@ -26,7 +26,7 @@ public sealed class JoinConsoleHazard : Control
         for (var x = 0f; x < PixelWidth; x += stripe)
         {
             if (on)
-                handle.DrawRect(new UIBox2(x, 0, x + stripe, PixelHeight), _style.Tape);
+                handle.DrawRect(new UIBox2(x, 0, MathF.Min(x + stripe, PixelWidth), PixelHeight), _style.Tape);
 
             on = !on;
         }
