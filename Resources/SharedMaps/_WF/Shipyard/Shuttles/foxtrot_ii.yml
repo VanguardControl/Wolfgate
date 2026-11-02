@@ -5,14 +5,13 @@ meta:
   forkId: wolfgate-mapping
   forkVersion: 20261101-064204-8e89069-tm231-98b87804
   time: 11/01/2026 13:11:32
-  entityCount: 1420
+  entityCount: 1418
 maps: []
 grids:
 - 1
 orphans:
 - 1
-nullspace:
-- 1390
+nullspace: []
 tilemap:
   3: Space
   19: FloorDark
@@ -41,8 +40,6 @@ entities:
 - proto: ""
   entities:
   - uid: 1
-    mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: Foxtrot-II
@@ -479,12 +476,9 @@ entities:
       flags: HideLabel, IsPlayerShuttle
       color: '#FFFFFFFF'
       address: ' 355F-2771'
-    - type: StationMember
-      station: 1390
     - type: ShipShieldDisabledGrid
   - uid: 4
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - glass
@@ -503,7 +497,6 @@ entities:
       container: 3
   - uid: 6
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - beaker
@@ -519,7 +512,6 @@ entities:
       container: 5
   - uid: 8
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - beaker
@@ -535,7 +527,6 @@ entities:
       container: 7
   - uid: 9
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - lube
@@ -551,7 +542,6 @@ entities:
       container: 2
   - uid: 18
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -567,7 +557,6 @@ entities:
       container: 17
   - uid: 20
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - food
@@ -586,7 +575,6 @@ entities:
       container: 19
   - uid: 23
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - pen
@@ -608,7 +596,6 @@ entities:
       container: 22
   - uid: 35
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -630,7 +617,6 @@ entities:
       container: 34
   - uid: 37
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - hvcable
@@ -655,7 +641,6 @@ entities:
       container: 36
   - uid: 39
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - food
@@ -678,7 +663,6 @@ entities:
       container: 38
   - uid: 53
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - glass
@@ -697,7 +681,6 @@ entities:
       container: 52
   - uid: 60
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - glass
@@ -716,7 +699,6 @@ entities:
       container: 59
   - uid: 67
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - glass
@@ -735,7 +717,6 @@ entities:
       container: 66
   - uid: 74
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - glass
@@ -754,7 +735,6 @@ entities:
       container: 73
   - uid: 81
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - glass
@@ -773,7 +753,6 @@ entities:
       container: 80
   - uid: 88
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - glass
@@ -792,7 +771,6 @@ entities:
       container: 87
   - uid: 95
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - glass
@@ -811,7 +789,6 @@ entities:
       container: 94
   - uid: 102
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - glass
@@ -830,7 +807,6 @@ entities:
       container: 101
   - uid: 109
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - food
@@ -849,7 +825,6 @@ entities:
       container: 108
   - uid: 112
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - Welder
@@ -868,7 +843,6 @@ entities:
       container: 111
   - uid: 124
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - beaker
@@ -884,7 +858,6 @@ entities:
       container: 123
   - uid: 126
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - beaker
@@ -900,7 +873,6 @@ entities:
       container: 125
   - uid: 127
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - lube
@@ -916,7 +888,6 @@ entities:
       container: 122
   - uid: 135
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - hvcable
@@ -941,7 +912,6 @@ entities:
       container: 134
   - uid: 137
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -957,7 +927,6 @@ entities:
       container: 136
   - uid: 139
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -973,7 +942,6 @@ entities:
       container: 138
   - uid: 141
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -989,7 +957,6 @@ entities:
       container: 140
   - uid: 143
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1005,7 +972,6 @@ entities:
       container: 142
   - uid: 145
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1021,7 +987,6 @@ entities:
       container: 144
   - uid: 147
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1037,7 +1002,6 @@ entities:
       container: 146
   - uid: 149
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1053,7 +1017,6 @@ entities:
       container: 148
   - uid: 151
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1069,7 +1032,6 @@ entities:
       container: 150
   - uid: 163
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - hvcable
@@ -1094,7 +1056,6 @@ entities:
       container: 162
   - uid: 165
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1110,7 +1071,6 @@ entities:
       container: 164
   - uid: 167
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1126,7 +1086,6 @@ entities:
       container: 166
   - uid: 169
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1142,7 +1101,6 @@ entities:
       container: 168
   - uid: 171
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1158,7 +1116,6 @@ entities:
       container: 170
   - uid: 173
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1174,7 +1131,6 @@ entities:
       container: 172
   - uid: 175
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1190,7 +1146,6 @@ entities:
       container: 174
   - uid: 177
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1206,7 +1161,6 @@ entities:
       container: 176
   - uid: 179
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1222,7 +1176,6 @@ entities:
       container: 178
   - uid: 191
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - hvcable
@@ -1247,7 +1200,6 @@ entities:
       container: 190
   - uid: 193
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1263,7 +1215,6 @@ entities:
       container: 192
   - uid: 195
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1279,7 +1230,6 @@ entities:
       container: 194
   - uid: 197
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1295,7 +1245,6 @@ entities:
       container: 196
   - uid: 199
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1311,7 +1260,6 @@ entities:
       container: 198
   - uid: 201
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1327,7 +1275,6 @@ entities:
       container: 200
   - uid: 203
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1343,7 +1290,6 @@ entities:
       container: 202
   - uid: 205
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1359,7 +1305,6 @@ entities:
       container: 204
   - uid: 207
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1375,7 +1320,6 @@ entities:
       container: 206
   - uid: 219
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - hvcable
@@ -1400,7 +1344,6 @@ entities:
       container: 218
   - uid: 221
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1416,7 +1359,6 @@ entities:
       container: 220
   - uid: 223
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1432,7 +1374,6 @@ entities:
       container: 222
   - uid: 225
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1448,7 +1389,6 @@ entities:
       container: 224
   - uid: 227
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1464,7 +1404,6 @@ entities:
       container: 226
   - uid: 229
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1480,7 +1419,6 @@ entities:
       container: 228
   - uid: 231
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1496,7 +1434,6 @@ entities:
       container: 230
   - uid: 233
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1512,7 +1449,6 @@ entities:
       container: 232
   - uid: 235
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1528,7 +1464,6 @@ entities:
       container: 234
   - uid: 247
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - hvcable
@@ -1553,7 +1488,6 @@ entities:
       container: 246
   - uid: 249
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1569,7 +1503,6 @@ entities:
       container: 248
   - uid: 251
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1585,7 +1518,6 @@ entities:
       container: 250
   - uid: 253
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1601,7 +1533,6 @@ entities:
       container: 252
   - uid: 255
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1617,7 +1548,6 @@ entities:
       container: 254
   - uid: 257
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1633,7 +1563,6 @@ entities:
       container: 256
   - uid: 259
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1649,7 +1578,6 @@ entities:
       container: 258
   - uid: 261
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1665,7 +1593,6 @@ entities:
       container: 260
   - uid: 263
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1681,7 +1608,6 @@ entities:
       container: 262
   - uid: 275
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - lvcable
@@ -1703,7 +1629,6 @@ entities:
       container: 274
   - uid: 277
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -1725,7 +1650,6 @@ entities:
       container: 276
   - uid: 283
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - mvcable
@@ -1747,7 +1671,6 @@ entities:
       container: 282
   - uid: 285
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - hvcable
@@ -1772,7 +1695,6 @@ entities:
       container: 284
   - uid: 287
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1788,7 +1710,6 @@ entities:
       container: 286
   - uid: 292
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - mvcable
@@ -1810,7 +1731,6 @@ entities:
       container: 291
   - uid: 294
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - hvcable
@@ -1835,7 +1755,6 @@ entities:
       container: 293
   - uid: 296
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - battery
@@ -1851,7 +1770,6 @@ entities:
       container: 295
   - uid: 301
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - food
@@ -1870,7 +1788,6 @@ entities:
       container: 300
   - uid: 317
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - food
@@ -1889,7 +1806,6 @@ entities:
       container: 316
   - uid: 333
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - food
@@ -1908,7 +1824,6 @@ entities:
       container: 332
   - uid: 349
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -1930,7 +1845,6 @@ entities:
       container: 348
   - uid: 354
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -1952,7 +1866,6 @@ entities:
       container: 353
   - uid: 359
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -1974,7 +1887,6 @@ entities:
       container: 358
   - uid: 364
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -1996,7 +1908,6 @@ entities:
       container: 363
   - uid: 369
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2018,7 +1929,6 @@ entities:
       container: 368
   - uid: 374
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2040,7 +1950,6 @@ entities:
       container: 373
   - uid: 379
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2062,7 +1971,6 @@ entities:
       container: 378
   - uid: 384
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2084,7 +1992,6 @@ entities:
       container: 383
   - uid: 389
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2106,7 +2013,6 @@ entities:
       container: 388
   - uid: 394
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2128,7 +2034,6 @@ entities:
       container: 393
   - uid: 399
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2150,7 +2055,6 @@ entities:
       container: 398
   - uid: 404
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2172,7 +2076,6 @@ entities:
       container: 403
   - uid: 409
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2194,7 +2097,6 @@ entities:
       container: 408
   - uid: 414
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2216,7 +2118,6 @@ entities:
       container: 413
   - uid: 419
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2238,7 +2139,6 @@ entities:
       container: 418
   - uid: 424
     mapInit: true
-    paused: true
     components:
     - type: MetaData
       name: solution - steel
@@ -2262,7 +2162,6 @@ entities:
   entities:
   - uid: 428
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 427
@@ -2274,7 +2173,6 @@ entities:
       canCollide: False
   - uid: 430
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 429
@@ -2288,7 +2186,6 @@ entities:
   entities:
   - uid: 304
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 303
@@ -2297,7 +2194,6 @@ entities:
       container: 303
   - uid: 318
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 316
@@ -2306,7 +2202,6 @@ entities:
       container: 316
   - uid: 321
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 320
@@ -2315,7 +2210,6 @@ entities:
       container: 320
   - uid: 334
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 332
@@ -2324,7 +2218,6 @@ entities:
       container: 332
   - uid: 337
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 336
@@ -2335,7 +2228,6 @@ entities:
   entities:
   - uid: 307
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 306
@@ -2344,7 +2236,6 @@ entities:
       container: 306
   - uid: 308
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 306
@@ -2354,7 +2245,6 @@ entities:
       attachedEntity: 306
   - uid: 324
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 323
@@ -2363,7 +2253,6 @@ entities:
       container: 323
   - uid: 325
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 323
@@ -2373,7 +2262,6 @@ entities:
       attachedEntity: 323
   - uid: 340
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 339
@@ -2382,7 +2270,6 @@ entities:
       container: 339
   - uid: 341
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 339
@@ -2394,7 +2281,6 @@ entities:
   entities:
   - uid: 302
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 300
@@ -2404,7 +2290,6 @@ entities:
       attachedEntity: 300
   - uid: 319
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 316
@@ -2414,7 +2299,6 @@ entities:
       attachedEntity: 316
   - uid: 335
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 332
@@ -2426,7 +2310,6 @@ entities:
   entities:
   - uid: 309
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 305
@@ -2436,7 +2319,6 @@ entities:
       container: 305
   - uid: 326
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 322
@@ -2446,7 +2328,6 @@ entities:
       container: 322
   - uid: 342
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 338
@@ -2458,7 +2339,6 @@ entities:
   entities:
   - uid: 432
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 431
@@ -2470,7 +2350,6 @@ entities:
   entities:
   - uid: 433
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -2500,7 +2379,6 @@ entities:
           occludes: True
   - uid: 435
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -2530,7 +2408,6 @@ entities:
           occludes: True
   - uid: 437
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -2558,7 +2435,6 @@ entities:
           occludes: True
   - uid: 439
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -2588,7 +2464,6 @@ entities:
           occludes: True
   - uid: 441
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -2618,7 +2493,6 @@ entities:
           occludes: True
   - uid: 443
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -2648,7 +2522,6 @@ entities:
           occludes: True
   - uid: 445
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -2678,7 +2551,6 @@ entities:
           occludes: True
   - uid: 447
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -2710,7 +2582,6 @@ entities:
   entities:
   - uid: 434
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 433
@@ -2720,7 +2591,6 @@ entities:
       canCollide: False
   - uid: 436
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 435
@@ -2730,7 +2600,6 @@ entities:
       canCollide: False
   - uid: 438
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 437
@@ -2740,7 +2609,6 @@ entities:
       canCollide: False
   - uid: 440
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 439
@@ -2750,7 +2618,6 @@ entities:
       canCollide: False
   - uid: 442
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 441
@@ -2760,7 +2627,6 @@ entities:
       canCollide: False
   - uid: 444
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 443
@@ -2770,7 +2636,6 @@ entities:
       canCollide: False
   - uid: 446
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 445
@@ -2780,7 +2645,6 @@ entities:
       canCollide: False
   - uid: 448
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 447
@@ -2792,7 +2656,6 @@ entities:
   entities:
   - uid: 118
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 107
@@ -2829,7 +2692,6 @@ entities:
   entities:
   - uid: 452
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -2865,7 +2727,6 @@ entities:
   entities:
   - uid: 456
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -2980,21 +2841,18 @@ entities:
   entities:
   - uid: 475
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -0.5,-3.5
   - uid: 476
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 0.5,-3.5
   - uid: 477
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3615,7 +3473,6 @@ entities:
   entities:
   - uid: 2
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3681,7 +3538,6 @@ entities:
   entities:
   - uid: 10
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 2
@@ -3693,7 +3549,6 @@ entities:
   entities:
   - uid: 478
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3701,7 +3556,6 @@ entities:
       pos: 6.5,0.5
   - uid: 479
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3709,7 +3563,6 @@ entities:
       pos: 4.5,1.5
   - uid: 480
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3717,7 +3570,6 @@ entities:
       pos: -3.5,1.5
   - uid: 481
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3727,7 +3579,6 @@ entities:
   entities:
   - uid: 482
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3741,7 +3592,6 @@ entities:
         storage: {}
   - uid: 483
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3755,7 +3605,6 @@ entities:
         storage: {}
   - uid: 484
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3769,7 +3618,6 @@ entities:
         storage: {}
   - uid: 485
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3783,7 +3631,6 @@ entities:
         storage: {}
   - uid: 486
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3797,7 +3644,6 @@ entities:
         storage: {}
   - uid: 487
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3813,7 +3659,6 @@ entities:
   entities:
   - uid: 5
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 2
@@ -3837,7 +3682,6 @@ entities:
           ent: 6
   - uid: 7
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 2
@@ -3861,7 +3705,6 @@ entities:
           ent: 8
   - uid: 123
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 122
@@ -3885,7 +3728,6 @@ entities:
           ent: 124
   - uid: 125
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 122
@@ -3911,7 +3753,6 @@ entities:
   entities:
   - uid: 488
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -3925,7 +3766,6 @@ entities:
   entities:
   - uid: 24
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 21
@@ -3937,7 +3777,6 @@ entities:
   entities:
   - uid: 491
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 490
@@ -3949,7 +3788,6 @@ entities:
   entities:
   - uid: 25
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 21
@@ -3959,7 +3797,6 @@ entities:
       canCollide: False
   - uid: 26
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 21
@@ -3971,602 +3808,516 @@ entities:
   entities:
   - uid: 501
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 20.5,1.5
   - uid: 502
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 20.5,0.5
   - uid: 503
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 14.5,0.5
   - uid: 504
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 15.5,0.5
   - uid: 505
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 15.5,1.5
   - uid: 506
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 16.5,0.5
   - uid: 507
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 17.5,0.5
   - uid: 508
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 18.5,0.5
   - uid: 509
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 7.5,2.5
   - uid: 510
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,2.5
   - uid: 511
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 9.5,2.5
   - uid: 512
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,2.5
   - uid: 513
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,1.5
   - uid: 514
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 11.5,1.5
   - uid: 515
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 12.5,1.5
   - uid: 516
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 13.5,1.5
   - uid: 517
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 7.5,0.5
   - uid: 518
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 6.5,0.5
   - uid: 519
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 5.5,0.5
   - uid: 520
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 5.5,1.5
   - uid: 521
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 5.5,2.5
   - uid: 522
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 5.5,3.5
   - uid: 523
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 5.5,4.5
   - uid: 524
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 4.5,0.5
   - uid: 525
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 1.5,2.5
   - uid: 526
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 1.5,1.5
   - uid: 527
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 1.5,0.5
   - uid: 528
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 1.5,-0.5
   - uid: 529
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 0.5,-0.5
   - uid: 530
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 0.5,-1.5
   - uid: 531
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -0.5,-1.5
   - uid: 532
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -1.5,-1.5
   - uid: 533
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -0.5,-0.5
   - uid: 534
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -0.5,0.5
   - uid: 535
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -0.5,1.5
   - uid: 536
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -0.5,3.5
   - uid: 538
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 0.5,3.5
   - uid: 539
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 1.5,3.5
   - uid: 540
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 0.5,4.5
   - uid: 541
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 0.5,5.5
   - uid: 542
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,0.5
   - uid: 543
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -5.5,0.5
   - uid: 544
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -4.5,0.5
   - uid: 545
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -3.5,0.5
   - uid: 546
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -4.5,1.5
   - uid: 547
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -4.5,2.5
   - uid: 548
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -4.5,3.5
   - uid: 549
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -4.5,4.5
   - uid: 550
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,2.5
   - uid: 551
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -7.5,2.5
   - uid: 552
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -8.5,2.5
   - uid: 553
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,2.5
   - uid: 554
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,1.5
   - uid: 555
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -10.5,1.5
   - uid: 556
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -11.5,1.5
   - uid: 557
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -12.5,1.5
   - uid: 558
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -13.5,0.5
   - uid: 559
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -14.5,0.5
   - uid: 560
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -15.5,0.5
   - uid: 561
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -16.5,0.5
   - uid: 562
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -17.5,0.5
   - uid: 563
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -19.5,1.5
   - uid: 564
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -19.5,0.5
   - uid: 565
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 0.5,-2.5
   - uid: 566
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,3.5
   - uid: 567
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,4.5
   - uid: 568
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,5.5
   - uid: 569
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,3.5
   - uid: 570
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,4.5
   - uid: 571
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,5.5
   - uid: 572
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -15.5,1.5
   - uid: 573
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -15.5,2.5
   - uid: 574
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 16.5,1.5
   - uid: 575
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 16.5,2.5
   - uid: 576
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 21.5,0.5
   - uid: 577
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 22.5,0.5
   - uid: 578
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 24.5,0.5
   - uid: 579
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 25.5,0.5
   - uid: 580
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -20.5,0.5
   - uid: 581
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -22.5,0.5
   - uid: 582
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -23.5,0.5
   - uid: 583
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -24.5,0.5
   - uid: 584
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -25.5,0.5
   - uid: 585
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -21.5,0.5
   - uid: 586
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 23.5,0.5
   - uid: 587
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -4638,112 +4389,96 @@ entities:
       pos: 1.5,8.5
   - uid: 602
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -11.5,-0.5
   - uid: 603
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,-0.5
   - uid: 604
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -13.5,-0.5
   - uid: 605
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -12.5,-0.5
   - uid: 606
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -7.5,-0.5
   - uid: 607
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 14.5,-0.5
   - uid: 608
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -8.5,-0.5
   - uid: 609
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -10.5,-0.5
   - uid: 610
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 13.5,-0.5
   - uid: 611
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 12.5,-0.5
   - uid: 612
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 11.5,-0.5
   - uid: 613
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,-0.5
   - uid: 614
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 9.5,-0.5
   - uid: 615
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,-0.5
   - uid: 616
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 7.5,-0.5
   - uid: 617
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -4752,7 +4487,6 @@ entities:
   entities:
   - uid: 274
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 273
@@ -4774,196 +4508,168 @@ entities:
   entities:
   - uid: 618
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 13.5,1.5
   - uid: 619
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 12.5,0.5
   - uid: 620
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 9.5,0.5
   - uid: 621
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,0.5
   - uid: 622
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 11.5,0.5
   - uid: 623
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,1.5
   - uid: 624
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -10.5,0.5
   - uid: 625
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -8.5,1.5
   - uid: 626
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,1.5
   - uid: 627
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 9.5,1.5
   - uid: 628
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,3.5
   - uid: 629
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,2.5
   - uid: 630
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,1.5
   - uid: 631
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,3.5
   - uid: 632
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 13.5,0.5
   - uid: 633
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,0.5
   - uid: 634
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -8.5,0.5
   - uid: 635
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -7.5,0.5
   - uid: 636
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,0.5
   - uid: 637
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -12.5,0.5
   - uid: 638
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -11.5,0.5
   - uid: 639
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -8.5,3.5
   - uid: 640
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -7.5,3.5
   - uid: 641
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 9.5,3.5
   - uid: 642
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,3.5
   - uid: 643
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -7.5,2.5
   - uid: 644
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -7.5,1.5
   - uid: 645
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -4972,7 +4678,6 @@ entities:
   entities:
   - uid: 36
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -4992,7 +4697,6 @@ entities:
           ent: 37
   - uid: 134
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -5012,7 +4716,6 @@ entities:
           ent: 135
   - uid: 162
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -5032,7 +4735,6 @@ entities:
           ent: 163
   - uid: 190
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -5052,7 +4754,6 @@ entities:
           ent: 191
   - uid: 218
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -5072,7 +4773,6 @@ entities:
           ent: 219
   - uid: 246
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -5092,7 +4792,6 @@ entities:
           ent: 247
   - uid: 284
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 281
@@ -5112,7 +4811,6 @@ entities:
           ent: 285
   - uid: 293
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 290
@@ -5134,441 +4832,378 @@ entities:
   entities:
   - uid: 460
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 7.5,1.5
   - uid: 646
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 13.5,0.5
   - uid: 647
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -12.5,0.5
   - uid: 648
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,0.5
   - uid: 649
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 7.5,0.5
   - uid: 650
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,1.5
   - uid: 651
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,2.5
   - uid: 652
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 7.5,2.5
   - uid: 653
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 9.5,1.5
   - uid: 654
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,1.5
   - uid: 655
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 11.5,1.5
   - uid: 656
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 12.5,1.5
   - uid: 657
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 13.5,1.5
   - uid: 658
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 14.5,1.5
   - uid: 659
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 15.5,1.5
   - uid: 660
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 15.5,0.5
   - uid: 661
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 14.5,0.5
   - uid: 662
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 16.5,0.5
   - uid: 663
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 17.5,0.5
   - uid: 664
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 18.5,0.5
   - uid: 665
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 19.5,0.5
   - uid: 666
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 20.5,0.5
   - uid: 667
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 20.5,1.5
   - uid: 669
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 6.5,1.5
   - uid: 670
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 6.5,0.5
   - uid: 671
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 5.5,0.5
   - uid: 672
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 4.5,0.5
   - uid: 673
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 3.5,0.5
   - uid: 674
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 2.5,0.5
   - uid: 675
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 1.5,0.5
   - uid: 676
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 1.5,1.5
   - uid: 677
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 1.5,2.5
   - uid: 678
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 0.5,0.5
   - uid: 679
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -0.5,0.5
   - uid: 680
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -0.5,-0.5
   - uid: 681
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -0.5,-1.5
   - uid: 682
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -1.5,-1.5
   - uid: 683
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -1.5,0.5
   - uid: 684
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -2.5,0.5
   - uid: 685
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -3.5,0.5
   - uid: 686
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -4.5,0.5
   - uid: 687
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -5.5,0.5
   - uid: 688
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,0.5
   - uid: 689
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -5.5,1.5
   - uid: 690
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,1.5
   - uid: 691
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -7.5,1.5
   - uid: 692
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -7.5,2.5
   - uid: 693
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,2.5
   - uid: 694
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -8.5,1.5
   - uid: 695
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,1.5
   - uid: 696
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -10.5,1.5
   - uid: 697
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -11.5,1.5
   - uid: 698
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -12.5,1.5
   - uid: 699
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -13.5,1.5
   - uid: 700
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -14.5,1.5
   - uid: 701
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -14.5,0.5
   - uid: 702
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -13.5,0.5
   - uid: 703
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -15.5,0.5
   - uid: 704
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -16.5,0.5
   - uid: 705
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -17.5,0.5
   - uid: 706
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -18.5,0.5
   - uid: 707
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -19.5,0.5
   - uid: 708
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -5577,7 +5212,6 @@ entities:
   entities:
   - uid: 282
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 281
@@ -5597,7 +5231,6 @@ entities:
           ent: 283
   - uid: 291
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 290
@@ -5619,42 +5252,36 @@ entities:
   entities:
   - uid: 709
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,1.5
   - uid: 710
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 9.5,1.5
   - uid: 711
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -8.5,1.5
   - uid: 712
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,1.5
   - uid: 713
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,1.5
   - uid: 714
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -5663,7 +5290,6 @@ entities:
   entities:
   - uid: 40
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -5673,7 +5299,6 @@ entities:
       canCollide: False
   - uid: 41
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -5683,7 +5308,6 @@ entities:
       canCollide: False
   - uid: 42
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -5693,7 +5317,6 @@ entities:
       canCollide: False
   - uid: 43
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -5703,7 +5326,6 @@ entities:
       canCollide: False
   - uid: 54
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 51
@@ -5713,7 +5335,6 @@ entities:
       canCollide: False
   - uid: 61
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 58
@@ -5723,7 +5344,6 @@ entities:
       canCollide: False
   - uid: 68
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 65
@@ -5733,7 +5353,6 @@ entities:
       canCollide: False
   - uid: 75
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 72
@@ -5743,7 +5362,6 @@ entities:
       canCollide: False
   - uid: 82
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 79
@@ -5753,7 +5371,6 @@ entities:
       canCollide: False
   - uid: 89
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 86
@@ -5763,7 +5380,6 @@ entities:
       canCollide: False
   - uid: 96
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 93
@@ -5773,7 +5389,6 @@ entities:
       canCollide: False
   - uid: 103
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 100
@@ -5783,7 +5398,6 @@ entities:
       canCollide: False
   - uid: 152
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -5793,7 +5407,6 @@ entities:
       canCollide: False
   - uid: 153
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -5803,7 +5416,6 @@ entities:
       canCollide: False
   - uid: 154
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -5813,7 +5425,6 @@ entities:
       canCollide: False
   - uid: 155
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -5823,7 +5434,6 @@ entities:
       canCollide: False
   - uid: 156
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -5833,7 +5443,6 @@ entities:
       canCollide: False
   - uid: 157
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -5843,7 +5452,6 @@ entities:
       canCollide: False
   - uid: 158
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -5853,7 +5461,6 @@ entities:
       canCollide: False
   - uid: 159
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -5863,7 +5470,6 @@ entities:
       canCollide: False
   - uid: 180
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -5873,7 +5479,6 @@ entities:
       canCollide: False
   - uid: 181
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -5883,7 +5488,6 @@ entities:
       canCollide: False
   - uid: 182
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -5893,7 +5497,6 @@ entities:
       canCollide: False
   - uid: 183
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -5903,7 +5506,6 @@ entities:
       canCollide: False
   - uid: 184
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -5913,7 +5515,6 @@ entities:
       canCollide: False
   - uid: 185
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -5923,7 +5524,6 @@ entities:
       canCollide: False
   - uid: 186
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -5933,7 +5533,6 @@ entities:
       canCollide: False
   - uid: 187
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -5943,7 +5542,6 @@ entities:
       canCollide: False
   - uid: 208
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -5953,7 +5551,6 @@ entities:
       canCollide: False
   - uid: 209
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -5963,7 +5560,6 @@ entities:
       canCollide: False
   - uid: 210
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -5973,7 +5569,6 @@ entities:
       canCollide: False
   - uid: 211
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -5983,7 +5578,6 @@ entities:
       canCollide: False
   - uid: 212
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -5993,7 +5587,6 @@ entities:
       canCollide: False
   - uid: 213
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -6003,7 +5596,6 @@ entities:
       canCollide: False
   - uid: 214
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -6013,7 +5605,6 @@ entities:
       canCollide: False
   - uid: 215
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -6023,7 +5614,6 @@ entities:
       canCollide: False
   - uid: 236
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -6033,7 +5623,6 @@ entities:
       canCollide: False
   - uid: 237
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -6043,7 +5632,6 @@ entities:
       canCollide: False
   - uid: 238
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -6053,7 +5641,6 @@ entities:
       canCollide: False
   - uid: 239
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -6063,7 +5650,6 @@ entities:
       canCollide: False
   - uid: 240
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -6073,7 +5659,6 @@ entities:
       canCollide: False
   - uid: 241
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -6083,7 +5668,6 @@ entities:
       canCollide: False
   - uid: 242
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -6093,7 +5677,6 @@ entities:
       canCollide: False
   - uid: 243
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -6103,7 +5686,6 @@ entities:
       canCollide: False
   - uid: 264
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -6113,7 +5695,6 @@ entities:
       canCollide: False
   - uid: 265
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -6123,7 +5704,6 @@ entities:
       canCollide: False
   - uid: 266
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -6133,7 +5713,6 @@ entities:
       canCollide: False
   - uid: 267
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -6143,7 +5722,6 @@ entities:
       canCollide: False
   - uid: 268
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -6153,7 +5731,6 @@ entities:
       canCollide: False
   - uid: 269
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -6163,7 +5740,6 @@ entities:
       canCollide: False
   - uid: 270
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -6173,7 +5749,6 @@ entities:
       canCollide: False
   - uid: 271
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -6183,7 +5758,6 @@ entities:
       canCollide: False
   - uid: 278
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 273
@@ -6193,7 +5767,6 @@ entities:
       canCollide: False
   - uid: 288
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 281
@@ -6203,7 +5776,6 @@ entities:
       canCollide: False
   - uid: 297
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 290
@@ -6213,7 +5785,6 @@ entities:
       canCollide: False
   - uid: 350
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 347
@@ -6223,7 +5794,6 @@ entities:
       canCollide: False
   - uid: 355
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 352
@@ -6233,7 +5803,6 @@ entities:
       canCollide: False
   - uid: 360
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 357
@@ -6243,7 +5812,6 @@ entities:
       canCollide: False
   - uid: 365
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 362
@@ -6253,7 +5821,6 @@ entities:
       canCollide: False
   - uid: 370
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 367
@@ -6263,7 +5830,6 @@ entities:
       canCollide: False
   - uid: 375
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 372
@@ -6273,7 +5839,6 @@ entities:
       canCollide: False
   - uid: 380
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 377
@@ -6283,7 +5848,6 @@ entities:
       canCollide: False
   - uid: 385
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 382
@@ -6293,7 +5857,6 @@ entities:
       canCollide: False
   - uid: 390
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 387
@@ -6303,7 +5866,6 @@ entities:
       canCollide: False
   - uid: 395
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 392
@@ -6313,7 +5875,6 @@ entities:
       canCollide: False
   - uid: 400
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 397
@@ -6323,7 +5884,6 @@ entities:
       canCollide: False
   - uid: 405
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 402
@@ -6333,7 +5893,6 @@ entities:
       canCollide: False
   - uid: 410
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 407
@@ -6343,7 +5902,6 @@ entities:
       canCollide: False
   - uid: 415
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 412
@@ -6353,7 +5911,6 @@ entities:
       canCollide: False
   - uid: 420
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 417
@@ -6363,7 +5920,6 @@ entities:
       canCollide: False
   - uid: 425
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 422
@@ -6385,7 +5941,6 @@ entities:
       pos: -17.5,0.5
   - uid: 717
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6393,7 +5948,6 @@ entities:
       pos: 0.5,0.5
   - uid: 718
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6401,7 +5955,6 @@ entities:
       pos: 0.5,1.5
   - uid: 719
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6409,7 +5962,6 @@ entities:
       pos: 0.5,3.5
   - uid: 720
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6417,7 +5969,6 @@ entities:
       pos: 0.5,4.5
   - uid: 721
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6425,7 +5976,6 @@ entities:
       pos: 1.5,0.5
   - uid: 722
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6433,7 +5983,6 @@ entities:
       pos: 2.5,0.5
   - uid: 723
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6441,7 +5990,6 @@ entities:
       pos: 4.5,0.5
   - uid: 724
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6449,7 +5997,6 @@ entities:
       pos: 5.5,0.5
   - uid: 725
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6457,7 +6004,6 @@ entities:
       pos: 5.5,1.5
   - uid: 726
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6465,7 +6011,6 @@ entities:
       pos: 6.5,1.5
   - uid: 727
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6473,7 +6018,6 @@ entities:
       pos: 8.5,1.5
   - uid: 728
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6481,7 +6025,6 @@ entities:
       pos: 9.5,1.5
   - uid: 729
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6489,7 +6032,6 @@ entities:
       pos: 10.5,1.5
   - uid: 730
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6497,7 +6039,6 @@ entities:
       pos: 11.5,1.5
   - uid: 731
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6505,7 +6046,6 @@ entities:
       pos: 12.5,1.5
   - uid: 732
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6513,7 +6053,6 @@ entities:
       pos: 13.5,1.5
   - uid: 733
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6521,7 +6060,6 @@ entities:
       pos: 14.5,1.5
   - uid: 734
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6529,7 +6067,6 @@ entities:
       pos: -1.5,0.5
   - uid: 735
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6537,7 +6074,6 @@ entities:
       pos: -4.5,0.5
   - uid: 736
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6545,7 +6081,6 @@ entities:
       pos: -3.5,0.5
   - uid: 737
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6553,7 +6088,6 @@ entities:
       pos: -4.5,1.5
   - uid: 738
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6561,7 +6095,6 @@ entities:
       pos: -5.5,1.5
   - uid: 739
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6569,7 +6102,6 @@ entities:
       pos: -7.5,1.5
   - uid: 740
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6577,7 +6109,6 @@ entities:
       pos: -8.5,1.5
   - uid: 741
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6585,7 +6116,6 @@ entities:
       pos: -9.5,1.5
   - uid: 742
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6593,7 +6123,6 @@ entities:
       pos: -10.5,1.5
   - uid: 743
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6601,7 +6130,6 @@ entities:
       pos: -11.5,1.5
   - uid: 744
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6609,7 +6137,6 @@ entities:
       pos: -12.5,1.5
   - uid: 745
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6617,7 +6144,6 @@ entities:
       pos: -14.5,1.5
   - uid: 746
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6625,7 +6151,6 @@ entities:
       pos: -15.5,1.5
   - uid: 747
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6633,7 +6158,6 @@ entities:
       pos: -15.5,0.5
   - uid: 748
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6641,7 +6165,6 @@ entities:
       pos: -16.5,0.5
   - uid: 749
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6651,7 +6174,6 @@ entities:
   entities:
   - uid: 492
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 490
@@ -6665,7 +6187,6 @@ entities:
   entities:
   - uid: 490
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -6735,7 +6256,6 @@ entities:
   entities:
   - uid: 21
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 15
@@ -6795,7 +6315,6 @@ entities:
   entities:
   - uid: 110
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 107
@@ -6847,7 +6366,6 @@ entities:
   entities:
   - uid: 31
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 15
@@ -6860,7 +6378,6 @@ entities:
   entities:
   - uid: 108
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 107
@@ -6883,7 +6400,6 @@ entities:
   entities:
   - uid: 19
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 15
@@ -6906,7 +6422,6 @@ entities:
   entities:
   - uid: 310
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 305
@@ -6921,7 +6436,6 @@ entities:
         replaced-clothing: !type:ContainerSlot {}
   - uid: 327
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 322
@@ -6936,7 +6450,6 @@ entities:
         replaced-clothing: !type:ContainerSlot {}
   - uid: 343
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 338
@@ -6953,7 +6466,6 @@ entities:
   entities:
   - uid: 311
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 305
@@ -6968,7 +6480,6 @@ entities:
         replaced-clothing: !type:ContainerSlot {}
   - uid: 328
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 322
@@ -6983,7 +6494,6 @@ entities:
         replaced-clothing: !type:ContainerSlot {}
   - uid: 344
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 338
@@ -7000,7 +6510,6 @@ entities:
   entities:
   - uid: 306
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 305
@@ -7024,7 +6533,6 @@ entities:
   entities:
   - uid: 323
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 322
@@ -7046,7 +6554,6 @@ entities:
       attachedUid: 322
   - uid: 339
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 338
@@ -7070,7 +6577,6 @@ entities:
   entities:
   - uid: 119
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 107
@@ -7083,7 +6589,6 @@ entities:
   entities:
   - uid: 312
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 299
@@ -7095,7 +6600,6 @@ entities:
   entities:
   - uid: 32
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 15
@@ -7108,7 +6612,6 @@ entities:
   entities:
   - uid: 305
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 299
@@ -7152,7 +6655,6 @@ entities:
   entities:
   - uid: 322
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 315
@@ -7197,7 +6699,6 @@ entities:
     - type: InsideEntityStorage
   - uid: 338
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 331
@@ -7244,7 +6745,6 @@ entities:
   entities:
   - uid: 300
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 299
@@ -7273,7 +6773,6 @@ entities:
   entities:
   - uid: 316
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 315
@@ -7316,7 +6815,6 @@ entities:
     - type: InsideEntityStorage
   - uid: 332
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 331
@@ -7361,7 +6859,6 @@ entities:
   entities:
   - uid: 44
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -7371,7 +6868,6 @@ entities:
       canCollide: False
   - uid: 45
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -7383,7 +6879,6 @@ entities:
   entities:
   - uid: 537
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -7413,7 +6908,6 @@ entities:
   entities:
   - uid: 750
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -7441,7 +6935,6 @@ entities:
       powerLoad: 5
   - uid: 752
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -7471,7 +6964,6 @@ entities:
   entities:
   - uid: 756
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -7501,7 +6993,6 @@ entities:
   entities:
   - uid: 757
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 756
@@ -7513,7 +7004,6 @@ entities:
   entities:
   - uid: 758
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -7542,7 +7032,6 @@ entities:
       powerLoad: 5
   - uid: 760
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -7572,7 +7061,6 @@ entities:
   entities:
   - uid: 762
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -7629,7 +7117,6 @@ entities:
   entities:
   - uid: 120
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 107
@@ -7651,7 +7138,6 @@ entities:
   entities:
   - uid: 15
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -7688,7 +7174,6 @@ entities:
       pos: -0.5,1.5
   - uid: 766
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -7705,7 +7190,6 @@ entities:
   entities:
   - uid: 113
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 110
@@ -7733,7 +7217,6 @@ entities:
   entities:
   - uid: 769
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 768
@@ -7743,7 +7226,6 @@ entities:
       canCollide: False
   - uid: 771
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 770
@@ -7753,7 +7235,6 @@ entities:
       canCollide: False
   - uid: 773
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 772
@@ -7763,7 +7244,6 @@ entities:
       canCollide: False
   - uid: 775
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 774
@@ -7773,7 +7253,6 @@ entities:
       canCollide: False
   - uid: 777
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 776
@@ -7783,7 +7262,6 @@ entities:
       canCollide: False
   - uid: 779
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 778
@@ -7793,7 +7271,6 @@ entities:
       canCollide: False
   - uid: 781
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 780
@@ -7803,7 +7280,6 @@ entities:
       canCollide: False
   - uid: 783
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 782
@@ -7813,7 +7289,6 @@ entities:
       canCollide: False
   - uid: 785
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 784
@@ -7823,7 +7298,6 @@ entities:
       canCollide: False
   - uid: 787
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 786
@@ -7833,7 +7307,6 @@ entities:
       canCollide: False
   - uid: 789
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 788
@@ -7843,7 +7316,6 @@ entities:
       canCollide: False
   - uid: 791
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 790
@@ -7853,7 +7325,6 @@ entities:
       canCollide: False
   - uid: 793
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 792
@@ -7863,7 +7334,6 @@ entities:
       canCollide: False
   - uid: 795
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 794
@@ -7873,7 +7343,6 @@ entities:
       canCollide: False
   - uid: 797
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 796
@@ -7883,7 +7352,6 @@ entities:
       canCollide: False
   - uid: 799
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 798
@@ -7893,7 +7361,6 @@ entities:
       canCollide: False
   - uid: 801
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 800
@@ -7903,7 +7370,6 @@ entities:
       canCollide: False
   - uid: 803
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 802
@@ -7913,7 +7379,6 @@ entities:
       canCollide: False
   - uid: 805
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 804
@@ -7923,7 +7388,6 @@ entities:
       canCollide: False
   - uid: 807
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 806
@@ -7933,7 +7397,6 @@ entities:
       canCollide: False
   - uid: 809
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 808
@@ -7945,7 +7408,6 @@ entities:
   entities:
   - uid: 453
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 452
@@ -7957,7 +7419,6 @@ entities:
   entities:
   - uid: 457
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 456
@@ -7969,7 +7430,6 @@ entities:
   entities:
   - uid: 493
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 490
@@ -7983,7 +7443,6 @@ entities:
   entities:
   - uid: 46
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -7995,7 +7454,6 @@ entities:
   entities:
   - uid: 588
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 537
@@ -8007,7 +7465,6 @@ entities:
   entities:
   - uid: 22
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 21
@@ -8027,7 +7484,6 @@ entities:
   entities:
   - uid: 763
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 762
@@ -8039,7 +7495,6 @@ entities:
   entities:
   - uid: 810
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8062,7 +7517,6 @@ entities:
       powered: True
   - uid: 812
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8085,7 +7539,6 @@ entities:
       powered: True
   - uid: 814
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8108,7 +7561,6 @@ entities:
       powered: True
   - uid: 816
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8131,7 +7583,6 @@ entities:
       powered: True
   - uid: 818
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8154,7 +7605,6 @@ entities:
       powered: True
   - uid: 820
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8177,7 +7627,6 @@ entities:
       powered: True
   - uid: 822
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8200,7 +7649,6 @@ entities:
       powered: True
   - uid: 824
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8222,7 +7670,6 @@ entities:
       powered: True
   - uid: 826
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8246,7 +7693,6 @@ entities:
   entities:
   - uid: 811
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 810
@@ -8256,7 +7702,6 @@ entities:
       canCollide: False
   - uid: 813
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 812
@@ -8266,7 +7711,6 @@ entities:
       canCollide: False
   - uid: 815
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 814
@@ -8276,7 +7720,6 @@ entities:
       canCollide: False
   - uid: 817
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 816
@@ -8286,7 +7729,6 @@ entities:
       canCollide: False
   - uid: 819
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 818
@@ -8296,7 +7738,6 @@ entities:
       canCollide: False
   - uid: 821
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 820
@@ -8306,7 +7747,6 @@ entities:
       canCollide: False
   - uid: 823
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 822
@@ -8316,7 +7756,6 @@ entities:
       canCollide: False
   - uid: 825
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 824
@@ -8326,7 +7765,6 @@ entities:
       canCollide: False
   - uid: 827
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 826
@@ -8338,7 +7776,6 @@ entities:
   entities:
   - uid: 829
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 828
@@ -8351,7 +7788,6 @@ entities:
     - type: InsideEntityStorage
   - uid: 831
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 830
@@ -8364,7 +7800,6 @@ entities:
     - type: InsideEntityStorage
   - uid: 833
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 832
@@ -8377,7 +7812,6 @@ entities:
     - type: InsideEntityStorage
   - uid: 835
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 834
@@ -8392,7 +7826,6 @@ entities:
   entities:
   - uid: 837
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 836
@@ -8405,7 +7838,6 @@ entities:
     - type: InsideEntityStorage
   - uid: 839
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 838
@@ -8420,7 +7852,6 @@ entities:
   entities:
   - uid: 840
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8433,7 +7864,6 @@ entities:
   entities:
   - uid: 841
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8447,7 +7877,6 @@ entities:
       nextSound: -1859.99814
   - uid: 842
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8463,7 +7892,6 @@ entities:
   entities:
   - uid: 843
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8477,7 +7905,6 @@ entities:
       color: '#0055CCFF'
   - uid: 844
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8490,7 +7917,6 @@ entities:
       color: '#0055CCFF'
   - uid: 845
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8504,7 +7930,6 @@ entities:
       color: '#0055CCFF'
   - uid: 846
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8518,7 +7943,6 @@ entities:
       color: '#0055CCFF'
   - uid: 847
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8532,7 +7956,6 @@ entities:
       color: '#0055CCFF'
   - uid: 848
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8546,7 +7969,6 @@ entities:
       color: '#0055CCFF'
   - uid: 849
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8561,7 +7983,6 @@ entities:
   entities:
   - uid: 850
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8575,7 +7996,6 @@ entities:
       nextSound: -1859.99814
   - uid: 851
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8589,7 +8009,6 @@ entities:
       nextSound: -1859.99814
   - uid: 852
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8602,7 +8021,6 @@ entities:
       nextSound: -1859.99814
   - uid: 853
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8616,7 +8034,6 @@ entities:
       nextSound: -1859.99814
   - uid: 854
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8629,7 +8046,6 @@ entities:
       nextSound: -1859.99814
   - uid: 855
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8645,7 +8061,6 @@ entities:
   entities:
   - uid: 856
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8658,7 +8073,6 @@ entities:
       nextSound: -1859.99814
   - uid: 857
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8673,7 +8087,6 @@ entities:
   entities:
   - uid: 858
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8687,7 +8100,6 @@ entities:
       color: '#0055CCFF'
   - uid: 859
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8701,7 +8113,6 @@ entities:
       color: '#0055CCFF'
   - uid: 860
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8715,7 +8126,6 @@ entities:
       color: '#0055CCFF'
   - uid: 861
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8729,7 +8139,6 @@ entities:
       color: '#0055CCFF'
   - uid: 862
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8743,7 +8152,6 @@ entities:
       color: '#0055CCFF'
   - uid: 863
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8757,7 +8165,6 @@ entities:
       color: '#0055CCFF'
   - uid: 864
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8771,7 +8178,6 @@ entities:
       color: '#0055CCFF'
   - uid: 865
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8785,7 +8191,6 @@ entities:
       color: '#0055CCFF'
   - uid: 866
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8799,7 +8204,6 @@ entities:
       color: '#0055CCFF'
   - uid: 867
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8813,7 +8217,6 @@ entities:
       color: '#0055CCFF'
   - uid: 868
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8827,7 +8230,6 @@ entities:
       color: '#0055CCFF'
   - uid: 869
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8841,7 +8243,6 @@ entities:
       color: '#0055CCFF'
   - uid: 870
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8855,7 +8256,6 @@ entities:
       color: '#0055CCFF'
   - uid: 871
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8869,7 +8269,6 @@ entities:
       color: '#0055CCFF'
   - uid: 872
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8883,7 +8282,6 @@ entities:
       color: '#0055CCFF'
   - uid: 873
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8897,7 +8295,6 @@ entities:
       color: '#0055CCFF'
   - uid: 874
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8911,7 +8308,6 @@ entities:
       color: '#0055CCFF'
   - uid: 875
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8925,7 +8321,6 @@ entities:
       color: '#0055CCFF'
   - uid: 876
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8939,7 +8334,6 @@ entities:
       color: '#0055CCFF'
   - uid: 877
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8953,7 +8347,6 @@ entities:
       color: '#0055CCFF'
   - uid: 878
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8967,7 +8360,6 @@ entities:
       color: '#0055CCFF'
   - uid: 879
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8981,7 +8373,6 @@ entities:
       color: '#0055CCFF'
   - uid: 880
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -8995,7 +8386,6 @@ entities:
       color: '#0055CCFF'
   - uid: 881
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9009,7 +8399,6 @@ entities:
       color: '#0055CCFF'
   - uid: 882
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9027,7 +8416,6 @@ entities:
   entities:
   - uid: 883
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9041,7 +8429,6 @@ entities:
       nextSound: -1859.99814
   - uid: 884
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9055,7 +8442,6 @@ entities:
       nextSound: -1859.99814
   - uid: 885
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9069,7 +8455,6 @@ entities:
       nextSound: -1859.99814
   - uid: 886
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9083,7 +8468,6 @@ entities:
       nextSound: -1859.99814
   - uid: 887
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9097,7 +8481,6 @@ entities:
       nextSound: -1859.99814
   - uid: 888
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9111,7 +8494,6 @@ entities:
       nextSound: -1859.99814
   - uid: 889
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9125,7 +8507,6 @@ entities:
       nextSound: -1859.99814
   - uid: 890
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9139,7 +8520,6 @@ entities:
       nextSound: -1859.99814
   - uid: 891
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9153,7 +8533,6 @@ entities:
       nextSound: -1859.99814
   - uid: 892
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9167,7 +8546,6 @@ entities:
       nextSound: -1859.99814
   - uid: 893
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9181,7 +8559,6 @@ entities:
       nextSound: -1859.99814
   - uid: 894
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9195,7 +8572,6 @@ entities:
       nextSound: -1859.99814
   - uid: 895
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9209,7 +8585,6 @@ entities:
       nextSound: -1859.99814
   - uid: 896
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9223,7 +8598,6 @@ entities:
       nextSound: -1859.99814
   - uid: 897
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9237,7 +8611,6 @@ entities:
       nextSound: -1859.99814
   - uid: 898
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9251,7 +8624,6 @@ entities:
       nextSound: -1859.99814
   - uid: 899
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9265,7 +8637,6 @@ entities:
       nextSound: -1859.99814
   - uid: 900
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9279,7 +8650,6 @@ entities:
       nextSound: -1859.99814
   - uid: 901
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9293,7 +8663,6 @@ entities:
       nextSound: -1859.99814
   - uid: 902
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9307,7 +8676,6 @@ entities:
       nextSound: -1859.99814
   - uid: 903
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9321,7 +8689,6 @@ entities:
       nextSound: -1859.99814
   - uid: 904
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9335,7 +8702,6 @@ entities:
       nextSound: -1859.99814
   - uid: 905
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9349,7 +8715,6 @@ entities:
       nextSound: -1859.99814
   - uid: 906
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9363,7 +8728,6 @@ entities:
       nextSound: -1859.99814
   - uid: 907
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9377,7 +8741,6 @@ entities:
       nextSound: -1859.99814
   - uid: 908
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9391,7 +8754,6 @@ entities:
       nextSound: -1859.99814
   - uid: 909
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9405,7 +8767,6 @@ entities:
       nextSound: -1859.99814
   - uid: 910
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9419,7 +8780,6 @@ entities:
       nextSound: -1859.99814
   - uid: 911
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9433,7 +8793,6 @@ entities:
       nextSound: -1859.99814
   - uid: 912
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9447,7 +8806,6 @@ entities:
       nextSound: -1859.99814
   - uid: 913
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9461,7 +8819,6 @@ entities:
       nextSound: -1859.99814
   - uid: 914
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9477,7 +8834,6 @@ entities:
   entities:
   - uid: 915
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9490,7 +8846,6 @@ entities:
       color: '#0055CCFF'
   - uid: 916
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9504,7 +8859,6 @@ entities:
       color: '#0055CCFF'
   - uid: 917
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9518,7 +8872,6 @@ entities:
       color: '#0055CCFF'
   - uid: 918
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9532,7 +8885,6 @@ entities:
       color: '#0055CCFF'
   - uid: 919
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9546,7 +8898,6 @@ entities:
       color: '#0055CCFF'
   - uid: 920
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9559,7 +8910,6 @@ entities:
       color: '#0055CCFF'
   - uid: 921
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9575,7 +8925,6 @@ entities:
   entities:
   - uid: 922
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9589,7 +8938,6 @@ entities:
       nextSound: -1859.99814
   - uid: 923
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9603,7 +8951,6 @@ entities:
       nextSound: -1859.99814
   - uid: 924
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9617,7 +8964,6 @@ entities:
       nextSound: -1859.99814
   - uid: 925
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9632,7 +8978,6 @@ entities:
   entities:
   - uid: 926
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9642,7 +8987,6 @@ entities:
       nextSound: -1859.99814
   - uid: 927
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9654,7 +8998,6 @@ entities:
   entities:
   - uid: 928
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -9897,7 +9240,6 @@ entities:
           ignore: False
   - uid: 929
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -10141,7 +9483,6 @@ entities:
           ignore: False
   - uid: 930
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -10384,7 +9725,6 @@ entities:
           ignore: False
   - uid: 931
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -10627,7 +9967,6 @@ entities:
           ignore: False
   - uid: 932
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -10871,7 +10210,6 @@ entities:
           ignore: False
   - uid: 933
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -11114,7 +10452,6 @@ entities:
           ignore: False
   - uid: 934
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -11357,7 +10694,6 @@ entities:
           ignore: False
   - uid: 935
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -11603,7 +10939,6 @@ entities:
   entities:
   - uid: 936
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -11848,7 +11183,6 @@ entities:
           ignore: False
   - uid: 937
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -12093,7 +11427,6 @@ entities:
           ignore: False
   - uid: 938
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -12339,7 +11672,6 @@ entities:
           ignore: False
   - uid: 939
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -12584,7 +11916,6 @@ entities:
           ignore: False
   - uid: 940
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -12829,7 +12160,6 @@ entities:
           ignore: False
   - uid: 941
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13074,7 +12404,6 @@ entities:
           ignore: False
   - uid: 942
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13320,7 +12649,6 @@ entities:
           ignore: False
   - uid: 943
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13568,7 +12896,6 @@ entities:
   entities:
   - uid: 27
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 21
@@ -13608,7 +12935,6 @@ entities:
   entities:
   - uid: 33
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13649,21 +12975,18 @@ entities:
   entities:
   - uid: 948
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -4.5,7.5
   - uid: 949
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 5.5,7.5
   - uid: 950
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13671,7 +12994,6 @@ entities:
       pos: -27.5,0.5
   - uid: 951
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13681,35 +13003,30 @@ entities:
   entities:
   - uid: 952
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 2.5,9.5
   - uid: 953
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -13.5,4.5
   - uid: 954
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 14.5,4.5
   - uid: 955
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -1.5,9.5
   - uid: 956
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13717,7 +13034,6 @@ entities:
       pos: 23.5,-0.5
   - uid: 957
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13727,14 +13043,12 @@ entities:
   entities:
   - uid: 958
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 24.5,1.5
   - uid: 959
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13743,14 +13057,12 @@ entities:
   entities:
   - uid: 960
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -1.5,9.5
   - uid: 961
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13758,7 +13070,6 @@ entities:
       pos: 2.5,9.5
   - uid: 962
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13766,7 +13077,6 @@ entities:
       pos: 28.5,0.5
   - uid: 963
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13781,7 +13091,6 @@ entities:
       pos: 13.5,-2.5
   - uid: 964
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13789,7 +13098,6 @@ entities:
       pos: 12.5,-3.5
   - uid: 965
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13797,7 +13105,6 @@ entities:
       pos: 9.5,-3.5
   - uid: 966
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13805,7 +13112,6 @@ entities:
       pos: 10.5,-3.5
   - uid: 967
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13813,7 +13119,6 @@ entities:
       pos: 11.5,-3.5
   - uid: 968
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13821,7 +13126,6 @@ entities:
       pos: -11.5,-3.5
   - uid: 969
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13829,7 +13133,6 @@ entities:
       pos: -10.5,-3.5
   - uid: 970
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13837,7 +13140,6 @@ entities:
       pos: -9.5,-3.5
   - uid: 971
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13902,7 +13204,6 @@ entities:
   entities:
   - uid: 984
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13910,7 +13211,6 @@ entities:
       pos: -4.5,-2.5
   - uid: 985
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13918,7 +13218,6 @@ entities:
       pos: -15.5,-2.5
   - uid: 986
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13926,7 +13225,6 @@ entities:
       pos: 5.5,-2.5
   - uid: 987
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13934,7 +13232,6 @@ entities:
       pos: 16.5,-2.5
   - uid: 988
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13942,7 +13239,6 @@ entities:
       pos: 8.5,-3.5
   - uid: 989
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13950,7 +13246,6 @@ entities:
       pos: -12.5,-3.5
   - uid: 990
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13958,7 +13253,6 @@ entities:
       pos: 13.5,-3.5
   - uid: 991
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -13979,7 +13273,6 @@ entities:
   entities:
   - uid: 751
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 750
@@ -13989,7 +13282,6 @@ entities:
       canCollide: False
   - uid: 753
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 752
@@ -14012,7 +13304,6 @@ entities:
   entities:
   - uid: 51
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14086,7 +13377,6 @@ entities:
           layer: []
   - uid: 58
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14160,7 +13450,6 @@ entities:
           layer: []
   - uid: 65
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14234,7 +13523,6 @@ entities:
           layer: []
   - uid: 72
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14308,7 +13596,6 @@ entities:
           layer: []
   - uid: 79
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14383,7 +13670,6 @@ entities:
           layer: []
   - uid: 86
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14458,7 +13744,6 @@ entities:
           layer: []
   - uid: 93
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14533,7 +13818,6 @@ entities:
           layer: []
   - uid: 100
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14610,7 +13894,6 @@ entities:
   entities:
   - uid: 55
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 51
@@ -14620,7 +13903,6 @@ entities:
       canCollide: False
   - uid: 62
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 58
@@ -14630,7 +13912,6 @@ entities:
       canCollide: False
   - uid: 69
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 65
@@ -14640,7 +13921,6 @@ entities:
       canCollide: False
   - uid: 76
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 72
@@ -14650,7 +13930,6 @@ entities:
       canCollide: False
   - uid: 83
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 79
@@ -14660,7 +13939,6 @@ entities:
       canCollide: False
   - uid: 90
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 86
@@ -14670,7 +13948,6 @@ entities:
       canCollide: False
   - uid: 97
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 93
@@ -14680,7 +13957,6 @@ entities:
       canCollide: False
   - uid: 104
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 100
@@ -14692,7 +13968,6 @@ entities:
   entities:
   - uid: 16
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 15
@@ -14713,7 +13988,6 @@ entities:
   entities:
   - uid: 995
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14721,7 +13995,6 @@ entities:
       pos: 16.5,3.5
   - uid: 996
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14731,7 +14004,6 @@ entities:
   entities:
   - uid: 997
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14739,7 +14011,6 @@ entities:
       pos: -24.5,-0.5
   - uid: 998
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14749,7 +14020,6 @@ entities:
   entities:
   - uid: 999
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14757,7 +14027,6 @@ entities:
       pos: 11.5,5.5
   - uid: 1000
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14793,7 +14062,6 @@ entities:
   entities:
   - uid: 1001
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14801,7 +14069,6 @@ entities:
       pos: -19.5,2.5
   - uid: 1002
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14811,7 +14078,6 @@ entities:
   entities:
   - uid: 494
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 490
@@ -14823,7 +14089,6 @@ entities:
   entities:
   - uid: 320
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 315
@@ -14854,7 +14119,6 @@ entities:
     - type: InsideEntityStorage
   - uid: 336
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 331
@@ -14887,7 +14151,6 @@ entities:
   entities:
   - uid: 303
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 299
@@ -14919,7 +14182,6 @@ entities:
   entities:
   - uid: 107
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14952,7 +14214,6 @@ entities:
   entities:
   - uid: 828
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -14978,7 +14239,6 @@ entities:
         immutable: False
   - uid: 830
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -15004,7 +14264,6 @@ entities:
         immutable: False
   - uid: 832
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -15030,7 +14289,6 @@ entities:
         immutable: False
   - uid: 834
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -15058,7 +14316,6 @@ entities:
   entities:
   - uid: 836
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -15084,7 +14341,6 @@ entities:
         immutable: False
   - uid: 838
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -15112,7 +14368,6 @@ entities:
   entities:
   - uid: 1007
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -15131,7 +14386,6 @@ entities:
   entities:
   - uid: 1008
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -15146,7 +14400,6 @@ entities:
   entities:
   - uid: 11
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 2
@@ -15156,7 +14409,6 @@ entities:
       canCollide: False
   - uid: 12
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 2
@@ -15166,7 +14418,6 @@ entities:
       canCollide: False
   - uid: 13
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 2
@@ -15176,7 +14427,6 @@ entities:
       canCollide: False
   - uid: 47
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -15186,7 +14436,6 @@ entities:
       canCollide: False
   - uid: 48
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -15196,7 +14445,6 @@ entities:
       canCollide: False
   - uid: 49
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -15206,7 +14454,6 @@ entities:
       canCollide: False
   - uid: 128
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 122
@@ -15216,7 +14463,6 @@ entities:
       canCollide: False
   - uid: 129
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 122
@@ -15228,7 +14474,6 @@ entities:
   entities:
   - uid: 1009
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -15238,7 +14483,6 @@ entities:
   entities:
   - uid: 14
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 2
@@ -15248,7 +14492,6 @@ entities:
       canCollide: False
   - uid: 56
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 51
@@ -15258,7 +14501,6 @@ entities:
       canCollide: False
   - uid: 57
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 51
@@ -15268,7 +14510,6 @@ entities:
       canCollide: False
   - uid: 63
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 58
@@ -15278,7 +14519,6 @@ entities:
       canCollide: False
   - uid: 64
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 58
@@ -15288,7 +14528,6 @@ entities:
       canCollide: False
   - uid: 70
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 65
@@ -15298,7 +14537,6 @@ entities:
       canCollide: False
   - uid: 71
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 65
@@ -15308,7 +14546,6 @@ entities:
       canCollide: False
   - uid: 77
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 72
@@ -15318,7 +14555,6 @@ entities:
       canCollide: False
   - uid: 78
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 72
@@ -15328,7 +14564,6 @@ entities:
       canCollide: False
   - uid: 84
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 79
@@ -15338,7 +14573,6 @@ entities:
       canCollide: False
   - uid: 85
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 79
@@ -15348,7 +14582,6 @@ entities:
       canCollide: False
   - uid: 91
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 86
@@ -15358,7 +14591,6 @@ entities:
       canCollide: False
   - uid: 92
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 86
@@ -15368,7 +14600,6 @@ entities:
       canCollide: False
   - uid: 98
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 93
@@ -15378,7 +14609,6 @@ entities:
       canCollide: False
   - uid: 99
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 93
@@ -15388,7 +14618,6 @@ entities:
       canCollide: False
   - uid: 105
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 100
@@ -15398,7 +14627,6 @@ entities:
       canCollide: False
   - uid: 106
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 100
@@ -15408,7 +14636,6 @@ entities:
       canCollide: False
   - uid: 130
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 122
@@ -15418,7 +14645,6 @@ entities:
       canCollide: False
   - uid: 131
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 122
@@ -15428,7 +14654,6 @@ entities:
       canCollide: False
   - uid: 279
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 273
@@ -15440,7 +14665,6 @@ entities:
   entities:
   - uid: 50
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -15452,7 +14676,6 @@ entities:
   entities:
   - uid: 114
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 110
@@ -15466,7 +14689,6 @@ entities:
   entities:
   - uid: 1010
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -15475,7 +14697,6 @@ entities:
   entities:
   - uid: 313
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 299
@@ -15497,7 +14718,6 @@ entities:
       canCollide: False
   - uid: 329
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 315
@@ -15520,7 +14740,6 @@ entities:
     - type: InsideEntityStorage
   - uid: 345
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 331
@@ -15545,7 +14764,6 @@ entities:
   entities:
   - uid: 495
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 490
@@ -15569,7 +14787,6 @@ entities:
   entities:
   - uid: 28
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 21
@@ -15581,7 +14798,6 @@ entities:
   entities:
   - uid: 1011
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -15590,7 +14806,6 @@ entities:
   entities:
   - uid: 314
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 299
@@ -15612,7 +14827,6 @@ entities:
       canCollide: False
   - uid: 330
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 315
@@ -15635,7 +14849,6 @@ entities:
     - type: InsideEntityStorage
   - uid: 346
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 331
@@ -15719,7 +14932,6 @@ entities:
   entities:
   - uid: 17
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 16
@@ -15737,7 +14949,6 @@ entities:
           ent: 18
   - uid: 136
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -15755,7 +14966,6 @@ entities:
           ent: 137
   - uid: 138
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -15773,7 +14983,6 @@ entities:
           ent: 139
   - uid: 140
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -15791,7 +15000,6 @@ entities:
           ent: 141
   - uid: 142
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -15809,7 +15017,6 @@ entities:
           ent: 143
   - uid: 144
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -15827,7 +15034,6 @@ entities:
           ent: 145
   - uid: 146
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -15845,7 +15051,6 @@ entities:
           ent: 147
   - uid: 148
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -15863,7 +15068,6 @@ entities:
           ent: 149
   - uid: 150
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -15881,7 +15085,6 @@ entities:
           ent: 151
   - uid: 164
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -15899,7 +15102,6 @@ entities:
           ent: 165
   - uid: 166
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -15917,7 +15119,6 @@ entities:
           ent: 167
   - uid: 168
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -15935,7 +15136,6 @@ entities:
           ent: 169
   - uid: 170
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -15953,7 +15153,6 @@ entities:
           ent: 171
   - uid: 172
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -15971,7 +15170,6 @@ entities:
           ent: 173
   - uid: 174
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -15989,7 +15187,6 @@ entities:
           ent: 175
   - uid: 176
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -16007,7 +15204,6 @@ entities:
           ent: 177
   - uid: 178
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -16025,7 +15221,6 @@ entities:
           ent: 179
   - uid: 192
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -16043,7 +15238,6 @@ entities:
           ent: 193
   - uid: 194
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -16061,7 +15255,6 @@ entities:
           ent: 195
   - uid: 196
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -16079,7 +15272,6 @@ entities:
           ent: 197
   - uid: 198
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -16097,7 +15289,6 @@ entities:
           ent: 199
   - uid: 200
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -16115,7 +15306,6 @@ entities:
           ent: 201
   - uid: 202
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -16133,7 +15323,6 @@ entities:
           ent: 203
   - uid: 204
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -16151,7 +15340,6 @@ entities:
           ent: 205
   - uid: 206
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -16169,7 +15357,6 @@ entities:
           ent: 207
   - uid: 220
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -16187,7 +15374,6 @@ entities:
           ent: 221
   - uid: 222
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -16205,7 +15391,6 @@ entities:
           ent: 223
   - uid: 224
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -16223,7 +15408,6 @@ entities:
           ent: 225
   - uid: 226
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -16241,7 +15425,6 @@ entities:
           ent: 227
   - uid: 228
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -16259,7 +15442,6 @@ entities:
           ent: 229
   - uid: 230
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -16277,7 +15459,6 @@ entities:
           ent: 231
   - uid: 232
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -16295,7 +15476,6 @@ entities:
           ent: 233
   - uid: 234
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -16313,7 +15493,6 @@ entities:
           ent: 235
   - uid: 248
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -16331,7 +15510,6 @@ entities:
           ent: 249
   - uid: 250
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -16349,7 +15527,6 @@ entities:
           ent: 251
   - uid: 252
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -16367,7 +15544,6 @@ entities:
           ent: 253
   - uid: 254
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -16385,7 +15561,6 @@ entities:
           ent: 255
   - uid: 256
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -16403,7 +15578,6 @@ entities:
           ent: 257
   - uid: 258
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -16421,7 +15595,6 @@ entities:
           ent: 259
   - uid: 260
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -16439,7 +15612,6 @@ entities:
           ent: 261
   - uid: 262
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -16457,7 +15629,6 @@ entities:
           ent: 263
   - uid: 286
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 281
@@ -16475,7 +15646,6 @@ entities:
           ent: 287
   - uid: 295
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 290
@@ -16495,7 +15665,6 @@ entities:
   entities:
   - uid: 759
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 758
@@ -16505,7 +15674,6 @@ entities:
       canCollide: False
   - uid: 761
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 760
@@ -16523,7 +15691,6 @@ entities:
       pos: 8.5,3.5
   - uid: 768
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16543,7 +15710,6 @@ entities:
       address: 16A1-8AE0
   - uid: 770
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16564,7 +15730,6 @@ entities:
       address: 0A6B-CFE5
   - uid: 772
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16585,7 +15750,6 @@ entities:
       address: 77D8-69E7
   - uid: 774
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16606,7 +15770,6 @@ entities:
       address: 3ED0-B151
   - uid: 776
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16627,7 +15790,6 @@ entities:
       address: 406F-DD38
   - uid: 778
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16648,7 +15810,6 @@ entities:
       address: 4B46-8443
   - uid: 780
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16669,7 +15830,6 @@ entities:
       address: 0829-205F
   - uid: 782
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16690,7 +15850,6 @@ entities:
       address: 7710-69B7
   - uid: 784
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16710,7 +15869,6 @@ entities:
       address: 4B29-2424
   - uid: 786
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16730,7 +15888,6 @@ entities:
       address: 0D6D-2C78
   - uid: 788
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16751,7 +15908,6 @@ entities:
       address: 4396-557C
   - uid: 790
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16772,7 +15928,6 @@ entities:
       address: 14DB-FA3D
   - uid: 792
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16793,7 +15948,6 @@ entities:
       address: 4E27-EF4C
   - uid: 794
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16814,7 +15968,6 @@ entities:
       address: 06DE-CC2E
   - uid: 796
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16835,7 +15988,6 @@ entities:
       address: 4988-D870
   - uid: 798
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16856,7 +16008,6 @@ entities:
       address: 2DD0-B876
   - uid: 800
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16877,7 +16028,6 @@ entities:
       address: 5CBA-225B
   - uid: 802
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16897,7 +16047,6 @@ entities:
       address: 3D1D-129D
   - uid: 804
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16917,7 +16066,6 @@ entities:
       address: 5408-5A6B
   - uid: 806
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16937,7 +16085,6 @@ entities:
       address: 49A5-2684
   - uid: 808
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16965,7 +16112,6 @@ entities:
   entities:
   - uid: 1015
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -16987,7 +16133,6 @@ entities:
       address: 3BAB-F0E3
   - uid: 1017
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17011,7 +16156,6 @@ entities:
   entities:
   - uid: 122
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17079,7 +16223,6 @@ entities:
   entities:
   - uid: 132
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 122
@@ -17121,14 +16264,12 @@ entities:
       pos: -7.5,3.5
   - uid: 1025
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 2.5,1.5
   - uid: 1026
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17136,7 +16277,6 @@ entities:
       pos: 2.5,5.5
   - uid: 1027
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17144,14 +16284,12 @@ entities:
       pos: -1.5,5.5
   - uid: 1028
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 1.5,5.5
   - uid: 1029
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17160,7 +16298,6 @@ entities:
   entities:
   - uid: 1030
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17192,7 +16329,6 @@ entities:
   entities:
   - uid: 496
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 490
@@ -17204,7 +16340,6 @@ entities:
   entities:
   - uid: 1031
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17217,7 +16352,6 @@ entities:
   entities:
   - uid: 1032
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17263,7 +16397,6 @@ entities:
           layer: []
   - uid: 1033
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17309,7 +16442,6 @@ entities:
           layer: []
   - uid: 1034
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17355,7 +16487,6 @@ entities:
           layer: []
   - uid: 1035
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17401,7 +16532,6 @@ entities:
           layer: []
   - uid: 1036
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17447,7 +16577,6 @@ entities:
           layer: []
   - uid: 1037
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17493,7 +16622,6 @@ entities:
           layer: []
   - uid: 1038
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17539,7 +16667,6 @@ entities:
           layer: []
   - uid: 1039
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -17585,7 +16712,6 @@ entities:
           layer: []
   - uid: 1041
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1040
@@ -17631,7 +16757,6 @@ entities:
           layer: []
   - uid: 1042
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1040
@@ -17677,7 +16802,6 @@ entities:
           layer: []
   - uid: 1044
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1043
@@ -17723,7 +16847,6 @@ entities:
           layer: []
   - uid: 1045
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1043
@@ -17769,7 +16892,6 @@ entities:
           layer: []
   - uid: 1047
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1046
@@ -17815,7 +16937,6 @@ entities:
           layer: []
   - uid: 1048
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1046
@@ -17861,7 +16982,6 @@ entities:
           layer: []
   - uid: 1050
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1049
@@ -17907,7 +17027,6 @@ entities:
           layer: []
   - uid: 1051
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1049
@@ -17955,7 +17074,6 @@ entities:
   entities:
   - uid: 497
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 490
@@ -17969,7 +17087,6 @@ entities:
   entities:
   - uid: 498
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 490
@@ -17983,7 +17100,6 @@ entities:
   entities:
   - uid: 499
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 490
@@ -17997,7 +17113,6 @@ entities:
   entities:
   - uid: 115
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 110
@@ -18016,7 +17131,6 @@ entities:
   entities:
   - uid: 3
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 2
@@ -18034,7 +17148,6 @@ entities:
           ent: 4
   - uid: 52
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 51
@@ -18054,7 +17167,6 @@ entities:
           ent: 53
   - uid: 59
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 58
@@ -18074,7 +17186,6 @@ entities:
           ent: 60
   - uid: 66
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 65
@@ -18094,7 +17205,6 @@ entities:
           ent: 67
   - uid: 73
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 72
@@ -18114,7 +17224,6 @@ entities:
           ent: 74
   - uid: 80
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 79
@@ -18134,7 +17243,6 @@ entities:
           ent: 81
   - uid: 87
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 86
@@ -18154,7 +17262,6 @@ entities:
           ent: 88
   - uid: 94
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 93
@@ -18174,7 +17281,6 @@ entities:
           ent: 95
   - uid: 101
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 100
@@ -18196,7 +17302,6 @@ entities:
   entities:
   - uid: 34
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -18216,7 +17321,6 @@ entities:
           ent: 35
   - uid: 276
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 273
@@ -18236,7 +17340,6 @@ entities:
           ent: 277
   - uid: 348
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 347
@@ -18256,7 +17359,6 @@ entities:
           ent: 349
   - uid: 353
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 352
@@ -18276,7 +17378,6 @@ entities:
           ent: 354
   - uid: 358
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 357
@@ -18296,7 +17397,6 @@ entities:
           ent: 359
   - uid: 363
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 362
@@ -18316,7 +17416,6 @@ entities:
           ent: 364
   - uid: 368
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 367
@@ -18336,7 +17435,6 @@ entities:
           ent: 369
   - uid: 373
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 372
@@ -18356,7 +17454,6 @@ entities:
           ent: 374
   - uid: 378
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 377
@@ -18376,7 +17473,6 @@ entities:
           ent: 379
   - uid: 383
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 382
@@ -18396,7 +17492,6 @@ entities:
           ent: 384
   - uid: 388
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 387
@@ -18416,7 +17511,6 @@ entities:
           ent: 389
   - uid: 393
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 392
@@ -18436,7 +17530,6 @@ entities:
           ent: 394
   - uid: 398
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 397
@@ -18456,7 +17549,6 @@ entities:
           ent: 399
   - uid: 403
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 402
@@ -18476,7 +17568,6 @@ entities:
           ent: 404
   - uid: 408
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 407
@@ -18496,7 +17587,6 @@ entities:
           ent: 409
   - uid: 413
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 412
@@ -18516,7 +17606,6 @@ entities:
           ent: 414
   - uid: 418
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 417
@@ -18536,7 +17625,6 @@ entities:
           ent: 419
   - uid: 423
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 422
@@ -18558,7 +17646,6 @@ entities:
   entities:
   - uid: 38
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 33
@@ -18587,7 +17674,6 @@ entities:
   entities:
   - uid: 764
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 762
@@ -18599,7 +17685,6 @@ entities:
   entities:
   - uid: 133
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -18694,7 +17779,6 @@ entities:
       currentLanguage: TauCetiBasic
   - uid: 161
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -18789,7 +17873,6 @@ entities:
       currentLanguage: TauCetiBasic
   - uid: 189
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -18884,7 +17967,6 @@ entities:
       currentLanguage: TauCetiBasic
   - uid: 217
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -18979,7 +18061,6 @@ entities:
       currentLanguage: TauCetiBasic
   - uid: 245
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19081,7 +18162,6 @@ entities:
   entities:
   - uid: 160
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 133
@@ -19091,7 +18171,6 @@ entities:
       canCollide: False
   - uid: 188
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 161
@@ -19101,7 +18180,6 @@ entities:
       canCollide: False
   - uid: 216
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 189
@@ -19111,7 +18189,6 @@ entities:
       canCollide: False
   - uid: 244
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 217
@@ -19121,7 +18198,6 @@ entities:
       canCollide: False
   - uid: 272
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 245
@@ -19129,34 +18205,10 @@ entities:
       nextSound: -1859.99814
     - type: Physics
       canCollide: False
-- proto: SpawnPointLatejoin
-  entities:
-  - uid: 1298
-    components:
-    - type: Transform
-      parent: 1
-      pos: 0.5,-1.5
-- proto: StandardFrontierVessel
-  entities:
-  - uid: 1390
-    mapInit: true
-    components:
-    - type: MetaData
-      name: Foxtrot-II
-    - type: ExtraShuttleInformation
-      vessel: Foxtrot-II
-    - type: StationData
-      grids:
-      - 1
-    - type: StationNameSetup
-      mapNameTemplate: Foxtrot-II PDV{1}
-      nameGenerator: !type:NanotrasenNameGenerator
-        prefixCreator: 14
 - proto: StasisBed
   entities:
   - uid: 273
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19187,7 +18239,6 @@ entities:
   entities:
   - uid: 280
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 273
@@ -19199,7 +18250,6 @@ entities:
   entities:
   - uid: 281
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19277,7 +18327,6 @@ entities:
       currentLanguage: TauCetiBasic
   - uid: 290
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19357,7 +18406,6 @@ entities:
   entities:
   - uid: 289
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 281
@@ -19367,7 +18415,6 @@ entities:
       canCollide: False
   - uid: 298
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 290
@@ -19379,7 +18426,6 @@ entities:
   entities:
   - uid: 299
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19408,7 +18454,6 @@ entities:
   entities:
   - uid: 315
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19434,7 +18479,6 @@ entities:
           occludes: True
   - uid: 331
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19462,7 +18506,6 @@ entities:
   entities:
   - uid: 1055
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1054
@@ -19474,7 +18517,6 @@ entities:
       canCollide: False
   - uid: 1057
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1056
@@ -19486,7 +18528,6 @@ entities:
       canCollide: False
   - uid: 1059
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1058
@@ -19498,7 +18539,6 @@ entities:
       canCollide: False
   - uid: 1061
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1060
@@ -19512,7 +18552,6 @@ entities:
   entities:
   - uid: 351
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 347
@@ -19522,7 +18561,6 @@ entities:
       canCollide: False
   - uid: 356
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 352
@@ -19532,7 +18570,6 @@ entities:
       canCollide: False
   - uid: 361
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 357
@@ -19542,7 +18579,6 @@ entities:
       canCollide: False
   - uid: 366
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 362
@@ -19552,7 +18588,6 @@ entities:
       canCollide: False
   - uid: 371
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 367
@@ -19562,7 +18597,6 @@ entities:
       canCollide: False
   - uid: 376
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 372
@@ -19572,7 +18606,6 @@ entities:
       canCollide: False
   - uid: 381
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 377
@@ -19582,7 +18615,6 @@ entities:
       canCollide: False
   - uid: 386
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 382
@@ -19592,7 +18624,6 @@ entities:
       canCollide: False
   - uid: 391
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 387
@@ -19602,7 +18633,6 @@ entities:
       canCollide: False
   - uid: 396
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 392
@@ -19612,7 +18642,6 @@ entities:
       canCollide: False
   - uid: 401
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 397
@@ -19622,7 +18651,6 @@ entities:
       canCollide: False
   - uid: 406
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 402
@@ -19632,7 +18660,6 @@ entities:
       canCollide: False
   - uid: 411
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 407
@@ -19642,7 +18669,6 @@ entities:
       canCollide: False
   - uid: 416
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 412
@@ -19652,7 +18678,6 @@ entities:
       canCollide: False
   - uid: 421
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 417
@@ -19662,7 +18687,6 @@ entities:
       canCollide: False
   - uid: 426
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 422
@@ -19674,7 +18698,6 @@ entities:
   entities:
   - uid: 347
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19748,7 +18771,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 352
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19822,7 +18844,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 357
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19896,7 +18917,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 362
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -19970,7 +18990,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 367
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20044,7 +19063,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 372
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20118,7 +19136,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 377
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20192,7 +19209,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 382
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20266,7 +19282,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 387
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20338,7 +19353,6 @@ entities:
           - InteractImpassable
   - uid: 392
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20410,7 +19424,6 @@ entities:
           - InteractImpassable
   - uid: 397
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20482,7 +19495,6 @@ entities:
           - InteractImpassable
   - uid: 402
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20554,7 +19566,6 @@ entities:
           - InteractImpassable
   - uid: 407
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20628,7 +19639,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 412
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20702,7 +19712,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 417
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20776,7 +19785,6 @@ entities:
       storedHeat: 6.227E-42
   - uid: 422
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -20933,7 +19941,6 @@ entities:
   entities:
   - uid: 29
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 21
@@ -20945,7 +19952,6 @@ entities:
   entities:
   - uid: 121
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 107
@@ -20958,7 +19964,6 @@ entities:
   entities:
   - uid: 431
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21178,7 +20183,6 @@ entities:
   entities:
   - uid: 1077
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21188,7 +20192,6 @@ entities:
   entities:
   - uid: 1078
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21198,7 +20201,6 @@ entities:
   entities:
   - uid: 1079
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21230,21 +20232,18 @@ entities:
       pos: 7.5,2.5
   - uid: 1083
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 2.5,2.5
   - uid: 1084
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -1.5,2.5
   - uid: 1085
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21252,273 +20251,234 @@ entities:
       pos: -13.5,2.5
   - uid: 1086
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,5.5
   - uid: 1087
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,4.5
   - uid: 1088
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 15.5,2.5
   - uid: 1089
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 16.5,2.5
   - uid: 1090
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 14.5,2.5
   - uid: 1091
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 14.5,-0.5
   - uid: 1092
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 14.5,0.5
   - uid: 1093
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 17.5,2.5
   - uid: 1094
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 13.5,-0.5
   - uid: 1095
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 12.5,-0.5
   - uid: 1096
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 11.5,-0.5
   - uid: 1097
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,-0.5
   - uid: 1098
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 9.5,-0.5
   - uid: 1099
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,-0.5
   - uid: 1100
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 7.5,-0.5
   - uid: 1101
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 7.5,0.5
   - uid: 1102
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,0.5
   - uid: 1103
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,-0.5
   - uid: 1104
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -7.5,-0.5
   - uid: 1105
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -8.5,-0.5
   - uid: 1106
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,-0.5
   - uid: 1107
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -10.5,-0.5
   - uid: 1108
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -11.5,-0.5
   - uid: 1109
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -13.5,-0.5
   - uid: 1110
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -12.5,-0.5
   - uid: 1111
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -13.5,0.5
   - uid: 1112
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,3.5
   - uid: 1113
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -6.5,2.5
   - uid: 1114
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -2.5,2.5
   - uid: 1115
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 7.5,5.5
   - uid: 1116
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 7.5,4.5
   - uid: 1117
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -2.5,3.5
   - uid: 1118
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -2.5,4.5
   - uid: 1119
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -2.5,5.5
   - uid: 1120
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -2.5,6.5
   - uid: 1121
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 3.5,2.5
   - uid: 1122
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 3.5,3.5
   - uid: 1123
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 3.5,4.5
   - uid: 1124
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21530,7 +20490,6 @@ entities:
       pos: -1.5,4.5
   - uid: 1126
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21538,7 +20497,6 @@ entities:
       pos: -1.5,-1.5
   - uid: 1127
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21546,7 +20504,6 @@ entities:
       pos: 2.5,-1.5
   - uid: 1128
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21554,7 +20511,6 @@ entities:
       pos: 2.5,-2.5
   - uid: 1129
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21562,7 +20518,6 @@ entities:
       pos: -1.5,-2.5
   - uid: 1130
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21570,7 +20525,6 @@ entities:
       pos: -6.5,-1.5
   - uid: 1131
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21578,7 +20532,6 @@ entities:
       pos: -5.5,-1.5
   - uid: 1132
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21586,7 +20539,6 @@ entities:
       pos: -4.5,-1.5
   - uid: 1133
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21594,7 +20546,6 @@ entities:
       pos: -3.5,-1.5
   - uid: 1134
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21602,7 +20553,6 @@ entities:
       pos: -2.5,-1.5
   - uid: 1135
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21610,7 +20560,6 @@ entities:
       pos: 3.5,-1.5
   - uid: 1136
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21618,7 +20567,6 @@ entities:
       pos: 4.5,-1.5
   - uid: 1137
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21626,7 +20574,6 @@ entities:
       pos: 5.5,-1.5
   - uid: 1138
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21634,7 +20581,6 @@ entities:
       pos: 7.5,-1.5
   - uid: 1139
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21642,7 +20588,6 @@ entities:
       pos: 6.5,-1.5
   - uid: 1140
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21650,7 +20595,6 @@ entities:
       pos: 14.5,-1.5
   - uid: 1141
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21658,7 +20602,6 @@ entities:
       pos: 15.5,-1.5
   - uid: 1142
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21666,7 +20609,6 @@ entities:
       pos: 16.5,-1.5
   - uid: 1143
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21674,7 +20616,6 @@ entities:
       pos: 18.5,-1.5
   - uid: 1144
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21682,7 +20623,6 @@ entities:
       pos: 19.5,-1.5
   - uid: 1145
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21690,7 +20630,6 @@ entities:
       pos: 20.5,-1.5
   - uid: 1146
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21698,7 +20637,6 @@ entities:
       pos: 21.5,-1.5
   - uid: 1147
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21706,7 +20644,6 @@ entities:
       pos: 17.5,-1.5
   - uid: 1148
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21714,7 +20651,6 @@ entities:
       pos: -13.5,-1.5
   - uid: 1149
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21722,7 +20658,6 @@ entities:
       pos: -14.5,-1.5
   - uid: 1150
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21730,7 +20665,6 @@ entities:
       pos: -15.5,-1.5
   - uid: 1151
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21738,7 +20672,6 @@ entities:
       pos: -17.5,-1.5
   - uid: 1152
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21746,7 +20679,6 @@ entities:
       pos: -18.5,-1.5
   - uid: 1153
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21754,7 +20686,6 @@ entities:
       pos: -19.5,-1.5
   - uid: 1154
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21762,7 +20693,6 @@ entities:
       pos: -20.5,-1.5
   - uid: 1155
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21770,7 +20700,6 @@ entities:
       pos: -16.5,-1.5
   - uid: 1156
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21778,7 +20707,6 @@ entities:
       pos: -14.5,2.5
   - uid: 1157
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21786,7 +20714,6 @@ entities:
       pos: -15.5,2.5
   - uid: 1158
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21794,7 +20721,6 @@ entities:
       pos: -16.5,2.5
   - uid: 1159
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21802,7 +20728,6 @@ entities:
       pos: -17.5,2.5
   - uid: 1160
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -21810,217 +20735,186 @@ entities:
       pos: 18.5,2.5
   - uid: 1161
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 19.5,1.5
   - uid: 1162
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 20.5,1.5
   - uid: 1163
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 21.5,1.5
   - uid: 1164
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 24.5,1.5
   - uid: 1165
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 22.5,1.5
   - uid: 1166
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 25.5,0.5
   - uid: 1167
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 26.5,0.5
   - uid: 1168
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 27.5,0.5
   - uid: 1169
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 28.5,0.5
   - uid: 1170
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 22.5,-0.5
   - uid: 1171
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 23.5,-0.5
   - uid: 1172
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 24.5,0.5
   - uid: 1173
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 23.5,0.5
   - uid: 1174
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -18.5,1.5
   - uid: 1175
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -19.5,1.5
   - uid: 1176
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -20.5,1.5
   - uid: 1177
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -23.5,1.5
   - uid: 1178
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -21.5,1.5
   - uid: 1179
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -24.5,0.5
   - uid: 1180
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -25.5,0.5
   - uid: 1181
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -26.5,0.5
   - uid: 1182
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -27.5,0.5
   - uid: 1183
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -23.5,0.5
   - uid: 1184
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -22.5,0.5
   - uid: 1185
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -22.5,-0.5
   - uid: 1186
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -21.5,-0.5
   - uid: 1187
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -20.5,-0.5
   - uid: 1188
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -21.5,0.5
   - uid: 1189
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 21.5,-0.5
   - uid: 1190
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 22.5,0.5
   - uid: 1191
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22028,7 +20922,6 @@ entities:
       pos: 19.5,-0.5
   - uid: 1192
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22036,7 +20929,6 @@ entities:
       pos: -18.5,-0.5
   - uid: 1193
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22044,7 +20936,6 @@ entities:
       pos: -2.5,-0.5
   - uid: 1194
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22052,7 +20943,6 @@ entities:
       pos: -2.5,1.5
   - uid: 1195
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22060,7 +20950,6 @@ entities:
       pos: 3.5,1.5
   - uid: 1196
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22068,7 +20957,6 @@ entities:
       pos: 3.5,-0.5
   - uid: 1197
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22076,7 +20964,6 @@ entities:
       pos: 1.5,2.5
   - uid: 1198
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22095,7 +20982,6 @@ entities:
   entities:
   - uid: 1203
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22103,7 +20989,6 @@ entities:
       pos: -1.5,-3.5
   - uid: 1204
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22111,7 +20996,6 @@ entities:
       pos: 2.5,-3.5
   - uid: 1205
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22119,7 +21003,6 @@ entities:
       pos: 2.5,9.5
   - uid: 1206
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22127,7 +21010,6 @@ entities:
       pos: 3.5,8.5
   - uid: 1207
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22135,7 +21017,6 @@ entities:
       pos: 6.5,7.5
   - uid: 1208
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22143,7 +21024,6 @@ entities:
       pos: 9.5,6.5
   - uid: 1209
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22151,7 +21031,6 @@ entities:
       pos: 12.5,5.5
   - uid: 1210
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22159,7 +21038,6 @@ entities:
       pos: 18.5,3.5
   - uid: 1211
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22167,63 +21045,54 @@ entities:
       pos: 22.5,2.5
   - uid: 1212
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -1.5,9.5
   - uid: 1213
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -2.5,8.5
   - uid: 1214
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -5.5,7.5
   - uid: 1215
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -8.5,6.5
   - uid: 1216
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -11.5,5.5
   - uid: 1217
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -17.5,3.5
   - uid: 1218
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -21.5,2.5
   - uid: 1219
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -28.5,0.5
   - uid: 1220
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22231,14 +21100,12 @@ entities:
       pos: 29.5,0.5
   - uid: 1221
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 17.5,3.5
   - uid: 1222
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22246,7 +21113,6 @@ entities:
       pos: 15.5,3.5
   - uid: 1223
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22254,21 +21120,18 @@ entities:
       pos: -16.5,3.5
   - uid: 1224
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -14.5,3.5
   - uid: 1225
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -18.5,2.5
   - uid: 1226
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22276,7 +21139,6 @@ entities:
       pos: -20.5,2.5
   - uid: 1227
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22284,14 +21146,12 @@ entities:
       pos: 19.5,2.5
   - uid: 1228
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 21.5,2.5
   - uid: 1229
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22299,7 +21159,6 @@ entities:
       pos: -26.5,-0.5
   - uid: 1230
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22307,7 +21166,6 @@ entities:
       pos: -21.5,-1.5
   - uid: 1231
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22315,7 +21173,6 @@ entities:
       pos: 22.5,-1.5
   - uid: 1232
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22325,7 +21182,6 @@ entities:
   entities:
   - uid: 1016
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1015
@@ -22335,7 +21191,6 @@ entities:
       canCollide: False
   - uid: 1018
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1017
@@ -22353,51 +21208,35 @@ entities:
 - proto: WeaponTurretBofors
   entities:
   - uid: 1233
-    mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       rot: 3.141592653589793 rad
       pos: 16.5,3.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: BallisticAmmoProvider
       unspawnedCount: 8
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 46BE-EA1C
-    - type: FireControllable
-      nextFire: -1859.99814
   - uid: 1234
-    mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       rot: 3.141592653589793 rad
       pos: -15.5,3.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: BallisticAmmoProvider
       unspawnedCount: 8
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 580E-40F5
-    - type: FireControllable
-      nextFire: -1859.99814
 - proto: WeaponTurretDravon
   entities:
   - uid: 427
-    mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       rot: 3.141592653589793 rad
       pos: 11.5,5.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 4E7C-70A1
@@ -22407,18 +21246,12 @@ entities:
           ent: 428
           showEnts: False
           occludes: True
-    - type: FireControllable
-      nextFire: -1859.99814
   - uid: 429
-    mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       rot: 3.141592653589793 rad
       pos: -10.5,5.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 09B2-BB58
@@ -22428,19 +21261,13 @@ entities:
           ent: 430
           showEnts: False
           occludes: True
-    - type: FireControllable
-      nextFire: -1859.99814
 - proto: WeaponTurretFlare
   entities:
   - uid: 1054
-    mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 24.5,-0.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 79A2-6B07
@@ -22450,17 +21277,11 @@ entities:
           ent: 1055
           showEnts: False
           occludes: True
-    - type: FireControllable
-      nextFire: -1859.99814
   - uid: 1056
-    mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 26.5,-0.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 2BDE-44E3
@@ -22470,17 +21291,11 @@ entities:
           ent: 1057
           showEnts: False
           occludes: True
-    - type: FireControllable
-      nextFire: -1859.99814
   - uid: 1058
-    mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -25.5,-0.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 234B-5336
@@ -22490,17 +21305,11 @@ entities:
           ent: 1059
           showEnts: False
           occludes: True
-    - type: FireControllable
-      nextFire: -1859.99814
   - uid: 1060
-    mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -23.5,-0.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 5ED8-3D4F
@@ -22510,8 +21319,6 @@ entities:
           ent: 1061
           showEnts: False
           occludes: True
-    - type: FireControllable
-      nextFire: -1859.99814
 - proto: WeaponTurretL85Autocannon
   entities:
   - uid: 1235
@@ -22528,19 +21335,14 @@ entities:
   entities:
   - uid: 1040
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 4.5,4.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: BallisticAmmoProvider
       entities:
       - 1041
       - 1042
-    - type: FireControllable
-      nextFire: -1859.99814
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 7673-706E
@@ -22554,19 +21356,14 @@ entities:
           occludes: True
   - uid: 1043
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -5.5,4.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: BallisticAmmoProvider
       entities:
       - 1044
       - 1045
-    - type: FireControllable
-      nextFire: -1859.99814
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 6F4C-0386
@@ -22580,19 +21377,14 @@ entities:
           occludes: True
   - uid: 1046
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 6.5,4.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: BallisticAmmoProvider
       entities:
       - 1047
       - 1048
-    - type: FireControllable
-      nextFire: -1859.99814
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 3F2F-255A
@@ -22606,19 +21398,14 @@ entities:
           occludes: True
   - uid: 1049
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -3.5,4.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: BallisticAmmoProvider
       entities:
       - 1050
       - 1051
-    - type: FireControllable
-      nextFire: -1859.99814
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 6D60-EE2D
@@ -22633,44 +21420,31 @@ entities:
 - proto: WeaponTurretTovek
   entities:
   - uid: 1237
-    mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       rot: 3.141592653589793 rad
       pos: -19.5,2.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: BallisticAmmoProvider
       unspawnedCount: 2
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 70DB-1229
-    - type: FireControllable
-      nextFire: -1859.99814
   - uid: 1238
-    mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       rot: 3.141592653589793 rad
       pos: 20.5,2.5
-    - type: Gun
-      nextFire: -1859.99814
     - type: BallisticAmmoProvider
       unspawnedCount: 2
     - type: DeviceNetwork
       receiveFrequency: 1280
       address: 4666-BB21
-    - type: FireControllable
-      nextFire: -1859.99814
 - proto: Welder
   entities:
   - uid: 111
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 110
@@ -22744,49 +21518,42 @@ entities:
       pos: -12.5,3.5
   - uid: 1245
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -8.5,4.5
   - uid: 1246
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -7.5,4.5
   - uid: 1247
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -9.5,4.5
   - uid: 1248
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 10.5,4.5
   - uid: 1249
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 9.5,4.5
   - uid: 1250
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 8.5,4.5
   - uid: 1251
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22794,7 +21561,6 @@ entities:
       pos: -0.5,8.5
   - uid: 1252
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22802,7 +21568,6 @@ entities:
       pos: 0.5,8.5
   - uid: 1253
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22810,7 +21575,6 @@ entities:
       pos: 1.5,8.5
   - uid: 1254
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22818,7 +21582,6 @@ entities:
       pos: 2.5,8.5
   - uid: 1255
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22826,7 +21589,6 @@ entities:
       pos: -1.5,8.5
   - uid: 1256
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22834,7 +21596,6 @@ entities:
       pos: 3.5,7.5
   - uid: 1257
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22842,7 +21603,6 @@ entities:
       pos: 4.5,7.5
   - uid: 1258
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22850,7 +21610,6 @@ entities:
       pos: 5.5,7.5
   - uid: 1259
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22858,7 +21617,6 @@ entities:
       pos: -2.5,7.5
   - uid: 1260
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22866,7 +21624,6 @@ entities:
       pos: -3.5,7.5
   - uid: 1261
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22874,7 +21631,6 @@ entities:
       pos: -4.5,7.5
   - uid: 1262
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22882,7 +21638,6 @@ entities:
       pos: -12.5,4.5
   - uid: 1263
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22890,7 +21645,6 @@ entities:
       pos: -11.5,4.5
   - uid: 1264
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22898,7 +21652,6 @@ entities:
       pos: -10.5,4.5
   - uid: 1265
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22906,7 +21659,6 @@ entities:
       pos: -9.5,5.5
   - uid: 1266
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22914,7 +21666,6 @@ entities:
       pos: -8.5,5.5
   - uid: 1267
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22922,7 +21673,6 @@ entities:
       pos: -7.5,5.5
   - uid: 1268
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22930,7 +21680,6 @@ entities:
       pos: 8.5,5.5
   - uid: 1269
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22938,7 +21687,6 @@ entities:
       pos: 9.5,5.5
   - uid: 1270
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22946,7 +21694,6 @@ entities:
       pos: 10.5,5.5
   - uid: 1271
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22954,7 +21701,6 @@ entities:
       pos: 11.5,4.5
   - uid: 1272
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22962,7 +21708,6 @@ entities:
       pos: 12.5,4.5
   - uid: 1273
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22970,7 +21715,6 @@ entities:
       pos: 13.5,4.5
   - uid: 1274
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22978,7 +21722,6 @@ entities:
       pos: 6.5,6.5
   - uid: 1275
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22986,7 +21729,6 @@ entities:
       pos: -5.5,6.5
   - uid: 1277
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -22994,7 +21736,6 @@ entities:
       pos: 14.5,3.5
   - uid: 1278
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -23002,7 +21743,6 @@ entities:
       pos: -13.5,4.5
   - uid: 1279
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -23010,105 +21750,90 @@ entities:
       pos: -13.5,3.5
   - uid: 1280
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -5.5,5.5
   - uid: 1281
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -4.5,6.5
   - uid: 1282
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -3.5,6.5
   - uid: 1283
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -1.5,7.5
   - uid: 1284
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -0.5,7.5
   - uid: 1285
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 0.5,7.5
   - uid: 1286
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 1.5,7.5
   - uid: 1287
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 2.5,7.5
   - uid: 1288
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 4.5,6.5
   - uid: 1289
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 5.5,6.5
   - uid: 1290
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 5.5,5.5
   - uid: 1291
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 6.5,5.5
   - uid: 1292
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: 4.5,5.5
   - uid: 1293
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
       pos: -3.5,5.5
   - uid: 1294
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 1
@@ -23117,7 +21842,6 @@ entities:
   entities:
   - uid: 30
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 21
@@ -23129,7 +21853,6 @@ entities:
   entities:
   - uid: 116
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 110
@@ -23148,7 +21871,6 @@ entities:
   entities:
   - uid: 117
     mapInit: true
-    paused: true
     components:
     - type: Transform
       parent: 110

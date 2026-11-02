@@ -23,7 +23,7 @@
 # PDV Voucher for Foxtrot-II
 - type: entity
   parent: BaseShipLPCRenewable
-  id: ShipVoucherFoxtrot2
+  id: WFShipVoucherFoxtrotII
   name: PDV Foxtrot-II LPC [T4]
   description: A small card that authorizes the procurement of a Foxtrot-II stealth ship.
   components:
@@ -42,6 +42,6 @@
     destroyOnEmpty: false
     consoleType: BlackMarket
     companyName: PDV
-    cooldown: 14400 # two hour
+    cooldown: 14400 # four hours, same as the Saturn
     vessels:
     - WFFoxtrotII
