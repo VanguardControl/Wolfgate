@@ -83,7 +83,8 @@ them free under Quirks.
   - a saved trait the character's conditions no longer allow is dropped
 - [`Content.Server/Traits/TraitSystem.cs`](../../Traits/TraitSystem.cs)
   - a condition-gated trait is only applied when its conditions hold for this spawn
-  - effect-only traits have no components list
+  - run the trait's data-driven effects
 - [`Content.Shared/Preferences/HumanoidCharacterProfile.cs`](../../../Content.Shared/Preferences/HumanoidCharacterProfile.cs): drop a trait whose known conditions the character does not meet
+- [`Content.Shared/Traits/TraitPrototype.cs`](../../../Content.Shared/Traits/TraitPrototype.cs): effect-only traits have no components list
 
 <!-- WOLFGATE-GENERATED END -->

@@ -54,12 +54,9 @@ public sealed partial class TraitSystem : EntitySystem
             // WOLFGATE END
 
             // Add all components required by the prototype
-            // WOLFGATE(Traits) START: effect-only traits have no components list
-            if (traitPrototype.Components != null)
-                EntityManager.AddComponents(args.Mob, traitPrototype.Components, false);
+            EntityManager.AddComponents(args.Mob, traitPrototype.Components, false);
 
-            WfApplyTraitEffects(args.Mob, traitPrototype);
-            // WOLFGATE END
+            WfApplyTraitEffects(args.Mob, traitPrototype); // WOLFGATE(Traits): run the trait's data-driven effects
 
             // Einstein Engines - Language begin (remove this if trait system refactor)
             // Remove/Add Languages required by the prototype
