@@ -50,12 +50,12 @@ public sealed class WFGameDownloadSystem : EntitySystem
         try
         {
             var (size, version) = await GetManifest(game);
-            _task.RunOnMainThread(() => RaiseNetworkEvent(new WFGameManifestEvent(game.ID, size, version), channel));
+            SendIfConnected(new WFGameManifestEvent(game.ID, size, version), channel);
         }
         catch (Exception e)
         {
             Log.Error($"Can't read the data for game {game.ID}: {e}");
-            _task.RunOnMainThread(() => RaiseNetworkEvent(new WFGameDownloadFailedEvent(game.ID), channel));
+            SendIfConnected(new WFGameDownloadFailedEvent(game.ID), channel);
         }
     }
 
@@ -128,11 +128,7 @@ public sealed class WFGameDownloadSystem : EntitySystem
         {
             // Usually a client that disconnected mid-download.
             Log.Warning($"Game download to {session.Name} failed: {e.Message}");
-            _task.RunOnMainThread(() =>
-            {
-                if (channel.IsConnected)
-                    RaiseNetworkEvent(new WFGameDownloadFailedEvent(game.ID), channel);
-            });
+            SendIfConnected(new WFGameDownloadFailedEvent(game.ID), channel);
         }
         finally
         {
@@ -141,6 +137,16 @@ public sealed class WFGameDownloadSystem : EntitySystem
 
             _task.RunOnMainThread(() => _active.Remove(session.UserId));
         }
+    }
+
+    /// <summary>Sends from the game thread, unless the player left while the work ran.</summary>
+    private void SendIfConnected(EntityEventArgs message, INetChannel channel)
+    {
+        _task.RunOnMainThread(() =>
+        {
+            if (channel.IsConnected)
+                RaiseNetworkEvent(message, channel);
+        });
     }
 
     private Task<Stream> OpenTransfer(INetChannel channel)
