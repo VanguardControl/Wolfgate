@@ -6,6 +6,7 @@ using Content.Server.Cloning.Components;
 using Content.Server.Materials;
 using Content.Server.Medical.Components;
 using Content.Server.Power.Components;
+using Content.Shared._Mono.Cloning;
 using Content.Shared._WF.Genitals.Components;
 using Content.Shared._WF.LegStyle;
 using Content.Shared._WF.Voice;
@@ -152,6 +153,49 @@ public sealed class GeneticCloningTest
 
             entMan.DeleteEntity(body);
             entMan.DeleteEntity(mind);
+        });
+
+        await pair.CleanReturnAsync();
+    }
+
+    /// <summary>A database that was unanchored stops being the selection, and one on another grid can't be selected.</summary>
+    [Test]
+    public async Task DatabaseSelectionStaysOnGrid()
+    {
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+        var map = await pair.CreateTestMap();
+
+        await server.WaitAssertion(() =>
+        {
+            var database = entMan.System<GeneticDatabaseSystem>();
+            var console = entMan.SpawnEntity("computerBodyScanner", map.GridCoords);
+            var client = entMan.GetComponent<GeneticDatabaseClientComponent>(console);
+
+            var first = entMan.SpawnEntity("GeneticDatabaseServer", map.GridCoords);
+            database.TryGetDatabase(console, out _);
+            Assert.That(client.Database, Is.EqualTo(first));
+
+            var second = entMan.SpawnEntity("GeneticDatabaseServer", map.GridCoords);
+            entMan.System<SharedTransformSystem>().Unanchor(first);
+            database.TryGetDatabase(console, out _);
+            Assert.That(client.Database, Is.EqualTo(second), "An unanchored selection should fall back to the installed database.");
+
+            var otherGrid = entMan.System<SharedMapSystem>().CreateGridEntity(map.MapId);
+            entMan.System<SharedMapSystem>().SetTile(otherGrid, otherGrid.Comp, Robust.Shared.Maths.Vector2i.Zero, map.Tile.Tile);
+            entMan.System<SharedTransformSystem>().SetWorldPosition(otherGrid, new System.Numerics.Vector2(100, 100));
+            var offGrid = entMan.SpawnEntity("GeneticDatabaseServer", new EntityCoordinates(otherGrid, 0.5f, 0.5f));
+            var offGridId = entMan.GetComponent<GeneticDatabaseComponent>(offGrid).Id;
+            entMan.EventBus.RaiseLocalEvent(console, new GeneticDatabaseSelectMessage(offGridId));
+            Assert.That(entMan.GetComponent<TransformComponent>(offGrid).GridUid, Is.EqualTo(otherGrid.Owner));
+            Assert.That(client.Database, Is.EqualTo(second), "A database on another grid should be refused.");
+
+            entMan.DeleteEntity(console);
+            entMan.DeleteEntity(first);
+            entMan.DeleteEntity(second);
+            entMan.DeleteEntity(offGrid);
+            entMan.DeleteEntity(otherGrid);
         });
 
         await pair.CleanReturnAsync();

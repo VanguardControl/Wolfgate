@@ -43,11 +43,17 @@ public sealed partial class GeneticDatabaseSystem : EntitySystem
             return false;
         }
 
-        if (!HasComp<GeneticDatabaseComponent>(comp.Database))
+        // WOLFGATE(Cloning) START: a selection that left the grid or was unanchored is dropped; a power cut keeps it
+        if (comp.Database is not { } current ||
+            !HasComp<GeneticDatabaseComponent>(current) ||
+            !IsInstalled(current, grid.Value))
         {
-            var onGrid = GetDatabasesOnGrid(grid.Value);
+            var onGrid = GetDatabasesOnGrid(grid.Value)
+                .Where(d => IsInstalled(d.Owner, grid.Value))
+                .ToList();
             comp.Database = onGrid.Count == 1 ? onGrid[0].Owner : null;
         }
+        // WOLFGATE END
 
         if (comp.Database is not { } picked ||
             !TryComp<GeneticDatabaseComponent>(picked, out var pickedComp) ||
@@ -84,7 +90,7 @@ public sealed partial class GeneticDatabaseSystem : EntitySystem
         var query = EntityQueryEnumerator<GeneticDatabaseComponent>();
         while (query.MoveNext(out var uid, out var database))
         {
-            if (database.Id == args.Id)
+            if (database.Id == args.Id && Transform(uid).GridUid == Transform(ent).GridUid) // WOLFGATE(Cloning): the UI only lists this grid
                 ent.Comp.Database = uid;
         }
 
@@ -112,9 +118,16 @@ public sealed partial class GeneticDatabaseSystem : EntitySystem
 
     private bool IsUsable(EntityUid database, EntityUid grid)
     {
-        var xform = Transform(database);
-        return xform.GridUid == grid && xform.Anchored && this.IsPowered(database, EntityManager);
+        return IsInstalled(database, grid) && this.IsPowered(database, EntityManager); // WOLFGATE(Cloning): split out IsInstalled
     }
+
+    // WOLFGATE(Cloning) START: whether a database can be picked at all, powered or not
+    private bool IsInstalled(EntityUid database, EntityUid grid)
+    {
+        var xform = Transform(database);
+        return xform.GridUid == grid && xform.Anchored;
+    }
+    // WOLFGATE END
 
     /// <summary>
     /// Upsert is a combination of update and insert by the way. Also, a combination of those kind of words
