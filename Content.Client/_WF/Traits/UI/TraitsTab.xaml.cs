@@ -1,6 +1,5 @@
 using System.Linq;
 using Content.Client._WF.Newbie;
-using Content.Client._WF.Traits;
 using Content.Client.Players.PlayTimeTracking;
 using Content.Shared._WF.Biotype;
 using Content.Shared.Humanoid.Prototypes;
@@ -26,9 +25,13 @@ public sealed partial class TraitsTab : BoxContainer
     [Dependency] private IPrototypeManager _prototype = default!;
     [Dependency] private IConfigurationManager _cfg = default!;
     [Dependency] private JobRequirementsManager _requirements = default!;
+    [Dependency] private IComponentFactory _componentFactory = default!;
 
     /// <summary>Raised when the editor changes the profile's trait selection.</summary>
     public event Action<HumanoidCharacterProfile>? OnProfileChanged;
+
+    /// <summary>The editor's current profile, read before each change so other edits are kept.</summary>
+    public Func<HumanoidCharacterProfile?>? ProfileSource;
 
     private readonly List<TraitCategory> _categories = new();
     private readonly Dictionary<ProtoId<TraitPrototype>, TraitEntry> _entries = new();
@@ -87,8 +90,14 @@ public sealed partial class TraitsTab : BoxContainer
             InvalidateLayoutTree(child);
     }
 
+    private void SyncProfile()
+    {
+        _profile = ProfileSource?.Invoke() ?? _profile;
+    }
+
     private void ClearAll()
     {
+        SyncProfile();
         if (_profile == null)
             return;
 
@@ -215,7 +224,6 @@ public sealed partial class TraitsTab : BoxContainer
                 var conditionsMet = TraitConditionUi.AllMet(trait, _profile.Species.Id, _prototype);
                 var (restrictionNotes, blocked) = EvaluateRestrictions(trait);
 
-                entry.Available = true;
                 entry.SetSelected(selected);
                 entry.SetDisabled(!selected && (!conditionsMet || blocked || overLimit));
                 entry.SetTooltip(BuildTooltip(trait, conditionsMet, restrictionNotes, overLimit));
@@ -307,9 +315,11 @@ public sealed partial class TraitsTab : BoxContainer
         var label = FormatWhitelist(list);
         var entityProto = SpeciesEntityPrototype();
 
-        if (entityProto == null)
+        // A server-only component is missing from the client's prototypes, so it can't count against the body.
+        var serverOnly = list.Components?.Any(name => !_componentFactory.TryGetRegistration(name, out _)) == true;
+        if (entityProto == null || serverOnly)
         {
-            // The editor cannot resolve the species body, so show what the trait expects without blocking it.
+            // The editor cannot check the species body, so show what the trait expects without blocking it.
             notes.Add(Loc.GetString(isWhitelist ? "trait-reason-whitelist" : "trait-reason-blacklist",
                 ("components", label)));
             return;
@@ -417,7 +427,11 @@ public sealed partial class TraitsTab : BoxContainer
 
     private void OnEntryToggled(TraitEntry entry, bool pressed)
     {
-        if (_updating || _profile == null)
+        if (_updating)
+            return;
+
+        SyncProfile();
+        if (_profile == null)
             return;
 
         var trait = entry.Trait;
@@ -482,7 +496,7 @@ public sealed partial class TraitsTab : BoxContainer
                               (entry.Trait.Description is { } description &&
                                Loc.GetString(description).Contains(_search, StringComparison.OrdinalIgnoreCase));
 
-                entry.Visible = entry.Available && matches;
+                entry.Visible = matches;
                 anyVisible |= entry.Visible;
             }
 

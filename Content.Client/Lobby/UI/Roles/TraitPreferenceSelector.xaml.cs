@@ -13,13 +13,6 @@ public sealed partial class TraitPreferenceSelector : Control
     public int Cost;
     private bool _preference;
 
-    // WOLFGATE(Traits) START: a trait whose conditions the character does not meet stays disabled
-    /// <summary>
-    /// Whether the character meets this trait's conditions.
-    /// </summary>
-    public bool ConditionsMet { get; set; } = true;
-    // WOLFGATE END
-
     public bool Preference
     {
         get => _preference;
@@ -29,20 +22,6 @@ public sealed partial class TraitPreferenceSelector : Control
             UpdateButtonState();
         }
     }
-
-    // WOLFGATE(Traits) START: greyed out while an exclusive trait is selected
-    public bool Excluded { get; private set; }
-
-    public void SetExcluded(bool excluded)
-    {
-        if (Excluded == excluded)
-            return;
-
-        Excluded = excluded;
-        TraitButton.Disabled = excluded;
-        NameLabel.FontColorOverride = excluded ? Color.Gray : null;
-    }
-    // WOLFGATE END
 
     public event Action<bool>? PreferenceChanged;
 
@@ -98,10 +77,6 @@ public sealed partial class TraitPreferenceSelector : Control
 
     private void OnTraitButtonPressed(BaseButton.ButtonEventArgs args)
     {
-        // WOLFGATE(Traits): the button is disabled, but never let a blocked trait through
-        if (!ConditionsMet)
-            return;
-
         // Clicking the trait button toggles selection
         Preference = !Preference;
         PreferenceChanged?.Invoke(Preference);
@@ -135,7 +110,7 @@ public sealed partial class TraitPreferenceSelector : Control
     /// <param name="unavailable">Whether the trait is unavailable for selection</param>
     public void SetUnavailable(bool unavailable)
     {
-        if (unavailable || !ConditionsMet) // WOLFGATE(Traits): an unmet condition survives point-limit recolouring
+        if (unavailable)
         {
             NameLabel.FontColorOverride = Color.Red;
             TraitButton.Disabled = true;
@@ -148,8 +123,8 @@ public sealed partial class TraitPreferenceSelector : Control
         }
         else
         {
-            NameLabel.FontColorOverride = Excluded ? Color.Gray : null; // WOLFGATE(Traits): an excluded trait stays grey
-            TraitButton.Disabled = Excluded; // WOLFGATE(Traits): a trait blocked by an exclusive pick stays disabled
+            NameLabel.FontColorOverride = null;
+            TraitButton.Disabled = false;
 
             // Restore the appropriate background color based on selection state
             if (Preference)

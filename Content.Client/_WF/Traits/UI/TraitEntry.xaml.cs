@@ -15,9 +15,6 @@ public sealed partial class TraitEntry : PanelContainer
 
     public TraitPrototype Trait { get; }
 
-    /// <summary>Whether the entry is shown before the search filter is applied.</summary>
-    public bool Available { get; set; } = true;
-
     public event Action<TraitEntry, bool>? Toggled;
 
     private bool _updating;
@@ -32,7 +29,7 @@ public sealed partial class TraitEntry : PanelContainer
         TraitNameLabel.Text = _loc.GetString(trait.Name);
 
         if (trait.Description is { } description)
-            TraitDescriptionLabel.SetMessage(FormattedMessage.FromMarkupOrThrow(_loc.GetString(description)));
+            TraitDescriptionLabel.SetMessage(FormattedMessage.FromMarkupPermissive(_loc.GetString(description)));
         else
             TraitDescriptionLabel.Visible = false;
 

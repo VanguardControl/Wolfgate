@@ -29,6 +29,7 @@ namespace Content.IntegrationTests.Tests._WF.Traits;
 [TestFixture]
 public sealed class TraitsUiTest
 {
+    [TestPrototypes]
     private const string ConditionPrototype = """
                                               - type: traitCategory
                                                 id: WFUiTestCategory
@@ -42,19 +43,22 @@ public sealed class TraitsUiTest
                                                 conditions:
                                                 - !type:IsSpeciesCondition
                                                   species: Moth
+
+                                              - type: trait
+                                                id: WFUiTestServerOnlyWhitelist
+                                                name: trait-pacifist-name
+                                                description: trait-pacifist-desc
+                                                category: WFUiTestCategory
+                                                whitelist:
+                                                  components:
+                                                  - AutoTraitor
                                               """;
 
     [Test]
     public async Task UnmetConditionsShowPopup()
     {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true, Dirty = true });
+        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Connected = true });
         var client = pair.Client;
-
-        await client.WaitPost(() =>
-        {
-            client.ProtoMan.LoadString(ConditionPrototype);
-            client.ProtoMan.ResolveResults();
-        });
 
         await client.WaitAssertion(() =>
         {
@@ -83,6 +87,13 @@ public sealed class TraitsUiTest
             var tooltip = entry.TooltipSupplier?.Invoke(entry) as Tooltip;
             Assert.That(tooltip?.Text, Does.Contain("Requirements not met"));
             Assert.That(tooltip?.Text, Does.Contain("Moth"));
+
+            // The client can't see a server-only component on the body, so it doesn't block the trait.
+            var serverOnly = Descend(editor.FindControl<TraitsTab>("TraitsTab")!)
+                .OfType<TraitEntry>()
+                .First(entry => entry.Trait.ID == "WFUiTestServerOnlyWhitelist");
+            Assert.That(serverOnly.FindControl<CheckBox>("TraitCheckbox")!.Disabled, Is.False,
+                "A whitelist on a server-only component should leave the trait selectable.");
         });
 
         await pair.CleanReturnAsync();
@@ -154,7 +165,12 @@ public sealed class TraitsUiTest
             Assert.That(checkbox, Is.Not.Null);
 
             var trait = new ProtoId<TraitPrototype>("Pacifist");
+
+            // An edit made elsewhere in the editor must survive a trait toggle.
+            editor.Profile = editor.Profile!.WithName("Kept Name");
             Toggle(checkbox, true);
+            Assert.That(editor.Profile!.Name, Is.EqualTo("Kept Name"),
+                "A trait toggle should not undo other profile edits.");
             Assert.That(editor.Profile!.TraitPreferences, Does.Contain(trait),
                 "Selecting a trait in the new tab should update the profile.");
 

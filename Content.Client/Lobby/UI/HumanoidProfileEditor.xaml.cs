@@ -526,6 +526,7 @@ namespace Content.Client.Lobby.UI
             RefreshTraits();
 
             // WOLFGATE(Traits) START: the card-based editor owns trait selection
+            TraitsTab.ProfileSource = () => Profile;
             TraitsTab.OnProfileChanged += profile =>
             {
                 Profile = profile;
@@ -716,6 +717,11 @@ namespace Content.Client.Lobby.UI
             var traits = _prototypeManager.EnumeratePrototypes<TraitPrototype>().OrderBy(t => Loc.GetString(t.Name)).ToList();
             TabContainer.SetTabTitle(3, Loc.GetString("humanoid-profile-editor-traits-tab")); // WOLFGATE(Humanoid): shifted by the species tab
 
+            // WOLFGATE(Traits) START: the flat list is hidden behind the card-based editor, so don't build it
+            if (TraitsList.Parent is { Visible: false })
+                return;
+            // WOLFGATE END
+
             if (traits.Count < 1)
             {
                 TraitsList.AddChild(new Label
@@ -869,10 +875,6 @@ namespace Content.Client.Lobby.UI
                         // WOLFGATE(Biotype) START: the biotypes a trait can't be taken by
                         if (BiotypeBlacklistTooltip(trait) is { } biotypeTooltip)
                             tooltipParts.Add(biotypeTooltip);
-                        // WOLFGATE END
-
-                        // WOLFGATE(Traits) START: show what the trait's conditions require
-                        TraitConditionUi.AddTooltipLines(trait, _prototypeManager, tooltipParts);
                         // WOLFGATE END
 
                         if (trait.NewbieBlocked) // WOLFGATE(Newbie): say why a newbie's saved pick won't apply
@@ -1061,24 +1063,6 @@ namespace Content.Client.Lobby.UI
                     categoryButton.AddTrait(selector);
                 }
 
-                // WOLFGATE(Traits) START: a trait the character's species cannot take is shown but disabled
-                if (Profile != null)
-                {
-                    foreach (var traitProto in categoryTraits)
-                    {
-                        if (!allSelectors.TryGetValue(traitProto, out var selector))
-                            continue;
-
-                        var trait = _prototypeManager.Index<TraitPrototype>(traitProto);
-                        if (TraitConditionUi.AllMet(trait, Profile.Species.Id, _prototypeManager))
-                            continue;
-
-                        selector.ConditionsMet = false;
-                        selector.SetUnavailable(true);
-                    }
-                }
-                // WOLFGATE END
-
                 UpdateTraitIncompatibilityVisibility(allSelectors);
             }
         }
@@ -1117,12 +1101,10 @@ namespace Content.Client.Lobby.UI
             foreach (var (traitId, selector) in allSelectors)
             {
                 var hide = false;
-                var greyOut = false; // WOLFGATE(Traits)
 
                 if (selected.Contains(traitId))
                 {
                     selector.Visible = true;
-                    selector.SetExcluded(false); // WOLFGATE(Traits)
                     continue;
                 }
 
@@ -1157,14 +1139,6 @@ namespace Content.Client.Lobby.UI
 
                         if (selProto.MutuallyExclusiveTraits.Contains(traitId) || thisProto.MutuallyExclusiveTraits.Contains(sel))
                         {
-                            // WOLFGATE(Traits) START: opted-in traits stay visible and are greyed out
-                            if (thisProto.GreyOutWhenExcluded)
-                            {
-                                greyOut = true;
-                                break;
-                            }
-                            // WOLFGATE END
-
                             hide = true;
                             break;
                         }
@@ -1172,7 +1146,6 @@ namespace Content.Client.Lobby.UI
                 }
 
                 selector.Visible = !hide;
-                selector.SetExcluded(greyOut); // WOLFGATE(Traits)
             }
         }
 

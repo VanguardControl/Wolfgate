@@ -20,6 +20,7 @@ namespace Content.IntegrationTests.Tests._WF.Traits;
 [TestFixture]
 public sealed class TraitsTest
 {
+    [TestPrototypes]
     private const string Prototypes = """
                                       - type: traitCategory
                                         id: WFTestTraits
@@ -83,17 +84,11 @@ public sealed class TraitsTest
     [Test]
     public async Task ConditionsAndEffectsWork()
     {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
         var entMan = server.EntMan;
         var protoMan = server.ProtoMan;
         var map = await pair.CreateTestMap();
-
-        await server.WaitPost(() =>
-        {
-            protoMan.LoadString(Prototypes);
-            protoMan.ResolveResults();
-        });
 
         await server.WaitAssertion(() =>
         {
@@ -163,14 +158,8 @@ public sealed class TraitsTest
     [Test]
     public async Task ProfileDropsTraitsWithUnmetConditions()
     {
-        await using var pair = await PoolManager.GetServerClient(new PoolSettings { Dirty = true });
+        await using var pair = await PoolManager.GetServerClient();
         var server = pair.Server;
-
-        await server.WaitPost(() =>
-        {
-            server.ProtoMan.LoadString(Prototypes);
-            server.ProtoMan.ResolveResults();
-        });
 
         await server.WaitAssertion(() =>
         {
