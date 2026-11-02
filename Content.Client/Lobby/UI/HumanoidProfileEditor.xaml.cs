@@ -74,6 +74,7 @@ using Content.Client.Humanoid;
 using Content.Client._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Client._WF.Genitals.UI; // WOLFGATE(Genitals)
 using Content.Client._WF.Humanoid; // WOLFGATE(Humanoid)
+using Content.Client._WF.Traits; // WOLFGATE(Traits)
 using Content.Shared._WF.Genitals; // WOLFGATE(Genitals)
 using Content.Shared._WF.Genitals.Profile; // WOLFGATE(Genitals)
 using Content.Shared._WF.Biotype; // WOLFGATE(Biotype)
@@ -593,6 +594,16 @@ namespace Content.Client.Lobby.UI
 
             RefreshTraits();
 
+            // WOLFGATE(Traits) START: the card-based editor owns trait selection
+            TraitsTab.ProfileSource = () => Profile;
+            TraitsTab.OnProfileChanged += profile =>
+            {
+                Profile = profile;
+                SetDirty();
+                UpdateAugments(); // WOLFGATE(Augments): a trait with its own limbs claims those slots
+            };
+            // WOLFGATE END
+
             #region Company
 
             TabContainer.SetTabTitle(4, Loc.GetString("humanoid-profile-editor-company-tab")); // WOLFGATE(Humanoid): shifted by the species tab
@@ -768,8 +779,17 @@ namespace Content.Client.Lobby.UI
 
             EnforceSpeciesTraitRestrictions();
 
+            // WOLFGATE(Traits) START: keep the card-based editor in step with the profile
+            TraitsTab.SetProfile(Profile);
+            // WOLFGATE END
+
             var traits = _prototypeManager.EnumeratePrototypes<TraitPrototype>().OrderBy(t => Loc.GetString(t.Name)).ToList();
             TabContainer.SetTabTitle(3, Loc.GetString("humanoid-profile-editor-traits-tab")); // WOLFGATE(Humanoid): shifted by the species tab
+
+            // WOLFGATE(Traits) START: the flat list is hidden behind the card-based editor, so don't build it
+            if (TraitsList.Parent is { Visible: false })
+                return;
+            // WOLFGATE END
 
             if (traits.Count < 1)
             {
@@ -1150,12 +1170,10 @@ namespace Content.Client.Lobby.UI
             foreach (var (traitId, selector) in allSelectors)
             {
                 var hide = false;
-                var greyOut = false; // WOLFGATE(Traits)
 
                 if (selected.Contains(traitId))
                 {
                     selector.Visible = true;
-                    selector.SetExcluded(false); // WOLFGATE(Traits)
                     continue;
                 }
 
@@ -1190,14 +1208,6 @@ namespace Content.Client.Lobby.UI
 
                         if (selProto.MutuallyExclusiveTraits.Contains(traitId) || thisProto.MutuallyExclusiveTraits.Contains(sel))
                         {
-                            // WOLFGATE(Traits) START: opted-in traits stay visible and are greyed out
-                            if (thisProto.GreyOutWhenExcluded)
-                            {
-                                greyOut = true;
-                                break;
-                            }
-                            // WOLFGATE END
-
                             hide = true;
                             break;
                         }
@@ -1205,7 +1215,6 @@ namespace Content.Client.Lobby.UI
                 }
 
                 selector.Visible = !hide;
-                selector.SetExcluded(greyOut); // WOLFGATE(Traits)
             }
         }
 
@@ -2193,6 +2202,10 @@ namespace Content.Client.Lobby.UI
 
                 if (trait.SpeciesBlacklist.Contains(species) || WFBiotypeGates.TraitBlocked(trait, Profile, _prototypeManager)) // WOLFGATE(Biotype): a listed biotype drops the trait like a listed species
                     toRemove.Add(traitId);
+                // WOLFGATE(Traits) START: a saved trait the character's conditions no longer allow is dropped
+                else if (!TraitConditionUi.AllMet(trait, species.Id, _prototypeManager))
+                    toRemove.Add(traitId);
+                // WOLFGATE END
             }
 
             foreach (var traitId in toRemove)
