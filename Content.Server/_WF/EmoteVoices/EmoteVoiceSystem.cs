@@ -85,6 +85,12 @@ public sealed partial class EmoteVoiceSystem : EntitySystem
     }
 
     /// <summary>Replaces the entity's chosen voices; none gives back the species' own sounds.</summary>
+    /// <summary>A copy of the chosen voices, or null if the entity has none.</summary>
+    public List<ProtoId<EmoteVoicePrototype>>? GetVoices(EntityUid uid)
+    {
+        return TryComp<EmoteVoiceComponent>(uid, out var comp) ? new List<ProtoId<EmoteVoicePrototype>>(comp.Voices) : null;
+    }
+
     public void SetVoices(EntityUid uid, IEnumerable<ProtoId<EmoteVoicePrototype>> voices)
     {
         var list = new List<ProtoId<EmoteVoicePrototype>>(voices);

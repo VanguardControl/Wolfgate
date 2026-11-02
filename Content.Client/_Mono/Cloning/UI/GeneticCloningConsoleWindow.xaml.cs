@@ -22,6 +22,7 @@ public sealed partial class GeneticCloningConsoleWindow : DefaultWindow
     private int? _selectedId;
     private readonly ButtonGroup _recordGroup = new();
     private GeneticCloningConsoleBoundUserInterfaceState? _lastUpdate;
+    private List<GeneticRecordEntry>? _shownRecords; // WOLFGATE(Cloning): rows are rebuilt only when they change
 
     public GeneticCloningConsoleWindow()
     {
@@ -95,11 +96,17 @@ public sealed partial class GeneticCloningConsoleWindow : DefaultWindow
             .Where(r => filter.Length == 0 || r.Name.Contains(filter, StringComparison.CurrentCultureIgnoreCase))
             .ToList();
 
-        RecordList.RemoveAllChildren();
-        foreach (var record in shown)
+        // WOLFGATE(Cloning) START: the state arrives every second, and rebuilding the rows would drop a click in progress
+        if (_shownRecords == null || !_shownRecords.SequenceEqual(shown))
         {
-            RecordList.AddChild(CreateRow(record));
+            _shownRecords = shown;
+            RecordList.RemoveAllChildren();
+            foreach (var record in shown)
+            {
+                RecordList.AddChild(CreateRow(record));
+            }
         }
+        // WOLFGATE END
 
         NoRecordsLabel.Visible = shown.Count == 0;
         NoRecordsLabel.Text = state.DatabaseName == null

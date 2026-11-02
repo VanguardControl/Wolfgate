@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using Content.Server._NF.Traits.Assorted;
+using Content.Server._WF.Cloning; // WOLFGATE(Cloning)
 using Content.Server.Chat.Systems;
 using Content.Server.Cloning;
 using Content.Server.Cloning.Components;
@@ -19,6 +20,7 @@ using Content.Shared.Humanoid;
 using Content.Shared.Mind;
 using Content.Shared.Roles.Jobs;
 using Content.Shared.Sprite;
+using Content.Shared.Zombies; // WOLFGATE(Cloning)
 using Robust.Server.Containers;
 using Robust.Server.GameObjects;
 using Robust.Server.Player;
@@ -56,6 +58,7 @@ public sealed partial class GeneticCloningSystem : EntitySystem
     [Dependency] private SharedMindSystem _mindSystem = default!;
     [Dependency] private TransformSystem _transformSystem = default!;
     [Dependency] private GrammarSystem _grammar = default!;
+    [Dependency] private WFCloneTemplateSystem _wfCloneTemplate = default!; // WOLFGATE(Cloning)
 
     /// <summary>
     /// body check for ui
@@ -70,6 +73,7 @@ public sealed partial class GeneticCloningSystem : EntitySystem
 
         if (!TryComp<HumanoidAppearanceComponent>(body, out var humanoid) ||
             HasComp<SiliconComponent>(body) || // Yet another IPC nerf, poor robots
+            HasComp<ZombieComponent>(body) || // WOLFGATE(Cloning): a scan would store the zombie appearance and name
             !_prototype.HasIndex(humanoid.Species) ||
             !HasComp<PhysicsComponent>(body))
         {
@@ -90,7 +94,7 @@ public sealed partial class GeneticCloningSystem : EntitySystem
     /// <summary>
     /// Snapshots a body
     /// </summary>
-    public GeneticRecord? CreateRecord(EntityUid body, out string? failReason)
+    public GeneticRecord? CreateRecord(EntityUid body, out string? failReason, float failChanceModifier = 1f) // WOLFGATE(Cloning): the scanner sets the fail chance
     {
         if (!CanRecord(body, out var mindId, out failReason))
             return null;
@@ -99,6 +103,15 @@ public sealed partial class GeneticCloningSystem : EntitySystem
         var physics = Comp<PhysicsComponent>(body);
 
         // fail chance would go here. Removed.
+
+        // WOLFGATE(Cloning) START: cellular damage at scan time decides the fail chance, as the old console did at clone time
+        var failChance = 0f;
+        if (TryComp<DamageableComponent>(body, out var damageable) &&
+            damageable.Damage.DamageDict.TryGetValue("Cellular", out var cellular))
+        {
+            failChance = Math.Clamp((float) (cellular / 100), 0, 1) * failChanceModifier;
+        }
+        // WOLFGATE END
 
         var record = new GeneticRecord
         {
@@ -109,6 +122,8 @@ public sealed partial class GeneticCloningSystem : EntitySystem
             Mass = physics.FixturesMass,
             HasBankAccount = HasComp<BankAccountComponent>(body),
             ScannedAt = _timing.CurTime, //not sure if this is needed anymore
+            FailChance = failChance, // WOLFGATE(Cloning)
+            WfTemplate = _wfCloneTemplate.Capture(body), // WOLFGATE(Cloning)
         };
 
         foreach (var comp in AllComps(body))
@@ -212,6 +227,8 @@ public sealed partial class GeneticCloningSystem : EntitySystem
             }
         }
 
+        _wfCloneTemplate.Apply(mob, record.WfTemplate); // WOLFGATE(Cloning): replaces CloningEvent, which needs the source body
+
         _metaSystem.SetEntityName(mob, record.Name);
 
         var cloneMindReturn = AddComp<BeingClonedComponent>(mob);
@@ -250,6 +267,12 @@ public sealed partial class GeneticCloningSystem : EntitySystem
         _humanoidSystem.SetSex(target, source.Sex, false, targetHumanoid);
         targetHumanoid.CustomBaseLayers = new(source.CustomBaseLayers);
         targetHumanoid.MarkingSet = new(source.MarkingSet);
+        // WOLFGATE(Cloning) START: the fields CloneAppearance copies, plus the custom species name
+        targetHumanoid.MismatchedParts = source.MismatchedParts;
+        targetHumanoid.CustomMarkings = new(source.CustomMarkings);
+        targetHumanoid.LegStyle = source.LegStyle;
+        targetHumanoid.CustomSpeciesName = source.CustomSpeciesName;
+        // WOLFGATE END
 
         targetHumanoid.Gender = source.Gender;
         if (TryComp<GrammarComponent>(target, out var grammar))

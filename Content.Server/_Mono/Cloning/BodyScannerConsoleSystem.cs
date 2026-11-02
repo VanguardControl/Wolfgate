@@ -49,6 +49,12 @@ public sealed partial class BodyScannerConsoleSystem : EntitySystem
 
     private void OnMapInit(EntityUid uid, BodyScannerConsoleComponent component, MapInitEvent args)
     {
+        ResolveLinkedScanner(uid, component); // WOLFGATE(Cloning)
+    }
+
+    // WOLFGATE(Cloning): also runs on power change, since a loaded ship skips MapInit and the scanner reference is not saved
+    private void ResolveLinkedScanner(EntityUid uid, BodyScannerConsoleComponent component)
+    {
         if (!TryComp<DeviceLinkSourceComponent>(uid, out var source))
             return;
 
@@ -88,6 +94,7 @@ public sealed partial class BodyScannerConsoleSystem : EntitySystem
 
     private void OnPowerChanged(EntityUid uid, BodyScannerConsoleComponent component, ref PowerChangedEvent args)
     {
+        ResolveLinkedScanner(uid, component); // WOLFGATE(Cloning)
         UpdateUserInterface(uid, component);
     }
 
@@ -107,7 +114,7 @@ public sealed partial class BodyScannerConsoleSystem : EntitySystem
         if (!_database.TryGetDatabase(uid, out var db))
             return;
 
-        var record = _geneticCloning.CreateRecord(body, out var failReason);
+        var record = _geneticCloning.CreateRecord(body, out var failReason, scanner.CloningFailChanceMultiplier); // WOLFGATE(Cloning): upgraded scanners lower the fail chance
         if (record == null)
         {
             if (failReason != null)

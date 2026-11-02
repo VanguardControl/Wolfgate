@@ -131,11 +131,11 @@ public sealed partial class GeneticCloningConsoleSystem : EntitySystem
         var records = new List<GeneticRecordEntry>();
         if (_database.TryGetDatabase(uid, out var db))
         {
-            databaseName = db.Value.Comp.DatabaseName;
+            databaseName = _database.GetDisplayName(db.Value); // WOLFGATE(Cloning): tells databases apart, as the scanner console does
             records = _database.GetEntries(db.Value);
         }
 
-        var cloneBodyInfo = Loc.GetString("generic-unknown");
+        string? cloneBodyInfo = null; // WOLFGATE(Cloning): an empty pod shows the blank label, not "Unknown"
         var clonerConnected = false;
         var clonerMindPresent = false;
         var clonerInRange = consoleComponent.CloningPodInRange;

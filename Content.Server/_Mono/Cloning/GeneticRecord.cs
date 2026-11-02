@@ -1,3 +1,4 @@
+using Content.Server._WF.Cloning; // WOLFGATE(Cloning)
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Prototypes;
 using Robust.Shared.Prototypes;
@@ -28,4 +29,6 @@ public sealed class GeneticRecord
     public List<IComponent> TransferredComponents = new();
 
     public TimeSpan ScannedAt;
+
+    public WFCloneTemplate WfTemplate = new(); // WOLFGATE(Cloning): the body may be gone by clone time
 }
