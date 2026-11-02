@@ -185,6 +185,7 @@ payment, sells a few, and eats whoever is left dead in his inn.
 - [`Resources/Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml`](../../../Resources/Maps/_WF/PlanetPois/carcinoma_fountain_of_life.yml)
 - [`Resources/Maps/_WF/PlanetPois/greenhouse.yml`](../../../Resources/Maps/_WF/PlanetPois/greenhouse.yml)
 - [`Resources/Maps/_WF/PlanetPois/mechanic_shop.yml`](../../../Resources/Maps/_WF/PlanetPois/mechanic_shop.yml)
+- [`Resources/Maps/_WF/PlanetPois/planetary_hospital.yml`](../../../Resources/Maps/_WF/PlanetPois/planetary_hospital.yml)
 - [`Resources/Maps/_WF/PlanetPois/planetary_vault.yml`](../../../Resources/Maps/_WF/PlanetPois/planetary_vault.yml)
 - [`Resources/Maps/_WF/PlanetPois/roadside_inn.yml`](../../../Resources/Maps/_WF/PlanetPois/roadside_inn.yml)
 - [`Resources/Maps/_WF/PlanetPois/Tests/through_service.yml`](../../../Resources/Maps/_WF/PlanetPois/Tests/through_service.yml)

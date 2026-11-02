@@ -17,6 +17,7 @@ wf-poi-verda-gas-station = Roadside gas station
 wf-poi-verda-house-1 = Roadside house
 wf-poi-mechanic-shop = Mechanic's garage
 wf-poi-roadside-inn = Roadside inn
+wf-poi-planetary-hospital = Hospital
 wf-poi-verda-corner-house = Run-down house
 wf-poi-verda-small-house = Small house
 wf-poi-abandoned-bandit-hideout = Bandit hideout

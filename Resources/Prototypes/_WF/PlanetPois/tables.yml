@@ -1,7 +1,8 @@
 # Every world keeps its procedural dungeons beside the authored sites. On Verda they sit off the roads, which join the
 # house and the gas station; elsewhere the roads join the dungeons.
 # The mechanic's garage and the roadside inn carry their own strip of asphalt, so they go only on the paved worlds:
-# always on Verda, now and then on Merak.
+# always on Verda, now and then on Merak. The hospital sits on its own stretch of road too, on Verda alone: its grounds
+# are Verda's crocus grass.
 # A site that finds no room is skipped, so the counts are ceilings.
 # Armour (the Reaver APC road patrols) drives only Verda's and Merak's roads; the other worlds keep their parked
 # civilian vehicles and nothing heavier.
@@ -207,6 +208,19 @@
     - offset: -7,-5
       direction: West
     - offset: 12,-5
+      direction: East
+    rotate: true
+  - mapPath: /Maps/_WF/PlanetPois/planetary_hospital.yml
+    name: wf-poi-planetary-hospital
+    expeditions: false
+    footprint: -18,-55,25,29
+    minCount: 1
+    maxCount: 1
+    connection: Through
+    sockets:
+    - offset: -18,-52
+      direction: West
+    - offset: 24,-52
       direction: East
     rotate: true
   - dungeon: WFPoiAsclepiuResearch

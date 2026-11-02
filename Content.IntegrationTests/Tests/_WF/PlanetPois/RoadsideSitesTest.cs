@@ -70,4 +70,39 @@ public sealed class RoadsideSitesTest
 
         await pair.CleanReturnAsync();
     }
+
+    [Test]
+    public async Task HospitalLoadsWholeOnVerda()
+    {
+        const string path = "/Maps/_WF/PlanetPois/planetary_hospital.yml";
+
+        await using var pair = await PoolManager.GetServerClient();
+        var server = pair.Server;
+        var entMan = server.EntMan;
+
+        await server.WaitAssertion(() =>
+        {
+            var entry = server.ProtoMan.Index<WFPlanetPoiTablePrototype>("WFPoisAsclepiu").Entries.Single(found => found.MapPath == path);
+            Assert.That(entry.MinCount, Is.EqualTo(1), "Verda doesn't always place the hospital.");
+            Assert.That(entry.Connection, Is.EqualTo(WFPlanetPoiConnection.Through), "The hospital should sit on its own stretch of road.");
+
+            var maps = server.System<SharedMapSystem>();
+            maps.CreateMap(out var mapId);
+            Assert.That(server.System<MapLoaderSystem>().TryLoadGrid(mapId, new ResPath(path), out var grid), Is.True);
+
+            var grids = 0;
+            var query = entMan.EntityQueryEnumerator<MapGridComponent, TransformComponent>();
+            while (query.MoveNext(out _, out _, out var xform))
+            {
+                if (xform.MapID == mapId)
+                    grids++;
+            }
+
+            Assert.That(grids, Is.EqualTo(1), "The hospital loaded in pieces.");
+            Assert.That(entMan.HasComponent<RoofComponent>(grid!.Value.Owner), Is.True, "The hospital has no roof.");
+            maps.DeleteMap(mapId);
+        });
+
+        await pair.CleanReturnAsync();
+    }
 }
