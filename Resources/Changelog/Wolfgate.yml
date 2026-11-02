@@ -4684,3 +4684,37 @@ Entries:
   id: 100308
   time: '2026-11-01T23:11:52.0000000+00:00'
   url: https://github.com/VanguardControl/Wolfgate/pull/445
+- author: Gandalf2k15
+  changes:
+    - type: Remove
+      message: Removed two jukebox tracks that had no valid license.
+  id: 100309
+  time: '2026-11-01T23:48:29.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/447
+- author: Gandalf2k15
+  changes:
+    - type: Fix
+      message: Salted food and water no longer turn into saline in your body.
+    - type: Fix
+      message: Chemicals formed in your stomach no longer stay stuck there.
+    - type: Fix
+      message: Systemic bleeding now goes away once the bleeding stops.
+    - type: Fix
+      message: Crafting no longer uses the jumpsuit you are wearing.
+    - type: Fix
+      message: You can walk normally after anchoring a chameleon disguise.
+    - type: Fix
+      message: Research machines lose their server link when moved to another grid.
+    - type: Fix
+      message: Crew monitors now show one crew list that other maps cannot overwrite.
+    - type: Fix
+      message: Ship owners can unlock their ship's gas turbine.
+    - type: Fix
+      message: The cargo request computer on the Stellar Blessing now works.
+    - type: Add
+      message: PDV roles can pick PDA cartridges in the loadout menu.
+    - type: Add
+      message: The PDV uplink now sells 5.56 ammo.
+  id: 100310
+  time: '2026-11-01T23:53:12.0000000+00:00'
+  url: https://github.com/VanguardControl/Wolfgate/pull/446

@@ -1145,7 +1145,9 @@ Skipped ("dirty-disposed").
   - the body or its gear may refuse a deeper bleed.
   - playtest 4: a tourniquet stays tied whatever the wound does under it (the strap's own
   - playtest 1: once per cooldown, not every vacuum tick
+  - a clotted systemic bleed left an untreatable wound
   - dressing
+  - a stopped systemic bleed left an untreatable wound
   - gauze that stops a bleed stays on the wound as a dressing. Removing the component here let the
   - W2: an arterial bleed does not give up severity to a dressing.
   - BRAIN: cardiac arrest drops passive bleeding to a trickle. Applied to the body's
@@ -1184,6 +1186,7 @@ Skipped ("dirty-disposed").
   - Wolfmed wound hosts own their own bleeding.
   - CONSC
   - M3
+  - salted food and water must not form saline
   - M3: an impaired heart regenerates at its band's factor (plan §8); 1 everywhere else.
   - CONSC: blood volume is a consciousness input and the bloodstream raises no event
   - GUARD E, wound hosts get their bleeding from WoundBleedingSystem instead.
@@ -1201,6 +1204,8 @@ Skipped ("dirty-disposed").
   - M2: "Can't breathe: no air" on a wound host
 - [`Content.Server/Body/Systems/StomachSystem.cs`](../../Body/Systems/StomachSystem.cs)
   - playtest 1
+  - salted food and water must not form saline
+  - reaction products were stuck in the stomach for good
   - playtest 1: painkillers absorb fast
 - [`Content.Server/Chat/EmoteOnDamageComponent.cs`](../../Chat/EmoteOnDamageComponent.cs)
   - HOOK 17, ProtoId\<> for the Wolfmed pain-sound thresholds.
@@ -1210,6 +1215,7 @@ Skipped ("dirty-disposed").
   - M2: OD17, damage totals do not kill a wound host; its suicide is brain 0 then death.
 - [`Content.Server/Chat/Systems/ChatSystem.Emote.cs`](../../Chat/Systems/ChatSystem.Emote.cs): HOOK 6, overrides SharedChatSystem's shared entry point (D25).
 - [`Content.Server/Chat/Systems/EmoteOnDamageSystem.cs`](../../Chat/Systems/EmoteOnDamageSystem.cs): HOOK 18, Wolfmed pain sounds (\<Onyx-PainSounds>); never a second subscription.
+- [`Content.Server/Construction/ConstructionSystem.Initial.cs`](../../Construction/ConstructionSystem.Initial.cs): crafting tore the jumpsuit off the crafter's back
 - [`Content.Server/Damage/Commands/HurtCommand.cs`](../../Damage/Commands/HurtCommand.cs)
   - P6, optional 5th arg is a body part.
   - P6, the uid stays args[3] when a body part follows it.
